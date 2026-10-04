@@ -31,6 +31,17 @@ its third DLI, guns → core, the chain and the hand-off to the summary, the
 START GAME restore (Q-S4). As built, with every figure MEASURED and the
 deviations: §5.12.
 
+**Boss redesign planned 2026-10-04** on `docs/plan-m5-boss-combat`
+(`OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed): after the
+owner's smoke of S3 found the fight weak, the layered fight of
+[../boss-concepts.md](../boss-concepts.md) and the core boss as a second style,
+both from one engine as data — owner decisions A–G (§1.6), the design, the data
+format and art route, the probe measurements, the price against every
+resource, the sessions **S4a-i / S4a-ii / S4b / S5** replacing S4/S5, and
+owner questions Q-B1–Q-B8: **§5.13**. The binding finding: slot A cannot grow
+and cannot hold the layered engine with the lasers, so the C controller moves
+to a **slot C in low RAM** (`$0C00-$18FF`, with a region charset of its own).
+
 **M5a-S2 implemented 2026-10-03** on `feat/level-summary`,
 `OWNER-SMOKE CANDIDATE` pending the owner's smoke: the level-summary screen,
 the stat counters, the grade, the save record. The `$0500` module MEASURED
@@ -267,6 +278,22 @@ confirmed; one new decision for S3.
 | Q-S6 | **Yes** — **a shared install run on disk**: boss code 16 + install 3 + four regions × 9 = **55 of the 56** sectors reserved at 528–583 | §6.3, §8 S5 |
 | correction 9 | **The boss's per-frame work is limited to ≤ 3,500 native cycles** (was ≤ 300). Reason: the spike MEASURED 3,259 native at worst (four lasers, the core destroyed on the frame) and the worst boss frame still cleared the line-238 fence by **10,103** in the emulator (~6,500 composed worst, ESTIMATE), against GO 500 | §5.10 |
 | **32** | **New owner decision for M5b-S3: the boss-entry transition is presented as a `WARNING - BOSS APPROACHING` screen with the start of the boss theme, not as a plain load.** Priced in §5.11.7 | §4.4, §5.11.7, §8 S3 |
+
+### 1.6 Taken on 2026-10-04 — the boss redesign (planned in §5.13)
+
+The owner's decisions after smoking M5b-S3; recorded here, designed and priced
+in §5.13. Decision 7 (§1.2) is superseded as the only form: it lives on as
+style 2 under F.
+
+| # | Decision | Applied in |
+| ---: | --- | --- |
+| **A** | **The layered fight** follows [../boss-concepts.md](../boss-concepts.md): destructible modules in 2–4 layers; outer modules shield inner ones; a gun in a deeper layer cannot fire until the module in front of it is destroyed; destroying a cover exposes both a new target and a new threat; placement is irregular. The boss is defeated when its **last weapon module** is destroyed; clearing the remaining armour is not required | §5.13.2 items 1–3, 8 |
+| **B** | **Weapons**: beam emitters are the lasers and their count follows the laser tiers (1 / 2 / 4 on levels 1–4 / 5–8 / 9–12, decision 8 stays; a layout carries emitter *slots* the tier enables or turns into armour); pulse cannons fire ordinary shots from the existing hostile pool; salvo launchers (the final boss) fire a burst of ordinary shots | §5.13.2 items 6–7 |
+| **C** | **Hits must read on screen**: a spark drawn in the struck module's cell inside the band (shots do not enter the band; the spark does); damage stages per module shown by glyph changes (intact, cracked, broken, gone); a one-frame band flash and a short hit sound distinct from the destruction sound. **No boss health bar**: the falling modules are the progress | §5.13.2 items 4–5 |
+| **D** | **Engine nozzles at both ends** of the boss, animated like the capital ships' engine banks, instead of the identical vertical caps | §5.13.2 item 9 |
+| **E** | **Four regional bosses.** Confirmed starting mapping: R1 Blockade Breaker (2 layers, pulse cannons plus the tier's emitters), R2 Siege Spine (3), R3 a Siege Spine variant with its own art and layout (3), R4 Void Citadel (4, the final boss, with salvo launchers) — compared with the alternative in **Q-B1** | §5.13.8 |
+| **F** | **Two boss styles from one fight engine, as data.** Style 1 the layered fortress of A; style 2 the core boss as built in S3: a core module that is the last weapon module, hidden behind a **cover group** of guns and exposed only when every module of the group is destroyed. The cover rule is generalised so a module can be covered by a group, not only by the one in front; both styles share the hit feedback, damage stages, nozzles, lasers and win sequence | §5.13.2 items 2, 12; §5.13.3 |
+| **G** | **The agent draws the placeholder art; the owner changes it afterwards** (answer given during the planning session, 2026-10-04) | §5.13.4, Q-B2 |
 
 ---
 
@@ -1663,6 +1690,357 @@ load figures are EMULATOR. Region 1's art and the boss theme are placeholders
 | the fights (bot, held lives) | 45–60 s | **2,626 / 2,871 / 2,629 frames** EASY / MEDIUM / HARD |
 | gameplay before the boss | identical | **51 of 51 replay files identical** to `main` on 42 columns up to the boss sector |
 
+### 5.13 The layered fight and the two styles (planning, 2026-10-04, `docs/plan-m5-boss-combat`, `OWNER REVIEW CANDIDATE`)
+
+**Why.** The owner smoked S3's boss (§5.12) and found the fight weak: the
+boss is not made of destructible segments; its guns do not fire; the core is
+exposed after three guns with no sense of progress; the player's shots vanish
+at the band's edge with no sign of a hit, so 48 hits pass with no visible
+effect; both ends of the boss are the same vertical cap. The owner's concept
+([../boss-concepts.md](../boss-concepts.md)) describes a layered fight, which
+decision 7 of §1.2 had shortened to "2–3 destructible guns, then the core". The
+owner's decisions of 2026-10-04 (§1.6, A–F) ask for the layered fight, with the
+core boss kept as a second style, both from one fight engine as data. **This
+section is the plan for it**: the fight, the data, the measurements, the price,
+the sessions and the owner questions. Nothing here is implemented. No source,
+cfg, build-script, harness, level or evidence byte changed; one probe build was
+made under `build/level-1-s0/` (§5.13.5) and every edit reverted. The ATR and
+the boot image are the ones `main` `d586228` ships (§5.13.9).
+
+**Step 0 record.** `main` `d586228 docs: M5b-S3 implemented, OWNER-SMOKE
+CANDIDATE - STATUS, plan §5.12 and ledgers, smoke §13`, tree clean, one
+worktree (`~/Projects/dark-fighter`), §5.12 present; ATR
+`8300ba01f4000b7172759783fb86241134900f2eadd17111bc9e58a41657d2a9` (92,176 B),
+boot `4ba68124ed2336fa7dd7d3d1be491357d45ea41f8994a8c21cc0a3503e263b53`
+(27,008 B). Branch `docs/plan-m5-boss-combat` from that commit.
+
+**Where the brief and the repo differ** (the repo wins):
+
+1. "Decision 3 of the pre-M5 list" is **decision 7** of §1.2 here ("Phases:
+   2–3 destructible guns, then the core"); decision 3 is the window levers.
+2. "The free hostile-weapon codes 93–98" (§7 item 19) are not free: **93/103
+   are the Bomber shot's second phase** (`scripts/fighter-weapons.mjs`), and
+   94–99 / 104–109 are "never published", not a proven free pool
+   ([../architecture.md](../architecture.md) §charset). §5.13.4 does not use
+   them.
+3. `docs/level-authoring.md` has no boss section; the level's `boss` id is
+   written (`core[7]`) and **never read**: the region comes from the level id
+   (`src/hybrid/c-asm-abi.s` `_asm_boss_enter`, `src/hybrid/boss.s`
+   `boss_head`). S4a-i writes the section and keeps the id as the style/variant
+   selector (§5.13.4).
+4. The capital engine animation (the nozzle model, decision D) lives **inside
+   slot A** (`update_engine_animation` at `$71B8`), so it does not exist in a
+   boss sector; the boss carries its own copy of the mechanism (§5.13.2 item 9).
+5. [../game-design.md](../game-design.md) decision I gives the laser warning
+   "about two seconds"; decision 8 (§1.2) and the spike built ~0.5 s. Not
+   reopened here; S4b keeps decision 8.
+6. **Owner answer during this session (2026-10-04): the agent draws the
+   placeholder art and the owner changes it afterwards** ("agent robi grafikę
+   zastępczą, ja ją potem będę zmieniał"). Recorded as decision G in §1.6; the
+   art *format* is still Q-B2.
+
+#### 5.13.1 Facts the design rests on (MEASURED from the build or the source)
+
+| Fact | Value | Source |
+| --- | --- | --- |
+| slot A | `$6DE8-$75E7`, 2,048 B; **cannot grow**: `capital_slot_a_end` must stay ≤ `white_starfield_broadside_abi_pad` `$7667` (127 B away) and resident per-frame code follows (`wait_for_master_pal_frame` at `$768A`) | `src/main.s:9681-9685`, `build/void-strike-65.lbl` |
+| slot A used by S3 | 1,297 B: ASM 806 + C 443 + BSS 48 | `build/boss.map` |
+| low RAM | `$0C00-$1FFF` 5,120 B unclaimed, measured-free (EMULATOR, patterns `$5A`/`$A5`, BASIC on and off); `$0500-$0BFF` is the summary module's claim, pinned by tests | memory map; `diagnostics/low-ram-0700-1fff-2026-10-03.md` |
+| the band's charset | codes 59–89 (31), the capital hull's; the band's DLI already sets `CHBASE` in phase 0 and could set another page; the divider row is a starfield row (codes 0–6) rendered under the band's `CHBASE` | `src/hybrid/boss.s:194-212`, install step 5 |
+| hostile shots | one pool of 10 slots, 5 hostile (`$5400`); straight down, 2 scanlines a step, lifetime 96, class PULSE codes 90/100; **no (x, y) spawn routine, no C veneer** (the Light kernel fills a slot inline, `light-kernel.s:315-338`) | `src/main.s:1008-1017, 4441-4486` |
+| hostile pool cost, resident | 548 cycles a frame with 5 PULSE in flight + 1,186 to render 5 slots (+26 a slot) | STATUS "4.4c" tables; budget §1.1 |
+| engine banks | two glyphs' bytes rewritten every 8 frames, 2 phases, 29 + 38 B, ~21 cycles idle / ~240 on a flip (IC) | `src/main.s:8793-8831` |
+| sound | ch 1–2 music (ch 2 pre-empted by `hit_timer`), ch 3 the engine bed (`AUDF3 $68 / AUDC3 $22`, set by the boss install), ch 4 the player shot and the capital explosion (the boss already uses the explosion through `CAPITAL_EXPLOSION_SOUND_TIMER`); `play_hit_sound` is the only hit/kill sound; `CODE` has 31 B to STOP | `src/main.s:7088-7196`, `src/hybrid/gameplay-music.s:126-128` |
+| the band palette | reloaded from `$AD00-$AD03` by the boss DLI every frame; nothing writes it after the install | `src/hybrid/boss.s:202-209` |
+| `COLBK` flash | 4 frames from the enemy explosion slot's timer, as the chain uses | `src/main.s:7157-7193` |
+| column collision under scroll | built and MEASURED: column = (x − 32 + p) / 4, p = LMS·4 − HSCROL | `tests/boss-runtime.test.mjs:241, :331, :351` |
+| harness | `tests/boss-harness.mjs` `call()` / `nmi()` native cycles on linked bytes; the trace's `boss_state` = 1 + `_boss_phase`; kills counted at `boss_module_scored`; the native pin 3,500 (S3 2,760) | `tests/boss-runtime.test.mjs:544`; STATUS |
+| disk | 528–583 reserved (55 used); 509 ATR sectors remaining; summary 584–597, save 599, art 600–627; entry 28 sectors / 108 frames | manifest |
+| PNG | `scripts/preview.mjs:1942-1966` decodes non-interlaced 8-bit RGBA PNG with node's zlib: the art route needs no dependency | — |
+| stats | `STATS_HITS` on damaging hits, `STATS_KILLS` through `$A012` per module, `STATS_BONUS` from `boss_def` (62 B, 60 free), the time grade = the fight only (built); level 1's time tiers 90 / 60 s | `src/hybrid/level-summary-abi.inc`, `boss.s:390-412`, `boss.c:150` |
+
+#### 5.13.2 The fight
+
+1. **The grid.** The 8-row × 64-column band as built. **Layers are rows
+   counted from the player's side**: row 7 is layer 1, row 0 the deepest. A
+   module is a rectangle (x, row, width 1–4, height 1–2) of band cells. Up to
+   **16 modules** a boss (S3: 8). Kinds: `armour`, `pulse`, `emitter`, `salvo`,
+   `core`; every kind but armour is a **weapon**. Placement is the layout's
+   business and may be irregular (decision A); layers are a way of reading the
+   rows, not a rule the engine enforces.
+2. **Cover groups (decisions A, F).** Every module carries a 16-bit `cover`
+   mask; it is **exposed** when `cover & alive == 0`. The converter computes the
+   mask from geometry — every module in a nearer row whose columns overlap —
+   unless the layout names `cover` explicitly. Style 1 = geometric masks; style
+   2 = the core's mask is the group of guns, the rest 0. Exposure is
+   re-evaluated on every kill (≤ 16 masks, one `and` each); a module that
+   becomes exposed draws its `open` look if it has one (the S3 core's shutters)
+   and arms its weapon. **A gun cannot fire until exposed** — that is the
+   "module directly in front" rule, generalised.
+3. **Collision.** The column map (64 B) holds, per column, the **front intact
+   module** — the one nearest the player — else ARMOUR or OPEN. It is rebuilt
+   on every kill (§5.13.5 P2: column-local, not the whole map). A player shot
+   that reaches the band's bottom edge meets its column: a module that is
+   **exposed takes the hit**; a module that is intact but **covered absorbs it**
+   (spark, tick, no damage, no hit for the accuracy stat — Q-B7); ARMOUR absorbs
+   likewise; OPEN lets the shot fly on hidden (as built). One rule for both
+   styles: in style 1 the front module is exposed unless a partial overlap
+   leaves part of its cover alive; in style 2 the core absorbs behind its
+   shutters until the last gun dies.
+4. **Damage stages (decision C).** `intact → cracked → broken → gone`. The
+   converter writes two thresholds a module (⅔ and ⅓ of its HP). Every staged
+   glyph sits in one contiguous block of the boss charset so that **cracked =
+   code + K and broken = code + 2K** (K = the number of staged glyphs): a stage
+   change is one add per cell, no look table; `gone` is one bay glyph per kind
+   over the module's cells. Module cells must use staged glyphs (the converter
+   refuses a module drawn with an unstaged glyph); hull outside modules is
+   free-form.
+5. **Hit feedback (decision C).** A **cell-flash ring** of 8 records (cell
+   address, saved code, timer): the **spark** glyph for 2 frames in the struck
+   cell (the module's bottom row at the shot's column; an armour hit sparks on
+   the hull's bottom edge); the same ring draws the **muzzle flash** of a firing
+   cannon and the laser's **heat** phases (S4b). A stage change expires the
+   module's records first, then redraws. **Band flash**: the four palette bytes
+   at `$AD00` raised by `flashLuma` (data) for one frame on a damaging hit,
+   restored by the next tick; the DLI needs no change. **Hit tick**: 2 frames on
+   channel 3 (a high tone over the engine bed, the bed put back after;
+   `AUDF3/AUDC3`, 0 resident bytes), distinct from the **kill** (`play_hit_sound`,
+   14 frames, ch 2) and the **destruction** (the capital explosion on ch 4 + the
+   `COLBK` flash, as the chain already does). No health bar.
+6. **Firing rules (decision B).** A weapon fires only while alive and exposed.
+   **Pulse cannon**: a reload (data, per module; difficulty by shift: EASY
+   +½, HARD −¼) → one PULSE shot from the module's centre column at the band's
+   bottom edge, straight down (the pool has no dx; the band's drift sweeps the
+   columns), with a muzzle flash. **Salvo launcher**: three shots on three
+   frames from columns x − 1, x, x + 1, then a long reload. **Beam emitter**:
+   §5.5's laser (S4b), its heat through the ring. **Core**: fires pulses if its
+   reload is non-zero, else inert. The controller keeps **one countdown** to the
+   next firing module (O(1) a frame; §5.13.5's cadence measurement rules out a
+   per-module timer scan in C) and serialises to ≤ 1 spawn a frame with a
+   global cooldown (data); the five hostile slots are shared with the escort
+   Light, which fires through the token as today.
+7. **Emitter slots and tiers (decision B, decision 8).** A layout authors up
+   to four `emitter` modules with `slot` 1–4. At the install, the tier
+   (level − 1) / 4 enables 1 / 2 / 4 slots; the others become `armour` with
+   their `capped` look (a plated housing). Region × level: R1 (L1–3) 1; R2 L4 1,
+   L5–6 2; R3 L7–8 2, L9 4; R4 (L10–12) 4.
+8. **Defeat (decision A).** `weapons_left` is counted at the install after the
+   tier conversion; it reaches 0 → the chain. Armour kills score and count as
+   kills (they are the visible progress) and are never required.
+9. **Nozzles (decision D).** Nozzle cells at both ends of the band reference
+   two flame glyph codes; every 8 frames the overlay copies the next phase's
+   16 B (3 phases × 2 ends, from the charset run's tail) into those codes — the
+   capital engine-bank mechanism, 0 cell writes; the chain writes the dark
+   phase and stops the copy. The ends are on screen when the drift brings them
+   in (the band is 64 cells, the window 40): the hull reads as a structure the
+   screen slides over.
+10. **The win.** As built (§5.6, §5.12): blasts along the modules — every
+    module, surviving armour included, becomes a wreck as the chain passes —
+    the `COLBK` flash, the band shake, the bonus, the hold, the hand-off. The
+    nozzles go dark on the first blast.
+11. **Stats.** Kills = modules destroyed (armour included); hits = damaging
+    hits; time = the fight only (built); bonus = `boss_def`'s. `boss_def`'s 60
+    free bytes carry the per-difficulty HP scale (Q-B3).
+12. **Two styles, one engine (decision F).** Style 1 (geometric cover, 2–4
+    layers) and style 2 (the S3 core behind a cover group of guns) are **region
+    data**: the same controller, collision, stages, feedback, nozzles, lasers
+    and win. The core boss as built becomes a layout with explicit cover and an
+    `open` look.
+
+#### 5.13.3 The cover-group rule, priced
+
+| Item | Bytes | Where | Basis |
+| --- | ---: | --- | --- |
+| `cover` 2 B × 16 modules + `alive` 2 B | 34 | region tables / state | fixed |
+| the exposure pass on a kill (16 masks, the `open` look, the arm) | 60 → 72 | C | IC |
+| the covered-module absorb branch in the hit path | 10 → 12 | C | IC |
+| the converter's geometric cover (overlap in nearer rows) and the explicit form | 0 runtime | `scripts/boss-assets.mjs` | — |
+| **cycles**: the exposure pass | ~16 × 40 = 640 native on a kill frame (cc65) | | AN §5.13.5 cadence loop (85–92 a module) |
+
+Against S3's "the core opens when `guns_left` reaches 0" this is +~90 B of C
+and the mask bytes; it buys both styles and irregular cover for free. The
+alternative — a module covered only by the one directly in front — needs a
+"front" index per module (16 B) and a special case for the core; it does not
+express style 2 or a gun shielded by two plates, and is not recommended.
+
+#### 5.13.4 Data, conversion, homes, the art route
+
+**The draft (what the owner edits), per region** in
+`assets/graphics/boss-regions/region-N/`:
+
+| File | Content |
+| --- | --- |
+| `band.png` | 256 × 64 px (64 cells × 4 px, 8 rows × 8 lines; drawn at 2:1 pixel aspect), five fixed colours: background, pf0, pf1, "3 in the pf2 bank", "3 in the pf3 bank" (a cell may not mix the two) |
+| `cracked.png`, `broken.png` | the same size; read inside module rectangles only |
+| `open.png` | the exposed look of a covered module (its own art under the shutters); cells identical to `band.png` are allowed and mean "no open look" |
+| `extras.png` | a strip: the spark, one bay glyph per kind, the nozzle phases (3 × 2), the capped emitter plates |
+| `modules.json` | `formatVersion` 2, `name`, `style` (1 or 2, documentation), `palette` {colpf0–3, `flashLuma`}, `motion`, `chain`, `nozzles` {left, right cells; `framesPerPhase`}, `modules[]` {`name`, `kind`, `x`, `row`, `width`, `height`, `hp`, `score`, `slot` (emitters), `reload`, `cover`: "auto" or names} |
+| the theme | `assets/music/boss-theme-N.json` as today |
+
+**The converter** (`scripts/boss-assets.mjs` v2): decodes the PNGs with the
+`preview.mjs` reader; cuts cells; mirrors the star codes 0–6 (the divider);
+dedupes each module cell as a triple (intact, cracked, broken) into the
+**staged block** and every other cell into the plain block; validates: ≤ 128
+codes, one colour bank per cell, module cells staged, covers acyclic (a module
+may not cover itself through a chain), `salvo` only where the layout says, the
+band rows on 64-B boundaries, ≤ 16 modules, the look tail fits; emits **four
+runs**:
+
+| Run | Sectors | Lands | Content |
+| --- | ---: | --- | --- |
+| charset | ≤ 8 (sized to the glyphs used) | **`$0C00`** | the glyphs (1 KB max), then the look tail: `open` and `capped` looks, nozzle phase images |
+| band A | 3 | `$A880` | rows 0–5 |
+| band B | 3 (S3: 2) | `$AC80` | rows 6–7, then **256 B of tables**: header 24 (palette 4, flashLuma, motion 5, chain 2, nozzle cells 4 + phase frames, K, bay glyph per kind 5, spark glyph, module count, cooldown), 16 × 12-B module records (x, row, w, h, hp, hp_cracked, hp_broken, kind, score, cover lo/hi, slot/reload), open-look offsets |
+| theme | 2 | `$7990` | as today, without the glyphs |
+
+**Homes.** The boss claims **`$0C00-$18FF`** (3,328 B of the measured-free low
+RAM), the way the summary claims `$0500-$0BFF`; tests pin the claim and the
+memory map gets the rows:
+
+| Range | Use | Read at |
+| --- | --- | --- |
+| `$0C00-$0FFF` | the region's charset (`CHBASE` `$0C` in the band's DLI phase 0; phase 1 restores `>CHARSET` for the ring: +5 B, ~8 cycles) | every boss entry, by the slot-A head |
+| `$1000-$17FF` | **slot C**: the C controller and the laser C (its own `MEMORY` area in `cfg/boss.cfg`, one more run in `boss-runs.inc`, read as many sectors as linked) | every boss entry |
+| `$1800-$18FF` | scratch: the column map (64), the cell-flash ring (32), the controller's state | written at the install |
+
+Nothing of it survives a boss sector: `start_gameplay` and the HUD DLI set
+`CHBASE`, the Q-S4 restore is unchanged, and no resident code reads `$0C00+`.
+The risk is the one the owner already carries for `$0500`: **EMULATOR-only
+evidence until the 65XE smoke** (hardware-testing §12/§13), risk 2.
+
+**Disk.** 528–583 keeps the boss code 16 + the install 3 + slot C ≤ 16 (35 of
+56); the regions move to a new area of **16 sectors each from 632** (charset ≤
+8, band 6, theme 2; the directory's region entries point there). The entry
+reads 28 → **42 expected / 51 budgeted sectors** (code 16, install 3, slot C
+~10 / 16, theme 2, band 6, charset ~5 / 8): ~160 / ~195 host frames (3.2 /
+3.9 s EMULATOR at 3.86 frames a sector; ×2 on a 1050-class drive, ESTIMATE)
+behind the `WARNING - BOSS APPROACHING` screen with the theme — Q-B8.
+
+**The art route (decision G, Q-B2).** The agent draws the placeholder art in
+this format for region 1 (S4a-i) and for regions 2–4 (S5); the owner edits
+the PNGs afterwards in any pixel editor and the build picks them up. The
+concept PNGs are references, not inputs: their resolution and colour count
+are far above ANTIC 4, so a conversion would have to be a redraw anyway.
+
+#### 5.13.5 Measurements (probe build `build/level-1-s0`, 6502 harness on its linked bytes; every edit reverted)
+
+**The probe.** S3's overlay plus: a 4-record cell-flash ring and the spark on
+every column hit; the band flash; the nozzle glyph copy; a PULSE spawn into
+the hostile pool from a C per-module reload scan (a mailbox); the column map
+rebuilt on a kill with an alive test; and, for P3, a **laser stand-in** with
+the spike's memory traffic (4 missiles: 8 fill + 8 erase read-modify-writes
+each, one `HPOSM` write each, the column compare against the player and five
+shots; `PRIOR $10`, `SIZEM $FF`; no game logic) and a probe copy of level 1
+with one Wingman escort in the boss sector (one Bomber wave fewer in sector
+3). Slot A: 1,297 → **1,964 B** (the probe's own +667: ASM ~520 with ~150 of
+stand-in and ~40 of data, C +144, BSS +24).
+
+**MEASURED, native (no DMA; the emulator ratio ~2.2 applies):**
+
+| Item | Cycles | Note |
+| --- | ---: | --- |
+| **P1** the spark into the band under HSCROL | set **86**; the hit dispatch (module row + set) **150**; the ring's tick **55** idle / **91** with 4 live / **239** with 4 expiring; a stolen record **162** | at band positions p = 0, 5, 17, 31, 48 the spark landed in the struck module's bottom-row cell at the shot's column (`$ACC0 + c`), inside the shown window (p/4 … p/4 + 40), and was back to the hull code two frames later — 5 of 5; p = 63 put the module off screen |
+| **P2** the column map, front-intact rule | S3's builder **2,342**; with the alive test **2,378** (4 alive), **2,260** (3), **1,893** (0): the 64-column base pass 1,893 + **~120 a live module** → a full rebuild with 16 modules **~3,800** (extrapolated) | after gun-centre's death its columns 27–29 read the core (3) and a shot there reached module 3 at the same p; column 17 read ARMOUR once every module was dead. **Recommended instead**: rebuild only the dead module's columns (width × ≤ 16 modules × ~20) **~1,000** (IC) |
+| the band flash | set **103**; tick **13** idle / **21** hold / **77** restore | 4-byte palette write; the DLI unchanged |
+| the nozzle copy | **245** on a flip frame (16 B) / **14** idle | the capital mechanism's cost class (IC ~240) |
+| the PULSE spawn | **62** (free slot) / **80** (pool full, no spawn) | the slot carried class PULSE, x 100, y 88, lifetime 96 |
+| the laser stand-in | **1,749** a frame | the spike's lasers MEASURED 1,692 / 2,089 / 2,430 for 1 / 2 / 4: the stand-in is in range |
+| the C reload scan | S3's tick **30** → **365–399** with 4 modules: **~85–92 a module a frame** (cc65) | 16 modules would cost ~1,450 every frame: hence the single countdown of §5.13.2 item 6 |
+| C growth | the cadence + mailbox alone: **443 → 587 B** (+144); `boss_c_init` 326 → 657 | the spike's lesson in one number: a small C feature is ~150 B |
+| UPDATE, one hit | S3 **320** → probe **3,058** (= 320 + spark 150 + flash 103 + scan ~340 + the per-frame probe work 1,868 of which the stand-in 1,749) | S3: idle 113, 5 hits 1,148, a kill 958 (the wreck draw 281) |
+| **the worst boss frame's own work** (correction 9's loop: UPDATE + PREPARE_ROW + the vectors + 3 DLIs, 5 shots a frame) | S3 **2,760** → probe **8,060** on gun 3's kill frame: 5 sparks, the flash, the wreck draw, the **full** rebuild 2,378, the stand-in 1,749, the scan ~400, the DLIs 581 | with the column-local rebuild (−~1,400) and the countdown (−~350) the engine's worst is **~6,300 with lasers, ~4,500 without** (ESTIMATE from MEASURED parts) |
+| **P3** the worst boss frame in the emulator: 4-laser stand-in + pulse fire + one Light | fence margin **7,339**, DMA-on **29,305** over 8,381 boss frames, 3 replays | EASY 7,339 / MEDIUM 7,633 / HARD 7,507 (f10696 / f10243 / f9085), 0 overruns; enemy shots in flight on 97 % of boss frames (max 5); the entry 108 host frames in each. **Without the escort**: the boss sector's wave count reached the install (1) but no Light was live on any boss frame (`live_interceptor` 0) — whether a Light is admitted in a boss sector at all is an S4a-i test item (§5.12 deviation 7 stops the row tick there). The Light is **composed** from the spike's MEASURED delta (14,949 → 10,103 = 4,846 on a kill frame): 7,339 − 4,846 − a player hit ~900 ≈ **1,600** over GO as probed. S3 MEASURED 16,089 / 28,008 (no lasers, no escort, no fire); the spike 10,103 / 29,219 (lasers, a Light). The variant run's emulator wrote no boss columns, so boss frames are the rows after the entry row |
+
+**What the probe showed beyond the numbers.**
+
+* **The install order**: S3 builds the column map (step 7) before the C init
+  sets the hit points (step 8). With an alive test every module read "dead"
+  and every column became armour; the layered engine must run the C init
+  first. Found and fixed in the probe.
+* **cc65 scans are the cost**: ~90 native a module for a timer loop, +144 B
+  for one feature. The controller's per-frame path must be O(1) and its
+  per-event paths (hit, kill, exposure) O(modules).
+
+#### 5.13.6 Price against every resource
+
+Expected → budgeted (+20 %); the spike's lesson is applied as a second,
+×1.5 line where the fit is decided. MEASURED where the probe measured.
+
+| Resource | S3 (MEASURED) | S4a-i engine | S4a-ii feedback | S4b lasers | End of M5b, budgeted (×1.5 risk) | Limit | Fit |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| **slot A** (ASM) | 1,297 (806 ASM + 443 C + 48 BSS) | **−491** (the C and its BSS leave for slot C) **+130** (stage draw 48, column-local rebuild 40, the C mailbox 30, the slot-C and charset reads 12) | **+350** (ring 110, flash 60, tick 20, nozzles 70 incl. 32 B of phase data, spawn 50, fire dispatch 40) — probe MEASURED ~370 unoptimised | **+366** (the spike's 306 + the owed 60) | **1,652 → 1,980 (2,480 at ×1.5)** | 2,048 | fits budgeted; **at ×1.5 it does not**: the next movable piece is the once-per-entry ASM (the region reads 136 + the base column map 65 + the install's helpers ~60 → slot C), −260 B → **2,220**; after that the laser ASM's collide (127) is the C's to decide |
+| **slot C** `$1000-$17FF` (C) | — | **~1,100 → 1,320**: S3's 443 + cover 90 + stages 60 + defeat/tiers 80 + the countdown and fire policy 150 + exposure 70 + stage/spark mailboxes 60 + growth as measured (×1.3 of IC) | +0 | **+250 → 300** (the spike's ~170 + heat through the ring) | **1,620 (2,430 at ×1.5)** | 2,048 | fits budgeted; at ×1.5 slot C grows into `$1800+` and the scratch moves to `$1F00` (the claim has 1,792 B more) |
+| charset `$0C00-$0FFF` | 248 B at codes 59–89 | ≤ 1,024 (region data) | | | 1,024 | 1,024 | fits by construction (the converter refuses > 128) |
+| scratch `$1800-$18FF` | 64 (column map in slot B) | 64 + 32 + ~40 | | | ~140 | 256 | fits |
+| install run `$7810` | 343 | +~20 (the capped looks, `CHBASE`, the tier) **−16** (no glyph copy) | 0 | 0 | ~350 → 384 | 384 | fits; if not, the capped-look draw moves to slot C's init |
+| slot B | 704 | band 512 + tables 256 = **768** | | | 768 | 768 | fits exactly (the column map left) |
+| window | 1,316 free | **0** (the entry reads the same two directory entries; the head reads the rest) | 0 | 0 | 1,316 | — | unchanged |
+| `HYBRID_C_SECTOR` / `DIRECTOR_C_*` | 18 / 35 free | 0 | 0 | 0 | | | unchanged |
+| `$0500` module | 115 free | 0 (nothing new to restore) | 0 | 0 | 115 | | unchanged |
+| reader | 29 free | 0 | 0 | 0 | | | unchanged |
+| zero page / `ENTITY_STATE` / initial block | 74 / ~21 / 31 to STOP | 0 / 0 / 0 | | | | | unchanged |
+| **disk**, per boss | 9 | **16** (charset ≤ 8, band 6, theme 2) | | | 16 × 4 = 64 at 632–695; 528–583 holds code 16 + install 3 + slot C ≤ 16 | 509 free | after M5b: 509 − 64 + (the 27 reserved and unused at 556–582 stay reserved) = **445**; after eleven more 16-sector levels **269** (§6.3 had 319 → 210 with every item: the boss adds −50) |
+| **the entry** | 28 sectors / 108 frames | **42 → 51** sectors, ~160 → ~195 frames (3.2 → 3.9 s EMULATOR; ×2 on a 1050) | | | | the owner's patience (Q-B8) | the charset and slot C runs sized to use are the lever (−9 sectors) |
+| **hostile pool** | 0 used by the boss | the escort's | ≤ 5 shared; ≤ 1 spawn a frame, a global cooldown | the beam retires shots | MEASURED resident cost at 5 in flight 548 + 1,186 render | 5 slots | the escort can starve during a salvo: the salvo fires what is free |
+| **cycles, native** (correction 9: 3,500) | 2,760 | ~3,400 (rebuild 1,000 + exposure 640 on a kill frame) | ~4,500 (5 sparks 750, flash 103, nozzle 245) | **~6,300** (+1,750) | **~6,300 → 7,600** | 3,500 | **does not fit the pin**: Q-B6 proposes 7,000 on P3's margin |
+| **fence margin, boss frames** | 16,089 | ≈ 14,500 (−1,600: the kill-frame work ×2.2 less the escort) — ESTIMATE | ≈ 12,000 (−2,500: pulses in flight 1,700 + feedback) — ESTIMATE | **P3 MEASURED 7,339** (stand-in lasers + pulses + the Light) | composed worst with a player hit on top (~900) **~1,600 as probed, ~5,400 with the design's savings (−1,750 native: the column-local rebuild and the countdown), ~3,900 at the proposed pin** | GO ≥ 500 | fits by a wide margin |
+| **DMA-on, boss frames** | 28,008 | 0 (the charset page costs nothing) | 0 | missiles are on already | **P3 29,305** | 31,200 / 32,568 | fits |
+| the binding fighter row | 1,370 | 0 | 0 | 0 | 1,370 | ≥ 500 | unchanged: nothing resident changes |
+
+**What does not fit and the cheapest change.** (1) **Slot A alone** cannot
+hold the layered engine with the lasers (2,480 at the spike's ratio): the
+cheapest change is **slot C in low RAM** for the C — a second `MEMORY` area,
+one more run, one claim test, the `CHBASE` line — about 60 B of build and
+harness work and 0 resident bytes; the alternative, cutting stages and
+nozzles, contradicts decisions C and D. (2) **The 31 glyph codes** cannot
+carry four stages, nozzles and a spark for a 16-module boss: the cheapest
+change is the **region charset at `$0C00`** (+5 B of DLI, ≤ 8 sectors a
+region); the alternative, reclaiming 92–99 / 102–109 (16 codes, 47 in all),
+depends on the hostile bank's "never published" gap and is not a proven pool.
+(3) **The native pin** (3,500) cannot hold sparks, a rebuild and four lasers:
+Q-B6 (7,000). (4) The **full column-map rebuild** (3,800 at 16 modules) and a **C
+timer scan** (1,450 a frame) are avoidable costs: the column-local rebuild and
+the single countdown are design rules, not levers.
+
+#### 5.13.7 Sessions
+
+The brief's S4a is **two sessions**: the measurements make a new memory home,
+a converter with a PNG route and a 16-module engine one S3-sized session on
+their own, and the feedback kit (five mechanisms, each with an owner-visible
+look and sound) another. Each on its own branch from `main`, shippable, under
+§8's rules (default-build `npm test`, evidence regenerated, memory map and
+STATUS updated).
+
+| # | Branch | Scope | STOP conditions | Tests and clauses | Evidence | Owner smoke |
+| --- | --- | --- | --- | --- | --- | --- |
+| **S4a-i** | `feat/boss-engine` | the `$0C00-$18FF` claim (charset, slot C, scratch) with its tests and memory-map rows; `cfg/boss.cfg` + `boss-runs.inc` + the head's reads; the band DLI's `CHBASE`; `scripts/boss-assets.mjs` v2 (PNG draft, staged block, four runs, the geometric and explicit cover); the C controller rebuilt in slot C: 16 modules, cover masks, exposure, stages (+K), the defeat rule, tier slots → capped armour, the single countdown (fire policy only — no shot yet), the C init before the column map; the ASM: stage draw, column-local rebuild, mailboxes; `docs/level-authoring.md`'s boss section; **region 1 rebuilt in its chosen style (Q-B1) with placeholder art in the new format (decision G)**; the harness: `boss_state` re-pointed (1 fight, 3 chain, 4 hold, 5 done), kills at the new label | slot A > 2,048 or slot C > 2,048 B; a boss frame < 500 in the audit; any other link reaching `$0C00-$18FF`; the entry > 55 sectors; the native pin exceeded before Q-B6 is answered | build: the claim, the four runs, the staged block, ≤ 16 modules, covers acyclic, the band rows on 64-B boundaries; 6502: cover and exposure on fixtures (style 1 and style 2 layouts), stages at ⅔ / ⅓, the defeat rule with armour left, the tier conversion at levels 1 / 5 / 9, the column-local rebuild = the full rebuild on every kill of a fixture, the install order; native: `director-complete-*` through the new fight, PAL audit, the 3 DLIs | regenerated (the fight's length and clauses move) | the layers fall in order; a covered module absorbs with no damage; the last weapon ends it while armour stands; the charset seam at the divider is clean; GAME OVER inside the boss then START GAME leaves nothing (Q-S4 unchanged) |
+| **S4a-ii** | `feat/boss-feedback` | the cell-flash ring (sparks, muzzle flashes), the band flash (`flashLuma`), the ch-3 hit tick (Q-B4), the PULSE spawn and the salvo burst through the hostile pool with the global cooldown, the nozzle copy with the dark phase on the chain, the hit/absorb stats rule (Q-B7) | the native pin (Q-B6's value) exceeded; fence < 500 on any boss frame; the escort starved for > 2 s in a replay; a spark left in the band after its module changed stage | 6502: the ring under every band position, the steal, the stage change expiring records, the flash restore, the tick restoring the bed, the spawn's slot fields, the salvo with 0–3 free slots; native: the pulses hit the player in a replay, the audit | regenerated | every hit reads on screen (spark, flash, tick); the cannons fire and their shots are dodgeable; the nozzles at both ends; the kill and the destruction sound different from a hit |
+| **S4b** | `feat/boss-lasers` | §5.5's lasers as emitters by tier, the heat through the ring, the laser damage source id, the laser contact session (§5.8) and the retirement of `lower-playfield-hostile-contact-atr-hard` by name (Q4), the missile-plane clause exception, `PRIOR $10` / `SIZEM $FF` with the Q-S4 restore already in place | as §8's S4 row; slot A > 2,048 after the laser ASM (the once-per-entry ASM to slot C first) | §5.8's clauses; `boss-escort`; cycle pins | regenerated | the warning readable; the beam's hit and its sound; a level-9 review ATR with four emitters |
+| **S5** | `feat/boss-regions` | regions 2–4 as PNG drafts (placeholders, decision G), their layouts in the mapping of Q-B1, the region runs from 632, level 2's boss through the debug route, the M8 tuning layout (`boss_def`'s HP scale), README EN + PL, `hardware-testing.md` items, release prep for `v0.3.0` | a region run > 16 sectors; a review build failing the audit | build pins; the four regions through `--level=N` review builds | — | each region's boss on hardware through a review ATR; level 1's through the default |
+
+#### 5.13.8 Owner questions
+
+| # | Question | Recommendation | Alternative and its cost |
+| --- | --- | --- | --- |
+| **Q-B1** | Region → style. The confirmed mapping E: R1 Blockade Breaker (2 layers, pulses + the tier's emitter), R2 Siege Spine (3), R3 a Siege Spine variant with its own art (3), R4 Void Citadel (4) — or R1 the core boss (teaching), R2 Blockade Breaker, R3 Siege Spine, R4 Void Citadel? | **The alternative**: R1 = the S3 core boss as style 2 (its layout and placeholder art already exist, upgraded with stages and nozzles), then the three concepts at 2 → 3 → 4 layers. One art set fewer, style 2 stays in the campaign, the depth escalates, and S4a-i's region 1 is a rebuild of what the owner has smoked rather than a fourth design. | Mapping E: a fourth layout and art set (the R3 variant) in S5, and style 2 built but unused in twelve levels |
+| **Q-B2** | The art format the owner edits (decision G: the agent draws the placeholders, the owner changes them). | **PNG drafts + `modules.json`** (§5.13.4): any pixel editor, the converter does the glyph bookkeeping and refuses what ANTIC 4 cannot show | the S3 JSON (pixel strings and a 64-character band with a legend): no new reader code, but editing art as text |
+| **Q-B3** | Hit points per kind, MEDIUM start values. | **armour 6, pulse 8, emitter 10, salvo 10, core 24**; a per-difficulty scale in `boss_def` (¾ / 1 / 1¼, by shift); M8 tunes. S3's bot landed ~1 HP a second (48 HP ≈ 55 s); a 12-module boss at these values is ~110 HP, so the player's aim, not the bot's sweep, must decide the 45–60 s target — M8's job | flat HP (S3): one number to tune, no difficulty curve |
+| **Q-B4** | The hit sound. | **A 2-frame tick on channel 3** (over the engine bed, the bed restored): distinct from the kill (ch 2) and the destruction (ch 4), 0 resident bytes, no music pre-emption | (b) a short `hit_timer` tick on channel 2: pre-empts the lead on every hit; (c) a new resident SFX: `CODE` has 31 B to STOP — not affordable |
+| **Q-B5** | The boss claims `$0C00-$18FF` (charset, slot C, scratch). | **Yes** — the only measured way to fit (§5.13.6), the same evidence class as the owner's `$0500` decision; the 65XE smoke of §12 covers both | no second home: the fight cannot carry stages, nozzles and lasers in 2,048 B; or the window's free tail — the road ends −610 B without it (§6.1) |
+| **Q-B6** | The native per-frame pin 3,500 → **7,000**. | **Yes**: the engine's expected worst is ~6,300 native with lasers (§5.13.5; budgeted 7,600, which would still compose to ~2,600 over GO); at 7,000 P3's frame composes to **~3,900 over GO** with the escort's break-up and a player hit on it (7,339 + (8,060 − 7,000) × 2.2 − 4,846 − 900); the token already defers a Light's break-up off a heavy frame if that margin ever binds | keep 3,500: no sparks on kill frames and no full rebuild — the feedback the owner asked for would have to be rationed |
+| **Q-B7** | Absorbed hits (a covered module, armour): spark + tick, **not** a hit for the accuracy stat? | **Yes**: accuracy then measures aiming at what can be damaged, and the spark already says the shot connected | count them: accuracy reads high on armour-heavy bosses |
+| **Q-B8** | The entry grows 28 → 42–51 sectors (3.2–3.9 s EMULATOR, ~6.5–8 s on a 1050). | **Accept**, with the charset and slot C runs sized to use (the converter and the build already know the sizes); the theme plays under the screen | a fixed 51; or the charset shared by two regions (−8 a region, one look per two regions) |
+
+#### 5.13.9 What this session did not do
+
+No source, cfg, build-script, harness, level or evidence change is committed;
+the probe (§5.13.5) was built under `build/level-1-s0/` and every edit
+reverted (`git diff -- src cfg scripts assets tests` empty at the commit). No
+worktree was made. The ATR and the boot image are byte-identical to `main`
+`d586228`. The art of regions 1–4, the exact glyph budget per region, the
+reload values and the cooldown are the sessions' to settle; every IC, AN and
+G figure is an estimate the session that builds it replaces.
+
 ---
 ## 6. Ledgers
 
@@ -1743,6 +2121,15 @@ recommended: slot B needs the spare sectors (§4.1).
 | initial block to STOP | 31 | ±8 (G: operand re-points move the packed size; S1 **MEASURED 0**: 13,621 B); 0 from the stats (Q13) | 0 | **23 … 31** | STOP if negative |
 | slot A (new) | — | ≥ 2,048 | −1,980 (**spike MEASURED −1,826**, ~−1,930 with S4's owed items) | ≥ 68 (**222**, ~110 after S4) | the boss's per-frame home; its once-only install (370 B) rides a staging run at `$7810` (§5.11, Q-S1) |
 | slot B (new) | — | 768 | −610 (**spike MEASURED −704**) | 158 (**64**) | band map 512 + tables 128 + the column map 64 |
+
+**The boss redesign (2026-10-04, §5.13.6)** changes two rows of this table and
+one of §6.3 without touching the window: slot A ends M5b at **1,652 → 1,980 B**
+of 2,048 (2,480 at the spike's ×1.5 — the once-per-entry ASM moves to slot C
+then); a new **slot C** in the boss's low-RAM claim `$0C00-$18FF` holds the C
+controller and the laser C (~1,620 → ~2,430 of 2,048, growing into the claim's
+spare if needed); slot B is 768 of 768; the disk takes 16 sectors a region from
+632 (free sectors 509 → **445**, **269** after twelve levels); the boss entry
+reads 42 → 51 sectors instead of 28.
 
 **The initial block to the end of the road** (31 B to STOP today; the
 ceiling 13,684 is 32 B further and is not budgeted):
@@ -1836,8 +2223,10 @@ STATUS updated, the free tails stated in the commit.
 | **M5a-S1** — **implemented 2026-10-03, `OWNER-SMOKE CANDIDATE`; as built §4.9** | `feat/overlay-slot` | §4.1–4.2: `BROADSIDE` regrouped, slot A bounded, the 20-entry table in the window, the reader's run read + directory + boss-resident flag + table copy, the build's overlay runs from sector 512 and the capital restore run, the AI pool 8 → 4 (Q3) | −72 | reader −136 +152; `BROADSIDE` 0; initial block ±8 (G) | window record 9 → 10 (+1 sector, +2 frames); disk +16 | binding row ~−30 (vectored calls); capital ~+60 | 0 | 0 (no read is added until a boss exists) | initial block > 13,652; worst fence < 1,400; a `BROADSIDE` label the harness or a test pins moves without its pin being re-pointed in the same commit; the restore run ≠ the resident bytes | §4.7; the binding replay's cycles proven on both builds (page crossings); boot smoke 8/8 | play level 1 through its capital sector: nothing visible changes; the loader screen with four lines |
 | **M5a-S2** — **implemented 2026-10-03, `OWNER-SMOKE CANDIDATE`; as built §4.10** | `feat/level-summary` | §4.8: the summary screen replacing the loader screen (code in `$0500`, art per region read first, labels and the AI texts to disk), the stat counters and their hooks (the shots scan in the window, Q13; debris as three hits, Q14), the grade, the save record with the direct-SIO write under Q16's rules and the per-level best, the tail-first level read with the music tick in the wait loop, the 3-s minimum / FIRE interlock (Q15), the START GAME form (Q17); the harness mounts a copy of the ATR | −92 | reader −156 +304; `PICKUP_CODE` +16; `HYBRID_C_EXT` +12; `$0500` −480; zero page −24; initial block 0 | records 2 and 5 +1 sector each (+4 frames); disk +33 | **+60 on every frame** (the shots scan; binding row ~1,349 with S1, DMA-on ~31,223); kill / hit events +15 each | 0 | START GAME 49 → 94 frames behind the screen; the post-boss transition 139 (§4.8.6 b) | any stat byte in the initial block; a scan over 70 native cycles; the fence under 1,300 on the binding row; the music audibly stalls during a read (owner smoke); a write reaching `dist/` in any harness run; the `$0500` code over 512 B without the grade moved to the window | build: the record format and the art runs pinned; 6502: BCD counters, the ratio and grade on fixture stats, the write primitive's ACK/COMPLETE/NAK paths, the tail-first order; native: a replay through a level's end reaching the summary with the expected stats (the kill and shot counts cross-checked against the trace's own counters), the record written to the copy and read back next session; PAL audit unmoved on fighter rows | the screen on a PAL CRT: stats readable, the picture after ~0.5 s, the music through the load, `PRESS FIRE` after the minimum; a write-protected SIO2SD image: `BEST` still shows, no error; **the real drive: the wall-clock transition time (decides the optional fast loader)** |
 | **M5b-S3** — **implemented 2026-10-04, `OWNER-SMOKE CANDIDATE`; as built §5.12** | `feat/boss-band` | §5.1–5.3, §5.6 without lasers: `BOSS_DUE`, the transition and its read, slot B, the band builder, HSCROL motion, the third DLI, region 1's data, module draw/damage, shot-versus-module, the controller's phases (guns → core), the chain explosion, bonus, the hand-off to the summary screen (→ menu until M4), the restore behind the summary; `light[3]` 0 → 1; harness: third DLI, boss milestone, `director-complete-*` through the boss | −48 (**spike: −125**, `HYBRID_C_SECTOR` −14; **~−157 with decision 32**, §5.11.7) | slot A ~1,250 B of code (**spike: ~1,350**, + a 859-B staging run); slot B 610 (**704**); `ENTITY_STATE` −10 (**0**) | disk +16 +10 (**+28**); transport 0 (**+2 extension sectors**) | boss frames per §5.4 less lasers: worst with one Light **~1,640** (scroll stopped) (**spike: ≥ 12,000 MEASURED**) | boss frames ~30,000 (**≤ 29,219**) | boss entry 98 frames (**107**, behind the `WARNING - BOSS APPROACHING` screen with the theme, decision 32); post-boss START GAME +60; **in scope (2026-10-04): the install run (Q-S1), the reader-address build check (Q-S3), the full restore in the summary module, ~40 B (Q-S4), the shared install run (Q-S6), the 3,500-native pin** | a boss frame under 500 in the audit; DMA-on over 32,568; the restore byte compare fails; the band map crosses a 4 KB boundary | §5.10 less the laser items | a full level 1 to the boss and the clear on hardware; the `WARNING - BOSS APPROACHING` screen and the theme starting under it (decision 32); a GAME OVER inside the boss sector, then START GAME: the world scrolls and nothing of the boss is left (Q-S4); the band's motion and the palette seam; **a second game after the clear: the capital sector renders** (the restore) |
-| **M5b-S4** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the boss win's band shake (**the player's death keeps its flash only, Q-S5**), ~~the boss theme copy (item 14)~~ (**moved to S3 by decision 32**), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 (**spike: 0** beyond S3's; **no player-death shake, Q-S5**) | slot A +~500 B (**spike: +~480 + ~100 owed: ~1,930 of 2,048**) | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) (**spike: 10,103 MEASURED, ~6,500 composed**) | ~30,270 (**29,219**) | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and the band shake on a CRT; the player's death flash unchanged (no shake, Q-S5) |
-| **M5b-S5** | `feat/boss-regions` | regions 2–4's art and data from the concepts, the M8 tuning layout, level 2's boss through the debug route, release prep for `v0.3.0` (hardware checklist, README EN + PL) | 0 | 0 | disk +30 (**spike: +27**, 9 a region with the shared install run, **decided Q-S6**) | 0 | 0 | 0 | a region run > 10 sectors (**> 9**) | build pins; the four regions through `--level=N` review builds | each region's boss on hardware through a review ATR; level 1's through the default |
+| **S4a-i** (2026-10-04, §5.13.7) | `feat/boss-engine` | the boss low-RAM claim `$0C00-$18FF` (region charset, slot C for the C controller, scratch), the band DLI's `CHBASE`, the v2 converter (PNG drafts, the staged glyph block, four runs), 16 modules, cover groups, exposure, damage stages, the defeat rule, emitter slots by tier, the single fire countdown, the column-local rebuild, the C init before the column map, region 1 rebuilt in its chosen style (Q-B1) with placeholder art (decision G), `level-authoring.md`'s boss section, the harness's `boss_state` re-pointed | 0 | slot A −491 +130 (~940); slot C ~1,100 → 1,320; install ~350; slot B 768 | disk: 528–583 keeps code + install + slot C; regions 16 sectors each from 632; the entry 42 → 51 sectors | native ~3,400 (a kill frame) | ≤ P3's 29,305 | entry ~160 → ~195 frames | slot A or slot C > 2,048; a boss frame < 500; another link reaching the claim; the entry > 55 sectors | §5.13.7 | the layers fall in order; a covered module absorbs; the last weapon ends it with armour standing; the charset seam; Q-S4 unchanged |
+| **S4a-ii** (2026-10-04, §5.13.7) | `feat/boss-feedback` | the cell-flash ring (sparks, muzzle flashes), the band flash, the ch-3 hit tick, PULSE and salvo fire through the hostile pool with the global cooldown, the nozzle copy with the dark phase on the chain, the hit/absorb stats rule | 0 | slot A +350 (~1,290) | 0 | native ~4,500; MEASURED pieces §5.13.5 | — | 0 | the native pin (Q-B6) exceeded; fence < 500; the escort starved > 2 s; a spark left after a stage change | §5.13.7 | every hit reads (spark, flash, tick); the cannons fire; the nozzles at both ends; three distinct sounds |
+| **M5b-S4** — **re-scoped as S4b by §5.13.7** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the boss win's band shake (**the player's death keeps its flash only, Q-S5**), ~~the boss theme copy (item 14)~~ (**moved to S3 by decision 32**), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 (**spike: 0** beyond S3's; **no player-death shake, Q-S5**) | slot A +~500 B (**spike: +~480 + ~100 owed: ~1,930 of 2,048**) | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) (**spike: 10,103 MEASURED, ~6,500 composed**) | ~30,270 (**29,219**) | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and the band shake on a CRT; the player's death flash unchanged (no shake, Q-S5) |
+| **M5b-S5** — **re-scoped by §5.13.7 (regions as PNG drafts, 16 sectors each from 632)** | `feat/boss-regions` | regions 2–4's art and data from the concepts, the M8 tuning layout, level 2's boss through the debug route, release prep for `v0.3.0` (hardware checklist, README EN + PL) | 0 | 0 | disk +30 (**spike: +27**, 9 a region with the shared install run, **decided Q-S6**) | 0 | 0 | 0 | a region run > 10 sectors (**> 9**) | build pins; the four regions through `--level=N` review builds | each region's boss on hardware through a review ATR; level 1's through the default |
 
 | **S6** (optional, later) | `feat/fast-sio` | §4.3: `$3F` negotiation, divisor, fallback; `hardware-testing.md` §11 extended; the music tick paused during data frames | 0 | reader −100 (the 4-line AI stub, 152 B, goes) | 0 / 0 / 0 | 0 | 0 | ÷3 on SIO2SD (est.) | the standard path's bytes on the wire change; boot smoke < 8/8; the fallback test fails | §4.7's harness tests; the emulator path per `sio.c` | SIO2SD fast / disabled / off mid-read; the real drive (Q10); a marginal cable. **Built only if S2's real-drive transition exceeds the minimum display by more than ~2 s** |
 
@@ -1883,6 +2272,10 @@ the recommendation.
 ---
 
 ## 10. What this document did not do
+
+**2026-10-04, the boss redesign (§5.13):** one probe build under
+`build/level-1-s0/`, every edit reverted, nothing of it committed; the ATR and
+the boot image are `main` `d586228`'s. §5.13.9 lists what it left open.
 
 No source, cfg, build-script, harness, level or evidence change is
 committed; three probe builds (§3) were made under `build/level-1-s0/` and

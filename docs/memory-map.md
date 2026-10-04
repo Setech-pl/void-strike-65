@@ -77,7 +77,16 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$0500-$0B8C` | 1,677 B | segment | `LEVEL_SUMMARY` — level-summary module (read at the first START GAME) | `session` | build/level-summary.map |
 | `$0500-$06FF` | 512 B | segment | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) | `splash` | build/void-strike-65.map |
 | `$0B8D-$0BFF` | 115 B | reserved | free tail of `LEVEL_SUMMARY_RAM` | `session` | cfg/level-summary.cfg |
-| `$0C00-$1FFF` | 5,120 B | unclaimed | **unclaimed — measured-free** | — | — |
+| `$0C00-$18FF` | 3,328 B | slot | boss claim (owner answer Q-B5): the region charset, slot C, the scratch page; no other link, cfg area or boot range may reach it | `overlay` | manifest `boss.claim`, tests/boss-claim.test.mjs |
+| `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install | `overlay` | manifest `boss.charset` |
+| `$1000-$17FF` | 2,048 B | slot | boss slot C: the C controller, run `boss-slot-c` (11 sectors) | `overlay` | manifest `boss.slotC` |
+| `$1000-$1528` | 1,321 B | segment | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, chain, bonus, clock) | `overlay` | build/boss.map |
+| `$1529-$1530` | 8 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
+| `$1531-$15A7` | 119 B | segment | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) | `overlay` | build/boss.map |
+| `$1800-$18FF` | 256 B | slot | boss scratch page: the column map, the ring, slot A's state; set by the install | `overlay` | manifest `boss.scratch` |
+| `$1800-$185F` | 96 B | segment | `BOSS_SCRATCH` — boss scratch page: the column map, S4a-ii's cell-flash ring | `overlay` | build/boss.map |
+| `$1860-$1897` | 56 B | segment | `BOSS_BSS` — boss scratch page: slot A's band and collision state | `overlay` | build/boss.map |
+| `$1900-$1FFF` | 1,792 B | unclaimed | **unclaimed — measured-free** | — | — |
 | `$2000-$5534` | 13,621 B | transient | initial boot block image, 107 sectors (code, data and packed sources) | `boot` | manifest `transportCapacity` |
 | `$2000-$317D` | 4,478 B | segment | `CODE` — main: resident code | `resident` | build/void-strike-65.map |
 | `$21C1-$26F4` | 1,332 B | segment | `BOOT_STAGE2` — stage-2 loader; the resident suffix is unpacked over it | `boot` | build/void-strike-65.map |
@@ -117,16 +126,13 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$5E10-$780C` | 6,653 B | segment | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A | `resident` | build/void-strike-65.map |
 | `$6DE8-$75E7` | 2,048 B | slot | overlay slot A (`update_broadside` onward; run `capital-slot-a`) | `overlay` | manifest `overlays.slotA` |
 | `$6DE8-$6E0E` | 39 B | segment | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image | `overlay` | build/boss.map |
-| `$6E0F-$710D` | 767 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, shot-versus-module, drawing, hand-off | `overlay` | build/boss.map |
-| `$710E-$72C8` | 443 B | segment | `BOSS_C_CODE` — boss overlay: C controller (phases, hit points, chain, bonus, clock) | `overlay` | build/boss.map |
-| `$72C9-$72DA` | 18 B | segment | `BOSS_BSS` — boss overlay: band and collision state (zero in the image) | `overlay` | build/boss.map |
-| `$72DB-$72F8` | 30 B | segment | `BOSS_C_BSS` — boss overlay: C controller state (zero in the image) | `overlay` | build/boss.map |
+| `$6E0F-$71F4` | 998 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, drawing, hand-off | `overlay` | build/boss.map |
 | `$780D-$780F` | 3 B | reserved | free tail of `BROADSIDE_RAM` | `resident` | cfg/atari-boot.cfg |
 | `$7810-$7BCF` | 960 B | transient | pause-screen backup (`PAUSE_SCREEN_BACKUP`) | `pause` | manifest `pause` |
 | `$7810-$7BBF` | 944 B | transient | STARFIELD stream A staging | `boot` | manifest `starfieldRuntime.streams` |
 | `$7810-$7B8F` | 896 B | transient | summary art run (largest region run) read for the summary screen | `summary` | manifest `levelSummary.art` |
 | `$7810-$7AEE` | 735 B | transient | packed C extension record landing (`HYBRID_C_EXT_STAGING`) | `boot` | manifest `directorCodeRuntimes` |
-| `$7810-$7966` | 343 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry | `boss-entry` | build/boss.map |
+| `$7810-$7969` | 346 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry | `boss-entry` | build/boss.map |
 | `$7810-$788F` | 128 B | transient | save-record sector buffer | `summary` | manifest `levelSummary.saveRecord` |
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
 | `$7C72-$7EC5` | 596 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
@@ -226,9 +232,9 @@ No linked segment, cfg reservation, equate block, manifest range or machine area
 | --- | ---: | --- | --- |
 | `$00B6-$00FF` | 74 B | not measured | none in the repository |
 | `$0400-$04FF` | 256 B | not measured | none in the repository |
-| `$0C00-$1FFF` | 5,120 B | measured-free | [diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md): Atari800, pattern written at `start`, 0 of 6,400 B changed over menu, three games and GAME OVER, BASIC on and off; EMULATOR only |
+| `$1900-$1FFF` | 1,792 B | measured-free | [diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md): Atari800, pattern written at `start`, 0 of 6,400 B changed over menu, three games and GAME OVER, BASIC on and off; EMULATOR only |
 
-Total: 5,450 B unclaimed, of which 5,120 B measured-free.
+Total: 2,122 B unclaimed, of which 1,792 B measured-free.
 
 ### Free after boot
 
@@ -297,6 +303,20 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$0500-$06FF` | `splash` | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) |
 | `$0B8D-$0BFF` | `session` | free tail of `LEVEL_SUMMARY_RAM` |
 
+**`$0C00-$18FF` — the boss's low-RAM claim (charset, slot C, scratch)**
+
+| Range | Phases | Occupant |
+| --- | --- | --- |
+| `$0C00-$18FF` | `overlay` | boss claim (owner answer Q-B5): the region charset, slot C, the scratch page; no other link, cfg area or boot range may reach it |
+| `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install |
+| `$1000-$17FF` | `overlay` | boss slot C: the C controller, run `boss-slot-c` (11 sectors) |
+| `$1000-$1528` | `overlay` | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, chain, bonus, clock) |
+| `$1529-$1530` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |
+| `$1531-$15A7` | `overlay` | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) |
+| `$1800-$18FF` | `overlay` | boss scratch page: the column map, the ring, slot A's state; set by the install |
+| `$1800-$185F` | `overlay` | `BOSS_SCRATCH` — boss scratch page: the column map, S4a-ii's cell-flash ring |
+| `$1860-$1897` | `overlay` | `BOSS_BSS` — boss scratch page: slot A's band and collision state |
+
 **`$2000-$37FF` — the initial block over `MAIN` (stage 2 and its suffix)**
 
 | Range | Phases | Occupant |
@@ -359,7 +379,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7810-$7BBF` | `boot` | STARFIELD stream A staging |
 | `$7810-$7B8F` | `summary` | summary art run (largest region run) read for the summary screen |
 | `$7810-$7AEE` | `boot` | packed C extension record landing (`HYBRID_C_EXT_STAGING`) |
-| `$7810-$7966` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry |
+| `$7810-$7969` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry |
 | `$7810-$788F` | `summary` | save-record sector buffer |
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
 | `$7C72-$7EC5` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
@@ -427,10 +447,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$6DE8-$75E7` | `resident` | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A |
 | `$6DE8-$75E7` | `overlay` | overlay slot A (`update_broadside` onward; run `capital-slot-a`) |
 | `$6DE8-$6E0E` | `overlay` | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image |
-| `$6E0F-$710D` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, shot-versus-module, drawing, hand-off |
-| `$710E-$72C8` | `overlay` | `BOSS_C_CODE` — boss overlay: C controller (phases, hit points, chain, bonus, clock) |
-| `$72C9-$72DA` | `overlay` | `BOSS_BSS` — boss overlay: band and collision state (zero in the image) |
-| `$72DB-$72F8` | `overlay` | `BOSS_C_BSS` — boss overlay: C controller state (zero in the image) |
+| `$6E0F-$71F4` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, drawing, hand-off |
 
 **`$A600-$ADFF` — the level buffer**
 
@@ -450,31 +467,43 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 
 Items are label spans from the listings, placed with the link map's per-module offsets (ca65 global labels checked against the link's `.lbl`; cc65 `.proc` names, so static C functions count). Every item of 1% of the segment or more is listed; the rest are summed. Topics are a keyword heuristic over the label names, first match wins.
 
-#### `BOSS_CODE` `$6E0F-$710D`, 767 B (build/boss.map)
+#### `BOSS_C_CODE` `$1000-$1528`, 1,321 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `boss_update` | `$6F80` | 110 B | 14.3% | unclassified |
-| `boss_dli` | `$6E97` | 93 B | 12.1% | display, PMG and raster |
-| `boss_motion` | `$6F31` | 79 B | 10.3% | unclassified |
-| `boss_draw_module` | `$7053` | 76 B | 9.9% | unclassified |
-| `boss_build_column_map` | `$70B5` | 65 B | 8.5% | unclassified |
-| `boss_apply_pos` | `$6EF4` | 61 B | 8.0% | unclassified |
-| `boss_head` | `$6E0F` | 45 B | 5.9% | unclassified |
-| `boss_runs` | `$6E6A` | 45 B | 5.9% | unclassified |
-| `boss_read_run` | `$6E3C` | 41 B | 5.3% | unclassified |
-| `boss_hit_looks` | `$7014` | 26 B | 3.4% | unclassified |
-| `boss_module_scored` | `$6FFB` | 25 B | 3.3% | frontend and HUD |
-| `boss_draw_look` | `$703B` | 24 B | 3.1% | unclassified |
-| `boss_completion` | `$70A0` | 21 B | 2.7% | unclassified |
-| `boss_record_of` | `$702E` | 13 B | 1.7% | unclassified |
-| `boss_after_hit` | `$6FF0` | 11 B | 1.4% | unclassified |
-| `boss_band_lo` | `$70F6` | 8 B | 1.0% | unclassified |
-| `boss_band_hi` | `$70FE` | 8 B | 1.0% | unclassified |
-| `boss_dl_lms_offsets` | `$7106` | 8 B | 1.0% | unclassified |
-| 4 smaller items | — | 8 B | 1.0% | — |
+| `_boss_c_init` | `$1145` | 384 B | 29.1% | unclassified |
+| `_boss_c_hit` | `$12C5` | 351 B | 26.6% | unclassified |
+| `_boss_expose` | `$107A` | 203 B | 15.4% | unclassified |
+| `_boss_fire_next` | `$1424` | 145 B | 11.0% | player, input and weapons |
+| `_boss_c_tick` | `$14B5` | 116 B | 8.8% | unclassified |
+| `_boss_scale` | `$1035` | 69 B | 5.2% | unclassified |
+| `_boss_bit_of` | `$1000` | 36 B | 2.7% | unclassified |
+| `_boss_record_of` | `$1024` | 17 B | 1.3% | unclassified |
 
-By topic: unclassified 84%, display, PMG and raster 12%, frontend and HUD 3%.
+By topic: unclassified 89%, player, input and weapons 11%.
+
+#### `BOSS_CODE` `$6E0F-$71F4`, 998 B (build/boss.map)
+
+| Item | Address | Size | Share | Topic |
+| --- | --- | ---: | ---: | --- |
+| `boss_update` | `$6FA8` | 115 B | 11.5% | unclassified |
+| `boss_module_scored` | `$703A` | 114 B | 11.4% | frontend and HUD |
+| `boss_dli` | `$6EBA` | 98 B | 9.8% | display, PMG and raster |
+| `boss_draw_module` | `$70B9` | 94 B | 9.4% | unclassified |
+| `boss_prepare` | `$716E` | 82 B | 8.2% | unclassified |
+| `boss_motion` | `$6F59` | 79 B | 7.9% | unclassified |
+| `boss_runs` | `$6E74` | 70 B | 7.0% | unclassified |
+| `boss_column_at` | `$711B` | 63 B | 6.3% | unclassified |
+| `boss_apply_pos` | `$6F1C` | 61 B | 6.1% | unclassified |
+| `boss_head` | `$6E0F` | 55 B | 5.5% | unclassified |
+| `boss_read_run` | `$6E46` | 41 B | 4.1% | unclassified |
+| `boss_after_hit` | `$701B` | 26 B | 2.6% | unclassified |
+| `boss_completion` | `$71C0` | 21 B | 2.1% | unclassified |
+| `boss_rebuild_module` | `$715A` | 20 B | 2.0% | unclassified |
+| `boss_record_of` | `$70AD` | 12 B | 1.2% | unclassified |
+| 9 smaller items | — | 47 B | 4.7% | — |
+
+By topic: unclassified 79%, frontend and HUD 11%, display, PMG and raster 10%.
 
 #### `HYBRID_C_ARENA` `$7C72-$7EC5`, 596 B (build/encounter-director.map)
 
@@ -866,7 +895,8 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 
 | Segment | Size | Name promises | Share of those topics | Dominant topic | Verdict |
 | --- | ---: | --- | ---: | --- | --- |
-| `BOSS_CODE` | 767 B | placement name | — | unclassified (84%) | not judged |
+| `BOSS_C_CODE` | 1,321 B | placement name | — | unclassified (89%) | not judged |
+| `BOSS_CODE` | 998 B | placement name | — | unclassified (79%) | not judged |
 | `HYBRID_C_ARENA` | 596 B | placement name | — | Heavy, Raider and Interceptor (92%) | not judged |
 | `HYBRID_C_EXT` | 681 B | placement name | — | Light enemies (56%) | not judged |
 | `DIRECTOR_C_CODE` | 590 B | placement name | — | Director, sectors and waves (88%) | not judged |
@@ -1044,7 +1074,8 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$9FFA-$9FFF` | 6 B | untouched Director guard |
 | `$21C1-$26F4` | 1,332 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime (since boot-loading-blank-screen, 2026-10-01: +9 B for the stage-2 display blanking; 1,323 B `$21C1-$26EB` after boot-xex-reclaim) |
 | `$0500-$0BFF` | 1,792 B | **M5a-S2** (owner decision 2026-10-03): the level-summary module, its own link (`cfg/level-summary.cfg`), read from the disk once per session at the first START GAME and resident until RESET. 1,598 B used, 194 B free (1,489 / 303 before the owner review of 2026-10-03 added START GAME's own display list, the frame-edge publish and the reader's dotted-row step behind a third vector at `$0506`). Claimed: no other link or cfg area may reach it, and `tests/level-summary-build.test.mjs` fails if any segment, cfg area or boot-path range does. Before the first START GAME of a session `$0500-$06FF` still holds the boot splash (next row) |
-| `$0C00-$1FFF` | 5,120 B | **unclaimed lever** (owner decision 2026-10-03): no link, equate or boot path uses it, and it was MEASURED never written after `start` in Atari800 (patterns `$5A`/`$A5`, BASIC on and off, menu, three games, GAME OVER — [diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md)). Not used; recorded for M3/M6 (plan §6.1). Real hardware unproven until the owner's smoke |
+| `$0C00-$18FF` | 3,328 B | **the boss's claim** (owner answer Q-B5, M5b-S4a-i): the region charset `$0C00-$0FFF`, slot C `$1000-$17FF` (the C controller), the scratch page `$1800-$18FF`; read or set at every boss entry, nothing survives a boss sector; no other link, cfg area or boot range may reach it (tests/boss-claim.test.mjs). Was the unclaimed lever of 2026-10-03, MEASURED never written after `start` in Atari800 ([diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md)); real hardware unproven until the owner's smoke |
+| `$1900-$1FFF` | 1,792 B | **unclaimed lever**: the rest of the measured-free low RAM; nothing may link there (tests/boss-claim.test.mjs). Recorded for M3/M6 (plan §6.1) |
 | `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding **[BUILD 2026-10-03: 510 B of code and tables, 2 B padding — manifest `transportCapacity.bootSplash.codeBytes`]**. The stage-2 entry copies it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +
@@ -2079,6 +2110,7 @@ re-points to the reader's fixed vectors.
 | `$00AC-$00B5` | 10 | unclaimed | the stat block (`level-summary-abi.inc`) |
 | `$0500-$0BFF` | 1,792 | splash RAM `$0500-$06FF` (boot only), `$0700-$0BFF` unclaimed | the summary module `$0500-$0B3D` (1,598 B: three entries at `$0500`/`$0503`/`$0506`, the code, its record logic and write path, the per-sector dotted-row step, its data, the level-end display list at `$0ADD` and START GAME's at `$0B01`, its state); 194 B free |
 | `$0C00-$1FFF` | 5,120 | unclaimed | still unclaimed; recorded as a lever |
+| `$0C00-$18FF` | 3,328 | unclaimed (M5a-S2) | M5b-S4a-i: the boss's claim (Q-B5) - charset, slot C, scratch; `$1900-$1FFF` (1,792 B) stays unclaimed |
 | `SECTOR_READER` `$A000-$A5E2` | 1,507 | 1,498 | the stat vectors `$A00C-$A01B` and their hooks, the level-end exit, the session's module read and its interim screen (`sr_engaging_record` at `$A51F`, START GAME's top line, also drawn by the module), the tail-first level read, the frame tick in `wait_serial`; the loader screen, its records, the 152-B AI pool and (owner review) the dotted-row step removed. **29 B free** in RAM, but record 10 holds 1,507 of its 1,515-B capacity (12 sectors): **8 B before the reader buys a transport sector** |
 | `SECTOR_READER` `$A561` | 1 | — | `sr_summary_resident`, in the transported image (0 at every cold start) |
 | `SECTOR_READER` `$A592-$A5BE` | 45 | 40 | `overlay_directory`, 9 × 5 B: entry 6 the summary art (region 1, regions follow at 7 sectors), 7 the save record, 8 the summary module |

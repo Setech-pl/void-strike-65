@@ -68,8 +68,14 @@ test("the window has room for the Director: the free tail is four digits", () =>
   // 1,480 -> 1,444. The 36 B are the capital vector table (12 x 3 B) appended
   // to the Light kernel's vector block; every resident call into the capital
   // group now goes through it.
-  assert.equal(basicWindow.freeBytes, 1444,
-    "the delivered M5a-S1 figure, re-recorded so a silent change is visible");
+  // Re-recorded 2026-10-04, M5b-S3 (docs/plans/m5-loading-boss.md §5.11.7,
+  // owner answers Q-S2 and decision 32): 1,444 -> 1,316. The 128 B are the boss
+  // entry's resident half - 109 in HYBRID_ASM_WINDOW, placed last (the
+  // WARNING screen's record, the region's staging read, the theme copy and
+  // start, the code read) - and 19 in the C half, the BOSS branch of
+  // enter_sector. The plan priced ~157 B; its STOP was 20 % above that.
+  assert.equal(basicWindow.freeBytes, 1316,
+    "the delivered M5b-S3 figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
 });

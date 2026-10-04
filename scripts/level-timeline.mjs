@@ -69,6 +69,7 @@ const STATE = {
   pending: 0x80fc, defer: 0x80fd, flags: 0x80fe, admissionFrame: 0x80ff,
 };
 const FLAG_COMPLETE = 0x01;
+const FLAG_BOSS_DUE = 0x20;
 const LIGHT_SLOT_COUNT = 4;
 // How long the probe lets an admitted Light live before it retires it (below).
 const LIGHT_LIFETIME_FRAMES = 64;
@@ -88,6 +89,10 @@ function loadLabels(buildDirectory) {
 }
 
 function makeRunner(memory, labels) {
+  // M5b-S3: the boss entry (the window's _asm_boss_enter) leaves the frame
+  // loop for the boss's transition and never returns; a step that reaches it
+  // reports `bossEntry` instead of returning.
+  const bossEntry = labels.get("_asm_boss_enter");
   return function run(target, { a = 0, x = 0, y = 0 } = {}) {
     const address = typeof target === "string" ? labels.get(target) : target;
     invariant(Number.isInteger(address), `missing routine ${target}`);
@@ -98,6 +103,9 @@ function makeRunner(memory, labels) {
     cpu.pc = address;
     cpu.a = a; cpu.x = x; cpu.y = y;
     for (let steps = 0; steps < 300_000 && cpu.pc !== stop; steps += 1) {
+      if (bossEntry !== undefined && cpu.pc === bossEntry) {
+        return { bossEntry: true, a: cpu.a, x: cpu.x, y: cpu.y, carry: false, cycles: cpu.cycles };
+      }
       invariant(memory[cpu.pc] !== 0, `${target} reached BRK at $${cpu.pc.toString(16)}`);
       cpu.step();
     }
@@ -209,6 +217,12 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
   const peakLiveLights = [];
   const kills = [];
   let completeFrame = null;
+  // M5b-S3: a level whose last sector is its boss ends there - the row clock
+  // enters the boss sector (bossSectorFrame, the row the level used to
+  // complete on), the entry waits for the drain (bossEntryFrame), and the
+  // capture stops: the boss's transition is not a frame of this probe.
+  let bossSectorFrame = null;
+  let bossEntryFrame = null;
   let priorActive = memory[enemyActive];
   let priorSector = memory[sectorState];
   const priorLight = Array.from({ length: LIGHT_SLOT_COUNT },
@@ -219,7 +233,13 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
 
   for (let frame = 1; frame <= frames; frame += 1) {
     memory[frameCounter] = (memory[frameCounter] + 1) & 0xff;
-    for (const step of steps) run(step);
+    for (const step of steps) {
+      if (run(step).bossEntry) {
+        bossEntryFrame = { frame, row: worldRow() };
+        break;
+      }
+    }
+    if (bossEntryFrame !== null) break;
 
     const active = memory[enemyActive];
     if (priorActive !== 1 && active === 1) {
@@ -267,6 +287,9 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
 
     if (memory[STATE.phase] !== directorSectors.at(-1).sector) {
       directorSectors.push({ frame, row: worldRow(), sector: memory[STATE.phase] });
+      if (bossSectorFrame === null && (memory[STATE.flags] & FLAG_BOSS_DUE) !== 0) {
+        bossSectorFrame = { frame, row: worldRow(), sector: memory[STATE.phase] };
+      }
     }
     if (lightState !== undefined) {
       let live = 0;
@@ -341,6 +364,8 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     finalSectorState: memory[sectorState],
     finalFlags: memory[STATE.flags],
     completeFrame,
+    bossSectorFrame,
+    bossEntryFrame,
     heavySpawns, lightSpawns, sectorTransitions, directorSectors,
     peakLiveLights: Array.from(peakLiveLights, (value) => value ?? 0),
     killCount: kills.length,

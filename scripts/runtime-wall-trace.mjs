@@ -522,12 +522,16 @@ const capitalPlayerGeometrySessions = [["ATR", 1], ["ATR", 2]].flatMap(([medium,
  * COMPLETE, so these replays END there (`endAtSummary`) instead of flying on in
  * COMPLETE to the frame budget; `frames` stays the budget, the clauses below
  * assert the rows reach the summary inside it. */
+// M5b-S3 (class (a)): level 1 now ends in its boss, and these replays fight
+// it: the budget grows for the fight (MEASURED on MEDIUM: entry at frame 8,787,
+// the three guns down by 10,243); the clauses below are unchanged in kind.
+const DIRECTOR_COMPLETION_FRAMES = 15_000;
 const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   id: `director-complete-${difficulty}-natural-sweep-fire0`,
   difficulty,
   policy: "sweep",
   fireDelay: 0,
-  frames: 10_500,
+  frames: DIRECTOR_COMPLETION_FRAMES,
   kind: "director-level-complete",
   holdPlayerLives: 3,
   endAtSummary: true,
@@ -552,7 +556,7 @@ const summaryRecordSessions = [{
   difficulty: 2,
   policy: "sweep",
   fireDelay: 0,
-  frames: 10_500,
+  frames: DIRECTOR_COMPLETION_FRAMES,
   kind: "summary-write-protected",
   holdPlayerLives: 3,
   endAtSummary: true,
@@ -1068,6 +1072,9 @@ for (const name of [
   // zero the plane.
   "engine_playfield_select_idle_calls", "engine_playfield_select_idle_dlist",
   "engine_playfield_select_idle_active_lo", "pickup_erase_writes",
+  // M5b-S3 (correction 10): the boss-entry frame, the boss's state, the most
+  // DLIs a host frame saw inside the boss sector. Additive.
+  "boss_entry", "boss_state", "maximum_boss_dlis_per_host_frame",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -1510,12 +1517,30 @@ function levelSummaryClauses(session, records, rows, publishedAtrPath) {
     `${end.observer_shots} allocations, ${end.observer_cancelled} wiped in their own frame, ` +
     `and ${end.observer_kills} kills (score-routine entries)`);
   const lastRow = rows.at(-1);
-  invariant(Math.abs(end.stats[10] - lastRow.active_gameplay_frame) <= 1,
+  // RE-POINTED M5b-S3 (owner decision 2026-10-03, plan §5.6): once the level
+  // ends in a boss, the summary's time is the boss fight's alone - from the
+  // engagement (the first boss frame) to the core's destruction (the first
+  // frame in the chain) on the trace's own clock. A level without a boss keeps
+  // the whole active clock, exactly as before.
+  const engaged = rows.find((row) => row.boss_state >= 1);
+  const coreDown = rows.find((row) => row.boss_state >= 3);
+  invariant(engaged === undefined || coreDown !== undefined,
+    `${session.id} reached the summary from a boss whose core never fell`);
+  const expectedClock = engaged === undefined ? lastRow.active_gameplay_frame
+    : coreDown.active_gameplay_frame - engaged.active_gameplay_frame;
+  invariant(Math.abs(end.stats[10] - expectedClock) <= 1,
     `${session.id}: the summary's clock ${end.stats[10]} is not the trace's ` +
-      `${lastRow.active_gameplay_frame}`);
+      `${expectedClock}${engaged === undefined ? "" : " (the boss fight)"}`);
   const seconds = Math.floor(end.stats[10] / 50);
   const percent = shots === 0 ? 0 : Math.floor(100 * Math.min(hits, shots) / shots);
-  const score = `0${end.stats[11].toString(16).padStart(4, "0")}`;
+  // RE-POINTED M5b-S3 (plan §5.6, decision 30): the summary adds the boss
+  // bonus (STATS_BONUS, stats 8-9, packed BCD) to the score before its first
+  // frame, as summary_bonus always did; level 1's bonus per tier point is 0
+  // until M8, so that term stays zero. Packed BCD, saturating at 9999.
+  const fromBcd = (value) => Number.parseInt(value.toString(16).padStart(4, "0"), 10);
+  const bonusTotal = fromBcd(end.stats[8] | (end.stats[9] << 8));
+  const shownScore = Math.min(9999, fromBcd(end.stats[11]) + bonusTotal);
+  const score = `0${String(shownScore).padStart(4, "0")}`;
   const row = (index) => summaryRowText(end.first_screen, index);
   const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   const lives = 3 - (session.holdPlayerLives ?? 3);
@@ -1557,7 +1582,7 @@ function levelSummaryClauses(session, records, rows, publishedAtrPath) {
     writes: writes.length, write_sector: 599, write_protected: session.kind === "summary-write-protected",
     shots, hits, kills, observer_shots: end.observer_shots,
     observer_cancelled: end.observer_cancelled, observer_kills: end.observer_kills,
-    active_frames: end.stats[10], score, percent, time,
+    active_frames: end.stats[10], score, boss_bonus: bonusTotal, percent, time,
     grade: row(8).trim().slice(-1), best,
     music_ticks: end.music_ticks, music_tick_frames: end.tick_frames,
     first_screen: [2, 3, 4, 5, 6, 7, 8].map((index) => row(index).trim()),
@@ -1689,7 +1714,7 @@ function parseCsv(csvText, sessionDefinition) {
     : lines.length === sessionDefinition.frames + 1,
     `${sessionDefinition.id} emitted ${lines.length - 1}/${sessionDefinition.frames} frames`);
   const headers = lines[0].split(",");
-  return lines.slice(1).map((line) => {
+  const rows = lines.slice(1).map((line) => {
     const values = line.split(",");
     invariant(values.length === headers.length,
       `${sessionDefinition.id} emitted a malformed CSV row`);
@@ -1700,6 +1725,27 @@ function parseCsv(csvText, sessionDefinition) {
     }
     return row;
   });
+  // M5b-S3 (docs/plans/m5-loading-boss.md §5.11.4 item 10, correction 10): the
+  // frame in which the boss entry ran is a TRANSITION - the WARNING screen and
+  // its 28-sector read, with the display and the DLIs off - exactly as the
+  // START GAME read is, which no row ever measures. It is set aside as the
+  // session's boss-entry milestone, at most once per game, so no overrun gate
+  // counts it; everything it is (frame, host frames, wall) is recorded.
+  const entries = rows.filter((row) => row.boss_entry === 1);
+  invariant(entries.length <= 1,
+    `${sessionDefinition.id} entered the boss ${entries.length} times in one game`);
+  if (entries.length === 1) {
+    const [entry] = entries;
+    sessionDefinition.bossEntry = {
+      frame: entry.frame,
+      start_host_frame: entry.start_host_frame,
+      next_start_host_frame: entry.next_start_host_frame,
+      host_frames: entry.next_start_host_frame - entry.start_host_frame,
+      wall_cycles: entry.wall_cycles,
+      active_gameplay_frame: entry.active_gameplay_frame,
+    };
+  }
+  return rows.filter((row) => row.boss_entry !== 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -3478,6 +3524,27 @@ function main() {
   addressEnvironment.DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO = "0x4ff8";
   addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("ENEMY_Y").toString(16)}`;
   addressEnvironment.DFTRACE_DIRECTOR_STATE = "0x80f6";
+  // M5b-S3 (correction 10): the boss DLI and the boss state, gated on the
+  // reader's slot-A flag (capital code holds those addresses otherwise), and
+  // the window's boss entry, whose frame is the exempt transition.
+  {
+    const bossLabelPath = path.join(layout.inputDirectory, "boss.lbl");
+    const readerLabelPath = path.join(layout.inputDirectory, "sector-reader.lbl");
+    if (fs.existsSync(bossLabelPath)) {
+      const bossLabels = parseViceLabels(fs.readFileSync(bossLabelPath, "utf8"));
+      const readerLabels = parseViceLabels(fs.readFileSync(readerLabelPath, "utf8"));
+      const hex = (map, name) => {
+        const value = map.get(name);
+        invariant(Number.isInteger(value), `boss trace label ${name} is missing`);
+        return `0x${value.toString(16)}`;
+      };
+      addressEnvironment.DFTRACE_BOSS_FLAG = hex(readerLabels, "sr_slot_a_overlaid");
+      addressEnvironment.DFTRACE_BOSS_PHASE = hex(bossLabels, "_boss_phase");
+      addressEnvironment.DFTRACE_PC_BOSS_DLI = hex(bossLabels, "boss_dli");
+      addressEnvironment.DFTRACE_PC_BOSS_ENTER = hex(directorLabels, "_asm_boss_enter");
+      addressEnvironment.DFSUMMARY_SCORE_BOSS = hex(bossLabels, "boss_module_scored");
+    }
+  }
 
   const summaryEnvironment = summaryTraceEnvironment(layout.inputDirectory, labels);
   // M5a-S2 (Q16): no session may write the published ATR. Its bytes are
@@ -6551,48 +6618,72 @@ function main() {
      * No runtime byte changed for this, and nothing the clause caught is
      * dropped: a level that ended for any other reason, ended more than once,
      * or re-opened afterwards still fails it. */
+    /* RE-POINTED M5b-S3 (docs/plans/m5-loading-boss.md §5.2, §5.6; class (a),
+     * the scenario the game now plays). Level 1's last sector is the BOSS: the
+     * level no longer ends on the last sector's row clock with a forced DRAIN
+     * and a terminal COMPLETE - nothing raises FLAG_COMPLETE any more - it ends
+     * at the boss's death, through the chain, on the level-end summary. Every
+     * relation the clause owned is kept on the mechanism that ends a level now:
+     *   1. the row clock ENTERS the last sector (director_phase, $80F6) and the
+     *      Director never leaves it again;
+     *   2. the entry waits for the drain: it happens in that sector, from a
+     *      fighter OPEN frame, exactly once (the entry row is the session's
+     *      boss-entry milestone, parseCsv);
+     *   3. the boss runs its phases in order and never backwards: guns, core,
+     *      chain, hold - the first boss frame follows the entry directly;
+     *   4. the end is terminal: no DRAIN or COMPLETE, and no row outside the
+     *      boss, once the boss is in; the summary follows the hold (asserted
+     *      by levelSummaryClauses, which these sessions reach).
+     * The budget grew for the fight (frames above), not the clause. */
     const lastSector = Math.max(...rows.map((row) => row.director_phase));
-    const lastDrain = rows.findLast((row) => row.sector_state === 5);
-    const levelEndRowTick = lastDrain === undefined ? undefined
-      : rows.findLast((row) => row.frame < lastDrain.frame &&
-        (row.events & (1 << 20)) !== 0);
-    const drainsAfterRowTick = levelEndRowTick === undefined ? []
-      : rows.filter((row) => row.frame > levelEndRowTick.frame && row.sector_state === 5);
-    const finalDrain = drainsAfterRowTick[0];
-    const finalComplete = rows.find((row) =>
-      row.frame > (finalDrain?.frame ?? Number.MAX_SAFE_INTEGER) && row.sector_state === 6);
-    invariant(levelEndRowTick !== undefined && finalDrain !== undefined &&
-      finalComplete !== undefined &&
-      levelEndRowTick.director_phase === lastSector &&
-      rows.every((row) => row.frame < levelEndRowTick.frame ||
-        row.director_phase === lastSector) &&
-      drainsAfterRowTick.length === 1 &&
-      finalDrain.frame === levelEndRowTick.frame + 1 &&
-      finalComplete.frame === finalDrain.frame + 1,
-    `${session.id} did not execute LAST-SECTOR ROW CLOCK -> DRAIN -> COMPLETE`);
-    const terminalComplete = rows.filter((row) => row.frame >= finalComplete.frame)
-      .every((row) => row.sector_state === 6);
-    invariant(terminalComplete,
-      `${session.id} re-opened the capital sector after LEVEL COMPLETE`);
+    const sectorEntered = rows.find((row) => row.director_phase === lastSector);
+    const entry = session.bossEntry;
+    const bossRows = rows.filter((row) => row.boss_state > 0);
+    const firstOf = (state) => bossRows.find((row) => row.boss_state === state);
+    const engagedRow = firstOf(1);
+    const coreRow = firstOf(2);
+    const chainRow = firstOf(3);
+    const holdRow = firstOf(4);
+    const beforeEntry = entry === undefined ? undefined
+      : rows.findLast((row) => row.frame < entry.frame);
+    const monotonic = bossRows.every((row, index) =>
+      index === 0 || row.boss_state >= bossRows[index - 1].boss_state);
+    invariant(sectorEntered !== undefined && entry !== undefined &&
+      rows.every((row) => row.frame < sectorEntered.frame || row.director_phase === lastSector) &&
+      entry.frame > sectorEntered.frame && beforeEntry?.sector_state === 7 &&
+      beforeEntry.director_phase === lastSector &&
+      engagedRow !== undefined && engagedRow.frame === entry.frame + 1 &&
+      coreRow !== undefined && chainRow !== undefined && holdRow !== undefined &&
+      engagedRow.frame < coreRow.frame && coreRow.frame < chainRow.frame &&
+      chainRow.frame < holdRow.frame && monotonic &&
+      rows.every((row) => row.frame < engagedRow.frame || row.boss_state > 0) &&
+      rows.every((row) => row.frame < sectorEntered.frame ||
+        (row.sector_state !== 5 && row.sector_state !== 6)),
+    `${session.id} did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> GUNS -> ` +
+      `CORE -> CHAIN -> HOLD (entered ${sectorEntered?.frame}, entry ${entry?.frame}, ` +
+      `engaged ${engagedRow?.frame}, core ${coreRow?.frame}, chain ${chainRow?.frame}, ` +
+      `hold ${holdRow?.frame})`);
     const broadsideRows = rows.filter((row) => row.broadside > 0);
     invariant(broadsideRows.length > 0,
       `${session.id} did not observe a natural BROADSIDE projectile`);
     return {
       session: session.id,
       difficulty: session.difficulty,
-      level_end_row_tick_frame: levelEndRowTick.frame,
-      level_end_sector: lastSector,
-      drain_frame: finalDrain.frame,
-      level_complete_frame: finalComplete.frame,
-      drain_frames: finalComplete.frame - finalDrain.frame,
-      /* Published per session so the test can assert the RELATION -- the last
-       * sector's row clock, DRAIN on the next frame, COMPLETE on the next, and
-       * COMPLETE holding to the last measured frame -- instead of pinning the
-       * frame numbers, which are data about this build and move whenever the
-       * replay does. The field was `boss_handoff_frame` until owner decision 9
-       * of 2026-09-28; it is named for what it measures now. */
-      terminal_complete: terminalComplete,
-      terminal_complete_through_frame: rows.at(-1).frame,
+      boss_sector: lastSector,
+      boss_sector_entered_frame: sectorEntered.frame,
+      boss_entry_frame: entry.frame,
+      boss_entry_host_frames: entry.host_frames,
+      boss_engaged_frame: engagedRow.frame,
+      boss_core_exposed_frame: coreRow.frame,
+      boss_core_destroyed_frame: chainRow.frame,
+      boss_hold_frame: holdRow.frame,
+      boss_fight_frames: chainRow.active_gameplay_frame - engagedRow.active_gameplay_frame,
+      boss_phases_monotonic: monotonic,
+      /* Published per session so the test asserts the RELATIONS, not frame
+       * numbers that move with every replay. The level-end fields of the
+       * row-clock ending (level_end_row_tick_frame, drain_frame,
+       * level_complete_frame, terminal_complete) retired with that ending. */
+      boss_terminal_through_frame: rows.at(-1).frame,
       last_measured_frame: rows.at(-1).frame,
       /* The discriminator's own record: the replay is held above GAME OVER, and
        * the fighter still dies and respawns this many times on the way. */
@@ -6608,14 +6699,6 @@ function main() {
   });
   const hardDirectorCompletion = directorCompletionEvidence.find(({ difficulty }) =>
     difficulty === 2);
-  const levelEndRowTick = directorCompletionRows.find((row) =>
-    row.session === hardDirectorCompletion.session &&
-    row.frame === hardDirectorCompletion.level_end_row_tick_frame);
-  const finalDrain = directorCompletionRows.find((row) =>
-    row.session === hardDirectorCompletion.session && row.frame === hardDirectorCompletion.drain_frame);
-  const finalComplete = directorCompletionRows.find((row) =>
-    row.session === hardDirectorCompletion.session &&
-    row.frame === hardDirectorCompletion.level_complete_frame);
   invariant(memoryIntegrityRows.length === memoryIntegritySessions.length * 4_000,
     `Memory-integrity traces measured ${memoryIntegrityRows.length}/` +
     `${memoryIntegritySessions.length * 4_000} frames`);
@@ -6819,6 +6902,14 @@ function main() {
     `DLI phase/order violations observed: ${dliSequenceViolations}`);
   invariant(maximumDlisPerHostFrame <= 2,
     `More than two gameplay DLIs occurred in one host frame: ${maximumDlisPerHostFrame}`);
+  // M5b-S3 (decision 9): three, and only inside the boss sector.
+  const maximumBossDlisPerHostFrame = Math.max(...allRows.map((row) =>
+    row.maximum_boss_dlis_per_host_frame ?? 0));
+  const bossRows = allRows.filter((row) => row.boss_state > 0);
+  invariant(bossRows.length === 0 ? maximumBossDlisPerHostFrame === 0
+    : maximumBossDlisPerHostFrame === 3,
+  `The boss sector's host frames saw at most ${maximumBossDlisPerHostFrame} DLIs; ` +
+    `decision 9 is three (${bossRows.length} boss frames)`);
   const integrityCollections = memoryIntegrityRows.filter((row) =>
     (row.events & (1 << 19)) !== 0);
   invariant(integrityCollections.length >= 10,
@@ -7761,13 +7852,14 @@ function main() {
       director_level_complete: {
         observed: true,
         session: hardDirectorCompletion.session,
-        level_end_row_tick_frame: levelEndRowTick.frame,
-        level_end_sector: hardDirectorCompletion.level_end_sector,
-        drain_frame: finalDrain.frame,
-        level_complete_frame: finalComplete.frame,
-        drain_frames: finalComplete.frame - finalDrain.frame,
-        terminal_complete_through_frame: directorCompletionRows
-          .filter((row) => row.session === hardDirectorCompletion.session).at(-1).frame,
+        // M5b-S3: the level ends in its boss (see the clause).
+        boss_sector: hardDirectorCompletion.boss_sector,
+        boss_entry_frame: hardDirectorCompletion.boss_entry_frame,
+        boss_entry_host_frames: hardDirectorCompletion.boss_entry_host_frames,
+        boss_engaged_frame: hardDirectorCompletion.boss_engaged_frame,
+        boss_core_destroyed_frame: hardDirectorCompletion.boss_core_destroyed_frame,
+        boss_hold_frame: hardDirectorCompletion.boss_hold_frame,
+        boss_terminal_through_frame: hardDirectorCompletion.boss_terminal_through_frame,
         natural_difficulty_sessions: directorCompletionEvidence,
       },
       heaviest_frame_includes_director_work: {

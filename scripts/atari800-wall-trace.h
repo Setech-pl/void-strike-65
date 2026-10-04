@@ -344,6 +344,15 @@ typedef struct {
 	 * the per-frame publication's call that returns at once on an empty plane.
 	 * Additive, 2026-10-01 (trace-clause-repairs). */
 	unsigned pickup_erase_writes;
+	/* M5b-S3 (docs/plans/m5-loading-boss.md §5.11.4 item 10, correction 10):
+	 * the frame in which the boss entry ran (its 28-sector read is a
+	 * transition, exempt from the overrun check as the START GAME read is);
+	 * the boss's state, 0 outside the boss, else 1 + the controller's phase
+	 * (0 guns, 1 core, 2 chain, 3 hold, 4 done); the most DLIs one host frame
+	 * saw inside the boss sector (decision 9: three). Additive. */
+	unsigned boss_entry;
+	unsigned boss_state;
+	unsigned maximum_boss_dlis_per_host_frame;
 	unsigned pickup_draw_calls;
 	unsigned pickup_erase_scanline;
 	unsigned pickup_erase_cycle;
@@ -841,6 +850,24 @@ static unsigned dftrace_dli_integrity_count;
 static int dftrace_dli_integrity_complete_frame_seen;
 static unsigned dftrace_dli_sequence_violations;
 static unsigned dftrace_maximum_dlis_per_host_frame;
+/* M5b-S3: the boss DLI sits in overlay slot A, so it is counted only while
+ * the reader's slot-A flag says the boss is there (capital code holds the
+ * same addresses otherwise). All four are optional: 0 disables them. */
+static unsigned dftrace_boss_flag;
+static unsigned dftrace_boss_phase;
+static unsigned dftrace_pc_boss_dli;
+static unsigned dftrace_pc_boss_enter;
+static unsigned dftrace_maximum_boss_dlis_per_host_frame;
+static unsigned dftrace_dli_integrity_expected = 2u;
+static unsigned dftrace_env_optional(const char *name)
+{
+	const char *value = getenv(name);
+	return value == NULL || *value == '\0' ? 0u : (unsigned) strtoul(value, NULL, 0) & 0xffffu;
+}
+static int dftrace_boss_active(void)
+{
+	return dftrace_boss_flag != 0u && MEMORY_mem[dftrace_boss_flag] != 0u;
+}
 static int dftrace_pause_test_enabled;
 static unsigned dftrace_pause_stage;
 static unsigned dftrace_pause_press_host;
@@ -1110,6 +1137,9 @@ static unsigned dfsummary_dlist, dfsummary_dlist_end, dfsummary_fire_release, df
 static unsigned dfsummary_start_entry, dfsummary_end_entry, dfsummary_exit_start;
 static unsigned dfsummary_exit_end, dfsummary_tick, dfsummary_tx_done, dfsummary_frame_bytes;
 static unsigned dfsummary_score_pc[3], dfsummary_projectile_active, dfsummary_failure;
+/* M5b-S3: a boss module destroyed for score is a kill too; its routine is in
+ * overlay slot A, so it counts only while the reader's slot-A flag is set. */
+static unsigned dfsummary_score_boss, dfsummary_boss_flag;
 static unsigned dfsummary_level_loaded, dfsummary_resident_flag;
 static int dfsummary_open;
 static unsigned dfsummary_kind, dfsummary_entry_frame, dfsummary_display_frame;
@@ -1167,6 +1197,10 @@ static void dfsummary_init(void)
 	dfsummary_score_pc[0] = dfsummary_env("DFSUMMARY_SCORE_HEAVY");
 	dfsummary_score_pc[1] = dfsummary_env("DFSUMMARY_SCORE_LIGHT");
 	dfsummary_score_pc[2] = dfsummary_env("DFSUMMARY_SCORE_DEBRIS");
+	dfsummary_score_boss = getenv("DFSUMMARY_SCORE_BOSS") == NULL ? 0u :
+		dfsummary_env("DFSUMMARY_SCORE_BOSS");
+	dfsummary_boss_flag = getenv("DFTRACE_BOSS_FLAG") == NULL ? 0u :
+		dfsummary_env("DFTRACE_BOSS_FLAG");
 	dfsummary_projectile_active = dfsummary_env("DFSUMMARY_PROJECTILE_ACTIVE");
 	dfsummary_frame_counter = dfsummary_env("DFSUMMARY_FRAME_COUNTER");
 }
@@ -1230,6 +1264,9 @@ static void dfsummary_observe(unsigned pc)
 	for (slot = 0; slot < 3u; ++slot)
 		if (pc == dfsummary_score_pc[slot])
 			++dfsummary_kills;
+	if (dfsummary_score_boss != 0u && pc == dfsummary_score_boss &&
+		dfsummary_boss_flag != 0u && MEMORY_mem[dfsummary_boss_flag] != 0u)
+		++dfsummary_kills;
 	for (slot = 0; slot < 5u; ++slot) {
 		UBYTE active = MEMORY_mem[(dfsummary_projectile_active + slot) & 0xffffu];
 		unsigned now = MEMORY_mem[dfsummary_frame_counter & 0xffffu];
@@ -5346,6 +5383,9 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->director_recovery = MEMORY_mem[dftrace_director_state + 4u];
 	frame->dli_sequence_violations = dftrace_dli_sequence_violations;
 	frame->maximum_dlis_per_host_frame = dftrace_maximum_dlis_per_host_frame;
+	frame->maximum_boss_dlis_per_host_frame = dftrace_maximum_boss_dlis_per_host_frame;
+	frame->boss_state = dftrace_boss_active() && dftrace_boss_phase != 0u
+		? 1u + MEMORY_mem[dftrace_boss_phase] : 0u;
 	frame->pause_test_completed = dftrace_pause_test_completed;
 	frame->pause_timer_before = dftrace_pause_timer_before;
 	frame->pause_timer_after = dftrace_pause_timer_after;
@@ -5447,7 +5487,8 @@ static void dftrace_write(void)
 		",slot0_type,slot0_state,slot1_type,slot1_state"
 		",slot2_type,slot2_state,slot3_type,slot3_state"
 		",engine_playfield_select_idle_calls,engine_playfield_select_idle_dlist"
-		",engine_playfield_select_idle_active_lo,pickup_erase_writes\n");
+		",engine_playfield_select_idle_active_lo,pickup_erase_writes"
+		",boss_entry,boss_state,maximum_boss_dlis_per_host_frame\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -5711,6 +5752,8 @@ static void dftrace_write(void)
 			frame->engine_playfield_select_idle_dlist,
 			frame->engine_playfield_select_idle_active_lo,
 			frame->pickup_erase_writes);
+		fprintf(file, ",%u,%u,%u", frame->boss_entry, frame->boss_state,
+			frame->maximum_boss_dlis_per_host_frame);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6472,6 +6515,10 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_pickup_update_end, "DFTRACE_PC_PICKUP_UPDATE_END");
 	DFTRACE_ADDRESS(dftrace_pc_frontend_poll, "DFTRACE_PC_FRONTEND_POLL");
 	DFTRACE_ADDRESS(dftrace_pc_dli, "DFTRACE_PC_DLI");
+	dftrace_boss_flag = dftrace_env_optional("DFTRACE_BOSS_FLAG");
+	dftrace_boss_phase = dftrace_env_optional("DFTRACE_BOSS_PHASE");
+	dftrace_pc_boss_dli = dftrace_env_optional("DFTRACE_PC_BOSS_DLI");
+	dftrace_pc_boss_enter = dftrace_env_optional("DFTRACE_PC_BOSS_ENTER");
 	DFTRACE_ADDRESS(dftrace_pc_world, "DFTRACE_PC_WORLD");
 	DFTRACE_ADDRESS(dftrace_pc_near, "DFTRACE_PC_NEAR");
 	DFTRACE_ADDRESS(dftrace_pc_far_erase, "DFTRACE_PC_FAR_ERASE");
@@ -6909,22 +6956,36 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dftrace_set_frontend_input();
 	}
 
-	if (dftrace_dli_integrity_enabled && pc == dftrace_pc_dli) {
+	/* M5b-S3 (correction 10): in the boss sector the boss DLI is the gameplay
+	 * DLI, three phases a frame (decision 9); everywhere else two, as before. */
+	if (dftrace_active && dftrace_pc_boss_enter != 0u && pc == dftrace_pc_boss_enter) {
+		/* The entry turns the DLIs off part-way through a frame: that frame's
+		 * count is the transition's, not a sequence error. */
+		dftrace_current.boss_entry = 1u;
+		dftrace_dli_integrity_complete_frame_seen = 0;
+	}
+	if (dftrace_dli_integrity_enabled && (pc == dftrace_pc_dli ||
+		(dftrace_pc_boss_dli != 0u && pc == dftrace_pc_boss_dli && dftrace_boss_active()))) {
 		unsigned host_frame = (unsigned) Atari800_nframes;
 		unsigned phase = MEMORY_mem[dftrace_dli_phase];
+		int boss = dftrace_boss_active() && pc == dftrace_pc_boss_dli;
 		if (host_frame != dftrace_dli_integrity_host_frame) {
 			if (dftrace_dli_integrity_complete_frame_seen &&
-				dftrace_dli_integrity_count != 2u)
+				dftrace_dli_integrity_count != dftrace_dli_integrity_expected)
 				++dftrace_dli_sequence_violations;
 			dftrace_dli_integrity_host_frame = host_frame;
 			dftrace_dli_integrity_count = 0u;
 			dftrace_dli_integrity_complete_frame_seen = 1;
+			dftrace_dli_integrity_expected = boss ? 3u : 2u;
 		}
-		if (dftrace_dli_integrity_count >= 2u ||
+		if (dftrace_dli_integrity_count >= dftrace_dli_integrity_expected ||
 			phase != dftrace_dli_integrity_count)
 			++dftrace_dli_sequence_violations;
 		++dftrace_dli_integrity_count;
-		if (dftrace_dli_integrity_count > dftrace_maximum_dlis_per_host_frame)
+		if (boss) {
+			if (dftrace_dli_integrity_count > dftrace_maximum_boss_dlis_per_host_frame)
+				dftrace_maximum_boss_dlis_per_host_frame = dftrace_dli_integrity_count;
+		} else if (dftrace_dli_integrity_count > dftrace_maximum_dlis_per_host_frame)
 			dftrace_maximum_dlis_per_host_frame = dftrace_dli_integrity_count;
 	}
 
@@ -6951,6 +7012,11 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_dli_integrity_enabled = 1;
 			dftrace_dli_integrity_host_frame = (unsigned) Atari800_nframes;
 			dftrace_dli_integrity_count = MEMORY_mem[dftrace_dli_phase] != 0u ? 1u : 0u;
+			/* M5b-S3: a trace that starts inside the boss sector (a debug
+			 * route) counts the boss's three phases. */
+			dftrace_dli_integrity_expected = dftrace_boss_active() ? 3u : 2u;
+			if (dftrace_boss_active())
+				dftrace_dli_integrity_count = MEMORY_mem[dftrace_dli_phase];
 			dftrace_maximum_dlis_per_host_frame = dftrace_dli_integrity_count;
 		}
 		/* The previous end hook published the object before this completed ANTIC

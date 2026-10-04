@@ -123,7 +123,10 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // 480 - hull_rows for a right-aligned short hull: 187 + 28 = 215 of the
   // segment's 248 B. It ships in an extension record, not the initial block.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 215 });
+    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 230 });
+  // RE-PINNED 2026-10-04 (M5b-S3, plan §4.4): 215 -> 230 of 248. The capital
+  // entry's test became one mask for CAPITAL_DUE | BOSS_DUE (no cycle on a
+  // frame with neither), and a drained BOSS_DUE is consumed and enters the boss.
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });
@@ -291,7 +294,10 @@ test("ownership is singular and generated C requires neither software stack nor 
   // into the Director's one ceiling answer rather than choosing between three
   // policy bytes.
   assert.deepEqual(jsrs,
-    ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_heavy_publish_profile",
+    // RE-PINNED 2026-10-04 (M5b-S3): the drained boss gate calls the window's
+    // entry. A call into the ABI, not a token claim: the claim sites stay five.
+    ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_asm_boss_enter",
+      "_heavy_publish_profile",
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
       "_bomber_colour", "_light_tick_body",
       "_light_take_deferrable_token", "_light_take_deferrable_token",

@@ -155,8 +155,12 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // code window's C half took the one extension sector budget-1.0 M2 granted
   // the payload (record 8, 8 -> 9 sectors); this record did not move, and the
   // initial block above is unchanged.
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 209);
-  assert.equal(parsed.totalOccupiedSectors, 209);
+  // RE-PINNED 2026-10-04 (M5b-S3, plan §5.11.1): 209 -> 211. The boss entry
+  // bought one sector in the window record (its resident half) and one in the
+  // pickup record (HYBRID_C_SECTOR's gate); this record and the initial block
+  // did not move.
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 211);
+  assert.equal(parsed.totalOccupiedSectors, 211);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

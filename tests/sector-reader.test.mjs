@@ -841,7 +841,10 @@ test("the run read at $A006 lands the capital restore run in slot A byte for byt
 test("a directory entry the build left empty is rejected without touching SIO", () => {
   // RE-POINTED 2026-10-03 (M5a-S2): entries 6-8 are the summary's now; 1-5
   // (M5b) are still empty, and 9 is past the directory's end.
-  for (const index of [1, 5, 9, 0xff]) {
+  // RE-POINTED 2026-10-04 (M5b-S3): entry 1 is the boss code and 2 region 1's
+  // staging run now; regions 2-4 (entries 3-5) stay empty until S5, so the
+  // empty-entry path is exercised on 3 and 5. The assertions are unchanged.
+  for (const index of [3, 5, 9, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
     const result = runReadRun(stub, index);
     assert.equal(result.failed, true, `entry ${index}`);

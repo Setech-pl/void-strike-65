@@ -40,6 +40,8 @@ const LISTING_MODULES = [
     "integration-glue.lbl"],
   ["capital-player-collision.lst", "capital-player-collision.map",
     "capital-player-collision.o", "capital-player-collision.lbl"],
+  ["boss.lst", "boss.map", "boss.o", "boss.lbl"],
+  ["boss-c.lst", "boss.map", "boss-c.o", null],
 ];
 
 // cfg files whose MEMORY areas the default build links as written. light-kernel
@@ -66,6 +68,7 @@ const PHASES = [
   ["overlay", "an overlay slot's current run, restored by the sector reader"],
   ["pause", "while the pause menu is up"],
   ["summary", "while the level-summary screen is up"],
+  ["boss-entry", "the boss entry's transition (the WARNING screen and its reads), M5b-S3"],
 ];
 
 // Every linked segment of the default build: owner and phases. A segment
@@ -111,6 +114,7 @@ const SEGMENTS = {
   LEVEL_CORE: ["LevelDef core page (bss inside the level buffer)", "level"],
   LEVEL_GEOMETRY: ["HullGeometry header (bss inside the level buffer)", "level"],
   HYBRID_C_WINDOW: ["Director link's half of the BASIC window", "resident"],
+  HYBRID_ASM_WINDOW: ["the boss entry's resident half (M5b-S3), last in the Director link's window half", "resident"],
   LIGHT_KERNEL: ["Light ASM kernel; carries the capital vector table", "resident"],
   READER_ZP: ["sector reader (zp),y pointer", "resident"],
   SECTOR_READER: ["between-levels sector reader, overlay runs, stat hooks", "resident"],
@@ -119,6 +123,14 @@ const SEGMENTS = {
   GAMEPLAY_MUSIC: ["gameplay music player (in the level image)", "level"],
   GLUE: ["late-published integration glue", "resident"],
   COLLISION: ["capital-bolt / Player Fighter collision module", "resident"],
+  // M5b-S3: the boss overlay link, slot A's run and the once-only install.
+  BOSS_HEAD: ["boss overlay: head JMP and the capital vector table's boss image", "overlay"],
+  BOSS_CODE: ["boss overlay: band, boss DLI, motion, shot-versus-module, drawing, hand-off", "overlay"],
+  BOSS_C_CODE: ["boss overlay: C controller (phases, hit points, chain, bonus, clock)", "overlay"],
+  BOSS_C_RODATA: ["boss overlay: C read-only data", "overlay"],
+  BOSS_BSS: ["boss overlay: band and collision state (zero in the image)", "overlay"],
+  BOSS_C_BSS: ["boss overlay: C controller state (zero in the image)", "overlay"],
+  BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry", "boss-entry"],
 };
 
 // ---------------------------------------------------------------- readers
@@ -541,6 +553,8 @@ export const DECLARED_CFG_OVERLAPS = Object.freeze([
     reason: "the HullGeometry header is a link-time symbol over the level buffer, filled by the sector reader" },
   { areas: ["HYBRID_C_WINDOW_GUARD", "READER_GUARD"], name: "one window guard",
     reason: "the same six guard bytes at $BC1A are declared by both links that share the window" },
+  { areas: ["BOSS_SLOT_RAM", "BROADSIDE_RAM"], name: "boss in overlay slot A",
+    reason: "M5b-S3: the boss overlay is read over slot A, the capital group's 2,048 B inside BROADSIDE; START GAME's restore run puts the capital code back" },
 ]);
 
 // The overlaps between cfg memory areas, from the cfg files alone: the areas the
@@ -548,7 +562,9 @@ export const DECLARED_CFG_OVERLAPS = Object.freeze([
 // only its start, to the same address).
 export function cfgAreaOverlaps() {
   const reservations = [];
-  for (const name of [...RESERVATION_CFGS, "gameplay-music.cfg"]) {
+  // M5b-S3: boss.cfg too - its areas lie over slot A and the staging RAM by
+  // design, which is exactly what must be declared, by name, to pass.
+  for (const name of [...RESERVATION_CFGS, "gameplay-music.cfg", "boss.cfg"]) {
     for (const area of parseCfgAreas(name).areas) {
       if (!NON_RESERVATION_AREAS.has(area.name)) reservations.push(area);
     }

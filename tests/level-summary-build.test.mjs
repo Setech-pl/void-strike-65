@@ -56,8 +56,14 @@ test("the overlay directory has nine entries; the summary code is entry 8 at $05
   assert.deepEqual(entry(8), [code.startSector & 0xff, code.startSector >> 8, code.sectors, 0x00, 0x05]);
   assert.deepEqual(entry(6), [art.runs[0].startSector & 0xff, art.runs[0].startSector >> 8,
     art.sectorsPerRegion, 0x10, 0x78], "entry 6 names region 1's art; regions follow at the stride");
-  for (const index of [1, 2, 3, 4, 5]) {
-    assert.deepEqual(entry(index), [0, 0, 0, 0, 0], `entry ${index} belongs to M5b`);
+  // RE-POINTED 2026-10-04 (M5b-S3): entry 1 is the boss code (528, 16 sectors,
+  // slot A) and entry 2 region 1's staging run (547, 4 sectors, $7990); the
+  // boss's other regions (3-5) stay empty until S5, and nothing else moved.
+  const slot = manifest.overlays.slotA.address;
+  assert.deepEqual(entry(1), [528 & 0xff, 528 >> 8, 16, slot & 0xff, slot >> 8], "the boss code");
+  assert.deepEqual(entry(2), [547 & 0xff, 547 >> 8, 4, 0x90, 0x79], "region 1's staging run");
+  for (const index of [3, 4, 5]) {
+    assert.deepEqual(entry(index), [0, 0, 0, 0, 0], `entry ${index} belongs to M5b-S5`);
   }
 });
 
@@ -189,7 +195,11 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
         `${nameA} and ${nameB} overlap`);
     }
   }
-  assert.ok(atrSectors(528, 56).every((byte) => byte === 0), "M5b's sectors must stay empty");
+  // RE-POINTED 2026-10-04 (M5b-S3, Q-S6): the reservation now holds the boss
+  // code 528-543, the install 544-546 and region 1 547-555; the 28 sectors of
+  // regions 2-4 (556-583) are still empty. The non-overlap above is unchanged.
+  assert.ok(atrSectors(528, 28).some((byte) => byte !== 0), "the boss is on the disk");
+  assert.ok(atrSectors(556, 28).every((byte) => byte === 0), "regions 2-4 must stay empty");
 });
 
 test("the stat hooks are operand-only in every full segment", () => {
@@ -292,6 +302,8 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; t
   // The reader stays inside its 1,536 B; the window and the initial block
   // are pinned by the operand-only test above.
   assert.ok(manifest.sectorReader.freeBytes >= 0);
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1444, "the window moved");
+  // RE-PINNED 2026-10-04 (M5b-S3): 1,444 -> 1,316, the boss entry's resident
+  // half (tests/basic-window-capacity.test.mjs has the breakdown).
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1316, "the window moved");
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13621, "the initial block moved");
 });

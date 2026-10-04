@@ -187,10 +187,16 @@ test("owner decision 8: re-authoring the waves moved neither the capital nor the
     // 2,040) so that the first of them is always exhausted before its row
     // clock cuts it. Their total is unchanged, and these are the four figures
     // that proves it on.
+    // RE-POINTED 2026-10-04 (M5b-S3, plan §5.2): level 1's last sector is now
+    // its boss, so the row clock no longer completes the level at row 3,712:
+    // it ENTERS the boss sector there, on the very frame it used to complete,
+    // and the entry follows once the playfield drains. Same frames, same row.
     for (const [difficulty, complete] of [[1, 8249], [2, 7424]]) {
       const run = captureTimeline({ buildDirectory, difficulty, frames: 9000 });
-      assert.equal(run.completeFrame?.frame, complete);
-      assert.equal(run.completeFrame?.row, 3712);
+      assert.equal(run.completeFrame, null, "the level must not complete before its boss");
+      assert.equal(run.bossSectorFrame?.frame, complete);
+      assert.equal(run.bossSectorFrame?.row, 3712);
+      assert.ok(run.bossEntryFrame?.frame >= complete, "the entry waits for the drain");
     }
     const medium = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });
     const entry = medium.sectorTransitions.find((transition) => transition.to === 0);

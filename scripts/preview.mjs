@@ -564,7 +564,9 @@ function parseConstants(source) {
   for (const rawLine of source.split(/\r?\n/)) {
     const line = stripComment(rawLine).trim();
     const match = /^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/.exec(line);
-    if (match && match[2].trim() !== "*") {
+    // `name = *` and `name = *+n` are addresses of the assembly position (M5b-S3
+    // names two patched operands that way), not constants a preview can know.
+    if (match && !/^\*\s*([+-].*)?$/.test(match[2].trim())) {
       pending.push({ name: match[1], expression: match[2] });
     }
   }

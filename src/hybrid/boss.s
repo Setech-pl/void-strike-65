@@ -69,9 +69,11 @@ BAND_BOTTOM_Y   = BAND_TOP_Y + BOSS_BAND_ROWS * 8
 ; A shot that reaches the band's bottom edge has reached the band; the player
 ; stays below it (plan §5.11.4 item 9).
 BOSS_PLAYER_Y_MIN = BAND_BOTTOM_Y
-; With the HSCROL bit a normal-width row fetches 48 bytes; byte 0 starts at
-; this colour clock when HSCROL is 0 and every HSCROL step delays it by one
-; (calibrated in the emulator, tests/boss-runtime.test.mjs).
+; With the HSCROL bit a normal-width row fetches 48 bytes and shows byte k at
+; colour clock 32 + 4k + HSCROL: four bytes left of the window at HSCROL 0,
+; one colour clock later per step (Atari800 src/antic.c, the HSCROL write:
+; ch_offset 4 - h/4, x_min moved by (h & 3) - 4; the HRM's horizontal-scroll
+; rule). The normal window's first colour clock is HPOS 48.
 BAND_ORIGIN_HPOS = 32
 ; The ring rows that stay visible under the band: display rows 9-27.
 RING_FIRST_VISIBLE = BOSS_BAND_ROWS
@@ -82,7 +84,7 @@ RING_ROWS       = 27
 
 .export boss_head, boss_vector_image, boss_dli, boss_update, boss_motion
 .export boss_completion, boss_install, boss_shown_pos, boss_dli_pos
-.export boss_rts, boss_runs, boss_draw_module, boss_apply_pos
+.export boss_rts, boss_runs, boss_draw_module, boss_apply_pos, boss_module_scored
 ; The controller's view of the region's tables (src/c/boss.c).
 .export _boss_tables, _boss_module_table
 _boss_tables       = BOSS_TABLES
@@ -392,9 +394,11 @@ boss_after_hit:
     inc STATS_HITS+1
 :
     ldx _boss_score_module
-    bmi @looks
+    bmi boss_hit_looks
     ; The module's score, packed BCD (light_add_score's path), then the kill
     ; stat and the HUD through the reader's kill vector, and the kill sound.
+    ; (The harness counts kills at this label, as it does at the score routines.)
+boss_module_scored:
     jsr boss_record_of
     sed
     clc
@@ -407,7 +411,7 @@ boss_after_hit:
     cld
     jsr SECTOR_READER_STATS_KILL
     jsr play_hit_sound
-@looks:
+boss_hit_looks:
     lda #$00
     sta boss_fill
     lda _boss_draw_wreck

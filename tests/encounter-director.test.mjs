@@ -278,7 +278,10 @@ test("the runtime ceiling tables carry a row per sector kind and keep CAPITAL at
   const image = memory();
   const light = byteTable(image, "_subtype_ceiling_light", 4);
   const heavy = byteTable(image, "_subtype_ceiling_heavy", 4);
-  assert.deepEqual(light, [3, 1, 0, 0], "SWARM 3, ELITE 1, CAPITAL 0, BOSS 0");
+  // RE-PINNED 2026-10-04 (M5b-S3, decision 5a, plan §5.1): the BOSS row is one
+  // Light - the owner's "no Heavy, at most one Light" - as the CAPITAL row
+  // stays zero.
+  assert.deepEqual(light, [3, 1, 0, 1], "SWARM 3, ELITE 1, CAPITAL 0, BOSS 1");
   assert.deepEqual(heavy, [0, 2, 0, 0], "a SWARM sector has no Heavy slot at all");
   // Owner decision 1 (plan §11): the CAPITAL row exists and is zero, so paying
   // for §5.1 later is a table VALUE and not a format change.

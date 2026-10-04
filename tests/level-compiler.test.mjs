@@ -245,9 +245,11 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   const compiled = compileLevelFile(levelSourcePath(1), { hullAsset });
   assert.deepEqual(compiled.warnings, []);
   assert.equal(compiled.level, 1);
-  assert.equal(compiled.sectors.length, 4);
+  // RE-POINTED 2026-10-04 (M5b-S3, plan §5.1): a fifth sector, the BOSS;
+  // sectors 1-4 below are unchanged (tests/boss-band.test.mjs pins them too).
+  assert.equal(compiled.sectors.length, 5);
   assert.deepEqual(compiled.sectors.map((sector) => sector.kindName),
-    ["space", "capital", "space", "space"]);
+    ["space", "capital", "space", "space", "boss"]);
   // A capital sector carries no enemy in 1.0 (owner decision, plan §11.1).
   assert.equal(compiled.sectors[1].mask, 0);
   assert.equal(compiled.sectors[1].lights, 0);
@@ -271,7 +273,10 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   // fall inside it; 2,040 is the format's maximum for one byte of modules and
   // is the LAST sector, whose cut has no successor to collide with. The sum,
   // and therefore the level-complete row, is what it was.
-  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 856, 2040]);
+  // RE-POINTED 2026-10-04 (M5b-S3): the boss sector has no authored rows -
+  // the world stops in it and it ends at the boss's death - so the sum below,
+  // and the row on which the level leaves its space sectors, are unchanged.
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 856, 2040, 0]);
   assert.equal(compiled.sectors[2].rows + compiled.sectors[3].rows, 2896,
     "the two post-capital sectors still total what 1,448 + 1,448 totalled");
   assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 3710);
@@ -350,9 +355,12 @@ test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where th
     // RE-POINTED 2026-10-03 (M5a-S2, decision 28): the grade's ten bytes at
     // payload offset 184 are level data now; everything else beyond the look
     // is still zero.
-    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(194)]);
+    // RE-POINTED 2026-10-04 (M5b-S3, plan §5.6): boss_def at 194 carries the
+    // boss bonus in its first two bytes; the rest of boss_def is still zero.
+    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(196)]);
     assert.equal(Buffer.compare(outside, Buffer.alloc(outside.length)), 0,
-      "one 16-B look, the grade block and nothing else");
+      "one 16-B look, the grade block, the boss bonus and nothing else");
+    assert.deepEqual([...payload.subarray(194, 196)], [0x00, 0x20], "level 1's boss bonus, 2,000 BCD");
     assert.ok(payload.subarray(184, 194).some((byte) => byte !== 0), "level 1 grades");
   });
 
@@ -490,8 +498,9 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     assert.equal(two.level, 2);
     assert.equal(two.pages.core[1], 2, "level_number in the core page");
 
-    // Sector count: six against level 1's four (R4).
-    assert.equal(one.sectors.length, 4);
+    // Sector count: six against level 1's four (R4). RE-POINTED 2026-10-04
+    // (M5b-S3): level 1 gained its boss, a fifth; the two still differ.
+    assert.equal(one.sectors.length, 5);
     assert.equal(two.sectors.length, 6);
     assert.deepEqual(two.sectors.map((sector) =>
       sector.subtypeName === null ? sector.kindName : `${sector.kindName}/${sector.subtypeName}`),

@@ -267,43 +267,50 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
 // machine that dispatched BOSS_HANDOFF, so the anchor is the mechanism that
 // ends a level now: the LAST SECTOR's row clock. DRAIN follows it on the very
 // next frame, COMPLETE on the frame after that, and COMPLETE is terminal.
-test("PAL replay ends the level on the last sector's row clock, into a terminal LEVEL COMPLETE", () => {
+// RE-POINTED 2026-10-04 (M5b-S3, class (a)): level 1's last sector is now its
+// BOSS, so the level no longer ends on the row clock with a forced DRAIN and a
+// terminal COMPLETE (nothing raises FLAG_COMPLETE any more): it ends at the
+// boss's death, through the chain, on the level-end summary. The relations
+// are kept on that mechanism: the row clock enters the last sector, the
+// drained entry happens there once, the boss's phases follow in order and
+// never go back, and the end is terminal.
+test("PAL replay ends the level in its boss: drained entry, guns, core, chain, hold, terminal", () => {
   const evidence = report.coverage.director_level_complete;
   const sessions = evidence.natural_difficulty_sessions;
   assert.equal(evidence.observed, true);
   assert.deepEqual(sessions.map(({ difficulty }) => difficulty), [0, 1, 2],
     "all three natural difficulties must contribute a completion");
-  // The headline record must be one of the measured sessions, not a fourth
-  // number set that drifted away from them.
   const headline = sessions.find(({ session }) => session === evidence.session);
   assert.ok(headline, `headline session ${evidence.session} is not among the measured sessions`);
-  for (const key of ["level_end_row_tick_frame", "level_end_sector", "drain_frame",
-    "level_complete_frame", "drain_frames", "terminal_complete_through_frame"])
+  for (const key of ["boss_sector", "boss_entry_frame", "boss_entry_host_frames",
+    "boss_engaged_frame", "boss_core_destroyed_frame", "boss_hold_frame",
+    "boss_terminal_through_frame"])
     assert.equal(evidence[key], headline[key], `headline ${key} disagrees with ${headline.session}`);
 
   for (const entry of sessions) {
-    const where = `${entry.session} (row clock ${entry.level_end_row_tick_frame} in sector ` +
-      `${entry.level_end_sector}, drain ${entry.drain_frame}, complete ` +
-      `${entry.level_complete_frame}, terminal through ` +
-      `${entry.terminal_complete_through_frame} of ${entry.last_measured_frame})`;
-    assert.ok(Number.isInteger(entry.level_end_row_tick_frame) &&
-      entry.level_end_row_tick_frame > 0,
-    `${where}: no level-ending row clock frame`);
-    // Level 1 is four sectors, so its last is index 3. The assertion is the
-    // RELATION -- the level ends in its last sector -- not the number: it is
-    // read back from the same record the clause measured it in.
-    assert.ok(Number.isInteger(entry.level_end_sector) && entry.level_end_sector > 0,
-      `${where}: no last-sector index`);
-    assert.equal(entry.drain_frame, entry.level_end_row_tick_frame + 1,
-      `${where}: DRAIN must follow the last sector's row clock on the very next frame`);
-    assert.equal(entry.level_complete_frame, entry.drain_frame + 1,
-      `${where}: LEVEL COMPLETE must follow DRAIN on the next frame`);
-    assert.equal(entry.drain_frames, entry.level_complete_frame - entry.drain_frame,
-      `${where}: drain_frames must be the measured DRAIN span`);
-    assert.equal(entry.terminal_complete, true,
-      `${where}: the capital sector re-opened after LEVEL COMPLETE`);
-    assert.equal(entry.terminal_complete_through_frame, entry.last_measured_frame,
-      `${where}: COMPLETE must hold to the last measured frame`);
+    const where = `${entry.session} (sector ${entry.boss_sector} entered ` +
+      `${entry.boss_sector_entered_frame}, entry ${entry.boss_entry_frame}, engaged ` +
+      `${entry.boss_engaged_frame}, core ${entry.boss_core_exposed_frame}, chain ` +
+      `${entry.boss_core_destroyed_frame}, hold ${entry.boss_hold_frame}, last ` +
+      `${entry.last_measured_frame})`;
+    // The level ends in its last sector, which is its boss: read back from the
+    // record the clause measured it in, not pinned.
+    assert.ok(Number.isInteger(entry.boss_sector) && entry.boss_sector > 0, `${where}: no boss sector`);
+    assert.ok(entry.boss_sector_entered_frame < entry.boss_entry_frame,
+      `${where}: the entry must wait in the boss sector for the drain`);
+    assert.equal(entry.boss_engaged_frame, entry.boss_entry_frame + 1,
+      `${where}: the first boss frame must follow the entry`);
+    assert.ok(entry.boss_engaged_frame < entry.boss_core_exposed_frame &&
+      entry.boss_core_exposed_frame < entry.boss_core_destroyed_frame &&
+      entry.boss_core_destroyed_frame < entry.boss_hold_frame &&
+      entry.boss_hold_frame <= entry.last_measured_frame,
+    `${where}: the phases must run guns, core, chain, hold`);
+    assert.equal(entry.boss_phases_monotonic, true, `${where}: a boss phase went backwards`);
+    assert.equal(entry.boss_terminal_through_frame, entry.last_measured_frame,
+      `${where}: the boss must hold to the last measured frame`);
+    assert.ok(entry.boss_fight_frames > 0, `${where}: no fight time`);
+    assert.ok(entry.boss_entry_host_frames > 0 && entry.boss_entry_host_frames < 250,
+      `${where}: the boss entry took ${entry.boss_entry_host_frames} host frames`);
   }
 });
 

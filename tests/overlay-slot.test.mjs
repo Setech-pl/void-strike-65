@@ -106,8 +106,17 @@ test("the capital-phase entry points are reached only through the vector table",
   for (const name of group) assert.ok(mainLabels.has(name), `${name} is not a main label`);
   const insideGroup = (owner) => owner !== null &&
     (group.has(owner) || inSlot(mainLabels.get(owner) ?? -1));
-  const strays = sourceReferences().filter(({ target, owner }) =>
-    CAPITAL_ENTRIES.includes(target) && !insideGroup(owner));
+  // RE-POINTED 2026-10-04 (M5b-S3): the boss overlay's table image is a vector
+  // table of its own - the capital table's meanings, one JMP each - and keeps
+  // INIT on the resident init_broadside (start_gameplay is its only caller, and
+  // runs after the START GAME restore). It is the table, not a stray call.
+  const bossTable = sourceReferences().filter(({ file, target }) =>
+    file === "src/hybrid/boss.s" && CAPITAL_ENTRIES.includes(target));
+  assert.deepEqual(bossTable.map(({ owner, target }) => `${owner} -> ${target}`),
+    ["boss_vector_image -> init_broadside"]);
+  const strays = sourceReferences().filter(({ target, owner, file }) =>
+    CAPITAL_ENTRIES.includes(target) && !insideGroup(owner) &&
+    !(file === "src/hybrid/boss.s" && owner === "boss_vector_image"));
   assert.deepEqual(strays.map(({ file, line, owner, target }) =>
     `${file}:${line} ${owner} -> ${target}`), [],
   "resident code outside the capital group calls a capital entry directly");
@@ -182,8 +191,13 @@ test("the reader's overlay directory and table image match the disk and the wind
   // RE-POINTED 2026-10-03 (M5a-S2): entries 6-8 are the level summary's
   // (art, save record, module; tests/level-summary-build.test.mjs pins them),
   // and the directory grew to nine. Entries 1-5 stay M5b's, empty.
-  assert.ok(directory.subarray(5, 6 * 5).every((byte) => byte === 0),
-    "entries 1-5 must read as not on this disk until M5b fills them");
+  // RE-POINTED 2026-10-04 (M5b-S3): entries 1 and 2 are the boss code and
+  // region 1's staging run (tests/boss-overlay.test.mjs pins them against the
+  // disk); 3-5, regions 2-4, stay empty until S5.
+  assert.ok(directory.subarray(5, 6).every((byte) => byte !== 0) &&
+    directory.subarray(10, 11).every((byte) => byte !== 0), "entries 1-2 are the boss's");
+  assert.ok(directory.subarray(3 * 5, 6 * 5).every((byte) => byte === 0),
+    "entries 3-5 must read as not on this disk until M5b-S5 fills them");
 
   const vectors = manifest.overlays.capitalVectors;
   const image = reader.subarray(readerLabels.get("capital_vector_image") - base,

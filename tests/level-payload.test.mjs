@@ -197,8 +197,10 @@ test("T13: the compiler refuses every out-of-range payload value", () => {
 test("T13: level 1 shows a sky per sector and one re-skinned escort wave; level 2 the full payload", () => {
   const one = compileLevelFile(levelSourcePath(1));
   const sky = (level) => level.sectors.map((_, s) => level.core[SECTOR_ARRAY_OFFSET.look + s] & 0x0f);
-  assert.deepEqual(sky(one), [1, 2, 1, 3],
-    "white, steel at the capital, white, yellow on the last sector");
+  // RE-POINTED 2026-10-04 (M5b-S3): the boss sector, now the last, keeps the
+  // yellow of the sector before it (assets/levels/level-01.json).
+  assert.deepEqual(sky(one), [1, 2, 1, 3, 3],
+    "white, steel at the capital, white, yellow on sector 4 and the boss");
   const variants = one.waves.map((wave, index) => [index, wave.appearance])
     .filter(([, appearance]) => appearance !== 0);
   assert.deepEqual(variants, [[6, 1]],

@@ -57,13 +57,16 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // install that reads its source from the pair's look and the resolver's
   // layout-proof fast exit.
   assert.equal(window.capacityBytes, 1536 + 2048);
-  assert.equal(window.directorHalfBytes, 1369, "the Light C, the cold Director half, step 5");
+  // RE-PINNED 2026-10-04 (M5b-S3, plan §5.11.7): 1,369 -> 1,497 B - the boss
+  // entry's resident half, 109 B placed last, and enter_sector's BOSS branch,
+  // 19 B - so the window's free tail is 1,316 (plan ~157 B, STOP +20 %).
+  assert.equal(window.directorHalfBytes, 1497, "the Light C, the cold Director half, step 5, the boss entry");
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
   assert.equal(window.lightKernelBytes, 771);
-  assert.equal(window.usedBytes, 2140);
-  assert.equal(window.freeBytes, 3584 - 2140);
-  assert.equal(window.freeBytes, 1444, "the tail M5a-S1 leaves for M5a-S2 and the boss");
+  assert.equal(window.usedBytes, 2268);
+  assert.equal(window.freeBytes, 3584 - 2268);
+  assert.equal(window.freeBytes, 1316, "the tail M5b-S3 leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
@@ -75,7 +78,8 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   assert.equal(window.transport.finalDestination, WINDOW);
   // RE-PINNED 2026-10-01, roadmap 4.6 step 5: 1,283 -> 1,369 raw B, 8 -> 9
   // sectors - the one extension sector budget-1.0 M2 granted the payload.
-  assert.equal(window.transport.rawBytes, 1369, "the window record carries steps 2-5");
+  // RE-PINNED 2026-10-04 (M5b-S3): 1,369 -> 1,497 raw B, 9 -> 10 sectors.
+  assert.equal(window.transport.rawBytes, 1497, "the window record carries steps 2-5 and the boss entry");
   // The transport rule of plan §3.3 and owner decision 6: this step may not
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that
@@ -84,9 +88,14 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13652,
     `initial block content is ${manifest.transportCapacity.initialBootContentBytes} B; ` +
     "the ceiling for the whole of 4.6 is 13,652");
-  assert.ok(manifest.transportCapacity.totalTransportSectors <= 209,
+  // RE-PINNED 2026-10-04 (M5b-S3, plan §6.3 and §5.11.1): 209 -> 211. The
+  // plan prices the boss entry at two extension sectors (the window record and
+  // the pickup record, one each; the spike measured 211). The gate this proxy
+  // stands for is the ATR menu frame, measured by the boot smoke against the
+  // 596 baseline (+7 is the session's STOP), not the sector count itself.
+  assert.ok(manifest.transportCapacity.totalTransportSectors <= 211,
     `total transport is ${manifest.transportCapacity.totalTransportSectors} sectors; ` +
-    "209 is the ceiling the ATR menu delta of +7 was measured at");
+    "211 is the plan's M5b figure");
 });
 
 test("Q-1: level 1 still loads the same image the same way", () => {

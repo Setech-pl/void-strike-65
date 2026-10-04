@@ -107,7 +107,10 @@ test("fit preserves the reviewed staging and placement gates", () => {
   const pickup = manifest.entityEffects.pickupPhaseExternalChunk;
   assert.equal(pickup.stagingAddress, 0x8c80);
   assert.equal(pickup.finalRuntimeAddress, 0x8776);
-  assert.equal(pickup.sectors, 9);
+  // RE-PINNED 2026-10-04 (M5b-S3, plan §5.11.1): 9 -> 10. HYBRID_C_SECTOR,
+  // which rides in this record, grew 215 -> 230 B for the boss gate (one mask
+  // for CAPITAL_DUE | BOSS_DUE and the entry call); the record had 3 B spare.
+  assert.equal(pickup.sectors, 10);
   assert.ok(manifest.starfieldRuntime.packedBytes <= manifest.starfieldRuntime.stagingBytes);
   assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 143);
   assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 38);

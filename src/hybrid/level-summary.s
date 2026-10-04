@@ -144,6 +144,13 @@ summary_start_game:
 :
         jsr summary_art
         bcs summary_failed
+        ; M5b-S3 (Q-S4): a game that ended inside the boss sector left its
+        ; settings patched; they go back with the capital code, under the
+        ; same flag, before the reader's restore clears it.
+        lda sr_slot_a_overlaid
+        beq :+
+        jsr summary_boss_restore
+:
         jsr sector_reader_restore_if_overlaid
         bcs summary_failed
         jsr summary_read_record
@@ -806,6 +813,27 @@ summary_accuracy:
         lda summary_percent
         rts
 
+; M5b-S3 (owner answer Q-S4, plan §5.11.7): every setting the boss install
+; patched outside slot A - the world and hull scroll rates, the pause's DLI
+; operands, the player's Y floor - back to the shipped image's value, and the
+; GTIA/ANTIC registers the boss writes back to zero. The table is generated
+; from the linked images (build/boss-restore.inc).
+summary_boss_restore:
+        ldx #(BOSS_RESTORE_COUNT - 1)
+@entry:
+        lda boss_restore_lo,x
+        sta dst_ptr
+        lda boss_restore_hi,x
+        sta dst_ptr+1
+        lda boss_restore_value,x
+        ldy #$00
+        sta (dst_ptr),y
+        dex
+        bpl @entry
+        rts
+
+        .include "boss-restore.inc"
+
 ; The active gameplay clock: seconds (16-bit), then minutes and seconds.
 summary_time:
         lda ACTIVE_GAMEPLAY_FRAME_LO
@@ -1053,3 +1081,4 @@ summary_verified:       .byte 0
 .export summary_lives_lost, summary_grade_code, summary_level, summary_verified
 .export summary_read_record, summary_update_record, summary_wait, summary_art
 .export summary_fire_release, summary_fire_press, summary_level_loaded
+.export summary_boss_restore

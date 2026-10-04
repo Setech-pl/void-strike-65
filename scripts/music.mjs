@@ -671,6 +671,43 @@ export function compileGameplayMusic(definition, { pitches } = {}) {
   });
 }
 
+// M5b-S3 (docs/plans/m5-loading-boss.md §2.6, §5.11.7, decision 32): a second
+// gameplay track at run time is a COPY over the level's track inside the
+// per-level music block, not a pointer change - the player addresses its
+// tables absolutely (gm_env_ch1, gm_map_ch1, gm_seq_ch1, gm_columns) and bakes
+// framesPerRow and the sequence length in as immediates. So the copy must have
+// the reference track's table offsets: the same tempo and bar count, and no
+// more pitches per channel and no longer envelopes than the reference, padded
+// to the reference's sizes. The padding is never read: an envelope stops on its
+// last-entry bit and a token never indexes past its channel's own pitches.
+// The columns come last and may be fewer or more, within `capacity`.
+export function layoutGameplayMusicLike(asset, reference, { capacity = Infinity } = {}) {
+  invariant(asset.framesPerRow === reference.framesPerRow,
+    `the copied track runs ${asset.framesPerRow} frames a row; the player bakes in ` +
+    `${reference.framesPerRow}`);
+  invariant(asset.sequence.length === reference.sequence.length,
+    `the copied track is ${asset.sequence.length} bars; the player bakes in ` +
+    `${reference.sequence.length}`);
+  const padded = (bytes, length, what) => {
+    invariant(bytes.length <= length,
+      `the copied track's ${what} is ${bytes.length} B; the reference's table is ${length}`);
+    return [...bytes, ...new Array(length - bytes.length).fill(0)];
+  };
+  const out = [
+    ...asset.audcBase,
+    ...padded(asset.envelopes[0], reference.envelopes[0].length, "channel 1 envelope"),
+    ...padded(asset.envelopes[1], reference.envelopes[1].length, "channel 2 envelope"),
+    ...padded(asset.dividerMaps[0], reference.dividerMaps[0].length, "channel 1 pitch map"),
+    ...padded(asset.dividerMaps[1], reference.dividerMaps[1].length, "channel 2 pitch map"),
+    ...asset.sequenceBytes[0],
+    ...asset.sequenceBytes[1],
+  ];
+  for (const column of asset.columnBytes) out.push(...column);
+  invariant(out.length <= capacity,
+    `the copied track is ${out.length} B; the music block holds ${capacity} behind the player`);
+  return Uint8Array.from(out);
+}
+
 export function renderGameplayMusicCa65Include(asset) {
   const rows = (values, perLine) => {
     const lines = [];

@@ -1,0 +1,101 @@
+{
+  "formatVersion": 1,
+  "region": 1,
+  "name": "Bastion",
+  "description": "M5b-S3 (docs/plans/m5-loading-boss.md §5.1-5.3): region 1's boss, the band art and the module table. One 8-row x 64-cell ANTIC 4 band in the gameplay charset's codes 59-89 (the capital hull's codes, free in a boss sector; publish_level_hull_style puts them back at the next level start). Pixel 0 is the background, 1 COLPF0, 2 COLPF1, 3 COLPF2 on a pf2 glyph and COLPF3 on a pf3 glyph (screen-code bit 7). The band has its own palette under the boss sector's third DLI (owner decision 9). Placeholder tuning: M8 sets the hit points. A module's score is score units added as one packed-BCD byte when it is destroyed (the Bomber is 50).",
+  "glyphBase": 59,
+  "palette": {
+    "_": "COLPF0 cold-white edge, COLPF1 worn steel, COLPF2 reactor amber, COLPF3 hostile burgundy armour.",
+    "colpf0": 12,
+    "colpf1": 6,
+    "colpf2": 42,
+    "colpf3": 50
+  },
+  "motion": {
+    "_": "The band drifts one colour clock every framesPerColourClock frames across travelColourClocks and back (plan §5.2: slow, data). The win shakes the band by HSCROL jitter for shakeFrames (Q-S5).",
+    "framesPerColourClock": 2,
+    "travelColourClocks": 63,
+    "startColourClock": 32,
+    "shakeFrames": 24,
+    "shakeAmplitude": 2
+  },
+  "chain": {
+    "_": "The win: six blasts eight frames apart along the modules, each with the shared enemy-explosion COLBK flash (plan §5.6 as corrected by §5.11.4 item 4).",
+    "blasts": 6,
+    "framesBetween": 8
+  },
+  "glyphs": [
+    { "name": "hull_mass", "bank": "pf3", "pixels": ["3333", "3333", "3333", "3333", "3333", "3333", "3333", "3333"] },
+    { "name": "hull_plate", "bank": "pf3", "pixels": ["2222", "2333", "2333", "2333", "2332", "2333", "2333", "2333"] },
+    { "name": "hull_edge_top", "bank": "pf3", "pixels": ["1111", "2222", "3333", "3333", "3333", "3333", "3333", "3333"] },
+    { "name": "hull_edge_bottom", "bank": "pf3", "pixels": ["3333", "3333", "3333", "3333", "3333", "2222", "2222", "0000"] },
+    { "name": "hull_cap_left", "bank": "pf3", "pixels": ["0012", "0123", "0123", "1233", "1233", "0123", "0123", "0012"] },
+    { "name": "hull_cap_right", "bank": "pf3", "pixels": ["2100", "3210", "3210", "3321", "3321", "3210", "3210", "2100"] },
+    { "name": "hull_spire", "bank": "pf3", "pixels": ["0010", "0010", "0010", "0020", "0020", "0120", "1222", "2222"] },
+    { "name": "hull_bridge", "bank": "pf3", "pixels": ["0000", "0110", "1221", "1231", "1221", "1221", "2222", "2222"] },
+    { "name": "hull_lights", "bank": "pf3", "pixels": ["2222", "2222", "2121", "2222", "2222", "2121", "2222", "2222"] },
+    { "name": "hull_vent", "bank": "pf3", "pixels": ["3333", "3003", "3003", "3333", "3333", "3003", "3003", "3333"] },
+    { "name": "hull_pylon", "bank": "pf3", "pixels": ["0220", "0220", "0220", "0220", "0220", "0220", "0220", "0220"] },
+    { "name": "hull_seam", "bank": "pf3", "pixels": ["3333", "3333", "3333", "2222", "3333", "3333", "3333", "3333"] },
+    { "name": "gun_left", "bank": "pf3", "pixels": ["0222", "2233", "2333", "2311", "2333", "2233", "0222", "0022"] },
+    { "name": "gun_mid", "bank": "pf3", "pixels": ["2222", "3333", "3113", "3113", "3333", "3333", "2222", "2222"] },
+    { "name": "gun_right", "bank": "pf3", "pixels": ["2220", "3322", "3332", "1132", "3332", "3322", "2220", "2200"] },
+    { "name": "gun_barrel", "bank": "pf3", "pixels": ["2222", "0220", "0220", "0220", "0220", "0110", "0110", "0000"] },
+    { "name": "wreck_left", "bank": "pf3", "pixels": ["0000", "0202", "2320", "0233", "2302", "0230", "0020", "0000"] },
+    { "name": "wreck_mid", "bank": "pf3", "pixels": ["0200", "2032", "0323", "3230", "0302", "2020", "0200", "0000"] },
+    { "name": "wreck_right", "bank": "pf3", "pixels": ["0000", "2020", "0232", "3320", "2032", "0320", "0200", "0000"] },
+    { "name": "shutter_a", "bank": "pf3", "pixels": ["2222", "2112", "2222", "2332", "2332", "2222", "2112", "2222"] },
+    { "name": "shutter_b", "bank": "pf3", "pixels": ["2222", "2222", "1111", "2222", "2222", "1111", "2222", "2222"] },
+    { "name": "core_top_left", "bank": "pf2", "pixels": ["2222", "2333", "2331", "2311", "2311", "2331", "2333", "2333"] },
+    { "name": "core_top", "bank": "pf2", "pixels": ["2222", "3333", "1111", "1111", "1111", "1111", "3333", "3333"] },
+    { "name": "core_top_right", "bank": "pf2", "pixels": ["2222", "3332", "1332", "1132", "1132", "1332", "3332", "3332"] },
+    { "name": "core_bottom_left", "bank": "pf2", "pixels": ["2333", "2333", "2331", "2311", "2311", "2331", "2333", "2222"] },
+    { "name": "core_bottom", "bank": "pf2", "pixels": ["3333", "3333", "1111", "1111", "1111", "1111", "3333", "2222"] },
+    { "name": "core_bottom_right", "bank": "pf2", "pixels": ["3332", "3332", "1332", "1132", "1132", "1332", "3332", "2222"] },
+    { "name": "core_wreck", "bank": "pf3", "pixels": ["2020", "0302", "2032", "0230", "3202", "0320", "2032", "0200"] },
+    { "name": "blast_a", "bank": "pf2", "pixels": ["0010", "1101", "0111", "1331", "1331", "0110", "1011", "0100"] },
+    { "name": "blast_b", "bank": "pf2", "pixels": ["1001", "0330", "3113", "1311", "1131", "3113", "0330", "1001"] },
+    { "name": "hull_rivets", "bank": "pf3", "pixels": ["3333", "3133", "3333", "3333", "3313", "3333", "3333", "3333"] }
+  ],
+  "legend": {
+    ".": null,
+    "M": "hull_mass",
+    "P": "hull_plate",
+    "T": "hull_edge_top",
+    "U": "hull_edge_bottom",
+    "<": "hull_cap_left",
+    ">": "hull_cap_right",
+    "i": "hull_spire",
+    "B": "hull_bridge",
+    "L": "hull_lights",
+    "V": "hull_vent",
+    "!": "hull_pylon",
+    "S": "shutter_a",
+    "s": "shutter_b",
+    "g": "gun_left",
+    "G": "gun_mid",
+    "h": "gun_right",
+    "|": "gun_barrel"
+  },
+  "band": [
+    "............i.......i.....BBBBB.....i.......i...................",
+    "........<TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT>...............",
+    "........<MPMVMMPMLLMPMMVMPMMMMMMPMVMMPMLLMPMMVMP>...............",
+    "........<VMMPMLLMPMMVMPMMMMSsSsVMMPMLLMPMMVMPMMP>...............",
+    "........<PMLLMPMMVMPMMMMMMPsSsSPMLLMPMMVMPMMPMVM>...............",
+    "........<UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU>...............",
+    ".................gGh...!...gGh...!...gGh........................",
+    "..................|.........|.........|........................."
+  ],
+  "armour": {
+    "_": "Band columns whose hull absorbs a PairShot without damage while no exposed module covers them (the shot ends at the band's bottom edge either way: the rows above it are hidden behind the band).",
+    "firstColumn": 8,
+    "lastColumn": 48
+  },
+  "modules": [
+    { "name": "gun-left", "kind": "gun", "x": 17, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "wreck": [["wreck_left", "wreck_mid", "wreck_right"], [null, null, null]] },
+    { "name": "gun-centre", "kind": "gun", "x": 27, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "wreck": [["wreck_left", "wreck_mid", "wreck_right"], [null, null, null]] },
+    { "name": "gun-right", "kind": "gun", "x": 37, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "wreck": [["wreck_left", "wreck_mid", "wreck_right"], [null, null, null]] },
+    { "name": "core", "kind": "core", "x": 27, "row": 3, "width": 4, "height": 2, "hp": 24, "score": 99, "open": [["core_top_left", "core_top", "core_top", "core_top_right"], ["core_bottom_left", "core_bottom", "core_bottom", "core_bottom_right"]], "wreck": [["core_wreck", "core_wreck", "core_wreck", "core_wreck"], ["core_wreck", "core_wreck", "core_wreck", "core_wreck"]] }
+  ]
+}

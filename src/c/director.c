@@ -77,6 +77,10 @@
 #define FLAG_COMPLETE            0x01u
 #define FLAG_CAPITAL_ADMITTED    0x40u
 #define FLAG_CAPITAL_DUE         0x80u
+/* M5b-S3 (docs/plans/m5-loading-boss.md §4.4): raised on entering the BOSS
+ * sector; sector_c_update_first_capital waits for the drain and calls the
+ * boss entry. */
+#define FLAG_BOSS_DUE            0x20u
 #define FLAG_NOT_ADMITTED        0xBFu
 
 /* SectorDef `sector_kind`: bits 0-1 kind, 4-5 subtype, bit 7 last (plan §2.2). */
@@ -186,7 +190,7 @@ volatile uint8_t heavy_wave_flags;
  * 23 §10.7). A level file may ask for less; it may never ask for more. Index 0
  * SWARM, 1 ELITE, 2 CAPITAL, 3 BOSS. The CAPITAL row exists and is zero so
  * that paying for plan §5.1 later is a table VALUE, not a format change. */
-const uint8_t subtype_ceiling_light[4] = { 3u, 1u, 0u, 0u };
+const uint8_t subtype_ceiling_light[4] = { 3u, 1u, 0u, 1u };
 const uint8_t subtype_ceiling_heavy[4] = { 0u, 2u, 0u, 0u };
 /* Class spacing floors in frames: Light is light_wave_step's admission floor,
  * Heavy the fastest interceptor_admission_retry_frames. A wave asking for less
@@ -363,8 +367,16 @@ static void enter_sector(void)
     /* Roadmap 4.6 step 5: the sky changes here and nowhere else. The look's
      * low nibble is the sector's star pixel, resolved by the compiler. */
     asm_publish_star_pixel(sector_look[director_scratch3]);
-    if ((sector_kind[director_scratch3] & SECTOR_KIND_MASK) == SECTOR_KIND_CAPITAL) {
+    director_scratch0 = sector_kind[director_scratch3] & SECTOR_KIND_MASK;
+    if (director_scratch0 == SECTOR_KIND_CAPITAL) {
         STATE_FLAGS |= FLAG_CAPITAL_DUE;
+    }
+    /* M5b-S3: the boss sector's escort waits for the boss. A Light armed now
+     * would keep the drain from ever clearing; the install arms the row-0
+     * wave once the boss is in, and the world stops, so no later row arms. */
+    if (director_scratch0 == SECTOR_KIND_BOSS) {
+        STATE_FLAGS |= FLAG_BOSS_DUE;
+        return;
     }
     /* A wave authored on row 0 arms as the sector opens. */
     compute_wave_end();
@@ -459,6 +471,12 @@ void director_c_world_row_tick(void)
             STATE_FLAGS &= FLAG_NOT_ADMITTED;
             advance_sector();
         }
+        return;
+    }
+    /* M5b-S3: the boss sector ends at the boss's death, not on a row, and its
+     * escort is armed by the boss install once the boss is in (plan §5.2): a
+     * row tick while the entry waits for the drain must not arm it early. */
+    if (director_scratch0 == SECTOR_KIND_BOSS) {
         return;
     }
     if (director_scratch0 == SECTOR_KIND_SPACE) {

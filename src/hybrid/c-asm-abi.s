@@ -568,3 +568,102 @@ hostile_weapon_visual_glyphs:
 .segment "HYBRID_ASM_WINDOW"
 .segment "HYBRID_C_WINDOW"
 .segment "HYBRID_C_WINDOW_RODATA"
+
+; ===========================================================================
+; M5b-S3: the boss entry's resident half (docs/plans/m5-loading-boss.md §4.4,
+; §5.11.7; owner decision 32 and answers Q-S1-Q-S3, Q-S6).
+;
+; sector_c_update_first_capital calls this once the Director has raised
+; BOSS_DUE and the playfield has drained. It never returns: the boss's own
+; head in slot A runs the install, which re-enters the main loop.
+;
+;   1. the level's track and every channel off, the display down (NMIEN 0);
+;      the level buffer's magic cleared, because the band and the theme are
+;      about to overwrite parts of the image the next START GAME would
+;      otherwise keep as resident;
+;   2. the WARNING - BOSS APPROACHING screen, the reader's own text screen;
+;   3. the region's staging run (its band glyphs and its theme) - read FIRST
+;      so that the theme can be copied over the level's track and started
+;      now, and play under the screen for the rest of the load (decision 32);
+;   4. slot A marked as overlaid BEFORE its read, so that a read that fails
+;      half way still has the next START GAME restore the capital code; then
+;      the boss code, 16 sectors into slot A, and its head.
+; A failed read ends at the reader's failure screen, whose FIRE returns to
+; the menu as any read failure does.
+;
+; It links before main, the gameplay music player and the reader, so their
+; addresses are pins (src/hybrid/boss-entry-pins.inc), checked by the build.
+; HYBRID_ASM_WINDOW is placed LAST in the window (cfg/encounter-director.cfg)
+; so the window's C half - the hot Light C - does not move.
+; ===========================================================================
+.include "boss-entry-pins.inc"
+.include "boss-layout.inc"
+
+BOSS_SCREEN              = $4000
+BOSS_LEVEL_BUFFER_MAGIC  = $A600    ; the image header's first byte, 'V'
+BOSS_LEVEL_ID            = $A603    ; the image header's level id
+; Frozen vectors: the reader's run read ($A006, append-only table) and the
+; gameplay music block's first JMP (music v2 §1.4).
+BOSS_READ_RUN            = $A006
+BOSS_MUSIC_START         = $A608
+; The overlay directory's fixed order (scripts/build.mjs OVERLAY_DIRECTORY).
+BOSS_CODE_ENTRY          = 1
+BOSS_REGION_ENTRY        = 2
+BOSS_REGIONS             = 4
+
+.export _asm_boss_enter, boss_warning_records
+
+.segment "HYBRID_ASM_WINDOW"
+
+_asm_boss_enter:
+    jsr pin_music_stop_gameplay
+    jsr pin_pause_silence_audio
+    jsr pin_sector_reader_blank
+    lda #$00
+    sta BOSS_LEVEL_BUFFER_MAGIC
+    lda #<boss_warning_records
+    ldx #>boss_warning_records
+    jsr pin_sector_reader_show_records
+    ; The region from the level id, three levels a region (decision AC, as
+    ; the summary's art has it): min(3, (id - 1) / 3).
+    ldx #BOSS_REGION_ENTRY
+    lda BOSS_LEVEL_ID
+    sec
+    sbc #$01
+@region:
+    cmp #$03
+    bcc @read_region
+    cpx #(BOSS_REGION_ENTRY + BOSS_REGIONS - 1)
+    beq @read_region
+    sbc #$03                    ; C=1 from the compare
+    inx
+    bne @region
+@read_region:
+    jsr BOSS_READ_RUN
+    bcs @failed
+    ldx #$00
+@theme:
+    lda BOSS_STAGING_THEME,x
+    sta pin_game_music_data_start,x
+    inx
+    bne @theme
+    jsr BOSS_MUSIC_START
+    lda #$01
+    sta pin_sr_slot_a_overlaid
+    ldx #BOSS_CODE_ENTRY
+    jsr BOSS_READ_RUN
+    bcs @failed
+    jmp pin_capital_slot_a
+@failed:
+    jmp pin_sector_reader_failure_screen
+
+; The reader's record format: {dst_lo, dst_hi, text, $00}..., $FF. Inside the
+; frontend glyph contract (A-Z 0-9 space - . / :); centred on the 40-column
+; rows 6 and 8 of the text screen, two rows above the summary's dotted row,
+; which the reader steps once per sector under it.
+boss_warning_records:
+    .byte <(BOSS_SCREEN + 6 * 40 + 16), >(BOSS_SCREEN + 6 * 40 + 16)
+    .byte "WARNING", $00
+    .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
+    .byte "BOSS APPROACHING", $00
+    .byte $FF

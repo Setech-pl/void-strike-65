@@ -158,7 +158,9 @@ export const SUBTYPE_CEILING = Object.freeze({
   "space/swarm": { heavy: 0, light: 3 },
   "space/elite": { heavy: 2, light: 1 },
   capital: { heavy: 0, light: 0 },
-  boss: { heavy: 0, light: 0 },
+  // M5b-S3 (docs/plans/m5-loading-boss.md §5.1, decision 5a): one Light may
+  // escort the boss; no Heavy (owner decision, §1.1).
+  boss: { heavy: 0, light: 1 },
 });
 export const MAX_REQUESTED_LIGHT = 4;
 export const MAX_REQUESTED_HEAVY = 2;
@@ -507,6 +509,30 @@ function compilePayload(source, context) {
   return { page, looks: names, weaponClasses: classes };
 }
 
+// M5b-S3 (docs/plans/m5-loading-boss.md §5.6): boss_def. Two bytes so far -
+// the boss bonus in packed BCD, lo then hi, which the win adds to STATS_BONUS
+// and the summary adds to the score. The rest of the 62-B block stays zero for
+// S4-S5 (laser counts by tier, damage by difficulty).
+function compileBossDef(source, context, bossId) {
+  const block = Buffer.alloc(PAYLOAD_BLOCK_BYTES.bossDef);
+  if (bossId === 0) {
+    if (source.bossDef !== undefined) {
+      fail(context, "bossDef", "is given but the level names no boss");
+    }
+    return block;
+  }
+  const def = source.bossDef;
+  if (typeof def !== "object" || def === null || Array.isArray(def)) {
+    fail(context, "bossDef", `the level names boss ${bossId} but carries no bossDef ` +
+      "{ \"bonus\": score units }");
+  }
+  const bonus = requireInteger(context, "bossDef", "bonus", def.bonus, 0, 9999);
+  const digits = String(bonus).padStart(4, "0");
+  block[0] = Number.parseInt(digits.slice(2), 16);
+  block[1] = Number.parseInt(digits.slice(0, 2), 16);
+  return block;
+}
+
 // M5a-S2: the summary block. Every pair is ordered so each tier is reachable:
 // the second accuracy tier at or above the first, the second time limit and
 // lives bound at or below the first.
@@ -591,6 +617,12 @@ function compileSectors(source, context, warnings) {
       if (kind === SECTOR_KIND.capital) {
         fail(context, where, `is a capital sector and names "${name}"; capital sectors ` +
           "carry no Light and no Heavy in 1.0 (owner decision, plan §11 item 1)");
+      }
+      // M5b-S3: the boss sector has no Heavy (owner decision, plan §1.1); its
+      // PMG players P1/P2 are free and the missiles are the lasers' (S4).
+      if (kind === SECTOR_KIND.boss && ARCHETYPE_CLASS[name] === "heavy") {
+        fail(context, where, `is a boss sector and names the Heavy archetype "${name}"; ` +
+          "the boss sector admits at most one Light and no Heavy");
       }
       // A SWARM sector has no Heavy slot at all (SUBTYPE_CEILING), so a Heavy
       // archetype in its mask is a level that cannot play as it reads.
@@ -680,6 +712,13 @@ function compileSectors(source, context, warnings) {
         row % HULL_MODULE_ROWS !== 0) {
         fail(context, waveWhere, `row is ${JSON.stringify(row)}; a wave arms on a ` +
           `multiple of ${HULL_MODULE_ROWS} rows, 0..${255 * HULL_MODULE_ROWS}`);
+      }
+      // M5b-S3 (Q1): the world scroll stops in the boss sector, so its row
+      // clock never advances and only a row-0 wave can ever arm (the install
+      // arms it once the boss is in).
+      if (kind === SECTOR_KIND.boss && row !== 0) {
+        fail(context, waveWhere, `arms at row ${row}; the world stops in a boss sector, ` +
+          "so its waves arm on row 0");
       }
       if (isSpace && row >= lenModules * HULL_MODULE_ROWS) {
         fail(context, waveWhere, `arms at row ${row}, at or past the sector's own ` +
@@ -823,9 +862,10 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
     core[WAVE_ARRAY_OFFSET.memberOffset + index] = wave.escortOffset;
   }
 
-  // Step 5 fills the appearances and the weapon looks; the path, hull_params
-  // and boss_def blocks stay zero until steps 6, 4.8a and 4.7.
+  // Step 5 fills the appearances and the weapon looks; the path and
+  // hull_params blocks stay zero until steps 6 and 4.8a. M5b-S3 fills boss_def.
   const payload = payloadPage.page;
+  compileBossDef(source, context, bossId).copy(payload, PAYLOAD_OFFSET.bossDef);
 
   return {
     level, seed, hull, geometry, sectors, waves, warnings, core, payload,
@@ -910,6 +950,8 @@ export function renderLevelDefCa65Include() {
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.appearance).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_PAYLOAD_SUMMARY = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.summary).toString(16).toUpperCase()}`);
+  lines.push(`LEVEL_PAYLOAD_BOSS_DEF = ` +
+    `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.bossDef).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_PAYLOAD_WEAPON = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.weaponGlyph).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_LIGHT_LOOK_BYTES = ${LIGHT_LOOK_BYTES}`);
@@ -989,6 +1031,12 @@ export function renderLevelDefCHeader() {
       `#define GEOMETRY_PHASE_${name}`.padEnd(33, " ") +
       `${GEOMETRY_OFFSET.phaseStarts + index}u`),
     `#define GEOMETRY_DRAIN_MODULE    ${HULL_SEQUENCE_BYTES + 1}u`);
+  // M5b-S3 (plan §5.6): boss_def's bonus, packed BCD lo then hi.
+  lines.push("", "/* boss_def, payload page */",
+    `#define LEVEL_BOSS_DEF_ADDRESS   0x${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.bossDef)
+      .toString(16).toUpperCase()}u`,
+    "#define BOSS_DEF_BONUS_LO        0u",
+    "#define BOSS_DEF_BONUS_HI        1u");
   lines.push("", "#endif", "");
   return lines.join("\n");
 }

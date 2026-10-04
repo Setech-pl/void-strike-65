@@ -197,11 +197,18 @@
 #define DIRECTOR_FLAG_COMPLETE   0x01u
 #define DIRECTOR_FLAG_CAPITAL_ADMITTED 0x40u
 #define DIRECTOR_FLAG_CAPITAL_DUE      0x80u
+/* M5b-S3 (docs/plans/m5-loading-boss.md §4.4): director.c raises it on
+ * entering the BOSS sector. */
+#define DIRECTOR_FLAG_BOSS_DUE         0x20u
 #define PLAYER_DYING_OR_OVER     0x01u
 
 extern uint8_t asm_sector_pressure_active(void);
 /* 1 when this frame's update_starfield will rotate the ring (src/main.s). */
 extern uint8_t asm_world_rotate_due(void);
+/* M5b-S3: the boss entry's resident half (src/hybrid/c-asm-abi.s). It shows
+ * the WARNING screen, reads the boss in and runs its install, which re-enters
+ * the main loop; it never returns here. */
+extern void asm_boss_enter(void);
 
 const EnemyArchetypeTable enemy_archetypes = { {
     {
@@ -652,7 +659,10 @@ uint8_t sector_c_update_first_capital(void)
      * decision 3), so this routine is only the ENTRY half of the test now -
      * and the entry half is unchanged, which is why the capital still waits
      * for a drained playfield exactly as it did. */
-    if ((DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_DUE) == 0u) {
+    /* M5b-S3: one mask for both entries, so a frame with neither flag pays
+     * nothing new (spike, plan §5.11.1: HYBRID_C_SECTOR +14 B, 0 cycles). */
+    if ((DIRECTOR_STATE_FLAGS &
+        (DIRECTOR_FLAG_CAPITAL_DUE | DIRECTOR_FLAG_BOSS_DUE)) == 0u) {
         return 0u;
     }
     /* Capital frames skip the fighter publication window, so the Light must
@@ -662,6 +672,13 @@ uint8_t sector_c_update_first_capital(void)
      * different state. */
     if (sector_c_drain_clear() == 0u || CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
         return 0u;
+    }
+    /* M5b-S3: the boss enters on the same drained playfield the capital
+     * waits for (plan §4.4). The flag is consumed first: the entry never
+     * returns, and nothing must see it again in this game. */
+    if ((DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_BOSS_DUE) != 0u) {
+        DIRECTOR_STATE_FLAGS &= (uint8_t)~DIRECTOR_FLAG_BOSS_DUE;
+        asm_boss_enter();
     }
     CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
     /* Roadmap 4.6 step 4: a short hull is right-aligned on the 480-row

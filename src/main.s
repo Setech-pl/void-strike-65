@@ -2910,8 +2910,13 @@ resume_gameplay:
     sta DLISTL
     lda #>PLAYFIELD_DLIST_A
     sta DLISTH
+; M5b-S3: the boss install points these two operands at the boss DLI, so a
+; pause inside the boss sector resumes into it; the $0500 module's START GAME
+; restore puts them back (Q-S4). Equates, not labels: no routine is fenced.
+resume_gameplay_dli_lo_operand = *+1
     lda #<gameplay_dli
     sta VDSLST
+resume_gameplay_dli_hi_operand = *+1
     lda #>gameplay_dli
     sta VDSLST+1
     lda #$00
@@ -3614,6 +3619,13 @@ profile_gameplay_dli_hud_end = *
 
 .export profile_gameplay_dli_end, profile_gameplay_dli_hud_end
 .export gameplay_dli_allied_colpf1_load
+; M5b-S3: the boss DLI's third phase continues into the HUD restore.
+.export gameplay_dli_sync_hud
+.export resume_gameplay_dli_lo_operand, resume_gameplay_dli_hi_operand
+; M5b-S3: pure constants the boss overlay link reads from the label file.
+.export SCREEN, GAMEPLAY_DIVIDER_SCREEN, HUD_CHARSET, HUD_COLPF1, HUD_COLPF2
+.export GAMEPLAY_COLPF0, GAMEPLAY_COLPF2, GAMEPLAY_COLPF3, FIGHTER_EXPLOSION_ENEMY_SLOT
+.export STATE_GAMEPLAY, PLAYER_Y_MIN
 
 .segment "CODE"
 
@@ -3755,6 +3767,9 @@ read_input:
     and #$01                    ; up
     bne @not_up
     lda player_y
+    ; M5b-S3: this operand is the boss sector's player Y floor (the band's
+    ; bottom), patched by the boss install and restored at START GAME (Q-S4).
+    ; scripts/build.mjs finds it by its bytes; no label may split this routine.
     cmp #PLAYER_Y_MIN
     beq @not_up
     dec player_y

@@ -441,6 +441,21 @@ test("pulse fire: from alive, exposed cannons only, at the module's centre colum
   assert.ok(shots[0].frame < 200, "the boss's first shot is late");
 });
 
+// The boss's shots must be able to hurt: the post-hit damage cooldown that
+// capital UPDATE (update_broadside, slot A) counts down every frame is counted
+// down by the boss's UPDATE in the boss sector. MEASURED in the first trace of
+// this session: without it the cooldown froze (MEDIUM entered the boss at 9 and
+// the player took no damage for the whole fight).
+test("the player's damage cooldown counts down in the boss sector, so boss shots can hurt", () => {
+  const memory = fortress(32);
+  const cooldown = main("BROAD_DAMAGE_COOLDOWN");
+  memory[cooldown] = 9;
+  for (let frame = 0; frame < 9; frame += 1) update(memory);
+  assert.equal(memory[cooldown], 0, "the cooldown froze in the boss sector");
+  update(memory);
+  assert.equal(memory[cooldown], 0, "the cooldown went below zero");
+});
+
 test("the hostile pool is shared: a full pool drops the boss's shot", () => {
   const memory = fortress(32);
   const active = main("FIGHTER_PROJECTILE_ACTIVE");

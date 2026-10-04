@@ -2,7 +2,7 @@
   "formatVersion": 2,
   "name": "Blockade Breaker",
   "style": 1,
-  "_": "Region 1's boss (owner decision H, 2026-10-04): the layered fortress Blockade Breaker of docs/boss-concepts.md, style 1. Two layers: the armour plates ARE the hull's lower face (layer 1, rows 3-7); four pulse cannons and the emitter slot sit recessed behind them in the deep layer (rows 1-3). gun-2 sits in an open bay and fires from the first frame; the others open fire once their plates fall. The emitter slot is capped armour until the lasers exist (S4b). The boss falls with its last weapon; armour left standing is not required. Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. docs/level-authoring.md, 'The boss', is the format; plan §5.15 the design. Hit points: Q-B3's start values adjusted for the 45-60 s MEDIUM target (decision I) - plates by size 6 / 8 / 10, cannons 12 (plan §5.15, the fight model); scores packed BCD.",
+  "_": "Region 1's boss (owner decision H, 2026-10-04): the layered fortress Blockade Breaker of docs/boss-concepts.md, style 1. Two layers: the armour plates ARE the hull's lower face (layer 1, rows 3-7); four pulse cannons and the emitter slot sit recessed behind them in the deep layer (rows 1-3). gun-2 sits in an open bay and fires from the first frame; the others open fire once their plates fall. The emitter slot is capped armour until the lasers exist (S4b). The boss falls with its last weapon; armour left standing is not required. Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. docs/level-authoring.md, 'The boss', is the format; plan §5.15 the design. Hit points: Q-B3's start values adjusted for the 45-60 s MEDIUM target (decision I) - plates by size 6 / 8 / 10, cannons 14 (plan §5.15: the model's 12 gave a MEASURED 42.8-s MEDIUM fight; 14 is the next step, plan §5.15.7); scores packed BCD.",
   "palette": {
     "_": "COLPF0 light steel (the plates' face), COLPF1 mid grey (bevels, trim), COLPF2 amber (cannons, lights, damage glow, sparks, flames), COLPF3 dark burgundy (the hull's bulk). flashLuma: the one-frame band flash adds this to each luminance; every colour stays inside its hue (+4 at most to $0E).",
     "colpf0": 10,
@@ -54,7 +54,7 @@
       "row": 1,
       "width": 3,
       "height": 2,
-      "hp": 12,
+      "hp": 14,
       "score": 50,
       "reload": 55
     },
@@ -65,7 +65,7 @@
       "row": 2,
       "width": 3,
       "height": 2,
-      "hp": 12,
+      "hp": 14,
       "score": 50,
       "reload": 90
     },
@@ -87,7 +87,7 @@
       "row": 1,
       "width": 3,
       "height": 2,
-      "hp": 12,
+      "hp": 14,
       "score": 50,
       "reload": 60
     },
@@ -98,7 +98,7 @@
       "row": 2,
       "width": 3,
       "height": 2,
-      "hp": 12,
+      "hp": 14,
       "score": 50,
       "reload": 65
     },

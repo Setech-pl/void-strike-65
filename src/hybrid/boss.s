@@ -413,6 +413,13 @@ boss_motion:
 ; the chain - the boss's shot, one queued module draw, the nozzles.
 ; ===========================================================================
 boss_update:
+    ; The player's post-hit damage cooldown, counted down every frame as the
+    ; capital UPDATE (update_broadside) counts it: without it a boss shot
+    ; could never hurt again after one hit (MEASURED, plan §5.15.7).
+    lda BROAD_DAMAGE_COOLDOWN
+    beq :+
+    dec BROAD_DAMAGE_COOLDOWN
+:
     lda #$00
     sta boss_frame_heavy
     jsr boss_frame_timers
@@ -997,12 +1004,7 @@ boss_nozzles:
     lda _boss_phase
     beq @lit
     inc boss_nozzle_dark
-    lda #$00
-    ldx #7
-:
-    jsr boss_nozzle_dst_l
-    dex
-    bpl :-
+    jmp boss_nozzle_darken
 @done:
     rts
 @lit:
@@ -1026,20 +1028,35 @@ boss_nozzles:
 boss_nozzle_copy:
 boss_nozzle_src_l:
     lda $FFFF,y
-    jsr boss_nozzle_dst_l
+boss_nozzle_dst_l:
+    sta $FFFF,x
 boss_nozzle_src_r:
     lda $FFFF,y
-    jsr boss_nozzle_dst_r
+boss_nozzle_dst_r:
+    sta $FFFF,x
     iny
     inx
     cpx #8
     bne boss_nozzle_copy
     rts
-; The two glyphs' byte X, written (and, for the dark phase, both at once).
-boss_nozzle_dst_l:
+; The dark phase: both glyphs' eight bytes zeroed, once.
+boss_nozzle_darken:
+    lda boss_nozzle_dst_l+1
+    sta @left+1
+    lda boss_nozzle_dst_l+2
+    sta @left+2
+    lda boss_nozzle_dst_r+1
+    sta @right+1
+    lda boss_nozzle_dst_r+2
+    sta @right+2
+    lda #$00
+    ldx #7
+@left:
     sta $FFFF,x
-boss_nozzle_dst_r:
+@right:
     sta $FFFF,x
+    dex
+    bpl @left
     rts
 
 boss_tone_audf:

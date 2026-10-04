@@ -1521,7 +1521,8 @@ function levelSummaryClauses(session, records, rows, publishedAtrPath) {
   // ends in a boss, the summary's time is the boss fight's alone - from the
   // engagement (the first boss frame) to the core's destruction (the first
   // frame in the chain) on the trace's own clock. A level without a boss keeps
-  // the whole active clock, exactly as before.
+  // the whole active clock, exactly as before. (M5b-S4a-i: the chain starts at
+  // the last weapon's death - region 1's core; state 3 is the chain as before.)
   const engaged = rows.find((row) => row.boss_state >= 1);
   const coreDown = rows.find((row) => row.boss_state >= 3);
   invariant(engaged === undefined || coreDown !== undefined,
@@ -6631,6 +6632,12 @@ function main() {
      *      boss-entry milestone, parseCsv);
      *   3. the boss runs its phases in order and never backwards: guns, core,
      *      chain, hold - the first boss frame follows the entry directly;
+     *      RE-POINTED M5b-S4a-i (docs/plans/m5-loading-boss.md §5.13.7; class
+     *      (a), the engine the game now runs): the layered engine has no core
+     *      phase - the core is a module behind its cover group - so the states
+     *      are fight (1), chain (3), hold (4), done (5): fight, then chain at
+     *      the last weapon's death (boss_defeated_frame), then hold; and no
+     *      boss row may show any other state (S3's retired 2 included);
      *   4. the end is terminal: no DRAIN or COMPLETE, and no row outside the
      *      boss, once the boss is in; the summary follows the hold (asserted
      *      by levelSummaryClauses, which these sessions reach).
@@ -6641,9 +6648,9 @@ function main() {
     const bossRows = rows.filter((row) => row.boss_state > 0);
     const firstOf = (state) => bossRows.find((row) => row.boss_state === state);
     const engagedRow = firstOf(1);
-    const coreRow = firstOf(2);
     const chainRow = firstOf(3);
     const holdRow = firstOf(4);
+    const statesSeen = [...new Set(bossRows.map((row) => row.boss_state))].sort((a, b) => a - b);
     const beforeEntry = entry === undefined ? undefined
       : rows.findLast((row) => row.frame < entry.frame);
     const monotonic = bossRows.every((row, index) =>
@@ -6653,16 +6660,16 @@ function main() {
       entry.frame > sectorEntered.frame && beforeEntry?.sector_state === 7 &&
       beforeEntry.director_phase === lastSector &&
       engagedRow !== undefined && engagedRow.frame === entry.frame + 1 &&
-      coreRow !== undefined && chainRow !== undefined && holdRow !== undefined &&
-      engagedRow.frame < coreRow.frame && coreRow.frame < chainRow.frame &&
-      chainRow.frame < holdRow.frame && monotonic &&
+      chainRow !== undefined && holdRow !== undefined &&
+      engagedRow.frame < chainRow.frame && chainRow.frame < holdRow.frame && monotonic &&
+      statesSeen.every((state) => [1, 3, 4, 5].includes(state)) &&
       rows.every((row) => row.frame < engagedRow.frame || row.boss_state > 0) &&
       rows.every((row) => row.frame < sectorEntered.frame ||
         (row.sector_state !== 5 && row.sector_state !== 6)),
-    `${session.id} did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> GUNS -> ` +
-      `CORE -> CHAIN -> HOLD (entered ${sectorEntered?.frame}, entry ${entry?.frame}, ` +
-      `engaged ${engagedRow?.frame}, core ${coreRow?.frame}, chain ${chainRow?.frame}, ` +
-      `hold ${holdRow?.frame})`);
+    `${session.id} did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> ` +
+      `CHAIN -> HOLD (entered ${sectorEntered?.frame}, entry ${entry?.frame}, ` +
+      `engaged ${engagedRow?.frame}, chain ${chainRow?.frame}, hold ${holdRow?.frame}, ` +
+      `states ${statesSeen.join("/")})`);
     const broadsideRows = rows.filter((row) => row.broadside > 0);
     invariant(broadsideRows.length > 0,
       `${session.id} did not observe a natural BROADSIDE projectile`);
@@ -6674,11 +6681,11 @@ function main() {
       boss_entry_frame: entry.frame,
       boss_entry_host_frames: entry.host_frames,
       boss_engaged_frame: engagedRow.frame,
-      boss_core_exposed_frame: coreRow.frame,
-      boss_core_destroyed_frame: chainRow.frame,
+      boss_defeated_frame: chainRow.frame,
       boss_hold_frame: holdRow.frame,
       boss_fight_frames: chainRow.active_gameplay_frame - engagedRow.active_gameplay_frame,
       boss_phases_monotonic: monotonic,
+      boss_states_seen: statesSeen,
       /* Published per session so the test asserts the RELATIONS, not frame
        * numbers that move with every replay. The level-end fields of the
        * row-clock ending (level_end_row_tick_frame, drain_frame,
@@ -7857,7 +7864,7 @@ function main() {
         boss_entry_frame: hardDirectorCompletion.boss_entry_frame,
         boss_entry_host_frames: hardDirectorCompletion.boss_entry_host_frames,
         boss_engaged_frame: hardDirectorCompletion.boss_engaged_frame,
-        boss_core_destroyed_frame: hardDirectorCompletion.boss_core_destroyed_frame,
+        boss_defeated_frame: hardDirectorCompletion.boss_defeated_frame,
         boss_hold_frame: hardDirectorCompletion.boss_hold_frame,
         boss_terminal_through_frame: hardDirectorCompletion.boss_terminal_through_frame,
         natural_difficulty_sessions: directorCompletionEvidence,

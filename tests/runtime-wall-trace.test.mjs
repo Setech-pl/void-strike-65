@@ -278,7 +278,10 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
 // are kept on that mechanism: the row clock enters the last sector, the
 // drained entry happens there once, the boss's phases follow in order and
 // never go back, and the end is terminal.
-test("PAL replay ends the level in its boss: drained entry, guns, core, chain, hold, terminal", () => {
+// RE-POINTED M5b-S4a-i (plan §5.13.7, class (a)): the layered engine has no
+// core phase - fight, chain at the last weapon's death, hold - and every boss
+// row shows one of those states (S3's retired core state 2 never).
+test("PAL replay ends the level in its boss: drained entry, fight, chain, hold, terminal", () => {
   const evidence = report.coverage.director_level_complete;
   const sessions = evidence.natural_difficulty_sessions;
   assert.equal(evidence.observed, true);
@@ -287,15 +290,15 @@ test("PAL replay ends the level in its boss: drained entry, guns, core, chain, h
   const headline = sessions.find(({ session }) => session === evidence.session);
   assert.ok(headline, `headline session ${evidence.session} is not among the measured sessions`);
   for (const key of ["boss_sector", "boss_entry_frame", "boss_entry_host_frames",
-    "boss_engaged_frame", "boss_core_destroyed_frame", "boss_hold_frame",
+    "boss_engaged_frame", "boss_defeated_frame", "boss_hold_frame",
     "boss_terminal_through_frame"])
     assert.equal(evidence[key], headline[key], `headline ${key} disagrees with ${headline.session}`);
 
   for (const entry of sessions) {
     const where = `${entry.session} (sector ${entry.boss_sector} entered ` +
       `${entry.boss_sector_entered_frame}, entry ${entry.boss_entry_frame}, engaged ` +
-      `${entry.boss_engaged_frame}, core ${entry.boss_core_exposed_frame}, chain ` +
-      `${entry.boss_core_destroyed_frame}, hold ${entry.boss_hold_frame}, last ` +
+      `${entry.boss_engaged_frame}, chain ${entry.boss_defeated_frame}, hold ` +
+      `${entry.boss_hold_frame}, last ` +
       `${entry.last_measured_frame})`;
     // The level ends in its last sector, which is its boss: read back from the
     // record the clause measured it in, not pinned.
@@ -304,11 +307,12 @@ test("PAL replay ends the level in its boss: drained entry, guns, core, chain, h
       `${where}: the entry must wait in the boss sector for the drain`);
     assert.equal(entry.boss_engaged_frame, entry.boss_entry_frame + 1,
       `${where}: the first boss frame must follow the entry`);
-    assert.ok(entry.boss_engaged_frame < entry.boss_core_exposed_frame &&
-      entry.boss_core_exposed_frame < entry.boss_core_destroyed_frame &&
-      entry.boss_core_destroyed_frame < entry.boss_hold_frame &&
+    assert.ok(entry.boss_engaged_frame < entry.boss_defeated_frame &&
+      entry.boss_defeated_frame < entry.boss_hold_frame &&
       entry.boss_hold_frame <= entry.last_measured_frame,
-    `${where}: the phases must run guns, core, chain, hold`);
+    `${where}: the phases must run fight, chain, hold`);
+    assert.ok(entry.boss_states_seen.every((state) => [1, 3, 4, 5].includes(state)),
+      `${where}: a boss state outside the engine's phases (${entry.boss_states_seen})`);
     assert.equal(entry.boss_phases_monotonic, true, `${where}: a boss phase went backwards`);
     assert.equal(entry.boss_terminal_through_frame, entry.last_measured_frame,
       `${where}: the boss must hold to the last measured frame`);

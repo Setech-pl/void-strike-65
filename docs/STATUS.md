@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-04 (M5b-S3, the boss band, its phases and the boss entry)
+Last update: 2026-10-04 (M5b-S4a-i, the layered boss engine, slot C and the region charset)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -73,6 +73,8 @@ released.** Section "ATR-only build" below.
 **M5a-S1 — overlay slot A, the capital vector table and the run read — built (2026-10-03, `feat/overlay-slot`, `OWNER-SMOKE CANDIDATE`)** (section "M5a-S1 — overlay slot A" below; plan [plans/m5-loading-boss.md](plans/m5-loading-boss.md) §4.9). The capital phase's code is contiguous in `BROADSIDE` and its first 2,048 B are slot A; every resident call into the capital group goes through a 12-entry table in the window; the sector reader reads named runs at `$A006` and restores slot A at START GAME after an overlay (restore variant (b), forced in the boot smoke); the AI pool is four lines from `assets/`. No visible change and gameplay frame-identical to `main` in all 61 trace CSVs. Owner decision 2026-10-03: the table's measured cost (worst fence margin 1,439 → **1,391**) is accepted, this session's floor 1,350; Probe B (+207 for +42 B of window) is recorded as a reserve lever. Initial block 13,621 B and transport 107 / 102 / 209 unchanged; ATR `84c7af52…`.
 
 **M5b boss redesign — plan (2026-10-04, `docs/plan-m5-boss-combat`, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m5-loading-boss.md](plans/m5-loading-boss.md) §5.13 (owner decisions A–G in §1.6): the layered fight of [boss-concepts.md](boss-concepts.md) and the S3 core boss as a second style from one engine as data (cover groups, damage stages, sparks, band flash, hit tick, pulse and salvo fire through the hostile pool, nozzles, emitter slots by tier, the last-weapon defeat rule); MEASURED on a probe build: slot A cannot grow and cannot hold the engine with the lasers, so the C controller moves to a slot C in the low-RAM claim `$0C00-$18FF` with a region charset of its own; the worst probe boss frame (stand-in lasers, pulses, no escort) 7,339 over GO, DMA-on 29,305; sessions S4a-i / S4a-ii / S4b / S5 replace S4 / S5; owner questions Q-B1–Q-B8 (the region → style mapping, the art format, HP per kind, the hit sound, the low-RAM claim, the native pin 3,500 → 7,000, absorbed hits, the entry length). ATR and boot image byte-identical to `main` `d586228`.
+
+**M5b-S4a-i — the layered boss engine — built (2026-10-04, `feat/boss-engine`, `OWNER-SMOKE CANDIDATE`)** (section "M5b-S4a-i" below; plan §5.14): the owner's answers Q-B1–Q-B8 recorded (plan §1.6); level 1's boss is the S3 core boss rebuilt as style 2 in the layered engine (cover group, four damage stages, the defeat on the last weapon, armour optional, HP ×¾ / ×1 / ×5⁄4); the controller in slot C `$1000`, the band in its own charset at `$0C00` (the claim `$0C00-$18FF`, Q-B5); PNG drafts converted by `scripts/boss-assets.mjs` v2 and previewed by `npm run boss:preview`; region 1's art agent-drawn (decision G). Worst fence margin 1,370 and DMA-on maximum 31,237 unchanged; boss frames 13,493 / 28,079; the entry 38 sectors, 146 host frames (EMULATOR); initial block, window, reader, `$0500` 0 B; ATR `82113495…`.
 
 **M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **built, owner-smoked, merged and released as `v0.2.1` (`OWNER-ACCEPTED`)** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
 
@@ -345,6 +347,71 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## M5b-S4a-i — the layered boss engine, slot C and the region charset — `OWNER-SMOKE CANDIDATE` (2026-10-04)
+
+Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
+§5.13–5.14 (owner decisions A–G, answers Q-B1–Q-B8 in §1.6). Branch
+`feat/boss-engine` from `main` `4121ffd`. Smoke:
+[hardware-testing.md](hardware-testing.md) §14.
+
+**What changed.** Level 1's boss is S3's core boss rebuilt in the **layered
+engine** as style 2 (Q-B1): two pulse guns and the tier's emitter cover the
+core (a cover group, decision F); two armour plates; every module cracks, breaks
+and is gone (a bay) in turn (decision C); the core opens when its cover group
+falls; the boss is defeated by its **last weapon**, armour left standing
+(decision A); hit points per difficulty ×¾ / ×1 / ×5⁄4 from `boss_def` (Q-B3);
+covered and hull hits absorbed, not counted for accuracy (Q-B7). The engine is
+data: up to 16 modules, geometric or explicit covers, emitter slots by laser
+tier (the rest capped armour), one fire countdown (policy only: the shots are
+S4a-ii's). It lives in **slot C** (`$1000`, the C) and slot A (the ASM); the
+band is drawn in the **region's own charset at `$0C00`** (CHBASE switched by the
+band's DLI); the boss claims **`$0C00-$18FF`** (Q-B5). The art is **PNG drafts**
+(Q-B2) under `assets/graphics/boss-regions/region-1/`, converted by
+`scripts/boss-assets.mjs` v2, previewed by `npm run boss:preview`; region 1's
+are **agent-drawn placeholders** (decision G). Every boss run is sized to its
+contents (Q-B8).
+
+| | `main` `4121ffd` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 1,370 (`2-evasive-fire3` f287) | **1,370** (the ten worst rows are `main`'s, value for value) | standalone fence scan of the 51 default replay CSVs, boss-entry rows set aside, 0 miss events |
+| boss frames: worst fence margin / DMA-on | 16,089 / 28,008 (11,171 frames) | **13,493 / 28,079** over 13,076 boss frames (GO 500, gate 32,568) | same |
+| boss per-frame work, native (limit Q-B6: 7,000) | 2,760 (limit 3,500) | **5,021** worst, DLIs included | `tests/boss-runtime.test.mjs` |
+| DMA-on maximum | 31,237 (`director-complete-2` f5797) | **31,237** (same row) | `docs/runtime-wall-trace.json` |
+| DLI per host frame / sequence violations | 2, 3 in the boss sector / 0 | **2, 3 in the boss sector / 0** | same |
+| behavioural clause failures | 1 (`lower-playfield-hostile-contact-atr-hard`) | **1**, the same | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| gameplay against `main` | — | **51 of 51 replay files identical** on 369 gameplay columns frame by frame up to the boss entry | trace CSVs of both trees |
+| the fights, EASY / MEDIUM / HARD (bot, held lives) | 2,626 / 2,871 / 2,629 frames | **2,353 / 2,871 / 3,682** (×¾ / ×1 / ×5⁄4 HP); the chain 6 → **8** blasts | `docs/runtime-wall-trace.json` |
+| boss entry (EMULATOR) | 28 sectors, 108 host frames (2.2 s) | **38 sectors, 146 host frames (2.9 s)** in every replay | same |
+| `npm test` (default build) | 1,003 / 1,002 / 1 | **1,034 / 1,033 / 1**: `preview` (recorded) | [recorded-test-failures.json](recorded-test-failures.json) |
+| initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
+| extension / total transport sectors | 104 / 211 | **104 / 211** | same |
+| ATR menu frame (baseline 596) | 550 (BASIC 541) | **550** (BASIC 541) | boot smoke |
+| `$AE00` window free | 1,316 | **1,316** | `residentCapacity.basicWindow` |
+| slot A (boss) | 1,297 of 2,048 B (16 sectors read) | **1,033 of 2,048 B** (9 sectors read) | `build/boss.lbl`, manifest `boss` |
+| slot C `$1000-$17FF` | — | **1,448 of 2,048 B** (code + rodata 1,329, 11 sectors; BSS 119 behind it) | same |
+| install run / scratch page | 343 of 384 B / — | **346 of 384 B / 152 of 256 B** | same |
+| slot B | 704 B (band 512, tables 128, column map 64) | **768 B** (band 512, tables 256; the column map moved to scratch) | same |
+| region 1 charset at `$0C00` | — (31 glyphs over codes 59-89) | **840 B, 98 of 128 codes, 7 sectors** | manifest `boss.regions` |
+| `$0500` summary module | 1,677 B, 115 free, 14 sectors | **unchanged** | `levelSummary.code` |
+| sector reader | 1,507 / 29 free (record: 8 B before another sector) | **unchanged** (its directory's boss-code count byte 16 → 9) | `sectorReader` |
+| low RAM | `$0C00-$1FFF` unclaimed, measured-free (5,120 B) | **`$0C00-$18FF` the boss's claim; `$1900-$1FFF` unclaimed (1,792 B)** | generated memory map |
+| disk | boss 528–555; 556–583 reserved | **528–557** (code 9, install 3, slot C 11); **region 1 632–646**; 648–695 reserved | `build/manifest.json` |
+| ATR SHA-256 | `8300ba01…` | **`821134954c4608a8f73527f65b49d0b8e6c9e184213232773249d58e42b7f6da`** | `dist/` |
+| boot SHA-256 | `4ba68124…` | **`640249a7a75234f1c559e61965b4e6b8326d2f87d9a1b9879dd7a147fd4142e2`** | `dist/` |
+
+**Read before accepting.** The region-1 art is an agent-drawn placeholder
+(decision G; provenance in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md));
+the owner retouches the PNGs and checks them with `npm run boss:preview`. A hit
+still shows no spark or flash and the guns do not fire yet — that is S4a-ii. The
+entry is 10 sectors longer (38, ~0.7 s more in the emulator); the owner's CA
+drive stopwatch decides whether the optional fast loader comes back (Q-B8). The
+`$0C00-$18FF` claim is EMULATOR-only evidence until the 65XE smoke, as `$0500`.
+The `director-complete-*` clause was re-pointed to the engine's phases, class
+(a) (fight → chain → hold; no other state). **Smoke on copies** (§12).
+
+**NEXT TASK:** the owner's smoke (`hardware-testing.md` §14); then M5b-S4a-ii
+(`feat/boss-feedback`), not started.
+
 ## M5b-S3 — the boss band, its phases and the boss entry — `OWNER-SMOKE CANDIDATE` (2026-10-04)
 
 Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
@@ -403,8 +470,7 @@ the trace learned the boss DLI, the boss-entry frame and a boss-state column
 (correction 10). Lasers (S4) and regions 2–4 (S5) are not built; a level 4+
 boss would fail at its region read today. **Smoke on copies** (§12).
 
-**NEXT TASK:** the owner's smoke (`hardware-testing.md` §13); then M5b-S4
-(`feat/boss-lasers`), not started.
+**NEXT TASK:** superseded by M5b-S4a-i above (the boss redesign, plan §5.13).
 
 ## M5a-S2 — the level-summary screen — `OWNER-SMOKE CANDIDATE` (2026-10-03)
 

@@ -42,6 +42,15 @@ owner questions Q-B1–Q-B8: **§5.13**. The binding finding: slot A cannot grow
 and cannot hold the layered engine with the lasers, so the C controller moves
 to a **slot C in low RAM** (`$0C00-$18FF`, with a region charset of its own).
 
+**M5b-S4a-i implemented 2026-10-04** on `feat/boss-engine`,
+`OWNER-SMOKE CANDIDATE` pending the owner's smoke: the owner's answers Q-B1–Q-B8
+(§1.6), the `$0C00-$18FF` claim (the region charset, slot C, the scratch page),
+the v2 art pipeline from PNG drafts with `npm run boss:preview`, the layered
+engine (16 modules, cover masks, exposure, four stages, tier slots, the defeat
+on the last weapon, the HP scale, the fire countdown), region 1 rebuilt as
+style 2 with agent-drawn placeholder art. As built, with every figure MEASURED
+and the deviations: §5.14.
+
 **M5a-S2 implemented 2026-10-03** on `feat/level-summary`,
 `OWNER-SMOKE CANDIDATE` pending the owner's smoke: the level-summary screen,
 the stat counters, the grade, the save record. The `$0500` module MEASURED
@@ -2029,7 +2038,7 @@ STATUS updated).
 
 | # | Branch | Scope | STOP conditions | Tests and clauses | Evidence | Owner smoke |
 | --- | --- | --- | --- | --- | --- | --- |
-| **S4a-i** | `feat/boss-engine` | the `$0C00-$18FF` claim (charset, slot C, scratch) with its tests and memory-map rows; `cfg/boss.cfg` + `boss-runs.inc` + the head's reads; the band DLI's `CHBASE`; `scripts/boss-assets.mjs` v2 (PNG draft, staged block, four runs, the geometric and explicit cover); the C controller rebuilt in slot C: 16 modules, cover masks, exposure, stages (+K), the defeat rule, tier slots → capped armour, the single countdown (fire policy only — no shot yet), the C init before the column map; the ASM: stage draw, column-local rebuild, mailboxes; `docs/level-authoring.md`'s boss section; **region 1 rebuilt in its chosen style (Q-B1) with placeholder art in the new format (decision G)**; the harness: `boss_state` re-pointed (1 fight, 3 chain, 4 hold, 5 done), kills at the new label | slot A > 2,048 or slot C > 2,048 B; a boss frame < 500 in the audit; any other link reaching `$0C00-$18FF`; the entry > 55 sectors; the native pin exceeded before Q-B6 is answered | build: the claim, the four runs, the staged block, ≤ 16 modules, covers acyclic, the band rows on 64-B boundaries; 6502: cover and exposure on fixtures (style 1 and style 2 layouts), stages at ⅔ / ⅓, the defeat rule with armour left, the tier conversion at levels 1 / 5 / 9, the column-local rebuild = the full rebuild on every kill of a fixture, the install order; native: `director-complete-*` through the new fight, PAL audit, the 3 DLIs | regenerated (the fight's length and clauses move) | the layers fall in order; a covered module absorbs with no damage; the last weapon ends it while armour stands; the charset seam at the divider is clean; GAME OVER inside the boss then START GAME leaves nothing (Q-S4 unchanged) |
+| **S4a-i** — **implemented 2026-10-04, `OWNER-SMOKE CANDIDATE`; as built §5.14** | `feat/boss-engine` | the `$0C00-$18FF` claim (charset, slot C, scratch) with its tests and memory-map rows; `cfg/boss.cfg` + `boss-runs.inc` + the head's reads; the band DLI's `CHBASE`; `scripts/boss-assets.mjs` v2 (PNG draft, staged block, four runs, the geometric and explicit cover); the C controller rebuilt in slot C: 16 modules, cover masks, exposure, stages (+K), the defeat rule, tier slots → capped armour, the single countdown (fire policy only — no shot yet), the C init before the column map; the ASM: stage draw, column-local rebuild, mailboxes; `docs/level-authoring.md`'s boss section; **region 1 rebuilt in its chosen style (Q-B1) with placeholder art in the new format (decision G)**; the harness: `boss_state` re-pointed (1 fight, 3 chain, 4 hold, 5 done), kills at the new label | slot A > 2,048 or slot C > 2,048 B; a boss frame < 500 in the audit; any other link reaching `$0C00-$18FF`; the entry > 55 sectors; the native pin exceeded before Q-B6 is answered | build: the claim, the four runs, the staged block, ≤ 16 modules, covers acyclic, the band rows on 64-B boundaries; 6502: cover and exposure on fixtures (style 1 and style 2 layouts), stages at ⅔ / ⅓, the defeat rule with armour left, the tier conversion at levels 1 / 5 / 9, the column-local rebuild = the full rebuild on every kill of a fixture, the install order; native: `director-complete-*` through the new fight, PAL audit, the 3 DLIs | regenerated (the fight's length and clauses move) | the layers fall in order; a covered module absorbs with no damage; the last weapon ends it while armour stands; the charset seam at the divider is clean; GAME OVER inside the boss then START GAME leaves nothing (Q-S4 unchanged) |
 | **S4a-ii** | `feat/boss-feedback` | the cell-flash ring (sparks, muzzle flashes), the band flash (`flashLuma`), the ch-3 hit tick (Q-B4), the PULSE spawn and the salvo burst through the hostile pool with the global cooldown, the nozzle copy with the dark phase on the chain, the hit/absorb stats rule (Q-B7) | the native pin (Q-B6's value) exceeded; fence < 500 on any boss frame; the escort starved for > 2 s in a replay; a spark left in the band after its module changed stage | 6502: the ring under every band position, the steal, the stage change expiring records, the flash restore, the tick restoring the bed, the spawn's slot fields, the salvo with 0–3 free slots; native: the pulses hit the player in a replay, the audit | regenerated | every hit reads on screen (spark, flash, tick); the cannons fire and their shots are dodgeable; the nozzles at both ends; the kill and the destruction sound different from a hit |
 | **S4b** | `feat/boss-lasers` | §5.5's lasers as emitters by tier, the heat through the ring, the laser damage source id, the laser contact session (§5.8) and the retirement of `lower-playfield-hostile-contact-atr-hard` by name (Q4), the missile-plane clause exception, `PRIOR $10` / `SIZEM $FF` with the Q-S4 restore already in place | as §8's S4 row; slot A > 2,048 after the laser ASM (the once-per-entry ASM to slot C first) | §5.8's clauses; `boss-escort`; cycle pins | regenerated | the warning readable; the beam's hit and its sound; a level-9 review ATR with four emitters |
 | **S5** | `feat/boss-regions` | regions 2–4 as PNG drafts (placeholders, decision G), their layouts in the mapping of Q-B1, the region runs from 632, level 2's boss through the debug route, the M8 tuning layout (`boss_def`'s HP scale), README EN + PL, `hardware-testing.md` items, release prep for `v0.3.0` | a region run > 16 sectors; a review build failing the audit | build pins; the four regions through `--level=N` review builds | — | each region's boss on hardware through a review ATR; level 1's through the default |
@@ -2056,6 +2065,114 @@ worktree was made. The ATR and the boot image are byte-identical to `main`
 `d586228`. The art of regions 1–4, the exact glyph budget per region, the
 reload values and the cooldown are the sessions' to settle; every IC, AN and
 G figure is an estimate the session that builds it replaces.
+
+### 5.14 M5b-S4a-i as built (2026-10-04, `feat/boss-engine`, `OWNER-SMOKE CANDIDATE`)
+
+Implemented as §5.13 describes for S4a-i, under the owner's answers Q-B1–Q-B8
+(§1.6) and decisions A–G, with the deviations below. Figures are MEASURED from
+the linked images, the regenerated evidence or a named 6502-harness test; load
+figures are EMULATOR. Region 1's art is an agent-drawn placeholder (decision
+G); hit points and the bonus are placeholders (M8). Sparks, the band flash, the
+hit tick, pulse and salvo fire and the nozzle animation are S4a-ii's; the lasers
+S4b's; regions 2–4 S5's.
+
+**What was built.** The `$0C00-$18FF` claim (charset, slot C, scratch) with its
+tests and memory-map rows; `cfg/boss.cfg`'s slot C and scratch areas; the head
+reading the install, slot C, band A, band B and the charset; the band DLI's
+`CHBASE` (`$0C` under the HUD's last line, the gameplay charset back first thing
+on the band's last line); `scripts/boss-assets.mjs` v2 (PNG drafts through the
+repository's own reader, five fixed colours, the staged block, open looks,
+bays, the capped plate, nozzle cells, geometric and explicit covers, four runs
+sized to their contents) and `scripts/boss-preview.mjs` (`npm run boss:preview`);
+the controller rebuilt in slot C (16 modules, cover masks, exposure on every
+kill, the four stages, tier slots → capped armour, the defeat on the last
+weapon, the HP scale per difficulty, the single fire countdown — policy only);
+the ASM's three draw modes, the front-intact column map and its column-local
+rebuild; the install order fixed (the controller's init before the map);
+`docs/level-authoring.md` "The boss"; region 1 rebuilt as style 2 (Q-B1) with
+placeholder drafts; the harness's `boss_state` read as fight 1 / chain 3 / hold
+4 / done 5.
+
+**Deviations and choices, each reported:**
+
+1. **Every run sized to its contents (Q-B8) includes slot A's.** The boss code
+   run is 9 sectors, not 16 (its state moved to the scratch page), so the reader
+   is relinked once more with the directory's boss-code count (16 → 9): one data
+   byte, no label moves (checked), **0 B** of reader size. Slot C's run (11
+   sectors) is sized to its code; its BSS (119 B) follows the code in slot C and
+   is never read from disk — the plan put the controller's state in the scratch
+   page; the scratch page keeps the column map, the ring and slot A's state.
+2. **The divider's codes 0-6 are copied at the install** from the gameplay
+   charset (11 B of install) instead of mirrored by the converter: exactly what
+   the divider row shows, whatever the starfield's glyphs are.
+3. **CHBASE and Q-S4: no restore-table entry.** Every screen after a boss
+   sector sets its own `CHBASE` before it shows (the summary's, the reader's,
+   the frontend's, `start_gameplay`'s HUD, the gameplay DLI's), so the START
+   GAME restore needs no entry for it and the `$0500` module stays **0 B** (the
+   brief's STOP on any byte there). Proven on the 6502 harness: the START GAME
+   path never writes `$0C`, leaves the summary's own page up, and the next game
+   writes the HUD's and its DLI the gameplay charset
+   (`tests/boss-runtime.test.mjs`, "Q-S4 ... CHBASE too").
+4. **The column map is per-column "first live module of the front-first
+   table"**, the converter sorting modules nearest-the-player first; hull
+   columns are ARMOUR wherever the band has any hull cell (S3 authored an
+   armour span), open sky elsewhere.
+5. **Damage stages are absolute**: the controller computes the stage from the
+   hit points (≤ broken → 2, ≤ cracked → 1) and hands the ASM `K × Δstage` to
+   add, so the per-difficulty scaling (which can make two thresholds equal)
+   never skips a stage.
+6. **The capped plate is one staged glyph** filled over a capped emitter's
+   cells (extras.png's three capped cells), so a capped emitter cracks and
+   breaks like any module.
+7. **The fire countdown** serves the alive, exposed weapons with a reload
+   (region 1's two pulse guns; the emitter's reload is S4b's), round-robin, the
+   reload scaled EASY +½ / HARD −¼, never under the region's cooldown; S4a-i
+   only names the module (`boss_fire_module`).
+8. **Harness CPU limits**: `scripts/nmos6502.mjs` has no ROR absolute; the open
+   looks' mask walk shifts through A instead (no harness change).
+9. **The trace clause** (class (a)): S3's core phase (state 2) is gone; the
+   director-complete clause asserts fight → chain → hold and that no boss row
+   shows a state outside 1/3/4/5 (`boss_defeated_frame` replaces
+   `boss_core_exposed_frame` / `boss_core_destroyed_frame`).
+
+**Bytes, part by part, against §5.13.6's price:**
+
+| Part | Price (§5.13.6) | MEASURED | Home |
+| --- | ---: | ---: | --- |
+| head + vector image | (S3 39) | **39** | slot A |
+| head reads: install, slot C, three region runs + the 70-B run table | (S3 136) +12 | **171** | slot A |
+| boss DLI (CHBASE both ways) + HSCROL/LMS publish | (S3 154) +5 | **159** | slot A |
+| motion and the win's shake | (S3 103) | **79** + tables 32 | slot A |
+| shot vs column map, the tick, the chain's blast | (S3 112) | **115** | slot A |
+| after a hit: stage +K, score/kill, gone, rebuild, open looks | (S3 176) +48 | **146** | slot A |
+| record offset, draw (look / fill / add), look-tail read | — | **110** | slot A |
+| column map: per-column front, local rebuild, prepare (spans, capped plates) | (S3 65) +40 | **165** | slot A |
+| hand-off | (S3 21) | **21** | slot A |
+| **slot A** | 1,297 − 491 + 130 = **936** expected | **1,033 of 2,048** (1,015 free) | 9 sectors |
+| **slot C** (C code 1,321, rodata 8, BSS 119) | ~1,100 → 1,320 budgeted | **1,448 of 2,048** (600 free); code + rodata **1,329** | 11 sectors |
+| scratch (column map 64, ring 32, slot A state 56) | ~140 / 256 | **152 of 256** | `$1800` |
+| install run | ~350 → 384 | **346 of 384** | `$7810`, 3 sectors |
+| slot B | 768 | **768**: band A 384, band B 384 (rows 128, tables 256) | `$A880`, `$AC80` |
+| region 1 charset run | ≤ 1,024 | **840 B** (98 of 128 codes: K = 21 staged × 3, 26 plain, 2 nozzles, 7 divider; tail 56), **7 sectors** | `$0C00` |
+| window / `HYBRID_C_*` / `DIRECTOR_C_*` / `$0500` / reader / initial block / zero page | 0 each | **0 each** (window 1,316 free; `$0500` 1,677 B; reader 1,507 B, its directory's boss-code count 16 → 9; initial block 13,621 B) | |
+
+**Ledger against the plan and S3:**
+
+| | S3 (MEASURED) | §5.13 price | S4a-i MEASURED |
+| --- | --- | --- | --- |
+| disk, 528–583 | code 16 + install 3 + regions 4 × 9 | code 16 + install 3 + slot C ≤ 16 | **code 9 (528–536) + install 3 (544–546) + slot C 11 (547–557)**, 23 of 56 |
+| disk, regions | in 528–583 | 16 a region from 632 | **region 1: theme 2 + band 3 + 3 + charset 7 = 15 of 16 (632–646)**; 648–695 reserved, empty |
+| boss entry | 28 sectors, 108 host frames (2.2 s) | 42 → 51 sectors, ~160 → ~195 frames | **38 sectors, 146 host frames (2.9 s) EMULATOR**, every replay |
+| boot / extension / total sectors | 107 / 104 / 211 | 0 | **107 / 104 / 211** |
+| ATR menu frame (baseline 596) | 550 (BASIC 541) | 0 | **550** (BASIC 541) |
+| boss per-frame work, native (Q-B6: 7,000) | 2,760 | ~3,400 | **5,021** worst, DLIs included (`tests/boss-runtime.test.mjs`, five shots a frame through every weapon and the chain) |
+| worst boss frame (fence) | 16,089 over 11,171 boss frames | ≈ 14,500 (ESTIMATE) | **13,493** over 13,076 boss frames (`director-complete-0` f10930) |
+| DMA-on on boss frames | 28,008 | 0 change | **28,079** |
+| binding row `2-evasive-fire3` f287 | 1,370 | 0 | **1,370**; the ten worst fence rows are `main`'s, value for value |
+| DMA-on maximum | 31,237 | 0 | **31,237** (`director-complete-2` f5797) |
+| the fights (bot, held lives) EASY / MEDIUM / HARD | 2,626 / 2,871 / 2,629 frames | 45–60 s on MEDIUM (M8) | **2,353 / 2,871 / 3,682 frames** (×¾ / ×1 / ×5⁄4 HP; MEDIUM's equal length is a coincidence of the bot's sweep: 50 weapon HP against S3's 48) |
+| the end | 6 blasts, hold 54 frames after the core | the chain passes every module | **8 blasts** (6 modules, the plates included), hold 72 frames after the defeat |
+| gameplay before the boss | 51 of 51 identical on 42 columns | identical | **51 of 51 replay files identical to `main` on 369 gameplay columns**, frame by frame up to the boss entry (entry frames 9,734 / 8,787 / 7,877 as on `main`) |
 
 ---
 ## 6. Ledgers
@@ -2098,7 +2215,7 @@ short on budgeted figures, 364 on expected ones** — before the levers.
 | `LEVEL_BUFFER` 16 → 15 (`$A680`), every level address and the music block re-linked; slot B keeps two spare sectors | **128** | the Q-1 manoeuvre again, plus the gameplay-music cfg; evidence regenerated | 3 | M (Q-1 precedent) |
 | the M3 plan's own cuts (§6.3 there: the column helper 65 at +12 cycles per Interceptor tracking frame, one damage stage 12, the armoured dodge 46, the volley into the arena 72) | up to **195** | each a visible or cycle loss the M3 plan recommends against | 1–2 | m3-waves-heavy §6.3 |
 | **sum, without the cuts** | **547** | | | |
-| **`$0C00-$1FFF`, unclaimed low RAM** (owner, 2026-10-03; §4.10): not window bytes, but a home for code that runs from a fixed address outside the window - the way the summary module now does at `$0500-$0BFF` | **5,120** of RAM | a link or record of its own; whatever lands there must be read or landed before its first use | 2 until the owner's 65XE smoke confirms `$0500-$0BFF` (`hardware-testing.md` §12) | **M**, EMULATOR only: never written after `start`, patterns `$5A`/`$A5`, BASIC on and off (`diagnostics/low-ram-0700-1fff-2026-10-03.md`); not used now |
+| **`$0C00-$1FFF`, unclaimed low RAM** (owner, 2026-10-03; §4.10): not window bytes, but a home for code that runs from a fixed address outside the window - the way the summary module now does at `$0500-$0BFF` — **S4a-i MEASURED: `$0C00-$18FF` is the boss's claim (Q-B5: charset 840 B, slot C 1,448 B, scratch 152 B); `$1900-$1FFF` (1,792 B) stays the lever** | **5,120** of RAM (**1,792** after S4a-i) | a link or record of its own; whatever lands there must be read or landed before its first use | 2 until the owner's 65XE smoke confirms `$0500-$0BFF` (`hardware-testing.md` §12) | **M**, EMULATOR only: never written after `start`, patterns `$5A`/`$A5`, BASIC on and off (`diagnostics/low-ram-0700-1fff-2026-10-03.md`); not used now |
 
 **A cycle lever, measured in M5a-S1 (§4.9) and not taken:** Probe B, the
 zero-timer fast paths in four capital vector entries, buys **+207 of fence
@@ -2145,7 +2262,12 @@ then); a new **slot C** in the boss's low-RAM claim `$0C00-$18FF` holds the C
 controller and the laser C (~1,620 → ~2,430 of 2,048, growing into the claim's
 spare if needed); slot B is 768 of 768; the disk takes 16 sectors a region from
 632 (free sectors 509 → **445**, **269** after twelve levels); the boss entry
-reads 42 → 51 sectors instead of 28.
+reads 42 → 51 sectors instead of 28. **S4a-i MEASURED (§5.14):** slot A
+**1,033** of 2,048 (the C left; the run read is 9 sectors), slot C **1,448** of
+2,048 (code 1,329, 11 sectors), scratch 152 of 256, install 346 of 384, slot B
+768 of 768, region 1's charset 840 B in 7 sectors; the disk holds code 9 +
+install 3 + slot C 11 in 528–583 and region 1 in 632–646; the entry reads
+**38** sectors.
 
 **The initial block to the end of the road** (31 B to STOP today; the
 ceiling 13,684 is 32 B further and is not budgeted):
@@ -2170,7 +2292,7 @@ ceiling 13,684 is 32 B further and is not budgeted):
 | total transport | 209 | 212 (**211**) | |
 | ATR menu frame (baseline 596, warn 606) | 547 | ~553 (**~551**: +2 sectors at the sizing rule; not boot-smoked in the spike) | 2 frames per sector, sizing rule |
 | disk, level runs from 320 | 13 used | 192 reserved (12 × 16) | sectors 320–511 |
-| disk, overlay runs from 512 | — | capital restore 16, boss code 16, boss regions 40, summary code 4, summary art 4 × 7 = 28, save record 1, attract 4 = **109** — **MEASURED after S2: summary code 12 (584–595), save record 599, art 600–627; 528–583 reserved for M5b; 117 with the attract stream**. **Spike: four regions at 12 sectors need 64 of the 56 reserved; with the once-only install as one shared 3-sector run, 16 + 3 + 4 × 9 = 55 (§5.11.4 item 8, Q-S6)** | sectors 512–631; speech would add 12–61; the hangar (item 18) is absorbed by the summary art |
+| disk, overlay runs from 512 | — | capital restore 16, boss code 16, boss regions 40, summary code 4, summary art 4 × 7 = 28, save record 1, attract 4 = **109** — **MEASURED after S2: summary code 12 (584–595), save record 599, art 600–627; 528–583 reserved for M5b; 117 with the attract stream**. **Spike: four regions at 12 sectors need 64 of the 56 reserved; with the once-only install as one shared 3-sector run, 16 + 3 + 4 × 9 = 55 (§5.11.4 item 8, Q-S6)**. **S4a-i MEASURED: 528–583 holds code 9 + install 3 + slot C 11 = 23 (sized runs, Q-B8); regions 16 each from 632 — region 1 uses 15 (632–646), 648–695 reserved** | sectors 512–631; speech would add 12–61; the hangar (item 18) is absorbed by the summary art |
 | free sectors after twelve levels and every recommended item | 319 | **210** | |
 
 ### 6.4 Load time, by transition (frames at 3.77 per sector; EMULATOR; 1050 ×2; SIO2SD fast ÷3 ESTIMATE)
@@ -2179,7 +2301,7 @@ ceiling 13,684 is 32 B further and is not budgeted):
 | --- | ---: | ---: | ---: | ---: |
 | START GAME, first level of a session (summary code 4 + art 7 + level 13 + record 1) | 49 (1.0 s) | 94 (1.9 s), behind the summary screen | 0.6 s (not built: the fast loader is optional) | 3.8 s |
 | transition after a boss (art 7 + restore 16 + level 13 + record 1) | — | 139 (2.8 s) + the write, behind the summary; a 3-s minimum display covers it | 0.9 s | 5.6 s (exceeds the minimum by ~2.6 s: `LOADING` stays up) |
-| boss entry (code 16 + region 10), mid-level — **spike MEASURED: 28 sectors (code 16 + region 12), 107 host frames (2.1 s), EMULATOR, every entry** | — | 98 (2.0 s) behind the `WARNING` banner (**107**; **S3 MEASURED: 28 sectors, 108 host frames, 2.2 s**, behind `WARNING - BOSS APPROACHING`) | 0.7 s | 3.9 s (**~4.3 s**) |
+| boss entry (code 16 + region 10), mid-level — **spike MEASURED: 28 sectors (code 16 + region 12), 107 host frames (2.1 s), EMULATOR, every entry** | — | 98 (2.0 s) behind the `WARNING` banner (**107**; **S3 MEASURED: 28 sectors, 108 host frames, 2.2 s**, behind `WARNING - BOSS APPROACHING`; **S4a-i MEASURED: 38 sectors — theme 2, code 9, install 3, slot C 11, band 3 + 3, charset 7 — 146 host frames, 2.9 s**) | 0.7 s | 3.9 s (**~4.3 s**) |
 | return to the menu | 0 | 0 (the frontend stays resident) | 0 | 0 |
 
 ### 6.5 Cycles and DMA, by row family
@@ -2188,9 +2310,9 @@ ceiling 13,684 is 32 B further and is not budgeted):
 | --- | ---: | ---: | --- |
 | binding ELITE row (fence margin) | 1,439 | ~1,349 (the vectored calls ~30 and the shots scan 60 — IC); DMA-on ~31,223, over the 31,200 target by ~23, under the hard gate — **S3 MEASURED 1,370** (S2 1,378; the Light kernel 128 B higher); **DMA-on 31,237** | §4.1, §4.8.2 (Q13), §5.12 |
 | capital frames (no fence; maximum 30,568) | 30,568 | ~30,630 (+3 per vectored call, ~20 per frame) | IC |
-| boss frames, worst with one Light, scroll stopped (decided, Q1) | — | **1,178 over GO**; DMA-on ~30,330 — **spike MEASURED: worst fence margin 10,103 over 58,181 boss frames (0 misses), ~6,500 composed worst (ESTIMATE); DMA-on 29,219**; **S3 MEASURED (no lasers): 16,089 over 11,171 boss frames, DMA-on 28,008; native work 2,760 worst** | §5.4, §5.11.2, §5.12 |
+| boss frames, worst with one Light, scroll stopped (decided, Q1) | — | **1,178 over GO**; DMA-on ~30,330 — **spike MEASURED: worst fence margin 10,103 over 58,181 boss frames (0 misses), ~6,500 composed worst (ESTIMATE); DMA-on 29,219**; **S3 MEASURED (no lasers): 16,089 over 11,171 boss frames, DMA-on 28,008; native work 2,760 worst**; **S4a-i MEASURED (the layered engine, no fire yet): 13,493 over 13,076 boss frames, DMA-on 28,079; native work 5,021 worst (Q-B6: 7,000)** | §5.4, §5.11.2, §5.12 |
 | boss frames, worst with one Light, scroll kept (not taken) | — | −367 (under GO); DMA-on ~31,860 | §5.4 |
-| DLIs per frame | 2 | 2; **3 in a boss sector** (**S3 MEASURED: 3, gated by the harness; 0 sequence violations**) | decision 9 |
+| DLIs per frame | 2 | 2; **3 in a boss sector** (**S3 MEASURED: 3, gated by the harness; 0 sequence violations**; **S4a-i: unchanged, the phase-0 and phase-1 DLIs now also switch `CHBASE`**) | decision 9 |
 
 ---
 

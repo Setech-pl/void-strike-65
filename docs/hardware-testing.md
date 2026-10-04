@@ -291,6 +291,60 @@ the bot's fights took 52–57 s.
 Unverifiable anywhere but here: the colour seams at the band's DLI lines on
 a real GTIA, the HSCROL motion on a CRT, and the CA drive's entry time.
 
+## 14. The layered boss engine (M5b-S4a-i)
+
+Plan §5.13–5.14 (decisions A–G, answers Q-B1–Q-B8). **On copies**, as §12.
+Two disks, as §13: the default ATR (level 1 to its boss, then the fight) and
+the debug-route ATR that starts in the boss sector
+(`build/level-1-s4/void-strike-65.atr`). Region 1 is S3's core boss rebuilt in
+the new engine (style 2) with **placeholder art drawn by the agent** (decision
+G). Not built yet, so not to be looked for: sparks, the band flash, the hit
+tick, the guns firing, the animated nozzles (S4a-ii); lasers (S4b). Emulator
+figures, for comparison only (EMULATOR): the entry reads 38 sectors in about 146
+frames (2.9 s); the bot's fights took 47 / 57 / 74 s on EASY / MEDIUM / HARD.
+Artifacts as built: default ATR `82113495…` (`npm run play:atr`), debug-route
+ATR `8367aeca…` (`atari800 -xe -pal -nobasic <absolute path to
+build/level-1-s4/void-strike-65.atr>`).
+
+- [ ] **The entry (decision 32, Q-B8).** `WARNING` / `BOSS APPROACHING` with the
+      boss theme, as in §13, now a little longer. **Stopwatch** the screen
+      clearing → the band on screen, on the SIO2SD **and the CA drive**; if the
+      CA drive clearly exceeds about 8 s, say so (it reopens the optional fast
+      loader, S6).
+- [ ] **The boss's own charset.** The band is drawn in region 1's glyphs: a
+      burgundy hull between two engine blocks with three-flame nozzles at both
+      ends, two pulse guns and the amber emitter in front, two plates under the
+      hull, the shutters over the core. **Clean seams**: the divider row above
+      the band and the first ring row below it show their normal stars and
+      playfield, no corrupted characters anywhere — the HUD, the ring, the
+      player, the capsule, a Light's glyphs.
+- [ ] **The cover group.** The core takes no damage while any of the two guns
+      and the emitter stands: shots into its own column are absorbed (and do
+      not count for accuracy on the summary). When the third of them falls the
+      shutters open on the amber core, and only then does it take damage.
+- [ ] **Damage stages.** Each gun, the emitter, each plate and the core shows
+      **cracked** after about a third of its hits, **broken** after two thirds,
+      and **gone** (a dark bay) when destroyed (kill sound, score). The hull
+      absorbs shots everywhere a module is not.
+- [ ] **The defeat on the last weapon.** The core's death starts the win even
+      if both plates still stand (armour is not required): eight blasts along
+      the modules, the plates included, the background flashing, the band
+      shaking; then the level-end summary with BONUS `02000` (placeholder), the
+      fight's time, kills counting every module destroyed.
+- [ ] **Difficulty.** On EASY the core falls in ~18 hits, MEDIUM 24, HARD 30
+      (×¾ / ×1 / ×5⁄4, Q-B3).
+- [ ] **GAME OVER inside the boss sector** (debug ATR: lose three lives), then
+      START GAME: level 1 starts as always — **normal characters everywhere**
+      (no boss glyphs in the HUD, ring, divider or menu), the world scrolls, no
+      band, later a normal capital sector. The same after **pause → quit**.
+- [ ] **Pause inside the boss sector**, then resume: band, charset and colours
+      return.
+- [ ] **RESET** during the fight returns to the splash.
+
+Unverifiable anywhere but here: `$0C00-$18FF` on a real 65XE (EMULATOR-only
+evidence that nothing else writes it, risk 2 as for `$0500`), the CHBASE seams
+on a real GTIA/ANTIC, and the CA drive's entry time.
+
 ---
 
 ## Recording the result

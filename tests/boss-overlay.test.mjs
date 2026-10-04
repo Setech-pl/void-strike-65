@@ -1,18 +1,21 @@
 // M5b-S3 — the boss overlay's build and disk contracts (docs/plans/m5-loading-boss.md
 // §5.11; owner answers Q-S1, Q-S3, Q-S4, Q-S6 and decision 32).
+// RE-POINTED M5b-S4a-i (§5.13.4; owner answers Q-B5, Q-B8): slot A's run is
+// sized to its code, slot C carries the controller, region 1's four runs sit
+// in its 16 sectors from 632; the claim itself is tests/boss-claim.test.mjs's.
 //
 // Slot A's image and its size, the once-only install run at $7810, the disk
-// layout inside 528-583, the overlay directory's boss entries, the window's
-// resident half and the addresses it pins, and the START GAME restore table.
-// The runtime behaviour is tests/boss-runtime.test.mjs's.
+// layout, the overlay directory's boss entries, the window's resident half and
+// the addresses it pins, and the START GAME restore table. The runtime
+// behaviour is tests/boss-runtime.test.mjs's.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
 import {
-  BOSS_BAND_A_SECTORS, BOSS_BAND_B_SECTORS, BOSS_STAGING_SECTORS,
-  compileBossRegion, loadBossRegionDefinition,
+  BOSS_BAND_A_SECTORS, BOSS_BAND_B_SECTORS, BOSS_THEME_SECTORS,
+  bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 import {
@@ -25,22 +28,25 @@ const INSTALL_SECTORS = 3;
 const STAGING_ADDRESS = 0x7990;
 const BOSS_CODE_SECTOR = 528;
 const INSTALL_SECTOR = 544;
-const REGION_1_SECTOR = 547;
+const SLOT_C_SECTOR = 547;
+const REGION_1_SECTOR = 632;            // §5.13.4: 16 sectors a region from 632
 const RESERVATION_END = 583;            // 528-583, plan §6.3
 // The plan's S3 window figure (§5.11.7: ~157 B with decision 32's screen);
 // the brief's STOP is 20 % over it.
 const WINDOW_HOOKS_STOP = Math.floor(157 * 1.2);
 
-const region1 = compileBossRegion(
-  loadBossRegionDefinition(path.join(root, "assets/graphics/boss-region-1.json")));
+const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
 
+// RE-POINTED M5b-S4a-i (Q-B8): the run is sized to the code (S3 read all
+// 16 sectors); the 2,048-B limit is unchanged.
 test("slot A holds the boss: at most 2,048 B, a JMP to the head, then the 12-entry table image", () => {
   assert.ok(exists("overlay-boss-code.bin"), "the build placed no boss code run");
   const slot = manifest.overlays.slotA;
   const code = readBuild("overlay-boss-code.bin");
-  assert.equal(code.length, SLOT_A_BYTES);
   const used = label("boss", "__BOSS_SLOT_RAM_LAST__") - slot.address;
   assert.ok(used > 0 && used <= SLOT_A_BYTES, `slot A holds ${used} B of the boss`);
+  assert.equal(code.length, Math.ceil(used / 128) * 128, "the run is the code's sectors");
+  assert.equal(manifest.boss.slotA.sectors, code.length / 128);
   assert.equal(label("boss", "boss_slot"), slot.address);
   assert.deepEqual([...code.subarray(0, 3)],
     [0x4c, label("boss", "boss_head") & 0xff, label("boss", "boss_head") >> 8]);
@@ -61,7 +67,7 @@ test("slot A holds the boss: at most 2,048 B, a JMP to the head, then the 12-ent
   });
 });
 
-test("the once-only install is one 3-sector run at $7810, below the region's staging run", () => {
+test("the once-only install is one 3-sector run at $7810, below the region's theme run", () => {
   assert.ok(exists("overlay-boss-install.bin"));
   const install = readBuild("overlay-boss-install.bin");
   assert.equal(install.length, INSTALL_SECTORS * 128);
@@ -71,32 +77,44 @@ test("the once-only install is one 3-sector run at $7810, below the region's sta
   assert.ok(INSTALL_ADDRESS + INSTALL_SECTORS * 128 <= STAGING_ADDRESS);
 });
 
-test("the disk: boss code 528-543, the install 544-546, region 1 547-555, all inside 528-583", () => {
-  assert.deepEqual(atrRun(BOSS_CODE_SECTOR, 16), readBuild("overlay-boss-code.bin"));
+// RE-POINTED M5b-S4a-i (§5.13.4): 528-583 holds the boss code (up to 16,
+// sized), the install (544-546) and slot C (547, up to 16, sized); each region
+// its own 16 sectors from 632 - theme 2, band A 3, band B 3, charset <= 8.
+test("the disk: boss code from 528, the install 544-546, slot C from 547, region 1 at 632-647", () => {
+  const codeSectors = manifest.boss.slotA.sectors;
+  const slotCSectors = manifest.boss.slotC.sectors;
+  assert.ok(codeSectors <= 16 && slotCSectors <= 16);
+  assert.deepEqual(atrRun(BOSS_CODE_SECTOR, codeSectors), readBuild("overlay-boss-code.bin"));
+  assert.ok(atrRun(BOSS_CODE_SECTOR + codeSectors, 16 - codeSectors).every((byte) => byte === 0));
   assert.deepEqual(atrRun(INSTALL_SECTOR, INSTALL_SECTORS), readBuild("overlay-boss-install.bin"));
-  const { staging, bandA, bandB } = region1.runs;
-  // The staging run carries the glyphs and, behind them, the theme.
-  const stagingOnDisk = atrRun(REGION_1_SECTOR, BOSS_STAGING_SECTORS);
-  assert.deepEqual(stagingOnDisk.subarray(0, 31 * 8), Buffer.from(region1.glyphImage));
-  assert.deepEqual(stagingOnDisk, readBuild("boss-region-1-staging.bin"));
-  assert.equal(staging.sectors, BOSS_STAGING_SECTORS);
-  assert.deepEqual(atrRun(REGION_1_SECTOR + 4, BOSS_BAND_A_SECTORS), Buffer.from(bandA.data));
-  assert.deepEqual(atrRun(REGION_1_SECTOR + 7, BOSS_BAND_B_SECTORS), Buffer.from(bandB.data));
-  // Regions 2-4 are S5's: their 27 sectors are reserved and empty (Q-S6: 55 of 56).
-  assert.ok(atrRun(REGION_1_SECTOR + 9, 27).every((byte) => byte === 0));
-  assert.ok(REGION_1_SECTOR + 9 * 4 - 1 <= RESERVATION_END);
+  assert.deepEqual(atrRun(SLOT_C_SECTOR, slotCSectors), readBuild("overlay-boss-slot-c.bin"));
+  assert.ok(SLOT_C_SECTOR + 16 - 1 <= RESERVATION_END, "slot C's 16 fit the reservation");
+  const { theme, bandA, bandB, charset } = region1.runs;
+  // The theme is the build's (the region compiled here carries none).
+  assert.equal(theme.sectors, BOSS_THEME_SECTORS);
+  assert.deepEqual(atrRun(REGION_1_SECTOR, BOSS_THEME_SECTORS), readBuild("boss-region-1-theme.bin"));
+  assert.deepEqual(atrRun(REGION_1_SECTOR + 2, BOSS_BAND_A_SECTORS), Buffer.from(bandA.data));
+  assert.deepEqual(atrRun(REGION_1_SECTOR + 5, BOSS_BAND_B_SECTORS), Buffer.from(bandB.data));
+  assert.deepEqual(atrRun(REGION_1_SECTOR + 8, charset.sectors), Buffer.from(charset.data));
+  assert.ok(charset.sectors <= 8);
+  // Regions 2-4 are S5's: their 48 sectors are reserved and empty.
+  assert.ok(atrRun(REGION_1_SECTOR + 16, 48).every((byte) => byte === 0));
+  assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695] });
 });
 
-test("the overlay directory names the boss code and region 1's staging run; 3-5 stay empty", () => {
+// RE-POINTED M5b-S4a-i: entry 1's count is the boss code's linked sectors;
+// entry 2 is region 1's 2-sector theme run at 632 (was the 4-sector staging
+// run at 547).
+test("the overlay directory names the boss code and region 1's theme run; 3-5 stay empty", () => {
   const text = readBuild("overlay-directory.inc").toString("utf8");
   const directory = text.split("overlay_directory:")[1].split("overlay_directory_end:")[0];
   const entries = [...directory.matchAll(/^\s+\.byte \$([0-9a-f]{2}), \$([0-9a-f]{2}), \$?(\d+), \$([0-9a-f]{2}), \$([0-9a-f]{2})/gm)]
     .map((match) => ({ sector: Number.parseInt(match[1], 16) | (Number.parseInt(match[2], 16) << 8),
       count: Number(match[3]),
       destination: Number.parseInt(match[4], 16) | (Number.parseInt(match[5], 16) << 8) }));
-  assert.deepEqual(entries[1], { sector: BOSS_CODE_SECTOR, count: 16,
+  assert.deepEqual(entries[1], { sector: BOSS_CODE_SECTOR, count: manifest.boss.slotA.sectors,
     destination: manifest.overlays.slotA.address });
-  assert.deepEqual(entries[2], { sector: REGION_1_SECTOR, count: BOSS_STAGING_SECTORS,
+  assert.deepEqual(entries[2], { sector: REGION_1_SECTOR, count: BOSS_THEME_SECTORS,
     destination: STAGING_ADDRESS });
   for (const index of [3, 4, 5]) assert.equal(entries[index].count, 0, `entry ${index}`);
 });
@@ -183,15 +201,20 @@ function includeConstantsCount(text) {
   return Number(/BOSS_RESTORE_COUNT = (\d+)/.exec(text)[1]);
 }
 
-test("the controller is C in slot A and uses no cc65 stack, helper or runtime zero page", () => {
+// RE-POINTED M5b-S4a-i (Q-B5): the controller lives in slot C now; the same
+// no-stack, no-helper, no-runtime-zero-page rule holds.
+test("the controller is C in slot C and uses no cc65 stack, helper or runtime zero page", () => {
   const listing = readBuild("boss-c.lst").toString("utf8");
   assert.doesNotMatch(listing, /\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp|mul|div|mod)/i);
   assert.doesNotMatch(listing.replace(/\.importzp.*$/gm, ""),
     /\b(?:c_sp|sreg|regsave|tmp[1-4]|ptr[1-4])\b/);
-  const slot = manifest.overlays.slotA;
+  const slotC = manifest.boss.slotC;
   for (const name of ["_boss_c_init", "_boss_c_hit", "_boss_c_tick"]) {
     const address = label("boss", name);
-    assert.ok(address >= slot.address && address < slot.endExclusive, `${name} is outside slot A`);
+    assert.ok(address >= slotC.address && address < slotC.address + slotC.capacityBytes,
+      `${name} is outside slot C`);
   }
-  assert.ok(labelsOf.boss.get("boss_dli") < slot.endExclusive);
+  const slot = manifest.overlays.slotA;
+  assert.ok(labelsOf.boss.get("boss_dli") >= slot.address && labelsOf.boss.get("boss_dli") < slot.endExclusive,
+    "the DLI stays in slot A");
 });

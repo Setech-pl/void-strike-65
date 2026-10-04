@@ -357,9 +357,12 @@ test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where th
     // is still zero.
     // RE-POINTED 2026-10-04 (M5b-S3, plan §5.6): boss_def at 194 carries the
     // boss bonus in its first two bytes; the rest of boss_def is still zero.
-    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(196)]);
+    // RE-POINTED M5b-S4a-i (owner answer Q-B3): boss_def's bytes 2-4 are the
+    // hit points' scale per difficulty; the rest of boss_def is still zero.
+    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(199)]);
     assert.equal(Buffer.compare(outside, Buffer.alloc(outside.length)), 0,
-      "one 16-B look, the grade block, the boss bonus and nothing else");
+      "one 16-B look, the grade block, the boss bonus and HP scale and nothing else");
+    assert.deepEqual([...payload.subarray(196, 199)], [0xff, 0x00, 0x01], "x 3/4, x 1, x 5/4");
     assert.deepEqual([...payload.subarray(194, 196)], [0x00, 0x20], "level 1's boss bonus, 2,000 BCD");
     assert.ok(payload.subarray(184, 194).some((byte) => byte !== 0), "level 1 grades");
   });

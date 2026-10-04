@@ -59,9 +59,14 @@ test("the overlay directory has nine entries; the summary code is entry 8 at $05
   // RE-POINTED 2026-10-04 (M5b-S3): entry 1 is the boss code (528, 16 sectors,
   // slot A) and entry 2 region 1's staging run (547, 4 sectors, $7990); the
   // boss's other regions (3-5) stay empty until S5, and nothing else moved.
+  // RE-POINTED M5b-S4a-i (owner answer Q-B8, plan §5.13.4): the boss code's
+  // count is its linked sectors, and entry 2 is region 1's 2-sector theme run
+  // at 632 (the regions moved to 16 sectors each from 632).
   const slot = manifest.overlays.slotA.address;
-  assert.deepEqual(entry(1), [528 & 0xff, 528 >> 8, 16, slot & 0xff, slot >> 8], "the boss code");
-  assert.deepEqual(entry(2), [547 & 0xff, 547 >> 8, 4, 0x90, 0x79], "region 1's staging run");
+  assert.deepEqual(entry(1), [528 & 0xff, 528 >> 8, manifest.boss.slotA.sectors, slot & 0xff, slot >> 8],
+    "the boss code");
+  assert.ok(manifest.boss.slotA.sectors <= 16);
+  assert.deepEqual(entry(2), [632 & 0xff, 632 >> 8, 2, 0x90, 0x79], "region 1's theme run");
   for (const index of [3, 4, 5]) {
     assert.deepEqual(entry(index), [0, 0, 0, 0, 0], `entry ${index} belongs to M5b-S5`);
   }
@@ -183,6 +188,7 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
     ...manifest.sectorReader.levels.map((level) => [`level ${level.id}`, level.startSector, 16]),
     ["capital restore", 512, 16],
     ["M5b reservation", 528, 56],
+    ["M5b regions", 632, 64],
     ["summary code", levelSummary.code.startSector, levelSummary.code.sectors],
     ["save record", SAVE_SECTOR, 1],
     ...levelSummary.art.runs.map((run) => [`art ${run.region}`, run.startSector, 7]),
@@ -198,8 +204,16 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   // RE-POINTED 2026-10-04 (M5b-S3, Q-S6): the reservation now holds the boss
   // code 528-543, the install 544-546 and region 1 547-555; the 28 sectors of
   // regions 2-4 (556-583) are still empty. The non-overlap above is unchanged.
-  assert.ok(atrSectors(528, 28).some((byte) => byte !== 0), "the boss is on the disk");
-  assert.ok(atrSectors(556, 28).every((byte) => byte === 0), "regions 2-4 must stay empty");
+  // RE-POINTED M5b-S4a-i (plan §5.13.4): 528-583 holds the boss code, the
+  // install and slot C (547 on); the regions moved to 16 sectors each from 632
+  // (632-695, a run of its own above). Region 1 is on the disk; regions 2-4
+  // (648-695) are still empty, and so is the reservation past slot C.
+  const slotCEnd = 547 + manifest.boss.slotC.sectors;
+  assert.ok(atrSectors(528, slotCEnd - 528).some((byte) => byte !== 0), "the boss is on the disk");
+  assert.ok(atrSectors(slotCEnd, 584 - slotCEnd).every((byte) => byte === 0),
+    "528-583 past slot C must stay empty");
+  assert.ok(atrSectors(632, 16).some((byte) => byte !== 0), "region 1 is on the disk");
+  assert.ok(atrSectors(648, 48).every((byte) => byte === 0), "regions 2-4 must stay empty");
 });
 
 test("the stat hooks are operand-only in every full segment", () => {

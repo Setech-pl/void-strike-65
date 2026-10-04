@@ -32,8 +32,11 @@ test("the generated memory map matches the current build", () => {
   }
 });
 
+// RE-POINTED M5b-S4a-i (owner answer Q-B5): the boss claims $0C00-$18FF, so
+// the measured-free low RAM that stays unclaimed is $1900-$1FFF (1,792 B).
 test("the generated map reports the measured-free low RAM and the misnamed STARFIELD", () => {
   const block = currentBlock(document);
-  assert.match(block, /\| `\$0C00-\$1FFF` \| 5,120 B \| measured-free \|/);
+  assert.match(block, /\| `\$1900-\$1FFF` \| 1,792 B \| measured-free \|/);
+  assert.match(block, /\| `\$0C00-\$18FF` \|[^\n]*boss claim \(owner answer Q-B5\)/);
   assert.match(block, /\| `STARFIELD` \|[^\n]*\*\*misleading name\*\* \|/);
 });

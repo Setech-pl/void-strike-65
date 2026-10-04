@@ -23,15 +23,15 @@ import {
   LEVEL_CORE_OFFSET,
 } from "../scripts/level-compiler.mjs";
 import {
-  BOSS_GLYPH_BASE,
-  BOSS_GLYPH_COUNT,
   BOSS_BAND_COLUMNS,
+  BOSS_FIRST_CODE,
   BOSS_KIND,
   BOSS_REGION_SECTORS,
-  BOSS_STAGING_THEME_CAPACITY,
+  BOSS_THEME_CAPACITY,
   bossBandRowAddress,
+  bossRegionDirectory,
   compileBossRegion,
-  loadBossRegionDefinition,
+  loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import {
   compileGameplayMusic,
@@ -120,7 +120,9 @@ test("the compiler refuses a boss sector that could not play as it reads", () =>
     "a level that names a boss carries its boss_def");
 });
 
-test("boss_def carries the boss bonus as packed BCD at payload offset 194", () => {
+// EXTENDED M5b-S4a-i (owner answer Q-B3): boss_def's bytes 2-4 are the hit
+// points' scale per difficulty, in quarters (-1, 0, +1: x 3/4, 1, 5/4).
+test("boss_def carries the boss bonus as packed BCD at payload offset 194, then the HP scale", () => {
   const compiled = compileLevelFile(levelSourcePath(1), { hullAsset });
   const source = JSON.parse(read("assets/levels/level-01.json").toString("utf8"));
   const bonus = String(source.bossDef.bonus).padStart(4, "0");
@@ -132,6 +134,10 @@ test("boss_def carries the boss bonus as packed BCD at payload offset 194", () =
   assert.equal(image[LEVEL_PAYLOAD_OFFSET + PAYLOAD_OFFSET.bossDef],
     payload[PAYLOAD_OFFSET.bossDef]);
   assert.equal(image[LEVEL_CORE_OFFSET + 7], compiled.core[7]);
+  assert.deepEqual([...payload.subarray(PAYLOAD_OFFSET.bossDef + 2, PAYLOAD_OFFSET.bossDef + 5)],
+    [0xff, 0x00, 0x01], "EASY x 3/4, MEDIUM x 1, HARD x 5/4");
+  assert.throws(() => compileLevel({ ...source, bossDef: { ...source.bossDef, hpScale: { hard: 2 } } },
+    { hullAsset, file: "level-01.json" }), LevelValidationError, "a scale outside the quarters");
 });
 
 test("the level image still ends before $AC80, where band rows 6-7 and the tables land", () => {
@@ -144,48 +150,58 @@ test("the level image still ends before $AC80, where band rows 6-7 and the table
 // The region data (plan §5.1, §5.10, Q-S6).
 // ---------------------------------------------------------------------------
 
-const region = compileBossRegion(
-  loadBossRegionDefinition(path.join(root, "assets/graphics/boss-region-1.json")));
+const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
 
-test("region 1: 31 glyphs at the capital hull's codes 59-89, an 8 x 64 band", () => {
-  assert.equal(BOSS_GLYPH_BASE, 59);
-  assert.equal(BOSS_GLYPH_COUNT, 31);
-  assert.equal(region.glyphImage.length, 31 * 8);
+// RE-POINTED M5b-S4a-i (§5.13.4, Q-B5): the band is drawn in the region's own
+// charset at $0C00 (codes 7..), not over the capital hull's codes 59-89.
+test("region 1: an 8 x 64 band in its own charset's codes, the divider's 0-6 left alone", () => {
   assert.equal(region.bandRows.length, 8);
   assert.ok(region.bandRows.every((row) => row.length === BOSS_BAND_COLUMNS));
   for (const row of region.bandRows) {
     for (const code of row) {
       const glyph = code & 0x7f;
-      assert.ok(code === 0 || (glyph >= 59 && glyph <= 89),
+      assert.ok(code === 0 || (glyph >= BOSS_FIRST_CODE && glyph < region.codeCount),
         `band code $${code.toString(16)} is outside the region's glyphs`);
     }
   }
 });
 
-test("region 1: the guns come first, the core last, no two guns share a column", () => {
+// RE-POINTED M5b-S4a-i (owner answer Q-B1, decision F): region 1 is the S3
+// core boss as style 2 - the guns (two pulse cannons and the tier's emitter)
+// in front, the core last and covered by all three, two armour plates; no
+// two front modules share a column (decision 7's "guns then core" is this
+// layout's cover group).
+test("region 1: the gun group in front, the core last behind all of it, no two guns share a column", () => {
   const kinds = region.modules.map((module) => module.kind);
   assert.equal(kinds.at(-1), "core");
-  assert.ok(kinds.slice(0, -1).every((kind) => kind === "gun"));
-  assert.ok(kinds.length - 1 >= 2 && kinds.length - 1 <= 3, "decision 7: 2-3 guns");
+  const guns = region.modules.filter((module) => module.kind === "pulse" || module.kind === "emitter");
+  assert.equal(guns.length, 3, "decision 7: three guns in front of the core");
+  const core = region.modules.at(-1);
+  assert.equal(core.cover, guns.reduce((mask, gun) => mask | (1 << region.modules.indexOf(gun)), 0));
   const columns = new Set();
-  for (const module of region.modules.filter((entry) => entry.kind === "gun")) {
+  for (const module of guns) {
     for (let column = module.x; column < module.x + module.width; column += 1) {
       assert.ok(!columns.has(column), `column ${column} holds two guns`);
       columns.add(column);
     }
   }
-  assert.equal(BOSS_KIND.gun, 1);
-  assert.equal(BOSS_KIND.core, 2);
+  assert.ok(region.modules.filter((module) => module.kind === "armour").length >= 1,
+    "armour the player may leave standing (decision A)");
+  assert.deepEqual(Object.keys(BOSS_KIND), ["armour", "pulse", "emitter", "salvo", "core"]);
 });
 
-test("region 1 is 9 sectors: staging 4, band A 3, band B 2 (Q-S6)", () => {
-  assert.equal(BOSS_REGION_SECTORS, 9);
-  assert.equal(region.runs.staging.sectors + region.runs.bandA.sectors + region.runs.bandB.sectors, 9);
-  assert.equal(region.runs.staging.address, 0x7990, "behind the install run at $7810 (§5.11.7)");
-  assert.ok(region.runs.staging.address + region.runs.staging.sectors * 128 <= 0x7bd0,
-    "the staging run stays inside the pause backup, below the arena");
-  assert.equal(region.runs.bandA.address, 0xa880);
-  assert.equal(region.runs.bandB.address, 0xac80);
+// RE-POINTED M5b-S4a-i (§5.13.4): a region is 16 reserved sectors - theme 2,
+// band A 3, band B 3, the charset sized to its contents (<= 8); S3's was 9.
+test("region 1 fits its 16 sectors: theme 2, band A 3, band B 3, charset <= 8", () => {
+  assert.equal(BOSS_REGION_SECTORS, 16);
+  const { theme, bandA, bandB, charset } = region.runs;
+  assert.ok(theme.sectors + bandA.sectors + bandB.sectors + charset.sectors <= 16);
+  assert.equal(theme.address, 0x7990, "behind the install run at $7810 (§5.11.7)");
+  assert.ok(theme.address + theme.sectors * 128 <= 0x7bd0,
+    "the theme run stays inside the pause backup, below the arena");
+  assert.equal(bandA.address, 0xa880);
+  assert.equal(bandB.address, 0xac80);
+  assert.equal(charset.address, 0x0c00);
 });
 
 test("no band row crosses a 4 KB boundary (ANTIC's LMS counter) or a page", () => {
@@ -197,7 +213,7 @@ test("no band row crosses a 4 KB boundary (ANTIC's LMS counter) or a page", () =
   }
 });
 
-test("the boss theme is laid out like the level's track and fits the staging run (decision 32)", () => {
+test("the boss theme is laid out like the level's track and fits its run (decision 32)", () => {
   const menu = compileMusic(loadMusicDefinition(path.join(root, "assets/music/menu-theme.json")));
   const level = compileGameplayMusic(
     loadMusicDefinition(path.join(root, "assets/music/gameplay-theme.json")),
@@ -207,7 +223,7 @@ test("the boss theme is laid out like the level's track and fits the staging run
     { pitches: menu.pitches });
   const image = layoutGameplayMusicLike(boss, level);
   assert.ok(image.length <= 361, "plan §5.10: the music copy is <= 361 B");
-  assert.ok(image.length <= BOSS_STAGING_THEME_CAPACITY);
+  assert.ok(image.length <= BOSS_THEME_CAPACITY, "the theme run's 2 sectors (S3: behind the glyphs)");
   // The tables the player addresses absolutely sit at the level track's offsets.
   const tableEnd = (asset) => asset.audcBase.length +
     asset.envelopes.reduce((sum, e) => sum + e.length, 0) +

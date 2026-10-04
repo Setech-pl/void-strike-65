@@ -258,6 +258,7 @@ export function bossGateMemory() {
   memory[label("main", "sound_enabled")] = 1;
   memory[label("main", "GAME_MUSIC_ENABLED")] = 1;
   memory[label("main", "player_y")] = 60;   // inside the band's rows: the floor moves it
+  memory[label("main", "DIFFICULTY_SETTING")] = 1;   // MEDIUM, the game's default (M5b-S4a-i: the HP scale)
   memory[label("main", "CAPITAL_SECTOR_STATE")] = 7;   // CAPITAL_HULL_STATE_OPEN: a fighter sector
   // The ring's row tables and the two gameplay lists, as start_gameplay left them.
   call(memory, label("main", "init_playfield_row_table"));
@@ -266,7 +267,7 @@ export function bossGateMemory() {
 }
 
 // Run the boss entry from the window's resident half to the main loop.
-export function runBossEntry({ onCommand = null } = {}) {
+export function runBossEntry({ onCommand = null, watch = null } = {}) {
   const memory = bossGateMemory();
   const drive = new Drive({ onCommand });
   const cpu = cpuOver(drive, memory);
@@ -275,8 +276,53 @@ export function runBossEntry({ onCommand = null } = {}) {
   const end = runUntil(cpu, {
     main_loop: label("main", "main_loop"),
     failure: label("reader", "sector_reader_failure_screen"),
-  });
+  }, { watch });
   return { memory, drive, cpu, end };
 }
 
 export const word = (memory, address) => memory[address] | (memory[address + 1] << 8);
+
+// M5b-S4a-i: a compiled region (scripts/boss-assets.mjs) put into a machine
+// the boss entry already reached: its band, tables and charset where the head
+// reads them, the divider's codes as the install copies them, the level id
+// (its laser tier) and the difficulty; then the install's order - the
+// controller's init, then boss_prepare (the capped plates, the column map).
+export function installRegion(memory, region, { level = 1, difficulty = 1 } = {}) {
+  memory.set(region.runs.bandA.data, region.runs.bandA.address);
+  memory.set(region.runs.bandB.data, region.runs.bandB.address);
+  memory.set(region.runs.charset.data, region.runs.charset.address);
+  const charset = label("main", "CHARSET");
+  memory.copyWithin(region.runs.charset.address, charset, charset + 7 * 8);
+  memory[0xa603] = level;
+  memory[label("main", "DIFFICULTY_SETTING")] = difficulty;
+  call(memory, label("boss", "_boss_c_init"));
+  call(memory, label("boss", "boss_prepare"));
+  return memory;
+}
+
+// The band placed at position p (colour clocks) and published, as the DLI
+// would publish it: a shot's band column is then (x - 32 + p) / 4.
+export function placeBand(memory, p) {
+  memory[label("boss", "boss_pos")] = p;
+  memory[label("boss", "boss_dli_pos")] = p;
+  call(memory, label("boss", "boss_apply_pos"));
+}
+
+export const BAND_BOTTOM_Y = 88;
+export const BAND_ORIGIN_HPOS = 32;
+
+// The screen columns a band position shows: cells whose colour clocks fall
+// inside the normal window (HPOS 48-207).
+export function visibleCells(p) {
+  return { left: Math.ceil((16 + p) / 4), right: Math.floor((175 + p) / 4) };
+}
+
+// A PairShot in `slot` at the band's bottom edge whose band column is `cell`.
+export function shootAt(memory, cell, slot = 0) {
+  const p = memory[label("boss", "boss_shown_pos")];
+  const x = cell * 4 + BAND_ORIGIN_HPOS - p + 1;
+  assert.ok(x >= 48 && x < 208, `column ${cell} is off screen at position ${p}`);
+  memory[label("main", "FIGHTER_PROJECTILE_ACTIVE") + slot] = 1;
+  memory[label("main", "FIGHTER_PROJECTILE_X") + slot] = x;
+  memory[label("main", "FIGHTER_PROJECTILE_Y") + slot] = BAND_BOTTOM_Y - 4;
+}

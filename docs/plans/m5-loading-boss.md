@@ -295,6 +295,22 @@ style 2 under F.
 | **F** | **Two boss styles from one fight engine, as data.** Style 1 the layered fortress of A; style 2 the core boss as built in S3: a core module that is the last weapon module, hidden behind a **cover group** of guns and exposed only when every module of the group is destroyed. The cover rule is generalised so a module can be covered by a group, not only by the one in front; both styles share the hit feedback, damage stages, nozzles, lasers and win sequence | §5.13.2 items 2, 12; §5.13.3 |
 | **G** | **The agent draws the placeholder art; the owner changes it afterwards** (answer given during the planning session, 2026-10-04) | §5.13.4, Q-B2 |
 
+**The owner's answers to the redesign's questions (2026-10-04, before M5b-S4a-i).**
+Every question of §5.13.8 is answered; decision G stands. Q-B1 is the
+recommendation (the alternative mapping), so decision E's confirmed mapping is
+superseded by it; the others are the recommendations as written.
+
+| # | Answer | Applied in |
+| ---: | --- | --- |
+| **Q-B1** | **R1 is the S3 core boss rebuilt as style 2** (the teaching boss); **R2 Blockade Breaker, R3 Siege Spine, R4 Void Citadel** (style 1). The Siege Spine variant of decision E is no longer needed | S4a-i (region 1), S5 (regions 2–4) |
+| **Q-B2** | **The art is authored as PNG drafts** (2:1 pixels, five fixed colours) **with `modules.json`**, as §5.13.4 describes | S4a-i converter v2; S5 |
+| **Q-B3** | **Hit points: armour 6, pulse 8, emitter 10, salvo 10, core 24**, with a **per-difficulty scale in `boss_def`**; tuned in M8 | S4a-i |
+| **Q-B4** | **The hit sound is a 2-frame tick on channel 3** (built in S4a-ii) | S4a-ii |
+| **Q-B5** | **Yes — the boss claims `$0C00-$18FF`** (charset, slot C, scratch); about 1.8 KB of `$1900-$1FFF` stays unclaimed | S4a-i |
+| **Q-B6** | **The boss's per-frame work limit becomes 7,000 native cycles** (was 3,500, correction 9) | S4a-i on; §5.10 |
+| **Q-B7** | **Hits absorbed by a covered module, or by armour that takes no damage, do not count as hits for accuracy** | S4a-i (the absorb path), S4a-ii (the spark and tick) |
+| **Q-B8** | **Accept the longer boss entry, with every run sized to its contents**; the owner measures it on the CA drive, and if it clearly exceeds about 8 s the optional fast loader (S6) is reconsidered | S4a-i |
+
 ---
 
 ## 2. Phase A — inventory (what is true today, with file:line)

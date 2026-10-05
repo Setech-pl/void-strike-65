@@ -355,6 +355,22 @@ whose rims crossed and hid the cannons they had just exposed.
 | ---: | --- | --- |
 | **L** | **A destroyed module disappears** (supersedes the "lit edge" part of decision J): its cells **below the hull's silhouette become empty band background**; its cells **inside the hull become a plain dark cavity**, no rim or outline. No outline is drawn around any destroyed module, and nothing a destroyed module leaves may overlap or frame a neighbouring module. **A cannon exposed by a fallen plate must be fully visible** | §5.15.8 |
 
+**The owner's decision after smoking the merged fortress (2026-10-05, before
+`fix/boss-readability`).** The smoke (emulator recording): the player's shots
+vanish well below the boss (the 8-row band is never drawn into, and with the
+plates gone the hull is about 3 rows tall, so a shot disappears about 5 rows
+under it, in empty space); artifacts appear when a player shot hits in the boss
+fight (and were seen earlier in the capital sector when an allied shot meets an
+enemy shot); after the plates fall, hull art stays below the hull line - grey
+X-braced girders hanging to the band's bottom, the open bay's thin red dotted
+wall strips, small hull pieces - and the girders stop shots (hull art counts as
+armour in the column map), so a shot fired at a visible cannon dies in empty
+space; one cannon looked not fully uncovered after its plate fell.
+
+| # | Decision | Applied in |
+| ---: | --- | --- |
+| **M** | **The stripped skeleton stays but does not block.** Hull art below the hull line (the X-braced girders) is **shortened to the hull line plus one or two rows** and is **transparent to the player's shots**; the open bay's **red dotted wall strips are removed**; small hull pieces inside the hull rows may stay. **In the column map, hull art below the hull line is OPEN; only modules and the hull's own rows stop a shot.** Whatever stops a shot must be visible as solid at that cell | §5.16 |
+
 ---
 
 ## 2. Phase A — inventory (what is true today, with file:line)

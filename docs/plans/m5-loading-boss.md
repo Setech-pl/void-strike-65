@@ -345,6 +345,16 @@ the flash, the tick, the spawn, the nozzles) is taken into the same session.
 | **J** | **Every hit reads on screen**: a spark in the struck cell; a damage stage clearly visible at a glance (high contrast); a one-frame band flash on damaging hits; a short hit tick; a destroyed module leaves a **readable dark hole or scorched opening with a lit edge**, never a dithered pattern | §5.15 |
 | **K** | **The hull art has no repeated panel motif; engine nozzles at both ends, animated** | §5.15 |
 
+**The owner's decision after smoking the fortress (2026-10-05, before merge).**
+The smoke: the fight is good; but a destroyed module left a black interior
+outlined by a glowing orange rim, and since the plates reach 3–4 rows below the
+hull line every destroyed plate left a tall empty frame hanging under the hull,
+whose rims crossed and hid the cannons they had just exposed.
+
+| # | Decision | Applied in |
+| ---: | --- | --- |
+| **L** | **A destroyed module disappears** (supersedes the "lit edge" part of decision J): its cells **below the hull's silhouette become empty band background**; its cells **inside the hull become a plain dark cavity**, no rim or outline. No outline is drawn around any destroyed module, and nothing a destroyed module leaves may overlap or frame a neighbouring module. **A cannon exposed by a fallen plate must be fully visible** | §5.15.8 |
+
 ---
 
 ## 2. Phase A — inventory (what is true today, with file:line)

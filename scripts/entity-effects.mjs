@@ -174,10 +174,12 @@ export function loadEntityEffectsDefinition(sourcePath) {
   const destruction = definition.debrisDestruction;
   invariant(destruction?.hitFlashFrames === 2,
     "Debris hit flash must last exactly two PAL frames");
-  invariant(destruction.coreFrames >= 4 && destruction.coreFrames <= 6,
-    "Debris explosion core must last four through six PAL frames");
-  invariant(destruction.fragmentFrames >= 28 && destruction.fragmentFrames <= 32,
-    "Debris fragments must last twenty-eight through thirty-two PAL frames");
+  // docs/plans/plasma-fx.md: the break-up lives 45 frames and its core with
+  // it; the fallback the owner set (decision 6) puts the core out at 24.
+  invariant(destruction.fragmentFrames === 45,
+    "Break-up fragments must last 45 PAL frames (plasma FX, decision 3)");
+  invariant(destruction.coreFrames === 45 || destruction.coreFrames === 24,
+    "The break-up core lives the whole break-up, or 24 frames under the fallback");
   invariant(destruction.fragmentCount === 4,
     "Debris destruction must emit exactly four fragments");
   integer(destruction.fragmentLocalXSpeedHpos,
@@ -196,14 +198,34 @@ export function loadEntityEffectsDefinition(sourcePath) {
       for (let shift = 0; shift < 8; shift += 2) {
         const selector = row >> shift & 3;
         if (selector !== 0) {
-          invariant(selector === 3,
-            `fragment phase ${phaseIndex} must use the yellow/red switchable selector`);
+          invariant(selector === 3 || selector === 1,
+            `fragment phase ${phaseIndex} must use white or the switchable selector`);
           litPixels += 1;
         }
       }
     }
-    invariant(litPixels >= 4 && litPixels <= 7,
-      `fragment phase ${phaseIndex} must contain four through seven ANTIC pixels`);
+    invariant(litPixels >= 12 && litPixels <= 32,
+      `fragment phase ${phaseIndex} (a full burst or its ring) must light 12-32 ANTIC pixels`);
+  }
+  invariant(Array.isArray(destruction.growthPhases) && destruction.growthPhases.length === 2,
+    "The break-up's growth must define exactly two glyphs (a dot and a small burst)");
+  for (const [phaseIndex, rows] of destruction.growthPhases.entries()) {
+    invariant(Array.isArray(rows) && rows.length === 8,
+      `debrisDestruction.growthPhases[${phaseIndex}] must contain eight rows`);
+    let litPixels = 0;
+    for (const [rowIndex, row] of rows.entries()) {
+      integer(row, `debrisDestruction.growthPhases[${phaseIndex}][${rowIndex}]`, 0, 255);
+      for (let shift = 0; shift < 8; shift += 2) {
+        const selector = row >> shift & 3;
+        if (selector !== 0) {
+          invariant(selector === 3 || selector === 1,
+            `growth phase ${phaseIndex} must use white or the switchable selector`);
+          litPixels += 1;
+        }
+      }
+    }
+    invariant(litPixels >= 4 && litPixels <= 12,
+      `growth phase ${phaseIndex} must light 4-12 ANTIC pixels`);
   }
 
   const pickup = definition.weaponPickupRapidFire;
@@ -335,6 +357,9 @@ export function compileEntityEffects(definition) {
   const effectGlyphs = Uint8Array.from(definition.debrisDestruction.fragmentPhases.flat());
   invariant(effectGlyphs.length === 16,
     "Two fragment phases must compile to exactly two glyphs");
+  const growthGlyphs = Uint8Array.from(definition.debrisDestruction.growthPhases.flat());
+  invariant(growthGlyphs.length === 16,
+    "Two growth phases must compile to exactly two glyphs");
   const trajectoryVx = Uint8Array.from(definition.debrisMotion.trajectorySelector.map((id) =>
     definition.debrisMotion.trajectories.find((trajectory) => trajectory.id === id).vxSignedHpos));
   const pickupGlyphs = Uint8Array.from(definition.weaponPickupRapidFire.glyphs.flat());
@@ -367,6 +392,7 @@ export function compileEntityEffects(definition) {
     descriptor,
     glyphs,
     effectGlyphs,
+    growthGlyphs,
     pickupGlyphs,
     spreadPickupGlyphs,
     shieldPickupGlyphs,
@@ -414,6 +440,8 @@ export function renderEntityEffectsCa65Include(asset) {
     `EFFECT_FRAGMENT_GLYPH_COUNT = ${asset.effectGlyphs.length / 8}`,
     `EFFECT_FRAGMENT_GLYPH_BYTES = ${asset.effectGlyphs.length}`,
     `ENTITY_EFFECT_GLYPH_BYTES = ${asset.glyphs.length + asset.effectGlyphs.length}`,
+    `EFFECT_GROWTH_GLYPH_COUNT = ${asset.growthGlyphs.length / 8}`,
+    `EFFECT_GROWTH_GLYPH_BYTES = ${asset.growthGlyphs.length}`,
     `WEAPON_PICKUP_GLYPH_COUNT = ${asset.pickupGlyphs.length / 8}`,
     `WEAPON_PICKUP_GLYPH_BYTES = ${asset.pickupGlyphs.length}`,
     `WEAPON_PICKUP_SPREAD_GLYPH_COUNT = ${asset.spreadPickupGlyphs.length / 8}`,
@@ -509,6 +537,9 @@ export function renderEntityEffectsCa65Include(asset) {
     ".endmacro",
     ".macro EMIT_EFFECT_FRAGMENT_GLYPHS",
     `    .byte ${[...asset.effectGlyphs].map(byte).join(",")}`,
+    ".endmacro",
+    ".macro EMIT_EFFECT_GROWTH_GLYPHS",
+    `    .byte ${[...asset.growthGlyphs].map(byte).join(",")}`,
     ".endmacro",
     ".macro EMIT_WEAPON_PICKUP_GLYPHS",
     `    .byte ${[...asset.pickupGlyphs].map(byte).join(",")}`,

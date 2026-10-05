@@ -357,3 +357,153 @@ frame), the in-band shot colour rule, the player death staying FIRE
 (`COLPM3` sequence), `COLPF3`/`PRIOR`/missiles untouched. Then the evidence
 pass of `AGENTS.md` (`build:candidate` → `runtime:wall-trace` → `build` →
 `npm test` ×2), the memory map regenerated, and the report the brief lists.
+
+---
+
+## 10. Phase B1 — as built and measured (2026-10-05) — **STOPPED**
+
+Owner answers of 2026-10-05: colour by smoke ($1E default, $9E and $AE as
+review builds); sizes as previewed, still 5 cells; break-up 30 → 45 frames,
+background flash 4 → 6 frames, the player's death FIRE, 16 lines, 24 frames;
+capsule gold, in-band shot $0A, `COLPF3`/missiles/`PRIOR` untouched; "newest
+wins"; the fallback of decision 6 below a 1,000 margin, a STOP below 500.
+
+**Status: B1 stopped on the gameplay check** (§10.6): a longer break-up moves
+a capital broadside shell's impact by two frames in 2 of 54 replays, through a
+pre-existing screen-scan defect. Everything else of B1 is built and measured.
+
+### 10.1 What was built
+
+| piece | where | bytes |
+| --- | --- | ---: |
+| growth glyphs 108 (dot) and 109 (small burst); 118/119 redrawn as the full burst and its ring | `assets/graphics/entity-effects.json` (`growthPhases`, `fragmentPhases`), installed with the debris bank | +16 ENTITY_CODE |
+| effect glyph range 110-119 → **108-119** in the backing resolvers (codes 108-109, not 52-58: the resolvers recognise effect cells by one contiguous range, and 108-109 held only frontend font source copies) | `src/main.s` | 0 |
+| break-up renderer: the look first, from a stage list per pool role read by the slot's TTL; a hidden stage costs no address or backing work; **a blank cell skips the three backing resolvers** (code 0 resolves to nothing else) | `render_transient_effect_overlays`, CODE | −9 |
+| lives: fragments 45 frames, core 24 (**decision 6's fallback**, §10.3); fragments ±1 HPOS/line a frame, shown from frame 5; Heavy **medium** (fallback: one start point beside the core at the hull's centre) | asset, `heavy_breakup_offsets` | 0 |
+| Heavy / boss-module `COLBK` flash 4 → 6 frames, `$1E $3C $1C $38 $1A $34` (cold builds: hue, `$8C`, hue−2, `$8A`, hue−4, `$84`); vx/vy tables overlap their unused slot-0 byte to pay for it | charset source tail, RODATA | 0 |
+| player's death 16 lines (each mask row twice), `COLPM3` fire cycle `$1E $1C $2A $28 $26 $34` by patching the publication's two `COLPM3` immediates; the gold / `$28` restored on every frame without a death explosion; 24 frames, respawn unchanged | BROADSIDE 182-B block (35 B pad used, 7 B left) | 0 |
+| `--player-colour=1E|9E|AE` (composes with `--level=N:sector=M`): `PLAYER_SIDE_COLOUR`, the late bank (`$80` red for $1E, `$00` for cold) and the flash table follow it | `scripts/build.mjs`, `src/main.s` | — |
+
+Initial block **13,621 B** (unchanged; STOP 13,652), boot 107 sectors, slot A
+1,995 / slot C 2,003 / scratch 249 unchanged, ENTITY_CODE tail 26 → 10 B.
+
+### 10.2 RED → GREEN
+
+`tests/plasma-fx.test.mjs`, five tests, run in their final form against a
+clean build of `main` `8a05b43` (temporary worktree, ATR `4926dc05…`):
+**4 RED** (45-frame life with the 24-frame core, the growth, the 6-frame
+flash, the 16-line fire death) and **1 GREEN by nature** (codes 104-109 and
+52-58 are displayed by nothing — a native play-through of level 1 to the
+boss entry, every ring and divider cell every frame, plus the only `CHBASE`
+selections of the gameplay charset). On this branch: **5 GREEN**.
+
+### 10.3 Measurements (diagnostic only, never evidence)
+
+Method: `node scripts/build.mjs --level=1:sector=0` (level 1 from its start)
+and `runtime-wall-trace --artifacts=build/level-1-s0 --only-session=<id>` for
+every session a debug route runs (51), plus the three `raider-remnant` replays
+through `--raider-remnant-only --skip-boot-smoke` on the candidate (writes
+`build/` only); compared row by row with `main`'s committed-evidence CSVs on
+42 gameplay columns; fence margins by `scripts/pal-timing-audit.mjs`'s
+samples. Not run: `capital-engines-first-150`, the three `debris-gate-*`,
+`raider-sector-atr-hard`, `two-pmg-raiders-atr-hard` (special modes; B2's full
+run covers them).
+
+| | `main` | first build (45-f core, large Heavy) | + renderer optimisation | **delivered (fallback)** |
+| --- | ---: | ---: | ---: | ---: |
+| worst fence row | 1,370 `2-evasive-fire3` f287 | **−45** `2-sweep-fire6` f311: a frame MISS | 763 `2-sweep-fire6` f311 | **1,287** `2-sweep-fire6` f311 |
+| `2-evasive-fire3` f287 | 1,370 | 1,383 | 2,628 | 2,628 |
+| DMA-on maximum (gameplay rows) | 31,237 `director-complete-2` f5797 | — | — | **31,240** (same row) |
+| worst Heavy kill frame | 2,841 | — | — | 3,133 `raider-remnant-rapid` f123 |
+| SPREAD multi-kill frame (`raider-remnant-spread` f2052) | 2,841 | — | — | **3,775** |
+| boss: worst frame = module destroyed | 12,984 (f11216) | — | — | **12,974** (same frame) |
+| boss stress work (native, pin 7,000) | 6,678 / 5,516 | — | — | **6,689 / 5,518** |
+| break-up per live frame, native (mean / peak) | 1,099 / 1,399 | 1,306 / 1,566 | — | **971 / 1,259** |
+
+Decision 6 fired on the measured 763 (< 1,000) and the delivered fallback
+measures 1,287 (≥ 1,000).
+
+### 10.4 For M8: truncation and a second break-up
+
+Kills are the replays' score rises outside the boss band (the break-up follows
+within two frames); 999 kills in the 51 debug-route replays, identical kill
+timing in both builds. The next kill cuts the older break-up before frame 10
+in **11.4 %**, before 24 in **26.7 %**, before 45 in **46.1 %** (with `main`'s
+30-frame life it cut **36.6 %**). A second concurrent break-up would add the
+pool's walk again — 971 mean / 1,259 peak native, ~1,250-1,640 wall with DMA
+(ESTIMATE ×1.3) — to the worst row's 1,287: **≈ 0 to −350, under GO 500.**
+Not affordable without another saving.
+
+### 10.5 Build table (all under `build/`, never `dist/`)
+
+| build | ATR SHA-256 prefix |
+| --- | --- |
+| $1E default, level 1 (`build/player-colour-1E`, = the candidate `dist/` bytes) | `0fb0ebfc513d1cdc` |
+| $1E, yellow-sky sector 4 (`build/level-1-s3` = `build/player-colour-1E-level-1-s3`) | `a64e057e3d59c84c` |
+| $1E, boss sector (`build/level-1-s4`) | `8c02ca7b41777b56` |
+| $9E, level 1 (`build/player-colour-9E`) | `8081aad0d632c0fe` |
+| $9E, yellow-sky sector (`build/player-colour-9E-level-1-s3`) | `fc2b36e976b06e69` |
+| $AE, level 1 (`build/player-colour-AE`) | `f3daf04138c4145f` |
+| $AE, yellow-sky sector (`build/player-colour-AE-level-1-s3`) | `a185e70eb2b358a2` |
+
+### 10.6 The gameplay check — why B1 stopped
+
+Before any code: the break-up's state (`EFFECT_*`, `src/main.s` the spawns
+10784/12066, the update 10854, the clear 10920, the render 11264, the erase
+10048) is read by no collision, capsule, spawn or Director path; the one
+TTL-dependent side effect, `clear_transient_effects` releasing the pickup
+while `PLAYER_DYING` (10920-10924), is a no-op then — the death already
+released both pickup slots, `erase_bullet` (8225) removed every player shot
+and `update_player_fighter_weapon` (4240) stays released, so no qualifying
+kill can refill them.
+
+**What the static check missed:** `broadside_hits_opposite_hull`
+(`src/main.s:9482`, the scans at 9504 and 9531) finds a hull edge by scanning
+the shell's screen row for the first code **≥ 59** (`CAPITAL_HULL_GLYPH_BASE`),
+with no upper bound — so any effect, debris, Light or hostile-shot code on
+that row stands in for the hull. It is a pre-existing defect (the same on
+`main` for every one of those codes); a 45-frame break-up whose fragments
+drift slowly makes it happen in replays where it did not: in
+`weapon-pickup-2-hunt-fire4` and `raider-remnant-normal-atr-hard` the capital
+sector's shell 0 impacts at frame 1199 instead of 1197 and
+`director_intensity` reads 4 for 2 frames instead of 2; 6 cells differ, and
+everything is identical again from frame 1204. No other screen-code read
+decides gameplay (the capital explosion's bounded checks at 9189-9221 only
+draw).
+
+Options (owner's choice):
+
+1. **Bound the hull scan to the hull's own glyphs** (`59 ≤ code < 90`, both
+   directions). Effects become visual-only again and the latent defect closes;
+   ~6 B in BROADSIDE (the explosion block has 7 B), +~4 cycles a scanned cell
+   on capital frames only (their worst wall is 18,351 of 35,568). Replays
+   change wherever `main`'s shells met a non-hull code — B2's evidence
+   regeneration absorbs it.
+2. Accept the coupling: the default build's replays change in the capital
+   sector (here: 2 of 54, a 2-frame shift); recorded clauses must still pass.
+3. Keep the 30-frame life in capital sectors only (a per-sector TTL): closest
+   to `main`'s replays, still not identical, and the look varies by sector.
+
+Recommendation: **1**.
+
+### 10.7 Tests re-pointed (each follows from a decision)
+
+`effects-stagger` (45-frame expiry; fragments held back to frame 5; resolver
+peak 1,068 → 928), `explosion-colour-flash` (6-frame enemy profile, new
+`FLASH_YELLOW_LOW`), `entity-effects` ×4 (16-line death window; 45-frame
+expiry; the split's lives, publication and art; the 6-frame Raider profile),
+`fighter-weapons` ×2 (`PLAYER_SIDE_COLOUR`; the death renderer patches the
+`COLPM3` operands and writes no colour register), `heavy-breakup` (the medium
+Heavy of decision 6), `weapon-pickup-rapid-fire` ×2 (the fragments still
+burning when the capsule enters), `preview` debris trace (48 frames), and the
+layout pins moved by the 16 B of growth glyphs and the 9 B shorter renderer:
+`cold-pickup-record-fit`, `formats`, `light-interceptor` ×2, `light-wingman`,
+`loader-screen`. Every behavioural assertion still runs.
+
+Red until B2 by the owner's order (evidence bound to `main`'s ATR):
+`github-showcase` ×3, `menu-raster`, `memory-map-generated`,
+`runtime-evidence-binding`, `runtime-timing`, `runtime-wall-trace` ×6
+(several pin the 4-frame flash and will need re-pointing after the
+regeneration), and `enemy-roster`'s release-variant check (a candidate build).
+`preview` "consumes the canonical charset" is the recorded failure, same
+assertion (line 166).

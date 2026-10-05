@@ -64,14 +64,19 @@
   },
   "debrisDestruction": {
     "hitFlashFrames": 2,
-    "coreFrames": 5,
-    "fragmentFrames": 30,
+    "_growth": "docs/plans/plasma-fx.md (owner answers 2026-10-05): the break-up grows and lives 45 frames; its core lives 24 (decision 6's fallback: the measured worst fence margin fell below 1,000 with a 45-frame core). growthPhases are glyphs 108-109 (a dot, a small burst), fragmentPhases glyphs 118-119 (the full burst, its ring). Selector 1 is white COLPF0, selector 3 the switchable COLPF2 / COLPF3 bank. The core walks dot, small, full, ring, dot; the fragments appear on frame 3 and shimmer between the dot and the small burst.",
+    "coreFrames": 24,
+    "fragmentFrames": 45,
     "fragmentCount": 4,
-    "fragmentLocalXSpeedHpos": 2,
-    "fragmentLocalYSpeedScanlines": 2,
+    "fragmentLocalXSpeedHpos": 1,
+    "fragmentLocalYSpeedScanlines": 1,
     "fragmentPhases": [
-      [0, 0, 192, 240, 60, 48, 0, 0],
-      [0, 0, 12, 15, 60, 12, 0, 0]
+      [60, 255, 215, 213, 87, 215, 255, 60],
+      [60, 195, 195, 195, 195, 195, 195, 60]
+    ],
+    "growthPhases": [
+      [0, 0, 0, 60, 60, 0, 0, 0],
+      [0, 0, 60, 215, 215, 60, 0, 0]
     ]
   },
   "weaponPickupRapidFire": {

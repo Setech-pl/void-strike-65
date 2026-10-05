@@ -111,9 +111,11 @@ function initialiseRows(memory, labels, head = 0) {
   }
 }
 
+// docs/plans/plasma-fx.md: the break-up's growth glyphs 108/109 sit directly
+// below the debris bank, so the effect range is 108-119.
 function isTransientEffectGlyph(value) {
   const code = value & 0x7f;
-  return (code >= 110 && code < 120) || code === 90 || code === 91;
+  return (code >= 108 && code < 120) || code === 90 || code === 91;
 }
 
 export const CHARACTER_WRITER_CLASSES = Object.freeze([
@@ -419,8 +421,31 @@ function snapshot(memory, labels, {
   };
 }
 
+// The boot image as the effect traces install it, for a test that calls single
+// linked routines (docs/plans/plasma-fx.md: the COLBK flash and the player's
+// death explosion). `run(name)` returns the routine's cycles.
+export function nativeRoutineHarness({ root = defaultRoot, artifact = "atr" } = {}) {
+  const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
+  const memory = new Uint8Array(0x10000);
+  const { requiresBroadsideUnpack } = installBootArtifact(memory, root, artifact);
+  if (requiresBroadsideUnpack) runRoutine(memory, labels, "unpack_boot_broadside_runtime");
+  runRoutine(memory, labels, "stage_boot_streams");
+  runRoutine(memory, labels, "unpack_resident_runtime");
+  runRoutine(memory, labels, "unpack_entity_runtime");
+  publishDirectorAbiIfPresent(memory, labels);
+  runRoutine(memory, labels, "init_entity_effects");
+  runRoutine(memory, labels, "copy_charset");
+  runRoutine(memory, labels, "install_entity_effects_glyph");
+  return {
+    memory,
+    labels,
+    label: (name) => requiredLabel(labels, name),
+    run: (name) => runRoutine(memory, labels, name),
+  };
+}
+
 export function executeDebrisDestructionTrace({
-  root = defaultRoot, artifact = "atr", ringHead = 0,
+  root = defaultRoot, artifact = "atr", ringHead = 0, finalFrames = 32,
 } = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "dist", "void-strike-65-manifest.json")));
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
@@ -511,7 +536,7 @@ export function executeDebrisDestructionTrace({
   runFrame("HIT_1", 1);
   runFrame("HIT_2", 0, true);
   runFrame("HIT_2", 1);
-  for (let frame = 0; frame < 32; frame += 1) runFrame("FINAL", frame, frame === 0);
+  for (let frame = 0; frame < finalFrames; frame += 1) runFrame("FINAL", frame, frame === 0);
 
   return {
     artifact,

@@ -11,8 +11,10 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 
+// Plasma FX (docs/plans/plasma-fx.md, owner decision 3): a break-up lives 45
+// frames, so the trace runs 48 to see it expire.
 function finalFrames(artifact) {
-  return executeDebrisDestructionTrace({ root, artifact }).records
+  return executeDebrisDestructionTrace({ root, artifact, finalFrames: 48 }).records
     .filter((record) => record.phase === "FINAL");
 }
 
@@ -27,12 +29,20 @@ test("character effects use bounded 3/2 slot groups without changing the PMG exp
     "fragment glyph selection must advance only on the slot publication tick");
 });
 
+// RE-POINTED 2026-10-05, plasma FX (docs/plans/plasma-fx.md, owner decisions 2
+// and 3): the break-up grows from one cell, so its core publishes on its first
+// publication tick and the four fragments are held back until frame 5 (they
+// start in the core's cell). The contract is unchanged in kind: every visual
+// slot reaches the screen within one PAL frame of becoming visible, all five
+// slots are allocated on the spawn frame.
 test("spawn reaches every visual slot within one PAL frame and preserves five slots", () => {
   const frames = finalFrames("atr");
   assert.equal(frames[0].effectActiveMask, 0x1f);
   assert.equal(frames[0].effectActiveCount, 5);
-  assert.equal(frames[0].effectRenderedMask, 0x18);
-  assert.equal(frames[1].effectRenderedMask, 0x1f);
+  assert.equal(frames[0].effectRenderedMask, 0x00, "the fragments' parity group: all held back");
+  assert.equal(frames[1].effectRenderedMask, 0x01, "the core, on its first tick");
+  assert.equal(frames[5].effectRenderedMask & 0x06, 0x06, "fragments 1-2 on frame 5");
+  assert.equal(frames[6].effectRenderedMask, 0x1f, "every slot by frame 6");
   assert.equal(frames[1].effectActiveCount, 5);
   for (let slot = 1; slot < 5; slot += 1) {
     const ttl = frames.slice(0, 30).map((frame) =>
@@ -42,18 +52,19 @@ test("spawn reaches every visual slot within one PAL frame and preserves five sl
   }
 });
 
+// RE-POINTED 2026-10-05, plasma FX decision 3: the expiry frame is 45, was 30.
 test("staggered expiry clears both parity groups without stale backing or ghosts", () => {
   const frames = finalFrames("atr");
-  assert.equal(frames[30].effectActiveCount, 0);
-  assert.notEqual(frames[30].effectRenderedMask, 0,
+  assert.equal(frames[45].effectActiveCount, 0);
+  assert.notEqual(frames[45].effectRenderedMask, 0,
     "the opposite parity may remain visible for its one accepted latency frame");
-  assert.equal(frames[31].effectRenderedMask, 0);
-  assert.equal(frames[31].screen.every((value) => value === 0), true);
+  assert.equal(frames[46].effectRenderedMask, 0);
+  assert.equal(frames[46].screen.every((value) => value === 0), true);
 });
 
 test("PairShot and generic-effect backing resolvers stay below the local fix ceiling", () => {
   const peak = Math.max(...Array.from({ length: 22 }, (unused, ringHead) =>
-    executeDebrisDestructionTrace({ root, artifact: "atr", ringHead }).records
+    executeDebrisDestructionTrace({ root, artifact: "atr", ringHead, finalFrames: 48 }).records
       .filter((record) => record.phase === "FINAL")
       .reduce((maximum, record) => Math.max(maximum,
         record.effectEraseCycles + record.effectRenderCycles), 0)));
@@ -64,7 +75,12 @@ test("PairShot and generic-effect backing resolvers stay below the local fix cei
   // §8.3): 1,071 -> 1,068. light_cell_resolve's below-range exit now returns
   // in place instead of branching to a far rts - one cycle less per captured
   // cell, three captures on the peak frame. Delta over the baseline 246.
-  assert.equal(peak, 1068);
-  assert.equal(peak - 822, 246);
+  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): 1,068 -> 928
+  // over the whole 45-frame life. The renderer now decides a cell's look
+  // first and skips the three backing resolvers when the cell it covers is
+  // blank (code 0, which none of them can resolve to anything else); the
+  // delta over the baseline is 106. The gate below is unchanged.
+  assert.equal(peak, 928);
+  assert.equal(peak - 822, 106);
   assert.ok(peak - 822 < 300);
 });

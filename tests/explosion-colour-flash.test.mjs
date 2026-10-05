@@ -36,25 +36,30 @@ function linkedBytes(label, length) {
   return [...readRuntimeBytes(root, address, length)];
 }
 
+// RE-POINTED 2026-10-05, plasma FX decision 3 (docs/plans/plasma-fx.md): the
+// enemy profile - a Heavy kill, a boss module - lasts 6 frames, was 4, with one
+// new named colour, FLASH_YELLOW_LOW $1A; the player's death profile is
+// unchanged. Every assertion below still runs, against the 6-frame profile.
 test("named PAL colours and linked tables define the exact two fighter profiles", () => {
   assert.deepEqual(runtime.colors, {
     FLASH_YELLOW_BRIGHT: 0x1e,
     FLASH_YELLOW_MID: 0x1c,
+    FLASH_YELLOW_LOW: 0x1a,
     FLASH_RED_BRIGHT: 0x3c,
     FLASH_RED_MID: 0x38,
     FLASH_RED_DARK: 0x34,
   });
   assert.equal(runtime.baseColor, 0x00);
   assert.equal(runtime.playerDamageColor, 0x42);
-  assert.deepEqual(runtime.enemySequence, [0x1e, 0x3c, 0x1c, 0x34]);
+  assert.deepEqual(runtime.enemySequence, [0x1e, 0x3c, 0x1c, 0x38, 0x1a, 0x34]);
   assert.deepEqual(runtime.playerSequence, [0x1e, 0x3c, 0x1c, 0x3c, 0x38, 0x34]);
-  assert.deepEqual(linkedBytes("enemy_fighter_flash_colors", 4), [...runtime.enemySequence].reverse());
+  assert.deepEqual(linkedBytes("enemy_fighter_flash_colors", 6), [...runtime.enemySequence].reverse());
   assert.deepEqual(linkedBytes("player_death_flash_colors", 6), [...runtime.playerSequence].reverse());
   assert.equal([...runtime.enemySequence, ...runtime.playerSequence].includes(0x84), false);
 });
 
 test("enemy and PlayerFighter COLBK sequences restore base on the exact next PAL frame", () => {
-  const enemy = Array.from({ length: 5 }, (_, frame) => explosionFlashColorForTimers(runtime, {
+  const enemy = Array.from({ length: 7 }, (_, frame) => explosionFlashColorForTimers(runtime, {
     enemyTimer: runtime.totalExplosionFrames - frame,
   }));
   const player = Array.from({ length: 7 }, (_, frame) => explosionFlashColorForTimers(runtime, {
@@ -62,13 +67,13 @@ test("enemy and PlayerFighter COLBK sequences restore base on the exact next PAL
   }));
   assert.deepEqual(enemy, [...runtime.enemySequence, runtime.baseColor]);
   assert.deepEqual(player, [...runtime.playerSequence, runtime.baseColor]);
-  assert.equal(runtime.enemySequence.length * 20, 80);
+  assert.equal(runtime.enemySequence.length * 20, 120);
   assert.equal(runtime.playerSequence.length * 20, 120);
 });
 
 test("PlayerFighter death wins same-frame arbitration and enemy flashes cannot restart forever", () => {
   for (let playerTimer = 19; playerTimer <= 24; playerTimer += 1) {
-    for (let enemyTimer = 21; enemyTimer <= 24; enemyTimer += 1) {
+    for (let enemyTimer = 19; enemyTimer <= 24; enemyTimer += 1) {
       assert.equal(
         explosionFlashColorForTimers(runtime, { playerTimer, enemyTimer }),
         runtime.playerSequence[24 - playerTimer],
@@ -109,7 +114,7 @@ test("the flash has one COLBK owner while gameplay DLI preserves the gameplay-re
 test("legacy nonlethal damage remains bounded while fighter flashes own their restore", () => {
   assert.equal(explosionFlashColorForTimers(runtime, { damageTimer: 18 }), 0x42);
   assert.equal(explosionFlashColorForTimers(runtime, { enemyTimer: 24, damageTimer: 18 }), 0x1e);
-  assert.equal(explosionFlashColorForTimers(runtime, { enemyTimer: 20, damageTimer: 0 }), 0x00);
+  assert.equal(explosionFlashColorForTimers(runtime, { enemyTimer: 18, damageTimer: 0 }), 0x00);
   assert.match(routine("update_sound", "silence_audio"),
     /@enemy_fighter_flash:[\s\S]+sta damage_timer[\s\S]+enemy_fighter_flash_colors,x/);
   assert.match(routine("update_sound", "silence_audio"),
@@ -182,7 +187,7 @@ test("owner previews and frame trace are deterministic source-derived evidence",
   assert.deepEqual(comparisonA, comparisonB);
   assert.deepEqual(inspectPng(nativeA), {
     width: 960,
-    height: 1248,
+    height: 1456,
     colorType: 2,
     bitDepth: 8,
     chunkTypes: ["IHDR", "IDAT", "IEND"],
@@ -195,9 +200,9 @@ test("owner previews and frame trace are deterministic source-derived evidence",
     chunkTypes: ["IHDR", "IDAT", "IEND"],
   });
   const trace = createExplosionFlashTrace(source).trimEnd().split("\n");
-  assert.equal(trace.length, 13);
-  assert.deepEqual(trace.slice(1, 6).map((line) => line.split(",")[3]),
-    ["$1E", "$3C", "$1C", "$34", "$00"]);
-  assert.deepEqual(trace.slice(6).map((line) => line.split(",")[3]),
+  assert.equal(trace.length, 15);
+  assert.deepEqual(trace.slice(1, 8).map((line) => line.split(",")[3]),
+    ["$1E", "$3C", "$1C", "$38", "$1A", "$34", "$00"]);
+  assert.deepEqual(trace.slice(8).map((line) => line.split(",")[3]),
     ["$1E", "$3C", "$1C", "$3C", "$38", "$34", "$00"]);
 });

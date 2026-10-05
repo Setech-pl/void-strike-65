@@ -249,6 +249,23 @@ if (pickupColourSlug && !pickupColourValues.has(pickupColourSlug.toUpperCase()))
 const pickupColourValue = pickupColourSlug
   ? pickupColourValues.get(pickupColourSlug.toUpperCase())
   : null;
+// Plasma FX (docs/plans/plasma-fx.md, owner answers of 2026-10-05, decision
+// 1): the playfield COLPF2 the player's shots and explosions wear is chosen at
+// a hardware smoke between $1E (the shipped yellow, decision U), $9E and $AE.
+// Each candidate builds as a review variant into build/player-colour-<hex>/,
+// never dist/, and composes with the debug route (build/player-colour-<hex>-
+// level-N-sM/) so the owner can enter the yellow-sky sector in every colour.
+const playerColourArgument = process.argv.find((argument) =>
+  argument.startsWith("--player-colour="));
+const playerColourSlug = playerColourArgument?.slice("--player-colour=".length);
+const playerColourValues = new Map([["1E", 0x1e], ["9E", 0x9e], ["AE", 0xae]]);
+if (playerColourSlug && !playerColourValues.has(playerColourSlug.toUpperCase())) {
+  throw new Error(`Unknown player colour build ${playerColourSlug}; ` +
+    "the candidates are 1E (yellow), 9E (cyan) and AE (mint)");
+}
+const playerColourValue = playerColourSlug
+  ? playerColourValues.get(playerColourSlug.toUpperCase())
+  : null;
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -260,7 +277,7 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
-  pickupColourValue !== null;
+  pickupColourValue !== null || playerColourValue !== null;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -273,7 +290,11 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 // then failed against it whenever the suite happened to run them in that
 // order. The variant's directory is now the build directory itself, so nothing
 // it produces can be read by anything that did not ask for the variant.
-const variantDirectoryName = enemyReviewHarness
+const levelDebugSuffix = levelDebugId === null
+  ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
+const variantDirectoryName = playerColourValue !== null
+  ? `player-colour-${playerColourSlug.toUpperCase()}${levelDebugSuffix}`
+  : enemyReviewHarness
   ? "enemy-review"
   : enemyCombatReviewHarness
     ? "enemy-combat-review"
@@ -1834,6 +1855,8 @@ async function build() {
         ? ["-D", `GAMEPLAY_COLPF1_OVERRIDE=${alliedSteelValue}`] : []),
       ...(pickupColourValue !== null
         ? ["-D", `PICKUP_BOOST_COLOUR_OVERRIDE=${pickupColourValue}`] : []),
+      ...(playerColourValue !== null
+        ? ["-D", `PLAYER_SIDE_COLOUR_OVERRIDE=${playerColourValue}`] : []),
       "-I",
       "/project/build",
       "-l",
@@ -3563,7 +3586,9 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: enemyReviewHarness
+    buildVariant: playerColourValue !== null
+      ? variantDirectoryName
+      : enemyReviewHarness
       ? "enemy-review"
       : enemyCombatReviewHarness
         ? "enemy-combat-review"
@@ -4953,6 +4978,10 @@ async function build() {
       console.log(`  variant : Bomber hull ${bomberHullSlug.toLowerCase()} ` +
         `(hue $${bomberHullValue.toString(16).padStart(2, "0")}, full HP ` +
         `$${(bomberHullValue | 0x08).toString(16)})`);
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (playerColourValue !== null) {
+      console.log(`  variant : player-side COLPF2 $${playerColourSlug.toUpperCase()}` +
+        (levelDebugId === null ? "" : `, level ${levelDebugId} entered at sector ${levelDebugSector + 1}`));
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (levelDebugId !== null) {
       console.log(`  variant : debug route - level ${levelDebugId}` +

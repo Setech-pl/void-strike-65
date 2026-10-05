@@ -193,26 +193,32 @@ for (const [name, archetype] of [["Raider", RAIDER], ["Bomber", BOMBER]]) {
   });
 }
 
-test("the two archetypes differ only by their spread, and the Bomber's is wider", () => {
+// RE-POINTED 2026-10-05, plasma FX decision 6 (docs/plans/plasma-fx.md): the
+// owner's fallback, triggered by the measured fence margin, gives the Heavy the
+// medium break-up - the four fragments leave from one point beside the core,
+// as a Light's do - instead of the corner spread this test pinned. Still one
+// implementation and two tables; what tells the archetypes apart is where the
+// break-up sits: each core at its own hull's centre, the Bomber's further in.
+test("the two archetypes differ only by their tables: each core at its hull's centre, the medium spread", () => {
   const m = boot({ difficulty: DIFFICULTY });
-  const spread = (archetype) => {
+  const table = (archetype) => {
     const pairs = expectedOffsets(m, archetype);
-    const xs = pairs.map((pair) => pair.dx);
-    const ys = pairs.map((pair) => pair.dy);
-    return [Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)];
+    const core = pairs.find((pair) => pair.slot === 0);
+    const fragments = pairs.filter((pair) => pair.slot !== 0);
+    return { core, fragments };
   };
-  const raider = spread(RAIDER);
-  const bomber = spread(BOMBER);
+  const raider = table(RAIDER);
+  const bomber = table(BOMBER);
   // The Raider is 16 HPOS by 14 scanlines, the Bomber 32 by 16
-  // (build/enemy-roster.inc). One implementation, two tables.
-  assert.ok(bomber[0] > raider[0], `Bomber X spread ${bomber[0]} vs Raider ${raider[0]}`);
-  assert.ok(bomber[1] >= raider[1], `Bomber Y spread ${bomber[1]} vs Raider ${raider[1]}`);
-  // Each corner pair must land in a different character cell: the renderer
-  // divides EFFECT_X by four.
-  for (const archetype of [RAIDER, BOMBER]) {
-    const xs = expectedOffsets(m, archetype).map((pair) => pair.dx >> 2);
-    assert.ok(new Set(xs).size >= 3,
-      `archetype ${archetype} must spread across at least three cells, got ${xs}`);
+  // (build/enemy-roster.inc).
+  assert.deepEqual([raider.core.dx, raider.core.dy], [6, 3]);
+  assert.deepEqual([bomber.core.dx, bomber.core.dy], [14, 4]);
+  assert.ok(bomber.core.dx > raider.core.dx, "the Bomber's centre is further in");
+  for (const { core, fragments } of [raider, bomber]) {
+    for (const fragment of fragments) {
+      assert.deepEqual([fragment.dx, fragment.dy], [core.dx + 4, core.dy + 4],
+        "every fragment leaves from one point beside the core (the medium variant)");
+    }
   }
 });
 

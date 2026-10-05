@@ -2118,11 +2118,14 @@ export function readExplosionFlashRuntimeState(
     constants,
     "flash_color_tables_end",
   );
-  requireLength("enemy fighter flash table", enemyStored, 4);
+  // Plasma FX decision 3 (docs/plans/plasma-fx.md): the Heavy kill's flash
+  // lasts 6 frames, the player's death flash already did.
+  requireLength("enemy fighter flash table", enemyStored, 6);
   requireLength("player death flash table", playerStored, 6);
   const colorNames = [
     "FLASH_YELLOW_BRIGHT",
     "FLASH_YELLOW_MID",
+    "FLASH_YELLOW_LOW",
     "FLASH_RED_BRIGHT",
     "FLASH_RED_MID",
     "FLASH_RED_DARK",
@@ -3946,7 +3949,8 @@ export function createDebrisReviewPreview(
 export function createDestructibleDebrisTrace(
   _definition = loadEntityEffectsDefinition(DEFAULT_ENTITY_EFFECTS_DEFINITION_PATH),
 ) {
-  return debrisDestructionTraceCsv(executeDebrisDestructionTrace({ artifact: "atr" }));
+  // Plasma FX (docs/plans/plasma-fx.md): the break-up lives 45 frames.
+  return debrisDestructionTraceCsv(executeDebrisDestructionTrace({ artifact: "atr", finalFrames: 48 }));
 }
 
 function copyRgbPanel(destination, destinationWidth, destinationHeight,
@@ -3975,7 +3979,7 @@ export function createDestructibleDebrisPreview(
   source,
   _definition = loadEntityEffectsDefinition(DEFAULT_ENTITY_EFFECTS_DEFINITION_PATH),
 ) {
-  const trace = executeDebrisDestructionTrace({ artifact: "atr" });
+  const trace = executeDebrisDestructionTrace({ artifact: "atr", finalFrames: 48 });
   const constants = parseConstants(source);
   const graphics = {
     hardwareState: new Map([
@@ -3990,12 +3994,12 @@ export function createDestructibleDebrisPreview(
   const selected = [
     ["PRE_HIT", 0, "1 DEBRIS"],
     ["FINAL", 0, "2 FINAL HIT"],
-    ["FINAL", 1, "3 YELLOW CORE"],
-    ["FINAL", 3, "4 FOUR FRAGMENTS"],
-    ["FINAL", 5, "5 EARLY SPREAD"],
-    ["FINAL", 12, "6 MID SPREAD"],
-    ["FINAL", 29, "7 MAX SPREAD"],
-    ["FINAL", 31, "8 CLEAN"],
+    ["FINAL", 3, "3 GROWING CORE"],
+    ["FINAL", 6, "4 BURST"],
+    ["FINAL", 12, "5 EARLY SPREAD"],
+    ["FINAL", 22, "6 RED CORE"],
+    ["FINAL", 40, "7 EMBERS"],
+    ["FINAL", 46, "8 CLEAN"],
   ].map(([phase, frame, label]) => ({
     label,
     record: trace.records.find((candidate) => candidate.phase === phase && candidate.frame === frame),

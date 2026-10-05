@@ -251,7 +251,15 @@ test("assembled explosion bank stays on PlayerFighter PMGs and cannot commandeer
   assert.match(renderer, /GAMEPLAY_TOP[\s\S]+GAMEPLAY_BOTTOM/);
   assert.match(renderer, /PLAYER0,y[\s\S]+PLAYER3,y/);
   assert.doesNotMatch(renderer, /PLAYER1,y|PLAYER2,y|HPOSP1|HPOSP2/);
-  assert.doesNotMatch(renderer, /COLPM|COLPF|SIZEM|SIZEP|MISSILES/);
+  // RE-POINTED 2026-10-05, plasma FX decision 3: the player's death wears a fire
+  // cycle on COLPM3 by patching the publication's two COLPM3 immediates (the
+  // capsule's and the capital $28), so the renderer names that register in
+  // prose and writes those operands. It still writes no colour, size or
+  // missile register itself, and no Raider's.
+  assert.doesNotMatch(renderer, /sta (COLPM|COLPF|SIZEM|SIZEP|HPOSP1|HPOSP2)|MISSILES|COLPM1|COLPM2/);
+  assert.deepEqual([...renderer.matchAll(/sta (publish_colpm3_\w+)/g)].map((m) => m[1]).sort(),
+    ["publish_colpm3_capital_operand", "publish_colpm3_capital_operand",
+      "publish_colpm3_open_operand", "publish_colpm3_open_operand"]);
   assert.match(source,
     /resolve_enemy_damage:[\s\S]+ENEMY_EXPLODING_STATE[\s\S]+spawn_interceptor_breakup_effects/);
   assert.match(source,
@@ -413,7 +421,11 @@ test("hostile screen code follows weapon_class, not the emitter, and keeps the g
 
 test("actual PlayerFighter projectile bank is Atari yellow without changing PlayerFighter PMG colours", () => {
   assert.deepEqual([weapons.player_fighter.colourRegister, weapons.player_fighter.colourValue], ["COLPF2", 0x1e]);
-  assert.match(source, /GAMEPLAY_COLPF2 = PLAYER_FIGHTER_PROJECTILE_COLOR/);
+  // RE-POINTED 2026-10-05, plasma FX decision 1 (docs/plans/plasma-fx.md): COLPF2
+  // is the player's side and a build parameter for the colour smoke; the
+  // release build still takes the asset's $1E, asserted above.
+  assert.match(source, /\.ifndef PLAYER_SIDE_COLOUR_OVERRIDE\s+PLAYER_SIDE_COLOUR = PLAYER_FIGHTER_PROJECTILE_COLOR/);
+  assert.match(source, /GAMEPLAY_COLPF2 = PLAYER_SIDE_COLOUR/);
   assert.match(source, /lda #GAMEPLAY_COLPF2\s+sta COLPF2/);
   assert.match(source, /lda #\$0E[^\n]*\n\s*sta COLPM0/);
   assert.match(source, /lda #\$28[^\n]*\n\s*sta COLPM3/);

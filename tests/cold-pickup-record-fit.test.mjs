@@ -112,8 +112,11 @@ test("fit preserves the reviewed staging and placement gates", () => {
   // for CAPITAL_DUE | BOSS_DUE and the entry call); the record had 3 B spare.
   assert.equal(pickup.sectors, 10);
   assert.ok(manifest.starfieldRuntime.packedBytes <= manifest.starfieldRuntime.stagingBytes);
-  assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 143);
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 38);
+  // RE-PINNED 2026-10-05, plasma FX: 143 -> 153 and 38 -> 28. the break-up's two growth glyphs (16 B of source, codes 108-109, plasma FX decisions 2-3, docs/plans/plasma-fx.md) lead the ENTITY_CODE glyph bank:
+  // the ENTITY_CODE staging grew 10 B packed toward BROADSIDE, and the packed
+  // sources below moved down by the same 10 B, away from the pickup stream.
+  assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 153);
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 28);
   assert.ok(manifest.broadsideRuntime.bytes <= manifest.broadsideRuntime.reservedBytes);
   assert.equal(manifest.a2Kernel.runAddress, 0x9000);
   assert.equal(manifest.a2Kernel.bytes, 237);

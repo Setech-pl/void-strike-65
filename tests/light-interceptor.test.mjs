@@ -439,8 +439,9 @@ test("placement contract: legal composite and packed size, state inside its rese
   // shield pulse stops writing COLPM3, and the release stops restoring a
   // fifth-player PRIOR/SIZEM that no longer exists. Nothing moved into the
   // segment and no segment start changed; the free tail grew 5 -> 26 B.
-  assert.equal(manifest.entityEffects.codeBytes, 3140);
-  assert.equal(manifest.residentCapacity.tails.entityCode, 26);
+  // 3,156 / 10 since 2026-10-05 (plasma FX): the break-up's two growth glyphs (16 B of source, codes 108-109, plasma FX decisions 2-3, docs/plans/plasma-fx.md) lead the ENTITY_CODE glyph bank; the free tail 26 -> 10 B.
+  assert.equal(manifest.entityEffects.codeBytes, 3156);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 10);
   // Step 1b: LIGHT_RESIDENT's 229 B left the pickup stream with the kernel.
   // Re-recorded 2026-09-22: the Heavy break-up (plan-4.6-placement.md §7.4
   // variant 2) spends 122 B of that fill and the debris reward's
@@ -519,8 +520,11 @@ test("placement contract: legal composite and packed size, state inside its rese
   // to PLAYER3 returned 21 B of ENTITY_CODE ahead of the tables. The tables
   // themselves are byte-identical; only their address fell, and the segment's
   // free tail grew by exactly the same 21 B.
-  assert.equal(L("light_glyph"), 0x9d12);
-  assert.equal(L("light_interceptor_glyph"), 0x9d22);
+  // Both moved up 16 B on 2026-10-05 (plasma FX, docs/plans/plasma-fx.md): the
+  // break-up's two growth glyphs (codes 108-109) lead the ENTITY_CODE glyph
+  // bank, ahead of the tables; the tables are byte-identical.
+  assert.equal(L("light_glyph"), 0x9d22);
+  assert.equal(L("light_interceptor_glyph"), 0x9d32);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
   // SHARED scalars; the per-slot state is 48 B of SoA arrays at $7FC4-$7FF3,
   // in the 60 unassigned bytes above the A2 display lists.

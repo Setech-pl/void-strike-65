@@ -496,7 +496,11 @@ test("assembled display list contains 157 ANTIC F and 35 ANTIC E lines", () => {
   // RE-PINNED 2026-10-01 (recorded failures review, A16): missile_masks links at $3810
   // (build/void-strike-65.lbl); it was $37FC. The overlap check below is the
   // contract.
-  assert.equal(missileMasks, 0x3810);
+  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): $3810 -> $3807.
+  // The break-up renderer in CODE, which RODATA follows, is 9 B shorter (one
+  // stage list instead of the yellow/red branches); the display list is
+  // unchanged and still clears the tables.
+  assert.equal(missileMasks, 0x3807);
   assert.ok(displayListAddress >= missileMasks + missileTables.length,
     "loader display-list publication must not overlap runtime PMG tables");
   assert.deepEqual(Buffer.from(memory.subarray(

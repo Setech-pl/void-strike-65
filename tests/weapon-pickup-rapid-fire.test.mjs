@@ -213,10 +213,17 @@ test("pickup pending remains hidden and non-colliding for thirty full frames", (
     record.screenAddress === 0 && record.leftCode === 0 && record.rightCode === 0), true);
   assert.deepEqual([pending[0].timer, pending.at(-1).timer], [30, 1]);
   const firstActive = trace.records.find(({ phase }) => phase === "ACTIVE");
+  // RE-POINTED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): the break-up
+  // lives 45 frames (decision 3) and its core 24 (decision 6), so when the
+  // capsule enters, 32 frames after the kill, the core is out and the four
+  // fragments - collisionless effects in their own pool - are still burning
+  // out. Was: no effect cell live at all (a 30-frame break-up).
   assert.deepEqual([
     firstActive.state, firstActive.activeMask, firstActive.activeCount,
-    firstActive.effectActiveMask, firstActive.effectActiveCount, firstActive.y,
-  ], [2, 2, 1, 0, 0, 24], "Raider core must be inactive before the capsule enters at the top");
+    firstActive.effectActiveMask & 1, firstActive.y,
+  ], [2, 2, 1, 0, 24], "Raider core must be inactive before the capsule enters at the top");
+  assert.ok(firstActive.effectActiveMask === 0x1e || firstActive.effectActiveMask === 0,
+    "at most the four fragments are still live");
 });
 
 test("every booster type enters at the top, crosses the full playfield once and releases below it", () => {
@@ -271,8 +278,15 @@ test("active capsule is one logical PMG object, writes no character cell and can
   }) => [leftCode, rightCode, bottomLeftCode, bottomRightCode, thirdLeftCode, thirdRightCode,
     drawnMask, ...backing, ...thirdBacking].every((value) => value === 0)), true,
   "a PMG capsule owns no character cell and no backing");
-  assert.equal(active.every(({ screen }, index) => index === 0 ||
-    Buffer.from(screen).equals(Buffer.from(active[0].screen))), true,
+  // RE-POINTED 2026-10-05, plasma FX decision 3: the kill's break-up now burns
+  // out over the capsule's first frames (it lives 45 frames, the capsule enters
+  // 32 after the kill), and those effect cells are the only ones that change.
+  // From the frame after the pool has unwound, the playfield must be unchanged
+  // under the moving capsule, as before.
+  const settled = active.findIndex(({ effectActiveMask }) => effectActiveMask === 0) + 2;
+  assert.ok(settled >= 2 && active.length - settled >= 20, `settled at ACTIVE frame ${settled}`);
+  assert.equal(active.slice(settled).every(({ screen }) =>
+    Buffer.from(screen).equals(Buffer.from(active[settled].screen))), true,
   "the playfield under a moving capsule is never rewritten");
   assert.deepEqual(active.map(({ y }) => y),
     Array.from({ length: 40 }, (_, index) => 24 + index * 2));

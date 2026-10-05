@@ -552,7 +552,18 @@ GAMEPLAY_COLPF1 = $88
 .else
 GAMEPLAY_COLPF1 = GAMEPLAY_COLPF1_OVERRIDE
 .endif
-GAMEPLAY_COLPF2 = PLAYER_FIGHTER_PROJECTILE_COLOR
+; Plasma FX (docs/plans/plasma-fx.md, owner answers of 2026-10-05, decision
+; 1): COLPF2 is the player's side - the shots, the break-ups the player
+; causes. The release byte stays the yellow of decision U until the owner's
+; hardware smoke picks one of $1E / $9E / $AE; --player-colour=<hex> builds
+; each candidate as a review variant. The capsule, the band's in-band shot and
+; COLPF3 (the S4b lasers) are not part of it.
+.ifndef PLAYER_SIDE_COLOUR_OVERRIDE
+PLAYER_SIDE_COLOUR = PLAYER_FIGHTER_PROJECTILE_COLOR
+.else
+PLAYER_SIDE_COLOUR = PLAYER_SIDE_COLOUR_OVERRIDE
+.endif
+GAMEPLAY_COLPF2 = PLAYER_SIDE_COLOUR
 GAMEPLAY_COLPF3 = INTERCEPTOR_PROJECTILE_COLOR
 GAMEPLAY_BACKGROUND_COLOR = $00
 HUD_COLPF1 = $0E
@@ -578,11 +589,43 @@ PICKUP_BOOST_COLOUR = PICKUP_BOOST_COLOUR_OVERRIDE
 .endif
 FLASH_YELLOW_BRIGHT = $1E
 FLASH_YELLOW_MID = $1C
+FLASH_YELLOW_LOW = $1A
 FLASH_RED_BRIGHT = $3C
 FLASH_RED_MID = $38
 FLASH_RED_DARK = $34
-ENEMY_FIGHTER_FLASH_FRAMES = 4
+; Plasma FX decision 3: a Heavy kill's (and a boss module's) background flash
+; lasts 6 frames, the player's death flash already did. The enemy flash is the
+; player's side, so it follows COLPF2: yellow against red in the release build,
+; the candidate's hue against the allied blue in a cold one. The first branch
+; is the release build's (the preview parser reads the first definition).
+.if PLAYER_SIDE_COLOUR = FLASH_YELLOW_BRIGHT
+ENEMY_FLASH_1 = FLASH_YELLOW_BRIGHT
+ENEMY_FLASH_2 = FLASH_RED_BRIGHT
+ENEMY_FLASH_3 = FLASH_YELLOW_MID
+ENEMY_FLASH_4 = FLASH_RED_MID
+ENEMY_FLASH_5 = FLASH_YELLOW_LOW
+ENEMY_FLASH_6 = FLASH_RED_DARK
+.else
+ENEMY_FLASH_1 = PLAYER_SIDE_COLOUR
+ENEMY_FLASH_2 = $8C
+ENEMY_FLASH_3 = PLAYER_SIDE_COLOUR-2
+ENEMY_FLASH_4 = $8A
+ENEMY_FLASH_5 = PLAYER_SIDE_COLOUR-4
+ENEMY_FLASH_6 = $84
+.endif
+ENEMY_FIGHTER_FLASH_FRAMES = 6
 PLAYER_DEATH_FLASH_FRAMES = 6
+; Plasma FX: the break-up burns out in the hostile red bank (COLPF3) in the
+; yellow build - fire - and stays in COLPF2 in a cold build - plasma.
+.if PLAYER_SIDE_COLOUR = FLASH_YELLOW_BRIGHT
+EFFECT_LATE_BANK = $80
+.else
+EFFECT_LATE_BANK = $00
+.endif
+; Plasma FX decision 3: the player's death stays 24 frames (its respawn frame
+; with it) and is drawn 16 lines tall - each mask row twice - with a fire cycle
+; on COLPM3, one colour a 4-frame phase.
+PLAYER_DEATH_EXPLOSION_LINES = 16
 ; The Player Fighter shot's POKEY control byte: pure tone, volume 8. It lives on
 ; channel 4 with the capital-hull explosion since owner answer Q-S1, and is
 ; re-asserted every frame of the shot because that explosion writes its own
@@ -817,6 +860,13 @@ ENTITY_SAFE_SPAWN_LEFT_HPOS = GAMEPLAY_LEFT_HPOS+ENTITY_SAFE_SPAWN_FIRST_COLUMN*
 ENTITY_SAFE_SPAWN_RIGHT_HPOS = GAMEPLAY_LEFT_HPOS+ENTITY_SAFE_SPAWN_END_COLUMN*4
 ENTITY_DEBRIS_GLYPH_BASE = INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_COUNT
 EFFECT_FRAGMENT_GLYPH_BASE = ENTITY_DEBRIS_GLYPH_BASE+ENTITY_DEBRIS_GLYPH_COUNT
+; Plasma FX: the break-up's two growth glyphs (a dot, a small burst) sit directly
+; below the debris bank, in runtime codes 108-109 that held only a copy of the
+; frontend font source (tests/plasma-fx.test.mjs: displayed by nothing before).
+; One contiguous range 108-119 is then every effect glyph the backing resolvers
+; must recognise.
+EFFECT_GROWTH_GLYPH_BASE = ENTITY_DEBRIS_GLYPH_BASE-EFFECT_GROWTH_GLYPH_COUNT
+EFFECT_GLYPH_RANGE_BASE = EFFECT_GROWTH_GLYPH_BASE
 WEAPON_PICKUP_GLYPH_BASE = EFFECT_FRAGMENT_GLYPH_BASE+EFFECT_FRAGMENT_GLYPH_COUNT
 WEAPON_PICKUP_SPREAD_GLYPH_BASE = WEAPON_PICKUP_GLYPH_BASE
 WEAPON_PICKUP_SHIELD_GLYPH_BASE = WEAPON_PICKUP_SPREAD_GLYPH_BASE
@@ -899,7 +949,8 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert HOSTILE_WEAPON_BOMBER_PHASE_VISUAL = ENEMY_WEAPON_BOMBER+1 && HOSTILE_WEAPON_VISUAL_COUNT = HOSTILE_WEAPON_BOMBER_PHASE_VISUAL, error, "the BOMBER animation phase must be the visual after the last weapon_class"
 .assert HOSTILE_WEAPON_VISUAL_COUNT <= INTERCEPTOR_PROJECTILE_GLYPH_STRIDE-1, error, "hostile weapon classes must fit glyphs 90-99"
 .assert (HOSTILE_WEAPON_VISUAL_COUNT << FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT) < $100, error, "ACTIVE >> 3 must equal weapon_class"
-.assert ((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80) <= (ENTITY_DEBRIS_GLYPH_BASE|$80), error, "hostile weapon codes must stay below the debris bank"
+.assert ((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80) <= (EFFECT_GLYPH_RANGE_BASE|$80), error, "hostile weapon codes must stay below the effect glyph range"
+.assert EFFECT_GROWTH_GLYPH_BASE = 108, error, "the break-up's growth glyphs are codes 108-109"
 .assert RESPAWN_INVULNERABLE_FRAMES = 250, error, "respawn invulnerability must be exactly five PAL seconds"
 .assert RESPAWN_BLINK_HALF_PERIOD_FRAMES = 8, error, "respawn blink must toggle every eight PAL frames"
 .assert BROADSIDE_WARNING_PULSE_FRAMES = 2, error, "warning pulse routine requires two-frame groups"
@@ -3166,6 +3217,13 @@ fighter_projectile_publication_capital_render:
     ; projectile/effect/debris foreground always wins without backing hooks.
     jmp render_dynamic_near_star_overlays
 .export fighter_projectile_publication_begin
+; Plasma FX: the two COLPM3 immediates above, which the player's death fire
+; cycle patches (render_shared_fighter_explosions). Named from the equate after
+; them because a label inside the routine would end its @fighter_window scope;
+; tests/plasma-fx.test.mjs reads both bytes at rest ($1C, $28) and mid-death.
+publish_colpm3_open_operand = fighter_projectile_publication_begin-9
+publish_colpm3_capital_operand = fighter_projectile_publication_begin-23
+.export publish_colpm3_open_operand, publish_colpm3_capital_operand
 
 fighter_projectile_option_debounce_wait:
     ldx #$77
@@ -3892,7 +3950,7 @@ begin_player_fighter_explosion:
     sta FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
     lda player_y
     clc
-    adc #((PLAYER_H-SHARED_FIGHTER_EXPLOSION_HEIGHT)/2)
+    adc #((PLAYER_H-PLAYER_DEATH_EXPLOSION_LINES)/2)
     sta FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
     lda #SHARED_FIGHTER_EXPLOSION_TOTAL
     sta FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
@@ -4688,17 +4746,15 @@ hostile_projectile_screen_code:
     adc loader_repeat_value
     rts
 hostile_weapon_visual_layout_end:
-    ; The former 70-byte builder slot keeps its size: every later BROADSIDE
-    ; address (the fixed $76A7 integration release target included) stays put.
-    .res 70-(hostile_weapon_visual_layout_end-hostile_weapon_visual_slot)
 
 .segment "BROADSIDE"
 begin_enemy_fighter_explosion = begin_enemy_fighter_explosion_tail
 ; Explosion PMG bytes are stationary and each visual phase is held for four
 ; frames. Clear them once at expiry instead of restoring/redrawing every PAL
-; frame; the phase renderer overwrites all eight bytes on each phase boundary.
+; frame; the phase renderer overwrites every line on each phase boundary.
+; Only the player's slot is ever erased here: the enemy slot draws no PMG.
 erase_shared_fighter_explosion_slot:
-    lda #SHARED_FIGHTER_EXPLOSION_HEIGHT
+    lda #PLAYER_DEATH_EXPLOSION_LINES
     sta loader_repeat_value
     ldy FIGHTER_EXPLOSION_Y,x
 @row:
@@ -4715,9 +4771,23 @@ erase_shared_fighter_explosion_slot:
     bne @row
     rts
 
+; Plasma FX decision 3 (docs/plans/plasma-fx.md): the player's death stays FIRE
+; and 24 frames, drawn 16 lines tall - each mask row twice - and P3's outer
+; mask cycles yellow, orange, red, dark red through COLPM3, one colour a phase.
+; COLPM3 is published once a frame after the playfield (publish_fighter_
+; projectile_overlays), so the cycle patches that store's two operands; every
+; frame without a death explosion - a respawn, a new game after a QUIT while
+; dying - puts the capsule's gold and the capital $28 back before the
+; publication reads them.
 render_shared_fighter_explosions:
     lda FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
-    beq @done
+    bne @live
+    lda #PICKUP_BOOST_COLOUR
+    sta publish_colpm3_open_operand
+    lda #PLAYER_NORMAL_ENGINE_COLOR
+    sta publish_colpm3_capital_operand
+    rts
+@live:
     and #(SHARED_FIGHTER_EXPLOSION_FRAME_DURATION-1)
     bne @done
     lda #SHARED_FIGHTER_EXPLOSION_TOTAL
@@ -4726,6 +4796,9 @@ render_shared_fighter_explosions:
     lsr
     lsr
     tay
+    lda player_death_fire_colours,y
+    sta publish_colpm3_open_operand
+    sta publish_colpm3_capital_operand
     lda shared_fighter_explosion_core_masks,y
     sta BROAD_WORK_COUNT
     tya
@@ -4738,27 +4811,40 @@ render_shared_fighter_explosions:
     sta HPOSP3
     lda FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
     sta row_counter
-    lda #SHARED_FIGHTER_EXPLOSION_HEIGHT
+    lda #PLAYER_DEATH_EXPLOSION_LINES
     sta BROAD_WORK_VALUE
 @row:
     lda shared_fighter_explosion_masks,x
-    sta loader_repeat_value
     ldy row_counter
     cpy #GAMEPLAY_TOP
     bcc @row_done
     cpy #GAMEPLAY_BOTTOM
     bcs @row_done
-    lda loader_repeat_value
     sta PLAYER3,y
     and BROAD_WORK_COUNT
     sta PLAYER0,y
 @row_done:
     inc row_counter
+    lda BROAD_WORK_VALUE
+    lsr                         ; the second line of a mask row: the next row
+    bcc :+
     inx
+:
     dec BROAD_WORK_VALUE
     bne @row
 @done:
     rts
+
+player_death_fire_colours:
+    .byte $1E,$1C,$2A,$28,$26,$34
+    .assert *-player_death_fire_colours = SHARED_FIGHTER_EXPLOSION_FRAME_COUNT, error, "one fire colour a death phase"
+    .assert PLAYER_DEATH_EXPLOSION_LINES = 2*SHARED_FIGHTER_EXPLOSION_HEIGHT, error, "each mask row is drawn twice"
+
+    ; The former 70-byte builder slot, the erase and the renderer keep their
+    ; 182 bytes: every later BROADSIDE address (the fixed $76A7 integration
+    ; release target included) stays put.
+    .res 182-(*-hostile_weapon_visual_slot)
+    .assert *-hostile_weapon_visual_slot = 182, error, "the explosion block moved a later BROADSIDE address"
 
 update_enemy:
 .if ENEMY_REVIEW_HARNESS
@@ -7604,15 +7690,21 @@ loader_display_list_lzss:
     ; Gameplay-only tables share the fixed unused charset-source tail. The
     ; source remains resident below PMG RAM after the loader completes.
 enemy_fighter_flash_colors:
-    .byte FLASH_RED_DARK,FLASH_YELLOW_MID,FLASH_RED_BRIGHT,FLASH_YELLOW_BRIGHT
+    .byte ENEMY_FLASH_6,ENEMY_FLASH_5,ENEMY_FLASH_4
+    .byte ENEMY_FLASH_3,ENEMY_FLASH_2,ENEMY_FLASH_1
 player_death_flash_colors:
     .byte FLASH_RED_DARK,FLASH_RED_MID,FLASH_RED_BRIGHT
     .byte FLASH_YELLOW_MID,FLASH_RED_BRIGHT,FLASH_YELLOW_BRIGHT
 flash_color_tables_end:
-effect_fragment_vx:
-    .byte $00,$FE,$02,$FE,$02
-effect_fragment_vy:
-    .byte $00,$FE,$FE,$02,$02
+    ; Plasma FX: update_transient_effects reads slots 1-4 only (the core never
+    ; moves), so each table's slot-0 byte is the byte before it. That pays for
+    ; the enemy flash's two new frames inside this fixed tail.
+effect_fragment_vx = *-1
+    .byte <-EFFECT_FRAGMENT_LOCAL_X_SPEED,EFFECT_FRAGMENT_LOCAL_X_SPEED
+    .byte <-EFFECT_FRAGMENT_LOCAL_X_SPEED,EFFECT_FRAGMENT_LOCAL_X_SPEED
+effect_fragment_vy = *-1
+    .byte <-EFFECT_FRAGMENT_LOCAL_Y_SPEED,<-EFFECT_FRAGMENT_LOCAL_Y_SPEED
+    .byte EFFECT_FRAGMENT_LOCAL_Y_SPEED,EFFECT_FRAGMENT_LOCAL_Y_SPEED
     ; All but one byte of the fixed cells 0-58 are occupied above. Keep the
     ; final source pad literal so the source-asset preview parser can reproduce
     ; the canonical charset; the following size assertion remains authoritative.
@@ -11102,7 +11194,7 @@ store_projectile_backing_resolving_effect_core:
     ; Most projectile cells contain blank/base/star codes below 90. Keep that
     ; legal ten-slot frame to +17 cycles/slot; only effect/debris glyph-range
     ; candidates pay the bounded address resolvers.
-    cmp #ENTITY_DEBRIS_GLYPH_BASE
+    cmp #EFFECT_GLYPH_RANGE_BASE
     bcc store_projectile_backing_resolving_effect_core_store
 @resolve:
     ; Projectile and effect pools use independent indices, so every rendered
@@ -11122,7 +11214,7 @@ resolve_effect_backing_below_transient_effect:
     sta EFFECT_SCRATCH0
 resolve_effect_backing_below_transient_effect_regular = *
     and #$7F
-    cmp #ENTITY_DEBRIS_GLYPH_BASE
+    cmp #EFFECT_GLYPH_RANGE_BASE
     bcc @restore
     cmp #(EFFECT_FRAGMENT_GLYPH_BASE+EFFECT_FRAGMENT_GLYPH_COUNT)
     bcs @restore
@@ -11166,9 +11258,8 @@ resolve_effect_backing_below_player_pairshot_end:
 
 ; Effects render after the interactive layer. Slot order is core then the four
 ; fragments; erase scans the physical pool in the exact opposite direction.
-; The local 1x1 core reuses the destroyed debris's left-phase glyph: normal
-; D7=0 selects yellow, D7=1 selects red, then an inverse fragment glyph
-; provides the dark fade.
+; Each cell's glyph and bank come from the stage lists below the routine: D7=0
+; selects COLPF2 (the player's side), D7=1 the red COLPF3 bank.
 .segment "CODE"
 render_transient_effect_overlays:
     lda frame_counter
@@ -11183,8 +11274,32 @@ render_transient_effect_overlays:
     lda EFFECT_ACTIVE_MASK
     lsr
     bcs @slot
-    inx                         ; the five-frame core expired; slots 1/2 remain
+    inx                         ; the core expired; slots 1/2 remain
 @slot:
+    ; Plasma FX (docs/plans/plasma-fx.md): the look first, from one stage list
+    ; per pool role read by the slot's own TTL. The core grows - dot, small
+    ; burst, full burst - then burns out as the full burst and its ring; the
+    ; fragments show from frame 5 - out of the core's cell by then, which they
+    ; start in - and shimmer between the dot and the small burst (their 25 Hz
+    ; render-id toggle is the code's bit 0). A stage code carries its bank bit;
+    ; 0 leaves the cell undrawn and costs no address or backing work.
+    ldy #(effect_core_stage_ttl-effect_stage_ttl)
+    txa
+    beq @stage
+    ldy #(effect_fragment_stage_ttl-effect_stage_ttl)
+@stage:
+    lda EFFECT_TIMER,x
+    cmp effect_stage_ttl,y
+    bcs @look
+    iny
+    bne @stage
+@look:
+    lda EFFECT_RENDER_ID,x
+    and #$01
+    ora effect_stage_code,y
+    cmp #$02
+    bcc @outside_y
+    sta EFFECT_SCRATCH1         ; the code to publish; no resolver touches it
     lda EFFECT_Y,x
     cmp #ENTITY_GAMEPLAY_TOP
     bcc @outside_y
@@ -11227,50 +11342,16 @@ render_transient_effect_overlays:
     sta EFFECT_SCREEN_HI,x
     ldy #$00
     lda (dst_ptr),y
+    ; A blank cell is its own backing: none of the three resolvers below can
+    ; answer anything but 0 for it (no shot, debris, Light or effect is drawn
+    ; as code 0), so the common case skips them.
+    beq @backing
     jsr resolve_effect_backing_below_player_pairshot
     jsr resolve_effect_backing_below_interactive_debris_and_light
     jsr resolve_effect_backing_below_transient_effect
+@backing:
     sta EFFECT_BACKING0,x
-    cpx #$00
-    beq @core
-
-    ldy EFFECT_TIMER,x
-    cpy #23
-    bcs @fragment_yellow
-    cpy #9
-    bcs @fragment_red
-    tya
-    and #$02
-    beq @fragment_yellow
-@fragment_red:
-    lda EFFECT_RENDER_ID,x
-    ora #$80
-    bne @fragment_code
-@fragment_yellow:
-    lda EFFECT_RENDER_ID,x
-@fragment_code:
-    ldy #$00
-    sta (dst_ptr),y
-    lda #$01
-    bne @mark_drawn
-
-@core:
-    lda EFFECT_TIMER,x
-    lsr
-    beq @dark_core
-    cmp #$02
-    bcs @yellow_core
-@red_core:
-    lda EFFECT_RENDER_ID,x
-    ora #$80
-    bne @core_codes
-@yellow_core:
-    lda EFFECT_RENDER_ID,x
-    bne @core_codes
-    jmp @next_saved
-@dark_core:
-    lda #EFFECT_FRAGMENT_GLYPH_BASE|$80
-@core_codes:
+    lda EFFECT_SCRATCH1
     sta (dst_ptr),y
     lda #$01
 @mark_drawn:
@@ -11286,6 +11367,35 @@ render_transient_effect_overlays:
     jmp @slot
 :
     rts
+
+; The stage lists, in TTL order (the first stage whose floor the slot's TTL
+; reaches). The core's slot-zero render id is a debris left-cell code or the
+; bank base, both even, so its stages are never shifted by the toggle bit.
+EFFECT_CORE_TTL0 = EFFECT_DEBRIS_CORE_TIMER_LOAD-1
+EFFECT_FRAGMENT_TTL0 = EFFECT_DEBRIS_FRAGMENT_TIMER_LOAD-1
+; Decision 6's fallback puts the core out at frame 24: its burn-out (full burst
+; in the late bank, then the ring) is compressed into that life.
+.if EFFECT_DEBRIS_CORE_FRAMES = EFFECT_DEBRIS_FRAGMENT_FRAMES
+EFFECT_CORE_LATE_AGE = 12
+EFFECT_CORE_RING_AGE = 20
+EFFECT_CORE_EMBER_AGE = 30
+.else
+EFFECT_CORE_LATE_AGE = 12
+EFFECT_CORE_RING_AGE = 18
+EFFECT_CORE_EMBER_AGE = EFFECT_DEBRIS_CORE_FRAMES
+.endif
+effect_stage_ttl:
+effect_core_stage_ttl:
+    .byte EFFECT_CORE_TTL0-1, EFFECT_CORE_TTL0-4, EFFECT_CORE_TTL0-(EFFECT_CORE_LATE_AGE-1)
+    .byte EFFECT_CORE_TTL0-(EFFECT_CORE_RING_AGE-1), <(EFFECT_CORE_TTL0-(EFFECT_CORE_EMBER_AGE-1)), 0
+effect_fragment_stage_ttl:
+    .byte EFFECT_FRAGMENT_TTL0-4, EFFECT_FRAGMENT_TTL0-14, 0
+effect_stage_code:
+    .byte EFFECT_GROWTH_GLYPH_BASE, EFFECT_GROWTH_GLYPH_BASE+1, EFFECT_FRAGMENT_GLYPH_BASE
+    .byte EFFECT_FRAGMENT_GLYPH_BASE|EFFECT_LATE_BANK
+    .byte (EFFECT_FRAGMENT_GLYPH_BASE+1)|EFFECT_LATE_BANK
+    .byte EFFECT_GROWTH_GLYPH_BASE|EFFECT_LATE_BANK
+    .byte 0, EFFECT_GROWTH_GLYPH_BASE, EFFECT_GROWTH_GLYPH_BASE|EFFECT_LATE_BANK
 
 .segment "ENTITY_CODE"
 
@@ -11310,10 +11420,10 @@ init_entity_effects:
 ; rebuilt after the loader. Keep this copy separate so state initialisation has
 ; the strict write footprint $8000-$80FF on startup, XEX and cold-boot ATR.
 install_entity_effects_glyph:
-    ldx #(ENTITY_EFFECT_GLYPH_BYTES-1)
+    ldx #(EFFECT_GROWTH_GLYPH_BYTES+ENTITY_EFFECT_GLYPH_BYTES-1)
 @copy_glyph:
-    lda entity_debris_glyph,x
-    sta CHARSET+ENTITY_DEBRIS_GLYPH_BASE*8,x
+    lda effect_growth_glyph,x
+    sta CHARSET+EFFECT_GROWTH_GLYPH_BASE*8,x
     dex
     bpl @copy_glyph
     rts
@@ -11386,6 +11496,10 @@ frontend_h31_extended_glyphs:
 frontend_h31_extended_glyphs_end:
     .assert frontend_h31_extended_glyphs_end-frontend_h31_extended_glyphs = 16*8, error, "H3.1 extended glyph source changed"
 
+; Plasma FX: the growth glyphs (108-109) lead the bank, so one copy installs
+; 108-119 in order.
+effect_growth_glyph:
+    EMIT_EFFECT_GROWTH_GLYPHS
 entity_debris_glyph:
     EMIT_ENTITY_DEBRIS_GLYPHS
 entity_debris_glyph_end:
@@ -12033,9 +12147,14 @@ heavy_breakup_offset_index:
 ; the corners sit at cells 0 and 6 and the core at cell 3, which is what makes
 ; a quad-width hull read as coming apart rather than as a point breaking.
 HEAVY_BREAKUP_TABLE_STRIDE = 10
+; Plasma FX decision 6 (the fallback, docs/plans/plasma-fx.md): the Heavy's
+; break-up is the medium variant - every fragment leaves from one point beside
+; the core at the hull's centre, as a Light's and a debris's do. The large one
+; spread the four from the hull's corners: Raider (1,-2) (11,-2) (1,8) (11,8),
+; Bomber (2,-3) (26,-3) (2,9) (26,9).
 heavy_breakup_offsets:
-    .byte  1, <-2,  11, <-2,   1,  8,  11,  8,   6,  3   ; Raider
-    .byte  2, <-3,  26, <-3,   2,  9,  26,  9,  14,  4   ; Bomber
+    .byte 10,  7,  10,  7,  10,  7,  10,  7,   6,  3   ; Raider
+    .byte 18,  8,  18,  8,  18,  8,  18,  8,  14,  4   ; Bomber
 .assert *-heavy_breakup_offsets = 2*HEAVY_BREAKUP_TABLE_STRIDE, error, "each Heavy breakup table is five (dx,dy) pairs"
 .assert HEAVY_BREAKUP_TABLE_STRIDE = 2*(EFFECT_DEBRIS_FRAGMENT_COUNT+1), error, "the Heavy breakup table must cover the whole five-slot pool"
 
@@ -12150,6 +12269,8 @@ begin_capital_projectile_frame:
 .export integration_pickup_pending_tick, integration_pickup_reveal_body
 
 .assert entity_debris_glyph_end-entity_debris_glyph = ENTITY_DEBRIS_GLYPH_BYTES, error, "debris glyph bank size changed"
+.assert entity_debris_glyph-effect_growth_glyph = EFFECT_GROWTH_GLYPH_BYTES, error, "the growth glyphs must lead the debris bank"
+.assert effect_fragment_glyph = entity_debris_glyph_end, error, "the fragment glyphs must follow the debris bank"
 .assert effect_fragment_glyph_end-effect_fragment_glyph = EFFECT_FRAGMENT_GLYPH_BYTES, error, "fragment glyph bank size changed"
 .assert *-__ENTITY_CODE_RUN__ <= ENTITY_CODE_RESERVED_BYTES, error, "ENTITY_CODE exceeds its unconditional RAM reservation"
 

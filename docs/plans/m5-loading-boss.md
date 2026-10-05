@@ -2209,7 +2209,7 @@ placeholder drafts; the harness's `boss_state` read as fight 1 / chain 3 / hold
 | the end | 6 blasts, hold 54 frames after the core | the chain passes every module | **8 blasts** (6 modules, the plates included), hold 72 frames after the defeat |
 | gameplay before the boss | 51 of 51 identical on 42 columns | identical | **51 of 51 replay files identical to `main` on 369 gameplay columns**, frame by frame up to the boss entry (entry frames 9,734 / 8,787 / 7,877 as on `main`) |
 
-### 5.15 Region 1 as the layered fortress — Blockade Breaker (2026-10-04/05, `feat/boss-fortress-r1`: Phase A the design; Phase B built, `OWNER-SMOKE CANDIDATE`, §5.15.7)
+### 5.15 Region 1 as the layered fortress — Blockade Breaker (2026-10-04/05, `feat/boss-fortress-r1`: Phase A the design; Phase B built, `OWNER-SMOKE CANDIDATE`, §5.15.7; decision L §5.15.8)
 
 Under decisions H–K (§1.6). **Phase A (5.15.1–5.15.5): the design, the
 drafts, the price** — as written at the Phase A stop, before anything was
@@ -2528,6 +2528,44 @@ retain exact clock positions…") passes, as on `main`. Default ATR
 debug-route ATR that starts in level 1's boss sector
 `build/level-1-s4/void-strike-65.atr`
 `1c79ad0db46c01d9a892d85997843c8de5015c6f40d3f8691f0cc4a410333c0c`.
+
+#### 5.15.8 Decision L: a destroyed module disappears (2026-10-05, after the owner's smoke)
+
+The owner's smoke found the fight good, with one change before merge: the hole
+frame's glowing rims hung tall empty frames under the hull and hid the cannons
+they had just exposed. **Decision L (§1.6)** supersedes decision J's lit edge.
+
+**As built.** `modules.json` names per module **`cavityRows`**: how many of its
+top rows lie inside the hull's silhouette (default 0 for armour, the full
+height for a weapon). Region 1: every plate and both cowlings hang below the
+hull (0); the four cannons and the emitter sit inside it (2). The core boss
+(Bastion): its guns and emitter hang below the hull bar (0), its plates sit in
+the bar's bottom row (1), its core inside it (2). The converter packs
+`cavityRows` into the module record's height byte (bits 4-7; the 12-byte
+record is full) and emits one **cavity** code (`extras.png` cell 3, drawn
+blank: the band background, so a destroyed cannon reads as a plain dark
+cavity in the hull); slot A's gone draw writes the cavity on those rows and
+background below. No outline is drawn; a gone draw writes only the module's
+own cells, so nothing frames a neighbour, and a cannon exposed by a fallen
+plate shows whole (tests/boss-fortress.test.mjs, "decision L": committed RED
+at `ff4d58a` against the branch's build before decision L, GREEN on `c2a574e`).
+
+| | Before (decision J) | Decision L |
+| --- | --- | --- |
+| extras strip | 19 cells (the hole frame's 5) | **15 cells** (one cavity, blank) |
+| region 1 codes / charset | 114 / 978 B, 8 sectors | **109 / 938 B, 8 sectors — 5 codes freed** (the five rim glyphs) |
+| core boss codes / charset | 100 / 856 B | **95 / 816 B** |
+| slot A | 1,961 B | **1,963 B** (85 free) |
+| boss per-frame work (stress drive) | 6,707 | **6,676** native |
+| boss frames: worst fence / DMA-on | 12,525 / 28,457 | **12,523 / 28,457** (the chain's worst 13,769 → 13,713: the gone draw writes a constant where the frame was) |
+| the fights, the ten worst fence rows, gameplay before the boss | — | **unchanged**: the same frame counts (1,847 / 2,353 / 3,557), `main`'s ten worst rows, 63 of 63 replays identical to `main` up to the boss entry |
+| ATR / boot SHA-256 | `c9168624…` / `b84ab9db…` | **`af0180b356ec33bf9ec425a74e3f294f7a9dc8f41c35624c28f4cbe4fe423601`** / **`b84ab9db…`** (unchanged: no sector count moved) |
+| debug-route ATR (boss sector) | `1c79ad0d…` | **`045787b36d0c698791b8708629e7753905431109cb5ef446d42353916d8a9d05`** |
+| `npm test` (default build) | 1,054 / 1,053 / 1 | **1,056 / 1,055 / 1**: `preview` (recorded) |
+
+Art note for the owner's retouch: the X-braced girders and the open bay's wall
+strips are hull art, not modules, so they now stand alone below the hull line
+once their plates are gone.
 
 ---
 ## 6. Ledgers

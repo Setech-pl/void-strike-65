@@ -359,7 +359,7 @@ capped shutter until then). Emulator figures, for comparison only (EMULATOR):
 the entry reads 48 sectors in about 184 frames (3.7 s); the bot's fights took
 37 / 47 / 71 s on EASY / MEDIUM / HARD and it took 2 / 3 / 7 hits (a pulse hit
 is one of ten health units, so it lost no life). Artifacts as built: default
-ATR `c9168624…` (`npm run play:atr`), debug-route ATR `1c79ad0d…`
+ATR `af0180b3…` (`npm run play:atr`), debug-route ATR `045787b3…`
 (`atari800 -xe -pal -nobasic <absolute path to
 build/level-1-s4/void-strike-65.atr>`).
 
@@ -370,8 +370,13 @@ build/level-1-s4/void-strike-65.atr>`).
       **flames at both ends**, flickering; each end comes into view as the
       band drifts.
 - [ ] **Plate by plate.** Each plate turns **darker grey with black cracks**,
-      then **dark and torn with amber edges**, then leaves a **black hole with a
-      glowing amber rim** of its own shape — never a dithered pattern.
+      then **dark and torn with amber edges**, then **disappears** (owner
+      decision L): below the hull line only empty background is left, **no rim,
+      no outline, no frame** hanging under the hull. A destroyed cannon leaves
+      a plain dark cavity in the hull, again with no rim. Never a dithered
+      pattern.
+- [ ] **The exposed cannon shows whole.** When a plate falls, the cannon behind
+      it is fully visible — nothing of the plate crosses or frames it.
 - [ ] **Every hit shows.** A damaging hit: a white-and-amber **spark** in the
       struck cell, the whole band **flashing** for one frame, a short high
       **tick**. A hit on a girder, the hull or a cannon still covered: a grey

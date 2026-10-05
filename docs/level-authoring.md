@@ -221,7 +221,7 @@ and 2:1 aspect into `build/boss-preview/region-N.png` without building the game.
 | `band.png` | 256 x 64 | the band as the fight starts: 64 cells x 8 rows, a cell 4 x 8 pixels; a covered module's closed look (S3's shutters) |
 | `cracked.png`, `broken.png` | 256 x 64 | every module's cracked and broken look, read inside module rectangles only |
 | `open.png` | 256 x 64 | a covered module's exposed look; a module whose cells here equal `band.png`'s has none |
-| `extras.png` | 76 x 8 | 19 cells: the spark (a damaging hit); the deflection (a hit that does no damage: the hull, a covered module); the muzzle flash; the hole frame's top-left, top, top-right, left, right (its interior is blank: every destroyed module leaves a hole of its own shape, decision J); the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
+| `extras.png` | 60 x 8 | 15 cells: the spark (a damaging hit); the deflection (a hit that does no damage: the hull, a covered module); the muzzle flash; the cavity (a destroyed module's rows inside the hull; drawn blank it is the band background); the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
 | `modules.json` | | the layout (below) |
 
 **The PNG format.** Non-interlaced, 8 bits a channel, **RGBA** (32-bit), every
@@ -251,15 +251,17 @@ cell's intact, cracked and broken looks must agree on it.
 | `fire.cooldown` | the least frames between two firings (one countdown serves every weapon: the next armed weapon fires when it runs out, and it restarts from that weapon's `reload`, EASY +1/2, HARD -1/4). A pulse cannon fires one PULSE shot of the shared hostile pool from its centre column at the band's bottom edge, straight down; a salvo launcher three, on three frames, from the columns left of, at and right of its centre; one spawn a frame, a full pool drops the shot |
 | `capped.hp` | a capped emitter's hit points |
 | `nozzles` | `left` and `right`: the `[column, row]` cells that show that nozzle; `framesPerPhase` (the three phases cycle; both nozzles go dark at the defeat). `band.png` must show each side's phase 0 there. The window shows band columns 4 + p/4 to 43 + p/4, so over the travel (p 0-63) columns 4-59: put the ends inside that range |
-| `modules[]` | up to 16: `name`, `kind` (`armour`, `pulse`, `emitter`, `salvo`, `core`), `x`, `row`, `width` (1-6), `height` (1-4), at most 24 cells, `hp` (1-100), `score` (0-99, packed BCD), `slot` (emitters only, 1-4), `reload` (frames, 0 = never fires), `cover` (`"auto"` or a list of module names) |
+| `modules[]` | up to 16: `name`, `kind` (`armour`, `pulse`, `emitter`, `salvo`, `core`), `x`, `row`, `width` (1-6), `height` (1-4), at most 24 cells, `cavityRows` (0 to the height: how many of the module's top rows lie inside the hull's silhouette; default 0 for armour, the full height for a weapon), `hp` (1-100), `score` (0-99, packed BCD), `slot` (emitters only, 1-4), `reload` (frames, 0 = never fires), `cover` (`"auto"` or a list of module names) |
 
 Every kind but armour is a **weapon**; the boss is defeated when its last
 weapon is destroyed, armour left standing or not. Rows count from the player's
 side: row 7 is the front. A module is **exposed** when every module of its
 cover is destroyed; `"auto"` is every module in a nearer row whose columns
 overlap it. A covered module absorbs shots: no damage, and not a hit for the
-accuracy stat (Q-B7). A destroyed module shows the hole frame, and a shot in
-its columns then meets the module behind it, or the hull. The exposure check
+accuracy stat (Q-B7). **A destroyed module disappears** (owner decision L):
+its top `cavityRows` rows become the cavity code, the rows below the hull band
+background - no rim, no outline, nothing over a neighbour - and a shot in its
+columns then meets the module behind it, or the hull. The exposure check
 runs on the frame after a kill, and a module's redraw (a stage, a hole, an open
 look) goes through a queue that draws one module a frame (§5.15.6 item 2).
 

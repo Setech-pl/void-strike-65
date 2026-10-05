@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-05 (the fortress session: region 1 as the layered fortress Blockade Breaker, the fight's feedback and fire)
+Last update: 2026-10-05 (the fortress session: region 1 as the layered fortress Blockade Breaker, the fight's feedback and fire; owner decision L after its smoke)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -74,7 +74,7 @@ released.** Section "ATR-only build" below.
 
 **M5b boss redesign — plan (2026-10-04, `docs/plan-m5-boss-combat`, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m5-loading-boss.md](plans/m5-loading-boss.md) §5.13 (owner decisions A–G in §1.6): the layered fight of [boss-concepts.md](boss-concepts.md) and the S3 core boss as a second style from one engine as data (cover groups, damage stages, sparks, band flash, hit tick, pulse and salvo fire through the hostile pool, nozzles, emitter slots by tier, the last-weapon defeat rule); MEASURED on a probe build: slot A cannot grow and cannot hold the engine with the lasers, so the C controller moves to a slot C in the low-RAM claim `$0C00-$18FF` with a region charset of its own; the worst probe boss frame (stand-in lasers, pulses, no escort) 7,339 over GO, DMA-on 29,305; sessions S4a-i / S4a-ii / S4b / S5 replace S4 / S5; owner questions Q-B1–Q-B8 (the region → style mapping, the art format, HP per kind, the hit sound, the low-RAM claim, the native pin 3,500 → 7,000, absorbed hits, the entry length). ATR and boot image byte-identical to `main` `d586228`.
 
-**Region 1 as the layered fortress, the fight's feedback and fire — built (2026-10-05, `feat/boss-fortress-r1`, `OWNER-SMOKE CANDIDATE`)** (section "The fortress session" below; plan §5.15): owner decisions H–K after the S4a-i smoke (plan §1.6) and the owner's answers to the Phase A design (§5.15.6). Level 1's boss is the layered fortress **Blockade Breaker** — ten plates as the hull's face, four pulse cannons recessed behind them (one in an open bay, firing from the first frame), the emitter slot capped until the lasers; the S4a-i core boss stays in the engine as the Bastion fixture. Every hit reads (spark or deflection, one-frame band flash, channel-3 tick, high-contrast stages, holes with a lit rim); the boss fires pulse shots through the hostile pool; nozzles at both ends; one module drawn a frame; S4a-ii's scope included. Worst fence margin 1,370 and DMA-on maximum 31,237 unchanged; boss frames 12,525 / 28,457; the fights 36.9 / 47.1 / 71.1 s (EASY / MEDIUM / HARD, bot), lives lost 0 / 0 / 0; the entry 48 sectors, 184 host frames (EMULATOR); initial block, window, reader, `$0500` 0 B; ATR `c9168624…`.
+**Region 1 as the layered fortress, the fight's feedback and fire — built (2026-10-05, `feat/boss-fortress-r1`, `OWNER-SMOKE CANDIDATE`)** (section "The fortress session" below; plan §5.15): owner decisions H–K after the S4a-i smoke (plan §1.6) and the owner's answers to the Phase A design (§5.15.6). Level 1's boss is the layered fortress **Blockade Breaker** — ten plates as the hull's face, four pulse cannons recessed behind them (one in an open bay, firing from the first frame), the emitter slot capped until the lasers; the S4a-i core boss stays in the engine as the Bastion fixture. Every hit reads (spark or deflection, one-frame band flash, channel-3 tick, high-contrast stages); a destroyed module disappears (owner decision L after the smoke: background below the hull, a plain cavity inside it, no rim); the boss fires pulse shots through the hostile pool; nozzles at both ends; one module drawn a frame; S4a-ii's scope included. Worst fence margin 1,370 and DMA-on maximum 31,237 unchanged; boss frames 12,523 / 28,457; the fights 36.9 / 47.1 / 71.1 s (EASY / MEDIUM / HARD, bot), lives lost 0 / 0 / 0; the entry 48 sectors, 184 host frames (EMULATOR); initial block, window, reader, `$0500` 0 B; ATR `af0180b3…`.
 
 **M5b-S4a-i — the layered boss engine — built (2026-10-04, `feat/boss-engine`, `OWNER-SMOKE CANDIDATE`)** (section "M5b-S4a-i" below; plan §5.14): the owner's answers Q-B1–Q-B8 recorded (plan §1.6); level 1's boss is the S3 core boss rebuilt as style 2 in the layered engine (cover group, four damage stages, the defeat on the last weapon, armour optional, HP ×¾ / ×1 / ×5⁄4); the controller in slot C `$1000`, the band in its own charset at `$0C00` (the claim `$0C00-$18FF`, Q-B5); PNG drafts converted by `scripts/boss-assets.mjs` v2 and previewed by `npm run boss:preview`; region 1's art agent-drawn (decision G). Worst fence margin 1,370 and DMA-on maximum 31,237 unchanged; boss frames 13,493 / 28,079; the entry 38 sectors, 146 host frames (EMULATOR); initial block, window, reader, `$0500` 0 B; ATR `82113495…`.
 
@@ -366,8 +366,10 @@ last cannon; armour may stand. The S4a-i core boss stays in the engine as
 at S5). Every hit reads (decision J): a spark on a damaging hit, a deflection on
 a hull or covered hit, the band's one-frame flash, three distinct channel-3
 ticks with the engine bed back after two frames; cracked plates darken with
-black fractures, broken ones are torn with amber edges, a destroyed module
-leaves a black hole with a glowing rim. The boss fires (decision I): PULSE
+black fractures, broken ones are torn with amber edges, and **a destroyed
+module disappears** (owner decision L after the smoke, plan §5.15.8): its rows
+below the hull become band background, its rows inside the hull a plain dark
+cavity, no rim — the cannon a fallen plate exposes shows whole. The boss fires (decision I): PULSE
 shots through the shared hostile pool from each exposed cannon's centre, one
 countdown, a muzzle flash; salvo launchers (S5's region 4) fire three on three
 frames. Nozzles at both ends animate and go dark at the defeat (decision K).
@@ -379,29 +381,29 @@ cooldown froze in the boss sector (plan §5.15.7 item 1).
 | | `main` `f88b7cb` | this branch | source |
 | --- | ---: | ---: | --- |
 | worst line-238 fence margin | 1,370 (`2-evasive-fire3` f287) | **1,370** (the ten worst rows are `main`'s, value for value) | fence scan of the replay CSVs (`scripts/pal-timing-audit.mjs`), boss-entry and boss rows apart, 0 miss events |
-| boss frames: worst fence margin / DMA-on | 13,493 / 28,079 (13,076 frames) | **12,525 / 28,457** over 11,958 boss frames (GO 500, gate 32,568) | same |
-| boss per-frame work, native (limit Q-B6: 7,000) | 5,021 | **6,707** worst (the fortress, five shots a frame); 5,286 (core-boss drive) | `tests/boss-fortress.test.mjs`, `tests/boss-runtime.test.mjs` |
+| boss frames: worst fence margin / DMA-on | 13,493 / 28,079 (13,076 frames) | **12,523 / 28,457** over 11,958 boss frames (GO 500, gate 32,568; decision L moved it by 2) | same |
+| boss per-frame work, native (limit Q-B6: 7,000) | 5,021 | **6,676** worst (the fortress, five shots a frame); 5,289 (core-boss drive) | `tests/boss-fortress.test.mjs`, `tests/boss-runtime.test.mjs` |
 | DMA-on maximum | 31,237 (`director-complete-2` f5797) | **31,237** (same row) | `docs/runtime-wall-trace.json` |
 | DLI per host frame / sequence violations | 2, 3 in the boss sector / 0 | **unchanged** | same |
 | behavioural clause failures | 1 (`lower-playfield-hostile-contact-atr-hard`) | **1**, the same | [recorded-gate-failures.json](recorded-gate-failures.json) |
 | gameplay against `main` | — | **63 of 63 replay files identical** on 326 gameplay columns frame by frame up to the boss entry | trace CSVs of both builds |
 | the fights, EASY / MEDIUM / HARD (bot, held lives) | 2,353 / 2,871 / 3,682 frames, no boss fire | **1,847 / 2,353 / 3,557 frames (36.9 / 47.1 / 71.1 s)**; hits taken 2 / 3 / 7, lives lost 0 / 0 / 0 | `docs/runtime-wall-trace.json`, trace CSVs |
 | boss entry (EMULATOR) | 38 sectors, 146 host frames (2.9 s) | **48 sectors, 184 host frames (3.7 s)** in every replay | same |
-| `npm test` (default build) | 1,034 / 1,033 / 1 | **1,054 / 1,053 / 1**: `preview` (recorded) | [recorded-test-failures.json](recorded-test-failures.json) |
+| `npm test` (default build) | 1,034 / 1,033 / 1 | **1,056 / 1,055 / 1**: `preview` (recorded) | [recorded-test-failures.json](recorded-test-failures.json) |
 | initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
 | extension / total transport sectors | 104 / 211 | **104 / 211** | same |
 | ATR menu frame (baseline 596) | 550 (BASIC 541) | **550** (BASIC 541) | boot smoke |
 | `$AE00` window free | 1,316 | **1,316** | `residentCapacity.basicWindow` |
-| slot A (boss) | 1,033 of 2,048 B (9 sectors) | **1,961 of 2,048 B** (87 free, 16 sectors) | `build/boss.lbl`, manifest `boss` |
+| slot A (boss) | 1,033 of 2,048 B (9 sectors) | **1,963 of 2,048 B** (85 free, 16 sectors) | `build/boss.lbl`, manifest `boss` |
 | slot C `$1000-$17FF` | 1,448 of 2,048 B (11 sectors) | **1,748 of 2,048 B** (code + rodata + `boss_prepare` 1,607, 13 sectors; BSS 141) | same |
 | install run / scratch page | 346 of 384 B / 152 of 256 B | **346 of 384 B / 237 of 256 B** | same |
 | slot B | 768 B | **768 B** | same |
-| region 1 charset at `$0C00` | 840 B, 98 of 128 codes, 7 sectors | **978 B, 114 of 128 codes, 8 sectors** (the region run 16 of 16) | manifest `boss.regions` |
+| region 1 charset at `$0C00` | 840 B, 98 of 128 codes, 7 sectors | **938 B, 109 of 128 codes, 8 sectors** (the region run 16 of 16; decision L freed the five rim glyphs) | manifest `boss.regions` |
 | `$0500` summary module | 1,677 B, 115 free | **unchanged** | `levelSummary.code` |
 | sector reader | 1,507 / 29 free | **unchanged** (its directory's boss-code count byte 9 → 16) | `sectorReader` |
 | low RAM | `$0C00-$18FF` the boss's claim; `$1900-$1FFF` unclaimed | **unchanged** | generated memory map |
 | disk | 528–557; region 1 632–646 | **528–559** (code 16, install 3, slot C 13); **region 1 632–647** | `build/manifest.json` |
-| ATR SHA-256 | `821134954c4608a8…` | **`c9168624a023dc4f1a063c18e89e76dbd32c28dfd286c01aced268b8464ef093`** | `dist/` |
+| ATR SHA-256 | `821134954c4608a8…` | **`af0180b356ec33bf9ec425a74e3f294f7a9dc8f41c35624c28f4cbe4fe423601`** | `dist/` |
 | boot SHA-256 | `640249a7a75234f1…` | **`b84ab9dbd4355ae86644b8bd98cdfd3959e76e273a2a81d7554f4e12f64d7ce2`** | `dist/` |
 
 **Read before accepting.** The art is the owner-approved agent-drawn
@@ -410,8 +412,8 @@ hit points (cannons 14, plates 6 / 8 / 10 by size), reloads and the bonus are
 placeholders (M8). **The bot loses no life**: a PULSE hit costs 1 of the
 player's 10 health units, a resident rule — more threat for the bot needs ~3×
 the fire rate or a different damage rule, an owner question (plan §5.15.7
-item 8). **Slot A has 87 B left**: S4b needs the head's region reads or the
-queue's merge out of slot A first (item 9). The stress pin reads 6,707 of
+item 8). **Slot A has 85 B left**: S4b needs the head's region reads or the
+queue's merge out of slot A first (item 9). The stress pin reads 6,676 of
 7,000 native cycles on a drive no real fire produces (item 7). The entry is
 10 sectors longer than S4a-i's (the owner's CA-drive stopwatch decides the fast
 loader, Q-B8). Region 1 has no escort Light (owner answer). **Smoke on copies**

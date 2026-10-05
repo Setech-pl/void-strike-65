@@ -2,7 +2,7 @@
   "formatVersion": 2,
   "name": "Bastion",
   "style": 2,
-  "_": "The core boss (style 2, decision F): the S3 core boss rebuilt in the layered engine - the core behind a cover group of guns. Region 1's boss in M5b-S4a-i (Q-B1); owner decision H (2026-10-04) moved region 1 to the fortress, and this layout stays in the engine as a fixture and a later region's boss, decided at S5. Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. The drafts: band.png (the intact band, closed looks), cracked.png and broken.png (read inside module rectangles), open.png (the core's exposed art), extras.png (spark, deflection, muzzle flash, the hole frame, capped plate, nozzle phases, blasts). docs/level-authoring.md, 'The boss', is the format. Hit points are owner answer Q-B3's MEDIUM values (M8 tunes them); scores are packed BCD per module.",
+  "_": "The core boss (style 2, decision F): the S3 core boss rebuilt in the layered engine - the core behind a cover group of guns. Region 1's boss in M5b-S4a-i (Q-B1); owner decision H (2026-10-04) moved region 1 to the fortress, and this layout stays in the engine as a fixture and a later region's boss, decided at S5. Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. The drafts: band.png (the intact band, closed looks), cracked.png and broken.png (read inside module rectangles), open.png (the core's exposed art), extras.png (spark, deflection, muzzle flash, the cavity, capped plate, nozzle phases, blasts). A destroyed module disappears (owner decision L): its top cavityRows rows inside the hull become the cavity, the rows below band background - the guns and the emitter hang below the hull bar, the plates sit in its bottom row, the core inside it. docs/level-authoring.md, 'The boss', is the format. Hit points are owner answer Q-B3's MEDIUM values (M8 tunes them); scores are packed BCD per module.",
   "palette": {
     "_": "COLPF0 cold-white edge, COLPF1 worn steel, COLPF2 reactor amber, COLPF3 hostile burgundy armour; flashLuma: the one-frame band flash, kept inside every hue ($0C + 2 = $0E).",
     "colpf0": 12,
@@ -39,12 +39,12 @@
     "framesPerPhase": 8
   },
   "modules": [
-    { "name": "gun-left", "kind": "pulse", "x": 17, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "reload": 90 },
-    { "name": "emitter", "kind": "emitter", "x": 27, "row": 6, "width": 3, "height": 2, "hp": 10, "score": 60, "slot": 1 },
-    { "name": "gun-right", "kind": "pulse", "x": 37, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "reload": 90 },
-    { "name": "plate-left", "kind": "armour", "x": 21, "row": 5, "width": 3, "height": 1, "hp": 6, "score": 20 },
-    { "name": "plate-right", "kind": "armour", "x": 33, "row": 5, "width": 3, "height": 1, "hp": 6, "score": 20 },
-    { "name": "core", "kind": "core", "x": 27, "row": 3, "width": 4, "height": 2, "hp": 24, "score": 99,
+    { "name": "gun-left", "kind": "pulse", "x": 17, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "cavityRows": 0, "reload": 90 },
+    { "name": "emitter", "kind": "emitter", "x": 27, "row": 6, "width": 3, "height": 2, "hp": 10, "score": 60, "cavityRows": 0, "slot": 1 },
+    { "name": "gun-right", "kind": "pulse", "x": 37, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "cavityRows": 0, "reload": 90 },
+    { "name": "plate-left", "kind": "armour", "x": 21, "row": 5, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 1 },
+    { "name": "plate-right", "kind": "armour", "x": 33, "row": 5, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 1 },
+    { "name": "core", "kind": "core", "x": 27, "row": 3, "width": 4, "height": 2, "hp": 24, "score": 99, "cavityRows": 2,
       "cover": ["gun-left", "emitter", "gun-right"] }
   ]
 }

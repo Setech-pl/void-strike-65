@@ -6,10 +6,10 @@
 //
 //   1. the band as the fight starts (closed looks)
 //   2. every module cracked      3. every module broken
-//   4. every module gone (the hole frame over its rectangle)
+//   4. every module gone (decision L: the cavity inside the hull, background below)
 //   5. every open look exposed   6. every emitter slot capped
-//   7. the extras: spark, deflection, muzzle flash, the hole frame's five
-//      cells, the capped plate's three stages, the nozzles' phases (left,
+//   7. the extras: spark, deflection, muzzle flash, the cavity, the capped
+//      plate's three stages, the nozzles' phases (left,
 //      right), the two blasts
 //
 // Panels 2-4 show a module with an open look in its exposed art, as it is
@@ -35,10 +35,10 @@ export const BOSS_PREVIEW_PANELS = Object.freeze([
   "the band as the fight starts (closed looks)",
   "every module cracked",
   "every module broken",
-  "every module gone (the hole frame)",
+  "every module gone (the cavity inside the hull, background below)",
   "every open look exposed",
   "every emitter slot capped",
-  "extras: spark, deflection, muzzle flash, hole (top-left top top-right left right), capped x3, nozzle left x3, right x3, blasts",
+  "extras: spark, deflection, muzzle flash, cavity, capped x3, nozzle left x3, right x3, blasts",
 ]);
 
 function panels(region) {
@@ -64,18 +64,12 @@ function panels(region) {
     region.modules.forEach((module) => eachCell(rows, module, (code) => code + stage * K));
     return rows;
   };
-  // The hole frame (decision J): the top row's corners and edge, the sides,
-  // the interior blank - every module leaves a hole of its own shape.
+  // Gone (owner decision L): the module disappears - its rows inside the hull
+  // the cavity, the rows below band background; no rim.
   const gone = () => {
     const rows = base();
-    const [topLeft, top, topRight, left, interior, right] = region.hole;
-    region.modules.forEach((module) => eachCell(rows, module, (code, i) => {
-      const dx = i % module.width;
-      const first = dx === 0;
-      const last = dx === module.width - 1;
-      if (i < module.width) return first ? topLeft : last ? topRight : top;
-      return first ? left : last ? right : interior;
-    }));
+    region.modules.forEach((module) => eachCell(rows, module, (code, i) =>
+      Math.floor(i / module.width) < module.cavityRows ? region.cavity : 0));
     return rows;
   };
   const capped = () => {
@@ -99,7 +93,7 @@ export function renderBossPreview(region) {
   const bandWidth = BOSS_BAND_COLUMNS * 4 * PIXEL_WIDTH;
   const bandHeight = BOSS_BAND_ROWS * 8 * PIXEL_HEIGHT;
   const views = panels(region);
-  const extrasCells = [region.spark, region.deflect, region.muzzle, ...region.hole.filter((code) => code !== 0),
+  const extrasCells = [region.spark, region.deflect, region.muzzle, region.cavity,
     region.capped.code, region.capped.code + region.stageStep,
     region.capped.code + 2 * region.stageStep];
   const extraBytes = [...extrasCells.map((code) => ({ code, bytes: glyphBytes(region, code) })),

@@ -96,12 +96,13 @@ RING_ROWS       = 27
 
 ; boss_draw_module's four ways to fill a module's cells (bits 7 and 6, read
 ; by BIT): copy a look from the look tail, fill one code, add to each code,
-; or the hole frame (decision J: the top row's corners and edge, the sides,
-; the interior blank, from the region's six hole codes).
+; or gone (owner decision L: the module disappears - its top cavityRows rows,
+; inside the hull, become the region's cavity code, the rows below the hull
+; band background; no rim, no outline).
 BOSS_MODE_COPY  = $00
 BOSS_MODE_FILL  = $40
 BOSS_MODE_ADD   = $80
-BOSS_MODE_HOLE  = $C0
+BOSS_MODE_GONE  = $C0
 BOSS_MODE_NONE  = $01           ; a queued draw a later one superseded
 
 ; The fortress session (plan §5.15, decisions I-K, §5.15.6): the hit feedback,
@@ -497,8 +498,8 @@ boss_hit:
     lda _boss_hit_module
     cmp #BOSS_COLUMN_ARMOUR
     bne @module
-    ; The hull: the deflection on the column's lowest drawn cell (a hole's
-    ; back rim once a plate is gone), the hull tick.
+    ; The hull: the deflection on the column's lowest drawn cell (the hull
+    ; above a plate that is gone), the hull tick.
     ldx #(BOSS_BAND_ROWS - 1)
 @row:
     jsr boss_cell_at
@@ -523,9 +524,10 @@ boss_hit:
     ldx _boss_hit_module
     stx boss_ring_tag
     jsr boss_record_of
-    lda BOSS_T_MODULES + BOSS_M_ROW,y
+    lda BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    and #$0F                            ; the height (bits 4-7: cavityRows)
     clc
-    adc BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    adc BOSS_T_MODULES + BOSS_M_ROW,y
     tax
     dex
     jsr boss_cell_at
@@ -589,10 +591,10 @@ boss_module_scored:
     cld
     jsr SECTOR_READER_STATS_KILL
     jsr play_hit_sound
-    ; Gone: the hole frame over the module (queued), and its columns rebuilt
-    ; now - a shot there meets the module behind it, or the hull.
+    ; Gone (decision L): the module disappears (queued), and its columns
+    ; rebuilt now - a shot there meets the module behind it, or the hull.
     lda _boss_score_module
-    ldx #BOSS_MODE_HOLE
+    ldx #BOSS_MODE_GONE
     ldy #$00
     sty boss_frame_heavy                ; any nonzero: Y is 0, so...
     inc boss_frame_heavy                ; ... 1
@@ -651,9 +653,10 @@ boss_fire:
     clc
     adc _boss_fire_offset
     sta boss_column
-    lda BOSS_T_MODULES + BOSS_M_ROW,y
+    lda BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    and #$0F                            ; the height (bits 4-7: cavityRows)
     clc
-    adc BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    adc BOSS_T_MODULES + BOSS_M_ROW,y
     tax
     dex
     jsr boss_cell_at
@@ -884,13 +887,13 @@ boss_ring_rebase:
     rts
 
 ; ---------------------------------------------------------------------------
-; The draw queue (§5.15.6 item 2): a stage change, a hole and an open look are
+; The draw queue (§5.15.6 item 2): a stage change, a gone module and an open look are
 ; drawn one module a frame, in the order asked; a full queue draws its oldest
 ; at once.
 ; ---------------------------------------------------------------------------
 
 ; A = the module, X = how (BOSS_MODE_*), Y = the value (the add or the look).
-; A module's queued draws merge: its hole takes the place of the first of
+; A module's queued draws merge: its gone draw takes the place of the first of
 ; them and cancels the rest, a second damage stage adds into its queued one -
 ; so a burst of hits never fills the queue.
 boss_enqueue:
@@ -907,12 +910,12 @@ boss_enqueue:
     cmp boss_q_module
     bne @step
     lda boss_q_mode
-    cmp #BOSS_MODE_HOLE
+    cmp #BOSS_MODE_GONE
     bne @add
     lda boss_q_placed
     bne @cancel
     inc boss_q_placed
-    lda #BOSS_MODE_HOLE
+    lda #BOSS_MODE_GONE
     sta boss_queue_mode,x
     bne @step
 @cancel:
@@ -1081,7 +1084,7 @@ boss_record_of:
 ;                   operand below is the tail's address, set by boss_prepare)
 ;   BOSS_MODE_FILL  boss_fill in every cell
 ;   BOSS_MODE_ADD   boss_add added to every cell's code (a damage stage)
-;   BOSS_MODE_HOLE  the hole frame (decision J)
+;   BOSS_MODE_GONE  gone: the cavity above the hull line, background below (decision L)
 ; The ring's records on the module's cells are lifted before and laid back
 ; after, so a spark or a muzzle flash outlives the redraw.
 boss_draw_module:
@@ -1089,13 +1092,19 @@ boss_draw_module:
     lda #$00
     jsr boss_ring_rebase
     ldx boss_draw_m
-    lda #$00
-    sta boss_hole_base
     jsr boss_record_of
     lda BOSS_T_MODULES + BOSS_M_ROW,y
     sta boss_row
     lda BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    pha
+    and #$0F
     sta boss_rows_left
+    pla
+    lsr
+    lsr
+    lsr
+    lsr
+    sta boss_cavity_left                ; the rows inside the hull (decision L)
     lda BOSS_T_MODULES + BOSS_M_WIDTH,y
     sta boss_width
     lda BOSS_T_MODULES + BOSS_M_X,y
@@ -1117,25 +1126,16 @@ boss_draw_module:
     inc boss_look
     jmp @store
 @add:
-    bvs @hole
+    bvs @gone
     lda (dst_ptr),y
     clc
     adc boss_add
     jmp @store
-@hole:
-    ; Top-left, top, top-right on the module's first row; left, blank,
-    ; right below it.
-    ldx boss_hole_base
-    tya
-    beq @hole_code
-    inx
-    clc
-    adc #$01
-    cmp boss_width
-    bne @hole_code
-    inx
-@hole_code:
-    lda BOSS_T_HOLE,x
+@gone:
+    ; Gone: the cavity on the rows inside the hull, background below.
+    lda boss_cavity_left
+    beq @store
+    lda BOSS_T_CAVITY
     jmp @store
 @fill:
     lda boss_fill
@@ -1144,8 +1144,10 @@ boss_draw_module:
     iny
     cpy boss_width
     bne @cell
-    lda #$03
-    sta boss_hole_base
+    lda boss_cavity_left
+    beq :+
+    dec boss_cavity_left
+:
     inc boss_row
     dec boss_rows_left
     bne @row
@@ -1502,7 +1504,7 @@ boss_ring_frames:   .res 1
 boss_ring_tag:      .res 1
 boss_rebase_mode:   .res 1
 boss_draw_m:        .res 1
-boss_hole_base:     .res 1
+boss_cavity_left:   .res 1      ; a gone draw's rows still inside the hull
 boss_hit_result:    .res 1
 boss_dead:          .res 1
 boss_col_start:     .res 1

@@ -88,7 +88,7 @@ export const BOSS_TABLE = Object.freeze({
   chainFrames: 11,
   moduleCount: 12,
   stageStep: 13,         // K: cracked = intact + K, broken = intact + 2K
-  hole: 14,              // 6 B: the "gone" frame - top-left, top, top-right, left, interior (0), right
+  cavity: 14,            // a destroyed module's rows inside the hull (decision L); 0 = the blank code
   cappedCode: 20,        // the capped emitter plate (intact, staged)
   cappedHp: 21,
   cappedCracked: 22,
@@ -110,7 +110,9 @@ export const BOSS_TABLE = Object.freeze({
 });
 export const BOSS_MODULE_BYTES = 12;
 export const BOSS_MODULE = Object.freeze({
-  x: 0, row: 1, width: 2, height: 3, hp: 4, hpCracked: 5, hpBroken: 6,
+  x: 0, row: 1, width: 2,
+  height: 3,             // the height in bits 0-3; the rows inside the hull (cavityRows) in bits 4-7
+  hp: 4, hpCracked: 5, hpBroken: 6,
   kind: 7,               // kind in bits 0-3, an emitter's slot (1-4) in bits 4-7
   score: 8,              // packed BCD, added once when the module is destroyed
   coverLo: 9, coverHi: 10,
@@ -136,12 +138,12 @@ export const BOSS_EXTRAS = Object.freeze({
   spark: 0,              // a damaging hit
   deflect: 1,            // a hit that does no damage
   muzzle: 2,             // a firing cannon
-  hole: 3,               // 5 cells: top-left, top, top-right, left, right (the interior is blank)
-  capped: 8,             // 3 cells: intact, cracked, broken
-  nozzleLeft: 11,        // 3 phases
-  nozzleRight: 14,       // 3 phases
-  blast: 17,             // 2 cells: A, B
-  cells: 19,
+  cavity: 3,             // a destroyed module's rows inside the hull (decision L); blank = the background code
+  capped: 4,             // 3 cells: intact, cracked, broken
+  nozzleLeft: 7,         // 3 phases
+  nozzleRight: 10,       // 3 phases
+  blast: 13,             // 2 cells: A, B
+  cells: 15,
 });
 // A module is up to 6 x 4 cells and at most 24 (owner answer to the fortress
 // design, option A, plan §5.15.6): plates are the hull's face, and every
@@ -350,7 +352,13 @@ function resolveModules(layout) {
       fail(`module ${name} is a ${source.kind}; only an emitter has a slot`);
     }
     const reload = integerIn(source.reload ?? 0, 0, BOSS_MAX_RELOAD, `module ${name} reload`);
-    return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload,
+    // Owner decision L: a destroyed module disappears - its top cavityRows
+    // rows (inside the hull's silhouette) become the cavity, the rows below
+    // the hull band background. Default: armour hangs below the hull, every
+    // weapon sits inside it.
+    const cavityRows = integerIn(source.cavityRows ?? (kind === BOSS_KIND.armour ? 0 : height), 0, height,
+      `module ${name} cavityRows`);
+    return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows,
       cover: source.cover ?? "auto", authoredIndex };
   });
   if (!modules.some((module) => module.kind !== BOSS_KIND.armour)) {
@@ -498,8 +506,7 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     extra(BOSS_EXTRAS.capped + 1, "capped cracked"), extra(BOSS_EXTRAS.capped + 2, "capped broken"),
     "the capped emitter plate");
   const plainRef = (cell) => ({ index: plainIndex(cell), bank: cell.bank ?? 0 });
-  const holeRefs = ["top-left", "top", "top-right", "left", "right"].map((name, i) =>
-    plainRef(extra(BOSS_EXTRAS.hole + i, `hole ${name}`)));
+  const cavityRef = plainRef(extra(BOSS_EXTRAS.cavity, "cavity"));
   const sparkRef = plainRef(extra(BOSS_EXTRAS.spark, "spark"));
   const deflectRef = plainRef(extra(BOSS_EXTRAS.deflect, "deflection"));
   const muzzleRef = plainRef(extra(BOSS_EXTRAS.muzzle, "muzzle flash"));
@@ -608,8 +615,7 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   tables[BOSS_TABLE.chainFrames] = chainFrames;
   tables[BOSS_TABLE.moduleCount] = modules.length;
   tables[BOSS_TABLE.stageStep] = K;
-  const holeCodes = [...holeRefs.slice(0, 4).map(plainCode), 0, plainCode(holeRefs[4])];
-  tables.set(holeCodes, BOSS_TABLE.hole);
+  tables[BOSS_TABLE.cavity] = plainCode(cavityRef);
   tables[BOSS_TABLE.cappedCode] = stagedCode(cappedRef);
   const [cappedCracked, cappedBroken] = bossThresholds(cappedHp);
   tables[BOSS_TABLE.cappedHp] = cappedHp;
@@ -631,7 +637,7 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     record[BOSS_MODULE.x] = module.x;
     record[BOSS_MODULE.row] = module.row;
     record[BOSS_MODULE.width] = module.width;
-    record[BOSS_MODULE.height] = module.height;
+    record[BOSS_MODULE.height] = module.height | (module.cavityRows << 4);
     record[BOSS_MODULE.hp] = module.hp;
     record[BOSS_MODULE.hpCracked] = hpCracked;
     record[BOSS_MODULE.hpBroken] = hpBroken;
@@ -676,7 +682,7 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     tables,
     openLooks: new Map([...openLooks].map(([index, look]) => [index, look.map(stagedCode)])),
     capped: { code: stagedCode(cappedRef), hp: cappedHp, cracked: cappedCracked, broken: cappedBroken },
-    hole: holeCodes,
+    cavity: plainCode(cavityRef),
     spark: plainCode(sparkRef),
     deflect: plainCode(deflectRef),
     muzzle: plainCode(muzzleRef),
@@ -685,6 +691,7 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     modules: modules.map((module) => ({ name: module.name, kind: module.kindName, x: module.x,
       row: module.row, width: module.width, height: module.height, hp: module.hp,
       thresholds: bossThresholds(module.hp), slot: module.slot, reload: module.reload,
+      cavityRows: module.cavityRows,
       cover: module.coverMask, open: openLooks.has(module.index) })),
     themeBytes: themeImage === null ? 0 : themeImage.length,
     runs: Object.freeze({

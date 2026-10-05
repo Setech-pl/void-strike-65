@@ -7,7 +7,7 @@
 // layered fortress now; the style-2 core boss of S4a-i stays in the engine as
 // the Bastion drafts (assets/graphics/boss-regions/bastion/), and the tests
 // that read the core boss read those - every assertion kept. The bay glyphs
-// gave way to the hole frame (decision J).
+// gave way to the gone look of owner decision L (the cavity, no rim).
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -214,8 +214,8 @@ test("every module cell is staged: cracked = code + K and broken = code + 2K, re
 });
 
 // RE-POINTED (decisions H, J): the core boss's values are read from the
-// Bastion fixture; the five bay glyphs are the hole frame's five cells now.
-test("the core boss: Q-B3's hit points, an open core, capped plate and the hole frame, the divider's codes left to the install", () => {
+// Bastion fixture; the five bay glyphs gave way to decision L's cavity.
+test("the core boss: Q-B3's hit points, an open core, capped plate and the cavity, the divider's codes left to the install", () => {
   const byName = new Map(bastion.modules.map((module) => [module.name, module]));
   assert.equal(byName.get("core").hp, 24);
   assert.equal(byName.get("gun-left").hp, 8);
@@ -226,10 +226,9 @@ test("the core boss: Q-B3's hit points, an open core, capped plate and the hole 
   assert.equal(bastion.capped.hp, 6);
   for (const region of [bastion, region1]) {
     assert.ok(region.codeCount <= BOSS_MAX_CODES);
-    region.hole.forEach((code, i) => {
-      if (i === 4) assert.equal(code, 0, "the hole's interior is blank");
-      else assert.notEqual(code, 0, `hole cell ${i} has a glyph`);
-    });
+    assert.equal(region.hole, undefined, "no rim glyphs (decision L)");
+    assert.equal(region.tables[BOSS_TABLE.cavity], region.cavity);
+    region.modules.forEach((module) => assert.ok(module.cavityRows >= 0 && module.cavityRows <= module.height));
     assert.ok([...region.runs.charset.data.subarray(0, BOSS_DIVIDER_CODES * 8)].every((b) => b === 0));
     // Every band column with hull is armour, open sky elsewhere.
     for (let c = 0; c < BOSS_BAND_COLUMNS; c += 1) {

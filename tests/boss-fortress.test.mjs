@@ -634,7 +634,8 @@ test("the draw queue: at most one module's cells redrawn a frame, every look dra
   assert.ok(worst <= 1, `${worst} modules redrawn in one frame`);
   settle(memory);
   const m = region1.modules[byName.get("plate-g")];
-  assert.equal(cell(memory, m.x, m.row), region1.hole[0], "plate-g's hole was never drawn");
+  // RE-POINTED (decision L): the gone look is background below the hull.
+  assert.equal(cell(memory, m.x, m.row), 0, "plate-g's gone look was never drawn");
 });
 
 // ---------------------------------------------------------------------------

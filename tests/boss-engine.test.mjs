@@ -17,8 +17,8 @@
 // runs on the next frame's tick (kill() runs that frame); a module's redraw
 // goes through the one-module-a-frame queue (settle() drains it, and lets the
 // hit's spark expire, before a look is read); every emitter slot is capped
-// armour until the lasers exist (S4b). The bay glyphs gave way to the hole
-// frame (decision J).
+// armour until the lasers exist (S4b). The bay glyphs gave way to the gone
+// look of owner decision L (the cavity inside the hull, background below).
 import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
@@ -277,13 +277,13 @@ test("a covered module and the hull absorb a shot: spent, no damage, not a hit f
 
 // RE-POINTED (decisions H, J; §5.15.6): read on the core boss (Bastion), each
 // look after the queue drew it; a capped emitter stages at the capped plate's
-// thresholds; gone is the hole frame over the module (S4a-i: the kind's bay).
-test("the four damage stages: intact, cracked (+K), broken (+2K), gone (the hole frame)", () => {
+// thresholds; gone is decision L's look - the cavity on the module's rows
+// inside the hull, background below (S4a-i: the kind's bay).
+test("the four damage stages: intact, cracked (+K), broken (+2K), gone (cavity inside the hull, background below)", () => {
   const region1 = bastion;
   const memory = withRegion(region1);
   const K = region1.stageStep;
   const index = new Map(region1.modules.map((module, i) => [module.name, i]));
-  const [tl, t, tr, l, blank, r] = region1.hole;
   for (const name of ["gun-left", "plate-right", "gun-right", "emitter", "core"]) {
     const i = index.get(name);
     const module = region1.modules[i];
@@ -306,11 +306,8 @@ test("the four damage stages: intact, cracked (+K), broken (+2K), gone (the hole
     assert.ok(stages.includes(1) && stages.includes(2), `${name} showed both damage stages`);
     settle(memory);
     codesOf(memory, module).forEach((code, k) => {
-      const dx = k % module.width;
-      const first = dx === 0;
-      const last = dx === module.width - 1;
-      const expected = k < module.width ? (first ? tl : last ? tr : t) : (first ? l : last ? r : blank);
-      assert.equal(code, expected, `${name} gone: the hole frame at cell ${k}`);
+      const expected = Math.floor(k / module.width) < module.cavityRows ? region1.cavity : 0;
+      assert.equal(code, expected, `${name} gone: cell ${k}`);
     });
     if (name === "emitter") {
       // The guns are down: the core is exposed now and shows its open look.

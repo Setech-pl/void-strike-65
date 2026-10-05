@@ -21,7 +21,8 @@
 // Bastion fixture - installed over the entry the way the head and the install
 // would install it, every assertion kept. A module's redraw now waits for the
 // one-module-a-frame queue (settled before a look is read), and the bay glyphs
-// gave way to the hole frame (decision J).
+// gave way to the gone look of owner decision L (the cavity inside the hull,
+// background below; no rim).
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -353,7 +354,7 @@ function shootAt(memory, cell, slot = 0) {
 const module = (memory, index) => {
   const base = MODULES + index * BOSS_MODULE_BYTES;
   return { x: memory[base], row: memory[base + 1], width: memory[base + 2],
-    height: memory[base + 3], hp: memory[base + 4], kind: memory[base + 7] & 0x0f,
+    height: memory[base + 3] & 0x0f, hp: memory[base + 4], kind: memory[base + 7] & 0x0f,
     score: memory[base + 8] };
 };
 const hpOf = (memory, index) => memory[label("boss", "_boss_hp") + index];
@@ -470,15 +471,14 @@ test("the cover group: every gun down exposes the core; its death, the last weap
   assert.equal(memory[label("boss", "_boss_phase")], 0);
   killGuns(memory);
   settle(memory);
-  const hole = coreBoss.hole;
   for (const index of GUNS) {
     assert.equal(hpOf(memory, index), 0);
     const m = module(memory, index);
+    const cavityRows = coreBoss.modules[index].cavityRows;
     for (let row = 0; row < m.height; row += 1) {
       for (let c = 0; c < m.width; c += 1) {
-        const edge = c === 0 ? 0 : c === m.width - 1 ? 2 : 1;
-        assert.equal(memory[BAND_ROW_BASE[m.row + row] + m.x + c], hole[(row === 0 ? 0 : 3) + edge],
-          `module ${index} cell ${row},${c}: the hole frame`);
+        assert.equal(memory[BAND_ROW_BASE[m.row + row] + m.x + c], row < cavityRows ? coreBoss.cavity : 0,
+          `module ${index} cell ${row},${c}: gone (decision L)`);
       }
     }
   }
@@ -675,12 +675,10 @@ test("Q-B6: the worst boss frame's own work stays under 7,000 native cycles", ()
   console.log(`# boss per-frame work, worst: ${worst} native cycles (Q-B6 limit 7,000)`);
 });
 
-// RE-POINTED (decision J): the "gone" look is the hole frame, whose five
-// drawn cells are codes of the region's charset (its interior is the blank 0).
-test("the hole frame's glyphs are in the region's charset", () => {
-  region1.hole.forEach((value, i) => {
-    const code = value & 0x7f;
-    if (i === 4) assert.equal(code, 0);
-    else assert.ok(code >= 7 && code < region1.codeCount, `hole cell ${i}`);
-  });
+// RE-POINTED (decision L): the "gone" look is the cavity code inside the hull
+// and background below - the cavity is the blank code or a glyph of the
+// region's charset.
+test("the cavity code is the blank code or a glyph of the region's charset", () => {
+  const code = region1.cavity & 0x7f;
+  assert.ok(code === 0 || (code >= 7 && code < region1.codeCount));
 });

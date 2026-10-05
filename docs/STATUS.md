@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-05 (the fortress session: region 1 as the layered fortress Blockade Breaker, the fight's feedback and fire; owner decision L after its smoke)
+Last update: 2026-10-05 (fix/boss-readability: owner decision M - the player's shots drawn in the band up to the cell that stops them, the stripped skeleton that does not block, the boss-sector stray-glyph artifact fixed, gun-3 behind one plate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -349,6 +349,76 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## Boss readability — shots up to the boss, the skeleton that does not block — `OWNER-SMOKE CANDIDATE` (2026-10-05)
+
+Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
+§5.16 (decision M and its refinements M1, M2 in §1.6; Phase A §5.16.1-5.16.5,
+as built §5.16.6). Branch `fix/boss-readability` from `main` `a55d2a5`. Smoke:
+[hardware-testing.md](hardware-testing.md) §16.
+
+**What changed.** The player's shots are **drawn inside the boss band up to
+the cell that stops them** (option a): per column a stop line - the front
+module's bottom row, else the hull's own stop row, else open sky - kept with
+the column map; on its way a shot is drawn in blank cells in **light steel**
+(the band colour closest to the playfield shot's pale yellow; an exact match is
+not possible) and passes behind anything drawn; past the band's top it is
+removed (so no shot glyph appears in the region's charset on the divider row).
+**Hull art below the hull line stops nothing** (decision M; `hullRows` 4 for
+region 1); the thin strip under a recessed cannon is passed behind (M1). **A
+boss-sector defect is fixed**: a hull hit in the frames after a plate's kill
+used to place its deflection on the dead plate's still-drawn cell, and the
+ring wrote the broken-plate glyph back after the plate was erased - a stray
+fragment hanging under the hull for the rest of the fight (plan §5.16.1); the
+deflection now lands on the hull's own stop cell. Region 1's drafts: girders
+end one row under the hull line, the bay's wall strips are gone, **plate-e
+spans all of gun-3's columns** (36-40, 10 HP; plate-f 41-42, 6 HP), so every
+cannon's cover is what stands in front of each of its columns. **The capital
+sector**: no stray bytes there (14 shot-over-shell crossings in a 1,800-frame
+trace unwind exactly); the shot's opaque cell hiding half a shell for a frame
+or two is known and accepted (decision M2).
+
+| | `main` `a55d2a5` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 1,370 (`2-evasive-fire3` f287) | **1,370** (the ten worst rows `main`'s, value for value) | fence scan of the replay CSVs (`scripts/pal-timing-audit.mjs` samples), boss and boss-entry rows apart, 0 miss events |
+| boss frames: worst fence margin / DMA-on | 12,523 / 28,457 (11,958 frames) | **11,281 / 28,683** over 11,626 boss frames (GO 500, gate 32,568) | same |
+| boss per-frame work, native (limit 7,000) | 6,676 (fortress), 5,289 (core boss) | **6,876** (fortress, five hits a frame), **5,516** (core boss); 7,046 if five in-band restores were also charged to that frame (real fire cannot: plan §5.16.6 item 4) | `tests/boss-fortress.test.mjs`, `tests/boss-runtime.test.mjs` |
+| DMA-on maximum | 31,237 (`director-complete-2` f5797) | **31,237** (same row) | `docs/runtime-wall-trace.json` |
+| behavioural clause failures | 1 (`lower-playfield-hostile-contact-atr-hard`) | **1**, the same | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| gameplay against `main` | — | **63 of 63 replay files identical** on 331 gameplay columns frame by frame up to the boss entry | trace CSVs of both builds |
+| the fights, EASY / MEDIUM / HARD (bot, held lives) | 1,847 / 2,353 / 3,557 frames (36.9 / 47.1 / 71.1 s); hits 2 / 3 / 7; lives lost 0 | **2,010 / 2,358 / 3,307 frames (40.2 / 47.2 / 66.1 s)**; hits **1 / 4 / 3**; lives lost **0 / 0 / 0** | same |
+| boss entry (EMULATOR) | 48 sectors, 184 host frames (3.7 s) | **49 sectors, 188 host frames (3.8 s)** | same |
+| `npm test` (default build) | 1,056 / 1,055 / 1 | **1,068 / 1,067 / 1**: `preview` (recorded) | [recorded-test-failures.json](recorded-test-failures.json) |
+| initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
+| extension / total transport sectors | 104 / 211 | **104 / 211** | same |
+| ATR menu frame (baseline 596) | 550 (BASIC 541) | **550** (BASIC 541) | boot smoke |
+| `$AE00` window free | 1,316 | **1,316** | `residentCapacity.basicWindow` |
+| slot A (boss) | 1,963 of 2,048 B | **1,995** (53 free, 16 sectors) | `build/boss.lbl`, manifest `boss` |
+| slot C `$1000-$17FF` | 1,748 of 2,048 B (13 sectors) | **2,003** (code + rodata + ASM 1,782, 14 sectors; BSS 221) | same |
+| install run / scratch page | 346 of 384 B / 237 of 256 B | **346 / 249** | same |
+| slot B | 768 B | **768 B** | same |
+| region 1 charset at `$0C00` | 938 B, 109 of 128 codes, 8 sectors | **994 B, 112 of 128 codes, 8 sectors** (the region run 16 of 16) | manifest `boss.regions` |
+| `$0500` summary module / sector reader | 115 free / 29 free | **unchanged** | manifest |
+| low RAM | `$0C00-$18FF` the boss's claim; `$1900-$1FFF` unclaimed | **unchanged** | generated memory map |
+| disk | 528–559; region 1 632–647 | **528–560** (code 16, install 3, slot C 14); region 1 632–647 | `build/manifest.json` |
+| ATR SHA-256 | `af0180b356ec33bf…` | **`0ce833f6a6bef587691d01cfec4ccb7611ecd3d19690ad33e1edcb90afe31d6d`** | `dist/` |
+| boot SHA-256 | `b84ab9dbd4355ae8…` | **`b84ab9dbd4355ae86644b8bd98cdfd3959e76e273a2a81d7554f4e12f64d7ce2`** (unchanged) | `dist/` |
+
+Debug-route ATRs (`build/<variant>/`, never `dist/`): level 1's boss sector
+`build/level-1-s4/void-strike-65.atr` `fd0eb82be9720f03…`; its capital sector
+`build/level-1-s1/void-strike-65.atr` `066af2ff227e74f3…`.
+
+**Read before accepting.** The stress pin reads 6,876 of 7,000 (the owner's
+note: reviewed in S4b against the boss-frame margins, which are above 11,000).
+**Slot A has 53 B, slot C 45 B, the scratch page 7 B left**: S4b's lasers
+still need the next once-per-entry ASM out of slot A first (plan §5.15.7 item
+9). In the band a shot is light steel, not the playfield's pale yellow (answer
+2). The fight's lengths moved (EASY +3.3 s: shots now fly to their stop cell;
+HARD −5 s: gun-3 needs one plate). Region 1's art stays the agent-drawn
+placeholder (decision G). **Smoke on copies** (§12).
+
+**NEXT TASK:** the owner's smoke (`hardware-testing.md` §16); then S4b
+(`feat/boss-lasers`), not started.
+
 ## The fortress session — region 1 as the layered fortress, the fight's feedback and fire — `OWNER-SMOKE CANDIDATE` (2026-10-05)
 
 Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
@@ -419,8 +489,8 @@ queue's merge out of slot A first (item 9). The stress pin reads 6,676 of
 loader, Q-B8). Region 1 has no escort Light (owner answer). **Smoke on copies**
 (§12).
 
-**NEXT TASK:** the owner's smoke (`hardware-testing.md` §15); then S4b
-(`feat/boss-lasers`), not started.
+**NEXT TASK:** superseded by `fix/boss-readability` above (owner decision M
+after the merged fortress's smoke).
 
 ## M5b-S4a-i — the layered boss engine, slot C and the region charset — `OWNER-SMOKE CANDIDATE` (2026-10-04)
 

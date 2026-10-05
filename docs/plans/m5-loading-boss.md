@@ -2591,7 +2591,7 @@ Art note for the owner's retouch: the X-braced girders and the open bay's wall
 strips are hull art, not modules, so they now stand alone below the hull line
 once their plates are gone.
 
-### 5.16 Boss readability — shots up to the boss, the skeleton that does not block, covers that match the art (2026-10-05, `fix/boss-readability`: Phase A the diagnosis and the price, `OWNER REVIEW CANDIDATE`)
+### 5.16 Boss readability — shots up to the boss, the skeleton that does not block, covers that match the art (2026-10-05, `fix/boss-readability`: Phase A the diagnosis and the price; Phase B built, `OWNER-SMOKE CANDIDATE`, §5.16.6)
 
 Under owner decision M (§1.6). **Phase A only**: no source, cfg, script, test,
 asset or evidence byte is changed on the branch; the probe below was built into
@@ -2752,6 +2752,123 @@ Recommended: (ii), data only.
 | 6 | **The capital sector's opaque shot cell over a shell stays**; recorded as **decision M2** | — |
 | — | **The pin**: the boss stays within 7,000 native as briefed, without trading code clarity for the last cycles; if trimming cannot keep the measured stress case there, the figures are reported. The pin is reviewed in S4b against the measured boss-frame margins | Phase B |
 
+#### 5.16.6 As built (Phase B, 2026-10-05, `OWNER-SMOKE CANDIDATE`)
+
+Implemented as §5.16.2's option a under decisions M, M1, M2 and the answers of
+§5.16.5. Figures MEASURED from the linked images, the regenerated evidence or a
+named 6502-harness test; load figures EMULATOR.
+
+**What was built.**
+
+* **The collision moves to the stop cell.** Per band column a **stop line** -
+  the line under the cell that stops a player shot: the front intact module's
+  bottom row, else the hull's own stop row, else 0 (open sky) - lives beside
+  the column map in slot C's BSS (64 B, with a 16-B table of each module's
+  bottom line) and is rebuilt wherever the map is. In UPDATE a shot inside the
+  band (`boss_shot_meet`, slot C) meets its column with one compare; until
+  then it is **drawn into its cell when the cell is blank** and passes behind
+  anything drawn (decision M1's strip, the girder stubs, the row-4 pieces);
+  past the band's top it is removed. Last frame's cells get the blank back
+  only while they still show a shot (`boss_shots_restore`).
+* **The shot's look**: four region codes after the nozzle codes (horizontal
+  phase 0 / 2, vertical phase 0 / 2 - the pair repeats every four lines),
+  the playfield PlayerFighter glyphs from `assets/graphics/fighter-weapons.json`
+  with colour 3 moved to **COLPF0, light steel `$0A`** (answer 2).
+* **The hull's own rows** (`hullRows` in `modules.json`, region 1: 4): the
+  converter computes per column the lowest non-blank cell of those rows that
+  is no module's, packed a nibble a column into the look tail (32 B); a column
+  is ARMOUR only where such a cell exists. **The hull's deflection lands on
+  that cell** - never on a module's, so no module's queued draw can take a
+  cell the ring holds: **the stray plate glyph of §5.16.1 is gone**.
+* **Region 1's drafts** (answers 4, 5): the girders end one row under the
+  hull line; the bay's wall strips are removed; **plate-e spans 36-40** (5 × 4,
+  10 HP: the size rule) and **plate-f 41-42** (2 × 4, 6 HP), so gun-3's cover
+  is plate-e alone.
+
+**The cover audit, re-run** (`tests/boss-readability.test.mjs`, "every
+cannon's cover is exactly what stands in front of each of its columns", and
+"every cannon is drawn whole and hittable in every column once its cover
+falls", both on the built bytes):
+
+| Cannon | Cells | Cover mask | In front of each column | Finding |
+| --- | --- | --- | --- | --- |
+| gun-1 | 23-25, rows 1-2 | plate-c | 23-25: plate-c | consistent |
+| gun-2 | 26-28, rows 2-3 | none (open bay) | - | consistent |
+| emitter (capped) | 30-33, rows 1-2 | plate-d | 30-33: plate-d | consistent |
+| gun-3 | 38-40, rows 1-2 | **plate-e** | **38-40: plate-e** | **consistent** (was e + f, per column inconsistent) |
+| gun-4 | 44-46, rows 2-3 | plate-g | 44-46: plate-g | consistent |
+
+**Deviations and findings, each reported:**
+
+1. **The shot glyphs come from the converter, not the install**: the first
+   build copied them from the gameplay charset at the install (the probe's
+   way); the 6502 harness's image has no gameplay charset there, and the
+   converter route costs no slot-C code. The draft loader carries them, so the
+   build, the preview and every test compile the same bytes.
+2. **Vertical phases 0 and 2**, not 0 and 4 as the probe had: the PairShot
+   glyph's dash pair repeats every four lines, so 0 and 4 are the same glyph.
+3. **The trace's debug-route bot never fires in the boss sector when it holds
+   FIRE from frame 0** (`gameplay_fire_gate` opens only on a released
+   trigger; the boss entry runs before the bot's first released frame) - a
+   scenario property of `director-complete-*` on a `build/level-1-s4/` run,
+   not a production defect; Phase A's boss-sector trace used `2-sweep-fire2`.
+   No clause depends on it.
+4. **The uncharged stress case**: the Q-B6 drive (five hits a frame on every
+   reachable module) measures **6,876** native; if a frame also restored five
+   in-band shots drawn the frame before - which real fire cannot produce: at
+   most three player shots are ever in the band at once (a spread volley),
+   and a burst's shots are 9 frames apart - it would be **7,046**
+   (`build/probe-artifact/stress.probe.mjs`, not committed). Reported, not
+   gated (the owner's pin note, §5.16.5).
+
+**Bytes, by home (MEASURED, `build/manifest.json`, the generated memory map):**
+
+| Home | Decision L (`main`) | Now | Limit |
+| --- | ---: | ---: | ---: |
+| slot A | 1,963 | **1,995** (53 free) | 2,048 |
+| slot C | 1,748 (13 sectors) | **2,003** (code + rodata + ASM 1,782, 14 sectors; BSS 221) | 2,048 |
+| scratch page | 237 | **249** | 256 |
+| install run | 346 | **346** | 384 |
+| slot B | 768 | **768** | 768 |
+| region 1 charset | 938 B, 109 codes, 8 sectors | **994 B, 112 codes**, 8 sectors (region run 16 of 16) | 1,024 B, 128 codes |
+| initial block / window / reader / `$0500` | 13,621 / 1,316 free / 29 free / 115 free | **unchanged** | 13,652 / - / - / - |
+| boss entry (EMULATOR) | 48 sectors, 184 host frames | **49 sectors, 188 host frames (3.8 s)** | - |
+
+**Timing and gameplay (regenerated evidence):**
+
+| | `main` (decision L) | Now | Source |
+| --- | --- | --- | --- |
+| worst fence margin | 1,370 (`2-evasive-fire3` f287) | **1,370**, the ten worst rows `main`'s value for value | fence scan of the replay CSVs (`scripts/pal-timing-audit.mjs`'s samples), boss and boss-entry rows apart |
+| boss frames: worst fence / DMA-on | 12,523 / 28,457 over 11,958 | **11,281** (`director-complete-2` f9755) **/ 28,683** over 11,626 | same |
+| boss per-frame work, native (Q-B6 7,000) | 6,676 (fortress), 5,289 (core-boss drive) | **6,876** (fortress), **5,516** (core-boss drive) | `tests/boss-fortress.test.mjs`, `tests/boss-runtime.test.mjs` |
+| DMA-on maximum | 31,237 | **31,237** (the same pre-boss row) | `docs/runtime-wall-trace.json` |
+| miss events / clause failures | 0 / 1 | **0 / 1, the same** (`lower-playfield-hostile-contact-atr-hard`) | same |
+| gameplay before the boss | - | **63 of 63** replay CSVs identical to `main` on 331 gameplay columns, frame by frame up to the boss entry (entry frames 9,734 / 8,787 / 7,877 as on `main`) | trace CSVs of both builds |
+| the fights, EASY / MEDIUM / HARD (bot, held lives) | 1,847 / 2,353 / 3,557 frames (36.9 / 47.1 / 71.1 s); hits 2 / 3 / 7; lives lost 0 / 0 / 0 | **2,010 / 2,358 / 3,307 frames (40.2 / 47.2 / 66.1 s)**; hits taken **1 / 4 / 3**; lives lost **0 / 0 / 0** | same (rows in the fight phase; the evidence's engaged→defeated count is one frame less) |
+
+MEDIUM stays inside decision I's 45-60 s with no tuning. EASY is longer (the
+shots fly to their stop cells instead of hitting at the band's edge); HARD is
+shorter (gun-3 needs plate-e's 10 HP instead of plate-e's 8 and plate-f's 6).
+
+**Tests and artifacts.** RED → GREEN: `tests/boss-readability.test.mjs`, 12
+tests, 10 RED on `main`'s build (`566f243`; green there by nature: every cannon
+hittable once its whole cover is down, the charset budget), all 12 GREEN on
+`a0ac18e`. Re-pointed (`fefe576`, each with its reason in the file, every
+behavioural assertion still executed): the harness's and `boss-runtime`'s
+`shootAt` (a test shot starts in its stop cell), `boss-fortress`'s hull-hit
+row (the hull stop), gun-3's cover and the absorb path on an explicit-cover
+copy of region 1, `boss-assets-v2`'s ARMOUR rule, `boss-runtime`'s patched
+operands. `npm test` on the default build: **1,068 tests, 1,067 pass, 1 fail -
+`preview`, the recorded one** (the first run also failed the three hash-bound
+media tests, regenerated by their own tools in `999f490`; the other recorded
+name passes, as on `main`). Default ATR
+`0ce833f6a6bef587691d01cfec4ccb7611ecd3d19690ad33e1edcb90afe31d6d`, boot
+`b84ab9dbd4355ae86644b8bd98cdfd3959e76e273a2a81d7554f4e12f64d7ce2` (unchanged);
+the debug-route ATRs `build/level-1-s4/void-strike-65.atr` (level 1's boss
+sector) `fd0eb82be9720f03c2a8ecaf77980f05cf6f5e4b2a1cdded32c6a0e0aa2e1e05` and
+`build/level-1-s1/void-strike-65.atr` (its capital sector)
+`066af2ff227e74f319e4d8a59cc7289825197d60e9a62fd471249d8553ee55e5`.
+
 ---
 ## 6. Ledgers
 
@@ -2850,7 +2967,13 @@ install 3 + slot C 11 in 528–583 and region 1 in 632–646; the entry reads
 + `boss_prepare` 206, 13 sectors), scratch 237 of 256, install 346 of 384,
 slot B 768 of 768, region 1's charset 978 B in 8 sectors; the disk holds code
 16 (528–543) + install 3 + slot C 13 (547–559) and region 1 in 632–647 (16 of
-16); the entry reads **48** sectors.
+16); the entry reads **48** sectors. **`fix/boss-readability` MEASURED
+(§5.16.6):** slot A **1,995** of 2,048 (53 free; decision L had left 1,963),
+slot C **2,003** of 2,048 (code + rodata + ASM 1,782, 14 sectors; BSS 221 with
+the 80-B stop-line tables), scratch **249** of 256, install 346 of 384, slot B
+768 of 768, region 1's charset **994 B, 112 of 128 codes** (the four shot codes
+and the 32-B hull-stop table), 8 sectors; slot C 547–560; the entry reads
+**49** sectors.
 
 **The initial block to the end of the road** (31 B to STOP today; the
 ceiling 13,684 is 32 B further and is not budgeted):
@@ -2875,7 +2998,7 @@ ceiling 13,684 is 32 B further and is not budgeted):
 | total transport | 209 | 212 (**211**) | |
 | ATR menu frame (baseline 596, warn 606) | 547 | ~553 (**~551**: +2 sectors at the sizing rule; not boot-smoked in the spike) | 2 frames per sector, sizing rule |
 | disk, level runs from 320 | 13 used | 192 reserved (12 × 16) | sectors 320–511 |
-| disk, overlay runs from 512 | — | capital restore 16, boss code 16, boss regions 40, summary code 4, summary art 4 × 7 = 28, save record 1, attract 4 = **109** — **MEASURED after S2: summary code 12 (584–595), save record 599, art 600–627; 528–583 reserved for M5b; 117 with the attract stream**. **Spike: four regions at 12 sectors need 64 of the 56 reserved; with the once-only install as one shared 3-sector run, 16 + 3 + 4 × 9 = 55 (§5.11.4 item 8, Q-S6)**. **S4a-i MEASURED: 528–583 holds code 9 + install 3 + slot C 11 = 23 (sized runs, Q-B8); regions 16 each from 632 — region 1 uses 15 (632–646), 648–695 reserved**. **Fortress session MEASURED: code 16 + install 3 + slot C 13 = 32 of 56; region 1 uses 16 of 16 (632–647)** | sectors 512–631; speech would add 12–61; the hangar (item 18) is absorbed by the summary art |
+| disk, overlay runs from 512 | — | capital restore 16, boss code 16, boss regions 40, summary code 4, summary art 4 × 7 = 28, save record 1, attract 4 = **109** — **MEASURED after S2: summary code 12 (584–595), save record 599, art 600–627; 528–583 reserved for M5b; 117 with the attract stream**. **Spike: four regions at 12 sectors need 64 of the 56 reserved; with the once-only install as one shared 3-sector run, 16 + 3 + 4 × 9 = 55 (§5.11.4 item 8, Q-S6)**. **S4a-i MEASURED: 528–583 holds code 9 + install 3 + slot C 11 = 23 (sized runs, Q-B8); regions 16 each from 632 — region 1 uses 15 (632–646), 648–695 reserved**. **Fortress session MEASURED: code 16 + install 3 + slot C 13 = 32 of 56; region 1 uses 16 of 16 (632–647)**. **`fix/boss-readability` MEASURED: slot C 14 (547–560): 33 of 56; region 1 16 of 16** | sectors 512–631; speech would add 12–61; the hangar (item 18) is absorbed by the summary art |
 | free sectors after twelve levels and every recommended item | 319 | **210** | |
 
 ### 6.4 Load time, by transition (frames at 3.77 per sector; EMULATOR; 1050 ×2; SIO2SD fast ÷3 ESTIMATE)
@@ -2884,7 +3007,7 @@ ceiling 13,684 is 32 B further and is not budgeted):
 | --- | ---: | ---: | ---: | ---: |
 | START GAME, first level of a session (summary code 4 + art 7 + level 13 + record 1) | 49 (1.0 s) | 94 (1.9 s), behind the summary screen | 0.6 s (not built: the fast loader is optional) | 3.8 s |
 | transition after a boss (art 7 + restore 16 + level 13 + record 1) | — | 139 (2.8 s) + the write, behind the summary; a 3-s minimum display covers it | 0.9 s | 5.6 s (exceeds the minimum by ~2.6 s: `LOADING` stays up) |
-| boss entry (code 16 + region 10), mid-level — **spike MEASURED: 28 sectors (code 16 + region 12), 107 host frames (2.1 s), EMULATOR, every entry** | — | 98 (2.0 s) behind the `WARNING` banner (**107**; **S3 MEASURED: 28 sectors, 108 host frames, 2.2 s**, behind `WARNING - BOSS APPROACHING`; **S4a-i MEASURED: 38 sectors — theme 2, code 9, install 3, slot C 11, band 3 + 3, charset 7 — 146 host frames, 2.9 s**; **fortress session MEASURED: 48 sectors — theme 2, code 16, install 3, slot C 13, band 3 + 3, charset 8 — 184 host frames, 3.7 s**) | 0.7 s | 3.9 s (**~4.3 s**) |
+| boss entry (code 16 + region 10), mid-level — **spike MEASURED: 28 sectors (code 16 + region 12), 107 host frames (2.1 s), EMULATOR, every entry** | — | 98 (2.0 s) behind the `WARNING` banner (**107**; **S3 MEASURED: 28 sectors, 108 host frames, 2.2 s**, behind `WARNING - BOSS APPROACHING`; **S4a-i MEASURED: 38 sectors — theme 2, code 9, install 3, slot C 11, band 3 + 3, charset 7 — 146 host frames, 2.9 s**; **fortress session MEASURED: 48 sectors — theme 2, code 16, install 3, slot C 13, band 3 + 3, charset 8 — 184 host frames, 3.7 s**; **`fix/boss-readability` MEASURED: 49 sectors (slot C 14), 188 host frames, 3.8 s**) | 0.7 s | 3.9 s (**~4.3 s**) |
 | return to the menu | 0 | 0 (the frontend stays resident) | 0 | 0 |
 
 ### 6.5 Cycles and DMA, by row family

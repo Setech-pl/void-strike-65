@@ -412,6 +412,50 @@ the tick's sound on a real POKEY, and the CA drive's entry time.
 
 ---
 
+## 16. Boss readability: shots up to the boss, the skeleton that does not block (`fix/boss-readability`)
+
+Plan §5.16 (owner decisions M, M1, M2 and the answers of §5.16.5). **On
+copies**, as §12. Three disks: the default ATR (level 1 to its boss), the
+debug-route ATR that starts in level 1's **boss sector**
+(`build/level-1-s4/void-strike-65.atr`) and the one that starts in its
+**capital sector** (`build/level-1-s1/void-strike-65.atr`). Emulator figures,
+for comparison only (EMULATOR): the entry reads 49 sectors in about 188 frames
+(3.8 s); the bot's fights took 40 / 47 / 66 s on EASY / MEDIUM / HARD, 1 / 4 / 3
+hits, no life lost. Artifacts: default ATR `0ce833f6…` (`npm run play:atr`),
+boss debug ATR `fd0eb82b…`, capital debug ATR `066af2ff…`
+(`atari800 -xe -pal -nobasic <absolute path>`).
+
+- [ ] **Shots all the way to the boss.** Fire at a cannon whose plate is gone:
+      the shot stays visible inside the band, light steel (the band cannot
+      show the playfield's pale yellow; light steel is the closest), cell by
+      cell up to the cannon, and the spark appears on the cannon. It may vanish
+      for one frame behind a girder stub or the thin hull strip under a
+      cannon - that is it passing behind them.
+- [ ] **No stray piece after a hit.** Destroy a plate and keep firing into its
+      columns: nothing of the plate stays hanging below the hull (the torn
+      fragment §5.16.1 found). Hits on the boss leave nothing behind.
+- [ ] **Shots pass the skeleton.** A shot in a girder's column flies past the
+      short girder to the hull above it (a deflection there); a shot under
+      gun-4 passes the small hull pieces and hits gun-4.
+- [ ] **The gone look.** Girders end one row under the hull line; the open bay
+      has no red dotted wall strips.
+- [ ] **Every cannon is fully visible and hittable once uncovered.** gun-3 (the
+      right-hand cannon of the middle pair) is behind one wide plate now: when
+      that plate falls it opens fire and takes damage in all three columns.
+- [ ] **Open sky.** At the band's far ends, a shot that misses the hull flies
+      up through the band and vanishes at its top - nothing appears in the row
+      above the band.
+- [ ] **The capital sector** (capital debug ATR): a player shot crossing a
+      broadside shell hides half of the shell for a frame or two - known and
+      accepted (decision M2); nothing stays behind after it.
+- [ ] **Length and danger**: MEDIUM roughly 45-60 s.
+- [ ] **GAME OVER inside the boss sector** (boss debug ATR: lose three lives,
+      with shots in the band when it ends), then START GAME: level 1 starts as
+      always, no boss shot or player shot left anywhere, normal characters, the
+      engine hum, the world scrolling. **RESET** returns to the splash.
+
+---
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

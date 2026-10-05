@@ -250,6 +250,7 @@ cell's intact, cracked and broken looks must agree on it.
 | `chain` | `blasts` (at least one a module: the chain passes every module, standing armour included), `framesBetween` |
 | `fire.cooldown` | the least frames between two firings (one countdown serves every weapon: the next armed weapon fires when it runs out, and it restarts from that weapon's `reload`, EASY +1/2, HARD -1/4). A pulse cannon fires one PULSE shot of the shared hostile pool from its centre column at the band's bottom edge, straight down; a salvo launcher three, on three frames, from the columns left of, at and right of its centre; one spawn a frame, a full pool drops the shot |
 | `capped.hp` | a capped emitter's hit points |
+| `hullRows` | 1-8, default 8: how many band rows, from row 0 down, are the hull's own (owner decision M). Hull art below them is drawn but stops no shot; a column whose hull rows hold no cell outside a module is open sky once its modules are gone. Region 1: 4 |
 | `nozzles` | `left` and `right`: the `[column, row]` cells that show that nozzle; `framesPerPhase` (the three phases cycle; both nozzles go dark at the defeat). `band.png` must show each side's phase 0 there. The window shows band columns 4 + p/4 to 43 + p/4, so over the travel (p 0-63) columns 4-59: put the ends inside that range |
 | `modules[]` | up to 16: `name`, `kind` (`armour`, `pulse`, `emitter`, `salvo`, `core`), `x`, `row`, `width` (1-6), `height` (1-4), at most 24 cells, `cavityRows` (0 to the height: how many of the module's top rows lie inside the hull's silhouette; default 0 for armour, the full height for a weapon), `hp` (1-100), `score` (0-99, packed BCD), `slot` (emitters only, 1-4), `reload` (frames, 0 = never fires), `cover` (`"auto"` or a list of module names) |
 
@@ -257,8 +258,17 @@ Every kind but armour is a **weapon**; the boss is defeated when its last
 weapon is destroyed, armour left standing or not. Rows count from the player's
 side: row 7 is the front. A module is **exposed** when every module of its
 cover is destroyed; `"auto"` is every module in a nearer row whose columns
-overlap it. A covered module absorbs shots: no damage, and not a hit for the
-accuracy stat (Q-B7). **A destroyed module disappears** (owner decision L):
+overlap it - author covers so that what covers a module stands in front of
+**every** one of its columns (plan §5.16.3: a cannon half-uncovered by one of
+two staggered plates absorbs where the player sees it bare). A covered module
+absorbs shots: no damage, and not a hit for the accuracy stat (Q-B7).
+**A player shot is drawn inside the band** (decision M) up to the cell that
+stops it: the column's front intact module's bottom row, else the hull's
+lowest own-row cell that is no module's, else nothing (it leaves the band's
+top and is removed). On its way it is drawn into blank cells only and passes
+behind anything drawn (hull art below the hull line; the thin strip under a
+recessed cannon, decision M1), with four codes the converter adds after the
+nozzle codes (the playfield shot's glyphs in COLPF0). **A destroyed module disappears** (owner decision L):
 its top `cavityRows` rows become the cavity code, the rows below the hull band
 background - no rim, no outline, nothing over a neighbour - and a shot in its
 columns then meets the module behind it, or the hull. The exposure check
@@ -268,7 +278,7 @@ look) goes through a queue that draws one module a frame (§5.15.6 item 2).
 **Every hit reads** (decision J): a damaging hit shows the spark in the struck
 cell (the module's bottom row at the shot's column) for 2 frames, flashes the
 band for one frame and ticks on channel 3; a covered module's or the hull's
-absorb shows the deflection (the hull: on the column's lowest drawn cell) with
+absorb shows the deflection (the hull: on the column's hull stop cell) with
 a tick of its own. The kill sounds on channel 2, the win's blasts on channel 4.
 
 **Damage stages.** A module cracks at 2/3 of its hit points and breaks at 1/3.

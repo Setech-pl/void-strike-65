@@ -231,13 +231,14 @@ test("the core boss: Q-B3's hit points, an open core, capped plate and the cavit
     region.modules.forEach((module) => assert.ok(module.cavityRows >= 0 && module.cavityRows <= module.height));
     assert.ok([...region.runs.charset.data.subarray(0, BOSS_DIVIDER_CODES * 8)].every((b) => b === 0));
     // Every band column with hull is armour, open sky elsewhere. Re-pointed in
-    // fix/boss-readability (decision M, plan §5.16): "hull" is a cell of the
-    // hull's own rows (0 .. hullRows - 1) that no module owns - a module's
-    // cells and hull art below the hull line stop no shot once the module is
-    // gone. A region without hullRows counts every row, as before.
+    // fix/boss-readability (decisions M and O, plan §5.16): "hull" is a cell no
+    // module owns and that is not a girder's see-through cell.
     for (let c = 0; c < BOSS_BAND_COLUMNS; c += 1) {
       const owned = (r) => region.modules.some((m) => c >= m.x && c < m.x + m.width && r >= m.row && r < m.row + m.height);
-      const hull = region.bandRows.some((row, r) => r < region.hullRows && row[c] !== 0 && !owned(r));
+      // RE-POINTED again (decision O): hullRows left the format; only the
+      // named seeThrough cells (decision M's girders) are see-through.
+      const seen = (r) => region.seeThrough.some(([sc, sr]) => sc === c && sr === r);
+      const hull = region.bandRows.some((row, r) => row[c] !== 0 && !owned(r) && !seen(r));
       assert.equal((region.tables[BOSS_TABLE.armour + (c >> 3)] >> (c & 7)) & 1, hull ? 1 : 0, `column ${c}`);
       assert.equal(region.hullStop[c] !== null, hull, `column ${c}: the hull stop`);
     }

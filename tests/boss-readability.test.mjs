@@ -161,7 +161,10 @@ test("a shot is drawn cell by cell inside the band until the cell that stops it,
   assert.ok(!bandHasShot(memory), "a shot glyph stayed in the band");
 });
 
-test("decision M1: a shot passes behind the thin hull strip under a recessed cannon and hits the cannon", () => {
+// RE-POINTED (owner decision O, which withdraws M1): there is no strip under
+// gun-1 any more - the shot is drawn through its empty recess, row 3
+// included, up to the cannon.
+test("decision O: a shot flies up a recessed cannon's empty recess and hits the cannon", () => {
   const memory = fortress(32);
   kill(memory, "plate-c");
   const gun1 = byName.get("gun-1");
@@ -169,10 +172,10 @@ test("decision M1: a shot passes behind the thin hull strip under a recessed can
   const hits = memory[STATS_HITS];
   const track = fly(memory, 24);
   assert.equal(track.at(-1).active, false);
-  assert.equal(hp(memory, gun1), before - 1, "gun-1 behind the strip took no damage");
+  assert.equal(hp(memory, gun1), before - 1, "gun-1 took no damage");
   assert.equal(memory[STATS_HITS], hits + 1, "the hit is not counted");
-  assert.ok(track.some((step) => step.row === 4 && isShot(step.cells[4])), "the shot is not drawn under the strip");
-  assert.ok(track.every((step) => !isShot(step.cells[3])), "the shot is drawn over the hull strip");
+  assert.ok(track.some((step) => step.row === 4 && isShot(step.cells[4])), "the shot is not drawn in row 4");
+  assert.ok(track.some((step) => step.row === 3 && isShot(step.cells[3])), "the shot is not drawn in the recess (row 3)");
 });
 
 test("a shot over open sky beyond the hull is drawn in the band and removed when it leaves the band's top", () => {
@@ -187,10 +190,13 @@ test("a shot over open sky beyond the hull is drawn in the band and removed when
     "the shot was not drawn on its way through the band");
 });
 
-test("hull art below the hull line stops nothing: a girder column's shot meets the hull's own row", () => {
+// RE-POINTED (decision O): the girders are region 1's named see-through cells
+// (seeThrough, row 4 - the hull line plus one row), no longer every row below
+// a hullRows line.
+test("the girders stop nothing: a girder column's shot meets the hull above it", () => {
   const memory = fortress(32);
-  const hullRows = layout1.hullRows;
-  assert.equal(hullRows, 4, "region 1 names its hull rows");
+  const hullRows = 4;
+  assert.deepEqual(layout1.seeThrough, [[16, 4], [35, 4], [49, 4]], "region 1's see-through cells are the girders'");
   for (const column of [35]) {
     assert.equal(columnMap(memory)[column], BOSS_COLUMN_ARMOUR, `column ${column} is not hull`);
     const track = fly(memory, column);
@@ -203,18 +209,20 @@ test("hull art below the hull line stops nothing: a girder column's shot meets t
   }
 });
 
-test("a shot in a column with a hull piece under the hull line passes through to the module behind", () => {
+// RE-POINTED (decision O): gun-4's row-4 pieces under it are gone; its
+// recess is empty to the plate, and the shot is drawn in it.
+test("a shot in a column under gun-4 flies through its empty recess to the cannon", () => {
   const memory = fortress(32);
   kill(memory, "plate-g");
   const gun4 = byName.get("gun-4");
   for (const column of [44, 46]) {
-    assert.notEqual(region1.bandRows[4][column], 0, `column ${column} has no hull piece in row 4`);
+    assert.equal(region1.bandRows[4][column], 0, `column ${column}: hull art in row 4 under gun-4`);
     const before = hp(memory, gun4);
     const track = fly(memory, column);
     assert.equal(track.at(-1).active, false);
     assert.equal(hp(memory, gun4), before - 1, `column ${column}: gun-4 took no damage`);
     assert.ok(track.some((step) => step.active && step.row >= 5 && isShot(step.cells[step.row])),
-      `column ${column}: the shot is not drawn under the piece`);
+      `column ${column}: the shot is not drawn in the recess`);
   }
 });
 
@@ -242,7 +250,8 @@ test("the gone look: girders end one row under the hull line and the bay's wall 
   for (const m of region1.modules) for (let r = m.row; r < m.row + m.height; r += 1) {
     for (let c = m.x; c < m.x + m.width; c += 1) owned.add(r * 64 + c);
   }
-  const hullRows = layout1.hullRows ?? 8;
+  // RE-POINTED (decision O): the hull line is row 3 (hullRows left the data).
+  const hullRows = 4;
   for (let row = hullRows + 1; row < 8; row += 1) {
     for (let column = 0; column < 64; column += 1) {
       if (owned.has(row * 64 + column)) continue;

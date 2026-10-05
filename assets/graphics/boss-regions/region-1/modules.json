@@ -37,14 +37,32 @@
   "nozzles": {
     "_": "The engine nozzles at both ends (decision K): the cells that show the left and the right nozzle glyph; their three phases (extras.png) cycle every framesPerPhase frames and go dark on the win's first blast.",
     "left": [
-      [6, 2],
-      [6, 3],
-      [6, 4]
+      [
+        6,
+        2
+      ],
+      [
+        6,
+        3
+      ],
+      [
+        6,
+        4
+      ]
     ],
     "right": [
-      [57, 2],
-      [57, 3],
-      [57, 4]
+      [
+        57,
+        2
+      ],
+      [
+        57,
+        3
+      ],
+      [
+        57,
+        4
+      ]
     ],
     "framesPerPhase": 6
   },
@@ -52,7 +70,7 @@
     {
       "name": "gun-1",
       "kind": "pulse",
-      "x": 23,
+      "x": 22,
       "row": 1,
       "width": 3,
       "height": 2,
@@ -110,17 +128,6 @@
       "cavityRows": 2
     },
     {
-      "name": "cowl-left",
-      "kind": "armour",
-      "x": 7,
-      "row": 5,
-      "width": 4,
-      "height": 3,
-      "hp": 6,
-      "score": 20,
-      "cavityRows": 0
-    },
-    {
       "name": "plate-a",
       "kind": "armour",
       "x": 11,
@@ -136,16 +143,16 @@
       "kind": "armour",
       "x": 17,
       "row": 3,
-      "width": 5,
+      "width": 4,
       "height": 4,
-      "hp": 10,
+      "hp": 8,
       "score": 30,
       "cavityRows": 0
     },
     {
       "name": "plate-c",
       "kind": "armour",
-      "x": 22,
+      "x": 21,
       "row": 4,
       "width": 4,
       "height": 4,
@@ -156,9 +163,9 @@
     {
       "name": "plate-d",
       "kind": "armour",
-      "x": 29,
+      "x": 30,
       "row": 4,
-      "width": 6,
+      "width": 5,
       "height": 4,
       "hp": 10,
       "score": 30,
@@ -207,17 +214,7 @@
       "hp": 8,
       "score": 20,
       "cavityRows": 0
-    },
-    {
-      "name": "cowl-right",
-      "kind": "armour",
-      "x": 54,
-      "row": 5,
-      "width": 3,
-      "height": 3,
-      "hp": 6,
-      "score": 20,
-      "cavityRows": 0
     }
-  ]
+  ],
+  "_decisionN": "Owner decision N (plan §5.16.7): the open bay is columns 25-29 - gun-2 (26-28) with one clear column each side; gun-1 moved to 22-24 so plate-c (21-24) still covers all of it; plate-b 17-20, plate-d 30-34. The cowl plates under the engine housings are removed: a player shot starts at the fighter's centre (HPOS 56 at the left-most), so their columns were in reach at 8-20 of the band's 64 positions."
 }

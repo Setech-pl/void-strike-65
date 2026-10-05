@@ -371,6 +371,14 @@ space; one cannon looked not fully uncovered after its plate fell.
 | ---: | --- | --- |
 | **M** | **The stripped skeleton stays but does not block.** Hull art below the hull line (the X-braced girders) is **shortened to the hull line plus one or two rows** and is **transparent to the player's shots**; the open bay's **red dotted wall strips are removed**; small hull pieces inside the hull rows may stay. **In the column map, hull art below the hull line is OPEN; only modules and the hull's own rows stop a shot.** Whatever stops a shot must be visible as solid at that cell | §5.16 |
 
+**The owner's answers to §5.16's Phase A (2026-10-05).** Two of them refine
+decision M and are recorded here as decisions:
+
+| # | Decision | Applied in |
+| ---: | --- | --- |
+| **M1** | **A thin hull strip directly under a cannon is see-through for the player's shots** (an exception to decision M, kept to those strips): a shot passes behind it and hits the cannon above while the cannon stands. Nothing else in the hull's own rows is see-through | §5.16.5 |
+| **M2** | **The opaque player-shot cell over a broadside shell in the capital sector is known and accepted**: for one or two frames the shot's cell replaces half the shell; no resident byte is spent on it | §5.16.1, §5.16.5 |
+
 ---
 
 ## 2. Phase A — inventory (what is true today, with file:line)
@@ -2730,6 +2738,19 @@ Recommended: (ii), data only.
    spread shot's composite path for every shot over a shell cell: +~15 B in a
    resident segment, a resident-byte question).
 
+
+
+#### 5.16.5 The owner's answers to Phase A (2026-10-05)
+
+| # | Answer | Applied in |
+| ---: | --- | --- |
+| 1 | **Option a**: the player's shots are drawn inside the band up to the cell that stops them; a shot that leaves the band's top is removed (the divider-row artifact goes with it) | slot A, slot C, the converter |
+| 2 | **The shot keeps the playfield's colour** in the band if it can; it cannot match exactly (the playfield shot is `$1E`, the band's colours are region-1 data), so **the closer of amber `$28` and light steel `$0A` - light steel** (RGB distance on `scripts/preview.mjs`'s palette 118 against amber's 187) | the install's glyph copy |
+| 3 | **Option A**: shots pass behind the row-3 strip and hit the cannon above; recorded as **decision M1** | the collision rule (the front module first) |
+| 4 | **gun-3: (ii)** - the plates move in the data so one plate covers all of gun-3's columns; no code change; the cover audit re-run after | region 1's drafts |
+| 5 | **Girders: the hull line plus one row** | region 1's drafts |
+| 6 | **The capital sector's opaque shot cell over a shell stays**; recorded as **decision M2** | — |
+| — | **The pin**: the boss stays within 7,000 native as briefed, without trading code clarity for the last cycles; if trimming cannot keep the measured stress case there, the figures are reported. The pin is reviewed in S4b against the measured boss-frame margins | Phase B |
 
 ---
 ## 6. Ledgers

@@ -2583,6 +2583,154 @@ Art note for the owner's retouch: the X-braced girders and the open bay's wall
 strips are hull art, not modules, so they now stand alone below the hull line
 once their plates are gone.
 
+### 5.16 Boss readability — shots up to the boss, the skeleton that does not block, covers that match the art (2026-10-05, `fix/boss-readability`: Phase A the diagnosis and the price, `OWNER REVIEW CANDIDATE`)
+
+Under owner decision M (§1.6). **Phase A only**: no source, cfg, script, test,
+asset or evidence byte is changed on the branch; the probe below was built into
+`build/level-1-s4/`, measured, saved as `build/probe-artifact/option-a-probe.patch`
+(not committed) and reverted; the variant was rebuilt clean afterwards
+(`045787b3…`, the recorded debug-route ATR).
+
+**Step 0.** `main` `a55d2a5` (decision L, §5.15.8; the fortress commits are on
+`main` linearly - the `feat/boss-fortress-r1` ref itself no longer exists), tree
+clean, one worktree; ATR `af0180b356ec33bf…`, boot `b84ab9dbd4355ae8…`. Branch
+`fix/boss-readability`. Baseline as STATUS records it, with one difference from
+the brief: slot A is **1,963** B after decision L (STATUS, §5.15.8), not 1,961.
+
+#### 5.16.1 The artifacts
+
+**Boss sector — reproduced, root cause found (MEASURED, 6502 harness on `main`'s
+linked bytes, `build/probe-artifact/stale-spark.probe.mjs`).** A kill rebuilds the
+column map at once, but the dead plate's gone draw waits in the draw queue (the
+kill frame and the exposure frame skip their draw, §5.15.7 item 3). A shot that
+meets the dead plate's column in that window is a **hull** hit, and the hull's
+deflection is placed on "the column's lowest drawn cell" - which is still the
+dead plate's broken glyph. The ring record saves that glyph with tag `$FF` (no
+module); the queued gone draw then writes background over the cell but lifts
+only records tagged with its own module; two frames later the ring restores the
+saved broken-plate glyph. A **torn plate fragment stays hanging below the hull
+for the rest of the fight.** Frame by frame on plate-a's cell (12, 6): kill frame
+spark 70 (saves 52) → +1 nothing drawn → +2 the spark restores 52, the next
+shot's deflection 71 saves 52, the gone draw writes 0 → +4 the ring writes 52
+back. Reproduced for plate-a, plate-b, plate-h and cowl-left (any plate with no
+module behind it) whenever the next shot lands one frame after the kill; plate-c
+(gun-1 behind it) is clean. Writer: `boss_ring_restore` (slot A), cause in
+`boss_hit`'s hull branch (`src/hybrid/boss.s`, the 8-row scan) and
+`boss_ring_rebase` (records lifted by tag only). **Nothing in the initial block,
+the window, the reader or `$0500` is involved.**
+
+**Fix (Phase B).** The hull's deflection goes on the column's **hull stop cell**
+- the lowest non-blank cell of the hull's own rows that is no module's
+(decision M's stop cell, from a per-column table the converter computes) - so it
+can never land on a module's cell, which only that module's draws write; the
+8-row scan goes (slot A −8 B net with option a below). Frame placement:
+unchanged (the deflection on the hit frame, its restore 2 frames later).
+
+**Boss sector — a second, smaller artifact (source reading, not hit by the
+bot).** A player shot in an OPEN column (open sky beyond the hull ends, columns
+4-5 / 58-59 at the travel's extremes) flies on hidden until `update_fighter_projectiles`
+frees it at `GAMEPLAY_TOP + 6`; on its last one or two frames
+`initialize_projectile_screen_pointer` (`src/main.s:4572`) draws it on the
+**divider row**, which the boss sector renders in the **region's** charset
+(install step 1, `src/hybrid/boss.s`, only codes 0-6 copied): the shot's code
+11-46 shows as a piece of boss art above the band. Fix: the boss frees a shot
+that leaves the band's top (part of option a, 6 B in slot C).
+
+**Capital sector — not reproduced as stray bytes; same cause as the boss: NO.**
+A focused trace of `main`'s debug-route build starting in level 1's capital
+sector (`build/level-1-s1/`, 1,800 frames, the trace's per-write screen logger
+`DFTRACE_FIRST_WRITER_OUTPUT` and a screenshot a frame) shows 14 frames where a
+player shot shares a cell with a broadside shell (frames 113-114, 542-543,
+716-717, …); every one unwinds last-in-first-out exactly (shot restore at
+VCOUNT ≈ 228 gives the shell glyph 126/127 back, the shell's own erase at ≈ 248
+its backing), and the trace's orphan counters (player shot, hostile shot,
+broadside cells, effects) are 0 on every capital frame, here and in the three
+committed `director-complete-*` replays. What the player **sees** there: the shot's
+cell is opaque, so for one or two frames the shot replaces **half the shell**
+(a black cell with the shot's two dashes where the shell's left or right half
+was). That is the shot drawing over the shell, not a defect in the erase path,
+and it does not exist in the boss's band (shots are not drawn there). If the
+owner's recording shows something else in the capital sector, a frame of it is
+needed to go further; level 1's capital sector has no Light, so its only
+"enemy shot" is the broadside shell.
+
+#### 5.16.2 Shots up to the boss — the options
+
+| | **a. shots drawn in the band (recommended)** | b. band height follows the lowest intact row | c. PMG players P1/P2 over the band |
+| --- | --- | --- | --- |
+| what the player sees | every player shot visible up to the cell that stops it (the stop cell gets the spark); behind a non-blank cell (a girder stub, the hull strip under a recessed cannon) it is hidden for that frame | shots visible only below the band's lowest drawn row; region 1's plates reach row 7 until cowl-left, c, d, f, g, h and cowl-right are all gone, and the defeat needs only c, d, f, g - **the band stays 8 rows for most or all of the fight**; shots still vanish inside the band in every gap | every shot visible over the art, exact pixels, the gameplay yellow; **at most two different x in the band at once** (the spread volley's three: one hidden; a rapid stream while moving: two) |
+| bytes, where | slot A +67 → **2,030 / 2,048 in the probe** (the column map's upkeep and the restore; Phase B moves the upkeep into slot C: slot A ≈ +10); slot C +227 → **1,975** (14 sectors, the boss entry +1 sector); scratch +12 → 249 / 256; region charset: **4 codes** (124-127, 109 → 113 of 128) and a 32-B hull-stop table in the run's unused tail (938 B → ≤ 1,024, 8 sectors, unchanged) | ~80 B slot A (DL rewrite at a frame edge, the DLI's row moves, ring rows revealed); 0 codes | ~110 B slot C, 0 codes, 0 RAM (PMG memory exists); `COLPM1/2` set at the install and restored by Q-S4 |
+| per frame, five shots | **MEASURED**: the Q-B6 drive (five hits a frame on every reachable module) **6,873** native (`main` 6,676); with five in-band restores also charged to that frame (a case real fire cannot make) **7,023**; five shots flying in the band, no hit **4,902** | ~0 (only on a change) | ~200 (ESTIMATE) |
+| DLI / DMA | none / none; the cells are written in UPDATE as the spark is | the band DLI's row moves; risk of DLI phase desync (the DL switch rule) | none / none (player DMA already on) |
+| S4b lasers | missiles untouched; the laser's "retire the shots" is the same logical test; the ring and the queue are untouched (a shot is drawn only into a blank cell and restored only while it still shows a shot) | missiles untouched | missiles untouched; P1/P2 are free in the boss sector (no Heavy); `PRIOR $10` does not affect players |
+| meets decision M | yes | no | yes, except spread |
+
+**Recommendation: a.** It is the only option that shows every shot up to the
+cell that stops it under every booster, and it is the shape decision M's
+collision needs anyway (the stop cell per column). **Probe MEASURED** on the
+debug-route build, the 6502 harness and the emulator:
+
+* the collision moves to the stop cell: per column a stop line (the front
+  module's bottom row; else the hull's lowest own-row cell that is no module's,
+  from the converter; else none) kept beside the column map and rebuilt with it;
+  a shot meets its column with one compare;
+* `flight.probe.mjs`: plate-c gone, a shot in column 24 is drawn in rows 7, 6, 5,
+  4, hidden behind the row-3 hull strip, and hits gun-1 at row 2 (HP 14 → 13);
+* `stale-spark.probe.mjs`: the artifact case is clean on the probe;
+* the emulator (`2-sweep-fire2` on the probe ATR, 1,800 frames): 0 fence misses,
+  the fight proceeds (score events at frames 356-1,167, seven of them, against
+  `main`'s eight at 356-1,283 over the same 1,800 frames; the fight's length is
+  Phase B's to measure).
+
+**The pin is tight**: 6,873 on the Q-B6 drive leaves 127 cycles, and 7,023 if a
+frame restores five drawn shots and resolves five hits together (not producible
+by real fire: a burst is 9 frames apart, a spread volley 3 shots). Phase B
+reduces it (the restore folded into the shot loop, the in-band test before the
+pointer work) and STOPs if the measured Q-B6 figure exceeds 7,000.
+
+**For the owner** (questions, §5.16.4): the in-band shot shows in the band's
+COLPF2 (amber `$28`) unless its glyph is remapped to COLPF0 (light steel `$0A`)
+at the install (0 bytes more); and a recessed cannon (gun-1, the emitter, gun-3)
+has a hull strip in row 3 under it - with the front-module rule its shots pass
+behind that strip (hidden one frame) and hit the cannon; the stricter reading of
+decision M (the hull's row 3 stops them) would make those cannons unhittable
+unless a port is cut in the art under each.
+
+#### 5.16.3 The cover audit (region 1, the converter's geometric masks)
+
+| Cannon | Cells | Cover mask | Columns and what visibly stands in front | Finding |
+| --- | --- | --- | --- | --- |
+| gun-1 | 23-25, rows 1-2 | plate-c | 23-25: plate-c | consistent |
+| gun-2 | 26-28, rows 2-3 | none (open bay) | - | consistent |
+| emitter (capped) | 30-33, rows 1-2 | plate-d | 30-33: plate-d | consistent |
+| **gun-3** | 38-40, rows 1-2 | **plate-e + plate-f** | **38-39: plate-e only; 40: plate-f only** | **inconsistent per column**: after plate-f falls, column 40 shows gun-3 but every hit there is absorbed (plate-e alive) and its housing stays closed; after plate-e falls first, columns 38-39 do the same |
+| gun-4 | 44-46, rows 2-3 | plate-g | 44-46: plate-g | consistent |
+
+No cannon cell stays drawn as covered once its whole mask has fallen (the open
+look is queued at the exposure; decision L's test shows gun-1 whole). **The
+cannon the owner most likely saw is gun-3**: one of its two plates fell, part of
+it showed in its closed housing and did not react. Phase B options: (i) gun-3's
+cover becomes per column (needs a per-column cover rule: the column map already
+answers it - a module is exposed in a column when nothing in front of it is
+alive there), or (ii) the layout moves plate-e/plate-f so one plate spans
+38-40, or (iii) the closed housing gets a cracked-open look per fallen plate.
+Recommended: (ii), data only.
+
+#### 5.16.4 Owner questions (Phase A STOP)
+
+1. **Shots up to the boss**: option a (recommended), b or c.
+2. **The in-band shot's colour**: amber (the band's COLPF2) or light steel (COLPF0).
+3. **Recessed cannons behind the row-3 hull strip** (gun-1, emitter, gun-3):
+   the front module's bottom row is the stop (the shot passes behind the strip,
+   recommended) - or the strip stops shots and the art gets a port under each.
+4. **gun-3's cover**: (ii) one plate spans its columns (recommended), (i) or (iii).
+5. **The girders' new length**: hull line + 1 row (row 4) or + 2 rows (rows 4-5).
+6. **The capital sector**: the shot's opaque cell over a shell (what the trace
+   shows) - leave it, or let the player shot draw composite over a shell (the
+   spread shot's composite path for every shot over a shell cell: +~15 B in a
+   resident segment, a resident-byte question).
+
+
 ---
 ## 6. Ledgers
 

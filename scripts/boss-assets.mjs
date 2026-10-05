@@ -30,6 +30,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { decodeRgbaReferencePng } from "./preview.mjs";
+import { compileEnemyRoster, loadEnemyRosterDefinition } from "./enemy-roster.mjs";
+import { compileFighterWeapons, loadFighterWeaponsDefinition } from "./fighter-weapons.mjs";
 
 export const BOSS_FORMAT_VERSION = 2;
 export const BOSS_BAND_ROWS = 8;
@@ -89,6 +91,8 @@ export const BOSS_TABLE = Object.freeze({
   moduleCount: 12,
   stageStep: 13,         // K: cracked = intact + K, broken = intact + 2K
   cavity: 14,            // a destroyed module's rows inside the hull (decision L); 0 = the blank code
+  shotCode: 15,          // the first of the four in-band shot codes (decision M, plan §5.16)
+  hullStop: 16,          // the hull-stop table's offset into the look tail (decision M)
   cappedCode: 20,        // the capped emitter plate (intact, staged)
   cappedHp: 21,
   cappedCracked: 22,
@@ -153,6 +157,20 @@ export const BOSS_MODULE_MAX_HEIGHT = 4;
 export const BOSS_MODULE_MAX_CELLS = 24;
 export const BOSS_EXTRAS_IMAGE = Object.freeze({ width: BOSS_EXTRAS.cells * 4, height: 8 });
 export const BOSS_NOZZLE_PHASES = 3;
+// Decision M (plan §5.16): the player's shots are drawn inside the band with
+// four codes of the region's charset - horizontal phase 0 / 2 colour clocks x
+// vertical phase 0 / 4 lines - whose bytes the install copies from the
+// gameplay charset's shot glyphs (in COLPF0, the band colour closest to the
+// playfield shot's, §5.16.5 answer 2).
+export const BOSS_SHOT_CODES = 4;
+
+// The four shot glyphs from the gameplay's PlayerFighter phase glyphs
+// (scripts/fighter-weapons.mjs: phaseStride glyphs a horizontal phase, the
+// pair's period is 4 lines): horizontal phase 0 and 2, vertical phase 0 and 2,
+// in the order the overlay picks them - (x & 2) + (y >> 1 & 1).
+export function bossShotGlyphsFrom(playerFighterGlyphs, phaseStride = 9) {
+  return [0, 2, 2 * phaseStride, 2 * phaseStride + 2].map((index) => playerFighterGlyphs[index]);
+}
 
 export class BossDraftError extends Error {
   constructor(message) {
@@ -212,7 +230,16 @@ export function loadBossRegionDraft(directory) {
     images[name] = decodeBossDraftPng(fs.readFileSync(path.join(directory, file)), file,
       name === "extras" ? BOSS_EXTRAS_IMAGE : BOSS_BAND_IMAGE);
   }
-  return { layout, images, directory };
+  return { layout, images, directory, shotGlyphs: loadBossShotGlyphs(path.resolve(directory, "..", "..", "..", "..")) };
+}
+
+// The in-band shot glyphs from the repository's own weapons asset (decision M):
+// the build, the preview and every test compile the same bytes.
+export function loadBossShotGlyphs(rootDirectory) {
+  const graphics = path.join(rootDirectory, "assets", "graphics");
+  const roster = compileEnemyRoster(loadEnemyRosterDefinition(path.join(graphics, "enemy-roster.json")), rootDirectory);
+  const weapons = compileFighterWeapons(loadFighterWeaponsDefinition(path.join(graphics, "fighter-weapons.json")), roster);
+  return bossShotGlyphsFrom(weapons.glyphs.player_fighter);
 }
 
 // One 4 x 8 cell of a draft image: its eight glyph bytes, its colour bank
@@ -377,7 +404,7 @@ function resolveModules(layout) {
 // The conversion
 // ---------------------------------------------------------------------------
 
-export function compileBossRegion(draft, { themeImage = null } = {}) {
+export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null } = {}) {
   const { layout, images } = draft;
   if (layout?.formatVersion !== BOSS_FORMAT_VERSION) {
     fail(`unsupported formatVersion ${JSON.stringify(layout?.formatVersion)} (expected ${BOSS_FORMAT_VERSION})`);
@@ -414,6 +441,9 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   const fireCooldown = integerIn(fire.cooldown, 1, 255, "fire.cooldown");
   const capped = layout.capped ?? {};
   const cappedHp = integerIn(capped.hp, 1, BOSS_MAX_HP, "capped.hp");
+  // Decision M: the band rows that are the hull's own (row 0 down); hull art
+  // below them is drawn but stops no shot. Default: every row.
+  const hullRows = integerIn(layout.hullRows ?? BOSS_BAND_ROWS, 1, BOSS_BAND_ROWS, "hullRows");
   const nozzles = layout.nozzles ?? {};
   const nozzleFrames = integerIn(nozzles.framesPerPhase, 1, 255, "nozzles.framesPerPhase");
 
@@ -549,10 +579,11 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   const K = staged.length;
   const plainBase = BOSS_FIRST_CODE + 3 * K;
   const nozzleBase = plainBase + plain.length;
-  const codeCount = nozzleBase + 2;
+  const shotCode = nozzleBase + 2;
+  const codeCount = shotCode + BOSS_SHOT_CODES;
   if (codeCount > BOSS_MAX_CODES) {
     fail(`the region needs ${codeCount} codes (${K} staged x 3, ${plain.length} plain, 2 nozzles, ` +
-      `${BOSS_DIVIDER_CODES} divider); ANTIC 4 has ${BOSS_MAX_CODES}`);
+      `${BOSS_SHOT_CODES} shots, ${BOSS_DIVIDER_CODES} divider); ANTIC 4 has ${BOSS_MAX_CODES}`);
   }
   const codeOf = (ref) => {
     if (ref === null) return 0;
@@ -570,6 +601,14 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   });
   plain.forEach((bytes, i) => glyphs.set(bytes, (plainBase + i) * 8));
   nozzlePhases.forEach((phases, side) => glyphs.set(phases[0].bytes, (nozzleBase + side) * 8));
+  // The in-band shot (decision M): the playfield shot's colour-3 pixels in
+  // COLPF0, the band colour closest to it (plan §5.16.5 answer 2).
+  if (shotGlyphs !== null) {
+    if (shotGlyphs.length !== BOSS_SHOT_CODES || shotGlyphs.some((rows) => rows?.length !== 8)) {
+      fail(`the shot glyphs are ${BOSS_SHOT_CODES} glyphs of 8 rows`);
+    }
+    shotGlyphs.forEach((rows, i) => glyphs.set(rows.map((row) => row & 0x55), (shotCode + i) * 8));
+  }
 
   const bandRows = Array.from({ length: BOSS_BAND_ROWS }, (_, r) =>
     Array.from({ length: BOSS_BAND_COLUMNS }, (_, c) => codeOf(cellRefs.get(r * BOSS_BAND_COLUMNS + c))));
@@ -584,6 +623,21 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   }
   const nozzleTailOffset = tail.length;
   for (const phases of nozzlePhases) for (const phase of phases) tail.push(...phase.bytes);
+  // Decision M: per column the row a shot stops on when no module stands in
+  // it - the lowest non-blank cell of the hull's own rows (0 .. hullRows - 1)
+  // that is no module's cell - packed a nibble a column (the row + 1; 0 =
+  // none: the column is open sky). Hull art below the hull line stops nothing.
+  const hullStop = Array.from({ length: BOSS_BAND_COLUMNS }, (_, c) => {
+    for (let r = hullRows - 1; r >= 0; r -= 1) {
+      if (bandRows[r][c] !== 0 && !owner.has(r * BOSS_BAND_COLUMNS + c)) return r;
+    }
+    return null;
+  });
+  const hullStopTailOffset = tail.length;
+  for (let c = 0; c < BOSS_BAND_COLUMNS; c += 2) {
+    const nibble = (row) => (row === null ? 0 : row + 1);
+    tail.push(nibble(hullStop[c]) | (nibble(hullStop[c + 1]) << 4));
+  }
   if (tail.length > 255 || glyphs.length + tail.length > BOSS_CHARSET_BYTES) {
     fail(`the charset (${glyphs.length} B) and its look tail (${tail.length} B) exceed ` +
       `${BOSS_CHARSET_BYTES} B`);
@@ -597,10 +651,11 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   // The divider's codes are the install's to copy: zero in the run.
   charsetRun.fill(0, 0, BOSS_DIVIDER_CODES * 8);
 
-  // A column with any hull in it absorbs a shot once no module covers it.
+  // A column with a hull stop absorbs a shot once no module covers it
+  // (decision M: only the hull's own rows count).
   const armourBits = new Uint8Array(8);
   for (let c = 0; c < BOSS_BAND_COLUMNS; c += 1) {
-    if (bandRows.some((row) => row[c] !== 0)) armourBits[c >> 3] |= 1 << (c & 7);
+    if (hullStop[c] !== null) armourBits[c >> 3] |= 1 << (c & 7);
   }
 
   const tables = new Uint8Array(BOSS_TABLES_BYTES);
@@ -616,6 +671,8 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   tables[BOSS_TABLE.moduleCount] = modules.length;
   tables[BOSS_TABLE.stageStep] = K;
   tables[BOSS_TABLE.cavity] = plainCode(cavityRef);
+  tables[BOSS_TABLE.shotCode] = shotCode;
+  tables[BOSS_TABLE.hullStop] = hullStopTailOffset;
   tables[BOSS_TABLE.cappedCode] = stagedCode(cappedRef);
   const [cappedCracked, cappedBroken] = bossThresholds(cappedHp);
   tables[BOSS_TABLE.cappedHp] = cappedHp;
@@ -673,7 +730,10 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     stagedBase: BOSS_FIRST_CODE,
     plainBase,
     nozzleBase,
+    shotCode,
     codeCount,
+    hullRows,
+    hullStop,
     glyphs,
     lookTail: Uint8Array.from(tail),
     lookTailAddress,
@@ -737,6 +797,7 @@ export function renderBossLayoutInclude() {
     `BOSS_COLUMN_OPEN         = ${hex(BOSS_COLUMN_OPEN)}`,
     `BOSS_COLUMN_ARMOUR       = ${hex(BOSS_COLUMN_ARMOUR)}`,
     `BOSS_NO_LOOK             = ${hex(BOSS_NO_LOOK)}`,
+    `BOSS_SHOT_CODES          = ${BOSS_SHOT_CODES}`,
     ...Object.entries(BOSS_TABLE).map(([name, offset]) =>
       `${constantName("BOSS_T_", name).padEnd(24)} = BOSS_TABLES+${offset}`),
     ...Object.entries(BOSS_MODULE).map(([name, offset]) =>

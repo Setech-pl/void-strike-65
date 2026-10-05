@@ -112,6 +112,7 @@ import {
   BOSS_THEME_SECTORS,
   bossRegionDirectory,
   compileBossRegion,
+  bossShotGlyphsFrom,
   loadBossRegionDraft,
   renderBossLayoutHeader,
   renderBossLayoutInclude,
@@ -1700,7 +1701,10 @@ async function build() {
   const bossThemeImage = layoutGameplayMusicLike(bossThemeAsset, gameplayMusicAsset,
     { capacity: bossThemeCopyBytes });
   const bossRegions = [compileBossRegion(
-    loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1)), { themeImage: bossThemeImage })];
+    loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1)), { themeImage: bossThemeImage,
+      shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter) })];
+  // (loadBossRegionDraft carries the same glyphs; the build passes its own
+  // weapons asset so a variant that changed it converts the boss with it.)
   const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
   writeFile(path.join(buildDirectory, "boss-layout.inc"), bossLayoutInclude);

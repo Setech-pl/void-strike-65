@@ -37,9 +37,11 @@
 ; capital vector table carries this overlay's image, so the resident calls
 ; that reached the capital group reach the boss instead:
 ;
-;   UPDATE             boss_update      PairShots against the band and their
-;                                        feedback, the C tick, the boss's fire,
-;                                        one queued module draw, the nozzles
+;   UPDATE             boss_update      PairShots inside the band (drawn up to
+;                                        the cell that stops them, decision M)
+;                                        and their feedback, the C tick, the
+;                                        boss's fire, one queued module draw,
+;                                        the nozzles
 ;   PREPARE_ROW        boss_motion      the band's drift and the win's shake
 ;   SECTOR_COMPLETION  boss_completion  the hand-off to the level summary
 ;   every other entry  boss_rts         (INIT keeps init_broadside: it runs
@@ -146,6 +148,7 @@ BOSS_REGION_RUNS = 3
 .export boss_ring_lo, boss_ring_hi, boss_ring_saved, boss_ring_timer, boss_ring_module, boss_ring_glyph
 .export boss_palette, boss_flash_timer, boss_tick_timer, boss_queue_head, boss_queue_tail
 .export boss_nozzle_dark, boss_column_from, boss_ring_set
+.export boss_stop_y, boss_shot_lo, boss_shot_hi, boss_hull_stop_operand, boss_shot_meet
 ; The controller's view of the region's tables, the level, main and the
 ; summary (src/c/boss.c): every address it reads is one of this link's.
 .export _boss_tables, _boss_module_table, _boss_level, _boss_def
@@ -403,11 +406,13 @@ boss_motion:
 
 ; ===========================================================================
 ; UPDATE, in handle_collisions right after the PairShots moved: every player
-; shot that reached the band's bottom edge meets the column map - per column
-; the front intact module, else hull or open sky (§5.13.2 item 3). Open sky
-; lets it fly on, hidden behind the band; hull absorbs it (no damage, not a
-; hit, Q-B7); a module column goes to the controller, which decides whether
-; the module is exposed (damage) or covered (absorbed, Q-B7). Every hit reads
+; shot inside the band flies on, drawn in its cell, until it reaches the cell
+; that stops it (decision M, plan §5.16): per column the front intact module's
+; bottom row, else the hull's own stop row, else nothing - it leaves the
+; band's top and is removed. Hull art below the hull line stops nothing, nor
+; does the strip under a standing cannon (decision M1). Hull absorbs (no
+; damage, not a hit, Q-B7); a module column goes to the controller, which
+; decides whether the module is exposed (damage) or covered (absorbed). Every hit reads
 ; (decision J): a spark in the struck cell, the band flash and the damage
 ; tick on a damaging hit; a deflection and the absorb or hull tick otherwise.
 ; Then the controller's tick - the exposure a kill asked for, the next firing,
@@ -424,6 +429,7 @@ boss_update:
     lda #$00
     sta boss_frame_heavy
     jsr boss_frame_timers
+    jsr boss_shots_restore
     ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
 @shot:
     lda FIGHTER_PROJECTILE_ACTIVE,x
@@ -431,17 +437,8 @@ boss_update:
     lda FIGHTER_PROJECTILE_Y,x
     cmp #BAND_BOTTOM_Y
     bcs @next
-    lda FIGHTER_PROJECTILE_X,x
-    sec
-    sbc #BAND_ORIGIN_HPOS
-    clc
-    adc boss_shown_pos
-    lsr
-    lsr
-    tay
-    lda boss_column_map,y
-    cmp #BOSS_COLUMN_OPEN
-    beq @next
+    jsr boss_shot_meet
+    bcc @next
     sta _boss_hit_module
     lda #FIGHTER_PROJECTILE_FREE
     sta FIGHTER_PROJECTILE_ACTIVE,x
@@ -498,16 +495,18 @@ boss_hit:
     lda _boss_hit_module
     cmp #BOSS_COLUMN_ARMOUR
     bne @module
-    ; The hull: the deflection on the column's lowest drawn cell (the hull
-    ; above a plate that is gone), the hull tick.
-    ldx #(BOSS_BAND_ROWS - 1)
-@row:
+    ; The hull: the deflection on the column's hull stop cell - a cell of the
+    ; hull's own rows no module owns, so no module's draw can take it while
+    ; the ring holds it (the stray glyph of plan §5.16.1) - the hull tick.
+    ldy boss_column
+    lda boss_stop_y,y
+    sec
+    sbc #(BAND_TOP_Y + 8)               ; the stop line - (BAND_TOP_Y + 8) = row * 8
+    lsr
+    lsr
+    lsr
+    tax
     jsr boss_cell_at
-    ldy #$00
-    lda (dst_ptr),y
-    bne @hull
-    dex
-    bpl @row
 @hull:
     lda #$FF
     sta boss_ring_tag
@@ -1189,9 +1188,13 @@ boss_column_from:
 @found:
     tya
     sta boss_column_map,x
+    lda boss_mbottom_y,y
+    sta boss_stop_y,x
     rts
 @base:
-; X = column: hull (ARMOUR) where the band has any hull cell, else OPEN.
+; X = column: hull (ARMOUR) where the hull's own rows have a cell no module
+; owns, else OPEN (decision M); and the column's stop line - under that hull
+; cell, or 0 for open sky (the converter's hull-stop table, a nibble each).
 boss_column_base:
     txa
     and #$07
@@ -1211,7 +1214,30 @@ boss_column_base:
 :
     tya
     sta boss_column_map,x
+    lda #$00
+    cpy #BOSS_COLUMN_ARMOUR
+    bne @stop
+    txa
+    lsr
+    tay
+@hull_stop:
+    lda $FFFF,y                         ; the hull-stop table (boss_prepare)
+    bcc :+
+    lsr
+    lsr
+    lsr
+    lsr
+:
+    and #$0F
+    beq @stop
+    asl
+    asl
+    asl
+    adc #BAND_TOP_Y
+@stop:
+    sta boss_stop_y,x
     rts
+boss_hull_stop_operand = @hull_stop + 1
 
 ; X = a destroyed module: its columns again - only those it was the front
 ; of. Every module before it in the front-first table was already dead in
@@ -1272,6 +1298,8 @@ boss_rebuild_module:
 @found:
     tya
     sta boss_column_map,x
+    lda boss_mbottom_y,y
+    sta boss_stop_y,x
     jmp @keep
 @base:
     jsr boss_column_base
@@ -1400,6 +1428,14 @@ boss_prepare:
     clc
     adc BOSS_T_MODULES + BOSS_M_WIDTH,y
     sta boss_mxe,x
+    lda BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    and #$0F
+    adc BOSS_T_MODULES + BOSS_M_ROW,y   ; C=0
+    asl
+    asl
+    asl
+    adc #BAND_TOP_Y
+    sta boss_mbottom_y,x
     lda BOSS_T_MODULES + BOSS_M_KIND,y
     and #$0F
     cmp #BOSS_KIND_EMITTER
@@ -1419,11 +1455,110 @@ boss_prepare:
     inx
     bne @span
 @map:
+    jsr boss_shots_prepare
     ldx #(BOSS_BAND_COLUMNS - 1)
 :
     jsr boss_column_at
     dex
     bpl :-
+    rts
+
+; Decision M (plan §5.16): a player shot inside the band. X = the slot, its
+; Y above BAND_BOTTOM_Y; keeps X. Per column boss_stop_y is the line under
+; the cell that stops a shot - the front module's bottom row, else the hull's
+; own stop row, else 0 (open sky) - kept with the column map. C=1: the shot
+; has reached that cell (A = the column map's value, Y = the column); C=0: it
+; flies on, drawn in its cell when the cell is blank (behind anything drawn
+; there, decision M1), or it left the band's top and is removed.
+boss_shot_meet:
+    lda FIGHTER_PROJECTILE_X,x
+    sec
+    sbc #BAND_ORIGIN_HPOS
+    clc
+    adc boss_shown_pos
+    sta boss_shot_px
+    lsr
+    lsr
+    tay
+    lda FIGHTER_PROJECTILE_Y,x
+    cmp boss_stop_y,y
+    bcs @fly
+    lda boss_column_map,y               ; it meets the stop cell now
+    sec
+    rts
+@fly:
+    cmp #BAND_TOP_Y
+    bcs @in
+    lda #FIGHTER_PROJECTILE_FREE         ; over open sky past the band's top
+    sta FIGHTER_PROJECTILE_ACTIVE,x
+    clc
+    rts
+@in:
+    sbc #BAND_TOP_Y                     ; C=1
+    lsr
+    lsr
+    lsr
+    sty boss_column
+    stx boss_shot_x
+    tax
+    jsr boss_cell_at
+    ldx boss_shot_x
+    ldy #$00
+    lda (dst_ptr),y
+    bne @hidden
+    lda FIGHTER_PROJECTILE_Y,x
+    lsr
+    and #$01
+    sta boss_shot_x
+    lda boss_shot_px                    ; the shot code: + 2 for the odd half
+    and #$02                            ; of the cell, + 1 for the lower half
+    ora boss_shot_x
+    clc
+    adc BOSS_T_SHOT_CODE
+    sta (dst_ptr),y
+    lda dst_ptr
+    sta boss_shot_lo,x
+    lda dst_ptr+1
+    sta boss_shot_hi,x
+@hidden:
+    clc
+    rts
+
+; Last frame's in-band shot cells get the blank back, each only while it
+; still shows a shot: a module's draw since then owns it.
+boss_shots_restore:
+    ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
+@slot:
+    lda boss_shot_hi,x
+    beq @next
+    sta dst_ptr+1
+    lda boss_shot_lo,x
+    sta dst_ptr
+    ldy #$00
+    lda (dst_ptr),y
+    sec
+    sbc BOSS_T_SHOT_CODE
+    cmp #BOSS_SHOT_CODES
+    bcs :+
+    tya
+    sta (dst_ptr),y
+:
+    lda #$00
+    sta boss_shot_hi,x
+@next:
+    dex
+    bpl @slot
+    rts
+
+; Once, from boss_prepare: the hull-stop table's address in the look tail.
+boss_shots_prepare:
+    lda BOSS_T_LOOK_TAIL
+    clc
+    adc BOSS_T_HULL_STOP
+    sta boss_hull_stop_operand
+    lda BOSS_T_LOOK_TAIL+1
+    adc #$00
+    sta boss_hull_stop_operand+1
     rts
 
 ; A = a nozzle code, X = its store's operand offset from boss_nozzle_dst_l:
@@ -1521,6 +1656,15 @@ boss_ring_last:     .res 1      ; the record boss_ring_set wrote last
 boss_nozzle_timer:  .res 1
 boss_nozzle_phase:  .res 1
 boss_nozzle_dark:   .res 1
+boss_shot_lo:       .res PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT   ; each slot's in-band cell, last frame (hi 0: none)
+boss_shot_hi:       .res PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT
+boss_shot_px:       .res 1
+boss_shot_x:        .res 1
+
+.segment "BOSS_C_BSS"
+boss_stop_y:        .res BOSS_BAND_COLUMNS  ; per column, a shot above this line has met its stop cell (0: none)
+boss_mbottom_y:     .res BOSS_MAX_MODULES   ; the line under each module's bottom row
+
 
 ; ===========================================================================
 ; The once-only install (Q-S1), at $7810, run in place before the pause

@@ -5,11 +5,11 @@
     "atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "0ce833f6a6bef587691d01cfec4ccb7611ecd3d19690ad33e1edcb90afe31d6d"
+      "sha256": "de4bb4f09407e3a7c328a40c2b11026069b12d887c4c5bb22425dc28a5a8223b"
     },
     "wallTrace": {
       "path": "docs/runtime-wall-trace.json",
-      "sha256": "cefbec65241f899fe08cc09eb68f8c990f2c9c03a7e72473e5c3508ba78fb665"
+      "sha256": "b952acff21adb879637942c2c3c2266128436f6cfee5e300f485d8a512cd7153"
     },
     "note": "Gameplay images are unenhanced 320x240 crops of Atari800's packed-release framebuffer. The eight-pixel emulator side borders are the only pixels removed."
   },
@@ -206,7 +206,7 @@
       "path": "docs/media/showcase/void-strike-65-level-1.gif",
       "description": "Level 1 from the ATR: a Bomber and an Interceptor, the Spread Shot capsule and its three-shot fan with the single follow-up, then the capital corridor and the first BROADSIDE",
       "source_medium": "ATR",
-      "atr_sha256": "0ce833f6a6bef587691d01cfec4ccb7611ecd3d19690ad33e1edcb90afe31d6d",
+      "atr_sha256": "de4bb4f09407e3a7c328a40c2b11026069b12d887c4c5bb22425dc28a5a8223b",
       "emulator": "Atari800 7.1.2 PAL XL",
       "replay": "weapon-pickup-spread-0-hunt-fire4",
       "generatedBy": "scripts/showcase-gif.mjs",

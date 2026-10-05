@@ -379,6 +379,18 @@ decision M and are recorded here as decisions:
 | **M1** | **A thin hull strip directly under a cannon is see-through for the player's shots** (an exception to decision M, kept to those strips): a shot passes behind it and hits the cannon above while the cannon stands. Nothing else in the hull's own rows is see-through | §5.16.5 |
 | **M2** | **The opaque player-shot cell over a broadside shell in the capital sector is known and accepted**: for one or two frames the shot's cell replaces half the shell; no resident byte is spent on it | §5.16.1, §5.16.5 |
 
+**The owner's decision after smoking `fix/boss-readability` (2026-10-05, before
+merge).** Shots up to the boss, the girders and the artifact fix are good. Two
+findings, both on the boss's left: the first cannon from the left takes damage
+and dies while the plates beside it stand (the open-bay cannon over a gap too
+narrow to read as an opening - the player reads the neighbouring plates as its
+cover); the two plates at the far left by the nozzles survived the whole fight
+although the owner's shots reached them (to be checked, not assumed).
+
+| # | Decision | Applied in |
+| ---: | --- | --- |
+| **N** | **Readability rule for cover.** A weapon takes damage only when the player can see that nothing stands in front of it: if any module is drawn in front of any of the weapon's columns, the weapon is covered and shots into it are absorbed (grey deflection, no damage, no accuracy hit), in whichever column they arrive. A weapon meant to be open from the start must look open: no module in front of any of its columns, the opening at least as wide as the weapon, with clear space between it and the neighbouring plates so they do not read as its cover. Every armour module the player can see must be destructible by the player's shots | §5.16.7 |
+
 ---
 
 ## 2. Phase A — inventory (what is true today, with file:line)

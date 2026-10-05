@@ -175,9 +175,10 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   const operand = label("boss", "boss_look_operand");
   const asRead = Uint8Array.from(memory.subarray(SLOT.address, SLOT.address + code.length));
   // boss_prepare patches the look copy's operand and (fortress session) the
-  // nozzle copy's four operands.
+  // nozzle copy's four operands; fix/boss-readability (decision M) adds the
+  // hull-stop table's, in the column map's base routine.
   for (const at of [operand, ...["boss_nozzle_src_l", "boss_nozzle_src_r", "boss_nozzle_dst_l", "boss_nozzle_dst_r"]
-    .map((name) => label("boss", name) + 1)]) {
+    .map((name) => label("boss", name) + 1), label("boss", "boss_hull_stop_operand")]) {
     asRead.set(code.subarray(at - SLOT.address, at - SLOT.address + 2), at - SLOT.address);
   }
   assert.deepEqual([...asRead], [...code]);
@@ -340,7 +341,11 @@ const PROJECTILE = () => ({
   y: label("main", "FIGHTER_PROJECTILE_Y"),
 });
 
-// A shot at the band's bottom edge whose band column is `cell`.
+// A shot at the band's bottom edge whose band column is `cell`. RE-POINTED
+// fix/boss-readability (decision M, plan §5.16): a shot meets the cell that
+// stops it, no longer the band's edge, so a test shot starts inside that cell
+// and meets it on this UPDATE as it met the edge before (an open column keeps
+// the edge: the shot flies on).
 function shootAt(memory, cell, slot = 0) {
   const p = memory[label("boss", "boss_shown_pos")];
   const x = cell * 4 + BAND_ORIGIN_HPOS - p + 1;
@@ -348,7 +353,8 @@ function shootAt(memory, cell, slot = 0) {
   const { active, x: xs, y: ys } = PROJECTILE();
   memory[active + slot] = 1;
   memory[xs + slot] = x;
-  memory[ys + slot] = BAND_BOTTOM_Y - 4;
+  const line = memory[label("boss", "boss_stop_y") + cell];
+  memory[ys + slot] = line > 0 ? Math.min(BAND_BOTTOM_Y - 4, line - 4) : BAND_BOTTOM_Y - 4;
 }
 
 const module = (memory, index) => {

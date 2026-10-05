@@ -37,6 +37,22 @@ const cell = (memory, column, row) => memory[bossBandRowAddress(row) + column];
 const centre = (module) => module.x + (module.width >> 1);
 const HOSTILE_FIRST = 5, HOSTILE_COUNT = 5;
 
+// fix/boss-readability (owner answer 4): every region-1 cover now stands in
+// front of all its module's columns, so no region-1 module is ever the front
+// of a column while covered. The absorb path (a covered front module) is
+// exercised on region 1 with one explicit cover that does not stand in
+// front: gun-3 behind plate-e and plate-g.
+const coveredDraft = loadBossRegionDraft(bossRegionDirectory(root, 1));
+coveredDraft.layout = { ...coveredDraft.layout, modules: coveredDraft.layout.modules.map((module) =>
+  module.name === "gun-3" ? { ...module, cover: ["plate-e", "plate-g"] } : module) };
+const region1Covered = compileBossRegion(coveredDraft);
+function fortressCovered(p = 32) {
+  const memory = bossEntered();
+  installRegion(memory, region1Covered);
+  placeBand(memory, p);
+  return memory;
+}
+
 let entry = null;
 function bossEntered() {
   if (entry === null) entry = runBossEntry();
@@ -104,10 +120,12 @@ function kill(memory, region, name, index = region.modules.findIndex((m) => m.na
   settle(memory);
 }
 
-// The lowest non-blank cell of a band column (where a hull hit sparks).
+// Where a hull hit sparks. RE-POINTED fix/boss-readability (decision M, plan
+// §5.16): the column's hull stop - the lowest cell of the hull's own rows that
+// is no module's - no longer its lowest drawn cell (hull art below the hull
+// line stops nothing, and a dead module's cell is never sparked on).
 function lowestHullRow(memory, column) {
-  for (let row = 7; row >= 0; row -= 1) if (cell(memory, column, row) !== 0) return row;
-  return 7;
+  return region1.hullStop[column];
 }
 
 const clearHostile = (memory) => memory.fill(0, main("FIGHTER_PROJECTILE_ACTIVE") + HOSTILE_FIRST,
@@ -173,8 +191,11 @@ test("region 1 is the fortress: plates are the hull's face, cannons recessed beh
       assert.ok(cover.length > 0 && cover.every((c) => c.kind === "armour"), `${m.name} is behind armour`);
     }
   }
-  assert.equal(region1.modules[byName.get("gun-3")].cover,
-    (1 << byName.get("plate-e")) | (1 << byName.get("plate-f")), "gun-3 is shielded by two plates");
+  // RE-POINTED fix/boss-readability (owner answer 4, plan §5.16.5): gun-3 was
+  // behind two staggered plates, each in front of only part of it; plate-e
+  // now spans all of its columns and is its whole cover.
+  assert.equal(region1.modules[byName.get("gun-3")].cover, 1 << byName.get("plate-e"),
+    "gun-3 is shielded by plate-e, which spans all of its columns");
   // Every weapon inside the director-complete bot's reach (§5.15.6 item 5).
   for (const m of region1.modules.filter((module) => module.kind !== "armour")) {
     assert.ok(m.x >= 20 && m.x + m.width <= 47, `${m.name} at ${m.x}`);
@@ -229,14 +250,17 @@ test("the emitter slot is capped armour on every level until the lasers exist (S
   }
 });
 
+// RE-POINTED fix/boss-readability (owner answer 4): on region 1 with gun-3's
+// explicit cover plate-e + plate-g (region1Covered, above); every assertion
+// is the original's.
 test("a covered cannon cannot fire and absorbs without damage; it opens fire once its cover falls", () => {
-  const memory = fortress(32);
+  const memory = fortressCovered(32);
   const g3 = byName.get("gun-3");
   const gun3 = region1.modules[g3];
-  kill(memory, region1, "plate-f");
-  // gun-3's right column is its front now, but plate-e still covers it.
+  kill(memory, region1Covered, "plate-e");
+  // gun-3 is the front of the columns plate-e left, but plate-g still covers it.
   const column = columnMap(memory).findIndex((value) => value === g3);
-  assert.ok(column >= 0, "gun-3 is the front module of the column plate-f left");
+  assert.ok(column >= 0, "gun-3 is the front module of the columns plate-e left");
   const before = hp(memory, g3);
   const { counted, writes } = shoot(memory, column);
   assert.equal(hp(memory, g3), before, "a covered cannon took damage");
@@ -247,7 +271,7 @@ test("a covered cannon cannot fire and absorbs without damage; it opens fire onc
   const silent = fireFrames(memory, 600);
   assert.ok(silent.length > 0, "the boss never fired");
   assert.ok(silent.every((shot) => shot.column !== centre(gun3)), "a covered cannon fired");
-  kill(memory, region1, "plate-e");
+  kill(memory, region1Covered, "plate-g");
   assert.ok(mask16(memory, "_boss_armed") & (1 << g3), "gun-3 is not armed once its cover fell");
   const open = fireFrames(memory, 600);
   assert.ok(open.some((shot) => shot.column === centre(gun3)), "gun-3 never opened fire");
@@ -419,8 +443,12 @@ test("damaging, absorbed and hull hits each read differently; only damaging hits
   assert.deepEqual(bandPalette(memory), base, "a hull hit flashed the band");
   const hullTone = [writesTo(hull.writes, AUDF3).at(-1), writesTo(hull.writes, AUDC3).at(-1)];
   settle(memory, 3);
-  // Absorbed by a covered module: the deflection, no flash, its own tick, no hit.
-  kill(memory, region1, "plate-f");
+  // Absorbed by a covered module: the deflection, no flash, its own tick, no
+  // hit. RE-POINTED fix/boss-readability (owner answer 4): gun-3 behind the
+  // explicit cover of region1Covered, installed over the fight so far.
+  installRegion(memory, region1Covered);
+  placeBand(memory, 32);
+  kill(memory, region1Covered, "plate-e");
   const g3Column = columnMap(memory).indexOf(byName.get("gun-3"));
   const absorbed = shoot(memory, g3Column);
   assert.equal(absorbed.counted, 0);

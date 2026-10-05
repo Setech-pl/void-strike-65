@@ -329,4 +329,14 @@ export function shootAt(memory, cell, slot = 0) {
   memory[label("main", "FIGHTER_PROJECTILE_ACTIVE") + slot] = 1;
   memory[label("main", "FIGHTER_PROJECTILE_X") + slot] = x;
   memory[label("main", "FIGHTER_PROJECTILE_Y") + slot] = BAND_BOTTOM_Y - 4;
+  // fix/boss-readability (decision M, plan §5.16): a shot meets the cell
+  // that stops it, no longer the band's bottom edge, and flies there over
+  // several frames. A test shot starts inside that cell, so it meets its
+  // target on this UPDATE as it met the edge before; an open column keeps the
+  // edge (the shot flies on). Builds before the change have no stop lines.
+  const stops = labelsOf.boss.get("boss_stop_y");
+  if (stops !== undefined) {
+    const line = memory[stops + cell];
+    if (line > 0) memory[label("main", "FIGHTER_PROJECTILE_Y") + slot] = Math.min(BAND_BOTTOM_Y - 4, line - 4);
+  }
 }

@@ -173,12 +173,14 @@ test("region 1 is the fortress: plates are the hull's face, cannons recessed beh
   assert.equal(kinds.filter((kind) => kind === "pulse").length, 4);
   assert.equal(kinds.filter((kind) => kind === "emitter").length, 1);
   assert.ok(kinds.filter((kind) => kind === "armour").length >= 8);
-  // The front armour covers the hull's columns: at least 45 of the hull's
-  // columns have a module (S4a-i: 15 of 43).
+  // The front armour covers the hull's columns: at least 36 of the hull's
+  // columns have a module (S4a-i: 15 of 43). RE-POINTED (owner decision N,
+  // plan §5.16.7): 45 before the open bay was widened to five columns and
+  // the cowl plates (out of the player's reach) were removed - 38 now.
   const hullColumns = [...Array(BOSS_BAND_COLUMNS).keys()].filter((c) =>
     region1.bandRows.some((row) => row[c] !== 0));
   const moduleColumns = hullColumns.filter((c) => region1.modules.some((m) => c >= m.x && c < m.x + m.width));
-  assert.ok(moduleColumns.length >= 45, `${moduleColumns.length} of ${hullColumns.length} hull columns`);
+  assert.ok(moduleColumns.length >= 36, `${moduleColumns.length} of ${hullColumns.length} hull columns`);
   // Plates up to 6 x 4 (the owner's option A).
   assert.ok(region1.modules.some((m) => m.width * m.height > 8), "no plate is larger than the old 4 x 2");
   for (const m of region1.modules) assert.ok(m.width <= 6 && m.height <= 4 && m.width * m.height <= 24);
@@ -305,7 +307,8 @@ test("the defeat: the last cannon's death starts the chain with armour still sta
   }
   kill(memory, region1, "gun-2");
   assert.equal(memory[lbl("_boss_phase")], 2, "the chain");
-  for (const name of ["cowl-left", "plate-a", "plate-b", "plate-d", "plate-h", "cowl-right", "emitter"]) {
+  // RE-POINTED (decision N): the cowl plates are no longer modules.
+  for (const name of ["plate-a", "plate-b", "plate-d", "plate-h", "emitter"]) {
     assert.ok(hp(memory, byName.get(name)) > 0, `${name} stands: armour is not required`);
   }
 });

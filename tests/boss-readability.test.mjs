@@ -113,7 +113,9 @@ const bandHasShot = (memory) => {
 // ---------------------------------------------------------------------------
 
 test("a hull hit in the frames after a plate's kill leaves nothing of the plate (the §5.16.1 artifact)", () => {
-  for (const name of ["plate-a", "plate-b", "plate-h", "cowl-left"]) {
+  // RE-POINTED (decision N, plan §5.16.7): the cowl plates are gone; plate-f
+  // (no module behind it either) takes cowl-left's place.
+  for (const name of ["plate-a", "plate-b", "plate-h", "plate-f"]) {
     for (const delay of [0, 1, 2]) {
       const memory = fortress(32);
       const index = byName.get(name);

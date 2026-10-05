@@ -127,7 +127,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$5E10-$780C` | 6,653 B | segment | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A | `resident` | build/void-strike-65.map |
 | `$6DE8-$75E7` | 2,048 B | slot | overlay slot A (`update_broadside` onward; run `capital-slot-a`) | `overlay` | manifest `overlays.slotA` |
 | `$6DE8-$6E0E` | 39 B | segment | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image | `overlay` | build/boss.map |
-| `$6E0F-$7590` | 1,922 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
+| `$6E0F-$7592` | 1,924 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
 | `$780D-$780F` | 3 B | reserved | free tail of `BROADSIDE_RAM` | `resident` | cfg/atari-boot.cfg |
 | `$7810-$7BCF` | 960 B | transient | pause-screen backup (`PAUSE_SCREEN_BACKUP`) | `pause` | manifest `pause` |
 | `$7810-$7BBF` | 944 B | transient | STARFIELD stream A staging | `boot` | manifest `starfieldRuntime.streams` |
@@ -449,7 +449,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$6DE8-$75E7` | `resident` | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A |
 | `$6DE8-$75E7` | `overlay` | overlay slot A (`update_broadside` onward; run `capital-slot-a`) |
 | `$6DE8-$6E0E` | `overlay` | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image |
-| `$6E0F-$7590` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
+| `$6E0F-$7592` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
 
 **`$A600-$ADFF` — the level buffer**
 
@@ -484,36 +484,36 @@ Items are label spans from the listings, placed with the link map's per-module o
 
 By topic: unclassified 88%, player, input and weapons 12%.
 
-#### `BOSS_CODE` `$6E0F-$7590`, 1,922 B (build/boss.map)
+#### `BOSS_CODE` `$6E0F-$7592`, 1,924 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `boss_draw_module` | `$7413` | 142 B | 7.4% | unclassified |
-| `boss_enqueue` | `$72D7` | 140 B | 7.3% | unclassified |
+| `boss_enqueue` | `$72DB` | 140 B | 7.3% | unclassified |
+| `boss_draw_module` | `$7417` | 140 B | 7.3% | unclassified |
 | `boss_update` | `$6FA8` | 136 B | 7.1% | unclassified |
-| `boss_ring_set` | `$720D` | 120 B | 6.2% | display, PMG and raster |
-| `boss_rebuild_module` | `$74E4` | 120 B | 6.2% | unclassified |
-| `boss_fire` | `$712B` | 107 B | 5.6% | player, input and weapons |
+| `boss_ring_set` | `$7211` | 120 B | 6.2% | display, PMG and raster |
+| `boss_rebuild_module` | `$74E6` | 120 B | 6.2% | unclassified |
+| `boss_fire` | `$712D` | 109 B | 5.7% | player, input and weapons |
 | `boss_dli` | `$6EBA` | 98 B | 5.1% | display, PMG and raster |
-| `boss_hit` | `$7030` | 94 B | 4.9% | unclassified |
+| `boss_hit` | `$7030` | 96 B | 5.0% | unclassified |
 | `boss_motion` | `$6F59` | 79 B | 4.1% | unclassified |
 | `boss_runs` | `$6E74` | 70 B | 3.6% | unclassified |
-| `boss_frame_timers` | `$7196` | 64 B | 3.3% | unclassified |
-| `boss_ring_rebase` | `$7298` | 63 B | 3.3% | display, PMG and raster |
+| `boss_frame_timers` | `$719A` | 64 B | 3.3% | unclassified |
+| `boss_ring_rebase` | `$729C` | 63 B | 3.3% | display, PMG and raster |
 | `boss_apply_pos` | `$6F1C` | 61 B | 3.2% | unclassified |
-| `boss_open_looks` | `$70F1` | 58 B | 3.0% | unclassified |
+| `boss_open_looks` | `$70F3` | 58 B | 3.0% | unclassified |
 | `boss_head` | `$6E0F` | 55 B | 2.9% | unclassified |
-| `boss_queue_draw` | `$7363` | 53 B | 2.8% | unclassified |
-| `boss_nozzles` | `$7398` | 48 B | 2.5% | unclassified |
-| `boss_module_scored` | `$70C1` | 47 B | 2.4% | frontend and HUD |
+| `boss_queue_draw` | `$7367` | 53 B | 2.8% | unclassified |
+| `boss_nozzles` | `$739C` | 48 B | 2.5% | unclassified |
+| `boss_module_scored` | `$70C3` | 47 B | 2.4% | frontend and HUD |
 | `boss_read_run` | `$6E46` | 41 B | 2.1% | unclassified |
-| `boss_nozzle_darken` | `$73DB` | 38 B | 2.0% | unclassified |
-| `boss_column_base` | `$74C4` | 32 B | 1.7% | unclassified |
-| `boss_tick_sound` | `$71F0` | 29 B | 1.5% | music and audio |
-| `boss_column_from` | `$74A7` | 29 B | 1.5% | unclassified |
-| `boss_flash_on` | `$71D6` | 26 B | 1.4% | capital ship |
-| `boss_completion` | `$755C` | 21 B | 1.1% | unclassified |
-| 22 smaller items | — | 151 B | 7.9% | — |
+| `boss_nozzle_darken` | `$73DF` | 38 B | 2.0% | unclassified |
+| `boss_column_base` | `$74C6` | 32 B | 1.7% | unclassified |
+| `boss_tick_sound` | `$71F4` | 29 B | 1.5% | music and audio |
+| `boss_column_from` | `$74A9` | 29 B | 1.5% | unclassified |
+| `boss_flash_on` | `$71DA` | 26 B | 1.4% | capital ship |
+| `boss_completion` | `$755E` | 21 B | 1.1% | unclassified |
+| 22 smaller items | — | 151 B | 7.8% | — |
 
 By topic: unclassified 73%, display, PMG and raster 16%, player, input and weapons 6%, frontend and HUD 2%, music and audio 2%, capital ship 1%, boot, loader and transport 0%.
 
@@ -908,7 +908,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | Segment | Size | Name promises | Share of those topics | Dominant topic | Verdict |
 | --- | ---: | --- | ---: | --- | --- |
 | `BOSS_C_CODE` | 1,391 B | placement name | — | unclassified (88%) | not judged |
-| `BOSS_CODE` | 1,922 B | placement name | — | unclassified (73%) | not judged |
+| `BOSS_CODE` | 1,924 B | placement name | — | unclassified (73%) | not judged |
 | `HYBRID_C_ARENA` | 596 B | placement name | — | Heavy, Raider and Interceptor (92%) | not judged |
 | `HYBRID_C_EXT` | 681 B | placement name | — | Light enemies (56%) | not judged |
 | `DIRECTOR_C_CODE` | 590 B | placement name | — | Director, sectors and waves (88%) | not judged |

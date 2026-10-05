@@ -291,7 +291,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "c9168624a023dc4f1a063c18e89e76dbd32c28dfd286c01aced268b8464ef093"
+        "sha256": "af0180b356ec33bf9ec425a74e3f294f7a9dc8f41c35624c28f4cbe4fe423601"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-00.json",
       "first_complete_menu_frame": 553,
@@ -809,7 +809,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "c9168624a023dc4f1a063c18e89e76dbd32c28dfd286c01aced268b8464ef093"
+        "sha256": "af0180b356ec33bf9ec425a74e3f294f7a9dc8f41c35624c28f4cbe4fe423601"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-a5.json",
       "first_complete_menu_frame": 553,
@@ -1327,7 +1327,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "c9168624a023dc4f1a063c18e89e76dbd32c28dfd286c01aced268b8464ef093"
+        "sha256": "af0180b356ec33bf9ec425a74e3f294f7a9dc8f41c35624c28f4cbe4fe423601"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-5a.json",
       "first_complete_menu_frame": 553,
@@ -1845,7 +1845,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "c9168624a023dc4f1a063c18e89e76dbd32c28dfd286c01aced268b8464ef093"
+        "sha256": "af0180b356ec33bf9ec425a74e3f294f7a9dc8f41c35624c28f4cbe4fe423601"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-ff.json",
       "first_complete_menu_frame": 553,

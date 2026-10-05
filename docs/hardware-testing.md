@@ -420,9 +420,10 @@ debug-route ATR that starts in level 1's **boss sector**
 (`build/level-1-s4/void-strike-65.atr`) and the one that starts in its
 **capital sector** (`build/level-1-s1/void-strike-65.atr`). Emulator figures,
 for comparison only (EMULATOR): the entry reads 49 sectors in about 188 frames
-(3.8 s); the bot's fights took 40 / 47 / 66 s on EASY / MEDIUM / HARD, 1 / 4 / 3
-hits, no life lost. Artifacts: default ATR `0ce833f6…` (`npm run play:atr`),
-boss debug ATR `fd0eb82b…`, capital debug ATR `066af2ff…`
+(3.8 s); the bot's fights took 40 / 54 / 66 s on EASY / MEDIUM / HARD, 1 / 6 / 3
+hits, no life lost. Artifacts (after decision N, plan §5.16.7): default ATR
+`de4bb4f0…` (`npm run play:atr`), boss debug ATR `1f8718b1…`, capital debug ATR
+`c96ec5a5…`
 (`atari800 -xe -pal -nobasic <absolute path>`).
 
 - [ ] **Shots all the way to the boss.** Fire at a cannon whose plate is gone:
@@ -442,6 +443,17 @@ boss debug ATR `fd0eb82b…`, capital debug ATR `066af2ff…`
 - [ ] **Every cannon is fully visible and hittable once uncovered.** gun-3 (the
       right-hand cannon of the middle pair) is behind one wide plate now: when
       that plate falls it opens fire and takes damage in all three columns.
+- [ ] **Decision N: the open-bay cannon reads open.** Left of centre, the lit
+      cannon that fires from the first second sits in a bay five columns wide
+      with clear sky on both sides of it; no plate touches it, so nothing reads
+      as its cover. Hit it straight away: it takes damage. Shoot any other
+      cannon while its plate stands: the plate takes the hits, the cannon never
+      does, in every one of its columns, wherever the band has drifted.
+- [ ] **Decision N: every plate you can see can be destroyed.** The cowl plates
+      under the two engine housings are gone (they were out of the fighter's
+      reach). Fly to the far left while the band's left end is in view and
+      destroy the left-most plate (plate-a), then the same at the far right
+      (plate-h): each falls to its hits in every one of its columns.
 - [ ] **Open sky.** At the band's far ends, a shot that misses the hull flies
       up through the band and vanishes at its top - nothing appears in the row
       above the band.

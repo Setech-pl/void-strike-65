@@ -260,7 +260,13 @@ side: row 7 is the front. A module is **exposed** when every module of its
 cover is destroyed; `"auto"` is every module in a nearer row whose columns
 overlap it - author covers so that what covers a module stands in front of
 **every** one of its columns (plan §5.16.3: a cannon half-uncovered by one of
-two staggered plates absorbs where the player sees it bare). A covered module
+two staggered plates absorbs where the player sees it bare). **Owner decision
+N**: a weapon open from the start needs an opening wider than it, with a clear
+column between it and each neighbouring plate; and every armour module must sit
+where the player's shots reach it - a shot leaves the fighter's centre, so its
+HPOS is 56-207 and band column c is in reach only at band positions
+4c - 175 <= p <= 4c - 21: keep every armour column in reach for at least a
+third of the travel (region 1's travel 0-63: columns 11-54). A covered module
 absorbs shots: no damage, and not a hit for the accuracy stat (Q-B7).
 **A player shot is drawn inside the band** (decision M) up to the cell that
 stops it: the column's front intact module's bottom row, else the hull's

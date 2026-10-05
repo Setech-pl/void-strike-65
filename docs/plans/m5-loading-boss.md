@@ -2603,7 +2603,7 @@ Art note for the owner's retouch: the X-braced girders and the open bay's wall
 strips are hull art, not modules, so they now stand alone below the hull line
 once their plates are gone.
 
-### 5.16 Boss readability — shots up to the boss, the skeleton that does not block, covers that match the art (2026-10-05, `fix/boss-readability`: Phase A the diagnosis and the price; Phase B built, `OWNER-SMOKE CANDIDATE`, §5.16.6)
+### 5.16 Boss readability — shots up to the boss, the skeleton that does not block, covers that match the art (2026-10-05, `fix/boss-readability`: Phase A the diagnosis and the price; Phase B built §5.16.6; decision N §5.16.7, `OWNER-SMOKE CANDIDATE`)
 
 Under owner decision M (§1.6). **Phase A only**: no source, cfg, script, test,
 asset or evidence byte is changed on the branch; the probe below was built into
@@ -2880,6 +2880,81 @@ the debug-route ATRs `build/level-1-s4/void-strike-65.atr` (level 1's boss
 sector) `fd0eb82be9720f03c2a8ecaf77980f05cf6f5e4b2a1cdded32c6a0e0aa2e1e05` and
 `build/level-1-s1/void-strike-65.atr` (its capital sector)
 `066af2ff227e74f319e4d8a59cc7289825197d60e9a62fd471249d8553ee55e5`.
+
+#### 5.16.7 Decision N: the open bay reads open, every plate in reach (2026-10-05, after the owner's smoke)
+
+The owner's smoke of §5.16.6 found shots up to the boss, the girders and the
+artifact fix good, and two issues on the boss's left (decision N, §1.6).
+
+**The probe** (`build/probe-artifact/decision-n.probe.mjs`, not committed: the
+6502 harness on the branch's linked bytes, every module and column, band
+positions 0 / 16 / 32 / 48 / 63, a shot flown up from the band's bottom row).
+
+*(a) Weapons, every plate intact - before and after alike:* only **gun-2**
+takes damage, in each of its columns 26-28, at every position (no cover; the
+column map's front module; nothing see-through involved). gun-1, the capped
+emitter, gun-3 and gun-4: every shot into their columns hits the plate in
+front (plate-c, plate-d, plate-e, plate-g) - the cover masks hold in every
+column. **The first cannon from the left that takes damage is gun-2, the
+open-bay cannon** (gun-1 lies further left but shows its closed housing behind
+plate-c). Before the fix its bay was its own three columns, plate-c (22-25) and
+plate-d (29-34) touching it: the player read them as its cover.
+
+*(b) Armour, every column, shots until it dies:* in the engine **every plate
+dies to exactly its hit points of shots in every column, nothing absorbed,
+nothing passing by** - the far-left plates included. **The cause of finding 2
+is reach, not the engine**: a player shot leaves the fighter's centre, so its
+HPOS is 56-207 while the window starts at 48; band column c is in reach only at
+band positions 4c - 175 <= p <= 4c - 21. cowl-left's columns 7-10 were in reach
+at 8 / 12 / 16 / 20 of the 64 positions (the band passes p 0-7 for about
+16 frames of every 252), plate-a's 11-15 at 24-40, cowl-right's 54-56 at
+23 / 19 / 15; the director-complete bot's sweep (x 94-154) never reaches either
+end.
+
+**The fix (region 1's data only; no code byte):**
+
+| | Before | After |
+| --- | --- | --- |
+| the open bay | gun-2's own columns 26-28, plates touching | **columns 25-29**: gun-2 (26-28) with a clear column each side |
+| gun-1 / plate-c | 23-25 / 22-25 | **22-24 / 21-24** (plate-c still in front of all of gun-1) |
+| plate-b | 17-21 (10 HP) | **17-20 (8 HP, the size rule)** |
+| plate-d | 29-34 | **30-34** (still in front of all of the emitter) |
+| cowl-left, cowl-right | modules (6 HP each), under the engine housings | **removed** - in reach at 8-20 and 15-23 of 64 positions; the housings end one row under the hull line |
+| modules / region codes / charset | 15 / 112 / 994 B | **13 / 112 / 994 B**, 8 sectors |
+| least-reachable armour column | cowl-left 7: 8 of 64 positions | **plate-a 11: 24 of 64** (every armour column in reach for at least a third of the travel) |
+
+gun-2 still fires from the first frame (decision I; armed at the install). The
+hull's module coverage falls from 45 to 38 of its 52 columns (the wider bay and
+the cowls).
+
+**Tests** (`tests/boss-cover-rule.test.mjs`, committed RED at `46490ec` on
+`fa730db`'s build: the bay's plates touch gun-2; cowl-left column 7 in reach
+at 8 of 64 positions; GREEN on `e72de60`): a standing cover holds in every
+column at nine band positions; every weapon takes damage in every column once
+uncovered; the open-bay cannon has nothing in front and an opening wider than
+it with a clear column each side, armed from the first frame; every armour
+column in reach for a third of the travel and dying to exactly its hit points
+there; the column map agrees. Re-pointed (`41f3fc6`): the cowls in two lists,
+and the hull's module coverage 45 → 36 (the wider bay). Preview:
+`build/boss-preview/region-1.png` (`npm run boss:preview`).
+
+**Measured (regenerated evidence):** gameplay before the boss **63 of 63**
+replays identical to `main`; the ten worst fence rows `main`'s; boss frames
+worst fence **11,653** / DMA-on **28,691** over 11,979; DMA-on maximum 31,237;
+0 miss events, the one recorded clause failure; Q-B6 drive **6,678** native
+(the fewer, smaller plates). The fights (bot, held lives): **2,010 / 2,711 /
+3,307 frames - 40.2 / 54.2 / 66.1 s** on EASY / MEDIUM / HARD; hits taken **1 /
+6 / 3**; lives lost **0 / 0 / 0**; MEDIUM inside decision I's 45-60 s with no
+tuning (it lengthens because the bot's sweep now meets the narrower plate-b and
+the moved gun-1 later). Bytes unchanged from §5.16.6 (slot A 1,995, slot C
+2,003, scratch 249). ATR
+`de4bb4f09407e3a7c328a40c2b11026069b12d887c4c5bb22425dc28a5a8223b`, boot
+`b84ab9db…` (unchanged); boss-sector debug ATR `build/level-1-s4/void-strike-65.atr`
+`1f8718b179f8e2a161baf56fa4810a865279bf712baddf2d29b28a03f68e9a35`, capital-sector
+`build/level-1-s1/void-strike-65.atr` `c96ec5a54822ca61…`. `npm test` on the
+default build: **1,074 tests, 1,073 pass, 1 fail - `preview`, the recorded one**
+(the first run also failed the three hash-bound media tests, rebound by their
+own tools in `e782048`).
 
 ---
 ## 6. Ledgers

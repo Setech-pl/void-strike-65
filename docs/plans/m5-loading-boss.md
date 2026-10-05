@@ -2614,7 +2614,7 @@ Art note for the owner's retouch: the X-braced girders and the open bay's wall
 strips are hull art, not modules, so they now stand alone below the hull line
 once their plates are gone.
 
-### 5.16 Boss readability — shots up to the boss, the skeleton that does not block, covers that match the art (2026-10-05, `fix/boss-readability`: Phase A the diagnosis and the price; Phase B built §5.16.6; decision N §5.16.7, `OWNER-SMOKE CANDIDATE`)
+### 5.16 Boss readability — shots up to the boss, the skeleton that does not block, covers that match the art (2026-10-05, `fix/boss-readability`: Phase A the diagnosis and the price; Phase B built §5.16.6; decision N §5.16.7; decision O §5.16.8, `OWNER-SMOKE CANDIDATE`)
 
 Under owner decision M (§1.6). **Phase A only**: no source, cfg, script, test,
 asset or evidence byte is changed on the branch; the probe below was built into
@@ -2966,6 +2966,83 @@ the moved gun-1 later). Bytes unchanged from §5.16.6 (slot A 1,995, slot C
 default build: **1,074 tests, 1,073 pass, 1 fail - `preview`, the recorded one**
 (the first run also failed the three hash-bound media tests, rebound by their
 own tools in `e782048`).
+
+#### 5.16.8 Decision O: every weapon in its own recess; M1 withdrawn (2026-10-05, after the decision-N smoke)
+
+The owner's smoke of §5.16.7: the open bay reads better, but gun-2 still died
+through something the player sees as solid - the hull's grey-and-burgundy lower
+strip (row 3) runs at its base on both sides, so it reads as passing under the
+cannon; the same strip lay directly under gun-1 and the emitter (row 3 below
+their rows 1-2), under gun-3 only through plate-e's top row. **Decision O**
+(§1.6) withdraws M1.
+
+**What M1 was in the build.** No runtime code of its own: a shot stops at its
+column's front module's bottom row (the stop line, §5.16.6), so hull cells
+between the module and the band's bottom were skipped; and `hullRows: 4`
+made every hull cell below row 3 see-through - the girder stubs, but also the
+engine housings' row-4 cells (columns 6-10, 54-57) and gun-4's row-4 pieces
+(43-48). **Removed from the data and the converter; 0 bytes in slot A or slot
+C** (slot A 1,995, slot C 2,003, unchanged; the overlay's comments only):
+
+* the converter: `hullRows` is gone; `seeThrough` names the only see-through
+  hull cells - region 1's three girder stubs `[16, 4]`, `[35, 4]`, `[49, 4]`;
+  every other hull cell stops a shot (the housings' row 4 and gun-4's
+  remaining pieces now do); **it refuses hull art between a weapon and the
+  band's bottom** (decision O), so the front-module stop can never skip
+  solid art under a weapon again;
+* the core-boss fixture (`bastion/`, a later region's boss): the converter
+  refused its hull bar's row 5 under the core (27-30, 5); those four cells
+  are cleared in its `band.png` and `open.png` (the core hangs in a recess).
+  Its plate-right still has hull art under it (35, 6) - armour, outside
+  decision O; for S5 to decide when the region is designed.
+
+**The redraw (region 1's four band drafts):** row 3 cleared under gun-1
+(22-24) and the emitter (30-33) and beside gun-2's and gun-4's bases (25, 29,
+43, 47); gun-4's two row-4 pieces under it (44, 46) cleared. Each weapon now
+hangs in a notch of the underside with the hull above it; gun-2's opening is
+clear to the band's bottom (25-29, rows 4-7). The plates' positions and hit
+points are unchanged; the silhouette is otherwise the same. 110 codes (two
+glyphs freed), 978 B, 8 sectors.
+
+**Tests** (`tests/boss-recess.test.mjs`, committed RED at `bdc98fd` on
+`fcf5fe6`'s build - hull art at (44, 4) under gun-4, the strip at (25, 3)
+beside gun-2's base, the housing's (6, 4) see-through, no refusal; GREEN on
+`0bd5925`): no hull art between a weapon and the band's bottom; no strip
+beside a base on the strip row; no see-through hull art but the girders, and
+`hullRows` gone from the data; the converter's refusal; gun-2 takes damage only
+through visibly empty cells, at three band positions. Re-pointed (`430dce3`):
+M1's own test becomes the empty recess's (the shot drawn in row 3 up to
+gun-1); the girder test reads `seeThrough`; gun-4's recess is empty;
+`boss-assets-v2`'s ARMOUR rule by `seeThrough`.
+
+**The probes, re-run** (`build/probe-artifact/decision-n.probe.mjs`, band
+positions 0 / 16 / 32 / 48 / 63): with every plate intact **only gun-2 takes
+damage** (columns 26-28, every position); gun-1, the emitter, gun-3 and gun-4
+- every shot hits the plate in front (plate-c, plate-d, plate-e, plate-g), in
+every column; once its plate falls each takes damage in every column
+(`tests/boss-cover-rule.test.mjs`). **Armour: every column dies to exactly
+its hit points, 0 absorbed, 0 passing**; reach per column, of 64 band
+positions: plate-a 24-40, plate-b 48-60, plate-c, plate-d, plate-e, plate-f 64,
+plate-g 46-64, plate-h 26-38.
+
+**Measured (regenerated evidence):** gameplay before the boss **63 of 63**
+replays identical to `main`; the ten worst fence rows `main`'s; boss frames
+worst fence **12,984** / DMA-on **28,689** over 12,499; DMA-on maximum 31,237;
+0 miss events, the one recorded clause failure. The fights (bot, held lives):
+**2,302 / 2,429 / 3,562 frames - 46.0 / 48.6 / 71.2 s** on EASY / MEDIUM / HARD;
+hits taken **1 / 4 / 7**; lives lost **0 / 0 / 0**; MEDIUM inside decision I's
+45-60 s with no tuning (the lengths move because the housings' row-4 cells and
+gun-4's pieces now stop shots, and a dead cannon's columns are open sky through
+its empty recess). Preview `build/boss-preview/region-1.png`; composite of four
+fight moments `build/boss-preview/region-1-composite.png`
+(`build/probe-artifact/composite.mjs`, not committed). ATR
+`4926dc05ecc047d226c8939cb48ecdc39d28fb089d986365272ad9797a5d40ff`, boot
+`b84ab9db…` (unchanged); boss-sector debug ATR `build/level-1-s4/void-strike-65.atr`
+`255fbc1920010041a6433fa8ffc29745260423483740822ff87bb69ddcaf9bfe`, capital-sector
+`build/level-1-s1/void-strike-65.atr` `a89b2c44f4b6032c…`. `npm test` on the
+default build: **1,079 tests, 1,078 pass, 1 fail - `preview`, the recorded one**
+(the first run also failed the three hash-bound media tests, rebound by their
+own tools in `804ae09`).
 
 ---
 ## 6. Ledgers

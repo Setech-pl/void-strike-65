@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-05 (fix/boss-readability: owner decision M - the player's shots drawn in the band up to the cell that stops them, the stripped skeleton that does not block, the boss-sector stray-glyph artifact fixed, gun-3 behind one plate; owner decision N - the open bay reads open, every plate in reach)
+Last update: 2026-10-05 (fix/boss-readability: owner decision M - the player's shots drawn in the band up to the cell that stops them, the stripped skeleton that does not block, the boss-sector stray-glyph artifact fixed, gun-3 behind one plate; owner decision N - the open bay reads open, every plate in reach; owner decision O - every weapon in its own recess, M1 withdrawn)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -353,7 +353,7 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
 §5.16 (decision M and its refinements M1, M2 in §1.6; Phase A §5.16.1-5.16.5,
-as built §5.16.6; decision N §5.16.7). Branch `fix/boss-readability` from `main` `a55d2a5`. Smoke:
+as built §5.16.6; decision N §5.16.7; decision O §5.16.8). Branch `fix/boss-readability` from `main` `a55d2a5`. Smoke:
 [hardware-testing.md](hardware-testing.md) §16.
 
 **What changed.** The player's shots are **drawn inside the boss band up to
@@ -384,18 +384,26 @@ the two far-left plates "surviving" were the engine's reach, not its collision
 the fighter's centre, so the cowl plates under the engine housings were in
 reach at 8-23 of the band's 64 positions) - **the cowl plates are removed**,
 the least-reachable armour column is now plate-a's at 24 of 64. Data only.
+**Decision O, after the decision-N smoke** (§5.16.8; **M1 withdrawn**): gun-2
+still died through the hull's lower strip running at its base; now no hull art
+is drawn below any weapon - the strip is cut under gun-1 and the emitter and
+beside gun-2's and gun-4's bases, gun-4's row-4 pieces under it removed - and
+the only see-through hull art is the girders' stubs (`seeThrough` replaces
+`hullRows`; the converter refuses hull art under a weapon). 0 code bytes: M1
+had no runtime code of its own. The core-boss fixture's hull bar under its core
+cleared the same way.
 
 | | `main` `a55d2a5` | this branch | source |
 | --- | ---: | ---: | --- |
 | worst line-238 fence margin | 1,370 (`2-evasive-fire3` f287) | **1,370** (the ten worst rows `main`'s, value for value) | fence scan of the replay CSVs (`scripts/pal-timing-audit.mjs` samples), boss and boss-entry rows apart, 0 miss events |
-| boss frames: worst fence margin / DMA-on | 12,523 / 28,457 (11,958 frames) | **11,653 / 28,691** over 11,979 boss frames (GO 500, gate 32,568) | same |
+| boss frames: worst fence margin / DMA-on | 12,523 / 28,457 (11,958 frames) | **12,984 / 28,689** over 12,499 boss frames (GO 500, gate 32,568) | same |
 | boss per-frame work, native (limit 7,000) | 6,676 (fortress), 5,289 (core boss) | **6,678** (fortress, five hits a frame; 6,876 before decision N's smaller layout), **5,516** (core boss) | `tests/boss-fortress.test.mjs`, `tests/boss-runtime.test.mjs` |
 | DMA-on maximum | 31,237 (`director-complete-2` f5797) | **31,237** (same row) | `docs/runtime-wall-trace.json` |
 | behavioural clause failures | 1 (`lower-playfield-hostile-contact-atr-hard`) | **1**, the same | [recorded-gate-failures.json](recorded-gate-failures.json) |
 | gameplay against `main` | — | **63 of 63 replay files identical** on 331 gameplay columns frame by frame up to the boss entry | trace CSVs of both builds |
-| the fights, EASY / MEDIUM / HARD (bot, held lives) | 1,847 / 2,353 / 3,557 frames (36.9 / 47.1 / 71.1 s); hits 2 / 3 / 7; lives lost 0 | **2,010 / 2,711 / 3,307 frames (40.2 / 54.2 / 66.1 s)**; hits **1 / 6 / 3**; lives lost **0 / 0 / 0** | same |
+| the fights, EASY / MEDIUM / HARD (bot, held lives) | 1,847 / 2,353 / 3,557 frames (36.9 / 47.1 / 71.1 s); hits 2 / 3 / 7; lives lost 0 | **2,302 / 2,429 / 3,562 frames (46.0 / 48.6 / 71.2 s)**; hits **1 / 4 / 7**; lives lost **0 / 0 / 0** | same |
 | boss entry (EMULATOR) | 48 sectors, 184 host frames (3.7 s) | **49 sectors, 188 host frames (3.8 s)** | same |
-| `npm test` (default build) | 1,056 / 1,055 / 1 | **1,074 / 1,073 / 1**: `preview` (recorded) | [recorded-test-failures.json](recorded-test-failures.json) |
+| `npm test` (default build) | 1,056 / 1,055 / 1 | **1,079 / 1,078 / 1**: `preview` (recorded) | [recorded-test-failures.json](recorded-test-failures.json) |
 | initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
 | extension / total transport sectors | 104 / 211 | **104 / 211** | same |
 | ATR menu frame (baseline 596) | 550 (BASIC 541) | **550** (BASIC 541) | boot smoke |
@@ -404,16 +412,16 @@ the least-reachable armour column is now plate-a's at 24 of 64. Data only.
 | slot C `$1000-$17FF` | 1,748 of 2,048 B (13 sectors) | **2,003** (code + rodata + ASM 1,782, 14 sectors; BSS 221) | same |
 | install run / scratch page | 346 of 384 B / 237 of 256 B | **346 / 249** | same |
 | slot B | 768 B | **768 B** | same |
-| region 1 charset at `$0C00` | 938 B, 109 of 128 codes, 8 sectors | **994 B, 112 of 128 codes, 8 sectors** (the region run 16 of 16) | manifest `boss.regions` |
+| region 1 charset at `$0C00` | 938 B, 109 of 128 codes, 8 sectors | **978 B, 110 of 128 codes, 8 sectors** (the region run 16 of 16) | manifest `boss.regions` |
 | `$0500` summary module / sector reader | 115 free / 29 free | **unchanged** | manifest |
 | low RAM | `$0C00-$18FF` the boss's claim; `$1900-$1FFF` unclaimed | **unchanged** | generated memory map |
 | disk | 528–559; region 1 632–647 | **528–560** (code 16, install 3, slot C 14); region 1 632–647 | `build/manifest.json` |
-| ATR SHA-256 | `af0180b356ec33bf…` | **`de4bb4f09407e3a7c328a40c2b11026069b12d887c4c5bb22425dc28a5a8223b`** | `dist/` |
+| ATR SHA-256 | `af0180b356ec33bf…` | **`4926dc05ecc047d226c8939cb48ecdc39d28fb089d986365272ad9797a5d40ff`** | `dist/` |
 | boot SHA-256 | `b84ab9dbd4355ae8…` | **`b84ab9dbd4355ae86644b8bd98cdfd3959e76e273a2a81d7554f4e12f64d7ce2`** (unchanged) | `dist/` |
 
 Debug-route ATRs (`build/<variant>/`, never `dist/`): level 1's boss sector
-`build/level-1-s4/void-strike-65.atr` `1f8718b179f8e2a1…`; its capital sector
-`build/level-1-s1/void-strike-65.atr` `c96ec5a54822ca61…`.
+`build/level-1-s4/void-strike-65.atr` `255fbc1920010041…`; its capital sector
+`build/level-1-s1/void-strike-65.atr` `a89b2c44f4b6032c…`.
 
 **Read before accepting.** The stress pin reads 6,678 of 7,000 (the owner's
 note: reviewed in S4b against the boss-frame margins, which are above 11,000).
@@ -421,7 +429,8 @@ note: reviewed in S4b against the boss-frame margins, which are above 11,000).
 still need the next once-per-entry ASM out of slot A first (plan §5.15.7 item
 9). In the band a shot is light steel, not the playfield's pale yellow (answer
 2). The fight's lengths moved (EASY +3.3 s: shots now fly to their stop cell;
-MEDIUM +7.1 s after decision N's layout; HARD −5 s: gun-3 needs one plate). The
+then decisions N and O moved them again: 46.0 / 48.6 / 71.2 s; the housings'
+row-4 cells now stop shots and a dead cannon's columns are open sky). The
 cowl plates under the engine housings are gone (decision N: out of reach). Region 1's art stays the agent-drawn
 placeholder (decision G). **Smoke on copies** (§12).
 

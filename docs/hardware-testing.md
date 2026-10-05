@@ -420,18 +420,17 @@ debug-route ATR that starts in level 1's **boss sector**
 (`build/level-1-s4/void-strike-65.atr`) and the one that starts in its
 **capital sector** (`build/level-1-s1/void-strike-65.atr`). Emulator figures,
 for comparison only (EMULATOR): the entry reads 49 sectors in about 188 frames
-(3.8 s); the bot's fights took 40 / 54 / 66 s on EASY / MEDIUM / HARD, 1 / 6 / 3
-hits, no life lost. Artifacts (after decision N, plan §5.16.7): default ATR
-`de4bb4f0…` (`npm run play:atr`), boss debug ATR `1f8718b1…`, capital debug ATR
-`c96ec5a5…`
+(3.8 s); the bot's fights took 46 / 49 / 71 s on EASY / MEDIUM / HARD, 1 / 4 / 7
+hits, no life lost. Artifacts (after decision O, plan §5.16.8): default ATR
+`4926dc05…` (`npm run play:atr`), boss debug ATR `255fbc19…`, capital debug ATR
+`a89b2c44…`
 (`atari800 -xe -pal -nobasic <absolute path>`).
 
 - [ ] **Shots all the way to the boss.** Fire at a cannon whose plate is gone:
       the shot stays visible inside the band, light steel (the band cannot
       show the playfield's pale yellow; light steel is the closest), cell by
       cell up to the cannon, and the spark appears on the cannon. It may vanish
-      for one frame behind a girder stub or the thin hull strip under a
-      cannon - that is it passing behind them.
+      for one frame behind a short girder stub - that is it passing behind it.
 - [ ] **No stray piece after a hit.** Destroy a plate and keep firing into its
       columns: nothing of the plate stays hanging below the hull (the torn
       fragment §5.16.1 found). Hits on the boss leave nothing behind.
@@ -449,6 +448,12 @@ hits, no life lost. Artifacts (after decision N, plan §5.16.7): default ATR
       as its cover. Hit it straight away: it takes damage. Shoot any other
       cannon while its plate stands: the plate takes the hits, the cannon never
       does, in every one of its columns, wherever the band has drifted.
+- [ ] **Decision O: every weapon hangs in an open recess.** Look under each of
+      the five weapons (four cannons and the shuttered emitter): no grey strip,
+      no hull piece is drawn below any of them - only its own plate, or nothing.
+      gun-2 and gun-4 hang free of the strip at their sides. Nothing that cannot
+      be destroyed stands in front of any weapon; a cannon that takes damage is
+      always one you can see is bare.
 - [ ] **Decision N: every plate you can see can be destroyed.** The cowl plates
       under the two engine housings are gone (they were out of the fighter's
       reach). Fly to the far left while the band's left end is in view and

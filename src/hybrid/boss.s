@@ -409,8 +409,8 @@ boss_motion:
 ; shot inside the band flies on, drawn in its cell, until it reaches the cell
 ; that stops it (decision M, plan §5.16): per column the front intact module's
 ; bottom row, else the hull's own stop row, else nothing - it leaves the
-; band's top and is removed. Hull art below the hull line stops nothing, nor
-; does the strip under a standing cannon (decision M1). Hull absorbs (no
+; band's top and is removed. Only the girders' named cells are see-through
+; (decision M); no hull art is drawn under a weapon (decision O). Hull absorbs (no
 ; damage, not a hit, Q-B7); a module column goes to the controller, which
 ; decides whether the module is exposed (damage) or covered (absorbed). Every hit reads
 ; (decision J): a spark in the struck cell, the band flash and the damage
@@ -496,7 +496,7 @@ boss_hit:
     cmp #BOSS_COLUMN_ARMOUR
     bne @module
     ; The hull: the deflection on the column's hull stop cell - a cell of the
-    ; hull's own rows no module owns, so no module's draw can take it while
+    ; hull no module owns (not a girder's), so no module's draw can take it while
     ; the ring holds it (the stray glyph of plan §5.16.1) - the hull tick.
     ldy boss_column
     lda boss_stop_y,y
@@ -1192,8 +1192,8 @@ boss_column_from:
     sta boss_stop_y,x
     rts
 @base:
-; X = column: hull (ARMOUR) where the hull's own rows have a cell no module
-; owns, else OPEN (decision M); and the column's stop line - under that hull
+; X = column: hull (ARMOUR) where the band has a cell no module owns and no
+; girder's see-through cell, else OPEN (decisions M, O); and the column's stop line - under that hull
 ; cell, or 0 for open sky (the converter's hull-stop table, a nibble each).
 boss_column_base:
     txa
@@ -1468,8 +1468,8 @@ boss_prepare:
 ; the cell that stops a shot - the front module's bottom row, else the hull's
 ; own stop row, else 0 (open sky) - kept with the column map. C=1: the shot
 ; has reached that cell (A = the column map's value, Y = the column); C=0: it
-; flies on, drawn in its cell when the cell is blank (behind anything drawn
-; there, decision M1), or it left the band's top and is removed.
+; flies on, drawn in its cell when the cell is blank (behind a girder's stub,
+; decision M), or it left the band's top and is removed.
 boss_shot_meet:
     lda FIGHTER_PROJECTILE_X,x
     sec

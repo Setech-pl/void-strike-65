@@ -441,9 +441,15 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const fireCooldown = integerIn(fire.cooldown, 1, 255, "fire.cooldown");
   const capped = layout.capped ?? {};
   const cappedHp = integerIn(capped.hp, 1, BOSS_MAX_HP, "capped.hp");
-  // Decision M: the band rows that are the hull's own (row 0 down); hull art
-  // below them is drawn but stops no shot. Default: every row.
-  const hullRows = integerIn(layout.hullRows ?? BOSS_BAND_ROWS, 1, BOSS_BAND_ROWS, "hullRows");
+  // Decision M: the girders' cells that a shot passes (the only see-through
+  // hull art, decision O); every other hull cell stops a shot.
+  const seeThroughSource = layout.seeThrough ?? [];
+  if (!Array.isArray(seeThroughSource)) fail("seeThrough is a list of [column, row] cells");
+  const seeThrough = new Set(seeThroughSource.map((cell) => {
+    if (!Array.isArray(cell) || cell.length !== 2) fail("seeThrough: a cell is [column, row]");
+    return integerIn(cell[1], 0, BOSS_BAND_ROWS - 1, "seeThrough row") * BOSS_BAND_COLUMNS +
+      integerIn(cell[0], 0, BOSS_BAND_COLUMNS - 1, "seeThrough column");
+  }));
   const nozzles = layout.nozzles ?? {};
   const nozzleFrames = integerIn(nozzles.framesPerPhase, 1, 255, "nozzles.framesPerPhase");
 
@@ -623,13 +629,32 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   }
   const nozzleTailOffset = tail.length;
   for (const phases of nozzlePhases) for (const phase of phases) tail.push(...phase.bytes);
-  // Decision M: per column the row a shot stops on when no module stands in
-  // it - the lowest non-blank cell of the hull's own rows (0 .. hullRows - 1)
-  // that is no module's cell - packed a nibble a column (the row + 1; 0 =
-  // none: the column is open sky). Hull art below the hull line stops nothing.
+  // Decisions M and O: per column the row a shot stops on when no module
+  // stands in it - the lowest non-blank cell that is no module's and not a
+  // girder's see-through cell - packed a nibble a column (the row + 1; 0 =
+  // none: the column is open sky).
+  for (const key of seeThrough) {
+    const [c, r] = [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)];
+    if (bandRows[r][c] === 0 || owner.has(key)) fail(`seeThrough cell (${c}, ${r}) is no hull art`);
+  }
+  // Decision O (supersedes M1): nothing but a module, or nothing, stands
+  // between a weapon and the band's bottom - a shot meets a column's front
+  // module first, so hull art drawn under a weapon would be see-through.
+  for (const module of modules.filter((m) => m.kind !== BOSS_KIND.armour)) {
+    for (let c = module.x; c < module.x + module.width; c += 1) {
+      for (let r = module.row + module.height; r < BOSS_BAND_ROWS; r += 1) {
+        const key = r * BOSS_BAND_COLUMNS + c;
+        if (bandRows[r][c] !== 0 && !owner.has(key)) {
+          fail(`hull art at (${c}, ${r}) below module ${module.name}: every weapon hangs in its own ` +
+            "recess with nothing drawn under it (decision O)");
+        }
+      }
+    }
+  }
   const hullStop = Array.from({ length: BOSS_BAND_COLUMNS }, (_, c) => {
-    for (let r = hullRows - 1; r >= 0; r -= 1) {
-      if (bandRows[r][c] !== 0 && !owner.has(r * BOSS_BAND_COLUMNS + c)) return r;
+    for (let r = BOSS_BAND_ROWS - 1; r >= 0; r -= 1) {
+      const key = r * BOSS_BAND_COLUMNS + c;
+      if (bandRows[r][c] !== 0 && !owner.has(key) && !seeThrough.has(key)) return r;
     }
     return null;
   });
@@ -652,7 +677,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   charsetRun.fill(0, 0, BOSS_DIVIDER_CODES * 8);
 
   // A column with a hull stop absorbs a shot once no module covers it
-  // (decision M: only the hull's own rows count).
+  // (decisions M and O: every hull cell but a girder's see-through one).
   const armourBits = new Uint8Array(8);
   for (let c = 0; c < BOSS_BAND_COLUMNS; c += 1) {
     if (hullStop[c] !== null) armourBits[c >> 3] |= 1 << (c & 7);
@@ -732,7 +757,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     nozzleBase,
     shotCode,
     codeCount,
-    hullRows,
+    seeThrough: [...seeThrough].map((key) => [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)]),
     hullStop,
     glyphs,
     lookTail: Uint8Array.from(tail),

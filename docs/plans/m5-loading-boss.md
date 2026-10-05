@@ -376,7 +376,7 @@ decision M and are recorded here as decisions:
 
 | # | Decision | Applied in |
 | ---: | --- | --- |
-| **M1** | **A thin hull strip directly under a cannon is see-through for the player's shots** (an exception to decision M, kept to those strips): a shot passes behind it and hits the cannon above while the cannon stands. Nothing else in the hull's own rows is see-through | §5.16.5 |
+| **M1** | **WITHDRAWN by decision O (2026-10-05).** ~~**A thin hull strip directly under a cannon is see-through for the player's shots** (an exception to decision M, kept to those strips): a shot passes behind it and hits the cannon above while the cannon stands. Nothing else in the hull's own rows is see-through~~ | §5.16.5, §5.16.8 |
 | **M2** | **The opaque player-shot cell over a broadside shell in the capital sector is known and accepted**: for one or two frames the shot's cell replaces half the shell; no resident byte is spent on it | §5.16.1, §5.16.5 |
 
 **The owner's decision after smoking `fix/boss-readability` (2026-10-05, before
@@ -390,6 +390,17 @@ although the owner's shots reached them (to be checked, not assumed).
 | # | Decision | Applied in |
 | ---: | --- | --- |
 | **N** | **Readability rule for cover.** A weapon takes damage only when the player can see that nothing stands in front of it: if any module is drawn in front of any of the weapon's columns, the weapon is covered and shots into it are absorbed (grey deflection, no damage, no accuracy hit), in whichever column they arrive. A weapon meant to be open from the start must look open: no module in front of any of its columns, the opening at least as wide as the weapon, with clear space between it and the neighbouring plates so they do not read as its cover. Every armour module the player can see must be destructible by the player's shots | §5.16.7 |
+
+**The owner's decision after the decision-N smoke (2026-10-05, before
+merge).** The open bay reads better, but gun-2 still dies through something the
+player sees as solid: it sits above the hull's flat lower strip, a long grey
+connector under it that cannot be destroyed, and shots pass through that strip
+because of M1. The same strip runs under gun-1, the emitter and gun-3, so the
+problem returns for each of them once its plate falls.
+
+| # | Decision | Applied in |
+| ---: | --- | --- |
+| **O** | **No hull art is drawn below any weapon** (supersedes M1, which is withdrawn). Every weapon hangs in its own recess in the hull's underside: the hull's lower strip is routed above the weapon (behind it), never under it, so from the player's side nothing but a module, or nothing at all, stands in front of a weapon's columns. The see-through rule for hull strips leaves the code and the data; **the only see-through hull art left is the girders of decision M** | §5.16.8 |
 
 ---
 

@@ -573,13 +573,18 @@ test("QA1: inside the band a boss shot rides the band's drift and stays in its g
 // the DLI's writes are the same either way, and it returns A, X, Y and P as
 // it found them.
 test("AUD-03: the boss DLI writes the same with D set as with D clear, every phase and position, and returns A, X, Y and P", () => {
-  const base = laserFixture(9);
-  const edges = [70, 130, 190, 236];
-  edges.forEach((edge, i) => {
-    setLaser(base, "state", i, i & 1 ? BEAM : WARN);
-    setLaser(base, "edge", i, edge);
-  });
-  base[lbl("boss_laser_sizem")] = 0x5a;
+  // The tier-4 fixture with its lasers publishing; on a build without the
+  // lasers (main) region 1 as entered, so the test runs there too.
+  const lasers = has("laser_publish");
+  const base = lasers ? laserFixture(9) : regionOne(32);
+  if (lasers) {
+    const edges = [70, 130, 190, 236];
+    edges.forEach((edge, i) => {
+      setLaser(base, "state", i, i & 1 ? BEAM : WARN);
+      setLaser(base, "edge", i, edge);
+    });
+    base[lbl("boss_laser_sizem")] = 0x5a;
+  }
   const regs = { a: 0x5a, x: 0xa5, y: 0x3c };
   const run = (phase, pos, shown, p) => {
     const memory = Uint8Array.from(base);

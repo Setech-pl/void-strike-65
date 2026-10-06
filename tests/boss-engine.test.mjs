@@ -169,14 +169,15 @@ test("the band DLI: the region's charset under the HUD's last line, the gameplay
   });
   const afterWsync = (list) => list.slice(list.findIndex(([r]) => r === 0xd40a) + 1);
   assert.deepEqual(afterWsync(phases[0])[0], [0xd409, 0x0c], "phase 0: CHBASE $0C first after WSYNC");
-  // RE-POINTED M5b-S4b (owner decision QA2): phase 1 writes COLPF3 first, in
-  // the horizontal blank, so the lasers' fifth-player beam switches colour
-  // exactly at the band's edge; the gameplay charset follows at once, still
-  // before the ring's first line fetches a glyph.
-  assert.deepEqual(afterWsync(phases[1])[0], [0xd019, label("main", "GAMEPLAY_COLPF3")],
-    "phase 1: COLPF3 first (QA2)");
-  assert.deepEqual(afterWsync(phases[1])[1], [0xd409, label("main", "CHARSET") >> 8],
-    "phase 1: the gameplay charset next, before the ring's first line");
+  // RE-POINTED M5b-S4b (owner decision QA2): phase 1 wrote COLPF3 first.
+  // RE-POINTED back (owner decision 2026-10-06, B2): the lasers are missiles
+  // M1 / M2 in COLPM1 / COLPM2, no pixel of theirs is COLPF3, so QA2 is
+  // superseded - phase 1 writes the gameplay charset first, as main does,
+  // before the ring's first line fetches a glyph; COLPF3 is its last store.
+  assert.deepEqual(afterWsync(phases[1])[0], [0xd409, label("main", "CHARSET") >> 8],
+    "phase 1: the gameplay charset first, before the ring's first line");
+  assert.deepEqual(afterWsync(phases[1]).filter(([r]) => r >= 0xd016 && r <= 0xd019).at(-1),
+    [0xd019, label("main", "GAMEPLAY_COLPF3")], "phase 1: COLPF3 the last colour store");
   assert.deepEqual(phases[2].filter(([r]) => r === 0xd409), [[0xd409, label("main", "HUD_CHARSET") >> 8]],
     "phase 2: the HUD's charset");
   assert.equal(memory[phase], 0, "three phases a frame");

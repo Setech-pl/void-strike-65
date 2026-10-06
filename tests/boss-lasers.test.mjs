@@ -143,16 +143,27 @@ test("the missile plane the lasers write is main's PMG_BASE + $300", () => {
   assert.match(source, /^BROAD_DAMAGE_COOLDOWN\s*=\s*BROAD_PLAYER_HEALTH\+\$01/m);
 });
 
-test("option A: the install sets PRIOR's fifth-player bit and writes the emitter's column once", () => {
-  const memory = regionOne();
-  assert.equal(memory[PRIOR], 0x10, "PRIOR is not $10 in the boss sector");
+// RE-POINTED (owner decision B2, 2026-10-06, reversing Q1's option A: the
+// fifth-player beam's band segment was the hull's COLPF3, so the beam read as
+// starting at the band's edge): the install writes M1's and M2's columns once,
+// from the emitter's lens core (its bottom cell's line 3) to the ring's last
+// line, sets COLPM1 / COLPM2 to $46 and never writes PRIOR.
+const B2_LINE = (m) => 24 + (m.row + m.height - 1) * 8 + 3;
+test("B2: the install writes M1's and M2's columns from the lens core, COLPM1 / COLPM2 $46, PRIOR untouched", () => {
+  const memory = entered();
+  const writes = [];
+  const hooks = { write: (address, value) => { writes.push([address, value]); return undefined; } };
+  memory[PRIOR] = 0x5a;                               // gameplay's value, whatever it is: left alone
+  call(memory, lbl("laser_tier"), { hooks });
+  call(memory, lbl("laser_prepare"), { hooks });
+  assert.deepEqual(writesTo(writes, PRIOR), [], "the install wrote PRIOR");
+  assert.deepEqual([writesTo(writes, 0xd013), writesTo(writes, 0xd014)], [[0x46], [0x46]], "COLPM1 / COLPM2");
   const emitter = byName.get("emitter");
-  assert.equal(laser(memory, "module", 0), emitter, "the emitter (slot 1) is not laser 0 (M0)");
+  assert.equal(laser(memory, "module", 0), emitter, "the emitter (slot 1) is not laser 0");
   for (let i = 1; i < LASERS; i += 1) assert.equal(laser(memory, "module", i), 0xff, `laser ${i} has a module`);
-  const module = region1.modules[emitter];
-  const top = 24 + (module.row + module.height) * 8;
+  const top = B2_LINE(region1.modules[emitter]);
   for (let line = 0; line < 256; line += 1) {
-    const expected = line >= top && line < 240 ? 0x02 : 0x00;
+    const expected = line >= top && line < 240 ? 0x28 : 0x00;    // M1's and M2's left bits, never M0's or M3's
     assert.equal(memory[MISSILES + line], expected, `missile plane line ${line}`);
   }
 });
@@ -175,12 +186,11 @@ test("the laser count per tier: region 1 on level 1 has 1; the fixture has 2 on 
   assert.equal(four[lbl("boss_laser_slots")], 4);
   assert.deepEqual([0, 1, 2, 3].map((i) => laser(four, "module", i)),
     ["emitter", "emitter-2", "emitter-3", "emitter-4"].map((name) => fixtureByName.get(name)));
+  // RE-POINTED (B2): M1's and M2's bits from the highest lens core down, for
+  // whichever laser takes them; M0's and M3's never.
+  const top = Math.min(...[0, 1, 2, 3].map((i) => B2_LINE(fixture.modules[laser(four, "module", i)])));
   for (let line = 0; line < 240; line += 1) {
-    const expected = [0, 1, 2, 3].reduce((bits, i) => {
-      const module = fixture.modules[laser(four, "module", i)];
-      return line >= 24 + (module.row + module.height) * 8 ? bits | (0x02 << (2 * i)) : bits;
-    }, 0);
-    assert.equal(four[MISSILES + line], expected, `tier 4 plane line ${line}`);
+    assert.equal(four[MISSILES + line], line >= top ? 0x28 : 0x00, `tier 4 plane line ${line}`);
   }
 });
 
@@ -234,7 +244,8 @@ test("the warning reads: the emitter's bottom cell heats, the line pulses 1/2 cl
   for (let frame = 0; frame < 24; frame += 1) {
     const { writes } = update(memory);
     cells.push(memory[cellAddress]);
-    sizes.push((memory[lbl("boss_laser_sizem")] >> (2 * i)) & 3);
+    // RE-POINTED (B2): the SIZEM pair of the laser's missile, M1 or M2.
+    sizes.push((memory[lbl("boss_laser_sizem")] >> (2 * memory[lbl("b2_missile") + i])) & 3);
     tones.push(...writesTo(writes, AUDF3));
     channel2 += writesTo(writes, AUDF2).length + writesTo(writes, AUDC2).length;
   }
@@ -254,7 +265,7 @@ test("the warning reads: the emitter's bottom cell heats, the line pulses 1/2 cl
   assert.equal(channel2, 0, "the warning touched channel 2 (the music's lead)");
   framesIn(memory, i, WARN);
   assert.equal(memory[cellAddress], intact, "the emitter's cell did not get its look back");
-  assert.equal((memory[lbl("boss_laser_sizem")] >> (2 * i)) & 3, 3, "the beam is not quad width");
+  assert.equal((memory[lbl("boss_laser_sizem")] >> (2 * memory[lbl("b2_missile") + i])) & 3, 3, "the beam is not quad width");
 });
 
 test("a beam damages the player once per firing: MEDIUM 10 units, EASY 5", () => {
@@ -371,27 +382,33 @@ test("no laser while the player dies or respawns; a running beam goes off", () =
   }
 });
 
-test("the band DLI publishes the lasers' HPOS and SIZEM in phase 0, and phase 1 writes COLPF3 first (QA2)", () => {
+// RE-POINTED (B2, 2026-10-06): the DLI places M1 / M2 from the edges of the
+// lasers that hold them (b2_edge), never M0 / M3; each laser's HPOS still goes
+// to boss_laser_hpos for the hit test. QA2 is superseded (no laser pixel is
+// COLPF3): phase 1 writes the gameplay charset first, as main does.
+test("the band DLI places M1 / M2 from their lasers' edges, never M0 / M3, and phase 1 writes main's order", () => {
   const memory = laserFixture(9);
-  // HPOS = the laser's edge in the band - the band position this frame shows
-  // + 32 (plan §5.12 item 8), 0 outside the window (HPOS 48-203) or when off.
+  // HPOS = the edge in the band - the band position this frame shows + 32
+  // (plan §5.12 item 8), 0 outside the window (HPOS 48-203) or when off.
   const p = memory[lbl("boss_shown_pos")];
   const edges = [p + 16 + 50, p + 16 + 120, 0, p + 4];
   const expected = [50 + 48, 120 + 48, 0, 0];
   edges.forEach((edge, i) => setLaser(memory, "edge", i, edge));
-  memory[lbl("boss_laser_sizem")] = 0xc3;
+  memory[lbl("b2_edge")] = edges[1];                  // M1 held by laser 1
+  memory[lbl("b2_edge") + 1] = edges[0];              // M2 by laser 0
+  memory[lbl("boss_laser_sizem")] = 0x3c;
   memory[main("loader_dli_phase")] = 0;
   const phase0 = [], phase1 = [];
   nmi(memory, lbl("boss_dli"), { hooks: { write: (a, v) => { phase0.push([a, v]); return undefined; } } });
   nmi(memory, lbl("boss_dli"), { hooks: { write: (a, v) => { phase1.push([a, v]); return undefined; } } });
-  for (let i = 0; i < LASERS; i += 1) {
-    assert.deepEqual(writesTo(phase0, HPOSM0 + i), [expected[i]], `HPOSM${i}`);
-    assert.equal(laser(memory, "hpos", i), expected[i], `boss_laser_hpos ${i}`);
-  }
-  assert.deepEqual(writesTo(phase0, SIZEM), [0xc3]);
+  for (let i = 0; i < LASERS; i += 1) assert.equal(laser(memory, "hpos", i), expected[i], `boss_laser_hpos ${i}`);
+  assert.deepEqual(writesTo(phase0, HPOSM0 + 1), [expected[1]], "HPOSM1");
+  assert.deepEqual(writesTo(phase0, HPOSM0 + 2), [expected[0]], "HPOSM2");
+  assert.deepEqual([writesTo(phase0, HPOSM0), writesTo(phase0, HPOSM0 + 3)], [[], []], "M0 / M3 placed");
+  assert.deepEqual(writesTo(phase0, SIZEM), [0x3c]);
   const afterWsync = phase1.slice(phase1.findIndex(([a]) => a === WSYNC) + 1)
     .filter(([a]) => a >= 0xd000 && a < 0xd500);
-  assert.deepEqual(afterWsync[0], [COLPF3, main("GAMEPLAY_COLPF3")], "phase 1's first store is not COLPF3");
+  assert.deepEqual(afterWsync[0], [0xd409, main("CHARSET") >> 8], "phase 1's first store is not the charset");
 });
 
 test("QA1: a boss pulse shot is born at the gun's muzzle and drawn in the band down to its edge", () => {
@@ -430,8 +447,22 @@ test("QA1: a boss pulse shot is born at the gun's muzzle and drawn in the band d
   }
 });
 
-test("leaving by the win: the lasers are off, the column erased and PRIOR 0 before the hand-off", () => {
+// RE-POINTED (B2, 2026-10-06): the boss sector never writes PRIOR; leaving it
+// erases M1's and M2's columns, parks M1 / M2 off screen and gives COLPM1 /
+// COLPM2 back the Heavy's hull colour.
+const HULL_COLOUR = () => label("director", "_heavy_hull_colour");
+function leftAsGameplay(memory, writes, what) {
+  assert.deepEqual(writesTo(writes, PRIOR), [], `${what}: the boss sector wrote PRIOR`);
+  assert.equal(writesTo(writes, 0xd013).at(-1), memory[HULL_COLOUR()], `${what}: COLPM1 not restored`);
+  assert.equal(writesTo(writes, 0xd014).at(-1), memory[HULL_COLOUR()], `${what}: COLPM2 not restored`);
+  assert.deepEqual([writesTo(writes, HPOSM0 + 1).at(-1), writesTo(writes, HPOSM0 + 2).at(-1)], [0, 0],
+    `${what}: M1 / M2 not off screen`);
+  assert.ok(memory.subarray(MISSILES, MISSILES + 256).every((v) => v === 0), `${what}: the column is not erased`);
+}
+test("leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 restored, PRIOR never written", () => {
   const memory = regionOne();
+  const all = [];
+  memory[HULL_COLOUR()] = 0x96;                       // the Heavy's last hull colour, whatever it was
   alive(memory);
   memory[main("player_x")] = 60;
   const order = ["plate-d", "emitter", "plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "gun-2"];
@@ -445,19 +476,19 @@ test("leaving by the win: the lasers are off, the column erased and PRIOR 0 befo
       if (column >= 0) for (let slot = 0; slot < 5; slot += 1) shootAt(memory, column, slot);
       memory[LIFECYCLE] = PLAYER_ALIVE;
       memory[COOLDOWN] = 25;                         // the bot under fire: never killed here
-      update(memory);
+      all.push(...update(memory).writes);
     }
   }
   assert.notEqual(memory[lbl("_boss_phase")], 0, "the fight did not end");
-  for (let frame = 0; frame < 400 && memory[lbl("_boss_handoff")] === 0; frame += 1) update(memory);
+  for (let frame = 0; frame < 400 && memory[lbl("_boss_handoff")] === 0; frame += 1) all.push(...update(memory).writes);
   assert.notEqual(memory[lbl("_boss_handoff")], 0, "no hand-off");
-  assert.equal(memory[PRIOR], 0, "PRIOR is not 0 at the hand-off");
-  assert.ok(memory.subarray(MISSILES, MISSILES + 256).every((v) => v === 0), "the column is not erased");
+  leftAsGameplay(memory, all, "the win");
   for (let i = 0; i < LASERS; i += 1) assert.equal(laser(memory, "hpos", i), 0);
 });
 
-test("leaving by the last death: PRIOR 0 and the column erased while the player dies", () => {
+test("leaving by the last death: the column erased, COLPM1 / COLPM2 restored, PRIOR never written", () => {
   const memory = laserFixture(1);
+  memory[HULL_COLOUR()] = 0x96;
   alive(memory, { lives: 1 });
   const emitter = fixtureByName.get("emitter");
   fire(memory, emitter);
@@ -467,9 +498,9 @@ test("leaving by the last death: PRIOR 0 and the column erased while the player 
   damageCalls(memory, 3, () => { memory[main("player_x")] = laser(memory, "hpos", i) - 2; });
   assert.equal(memory[LIFECYCLE], PLAYER_DYING);
   assert.equal(memory[LIVES], 0);
-  for (let frame = 0; frame < 20; frame += 1) update(memory);
-  assert.equal(memory[PRIOR], 0, "PRIOR is not 0 during the last death");
-  assert.ok(memory.subarray(MISSILES, MISSILES + 256).every((v) => v === 0), "the column is not erased");
+  const all = [];
+  for (let frame = 0; frame < 20; frame += 1) all.push(...update(memory).writes);
+  leftAsGameplay(memory, all, "the last death");
 });
 
 test("outside the boss sector: START GAME after a game that ended in it leaves PRIOR, SIZEM, HPOSM and the missiles off", () => {
@@ -493,7 +524,10 @@ test("outside the boss sector: START GAME after a game that ended in it leaves P
   game.sp = 0xff;
   game.pc = main("start_gameplay");
   assert.equal(runUntil(game, { loop: main("main_loop") }, { maxSteps: 50_000_000 }), "loop");
+  // (B2: the boss sector no longer writes PRIOR; main's START GAME restore of
+  // it is unchanged.) COLPM1 / COLPM2 are the game start's, not the beam's $46.
   assert.equal(writesTo(writes, PRIOR).at(-1), 0, "PRIOR is not 0 in the next game");
+  assert.ok(writesTo(writes, 0xd013).length > 0 && writesTo(writes, 0xd013).at(-1) !== 0x46, "COLPM1 kept the beam's $46");
   // init_broadside gives M1-M3 the capital broadside's double size at every
   // game start and keeps M0's pair, which the restore has zeroed: $54.
   assert.equal(writesTo(writes, SIZEM).at(-1), 0x54, "SIZEM is not the game start's $54 in the next game");

@@ -19,7 +19,7 @@ import test from "node:test";
 import * as assets from "../scripts/boss-assets.mjs";
 import * as levels from "../scripts/level-compiler.mjs";
 import {
-  call, installRegion, label, labelsOf, nmi, placeBand, root, runBossEntry, visibleCells,
+  call, installRegion, label, nmi, placeBand, root, runBossEntry, visibleCells,
 } from "./boss-harness.mjs";
 
 const { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } = assets;
@@ -29,6 +29,7 @@ const draftOf = () => loadBossRegionDraft(bossRegionDirectory(root, 1));
 const region1 = compileBossRegion(draftOf());
 const fixtureOf = (tier) => compileBossRegion(assets.bossLaserFixtureDraft(draftOf(), tier));
 const LASERS = 4, OFF = 0, WARN = 1, BEAM = 2;
+const MISSILES = 0x3b00;                           // PMG_BASE + $300 (pinned in tests/boss-lasers.test.mjs)
 const LIFECYCLE = main("PLAYER_LIFECYCLE");
 const COOLDOWN = main("BROAD_DAMAGE_COOLDOWN");
 const RELOAD = { easy: 300, medium: 225, hard: 150 };
@@ -256,22 +257,77 @@ test("D3: a waiting emitter that is destroyed leaves the queue", () => {
   assert.ok(active(memory).length <= 2);
 });
 
-// S4b.2 (owner smoke findings, 2026-10-06): the comparison probes are build
-// flags (--emitter-art=A|B|C, --beam-root; scripts/build.mjs) - the default
-// build carries none of them: no beam-root code in the boss link, and the
-// beam's edge is the emitter's centre less half the beam (no centring shift).
-test("S4b.2: the emitter-art and beam-root probes stay out of the default build", () => {
-  for (const name of ["root_draw", "root_take", "root_free", "root_prepare", "laser_root"]) {
-    assert.ok(!labelsOf.boss.has(name), `the default boss link carries ${name}`);
-  }
+// Owner decision B2 (2026-10-06, the final phase of S4b): the lasers are
+// missiles M1 / M2 in COLPM1 / COLPM2 = $46, one for each running laser (at
+// most two, D3), freed when its laser ends or its emitter dies; M0 (the
+// player's, the broadside's) and M3 are never used in the boss sector.
+test("B2: a tier-4 fight places and sizes only M1 / M2, and the plane holds only their bits", () => {
   const memory = install(fixtureOf(4), { level: 9, difficulty: 2 });
-  for (let f = 0; f < 400 && active(memory).length === 0; f += 1) frame(memory);
-  const on = active(memory).find((i) => state(memory, i) === WARN || state(memory, i) === BEAM);
-  assert.ok(on !== undefined, "no laser ran");
-  for (let f = 0; f < 60 && state(memory, on) !== BEAM; f += 1) frame(memory);
-  assert.equal(state(memory, on), BEAM);
-  assert.equal(memory[lbl("boss_laser_edge") + on], memory[lbl("boss_laser_centre") + on] - 2,
-    "the default beam's edge moved (the centring probe leaked in)");
+  const hposM0 = 0xd004, hposM3 = 0xd007;
+  let lasersOn = 0;
+  for (let f = 0; f < 1500; f += 1) {
+    const writes = [];
+    memory[LIFECYCLE] = 0; memory[LIFECYCLE + 1] = 3; memory[COOLDOWN] = 25; memory[main("player_x")] = 0;
+    memory[main("loader_dli_phase")] = 0;
+    nmi(memory, lbl("boss_dli"), { hooks: { write: (a, v) => { writes.push([a, v]); return undefined; } } });
+    call(memory, lbl("boss_update"));
+    call(memory, lbl("boss_motion"));
+    nmi(memory, lbl("boss_dli")); nmi(memory, lbl("boss_dli"));
+    assert.ok(!writes.some(([a, v]) => (a === hposM0 || a === hposM3) && v !== 0), `frame ${f}: M0 or M3 placed`);
+    assert.equal(memory[lbl("boss_laser_sizem")] & 0xc3, 0, `frame ${f}: M0's or M3's size set`);
+    lasersOn = Math.max(lasersOn, active(memory).length);
+    const owners = [0, 1].map((m) => memory[lbl("b2_owner") + m]).filter((o) => o !== 0xff);
+    assert.deepEqual(owners.sort(), active(memory).sort(), `frame ${f}: the missiles' owners are not the running lasers`);
+  }
+  assert.equal(lasersOn, 2);
+  assert.ok(memory.subarray(MISSILES, MISSILES + 256).every((v) => (v & ~0x28) === 0), "a bit outside M1 / M2 in the plane");
+});
+
+test("B2: a laser's missile is freed when its beam ends and when its emitter dies", () => {
+  const fixture = fixtureOf(4);
+  const memory = install(fixture, { level: 9, difficulty: 2 });
+  // Run until a laser's beam ends: its missile free, its edge 0, at that frame.
+  let ended = false;
+  for (let f = 0; f < 800 && !ended; f += 1) {
+    const before = [0, 1, 2, 3].map((i) => [state(memory, i), memory[lbl("b2_missile") + i]]);
+    frame(memory);
+    for (let i = 0; i < LASERS; i += 1) {
+      if (before[i][0] === BEAM && state(memory, i) === OFF) {
+        const m = before[i][1];
+        assert.ok(m === 1 || m === 2, `laser ${i} beamed without a missile`);
+        assert.equal(memory[lbl("b2_missile") + i], 0, "the ended laser kept its missile");
+        if (memory[lbl("b2_owner") + m - 1] !== 0xff) {
+          assert.notEqual(memory[lbl("b2_owner") + m - 1], i, "the missile still names the ended laser");
+        }
+        ended = true;
+      }
+    }
+  }
+  assert.ok(ended, "no beam ended");
+  // A running laser whose emitter dies: its missile free that frame.
+  let killed = false;
+  for (let f = 0; f < 800 && !killed; f += 1) {
+    frame(memory);
+    const i = active(memory)[0];
+    if (i === undefined || memory[lbl("b2_missile") + i] === 0) continue;
+    const m = memory[lbl("b2_missile") + i];
+    const module = moduleOf(memory, i);
+    const mod = fixture.modules[module];
+    const { left, right } = visibleCells(memory[lbl("boss_shown_pos")]);
+    const column = [...Array(mod.width).keys()].map((k) => mod.x + k).find((c) => c >= left && c <= right);
+    if (column === undefined) continue;
+    memory[lbl("_boss_hp") + module] = 1;
+    memory[main("FIGHTER_PROJECTILE_ACTIVE")] = 1;
+    memory[main("FIGHTER_PROJECTILE_X")] = column * 4 + 32 - memory[lbl("boss_shown_pos")] + 1;
+    memory[main("FIGHTER_PROJECTILE_Y")] = (mod.row + mod.height) * 8 + 24 - 4;
+    frame(memory);
+    if (memory[lbl("_boss_hp") + module] !== 0) continue;
+    assert.equal(state(memory, i), OFF, "the dead emitter's laser runs on");
+    assert.equal(memory[lbl("b2_missile") + i], 0, "the dead emitter's laser kept its missile");
+    assert.ok(memory[lbl("b2_owner") + m - 1] === 0xff || memory[lbl("b2_owner") + m - 1] !== i, "its missile still names it");
+    killed = true;
+  }
+  assert.ok(killed, "no running laser's emitter was destroyed");
 });
 
 // S4b.3 (owner decision 2, 2026-10-06): the beam sits under the centre of the
@@ -292,7 +348,7 @@ test("S4b.3: the beam's centre is the emitter core's centre, from the module dat
       if (st !== WARN && st !== BEAM) continue;
       const m = fixture.modules[moduleOf(memory, i)];
       const core = m.x * 4 + m.width * 2;              // the colour clock between the two core cells
-      const pair = (memory[lbl("boss_laser_sizem")] >> (2 * i)) & 3;
+      const pair = (memory[lbl("boss_laser_sizem")] >> (2 * memory[lbl("b2_missile") + i])) & 3;   // its missile's pair (B2)
       const width = st === BEAM ? 4 : pair === 1 ? 2 : 1;
       const edge = memory[lbl("boss_laser_edge") + i];
       if (edge === 0) continue;                          // admitted at this frame's end: placed from the next

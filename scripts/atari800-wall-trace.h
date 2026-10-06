@@ -353,6 +353,16 @@ typedef struct {
 	unsigned boss_entry;
 	unsigned boss_state;
 	unsigned maximum_boss_dlis_per_host_frame;
+	/* M5b-S4b (docs/plans/boss-lasers.md §7): the four lasers' states packed two
+	 * bits each (0 off, 1 warning, 2 beam; laser 0 in bits 0-1), the HPOS each
+	 * showed this frame (0 off screen), the entries into the laser's damage call
+	 * site (the laser's source id), and POKEY channel 3 (the warning's tone).
+	 * Additive. */
+	unsigned laser_states;
+	unsigned laser_hpos[4];
+	unsigned laser_damage_calls;
+	unsigned audf3;
+	unsigned audc3;
 	unsigned pickup_draw_calls;
 	unsigned pickup_erase_scanline;
 	unsigned pickup_erase_cycle;
@@ -859,6 +869,11 @@ static unsigned dftrace_boss_phase;
 static unsigned dftrace_pc_boss_dli;
 static unsigned dftrace_pc_boss_enter;
 static unsigned dftrace_maximum_boss_dlis_per_host_frame;
+/* M5b-S4b: the lasers' state and shown HPOS arrays and the damage call site
+ * (all optional: 0 disables them). */
+static unsigned dftrace_laser_state;
+static unsigned dftrace_laser_hpos;
+static unsigned dftrace_pc_laser_damage;
 static unsigned dftrace_dli_integrity_expected = 2u;
 static unsigned dftrace_env_optional(const char *name)
 {
@@ -3385,6 +3400,37 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		else if (y < target_y)
 			stick = (stick & 0x0cu) | 0x01u;
 	}
+	else if (strcmp(dftrace_policy, "lower-contact-laser") == 0) {
+		/* M5b-S4b (docs/plans/boss-lasers.md §7): the sweep bot plays the level;
+		 * in the boss sector, once a laser warns or fires on screen while the
+		 * player is ALIVE with no damage cooldown, it steers under that beam on
+		 * the bottom clamp - the beam's span inside the 8-HPOS envelope - and
+		 * waits for the beam. */
+		unsigned laser;
+		int target = -1;
+		if (dftrace_boss_active() && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u &&
+			MEMORY_mem[dftrace_player_lifecycle] == 0u &&
+			MEMORY_mem[dftrace_broad_state + 30u] == 0u) {
+			for (laser = 0u; laser < 4u; ++laser) {
+				unsigned state = MEMORY_mem[dftrace_laser_state + laser];
+				unsigned hpos = MEMORY_mem[dftrace_laser_hpos + laser];
+				if ((state == 1u || state == 2u) && hpos != 0u) {
+					target = (int) hpos - 2;
+					break;
+				}
+			}
+		}
+		if (target < 0) {
+			int target_right = ((frame / 72u) & 1u) == 0;
+			stick = target_right ? (x < 154u ? 0x07u : 0x0fu) :
+				(x > 94u ? 0x0bu : 0x0fu);
+		}
+		else {
+			stick = (int) x < target ? 0x07u : (int) x > target ? 0x0bu : 0x0fu;
+			if (y < DFTRACE_PLAYER_MAX_Y)
+				stick &= 0x0du;
+		}
+	}
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
 		strcmp(dftrace_policy, "broadside-proof") == 0) {
 		int target_right = ((frame / 72u) & 1u) == 0;
@@ -5388,6 +5434,16 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->maximum_boss_dlis_per_host_frame = dftrace_maximum_boss_dlis_per_host_frame;
 	frame->boss_state = dftrace_boss_active() && dftrace_boss_phase != 0u
 		? 1u + MEMORY_mem[dftrace_boss_phase] : 0u;
+	frame->laser_states = 0u;
+	if (dftrace_boss_active() && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u) {
+		unsigned laser;
+		for (laser = 0u; laser < 4u; ++laser) {
+			frame->laser_states |= (MEMORY_mem[dftrace_laser_state + laser] & 3u) << (2u * laser);
+			frame->laser_hpos[laser] = MEMORY_mem[dftrace_laser_hpos + laser];
+		}
+	}
+	frame->audf3 = POKEY_AUDF[POKEY_CHAN3];
+	frame->audc3 = POKEY_AUDC[POKEY_CHAN3];
 	frame->pause_test_completed = dftrace_pause_test_completed;
 	frame->pause_timer_before = dftrace_pause_timer_before;
 	frame->pause_timer_after = dftrace_pause_timer_after;
@@ -5490,7 +5546,9 @@ static void dftrace_write(void)
 		",slot2_type,slot2_state,slot3_type,slot3_state"
 		",engine_playfield_select_idle_calls,engine_playfield_select_idle_dlist"
 		",engine_playfield_select_idle_active_lo,pickup_erase_writes"
-		",boss_entry,boss_state,maximum_boss_dlis_per_host_frame\n");
+		",boss_entry,boss_state,maximum_boss_dlis_per_host_frame"
+		",laser_states,laser_hpos0,laser_hpos1,laser_hpos2,laser_hpos3"
+		",laser_damage_calls,audf3,audc3\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -5756,6 +5814,9 @@ static void dftrace_write(void)
 			frame->pickup_erase_writes);
 		fprintf(file, ",%u,%u,%u", frame->boss_entry, frame->boss_state,
 			frame->maximum_boss_dlis_per_host_frame);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->laser_states,
+			frame->laser_hpos[0], frame->laser_hpos[1], frame->laser_hpos[2],
+			frame->laser_hpos[3], frame->laser_damage_calls, frame->audf3, frame->audc3);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6521,6 +6582,9 @@ static void dftrace_init(void)
 	dftrace_boss_phase = dftrace_env_optional("DFTRACE_BOSS_PHASE");
 	dftrace_pc_boss_dli = dftrace_env_optional("DFTRACE_PC_BOSS_DLI");
 	dftrace_pc_boss_enter = dftrace_env_optional("DFTRACE_PC_BOSS_ENTER");
+	dftrace_laser_state = dftrace_env_optional("DFTRACE_LASER_STATE");
+	dftrace_laser_hpos = dftrace_env_optional("DFTRACE_LASER_HPOS");
+	dftrace_pc_laser_damage = dftrace_env_optional("DFTRACE_PC_LASER_DAMAGE");
 	DFTRACE_ADDRESS(dftrace_pc_world, "DFTRACE_PC_WORLD");
 	DFTRACE_ADDRESS(dftrace_pc_near, "DFTRACE_PC_NEAR");
 	DFTRACE_ADDRESS(dftrace_pc_far_erase, "DFTRACE_PC_FAR_ERASE");
@@ -7329,6 +7393,25 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		++dftrace_current.capital_collision_calls;
 	if (pc == dftrace_pc_capital_player_damage)
 		++dftrace_current.capital_player_damage_calls;
+	/* M5b-S4b: the laser's damage call site. The first entry that will apply
+	 * damage (the player ALIVE, no cooldown) starts the contact capture: frame
+	 * zero is the completed preceding raster, as for a capital contact. */
+	if (dftrace_pc_laser_damage != 0u && pc == dftrace_pc_laser_damage) {
+		++dftrace_current.laser_damage_calls;
+		if (dftrace_capital_contact_prefix != NULL && *dftrace_capital_contact_prefix != '\0' &&
+			dftrace_capital_contact_count == 0u &&
+			MEMORY_mem[dftrace_player_lifecycle] == 0u &&
+			MEMORY_mem[dftrace_broad_state + 30u] == 0u) {
+			char path[1024];
+			snprintf(path, sizeof(path), "%s-%02u.png", dftrace_capital_contact_prefix, 0u);
+			if (!Screen_SaveScreenshot(path, 0)) {
+				fprintf(stderr, "voidstrike65 trace: laser contact screenshot failed: %s\n", path);
+				exit(2);
+			}
+			dftrace_capital_contact_count = 1u;
+			dftrace_capital_contact_primed = 1;
+		}
+	}
 	if (pc == dftrace_pc_capital_player_aabb_hit) {
 		dftrace_capture_capital_contact_decision(pc,
 			MEMORY_mem[dftrace_broad_state + 34u]);

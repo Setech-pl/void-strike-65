@@ -677,21 +677,23 @@ const lowerPlayfieldSessions = [{
   frames: 1_400,
   kind: "lower-playfield-boundary",
 }, {
-  /* RECORDED, class (a), owner decision 2026-10-02 (contact-scenario-redesign
-   * §6 Q1): kept as it is. Its steering (`shell_y - 7`) predates the final-
-   * raster collision of 4753399, and on HARD level 1 a hostile shell in the
-   * lower rows is rare and late (after ~+840 frames of the sector, behind debris
-   * and low Allied hits). It gets an honest scenario in M5, where the boss's
-   * lasers make low hostile shells frequent. */
-  id: "lower-playfield-hostile-contact-atr-hard",
+  /* M5b-S4b (decision 13; owner decisions Q4 of 2026-10-03 and Q9 of
+   * 2026-10-06; docs/plans/boss-lasers.md §7): the hostile lower-row contact
+   * on the boss's laser. It replaces lower-playfield-hostile-contact-atr-hard,
+   * retired by name (docs/recorded-gate-failures.json): that session's capital
+   * shell could not reach the lower rows on HARD level 1 (class (a)). The
+   * sweep bot plays level 1 to the boss with its lives held, and in the boss
+   * sector steers under the first laser that warns while it can take damage;
+   * the beam's first frame over it is the contact. */
+  id: "lower-playfield-laser-contact-atr-hard",
   medium: "ATR",
   difficulty: 2,
-  policy: "lower-contact-hostile",
-  fireDelay: 4_000,
-  frames: 1_200,
-  kind: "lower-playfield-contact",
+  policy: "lower-contact-laser",
+  fireDelay: 0,
+  frames: 15_000,
+  kind: "lower-playfield-laser-contact",
+  holdPlayerLives: 3,
   contactOwner: 1,
-  /* `lower-contact-hostile` steers to the same `shell_y - 7` mid-body overlap. */
   contactModeId: 1,
 }, {
   /* chore/contact-scenario-redesign: the lower-row contact raster, gated
@@ -716,6 +718,7 @@ const lowerPlayfieldSessions = [{
 const capitalContactPrefixKinds = new Set([
   "capital-projectile-contact",
   "lower-playfield-contact",
+  "lower-playfield-laser-contact",
   "capital-player-geometry",
 ]);
 
@@ -1075,6 +1078,10 @@ for (const name of [
   // M5b-S3 (correction 10): the boss-entry frame, the boss's state, the most
   // DLIs a host frame saw inside the boss sector. Additive.
   "boss_entry", "boss_state", "maximum_boss_dlis_per_host_frame",
+  // M5b-S4b (docs/plans/boss-lasers.md §7): the lasers' packed states, the
+  // HPOS each showed, the laser's damage call entries, POKEY channel 3. Additive.
+  "laser_states", "laser_hpos0", "laser_hpos1", "laser_hpos2", "laser_hpos3",
+  "laser_damage_calls", "audf3", "audc3",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -3544,6 +3551,10 @@ function main() {
       addressEnvironment.DFTRACE_PC_BOSS_DLI = hex(bossLabels, "boss_dli");
       addressEnvironment.DFTRACE_PC_BOSS_ENTER = hex(directorLabels, "_asm_boss_enter");
       addressEnvironment.DFSUMMARY_SCORE_BOSS = hex(bossLabels, "boss_module_scored");
+      // M5b-S4b: the lasers' states and shown HPOS, and the laser's damage call.
+      addressEnvironment.DFTRACE_LASER_STATE = hex(bossLabels, "boss_laser_state");
+      addressEnvironment.DFTRACE_LASER_HPOS = hex(bossLabels, "boss_laser_hpos");
+      addressEnvironment.DFTRACE_PC_LASER_DAMAGE = hex(bossLabels, "boss_laser_damage");
     }
   }
 
@@ -3734,7 +3745,7 @@ function main() {
       session.kind === "broadside-transient-lifecycle"
       ? path.join(buildDirectory, `${session.id}-broadside-compositor.jsonl`) : undefined;
     const capitalContactPrefix = session.kind === "capital-projectile-contact" ||
-      session.kind === "lower-playfield-contact"
+      session.kind === "lower-playfield-contact" || session.kind === "lower-playfield-laser-contact"
       ? path.join(buildDirectory, `${session.id}-frame`) : undefined;
     const capitalGeometryPrefix = session.kind === "capital-player-geometry"
       ? path.join(buildDirectory, `${session.id}-frame`) : undefined;
@@ -4369,7 +4380,86 @@ function main() {
         entry_screenshot_sequence: path.relative(rootDirectory, entrySheet),
       }, null, 2)}\n`);
     }
-    if (capitalContactPrefix !== undefined) {
+    // M5b-S4b (decision 13; owner decisions Q4, Q9; docs/plans/boss-lasers.md
+    // §7): the hostile lower-row contact, on the boss's laser. The retired
+    // session's requirement - sixteen consecutive contact rasters around one
+    // hostile hit in the lower rows, the hit through the canonical gate once,
+    // no repeat, the raster boxes intersecting, PAL timing - is evaluated here
+    // with the laser as the hostile source; the shell's own clauses stay with
+    // capital-contact-hostile-medium (§7 lists where each is covered).
+    if (capitalContactPrefix !== undefined && session.kind === "lower-playfield-laser-contact") {
+      const basename = path.basename(capitalContactPrefix);
+      const paths = fs.readdirSync(buildDirectory)
+        .filter((name) => name.startsWith(`${basename}-`) && name.endsWith(".png"))
+        .sort()
+        .map((name) => path.join(buildDirectory, name));
+      invariant(paths.length === 16,
+        `${session.id} did not capture 16 consecutive contact rasters`);
+      const contactIndex = rows.findIndex((row) => row.laser_damage_calls !== 0 &&
+        row.player_lifecycle === 0 && row.player_damage_cooldown === 0 && row.player_invulnerability === 0);
+      invariant(contactIndex > 0 && rows[contactIndex + 15] !== undefined,
+        `${session.id} has no laser contact with the player able to take damage`);
+      const contact = rows[contactIndex];
+      const window = rows.slice(contactIndex, contactIndex + 16);
+      invariant(window.reduce((sum, row) => sum + row.laser_damage_calls, 0) === 1 &&
+        window.every((row) => row.capital_player_damage_calls === 0),
+      `${session.id} did not enter the laser's damage call exactly once (and no shell's) in the capture window`);
+      const laserState = (row, laser) => (row.laser_states >> (2 * laser)) & 3;
+      const envelope = (row, hpos) => hpos !== 0 && hpos - row.player_x < 8 && hpos - row.player_x > -4;
+      const laser = [0, 1, 2, 3].find((index) => laserState(contact, index) === 2 &&
+        envelope(contact, contact[`laser_hpos${index}`]));
+      invariant(laser !== undefined,
+        `${session.id} damage occurred without a beam over the player's envelope on the contact frame`);
+      invariant(contact.player_y >= 191,
+        `${session.id} contact is not in the lower playfield rows (player_y ${contact.player_y})`);
+      let beamStart = contactIndex;
+      while (beamStart > 0 && laserState(rows[beamStart - 1], laser) === 2) beamStart -= 1;
+      let warnStart = beamStart;
+      while (warnStart > 0 && laserState(rows[warnStart - 1], laser) === 1) warnStart -= 1;
+      invariant(beamStart - warnStart >= 24,
+        `${session.id} the beam was warned for ${beamStart - warnStart} frames, not >= 24`);
+      const damage = 10 - contact.player_health_after;
+      invariant(contact.player_health === 10 && damage === 10 &&
+        contact.player_lifecycle_after === 1 && contact.player_invulnerability === 0 &&
+        contact.player_damage_cooldown_after === 25,
+      `${session.id} did not apply HARD's ten hull units through the canonical gate ` +
+      `(health ${contact.player_health} -> ${contact.player_health_after}, lifecycle ` +
+      `${contact.player_lifecycle_after}, cooldown ${contact.player_damage_cooldown_after})`);
+      const after = rows.slice(contactIndex + 1, contactIndex + 25);
+      invariant(after.every((row) => row.laser_damage_calls === 0 && row.laser_states === 0),
+        `${session.id} a beam ran on or hit again while the player died`);
+      const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+      const missed = rows.reduce((sum, row) => sum + row.missed_frames, 0);
+      const extraVbi = rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0);
+      const overruns = rows.filter((row) => row.wall_cycles > 32_584).length;
+      invariant(missed === 0 && extraVbi === 0 && overruns === 0,
+        `${session.id} missed PAL timing around the laser contact`);
+      const sheetPath = path.join(buildDirectory, `${session.id}-contact-sequence.png`);
+      const sheet = writeScreenshotContact(paths, sheetPath, 4);
+      fs.writeFileSync(path.join(buildDirectory, `${session.id}-evidence.json`),
+        `${JSON.stringify({
+          session: session.id,
+          source: "the boss's laser (boss_laser_damage)",
+          emulator: "Atari800 7.1.2 PAL/XL",
+          production_artifact: path.relative(rootDirectory, atrPath),
+          contact_frame: contact.frame,
+          laser,
+          warning_frames: beamStart - warnStart,
+          beam_frame: rows[beamStart].frame,
+          beam_hpos: contact[`laser_hpos${laser}`],
+          player: { x: contact.player_x, y: contact.player_y,
+            hull: [contact.player_health, contact.player_health_after],
+            lifecycle_after: contact.player_lifecycle_after,
+            cooldown_after: contact.player_damage_cooldown_after },
+          damage_hull_units: damage,
+          timing: { maximum_wall_cycles: maximumWall, pal_headroom: 35_568 - maximumWall,
+            missed_frames: missed, deadline_overruns: overruns, extra_vbi_boundaries: extraVbi },
+          screenshot_sequence: sheet,
+          raw_trace: path.relative(rootDirectory, outputPath),
+          passed: true,
+        }, null, 2)}\n`);
+    }
+    if (capitalContactPrefix !== undefined && session.kind !== "lower-playfield-laser-contact") {
       const basename = path.basename(capitalContactPrefix);
       const paths = fs.readdirSync(buildDirectory)
         .filter((name) => name.startsWith(`${basename}-`) && name.endsWith(".png"))

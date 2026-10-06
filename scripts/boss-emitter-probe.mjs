@@ -35,10 +35,17 @@ function damaged(grid, level) {
 
 export const EMITTER_PROBE_PLATE_LOOK = Object.freeze({ column: 11, row: 4 });   // plate-a
 
+// S4b.3 (owner decision 3, 2026-10-06): the emitter one row taller, its bottom
+// level with the lower turrets' (gun-2, gun-4: rows 2-3). The added row is the
+// housing row repeated (no new glyphs); the bottom row - the core - moves down
+// one row into the recess below it (empty, decision O); plate-d stays below.
+export const EMITTER_PROBE_EXTRA_ROWS = 1;
+
 export function emitterProbeDraft(draft, key) {
   const candidate = EMITTER_PROBE_CORES[key];
   if (candidate === undefined) throw new Error(`no emitter probe ${key}`);
-  const emitter = draft.layout.modules.find((module) => module.kind === "emitter" && module.slot === 1);
+  const source = draft.layout.modules.find((module) => module.kind === "emitter" && module.slot === 1);
+  const emitter = { ...source, height: source.height + EMITTER_PROBE_EXTRA_ROWS };
   const core = candidate.core.map((row) => [...row].map((ch) => CODE[ch]));
   const looks = { band: core, open: core, cracked: damaged(core, 1), broken: damaged(core, 2) };
   const plates = draft.layout.modules.filter((module) => module.kind === "armour");
@@ -46,6 +53,15 @@ export function emitterProbeDraft(draft, key) {
   for (const [name, image] of Object.entries(draft.images)) {
     if (name === "extras") continue;
     const indices = Uint8Array.from(image.indices);
+    // Taller: the old bottom row moves down, the housing row fills the gap.
+    const cells = (fromRow, toRow) => {
+      for (let y = 0; y < 8; y += 1) {
+        const from = (fromRow * 8 + y) * image.width + source.x * 4;
+        indices.set(image.indices.subarray(from, from + source.width * 4), (toRow * 8 + y) * image.width + source.x * 4);
+      }
+    };
+    cells(source.row + source.height - 1, emitter.row + emitter.height - 1);
+    for (let r = source.row + 1; r < emitter.row + emitter.height - 1; r += 1) cells(source.row, r);
     // The candidate core: the emitter's bottom row, its two middle cells.
     const top = (emitter.row + emitter.height - 1) * 8, left = (emitter.x + 1) * 4;
     looks[name].forEach((row, y) => row.forEach((p, x) => { indices[(top + y) * image.width + left + x] = p; }));
@@ -65,5 +81,6 @@ export function emitterProbeDraft(draft, key) {
     }
     images[name] = { ...image, indices };
   }
-  return { ...draft, images, layout: { ...draft.layout, name: `${draft.layout.name} (emitter probe ${key})` } };
+  const modules = draft.layout.modules.map((module) => (module === source ? { ...module, height: emitter.height } : module));
+  return { ...draft, images, layout: { ...draft.layout, modules, name: `${draft.layout.name} (emitter probe ${key})` } };
 }

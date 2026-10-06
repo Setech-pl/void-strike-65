@@ -273,3 +273,33 @@ test("S4b.2: the emitter-art and beam-root probes stay out of the default build"
   assert.equal(memory[lbl("boss_laser_edge") + on], memory[lbl("boss_laser_centre") + on] - 2,
     "the default beam's edge moved (the centring probe leaked in)");
 });
+
+// S4b.3 (owner decision 2, 2026-10-06): the beam sits under the centre of the
+// emitter's core. MEASURED on Atari800 captures of the art-A probe at band
+// positions 40-60 (in the band and below it): with the S4b.2 shift the 4- and
+// 2-clock beam sat 1 colour clock left of the lens; unshifted it is centred -
+// the edge is the core's centre, from the module data, less half the beam. The
+// 1-clock pulse of the warning cannot share an even-width core's centre: it
+// starts at the centre (half a clock right of it).
+test("S4b.3: the beam's centre is the emitter core's centre, from the module data, in the warning and the beam", () => {
+  const fixture = fixtureOf(4);
+  const memory = install(fixture, { level: 9, difficulty: 2 });
+  const seen = { 1: 0, 2: 0, 4: 0 };
+  for (let f = 0; f < 600; f += 1) {
+    frame(memory);
+    for (let i = 0; i < LASERS; i += 1) {
+      const st = state(memory, i);
+      if (st !== WARN && st !== BEAM) continue;
+      const m = fixture.modules[moduleOf(memory, i)];
+      const core = m.x * 4 + m.width * 2;              // the colour clock between the two core cells
+      const pair = (memory[lbl("boss_laser_sizem")] >> (2 * i)) & 3;
+      const width = st === BEAM ? 4 : pair === 1 ? 2 : 1;
+      const edge = memory[lbl("boss_laser_edge") + i];
+      if (edge === 0) continue;                          // admitted at this frame's end: placed from the next
+      if (width === 1) assert.equal(edge, core, `laser ${i}: the 1-clock pulse's edge`);
+      else assert.equal(edge + width / 2, core, `laser ${i}: the ${width}-clock beam's centre is ${edge + width / 2}, the core's ${core}`);
+      seen[width] += 1;
+    }
+  }
+  assert.ok(seen[1] > 0 && seen[2] > 0 && seen[4] > 0, `widths seen ${JSON.stringify(seen)}`);
+});

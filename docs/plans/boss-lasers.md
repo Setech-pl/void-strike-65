@@ -1356,3 +1356,80 @@ The force field was also planned on P1 / P2. If the beam root ships, the
 force field and the roots compete for the same two players in the boss sector.
 S5 must choose: give the force field other hardware, give the roots up while
 the field shows, or share the players by band zone.
+
+### 15.4 S4b.3 — centring, the taller emitter, B2 against the root (probes, 2026-10-06)
+
+**Owner decisions:**
+
+* Art A (lens) with the plates' damage looks shared.
+* The beam exactly under the lens core.
+* The emitter as tall as the turrets.
+* A cheaper bright beam probed ("B2") before choosing the root.
+
+**Centring (MEASURED):**
+
+* On Atari800 captures of the art-A probe, the lens core's top row located in
+  an intact frame and followed by cross-correlating the band's hull rows.
+* With S4b.2's −1 clock shift, the 4- and 2-clock beam sat exactly 1 colour
+  clock left of the core, at every band position, in the band and below it.
+* The S4b.2 "1 clock right" was a measurement error: the band position was
+  read from the wrong frame.
+* The shift is removed. The 4-clock beam now centres on the core to the pixel
+  (0 px at band positions 40–60, both probes).
+* The warning's 1-clock pulse sits half a clock right, unavoidably: an odd
+  width cannot share an even-width core's centre.
+* The test "S4b.3: the beam's centre is the emitter core's centre" pins
+  edge + width/2 = x × 4 + width × 2 from the module data.
+
+**The taller emitter (probe, `--emitter-art=A`):**
+
+* Rows 1–3, its bottom level with the lower turrets (gun-2, gun-4).
+* The added row is the housing row repeated; the core row moves down into
+  the empty recess; plate-d still covers it.
+* No new glyphs: region 1 stays at 115 codes, 1,018 of 1,024 B. The fixtures'
+  emitters follow, at 115 and 109 codes.
+
+**B2 (probe, `--beam-b2`):**
+
+* **Missiles:** M1 / M2 in COLPM1 / COLPM2 = `$46`, set in the boss sector,
+  restored on leaving. PRIOR is not written in the boss sector.
+* **Assignment:** each running laser (at most two) takes M1 or M2 when its
+  warning starts and frees it when it ends.
+* **The column:** written once at the install, from the lens core's line 3
+  down to the playfield's end. The warning's pulse and the beam start at the
+  core.
+* **What B2 makes unnecessary:**
+  * PRIOR's fifth-player bit and its restore: removed.
+  * QA2's COLPF3-first order: reverted under B2, since no laser pixel is
+    COLPF3.
+  * QA4 (the beam flashes with the band): gone; the beam is COLPM.
+  * QA3's S5 refusal of an emitter region with a dark COLPF3: obsolete.
+  * The root's scanline-88 cover: not needed.
+* **Priority** (PRIOR bits 0–3 = 0, as in all gameplay): GTIA ORs overlapping
+  playfield and missile colours.
+  * Over the lens art the beam reads `$4E`.
+  * Under an emitter the column is empty recess (decision O), and plate-d
+    falls before the emitter fires. So the beam crosses no hull and no
+    standing plate.
+  * P0 outranks M1 / M2: the ship is drawn over the beam exactly as in S4b.1
+    (contact frame 820: identical pixels).
+* **The trace:** the stale-sprite check reads P1 / P2 ($3D00 / $3E00), not
+  the missile plane; no check reads COLPM1 / COLPM2 in the boss sector. B2
+  passes every clause.
+* **The root fails that check** on 2,043 frames of `laser-dodge-2-fire0`.
+  Narrowest exemption if it ships: skip player slot p's rows when the boss
+  sector is active and `root_owner[p] != $FF` or `root_dirty[p] != 0`
+  (RAM).
+
+**Measured:**
+
+| | `fdc7db8` | root | B2 |
+| --- | ---: | ---: | ---: |
+| Slot A | 2,032 B | 2,032 B | 2,032 B |
+| Slot D, level-1-s4 | 1,306 B (code 1,228) | 1,782 B (code 1,684) | 1,492 B (code 1,398) |
+| Slot D, tier-4 fixture | 1,290 B | 1,766 B | 1,476 B |
+| Worst boss frame, native (tier 4, two on, kills) | 7,575 | 8,245 | 7,593 |
+| DLI phase 0, native | 161 | 204 | 171 |
+| Two beams on: worst fence margin / DMA-on (Atari800, tier 4) | 14,460 / 27,530 (S4b.1) | 12,575 / 27,399 | 14,761 / 27,448 |
+| Trace clauses | pass | stale-sprite failure | pass |
+| P1 / P2 | free | taken | free (S5's force field) |

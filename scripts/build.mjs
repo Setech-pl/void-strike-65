@@ -304,8 +304,9 @@ const laserFixtureTier = laserFixtureSlug === undefined ? null : Number(laserFix
 // variants only, never dist/ - --emitter-art=A|B|C puts a candidate emitter
 // core into region 1 (scripts/boss-emitter-probe.mjs; the plates share one set
 // of damage looks to make room), --beam-root lights each laser's band segment
-// on player P1 / P2 (BOSS_BEAM_ROOT in slot D). Either centres the beam on the
-// emitter's core (BOSS_BEAM_CENTRE). The default build takes none of it.
+// on player P1 / P2 (BOSS_BEAM_ROOT in slot D). The default build takes none
+// of it. (S4b.3: the S4b.2 centring shift is gone - MEASURED, the beam was
+// already centred on the core; the shift put it 1 colour clock left.)
 const emitterArtArgument = process.argv.find((argument) => argument.startsWith("--emitter-art="));
 const emitterArtSlug = emitterArtArgument?.slice("--emitter-art=".length).toUpperCase();
 if (emitterArtSlug !== undefined && !["A", "B", "C"].includes(emitterArtSlug)) {
@@ -313,7 +314,10 @@ if (emitterArtSlug !== undefined && !["A", "B", "C"].includes(emitterArtSlug)) {
 }
 const emitterArt = emitterArtSlug ?? null;
 const beamRoot = process.argv.includes("--beam-root");
-const beamProbe = emitterArt !== null || beamRoot;
+// S4b.3: --beam-b2, the beam on M1 / M2 in player colours (BOSS_BEAM_B2).
+const beamB2 = process.argv.includes("--beam-b2");
+if (beamRoot && beamB2) throw new Error("--beam-root and --beam-b2 are alternatives");
+const beamProbe = emitterArt !== null || beamRoot || beamB2;
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -340,7 +344,8 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 // it produces can be read by anything that did not ask for the variant.
 const levelDebugSuffix = levelDebugId === null
   ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
-const beamProbePrefix = `${emitterArt === null ? "" : `emitter-art-${emitterArt}-`}${beamRoot ? "beam-root-" : ""}`;
+const beamProbePrefix = `${emitterArt === null ? "" : `emitter-art-${emitterArt}-`}${beamRoot ? "beam-root-" : ""}` +
+  `${beamB2 ? "beam-b2-" : ""}`;
 const variantDirectoryName = laserFixtureTier !== null || beamProbe
   ? `${laserFixtureTier === null ? "" : `laser-fixture-${laserFixtureTier}-`}${beamProbePrefix}`.replace(/-$/, "") +
     levelDebugSuffix
@@ -2665,7 +2670,7 @@ async function build() {
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end"],
     director: ["_sector_wave_count", "_director_c_try_event",
-      ...(beamRoot ? ["_heavy_hull_colour"] : [])],
+      ...(beamRoot || beamB2 ? ["_heavy_hull_colour"] : [])],
   };
   const importLinks = { main: labels, reader: sectorReaderLabels, director: directorLabels };
   const directorAbiConstants = new Map(directorAbiInclude.toString("utf8").split(/\r?\n/)
@@ -2781,8 +2786,8 @@ async function build() {
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
-        ...(beamProbe ? ["-D", "BOSS_BEAM_CENTRE=1"] : []),
         ...(beamRoot ? ["-D", "BOSS_BEAM_ROOT=1"] : []),
+        ...(beamB2 ? ["-D", "BOSS_BEAM_B2=1"] : []),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -4005,7 +4010,7 @@ async function build() {
         capacityBytes: BOSS_SLOT_D_BYTES, freeBytes: BOSS_SLOT_D_BYTES - bossSlotDUsed,
         sectors: bossSlotDSectors },
       laserFixtureTier,
-      ...(beamProbe ? { emitterArt, beamRoot, beamCentre: true } : {}),
+      ...(beamProbe ? { emitterArt, beamRoot, beamB2 } : {}),
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1] },

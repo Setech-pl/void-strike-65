@@ -313,6 +313,19 @@ boss_dli:
     lsr                                 ; phase 1 -> C=1; phase 2 -> C=0
     bcc @hud
     sta WSYNC
+.ifdef BOSS_BEAM_B2
+    ; S4b.3 probe: no laser pixel is COLPF3 any more - the pre-QA2 order.
+    lda #>CHARSET
+    sta CHBASE
+    lda #GAMEPLAY_COLPF0
+    sta COLPF0
+    lda gameplay_dli_allied_colpf1_load+1   ; the level's allied steel
+    sta COLPF1
+    lda #GAMEPLAY_COLPF2
+    sta COLPF2
+    lda #GAMEPLAY_COLPF3
+    sta COLPF3
+.else
     ; COLPF3 first (owner decision QA2): in the horizontal blank, so the
     ; lasers' fifth-player beam changes from the band's colour to the ring's
     ; exactly at the band's edge (as the last store it reached line 88).
@@ -326,6 +339,7 @@ boss_dli:
     sta COLPF1
     lda #GAMEPLAY_COLPF2
     sta COLPF2
+.endif
     inc gameplay_dli_phase
     lda boss_dli_pos
     cmp boss_shown_pos
@@ -1726,6 +1740,19 @@ LASER_LAST_LINE     = 239       ; the ring's last line
 ; src/main.s: MISSILES = PMG_BASE + $0300, PLAYER_LIVES = PLAYER_LIFECYCLE+$01,
 ; PLAYER_ALIVE = 0, PLAYER_COLLISION_WIDTH = 8 (pinned by tests/boss-lasers.test.mjs).
 LASER_MISSILES      = $3B00
+.ifdef BOSS_BEAM_B2
+; S4b.3 probe "B2" (owner, 2026-10-06): two missiles in player colours. At most
+; two lasers run (D3): each takes M1 or M2; PRIOR stays as outside the boss
+; sector, so M1 / M2 wear COLPM1 / COLPM2 (no Heavy in the boss sector).
+HPOSM1              = $D005
+HPOSM2              = $D006
+HPOSM3              = $D007
+COLPM1              = $D013
+COLPM2              = $D014
+B2_COLOUR           = $46       ; the beam's colour (as below the band before)
+B2_COLUMN_BITS      = $28       ; M1's and M2's left bits: quad width, four clocks
+B2_CORE_LINE        = 3         ; the beam leaves the lens core: its cell's line 3
+.endif
 .ifdef BOSS_BEAM_ROOT
 ; S4b.2 probe (owner smoke findings, 2026-10-06): the beam's root - its band
 ; segment lit on player P1 / P2, free in the boss sector (option A), one a
@@ -1867,6 +1894,15 @@ laser_prepare:
     sta boss_laser_cell_hi,x
     lda laser_m
     sta boss_laser_module,x
+.ifdef BOSS_BEAM_B2
+    lda #B2_COLUMN_BITS                 ; S4b.3 probe: M1 and M2, from the lens core
+    sta laser_b
+    lda laser_t
+    asl
+    asl
+    asl
+    adc #(BAND_TOP_Y - 8 + B2_CORE_LINE) ; C=0: the core row's lens line
+.else
     lda laser_bits,x
     sta laser_b
     lda laser_t
@@ -1874,6 +1910,7 @@ laser_prepare:
     asl
     asl
     adc #BAND_TOP_Y                     ; C=0: the first line of the beam
+.endif
     tay
 @line:
     lda LASER_MISSILES,y
@@ -1891,9 +1928,13 @@ laser_prepare:
     jsr root_prepare
 .endif
     jsr laser_all_off                   ; S4b.1 (D3): every laser off, its reload set
+.ifdef BOSS_BEAM_B2
+    jmp b2_prepare                      ; PRIOR as outside the boss sector: M1 / M2 in COLPM1 / COLPM2
+.else
     lda #$10                            ; the fifth player: missiles in COLPF3
     sta PRIOR
     rts
+.endif
 
 ; S4b.1 (owner decision D3, 2026-10-06): an emitter fires on its own cadence,
 ; not in the controller's pulse rotation (D1: the converter gives it no pulse
@@ -1992,12 +2033,87 @@ laser_begin:
     sta boss_laser_ready,x
 .ifdef BOSS_BEAM_ROOT
     jmp root_take
+.elseif .defined(BOSS_BEAM_B2)
+    jmp b2_take
 .else
     rts
 .endif
 
 laser_module_bits:
     .byte $01, $02, $04, $08, $10, $20, $40, $80
+
+.ifdef BOSS_BEAM_B2
+; At the install, after the column: M1 / M2 nobody's and in the beam's colour,
+; M0 / M3 off screen. PRIOR is not written: it stays as gameplay has it.
+b2_prepare:
+    lda #$00
+    sta b2_edge
+    sta b2_edge+1
+    sta HPOSM0
+    sta HPOSM3
+    ldx #(LASERS - 1)
+:
+    sta b2_missile,x
+    dex
+    bpl :-
+    lda #$FF
+    sta b2_owner
+    sta b2_owner+1
+    lda #B2_COLOUR
+    sta COLPM1
+    sta COLPM2
+    rts
+
+; Leaving the boss sector: COLPM1 / COLPM2 as gameplay has them, M1 / M2 off.
+b2_restore:
+    lda #$00
+    sta HPOSM1
+    sta HPOSM2
+    lda _heavy_hull_colour
+    sta COLPM1
+    sta COLPM2
+    lda #$00
+    rts
+
+; X = a laser starting its warning: a free missile, M1 or M2, its pair bits. Keeps X.
+b2_take:
+    ldy #$00
+:
+    lda b2_owner,y
+    bmi @got
+    iny
+    cpy #$02
+    bne :-
+    rts
+@got:
+    txa
+    sta b2_owner,y
+    lda b2_pair_one,y
+    sta b2_one,x
+    lda b2_pair_three,y
+    sta b2_three,x
+    iny
+    tya
+    sta b2_missile,x                    ; 1: M1, 2: M2
+    rts
+
+; X = a laser going off: its missile off screen and free. Keeps X.
+b2_free:
+    ldy b2_missile,x
+    beq :+
+    lda #$FF
+    sta b2_owner-1,y
+    lda #$00
+    sta b2_edge-1,y
+    sta b2_missile,x
+:
+    rts
+
+b2_pair_one:
+    .byte $04, $10                      ; SIZEM: M1, M2 double
+b2_pair_three:
+    .byte $0C, $30                      ; SIZEM: M1, M2 quad
+.endif
 
 .ifdef BOSS_BEAM_ROOT
 ; At the install: the two players' memory clear, nobody's, clean, their
@@ -2345,7 +2461,11 @@ laser_place:
     lda boss_laser_timer,x
     and #$02
     beq @thin
+.ifdef BOSS_BEAM_B2
+    lda b2_one,x                        ; its missile's pair: two clocks
+.else
     lda laser_pair_one,x                ; two clocks: one clock left of centre
+.endif
     ldy #1
     bne @size
 @thin:
@@ -2353,7 +2473,11 @@ laser_place:
     tay
     beq @size
 @beam:
+.ifdef BOSS_BEAM_B2
+    lda b2_three,x
+.else
     lda laser_pair_three,x
+.endif
     ldy #2
 @size:
     ora boss_laser_sizem
@@ -2362,10 +2486,13 @@ laser_place:
     lda boss_laser_centre,x
     sec
     sbc laser_t
-.ifdef BOSS_BEAM_CENTRE
-    sbc #$01                            ; S4b.2 probe: MEASURED 1 colour clock right of the core
-.endif
     sta boss_laser_edge,x
+.ifdef BOSS_BEAM_B2
+    ldy b2_missile,x                    ; its missile follows its edge (the DLI)
+    beq :+
+    sta b2_edge-1,y
+:
+.endif
     rts
 
 ; From the kill path (boss_module_scored): the destroyed module's laser, if it
@@ -2385,6 +2512,9 @@ laser_killed:
 laser_off:
 .ifdef BOSS_BEAM_ROOT
     jsr root_free
+.endif
+.ifdef BOSS_BEAM_B2
+    jsr b2_free
 .endif
     lda boss_laser_state,x
     cmp #LASER_WARN
@@ -2537,7 +2667,11 @@ laser_erase_step:
     sty boss_laser_erase
     cpy #$00
     bne :+
+.ifdef BOSS_BEAM_B2
+    jsr b2_restore
+.else
     sta PRIOR
+.endif
 .ifdef BOSS_BEAM_ROOT
     jsr root_restore
 .endif
@@ -2674,14 +2808,42 @@ on:
 off:
     lda #$00
 on:
+.ifndef BOSS_BEAM_B2
     sta HPOSM0+index
+.endif
     sta boss_laser_hpos+index
 .endmacro
+
+.ifdef BOSS_BEAM_B2
+; M1 + index: its HPOS from its laser's edge, as LASER_PUBLISH computes it (A only).
+.macro B2_PUBLISH index
+    .local off, on
+    lda b2_edge+index
+    beq off
+    sec
+    sbc boss_shown_pos
+    bcc off
+    cmp #(GAMEPLAY_LEFT_HPOS - BAND_ORIGIN_HPOS)
+    bcc off
+    cmp #(GAMEPLAY_LEFT_HPOS + GAMEPLAY_SCREEN_COLUMNS * 4 - BAND_ORIGIN_HPOS - LASER_BEAM_CLOCKS)
+    bcs off
+    adc #BAND_ORIGIN_HPOS               ; C=0
+    bne on
+off:
+    lda #$00
+on:
+    sta HPOSM1+index
+.endmacro
+.endif
 laser_publish:
     LASER_PUBLISH 0
     LASER_PUBLISH 1
     LASER_PUBLISH 2
     LASER_PUBLISH 3
+.ifdef BOSS_BEAM_B2
+    B2_PUBLISH 0
+    B2_PUBLISH 1
+.endif
     lda boss_laser_sizem
     sta SIZEM
 .ifdef BOSS_BEAM_ROOT
@@ -2732,6 +2894,13 @@ laser_n:            .res 1
 laser_rr:           .res 1      ; S4b.1: the waiting order's cursor
 boss_laser_ready:   .res LASERS ; S4b.1: reloaded, waiting for a place (D3)
 boss_laser_phase:   .res LASERS ; S4b.1: the heat's frame in 4, from the warning's start
+.ifdef BOSS_BEAM_B2
+b2_missile:         .res LASERS ; S4b.3 probe: its missile, 1 / 2, 0 none
+b2_one:             .res LASERS ; its missile's SIZEM pairs
+b2_three:           .res LASERS
+b2_owner:           .res 2      ; each missile's laser, $FF free
+b2_edge:            .res 2      ; its laser's edge, for the DLI
+.endif
 .ifdef BOSS_BEAM_ROOT
 laser_root:         .res LASERS ; S4b.2 probe: its root player, 1 / 2, 0 none
 root_full:          .res LASERS ; the beam's column written

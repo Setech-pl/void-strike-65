@@ -12,6 +12,12 @@
 // held in a warning's heat frame (the lasers' costliest frame, timer 21) and,
 // separately, in their beams.
 //
+// The owner's decision (AUD-04, 2026-10-06): at most two player shots meet
+// the boss a frame; a later one stays where it is and is tested again on the
+// next frame. The harness does not run the game's projectile update, so each
+// case runs two more frames with the shots still in flight moved as that
+// update moves them (6 lines up), and the case's figure is its worst frame.
+//
 // Reachability is labelled per case (docs/plans/boss-lasers.md §13): one
 // meeting a frame is reachable; two (rapid fire, rows 4-5 apart) are
 // reachable; three or more are unproven (a SPREAD volley's three shots meet
@@ -44,6 +50,13 @@ function entered() {
 const LIFECYCLE = main("PLAYER_LIFECYCLE");
 const COOLDOWN = main("BROAD_DAMAGE_COOLDOWN");
 const hp = (memory, i) => memory[lbl("_boss_hp") + i];
+const ACTIVE = main("FIGHTER_PROJECTILE_ACTIVE"), SHOT_Y = main("FIGHTER_PROJECTILE_Y");
+const SPEED = 6;                                   // PLAYER_FIGHTER_PROJECTILE_SPEED (build/fighter-weapons.inc)
+// The game's projectile update for the player's five slots, as far as the band sees it.
+function advance(memory) {
+  for (let slot = 0; slot < 5; slot += 1) if (memory[ACTIVE + slot] !== 0) memory[SHOT_Y + slot] -= SPEED;
+}
+const live = (memory) => [0, 1, 2, 3, 4].filter((slot) => memory[ACTIVE + slot] !== 0);
 
 function hold(memory, laserMode) {
   memory[LIFECYCLE] = 0;
@@ -122,8 +135,13 @@ function sweep(region, { setup, deadSets, laserMode }) {
               shootAt(memory, front.get(module), slot);
             });
             if (!valid) continue;
+            let cycles = frame(memory, laserMode);
+            for (let next = 0; next < 2 && live(memory).length > 0; next += 1) {
+              advance(memory);
+              cycles = Math.max(cycles, frame(memory, laserMode));
+            }
             cases.push({
-              cycles: frame(memory, laserMode), p, k, mode, reach: reach(k),
+              cycles, p, k, mode, reach: reach(k),
               dead: dead.map((i) => region.modules[i].name), hit: hit.map((i) => region.modules[i].name),
               columns: hit.map((i) => front.get(i)),
             });
@@ -197,4 +215,115 @@ test("AUD-04: the tier-4 fixture with four lasers - every combination stays unde
   assert.deepEqual([...covered].sort(), fixture.modules.map((m) => m.name).sort(), "a module never met");
   const over = worst.filter((c) => c.cycles > LIMIT);
   assert.deepEqual(over.map(describe), [], `over the ${LIMIT}-cycle limit`);
+});
+
+// ---------------------------------------------------------------------------
+// The cap's behaviour (owner decision AUD-04, 2026-10-06)
+// ---------------------------------------------------------------------------
+
+const byName1 = new Map(region1.modules.map((m, i) => [m.name, i]));
+const STATS_HITS = 0xae;                           // src/hybrid/level-summary-abi.inc
+const score = (memory) => memory[main("score_bcd_lo")] | (memory[main("score_bcd_hi")] << 8);
+const bcd = (value) => Number(value.toString(16));
+// One frame with the kills and the controller's hits counted.
+function counted(memory, laserMode = null) {
+  let kills = 0, hits = 0;
+  const scored = lbl("boss_module_scored"), hit = lbl("_boss_c_hit");
+  hold(memory, laserMode);
+  memory[main("loader_dli_phase")] = 0;
+  nmi(memory, lbl("boss_dli"));
+  call(memory, lbl("boss_update"), { watch: (pc) => { if (pc === scored) kills += 1; if (pc === hit) hits += 1; } });
+  nmi(memory, lbl("boss_dli"));
+  nmi(memory, lbl("boss_dli"));
+  return { kills, hits };
+}
+function plates(names, hpOf, p = 32) {
+  const memory = entered();
+  placeBand(memory, p);
+  const front = fronts(memory, region1);
+  const ids = names.map((name) => byName1.get(name));
+  ids.forEach((id, slot) => {
+    memory[lbl("_boss_hp") + id] = hpOf;
+    shootAt(memory, front.get(id), slot);
+  });
+  return { memory, ids };
+}
+
+test("AUD-04 cap: a SPREAD volley meeting three distinct modules lands over two frames, each hit counted once", () => {
+  // plate-f, plate-g and plate-h share one meeting line (their bottoms on row
+  // 8): a SPREAD volley's three shots, on one Y, meet them in the same frame.
+  const { memory, ids } = plates(["plate-f", "plate-g", "plate-h"], 5);
+  const hits0 = memory[STATS_HITS];
+  const first = counted(memory);
+  const hpAfter1 = ids.map((id) => hp(memory, id));
+  assert.equal(first.hits, 2, "two shots meet the boss on the first frame");
+  assert.deepEqual(hpAfter1.filter((v) => v === 4).length, 2, `hit points after the first frame: ${hpAfter1}`);
+  assert.deepEqual(live(memory), [0], "the third shot is kept in flight");
+  advance(memory);
+  const second = counted(memory);
+  assert.equal(second.hits, 1, "the kept shot meets on the next frame");
+  assert.deepEqual(ids.map((id) => hp(memory, id)), [4, 4, 4], "every module lost exactly one hit point");
+  assert.deepEqual(live(memory), [], "no shot left over");
+  assert.equal(memory[STATS_HITS] - hits0, 3, "accuracy counts three hits");
+  advance(memory);
+  assert.equal(counted(memory).hits, 0, "nothing meets a third time");
+});
+
+test("AUD-04 cap: three kills in one volley - score and kills counted once each, over two frames", () => {
+  const { memory, ids } = plates(["plate-f", "plate-g", "plate-h"], 1);
+  const before = score(memory);
+  const hits0 = memory[STATS_HITS];
+  const first = counted(memory);
+  advance(memory);
+  const second = counted(memory);
+  assert.deepEqual([first.kills, second.kills], [2, 1], "two kills, then the third");
+  assert.deepEqual(ids.map((id) => hp(memory, id)), [0, 0, 0]);
+  // A module's score is one packed-BCD byte, added once when it is destroyed.
+  const worth = ids.reduce((sum, id) => sum + bcd(region1.modules[id].score), 0);
+  assert.equal(bcd(score(memory)) - bcd(before), worth, "the score gained is not the three modules' scores once");
+  assert.equal(memory[STATS_HITS] - hits0, 3, "accuracy counts three hits");
+  advance(memory);
+  assert.deepEqual(counted(memory), { kills: 0, hits: 0 }, "no hit or kill counted twice");
+});
+
+test("AUD-04 cap: a kept shot whose target died meanwhile meets what its column then holds, as a fresh shot would", () => {
+  // The loop takes the slots from 4 down: slot 2 kills plate-d, slot 1 hits
+  // plate-g, slot 0 - in plate-d's column too - waits a frame.
+  const d = byName1.get("plate-d"), g = byName1.get("plate-g");
+  const start = () => {
+    const memory = entered();
+    placeBand(memory, 32);
+    const front = fronts(memory, region1);
+    memory[lbl("_boss_hp") + d] = 1;
+    memory[lbl("_boss_hp") + g] = 5;
+    shootAt(memory, front.get(d), 2);
+    shootAt(memory, front.get(g), 1);
+    return { memory, column: front.get(d) };
+  };
+  const waiting = start();
+  shootAt(waiting.memory, waiting.column, 0);
+  const shotX = waiting.memory[main("FIGHTER_PROJECTILE_X")];
+  const shotY = waiting.memory[SHOT_Y];
+  counted(waiting.memory);
+  assert.equal(hp(waiting.memory, d), 0, "plate-d fell on the first frame");
+  assert.deepEqual(live(waiting.memory), [0], "the third shot waits");
+  advance(waiting.memory);
+  assert.equal(waiting.memory[SHOT_Y], shotY, "it waited where it was");
+  const afterWait = counted(waiting.memory);
+  // The same frame with a fresh shot at the waiting shot's place.
+  const fresh = start();
+  counted(fresh.memory);
+  advance(fresh.memory);
+  fresh.memory[ACTIVE] = 1;
+  fresh.memory[main("FIGHTER_PROJECTILE_X")] = shotX;
+  fresh.memory[SHOT_Y] = shotY;
+  fresh.memory[main("FIGHTER_PROJECTILE_LIFETIME")] = waiting.memory[main("FIGHTER_PROJECTILE_LIFETIME")];
+  const afterFresh = counted(fresh.memory);
+  assert.deepEqual(afterWait, afterFresh, "the kept shot's meeting differs from a fresh shot's");
+  const state = (memory) => ({
+    hp: [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + region1.modules.length)],
+    hits: memory[STATS_HITS], score: score(memory), live: live(memory),
+    map: [...memory.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)],
+  });
+  assert.deepEqual(state(waiting.memory), state(fresh.memory));
 });

@@ -534,3 +534,34 @@ test("Q8: the tier-4 fixture with four lasers running and five shots a frame sta
   console.log(`# four-laser stress, worst: ${worst} native cycles (${worstCase}); ` +
     `${fourActiveFrames} frames with four lasers running, ${fourBeamFrames} with four beams (Q8 limit 8,500)`);
 });
+
+// QA1, found in the emulator while measuring it: a boss shot fell straight down
+// the screen while the band drifted under it, so a shot from gun-3 slid behind
+// plate-f (standing beside it) and came out at the plate's foot. Inside the
+// band the shot now rides the band's drift and stays in its gun's column.
+test("QA1: inside the band a boss shot rides the band's drift and stays in its gun's column", () => {
+  const memory = regionOne(32);
+  alive(memory);
+  memory[main("player_x")] = 60;
+  const gun2 = byName.get("gun-2");
+  const module = region1.modules[gun2];
+  const active = main("FIGHTER_PROJECTILE_ACTIVE");
+  memory.fill(0, active + HOSTILE_FIRST, active + HOSTILE_FIRST + 5);
+  fire(memory, gun2);
+  const slot = [5, 6, 7, 8, 9].find((s) => memory[active + s] !== 0);
+  const centre = module.x + (module.width >> 1);
+  const base = memory[0xad00 + assets.BOSS_TABLE.shotCode] + assets.BOSS_SHOT_CODES;
+  let p = 32;
+  for (let y = 24 + (module.row + module.height) * 8; y < 88; y += 2) {
+    p = Math.min(63, p + 1);                     // the band drifts a clock a frame here (twice the game's)
+    placeBand(memory, p);
+    memory[main("FIGHTER_PROJECTILE_Y") + slot] = y;
+    update(memory);
+    const row = (y - 24) >> 3;
+    const drawn = [...Array(64).keys()].filter((c) => {
+      const code = memory[bossBandRowAddress(row) + c];
+      return code === base || code === base + 1;
+    });
+    assert.deepEqual(drawn, [centre], `y ${y}, p ${p}: the shot is drawn in columns ${drawn}, not its gun's ${centre}`);
+  }
+});

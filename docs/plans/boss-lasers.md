@@ -857,3 +857,35 @@ computation moves to slot D with the in-band draw (−~16 B in slot A).
 
 Q1 is revised to **A** by the owner's preference; Q2–Q11 stand as written, with
 Q5's clause wording and Q8's figures as §11.4 revises them.
+
+---
+
+## 12. Owner decisions (2026-10-06) — they replace the draft answers to Q1–Q11
+
+| # | Decision |
+| --- | --- |
+| **QA1** | Boss shots are born at the gun's muzzle and drawn inside the band down to its edge, as the player's shots are (decision M). Ships with S4b. The gameplay change (the shots reach the band's edge 16–20 frames later) is reported in the fight-length measurements; no tuning (M8). |
+| **QA2** | The band's last-line DLI writes `COLPF3` first. The band must be proven pixel-identical otherwise, by a capture comparison. |
+| **QA3** | **S5 requirement:** the converter refuses a region with emitter slots whose band `COLPF3` luminance is under 2. Not implemented in S4b. |
+| **QA4** | Accepted: the beam's band part flashes with the band's hit flash. |
+| **Q1** | **Option A**: missiles with `PRIOR`'s fifth-player bit, set in the boss sector only and restored on leaving it; the beam is `$32` in the band and `$46` below. No `COLPM` changes, no Heavy-sprite trace exception; P1/P2 stay free. |
+| **Q2** | The column is written once at the install and erased at the end. |
+| **Q3** | Warning: in the band the emitter's bottom cell heats (spark/muzzle alternating every 4 frames); below the band the beam pulses 1/2 colour clocks in 2-frame groups; a rising tone. |
+| **Q4** | The tone on POKEY channel 3 over the engine bed; the music's lead on channel 2 is never cut. |
+| **Q5** | Beam damage is per-difficulty data: EASY 5 units, MEDIUM 10, HARD 10. A beam damages the player at most once per firing. Hit detection by software compare. |
+| **Q6** | The beam absorbs the player's shots in its column. |
+| **Q7** | Home: slot D at `$1900`. The plan proves from the generated memory map and the code that nothing owns `$1900-$1FFF` in any phase (boot, loading, transitions, summary, menu, gameplay, boss); the boss claim covers the boss sector only and the memory map shows it so; slot D's bytes and the remainder of `$1900-$1FFF` for S5 and the finale's volleys are reported. If the proof fails anywhere: STOP. |
+| **Q8** | Stress limit **8,500 native in the boss sector only**; 7,000 stays everywhere else. The measured basis is §5.2–5.3 and §11.4. |
+| **Q9** | A new laser contact session; the old session is retired by name; the requirement of `lower-playfield-hostile-contact-atr-hard` is evaluated, its clause untouched, in the new session (class (a)). Every other clause the old session carried is listed with where it is covered now; a clause left uncovered is a STOP. |
+| **Q10** | The laser-fixture layout and a debug-only tier override, which must not change the default ATR's bytes (proven by a test). The tier 4 fixture exposes **four emitters firing at the same time**, so that the worst case (cycles, DMA, four missiles, four software hit tests) is measured. |
+| **Q11** | Timings in data: warning 25 frames, beam 50, region 1's emitter reload 150. M8 tunes them. |
+
+**Phase B gates** (any breach is a STOP with the figures): worst fence margin
+≥ 500 everywhere and DMA-on ≤ 32,568, the tier 4 four-beam fixture included;
+boss stress work ≤ 8,500 in the boss sector (measured with four beams firing),
+≤ 7,000 elsewhere; slot A ≤ 2,048 B (over it: STOP and report what could move to
+slot D, move nothing without the owner); slot C ≤ 2,048 B; scratch page ≤ 256 B;
+slot D within its proven range; initial block ≤ 13,652 B, no new boot sector, the
+ATR menu frame within the rule; nothing in non-boss gameplay frames changes
+except the `PRIOR` restore on leaving the boss sector; `PRIOR` and the missiles
+proven off and restored outside the boss sector by a test.

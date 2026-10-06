@@ -58,9 +58,9 @@
     "widthHpos": 1,
     "heightScanlines": 2,
     "colourRegister": "COLPF2",
-    "colourValue": 30,
+    "colourValue": 174,
     "rapidFireColourRegister": "COLPF2",
-    "rapidFireColourValue": 30
+    "rapidFireColourValue": 174
   },
   "sharedFighterExplosion": {
     "frameDurationFrames": 4,

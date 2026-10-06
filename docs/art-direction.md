@@ -96,12 +96,17 @@ per-frame effect. The player explosion's `P3` outer mask wears whatever
 
 Player Fighter weapon colours are:
 
-- normal projectile: yellow (`$1E`);
-- Spread Shot centre, left, and right projectiles: the same yellow Player Fighter colour;
-- Rapid Fire projectile: the established Player Fighter yellow/gold (`$1E`).
+- normal projectile: mint (`$AE`);
+- Spread Shot centre, left, and right projectiles: the same mint Player Fighter colour;
+- Rapid Fire projectile: the established Player Fighter mint (`$AE`).
 
-**`COLPF2` is shared, so Player Fighter weapon colour is fixed at `$1E`**
-(owner decision U, 2026-09-20). In the gameplay field `COLPF2` is the register
+**Mint `$AE` reverses decision U's yellow `$1E`** (owner, 2026-10-06, plasma FX,
+`docs/plans/plasma-fx.md` §14) for the whole of `COLPF2` at once: the shots, the
+allied hull details, the capital explosion core and the stars of each level's
+yellow-sky sector (now mint). The rule below stands with the new byte.
+
+**`COLPF2` is shared, so Player Fighter weapon colour is fixed**
+(owner decision U, 2026-09-20; the byte is `$AE` since 2026-10-06). In the gameplay field `COLPF2` is the register
 for pixel value `%11` in a positive screen code, and three live objects besides
 player projectiles render in it: the debris-destruction effect in its yellow
 flicker phase, the allied capital-hull glyphs `allied_service`,
@@ -119,7 +124,7 @@ Hostile projectile colour and shape are properties of the EnemyArchetype
 `OWNER-SMOKE CANDIDATE` roadmap 4.4c). Each class is one authored one-cell
 glyph in `assets/graphics/fighter-weapons.json` (`hostileWeaponVisuals`) drawn
 only in white `COLPF0` and steel `COLPF1`, never pixel value `%11`, so neither
-the player's yellow nor the hull red appears in hostile fire and the global
+the player's colour nor the hull red appears in hostile fire and the global
 palette is untouched:
 
 - `PULSE` (Raider, Light Wingman): white/steel tracer pulse — the accepted

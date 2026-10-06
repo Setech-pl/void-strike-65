@@ -6035,7 +6035,8 @@ function main() {
     // to frame at a two-scanline step. That asserted far more than the capsule:
     // it asserted that NOTHING crosses the box -- which was only ever true
     // because the object that crosses it most often shared the capsule's colour.
-    // PLAYER_FIGHTER_PROJECTILE_COLOR is GAMEPLAY_COLPF2 $1E and the capsule now
+    // PLAYER_FIGHTER_PROJECTILE_COLOR is GAMEPLAY_COLPF2 ($1E then, mint $AE
+    // since plasma FX) and the capsule now
     // wears COLPM3 $1C, so a shot over the mark is a distinguishable pixel
     // inside the silhouette. MEASURED on this run: frames 08, 09, 13 and 15 of
     // the captured sixteen carry 8, 8, 4 and 8 such pixels, the byte-identity
@@ -7420,14 +7421,19 @@ function main() {
     };
   });
 
-  const enemyFlashSequence = [0x1e, 0x3c, 0x1c, 0x34];
-  const playerFlashSequence = [0x1e, 0x3c, 0x1c, 0x3c, 0x38, 0x34];
+  // Plasma FX decision 3 / B1.1 item e (docs/plans/plasma-fx.md §11.3, §14):
+  // both flashes are 6 frames, stepped - yellow, red, a dark-blue fade, black.
+  // Was: the enemy's 4 frames $1E $3C $1C $34, the player's $1E $3C $1C $3C
+  // $38 $34. The scenario is rewritten, the clauses are the same: every timer
+  // value observed, every row on its profile, black after the player's.
+  const enemyFlashSequence = [0x1e, 0x3c, 0x82, 0x80, 0x00, 0x00];
+  const playerFlashSequence = [0x1e, 0x3c, 0x82, 0x80, 0x00, 0x00];
   const enemyFlashRows = fighterFlashRows.filter((row) =>
     row.player_lifecycle === 0 && row.player_fighter_explosion_timer < 19 &&
-      row.enemy_explosion_timer >= 21);
+      row.enemy_explosion_timer >= 19);
   const playerFlashRows = fighterFlashRows.filter((row) => row.player_fighter_explosion_timer >= 19);
   invariant([...new Set(enemyFlashRows.map((row) => row.enemy_explosion_timer))]
-    .sort((left, right) => right - left).join(",") === "24,23,22,21",
+    .sort((left, right) => right - left).join(",") === "24,23,22,21,20,19",
   "PAL trace did not observe every enemy fighter flash timer value");
   invariant([...new Set(playerFlashRows.map((row) => row.player_fighter_explosion_timer))]
     .sort((left, right) => right - left).join(",") === "24,23,22,21,20,19",
@@ -7449,7 +7455,7 @@ function main() {
     enemy_fighter: {
       observed: true,
       active_frames: enemyFlashSequence.length,
-      timer_values: [24, 23, 22, 21],
+      timer_values: [24, 23, 22, 21, 20, 19],
       colbk_values: enemyFlashSequence,
       observations: enemyFlashRows.length,
     },
@@ -7978,7 +7984,9 @@ function main() {
           all_screen_codes_select_colpf2: rapidProjectileVisibleRows.every((row) =>
             (row.rapid_projectile_screen_code & 0x80) === 0),
           colour_register: "COLPF2",
-          colour_value: 0x1e,
+          // The asset's own byte (plasma FX: mint $AE since 2026-10-06).
+          colour_value: JSON.parse(fs.readFileSync(path.join(rootDirectory,
+            manifest.fighterWeapons.source), "utf8")).player_fighter.colourValue,
           screenshot: {
             path: path.relative(rootDirectory, rapidScreenshotPath),
             bytes: fs.statSync(rapidScreenshotPath).size,

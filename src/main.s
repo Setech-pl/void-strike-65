@@ -552,12 +552,12 @@ GAMEPLAY_COLPF1 = $88
 .else
 GAMEPLAY_COLPF1 = GAMEPLAY_COLPF1_OVERRIDE
 .endif
-; Plasma FX (docs/plans/plasma-fx.md, owner answers of 2026-10-05, decision
-; 1): COLPF2 is the player's side - the shots, the break-ups the player
-; causes. The release byte stays the yellow of decision U until the owner's
-; hardware smoke picks one of $1E / $9E / $AE; --player-colour=<hex> builds
-; each candidate as a review variant. The capsule, the band's in-band shot and
-; COLPF3 (the S4b lasers) are not part of it.
+; Plasma FX (docs/plans/plasma-fx.md §14, owner decision 2026-10-06): COLPF2
+; is the player's side - the shots, the allied hull details, the capital core
+; and the sector-4 sky's stars - in mint $AE (assets/graphics/fighter-
+; weapons.json), reversing decision U's yellow $1E. --player-colour=<hex>
+; still builds $1E / $9E / $AE as review variants. The capsule, the band's
+; in-band shot and COLPF3 (the S4b lasers) are not part of it.
 .ifndef PLAYER_SIDE_COLOUR_OVERRIDE
 PLAYER_SIDE_COLOUR = PLAYER_FIGHTER_PROJECTILE_COLOR
 .else

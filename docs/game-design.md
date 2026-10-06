@@ -282,7 +282,7 @@ Rapid Fire lasts exactly 500 active PAL frames (10 seconds). It expands the
 burst to five PairShots / ten visible impulses, keeps the 12-frame post-burst
 pause, and reduces the in-burst interval from nine frames to six. At most five
 PairShots remain active, and they retain the Player Fighter's established
-yellow/gold.
+colour, mint `$AE` (plasma FX, owner 2026-10-06; it was yellow/gold `$1E`).
 
 ### Spread Shot — implemented
 
@@ -313,8 +313,9 @@ slower plain shot.
 Centre PairShots travel vertically. Left and right PairShots move symmetrically
 by one horizontal-position unit every two active frames. The phase comes from
 the existing projectile lifetime, so no extra timer or state array is required.
-All travel upward at the normal Player Fighter speed, use the yellow weapon
-colour, create one collision event, and obey ordinary score rules.
+All travel upward at the normal Player Fighter speed, use the Player Fighter's
+weapon colour (mint `$AE`), create one collision event, and obey ordinary score
+rules.
 
 ### Shield Booster — implemented
 
@@ -426,7 +427,11 @@ section "Decyzje literowe 2026-09-20".
     debris breakup's yellow phase, three allied capital-hull glyphs and the
     capital explosion core all render in it, so recolouring it per level would
     repaint them (evidence in STATUS, "Decision U — the COLPF2 check").
-    Player projectiles stay `$1E` at every level.
+    Player projectiles keep one colour at every level: mint `$AE` since
+    plasma FX (owner, 2026-10-06, `docs/plans/plasma-fx.md` §14), which
+    reverses decision U's yellow `$1E` for the whole of `COLPF2` at once -
+    shots, allied hull details, the capital core and the sector-4 sky's stars.
+    The rule against a per-level colour stands.
   - **Five levels stand for now**, but three may read more clearly than five
     if sound discrimination proves weak in play. Settled during balancing, not
     assumed.

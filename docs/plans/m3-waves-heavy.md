@@ -1206,6 +1206,17 @@ session's scope or a §8.1 row.
 | E | **STOP lines for the spawn row in sessions 1 and 2** | **Yes — done** (§7) | `reset_enemy` natively no more than +75 over `main`'s 1,613 (Raider) and 2,245 (Bomber) after session 1 and no more than +125 after session 2; a worst fence margin under 1,100 is reported with its row before the session continues. The common STOP at 500 stays |
 | F | **Two readings in the re-base brief that differ from §8.1** | **§8.1 wins on both:** M4 and M5 come before this plan's sessions; the armoured Raider's hit points are 2 / 2 / 3 | no figure changes: §6.3 is already in that order and §3.1 already has 2 / 2 / 3 |
 
+### 8.2a Note — the Bomber at 1 HP (owner, 2026-10-06)
+
+Recorded from plasma FX B1.3 (`docs/plans/plasma-fx.md` §13-14). **At 1 HP the
+Bomber hull is luminance 2 (`$C2` in today's green) and nearly disappears
+against the black background, for every hue** (the B1.3 comparison showed it
+for grey, violet, olive and orange too). Follow-up for session 2
+(`feat/heavy-looks`): revisit the Bomber's HP ramp together with the 4 / 4 / 5
+hit points and the damage look (the owner's "variant C"), **keeping the base
+luminance at most 8 so that the +6 hit flash stays inside the hue** (item H6
+already plans `BOMBER_FLASH_LUMA` 6 → 4). No change was made with plasma FX.
+
 ### 8.3 The spawn rotate gate, priced (reserve lever A — not taken, owner 2026-10-02)
 
 Not built, not measured as a build. Asked for by the owner on 2026-10-02 after

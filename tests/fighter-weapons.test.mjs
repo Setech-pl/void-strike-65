@@ -419,11 +419,12 @@ test("hostile screen code follows weapon_class, not the emitter, and keeps the g
     /resolve_effect_backing_below_enemy_pairshot:[\s\S]+?cmp #\(INTERCEPTOR_PROJECTILE_GLYPH_BASE\|\$80\)\s+bcc resolve_effect_pairshot_unchanged\s+cmp #\(\(INTERCEPTOR_PROJECTILE_GLYPH_BASE\+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE\+HOSTILE_WEAPON_VISUAL_COUNT\)\|\$80\)\s+bcs resolve_effect_pairshot_unchanged/);
 });
 
-test("actual PlayerFighter projectile bank is Atari yellow without changing PlayerFighter PMG colours", () => {
-  assert.deepEqual([weapons.player_fighter.colourRegister, weapons.player_fighter.colourValue], ["COLPF2", 0x1e]);
+// RENAMED and RE-PINNED 2026-10-06 ("... is Atari yellow ..."): plasma FX B2 (docs/plans/plasma-fx.md §14, owner decision 2026-10-06): the player side is mint $AE, reversing decision U's yellow $1E.
+test("actual PlayerFighter projectile bank is the player side's mint without changing PlayerFighter PMG colours", () => {
+  assert.deepEqual([weapons.player_fighter.colourRegister, weapons.player_fighter.colourValue], ["COLPF2", 0xae]);
   // RE-POINTED 2026-10-05, plasma FX decision 1 (docs/plans/plasma-fx.md): COLPF2
   // is the player's side and a build parameter for the colour smoke; the
-  // release build still takes the asset's $1E, asserted above.
+  // release build takes the asset's byte, asserted above.
   assert.match(source, /\.ifndef PLAYER_SIDE_COLOUR_OVERRIDE\s+PLAYER_SIDE_COLOUR = PLAYER_FIGHTER_PROJECTILE_COLOR/);
   assert.match(source, /GAMEPLAY_COLPF2 = PLAYER_SIDE_COLOUR/);
   assert.match(source, /lda #GAMEPLAY_COLPF2\s+sta COLPF2/);

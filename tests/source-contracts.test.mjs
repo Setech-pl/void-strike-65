@@ -162,8 +162,10 @@ test("current documentation keeps implemented, planned and historical state dist
   assert.doesNotMatch(roadmap, /next[^\n]*entity\/effects foundation/i);
   assert.doesNotMatch(runtimeHeadroom, /feature\/runtime-headroom/);
   // Rapid Fire keeps the player's colour; it must never borrow hostile red.
+  // RE-POINTED 2026-10-06: the player's colour is mint $AE (plasma FX,
+  // docs/plans/plasma-fx.md §14, reversing decision U's yellow/gold $1E).
   assert.match(gameDesign,
-    /### Rapid Fire — implemented[\s\S]+retain the Player Fighter's established\s+yellow\/gold/);
+    /### Rapid Fire — implemented[\s\S]+retain the Player Fighter's established\s+colour, mint `\$AE`/);
   assert.doesNotMatch(currentSources, /Rapid Fire projectile:[^\n]*red/i);
   // Production burst sizes, in the current PairShot terminology: 4/4/5 logical
   // PairShots for 8/8/10 visible impulses.

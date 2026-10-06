@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-05 (fix/boss-readability: owner decision M - the player's shots drawn in the band up to the cell that stops them, the stripped skeleton that does not block, the boss-sector stray-glyph artifact fixed, gun-3 behind one plate; owner decision N - the open bay reads open, every plate in reach; owner decision O - every weapon in its own recess, M1 withdrawn)
+Last update: 2026-10-06 (feat/plasma-fx: the player side mint $AE reverses decision U; small enemy break-ups in the enemy bank and the stepped flash; the green Bomber OWNER-ACCEPTED; follow-ups fix/broadside-scan-hull-map and the Bomber at 1 HP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -80,7 +80,11 @@ released.** Section "ATR-only build" below.
 
 **M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **built, owner-smoked, merged and released as `v0.2.1` (`OWNER-ACCEPTED`)** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
 
-**Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: the M5a-S1 overlay slot**
+**Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: plasma FX** (section
+"Plasma FX" below; the player side mint `$AE`, small enemy break-ups in the
+enemy bank, the stepped flash; worst fence margin 1,370 → **1,472**, initial
+block 13,621 → **13,618 B**; the green Bomber left this list, `OWNER-ACCEPTED`
+2026-10-06), **the M5a-S1 overlay slot**
 (section "M5a-S1 — overlay slot A" below; no visible change by design, the
 loader screen now draws one of four AI lines), **the all-or-nothing Spread
 volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
@@ -99,12 +103,7 @@ splash cassette sound and the level-loading line** (section "Splash cassette sou
 record is an octave down" below; the middle of the three imitated data records
 drops an octave and the level loading screen reads **ENGAGING ENEMY SECTOR**
 instead of `LOADING SECTOR`; **zero transport bytes for the sound** — it was
-spent out of the blob's own 512-B pad — and every gate unmoved), **the Bomber
-hull colour**
-(section "Bomber hull colour — green" below; the Bomber leaves hue 8 for hue C,
-`HULL_COLOUR_BOMBER` `$88` → **`$C8`**, because `$88` was the same byte as the
-allied steel and a hostile Heavy read as friendly; **zero bytes, zero cycles**,
-every gate byte-for-byte unmoved), **the capital hull set v1 step
+spent out of the blob's own 512-B pad — and every gate unmoved), **the capital hull set v1 step
 2** (section "Capital hull set v1 — step 2" below; the enemy hull style and the
 allied steel become level data, the allied steel's release default becomes the
 brighter `$88` the owner chose at the step-1 smoke, and every gate is unmoved —
@@ -203,7 +202,13 @@ data chatter should sit an octave lower — same texture, lower pitch — with t
 leader tone and the first and third bursts unchanged. On the **level loading
 screen**: the line under the title should read `ENGAGING ENEMY SECTOR`, centred.
 
-### Bomber hull colour — green (`OWNER-SMOKE CANDIDATE`, 2026-09-23)
+### Bomber hull colour — green (`OWNER-ACCEPTED`, 2026-10-06)
+
+**Accepted by the owner on 2026-10-06** (plasma FX B1.3/B2,
+`docs/plans/plasma-fx.md` §13-14), after a side-by-side of five hues with the
+mint player shots; until then it stood as `OWNER-SMOKE CANDIDATE` (2026-09-23,
+commit `6e05644`). The hue and the ramp below are unchanged.
+`--bomber-colour=C8|08|68|E8|28` builds the comparison hues as review variants.
 
 The owner's smoke of 2026-09-23 rejected the Bomber as blue. The cause was not
 a near miss: `HULL_COLOUR_BOMBER` was **`$88`**, which is the **same byte** as
@@ -348,6 +353,68 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Plasma FX — mint player side, small enemy break-ups in the enemy bank, the stepped flash — `OWNER-SMOKE CANDIDATE` (2026-10-06)
+
+Plan: [plans/plasma-fx.md](plans/plasma-fx.md) (Phase A, B1-B1.3, B2 §10-14).
+Branch `feat/plasma-fx` from `main` `8a05b43`.
+
+**Owner decisions (2026-10-06).** (1) The player's side is **mint `$AE`**, which
+reverses decision U (yellow `$1E`): the shots, the allied hull details, the
+capital explosion core and the stars of the yellow-sky sector (level 1 sector 4,
+now mint) - everything `COLPF2` draws. (2) The Bomber stays **green `$C8`** and
+is now `OWNER-ACCEPTED` (section "Bomber hull colour — green" above).
+(3) `--player-colour=1E|9E|AE` and `--bomber-colour=C8|08|68|E8|28` stay as
+review build options. (4) Follow-ups below.
+
+**What a player sees.** Enemy break-ups (Light, debris, Heavy) are `main`'s
+size and shapes again - one core and four fragments, spreading asymmetrically
+and fading to single sparks - drawn wholly in the enemy bank: a white centre
+(`COLPF0`) and the enemy colour (`COLPF3`, inverse codes), never `COLPF2`. A
+Light's or a debris's fragments live 30 frames, a Heavy's 45; the core 5. The
+background flash of a Heavy kill, of a boss module and of the player's death is
+6 frames, stepped: `$1E $3C $82 $80`, then black (was 4 frames
+`$1E $3C $1C $34`). The player's death is 16 lines tall with a fire cycle on
+`COLPM3` (`$1E $1C $2A $28 $26 $34`), 24 frames, respawn unchanged. The
+broadside hull-edge scan reads only the hull codes 59-89 (a pre-existing defect:
+any effect, debris, Light or shot before the hull counted as hull).
+
+| | `main` `8a05b43` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 1,370 (`2-evasive-fire3` f287) | **1,472** (`2-sweep-fire6` f311) | fence scan of the 59 default replay CSVs (`scripts/pal-timing-audit.mjs` samples), boss rows apart, 0 miss events |
+| worst Heavy kill frame = SPREAD multi-kill | 2,841 (`raider-remnant-spread-atr-hard` f2052) | **2,747** (same frame) | same |
+| boss frames: worst fence margin / DMA-on | 12,984 / 28,689 (12,499 frames) | **12,974 / 28,687** (same 12,499; worst = module destroyed, `director-complete-1-natural-sweep-fire0` f11216) | same |
+| boss per-frame work, native (limit 7,000) | 6,678 (fortress), 5,516 (core boss) | **6,689**, **5,518** | `tests/boss-fortress.test.mjs`, `tests/boss-runtime.test.mjs` |
+| DMA-on maximum | 31,237 (`director-complete-2` f5797) | **31,240** (same row) | `docs/runtime-wall-trace.json` |
+| DLI per host frame / sequence violations | 2, 3 in the boss sector / 0 | **2, 3 in the boss sector / 0** | replay CSVs |
+| behavioural clause failures | 1 (`lower-playfield-hostile-contact-atr-hard`) | **1**, the same | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| gameplay against `main` | — | **two replays differ, one shell**: `broad0_state` from frame 1197 in `weapon-pickup-2-hunt-fire4` and `raider-remnant-normal-atr-hard` (the broadside fix: `main` hit two frames early; 6 rows each); everything else identical | trace CSVs of both builds |
+| `npm test` (default build) | 1,079 / 1,078 / 1 (`preview`) | **1,090 / 1,088 / 2**: `preview` and `ten heaviest frames ...` - both recorded ([recorded-test-failures.json](recorded-test-failures.json); the second red again as its record predicted) | same |
+| initial block / boot sectors | 13,621 B / 107 | **13,618 B / 107** | `build/manifest.json` |
+| extension / total transport sectors | 104 / 211 | **104 / 211** | same |
+| ATR menu frame (baseline 596) | 550 (BASIC 541) | **550** (BASIC 541) | boot smoke |
+| `$AE00` window free | 1,316 | **1,316** | `residentCapacity.basicWindow` |
+| slot A / slot C / install run / scratch page | 1,995 / 2,003 / 346 / 249 B | **1,995 / 2,003 / 346 / 249 B** | manifest `boss` |
+| `ENTITY_CODE` tail | 26 B | **10 B** (the break-up's two spark/core glyphs, 16 B) | `residentCapacity.tails` |
+| ATR SHA-256 | `4926dc05ecc047d2…` | **`e0aa70620e1ae07449410521c65eade0a8cd77254a78a44a140743dc348f41a1`** | `dist/` |
+| boot SHA-256 | `b84ab9dbd4355ae8…` | **`3be9a2410be344f6aa84931b7440708f9013cf5b9f0937d289d983faf8a8531a`** | `dist/` |
+
+Debug-route ATRs (`build/<variant>/`, never `dist/`): level 1 sector 4 (the mint
+sky, a Bomber pair at once) `build/level-1-s3/void-strike-65.atr`
+`2c9a413f82124b97…`; level 1's boss sector `build/level-1-s4/void-strike-65.atr`
+`0ad326648b89241d…`.
+
+**Break-up truncation** (the next kill cuts the live break-up; 1,334 kills over
+the default replays): Heavy (950) cut before its own life 40.4 % on `main` (30
+frames) → **49.7 %** (45); Light + debris (384) 31.5 % → **31.5 %** (30 both).
+
+**Follow-ups.** `fix/broadside-scan-hull-map` (backlog below: an object on the
+hull's edge cell can delay a broadside hit by a cell, accepted). The Bomber at
+1 HP is luminance 2 and nearly disappears against black, for every hue -
+revisit with M3-H's ramp, hit points and damage look
+([plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) §8.2a). The README gallery
+stills (`docs/media/gameplay/`) still show the yellow shots of the
+`main` capture; the gameplay GIF is regenerated from this ATR (mint).
 
 ## Boss readability — shots up to the boss, the skeleton that does not block — `OWNER-SMOKE CANDIDATE` (2026-10-05)
 

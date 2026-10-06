@@ -450,7 +450,10 @@ test("real Atari800 pickup trace retains one phased footprint through native A2 
   assert.ok(pickup.physical_address_changes_during_native_motion > 0);
   assert.ok(pickup.release_frames > 0);
   assert.equal(colour.colour_register, "COLPF2");
-  assert.equal(colour.colour_value, 0x1e);
+  // RE-PINNED 2026-10-06, $1E -> $AE: plasma FX B2 (docs/plans/plasma-fx.md
+  // §14, owner decision 2026-10-06), the player side is mint, reversing
+  // decision U.
+  assert.equal(colour.colour_value, 0xae);
   assert.equal(colour.all_screen_codes_select_colpf2, true);
   assert.ok(colour.screen_code_minimum >= 11);
   assert.ok(colour.screen_code_maximum < 47);
@@ -697,10 +700,16 @@ test("explosion colour flash passes its +64 PAL gate with exact GTIA traces", ()
   assert.equal(feature.budget_overrun_frames, 0);
   assert.deepEqual([feature.measured_wall_cycles, feature.measured_physical_headroom],
     [32_122, 3_446]);
+  // RE-POINTED 2026-10-06, plasma FX decision 3 / B1.1 item e
+  // (docs/plans/plasma-fx.md §11.3, §14): both flashes are 6 frames, stepped -
+  // yellow, red, a dark-blue fade, black. Was the enemy's 4-frame
+  // $1E $3C $1C $34 and the player's $1E $3C $1C $3C $38 $34.
   assert.deepEqual(report.coverage.fighter_colour_flash.enemy_fighter.colbk_values,
-    [0x1e, 0x3c, 0x1c, 0x34]);
+    [0x1e, 0x3c, 0x82, 0x80, 0x00, 0x00]);
+  assert.deepEqual(report.coverage.fighter_colour_flash.enemy_fighter.timer_values,
+    [24, 23, 22, 21, 20, 19]);
   assert.deepEqual(report.coverage.fighter_colour_flash.player_death.colbk_values,
-    [0x1e, 0x3c, 0x1c, 0x3c, 0x38, 0x34]);
+    [0x1e, 0x3c, 0x82, 0x80, 0x00, 0x00]);
   // RE-PINNED 2026-10-01 (recorded failures review, A23): both Raiders are $44
   // on P1 and P2, and P3 carries the gold capsule $1C as well as $28. It was
   // colpm1 [$44,$84], colpm2 [$46], colpm3 [$28].
@@ -708,7 +717,11 @@ test("explosion colour flash passes its +64 PAL gate with exact GTIA traces", ()
     colpm0: [0x0e],
     colpm1: [0x44],
     colpm2: [0x44],
-    colpm3: [0x1c, 0x28],
+    // RE-PINNED 2026-10-06, plasma FX decision 3 (docs/plans/plasma-fx.md
+    // §10-11): the player's death draws its fire cycle on COLPM3
+    // ($1E $1C $2A $28 $26 $34, one colour a 4-frame phase), so the flash
+    // rows add $1E, $26, $2A and $34 to the capsule's $1C and the plume's $28.
+    colpm3: [0x1c, 0x1e, 0x26, 0x28, 0x2a, 0x34],
   });
   assert.deepEqual(manifest.entityEffects.runtimeBudget.explosionColourFlash, {
     baselineWallCycles: 32_081,

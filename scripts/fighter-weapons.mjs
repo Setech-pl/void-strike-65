@@ -194,11 +194,13 @@ export function loadFighterWeaponsDefinition(sourcePath) {
     definition.player_fighter.spreadShotLateralPeriodFrames === 2,
   "Spread Shot side projectiles must move one HPOS unit every two active frames");
   invariant(definition.player_fighter.colourRegister === "COLPF2" &&
-    definition.player_fighter.colourValue === 0x1e,
-  "PlayerFighter projectiles must use genuine Atari yellow through COLPF2=$1E");
+    definition.player_fighter.colourValue === 0xae,
+  // Plasma FX (docs/plans/plasma-fx.md §14, owner decision 2026-10-06): mint
+  // $AE, reversing decision U's yellow $1E.
+  "PlayerFighter projectiles must use the player side's mint through COLPF2=$AE");
   invariant(definition.player_fighter.rapidFireColourRegister === definition.player_fighter.colourRegister &&
     definition.player_fighter.rapidFireColourValue === definition.player_fighter.colourValue,
-  "Rapid Fire projectiles must remain in the PlayerFighter's yellow COLPF2 bank");
+  "Rapid Fire projectiles must remain in the PlayerFighter's COLPF2 bank");
   integer(definition.glyphLayout?.player_fighterBase, "glyphLayout.player_fighterBase", 0, 127);
   integer(definition.glyphLayout?.interceptorBase, "glyphLayout.interceptorBase", 0, 127);
   hostileWeaponVisualRows(definition.hostileWeaponVisuals);

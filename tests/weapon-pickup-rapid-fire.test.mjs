@@ -666,7 +666,8 @@ test("both Raider shots leave the centred first frame visible across ring rotati
     raiderProjectiles >= 2 && slots.length > 0 && slots.every(({ visible }) => visible)), true);
 });
 
-test("Normal and Rapid projectiles render through the PlayerFighter yellow bank", () => {
+// RENAMED and RE-PINNED 2026-10-06 ("... yellow bank"): plasma FX B2 (docs/plans/plasma-fx.md §14, owner decision 2026-10-06): the player side is mint $AE, reversing decision U's yellow $1E.
+test("Normal and Rapid projectiles render through the PlayerFighter COLPF2 bank", () => {
   const atr = executePlayerFighterProjectileColourTrace({ root, artifact: "atr" });
   assert.deepEqual([
     atr.normalAtSpawn, atr.normalAfterPickup, atr.rapidAtSpawn,
@@ -678,9 +679,9 @@ test("Normal and Rapid projectiles render through the PlayerFighter yellow bank"
   assert.deepEqual(atr.rendered.map(({ inverse }) => inverse), [0, 0, 0]);
   assert.equal(new Set(atr.rendered.map(({ glyphCode }) => glyphCode)).size, 1,
     "Normal and Rapid projectiles must use byte-identical glyph geometry");
-  assert.deepEqual([atr.normalColour, atr.rapidColour], [0x1e, 0x1e]);
+  assert.deepEqual([atr.normalColour, atr.rapidColour], [0xae, 0xae]);
   assert.equal(atr.rendered.every(({ colourRegister, colourValue }) =>
-    colourRegister === "COLPF2" && colourValue === 0x1e), true);
+    colourRegister === "COLPF2" && colourValue === 0xae), true);
   assert.deepEqual([
     atr.interceptorRendered.activeRenderId, atr.interceptorRendered.inverse,
     atr.interceptorRendered.colourRegister, atr.interceptorRendered.colourValue,
@@ -697,18 +698,19 @@ test("Normal and Rapid projectiles render through the PlayerFighter yellow bank"
   assert.doesNotMatch(collisionPath, /FIGHTER_PROJECTILE_RAPID_COLOR|and #\$7F/);
 });
 
-test("the packed ATR keeps every implemented PlayerFighter lifecycle path yellow under cold RAM", () => {
+// RENAMED and RE-PINNED 2026-10-06 ("... path yellow ..."): plasma FX B2 (docs/plans/plasma-fx.md §14, owner decision 2026-10-06): the player side is mint $AE, reversing decision U's yellow $1E.
+test("the packed ATR keeps every implemented PlayerFighter lifecycle path in COLPF2 mint under cold RAM", () => {
   for (const coldFill of [0xa5, 0x5a]) {
     const atr = executePlayerFighterProjectileColourLifecycleTrace({
       root, artifact: "atr", coldFill,
     });
-    assert.deepEqual(atr.palette, { COLPF2: 0x1e, COLPF3: 0x46 });
+    assert.deepEqual(atr.palette, { COLPF2: 0xae, COLPF3: 0x46 });
     assert.deepEqual(atr.captures.map(({ phase, boosterState, projectiles }) => [
       phase,
       boosterState,
       projectiles.length,
       projectiles.every(({ inverse, colourRegister, colourValue }) =>
-        inverse === 0 && colourRegister === "COLPF2" && colourValue === 0x1e),
+        inverse === 0 && colourRegister === "COLPF2" && colourValue === 0xae),
     ]), [
       ["NORMAL", 0, 1, true],
       ["RAPID", 3, 1, true],

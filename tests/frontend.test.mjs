@@ -563,7 +563,8 @@ test("menu PlayerFighter is charset-only, frontend PMG stays disabled, and gamep
   // P0 only, so it no longer needs P3 at its own double width; the player
   // explosion sets SIZEP3 for its 24 frames and respawn_player puts it back.
   assert.equal(hardwareState.get("SIZEP3"), 0);
-  assert.equal(hardwareState.get("COLPF2"), 0x1e);
+  // RE-PINNED 2026-10-06, $1E -> $AE: plasma FX B2 (docs/plans/plasma-fx.md §14, owner decision 2026-10-06): the player side is mint $AE, reversing decision U's yellow $1E.
+  assert.equal(hardwareState.get("COLPF2"), 0xae);
   assert.equal(hardwareState.get("COLPF3"), 0x46);
   assert.match(routine("start_gameplay"), /jsr clear_pmg/);
   assert.match(

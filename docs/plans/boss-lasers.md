@@ -1,0 +1,637 @@
+# Plan — M5b-S4b: the boss lasers
+
+**Status: Phase A — audit, options, previews and numbers. `OWNER REVIEW
+CANDIDATE`; nothing is implemented.** Branch `feat/boss-lasers` from `main`
+`1a3c8bf`. No source, cfg, script, asset, test, level or evidence byte changed.
+Two probes were made and reverted (§5, §3.2); every preview and measurement
+below names its tool, and none of their output is committed as evidence.
+
+Parent plan: [m5-loading-boss.md](m5-loading-boss.md) — S4b in §5.13.7, the
+lasers in §5.5, the contact scenario in §5.8, decisions A–O in §1.6.
+Conventions are that plan's §0.4: **M** measured, **IC** instruction count,
+**AN** analogy, **G** guess, **EMULATOR** for figures Atari800 cannot vouch
+for on hardware. Code estimates on this project run 2–3× low; every IC byte
+figure below is shown raw and ×2–3, and the ×3 figure is the one a fit is
+decided on.
+
+---
+
+## 0. Step 0, baseline, differences
+
+### 0.1 Step 0
+
+| | |
+| --- | --- |
+| `main` | `1a3c8bf chore(evidence): bind the plasma FX ATR e0aa7062...`; tree clean; contains the plasma-fx merge ([plasma-fx.md](plasma-fx.md) status "implemented (B2, 2026-10-06), `OWNER-SMOKE CANDIDATE`") |
+| worktrees | one: `~/Projects/dark-fighter` (no baseline worktree was needed: nothing changed before the measurements, so the branch measured `main`'s bytes) |
+| ATR SHA-256 | `e0aa70620e1ae07449410521c65eade0a8cd77254a78a44a140743dc348f41a1` |
+| boot SHA-256 | `3be9a2410be344f6aa84931b7440708f9013cf5b9f0937d289d983faf8a8531a` |
+| boss debug ATR (`build/level-1-s4/`) | `0ad326648b89241d274b7efbf4b46726916430ace4897c4d3d385055ec35de95` (rebuilt clean after the burn probe, same hash) |
+| evidence binding | `build/manifest.json` `runtimeEvidence.status: final-bound`, the two hashes above |
+
+### 0.2 Baseline, each figure with its source
+
+| Figure | Value | Source |
+| --- | --- | --- |
+| worst fence margin, non-boss frames | **1,472** (`2-sweep-fire6` f311) | M this session: fence scan of the 54 default replay CSVs with `scripts/pal-timing-audit.mjs`'s samples (scratch `fence-scan.mjs`); = STATUS |
+| DMA-on maximum | **31,240** (`director-complete-2` f5797) | same scan; = STATUS, `docs/runtime-wall-trace.json` |
+| boss frames: worst fence / DMA-on | **12,974** (`director-complete-1` f11216, a module destroyed) / **28,687**, over 12,499 boss rows, 0 misses | same scan; = STATUS |
+| DLIs per host frame / violations | 2, 3 in the boss sector / 0 | STATUS (plasma-fx table) |
+| boss stress work, native (limit 7,000) | **6,689** fortress / **5,518** core boss | M this session: `node --test --test-name-pattern=Q-B6 tests/boss-fortress.test.mjs tests/boss-runtime.test.mjs` |
+| the boss's UPDATE stage on boss rows (DMA-on) | mean 1,788, max **7,851**; **7,668** on f11216 | M: profile clocks 7→8 of the three `director-complete-*` CSVs |
+| initial block / STOP | **13,618 / 13,652 B** | `build/manifest.json` `transportCapacity.initialBootContentBytes` |
+| boot / extension / total sectors | **107 / 104 / 211** | manifest; STATUS |
+| slot A / slot C / install run / scratch page | **1,995 / 2,003 / 346 / 249 B** (53 / 45 / 38 / 7 free) | manifest `boss` |
+| boss entry | 49 sectors, 188 host frames (EMULATOR) | plan §5.16.6 |
+| boss charset / summary module | `$0C00`; `$0500-$0BFF` (1,677 B, 115 free) | manifest |
+| `$1900-$1FFF` | unclaimed, 1,792 B — **now proven by source and measured on `main` (§3.2)** | generated memory map; this session |
+| ATR menu frame / baseline | **550 / 596** | `docs/runtime-wall-trace.json` `boot_deadline` |
+| boss fight, EASY / MEDIUM / HARD | 46.0 / 48.6 / 71.2 s | plan §5.16.8; STATUS |
+| `npm test` | 1,090 tests, 2 recorded failures (`preview`, "ten heaviest frames …") | STATUS (not re-run in Phase A); [../recorded-test-failures.json](../recorded-test-failures.json) |
+| recorded clause failures | 1 — `lower-playfield-hostile-contact-atr-hard` | [../recorded-gate-failures.json](../recorded-gate-failures.json) |
+
+No material disagreement with STATUS.
+
+### 0.3 Where the brief, the plan and the repo differ
+
+The repo wins over the plan, the plan over the brief. Each is reported, none
+silently adopted.
+
+1. **"The missiles are unused today" is not true of every sector** (brief,
+   Phase A item 2). MEASURED (§2): **M1–M3 carry the capital broadside
+   warning** in capital sectors; M0 is unused everywhere; **in the boss sector
+   all four are unused**. The owner's "the missiles are reserved for the
+   lasers" holds where the lasers live.
+2. **The plan's colour (§5.5: `COLPF3` through `PRIOR $10`) is two colours in
+   the boss sector.** The band's DLI sets `COLPF3` to the region's hull bulk
+   `$32`; below the band it is the hostile `$46`. A fifth-player beam is
+   `$32` inside the band and `$46` below it (captured, §4). Decision 8 asks
+   for one colour.
+3. **The plan's warning fills the missile column 8 rows a frame** (§5.5).
+   MEASURED on a probe: **1,295 native cycles per laser per frame**, and the
+   same again to erase. §4.2 offers a column written once at the install.
+4. **There is no damage source id** (§5.5, §5.8 clause 2). `apply_player_damage`
+   (`src/main.s:8154`) takes the amount in A and nothing else. Cheapest honest
+   form: the harness watches the laser's own call site (0 runtime bytes).
+5. **Damage: the plan keeps the player alive** (§5.8 clause 3: hull 10 →
+   10 − `LASER_DAMAGE[HARD]`, alive); **the brief says a beam kills.** Owner
+   question Q5.
+6. **The warning tone: the plan says channel 2** (§5.5, §5.8 clause 4);
+   Q-B4 later put every boss sound on channel 3 so the lead voice is never
+   pre-empted. Owner question Q4.
+7. **"The missile-plane clause exception"** (§5.9, §5.13.7): no clause reads
+   `missile_plane_rows` in OPEN frames today (grep), so there is nothing to
+   except. A different observer is affected by option (c): the trace's
+   Heavy stale-body check rebuilds the expected P1/P2 plane and flagged a
+   laser column on 918 of 919 boss frames in the preview run (§4.5).
+8. **`lower-playfield-hostile-contact-atr-hard` "must pass with its clause
+   untouched"** (brief) — its clause asserts a capital *shell*: a broadside
+   slot FLYING → IMPACT, `capital_player_damage_calls` = 1, exactly two hull
+   units, cooldown 25, the shell's final-raster box
+   (`scripts/runtime-wall-trace.mjs:4377-4410`). A laser cannot satisfy it as
+   written. The plan (§5.8) and **owner answer Q4 (2026-10-03)**: a new session
+   `lower-playfield-laser-contact-atr-hard` with its own clauses; the old one is
+   **retired by name** once the new one passes. That is followed here (§7);
+   owner question Q9 confirms it against the brief's wording.
+9. **`boss-escort`** (plan §5.13.7's S4b tests): region 1 has no escort (owner
+   answer §5.15.6 item 4). Not applicable to S4b; the Light-in-the-beam branch
+   waits for the first region with an escort (S5).
+10. **The plasma-fx register audit lists `COLPM3 $28` for the boss band.**
+    MEASURED in every boss row: **`COLPM3 = $1C`** (the sector reads OPEN, so
+    the capsule's latch publishes it), `COLPM1/2 = $44`, `PRIOR = $00`.
+11. Game design decision I's "about two seconds" warning against decision 8's
+    ~0.5 s: already recorded by the plan (§5.13, item 5); decision 8 kept.
+
+---
+
+## 1. Inventory (what is true today, file:line)
+
+### 1.1 What the plan specifies for S4b
+
+* **§5.13.7, S4b row**: §5.5's lasers as emitters by tier, the heat through the
+  cell-flash ring, the laser damage source id, §5.8's contact session and Q4's
+  retirement, the missile-plane clause exception, `PRIOR $10` / `SIZEM $FF`
+  with the Q-S4 restore already in place; STOP if slot A passes 2,048 after the
+  laser ASM; smoke: the warning readable, the beam's hit and its sound, a
+  level-9 review ATR with four emitters.
+* **§5.5**: one colour (`COLPF3`, `PRIOR $10`), one missile per laser, up to
+  four; warning ~25 frames (two heating looks, a rising tone, the column filled
+  off screen); beam 50 frames, one `HPOSM` write; column compare against the
+  player and the shots; "destroys everything in its path"; erase; damage
+  through `apply_player_damage`; never fires from a dead gun.
+* **§5.13.2 item 7**: up to four `emitter` modules with `slot` 1–4; the tier
+  `(level − 1) / 4` enables 1 / 2 / 4 slots; the rest become capped armour.
+* **§5.8**: the contact session and eight clauses (§7 below).
+
+### 1.2 Weapon modules — emitters against pulse guns
+
+| Fact | Where |
+| --- | --- |
+| kinds `armour 0, pulse 1, emitter 2, salvo 3, core 4` | `scripts/boss-assets.mjs:69` |
+| an emitter carries `slot` 1–4 (each slot authored once); only an emitter may | `scripts/boss-assets.mjs:373-380` |
+| any kind may carry `reload` (0 = never fires) | `scripts/boss-assets.mjs:381`, record byte 11 (`:123`) |
+| the record's kind byte: kind in bits 0–3, the emitter's slot in bits 4–7 | `scripts/boss-assets.mjs:120`, `:726` |
+| a capped emitter: the `capped` plate glyph and `capped.hp` | `scripts/boss-assets.mjs:442-443`, `:701-705` |
+| region 1 has **one** emitter slot (`emitter`, 30–33, rows 1–2, 10 HP, `cavityRows` 2, **no reload**), behind `plate-d` | `assets/graphics/boss-regions/region-1/modules.json` |
+| the tier rule is switched off: `boss_enabled = 0u` caps every slot | `src/c/boss.c:239-242`, `:261-270` |
+| the countdown arms an exposed weapon with a nonzero reload, round-robin; names it in `boss_fire_module` | `src/c/boss.c:219-222`, `:387-420`, `:455-461` |
+| `boss_fire` spawns a PULSE shot for whatever module it is named, whatever its kind | `src/hybrid/boss.s:642-698` |
+
+So an emitter with a reload would already be armed and named by the
+controller; S4b's dispatch is one kind test in `boss_fire`.
+
+### 1.3 Module states and what a laser does in each
+
+| State | Today | With S4b |
+| --- | --- | --- |
+| capped (slot not enabled by the tier) | armour with the plate look | unchanged: never a laser |
+| covered (alive, `cover & alive ≠ 0`) | absorbs hits, never armed | never fires |
+| exposed (open bay / cover gone) | armed if `reload ≠ 0` | when named: warning → beam; one laser per emitter |
+| destroyed (`hp = 0`, decision L: disappears) | leaves `armed`, its cells drawn gone | its laser ends on the kill frame (beam off), never restarts |
+| the chain (defeat) | `_boss_phase` 2 | every laser off |
+
+### 1.4 Pulse fire and the player's contact with boss shots
+
+`boss_fire` (`src/hybrid/boss.s:642`) puts a PULSE shot (`BOSS_SHOT_ACTIVE
+$0E`) into the hostile half of the shared PairShot pool at the module's centre
+column. The pool's resident update moves it and tests it against the player
+(`interceptor_projectile_hits_player`, `src/main.s:4194`; the call at
+`:4130-4132`, `ENEMY_PULSE_DAMAGE_UNITS` 1). `apply_player_damage`
+(`src/main.s:8154`) is the one damage gate: ALIVE only, Shield absorbs, the
+one-event latch, a 25-frame cooldown (`BROADSIDE_DAMAGE_COOLDOWN`), death at 0
+health. In the boss sector the cooldown is counted down by `boss_update`
+(`src/hybrid/boss.s:425-428`, the fortress session's fix).
+
+### 1.5 The boss frame's work and the stress test
+
+The capital vector table's UPDATE entry is `boss_update` (`src/hybrid/boss.s:421`),
+run inside `handle_collisions` (`src/main.s:5301`); PREPARE_ROW is `boss_motion`
+(`:369`); the third DLI is `boss_dli` (`:278`). The stress tests drive five
+player shots a frame into every reachable module and count UPDATE + motion +
+the three DLIs natively: `tests/boss-fortress.test.mjs:707` (limit `:730`,
+**6,689**), `tests/boss-runtime.test.mjs:650` (limit `:679`, **5,518**).
+
+### 1.6 PMG in the boss sector
+
+| Item | Value | Where |
+| --- | --- | --- |
+| `PMBASE` | `$38`; single-line PMG: missiles `$3B00`, P0 `$3C00`, P1 `$3D00`, P2 `$3E00`, P3 `$3F00`; `$3800-$3AFF` is not PMG DMA (RODATA, loader lists) | `src/main.s:149`, `:163-167`, `:11582`, `:3344-3353` |
+| `GRACTL` | 3 (players and missiles) | `src/hybrid/boss.s:1852`; `src/main.s:2681` |
+| `DMACTL` | `$3E` (normal playfield, single-line PMG DMA): missile and player DMA run on every frame whatever is drawn | `src/hybrid/boss.s:1854` |
+| `PRIOR` | `$00` everywhere (MEASURED on every row of every replay) | `src/main.s:11593`, `:3230` |
+| P0 | the ship, `SIZEP0` 1, `COLPM0 $0E` (Shield `$84`) | `src/main.s:2655` |
+| P1/P2 | **free** — no Heavy in a boss sector (level compiler refuses one, `scripts/level-compiler.mjs:636-640`); `COLPM1/2 = $44` left by `start_gameplay` (`src/main.s:2667`); `SIZEP1/2` set by every Heavy draw (`:4881`) | — |
+| P3 | the capsule (cleared at the boss install) and the death's outer mask; `COLPM3 $1C` in OPEN, the death fire cycle patches it | `src/main.s:3158-3176`, `:4753-4778` |
+| M0–M3 | **unused in the boss sector** (§2); `SIZEM` 0; `HPOSM0-3` 0 | Q-S4 table `build/boss-restore.inc` |
+| hardware collision registers | **never read** anywhere; `HITCLR` written every frame mid-display by `handle_collisions_clear_latches` | `src/main.s:5330-5333`; grep `M[0-3]PL`/`P0PL` |
+
+### 1.7 Colour registers per region in the boss sector
+
+| Region (scanlines) | Set by | `COLPF0` | `COLPF1` | `COLPF2` | `COLPF3` |
+| --- | --- | --- | --- | --- | --- |
+| HUD (8–15) | `gameplay_dli_sync_hud` (`src/main.s:3636`) | ring's | `$0E` text | `$00` | ring's (unused by ANTIC 2) |
+| divider + band (16–87) | `boss_dli` phase 0 (`src/hybrid/boss.s:282-293`) | `$0A` plates, in-band shots | `$06` | `$28` amber | **`$32` hull bulk** |
+| ring (88–239) | `boss_dli` phase 1 (`:300-310`) | `$0E` white stars, hostile heads | allied steel (level data) | `$AE` mint player shots | **`$46` hostile** |
+| everywhere | GTIA, unchanged by the DLIs | `COLPM0 $0E`, `COLPM1/2 $44` (no object), `COLPM3 $1C`, `COLBK $00` + flashes | | | |
+
+RGB (Atari800 PAL, the captures' own PLTE): `$46` 128,48,111 · `$32` 80,4,10 ·
+`$AE` 159,240,195 · `$0E` 211,211,211 · `$0A` 137,137,137 · `$28` 155,84,70 ·
+`$88` 66,111,167 · `$1C` 211,164,104 · `$44` 100,19,83.
+
+### 1.8 Death and respawn in the boss sector
+
+`apply_player_damage` → `PLAYER_DYING` (`src/main.s:8192`), 25 frames
+(`player_dying_tick`, `:13054`), then `respawn_player` (`:8097`): position,
+health 10, `PLAYER_RESPAWN_INVULNERABLE` for **250 frames**
+(`RESPAWN_INVULNERABLE_FRAMES`, asserted at `:931`), counted by
+`tick_respawn_invulnerability` (`:8124`). Damage acts only on ALIVE, so a beam
+already cannot hurt during the death or the respawn; S4b additionally holds
+the lasers there (§8).
+
+### 1.9 Why `lower-playfield-hostile-contact-atr-hard` fails
+
+Its policy `lower-contact-hostile` (`scripts/atari800-wall-trace.h:3342`)
+waits for a *hostile capital shell* in the lower rows. On HARD level 1 the
+hostile shells stop at Y 180 (MEASURED 2026-10-01) and a low one appears only
+rarely and late; its steering predates the final-raster collision (diagnosis
+F5/F6 in `docs/recorded-gate-failures.json`). Class (a): the scenario cannot
+contain the behaviour; decision 13 moves it to the lasers.
+
+---
+
+## 2. The missiles today (MEASURED)
+
+Code: every missile write in the source is the capital broadside's warning
+span — `render_broadside_warning` (`src/main.s:8637`),
+`draw_broadside_span` (`:9900`), `broadside_erase_missile_span` (`:9861`),
+`set_broadside_slot_*` (`:9925-9946`), `init_broadside`'s `SIZEM` (`:8062`,
+"preserve M0 size pair") — M1–M3 through `HPOSM1,x`. M0 has a mask constant
+(`:445`) and no writer. Slot A holds that code; in the boss sector slot A is the
+boss overlay, so none of it is resident.
+
+Trace (the plane at `$3B00`, counted by the observer every frame,
+`scripts/atari800-wall-trace.h:4401-4407`), all 59 committed replay CSVs:
+
+| Sector state | Rows | Rows with any missile byte | Max rows lit | `PRIOR` | `GRACTL` |
+| --- | ---: | ---: | ---: | --- | --- |
+| OPEN (7) | 100,530 | **0** | 0 | 0 | 3 |
+| capital 1–5 | 31,038 | 15,597 | 14 | 0 | 3 |
+| 0, 6 | 4,295 | **0** | 0 | 0 | 3 |
+| **boss** | 12,503 | **0** | 0 | 0 | 3 |
+
+Every START GAME clears the whole PMG DMA area (`clear_pmg`, `src/main.s:3344`,
+from `start_gameplay` `:2620`), and the Q-S4 restore zeroes `PRIOR`, `SIZEM`
+and `HPOSM0-3` (`build/boss-restore.inc`, run by `summary_boss_restore`,
+`src/hybrid/level-summary.s:821`).
+
+---
+
+## 3. A home for the laser code
+
+### 3.1 What it needs (bytes)
+
+| Part | Raw | ×2–3 | Basis |
+| --- | ---: | ---: | --- |
+| per-frame kernel: timers, phase, HPOS/size shadows, the player and shot compares | **≈ 280** | 280 (measured) | M: the probe kernel assembled with the repo's ca65 (§5.1), less its comparison-only routines |
+| the install: the tier, the object per enabled emitter, the column written once, `COLPM1/2` (option c) | 70 | 140–210 | IC |
+| warning look (the ring's heat phases) and the tone | 45 | 90–135 | IC |
+| the hold (death, respawn, defeat), the kill of an emitter, the damage call | 45 | 90–135 | IC |
+| state (4 lasers × 6 + shadows) | 30 | 30 | fixed |
+| **total, new home** | **≈ 470** | **630–790** | ×3 decides: **≤ 800 B, 7 sectors** |
+| slot A: `jsr` from the DLI's phase 0, `jsr` from UPDATE, the kind test in `boss_fire` | 15 | 15–25 | IC (exact small edits) — slot A **53 free** |
+| install run: two `jsr` (the tier before `_boss_c_init`, the column after `boss_prepare`) | 6 | 6 | — install **38 free** |
+| slot C: `boss_enabled = boss_laser_slots` (the tier computed in ASM, so the C stays the size it is) | 0–3 | 0–6 | — slot C **45 free** |
+| `$0500` module (option c only): two Q-S4 restore entries, `HPOSP1/2` | 6 | 6 | generated table — **115 free** |
+
+### 3.2 `$1900-$1FFF` — nothing owns it in any phase
+
+**Source (every phase).** No `MEMORY` area of any `cfg/*.cfg` starts or ends
+inside it (below `$2000`: zero page, `$0500` splash and summary, `$1000` slot C,
+`$1800` scratch only). No equate or literal in `src/` names an address in
+`$0700-$1FFF` (scan; the only hits are offsets such as `PMG_BASE+$700` and
+size asserts). The reader writes only where a run table points: every
+destination in the build is `$6DE8` (slot A, ≤ 16 sectors), `$7810`, `$7990`,
+`$0500` (14 sectors → `$0BFF`), `$1000` (14 sectors → `$16FF`), `$0C00`
+(8 → `$0FFF`), `$A880`, `$AC80` and the level buffer at `$A600`
+(`build/overlay-directory.inc`, `build/boss-runs.inc`, manifest). The boot
+loads at `$2000` (`cfg/atari-boot.cfg`, 107 sectors); stage 2's SIO buffer is
+`$8100`; `MEMLO` `$3B00`; the pause backup `$7810`; the save buffer `$7810`.
+After `start` the game owns the machine (no OS VBI, CIO or SIOV).
+
+**Emulator, current `main` (EMULATOR).** A scratch copy of the trace emulator
+filled `$1900-$1FFF` with `$A5` at `start` (`$201E`, host frame 236) and counted
+the bytes that differed once per host frame through
+`director-complete-1-natural-sweep-fire0` on the default ATR: boot, menu, the
+START GAME summary and level read, all of level 1 with its capital sector, the
+49-sector boss entry, the fight, the chain, the level-end summary and its save
+write (frames 12,332–12,492). **0 bytes changed over 12,000+ host frames**, and
+the replay's CSV is **byte-identical** to the one recorded without the fill, so
+nothing reads the range either. BASIC was off (the harness's launch); the
+2026-10-03 diagnostic covered BASIC on (`docs/diagnostics/low-ram-0700-1fff-2026-10-03.md`).
+Hardware evidence stays the owner's 65XE smoke, as for `$0500` and `$0C00`.
+
+### 3.3 The homes compared
+
+| | **(b) slot D at `$1900` (recommended)** | (a) slot A, the M5a overlay slot | (c) slot C grown to `$1EFF`, scratch moved to `$1F00` (plan §5.13.6) |
+| --- | --- | --- | --- |
+| room | 1,792 B for ≤ 800 | **53 B free** — needs ~750 B moved out first, and the only home for them is (b) or (c) | 1,792 B |
+| what moves | nothing: a new `MEMORY` area in `cfg/boss.cfg`, one more run in `boss-runs.inc`, read by the head like slot C | — | the scratch page (every `$18xx` address, `manifest.boss.scratch.columnMap 6144` and the tests that pin it), slot C's BSS |
+| claim | `$0C00-$18FF` → **`$0C00-$1FFF`** (owner decision, as Q-B5) | unchanged | the same growth |
+| disk | 528–583 holds code 16 + install 3 + slot C 14 = 33; slot D ≤ 7 → **40 of 56** | — | the same sectors, one run |
+| boss entry | 49 → **≤ 56 sectors, +≤ 27 host frames (+0.5 s EMULATOR; ~1 s on a 1050, ESTIMATE)** | — | the same |
+| risk | the claim's evidence class (EMULATOR until the 65XE smoke) | — | a relink of every scratch address for no gain |
+
+**Recommendation: (b).** The laser code lives in slot D (`$1900`, sized to
+use, read at every boss entry); slot A gains three calls; the C is unchanged
+in size.
+
+---
+
+## 4. Rendering the beam
+
+### 4.1 The options
+
+All four were rendered by **Atari800 itself**: a scratch copy of the trace
+emulator (same trace header, byte-identical, so the harness accepted it) runs
+a "laser lab" at the main loop's entry, after the game's own frame, the way the
+trace header's PMG lab does (`scripts/atari800-wall-trace.h:3046-3090`): it
+writes the PMG planes once and the GTIA registers every frame through
+`GTIA_PutByte`, the beam centred on region 1's emitter (and on gun-3, gun-1,
+gun-4 as stand-ins for 2 and 4 lasers), tracking `boss_shown_pos`. The game is
+the unmodified debug-route ATR `0ad32664…` (level 1's boss sector, HARD,
+the `sweep` bot of `2-sweep-fire2`). Only the PMG state is the lab's; every
+other pixel is the game's, the colours are the emulator's PLTE.
+
+| | **(c) P1/P2, + M1/M2 at tier 4, `PRIOR $00` (recommended)** | (a) missiles, `PRIOR $10` (fifth player) — the plan's | (b) missiles, `PRIOR $00` | (a-plan) as (a), column filled during the warning (§5.5) |
+| --- | --- | --- | --- | --- |
+| colour, band | **`$46`** (`COLPM1/2`, set at the install) | **`$32`** — the hull bulk's own colour; visible on black, gone on hull | `$46` (M1/M2) | `$32` |
+| colour, ring | **`$46`** | `$46` | `$46` | `$46` |
+| colour, HUD | never reaches it (beam top ≥ line 32; region 1: 48) | — | — | — |
+| 1 / 2 / 4 lasers | P1 / P1 P2 / P1 P2 M1 M2 — **one colour at every tier** | M0 / M0 M1 / M0–M3 — one colour, two values by region | M1 / M1 M2 / **+ M0 `$0E` white (the ship's `COLPM0`) and M3 `$1C` gold (the capsule's `COLPM3`)** — not one colour at tier 4 | as (a) |
+| width | 1 bit of the plane; `SIZE` normal = 1 colour clock (warning), quad = 4 (beam) | the same through `SIZEM` | the same | the same |
+| shared register touched | `COLPM1/2` only — no object uses them in a boss sector | `PRIOR` bit 4 (nothing else uses missiles there) | `COLPM1/2` | `PRIOR` |
+| cycles a frame, native (M, §5.1) | 1 / 2 / 4 lasers: steady beam **421 / 644 / 1,054**; fire start **445 / 692 / 1,150**; warning 198 / 266 / 402; beam end 147 / 171 / 219; + DLI publish **62** | the same kernel; DLI publish **46** | as (a) | as (a) **+ 1,295 a laser a frame** while filling, the same while erasing |
+| PMG memory writes | the install: ≤ 192 lines per laser, once; **0 a frame** | the same | the same | 64 lines RMW a laser a frame (warning and erase) |
+| registers a frame | `HPOSP1/2`, `HPOSM1/2`, `SIZEP1/2`, `SIZEM`, in the band DLI's phase 0 | `HPOSM0-3`, `SIZEM` | as (a) | as (a) |
+| hit detection | logic: the beam's shown HPOS span against the player's collision envelope, every frame, ALIVE only, through `apply_player_damage`; the shots by their x | the same | the same | the same |
+| reliability | frame-coherent: the DLI publishes the frame's HPOS before line 24, the compare uses that value; independent of `HITCLR` (mid-frame) and of emulator/hardware collision quirks | the same | the same | the same |
+| risks | P1/P2 newly used in the boss sector (no Heavy there; the level compiler's own comment calls them free); the trace's Heavy stale-body observer needs a boss exception (~15 lines, §4.5); two Q-S4 restore entries | a two-colour beam; the band part merges with the hull | tier 4 impossible in one colour; recolouring `COLPM0/3` would recolour the ship and the capsule — forbidden | 1,295 a laser a frame is the plan's 1,750 native that broke Q-B6 |
+
+### 4.2 The column written once
+
+The emitters never move inside the band; only the band moves. So each enabled
+emitter is given one PMG object at the install, and its plane is written once:
+from the line under the emitter's bottom row to the ring's last line (239).
+From then on a laser is **only register writes**: `HPOS` = the emitter's centre
+column × 4 + 32 − *p* − half the width (0 = off screen), `SIZE` = normal for
+the warning, quad for the beam. The boss DLI's phase 0 publishes the frame's
+values before the band, so the whole beam moves with the band in the same frame
+(a write from UPDATE would leave a one-clock kink every second frame). Start,
+stop, fire, a death, a pause: no plane write. `clear_pmg` empties the planes at
+the next START GAME, as today.
+
+### 4.3 The warning (~0.5 s, 25 frames) and the beam (50 frames)
+
+No shared register changes in either phase.
+
+| Look | What the player sees | Cost |
+| --- | --- | --- |
+| **pulsing thin line (recommended)** | the beam's own column at 1 colour clock, widening to 2 every other 2-frame group (`warning-pulse-*.png`) — the capital broadside warning's language ("two-frame pulse groups, never PAL flicker", `src/main.s:8663`) | 0 B beyond the size bit; 0 cycles |
+| steady thin line | the same at 1 colour clock throughout | 0 |
+| dashed line | needs the plane rewritten at the warning and again at the beam: ~190 RMW a laser (~3,400 native on the fire-start frame) | not recommended |
+| no line (the plan's) | only the emitter's heat look and the tone | 0 |
+
+With any line, the emitter's bottom-centre cell alternates the region's muzzle
+and spark glyphs through the cell-flash ring (no new glyph; ~90 native per
+change, every 4 frames) and a rising tone plays (Q4).
+
+**Readability (from the captures).** `$46` against the mint shots `$AE`, the
+white heads and stars `$0E`, the steel `$88`: distinct in hue and luminance.
+Against the hull: under (c) the beam is a brighter, cooler magenta than the
+`$32` bulk and reads as leaving the emitter; under (a) its band part is the
+bulk itself. Under `PRIOR $00` a P1/M1 beam crossing a white star or head ORs
+to `$4E` (pale pink) for that pixel; P2/M2 pass behind it; the ship (P0) is
+always drawn over a beam. A beam crossing a still-standing plate cannot happen
+in play (a weapon fires only once its cover is gone), so the previews use late
+fight frames, plates down.
+
+### 4.4 Previews
+
+`build/boss-laser-preview/` (not committed; regenerate with the scratch tools
+named in §10):
+
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/option-a.png`
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/option-b.png`
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/option-c.png`
+  — each: rows 1 / 2 / 4 lasers; columns now (no laser, f741), warning (f711),
+  fire (f741); 2×.
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/band-detail.png`
+  — the band at 3×: fire with 4 lasers for (a), (b), (c), and (c)'s 1-laser warning.
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/warning-pulse-a.png`,
+  `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/warning-pulse-c.png`
+  — eight consecutive warning frames (f705–f712).
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/palette.png`
+  — the colours from the capture's PLTE.
+
+The previews' 2 and 4 lasers sit on region 1's gun columns (region 1 has one
+emitter slot); the tier fixtures (§8.6) carry real emitters there.
+
+### 4.5 Harness consequences per option
+
+Option (c) writes P1/P2 planes in the boss sector; the trace's stale-body
+observer (`scripts/runtime-wall-trace.mjs:3951-3960`, rows' `enemy_pmg_mismatch1/2`)
+expects them empty when no Heavy member is live. In the lab run it flagged 918
+of 919 boss frames. It needs a boss-sector exception (the plane holds the laser
+column; ~15 lines, class (b)). Options (a)/(b) touch only the missile plane,
+which no clause reads.
+
+---
+
+## 5. Cycles and the work limit
+
+### 5.1 The laser kernel (MEASURED, native, `scripts/nmos6502.mjs`)
+
+A scratch probe (`probe-lasers.s`, assembled at `$1900` with the repository's
+ca65/ld65) written as the kernel would be: four laser records, the timers, the
+warning → beam → off phases, the HPOS/size shadows with the window test, the
+player compare and the five-shot retirement for each firing beam, the DLI
+publish of both options, and the plan's fill/erase for comparison.
+
+| Case | 1 laser | 2 lasers | 4 lasers |
+| --- | ---: | ---: | ---: |
+| idle (no laser running) | 123 | 123 | 123 |
+| warning, steady | 198 | 266 | 402 |
+| beam, five shots in flight, none in a beam | 421 | 644 | 1,054 |
+| beam, the player in the first beam | 442 | 665 | 1,090 |
+| the warning's last frame (fire start) | **445** | **692** | **1,150** |
+| the beam's last frame | 147 | 171 | 219 |
+| start (from `boss_fire`) | 25 | | |
+| DLI publish (c) / (a) | 62 / 46 | | |
+| plan §5.5: fill or erase 64 lines of one missile | **1,295** per laser per frame | | |
+
+Budgeted with the parts not in the probe (heat via the ring ~90, the tone
+~15, the hold ~10, call overhead ~20): **tier 1 ≤ 650, tier 2 ≤ 900, tier 4
+≤ 1,400** native on the worst frame (ESTIMATE from MEASURED parts).
+
+### 5.2 What a native cycle costs a boss frame (MEASURED, probe reverted)
+
+The debug-route build with **1,001 native cycles of busy loop** added to
+`boss_update` (`src/hybrid/boss.s`, before the shot loop; built into
+`build/level-1-s4/`, traced with `2-sweep-fire2`, reverted, rebuilt to
+`0ad32664…`) against the same replay on the clean build, frame by frame (919
+boss frames, game state identical on every frame):
+
+| | |
+| --- | --- |
+| worst fence margin | 11,730 → **9,693** |
+| margin lost per frame, per 1,001 native | median **2,382**, min 790, max **4,308** |
+| ratio wall/native | median **2.4**, range **0.8–4.3** |
+| why it varies | the UPDATE runs at a different scanline on each frame; inside the band's rows (ANTIC 4 with HSCROL, a 48-byte fetch plus the charset every line, PMG, refresh) the CPU gets a fraction of each line, below the band most of it |
+
+### 5.3 The limit
+
+| Composition (ESTIMATE from MEASURED parts) | Tier 1 | Tier 2 | Tier 4 |
+| --- | ---: | ---: | ---: |
+| laser budget, native | 650 | 900 | 1,400 |
+| worst real boss frame margin (12,974) − budget × 4.3 (the worst ratio) | ≥ 10,170 | ≥ 9,100 | **≥ 6,950** |
+| the same at the median ratio 2.4 | ≥ 11,410 | ≥ 10,810 | ≥ 9,610 |
+| GO | 500 | 500 | 500 |
+| the stress drive (6,689) + the budget, if a beam runs on its worst kill frame | ~7,340 | ~7,590 | **~8,090** |
+| the limit | 7,000 | 7,000 | 7,000 |
+
+* **The fence is not at risk.** Even four lasers at the worst ratio leave a
+  boss frame ~6,950 over the fence — fourteen times GO. DMA-on is unaffected
+  (the PMG DMA is on already; work moves the fence entry, not the wall).
+* **The 7,000 stress pin is.** The drive (five hits a frame on one module, a
+  case real fire cannot make) already reads 6,689; any laser running on its
+  worst frame passes 7,000 — at tier 1 by ~340, at tier 4 by ~1,090. At tier 1
+  the overlap is uncertain (the beam eats the drive's shots in its own column,
+  so the emitter cannot die under its beam); at tier 4 it is near certain.
+* Trims that do not change gameplay: none that reaches 7,000 at tier 4 (the
+  shot retirement is ~400 of the 1,150; dropping it changes the plan's "nothing
+  survives the beam").
+
+**Recommendation (owner question Q8): the boss sector's stress limit 7,000 →
+8,500 native**, on the measured basis above: at 8,500 the worst composed real
+frame is still ≥ 6,950 over the fence at the worst measured ratio, and the
+tier-4 fixture's composition (~8,090) keeps ~400 of slack. **Not changed in
+Phase A**; Phase B STOPs if a measured stress case exceeds the limit in force.
+Alternative: keep 7,000 for the engine and give the lasers their own pin
+(≤ 1,400 native at tier 4), the stress drive run with the lasers held.
+
+---
+
+## 6. Recommended design for Phase B (if the answers are the recommendations)
+
+1. **Objects**: emitter slot *k* of the enabled ones → P1, P2, M1, M2 (option
+   c); `PRIOR $00`; `COLPM1 = COLPM2 = $46` at the install.
+2. **The column** written once at the install (§4.2); HPOS/size shadows
+   published by `boss_dli` phase 0 (`jsr` into slot D, A only).
+3. **Cadence**: the emitter gets a `reload` in `modules.json` (data; region 1
+   proposed 150, EASY +½, HARD −¼ by the existing rule, M8 tunes). The
+   countdown names it like any weapon; `boss_fire` sends an emitter to
+   `laser_start` instead of the PULSE spawn; a busy laser ignores the call.
+4. **Warning 25 frames**: the pulsing thin line, the heat look through the
+   ring, the rising tone (Q3, Q4). **Beam 50 frames**: 4 colour clocks,
+   tracking the band; each frame, first the compare against what is on screen,
+   then the shadows for the next frame.
+5. **Contact**: the player's collision envelope (`PLAYER_COLLISION_WIDTH` 8)
+   overlapping the beam's span → `apply_player_damage` from one labelled call
+   site with `LASER_DAMAGE[difficulty]` (data; Q5); player shots whose x lies in
+   the beam are retired (Q6).
+6. **Hold**: while the player is not ALIVE no laser starts and a running one
+   goes off; on an emitter's kill its laser goes off that frame; at the defeat
+   all go off.
+7. **Tier**: computed in slot D's install from the level id (decision 8:
+   levels 1–4 → 1 slot, 5–8 → 2, 9–12 → 4) into `boss_laser_slots`, which
+   `boss_c_init` reads instead of 0 (`src/c/boss.c:242`). A debug-only build
+   flag overrides it for the fixtures (§8.6).
+8. **Restore**: the Q-S4 table gains `HPOSP1/2`; everything else is in place.
+
+Nothing runs in non-boss frames: the three calls live in slot A's boss
+overlay and slot D; no resident byte changes.
+
+---
+
+## 7. The lower-row contact scenario (decision 13, Q4)
+
+**Session `lower-playfield-laser-contact-atr-hard`** (default ATR, HARD, level
+1, new policy `lower-contact-laser`): the `sweep` bot plays level 1 into the
+boss sector (entry at ~f8,787 on HARD today) and fights on until the first
+laser warning starts (region 1: plate-d must fall first; on the debug route
+the plates over the emitter were down by ~f600 of the fight); the policy then
+steers to the warned emitter's column (band position included, tracked every
+frame) at the bottom clamp (y 225) with no damage cooldown and no respawn
+invulnerability, and waits. The beam's first frame is the contact. Budget: the
+entry + ~1,500 fight frames (~10,500), as long as `director-complete-*`.
+
+Clauses, as the plan wrote them, with the differences named:
+
+1. 16 consecutive contact rasters captured; on each, the laser's column (its
+   object's HPOS span and plane rows) intersects P0's raster bounds; the
+   player's rows ≥ 191.
+2. exactly one `apply_player_damage` entry in the capture window, **from the
+   laser's call site** (the harness watches its PC; §0.3 item 4), and
+   `apply_broadside_player_damage` not entered.
+3. hull 10 → 10 − `LASER_DAMAGE[HARD]`; lives, lifecycle and cooldown as
+   Q5's answer makes them (alive with cooldown 25, or DYING with lives 3 → 2);
+   no invulnerability on the hit frame.
+4. the warning preceded the beam by ≥ 24 frames: the emitter's heat looks seen
+   in the band map, the tone seen on the channel Q4 names.
+5. the beam lasts 50 ± 1 frames on one band column; it ends with its HPOS 0.
+6. nothing survives in the column: no player shot with an x inside the beam on
+   the beam's first frame + 1 (no Light exists in region 1).
+7. PAL: 0 miss events; fence ≥ 500 on every boss frame; 3 DLIs in the boss
+   sector, 0 violations (the harness models the boss DLI since S3).
+8. the boss-entry read: one command frame per sector, 0 retries, inside its
+   recorded window, no gameplay frame inside it.
+
+Harness work (new scenario, class (a) plus observers): the policy (~40 lines of
+the trace header), the laser state and HPOS columns in the CSV (~15), the call
+site's PC (~5), the clauses (~90 in `scripts/runtime-wall-trace.mjs`), and
+(option c) the stale-body exception (~15). Then
+`lower-playfield-hostile-contact-atr-hard` is **retired by name** into a
+`removed_2026_10_…` block of `docs/recorded-gate-failures.json` with F5/F6
+kept (Q4); the recorded clause failures fall 1 → 0.
+
+---
+
+## 8. Tests, evidence, smoke (Phase B)
+
+### 8.1 RED on `main`'s build, GREEN after (`tests/boss-lasers.test.mjs`, 6502 harness on the built bytes)
+
+1. the laser count per tier: region 1 on level 1 → 1 object enabled; the
+   laser fixture (§8.6) installed at level 5 → 2, at level 9 → 4;
+2. the warning: 25 frames from the emitter being named to the beam's first
+   frame; the beam 50 frames;
+3. contact: the player's envelope under a beam → one `apply_player_damage`
+   entry from the laser's call site and the hull change Q5 decides;
+4. an emitter destroyed during its warning and during its beam → its object off
+   on that frame, never on again;
+5. no laser while the player is DYING or RESPAWN_INVULNERABLE; a beam running
+   at the death goes off;
+6. outside the boss sector: after START GAME (the Q-S4 restore and
+   `clear_pmg`) `PRIOR`, `SIZEM`, `HPOSM0-3`, `HPOSP1/2` are 0 and the planes
+   empty; a capital sector after a boss draws its broadside warning with no
+   foreign missile bit;
+7. the stress test on the tier-4 fixture with its lasers running, against the
+   limit in force (Q8).
+
+### 8.2 Evidence
+
+`build:candidate` → `runtime:wall-trace` → `build`, `npm test` on the default
+build twice (the same names), the hash-bound media rebound by their own tools,
+`npm run memory-map` (the claim grows to `$1FFF`), the fight lengths on EASY /
+MEDIUM / HARD measured against MEDIUM 45–60 s and not tuned (M8).
+
+### 8.3 Smoke (owner, on copies of the ATRs)
+
+The default ATR (`npm run play:atr`); the boss debug route `level-1-s4`; the
+tier-2 and tier-4 fixture builds. What to look for: the warning, then the
+beam, from each emitter; the beam against the hull, the stars and the HUD; mint
+shots and white enemy heads next to a beam; death by beam and a respawn with no
+beam; an emitter destroyed silences its laser; the boss falls with its last
+weapon.
+
+### 8.4 The tier fixtures
+
+Region 1 has one emitter slot, so tiers 2 and 4 need a fixture: a layout
+`assets/graphics/boss-regions/laser-fixture/` (region 1's art; gun-1, gun-3 and
+gun-4 become emitter slots 2–4 with reloads), used by the 6502 tests through
+`installRegion` with level ids 5 and 9, and by two debug-only review builds
+(a build flag that installs the fixture as region 1 and overrides the tier;
+`build/<variant>/`, never `dist/`, no gate consults them).
+
+---
+
+## 9. Owner questions
+
+| # | Question | Recommended answer | Its cost | The alternative and its cost |
+| ---: | --- | --- | --- | --- |
+| **Q1** | How is the beam drawn? | **(c)**: P1/P2, plus M1/M2 at tier 4, `PRIOR $00`, `COLPM1/2 = $46` in the boss sector — one colour in band and ring at every tier | P1/P2 used in the boss sector (no Heavy there); 2 restore entries (6 B, `$0500`); a ~15-line trace exception | (a) the plan's fifth player: 0 extra registers, but `$32` in the band (the hull's colour) and `$46` below; (b) missiles only: tiers 1–2 fine, **tier 4 impossible in one colour** |
+| **Q2** | How does the column get on screen? | **Written once at the install; a laser is register writes only** (§4.2) | ~0 a frame; the install +~190 stores a laser | the plan's fill/erase: **+1,295 native a laser a frame** |
+| **Q3** | The warning's look | **the pulsing thin line** (1/2 clocks, 2-frame groups) + the emitter's heat through the ring + a rising tone | 0 B, 0 cycles for the line; ~90 native per heat change | steady thin line (0); no line (the plan's) — only the glyph and the tone |
+| **Q4** | The warning tone's channel | **channel 3 over the engine bed**, the bed back after (Q-B4's rule: the lead voice is never pre-empted) | a hit tick on the same frames wins for its 2 frames | channel 2 (the plan): pre-empts the music's lead for 25 frames a laser |
+| **Q5** | What a beam does to the player | **a kill: `LASER_DAMAGE` = 10 on every difficulty, as data per difficulty** (the brief's "kills"; Shield still absorbs, invulnerability still protects) | 3 B of data; the bot dies under beams it does not dodge (lives are held in the replays; the fight lengthens by the 5-s respawns) | the plan's partial damage (e.g. 4 / 5 / 6 units, alive, 25-frame cooldown): the beam hits again after the cooldown if the player stays |
+| **Q6** | Does the beam retire the player's shots in its column? | **Yes** (plan §5.5, clause 6): the emitter can be shot only between its beams | ~100 native a firing laser | no: −~400 native at tier 4; the beam is decoration for shots |
+| **Q7** | The home | **slot D at `$1900`, the claim `$0C00-$18FF` → `$0C00-$1FFF`** | ≤ 7 sectors, the entry +≤ 27 host frames (EMULATOR) | slot C grown to `$1EFF` with the scratch moved (a relink of every scratch address, the same claim) |
+| **Q8** | The boss sector's stress limit | **7,000 → 8,500 native** (§5.3): ≥ 6,950 over the fence at the worst measured ratio | the pin protects less against a pathological drive | keep 7,000 for the engine and pin the lasers alone (≤ 1,400 at tier 4), the drive run with lasers held |
+| **Q9** | The lower-row contact | **Q4 as decided**: the new laser session with §7's clauses; the old one retired by name when it passes | 0 runtime B; ~160 harness lines | keep the old one recorded beside the new (the brief's "pass with the clause untouched" cannot be met: the clause asserts a shell) |
+| **Q10** | The tier fixtures | **the `laser-fixture` layout (region 1's art, gun-1/3/4 as emitter slots 2–4) and a debug-only tier override flag** | one fixture folder, ~15 lines of build | a per-level `lasers` byte in `boss_def` (level data, shipped bytes change) |
+| **Q11** | Timings | **warning 25, beam 50, region 1's emitter reload 150** (all data, M8 tunes) | — | — |
+
+---
+
+## 10. What Phase A did not do
+
+No source, cfg, script, asset, test, level or evidence change is committed;
+`git diff -- src cfg scripts assets tests` is empty at the commit. The burn
+probe (§5.2) was a three-line edit of `src/hybrid/boss.s`, reverted, and
+`build/level-1-s4/` was rebuilt to its recorded hash. The laser lab, the
+`$1900` watch, the probe kernel and the preview composer are scratch files of
+this session (`atari800-lab/src/laser_lab.h` hooked into a copy of
+`build/atari800-trace`'s `cpu.c`, `lab-run.mjs`, `compose.mjs`,
+`probe/probe-lasers.s`, `probe/measure.mjs`, `fence-scan.mjs`); none is
+committed, and none of their output is evidence. The harness's own emulator
+in `build/atari800-trace` was not touched. `docs/STATUS.md` is unchanged until
+Phase B.

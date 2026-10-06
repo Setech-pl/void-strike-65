@@ -3400,6 +3400,32 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		else if (y < target_y)
 			stick = (stick & 0x0cu) | 0x01u;
 	}
+	else if (strcmp(dftrace_policy, "laser-dodge") == 0) {
+		/* M5b-S4b (owner decision Q10): the tier-4 fixture's worst case on the
+		 * emulator - keep firing and stay clear of every laser on screen, so the
+		 * four beams keep firing over a live player: steer to the x in 56-200
+		 * farthest from each shown beam. */
+		unsigned candidate;
+		unsigned best = x;
+		int best_distance = -1;
+		for (candidate = 56u; candidate <= 200u; candidate += 4u) {
+			int nearest = 255;
+			unsigned laser;
+			for (laser = 0u; laser < 4u && dftrace_laser_state != 0u; ++laser) {
+				unsigned hpos = MEMORY_mem[dftrace_laser_hpos + laser];
+				if (MEMORY_mem[dftrace_laser_state + laser] != 0u && hpos != 0u) {
+					int distance = (int) candidate + 4 - (int) hpos - 2;
+					if (distance < 0) distance = -distance;
+					if (distance < nearest) nearest = distance;
+				}
+			}
+			if (nearest > best_distance) {
+				best_distance = nearest;
+				best = candidate;
+			}
+		}
+		stick = x < best ? 0x07u : x > best ? 0x0bu : 0x0fu;
+	}
 	else if (strcmp(dftrace_policy, "lower-contact-laser") == 0) {
 		/* M5b-S4b (docs/plans/boss-lasers.md §7): the sweep bot plays the level;
 		 * in the boss sector, once a laser warns or fires on screen while the

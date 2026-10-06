@@ -657,6 +657,20 @@ const engineRestartSessions = ["ATR"].map((medium) => ({
   engineScreenshotGeneration: 2,
 }));
 
+/* M5b-S4b (owner decision Q10): the laser fixture's worst case on the
+ * emulator - four beams firing together over a live player that keeps firing
+ * (policy laser-dodge). Debug route only (--artifacts=build/laser-fixture-4-
+ * level-1-s4): a default run skips it, so the default evidence is unchanged. */
+const laserFixtureSessions = [{
+  id: "laser-dodge-2-fire0",
+  difficulty: 2,
+  policy: "laser-dodge",
+  fireDelay: 0,
+  frames: 3_000,
+  kind: "baseline-9040",
+  holdPlayerLives: 3,
+}];
+
 const lowerPlayfieldSessions = [{
   id: "lower-playfield-atr-hard",
   medium: "ATR",
@@ -3709,7 +3723,8 @@ function main() {
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
       ...memoryIntegritySessions, ...lowerPlayfieldSessions]
       .concat(engineDiagnosticSessions, engineRestartSessions,
-        onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [])
+        onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
+        layout.variant !== null ? laserFixtureSessions : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
       id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
   if (onlySession?.startsWith("pmg-lab-"))

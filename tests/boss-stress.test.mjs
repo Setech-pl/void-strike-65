@@ -278,8 +278,14 @@ test("AUD-04 cap: three kills in one volley - score and kills counted once each,
   const second = counted(memory);
   assert.deepEqual([first.kills, second.kills], [2, 1], "two kills, then the third");
   assert.deepEqual(ids.map((id) => hp(memory, id)), [0, 0, 0]);
-  // A module's score is one packed-BCD byte, added once when it is destroyed.
-  const worth = ids.reduce((sum, id) => sum + bcd(region1.modules[id].score), 0);
+  // Each module's score, measured alone: one kill, one shot, a fresh boss.
+  const worth = ["plate-f", "plate-g", "plate-h"].reduce((sum, name) => {
+    const alone = plates([name], 1).memory;
+    const from = score(alone);
+    counted(alone);
+    return sum + bcd(score(alone)) - bcd(from);
+  }, 0);
+  assert.ok(worth > 0, "the modules score nothing");
   assert.equal(bcd(score(memory)) - bcd(before), worth, "the score gained is not the three modules' scores once");
   assert.equal(memory[STATS_HITS] - hits0, 3, "accuracy counts three hits");
   advance(memory);
@@ -287,43 +293,72 @@ test("AUD-04 cap: three kills in one volley - score and kills counted once each,
 });
 
 test("AUD-04 cap: a kept shot whose target died meanwhile meets what its column then holds, as a fresh shot would", () => {
-  // The loop takes the slots from 4 down: slot 2 kills plate-d, slot 1 hits
-  // plate-g, slot 0 - in plate-d's column too - waits a frame.
-  const d = byName1.get("plate-d"), g = byName1.get("plate-g");
-  const start = () => {
-    const memory = entered();
-    placeBand(memory, 32);
-    const front = fronts(memory, region1);
-    memory[lbl("_boss_hp") + d] = 1;
-    memory[lbl("_boss_hp") + g] = 5;
-    shootAt(memory, front.get(d), 2);
-    shootAt(memory, front.get(g), 1);
-    return { memory, column: front.get(d) };
-  };
-  const waiting = start();
-  shootAt(waiting.memory, waiting.column, 0);
-  const shotX = waiting.memory[main("FIGHTER_PROJECTILE_X")];
-  const shotY = waiting.memory[SHOT_Y];
-  counted(waiting.memory);
-  assert.equal(hp(waiting.memory, d), 0, "plate-d fell on the first frame");
-  assert.deepEqual(live(waiting.memory), [0], "the third shot waits");
-  advance(waiting.memory);
-  assert.equal(waiting.memory[SHOT_Y], shotY, "it waited where it was");
-  const afterWait = counted(waiting.memory);
-  // The same frame with a fresh shot at the waiting shot's place.
-  const fresh = start();
-  counted(fresh.memory);
-  advance(fresh.memory);
-  fresh.memory[ACTIVE] = 1;
-  fresh.memory[main("FIGHTER_PROJECTILE_X")] = shotX;
-  fresh.memory[SHOT_Y] = shotY;
-  fresh.memory[main("FIGHTER_PROJECTILE_LIFETIME")] = waiting.memory[main("FIGHTER_PROJECTILE_LIFETIME")];
-  const afterFresh = counted(fresh.memory);
-  assert.deepEqual(afterWait, afterFresh, "the kept shot's meeting differs from a fresh shot's");
-  const state = (memory) => ({
-    hp: [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + region1.modules.length)],
-    hits: memory[STATS_HITS], score: score(memory), live: live(memory),
-    map: [...memory.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)],
+  // The loop takes the slots from 4 down. Frame 1: slots 4 and 3 hit plate-g
+  // and plate-h, slot 2 - in plate-d's column - is kept. Frame 2: a fresh shot
+  // in slot 4 kills plate-d before slot 2 is tested again, against the
+  // columns plate-d's kill rebuilt.
+  const d = byName1.get("plate-d"), g = byName1.get("plate-g"), h = byName1.get("plate-h");
+  const memory = entered();
+  placeBand(memory, 32);
+  const front = fronts(memory, region1);
+  memory[lbl("_boss_hp") + d] = 1;
+  memory[lbl("_boss_hp") + g] = 5;
+  memory[lbl("_boss_hp") + h] = 5;
+  shootAt(memory, front.get(g), 4);
+  shootAt(memory, front.get(h), 3);
+  shootAt(memory, front.get(d), 2);
+  const keptX = memory[main("FIGHTER_PROJECTILE_X") + 2], keptY = memory[SHOT_Y + 2];
+  assert.equal(counted(memory).hits, 2);
+  assert.deepEqual(live(memory), [2], "the third shot is kept");
+  assert.equal(hp(memory, d), 1, "plate-d is untouched while its shot waits");
+  advance(memory);
+  assert.equal(memory[SHOT_Y + 2], keptY, "the kept shot waited where it was");
+  shootAt(memory, front.get(d), 4);              // plate-d's killer, tested first
+  // The control: the same frame with the kept shot replaced by a fresh one at its place.
+  const control = Uint8Array.from(memory);
+  control[ACTIVE + 2] = 1;
+  control[main("FIGHTER_PROJECTILE_X") + 2] = keptX;
+  control[SHOT_Y + 2] = keptY;
+  const kept = counted(memory), fresh = counted(control);
+  assert.equal(hp(memory, d), 0, "plate-d fell to the fresh shot");
+  assert.deepEqual(kept, fresh, "the kept shot met otherwise than a fresh shot");
+  const state = (m) => ({
+    hp: [...m.subarray(lbl("_boss_hp"), lbl("_boss_hp") + region1.modules.length)],
+    hits: m[STATS_HITS], score: score(m), live: live(m),
+    y: live(m).map((slot) => m[SHOT_Y + slot]),
+    map: [...m.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)],
   });
-  assert.deepEqual(state(waiting.memory), state(fresh.memory));
+  assert.deepEqual(state(memory), state(control));
+});
+
+test("AUD-04 cap: a beam that covers a kept shot's column while it waits absorbs it (Q6)", { skip: !lasers }, () => {
+  // The tier-4 fixture: laser 2 is gun-3's, one warning frame from its beam.
+  // Frame 1: slots 4 and 3 meet plate-a and plate-b; slot 2, in gun-3's
+  // column under the warning, is kept. Frame 2: the beam is on and absorbs it.
+  const names = new Map(fixture.modules.map((m, i) => [m.name, i]));
+  const memory = entered();
+  installRegion(memory, fixture, { level: 9 });
+  placeBand(memory, 32);
+  const front = fronts(memory, fixture);
+  const gun3 = names.get("gun-3");
+  const laser = [0, 1, 2, 3].find((i) => memory[lbl("boss_laser_module") + i] === gun3);
+  memory[lbl("boss_laser_state") + laser] = 1;
+  memory[lbl("boss_laser_timer") + laser] = 1;
+  memory[lbl("boss_laser_fired") + laser] = 0;
+  memory[main("player_x")] = 60;                   // the player away from the beam
+  shootAt(memory, front.get(names.get("plate-a")), 4);
+  shootAt(memory, front.get(names.get("plate-b")), 3);
+  const centre = fixture.modules[gun3].x + (fixture.modules[gun3].width >> 1);   // the beam's column
+  assert.equal(memory[lbl("boss_column_map") + centre], gun3);
+  shootAt(memory, centre, 2);
+  const gun3Hp = hp(memory, gun3);
+  const hits0 = memory[STATS_HITS];
+  assert.equal(counted(memory).hits, 2);
+  assert.deepEqual(live(memory), [2], "the shot under the warning is kept");
+  assert.equal(memory[lbl("boss_laser_state") + laser], 2, "the beam is on for the next frame");
+  advance(memory);
+  assert.equal(counted(memory).hits, 0, "the kept shot met gun-3 through the beam");
+  assert.deepEqual(live(memory), [], "the beam did not absorb the kept shot");
+  assert.equal(hp(memory, gun3), gun3Hp, "gun-3 took the absorbed shot's damage");
+  assert.equal(memory[STATS_HITS] - hits0, 2, "the absorbed shot counted as a hit");
 });

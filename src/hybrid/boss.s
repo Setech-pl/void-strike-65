@@ -455,7 +455,7 @@ boss_update:
     lda FIGHTER_PROJECTILE_Y,x
     cmp #BAND_BOTTOM_Y
     bcs @next
-    jsr boss_shot_meet
+    jsr boss_shot_admit                 ; AUD-04: two meetings a frame (slot D)
     bcc @next
     sta _boss_hit_module
     lda #FIGHTER_PROJECTILE_FREE
@@ -1901,6 +1901,8 @@ laser_start:
 ; The defeat or the last life lost ends the boss sector for the lasers: all
 ; off, the column erased, PRIOR's fifth-player bit off (Q1).
 laser_frame:
+    lda #BOSS_SHOT_ADMIT                ; AUD-04: this frame's meetings
+    sta boss_shots_admit_left
     jsr laser_hostile_shots
     lda boss_laser_done
     bne @rts
@@ -2140,6 +2142,31 @@ laser_collide:
 
 ; The laser's damage call: one address the trace watches as the laser's damage
 ; source (apply_player_damage has none; plan §0.3 item 4). A = hull units.
+; AUD-04 (owner decision 2026-10-06): at most BOSS_SHOT_ADMIT player shots
+; meet the band a frame - the work of a kill (its rebuild) or a stage change
+; is bounded so. A later shot that would meet stays where it is - its next
+; move undone (+ the projectile speed), the update moves it back - and is
+; tested again next frame against the boss as it then stands: damage counted
+; once, when it meets; a beam covering it meanwhile absorbs it (Q6). Keeps X.
+; Out as boss_shot_meet: C=1 meets (A = the column map's value, Y = the
+; column), C=0 flies on.
+BOSS_SHOT_ADMIT = 2
+boss_shot_admit:
+    jsr boss_shot_meet
+    bcc @rts
+    dec boss_shots_admit_left
+    bmi @keep
+@rts:
+    rts
+@keep:
+    inc boss_shots_admit_left
+    lda FIGHTER_PROJECTILE_Y,x
+    clc
+    adc #PLAYER_FIGHTER_PROJECTILE_SPEED
+    sta FIGHTER_PROJECTILE_Y,x
+    clc
+    rts
+
 boss_laser_damage:
     jmp apply_player_damage
 
@@ -2312,6 +2339,7 @@ laser_t:            .res 1
 laser_b:            .res 1
 laser_x:            .res 1
 laser_d:            .res 1
+boss_shots_admit_left: .res 1   ; AUD-04: meetings left this frame
 
 
 ; ===========================================================================

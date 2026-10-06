@@ -731,9 +731,9 @@
     },
     "slotA": {
       "address": 28136,
-      "bytes": 2035,
+      "bytes": 2032,
       "capacityBytes": 2048,
-      "freeBytes": 13,
+      "freeBytes": 16,
       "sectors": 16
     },
     "install": {
@@ -760,11 +760,11 @@
     },
     "slotD": {
       "address": 6400,
-      "bytes": 1114,
-      "codeBytes": 1054,
+      "bytes": 1480,
+      "codeBytes": 1386,
       "capacityBytes": 1792,
-      "freeBytes": 678,
-      "sectors": 9
+      "freeBytes": 312,
+      "sectors": 11
     },
     "laserFixtureTier": null,
     "charset": {
@@ -788,7 +788,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "4fcf0037848580d43701da732691af7db5bae64a8cfbcc284975d2200450446c",
+        "sha256": "67e45a4a4c2f94ea4ad9e2268279457bde3a74b01d678a7afa32c2b1d4d25b70",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -797,7 +797,7 @@
         "sectors": 3,
         "destination": 30736,
         "bytes": 384,
-        "sha256": "51ad5d338dc743df625ae4db468f67ccea1025b10d7e57987241c403cc681195",
+        "sha256": "e310479469ab21cf73305ce3d667f4fa4098f8ef79c124acc73d1b8cdb1839f1",
         "file": "overlay-boss-install.bin"
       },
       {
@@ -806,16 +806,16 @@
         "sectors": 14,
         "destination": 4096,
         "bytes": 1792,
-        "sha256": "8c8c699504a4d9d10483f2c217de23d5c25ab9d1b6062f383f492111a40da4f6",
+        "sha256": "26ea7c928b1c488f41bb08eb3be98cd1cbd784e11b6c51e89a01dd92f7f82c47",
         "file": "overlay-boss-slot-c.bin"
       },
       {
         "name": "boss-slot-d",
         "startSector": 563,
-        "sectors": 9,
+        "sectors": 11,
         "destination": 6400,
-        "bytes": 1152,
-        "sha256": "ebc2d6f82a89d924a9593a635732c3a70a86628db0f71510477f2f029b03bf17",
+        "bytes": 1408,
+        "sha256": "dd97c572de73fdad70ed49ce0a46b0db61c07596ef0bbc90eb31459c490668d7",
         "file": "overlay-boss-slot-d.bin"
       },
       {
@@ -833,7 +833,7 @@
         "sectors": 3,
         "destination": 43136,
         "bytes": 384,
-        "sha256": "a0ab59da3e9a3dd0886b390901a7cfeddcc3f3097808a39b4f74ceb153f765d2",
+        "sha256": "05bb291eb3d5733be403cd2781d40dabbf7827169c70f5d01748bd74a9d8a01f",
         "file": "boss-region-1-band-a.bin"
       },
       {
@@ -842,7 +842,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "6c94d5cf8a0d7e707bd37809b0da04adb1414f19e7edd81cda295063906b3671",
+        "sha256": "56b1be540da889307c5059c068e24c53a4184eb2a82ab34a828637553b862f93",
         "file": "boss-region-1-band-b.bin"
       },
       {
@@ -851,7 +851,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "7d36bde798f779eb494025d01d007795492c19dc1877bb4e222f632d7230a8ea",
+        "sha256": "265324e40863aa9b5abf085be2f0d76b3592c8a312b61db2346f121f7866ac28",
         "file": "boss-region-1-charset.bin"
       }
     ],
@@ -860,12 +860,12 @@
         "region": 1,
         "name": "Blockade Breaker",
         "style": 1,
-        "codes": 112,
-        "stageStep": 19,
-        "charsetBytes": 994,
+        "codes": 115,
+        "stageStep": 20,
+        "charsetBytes": 1018,
         "charsetSectors": 8,
         "modules": 13,
-        "entrySectors": 58
+        "entrySectors": 60
       }
     ]
   },
@@ -23340,11 +23340,11 @@
     "estimated_additive_cycles": 27643,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "0ac0dd79f50e11fe572211733883f58464e808898f6dbac55f22a59e8a0facaa",
+      "reportSha256": "eba618a492c5bb9ab52489bfdfa9173c42d378351ca19127f50099893cbe306c",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+        "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
       },
       "emulator": {
         "name": "Atari800",
@@ -24878,11 +24878,11 @@
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+        "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "0ac0dd79f50e11fe572211733883f58464e808898f6dbac55f22a59e8a0facaa"
+    "reportSha256": "eba618a492c5bb9ab52489bfdfa9173c42d378351ca19127f50099893cbe306c"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
@@ -24891,7 +24891,7 @@
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+      "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
     }
   }
 }

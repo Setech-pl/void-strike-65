@@ -9,8 +9,8 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "e350b637865987f625933872089df5b5f5ff0a94f77aaa4c43e8d9d1ebfa806c",
-    "ordered_frames": 120180,
+    "replay_fingerprint_sha256": "663d0e1401f462a94bf83223c3abcc8fd20d4ae4dcc631c658e2380c8f42b208",
+    "ordered_frames": 120277,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
   "artifacts": {
@@ -22,18 +22,18 @@
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+      "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 854320,
-      "sha256": "3e08a7391421594b1084e719495c174fab4227b418e46f3214b4bcc8c2827c28"
+      "bytes": 854323,
+      "sha256": "d2807fc75161541c29cd7d4272cf8b3ef85c714f4a3268d2288b5c7797f91b56"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+    "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
   },
   "emulator": {
     "name": "Atari800",
@@ -64,7 +64,7 @@
       "level_buffer_address": 42496,
       "level_image_file": "level-1.bin",
       "level_image_bytes": 1664,
-      "level_image_checksum": 2657918890,
+      "level_image_checksum": 2121132303,
       "level_image_header_hex": "565301010d780609",
       "verified_at_frames": [
         3400
@@ -231,7 +231,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -393,7 +393,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 2657918890,
+            "level_checksum": 2121132303,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 3311518249
@@ -507,7 +507,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -669,7 +669,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 2657918890,
+            "level_checksum": 2121132303,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 3311518249
@@ -783,7 +783,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -945,7 +945,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 2657918890,
+            "level_checksum": 2121132303,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 3311518249
@@ -1059,7 +1059,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1221,7 +1221,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 2657918890,
+            "level_checksum": 2121132303,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 3311518249
@@ -1337,7 +1337,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1499,7 +1499,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 2657918890,
+            "level_checksum": 2121132303,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 3311518249
@@ -1667,7 +1667,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1676,7 +1676,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1685,7 +1685,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1694,7 +1694,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b"
+          "sha256": "3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }
@@ -3383,7 +3383,7 @@
     "fighter_flash_measured_frames": 1600,
     "debris_effects_measured_frames": 5000,
     "weapon_pickup_measured_frames": 4000,
-    "director_completion_measured_frames": 35097,
+    "director_completion_measured_frames": 35180,
     "memory_integrity_measured_frames": 12000,
     "engine_startup_measured_frames": 1800,
     "engine_restart_measured_frames": 3200,
@@ -3884,7 +3884,7 @@
         "difficulty": 0,
         "policy": "sweep",
         "fire_delay": 0,
-        "measured_frames": 12197,
+        "measured_frames": 11810,
         "maximum_wall_cycles": 30717,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
@@ -3902,35 +3902,35 @@
             }
           ],
           "level_end_summary": {
-            "entry": 13202,
-            "display": 13204,
-            "ready": 13355,
-            "accept": 13356,
-            "shown_frames": 152,
+            "entry": 12823,
+            "display": 12825,
+            "ready": 12976,
+            "accept": 12980,
+            "shown_frames": 155,
             "reads": 9,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
-            "shots": 1257,
+            "shots": 1217,
             "hits": 368,
             "kills": 131,
-            "observer_shots": 1257,
+            "observer_shots": 1217,
             "observer_cancelled": 0,
             "observer_kills": 131,
-            "active_frames": 2277,
+            "active_frames": 1890,
             "score": "05710",
             "boss_bonus": 2000,
-            "percent": 29,
-            "time": "0:45",
+            "percent": 30,
+            "time": "0:37",
             "grade": "A",
             "best": "BEST             A 05710",
-            "music_ticks": 152,
-            "music_tick_frames": 152,
+            "music_ticks": 155,
+            "music_tick_frames": 155,
             "first_screen": [
               "05710",
               "131",
-              "29%",
-              "0:45",
+              "30%",
+              "0:37",
               "0",
               "02000",
               "A"
@@ -3945,7 +3945,7 @@
         "difficulty": 1,
         "policy": "sweep",
         "fire_delay": 0,
-        "measured_frames": 11304,
+        "measured_frames": 11760,
         "maximum_wall_cycles": 31074,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
@@ -3963,26 +3963,26 @@
             }
           ],
           "level_end_summary": {
-            "entry": 12293,
-            "display": 12295,
-            "ready": 12446,
-            "accept": 12452,
+            "entry": 12757,
+            "display": 12759,
+            "ready": 12910,
+            "accept": 12916,
             "shown_frames": 157,
             "reads": 9,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
-            "shots": 1154,
+            "shots": 1205,
             "hits": 339,
             "kills": 116,
-            "observer_shots": 1155,
+            "observer_shots": 1206,
             "observer_cancelled": 1,
             "observer_kills": 116,
-            "active_frames": 2281,
+            "active_frames": 2787,
             "score": "05195",
             "boss_bonus": 2000,
-            "percent": 29,
-            "time": "0:45",
+            "percent": 28,
+            "time": "0:55",
             "grade": "A",
             "best": "BEST             A 05195",
             "music_ticks": 157,
@@ -3990,8 +3990,8 @@
             "first_screen": [
               "05195",
               "116",
-              "29%",
-              "0:45",
+              "28%",
+              "0:55",
               "0",
               "02000",
               "A"
@@ -4006,7 +4006,7 @@
         "difficulty": 2,
         "policy": "sweep",
         "fire_delay": 0,
-        "measured_frames": 11596,
+        "measured_frames": 11610,
         "maximum_wall_cycles": 31240,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
@@ -4024,30 +4024,30 @@
             }
           ],
           "level_end_summary": {
-            "entry": 12601,
-            "display": 12603,
-            "ready": 12754,
-            "accept": 12756,
-            "shown_frames": 153,
+            "entry": 12623,
+            "display": 12625,
+            "ready": 12776,
+            "accept": 12780,
+            "shown_frames": 155,
             "reads": 9,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
-            "shots": 1221,
+            "shots": 1224,
             "hits": 350,
             "kills": 116,
-            "observer_shots": 1221,
+            "observer_shots": 1224,
             "observer_cancelled": 0,
             "observer_kills": 116,
-            "active_frames": 3508,
+            "active_frames": 3547,
             "score": "05020",
             "boss_bonus": 2000,
             "percent": 28,
             "time": "1:10",
             "grade": "B",
             "best": "BEST             B 05020",
-            "music_ticks": 153,
-            "music_tick_frames": 153,
+            "music_ticks": 155,
+            "music_tick_frames": 155,
             "first_screen": [
               "05020",
               "116",
@@ -4098,7 +4098,7 @@
         "difficulty": 2,
         "policy": "sweep",
         "fire_delay": 0,
-        "measured_frames": 11596,
+        "measured_frames": 11610,
         "maximum_wall_cycles": 31240,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
@@ -4116,30 +4116,30 @@
             }
           ],
           "level_end_summary": {
-            "entry": 12601,
-            "display": 12603,
-            "ready": 12754,
-            "accept": 12756,
-            "shown_frames": 153,
+            "entry": 12623,
+            "display": 12625,
+            "ready": 12776,
+            "accept": 12780,
+            "shown_frames": 155,
             "reads": 8,
             "writes": 1,
             "write_sector": 599,
             "write_protected": true,
-            "shots": 1221,
+            "shots": 1224,
             "hits": 350,
             "kills": 116,
-            "observer_shots": 1221,
+            "observer_shots": 1224,
             "observer_cancelled": 0,
             "observer_kills": 116,
-            "active_frames": 3508,
+            "active_frames": 3547,
             "score": "05020",
             "boss_bonus": 2000,
             "percent": 28,
             "time": "1:10",
             "grade": "B",
             "best": "BEST             B 05020",
-            "music_ticks": 153,
-            "music_tick_frames": 153,
+            "music_ticks": 155,
+            "music_tick_frames": 155,
             "first_screen": [
               "05020",
               "116",
@@ -5607,7 +5607,7 @@
     },
     "director_request": {
       "observed": true,
-      "matching_frames": 15964,
+      "matching_frames": 16179,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -5834,11 +5834,11 @@
       "session": "director-complete-2-natural-sweep-fire0",
       "boss_sector": 4,
       "boss_entry_frame": 7877,
-      "boss_entry_host_frames": 222,
+      "boss_entry_host_frames": 230,
       "boss_engaged_frame": 7878,
-      "boss_defeated_frame": 11435,
-      "boss_hold_frame": 11547,
-      "boss_terminal_through_frame": 11596,
+      "boss_defeated_frame": 11449,
+      "boss_hold_frame": 11561,
+      "boss_terminal_through_frame": 11610,
       "natural_difficulty_sessions": [
         {
           "session": "director-complete-0-natural-sweep-fire0",
@@ -5846,19 +5846,19 @@
           "boss_sector": 4,
           "boss_sector_entered_frame": 9517,
           "boss_entry_frame": 9734,
-          "boss_entry_host_frames": 222,
+          "boss_entry_host_frames": 230,
           "boss_engaged_frame": 9735,
-          "boss_defeated_frame": 12036,
-          "boss_hold_frame": 12148,
-          "boss_fight_frames": 2276,
+          "boss_defeated_frame": 11649,
+          "boss_hold_frame": 11761,
+          "boss_fight_frames": 1889,
           "boss_phases_monotonic": true,
           "boss_states_seen": [
             1,
             3,
             4
           ],
-          "boss_terminal_through_frame": 12197,
-          "last_measured_frame": 12197,
+          "boss_terminal_through_frame": 11810,
+          "last_measured_frame": 11810,
           "player_lives_held_at": 3,
           "deaths_survived": 3,
           "natural_broadside_first_frame": 954,
@@ -5872,21 +5872,21 @@
           "boss_sector": 4,
           "boss_sector_entered_frame": 8493,
           "boss_entry_frame": 8787,
-          "boss_entry_host_frames": 222,
+          "boss_entry_host_frames": 230,
           "boss_engaged_frame": 8788,
-          "boss_defeated_frame": 11143,
-          "boss_hold_frame": 11255,
-          "boss_fight_frames": 2280,
+          "boss_defeated_frame": 11599,
+          "boss_hold_frame": 11711,
+          "boss_fight_frames": 2786,
           "boss_phases_monotonic": true,
           "boss_states_seen": [
             1,
             3,
             4
           ],
-          "boss_terminal_through_frame": 11304,
-          "last_measured_frame": 11304,
+          "boss_terminal_through_frame": 11760,
+          "last_measured_frame": 11760,
           "player_lives_held_at": 3,
-          "deaths_survived": 9,
+          "deaths_survived": 7,
           "natural_broadside_first_frame": 808,
           "natural_broadside_last_frame": 1827,
           "natural_broadside_frames": 887,
@@ -5898,21 +5898,21 @@
           "boss_sector": 4,
           "boss_sector_entered_frame": 7755,
           "boss_entry_frame": 7877,
-          "boss_entry_host_frames": 222,
+          "boss_entry_host_frames": 230,
           "boss_engaged_frame": 7878,
-          "boss_defeated_frame": 11435,
-          "boss_hold_frame": 11547,
-          "boss_fight_frames": 3507,
+          "boss_defeated_frame": 11449,
+          "boss_hold_frame": 11561,
+          "boss_fight_frames": 3546,
           "boss_phases_monotonic": true,
           "boss_states_seen": [
             1,
             3,
             4
           ],
-          "boss_terminal_through_frame": 11596,
-          "last_measured_frame": 11596,
+          "boss_terminal_through_frame": 11610,
+          "last_measured_frame": 11610,
           "player_lives_held_at": 3,
-          "deaths_survived": 8,
+          "deaths_survived": 7,
           "natural_broadside_first_frame": 801,
           "natural_broadside_last_frame": 1692,
           "natural_broadside_frames": 884,
@@ -6479,7 +6479,7 @@
     },
     "fighter_explosion": {
       "observed": true,
-      "matching_frames": 19574,
+      "matching_frames": 19454,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -6699,7 +6699,7 @@
     },
     "music_with_sfx_preemption": {
       "observed": true,
-      "matching_frames": 72272,
+      "matching_frames": 72311,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -6808,7 +6808,7 @@
     },
     "debris_empty_path": {
       "observed": true,
-      "matching_frames": 51963,
+      "matching_frames": 52060,
       "heaviest": {
         "trace_kind": "debris-effects-coverage",
         "session": "debris-effects-2-sweep-fire4",
@@ -13590,7 +13590,7 @@
     },
     "accepted_shot_fire_sound": {
       "observed": true,
-      "accepted_shot_frames": 10110,
+      "accepted_shot_frames": 10128,
       "violations": 0
     }
   },

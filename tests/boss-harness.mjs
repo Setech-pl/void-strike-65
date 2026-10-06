@@ -295,8 +295,13 @@ export function installRegion(memory, region, { level = 1, difficulty = 1 } = {}
   memory.copyWithin(region.runs.charset.address, charset, charset + 7 * 8);
   memory[0xa603] = level;
   memory[label("main", "DIFFICULTY_SETTING")] = difficulty;
+  // M5b-S4b: the install's order around the controller - the laser tier
+  // before its init (the init reads it), the lasers' column after the map.
+  // Builds before S4b have neither routine.
+  if (labelsOf.boss.has("laser_tier")) call(memory, label("boss", "laser_tier"));
   call(memory, label("boss", "_boss_c_init"));
   call(memory, label("boss", "boss_prepare"));
+  if (labelsOf.boss.has("laser_prepare")) call(memory, label("boss", "laser_prepare"));
   return memory;
 }
 

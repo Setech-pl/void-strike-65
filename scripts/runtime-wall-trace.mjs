@@ -669,6 +669,17 @@ const laserFixtureSessions = [{
   frames: 3_000,
   kind: "baseline-9040",
   holdPlayerLives: 3,
+}, {
+  /* AUD-04 (owner addendum 2026-10-06): the stress cases' boss frames on the
+   * emulator. No fire (the player's slots are the pokes'); DFTRACE_POKES from
+   * the caller's environment places the case. Debug route only. */
+  id: "aud04-inject",
+  difficulty: 1,
+  policy: "laser-dodge",
+  fireDelay: 60_000,
+  frames: 900,
+  kind: "baseline-9040",
+  holdPlayerLives: 3,
 }];
 
 const lowerPlayfieldSessions = [{
@@ -1098,6 +1109,8 @@ for (const name of [
   // HPOS each showed, the laser's damage call entries, POKEY channel 3. Additive.
   "laser_states", "laser_hpos0", "laser_hpos1", "laser_hpos2", "laser_hpos3",
   "laser_damage_calls", "audf3", "audc3",
+  // AUD-04: the band position the boss DLI showed (debug sessions place pokes by it).
+  "boss_shown_pos",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -3571,6 +3584,7 @@ function main() {
       addressEnvironment.DFTRACE_LASER_STATE = hex(bossLabels, "boss_laser_state");
       addressEnvironment.DFTRACE_LASER_HPOS = hex(bossLabels, "boss_laser_hpos");
       addressEnvironment.DFTRACE_PC_LASER_DAMAGE = hex(bossLabels, "boss_laser_damage");
+      addressEnvironment.DFTRACE_BOSS_SHOWN_POS = hex(bossLabels, "boss_shown_pos");
     }
   }
 

@@ -588,30 +588,22 @@ PICKUP_BOOST_COLOUR = $1C
 PICKUP_BOOST_COLOUR = PICKUP_BOOST_COLOUR_OVERRIDE
 .endif
 FLASH_YELLOW_BRIGHT = $1E
-FLASH_YELLOW_MID = $1C
-FLASH_YELLOW_LOW = $1A
 FLASH_RED_BRIGHT = $3C
-FLASH_RED_MID = $38
-FLASH_RED_DARK = $34
-; Plasma FX decision 3: a Heavy kill's (and a boss module's) background flash
-; lasts 6 frames, the player's death flash already did. The enemy flash is the
-; player's side, so it follows COLPF2: yellow against red in the release build,
-; the candidate's hue against the allied blue in a cold one. The first branch
-; is the release build's (the preview parser reads the first definition).
+FLASH_BLUE_DARK = $82
+FLASH_BLUE_NIGHT = $80
+; Plasma FX (decision 3 and B1.1 item e): the background flash of a Heavy kill
+; (and of a boss module, which shares it) and of the player's death lasts 6
+; frames, stepped: two strong frames, a short dark-blue fade, then black. The
+; Heavy's strong frames are the player's side, so they follow COLPF2: yellow
+; then red in the release build, the candidate's hue twice in a cold one. The
+; first branch is the release build's (the preview parser reads the first
+; definition).
 .if PLAYER_SIDE_COLOUR = FLASH_YELLOW_BRIGHT
 ENEMY_FLASH_1 = FLASH_YELLOW_BRIGHT
 ENEMY_FLASH_2 = FLASH_RED_BRIGHT
-ENEMY_FLASH_3 = FLASH_YELLOW_MID
-ENEMY_FLASH_4 = FLASH_RED_MID
-ENEMY_FLASH_5 = FLASH_YELLOW_LOW
-ENEMY_FLASH_6 = FLASH_RED_DARK
 .else
 ENEMY_FLASH_1 = PLAYER_SIDE_COLOUR
-ENEMY_FLASH_2 = $8C
-ENEMY_FLASH_3 = PLAYER_SIDE_COLOUR-2
-ENEMY_FLASH_4 = $8A
-ENEMY_FLASH_5 = PLAYER_SIDE_COLOUR-4
-ENEMY_FLASH_6 = $84
+ENEMY_FLASH_2 = PLAYER_SIDE_COLOUR-2
 .endif
 ENEMY_FIGHTER_FLASH_FRAMES = 6
 PLAYER_DEATH_FLASH_FRAMES = 6
@@ -4840,6 +4832,14 @@ player_death_fire_colours:
     .assert *-player_death_fire_colours = SHARED_FIGHTER_EXPLOSION_FRAME_COUNT, error, "one fire colour a death phase"
     .assert PLAYER_DEATH_EXPLOSION_LINES = 2*SHARED_FIGHTER_EXPLOSION_HEIGHT, error, "each mask row is drawn twice"
 
+; Plasma FX B1.1 (docs/plans/plasma-fx.md §11): each break-up fragment's first
+; code (slots 1-4; slot 0 is the core's and is set after the spawn loops), one
+; on each of the four effect codes so no two fragments share a shape. Read by
+; spawn_breakup_effects_at and heavy_spawn_breakup; resident with BROADSIDE.
+effect_fragment_render_ids:
+    .byte 0, EFFECT_GROWTH_GLYPH_BASE, EFFECT_GROWTH_GLYPH_BASE+1
+    .byte EFFECT_FRAGMENT_GLYPH_BASE, EFFECT_FRAGMENT_GLYPH_BASE+1
+
     ; The former 70-byte builder slot, the erase and the renderer keep their
     ; 182 bytes: every later BROADSIDE address (the fixed $76A7 integration
     ; release target included) stays put.
@@ -7689,22 +7689,25 @@ loader_display_list_lzss:
     EMIT_LOADER_DISPLAY_LIST_LZSS
     ; Gameplay-only tables share the fixed unused charset-source tail. The
     ; source remains resident below PMG RAM after the loader completes.
+    ; Last frame first. A 0 (black) entry reaches the same black through
+    ; update_sound's restore paths, after damage_timer has been cleared.
 enemy_fighter_flash_colors:
-    .byte ENEMY_FLASH_6,ENEMY_FLASH_5,ENEMY_FLASH_4
-    .byte ENEMY_FLASH_3,ENEMY_FLASH_2,ENEMY_FLASH_1
+    .byte GAMEPLAY_BACKGROUND_COLOR,GAMEPLAY_BACKGROUND_COLOR,FLASH_BLUE_NIGHT
+    .byte FLASH_BLUE_DARK,ENEMY_FLASH_2,ENEMY_FLASH_1
 player_death_flash_colors:
-    .byte FLASH_RED_DARK,FLASH_RED_MID,FLASH_RED_BRIGHT
-    .byte FLASH_YELLOW_MID,FLASH_RED_BRIGHT,FLASH_YELLOW_BRIGHT
+    .byte GAMEPLAY_BACKGROUND_COLOR,GAMEPLAY_BACKGROUND_COLOR,FLASH_BLUE_NIGHT
+    .byte FLASH_BLUE_DARK,FLASH_RED_BRIGHT,FLASH_YELLOW_BRIGHT
 flash_color_tables_end:
     ; Plasma FX: update_transient_effects reads slots 1-4 only (the core never
     ; moves), so each table's slot-0 byte is the byte before it. That pays for
     ; the enemy flash's two new frames inside this fixed tail.
+    ; B1.1 item b: an asymmetric spread (HPOS and lines a frame, slots 1-4),
+    ; so the break-up no longer reads as a box around a point. The fastest
+    ; step is EFFECT_FRAGMENT_LOCAL_X/Y_SPEED.
 effect_fragment_vx = *-1
-    .byte <-EFFECT_FRAGMENT_LOCAL_X_SPEED,EFFECT_FRAGMENT_LOCAL_X_SPEED
-    .byte <-EFFECT_FRAGMENT_LOCAL_X_SPEED,EFFECT_FRAGMENT_LOCAL_X_SPEED
+    .byte <-1,EFFECT_FRAGMENT_LOCAL_X_SPEED,<-EFFECT_FRAGMENT_LOCAL_X_SPEED,1
 effect_fragment_vy = *-1
-    .byte <-EFFECT_FRAGMENT_LOCAL_Y_SPEED,<-EFFECT_FRAGMENT_LOCAL_Y_SPEED
-    .byte EFFECT_FRAGMENT_LOCAL_Y_SPEED,EFFECT_FRAGMENT_LOCAL_Y_SPEED
+    .byte <-1,<-1,1,EFFECT_FRAGMENT_LOCAL_Y_SPEED
     ; All but one byte of the fixed cells 0-58 are occupied above. Keep the
     ; final source pad literal so the source-asset preview parser can reproduce
     ; the canonical charset; the following size assertion remains authoritative.
@@ -8411,7 +8414,10 @@ update_broadside:
     lda #BROADSIDE_IMPACT_FRAMES
     sta BROAD_TIMER,x
     rts
-    .res 3,$00                  ; preserve reviewed BROADSIDE entry addresses
+    ; Two of these three bytes pay for the bounded hull-edge scan in
+    ; broadside_hits_opposite_hull below (plasma FX, docs/plans/plasma-fx.md
+    ; §11), so every BROADSIDE address after that routine stays put.
+    .res 1,$00                  ; preserve reviewed BROADSIDE entry addresses
 @world_targets:
     jsr capital_shell_collision_flags
     lda BROAD_COLLISION,x
@@ -9498,12 +9504,18 @@ broadside_hits_opposite_hull:
     lda BROAD_OWNER,x
     bne @target_allied
     ldy #31
+    ; The hull edge is the first HULL glyph on the row: codes 59-89 (D7 is the
+    ; bank). The scan used to take any code >= 59, so a break-up effect, a
+    ; debris, a Light or a hostile shot on the row before the hull stood in for
+    ; its edge (plasma FX, docs/plans/plasma-fx.md §11). ASL drops D7 and
+    ; doubles the bounds; one byte longer than AND/CMP/BCC/BCS.
 @enemy_edge:
     lda (src_ptr),y
-    and #$7F
-    cmp #CAPITAL_HULL_GLYPH_BASE
+    asl
+    cmp #(CAPITAL_HULL_GLYPH_BASE*2)
     bcc @enemy_next
-    bcs @enemy_found
+    cmp #((CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT)*2)
+    bcc @enemy_found
 @enemy_next:
     iny
     cpy #40
@@ -9527,10 +9539,11 @@ broadside_hits_opposite_hull:
     ldy #$08
 @allied_edge:
     lda (src_ptr),y
-    and #$7F
-    cmp #CAPITAL_HULL_GLYPH_BASE
+    asl
+    cmp #(CAPITAL_HULL_GLYPH_BASE*2)
     bcc @allied_next
-    bcs @allied_found
+    cmp #((CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT)*2)
+    bcc @allied_found
 @allied_next:
     dey
     bpl @allied_edge
@@ -10802,7 +10815,7 @@ spawn_breakup_effects_at:
     clc
     adc #$04
     sta EFFECT_Y,x
-    lda #EFFECT_FRAGMENT_GLYPH_BASE
+    lda effect_fragment_render_ids,x
     sta EFFECT_RENDER_ID,x
     dex
     bpl @fragment
@@ -11276,16 +11289,20 @@ render_transient_effect_overlays:
     bcs @slot
     inx                         ; the core expired; slots 1/2 remain
 @slot:
-    ; Plasma FX (docs/plans/plasma-fx.md): the look first, from one stage list
-    ; per pool role read by the slot's own TTL. The core grows - dot, small
-    ; burst, full burst - then burns out as the full burst and its ring; the
-    ; fragments show from frame 5 - out of the core's cell by then, which they
-    ; start in - and shimmer between the dot and the small burst (their 25 Hz
-    ; render-id toggle is the code's bit 0). A stage code carries its bank bit;
-    ; 0 leaves the cell undrawn and costs no address or backing work.
+    ; Plasma FX (docs/plans/plasma-fx.md §10-11): the look first, from one
+    ; stage list per pool role read by the slot's own TTL. The core grows from
+    ; sparks to its white-centred burst, then burns out as a torn shell. The
+    ; fragments wait while the core is young (they start in its cell), show
+    ; their own shapes - each starts on a different one of the four codes and
+    ; the 25 Hz render-id toggle keeps them apart - then break into sparks. A
+    ; stage is (TTL floor, render-id mask, code with its bank bit); a look
+    ; below 2 leaves the cell undrawn and costs no address or backing work.
     ldy #(effect_core_stage_ttl-effect_stage_ttl)
     txa
     beq @stage
+    lda EFFECT_TIMER            ; the core's: while it grows, no fragment shows
+    cmp #(EFFECT_CORE_TTL0-4)
+    bcs @outside_y
     ldy #(effect_fragment_stage_ttl-effect_stage_ttl)
 @stage:
     lda EFFECT_TIMER,x
@@ -11295,7 +11312,7 @@ render_transient_effect_overlays:
     bne @stage
 @look:
     lda EFFECT_RENDER_ID,x
-    and #$01
+    and effect_stage_mask,y
     ora effect_stage_code,y
     cmp #$02
     bcc @outside_y
@@ -11372,30 +11389,27 @@ render_transient_effect_overlays:
 ; reaches). The core's slot-zero render id is a debris left-cell code or the
 ; bank base, both even, so its stages are never shifted by the toggle bit.
 EFFECT_CORE_TTL0 = EFFECT_DEBRIS_CORE_TIMER_LOAD-1
-EFFECT_FRAGMENT_TTL0 = EFFECT_DEBRIS_FRAGMENT_TIMER_LOAD-1
-; Decision 6's fallback puts the core out at frame 24: its burn-out (full burst
-; in the late bank, then the ring) is compressed into that life.
-.if EFFECT_DEBRIS_CORE_FRAMES = EFFECT_DEBRIS_FRAGMENT_FRAMES
-EFFECT_CORE_LATE_AGE = 12
-EFFECT_CORE_RING_AGE = 20
-EFFECT_CORE_EMBER_AGE = 30
-.else
-EFFECT_CORE_LATE_AGE = 12
-EFFECT_CORE_RING_AGE = 18
-EFFECT_CORE_EMBER_AGE = EFFECT_DEBRIS_CORE_FRAMES
-.endif
+; The codes: 108 sparks, 109 a streak, 118 the white-centred burst, 119 the
+; torn shell (assets/graphics/entity-effects.json). The core (24 frames):
+; sparks for 2, the burst for 10, the torn shell for 12, then out. The
+; fragments, by the TTL they have left (30 or 45 by class, so both burn out
+; alike): their own shape while 12 or more remain, then the streak and the
+; sparks in the late bank, then sparks alone for the last 6.
+.assert EFFECT_DEBRIS_CORE_FRAMES = 24, error, "the core's stages are drawn for a 24-frame core"
 effect_stage_ttl:
 effect_core_stage_ttl:
-    .byte EFFECT_CORE_TTL0-1, EFFECT_CORE_TTL0-4, EFFECT_CORE_TTL0-(EFFECT_CORE_LATE_AGE-1)
-    .byte EFFECT_CORE_TTL0-(EFFECT_CORE_RING_AGE-1), <(EFFECT_CORE_TTL0-(EFFECT_CORE_EMBER_AGE-1)), 0
+    .byte EFFECT_CORE_TTL0-1, EFFECT_CORE_TTL0-11, 0
 effect_fragment_stage_ttl:
-    .byte EFFECT_FRAGMENT_TTL0-4, EFFECT_FRAGMENT_TTL0-14, 0
+    .byte 12, 6, 0
+effect_stage_mask:
+    .byte 0, 0, 0
+    .byte $FF, $01, 0
 effect_stage_code:
-    .byte EFFECT_GROWTH_GLYPH_BASE, EFFECT_GROWTH_GLYPH_BASE+1, EFFECT_FRAGMENT_GLYPH_BASE
-    .byte EFFECT_FRAGMENT_GLYPH_BASE|EFFECT_LATE_BANK
+    .byte EFFECT_GROWTH_GLYPH_BASE, EFFECT_FRAGMENT_GLYPH_BASE
     .byte (EFFECT_FRAGMENT_GLYPH_BASE+1)|EFFECT_LATE_BANK
-    .byte EFFECT_GROWTH_GLYPH_BASE|EFFECT_LATE_BANK
-    .byte 0, EFFECT_GROWTH_GLYPH_BASE, EFFECT_GROWTH_GLYPH_BASE|EFFECT_LATE_BANK
+    .byte 0, EFFECT_GROWTH_GLYPH_BASE|EFFECT_LATE_BANK, EFFECT_GROWTH_GLYPH_BASE|EFFECT_LATE_BANK
+; effect_fragment_render_ids, each fragment's first code, lives in the
+; BROADSIDE block beside player_death_fire_colours (MAIN is full).
 
 .segment "ENTITY_CODE"
 
@@ -12095,9 +12109,9 @@ heavy_spawn_breakup:
     sta EFFECT_TYPE,x
     lsr
     sta EFFECT_STATE,x
-    lda #EFFECT_DEBRIS_FRAGMENT_TIMER_LOAD
+    lda #EFFECT_HEAVY_FRAGMENT_TIMER_LOAD   ; B1.1 item d: a Heavy's lives 45
     sta EFFECT_TIMER,x
-    lda #EFFECT_FRAGMENT_GLYPH_BASE
+    lda effect_fragment_render_ids,x
     sta EFFECT_RENDER_ID,x
     lda FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
     clc

@@ -2136,8 +2136,12 @@ test("opposite-hull impacts use source row geometry, ignore stars, and saturate 
   hitOppositeHull(state, allied, asset);
   hitOppositeHull(state, allied, asset);
   assert.equal(state.enemyHullHits, 255);
+  // RE-POINTED 2026-10-05, plasma FX §11 (owner answer to the B1 stop, option
+  // 1): the edge is the first HULL glyph, 59-89 with D7 dropped by ASL (was:
+  // AND #$7F and any code >= 59, so a break-up, debris, Light or hostile shot
+  // on the row stood in for the hull). tests/broadside-hull-edge.test.mjs runs it.
   assert.match(routine("broadside_hits_opposite_hull", "free_broadside_slot"),
-    /and #\$7F[\s\S]+cmp #CAPITAL_HULL_GLYPH_BASE/);
+    /asl\s+cmp #\(CAPITAL_HULL_GLYPH_BASE\*2\)\s+bcc @enemy_next\s+cmp #\(\(CAPITAL_HULL_GLYPH_BASE\+CAPITAL_HULL_GLYPH_COUNT\)\*2\)\s+bcc @enemy_found/);
   assert.ok(asset.definition.charsetBaseIndex > 14, "star glyphs remain below hull glyph range");
 });
 

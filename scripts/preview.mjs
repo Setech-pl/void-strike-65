@@ -2118,17 +2118,15 @@ export function readExplosionFlashRuntimeState(
     constants,
     "flash_color_tables_end",
   );
-  // Plasma FX decision 3 (docs/plans/plasma-fx.md): the Heavy kill's flash
-  // lasts 6 frames, the player's death flash already did.
+  // Plasma FX decision 3 (docs/plans/plasma-fx.md): both flashes last 6 frames.
   requireLength("enemy fighter flash table", enemyStored, 6);
   requireLength("player death flash table", playerStored, 6);
+  // Plasma FX B1.1 item e: two strong frames, a dark-blue fade, then black.
   const colorNames = [
     "FLASH_YELLOW_BRIGHT",
-    "FLASH_YELLOW_MID",
-    "FLASH_YELLOW_LOW",
     "FLASH_RED_BRIGHT",
-    "FLASH_RED_MID",
-    "FLASH_RED_DARK",
+    "FLASH_BLUE_DARK",
+    "FLASH_BLUE_NIGHT",
   ];
   const colors = Object.fromEntries(colorNames.map((name) => [name, requireValue(constants, name)]));
   const baseColor = requireValue(constants, "GAMEPLAY_BACKGROUND_COLOR");
@@ -3949,7 +3947,7 @@ export function createDebrisReviewPreview(
 export function createDestructibleDebrisTrace(
   _definition = loadEntityEffectsDefinition(DEFAULT_ENTITY_EFFECTS_DEFINITION_PATH),
 ) {
-  // Plasma FX (docs/plans/plasma-fx.md): the break-up lives 45 frames.
+  // Plasma FX (docs/plans/plasma-fx.md): room for any class's break-up.
   return debrisDestructionTraceCsv(executeDebrisDestructionTrace({ artifact: "atr", finalFrames: 48 }));
 }
 
@@ -3994,12 +3992,12 @@ export function createDestructibleDebrisPreview(
   const selected = [
     ["PRE_HIT", 0, "1 DEBRIS"],
     ["FINAL", 0, "2 FINAL HIT"],
-    ["FINAL", 3, "3 GROWING CORE"],
-    ["FINAL", 6, "4 BURST"],
-    ["FINAL", 12, "5 EARLY SPREAD"],
-    ["FINAL", 22, "6 RED CORE"],
-    ["FINAL", 40, "7 EMBERS"],
-    ["FINAL", 46, "8 CLEAN"],
+    ["FINAL", 3, "3 WHITE CORE"],
+    ["FINAL", 6, "4 FOUR SHAPES"],
+    ["FINAL", 12, "5 SPREAD"],
+    ["FINAL", 20, "6 TORN SHELL"],
+    ["FINAL", 27, "7 SPARKS"],
+    ["FINAL", 31, "8 CLEAN"],
   ].map(([phase, frame, label]) => ({
     label,
     record: trace.records.find((candidate) => candidate.phase === phase && candidate.frame === frame),

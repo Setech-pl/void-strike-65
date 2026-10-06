@@ -288,12 +288,13 @@ test("destructible debris owner preview is an ATR-executed eight-frame breakup",
   const trace = createDestructibleDebrisTrace(entityEffectsDefinition);
   assert.equal(trace, createDestructibleDebrisTrace(entityEffectsDefinition));
   const rows = trace.trimEnd().split("\n");
-  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md, decisions 3 and
-  // 6): the break-up lives 45 frames and its core 24, so the trace runs 48
-  // frames (207 FINAL rows, was 127 over 32) and the clean frame is 46 (was 31).
-  assert.equal(rows.filter((row) => row.startsWith("atr,FINAL,")).length, 207);
+  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md, decision 6 and
+  // B1.1): the core lives 24 frames (was 5) and the trace runs 48 frames, room
+  // for a Heavy's 45; a debris's break-up still ends at frame 30, so the clean
+  // frame is 31 as before. 162 FINAL rows (was 127 over 32).
+  assert.equal(rows.filter((row) => row.startsWith("atr,FINAL,")).length, 162);
   assert.ok(rows.some((row) => row.startsWith("atr,FINAL,0,0,0,0,0,0,$1F,5,")));
-  assert.ok(rows.some((row) => row.startsWith("atr,FINAL,46,0,0,0,0,0,$00,0,")));
+  assert.ok(rows.some((row) => row.startsWith("atr,FINAL,31,0,0,0,0,0,$00,0,")));
   // REWRITTEN 2026-10-01 (recorded failures review, B7; owner-approved): every row had to end
   // ",0742" ("runtime preview trace changed score"). A debris destroyed by a
   // shot scores since 2026-09-18, and DEBRIS_SCORE is $25 (STATUS "Debris

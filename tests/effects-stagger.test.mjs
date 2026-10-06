@@ -11,8 +11,8 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 
-// Plasma FX (docs/plans/plasma-fx.md, owner decision 3): a break-up lives 45
-// frames, so the trace runs 48 to see it expire.
+// Plasma FX (docs/plans/plasma-fx.md): the trace runs 48 frames, room for any
+// class's break-up (a debris's lives 30 since B1.1, a Heavy's 45).
 function finalFrames(artifact) {
   return executeDebrisDestructionTrace({ root, artifact, finalFrames: 48 }).records
     .filter((record) => record.phase === "FINAL");
@@ -52,14 +52,15 @@ test("spawn reaches every visual slot within one PAL frame and preserves five sl
   }
 });
 
-// RE-POINTED 2026-10-05, plasma FX decision 3: the expiry frame is 45, was 30.
+// A debris's break-up expires on frame 30: B1 had moved it to 45, B1.1 item d
+// (a Light's or a debris's lives 30) puts it back.
 test("staggered expiry clears both parity groups without stale backing or ghosts", () => {
   const frames = finalFrames("atr");
-  assert.equal(frames[45].effectActiveCount, 0);
-  assert.notEqual(frames[45].effectRenderedMask, 0,
+  assert.equal(frames[30].effectActiveCount, 0);
+  assert.notEqual(frames[30].effectRenderedMask, 0,
     "the opposite parity may remain visible for its one accepted latency frame");
-  assert.equal(frames[46].effectRenderedMask, 0);
-  assert.equal(frames[46].screen.every((value) => value === 0), true);
+  assert.equal(frames[31].effectRenderedMask, 0);
+  assert.equal(frames[31].screen.every((value) => value === 0), true);
 });
 
 test("PairShot and generic-effect backing resolvers stay below the local fix ceiling", () => {
@@ -75,12 +76,13 @@ test("PairShot and generic-effect backing resolvers stay below the local fix cei
   // §8.3): 1,071 -> 1,068. light_cell_resolve's below-range exit now returns
   // in place instead of branching to a far rts - one cycle less per captured
   // cell, three captures on the peak frame. Delta over the baseline 246.
-  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): 1,068 -> 928
-  // over the whole 45-frame life. The renderer now decides a cell's look
-  // first and skips the three backing resolvers when the cell it covers is
-  // blank (code 0, which none of them can resolve to anything else); the
-  // delta over the baseline is 106. The gate below is unchanged.
-  assert.equal(peak, 928);
-  assert.equal(peak - 822, 106);
+  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): 1,068 -> 890
+  // over the whole life. The renderer now decides a cell's look first and
+  // skips the three backing resolvers when the cell it covers is blank (code
+  // 0, which none of them can resolve to anything else); B1.1's asymmetric
+  // spread separates the cells sooner. The delta over the baseline is 68. The
+  // gate below is unchanged.
+  assert.equal(peak, 890);
+  assert.equal(peak - 822, 68);
   assert.ok(peak - 822 < 300);
 });

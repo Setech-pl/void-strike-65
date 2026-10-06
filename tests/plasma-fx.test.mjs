@@ -1,6 +1,6 @@
-// docs/plans/plasma-fx.md, Phase B1 (owner answers of 2026-10-05): the
-// break-up lasts 45 frames and grows from one cell, its core alive for the
-// first 24 (decision 6's fallback); the background flash of a Heavy kill (and of a boss module) lasts 6
+// docs/plans/plasma-fx.md, Phase B1 and B1.1 (owner answers of 2026-10-05):
+// the break-up grows from one cell and lives 30 frames for a Light or a debris,
+// 45 for a Heavy, its core 24 (decision 6's fallback); the background flash of a Heavy kill (and of a boss module) lasts 6
 // frames; the player's death stays 24 frames - its respawn frame unchanged -
 // but is drawn 16 lines tall with the fire cycle on COLPM3; the glyph codes the
 // growth uses were displayed by nothing before. Every runtime fact here is read
@@ -25,7 +25,6 @@ const include = (name) => new Map(fs.readFileSync(path.join(root, "build", name)
     ? Number.parseInt(value.slice(1), 16) : Number.parseInt(value, 10)]));
 const weapons = include("fighter-weapons.inc");
 
-const BREAKUP_FRAMES = 45;
 const FLASH_FRAMES = 6;
 const DEATH_FRAMES = 24;
 const DEATH_LINES = 16;
@@ -37,32 +36,53 @@ function finalFrames(frames) {
     .filter((record) => record.phase === "FINAL");
 }
 
-// RE-POINTED by decision 6 (owner answers of 2026-10-05): written for a core
-// alive on all 45 frames, it went RED on the measured fallback trigger - the
-// worst diagnostic fence row 763 with that core, under 1,000 (plan §B1.3) - so
-// the core lives 24 frames and the four fragments carry the rest. Both lives
-// are asserted frame by frame, and so is the expiry.
+// B1.1 (owner answers to the B1 stop, 2026-10-05, item d): a Light's or a
+// debris's break-up lives 30 frames, a Heavy's 45 (the medium size of decision
+// 6's fallback); the core 24 frames for both and out before the fragments.
+// Was (B1): 45 frames for every class, the core 24.
 const CORE_FRAMES = 24;
-test("a break-up lasts 45 frames; under decision 6's fallback its core lives the first 24", () => {
-  const frames = finalFrames(BREAKUP_FRAMES + 3);
-  for (let f = 0; f < BREAKUP_FRAMES; f += 1) {
+const LIGHT_FRAMES = 30;
+const HEAVY_FRAMES = 45;
+test("a Light or debris break-up lasts 30 frames, its core the first 24", () => {
+  const frames = finalFrames(LIGHT_FRAMES + 3);
+  for (let f = 0; f < LIGHT_FRAMES; f += 1) {
     const core = f < CORE_FRAMES;
     assert.equal(frames[f].effectActiveMask, core ? 0x1f : 0x1e, `frame ${f}: the pool's cells`);
     assert.equal(frames[f].effectActiveCount, core ? 5 : 4, `frame ${f}: the count`);
   }
-  assert.equal(frames[BREAKUP_FRAMES].effectActiveMask, 0, "expired on frame 45");
-  assert.equal(frames[BREAKUP_FRAMES].effectActiveCount, 0);
-  // Expiry leaves no stale cell once both stagger groups have unwound.
-  assert.equal(frames[BREAKUP_FRAMES + 1].effectRenderedMask, 0);
-  assert.equal(frames[BREAKUP_FRAMES + 1].screen.every((value) => value === 0), true);
+  assert.equal(frames[LIGHT_FRAMES].effectActiveMask, 0, "expired on frame 30");
+  assert.equal(frames[LIGHT_FRAMES].effectActiveCount, 0);
+  assert.equal(frames[LIGHT_FRAMES + 1].effectRenderedMask, 0);
+  assert.equal(frames[LIGHT_FRAMES + 1].screen.every((value) => value === 0), true);
 });
 
-test("the break-up grows: one cell first, the fragments only from frame 5, as the core bursts", () => {
-  const frames = finalFrames(BREAKUP_FRAMES + 1);
-  const drawnFragments = (record) => record.effects
-    .filter((effect) => effect.slot > 0 && effect.drawn !== 0).length;
-  for (let f = 0; f < 5; f += 1) assert.equal(drawnFragments(frames[f]), 0, `frame ${f}`);
-  assert.ok(frames.slice(5, 8).some((record) => drawnFragments(record) > 0));
+test("a Heavy break-up lasts 45 frames, its core the first 24", () => {
+  const h = nativeRoutineHarness({ root });
+  const m = h.memory;
+  m[h.label("ENEMY_ARCHETYPE")] = 0;
+  m[h.label("FIGHTER_EXPLOSION_X") + 1] = 120;
+  m[h.label("FIGHTER_EXPLOSION_Y") + 1] = 100;
+  h.run("heavy_spawn_breakup");
+  const timers = h.label("EFFECT_TIMER");
+  assert.deepEqual([...m.subarray(timers, timers + 5)],
+    [CORE_FRAMES + 1, HEAVY_FRAMES + 1, HEAVY_FRAMES + 1, HEAVY_FRAMES + 1, HEAVY_FRAMES + 1]);
+  const mask = h.label("EFFECT_ACTIVE_MASK");
+  const lives = [];
+  for (let f = 0; f < HEAVY_FRAMES + 2; f += 1) {
+    h.run("update_transient_effects");
+    lives.push(m[mask]);
+  }
+  const live = (value) => lives.filter((entry) => entry === value).length;
+  assert.equal(live(0x1f), CORE_FRAMES, "the core and four fragments");
+  assert.equal(live(0x1e), HEAVY_FRAMES - CORE_FRAMES, "the four fragments after the core");
+  assert.equal(lives.indexOf(0), HEAVY_FRAMES, "expired on frame 45");
+});
+
+test("the break-up grows from one cell: sparks, the white-centred burst, a torn shell; four fragment shapes that end as sparks", () => {
+  const frames = finalFrames(LIGHT_FRAMES + 1);
+  const drawn = (record) => record.effects.filter((effect) => effect.slot > 0 && effect.drawn !== 0);
+  for (let f = 0; f < 5; f += 1) assert.equal(drawn(frames[f]).length, 0, `frame ${f}: the core grows alone`);
+  assert.ok(frames.slice(5, 8).some((record) => drawn(record).length > 0));
   // The core's own cell, frame by frame, as its parity group publishes it.
   const core = frames.map((record) => record.effects.find((effect) => effect.slot === 0))
     .map((effect) => (effect?.drawn ? effect.screenCode : null));
@@ -70,22 +90,27 @@ test("the break-up grows: one cell first, the fragments only from frame 5, as th
   for (const code of core) {
     if (code !== null && !firstSeen.includes(code & 0x7f)) firstSeen.push(code & 0x7f);
   }
-  // dot, small burst, full burst, then the ring it burns out as.
-  assert.deepEqual(firstSeen.slice(0, 4), [108, 109, 118, 119]);
-  // The default build (COLPF2 $1E) burns out in the hostile red bank.
+  // sparks (108), the white-centred burst (118), the torn shell (119).
+  assert.deepEqual(firstSeen, [108, 118, 119]);
+  // The default build (COLPF2 $1E) burns the torn shell out in the red bank.
   // (one frame of slack: the core publishes on every second frame)
-  assert.ok(core.slice(14, CORE_FRAMES).every((code) => code === null || (code & 0x80) !== 0));
-  assert.ok(core.slice(0, 5).every((code) => code === null || (code & 0x80) === 0));
-  const fragments = frames.slice(30, BREAKUP_FRAMES).flatMap((record) => record.effects)
-    .filter((effect) => effect.slot > 0 && effect.drawn !== 0).map((effect) => effect.screenCode);
-  assert.ok(fragments.length > 0 && fragments.every((code) => (code & 0x80) !== 0 &&
-    (code & 0x7f) >= 108 && (code & 0x7f) <= 109), "the embers: the dot and the small burst, red");
+  assert.ok(core.slice(14, CORE_FRAMES).every((code) => code === null || code === (119 | 0x80)));
+  assert.ok(core.slice(0, 13).every((code) => code === null || (code & 0x80) === 0));
+  // The four fragments, once shown, wear four different codes.
+  const shown = frames[6].effects.filter((effect) => effect.slot > 0).map((effect) => effect.screenCode);
+  assert.equal(new Set(shown).size, 4, `frame 6 codes ${shown}`);
+  // Their last 6 frames are sparks alone, in the red bank.
+  // (one frame of slack again: the other parity still shows its last look)
+  const sparks = frames.slice(LIGHT_FRAMES - 4, LIGHT_FRAMES).flatMap((record) => drawn(record))
+    .map((effect) => effect.screenCode);
+  assert.ok(sparks.length > 0 && sparks.every((code) => code === (108 | 0x80)), "the last frames are sparks");
 });
 
-test("the background flash of a Heavy kill lasts 6 frames, the player's death flash 6", () => {
+test("the background flash of a Heavy kill and of the player's death: 6 frames, two strong, a dark-blue fade, black", () => {
+  // B1.1 item e. Was (B1): $1E $3C $1C $38 $1A $34 (Heavy), $1E $3C $1C $3C $38 $34 (death).
   for (const [slot, expected] of [
-    [1, [0x1e, 0x3c, 0x1c, 0x38, 0x1a, 0x34]],
-    [0, [0x1e, 0x3c, 0x1c, 0x3c, 0x38, 0x34]],
+    [1, [0x1e, 0x3c, 0x82, 0x80, 0x00, 0x00]],
+    [0, [0x1e, 0x3c, 0x82, 0x80, 0x00, 0x00]],
   ]) {
     const h = nativeRoutineHarness({ root });
     const timers = h.label("FIGHTER_EXPLOSION_TIMER");
@@ -93,6 +118,7 @@ test("the background flash of a Heavy kill lasts 6 frames, the player's death fl
     h.memory[timers + 1] = 0;
     const timer = timers + slot;
     h.memory[timer] = DEATH_FRAMES;
+    h.memory[h.label("damage_timer")] = 0;
     const colbk = [];
     for (let f = 0; f < FLASH_FRAMES + 2; f += 1) {
       h.run("update_sound");

@@ -62,7 +62,9 @@ test("the stage-2 CRC bit loop is guarded against a page crossing", () => {
 test("the blanking costs 9 bytes of the initial block and no sector", () => {
   assert.equal(labels.get("__BOOT_STAGE2_SIZE__"), MAIN_BOOT_STAGE2_BYTES + BLANKING_BYTES);
   const content = manifest.transportCapacity.initialBootContentBytes;
-  assert.equal(content, MAIN_INITIAL_CONTENT_BYTES + BLANKING_BYTES);
+  // RE-POINTED 2026-10-05: plasma FX B1.1 (docs/plans/plasma-fx.md §11, owner answers of 2026-10-05) spent 10 B of the initial block - the break-up's stage masks and per-fragment codes and the check that holds the fragments while the core grows - inside the 13,652-B STOP rule; the blanking's own 9 B are unchanged.
+  const PLASMA_FX_BYTES = 10;
+  assert.equal(content, MAIN_INITIAL_CONTENT_BYTES + BLANKING_BYTES + PLASMA_FX_BYTES);
   assert.ok(content <= INITIAL_BLOCK_STOP_BYTES);
   assert.equal(manifest.transportCapacity.initialBootSectors, 107);
   assert.equal(labels.get("start"), 0x201e);

@@ -240,7 +240,8 @@ test("the stat hooks are operand-only in every full segment", () => {
   // None of it moved a byte: the kernel and the full segments keep their sizes.
   assert.equal(manifest.lightKernel.bytes, 771, "the Light kernel grew");
   assert.equal(manifest.broadsideRuntime.bytes, 6653, "BROADSIDE grew");
-  assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13621,
+  // RE-PINNED 2026-10-05, 13,621 -> 13,631: plasma FX B1.1 (docs/plans/plasma-fx.md §11, owner answers of 2026-10-05) spent 10 B of the initial block - the break-up's stage masks and per-fragment codes and the check that holds the fragments while the core grows - inside the 13,652-B STOP rule; the stat hooks add none.
+  assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13631,
     "a byte landed in the initial block (target 0 for this session)");
 });
 
@@ -319,5 +320,6 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; t
   // RE-PINNED 2026-10-04 (M5b-S3): 1,444 -> 1,316, the boss entry's resident
   // half (tests/basic-window-capacity.test.mjs has the breakdown).
   assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1316, "the window moved");
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13621, "the initial block moved");
+  // RE-PINNED 2026-10-05, 13,621 -> 13,631: plasma FX B1.1 (docs/plans/plasma-fx.md §11, owner answers of 2026-10-05) spent 10 B of the initial block - the break-up's stage masks and per-fragment codes and the check that holds the fragments while the core grows - inside the 13,652-B STOP rule.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13631, "the initial block moved");
 });

@@ -55,7 +55,9 @@ test("the initial block returns the entry's 14 bytes", () => {
     MAIN_BOOT_STAGE2_BYTES - RECLAIMED_BYTES + BLANKING_BYTES,
     `BOOT_STAGE2 is ${labels.get("__BOOT_STAGE2_SIZE__")} B`);
   const content = manifest.transportCapacity.initialBootContentBytes;
-  assert.ok(content <= MAIN_INITIAL_CONTENT_BYTES - RECLAIMED_BYTES + BLANKING_BYTES,
+  // RE-POINTED 2026-10-05: plasma FX B1.1 (docs/plans/plasma-fx.md §11, owner answers of 2026-10-05) spent 10 B of the initial block - the break-up's stage masks and per-fragment codes and the check that holds the fragments while the core grows - inside the 13,652-B STOP rule; the entry's 14 B are still returned.
+  const PLASMA_FX_BYTES = 10;
+  assert.ok(content <= MAIN_INITIAL_CONTENT_BYTES - RECLAIMED_BYTES + BLANKING_BYTES + PLASMA_FX_BYTES,
     `initial block content is ${content} B`);
   // The transport STOP rule (no new boot sector) holds with room to spare.
   assert.equal(manifest.transportCapacity.initialBootSectors, 107);

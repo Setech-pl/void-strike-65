@@ -64,19 +64,20 @@
   },
   "debrisDestruction": {
     "hitFlashFrames": 2,
-    "_growth": "docs/plans/plasma-fx.md (owner answers 2026-10-05): the break-up grows and lives 45 frames; its core lives 24 (decision 6's fallback: the measured worst fence margin fell below 1,000 with a 45-frame core). growthPhases are glyphs 108-109 (a dot, a small burst), fragmentPhases glyphs 118-119 (the full burst, its ring). Selector 1 is white COLPF0, selector 3 the switchable COLPF2 / COLPF3 bank. The core walks dot, small, full, ring, dot; the fragments appear on frame 3 and shimmer between the dot and the small burst.",
+    "_growth": "docs/plans/plasma-fx.md (owner answers 2026-10-05, B1.1): the break-up grows from one cell. Four effect codes, the four the resolvers' contiguous range 108-119 leaves free beside the debris bank: growthPhases are 108 (scattered sparks, one white) and 109 (an elongated streak), fragmentPhases 118 (the core burst, a clear white centre) and 119 (a torn, irregular shell). Selector 1 is white COLPF0, selector 3 the switchable COLPF2 / COLPF3 bank. The core: sparks, the white-centred burst, the torn shell, out at frame 24 (decision 6's fallback). The four fragments start one on each code, so no two share a shape, and spread asymmetrically; they burn out as sparks. Light and debris fragments live 30 frames, a Heavy's 45 (B1.1 item d).",
     "coreFrames": 24,
-    "fragmentFrames": 45,
+    "fragmentFrames": 30,
+    "heavyFragmentFrames": 45,
     "fragmentCount": 4,
-    "fragmentLocalXSpeedHpos": 1,
-    "fragmentLocalYSpeedScanlines": 1,
+    "fragmentLocalXSpeedHpos": 2,
+    "fragmentLocalYSpeedScanlines": 2,
     "fragmentPhases": [
-      [60, 255, 215, 213, 87, 215, 255, 60],
-      [60, 195, 195, 195, 195, 195, 195, 60]
+      [48, 255, 215, 213, 87, 215, 63, 12],
+      [48, 195, 3, 192, 3, 192, 51, 0]
     ],
     "growthPhases": [
-      [0, 0, 0, 60, 60, 0, 0, 0],
-      [0, 0, 60, 215, 215, 60, 0, 0]
+      [0, 48, 0, 4, 16, 0, 3, 0],
+      [3, 13, 12, 52, 48, 208, 192, 0]
     ]
   },
   "weaponPickupRapidFire": {

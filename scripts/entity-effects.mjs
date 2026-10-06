@@ -174,12 +174,16 @@ export function loadEntityEffectsDefinition(sourcePath) {
   const destruction = definition.debrisDestruction;
   invariant(destruction?.hitFlashFrames === 2,
     "Debris hit flash must last exactly two PAL frames");
-  // docs/plans/plasma-fx.md: the break-up lives 45 frames and its core with
-  // it; the fallback the owner set (decision 6) puts the core out at 24.
-  invariant(destruction.fragmentFrames === 45,
-    "Break-up fragments must last 45 PAL frames (plasma FX, decision 3)");
-  invariant(destruction.coreFrames === 45 || destruction.coreFrames === 24,
-    "The break-up core lives the whole break-up, or 24 frames under the fallback");
+  // docs/plans/plasma-fx.md B1.1 (owner answers 2026-10-05): a Light's or a
+  // debris's break-up lives 30 frames, a Heavy's 45; the core 24 (decision
+  // 6's fallback) and it goes out before the fragments.
+  invariant(destruction.fragmentFrames === 30,
+    "Light and debris break-up fragments must last 30 PAL frames (plasma FX B1.1 d)");
+  invariant(destruction.heavyFragmentFrames === 45,
+    "Heavy break-up fragments must last 45 PAL frames (plasma FX B1.1 d)");
+  invariant(destruction.coreFrames === 24 &&
+    destruction.coreFrames < Math.min(destruction.fragmentFrames, destruction.heavyFragmentFrames),
+    "The break-up core lives 24 frames and goes out before the fragments");
   invariant(destruction.fragmentCount === 4,
     "Debris destruction must emit exactly four fragments");
   integer(destruction.fragmentLocalXSpeedHpos,
@@ -204,8 +208,8 @@ export function loadEntityEffectsDefinition(sourcePath) {
         }
       }
     }
-    invariant(litPixels >= 12 && litPixels <= 32,
-      `fragment phase ${phaseIndex} (a full burst or its ring) must light 12-32 ANTIC pixels`);
+    invariant(litPixels >= 6 && litPixels <= 32,
+      `fragment phase ${phaseIndex} (the core burst or its torn shell) must light 6-32 ANTIC pixels`);
   }
   invariant(Array.isArray(destruction.growthPhases) && destruction.growthPhases.length === 2,
     "The break-up's growth must define exactly two glyphs (a dot and a small burst)");
@@ -224,8 +228,8 @@ export function loadEntityEffectsDefinition(sourcePath) {
         }
       }
     }
-    invariant(litPixels >= 4 && litPixels <= 12,
-      `growth phase ${phaseIndex} must light 4-12 ANTIC pixels`);
+    invariant(litPixels >= 3 && litPixels <= 12,
+      `growth phase ${phaseIndex} (sparks or a streak) must light 3-12 ANTIC pixels`);
   }
 
   const pickup = definition.weaponPickupRapidFire;
@@ -525,6 +529,8 @@ export function renderEntityEffectsCa65Include(asset) {
     `EFFECT_DEBRIS_CORE_TIMER_LOAD = ${destruction.coreFrames + 1}`,
     `EFFECT_DEBRIS_FRAGMENT_FRAMES = ${destruction.fragmentFrames}`,
     `EFFECT_DEBRIS_FRAGMENT_TIMER_LOAD = ${destruction.fragmentFrames + 1}`,
+    `EFFECT_HEAVY_FRAGMENT_FRAMES = ${destruction.heavyFragmentFrames}`,
+    `EFFECT_HEAVY_FRAGMENT_TIMER_LOAD = ${destruction.heavyFragmentFrames + 1}`,
     `EFFECT_DEBRIS_FRAGMENT_COUNT = ${destruction.fragmentCount}`,
     `EFFECT_FRAGMENT_LOCAL_X_SPEED = ${destruction.fragmentLocalXSpeedHpos}`,
     `EFFECT_FRAGMENT_LOCAL_Y_SPEED = ${destruction.fragmentLocalYSpeedScanlines}`,

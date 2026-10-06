@@ -478,7 +478,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   // player_fighter_spread_volley_sides is appended here because MAIN is full and
   // its LZ image is the capped initial block; extension record 2 stays at 9
   // sectors (1,128 of 1,131 B).
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 65);
+  // Re-recorded 2026-10-05, plasma FX B1.1 (docs/plans/plasma-fx.md): 65 ->
+  // 64. heavy_spawn_breakup reads each fragment's first code from a table
+  // (lda abs,x for lda #), one byte.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 64);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the

@@ -507,3 +507,184 @@ Red until B2 by the owner's order (evidence bound to `main`'s ATR):
 regeneration), and `enemy-roster`'s release-variant check (a candidate build).
 `preview` "consumes the canonical charset" is the recorded failure, same
 assertion (line 166).
+
+---
+
+## 11. B1.1 — the broadside fix and the art and timing iteration (2026-10-05) — **STOPPED**
+
+Owner answers to the B1 stop: the broadside coupling by option 1 (bound the
+hull-edge scan to the hull glyphs), and an art and timing iteration from an
+outside review of the previews (items a-f). Colour still by smoke.
+
+**Status: stopped again on the gameplay check** (§11.6): the bounded scan
+removed the coupling it was asked to remove, and measuring it exposed its
+mirror image. Everything else of B1.1 is built and measured.
+
+### 11.1 The hull range — proof (before code)
+
+Every code a hull can put on a playfield row, `&$7F` (bit 7 is the bank):
+the allied and enemy decoded maps and codebooks of the default set and of all
+four hull styles R1-R4 (`compileCapitalHulls`), the runtime codes
+`CAPITAL_HULL_*_CODE` (engines `$53/$D4`, prow edges `$55/$D6`, prow fills
+`$3B/$C6`, launch flashes `$51/$D2`, muzzles `$45/$D0`), the turret table's
+muzzles, the broadside schedule's flash codes, the capital explosion's phase
+codes (`$57/$D7/$D8/$D9`, drawn only over cells already holding 52-89), and the
+level image's hull block (levels 1 and 2 are region 1; the block's codebook is
+style R1's, byte for byte): **59-89, every one of them; none outside.**
+
+Every code that can appear on a playfield row, from a native play-through of
+level 1 to the boss entry (8,876 frames) and of level 2 to its end (14,000),
+lives held: 0 (space), 1 (the near star), 12-36 (player shot phases), **59-89
+the hull** (76 never), 90-103 hostile shots (inverse), 108-109 the break-up's
+growth glyphs, 110-117 debris, 118-119 the break-up's burst glyphs, 120-121 the
+Light, 126-127 the capital shell. **Nothing but the hull draws inside 59-89.**
+
+### 11.2 The fix — a pre-existing defect
+
+`broadside_hits_opposite_hull` (`src/main.s`, BROADSIDE, inside overlay slot A)
+took the first code >= 59 on the shell's screen row for the hull's edge, so a
+break-up effect, a debris, a Light or a hostile shot on the row before the hull
+stood in for it. It is a defect of `main` (the plasma FX break-up only made it
+frequent) and it was exposed by **`weapon-pickup-2-hunt-fire4`** and
+**`raider-remnant-normal-atr-hard`** (shell 0 in the capital sector).
+
+Both scans now read `asl` / `cmp #(59*2)` / `bcc next` / `cmp #(90*2)` /
+`bcc found` (ASL drops the bank bit): one byte longer each. The two bytes come
+out of the three-byte address pad before `@world_targets` in the same segment,
+so **BROADSIDE's size (6,653 B), its 3-B free tail, its load record (extension
+record 1, 44 sectors) and every address from `broadside_hits_opposite_hull` on
+(`free_broadside_slot` `$76A7` asserted) are unchanged**; the 70 labels between
+the pad and the scan move down 2 B (slot A, reached only through the capital
+vector table). Cycles: the same per blank cell; +2 at the hull cell it finds
+and +2 per non-hull code >= 59 it now passes — at most a few tens a capital
+frame; the worst capital row (`2-evasive-fire3` f805) reads 18,351 → 18,369
+wall with the break-up's own cost included.
+
+Test `tests/broadside-hull-edge.test.mjs`, RED on `main` (an allied and an
+enemy shell take a break-up glyph, a fragment, a debris, a Light, a hostile
+PULSE shot or a capital shell before the hull for its edge), GREEN here; its
+third test is the static half of the range proof.
+
+### 11.3 The art and the timing (items a-f)
+
+Four codes, the four the resolvers' contiguous range 108-119 leaves free next
+to the debris bank (item f: no STOP needed):
+
+| code | art | used by |
+| --- | --- | --- |
+| 108 | scattered sparks, one white | the core's first frames; every fragment's end |
+| 109 | an elongated streak, white head | a fragment shape; the streak/spark shimmer |
+| 118 | the core burst: a clear white centre (PF0) in the variant colour | the core frames 2-11; a fragment shape |
+| 119 | a torn, irregular shell | the core frames 12-23 (late bank); a fragment shape |
+
+* **Core** (24 frames, out before the fragments): sparks 2 frames, the
+  white-centred burst 10, the torn shell 12 (red in the $1E build), out.
+* **Fragments**: four, each starting on a different code (slots 1-4: 108, 109,
+  118, 119 — `effect_fragment_render_ids`, in the BROADSIDE block because MAIN
+  is full), held back while the core grows (frames 0-4), spread asymmetrically
+  (HPOS/lines a frame: (−1,−1) (+2,−1) (−2,+1) (+1,+2)); with 12 or more frames
+  left they wear their own shape, then the streak/spark shimmer in the late
+  bank, the last 6 frames sparks alone. No colour register changes: the fade is
+  pixels and shapes, the bank bit only picks PF3 in the $1E build.
+* **Lives** (item d): Light and debris **30 frames**, Heavy **45** (medium
+  size). Boss modules have no break-up: the band is drawn in the region's
+  charset and the effect pool cannot draw into it, and adding one needs slot A
+  bytes the owner fixed; a module's destruction is the stepped flash below.
+* **Background flash** (item e), Heavy kill, boss module and the player's death,
+  playfield and band alike (`COLBK` is global): `$1E $3C $82 $80` then black
+  for the 6-frame total (cold builds: hue, hue−2, `$82 $80`, black).
+
+Bytes: initial block **13,631 B** (+10: the stage masks, the core-young check,
+the per-fragment code reads), boot 107 sectors; BROADSIDE block 2 B left;
+ENTITY_CODE tail 10 B; slot A 1,995 / slot C 2,003 / scratch 249 unchanged.
+
+### 11.4 Measurements (diagnostic only)
+
+Same method and sessions as §10.3: 51 debug-route replays and the three
+`raider-remnant` replays, row by row against `main`'s committed-evidence CSVs.
+
+| | `main` | B1 | **B1.1** |
+| --- | ---: | ---: | ---: |
+| worst fence row | 1,370 `2-evasive-fire3` f287 | 1,287 `2-sweep-fire6` f311 | **1,370** `2-sweep-fire6` f311 |
+| DMA-on maximum (gameplay rows) | 31,237 `director-complete-2` f5797 | 31,240 | **31,240** (same row) |
+| worst Heavy kill frame | 2,841 | 3,133 | **3,279** `raider-remnant-rapid` f123 |
+| SPREAD multi-kill (`raider-remnant-spread` f2052) | 2,841 | 3,775 | **3,857** |
+| boss module destroyed (worst boss frame, f11216) | 12,984 | 12,974 | **12,974** |
+| boss stress work, native (pin 7,000) | 6,678 / 5,516 | 6,689 / 5,518 | **6,689 / 5,518** |
+| break-up per live frame, native (mean / peak) | 1,099 / 1,399 | 971 / 1,259 | **959 / 1,221** (debris, 30 f) |
+| worst capital row (wall) | 18,351 | — | **18,369** |
+| initial block | 13,621 | 13,621 | **13,631** |
+
+Truncation (the next kill cuts the live break-up; 999 kills, identical timing in
+every build):
+
+| class (kills) | before 10 | before 24 | before 45 | before its own life: `main` / B1 / **B1.1** |
+| --- | ---: | ---: | ---: | --- |
+| Heavy (736) | 12.8 % | 29.3 % | 48.0 % | 38.7 % (30 f) / 48.0 % (45) / **48.0 %** (45) |
+| Light + debris (2 + 261) | 7.6 % | 19.4 % | 41.1 % | 30.8 % (30) / 41.1 % (45) / **30.8 %** (30) |
+
+### 11.5 Comparison builds
+
+| build | full path | SHA-256 prefix |
+| --- | --- | --- |
+| $1E, level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-1E/void-strike-65.atr` | `7b122d0e5dd06383` |
+| $1E, sector 4 (yellow sky) | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-1E-level-1-s3/void-strike-65.atr` | `72ceed43847441d6` |
+| $1E, boss | `/Users/marcinkrzetowski/Projects/dark-fighter/build/level-1-s4/void-strike-65.atr` | `9c3f2feac26e124e` |
+| $9E, level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-9E/void-strike-65.atr` | `e2680844dffb5ab2` |
+| $9E, sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-9E-level-1-s3/void-strike-65.atr` | `633840c45b268281` |
+| $AE, level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE/void-strike-65.atr` | `d977908062780cfa` |
+| $AE, sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-level-1-s3/void-strike-65.atr` | `1af678121f592dcc` |
+
+Launch: `atari800 -xe -pal -nobasic <full path>`.
+
+### 11.6 Why B1.1 stopped — the mirror image of the defect
+
+The scan reads the shell's **screen** row (`set_gameplay_row_ptr`), so every
+overlay drawn there decides what it sees. Before the fix an overlay before the
+hull counted as hull (an early impact); after it, **an overlay drawn over the
+hull's edge cell hides that cell**, and the edge moves one cell inward (a late
+impact). The break-up draws over hull cells, so its look still reaches the
+scan. MEASURED in `weapon-pickup-2-hunt-fire4`, shell 0 flying left at the
+allied hull:
+
+| build | impact | at x |
+| --- | --- | ---: |
+| `main` | frame 1197 | 84 — a non-hull code taken for the edge (the defect) |
+| `main` + the scan fix alone | frame 1200 | 78 — an old 30-frame fragment over the edge cell |
+| B1.1 | frame 1199 | 80 — the edge cell visible |
+
+`director_intensity` follows the impact; everything is identical again from
+frame 1205. It is the only shell in the 54 replays whose timing any of the
+three builds changes. Debris, a Light, the shots and the shell itself can cover
+a hull edge too; their timing is the same in every build, so they move no
+replay between them, but they are the same defect.
+
+Options:
+
+1. **The break-up does not draw over hull glyphs** (59-89): an effect cell
+   that would cover a hull cell is left undrawn that frame, so no effect can
+   reach the scan. ~6 B of the initial block (→ ~13,637), a few cycles a drawn
+   cell; in capital sectors a break-up is clipped by the hull it flies over.
+2. **The scan reads through effect cells** (an effect-owned cell resolves to its
+   saved backing): exact and invisible, ~20 B in BROADSIDE, which has 6 free,
+   so it needs a relocation first.
+3. **Accept** a one-cell, one-frame shift in a shell impact when a break-up
+   covers the edge; capital-sector replays move in B2.
+
+Recommendation: **1**.
+
+### 11.7 Tests
+
+New: `tests/broadside-hull-edge.test.mjs` (3). Re-pointed in B1.1, each with
+its reason in place: `plasma-fx` (per-class lives, the art, the stepped
+flash), `explosion-colour-flash`, `effects-stagger`, `entity-effects` ×2,
+`heavy-breakup` ×2, `preview` (debris trace), and the layout pins the 10 B of
+the initial block and the art's packing moved: `boot-loading-blank-screen`,
+`boot-xex-reclaim`, `boss-overlay`, `hybrid-c-arena`, `level-summary-build` ×2,
+`cold-pickup-record-fit`, `formats`, `light-interceptor`, `light-wingman`;
+`broadside-fire` (the bounded scan's source); `loader-screen` back to `main`'s
+`$3810` (B1's −9 B of CODE are spent again). On `main` (`4926dc05…`):
+`plasma-fx` 5 RED, 1 GREEN (the codes precondition); `broadside-hull-edge` 2
+RED, 1 GREEN (the range proof, a property of the data). Still red until B2 by
+the owner's order: the 14 evidence-bound tests of §10.7 and the recorded
+`preview` failure.

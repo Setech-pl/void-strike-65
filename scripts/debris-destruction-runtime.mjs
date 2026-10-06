@@ -434,6 +434,7 @@ export function nativeRoutineHarness({ root = defaultRoot, artifact = "atr" } = 
   runRoutine(memory, labels, "unpack_entity_runtime");
   publishDirectorAbiIfPresent(memory, labels);
   runRoutine(memory, labels, "init_entity_effects");
+  runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
   runRoutine(memory, labels, "copy_charset");
   runRoutine(memory, labels, "install_entity_effects_glyph");
   return {

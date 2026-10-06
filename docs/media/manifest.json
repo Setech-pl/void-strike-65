@@ -5,11 +5,11 @@
     "atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "4926dc05ecc047d226c8939cb48ecdc39d28fb089d986365272ad9797a5d40ff"
+      "sha256": "e0aa70620e1ae07449410521c65eade0a8cd77254a78a44a140743dc348f41a1"
     },
     "wallTrace": {
       "path": "docs/runtime-wall-trace.json",
-      "sha256": "411296dc6cdaf9080766a09b9d99ae2ad12f33b032e41029a5892b09cfb3b94a"
+      "sha256": "87daed537e496fc48adaaa05e5d3ad35fe1fea85b343b21a7abc0aea6b32321e"
     },
     "note": "Gameplay images are unenhanced 320x240 crops of Atari800's packed-release framebuffer. The eight-pixel emulator side borders are the only pixels removed."
   },
@@ -158,8 +158,8 @@
     },
     {
       "path": "docs/media/assets/debris-and-pickups.png",
-      "bytes": 5766,
-      "sha256": "0b0b78ef61d0df1a24f8c2be7cc8cfbe96f6c2275d405e3d61f41b54c98069f4",
+      "bytes": 5783,
+      "sha256": "d5f7b92ad257277c53ad34d8593fdd2ae5df62109821228a6deb7c4293c1309e",
       "width": 960,
       "height": 560,
       "sources": [
@@ -206,7 +206,7 @@
       "path": "docs/media/showcase/void-strike-65-level-1.gif",
       "description": "Level 1 from the ATR: a Bomber and an Interceptor, the Spread Shot capsule and its three-shot fan with the single follow-up, then the capital corridor and the first BROADSIDE",
       "source_medium": "ATR",
-      "atr_sha256": "4926dc05ecc047d226c8939cb48ecdc39d28fb089d986365272ad9797a5d40ff",
+      "atr_sha256": "e0aa70620e1ae07449410521c65eade0a8cd77254a78a44a140743dc348f41a1",
       "emulator": "Atari800 7.1.2 PAL XL",
       "replay": "weapon-pickup-spread-0-hunt-fire4",
       "generatedBy": "scripts/showcase-gif.mjs",
@@ -222,11 +222,11 @@
       "gif_frames": 700,
       "seconds": 14,
       "frame_delay_centiseconds": 2,
-      "colours": 14,
+      "colours": 17,
       "width": 320,
       "height": 240,
-      "bytes": 384735,
-      "sha256": "7267d60627a0fa71ecdedd7bf7dc8e50935a429745ddb63838045954c30bd65d"
+      "bytes": 392075,
+      "sha256": "327e01a8a30646c50d92670d5f44a7f0d907fca66d7b3708175ea10afc1bc34d"
     }
   ],
   "charts": [

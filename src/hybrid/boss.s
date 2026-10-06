@@ -1794,6 +1794,8 @@ laser_prepare:
     clc
     adc #BOSS_SHOT_CODES
     sta boss_hostile_code
+    lda BOSS_T_START                    ; the band position the install shows
+    sta boss_hostile_pos
     ldx #$00
 @module:
     cpx BOSS_T_MODULE_COUNT
@@ -2162,7 +2164,12 @@ laser_erase_step:
 ; QA1: the boss's shots above the band's edge are drawn in the band, in a
 ; blank cell (decision O keeps the recess under a weapon blank), as the
 ; player's are (decision M); last frame's cells get the blank back while they
-; still show a boss shot.
+; still show a boss shot. Inside the band a shot rides the band's drift (its
+; HPOS follows the band position's change), so it falls down its own gun's
+; recess and leaves the band's edge in that column: falling straight down the
+; screen while the band slid under it, a shot from a gun beside a standing
+; plate passed behind the plate and came out at its foot (MEASURED, gun-3 and
+; plate-f) - the look QA1 removes.
 laser_hostile_shots:
     ldx #(INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT - 1)
 @restore:
@@ -2185,6 +2192,12 @@ laser_hostile_shots:
 @restored:
     dex
     bpl @restore
+    lda boss_shown_pos                  ; the band's move since last frame
+    sec
+    sbc boss_hostile_pos
+    sta laser_d
+    lda boss_shown_pos
+    sta boss_hostile_pos
     ldx #(INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT - 1)
 @shot:
     lda FIGHTER_PROJECTILE_ACTIVE + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
@@ -2192,7 +2205,13 @@ laser_hostile_shots:
     lda FIGHTER_PROJECTILE_Y + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
     cmp #BAND_BOTTOM_Y
     bcs @next
-    sbc #(BAND_TOP_Y - 1)               ; C=0: Y - BAND_TOP_Y
+    lda FIGHTER_PROJECTILE_X + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    sec                                 ; rides the band: HPOS = 32 + 4c - p
+    sbc laser_d
+    sta FIGHTER_PROJECTILE_X + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    lda FIGHTER_PROJECTILE_Y + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    sec
+    sbc #BAND_TOP_Y
     bcc @next
     lsr
     lsr
@@ -2284,12 +2303,14 @@ boss_laser_done:    .res 1      ; the boss sector is over for the lasers
 boss_hostile_lo:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT ; each boss shot's band cell, last frame
 boss_hostile_hi:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT
 boss_hostile_code:  .res 1
+boss_hostile_pos:   .res 1      ; the band position last frame (the shots ride its drift)
 boss_fire_y:        .res 1      ; boss_fire: the firing gun's muzzle line
 laser_m:            .res 1
 laser_i:            .res 1
 laser_t:            .res 1
 laser_b:            .res 1
 laser_x:            .res 1
+laser_d:            .res 1
 
 
 ; ===========================================================================

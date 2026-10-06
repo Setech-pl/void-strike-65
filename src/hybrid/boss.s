@@ -289,6 +289,7 @@ boss_runs:
 ; ===========================================================================
 boss_dli:
     pha
+    cld                                 ; AUD-03: the NMI keeps the interrupted D (the scoring's SED); the RTI restores it
     lda gameplay_dli_phase
     bne @below_hud
     inc PHYSICAL_PAL_FRAME_ID

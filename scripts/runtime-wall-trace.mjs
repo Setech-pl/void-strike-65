@@ -690,7 +690,9 @@ const lowerPlayfieldSessions = [{
   difficulty: 2,
   policy: "lower-contact-laser",
   fireDelay: 0,
-  frames: 15_000,
+  /* MEASURED on the S4b candidate: the boss entered at 7,877 (HARD), the
+   * first warning 8,241, the contact 8,267; the plan's ~9,500 budget. */
+  frames: 9_500,
   kind: "lower-playfield-laser-contact",
   holdPlayerLives: 3,
   contactOwner: 1,

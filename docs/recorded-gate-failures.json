@@ -8,15 +8,7 @@
     "c-real-failure": "(c) A real failure of the build. Neither fixed nor weakened here; recorded so the evidence stays a truthful description of the build.",
     "pre-existing-unclassified": "Pre-existing failure carried unchanged; no session has classified it into (a), (b) or (c) yet."
   },
-  "failures": [
-    {
-      "session": "lower-playfield-hostile-contact-atr-hard",
-      "message": "lower-playfield-hostile-contact-atr-hard did not capture 16 consecutive contact rasters",
-      "class": "a-stale-scenario",
-      "measurement": "docs/plans/contact-scenario-redesign.md §3",
-      "note": "MEASURED 2026-10-01: on HARD the hostile shells of level 1 stop at Y 180, under the policy's shell_y >= 191; on MEDIUM (probe) they follow the player and stop at Y 156, so a difficulty change does not repair it. RENAMED 2026-09-30 with its session (owner decision 1, docs/plans/atr-only-build.md §5): the XEX-only session switched to the ATR as -atr-hard. Owner decision 2026-10-01 (trace-clause-repairs, Q3): stays recorded, reclassified from pre-existing-unclassified to (a); the redesign of the contact scenarios is chore/contact-scenario-redesign. RE-DIAGNOSED 2026-10-02 (contact-scenario-redesign, owner decision Q1: kept as it is, class (a)): (1) its steering `target_y = shell_y - 7` predates the final-raster collision of 4753399, so even a qualifying shell cannot give the mode-1 raster contact; (2) on HARD level 1 a low hostile shell (BROAD_Y >= 191) is rare and late: with the contact preamble and a passive player the hostile launches after the sector opens are fixed (116, 180, 180, 116, 172, 172, 180, 180 through +908) whatever the preamble row, and low ones appeared only after ~+840 frames (220 at 1504, 212 at 1582, 220 at +917), each time behind a debris hit or a low Allied damage call. The lower-row contact raster is gated since then by the Allied session lower-playfield-allied-contact-atr-hard. Follow-up: the hostile lower-row contact gets an honest scenario in M5, where the boss's lasers make low hostile shells frequent; the M5 plan must cover it."
-    }
-  ],
+  "failures": [],
   "removed_2026_10_01": {
     "note": "Left the recorded set in trace-clause-repairs (docs/plans/trace-clause-repairs.md). Each was an observer error, class (b); the clause's assertion is unchanged and passes on the regenerated evidence.",
     "count": 13,
@@ -131,6 +123,20 @@
         "recorded_class": "a-stale-scenario",
         "class": "a-stale-scenario",
         "fix": "Scenario (a): contact preamble on row 180 (sector opens 889; on the spawn row the player was still climbing through the Allied shell's row at 765), budget 360 -> 1,080. Observers (b): as for capital-contact-allied-medium. Contact 1042, Hostile slot 1, mode 1, shell 113-118 x player 109-123, hull 10 -> 8; all contact clauses pass."
+      }
+    ]
+  },
+  "removed_2026_10_06": {
+    "note": "Retired by name in M5b-S4b (feat/boss-lasers; owner decisions Q4 of 2026-10-03 and Q9 of 2026-10-06; docs/plans/boss-lasers.md §7): decision 13's hostile lower-row contact is evaluated on the boss's laser by lower-playfield-laser-contact-atr-hard, which passes on the regenerated evidence. The retired session's diagnosis is kept below as its epitaph; every clause it carried is listed in the plan with where it is covered now.",
+    "count": 1,
+    "entries": [
+      {
+        "session": "lower-playfield-hostile-contact-atr-hard",
+        "message": "lower-playfield-hostile-contact-atr-hard did not capture 16 consecutive contact rasters",
+        "recorded_class": "a-stale-scenario",
+        "class": "a-stale-scenario",
+        "fix": "Scenario (a) replaced: the hostile capital shell of level 1 cannot reach the lower rows on HARD (stops at Y 180; F5/F6 in the note), the boss's laser reaches them on every firing. lower-playfield-laser-contact-atr-hard: the sweep bot to level 1's boss (lives held), then under the first laser that warns; MEASURED on the candidate ATR: warning 25 frames, beam at f8,266, contact f8,267 (beam HPOS 133 over player x 132, y 225), hull 10 -> 0 through apply_player_damage from boss_laser_damage alone, lasers held through the death, 16 contact rasters, 0 misses.",
+        "epitaph": "MEASURED 2026-10-01: on HARD the hostile shells of level 1 stop at Y 180, under the policy's shell_y >= 191; on MEDIUM (probe) they follow the player and stop at Y 156, so a difficulty change does not repair it. RENAMED 2026-09-30 with its session (owner decision 1, docs/plans/atr-only-build.md §5): the XEX-only session switched to the ATR as -atr-hard. Owner decision 2026-10-01 (trace-clause-repairs, Q3): stays recorded, reclassified from pre-existing-unclassified to (a); the redesign of the contact scenarios is chore/contact-scenario-redesign. RE-DIAGNOSED 2026-10-02 (contact-scenario-redesign, owner decision Q1: kept as it is, class (a)): (1) its steering `target_y = shell_y - 7` predates the final-raster collision of 4753399, so even a qualifying shell cannot give the mode-1 raster contact; (2) on HARD level 1 a low hostile shell (BROAD_Y >= 191) is rare and late: with the contact preamble and a passive player the hostile launches after the sector opens are fixed (116, 180, 180, 116, 172, 172, 180, 180 through +908) whatever the preamble row, and low ones appeared only after ~+840 frames (220 at 1504, 212 at 1582, 220 at +917), each time behind a debris hit or a low Allied damage call. The lower-row contact raster is gated since then by the Allied session lower-playfield-allied-contact-atr-hard. Follow-up: the hostile lower-row contact gets an honest scenario in M5, where the boss's lasers make low hostile shells frequent; the M5 plan must cover it."
       }
     ]
   }

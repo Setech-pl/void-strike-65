@@ -300,6 +300,20 @@ if (laserFixtureSlug !== undefined && !["2", "4"].includes(laserFixtureSlug)) {
   throw new Error(`Unknown laser fixture ${laserFixtureSlug}; the tiers are 2 and 4`);
 }
 const laserFixtureTier = laserFixtureSlug === undefined ? null : Number(laserFixtureSlug);
+// M5b-S4b.2 (owner smoke findings, 2026-10-06): comparison probes, review
+// variants only, never dist/ - --emitter-art=A|B|C puts a candidate emitter
+// core into region 1 (scripts/boss-emitter-probe.mjs; the plates share one set
+// of damage looks to make room), --beam-root lights each laser's band segment
+// on player P1 / P2 (BOSS_BEAM_ROOT in slot D). Either centres the beam on the
+// emitter's core (BOSS_BEAM_CENTRE). The default build takes none of it.
+const emitterArtArgument = process.argv.find((argument) => argument.startsWith("--emitter-art="));
+const emitterArtSlug = emitterArtArgument?.slice("--emitter-art=".length).toUpperCase();
+if (emitterArtSlug !== undefined && !["A", "B", "C"].includes(emitterArtSlug)) {
+  throw new Error(`Unknown emitter art ${emitterArtSlug}; the candidates are A, B and C`);
+}
+const emitterArt = emitterArtSlug ?? null;
+const beamRoot = process.argv.includes("--beam-root");
+const beamProbe = emitterArt !== null || beamRoot;
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -311,7 +325,7 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
-  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null;
+  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null || beamProbe;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -326,8 +340,10 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 // it produces can be read by anything that did not ask for the variant.
 const levelDebugSuffix = levelDebugId === null
   ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = laserFixtureTier !== null
-  ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
+const beamProbePrefix = `${emitterArt === null ? "" : `emitter-art-${emitterArt}-`}${beamRoot ? "beam-root-" : ""}`;
+const variantDirectoryName = laserFixtureTier !== null || beamProbe
+  ? `${laserFixtureTier === null ? "" : `laser-fixture-${laserFixtureTier}-`}${beamProbePrefix}`.replace(/-$/, "") +
+    levelDebugSuffix
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -1767,7 +1783,9 @@ async function build() {
   // variant that installs the laser fixture (region 1 with four uncovered
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
-  const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
+  const regionOneSource = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
+  const regionOneDraft = emitterArt === null ? regionOneSource
+    : (await import("./boss-emitter-probe.mjs")).emitterProbeDraft(regionOneSource, emitterArt);
   const bossRegions = [compileBossRegion(
     laserFixtureTier === null ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier),
     { themeImage: bossThemeImage,
@@ -2646,7 +2664,8 @@ async function build() {
       "DIFFICULTY_SETTING", "PLAYER_LIFECYCLE", "player_x", "apply_player_damage"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end"],
-    director: ["_sector_wave_count", "_director_c_try_event"],
+    director: ["_sector_wave_count", "_director_c_try_event",
+      ...(beamRoot ? ["_heavy_hull_colour"] : [])],
   };
   const importLinks = { main: labels, reader: sectorReaderLabels, director: directorLabels };
   const directorAbiConstants = new Map(directorAbiInclude.toString("utf8").split(/\r?\n/)
@@ -2762,6 +2781,8 @@ async function build() {
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
+        ...(beamProbe ? ["-D", "BOSS_BEAM_CENTRE=1"] : []),
+        ...(beamRoot ? ["-D", "BOSS_BEAM_ROOT=1"] : []),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -3651,7 +3672,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null
+    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null || beamProbe
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -3984,6 +4005,7 @@ async function build() {
         capacityBytes: BOSS_SLOT_D_BYTES, freeBytes: BOSS_SLOT_D_BYTES - bossSlotDUsed,
         sectors: bossSlotDSectors },
       laserFixtureTier,
+      ...(beamProbe ? { emitterArt, beamRoot, beamCentre: true } : {}),
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1] },

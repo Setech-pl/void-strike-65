@@ -1289,3 +1289,70 @@ band part is `COLPF3`).
 | Fight length EASY / MEDIUM / HARD | 46.0 / 48.6 / 71.2 s (0 / 0 / 0 deaths) | 46.0 / 47.1 / 71.1 s (1 / 3 / 2 deaths) | `director-complete-*`, the fight's first frame to the defeat |
 | Boss shot spawns (2-sweep-fire2, s4 route, game frames) | gun-2 24 92 160 228 296 413 575 737 899; gun-4 364 481 643 805; gun-3 530 692 854 | gun-2 24 92 160 228 296 413 575 850; gun-4 364 481 643 918; gun-3 530 805; the emitter's warning 692, beam 717 | the trace's `enemy_projectiles` and the lab's spawn logger |
 | ATR SHA-256 | `e0aa7062…` | `6b44d477…` | `dist/` |
+
+## 15. Owner smoke findings (2026-10-06): S4b.1 and the S4b.2 probes
+
+### 15.1 S4b.1 — decisions D1 and D3 (built, `b6731a3` RED, `fdc7db8` GREEN)
+
+**D1, one weapon per module:**
+
+* An emitter fires only its laser, never a pulse shot: `boss_fire` ignores
+  it.
+* The converter refuses an emitter with a pulse reload, a gun with a laser,
+  and a combined kind.
+* The laser fixtures carry dedicated emitters (emitter-2/3/4) with the
+  emitter's art, never a pulse gun reused.
+
+**D3, the cadence:**
+
+* Warning EASY / MEDIUM / HARD 40 / 32 / 25 frames, reload 300 / 225 / 150, in
+  the level data (`boss_def` bytes 8–16).
+* At most two lasers warn or fire at once; ready emitters wait in a rotating
+  order; a destroyed one leaves the queue.
+
+**Step 1 — the "laser from nowhere":** no defect.
+
+* 194 warnings and 170 beams on the level-1-s4 route and both fixtures, at
+  every difficulty: none started after its emitter died or while its shield
+  stood, none outside its emitter's cells, none ran on after the emitter died.
+* What the owner saw is region 1's emitter. The ribbed panel reads as hull,
+  and its beam leaves it once plate-d is gone (`build/s41-diagnosis/`).
+
+### 15.2 S4b.2 — why the beam still reads as coming from nowhere (MEASURED)
+
+**The two causes:**
+
+1. **The emitter reads as hull** (§15.1).
+2. **The beam's band segment is hull-coloured.** With option A the missile
+   takes `COLPF3`. On level-1-s4 MEDIUM (warning frame 781, beam frame 813),
+   every beam pixel on scanlines 48–87 is `$32`, the hull's burgundy, beside
+   `$00`. The bright `$46` starts at scanline 88, the band's edge. The eye reads
+   a beam that starts at the edge, the illusion QA1 removed for the boss shots.
+   The beam's root also begins below the emitter's bottom row, not at its core.
+
+**Also MEASURED:**
+
+* The band DLI's `COLPF3` store lands one line late in some frames:
+  scanline 88 under the beam shows `$32`, in S4b.1 and S4b.2 captures alike.
+* The beam sat about 1 colour clock right of the emitter's centre.
+
+**The probe** (build flags, never the default build: `--beam-root`,
+`--emitter-art=A|B|C`, both centring the beam):
+
+* **The root:** P1 / P2, one per running laser (at most two, D3).
+  * In the warning, a glow at the core grows 2 / 4 / 6 lines and pulses every
+    4 frames.
+  * In the beam, a column grows from the core's last 6 lines through
+    scanline 88 (24 lines a frame), joining the `$46` missile beam with no gap.
+  * A freed root clears 12 lines a frame, off screen.
+* **Placement:** the band DLI places the players exactly as it places the
+  missiles.
+* **Colour:** `COLPM1` / `COLPM2` = `$46`, set at the install and restored on
+  leaving (`_heavy_hull_colour`, single width, off screen).
+
+### 15.3 S5 question (R3), recorded, nothing decided
+
+The force field was also planned on P1 / P2. If the beam root ships, the
+force field and the roots compete for the same two players in the boss sector.
+S5 must choose: give the force field other hardware, give the roots up while
+the field shows, or share the players by band zone.

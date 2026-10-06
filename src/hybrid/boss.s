@@ -1726,6 +1726,28 @@ LASER_LAST_LINE     = 239       ; the ring's last line
 ; src/main.s: MISSILES = PMG_BASE + $0300, PLAYER_LIVES = PLAYER_LIFECYCLE+$01,
 ; PLAYER_ALIVE = 0, PLAYER_COLLISION_WIDTH = 8 (pinned by tests/boss-lasers.test.mjs).
 LASER_MISSILES      = $3B00
+.ifdef BOSS_BEAM_ROOT
+; S4b.2 probe (owner smoke findings, 2026-10-06): the beam's root - its band
+; segment lit on player P1 / P2, free in the boss sector (option A), one a
+; laser while at most two run (D3).
+HPOSP1              = $D001
+HPOSP2              = $D002
+SIZEP1              = $D009
+SIZEP2              = $D00A
+COLPM1              = $D013
+COLPM2              = $D014
+ROOT_P1             = LASER_MISSILES + $0200    ; PMG_BASE + $500, single line
+ROOT_P2             = LASER_MISSILES + $0300
+ROOT_COLOUR         = $46       ; the beam's colour below the band (COLPF3 there)
+ROOT_BITS           = $80       ; one bit at quad width: the missile's four clocks
+ROOT_GLOW           = 6         ; the core's glow at most, lines
+; Through the band's first ring line: the band DLI's COLPF3 store lands a line
+; late in some frames (MEASURED, S4b.1 and S4b.2 captures: line 88 shows $32),
+; so the root covers line 88 too - over the missile, both $46, no seam.
+ROOT_LAST_LINE      = BAND_BOTTOM_Y + 1
+ROOT_GROW           = 24        ; the beam's root grows from the core, lines a frame
+ROOT_CLEAR          = 12        ; a free root's old column clears, lines a frame
+.endif
 LASER_PLAYER_LIVES  = PLAYER_LIFECYCLE + 1
 LASER_PLAYER_ALIVE  = 0
 LASER_PLAYER_WIDTH  = 8
@@ -1865,6 +1887,9 @@ laser_prepare:
     inx
     jmp @module
 @done:
+.ifdef BOSS_BEAM_ROOT
+    jsr root_prepare
+.endif
     jsr laser_all_off                   ; S4b.1 (D3): every laser off, its reload set
     lda #$10                            ; the fifth player: missiles in COLPF3
     sta PRIOR
@@ -1965,10 +1990,238 @@ laser_begin:
     lda #$00
     sta boss_laser_fired,x
     sta boss_laser_ready,x
+.ifdef BOSS_BEAM_ROOT
+    jmp root_take
+.else
     rts
+.endif
 
 laser_module_bits:
     .byte $01, $02, $04, $08, $10, $20, $40, $80
+
+.ifdef BOSS_BEAM_ROOT
+; At the install: the two players' memory clear, nobody's, clean, their
+; colour the beam's; each laser's root top: the core cell's last ROOT_GLOW lines.
+root_prepare:
+    lda #$00
+    tay
+:
+    sta ROOT_P1,y
+    sta ROOT_P2,y
+    iny
+    bne :-
+    sta root_edge
+    sta root_edge+1
+    sta root_dirty
+    sta root_dirty+1
+    lda #$FF
+    sta root_owner
+    sta root_owner+1
+    lda #ROOT_COLOUR
+    sta COLPM1
+    sta COLPM2
+    ldy #(LASERS - 1)
+@laser:
+    lda #$00
+    sta laser_root,y
+    sta root_full,y
+    ldx boss_laser_module,y
+    cpx #LASER_NONE
+    beq @next
+    sty root_x
+    jsr boss_record_of                  ; Y = the emitter's record
+    lda BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    and #$0F
+    clc
+    adc BOSS_T_MODULES + BOSS_M_ROW,y
+    asl
+    asl
+    asl
+    adc #(BAND_TOP_Y - ROOT_GLOW)       ; C=0: the beam's first line - the glow
+    ldy root_x
+    sta root_top,y
+@next:
+    dey
+    bpl @laser
+    rts
+
+; Leaving the boss sector: P1 / P2 as gameplay has them (the hull colour the
+; Heavy publishes, single width, off screen).
+root_restore:
+    lda #$00
+    sta HPOSP1
+    sta HPOSP2
+    lda #$01
+    sta SIZEP1
+    sta SIZEP2
+    lda _heavy_hull_colour
+    sta COLPM1
+    sta COLPM2
+    rts
+
+; X = a laser starting its warning: a free player becomes its root; one
+; still clearing its old column stays hidden until it is clean. Keeps X.
+root_take:
+    ldy #$00
+@any:
+    lda root_owner,y
+    bmi @got
+    iny
+    cpy #$02
+    bne @any
+    rts
+@got:
+    txa
+    sta root_owner,y
+    iny
+    tya
+    sta laser_root,x                    ; player 1 or 2
+    lda #$00
+    sta root_full,x
+    rts
+
+; Y = a player (0 / 1): dst_ptr at its memory. Keeps X and Y.
+root_page:
+    lda #<ROOT_P1
+    sta dst_ptr
+    tya
+    clc
+    adc #>ROOT_P1
+    sta dst_ptr+1
+    rts
+
+; Once a frame, from laser_frame: a free player's old column clears,
+; ROOT_CLEAR lines a frame (it is off screen: no HPOS while dirty).
+root_clean:
+    ldy #$01
+@player:
+    lda root_dirty,y
+    beq @next
+    sty root_t
+    jsr root_page
+    lda root_dirty,y
+    tay                                 ; the next line to clear
+    ldx #ROOT_CLEAR
+    lda #$00
+:
+    sta (dst_ptr),y
+    iny
+    cpy #ROOT_LAST_LINE
+    beq @clean
+    dex
+    bne :-
+    tya
+    ldy root_t
+    sta root_dirty,y
+    jmp @next
+@clean:
+    ldy root_t
+    lda #$00
+    sta root_dirty,y
+@next:
+    dey
+    bpl @player
+    rts
+
+; X = a running laser, after laser_place: its root follows its edge; in the
+; warning the core's glow grows 2 / 4 / 6 lines as it runs out, pulsing
+; every 4 frames (2 lines fewer); in the beam the column grows from the core
+; to the band's edge, ROOT_GROW lines a frame. Keeps X.
+root_draw:
+    ldy laser_root,x
+    bne :+
+    rts
+:
+    dey
+    lda root_dirty,y
+    beq :+
+    lda #$00                            ; still clearing: hidden
+    sta root_edge,y
+    rts
+:
+    lda boss_laser_edge,x
+    sta root_edge,y
+    jsr root_page
+    stx root_x
+    lda boss_laser_state,x
+    cmp #LASER_BEAM
+    bne @warn
+    lda root_full,x                     ; lines grown so far
+    clc
+    adc root_top,x
+    cmp #ROOT_LAST_LINE
+    bcs @done
+    tay
+    lda #ROOT_GROW
+    sta root_t
+@grow:
+    lda #ROOT_BITS
+    sta (dst_ptr),y
+    iny
+    cpy #ROOT_LAST_LINE
+    beq :+
+    dec root_t
+    bne @grow
+:
+    tya
+    sec
+    sbc root_top,x
+    sta root_full,x
+@done:
+    rts
+@warn:
+    lda boss_laser_timer,x              ; frames left: > 16 two lines, > 8 four, then six
+    ldy #2
+    cmp #17
+    bcs @lines
+    ldy #4
+    cmp #9
+    bcs @lines
+    ldy #ROOT_GLOW
+@lines:
+    and #$04                            ; the pulse: 2 lines fewer every other 4 frames
+    beq :+
+    dey
+    dey
+:
+    sty root_t                          ; the lines lit, from the bottom
+    lda #ROOT_GLOW
+    sec
+    sbc root_t
+    sta root_t                          ; the first lit line, from the top
+    ldy root_top,x
+    ldx #$00
+@glow:
+    lda #$00
+    cpx root_t
+    bcc :+
+    lda #ROOT_BITS
+:
+    sta (dst_ptr),y
+    iny
+    inx
+    cpx #ROOT_GLOW
+    bne @glow
+    ldx root_x
+    rts
+
+; X = a laser going off: its root off screen now, its player free; the old
+; column clears over the next frames (root_clean). Keeps X.
+root_free:
+    ldy laser_root,x
+    bne :+
+    rts
+:
+    dey
+    lda #$FF
+    sta root_owner,y
+    lda #$00
+    sta root_edge,y
+    sta laser_root,x
+    lda root_top,x
+    sta root_dirty,y                    ; clear from its top
+    rts
+.endif
 
 ; Every frame, from UPDATE before the player's shots meet the band: the boss's
 ; shots in the band; then, in the fight, the beams on screen this frame against
@@ -1994,6 +2247,9 @@ laser_frame:
 @rts:
     rts
 @fight:
+.ifdef BOSS_BEAM_ROOT
+    jsr root_clean
+.endif
     jsr laser_collide
     lda #$00
     sta boss_laser_sizem
@@ -2034,6 +2290,9 @@ laser_frame:
     jsr laser_warn
 @place:
     jsr laser_place
+.ifdef BOSS_BEAM_ROOT
+    jsr root_draw
+.endif
 @next:
     dex
     bpl @laser
@@ -2103,6 +2362,9 @@ laser_place:
     lda boss_laser_centre,x
     sec
     sbc laser_t
+.ifdef BOSS_BEAM_CENTRE
+    sbc #$01                            ; S4b.2 probe: MEASURED 1 colour clock right of the core
+.endif
     sta boss_laser_edge,x
     rts
 
@@ -2121,6 +2383,9 @@ laser_killed:
 ; X = a laser: off now - no HPOS from the next DLI, its heat cell back, the
 ; engine bed back if it was warning. Keeps X.
 laser_off:
+.ifdef BOSS_BEAM_ROOT
+    jsr root_free
+.endif
     lda boss_laser_state,x
     cmp #LASER_WARN
     bne :+
@@ -2273,6 +2538,9 @@ laser_erase_step:
     cpy #$00
     bne :+
     sta PRIOR
+.ifdef BOSS_BEAM_ROOT
+    jsr root_restore
+.endif
     inc boss_laser_done
 :
     rts
@@ -2367,6 +2635,29 @@ laser_hostile_shots:
 ; The band DLI's phase 0 (A only): each laser's HPOS for the frame starting -
 ; its edge less the band position this frame shows, off screen outside the
 ; window - and SIZEM; the hit test reads boss_laser_hpos.
+.ifdef BOSS_BEAM_ROOT
+; The root of player 1 + index: its HPOS from its laser's edge exactly as
+; LASER_PUBLISH computes the missile's (A only).
+.macro ROOT_PUBLISH index
+    .local off, on
+    lda root_edge+index
+    beq off
+    sec
+    sbc boss_shown_pos
+    bcc off
+    cmp #(GAMEPLAY_LEFT_HPOS - BAND_ORIGIN_HPOS)
+    bcc off
+    cmp #(GAMEPLAY_LEFT_HPOS + GAMEPLAY_SCREEN_COLUMNS * 4 - BAND_ORIGIN_HPOS - LASER_BEAM_CLOCKS)
+    bcs off
+    adc #BAND_ORIGIN_HPOS               ; C=0
+    bne on
+off:
+    lda #$00
+on:
+    sta HPOSP1+index
+.endmacro
+.endif
+
 .macro LASER_PUBLISH index
     .local off, on
     lda boss_laser_edge+index
@@ -2393,6 +2684,16 @@ laser_publish:
     LASER_PUBLISH 3
     lda boss_laser_sizem
     sta SIZEM
+.ifdef BOSS_BEAM_ROOT
+    lda boss_laser_done
+    bne :+
+    ROOT_PUBLISH 0
+    ROOT_PUBLISH 1
+    lda #$03                            ; quad: one bit, four colour clocks, as the missile
+    sta SIZEP1
+    sta SIZEP2
+:
+.endif
     rts
 
 laser_bits:
@@ -2431,6 +2732,16 @@ laser_n:            .res 1
 laser_rr:           .res 1      ; S4b.1: the waiting order's cursor
 boss_laser_ready:   .res LASERS ; S4b.1: reloaded, waiting for a place (D3)
 boss_laser_phase:   .res LASERS ; S4b.1: the heat's frame in 4, from the warning's start
+.ifdef BOSS_BEAM_ROOT
+laser_root:         .res LASERS ; S4b.2 probe: its root player, 1 / 2, 0 none
+root_full:          .res LASERS ; the beam's column written
+root_top:           .res LASERS ; the root's first line
+root_owner:         .res 2      ; each player's laser, $FF free
+root_dirty:         .res 2      ; its old column's next line to clear, 0 clean
+root_edge:          .res 2      ; its laser's edge, for the DLI
+root_t:             .res 1
+root_x:             .res 1
+.endif
 boss_laser_reload_lo: .res LASERS
 boss_laser_reload_hi: .res LASERS
 boss_shots_admit_left: .res 1   ; AUD-04: meetings left this frame

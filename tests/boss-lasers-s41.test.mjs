@@ -19,7 +19,7 @@ import test from "node:test";
 import * as assets from "../scripts/boss-assets.mjs";
 import * as levels from "../scripts/level-compiler.mjs";
 import {
-  call, installRegion, label, nmi, placeBand, root, runBossEntry, visibleCells,
+  call, installRegion, label, labelsOf, nmi, placeBand, root, runBossEntry, visibleCells,
 } from "./boss-harness.mjs";
 
 const { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } = assets;
@@ -254,4 +254,22 @@ test("D3: a waiting emitter that is destroyed leaves the queue", () => {
     assert.equal(state(memory, waiting), OFF, `frame ${f}: the destroyed emitter's laser started`);
   }
   assert.ok(active(memory).length <= 2);
+});
+
+// S4b.2 (owner smoke findings, 2026-10-06): the comparison probes are build
+// flags (--emitter-art=A|B|C, --beam-root; scripts/build.mjs) - the default
+// build carries none of them: no beam-root code in the boss link, and the
+// beam's edge is the emitter's centre less half the beam (no centring shift).
+test("S4b.2: the emitter-art and beam-root probes stay out of the default build", () => {
+  for (const name of ["root_draw", "root_take", "root_free", "root_prepare", "laser_root"]) {
+    assert.ok(!labelsOf.boss.has(name), `the default boss link carries ${name}`);
+  }
+  const memory = install(fixtureOf(4), { level: 9, difficulty: 2 });
+  for (let f = 0; f < 400 && active(memory).length === 0; f += 1) frame(memory);
+  const on = active(memory).find((i) => state(memory, i) === WARN || state(memory, i) === BEAM);
+  assert.ok(on !== undefined, "no laser ran");
+  for (let f = 0; f < 60 && state(memory, on) !== BEAM; f += 1) frame(memory);
+  assert.equal(state(memory, on), BEAM);
+  assert.equal(memory[lbl("boss_laser_edge") + on], memory[lbl("boss_laser_centre") + on] - 2,
+    "the default beam's edge moved (the centring probe leaked in)");
 });

@@ -1274,7 +1274,7 @@ band part is `COLPF3`).
 | DMA-on maximum | 31,240 | 31,240 | the same |
 | Boss frames: worst fence margin | 12,974 (dc1 f11216) | 11,608 (dc2 f11435) | the same |
 | Boss frames: DMA-on maximum | 28,687 | 28,689 | the same |
-| Tier-4 four-beam fixture | — | worst four-beam margin 15,201, DMA-on 27,147; boss worst 13,169, DMA-on 27,723 | `laser-dodge-2-fire0` on `build/laser-fixture-4-level-1-s4` |
+| Tier-4 four-beam fixture | — | worst four-beam margin 15,189 (74 four-beam frames), DMA-on 27,248; boss worst 13,143, DMA-on 27,706 | `laser-dodge-2-fire0` on the final `build/laser-fixture-4-level-1-s4` (`72751798…`) |
 | AUD-04 cases, emulator, worst | missed frames (−4,324) | margin 5,706, DMA-on 27,819 | `aud04-inject`, §13.4 |
 | Boss stress, native (Q8 8,500 boss sector) | Q-B6 test 6,689 (single column) | fortress 5,408; four-laser 6,956; AUD-04 sweep 7,810 | `tests/boss-*.test.mjs` |
 | Slot A | 1,995 / 2,048 B | 2,035 / 2,048 B (13 free) | `build/manifest.json` |

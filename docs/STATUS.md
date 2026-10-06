@@ -399,7 +399,7 @@ it.**
 * **Worst fence margin:** 1,472, unchanged.
 * **DMA-on:** 31,240, unchanged.
 * **Boss frames:** worst 11,608 (`main` 12,974), DMA-on 28,689.
-* **Tier-4 four-beam fixture:** margin 15,201, DMA-on 27,147.
+* **Tier-4 four-beam fixture:** margin 15,189, DMA-on 27,248.
 * **Boss stress:** native worst 7,810 of 8,500.
 * **Slots:** A 2,035 / 2,048; C 2,006 / 2,048; scratch 249 / 256.
 * **Disk:** initial block 13,618 B; boot 107 sectors, unchanged.

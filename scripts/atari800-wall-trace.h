@@ -3472,8 +3472,35 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		}
 		if (target < 0) {
 			int target_right = ((frame / 72u) & 1u) == 0;
+			int threat = 0;
 			stick = target_right ? (x < 154u ? 0x07u : 0x0fu) :
 				(x > 94u ? 0x0bu : 0x0fu);
+			/* QA1 lets a boss shot fall down its gun's recess and leave the
+			 * band in that column: until a laser warns, the bot steps away
+			 * from a boss shot coming down on it, so it meets the beam whole
+			 * (the clause's ten units from full health). Slots 5-9. */
+			if (dftrace_boss_active() && dftrace_projectile_x != 0u &&
+				dftrace_projectile_y != 0u && dftrace_projectile_active != 0u) {
+				unsigned slot;
+				int block_right = 0, block_left = 0;
+				for (slot = 5u; slot < 10u; ++slot) {
+					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
+						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						continue;
+					/* Never towards a falling shot within 24 HPOS; away from
+					 * one within 12. */
+					if (dx >= 0) block_right = 1; else block_left = 1;
+					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+				}
+				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
+				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
+			}
+			if (threat < 0)
+				stick = x > 60u ? 0x0bu : 0x07u;
+			else if (threat > 0)
+				stick = x < 196u ? 0x07u : 0x0bu;
 		}
 		else {
 			stick = (int) x < target ? 0x07u : (int) x > target ? 0x0bu : 0x0fu;

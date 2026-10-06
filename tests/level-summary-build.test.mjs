@@ -208,10 +208,18 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   // install and slot C (547 on); the regions moved to 16 sectors each from 632
   // (632-695, a run of its own above). Region 1 is on the disk; regions 2-4
   // (648-695) are still empty, and so is the reservation past slot C.
+  // RE-POINTED M5b-S4b (owner decision Q7, 2026-10-06): slot D's run (the
+  // lasers, $1900) starts at 563, after slot C's 16-sector room, inside the
+  // reservation; the reservation between slot C's end and 563, and past slot
+  // D's end, is still empty.
   const slotCEnd = 547 + manifest.boss.slotC.sectors;
+  const slotDEnd = 563 + manifest.boss.slotD.sectors;
   assert.ok(atrSectors(528, slotCEnd - 528).some((byte) => byte !== 0), "the boss is on the disk");
-  assert.ok(atrSectors(slotCEnd, 584 - slotCEnd).every((byte) => byte === 0),
-    "528-583 past slot C must stay empty");
+  assert.ok(atrSectors(563, manifest.boss.slotD.sectors).some((byte) => byte !== 0), "slot D is on the disk");
+  assert.ok(atrSectors(slotCEnd, 563 - slotCEnd).every((byte) => byte === 0),
+    "528-583 between slot C and slot D must stay empty");
+  assert.ok(atrSectors(slotDEnd, 584 - slotDEnd).every((byte) => byte === 0),
+    "528-583 past slot D must stay empty");
   assert.ok(atrSectors(632, 16).some((byte) => byte !== 0), "region 1 is on the disk");
   assert.ok(atrSectors(648, 48).every((byte) => byte === 0), "regions 2-4 must stay empty");
 });

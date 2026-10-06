@@ -33,7 +33,11 @@ const realReport = () => JSON.parse(fs.readFileSync(reportPath, "utf8"));
 
 test("the recorded-failure list is one data file, and every entry carries a class and a measurement", () => {
   const recorded = loadRecordedGateFailures(root);
-  assert.ok(recorded.length > 0);
+  // M5b-S4b (owner decision Q9, 2026-10-06): the last recorded clause failure,
+  // lower-playfield-hostile-contact-atr-hard, was retired by name into
+  // removed_2026_10_06 - the list may be empty; every entry it holds still
+  // carries a class and a measurement.
+  assert.ok(Array.isArray(recorded));
   for (const entry of recorded) {
     assert.ok(recordedGateFailureClasses.includes(entry.class),
       `${entry.session} carries class ${entry.class}`);
@@ -74,13 +78,15 @@ test("the loader refuses a list entry without a class or a measurement", () => {
 });
 
 test("the release gate passes on the real report, recorded failures and all", () => {
-  const result = evaluateReleaseGate(realReport(), loadRecordedGateFailures(root));
+  const recorded = loadRecordedGateFailures(root);
+  const result = evaluateReleaseGate(realReport(), recorded);
   assert.equal(result.passed, true, releaseGateFailureMessage(result));
   assert.equal(result.timingAndDliPassed, true);
   // The point of the decision: it passes WHILE failures are recorded, and
-  // gate.passed is false in the report exactly as the rule requires.
-  assert.ok(result.recordedCount > 0);
-  assert.equal(realReport().gate.passed, false);
+  // gate.passed is false in the report exactly when the report carries any
+  // (S4b, Q9: the recorded list is empty and the report carries none).
+  assert.equal(result.recordedCount, recorded.length);
+  assert.equal(realReport().gate.passed, realReport().gate.behavioural_clause_failures.length === 0);
 });
 
 test("the release gate fails on an UNRECORDED gate failure", () => {
@@ -97,12 +103,25 @@ test("the release gate fails on an UNRECORDED gate failure", () => {
   assert.match(releaseGateFailureMessage(result), /UNRECORDED gate failure/);
 });
 
-test("the release gate fails when a recorded failure silently disappears", () => {
+// A report and a list carrying one recorded failure, as when one is open (S4b,
+// Q9: the real list is empty, so the case is built on the real report).
+function withRecordedFailure() {
   const report = realReport();
-  const [dropped] = report.gate.behavioural_clause_failures.splice(0, 1);
+  const entry = { session: "example-recorded-session", message: "example recorded clause failure",
+    class: "c-real-failure", measurement: "docs/diagnostics/example.md §1" };
+  report.gate.behavioural_clause_failures.push({ session: entry.session, message: entry.message });
+  report.gate.behavioural_clause_failure_count = report.gate.behavioural_clause_failures.length;
+  report.gate.passed = false;
+  return { report, recorded: [...loadRecordedGateFailures(root), entry] };
+}
+
+test("the release gate fails when a recorded failure silently disappears", () => {
+  const { report, recorded } = withRecordedFailure();
+  assert.equal(evaluateReleaseGate(report, recorded).passed, true, "the open recorded failure fails the gate");
+  const [dropped] = report.gate.behavioural_clause_failures.splice(-1, 1);
   report.gate.behavioural_clause_failure_count =
     report.gate.behavioural_clause_failures.length;
-  const result = evaluateReleaseGate(report, loadRecordedGateFailures(root));
+  const result = evaluateReleaseGate(report, recorded);
   assert.equal(result.passed, false);
   assert.deepEqual(result.clearedRecorded, [`${dropped.session}: ${dropped.message}`]);
   assert.match(releaseGateFailureMessage(result), /over-states what this build fails/);
@@ -122,9 +141,14 @@ test("the release gate fails when the report's own count or gate.passed disagree
   const miscounted = realReport();
   miscounted.gate.behavioural_clause_failure_count += 1;
   assert.equal(evaluateReleaseGate(miscounted, loadRecordedGateFailures(root)).passed, false);
+  // gate.passed says the opposite of what the report's list says (S4b, Q9: the
+  // real report passes; one with a recorded failure open does not).
   const misreported = realReport();
-  misreported.gate.passed = true;
-  const result = evaluateReleaseGate(misreported, loadRecordedGateFailures(root));
+  misreported.gate.passed = !misreported.gate.passed;
+  assert.equal(evaluateReleaseGate(misreported, loadRecordedGateFailures(root)).passed, false);
+  const { report: open, recorded } = withRecordedFailure();
+  open.gate.passed = true;
+  const result = evaluateReleaseGate(open, recorded);
   assert.equal(result.passed, false);
   assert.equal(result.passedFieldConsistent, false);
 });

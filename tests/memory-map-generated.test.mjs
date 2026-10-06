@@ -34,9 +34,12 @@ test("the generated memory map matches the current build", () => {
 
 // RE-POINTED M5b-S4a-i (owner answer Q-B5): the boss claims $0C00-$18FF, so
 // the measured-free low RAM that stays unclaimed is $1900-$1FFF (1,792 B).
-test("the generated map reports the measured-free low RAM and the misnamed STARFIELD", () => {
+// RE-POINTED M5b-S4b (owner decision Q7, 2026-10-06): slot D takes
+// $1900-$1FFF; the claim is $0C00-$1FFF, the boss sector only, and the map
+// says so; no measured-free low RAM is left unclaimed.
+test("the generated map reports the boss claim with slot D and the misnamed STARFIELD", () => {
   const block = currentBlock(document);
-  assert.match(block, /\| `\$1900-\$1FFF` \| 1,792 B \| measured-free \|/);
-  assert.match(block, /\| `\$0C00-\$18FF` \|[^\n]*boss claim \(owner answer Q-B5\)/);
+  assert.match(block, /\| `\$0C00-\$1FFF` \| 5,120 B \| slot \| boss claim \(owner answers Q-B5, Q7\)[^\n]*the boss sector only/);
+  assert.match(block, /\| `\$1900-\$1FFF` \| 1,792 B \| slot \| boss slot D/);
   assert.match(block, /\| `STARFIELD` \|[^\n]*\*\*misleading name\*\* \|/);
 });

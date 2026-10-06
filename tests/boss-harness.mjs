@@ -230,9 +230,15 @@ export function call(memory, address, { a = 0, x = 0, y = 0, hooks = {}, watch =
   return cpu;
 }
 
-// One NMI into `address`, run to its RTI. Returns the cycles it took.
-export function nmi(memory, address, { hooks = {} } = {}) {
+// One NMI into `address`, run to its RTI. Returns the cycles it took. The
+// interrupted code's registers and P are `a`, `x`, `y`, `p` (P as pushed: the
+// NMI keeps D on the NMOS 6502); `out.cpu` receives the CPU at the RTI's return.
+export function nmi(memory, address, { hooks = {}, a, x, y, p, out = null } = {}) {
   const cpu = new Nmos6502(memory, hooks);
+  if (a !== undefined) cpu.a = a;
+  if (x !== undefined) cpu.x = x;
+  if (y !== undefined) cpu.y = y;
+  if (p !== undefined) cpu.p = p;
   const back = 0x0002;
   cpu.push(back >> 8);
   cpu.push(back & 0xff);
@@ -241,6 +247,7 @@ export function nmi(memory, address, { hooks = {} } = {}) {
   let steps = 0;
   while (steps < 100_000 && cpu.pc !== back) { cpu.step(); steps += 1; }
   assert.notEqual(steps, 100_000, "the DLI never returned");
+  if (out !== null) out.cpu = cpu;
   return cpu.cycles;
 }
 

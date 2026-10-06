@@ -565,3 +565,61 @@ test("QA1: inside the band a boss shot rides the band's drift and stays in its g
     assert.deepEqual(drawn, [centre], `y ${y}, p ${p}: the shot is drawn in columns ${drawn}, not its gun's ${centre}`);
   }
 });
+
+// AUD-03 (owner addendum, 2026-10-06): the boss DLI runs binary arithmetic
+// (boss_apply_pos, the lasers' publish), and the NMI keeps the interrupted
+// code's D flag - the boss's own scoring runs between SED and CLD. Every
+// phase, every band position, D clear and set, with non-trivial registers:
+// the DLI's writes are the same either way, and it returns A, X, Y and P as
+// it found them.
+test("AUD-03: the boss DLI writes the same with D set as with D clear, every phase and position, and returns A, X, Y and P", () => {
+  const base = laserFixture(9);
+  const edges = [70, 130, 190, 236];
+  edges.forEach((edge, i) => {
+    setLaser(base, "state", i, i & 1 ? BEAM : WARN);
+    setLaser(base, "edge", i, edge);
+  });
+  base[lbl("boss_laser_sizem")] = 0x5a;
+  const regs = { a: 0x5a, x: 0xa5, y: 0x3c };
+  const run = (phase, pos, shown, p) => {
+    const memory = Uint8Array.from(base);
+    memory[main("loader_dli_phase")] = phase;   // src/main.s: gameplay_dli_phase = loader_dli_phase
+    memory[lbl("boss_shown_pos")] = phase === 0 ? pos : shown;
+    memory[lbl("boss_shown_lms")] = 0;
+    memory[lbl("boss_dli_pos")] = pos;
+    const writes = [];
+    const out = {};
+    nmi(memory, lbl("boss_dli"), { ...regs, p, out,
+      hooks: { write: (address, value) => {
+        if (address >> 8 !== 0x01) writes.push([address, value]);   // not the stack: the pushed P differs by design
+        return undefined;
+      } } });
+    return { writes, cpu: out.cpu };
+  };
+  const failures = [];
+  for (const phase of [0, 1, 2]) {
+    for (let pos = 0; pos < 64; pos += 1) {
+      for (const shown of phase === 1 ? [0, 63] : [0]) {
+        for (const carry of [0, 1]) {
+          const binary = run(phase, pos, shown, 0x24 | carry);
+          const decimal = run(phase, pos, shown, 0x2c | carry);
+          const where = `phase ${phase}, pos ${pos}, shown ${shown}, C ${carry}`;
+          if (JSON.stringify(decimal.writes) !== JSON.stringify(binary.writes)) {
+            const at = decimal.writes.findIndex((w, k) => JSON.stringify(w) !== JSON.stringify(binary.writes[k]));
+            failures.push(`${where}: write ${at} is ${JSON.stringify(decimal.writes[at])} with D set, ` +
+              `${JSON.stringify(binary.writes[at])} with D clear`);
+          }
+          for (const [run1, p] of [[binary, 0x24 | carry], [decimal, 0x2c | carry]]) {
+            const back = { a: run1.cpu.a, x: run1.cpu.x, y: run1.cpu.y, p: run1.cpu.p };
+            if (JSON.stringify(back) !== JSON.stringify({ ...regs, p }))
+              failures.push(`${where}, P $${p.toString(16)}: returned ${JSON.stringify(back)}`);
+          }
+        }
+      }
+    }
+  }
+  const perPhase = [0, 1, 2].map((phase) => failures.filter((f) => f.startsWith(`phase ${phase},`)).length);
+  const audit = failures.filter((f) => f.startsWith("phase 1, pos 14, shown 0,"));   // the audit's case
+  assert.deepEqual([...audit, ...failures.slice(0, 6)], [],
+    `${failures.length} cases differ (phase 0/1/2: ${perPhase.join("/")})`);
+});

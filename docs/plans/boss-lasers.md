@@ -1,9 +1,10 @@
 # Plan — M5b-S4b: the boss lasers
 
 **Status: implemented, pending the owner's smoke — `OWNER-SMOKE CANDIDATE`
-(2026-10-06).** Phase B is built to §12's owner decisions and the addendum's
-(§13: AUD-03, the AUD-04 cap); as built, the figures and the clause coverage
-are §14. Branch `feat/boss-lasers` from `main` `1a3c8bf`. §0–§11 are Phase A's
+(2026-10-07).** Phase B is built to §12's owner decisions, the addendum's (§13:
+AUD-03, the AUD-04 cap) and the smoke rounds' (§15: D1, D3; §16: B2 reversing
+Q1's option A, art A, the taller emitter, the centred beam); the final figures
+are §16, the clause coverage §14. Branch `feat/boss-lasers` from `main` `1a3c8bf`. §0–§11 are Phase A's
 record (audit, options, previews), kept as written: their probes were reverted
 and none of their output is committed as evidence.
 
@@ -1433,3 +1434,66 @@ the field shows, or share the players by band zone.
 | Two beams on: worst fence margin / DMA-on (Atari800, tier 4) | 14,460 / 27,530 (S4b.1) | 12,575 / 27,399 | 14,761 / 27,448 |
 | Trace clauses | pass | stale-sprite failure | pass |
 | P1 / P2 | free | taken | free (S5's force field) |
+
+## 16. Final (owner decisions of 2026-10-06): B2, art A, the taller emitter — status: implemented, pending the owner's smoke
+
+**Decisions:**
+
+* **B2** (2026-10-06; **reverses Q1's option A**):
+  * The lasers use missiles M1 / M2 in COLPM1 / COLPM2 = `$46`, one for each
+    running laser (at most two, D3).
+  * The colours are set in the boss sector only and restored on leaving (the
+    Heavy's hull colour); PRIOR is never written there.
+  * The reason: with option A's fifth-player bit the beam's band segment took
+    COLPF3, the hull's `$32`, so the beam read as starting at the band's edge
+    (MEASURED, §15.2).
+* **Superseded** (2026-10-06):
+  * **QA2** — phase 1's COLPF3-first store order: reverted to main's order.
+    Nothing else needed it once no laser pixel is COLPF3.
+  * **QA3** — S5's refusal of an emitter region with a dark COLPF3: obsolete.
+  * **QA4** — the beam flashing with the band: gone, the beam is COLPM.
+* **The beam root is not shipped** (2026-10-06). Its code, flag and tests are
+  removed. Findings: §15.2, §15.4.
+  * It cost 476 B of slot D (1,784 of 1,792) and 670 native cycles on the
+    worst frame (8,245 of 8,500).
+  * It took P1 / P2.
+  * It failed the trace's stale-sprite clause (P1 / P2's memory) on 2,043
+    frames.
+* **Art A** (lens) for region 1's emitter and the fixtures' emitters; every
+  plate shares one cracked and one broken look; the warning heat reuses the
+  spark and muzzle glyphs.
+  * The emitter spans rows 1–3, its bottom level with gun-2's and gun-4's; the
+    added row repeats the housing row.
+  * `cavityRows` 3, as the turrets.
+  * The strip beside its base cut (decision O): cell (34, 3).
+* **Beam centring** as probed: the 4- and 2-clock beam centres on the lens
+  core, pinned by its test. The warning's thinnest 1-clock pulse sits half a
+  colour clock right; **accepted**.
+* **S5:** P1 / P2 stay free in the boss sector for the force field. §15.3's
+  conflict is **resolved**.
+* **Unchanged:**
+  * D1, D3, AUD-03, AUD-04, QA1.
+  * Slot D at `$1900`, with the boss claim in the boss sector only.
+  * The 8,500 boss-sector limit.
+
+**Build flags:** the probe flags (`--emitter-art`, `--beam-root`,
+`--beam-b2`) are gone. `--laser-fixture=2|4` stays: the tier-2 and tier-4
+fixture builds and `tests/build-variants.test.mjs` use it. `--level=N:sector=M`
+(the debug route) is unchanged.
+
+**Final figures** (bound ATR `3df058a6…`; `main` `1a3c8bf` in brackets, its own
+trace run in a temporary worktree):
+
+| Figure | Value | Source |
+| --- | ---: | --- |
+| Worst fence margin | 1,472, 2-sweep-fire6 f311 (1,472) | full trace |
+| DMA-on maximum | 31,240 (31,240) | the same |
+| Boss frames: worst margin / DMA-on | 10,040 dc2 f8735 / 28,879 (12,974 / 28,687) | the same |
+| Tier-4 fixture, two beams on (648 frames): worst margin / DMA-on | 14,761 / 27,448 | `laser-dodge-2-fire0` |
+| Boss stress, native (8,500) | 7,670 two-laser; AUD-04 sweep 7,619; fortress 5,653 | `tests/boss-*.test.mjs` |
+| Slot A / C / D | 2,032 / 2,006 / 1,480 B (1,995 / 2,003 / —) | `build/manifest.json` |
+| `$1900–$1FFF` remainder | 312 B (`$1EC8–$1FFF`) | the same |
+| Region 1's charset + look table | 1,018 of 1,024 B (994) | the converter |
+| Initial block / boot sectors | 13,618 B / 107 (13,618 / 107) | `build/manifest.json` |
+| Non-boss frames | identical to `main` in all 52 shared sessions | CSV comparison |
+| Fight EASY / MEDIUM / HARD | 38.3 / 56.2 / 71.4 s, 1 / 1 / 1 deaths (46.0 / 48.6 / 71.2 s, 0 / 0 / 0) | `director-complete-*` |

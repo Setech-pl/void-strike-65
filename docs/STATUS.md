@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-06 (feat/boss-lasers: M5b-S4b the boss lasers, the AUD-03 CLD and the AUD-04 two-meetings cap, OWNER-SMOKE CANDIDATE; before it feat/plasma-fx: the player side mint $AE reverses decision U; small enemy break-ups in the enemy bank and the stepped flash; the green Bomber OWNER-ACCEPTED; follow-ups fix/broadside-scan-hull-map and the Bomber at 1 HP)
+Last update: 2026-10-07 (feat/boss-lasers: M5b-S4b the boss lasers - B2 missiles, art A, D1/D3, AUD-03, AUD-04 - OWNER-SMOKE CANDIDATE; before it feat/plasma-fx: the player side mint $AE reverses decision U; small enemy break-ups in the enemy bank and the stepped flash; the green Bomber OWNER-ACCEPTED; follow-ups fix/broadside-scan-hull-map and the Bomber at 1 HP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -354,62 +354,54 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## M5b-S4b — the boss lasers — `OWNER-SMOKE CANDIDATE` (2026-10-06)
+## M5b-S4b — the boss lasers — `OWNER-SMOKE CANDIDATE` (2026-10-07)
 
 **Branch and plan:** `feat/boss-lasers` from `main` `1a3c8bf`. The plan and
 its record are [plans/boss-lasers.md](plans/boss-lasers.md): Phase A §0–§11,
-the owner decisions §12, the addendum §13, as built §14.
+decisions §12, addendum §13, smoke rounds §15, final §16.
 
-**ATR:** `6b44d477f36931eb3575ecbd2c0f2a0bb94768b32355c8a10365bfab2b94f38b`,
-evidence bound (`2e3f394`).
+**ATR:** `3df058a6a0ab756c7769c4ad121699a3d3c49013d5f647ff21c7ee6057a73f3a`,
+evidence bound.
 
-**What changed:**
+**What the boss sector gains:**
 
-* **The emitters fire lasers** (option A: the missiles with `PRIOR $10`, in
-  the boss sector only, restored on leaving it).
-* **The tier:** 1 / 2 / 4 by level.
-* **The warning:** 25 frames — the heated cell, the pulsing line and a rising
-  tone on channel 3.
-* **The beam:** 50 frames.
+* **Who fires lasers:** the emitters only (D1: one weapon per module), 1 / 2 /
+  4 by tier.
+* **Cadence:** each emitter on its own reload (D3, level data per difficulty:
+  warning 40 / 32 / 25 frames, reload 300 / 225 / 150). At most two lasers
+  warn or fire at once, in a rotating order.
+* **The beam (B2):** missiles M1 / M2 in COLPM1 / COLPM2 `$46`, leaving the
+  lens core and bright through the band and below. PRIOR is never written in
+  the boss sector; P1 / P2 stay free for S5's force field.
+* **The emitter's look:** art A, a lens projector, rows 1–3, as tall as the
+  lower turrets; the beam is centred on its core.
 * **Damage:** EASY 5, MEDIUM 10, HARD 10, at most once per firing; the beam
   absorbs the player's shots.
-* **Where it lives:** slot D at `$1900` (1,114 / 1,792 B, boss sector only;
-  678 B of `$1900–$1FFF` left for S5).
-* **The boss's shots** are born at the gun's muzzle and fall down its recess
-  inside the band (QA1).
-* **The band's last-line DLI** writes `COLPF3` first (QA2); `CLD` at the boss
-  DLI's entry (AUD-03).
-* **At most two player shots meet the boss a frame** (AUD-04).
-
-**The multi-kill frame defect existed on `main` before S4b, and S4b fixes
-it.**
-
-* On `main`, region 1 as shipped, no laser: shots meeting four or five
-  modules in one frame cost up to 11,438 native cycles and missed a PAL frame
-  on the emulator (fence margin down to −2,388).
-* On the tier-4 fixture, with four lasers heating, the worst was −4,324.
-* With the cap (owner decision AUD-04, 2026-10-06), a later shot waits a
-  frame, its damage counted once.
-* Every case now passes: worst margin 5,706, DMA-on 27,819.
-* Gameplay: a volley meeting more than two modules lands over 2–3 frames
-  (40–60 ms).
+* **Boss shots:** born at the gun's muzzle and riding the band (QA1).
+* **AUD-03 / AUD-04:** `CLD` in the boss DLI; at most two player shots meet the
+  boss a frame. **The multi-kill frame defect existed on `main` before S4b
+  and is fixed here.**
+* **Reversed or superseded:** Q1's option A (its beam read as starting at the
+  band's edge) is reversed by B2; QA2, QA3 and QA4 are superseded. The beam
+  root (P1 / P2) is not shipped: §16 keeps its findings.
 
 **Gates (all held):**
 
 * **Worst fence margin:** 1,472, unchanged.
 * **DMA-on:** 31,240, unchanged.
-* **Boss frames:** worst 11,608 (`main` 12,974), DMA-on 28,689.
-* **Tier-4 four-beam fixture:** margin 15,189, DMA-on 27,248.
-* **Boss stress:** native worst 7,810 of 8,500.
-* **Slots:** A 2,035 / 2,048; C 2,006 / 2,048; scratch 249 / 256.
-* **Disk:** initial block 13,618 B; boot 107 sectors, unchanged.
-* **Non-boss frames:** identical to `main`'s in all 52 shared trace sessions.
-* **Fight lengths EASY / MEDIUM / HARD:** 46.0 / 47.1 / 71.1 s (`main` 46.0 /
-  48.6 / 71.2); no tuning.
+* **Boss frames:** worst 10,040, DMA-on 28,879.
+* **Tier-4 fixture, two beams on:** 14,761 / 27,448.
+* **Boss stress, native:** 7,670 of 8,500.
+* **Slots:** A 2,032; C 2,006; D 1,480 of 1,792 (312 B of `$1900–$1FFF`
+  left).
+* **Region 1's charset + look table:** 1,018 of 1,024 B.
+* **Initial block:** 13,618 B; boot 107 sectors.
+* **Non-boss frames:** identical to `main` in all 52 shared trace sessions.
+* **Fights EASY / MEDIUM / HARD:** 38.3 / 56.2 / 71.4 s, one bot death each
+  (`main` 46.0 / 48.6 / 71.2); no tuning (M8).
 
 **Recorded gate failures:** 1 → 0. `lower-playfield-hostile-contact-atr-hard`
-is retired by name; its requirement now lives in
-`lower-playfield-laser-contact-atr-hard`.
+is retired by name for `lower-playfield-laser-contact-atr-hard`.
 
 **Pending:** the owner's hardware smoke.
 

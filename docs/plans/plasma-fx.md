@@ -860,3 +860,118 @@ harness fix and 15 after it - the same 15 as B1.1 (the evidence-bound tests of
 
 B1.2 stops for the owner's smoke of the seven builds of §12.7 and the choice of
 the player-side colour ($1E, $9E or $AE); B2 (§9) follows that choice.
+
+## 13. B1.3 — Bomber colour comparison (2026-10-06)
+
+Owner answers to the B1.2 stop: the player's shot colour leans to `$AE`, to be
+seen with a different Bomber colour before both are chosen. B1.3 adds a review
+parameter and builds; **the default build is unchanged**. B2 waits for both
+choices.
+
+### 13.1 Where the colours come from
+
+| what | value | source |
+| --- | --- | --- |
+| Bomber hue | `BOMBER_HULL_HUE` `0xC0` (`BOMBER_HULL_HUE_OVERRIDE` for review builds) | `src/c/lifecycle.c:154-163` |
+| Bomber full-HP colour | `HULL_COLOUR_BOMBER` = hue `\| $08` = `$C8`, published to COLPM1/COLPM2 at admission | `src/c/lifecycle.c:163`, table `heavy_record_hull_colour` `:1332-1335`, `heavy_publish_hull_colour` `src/hybrid/c-asm-abi.s:418-422` |
+| Bomber ramp, per tick | hue `\| (HP << 1)`: HP 4/3/2/1 = `$C8 $C6 $C4 $C2` (body; the HP is the shading, there is no second shade) | `bomber_colour()` `src/c/lifecycle.c:1427-1440`, written per member to `COLPM1,x` `src/hybrid/heavy-member.s:59-60` |
+| charge telegraph | `+BOMBER_CHARGE_LUMA` 4 while it aims (`$CC` at HP 4) | `src/c/lifecycle.c:183`, `:1437-1438` |
+| hit flash | `+BOMBER_FLASH_LUMA` 6 for `BOMBER_FLASH_FRAMES` 6 after a hit (`$CE` at HP 4) | `src/c/lifecycle.c:186-188`, `:1435-1436`; overflow proof `:265-270` |
+| Bomber break-up | not the hull colour: the B1.2 effect cells, white COLPF0 and enemy COLPF3 `$46`, and the COLBK flash `$1E $3C $82 $80` | `src/main.s` stage list (§12.3) |
+| Raider (Heavy) | `HULL_COLOUR_RAIDER` `$44`, one colour, no ramp; restored at recycle for the broadside missiles M1/M2 | `src/c/lifecycle.c:134`, `:647`, `:1052` |
+| Raider (Light formation) | `ENEMY_BODY_COLOR` `$44` (`ENEMY_RUNTIME_BODY_COLOR`) | `build/enemy-roster.inc:36` from `assets/graphics/enemy-roster.json`; `src/main.s:680`, `:2666`, `:11597` |
+| player ship | P0 hull `$0E`, shield `$84`, damage flash `$42` | `src/main.s:571-578` |
+| P3: capsule / engine plume | capsule GOLD `PICKUP_BOOST_COLOUR` `$1C` in open space, engine plume `$28` in capital sectors | `src/main.s:577`, `:586`; operands `publish_colpm3_open_operand` / `publish_colpm3_capital_operand` |
+| P3: player death mask | fire cycle `$1E $1C $2A $28 $26 $34` | `player_death_fire_colours`, `src/main.s:4815` |
+
+**The green decision.** Commit `6e05644` (2026-09-23) and `docs/STATUS.md`
+"Bomber hull colour — green (`OWNER-SMOKE CANDIDATE`, 2026-09-23)": *"The
+owner's smoke of 2026-09-23 rejected the Bomber as blue. ... `HULL_COLOUR_BOMBER`
+was `$88`, which is the same byte as `GAMEPLAY_COLPF1`, the allied steel."*
+and *"Why green and not the owner's red fallback. ... Red does not: `$40 | $08`
+= `$48` ramps through `$44` at 2 HP, byte-identical to the Raider, which is the
+very collision 4.5d moved the Bomber to fix."* The owner's own input on record
+is the rejection of blue and red as the fallback; green and the reason against
+red are the implementing session's, and the section is still marked
+`OWNER-SMOKE CANDIDATE` (no later acceptance is recorded).
+`docs/owner-decisions-2026-09-11.md` §21 records the earlier owner acceptance
+of the blue HP ramp (4.5d, 2026-09-18).
+
+### 13.2 Candidates and distances
+
+Each keeps today's luminances (HP 8/6/4/2, charge +4, flash +6) and changes
+only the hue. CIEDE2000 in the Atari800 PAL palette (the `PLTE` of an emulator
+screenshot, §2; this script reproduces §2's 20.4, 23.2, 34.1 and 10.2) of the
+full-HP colour to:
+
+| Bomber | RGB | shot `$AE` | enemy PF3 `$46` | steel `$88` | shot head `$0E` | capsule `$1C` | Raider `$44` | black `$00` |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `$C8` green (today) | 82,132,13 | 34.1 | 69.3 | 52.4 | 38.0 | 32.8 | 70.9 | 44.3 |
+| `$08` grey | 104,104,104 | 42.9 | 26.0 | 19.6 | 33.7 | 32.1 | 29.6 | 30.5 |
+| `$68` violet | 124,77,188 | 57.3 | **16.3** | 19.3 | 43.8 | 55.3 | **21.8** | 40.0 |
+| `$E8` olive | 126,110,13 | 42.4 | 55.0 | 52.2 | 39.0 | 24.3 | 56.6 | 40.3 |
+| `$28` orange | 155,84,70 | 58.8 | 25.8 | 36.0 | 40.3 | 30.3 | 29.1 | 37.5 |
+
+Flags (every candidate built anyway):
+
+- **Hue shared with the Raider or the capsule: none.** The Raider is one colour
+  `$44` (hue 4, no ramp) and the capsule one colour `$1C` (hue 1).
+- **`$28` orange shares exact bytes with player PMG colours**: its HP-4 colour
+  `$28` is the engine plume (COLPM3, capital sectors) and the death mask's
+  `$28`; `$26` and `$2A` (HP 3, HP 2 charging) are in the death fire cycle.
+- **`$08` grey reaches white**: HP 4 flashing is `$0E`, the byte of COLPF0, the
+  enemy shot head and the player's hull; it is also the closest to the allied
+  steel (19.6).
+- **`$68` violet is the nearest to the enemy**: 16.3 to the enemy hull's COLPF3
+  and 21.8 to the Raider, the lowest of the five.
+
+### 13.3 The parameter
+
+`node scripts/build.mjs --bomber-colour=C8|08|68|E8|28` (composes with
+`--player-colour=` and `--level=N:sector=M`) passes
+`BOMBER_HULL_HUE_OVERRIDE`, the define the existing `--bomber-hull=red` variant
+already used, into `src/c/lifecycle.c`'s compile; output in
+`build/player-colour-AE-bomber-XX[-level-1-s3]/` or `build/bomber-colour-XX/`.
+No source byte changed. **Default build byte-identical**: without parameters
+the ATR is `74959845c58db910d3ce2c6d307a4507bf7e19ac87b06f5d242450fb84ed8cba`
+at `db34a3a` and after the change (`--candidate`; a plain `npm run build`
+refuses at both, by design, because `dist/`'s evidence binds `main`'s ATR). The
+explicit `C8` builds reproduce B1.2's `$AE` builds byte for byte.
+
+### 13.4 Builds (player shot `$AE`)
+
+The earliest Bomber: `--level=1:sector=3` (sector 4), whose first Heavy
+formation is a Bomber pair at frame 1 of the `level-timeline` probe on every
+difficulty (from the level-1 start: frames 301 / 253 / 205, easy / medium /
+hard). Level 1 never flies a Bomber over a capital hull: its Bombers come in
+sectors 1, 3 and 4 (frames 205-364, then from 1959), the enemy capital in
+sector 2 (frames 545-1632, hard).
+
+| Bomber | build | full path | SHA-256 prefix |
+| --- | --- | --- | --- |
+| `$C8` | level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-C8/void-strike-65.atr` | `e0aa70620e1ae074` |
+| `$C8` | sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-C8-level-1-s3/void-strike-65.atr` | `2c9a413f82124b97` |
+| `$08` | level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-08/void-strike-65.atr` | `e45dc7ed79db58b4` |
+| `$08` | sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-08-level-1-s3/void-strike-65.atr` | `31631dd8cf0f03e3` |
+| `$68` | level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-68/void-strike-65.atr` | `67ad9d88918ac0ed` |
+| `$68` | sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-68-level-1-s3/void-strike-65.atr` | `679715084ac7d2ef` |
+| `$E8` | level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-E8/void-strike-65.atr` | `e421e566d7b06ffe` |
+| `$E8` | sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-E8-level-1-s3/void-strike-65.atr` | `9f79645914dce082` |
+| `$28` | level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-28/void-strike-65.atr` | `9778cd5efce09dd7` |
+| `$28` | sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-bomber-28-level-1-s3/void-strike-65.atr` | `1134dedba8d9f0e6` |
+
+Launch: `atari800 -xe -pal -nobasic <full path>`.
+
+Preview (scratch, not committed):
+`/Users/marcinkrzetowski/Projects/dark-fighter/build/bomber-colour-preview/bomber-colour-preview.png`
+- the real PMG art (`SCYTHE_BOMBER` quad, Raider double, the RAPID capsule),
+the PairShot glyph in `$AE`, over the starfield of an Atari800 capture and over
+the enemy hull of another (that panel is a composite: see above), with each
+hue's ramp.
+
+### 13.5 Tests
+
+New: `heavy-bomber` "--bomber-colour builds a review variant with only the
+Bomber hue changed" (its build directory, `$08` in the hull table with the
+Raider rows `$44`, `dist/` untouched, an unknown hue refused); on `db34a3a` the
+flag does not exist and the test fails. Nothing re-pointed.

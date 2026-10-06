@@ -196,10 +196,29 @@ if (bomberHullSlug && !bomberHullValues.has(bomberHullSlug.toLowerCase())) {
   throw new Error(`Unknown Bomber hull build ${bomberHullSlug}`);
 }
 // green is the default the source already states, so only red is a variant.
-const bomberHullValue = bomberHullSlug
+const bomberHullFallbackValue = bomberHullSlug
   && bomberHullSlug.toLowerCase() !== "green"
   ? bomberHullValues.get(bomberHullSlug.toLowerCase())
   : null;
+// Plasma FX B1.3 (docs/plans/plasma-fx.md §13): the Bomber's hue as a review
+// parameter beside the player-side colour, named by its full-HP byte. Only the
+// hue changes; the HP luminance ramp (8/6/4/2), the charge +4 and the flash +6
+// are the source's. C8 is today's green, built explicitly for the comparison.
+// Review variant: never dist/, no gate; the default build takes no flag.
+const bomberColourArgument = process.argv.find((argument) =>
+  argument.startsWith("--bomber-colour="));
+const bomberColourSlug = bomberColourArgument?.slice("--bomber-colour=".length).toUpperCase();
+const bomberColourHues = new Map([["C8", 0xc0], ["08", 0x00], ["68", 0x60], ["E8", 0xe0], ["28", 0x20]]);
+if (bomberColourSlug && !bomberColourHues.has(bomberColourSlug)) {
+  throw new Error(`Unknown Bomber colour build ${bomberColourSlug}; ` +
+    `expected one of ${[...bomberColourHues.keys()].join(", ")}`);
+}
+if (bomberColourSlug && bomberHullFallbackValue !== null) {
+  throw new Error("--bomber-colour and --bomber-hull cannot be combined");
+}
+const bomberColourValue = bomberColourSlug ? bomberColourHues.get(bomberColourSlug) : null;
+const bomberHullValue = bomberColourValue ?? bomberHullFallbackValue;
+const bomberColourSuffix = bomberColourValue === null ? "" : `-bomber-${bomberColourSlug}`;
 // Capital hull set v1 step 2, §7 and decision 1: the campaign does not exist
 // yet, so the only way to smoke a region is to bake it into level 1. The flag
 // carries the whole REGION — the style's hull block and that region's allied
@@ -293,7 +312,9 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 const levelDebugSuffix = levelDebugId === null
   ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
 const variantDirectoryName = playerColourValue !== null
-  ? `player-colour-${playerColourSlug.toUpperCase()}${levelDebugSuffix}`
+  ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
+  : bomberColourValue !== null
+  ? `bomber-colour-${bomberColourSlug}${levelDebugSuffix}`
   : enemyReviewHarness
   ? "enemy-review"
   : enemyCombatReviewHarness
@@ -3586,7 +3607,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null
+    buildVariant: playerColourValue !== null || bomberColourValue !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4974,14 +4995,17 @@ async function build() {
     } else if (menuSteelTwinkle) {
       console.log(`  variant : menu stars, steel twinkling too (steel -> off -> steel)`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
-    } else if (bomberHullValue !== null) {
+    } else if (bomberHullFallbackValue !== null) {
       console.log(`  variant : Bomber hull ${bomberHullSlug.toLowerCase()} ` +
         `(hue $${bomberHullValue.toString(16).padStart(2, "0")}, full HP ` +
         `$${(bomberHullValue | 0x08).toString(16)})`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
-    } else if (playerColourValue !== null) {
-      console.log(`  variant : player-side COLPF2 $${playerColourSlug.toUpperCase()}` +
-        (levelDebugId === null ? "" : `, level ${levelDebugId} entered at sector ${levelDebugSector + 1}`));
+    } else if (playerColourValue !== null || bomberColourValue !== null) {
+      console.log(`  variant : ` + [
+        playerColourValue === null ? null : `player-side COLPF2 $${playerColourSlug.toUpperCase()}`,
+        bomberColourValue === null ? null : `Bomber hull $${bomberColourSlug} ramp`,
+        levelDebugId === null ? null : `level ${levelDebugId} entered at sector ${levelDebugSector + 1}`,
+      ].filter(Boolean).join(", "));
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (levelDebugId !== null) {
       console.log(`  variant : debug route - level ${levelDebugId}` +

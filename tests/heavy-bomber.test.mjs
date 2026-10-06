@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
@@ -599,4 +601,30 @@ test("the Bomber hull hue is green and never collides with the allied steel", ()
     assert.notEqual(value & 0xf0, Number.parseInt(hue[1], 16),
       `the Bomber hull shares a hue with allied steel $${value.toString(16)}`);
   }
+});
+
+// Plasma FX B1.3 (docs/plans/plasma-fx.md §13): the Bomber's hue is a review
+// parameter beside the player-side colour. It lands in its own build
+// directory, changes the hue the C hull table and ramp are built from, and
+// never touches dist/; the default build takes no flag (lifecycle.c still
+// states hue C above).
+test("--bomber-colour builds a review variant with only the Bomber hue changed", () => {
+  const dist = path.join(root, "dist", "void-strike-65.atr");
+  const before = crypto.createHash("sha256").update(fs.readFileSync(dist)).digest("hex");
+  execFileSync(process.execPath, ["scripts/build.mjs", "--player-colour=AE", "--bomber-colour=08", "--quiet"],
+    { cwd: root, stdio: "pipe" });
+  const directory = path.join(root, "build", "player-colour-AE-bomber-08");
+  assert.ok(fs.existsSync(path.join(directory, "void-strike-65.atr")));
+  const manifest = JSON.parse(fs.readFileSync(path.join(directory, "manifest.json"), "utf8"));
+  assert.equal(manifest.buildVariant, "player-colour-AE-bomber-08");
+  const generated = fs.readdirSync(directory).find((name) => name.endsWith("-lifecycle-generated.s"));
+  assert.ok(generated, "the variant compiles its own lifecycle.c");
+  const table = /_heavy_record_hull_colour:\s*((?:\.byte\s+\$[0-9A-F]{2}\s*)+)/
+    .exec(fs.readFileSync(path.join(directory, generated), "utf8"));
+  assert.deepEqual([...table[1].matchAll(/\$([0-9A-F]{2})/g)].map((match) => match[1]),
+    ["44", "44", "44", "08"], "the Raider rows keep $44; the Bomber row is $08");
+  assert.equal(crypto.createHash("sha256").update(fs.readFileSync(dist)).digest("hex"), before,
+    "dist/ is not touched");
+  assert.throws(() => execFileSync(process.execPath, ["scripts/build.mjs", "--bomber-colour=44", "--quiet"],
+    { cwd: root, stdio: "pipe" }), /Unknown Bomber colour build 44/);
 });

@@ -520,6 +520,13 @@ function compilePayload(source, context) {
 // 62-B block stays zero for S5.
 export const BOSS_DEF_HP_SCALE_OFFSET = 2;
 export const BOSS_DEF_LASER_DAMAGE_OFFSET = 5;
+// M5b-S4b.1 (owner decision D3, 2026-10-06): an emitter's warning (frames, 3
+// bytes, EASY / MEDIUM / HARD) and its reload (frames, 16-bit: 3 low bytes,
+// then 3 high bytes) per difficulty. M8 tunes the numbers.
+export const BOSS_DEF_LASER_WARNING_OFFSET = 8;
+export const BOSS_DEF_LASER_RELOAD_OFFSET = 11;
+export const BOSS_LASER_WARNING_DEFAULTS = Object.freeze({ easy: 40, medium: 32, hard: 25 });
+export const BOSS_LASER_RELOAD_DEFAULTS = Object.freeze({ easy: 300, medium: 225, hard: 150 });
 export const BOSS_LASER_DAMAGE_DEFAULTS = Object.freeze({ easy: 5, medium: 10, hard: 10 });
 export const BOSS_HP_SCALES = Object.freeze({ 0.5: -2, 0.75: -1, 1: 0, 1.25: 1, 1.5: 2 });
 export const BOSS_HP_SCALE_DEFAULTS = Object.freeze({ easy: 0.75, medium: 1, hard: 1.25 });
@@ -553,6 +560,15 @@ function compileBossDef(source, context, bossId) {
   ["easy", "medium", "hard"].forEach((difficulty, index) => {
     block[BOSS_DEF_LASER_DAMAGE_OFFSET + index] = requireInteger(context, "bossDef",
       `laserDamage.${difficulty}`, laserDamage[difficulty], 1, 10);
+  });
+  const laserWarning = { ...BOSS_LASER_WARNING_DEFAULTS, ...(def.laserWarning ?? {}) };
+  const laserReload = { ...BOSS_LASER_RELOAD_DEFAULTS, ...(def.laserReload ?? {}) };
+  ["easy", "medium", "hard"].forEach((difficulty, index) => {
+    block[BOSS_DEF_LASER_WARNING_OFFSET + index] = requireInteger(context, "bossDef",
+      `laserWarning.${difficulty}`, laserWarning[difficulty], 4, 255);
+    const reload = requireInteger(context, "bossDef", `laserReload.${difficulty}`, laserReload[difficulty], 1, 0xffff);
+    block[BOSS_DEF_LASER_RELOAD_OFFSET + index] = reload & 0xff;
+    block[BOSS_DEF_LASER_RELOAD_OFFSET + 3 + index] = reload >> 8;
   });
   return block;
 }
@@ -977,6 +993,8 @@ export function renderLevelDefCa65Include() {
   lines.push(`LEVEL_PAYLOAD_BOSS_DEF = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.bossDef).toString(16).toUpperCase()}`);
   lines.push(`BOSS_DEF_LASER_DAMAGE = ${BOSS_DEF_LASER_DAMAGE_OFFSET}`);
+  lines.push(`BOSS_DEF_LASER_WARNING = ${BOSS_DEF_LASER_WARNING_OFFSET}`);
+  lines.push(`BOSS_DEF_LASER_RELOAD = ${BOSS_DEF_LASER_RELOAD_OFFSET}`);
   lines.push(`LEVEL_PAYLOAD_WEAPON = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.weaponGlyph).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_LIGHT_LOOK_BYTES = ${LIGHT_LOOK_BYTES}`);

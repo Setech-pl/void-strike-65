@@ -48,8 +48,7 @@
     "hp": 8
   },
   "laser": {
-    "_": "S4b (owner decisions Q3, Q11, 2026-10-06): an emitter's laser warns for warningFrames (the emitter's bottom cell heats, the line pulses, a rising tone on channel 3) and fires for beamFrames; its reload (the emitter's) is the countdown's like any weapon's. Placeholders; M8 tunes them.",
-    "warningFrames": 25,
+    "_": "S4b (owner decisions Q3, Q11, 2026-10-06): an emitter's laser fires for beamFrames after its warning (the emitter's bottom cell heats, the line pulses, a rising tone on channel 3). S4b.1 (owner decision D3): the warning and the reload are the level's, per difficulty (bossDef laserWarning, laserReload); an emitter is never in the pulse rotation and carries no reload (D1). Placeholder; M8 tunes it.",
     "beamFrames": 50
   },
   "nozzles": {
@@ -119,8 +118,7 @@
       "hp": 10,
       "score": 60,
       "slot": 1,
-      "cavityRows": 2,
-      "reload": 150
+      "cavityRows": 2
     },
     {
       "name": "gun-3",

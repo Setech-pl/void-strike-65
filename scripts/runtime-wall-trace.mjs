@@ -669,7 +669,18 @@ const laserFixtureSessions = [{
   frames: 3_000,
   kind: "baseline-9040",
   holdPlayerLives: 3,
-}, {
+}, ...[0, 1, 2].map((difficulty) => ({
+  /* S4b.1 (owner smoke findings 2026-10-06, Step 1): the fight on a debug
+   * route at each difficulty - the sweep bot firing, lives held - long
+   * enough for every emitter's warnings, beams and deaths. */
+  id: `s41-diag-${difficulty}`,
+  difficulty,
+  policy: "sweep",
+  fireDelay: 2,
+  frames: 4_000,
+  kind: "baseline-9040",
+  holdPlayerLives: 3,
+})), {
   /* AUD-04 (owner addendum 2026-10-06): the stress cases' boss frames on the
    * emulator. No fire (the player's slots are the pokes'); DFTRACE_POKES from
    * the caller's environment places the case. Debug route only. */

@@ -173,6 +173,7 @@ _boss_stats_bonus  = STATS_BONUS
 .import _boss_score_module, _boss_newly_lo, _boss_newly_hi, _boss_kind, _boss_hp
 .import _boss_blast, _boss_handoff, _boss_clock_lo, _boss_clock_hi, _boss_phase
 .import _boss_fire_module, _boss_fire_offset, _boss_heavy
+.import _boss_exposed_lo, _boss_exposed_hi
 .export boss_laser_slots, _boss_laser_slots
 _boss_laser_slots = boss_laser_slots
 
@@ -662,11 +663,9 @@ boss_fire:
     lda _boss_fire_module
     bmi @done
     tax
-    lda _boss_kind,x                    ; S4b: an emitter fires its laser
-    cmp #BOSS_KIND_EMITTER
-    bne :+
-    jmp laser_start
-:
+    lda _boss_kind,x                    ; S4b.1 (D1): an emitter never fires a
+    cmp #BOSS_KIND_EMITTER              ; pulse shot - its laser is slot D's own
+    beq @done
     stx boss_ring_tag
     jsr boss_record_of
     lda BOSS_T_MODULES + BOSS_M_WIDTH,y
@@ -1731,11 +1730,12 @@ LASER_PLAYER_LIVES  = PLAYER_LIFECYCLE + 1
 LASER_PLAYER_ALIVE  = 0
 LASER_PLAYER_WIDTH  = 8
 LASER_HEAT_FRAMES   = 4
+LASER_MAX_ON        = 2         ; S4b.1 (owner decision D3): lasers in a warning or a beam at once
 LASER_TONE_AUDF     = $18       ; + the warning's frames left: the pitch rises
 LASER_TONE_AUDC     = $A6       ; pure tone, volume 6
 LASER_ERASE_LINES   = 32        ; the column's erase, a frame (8 frames)
 
-.export laser_tier, laser_prepare, laser_start, laser_frame, laser_publish, boss_laser_damage
+.export laser_tier, laser_prepare, laser_frame, laser_publish, boss_laser_damage
 
 ; Once, from the install, before the controller's init: decision 8's emitter
 ; slots, 1 / 2 / 4 on levels 1-4 / 5-8 / 9-16. A debug fixture build defines
@@ -1773,6 +1773,7 @@ laser_prepare:
     sta boss_laser_sizem
     sta boss_laser_erase
     sta boss_laser_done
+    sta laser_rr
     ldx #(LASERS - 1)
 @reset:
     sta boss_laser_state,x
@@ -1864,36 +1865,110 @@ laser_prepare:
     inx
     jmp @module
 @done:
+    jsr laser_all_off                   ; S4b.1 (D3): every laser off, its reload set
     lda #$10                            ; the fifth player: missiles in COLPF3
     sta PRIOR
     rts
 
-; From boss_fire, X = an emitter the controller named: its laser warns, unless
-; it is running already, its emitter is dead or the player is not ALIVE.
-laser_start:
-    lda PLAYER_LIFECYCLE
-    bne @done
-    lda _boss_hp,x
-    beq @done
-    txa
-    ldy #(LASERS - 1)
-@find:
-    cmp boss_laser_module,y
-    beq @found
-    dey
-    bpl @find
+; S4b.1 (owner decision D3, 2026-10-06): an emitter fires on its own cadence,
+; not in the controller's pulse rotation (D1: the converter gives it no pulse
+; reload, so the controller never arms it). X = an OFF laser: while its
+; emitter is alive and exposed, its reload (boss_def, per difficulty) counts
+; down; at 0 it is ready and waits for laser_admit. Keeps X.
+laser_rearm:
+    ldy boss_laser_module,x
+    lda _boss_hp,y
+    beq @done                           ; destroyed: never ready again
+    cpy #8
+    bcs @high
+    lda _boss_exposed_lo
+    and laser_module_bits,y
+    jmp @exposed
+@high:
+    lda _boss_exposed_hi
+    and laser_module_bits-8,y
+@exposed:
+    beq @done                           ; still covered
+    lda boss_laser_reload_lo,x
+    ora boss_laser_reload_hi,x
+    bne @count
+    lda #$01
+    sta boss_laser_ready,x
 @done:
     rts
-@found:
-    lda boss_laser_state,y
+@count:
+    lda boss_laser_reload_lo,x
+    bne :+
+    dec boss_laser_reload_hi,x
+:
+    dec boss_laser_reload_lo,x
+    bne @done                           ; the frame it reaches 0 it is ready
+    lda boss_laser_reload_hi,x
     bne @done
-    lda #LASER_WARN
-    sta boss_laser_state,y
-    lda BOSS_T_LASER_WARNING
-    sta boss_laser_timer,y
-    lda #$00
-    sta boss_laser_fired,y
+    lda #$01
+    sta boss_laser_ready,x
     rts
+
+; At most LASER_MAX_ON lasers in their warning or beam at once (D3): the ready
+; ones start in turn from the rotating cursor, which moves past each one
+; started, so no emitter starves.
+laser_admit:
+    ldy #$00
+    ldx #(LASERS - 1)
+:
+    lda boss_laser_state,x
+    beq :+
+    iny
+:
+    dex
+    bpl :--
+    sty laser_n                         ; the lasers on
+    lda laser_rr
+    sta laser_t                         ; the cursor this frame
+    ldy #LASERS
+@try:
+    lda laser_n
+    cmp #LASER_MAX_ON
+    bcs @done
+    lda laser_t
+    and #(LASERS - 1)
+    tax
+    lda boss_laser_ready,x
+    beq @skip
+    jsr laser_begin
+    inc laser_n
+    txa
+    clc
+    adc #$01
+    and #(LASERS - 1)
+    sta laser_rr
+@skip:
+    inc laser_t
+    dey
+    bne @try
+@done:
+    rts
+
+; X = a ready laser: its warning starts, for the difficulty's frames. Keeps X.
+laser_begin:
+    lda #LASER_WARN
+    sta boss_laser_state,x
+    sty laser_m
+    ldy DIFFICULTY_SETTING
+    lda LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_WARNING,y
+    sta boss_laser_timer,x
+    sec                                 ; the heat's phase: from the warning's
+    sbc #$01                            ; first frame, whatever its length
+    and #(LASER_HEAT_FRAMES - 1)
+    sta boss_laser_phase,x
+    ldy laser_m
+    lda #$00
+    sta boss_laser_fired,x
+    sta boss_laser_ready,x
+    rts
+
+laser_module_bits:
+    .byte $01, $02, $04, $08, $10, $20, $40, $80
 
 ; Every frame, from UPDATE before the player's shots meet the band: the boss's
 ; shots in the band; then, in the fight, the beams on screen this frame against
@@ -1924,8 +1999,14 @@ laser_frame:
     sta boss_laser_sizem
     ldx #(LASERS - 1)
 @laser:
-    lda boss_laser_state,x
+    lda boss_laser_module,x
+    cmp #LASER_NONE
     beq @next
+    lda boss_laser_state,x
+    bne @on
+    jsr laser_rearm
+    jmp @next
+@on:
     ldy boss_laser_module,x
     lda _boss_hp,y
     bne @live
@@ -1956,13 +2037,14 @@ laser_frame:
 @next:
     dex
     bpl @laser
-    rts
+    jmp laser_admit
 
 ; X = a laser in its warning: every 4 frames the heat look on its emitter's
 ; bottom cell (the ring carries it through a stage redraw); the rising tone.
 laser_warn:
     lda boss_laser_timer,x
     and #(LASER_HEAT_FRAMES - 1)
+    cmp boss_laser_phase,x
     bne @tone
     lda boss_laser_cell_lo,x
     sta dst_ptr
@@ -2048,6 +2130,12 @@ laser_off:
     sta boss_laser_state,x
     sta boss_laser_edge,x
     sta boss_laser_hpos,x
+    sta boss_laser_ready,x
+    ldy DIFFICULTY_SETTING              ; S4b.1 (D3): the reload from now
+    lda LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_RELOAD,y
+    sta boss_laser_reload_lo,x
+    lda LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_RELOAD + 3,y
+    sta boss_laser_reload_hi,x
     rts
 
 laser_all_off:
@@ -2339,6 +2427,12 @@ laser_t:            .res 1
 laser_b:            .res 1
 laser_x:            .res 1
 laser_d:            .res 1
+laser_n:            .res 1
+laser_rr:           .res 1      ; S4b.1: the waiting order's cursor
+boss_laser_ready:   .res LASERS ; S4b.1: reloaded, waiting for a place (D3)
+boss_laser_phase:   .res LASERS ; S4b.1: the heat's frame in 4, from the warning's start
+boss_laser_reload_lo: .res LASERS
+boss_laser_reload_hi: .res LASERS
 boss_shots_admit_left: .res 1   ; AUD-04: meetings left this frame
 
 

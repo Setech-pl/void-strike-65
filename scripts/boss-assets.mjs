@@ -115,7 +115,8 @@ export const BOSS_TABLE = Object.freeze({
   spark: 249,            // a damaging hit's spark
   deflect: 250,          // the spark of a hit that does no damage (hull, a covered module)
   muzzle: 251,           // a firing cannon's muzzle flash
-  laserWarning: 252,     // S4b: a laser's warning, frames (owner decision Q11: 25)
+  // 252: S4b's laser warning, retired by S4b.1 (owner decision D3): the
+  // warning is the level's, per difficulty (boss_def).
   laserBeam: 253,        // S4b: a laser's beam, frames (Q11: 50)
 });
 export const BOSS_MODULE_BYTES = 12;
@@ -266,51 +267,89 @@ export function loadBossHostileShotGlyphs(rootDirectory) {
   return bossHostileShotGlyphsFrom(weapons.hostileWeaponVisuals[0]);
 }
 
-// M5b-S4b (owner decision Q10): the laser fixture - region 1 with gun-1, gun-3
-// and gun-4 as emitter slots 2-4 beside the emitter (slot 1), and the plates
-// in front of the four emitters (plate-c, plate-d, plate-e, plate-g) removed
-// with their cells, so all four are exposed from the first frame; a short
-// cooldown and reload let the four beams fire together (the worst case the
-// owner asked to measure). Debug and test only: no shipped region uses it.
+// M5b-S4b (owner decision Q10), rebuilt by S4b.1 (owner decision D1,
+// 2026-10-06): the laser fixture - region 1 with dedicated emitter modules,
+// never a pulse gun reused. Slot 1 is region 1's emitter; slots 2-4 are new
+// emitters in hull cells of the deep rows, each with the emitter's art in
+// every look (band, open, cracked, broken). The fixture of tier N carries the
+// emitters of slots 1..N only, so no capped emitter art stands in it. The
+// plates in front of slots 1 and 2 (plate-d, plate-e) are removed with their
+// cells, so the emitters are exposed from the first frame; slot 4's beam
+// column (55) clears plate-h, which only touches its first column, so its
+// cover is named empty. The four pulse guns stay pulse guns. Debug and test
+// only: no shipped region uses it.
 export const BOSS_LASER_FIXTURE = Object.freeze({
-  emitters: Object.freeze({ "gun-1": 2, "gun-3": 3, "gun-4": 4 }),
-  removed: Object.freeze(["plate-c", "plate-d", "plate-e", "plate-g"]),
-  reload: 12,
-  cooldown: 12,
+  emitters: Object.freeze([
+    Object.freeze({ name: "emitter-2", slot: 2, x: 34, row: 1 }),
+    Object.freeze({ name: "emitter-3", slot: 3, x: 7, row: 1 }),
+    Object.freeze({ name: "emitter-4", slot: 4, x: 53, row: 1, cover: Object.freeze([]) }),
+  ]),
+  removed: Object.freeze(["plate-d", "plate-e"]),
 });
-export function bossLaserFixtureDraft(draft) {
+export function bossLaserFixtureDraft(draft, tier = 4) {
+  if (![1, 2, 3, 4].includes(tier)) fail(`the laser fixture's tier is ${tier}; 1..4`);
   const removed = draft.layout.modules.filter((module) => BOSS_LASER_FIXTURE.removed.includes(module.name));
-  const modules = draft.layout.modules
-    .filter((module) => !BOSS_LASER_FIXTURE.removed.includes(module.name))
-    .map((module) => {
-      const slot = BOSS_LASER_FIXTURE.emitters[module.name];
-      if (slot !== undefined) return { ...module, kind: "emitter", slot, hp: 10, reload: BOSS_LASER_FIXTURE.reload };
-      if (module.kind === "emitter") return { ...module, reload: BOSS_LASER_FIXTURE.reload };
-      return module;
-    });
+  const emitter = draft.layout.modules.find((module) => module.kind === "emitter" && module.slot === 1);
+  if (emitter === undefined) fail("the laser fixture needs region 1's emitter (slot 1)");
+  const added = BOSS_LASER_FIXTURE.emitters.filter(({ slot }) => slot <= tier).map(({ name, slot, x, row, cover }) => {
+    const { _: note, ...rest } = emitter;
+    return { ...rest, name, slot, x, row, ...(cover === undefined ? {} : { cover: [...cover] }) };
+  });
+  const modules = [...draft.layout.modules.filter((module) => !BOSS_LASER_FIXTURE.removed.includes(module.name)),
+    ...added];
   const images = {};
   for (const [name, image] of Object.entries(draft.images)) {
     const indices = Uint8Array.from(image.indices);
     if (name !== "extras") {
+      const rows = (module, fn) => {
+        for (let y = module.row * 8; y < (module.row + module.height) * 8; y += 1) fn(y);
+      };
       for (const module of removed) {
-        for (let y = module.row * 8; y < (module.row + module.height) * 8; y += 1) {
-          indices.fill(0, y * image.width + module.x * 4, y * image.width + (module.x + module.width) * 4);
+        rows(module, (y) => indices.fill(0, y * image.width + module.x * 4, y * image.width + (module.x + module.width) * 4));
+      }
+      // Decision O: every weapon hangs in its own recess - the hull art below
+      // an added emitter is cut (cells another module owns are kept).
+      const owned = new Set();
+      for (const module of modules) {
+        for (let r = module.row; r < module.row + module.height; r += 1) {
+          for (let c = module.x; c < module.x + module.width; c += 1) owned.add(r * BOSS_BAND_COLUMNS + c);
         }
+      }
+      for (const module of added) {
+        for (let r = module.row + module.height; r < BOSS_BAND_ROWS; r += 1) {
+          for (let c = module.x; c < module.x + module.width; c += 1) {
+            if (owned.has(r * BOSS_BAND_COLUMNS + c)) continue;
+            for (let y = r * 8; y < r * 8 + 8; y += 1) indices.fill(0, y * image.width + c * 4, y * image.width + c * 4 + 4);
+          }
+        }
+      }
+      // The emitter's art in each look, copied to every added emitter.
+      for (const module of added) {
+        rows(module, (y) => {
+          const from = (y - module.row * 8 + emitter.row * 8) * image.width + emitter.x * 4;
+          indices.set(image.indices.subarray(from, from + emitter.width * 4), y * image.width + module.x * 4);
+        });
       }
     }
     images[name] = { ...image, indices };
   }
   // A weapon exposed from the first frame shows its open look from the first
   // frame: the band draws it, and the open look is then no look (identical).
+  // Exposed: no module left in front of it (the covers as the converter
+  // resolves them).
   const open = images.open;
-  for (const module of modules.filter((m) => m.kind !== "armour")) {
+  const covers = resolveBossCovers(modules);
+  for (const [index, module] of modules.entries()) {
+    if (module.kind === "armour" || covers[index] !== 0) continue;
     for (let y = module.row * 8; y < (module.row + module.height) * 8; y += 1) {
       const from = y * open.width + module.x * 4;
       images.band.indices.set(open.indices.subarray(from, from + module.width * 4), from);
     }
   }
-  return { ...draft, images, layout: { ...draft.layout, name: "Laser fixture", modules,
-    fire: { ...draft.layout.fire, cooldown: BOSS_LASER_FIXTURE.cooldown } } };
+  // A see-through girder stub in a cut recess is gone with it.
+  const cut = (c, r) => added.some((m) => c >= m.x && c < m.x + m.width && r >= m.row + m.height);
+  const seeThrough = (draft.layout.seeThrough ?? []).filter(([c, r]) => !cut(c, r));
+  return { ...draft, images, layout: { ...draft.layout, name: `Laser fixture, tier ${tier}`, modules, seeThrough } };
 }
 
 // One 4 x 8 cell of a draft image: its eight glyph bytes, its colour bank
@@ -441,6 +480,16 @@ function resolveModules(layout) {
     }
     const hp = integerIn(source.hp, 1, BOSS_MAX_HP, `module ${name} hp`);
     const score = bcdByte(source.score, `module ${name} score`);
+    // S4b.1 (owner decision D1, 2026-10-06): two weapon types, never mixed. An
+    // emitter fires only its laser - on the level's cadence, so it carries no
+    // pulse gun's reload; a pulse or salvo gun never carries a laser.
+    if (kind === BOSS_KIND.emitter && source.reload !== undefined && source.reload !== 0) {
+      fail(`emitter ${name} carries a pulse gun's reload; an emitter fires only its laser, ` +
+        "on the level's per-difficulty laserReload (owner decisions D1, D3)");
+    }
+    if (kind !== BOSS_KIND.emitter && source.laser !== undefined) {
+      fail(`module ${name} is a ${source.kind} with a laser; only an emitter fires a laser (owner decision D1)`);
+    }
     let slot = 0;
     if (kind === BOSS_KIND.emitter) {
       slot = integerIn(source.slot, 1, 4, `emitter ${name} slot`);
@@ -515,7 +564,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const cappedHp = integerIn(capped.hp, 1, BOSS_MAX_HP, "capped.hp");
   // S4b (owner decision Q11): a laser's warning and beam, frames; M8 tunes.
   const laser = layout.laser ?? {};
-  const laserWarning = integerIn(laser.warningFrames ?? 25, 1, 255, "laser.warningFrames");
+  if (laser.warningFrames !== undefined) {
+    fail("laser.warningFrames is the level's now, per difficulty (bossDef laserWarning; owner decision D3)");
+  }
   const laserBeam = integerIn(laser.beamFrames ?? 50, 1, 255, "laser.beamFrames");
   // Decision M: the girders' cells that a shot passes (the only see-through
   // hull art, decision O); every other hull cell stops a shot.
@@ -820,7 +871,6 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables[BOSS_TABLE.spark] = plainCode(sparkRef);
   tables[BOSS_TABLE.deflect] = plainCode(deflectRef);
   tables[BOSS_TABLE.muzzle] = plainCode(muzzleRef);
-  tables[BOSS_TABLE.laserWarning] = laserWarning;
   tables[BOSS_TABLE.laserBeam] = laserBeam;
 
   const theme = new Uint8Array(BOSS_THEME_CAPACITY);
@@ -846,7 +896,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     shotCode,
     hostileShotCode,
     codeCount,
-    laser: { warningFrames: laserWarning, beamFrames: laserBeam },
+    laser: { beamFrames: laserBeam },
     seeThrough: [...seeThrough].map((key) => [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)]),
     hullStop,
     glyphs,

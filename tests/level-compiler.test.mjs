@@ -362,9 +362,14 @@ test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where th
     // RE-POINTED M5b-S4b (owner decision Q5, 2026-10-06): boss_def's bytes
     // 5-7 are the laser's damage per difficulty (EASY 5, MEDIUM 10, HARD 10);
     // the rest of boss_def is still zero.
-    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(202)]);
+    // RE-POINTED M5b-S4b.1 (owner decision D3, 2026-10-06): bytes 8-16 are
+    // the laser's warning (EASY 40, MEDIUM 32, HARD 25) and its 16-bit reload
+    // (300, 225, 150 frames) per difficulty; the rest of boss_def is zero.
+    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(211)]);
     assert.equal(Buffer.compare(outside, Buffer.alloc(outside.length)), 0,
-      "one 16-B look, the grade block, the boss bonus, HP scale and laser damage and nothing else");
+      "one 16-B look, the grade block, the boss bonus, HP scale, laser damage, warning and reload and nothing else");
+    assert.deepEqual([...payload.subarray(202, 205)], [40, 32, 25], "the laser's warning, EASY / MEDIUM / HARD");
+    assert.deepEqual([...payload.subarray(205, 211)], [300 & 0xff, 225, 150, 300 >> 8, 0, 0], "the laser's reload, low then high");
     assert.deepEqual([...payload.subarray(199, 202)], [5, 10, 10], "the laser's damage, EASY / MEDIUM / HARD");
     assert.deepEqual([...payload.subarray(196, 199)], [0xff, 0x00, 0x01], "x 3/4, x 1, x 5/4");
     assert.deepEqual([...payload.subarray(194, 196)], [0x00, 0x20], "level 1's boss bonus, 2,000 BCD");

@@ -87,14 +87,23 @@ function update(memory, { watch = null } = {}) {
   return { writes, cycles: cpu.cycles };
 }
 const writesTo = (writes, address) => writes.filter(([a]) => a === address).map(([, v]) => v);
+const laserOf = (memory, module) =>
+  [...Array(LASERS).keys()].find((i) => laser(memory, "module", i) === module);
 // The controller names `module` as the firing one; boss_fire dispatches it.
+// RE-POINTED S4b.1 (owner decisions D1, D3, 2026-10-06): boss_fire ignores an
+// emitter (D1) - an emitter fires on its own cadence: its reload runs out, it
+// is ready, and the frame's admission starts its warning (at most two lasers
+// on, D3). For an emitter the helper makes it ready and runs that frame.
 function fire(memory, module) {
   memory[lbl("_boss_fire_module")] = module;
   memory[lbl("_boss_fire_offset")] = 0;
   call(memory, lbl("boss_fire"));
+  const i = laserOf(memory, module);
+  if (i === undefined) return;
+  setLaser(memory, "reload_lo", i, 0);
+  setLaser(memory, "reload_hi", i, 0);
+  update(memory);
 }
-const laserOf = (memory, module) =>
-  [...Array(LASERS).keys()].find((i) => laser(memory, "module", i) === module);
 // Frames until laser i leaves `state` (cap 200).
 function framesIn(memory, i, state) {
   let frames = 0;
@@ -112,7 +121,10 @@ function damageCalls(memory, frames, perFrame = () => {}) {
 }
 
 test("S4b: the overlay links the laser ABI in slot D", () => {
-  for (const name of ["laser_tier", "laser_prepare", "laser_start", "laser_frame", "laser_publish",
+  // RE-POINTED S4b.1 (D3): laser_start is gone - laser_rearm, laser_admit and
+  // laser_begin start a laser on its own cadence.
+  for (const name of ["laser_tier", "laser_prepare", "laser_rearm", "laser_admit", "laser_begin", "boss_laser_ready",
+    "laser_frame", "laser_publish",
     "boss_laser_damage", "boss_laser_slots", "boss_laser_module", "boss_laser_state",
     "boss_laser_timer", "boss_laser_edge", "boss_laser_hpos", "boss_laser_sizem", "boss_laser_fired"]) {
     assert.ok(has(name), `the boss link has no ${name}`);
@@ -150,17 +162,19 @@ test("the laser count per tier: region 1 on level 1 has 1; the fixture has 2 on 
   assert.equal(one[lbl("boss_laser_slots")], 1);
   assert.equal(one[lbl("_boss_kind") + byName.get("emitter")], BOSS_KIND.emitter,
     "region 1's emitter is still capped on level 1");
+  // RE-POINTED S4b.1 (owner decision D1): the fixture's emitters are dedicated
+  // modules (emitter-2/3/4), never the pulse guns.
   const two = laserFixture(5);
   assert.equal(two[lbl("boss_laser_slots")], 2);
   assert.deepEqual([0, 1, 2, 3].map((i) => laser(two, "module", i)),
-    [fixtureByName.get("emitter"), fixtureByName.get("gun-1"), 0xff, 0xff]);
-  for (const name of ["gun-3", "gun-4"]) {
+    [fixtureByName.get("emitter"), fixtureByName.get("emitter-2"), 0xff, 0xff]);
+  for (const name of ["emitter-3", "emitter-4"]) {
     assert.equal(two[lbl("_boss_kind") + fixtureByName.get(name)], BOSS_KIND.armour, `${name} is not capped at tier 2`);
   }
   const four = laserFixture(9);
   assert.equal(four[lbl("boss_laser_slots")], 4);
   assert.deepEqual([0, 1, 2, 3].map((i) => laser(four, "module", i)),
-    ["emitter", "gun-1", "gun-3", "gun-4"].map((name) => fixtureByName.get(name)));
+    ["emitter", "emitter-2", "emitter-3", "emitter-4"].map((name) => fixtureByName.get(name)));
   for (let line = 0; line < 240; line += 1) {
     const expected = [0, 1, 2, 3].reduce((bits, i) => {
       const module = fixture.modules[laser(four, "module", i)];
@@ -179,19 +193,24 @@ test("the laser's tier comes from the level id (decision 8) in the default build
   }
 });
 
-test("a named emitter warns for 25 frames, fires for 50, and spawns no pulse shot", () => {
+// RE-POINTED S4b.1 (owner decision D3): the warning is the level's per
+// difficulty - MEDIUM 32 frames (was Q11's 25 for all).
+test("a named emitter warns for MEDIUM's 32 frames, fires for 50, and spawns no pulse shot", () => {
   const memory = laserFixture(1);
   alive(memory);
   memory[main("player_x")] = 60;
   const emitter = fixtureByName.get("emitter");
   const before = [...memory.subarray(main("FIGHTER_PROJECTILE_ACTIVE") + HOSTILE_FIRST,
     main("FIGHTER_PROJECTILE_ACTIVE") + HOSTILE_FIRST + 5)];
+  memory[lbl("_boss_fire_module")] = emitter;
+  memory[lbl("_boss_fire_offset")] = 0;
+  call(memory, lbl("boss_fire"));
+  assert.deepEqual([...memory.subarray(main("FIGHTER_PROJECTILE_ACTIVE") + HOSTILE_FIRST,
+    main("FIGHTER_PROJECTILE_ACTIVE") + HOSTILE_FIRST + 5)], before, "an emitter spawned a pulse shot");
   fire(memory, emitter);
   const i = laserOf(memory, emitter);
   assert.equal(laser(memory, "state", i), WARN);
-  assert.deepEqual([...memory.subarray(main("FIGHTER_PROJECTILE_ACTIVE") + HOSTILE_FIRST,
-    main("FIGHTER_PROJECTILE_ACTIVE") + HOSTILE_FIRST + 5)], before, "an emitter spawned a pulse shot");
-  assert.equal(framesIn(memory, i, WARN), 25, "the warning is not 25 frames");
+  assert.equal(framesIn(memory, i, WARN), 32, "the warning is not MEDIUM's 32 frames");
   assert.equal(laser(memory, "state", i), BEAM);
   assert.equal(framesIn(memory, i, BEAM), 50, "the beam is not 50 frames");
   assert.equal(laser(memory, "state", i), OFF);
@@ -313,10 +332,12 @@ test("destroying an emitter stops its laser at once, in its warning and in its b
   for (let frame = 0; frame < 30; frame += 1) update(memory);
   assert.equal(laser(memory, "state", i), OFF, "a dead emitter's laser started again");
 
+  // RE-POINTED S4b.1 (owner decision D1): the fixture's slot-2 emitter is
+  // the dedicated emitter-2, not gun-1.
   const beam = laserFixture(5);
   alive(beam);
   beam[main("player_x")] = 60;
-  const gun1 = fixtureByName.get("gun-1");
+  const gun1 = fixtureByName.get("emitter-2");
   fire(beam, gun1);
   const j = laserOf(beam, gun1);
   framesIn(beam, j, WARN);
@@ -482,7 +503,10 @@ test("outside the boss sector: START GAME after a game that ended in it leaves P
 
 // Owner decision Q8 (2026-10-06): the boss sector's per-frame work limit is
 // 8,500 native cycles, measured with four beams firing; 7,000 stays elsewhere.
-test("Q8: the tier-4 fixture with four lasers running and five shots a frame stays under 8,500 native cycles", () => {
+// RE-POINTED S4b.1 (owner decision D3): at most two lasers warn or fire at
+// once - the worst reachable frame holds two on (warning heat or beam) and the
+// other emitters ready and waiting (the admission scans them every frame).
+test("Q8: the tier-4 fixture with two lasers on, two waiting and five shots a frame stays under 8,500 native cycles", () => {
   let worst = 0, worstCase = "", fourActiveFrames = 0, fourBeamFrames = 0;
   // Two modes at five band positions: the four held in their beams, and the
   // four cycling warning -> fire start -> beam (every idle laser restarts at
@@ -492,17 +516,27 @@ test("Q8: the tier-4 fixture with four lasers running and five shots a frame sta
       const memory = laserFixture(9, { p });
       alive(memory);
       const frame = () => {
+        let on = [0, 1, 2, 3].filter((i) => laser(memory, "state", i) !== OFF).length;
         for (let i = 0; i < LASERS; i += 1) {
           const module = laser(memory, "module", i);
           if (module !== 0xff && hp(memory, module) > 0 && laser(memory, "state", i) === OFF) {
-            setLaser(memory, "state", i, mode === "beam" ? BEAM : WARN);
-            setLaser(memory, "timer", i, mode === "beam" ? 50 : 25);
-            setLaser(memory, "fired", i, 0);
+            if (on < 2) {
+              setLaser(memory, "state", i, mode === "beam" ? BEAM : WARN);
+              setLaser(memory, "timer", i, mode === "beam" ? 50 : 25);
+              setLaser(memory, "phase", i, 0);
+              setLaser(memory, "fired", i, 0);
+              on += 1;
+            } else {
+              setLaser(memory, "ready", i, 1);
+              setLaser(memory, "reload_lo", i, 0);
+              setLaser(memory, "reload_hi", i, 0);
+            }
           }
         }
         const states = [0, 1, 2, 3].map((i) => laser(memory, "state", i));
-        if (states.every((state) => state !== OFF)) fourActiveFrames += 1;
-        if (states.every((state) => state === BEAM)) fourBeamFrames += 1;
+        const waiting = [0, 1, 2, 3].filter((i) => laser(memory, "ready", i) !== 0).length;
+        if (states.filter((state) => state !== OFF).length === 2 && waiting === 2) fourActiveFrames += 1;
+        if (states.filter((state) => state === BEAM).length === 2) fourBeamFrames += 1;
         memory[LIFECYCLE] = PLAYER_ALIVE;
         memory[COOLDOWN] = 25;
         // The player under the first beam: the hit test's long path every frame.
@@ -514,7 +548,8 @@ test("Q8: the tier-4 fixture with four lasers running and five shots a frame sta
         cycles += nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli"));
         if (cycles > worst) { worst = cycles; worstCase = `${mode}, p ${p}, states ${states.join("")}`; }
       };
-      const order = ["gun-2", "plate-a", "plate-b", "plate-f", "plate-h", "emitter", "gun-1", "gun-3", "gun-4"];
+      const order = ["gun-2", "plate-a", "plate-b", "plate-c", "plate-f", "plate-g", "plate-h", "gun-1", "gun-3",
+        "gun-4", "emitter", "emitter-2", "emitter-3", "emitter-4"].filter((name) => fixtureByName.has(name));
       for (const name of order) {
         const index = fixtureByName.get(name);
         for (let guard = 0; guard < 600 && hp(memory, index) > 0 && memory[lbl("_boss_phase")] === 0; guard += 1) {
@@ -529,10 +564,11 @@ test("Q8: the tier-4 fixture with four lasers running and five shots a frame sta
       for (let rest = 0; rest < 150 && memory[lbl("_boss_handoff")] === 0; rest += 1) frame();
     }
   }
-  assert.ok(fourBeamFrames >= 50, `only ${fourBeamFrames} frames had four beams firing`);
+  assert.ok(fourBeamFrames >= 50, `only ${fourBeamFrames} frames had two beams firing`);
+  assert.ok(fourActiveFrames >= 50, `only ${fourActiveFrames} frames had two lasers on and two waiting`);
   assert.ok(worst <= 8500, `the worst frame's work is ${worst} native cycles (${worstCase})`);
-  console.log(`# four-laser stress, worst: ${worst} native cycles (${worstCase}); ` +
-    `${fourActiveFrames} frames with four lasers running, ${fourBeamFrames} with four beams (Q8 limit 8,500)`);
+  console.log(`# two-laser stress, worst: ${worst} native cycles (${worstCase}); ` +
+    `${fourActiveFrames} frames with two on and two waiting, ${fourBeamFrames} with two beams (Q8 limit 8,500)`);
 });
 
 // QA1, found in the emulator while measuring it: a boss shot fell straight down

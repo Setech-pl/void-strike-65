@@ -63,12 +63,27 @@ function hold(memory, laserMode) {
   memory[LIFECYCLE + 1] = 3;
   memory[COOLDOWN] = 25;
   if (laserMode === null) return;
+  // RE-POINTED S4b.1 (owner decision D3): at most two lasers warn or fire at
+  // once; the worst reachable frame holds two on (in a heat frame, or their
+  // beams) and the other live emitters ready and waiting. (Four held on, the
+  // state the cap removed, measured 8,474 native at worst on this build.)
+  const has = (name) => labelsOf.boss.has(name);
+  let on = 0;
   for (let i = 0; i < 4; i += 1) {
     const module = memory[lbl("boss_laser_module") + i];
     if (module === 0xff || hp(memory, module) === 0) continue;
-    memory[lbl("boss_laser_state") + i] = laserMode === "beam" ? 2 : 1;
-    memory[lbl("boss_laser_timer") + i] = laserMode === "beam" ? 50 : 21;
-    memory[lbl("boss_laser_fired") + i] = 0;
+    if (on < 2 || !has("boss_laser_ready")) {
+      memory[lbl("boss_laser_state") + i] = laserMode === "beam" ? 2 : 1;
+      memory[lbl("boss_laser_timer") + i] = laserMode === "beam" ? 50 : 21;
+      if (has("boss_laser_phase")) memory[lbl("boss_laser_phase") + i] = 0;
+      memory[lbl("boss_laser_fired") + i] = 0;
+      on += 1;
+    } else {
+      memory[lbl("boss_laser_state") + i] = 0;
+      memory[lbl("boss_laser_ready") + i] = 1;
+      memory[lbl("boss_laser_reload_lo") + i] = 0;
+      memory[lbl("boss_laser_reload_hi") + i] = 0;
+    }
   }
 }
 function frame(memory, laserMode) {
@@ -332,15 +347,17 @@ test("AUD-04 cap: a kept shot whose target died meanwhile meets what its column 
 });
 
 test("AUD-04 cap: a beam that covers a kept shot's column while it waits absorbs it (Q6)", { skip: !lasers }, () => {
-  // The tier-4 fixture: laser 2 is gun-3's, one warning frame from its beam.
-  // Frame 1: slots 4 and 3 meet plate-a and plate-b; slot 2, in gun-3's
-  // column under the warning, is kept. Frame 2: the beam is on and absorbs it.
+  // The tier-4 fixture: emitter-2's laser one warning frame from its beam
+  // (RE-POINTED S4b.1, owner decision D1: gun-3 is a pulse gun again; the
+  // fixture's slot-2 emitter is the dedicated emitter-2). Frame 1: slots 4
+  // and 3 meet plate-a and plate-b; slot 2, in emitter-2's column under the
+  // warning, is kept. Frame 2: the beam is on and absorbs it.
   const names = new Map(fixture.modules.map((m, i) => [m.name, i]));
   const memory = entered();
   installRegion(memory, fixture, { level: 9 });
   placeBand(memory, 32);
   const front = fronts(memory, fixture);
-  const gun3 = names.get("gun-3");
+  const gun3 = names.get("emitter-2");
   const laser = [0, 1, 2, 3].find((i) => memory[lbl("boss_laser_module") + i] === gun3);
   memory[lbl("boss_laser_state") + laser] = 1;
   memory[lbl("boss_laser_timer") + laser] = 1;

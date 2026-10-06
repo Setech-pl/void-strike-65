@@ -1769,7 +1769,7 @@ async function build() {
   // takes this path.
   const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
   const bossRegions = [compileBossRegion(
-    laserFixtureTier === null ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft),
+    laserFixtureTier === null ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier),
     { themeImage: bossThemeImage,
       shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter),
       hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]) })];

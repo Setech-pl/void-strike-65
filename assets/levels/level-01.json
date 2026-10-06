@@ -384,6 +384,18 @@
       "easy": 5,
       "medium": 10,
       "hard": 10
+    },
+    "laserWarning": {
+      "_": "M5b-S4b.1 (owner decision D3, 2026-10-06): an emitter's warning in frames before its beam, per difficulty. Placeholder; M8 tunes it.",
+      "easy": 40,
+      "medium": 32,
+      "hard": 25
+    },
+    "laserReload": {
+      "_": "M5b-S4b.1 (owner decision D3): frames from an emitter's beam ending (or the boss sector starting) to its next warning, per difficulty; at most two lasers warn or fire at once. Placeholder; M8 tunes it.",
+      "easy": 300,
+      "medium": 225,
+      "hard": 150
     }
   }
 }

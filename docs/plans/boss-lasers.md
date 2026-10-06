@@ -889,3 +889,172 @@ slot D within its proven range; initial block ≤ 13,652 B, no new boot sector, 
 ATR menu frame within the rule; nothing in non-boss gameplay frames changes
 except the `PRIOR` restore on leaving the boss sector; `PRIOR` and the missiles
 proven off and restored outside the boss sector by a test.
+
+## 13. Owner addendum (2026-10-06): AUD-03 and AUD-04 — `STOP` for the owner
+
+The running evidence trace was stopped on the addendum; nothing of it was
+committed. The addendum as received was cut off: item 2 ends at "the display
+writes must be identical for D=0 and D=1, and the", and item 3 (the
+recorded-failure reconciliation gap) is missing. Item 2 below follows its
+received text, and the RED/GREEN test also checks that A, X, Y and P come
+back unchanged. Item 3 waits for its text.
+
+### 13.1 AUD-03 — the boss DLI and decimal mode (done)
+
+Verified on `main` `1a3c8bf` and here:
+
+* `boss_dli` had no `CLD`.
+* The boss's scoring runs between `SED` and `CLD` (`boss_module_scored`).
+* `boss_apply_pos` and, here, the lasers' publish run binary `ADC`/`SBC` in
+  the DLI.
+
+The test is `tests/boss-lasers.test.mjs` "AUD-03". It covers every phase,
+positions 0..63, D and C both ways, and A/X/Y = `$5A/$A5/$3C`.
+
+* **RED** (`4dc8161`, on `02136eb`'s build): 374 cases differ, 122 in phase
+  0 (HPOSM, the lasers' publish) and 252 in phase 1 (HSCROL/LMS). The audit's
+  case reproduces: phase 1, pos 14, shown 0 writes HSCROL 12 with D set and 2
+  with D clear.
+* **GREEN** (`a9a7336`): `CLD` at the DLI's entry. Slot A 2,034 → 2,035 B,
+  +2 cycles a DLI. `boss_dli` is the boss's only NMI code. The HUD tail that
+  phase 2 jumps to does no arithmetic.
+
+### 13.2 AUD-04 — distinct modules met in one frame (`STOP`)
+
+The audit's figures on `main` reproduce exactly in a temporary detached
+worktree (removed): 7,343 (columns 30/43/50), 7,388 (12/30/43) and 10,745
+(12/17/21/26/30), against 3,150 for one column. The same three on this
+branch, tier 1, no laser: 7,923 / 7,968 / 11,438.
+
+**The test** is `tests/boss-stress.test.mjs` (`077e879`), RED:
+
+* **The cases:** every subset of up to five front modules (plate-a, plate-b
+  and plate-h included), killed or one hit from their next damage stage.
+  Region 1 runs at five band positions with no plate, each single plate or
+  every plate destroyed. The tier-4 fixture runs every destroyed-plate set,
+  with its four lasers in a warning's heat frame (their costliest, every
+  fourth warning frame: +~1,230 cycles) and in their beams.
+* **On `main`** (7,000): the audit's 30/43/50 measures **7,348** under this
+  frame order (the audit's 7,343 + 5).
+* **Here** (8,500): RED, figures below.
+
+**Reachability.** Five player slots, 6 lines a frame.
+
+* **SPREAD:** three shots on one Y; the sides drift ½ HPOS a frame from ±4.
+  At most three are in flight, since a second volley needs three free slots.
+  Meeting lines are 8 apart and shots move 6, so one volley's shots meet
+  together only at one meeting line.
+* **Rapid fire:** shots 36 lines apart can meet rows 4–5 apart in the same
+  frame.
+* **Labels:** one or two meetings a frame are labelled **reachable**. Three
+  are **unproven**: SPREAD triples at one line exist geometrically (plate-f /
+  plate-g / plate-h on region 1; gun-1 / emitter / gun-3 on the fixture), but
+  none was traced. Four or five need another weapon's shots in flight,
+  **unproven**.
+* **The rule:** the owner's rule applies the limit to unproven cases too.
+
+| Case (worst of its kind) | Label | Native (harness) | Emulator fence margin (`aud04-inject`) | DMA-on |
+| --- | --- | ---: | ---: | ---: |
+| Region 1, 1 kill (plate-d, p 32) | reachable | 3,613 | 14,028 | 26,970 |
+| Region 1, 2 kills (plate-c, plate-d, p 32) | reachable | 5,573 | 9,807 | 27,079 |
+| Region 1, 3 kills (plate-f/g/h, one meeting line, p 32) | unproven (SPREAD-plausible) | 7,683 | 5,255 | 26,973 |
+| Region 1, 3 kills (audit 30/43/50) | unproven | 7,923 | 4,799 | 27,079 |
+| Region 1, 3 kills (audit 12/30/43) | unproven | 7,968 | 4,715 | 26,970 |
+| Region 1, 4 kills (a/d/g/h, plate-c destroyed, p 32) | unproven | 10,497 | **221** | 26,973 |
+| Region 1, 5 kills (audit 12/17/21/26/30) | unproven | 11,438 | **−1,629 (missed frame)** | 62,538 |
+| Region 1, 5 kills (a/d/e/g/h, plate-c destroyed, p 32) | unproven | 12,586 | **−2,388 (missed frame)** | 62,541 |
+| Region 1, 5 stage changes (p 4) | unproven | 8,323 | 4,615 | 27,083 |
+| Fixture, heat, 1 kill (gun-2) | reachable | 5,066 | 11,415 | 27,049 |
+| Fixture, heat, 2 kills (gun-2, gun-4) | reachable | 6,993 | 7,285 | 26,943 |
+| Fixture, heat, 3 kills (gun-1/emitter/gun-3, one meeting line) | unproven (SPREAD-plausible) | **9,012** | 2,871 | 27,052 |
+| Fixture, heat, 3 kills (plate-a/b/h) | unproven | **9,382** | 2,103 | 26,946 |
+| Fixture, heat, 4 kills | unproven | **10,843** | **−780 (missed frame)** | 62,511 |
+| Fixture, heat, 5 kills (every weapon: the defeat) | unproven | **13,670** | **−4,324 (missed frame)** | 62,644 |
+| Fixture, beams, 5 kills (the defeat) | unproven | 11,542 (test sweep) | **−1,864 (missed frame)** | 62,535 |
+| Fixture, heat, 5 stage changes | unproven | **10,695** | **−121 (missed frame)** | 62,512 |
+
+The sweep's worst figures (`tests/boss-stress.test.mjs`, this build):
+
+* Region 1: 12,176 (five kills, p 16).
+* Fixture with heat: 13,871.
+* Worst reachable: 7,446 (fixture, two kills, heat).
+
+The emulator charges a kill about **2.1× its harness cycles**: about 4,600
+cycles of fence margin per extra kill against about 2,150 native. The band's
+DMA is most of it, plus the kill's work outside the overlay (score, sound;
+the defeat's explosion). After a missed frame the main loop's phase stays
+shifted (wall ~35,500 on the following frames, margins ~29,000), so one
+overrun shows as 145 deadline overruns in the session.
+
+**Gates breached:**
+
+* **Q8 (8,500):** unproven cases up to 13,871.
+* **Fence margin ≥ 500:** 221 (four kills) and missed frames (four or five
+  kills, five stage changes), on region 1 as shipped and on the fixture.
+* Region 1's breach is **independent of the lasers**; it is on `main` too.
+* **Unchanged:** no limit raised, no deferral added.
+
+### 13.3 Proposal for the owner: a bounded allowance a frame (measured as a reverted probe)
+
+**What it does:**
+
+* At most **K = 2** player shots meet the band a frame.
+* A later shot is **kept**: it is not freed, and its Y gets +6, undoing its
+  next move. It meets on a later frame, and its damage is counted then, once.
+* A shot that meets nothing is unaffected; the laser's absorb still applies
+  to kept shots.
+
+**The code:**
+
+* `boss_shot_admit` in slot D wraps `boss_shot_meet`: `jsr`, `bcc`, `dec`
+  budget, `bmi` → defer.
+* The budget is reset at `laser_frame`'s entry, which runs before the shot
+  loop every boss frame.
+* The shot loop's one `jsr boss_shot_meet` points at the wrapper instead.
+
+**Bytes and slots:**
+
+* Slot A: **+0 B** (2,035 of 2,048).
+* Slot D: **+31 B** (30 code + 1 BSS): 1,083 → 1,114 of 1,792. The `$1900–$1FFF`
+  remainder falls 709 → 678 B.
+
+**Cycles:** an admitted meeting costs +22 cycles and a deferred one about +40.
+With no meetings the cost is +6 a frame, for the reset.
+
+**Measured with K = 2 (probe, reverted):**
+
+* **Harness worst:**
+  * Fixture with heat: 7,805 (five shots arriving, two admitted).
+  * Fixture with beams: 6,097.
+  * Region 1, its laser forced heating (synthetic while the emitter is
+    covered): 6,731. All under 8,500.
+* **Emulator, every case that failed above:**
+
+| Case (K = 2) | Native | Fence margin | DMA-on |
+| --- | ---: | ---: | ---: |
+| Region 1, audit 12/17/21/26/30 | 5,700 | 8,485 | 27,369 |
+| Region 1, 4 kills (a/d/g/h) | 6,574 | 8,243 | 27,611 |
+| Region 1, 5 kills (a/d/e/g/h) | 6,681 | 7,807 | 27,819 |
+| Fixture, heat, 3 kills (gun-1/emitter/gun-3) | 7,327 | 6,389 | 27,267 |
+| Fixture, heat, 3 kills (plate-a/b/h) | 7,423 | 6,147 | 27,373 |
+| Fixture, heat, 4 kills | 7,434 | 5,919 | 27,463 |
+| Fixture, heat, 5 kills (the defeat) | 7,435 | **5,706** | 27,780 |
+| Fixture, heat, 5 stage changes | 7,559 | 6,387 | 27,778 |
+
+* **The deferral lands:** in the fixture's five-kill case, two weapons fall on
+  f755, two on f756 and the last on f757 (the defeat), each frame about
+  27,000.
+* **Gameplay:** a volley meeting more than two modules at once lands over two
+  or three frames (40–60 ms). Damage totals are unchanged.
+* **Alternatives:**
+  * **K = 1** is smaller still: worst one meeting, 5,701 native with heat,
+    margin ≥ 11,000. It spreads a SPREAD volley over three frames.
+  * **Bounding kills only**, not all meetings, needs the kill decided before
+    `boss_c_hit` and does not bound stage changes (five of them miss a frame
+    above).
+
+**Owner questions:**
+
+* **AUD-04-Q1:** adopt the allowance, with **K = 2** (recommended) or K = 1,
+  or another remedy?
+* **AUD-04-Q2:** the remainder of the addendum's item 2 and its item 3.

@@ -1058,3 +1058,143 @@ With no meetings the cost is +6 a frame, for the reset.
 * **AUD-04-Q1:** adopt the allowance, with **K = 2** (recommended) or K = 1,
   or another remedy?
 * **AUD-04-Q2:** the remainder of the addendum's item 2 and its item 3.
+
+### 13.4 Owner decision (2026-10-06) and the cap as built
+
+**Decision AUD-04:** at most **2** player shots meet the boss a frame.
+
+**How the cap behaves:**
+
+* A third or later shot that would meet the boss stays where it is.
+* It is tested again next frame, against the boss as it then stands. Its
+  damage counts exactly once; no shot is lost or duplicated.
+* If its target was destroyed meanwhile, it meets whatever the column holds.
+* A beam that covers its column while it waits absorbs it (Q6).
+
+**The addendum's items 2 and 3**, received in full:
+
+* AUD-03 (§13.1) also requires A, X, Y and P to come back unchanged.
+* Its test now also runs on builds without the lasers. It is **RED on `main`**
+  (252 cases differ, all in phase 1) and GREEN here.
+* Item 3 (recorded failures reconciled by their first failing assertion) is
+  done in the final reconciliation.
+
+**As built** (`a6dcfce`):
+
+* **The code:**
+  * `boss_shot_admit` (slot D) wraps `boss_shot_meet` in UPDATE's shot loop.
+  * The loop's one `jsr` is retargeted, so slot A gets 0 B.
+  * `boss_shots_admit_left` is reset at `laser_frame`'s entry, before the
+    loop, every boss frame.
+  * A kept shot's Y gets + `PLAYER_FIGHTER_PROJECTILE_SPEED`; the game's
+    projectile update moves it back.
+* **Bytes and cycles:**
+  * Slot A 2,035 B (+0 for the cap; +1 for AUD-03's `CLD`).
+  * Slot D 1,083 → **1,114 B** (+30 code, +1 BSS); the `$1900–$1FFF`
+    remainder falls 709 → **678 B**.
+  * Cycles: +6 a frame (the reset), +22 an admitted meeting, about +40 a
+    kept one.
+* **Tests** (`tests/boss-stress.test.mjs`, 7 tests: RED on the code before
+  the cap, GREEN with it; RED on `main` under its 7,000 accounting, where the
+  audit's 30/43/50 measures 7,348):
+  * **The sweep:** every kill and stage-change combination up to five
+    modules, plate-a, plate-b and plate-h included. Each case also runs the
+    two following frames, with the shots in flight moved as the projectile
+    update moves them.
+    * Worst native: **7,810** (fixture, four lasers heating, five shots
+      arriving); beams 6,685; region 1 6,302.
+    * Worst reachable: 7,505. All under 8,500.
+  * **SPREAD volley:** three distinct modules on one meeting line land over
+    two frames, each hit counted once.
+  * **Three kills:** score and kills counted once each, over two frames;
+    accuracy (`STATS_HITS`) +3.
+  * **Target dies meanwhile:** a kept shot whose target falls on the next
+    frame meets exactly what a fresh shot at its place meets.
+  * **Beam absorb:** a beam that starts while a shot waits absorbs it.
+* **Gameplay effect:** a volley meeting more than two modules at once lands
+  over 2–3 frames (40–60 ms). Damage, score and accuracy totals are
+  unchanged.
+
+**The gate is the emulator** (`aud04-inject`, debug routes
+`build/level-1-s4` and `build/laser-fixture-4-level-1-s4`). These are every
+case of §13.2, without the cap (`a9a7336`'s code) and with it (`a6dcfce`).
+"Native" is the case's first frame in the harness. "Heat" means the four
+lasers are held in a warning's heat frame.
+
+| Case | Label | Native, no cap | Margin, no cap | DMA-on, no cap | Native, cap | Margin, cap | DMA-on, cap |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| R1, 1 kill: plate-d (p 32) | reachable | 3,613 | 14,028 | 26,970 | 3,651 | 14,015 | 27,201 |
+| R1, 2 kills: plate-c, plate-d (p 32) | reachable | 5,573 | 9,807 | 27,079 | 5,633 | 9,700 | 27,201 |
+| R1, 2 kills: plate-a, plate-g (plate-c destroyed, p 16) | reachable | 6,336 | 9,719 | 27,115 | 6,395 | 9,615 | 27,234 |
+| R1, 3 kills: plate-f, g, h (one meeting line, p 32) | unproven (SPREAD-plausible) | 7,683 | 5,255 | 26,973 | 6,023 | 8,689 | 27,400 |
+| R1, 3 kills: audit 30/43/50 (plate-d, g, h) | unproven | 7,923 | 4,799 | 27,079 | 6,023 | 8,689 | 27,400 |
+| R1, 3 kills: audit 12/30/43 (plate-a, d, g) | unproven | 7,968 | 4,715 | 26,970 | 6,054 | 8,646 | 27,412 |
+| R1, 3 kills: plate-a, d, g (plate-c destroyed, p 4) | unproven | 8,089 | 5,563 | 27,088 | 6,174 | 9,452 | 27,340 |
+| R1, 4 kills: plate-a, d, g, h (plate-c destroyed, p 32) | unproven | 10,497 | **221** | 26,973 | 6,574 | 8,243 | 27,611 |
+| R1, 5 kills: audit 12/17/21/26/30 | unproven | 11,438 | **−1,629** | 62,538 | 5,700 | 8,485 | 27,369 |
+| R1, 5 kills: plate-a, d, e, g, h (plate-c destroyed, p 32) | unproven | 12,586 | **−2,388** | 62,541 | 6,681 | 7,807 | 27,819 |
+| R1, 5 stage changes (plate-f destroyed, p 4) | unproven | 8,323 | 4,615 | 27,083 | 5,451 | 10,245 | 27,388 |
+| T4, heat, 1 kill: gun-2 | reachable | 5,066 | 11,415 | 27,049 | 5,104 | 11,378 | 27,059 |
+| T4, heat, 2 kills: gun-2, gun-4 | reachable | 6,993 | 7,285 | 26,943 | 7,053 | 7,115 | 27,165 |
+| T4, heat, 3 kills: gun-1, emitter, gun-3 (one meeting line) | unproven (SPREAD-plausible) | 9,012 | 2,871 | 27,052 | 7,327 | 6,389 | 27,267 |
+| T4, heat, 3 kills: plate-a, b, h | unproven | 9,382 | 2,103 | 26,946 | 7,423 | 6,147 | 27,373 |
+| T4, heat, 4 kills | unproven | 10,843 | **−780** | 62,511 | 7,434 | 5,919 | 27,463 |
+| T4, heat, 5 kills (every weapon: the defeat) | unproven | 13,670 | **−4,324** | 62,644 | 7,435 | **5,706** | 27,780 |
+| T4, beams, 5 kills (the defeat) | unproven | 11,542 | **−1,864** | 62,535 | 5,592 | 8,609 | 27,328 |
+| T4, heat, 5 stage changes (plate-f destroyed) | unproven | 10,695 | **−121** | 62,512 | 7,559 | 6,387 | 27,778 |
+
+**With the cap**, every case passes:
+
+* Worst fence margin **5,706** (≥ 500).
+* Worst DMA-on **27,819** (≤ 32,568).
+* PAL audit PASS in every session.
+* In the fixture's five-kill case the weapons fall over frames f755
+  (two), f756 (two) and f757 (the defeat).
+* The multi-kill frame defect existed on `main` before S4b (region 1 as
+  shipped, no laser), and this cap fixes it.
+
+### 13.5 The boss DLI's timing with `CLD` and QA2; the QA2 comparison on the final build
+
+**DLI timing** (harness, native cycles, D set so the `CLD` path runs; phase 1
+republishes the position). WSYNC's wait is not modelled, so "after WSYNC" is
+each store's offset from the WSYNC store.
+
+| Phase | `main` `1a3c8bf` | This branch (`CLD`, QA2, the lasers' publish) |
+| --- | --- | --- |
+| 0 (HUD's last line: the band palette) | entry → WSYNC 14; after: CHBASE +6, COLPF0 +14, COLPF1 +22, COLPF2 +30, COLPF3 +38; total 71 | entry → WSYNC 16; after: CHBASE +6, COLPF0 +14, COLPF1 +22, COLPF2 +30, COLPF3 +38, HPOSM0 +57, HPOSM1 +74, HPOSM2 +91, HPOSM3 +109, SIZEM +121; total 162 |
+| 1 (band line 87: the ring palette) | entry → WSYNC 13; after: CHBASE +6, COLPF0 +12, COLPF1 +20, COLPF2 +26, **COLPF3 +32**, HSCROL +84; total 460 | entry → WSYNC 15; after: **COLPF3 +6**, CHBASE +12, COLPF0 +18, COLPF1 +26, COLPF2 +32, HSCROL +84; total 462 |
+| 2 (the HUD) | entry → WSYNC 20; after: CHBASE +6, COLPF1 +12, COLPF2 +18; total 57 | entry → WSYNC 22; after: CHBASE +6, COLPF1 +12, COLPF2 +18; total 59 |
+
+* **`CLD`** adds 2 cycles before WSYNC in every phase and nothing after it.
+* **QA2** moves COLPF3 from +32 to +6 after WSYNC. The other colours move by
+  at most 6 cycles, and HSCROL keeps its place.
+* **Phase 0's missile stores** land within the band's first lines, where the
+  missile plane is blank: a beam starts at line 48 or lower.
+* **On the emulator** (2-sweep-fire2 on `build/level-1-s4`): DLI ordering
+  errors 0, missed frames 0.
+
+**QA2 comparison on the final build**:
+
+* **Method:**
+  * `build/level-1-s4`, ATR `c8df400c…`, the cap and `CLD` in.
+  * 2-sweep-fire2, frames 0–919 captured by the trace emulator.
+  * Against a reverted probe of the same build with phase 1's old store order.
+* **The trace:** CSVs identical.
+* **The pictures:**
+  * **875 frames are identical.** The 45 that differ differ only on
+    screenshot row 80, scanline 88, the band/ring boundary: `$32 → $46` 218
+    pixels, `$36 → $46` 22. That is the stray band `COLPF3` the reorder
+    removes.
+  * **Each differing frame shows a laser** (warning pulse or beam) crossing
+    line 88. No frame without a laser differs.
+* **Frame 739:**
+  * It differs on line 88 only. Its picture shows the beam (screen columns
+    184–191) with the death flash's first frame.
+  * The trace's rows run one frame ahead of the pictures. Picture 738 shows
+    the ship alive under the beam; row 738 already has the player dying and
+    the lasers off (HPOS 0).
+  * Picture 739 is therefore frame 738 as displayed. The beam was published
+    before that frame's UPDATE detected its hit, and it is gone from picture
+    740.
+  * The beam stays visible through the frame of its hit and leaves with the
+    death flash, as designed. No defect.

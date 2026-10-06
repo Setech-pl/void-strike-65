@@ -378,6 +378,12 @@
       "easy": 0.75,
       "medium": 1,
       "hard": 1.25
+    },
+    "laserDamage": {
+      "_": "M5b-S4b (owner decision Q5, 2026-10-06): a laser beam's damage in hull units (the player has 10), at most once per firing. Placeholder; M8 tunes it.",
+      "easy": 5,
+      "medium": 10,
+      "hard": 10
     }
   }
 }

@@ -116,3 +116,57 @@ test("T8: a debug level or sector outside the campaign is refused by the build",
     `${argument} must be refused`);
   }
 });
+
+// M5b-S4b (owner decision Q10, 2026-10-06): the laser fixture's debug-only
+// tier override. --laser-fixture=N installs the fixture region and assembles
+// slot D's laser_tier with BOSS_LASER_TIER_OVERRIDE; the default build has no
+// such path (an .ifdef, not a disabled branch), so the default ATR's bytes are
+// those of a build that never heard of the flag: dist/ and the default build's
+// own files are left byte-identical by the variant build, and the default
+// slot D's tier follows the level id while the variant's is fixed.
+test("S4b: --laser-fixture=4 --level=1:sector=4 writes its own directory, never touches dist/ or the default build", async () => {
+  const before = Object.fromEntries(ARTIFACTS.map((name) => [name, sha256(readDist(name))]));
+  const shared = [...SHARED_BUILD_FILES, "boss.bin", "boss.lbl", "overlay-boss-slot-d.bin"];
+  const sharedBefore = Object.fromEntries(shared.map((name) =>
+    [name, sha256(fs.readFileSync(path.join(root, "build", name)))]));
+  const variant = "laser-fixture-4-level-1-s4";
+  const variantDirectory = path.join(root, "build", variant);
+  fs.rmSync(variantDirectory, { recursive: true, force: true });
+  execFileSync(process.execPath, ["scripts/build.mjs", "--laser-fixture=4", "--level=1:sector=4", "--quiet"],
+    { cwd: root, stdio: "pipe" });
+  for (const name of ARTIFACTS) {
+    assert.equal(sha256(readDist(name)), before[name], `the fixture build must not touch dist/${name}`);
+  }
+  for (const name of shared) {
+    assert.equal(sha256(fs.readFileSync(path.join(root, "build", name))), sharedBefore[name],
+      `the fixture build must not overwrite build/${name}`);
+  }
+  const manifest = JSON.parse(fs.readFileSync(path.join(variantDirectory, "void-strike-65-manifest.json"), "utf8"));
+  assert.equal(manifest.buildVariant, variant);
+  assert.equal(manifest.runtimeEvidence, null, "no gate consults a review variant");
+  const defaultManifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
+  assert.equal(defaultManifest.boss.laserFixtureTier, null, "the default build carries no fixture");
+  const { Nmos6502 } = await import("../scripts/nmos6502.mjs");
+  const tierOf = (directory, level) => {
+    const labels = new Map(fs.readFileSync(path.join(directory, "boss.lbl"), "utf8").split("\n")
+      .map((line) => /^al\s+([0-9a-f]+)\s+\.?(\S+)$/i.exec(line.trim())).filter(Boolean)
+      .map((m) => [m[2], Number.parseInt(m[1], 16)]));
+    const memory = new Uint8Array(0x10000);
+    memory.set(fs.readFileSync(path.join(directory, "overlay-boss-slot-d.bin")), 0x1900);
+    memory[0xa603] = level;
+    const cpu = new Nmos6502(memory);
+    cpu.push(0xff); cpu.push(0xfe);
+    cpu.pc = labels.get("laser_tier");
+    for (let steps = 0; cpu.pc !== 0xffff && steps < 1000; steps += 1) cpu.step();
+    return memory[labels.get("boss_laser_slots")];
+  };
+  for (const [level, slots] of [[1, 1], [5, 2], [9, 4]]) {
+    assert.equal(tierOf(path.join(root, "build"), level), slots, `default build, level ${level}`);
+    assert.equal(tierOf(variantDirectory, level), 4, `fixture build, level ${level}`);
+  }
+  const source = fs.readFileSync(path.join(root, "src/hybrid/boss.s"), "utf8");
+  assert.match(source, /\.ifdef BOSS_LASER_TIER_OVERRIDE[\s\S]+lda #BOSS_LASER_TIER_OVERRIDE[\s\S]+\.else[\s\S]+lda LEVEL_ID[\s\S]+\.endif/,
+    "the tier is assembled one way or the other, never branched at runtime");
+  assert.throws(() => execFileSync(process.execPath, ["scripts/build.mjs", "--laser-fixture=3", "--quiet"],
+    { cwd: root, stdio: "pipe" }), (error) => /the tiers are 2 and 4/.test(String(error.stderr ?? "")));
+});

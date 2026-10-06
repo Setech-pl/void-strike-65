@@ -18,6 +18,10 @@
 ;                             the head, sized to use
 ;   BOSS_SCRATCH, BOSS_BSS    the claim's scratch page ($1800-$18FF): the
 ;                             column map, S4a-ii's ring, this file's state
+;   BOSS_D_*                  slot D ($1900-$1FFF, the claim grown by owner
+;                             decision Q7, M5b-S4b): the lasers and the boss's
+;                             shots inside the band, read by the head after
+;                             slot C, sized to use
 ;
 ; The region's charset lands at $0C00 (the claim's first KB): the band's DLI
 ; points CHBASE at it under the band and back at the gameplay charset for the
@@ -56,6 +60,9 @@
 .include "level-def.inc"
 
 HSCROL          = $D404
+PRIOR           = $D01B
+HPOSM0          = $D004
+SIZEM           = $D00C
 WSYNC           = $D40A
 CHBASE          = $D409
 DLISTL          = $D402
@@ -133,7 +140,8 @@ BOSS_SHOT_ACTIVE   = (1 << 3) | 2 | 4
 ; its band A, band B and charset runs, 5 bytes a run.
 BOSS_RUN_INSTALL = 0
 BOSS_RUN_SLOT_C  = 5
-BOSS_RUN_REGIONS = 10
+BOSS_RUN_SLOT_D  = 10
+BOSS_RUN_REGIONS = 15
 BOSS_REGION_RUNS = 3
 
 .assert BOSS_BAND_ROWS = 8, error, "the band is 8 rows (owner answer Q2)"
@@ -165,6 +173,8 @@ _boss_stats_bonus  = STATS_BONUS
 .import _boss_score_module, _boss_newly_lo, _boss_newly_hi, _boss_kind, _boss_hp
 .import _boss_blast, _boss_handoff, _boss_clock_lo, _boss_clock_hi, _boss_phase
 .import _boss_fire_module, _boss_fire_offset, _boss_heavy
+.export boss_laser_slots, _boss_laser_slots
+_boss_laser_slots = boss_laser_slots
 
 ; ===========================================================================
 ; Slot A's head: the entry, then the vector table image.
@@ -202,6 +212,8 @@ boss_head:
     ldy #BOSS_RUN_INSTALL
     jsr boss_read_run
     ldy #BOSS_RUN_SLOT_C
+    jsr boss_read_run
+    ldy #BOSS_RUN_SLOT_D
     jsr boss_read_run
     ldx #$00
     lda LEVEL_ID
@@ -291,6 +303,7 @@ boss_dli:
     sta COLPF2
     lda boss_palette+3
     sta COLPF3
+    jsr laser_publish                   ; S4b: the lasers' HPOS and SIZEM (A only)
     inc gameplay_dli_phase
     pla
     rti
@@ -298,6 +311,11 @@ boss_dli:
     lsr                                 ; phase 1 -> C=1; phase 2 -> C=0
     bcc @hud
     sta WSYNC
+    ; COLPF3 first (owner decision QA2): in the horizontal blank, so the
+    ; lasers' fifth-player beam changes from the band's colour to the ring's
+    ; exactly at the band's edge (as the last store it reached line 88).
+    lda #GAMEPLAY_COLPF3
+    sta COLPF3
     lda #>CHARSET
     sta CHBASE
     lda #GAMEPLAY_COLPF0
@@ -306,8 +324,6 @@ boss_dli:
     sta COLPF1
     lda #GAMEPLAY_COLPF2
     sta COLPF2
-    lda #GAMEPLAY_COLPF3
-    sta COLPF3
     inc gameplay_dli_phase
     lda boss_dli_pos
     cmp boss_shown_pos
@@ -430,6 +446,7 @@ boss_update:
     sta boss_frame_heavy
     jsr boss_frame_timers
     jsr boss_shots_restore
+    jsr laser_frame                     ; S4b: the lasers, the boss's shots in the band
     ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
 @shot:
     lda FIGHTER_PROJECTILE_ACTIVE,x
@@ -590,6 +607,7 @@ boss_module_scored:
     cld
     jsr SECTOR_READER_STATS_KILL
     jsr play_hit_sound
+    jsr laser_killed                    ; S4b: a destroyed emitter's laser off now
     ; Gone (decision L): the module disappears (queued), and its columns
     ; rebuilt now - a shot there meets the module behind it, or the hull.
     lda _boss_score_module
@@ -643,6 +661,11 @@ boss_fire:
     lda _boss_fire_module
     bmi @done
     tax
+    lda _boss_kind,x                    ; S4b: an emitter fires its laser
+    cmp #BOSS_KIND_EMITTER
+    bne :+
+    jmp laser_start
+:
     stx boss_ring_tag
     jsr boss_record_of
     lda BOSS_T_MODULES + BOSS_M_WIDTH,y
@@ -659,6 +682,12 @@ boss_fire:
     tax
     dex
     jsr boss_cell_at
+    txa                                 ; QA1: the shot is born on the line
+    asl                                 ; under the gun's bottom row (X <= 7)
+    asl
+    asl
+    adc #(BAND_TOP_Y + 8)
+    sta boss_fire_y
     lda BOSS_T_MUZZLE
     ldy #BOSS_MUZZLE_FRAMES
     jsr boss_ring_set
@@ -688,7 +717,7 @@ boss_fire:
     rts
 @spawn:
     sta FIGHTER_PROJECTILE_X,x
-    lda #BAND_BOTTOM_Y
+    lda boss_fire_y                     ; QA1: at the muzzle, drawn in the band
     sta FIGHTER_PROJECTILE_Y,x
     sta FIGHTER_PROJECTILE_PREV_Y,x
     lda #INTERCEPTOR_PROJECTILE_LIFETIME
@@ -1667,6 +1696,603 @@ boss_mbottom_y:     .res BOSS_MAX_MODULES   ; the line under each module's botto
 
 
 ; ===========================================================================
+; Slot D ($1900-$1FFF, owner decision Q7; M5b-S4b): the lasers
+; (docs/plans/boss-lasers.md §12, the owner's decisions of 2026-10-06) and the
+; boss's shots inside the band (QA1). Read by the head after slot C.
+;
+; Option A (Q1): each enabled emitter slot k is missile k under PRIOR's
+; fifth-player bit, so a beam takes COLPF3 - the band's $32 in the band, the
+; ring's $46 below it, switched by the band DLI. The column is written once at
+; the install, from the line under the emitter to the ring's last line, and
+; erased when the boss sector ends (Q2); a laser is then only its HPOS and its
+; SIZEM pair, published by the band DLI's phase 0 from the band position
+; that frame shows. Warning (Q3): the emitter's bottom cell heats through the
+; cell-flash ring (spark / muzzle every 4 frames), the line pulses 1 / 2 colour
+; clocks in 2-frame groups, a rising tone on channel 3 over the engine bed
+; (Q4); beam: 4 colour clocks. The beam damages the player at most once a
+; firing (Q5, boss_def's damage per difficulty, software compare) and absorbs
+; the player's shots in its column (Q6). No laser starts and none shows while
+; the player is not ALIVE; a dead emitter's laser goes off at once.
+; ===========================================================================
+.segment "BOSS_D_CODE"
+
+LASERS              = 4
+LASER_OFF           = 0
+LASER_WARN          = 1
+LASER_BEAM          = 2
+LASER_NONE          = $FF
+LASER_BEAM_CLOCKS   = 4         ; quad width: one missile bit, four colour clocks
+LASER_LAST_LINE     = 239       ; the ring's last line
+; src/main.s: MISSILES = PMG_BASE + $0300, PLAYER_LIVES = PLAYER_LIFECYCLE+$01,
+; PLAYER_ALIVE = 0, PLAYER_COLLISION_WIDTH = 8 (pinned by tests/boss-lasers.test.mjs).
+LASER_MISSILES      = $3B00
+LASER_PLAYER_LIVES  = PLAYER_LIFECYCLE + 1
+LASER_PLAYER_ALIVE  = 0
+LASER_PLAYER_WIDTH  = 8
+LASER_HEAT_FRAMES   = 4
+LASER_TONE_AUDF     = $18       ; + the warning's frames left: the pitch rises
+LASER_TONE_AUDC     = $A6       ; pure tone, volume 6
+LASER_ERASE_LINES   = 32        ; the column's erase, a frame (8 frames)
+
+.export laser_tier, laser_prepare, laser_start, laser_frame, laser_publish, boss_laser_damage
+
+; Once, from the install, before the controller's init: decision 8's emitter
+; slots, 1 / 2 / 4 on levels 1-4 / 5-8 / 9-16. A debug fixture build defines
+; BOSS_LASER_TIER_OVERRIDE (scripts/build.mjs --laser-fixture); the default
+; build has no such path.
+laser_tier:
+.ifdef BOSS_LASER_TIER_OVERRIDE
+    lda #BOSS_LASER_TIER_OVERRIDE
+.else
+    lda LEVEL_ID
+    ldx #1
+    cmp #5
+    bcc @set
+    ldx #2
+    cmp #9
+    bcc @set
+    ldx #4
+@set:
+    txa
+.endif
+    sta boss_laser_slots
+    rts
+
+; Once, from the install, after boss_prepare (the controller's kinds are the
+; tier's): every enabled emitter slot k is laser k - its module, its centre,
+; its bottom-centre cell - and missile k's bit from the line under it down;
+; the rest of the plane empty; PRIOR's fifth-player bit on.
+laser_prepare:
+    lda #$00
+    tay
+@plane:
+    sta LASER_MISSILES,y
+    iny
+    bne @plane
+    sta boss_laser_sizem
+    sta boss_laser_erase
+    sta boss_laser_done
+    ldx #(LASERS - 1)
+@reset:
+    sta boss_laser_state,x
+    sta boss_laser_edge,x
+    sta boss_laser_hpos,x
+    dex
+    bpl @reset
+    ldx #(INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT - 1)
+:
+    sta boss_hostile_hi,x
+    dex
+    bpl :-
+    lda #LASER_NONE
+    ldx #(LASERS - 1)
+:
+    sta boss_laser_module,x
+    dex
+    bpl :-
+    lda BOSS_T_SHOT_CODE
+    clc
+    adc #BOSS_SHOT_CODES
+    sta boss_hostile_code
+    ldx #$00
+@module:
+    cpx BOSS_T_MODULE_COUNT
+    bne :+
+    jmp @done
+:
+    lda _boss_kind,x
+    cmp #BOSS_KIND_EMITTER
+    bne @next
+    stx laser_m
+    jsr boss_record_of                  ; Y = the record
+    lda BOSS_T_MODULES + BOSS_M_KIND,y
+    lsr
+    lsr
+    lsr
+    lsr
+    sta laser_i
+    dec laser_i                         ; slot 1-4 -> laser 0-3
+    lda BOSS_T_MODULES + BOSS_M_WIDTH,y
+    asl
+    sta laser_t
+    lda BOSS_T_MODULES + BOSS_M_X,y
+    asl
+    asl
+    adc laser_t                         ; C=0: the centre colour clock, x*4 + w*2
+    ldx laser_i
+    sta boss_laser_centre,x
+    lda BOSS_T_MODULES + BOSS_M_WIDTH,y
+    lsr
+    clc
+    adc BOSS_T_MODULES + BOSS_M_X,y
+    sta boss_column                     ; the centre column
+    lda BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    and #$0F
+    clc
+    adc BOSS_T_MODULES + BOSS_M_ROW,y
+    sta laser_t                         ; the row under the emitter
+    tax
+    dex
+    jsr boss_cell_at                    ; its bottom-centre cell: the heat's
+    ldx laser_i
+    lda dst_ptr
+    sta boss_laser_cell_lo,x
+    lda dst_ptr+1
+    sta boss_laser_cell_hi,x
+    lda laser_m
+    sta boss_laser_module,x
+    lda laser_bits,x
+    sta laser_b
+    lda laser_t
+    asl
+    asl
+    asl
+    adc #BAND_TOP_Y                     ; C=0: the first line of the beam
+    tay
+@line:
+    lda LASER_MISSILES,y
+    ora laser_b
+    sta LASER_MISSILES,y
+    iny
+    cpy #(LASER_LAST_LINE + 1)
+    bne @line
+    ldx laser_m
+@next:
+    inx
+    jmp @module
+@done:
+    lda #$10                            ; the fifth player: missiles in COLPF3
+    sta PRIOR
+    rts
+
+; From boss_fire, X = an emitter the controller named: its laser warns, unless
+; it is running already, its emitter is dead or the player is not ALIVE.
+laser_start:
+    lda PLAYER_LIFECYCLE
+    bne @done
+    lda _boss_hp,x
+    beq @done
+    txa
+    ldy #(LASERS - 1)
+@find:
+    cmp boss_laser_module,y
+    beq @found
+    dey
+    bpl @find
+@done:
+    rts
+@found:
+    lda boss_laser_state,y
+    bne @done
+    lda #LASER_WARN
+    sta boss_laser_state,y
+    lda BOSS_T_LASER_WARNING
+    sta boss_laser_timer,y
+    lda #$00
+    sta boss_laser_fired,y
+    rts
+
+; Every frame, from UPDATE before the player's shots meet the band: the boss's
+; shots in the band; then, in the fight, the beams on screen this frame against
+; the player and the shots, each laser's timer, warning and next position.
+; The defeat or the last life lost ends the boss sector for the lasers: all
+; off, the column erased, PRIOR's fifth-player bit off (Q1).
+laser_frame:
+    jsr laser_hostile_shots
+    lda boss_laser_done
+    bne @rts
+    lda _boss_phase
+    bne @leaving
+    lda PLAYER_LIFECYCLE
+    beq @fight
+    lda LASER_PLAYER_LIVES
+    beq @leaving
+    jmp laser_all_off                   ; a death with a life left: held
+@leaving:
+    jsr laser_all_off
+    jmp laser_erase_step
+@rts:
+    rts
+@fight:
+    jsr laser_collide
+    lda #$00
+    sta boss_laser_sizem
+    ldx #(LASERS - 1)
+@laser:
+    lda boss_laser_state,x
+    beq @next
+    ldy boss_laser_module,x
+    lda _boss_hp,y
+    bne @live
+    jsr laser_off                       ; its emitter destroyed
+    jmp @next
+@live:
+    dec boss_laser_timer,x
+    bne @running
+    lda boss_laser_state,x
+    cmp #LASER_WARN
+    bne @ended
+    jsr laser_cool                      ; the warning over: the beam
+    lda #LASER_BEAM
+    sta boss_laser_state,x
+    lda BOSS_T_LASER_BEAM
+    sta boss_laser_timer,x
+    bne @place
+@ended:
+    jsr laser_off
+    jmp @next
+@running:
+    lda boss_laser_state,x
+    cmp #LASER_WARN
+    bne @place
+    jsr laser_warn
+@place:
+    jsr laser_place
+@next:
+    dex
+    bpl @laser
+    rts
+
+; X = a laser in its warning: every 4 frames the heat look on its emitter's
+; bottom cell (the ring carries it through a stage redraw); the rising tone.
+laser_warn:
+    lda boss_laser_timer,x
+    and #(LASER_HEAT_FRAMES - 1)
+    bne @tone
+    lda boss_laser_cell_lo,x
+    sta dst_ptr
+    lda boss_laser_cell_hi,x
+    sta dst_ptr+1
+    lda boss_laser_module,x
+    sta boss_ring_tag
+    stx laser_x
+    lda boss_laser_timer,x
+    and #LASER_HEAT_FRAMES
+    beq @spark
+    lda BOSS_T_MUZZLE
+    bne @heat
+@spark:
+    lda BOSS_T_SPARK
+@heat:
+    ldy #LASER_HEAT_FRAMES
+    jsr boss_ring_set
+    ldx laser_x
+@tone:
+    lda sound_enabled
+    beq @done
+    lda boss_laser_timer,x
+    clc
+    adc #LASER_TONE_AUDF
+    sta AUDF3
+    lda #LASER_TONE_AUDC
+    sta AUDC3
+@done:
+    rts
+
+; X = a running laser: its next frame's left edge (the DLI subtracts the band
+; position) and its SIZEM pair - the warning 1 / 2 clocks by 2-frame groups,
+; the beam 4. Keeps X.
+laser_place:
+    lda boss_laser_state,x
+    cmp #LASER_BEAM
+    beq @beam
+    lda boss_laser_timer,x
+    and #$02
+    beq @thin
+    lda laser_pair_one,x                ; two clocks: one clock left of centre
+    ldy #1
+    bne @size
+@thin:
+    lda #$00
+    tay
+    beq @size
+@beam:
+    lda laser_pair_three,x
+    ldy #2
+@size:
+    ora boss_laser_sizem
+    sta boss_laser_sizem
+    sty laser_t
+    lda boss_laser_centre,x
+    sec
+    sbc laser_t
+    sta boss_laser_edge,x
+    rts
+
+; From the kill path (boss_module_scored): the destroyed module's laser, if it
+; has one, goes off on the kill frame. Touches A, X, Y.
+laser_killed:
+    lda _boss_score_module
+    ldx #(LASERS - 1)
+:
+    cmp boss_laser_module,x
+    beq laser_off
+    dex
+    bpl :-
+    rts
+
+; X = a laser: off now - no HPOS from the next DLI, its heat cell back, the
+; engine bed back if it was warning. Keeps X.
+laser_off:
+    lda boss_laser_state,x
+    cmp #LASER_WARN
+    bne :+
+    jsr laser_cool
+:
+    lda #$00
+    sta boss_laser_state,x
+    sta boss_laser_edge,x
+    sta boss_laser_hpos,x
+    rts
+
+laser_all_off:
+    ldx #(LASERS - 1)
+:
+    jsr laser_off
+    dex
+    bpl :-
+    lda #$00
+    sta boss_laser_sizem
+    rts
+
+; X = a laser leaving its warning: the heat record on its cell gives the cell
+; back now, and channel 3 goes back to the engine bed. Keeps X.
+laser_cool:
+    stx laser_x
+    ldy #(BOSS_RING_RECORDS - 1)
+@record:
+    lda boss_ring_timer,y
+    beq @next
+    lda boss_ring_lo,y
+    cmp boss_laser_cell_lo,x
+    bne @next
+    lda boss_ring_hi,y
+    cmp boss_laser_cell_hi,x
+    bne @next
+    lda #$00
+    sta boss_ring_timer,y
+    tya
+    tax
+    jsr boss_ring_restore
+    ldx laser_x
+@next:
+    dey
+    bpl @record
+    lda sound_enabled
+    beq @done
+    lda #BOSS_BED_AUDF
+    sta AUDF3
+    lda #BOSS_BED_AUDC
+    sta AUDC3
+@done:
+    rts
+
+; Every beam on screen this frame (the HPOS the DLI published) against the
+; player's ship - once a firing, the damage boss_def gives the difficulty
+; (Q5) - and against the player's shots, which it absorbs (Q6). The caller
+; has checked the player is ALIVE.
+laser_collide:
+    ldx #(LASERS - 1)
+@laser:
+    lda boss_laser_state,x
+    cmp #LASER_BEAM
+    bne @next
+    lda boss_laser_hpos,x
+    beq @next
+    lda boss_laser_fired,x
+    bne @shots
+    lda boss_laser_hpos,x
+    sec
+    sbc player_x
+    cmp #LASER_PLAYER_WIDTH
+    bcc @hit
+    cmp #(256 - (LASER_BEAM_CLOCKS - 1))
+    bcc @shots
+@hit:
+    inc boss_laser_fired,x
+    stx laser_x
+    ldy DIFFICULTY_SETTING
+    lda LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_DAMAGE,y
+    jsr boss_laser_damage
+    ldx laser_x
+@shots:
+    ldy #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
+@shot:
+    lda FIGHTER_PROJECTILE_ACTIVE,y
+    beq @none
+    lda FIGHTER_PROJECTILE_X,y
+    sec
+    sbc boss_laser_hpos,x
+    cmp #LASER_BEAM_CLOCKS
+    bcs @none
+    lda #FIGHTER_PROJECTILE_FREE
+    sta FIGHTER_PROJECTILE_ACTIVE,y
+@none:
+    dey
+    bpl @shot
+@next:
+    dex
+    bpl @laser
+    rts
+
+; The laser's damage call: one address the trace watches as the laser's damage
+; source (apply_player_damage has none; plan §0.3 item 4). A = hull units.
+boss_laser_damage:
+    jmp apply_player_damage
+
+; The boss sector is over for the lasers: 32 lines of the plane a frame, then
+; PRIOR's fifth-player bit off, once.
+laser_erase_step:
+    ldy boss_laser_erase
+    ldx #LASER_ERASE_LINES
+    lda #$00
+:
+    sta LASER_MISSILES,y
+    iny
+    dex
+    bne :-
+    sty boss_laser_erase
+    cpy #$00
+    bne :+
+    sta PRIOR
+    inc boss_laser_done
+:
+    rts
+
+; QA1: the boss's shots above the band's edge are drawn in the band, in a
+; blank cell (decision O keeps the recess under a weapon blank), as the
+; player's are (decision M); last frame's cells get the blank back while they
+; still show a boss shot.
+laser_hostile_shots:
+    ldx #(INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT - 1)
+@restore:
+    lda boss_hostile_hi,x
+    beq @restored
+    sta dst_ptr+1
+    lda boss_hostile_lo,x
+    sta dst_ptr
+    ldy #$00
+    lda (dst_ptr),y
+    sec
+    sbc boss_hostile_code
+    cmp #BOSS_HOSTILE_SHOT_CODES
+    bcs :+
+    tya
+    sta (dst_ptr),y
+:
+    lda #$00
+    sta boss_hostile_hi,x
+@restored:
+    dex
+    bpl @restore
+    ldx #(INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT - 1)
+@shot:
+    lda FIGHTER_PROJECTILE_ACTIVE + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    beq @next
+    lda FIGHTER_PROJECTILE_Y + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    cmp #BAND_BOTTOM_Y
+    bcs @next
+    sbc #(BAND_TOP_Y - 1)               ; C=0: Y - BAND_TOP_Y
+    bcc @next
+    lsr
+    lsr
+    lsr
+    sta laser_t                         ; the band row
+    lda FIGHTER_PROJECTILE_X + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    sec
+    sbc #BAND_ORIGIN_HPOS
+    clc
+    adc boss_shown_pos
+    sta laser_b                         ; the band colour clock
+    lsr
+    lsr
+    sta boss_column
+    stx laser_x
+    ldx laser_t
+    jsr boss_cell_at
+    ldx laser_x
+    ldy #$00
+    lda (dst_ptr),y
+    bne @next                           ; behind anything drawn
+    lda laser_b
+    lsr
+    and #$01                            ; the right phase for the cell's odd half
+    clc
+    adc boss_hostile_code
+    sta (dst_ptr),y
+    lda dst_ptr
+    sta boss_hostile_lo,x
+    lda dst_ptr+1
+    sta boss_hostile_hi,x
+@next:
+    dex
+    bpl @shot
+    rts
+
+; The band DLI's phase 0 (A only): each laser's HPOS for the frame starting -
+; its edge less the band position this frame shows, off screen outside the
+; window - and SIZEM; the hit test reads boss_laser_hpos.
+.macro LASER_PUBLISH index
+    .local off, on
+    lda boss_laser_edge+index
+    beq off
+    sec
+    sbc boss_shown_pos
+    bcc off
+    cmp #(GAMEPLAY_LEFT_HPOS - BAND_ORIGIN_HPOS)
+    bcc off
+    cmp #(GAMEPLAY_LEFT_HPOS + GAMEPLAY_SCREEN_COLUMNS * 4 - BAND_ORIGIN_HPOS - LASER_BEAM_CLOCKS)
+    bcs off
+    adc #BAND_ORIGIN_HPOS               ; C=0
+    bne on
+off:
+    lda #$00
+on:
+    sta HPOSM0+index
+    sta boss_laser_hpos+index
+.endmacro
+laser_publish:
+    LASER_PUBLISH 0
+    LASER_PUBLISH 1
+    LASER_PUBLISH 2
+    LASER_PUBLISH 3
+    lda boss_laser_sizem
+    sta SIZEM
+    rts
+
+laser_bits:
+    .byte $02, $08, $20, $80            ; each missile's left bit
+laser_pair_one:
+    .byte $01, $04, $10, $40            ; SIZEM: double
+laser_pair_three:
+    .byte $03, $0C, $30, $C0            ; SIZEM: quad
+
+.segment "BOSS_D_BSS"
+boss_laser_slots:   .res 1      ; the emitter slots the tier enables
+boss_laser_module:  .res LASERS ; each laser's module, LASER_NONE
+boss_laser_state:   .res LASERS
+boss_laser_timer:   .res LASERS
+boss_laser_centre:  .res LASERS ; the emitter's centre colour clock in the band
+boss_laser_edge:    .res LASERS ; the next frame's left edge in the band (0: off)
+boss_laser_hpos:    .res LASERS ; the HPOS the DLI published this frame (0: off)
+boss_laser_fired:   .res LASERS ; nonzero once this firing touched the player
+boss_laser_cell_lo: .res LASERS ; the emitter's bottom-centre cell
+boss_laser_cell_hi: .res LASERS
+boss_laser_sizem:   .res 1
+boss_laser_erase:   .res 1      ; the plane's next line to erase on leaving
+boss_laser_done:    .res 1      ; the boss sector is over for the lasers
+boss_hostile_lo:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT ; each boss shot's band cell, last frame
+boss_hostile_hi:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT
+boss_hostile_code:  .res 1
+boss_fire_y:        .res 1      ; boss_fire: the firing gun's muzzle line
+laser_m:            .res 1
+laser_i:            .res 1
+laser_t:            .res 1
+laser_b:            .res 1
+laser_x:            .res 1
+
+
+; ===========================================================================
 ; The once-only install (Q-S1), at $7810, run in place before the pause
 ; backup or the summary's staging can reuse that RAM.
 ; ===========================================================================
@@ -1793,8 +2419,10 @@ boss_install:
     ; 7. The controller FIRST - hit points, the tier, the exposure - then
     ;    what reads them: the capped plates and the column map, whose alive
     ;    test needs the hit points (§5.13.5, the install order).
-    jsr _boss_c_init
+    jsr laser_tier                      ; S4b: the slots the tier enables, before
+    jsr _boss_c_init                    ; the init reads them
     jsr boss_prepare
+    jsr laser_prepare                   ; the lasers' missiles, PRIOR $10
     ; 8. The band at its start position, still.
     lda #$01
     sta boss_dir

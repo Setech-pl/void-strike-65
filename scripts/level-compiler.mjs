@@ -514,9 +514,13 @@ function compilePayload(source, context) {
 // summary adds to the score. M5b-S4a-i (owner answer Q-B3): bytes 2-4, the
 // hit-point scale per difficulty (EASY, MEDIUM, HARD) in quarters, -2..+2 as a
 // two's-complement byte - x 1/2, 3/4, 1, 5/4, 3/2 - applied by the boss
-// controller to every module's hit points and thresholds. The rest of the 62-B
-// block stays zero for S4b-S5.
+// controller to every module's hit points and thresholds. M5b-S4b (owner
+// decision Q5, 2026-10-06): bytes 5-7, a laser beam's damage in hull units per
+// difficulty (EASY, MEDIUM, HARD), at most once per firing. The rest of the
+// 62-B block stays zero for S5.
 export const BOSS_DEF_HP_SCALE_OFFSET = 2;
+export const BOSS_DEF_LASER_DAMAGE_OFFSET = 5;
+export const BOSS_LASER_DAMAGE_DEFAULTS = Object.freeze({ easy: 5, medium: 10, hard: 10 });
 export const BOSS_HP_SCALES = Object.freeze({ 0.5: -2, 0.75: -1, 1: 0, 1.25: 1, 1.5: 2 });
 export const BOSS_HP_SCALE_DEFAULTS = Object.freeze({ easy: 0.75, medium: 1, hard: 1.25 });
 function compileBossDef(source, context, bossId) {
@@ -544,6 +548,11 @@ function compileBossDef(source, context, bossId) {
         `it is one of ${Object.keys(BOSS_HP_SCALES).join(", ")}`);
     }
     block[BOSS_DEF_HP_SCALE_OFFSET + index] = quarters & 0xff;
+  });
+  const laserDamage = { ...BOSS_LASER_DAMAGE_DEFAULTS, ...(def.laserDamage ?? {}) };
+  ["easy", "medium", "hard"].forEach((difficulty, index) => {
+    block[BOSS_DEF_LASER_DAMAGE_OFFSET + index] = requireInteger(context, "bossDef",
+      `laserDamage.${difficulty}`, laserDamage[difficulty], 1, 10);
   });
   return block;
 }
@@ -967,6 +976,7 @@ export function renderLevelDefCa65Include() {
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.summary).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_PAYLOAD_BOSS_DEF = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.bossDef).toString(16).toUpperCase()}`);
+  lines.push(`BOSS_DEF_LASER_DAMAGE = ${BOSS_DEF_LASER_DAMAGE_OFFSET}`);
   lines.push(`LEVEL_PAYLOAD_WEAPON = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.weaponGlyph).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_LIGHT_LOOK_BYTES = ${LIGHT_LOOK_BYTES}`);
@@ -1053,7 +1063,8 @@ export function renderLevelDefCHeader() {
       .toString(16).toUpperCase()}u`,
     "#define BOSS_DEF_BONUS_LO        0u",
     "#define BOSS_DEF_BONUS_HI        1u",
-    `#define BOSS_DEF_HP_SCALE        ${BOSS_DEF_HP_SCALE_OFFSET}u`);
+    `#define BOSS_DEF_HP_SCALE        ${BOSS_DEF_HP_SCALE_OFFSET}u`,
+    `#define BOSS_DEF_LASER_DAMAGE    ${BOSS_DEF_LASER_DAMAGE_OFFSET}u`);
   lines.push("", "#endif", "");
   return lines.join("\n");
 }

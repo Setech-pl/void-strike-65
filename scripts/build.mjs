@@ -108,11 +108,15 @@ import {
   BOSS_SCRATCH_BYTES,
   BOSS_SLOT_C_ADDRESS,
   BOSS_SLOT_C_BYTES,
+  BOSS_SLOT_D_ADDRESS,
+  BOSS_SLOT_D_BYTES,
   BOSS_STAGING_ADDRESS,
   BOSS_THEME_SECTORS,
   bossRegionDirectory,
   compileBossRegion,
   bossShotGlyphsFrom,
+  bossHostileShotGlyphsFrom,
+  bossLaserFixtureDraft,
   loadBossRegionDraft,
   renderBossLayoutHeader,
   renderBossLayoutInclude,
@@ -285,6 +289,17 @@ if (playerColourSlug && !playerColourValues.has(playerColourSlug.toUpperCase()))
 const playerColourValue = playerColourSlug
   ? playerColourValues.get(playerColourSlug.toUpperCase())
   : null;
+// M5b-S4b (owner decision Q10, 2026-10-06): the laser fixture - region 1 with
+// four uncovered emitter slots (scripts/boss-assets.mjs bossLaserFixtureDraft)
+// and the laser tier fixed at 2 or 4 (an assembler define in slot D's
+// laser_tier). Debug and review only: build/laser-fixture-<n>[-level-N-sM]/,
+// never dist/, runtime measurement skipped, no gate consults it.
+const laserFixtureArgument = process.argv.find((argument) => argument.startsWith("--laser-fixture="));
+const laserFixtureSlug = laserFixtureArgument?.slice("--laser-fixture=".length);
+if (laserFixtureSlug !== undefined && !["2", "4"].includes(laserFixtureSlug)) {
+  throw new Error(`Unknown laser fixture ${laserFixtureSlug}; the tiers are 2 and 4`);
+}
+const laserFixtureTier = laserFixtureSlug === undefined ? null : Number(laserFixtureSlug);
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -296,7 +311,7 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
-  pickupColourValue !== null || playerColourValue !== null;
+  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -311,7 +326,9 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 // it produces can be read by anything that did not ask for the variant.
 const levelDebugSuffix = levelDebugId === null
   ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = playerColourValue !== null
+const variantDirectoryName = laserFixtureTier !== null
+  ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
+  : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
   ? `bomber-colour-${bomberColourSlug}${levelDebugSuffix}`
@@ -471,6 +488,10 @@ const bossInstallSectors = 3;
 const bossInstallAddress = 0x7810;
 const bossSlotCSector = bossInstallSector + bossInstallSectors;
 const bossSlotCMaxSectors = BOSS_SLOT_C_BYTES / 128;
+// M5b-S4b (owner decision Q7): slot D, the lasers and the boss's shots in the
+// band, at $1900, up to 14 sectors after slot C's 16 (563-576), sized to use.
+const bossSlotDSector = bossSlotCSector + bossSlotCMaxSectors;
+const bossSlotDMaxSectors = BOSS_SLOT_D_BYTES / 128;
 const bossRegionBaseSector = 632;
 const bossRegionCount = 4;
 // The window copies this many bytes of the region's staging run over the
@@ -1742,9 +1763,16 @@ async function build() {
   );
   const bossThemeImage = layoutGameplayMusicLike(bossThemeAsset, gameplayMusicAsset,
     { capacity: bossThemeCopyBytes });
+  // M5b-S4b (owner decision Q10): --laser-fixture=2|4 is a debug-only review
+  // variant that installs the laser fixture (region 1 with four uncovered
+  // emitter slots) as region 1 and fixes the tier; the default build never
+  // takes this path.
+  const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
   const bossRegions = [compileBossRegion(
-    loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1)), { themeImage: bossThemeImage,
-      shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter) })];
+    laserFixtureTier === null ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft),
+    { themeImage: bossThemeImage,
+      shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter),
+      hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]) })];
   // (loadBossRegionDraft carries the same glyphs; the build passes its own
   // weapons asset so a variant that changed it converts the boss with it.)
   const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
@@ -2615,7 +2643,7 @@ async function build() {
       "generate_starfield_row", "weapon_pickup_clear_sector", "draw_player", "HUD_CHARSET",
       "HUD_COLPF1", "HUD_COLPF2", "STATE_GAMEPLAY", "game_state", "wait_frame_start",
       "main_loop", "sound_enabled", "GAMEPLAY_DIVIDER_SCREEN", "capital_slot_a",
-      "DIFFICULTY_SETTING"],
+      "DIFFICULTY_SETTING", "PLAYER_LIFECYCLE", "player_x", "apply_player_damage"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end"],
     director: ["_sector_wave_count", "_director_c_try_event"],
@@ -2661,12 +2689,14 @@ async function build() {
   // M5b-S4a-i (Q-B8): slot C's run is sized to the linked code, so the run
   // table is rendered twice - first with slot C's whole reservation, then
   // with the linked size; the table's bytes do not move a label (checked).
-  const renderBossRuns = (slotCSectors) => [
+  const renderBossRuns = (slotCSectors, slotDSectors) => [
     "; Generated by scripts/build.mjs for M5b-S4a-i - do not edit.",
     "; {sector lo, sector hi, count, dst lo, dst hi}: the shared install run, slot C,",
-    "; then per region band A, band B and the charset (0 = not on this disk).",
+    "; slot D (M5b-S4b), then per region band A, band B and the charset (0 = not on",
+    "; this disk).",
     bossRunEntry(bossInstallSector, bossInstallSectors, bossInstallAddress) + "\t; install",
     bossRunEntry(bossSlotCSector, slotCSectors, BOSS_SLOT_C_ADDRESS) + "\t; slot C",
+    bossRunEntry(bossSlotDSector, slotDSectors, BOSS_SLOT_D_ADDRESS) + "\t; slot D",
     ...Array.from({ length: bossRegionCount }, (_, index) => {
       const region = bossRegions[index];
       return region === undefined
@@ -2730,7 +2760,9 @@ async function build() {
         "/project/build/level-summary-abi.inc": levelSummaryAbiInclude,
         "/project/build/level-def.inc": levelDefInclude,
       },
-      ["--cpu", "6502", "-g", "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
+      ["--cpu", "6502", "-g",
+        ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
+        "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
     const linked = await runWasmTool(
@@ -2747,13 +2779,15 @@ async function build() {
     return { assembled, linked,
       labels: parseViceLabels(linked.outputs[`${bossBase}.lbl`].toString("utf8")) };
   };
-  let bossRunsInclude = renderBossRuns(bossSlotCMaxSectors);
+  let bossRunsInclude = renderBossRuns(bossSlotCMaxSectors, bossSlotDMaxSectors);
   let bossLink = await linkBoss(bossRunsInclude);
   const bossSlotCCodeBytes = bossLink.labels.get("__BOSS_C_BSS_RUN__") - BOSS_SLOT_C_ADDRESS;
   const bossSlotCSectors = Math.ceil(bossSlotCCodeBytes / 128);
+  const bossSlotDCodeBytes = bossLink.labels.get("__BOSS_D_BSS_RUN__") - BOSS_SLOT_D_ADDRESS;
+  const bossSlotDSectors = Math.ceil(bossSlotDCodeBytes / 128);
   {
     const firstPass = bossLink.labels;
-    bossRunsInclude = renderBossRuns(bossSlotCSectors);
+    bossRunsInclude = renderBossRuns(bossSlotCSectors, bossSlotDSectors);
     bossLink = await linkBoss(bossRunsInclude);
     for (const [name, address] of firstPass) {
       if (bossLink.labels.get(name) !== address) {
@@ -2770,10 +2804,14 @@ async function build() {
   const bossInstallUsed = bossLabels.get("__BOSS_INSTALL_RAM_LAST__") - bossInstallAddress;
   const bossSlotCUsed = bossLabels.get("__BOSS_SLOT_C_RAM_LAST__") - BOSS_SLOT_C_ADDRESS;
   const bossScratchUsed = bossLabels.get("__BOSS_SCRATCH_RAM_LAST__") - BOSS_SCRATCH_ADDRESS;
+  const bossSlotDUsed = bossLabels.get("__BOSS_SLOT_D_RAM_LAST__") - BOSS_SLOT_D_ADDRESS;
   const bossCodeSectors = Math.ceil(bossSlotUsed / 128);
   const slotABytes = capitalSlotImage.length;
   const installBytes = bossInstallSectors * 128;
-  if (bossImage.length !== slotABytes + installBytes + BOSS_SLOT_C_BYTES ||
+  if (bossImage.length !== slotABytes + installBytes + BOSS_SLOT_C_BYTES + BOSS_SLOT_D_BYTES ||
+    !(bossSlotDUsed > 0 && bossSlotDUsed <= BOSS_SLOT_D_BYTES) || bossSlotDSectors > bossSlotDMaxSectors ||
+    BOSS_SLOT_D_ADDRESS + BOSS_SLOT_D_BYTES !== BOSS_CLAIM.endExclusive ||
+    bossSlotDSector + bossSlotDMaxSectors > bossReservationSector + bossReservationSectors ||
     !(bossSlotUsed > 0 && bossSlotUsed <= slotABytes) ||
     !(bossInstallUsed > 0 && bossInstallUsed <= installBytes) ||
     !(bossSlotCUsed > 0 && bossSlotCUsed <= BOSS_SLOT_C_BYTES) ||
@@ -2783,10 +2821,11 @@ async function build() {
     bossLabels.get("boss_install") !== bossInstallAddress ||
     bossLabels.get("boss_column_map") !== BOSS_SCRATCH_ADDRESS ||
     bossInstallAddress + installBytes > BOSS_STAGING_ADDRESS ||
-    BOSS_SCRATCH_ADDRESS + BOSS_SCRATCH_BYTES !== BOSS_CLAIM.endExclusive) {
+    BOSS_SCRATCH_ADDRESS + BOSS_SCRATCH_BYTES !== BOSS_SLOT_D_ADDRESS) {
     throw new Error(`M5b-S4a-i: the boss overlay does not fit its homes: slot A ${bossSlotUsed} of ` +
       `${slotABytes} B, install ${bossInstallUsed} of ${installBytes} B, slot C ${bossSlotCUsed} of ` +
-      `${BOSS_SLOT_C_BYTES} B, scratch ${bossScratchUsed} of ${BOSS_SCRATCH_BYTES} B`);
+      `${BOSS_SLOT_C_BYTES} B, scratch ${bossScratchUsed} of ${BOSS_SCRATCH_BYTES} B, ` +
+      `slot D ${bossSlotDUsed} of ${BOSS_SLOT_D_BYTES} B`);
   }
   // The reader's directory names the boss code's sector count: relinked with
   // the linked count - one data byte, which moves no label (checked), as the
@@ -2813,6 +2852,11 @@ async function build() {
     destination: BOSS_SLOT_C_ADDRESS,
     data: bossImage.subarray(slotABytes + installBytes, slotABytes + installBytes + bossSlotCSectors * 128),
     file: "overlay-boss-slot-c.bin" };
+  const slotDOffset = slotABytes + installBytes + BOSS_SLOT_C_BYTES;
+  const bossSlotDRun = { name: "boss-slot-d", startSector: bossSlotDSector, sectors: bossSlotDSectors,
+    destination: BOSS_SLOT_D_ADDRESS,
+    data: bossImage.subarray(slotDOffset, slotDOffset + bossSlotDSectors * 128),
+    file: "overlay-boss-slot-d.bin" };
   const bossRegionRuns = bossRegions.flatMap((region, index) => ["theme", "bandA", "bandB", "charset"]
     .map((run) => ({
       name: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`,
@@ -2826,7 +2870,7 @@ async function build() {
       throw new Error(`M5b-S4a-i: region ${region.name}'s charset is ${region.runs.charset.sectors} sectors`);
     }
   }
-  const bossDiskRuns = [bossCodeRun, bossInstallRun, bossSlotCRun, ...bossRegionRuns];
+  const bossDiskRuns = [bossCodeRun, bossInstallRun, bossSlotCRun, bossSlotDRun, ...bossRegionRuns];
   const bossRegionAreaEnd = bossRegionBaseSector + bossRegionCount * BOSS_REGION_SECTORS;
   for (const run of bossDiskRuns) {
     const inCode = run.startSector >= bossReservationSector &&
@@ -3607,7 +3651,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null
+    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -3925,7 +3969,7 @@ async function build() {
     boss: {
       claim: { start: BOSS_CLAIM.start, endExclusive: BOSS_CLAIM.endExclusive,
         bytes: BOSS_CLAIM.endExclusive - BOSS_CLAIM.start,
-        owner: "owner answer Q-B5: the region charset, slot C, the scratch page" },
+        owner: "owner answers Q-B5 and Q7: the region charset, slot C, the scratch page, slot D; the boss sector only" },
       slotA: { address: slotAddress, bytes: bossSlotUsed, capacityBytes: slotABytes,
         freeBytes: slotABytes - bossSlotUsed, sectors: bossCodeSectors },
       install: { address: bossInstallAddress, bytes: bossInstallUsed, capacityBytes: installBytes,
@@ -3936,6 +3980,10 @@ async function build() {
       scratch: { address: BOSS_SCRATCH_ADDRESS, bytes: bossScratchUsed, capacityBytes: BOSS_SCRATCH_BYTES,
         freeBytes: BOSS_SCRATCH_BYTES - bossScratchUsed,
         columnMap: bossLabels.get("boss_column_map"), ring: bossLabels.get("boss_ring") },
+      slotD: { address: BOSS_SLOT_D_ADDRESS, bytes: bossSlotDUsed, codeBytes: bossSlotDCodeBytes,
+        capacityBytes: BOSS_SLOT_D_BYTES, freeBytes: BOSS_SLOT_D_BYTES - bossSlotDUsed,
+        sectors: bossSlotDSectors },
+      laserFixtureTier,
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1] },
@@ -3946,6 +3994,7 @@ async function build() {
         stageStep: region.stageStep, charsetBytes: region.charsetBytes,
         charsetSectors: region.runs.charset.sectors, modules: region.modules.length,
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
+          bossSlotDSectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors,
       })),
     },

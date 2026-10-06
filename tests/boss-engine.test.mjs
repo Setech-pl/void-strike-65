@@ -169,8 +169,14 @@ test("the band DLI: the region's charset under the HUD's last line, the gameplay
   });
   const afterWsync = (list) => list.slice(list.findIndex(([r]) => r === 0xd40a) + 1);
   assert.deepEqual(afterWsync(phases[0])[0], [0xd409, 0x0c], "phase 0: CHBASE $0C first after WSYNC");
-  assert.deepEqual(afterWsync(phases[1])[0], [0xd409, label("main", "CHARSET") >> 8],
-    "phase 1: the gameplay charset first, before the ring's first line");
+  // RE-POINTED M5b-S4b (owner decision QA2): phase 1 writes COLPF3 first, in
+  // the horizontal blank, so the lasers' fifth-player beam switches colour
+  // exactly at the band's edge; the gameplay charset follows at once, still
+  // before the ring's first line fetches a glyph.
+  assert.deepEqual(afterWsync(phases[1])[0], [0xd019, label("main", "GAMEPLAY_COLPF3")],
+    "phase 1: COLPF3 first (QA2)");
+  assert.deepEqual(afterWsync(phases[1])[1], [0xd409, label("main", "CHARSET") >> 8],
+    "phase 1: the gameplay charset next, before the ring's first line");
   assert.deepEqual(phases[2].filter(([r]) => r === 0xd409), [[0xd409, label("main", "HUD_CHARSET") >> 8]],
     "phase 2: the HUD's charset");
   assert.equal(memory[phase], 0, "three phases a frame");
@@ -321,11 +327,11 @@ test("the four damage stages: intact, cracked (+K), broken (+2K), gone (cavity i
 // The laser tier (decisions B, 8), the defeat (decision A), the HP scale (Q-B3)
 // ---------------------------------------------------------------------------
 
-// RE-POINTED (owner answer, plan §5.15.6 item 6): every emitter slot is capped
-// armour until the lasers exist (S4b brings decision 8's 1 / 2 / 4 back), so
-// on every level the slots enabled are none.
-test("emitter slots: every slot capped armour on levels 1 / 4 / 5 / 9 until the lasers (S4b)", () => {
-  for (const [level, enabled] of [[1, 0], [4, 0], [5, 0], [9, 0]]) {
+// RE-POINTED (owner answer, plan §5.15.6 item 6): every emitter slot was capped
+// armour until the lasers existed. RE-POINTED M5b-S4b: the lasers exist, so
+// decision 8's tier is back - 1 / 1 / 2 / 4 slots enabled on levels 1 / 4 / 5 / 9.
+test("emitter slots: decision 8's tier - 1 / 1 / 2 / 4 slots on levels 1 / 4 / 5 / 9, the rest capped armour", () => {
+  for (const [level, enabled] of [[1, 1], [4, 1], [5, 2], [9, 4]]) {
     const memory = withRegion(layered, { level });
     let weapons = 0;
     layered.modules.forEach((module, i) => {

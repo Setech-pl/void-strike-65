@@ -242,13 +242,16 @@ test("the extras carry the spark, the deflection, the muzzle flash and the cavit
 // The emitter capped until S4b; covers; the defeat (decisions A, H; §5.15.6 item 6)
 // ---------------------------------------------------------------------------
 
-test("the emitter slot is capped armour on every level until the lasers exist (S4b)", () => {
+// RE-POINTED M5b-S4b: the slot was capped armour until the lasers existed;
+// now decision 8's tier enables slot 1 on every level (1 / 2 / 4 slots), so
+// region 1's emitter is a weapon with its own hit points and the boss has five.
+test("the emitter slot is a weapon on every level now the lasers exist (S4b, decision 8)", () => {
   for (const level of [1, 4, 5, 9]) {
     const memory = fortress(32, { level });
     const index = byName.get("emitter");
-    assert.equal(memory[lbl("_boss_kind") + index], BOSS_KIND.armour, `level ${level}`);
-    assert.equal(hp(memory, index), region1.capped.hp);
-    assert.equal(memory[lbl("_boss_weapons_left")], 4, `level ${level}: the four cannons`);
+    assert.equal(memory[lbl("_boss_kind") + index], BOSS_KIND.emitter, `level ${level}`);
+    assert.equal(hp(memory, index), region1.modules[index].hp);
+    assert.equal(memory[lbl("_boss_weapons_left")], 5, `level ${level}: the four cannons and the emitter`);
   }
 });
 
@@ -299,16 +302,19 @@ test("the exposure check runs one frame after the kill (§5.15.6 item 2)", () =>
     cell(memory, gun1.x + (i % gun1.width), gun1.row + Math.floor(i / gun1.width))), look, "gun-1's open look");
 });
 
-test("the defeat: the last cannon's death starts the chain with armour still standing (decision A)", () => {
+// RE-POINTED M5b-S4b: the emitter is a weapon (decision 8's tier), so it and
+// plate-d in front of it fall before the last cannon; the rest as before.
+test("the defeat: the last weapon's death starts the chain with armour still standing (decision A)", () => {
   const memory = fortress(32);
-  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1"]) {
+  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "plate-d", "emitter"]) {
     kill(memory, region1, name);
     assert.equal(memory[lbl("_boss_phase")], 0, `still the fight after ${name}`);
   }
   kill(memory, region1, "gun-2");
   assert.equal(memory[lbl("_boss_phase")], 2, "the chain");
   // RE-POINTED (decision N): the cowl plates are no longer modules.
-  for (const name of ["plate-a", "plate-b", "plate-d", "plate-h", "emitter"]) {
+  // RE-POINTED M5b-S4b: plate-d and the emitter fell above; three plates stand.
+  for (const name of ["plate-a", "plate-b", "plate-h"]) {
     assert.ok(hp(memory, byName.get(name)) > 0, `${name} stands: armour is not required`);
   }
 });
@@ -340,9 +346,12 @@ test("decision L: a destroyed module leaves background below the hull and the ca
 // The codes a fight may leave in the band: the drafts' own, every staged
 // stage of them, the open looks and their stages, background and the cavity,
 // the ring's glyphs, the nozzles - and nothing else (no rim, no frame).
+// RE-POINTED M5b-S4b (owner decision QA1): a shot in flight inside the band -
+// the player's (decision M) and now the boss's - is a shot, not a rim.
 function allowedCodes(region) {
   const allowed = new Set([0, region.cavity, region.spark, region.deflect, region.muzzle,
-    region.tables[BOSS_TABLE.nozzleLeftCode], region.tables[BOSS_TABLE.nozzleRightCode]]);
+    region.tables[BOSS_TABLE.nozzleLeftCode], region.tables[BOSS_TABLE.nozzleRightCode],
+    ...[...Array(6).keys()].map((i) => region.shotCode + i)]);
   const stage = (code) => {
     allowed.add(code);
     const glyph = code & 0x7f;
@@ -503,7 +512,7 @@ test("the hit tick: channel 3 for 2 frames, the engine bed back; the kill on cha
 // Fire (decision I; §5.13.2 item 6)
 // ---------------------------------------------------------------------------
 
-test("pulse fire: from alive, exposed cannons only, at the module's centre column, the band's bottom edge, straight down, with a muzzle flash", () => {
+test("pulse fire: from alive, exposed cannons only, at the module's centre column, the gun's muzzle, straight down, with a muzzle flash", () => {
   const memory = fortress(32);
   const cooldown = region1.tables[BOSS_TABLE.fireCooldown];
   let lastFrame = -1000;
@@ -517,7 +526,10 @@ test("pulse fire: from alive, exposed cannons only, at the module's centre colum
         assert.ok(hp(memory, index) > 0 && (mask16(memory, "_boss_exposed") & (1 << index)),
           `frame ${frame}: ${region1.modules[index].name} fired dead or covered`);
         assert.equal(shot.active, (1 << 3) | 6, "a PULSE shot of the hostile pool (class 1)");
-        assert.equal(shot.y, 88, "spawned at the band's bottom edge");
+        // RE-POINTED M5b-S4b (owner decision QA1): born at the gun's muzzle - the
+        // line under its bottom row - and drawn in the band down to its edge.
+        assert.equal(shot.y, 24 + (region1.modules[index].row + region1.modules[index].height) * 8,
+          "spawned at the gun's muzzle");
         assert.equal(shot.lifetime, 96);
         assert.equal(shot.x & 1, 0, "the two-pixel core stays inside one cell");
         const m = region1.modules[index];
@@ -614,7 +626,10 @@ test("the nozzles at both ends animate through their phases and go dark first in
   }
   assert.equal(seen[0].size, 3, "the left nozzle did not cycle its three phases");
   assert.equal(seen[1].size, 3, "the right nozzle did not cycle its three phases");
-  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1"]) kill(memory, region1, name);
+  // RE-POINTED M5b-S4b: the emitter is a weapon now; it and plate-d fall too.
+  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "plate-d", "emitter"]) {
+    kill(memory, region1, name);
+  }
   const g2 = byName.get("gun-2");
   for (let guard = 0; guard < 200 && hp(memory, g2) > 0; guard += 1) {
     shoot(memory, columnMap(memory).indexOf(g2));
@@ -704,7 +719,10 @@ test("Q-S4: START GAME after a game ended mid-fight clears the boss's shots and 
 // Q-B6: the per-frame work on the fortress, every module through five shots a frame
 // ---------------------------------------------------------------------------
 
-test("Q-B6 on the fortress: five shots a frame through every reachable module stays under 7,000 native cycles", () => {
+// RE-POINTED M5b-S4b (owner decision Q8, 2026-10-06): the boss sector's
+// per-frame work limit is 8,500 native cycles (7,000 stays elsewhere); the
+// drive is unchanged and now meets region 1's laser.
+test("Q-B6/Q8 on the fortress: five shots a frame through every reachable module stays under 8,500 native cycles", () => {
   const memory = fortress(32);
   let worst = 0;
   const frame = () => {
@@ -727,6 +745,6 @@ test("Q-B6 on the fortress: five shots a frame through every reachable module st
   }
   assert.equal(memory[lbl("_boss_phase")], 2, "the fight did not end");
   for (let rest = 0; rest < 200 && memory[lbl("_boss_handoff")] === 0; rest += 1) frame();
-  assert.ok(worst <= 7000, `the worst boss frame's own work is ${worst} native cycles`);
-  console.log(`# fortress per-frame work, worst: ${worst} native cycles (Q-B6 limit 7,000)`);
+  assert.ok(worst <= 8500, `the worst boss frame's own work is ${worst} native cycles`);
+  console.log(`# fortress per-frame work, worst: ${worst} native cycles (Q8 limit 8,500)`);
 });

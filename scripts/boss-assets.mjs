@@ -50,9 +50,13 @@ export const BOSS_SLOT_C_ADDRESS = 0x1000;
 export const BOSS_SLOT_C_BYTES = 0x0800;
 export const BOSS_SCRATCH_ADDRESS = 0x1800;
 export const BOSS_SCRATCH_BYTES = 0x0100;
-// The boss's claim in low RAM (owner answer Q-B5): the charset, slot C and
-// the scratch page; $1900-$1FFF stays unclaimed.
-export const BOSS_CLAIM = Object.freeze({ start: 0x0c00, endExclusive: 0x1900 });
+// M5b-S4b (owner decision Q7, 2026-10-06): slot D, the lasers and the boss
+// shots inside the band, read at every boss entry, sized to use.
+export const BOSS_SLOT_D_ADDRESS = 0x1900;
+export const BOSS_SLOT_D_BYTES = 0x0700;
+// The boss's claim in low RAM (owner answers Q-B5 and Q7): the charset, slot
+// C, the scratch page and slot D - the boss sector's only (phase `overlay`).
+export const BOSS_CLAIM = Object.freeze({ start: 0x0c00, endExclusive: 0x2000 });
 export const BOSS_STAGING_ADDRESS = 0x7990;
 export const BOSS_THEME_SECTORS = 2;
 export const BOSS_THEME_CAPACITY = BOSS_THEME_SECTORS * 128;
@@ -111,6 +115,8 @@ export const BOSS_TABLE = Object.freeze({
   spark: 249,            // a damaging hit's spark
   deflect: 250,          // the spark of a hit that does no damage (hull, a covered module)
   muzzle: 251,           // a firing cannon's muzzle flash
+  laserWarning: 252,     // S4b: a laser's warning, frames (owner decision Q11: 25)
+  laserBeam: 253,        // S4b: a laser's beam, frames (Q11: 50)
 });
 export const BOSS_MODULE_BYTES = 12;
 export const BOSS_MODULE = Object.freeze({
@@ -163,6 +169,10 @@ export const BOSS_NOZZLE_PHASES = 3;
 // gameplay charset's shot glyphs (in COLPF0, the band colour closest to the
 // playfield shot's, §5.16.5 answer 2).
 export const BOSS_SHOT_CODES = 4;
+// QA1 (owner, 2026-10-06): the boss's pulse shots are drawn inside the band
+// from the gun's muzzle to the band's edge, with two codes right after the
+// player shot's four: the pool's PULSE glyph, left and right phase.
+export const BOSS_HOSTILE_SHOT_CODES = 2;
 
 // The four shot glyphs from the gameplay's PlayerFighter phase glyphs
 // (scripts/fighter-weapons.mjs: phaseStride glyphs a horizontal phase, the
@@ -230,7 +240,9 @@ export function loadBossRegionDraft(directory) {
     images[name] = decodeBossDraftPng(fs.readFileSync(path.join(directory, file)), file,
       name === "extras" ? BOSS_EXTRAS_IMAGE : BOSS_BAND_IMAGE);
   }
-  return { layout, images, directory, shotGlyphs: loadBossShotGlyphs(path.resolve(directory, "..", "..", "..", "..")) };
+  const rootDirectory = path.resolve(directory, "..", "..", "..", "..");
+  return { layout, images, directory, shotGlyphs: loadBossShotGlyphs(rootDirectory),
+    hostileShotGlyphs: loadBossHostileShotGlyphs(rootDirectory) };
 }
 
 // The in-band shot glyphs from the repository's own weapons asset (decision M):
@@ -240,6 +252,65 @@ export function loadBossShotGlyphs(rootDirectory) {
   const roster = compileEnemyRoster(loadEnemyRosterDefinition(path.join(graphics, "enemy-roster.json")), rootDirectory);
   const weapons = compileFighterWeapons(loadFighterWeaponsDefinition(path.join(graphics, "fighter-weapons.json")), roster);
   return bossShotGlyphsFrom(weapons.glyphs.player_fighter);
+}
+
+// QA1: the hostile PULSE shot's glyph (weapon class 1's left phase, the glyph
+// the pool publishes at code 90) and its right phase two pixels on (code 100).
+export function bossHostileShotGlyphsFrom(pulseLeftPhase) {
+  return [Array.from(pulseLeftPhase), Array.from(pulseLeftPhase, (row) => row >> 4)];
+}
+export function loadBossHostileShotGlyphs(rootDirectory) {
+  const graphics = path.join(rootDirectory, "assets", "graphics");
+  const roster = compileEnemyRoster(loadEnemyRosterDefinition(path.join(graphics, "enemy-roster.json")), rootDirectory);
+  const weapons = compileFighterWeapons(loadFighterWeaponsDefinition(path.join(graphics, "fighter-weapons.json")), roster);
+  return bossHostileShotGlyphsFrom(weapons.hostileWeaponVisuals[0]);
+}
+
+// M5b-S4b (owner decision Q10): the laser fixture - region 1 with gun-1, gun-3
+// and gun-4 as emitter slots 2-4 beside the emitter (slot 1), and the plates
+// in front of the four emitters (plate-c, plate-d, plate-e, plate-g) removed
+// with their cells, so all four are exposed from the first frame; a short
+// cooldown and reload let the four beams fire together (the worst case the
+// owner asked to measure). Debug and test only: no shipped region uses it.
+export const BOSS_LASER_FIXTURE = Object.freeze({
+  emitters: Object.freeze({ "gun-1": 2, "gun-3": 3, "gun-4": 4 }),
+  removed: Object.freeze(["plate-c", "plate-d", "plate-e", "plate-g"]),
+  reload: 12,
+  cooldown: 12,
+});
+export function bossLaserFixtureDraft(draft) {
+  const removed = draft.layout.modules.filter((module) => BOSS_LASER_FIXTURE.removed.includes(module.name));
+  const modules = draft.layout.modules
+    .filter((module) => !BOSS_LASER_FIXTURE.removed.includes(module.name))
+    .map((module) => {
+      const slot = BOSS_LASER_FIXTURE.emitters[module.name];
+      if (slot !== undefined) return { ...module, kind: "emitter", slot, hp: 10, reload: BOSS_LASER_FIXTURE.reload };
+      if (module.kind === "emitter") return { ...module, reload: BOSS_LASER_FIXTURE.reload };
+      return module;
+    });
+  const images = {};
+  for (const [name, image] of Object.entries(draft.images)) {
+    const indices = Uint8Array.from(image.indices);
+    if (name !== "extras") {
+      for (const module of removed) {
+        for (let y = module.row * 8; y < (module.row + module.height) * 8; y += 1) {
+          indices.fill(0, y * image.width + module.x * 4, y * image.width + (module.x + module.width) * 4);
+        }
+      }
+    }
+    images[name] = { ...image, indices };
+  }
+  // A weapon exposed from the first frame shows its open look from the first
+  // frame: the band draws it, and the open look is then no look (identical).
+  const open = images.open;
+  for (const module of modules.filter((m) => m.kind !== "armour")) {
+    for (let y = module.row * 8; y < (module.row + module.height) * 8; y += 1) {
+      const from = y * open.width + module.x * 4;
+      images.band.indices.set(open.indices.subarray(from, from + module.width * 4), from);
+    }
+  }
+  return { ...draft, images, layout: { ...draft.layout, name: "Laser fixture", modules,
+    fire: { ...draft.layout.fire, cooldown: BOSS_LASER_FIXTURE.cooldown } } };
 }
 
 // One 4 x 8 cell of a draft image: its eight glyph bytes, its colour bank
@@ -404,7 +475,8 @@ function resolveModules(layout) {
 // The conversion
 // ---------------------------------------------------------------------------
 
-export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null } = {}) {
+export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null,
+  hostileShotGlyphs = draft.hostileShotGlyphs ?? null } = {}) {
   const { layout, images } = draft;
   if (layout?.formatVersion !== BOSS_FORMAT_VERSION) {
     fail(`unsupported formatVersion ${JSON.stringify(layout?.formatVersion)} (expected ${BOSS_FORMAT_VERSION})`);
@@ -441,6 +513,10 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const fireCooldown = integerIn(fire.cooldown, 1, 255, "fire.cooldown");
   const capped = layout.capped ?? {};
   const cappedHp = integerIn(capped.hp, 1, BOSS_MAX_HP, "capped.hp");
+  // S4b (owner decision Q11): a laser's warning and beam, frames; M8 tunes.
+  const laser = layout.laser ?? {};
+  const laserWarning = integerIn(laser.warningFrames ?? 25, 1, 255, "laser.warningFrames");
+  const laserBeam = integerIn(laser.beamFrames ?? 50, 1, 255, "laser.beamFrames");
   // Decision M: the girders' cells that a shot passes (the only see-through
   // hull art, decision O); every other hull cell stops a shot.
   const seeThroughSource = layout.seeThrough ?? [];
@@ -586,10 +662,12 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const plainBase = BOSS_FIRST_CODE + 3 * K;
   const nozzleBase = plainBase + plain.length;
   const shotCode = nozzleBase + 2;
-  const codeCount = shotCode + BOSS_SHOT_CODES;
+  const hostileShotCode = shotCode + BOSS_SHOT_CODES;
+  const codeCount = hostileShotCode + BOSS_HOSTILE_SHOT_CODES;
   if (codeCount > BOSS_MAX_CODES) {
     fail(`the region needs ${codeCount} codes (${K} staged x 3, ${plain.length} plain, 2 nozzles, ` +
-      `${BOSS_SHOT_CODES} shots, ${BOSS_DIVIDER_CODES} divider); ANTIC 4 has ${BOSS_MAX_CODES}`);
+      `${BOSS_SHOT_CODES + BOSS_HOSTILE_SHOT_CODES} shots, ${BOSS_DIVIDER_CODES} divider); ` +
+      `ANTIC 4 has ${BOSS_MAX_CODES}`);
   }
   const codeOf = (ref) => {
     if (ref === null) return 0;
@@ -614,6 +692,14 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       fail(`the shot glyphs are ${BOSS_SHOT_CODES} glyphs of 8 rows`);
     }
     shotGlyphs.forEach((rows, i) => glyphs.set(rows.map((row) => row & 0x55), (shotCode + i) * 8));
+  }
+  // QA1: the boss's pulse shot in the band, as the pool draws it (COLPF0
+  // head, COLPF1 tail: the band's own two colours there).
+  if (hostileShotGlyphs !== null) {
+    if (hostileShotGlyphs.length !== BOSS_HOSTILE_SHOT_CODES || hostileShotGlyphs.some((rows) => rows?.length !== 8)) {
+      fail(`the hostile shot glyphs are ${BOSS_HOSTILE_SHOT_CODES} glyphs of 8 rows`);
+    }
+    hostileShotGlyphs.forEach((rows, i) => glyphs.set(rows, (hostileShotCode + i) * 8));
   }
 
   const bandRows = Array.from({ length: BOSS_BAND_ROWS }, (_, r) =>
@@ -734,6 +820,8 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables[BOSS_TABLE.spark] = plainCode(sparkRef);
   tables[BOSS_TABLE.deflect] = plainCode(deflectRef);
   tables[BOSS_TABLE.muzzle] = plainCode(muzzleRef);
+  tables[BOSS_TABLE.laserWarning] = laserWarning;
+  tables[BOSS_TABLE.laserBeam] = laserBeam;
 
   const theme = new Uint8Array(BOSS_THEME_CAPACITY);
   if (themeImage !== null) {
@@ -756,7 +844,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     plainBase,
     nozzleBase,
     shotCode,
+    hostileShotCode,
     codeCount,
+    laser: { warningFrames: laserWarning, beamFrames: laserBeam },
     seeThrough: [...seeThrough].map((key) => [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)]),
     hullStop,
     glyphs,
@@ -823,6 +913,8 @@ export function renderBossLayoutInclude() {
     `BOSS_COLUMN_ARMOUR       = ${hex(BOSS_COLUMN_ARMOUR)}`,
     `BOSS_NO_LOOK             = ${hex(BOSS_NO_LOOK)}`,
     `BOSS_SHOT_CODES          = ${BOSS_SHOT_CODES}`,
+    `BOSS_HOSTILE_SHOT_CODES  = ${BOSS_HOSTILE_SHOT_CODES}`,
+    `BOSS_SLOT_D              = ${hex(BOSS_SLOT_D_ADDRESS)}`,
     ...Object.entries(BOSS_TABLE).map(([name, offset]) =>
       `${constantName("BOSS_T_", name).padEnd(24)} = BOSS_TABLES+${offset}`),
     ...Object.entries(BOSS_MODULE).map(([name, offset]) =>

@@ -6,6 +6,12 @@
 // the scratch page ($1800-$18FF). No other segment, cfg area or boot-path
 // range may reach it, and nothing at all may reach $1900-$1FFF, which stays
 // unclaimed (~1.8 KB, Q-B5).
+//
+// RE-POINTED M5b-S4b (owner decision Q7, 2026-10-06): the claim grows to
+// $0C00-$1FFF with slot D at $1900 (the lasers, the boss's shots in the band),
+// the boss sector's only; every check that kept $1900-$1FFF empty now keeps it
+// to slot D's segments and cfg area, and nothing else may reach any of the
+// claim, as before.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -13,10 +19,11 @@ import test from "node:test";
 
 import {
   BOSS_CHARSET_ADDRESS, BOSS_CLAIM, BOSS_SCRATCH_ADDRESS, BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_BYTES,
+  BOSS_SLOT_D_ADDRESS, BOSS_SLOT_D_BYTES,
 } from "../scripts/boss-assets.mjs";
 import { atrRun, includeConstants, label, labelsOf, manifest, readBuild, root } from "./boss-harness.mjs";
 
-const UNCLAIMED = [0x1900, 0x2000];
+const SLOT_D = [0x1900, 0x2000];
 const BOSS_HOMES = Object.freeze({
   // segment -> the part of the claim it may occupy
   BOSS_C_CODE: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
@@ -25,30 +32,36 @@ const BOSS_HOMES = Object.freeze({
   // (boss_prepare) moved from slot A into slot C, read with the controller.
   BOSS_C_ASM: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_C_BSS: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
-  BOSS_SCRATCH: [BOSS_SCRATCH_ADDRESS, BOSS_CLAIM.endExclusive],
-  BOSS_BSS: [BOSS_SCRATCH_ADDRESS, BOSS_CLAIM.endExclusive],
+  BOSS_SCRATCH: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
+  BOSS_BSS: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
+  BOSS_D_CODE: SLOT_D,
+  BOSS_D_BSS: SLOT_D,
 });
 const CFG_HOMES = Object.freeze({
   BOSS_SLOT_C_RAM: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
-  BOSS_SCRATCH_RAM: [BOSS_SCRATCH_ADDRESS, BOSS_CLAIM.endExclusive],
+  BOSS_SCRATCH_RAM: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
+  BOSS_SLOT_D_RAM: SLOT_D,
 });
 const overlaps = (start, endExclusive, [from, to]) => start < to && from < endExclusive;
 const inside = (start, endExclusive, [from, to]) => start >= from && endExclusive <= to;
 
-test("Q-B5: the boss claims $0C00-$18FF - charset, slot C, scratch - and $1900-$1FFF stays unclaimed", () => {
-  assert.deepEqual([BOSS_CLAIM.start, BOSS_CLAIM.endExclusive], [0x0c00, 0x1900]);
+test("Q-B5 and Q7: the boss claims $0C00-$1FFF - charset, slot C, scratch, slot D", () => {
+  assert.deepEqual([BOSS_CLAIM.start, BOSS_CLAIM.endExclusive], [0x0c00, 0x2000]);
+  assert.deepEqual([BOSS_SLOT_D_ADDRESS, BOSS_SLOT_D_ADDRESS + BOSS_SLOT_D_BYTES], SLOT_D);
   assert.equal(BOSS_CHARSET_ADDRESS, 0x0c00);
   assert.equal(BOSS_SLOT_C_ADDRESS, 0x1000);
   assert.equal(BOSS_SCRATCH_ADDRESS, 0x1800);
   const boss = manifest.boss;
   assert.ok(boss, "the manifest records the boss's homes");
-  assert.deepEqual([boss.claim.start, boss.claim.endExclusive], [0x0c00, 0x1900]);
+  assert.deepEqual([boss.claim.start, boss.claim.endExclusive], [0x0c00, 0x2000]);
   assert.equal(boss.charset.address, 0x0c00);
   assert.equal(boss.slotC.address, 0x1000);
   assert.equal(boss.scratch.address, 0x1800);
+  assert.equal(boss.slotD.address, 0x1900);
+  assert.ok(boss.slotD.bytes > 0 && boss.slotD.bytes <= BOSS_SLOT_D_BYTES);
 });
 
-test("no segment of any link reaches $0C00-$18FF except the boss's own homes, and none reaches $1900-$1FFF", () => {
+test("no segment of any link reaches $0C00-$1FFF except the boss's own homes; only slot D's reach $1900-$1FFF", () => {
   let bossSegments = 0;
   for (const file of fs.readdirSync(path.join(root, "build")).filter((name) => name.endsWith(".map"))) {
     const text = fs.readFileSync(path.join(root, "build", file), "utf8");
@@ -58,17 +71,18 @@ test("no segment of any link reaches $0C00-$18FF except the boss's own homes, an
       if (Number.parseInt(size, 16) === 0) continue;
       const from = Number.parseInt(start, 16);
       const to = Number.parseInt(end, 16) + 1;
-      assert.ok(!overlaps(from, to, UNCLAIMED), `${file}: ${name} $${start}-$${end} reaches $1900-$1FFF`);
+      assert.ok(!overlaps(from, to, SLOT_D) || (file === "boss.map" && BOSS_HOMES[name] === SLOT_D),
+        `${file}: ${name} $${start}-$${end} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
       assert.ok(file === "boss.map" && BOSS_HOMES[name] && inside(from, to, BOSS_HOMES[name]),
-        `${file}: ${name} $${start}-$${end} reaches the boss's $0C00-$18FF`);
+        `${file}: ${name} $${start}-$${end} reaches the boss's $0C00-$1FFF`);
       bossSegments += 1;
     }
   }
   assert.ok(bossSegments >= 3, "slot C's code and the scratch page link into the claim");
 });
 
-test("no cfg memory area reaches the claim except boss.cfg's slot C and scratch, none reaches $1900-$1FFF", () => {
+test("no cfg memory area reaches the claim except boss.cfg's slot C, scratch and slot D", () => {
   const found = [];
   for (const file of fs.readdirSync(path.join(root, "cfg"))) {
     const text = fs.readFileSync(path.join(root, "cfg", file), "utf8");
@@ -76,18 +90,19 @@ test("no cfg memory area reaches the claim except boss.cfg's slot C and scratch,
       const [, name, start, size] = match;
       const from = Number.parseInt(start, 16);
       const to = from + Number.parseInt(size, 16);
-      assert.ok(!overlaps(from, to, UNCLAIMED), `cfg/${file}: ${name} reaches $1900-$1FFF`);
+      assert.ok(!overlaps(from, to, SLOT_D) || (file === "boss.cfg" && name === "BOSS_SLOT_D_RAM"),
+        `cfg/${file}: ${name} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
       assert.ok(file === "boss.cfg" && CFG_HOMES[name] && inside(from, to, CFG_HOMES[name]),
-        `cfg/${file}: ${name} reaches the boss's $0C00-$18FF`);
+        `cfg/${file}: ${name} reaches the boss's $0C00-$1FFF`);
       found.push(name);
     }
   }
-  assert.deepEqual(found.sort(), ["BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM"]);
+  assert.deepEqual(found.sort(), ["BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM"]);
 });
 
 test("the boot path and the runtime ranges stay out of $0C00-$1FFF", () => {
-  const claim = [BOSS_CLAIM.start, UNCLAIMED[1]];
+  const claim = [BOSS_CLAIM.start, SLOT_D[1]];
   const transport = manifest.transportCapacity;
   assert.ok(!overlaps(manifest.loadAddress, manifest.loadAddress + transport.initialBootBytes, claim));
   for (const record of transport.manifest.parsed.records) {
@@ -101,7 +116,7 @@ test("the boot path and the runtime ranges stay out of $0C00-$1FFF", () => {
   assert.ok(!overlaps(transport.bootOnlyStaging.address,
     transport.bootOnlyStaging.address + transport.bootOnlyStaging.bytes, claim));
   for (const range of manifest.runtimeTiming.memory.runtimeRanges) {
-    assert.ok(range.end < BOSS_CLAIM.start || range.start >= UNCLAIMED[1], `${range.name} enters $0C00-$1FFF`);
+    assert.ok(range.end < BOSS_CLAIM.start || range.start >= SLOT_D[1], `${range.name} enters $0C00-$1FFF`);
   }
   // The summary module's own claim ends where the boss's begins.
   assert.equal(manifest.levelSummary.code.endExclusive, BOSS_CLAIM.start);

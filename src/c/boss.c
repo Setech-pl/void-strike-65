@@ -12,9 +12,10 @@
  * boss-fight clock the summary's time grade reads.
  *
  * The fortress session (plan §5.15, owner decisions H-K and the answers of
- * §5.15.6): every emitter slot is capped armour until the lasers exist (S4b);
- * the exposure check runs on the tick of the frame after a kill, so a kill
- * frame never pays it on top of the rebuild and the draws.
+ * §5.15.6): the exposure check runs on the tick of the frame after a kill, so
+ * a kill frame never pays it on top of the rebuild and the draws. M5b-S4b:
+ * the tier's emitter slots are weapons again (decision 8, the count from slot
+ * D's laser_tier); a named emitter fires its laser (slot D), not a shot.
  *
  * It lives in slot C ($1000-$17FF, owner answer Q-B5), read from disk at every
  * boss entry with the boss's ASM in slot A (src/hybrid/boss.s), which owns the
@@ -47,6 +48,7 @@ extern volatile uint8_t boss_def[];            /* the level's boss_def block */
 extern volatile uint8_t boss_difficulty[];     /* [0] DIFFICULTY_SETTING: 0 EASY .. 2 HARD */
 extern volatile uint8_t boss_active_frame[];   /* [0] lo, [1] hi */
 extern volatile uint8_t boss_stats_bonus[];    /* [0] lo, [1] hi, packed BCD */
+extern volatile uint8_t boss_laser_slots[];    /* [0] the emitter slots the tier enables (slot D) */
 #define TABLE            boss_tables
 #define LEVEL_HEADER_ID  3u
 /* A module record's field, indexed by the record's offset: `abs,Y` on the
@@ -236,10 +238,10 @@ void boss_c_init(void)
     boss_count = TABLE[BOSS_T_MODULE_COUNT];
     boss_value = boss_difficulty[0];
     boss_adjust = (boss_def + BOSS_DEF_HP_SCALE)[boss_value];
-    /* Decision 8 enables 1 / 2 / 4 emitter slots on levels 1-4 / 5-8 / 9-12;
-     * until the lasers exist (S4b) every slot is capped armour (owner answer,
-     * plan §5.15.6 item 6): S4b brings the tier back here. */
-    boss_enabled = 0u;
+    /* Decision 8 enables 1 / 2 / 4 emitter slots on levels 1-4 / 5-8 / 9-12:
+     * slot D's laser_tier sets the count from the level id before this init
+     * runs (M5b-S4b; a debug fixture build overrides it there). */
+    boss_enabled = boss_laser_slots[0];
     boss_alive_lo = 0u;
     boss_alive_hi = 0u;
     boss_exposed_lo = 0u;

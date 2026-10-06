@@ -145,6 +145,9 @@ test("decision 32: WARNING - BOSS APPROACHING, the theme started, then every run
     ...run(528, BOSS.slotA.sectors),                      // the boss code into slot A
     ...run(544, 3),                                       // the shared install run
     ...run(547, BOSS.slotC.sectors),                      // slot C, the controller
+    // RE-POINTED M5b-S4b (owner decision Q7): slot D, the lasers and the boss's
+    // shots in the band, from 563 (after slot C's 16 reserved), sized to use.
+    ...run(563, BOSS.slotD.sectors),
     ...run(634, 3), ...run(637, 3),                       // the band: rows 0-5, rows 6-7 + tables
     ...run(640, charsetSectors),                          // the region's charset at $0C00
   ]);

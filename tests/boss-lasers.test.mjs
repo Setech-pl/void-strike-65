@@ -75,10 +75,14 @@ function alive(memory, { health = 10, lives = 3 } = {}) {
   memory[HEALTH] = health;
   memory[COOLDOWN] = 0;
 }
-// One boss frame: UPDATE (its writes recorded) - the band is held still.
+// One boss frame, the band held still: the band DLI's phase 0 (it publishes
+// the lasers' HPOS for the frame - the position the hit test reads), then
+// UPDATE, every write of both recorded.
 function update(memory, { watch = null } = {}) {
   const writes = [];
   const hooks = { write: (address, value) => { writes.push([address, value]); return undefined; } };
+  memory[main("loader_dli_phase")] = 0;
+  nmi(memory, lbl("boss_dli"), { hooks });
   const cpu = call(memory, lbl("boss_update"), { hooks, watch });
   return { writes, cycles: cpu.cycles };
 }
@@ -110,7 +114,7 @@ function damageCalls(memory, frames, perFrame = () => {}) {
 test("S4b: the overlay links the laser ABI in slot D", () => {
   for (const name of ["laser_tier", "laser_prepare", "laser_start", "laser_frame", "laser_publish",
     "boss_laser_damage", "boss_laser_slots", "boss_laser_module", "boss_laser_state",
-    "boss_laser_timer", "boss_laser_hpos", "boss_laser_sizem", "boss_laser_fired"]) {
+    "boss_laser_timer", "boss_laser_edge", "boss_laser_hpos", "boss_laser_sizem", "boss_laser_fired"]) {
     assert.ok(has(name), `the boss link has no ${name}`);
   }
   for (const name of ["laser_tier", "laser_frame", "boss_laser_state"]) {
@@ -348,13 +352,21 @@ test("no laser while the player dies or respawns; a running beam goes off", () =
 
 test("the band DLI publishes the lasers' HPOS and SIZEM in phase 0, and phase 1 writes COLPF3 first (QA2)", () => {
   const memory = laserFixture(9);
-  for (let i = 0; i < LASERS; i += 1) setLaser(memory, "hpos", i, 80 + 20 * i);
+  // HPOS = the laser's edge in the band - the band position this frame shows
+  // + 32 (plan §5.12 item 8), 0 outside the window (HPOS 48-203) or when off.
+  const p = memory[lbl("boss_shown_pos")];
+  const edges = [p + 16 + 50, p + 16 + 120, 0, p + 4];
+  const expected = [50 + 48, 120 + 48, 0, 0];
+  edges.forEach((edge, i) => setLaser(memory, "edge", i, edge));
   memory[lbl("boss_laser_sizem")] = 0xc3;
   memory[main("loader_dli_phase")] = 0;
   const phase0 = [], phase1 = [];
   nmi(memory, lbl("boss_dli"), { hooks: { write: (a, v) => { phase0.push([a, v]); return undefined; } } });
   nmi(memory, lbl("boss_dli"), { hooks: { write: (a, v) => { phase1.push([a, v]); return undefined; } } });
-  for (let i = 0; i < LASERS; i += 1) assert.deepEqual(writesTo(phase0, HPOSM0 + i), [80 + 20 * i]);
+  for (let i = 0; i < LASERS; i += 1) {
+    assert.deepEqual(writesTo(phase0, HPOSM0 + i), [expected[i]], `HPOSM${i}`);
+    assert.equal(laser(memory, "hpos", i), expected[i], `boss_laser_hpos ${i}`);
+  }
   assert.deepEqual(writesTo(phase0, SIZEM), [0xc3]);
   const afterWsync = phase1.slice(phase1.findIndex(([a]) => a === WSYNC) + 1)
     .filter(([a]) => a >= 0xd000 && a < 0xd500);
@@ -461,53 +473,64 @@ test("outside the boss sector: START GAME after a game that ended in it leaves P
   game.pc = main("start_gameplay");
   assert.equal(runUntil(game, { loop: main("main_loop") }, { maxSteps: 50_000_000 }), "loop");
   assert.equal(writesTo(writes, PRIOR).at(-1), 0, "PRIOR is not 0 in the next game");
-  assert.equal(writesTo(writes, SIZEM).at(-1), 0, "SIZEM is not 0 in the next game");
+  // init_broadside gives M1-M3 the capital broadside's double size at every
+  // game start and keeps M0's pair, which the restore has zeroed: $54.
+  assert.equal(writesTo(writes, SIZEM).at(-1), 0x54, "SIZEM is not the game start's $54 in the next game");
   for (let i = 0; i < LASERS; i += 1) assert.equal(writesTo(writes, HPOSM0 + i).at(-1), 0, `HPOSM${i}`);
   assert.ok(memory.subarray(MISSILES, MISSILES + 256).every((v) => v === 0), "the missile plane is not empty");
 });
 
 // Owner decision Q8 (2026-10-06): the boss sector's per-frame work limit is
 // 8,500 native cycles, measured with four beams firing; 7,000 stays elsewhere.
-test("Q8: the tier-4 fixture with four beams firing and five shots a frame stays under 8,500 native cycles", () => {
-  const memory = laserFixture(9);
-  alive(memory);
-  memory[main("player_x")] = 60;
-  let worst = 0, fourBeamFrames = 0;
-  const frame = () => {
-    // Every idle laser restarts at once, so the four beams overlap.
-    for (let i = 0; i < LASERS; i += 1) {
-      const module = laser(memory, "module", i);
-      if (module !== 0xff && hp(memory, module) > 0 && laser(memory, "state", i) === OFF) {
-        setLaser(memory, "state", i, BEAM);
-        setLaser(memory, "timer", i, 50);
-        setLaser(memory, "fired", i, 0);
+test("Q8: the tier-4 fixture with four lasers running and five shots a frame stays under 8,500 native cycles", () => {
+  let worst = 0, worstCase = "", fourActiveFrames = 0, fourBeamFrames = 0;
+  // Two modes at five band positions: the four held in their beams, and the
+  // four cycling warning -> fire start -> beam (every idle laser restarts at
+  // once), while the drive kills every module through five shots a frame.
+  for (const mode of ["beam", "cycle"]) {
+    for (const p of [0, 16, 32, 48, 63]) {
+      const memory = laserFixture(9, { p });
+      alive(memory);
+      const frame = () => {
+        for (let i = 0; i < LASERS; i += 1) {
+          const module = laser(memory, "module", i);
+          if (module !== 0xff && hp(memory, module) > 0 && laser(memory, "state", i) === OFF) {
+            setLaser(memory, "state", i, mode === "beam" ? BEAM : WARN);
+            setLaser(memory, "timer", i, mode === "beam" ? 50 : 25);
+            setLaser(memory, "fired", i, 0);
+          }
+        }
+        const states = [0, 1, 2, 3].map((i) => laser(memory, "state", i));
+        if (states.every((state) => state !== OFF)) fourActiveFrames += 1;
+        if (states.every((state) => state === BEAM)) fourBeamFrames += 1;
+        memory[LIFECYCLE] = PLAYER_ALIVE;
+        memory[COOLDOWN] = 25;
+        // The player under the first beam: the hit test's long path every frame.
+        memory[main("player_x")] = laser(memory, "hpos", 0) || 60;
+        memory[main("loader_dli_phase")] = 0;
+        let cycles = nmi(memory, lbl("boss_dli"));
+        cycles += call(memory, lbl("boss_update")).cycles;
+        cycles += call(memory, lbl("boss_motion")).cycles;
+        cycles += nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli"));
+        if (cycles > worst) { worst = cycles; worstCase = `${mode}, p ${p}, states ${states.join("")}`; }
+      };
+      const order = ["gun-2", "plate-a", "plate-b", "plate-f", "plate-h", "emitter", "gun-1", "gun-3", "gun-4"];
+      for (const name of order) {
+        const index = fixtureByName.get(name);
+        for (let guard = 0; guard < 600 && hp(memory, index) > 0 && memory[lbl("_boss_phase")] === 0; guard += 1) {
+          const shown = memory[lbl("boss_shown_pos")];
+          const { left, right } = visibleCells(shown);
+          const map = [...memory.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)];
+          const column = map.findIndex((v, c) => v === index && c >= left && c <= right);
+          if (column >= 0) for (let slot = 0; slot < 5; slot += 1) shootAt(memory, column, slot);
+          frame();
+        }
       }
-    }
-    if ([0, 1, 2, 3].every((i) => laser(memory, "state", i) === BEAM)) fourBeamFrames += 1;
-    memory[LIFECYCLE] = PLAYER_ALIVE;
-    memory[COOLDOWN] = 25;
-    // The player under the first beam: the hit test's long path, every frame.
-    memory[main("player_x")] = laser(memory, "hpos", 0) || 60;
-    let cycles = call(memory, lbl("boss_update")).cycles;
-    cycles += call(memory, lbl("boss_motion")).cycles;
-    memory[main("loader_dli_phase")] = 0;
-    cycles += nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli"));
-    worst = Math.max(worst, cycles);
-  };
-  const order = ["gun-2", "plate-a", "plate-b", "plate-f", "plate-h", "emitter", "gun-1", "gun-3", "gun-4"];
-  for (const name of order) {
-    const index = fixtureByName.get(name);
-    if (index === undefined) continue;
-    for (let guard = 0; guard < 600 && hp(memory, index) > 0 && memory[lbl("_boss_phase")] === 0; guard += 1) {
-      const p = memory[lbl("boss_shown_pos")];
-      const { left, right } = visibleCells(p);
-      const map = [...memory.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)];
-      const column = map.findIndex((v, c) => v === index && c >= left && c <= right);
-      if (column >= 0) for (let slot = 0; slot < 5; slot += 1) shootAt(memory, column, slot);
-      frame();
+      for (let rest = 0; rest < 150 && memory[lbl("_boss_handoff")] === 0; rest += 1) frame();
     }
   }
-  assert.ok(fourBeamFrames > 0, "no frame had four beams firing");
-  assert.ok(worst <= 8500, `the worst four-beam frame's work is ${worst} native cycles`);
-  console.log(`# four-beam stress, worst: ${worst} native cycles over ${fourBeamFrames} four-beam frames (Q8 limit 8,500)`);
+  assert.ok(fourBeamFrames >= 50, `only ${fourBeamFrames} frames had four beams firing`);
+  assert.ok(worst <= 8500, `the worst frame's work is ${worst} native cycles (${worstCase})`);
+  console.log(`# four-laser stress, worst: ${worst} native cycles (${worstCase}); ` +
+    `${fourActiveFrames} frames with four lasers running, ${fourBeamFrames} with four beams (Q8 limit 8,500)`);
 });

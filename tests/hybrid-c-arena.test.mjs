@@ -148,10 +148,10 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // 3-B prologue in BROADSIDE's reserved tail (6 B -> 3 B free) instead.
   // ENTITY_CODE is size-neutral; the initial block packs 1 B larger, so the
   // envelope absorbs it (13 -> 12 B) and every sector count holds.
-  // RE-PINNED 2026-10-05, 13,621 -> 13,631: plasma FX B1.1 (docs/plans/plasma-fx.md §11, owner answers of 2026-10-05) spent 10 B of the initial block - the break-up's stage masks and per-fragment codes and the check that holds the fragments while the core grows - inside the 13,652-B STOP rule.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13631);
-  // The envelope 75 -> 65 B with the same 10 B; the sector count holds.
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 65);
+  // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618);
+  // The envelope 75 -> 78 B with the same 3 B; the sector count holds.
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 78);
   assert.equal(manifest.transportCapacity.initialBootSectors, 107);
   // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 208 -> 209. The
   // code window's C half took the one extension sector budget-1.0 M2 granted

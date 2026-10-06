@@ -1,6 +1,6 @@
-// docs/plans/plasma-fx.md, Phase B1 and B1.1 (owner answers of 2026-10-05):
-// the break-up grows from one cell and lives 30 frames for a Light or a debris,
-// 45 for a Heavy, its core 24 (decision 6's fallback); the background flash of a Heavy kill (and of a boss module) lasts 6
+// docs/plans/plasma-fx.md, Phases B1-B1.2 (owner answers of 2026-10-05/06):
+// the enemy break-up is main's, in the enemy bank only, and lives 30 frames
+// for a Light or a debris, 45 for a Heavy, its core main's 5; the background flash of a Heavy kill (and of a boss module) lasts 6
 // frames; the player's death stays 24 frames - its respawn frame unchanged -
 // but is drawn 16 lines tall with the fire cycle on COLPM3; the glyph codes the
 // growth uses were displayed by nothing before. Every runtime fact here is read
@@ -36,14 +36,15 @@ function finalFrames(frames) {
     .filter((record) => record.phase === "FINAL");
 }
 
-// B1.1 (owner answers to the B1 stop, 2026-10-05, item d): a Light's or a
-// debris's break-up lives 30 frames, a Heavy's 45 (the medium size of decision
-// 6's fallback); the core 24 frames for both and out before the fragments.
-// Was (B1): 45 frames for every class, the core 24.
-const CORE_FRAMES = 24;
+// B1.2 (owner answers to the B1.1 stop, 2026-10-06): enemy break-ups are
+// main's size - one core and four fragments, main's fragment shapes, the core
+// main's 5 frames, no growth phase - drawn wholly in the enemy bank; B1.1's
+// per-class lives stay: a Light's or a debris's fragments 30 frames, a Heavy's
+// 45. Was (B1.1): a 24-frame growing core and four new shapes.
+const CORE_FRAMES = 5;
 const LIGHT_FRAMES = 30;
 const HEAVY_FRAMES = 45;
-test("a Light or debris break-up lasts 30 frames, its core the first 24", () => {
+test("a Light or debris break-up lasts 30 frames, its core main's 5", () => {
   const frames = finalFrames(LIGHT_FRAMES + 3);
   for (let f = 0; f < LIGHT_FRAMES; f += 1) {
     const core = f < CORE_FRAMES;
@@ -56,13 +57,19 @@ test("a Light or debris break-up lasts 30 frames, its core the first 24", () => 
   assert.equal(frames[LIGHT_FRAMES + 1].screen.every((value) => value === 0), true);
 });
 
-test("a Heavy break-up lasts 45 frames, its core the first 24", () => {
+function heavyBreakup() {
   const h = nativeRoutineHarness({ root });
   const m = h.memory;
   m[h.label("ENEMY_ARCHETYPE")] = 0;
   m[h.label("FIGHTER_EXPLOSION_X") + 1] = 120;
   m[h.label("FIGHTER_EXPLOSION_Y") + 1] = 100;
   h.run("heavy_spawn_breakup");
+  return h;
+}
+
+test("a Heavy break-up lasts 45 frames, its core main's 5", () => {
+  const h = heavyBreakup();
+  const m = h.memory;
   const timers = h.label("EFFECT_TIMER");
   assert.deepEqual([...m.subarray(timers, timers + 5)],
     [CORE_FRAMES + 1, HEAVY_FRAMES + 1, HEAVY_FRAMES + 1, HEAVY_FRAMES + 1, HEAVY_FRAMES + 1]);
@@ -78,32 +85,59 @@ test("a Heavy break-up lasts 45 frames, its core the first 24", () => {
   assert.equal(lives.indexOf(0), HEAVY_FRAMES, "expired on frame 45");
 });
 
-test("the break-up grows from one cell: sparks, the white-centred burst, a torn shell; four fragment shapes that end as sparks", () => {
+test("main's break-up, no growth: every cell from the first frames, main's shapes, sparks at the end", () => {
   const frames = finalFrames(LIGHT_FRAMES + 1);
+  assert.equal(frames[0].effectRenderedMask, 0x18, "the first parity publishes its fragments at once");
+  assert.equal(frames[1].effectRenderedMask, 0x1f, "every cell by frame 1");
   const drawn = (record) => record.effects.filter((effect) => effect.slot > 0 && effect.drawn !== 0);
-  for (let f = 0; f < 5; f += 1) assert.equal(drawn(frames[f]).length, 0, `frame ${f}: the core grows alone`);
-  assert.ok(frames.slice(5, 8).some((record) => drawn(record).length > 0));
-  // The core's own cell, frame by frame, as its parity group publishes it.
-  const core = frames.map((record) => record.effects.find((effect) => effect.slot === 0))
-    .map((effect) => (effect?.drawn ? effect.screenCode : null));
-  const firstSeen = [];
-  for (const code of core) {
-    if (code !== null && !firstSeen.includes(code & 0x7f)) firstSeen.push(code & 0x7f);
-  }
-  // sparks (108), the white-centred burst (118), the torn shell (119).
-  assert.deepEqual(firstSeen, [108, 118, 119]);
-  // The default build (COLPF2 $1E) burns the torn shell out in the red bank.
-  // (one frame of slack: the core publishes on every second frame)
-  assert.ok(core.slice(14, CORE_FRAMES).every((code) => code === null || code === (119 | 0x80)));
-  assert.ok(core.slice(0, 13).every((code) => code === null || (code & 0x80) === 0));
-  // The four fragments, once shown, wear four different codes.
-  const shown = frames[6].effects.filter((effect) => effect.slot > 0).map((effect) => effect.screenCode);
-  assert.equal(new Set(shown).size, 4, `frame 6 codes ${shown}`);
-  // Their last 6 frames are sparks alone, in the red bank.
-  // (one frame of slack again: the other parity still shows its last look)
-  const sparks = frames.slice(LIGHT_FRAMES - 4, LIGHT_FRAMES).flatMap((record) => drawn(record))
+  // main's two fragment shapes, 118 and 119, alternate at 25 Hz.
+  const early = frames.slice(1, 20).flatMap(drawn).map((effect) => effect.screenCode & 0x7f);
+  assert.deepEqual([...new Set(early)].sort(), [118, 119]);
+  // The last frames are single sparks (108) - the fade by removing pixels.
+  // (one frame of slack: the other parity still shows its last look)
+  const late = frames.slice(LIGHT_FRAMES - 4, LIGHT_FRAMES).flatMap(drawn).map((effect) => effect.screenCode);
+  assert.ok(late.length > 0 && late.every((code) => code === (108 | 0x80)), "the last frames are sparks");
+  // Main's fragment shapes: the same lit pixels, the middle two now white.
+  const charset = executeDebrisDestructionTrace({ root, artifact: "atr" }).charset;
+  const lit = (code) => [...charset.subarray(code * 8, code * 8 + 8)]
+    .map((row) => [6, 4, 2, 0].map((shift) => (row >> shift & 3) !== 0 ? 1 : 0).join("")).join("/");
+  assert.equal(lit(118), "0000/0000/1000/1100/0110/0100/0000/0000");
+  assert.equal(lit(119), "0000/0000/0010/0011/0110/0010/0000/0000");
+});
+
+// B1.2 item 2: enemy explosions and debris never wear the player's colour. A
+// cell shows COLPF2 only where a glyph's selector-3 pixel is published under a
+// positive code; every break-up code is inverse (COLPF3), and the core's centre
+// is selector 1 (white COLPF0).
+test("enemy break-ups draw no COLPF2 pixel: every code they publish is inverse", () => {
+  const trace = executeDebrisDestructionTrace({ root, artifact: "atr", finalFrames: LIGHT_FRAMES + 1 });
+  const glyphHasPf2Pixel = (code) => [...trace.charset.subarray((code & 0x7f) * 8, (code & 0x7f) * 8 + 8)]
+    .some((row) => [6, 4, 2, 0].some((shift) => (row >> shift & 3) === 3));
+  const published = trace.records.filter((record) => record.phase === "FINAL")
+    .flatMap((record) => record.effects.filter((effect) => effect.drawn !== 0))
     .map((effect) => effect.screenCode);
-  assert.ok(sparks.length > 0 && sparks.every((code) => code === (108 | 0x80)), "the last frames are sparks");
+  assert.ok(published.length > 100);
+  for (const code of published) {
+    assert.ok((code & 0x80) !== 0 || !glyphHasPf2Pixel(code),
+      `break-up code $${code.toString(16)} shows COLPF2 pixels`);
+  }
+  // The Heavy's path publishes the same codes: render its whole life.
+  const h = heavyBreakup();
+  const codes = new Set();
+  for (let f = 0; f < HEAVY_FRAMES + 2; f += 1) {
+    h.memory[h.label("frame_counter")] = f;
+    h.run("update_transient_effects");
+    if (h.memory[h.label("EFFECT_ACTIVE_MASK")] !== 0) h.run("render_transient_effect_overlays");
+    for (let slot = 0; slot < 5; slot += 1) {
+      const address = h.memory[h.label("EFFECT_SCREEN_LO") + slot] |
+        h.memory[h.label("EFFECT_SCREEN_HI") + slot] << 8;
+      if (address !== 0 && (h.memory[h.label("EFFECT_DRAWN_MASK") + slot])) codes.add(h.memory[address]);
+    }
+  }
+  assert.ok(codes.size >= 2);
+  for (const code of codes) {
+    assert.ok((code & 0x80) !== 0 || !glyphHasPf2Pixel(code), `Heavy break-up code $${code.toString(16)}`);
+  }
 });
 
 test("the background flash of a Heavy kill and of the player's death: 6 frames, two strong, a dark-blue fade, black", () => {

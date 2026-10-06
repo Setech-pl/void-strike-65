@@ -125,13 +125,12 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.broadsideRuntime.runAddress,
     manifest.entityEffects.sourceToStagingMarginBytes,
     manifest.entityEffects.stagingToBroadsideMarginBytes,
-  ], [0x533b, 0x5318, 0x5dfc, 0x5e10, -35, 20]);
-  // RE-PINNED 2026-10-05, plasma FX B1/B1.1 (docs/plans/plasma-fx.md): the
-  // packed sources end $5331 -> $533B (the initial block grew 10 B: the
-  // break-up's stage masks and per-fragment codes), so they reach 35 B into
-  // the staging (copied backwards); the staging ends $5DEA -> $5DFC and the
-  // margin to BROADSIDE is 38 -> 20 B (the growth glyphs lead the
-  // ENTITY_CODE glyph bank).
+  ], [0x532e, 0x5318, 0x5dfa, 0x5e10, -22, 22]);
+  // RE-PINNED 2026-10-06, plasma FX B1-B1.2 (docs/plans/plasma-fx.md §12): the
+  // packed sources end $5331 -> $532E (the initial block is 3 B smaller), 22 B
+  // into the staging (copied backwards); the staging ends $5DEA -> $5DFA and
+  // the margin to BROADSIDE is 38 -> 22 B (the break-up's two extra glyphs
+  // lead the ENTITY_CODE glyph bank).
 
   const lifecycle = manifest.entityEffects.stagingLifecycle;
   assert.equal(lifecycle.stagingReleasedBeforeStarfieldExpansion, true);

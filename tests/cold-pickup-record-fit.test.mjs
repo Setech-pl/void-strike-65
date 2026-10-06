@@ -112,22 +112,21 @@ test("fit preserves the reviewed staging and placement gates", () => {
   // for CAPITAL_DUE | BOSS_DUE and the entry call); the record had 3 B spare.
   assert.equal(pickup.sectors, 10);
   assert.ok(manifest.starfieldRuntime.packedBytes <= manifest.starfieldRuntime.stagingBytes);
-  // RE-PINNED 2026-10-05, plasma FX B1/B1.1 (docs/plans/plasma-fx.md): 143 ->
-  // 151 and 38 -> 20. The break-up's two growth glyphs (16 B of source, codes
-  // 108-109) lead the ENTITY_CODE glyph bank and B1.1's art packs less well:
-  // the ENTITY_CODE staging grew 18 B packed toward BROADSIDE, and the packed
-  // sources below moved down, away from the pickup stream.
-  assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 151);
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 20);
+  // RE-PINNED 2026-10-06, plasma FX B1-B1.2 (docs/plans/plasma-fx.md §12): 143
+  // -> 162 and 38 -> 22. The break-up's two extra glyphs (16 B of source, codes
+  // 108-109) lead the ENTITY_CODE glyph bank, so its staging grew toward
+  // BROADSIDE, and the initial block's packed sources ended lower, away from
+  // the pickup stream.
+  assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 162);
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 22);
   assert.ok(manifest.broadsideRuntime.bytes <= manifest.broadsideRuntime.reservedBytes);
   assert.equal(manifest.a2Kernel.runAddress, 0x9000);
   assert.equal(manifest.a2Kernel.bytes, 237);
   assert.equal(manifest.entityEffects.codeRunAddress, 0x9100);
   assert.equal(manifest.entityEffects.codeRunAddress & 0xff, 0);
-  // RE-PINNED 2026-10-05, plasma FX B1.1: 75 -> 65. The initial block's content
-  // grew 13,621 -> 13,631 B (the break-up's stage masks and per-fragment codes),
-  // inside the same 107 sectors (13,696 B).
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 65);
+  // RE-PINNED 2026-10-06, plasma FX B1.2: 75 -> 78. The initial block's content
+  // fell 13,621 -> 13,618 B inside the same 107 sectors (13,696 B).
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 78);
   assert.equal(manifest.transportCapacity.manifest.parsed.records.length, 11);
   assert.equal(manifest.transportCapacity.format, "DFMC-v1 multi-chunk");
 });

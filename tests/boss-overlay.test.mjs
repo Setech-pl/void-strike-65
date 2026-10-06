@@ -144,8 +144,8 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
     `the resident half is ${asmBytes} B (STOP over ${WINDOW_HOOKS_STOP})`);
   // Placed last in the window: the hot Light C keeps its addresses.
   assert.ok(label("director", "_asm_boss_enter") >= label("director", "__HYBRID_C_WINDOW_RODATA_RUN__"));
-  // RE-PINNED 2026-10-05, 13,621 -> 13,631: plasma FX B1.1 (docs/plans/plasma-fx.md §11, owner answers of 2026-10-05) spent 10 B of the initial block - the break-up's stage masks and per-fragment codes and the check that holds the fragments while the core grows - inside the 13,652-B STOP rule. No byte of the boss is in it.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13631,
+  // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. No byte of the boss is in it.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618,
     "no byte of the boss lands in the initial block");
 });
 

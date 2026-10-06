@@ -174,16 +174,15 @@ export function loadEntityEffectsDefinition(sourcePath) {
   const destruction = definition.debrisDestruction;
   invariant(destruction?.hitFlashFrames === 2,
     "Debris hit flash must last exactly two PAL frames");
-  // docs/plans/plasma-fx.md B1.1 (owner answers 2026-10-05): a Light's or a
-  // debris's break-up lives 30 frames, a Heavy's 45; the core 24 (decision
-  // 6's fallback) and it goes out before the fragments.
+  // docs/plans/plasma-fx.md B1.1-B1.2 (owner answers 2026-10-05/06): a Light's
+  // or a debris's break-up lives 30 frames, a Heavy's 45; the core main's 5.
   invariant(destruction.fragmentFrames === 30,
     "Light and debris break-up fragments must last 30 PAL frames (plasma FX B1.1 d)");
   invariant(destruction.heavyFragmentFrames === 45,
     "Heavy break-up fragments must last 45 PAL frames (plasma FX B1.1 d)");
-  invariant(destruction.coreFrames === 24 &&
+  invariant(destruction.coreFrames === 5 &&
     destruction.coreFrames < Math.min(destruction.fragmentFrames, destruction.heavyFragmentFrames),
-    "The break-up core lives 24 frames and goes out before the fragments");
+    "The break-up core lives main's 5 frames and goes out before the fragments");
   invariant(destruction.fragmentCount === 4,
     "Debris destruction must emit exactly four fragments");
   integer(destruction.fragmentLocalXSpeedHpos,
@@ -203,13 +202,13 @@ export function loadEntityEffectsDefinition(sourcePath) {
         const selector = row >> shift & 3;
         if (selector !== 0) {
           invariant(selector === 3 || selector === 1,
-            `fragment phase ${phaseIndex} must use white or the switchable selector`);
+            `fragment phase ${phaseIndex} must use the enemy-bank selector (3, drawn inverse) or white`);
           litPixels += 1;
         }
       }
     }
-    invariant(litPixels >= 6 && litPixels <= 32,
-      `fragment phase ${phaseIndex} (the core burst or its torn shell) must light 6-32 ANTIC pixels`);
+    invariant(litPixels >= 4 && litPixels <= 7,
+      `fragment phase ${phaseIndex} must contain four through seven ANTIC pixels`);
   }
   invariant(Array.isArray(destruction.growthPhases) && destruction.growthPhases.length === 2,
     "The break-up's growth must define exactly two glyphs (a dot and a small burst)");
@@ -229,7 +228,7 @@ export function loadEntityEffectsDefinition(sourcePath) {
       }
     }
     invariant(litPixels >= 3 && litPixels <= 12,
-      `growth phase ${phaseIndex} (sparks or a streak) must light 3-12 ANTIC pixels`);
+      `growth phase ${phaseIndex} (sparks or the core) must light 3-12 ANTIC pixels`);
   }
 
   const pickup = definition.weaponPickupRapidFire;

@@ -229,11 +229,11 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // ENTITY_CODE staging the margin is measured against rather than by adding
   // anything to the transport. It is still the number the next thing added to
   // STARFIELD spends.
-  // Re-recorded 2026-10-05, plasma FX B1/B1.1 (docs/plans/plasma-fx.md): 38 ->
-  // 20, the first time this margin is SPENT since 2026-09-28: the break-up's
-  // two growth glyphs (16 B of source, codes 108-109) lead the ENTITY_CODE
-  // glyph bank, and B1.1's art packs less well.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 20,
+  // Re-recorded 2026-10-06, plasma FX B1-B1.2 (docs/plans/plasma-fx.md §12):
+  // 38 -> 22, the first time this margin is SPENT since 2026-09-28: the
+  // break-up's two extra glyphs (16 B of source, codes 108-109) lead the
+  // ENTITY_CODE glyph bank.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 22,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

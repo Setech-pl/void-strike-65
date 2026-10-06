@@ -64,20 +64,20 @@
   },
   "debrisDestruction": {
     "hitFlashFrames": 2,
-    "_growth": "docs/plans/plasma-fx.md (owner answers 2026-10-05, B1.1): the break-up grows from one cell. Four effect codes, the four the resolvers' contiguous range 108-119 leaves free beside the debris bank: growthPhases are 108 (scattered sparks, one white) and 109 (an elongated streak), fragmentPhases 118 (the core burst, a clear white centre) and 119 (a torn, irregular shell). Selector 1 is white COLPF0, selector 3 the switchable COLPF2 / COLPF3 bank. The core: sparks, the white-centred burst, the torn shell, out at frame 24 (decision 6's fallback). The four fragments start one on each code, so no two share a shape, and spread asymmetrically; they burn out as sparks. Light and debris fragments live 30 frames, a Heavy's 45 (B1.1 item d).",
-    "coreFrames": 24,
+    "_growth": "docs/plans/plasma-fx.md (owner answers 2026-10-06, B1.2): enemy break-ups are main's - one core and four fragments, main's fragment shapes, no growth phase - drawn wholly in the enemy bank: every code they publish is inverse, so selector 3 is COLPF3 and the core's selector-1 centre is white COLPF0; they never wear COLPF2, the player's colour. growthPhases are 108 (single sparks, the fade) and 109 (the core: a white centre in the enemy colour); fragmentPhases 118-119 are main's two fragment shapes, each with its two middle pixels white (the core shares its first frames' cell with a fragment drawn after it, as on main, so the white centre shows whichever is on top). The core lives main's 5 frames; the fragments 30 frames for a Light or a debris, 45 for a Heavy; they spread asymmetrically and end as sparks.",
+    "coreFrames": 5,
     "fragmentFrames": 30,
     "heavyFragmentFrames": 45,
     "fragmentCount": 4,
     "fragmentLocalXSpeedHpos": 2,
     "fragmentLocalYSpeedScanlines": 2,
     "fragmentPhases": [
-      [48, 255, 215, 213, 87, 215, 63, 12],
-      [48, 195, 3, 192, 3, 192, 51, 0]
+      [0, 0, 192, 208, 28, 48, 0, 0],
+      [0, 0, 12, 7, 52, 12, 0, 0]
     ],
     "growthPhases": [
-      [0, 48, 0, 4, 16, 0, 3, 0],
-      [3, 13, 12, 52, 48, 208, 192, 0]
+      [0, 48, 0, 3, 192, 0, 12, 0],
+      [0, 60, 215, 215, 60, 0, 0, 0]
     ]
   },
   "weaponPickupRapidFire": {

@@ -80,6 +80,12 @@ function bootedMemory() {
   memory[0x80f9] = 0;
   memory[0x80fa] = 0;
   memory[0x80ff] = 0xff;
+  // Harness fix 2026-10-06 (plasma FX B1.2, docs/plans/plasma-fx.md §12.8):
+  // the player is alive, as gameplay initialises it. Unset, this byte was the
+  // boot image's packed data at $4EAA - 1, PLAYER_DYING, once the initial
+  // block shrank 3 B - and clear_transient_effects then cleared the pending
+  // capsule the one-capsule test arms.
+  memory[at("PLAYER_LIFECYCLE")] = PLAYER_ALIVE;
   return memory;
 }
 

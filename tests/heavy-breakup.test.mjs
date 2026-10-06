@@ -165,15 +165,13 @@ for (const [name, archetype] of [["Raider", RAIDER], ["Bomber", BOMBER]]) {
       assert.deepEqual([cell.x, cell.y], [(anchorX + dx) & 0xff, (anchorY + dy) & 0xff],
         `${name} cell ${slot} must sit at its table offset`);
     }
-    // The core's render id is the debris bank's base glyph (its look comes
-    // from the stage list). RE-POINTED 2026-10-05, plasma FX B1.1 item b
-    // (docs/plans/plasma-fx.md): the four fragments start one on each of the
-    // four effect codes, slots 1-4 on 108, 109, 118, 119, so no two share a
-    // shape; they were all 118.
+    // The four fragments are the existing fragment glyphs and the core is the
+    // existing debris bank's base glyph (since plasma FX the core's look comes
+    // from the renderer's stage list, docs/plans/plasma-fx.md §12).
+    const FRAGMENT_GLYPH_BASE = 118;
     const DEBRIS_GLYPH_BASE = 110;
     assert.equal(live[0].renderId, DEBRIS_GLYPH_BASE);
-    assert.deepEqual(live.slice(1).map((cell) => cell.renderId).sort((a, b) => a - b),
-      [108, 109, 118, 119]);
+    for (const cell of live.slice(1)) assert.equal(cell.renderId, FRAGMENT_GLYPH_BASE);
   });
 
   test(`a ${name} kill reaches its fragments within two frames of the kill frame`, () => {
@@ -479,10 +477,8 @@ test("world_rotate_due agrees with update_starfield on every frame", () => {
 
 test("the rotate gate adds no byte to the initial block and no sector to any record", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
-  // RE-PINNED 2026-10-05, plasma FX B1.1 (docs/plans/plasma-fx.md §11):
-  // 13,621 -> 13,631. The rotate gate still adds no byte; the 10 are the
-  // break-up's stage masks and per-fragment codes (STOP rule 13,652).
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13631);
+  // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. The rotate gate still adds no byte.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618);
   assert.equal(manifest.bootSectors, 107);
   // BROADSIDE (extension record 1): the routine replaces zero-pin bytes, so
   // the segment's size, the pin's address and every label after it hold.

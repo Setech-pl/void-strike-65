@@ -688,3 +688,175 @@ the initial block and the art's packing moved: `boot-loading-blank-screen`,
 RED, 1 GREEN (the range proof, a property of the data). Still red until B2 by
 the owner's order: the 14 evidence-bound tests of §10.7 and the recorded
 `preview` failure.
+
+## 12. B1.2 — main's small break-up in the enemy bank; the occlusion accepted (2026-10-06)
+
+Owner answers to the B1.1 stop: (1) the broadside occlusion by **option 3**
+(accept, no bytes, keep the 59-89 scan fix); (2) enemy break-ups wear a white
+centre (COLPF0) and the enemy colour (COLPF3, inverse codes) and **never
+COLPF2**, which carries only the player's shots, the allied hull details and
+the capital core; (3) the break-up goes back to `main`'s size, cell count and
+shapes, with no growth phase, keeping from B1.1 the asymmetric four-fragment
+spread, the fade by removing pixels, the per-class lives (Light and debris 30,
+Heavy 45), the stepped background flash (`$1E $3C $82 $80`, then black) and the
+player's death (FIRE, 16 lines, 24 frames, respawn unchanged).
+
+**Status: built and measured; the shot colour waits for the owner's smoke.**
+
+### 12.1 The broadside occlusion — accepted
+
+`broadside_hits_opposite_hull` reads the shell's **screen** row. Since B1.1 it
+takes only the hull codes 59-89 for the hull edge, so nothing drawn before the
+hull counts as hull any more. **Any object drawn on the hull's edge cell - a
+break-up effect, debris, a Light, an enemy shot - hides that cell and can delay
+a broadside hit by one cell (one frame). Accepted (owner, 2026-10-06), no
+bytes.** Follow-up `fix/broadside-scan-hull-map`: the scan reads the hull map
+or the saved background instead of the screen row; to be done with a BROADSIDE
+relocation, hull damage marks (M5 wish-list item 19) or the capital hull
+geometry 4.8a (M7). Recorded in `docs/STATUS.md`, "Backlog — deferred, not
+forgotten".
+
+### 12.2 The classification check (before code)
+
+Every enemy break-up code is now inverse (`|$80`, codes `$EC`, `$ED`, `$F6`,
+`$F7`). Every place that classifies a playfield cell by its code was checked
+for treating an inverse effect code differently from the positive one:
+
+| place | file:line | how it reads the code | inverse effect code |
+| --- | --- | --- | --- |
+| projectile backing: effect range gate | `src/main.s:11187` | `cmp #EFFECT_GLYPH_RANGE_BASE` on the raw byte | ≥ 108 → the resolvers, as the positive code |
+| transient-effect backing resolver | `src/main.s:11206-11209` | `and #$7F`, then 108-119, then by address | the same slot search |
+| PairShot backing resolver | `src/main.s:11128-11152` | player codes below 108; hostile `$DA`-`$E7` | `$EC`-`$F7` above both → unchanged |
+| debris backing resolver | `src/main.s:11027` | by screen address only | no code read |
+| Light backing resolver | `src/hybrid/light-kernel.s:585-590` | fast filter `$F8`-`$FD` | below it → unchanged |
+| broadside hull-edge scan | `src/main.s:9492`, `:9520` | `asl` (drops bit 7), then 59-89 | not hull (`tests/broadside-hull-edge` both banks) |
+| capital explosion overlay | `src/main.s:9169-9201` | `and #$7F`, hull 52/59-89 | not a hull cell |
+| boundary star backing | `src/main.s:7127` | `and #$7F`, ≥ 59 stored as black | black, as the positive code |
+| player-shot composite | `src/main.s:11632` | `and #$7F` for the glyph, bit 7 maps selector 3 to steel | as any inverse backing (enemy hull, hostile shot) |
+| player/hull, pickup and Light collisions | `src/capital-player-collision.s`, pickup and Light paths | coordinates, not codes | no code read |
+| trace observer: effect family | `scripts/atari800-wall-trace.h:543`, `:2533`, `:2591` | `& 0x7f`, then the family | **the family began at 110** (see below) |
+| trace observer: stale debris restore | `scripts/atari800-wall-trace.h:2836`, `:2853` | `& 0x7f`, debris 110-117 | not debris |
+| trace observer: pickup backing | `scripts/atari800-wall-trace.h:6774` | `& 0x7f`, 120-125 | not a pickup |
+| native effect harness | `scripts/debris-destruction-runtime.mjs:116-118` | `& 0x7f`, 108-119, 90-91 | an effect |
+| first-writer analysis labels | `scripts/raider-first-writer-analysis.mjs:70-84` | `& 0x7f` | a transient effect (108-109 labelled now) |
+| pickup screen census | `scripts/weapon-pickup-runtime.mjs:634` | `& 0x7f`, 120-125 | not a pickup |
+
+Bit 7 is handled the same everywhere. One gap, **independent of bit 7 and
+introduced by B1** (which added codes 108-109): the trace observer's effect
+family began at 110, so it did not count 108-109 as effect cells in either
+bank (orphan scans, muzzle occlusion). A harness gap (class (b)), fixed:
+`DFTRACE_EFFECT_GLYPH_FIRST` is 108 and `dftrace_is_transient_effect_code`
+uses the family constants. The B1.2 measurements ran on the fixed observer.
+
+### 12.3 What was built
+
+- **The art** (`assets/graphics/entity-effects.json`): 108 single sparks (the
+  fade), 109 the core (a white centre ringed in the enemy colour), 118-119
+  `main`'s two fragment shapes with their two middle pixels white. 4 glyphs,
+  the contiguous effect range still starts at 108 (no code freed: all four are
+  used, and moving the range is not allowed).
+- **One stage list, every code inverse** (`src/main.s`, after
+  `render_transient_effect_overlays`): the core (`main`'s 5 frames) shows 109
+  for 3 frames and sparks for 2; the fragments show 118/119 (the 25 Hz
+  render-id toggle) until 6 frames remain, then sparks. No growth, no hold of
+  the fragments while the core grows, no per-fragment code table (both spawns
+  load `EFFECT_FRAGMENT_GLYPH_BASE` again, as on `main`).
+- **The flash** is the same `$1E $3C $82 $80` in every colour build (was: the
+  candidate's hue in a cold build).
+- Kept: asymmetric velocities, per-class lives 30/45, the stepped flash, the
+  player's death.
+- **Initial block 13,618 B** (B1.1 13,631, `main` 13,621).
+
+### 12.4 Large explosions are the boss's
+
+The large (growing) explosion is retired from the fighters and belongs with
+the boss's end-of-fight chain explosion (`docs/plans/m5-loading-boss.md` §1.2
+decision 10, §5.6; the owner's answer cited it as decision 7, which in that
+table is the boss phases).
+
+### 12.5 RED → GREEN
+
+On `main` (`4926dc05…`, a temporary worktree, removed): `plasma-fx` **5 RED**,
+2 GREEN (a Light's 30-frame life with a 5-frame core is `main`'s own, and the
+codes precondition); the new **"enemy break-ups draw no COLPF2 pixel"** is RED
+there (`break-up code $77 shows COLPF2 pixels`: `main` publishes its fragments
+positive). `broadside-hull-edge` 2 RED, 1 GREEN (the range proof), as in B1.1.
+All GREEN on B1.2.
+
+### 12.6 Measurements (diagnostic only)
+
+Same method and sessions as §11.4: 51 debug-route replays (`build/level-1-s0`)
+and the three `raider-remnant` replays (candidate), row by row against `main`'s
+committed-evidence CSVs, on the trace emulator rebuilt with the fixed observer
+(§12.2). PAL audit: 0 miss events; every behavioural clause ran to completion.
+Gameplay differences against `main`: the two replays and the one shell of
+§11.6 (`broad0_state`, frame 1197) - the accepted one-frame shift - nothing
+else.
+
+| | `main` | B1.1 | **B1.2** |
+| --- | ---: | ---: | ---: |
+| worst fence margin (row) | 1,370 `2-evasive-fire3` f287 | 1,370 `2-sweep-fire6` f311 | **1,472** `2-sweep-fire6` f311 |
+| DMA-on maximum (gameplay rows) | 31,237 `director-complete-2` f5797 | 31,240 | **31,240** (same row) |
+| worst Heavy kill frame | 2,841 `raider-remnant-spread` f2052 | 3,279 `raider-remnant-rapid` f123 | **2,747** `raider-remnant-spread` f2052 |
+| SPREAD multi-kill (`raider-remnant-spread` f2052) | 2,841 | 3,857 | **2,747** |
+| boss module destroyed (worst boss frame, f11216) | 12,984 | 12,974 | **12,974** |
+| boss stress work, native (pin 7,000) | 6,678 / 5,516 | 6,689 / 5,518 | **6,689 / 5,518** |
+| break-up per live frame, native (mean / peak) | 1,099 / 1,399 | 959 / 1,221 | **927 / 1,323** |
+| worst capital row (wall) | 18,351 | 18,369 | **18,374** |
+| initial block | 13,621 | 13,631 | **13,618** |
+
+The SPREAD multi-kill frame is 94 cycles under `main`'s: like `main`, the
+fragments publish on the spawn frame again (B1.1 held them back while the core
+grew, which is why its spawn frame was cheaper), and each drawn cell pays the
+stage lookup. Every value is far from the 500 GO line and the 32,568 gate.
+
+Truncation (the next kill cuts the live break-up), over this set's 1,103 kills;
+B1.2's lives are B1.1's, so their rates are the same:
+
+| class (kills) | cut before its own life: `main` / B1.1 / **B1.2** |
+| --- | --- |
+| Heavy (798) | 40.0 % (30 f) / 49.6 % (45) / **49.6 %** (45) |
+| Light + debris (2 + 303) | 32.1 % (30) / 32.1 % (30) / **32.1 %** (30) |
+
+### 12.7 Comparison builds
+
+| build | full path | SHA-256 prefix |
+| --- | --- | --- |
+| $1E, level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-1E/void-strike-65.atr` | `74959845c58db910` |
+| $1E, sector 4 (yellow sky) | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-1E-level-1-s3/void-strike-65.atr` | `1d78c3f53c15d1a3` |
+| $1E, boss | `/Users/marcinkrzetowski/Projects/dark-fighter/build/level-1-s4/void-strike-65.atr` | `5459e791b798f840` |
+| $9E, level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-9E/void-strike-65.atr` | `353a3d70fdfe0934` |
+| $9E, sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-9E-level-1-s3/void-strike-65.atr` | `8414ae43a5bcabc2` |
+| $AE, level 1 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE/void-strike-65.atr` | `e0aa70620e1ae074` |
+| $AE, sector 4 | `/Users/marcinkrzetowski/Projects/dark-fighter/build/player-colour-AE-level-1-s3/void-strike-65.atr` | `2c9a413f82124b97` |
+
+Launch: `atari800 -xe -pal -nobasic <full path>`.
+
+### 12.8 Tests
+
+New: `plasma-fx` "enemy break-ups draw no COLPF2 pixel". Re-pointed in B1.2,
+each with its reason in place: `plasma-fx` (`main`'s break-up, per-class
+lives, no growth, sparks), `entity-effects` (the debris split is `main`'s again;
+the art's lit ranges), `effects-stagger` (the spawn test is `main`'s again; the
+resolver peak 890 → 992), `heavy-breakup` (fragment render ids `main`'s again;
+13,618), `preview` (143 trace rows; the panels), `weapon-pickup-rapid-fire`
+(comment), the layout pins the 13,618-B initial block and the art's packing
+moved: `boot-loading-blank-screen`, `boot-xex-reclaim` (back to `main`'s
+form), `boss-overlay`, `hybrid-c-arena`, `level-summary-build` ×2,
+`cold-pickup-record-fit`, `formats`, `light-interceptor` (back to `main`'s 65),
+`light-wingman`, `loader-screen` (`$3802`). The harness
+(`nativeRoutineHarness`) now also stages the A2 kernel and the starfield runtime
+and clears the screen, so a Heavy break-up renders natively. Harness fix
+(class (b)): `debris-score`'s booted memory now sets `PLAYER_LIFECYCLE` alive;
+unset, it read the boot image's packed byte at `$4EAA`, which became 1
+(`PLAYER_DYING`) when the initial block shrank 3 B, and
+`clear_transient_effects` then cleared the capsule its one-capsule test arms.
+
+Full suite on the candidate build: 1,089 tests, 1,073 pass, 16 fail before the
+harness fix and 15 after it - the same 15 as B1.1 (the evidence-bound tests of
+§10.7 and the recorded `preview` failure), red until B2 by the owner's order.
+
+### 12.9 Stop — the shot colour by smoke
+
+B1.2 stops for the owner's smoke of the seven builds of §12.7 and the choice of
+the player-side colour ($1E, $9E or $AE); B2 (§9) follows that choice.

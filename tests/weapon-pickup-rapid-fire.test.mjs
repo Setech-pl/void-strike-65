@@ -213,11 +213,11 @@ test("pickup pending remains hidden and non-colliding for thirty full frames", (
     record.screenAddress === 0 && record.leftCode === 0 && record.rightCode === 0), true);
   assert.deepEqual([pending[0].timer, pending.at(-1).timer], [30, 1]);
   const firstActive = trace.records.find(({ phase }) => phase === "ACTIVE");
-  // RE-POINTED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): the break-up
-  // lives 45 frames (decision 3) and its core 24 (decision 6), so when the
-  // capsule enters, 32 frames after the kill, the core is out and the four
-  // fragments - collisionless effects in their own pool - are still burning
-  // out. Was: no effect cell live at all (a 30-frame break-up).
+  // RE-POINTED 2026-10-05/06, plasma FX (docs/plans/plasma-fx.md §10-12): a
+  // Heavy's break-up lives 45 frames, its core main's 5, so when the capsule
+  // enters, 32 frames after the kill, the core is out and the four fragments -
+  // collisionless effects in their own pool - are still burning out. Was: no
+  // effect cell live at all (a 30-frame break-up for every class).
   assert.deepEqual([
     firstActive.state, firstActive.activeMask, firstActive.activeCount,
     firstActive.effectActiveMask & 1, firstActive.y,

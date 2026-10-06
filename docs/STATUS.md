@@ -6437,6 +6437,17 @@ started without owner instruction.
   new cell and abandons the old one. `scroll_broadside_scene` already treats a
   live flash as owning the row pointer (`:7973-7975`), so admission is the one
   path that does not. Not observed in the 6,000-frame capital-muzzle replay.
+- **`fix/broadside-scan-hull-map` — the hull-edge scan reads the screen row**
+  (recorded 2026-10-06, accepted by the owner, plasma FX B1.2 option 3,
+  `docs/plans/plasma-fx.md` §11.6 and §12.1). `broadside_hits_opposite_hull`
+  finds the opposite hull's edge on the shell's **screen** row, bounded since
+  plasma FX B1.1 to the hull codes 59-89. Any object drawn on the hull's edge
+  cell - a break-up effect, debris, a Light, an enemy shot - hides that cell,
+  so the edge moves one cell inward and the shell's hit is delayed by a cell
+  (a frame). Accepted as is, no bytes. The fix: the scan reads the hull map or
+  the saved background instead of the screen row. Do it together with a
+  BROADSIDE relocation, hull damage marks (M5 wish-list item 19) or the
+  capital hull geometry 4.8a (M7).
 - **The weapon-pickup traversal clause should measure the pickup's own slot**
   (recorded **2026-09-28**, MEASURED, deferred by the owner at 4.6 step 2's
   closure; plan [plans/director-4.6.md](plans/director-4.6.md) §11 item 11).

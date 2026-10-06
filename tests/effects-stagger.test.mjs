@@ -29,20 +29,12 @@ test("character effects use bounded 3/2 slot groups without changing the PMG exp
     "fragment glyph selection must advance only on the slot publication tick");
 });
 
-// RE-POINTED 2026-10-05, plasma FX (docs/plans/plasma-fx.md, owner decisions 2
-// and 3): the break-up grows from one cell, so its core publishes on its first
-// publication tick and the four fragments are held back until frame 5 (they
-// start in the core's cell). The contract is unchanged in kind: every visual
-// slot reaches the screen within one PAL frame of becoming visible, all five
-// slots are allocated on the spawn frame.
 test("spawn reaches every visual slot within one PAL frame and preserves five slots", () => {
   const frames = finalFrames("atr");
   assert.equal(frames[0].effectActiveMask, 0x1f);
   assert.equal(frames[0].effectActiveCount, 5);
-  assert.equal(frames[0].effectRenderedMask, 0x00, "the fragments' parity group: all held back");
-  assert.equal(frames[1].effectRenderedMask, 0x01, "the core, on its first tick");
-  assert.equal(frames[5].effectRenderedMask & 0x06, 0x06, "fragments 1-2 on frame 5");
-  assert.equal(frames[6].effectRenderedMask, 0x1f, "every slot by frame 6");
+  assert.equal(frames[0].effectRenderedMask, 0x18);
+  assert.equal(frames[1].effectRenderedMask, 0x1f);
   assert.equal(frames[1].effectActiveCount, 5);
   for (let slot = 1; slot < 5; slot += 1) {
     const ttl = frames.slice(0, 30).map((frame) =>
@@ -76,13 +68,12 @@ test("PairShot and generic-effect backing resolvers stay below the local fix cei
   // §8.3): 1,071 -> 1,068. light_cell_resolve's below-range exit now returns
   // in place instead of branching to a far rts - one cycle less per captured
   // cell, three captures on the peak frame. Delta over the baseline 246.
-  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): 1,068 -> 890
-  // over the whole life. The renderer now decides a cell's look first and
+  // RE-PINNED 2026-10-05, plasma FX (docs/plans/plasma-fx.md §12): 1,068 ->
+  // 992 over the whole life. The renderer decides a cell's look first and
   // skips the three backing resolvers when the cell it covers is blank (code
-  // 0, which none of them can resolve to anything else); B1.1's asymmetric
-  // spread separates the cells sooner. The delta over the baseline is 68. The
-  // gate below is unchanged.
-  assert.equal(peak, 890);
-  assert.equal(peak - 822, 68);
+  // 0, which none of them can resolve to anything else). The delta over the
+  // baseline is 170. The gate below is unchanged.
+  assert.equal(peak, 992);
+  assert.equal(peak - 822, 170);
   assert.ok(peak - 822 < 300);
 });

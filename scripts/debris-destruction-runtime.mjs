@@ -433,10 +433,14 @@ export function nativeRoutineHarness({ root = defaultRoot, artifact = "atr" } = 
   runRoutine(memory, labels, "unpack_resident_runtime");
   runRoutine(memory, labels, "unpack_entity_runtime");
   publishDirectorAbiIfPresent(memory, labels);
+  runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
+  runRoutine(memory, labels, "unpack_starfield_runtime");
   runRoutine(memory, labels, "copy_charset");
   runRoutine(memory, labels, "install_entity_effects_glyph");
+  initialiseRows(memory, labels, 0);
+  memory.fill(0, 0x4000, 0x4400);
   return {
     memory,
     labels,

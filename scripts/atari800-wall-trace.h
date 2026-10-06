@@ -534,12 +534,13 @@ static DFTraceFrame dftrace_current;
 #define DFTRACE_PROJECTILE_ARRAY_STRIDE 10u
 #define DFTRACE_INTERCEPTOR_GLYPH_FIRST 0xdau
 #define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xe7u /* last published hostile weapon code: BOMBER animation phase, right */
-/* The generic collisionless effect pool's two glyph banks, as src/main.s lays
- * them out: ENTITY_DEBRIS_GLYPH_BASE = 110, eight codes, which a break-up core
- * borrows, and EFFECT_FRAGMENT_GLYPH_BASE = 118, two codes. The renderer also
- * publishes the inverse form (|$80) for the dark fade, so the family test
- * masks bit 7 off. */
-#define DFTRACE_EFFECT_GLYPH_FIRST 110u
+/* The generic collisionless effect pool's glyph banks, as src/main.s lays them
+ * out: EFFECT_GLYPH_RANGE_BASE = EFFECT_GROWTH_GLYPH_BASE = 108, two codes
+ * (plasma FX, docs/plans/plasma-fx.md), ENTITY_DEBRIS_GLYPH_BASE = 110, eight
+ * codes, which a break-up core borrows, and EFFECT_FRAGMENT_GLYPH_BASE = 118,
+ * two codes. The renderer publishes the inverse form (|$80) - every break-up
+ * code since plasma FX B1.2 - so the family test masks bit 7 off. */
+#define DFTRACE_EFFECT_GLYPH_FIRST 108u
 #define DFTRACE_EFFECT_GLYPH_LAST 119u
 
 static unsigned dftrace_interceptor_observed_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
@@ -2587,7 +2588,8 @@ static void dftrace_emitter_cleanup_end(DFTraceFrame *frame)
 static int dftrace_is_transient_effect_code(unsigned value)
 {
 	unsigned code = value & 0x7fu;
-	return (code >= 110u && code < 120u) || code == 90u || code == 91u;
+	return (code >= DFTRACE_EFFECT_GLYPH_FIRST && code <= DFTRACE_EFFECT_GLYPH_LAST) ||
+		code == 90u || code == 91u;
 }
 
 static void dftrace_track_character_screen_write(unsigned x_register, unsigned y_register)

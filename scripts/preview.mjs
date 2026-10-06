@@ -3992,10 +3992,10 @@ export function createDestructibleDebrisPreview(
   const selected = [
     ["PRE_HIT", 0, "1 DEBRIS"],
     ["FINAL", 0, "2 FINAL HIT"],
-    ["FINAL", 3, "3 WHITE CORE"],
-    ["FINAL", 6, "4 FOUR SHAPES"],
-    ["FINAL", 12, "5 SPREAD"],
-    ["FINAL", 20, "6 TORN SHELL"],
+    ["FINAL", 1, "3 WHITE CORE"],
+    ["FINAL", 3, "4 FOUR FRAGMENTS"],
+    ["FINAL", 6, "5 EARLY SPREAD"],
+    ["FINAL", 14, "6 MID SPREAD"],
     ["FINAL", 27, "7 SPARKS"],
     ["FINAL", 31, "8 CLEAN"],
   ].map(([phase, frame, label]) => ({

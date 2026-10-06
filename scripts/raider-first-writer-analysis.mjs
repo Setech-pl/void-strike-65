@@ -75,7 +75,10 @@ function renderMeaning(value) {
   if (glyph >= 59 && glyph < 90) return `capital/background glyph ${glyph}`;
   if (glyph === 90 || glyph === 100) return `enemy PairShot glyph ${glyph}`;
   if (glyph >= 110 && glyph < 118) return `gameplay-debris glyph ${glyph}`;
-  if (glyph === 118 || glyph === 119) return `generic transient-effect glyph ${glyph}`;
+  // 108-109: the break-up's sparks and core (plasma FX, docs/plans/plasma-fx.md).
+  if (glyph === 108 || glyph === 109 || glyph === 118 || glyph === 119) {
+    return `generic transient-effect glyph ${glyph}`;
+  }
   if (glyph >= 120 && glyph < 126) return `pickup glyph ${glyph}`;
   if (glyph === 126 || glyph === 127) return `capital-shell glyph ${glyph}`;
   return `screen glyph ${glyph}`;

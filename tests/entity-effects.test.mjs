@@ -2061,14 +2061,11 @@ test("shot destruction after reverse erase leaves no glyph at any A2 ring head",
   }
 });
 
-// RE-POINTED 2026-10-05, plasma FX (docs/plans/plasma-fx.md): decision 2's
-// growth, decision 6's fallback (the core lives 24 frames, was 5) and B1.1
-// (the art: 108 sparks, 109 a streak, 118 the white-centred burst, 119 a torn
-// shell; a debris's fragments live 30 frames, as before) moved the core's
-// life, the first parity's publication (the fragments are held back while the
-// core grows, they start in its cell) and the art. The split - one core and
-// four fragments, diverging in their own directions - and every no-ghost
-// expiry check are asserted as before.
+// RE-POINTED 2026-10-06, plasma FX B1.2 (docs/plans/plasma-fx.md §12): the
+// break-up is main's again - core 5 frames, fragments 30, main's shapes, no
+// growth - so this test is main's but for the art check: 108 (sparks) and 109
+// (the white-centred core) join main's two fragment shapes, which now carry
+// two white middle pixels each (still four to seven lit).
 test("executed ATR traces preserve the five-slot generic debris split", () => {
   const atrTrace = executeDebrisDestructionTrace({ root, artifact: "atr", finalFrames: 48 });
   const find = (phase, frame) => atrTrace.records.find((record) =>
@@ -2094,16 +2091,14 @@ test("executed ATR traces preserve the five-slot generic debris split", () => {
     first.effectActiveMask, first.effectActiveCount,
   ], [0, 0, 0, 0x1f, 5]);
   assert.deepEqual(first.effects.map(({ slot, type, ttl }) => [slot, type, ttl]),
-    [[0, 1, 24], [1, 2, 30], [2, 2, 30], [3, 2, 30], [4, 2, 30]]);
+    [[0, 1, 5], [1, 2, 30], [2, 2, 30], [3, 2, 30], [4, 2, 30]]);
   const firstFragments = first.effects.slice(1);
-  assert.ok(new Set(find("FINAL", 6).effects.slice(1).map(({ screenAddress }) => screenAddress)).size >= 3,
-    "the debris split must occupy at least three rendered cells as soon as it shows");
+  assert.ok(new Set(firstFragments.map(({ screenAddress }) => screenAddress)).size >= 3,
+    "the unchanged debris split must occupy at least three rendered cells immediately");
   const initiallyDrawnFragments = firstFragments.filter(({ drawn }) => drawn === 1);
-  assert.equal(initiallyDrawnFragments.length, 0,
-    "the fragments are held back while the core grows");
-  const shown = find("FINAL", 6).effects.slice(1).filter(({ drawn }) => drawn === 1);
-  assert.equal(shown.length, 4, "every fragment is published by frame 6");
-  assert.ok(shown.every(({ screenCode }) => screenCode !== 0));
+  assert.equal(initiallyDrawnFragments.length, 2,
+    "the first stagger parity must publish the unchanged two fragment slots");
+  assert.ok(initiallyDrawnFragments.every(({ screenCode }) => screenCode !== 0));
 
   const positions = (frame) => new Map(find("FINAL", frame).effects
     .filter(({ slot }) => slot > 0).map(({ slot, x, y }) => [slot, { x, y }]));
@@ -2130,16 +2125,16 @@ test("executed ATR traces preserve the five-slot generic debris split", () => {
     assert.equal(fragments.length, 4, `frame ${frame} lost a fragment early`);
     assert.ok(find("FINAL", frame).rendered, `frame ${frame} skipped effect render`);
   }
-  assert.equal(find("FINAL", 23).effects.length, 5);
-  assert.equal(find("FINAL", 24).effects.length, 4, "the core must expire after 24 frames");
+  assert.equal(find("FINAL", 4).effects.length, 5);
+  assert.equal(find("FINAL", 5).effects.length, 4, "core must expire after five frames");
   assert.deepEqual([
     find("FINAL", 30).effectActiveMask, find("FINAL", 30).effectActiveCount,
     find("FINAL", 31).effectActiveMask, find("FINAL", 31).effectActiveCount,
   ], [0, 0, 0, 0]);
   assert.ok(find("FINAL", 31).screen.every((code) => code === 0),
     "the final reverse erase must leave no ghost screen code");
-  // 108 sparks, 109 a streak, 118 the white-centred burst, 119 the torn shell.
-  for (const [glyph, low, high] of [[108, 3, 6], [109, 6, 12], [118, 20, 32], [119, 6, 12]]) {
+  // 108 sparks, 109 the white-centred core, 118-119 main's fragment shapes.
+  for (const [glyph, low, high] of [[108, 3, 6], [109, 8, 12], [118, 4, 7], [119, 4, 7]]) {
     const lit = [...atrTrace.charset.slice(glyph * 8, glyph * 8 + 8)]
       .reduce((count, row) => count + [6, 4, 2, 0]
         .filter((shift) => (row >> shift & 3) !== 0).length, 0);

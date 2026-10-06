@@ -1,10 +1,11 @@
 # Plan — M5b-S4b: the boss lasers
 
-**Status: Phase A and its addendum A2 (§11) — audit, options, previews and
-numbers. `OWNER REVIEW CANDIDATE`; nothing is implemented.** Branch `feat/boss-lasers` from `main`
-`1a3c8bf`. No source, cfg, script, asset, test, level or evidence byte changed.
-Two probes were made and reverted (§5, §3.2); every preview and measurement
-below names its tool, and none of their output is committed as evidence.
+**Status: implemented, pending the owner's smoke — `OWNER-SMOKE CANDIDATE`
+(2026-10-06).** Phase B is built to §12's owner decisions and the addendum's
+(§13: AUD-03, the AUD-04 cap); as built, the figures and the clause coverage
+are §14. Branch `feat/boss-lasers` from `main` `1a3c8bf`. §0–§11 are Phase A's
+record (audit, options, previews), kept as written: their probes were reverted
+and none of their output is committed as evidence.
 
 Parent plan: [m5-loading-boss.md](m5-loading-boss.md) — S4b in §5.13.7, the
 lasers in §5.5, the contact scenario in §5.8, decisions A–O in §1.6.
@@ -1198,3 +1199,93 @@ each store's offset from the WSYNC store.
     740.
   * The beam stays visible through the frame of its hit and leaves with the
     death flash, as designed. No defect.
+
+## 14. As built — status: **implemented, pending the owner's smoke** (`OWNER-SMOKE CANDIDATE`, 2026-10-06)
+
+**What the lasers are:** §12's decisions as built (option A, slot D at
+`$1900`).
+
+* **The tier:** from the level (`laser_tier`), with a debug-only
+  `BOSS_LASER_TIER_OVERRIDE` for the fixture builds.
+* **The column:** the missile plane is written once at the install
+  (`laser_prepare`, which also sets `PRIOR $10`) and erased at the end, 32
+  lines a frame, `PRIOR` then back to 0.
+* **Per frame:** a laser is only HPOS and SIZEM, published by the band DLI's
+  phase 0 from the band position shown.
+* **The warning (25 frames):**
+  * In the band, the emitter's bottom cell heats through the ring, spark and
+    muzzle every 4 frames.
+  * Below the band, the line pulses 1/2 clocks in 2-frame groups.
+  * A rising tone plays on channel 3; channel 2 is never cut.
+* **The beam:** 50 frames.
+* **Damage:** EASY 5, MEDIUM 10, HARD 10 (level data), at most once per
+  firing, by software compare.
+* **The absorb:** the beam absorbs the player's shots in its column.
+* **Emitter killed:** its laser goes off.
+* **The player dies:** every laser goes off; no beam while dying or
+  respawning.
+* **QA1:**
+  * The boss's shots are born at the gun's muzzle and drawn in the band down
+    to its edge.
+  * Inside the band they ride the band's drift (`02136eb`), so they fall down
+    their own gun's recess.
+* **QA2:** the band's last-line DLI writes `COLPF3` first.
+* **AUD-03:** `CLD` at the boss DLI's entry.
+* **AUD-04:** at most two player shots meet the boss a frame (§13.4).
+
+**The retired session's clauses and where each is covered now.**
+`lower-playfield-hostile-contact-atr-hard` moved to `removed_2026_10_06` in
+`docs/recorded-gate-failures.json` (`3fa8e22`); recorded clause failures
+1 → 0.
+
+| # | Clause the old session carried | Covered now by |
+| --- | --- | --- |
+| 1 | 16 consecutive contact rasters captured | `lower-playfield-laser-contact-atr-hard`, the same assertion |
+| 2 | the capital damage pipeline entered exactly once | the laser's call (`boss_laser_damage`) exactly once and no capital call, in the new session; the shell pipeline once in `capital-contact-hostile-medium` |
+| 3 | a FLYING → IMPACT shell on the player | `capital-contact-hostile-medium` (hostile shell) and `lower-playfield-allied-contact-atr-hard` (lower rows); the laser's analogue: BEAM after a ≥ 24-frame warning |
+| 4 | two hull units through the canonical gate | the shells' units in `capital-contact-hostile-medium`; the laser's HARD 10 through the same gate (10 → 0, lifecycle 1, cooldown 25) |
+| 5 | no repeated damage | no laser call while dying, every laser off (24 rows after the contact) |
+| 6 | the final-raster hitbox | the beam over the player's envelope, rows ≥ 191 |
+| 7 | PAL timing | the same audit, PASS |
+
+No clause is uncovered.
+
+**The contact scenario's measured run:**
+
+* MEASURED on the bound ATR `6b44d477…`.
+* The boss entered at f7877; warning 25 frames; beam f8334; contact f8335.
+* Hull 10 → 0 through `boss_laser_damage`, lifecycle 1, cooldown 25; 16
+  rasters captured.
+* PAL: 0 misses, headroom 4,328.
+* The policy steps clear of boss shots until a laser warns (`45978b9`,
+  class (a)): with QA1, gun-2's shots otherwise chipped the waiting bot
+  first.
+
+**QA3 — an S5 requirement, not implemented in S4b:** the converter refuses a
+region with emitter slots whose band `COLPF3` luminance is under 2 (the beam's
+band part is `COLPF3`).
+
+**Figures, before (`main` `1a3c8bf`) and after (this branch, bound ATR
+`6b44d477…`):**
+
+| Figure | Before | After | Source |
+| --- | ---: | ---: | --- |
+| Worst fence margin | 1,472 (2-sweep-fire6 f311) | 1,472 (same frame) | full trace, `main`'s run in a worktree and this one |
+| DMA-on maximum | 31,240 | 31,240 | the same |
+| Boss frames: worst fence margin | 12,974 (dc1 f11216) | 11,608 (dc2 f11435) | the same |
+| Boss frames: DMA-on maximum | 28,687 | 28,689 | the same |
+| Tier-4 four-beam fixture | — | worst four-beam margin 15,201, DMA-on 27,147; boss worst 13,169, DMA-on 27,723 | `laser-dodge-2-fire0` on `build/laser-fixture-4-level-1-s4` |
+| AUD-04 cases, emulator, worst | missed frames (−4,324) | margin 5,706, DMA-on 27,819 | `aud04-inject`, §13.4 |
+| Boss stress, native (Q8 8,500 boss sector) | Q-B6 test 6,689 (single column) | fortress 5,408; four-laser 6,956; AUD-04 sweep 7,810 | `tests/boss-*.test.mjs` |
+| Slot A | 1,995 / 2,048 B | 2,035 / 2,048 B (13 free) | `build/manifest.json` |
+| Slot C | 2,003 / 2,048 B | 2,006 / 2,048 B | the same |
+| Slot D (`$1900`, boss sector only) | — | 1,114 / 1,792 B (code 1,054 + BSS 60); 9 sectors from 563 | the same |
+| `$1900–$1FFF` remainder | 1,792 B (nothing owns it, §3.2) | **678 B** (`$1D5A–$1FFF`) | the same |
+| Scratch page | 249 / 256 B | 249 / 256 B | the same |
+| Install | 346 / 384 B | 352 / 384 B | the same |
+| Initial block | 13,618 / 13,652 B | 13,618 B | the same |
+| Boot / extension sectors | 107 / 104 | 107 / 104 | the same |
+| Non-boss frames | — | identical to `main` in all 52 shared sessions, every common column | `main`'s CSVs against this run's |
+| Fight length EASY / MEDIUM / HARD | 46.0 / 48.6 / 71.2 s (0 / 0 / 0 deaths) | 46.0 / 47.1 / 71.1 s (1 / 3 / 2 deaths) | `director-complete-*`, the fight's first frame to the defeat |
+| Boss shot spawns (2-sweep-fire2, s4 route, game frames) | gun-2 24 92 160 228 296 413 575 737 899; gun-4 364 481 643 805; gun-3 530 692 854 | gun-2 24 92 160 228 296 413 575 850; gun-4 364 481 643 918; gun-3 530 805; the emitter's warning 692, beam 717 | the trace's `enemy_projectiles` and the lab's spawn logger |
+| ATR SHA-256 | `e0aa7062…` | `6b44d477…` | `dist/` |

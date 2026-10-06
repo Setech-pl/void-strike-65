@@ -59,6 +59,22 @@ the boss fires (pulse and salvo through the hostile pool), nozzles at both
 ends, S4a-ii's scope included. Design and owner answers §5.15.1–5.15.6; as
 built §5.15.7.
 
+**M5b-S4b implemented 2026-10-06** on `feat/boss-lasers`,
+`OWNER-SMOKE CANDIDATE` pending the owner's smoke:
+
+* The lasers: option A, the missiles with `PRIOR $10` in the boss sector
+  only, slot D at `$1900`; tiers 1 / 2 / 4; a 25-frame warning and a 50-frame
+  beam; damage EASY 5 / MEDIUM 10 / HARD 10; the absorb.
+* The boss's shots born at the muzzle and riding the band (QA1).
+* `COLPF3` first on the band's last line (QA2).
+* The addendum's AUD-03 `CLD` and the AUD-04 cap: two shots meeting the boss
+  a frame. The cap fixes a multi-kill frame overrun that `main` had.
+* The laser contact session replacing `lower-playfield-hostile-contact-atr-hard`
+  (retired by name).
+
+The plan, the owner decisions and as built: [boss-lasers.md](boss-lasers.md)
+§12–§14. The S4b row of §8 stays the plan's.
+
 **M5a-S2 implemented 2026-10-03** on `feat/level-summary`,
 `OWNER-SMOKE CANDIDATE` pending the owner's smoke: the level-summary screen,
 the stat counters, the grade, the save record. The `$0500` module MEASURED

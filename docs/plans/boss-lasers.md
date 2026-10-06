@@ -1,7 +1,7 @@
 # Plan — M5b-S4b: the boss lasers
 
-**Status: Phase A — audit, options, previews and numbers. `OWNER REVIEW
-CANDIDATE`; nothing is implemented.** Branch `feat/boss-lasers` from `main`
+**Status: Phase A and its addendum A2 (§11) — audit, options, previews and
+numbers. `OWNER REVIEW CANDIDATE`; nothing is implemented.** Branch `feat/boss-lasers` from `main`
 `1a3c8bf`. No source, cfg, script, asset, test, level or evidence byte changed.
 Two probes were made and reverted (§5, §3.2); every preview and measurement
 below names its tool, and none of their output is committed as evidence.
@@ -394,7 +394,11 @@ named in §10):
   — the colours from the capture's PLTE.
 
 The previews' 2 and 4 lasers sit on region 1's gun columns (region 1 has one
-emitter slot); the tier fixtures (§8.6) carry real emitters there.
+emitter slot); the tier fixtures (§8.4) carry real emitters there. **Corrected
+in A2 (§11.1 item 4):** these Phase A lab runs drew a beam at a gun's column
+whether or not its cover stood, so the 4-laser frames show gun-1's beam under
+the standing plate-c — a preview error, not game behaviour. §11.3 has the
+corrected option A previews.
 
 ### 4.5 Harness consequences per option
 
@@ -635,3 +639,221 @@ this session (`atari800-lab/src/laser_lab.h` hooked into a copy of
 committed, and none of their output is evidence. The harness's own emulator
 in `build/atari800-trace` was not touched. `docs/STATUS.md` is unchanged until
 Phase B.
+
+---
+
+## 11. Addendum A2 (owner, 2026-10-06): the shots' origin, option A re-evaluated
+
+Phase B is on hold. Step 0 of A2: the branch was at `aa63737`, tree clean,
+Phase B not started. Two probes were made in A2 and reverted (§11.2 item 1,
+§11.4); `build/level-1-s4/` was rebuilt to `0ad32664…` after each.
+
+### 11.1 Shots leaving a destructible module instead of a gun (diagnosis)
+
+**1. Every weapon of region 1** (compiled region, `scripts/boss-assets.mjs`;
+rows counted from the top, layer = rows from the player's side, row 7 = layer 1):
+
+| Module | Kind | Cells (x, rows) | Layer | Cover (converted mask) | Column under it, to the band's edge | Muzzle flash (code) | Shot spawn (code) |
+| --- | --- | --- | ---: | --- | --- | --- | --- |
+| gun-2 | pulse | 26–28, 2–3 | 5 | none (the open bay) | rows 4–7 empty | cell (27, 3): its own bottom row | (27, **line 88**) |
+| gun-4 | pulse | 44–46, 2–3 | 5 | plate-g | row 4 empty; rows 5–7 plate-g | cell (45, 3): its own | (45, **line 88**) |
+| gun-1 | pulse | 22–24, 1–2 | 6 | plate-c | row 3 empty; rows 4–7 plate-c | cell (23, 2): its own | (23, **line 88**) |
+| emitter (capped) | emitter slot 1 | 30–33, 1–2 | 6 | plate-d | row 3 empty; rows 4–7 plate-d | cell (32, 2) (never fires today) | — |
+| gun-3 | pulse | 38–40, 1–2 | 6 | plate-e | rows 3–6 plate-e; row 7 empty | cell (39, 2): its own | (39, **line 88**) |
+
+The muzzle flash is placed in the gun's own bottom-row cell at its centre
+column (`src/hybrid/boss.s:648-664`); the shot is put into the hostile pool at
+the same column but at **`BAND_BOTTOM_Y` (line 88), the band's bottom edge**
+(`:689-698`, `lda #BAND_BOTTOM_Y` at `:691`), because the pool's shots are not
+drawn inside the band (fortress session, plan §5.13.2 item 6: "from the
+module's centre column at the band's bottom edge"). Every cover is exactly the
+plate under the gun; no weapon sits under a module other than its cover.
+
+**2. Every boss-shot spawn, measured (EMULATOR).** A scratch logger in a copy of
+the trace emulator stopped at `boss_fire`'s spawn (`$717A`, the same in both
+builds) and recorded the firing module, its cover's state, its exposure and
+every live module in its column below it:
+
+| Replay | Spawns | By module | Cover still standing | Not exposed | A live module between the gun and the spawn |
+| --- | ---: | --- | ---: | ---: | ---: |
+| `director-complete-0` (default ATR, EASY) | 23 | gun-2 4, gun-4 8, gun-1 4, gun-3 7 | 0 | 0 | 0 |
+| `director-complete-1` (MEDIUM) | 36 | 7 / 11 / 10 / 8 | 0 | 0 | 0 |
+| `director-complete-2` (HARD) | 66 | 13 / 28 / 14 / 11 | 0 | 0 | 0 |
+| `level-1-s4` `2-sweep-fire2` (HARD) | 16 | 9 / 4 / 0 / 3 | 0 | 0 | 0 |
+| `level-1-s4` `2-evasive-fire3` | 15 | 10 / 3 / 0 / 2 | 0 | 0 | 0 |
+
+**No shot of the 156 starts on a gun's muzzle: every one starts at line 88**,
+3 rows (gun-2, gun-4: 32 lines) or 5 rows (gun-1, gun-3: 40 lines) under its
+gun, at the height of the plates' lower edges. Frames, debug route (host
+frame, module): 994, 1062, 1130, 1198, 1266, 1383, 1545, 1707, 1869 gun-2;
+1334, 1451, 1613, 1775 gun-4; 1500, 1662, 1824 gun-3 (the complete lists with
+every field are the scratch logs `spawn-*.log`). What the player sees
+(`shot-spawn-a2-1.png`): gun-3 flashes at its turret, and two frames later the
+shot appears 40 lines lower **against the bottom-left corner of plate-f**,
+which stands beside gun-3's column down to the band's edge; gun-4's shot
+appears at the edge in the column beside plate-f's right side. Next to a still
+standing plate the shot reads as leaving that plate. (In the same frames the
+pink-amber burst at a plate's foot is the spark of a player shot hitting it —
+also an impression of "something at the plate".)
+
+**3. Class.** Not (ii): no gun fired with its cover standing (0 of 156). Not
+(iii): the data and the converter put nothing but its cover under any gun, and
+`tests/boss-recess.test.mjs` already refuses hull art under a weapon. It is
+**(iv) by design, a player-visible defect**: the spawn point is the band's edge
+by construction, so the shot never leaves the gun visibly. Under the trace's
+classes it is **(c)** — a runtime defect a player sees; the frames are above.
+
+**The fix (proposed, owner question QA1):** the boss shot is born at the gun's
+muzzle — the line under its bottom row — and is **drawn inside the band** on its
+way to the band's edge, exactly as decision M draws the player's shots inside
+the band: in the cell it is in, only while that cell is blank (decision O
+guarantees the recess under an exposed weapon is blank), the cell given back
+the next frame; at line 88 the pool draws it as now.
+
+| Item | Bytes | Where | Cycles (native) |
+| --- | --- | --- | --- |
+| spawn Y from the module record instead of `BAND_BOTTOM_Y` | 8 IC → 16–24 | slot A (`boss_fire`, 53 free) | +~12 on a firing frame |
+| the in-band draw and restore of the hostile slots (the player shots' `boss_shot_meet` / `boss_shots_restore` pattern for the five hostile slots) | 70 IC → **140–210** | **slot D** (with the lasers; slot A and slot C cannot hold it) | ~70 a shot in the band + ~35 restore; **≤ 600** with five in the band, typically 1–2: **~120–240** |
+| restore cells (10 B) | 10 | slot D BSS (the scratch page has 7 B free) | — |
+| the hostile shot's glyphs in the region charset (2 phases) | 0 runtime; 2 of the 18 free codes | converter (as the player shot's 4 codes) | — |
+| gameplay | the shot needs 16–20 frames more (PULSE steps 2 lines every frame) to reach the band's edge | — | — |
+
+It lands with S4b's slot D: without slot D there is no home for it (slot A 53
+B, slot C 45 B free). Alternatives: (2) a one-frame **tracer** — the muzzle flash
+plus a streak glyph in the recess cells under the gun through the cell-flash
+ring (~40 B, ~430 native on the firing frame, ≤ 5 of the ring's 8 records); the
+shot still materialises at the edge. (3) Leave it.
+
+**4. The laser fixture's emitter slots.** gun-1, gun-3 and gun-4 are real weapon
+positions, each in its own recess (decision O; `tests/boss-recess.test.mjs`),
+each covered by exactly the plate in front of it (c, e, g); as emitter slots
+they arm only once exposed, like every weapon (`src/c/boss.c:219-222`). The
+rule holds for the fixture. The **Phase A preview** broke it: its lab drew a
+beam at gun-1's column while plate-c stood (the "leftmost beam under the plate
+stack"); the corrected previews (§11.3) draw a beam only from an exposed, live
+weapon, read from the compiled module table and `_boss_hp` every frame.
+
+### 11.2 Option A re-evaluated (the owner's preferred look)
+
+**1. Where `COLPF3` changes, and the band edge.** Phase 0 of the boss DLI (on
+the HUD's last line, scanline 15; `src/hybrid/boss.s:282-293`) sets the band's
+`$32`; no beam reaches above line 32. Phase 1 (on the band's last mode line,
+scanline 87; `:300-310`) sets `$46` **as the fifth of five stores after
+`WSYNC`**. MEASURED in Atari800 (captures, column by column): the beam is `$32`
+through **scanline 88** and `$46` from 89 — **one stray `$32` line under the
+band's edge on every beam**. On hardware the store lands ~23–30 cycles into line
+88 plus DMA (IC): a `$32` tip on line 88 for a beam left of about HPOS 60–80.
+**Fix, probed and reverted:** store `COLPF3` first after `WSYNC` (in the
+horizontal blank of line 87, after its last visible pixel at ~cycle 104, before
+line 88; `CHBASE` moves 6 cycles later, still before line 88's glyph fetches).
+MEASURED: the beam `$32` through **87**, `$46` from **88** — the boundary exactly
+at the band's edge; with no laser the frames are **pixel-identical** to today's
+(168, 171, 172 compared); **0 B, 0 cycles** (the same stores in another order).
+Hardware is the owner's smoke (`option-a-band-edge.png` shows both).
+
+**2. `PRIOR`.** `$00` in every region of the boss sector today (no DLI writes it;
+MEASURED on every boss row). The fifth-player bit is global (no region can
+differ without a DLI store); set at the install, zeroed by the Q-S4 restore
+(already in its table). The priority nibble stays 0, so nothing else changes.
+What it does (MEASURED in the captures unless marked):
+
+| Against | Effect |
+| --- | --- |
+| the playfield, band | the beam covers every band colour in the band's `COLPF3`: plates `$0A`, bevels `$06`, amber `$28` → `$32` (a beam never crosses a standing plate: it fires only once its cover is gone) |
+| the playfield, ring | covers mint shots `$AE`, white heads and stars `$0E`, steel `$88` → `$46` (the shots in it are retired anyway, Q6) |
+| P0, the ship | **the ship stays drawn over the beam** (f171, both options) |
+| P1/P2 | unused in the boss sector |
+| P3 (capsule, death mask) | the capsule is cleared at the boss install; the lasers are held off during the death (§6 item 6), so the death mask never meets a beam; GTIA's rule for P3 over a PF3-priority pixel would OR `$1C` with `COLPF3` (ESTIMATE, not reachable) |
+| the one permitted Light | drawn in playfield characters: the beam covers it like any playfield pixel; no Light in region 1 |
+| the band flash | the beam's band part takes the flash with the band: `$32` → `$36` for one frame on a damaging hit (f172) |
+
+**3. Option A against option C.**
+
+| | **A: missiles, `PRIOR $10`** | C: P1/P2 (+ M1/M2), `PRIOR $00` |
+| --- | --- | --- |
+| colour | `$32` in the band (the region's `COLPF3`), `$46` in the ring, switched by the existing DLI | `$46` everywhere (`COLPM1/2`) |
+| slot D | the same kernel (~280 B M) + install; **~10 B less** (no `COLPM1/2`) — ≤ 790 B with ×3 | ≤ 800 B |
+| slot A | the three calls (15 IC) | the same |
+| boss DLI | phase 1 reordered, **0 B** | unchanged |
+| `$0500` module (Q-S4) | **0 B** (`PRIOR`, `SIZEM`, `HPOSM0-3` are in the table) | +6 B (`HPOSP1/2`) |
+| cycles, native (M, the probe kernel is the same for both) | steady beam 421 / 644 / 1,054; warning 198 / 266 / 402; fire start 445 / 692 / 1,150; beam end 147 / 171 / 219 (1 / 2 / 4 lasers) | the same |
+| DLI publish | **46** (`HPOSM0-3`, `SIZEM`) | 62 |
+| PMG memory | the missile plane once at the install, read-modify-write (four missiles share a byte; ~18 a line, ≤ 192 lines a laser, DMA off); **0 a frame** | the player planes once, plain stores; 0 a frame |
+| hit detection | **logic** (recommended): the shown HPOS span against the player's envelope, every frame, testable on the 6502 harness | the same |
+| … M-to-P instead | `M0PL-M3PL` bit 0 read just before `HITCLR` (`src/main.s:5330-5332`, every frame, mid-display) covers one whole raster, but split across two frames (the lower part of the previous one): a hit is up to a frame late; the warning's thin line also collides and must be masked by the previous frame's phase; the 6502 harness has no GTIA collisions, so the contact tests could run only in the emulator. Not recommended | the same (`M1PL/M2PL`, `P1PL`/`P2PL`) |
+| trace | **no exception** (no clause reads the missile plane) | the Heavy stale-body observer needs a boss exception (~15 lines) |
+| risks | the band part is dark (`$32`, luminance 2) and flashes with the band; the reorder of phase 1 is needed | a new use of P1/P2 in the boss sector |
+
+**Option A costs less than C** and needs one 0-byte DLI change. Its look is the
+owner's call (Q1 revised: **A**, with the phase-1 reorder).
+
+**4. The warning in option A.** In the band the line runs only through the
+empty recess under the emitter (decision O and the exposure rule: never over
+hull or a plate), so it is a `$32` line on black — dark but visible
+(`option-a-warning-band.png`, 3×), pulsing 1/2 clocks with the ring part. The
+band's warning is carried by the **emitter's heat**: its bottom-centre cell
+alternates the region's spark and muzzle glyphs every 4 frames through the
+cell-flash ring (1 record a laser, ≤ 4 of 8; no new glyph). The ring part
+pulses `$46` at 1/2 clocks in 2-frame groups, as in Phase A's preview
+(`warning-pulse-a.png`).
+
+**5. The values per region and level.** The beam's band colour is the region's
+`palette.colpf3`; its ring colour is `GAMEPLAY_COLPF3` = `INTERCEPTOR_PROJECTILE_COLOR`
+`$46`, a build constant, the same on every level (`src/main.s:567`; the
+`--enemy-palette` review variants change the Heavy body colour, not `COLPF3`).
+
+| Region | Band `COLPF3` | Ring `COLPF3` | Note |
+| --- | --- | --- | --- |
+| 1 Blockade Breaker (levels 1–3) | `$32` (80,4,10), flash `$36` | `$46` (128,48,111) | visible on the black recess, **dark** |
+| Bastion (fixture, a later region's boss) | `$32`, flash `$34` | `$46` | the same |
+| 2–4 | not authored (S5) | `$46` | — |
+
+**Flag:** a region whose `COLPF3` has luminance 0 (`$x0`) would make the band
+part invisible on black. Proposed for S5 (QA3): the converter refuses a region
+with emitter slots whose `COLPF3` luminance is under 2.
+
+### 11.3 Previews (A2, option A only)
+
+Atari800 on the debug-route build **with the phase-1 reorder probe** (§11.2
+item 1), the laser lab reading the compiled module table and `_boss_hp` every
+frame: a beam only from an exposed, live weapon; 4 emitter slots on the real
+weapons (emitter, gun-3, gun-1, gun-4); the emitter's heat in the band.
+
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/option-a-tier4-real.png`
+  — f711/f741: the emitter, gun-3 and gun-4 fire, gun-1 is silent behind
+  plate-c; f1011/f1041: gun-1, gun-3, gun-4 fire, the destroyed emitter is
+  silent. Four at once never occurs in this fight (the emitter falls before
+  plate-c).
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/option-a-tier1.png`
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/option-a-warning-band.png`
+  — f705–f712 at 3×.
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/option-a-band-edge.png`
+  — today's DLI against the reorder, 6×.
+* `/Users/marcinkrzetowski/Projects/dark-fighter/build/boss-laser-preview/shot-spawn-a2-1.png`
+  — §11.1's spawns, gun-3 and gun-4, five frames each.
+
+### 11.4 Revised costs (option A, the shot-origin fix included)
+
+| Home | Phase A (C) | A2 (A + QA1's fix) | Limit |
+| --- | ---: | ---: | ---: |
+| slot D (`$1900`) | ≤ 800 | ≤ 790 + 210 = **≤ 1,000 B, 8 sectors** | 1,792 |
+| slot A | +15–25 | +31–49 (the calls + the spawn Y) → ≤ 2,044 | 2,048 |
+| `$0500` | +6 | **0** | — |
+| boss entry | +≤ 7 sectors | **+≤ 8 sectors** (49 → 57; +~31 host frames EMULATOR) | — |
+| worst-frame native, tier 1 / 4 | 650 / 1,400 | **~730 / ~1,630** (+46 publish, the in-band shots ~240 typical) | Q8 |
+| stress composition, tier 4 fixture | ~8,090 | **~8,300** | Q8's 8,500 still holds; 7,000 does not |
+
+Slot A's fit becomes tight (≤ 4 B left at the ×3 end); if it binds, the spawn's Y
+computation moves to slot D with the in-band draw (−~16 B in slot A).
+
+### 11.5 Owner questions A2 raises
+
+| # | Question | Recommended answer | Its cost | The alternative |
+| --- | --- | --- | --- | --- |
+| **QA1** | The boss shot's origin (§11.1) | **born at the gun's muzzle and drawn in the band down to its edge**, in S4b with slot D (no other home) | ≤ 210 B slot D, ≤ 24 B slot A, 2 glyph codes, ~120–240 native typical; the shots arrive 16–20 frames later; the fight's lengths move (measured in Phase B) | (2) a tracer through the ring (~40 B, the shot still pops at the edge); (3) leave it |
+| **QA2** | Option A's band edge | **the phase-1 DLI writes `COLPF3` first** | 0 B, 0 cycles; the gameplay frames pixel-identical in the emulator | keep the order: a stray `$32` line under the band (emulator: the whole line; hardware: a tip on the left) |
+| **QA3** | Future regions' band colour | **the converter refuses a region with emitter slots whose `COLPF3` luminance is under 2** (S5) | ~5 lines of the converter | none: S5 checks by eye |
+| **QA4** | The band flash also flashes the beam's band part (`$32` → `$36`, one frame) | **accept** | 0 | hold the flash while a beam runs (~10 B, the hit feedback weakens) |
+
+Q1 is revised to **A** by the owner's preference; Q2–Q11 stand as written, with
+Q5's clause wording and Q8's figures as §11.4 revises them.

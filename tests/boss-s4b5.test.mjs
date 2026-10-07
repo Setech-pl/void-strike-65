@@ -257,3 +257,101 @@ test("F4: destroying a module scores its region score, every kind (unchanged; M8
     assert.equal(bcd(score()) - before, scores.get(name), `${name} scored`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// S4b.5 owner answers (2026-10-07): decision C's band flash removed; the
+// defeating kill; slot E's other ways out
+// ---------------------------------------------------------------------------
+
+// Every write to a colour register (COLPF0-3, COLBK: $D016-$D01A) in one boss
+// frame - the DLIs and the update - in order.
+function colourWrites(memory, shot = null) {
+  const writes = [];
+  const hooks = { write: (address, value) => {
+    if (address >= 0xd016 && address <= 0xd01a) writes.push(`${address.toString(16)}=${value}`);
+    return undefined;
+  } };
+  memory[main("PLAYER_LIFECYCLE")] = 0;
+  memory[main("PLAYER_LIFECYCLE") + 1] = 3;
+  memory[main("BROAD_DAMAGE_COOLDOWN")] = 25;
+  memory[main("player_x")] = 0;
+  memory[main("loader_dli_phase")] = 0;
+  shot?.();
+  nmi(memory, lbl("boss_dli"), { hooks });
+  call(memory, lbl("boss_update"), { hooks });
+  call(memory, lbl("boss_motion"), { hooks });
+  nmi(memory, lbl("boss_dli"), { hooks });
+  nmi(memory, lbl("boss_dli"), { hooks });
+  return writes.join(" ");
+}
+
+test("decision C's band flash removed: no colour register changes on a hit, a stage change or a destruction", () => {
+  const memory = install();
+  const n = indexOf("plate-a");
+  colourWrites(memory);
+  const quiet = colourWrites(memory);
+  const crack = memory[lbl("_boss_crack") + n];
+  const frames = [];
+  for (const [what, left] of [["a plain hit", crack + 3], ["a stage change", crack + 1], ["a destruction", 1]]) {
+    for (let f = 0; f < 4; f += 1) colourWrites(memory);
+    memory[lbl("_boss_hp") + n] = left;
+    frames.push([what, colourWrites(memory, () => shootAt(memory, columnOf(memory, n))), colourWrites(memory)]);
+  }
+  assert.equal(hp(memory, n), 0, "plate-a destroyed");
+  for (const [what, hitFrame, nextFrame] of frames) {
+    assert.equal(hitFrame, quiet, `${what}: the colour registers changed`);
+    assert.equal(nextFrame, quiet, `${what}, the frame after: the colour registers changed`);
+  }
+});
+
+test("the defeating kill neither counts for the capsule rule nor spawns a capsule; the kills before it do", () => {
+  const memory = install();
+  const state = main("ENTITY_STATE") + PICKUP_SLOT, count = main("ENTITY_HP") + PICKUP_SLOT;
+  memory[state] = 0;
+  memory[count] = 1;
+  kill(memory, "plate-a");
+  assert.equal(memory[count], 2, "a fight kill counts");
+  // gun-2 the last weapon standing (open bay, exposed from the first frame).
+  memory[lbl("_boss_weapons_left")] = 1;
+  kill(memory, "gun-2");
+  assert.notEqual(memory[lbl("_boss_phase")], 0, "gun-2's kill defeated the boss");
+  assert.equal(memory[count], 2, "the defeating kill counted");
+  assert.equal(memory[state], 0, "the defeating kill spawned a capsule");
+});
+
+// Slot E's ways out of the boss sector, on the emulator (owner decision 4):
+// scripts/runtime-wall-trace.mjs's slot-e-* replays - the sweep bot on HARD,
+// lives held, 300 frames into the fight a pause and resume, the last life lost
+// (GAME OVER, then the next game) or RESET (the warm start's reboot, then the
+// next game). Every replay is held to no reader of the maps between a boss
+// entry and the next rebuild; these three take the paths.
+const traceReport = JSON.parse(fs.readFileSync(path.join(root, "docs/runtime-wall-trace.json"), "utf8"));
+const pathReplay = (bossPath) => traceReport.replay.sessions.find((s) => s.id === `slot-e-${bossPath}-2-sweep-fire0`);
+
+test("slot E's contract, every replay: no reader of the hull maps between a boss entry and the next rebuild", () => {
+  const sessions = traceReport.replay.sessions;
+  assert.ok(sessions.every((s) => s.hull_map_dirty_reads === 0 && s.hull_map_stale_draws === 0),
+    sessions.filter((s) => s.hull_map_dirty_reads || s.hull_map_stale_draws).map((s) => s.id).join(", "));
+  assert.ok(sessions.reduce((sum, s) => sum + s.hull_map_draws, 0) > 1000, "capital rows were drawn and checked");
+});
+
+test("slot E's contract, pause and resume in the boss sector: no reader of the maps, the fight resumes, no rebuild needed", () => {
+  const replay = pathReplay("pause");
+  assert.ok(replay, "the pause replay ran");
+  assert.ok(replay.boss_path_taken_frame !== null && replay.boss_frames_before_path >= 300);
+  assert.ok(replay.boss_frames_after_path > 0, "the fight resumed");
+  assert.deepEqual([replay.hull_map_dirty_reads, replay.hull_map_rebuilds_after_boss], [0, 0]);
+});
+
+for (const [bossPath, what] of [["game-over", "the player's last death"], ["reset", "RESET"]]) {
+  test(`slot E's contract, ${what} in the boss sector: no reader of the maps, the next game rebuilds them and draws from them`, () => {
+    const replay = pathReplay(bossPath);
+    assert.ok(replay, `the ${bossPath} replay ran`);
+    assert.ok(replay.boss_path_taken_frame !== null && replay.boss_frames_before_path >= 300);
+    assert.equal(replay.hull_map_dirty_reads, 0);
+    assert.equal(replay.hull_map_rebuilds_after_boss, 1, "the next game's start rebuilt the maps");
+    assert.ok(replay.capital_rows_after_rebuild > 0, "the next game drew capital rows from them");
+    assert.equal(replay.hull_map_stale_draws, 0);
+    if (bossPath === "reset") assert.ok(replay.reset_transition?.host_frames > 100, "the reboot was set aside");
+  });
+}

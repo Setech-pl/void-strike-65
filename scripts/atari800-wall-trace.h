@@ -366,6 +366,10 @@ typedef struct {
 	unsigned sector_row;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
+	unsigned hull_map_dirty_reads;
+	unsigned hull_map_rebuilds_after_boss;
+	unsigned boss_path_stage;
+	unsigned boss_path_reset;
 	unsigned audf3;
 	unsigned audc3;
 	unsigned pickup_draw_calls;
@@ -903,6 +907,25 @@ static UBYTE dftrace_hull_snapshot[0x240];
 static int dftrace_hull_snapshot_valid;
 static unsigned dftrace_hull_pending_draws;
 static unsigned dftrace_hull_pending_stale;
+/* M5b-S4b.5 (owner decision 4): from the boss's entry (its head runs, slot E is
+ * about to be read over the maps) the maps are dirty until the next rebuild.
+ * Any reader of them while dirty is a violation, in every replay; a rebuild
+ * while dirty is the way back, counted. */
+static unsigned dftrace_pc_boss_head;
+static unsigned dftrace_pc_set_allied_hull_source;
+static unsigned dftrace_pc_set_enemy_hull_source;
+static int dftrace_hull_dirty;
+static unsigned dftrace_hull_dirty_host;
+static unsigned dftrace_hull_pending_dirty_reads;
+static unsigned dftrace_hull_pending_rebuilds;
+/* ... and the ways out of the boss sector, driven 300 frames into its fight:
+ * DFTRACE_BOSS_PATH = pause (OPTION, 25 paused frames, OPTION), game-over (the
+ * last life lost, as the restart policy seeds it, then the frontend's next
+ * game) or reset (the emulator's warm start: the reboot, then the next game). */
+static const char *dftrace_boss_path;
+static unsigned dftrace_boss_path_stage;
+static unsigned dftrace_boss_path_host;
+static unsigned dftrace_boss_path_reset_pending;
 /* AUD-04 (owner addendum 2026-10-06): a debug session's memory pokes, applied
  * as the frame's input is set: "F:aaaa=vv,aaaa=vv;F:..." (F decimal, address
  * and value hex). The default sessions set none. */
@@ -3976,6 +3999,62 @@ static void dftrace_watch_recycled_write(DFTraceFrame *frame)
 /* The optional integrity replay presses the physical OPTION key through the
  * production latch while Spread Shot is active. Host-only observation records
  * the timer on both sides; no guest state is seeded or repaired. */
+/* M5b-S4b.5: the boss-path driver (see dftrace_boss_path). Stages: 0 waiting,
+ * 1-3 the pause in progress, 9 done (the path taken; production code does the
+ * rest). */
+static void dftrace_drive_boss_path(void)
+{
+	unsigned host_frame = (unsigned) Atari800_nframes;
+	unsigned state = MEMORY_mem[dftrace_game_state];
+	if (dftrace_boss_path == NULL || dftrace_boss_path_stage == 9u)
+		return;
+	INPUT_key_consol = INPUT_CONSOL_NONE;
+	if (dftrace_boss_path_stage == 0u) {
+		if (!dftrace_hull_dirty || !dftrace_boss_active() || state != 6u ||
+			host_frame < dftrace_hull_dirty_host + 300u)
+			return;
+		dftrace_boss_path_host = host_frame;
+		if (strcmp(dftrace_boss_path, "pause") == 0) {
+			dftrace_boss_path_stage = 1u;
+		}
+		else if (strcmp(dftrace_boss_path, "game-over") == 0) {
+			/* As the restart policy seeds it: lives 0, the broadside death
+			 * timer (PLAYER_LIFECYCLE-$4b) 1, DYING; update_player_death does
+			 * the GAME OVER transition. The lives are no longer held. */
+			dftrace_hold_player_lives = 0u;
+			MEMORY_mem[dftrace_player_lifecycle + 1u] = 0u;
+			MEMORY_mem[dftrace_player_lifecycle - 0x4bu] = 1u;
+			MEMORY_mem[dftrace_player_lifecycle] = 1u;
+			dftrace_boss_path_stage = 9u;
+		}
+		else if (strcmp(dftrace_boss_path, "reset") == 0) {
+			voidstrike65_warmstart_request = 1;
+			dftrace_boss_path_reset_pending = 1u;      /* the next frame spans the reboot */
+			dftrace_boss_path_stage = 9u;
+		}
+		return;
+	}
+	if (dftrace_boss_path_stage == 1u) {
+		if (host_frame <= dftrace_boss_path_host + 1u)
+			INPUT_key_consol &= ~INPUT_CONSOL_OPTION;
+		else if (state == 8u) {
+			dftrace_boss_path_host = host_frame;
+			dftrace_boss_path_stage = 2u;
+		}
+		return;
+	}
+	if (dftrace_boss_path_stage == 2u && host_frame >= dftrace_boss_path_host + 25u) {
+		dftrace_boss_path_host = host_frame;
+		dftrace_boss_path_stage = 3u;
+	}
+	if (dftrace_boss_path_stage == 3u) {
+		if (host_frame <= dftrace_boss_path_host + 1u)
+			INPUT_key_consol &= ~INPUT_CONSOL_OPTION;
+		else if (state == 6u)
+			dftrace_boss_path_stage = 9u;
+	}
+}
+
 static void dftrace_drive_pause_test(void)
 {
 	unsigned host_frame;
@@ -5667,7 +5746,8 @@ static void dftrace_write(void)
 		",boss_entry,boss_state,maximum_boss_dlis_per_host_frame"
 		",laser_states,laser_hpos0,laser_hpos1,laser_hpos2,laser_hpos3"
 		",laser_damage_calls,audf3,audc3,boss_shown_pos,director_sector,sector_row"
-		",hull_map_draws,hull_map_stale_draws\n");
+		",hull_map_draws,hull_map_stale_draws,hull_map_dirty_reads,hull_map_rebuilds_after_boss,boss_path_stage"
+		",boss_path_reset\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -5936,8 +6016,10 @@ static void dftrace_write(void)
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->laser_states,
 			frame->laser_hpos[0], frame->laser_hpos[1], frame->laser_hpos[2],
 			frame->laser_hpos[3], frame->laser_damage_calls, frame->audf3, frame->audc3);
-		fprintf(file, ",%u,%u,%u,%u,%u", frame->boss_shown_pos, frame->director_sector, frame->sector_row,
-			frame->hull_map_draws, frame->hull_map_stale_draws);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->boss_shown_pos, frame->director_sector, frame->sector_row,
+			frame->hull_map_draws, frame->hull_map_stale_draws, frame->hull_map_dirty_reads,
+			frame->hull_map_rebuilds_after_boss, frame->boss_path_stage);
+		fprintf(file, ",%u", frame->boss_path_reset);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6710,6 +6792,10 @@ static void dftrace_init(void)
 	dftrace_pc_laser_damage = dftrace_env_optional("DFTRACE_PC_LASER_DAMAGE");
 	dftrace_pc_hull_maps_built = dftrace_env_optional("DFTRACE_PC_HULL_MAPS_BUILT");
 	dftrace_pc_draw_hull_row = dftrace_env_optional("DFTRACE_PC_DRAW_HULL_ROW");
+	dftrace_pc_boss_head = dftrace_env_optional("DFTRACE_PC_BOSS_HEAD");
+	dftrace_pc_set_allied_hull_source = dftrace_env_optional("DFTRACE_PC_SET_ALLIED_HULL_SOURCE");
+	dftrace_pc_set_enemy_hull_source = dftrace_env_optional("DFTRACE_PC_SET_ENEMY_HULL_SOURCE");
+	dftrace_boss_path = getenv("DFTRACE_BOSS_PATH");
 	dftrace_boss_shown_pos = dftrace_env_optional("DFTRACE_BOSS_SHOWN_POS");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
@@ -7073,9 +7159,24 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	/* M5b-S4b.5 (slot E): on every instruction, measured frame or not -
 	 * start_gameplay rebuilds the hull maps outside the measured frames. A
 	 * draw outside a measured frame is carried into the next frame's record. */
+	/* boss_head's address is slot A's: the capital's code runs there until the
+	 * boss overlay is read over it, so the overlay flag must be up too. */
+	if (dftrace_pc_boss_head != 0u && pc == dftrace_pc_boss_head && !dftrace_hull_dirty &&
+		dftrace_boss_active()) {
+		dftrace_hull_dirty = 1;
+		dftrace_hull_dirty_host = (unsigned) Atari800_nframes;
+	}
+	if (dftrace_hull_dirty && ((dftrace_pc_draw_hull_row != 0u && pc == dftrace_pc_draw_hull_row) ||
+		(dftrace_pc_set_allied_hull_source != 0u && pc == dftrace_pc_set_allied_hull_source) ||
+		(dftrace_pc_set_enemy_hull_source != 0u && pc == dftrace_pc_set_enemy_hull_source)))
+		++dftrace_hull_pending_dirty_reads;
 	if (dftrace_pc_hull_maps_built != 0u && pc == dftrace_pc_hull_maps_built) {
 		memcpy(dftrace_hull_snapshot, &MEMORY_mem[0x4C00], sizeof(dftrace_hull_snapshot));
 		dftrace_hull_snapshot_valid = 1;
+		if (dftrace_hull_dirty) {
+			dftrace_hull_dirty = 0;
+			++dftrace_hull_pending_rebuilds;
+		}
 	}
 	if (dftrace_pc_draw_hull_row != 0u && pc == dftrace_pc_draw_hull_row) {
 		int stale = !dftrace_hull_snapshot_valid ||
@@ -7149,6 +7250,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_engine_screenshot_count = 0u;
 	}
 	dftrace_drive_pause_test();
+	dftrace_drive_boss_path();
 
 	if (MEMORY_mem[dftrace_game_state] != 6u) {
 		dftrace_active = 0;
@@ -7492,6 +7594,13 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dftrace_current.hull_map_stale_draws = dftrace_hull_pending_stale;
 		dftrace_hull_pending_draws = 0u;
 		dftrace_hull_pending_stale = 0u;
+		dftrace_current.hull_map_dirty_reads = dftrace_hull_pending_dirty_reads;
+		dftrace_current.hull_map_rebuilds_after_boss = dftrace_hull_pending_rebuilds;
+		dftrace_hull_pending_dirty_reads = 0u;
+		dftrace_hull_pending_rebuilds = 0u;
+		dftrace_current.boss_path_stage = dftrace_boss_path_stage;
+		dftrace_current.boss_path_reset = dftrace_boss_path_reset_pending;
+		dftrace_boss_path_reset_pending = 0u;
 		dftrace_set_gameplay_input(dftrace_count);
 		dftrace_player_pairshot_frame_begin();
 		dftrace_prepare_broadside_proof();

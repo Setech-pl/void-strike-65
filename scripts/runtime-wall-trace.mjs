@@ -712,6 +712,23 @@ const laserFixtureSessions = [{
   holdPlayerLives: 3,
 }];
 
+/* M5b-S4b.5 (owner decision 4, 2026-10-07): slot E's ways out of the boss
+ * sector, on the emulator. The sweep bot plays level 1 on HARD to its boss with
+ * its lives held; 300 frames into the fight the boss-path driver pauses and
+ * resumes, loses the last life (the restart policy's seed; production code does
+ * the GAME OVER and the frontend's next game) or presses RESET (the warm
+ * start's reboot, then the next game). slotEPathClauses holds each. */
+const slotEPathSessions = ["pause", "game-over", "reset"].map((bossPath) => ({
+  id: `slot-e-${bossPath}-2-sweep-fire0`,
+  difficulty: 2,
+  policy: "sweep",
+  fireDelay: 0,
+  frames: bossPath === "pause" ? 3_600 : 4_400,
+  kind: "slot-e-path",
+  holdPlayerLives: 3,
+  bossPath,
+}));
+
 const lowerPlayfieldSessions = [{
   id: "lower-playfield-atr-hard",
   medium: "ATR",
@@ -806,6 +823,8 @@ const traceLabels = {
   // M5b-S4b.5 (slot E): the hull maps' rebuild and their only reader.
   DFTRACE_PC_HULL_MAPS_BUILT: "hull_maps_built",
   DFTRACE_PC_DRAW_HULL_ROW: "draw_hull_row",
+  DFTRACE_PC_SET_ALLIED_HULL_SOURCE: "set_allied_hull_source",
+  DFTRACE_PC_SET_ENEMY_HULL_SOURCE: "set_enemy_hull_source",
   DFTRACE_PC_PLAYER_SHOT_SOUND: "play_player_fighter_projectile_sound",
   DFTRACE_PC_UPDATE_SOUND: "update_sound",
   DFTRACE_PC_ACTIVE: "main_loop_option_poll",
@@ -1158,6 +1177,12 @@ for (const name of [
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
   // changed since the last gameplay start's rebuild (slot E's contract).
   "hull_map_draws", "hull_map_stale_draws",
+  // ... readers of the maps between a boss entry and the next rebuild (owner
+  // decision 4), the rebuilds that end such a stretch, and the boss-path
+  // driver's stage (9: its path taken).
+  "hull_map_dirty_reads", "hull_map_rebuilds_after_boss", "boss_path_stage",
+  // ... and the frame on which the driver's RESET was requested (it spans the reboot).
+  "boss_path_reset",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -1795,11 +1820,35 @@ function emitterLensClock() {
   return emitter.x * 4 + emitter.width * 2;
 }
 
+// M5b-S4b.5 (owner decision 4, 2026-10-07): slot E's ways out of the boss
+// sector, each taken 300 frames into the fight by the trace's boss-path driver.
+// The global clause above holds them to no reader of the maps before the next
+// rebuild; here, each path was taken and - leaving the boss sector - the maps
+// were rebuilt and the next game drew capital rows from them.
+function slotEPathClauses(session, rows) {
+  const taken = rows.findIndex((row) => row.boss_path_stage === 9);
+  invariant(taken >= 0, `${session.id}: the ${session.bossPath} path was never taken in the boss sector`);
+  invariant(rows.slice(0, taken).some((row) => row.boss_state > 0),
+    `${session.id}: the ${session.bossPath} path was taken outside the boss sector`);
+  const rebuilds = rows.reduce((sum, row) => sum + row.hull_map_rebuilds_after_boss, 0);
+  if (session.bossPath === "pause") {
+    invariant(rebuilds === 0, `${session.id}: the maps were rebuilt during a pause in the boss sector`);
+    invariant(rows.slice(taken).some((row) => row.boss_state > 0),
+      `${session.id}: the fight did not resume after the pause`);
+    return;
+  }
+  invariant(rebuilds === 1, `${session.id}: ${rebuilds} rebuilds after the boss (expected the next game's one)`);
+  const rebuilt = rows.findIndex((row) => row.hull_map_rebuilds_after_boss > 0);
+  invariant(rows.slice(rebuilt).reduce((sum, row) => sum + row.hull_map_draws, 0) > 0,
+    `${session.id}: the next game drew no capital row (the rebuilt maps were never read)`);
+}
+
 // The frames a set of replays measures: every emitted frame but a boss entry,
 // which parseCsv sets aside (M5b-S4b.4: W1 brings the boss inside replays that
 // never reached it before).
 function measuredFrames(sessions) {
-  return sessions.reduce((sum, session) => sum + session.frames - (session.bossEntry === undefined ? 0 : 1), 0);
+  return sessions.reduce((sum, session) => sum + session.frames - (session.bossEntry === undefined ? 0 : 1) -
+    (session.resetTransition === undefined ? 0 : 1), 0);
 }
 
 function parseCsv(csvText, sessionDefinition) {
@@ -1844,7 +1893,18 @@ function parseCsv(csvText, sessionDefinition) {
       active_gameplay_frame: entry.active_gameplay_frame,
     };
   }
-  return rows.filter((row) => row.boss_entry !== 1);
+  // M5b-S4b.5 (slot E's ways out): the frame a RESET was requested in spans
+  // the warm start's reboot - boot, loader, menu - and, like the boss entry, is
+  // a transition, not a measured frame: set aside, at most once, recorded.
+  const resets = rows.filter((row) => row.boss_path_reset === 1);
+  invariant(resets.length <= 1, `${sessionDefinition.id} reset ${resets.length} times`);
+  if (resets.length === 1) {
+    sessionDefinition.resetTransition = {
+      frame: resets[0].frame,
+      host_frames: resets[0].next_start_host_frame - resets[0].start_host_frame,
+    };
+  }
+  return rows.filter((row) => row.boss_entry !== 1 && row.boss_path_reset !== 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -2231,6 +2291,19 @@ function sessionSummary(session, rows) {
     // M5b-S4b.5: slot E's contract, per replay.
     hull_map_draws: rows.reduce((sum, row) => sum + row.hull_map_draws, 0),
     hull_map_stale_draws: rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0),
+    hull_map_dirty_reads: rows.reduce((sum, row) => sum + row.hull_map_dirty_reads, 0),
+    hull_map_rebuilds_after_boss: rows.reduce((sum, row) => sum + row.hull_map_rebuilds_after_boss, 0),
+    ...(session.bossPath === undefined ? {} : {
+      boss_path: session.bossPath,
+      boss_path_taken_frame: rows.find((row) => row.boss_path_stage === 9)?.frame ?? null,
+      boss_frames_before_path: rows.filter((row) => row.boss_state > 0 && row.boss_path_stage !== 9).length,
+      boss_frames_after_path: rows.filter((row) => row.boss_state > 0 && row.boss_path_stage === 9).length,
+      capital_rows_after_rebuild: (() => {
+        const rebuilt = rows.findIndex((row) => row.hull_map_rebuilds_after_boss > 0);
+        return rebuilt < 0 ? 0 : rows.slice(rebuilt).reduce((sum, row) => sum + row.hull_map_draws, 0);
+      })(),
+      ...(session.resetTransition === undefined ? {} : { reset_transition: session.resetTransition }),
+    }),
     ...(session.levelSummaryEvidence === undefined ? {} :
       { level_summary: session.levelSummaryEvidence }),
   };
@@ -3653,6 +3726,7 @@ function main() {
       addressEnvironment.DFTRACE_LASER_STATE = hex(bossLabels, "boss_laser_state");
       addressEnvironment.DFTRACE_LASER_HPOS = hex(bossLabels, "boss_laser_hpos");
       addressEnvironment.DFTRACE_PC_LASER_DAMAGE = hex(bossLabels, "boss_laser_damage");
+      addressEnvironment.DFTRACE_PC_BOSS_HEAD = hex(bossLabels, "boss_head");
       addressEnvironment.DFTRACE_BOSS_SHOWN_POS = hex(bossLabels, "boss_shown_pos");
     }
   }
@@ -3804,7 +3878,7 @@ function main() {
       ...directorCompletionSessions, ...summaryRecordSessions,
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
-      ...memoryIntegritySessions, ...lowerPlayfieldSessions]
+      ...memoryIntegritySessions, ...lowerPlayfieldSessions, ...slotEPathSessions]
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
         layout.variant !== null ? laserFixtureSessions : [])
@@ -3955,6 +4029,7 @@ function main() {
        * respawns; only GAME OVER — and with it `director_c_init`, which resets
        * the Director world row to 0 and restarts the level — cannot happen.
        * Trace-only: no production byte is patched and the default is off. */
+      ...(session.bossPath === undefined ? {} : { DFTRACE_BOSS_PATH: session.bossPath }),
       ...(session.contactLensClock === undefined ? {} : {
         DFTRACE_CONTACT_LENS_CLOCK: String(emitterLensClock()),
       }),
@@ -4059,6 +4134,11 @@ function main() {
     // the expanded hull maps for the boss sector. Every capital row must be
     // drawn from maps the last gameplay start rebuilt - in every replay, so any
     // path from the boss sector into a capital row without the rebuild fails.
+    const dirtyHullReads = rows.reduce((sum, row) => sum + row.hull_map_dirty_reads, 0);
+    invariant(dirtyHullReads === 0,
+      `${session.id} read the hull maps ${dirtyHullReads} times between a boss entry and the next rebuild ` +
+      "(slot E's contract, owner decision 4)");
+    if (session.bossPath !== undefined) slotEPathClauses(session, rows);
     const staleHullDraws = rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0);
     invariant(staleHullDraws === 0,
       `${session.id} drew ${staleHullDraws} capital hull rows from maps changed since the last rebuild ` +

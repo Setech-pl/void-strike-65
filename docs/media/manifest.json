@@ -17,10 +17,10 @@
     {
       "path": "docs/media/gameplay/01-title-loader.png",
       "description": "Loader title and capital-ship art",
-      "source": "build/runtime-wall-trace/boot-smoke/atr-a5-frame293.png",
+      "source": "build/runtime-wall-trace/boot-smoke/atr-a5-frame296.png",
       "source_medium": "ATR",
       "emulator": "Atari800 7.1.2 PAL XL",
-      "frame": 293,
+      "frame": 296,
       "width": 320,
       "height": 240,
       "source_sha256": "76681a9664f089c26516f4d3aff3a09977d9ad78902238eb41b1d0b8b9039e15",
@@ -36,9 +36,9 @@
       "frame": 25,
       "width": 320,
       "height": 240,
-      "source_sha256": "58611fd2f926f2ed7a9e07ae637c5e7a2ccf14e90cb6a15b609974742c58ccf4",
-      "sha256": "9af9b8e671529316d2e204e046381a38e05a31d642ab0dd8c203fd0dc83a935d",
-      "bytes": 946
+      "source_sha256": "6134cbd87b802c763ec8898bd9f7a3518d6f1de7c4ec8efcf9b534889c035654",
+      "sha256": "1b8b77e679857e01e14b5f674aef2f4c03baeac87b5afa6448c3e1c2137e7c13",
+      "bytes": 947
     },
     {
       "path": "docs/media/gameplay/03-heavy-breakup.png",
@@ -49,9 +49,9 @@
       "frame": 184,
       "width": 320,
       "height": 240,
-      "source_sha256": "f88dccb6600150431cb9699a440f8572d97feb0c37528886f6844dd4b76ebff3",
-      "sha256": "5de83fb751caeacab4b98a5ce6916e074aac6c5cc52592b4f5374371d19814f5",
-      "bytes": 1019
+      "source_sha256": "cd2ad82b49138e0503afd91eff2537e97a53f9d30a8e41e57e94f72d55341173",
+      "sha256": "5cad4366984afb286bc841e391b1f09175c3cbd856a79c6f31cd27a01f1b51d5",
+      "bytes": 1061
     },
     {
       "path": "docs/media/gameplay/04-debris-breakup.png",
@@ -62,9 +62,9 @@
       "frame": 1088,
       "width": 320,
       "height": 240,
-      "source_sha256": "2eaa28b1cca53f6cf0f1a6762ce0bd16a10a654822f5d9662624d69a9a00fe64",
-      "sha256": "69e0d83640139352c884648edee7c3b533120b2a0948b0fef910b85b9248a548",
-      "bytes": 1693
+      "source_sha256": "f2e89fc21dd226158e02abba06d3181c528ebc1880912e1841092e5ca726de95",
+      "sha256": "9095f6f9fd0b67b187df9323b71eaf6312854a8ad2b7cf0c7fa9098aeec4edd9",
+      "bytes": 1708
     },
     {
       "path": "docs/media/gameplay/05-rapid-fire-pickup.png",
@@ -75,9 +75,9 @@
       "frame": 385,
       "width": 320,
       "height": 240,
-      "source_sha256": "b2adc77dc8b73e38604d16660983c9746a39c35a3b9d8073da6c4f2fbcf72d53",
-      "sha256": "73a8e6ccf27a0f93453543ff6cb926db4ac95e975fdcf68370728ca54bc4b625",
-      "bytes": 1128
+      "source_sha256": "19bd638fdebe706b763470eaa30b5dd247e95b4400d7a36db3eda66034e3fd98",
+      "sha256": "e83916c8f496e8b991fcc4b71dfce293557d3e8a9b207c585718e653646114d5",
+      "bytes": 1129
     },
     {
       "path": "docs/media/gameplay/06-rapid-fire-active.png",
@@ -88,8 +88,8 @@
       "frame": 449,
       "width": 320,
       "height": 240,
-      "source_sha256": "894c54fe0c0f67f2ea37a9b5abc2a2665a534deba412fa63cf7081578bbac11c",
-      "sha256": "3d3427c340818378b1ab4aeba2d042599ff02aecbe6459ba31c754d46624bba9",
+      "source_sha256": "a37abbbfec95807215fe6c0583cf533a0a548430f410dc2592db298e47168098",
+      "sha256": "360a23c759dc338ee16351ddc38d14cbef5e098dca48456712c24d17c50477e4",
       "bytes": 1092
     },
     {
@@ -101,8 +101,8 @@
       "frame": 990,
       "width": 320,
       "height": 240,
-      "source_sha256": "265a6347544894cb133008d2e2075cd350fe0598edc479f1aab4e7559242dd32",
-      "sha256": "a7d3fda7174d872c2542653f750ab487ba76626e6077fad0b17897c86557de63",
+      "source_sha256": "99ac9cc9765180c73eb20d1d1bec9765a3ceff71ea2d93dc0d2ab497a79446c7",
+      "sha256": "ae954fe130bfd26169fc69f7adc0a2b54fb2ca35f3f1bfdd017148c939443ae5",
       "bytes": 1699
     },
     {
@@ -114,8 +114,8 @@
       "frame": 904,
       "width": 320,
       "height": 240,
-      "source_sha256": "25d6ec72b25e36f98737738d553f88545756e2c9e78d6e6778509594cbcfb7e3",
-      "sha256": "0ee7f1e946764a90704cf927614595552ff1f5a49bc72fa836c4e98869164328",
+      "source_sha256": "67cdb878b00cc686efda0c6b24f83ec83e9bf88fdb1b82f12c313132d4f98d88",
+      "sha256": "58d559de3887214d7a456d6a784dc78af434095461ea21ff87e5cd893e420d9e",
       "bytes": 1513
     },
     {
@@ -124,12 +124,12 @@
       "source": "build/runtime-wall-trace/weapon-pickup-spread-projectiles-atari800.png",
       "source_medium": "ATR",
       "emulator": "Atari800 7.1.2 PAL XL",
-      "frame": 2537,
+      "frame": 812,
       "width": 320,
       "height": 240,
-      "source_sha256": "ad32afb36dd2e7e31ea5168559cdad400c8cd06071de94a16df73f94261a5658",
-      "sha256": "619ea1fc59a3dafc7da63418d27c479e4ff967869fffc1f4e210d96035f71f8c",
-      "bytes": 1058
+      "source_sha256": "a5ad590242c4fb8c178b69ffc91960f0951aa83a1a90b480f170ee572941ea43",
+      "sha256": "c1220163299a8de4a94efedffe1aea06e3ee04ef189787981529231f59a027e9",
+      "bytes": 1063
     }
   ],
   "assetSheets": [

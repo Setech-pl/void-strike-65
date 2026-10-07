@@ -131,11 +131,18 @@ function decode(memory, address, length) {
 // Atari800 does for a read-only image, src/sio.c SIO_WriteSector).
 // --------------------------------------------------------------------------
 class Drive {
-  constructor({ atr = builtAtr, protect = "none", trig = () => 1 } = {}) {
+  // audit-hardening (AUD-01): `swap` = { sector, atr } puts another disk in the
+  // drive just before the first read command for `sector` (the sectors written
+  // so far stay with the disk that was taken out); `failReads` = sectors whose
+  // read command the drive refuses (NAK), as an unreadable sector is refused.
+  constructor({ atr = builtAtr, protect = "none", trig = () => 1, swap = null,
+    failReads = [] } = {}) {
     this.sectors = new Map();
     this.atr = atr;
     this.protect = protect;
     this.trig = trig;
+    this.swap = swap;
+    this.failReads = new Set(failReads);
     this.vcountReads = 0;
     this.vcount = 1;
     this.frames = 0;
@@ -179,6 +186,12 @@ class Drive {
       return [{ byte: 0x41 }];
     }
     if (command !== 0x52) return [{ byte: 0x4e }];
+    if (this.swap !== null && sector === this.swap.sector) {
+      this.atr = this.swap.atr;
+      this.sectors = new Map();
+      this.swap = null;
+    }
+    if (this.failReads.has(sector)) return [{ byte: 0x4e }];
     const slice = this.sector(sector);
     const out = [{ byte: 0x41 }, { byte: 0x43 }];
     for (const byte of slice) out.push({ byte });
@@ -306,6 +319,10 @@ class Drive {
       this.serin = this.rxQueue.shift().byte & 0xff;
       this.latched |= IRQ_SERIN;
     }
+  }
+
+  get putFrames() {
+    return this.commandFrames.filter((frame) => frame[1] === 0x50 || frame[1] === 0x57);
   }
 
   get readSectors() {
@@ -1124,4 +1141,131 @@ test("sector_reader_load reads the level tail first: sectors 6..N, then 1..5", (
   assert.equal(cpu.p & nmos6502Flags.carry, 0);
   assert.ok(Buffer.from(memory.subarray(LEVEL_BUFFER, LEVEL_BUFFER + levelOneImage.length))
     .equals(levelOneImage));
+});
+
+// ==========================================================================
+// 4. audit-hardening (docs/plans/audit-hardening.md; the October 2026 audit,
+//    AUD-01 and AUD-02): the record is written only to the game's own disk,
+//    and nothing read at START GAME or the level's end is run or used unless
+//    its run checks.
+// ==========================================================================
+
+const IDENTITY_SECTOR = 598;
+const SR_BAD_IMAGE = 4;
+const atrSectorOffset = (sector) => ATR_HEADER_BYTES + (sector - 1) * SECTOR_BYTES;
+const atrSectorOf = (atr, sector) => Buffer.from(atr.subarray(atrSectorOffset(sector),
+  atrSectorOffset(sector) + SECTOR_BYTES));
+const fireAfter = (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1);
+
+// Another disk: every sector a pattern no build writes; its 598 and 599 hold
+// text that is neither an identity nor a record.
+function foreignAtr() {
+  const atr = Buffer.alloc(builtAtr.length);
+  builtAtr.copy(atr, 0, 0, ATR_HEADER_BYTES);
+  for (let sector = 1; atrSectorOffset(sector) < atr.length; sector += 1) {
+    for (let index = 0; index < SECTOR_BYTES; index += 1) {
+      atr[atrSectorOffset(sector) + index] = (sector * 31 + index * 7 + 0x11) & 0xff;
+    }
+  }
+  const text = Buffer.from("ANOTHER DISK - NOT A VOID STRIKE RECORD. ", "latin1");
+  for (const sector of [IDENTITY_SECTOR, SAVE_SECTOR]) {
+    for (let index = 0; index < SECTOR_BYTES; index += 1) {
+      atr[atrSectorOffset(sector) + index] = text[index % text.length];
+    }
+  }
+  return atr;
+}
+
+// The game's own image with one bit of one byte changed. The drive computes
+// the SIO checksum over what it holds, so the wire still checks.
+function atrWithFlip(sector, offset, mask = 0x10) {
+  const atr = Buffer.from(builtAtr);
+  atr[atrSectorOffset(sector) + offset] ^= mask;
+  return atr;
+}
+
+test("AUD-01: sector 598 carries the disk's identity, the one the resident image expects", () => {
+  const identity = atrSectorOf(builtAtr, IDENTITY_SECTOR);
+  assert.equal(identity.subarray(0, 4).toString("latin1"), "VS65", "sector 598 is not the identity");
+  const guardIdentity = kernelLabels.get("guard_identity");
+  assert.ok(Number.isInteger(guardIdentity), "the resident image holds no expected identity");
+  const kernel = fs.readFileSync(build("light-kernel.bin"));
+  const expected = kernel.subarray(guardIdentity - manifest.lightKernel.address,
+    guardIdentity - manifest.lightKernel.address + 6);
+  assert.deepEqual([...identity.subarray(0, 6)], [...expected]);
+  assert.ok(identity.subarray(6).every((byte) => byte === 0), "the rest of sector 598 is not empty");
+});
+
+test("AUD-01: a disk swapped in before the record's read is never written, and the result stays", () => {
+  const foreign = foreignAtr();
+  const before = atrSectorOf(foreign, SAVE_SECTOR);
+  const drive = new Drive({ trig: fireLate, swap: { sector: SAVE_SECTOR, atr: foreign } });
+  const run = levelEnd(drive);
+  assert.equal(run.end, "menu", "the refusal must not reach an error screen");
+  assert.deepEqual(drive.putFrames, [], "a PUT reached another disk");
+  assert.ok(drive.sector(SAVE_SECTOR).equals(before), "the other disk's sector 599 changed");
+  assert.match(rowText(run.memory, ROWS.best), /A\s+01234\b/, "the RAM copy shows for this session");
+});
+
+test("AUD-01: an identity sector that cannot be read stops the write, silently", () => {
+  const drive = new Drive({ trig: fireLate, failReads: [IDENTITY_SECTOR] });
+  const run = levelEnd(drive);
+  assert.equal(run.end, "menu");
+  assert.deepEqual(drive.putFrames, [], "the record was written without the disk's identity");
+  assert.match(rowText(run.memory, ROWS.best), /A\s+01234\b/);
+});
+
+test("AUD-01: the game's own disk, and a copy of it, still saves; the identity is the read just before the PUT", () => {
+  for (const [what, atr] of [["the built ATR", builtAtr], ["a byte copy", Buffer.from(builtAtr)]]) {
+    const drive = new Drive({ atr, trig: fireLate });
+    levelEnd(drive);
+    assert.equal(drive.writes.filter((entry) => entry.applied).length, 1, `${what}: not saved`);
+    const put = drive.commandFrames.findIndex((frame) => frame[1] === 0x50);
+    const before = drive.commandFrames[put - 1];
+    assert.ok(before && before[1] === 0x52 && (before[2] | (before[3] << 8)) === IDENTITY_SECTOR,
+      `${what}: the command before the PUT is not the identity read`);
+  }
+});
+
+test("AUD-02: a changed byte in the summary code is refused before the module runs", () => {
+  const drive = new Drive({ atr: atrWithFlip(manifest.levelSummary.code.startSector + 2, 40),
+    trig: fireAfter });
+  let ran = false;
+  const run = startGame(drive, { watch: (pc) => { if (pc >= SUMMARY_BASE && pc < 0x0c00) ran = true; } });
+  assert.equal(run.end, "failure", "the damaged module was accepted");
+  assert.equal(run.cpu.a, SR_BAD_IMAGE, "not the WRONG DISK reason");
+  assert.equal(ran, false, "the damaged module ran");
+});
+
+test("AUD-02: a changed byte in the region's art is refused before the art is used", () => {
+  const art = manifest.levelSummary.art.runs[0];
+  const glyphs = 0x4800 + 72 * 8;
+  for (const transition of ["START GAME", "level end"]) {
+    const drive = new Drive({ atr: atrWithFlip(art.startSector + 1, 10), trig: fireAfter });
+    const run = transition === "START GAME" ? startGame(drive) : levelEnd(drive);
+    assert.equal(run.end, "failure", `${transition}: the damaged art was accepted`);
+    const initial = runtimeMemory();
+    assert.deepEqual([...run.memory.subarray(glyphs, glyphs + 192)], [...initial.subarray(glyphs, glyphs + 192)],
+      `${transition}: the damaged art's glyphs were copied`);
+  }
+});
+
+test("AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3)", () => {
+  const level = manifest.sectorReader.levels.find((entry) => entry.id === 1);
+  const drive = new Drive({ atr: atrWithFlip(level.startSector + 1, 20), trig: fireAfter });
+  let played = false;
+  const run = startGame(drive, { watch: (pc) => { if (pc === LEVEL_BUFFER + 8) played = true; } });
+  assert.equal(run.end, "failure", "the damaged level image was accepted");
+  assert.equal(run.cpu.a, SR_BAD_IMAGE);
+  assert.equal(played, false, "the damaged image's music player ran");
+});
+
+test("AUD-02: a changed byte in the capital restore run is refused before gameplay starts", () => {
+  const memory = runtimeMemory();
+  memory[reader("sr_slot_a_overlaid")] = 1;
+  const drive = new Drive({ atr: atrWithFlip(manifest.overlays.runs[0].startSector + 3, 7),
+    trig: fireAfter });
+  const run = startGame(drive, { memory });
+  assert.equal(run.end, "failure", "the damaged capital code was accepted");
+  assert.equal(run.cpu.a, SR_BAD_IMAGE);
 });

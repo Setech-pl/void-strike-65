@@ -80,11 +80,14 @@ function carryWrapChecksum(bytes) {
 }
 
 // The SIO drive and the few registers the transition writes, recorded in
-// order. `onCommand(sector, cpu)` sees every read command as it is sent.
+// order. `onCommand(sector, cpu)` sees every read command as it is sent;
+// `sectorOf(sector)` is the disk in the drive (audit-hardening: another disk,
+// or the game's with a changed byte), the built ATR unless a test says.
 export class Drive {
-  constructor({ trig = () => 1, onCommand = null } = {}) {
+  constructor({ trig = () => 1, onCommand = null, sectorOf = atrSector } = {}) {
     this.trig = trig;
     this.onCommand = onCommand;
+    this.sectorOf = sectorOf;
     this.vcountReads = 0;
     this.frames = 0;
     this.irqen = 0;
@@ -154,7 +157,7 @@ export class Drive {
             const sector = this.frameBytes[2] | (this.frameBytes[3] << 8);
             this.readSectors.push(sector);
             this.onCommand?.(sector, this.cpu);
-            const slice = atrSector(sector);
+            const slice = this.sectorOf(sector);
             this.rxQueue = [0x41, 0x43, ...slice, carryWrapChecksum(slice)];
           }
         }

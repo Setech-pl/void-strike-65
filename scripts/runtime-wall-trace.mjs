@@ -623,6 +623,24 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     frames: 4_000,
     kind: "memory-integrity-160s",
     pauseTest: false,
+  }, {
+    // M5b-S4b.4, owner rule class (a), 2026-10-07: the scenario moves, the
+    // clause does not. Owner decision W1 shortened level 1 after its capital,
+    // so the HARD hunt replays reach the boss (no capsules there) at ~2,970
+    // and the two collect 3 + 4 (MEASURED), under the clause's 10. MEASURED
+    // replays to add, collections in 4,000 frames: difficulty 2 at fire delays
+    // 3, 4, 7: 2, 3, 4; difficulty 1 at 4, 5, 6: 3, 4, 4; difficulty 0 at 4, 5,
+    // 6: 4, 4, 4. Difficulty 2 at delay 7 is the smallest change from the kept
+    // replays that restores the count with the slack it had (3 + 4 + 4 = 11).
+    // It does not arm the pause test.
+    id: "memory-integrity-atr-2-hunt-fire7",
+    medium: "ATR",
+    difficulty: 2,
+    policy: "hunt",
+    fireDelay: 7,
+    frames: 4_000,
+    kind: "memory-integrity-160s",
+    pauseTest: false,
   }]);
 
 const pickupFenceSessions = [["ATR", 2], ["ATR", 1]].map(([medium, difficulty]) => ({

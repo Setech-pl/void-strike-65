@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "e214467eb8fd780e6172cb8cd86051dcfcae9b62bc394df2ae5698228fbe2479",
+    "replay_fingerprint_sha256": "722b8be5cd060a41e5133c807baa62257baf3242788c886fb2db0eb134a65791",
     "ordered_frames": 124759,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -17,23 +17,23 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 27136,
-      "sha256": "407e3820961a7a43ec767558b4c51d38c72a4cac69007265ded63c2010015b0a"
+      "sha256": "dc6cb891f02866ed82d6ae56a542af10508ca246e89e8693fceab54b1cc0bb7d"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+      "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 875024,
-      "sha256": "018dd6b2193001232d587f3e50a561cc4fcb8e4c93cf7591657b5906ab4e0513"
+      "bytes": 875025,
+      "sha256": "d3b3df3a139d993381f0e3692040c6184cbacab8a097029336a9c8bf66dbd237"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+    "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
   },
   "emulator": {
     "name": "Atari800",
@@ -59,8 +59,8 @@
     "cold_ram_range": "$8000-$9FFF",
     "sector_reader": {
       "address": 40960,
-      "bytes": 1491,
-      "free_bytes": 45,
+      "bytes": 1498,
+      "free_bytes": 38,
       "level_buffer_address": 42496,
       "level_image_file": "level-1.bin",
       "level_image_bytes": 1664,
@@ -174,8 +174,8 @@
       "guard_address": 48154,
       "end_exclusive": 48128,
       "capacity_bytes": 3584,
-      "used_bytes": 2393,
-      "free_bytes": 1191,
+      "used_bytes": 2399,
+      "free_bytes": 1185,
       "probe_bytes": 1497,
       "probe_hex": "acfc86b97f9d8dfd86adf880cdfd86b0",
       "window_read_back_at_frames": [
@@ -231,7 +231,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -396,7 +396,7 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 205878196
+            "splash_checksum": 3516565713
           }
         ],
         "milestones": {
@@ -507,7 +507,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -672,7 +672,7 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 205878196
+            "splash_checksum": 3516565713
           }
         ],
         "milestones": {
@@ -783,7 +783,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -948,7 +948,7 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 205878196
+            "splash_checksum": 3516565713
           }
         ],
         "milestones": {
@@ -1059,7 +1059,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1224,7 +1224,7 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 205878196
+            "splash_checksum": 3516565713
           }
         ],
         "milestones": {
@@ -1337,7 +1337,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1502,7 +1502,7 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 205878196
+            "splash_checksum": 3516565713
           }
         ],
         "milestones": {
@@ -1667,7 +1667,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1676,7 +1676,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1685,7 +1685,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1694,7 +1694,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
+          "sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }
@@ -10135,19 +10135,19 @@
           "frame": 3710,
           "gameplay_frame": 126,
           "difficulty": 2,
-          "wall_cycles": 27272,
-          "physical_headroom": 8296,
+          "wall_cycles": 27170,
+          "physical_headroom": 8398,
           "start": {
-            "clock": 169519380,
+            "clock": 169519376,
             "host_frame": 4766,
             "scanline": 20,
-            "cycle": 12
+            "cycle": 8
           },
           "end": {
-            "clock": 169546652,
+            "clock": 169546546,
             "host_frame": 4766,
-            "scanline": 259,
-            "cycle": 38
+            "scanline": 258,
+            "cycle": 46
           },
           "next_start": {
             "clock": 169554944,
@@ -11496,8 +11496,8 @@
           "frame": 5021,
           "gameplay_frame": 157,
           "difficulty": 0,
-          "wall_cycles": 27017,
-          "physical_headroom": 8551,
+          "wall_cycles": 26908,
+          "physical_headroom": 8660,
           "start": {
             "clock": 215117621,
             "host_frame": 6048,
@@ -11505,13 +11505,13 @@
             "cycle": 77
           },
           "end": {
-            "clock": 215144638,
+            "clock": 215144529,
             "host_frame": 6048,
-            "scanline": 257,
-            "cycle": 76
+            "scanline": 256,
+            "cycle": 81
           },
           "next_start": {
-            "clock": 215153203,
+            "clock": 215153195,
             "host_frame": 6049
           },
           "host_vbi_boundaries": 0,

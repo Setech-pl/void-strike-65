@@ -30,19 +30,10 @@
       "file": "tests/preview.test.mjs",
       "test": "preview consumes the canonical charset, screen, PMG, and palette source",
       "class": "C",
-      "first_failing_assertion": "tests/preview.test.mjs:166",
+      "first_failing_assertion": "tests/preview.test.mjs:129",
       "reason": "The gameplay preview does not change when player_shape changes: scripts/preview.mjs draws 24 of the 29 playfield rows and the fighter starts in the clipped ones. A development tool defect; not player-visible, not in the ATR.",
-      "cleared_by": "chore/preview-29-rows"
-    },
-    {
-      "file": "tests/runtime-wall-trace.test.mjs",
-      "test": "ten heaviest frames retain exact clock positions, VBI IDs and state",
-      "class": "D",
-      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:836",
-      "reason": "None of the ten heaviest frames carries a CPU DMA-off reference. The reference comes from the JS cycle model in scripts/runtime-cycles.mjs, which still models the retired 10 + 9 shot pool and has no row for today's heaviest frames. scripts/runtime-cycles.mjs is imported by scripts/build.mjs and its output is runtimeTiming in the built manifest, so the fix is a build-script change (trace-clause-repairs, 2026-10-01, left it recorded under that task's no-build-script rule).",
-      "cleared_by": "chore/cycle-model-pairshot: bring the model to the 5 + 5 pool, or drop the reference from the evidence",
-      "status_2026_10_02": "PASSES BY COINCIDENCE since fix/heavy-breakup-rotate-gate (docs/plans/m3-waves-heavy.md §9.5). The JS cycle model re-picked its cpuReferenceFrames once Heavy break-ups left rotate kill frames, and 1-evasive-fire3 frame 288, one of the ten heaviest trace frames, now carries a DMA-off reference. The cause above is untouched and cleared_by still applies; kept recorded by owner decision 2026-10-02. A later reshuffle can turn the test red again without any regression.",
-      "status_2026_10_06": "RED AGAIN, as predicted above, on the plasma FX evidence (feat/plasma-fx B2, ATR e0aa70620e1ae074...): the JS cycle model's reference frames no longer include 1-evasive-fire3 frame 288, so none of the ten heaviest trace frames carries a DMA-off reference (the test's last assertion). Same cause, no regression; recorded, cleared_by unchanged."
+      "cleared_by": "chore/preview-29-rows",
+      "status_2026_10_07": "The first failing assertion is :129 (the charset's length), not :166 - measured on this branch and on main 1a3c8bf, where it already failed at :129. The same test and cause; owner decision of 2026-10-07 (S4b.5) updates the line."
     }
   ],
   "removed_2026_10_01": {
@@ -1183,6 +1174,24 @@
         "cleared_by": "chore/showcase-recapture: a capture run and a docs/media commit",
         "outcome": "cleared — the evidence (the committed images) was recaptured; the test was not weakened (its source_medium check was tightened from XEX-or-ATR to ATR)",
         "fix": "showcase-atr (2026-10-02, docs/plans/showcase-atr.md): npm run showcase -- --capture recaptured all nine gallery frames from ATR f127d7a4 under a desktop SDL video driver; the Spread frame now records the evidence's capture_frame 2537 and every frame source_medium ATR."
+      }
+    ]
+  },
+  "removed_2026_10_07_ten_heaviest": {
+    "note": "Left the recorded set by owner decision of 2026-10-07 (M5b-S4b.5, decision 6).",
+    "count": 1,
+    "entries": [
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "test": "ten heaviest frames retain exact clock positions, VBI IDs and state",
+        "class": "D",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:836",
+        "reason": "None of the ten heaviest frames carries a CPU DMA-off reference. The reference comes from the JS cycle model in scripts/runtime-cycles.mjs, which still models the retired 10 + 9 shot pool and has no row for today's heaviest frames. scripts/runtime-cycles.mjs is imported by scripts/build.mjs and its output is runtimeTiming in the built manifest, so the fix is a build-script change (trace-clause-repairs, 2026-10-01, left it recorded under that task's no-build-script rule).",
+        "cleared_by": "chore/cycle-model-pairshot: bring the model to the 5 + 5 pool, or drop the reference from the evidence",
+        "status_2026_10_02": "PASSES BY COINCIDENCE since fix/heavy-breakup-rotate-gate (docs/plans/m3-waves-heavy.md §9.5). The JS cycle model re-picked its cpuReferenceFrames once Heavy break-ups left rotate kill frames, and 1-evasive-fire3 frame 288, one of the ten heaviest trace frames, now carries a DMA-off reference. The cause above is untouched and cleared_by still applies; kept recorded by owner decision 2026-10-02. A later reshuffle can turn the test red again without any regression.",
+        "status_2026_10_06": "RED AGAIN, as predicted above, on the plasma FX evidence (feat/plasma-fx B2, ATR e0aa70620e1ae074...): the JS cycle model's reference frames no longer include 1-evasive-fire3 frame 288, so none of the ten heaviest trace frames carries a DMA-off reference (the test's last assertion). Same cause, no regression; recorded, cleared_by unchanged.",
+        "outcome": "removed - it passes by coincidence after W1 (level 1's shorter route moved the ten heaviest frames onto rows the JS cycle model references); the cause is untouched",
+        "backlog": "chore/cycle-model-pairshot stays in docs/STATUS.md's backlog: a later reshuffle can turn the test red again without any regression"
       }
     ]
   }

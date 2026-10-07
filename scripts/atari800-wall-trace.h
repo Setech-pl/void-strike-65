@@ -364,6 +364,8 @@ typedef struct {
 	unsigned boss_shown_pos;
 	unsigned director_sector;
 	unsigned sector_row;
+	unsigned hull_map_draws;
+	unsigned hull_map_stale_draws;
 	unsigned audf3;
 	unsigned audc3;
 	unsigned pickup_draw_calls;
@@ -890,6 +892,15 @@ static unsigned dftrace_boss_shown_pos;
  * clock reaches the wave's row). */
 static unsigned dftrace_director_sector;
 static unsigned dftrace_sector_row;
+/* M5b-S4b.5 (owner decision of 2026-10-07, slot E): the boss's slot E lives in
+ * the expanded hull maps ($4C00-$4E3F). The maps are snapshotted where every
+ * gameplay start has just rebuilt them (main's hull_maps_built), and every
+ * draw_hull_row must find them unchanged since: a path from the boss sector
+ * into a capital row that skipped the rebuild is a stale draw. */
+static unsigned dftrace_pc_hull_maps_built;
+static unsigned dftrace_pc_draw_hull_row;
+static UBYTE dftrace_hull_snapshot[0x240];
+static int dftrace_hull_snapshot_valid;
 /* AUD-04 (owner addendum 2026-10-06): a debug session's memory pokes, applied
  * as the frame's input is set: "F:aaaa=vv,aaaa=vv;F:..." (F decimal, address
  * and value hex). The default sessions set none. */
@@ -5653,7 +5664,8 @@ static void dftrace_write(void)
 		",engine_playfield_select_idle_active_lo,pickup_erase_writes"
 		",boss_entry,boss_state,maximum_boss_dlis_per_host_frame"
 		",laser_states,laser_hpos0,laser_hpos1,laser_hpos2,laser_hpos3"
-		",laser_damage_calls,audf3,audc3,boss_shown_pos,director_sector,sector_row\n");
+		",laser_damage_calls,audf3,audc3,boss_shown_pos,director_sector,sector_row"
+		",hull_map_draws,hull_map_stale_draws\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -5922,7 +5934,8 @@ static void dftrace_write(void)
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->laser_states,
 			frame->laser_hpos[0], frame->laser_hpos[1], frame->laser_hpos[2],
 			frame->laser_hpos[3], frame->laser_damage_calls, frame->audf3, frame->audc3);
-		fprintf(file, ",%u,%u,%u", frame->boss_shown_pos, frame->director_sector, frame->sector_row);
+		fprintf(file, ",%u,%u,%u,%u,%u", frame->boss_shown_pos, frame->director_sector, frame->sector_row,
+			frame->hull_map_draws, frame->hull_map_stale_draws);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6693,6 +6706,8 @@ static void dftrace_init(void)
 	dftrace_laser_state = dftrace_env_optional("DFTRACE_LASER_STATE");
 	dftrace_laser_hpos = dftrace_env_optional("DFTRACE_LASER_HPOS");
 	dftrace_pc_laser_damage = dftrace_env_optional("DFTRACE_PC_LASER_DAMAGE");
+	dftrace_pc_hull_maps_built = dftrace_env_optional("DFTRACE_PC_HULL_MAPS_BUILT");
+	dftrace_pc_draw_hull_row = dftrace_env_optional("DFTRACE_PC_DRAW_HULL_ROW");
 	dftrace_boss_shown_pos = dftrace_env_optional("DFTRACE_BOSS_SHOWN_POS");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
@@ -7508,6 +7523,16 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	/* M5b-S4b: the laser's damage call site. The first entry that will apply
 	 * damage (the player ALIVE, no cooldown) starts the contact capture: frame
 	 * zero is the completed preceding raster, as for a capital contact. */
+	if (dftrace_pc_hull_maps_built != 0u && pc == dftrace_pc_hull_maps_built) {
+		memcpy(dftrace_hull_snapshot, &MEMORY_mem[0x4C00], sizeof(dftrace_hull_snapshot));
+		dftrace_hull_snapshot_valid = 1;
+	}
+	if (dftrace_pc_draw_hull_row != 0u && pc == dftrace_pc_draw_hull_row) {
+		++dftrace_current.hull_map_draws;
+		if (!dftrace_hull_snapshot_valid ||
+			memcmp(dftrace_hull_snapshot, &MEMORY_mem[0x4C00], sizeof(dftrace_hull_snapshot)) != 0)
+			++dftrace_current.hull_map_stale_draws;
+	}
 	if (dftrace_pc_laser_damage != 0u && pc == dftrace_pc_laser_damage) {
 		++dftrace_current.laser_damage_calls;
 		dftrace_laser_contact_seen = 1u;

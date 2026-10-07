@@ -2628,6 +2628,10 @@ start_gameplay:
     jsr DIRECTOR_INIT
     jsr install_entity_effects_glyph
     jsr publish_level_hull_style
+; M5b-S4b.5: the hull maps ($4C00-$4E3F) are rebuilt; the boss's slot E may
+; have held them since the last gameplay start. A label, no byte: the trace
+; checks at every draw_hull_row that the maps are as they were here.
+hull_maps_built:
     jsr CAPITAL_VECTOR_INIT
     jsr init_screen
     lda player_x

@@ -139,6 +139,8 @@ const SEGMENTS = {
   BOSS_D_LOOKS: ["boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): first in slot D, read with its run", "overlay"],
   BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
+  BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the band flash on a kill or a stage, the capsule from a destroyed module, the laser warning's colour; read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
+  BOSS_E_BSS: ["boss slot E: the warning ramp's state (after its code, never read from disk)", "overlay"],
 };
 
 // ---------------------------------------------------------------- readers
@@ -404,8 +406,8 @@ function collectRows(build) {
   add(sym("SCREEN"), sym("CHARSET") - 1, "state", "screen: HUD prefix, divider, frontend screen RAM", "resident", "src/main.s `SCREEN`");
   add(sym("CHARSET"), sym("CHARSET") + 0x3ff, "state", "gameplay charset", "resident", "src/main.s `CHARSET`");
   add(sym("FRONTEND_CHARSET"), sym("FRONTEND_CHARSET") + 0x3ff, "state", "frontend charset", "resident", "src/main.s `FRONTEND_CHARSET`");
-  add(sym("CAPITAL_HULL_RUNTIME_ALLIED"), sym("CAPITAL_HULL_RUNTIME_ENEMY") - 1, "state", "expanded Allied hull map", "resident", "src/main.s `CAPITAL_HULL_RUNTIME_ALLIED`");
-  add(sym("CAPITAL_HULL_RUNTIME_ENEMY"), sym("CAPITAL_HULL_RUNTIME_END") - 1, "state", "expanded Hostile hull map", "resident", "src/main.s `CAPITAL_HULL_RUNTIME_ENEMY`");
+  add(sym("CAPITAL_HULL_RUNTIME_ALLIED"), sym("CAPITAL_HULL_RUNTIME_ENEMY") - 1, "state", "expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector", "resident", "src/main.s `CAPITAL_HULL_RUNTIME_ALLIED`");
+  add(sym("CAPITAL_HULL_RUNTIME_ENEMY"), sym("CAPITAL_HULL_RUNTIME_END") - 1, "state", "expanded Hostile hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector", "resident", "src/main.s `CAPITAL_HULL_RUNTIME_ENEMY`");
   add(sym("BROAD_STATE_BASE"), sym("BROAD_STATE_END") - 1, "state", "broadside slot state", "resident", "src/main.s `BROAD_STATE_BASE`");
   add(sym("DIFFICULTY_SETTING"), sym("GAMEPLAY_RESIDENT_END") - 1, "state", "difficulty, hull scroll, final-raster bolt tops, flash backing, sector, player lifecycle, capital explosion, engine and Raider state", "resident", "src/main.s `DIFFICULTY_SETTING`");
   add(sym("STAR_RNG_STATE"), sym("STARFIELD_STATE_END") - 1, "state", "star RNG, near-star phase, PAL frame ids", "resident", "src/main.s `STAR_RNG_STATE`");
@@ -447,6 +449,8 @@ function collectRows(build) {
   add(m.boss.slotC.address, m.boss.slotC.address + m.boss.slotC.capacityBytes - 1, "slot", `boss slot C: the C controller, run \`boss-slot-c\` (${m.boss.slotC.sectors} sectors)`, "overlay", "manifest `boss.slotC`");
   add(m.boss.scratch.address, m.boss.scratch.address + m.boss.scratch.capacityBytes - 1, "slot", "boss scratch page: the column map, the ring, slot A's state; set by the install", "overlay", "manifest `boss.scratch`");
   add(m.boss.slotD.address, m.boss.slotD.address + m.boss.slotD.capacityBytes - 1, "slot", `boss slot D: the lasers and the boss's shots in the band, run \`boss-slot-d\` (${m.boss.slotD.sectors} sectors)`, "overlay", "manifest `boss.slotD`");
+  // M5b-S4b.5 (owner decision 2026-10-07): slot E over the expanded hull maps.
+  add(m.boss.slotE.address, m.boss.slotE.address + m.boss.slotE.capacityBytes - 1, "slot", `boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run \`boss-slot-e\` (${m.boss.slotE.sectors} sectors)`, "overlay", "manifest `boss.slotE`, cfg/boss.cfg");
   add(m.pause.screenBackupAddress, m.pause.screenBackupAddress + m.pause.screenBackupBytes - 1, "transient", "pause-screen backup (`PAUSE_SCREEN_BACKUP`)", "pause", "manifest `pause`");
   add(m.levelSummary.art.staging, m.levelSummary.art.staging + Math.max(...m.levelSummary.art.runs.map((run) => run.bytes)) - 1, "transient", "summary art run (largest region run) read for the summary screen", "summary", "manifest `levelSummary.art`");
   add(m.levelSummary.saveRecord.buffer, m.levelSummary.saveRecord.buffer + m.levelSummary.saveRecord.bytes - 1, "transient", "save-record sector buffer", "summary", "manifest `levelSummary.saveRecord`");
@@ -567,6 +571,8 @@ export const DECLARED_CFG_OVERLAPS = Object.freeze([
     reason: "the HullGeometry header is a link-time symbol over the level buffer, filled by the sector reader" },
   { areas: ["HYBRID_C_WINDOW_GUARD", "READER_GUARD"], name: "one window guard",
     reason: "the same six guard bytes at $BC1A are declared by both links that share the window" },
+  { areas: ["BOSS_SLOT_E_RAM", "CAPITAL_HULL_MAPS_RAM"], name: "boss slot E over the hull maps",
+    reason: "M5b-S4b.5 (owner decision 2026-10-07): slot E is read over the expanded hull maps at the boss entry and lives in the boss sector only; only the capital's draw_hull_row reads the maps, and every gameplay start rebuilds them (start_gameplay -> publish_level_hull_style) before any capital row; the trace checks it at every draw" },
   { areas: ["BOSS_SLOT_RAM", "BROADSIDE_RAM"], name: "boss in overlay slot A",
     reason: "M5b-S3: the boss overlay is read over slot A, the capital group's 2,048 B inside BROADSIDE; START GAME's restore run puts the capital code back" },
 ]);

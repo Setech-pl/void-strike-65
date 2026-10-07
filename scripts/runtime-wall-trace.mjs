@@ -803,6 +803,9 @@ for (const session of [...capitalContactSessions, ...capitalPlayerGeometrySessio
   ...lowerPlayfieldSessions]) assertCapitalContactEnvironment(session);
 
 const traceLabels = {
+  // M5b-S4b.5 (slot E): the hull maps' rebuild and their only reader.
+  DFTRACE_PC_HULL_MAPS_BUILT: "hull_maps_built",
+  DFTRACE_PC_DRAW_HULL_ROW: "draw_hull_row",
   DFTRACE_PC_PLAYER_SHOT_SOUND: "play_player_fighter_projectile_sound",
   DFTRACE_PC_UPDATE_SOUND: "update_sound",
   DFTRACE_PC_ACTIVE: "main_loop_option_poll",
@@ -1152,6 +1155,9 @@ for (const name of [
   "boss_shown_pos",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
+  // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
+  // changed since the last gameplay start's rebuild (slot E's contract).
+  "hull_map_draws", "hull_map_stale_draws",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -2222,6 +2228,9 @@ function sessionSummary(session, rows) {
     maximum_wall_cycles: maximum.wall_cycles,
     deadline_overrun_frames: rows.filter((row) => row.missed_frames > 0).length,
     missed_frames: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+    // M5b-S4b.5: slot E's contract, per replay.
+    hull_map_draws: rows.reduce((sum, row) => sum + row.hull_map_draws, 0),
+    hull_map_stale_draws: rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0),
     ...(session.levelSummaryEvidence === undefined ? {} :
       { level_summary: session.levelSummaryEvidence }),
   };
@@ -4046,6 +4055,14 @@ function main() {
     // The body is deliberately left at its original indentation — reindenting
     // ~670 lines would bury the change in whitespace.
     try {
+    // M5b-S4b.5 (owner decision of 2026-10-07): slot E holds the boss's code in
+    // the expanded hull maps for the boss sector. Every capital row must be
+    // drawn from maps the last gameplay start rebuilt - in every replay, so any
+    // path from the boss sector into a capital row without the rebuild fails.
+    const staleHullDraws = rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0);
+    invariant(staleHullDraws === 0,
+      `${session.id} drew ${staleHullDraws} capital hull rows from maps changed since the last rebuild ` +
+      `(slot E's contract: the hull maps are rebuilt at every gameplay start before any capital row)`);
     session.levelSummaryEvidence = levelSummaryClauses(session, summaryRecords, rows, atrPath);
     // draw_enemy_member publishes a member's 16-row P1/P2 body only on frames
     // where its Y moved. The licence for that skip is "the plane already holds

@@ -140,7 +140,8 @@ BOSS_SHOT_ACTIVE   = (1 << 3) | 2 | 4
 BOSS_RUN_INSTALL = 0
 BOSS_RUN_SLOT_C  = 5
 BOSS_RUN_SLOT_D  = 10
-BOSS_RUN_REGIONS = 15
+BOSS_RUN_SLOT_E  = 15
+BOSS_RUN_REGIONS = 20
 BOSS_REGION_RUNS = 3
 
 .assert BOSS_BAND_ROWS = 8, error, "the band is 8 rows (owner answer Q2)"
@@ -214,6 +215,8 @@ boss_head:
     ldy #BOSS_RUN_SLOT_C
     jsr boss_read_run
     ldy #BOSS_RUN_SLOT_D
+    jsr boss_read_run
+    ldy #BOSS_RUN_SLOT_E                ; S4b.5: slot E, over the hull maps
     jsr boss_read_run
     ldx #$00
     lda LEVEL_ID
@@ -765,23 +768,6 @@ boss_frame_timers:
 @done:
     rts
 
-; A damaging hit: the band's four colours raised by flashLuma for one frame
-; (the converter keeps every colour inside its hue). Keeps dst_ptr.
-boss_flash_on:
-    lda boss_flash_timer
-    bne @done                           ; this frame's flash is up already
-    lda #$01
-    sta boss_flash_timer
-    ldx #3
-:
-    lda BOSS_T_PALETTE,x
-    clc
-    adc BOSS_T_FLASH_LUMA
-    sta boss_palette,x
-    dex
-    bpl :-
-@done:
-    rts
 
 ; X = the tone: the tick over the engine bed for two frames (Q-B4), never
 ; when the sound is off. Keeps dst_ptr.
@@ -2031,10 +2017,92 @@ laser_begin:
     lda #$00
     sta boss_laser_fired,x
     sta boss_laser_ready,x
+.ifdef BOSS_WARN_VARIANT
+.if BOSS_WARN_VARIANT = 2
+    lda #$40                            ; F1 (b): the ramp from $42, a step now
+    sta b2_lum,x
+    lda #$01
+    sta b2_step,x
+.endif
+.endif
     jmp b2_take
 
 laser_module_bits:
     .byte $01, $02, $04, $08, $10, $20, $40, $80
+
+.segment "BOSS_E_CODE"
+; S4b.5 (owner decision F2, changing decision C): the band's four colours
+; raised by flashLuma for one frame when a hit destroys a module or changes its
+; damage stage - never on a plain hit, which keeps its spark and its tick. (Moved
+; from slot A, where it flashed on every damaging hit.) Keeps dst_ptr.
+boss_flash_on:
+    lda _boss_stage_module
+    and _boss_score_module
+    bmi @done                           ; neither: a plain hit
+    lda boss_flash_timer
+    bne @done                           ; this frame's flash is up already
+    lda #$01
+    sta boss_flash_timer
+    ldx #3
+:
+    lda BOSS_T_PALETTE,x
+    clc
+    adc BOSS_T_FLASH_LUMA
+    sta boss_palette,x
+    dex
+    bpl :-
+@done:
+    rts
+
+; S4b.5 (owner decision F3): a destroyed module counts for the capsule rule as
+; a destroyed enemy does (src/main.s, the kill path's
+; weapon_pickup_record_qualified_kill): none while a capsule is pending or
+; showing; the third kill earns one. The boss sector's Director grants no
+; capsule (no pickups in its hazards), so this one shows at once, at the
+; module's column just below the band, and falls as usual.
+boss_capsule_kill:
+    lda ENTITY_STATE + WEAPON_PICKUP_SLOT
+    bne @rts
+    inc ENTITY_HP + WEAPON_PICKUP_SLOT
+    lda ENTITY_HP + WEAPON_PICKUP_SLOT
+    cmp #WEAPON_PICKUP_QUALIFIED_KILLS
+    bcc @rts
+    ldx _boss_score_module
+    jsr boss_record_of
+    lda BOSS_T_MODULES + BOSS_M_X,y     ; the module's centre clock, x * 4 + w * 2
+    asl
+    asl
+    adc BOSS_T_MODULES + BOSS_M_WIDTH,y
+    adc BOSS_T_MODULES + BOSS_M_WIDTH,y
+    sec
+    sbc boss_shown_pos                  ; on screen
+    clc
+    adc #(BAND_ORIGIN_HPOS - 8)         ; the capsule centred on it (spawn adds 4)
+    jsr weapon_pickup_spawn_capsule_at
+    jsr integration_pickup_reveal_body
+    lda #BAND_BOTTOM_Y
+    sta ENTITY_Y + WEAPON_PICKUP_SLOT
+@rts:
+    rts
+
+; Every boss frame (from laser_frame): the boss sector's world is still (Q1),
+; and a capsule falls at half the world's speed (src/main.s
+; update_weapon_pickup_active) - so a capsule showing here gets the gameplay
+; world's rate, and the unchanged pickup update moves it as it does elsewhere.
+boss_capsule_fall:
+    lda ENTITY_STATE + WEAPON_PICKUP_SLOT
+    cmp #WEAPON_PICKUP_STATE_ACTIVE
+    bne @rts
+    ldx DIFFICULTY_SETTING
+    lda ENTITY_TIMER + WEAPON_PICKUP_SLOT
+    clc
+    adc boss_capsule_rates,x
+    sta ENTITY_TIMER + WEAPON_PICKUP_SLOT
+@rts:
+    rts
+boss_capsule_rates:
+    .byte GAMEPLAY_WORLD_RATE_EASY, GAMEPLAY_WORLD_RATE_MEDIUM, GAMEPLAY_WORLD_RATE_HARD
+.segment "BOSS_D_CODE"
 
 ; S4b.4 (owner decision 4): right after the controller's tick, which exposes
 ; a module on the tick after its cover's kill - the frame after the shield is
@@ -2101,6 +2169,10 @@ b2_prepare:
     lda #B2_COLOUR
     sta COLPM1
     sta COLPM2
+.ifdef BOSS_WARN_VARIANT
+    sta b2_colour                       ; F1: the DLI publishes these
+    sta b2_colour+1
+.endif
     rts
 
 ; Leaving the boss sector: COLPM1 / COLPM2 as gameplay has them, M1 / M2 off.
@@ -2109,6 +2181,10 @@ b2_restore:
     sta HPOSM1
     sta HPOSM2
     lda _heavy_hull_colour
+.ifdef BOSS_WARN_VARIANT
+    sta b2_colour                       ; F1: and the DLI publishes them
+    sta b2_colour+1
+.endif
     sta COLPM1
     sta COLPM2
     lda #$00
@@ -2160,6 +2236,7 @@ b2_pair_three:
 ; The defeat or the last life lost ends the boss sector for the lasers: all
 ; off, the column erased, COLPM1 / COLPM2 restored.
 laser_frame:
+    jsr boss_capsule_fall               ; S4b.5 (F3): a capsule falls (slot E)
     lda #BOSS_SHOT_ADMIT                ; AUD-04: this frame's meetings
     sta boss_shots_admit_left
     jsr laser_hostile_shots
@@ -2268,6 +2345,34 @@ laser_place:
     lda boss_laser_state,x
     cmp #LASER_BEAM
     beq @beam
+.ifdef BOSS_WARN_VARIANT
+    ; S4b.5 (owner decision F1): the warning line in its own missile's colour,
+    ; widening by thirds of the warning - 1, 2, then 4 colour clocks.
+    jsr laser_warn_colour
+    lda boss_laser_timer,x
+    sta laser_t
+    asl
+    adc laser_t                         ; the frames left x 3 (C = 0: < 86)
+    ldy DIFFICULTY_SETTING
+    cmp LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_WARNING,y
+    bcc @four                           ; the last third
+    sbc LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_WARNING,y
+    cmp LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_WARNING,y
+    bcs @thin                           ; the first third
+    lda b2_one,x
+    ldy #1
+    bne @size
+@thin:
+    lda #$00
+    tay
+    beq @size
+@beam:
+    lda #B2_COLOUR                      ; the beam: $46, four clocks
+    jsr laser_colour
+@four:
+    lda b2_three,x
+    ldy #2
+.else
     lda boss_laser_timer,x
     and #$02
     beq @thin
@@ -2281,6 +2386,7 @@ laser_place:
 @beam:
     lda b2_three,x
     ldy #2
+.endif
 @size:
     ora boss_laser_sizem
     sta boss_laser_sizem
@@ -2295,9 +2401,59 @@ laser_place:
 :
     rts
 
+.ifdef BOSS_WARN_VARIANT
+.segment "BOSS_E_CODE"
+; X = a laser in its warning: this frame's colour for its missile (F1).
+laser_warn_colour:
+.if BOSS_WARN_VARIANT = 1
+    ; (a) flicker: white and the beam's $46 by 2-frame groups.
+    lda boss_laser_timer,x
+    and #$02
+    beq :+
+    lda #$0E
+    bne laser_colour
+:
+    lda #B2_COLOUR
+.else
+    ; (b) ramp: $42 climbing by 2 every warning / 8 frames to $4E, white for
+    ; the last 4.
+    lda boss_laser_timer,x
+    cmp #5
+    bcc @white
+    dec b2_step,x
+    bne @hold
+    ldy DIFFICULTY_SETTING
+    lda LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_WARNING,y
+    lsr
+    lsr
+    lsr
+    sta b2_step,x
+    lda b2_lum,x
+    cmp #$4E
+    bcs @hold
+    adc #$02
+    sta b2_lum,x
+@hold:
+    lda b2_lum,x
+    bne laser_colour
+@white:
+    lda #$0E
+.endif
+; A = a colour -> X's missile's, published by the band DLI. Keeps X.
+laser_colour:
+    ldy b2_missile,x
+    beq :+
+    sta b2_colour-1,y
+:
+    rts
+.segment "BOSS_D_CODE"
+.endif
+
 ; From the kill path (boss_module_scored): the destroyed module's laser, if it
-; has one, goes off on the kill frame. Touches A, X, Y.
+; has one, goes off on the kill frame; and (S4b.5, owner decision F3) the kill
+; counts for the capsule rule as an enemy kill does. Touches A, X, Y.
 laser_killed:
+    jsr boss_capsule_kill
     lda _boss_score_module
     ldx #(LASERS - 1)
 :
@@ -2603,6 +2759,12 @@ laser_publish:
     LASER_PUBLISH 3
     B2_PUBLISH 0
     B2_PUBLISH 1
+.ifdef BOSS_WARN_VARIANT
+    lda b2_colour                       ; F1: the lines' own colours
+    sta COLPM1
+    lda b2_colour+1
+    sta COLPM2
+.endif
     lda boss_laser_sizem
     sta SIZEM
     rts
@@ -2642,6 +2804,15 @@ b2_one:             .res LASERS ; its missile's SIZEM pairs
 b2_three:           .res LASERS
 b2_owner:           .res 2      ; each missile's laser, $FF free
 b2_edge:            .res 2      ; its laser's edge, for the DLI
+.ifdef BOSS_WARN_VARIANT
+b2_colour:          .res 2      ; F1: M1's / M2's colour, for the DLI
+.if BOSS_WARN_VARIANT = 2
+.segment "BOSS_E_BSS"
+b2_lum:             .res LASERS ; F1 (b): the ramp's colour
+b2_step:            .res LASERS ; F1 (b): frames to its next step
+.segment "BOSS_D_BSS"
+.endif
+.endif
 boss_laser_reload_lo: .res LASERS
 boss_laser_reload_hi: .res LASERS
 boss_shots_admit_left: .res 1   ; AUD-04: meetings left this frame

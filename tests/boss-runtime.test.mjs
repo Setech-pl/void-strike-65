@@ -148,6 +148,9 @@ test("decision 32: WARNING - BOSS APPROACHING, the theme started, then every run
     // RE-POINTED M5b-S4b (owner decision Q7): slot D, the lasers and the boss's
     // shots in the band, from 563 (after slot C's 16 reserved), sized to use.
     ...run(563, BOSS.slotD.sectors),
+    // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision of 2026-10-07): slot E,
+    // over the expanded hull maps, from 577 (after slot D's 14 reserved).
+    ...run(577, BOSS.slotE.sectors),
     ...run(634, 3), ...run(637, 3),                       // the band: rows 0-5, rows 6-7 + tables
     ...run(640, charsetSectors),                          // the region's charset at $0C00
   ]);

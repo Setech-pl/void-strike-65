@@ -57,6 +57,12 @@ export const BOSS_SCRATCH_BYTES = 0x0100;
 // shots inside the band, read at every boss entry, sized to use.
 export const BOSS_SLOT_D_ADDRESS = 0x1900;
 export const BOSS_SLOT_D_BYTES = 0x0700;
+// M5b-S4b.5 (owner decision of 2026-10-07, option 1): slot E, the boss's code
+// in the expanded hull maps' RAM ($4C00-$4E3F, 576 B), which the capital
+// sector alone reads and every gameplay start rebuilds; read as one more run
+// at the boss entry, live in the boss sector only.
+export const BOSS_SLOT_E_ADDRESS = 0x4c00;
+export const BOSS_SLOT_E_BYTES = 0x0240;
 // M5b-S4b.4 (owner decision E4, option (b)): the region's look tail, linked
 // at the start of slot D. It and its loader take at most 110 B of the
 // $1900-$1FFF remainder; the loader is slot D's own run (0 B of code).

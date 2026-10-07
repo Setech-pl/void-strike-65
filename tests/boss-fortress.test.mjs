@@ -444,12 +444,14 @@ test("damaging, absorbed and hull hits each read differently; only damaging hits
     c >= visibleCells(32).left && c <= visibleCells(32).right);
   assert.ok(hullColumn >= 0, "a girder on screen");
   const base = bandPalette(memory);
-  // Damaging: spark, the band flash, the damage tick, one hit counted.
+  // Damaging: spark, the damage tick, one hit counted.
+  // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision F2, a change to decision
+  // C): a plain damaging hit no longer flashes the band - only a kill or a
+  // damage stage does (tests/boss-s4b5.test.mjs, and "the band flash lasts one
+  // frame" below on a stage change). Its spark, tick and count are unchanged.
   const damaging = shoot(memory, plateColumn);
   assert.equal(damaging.counted, 1);
-  const flashed = bandPalette(memory);
-  const luma = region1.tables[BOSS_TABLE.flashLuma];
-  assert.deepEqual(flashed, base.map((value) => value + luma), "the band flash");
+  assert.deepEqual(bandPalette(memory), base, "a plain damaging hit flashed the band");
   const damageTone = [writesTo(damaging.writes, AUDF3).at(-1), writesTo(damaging.writes, AUDC3).at(-1)];
   settle(memory, 3);
   // Hull: the deflection, no flash, its own tick, no hit.
@@ -479,7 +481,11 @@ test("damaging, absorbed and hull hits each read differently; only damaging hits
 test("the band flash lasts one frame", () => {
   const memory = fortress(32);
   const base = bandPalette(memory);
-  shoot(memory, columnMap(memory).indexOf(byName.get("plate-d")));
+  // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision F2): the band flashes on
+  // a kill or a damage stage only, so the hit crosses plate-d's crack.
+  const plate = byName.get("plate-d");
+  memory[label("boss", "_boss_hp") + plate] = memory[label("boss", "_boss_crack") + plate] + 1;
+  shoot(memory, columnMap(memory).indexOf(plate));
   assert.notDeepEqual(bandPalette(memory), base);
   update(memory);
   assert.deepEqual(bandPalette(memory), base, "the flash outlived its frame");

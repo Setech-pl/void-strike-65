@@ -9,31 +9,31 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "1e8b2d09de1d1940f9732a5ff6e99c481df4a824b2c26ef03f752a583d1d9de4",
+    "replay_fingerprint_sha256": "e214467eb8fd780e6172cb8cd86051dcfcae9b62bc394df2ae5698228fbe2479",
     "ordered_frames": 124759,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
-      "bytes": 27008,
-      "sha256": "3be9a2410be344f6aa84931b7440708f9013cf5b9f0937d289d983faf8a8531a"
+      "bytes": 27136,
+      "sha256": "407e3820961a7a43ec767558b4c51d38c72a4cac69007265ded63c2010015b0a"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+      "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 872585,
-      "sha256": "e64bae0b5df04647f99d5e6869865511c6f5b70736341eb1c84dca1a9b654625"
+      "bytes": 875024,
+      "sha256": "018dd6b2193001232d587f3e50a561cc4fcb8e4c93cf7591657b5906ab4e0513"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+    "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
   },
   "emulator": {
     "name": "Atari800",
@@ -59,8 +59,8 @@
     "cold_ram_range": "$8000-$9FFF",
     "sector_reader": {
       "address": 40960,
-      "bytes": 1507,
-      "free_bytes": 29,
+      "bytes": 1491,
+      "free_bytes": 45,
       "level_buffer_address": 42496,
       "level_image_file": "level-1.bin",
       "level_image_bytes": 1664,
@@ -174,8 +174,8 @@
       "guard_address": 48154,
       "end_exclusive": 48128,
       "capacity_bytes": 3584,
-      "used_bytes": 2268,
-      "free_bytes": 1316,
+      "used_bytes": 2393,
+      "free_bytes": 1191,
       "probe_bytes": 1497,
       "probe_hex": "acfc86b97f9d8dfd86adf880cdfd86b0",
       "window_read_back_at_frames": [
@@ -231,7 +231,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -279,7 +279,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 296,
+            "frame": 297,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -309,7 +309,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 346,
+            "frame": 347,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -342,7 +342,7 @@
             "frame": 3050,
             "pc": 9973,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 11,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -396,36 +396,36 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 3311518249
+            "splash_checksum": 205878196
           }
         ],
         "milestones": {
-          "start": 236,
-          "loader": 293,
-          "menu": 550,
-          "frontend_poll": 552,
+          "start": 237,
+          "loader": 294,
+          "menu": 551,
+          "frontend_poll": 553,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 550,
-          "frontend_poll_frame": 552,
+          "menu_frame": 551,
+          "frontend_poll_frame": 553,
           "baseline_frames": 596,
-          "delta_frames": -46,
+          "delta_frames": -45,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 293,
+          "loader_frame": 294,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": -46,
+          "loader_delta_frames": -45,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            296,
-            346
+            297,
+            347
           ]
         },
         "sector_reader": {
@@ -459,14 +459,14 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 296,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame296.png",
+            "frame": 297,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame297.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 346,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame346.png",
+            "frame": 347,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame347.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
@@ -489,11 +489,11 @@
         "blank_windows": [
           {
             "from": 1,
-            "frames": 294,
+            "frames": 295,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 236
+            "start": 237
           }
         ],
         "passed": true
@@ -507,7 +507,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -555,7 +555,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 296,
+            "frame": 297,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -585,7 +585,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 346,
+            "frame": 347,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -618,7 +618,7 @@
             "frame": 3050,
             "pc": 9973,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 11,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -672,36 +672,36 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 3311518249
+            "splash_checksum": 205878196
           }
         ],
         "milestones": {
-          "start": 236,
-          "loader": 293,
-          "menu": 550,
-          "frontend_poll": 552,
+          "start": 237,
+          "loader": 294,
+          "menu": 551,
+          "frontend_poll": 553,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 550,
-          "frontend_poll_frame": 552,
+          "menu_frame": 551,
+          "frontend_poll_frame": 553,
           "baseline_frames": 596,
-          "delta_frames": -46,
+          "delta_frames": -45,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 293,
+          "loader_frame": 294,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": -46,
+          "loader_delta_frames": -45,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            296,
-            346
+            297,
+            347
           ]
         },
         "sector_reader": {
@@ -735,14 +735,14 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 296,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame296.png",
+            "frame": 297,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame297.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 346,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame346.png",
+            "frame": 347,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame347.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
@@ -765,11 +765,11 @@
         "blank_windows": [
           {
             "from": 1,
-            "frames": 294,
+            "frames": 295,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 236
+            "start": 237
           }
         ],
         "passed": true
@@ -783,7 +783,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -831,7 +831,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 287,
+            "frame": 288,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -861,7 +861,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 337,
+            "frame": 338,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -892,9 +892,9 @@
           },
           {
             "frame": 3050,
-            "pc": 9973,
+            "pc": 9970,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 10,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -948,36 +948,36 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 3311518249
+            "splash_checksum": 205878196
           }
         ],
         "milestones": {
-          "start": 227,
-          "loader": 284,
-          "menu": 541,
-          "frontend_poll": 543,
+          "start": 228,
+          "loader": 285,
+          "menu": 542,
+          "frontend_poll": 544,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 541,
-          "frontend_poll_frame": 543,
+          "menu_frame": 542,
+          "frontend_poll_frame": 544,
           "baseline_frames": 596,
-          "delta_frames": -55,
+          "delta_frames": -54,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 284,
+          "loader_frame": 285,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": -55,
+          "loader_delta_frames": -54,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            287,
-            337
+            288,
+            338
           ]
         },
         "sector_reader": {
@@ -1011,14 +1011,14 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 287,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame287.png",
+            "frame": 288,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame288.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 337,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame337.png",
+            "frame": 338,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame338.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
@@ -1041,11 +1041,11 @@
         "blank_windows": [
           {
             "from": 1,
-            "frames": 285,
+            "frames": 286,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 227
+            "start": 228
           }
         ],
         "passed": true
@@ -1059,7 +1059,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1107,7 +1107,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 287,
+            "frame": 288,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -1137,7 +1137,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 337,
+            "frame": 338,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -1168,9 +1168,9 @@
           },
           {
             "frame": 3050,
-            "pc": 9973,
+            "pc": 9970,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 10,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -1224,36 +1224,36 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 3311518249
+            "splash_checksum": 205878196
           }
         ],
         "milestones": {
-          "start": 227,
-          "loader": 284,
-          "menu": 541,
-          "frontend_poll": 543,
+          "start": 228,
+          "loader": 285,
+          "menu": 542,
+          "frontend_poll": 544,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 541,
-          "frontend_poll_frame": 543,
+          "menu_frame": 542,
+          "frontend_poll_frame": 544,
           "baseline_frames": 596,
-          "delta_frames": -55,
+          "delta_frames": -54,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 284,
+          "loader_frame": 285,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": -55,
+          "loader_delta_frames": -54,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            287,
-            337
+            288,
+            338
           ]
         },
         "sector_reader": {
@@ -1287,14 +1287,14 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 287,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame287.png",
+            "frame": 288,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame288.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 337,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame337.png",
+            "frame": 338,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame338.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
@@ -1317,11 +1317,11 @@
         "blank_windows": [
           {
             "from": 1,
-            "frames": 285,
+            "frames": 286,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 227
+            "start": 228
           }
         ],
         "passed": true
@@ -1337,7 +1337,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1385,7 +1385,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 296,
+            "frame": 297,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -1415,7 +1415,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 346,
+            "frame": 347,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -1448,7 +1448,7 @@
             "frame": 3050,
             "pc": 9973,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 11,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -1502,36 +1502,36 @@
             "level_checksum": 1739969810,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
-            "splash_checksum": 3311518249
+            "splash_checksum": 205878196
           }
         ],
         "milestones": {
-          "start": 236,
-          "loader": 293,
-          "menu": 550,
-          "frontend_poll": 552,
+          "start": 237,
+          "loader": 294,
+          "menu": 551,
+          "frontend_poll": 553,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 550,
-          "frontend_poll_frame": 552,
+          "menu_frame": 551,
+          "frontend_poll_frame": 553,
           "baseline_frames": 596,
-          "delta_frames": -46,
+          "delta_frames": -45,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 293,
+          "loader_frame": 294,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": -46,
+          "loader_delta_frames": -45,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            296,
-            346
+            297,
+            347
           ]
         },
         "sector_reader": {
@@ -1565,14 +1565,14 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 296,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame296.png",
+            "frame": 297,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame297.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 346,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame346.png",
+            "frame": 347,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame347.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
@@ -1595,19 +1595,19 @@
         "blank_windows": [
           {
             "from": 1,
-            "frames": 294,
+            "frames": 295,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 236
+            "start": 237
           },
           {
             "from": 3403,
-            "frames": 285,
+            "frames": 286,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 3629
+            "start": 3630
           }
         ],
         "passed": true
@@ -1667,7 +1667,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1676,7 +1676,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1685,7 +1685,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1694,7 +1694,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+          "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }
@@ -1706,7 +1706,7 @@
     "cpu_comparison_headroom": 21226,
     "measured_wall_cycles_dma_on": 31074,
     "measured_physical_headroom": 4494,
-    "estimated_additive_cycles": 27240
+    "estimated_additive_cycles": 27242
   },
   "heaviest_frame_cost_breakdown": {
     "session": "director-complete-1-natural-sweep-fire0",
@@ -3455,13 +3455,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3485,13 +3485,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3515,13 +3515,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3545,13 +3545,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3575,13 +3575,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3605,13 +3605,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3635,13 +3635,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3665,13 +3665,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3695,13 +3695,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3725,13 +3725,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3755,13 +3755,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3785,13 +3785,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3815,13 +3815,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3845,13 +3845,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3875,13 +3875,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
@@ -3915,13 +3915,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
@@ -3955,13 +3955,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -3985,13 +3985,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4015,13 +4015,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ],
@@ -4031,7 +4031,7 @@
             "ready": 8664,
             "accept": 8668,
             "shown_frames": 155,
-            "reads": 9,
+            "reads": 10,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
@@ -4080,13 +4080,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ],
@@ -4096,7 +4096,7 @@
             "ready": 9465,
             "accept": 9468,
             "shown_frames": 154,
-            "reads": 9,
+            "reads": 10,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
@@ -4145,13 +4145,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ],
@@ -4161,7 +4161,7 @@
             "ready": 10731,
             "accept": 10732,
             "shown_frames": 152,
-            "reads": 9,
+            "reads": 10,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
@@ -4210,13 +4210,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST             B 03085"
             }
           ],
@@ -4245,13 +4245,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ],
@@ -4261,7 +4261,7 @@
             "ready": 10731,
             "accept": 10732,
             "shown_frames": 152,
-            "reads": 8,
+            "reads": 9,
             "writes": 1,
             "write_sector": 599,
             "write_protected": true,
@@ -4310,13 +4310,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
@@ -4350,13 +4350,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4380,13 +4380,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4410,13 +4410,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
@@ -4450,13 +4450,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4480,13 +4480,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4510,13 +4510,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4540,13 +4540,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4570,13 +4570,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4600,13 +4600,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
@@ -4650,13 +4650,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4680,13 +4680,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4710,13 +4710,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4740,13 +4740,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4770,13 +4770,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4800,13 +4800,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4835,13 +4835,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -4870,13 +4870,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
@@ -4914,28 +4914,28 @@
         "capital_rows_after_rebuild": 256,
         "reset_transition": {
           "frame": 3160,
-          "host_frames": 772
+          "host_frames": 780
         },
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
-              "entry": 4802,
-              "display": 4804,
-              "loaded": 4883,
-              "ready": 4955,
-              "accept": 4956,
+              "entry": 4803,
+              "display": 4805,
+              "loaded": 4884,
+              "ready": 4956,
+              "accept": 4964,
               "reads": 21,
-              "shown_frames": 152,
+              "shown_frames": 159,
               "best": "BEST                  --"
             }
           ]
@@ -4959,13 +4959,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -5019,13 +5019,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -5079,13 +5079,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -5139,13 +5139,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -5199,13 +5199,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 607,
-              "display": 609,
-              "loaded": 688,
-              "ready": 760,
+              "entry": 608,
+              "display": 610,
+              "loaded": 689,
+              "ready": 761,
               "accept": 764,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -5259,13 +5259,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -5319,13 +5319,13 @@
         "level_summary": {
           "start_summaries": [
             {
-              "entry": 623,
-              "display": 625,
-              "loaded": 704,
-              "ready": 776,
+              "entry": 624,
+              "display": 626,
+              "loaded": 705,
+              "ready": 777,
               "accept": 780,
               "reads": 21,
-              "shown_frames": 155,
+              "shown_frames": 154,
               "best": "BEST                  --"
             },
             {
@@ -10135,19 +10135,19 @@
           "frame": 3710,
           "gameplay_frame": 126,
           "difficulty": 2,
-          "wall_cycles": 27170,
-          "physical_headroom": 8398,
+          "wall_cycles": 27272,
+          "physical_headroom": 8296,
           "start": {
-            "clock": 169519376,
+            "clock": 169519380,
             "host_frame": 4766,
             "scanline": 20,
-            "cycle": 8
+            "cycle": 12
           },
           "end": {
-            "clock": 169546546,
+            "clock": 169546652,
             "host_frame": 4766,
-            "scanline": 258,
-            "cycle": 46
+            "scanline": 259,
+            "cycle": 38
           },
           "next_start": {
             "clock": 169554944,
@@ -11496,8 +11496,8 @@
           "frame": 5021,
           "gameplay_frame": 157,
           "difficulty": 0,
-          "wall_cycles": 26908,
-          "physical_headroom": 8660,
+          "wall_cycles": 27017,
+          "physical_headroom": 8551,
           "start": {
             "clock": 215117621,
             "host_frame": 6048,
@@ -11505,13 +11505,13 @@
             "cycle": 77
           },
           "end": {
-            "clock": 215144529,
+            "clock": 215144638,
             "host_frame": 6048,
-            "scanline": 256,
-            "cycle": 81
+            "scanline": 257,
+            "cycle": 76
           },
           "next_start": {
-            "clock": 215153195,
+            "clock": 215153203,
             "host_frame": 6049
           },
           "host_vbi_boundaries": 0,

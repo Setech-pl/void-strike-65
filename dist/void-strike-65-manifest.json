@@ -132,7 +132,7 @@
         "packedLength": 1132,
         "rawLength": 1132,
         "finalDestination": 35968,
-        "crc16": 14831,
+        "crc16": 8363,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -149,7 +149,7 @@
   "startAddress": 8222,
   "bootInitAddress": 8634,
   "bootSectors": 107,
-  "payloadBytes": 27008,
+  "payloadBytes": 27136,
   "bootPayloadTrailer": {
     "address": 21806,
     "bytes": 4,
@@ -224,12 +224,12 @@
     "initialBootContentBytes": 13618,
     "initialBootEnvelopeBytes": 78,
     "initialBootSectors": 107,
-    "extensionBytes": 13312,
-    "extensionSectors": 104,
-    "totalTransportBytes": 27008,
-    "totalTransportSectors": 211,
-    "remainingAtrSectors": 509,
-    "remainingAtrTransportBytes": 65152,
+    "extensionBytes": 13440,
+    "extensionSectors": 105,
+    "totalTransportBytes": 27136,
+    "totalTransportSectors": 212,
+    "remainingAtrSectors": 508,
+    "remainingAtrTransportBytes": 65024,
     "architecturalAdditionalCapacityBytes": 0,
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 11,
@@ -293,20 +293,20 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 27018,
+      "crc16": 57984,
       "parsed": {
         "version": 1,
-        "totalOccupiedSectors": 211,
+        "totalOccupiedSectors": 212,
         "manifestBytes": 190,
-        "crc16": 27018,
+        "crc16": 57984,
         "records": [
           {
             "startSector": 108,
             "sectorCount": 44,
-            "packedLength": 5522,
+            "packedLength": 5525,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 33228,
+            "crc16": 9970,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -317,7 +317,7 @@
             "packedLength": 1132,
             "rawLength": 1132,
             "finalDestination": 35968,
-            "crc16": 14831,
+            "crc16": 8363,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -328,7 +328,7 @@
             "packedLength": 105,
             "rawLength": 106,
             "finalDestination": 32792,
-            "crc16": 5271,
+            "crc16": 3539,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -339,7 +339,7 @@
             "packedLength": 327,
             "rawLength": 498,
             "finalDestination": 39744,
-            "crc16": 148,
+            "crc16": 6608,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -350,7 +350,7 @@
             "packedLength": 735,
             "rawLength": 735,
             "finalDestination": 30736,
-            "crc16": 38289,
+            "crc16": 36053,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -361,7 +361,7 @@
             "packedLength": 23,
             "rawLength": 21,
             "finalDestination": 40286,
-            "crc16": 65153,
+            "crc16": 59333,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -372,7 +372,7 @@
             "packedLength": 719,
             "rawLength": 797,
             "finalDestination": 31696,
-            "crc16": 59212,
+            "crc16": 65032,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -383,40 +383,40 @@
             "packedLength": 1183,
             "rawLength": 1497,
             "finalDestination": 44544,
-            "crc16": 56197,
+            "crc16": 46858,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
             "startSector": 189,
-            "sectorCount": 6,
-            "packedLength": 693,
-            "rawLength": 771,
+            "sectorCount": 7,
+            "packedLength": 782,
+            "rawLength": 896,
             "finalDestination": 46041,
-            "crc16": 54817,
+            "crc16": 6615,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 195,
+            "startSector": 196,
             "sectorCount": 12,
-            "packedLength": 1507,
-            "rawLength": 1507,
+            "packedLength": 1491,
+            "rawLength": 1491,
             "finalDestination": 40960,
-            "crc16": 51116,
+            "crc16": 48489,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 207,
+            "startSector": 208,
             "sectorCount": 5,
             "packedLength": 503,
             "rawLength": 610,
             "finalDestination": 40309,
-            "crc16": 34469,
+            "crc16": 40929,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -444,16 +444,16 @@
     "runAddress": 24080,
     "bytes": 6653,
     "reservedBytes": 6656,
-    "packedBytes": 5522,
+    "packedBytes": 5525,
     "packedSourceAddress": 33024,
     "compression": "LZ-10/5",
     "externalChunk": {
       "startSector": 108,
       "sectors": 44,
       "transportBytes": 5632,
-      "packedBytes": 5522,
+      "packedBytes": 5525,
       "rawBytes": 6653,
-      "crc16": 33228,
+      "crc16": 9970,
       "stagingAddress": 33024,
       "stagingEndAddress": 38655,
       "finalAddress": 24080
@@ -472,7 +472,7 @@
       "startSector": 163,
       "sectors": 3,
       "transportBytes": 384,
-      "crc16": 148
+      "crc16": 6608
     }
   },
   "directorRuntime": {
@@ -483,18 +483,18 @@
     "bytes": 610,
     "packedBytes": 503,
     "externalChunk": {
-      "startSector": 207,
+      "startSector": 208,
       "sectors": 5,
       "transportBytes": 640,
-      "crc16": 34469
+      "crc16": 40929
     }
   },
   "directorCodeRuntime": null,
   "sectorReader": {
     "address": 40960,
-    "bytes": 1507,
+    "bytes": 1491,
     "capacityBytes": 1536,
-    "freeBytes": 29,
+    "freeBytes": 45,
     "transport": "own DFMC record, RAW, direct landing at $A000",
     "levelBuffer": {
       "address": 42496,
@@ -512,9 +512,9 @@
       }
     ],
     "overlayDirectory": {
-      "address": 42386,
-      "entries": 9,
-      "bytes": 45,
+      "address": 42401,
+      "entries": 10,
+      "bytes": 50,
       "names": [
         "capital slot A restore (M5a-S1)",
         "boss code (M5b)",
@@ -524,24 +524,25 @@
         "boss region 4 (M5b)",
         "hangar / summary art (M5a-S2)",
         "scores / save record (M5a-S2)",
-        "level summary code (M5a-S2)"
+        "level summary code (M5a-S2)",
+        "disk identity (audit-hardening)"
       ]
     },
-    "slotAOverlaidFlag": 42336,
-    "summaryResidentFlag": 42337
+    "slotAOverlaidFlag": 42351,
+    "summaryResidentFlag": 42352
   },
   "levelSummary": {
     "code": {
       "address": 1280,
-      "bytes": 1677,
+      "bytes": 1788,
       "endExclusive": 3072,
       "capacityBytes": 1792,
-      "freeBytes": 115,
+      "freeBytes": 4,
       "maxSectors": 14,
       "startSector": 584,
       "sectors": 14,
       "file": "level-summary.bin",
-      "displayList": "000B2C"
+      "displayList": "000B72"
     },
     "art": {
       "source": "assets/graphics/level-summary.json",
@@ -618,6 +619,117 @@
         583
       ]
     }
+  },
+  "diskGuard": {
+    "address": 46812,
+    "bytes": 89,
+    "record": "the Light kernel's DFMC record (owner Q2: +1 extension sector)",
+    "identity": {
+      "sector": 598,
+      "directoryEntry": 9,
+      "block": "56533635a91a",
+      "magic": "VS65",
+      "layoutId": 6825,
+      "layout": {
+        "levelBaseSector": 320,
+        "levelBufferSectors": 16,
+        "overlayBaseSector": 512,
+        "identitySector": 598,
+        "saveRecordSector": 599,
+        "summaryCodeSector": 584,
+        "summaryCodeMaxSectors": 14,
+        "summaryArtBaseSector": 600,
+        "summaryArtSectors": 7,
+        "bossReservationSector": 528,
+        "bossReservationSectors": 56,
+        "bossRegionBaseSector": 632,
+        "bossRegionSectors": 16,
+        "bossRegionCount": 4
+      }
+    },
+    "fold": "per accepted sector: a += its SIO carry-wrap sum; b += a + carry (16-bit)",
+    "directorySums": [
+      {
+        "index": 0,
+        "name": "capital slot A restore (M5a-S1)",
+        "expected": "$8027"
+      },
+      {
+        "index": 1,
+        "name": "boss code (M5b)",
+        "expected": "$2A34"
+      },
+      {
+        "index": 2,
+        "name": "boss region 1 (M5b)",
+        "expected": "$49CB"
+      },
+      {
+        "index": 3,
+        "name": "boss region 2 (M5b)",
+        "expected": null
+      },
+      {
+        "index": 4,
+        "name": "boss region 3 (M5b)",
+        "expected": null
+      },
+      {
+        "index": 5,
+        "name": "boss region 4 (M5b)",
+        "expected": null
+      },
+      {
+        "index": 6,
+        "name": "hangar / summary art (M5a-S2)",
+        "expected": "$66EE"
+      },
+      {
+        "index": 7,
+        "name": "scores / save record (M5a-S2)",
+        "expected": "never checked"
+      },
+      {
+        "index": 8,
+        "name": "level summary code (M5a-S2)",
+        "expected": "$73AB"
+      },
+      {
+        "index": 9,
+        "name": "disk identity (audit-hardening)",
+        "expected": "$D8D8"
+      }
+    ],
+    "bossHeadSums": [
+      "$4563",
+      null,
+      null,
+      null
+    ],
+    "summaryArtSums": [
+      "$66EE",
+      "$50B4",
+      "$BBFB",
+      "$1502"
+    ],
+    "summaryLevelSums": [
+      "$AF25",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   "overlays": {
     "baseSector": 512,
@@ -706,7 +818,7 @@
           "address": 46089
         }
       ],
-      "imageInReader": 42431
+      "imageInLightKernel": 46901
     },
     "runs": [
       {
@@ -731,9 +843,9 @@
     },
     "slotA": {
       "address": 28136,
-      "bytes": 2007,
+      "bytes": 2042,
       "capacityBytes": 2048,
-      "freeBytes": 41,
+      "freeBytes": 6,
       "sectors": 16
     },
     "install": {
@@ -800,7 +912,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "923f1d0533984d1c220480010d3cfebfd7ead38728fd015186e154fce673d7d7",
+        "sha256": "60ce0348dbf4620e0644ec33756b3fc4aba66f16fb1ba8f14d56681487990ecb",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -809,7 +921,7 @@
         "sectors": 3,
         "destination": 30736,
         "bytes": 384,
-        "sha256": "a9c094599c302c54d8902cdd48b7091ff9b32f0914e029a830630a08838fd58b",
+        "sha256": "4f7cadffb748d79c7d2eff58ac7556f23029bfff62da4f44520a411a4495fafd",
         "file": "overlay-boss-install.bin"
       },
       {
@@ -818,7 +930,7 @@
         "sectors": 14,
         "destination": 4096,
         "bytes": 1792,
-        "sha256": "573fce9210e0a9b24770c7733c180d8d1fec24e44315b41343717dd5b5a5f7da",
+        "sha256": "0752891e5f3019ccb001c17fb87a6e05204ac5300f581526f6c77e0fcf74d436",
         "file": "overlay-boss-slot-c.bin"
       },
       {
@@ -827,7 +939,7 @@
         "sectors": 14,
         "destination": 6400,
         "bytes": 1792,
-        "sha256": "d2267f8b6c5f3f9b49e949c548d529044d92066bd4386e83c0caea1eadd198bb",
+        "sha256": "cbd3907ee503344f4f97d48074a7cadc785e28e1df161d67ed2cab46e98d4b26",
         "file": "overlay-boss-slot-d.bin"
       },
       {
@@ -836,7 +948,7 @@
         "sectors": 1,
         "destination": 19456,
         "bytes": 128,
-        "sha256": "a67bc1df489b0f760a3f102b60a17dfdd00bb372cf5491957d2ac9e5dcff872e",
+        "sha256": "b160b10e7f6b2d545b15c2db5e65bee08525967202dfe7ce74680e420fdde530",
         "file": "overlay-boss-slot-e.bin"
       },
       {
@@ -898,11 +1010,11 @@
   },
   "lightKernel": {
     "address": 46041,
-    "bytes": 771,
-    "packedBytes": 693,
+    "bytes": 896,
+    "packedBytes": 782,
     "capacityBytes": 2087,
-    "freeBytes": 1316,
-    "endExclusive": 46812,
+    "freeBytes": 1191,
+    "endExclusive": 46937,
     "windowLimit": 48128,
     "cHalfEndExclusive": 46041,
     "vectors": {
@@ -977,9 +1089,9 @@
       "capacityBytes": 3584,
       "guardBytes": 6,
       "directorHalfBytes": 1497,
-      "lightKernelBytes": 771,
-      "usedBytes": 2268,
-      "freeBytes": 1316,
+      "lightKernelBytes": 896,
+      "usedBytes": 2393,
+      "freeBytes": 1191,
       "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
       "boundedBy": {
         "below": "16-sector level buffer $A600-$ADFF",
@@ -1025,7 +1137,7 @@
         "startSector": 162,
         "sectors": 1,
         "transportBytes": 128,
-        "crc16": 5271
+        "crc16": 3539
       }
     },
     {
@@ -1042,7 +1154,7 @@
         "startSector": 163,
         "sectors": 3,
         "transportBytes": 384,
-        "crc16": 148
+        "crc16": 6608
       }
     },
     {
@@ -1057,7 +1169,7 @@
         "startSector": 166,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 38289
+        "crc16": 36053
       }
     },
     {
@@ -1072,7 +1184,7 @@
         "startSector": 172,
         "sectors": 1,
         "transportBytes": 128,
-        "crc16": 65153
+        "crc16": 59333
       }
     },
     {
@@ -1087,7 +1199,7 @@
         "startSector": 173,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 59212
+        "crc16": 65032
       }
     },
     {
@@ -1102,7 +1214,7 @@
         "startSector": 179,
         "sectors": 10,
         "transportBytes": 1280,
-        "crc16": 56197
+        "crc16": 46858
       }
     }
   ],
@@ -1116,7 +1228,7 @@
       "startSector": 152,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 14831
+      "crc16": 8363
     }
   },
   "starfieldRuntime": {
@@ -1299,7 +1411,7 @@
       "startSector": 152,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 14831,
+      "crc16": 8363,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34678,
       "coldCapacityBytes": 1277,
@@ -2329,14 +2441,14 @@
       "dli": {
         "bodyCycles": [
           77,
-          48
+          50
         ],
         "nmiEntryCycles": 14,
-        "cpuCycles": 139,
+        "cpuCycles": 141,
         "maximumWsyncStallCycles": 228,
-        "conservativeCycles": 367
+        "conservativeCycles": 369
       },
-      "cycles": 27240,
+      "cycles": 27242,
       "classification": "diagnostic estimate only; not a measured PAL frame or physical headroom"
     },
     "legalHeavyCombination": {
@@ -23893,14 +24005,14 @@
     "cpu_comparison_headroom": 21226,
     "measured_wall_cycles_dma_on": 31074,
     "measured_physical_headroom": 4494,
-    "estimated_additive_cycles": 27240,
+    "estimated_additive_cycles": 27242,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "e25d276e0dbf10aeab01092eed340c286beafb189288ccd773f5730dacebbc5e",
+      "reportSha256": "1daf569315b00a29f401af14c67775b7f44d34a23ea8a7e75b82f3b8342a9377",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+        "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
       },
       "emulator": {
         "name": "Atari800",
@@ -23923,7 +24035,7 @@
         "cpu_comparison_headroom": 21226,
         "measured_wall_cycles_dma_on": 31074,
         "measured_physical_headroom": 4494,
-        "estimated_additive_cycles": 27240
+        "estimated_additive_cycles": 27242
       },
       "gate": {
         "pal_frame_cycles": 35568,
@@ -25476,26 +25588,26 @@
     "artifacts": {
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
-        "bytes": 27008,
-        "sha256": "3be9a2410be344f6aa84931b7440708f9013cf5b9f0937d289d983faf8a8531a"
+        "bytes": 27136,
+        "sha256": "407e3820961a7a43ec767558b4c51d38c72a4cac69007265ded63c2010015b0a"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+        "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "e25d276e0dbf10aeab01092eed340c286beafb189288ccd773f5730dacebbc5e"
+    "reportSha256": "1daf569315b00a29f401af14c67775b7f44d34a23ea8a7e75b82f3b8342a9377"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
-      "bytes": 27008,
-      "sha256": "3be9a2410be344f6aa84931b7440708f9013cf5b9f0937d289d983faf8a8531a"
+      "bytes": 27136,
+      "sha256": "407e3820961a7a43ec767558b4c51d38c72a4cac69007265ded63c2010015b0a"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+      "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
     }
   }
 }

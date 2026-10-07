@@ -471,6 +471,66 @@ hits, no life lost. Artifacts (after decision O, plan §5.16.8): default ATR
       always, no boss shot or player shot left anywhere, normal characters, the
       engine hum, the world scrolling. **RESET** returns to the splash.
 
+## 17. Disk safety: the save on the game's own disk, loads that check (`fix/audit-hardening`)
+
+Plan [plans/audit-hardening.md](plans/audit-hardening.md) (the October 2026
+audit's AUD-01, AUD-02 and the rest of AUD-03; owner decisions and answers of
+2026-10-07). **On copies only**, as §12: the game writes its record to its own
+disk, and this section deliberately mounts other disks. Default ATR
+`13f2dad4…` (`npm run play:atr` mounts `build/play/void-strike-65.atr`, a
+copy). The other disk for the emulator steps is a blank 720-sector image made
+by the command in the report (any disk you do not care about will do). In
+Atari800, F1 → Disk Management → D1: swaps the mounted image while the game
+runs. Emulator figures, for comparison only (EMULATOR): the boss entry still
+reads 64 sectors in 245 host frames; the level end reads one sector more (the
+identity, 598) before it writes; the menu appears one frame later (551, BASIC
+542) for the extra boot sector.
+
+- [ ] **The record saves on the game's own disk.** Play level 1 to the boss
+      and through the fight to the level-end summary (MEDIUM: about a minute
+      to the boss, two to the end). `BEST` shows the grade and score; power
+      off, boot the same copy, START GAME: `BEST` still shows them.
+- [ ] **Write-protected: skipped silently.** The same on a write-protected
+      copy (read-only SIO2SD image, a covered notch, or Atari800's read-only
+      mount): the summary shows `BEST` from memory, no error screen, no hang,
+      FIRE returns to the menu; the disk is unchanged.
+- [ ] **Another disk at the summary is never written** (emulator). In the
+      boss fight, swap D1: to the blank image before the boss falls, then win:
+      the summary's stats appear, then `DISK READ FAILED` / `WRONG DISK` (the
+      region's art read from the other disk does not check, so nothing of it
+      is drawn - the same way out as any read failure at the level's end, so
+      this game's score does not reach TOP SCORES); no crash, FIRE returns to
+      the menu. Then check the blank image is still blank (`cmp` against its
+      copy, command in the report). A swap after the art and before the
+      record (the 6502 tests' case) shows the summary with `BEST` from memory
+      and writes nothing.
+- [ ] **Another disk at the boss entry** (emulator). In level 1's last
+      sector, before `WARNING - BOSS APPROACHING`, swap D1: to the blank
+      image: the warning screen is followed by `DISK READ FAILED` / `WRONG
+      DISK`, no boss music, no garbage, no crash; FIRE returns to the menu.
+      Swap the game's copy back and START GAME: level 1 starts normally.
+- [ ] **Another disk at START GAME** (emulator): with the blank image in D1:
+      on the menu, START GAME ends at `DISK READ FAILED` with a reason, FIRE
+      returns to the menu; with the game's copy back, START GAME works.
+- [ ] **BASIC on and off; RESET.** The copy boots to the menu with BASIC
+      enabled (no OPTION held) and disabled; RESET during play returns to the
+      splash and a full cold start.
+- [ ] **Gameplay looks as before** (the gameplay DLI gained a `CLD`): the HUD,
+      the divider and the playfield colours switch on the same lines as on
+      `main`, in a normal level and in the boss sector; no flicker, no torn
+      line.
+- [ ] **SIO2SD and the real drive.** The save on the game's own copy, the
+      write-protected copy, and a **spare floppy** in the drive at the
+      level-end summary (swap after the boss falls): `DISK READ FAILED` with
+      `WRONG DISK` (or `READ ERROR` / `BAD DISK` for an unformatted floppy),
+      the spare floppy not written (its contents unchanged afterwards),
+      nothing hangs, FIRE returns to the menu. And the boss entry with the spare floppy in the
+      drive: `WRONG DISK` (or `READ ERROR` / `BAD DISK` if the floppy is
+      unformatted), FIRE returns to the menu.
+
+Unverifiable anywhere but here: how a real drive answers a read of an
+unformatted or foreign floppy's sector 598 (any refusal skips the write).
+
 ---
 
 ## Recording the result

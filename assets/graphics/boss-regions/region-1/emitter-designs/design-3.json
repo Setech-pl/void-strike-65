@@ -1,0 +1,10 @@
+{
+  "_": "Design 3, the twin-fork focuser (owner decisions E1-E3, 2026-10-07): two prongs with the lens slung between their feet, in the bottom row's centre cell, where the beam leaves. Its own damage looks (E3): cracked dims and cracks the lens and scorches the prongs; broken darkens and shatters the lens and bends the prong tips. Each prong row is one glyph used on both sides, so the staged block grows by four triples (12 codes).",
+  "name": "twin-fork focuser",
+  "x": 31,
+  "row": 1,
+  "width": 3,
+  "height": 3,
+  "cavityRows": 3,
+  "stages": true
+}

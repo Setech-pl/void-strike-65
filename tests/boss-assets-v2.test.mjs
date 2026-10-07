@@ -255,7 +255,10 @@ test("the runs: theme 2, band A 3, band B 3 with the 256-B tables, the charset s
   assert.equal(charset.address, 0x0c00);
   assert.equal(charset.sectors, Math.ceil(region1.charsetBytes / 128));
   assert.ok(charset.sectors <= 8);
-  assert.equal(region1.lookTailAddress, 0x0c00 + region1.codeCount * 8);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision E4 (b)): the look tail
+  // left the charset run for the start of slot D; the charset run is glyphs.
+  assert.equal(region1.charsetBytes, region1.codeCount * 8);
+  assert.equal(region1.lookTailAddress, 0x1900);
 });
 
 test("the preview renders the whole band in every stage and the extras, at the Atari palette and 2:1", () => {

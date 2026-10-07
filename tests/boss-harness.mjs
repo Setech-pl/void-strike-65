@@ -298,6 +298,18 @@ export function installRegion(memory, region, { level = 1, difficulty = 1 } = {}
   memory.set(region.runs.bandA.data, region.runs.bandA.address);
   memory.set(region.runs.bandB.data, region.runs.bandB.address);
   memory.set(region.runs.charset.data, region.runs.charset.address);
+  // M5b-S4b.4 (owner decision E4 (b)): the look tail is no longer in the
+  // charset run - the build links it first in slot D, read with slot D's run.
+  // A test region stands in for the build's own: its tail goes where slot D's
+  // run puts the build's, and must fit the bytes the build reserved there.
+  const reserved = manifest.boss.slotD.lookTail?.bytes;
+  if (reserved !== undefined) {
+    if (region.lookTail.length > reserved || region.lookTailAddress !== manifest.boss.slotD.lookTail.address) {
+      throw new Error(`installRegion: the region's ${region.lookTail.length}-B look tail does not fit the ` +
+        `${reserved} B the build reserved at $${manifest.boss.slotD.lookTail.address.toString(16)}`);
+    }
+    memory.set(region.lookTail, region.lookTailAddress);
+  }
   const charset = label("main", "CHARSET");
   memory.copyWithin(region.runs.charset.address, charset, charset + 7 * 8);
   memory[0xa603] = level;

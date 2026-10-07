@@ -136,7 +136,8 @@ const SEGMENTS = {
   BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry", "boss-entry"],
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.
-  BOSS_D_CODE: ["boss slot D: the lasers (option A, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
+  BOSS_D_LOOKS: ["boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): first in slot D, read with its run", "overlay"],
+  BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
 };
 

@@ -1707,13 +1707,25 @@ boss_mbottom_y:     .res BOSS_MAX_MODULES   ; the line under each module's botto
 ; ring's last line, and erased when the boss sector ends (Q2); a laser is then
 ; only its missile's HPOS and SIZEM pair, published by the band DLI's phase 0
 ; from the band position that frame shows. Warning (Q3): the emitter's bottom cell heats through the
-; cell-flash ring (spark / muzzle every 4 frames), the line pulses 1 / 2 colour
+; cell-flash ring (its two heat glyphs every 4 frames - S4b.4, owner decision
+; E2: the emitter's own, never a hit's spark / muzzle), the line pulses 1 / 2 colour
 ; clocks in 2-frame groups, a rising tone on channel 3 over the engine bed
 ; (Q4); beam: 4 colour clocks. The beam damages the player at most once a
 ; firing (Q5, boss_def's damage per difficulty, software compare) and absorbs
 ; the player's shots in its column (Q6). No laser starts and none shows while
 ; the player is not ALIVE; a dead emitter's laser goes off at once.
 ; ===========================================================================
+; M5b-S4b.4 (owner decision E4, option (b), 2026-10-07): the region's look
+; tail - its open looks, the nozzle phases, the hull-stop table - first in
+; slot D, out of the charset area, so the region's charset has all 128 codes.
+; The build writes it from the converter (build/boss-look-tail.bin); slot D's
+; own run reads it with the code, so it has no loader. The region's tables
+; point at it (BOSS_T_LOOK_TAIL).
+.segment "BOSS_D_LOOKS"
+boss_look_tail:
+    .incbin "/project/build/boss-look-tail.bin"
+.assert boss_look_tail = BOSS_LOOK_TAIL, error, "the look tail is not where the converter points the region's tables"
+
 .segment "BOSS_D_CODE"
 
 LASERS              = 4
@@ -2120,7 +2132,8 @@ laser_frame:
     jmp laser_admit
 
 ; X = a laser in its warning: every 4 frames the heat look on its emitter's
-; bottom cell (the ring carries it through a stage redraw); the rising tone.
+; bottom cell - heat A, then heat B (E2) - (the ring carries it through a
+; stage redraw); the rising tone.
 laser_warn:
     lda boss_laser_timer,x
     and #(LASER_HEAT_FRAMES - 1)
@@ -2135,11 +2148,11 @@ laser_warn:
     stx laser_x
     lda boss_laser_timer,x
     and #LASER_HEAT_FRAMES
-    beq @spark
-    lda BOSS_T_MUZZLE
-    bne @heat
-@spark:
-    lda BOSS_T_SPARK
+    beq @heat_a
+    lda BOSS_T_LASER_HEAT_B             ; S4b.4 (E2): the emitter's own heat
+    bne @heat                           ; glyphs (a region without emitter art:
+@heat_a:                                ; the spark and the muzzle flash)
+    lda BOSS_T_LASER_HEAT_A
 @heat:
     ldy #LASER_HEAT_FRAMES
     jsr boss_ring_set

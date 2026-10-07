@@ -12,9 +12,12 @@
 //                                tables at $AD00 (header, armour columns,
 //                                open-look offsets, 16 module records)
 //   charset  <= 8 sectors at $0C00, sized to its contents: the region's own
-//                                ANTIC 4 charset (CHBASE $0C under the band),
-//                                then the look tail (open looks, nozzle
-//                                phases)
+//                                ANTIC 4 charset (CHBASE $0C under the band)
+//
+// and the look tail (open looks, nozzle phases, the hull-stop table), which
+// M5b-S4b.4 (owner decision E4, option (b), 2026-10-07) moved out of the
+// charset area: the build links it at the start of slot D ($1900), read with
+// slot D's run at every boss entry, so the charset has all 128 codes.
 //
 // The charset's codes 0-6 are the divider row's (a starfield row shown under
 // the band's CHBASE): the install copies them from the gameplay charset, so
@@ -54,6 +57,11 @@ export const BOSS_SCRATCH_BYTES = 0x0100;
 // shots inside the band, read at every boss entry, sized to use.
 export const BOSS_SLOT_D_ADDRESS = 0x1900;
 export const BOSS_SLOT_D_BYTES = 0x0700;
+// M5b-S4b.4 (owner decision E4, option (b)): the region's look tail, linked
+// at the start of slot D. It and its loader take at most 110 B of the
+// $1900-$1FFF remainder; the loader is slot D's own run (0 B of code).
+export const BOSS_LOOK_TAIL_ADDRESS = BOSS_SLOT_D_ADDRESS;
+export const BOSS_LOOK_TAIL_MAX_BYTES = 110;
 // The boss's claim in low RAM (owner answers Q-B5 and Q7): the charset, slot
 // C, the scratch page and slot D - the boss sector's only (phase `overlay`).
 export const BOSS_CLAIM = Object.freeze({ start: 0x0c00, endExclusive: 0x2000 });
@@ -115,9 +123,14 @@ export const BOSS_TABLE = Object.freeze({
   spark: 249,            // a damaging hit's spark
   deflect: 250,          // the spark of a hit that does no damage (hull, a covered module)
   muzzle: 251,           // a firing cannon's muzzle flash
-  // 252: S4b's laser warning, retired by S4b.1 (owner decision D3): the
-  // warning is the level's, per difficulty (boss_def).
+  // 252 was S4b's laser warning, retired by S4b.1 (owner decision D3).
+  // M5b-S4b.4 (owner decision E2, 2026-10-07): the warning heats the lens with
+  // the emitter's own two glyphs (A on the first 4 frames of 8, B on the
+  // others), never the spark / muzzle a player's hit shows. A region without
+  // emitter art keeps S4b's look: A the spark, B the muzzle flash.
+  laserHeatA: 252,
   laserBeam: 253,        // S4b: a laser's beam, frames (Q11: 50)
+  laserHeatB: 254,
 });
 export const BOSS_MODULE_BYTES = 12;
 export const BOSS_MODULE = Object.freeze({
@@ -233,7 +246,7 @@ export function bossRegionDirectory(rootDirectory, region) {
 }
 
 // Reads a region's draft: modules.json and the five PNGs.
-export function loadBossRegionDraft(directory) {
+export function loadBossRegionDraft(directory, { emitterDesign = null } = {}) {
   const layout = JSON.parse(fs.readFileSync(path.join(directory, "modules.json"), "utf8"));
   const images = {};
   for (const name of BOSS_DRAFT_FILES) {
@@ -242,8 +255,85 @@ export function loadBossRegionDraft(directory) {
       name === "extras" ? BOSS_EXTRAS_IMAGE : BOSS_BAND_IMAGE);
   }
   const rootDirectory = path.resolve(directory, "..", "..", "..", "..");
-  return { layout, images, directory, shotGlyphs: loadBossShotGlyphs(rootDirectory),
+  const draft = { layout, images, directory, shotGlyphs: loadBossShotGlyphs(rootDirectory),
     hostileShotGlyphs: loadBossHostileShotGlyphs(rootDirectory) };
+  // M5b-S4b.4 (owner decisions E1-E3): the emitter's own art. A review build
+  // names a design (emitter-designs/design-N.png and .json, which also carry
+  // its footprint); otherwise emitter.png, when the region has one, draws the
+  // emitter at the footprint modules.json gives it.
+  if (emitterDesign !== null) {
+    const base = path.join(directory, "emitter-designs", `design-${emitterDesign}`);
+    if (!fs.existsSync(`${base}.png`)) fail(`region ${directory} has no emitter design ${emitterDesign}`);
+    const meta = JSON.parse(fs.readFileSync(`${base}.json`, "utf8"));
+    return applyBossEmitterArt(draft, fs.readFileSync(`${base}.png`), `design-${emitterDesign}.png`, meta);
+  }
+  const art = path.join(directory, BOSS_EMITTER_ART_FILE);
+  return fs.existsSync(art) ? applyBossEmitterArt(draft, fs.readFileSync(art), BOSS_EMITTER_ART_FILE, null)
+    : draft;
+}
+
+// M5b-S4b.4 (owner decisions E1-E3, 2026-10-07): the emitter's own art, one
+// PNG of five panels side by side, each the emitter's footprint (width x 4 by
+// height x 8 draft pixels): at rest, heat A, heat B, cracked, broken. The
+// heat panels differ from the rest panel in the lens cell only - the bottom
+// row's centre cell, where the beam leaves and the warning heats (E2); a
+// module without damage stages ("stages": false, E3) draws its rest look in
+// the cracked and broken panels. The art replaces the emitter's cells in
+// band, open, cracked and broken; cells of its old footprint outside the new
+// one become band background. A design (meta) also sets the footprint.
+export const BOSS_EMITTER_ART_FILE = "emitter.png";
+export const BOSS_EMITTER_PANELS = Object.freeze(["rest", "heatA", "heatB", "cracked", "broken"]);
+export function applyBossEmitterArt(draft, png, file, meta) {
+  const modules = draft.layout.modules.map((module) => ({ ...module }));
+  const emitter = modules.find((module) => module.kind === "emitter" && (module.slot ?? 1) === 1);
+  if (emitter === undefined) fail(`${file}: the region has no emitter (slot 1)`);
+  const old = { x: emitter.x, row: emitter.row, width: emitter.width, height: emitter.height };
+  if (meta !== null) {
+    for (const key of ["x", "row", "width", "height"]) emitter[key] = meta[key];
+    emitter.cavityRows = meta.cavityRows ?? meta.height;
+    if (meta.stages !== undefined) emitter.stages = meta.stages;
+    emitter._ = meta._ ?? emitter._;
+  }
+  const panelWidth = emitter.width * 4;
+  const panelHeight = emitter.height * 8;
+  const art = decodeBossDraftPng(png, file,
+    { width: BOSS_EMITTER_PANELS.length * panelWidth, height: panelHeight });
+  const at = (panel, x, y) => art.indices[y * art.width + panel * panelWidth + x];
+  const lens = { x: Math.floor(emitter.width / 2) * 4, y: (emitter.height - 1) * 8 };
+  const inLens = (x, y) => x >= lens.x && x < lens.x + 4 && y >= lens.y;
+  for (const panel of [1, 2]) {
+    for (let y = 0; y < panelHeight; y += 1) {
+      for (let x = 0; x < panelWidth; x += 1) {
+        if (!inLens(x, y) && at(panel, x, y) !== at(0, x, y)) {
+          fail(`${file}: the ${BOSS_EMITTER_PANELS[panel]} panel differs from the rest panel at (${x}, ${y}), ` +
+            "outside the lens cell (the bottom row's centre cell, which the warning heats)");
+        }
+      }
+    }
+  }
+  const images = {};
+  for (const [name, image] of Object.entries(draft.images)) {
+    if (name === "extras") { images[name] = image; continue; }
+    const indices = Uint8Array.from(image.indices);
+    for (let y = old.row * 8; y < (old.row + old.height) * 8; y += 1) {
+      indices.fill(0, y * image.width + old.x * 4, y * image.width + (old.x + old.width) * 4);
+    }
+    const panel = name === "cracked" ? 3 : name === "broken" ? 4 : 0;
+    for (let y = 0; y < panelHeight; y += 1) {
+      for (let x = 0; x < panelWidth; x += 1) {
+        indices[(emitter.row * 8 + y) * image.width + emitter.x * 4 + x] = at(panel, x, y);
+      }
+    }
+    images[name] = { ...image, indices };
+  }
+  const heat = [1, 2].map((panel) => {
+    const indices = new Uint8Array(4 * 8);
+    for (let y = 0; y < 8; y += 1) {
+      for (let x = 0; x < 4; x += 1) indices[y * 4 + x] = at(panel, lens.x + x, lens.y + y);
+    }
+    return { width: 4, height: 8, indices, file };
+  });
+  return { ...draft, images, layout: { ...draft.layout, modules }, emitterHeat: heat };
 }
 
 // The in-band shot glyphs from the repository's own weapons asset (decision M):
@@ -505,8 +595,16 @@ function resolveModules(layout) {
     // weapon sits inside it.
     const cavityRows = integerIn(source.cavityRows ?? (kind === BOSS_KIND.armour ? 0 : height), 0, height,
       `module ${name} cavityRows`);
+    // M5b-S4b.4 (owner decision E3, 2026-10-07): a module may have no damage
+    // stages - it keeps its intact look until it is destroyed (decision L).
+    // Its cells are plain glyphs (one code each, not a staged triple's three)
+    // and its crack and break thresholds 0, so the controller never stages it.
+    if (source.stages !== undefined && typeof source.stages !== "boolean") {
+      fail(`module ${name} stages is true or false`);
+    }
+    const stages = source.stages ?? true;
     return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows,
-      cover: source.cover ?? "auto", authoredIndex };
+      stages, cover: source.cover ?? "auto", authoredIndex };
   });
   if (!modules.some((module) => module.kind !== BOSS_KIND.armour)) {
     fail("the boss has no weapon module; it would be defeated before the fight");
@@ -649,15 +747,27 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     const look = [];
     for (const { c, r, band, open, what } of cells) {
       const intact = differs ? open : band;
-      const ref = stagedIndex(intact, cellOf(images.cracked, c, r, what),
-        cellOf(images.broken, c, r, what), what);
+      const cracked = cellOf(images.cracked, c, r, what);
+      const broken = cellOf(images.broken, c, r, what);
+      let ref;
+      if (module.stages) {
+        ref = stagedIndex(intact, cracked, broken, what);
+      } else {
+        // E3: no stages - the cracked and broken drafts show the intact look.
+        if (cracked.key !== intact.key || broken.key !== intact.key) {
+          fail(`${what}: module ${module.name} has no damage stages ("stages": false); ` +
+            "cracked.png and broken.png draw its intact look");
+        }
+        ref = intact.blank ? null : { block: "plain", index: plainIndex(intact), bank: intact.bank ?? 0 };
+      }
       if (differs) {
-        look.push(ref);
+        look.push(ref ?? { block: "plain", index: null, bank: 0 });
         const closed = plainIndex(band);
         cellRefs.set(r * BOSS_BAND_COLUMNS + c, closed === null ? null
           : { block: "plain", index: closed, bank: band.bank ?? 0 });
       } else {
-        cellRefs.set(r * BOSS_BAND_COLUMNS + c, { block: "staged", ...ref });
+        cellRefs.set(r * BOSS_BAND_COLUMNS + c, ref === null || ref.block === "plain" ? ref
+          : { block: "staged", ...ref });
       }
     }
     if (differs) openLooks.set(module.index, look);
@@ -673,6 +783,20 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const sparkRef = plainRef(extra(BOSS_EXTRAS.spark, "spark"));
   const deflectRef = plainRef(extra(BOSS_EXTRAS.deflect, "deflection"));
   const muzzleRef = plainRef(extra(BOSS_EXTRAS.muzzle, "muzzle flash"));
+  // E2: the warning's heat - the emitter's own two lens glyphs, never a hit's.
+  let heatRefs = [sparkRef, muzzleRef];
+  if (draft.emitterHeat !== undefined) {
+    const hits = ["spark", "deflect", "muzzle"].map((what) => extra(BOSS_EXTRAS[what], what).key);
+    heatRefs = draft.emitterHeat.map((image, i) => {
+      const cell = cellOf(image, 0, 0, `the emitter's heat ${"AB"[i]}`);
+      if (cell.blank) fail(`the emitter's heat ${"AB"[i]} is blank; the warning heats the lens`);
+      if (hits.includes(cell.key)) {
+        fail(`the emitter's heat ${"AB"[i]} is a hit's glyph (spark, deflection or muzzle flash); ` +
+          "the warning heats the lens with the emitter's own glyphs (owner decision E2)");
+      }
+      return plainRef(cell);
+    });
+  }
   const blastRefs = [0, 1].map((i) => plainRef(extra(BOSS_EXTRAS.blast + i, "blast")));
   const nozzlePhases = ["nozzleLeft", "nozzleRight"].map((side) =>
     Array.from({ length: BOSS_NOZZLE_PHASES }, (_, phase) =>
@@ -762,7 +886,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const openOffsets = new Array(BOSS_MAX_MODULES).fill(BOSS_NO_LOOK);
   for (const [index, look] of openLooks) {
     openOffsets[index] = tail.length;
-    tail.push(...look.map(stagedCode));
+    tail.push(...look.map((ref) => (ref.block === "plain" ? plainCode(ref) : stagedCode(ref))));
   }
   const nozzleTailOffset = tail.length;
   for (const phases of nozzlePhases) for (const phase of phases) tail.push(...phase.bytes);
@@ -800,16 +924,19 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     const nibble = (row) => (row === null ? 0 : row + 1);
     tail.push(nibble(hullStop[c]) | (nibble(hullStop[c + 1]) << 4));
   }
-  if (tail.length > 255 || glyphs.length + tail.length > BOSS_CHARSET_BYTES) {
-    fail(`the charset (${glyphs.length} B) and its look tail (${tail.length} B) exceed ` +
-      `${BOSS_CHARSET_BYTES} B`);
+  // E4 (b): the charset alone fills the charset area; the look tail is slot D's.
+  if (glyphs.length > BOSS_CHARSET_BYTES) {
+    fail(`the charset (${glyphs.length} B) exceeds ${BOSS_CHARSET_BYTES} B`);
   }
-  const lookTailAddress = BOSS_CHARSET_ADDRESS + glyphs.length;
-  const charsetBytes = glyphs.length + tail.length;
+  if (tail.length > BOSS_LOOK_TAIL_MAX_BYTES) {
+    fail(`the look tail is ${tail.length} B; owner decision E4 gives it ${BOSS_LOOK_TAIL_MAX_BYTES} B ` +
+      "of slot D's remainder");
+  }
+  const lookTailAddress = BOSS_LOOK_TAIL_ADDRESS;
+  const charsetBytes = glyphs.length;
   const charsetSectors = Math.ceil(charsetBytes / 128);
   const charsetRun = new Uint8Array(charsetSectors * 128);
   charsetRun.set(glyphs, 0);
-  charsetRun.set(tail, glyphs.length);
   // The divider's codes are the install's to copy: zero in the run.
   charsetRun.fill(0, 0, BOSS_DIVIDER_CODES * 8);
 
@@ -851,7 +978,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables.set(armourBits, BOSS_TABLE.armour);
   tables.set(openOffsets, BOSS_TABLE.open);
   modules.forEach((module) => {
-    const [hpCracked, hpBroken] = bossThresholds(module.hp);
+    const [hpCracked, hpBroken] = module.stages ? bossThresholds(module.hp) : [0, 0];
     const record = new Uint8Array(BOSS_MODULE_BYTES);
     record[BOSS_MODULE.x] = module.x;
     record[BOSS_MODULE.row] = module.row;
@@ -872,6 +999,8 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables[BOSS_TABLE.deflect] = plainCode(deflectRef);
   tables[BOSS_TABLE.muzzle] = plainCode(muzzleRef);
   tables[BOSS_TABLE.laserBeam] = laserBeam;
+  tables[BOSS_TABLE.laserHeatA] = plainCode(heatRefs[0]);
+  tables[BOSS_TABLE.laserHeatB] = plainCode(heatRefs[1]);
 
   const theme = new Uint8Array(BOSS_THEME_CAPACITY);
   if (themeImage !== null) {
@@ -905,18 +1034,20 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     charsetBytes,
     bandRows,
     tables,
-    openLooks: new Map([...openLooks].map(([index, look]) => [index, look.map(stagedCode)])),
+    openLooks: new Map([...openLooks].map(([index, look]) => [index,
+      look.map((ref) => (ref.block === "plain" ? plainCode(ref) : stagedCode(ref)))])),
     capped: { code: stagedCode(cappedRef), hp: cappedHp, cracked: cappedCracked, broken: cappedBroken },
     cavity: plainCode(cavityRef),
     spark: plainCode(sparkRef),
     deflect: plainCode(deflectRef),
     muzzle: plainCode(muzzleRef),
+    heat: heatRefs.map(plainCode),
     blasts: blastRefs.map(plainCode),
     nozzle: { codes: [nozzleBase, nozzleBase + 1], phases: nozzlePhases.map((phases) => phases.map((p) => p.bytes)) },
     modules: modules.map((module) => ({ name: module.name, kind: module.kindName, x: module.x,
       row: module.row, width: module.width, height: module.height, hp: module.hp,
       thresholds: bossThresholds(module.hp), slot: module.slot, reload: module.reload,
-      cavityRows: module.cavityRows,
+      cavityRows: module.cavityRows, stages: module.stages,
       cover: module.coverMask, open: openLooks.has(module.index) })),
     themeBytes: themeImage === null ? 0 : themeImage.length,
     runs: Object.freeze({
@@ -965,6 +1096,7 @@ export function renderBossLayoutInclude() {
     `BOSS_SHOT_CODES          = ${BOSS_SHOT_CODES}`,
     `BOSS_HOSTILE_SHOT_CODES  = ${BOSS_HOSTILE_SHOT_CODES}`,
     `BOSS_SLOT_D              = ${hex(BOSS_SLOT_D_ADDRESS)}`,
+    `BOSS_LOOK_TAIL           = ${hex(BOSS_LOOK_TAIL_ADDRESS)}`,
     ...Object.entries(BOSS_TABLE).map(([name, offset]) =>
       `${constantName("BOSS_T_", name).padEnd(24)} = BOSS_TABLES+${offset}`),
     ...Object.entries(BOSS_MODULE).map(([name, offset]) =>

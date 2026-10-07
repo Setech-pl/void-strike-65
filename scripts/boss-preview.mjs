@@ -61,7 +61,10 @@ function panels(region) {
   };
   const staged = (stage) => {
     const rows = opened();
-    region.modules.forEach((module) => eachCell(rows, module, (code) => code + stage * K));
+    // E3: a module without damage stages keeps its intact look.
+    region.modules.forEach((module) => {
+      if (module.stages !== false) eachCell(rows, module, (code) => code + stage * K);
+    });
     return rows;
   };
   // Gone (owner decision L): the module disappears - its rows inside the hull
@@ -86,6 +89,27 @@ function glyphBytes(region, code) {
   const glyph = code & 0x7f;
   if (glyph < 7) return new Array(8).fill(0);   // the divider's codes: blank in the band
   return [...region.glyphs.subarray(glyph * 8, glyph * 8 + 8)];
+}
+
+// M5b-S4b.4: each band panel above (not the extras) as colour registers, one a
+// draft pixel (256 x 64), for tests that compare two builds' band pixel for
+// pixel.
+export function bossPanelRegisters(region) {
+  const palette = [0x00, ...[0, 1, 2, 3].map((i) => region.tables[BOSS_TABLE.palette + i])];
+  return panels(region).map((rows) => {
+    const registers = new Uint8Array(BOSS_BAND_COLUMNS * 4 * BOSS_BAND_ROWS * 8);
+    rows.forEach((row, r) => row.forEach((code, c) => {
+      const bytes = glyphBytes(region, code);
+      for (let line = 0; line < 8; line += 1) {
+        for (let px = 0; px < 4; px += 1) {
+          const value = (bytes[line] >> (6 - px * 2)) & 3;
+          registers[(r * 8 + line) * BOSS_BAND_COLUMNS * 4 + c * 4 + px] =
+            value === 3 ? (code & 0x80 ? palette[4] : palette[3]) : palette[value];
+        }
+      }
+    }));
+    return registers;
+  });
 }
 
 export function renderBossPreview(region) {

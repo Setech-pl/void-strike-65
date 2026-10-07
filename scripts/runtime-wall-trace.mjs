@@ -1181,8 +1181,6 @@ for (const name of [
   // decision 4), the rebuilds that end such a stretch, and the boss-path
   // driver's stage (9: its path taken).
   "hull_map_dirty_reads", "hull_map_rebuilds_after_boss", "boss_path_stage",
-  // ... and the frame on which the driver's RESET was requested (it spans the reboot).
-  "boss_path_reset",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -1830,7 +1828,8 @@ function slotEPathClauses(session, rows) {
   invariant(taken >= 0, `${session.id}: the ${session.bossPath} path was never taken in the boss sector`);
   invariant(rows.slice(0, taken).some((row) => row.boss_state > 0),
     `${session.id}: the ${session.bossPath} path was taken outside the boss sector`);
-  const rebuilds = rows.reduce((sum, row) => sum + row.hull_map_rebuilds_after_boss, 0);
+  const rebuilds = rows.reduce((sum, row) => sum + row.hull_map_rebuilds_after_boss, 0) +
+    (session.setAsideHull?.hull_map_rebuilds_after_boss ?? 0);
   if (session.bossPath === "pause") {
     invariant(rebuilds === 0, `${session.id}: the maps were rebuilt during a pause in the boss sector`);
     invariant(rows.slice(taken).some((row) => row.boss_state > 0),
@@ -1838,14 +1837,22 @@ function slotEPathClauses(session, rows) {
     return;
   }
   invariant(rebuilds === 1, `${session.id}: ${rebuilds} rebuilds after the boss (expected the next game's one)`);
-  const rebuilt = rows.findIndex((row) => row.hull_map_rebuilds_after_boss > 0);
-  invariant(rows.slice(rebuilt).reduce((sum, row) => sum + row.hull_map_draws, 0) > 0,
+  const rebuiltAt = rows.findIndex((row) => row.hull_map_rebuilds_after_boss > 0);
+  const rebuilt = rebuiltAt >= 0 ? rebuiltAt : rows.findIndex((row) => row.frame > session.resetTransition?.frame);
+  invariant(rebuilt >= 0 && rows.slice(rebuilt).reduce((sum, row) => sum + row.hull_map_draws, 0) > 0,
     `${session.id}: the next game drew no capital row (the rebuilt maps were never read)`);
 }
 
 // The frames a set of replays measures: every emitted frame but a boss entry,
 // which parseCsv sets aside (M5b-S4b.4: W1 brings the boss inside replays that
 // never reached it before).
+// Class (b), S4b.5: the maximum of a field over every replay's rows. A spread
+// (Math.max(...rows)) overflows the call stack once the replays' rows pass
+// ~125,000 (the three slot E replays took them there).
+function maxOf(rows, pick) {
+  return rows.reduce((maximum, row) => Math.max(maximum, pick(row)), -Infinity);
+}
+
 function measuredFrames(sessions) {
   return sessions.reduce((sum, session) => sum + session.frames - (session.bossEntry === undefined ? 0 : 1) -
     (session.resetTransition === undefined ? 0 : 1), 0);
@@ -1893,18 +1900,32 @@ function parseCsv(csvText, sessionDefinition) {
       active_gameplay_frame: entry.active_gameplay_frame,
     };
   }
-  // M5b-S4b.5 (slot E's ways out): the frame a RESET was requested in spans
-  // the warm start's reboot - boot, loader, menu - and, like the boss entry, is
-  // a transition, not a measured frame: set aside, at most once, recorded.
-  const resets = rows.filter((row) => row.boss_path_reset === 1);
-  invariant(resets.length <= 1, `${sessionDefinition.id} reset ${resets.length} times`);
-  if (resets.length === 1) {
+  // M5b-S4b.5 (slot E's ways out): the frame that spans a RESET's reboot -
+  // boot, loader, menu - is, like the boss entry, a transition, not a measured
+  // frame: set aside, at most once, recorded. The request lands in the frame
+  // the driver first records as taken or in the one before it (whether it came
+  // before or after that frame began); the reboot's is the one of the two that
+  // missed host frames.
+  let resetRow = null;
+  if (sessionDefinition.bossPath === "reset") {
+    const taken = rows.findIndex((row) => row.boss_path_stage === 9);
+    const candidates = [rows[taken - 1], rows[taken]].filter((row) => row !== undefined && row.missed_frames > 0);
+    invariant(taken > 0 && candidates.length === 1,
+      `${sessionDefinition.id}: the RESET's reboot frame is not one frame next to the request`);
+    [resetRow] = candidates;
     sessionDefinition.resetTransition = {
-      frame: resets[0].frame,
-      host_frames: resets[0].next_start_host_frame - resets[0].start_host_frame,
+      frame: resetRow.frame,
+      host_frames: resetRow.next_start_host_frame - resetRow.start_host_frame,
     };
   }
-  return rows.filter((row) => row.boss_entry !== 1 && row.boss_path_reset !== 1);
+  // The hull-map counters of the frames set aside still count (slot E's
+  // contract): the boss head runs inside the entry's frame, and a reboot's frame
+  // can hold the next game's rebuild.
+  const setAside = rows.filter((row) => row.boss_entry === 1 || row === resetRow);
+  sessionDefinition.setAsideHull = Object.fromEntries(["hull_map_draws", "hull_map_stale_draws",
+    "hull_map_dirty_reads", "hull_map_rebuilds_after_boss"].map((field) =>
+    [field, setAside.reduce((sum, row) => sum + row[field], 0)]));
+  return rows.filter((row) => row.boss_entry !== 1 && row !== resetRow);
 }
 
 // ---------------------------------------------------------------------------
@@ -2288,18 +2309,18 @@ function sessionSummary(session, rows) {
     maximum_wall_cycles: maximum.wall_cycles,
     deadline_overrun_frames: rows.filter((row) => row.missed_frames > 0).length,
     missed_frames: rows.reduce((sum, row) => sum + row.missed_frames, 0),
-    // M5b-S4b.5: slot E's contract, per replay.
-    hull_map_draws: rows.reduce((sum, row) => sum + row.hull_map_draws, 0),
-    hull_map_stale_draws: rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0),
-    hull_map_dirty_reads: rows.reduce((sum, row) => sum + row.hull_map_dirty_reads, 0),
-    hull_map_rebuilds_after_boss: rows.reduce((sum, row) => sum + row.hull_map_rebuilds_after_boss, 0),
+    // M5b-S4b.5: slot E's contract, per replay - the frames set aside included.
+    ...Object.fromEntries(["hull_map_draws", "hull_map_stale_draws", "hull_map_dirty_reads",
+      "hull_map_rebuilds_after_boss"].map((field) => [field,
+      rows.reduce((sum, row) => sum + row[field], 0) + (session.setAsideHull?.[field] ?? 0)])),
     ...(session.bossPath === undefined ? {} : {
       boss_path: session.bossPath,
       boss_path_taken_frame: rows.find((row) => row.boss_path_stage === 9)?.frame ?? null,
       boss_frames_before_path: rows.filter((row) => row.boss_state > 0 && row.boss_path_stage !== 9).length,
       boss_frames_after_path: rows.filter((row) => row.boss_state > 0 && row.boss_path_stage === 9).length,
       capital_rows_after_rebuild: (() => {
-        const rebuilt = rows.findIndex((row) => row.hull_map_rebuilds_after_boss > 0);
+        const rebuiltAt = rows.findIndex((row) => row.hull_map_rebuilds_after_boss > 0);
+        const rebuilt = rebuiltAt >= 0 ? rebuiltAt : rows.findIndex((row) => row.frame > session.resetTransition?.frame);
         return rebuilt < 0 ? 0 : rows.slice(rebuilt).reduce((sum, row) => sum + row.hull_map_draws, 0);
       })(),
       ...(session.resetTransition === undefined ? {} : { reset_transition: session.resetTransition }),
@@ -4134,7 +4155,8 @@ function main() {
     // the expanded hull maps for the boss sector. Every capital row must be
     // drawn from maps the last gameplay start rebuilt - in every replay, so any
     // path from the boss sector into a capital row without the rebuild fails.
-    const dirtyHullReads = rows.reduce((sum, row) => sum + row.hull_map_dirty_reads, 0);
+    const dirtyHullReads = rows.reduce((sum, row) => sum + row.hull_map_dirty_reads, 0) +
+      (session.setAsideHull?.hull_map_dirty_reads ?? 0);
     invariant(dirtyHullReads === 0,
       `${session.id} read the hull maps ${dirtyHullReads} times between a boss entry and the next rebuild ` +
       "(slot E's contract, owner decision 4)");
@@ -7187,17 +7209,17 @@ function main() {
   const deadlineOverruns = allRows.filter((row) => row.missed_frames > 0);
   const baselineDeadlineOverruns = baselineRows.filter((row) => row.missed_frames > 0);
   const targetedDeadlineOverruns = targetedRows.filter((row) => row.missed_frames > 0);
-  const dliSequenceViolations = Math.max(...allRows.map((row) =>
-    row.dli_sequence_violations));
-  const maximumDlisPerHostFrame = Math.max(...allRows.map((row) =>
-    row.maximum_dlis_per_host_frame));
+  const dliSequenceViolations = maxOf(allRows, (row) =>
+    row.dli_sequence_violations);
+  const maximumDlisPerHostFrame = maxOf(allRows, (row) =>
+    row.maximum_dlis_per_host_frame);
   invariant(dliSequenceViolations === 0,
     `DLI phase/order violations observed: ${dliSequenceViolations}`);
   invariant(maximumDlisPerHostFrame <= 2,
     `More than two gameplay DLIs occurred in one host frame: ${maximumDlisPerHostFrame}`);
   // M5b-S3 (decision 9): three, and only inside the boss sector.
-  const maximumBossDlisPerHostFrame = Math.max(...allRows.map((row) =>
-    row.maximum_boss_dlis_per_host_frame ?? 0));
+  const maximumBossDlisPerHostFrame = maxOf(allRows, (row) =>
+    row.maximum_boss_dlis_per_host_frame ?? 0);
   const bossRows = allRows.filter((row) => row.boss_state > 0);
   invariant(bossRows.length === 0 ? maximumBossDlisPerHostFrame === 0
     : maximumBossDlisPerHostFrame === 3,
@@ -7214,7 +7236,7 @@ function main() {
       row.pause_engine_phase_before === row.pause_engine_phase_after &&
       row.pause_host_frames >= 25),
   "Integrity replay did not freeze Spread Shot and engine cadence across OPTION pause");
-  const maximumBroadside = Math.max(...allRows.map((row) => row.broadside));
+  const maximumBroadside = maxOf(allRows, (row) => row.broadside);
   const emptyEntityRows = allRows.filter((row) => row.entity_active === 0 &&
     row.pickup_state === 0 &&
     row.effect_active_count === 0 &&
@@ -8184,7 +8206,7 @@ function main() {
         scope: "combined active PlayerFighter and Interceptor fighter-projectile slots in legal Atari800 replays",
         combined_physical_capacity: 10,
         maximum_combined_active_observed:
-          Math.max(...allRows.map((row) => row.projectiles)),
+          maxOf(allRows, (row) => row.projectiles),
         full_combined_capacity_observed:
           allRows.some((row) => row.projectiles === 10),
         full_combined_capacity_matching_frames:

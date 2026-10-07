@@ -349,7 +349,11 @@ test("S4b.3: the beam's centre is the emitter core's centre, from the module dat
       const m = fixture.modules[moduleOf(memory, i)];
       const core = m.x * 4 + m.width * 2;              // the colour clock between the two core cells
       const pair = (memory[lbl("boss_laser_sizem")] >> (2 * memory[lbl("b2_missile") + i])) & 3;   // its missile's pair (B2)
-      const width = st === BEAM ? 4 : pair === 1 ? 2 : 1;
+      // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision F1, flicker the
+      // default): the warning's last third is four clocks wide too, so the width
+      // is the pair's (0 / 1 / 3 -> 1 / 2 / 4), not the state's. The centre
+      // rule is unchanged.
+      const width = st === BEAM || pair === 3 ? 4 : pair === 1 ? 2 : 1;
       const edge = memory[lbl("boss_laser_edge") + i];
       if (edge === 0) continue;                          // admitted at this frame's end: placed from the next
       if (width === 1) assert.equal(edge, core, `laser ${i}: the 1-clock pulse's edge`);

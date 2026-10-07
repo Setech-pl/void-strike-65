@@ -13,12 +13,7 @@ import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-// M5b-S4b.5: BOSS_HARNESS_BUILD names a review variant's build directory
-// (build/<variant>/, which carries its own ATR); the default is the default
-// build and dist/'s ATR.
-const harnessBuild = process.env.BOSS_HARNESS_BUILD
-  ? path.resolve(root, process.env.BOSS_HARNESS_BUILD) : path.join(root, "build");
-export const buildPath = (name) => path.join(harnessBuild, name);
+export const buildPath = (name) => path.join(root, "build", name);
 export const readBuild = (name) => fs.readFileSync(buildPath(name));
 export const exists = (name) => fs.existsSync(buildPath(name));
 
@@ -55,8 +50,7 @@ export function label(link, name) {
 }
 
 export const manifest = JSON.parse(readBuild("manifest.json").toString("utf8"));
-export const builtAtr = fs.readFileSync(process.env.BOSS_HARNESS_BUILD
-  ? path.join(harnessBuild, "void-strike-65.atr") : path.join(root, "dist", "void-strike-65.atr"));
+export const builtAtr = fs.readFileSync(path.join(root, "dist", "void-strike-65.atr"));
 
 export const SECTOR_BYTES = 128;
 export const ATR_HEADER_BYTES = 16;

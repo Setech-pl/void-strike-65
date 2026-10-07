@@ -228,7 +228,11 @@ test("a named emitter warns for MEDIUM's 32 frames, fires for 50, and spawns no 
   assert.equal(laser(memory, "hpos", i), 0, "the beam's HPOS is not 0 after it");
 });
 
-test("the warning reads: the emitter's bottom cell heats, the line pulses 1/2 clocks, the tone rises on channel 3 only", () => {
+// RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision F1, variant (a) the
+// default): the line no longer pulses 1 / 2 clocks; it widens 1 -> 2 -> 4 by
+// thirds of the warning and flickers in its own colour
+// (tests/boss-warning-line.test.mjs). The heat and the tone are unchanged.
+test("the warning reads: the emitter's bottom cell heats, the line widens from one clock, the tone rises on channel 3 only", () => {
   const memory = laserFixture(1);
   alive(memory);
   memory[main("player_x")] = 60;
@@ -262,10 +266,9 @@ test("the warning reads: the emitter's bottom cell heats, the line pulses 1/2 cl
   for (let frame = 4; frame < 24; frame += 4) {
     assert.equal(cells[frame], cells[frame - 4] === spark ? muzzle : spark, `heat phase at frame ${frame}`);
   }
-  assert.ok(sizes.every((size) => size === 0 || size === 1), "the warning is wider than 2 clocks");
-  for (let frame = 2; frame < 24; frame += 2) {
-    assert.notEqual(sizes[frame], sizes[frame - 2], `the line does not pulse in 2-frame groups at ${frame}`);
-  }
+  assert.equal(sizes[0], 0, "the warning does not start one clock wide");
+  assert.ok(sizes.every((size, k) => [0, 1, 3].includes(size) && (k === 0 || size >= sizes[k - 1])),
+    `the line does not widen 1 -> 2 -> 4: ${sizes.join(" ")}`);
   assert.ok(tones.length >= 20, "no tone on channel 3");
   assert.ok(tones.at(-1) < tones[0], "the tone does not rise (AUDF3 falls)");
   assert.equal(channel2, 0, "the warning touched channel 2 (the music's lead)");

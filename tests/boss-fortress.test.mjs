@@ -204,7 +204,7 @@ test("region 1 is the fortress: plates are the hull's face, cannons recessed beh
   }
 });
 
-test("the converter takes plates up to 6 x 4 and refuses larger; the band flash must stay inside each hue", () => {
+test("the converter takes plates up to 6 x 4 and refuses larger, and a band flash step (none since S4b.5)", () => {
   const gun = { name: "gun", kind: "pulse", x: 30, row: 6, width: 3, height: 2, hp: 4, score: 1, reload: 20 };
   const plate = (width, height) => ({ name: "plate", kind: "armour", x: 20, row: 8 - height, width, height, hp: 4, score: 1 });
   const ok = compileBossRegion(fixtureDraft(fixtureLayout([plate(6, 4), gun])));
@@ -213,8 +213,10 @@ test("the converter takes plates up to 6 x 4 and refuses larger; the band flash 
     (error) => error instanceof BossDraftError && pattern.test(error.message));
   refused(fixtureLayout([plate(7, 2), gun]), /width/);
   refused(fixtureLayout([plate(4, 5), gun]), /height/);
+  // RE-POINTED S4b.5 (owner decision of 2026-10-07, the band flash removed):
+  // the flash's hue check went with it; a leftover flashLuma is refused.
   refused(fixtureLayout([plate(2, 2), gun], {
-    palette: { colpf0: 12, colpf1: 6, colpf2: 42, colpf3: 50, flashLuma: 4 } }), /flash/);
+    palette: { colpf0: 12, colpf1: 6, colpf2: 42, colpf3: 50, flashLuma: 4 } }), /flash was removed/);
 });
 
 // RE-POINTED (owner decision L, 2026-10-05): the hole frame's five rim glyphs
@@ -445,10 +447,10 @@ test("damaging, absorbed and hull hits each read differently; only damaging hits
   assert.ok(hullColumn >= 0, "a girder on screen");
   const base = bandPalette(memory);
   // Damaging: spark, the damage tick, one hit counted.
-  // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision F2, a change to decision
-  // C): a plain damaging hit no longer flashes the band - only a kill or a
-  // damage stage does (tests/boss-s4b5.test.mjs, and "the band flash lasts one
-  // frame" below on a stage change). Its spark, tick and count are unchanged.
+  // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision F2, then the variant
+  // choice's decision 2): no hit flashes the band - the flash was removed
+  // (tests/boss-s4b5.test.mjs, and "the band never flashes" below). Its spark,
+  // tick and count are unchanged.
   const damaging = shoot(memory, plateColumn);
   assert.equal(damaging.counted, 1);
   assert.deepEqual(bandPalette(memory), base, "a plain damaging hit flashed the band");
@@ -478,17 +480,24 @@ test("damaging, absorbed and hull hits each read differently; only damaging hits
   assert.equal(new Set([damageTone, hullTone, absorbTone].map((t) => t.join())).size, 3, "three distinct ticks");
 });
 
-test("the band flash lasts one frame", () => {
+// RE-POINTED 2026-10-07 (M5b-S4b.5): was "the band flash lasts one frame".
+// F2 kept the flash for a kill or a damage stage; the variant choice's decision
+// 2 removed it, so a stage change and a kill leave the band's colours as the
+// region's, on their frame and the next.
+test("the band never flashes: a damage stage and a kill leave the band's colours as the region's", () => {
   const memory = fortress(32);
   const base = bandPalette(memory);
-  // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision F2): the band flashes on
-  // a kill or a damage stage only, so the hit crosses plate-d's crack.
+  assert.deepEqual(base, [...region1.tables.subarray(0, 4)], "the DLI shows the region's palette");
   const plate = byName.get("plate-d");
   memory[label("boss", "_boss_hp") + plate] = memory[label("boss", "_boss_crack") + plate] + 1;
   shoot(memory, columnMap(memory).indexOf(plate));
-  assert.notDeepEqual(bandPalette(memory), base);
+  assert.deepEqual(bandPalette(memory), base, "a damage stage flashed the band");
   update(memory);
-  assert.deepEqual(bandPalette(memory), base, "the flash outlived its frame");
+  memory[label("boss", "_boss_hp") + plate] = 1;
+  shoot(memory, columnMap(memory).indexOf(plate));
+  assert.deepEqual(bandPalette(memory), base, "a kill flashed the band");
+  update(memory);
+  assert.deepEqual(bandPalette(memory), base);
 });
 
 test("the hit tick: channel 3 for 2 frames, the engine bed back; the kill on channel 2, the destruction on channel 4", () => {

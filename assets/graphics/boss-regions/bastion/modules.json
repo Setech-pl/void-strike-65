@@ -4,12 +4,11 @@
   "style": 2,
   "_": "The core boss (style 2, decision F): the S3 core boss rebuilt in the layered engine - the core behind a cover group of guns. Region 1's boss in M5b-S4a-i (Q-B1); owner decision H (2026-10-04) moved region 1 to the fortress, and this layout stays in the engine as a fixture and a later region's boss, decided at S5. Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. The drafts: band.png (the intact band, closed looks), cracked.png and broken.png (read inside module rectangles), open.png (the core's exposed art), extras.png (spark, deflection, muzzle flash, the cavity, capped plate, nozzle phases, blasts). A destroyed module disappears (owner decision L): its top cavityRows rows inside the hull become the cavity, the rows below band background - the guns and the emitter hang below the hull bar, the plates sit in its bottom row, the core inside it. docs/level-authoring.md, 'The boss', is the format. Hit points are owner answer Q-B3's MEDIUM values (M8 tunes them); scores are packed BCD per module.",
   "palette": {
-    "_": "COLPF0 cold-white edge, COLPF1 worn steel, COLPF2 reactor amber, COLPF3 hostile burgundy armour; flashLuma: the one-frame band flash, kept inside every hue ($0C + 2 = $0E).",
+    "_": "COLPF0 cold-white edge, COLPF1 worn steel, COLPF2 reactor amber, COLPF3 hostile burgundy armour. The band never flashes (S4b.5).",
     "colpf0": 12,
     "colpf1": 6,
     "colpf2": 42,
-    "colpf3": 50,
-    "flashLuma": 2
+    "colpf3": 50
   },
   "motion": {
     "_": "The band drifts one colour clock every framesPerColourClock frames across travelColourClocks and back (plan §5.2); the win shakes it by HSCROL jitter (Q-S5).",

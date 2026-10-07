@@ -19,12 +19,11 @@
   ],
   "_seeThrough": "Owner decisions M and O (plan §5.16): the only see-through hull art is the girders' stubs one row under the hull line; every other hull cell stops a shot. Decision O (supersedes M1): no hull art below any weapon - the hull's lower strip is cut under gun-1 and the emitter and beside gun-2's and gun-4's bases, gun-4's row-4 pieces under it removed; every weapon hangs in its own recess. Decision N: the open bay is columns 25-29; gun-3 behind plate-e alone; the cowl plates removed (out of reach).",
   "palette": {
-    "_": "COLPF0 light steel (the plates' face), COLPF1 mid grey (bevels, trim), COLPF2 amber (cannons, lights, damage glow, sparks, flames), COLPF3 dark burgundy (the hull's bulk). flashLuma: the one-frame band flash adds this to each luminance; every colour stays inside its hue (+4 at most to $0E).",
+    "_": "COLPF0 light steel (the plates' face), COLPF1 mid grey (bevels, trim), COLPF2 amber (cannons, lights, damage glow, sparks, flames), COLPF3 dark burgundy (the hull's bulk). The band never flashes (S4b.5, owner decision of 2026-10-07).",
     "colpf0": 10,
     "colpf1": 6,
     "colpf2": 40,
-    "colpf3": 50,
-    "flashLuma": 4
+    "colpf3": 50
   },
   "motion": {
     "_": "The band drifts one colour clock every framesPerColourClock frames across travelColourClocks and back (plan §5.2): the window shows band columns 0-55 over the travel, so both engine ends come into view in turn; the win shakes it by HSCROL jitter (Q-S5).",

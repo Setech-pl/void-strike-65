@@ -302,15 +302,6 @@ if (laserFixtureSlug !== undefined && !["2", "4"].includes(laserFixtureSlug)) {
   throw new Error(`Unknown laser fixture ${laserFixtureSlug}; the tiers are 2 and 4`);
 }
 const laserFixtureTier = laserFixtureSlug === undefined ? null : Number(laserFixtureSlug);
-// M5b-S4b.5 (owner decision F1, 2026-10-07): --warning-variant=flicker|ramp
-// builds the laser warning's line in its own colour - (a) flicker or (b) ramp -
-// for the owner's choice. Review only: build/warning-<variant>[-laser-
-// fixture-<t>][-level-N-sM]/, never dist/.
-const warningVariantArgument = process.argv.find((argument) => argument.startsWith("--warning-variant="));
-const warningVariant = warningVariantArgument?.slice("--warning-variant=".length) ?? null;
-if (warningVariant !== null && !["flicker", "ramp"].includes(warningVariant)) {
-  throw new Error(`Unknown warning variant ${warningVariant}; the variants are flicker and ramp`);
-}
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -322,8 +313,7 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
-  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  warningVariant !== null;
+  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -338,11 +328,8 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 // it produces can be read by anything that did not ask for the variant.
 const levelDebugSuffix = levelDebugId === null
   ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
-const warningPrefix = warningVariant === null ? "" : `warning-${warningVariant}-`;
 const variantDirectoryName = laserFixtureTier !== null
-  ? `${warningPrefix}laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
-  : warningVariant !== null
-  ? `warning-${warningVariant}${levelDebugSuffix}`
+  ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -2814,7 +2801,6 @@ async function build() {
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
-        ...(warningVariant === null ? [] : ["-D", `BOSS_WARN_VARIANT=${warningVariant === "flicker" ? 1 : 2}`]),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -3715,8 +3701,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      warningVariant !== null
+    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"

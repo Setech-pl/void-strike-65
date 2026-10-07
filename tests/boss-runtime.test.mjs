@@ -301,7 +301,8 @@ function dliFrame(memory) {
 }
 
 // RE-POINTED M5b-S4a-i: the table offsets moved with formatVersion 2 (the
-// header carries flashLuma at 4: framesPerStep is at 5, travel at 6).
+// header carries flashLuma at 4: framesPerStep is at 5, travel at 6). S4b.5:
+// byte 4 is reserved (0) since the band flash was removed; the offsets stay.
 test("the band drifts by HSCROL every step, the LMS moves every 16 colour clocks, three DLIs a frame", () => {
   const { memory } = bossEntered();
   const id = label("main", "PHYSICAL_PAL_FRAME_ID");

@@ -98,7 +98,7 @@ export const BOSS_MAX_RELOAD = 170;      // x 1.5 on EASY stays a byte
 // through build/boss-layout.inc and build/boss-layout.h.
 export const BOSS_TABLE = Object.freeze({
   palette: 0,            // 4 B: COLPF0-3 under the band
-  flashLuma: 4,          // the band flash's luminance step (S4a-ii)
+  reserved4: 4,          // 0 (S4b.5: was the band flash's flashLuma; no flash)
   framesPerStep: 5,      // frames per colour clock of drift
   travel: 6,             // the last colour clock of travel (0..travel)
   start: 7,              // the colour clock the band starts on
@@ -649,15 +649,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const palette = layout.palette ?? {};
   const paletteBytes = ["colpf0", "colpf1", "colpf2", "colpf3"].map((key) =>
     integerIn(palette[key], 0, 255, `palette.${key}`));
-  const flashLuma = integerIn(palette.flashLuma ?? 0, 0, 14, "palette.flashLuma");
-  // The band flash adds flashLuma to each colour for one frame: every colour
-  // must stay inside its hue (a luminance of at most 15).
-  paletteBytes.forEach((value, i) => {
-    if ((value & 0x0f) + flashLuma > 0x0f) {
-      fail(`palette.colpf${i} $${value.toString(16)} + flashLuma ${flashLuma} leaves its hue; ` +
-        "the band flash must keep every luminance at 15 or under");
-    }
-  });
+  // S4b.5 (owner decision of 2026-10-07): the band never flashes, so a region
+  // carries no flash step; an old palette.flashLuma is refused, not ignored.
+  if (palette.flashLuma !== undefined) fail("palette.flashLuma: the band flash was removed (S4b.5)");
   const motion = layout.motion ?? {};
   const framesPerStep = integerIn(motion.framesPerColourClock, 1, 255, "motion.framesPerColourClock");
   const travel = integerIn(motion.travelColourClocks, 1, 63, "motion.travelColourClocks");
@@ -960,7 +954,6 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
 
   const tables = new Uint8Array(BOSS_TABLES_BYTES);
   tables.set(paletteBytes, BOSS_TABLE.palette);
-  tables[BOSS_TABLE.flashLuma] = flashLuma;
   tables[BOSS_TABLE.framesPerStep] = framesPerStep;
   tables[BOSS_TABLE.travel] = travel;
   tables[BOSS_TABLE.start] = start;

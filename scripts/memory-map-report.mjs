@@ -139,8 +139,8 @@ const SEGMENTS = {
   BOSS_D_LOOKS: ["boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): first in slot D, read with its run", "overlay"],
   BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
-  BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the band flash on a kill or a stage, the capsule from a destroyed module, the laser warning's colour; read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
-  BOSS_E_BSS: ["boss slot E: the warning ramp's state (after its code, never read from disk)", "overlay"],
+  BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour; read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
+  BOSS_E_BSS: ["boss slot E: its state, after its code, never read from disk (none since the warning ramp's removal)", "overlay"],
 };
 
 // ---------------------------------------------------------------- readers

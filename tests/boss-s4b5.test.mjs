@@ -1,6 +1,8 @@
-// M5b-S4b.5 (owner decisions of 2026-10-07): slot E, the band flash on a kill
-// or a stage only (F2, a change to decision C), the capsule from a destroyed
-// module (F3) and the scores as they are (F4). docs/plans/boss-lasers.md §18.
+// M5b-S4b.5 (owner decisions of 2026-10-07): slot E, the band flash - first on
+// a kill or a stage only (F2, a change to decision C), then removed entirely
+// (the variant choice's decision 2) - the capsule from a destroyed module (F3;
+// never from the defeating kill, decision 3) and the scores as they are (F4).
+// docs/plans/boss-lasers.md §18.
 //
 // Slot E is read at the boss entry over the expanded hull maps ($4C00-$4E3F),
 // which only the capital's draw_hull_row reads and every gameplay start
@@ -171,30 +173,30 @@ test("slot E's contract, the way out: START GAME after a boss-sector game rebuil
 });
 
 // ---------------------------------------------------------------------------
-// F2: the band flashes on a kill or a stage change, never on a plain hit
+// F2, then the band flash removed: a hit's feedback is its spark and its tick
 // ---------------------------------------------------------------------------
 
-test("F2 (a change to decision C): no band flash on a plain hit; a flash on a stage change and on a kill", () => {
+// RE-POINTED 2026-10-07 (the variant choice's decision 2, a further change to
+// decision C): F2 flashed the band on a stage change and a kill; now nothing
+// flashes it. The flash's state and routine are gone; a plain hit, a stage
+// change and a kill each keep their spark (the colour registers: below).
+test("F2, then decision 2: the band flash's state and routine are gone; a hit, a stage change and a kill keep the spark", () => {
   const memory = install();
-  const palette = () => [...memory.subarray(lbl("boss_palette"), lbl("boss_palette") + 4)];
-  const plain = region1.tables.subarray(BOSS_TABLE.palette, BOSS_TABLE.palette + 4);
+  for (const name of ["boss_palette", "boss_flash_timer", "boss_flash_on"]) {
+    assert.throws(() => lbl(name), new RegExp(`no ${name}`), `${name} is still linked`);
+  }
   const n = indexOf("plate-a");
   const crack = memory[lbl("_boss_crack") + n];
   const bottom = region1.modules[n].row + region1.modules[n].height - 1;
   const spark = () => memory[(bottom < 6 ? 0xa880 + bottom * 64 : 0xac80 + (bottom - 6) * 64) +
     columnOf(memory, n)];
-  hit(memory, "plate-a", crack + 3);                  // a plain hit
-  assert.deepEqual(palette(), [...plain], "a plain hit flashed the band");
-  assert.ok(spark() === region1.spark ||
-    [...memory.subarray(0xa880, 0xa880 + 6 * 64), ...memory.subarray(0xac80, 0xac80 + 2 * 64)].includes(region1.spark),
-    "a plain hit keeps its spark");
-  for (let f = 0; f < 4; f += 1) frame(memory);
-  hit(memory, "plate-a", crack + 1);                  // cracked: a stage change
-  assert.notDeepEqual(palette(), [...plain], "a stage change did not flash the band");
-  for (let f = 0; f < 4; f += 1) frame(memory);
-  assert.deepEqual(palette(), [...plain], "the flash lasts one frame");
-  hit(memory, "plate-a", 1);                          // destroyed
-  assert.notDeepEqual(palette(), [...plain], "a kill did not flash the band");
+  const sparked = () => spark() === region1.spark ||
+    [...memory.subarray(0xa880, 0xa880 + 6 * 64), ...memory.subarray(0xac80, 0xac80 + 2 * 64)].includes(region1.spark);
+  for (const [what, left] of [["a plain hit", crack + 3], ["a stage change", crack + 1], ["a kill", 1]]) {
+    for (let f = 0; f < 4; f += 1) frame(memory);
+    hit(memory, "plate-a", left);
+    assert.ok(sparked(), `${what} lost its spark`);
+  }
 });
 
 // ---------------------------------------------------------------------------

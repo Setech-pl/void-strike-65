@@ -1,10 +1,10 @@
 # Plan — audit hardening: disk writes, overlay loads, interrupt decimal mode
 
-**Status: Phase A — `STOP` for the owner (2026-10-07).** Two STOP rules of the
-brief are met (§5): the content check costs more than ~60 B resident and, in
-its only measured home, adds an extension-record sector; and decision 2's
-identity read at every load would put the boss entry over its 250-frame bound.
-Phase B waits for the owner's answers in §6. Nothing in `src/` has changed.
+**Status: Phase B in progress (2026-10-07).** Phase A stopped on the brief's
+STOP rules (§5): the content check costs more than ~60 B resident and, in its
+only measured home, adds an extension-record sector; and decision 2's
+identity read at every load would put the boss entry over its 250-frame
+bound. The owner answered §6 (§6.1).
 
 Branch `fix/audit-hardening` from `main` `f8611ab`. The audit is
 [../audits/2026-10-06-pre-m5.md](../audits/2026-10-06-pre-m5.md) (AUD-01,
@@ -297,6 +297,19 @@ rule.
   `$A608`), outside decision 2's list: include it in the content check (~+50 B
   in the summary module, a 16 × 2 B table) or leave it to its header check and
   the identity.
+
+### 6.1 Owner answers (2026-10-07)
+
+* **Q1: (A)** the content check is the load-time identity check; sector 598
+  is read before the PUT only.
+* **Q2: (A)** accept ~102 B resident and the extension sector (104 → 105).
+* **Q3:** include the level image in the content check.
+
+Within these answers, sector 598 becomes the overlay directory's tenth entry
+(+5 B in the reader): the summary reads it through `sector_reader_read_run`,
+whose content check compares it with its resident expected value, then
+compares its six bytes with the resident identity block. No separate read
+routine.
 
 ## 7. Tests (Phase B, RED on `main`'s build, GREEN after)
 

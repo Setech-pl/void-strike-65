@@ -61,10 +61,11 @@ function panels(region) {
   };
   const staged = (stage) => {
     const rows = opened();
-    // E3: a module without damage stages keeps its intact look.
-    region.modules.forEach((module) => {
-      if (module.stages !== false) eachCell(rows, module, (code) => code + stage * K);
-    });
+    // As the runtime draws a stage (boss.s, owner decision 1): +K on the
+    // staged cells only; a plain cell (a lens-only emitter's tower, a module
+    // without stages) and a blank one keep their codes.
+    region.modules.forEach((module) => eachCell(rows, module, (code) =>
+      ((code & 0x7f) !== 0 && (code & 0x7f) < region.plainBase ? code + stage * K : code)));
     return rows;
   };
   // Gone (owner decision L): the module disappears - its rows inside the hull
@@ -156,14 +157,11 @@ export function renderBossPreview(region) {
   return { png: encodePng(rgb, width, height), width, height };
 }
 
-export function writeBossPreview(regionNumber, { outputDirectory = path.join(rootDirectory, "build", "boss-preview"),
-  emitterDesign = null } = {}) {
-  const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, regionNumber),
-    { emitterDesign }));
+export function writeBossPreview(regionNumber, { outputDirectory = path.join(rootDirectory, "build", "boss-preview") } = {}) {
+  const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, regionNumber)));
   const { png, width, height } = renderBossPreview(region);
   fs.mkdirSync(outputDirectory, { recursive: true });
-  const outputPath = path.join(outputDirectory,
-    `region-${regionNumber}${emitterDesign === null ? "" : `-emitter-design-${emitterDesign}`}.png`);
+  const outputPath = path.join(outputDirectory, `region-${regionNumber}.png`);
   fs.writeFileSync(outputPath, png);
   return { outputPath, width, height, region };
 }
@@ -171,14 +169,10 @@ export function writeBossPreview(regionNumber, { outputDirectory = path.join(roo
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const argument = process.argv.find((value) => value.startsWith("--region="));
-    // M5b-S4b.4: --emitter-design=N previews region 1 with a proposed emitter
-    // design (assets/graphics/boss-regions/region-1/emitter-designs/design-N.png).
-    const design = process.argv.find((value) => value.startsWith("--emitter-design="));
-    const emitterDesign = design === undefined ? null : Number(design.slice("--emitter-design=".length));
     const regions = argument ? [Number(argument.slice("--region=".length))]
       : [1, 2, 3, 4].filter((n) => fs.existsSync(bossRegionDirectory(rootDirectory, n)));
     for (const n of regions) {
-      const { outputPath, width, height, region } = writeBossPreview(n, { emitterDesign });
+      const { outputPath, width, height, region } = writeBossPreview(n);
       console.log(`Boss region ${n} (${region.name}, style ${region.style}): ` +
         `${path.relative(rootDirectory, outputPath)} ${width}x${height}`);
       console.log(`  ${region.codeCount} of 128 codes (K ${region.stageStep} staged x 3, ` +

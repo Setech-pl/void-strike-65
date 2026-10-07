@@ -131,6 +131,10 @@ export const BOSS_TABLE = Object.freeze({
   laserHeatA: 252,
   laserBeam: 253,        // S4b: a laser's beam, frames (Q11: 50)
   laserHeatB: 254,
+  // M5b-S4b.4 (owner decision 1, 2026-10-07): the first plain code. A damage
+  // stage adds K to a module's staged cells only; a plain cell (a lens-only
+  // emitter's tower) and a blank one keep their codes.
+  plainBase: 255,
 });
 export const BOSS_MODULE_BYTES = 12;
 export const BOSS_MODULE = Object.freeze({
@@ -246,7 +250,7 @@ export function bossRegionDirectory(rootDirectory, region) {
 }
 
 // Reads a region's draft: modules.json and the five PNGs.
-export function loadBossRegionDraft(directory, { emitterDesign = null } = {}) {
+export function loadBossRegionDraft(directory) {
   const layout = JSON.parse(fs.readFileSync(path.join(directory, "modules.json"), "utf8"));
   const images = {};
   for (const name of BOSS_DRAFT_FILES) {
@@ -257,16 +261,9 @@ export function loadBossRegionDraft(directory, { emitterDesign = null } = {}) {
   const rootDirectory = path.resolve(directory, "..", "..", "..", "..");
   const draft = { layout, images, directory, shotGlyphs: loadBossShotGlyphs(rootDirectory),
     hostileShotGlyphs: loadBossHostileShotGlyphs(rootDirectory) };
-  // M5b-S4b.4 (owner decisions E1-E3): the emitter's own art. A review build
-  // names a design (emitter-designs/design-N.png and .json, which also carry
-  // its footprint); otherwise emitter.png, when the region has one, draws the
-  // emitter at the footprint modules.json gives it.
-  if (emitterDesign !== null) {
-    const base = path.join(directory, "emitter-designs", `design-${emitterDesign}`);
-    if (!fs.existsSync(`${base}.png`)) fail(`region ${directory} has no emitter design ${emitterDesign}`);
-    const meta = JSON.parse(fs.readFileSync(`${base}.json`, "utf8"));
-    return applyBossEmitterArt(draft, fs.readFileSync(`${base}.png`), `design-${emitterDesign}.png`, meta);
-  }
+  // M5b-S4b.4 (owner decisions E1-E3 and 1): the emitter's own art -
+  // emitter.png, when the region has one, drawn at the footprint
+  // modules.json gives the emitter.
   const art = path.join(directory, BOSS_EMITTER_ART_FILE);
   return fs.existsSync(art) ? applyBossEmitterArt(draft, fs.readFileSync(art), BOSS_EMITTER_ART_FILE, null)
     : draft;
@@ -280,7 +277,8 @@ export function loadBossRegionDraft(directory, { emitterDesign = null } = {}) {
 // module without damage stages ("stages": false, E3) draws its rest look in
 // the cracked and broken panels. The art replaces the emitter's cells in
 // band, open, cracked and broken; cells of its old footprint outside the new
-// one become band background. A design (meta) also sets the footprint.
+// one become band background. A footprint (meta) may move it - the tests'
+// refusal cases use one; a region's emitter.png takes modules.json's.
 export const BOSS_EMITTER_ART_FILE = "emitter.png";
 export const BOSS_EMITTER_PANELS = Object.freeze(["rest", "heatA", "heatB", "cracked", "broken"]);
 export function applyBossEmitterArt(draft, png, file, meta) {
@@ -595,12 +593,18 @@ function resolveModules(layout) {
     // weapon sits inside it.
     const cavityRows = integerIn(source.cavityRows ?? (kind === BOSS_KIND.armour ? 0 : height), 0, height,
       `module ${name} cavityRows`);
-    // M5b-S4b.4 (owner decision E3, 2026-10-07): a module may have no damage
-    // stages - it keeps its intact look until it is destroyed (decision L).
-    // Its cells are plain glyphs (one code each, not a staged triple's three)
-    // and its crack and break thresholds 0, so the controller never stages it.
-    if (source.stages !== undefined && typeof source.stages !== "boolean") {
-      fail(`module ${name} stages is true or false`);
+    // M5b-S4b.4 (owner decisions E3 and 1, 2026-10-07): a module may have no
+    // damage stages ("stages": false) - it keeps its intact look until it is
+    // destroyed (decision L): its cells are plain glyphs (one code each, not a
+    // staged triple's three) and its crack and break thresholds 0, so the
+    // controller never stages it. An emitter may stage its lens alone
+    // ("stages": "lens"): the bottom row's centre cell is staged, every other
+    // cell plain and unchanged until the emitter is destroyed.
+    if (source.stages !== undefined && typeof source.stages !== "boolean" && source.stages !== "lens") {
+      fail(`module ${name} stages is true, false or "lens"`);
+    }
+    if (source.stages === "lens" && kind !== BOSS_KIND.emitter) {
+      fail(`module ${name} is a ${source.kind}; only an emitter stages its lens alone`);
     }
     const stages = source.stages ?? true;
     return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows,
@@ -750,13 +754,14 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       const cracked = cellOf(images.cracked, c, r, what);
       const broken = cellOf(images.broken, c, r, what);
       let ref;
-      if (module.stages) {
+      const lens = r === module.row + module.height - 1 && c === module.x + (module.width >> 1);
+      if (module.stages === true || (module.stages === "lens" && lens)) {
         ref = stagedIndex(intact, cracked, broken, what);
       } else {
         // E3: no stages - the cracked and broken drafts show the intact look.
         if (cracked.key !== intact.key || broken.key !== intact.key) {
-          fail(`${what}: module ${module.name} has no damage stages ("stages": false); ` +
-            "cracked.png and broken.png draw its intact look");
+          fail(`${what}: module ${module.name} has no damage stages on this cell ` +
+            `("stages": ${JSON.stringify(module.stages)}); cracked.png and broken.png draw its intact look`);
         }
         ref = intact.blank ? null : { block: "plain", index: plainIndex(intact), bank: intact.bank ?? 0 };
       }
@@ -978,7 +983,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables.set(armourBits, BOSS_TABLE.armour);
   tables.set(openOffsets, BOSS_TABLE.open);
   modules.forEach((module) => {
-    const [hpCracked, hpBroken] = module.stages ? bossThresholds(module.hp) : [0, 0];
+    const [hpCracked, hpBroken] = module.stages !== false ? bossThresholds(module.hp) : [0, 0];
     const record = new Uint8Array(BOSS_MODULE_BYTES);
     record[BOSS_MODULE.x] = module.x;
     record[BOSS_MODULE.row] = module.row;
@@ -1001,6 +1006,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables[BOSS_TABLE.laserBeam] = laserBeam;
   tables[BOSS_TABLE.laserHeatA] = plainCode(heatRefs[0]);
   tables[BOSS_TABLE.laserHeatB] = plainCode(heatRefs[1]);
+  tables[BOSS_TABLE.plainBase] = plainBase;
 
   const theme = new Uint8Array(BOSS_THEME_CAPACITY);
   if (themeImage !== null) {

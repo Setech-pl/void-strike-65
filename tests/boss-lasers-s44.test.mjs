@@ -17,7 +17,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import * as assets from "../scripts/boss-assets.mjs";
-import { call, installRegion, label, nmi, placeBand, root, runBossEntry } from "./boss-harness.mjs";
+import { call, installRegion, label, nmi, placeBand, root, runBossEntry, shootAt } from "./boss-harness.mjs";
 
 const { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } = assets;
 const lbl = (name) => label("boss", name);
@@ -94,7 +94,9 @@ for (const difficulty of [0, 1, 2]) {
     assert.equal(state(memory, laser), OFF, "not on the frame the shield falls");
     frame(memory);
     assert.equal(state(memory, laser), WARN, `the warning starts on the next frame (shield down on ${killed})`);
-    assert.equal(memory[lbl("boss_laser_timer") + laser], WARNING[difficulty] - 1, "the difficulty's warning length");
+    // Admitted at the end of the frame's laser pass, as every warning is: its
+    // count starts on the next frame.
+    assert.equal(memory[lbl("boss_laser_timer") + laser], WARNING[difficulty], "the difficulty's warning length");
     // The warning, the beam, then the normal reload before the next warning.
     let f = 0;
     while (state(memory, laser) !== OFF) { frame(memory); f += 1; assert.ok(f < 400, "the laser ends"); }
@@ -185,13 +187,22 @@ test("decision 1: only the lens has damage stages - its own cracked and dark loo
   const lensIndex = (m.height - 1) * m.width + (m.width >> 1);
   const memory = install(region1, { difficulty: 1 });
   destroy(memory, region1, "plate-d");
-  const intact = cells(memory, m);
+  // The shield down, the first shot warns and fires at once: hit the tower
+  // once its laser is off, so the lens shows no heat.
+  const laser = laserOf(memory, n);
+  for (let f = 0; state(memory, laser) === OFF && f < 5; f += 1) frame(memory);
+  for (let f = 0; state(memory, laser) !== OFF; f += 1) { frame(memory); assert.ok(f < 400); }
+  const intact = [];
+  for (let r = m.row; r < m.row + m.height; r += 1) {
+    for (let c = m.x; c < m.x + m.width; c += 1) intact.push(region1.bandRows[r][c]);
+  }
+  assert.deepEqual(cells(memory, m), intact, "the tower as drawn, intact");
   const K = region1.stageStep;
   // Two hits that cross the crack, then the break threshold, in a tower
   // column beside the lens (the beam absorbs shots in the lens's column).
   for (const [threshold, stage] of [[lbl("_boss_crack"), 1], [lbl("_boss_break"), 2]]) {
     memory[lbl("_boss_hp") + n] = memory[threshold + n] + 1;
-    shoot(memory, m.x);
+    shootAt(memory, m.x);
     for (let f = 0; f < 12; f += 1) frame(memory);
     const now = cells(memory, m);
     now.forEach((code, i) => {

@@ -300,18 +300,6 @@ if (laserFixtureSlug !== undefined && !["2", "4"].includes(laserFixtureSlug)) {
   throw new Error(`Unknown laser fixture ${laserFixtureSlug}; the tiers are 2 and 4`);
 }
 const laserFixtureTier = laserFixtureSlug === undefined ? null : Number(laserFixtureSlug);
-// M5b-S4b.4 (owner decisions E1-E3, 2026-10-07): --emitter-design=1|2|3 builds
-// region 1 (and the laser fixture's emitters) with one of the three proposed
-// emitter designs (assets/graphics/boss-regions/region-1/emitter-designs/),
-// for the owner's choice. Review only: build/emitter-design-<n>[-laser-
-// fixture-<t>][-level-N-sM]/, never dist/; the default build keeps the S4b
-// final emitter until the owner chooses.
-const emitterDesignArgument = process.argv.find((argument) => argument.startsWith("--emitter-design="));
-const emitterDesignSlug = emitterDesignArgument?.slice("--emitter-design=".length);
-if (emitterDesignSlug !== undefined && !["1", "2", "3"].includes(emitterDesignSlug)) {
-  throw new Error(`Unknown emitter design ${emitterDesignSlug}; the designs are 1, 2 and 3`);
-}
-const emitterDesign = emitterDesignSlug === undefined ? null : Number(emitterDesignSlug);
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -323,8 +311,7 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
-  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  emitterDesign !== null;
+  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -339,11 +326,8 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 // it produces can be read by anything that did not ask for the variant.
 const levelDebugSuffix = levelDebugId === null
   ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
-const emitterDesignPrefix = emitterDesign === null ? "" : `emitter-design-${emitterDesign}`;
 const variantDirectoryName = laserFixtureTier !== null
-  ? `${emitterDesignPrefix}${emitterDesignPrefix ? "-" : ""}laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
-  : emitterDesign !== null
-  ? `${emitterDesignPrefix}${levelDebugSuffix}`
+  ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -1783,7 +1767,7 @@ async function build() {
   // variant that installs the laser fixture (region 1 with four uncovered
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
-  const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1), { emitterDesign });
+  const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
   const bossRegions = [compileBossRegion(
     laserFixtureTier === null ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier),
     { themeImage: bossThemeImage,
@@ -3681,8 +3665,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      emitterDesign !== null
+    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4017,7 +4000,6 @@ async function build() {
         // M5b-S4b.4 (E4 (b)): region 1's look tail, first in slot D.
         lookTail: { address: bossLabels.get("boss_look_tail"), bytes: bossRegions[0].lookTail.length } },
       laserFixtureTier,
-      emitterDesign,
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1] },

@@ -348,8 +348,11 @@ test("decision L: a destroyed module leaves background below the hull and the ca
 // the ring's glyphs, the nozzles - and nothing else (no rim, no frame).
 // RE-POINTED M5b-S4b (owner decision QA1): a shot in flight inside the band -
 // the player's (decision M) and now the boss's - is a shot, not a rim.
+// RE-POINTED 2026-10-07 (M5b-S4b.4, owner decisions E2 and 4): the laser's
+// warning heats the lens with the emitter's own two glyphs, and from the
+// frame after plate-d falls - they are ring overlays like the spark.
 function allowedCodes(region) {
-  const allowed = new Set([0, region.cavity, region.spark, region.deflect, region.muzzle,
+  const allowed = new Set([0, region.cavity, region.spark, region.deflect, region.muzzle, ...region.heat,
     region.tables[BOSS_TABLE.nozzleLeftCode], region.tables[BOSS_TABLE.nozzleRightCode],
     ...[...Array(6).keys()].map((i) => region.shotCode + i)]);
   const stage = (code) => {
@@ -658,7 +661,9 @@ test("the draw queue: at most one module's cells redrawn a frame, every look dra
   });
   const band = () => region1.bandRows.flatMap((_, r) => [...memory.subarray(bossBandRowAddress(r), bossBandRowAddress(r) + 64)]);
   const addresses = region1.bandRows.flatMap((_, r) => [...Array(64).keys()].map((c) => bossBandRowAddress(r) + c));
-  const ringGlyphs = new Set([region1.spark, region1.deflect, region1.muzzle]);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decisions E2 and 4): the heat on
+  // the lens is a ring overlay too, and it starts the frame after plate-d falls.
+  const ringGlyphs = new Set([region1.spark, region1.deflect, region1.muzzle, ...region1.heat]);
   let worst = 0;
   for (const name of ["plate-d", "plate-c", "plate-g"]) {
     const index = byName.get(name);

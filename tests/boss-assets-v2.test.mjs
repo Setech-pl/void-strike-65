@@ -177,7 +177,11 @@ test("cover masks from an explicit group: the core boss's core behind all three 
 // The staged block: damage stages by code offset (decision C, §5.13.2 item 4)
 // ---------------------------------------------------------------------------
 
-test("every module cell is staged: cracked = code + K and broken = code + 2K, read from the drafts", () => {
+// RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision 1): region 1's emitter
+// stages its lens alone - its tower cells are plain glyphs, the same in every
+// look until it is destroyed (decision L). Every other module cell, and the
+// lens, is staged as before; every assertion below still runs on them.
+test("every module cell is staged (a lens-only emitter: its lens): cracked = code + K and broken = code + 2K, read from the drafts", () => {
   const K = region1.stageStep;
   assert.ok(K > 0 && BOSS_FIRST_CODE + 3 * K <= region1.plainBase);
   const draft = loadBossRegionDraft(regionDirectory);
@@ -195,6 +199,14 @@ test("every module cell is staged: cracked = code + K and broken = code + 2K, re
       for (let c = module.x; c < module.x + module.width; c += 1) {
         const i = (r - module.row) * module.width + (c - module.x);
         const code = module.open ? region1.openLooks.get(index)[i] : region1.bandRows[r][c];
+        const lens = r === module.row + module.height - 1 && c === module.x + (module.width >> 1);
+        if (module.stages === "lens" && !lens) {
+          assert.ok((code & 0x7f) >= region1.plainBase, `${module.name} (${c}, ${r}): a tower cell is plain`);
+          for (const look of [draft.images.band, draft.images.cracked, draft.images.broken]) {
+            assert.deepEqual(cellBytes(look, c, r), glyphOf(code), `${module.name} (${c}, ${r}) keeps its look`);
+          }
+          continue;
+        }
         assert.ok((code & 0x7f) >= BOSS_FIRST_CODE && (code & 0x7f) < BOSS_FIRST_CODE + K,
           `${module.name} (${c}, ${r}) code ${code} is not in the staged block`);
         const intact = module.open ? draft.images.open : draft.images.band;

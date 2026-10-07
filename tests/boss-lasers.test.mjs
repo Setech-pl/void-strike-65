@@ -249,8 +249,14 @@ test("the warning reads: the emitter's bottom cell heats, the line pulses 1/2 cl
     tones.push(...writesTo(writes, AUDF3));
     channel2 += writesTo(writes, AUDF2).length + writesTo(writes, AUDC2).length;
   }
-  const spark = memory[0xad00 + assets.BOSS_TABLE.spark];
-  const muzzle = memory[0xad00 + assets.BOSS_TABLE.muzzle];
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision E2): the heat is the
+  // emitter's own two glyphs (tables 252 / 254), never the spark or the muzzle
+  // flash; A on the first four frames of eight, B on the others, as before.
+  const spark = memory[0xad00 + assets.BOSS_TABLE.laserHeatA];
+  const muzzle = memory[0xad00 + assets.BOSS_TABLE.laserHeatB];
+  assert.ok(![memory[0xad00 + assets.BOSS_TABLE.spark], memory[0xad00 + assets.BOSS_TABLE.muzzle]].includes(spark) &&
+    ![memory[0xad00 + assets.BOSS_TABLE.spark], memory[0xad00 + assets.BOSS_TABLE.muzzle]].includes(muzzle),
+    "the heat is a hit's glyph");
   assert.ok(cells.every((code) => code === spark || code === muzzle), "the bottom cell does not heat");
   assert.ok(cells.includes(spark) && cells.includes(muzzle), "the heat does not alternate");
   for (let frame = 4; frame < 24; frame += 4) {

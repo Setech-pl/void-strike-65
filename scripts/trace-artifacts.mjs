@@ -9,9 +9,8 @@
 // release evidence (roadmap 4.6 step 4, phase 0).
 import path from "node:path";
 
-// M5b-S4b (owner decision Q10): the laser fixture's debug-route builds too;
-// M5b-S4b.4: and the emitter designs' (--emitter-design=N), for the owner's choice.
-const DEBUG_ROUTE_VARIANT = /^(?:emitter-design-[123]-)?(?:laser-fixture-[24]-)?level-\d+-s\d+$/;
+// M5b-S4b (owner decision Q10): the laser fixture's debug-route builds too.
+const DEBUG_ROUTE_VARIANT = /^(?:laser-fixture-[24]-)?level-\d+-s\d+$/;
 // The flags a diagnostic run may carry. Every other mode either writes docs/
 // (boot smoke, menu raster, capital/player collision, the full run) or reuses
 // a default-build trace.

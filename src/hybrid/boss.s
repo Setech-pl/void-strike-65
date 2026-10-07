@@ -467,6 +467,7 @@ boss_update:
     dex
     bpl @shot
     jsr _boss_c_tick
+    jsr laser_first_shot                ; S4b.4: a shield just fell (slot D)
     jsr boss_open_looks
     jsr boss_fire
     lda _boss_blast
@@ -1109,7 +1110,7 @@ boss_record_of:
 ;   BOSS_MODE_COPY  boss_look's cells from the region's look tail (the
 ;                   operand below is the tail's address, set by boss_prepare)
 ;   BOSS_MODE_FILL  boss_fill in every cell
-;   BOSS_MODE_ADD   boss_add added to every cell's code (a damage stage)
+;   BOSS_MODE_ADD   boss_add added to every staged cell's code (a damage stage)
 ;   BOSS_MODE_GONE  gone: the cavity above the hull line, background below (decision L)
 ; The ring's records on the module's cells are lifted before and laid back
 ; after, so a spark or a muzzle flash outlives the redraw.
@@ -1153,9 +1154,19 @@ boss_draw_module:
     jmp @store
 @add:
     bvs @gone
+    ; S4b.4 (owner decision 1): +K / +2K on the staged cells only - a plain
+    ; cell (the lens-only emitter's tower) and a blank one keep their codes.
     lda (dst_ptr),y
-    clc
-    adc boss_add
+    tax
+    and #$7F
+    beq @keep                           ; blank
+    cmp BOSS_T_PLAIN_BASE
+    bcs @keep                           ; plain: no stage
+    txa
+    adc boss_add                        ; C = 0: a staged code
+    .byte $24                           ; BIT zp: skips the TXA
+@keep:
+    txa
     jmp @store
 @gone:
     ; Gone: the cavity on the rows inside the hull, background below.
@@ -1888,6 +1899,20 @@ laser_prepare:
     jmp @module
 @done:
     jsr laser_all_off                   ; S4b.1 (D3): every laser off, its reload set
+    ; S4b.4 (decision 4): an emitter covered at the install has a shield.
+    ldx #(LASERS - 1)
+@shield:
+    lda #$00
+    sta boss_laser_shielded,x
+    lda boss_laser_module,x
+    cmp #LASER_NONE
+    beq @shield_next
+    jsr laser_exposed
+    bne @shield_next
+    inc boss_laser_shielded,x
+@shield_next:
+    dex
+    bpl @shield
     jmp b2_prepare                      ; PRIOR untouched: M1 / M2 in COLPM1 / COLPM2
 
 ; S4b.1 (owner decision D3, 2026-10-06): an emitter fires on its own cadence,
@@ -1895,26 +1920,33 @@ laser_prepare:
 ; reload, so the controller never arms it). X = an OFF laser: while its
 ; emitter is alive and exposed, its reload (boss_def, per difficulty) counts
 ; down; at 0 it is ready and waits for laser_admit. Keeps X.
+; S4b.4 (owner decision 4, 2026-10-07): the first time a shielded emitter is
+; exposed - its shield destroyed - its laser skips the reload and is ready at
+; once, marked (bit 7) to go to the front of the queue; after that shot the
+; normal reload applies.
 laser_rearm:
     ldy boss_laser_module,x
     lda _boss_hp,y
     beq @done                           ; destroyed: never ready again
-    cpy #8
-    bcs @high
-    lda _boss_exposed_lo
-    and laser_module_bits,y
-    jmp @exposed
-@high:
-    lda _boss_exposed_hi
-    and laser_module_bits-8,y
-@exposed:
+    jsr laser_exposed
     beq @done                           ; still covered
+    lda boss_laser_shielded,x
+    beq @reload
+    lda #$00                            ; its shield just fell: the first shot
+    sta boss_laser_shielded,x
+    sta boss_laser_reload_lo,x
+    sta boss_laser_reload_hi,x
+    lda #$80
+    sta boss_laser_ready,x
+@done:
+    rts
+@reload:
     lda boss_laser_reload_lo,x
     ora boss_laser_reload_hi,x
     bne @count
-    lda #$01
+    lda boss_laser_ready,x              ; a waiting first shot keeps its mark
+    ora #$01
     sta boss_laser_ready,x
-@done:
     rts
 @count:
     lda boss_laser_reload_lo,x
@@ -1943,6 +1975,20 @@ laser_admit:
     dex
     bpl :--
     sty laser_n                         ; the lasers on
+    ; S4b.4 (decision 4): a first shot goes ahead of the rotating order - with
+    ; both places busy, it takes the first that frees.
+    ldx #(LASERS - 1)
+@first:
+    lda laser_n
+    cmp #LASER_MAX_ON
+    bcs @done
+    lda boss_laser_ready,x
+    bpl @later
+    jsr laser_begin
+    inc laser_n
+@later:
+    dex
+    bpl @first
     lda laser_rr
     sta laser_t                         ; the cursor this frame
     ldy #LASERS
@@ -1989,6 +2035,52 @@ laser_begin:
 
 laser_module_bits:
     .byte $01, $02, $04, $08, $10, $20, $40, $80
+
+; S4b.4 (owner decision 4): right after the controller's tick, which exposes
+; a module on the tick after its cover's kill - the frame after the shield is
+; destroyed: a shielded emitter exposed now is a first shot, ready at once and
+; admitted this frame ahead of the rotating order (both places busy: it waits
+; at the front). A tick that exposes nothing costs ~10 cycles.
+laser_first_shot:
+    lda _boss_newly_lo
+    ora _boss_newly_hi
+    beq @rts
+    lda boss_laser_done
+    ora _boss_phase
+    ora PLAYER_LIFECYCLE
+    bne @rts                            ; no laser starts but in the fight, alive
+    ldx #(LASERS - 1)
+@laser:
+    lda boss_laser_shielded,x
+    beq @next
+    jsr laser_exposed
+    beq @next
+    lda #$00
+    sta boss_laser_shielded,x
+    sta boss_laser_reload_lo,x
+    sta boss_laser_reload_hi,x
+    lda #$80
+    sta boss_laser_ready,x
+@next:
+    dex
+    bpl @laser
+    jmp laser_admit
+@rts:
+    rts
+
+; X = a laser -> A (Z) its emitter's bit in the controller's exposed mask:
+; nonzero when exposed. Keeps X.
+laser_exposed:
+    ldy boss_laser_module,x
+    cpy #8
+    bcs @high
+    lda _boss_exposed_lo
+    and laser_module_bits,y
+    rts
+@high:
+    lda _boss_exposed_hi
+    and laser_module_bits-8,y
+    rts
 
 ; At the install, after the column: M1 / M2 nobody's and in the beam's colour,
 ; M0 / M3 off screen. PRIOR is not written: it stays as gameplay has it.
@@ -2542,7 +2634,8 @@ laser_x:            .res 1
 laser_d:            .res 1
 laser_n:            .res 1
 laser_rr:           .res 1      ; S4b.1: the waiting order's cursor
-boss_laser_ready:   .res LASERS ; S4b.1: reloaded, waiting for a place (D3)
+boss_laser_ready:   .res LASERS ; S4b.1: reloaded, waiting for a place (D3); bit 7: a first shot (S4b.4)
+boss_laser_shielded: .res LASERS ; S4b.4: covered at the install, its first shot still to come
 boss_laser_phase:   .res LASERS ; S4b.1: the heat's frame in 4, from the warning's start
 b2_missile:         .res LASERS ; B2: its missile, 1 / 2, 0 none
 b2_one:             .res LASERS ; its missile's SIZEM pairs

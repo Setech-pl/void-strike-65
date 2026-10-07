@@ -731,9 +731,9 @@
     },
     "slotA": {
       "address": 28136,
-      "bytes": 2047,
+      "bytes": 2007,
       "capacityBytes": 2048,
-      "freeBytes": 1,
+      "freeBytes": 41,
       "sectors": 16
     },
     "install": {
@@ -745,30 +745,38 @@
     },
     "slotC": {
       "address": 4096,
-      "bytes": 2006,
-      "codeBytes": 1785,
+      "bytes": 1992,
+      "codeBytes": 1771,
       "capacityBytes": 2048,
-      "freeBytes": 42,
+      "freeBytes": 56,
       "sectors": 14
     },
     "scratch": {
       "address": 6144,
-      "bytes": 249,
+      "bytes": 244,
       "capacityBytes": 256,
-      "freeBytes": 7,
+      "freeBytes": 12,
       "columnMap": 6144
     },
     "slotD": {
       "address": 6400,
-      "bytes": 1714,
-      "codeBytes": 1616,
+      "bytes": 1773,
+      "codeBytes": 1673,
       "capacityBytes": 1792,
-      "freeBytes": 78,
-      "sectors": 13,
+      "freeBytes": 19,
+      "sectors": 14,
       "lookTail": {
         "address": 6400,
         "bytes": 98
       }
+    },
+    "slotE": {
+      "address": 19456,
+      "bytes": 102,
+      "codeBytes": 102,
+      "capacityBytes": 576,
+      "freeBytes": 474,
+      "sectors": 1
     },
     "laserFixtureTier": null,
     "charset": {
@@ -792,7 +800,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "c09507d592f653aaa9c2080d06352a9a4273cdbba49f6311f2b3978c0a5cd667",
+        "sha256": "923f1d0533984d1c220480010d3cfebfd7ead38728fd015186e154fce673d7d7",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -801,7 +809,7 @@
         "sectors": 3,
         "destination": 30736,
         "bytes": 384,
-        "sha256": "924423f2e62533527a430bf279bdc027983f90171135d77bb677b030b89bc293",
+        "sha256": "a9c094599c302c54d8902cdd48b7091ff9b32f0914e029a830630a08838fd58b",
         "file": "overlay-boss-install.bin"
       },
       {
@@ -810,17 +818,26 @@
         "sectors": 14,
         "destination": 4096,
         "bytes": 1792,
-        "sha256": "c42c6dcfb7f326aa516cd009fd479e675fca3af7e08c87579a95b0edad803cfb",
+        "sha256": "573fce9210e0a9b24770c7733c180d8d1fec24e44315b41343717dd5b5a5f7da",
         "file": "overlay-boss-slot-c.bin"
       },
       {
         "name": "boss-slot-d",
         "startSector": 563,
-        "sectors": 13,
+        "sectors": 14,
         "destination": 6400,
-        "bytes": 1664,
-        "sha256": "d0c764744998fbafa6b09715aaf1f2ae65399bb17eab526271d74d23162a51d3",
+        "bytes": 1792,
+        "sha256": "d2267f8b6c5f3f9b49e949c548d529044d92066bd4386e83c0caea1eadd198bb",
         "file": "overlay-boss-slot-d.bin"
+      },
+      {
+        "name": "boss-slot-e",
+        "startSector": 577,
+        "sectors": 1,
+        "destination": 19456,
+        "bytes": 128,
+        "sha256": "a67bc1df489b0f760a3f102b60a17dfdd00bb372cf5491957d2ac9e5dcff872e",
+        "file": "overlay-boss-slot-e.bin"
       },
       {
         "name": "boss-region-1-theme",
@@ -846,7 +863,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "2db2381afa351266f794f64bfea1179a0b2961d6e8e023991357f435abdf9332",
+        "sha256": "3a1a86771be985b44962a69de21a839048a751bc2b009c44840383a65c1319c9",
         "file": "boss-region-1-band-b.bin"
       },
       {
@@ -869,7 +886,7 @@
         "charsetBytes": 976,
         "charsetSectors": 8,
         "modules": 13,
-        "entrySectors": 62
+        "entrySectors": 64
       }
     ]
   },
@@ -23879,11 +23896,11 @@
     "estimated_additive_cycles": 27240,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "175aa0853175f7547a925112265215f6fd299e7f0ac107ca238fd906a36e72e8",
+      "reportSha256": "e25d276e0dbf10aeab01092eed340c286beafb189288ccd773f5730dacebbc5e",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
       },
       "emulator": {
         "name": "Atari800",
@@ -24139,14 +24156,14 @@
             30
           ],
           "pending_lifecycle_interrupted_frame_runs": [],
-          "active_frames": 191,
+          "active_frames": 267,
           "maximum_simultaneous_plane_blocks": 1,
           "layer_fences_per_active_frame": 1,
           "maximum_stationary_active_frames": 0,
           "logical_step_scanlines": 2,
-          "physical_address_changes_during_native_motion": 188,
-          "release_frames": 3,
-          "booster_overlap_frames_all_replays": 1697,
+          "physical_address_changes_during_native_motion": 263,
+          "release_frames": 4,
+          "booster_overlap_frames_all_replays": 2021,
           "booster_overlap_frames_pickup_lifecycle_union": 376,
           "booster_overlap_sessions": [
             "2-sweep-fire0",
@@ -24163,6 +24180,9 @@
             "memory-integrity-atr-2-hunt-fire5",
             "memory-integrity-atr-2-hunt-fire6",
             "memory-integrity-atr-2-hunt-fire7",
+            "slot-e-game-over-2-sweep-fire0",
+            "slot-e-pause-2-sweep-fire0",
+            "slot-e-reset-2-sweep-fire0",
             "targeted-2-sweep-fire4",
             "weapon-pickup-2-hunt-fire4",
             "weapon-pickup-spread-0-hunt-fire4"
@@ -24191,10 +24211,18 @@
               "erase_calls": 2,
               "draw_calls": 1,
               "plane_rows": 0
+            },
+            {
+              "session": "weapon-pickup-2-hunt-fire4",
+              "frame": 3789,
+              "booster_state": 0,
+              "erase_calls": 2,
+              "draw_calls": 1,
+              "plane_rows": 0
             }
           ],
-          "rapid_frames": 3939,
-          "pickup_events": 18,
+          "rapid_frames": 4229,
+          "pickup_events": 20,
           "passed": true
         },
         "weapon_pickup_spread_shot": {
@@ -24212,9 +24240,9 @@
           "remaining_hard_cycles": 468,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "rapid_frames": 3939,
+          "rapid_frames": 4229,
           "spread_frames": 2000,
-          "pickup_events": 18,
+          "pickup_events": 20,
           "granted_booster_modes": [
             3,
             5,
@@ -24223,9 +24251,6 @@
             4,
             5,
             3,
-            4,
-            5,
-            3,
             3,
             4,
             5,
@@ -24233,7 +24258,12 @@
             3,
             4,
             5,
-            3
+            3,
+            3,
+            4,
+            5,
+            3,
+            5
           ],
           "granted_booster_modes_by_replay": [
             {
@@ -24249,7 +24279,8 @@
               "modes": [
                 3,
                 4,
-                5
+                5,
+                3
               ]
             },
             {
@@ -24276,7 +24307,8 @@
                 3,
                 4,
                 5,
-                3
+                3,
+                5
               ]
             }
           ],
@@ -24288,9 +24320,6 @@
             4,
             5,
             3,
-            4,
-            5,
-            3,
             3,
             4,
             5,
@@ -24298,11 +24327,16 @@
             3,
             4,
             5,
-            3
+            3,
+            3,
+            4,
+            5,
+            3,
+            5
           ],
           "spread_volley_frames": 1041,
           "active_capsule_three_projectile_frames": 166,
-          "active_capsule_during_booster_frames": 1697,
+          "active_capsule_during_booster_frames": 2021,
           "worst_legal_capsule_three_projectiles": {
             "trace_kind": "weapon-pickup-coverage",
             "session": "weapon-pickup-2-hunt-fire4",
@@ -24427,8 +24461,8 @@
           "remaining_hard_cycles": 1494,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "shield_frames": 1069,
-          "pickup_events": 18,
+          "shield_frames": 1319,
+          "pickup_events": 20,
           "passed": true
         },
         "shield_preimplementation_baseline": {
@@ -24445,7 +24479,7 @@
         "memory_integrity": {
           "atr_frames": 15997,
           "duration_seconds_pal_per_artifact": 319.94,
-          "pickup_rf_cycles": 11,
+          "pickup_rf_cycles": 12,
           "dli_sequence_violations": 0,
           "maximum_dlis_per_host_frame": 2,
           "pause_sessions": [
@@ -25394,8 +25428,8 @@
         "baseline_9040_host_vbi_boundary_crossings": 981,
         "targeted_active_frames_crossing_host_vbi": 103,
         "targeted_host_vbi_boundary_crossings": 103,
-        "active_frames_crossing_host_vbi": 12411,
-        "host_vbi_boundary_crossings": 12411,
+        "active_frames_crossing_host_vbi": 14662,
+        "host_vbi_boundary_crossings": 14662,
         "extra_vbi_boundaries": 0,
         "behavioural_clause_failure_count": 0,
         "behavioural_clause_failures": [],
@@ -25448,11 +25482,11 @@
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "175aa0853175f7547a925112265215f6fd299e7f0ac107ca238fd906a36e72e8"
+    "reportSha256": "e25d276e0dbf10aeab01092eed340c286beafb189288ccd773f5730dacebbc5e"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
@@ -25461,7 +25495,7 @@
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+      "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
     }
   }
 }

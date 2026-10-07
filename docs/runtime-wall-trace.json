@@ -4,13 +4,13 @@
   "evidence": {
     "status": "complete",
     "partial": false,
-    "required_sessions": 52,
-    "completed_sessions": 52,
+    "required_sessions": 55,
+    "completed_sessions": 55,
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "dcdebb007f3bcbd7bacbd654b812114a1b3715e7cbc615294005f2aa6c083345",
-    "ordered_frames": 112742,
+    "replay_fingerprint_sha256": "1e8b2d09de1d1940f9732a5ff6e99c481df4a824b2c26ef03f752a583d1d9de4",
+    "ordered_frames": 124759,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
   "artifacts": {
@@ -22,18 +22,18 @@
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+      "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 872144,
-      "sha256": "c1e340514ac12b3cd52383e78714e525e9b8e4a782762590ca04339a4239567e"
+      "bytes": 872585,
+      "sha256": "e64bae0b5df04647f99d5e6869865511c6f5b70736341eb1c84dca1a9b654625"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+    "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
   },
   "emulator": {
     "name": "Atari800",
@@ -231,7 +231,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -507,7 +507,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -783,7 +783,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1059,7 +1059,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1337,7 +1337,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1667,7 +1667,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1676,7 +1676,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1685,7 +1685,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -1694,7 +1694,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9"
+          "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }
@@ -2131,14 +2131,14 @@
         30
       ],
       "pending_lifecycle_interrupted_frame_runs": [],
-      "active_frames": 191,
+      "active_frames": 267,
       "maximum_simultaneous_plane_blocks": 1,
       "layer_fences_per_active_frame": 1,
       "maximum_stationary_active_frames": 0,
       "logical_step_scanlines": 2,
-      "physical_address_changes_during_native_motion": 188,
-      "release_frames": 3,
-      "booster_overlap_frames_all_replays": 1697,
+      "physical_address_changes_during_native_motion": 263,
+      "release_frames": 4,
+      "booster_overlap_frames_all_replays": 2021,
       "booster_overlap_frames_pickup_lifecycle_union": 376,
       "booster_overlap_sessions": [
         "2-sweep-fire0",
@@ -2155,6 +2155,9 @@
         "memory-integrity-atr-2-hunt-fire5",
         "memory-integrity-atr-2-hunt-fire6",
         "memory-integrity-atr-2-hunt-fire7",
+        "slot-e-game-over-2-sweep-fire0",
+        "slot-e-pause-2-sweep-fire0",
+        "slot-e-reset-2-sweep-fire0",
         "targeted-2-sweep-fire4",
         "weapon-pickup-2-hunt-fire4",
         "weapon-pickup-spread-0-hunt-fire4"
@@ -2183,10 +2186,18 @@
           "erase_calls": 2,
           "draw_calls": 1,
           "plane_rows": 0
+        },
+        {
+          "session": "weapon-pickup-2-hunt-fire4",
+          "frame": 3789,
+          "booster_state": 0,
+          "erase_calls": 2,
+          "draw_calls": 1,
+          "plane_rows": 0
         }
       ],
-      "rapid_frames": 3939,
-      "pickup_events": 18,
+      "rapid_frames": 4229,
+      "pickup_events": 20,
       "passed": true
     },
     "weapon_pickup_spread_shot": {
@@ -2204,9 +2215,9 @@
       "remaining_hard_cycles": 468,
       "target_overrun_frames": 0,
       "hard_overrun_frames": 0,
-      "rapid_frames": 3939,
+      "rapid_frames": 4229,
       "spread_frames": 2000,
-      "pickup_events": 18,
+      "pickup_events": 20,
       "granted_booster_modes": [
         3,
         5,
@@ -2215,9 +2226,6 @@
         4,
         5,
         3,
-        4,
-        5,
-        3,
         3,
         4,
         5,
@@ -2225,7 +2233,12 @@
         3,
         4,
         5,
-        3
+        3,
+        3,
+        4,
+        5,
+        3,
+        5
       ],
       "granted_booster_modes_by_replay": [
         {
@@ -2241,7 +2254,8 @@
           "modes": [
             3,
             4,
-            5
+            5,
+            3
           ]
         },
         {
@@ -2268,7 +2282,8 @@
             3,
             4,
             5,
-            3
+            3,
+            5
           ]
         }
       ],
@@ -2280,9 +2295,6 @@
         4,
         5,
         3,
-        4,
-        5,
-        3,
         3,
         4,
         5,
@@ -2290,11 +2302,16 @@
         3,
         4,
         5,
-        3
+        3,
+        3,
+        4,
+        5,
+        3,
+        5
       ],
       "spread_volley_frames": 1041,
       "active_capsule_three_projectile_frames": 166,
-      "active_capsule_during_booster_frames": 1697,
+      "active_capsule_during_booster_frames": 2021,
       "worst_legal_capsule_three_projectiles": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -2419,8 +2436,8 @@
       "remaining_hard_cycles": 1494,
       "target_overrun_frames": 0,
       "hard_overrun_frames": 0,
-      "shield_frames": 1069,
-      "pickup_events": 18,
+      "shield_frames": 1319,
+      "pickup_events": 20,
       "passed": true
     },
     "shield_preimplementation_baseline": {
@@ -2437,7 +2454,7 @@
     "memory_integrity": {
       "atr_frames": 15997,
       "duration_seconds_pal_per_artifact": 319.94,
-      "pickup_rf_cycles": 11,
+      "pickup_rf_cycles": 12,
       "dli_sequence_violations": 0,
       "maximum_dlis_per_host_frame": 2,
       "pause_sessions": [
@@ -3386,8 +3403,8 @@
     "baseline_9040_host_vbi_boundary_crossings": 981,
     "targeted_active_frames_crossing_host_vbi": 103,
     "targeted_host_vbi_boundary_crossings": 103,
-    "active_frames_crossing_host_vbi": 12411,
-    "host_vbi_boundary_crossings": 12411,
+    "active_frames_crossing_host_vbi": 14662,
+    "host_vbi_boundary_crossings": 14662,
     "extra_vbi_boundaries": 0,
     "behavioural_clause_failure_count": 0,
     "behavioural_clause_failures": [],
@@ -3414,7 +3431,7 @@
     "fighter_flash_measured_frames": 1600,
     "debris_effects_measured_frames": 4999,
     "weapon_pickup_measured_frames": 3999,
-    "director_completion_measured_frames": 25712,
+    "director_completion_measured_frames": 25333,
     "memory_integrity_measured_frames": 15997,
     "engine_startup_measured_frames": 1800,
     "engine_restart_measured_frames": 3200,
@@ -3431,6 +3448,10 @@
         "maximum_wall_cycles": 30204,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3457,6 +3478,10 @@
         "maximum_wall_cycles": 30445,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 94,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3483,6 +3508,10 @@
         "maximum_wall_cycles": 30339,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 131,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3509,6 +3538,10 @@
         "maximum_wall_cycles": 30476,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 126,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3535,6 +3568,10 @@
         "maximum_wall_cycles": 30532,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 136,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3561,6 +3598,10 @@
         "maximum_wall_cycles": 30457,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 99,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3587,6 +3628,10 @@
         "maximum_wall_cycles": 30432,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 100,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3613,6 +3658,10 @@
         "maximum_wall_cycles": 30471,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 80,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3639,6 +3688,10 @@
         "maximum_wall_cycles": 31041,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 83,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3665,6 +3718,10 @@
         "maximum_wall_cycles": 31011,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 83,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3691,6 +3748,10 @@
         "maximum_wall_cycles": 30457,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 99,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3717,6 +3778,10 @@
         "maximum_wall_cycles": 29656,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3743,6 +3808,10 @@
         "maximum_wall_cycles": 29667,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3769,6 +3838,10 @@
         "maximum_wall_cycles": 29638,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3795,6 +3868,10 @@
         "maximum_wall_cycles": 29528,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 402,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3831,6 +3908,10 @@
         "maximum_wall_cycles": 30457,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 534,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 1,
         "level_summary": {
           "start_summaries": [
             {
@@ -3844,11 +3925,11 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 5267,
-              "display": 5268,
-              "loaded": 5408,
-              "ready": 5419,
-              "accept": 5420,
+              "entry": 5275,
+              "display": 5276,
+              "loaded": 5416,
+              "ready": 5427,
+              "accept": 5428,
               "reads": 37,
               "shown_frames": 152,
               "best": "BEST                  --"
@@ -3867,6 +3948,10 @@
         "maximum_wall_cycles": 30454,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3893,6 +3978,10 @@
         "maximum_wall_cycles": 30622,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 616,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3915,10 +4004,14 @@
         "difficulty": 0,
         "policy": "sweep",
         "fire_delay": 0,
-        "measured_frames": 7853,
+        "measured_frames": 7483,
         "maximum_wall_cycles": 30639,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 616,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3933,35 +4026,35 @@
             }
           ],
           "level_end_summary": {
-            "entry": 8873,
-            "display": 8875,
-            "ready": 9026,
-            "accept": 9028,
-            "shown_frames": 153,
+            "entry": 8511,
+            "display": 8513,
+            "ready": 8664,
+            "accept": 8668,
+            "shown_frames": 155,
             "reads": 9,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
-            "shots": 804,
+            "shots": 784,
             "hits": 251,
             "kills": 48,
-            "observer_shots": 804,
+            "observer_shots": 784,
             "observer_cancelled": 0,
             "observer_kills": 48,
-            "active_frames": 4041,
+            "active_frames": 3671,
             "score": "03255",
             "boss_bonus": 2000,
-            "percent": 31,
-            "time": "1:20",
+            "percent": 32,
+            "time": "1:13",
             "grade": "B",
             "best": "BEST             B 03255",
-            "music_ticks": 153,
-            "music_tick_frames": 153,
+            "music_ticks": 155,
+            "music_tick_frames": 155,
             "first_screen": [
               "03255",
               "48",
-              "31%",
-              "1:20",
+              "32%",
+              "1:13",
               "0",
               "02000",
               "B"
@@ -3976,10 +4069,14 @@
         "difficulty": 1,
         "policy": "sweep",
         "fire_delay": 0,
-        "measured_frames": 8309,
+        "measured_frames": 8300,
         "maximum_wall_cycles": 31074,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 545,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -3994,30 +4091,30 @@
             }
           ],
           "level_end_summary": {
-            "entry": 9313,
-            "display": 9315,
-            "ready": 9466,
+            "entry": 9312,
+            "display": 9314,
+            "ready": 9465,
             "accept": 9468,
-            "shown_frames": 153,
+            "shown_frames": 154,
             "reads": 9,
             "writes": 1,
             "write_sector": 599,
             "write_protected": false,
-            "shots": 847,
+            "shots": 846,
             "hits": 287,
             "kills": 42,
-            "observer_shots": 847,
+            "observer_shots": 846,
             "observer_cancelled": 0,
             "observer_kills": 42,
-            "active_frames": 5015,
+            "active_frames": 5006,
             "score": "03085",
             "boss_bonus": 2000,
             "percent": 33,
             "time": "1:40",
             "grade": "B",
             "best": "BEST             B 03085",
-            "music_ticks": 153,
-            "music_tick_frames": 153,
+            "music_ticks": 154,
+            "music_tick_frames": 154,
             "first_screen": [
               "03085",
               "42",
@@ -4041,6 +4138,10 @@
         "maximum_wall_cycles": 30510,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4055,10 +4156,10 @@
             }
           ],
           "level_end_summary": {
-            "entry": 10570,
-            "display": 10572,
-            "ready": 10723,
-            "accept": 10724,
+            "entry": 10578,
+            "display": 10580,
+            "ready": 10731,
+            "accept": 10732,
             "shown_frames": 152,
             "reads": 9,
             "writes": 1,
@@ -4102,6 +4203,10 @@
         "maximum_wall_cycles": 27198,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4133,6 +4238,10 @@
         "maximum_wall_cycles": 30510,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4147,10 +4256,10 @@
             }
           ],
           "level_end_summary": {
-            "entry": 10570,
-            "display": 10572,
-            "ready": 10723,
-            "accept": 10724,
+            "entry": 10578,
+            "display": 10580,
+            "ready": 10731,
+            "accept": 10732,
             "shown_frames": 152,
             "reads": 8,
             "writes": 1,
@@ -4194,6 +4303,10 @@
         "maximum_wall_cycles": 30352,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 438,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4230,6 +4343,10 @@
         "maximum_wall_cycles": 30454,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 204,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4256,6 +4373,10 @@
         "maximum_wall_cycles": 30468,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 202,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4282,6 +4403,10 @@
         "maximum_wall_cycles": 30457,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 976,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 1,
         "level_summary": {
           "start_summaries": [
             {
@@ -4295,11 +4420,11 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 5268,
-              "display": 5269,
-              "loaded": 5409,
-              "ready": 5420,
-              "accept": 5428,
+              "entry": 5276,
+              "display": 5277,
+              "loaded": 5417,
+              "ready": 5428,
+              "accept": 5436,
               "reads": 37,
               "shown_frames": 159,
               "best": "BEST                  --"
@@ -4318,6 +4443,10 @@
         "maximum_wall_cycles": 30622,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 194,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4344,6 +4473,10 @@
         "maximum_wall_cycles": 30609,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 317,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4370,6 +4503,10 @@
         "maximum_wall_cycles": 30454,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 316,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4396,6 +4533,10 @@
         "maximum_wall_cycles": 29677,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 79,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4422,6 +4563,10 @@
         "maximum_wall_cycles": 29680,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 87,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4448,6 +4593,10 @@
         "maximum_wall_cycles": 30406,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 770,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4494,6 +4643,10 @@
         "maximum_wall_cycles": 30490,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4520,6 +4673,10 @@
         "maximum_wall_cycles": 30437,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4546,6 +4703,10 @@
         "maximum_wall_cycles": 30464,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4572,6 +4733,10 @@
         "maximum_wall_cycles": 29513,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 364,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4598,6 +4763,10 @@
         "maximum_wall_cycles": 30510,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4624,6 +4793,10 @@
         "maximum_wall_cycles": 29652,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 167,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4640,6 +4813,135 @@
         }
       },
       {
+        "id": "slot-e-pause-2-sweep-fire0",
+        "kind": "slot-e-path",
+        "medium": "ATR",
+        "difficulty": 2,
+        "policy": "sweep",
+        "fire_delay": 0,
+        "measured_frames": 3599,
+        "maximum_wall_cycles": 30510,
+        "deadline_overrun_frames": 0,
+        "missed_frames": 0,
+        "hull_map_draws": 488,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
+        "boss_path": "pause",
+        "boss_path_taken_frame": 3161,
+        "boss_frames_before_path": 299,
+        "boss_frames_after_path": 439,
+        "capital_rows_after_rebuild": 0,
+        "level_summary": {
+          "start_summaries": [
+            {
+              "entry": 623,
+              "display": 625,
+              "loaded": 704,
+              "ready": 776,
+              "accept": 780,
+              "reads": 21,
+              "shown_frames": 155,
+              "best": "BEST                  --"
+            }
+          ]
+        }
+      },
+      {
+        "id": "slot-e-game-over-2-sweep-fire0",
+        "kind": "slot-e-path",
+        "medium": "ATR",
+        "difficulty": 2,
+        "policy": "sweep",
+        "fire_delay": 0,
+        "measured_frames": 4399,
+        "maximum_wall_cycles": 30510,
+        "deadline_overrun_frames": 0,
+        "missed_frames": 0,
+        "hull_map_draws": 744,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 1,
+        "boss_path": "game-over",
+        "boss_path_taken_frame": 3161,
+        "boss_frames_before_path": 299,
+        "boss_frames_after_path": 0,
+        "capital_rows_after_rebuild": 256,
+        "level_summary": {
+          "start_summaries": [
+            {
+              "entry": 623,
+              "display": 625,
+              "loaded": 704,
+              "ready": 776,
+              "accept": 780,
+              "reads": 21,
+              "shown_frames": 155,
+              "best": "BEST                  --"
+            },
+            {
+              "entry": 4194,
+              "display": 4195,
+              "loaded": 4335,
+              "ready": 4346,
+              "accept": 4348,
+              "reads": 37,
+              "shown_frames": 153,
+              "best": "BEST                  --"
+            }
+          ]
+        }
+      },
+      {
+        "id": "slot-e-reset-2-sweep-fire0",
+        "kind": "slot-e-path",
+        "medium": "ATR",
+        "difficulty": 2,
+        "policy": "sweep",
+        "fire_delay": 0,
+        "measured_frames": 4398,
+        "maximum_wall_cycles": 30510,
+        "deadline_overrun_frames": 0,
+        "missed_frames": 0,
+        "hull_map_draws": 744,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 1,
+        "boss_path": "reset",
+        "boss_path_taken_frame": 3161,
+        "boss_frames_before_path": 298,
+        "boss_frames_after_path": 0,
+        "capital_rows_after_rebuild": 256,
+        "reset_transition": {
+          "frame": 3160,
+          "host_frames": 772
+        },
+        "level_summary": {
+          "start_summaries": [
+            {
+              "entry": 623,
+              "display": 625,
+              "loaded": 704,
+              "ready": 776,
+              "accept": 780,
+              "reads": 21,
+              "shown_frames": 155,
+              "best": "BEST                  --"
+            },
+            {
+              "entry": 4802,
+              "display": 4804,
+              "loaded": 4883,
+              "ready": 4955,
+              "accept": 4956,
+              "reads": 21,
+              "shown_frames": 152,
+              "best": "BEST                  --"
+            }
+          ]
+        }
+      },
+      {
         "id": "engine-atr-a5-0-immediate",
         "kind": "engine-first-150",
         "medium": "ATR",
@@ -4650,6 +4952,10 @@
         "maximum_wall_cycles": 29643,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4676,6 +4982,10 @@
         "maximum_wall_cycles": 29643,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4702,6 +5012,10 @@
         "maximum_wall_cycles": 29635,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4728,6 +5042,10 @@
         "maximum_wall_cycles": 29635,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4754,6 +5072,10 @@
         "maximum_wall_cycles": 29517,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4780,6 +5102,10 @@
         "maximum_wall_cycles": 29517,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4806,6 +5132,10 @@
         "maximum_wall_cycles": 29643,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4832,6 +5162,10 @@
         "maximum_wall_cycles": 29643,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4858,6 +5192,10 @@
         "maximum_wall_cycles": 29635,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4884,6 +5222,10 @@
         "maximum_wall_cycles": 29635,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4910,6 +5252,10 @@
         "maximum_wall_cycles": 29517,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4936,6 +5282,10 @@
         "maximum_wall_cycles": 29517,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -4962,6 +5312,10 @@
         "maximum_wall_cycles": 29528,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
+        "hull_map_draws": 804,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
         "level_summary": {
           "start_summaries": [
             {
@@ -5327,7 +5681,7 @@
   "coverage": {
     "world_near_with_far_erase": {
       "observed": true,
-      "matching_frames": 35688,
+      "matching_frames": 41216,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -5438,7 +5792,7 @@
     },
     "hull_event": {
       "observed": true,
-      "matching_frames": 35688,
+      "matching_frames": 41216,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -5549,7 +5903,7 @@
     },
     "director_world_row": {
       "observed": true,
-      "matching_frames": 35028,
+      "matching_frames": 40436,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -5660,7 +6014,7 @@
     },
     "director_request": {
       "observed": true,
-      "matching_frames": 39539,
+      "matching_frames": 40656,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-sweep-fire5",
@@ -5772,7 +6126,7 @@
     },
     "director_sparse_event": {
       "observed": true,
-      "matching_frames": 56,
+      "matching_frames": 65,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -5885,7 +6239,7 @@
       "session": "director-complete-2-natural-sweep-fire0",
       "boss_sector": 4,
       "boss_entry_frame": 2861,
-      "boss_entry_host_frames": 237,
+      "boss_entry_host_frames": 245,
       "boss_engaged_frame": 2862,
       "boss_defeated_frame": 9389,
       "boss_hold_frame": 9501,
@@ -5897,19 +6251,19 @@
           "boss_sector": 4,
           "boss_sector_entered_frame": 3367,
           "boss_entry_frame": 3626,
-          "boss_entry_host_frames": 237,
+          "boss_entry_host_frames": 245,
           "boss_engaged_frame": 3627,
-          "boss_defeated_frame": 7692,
-          "boss_hold_frame": 7804,
-          "boss_fight_frames": 4040,
+          "boss_defeated_frame": 7322,
+          "boss_hold_frame": 7434,
+          "boss_fight_frames": 3670,
           "boss_phases_monotonic": true,
           "boss_states_seen": [
             1,
             3,
             4
           ],
-          "boss_terminal_through_frame": 7853,
-          "last_measured_frame": 7853,
+          "boss_terminal_through_frame": 7483,
+          "last_measured_frame": 7483,
           "player_lives_held_at": 3,
           "deaths_survived": 1,
           "natural_broadside_first_frame": 954,
@@ -5923,19 +6277,19 @@
           "boss_sector": 4,
           "boss_sector_entered_frame": 2975,
           "boss_entry_frame": 3058,
-          "boss_entry_host_frames": 237,
+          "boss_entry_host_frames": 245,
           "boss_engaged_frame": 3059,
-          "boss_defeated_frame": 8148,
-          "boss_hold_frame": 8260,
-          "boss_fight_frames": 5014,
+          "boss_defeated_frame": 8139,
+          "boss_hold_frame": 8251,
+          "boss_fight_frames": 5005,
           "boss_phases_monotonic": true,
           "boss_states_seen": [
             1,
             3,
             4
           ],
-          "boss_terminal_through_frame": 8309,
-          "last_measured_frame": 8309,
+          "boss_terminal_through_frame": 8300,
+          "last_measured_frame": 8300,
           "player_lives_held_at": 3,
           "deaths_survived": 5,
           "natural_broadside_first_frame": 808,
@@ -5949,7 +6303,7 @@
           "boss_sector": 4,
           "boss_sector_entered_frame": 2755,
           "boss_entry_frame": 2861,
-          "boss_entry_host_frames": 237,
+          "boss_entry_host_frames": 245,
           "boss_engaged_frame": 2862,
           "boss_defeated_frame": 9389,
           "boss_hold_frame": 9501,
@@ -6083,7 +6437,7 @@
     },
     "active_muzzles": {
       "observed": true,
-      "matching_frames": 20533,
+      "matching_frames": 24085,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire3",
@@ -6195,7 +6549,7 @@
       "combined_physical_capacity": 10,
       "maximum_combined_active_observed": 10,
       "full_combined_capacity_observed": true,
-      "full_combined_capacity_matching_frames": 321,
+      "full_combined_capacity_matching_frames": 471,
       "heaviest_at_full_combined_capacity": {
         "trace_kind": "baseline-9040",
         "session": "2-sweep-fire2",
@@ -6309,7 +6663,7 @@
     },
     "broadside_projectiles": {
       "observed": true,
-      "matching_frames": 13497,
+      "matching_frames": 16158,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire3",
@@ -6423,7 +6777,7 @@
     },
     "live_interceptor": {
       "observed": true,
-      "matching_frames": 39775,
+      "matching_frames": 45555,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -6534,7 +6888,7 @@
     },
     "fighter_explosion": {
       "observed": true,
-      "matching_frames": 11933,
+      "matching_frames": 13431,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -6645,7 +6999,7 @@
     },
     "capital_explosion": {
       "observed": true,
-      "matching_frames": 7048,
+      "matching_frames": 8298,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire3",
@@ -6754,7 +7108,7 @@
     },
     "music_with_sfx_preemption": {
       "observed": true,
-      "matching_frames": 67844,
+      "matching_frames": 75887,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -6865,7 +7219,7 @@
     },
     "debris_empty_path": {
       "observed": true,
-      "matching_frames": 68176,
+      "matching_frames": 72053,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "1-evasive-fire3",
@@ -6974,7 +7328,7 @@
     },
     "debris_one_active": {
       "observed": true,
-      "matching_frames": 38949,
+      "matching_frames": 44504,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -7085,7 +7439,7 @@
     },
     "debris_spawn": {
       "observed": true,
-      "matching_frames": 430,
+      "matching_frames": 494,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -7192,7 +7546,7 @@
     },
     "debris_contact": {
       "observed": true,
-      "matching_frames": 59,
+      "matching_frames": 69,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -7303,7 +7657,7 @@
     },
     "debris_despawn": {
       "observed": true,
-      "matching_frames": 414,
+      "matching_frames": 476,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -7415,7 +7769,7 @@
     },
     "debris_shot": {
       "observed": true,
-      "matching_frames": 188,
+      "matching_frames": 236,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -7523,7 +7877,7 @@
     },
     "debris_destruction_effects": {
       "observed": true,
-      "matching_frames": 3144,
+      "matching_frames": 3586,
       "heaviest": {
         "trace_kind": "memory-integrity-160s",
         "session": "memory-integrity-atr-2-hunt-fire6",
@@ -7631,8 +7985,8 @@
         ],
         "cpu_dma_off_reference": null
       },
-      "spawner_frames": 27,
-      "active_frames": 3144,
+      "spawner_frames": 36,
+      "active_frames": 3586,
       "active_mask": 31,
       "active_count": 5,
       "spawn_updated_and_rendered": true,
@@ -7641,7 +7995,7 @@
     },
     "interceptor_breakup_effects": {
       "observed": true,
-      "matching_frames": 481,
+      "matching_frames": 549,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -7748,7 +8102,7 @@
         ],
         "cpu_dma_off_reference": null
       },
-      "kill_frames": 481,
+      "kill_frames": 549,
       "character_materializer_frames": 0,
       "character_writes": 0,
       "transient_allocations": 0,
@@ -7757,7 +8111,7 @@
       "active_count": 0,
       "flying_fragment_count": 0,
       "full_screen_flash_preserved": true,
-      "yellow_death_then_red_flash_pairs": 456
+      "yellow_death_then_red_flash_pairs": 517
     },
     "weapon_pickup_rapid_fire": {
       "qualified_kills": [
@@ -9029,7 +9383,7 @@
       },
       "active": {
         "observed": true,
-        "matching_frames": 191,
+        "matching_frames": 267,
         "heaviest": {
           "trace_kind": "weapon-pickup-coverage",
           "session": "weapon-pickup-2-hunt-fire4",
@@ -9772,6 +10126,107 @@
             "effect-render",
             "pickup-collect",
             "director-world-row"
+          ],
+          "cpu_dma_off_reference": null
+        },
+        {
+          "trace_kind": "memory-integrity-160s",
+          "session": "memory-integrity-atr-2-hunt-fire5",
+          "frame": 3710,
+          "gameplay_frame": 126,
+          "difficulty": 2,
+          "wall_cycles": 27170,
+          "physical_headroom": 8398,
+          "start": {
+            "clock": 169519376,
+            "host_frame": 4766,
+            "scanline": 20,
+            "cycle": 8
+          },
+          "end": {
+            "clock": 169546546,
+            "host_frame": 4766,
+            "scanline": 258,
+            "cycle": 46
+          },
+          "next_start": {
+            "clock": 169554944,
+            "host_frame": 4767
+          },
+          "host_vbi_boundaries": 0,
+          "extra_vbi_boundaries": 0,
+          "missed_frames": 0,
+          "dli_nmis": 0,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "state": {
+            "projectiles": 2,
+            "broadside": 0,
+            "far_rendered": 4,
+            "active_muzzles": 0,
+            "entity_active": 0,
+            "entity_x": 164,
+            "entity_y": 232,
+            "entity_vx_signed": 4,
+            "entity_move_accumulator": 2,
+            "entity_vertical_accumulator": 1,
+            "entity_render_id": 110,
+            "entity_active_mask": 0,
+            "weapon_pickup": {
+              "state": 3,
+              "booster_state": 3,
+              "qualified_kill_counter": 0,
+              "x": 97,
+              "y": 168,
+              "timer": 500,
+              "timer_low": 244,
+              "timer_high": 1,
+              "plane_rows": 0,
+              "plane_union": 0
+            },
+            "player_fighter_projectiles": 1,
+            "rapid_player_fighter_projectiles": 1,
+            "score_bcd": [
+              4,
+              5
+            ],
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
+            "live_interceptor": false,
+            "raider_formation": {
+              "guide_y": 44,
+              "member_state": [
+                0,
+                0,
+                0
+              ],
+              "member_hp": [
+                0,
+                4,
+                0
+              ],
+              "live_count": 0,
+              "active_projectiles": 1
+            },
+            "fighter_explosion": false,
+            "capital_explosion": false,
+            "music_active": true,
+            "fire_sfx": false,
+            "hit_sfx": false,
+            "capital_sfx": false,
+            "sound_enabled": true,
+            "player_lifecycle": 0,
+            "sector_state": 7
+          },
+          "events": [
+            "far-erase",
+            "fighter-explosion-render",
+            "music-tick",
+            "far-step",
+            "effect-update",
+            "pickup-collect",
+            "director-request"
           ],
           "cpu_dma_off_reference": null
         },
@@ -11034,11 +11489,112 @@
             "pickup-collect"
           ],
           "cpu_dma_off_reference": null
+        },
+        {
+          "trace_kind": "weapon-pickup-spread-coverage",
+          "session": "weapon-pickup-spread-0-hunt-fire4",
+          "frame": 5021,
+          "gameplay_frame": 157,
+          "difficulty": 0,
+          "wall_cycles": 26908,
+          "physical_headroom": 8660,
+          "start": {
+            "clock": 215117621,
+            "host_frame": 6048,
+            "scanline": 20,
+            "cycle": 77
+          },
+          "end": {
+            "clock": 215144529,
+            "host_frame": 6048,
+            "scanline": 256,
+            "cycle": 81
+          },
+          "next_start": {
+            "clock": 215153195,
+            "host_frame": 6049
+          },
+          "host_vbi_boundaries": 0,
+          "extra_vbi_boundaries": 0,
+          "missed_frames": 0,
+          "dli_nmis": 0,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "state": {
+            "projectiles": 3,
+            "broadside": 0,
+            "far_rendered": 4,
+            "active_muzzles": 0,
+            "entity_active": 0,
+            "entity_x": 164,
+            "entity_y": 232,
+            "entity_vx_signed": 4,
+            "entity_move_accumulator": 2,
+            "entity_vertical_accumulator": 1,
+            "entity_render_id": 110,
+            "entity_active_mask": 0,
+            "weapon_pickup": {
+              "state": 5,
+              "booster_state": 5,
+              "qualified_kill_counter": 0,
+              "x": 107,
+              "y": 152,
+              "timer": 250,
+              "timer_low": 250,
+              "timer_high": 0,
+              "plane_rows": 0,
+              "plane_union": 0
+            },
+            "player_fighter_projectiles": 1,
+            "rapid_player_fighter_projectiles": 0,
+            "score_bcd": [
+              5,
+              117
+            ],
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
+            "live_interceptor": false,
+            "raider_formation": {
+              "guide_y": 44,
+              "member_state": [
+                0,
+                0,
+                0
+              ],
+              "member_hp": [
+                0,
+                4,
+                0
+              ],
+              "live_count": 0,
+              "active_projectiles": 0
+            },
+            "fighter_explosion": false,
+            "capital_explosion": false,
+            "music_active": true,
+            "fire_sfx": false,
+            "hit_sfx": false,
+            "capital_sfx": false,
+            "sound_enabled": true,
+            "player_lifecycle": 0,
+            "sector_state": 7
+          },
+          "events": [
+            "far-erase",
+            "fighter-explosion-render",
+            "music-tick",
+            "far-step",
+            "effect-update",
+            "pickup-collect",
+            "director-request"
+          ],
+          "cpu_dma_off_reference": null
         }
       ],
       "rapid": {
         "observed": true,
-        "matching_frames": 3939,
+        "matching_frames": 4229,
         "heaviest": {
           "trace_kind": "weapon-pickup-coverage",
           "session": "weapon-pickup-2-hunt-fire4",
@@ -11483,9 +12039,6 @@
         4,
         5,
         3,
-        4,
-        5,
-        3,
         3,
         4,
         5,
@@ -11493,7 +12046,12 @@
         3,
         4,
         5,
-        3
+        3,
+        3,
+        4,
+        5,
+        3,
+        5
       ],
       "spread": {
         "observed": true,
@@ -11935,7 +12493,7 @@
       },
       "active_capsule_during_booster": {
         "observed": true,
-        "matching_frames": 1697,
+        "matching_frames": 2021,
         "heaviest": {
           "trace_kind": "director-level-complete",
           "session": "director-complete-1-natural-sweep-fire0",
@@ -12153,7 +12711,7 @@
     "weapon_pickup_shield": {
       "shield": {
         "observed": true,
-        "matching_frames": 1069,
+        "matching_frames": 1319,
         "heaviest": {
           "trace_kind": "memory-integrity-160s",
           "session": "memory-integrity-atr-2-hunt-fire7",
@@ -12267,7 +12825,7 @@
     },
     "debris_shot_post_capital": {
       "observed": true,
-      "matching_frames": 97,
+      "matching_frames": 118,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -12375,7 +12933,7 @@
     },
     "debris_bottom_despawn": {
       "observed": true,
-      "matching_frames": 328,
+      "matching_frames": 371,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -12487,7 +13045,7 @@
     },
     "debris_post_capital_sector": {
       "observed": true,
-      "matching_frames": 25956,
+      "matching_frames": 29515,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -12677,10 +13235,10 @@
     ],
     "debris_vertical_cadence": {
       "observed": true,
-      "active_transitions": 38519,
-      "world_events": 18340,
-      "vertical_steps": 10755,
-      "held_events": 7585,
+      "active_transitions": 44010,
+      "world_events": 21058,
+      "vertical_steps": 12348,
+      "held_events": 8710,
       "invalid_transitions": 0
     },
     "debris_visual_variants": {
@@ -12786,7 +13344,7 @@
     },
     "accepted_shot_fire_sound": {
       "observed": true,
-      "accepted_shot_frames": 9648,
+      "accepted_shot_frames": 10771,
       "violations": 0
     }
   },

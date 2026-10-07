@@ -38,7 +38,7 @@ export const BOSS_PREVIEW_PANELS = Object.freeze([
   "every module gone (the cavity inside the hull, background below)",
   "every open look exposed",
   "every emitter slot capped",
-  "extras: spark, deflection, muzzle flash, cavity, capped x3, nozzle left x3, right x3, blasts",
+  "extras: spark, deflection, muzzle flash, cavity, capped x3, nozzle left x3, right x3, blasts (and an emitter's own heat A, B)",
 ]);
 
 function panels(region) {
@@ -123,7 +123,9 @@ export function renderBossPreview(region) {
   const extraBytes = [...extrasCells.map((code) => ({ code, bytes: glyphBytes(region, code) })),
     ...region.nozzle.phases.flat().map((bytes, i) => ({
       code: i < 3 ? region.tables[BOSS_TABLE.nozzleLeftCode] : region.tables[BOSS_TABLE.nozzleRightCode], bytes })),
-    ...region.blasts.map((code) => ({ code, bytes: glyphBytes(region, code) }))];
+    ...region.blasts.map((code) => ({ code, bytes: glyphBytes(region, code) })),
+    // M5b-S4b.4 (E2): an emitter's own heat glyphs, when it has emitter art.
+    ...(region.heat[0] === region.spark ? [] : region.heat.map((code) => ({ code, bytes: glyphBytes(region, code) })))];
   const width = bandWidth + 2 * GAP;
   const height = GAP + views.length * (bandHeight + GAP) + 8 * PIXEL_HEIGHT * 2 + GAP;
   const registers = new Uint8Array(width * height).fill(0x02);   // a dark grey frame
@@ -154,11 +156,14 @@ export function renderBossPreview(region) {
   return { png: encodePng(rgb, width, height), width, height };
 }
 
-export function writeBossPreview(regionNumber, { outputDirectory = path.join(rootDirectory, "build", "boss-preview") } = {}) {
-  const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, regionNumber)));
+export function writeBossPreview(regionNumber, { outputDirectory = path.join(rootDirectory, "build", "boss-preview"),
+  emitterDesign = null } = {}) {
+  const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, regionNumber),
+    { emitterDesign }));
   const { png, width, height } = renderBossPreview(region);
   fs.mkdirSync(outputDirectory, { recursive: true });
-  const outputPath = path.join(outputDirectory, `region-${regionNumber}.png`);
+  const outputPath = path.join(outputDirectory,
+    `region-${regionNumber}${emitterDesign === null ? "" : `-emitter-design-${emitterDesign}`}.png`);
   fs.writeFileSync(outputPath, png);
   return { outputPath, width, height, region };
 }
@@ -166,10 +171,14 @@ export function writeBossPreview(regionNumber, { outputDirectory = path.join(roo
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const argument = process.argv.find((value) => value.startsWith("--region="));
+    // M5b-S4b.4: --emitter-design=N previews region 1 with a proposed emitter
+    // design (assets/graphics/boss-regions/region-1/emitter-designs/design-N.png).
+    const design = process.argv.find((value) => value.startsWith("--emitter-design="));
+    const emitterDesign = design === undefined ? null : Number(design.slice("--emitter-design=".length));
     const regions = argument ? [Number(argument.slice("--region=".length))]
       : [1, 2, 3, 4].filter((n) => fs.existsSync(bossRegionDirectory(rootDirectory, n)));
     for (const n of regions) {
-      const { outputPath, width, height, region } = writeBossPreview(n);
+      const { outputPath, width, height, region } = writeBossPreview(n, { emitterDesign });
       console.log(`Boss region ${n} (${region.name}, style ${region.style}): ` +
         `${path.relative(rootDirectory, outputPath)} ${width}x${height}`);
       console.log(`  ${region.codeCount} of 128 codes (K ${region.stageStep} staged x 3, ` +

@@ -6872,7 +6872,10 @@ function main() {
     `Engine restart traces measured ${engineRestartRows.length}/` +
     `${engineRestartSessions.length * 3_200} frames`);
   for (const session of memoryIntegritySessions) {
-    invariant(memoryIntegrityRows.filter((row) => row.session === session.id).length === 4_000,
+    // M5b-S4b.4 (W1): every one of the 4,000 frames runs; a boss entry is
+    // emitted and set aside as a transition (measuredFrames).
+    invariant(memoryIntegrityRows.filter((row) => row.session === session.id).length ===
+      measuredFrames([session]),
       `${session.medium}/${session.policy} integrity segment did not execute 80 seconds`);
   }
   const engineSessionEvidence = engineDiagnosticSessions.map((session) => {

@@ -116,6 +116,8 @@ const SEGMENTS = {
   HYBRID_C_WINDOW: ["Director link's half of the BASIC window", "resident"],
   HYBRID_ASM_WINDOW: ["the boss entry's resident half (M5b-S3), last in the Director link's window half", "resident"],
   LIGHT_KERNEL: ["Light ASM kernel; carries the capital vector table", "resident"],
+  DISK_GUARD: ["the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record", "resident"],
+  CAPITAL_VECTOR_IMAGE: ["the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening)", "resident"],
   READER_ZP: ["sector reader (zp),y pointer", "resident"],
   SECTOR_READER: ["between-levels sector reader, overlay runs, stat hooks", "resident"],
   READER_BSS: ["sector reader state", "resident"],
@@ -522,10 +524,12 @@ function reservationTails(build, rows, reservations) {
   for (const area of reservations) {
     const own = area.segments.map((name) => segmentsByName.get(name)).filter(Boolean);
     // Segments the build appends into the same composite (LIGHT_CODE and
-    // HEAVY_CODE run at the end of HYBRID_C_EXT_RAM, LIGHT_KERNEL in the window).
+    // HEAVY_CODE run at the end of HYBRID_C_EXT_RAM, LIGHT_KERNEL in the window,
+    // and behind it, in its record, DISK_GUARD and CAPITAL_VECTOR_IMAGE).
     for (const segment of build.segments) {
       if (!own.includes(segment) && segment.start >= area.start && segment.end <= area.end &&
-          ["LIGHT_CODE", "HEAVY_CODE", "LIGHT_KERNEL"].includes(segment.name)) own.push(segment);
+          ["LIGHT_CODE", "HEAVY_CODE", "LIGHT_KERNEL", "DISK_GUARD", "CAPITAL_VECTOR_IMAGE"]
+            .includes(segment.name)) own.push(segment);
     }
     if (own.length === 0) continue;
     if (own.every((segment) => BOOT_PHASES.has(SEGMENTS[segment.name][1]))) continue;

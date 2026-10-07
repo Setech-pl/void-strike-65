@@ -184,7 +184,7 @@ test("the reader's overlay directory and table image match the disk and the wind
   const reader = read("build/sector-reader.bin");
   const base = manifest.sectorReader.address;
   const directory = reader.subarray(readerLabels.get("overlay_directory") - base,
-    readerLabels.get("overlay_directory") - base + 9 * 5);
+    readerLabels.get("overlay_directory") - base + 10 * 5);
   const [run] = manifest.overlays.runs;
   assert.deepEqual([...directory.subarray(0, 5)], [run.startSector & 0xff,
     run.startSector >> 8, run.sectors, run.destination & 0xff, run.destination >> 8]);
@@ -199,13 +199,17 @@ test("the reader's overlay directory and table image match the disk and the wind
   assert.ok(directory.subarray(3 * 5, 6 * 5).every((byte) => byte === 0),
     "entries 3-5 must read as not on this disk until M5b-S5 fills them");
 
+  // RE-POINTED 2026-10-07 (audit-hardening): the table's boot image moved
+  // from the reader to the Light kernel's link, behind the disk guard, so the
+  // reader's record stays 12 sectors; the restore copies it from there.
   const vectors = manifest.overlays.capitalVectors;
-  const image = reader.subarray(readerLabels.get("capital_vector_image") - base,
-    readerLabels.get("capital_vector_image") - base + vectors.bytes);
   const window = read("build/light-kernel.bin");
+  const imageOffset = vectors.imageInLightKernel - manifest.lightKernel.address;
+  assert.ok(Number.isInteger(vectors.imageInLightKernel) && !readerLabels.has("capital_vector_image"));
+  const image = window.subarray(imageOffset, imageOffset + vectors.bytes);
   const tableOffset = vectors.address - manifest.lightKernel.address;
   assert.ok(image.equals(window.subarray(tableOffset, tableOffset + vectors.bytes)),
-    "the reader's table image is not the window's capital table");
+    "the restore's table image is not the window's capital table");
   // Reader vectors: $A006 is the run read now, the 4.9 drain moved to $A009.
   assert.equal(reader.readUInt16LE(7), readerLabels.get("sector_reader_read_run"));
   assert.equal(reader.readUInt16LE(10), readerLabels.get("sector_reader_drain_ready"));

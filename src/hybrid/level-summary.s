@@ -139,7 +139,10 @@ summary_start_game:
         lda summary_level
         sta sr_requested_id
         jsr sector_reader_resident_hit
-        bcs :+
+        lda #$00
+        adc #$00                        ; C: not in the buffer, so it will be read
+        sta summary_level_read
+        bne :+
         jsr GAMEPLAY_MUSIC_START
 :
         jsr summary_art
@@ -155,8 +158,19 @@ summary_start_game:
         bcs summary_failed
         jsr summary_read_record
         jsr summary_draw_best
+        ; audit-hardening (AUD-02, owner Q3): a level image the reader reads is
+        ; folded from here and checked before its music player runs or the
+        ; Director reads it; one already in the buffer was checked when it was.
+        jsr guard_reset
         lda summary_level
         jsr sector_reader_load
+        bcs summary_failed
+        lda summary_level_read
+        beq summary_level_loaded
+        ldx summary_level
+        lda summary_level_sums_lo-1,x
+        ldy summary_level_sums_hi-1,x
+        jsr guard_compare
         bcs summary_failed
 summary_level_loaded:                   ; the level read's end, for the harness
         lda MUSIC_ACTIVE                ; the head has landed: its music starts
@@ -489,10 +503,18 @@ summary_art:
         lda overlay_directory + OVERLAY_SUMMARY_ART * 5 + 1
         adc #$00
         sta sr_sector_hi
+        jsr guard_reset                 ; audit-hardening: the run, folded
         ldx #SUMMARY_ART_SECTORS
         lda #<SUMMARY_STAGING
         ldy #>SUMMARY_STAGING
         jsr summary_read
+        bcs @done
+        ; AUD-02: nothing of it is used - the palette, the glyphs, the map, the
+        ; label records that name screen cells - unless the run checks.
+        ldx summary_tmp                 ; the region
+        lda summary_art_sums_lo,x
+        ldy summary_art_sums_hi,x
+        jsr guard_compare
         bcs @done
         lda SUMMARY_STAGING + SUMMARY_ART_PALETTE
         sta COLPF0
@@ -613,10 +635,6 @@ summary_update_record:
         beq @done
         jsr summary_checksum
         sta RECORD+3
-        lda #<RECORD
-        sta sr_dst
-        lda #>RECORD
-        sta sr_dst+1
         jsr summary_write_save
         bcs @done                       ; refused: the RAM copy stands, silently
         lda #<SAVE_RECORD_SECTOR
@@ -640,27 +658,27 @@ summary_update_record:
         rts
 
 ; ---------------------------------------------------------------------------
-; Write the save record at (sr_dst) to SAVE_RECORD_SECTOR (§4.8.4, Q16).
+; Write the save record (RECORD) to SAVE_RECORD_SECTOR (§4.8.4, Q16).
 ;
 ;   C=0     the drive answered COMPLETE; the caller reads the sector back
-;   C=1     refused - NAK, ERROR (a write-protected disk), silence, or a
-;           directory that does not place the record on SAVE_RECORD_SECTOR;
-;           nothing is reported, the caller keeps its RAM copy
+;   C=1     refused - NAK, ERROR (a write-protected disk), silence, a
+;           directory that does not place the record on SAVE_RECORD_SECTOR,
+;           or (AUD-01) a disk that is not the game's; nothing is reported,
+;           the caller keeps its RAM copy
 ;
 ; The sector is a constant, not a parameter: no caller can name another. The
-; data frame is the 128 bytes at (sr_dst) and a checksum this routine stores at
-; (sr_dst)+128, one attempt, 'P' (put): the read-back is the verify. HRM ch.9
+; data frame is the 128 bytes at RECORD and a checksum this routine stores
+; after them, one attempt, 'P' (put): the read-back is the verify. HRM ch.9
 ; steps 2-5 (pp.218-219): data frame 10-18 ms after the command ACK, the device
 ; ACKs it within 16 ms, then COMPLETE or ERROR after the operation.
+;
+; audit-hardening (AUD-01, owner decision 1): the disk in D1: now may not be
+; the one the record was read from - summary_own_disk, immediately before the
+; PUT; a refusal there is a refusal here, exactly as a write-protected disk's.
 ; ===========================================================================
 summary_write_save:
-        ldx #2
-@directory:
-        lda overlay_directory + SAVE_RECORD_ENTRY * 5,x
-        cmp save_record_entry,x
-        bne @refused
-        dex
-        bpl @directory
+        jsr summary_own_disk
+        bcs @refused
         lda #<SAVE_RECORD_SECTOR
         sta sr_sector_lo
         lda #>SAVE_RECORD_SECTOR
@@ -670,11 +688,11 @@ summary_write_save:
         tya
         clc
 @sum:
-        adc (sr_dst),y
+        adc RECORD,y
         adc #$00
         iny
         bpl @sum
-        sta (sr_dst),y                  ; Y = 128
+        sta RECORD,y                    ; Y = 128
         jsr sector_reader_pokey_setup
         lda #SIO_CMD_PUT
         jsr sector_reader_send_command
@@ -694,7 +712,7 @@ summary_write_save:
         sta SKCTL
         ldy #$00
 @data:
-        lda (sr_dst),y
+        lda RECORD,y
         jsr sector_reader_tx_byte
         bcs @failed
         iny
@@ -724,6 +742,36 @@ summary_write_save:
 
 save_record_entry:
         .byte <SAVE_RECORD_SECTOR, >SAVE_RECORD_SECTOR, 1
+
+; C=0 when the disk in D1: is the game's own and the directory places the
+; record where the game's layout has it; C=1 otherwise (AUD-01). The record's
+; directory entry must be {SAVE_RECORD_SECTOR, 1}; then the disk's identity
+; sector is read through the directory - the run read checks it with the disk
+; guard - and its identity block compared with the resident one. A failed
+; read is a refusal, as a mismatch is.
+summary_own_disk:
+        ldx #2
+@directory:
+        lda overlay_directory + SAVE_RECORD_ENTRY * 5,x
+        cmp save_record_entry,x
+        bne @not_ours
+        dex
+        bpl @directory
+        ldx #OVERLAY_IDENTITY
+        jsr sector_reader_read_run      ; to SAVE_VERIFY_BUFFER
+        bcs @not_ours
+        ldx #GUARD_IDENTITY_BYTES - 1
+@identity:
+        lda SAVE_VERIFY_BUFFER,x
+        cmp guard_identity,x
+        bne @not_ours
+        dex
+        bpl @identity
+        clc
+        rts
+@not_ours:
+        sec
+        rts
 
 ; X = the level's slot in the record, C=0; C=1 for a level the record has none for.
 summary_record_slot:
@@ -1068,11 +1116,18 @@ summary_grade_code:     .byte 0
 summary_bonus_total:    .word 0
 summary_changed:        .byte 0
 summary_verified:       .byte 0
+summary_level_read:     .byte 0     ; audit-hardening: START GAME reads the level
+
+; audit-hardening (AUD-02, owner Q3): the expected folds of each region's art
+; run and of each level image as the reader reads it (scripts/build.mjs).
+.include "summary-sums.inc"
 
 .assert summary_vectors = SUMMARY_MODULE, error, "the summary module must start at $0500"
 .assert summary_vectors + 6 = SUMMARY_ANIMATE, error, "the animation vector must sit at $0506"
 .assert (summary_display_list & $FC00) = ((summary_display_list_end - 1) & $FC00), error, "the summary display list crosses an ANTIC 1 KiB boundary"
 .assert SUMMARY_PICTURE + 400 <= SUMMARY_SCREEN + $400, error, "the picture leaves the frontend screen RAM"
+.assert summary_art_sums_hi - summary_art_sums_lo = SUMMARY_LAST_REGION + 1, error, "the art sums are not one per region"
+.assert summary_level_sums_hi - summary_level_sums_lo = 16, error, "the level sums are not one per level id (LEVEL_MAX_ID)"
 
 .export summary_vectors, summary_start_game, summary_level_end, summary_display_list
 .export summary_start_display_list, summary_display_list_end

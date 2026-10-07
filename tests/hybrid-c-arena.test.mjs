@@ -161,8 +161,10 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // bought one sector in the window record (its resident half) and one in the
   // pickup record (HYBRID_C_SECTOR's gate); this record and the initial block
   // did not move.
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 211);
-  assert.equal(parsed.totalOccupiedSectors, 211);
+  // RE-PINNED 2026-10-07 (audit-hardening, owner Q2): 211 -> 212, the disk
+  // guard's sector in the Light kernel's record.
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 212);
+  assert.equal(parsed.totalOccupiedSectors, 212);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

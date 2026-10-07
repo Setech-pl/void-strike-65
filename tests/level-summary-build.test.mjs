@@ -46,10 +46,14 @@ test("the save record has one fixed sector, named once and placed by the directo
     "dist/ ships a save record; a fresh disk must read as empty");
 });
 
-test("the overlay directory has nine entries; the summary code is entry 8 at $0500", () => {
+// RE-POINTED 2026-10-07 (audit-hardening, owner decision 1): a tenth entry,
+// the disk's identity sector (598, one sector, to the record's read-back
+// buffer), which the summary reads before every PUT.
+test("the overlay directory has ten entries; the summary code is entry 8 at $0500", () => {
   const names = manifest.sectorReader.overlayDirectory.names;
-  assert.equal(names.length, 9);
+  assert.equal(names.length, 10);
   assert.equal(names[8], "level summary code (M5a-S2)");
+  assert.equal(names[9], "disk identity (audit-hardening)");
   const directory = readerLabels.get("overlay_directory") - 0xa000;
   const entry = (index) => [...readerImage.subarray(directory + index * 5, directory + index * 5 + 5)];
   const { code, art } = levelSummary;
@@ -70,6 +74,8 @@ test("the overlay directory has nine entries; the summary code is entry 8 at $05
   for (const index of [3, 4, 5]) {
     assert.deepEqual(entry(index), [0, 0, 0, 0, 0], `entry ${index} belongs to M5b-S5`);
   }
+  assert.deepEqual(entry(9), [598 & 0xff, 598 >> 8, 1, 0x90, 0x78],
+    "entry 9 is the identity sector, read into the record's read-back buffer");
 });
 
 test("the summary module fits its claimed home $0500-$0BFF and is on the disk byte for byte", () => {
@@ -251,7 +257,12 @@ test("the stat hooks are operand-only in every full segment", () => {
     "only the PairShot hit is a hit; the contact path stays on ENEMY_LIGHT_HIT");
   assert.match(kernel, /light_destroyed:[\s\S]*?jsr SECTOR_READER_STATS_KILL[\s\S]*?jmp play_hit_sound/);
   // None of it moved a byte: the kernel and the full segments keep their sizes.
-  assert.equal(manifest.lightKernel.bytes, 771, "the Light kernel grew");
+  // RE-POINTED 2026-10-07 (audit-hardening): the kernel's link also carries
+  // the disk guard and the capital vector image now, in segments of their own
+  // behind it; the kernel's own segment is what this pin protects.
+  const kernelSegment = /^al\s+([0-9a-f]+)\s+\.__LIGHT_KERNEL_SIZE__$/im.exec(
+    fs.readFileSync(build("light-kernel.lbl"), "utf8"));
+  assert.equal(Number.parseInt(kernelSegment[1], 16), 771, "the Light kernel grew");
   assert.equal(manifest.broadsideRuntime.bytes, 6653, "BROADSIDE grew");
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13621,
     "a byte landed in the initial block (target 0 for this session)");
@@ -331,7 +342,9 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; t
   assert.ok(manifest.sectorReader.freeBytes >= 0);
   // RE-PINNED 2026-10-04 (M5b-S3): 1,444 -> 1,316, the boss entry's resident
   // half (tests/basic-window-capacity.test.mjs has the breakdown).
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1316, "the window moved");
+  // RE-PINNED 2026-10-07 (audit-hardening, owner Q2): 1,316 -> 1,191, the
+  // disk guard and the capital vector image behind the kernel.
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1191, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618, "the initial block moved");
 });

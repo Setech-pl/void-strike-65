@@ -6,6 +6,10 @@ import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
+  guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
+  renderGuardInclude, renderSumTable,
+} from "./disk-guard.mjs";
+import {
   buildDfmcV1Transport,
   chunkLoaderConstants,
   deterministicCapacityBytes,
@@ -451,6 +455,7 @@ const OVERLAY_DIRECTORY = Object.freeze([
   "hangar / summary art (M5a-S2)",
   "scores / save record (M5a-S2)",
   "level summary code (M5a-S2)",
+  "disk identity (audit-hardening)",
 ]);
 // M5a-S2 (§4.8, §6.3): the summary's runs. The code reads once per session at
 // $0500; the art, one run per region at a fixed stride, is read first at every
@@ -460,6 +465,12 @@ const OVERLAY_DIRECTORY = Object.freeze([
 const OVERLAY_SUMMARY_ART = 6;
 const OVERLAY_SAVE_RECORD = 7;
 const OVERLAY_SUMMARY_CODE = 8;
+// audit-hardening (AUD-01, docs/plans/audit-hardening.md §2): the disk's
+// identity sector, the one before the record, which nothing else uses (the
+// summary code may take 584-597). The build writes it; the game only reads
+// it, through the directory, before every PUT.
+const OVERLAY_IDENTITY = 9;
+const identitySectorNumber = 598;
 const summaryCodeSector = 584;
 // Owner decision 2026-10-03: the module's home is $0500-$0BFF (1,792 B), so its
 // run may take up to 14 sectors, 584-597, below the save record at 599.
@@ -500,6 +511,16 @@ const bossSlotESector = bossSlotDSector + bossSlotDMaxSectors;
 const bossSlotEMaxSectors = Math.ceil(BOSS_SLOT_E_BYTES / 128);
 const bossRegionBaseSector = 632;
 const bossRegionCount = 4;
+// audit-hardening (AUD-01): what the disk's identity names - the layout's
+// reservations, never a run's size or bytes - so every build of this layout,
+// and every copy of its ATR, carries the same identity (scripts/disk-guard.mjs).
+const diskLayout = Object.freeze({
+  levelBaseSector, levelBufferSectors, overlayBaseSector, identitySector: identitySectorNumber,
+  saveRecordSector, summaryCodeSector, summaryCodeMaxSectors, summaryArtBaseSector,
+  summaryArtSectors: SUMMARY_ART_SECTORS, bossReservationSector, bossReservationSectors,
+  bossRegionBaseSector, bossRegionSectors: BOSS_REGION_SECTORS, bossRegionCount,
+});
+const diskIdentity = identityBlock(diskLayout);
 // The window copies this many bytes of the region's staging run over the
 // level's track (src/hybrid/c-asm-abi.s `@theme`, an 8-bit loop that wraps).
 const bossThemeCopyBytes = 256;
@@ -1115,6 +1136,7 @@ function renderOverlayDirectoryInclude({ runs, slotAddress, slotBytes, vectorIma
     `OVERLAY_SUMMARY_ART = ${OVERLAY_SUMMARY_ART}`,
     `OVERLAY_SAVE_RECORD = ${OVERLAY_SAVE_RECORD}`,
     `OVERLAY_SUMMARY_CODE = ${OVERLAY_SUMMARY_CODE}`,
+    `OVERLAY_IDENTITY = ${OVERLAY_IDENTITY}`,
     `CAPITAL_SLOT_A = $${slotAddress.toString(16).toUpperCase()}`,
     `CAPITAL_SLOT_A_BYTES = ${slotBytes}`,
     "overlay_directory:",
@@ -1128,13 +1150,11 @@ function renderOverlayDirectoryInclude({ runs, slotAddress, slotBytes, vectorIma
         `sector ${run.startSector}`
       : `        .byte $00, $00, $00, $00, $00\t; ${index}: ${name}: not on this disk`);
   });
-  lines.push("overlay_directory_end:", "",
-    "; The capital vector table's image, put back into the window after a restore.",
-    "capital_vector_image:");
-  for (const { constant, target, address } of vectorImage) {
-    lines.push(`        .byte $4C, ${byte(address)}, ${byte(address >> 8)}\t; ${constant}: jmp ${target}`);
-  }
-  lines.push("capital_vector_image_end:");
+  // audit-hardening: the capital vector table's image moved to the Light
+  // kernel's link (src/hybrid/light-kernel.s); `vectorImage` is still checked
+  // against it by the caller.
+  void vectorImage;
+  lines.push("overlay_directory_end:");
   return `${lines.join("\n")}\n`;
 }
 
@@ -2336,12 +2356,21 @@ async function build() {
       (_, spacing) => `LIGHT_KERNEL_RAM:${spacing}start = $${
         lightKernelAddress.toString(16).toUpperCase()}, size = $${
         lightKernelCapacityBytes.toString(16).toUpperCase().padStart(4, "0")}`);
-  const lightKernelModule = await buildResidentModule({
+  // audit-hardening: the disk guard links in this record (src/hybrid/disk-guard.s);
+  // its expected values are known only once every run has linked, so the
+  // kernel links here with zeros and again, with the values, before transport.
+  const renderDiskGuardInclude = (sums = null) => renderGuardInclude({
+    names: OVERLAY_DIRECTORY, recordEntry: OVERLAY_SAVE_RECORD, sums, identity: diskIdentity,
+  });
+  const linkLightKernel = (diskGuardInclude) => buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "hybrid", "light-kernel.s"),
     configPath: path.join(rootDirectory, "cfg", "light-kernel.cfg"),
     configText: lightKernelConfig,
     stem: "light-kernel",
     extraInputs: {
+      "/project/build/disk-guard.s": fs.readFileSync(
+        path.join(rootDirectory, "src", "hybrid", "disk-guard.s")),
+      "/project/build/disk-guard-sums.inc": Buffer.from(diskGuardInclude),
       "/project/build/light-kernel-abi.inc": Buffer.from(lightKernelMainAbiInclude),
       // M5a-S2: the reader's fixed stat vectors the kernel's re-points name.
       "/project/build/level-summary-abi.inc": fs.readFileSync(
@@ -2356,6 +2385,7 @@ async function build() {
       "/project/build/level-def.inc": levelDefInclude,
     },
   });
+  let lightKernelModule = await linkLightKernel(renderDiskGuardInclude());
   if (lightKernelModule.raw.length > lightKernelCapacityBytes) {
     throw new Error(`4.6 Light kernel exceeds the code window: ` +
       `${lightKernelModule.raw.length} of ${lightKernelCapacityBytes} B above ` +
@@ -2405,6 +2435,16 @@ async function build() {
       throw new Error(`M5a-S1: the window's ${constant} is not jmp $${address.toString(16)}`);
     }
   });
+  {
+    // audit-hardening: the restore's image (now in this link) is the table.
+    const image = parseViceLabels(lightKernelModule.labels.toString("utf8")).get("capital_vector_image");
+    const table = capitalVectorImage[0].windowAddress - lightKernelAddress;
+    const bytes = CAPITAL_VECTORS.length * 3;
+    if (!Number.isInteger(image) || !lightKernelModule.raw.subarray(image - lightKernelAddress,
+      image - lightKernelAddress + bytes).equals(lightKernelModule.raw.subarray(table, table + bytes))) {
+      throw new Error("audit-hardening: the capital vector image is not the window's table");
+    }
+  }
   // M5a-S2: the summary's art runs, one per region, from assets. They are
   // placed before the reader links so the directory can name region 1's run.
   const summaryArtSource = path.join(rootDirectory, "assets", "graphics", "level-summary.json");
@@ -2424,7 +2464,17 @@ async function build() {
   // reader's directory names the module's sector count: the reader links once
   // with the region's full 14 sectors, the module links, and the reader is
   // relinked with the real count - one data byte, which moves no label (checked).
+  // audit-hardening (AUD-01): the identity sector lands in the record's
+  // read-back buffer, which the read-back after the PUT reuses.
+  const saveVerifyBuffer = (() => {
+    const match = /^SAVE_VERIFY_BUFFER\s*=\s*\$([0-9A-Fa-f]+)/m.exec(fs.readFileSync(
+      path.join(rootDirectory, "src", "hybrid", "level-summary-abi.inc"), "utf8"));
+    if (!match) throw new Error("audit-hardening: level-summary-abi.inc has no SAVE_VERIFY_BUFFER");
+    return Number.parseInt(match[1], 16);
+  })();
   const summaryDirectoryEntries = (codeSectors, bossCodeSectors = bossCodeMaxSectors) => [
+    { index: OVERLAY_IDENTITY, startSector: identitySectorNumber, sectors: 1,
+      destination: saveVerifyBuffer },
     { index: OVERLAY_SUMMARY_ART, startSector: summaryArtRuns[0].startSector,
       sectors: SUMMARY_ART_SECTORS, destination: summaryStagingAddress },
     { index: OVERLAY_SAVE_RECORD, startSector: saveRecordSector, sectors: 1,
@@ -2452,12 +2502,15 @@ async function build() {
   const lightKernelLabels = parseViceLabels(lightKernelModule.labels.toString("utf8"));
   const lightKernelLabelsInclude = [
     "; Generated by scripts/build.mjs for M5a-S2 - do not edit.",
-    "; The Light kernel's entries the sector reader's stat hooks continue into.",
-    ...["light_publish"].map((name) => {
+    "; The Light kernel's entries the sector reader's stat hooks continue into,",
+    "; and (audit-hardening) the disk guard's that its reads call.",
+    ...["light_publish", "guard_begin", "guard_fold", "guard_check", "capital_vector_image"].map((name) => {
       const address = lightKernelLabels.get(name);
       if (!Number.isInteger(address)) throw new Error(`M5a-S2: the Light kernel has no ${name}`);
       return `${name} = $${address.toString(16).toUpperCase()}`;
     }),
+    `GUARD_ENTRIES = ${OVERLAY_DIRECTORY.length}`,
+    `GUARD_RECORD_ENTRY = ${OVERLAY_SAVE_RECORD}`,
     "",
   ].join("\n");
 
@@ -2507,9 +2560,40 @@ async function build() {
     }),
     `OVERLAY_SUMMARY_ART = ${OVERLAY_SUMMARY_ART}`,
     `OVERLAY_SAVE_RECORD = ${OVERLAY_SAVE_RECORD}`,
+    // audit-hardening: the disk guard's entries and identity the summary uses.
+    `OVERLAY_IDENTITY = ${OVERLAY_IDENTITY}`,
+    `GUARD_IDENTITY_BYTES = ${diskIdentity.length}`,
+    ...["guard_reset", "guard_compare", "guard_identity"].map((name) => {
+      const address = lightKernelLabels.get(name);
+      if (!Number.isInteger(address)) throw new Error(`audit-hardening: the Light kernel has no ${name}`);
+      return `${name.padEnd(36)} = $${address.toString(16).toUpperCase().padStart(4, "0")}`;
+    }),
     "",
   ].join("\n");
   writeFile(path.join(buildDirectory, "summary-reader-abi.inc"), summaryReaderAbiInclude);
+  // audit-hardening (AUD-02, owner Q3): the summary checks the two kinds of
+  // run it reads with its own sector loop - each region's art, and each
+  // level's image in the reader's tail-first order - against these values.
+  // Four regions (the summary's SUMMARY_LAST_REGION + 1, asserted there); the
+  // level table is indexed by the id START GAME asks for (a debug route's id).
+  const summaryArtSums = Array.from({ length: 4 }, (_, region) => {
+    const run = summaryArtRuns[region];
+    return { sum: run === undefined ? null : guardFold(run.data), note: `region ${region + 1}'s art` };
+  });
+  const summaryLevelSums = Array.from({ length: LEVEL_MAX_ID }, (_, index) => {
+    const image = levelRuns.some((run) => run.id === index + 1) ? levelImages.get(index + 1) : undefined;
+    return { sum: image === undefined ? null : guardFold(levelReadOrder(image)),
+      note: `level ${index + 1}${image === undefined ? ", not on this disk" : ""}` };
+  });
+  const summarySumsInclude = [
+    "; Generated by scripts/build.mjs (audit-hardening) - do not edit.",
+    "; The expected fold of each region's art run and each level image's read.",
+    renderSumTable("summary_art_sums", summaryArtSums),
+    renderSumTable("summary_level_sums", summaryLevelSums),
+    "summary_sums_end:",
+    "",
+  ].join("\n");
+  writeFile(path.join(buildDirectory, "summary-sums.inc"), summarySumsInclude);
   // M5b-S3 (owner answer Q-S4, plan §5.11.7): every setting the boss install
   // patches outside slot A, with the value the shipped image holds there. The
   // summary's START GAME writes them back whenever slot A was overlaid, so a
@@ -2586,6 +2670,7 @@ async function build() {
       "/project/build/level-def.inc": levelDefInclude,
       "/project/build/capital-hulls.inc": capitalHullsInclude,
       "/project/build/boss-restore.inc": Buffer.from(bossRestoreInclude),
+      "/project/build/summary-sums.inc": Buffer.from(summarySumsInclude),
     },
   });
   writeFile(path.join(buildDirectory, "level-summary.lst"), levelSummaryModule.listing);
@@ -2665,8 +2750,11 @@ async function build() {
     // B2 (owner decision 2026-10-06): the boss restores COLPM1 / COLPM2 to
     // the Heavy's hull colour on leaving the boss sector.
     director: ["_sector_wave_count", "_director_c_try_event", "_heavy_hull_colour"],
+    // audit-hardening (AUD-02): the head checks its runs with the disk guard.
+    kernel: ["guard_reset", "guard_compare"],
   };
-  const importLinks = { main: labels, reader: sectorReaderLabels, director: directorLabels };
+  const importLinks = { main: labels, reader: sectorReaderLabels, director: directorLabels,
+    kernel: lightKernelLabels };
   const directorAbiConstants = new Map(directorAbiInclude.toString("utf8").split(/\r?\n/)
     .map((line) => /^(\w+)\s*=\s*\$?([0-9A-Fa-f]+)\s*$/.exec(line.replace(/;.*$/, "").trim()))
     .filter(Boolean).map((match) => [match[1], Number.parseInt(match[2], 16)]));
@@ -2782,7 +2870,16 @@ async function build() {
       "-o", `${bossBase}-c.o`, `${bossBase}-c-generated.s`],
     [`${bossBase}-c.o`, `${bossBase}-c.lst`],
   );
-  const linkBoss = async (runsInclude) => {
+  // audit-hardening (AUD-02): slot A's head checks the seven runs it reads
+  // (install, slots C-E, the region's band A, band B and charset), folded in
+  // that order, against its region's value. Zeros until the boss has linked.
+  const renderBossSums = (sums = []) => [
+    "; Generated by scripts/build.mjs (audit-hardening) - do not edit.",
+    "; The expected fold of the head's seven runs, per region (0 = not on this disk).",
+    renderSumTable("boss_head_sums", Array.from({ length: bossRegionCount }, (_, index) => ({
+      sum: sums[index] ?? null, note: `region ${index + 1}` }))),
+  ].join("\n");
+  const linkBoss = async (runsInclude, sumsInclude = renderBossSums()) => {
     const assembled = await runWasmTool(
       "ca65",
       {
@@ -2790,6 +2887,7 @@ async function build() {
         "/project/build/boss-layout.inc": bossLayoutInclude,
         "/project/build/boss-imports.inc": Buffer.from(bossImportsInclude),
         "/project/build/boss-runs.inc": Buffer.from(runsInclude),
+        "/project/build/boss-sums.inc": Buffer.from(sumsInclude),
         // M5b-S4b.4 (E4 (b)): the region's look tail, linked first in slot D.
         // One region's tail: slot D is shared by the regions, so a disk with
         // a second region needs the tail a per-region home first (refused
@@ -2838,6 +2936,47 @@ async function build() {
     }
   }
   writeFile(path.join(buildDirectory, "boss-runs.inc"), bossRunsInclude);
+  // audit-hardening: the head's expected folds, from the linked runs as they
+  // will be on the disk; the relink may change only boss_head_sums (checked).
+  const bossHeadSums = (() => {
+    const image = Buffer.from(bossLink.linked.outputs[`${bossBase}.bin`]);
+    const slotABytesForSums = capitalSlotImage.length;
+    const installAt = slotABytesForSums;
+    const slotCAt = installAt + bossInstallSectors * 128;
+    const slotDAt = slotCAt + BOSS_SLOT_C_BYTES;
+    const slotEAt = slotDAt + BOSS_SLOT_D_BYTES;
+    const shared = Buffer.concat([
+      image.subarray(installAt, installAt + bossInstallSectors * 128),
+      image.subarray(slotCAt, slotCAt + bossSlotCSectors * 128),
+      image.subarray(slotDAt, slotDAt + bossSlotDSectors * 128),
+      image.subarray(slotEAt, slotEAt + bossSlotESectors * 128),
+    ]);
+    return Array.from({ length: bossRegionCount }, (_, index) => {
+      const region = bossRegions[index];
+      if (region === undefined) return null;
+      return guardFold(Buffer.concat([shared, Buffer.from(region.runs.bandA.data),
+        Buffer.from(region.runs.bandB.data), Buffer.from(region.runs.charset.data)]));
+    });
+  })();
+  const bossSumsInclude = renderBossSums(bossHeadSums);
+  {
+    const firstPass = bossLink;
+    bossLink = await linkBoss(bossRunsInclude, bossSumsInclude);
+    for (const [name, address] of firstPass.labels) {
+      if (bossLink.labels.get(name) !== address) {
+        throw new Error(`audit-hardening: relinking the boss with its head's sums moved ${name}`);
+      }
+    }
+    const before = firstPass.linked.outputs[`${bossBase}.bin`];
+    const after = bossLink.linked.outputs[`${bossBase}.bin`];
+    const table = bossLink.labels.get("boss_head_sums_lo") - slotAddress;
+    for (let offset = 0; offset < after.length; offset += 1) {
+      if (before[offset] !== after[offset] && !(offset >= table && offset < table + bossRegionCount * 2)) {
+        throw new Error(`audit-hardening: the boss's sums changed byte $${(slotAddress + offset).toString(16)}`);
+      }
+    }
+  }
+  writeFile(path.join(buildDirectory, "boss-sums.inc"), bossSumsInclude);
   const bossAsmAssembled = bossLink.assembled;
   const bossLinked = bossLink.linked;
   const bossImage = Buffer.from(bossLinked.outputs[`${bossBase}.bin`]);
@@ -2977,6 +3116,57 @@ async function build() {
   }
   writeFile(path.join(buildDirectory, "level-summary.bin"), levelSummaryModule.raw);
   for (const run of summaryArtRuns) writeFile(path.join(buildDirectory, run.file), run.data);
+
+  // audit-hardening (AUD-01 / AUD-02, owner Q1-Q2): the identity sector, and
+  // the resident guard's expected value of every directory entry's run, from
+  // the runs exactly as they go on the disk. The Light kernel relinks with
+  // them: no label may move and no byte outside guard_sums may change.
+  const identitySectorData = renderIdentitySector(diskLayout);
+  for (const other of [...levelRuns.map((level) => ({ startSector: level.startSector,
+    sectors: levelBufferSectors })), ...overlayRuns, ...summaryArtRuns, ...bossDiskRuns,
+  { startSector: summaryCodeSector, sectors: summaryCodeMaxSectors },
+  { startSector: saveRecordSector, sectors: 1 }]) {
+    if (identitySectorNumber >= other.startSector && identitySectorNumber < other.startSector + other.sectors) {
+      throw new Error(`audit-hardening: the identity sector ${identitySectorNumber} is inside the run at ${other.startSector}`);
+    }
+  }
+  const themeRun = (index) => bossRegionRuns.find((run) => run.region === index + 1 && run.name.endsWith("-theme"));
+  const diskGuardRuns = OVERLAY_DIRECTORY.map((_, index) => {
+    if (index === 0) return overlayRuns[0].data;
+    if (index === OVERLAY_BOSS_CODE) return bossCodeRun.data;
+    if (index >= OVERLAY_BOSS_REGION && index < OVERLAY_BOSS_REGION + bossRegionCount) {
+      return themeRun(index - OVERLAY_BOSS_REGION)?.data ?? null;
+    }
+    if (index === OVERLAY_SUMMARY_ART) return summaryArtRuns[0].data;
+    if (index === OVERLAY_SAVE_RECORD) return null;
+    if (index === OVERLAY_SUMMARY_CODE) return summaryCodeRun.data;
+    if (index === OVERLAY_IDENTITY) return identitySectorData;
+    throw new Error(`audit-hardening: no run for directory entry ${index}`);
+  });
+  const diskGuardSums = diskGuardRuns.map((data) => (data === null ? null : guardFold(data)));
+  const diskGuardInclude = renderDiskGuardInclude(diskGuardSums);
+  {
+    const firstPass = lightKernelModule;
+    const firstLabels = parseViceLabels(firstPass.labels.toString("utf8"));
+    lightKernelModule = await linkLightKernel(diskGuardInclude);
+    const relinkedLabels = parseViceLabels(lightKernelModule.labels.toString("utf8"));
+    for (const [name, address] of firstLabels) {
+      if (relinkedLabels.get(name) !== address) {
+        throw new Error(`audit-hardening: relinking the Light kernel with the guard's sums moved ${name}`);
+      }
+    }
+    const table = relinkedLabels.get("guard_sums") - lightKernelAddress;
+    if (lightKernelModule.raw.length !== firstPass.raw.length) {
+      throw new Error("audit-hardening: the guard's sums changed the Light kernel's size");
+    }
+    for (let offset = 0; offset < firstPass.raw.length; offset += 1) {
+      if (firstPass.raw[offset] !== lightKernelModule.raw[offset] &&
+        !(offset >= table && offset < table + OVERLAY_DIRECTORY.length * 2)) {
+        throw new Error(`audit-hardening: the guard's sums changed byte $${(lightKernelAddress + offset).toString(16)}`);
+      }
+    }
+  }
+  writeFile(path.join(buildDirectory, "disk-guard-sums.inc"), diskGuardInclude);
   if (sectorReaderModule.raw.length > sectorReaderCapacityBytes) {
     throw new Error(`4.3 sector reader exceeds $A000-$A5FF: ` +
       `${sectorReaderModule.raw.length} of ${sectorReaderCapacityBytes} B`);
@@ -3476,6 +3666,7 @@ async function build() {
     ...overlayRuns.map((run) => ({ startSector: run.startSector, data: run.data })),
     ...summaryDiskRuns.map((run) => ({ startSector: run.startSector, data: run.data })),
     ...bossDiskRuns.map((run) => ({ startSector: run.startSector, data: run.data })),
+    { startSector: identitySectorNumber, data: identitySectorData },
   ]);
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, atr });
   const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
@@ -3988,6 +4179,34 @@ async function build() {
       statBlock: { address: 0xac, bytes: 10 },
       mboss: { reservedSectors: [528, 583] },
     },
+    // audit-hardening (docs/plans/audit-hardening.md §2-§3): the disk's
+    // identity and the guard that checks every run a transition uses.
+    diskGuard: (() => {
+      const guardLabels = parseViceLabels(lightKernelModule.labels.toString("utf8"));
+      const start = guardLabels.get("__DISK_GUARD_RUN__") ?? guardLabels.get("guard_begin");
+      const end = guardLabels.get("guard_end");
+      const hexSum = (sum) => (sum === null ? null :
+        `$${((sum.hi << 8) | sum.lo).toString(16).toUpperCase().padStart(4, "0")}`);
+      return {
+        address: start,
+        bytes: end - start,
+        record: "the Light kernel's DFMC record (owner Q2: +1 extension sector)",
+        identity: {
+          sector: identitySectorNumber,
+          directoryEntry: OVERLAY_IDENTITY,
+          block: [...diskIdentity].map((byte) => byte.toString(16).padStart(2, "0")).join(""),
+          magic: diskIdentity.subarray(0, 4).toString("latin1"),
+          layoutId: layoutId(diskLayout),
+          layout: diskLayout,
+        },
+        fold: "per accepted sector: a += its SIO carry-wrap sum; b += a + carry (16-bit)",
+        directorySums: OVERLAY_DIRECTORY.map((name, index) => ({ index, name,
+          expected: index === OVERLAY_SAVE_RECORD ? "never checked" : hexSum(diskGuardSums[index]) })),
+        bossHeadSums: bossHeadSums.map(hexSum),
+        summaryArtSums: summaryArtSums.map(({ sum }) => hexSum(sum)),
+        summaryLevelSums: summaryLevelSums.map(({ sum }) => hexSum(sum)),
+      };
+    })(),
     // M5a-S1 (docs/plans/m5-loading-boss.md §4.1): overlay slot A and the
     // capital vector table. Restore variant (b): the capital group stays in its
     // boot record; the run below is read only after another overlay used the slot.
@@ -4006,7 +4225,9 @@ async function build() {
         bytes: capitalVectorImage.length * 3,
         table: capitalVectorImage.map(({ constant, target, address, windowAddress }) =>
           ({ name: constant, target, targetAddress: address, address: windowAddress })),
-        imageInReader: sectorReaderLabels.get("capital_vector_image"),
+        // audit-hardening: moved from the reader to the Light kernel's link.
+        imageInLightKernel: parseViceLabels(lightKernelModule.labels.toString("utf8"))
+          .get("capital_vector_image"),
       },
       runs: overlayRuns.map(({ index, name, startSector, sectors, destination, data, file }) => ({
         index, name, startSector, sectors, destination, bytes: data.length,

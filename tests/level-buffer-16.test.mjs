@@ -63,10 +63,14 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   assert.equal(window.directorHalfBytes, 1497, "the Light C, the cold Director half, step 5, the boss entry");
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
-  assert.equal(window.lightKernelBytes, 771);
-  assert.equal(window.usedBytes, 2268);
-  assert.equal(window.freeBytes, 3584 - 2268);
-  assert.equal(window.freeBytes, 1316, "the tail M5b-S3 leaves");
+  // RE-PINNED 2026-10-07, audit-hardening (owner Q2): the kernel link 771 ->
+  // 896 B - the disk guard (89 B) and the capital vector image (36 B, moved
+  // from the reader) in segments of their own behind the kernel, whose own
+  // segment is still 771 B (tests/level-summary-build.test.mjs).
+  assert.equal(window.lightKernelBytes, 896);
+  assert.equal(window.usedBytes, 2393);
+  assert.equal(window.freeBytes, 3584 - 2393);
+  assert.equal(window.freeBytes, 1191, "the tail audit-hardening leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
@@ -93,9 +97,12 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // the pickup record, one each; the spike measured 211). The gate this proxy
   // stands for is the ATR menu frame, measured by the boot smoke against the
   // 596 baseline (+7 is the session's STOP), not the sector count itself.
-  assert.ok(manifest.transportCapacity.totalTransportSectors <= 211,
+  // RE-PINNED 2026-10-07 (audit-hardening, owner Q2): 211 -> 212, the one
+  // extension sector the owner accepted for the disk guard (the Light
+  // kernel's record, 6 -> 7 sectors); the menu frame is still the gate.
+  assert.ok(manifest.transportCapacity.totalTransportSectors <= 212,
     `total transport is ${manifest.transportCapacity.totalTransportSectors} sectors; ` +
-    "211 is the plan's M5b figure");
+    "212 is audit-hardening's figure");
 });
 
 test("Q-1: level 1 still loads the same image the same way", () => {

@@ -1127,6 +1127,9 @@ test("sector_reader_load reads the level tail first: sectors 6..N, then 1..5", (
   const drive = new Drive();
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
+  // audit-hardening: the reader folds each sector into the disk guard's sum,
+  // which rides the Light kernel's record, resident from the boot on.
+  memory.set(fs.readFileSync(build("light-kernel.bin")), manifest.lightKernel.address);
   const cpu = cpuOver(drive, memory);
   const stop = 0x7ffe;
   cpu.push((stop - 1) >> 8);

@@ -25,6 +25,11 @@ for (const line of fs.readFileSync(path.join(root, "build/sector-reader.lbl"), "
   if (match && !labels.has(match[2])) labels.set(match[2], Number.parseInt(match[1], 16));
 }
 const readerImage = fs.readFileSync(path.join(root, "build/sector-reader.bin"));
+// audit-hardening: the reader folds every sector it accepts into the disk
+// guard's sum, and its run read checks the run there - the guard rides the
+// Light kernel's record, resident from the boot on - so a machine that holds
+// only the reader holds that record too.
+const lightKernelImage = fs.readFileSync(path.join(root, "build/light-kernel.bin"));
 
 // Music v2 §1.4 put the gameplay music player inside the level image, so the
 // build's level-1 run is no longer two sectors. The fixtures follow the
@@ -235,6 +240,7 @@ function runLoad(stub,
   { levelId = 1, buffer = null, maxSteps = 8_000_000, directorySectors = null } = {}) {
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
+  memory.set(lightKernelImage, manifest.lightKernel.address);
   if (buffer) memory.set(buffer, LEVEL_BUFFER);
   // Owner decision X: the directory's sector count is what the MAX_LEVEL_SECTORS
   // bound is checked against, so a test of that bound patches the count rather
@@ -522,6 +528,7 @@ test("wait_serial counts frames on the VCOUNT wrap, not on VCOUNT falling", () =
 
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
+  memory.set(lightKernelImage, manifest.lightKernel.address);
   const cpu = new Nmos6502(memory, {
     read: (address) => {
       if (address === reg.VCOUNT) return sequence[Math.min(index++, sequence.length - 1)];
@@ -740,7 +747,6 @@ const broadsideResident = fs.readFileSync(path.join(root, "build/broadside-runti
 const residentSlotA = broadsideResident.subarray(
   slotA.address - manifest.broadsideRuntime.runAddress,
   slotA.endExclusive - manifest.broadsideRuntime.runAddress);
-const lightKernelImage = fs.readFileSync(path.join(root, "build/light-kernel.bin"));
 const residentVectorTable = lightKernelImage.subarray(
   capitalVectors.address - manifest.lightKernel.address,
   capitalVectors.address - manifest.lightKernel.address + capitalVectors.bytes);
@@ -775,6 +781,7 @@ function cpuOver(stub, memory) {
 function runReadRun(stub, index) {
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
+  memory.set(lightKernelImage, manifest.lightKernel.address);
   const cpu = cpuOver(stub, memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
@@ -844,7 +851,9 @@ test("a directory entry the build left empty is rejected without touching SIO", 
   // RE-POINTED 2026-10-04 (M5b-S3): entry 1 is the boss code and 2 region 1's
   // staging run now; regions 2-4 (entries 3-5) stay empty until S5, so the
   // empty-entry path is exercised on 3 and 5. The assertions are unchanged.
-  for (const index of [3, 5, 9, 0xff]) {
+  // RE-POINTED 2026-10-07 (audit-hardening, owner decision 1): entry 9 is the
+  // disk's identity sector, so the first index past the end is 10.
+  for (const index of [3, 5, 10, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
     const result = runReadRun(stub, index);
     assert.equal(result.failed, true, `entry ${index}`);

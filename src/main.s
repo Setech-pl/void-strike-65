@@ -3601,8 +3601,14 @@ copy_hud_glyphs:
 ; DLI waits through that line, then installs the ANTIC 4 charset/palette before
 ; the first gameplay scanline. The final-row DLI restores the HUD state.
 ; A is the only modified register and is preserved; X and Y remain untouched.
+; AUD-03 (docs/plans/audit-hardening.md §4): the NMI keeps the interrupted D,
+; and the gameplay score adds run between SED and CLD with this DLI live, so
+; the first thing after the PHA is CLD (the RTI restores D). The routine keeps
+; its size - BROADSIDE holds slot A at a fixed address behind it: phase 0's
+; dead `lda #$00` before its WSYNC went, and a pad byte follows its RTI.
 gameplay_dli:
     pha
+    cld
     ; Both display-list headers are identical. Before ANTIC reaches the fixed
     ; divider, continue from byte three of the selector chosen by the latest A2
     ; rotation. This publishes the row-table/list swap in the same frame without
@@ -3617,8 +3623,7 @@ gameplay_dli:
     adc #$03
     sta DLISTL
 gameplay_dli_sync_gameplay = *
-    lda #$00
-    sta WSYNC
+    sta WSYNC                   ; a strobe: A's value is not read
 
     lda #>CHARSET
     sta CHBASE
@@ -3638,6 +3643,7 @@ gameplay_dli_allied_colpf1_load = *    ; operand patched per level by publish_le
     pla
 profile_gameplay_dli_end = *
     rti
+    .byte $EA                   ; AUD-03's size pad: never executed
 
 gameplay_dli_sync_hud = *
     lda #$00

@@ -650,3 +650,19 @@ light_cell_resolve:
     rts
 
 light_kernel_end:
+
+; audit-hardening: the disk guard rides this link's record, in its own segment
+; behind the kernel (cfg/light-kernel.cfg), so the kernel does not move.
+.include "disk-guard.s"
+
+; The capital vector table's boot image: what the reader's capital restore
+; (sector_reader_restore_capital) copies back over capital_vector_table once
+; slot A holds the capital code again. It lived in the reader until
+; audit-hardening needed the reader's room (its record must stay 12 sectors);
+; here it sits behind the guard, in a segment of its own, so nothing moves.
+.segment "CAPITAL_VECTOR_IMAGE"
+capital_vector_image:
+.include "capital-vectors.inc"
+capital_vector_image_end:
+.assert capital_vector_image_end - capital_vector_image = CAPITAL_VECTOR_COUNT*3, error, "the capital vector image does not match the window table"
+.export capital_vector_image

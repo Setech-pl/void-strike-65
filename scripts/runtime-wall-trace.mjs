@@ -1122,6 +1122,8 @@ for (const name of [
   "laser_damage_calls", "audf3", "audc3",
   // AUD-04: the band position the boss DLI showed (debug sessions place pokes by it).
   "boss_shown_pos",
+  // S4b.4 (W1): the Director's sector index and the sector's row clock.
+  "director_sector", "sector_row",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -3506,11 +3508,15 @@ function main() {
     DFTRACE_PC_DIRECTOR_WORLD: "director_world_row_tick",
     DFTRACE_PC_DIRECTOR_REQUEST: "director_request",
     DFTRACE_PC_DIRECTOR_EVENT: "director_try_event",
+    DFTRACE_SECTOR_ROW: "_sector_row_lo",
   })) {
     const address = directorLabels.get(labelName);
     invariant(Number.isInteger(address), `Director trace label ${labelName} is missing`);
     addressEnvironment[environmentName] = `0x${address.toString(16)}`;
   }
+  // S4b.4 (W1): the Director's sector index, STATE_SECTOR at $80F6
+  // (src/c/director.c; src/encounter-director.s names it STATE_PHASE).
+  addressEnvironment.DFTRACE_DIRECTOR_SECTOR = "0x80f6";
   // Music v2 §1.4: the gameplay music player is its own link inside the
   // per-level image, so its tick PC comes from that link's label file.
   for (const [environmentName, labelName] of Object.entries({

@@ -167,7 +167,8 @@
     {
       "kind": "space",
       "subtype": "elite",
-      "rows": 856,
+      "rows": 144,
+      "_w1": "M5b-S4b.4 (owner decision W1, 2026-10-07): from the end of the capital sector to the boss, exactly one wave of each enemy kind that appeared there before, in the order of their first appearance - the raider+wingman formation (here), then the Bombers (sector 4). This sector keeps one raider+wingman wave (144 rows, the old spacing between waves), with the flight-lead appearance of the last one, the level's only re-skinned escort wave; sector 4 keeps one Bomber wave (312 rows, the time the old last wave had before the boss), so the level-1-s3 debug route still starts with Bombers.",
       "archetypes": [
         "raider",
         "wingman",
@@ -192,40 +193,6 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 144,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 288,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 432,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 576,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
           "entry": 124,
           "appearance": "flight-lead"
         }
@@ -234,7 +201,7 @@
     {
       "kind": "space",
       "subtype": "elite",
-      "rows": 2040,
+      "rows": 312,
       "archetypes": [
         "raider",
         "wingman",
@@ -253,108 +220,6 @@
       "waves": [
         {
           "row": 0,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 144,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 288,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 432,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 576,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 720,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 864,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 1008,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 1152,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 1296,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 1440,
-          "archetype": "bomber",
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 1584,
-          "members": [
-            "raider",
-            "wingman"
-          ],
-          "count": 6,
-          "spacing": 24,
-          "entry": 124
-        },
-        {
-          "row": 1728,
           "archetype": "bomber",
           "count": 6,
           "spacing": 24,

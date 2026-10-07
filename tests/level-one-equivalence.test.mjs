@@ -111,14 +111,17 @@ test("T4: the Heavy stream keeps the cadence and the density it had before the l
 
 // MEASURED on the build this test runs against, 9,000 frames, one fixed kill
 // policy. Run-length encoded: "R6" is six consecutive Raider formations.
+// RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): after the capital
+// level 1 plays one Raider + Wingman wave and one Bomber wave, then the boss,
+// so the 9,000 frames hold four blocks - still alternating - and the boss
+// sector's frames add no Heavy formation.
 const PLAYED_ORDER = {
-  0: "R4 B4 R6 B6 R6 B6 R4 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B4",
-  1: "R4 B4 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R5",
-  2: "R4 B4 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6",
+  0: "R4 B4 R5 B6",
+  1: "R4 B4 R5 B6",
+  2: "R4 B4 R6 B6",
 };
-// Heavy formations in 9,000 frames, against the pre-step-2 baseline at
-// `28bd1e7` (the diagnostics file this test already reads).
-const HEAVY_FORMATIONS = { 0: 100, 1: 109, 2: 116 };
+// Heavy formations in 9,000 frames (W1, measured as above).
+const HEAVY_FORMATIONS = { 0: 19, 1: 19, 2: 20 };
 // One WaveDef names one archetype and the core page holds twenty of them, so
 // six is the floor a level of this density can reach: 116 formations over 20
 // waves. Per-FORMATION alternation needs the "mixed wave" bit, which owner
@@ -138,7 +141,7 @@ function playedBlocks(run) {
 const encode = (blocks) => blocks
   .map((block) => `${block.archetype === "raider" ? "R" : "B"}${block.length}`).join(" ");
 
-test("owner decision 8: the twenty authored waves alternate Raider and Bomber, with no repeat",
+test("owner decision 8: the authored waves alternate Raider and Bomber, with no repeat",
   () => {
     const compiled = compileLevelFile(levelSourcePath(1));
     const heavy = compiled.waves.filter((wave) => wave.class === "heavy");
@@ -167,21 +170,15 @@ for (const difficulty of [0, 1, 2]) {
       "the twenty-wave page allows at this density");
     assert.equal(encode(blocks), PLAYED_ORDER[difficulty]);
     assert.equal(run.heavySpawns.length, HEAVY_FORMATIONS[difficulty]);
-    // Against the pre-step-2 level, not against a target: EASY +1, MEDIUM
-    // exact, HARD -6. HARD is the difficulty the twenty-wave page cannot fill.
-    // Its row clock leaves room for about 122 formations and the page authors
-    // 116, because a wave count is also the longest run of one archetype the
-    // player sees: raising the counts to 7 would buy HARD its six formations
-    // and cost every difficulty a run of seven. Owner decision 8 asks for the
-    // alternation first.
-    const before = baseline.runs.find((candidate) => candidate.difficulty === difficulty);
-    assert.ok(Math.abs(run.heavySpawns.length - before.heavySpawns.length) <= 6,
-      `${run.heavySpawns.length} Heavy formations against the pre-change ` +
-      `${before.heavySpawns.length}`);
+    // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): the density
+    // against the pre-step-2 level (within 6 of 100 / 109 / 116 formations)
+    // is retired. W1 removes the post-capital waves on purpose; the density up
+    // to the capital is still pinned against that baseline, frame for frame,
+    // by the T4 Heavy-stream test above.
   });
 }
 
-test("owner decision 8: re-authoring the waves moved neither the capital nor the level's end",
+test("owner decision 8 / W1: re-authoring the waves left the capital where it was; W1 moved the level's end",
   () => {
     // The sectors behind the capital were re-sized (1,448 + 1,448 -> 856 +
     // 2,040) so that the first of them is always exhausted before its row
@@ -191,11 +188,15 @@ test("owner decision 8: re-authoring the waves moved neither the capital nor the
     // its boss, so the row clock no longer completes the level at row 3,712:
     // it ENTERS the boss sector there, on the very frame it used to complete,
     // and the entry follows once the playfield drains. Same frames, same row.
-    for (const [difficulty, complete] of [[1, 8249], [2, 7424]]) {
+    // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): W1 moves the
+    // level's end on purpose - the post-capital sectors are 144 + 312 rows -
+    // so the boss sector is entered at row 1,272, on the frames MEASURED here;
+    // the capital (below) is unchanged.
+    for (const [difficulty, complete] of [[1, 2827], [2, 2544]]) {
       const run = captureTimeline({ buildDirectory, difficulty, frames: 9000 });
       assert.equal(run.completeFrame, null, "the level must not complete before its boss");
       assert.equal(run.bossSectorFrame?.frame, complete);
-      assert.equal(run.bossSectorFrame?.row, 3712);
+      assert.equal(run.bossSectorFrame?.row, 1272);
       assert.ok(run.bossEntryFrame?.frame >= complete, "the entry waits for the drain");
     }
     const medium = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });

@@ -276,10 +276,15 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   // RE-POINTED 2026-10-04 (M5b-S3): the boss sector has no authored rows -
   // the world stops in it and it ends at the boss's death - so the sum below,
   // and the row on which the level leaves its space sectors, are unchanged.
-  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 856, 2040, 0]);
-  assert.equal(compiled.sectors[2].rows + compiled.sectors[3].rows, 2896,
-    "the two post-capital sectors still total what 1,448 + 1,448 totalled");
-  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 3710);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): from the capital's
+  // end to the boss, one wave of each kind that was there, in the order of
+  // its first appearance: the Raider + Wingman wave in a 144-row sector (the
+  // old spacing between waves), then one Bomber wave in a 312-row sector (the
+  // rows the old last wave had before the boss). W1 shortens the level on
+  // purpose, so the 2,896-row total and the 3,710-row end are no longer
+  // invariants; the capital's row (272) and its traversal are untouched.
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 144, 312, 0]);
+  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1270);
   // Every wave names an archetype offset in the frozen four-record roster.
   for (const wave of compiled.waves) {
     assert.equal(wave.archetypeOffset % ARCHETYPE_RECORD_BYTES, 0);

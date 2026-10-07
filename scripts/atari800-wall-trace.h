@@ -362,6 +362,8 @@ typedef struct {
 	unsigned laser_hpos[4];
 	unsigned laser_damage_calls;
 	unsigned boss_shown_pos;
+	unsigned director_sector;
+	unsigned sector_row;
 	unsigned audf3;
 	unsigned audc3;
 	unsigned pickup_draw_calls;
@@ -875,6 +877,11 @@ static unsigned dftrace_maximum_boss_dlis_per_host_frame;
 static unsigned dftrace_laser_state;
 static unsigned dftrace_laser_hpos;
 static unsigned dftrace_boss_shown_pos;
+/* S4b.4 (W1): the Director's sector index and the sector's row clock, so a
+ * session can list when each wave starts (a wave starts when its sector's row
+ * clock reaches the wave's row). */
+static unsigned dftrace_director_sector;
+static unsigned dftrace_sector_row;
 /* AUD-04 (owner addendum 2026-10-06): a debug session's memory pokes, applied
  * as the frame's input is set: "F:aaaa=vv,aaaa=vv;F:..." (F decimal, address
  * and value hex). The default sessions set none. */
@@ -5523,6 +5530,9 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->audc3 = POKEY_AUDC[POKEY_CHAN3];
 	frame->boss_shown_pos = dftrace_boss_active() && dftrace_boss_shown_pos != 0u
 		? MEMORY_mem[dftrace_boss_shown_pos] : 0u;
+	frame->director_sector = dftrace_director_sector != 0u ? MEMORY_mem[dftrace_director_sector] : 0u;
+	frame->sector_row = dftrace_sector_row != 0u
+		? MEMORY_mem[dftrace_sector_row] | ((unsigned) MEMORY_mem[dftrace_sector_row + 1u] << 8) : 0u;
 	frame->pause_test_completed = dftrace_pause_test_completed;
 	frame->pause_timer_before = dftrace_pause_timer_before;
 	frame->pause_timer_after = dftrace_pause_timer_after;
@@ -5627,7 +5637,7 @@ static void dftrace_write(void)
 		",engine_playfield_select_idle_active_lo,pickup_erase_writes"
 		",boss_entry,boss_state,maximum_boss_dlis_per_host_frame"
 		",laser_states,laser_hpos0,laser_hpos1,laser_hpos2,laser_hpos3"
-		",laser_damage_calls,audf3,audc3,boss_shown_pos\n");
+		",laser_damage_calls,audf3,audc3,boss_shown_pos,director_sector,sector_row\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -5896,7 +5906,7 @@ static void dftrace_write(void)
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->laser_states,
 			frame->laser_hpos[0], frame->laser_hpos[1], frame->laser_hpos[2],
 			frame->laser_hpos[3], frame->laser_damage_calls, frame->audf3, frame->audc3);
-		fprintf(file, ",%u", frame->boss_shown_pos);
+		fprintf(file, ",%u,%u,%u", frame->boss_shown_pos, frame->director_sector, frame->sector_row);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6666,6 +6676,8 @@ static void dftrace_init(void)
 	dftrace_laser_hpos = dftrace_env_optional("DFTRACE_LASER_HPOS");
 	dftrace_pc_laser_damage = dftrace_env_optional("DFTRACE_PC_LASER_DAMAGE");
 	dftrace_boss_shown_pos = dftrace_env_optional("DFTRACE_BOSS_SHOWN_POS");
+	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
+	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_pokes = getenv("DFTRACE_POKES");
 	DFTRACE_ADDRESS(dftrace_pc_world, "DFTRACE_PC_WORLD");
 	DFTRACE_ADDRESS(dftrace_pc_near, "DFTRACE_PC_NEAR");

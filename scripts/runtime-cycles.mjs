@@ -16,6 +16,10 @@ const MAX_WSYNC_STALL = CYCLES_PER_SCANLINE;
 const NMI_ENTRY_CYCLES = 7;
 const RELEASED_OPTION_LIMIT = 0x04;
 
+// src/main.s SECTOR_READER_LOAD / SECTOR_READER_READ_RUN: the sector reader's
+// frozen disk vectors (sector-reader.s asserts them). This model has no SIO.
+const SECTOR_READER_DISK_VECTORS = [0xa003, 0xa006];
+
 const addresses = {
   stick0: 0xd300,
   trig0: 0xd010,
@@ -696,7 +700,7 @@ export function measureRuntimeCycles(build) {
       let measurement;
       try {
         measurement = execute(machine.cpu, {
-          stopAddresses: [entryPoints.mainLoop, entryPoints.frontendLoop],
+          stopAddresses: [entryPoints.mainLoop, entryPoints.frontendLoop, ...SECTOR_READER_DISK_VECTORS],
           routineAddresses,
           eventAddresses,
           regionAddresses,
@@ -709,6 +713,14 @@ export function measureRuntimeCycles(build) {
         throw error;
       }
       if (measurement.stopAddress === entryPoints.frontendLoop) break;
+      // M5b-S4b.4 (W1): the replay is gameplay outside the boss. Its sessions
+      // start in sector index 3, and W1 left that sector 312 rows long, so a
+      // long session now reaches the boss sector, whose entry reads the boss
+      // from disk. That read is not something this model executes, and the
+      // boss's frames are the boss harness's and the emulator trace's: a
+      // session ends at a disk read, as it ends at the frontend, and the frame
+      // that began it is not recorded.
+      if (SECTOR_READER_DISK_VECTORS.includes(measurement.stopAddress)) break;
       const record = {
         session,
         frame,

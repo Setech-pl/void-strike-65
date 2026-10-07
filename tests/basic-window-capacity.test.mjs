@@ -75,11 +75,11 @@ test("the window has room for the Director: the free tail is four digits", () =>
   // start, the code read) - and 19 in the C half, the BOSS branch of
   // enter_sector. The plan priced ~157 B; its STOP was 20 % above that.
   // Re-recorded 2026-10-07, audit-hardening (docs/plans/audit-hardening.md
-  // §3, owner Q2): 1,316 -> 1,191. The 125 B are the kernel link's two new
-  // segments behind the kernel - the disk guard (89 B) and the capital vector
+  // §3, owner Q2): 1,316 -> 1,185. The 131 B are the kernel link's two new
+  // segments behind the kernel - the disk guard (95 B) and the capital vector
   // table's boot image (36 B), moved from the reader so its record stays 12
   // sectors. The kernel itself is still 771 B.
-  assert.equal(basicWindow.freeBytes, 1191,
+  assert.equal(basicWindow.freeBytes, 1185,
     "the delivered audit-hardening figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);

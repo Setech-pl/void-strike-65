@@ -462,7 +462,6 @@ sector_reader_drain_ready:
 sector_reader_read_run:
         cpx #OVERLAY_DIRECTORY_ENTRIES
         bcs @bad
-        jsr guard_begin                 ; X kept
         txa                             ; index x 5
         asl
         asl
@@ -482,13 +481,9 @@ sector_reader_read_run:
         sta sr_dst
         lda overlay_directory+4,y
         sta sr_dst+1
-        jsr sector_reader_read_sectors
-        bcs @done
-        jmp guard_check
+        jmp sector_reader_run_checked   ; X = the entry, kept above
 @bad:
         jmp sector_reader_report_bad_image
-@done:
-        rts
 
 ; ===========================================================================
 ; sector_reader_load(A = level id, 1..LEVEL_MAX_ID)
@@ -602,10 +597,6 @@ sector_reader_read_sectors:
         rts
 
 @sector_done:
-        ; audit-hardening: every accepted sector into the run's fold (the
-        ; disk guard's; the callers that check a run start it).
-        lda sr_checksum
-        jsr guard_fold
         clc
         lda sr_dst
         adc #SECTOR_BYTES
@@ -613,7 +604,7 @@ sector_reader_read_sectors:
         bcc :+
         inc sr_dst+1
 :
-        inc sr_sector_lo
+        jsr sector_reader_next_sector   ; audit-hardening: the fold, then inc sr_sector_lo
         bne :+
         inc sr_sector_hi
 :
@@ -1020,6 +1011,32 @@ stats_add_hits:
 :
         rts
 
+
+; ===========================================================================
+; audit-hardening (AUD-02, docs/plans/audit-hardening.md §3): the disk guard's
+; two steps in the reader. They sit here, after the stat hooks, so that the
+; read paths above keep their sizes and nothing a gameplay frame reaches - the
+; hooks above - moves: read_run's last JMP and @sector_done's `inc
+; sr_sector_lo` are their only call sites, the same bytes either way.
+; ===========================================================================
+
+; The rest of sector_reader_read_run: X = the directory entry, the start,
+; count and destination already set. The run is read, folded and checked.
+sector_reader_run_checked:
+        jsr guard_begin                 ; X kept; the fold starts
+        jsr sector_reader_read_sectors
+        bcs @failed
+        jmp guard_check
+@failed:
+        rts
+
+; @sector_done's next-sector step: the accepted sector into the run's fold,
+; then the increment it replaces, whose Z the caller's BNE reads.
+sector_reader_next_sector:
+        lda sr_checksum
+        jsr guard_fold
+        inc sr_sector_lo
+        rts
 
 ; ===========================================================================
 ; Support

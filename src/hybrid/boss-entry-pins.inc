@@ -21,4 +21,4 @@ pin_game_music_data_start        = $A717   ; music
 pin_sector_reader_blank          = $A03D   ; reader
 pin_sector_reader_show_records   = $A0A7   ; reader
 pin_sector_reader_failure_screen = $A0D6   ; reader
-pin_sr_slot_a_overlaid           = $A56F   ; reader
+pin_sr_slot_a_overlaid           = $A576   ; reader

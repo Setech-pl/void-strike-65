@@ -211,8 +211,8 @@ boss_vector_image_end:
 ; then the install.
 boss_head:
     ; audit-hardening (AUD-02): slot A itself was checked by the reader's run
-    ; read before it ran; the seven runs the head reads are folded from here.
-    jsr guard_reset
+    ; read before it ran, which leaves the disk guard's fold at zero; the
+    ; seven runs the head reads are folded on from there.
     ldy #BOSS_RUN_INSTALL
     jsr boss_read_run
     ldy #BOSS_RUN_SLOT_C
@@ -234,8 +234,6 @@ boss_head:
     inx
     bne @region
 @have_region:
-    txa                                 ; the region, for its expected fold
-    pha
     lda boss_region_runs,x
     ldx #BOSS_REGION_RUNS
 @run:
@@ -251,22 +249,7 @@ boss_head:
     adc #$05
     dex
     bne @run
-    ; AUD-02: nothing the head read is run or used - the install, slots C-E,
-    ; the band and its tables - unless the seven runs check against the
-    ; region's value; then the module count is bounded to 1..16 before the
-    ; controller can index its 16-entry arrays with it. Either refusal is the
-    ; reader's failure screen (WRONG DISK), as a missing region is.
-    pla
-    tax
-    lda boss_head_sums_lo,x
-    ldy boss_head_sums_hi,x
-    jsr guard_compare
-    bcs boss_wrong_disk
-    lda BOSS_T_MODULE_COUNT
-    beq boss_wrong_disk
-    cmp #BOSS_MAX_MODULES + 1
-    bcs boss_wrong_disk
-    jmp boss_install
+    jmp boss_head_check                 ; A = the region's last offset + 5
 
 ; Y = a run's offset in boss_runs: {sector lo, sector hi, count, dst lo, dst hi}.
 boss_read_run:
@@ -298,8 +281,46 @@ boss_region_runs:
     .endrepeat
 boss_runs:
     .include "boss-runs.inc"
-; audit-hardening: the expected fold of the head's seven runs, per region.
+
+; ===========================================================================
+; audit-hardening (AUD-02, docs/plans/audit-hardening.md §3): the head's check,
+; in a segment of its own at slot A's end, so that the head and every routine
+; behind it keep their addresses. Nothing the head read is run or used - the
+; install, slots C-E, the band and its tables - unless the seven runs check
+; against the region's value; then the module count is bounded to 1..16
+; before the controller can index its 16-entry arrays with it. Either refusal
+; is the reader's failure screen (WRONG DISK), as a missing region is.
+; A = BOSS_RUN_REGIONS + region * 15 + 15 = 35 + 15 * region: its top nibble
+; is region + 2 for the four regions (asserted below).
+; ===========================================================================
+.segment "BOSS_HEAD_CHECK"
+
+boss_head_check:
+    lsr
+    lsr
+    lsr
+    lsr
+    tax
+    lda boss_head_sums_lo-2,x
+    ldy boss_head_sums_hi-2,x
+    jsr guard_compare
+    bcs @refused
+    ldx BOSS_T_MODULE_COUNT
+    dex                                 ; 1..16 -> 0..15; 0 -> $FF
+    cpx #BOSS_MAX_MODULES
+    bcs @refused
+    jmp boss_install
+@refused:
+    jmp boss_wrong_disk
+
+; The expected fold of the head's seven runs, per region (scripts/build.mjs).
     .include "boss-sums.inc"
+
+.repeat 4, R
+.assert ((BOSS_RUN_REGIONS + (R + 1) * BOSS_REGION_RUNS * 5) >> 4) = R + 2, error, "the head's last offset no longer names its region by its top nibble"
+.endrepeat
+
+.segment "BOSS_CODE"
 
 ; ===========================================================================
 ; The boss DLI (decision 9: the third DLI, in the boss sector only).

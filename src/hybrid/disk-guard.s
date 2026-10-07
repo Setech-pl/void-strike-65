@@ -72,7 +72,12 @@ guard_compare:
         cpy guard_sum+1
         bne guard_bad
 guard_ok:
+        ; A run that checks leaves the fold at zero, so the reads that follow
+        ; it start from there (slot A's head folds its seven runs on from the
+        ; boss code's check without a reset of its own).
         lda #GUARD_SR_OK
+        sta guard_sum
+        sta guard_sum+1
         clc
         rts
 guard_bad:
@@ -92,6 +97,7 @@ guard_sum:
         .byte $00, $00
 guard_end:
 
+.assert GUARD_SR_OK = 0, error, "guard_ok zeroes the fold with the status it returns"
 .assert guard_identity - guard_sums = GUARD_ENTRIES * 2, error, "the guard's table is not one value per directory entry"
 .assert guard_entry - guard_identity = GUARD_IDENTITY_BYTES, error, "the identity block is not GUARD_IDENTITY_BYTES"
 ; Its end against $BC00 is light-kernel.s's __LIGHT_KERNEL_RAM_LAST__ assert:

@@ -64,13 +64,13 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
   // RE-PINNED 2026-10-07, audit-hardening (owner Q2): the kernel link 771 ->
-  // 896 B - the disk guard (89 B) and the capital vector image (36 B, moved
+  // 902 B - the disk guard (95 B) and the capital vector image (36 B, moved
   // from the reader) in segments of their own behind the kernel, whose own
   // segment is still 771 B (tests/level-summary-build.test.mjs).
-  assert.equal(window.lightKernelBytes, 896);
-  assert.equal(window.usedBytes, 2393);
-  assert.equal(window.freeBytes, 3584 - 2393);
-  assert.equal(window.freeBytes, 1191, "the tail audit-hardening leaves");
+  assert.equal(window.lightKernelBytes, 902);
+  assert.equal(window.usedBytes, 2399);
+  assert.equal(window.freeBytes, 3584 - 2399);
+  assert.equal(window.freeBytes, 1185, "the tail audit-hardening leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);

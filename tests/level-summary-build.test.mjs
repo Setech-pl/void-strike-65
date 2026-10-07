@@ -342,9 +342,9 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; t
   assert.ok(manifest.sectorReader.freeBytes >= 0);
   // RE-PINNED 2026-10-04 (M5b-S3): 1,444 -> 1,316, the boss entry's resident
   // half (tests/basic-window-capacity.test.mjs has the breakdown).
-  // RE-PINNED 2026-10-07 (audit-hardening, owner Q2): 1,316 -> 1,191, the
+  // RE-PINNED 2026-10-07 (audit-hardening, owner Q2): 1,316 -> 1,185, the
   // disk guard and the capital vector image behind the kernel.
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1191, "the window moved");
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1185, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618, "the initial block moved");
 });

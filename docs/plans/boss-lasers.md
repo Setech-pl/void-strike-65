@@ -1,10 +1,11 @@
 # Plan — M5b-S4b: the boss lasers
 
 **Status: implemented, pending the owner's smoke — `OWNER-SMOKE CANDIDATE`
-(2026-10-07).** Phase B is built to §12's owner decisions, the addendum's (§13:
-AUD-03, the AUD-04 cap) and the smoke rounds' (§15: D1, D3; §16: B2 reversing
-Q1's option A, art A, the taller emitter, the centred beam); the final figures
-are §16, the clause coverage §14. Branch `feat/boss-lasers` from `main` `1a3c8bf`. §0–§11 are Phase A's
+(2026-10-07, S4b.4).** Phase B is built to §12's owner decisions, the
+addendum's (§13: AUD-03, the AUD-04 cap) and the smoke rounds' (§15: D1, D3;
+§16: B2 reversing Q1's option A, the centred beam; §17: W1, E4, the projector
+tower, the first shot on exposure, the 90–120 s fight); the final figures are
+§17, the clause coverage §14. Branch `feat/boss-lasers` from `main` `1a3c8bf`. §0–§11 are Phase A's
 record (audit, options, previews), kept as written: their probes were reverted
 and none of their output is committed as evidence.
 
@@ -1497,3 +1498,127 @@ trace run in a temporary worktree):
 | Initial block / boot sectors | 13,618 B / 107 (13,618 / 107) | `build/manifest.json` |
 | Non-boss frames | identical to `main` in all 52 shared sessions | CSV comparison |
 | Fight EASY / MEDIUM / HARD | 38.3 / 56.2 / 71.4 s, 1 / 1 / 1 deaths (46.0 / 48.6 / 71.2 s, 0 / 0 / 0) | `director-complete-*` |
+
+## 17. S4b.4 (owner decisions of 2026-10-07) — status: implemented, pending the owner's smoke
+
+The owner's smoke of the §16 candidate (`3df058a6…`): the emitter still read
+as the ribbed panel, its warning heat looked like a player's hit, its damage
+looked like a plate's, and level 1 had too many Bomber waves after the capital.
+
+### 17.1 Decisions (2026-10-07)
+
+* **W1** — level 1 after the capital: exactly one wave of each kind that was
+  there, in the order of first appearance. Sector 3 (144 rows) keeps one
+  Raider + Wingman wave, the flight-lead one (the level's only re-skinned
+  escort wave); sector 4 (312 rows) one Bomber wave. Decision 8's played
+  order and density after the capital are superseded; the waves before the
+  capital and the capital are unchanged.
+* **E1–E3** — the emitter gets its own silhouette, its warning heats the lens
+  with its own glyphs (never a hit's spark or muzzle flash), and its damage
+  looks are its own or none.
+* **E4, option (b)** — region 1's 98-B look table leaves the charset area: it
+  is linked first in slot D (`BOSS_D_LOOKS`, `$1900`) and read with slot D's
+  run, with no loader code (98 of the 110 B allowed).
+* **Owner answers 1–10:**
+  1. **Design 1, the projector tower**, for region 1 and the fixtures:
+     `assets/graphics/boss-regions/region-1/emitter.png`. **Only the lens
+     stages** (`"stages": "lens"`): its own cracked and dark looks; the tower
+     keeps its look until destroyed (decision L).
+  2. Designs 2 and 3 and the `--emitter-design` flag are removed.
+  3. W1 stays.
+  4. **The first shot on exposure**: when an emitter's shield is destroyed, it
+     warns on the next frame, at the front of the two-laser queue (both
+     places busy: the first that frees); then its normal reload.
+  5. **The emitter's durability ×2** (10 → 20 hit points).
+  6. **Decision I changes**: the MEDIUM fight target is now **90–120 s**
+     (it was 45–60 s), reached in data only. **S5 requirement:** a 90–120 s
+     fight needs a second phase — the finale volleys of decision B. M8 does
+     the final tuning on hardware.
+  7. **Laser cadence per level is M8's**: `bossDef.laserWarning` and
+     `bossDef.laserReload` are per-level, per-difficulty data in each
+     `assets/levels/level-NN.json`, so faster fire on levels 5–8 and 9–12
+     needs no code.
+  8. **The laser contact session is a bot policy**, not a memory write.
+  9. No `git stash` or other working-tree change under a running trace.
+  10. **S5 requirement:** slot D is shared by every region, so each region's
+      look table needs a home of its own (recorded in
+      [m5-loading-boss.md](m5-loading-boss.md)).
+
+### 17.2 As built
+
+* **The tower:** 3 × 3 cells at columns 31–33, rows 1–3, its bottom level
+  with gun-2's and gun-4's; the lens is the bottom row's centre cell. The beam
+  is centred on the lens (colour clock 130) and the warning heats that cell
+  with heat A and B (tables 252 / 254).
+  * The art is five panels in `emitter.png` (rest, heat A, heat B, cracked,
+    broken), painted over band, open, cracked and broken.
+  * Region 1 uses 122 of 128 codes (6 free; the tower takes 10 of the 16 it
+    was given) and 976 B of charset.
+* **Lens-only stages:** the tower's cells are plain glyphs. `boss_draw_module`
+  adds K or 2K to staged codes only (tables[255] is the first plain code):
+  12 B in slot A, which is now 2,047 of 2,048 B.
+* **The first shot:** an emitter covered at the install is *shielded*.
+  * `laser_first_shot`, run right after the controller's tick, marks a
+    shielded emitter that the tick just exposed as ready, with priority, and
+    admits it that frame.
+  * The tick exposes a module on the frame after its cover's kill, so the
+    warning starts on the frame after the shield falls.
+  * `laser_admit` serves priority lasers before the rotating order.
+  * Slot D is 1,714 B, leaving 78 B of `$1900–$1FFF` (`$1FB2–$1FFF`).
+* **Durability** (region data; `boss_def`'s per-difficulty scale, ×3/4,
+  ×1 and ×5/4, is unchanged):
+
+  | Module | S4b | S4b.4 | EASY / MEDIUM / HARD now |
+  | --- | ---: | ---: | --- |
+  | gun-1 to gun-4 | 14 | 28 | 21 / 28 / 35 |
+  | plate-d, plate-e | 10 | 20 | 15 / 20 / 25 |
+  | plate-a, -b, -c, -g, -h | 8 | 16 | 12 / 16 / 20 |
+  | plate-f | 6 | 12 | 9 / 12 / 15 |
+  | emitter | 10 | 20 | 15 / 20 / 25 (S4b: 8 / 10 / 12; quarter rounding puts EASY at 15, not 16) |
+
+* **The laser contact session** (`lower-playfield-laser-contact-atr-hard`):
+  * The `lower-contact-laser` policy parks the fighter under the lens from the
+    boss's entry, firing up into the shield (plate-d). The shield falls, the
+    emitter warns, and the beam meets the fighter away from the guns'
+    recesses, where the boss's shots fall.
+  * MEASURED: health 10 from the entry (frame 2,861) to the first laser hit
+    (3,311), 10 → 0.
+  * The policy keeps full health inside the boss sector. This replay enters
+    the sector at full health because the bot respawns at the entry.
+
+### 17.3 Trace classes met on the way (clauses never weakened)
+
+* **(a), scenario rewritten:**
+  * the laser contact (above);
+  * the booster-cycle clause, `>= 10`: the hunt integrity replays now reach
+    the boss, which has no capsules, and collected 7.
+    `memory-integrity-atr-2-hunt-fire7` joined, for 11; the other candidates
+    were measured.
+* **(b), harness or observer fixed:**
+  * the boss-entry frame, set aside by design, is now counted by the frame
+    totals (`measuredFrames`; seven replays reach the boss since W1);
+  * the booster rotation is compared within a replay (each replay starts on
+    Rapid); the evidence records `granted_booster_modes_by_replay`;
+  * the build's cycle model ends a session at the reader's disk vectors.
+* **(c):** none.
+
+### 17.4 Final figures
+
+The ATR is `7a9a35c3…`. `main` `1a3c8bf` is in brackets, from its own trace
+run in a temporary worktree.
+
+| Figure | Value | Source |
+| --- | ---: | --- |
+| Worst fence margin | 1,472, `2-sweep-fire6` f311 (1,472, same frame) | full trace |
+| DMA-on maximum | 31,074 (31,240) | full trace |
+| Boss frames: worst margin / DMA-on | 8,658 (`debris-effects-2-sweep-fire4` f3830) / 28,788 (12,974 / 28,687) | full trace |
+| Tier-4 fixture, two beams on (651 frames) | worst margin 14,637, DMA-on 27,456 | `laser-dodge-2-fire0` |
+| Boss stress, native | two-laser 7,502; fixture warning sweep 7,685; fortress 6,743; per-frame 5,376 (limits 8,500 / 7,000) | `tests/boss-*.test.mjs` |
+| Slot A / C / D | 2,047 / 2,006 / 1,714 B (1,995 / 2,003 / —) | `build/manifest.json` |
+| `$1900–$1FFF` remainder | 78 B, `$1FB2–$1FFF` | the same |
+| Region 1's charset; free codes | 976 B (+ the 98-B look table in slot D); 6 free (978 B with the table, 18 free) | the converter |
+| Initial block / boot sectors | 13,618 B / 107 (the same) | `build/manifest.json` |
+| Level length to the boss, EASY / MEDIUM / HARD | 67.3 / 59.5 / 55.1 s (190.3 / 169.9 / 155.1) | `director-complete-*` |
+| Boss fight | 81.3 / 101.8 / 130.5 s (46.0 / 48.6 / 71.2) | the same |
+| Bot deaths, whole run (in the fight) | 1 (1) / 5 (3) / 5 (3) (2 (0) / 6 (0) / 6 (0)) | the same; lives held at 3 |
+| Non-boss frames | identical to `main` in 41 of 52 shared sessions; the 11 others first differ on the frame they enter the post-capital sector (W1) | CSV comparison |

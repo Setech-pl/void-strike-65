@@ -71,6 +71,18 @@ A sector's end cuts any wave not yet spent. When you shorten a sector, check on
 EASY, the slowest difficulty, that its last wave still arms (see the timeline
 probe below).
 
+**The boss's per-level data** is the level file's `bossDef`. Each of these is
+given per difficulty (`easy`, `medium`, `hard`), so a later level can be
+harder with no code change (owner decision 7, 2026-10-07):
+
+* `hpScale`: the modules' hit points ×0.5 to ×1.5;
+* `laserDamage`: a beam's damage in hull units;
+* `laserWarning`: frames of warning before a beam;
+* `laserReload`: frames between an emitter's beams.
+
+The modules' own hit points are the boss region's data
+(`assets/graphics/boss-regions/region-N/modules.json`).
+
 ## Check, build and play a changed level
 
 Nothing below touches `dist/` or any committed evidence.
@@ -115,8 +127,15 @@ out, none of this needs doing.
   alternation, and the played order and Heavy counts per difficulty.
 * `tests/level-payload.test.mjs`: the skies, and which wave wears a look.
 
-These are re-pointed to the new data, each with its reason written in the
-file.
+Changing level 1's length also moves:
+
+* `tests/plasma-fx.test.mjs`: how long a native play-through runs before the
+  boss entry;
+* `tests/runtime-wall-trace.test.mjs`: the trace replays that now reach the
+  boss, which set its entry frame aside, so their frame totals move.
+
+All of these are re-pointed to the new data, each with its reason written in
+the file.
 
 **Evidence bound to the built ATR**, regenerated together in this order:
 

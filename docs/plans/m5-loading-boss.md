@@ -63,18 +63,37 @@ built §5.15.7.
 `OWNER-SMOKE CANDIDATE` pending the owner's smoke:
 
 * **The lasers:** emitters only (D1), 1 / 2 / 4 by tier; per-difficulty
-  warning and reload, at most two lasers at once (D3).
+  warning and reload in each level's `bossDef`, so per-level cadence is data
+  (M8). At most two lasers at once (D3).
+* **The first shot:** an emitter warns on the frame after its shield falls,
+  at the front of the queue.
 * **The beam:** missiles M1 / M2 in COLPM1 / COLPM2 `$46` (B2, which reverses
   Q1's option A), slot D at `$1900`.
-* **The emitter:** art A, rows 1–3; the beam centred on its core.
+* **The emitter:** the projector tower (`emitter.png`), 3 × 3 at columns
+  31–33, rows 1–3; only its lens has damage stages. Its durability is ×2.
+* **The fight:** decision I's MEDIUM target is 90–120 s since 2026-10-07
+  (it was 45–60 s), reached in data (every plate and cannon ×2); MEASURED
+  81.3 / 101.8 / 130.5 s on EASY / MEDIUM / HARD.
 * **The boss's shots:** born at the muzzle and riding the band (QA1).
 * **AUD-03 / AUD-04:** `CLD` in the boss DLI; at most two player shots meeting
-  the boss a frame. The cap fixes a multi-kill overrun `main` had.
-* **The trace:** the laser contact session replaces
-  `lower-playfield-hostile-contact-atr-hard` (retired by name).
+  the boss a frame.
+* **Level 1 (W1):** one Raider + Wingman wave and one Bomber wave between the
+  capital and the boss.
+* **E4:** region 1's look table is linked first in slot D, out of the charset
+  area.
+
+**S5 requirements (owner decisions of 2026-10-07):**
+
+* **A home per region for the look table.** Slot D is shared by every region,
+  so only one region's table fits there; the build refuses a second region
+  until each table has its own home. `$1900–$1FFF` has 78 B left
+  (`$1FB2–$1FFF`).
+* **A second phase.** A 90–120 s fight needs one: the finale volleys of
+  decision B.
+* **P1 / P2 stay free** for the force field (§15.3 of the lasers plan).
 
 The plan, the decisions and as built: [boss-lasers.md](boss-lasers.md)
-§12–§16. The S4b row of §8 stays the plan's.
+§12–§17. The S4b row of §8 stays the plan's.
 
 **M5a-S2 implemented 2026-10-03** on `feat/level-summary`,
 `OWNER-SMOKE CANDIDATE` pending the owner's smoke: the level-summary screen,

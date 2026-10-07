@@ -87,9 +87,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$1800-$18FF` | 256 B | slot | boss scratch page: the column map, the ring, slot A's state; set by the install | `overlay` | manifest `boss.scratch` |
 | `$1800-$1897` | 152 B | segment | `BOSS_SCRATCH` — boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates | `overlay` | build/boss.map |
 | `$1898-$18F8` | 97 B | segment | `BOSS_BSS` — boss scratch page: slot A's band, collision, feedback, queue and nozzle state | `overlay` | build/boss.map |
-| `$1900-$1FFF` | 1,792 B | slot | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (11 sectors) | `overlay` | manifest `boss.slotD` |
-| `$1900-$1E69` | 1,386 B | segment | `BOSS_D_CODE` — boss slot D: the lasers (option A, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1) | `overlay` | build/boss.map |
-| `$1E6A-$1EC7` | 94 B | segment | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) | `overlay` | build/boss.map |
+| `$1900-$1FFF` | 1,792 B | slot | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (13 sectors) | `overlay` | manifest `boss.slotD` |
+| `$1900-$1961` | 98 B | segment | `BOSS_D_LOOKS` — boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): first in slot D, read with its run | `overlay` | build/boss.map |
+| `$1962-$1F4F` | 1,518 B | segment | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1) | `overlay` | build/boss.map |
+| `$1F50-$1FB1` | 98 B | segment | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) | `overlay` | build/boss.map |
 | `$2000-$5531` | 13,618 B | transient | initial boot block image, 107 sectors (code, data and packed sources) | `boot` | manifest `transportCapacity` |
 | `$2000-$316F` | 4,464 B | segment | `CODE` — main: resident code | `resident` | build/void-strike-65.map |
 | `$21C1-$26F4` | 1,332 B | segment | `BOOT_STAGE2` — stage-2 loader; the resident suffix is unpacked over it | `boot` | build/void-strike-65.map |
@@ -129,7 +130,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$5E10-$780C` | 6,653 B | segment | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A | `resident` | build/void-strike-65.map |
 | `$6DE8-$75E7` | 2,048 B | slot | overlay slot A (`update_broadside` onward; run `capital-slot-a`) | `overlay` | manifest `overlays.slotA` |
 | `$6DE8-$6E0E` | 39 B | segment | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image | `overlay` | build/boss.map |
-| `$6E0F-$75D7` | 1,993 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
+| `$6E0F-$75E6` | 2,008 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
 | `$780D-$780F` | 3 B | reserved | free tail of `BROADSIDE_RAM` | `resident` | cfg/atari-boot.cfg |
 | `$7810-$7BCF` | 960 B | transient | pause-screen backup (`PAUSE_SCREEN_BACKUP`) | `pause` | manifest `pause` |
 | `$7810-$7BBF` | 944 B | transient | STARFIELD stream A staging | `boot` | manifest `starfieldRuntime.streams` |
@@ -319,9 +320,10 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$1800-$18FF` | `overlay` | boss scratch page: the column map, the ring, slot A's state; set by the install |
 | `$1800-$1897` | `overlay` | `BOSS_SCRATCH` — boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates |
 | `$1898-$18F8` | `overlay` | `BOSS_BSS` — boss scratch page: slot A's band, collision, feedback, queue and nozzle state |
-| `$1900-$1FFF` | `overlay` | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (11 sectors) |
-| `$1900-$1E69` | `overlay` | `BOSS_D_CODE` — boss slot D: the lasers (option A, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1) |
-| `$1E6A-$1EC7` | `overlay` | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) |
+| `$1900-$1FFF` | `overlay` | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (13 sectors) |
+| `$1900-$1961` | `overlay` | `BOSS_D_LOOKS` — boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): first in slot D, read with its run |
+| `$1962-$1F4F` | `overlay` | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1) |
+| `$1F50-$1FB1` | `overlay` | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) |
 
 **`$2000-$37FF` — the initial block over `MAIN` (stage 2 and its suffix)**
 
@@ -453,7 +455,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$6DE8-$75E7` | `resident` | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A |
 | `$6DE8-$75E7` | `overlay` | overlay slot A (`update_broadside` onward; run `capital-slot-a`) |
 | `$6DE8-$6E0E` | `overlay` | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image |
-| `$6E0F-$75D7` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
+| `$6E0F-$75E6` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
 
 **`$A600-$ADFF` — the level buffer**
 
@@ -488,67 +490,67 @@ Items are label spans from the listings, placed with the link map's per-module o
 
 By topic: unclassified 88%, player, input and weapons 12%.
 
-#### `BOSS_D_CODE` `$1900-$1E69`, 1,386 B (build/boss.map)
+#### `BOSS_D_CODE` `$1962-$1F4F`, 1,518 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `laser_prepare` | `$1916` | 213 B | 15.4% | unclassified |
-| `laser_publish` | `$1DBB` | 175 B | 12.6% | unclassified |
-| `laser_hostile_shots` | `$1D22` | 153 B | 11.0% | Heavy, Raider and Interceptor |
-| `laser_frame` | `$1B12` | 133 B | 9.6% | unclassified |
-| `laser_collide` | `$1C99` | 81 B | 5.8% | unclassified |
-| `laser_warn` | `$1B97` | 71 B | 5.1% | unclassified |
-| `laser_rearm` | `$19EB` | 67 B | 4.8% | unclassified |
-| `laser_admit` | `$1A2E` | 64 B | 4.6% | unclassified |
-| `laser_place` | `$1BDE` | 59 B | 4.3% | unclassified |
-| `laser_cool` | `$1C60` | 57 B | 4.1% | unclassified |
-| `laser_off` | `$1C27` | 43 B | 3.1% | unclassified |
-| `laser_begin` | `$1A6E` | 39 B | 2.8% | unclassified |
-| `b2_prepare` | `$1A9D` | 39 B | 2.8% | unclassified |
-| `b2_take` | `$1AD8` | 35 B | 2.5% | unclassified |
-| `laser_erase_step` | `$1D06` | 28 B | 2.0% | unclassified |
-| `boss_shot_admit` | `$1CEA` | 25 B | 1.8% | player, input and weapons |
-| `laser_tier` | `$1900` | 22 B | 1.6% | unclassified |
-| `b2_restore` | `$1AC4` | 20 B | 1.4% | unclassified |
-| `b2_free` | `$1AFB` | 19 B | 1.4% | unclassified |
-| `laser_killed` | `$1C19` | 14 B | 1.0% | unclassified |
-| `laser_all_off` | `$1C52` | 14 B | 1.0% | unclassified |
-| 4 smaller items | — | 15 B | 1.1% | — |
+| `laser_prepare` | `$1978` | 238 B | 15.7% | unclassified |
+| `laser_publish` | `$1EA1` | 175 B | 11.5% | unclassified |
+| `laser_hostile_shots` | `$1E08` | 153 B | 10.1% | Heavy, Raider and Interceptor |
+| `laser_frame` | `$1BF8` | 133 B | 8.8% | unclassified |
+| `laser_admit` | `$1AB2` | 87 B | 5.7% | unclassified |
+| `laser_collide` | `$1D7F` | 81 B | 5.3% | unclassified |
+| `laser_rearm` | `$1A66` | 76 B | 5.0% | unclassified |
+| `laser_warn` | `$1C7D` | 71 B | 4.7% | unclassified |
+| `laser_place` | `$1CC4` | 59 B | 3.9% | unclassified |
+| `laser_cool` | `$1D46` | 57 B | 3.8% | unclassified |
+| `laser_first_shot` | `$1B38` | 54 B | 3.6% | player, input and weapons |
+| `laser_off` | `$1D0D` | 43 B | 2.8% | unclassified |
+| `laser_begin` | `$1B09` | 39 B | 2.6% | unclassified |
+| `b2_prepare` | `$1B83` | 39 B | 2.6% | unclassified |
+| `b2_take` | `$1BBE` | 35 B | 2.3% | unclassified |
+| `laser_erase_step` | `$1DEC` | 28 B | 1.8% | unclassified |
+| `boss_shot_admit` | `$1DD0` | 25 B | 1.6% | player, input and weapons |
+| `laser_tier` | `$1962` | 22 B | 1.4% | unclassified |
+| `laser_exposed` | `$1B6E` | 21 B | 1.4% | unclassified |
+| `b2_restore` | `$1BAA` | 20 B | 1.3% | unclassified |
+| `b2_free` | `$1BE1` | 19 B | 1.3% | unclassified |
+| 6 smaller items | — | 43 B | 2.8% | — |
 
-By topic: unclassified 87%, Heavy, Raider and Interceptor 11%, player, input and weapons 2%.
+By topic: unclassified 85%, Heavy, Raider and Interceptor 10%, player, input and weapons 5%.
 
-#### `BOSS_CODE` `$6E0F-$75D7`, 1,993 B (build/boss.map)
+#### `BOSS_CODE` `$6E0F-$75E6`, 2,008 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `boss_enqueue` | `$72F6` | 140 B | 7.0% | unclassified |
-| `boss_draw_module` | `$7432` | 140 B | 7.0% | unclassified |
-| `boss_update` | `$6FB6` | 127 B | 6.4% | unclassified |
-| `boss_fire` | `$7137` | 126 B | 6.3% | player, input and weapons |
-| `boss_rebuild_module` | `$7525` | 126 B | 6.3% | unclassified |
-| `boss_ring_set` | `$722C` | 120 B | 6.0% | display, PMG and raster |
+| `boss_draw_module` | `$7435` | 152 B | 7.6% | unclassified |
+| `boss_enqueue` | `$72F9` | 140 B | 7.0% | unclassified |
+| `boss_update` | `$6FB6` | 130 B | 6.5% | unclassified |
+| `boss_fire` | `$713A` | 126 B | 6.3% | player, input and weapons |
+| `boss_rebuild_module` | `$7534` | 126 B | 6.3% | unclassified |
+| `boss_ring_set` | `$722F` | 120 B | 6.0% | display, PMG and raster |
 | `boss_dli` | `$6EC4` | 102 B | 5.1% | display, PMG and raster |
-| `boss_hit` | `$7035` | 98 B | 4.9% | unclassified |
-| `boss_motion` | `$6F67` | 79 B | 4.0% | unclassified |
-| `boss_runs` | `$6E79` | 75 B | 3.8% | unclassified |
-| `boss_frame_timers` | `$71B5` | 64 B | 3.2% | unclassified |
-| `boss_ring_rebase` | `$72B7` | 63 B | 3.2% | display, PMG and raster |
-| `boss_column_base` | `$74E7` | 62 B | 3.1% | unclassified |
-| `boss_apply_pos` | `$6F2A` | 61 B | 3.1% | unclassified |
+| `boss_hit` | `$7038` | 98 B | 4.9% | unclassified |
+| `boss_motion` | `$6F67` | 79 B | 3.9% | unclassified |
+| `boss_runs` | `$6E79` | 75 B | 3.7% | unclassified |
+| `boss_frame_timers` | `$71B8` | 64 B | 3.2% | unclassified |
+| `boss_ring_rebase` | `$72BA` | 63 B | 3.1% | display, PMG and raster |
+| `boss_column_base` | `$74F6` | 62 B | 3.1% | unclassified |
+| `boss_apply_pos` | `$6F2A` | 61 B | 3.0% | unclassified |
 | `boss_head` | `$6E0F` | 60 B | 3.0% | unclassified |
-| `boss_open_looks` | `$70FD` | 58 B | 2.9% | unclassified |
-| `boss_queue_draw` | `$7382` | 53 B | 2.7% | unclassified |
-| `boss_module_scored` | `$70CA` | 50 B | 2.5% | frontend and HUD |
-| `boss_nozzles` | `$73B7` | 48 B | 2.4% | unclassified |
-| `boss_read_run` | `$6E4B` | 41 B | 2.1% | unclassified |
-| `boss_nozzle_darken` | `$73FA` | 38 B | 1.9% | unclassified |
-| `boss_column_from` | `$74C4` | 35 B | 1.8% | unclassified |
-| `boss_tick_sound` | `$720F` | 29 B | 1.5% | music and audio |
-| `boss_flash_on` | `$71F5` | 26 B | 1.3% | capital ship |
-| `boss_completion` | `$75A3` | 21 B | 1.1% | unclassified |
-| 22 smaller items | — | 151 B | 7.6% | — |
+| `boss_open_looks` | `$7100` | 58 B | 2.9% | unclassified |
+| `boss_queue_draw` | `$7385` | 53 B | 2.6% | unclassified |
+| `boss_module_scored` | `$70CD` | 50 B | 2.5% | frontend and HUD |
+| `boss_nozzles` | `$73BA` | 48 B | 2.4% | unclassified |
+| `boss_read_run` | `$6E4B` | 41 B | 2.0% | unclassified |
+| `boss_nozzle_darken` | `$73FD` | 38 B | 1.9% | unclassified |
+| `boss_column_from` | `$74D3` | 35 B | 1.7% | unclassified |
+| `boss_tick_sound` | `$7212` | 29 B | 1.4% | music and audio |
+| `boss_flash_on` | `$71F8` | 26 B | 1.3% | capital ship |
+| `boss_completion` | `$75B2` | 21 B | 1.0% | unclassified |
+| 22 smaller items | — | 151 B | 7.5% | — |
 
-By topic: unclassified 73%, display, PMG and raster 15%, player, input and weapons 6%, frontend and HUD 3%, music and audio 2%, capital ship 1%, boot, loader and transport 0%.
+By topic: unclassified 73%, display, PMG and raster 15%, player, input and weapons 6%, frontend and HUD 2%, music and audio 2%, capital ship 1%, boot, loader and transport 0%.
 
 #### `HYBRID_C_ARENA` `$7C72-$7EC5`, 596 B (build/encounter-director.map)
 
@@ -941,8 +943,8 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | Segment | Size | Name promises | Share of those topics | Dominant topic | Verdict |
 | --- | ---: | --- | ---: | --- | --- |
 | `BOSS_C_CODE` | 1,394 B | placement name | — | unclassified (88%) | not judged |
-| `BOSS_D_CODE` | 1,386 B | placement name | — | unclassified (87%) | not judged |
-| `BOSS_CODE` | 1,993 B | placement name | — | unclassified (73%) | not judged |
+| `BOSS_D_CODE` | 1,518 B | placement name | — | unclassified (85%) | not judged |
+| `BOSS_CODE` | 2,008 B | placement name | — | unclassified (73%) | not judged |
 | `HYBRID_C_ARENA` | 596 B | placement name | — | Heavy, Raider and Interceptor (92%) | not judged |
 | `HYBRID_C_EXT` | 681 B | placement name | — | Light enemies (56%) | not judged |
 | `DIRECTOR_C_CODE` | 590 B | placement name | — | Director, sectors and waves (88%) | not judged |
@@ -1121,7 +1123,7 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$21C1-$26F4` | 1,332 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime (since boot-loading-blank-screen, 2026-10-01: +9 B for the stage-2 display blanking; 1,323 B `$21C1-$26EB` after boot-xex-reclaim) |
 | `$0500-$0BFF` | 1,792 B | **M5a-S2** (owner decision 2026-10-03): the level-summary module, its own link (`cfg/level-summary.cfg`), read from the disk once per session at the first START GAME and resident until RESET. 1,598 B used, 194 B free (1,489 / 303 before the owner review of 2026-10-03 added START GAME's own display list, the frame-edge publish and the reader's dotted-row step behind a third vector at `$0506`). Claimed: no other link or cfg area may reach it, and `tests/level-summary-build.test.mjs` fails if any segment, cfg area or boot-path range does. Before the first START GAME of a session `$0500-$06FF` still holds the boot splash (next row) |
 | `$0C00-$18FF` | 3,328 B | **the boss's claim** (owner answer Q-B5, M5b-S4a-i): the region charset `$0C00-$0FFF`, slot C `$1000-$17FF` (the C controller), the scratch page `$1800-$18FF`; read or set at every boss entry, nothing survives a boss sector; no other link, cfg area or boot range may reach it (tests/boss-claim.test.mjs). Was the unclaimed lever of 2026-10-03, MEASURED never written after `start` in Atari800 ([diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md)); real hardware unproven until the owner's smoke |
-| `$1900-$1FFF` | 1,792 B | **boss slot D** since M5b-S4b (owner decision Q7, 2026-10-06): the lasers (B2: missiles M1 / M2) and the boss's shots in the band, the boss sector only (1,480 B; `$1EC8-$1FFF`, 312 B, left for S5 and the finale's volleys). Before S4b: the measured-free unclaimed lever recorded for M3/M6 (plan §6.1) |
+| `$1900-$1FFF` | 1,792 B | **boss slot D** since M5b-S4b (owner decision Q7, 2026-10-06): the region's look tail first (98 B, owner decision E4 (b), 2026-10-07), then the lasers (B2: missiles M1 / M2; S4b.4's first shot on exposure) and the boss's shots in the band, the boss sector only (1,714 B; `$1FB2-$1FFF`, 78 B, left for S5 and the finale's volleys). Before S4b: the measured-free unclaimed lever recorded for M3/M6 (plan §6.1) |
 | `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding **[BUILD 2026-10-03: 510 B of code and tables, 2 B padding — manifest `transportCapacity.bootSplash.codeBytes`]**. The stage-2 entry copies it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +

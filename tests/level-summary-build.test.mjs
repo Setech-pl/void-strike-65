@@ -218,8 +218,13 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   assert.ok(atrSectors(563, manifest.boss.slotD.sectors).some((byte) => byte !== 0), "slot D is on the disk");
   assert.ok(atrSectors(slotCEnd, 563 - slotCEnd).every((byte) => byte === 0),
     "528-583 between slot C and slot D must stay empty");
-  assert.ok(atrSectors(slotDEnd, 584 - slotDEnd).every((byte) => byte === 0),
-    "528-583 past slot D must stay empty");
+  // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision: slot E): slot E's run
+  // follows slot D's (sector 577); the reservation is empty past it.
+  const slotEEnd = slotDEnd + manifest.boss.slotE.sectors;
+  assert.equal(manifest.boss.runs.find((run) => run.name === "boss-slot-e").startSector, slotDEnd);
+  assert.ok(atrSectors(slotDEnd, manifest.boss.slotE.sectors).some((byte) => byte !== 0), "slot E is on the disk");
+  assert.ok(atrSectors(slotEEnd, 584 - slotEEnd).every((byte) => byte === 0),
+    "528-583 past slot E must stay empty");
   assert.ok(atrSectors(632, 16).some((byte) => byte !== 0), "region 1 is on the disk");
   assert.ok(atrSectors(648, 48).every((byte) => byte === 0), "regions 2-4 must stay empty");
 });

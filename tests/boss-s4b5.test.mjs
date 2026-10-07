@@ -120,7 +120,7 @@ test("slot E's contract, by the source: only draw_hull_row reads the hull maps; 
   assert.deepEqual(callers("set_enemy_hull_source"), ["draw_hull_row"]);
   assert.deepEqual(callers("unpack_capital_hull_maps"), ["publish_level_hull_style"]);
   assert.deepEqual(callers("publish_level_hull_style"), ["start_gameplay"]);
-  assert.match(text, /jsr publish_level_hull_style\n(?:;.*\n)*hull_maps_built:/,
+  assert.match(text, /jsr publish_level_hull_style\n(?:;.*\n)*hull_maps_built := \*\n/,
     "the trace's rebuild point follows the rebuild");
 });
 
@@ -329,6 +329,11 @@ test("the defeating kill neither counts for the capsule rule nor spawns a capsul
 // entry and the next rebuild; these three take the paths.
 const traceReport = JSON.parse(fs.readFileSync(path.join(root, "docs/runtime-wall-trace.json"), "utf8"));
 const pathReplay = (bossPath) => traceReport.replay.sessions.find((s) => s.id === `slot-e-${bossPath}-2-sweep-fire0`);
+// The driver takes its path 300 trace frames after the boss head, which runs in
+// the entry's frame; that frame (and a RESET's reboot frame) is set aside, so the
+// measured boss frames before the path are 300 less those.
+const takenAfterFight = (replay) => replay.boss_path_taken_frame !== null &&
+  replay.boss_frames_before_path + 1 + (replay.reset_transition ? 1 : 0) === 300;
 
 test("slot E's contract, every replay: no reader of the hull maps between a boss entry and the next rebuild", () => {
   const sessions = traceReport.replay.sessions;
@@ -340,7 +345,7 @@ test("slot E's contract, every replay: no reader of the hull maps between a boss
 test("slot E's contract, pause and resume in the boss sector: no reader of the maps, the fight resumes, no rebuild needed", () => {
   const replay = pathReplay("pause");
   assert.ok(replay, "the pause replay ran");
-  assert.ok(replay.boss_path_taken_frame !== null && replay.boss_frames_before_path >= 300);
+  assert.ok(takenAfterFight(replay), `taken after ${replay.boss_frames_before_path} measured boss frames`);
   assert.ok(replay.boss_frames_after_path > 0, "the fight resumed");
   assert.deepEqual([replay.hull_map_dirty_reads, replay.hull_map_rebuilds_after_boss], [0, 0]);
 });
@@ -349,7 +354,7 @@ for (const [bossPath, what] of [["game-over", "the player's last death"], ["rese
   test(`slot E's contract, ${what} in the boss sector: no reader of the maps, the next game rebuilds them and draws from them`, () => {
     const replay = pathReplay(bossPath);
     assert.ok(replay, `the ${bossPath} replay ran`);
-    assert.ok(replay.boss_path_taken_frame !== null && replay.boss_frames_before_path >= 300);
+    assert.ok(takenAfterFight(replay), `taken after ${replay.boss_frames_before_path} measured boss frames`);
     assert.equal(replay.hull_map_dirty_reads, 0);
     assert.equal(replay.hull_map_rebuilds_after_boss, 1, "the next game's start rebuilt the maps");
     assert.ok(replay.capital_rows_after_rebuild > 0, "the next game drew capital rows from them");

@@ -2227,6 +2227,51 @@
         5,
         3
       ],
+      "granted_booster_modes_by_replay": [
+        {
+          "session": "weapon-pickup-2-hunt-fire4",
+          "modes": [
+            3,
+            5,
+            3
+          ]
+        },
+        {
+          "session": "memory-integrity-atr-2-hunt-fire5",
+          "modes": [
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "session": "memory-integrity-atr-2-hunt-fire6",
+          "modes": [
+            3,
+            4,
+            5,
+            3
+          ]
+        },
+        {
+          "session": "memory-integrity-atr-2-hunt-fire7",
+          "modes": [
+            3,
+            4,
+            5,
+            3
+          ]
+        },
+        {
+          "session": "weapon-pickup-spread-0-hunt-fire4",
+          "modes": [
+            3,
+            4,
+            5,
+            3
+          ]
+        }
+      ],
       "collected_states": [
         3,
         5,

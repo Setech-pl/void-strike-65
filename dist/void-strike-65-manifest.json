@@ -23879,7 +23879,7 @@
     "estimated_additive_cycles": 27240,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "8a70a05434260f8f676621bcaf2bf4e822d8b413a90069ee66b1cc27bf595aea",
+      "reportSha256": "175aa0853175f7547a925112265215f6fd299e7f0ac107ca238fd906a36e72e8",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
@@ -24234,6 +24234,51 @@
             4,
             5,
             3
+          ],
+          "granted_booster_modes_by_replay": [
+            {
+              "session": "weapon-pickup-2-hunt-fire4",
+              "modes": [
+                3,
+                5,
+                3
+              ]
+            },
+            {
+              "session": "memory-integrity-atr-2-hunt-fire5",
+              "modes": [
+                3,
+                4,
+                5
+              ]
+            },
+            {
+              "session": "memory-integrity-atr-2-hunt-fire6",
+              "modes": [
+                3,
+                4,
+                5,
+                3
+              ]
+            },
+            {
+              "session": "memory-integrity-atr-2-hunt-fire7",
+              "modes": [
+                3,
+                4,
+                5,
+                3
+              ]
+            },
+            {
+              "session": "weapon-pickup-spread-0-hunt-fire4",
+              "modes": [
+                3,
+                4,
+                5,
+                3
+              ]
+            }
           ],
           "collected_states": [
             3,
@@ -25407,7 +25452,7 @@
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "8a70a05434260f8f676621bcaf2bf4e822d8b413a90069ee66b1cc27bf595aea"
+    "reportSha256": "175aa0853175f7547a925112265215f6fd299e7f0ac107ca238fd906a36e72e8"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {

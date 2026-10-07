@@ -354,13 +354,13 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## M5b-S4b — the boss lasers — `OWNER-SMOKE CANDIDATE` (2026-10-07, S4b.4)
+## M5b-S4b — the boss lasers — `OWNER-SMOKE CANDIDATE` (2026-10-07, S4b.5)
 
 **Branch and plan:** `feat/boss-lasers` from `main` `1a3c8bf`. The plan and
 its record are [plans/boss-lasers.md](plans/boss-lasers.md): Phase A §0–§11,
-decisions §12, addendum §13, smoke rounds §15–§16, S4b.4 §17.
+decisions §12, addendum §13, smoke rounds §15–§16, S4b.4 §17, S4b.5 §18.
 
-**ATR:** `7a9a35c3ff145308c12c961554f9563b1a888f1cff121ec15b27fe4cd77f74a9`,
+**ATR:** `bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa`,
 evidence bound.
 
 **What the boss sector gains:**
@@ -370,45 +370,65 @@ evidence bound.
   (D3), so per-level cadence is M8's data work. At most two lasers at once.
 * **The first shot:** an emitter warns on the frame after its shield falls, at
   the front of the queue.
+* **The warning (F1, flicker):** only the line flickers, in its own missile's
+  colour (white and `$46` by 2-frame groups), widening 1 → 2 → 4 colour clocks
+  from the lens; the lens heats and the tone rises as before.
 * **The beam (B2):** missiles M1 / M2 in `$46`, leaving the lens. PRIOR is
   untouched; P1 / P2 stay free for S5.
-* **The emitter:** the projector tower (`assets/graphics/boss-regions/
-  region-1/emitter.png`), 3 × 3, its lens heating before the beam with its own
-  glyphs. Only the lens has damage stages (cracked, then dark). 20 hit points
-  (×2).
-* **The fight:** decision I's MEDIUM target is now 90–120 s; every plate and
-  cannon ×2. MEASURED 81.3 / 101.8 / 130.5 s.
+* **No band flash (F2, then removed):** a hit shows its spark and tick, a stage
+  its damage look, a destruction the module disappearing, its sound and score.
+* **Capsules (F3):** every third destroyed module drops a capsule below the
+  band, as enemy kills do; never the defeating kill.
+* **The emitter:** the projector tower, 3 × 3, its lens heating before the beam
+  with its own glyphs. Only the lens has damage stages. 20 hit points (×2).
+* **The fight:** decision I's MEDIUM target is 90–120 s; every plate and
+  cannon ×2. MEASURED 73.4 / 100.1 / 129.0 s.
 * **Boss shots:** born at the muzzle and riding the band (QA1).
 * **AUD-03 / AUD-04:** `CLD` in the boss DLI; at most two player shots meet
   the boss a frame.
 * **Level 1 (W1):** one Raider + Wingman wave and one Bomber wave between the
   capital and the boss; the level reaches the boss in 67.3 / 59.5 / 55.1 s
   (was 190.3 / 169.9 / 155.1).
+* **Slot E** (`$4C00–$4E3F`) over the expanded hull maps, the boss sector only;
+  no reader of the maps runs between a boss entry and the next rebuild, in
+  every replay, the pause, the last death and RESET in the boss sector included.
 
 **Gates (all held):**
 
 * **Worst fence margin:** 1,472, unchanged.
 * **DMA-on:** 31,074 (`main` 31,240).
-* **Boss frames:** worst 8,658, DMA-on 28,788.
-* **Tier-4 fixture, two beams on:** 14,637 / 27,456.
-* **Boss stress, native:** 7,685 of 8,500; per-frame 5,376 of 7,000.
-* **Slots:** A 2,047; C 2,006; D 1,714 (78 B of `$1900–$1FFF` left).
+* **Boss frames:** worst 8,199, DMA-on 29,169.
+* **Tier-4 fixture, two beams on:** 14,451 / 27,392.
+* **Boss stress, native:** 7,982 of 8,500; per-frame 5,259 of 7,000.
+* **Slots:** A 2,007; C 1,992; D 1,773 (19 B of `$1900–$1FFF` left); E 102 of
+  576; scratch 244.
 * **Region 1's charset:** 976 B, 6 codes free.
 * **Initial block:** 13,618 B; boot 107 sectors.
-* **Non-boss frames:** identical to `main` except where W1 changed the waves
-  (11 sessions, each from its post-capital sector on).
+* **Boss entry:** 64 sectors, 245 host frames (the evidence test's bound is
+  250).
+* **Non-boss frames:** identical to the S4b.4 candidate in all 65 shared
+  sessions; two sessions' frames after the boss shift by the entry's 8 more
+  host frames.
 
 **Bot deaths** (lives held): 1 / 5 / 5 per run, 1 / 3 / 3 of them in the
-fight; `main`'s are 2 / 6 / 6, none in the fight. With 3 lives, the MEDIUM and
-HARD bot runs would end in game over in the boss fight, a difficulty signal
-for M8.
+fight; `main`'s are 2 / 6 / 6, none in the fight.
 
-**Recorded gate failures:** 1 → 0. `lower-playfield-hostile-contact-atr-hard`
-is retired by name for `lower-playfield-laser-contact-atr-hard`, which reaches
-its contact by bot policy.
+**Recorded test failures:** 2 → 1. "ten heaviest frames …" left the set
+(owner decision of 2026-10-07: it passes by coincidence after W1); the
+`preview` record's first failing line is `:129`, as on `main`.
 
-**S5 requirements:** a home per region for the look table; a second phase
-(the finale volleys) for the 90–120 s fight.
+**Backlog:** `chore/cycle-model-pairshot` stays: the JS cycle model still
+models the retired shot pool, so a later reshuffle can turn "ten heaviest
+frames …" red again without a regression.
+
+**For the owner:** the defeat chain's per-blast COLBK flash (plan §5.6) is
+unchanged; it is the win's, not a hit's or a module's.
+
+**S5 requirements:**
+* a home per region for the look table (slot E is the candidate);
+* a second phase (the finale volleys) for the 90–120 s fight;
+* the boss entry's load within the 250-frame bound, or the bound brought to the
+  owner with the measured basis.
 
 **Pending:** the owner's hardware smoke.
 

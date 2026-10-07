@@ -60,7 +60,7 @@ ends, S4a-ii's scope included. Design and owner answers §5.15.1–5.15.6; as
 built §5.15.7.
 
 **M5b-S4b implemented 2026-10-06/07** on `feat/boss-lasers`,
-`OWNER-SMOKE CANDIDATE` pending the owner's smoke:
+`OWNER-SMOKE CANDIDATE` pending the owner's smoke (S4b.5, ATR `bd5c5c2d…`):
 
 * **The lasers:** emitters only (D1), 1 / 2 / 4 by tier; per-difficulty
   warning and reload in each level's `bossDef`, so per-level cadence is data
@@ -81,19 +81,40 @@ built §5.15.7.
   capital and the boss.
 * **E4:** region 1's look table is linked first in slot D, out of the charset
   area.
+* **S4b.5 (owner decisions of 2026-10-07):**
+  * the warning line flickers in its own colour and widens 1 → 2 → 4 clocks
+    (variant (a); the ramp removed);
+  * no band flash at all;
+  * every third destroyed module drops a capsule, never the defeating kill;
+  * **slot E** `$4C00–$4E3F` (576 B) is read at the boss entry over the
+    expanded hull maps, for the boss sector only. It holds 102 B (474 free,
+    1 sector).
+  * Slot D: 1,773 B (19 B left).
+  * Slot E's contract is held by the trace in every replay: no reader of the
+    maps between a boss entry and the next rebuild. The pause, the last death
+    and RESET in the boss sector are among the replays.
 
 **S5 requirements (owner decisions of 2026-10-07):**
 
 * **A home per region for the look table.** Slot D is shared by every region,
   so only one region's table fits there; the build refuses a second region
-  until each table has its own home. `$1900–$1FFF` has 78 B left
-  (`$1FB2–$1FFF`).
+  until each table has its own home. `$1900–$1FFF` has 19 B left
+  (`$1FED–$1FFF`) since S4b.5; slot E (474 B free) is the candidate home.
+* **The boss entry's load (owner decision 5 of 2026-10-07, S4b.5).**
+  * The evidence test bounds the entry at under 250 host frames
+    (`tests/runtime-wall-trace.test.mjs`, `boss_entry_host_frames < 250`).
+  * The load was 248 of the 250 on the S4b.5 variant builds (65 sectors). The
+    chosen build reads 64 sectors in 245 host frames (`main`: 49 sectors,
+    188 frames).
+  * S5 must keep the boss entry within the bound, or bring the bound to the
+    owner with the measured basis.
+  * No bytes move from slot E to slot D to save a sector.
 * **A second phase.** A 90–120 s fight needs one: the finale volleys of
   decision B.
 * **P1 / P2 stay free** for the force field (§15.3 of the lasers plan).
 
 The plan, the decisions and as built: [boss-lasers.md](boss-lasers.md)
-§12–§17. The S4b row of §8 stays the plan's.
+§12–§18. The S4b row of §8 stays the plan's.
 
 **M5a-S2 implemented 2026-10-03** on `feat/level-summary`,
 `OWNER-SMOKE CANDIDATE` pending the owner's smoke: the level-summary screen,

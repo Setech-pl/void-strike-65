@@ -1,11 +1,13 @@
 # Plan — M5b-S4b: the boss lasers
 
 **Status: implemented, pending the owner's smoke — `OWNER-SMOKE CANDIDATE`
-(2026-10-07, S4b.4).** Phase B is built to §12's owner decisions, the
+(2026-10-07, S4b.5).** Phase B is built to §12's owner decisions, the
 addendum's (§13: AUD-03, the AUD-04 cap) and the smoke rounds' (§15: D1, D3;
 §16: B2 reversing Q1's option A, the centred beam; §17: W1, E4, the projector
-tower, the first shot on exposure, the 90–120 s fight); the final figures are
-§17, the clause coverage §14. Branch `feat/boss-lasers` from `main` `1a3c8bf`. §0–§11 are Phase A's
+tower, the first shot on exposure, the 90–120 s fight; §18: slot E, F1's
+flicker warning, the band flash removed, the capsule from destroyed modules
+but not the defeating kill); the final figures are §18, the clause coverage
+§14. Branch `feat/boss-lasers` from `main` `1a3c8bf`. §0–§11 are Phase A's
 record (audit, options, previews), kept as written: their probes were reverted
 and none of their output is committed as evidence.
 
@@ -1622,3 +1624,105 @@ run in a temporary worktree.
 | Boss fight | 81.3 / 101.8 / 130.5 s (46.0 / 48.6 / 71.2) | the same |
 | Bot deaths, whole run (in the fight) | 1 (1) / 5 (3) / 5 (3) (2 (0) / 6 (0) / 6 (0)) | the same; lives held at 3 |
 | Non-boss frames | identical to `main` in 41 of 52 shared sessions; the 11 others first differ on the frame they enter the post-capital sector (W1) | CSV comparison |
+
+## 18. S4b.5 (owner decisions of 2026-10-07) — status: implemented, pending the owner's smoke
+
+The owner's smoke of the S4b.4 candidate (`7a9a35c3…`) asked for F1–F4 and for
+memory to fit them. The first S4b.5 step (`ee9d38e` RED, `cbd0de6` GREEN)
+added slot E and built F1 as two variants behind a flag for the owner's
+choice. The owner's answers on the variants (2026-10-07) are built here.
+
+### 18.1 Decisions
+
+* **F1, the warning: variant (a), flicker, is the default.** Only the warning
+  line flickers, in its own missile's colour register (COLPM1 / COLPM2):
+  white `$0E` and the beam's `$46`, alternating every 2 frames. It widens from
+  1 to 2 to 4 colour clocks by thirds of the warning. The beam is `$46` at four
+  clocks. Variant (b), the ramp, is removed with its code, its state and the
+  `--warning-variant` flag. The lens heat and the rising tone are unchanged.
+* **F2, then the band flash removed (a further change to decision C).** Nothing
+  flashes the band's colours: not a hit, not a stage change, not a module's
+  destruction. The DLI shows the region's palette. What remains:
+  * a hit: its spark and its tick;
+  * a stage change: the damage looks;
+  * a destruction: the module disappearing (decision L), its sound and its
+    score.
+
+  `boss_flash_on`, `boss_flash_timer` and `boss_palette` are gone. The region
+  data's `flashLuma` is refused, and its table byte 4 is reserved (0), so the
+  offsets are unchanged.
+* **F3, the capsule.** A destroyed module counts for the capsule rule as an
+  enemy kill does (none while one is pending or showing; every third kill earns
+  one). The capsule shows just below the band at the module's column and falls
+  at the gameplay rate. **The defeating kill** (the last weapon module) neither
+  counts nor spawns.
+* **F4, the scores:** unchanged; M8 tunes them.
+* **Slot E** (`$4C00–$4E3F`, 576 B): read at the boss entry over the expanded
+  hull maps, for the boss sector only. **Its contract:**
+  * only the capital's `draw_hull_row` reads the maps;
+  * every gameplay start rebuilds them (`hull_maps_built`);
+  * the trace holds every replay to no reader of the maps between a boss entry
+    and the next rebuild.
+
+  Three replays take the ways out 300 frames into the HARD fight: a pause and
+  resume, the last life lost, and RESET.
+* **No bytes move from slot E to slot D** to save a sector (decision 5). The
+  boss entry's load is an S5 constraint
+  ([m5-loading-boss.md](m5-loading-boss.md)).
+
+### 18.2 As built
+
+* **Bytes freed by removing the flash:** 77 B in all.
+  * slot A, 24 B: the hit path's call and the decay;
+  * slot C, 14 B: the init;
+  * slot E, 34 B: `boss_flash_on`;
+  * scratch, 5 B: `boss_palette` and `boss_flash_timer`.
+
+  The defeating-kill rule costs 5 B in slot E.
+* **Slots:**
+  * A: 2,007 B (41 free);
+  * C: 1,992 B;
+  * D: 1,773 B, leaving `$1FED–$1FFF` (19 B);
+  * E: 102 B (474 free, 1 sector);
+  * scratch: 244 B.
+* **The defeat chain's background flash is unchanged.** Each chain blast sets
+  the shared enemy-explosion timer, which flashes COLBK (plan §5.6, pinned by
+  `tests/boss-runtime.test.mjs`'s win test). It belongs to the win sequence, not
+  to a hit, a stage change or a module's destruction. **Open for the owner.**
+
+### 18.3 Trace classes met on the way (clauses never weakened)
+
+* **(a):** none.
+* **(b), harness or observer fixed:**
+  * the aggregation's `Math.max(...allRows)` overflowed the stack once the
+    three slot E replays were added; it now uses a reduce;
+  * the slot E driver counts fight frames, not host frames (the entry's load
+    had eaten 240 of its 300);
+  * the RESET's reboot frame is found from the data and set aside like the
+    boss entry's;
+  * the frames set aside keep their hull-map counters (the boss head runs
+    inside the entry's frame).
+* **(c):** none.
+
+### 18.4 Final figures
+
+The ATR is `bd5c5c2d…`. `main` `1a3c8bf` is in brackets.
+
+| Figure | Value | Source |
+| --- | ---: | --- |
+| Worst fence margin | 1,472, `2-sweep-fire6` f311 (1,472, same frame) | full trace |
+| DMA-on maximum | 31,074 (31,240) | full trace |
+| Boss frames: worst margin / DMA-on | 8,199 (`weapon-pickup-spread-0-hunt-fire4` f5762) / 29,169 (12,974 / 28,687) | full trace |
+| Tier-4 fixture, two beams on (651 frames) | worst margin 14,451, DMA-on 27,392 | `laser-dodge-2-fire0` on `build/laser-fixture-4-level-1-s4` |
+| Boss stress, native | fixture warning sweep 7,982; two-laser 7,486; fortress 6,591; per-frame 5,259 (limits 8,500 / 7,000; `main`'s Q-B6 test 6,689) | `tests/boss-*.test.mjs` |
+| Slots A / C / D / E | 2,007 / 1,992 / 1,773 / 102 B (1,995 / 2,003 / — / —) | `build/manifest.json` |
+| Region 1's charset; free codes | 976 B; 6 free (978 B, 18 free) | the converter |
+| Initial block / boot sectors | 13,618 B / 107 (the same) | `build/manifest.json` |
+| ATR menu frame | 550 cold, 541 warm (the same) | boot smoke |
+| Boss entry | 64 sectors, 245 host frames (49 / 188) | `director-complete-*` |
+| Level length to the boss | 67.3 / 59.5 / 55.1 s (190.3 / 169.9 / 155.1) | the same |
+| Boss fight | 73.4 / 100.1 / 129.0 s (46.0 / 48.6 / 71.2) | the same |
+| Capsules in the fight, shown / collected | 3 / 1, 3 / 1, 4 / 0; none on the defeat (`main`: none - F3 is new, and the boss sector's Director grants no capsule) | the same, `pickup_state`; `main` by its code |
+| Bot deaths, whole run (in the fight) | 1 (1) / 5 (3) / 5 (3) (2 (0) / 6 (0) / 6 (0)) | the same; lives held at 3 |
+| Slot E's ways out | pause: the fight resumes, no rebuild; game over and RESET: one rebuild, then 256 capital rows drawn from it; 0 dirty reads in 55 replays | `slot-e-*` |
+| Non-boss frames | identical to the S4b.4 candidate in all 65 shared sessions on every common column. After the boss, 2 sessions (`capital-muzzle-ring-2-sweep-fire4`, 1,758 rows; `debris-effects-2-sweep-fire4`, 759 rows) shift their clocks and host frames by 8 frames, the entry's load (237 → 245); nothing else differs | CSV comparison |

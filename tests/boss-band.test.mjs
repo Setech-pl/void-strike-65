@@ -78,7 +78,10 @@ test("everything before the boss sector is the level that shipped (gameplay up t
   const compiled = compileLevelFile(levelSourcePath(1), { hullAsset });
   assert.deepEqual(compiled.sectors.slice(0, 4).map((sector) => sector.kindName),
     ["space", "capital", "space", "space"]);
-  assert.deepEqual(compiled.sectors.slice(0, 4).map((sector) => sector.rows), [272, 0, 856, 2040]);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): after the capital,
+  // one Raider + Wingman wave (144 rows) and one Bomber wave (312 rows); the
+  // sectors before the capital and the capital are main's.
+  assert.deepEqual(compiled.sectors.slice(0, 4).map((sector) => sector.rows), [272, 0, 144, 312]);
   // The sky rule (budget-1.0 M2 variant S2): sector 4 keeps its yellow; the boss
   // sector, now the last, is yellow too.
   assert.deepEqual(compiled.sectors.map((sector) => sector.starColour), [1, 2, 1, 3, 3]);

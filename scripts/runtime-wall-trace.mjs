@@ -731,6 +731,13 @@ const lowerPlayfieldSessions = [{
   frames: 9_500,
   kind: "lower-playfield-laser-contact",
   holdPlayerLives: 3,
+  /* M5b-S4b.4 (class (a), owner decision W1, 2026-10-07): W1 brings the boss
+   * at 2,861 and the first laser at 3,758, and on that path two boss shots got
+   * through the dodge first (MEASURED: health 10 -> 9 at 3,589, -> 8 at 3,710),
+   * so the beam met 8 units, not the clause's ten. The scenario now holds the
+   * health at 10 in the boss sector until the first laser damage call; the
+   * contact itself, and every assertion on it, is the real damage path. */
+  holdPlayerHealthUntilLaser: 10,
   contactOwner: 1,
   contactModeId: 1,
 }, {
@@ -1751,6 +1758,13 @@ function prepareAtari800(sourceDirectory) {
     run(configurePath, ["--disable-sdltest", "--disable-riodevice"], { cwd: sourceDirectory });
   }
   run("make", ["-j4"], { cwd: sourceDirectory });
+}
+
+// The frames a set of replays measures: every emitted frame but a boss entry,
+// which parseCsv sets aside (M5b-S4b.4: W1 brings the boss inside replays that
+// never reached it before).
+function measuredFrames(sessions) {
+  return sessions.reduce((sum, session) => sum + session.frames - (session.bossEntry === undefined ? 0 : 1), 0);
 }
 
 function parseCsv(csvText, sessionDefinition) {
@@ -3903,6 +3917,9 @@ function main() {
        * respawns; only GAME OVER — and with it `director_c_init`, which resets
        * the Director world row to 0 and restarts the level — cannot happen.
        * Trace-only: no production byte is patched and the default is off. */
+      ...(session.holdPlayerHealthUntilLaser === undefined ? {} : {
+        DFTRACE_HOLD_PLAYER_HEALTH: String(session.holdPlayerHealthUntilLaser),
+      }),
       ...(session.holdPlayerLives === undefined ? {} : {
         DFTRACE_HOLD_PLAYER_LIVES: String(session.holdPlayerLives),
       }),
@@ -6708,12 +6725,13 @@ function main() {
     `Parallax trace measured ${cadenceRows.length}/${expectedCadenceFrames} frames`);
   invariant(fighterFlashRows.length === 1_600,
     `Fighter-flash trace measured ${fighterFlashRows.length}/1600 frames`);
-  const expectedDebrisEffectsFrames = debrisEffectsSessions
-    .reduce((sum, session) => sum + session.frames, 0);
+  // M5b-S4b.4 (owner decision W1): level 1 now reaches its boss inside these
+  // replays, and parseCsv sets the boss-entry frame aside (a transition, M5b-S3
+  // correction 10) - it is emitted, never measured. measuredFrames counts it so.
+  const expectedDebrisEffectsFrames = measuredFrames(debrisEffectsSessions);
   invariant(debrisEffectsRows.length === expectedDebrisEffectsFrames,
     `Debris-effects trace measured ${debrisEffectsRows.length}/${expectedDebrisEffectsFrames} frames`);
-  const expectedWeaponPickupFrames = weaponPickupSessions
-    .reduce((sum, session) => sum + session.frames, 0);
+  const expectedWeaponPickupFrames = measuredFrames(weaponPickupSessions);
   invariant(weaponPickupRows.length === expectedWeaponPickupFrames,
     `Weapon-pickup trace measured ${weaponPickupRows.length}/${expectedWeaponPickupFrames} frames`);
   // M5a-S2: these replays end at the level-end summary inside their budget
@@ -6845,9 +6863,9 @@ function main() {
   });
   const hardDirectorCompletion = directorCompletionEvidence.find(({ difficulty }) =>
     difficulty === 2);
-  invariant(memoryIntegrityRows.length === memoryIntegritySessions.length * 4_000,
+  invariant(memoryIntegrityRows.length === measuredFrames(memoryIntegritySessions),
     `Memory-integrity traces measured ${memoryIntegrityRows.length}/` +
-    `${memoryIntegritySessions.length * 4_000} frames`);
+    `${measuredFrames(memoryIntegritySessions)} frames`);
   invariant(engineRows.length === engineDiagnosticSessions.length * 150,
     `Engine startup traces measured ${engineRows.length}/${engineDiagnosticSessions.length * 150} frames`);
   invariant(engineRestartRows.length === engineRestartSessions.length * 3_200,

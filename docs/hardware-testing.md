@@ -477,7 +477,7 @@ Plan [plans/audit-hardening.md](plans/audit-hardening.md) (the October 2026
 audit's AUD-01, AUD-02 and the rest of AUD-03; owner decisions and answers of
 2026-10-07). **On copies only**, as §12: the game writes its record to its own
 disk, and this section deliberately mounts other disks. Default ATR
-`13f2dad4…` (`npm run play:atr` mounts `build/play/void-strike-65.atr`, a
+`19b82947…` (`npm run play:atr` mounts `build/play/void-strike-65.atr`, a
 copy). The other disk for the emulator steps is a blank 720-sector image made
 by the command in the report (any disk you do not care about will do). In
 Atari800, F1 → Disk Management → D1: swaps the mounted image while the game

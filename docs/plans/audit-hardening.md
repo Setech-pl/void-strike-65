@@ -1,10 +1,9 @@
 # Plan — audit hardening: disk writes, overlay loads, interrupt decimal mode
 
-**Status: Phase B in progress (2026-10-07).** Phase A stopped on the brief's
-STOP rules (§5): the content check costs more than ~60 B resident and, in its
-only measured home, adds an extension-record sector; and decision 2's
-identity read at every load would put the boss entry over its 250-frame
-bound. The owner answered §6 (§6.1).
+**Status: implemented, pending the owner's smoke — `OWNER-SMOKE CANDIDATE`
+(2026-10-07).** Phase A stopped on the brief's STOP rules (§5); the owner
+answered (§6.1); §9 is the record of what was built, with its figures. ATR
+`19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4`.
 
 Branch `fix/audit-hardening` from `main` `f8611ab`. The audit is
 [../audits/2026-10-06-pre-m5.md](../audits/2026-10-06-pre-m5.md) (AUD-01,
@@ -337,3 +336,151 @@ to another image before the summary (no write, no crash); the boss entry with
 a foreign disk (DISK READ FAILED / WRONG DISK, FIRE to the menu); BASIC on and
 off; RESET; the same on SIO2SD and a real drive with a copy of the game disk
 and a spare floppy.
+
+## 9. As built — status: implemented, pending the owner's smoke
+
+### 9.1 Where the build differs from §2–§4
+
+* **The identity read is the directory's tenth entry** (§6.1): sector 598,
+  one sector, into the record's read-back buffer. `summary_own_disk`
+  (`src/hybrid/level-summary.s`) runs it through `sector_reader_read_run`,
+  whose content check compares its fold with the resident value, then
+  compares its six bytes with the resident `guard_identity`; then the PUT.
+  The identity block is `VS65` + layout id `$1AA9` (`56533635a91a`), from
+  the layout's reservations only (`scripts/disk-guard.mjs` `layoutId`).
+* **Phase A's reader figure was wrong.** §3.3 and §3.5 gave the reader 29 B
+  of room; that is RAM. Every DFMC record carries a 21-B footer
+  (`scripts/chunk-loader.mjs` `CHUNK_FOOTER_BYTES`), so the reader's record
+  had **8 B** before a 13th sector. MEASURED: the first build made it 13
+  sectors (extension 106). The capital vector table's boot image (36 B),
+  which only the reader's capital restore reads, moved to the Light kernel's
+  link, behind the guard (`CAPITAL_VECTOR_IMAGE`); the reader is 12 sectors
+  with 17 B of sector headroom, and the image packs to +4 B there (LZ, it
+  repeats the live table).
+* **Nothing a gameplay frame runs moves.** The first build put the head's
+  check and the reader's steps in front of per-frame code; slot A's
+  per-frame boss code moved 35 B, the reader's stat hooks 15 B, and the
+  native boss stress figures moved by one cycle. Rebuilt (`0de0485`): the
+  head's check is a segment at slot A's end (`BOSS_HEAD_CHECK`), entered by
+  the `jmp` that went to `boss_install`, the region from the head loop's last
+  offset (`(35 + 15 R) >> 4 = R + 2`, asserted); a run that checks leaves the
+  fold at zero, so the head needs no reset; `read_run`'s last `jmp` and
+  `@sector_done`'s `inc sr_sector_lo` became same-size calls into routines
+  after the stat hooks. Against `main`'s build: no boss, Light kernel or
+  Director label moves; main's two moved labels are inside `gameplay_dli`;
+  no reader label before the stat hooks moves.
+* **`rol a` is not used:** the harness's 6502 model has no ROL (it is a
+  documented instruction; the model, which the build also uses for cycle
+  figures, was left alone). `lda #0 / adc #0` gives A = C.
+* **The level end with another disk** fails at its art read (the first run
+  it reads), so it shows the failure screen instead of the summary panel's
+  art, and the score of that game does not reach TOP SCORES — the existing
+  way out of any read failure at the level's end. A swap between the art and
+  the record reaches the identity check and writes nothing.
+
+### 9.2 Bytes per segment (MEASURED, `build/manifest.json`)
+
+| Segment | `main` | This branch | Note |
+| --- | ---: | ---: | --- |
+| Initial block | 13,618 B | **13,618 B (+0)** | the gameplay DLI is in `BROADSIDE`, an extension record |
+| Boot / extension / total sectors | 107 / 104 / 211 | **107 / 105 / 212** | +1: the Light kernel's record 6 → 7 sectors (owner Q2) |
+| `BROADSIDE` | 6,653 B | **6,653 B** | `CLD` size-neutral (§4.3) |
+| Reader `$A000` | 1,507 B (12 sectors) | **1,498 B (12 sectors)** | +27 (fold and check calls, the two tail steps, directory entry 9), −36 (the capital image moved) |
+| Light kernel link | 771 B (693 packed) | **902 B (783 packed)** | kernel 771 + `DISK_GUARD` 95 + `CAPITAL_VECTOR_IMAGE` 36 |
+| `DISK_GUARD` `$B6DC` | — | **95 B** | begin, reset, fold, check, compare; 10 × 2 B sums; identity 6 B; state 3 B |
+| Window free tail | 1,316 B | **1,185 B** | |
+| `HYBRID_ASM_WINDOW` (boss entry) | 109 B | **109 B** | one pin operand ($A560 → $A576) |
+| Summary module `$0500` | 1,677 B | **1,788 B (4 free, 14 sectors)** | identity check 26, art check ~15 + 8, level check ~25 + 32, the PUT through `RECORD,y` (−10) |
+| Slot A | 2,007 B (41 free) | **2,045 B (3 free)** | `BOSS_HEAD_CHECK` 38 B (code 30, sums 8) |
+| Slots C / D / E | 1,992 / 1,773 / 102 B | **1,992 / 1,773 / 102 B** | unchanged (STOP rules: D ≤ 10, E ≤ 60) |
+| Install, scratch | 352, 244 B | **352, 244 B** | |
+| Resident added | — | **95 + 27 = 122 B** | the guard and the reader's new code and entry (the 36-B image moved, not added) |
+
+### 9.3 Load time per transition (EMULATOR)
+
+* **Boss entry: 64 sectors, 245 host frames** — unchanged (bound < 250).
+  The guard folds between sectors (~25 cycles a sector, MEASURED by IC).
+* **START GAME:** the same 21 reads; the summary appears one host frame later
+  only because the menu does (below).
+* **Level end:** one read more when a write is due (9 → 10 in the replays
+  that save), inside the 150-frame minimum.
+* **Boot: the menu at frame 551 cold / 542 with BASIC** (`main` 550 / 541),
+  the extension sector's read. Within the rule (596 + 7), but the brief's
+  Phase A list had "adds a menu frame" as a STOP rule; the owner's answer Q2
+  accepted the sector that costs it, and the frame is reported here and to
+  the owner rather than taken as covered.
+
+### 9.4 The gameplay DLI's cycles (MEASURED, 6502 harness, NMI → WSYNC / whole handler)
+
+| Phase | `main` | This branch |
+| --- | ---: | ---: |
+| 0 (HUD → playfield) | 28 / 77 | **28 / 77** |
+| 1 (playfield → HUD) | 11 / 48 | **13 / 50** |
+
+The boss DLI's phase 2 jumps past the entry into `gameplay_dli_sync_hud`:
+unchanged. `frontend_hint_dli` and `loader_dli` do no arithmetic: no `CLD`.
+
+### 9.5 Tests: RED on `main`'s build (`63ef6d4`), GREEN (`22614b8`, `0de0485`)
+
+| Finding | Test | RED on `main` |
+| --- | --- | --- |
+| AUD-01 | sector 598 carries the identity | sector 598 is zeros |
+| AUD-01 | a disk swapped in before the record's read is never written | a PUT reached the other disk |
+| AUD-01 | an unreadable identity sector stops the write | the record was written |
+| AUD-01 | the own disk and a copy save; the identity is the read before the PUT | no identity read |
+| AUD-02 | band B's count 13 → 29 with a correct SIO checksum | `main_loop`: accepted |
+| AUD-02 | the count bounded to 1..16 (0, 17, 29, 255 refused; 13 accepted) | count 0 accepted |
+| AUD-02 | another disk at the boss entry | its bytes ran in slot A (`$6DEA`) |
+| AUD-02 | a changed byte in each of the boss's 8 runs | all 8 used (one hung) |
+| AUD-02 | the summary code, the art (both transitions), the level image, the capital restore | all accepted |
+| AUD-03 | `gameplay_dli`, both phases, both lists, D and C both ways | list B, phase 0, D = 1: DLISTL `$73` (binary `$6D`) |
+
+### 9.6 Re-pointed tests (each follows from the decisions)
+
+* `basic-window-capacity`, `level-buffer-16`, `level-summary-build` (×2):
+  the window's free tail 1,316 → 1,185 and the kernel link 771 → 902 B — the
+  guard and the moved image, in segments of their own; the kernel's own
+  segment stays pinned at 771 B.
+* `level-buffer-16`, `hybrid-c-arena`: total transport 211 → 212 (Q2).
+* `level-summary-build`: the directory 9 → 10 entries, entry 9 asserted.
+* `sector-reader`: the empty-entry test's past-the-end index 9 → 10.
+* `overlay-slot`: the capital image read from the Light kernel's link.
+* `sector-reader` (3 machines), `level-summary` (1): a machine holding only
+  the reader also holds the Light kernel's record — the reader calls the
+  guard, resident from the boot on, as on the machine.
+* `tests/boss-harness.mjs`, `tests/level-summary.test.mjs`: the drives take
+  another disk (`sectorOf`, `swap`, `failReads`) — new fixtures, no
+  assertion changed.
+
+### 9.7 Before and after
+
+| Figure | Baseline (source) | This branch |
+| --- | ---: | ---: |
+| Worst fence margin | 1,472, `2-sweep-fire6` f311 (STATUS) | **1,472, the same frame** |
+| DMA-on maximum | 31,074 (STATUS) | **31,074** |
+| Boss frames: worst margin / DMA-on | 8,199 / 29,169 (STATUS) | **8,199 / 29,169, the same frames** |
+| Tier-4 fixture, two beams | 14,451 / 27,392 (STATUS) | **not re-run**: no boss, Light kernel or Director label moves, and every boss frame of the default replays is identical in state and DMA-on maximum |
+| Boss stress, native | 7,982 of 8,500; per-frame 5,259 of 7,000 (STATUS) | **7,982; 5,259** (`npm test` output; the first build's 7,981 / 5,260 were the shift §9.1 removed) |
+| Slots A / C / D / E | 2,007 / 1,992 / 1,773 / 102 B | **2,045 / 1,992 / 1,773 / 102 B** |
+| Scratch page; region 1's charset | 244 B; 976 B, 6 codes free | **244 B; 976 B, 6 codes free** |
+| Initial block; boot sectors | 13,618 B; 107 | **13,618 B; 107** |
+| Extension / total sectors | 104 / 211 | **105 / 212** |
+| ATR menu frame | 550 / 541 | **551 / 542** |
+| Boss entry | 64 sectors, 245 host frames | **64 sectors, 245 host frames** |
+| Recorded clause failures | 0 | **0** |
+| Recorded test failures | 1 (`preview`, `:129`) | **1 (`preview`, `:129`)** |
+| ATR | `bd5c5c2d…` | **`19b82947…`** |
+| Boss debug route (`build/level-1-s4`) | `b16d0c30…` (rebuilt on `main`) | **`efaa883d…`** |
+
+**Row by row against `main`'s own trace** (rebuilt in a temporary detached
+worktree, removed): 55 sessions, 124,775 rows. Every game-state column is
+identical from frame 1; frame 0's `capital_visible_allied_cells` reads 16 for
+15 in every session (the observer counts glyphs through a list that is not
+yet the gameplay one, in memory the summary module's growth changed); the
+RESET replay's reboot frame counts 8 more missed host frames (the boot frame
+and the bot's FIRE window). Wall cycles: identical in 124,635 rows; 140 move
+by −109…+103, the `CLD`'s 2 cycles crossing a WSYNC or a line boundary.
+
+The evidence was regenerated twice: the first pass (`5d50d58`, `ea113c5`) was
+superseded by the rework of §9.1 and regenerated once more (`86fb079`).
+

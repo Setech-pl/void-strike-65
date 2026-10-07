@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-07 (feat/boss-lasers: M5b-S4b the boss lasers - B2 missiles, the projector tower, the first shot, the 90-120 s fight, W1, D1/D3, AUD-03, AUD-04 - OWNER-SMOKE CANDIDATE; before it feat/plasma-fx: the player side mint $AE reverses decision U; small enemy break-ups in the enemy bank and the stepped flash; the green Bomber OWNER-ACCEPTED; follow-ups fix/broadside-scan-hull-map and the Bomber at 1 HP)
+Last update: 2026-10-07 (fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -353,6 +353,58 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Audit hardening — disk writes, transition loads, interrupt decimal mode — `OWNER-SMOKE CANDIDATE` (2026-10-07)
+
+**Branch and plan:** `fix/audit-hardening` from `main` `f8611ab`;
+[plans/audit-hardening.md](plans/audit-hardening.md) (Phase A §0–§8, the
+owner's answers §6.1, as built §9). The audit is
+[audits/2026-10-06-pre-m5.md](audits/2026-10-06-pre-m5.md); its ledger
+[audits/README.md](audits/README.md).
+
+**ATR:** `19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4`,
+evidence bound.
+
+**What changes for a player:**
+
+* **The save (AUD-01):** the record is written only to the game's own disk.
+  Sector 598 carries the disk's identity (`VS65` and a layout id, the same in
+  every copy and every build of this layout); it is read immediately before
+  every PUT. Another disk, or an unreadable identity, skips the write
+  silently, as a write-protected disk does.
+* **Loads (AUD-02):** nothing read at START GAME, the level end or the boss
+  entry is run or used unless its run checks against the value the
+  boot-validated image holds - the summary module, the art, the capital
+  restore, the level image (owner Q3), the boss's theme, slot A and the
+  head's seven runs. Another disk or a damaged run ends at the existing
+  failure screen, `DISK READ FAILED` / `WRONG DISK`. The boss's module count
+  is bounded to 1..16 before its controller starts.
+* **The gameplay DLI (AUD-03):** `CLD` at its entry (with list B active, a
+  DLI inside a score add wrote the wrong display-list byte). The frontend and
+  loader DLIs do no arithmetic; the game installs no VBI and no IRQ handler.
+
+**Gates (all held):**
+
+* **Worst fence margin:** 1,472, unchanged (the same frame).
+* **DMA-on:** 31,074, unchanged; boss frames 8,199 / 29,169, unchanged.
+* **Boss stress, native:** 7,982 of 8,500; per-frame 5,259 of 7,000, unchanged.
+* **Gameplay against `main`, row by row:** every game-state column identical;
+  wall cycles identical in 124,635 of 124,775 rows, the rest the `CLD`'s 2
+  cycles crossing a line.
+* **Initial block:** 13,618 B (+0); boot 107 sectors.
+* **Extension:** 104 → **105** sectors (owner Q2: the disk guard, 95 B, in
+  the Light kernel's record); the reader stays 12 sectors (the capital
+  vector image moved out of it).
+* **ATR menu frame:** 550 → **551** (BASIC 541 → 542), the extra sector's
+  read; within the rule (596 + 7). Reported to the owner: Phase A's list had
+  "adds a menu frame" as a STOP rule.
+* **Boss entry:** 64 sectors, 245 host frames, unchanged.
+* **Slots:** A 2,045 (3 free); C, D, E unchanged; the summary module 1,788
+  of 1,792 B.
+* **Recorded failures:** tests 1 (`preview`, first failing `:129`), clauses 0.
+
+**Pending:** the owner's smoke, [hardware-testing.md](hardware-testing.md)
+§17. **Next:** `chore/evidence-integrity` (AUD-05, AUD-06, AUD-07).
 
 ## M5b-S4b — the boss lasers — `OWNER-SMOKE CANDIDATE` (2026-10-07, S4b.5)
 

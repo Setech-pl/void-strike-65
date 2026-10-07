@@ -7356,10 +7356,18 @@ function main() {
       index === 0 || row.session !== rows[index - 1].session ||
         row.frame > rows[index - 1].frame + 1),
   "Atari800 replay did not collect each visible pickup once and enter all booster modes");
+  // M5b-S4b.4 (class (b), the observer): the grants are those of several
+  // independent replays laid end to end, and every replay starts its rotation
+  // on Rapid; the rotation is the game's, so a capsule is compared with the
+  // previous one of the SAME replay - as the collection check above already
+  // does. Before W1 no replay happened to end on Rapid; with W1's shorter
+  // level three do (MEASURED: 3 5 3 | 3 4 5 | 3 4 5 3 | 3 4 5 3 | 3 4 5 3),
+  // and no replay repeats a capsule within itself.
   invariant(pickupGrantedBoosterModes.length >= 3 &&
     pickupGrantedBoosterModes.every((mode) => [3, 4, 5].includes(mode)) &&
-    pickupGrantedBoosterModes.every((mode, index) =>
-      index === 0 || mode !== pickupGrantedBoosterModes[index - 1]),
+    pickupCollectRows.every((row, index) =>
+      index === 0 || row.session !== pickupCollectRows[index - 1].session ||
+        row.pickup_booster_state !== pickupCollectRows[index - 1].pickup_booster_state),
   `Atari800 granted booster cycle was ${pickupGrantedBoosterModes.join("→")}, expected a ` +
     "rotation of Rapid/Spread/Shield with no capsule repeating the previous one");
   invariant(pickupRapidRows[0].pickup_timer_lo === 0xf4 &&

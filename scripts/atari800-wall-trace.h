@@ -901,6 +901,8 @@ static unsigned dftrace_pc_hull_maps_built;
 static unsigned dftrace_pc_draw_hull_row;
 static UBYTE dftrace_hull_snapshot[0x240];
 static int dftrace_hull_snapshot_valid;
+static unsigned dftrace_hull_pending_draws;
+static unsigned dftrace_hull_pending_stale;
 /* AUD-04 (owner addendum 2026-10-06): a debug session's memory pokes, applied
  * as the frame's input is set: "F:aaaa=vv,aaaa=vv;F:..." (F decimal, address
  * and value hex). The default sessions set none. */
@@ -7068,6 +7070,24 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
 {
+	/* M5b-S4b.5 (slot E): on every instruction, measured frame or not -
+	 * start_gameplay rebuilds the hull maps outside the measured frames. A
+	 * draw outside a measured frame is carried into the next frame's record. */
+	if (dftrace_pc_hull_maps_built != 0u && pc == dftrace_pc_hull_maps_built) {
+		memcpy(dftrace_hull_snapshot, &MEMORY_mem[0x4C00], sizeof(dftrace_hull_snapshot));
+		dftrace_hull_snapshot_valid = 1;
+	}
+	if (dftrace_pc_draw_hull_row != 0u && pc == dftrace_pc_draw_hull_row) {
+		int stale = !dftrace_hull_snapshot_valid ||
+			memcmp(dftrace_hull_snapshot, &MEMORY_mem[0x4C00], sizeof(dftrace_hull_snapshot)) != 0;
+		if (dftrace_active) {
+			++dftrace_current.hull_map_draws;
+			if (stale) ++dftrace_current.hull_map_stale_draws;
+		} else {
+			++dftrace_hull_pending_draws;
+			if (stale) ++dftrace_hull_pending_stale;
+		}
+	}
 	if (dftrace_light_output != NULL) {
 		unsigned entry;
 		for (entry = 0u; entry < DFTRACE_LIGHT_VECTORS; entry++) {
@@ -7468,6 +7488,10 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dftrace_display_list_previous_valid = 0;
 		dftrace_recycled_previous_valid = 0;
 		dftrace_active = 1;
+		dftrace_current.hull_map_draws = dftrace_hull_pending_draws;
+		dftrace_current.hull_map_stale_draws = dftrace_hull_pending_stale;
+		dftrace_hull_pending_draws = 0u;
+		dftrace_hull_pending_stale = 0u;
 		dftrace_set_gameplay_input(dftrace_count);
 		dftrace_player_pairshot_frame_begin();
 		dftrace_prepare_broadside_proof();
@@ -7523,16 +7547,6 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	/* M5b-S4b: the laser's damage call site. The first entry that will apply
 	 * damage (the player ALIVE, no cooldown) starts the contact capture: frame
 	 * zero is the completed preceding raster, as for a capital contact. */
-	if (dftrace_pc_hull_maps_built != 0u && pc == dftrace_pc_hull_maps_built) {
-		memcpy(dftrace_hull_snapshot, &MEMORY_mem[0x4C00], sizeof(dftrace_hull_snapshot));
-		dftrace_hull_snapshot_valid = 1;
-	}
-	if (dftrace_pc_draw_hull_row != 0u && pc == dftrace_pc_draw_hull_row) {
-		++dftrace_current.hull_map_draws;
-		if (!dftrace_hull_snapshot_valid ||
-			memcmp(dftrace_hull_snapshot, &MEMORY_mem[0x4C00], sizeof(dftrace_hull_snapshot)) != 0)
-			++dftrace_current.hull_map_stale_draws;
-	}
 	if (dftrace_pc_laser_damage != 0u && pc == dftrace_pc_laser_damage) {
 		++dftrace_current.laser_damage_calls;
 		dftrace_laser_contact_seen = 1u;

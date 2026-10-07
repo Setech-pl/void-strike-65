@@ -502,11 +502,13 @@ static unsigned dftrace_fire_delay;
  * the "restart" policy below, which pokes the same byte in the other
  * direction. */
 static unsigned dftrace_hold_player_lives;
-/* M5b-S4b.4 (class (a) after owner decision W1): the laser-contact session
- * holds the player's health at this value in the boss sector until the first
- * laser damage call, so the beam meets a whole fighter (the clause's ten units
- * from full health) whatever the boss shots did before it. 0 = off. */
-static unsigned dftrace_hold_player_health;
+/* M5b-S4b.4 (owner decision 8, 2026-10-07): the lower-contact-laser policy
+ * parks the fighter under the emitter's lens from the boss's entry until the
+ * first laser hit - the lens's centre colour clock in the band, from the
+ * region's data - firing up into the lens's shield; the emitter warns the
+ * frame after the shield falls (decision 4) and the beam meets a whole fighter
+ * there, away from the guns' recesses where the boss's shots fall. 0 = off. */
+static unsigned dftrace_contact_lens_clock;
 static unsigned dftrace_laser_contact_seen;
 /* chore/contact-scenario-redesign: the PMG row the fighter-phase preamble of
  * the contact sessions holds (dftrace_contact_preamble). Zero means off. */
@@ -3209,9 +3211,6 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	if (dftrace_hold_player_lives != 0u)
 		MEMORY_mem[dftrace_player_lifecycle + 1u] =
 			(UBYTE) dftrace_hold_player_lives;
-	if (dftrace_hold_player_health != 0u && dftrace_laser_contact_seen == 0u &&
-		dftrace_boss_active() && MEMORY_mem[dftrace_player_lifecycle] == 0u)
-		MEMORY_mem[dftrace_broad_state + 29u] = (UBYTE) dftrace_hold_player_health;
 	if (dftrace_pokes != NULL) {
 		const char *cursor = dftrace_pokes;
 		while (*cursor != '\0') {
@@ -3486,6 +3485,14 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				}
 			}
 		}
+		/* S4b.4 (decision 8): before any laser is on and until the first
+		 * laser hit, under the lens: its beam's left edge (centre - 2) at HPOS
+		 * clock - position + 33 (MEASURED on the S4b.4 captures), the fighter
+		 * two left of it, as for a running laser above. */
+		if (target < 0 && dftrace_contact_lens_clock != 0u && dftrace_laser_contact_seen == 0u &&
+			dftrace_boss_active() && dftrace_boss_shown_pos != 0u)
+			target = (int) dftrace_contact_lens_clock - 2 -
+				(int) MEMORY_mem[dftrace_boss_shown_pos] + 33 - 2;
 		if (target < 0) {
 			int target_right = ((frame / 72u) & 1u) == 0;
 			int threat = 0;
@@ -6585,8 +6592,8 @@ static void dftrace_init(void)
     dftrace_active_limit = getenv("DFTRACE_ACTIVE_FRAMES") == NULL ? 0u :
         dftrace_env_u("DFTRACE_ACTIVE_FRAMES");
 	dftrace_fire_delay = dftrace_env_u("DFTRACE_FIRE_DELAY");
-	dftrace_hold_player_health = getenv("DFTRACE_HOLD_PLAYER_HEALTH") == NULL ? 0u :
-		dftrace_env_u("DFTRACE_HOLD_PLAYER_HEALTH");
+	dftrace_contact_lens_clock = getenv("DFTRACE_CONTACT_LENS_CLOCK") == NULL ? 0u :
+		dftrace_env_u("DFTRACE_CONTACT_LENS_CLOCK");
 	dftrace_hold_player_lives = getenv("DFTRACE_HOLD_PLAYER_LIVES") == NULL ? 0u :
 		dftrace_env_u("DFTRACE_HOLD_PLAYER_LIVES");
 	dftrace_contact_preamble_row = getenv("DFTRACE_CONTACT_PREAMBLE_ROW") == NULL ? 0u :

@@ -32,6 +32,7 @@ import {
   raiderKillAccounting,
 } from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
+import { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSession as auditPalTiming, reportAudits as reportPalTimingAudits,
   reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
@@ -749,13 +750,15 @@ const lowerPlayfieldSessions = [{
   frames: 9_500,
   kind: "lower-playfield-laser-contact",
   holdPlayerLives: 3,
-  /* M5b-S4b.4 (class (a), owner decision W1, 2026-10-07): W1 brings the boss
-   * at 2,861 and the first laser at 3,758, and on that path two boss shots got
-   * through the dodge first (MEASURED: health 10 -> 9 at 3,589, -> 8 at 3,710),
-   * so the beam met 8 units, not the clause's ten. The scenario now holds the
-   * health at 10 in the boss sector until the first laser damage call; the
-   * contact itself, and every assertion on it, is the real damage path. */
-  holdPlayerHealthUntilLaser: 10,
+  /* M5b-S4b.4 (class (a) after owner decision W1; owner decision 8,
+   * 2026-10-07): on W1's path two boss shots got through the dodge before the
+   * first laser (MEASURED: health 10 -> 9 -> 8), so the beam met 8 units, not
+   * the clause's ten. The policy now parks the fighter under the emitter's lens
+   * from the boss's entry, firing up into its shield (plate-d): the emitter
+   * warns the frame after the shield falls (decision 4) and its beam meets the
+   * fighter there, away from the guns' recesses where the boss's shots fall.
+   * The lens's centre colour clock comes from region 1's data. */
+  contactLensClock: true,
   contactOwner: 1,
   contactModeId: 1,
 }, {
@@ -1776,6 +1779,14 @@ function prepareAtari800(sourceDirectory) {
     run(configurePath, ["--disable-sdltest", "--disable-riodevice"], { cwd: sourceDirectory });
   }
   run("make", ["-j4"], { cwd: sourceDirectory });
+}
+
+// M5b-S4b.4 (decision 8): region 1's emitter's lens, its centre colour clock
+// in the band (x * 4 + width * 2), for the laser-contact policy.
+function emitterLensClock() {
+  const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1)));
+  const emitter = region.modules.find((module) => module.kind === "emitter");
+  return emitter.x * 4 + emitter.width * 2;
 }
 
 // The frames a set of replays measures: every emitted frame but a boss entry,
@@ -3935,8 +3946,8 @@ function main() {
        * respawns; only GAME OVER — and with it `director_c_init`, which resets
        * the Director world row to 0 and restarts the level — cannot happen.
        * Trace-only: no production byte is patched and the default is off. */
-      ...(session.holdPlayerHealthUntilLaser === undefined ? {} : {
-        DFTRACE_HOLD_PLAYER_HEALTH: String(session.holdPlayerHealthUntilLaser),
+      ...(session.contactLensClock === undefined ? {} : {
+        DFTRACE_CONTACT_LENS_CLOCK: String(emitterLensClock()),
       }),
       ...(session.holdPlayerLives === undefined ? {} : {
         DFTRACE_HOLD_PLAYER_LIVES: String(session.holdPlayerLives),

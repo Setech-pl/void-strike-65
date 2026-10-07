@@ -81,6 +81,7 @@ cost of keeping them true. The line follows the audience, not the directory.
 | Visual and colour rules | [art-direction.md](art-direction.md) |
 | Milestone/release hardware checklist | [hardware-testing.md](hardware-testing.md) |
 | Accepted implementation plans, one file per feature set | [plans/](plans/) |
+| Cross-model audits, one per milestone, and their findings ledger | [audits/](audits/) |
 | Proof reports | [diagnostics/](diagnostics/) |
 | Archived roadmap, old plan, old rules, old headroom report | [history/](history/) |
 | Runtime capture provenance | [media/manifest.json](media/manifest.json) |

@@ -7907,6 +7907,13 @@ function main() {
         spread_frames: pickupSpreadRows.length,
         pickup_events: pickupCollectRows.length,
         granted_booster_modes: pickupGrantedBoosterModes,
+        // M5b-S4b.4: the same grants replay by replay - the rotation is a
+        // game's, and every replay starts it on Rapid.
+        granted_booster_modes_by_replay: pickupCollectRows.reduce((replays, row) => {
+          if (replays.at(-1)?.session !== row.session) replays.push({ session: row.session, modes: [] });
+          replays.at(-1).modes.push(row.pickup_booster_state);
+          return replays;
+        }, []),
         collected_states: pickupCollectRows.map((row) => row.pickup_state),
         spread_volley_frames: spreadVolleyRows.length,
         active_capsule_three_projectile_frames: activeCapsuleThreeProjectileRows.length,

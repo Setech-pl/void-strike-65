@@ -200,7 +200,10 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   assert.equal(report.replay.targeted_measured_frames, 920);
   assert.equal(report.replay.parallax_cadence_measured_frames, 1_200);
   assert.equal(report.replay.fighter_flash_measured_frames, 1_600);
-  assert.equal(report.replay.debris_effects_measured_frames, 5_000);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): the debris-effects
+  // replay now reaches the boss inside its 5,000 frames; the boss-entry frame
+  // is emitted and set aside as a transition (M5b-S3 correction 10).
+  assert.equal(report.replay.debris_effects_measured_frames, 4_999);
   // RE-POINTED 2026-10-03 (M5a-S2): the director-complete replays end at the
   // level-end summary inside their 10,500-frame budgets (they used to fly on
   // in the terminal COMPLETE), and each records that summary.
@@ -217,7 +220,10 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     assert.ok(session.measured_frames <= 15_000 &&
       session.level_summary?.level_end_summary !== undefined, session.id);
   }
-  assert.equal(report.replay.memory_integrity_measured_frames, 12_000);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): four integrity
+  // replays (hunt fire 7 joined, class (a)); the three hunt replays reach the
+  // boss and set its entry frame aside.
+  assert.equal(report.replay.memory_integrity_measured_frames, 15_997);
   assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "baseline-9040")
@@ -232,14 +238,14 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     .filter((session) => session.kind === "memory-integrity-160s");
   assert.deepEqual(integrity.map(({ medium, policy, measured_frames }) =>
     [medium, policy, measured_frames]), [
-    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_000], ["ATR", "hunt", 4_000],
+    ["ATR", "evasive", 4_000], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999],
   ]);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "fighter-flash-coverage")
     .reduce((sum, session) => sum + session.measured_frames, 0), 1_600);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "debris-effects-coverage")
-    .reduce((sum, session) => sum + session.measured_frames, 0), 5_000);
+    .reduce((sum, session) => sum + session.measured_frames, 0), 4_999);   // the boss entry set aside (W1)
   assert.equal(report.ten_heaviest_frames_in_9040_replay.length, 10);
   assert.equal(report.five_heaviest_frames.length, 5);
   assert.equal(report.five_heaviest_frames_scope, "all measured legal runtime replays");
@@ -324,13 +330,16 @@ test("PAL replay ends the level in its boss: drained entry, fight, chain, hold, 
 
 test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase", () => {
   const integrity = report.gate.memory_integrity;
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): four 4,000-frame
+  // replays now (memory-integrity-atr-2-hunt-fire7 joined, class (a)), three of
+  // which reach the boss and set its entry frame aside: 16,000 - 3 measured.
   assert.deepEqual([
     integrity.atr_frames,
     integrity.duration_seconds_pal_per_artifact,
     integrity.dli_sequence_violations,
     integrity.maximum_dlis_per_host_frame,
     integrity.passed,
-  ], [12_000, 240, 0, 2, true]);
+  ], [15_997, 319.94, 0, 2, true]);
   assert.ok(integrity.pickup_rf_cycles >= 10);
   assert.equal(integrity.pause_sessions.length, 1);
   assert.ok(integrity.pause_sessions.every(({ timer_before, timer_after }) =>
@@ -484,8 +493,18 @@ test("Spread Shot passes PAL wall budget with a legal capsule and projectile-hea
   assert.equal(feature.created_capsule_render_ids, undefined);
   assert.ok(feature.granted_booster_modes.length >= 3);
   assert.ok(feature.granted_booster_modes.every((mode) => [3, 4, 5].includes(mode)));
-  assert.ok(feature.granted_booster_modes.every((mode, index) =>
-    index === 0 || mode !== feature.granted_booster_modes[index - 1]));
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, class (b) in the trace's clause): the
+  // grants are several replays' laid end to end and every replay starts its
+  // rotation on Rapid, so "none repeating the previous" is asserted inside each
+  // replay - the evidence now records them replay by replay, and together they
+  // are exactly the list above. Before W1 no replay happened to end on Rapid.
+  const byReplay = feature.granted_booster_modes_by_replay;
+  assert.ok(byReplay.length >= 1);
+  assert.deepEqual(byReplay.flatMap(({ modes }) => modes), feature.granted_booster_modes);
+  for (const { session, modes } of byReplay) {
+    assert.ok(modes.every((mode, index) => index === 0 || mode !== modes[index - 1]),
+      `${session}: a capsule repeats the previous one (${modes.join(" ")})`);
+  }
   assert.ok(feature.spread_frames > 0);
   assert.ok(feature.spread_volley_frames > 0);
   assert.ok(feature.active_capsule_three_projectile_frames > 0);
@@ -1050,7 +1069,9 @@ test("the ATR legal hunt traces stay legal and have a reproducible fingerprint",
   // Owner decision 2026-09-21 unpinned the measured peak; the ATR is the only
   // medium since 2026-09-30, so the media-equality half went with the XEX. What
   // stays is the legality of the replay against the hard gate and the frame.
-  assert.deepEqual(sessions.map(({ medium }) => medium), ["ATR", "ATR"]);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4): memory-integrity-atr-2-hunt-fire7
+  // joined the hunt replays (the booster-cycle clause, class (a) after W1).
+  assert.deepEqual(sessions.map(({ medium }) => medium), ["ATR", "ATR", "ATR"]);
   for (const session of sessions) {
     assert.ok(session.maximum_wall_cycles <= report.gate.maximum_wall_cycles,
       `${session.id} peaks at ${session.maximum_wall_cycles}, over the ` +

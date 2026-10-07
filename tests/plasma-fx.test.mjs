@@ -249,6 +249,11 @@ test("the growth glyph codes were displayed by nothing on the gameplay screen", 
     for (let a = divider; a < divider + 40; a += 1) scan(a);
   }
   assert.ok(sector >= 4, `the drive reached sector ${sector}, not the boss entry`);
-  assert.ok(frames > 6000);
+  // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): after the capital
+  // level 1 has one Raider + Wingman and one Bomber wave, so this drive meets
+  // the boss entry's disk read at about 3,000 frames (MEDIUM: the trace's
+  // director-complete-1 enters the boss sector at 2,975), not after 6,000.
+  // Every cell of the ring and the divider is still scanned to the boss.
+  assert.ok(frames > 2_500, `the drive ran ${frames} frames`);
   for (const code of [59, 89, 110, 118, 120, 126]) assert.ok(seen.has(code), `coverage: ${code}`);
 });

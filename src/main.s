@@ -2630,9 +2630,10 @@ start_gameplay:
     jsr publish_level_hull_style
 ; M5b-S4b.5: the hull maps ($4C00-$4E3F) are rebuilt; the boss's slot E may
 ; have held them since the last gameplay start. A label, no byte: the trace
-; checks at every draw_hull_row that the maps are as they were here.
-hull_maps_built:
-    jsr CAPITAL_VECTOR_INIT
+; checks at every draw_hull_row that the maps are as they were here. On the
+; instruction's line: scripts/preview.mjs ends a routine at a label alone on a
+; line, and reads start_gameplay's stores to its end.
+hull_maps_built: jsr CAPITAL_VECTOR_INIT
     jsr init_screen
     lda player_x
     sta HPOSP0

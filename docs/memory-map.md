@@ -719,10 +719,10 @@ By topic: boot, loader and transport 82%, level summary 10%, capital ship 4%, un
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
+| `start_gameplay` | `$2636` | 186 B | 4.2% | unclassified |
 | `render_transient_effect_overlays` | `$305A` | 174 B | 3.9% | debris and effects |
 | `read_input` | `$29BC` | 172 B | 3.9% | player, input and weapons |
 | `update_sound` | `$2E87` | 152 B | 3.4% | music and audio |
-| `hull_maps_built` | `$266C` | 132 B | 3.0% | capital ship |
 | `select_frontend_display` | `$2373` | 128 B | 2.9% | frontend and HUD |
 | `draw_top_score_rows` | `$25C5` | 113 B | 2.5% | frontend and HUD |
 | `update_transient_effects` | `$2FD9` | 102 B | 2.3% | debris and effects |
@@ -744,7 +744,6 @@ By topic: boot, loader and transport 82%, level summary 10%, capital ship 4%, un
 | `encode_frontend_character` | `$249B` | 62 B | 1.4% | frontend and HUD |
 | `update_sector_state` | `$2E37` | 61 B | 1.4% | Director, sectors and waves |
 | `handle_main_menu_input` | `$224C` | 56 B | 1.3% | frontend and HUD |
-| `start_gameplay` | `$2636` | 54 B | 1.2% | unclassified |
 | `stage_boot_stream_record` | `$210A` | 52 B | 1.2% | boot, loader and transport |
 | `show_loader` | `$273F` | 52 B | 1.2% | boot, loader and transport |
 | `unpack_capital_hull_maps` | `$286A` | 51 B | 1.1% | capital ship |
@@ -753,7 +752,7 @@ By topic: boot, loader and transport 82%, level summary 10%, capital ship 4%, un
 | `init_playfield_row_table` | `$2948` | 45 B | 1.0% | display, PMG and raster |
 | 137 smaller items | — | 1,796 B | 40.2% | — |
 
-By topic: frontend and HUD 24%, player, input and weapons 17%, debris and effects 11%, Heavy, Raider and Interceptor 10%, capital ship 9%, unclassified 8%, music and audio 8%, boot, loader and transport 6%, Director, sectors and waves 3%, display, PMG and raster 2%, starfield 2%, padding and slack 0%, pickups and boosters 0%.
+By topic: frontend and HUD 24%, player, input and weapons 17%, unclassified 11%, debris and effects 11%, Heavy, Raider and Interceptor 10%, music and audio 8%, capital ship 6%, boot, loader and transport 6%, Director, sectors and waves 3%, display, PMG and raster 2%, starfield 2%, padding and slack 0%, pickups and boosters 0%.
 
 #### `BOOT_STAGE2` `$21C1-$26F4`, 1,332 B (build/void-strike-65.map)
 

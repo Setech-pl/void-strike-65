@@ -71,7 +71,7 @@
       {
         "start_sector": 108,
         "sectors": 44,
-        "packed_bytes": 5522,
+        "packed_bytes": 5525,
         "raw_bytes": 6653,
         "destination": 24080,
         "staging_id": 1
@@ -134,22 +134,22 @@
       },
       {
         "start_sector": 189,
-        "sectors": 6,
-        "packed_bytes": 693,
-        "raw_bytes": 771,
+        "sectors": 7,
+        "packed_bytes": 782,
+        "raw_bytes": 896,
         "destination": 46041,
         "staging_id": 2
       },
       {
-        "start_sector": 195,
+        "start_sector": 196,
         "sectors": 12,
-        "packed_bytes": 1507,
-        "raw_bytes": 1507,
+        "packed_bytes": 1491,
+        "raw_bytes": 1491,
         "destination": 40960,
         "staging_id": 2
       },
       {
-        "start_sector": 207,
+        "start_sector": 208,
         "sectors": 5,
         "packed_bytes": 503,
         "raw_bytes": 610,
@@ -291,10 +291,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+        "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-00.json",
-      "first_complete_menu_frame": 553,
+      "first_complete_menu_frame": 554,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -302,7 +302,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 553,
+          "host_frame": 554,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -352,7 +352,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 570,
+          "host_frame": 571,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -402,7 +402,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1050,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -809,10 +809,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+        "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-a5.json",
-      "first_complete_menu_frame": 553,
+      "first_complete_menu_frame": 554,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -820,7 +820,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 553,
+          "host_frame": 554,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -870,7 +870,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 570,
+          "host_frame": 571,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -920,7 +920,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1050,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1327,10 +1327,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+        "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-5a.json",
-      "first_complete_menu_frame": 553,
+      "first_complete_menu_frame": 554,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -1338,7 +1338,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 553,
+          "host_frame": 554,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1388,7 +1388,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 570,
+          "host_frame": 571,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1438,7 +1438,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1050,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1845,10 +1845,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "bd5c5c2d9e9431b47f6ad294795d8bce63adcf27e23c4a051c60a921dc0cd7fa"
+        "sha256": "13f2dad44967f27b6c8607ab511486d6aa91dfaac37cfda67f03662180e34df4"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-ff.json",
-      "first_complete_menu_frame": 553,
+      "first_complete_menu_frame": 554,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -1856,7 +1856,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 553,
+          "host_frame": 554,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1906,7 +1906,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 570,
+          "host_frame": 571,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1956,7 +1956,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1050,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,

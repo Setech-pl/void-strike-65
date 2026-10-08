@@ -409,6 +409,11 @@ evidence bound.
 
 **Pending:** the owner's smoke, [hardware-testing.md](hardware-testing.md) §18.
 
+**Done 2026-10-08 (`docs/readme-play-button`):** the "Play in your browser"
+link to the game's Setech Arcade page sits under the title of `README.md` and
+`README.pl.md`; it is out of the `chore/evidence-integrity` scope, which stays
+AUD-05, AUD-06, AUD-07. Game bytes unchanged.
+
 ## Audit hardening — disk writes, transition loads, interrupt decimal mode — `OWNER-SMOKE CANDIDATE` (2026-10-07)
 
 **Branch and plan:** `fix/audit-hardening` from `main` `f8611ab`;

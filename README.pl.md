@@ -2,6 +2,13 @@
 
 # VOID STRIKE 65
 
+**[▶ Zagraj w przeglądarce](https://setech-pl.github.io/setech-arcade/play/void-strike-65/)**
+
+*Uruchamia wydanie v0.2.2, przypięte w Setech Arcade, na wbudowanym w emulator
+AltirraOS; najlepiej grać na klawiaturze albo gamepadzie. ATR na prawdziwy
+sprzęt i emulatory jest na
+[stronie wydań](https://github.com/Setech-pl/void-strike-65/releases).*
+
 ![Grafika kluczowa VOID STRIKE 65: myśliwiec gracza między dwoma wrogimi okrętami liniowymi](assets/graphics/void-strike-65-banner-03-retro-box-art.png)
 
 **Autorska pionowa strzelanka kosmiczna na Atari 65XE i rodzinę Atari 8-bit,

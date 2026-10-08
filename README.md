@@ -2,6 +2,13 @@
 
 # VOID STRIKE 65
 
+**[▶ Play in your browser](https://setech-pl.github.io/setech-arcade/play/void-strike-65/)**
+
+*Plays release v0.2.2, the version pinned on Setech Arcade, on the emulator's
+built-in AltirraOS; best with a keyboard or a gamepad. The ATR for real
+hardware and emulators is on the
+[releases page](https://github.com/Setech-pl/void-strike-65/releases).*
+
 ![VOID STRIKE 65 key art showing the player fighter between opposing capital ships](assets/graphics/void-strike-65-banner-03-retro-box-art.png)
 
 **An original vertical space shooter for the Atari 65XE and the Atari 8-bit

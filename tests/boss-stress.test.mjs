@@ -30,7 +30,7 @@ import test from "node:test";
 
 import * as assets from "../scripts/boss-assets.mjs";
 import {
-  call, installRegion, label, labelsOf, nmi, placeBand, root, runBossEntry, shootAt, visibleCells,
+  call, installRegion, label, labelsOf, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells,
 } from "./boss-harness.mjs";
 
 const lbl = (name) => label("boss", name);
@@ -91,6 +91,10 @@ function frame(memory, laserMode) {
   memory[main("loader_dli_phase")] = 0;
   let cycles = nmi(memory, lbl("boss_dli"));
   cycles += call(memory, lbl("boss_update")).cycles;
+  // RE-POINTED (fix/smoke-2026-10-07 P1): the band's shot cells are written at
+  // SECTOR_COMPLETION now (boss_shots_late); counted with the boss's work (the
+  // harness's VCOUNT reads 0, so the raster wait, which is idle, is not).
+  cycles += call(memory, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
   cycles += call(memory, lbl("boss_motion")).cycles;
   return cycles + nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli"));
 }

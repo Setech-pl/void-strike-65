@@ -56,7 +56,10 @@ test("slot A holds the boss: at most 2,048 B, a JMP to the head, then the 12-ent
     init_broadside: label("main", "init_broadside"),
     update_broadside: label("boss", "boss_update"),
     prepare_next_hull_row: label("boss", "boss_motion"),
-    update_sector_completion: label("boss", "boss_completion"),
+    // RE-POINTED (fix/smoke-2026-10-07 P1): SECTOR_COMPLETION draws the
+    // player's shots in the band once the band has been shown (slot E), then
+    // jumps to boss_completion (asserted after the table).
+    update_sector_completion: label("boss", "boss_shots_late"),
   };
   const image = label("boss", "boss_vector_image") - slot.address;
   vectors.forEach((target, index) => {
@@ -65,6 +68,11 @@ test("slot A holds the boss: at most 2,048 B, a JMP to the head, then the 12-ent
     assert.equal(code.readUInt16LE(offset + 1), expected[target] ?? label("boss", "boss_rts"),
       `the boss's ${target} entry`);
   });
+  const completion = label("boss", "boss_completion");
+  const slotE = readBuild("overlay-boss-slot-e.bin");
+  const jmp = [0x4c, completion & 0xff, completion >> 8];
+  assert.ok(slotE.some((byte, at) => jmp.every((value, i) => slotE[at + i] === value)),
+    "boss_shots_late does not hand on to boss_completion");
 });
 
 test("the once-only install is one 3-sector run at $7810, below the region's theme run", () => {

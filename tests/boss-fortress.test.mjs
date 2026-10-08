@@ -17,7 +17,7 @@ import {
   bossBandRowAddress, bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import {
-  call, cpuOver, Drive, installRegion, label, nmi, placeBand, root, runBossEntry, runUntil,
+  call, cpuOver, Drive, installRegion, label, manifest, nmi, placeBand, root, runBossEntry, runUntil,
   shootAt, visibleCells,
 } from "./boss-harness.mjs";
 import { fixtureDraft, fixtureLayout, layeredDraft } from "./boss-fixtures.mjs";
@@ -747,6 +747,15 @@ test("Q-B6/Q8 on the fortress: five shots a frame through every reachable module
   let worst = 0;
   const frame = () => {
     let cycles = update(memory).cycles;
+    // RE-POINTED (fix/smoke-2026-10-07 P1): the band's shot cells are written
+    // at SECTOR_COMPLETION now (boss_shots_late, after the band has been
+    // shown); its work is the boss's too and is counted here. The harness's
+    // VCOUNT reads 0, so its raster wait (idle, not work) is not.
+    // The hand-off frame leaves the boss for the summary through the same
+    // entry (boss_completion); that frame is not the boss's per-frame work.
+    if (memory[lbl("_boss_handoff")] === 0) {
+      cycles += call(memory, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
+    }
     cycles += call(memory, lbl("boss_motion")).cycles;
     memory[main("loader_dli_phase")] = 0;
     cycles += nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli"));

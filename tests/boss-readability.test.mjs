@@ -16,7 +16,7 @@ import {
   compileBossRegion, loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import {
-  call, cpuOver, Drive, label, placeBand, root, runBossEntry, runUntil, shootAt, visibleCells,
+  call, cpuOver, Drive, label, manifest, placeBand, root, runBossEntry, runUntil, shootAt, visibleCells,
 } from "./boss-harness.mjs";
 
 const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
@@ -44,7 +44,15 @@ function fortress(p = 32) {
   placeBand(memory, p);
   return memory;
 }
-const update = (memory) => call(memory, lbl("boss_update"));
+// RE-POINTED (fix/smoke-2026-10-07 P1): a boss frame is UPDATE and then
+// SECTOR_COMPLETION, as main_loop runs them - the player's shots are drawn
+// in the band at SECTOR_COMPLETION (boss_shots_late, once the band has been
+// shown), no longer inside UPDATE. Every assertion below is unchanged.
+const SECTOR_COMPLETION = manifest.overlays.capitalVectors.address + 8 * 3;
+const update = (memory) => {
+  call(memory, lbl("boss_update"));
+  return call(memory, SECTOR_COMPLETION);
+};
 const settle = (memory, frames = 8) => { for (let i = 0; i < frames; i += 1) update(memory); };
 
 // The band row that stops a shot in `column` now: the front module's bottom

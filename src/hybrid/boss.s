@@ -22,6 +22,9 @@
 ;                             decision Q7, M5b-S4b): the lasers and the boss's
 ;                             shots inside the band, read by the head after
 ;                             slot C, sized to use
+;   BOSS_E_*                  slot E ($4C00-$4E3F, over the expanded hull
+;                             maps, M5b-S4b.5): the capsule rule and the
+;                             player's shots drawn in the band
 ;
 ; The region's charset lands at $0C00 (the claim's first KB): the band's DLI
 ; points CHBASE at it under the band and back at the gameplay charset for the
@@ -47,7 +50,10 @@
 ;                                        boss's fire, one queued module draw,
 ;                                        the nozzles
 ;   PREPARE_ROW        boss_motion      the band's drift and the win's shake
-;   SECTOR_COMPLETION  boss_completion  the hand-off to the level summary
+;   SECTOR_COMPLETION  boss_shots_late  the PairShots' cells in the band, once
+;                                        the band has been shown (slot E,
+;                                        fix/smoke-2026-10-07 P1); then
+;                      boss_completion  the hand-off to the level summary
 ;   every other entry  boss_rts         (INIT keeps init_broadside: it runs
 ;                                        only from start_gameplay, after the
 ;                                        START GAME restore)
@@ -60,6 +66,7 @@
 .include "level-def.inc"
 
 HSCROL          = $D404
+VCOUNT          = $D40B
 HPOSM0          = $D004
 SIZEM           = $D00C
 WSYNC           = $D40A
@@ -157,6 +164,7 @@ BOSS_REGION_RUNS = 3
 .export boss_tick_timer, boss_queue_head, boss_queue_tail
 .export boss_nozzle_dark, boss_column_from, boss_ring_set
 .export boss_stop_y, boss_shot_lo, boss_shot_hi, boss_hull_stop_operand, boss_shot_meet
+.export boss_shots_late
 ; The controller's view of the region's tables, the level, main and the
 ; summary (src/c/boss.c): every address it reads is one of this link's.
 .export _boss_tables, _boss_module_table, _boss_level, _boss_def
@@ -196,7 +204,7 @@ boss_vector_image:
     jmp boss_rts                        ; HULL_CONTACT
     jmp boss_rts                        ; RENDER_FLASHES
     jmp boss_rts                        ; RENDER_EXPLOSIONS
-    jmp boss_completion                 ; SECTOR_COMPLETION
+    jmp boss_shots_late                 ; SECTOR_COMPLETION (P1: the shots, then boss_completion)
     jmp boss_rts                        ; RESTORE_MUZZLES
     jmp boss_motion                     ; PREPARE_ROW
     jmp boss_rts                        ; SCROLL_HULL
@@ -468,10 +476,11 @@ boss_motion:
 
 ; ===========================================================================
 ; UPDATE, in handle_collisions right after the PairShots moved: every player
-; shot inside the band flies on, drawn in its cell, until it reaches the cell
-; that stops it (decision M, plan §5.16): per column the front intact module's
-; bottom row, else the hull's own stop row, else nothing - it leaves the
-; band's top and is removed. Only the girders' named cells are see-through
+; shot inside the band flies on until it reaches the cell that stops it
+; (decision M, plan §5.16): per column the front intact module's bottom row,
+; else the hull's own stop row, else nothing - it leaves the band's top and is
+; removed. Its cell is drawn later in the frame, once the band has been shown
+; (boss_shots_late, fix/smoke-2026-10-07 P1). Only the girders' named cells are see-through
 ; (decision M); no hull art is drawn under a weapon (decision O). Hull absorbs (no
 ; damage, not a hit, Q-B7); a module column goes to the controller, which
 ; decides whether the module is exposed (damage) or covered (absorbed). Every hit reads
@@ -491,7 +500,6 @@ boss_update:
     lda #$00
     sta boss_frame_heavy
     jsr boss_frame_timers
-    jsr boss_shots_restore
     jsr laser_frame                     ; S4b: the lasers, the boss's shots in the band
     ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
 @shot:
@@ -1517,15 +1525,14 @@ boss_prepare:
 ; the cell that stops a shot - the front module's bottom row, else the hull's
 ; own stop row, else 0 (open sky) - kept with the column map. C=1: the shot
 ; has reached that cell (A = the column map's value, Y = the column); C=0: it
-; flies on, drawn in its cell when the cell is blank (behind a girder's stub,
-; decision M), or it left the band's top and is removed.
+; flies on (boss_shots_late draws it), or it left the band's top and is
+; removed.
 boss_shot_meet:
     lda FIGHTER_PROJECTILE_X,x
     sec
     sbc #BAND_ORIGIN_HPOS
     clc
     adc boss_shown_pos
-    sta boss_shot_px
     lsr
     lsr
     tay
@@ -1537,70 +1544,23 @@ boss_shot_meet:
     rts
 @fly:
     cmp #BAND_TOP_Y
-    bcs @in
+    bcs :+
     lda #FIGHTER_PROJECTILE_FREE         ; over open sky past the band's top
     sta FIGHTER_PROJECTILE_ACTIVE,x
-    clc
-    rts
-@in:
-    sbc #BAND_TOP_Y                     ; C=1
-    lsr
-    lsr
-    lsr
-    sty boss_column
-    stx boss_shot_x
-    tax
-    jsr boss_cell_at
-    ldx boss_shot_x
-    ldy #$00
-    lda (dst_ptr),y
-    bne @hidden
-    lda FIGHTER_PROJECTILE_Y,x
-    lsr
-    and #$01
-    sta boss_shot_x
-    lda boss_shot_px                    ; the shot code: + 2 for the odd half
-    and #$02                            ; of the cell, + 1 for the lower half
-    ora boss_shot_x
-    clc
-    adc BOSS_T_SHOT_CODE
-    sta (dst_ptr),y
-    lda dst_ptr
-    sta boss_shot_lo,x
-    lda dst_ptr+1
-    sta boss_shot_hi,x
-@hidden:
-    clc
-    rts
-
-; Last frame's in-band shot cells get the blank back, each only while it
-; still shows a shot: a module's draw since then owns it.
-boss_shots_restore:
-    ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
-@slot:
-    lda boss_shot_hi,x
-    beq @next
-    sta dst_ptr+1
-    lda boss_shot_lo,x
-    sta dst_ptr
-    ldy #$00
-    lda (dst_ptr),y
-    sec
-    sbc BOSS_T_SHOT_CODE
-    cmp #BOSS_SHOT_CODES
-    bcs :+
-    tya
-    sta (dst_ptr),y
 :
-    lda #$00
-    sta boss_shot_hi,x
-@next:
-    dex
-    bpl @slot
+    clc
     rts
 
-; Once, from boss_prepare: the hull-stop table's address in the look tail.
+; Once, from boss_prepare: no shot cell from before the entry (the scratch
+; page is never read from disk, P1), and the hull-stop table's address in the
+; look tail.
 boss_shots_prepare:
+    lda #$00
+    ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
+:
+    sta boss_shot_hi,x
+    dex
+    bpl :-
     lda BOSS_T_LOOK_TAIL
     clc
     adc BOSS_T_HULL_STOP
@@ -1610,25 +1570,6 @@ boss_shots_prepare:
     sta boss_hull_stop_operand+1
     rts
 
-; A = a nozzle code, X = its store's operand offset from boss_nozzle_dst_l:
-; the operand becomes the code's glyph in the region's charset.
-boss_nozzle_operand:
-    and #$7F
-    pha
-    asl
-    asl
-    asl
-    sta boss_nozzle_dst_l,x
-    pla
-    lsr
-    lsr
-    lsr
-    lsr
-    lsr
-    clc
-    adc #>BOSS_CHARSET
-    sta boss_nozzle_dst_l+1,x
-    rts
 
 .segment "BOSS_CODE"
 
@@ -2096,6 +2037,99 @@ boss_capsule_fall:
     rts
 boss_capsule_rates:
     .byte GAMEPLAY_WORLD_RATE_EASY, GAMEPLAY_WORLD_RATE_MEDIUM, GAMEPLAY_WORLD_RATE_HARD
+
+; fix/smoke-2026-10-07 P1 (decision M, plan §5.16): SECTOR_COMPLETION, every
+; boss frame, late. The player's shots inside the band are drawn here, not in
+; UPDATE: UPDATE runs while ANTIC is still fetching the band (MEASURED on
+; main's debug route: its restore at scanlines 45-61, its draw at 60-86,
+; against row r's fetch on line 24 + 8 r), so a shot in rows 3-5 was taken out
+; before its row was fetched and put back after it - it vanished under the
+; turrets. Once the band's last line has passed, last frame's cells get the
+; blank back (each only while it still shows a shot: a module's draw since
+; then owns it), then every shot still flying in the band is drawn in its cell
+; when the cell is blank - behind anything drawn, never at or past the cell
+; that stops it (UPDATE met it there, or AUD-04 holds it a frame). The band
+; then shows every frame's shots on every row, a frame later, as the ring
+; shows them (publish_fighter_projectile_overlays).
+boss_shots_late:
+@wait:
+    lda VCOUNT                          ; the band is lines 24-87: VCOUNT 12-43
+    cmp #(BAND_BOTTOM_Y / 2)
+    bcs @shown
+    cmp #(BAND_TOP_Y / 2)
+    bcs @wait
+@shown:
+    ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
+@restore:
+    lda boss_shot_hi,x
+    beq @restored
+    sta dst_ptr+1
+    lda boss_shot_lo,x
+    sta dst_ptr
+    ldy #$00
+    tya
+    sta boss_shot_hi,x
+    lda (dst_ptr),y
+    sec
+    sbc BOSS_T_SHOT_CODE
+    cmp #BOSS_SHOT_CODES
+    bcs @restored
+    tya
+    sta (dst_ptr),y
+@restored:
+    dex
+    bpl @restore
+    ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
+@shot:
+    lda FIGHTER_PROJECTILE_ACTIVE,x
+    beq @next
+    lda FIGHTER_PROJECTILE_Y,x
+    cmp #BAND_BOTTOM_Y
+    bcs @next                           ; below the band: the ring draws it
+    lda FIGHTER_PROJECTILE_X,x
+    sec
+    sbc #BAND_ORIGIN_HPOS
+    clc
+    adc boss_shown_pos                  ; the position the next frame shows
+    sta boss_shot_px
+    lsr
+    lsr
+    sta boss_column
+    tay
+    lda FIGHTER_PROJECTILE_Y,x
+    cmp boss_stop_y,y
+    bcc @next                           ; at the cell that stops it
+    sbc #BAND_TOP_Y                     ; C=1; UPDATE removed every shot above the band
+    lsr
+    lsr
+    lsr
+    tay                                 ; its band row
+    lda boss_band_lo,y
+    ora boss_column                     ; each row is 64 B on a 64-B boundary
+    sta dst_ptr
+    lda boss_band_hi,y
+    sta dst_ptr+1
+    ldy #$00
+    lda (dst_ptr),y
+    bne @next                           ; behind anything drawn
+    lda FIGHTER_PROJECTILE_Y,x
+    lsr
+    and #$01
+    sta boss_shot_x
+    lda boss_shot_px                    ; the shot code: + 2 for the odd half
+    and #$02                            ; of the cell, + 1 for the lower half
+    ora boss_shot_x
+    clc
+    adc BOSS_T_SHOT_CODE
+    sta (dst_ptr),y
+    lda dst_ptr
+    sta boss_shot_lo,x
+    lda dst_ptr+1
+    sta boss_shot_hi,x
+@next:
+    dex
+    bpl @shot
+    jmp boss_completion
 .segment "BOSS_D_CODE"
 
 ; S4b.4 (owner decision 4): right after the controller's tick, which exposes
@@ -2395,6 +2429,29 @@ laser_colour:
 :
     rts
 .segment "BOSS_D_CODE"
+
+; Once, from boss_prepare (slot C; slot D is read before the install runs).
+; A = a nozzle code, X = its store's operand offset from boss_nozzle_dst_l:
+; the operand becomes the code's glyph in the region's charset. In slot D
+; since fix/smoke-2026-10-07 P1, so that slot C stays 13 sectors with the
+; band's shot drawing in slot E (the boss entry's sector count unchanged).
+boss_nozzle_operand:
+    and #$7F
+    pha
+    asl
+    asl
+    asl
+    sta boss_nozzle_dst_l,x
+    pla
+    lsr
+    lsr
+    lsr
+    lsr
+    lsr
+    clc
+    adc #>BOSS_CHARSET
+    sta boss_nozzle_dst_l+1,x
+    rts
 
 ; From the kill path (boss_module_scored): the destroyed module's laser, if it
 ; has one, goes off on the kill frame; and (S4b.5, owner decision F3) the kill
@@ -2728,10 +2785,6 @@ boss_laser_cell_hi: .res LASERS
 boss_laser_sizem:   .res 1
 boss_laser_erase:   .res 1      ; the plane's next line to erase on leaving
 boss_laser_done:    .res 1      ; the boss sector is over for the lasers
-boss_hostile_lo:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT ; each boss shot's band cell, last frame
-boss_hostile_hi:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT
-boss_hostile_code:  .res 1
-boss_hostile_pos:   .res 1      ; the band position last frame (the shots ride its drift)
 boss_fire_y:        .res 1      ; boss_fire: the firing gun's muzzle line
 laser_m:            .res 1
 laser_i:            .res 1
@@ -2753,6 +2806,15 @@ b2_colour:          .res 2      ; F1: M1's / M2's colour, for the DLI
 boss_laser_reload_lo: .res LASERS
 boss_laser_reload_hi: .res LASERS
 boss_shots_admit_left: .res 1   ; AUD-04: meetings left this frame
+
+; fix/smoke-2026-10-07 P1: the boss shots' band cells in slot E's RAM (set by
+; laser_prepare at the install, like every slot-D variable), so that slot D
+; has the room for boss_nozzle_operand.
+.segment "BOSS_E_BSS"
+boss_hostile_lo:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT ; each boss shot's band cell, last frame
+boss_hostile_hi:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT
+boss_hostile_code:  .res 1
+boss_hostile_pos:   .res 1      ; the band position last frame (the shots ride its drift)
 
 
 ; ===========================================================================

@@ -91,8 +91,15 @@ test("slot E: one more run at the boss entry, read over the expanded hull maps",
   assert.ok(runs.indexOf("boss-slot-e") === runs.indexOf("boss-slot-d") + 1, "read after slot D");
   const memory = entered();
   const image = readBuild("overlay-boss-slot-e.bin");
-  assert.deepEqual([...memory.subarray(HULL_MAPS[0], HULL_MAPS[0] + slotE.bytes)],
-    [...image.subarray(0, slotE.bytes)], "slot E is in place after the entry");
+  // RE-POINTED (fix/smoke-2026-10-07 P1): slot E's RAM now also holds 12 B of
+  // state (the boss shots' band cells, moved from slot D's BSS so that slot D
+  // could take boss_nozzle_operand and slot C stay 13 sectors). That state is
+  // never read from disk - laser_prepare sets it at the install - so the
+  // comparison covers the bytes the run reads, the code; slotE.bytes (code +
+  // state) is still held inside the hull maps above.
+  assert.ok(slotE.codeBytes <= slotE.bytes);
+  assert.deepEqual([...memory.subarray(HULL_MAPS[0], HULL_MAPS[0] + slotE.codeBytes)],
+    [...image.subarray(0, slotE.codeBytes)], "slot E is in place after the entry");
 });
 
 test("slot E's contract, by the source: only draw_hull_row reads the hull maps; only start_gameplay rebuilds them", () => {

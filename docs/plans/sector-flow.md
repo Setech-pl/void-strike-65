@@ -214,6 +214,22 @@ in every level source". It is still a hard test, now backed by C1.
   (`level-one-equivalence`, `boss-band`, `plasma-fx`, `runtime-wall-trace`'s
   budgets).
 
+### 2.6a Clause impact (each clause's subject must stay non-empty)
+
+| Clause | Subject after the change | Risk |
+| --- | --- | --- |
+| L1 live Interceptor | the swarm's Interceptors and (a)'s companion, unchanged | none |
+| L2 ≥ 2 Lights at once | the swarm, now three waves | none |
+| L3 no Heavy in a swarm | swarm rows: fewer (the early end), still thousands | now also guarded in code by C1 |
+| L4 ≤ 1 Light in an elite sector | elite rows: fewer, still thousands | C1 holds the swarm's end while more than one Light lives, so this is enforced at the swarm → (a) boundary |
+| L5 (a) with its Interceptor | 15 formations today | **watch**: C1 lets one swarm Light carry into (a), which can make the elite ceiling refuse (a)'s companion. The natural-sweep bot clears the swarm, so the subject should stay non-empty; the count is reported |
+| Booster-cycle clause (≥ 10), capsule clauses | kill-driven, not time-driven | **watch**: the waves are the same plus one; fewer dead frames means fewer post-capital debris kills on the hazard cadence (memory: the capsule cadence is load-bearing) |
+| Post-capital debris clauses (`debris_post_capital_sector`, `debris_shot_post_capital`) | debris admitted per row in sectors 2–5 | **watch**: shorter sectors mean fewer post-capital debris |
+| Director / level-complete coverage, boss-sector clauses | the boss is reached earlier; more replays may enter it | budgets are re-derived (§2.7) |
+
+A clause that loses its subject is a STOP of the brief. None is expected; the
+three **watch** rows are checked first on the trace.
+
 ### 2.7 Boss-sector integrity coverage (evidence-integrity §4)
 
 The road to the boss gets shorter, so re-derive every integrity budget from the

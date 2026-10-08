@@ -43,6 +43,7 @@
  */
 #include "director.h"
 #include "lifecycle.h"
+#include "enemy-archetype.h"
 #include "level-def.h"
 
 #pragma code-name ("DIRECTOR_C_CODE")
@@ -53,6 +54,9 @@
 #define DIFFICULTY_SETTING       U8_AT(0x4E70u)
 #define FRAME_COUNTER            U8_AT(0x0086u)
 #define CAPITAL_SECTOR_STATE     U8_AT(0x4EA5u)
+/* feat/sector-flow: the Heavy formation's state, the kernel's byte (0 none,
+ * 1 active, 2 exploding) - read, never written, by the sector flow. */
+#define ENEMY_ACTIVE             U8_AT(0x4ECDu)
 
 #define STATE_ROW_LO             U8_AT(0x80F4u)
 #define STATE_ROW_HI             U8_AT(0x80F5u)
@@ -96,6 +100,7 @@
 /* `wave_flags`: bits 0-1 appearance, 2 mirror, 3 Heavy class, 4 after-cleared. */
 #define WAVE_FLAG_APPEARANCE     0x03u
 #define WAVE_FLAG_HEAVY          0x08u
+#define WAVE_FLAG_AFTER_CLEARED  0x10u
 /* Roadmap 4.6 step 5: a payload look's key is $80 | slot << 4 ($90, $A0,
  * $B0), which no archetype offset (0-36) can equal; 0 means "the archetype's
  * own art" (plan §8.3). */
@@ -216,6 +221,11 @@ static const uint8_t hazard_reaction_rows[3] = { 32u, 28u, 24u };
  * the whole level. Two broadside shells at cost two each are exactly the
  * MEDIUM ceiling, which is what keeps the pair reachable. */
 static const uint8_t hazard_budget[3] = { 3u, 4u, 5u };
+
+/* feat/sector-flow (docs/plans/sector-flow.md): the three rules' window
+ * functions, defined after advance_sector, which they call. */
+static void advance_sector(void);
+static void director_c_arm_wave(void);
 
 #pragma code-name ("HYBRID_C_WINDOW")
 #pragma rodata-name ("HYBRID_C_WINDOW_RODATA")
@@ -385,7 +395,7 @@ static void enter_sector(void)
     }
     director_scratch0 = STATE_WAVE_CURSOR;
     if (wave_row[director_scratch0] == 0u) {
-        director_c_try_event();
+        director_c_arm_wave();
     }
 }
 
@@ -440,6 +450,108 @@ static void advance_sector(void)
     enter_sector();
 }
 
+#pragma code-name ("HYBRID_C_WINDOW")
+
+/* feat/sector-flow (docs/plans/sector-flow.md, gameplay-variety.md §3.8, owner
+ * answer Q10: the default for every level). Three rules, each a verdict taken
+ * here in the window so that DIRECTOR_RAM pays only for the calls. They run on
+ * world-row ticks of a SPACE sector only: the capital and boss branches of the
+ * tick return before any of them.
+ *
+ * The field is BUSY while a Heavy formation is on screen - active or
+ * exploding, as clause L3 counts it - or any Light slot is occupied, a pending
+ * break-up included. An escort that outlives its leader keeps the field busy
+ * (the owner's "cleared", Q10). The OR of the five bytes is the answer: zero
+ * is a clear field. Constant indices: five absolute loads. */
+static uint8_t field_busy(void)
+{
+    return (uint8_t)(ENEMY_ACTIVE | light_state[0] | light_state[1] |
+                     light_state[2] | light_state[3]);
+}
+
+/* Rule 2, afterCleared (`wave_flags` bit 4, compiled since roadmap 4.6 step
+ * 1): the cursor's wave arms when its row has been reached AND the field is
+ * clear; the row stays the minimum. Refused, the cursor does not move and the
+ * next row tick asks again. director_c_try_event itself stays unconditional:
+ * the boss install arms its escort through it, and the world never scrolls
+ * again in the boss sector, so no later row could retry a refusal. */
+static void director_c_arm_wave(void)
+{
+    if ((wave_flags[STATE_WAVE_CURSOR] & WAVE_FLAG_AFTER_CLEARED) != 0u) {
+        if (field_busy() != 0u) {
+            return;
+        }
+    }
+    director_c_try_event();
+}
+
+/* Rule 1, the early end: the tick reaches this only with the cursor past the
+ * sector's last wave, no Heavy formation still to admit and the Light lock
+ * down. A clear field then ends the sector at once, and the authored row count
+ * is only the no-kill cut. A sector that authors no wave is a timed stretch
+ * and keeps its rows. */
+static void director_c_sector_spent(void)
+{
+    if (sector_wave_count[STATE_SECTOR] == 0u) {
+        return;
+    }
+    if (field_busy() == 0u) {
+        advance_sector();
+    }
+}
+
+/* Rule 3, C1 (w2-lights.md §3.4, the M4 prerequisite): the row count is
+ * reached. The members not yet admitted are cancelled - enter_sector would
+ * cancel them a tick later anyway - so a hold waits only for what is live.
+ * The end is then held, the world scrolling on, while the population exceeds
+ * the NEXT space sector's ceilings: a Heavy formation on screen where it
+ * admits none (read as zero / non-zero, because heavy_request admits a whole
+ * pair under any non-zero ceiling), or more live Lights than its Light
+ * ceiling. Each row tick asks again. The ceilings are the existing look-ups,
+ * asked with STATE_SECTOR stepped to the next sector and back (no ASM reads
+ * $80F6 outside the boss install, which runs in the main loop). A capital or
+ * a boss is not held here: both entries already wait for a full drain. */
+static void director_c_sector_cut(void)
+{
+    STATE_WAVE_REMAINING = 0u;
+    light_wave_remaining = 0u;
+    director_scratch0 = (uint8_t)(STATE_SECTOR + 1u);
+    if (director_scratch0 < level_header[CORE_SECTOR_COUNT]) {
+        if ((sector_kind[director_scratch0] & SECTOR_KIND_MASK) == SECTOR_KIND_SPACE) {
+            ++STATE_SECTOR;
+            /* One pass; a break is a hold. Not a goto: cc65 spends two words
+             * of DIRECTOR_C_RODATA on a function's labels. */
+            do {
+                if (ENEMY_ACTIVE != 0u) {
+                    if (heavy_ceiling() == 0u) {
+                        break;
+                    }
+                }
+                director_scratch1 = director_c_light_ceiling();
+                director_scratch2 = 0u;
+                director_scratch3 = LIGHT_SLOT_COUNT_ABI;
+                do {
+                    --director_scratch3;
+                    if (light_state[director_scratch3] != 0u) {
+                        ++director_scratch2;
+                    }
+                } while (director_scratch3 != 0u);
+                if (director_scratch2 > director_scratch1) {
+                    break;
+                }
+                --STATE_SECTOR;
+                advance_sector();
+                return;
+            } while (0);
+            --STATE_SECTOR;
+            return;
+        }
+    }
+    advance_sector();
+}
+
+#pragma code-name ("DIRECTOR_C_CODE")
+
 void director_c_world_row_tick(void)
 {
     if ((STATE_FLAGS & FLAG_COMPLETE) != 0u) {
@@ -486,13 +598,13 @@ void director_c_world_row_tick(void)
         sector_field = sector_len[director_scratch3];
         director_scratch1 = (uint8_t)(sector_field >> 5);
         if (sector_row_hi > director_scratch1) {
-            advance_sector();
+            director_c_sector_cut();
             return;
         }
         if (sector_row_hi == director_scratch1) {
             director_scratch1 = (uint8_t)(sector_field << 3);
             if (sector_row_lo >= director_scratch1) {
-                advance_sector();
+                director_c_sector_cut();
                 return;
             }
         }
@@ -512,6 +624,7 @@ void director_c_world_row_tick(void)
     compute_wave_end();
     director_scratch0 = STATE_WAVE_CURSOR;
     if (director_scratch0 == wave_end) {
+        director_c_sector_spent();
         return;
     }
     /* wave_row is in modules, like sector_len. */
@@ -526,7 +639,7 @@ void director_c_world_row_tick(void)
             return;
         }
     }
-    director_c_try_event();
+    director_c_arm_wave();
 }
 
 #pragma code-name ("DIRECTOR_C_CODE")

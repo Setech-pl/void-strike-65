@@ -1232,6 +1232,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
       "/project/src/c/director.c": cSource,
       "/project/src/c/director.h": cHeader,
       "/project/src/c/lifecycle.h": lifecycleHeader,
+      // feat/sector-flow: the Director reads light_state for the field test.
+      "/project/src/c/enemy-archetype.h": archetypeHeader,
       "/project/src/c/level-def.h": levelDefHeader,
       "/cc65/include/stdint.h": stdintHeader,
     },

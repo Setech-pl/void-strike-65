@@ -6629,6 +6629,26 @@ it to size a budget, never to predict a frame. The committed baselines
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
 
+- **C1 — the Director holds a sector's end while the live enemies exceed the
+  next sector's caps — PREREQUISITE OF M4** (owner, 2026-10-08,
+  [plans/w2-lights.md](plans/w2-lights.md) §3.4, §8.1 Q1). A space sector ends
+  on its row count whatever is live, so a live Heavy formation crosses into a
+  swarm sector (F1; up to 3 Lights are then admitted beside it) and a swarm's
+  live Lights cross into an elite sector with the Light wave lock cleared (F2;
+  a Heavy can be admitted beside them and its companion is refused). Both
+  confirmed (W2 Phase A). W2 guards level 1 by data only (no swarm directly
+  after an elite, checked over every level source; the swarm sized to drain on
+  HARD with 21 % reserve; trace clauses L3/L4). Level 2 has swarm → elite
+  twice (sectors 0 → 1 and 3 → 4, row-0 Heavy waves), guarded today only by
+  its sector lengths (ESTIMATE). **Cost (INSTRUCTION COUNT, +20 %):** ~6 B in
+  `DIRECTOR_C_CODE` (`DIRECTOR_RAM`, 35 B free) for the call in
+  `director_c_world_row_tick`, ~40-50 B in `HYBRID_C_WINDOW` (1,185 B free),
+  initial block 0 B if the window part stays in its extension record;
+  ~60-90 cycles, pre-fence, only on the row tick where a sector's rows are
+  reached and on each row tick while it holds. Visible: an elite sector lasts
+  until its formation has gone (≤ ~690 frames with a live Bomber pair, PROBE).
+  Needs a native carry-over test, RED on `main`.
+
 - ~~HEAVY DESTRUCTION EFFECT~~ — **CLOSED 2026-09-22**, implemented as
   plan-4.6-placement.md §7.4 **variant 2** for **both** Heavy archetypes. See
   "Heavy break-up" below.

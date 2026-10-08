@@ -469,6 +469,23 @@ Level 1".
 * **Q3: L1-L5.**
 * **Q4: accepted** (the boss at ≈ 82 / 72 / 67 s).
 
+**Two additions (owner, the same session):**
+
+1. The data test "no swarm sector directly after an elite sector" checks
+   **every level source in the repo**, not only level 1. A level that violates
+   it today is recorded as an expected, documented failure tied to the C1
+   backlog item, not excluded. **Checked:** level 2's order is swarm, elite,
+   capital, swarm, elite, elite — no swarm follows an elite, so it passes and
+   nothing is recorded. (Its two swarm → elite transitions are F2's, which
+   this rule does not cover; C1 does.)
+2. Each of L1-L5 shows its **subject** is non-empty in the default evidence
+   and fails if it is empty: L1 rows with a live Light, L2 the same, L3 at
+   least one swarm frame, L4 at least one elite frame, L5 at least one
+   variant (a) formation (a Heavy admission in an elite sector that authors a
+   Raider + Interceptor wave). The evidence records each count.
+
+C1 is in STATUS's backlog as a prerequisite of M4, with §3.4's costs.
+
 ## 9. Phase B (after the answers)
 
 1. Tests first (§6), RED on `main`'s build, committed.

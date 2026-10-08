@@ -208,7 +208,13 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): the debris-effects
   // replay now reaches the boss inside its 5,000 frames; the boss-entry frame
   // is emitted and set aside as a transition (M5b-S3 correction 10).
-  assert.equal(report.replay.debris_effects_measured_frames, 4_999);
+  // RE-POINTED (feat/sector-flow, the owner's chained Light wave of
+  // 2026-10-08): the sweep bot at fire 4 loses its first game in the swarm's
+  // third wave (game over at frame 2,406, MEASURED) and restarts twice, so the
+  // replay no longer reaches the boss inside 5,000 frames and sets no entry
+  // frame aside. Its debris clauses passed with their subjects; the boss is
+  // covered by the director-complete, slot-e and integrity replays.
+  assert.equal(report.replay.debris_effects_measured_frames, 5_000);
   // RE-POINTED 2026-10-03 (M5a-S2): the director-complete replays end at the
   // level-end summary inside their 10,500-frame budgets (they used to fly on
   // in the terminal COMPLETE), and each records that summary.
@@ -278,7 +284,9 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     .reduce((sum, session) => sum + session.measured_frames, 0), 1_600);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "debris-effects-coverage")
-    .reduce((sum, session) => sum + session.measured_frames, 0), 4_999);   // the boss entry set aside (W1)
+    // RE-POINTED (feat/sector-flow): no boss entry inside the budget any more
+    // (the reason is at debris_effects_measured_frames above).
+    .reduce((sum, session) => sum + session.measured_frames, 0), 5_000);
   assert.equal(report.ten_heaviest_frames_in_9040_replay.length, 10);
   assert.equal(report.five_heaviest_frames.length, 5);
   assert.equal(report.five_heaviest_frames_scope, "all measured legal runtime replays");
@@ -980,8 +988,21 @@ test("ten heaviest frames retain exact clock positions, VBI IDs and state", () =
       assert.ok(frame.cpu_dma_off_reference.main_loop_cycles > 0);
     }
   }
-  assert.ok(report.ten_heaviest_frames_in_9040_replay.some((frame) =>
-    frame.cpu_dma_off_reference?.main_loop_cycles > 0));
+  // RE-POINTED (feat/sector-flow): the DMA-off reference is the build's top
+  // 64 JS-model frames (scripts/runtime-cycles.mjs cpuReferenceFrames), and it
+  // shares no frame with the ten heaviest WALL frames any more - those are
+  // main's frames exactly, but the sector-flow early-end test and the moved
+  // post-capital timelines reshuffled the model's top 64 and
+  // 1-evasive-fire3:288 fell out of it. The linkage is checked in both
+  // directions instead of by coincidence: a top-ten frame carries a reference
+  // exactly when the build's list has that session and frame.
+  const references = new Set((manifest.runtimeTiming.cpuReferenceFrames ?? [])
+    .map((frame) => `${frame.session}:${frame.frame}`));
+  assert.equal(references.size, 64, "the build's DMA-off reference list");
+  for (const frame of report.ten_heaviest_frames_in_9040_replay) {
+    const key = `${String(frame.session ?? "").replace(/^targeted-/, "")}:${frame.frame}`;
+    assert.equal(frame.cpu_dma_off_reference !== null, references.has(key), key);
+  }
 });
 
 test("current frontend maximum, subsystem profile and accepted PAL-recovery baseline are exact", () => {

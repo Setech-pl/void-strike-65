@@ -292,6 +292,27 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
 // are kept on that mechanism: the row clock enters the last sector, the
 // drained entry happens there once, the boss's phases follow in order and
 // never go back, and the end is terminal.
+// data/w2-lights (docs/plans/w2-lights.md §5, owner answers Q3 and addition 2
+// of 2026-10-08): over every measured legal replay, L1 a live Interceptor
+// Light, L2 two or more Lights live at once, L3 no Heavy live in a swarm
+// sector, L4 never more than one live Light in an elite sector, L5 a variant
+// (a) formation flies with its Interceptor - each with a non-empty subject.
+test("PAL replays carry the Light archetypes: L1-L5 held, every subject non-empty", () => {
+  const evidence = report.coverage.light_archetypes;
+  assert.ok(evidence, "the evidence has no coverage.light_archetypes");
+  assert.equal(evidence.held, true, (evidence.failures ?? []).join("; "));
+  for (const id of ["L1", "L2", "L3", "L4", "L5"]) {
+    const clause = evidence.clauses[id];
+    assert.ok(clause && clause.held === true, `${id} did not hold`);
+    assert.ok(Number.isInteger(clause.subject) && clause.subject > 0, `${id}'s subject is empty`);
+  }
+  assert.ok(evidence.clauses.L1.frames > 0 && evidence.clauses.L2.frames > 0 && evidence.clauses.L5.frames > 0);
+  assert.equal(evidence.clauses.L3.violations, 0);
+  assert.equal(evidence.clauses.L4.violations, 0);
+  assert.ok(evidence.maximum_live_lights >= 2 && evidence.maximum_live_lights <= 3,
+    `maximum live Lights ${evidence.maximum_live_lights}`);
+});
+
 // RE-POINTED M5b-S4a-i (plan §5.13.7, class (a)): the layered engine has no
 // core phase - fight, chain at the last weapon's death, hold - and every boss
 // row shows one of those states (S3's retired core state 2 never).

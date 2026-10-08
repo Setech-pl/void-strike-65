@@ -135,7 +135,7 @@ const CORE_DEBUG_START_SECTOR_OFFSET = 12;
 // debug-route build honours it (#ifdef LEVEL_DEBUG_START); against the
 // default build the byte is unread and the level starts at its sector 1.
 export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
-  killPolicy = true, debugStartSector = null } = {}) {
+  killPolicy = true, debugStartSector = null, lightTicksFromSector = null } = {}) {
   const memory = new Uint8Array(0x10000);
   // A review variant owns its whole build directory, so the directory is named
   // as it is rather than derived from a repository root.
@@ -204,6 +204,20 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     "tick_capital_explosions", "integration_update_first_capital",
     "integration_update_enemy", "update_starfield", lightUpdate, lightWave,
     "integration_update_sector_completion"];
+  // data/w2-lights (docs/plans/w2-lights.md §4.1): from the Director sector
+  // `lightTicksFromSector` on, the probe runs the Light kernel's whole
+  // light_update instead - motion, pursuit, fire, retirement at the bottom -
+  // and applies NO kill policy, so every enemy lives as long as on the runtime
+  // when the player shoots nothing: the worst case for a sector's drain. The
+  // switch is a sector rather than the whole run because the fixed kill policy
+  // re-admits a Raider pair every ~50 frames and its escort re-latches onto
+  // each new leader, while with no kills at all the probe never leaves the
+  // capital. null (the default) keeps every existing caller's figures.
+  // light_update calls the wave stepper itself; a second call would halve
+  // every wave's spacing, so the ticking list leaves it out.
+  const tickingSteps = steps.map((step) => (step === lightUpdate ? "light_update" : step))
+    .filter((step) => step !== lightWave);
+  const ticking = () => lightTicksFromSector !== null && memory[STATE.phase] >= lightTicksFromSector;
 
   const heavySpawns = [];
   const lightSpawns = [];
@@ -215,6 +229,8 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
   // The most Light slots live at once in each Director sector, counted every
   // frame from light_state itself - the number a sector's Light ceiling bounds.
   const peakLiveLights = [];
+  const lastLiveLightFrame = [];
+  const heavyFrames = [];
   const kills = [];
   let completeFrame = null;
   // M5b-S3: a level whose last sector is its boss ends there - the row clock
@@ -233,7 +249,13 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
 
   for (let frame = 1; frame <= frames; frame += 1) {
     memory[frameCounter] = (memory[frameCounter] + 1) & 0xff;
-    for (const step of steps) {
+    // While ticking an Interceptor can reach the probe's player, and the probe
+    // runs no death or respawn: a dying player stops the row clock while the
+    // Lights fly on, which would flatter a sector's drain. A probe poke,
+    // applied identically to every build compared, never a build flag.
+    const tickingFrame = ticking();
+    if (tickingFrame) memory[labels.get("PLAYER_LIFECYCLE")] = 0;
+    for (const step of tickingFrame ? tickingSteps : steps) {
       if (run(step).bossEntry) {
         bossEntryFrame = { frame, row: worldRow() };
         break;
@@ -298,6 +320,10 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
       }
       const sectorIndex = memory[STATE.phase];
       peakLiveLights[sectorIndex] = Math.max(peakLiveLights[sectorIndex] ?? 0, live);
+      // data/w2-lights: the last frame a sector had any Light slot occupied,
+      // and how many of its frames had a Heavy formation live.
+      if (live > 0) lastLiveLightFrame[sectorIndex] = frame;
+      if (memory[enemyActive] !== 0) heavyFrames[sectorIndex] = (heavyFrames[sectorIndex] ?? 0) + 1;
     }
 
     const sector = memory[sectorState];
@@ -315,7 +341,7 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     // lethal damage. Without it ENEMY_ACTIVE never returns to 0 and the
     // admission cadence - the thing this probe exists to compare - is never
     // exercised a second time.
-    if (killPolicy && active === 1) {
+    if (killPolicy && !tickingFrame && active === 1) {
       const target = [0, 1].find((slot) =>
         memory[enemyMemberState + slot] === 1 && memory[enemyY + slot] + 14 > 16);
       if (target !== undefined) {
@@ -334,7 +360,7 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     // capital entry can never be reached in the probe: CAPITAL_DUE is raised
     // and the drain never clears. It is a probe poke, applied identically to
     // every build compared, never a build flag.
-    if (killPolicy && lightState !== undefined) {
+    if (killPolicy && !tickingFrame && lightState !== undefined) {
       for (let slot = 0; slot < LIGHT_SLOT_COUNT; slot += 1) {
         if (memory[lightState + slot] !== 0 &&
           frame - (lightSpawnFrame[slot] ?? frame) >= LIGHT_LIFETIME_FRAMES) {
@@ -359,7 +385,7 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     format: "void-strike-65-level-timeline-v1",
     buildDirectory: path.relative(rootDirectory, path.resolve(buildDirectory)) || "build",
     director: runtime.manifest.encounterDirector?.implementation ?? null,
-    difficulty, frames, killPolicy, debugStartSector,
+    difficulty, frames, killPolicy, debugStartSector, lightTicksFromSector,
     finalRow: worldRow(),
     finalSectorState: memory[sectorState],
     finalFlags: memory[STATE.flags],
@@ -368,6 +394,8 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     bossEntryFrame,
     heavySpawns, lightSpawns, sectorTransitions, directorSectors,
     peakLiveLights: Array.from(peakLiveLights, (value) => value ?? 0),
+    lastLiveLightFrame: Array.from(lastLiveLightFrame, (value) => value ?? null),
+    heavyFrames: Array.from(heavyFrames, (value) => value ?? 0),
     killCount: kills.length,
   };
 }

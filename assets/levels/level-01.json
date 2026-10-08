@@ -169,8 +169,9 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 280,
+      "rows": 384,
       "_w2": "data/w2-lights (owner answers of 2026-10-08, docs/plans/w2-lights.md §4.1, §8.1): the swarm after the capital - a Wingman column of three in the flight-lead look (Q2: the level's one re-skin moves here from P2's Raider escort), then three Interceptors closing on the player; up to three Lights at once (the swarm ceiling), no Heavy. The Interceptors come last because a Light wave holds the cursor until its last Light has gone and they live 116 frames to the column's 232, so the sector ends on its shortest Lights. 280 rows: with no kills its last Light is gone at its frame 461 on every difficulty and HARD's 280 rows last 560, a 21 % reserve (PROBE), so the elite sector after it opens on an empty playfield - the sector end is not a barrier (plan §3, F2). A swarm never follows an elite sector (F1; tests/level-one-waves.test.mjs, until C1).",
+      "_flow": "feat/sector-flow (owner, 2026-10-08; docs/plans/sector-flow.md): the sector ends as soon as its three waves are spent and the field is clear, so its rows are only the no-kill cut, and C1 holds the end while more Lights live than the elite sector after it admits. A third wave chained on (owner answer): a plain Wingman column down the other side (X 88) after the Interceptors. 384 rows: with no kills the last Light leaves at frame 759-760 after entry on every difficulty and HARD's 384 rows last 768 (PROBE, scripts/level-timeline.mjs lightTicksFromSector); the W2 reserve is gone - C1 replaces it.",
       "archetypes": [
         "wingman",
         "interceptor"
@@ -198,6 +199,13 @@
           "archetype": "interceptor",
           "count": 3,
           "spacing": 24,
+          "entry": 88
+        },
+        {
+          "row": 0,
+          "archetype": "wingman",
+          "count": 3,
+          "spacing": 32,
           "entry": 88
         }
       ]
@@ -254,20 +262,23 @@
       },
       "waves": [
         {
-          "row": 24,
+          "row": 0,
           "archetype": "bomber",
           "count": 1,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "afterCleared": true
         }
       ],
-      "_w2": "P2's Bomber sector, unchanged by data/w2-lights (scope 3) but for its place and its sky: one Bomber pair at row 24, after (a)'s Raiders, between the two Raider variants so the Heavy waves alternate (owner decision 8); white now that (b) is the last space sector."
+      "_w2": "P2's Bomber sector, unchanged by data/w2-lights (scope 3) but for its place and its sky: one Bomber pair at row 24, after (a)'s Raiders, between the two Raider variants so the Heavy waves alternate (owner decision 8); white now that (b) is the last space sector.",
+      "_flow": "feat/sector-flow: the Bomber wave moves from row 24 to row 0 with afterCleared - it arms as soon as (a)'s Raider pair and its Interceptor are gone instead of after a fixed 24-row lead-in. 224 rows unchanged: with no kills (a)'s pair is carried in (elite to elite is legal) and the Bombers follow it."
     },
     {
       "kind": "space",
       "subtype": "elite",
-      "rows": 240,
+      "rows": 200,
       "_w2": "Variant (b): Raiders with no Light; the sector admits none (lights 0). A Raider with a Wingman escort, the third option, is sector 0's. It comes AFTER the Bomber pair so the Heavy waves still alternate (owner decision 8; the owner's answer of 2026-10-08, docs/plans/w2-lights.md §8.1). 240 rows: if the player kills nothing the Bomber pair can live into this sector, and its Raiders then arrive up to frame 394 of HARD's 480 (PROBE), a 22 % reserve. The last space sector, so it flies under yellow (the sky rule).",
+      "_flow": "feat/sector-flow: 240 -> 200 rows, the W2 reserve dropped. The rows are the no-kill cut: with no kills the Bomber pair carried in from the sector before keeps the Raider pair out until frame 392 of HARD's 400 (PROBE); with kills the sector ends as soon as its Raiders are gone.",
       "archetypes": [
         "raider"
       ],

@@ -223,10 +223,16 @@ test("T13: level 1 shows a sky per sector and one re-skinned Light wave; level 2
   assert.deepEqual([...one.pages.payload.subarray(PAYLOAD_OFFSET.weaponGlyph,
     PAYLOAD_OFFSET.weaponGlyph + 18)], new Array(18).fill(0), "level 1 keeps level 1's fire");
   // Level 1's waves, rows, counts and spacing are the ones it had before.
+  // RE-POINTED (feat/sector-flow, docs/plans/sector-flow.md §2.5): the Bomber
+  // wave after elite (a) now arms afterCleared (bit 4), the one wave of level 1
+  // that sets it; every other wave carries only the Heavy class bit.
   for (const [index, wave] of one.waves.entries()) {
     assert.equal(one.core[WAVE_ARRAY_OFFSET.flags + index] & 0xfc,
-      wave.class === "heavy" ? 0x08 : 0x00, `wave ${index + 1} flags beyond the look`);
+      (wave.class === "heavy" ? 0x08 : 0x00) | (wave.onCleared ? 0x10 : 0x00),
+      `wave ${index + 1} flags beyond the look`);
   }
+  assert.deepEqual(one.waves.filter((wave) => wave.onCleared).map((wave) => [wave.sector, wave.archetype]),
+    [[5, "bomber"]], "afterCleared on the Bomber wave only");
 
   const two = compileLevelFile(levelSourcePath(2));
   assert.deepEqual(new Set(sky(two)), new Set([1, 2, 3]), "all three skies");

@@ -51,19 +51,24 @@ test("T4: level 1's capital arrives on the authored row, and the row is the one 
       `${measuredRow}`);
   });
 
-test("T4: the capital admits on the authored row and within one module of where it used to",
+// RE-POINTED (feat/sector-flow; owner decision 3 amended 2026-10-08,
+// director-4.6.md §11 item 3): the authored capital row is a MAXIMUM now. A
+// space sector ends as soon as its waves are spent and the field is clear, so
+// under the probe's kill policy (every Heavy killed as it clears the top edge)
+// sector 0 spends its eight formations and the capital comes early: MEASURED
+// row 214 on MEDIUM, against 272. What the test still states: never later than
+// the authored row, never before all eight pre-capital formations have been
+// admitted, and the pre-change row it replaced stays the no-kill cut.
+test("T4: the capital admits no later than the authored row, and early only once sector 0 is spent",
   () => {
     const run = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });
     const entry = run.sectorTransitions.find((transition) => transition.to === 0);
     assert.ok(entry, "the MEDIUM replay reaches the capital inside 700 frames");
-    assert.equal(entry.row, AUTHORED_CAPITAL_ROW,
-      "the capital admits on the authored row, not on a frame count");
-    const before = baseline.runs.find((candidate) => candidate.difficulty === 1)
-      .sectorTransitions.find((transition) => transition.to === 0);
-    assert.ok(Math.abs(entry.row - before.row) <= CAPITAL_ROW_TOLERANCE,
-      `capital row ${entry.row} against the pre-change ${before.row}`);
-    assert.ok(Math.abs(entry.frame - before.frame) <= 16,
-      `capital frame ${entry.frame} against the pre-change ${before.frame}`);
+    assert.ok(entry.row <= AUTHORED_CAPITAL_ROW,
+      `the capital admits on row ${entry.row}, after the authored maximum ${AUTHORED_CAPITAL_ROW}`);
+    assert.equal(run.heavySpawns.filter((spawn) => spawn.frame <= entry.frame).length, 8,
+      "the capital came before sector 0's eight formations were spent");
+    assert.equal(entry.row, 214, "the MEASURED early capital row");
   });
 
 test("T4: the Heavy stream keeps the cadence and the density it had before the level was data",
@@ -162,7 +167,9 @@ test("owner decision 8: the authored waves alternate Raider and Bomber, with no 
     // RE-POINTED (data/w2-lights): the two Light waves are the swarm's, the
     // Wingman column then the Interceptors (docs/plans/w2-lights.md §4.1).
     assert.deepEqual(compiled.waves.filter((wave) => wave.class === "light").map((wave) => wave.archetype),
-      ["wingman", "interceptor"], "level 1's Light waves are the swarm's two");
+      // RE-POINTED (feat/sector-flow, owner answer of 2026-10-08): the swarm
+      // chains a plain Wingman column after the Interceptors.
+      ["wingman", "interceptor", "wingman"], "level 1's Light waves are the swarm's three");
     assert.equal(heavy[0].archetype, "raider", "the level still opens on the Raider formation");
     assert.equal(heavy[0].escort, "wingman", "and it still has its Wingman escort");
     for (let index = 1; index < heavy.length; index += 1) {
@@ -213,15 +220,21 @@ test("owner decision 8 / W1: re-authoring the waves left the capital where it wa
     // 2026-10-08): the post-capital sectors are 280 + 120 + 224 + 240 rows, so
     // the boss sector is entered at row 1,680 (408 rows later), on the frames
     // MEASURED here; the capital (below) is unchanged.
-    for (const [difficulty, complete] of [[1, 3734], [2, 3360]]) {
+    // RE-POINTED (feat/sector-flow, docs/plans/sector-flow.md; owner Q10 and
+    // decision 3 amended, 2026-10-08): every space sector ends as soon as its
+    // waves are spent and the field is clear, so under the probe's kill policy
+    // the boss sector is entered far earlier and on a row that depends on the
+    // difficulty - MEASURED here (main: frames 3,734 / 3,360, row 1,680) - and
+    // the capital comes early too (MEDIUM frame 477, row 214; main 606, 272).
+    for (const [difficulty, complete, row] of [[1, 2283, 1027], [2, 2034, 1017]]) {
       const run = captureTimeline({ buildDirectory, difficulty, frames: 9000 });
       assert.equal(run.completeFrame, null, "the level must not complete before its boss");
       assert.equal(run.bossSectorFrame?.frame, complete);
-      assert.equal(run.bossSectorFrame?.row, 1680);
+      assert.equal(run.bossSectorFrame?.row, row);
       assert.ok(run.bossEntryFrame?.frame >= complete, "the entry waits for the drain");
     }
     const medium = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });
     const entry = medium.sectorTransitions.find((transition) => transition.to === 0);
-    assert.equal(entry.frame, 606);
-    assert.equal(entry.row, AUTHORED_CAPITAL_ROW);
+    assert.equal(entry.frame, 477);
+    assert.ok(entry.row <= AUTHORED_CAPITAL_ROW, "the authored row is the capital's maximum");
   });

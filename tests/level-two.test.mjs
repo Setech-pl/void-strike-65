@@ -131,11 +131,15 @@ test("step 3: the Director reads level 2 - six sectors, the capital on row 1,120
     const label = ["EASY", "MEDIUM", "HARD"][difficulty];
     assert.deepEqual(run.directorSectors.map((entry) => entry.sector), [0, 1, 2, 3, 4, 5],
       `${label}: every sector entered once, in order`);
-    // The capital sector opens on the authored row, whatever the difficulty:
-    // the row is the clock, so the FRAME is what moves.
+    // RE-POINTED (feat/sector-flow; owner Q10 and decision 3 amended,
+    // 2026-10-08): the sector-flow rules are every level's default, so the
+    // authored rows are each space sector's no-kill cut and the capital's row
+    // is a MAXIMUM - under the probe's kill policy level 2's two opening
+    // sectors end early, as soon as their waves are spent and the field is
+    // clear.
     const capital = run.directorSectors[CAPITAL_SECTOR];
-    assert.equal(capital.row, rows[0] + rows[1], `${label}: the capital's authored row`);
-    assert.equal(capital.row, 1120);
+    assert.ok(capital.row <= rows[0] + rows[1], `${label}: the capital after its authored row`);
+    assert.equal(rows[0] + rows[1], 1120);
     assert.ok(run.completeFrame !== null, `${label}: the level completes`);
     assert.equal(run.directorSectors.at(-1).sector, LEVEL_TWO_SECTORS - 1);
     assert.ok(run.completeFrame.row > run.directorSectors.at(-1).row);

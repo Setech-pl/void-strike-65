@@ -298,8 +298,15 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   // Bomber sector (224) and elite (b) (240) - the Bomber between the Raider
   // variants so the Heavy waves alternate (decision 8) - seven sectors in all;
   // the 864 post-capital rows move the boss 408 rows later on purpose (Q4).
-  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 280, 120, 224, 240, 0]);
-  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1678);
+  // RE-POINTED (feat/sector-flow, owner answers of 2026-10-08,
+  // docs/plans/sector-flow.md §2.5): a space sector's rows are its no-kill
+  // cut now, not its length - it ends as soon as its waves are spent and the
+  // field is clear (owner Q10), and decision 3 makes the capital's row a
+  // maximum. The swarm grows 280 -> 384 for its chained third wave (its
+  // no-kill drain, 760 frames, on HARD), elite (b) drops its W2 reserve
+  // 240 -> 200 (its Raiders still arrive with no kills on HARD).
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 384, 120, 224, 200, 0]);
+  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1742);
   // Every wave names an archetype offset in the frozen four-record roster.
   for (const wave of compiled.waves) {
     assert.equal(wave.archetypeOffset % ARCHETYPE_RECORD_BYTES, 0);
@@ -568,7 +575,9 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // RE-POINTED (fix/smoke-2026-10-07 P2): level 1 now has two after its
     // capital - one Interceptor, one Wingman - where it had none; it still
     // never opens on one (its first wave is the Raider + Wingman formation).
-    assert.equal(one.waves.filter((wave) => wave.class === "light").length, 2);
+    // RE-POINTED (feat/sector-flow, owner answer of 2026-10-08): the swarm
+    // chains a third Light wave, so level 1 has three.
+    assert.equal(one.waves.filter((wave) => wave.class === "light").length, 3);
     assert.notEqual(one.waves[0].class, "light");
     assert.equal(two.waves.filter((wave) => wave.class === "light").length, 7);
     assert.equal(two.waves[0].archetype, "interceptor");

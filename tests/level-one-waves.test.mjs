@@ -13,11 +13,16 @@
 // default build (scripts/level-timeline.mjs) on all three difficulties.
 //
 // The transition guard (plan §3.4 D, owner addition 1): no swarm sector
-// directly after an elite sector, in EVERY level source of the repo. A space
-// sector ends on its row count whatever is live, so an elite sector's live
-// Heavy formation would fly on into the swarm and the swarm would admit up to
-// three Lights beside it. The rule stands until C1 (docs/STATUS.md backlog, a
-// prerequisite of M4) makes the Director hold the sector's end.
+// directly after an elite sector, in EVERY level source of the repo. Before
+// C1 a space sector ended on its row count whatever was live, so an elite
+// sector's live Heavy formation would fly on into the swarm. C1 now holds that
+// end in the Director (feat/sector-flow); the owner kept this data rule as a
+// hard test beside it (2026-10-08, docs/plans/sector-flow.md).
+//
+// RE-POINTED (feat/sector-flow, owner answers of 2026-10-08): the swarm chains
+// a third Light wave, a plain Wingman column after the Interceptors; the
+// Bomber wave after (a) arms afterCleared; F2's 20 % reserve test becomes C1's
+// guarantee (the elite sector after the swarm opens within its ceiling).
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -40,9 +45,6 @@ const KIND_OF = Object.fromEntries(Object.entries(SECTOR_KIND).map(([name, value
 const LIGHT_KINDS = Object.keys(ARCHETYPE_CLASS).filter((name) => ARCHETYPE_CLASS[name] === "light");
 const SECTOR_SUBTYPE_ELITE = 0x10;     // src/c/director.c
 const WAVE_FLAG_APPEARANCE = 0x07;     // scripts/level-compiler.mjs WAVE_FLAG_APPEARANCE_MASK
-// A Light's longest life with no kills, from row 0 to its retirement at Y 232:
-// a free Wingman descends a line a frame (src/c/lifecycle.c LIGHT_RETIRE_Y).
-const RESERVE = 0.2;
 
 // The core page's sectors and waves, as the Director reads them.
 function compiledSectors() {
@@ -105,11 +107,14 @@ test("W2: after the capital a swarm of both Light archetypes, elite (a), the Bom
   assert.equal(swarm.heavies, 0, "the swarm admits Heavies");
   assert.ok(swarm.waves.every((wave) => ARCHETYPE_CLASS[wave.archetype] === "light" && wave.escort === null),
     "the swarm has a Heavy wave");
-  assert.deepEqual(swarm.waves.map((wave) => wave.archetype).sort(), [...LIGHT_KINDS].sort(),
-    "the swarm is not one wave of each Light archetype");
+  // RE-POINTED (feat/sector-flow): three chained waves - the flight-lead
+  // Wingman column, the Interceptors, a plain Wingman column (owner answer of
+  // 2026-10-08). "Ends on the Interceptors" was F2's reserve, which C1
+  // replaces: the sector's end is held, not sized.
+  assert.deepEqual(swarm.waves.map((wave) => wave.archetype), ["wingman", "interceptor", "wingman"],
+    "the swarm is not the column, the Interceptors, then the chained column");
   assert.ok(swarm.waves.every((wave) => wave.count >= 2), "a swarm wave of a single Light");
-  assert.equal(swarm.waves.at(-1).archetype, "interceptor",
-    "the swarm does not end on the short-lived Interceptors (plan §4.1)");
+  assert.equal(swarm.waves[2].appearance, 0, "the chained column is plain");
   assert.ok(swarm.waves.find((wave) => wave.archetype === "wingman").appearance !== 0,
     "the swarm's Wingman column does not wear the level's look (owner answer Q2)");
 
@@ -128,7 +133,7 @@ test("W2: after the capital a swarm of both Light archetypes, elite (a), the Bom
 // Owner addition 1: every level source, each its own subtest so a failure
 // names the level. A level that breaks the rule today would be recorded in
 // docs/recorded-test-failures.json against C1, never left out of this loop.
-test("W2: no swarm sector directly after an elite sector, in every level source (until C1)", async (t) => {
+test("W2: no swarm sector directly after an elite sector, in every level source (kept with C1)", async (t) => {
   const sources = listLevelSources();
   assert.ok(sources.length >= 2, "fewer level sources than levels 1 and 2");
   for (const source of sources) {
@@ -161,7 +166,8 @@ test("W2: on every difficulty each post-capital wave arms; the swarm holds sever
     assert.deepEqual([...new Set(swarmLights.map((spawn) => NAME_OF[spawn.archetypeOffset]))].sort(),
       [...LIGHT_KINDS].sort(), `difficulty ${difficulty}: the swarm admitted ` +
       `${JSON.stringify(swarmLights.map((spawn) => spawn.archetypeOffset))}`);
-    assert.equal(swarmLights.length, 6, `difficulty ${difficulty}: the swarm admitted ${swarmLights.length} Lights`);
+    // RE-POINTED (feat/sector-flow): three waves of three.
+    assert.equal(swarmLights.length, 9, `difficulty ${difficulty}: the swarm admitted ${swarmLights.length} Lights`);
     assert.ok(run.peakLiveLights[swarmIndex] >= 2,
       `difficulty ${difficulty}: the swarm never held two Lights at once (${run.peakLiveLights[swarmIndex]})`);
     assert.equal(run.heavyFrames[swarmIndex] ?? 0, 0, `difficulty ${difficulty}: a Heavy in the swarm`);
@@ -180,12 +186,18 @@ test("W2: on every difficulty each post-capital wave arms; the swarm holds sever
   }
 });
 
-// F2's guard (plan §3.4 D): the swarm's own Lights are gone before it ends,
-// with a reserve, when the player shoots nothing - so the elite sector after
-// it opens on an empty playfield. The probe runs the real Light update and no
-// kill policy from the swarm on (scripts/level-timeline.mjs
-// lightTicksFromSector). HARD is the fastest row clock.
-test("W2: with no kills the swarm's Lights are gone before it ends and (b)'s Raiders arrive, with a 20 % reserve, on every difficulty", () => {
+// RE-POINTED (feat/sector-flow, docs/plans/sector-flow.md): F2's guard was a
+// 20 % reserve - the swarm sized to outlast its own Lights with no kills, so
+// the elite sector after it opened on an empty playfield. C1 holds the swarm's
+// end instead while more Lights live than (a) admits, and the early end closes
+// the swarm as soon as its last Light has gone, so the reserve is dropped (W2's
+// 280 rows become the 384-row no-kill cut of three waves). What stays: with no
+// kills every swarm wave arms, the swarm drains inside its rows, (a) opens with
+// at most one Light, and (b)'s Raiders still arrive inside (b). The probe runs
+// the real Light update and no kill policy from the swarm on
+// (scripts/level-timeline.mjs lightTicksFromSector). HARD is the fastest row
+// clock.
+test("sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive", () => {
   const { capital } = postCapital();
   const swarmIndex = capital + 1;
   for (const difficulty of [0, 1, 2]) {
@@ -194,12 +206,12 @@ test("W2: with no kills the swarm's Lights are gone before it ends and (b)'s Rai
     const entry = run.directorSectors.find((step) => step.sector === swarmIndex)?.frame;
     const end = run.directorSectors.find((step) => step.sector === swarmIndex + 1)?.frame;
     assert.ok(Number.isInteger(entry) && Number.isInteger(end), `difficulty ${difficulty}: the swarm did not end`);
+    assert.equal(run.lightSpawns.filter((spawn) => spawn.frame >= entry && spawn.frame < end).length, 9,
+      `difficulty ${difficulty}: not every swarm wave armed with no kills`);
     const last = run.lastLiveLightFrame[swarmIndex];
     assert.ok(Number.isInteger(last), `difficulty ${difficulty}: no Light in the swarm`);
-    const drain = last - entry;
-    const reserve = end - last;
-    assert.ok(reserve >= RESERVE * drain, `difficulty ${difficulty}: the swarm's last Light leaves at its ` +
-      `frame ${drain} of ${end - entry}, a reserve of ${reserve} (< ${RESERVE * 100} %)`);
+    assert.ok(last < end, `difficulty ${difficulty}: the swarm's last Light leaves at its frame ` +
+      `${last - entry}, after the swarm ended at ${end - entry}`);
     assert.ok((run.peakLiveLights[swarmIndex + 1] ?? 0) <= 1,
       `difficulty ${difficulty}: ${run.peakLiveLights[swarmIndex + 1]} Lights in elite (a)`);
     // (b) after the Bomber pair: with no kills the pair can live into (b), and
@@ -209,8 +221,7 @@ test("W2: with no kills the swarm's Lights are gone before it ends and (b)'s Rai
     assert.ok(Number.isInteger(bEntry) && Number.isInteger(bEnd), `difficulty ${difficulty}: (b) did not end`);
     const bRaiders = run.heavySpawns.find((spawn) => spawn.frame >= bEntry && spawn.frame < bEnd);
     assert.ok(bRaiders, `difficulty ${difficulty}: (b)'s Raiders never arrived with no kills`);
-    const wait = bRaiders.frame - bEntry;
-    assert.ok(bEnd - bRaiders.frame >= RESERVE * wait, `difficulty ${difficulty}: (b)'s Raiders arrive at its ` +
-      `frame ${wait} of ${bEnd - bEntry} (< ${RESERVE * 100} % reserve)`);
+    assert.ok(bRaiders.frame < bEnd, `difficulty ${difficulty}: (b)'s Raiders arrive at its frame ` +
+      `${bRaiders.frame - bEntry}, after (b) ended at ${bEnd - bEntry}`);
   }
 });

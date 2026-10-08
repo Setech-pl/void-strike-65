@@ -60,7 +60,9 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // RE-PINNED 2026-10-04 (M5b-S3, plan §5.11.7): 1,369 -> 1,497 B - the boss
   // entry's resident half, 109 B placed last, and enter_sector's BOSS branch,
   // 19 B - so the window's free tail is 1,316 (plan ~157 B, STOP +20 %).
-  assert.equal(window.directorHalfBytes, 1497, "the Light C, the cold Director half, step 5, the boss entry");
+  // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted +163 B): 1,497 ->
+  // 1,660 - the Director's sector-flow verdicts (docs/plans/sector-flow.md).
+  assert.equal(window.directorHalfBytes, 1660, "the Light C, the cold Director half, step 5, the boss entry, sector flow");
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
   // RE-PINNED 2026-10-07, audit-hardening (owner Q2): the kernel link 771 ->
@@ -68,9 +70,9 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // from the reader) in segments of their own behind the kernel, whose own
   // segment is still 771 B (tests/level-summary-build.test.mjs).
   assert.equal(window.lightKernelBytes, 902);
-  assert.equal(window.usedBytes, 2399);
-  assert.equal(window.freeBytes, 3584 - 2399);
-  assert.equal(window.freeBytes, 1185, "the tail audit-hardening leaves");
+  assert.equal(window.usedBytes, 2562);
+  assert.equal(window.freeBytes, 3584 - 2562);
+  assert.equal(window.freeBytes, 1022, "the tail sector flow leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
@@ -83,7 +85,9 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // RE-PINNED 2026-10-01, roadmap 4.6 step 5: 1,283 -> 1,369 raw B, 8 -> 9
   // sectors - the one extension sector budget-1.0 M2 granted the payload.
   // RE-PINNED 2026-10-04 (M5b-S3): 1,369 -> 1,497 raw B, 9 -> 10 sectors.
-  assert.equal(window.transport.rawBytes, 1497, "the window record carries steps 2-5 and the boss entry");
+  // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted): 1,497 -> 1,660
+  // raw B, 10 -> 11 sectors - the sector-flow verdicts.
+  assert.equal(window.transport.rawBytes, 1660, "the window record carries steps 2-5, the boss entry and sector flow");
   // The transport rule of plan §3.3 and owner decision 6: this step may not
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that
@@ -100,9 +104,12 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // RE-PINNED 2026-10-07 (audit-hardening, owner Q2): 211 -> 212, the one
   // extension sector the owner accepted for the disk guard (the Light
   // kernel's record, 6 -> 7 sectors); the menu frame is still the gate.
-  assert.ok(manifest.transportCapacity.totalTransportSectors <= 212,
+  // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted): 212 -> 213, the
+  // window record's eleventh sector; no boot sector, the initial block
+  // unchanged, the ATR menu frame still the gate.
+  assert.ok(manifest.transportCapacity.totalTransportSectors <= 213,
     `total transport is ${manifest.transportCapacity.totalTransportSectors} sectors; ` +
-    "212 is audit-hardening's figure");
+    "213 is sector flow's figure");
 });
 
 test("Q-1: level 1 still loads the same image the same way", () => {

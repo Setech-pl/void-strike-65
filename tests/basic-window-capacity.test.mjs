@@ -79,8 +79,13 @@ test("the window has room for the Director: the free tail is four digits", () =>
   // segments behind the kernel - the disk guard (95 B) and the capital vector
   // table's boot image (36 B), moved from the reader so its record stays 12
   // sectors. The kernel itself is still 771 B.
-  assert.equal(basicWindow.freeBytes, 1185,
-    "the delivered audit-hardening figure, re-recorded so a silent change is visible");
+  // Re-recorded 2026-10-08, feat/sector-flow (docs/plans/sector-flow.md §2.3,
+  // owner decision of 2026-10-08 accepting it over the 140-B line): 1,185 ->
+  // 1,022. The 163 B are the Director's three sector-flow verdicts in the C
+  // half - C1's hold 105, the afterCleared gate 21, the early end 19 and their
+  // shared field test 18.
+  assert.equal(basicWindow.freeBytes, 1022,
+    "the delivered sector-flow figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
 });

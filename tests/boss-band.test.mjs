@@ -93,7 +93,11 @@ test("everything before the boss sector is the level that shipped (gameplay up t
   // RE-POINTED (data/w2-lights): the swarm (280) and elite (a) (120) before
   // P2's 224-row Bomber sector, elite (b) (240) after it; the sectors before the
   // capital and the capital are main's.
-  assert.deepEqual(compiled.sectors.slice(0, 6).map((sector) => sector.rows), [272, 0, 280, 120, 224, 240]);
+  // RE-POINTED (feat/sector-flow, docs/plans/sector-flow.md §2.5): the rows
+  // are each space sector's no-kill cut now - the swarm 384 (its chained third
+  // wave), elite (b) 200 (the W2 reserve dropped); the sectors before the
+  // capital and the capital are main's.
+  assert.deepEqual(compiled.sectors.slice(0, 6).map((sector) => sector.rows), [272, 0, 384, 120, 224, 200]);
   // The sky rule (budget-1.0 M2 variant S2): the last space sector - elite (b)
   // now - flies under yellow (mint since plasma FX) and the boss sector too;
   // every other space sector under white.

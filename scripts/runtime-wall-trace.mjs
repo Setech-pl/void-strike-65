@@ -230,6 +230,31 @@ const weaponPickupSpreadSessions = [{
   kind: "weapon-pickup-spread-coverage",
 }];
 
+// fix/smoke-2026-10-07 P2, owner rule class (a), 2026-10-08: the scenario
+// moves, the clause does not. The 16-frame capsule raster sequence needs a
+// drawn capsule held for 18 consecutive frames with no effect on screen; the
+// difficulty-2 coverage replay found it after level 1's capital (frame 2,339 on
+// main, 38 frames) and in the boss sector (3,713). After the owner's decision
+// of 2026-10-08 that replay meets one capsule in 4,000 frames - before the
+// capital, under break-up effects (7 clean frames; MEASURED, also in 6,000) -
+// because the thinner post-capital waves (Lights never count towards a
+// capsule) give no third qualified kill. MEASURED replays (the first clean
+// run): difficulty 2 hunt at fire delays 3, 5, 7: frame 200 for 36, 759 for 53,
+// 204 for 28; difficulty 0 at 4: 495 for 42; difficulty 1 at 5: 493 for 55.
+// Difficulty 2 at delay 3 is the smallest change from the coverage replay
+// (its difficulty and policy) and its capsule comes before the capital. It
+// carries its OWN kind, as the Spread session does: it contributes the
+// sequence and nothing else, and every other weapon-pickup clause reads exactly
+// the rows and captures the difficulty-2 coverage session produced.
+const weaponPickupSequenceSessions = [{
+  id: "weapon-pickup-sequence-2-hunt-fire3",
+  difficulty: 2,
+  policy: "hunt",
+  fireDelay: 3,
+  frames: 600,
+  kind: "weapon-pickup-sequence-coverage",
+}];
+
 const pairShotSessions = [
   ["normal", "pairshot-normal"],
   ["rapid", "pairshot-rapid"],
@@ -3916,6 +3941,7 @@ function main() {
     : smokeFrames === null
     ? [...baselineSessions, ...targetedSessions, ...cadenceSessions, ...fighterFlashSessions,
       ...debrisEffectsSessions, ...weaponPickupSessions, ...weaponPickupSpreadSessions,
+      ...weaponPickupSequenceSessions,
       ...directorCompletionSessions, ...summaryRecordSessions,
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
@@ -4088,8 +4114,12 @@ function main() {
       } : {}),
       ...(session.kind === "weapon-pickup-coverage" && !pairShotOnly ? {
         DFTRACE_PICKUP_SCREENSHOT: pickupScreenshotPath,
-        DFTRACE_PICKUP_SEQUENCE_PREFIX: pickupSequencePrefix,
         DFTRACE_RAPID_SCREENSHOT: rapidScreenshotPath,
+      } : {}),
+      // The 16-frame capsule sequence alone, on the session added for it: see
+      // weaponPickupSequenceSessions.
+      ...(session.kind === "weapon-pickup-sequence-coverage" && !pairShotOnly ? {
+        DFTRACE_PICKUP_SEQUENCE_PREFIX: pickupSequencePrefix,
       } : {}),
       // The Spread Shot capture alone, on the session added for it: see
       // weaponPickupSpreadSessions.
@@ -6328,8 +6358,10 @@ function main() {
     // bit set, the plane fully drawn, no effect on screen -- take the first run
     // of consecutive frames long enough to have produced two priming frames plus
     // the sixteen captures, and read HPOSM0 from the captured frames of that run.
+    // fix/smoke-2026-10-07 (class (a)): the rows of the session that captures
+    // the sequence (weaponPickupSequenceSessions); the predicate is unchanged.
     const sequenceGateRows = allRows.filter((row) =>
-      row.trace_kind === "weapon-pickup-coverage" && row.pickup_state === 2 &&
+      row.trace_kind === "weapon-pickup-sequence-coverage" && row.pickup_state === 2 &&
       (row.entity_active_mask & 2) !== 0 && row.pickup_plane_rows === 16 &&
       row.pickup_plane_union === 255 && row.effect_active_count === 0);
     const sequenceRuns = [];

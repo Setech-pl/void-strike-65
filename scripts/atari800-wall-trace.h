@@ -3527,10 +3527,13 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * laser hit, under the lens: its beam's left edge (centre - 2) at HPOS
 		 * clock - position + 33 (MEASURED on the S4b.4 captures), the fighter
 		 * two left of it, as for a running laser above. */
+		int lens_park = 0;
 		if (target < 0 && dftrace_contact_lens_clock != 0u && dftrace_laser_contact_seen == 0u &&
-			dftrace_boss_active() && dftrace_boss_shown_pos != 0u)
+			dftrace_boss_active() && dftrace_boss_shown_pos != 0u) {
 			target = (int) dftrace_contact_lens_clock - 2 -
 				(int) MEMORY_mem[dftrace_boss_shown_pos] + 33 - 2;
+			lens_park = 1;
+		}
 		if (target < 0) {
 			int target_right = ((frame / 72u) & 1u) == 0;
 			int threat = 0;
@@ -3565,6 +3568,33 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		}
 		else {
 			stick = (int) x < target ? 0x07u : (int) x > target ? 0x0bu : 0x0fu;
+			/* fix/smoke-2026-10-07 P2 (class (a)): parked under the lens before
+			 * the first laser, the fighter still steps away from a boss shot
+			 * coming down on it, and never steps towards one - the sweep's test
+			 * above - so it
+			 * meets the beam whole: after P2's shorter post-capital path the
+			 * boss's entry state let a pulse shot reach it there (MEASURED:
+			 * health 10 -> 9 at 3,159, the beam at 3,354). */
+			if (lens_park && dftrace_projectile_x != 0u &&
+				dftrace_projectile_y != 0u && dftrace_projectile_active != 0u) {
+				unsigned slot;
+				int threat = 0, block_right = 0, block_left = 0;
+				for (slot = 5u; slot < 10u; ++slot) {
+					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
+						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						continue;
+					if (dx >= 0) block_right = 1; else block_left = 1;
+					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+				}
+				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
+				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
+				if (threat < 0)
+					stick = x > 60u ? 0x0bu : 0x07u;
+				else if (threat > 0)
+					stick = x < 196u ? 0x07u : 0x0bu;
+			}
 			if (y < DFTRACE_PLAYER_MAX_Y)
 				stick &= 0x0du;
 		}

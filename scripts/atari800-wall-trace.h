@@ -817,6 +817,10 @@ static unsigned dftrace_enemy_frame_heights;
 static unsigned dftrace_character_last_writer[65536];
 static unsigned dftrace_character_last_writer_x[65536];
 static const char *dftrace_first_writer_output;
+/* fix/smoke-2026-10-07 (P1): DFTRACE_FIRST_WRITER_BAND also logs the boss
+ * band's cells (rows 0-5 at $A880, rows 6-7 at $AC80), with the scanline of
+ * each write; off unless set, so no other session's log changes. */
+static int dftrace_first_writer_band;
 static FILE *dftrace_first_writer_file;
 static unsigned char dftrace_first_writer_shadow[65536];
 static unsigned dftrace_first_writer_old[65536];
@@ -5029,7 +5033,10 @@ static void dftrace_first_writer_track(unsigned x_register, unsigned y_register)
 	if (!((address >= DFTRACE_DIVIDER_SCREEN &&
 			address < DFTRACE_DIVIDER_SCREEN + 40u) ||
 		  (address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END) ||
-		  (address >= 0x3b00u && address < 0x4000u)))
+		  (address >= 0x3b00u && address < 0x4000u) ||
+		  (dftrace_first_writer_band &&
+			((address >= 0xa880u && address < 0xaa00u) ||
+			 (address >= 0xac80u && address < 0xad00u)))))
 		return;
 	old_value = dftrace_first_writer_shadow[address];
 	new_value = MEMORY_mem[address];
@@ -6725,6 +6732,7 @@ static void dftrace_init(void)
 	}
 	dftrace_player_pairshot_output = getenv("DFTRACE_PLAYER_PAIRSHOT_OUTPUT");
 	dftrace_first_writer_output = getenv("DFTRACE_FIRST_WRITER_OUTPUT");
+	dftrace_first_writer_band = getenv("DFTRACE_FIRST_WRITER_BAND") != NULL;
 	if (dftrace_policy == NULL || dftrace_session == NULL || dftrace_output == NULL) {
 		fprintf(stderr, "voidstrike65 trace: missing string environment\n");
 		exit(2);

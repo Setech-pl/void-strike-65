@@ -74,7 +74,8 @@ cost of keeping them true. The line follows the audience, not the directory.
 | Why decisions were made | [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), [decisions/](decisions/) |
 | Machine-readable PAL evidence (historical binding) | [runtime-wall-trace.json](runtime-wall-trace.json) |
 | Behavioural gate failures the owner has recorded as open (one source of truth for `scripts/build.mjs` and the tripwire test) | [recorded-gate-failures.json](recorded-gate-failures.json) |
-| `npm test` failures the owner has recorded as open on the default build, each with its class, its first failing assertion and the task that would clear it | [recorded-test-failures.json](recorded-test-failures.json) |
+| `npm test` failures the owner has recorded as open on the default build, each with its class, its first failing assertion and message, and the task that would clear it | [recorded-test-failures.json](recorded-test-failures.json) |
+| Reconciling a saved `npm test` log and a trace report against both records by name and first failing assertion (exits non-zero on a new or moved failure) | `npm run failures:reconcile` — `scripts/reconcile-failures.mjs` |
 | PAL frame-overrun gate (distinct miss events, line-238 margin) | [STATUS.md](STATUS.md), `scripts/pal-timing-audit.mjs` |
 | Native capital-shell/player collision evidence | [capital-player-collision-trace.json](capital-player-collision-trace.json) |
 | Native menu lifecycle/raster evidence | [menu-raster-trace.json](menu-raster-trace.json) |

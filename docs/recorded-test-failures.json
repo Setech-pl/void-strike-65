@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "purpose": "The single source of truth for the npm test failures the owner has accepted as open on the default build. It replaces the list that had to be combined from docs/plans/hull-set-v1.md Appendix A, its renames and the removals noted in docs/STATUS.md. A full default-build npm test must fail exactly the tests in `failures`: a new failing name is a regression, and a recorded name that passes must leave this file in the same change.",
+  "purpose": "The single source of truth for the npm test failures the owner has accepted as open on the default build. It replaces the list that had to be combined from docs/plans/hull-set-v1.md Appendix A, its renames and the removals noted in docs/STATUS.md. A full default-build npm test must fail exactly the tests in `failures`: a new failing name is a regression, and a recorded name that passes must leave this file in the same change. Each entry names its first failing assertion (`first_failing_assertion`, file:line) and that assertion's message (`first_failing_message`, the error's first line); scripts/reconcile-failures.mjs compares a saved npm test log against this file by name AND first assertion, so a new earlier failure inside a recorded test reads as MOVED, not as the recorded one (AUD-05).",
   "owner_decision": "2026-10-01 - recorded failures review, Phase B. Review and evidence: docs/diagnostics/recorded-failures-review-2026-10.md.",
   "measured": {
     "main_before": "9694ca9",
@@ -31,6 +31,7 @@
       "test": "preview consumes the canonical charset, screen, PMG, and palette source",
       "class": "C",
       "first_failing_assertion": "tests/preview.test.mjs:164",
+      "first_failing_message": "the gameplay preview must change when player_shape changes",
       "reason": "The gameplay preview does not change when player_shape changes: scripts/preview.mjs draws 24 of the 29 playfield rows and the fighter starts in the clipped ones. A development tool defect; not player-visible, not in the ATR.",
       "cleared_by": "chore/preview-29-rows",
       "status_2026_10_07": "The first failing assertion is :129 (the charset's length), not :166 - measured on this branch and on main 1a3c8bf, where it already failed at :129. The same test and cause; owner decision of 2026-10-07 (S4b.5) updates the line.",

@@ -43,7 +43,8 @@
     "runtime:wall-trace": "node scripts/runtime-wall-trace.mjs",
     "test": "node scripts/build.mjs --quiet && node --test tests/*.test.mjs",
     "verify": "node scripts/verify-build.mjs",
-    "memory-map": "node scripts/memory-map-report.mjs"
+    "memory-map": "node scripts/memory-map-report.mjs",
+    "failures:reconcile": "node scripts/reconcile-failures.mjs"
   },
   "devDependencies": {
     "romdev-toolchain-cc65": "0.1.3"

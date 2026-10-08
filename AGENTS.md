@@ -208,6 +208,12 @@ that is how the committed evidence went stale across 175 commits
   Include it in any focused set. When it goes red the evidence owes a
   regeneration pass (`build:candidate` -> `runtime:wall-trace` -> `build`);
   never hand-edit the SHAs in `docs/runtime-wall-trace.json`.
+* reconcile every full `npm test` and every trace against the records by
+  **name and first failing assertion**, not by name alone: save the run
+  (`npm test 2>&1 | tee build/npm-test.log`) and run
+  `npm run failures:reconcile -- --tests build/npm-test.log
+  --trace docs/runtime-wall-trace.json`. It exits non-zero on a NEW failure or
+  on a recorded one that MOVED (failing elsewhere or with another message).
 
 `npm run boot:smoke` and `npm run runtime:wall-trace` need an Atari800 source
 tree. Pass the in-repo copy — `--atari800-source=build/atari800-trace`. A

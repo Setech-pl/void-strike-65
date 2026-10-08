@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "purpose": "The single source of truth for behavioural clause failures the owner has accepted as open in docs/runtime-wall-trace.json. Read by scripts/build.mjs (the release gate) and by tests/runtime-evidence-binding.test.mjs (the tripwire), so the build and the tripwire cannot disagree about what is recorded.",
+  "purpose": "The single source of truth for behavioural clause failures the owner has accepted as open in docs/runtime-wall-trace.json. Read by scripts/build.mjs (the release gate) and by tests/runtime-evidence-binding.test.mjs (the tripwire), so the build and the tripwire cannot disagree about what is recorded. An entry's `message` is its clause's first failing assertion - the text the harness throws - so the records are matched by session and first assertion; scripts/reconcile-failures.mjs --trace prints new, moved and disappeared failures against this file (chore/evidence-integrity).",
   "owner_decision": "2026-09-21 — release gate semantics. The default build passes when there is no UNRECORDED gate failure and gate.timing_and_dli_passed is true. A new failure, or a recorded failure that silently disappears, fails the build exactly as it fails the tripwire. gate.passed keeps its meaning: false while any failure is recorded.",
   "classes": {
     "a-stale-scenario": "(a) The scenario cannot contain the behaviour; the assertion is right. Fixed by extending the scenario, never by loosening the assertion — recorded when extending is not cheap.",

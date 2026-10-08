@@ -98,8 +98,9 @@ built §5.15.7.
 
 * **A home per region for the look table.** Slot D is shared by every region,
   so only one region's table fits there; the build refuses a second region
-  until each table has its own home. `$1900–$1FFF` has 19 B left
-  (`$1FED–$1FFF`) since S4b.5; slot E (474 B free) is the candidate home.
+  until each table has its own home. `$1900–$1FFF` has 9 B left since
+  fix/smoke-2026-10-07 (19 since S4b.5); slot E (310 B free since that fix,
+  474 before) is the candidate home.
 * **The boss entry's load (owner decision 5 of 2026-10-07, S4b.5).**
   * The evidence test bounds the entry at under 250 host frames
     (`tests/runtime-wall-trace.test.mjs`, `boss_entry_host_frames < 250`).
@@ -112,6 +113,13 @@ built §5.15.7.
 * **A second phase.** A 90–120 s fight needs one: the finale volleys of
   decision B.
 * **P1 / P2 stay free** for the force field (§15.3 of the lasers plan).
+* **The boss-sector work budget (owner decision of 2026-10-08, after
+  fix/smoke-2026-10-07).** The native boss stress reads **8,434 of the 8,500**
+  in its unproven three-to-five-meeting cases (the laser fixture; reachable
+  worst 7,732): **about 66 cycles left**. fix/smoke-2026-10-07's P1 moved the
+  in-band shot drawing to SECTOR_COMPLETION and draws the shots the AUD-04 cap
+  holds (§5.16.9). S5 must keep its additions out of the boss frame's worst
+  case, or bring the owner a limit change with the measured fence margin.
 
 The plan, the decisions and as built: [boss-lasers.md](boss-lasers.md)
 §12–§18. The S4b row of §8 stays the plan's.
@@ -1221,6 +1229,25 @@ summary after several games and a GAME OVER on the 65XE).
 | START GAME, later in a session | — | summary in **1–2** frames; art + record (8 sectors) in **30**; FIRE read from +151 |
 | the level's end | — | summary **1** frame after the exit; art 7 + record 1 + write 1 + read-back 1 behind it; FIRE read from +151 |
 | gameplay against `main` | identical | **61 of 61 replay files identical**: 58 frame by frame on 40 gameplay columns, the three debris-gate files on every gameplay column aligned by gameplay frame; the three `director-complete` replays identical up to their level-end summary |
+
+### 4.11 The AI line and the empty panel (fix/smoke-2026-10-07 P3, 2026-10-08)
+
+The owner's smoke: on the loading screen the AI chatter line ran into the
+statistics (at START GAME directly under BEST, scanline 195), and START GAME
+showed the statistics' labels with no values. **Owner decision of 2026-10-08:**
+the AI line leaves the summary screens - both display lists keep every
+scanline, its row a blank line - and moves to the WARNING / BOSS APPROACHING
+screen only if it fits the free bytes of the module that draws that screen
+plus what the removal frees, with no boot or initial-block bytes. It does not:
+the warning is drawn by `_asm_boss_enter` in the `$AE00` window, loaded at boot
+by the extension, and the four lines' 168 B need a home in RAM there (the
+window: +1 extension sector; the region's staging run: +1 sector at the boss
+entry, 245 → ~249 of 250; the level image: a format change; the summary
+module: 32 B). So it is removed, and the backlog has **"AI chatter line: find
+a home"**; the four lines left the summary art runs (labels at 596, was 764)
+and stay in `assets/text/loader-ai-lines.json`. At START GAME only BEST of the
+panel is shown. The WARNING screen is unchanged. Summary module 1,788 → 1,760
+B. The record and the captures: [smoke-2026-10-07.md](smoke-2026-10-07.md) §3.
 
 ---
 
@@ -3100,6 +3127,25 @@ fight moments `build/boss-preview/region-1-composite.png`
 default build: **1,079 tests, 1,078 pass, 1 fail - `preview`, the recorded one**
 (the first run also failed the three hash-bound media tests, rebound by their
 own tools in `804ae09`).
+
+#### 5.16.9 Decision M on the raster (fix/smoke-2026-10-07 P1, 2026-10-08)
+
+The owner's smoke after S4b: the player's shots vanished in the band's empty
+rows under the turrets. **Cause, MEASURED** (the trace's first-writer log over
+the band, `main`'s level-1-s4, 3,999 boss frames): UPDATE runs while ANTIC is
+still fetching the band (row r on line 24 + 8 r); the in-band restore landed on
+lines 45-61 and the draw on 60-86, `laser_frame` between them since S4b, so
+rows 4 and 5 were almost never shown (261 of 262 and 283 of 296 draws) and row
+3 lost 125 of 354 - a shot was seen in rows 6-7, then the spark on its target.
+**Fix:** the restore and the draw move to SECTOR_COMPLETION
+(`boss_shots_late`, slot E), after the band's last line; UPDATE keeps the
+meeting. Every draw in every row is now shown, a frame later, as in the ring
+below; decision M holds on the screen as well as in the band's memory. Slot A
+2,045 → 2,042, slot C 1,992 → 1,880 (13 sectors), slot D 1,773 → 1,783, slot
+E 102 → 266 (2 sectors); the boss entry stays 64 sectors. Cycles: +67 native a
+frame with no shot in the band, +152 with five; the boss stress 7,982 → 8,434
+of 8,500 (the S5 requirement above). The record:
+[smoke-2026-10-07.md](smoke-2026-10-07.md) §1.
 
 ---
 ## 6. Ledgers

@@ -26,6 +26,7 @@ import { assertDiagnosticRun, traceArtifactLayout } from "./trace-artifacts.mjs"
 import {
   acceptedShotsStartFireSound,
   capitalContactHitboxes,
+  heaviestDirectorFrame,
   firstDliSelectsByteThree,
   pickupReleaseClearedOnce,
   pickupTraversalFrameIntact,
@@ -34,7 +35,8 @@ import {
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
-import { auditSession as auditPalTiming, reportAudits as reportPalTimingAudits,
+import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
+  reportAudits as reportPalTimingAudits,
   reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -7236,8 +7238,31 @@ function main() {
   const directorEventRows = allRows.filter((row) => (row.events & (1 << 22)) !== 0);
   invariant(directorWorldRows.length > 0 && directorRequestRows.length > 0 &&
     directorEventRows.length > 0, "Trace did not execute all observed Director paths");
-  invariant((heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0,
-    "Heaviest measured frame did not include actual Director work");
+  // The Director's heaviest work is measured and fits the timing budget
+  // (42bb21a; fix/smoke-2026-10-07, owner decision of 2026-10-08: the SUBJECT
+  // re-targeted from "the heaviest frame has a Director event" to "the heaviest
+  // frame that has one", the gates unchanged - scripts/trace-clause-observers.mjs
+  // heaviestDirectorFrame, docs/plans/smoke-2026-10-07.md §7). The covered set
+  // is the one the clause always read: every measured legal replay (allRows).
+  const directorFenceSamples = new Map();
+  const directorFrameMargin = (row) => {
+    if (!directorFenceSamples.has(row.session)) {
+      const sessionRows = allRows.filter((candidate) => candidate.session === row.session);
+      const { samples } = palTimingSamples(row.session, sessionRows);
+      directorFenceSamples.set(row.session, new Map(sessionRows.map((candidate, index) =>
+        [candidate, samples[index]])));
+    }
+    const sample = directorFenceSamples.get(row.session).get(row);
+    return { margin: sample.fence_margin_cycles, overran: sample.overran };
+  };
+  const directorHeaviest = heaviestDirectorFrame(allRows, directorFrameMargin);
+  invariant(directorHeaviest.held,
+    `The Director's heaviest measured frame does not fit the timing budget: ${directorHeaviest.reason}` +
+    (directorHeaviest.heaviest === null ? "" : ` (${directorHeaviest.heaviest.session} frame ` +
+      `${directorHeaviest.heaviest.frame}, ${directorHeaviest.heaviest.wall_cycles} cycles)`));
+  console.log(`Director's heaviest frame: ${directorHeaviest.heaviest.session} frame ` +
+    `${directorHeaviest.heaviest.frame}, ${directorHeaviest.heaviest.wall_cycles} cycles, fence margin ` +
+    `${directorHeaviest.margin ?? "none (capital path)"}, over ${directorHeaviest.directorFrames} Director frames`);
   const baselineHeaviest = maximumRow(baselineRows, (row) => row.wall_cycles);
   const targetedHeaviest = maximumRow(targetedRows, (row) => row.wall_cycles);
   const targetedReferenceHeaviest = maximumRow(baselineRows.filter((row) =>
@@ -8249,9 +8274,15 @@ function main() {
         boss_terminal_through_frame: hardDirectorCompletion.boss_terminal_through_frame,
         natural_difficulty_sessions: directorCompletionEvidence,
       },
-      heaviest_frame_includes_director_work: {
-        observed: (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0,
-        frame: frameState(heaviest),
+      // fix/smoke-2026-10-07 (owner decision of 2026-10-08): the record of the
+      // re-targeted clause, which replaced heaviest_frame_includes_director_work.
+      director_heaviest_frame: {
+        clause: "the heaviest frame with a Director request, event or world-row tick fits the gates: fence margin >= 500, DMA-on <= 32,568",
+        director_frames: directorHeaviest.directorFrames,
+        fence_margin_cycles: directorHeaviest.margin,
+        passed: directorHeaviest.held,
+        frame: frameState(directorHeaviest.heaviest),
+        global_heaviest_has_director_event: (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0,
       },
       active_muzzles: coverageRecord(allRows, (row) => row.active_muzzles > 0),
       maximum_projectile_pool: {

@@ -144,3 +144,47 @@ export function capitalContactHitboxes(row, slot) {
       shell.top <= player.bottom && shell.bottom >= player.top,
   };
 }
+
+/* "The Director's heaviest work is measured and fits the timing budget."
+ * The clause came with the Director (42bb21a, 2026-09-01; its record then,
+ * docs/runtime-headroom.md: "its heaviest frame executes
+ * director_world_row_tick"), written as "the heaviest measured frame has a
+ * Director request, event or world-row tick" - true while the worst frame of
+ * the replays happened to carry one. fix/smoke-2026-10-07 (owner decision of
+ * 2026-10-08, docs/plans/smoke-2026-10-07.md §7): the clause's SUBJECT is
+ * re-targeted to its intent, its gates are not touched. Owner decision P2 moved
+ * the heaviest frame to one without a Director event (2-evasive-fire7 f564,
+ * identical on main), and on HARD about every other frame has no row tick, so
+ * the old form failed on a frame that says nothing about the Director. Now:
+ * among the frames that carry a Director request, event or world-row tick
+ * (events bits 21, 22, 20), at least one must exist, and the heaviest of them
+ * (by wall cycles) must meet the gates the global worst frame meets - the line
+ * 238 fence margin >= 500 cycles and DMA-on <= 32,568. `marginOf(row)` returns
+ * the row's fence sample, { margin, overran } (scripts/pal-timing-audit.mjs; a
+ * capital-path row has no fence: margin null, held when it did not overrun). */
+export const DIRECTOR_EVENT_BITS = (1 << 20) | (1 << 21) | (1 << 22);
+export const DIRECTOR_MINIMUM_FENCE_MARGIN = 500;
+export const DIRECTOR_MAXIMUM_WALL_CYCLES = 32_568;
+
+export function heaviestDirectorFrame(rows, marginOf) {
+  const directorRows = rows.filter((row) => (row.events & DIRECTOR_EVENT_BITS) !== 0);
+  if (directorRows.length === 0) {
+    return { held: false, directorFrames: 0, heaviest: null, margin: null,
+      reason: "no frame carries a Director request, event or world-row tick" };
+  }
+  const heaviest = directorRows.reduce((worst, row) =>
+    (row.wall_cycles > worst.wall_cycles ? row : worst));
+  const { margin, overran } = marginOf(heaviest);
+  const marginHeld = margin === null ? !overran : margin >= DIRECTOR_MINIMUM_FENCE_MARGIN;
+  const wallHeld = heaviest.wall_cycles <= DIRECTOR_MAXIMUM_WALL_CYCLES;
+  return {
+    held: marginHeld && wallHeld,
+    directorFrames: directorRows.length,
+    heaviest,
+    margin,
+    reason: !wallHeld ? `its DMA-on ${heaviest.wall_cycles} is over ${DIRECTOR_MAXIMUM_WALL_CYCLES}`
+      : !marginHeld ? (margin === null ? "it overran its frame"
+        : `its fence margin ${margin} is under ${DIRECTOR_MINIMUM_FENCE_MARGIN}`)
+        : null,
+  };
+}

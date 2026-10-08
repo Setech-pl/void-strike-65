@@ -4,7 +4,9 @@ import test from "node:test";
 import {
   acceptedShotsStartFireSound,
   capitalContactHitboxes,
+  DIRECTOR_EVENT_BITS,
   firstDliSelectsByteThree,
+  heaviestDirectorFrame,
   pickupReleaseClearedOnce,
   pickupTraversalFrameIntact,
   raiderKillAccounting,
@@ -207,4 +209,48 @@ test("capital contact hitbox clause still fails without an intersection", () => 
   const wide = capitalContactHitboxes({ ...alliedContact, broad0_raster_x: 140 }, 0);
   assert.equal(wide.shell.right + 1, wide.player.left);
   assert.equal(wide.intersect, false);
+});
+
+// fix/smoke-2026-10-07 (owner decision of 2026-10-08): the Director's heaviest
+// work is measured and fits the timing budget. Synthetic rows: wall cycles,
+// the events word, and a fence margin the stand-in audit hands back.
+const WORLD_ROW = 1 << 20;
+const REQUEST = 1 << 21;
+const directorRow = (frame, wall, events, margin) => ({ frame, wall_cycles: wall, events, margin });
+const marginOf = (row) => ({ margin: row.margin, overran: row.margin !== null && row.margin < 0 });
+
+test("Director clause: the heaviest Director frame is chosen among Director frames, not the global worst", () => {
+  const rows = [
+    directorRow(1, 31_041, 0, 2_000),            // the global worst, no Director event
+    directorRow(2, 31_011, WORLD_ROW, 2_900),
+    directorRow(3, 30_976, REQUEST, 3_000),
+  ];
+  const verdict = heaviestDirectorFrame(rows, marginOf);
+  assert.equal(verdict.held, true);
+  assert.equal(verdict.heaviest.frame, 2);
+  assert.equal(verdict.directorFrames, 2);
+  assert.equal(verdict.margin, 2_900);
+});
+
+test("Director clause: rows with no Director request, event or world-row tick fail it", () => {
+  const rows = [directorRow(1, 30_000, 0, 5_000), directorRow(2, 29_000, 1 << 19, 6_000)];
+  const verdict = heaviestDirectorFrame(rows, marginOf);
+  assert.equal(verdict.held, false);
+  assert.equal(verdict.heaviest, null);
+  assert.match(verdict.reason, /no frame carries a Director/);
+  assert.equal(DIRECTOR_EVENT_BITS & (1 << 19), 0, "bit 19 is not a Director event");
+});
+
+test("Director clause: a heaviest Director frame under the 500-cycle fence margin fails it", () => {
+  const rows = [directorRow(1, 31_500, WORLD_ROW, 499), directorRow(2, 30_000, REQUEST, 4_000)];
+  const verdict = heaviestDirectorFrame(rows, marginOf);
+  assert.equal(verdict.held, false);
+  assert.equal(verdict.heaviest.frame, 1);
+  assert.match(verdict.reason, /fence margin 499 is under 500/);
+});
+
+test("Director clause: a heaviest Director frame over the 32,568 DMA-on gate fails it", () => {
+  const verdict = heaviestDirectorFrame([directorRow(1, 32_569, 1 << 22, 1_000)], marginOf);
+  assert.equal(verdict.held, false);
+  assert.match(verdict.reason, /DMA-on 32569 is over 32568/);
 });

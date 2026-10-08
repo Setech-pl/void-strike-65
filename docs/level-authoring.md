@@ -132,7 +132,7 @@ A level holds at most 20 waves in total, across all its sectors.
 | `spacing` | frames, ≥ the class floor | the class floor | frames between members. Light floor 16, Heavy floor 24 |
 | `entry` | 48-200 | 124 | entry column |
 | `mirror` | boolean | false | mirror the entry |
-| `afterCleared` | boolean | false | arm when the previous wave cleared instead of on `row` |
+| `afterCleared` | boolean | false | arm when the previous wave cleared instead of on `row`. **Compiled (flags bit 4) but not read by the Director yet** (fix/smoke-2026-10-07: `src/c/director.c` reads the look and Heavy bits only); what paces waves today is in [level-data-howto.md](level-data-howto.md), "When the next wave can start" |
 | `appearance` | a look's name, or 0-3 | 0 | 0 = the archetype's own art; otherwise a `payload.appearances` look, by name or slot number. On a Light wave its members wear it; on a Heavy wave its **Light escort** does, and the Heavy pair keeps its PMG art, so a Heavy wave without an escort is refused |
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,

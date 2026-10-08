@@ -29,15 +29,15 @@ space sector carries its own list of **waves**:
 ]
 ```
 
-Level 1 today (owner decision W1, 2026-10-07) has these sectors, numbered from 0
-as the debug route counts them:
+Level 1 today (owner decision of 2026-10-08, fix/smoke-2026-10-07 P2; before
+it W1) has these sectors, numbered from 0 as the debug route counts them:
 
 | Sector | Kind | Rows | Waves |
 | --- | --- | --- | --- |
 | 0 | space | 272 | Raider + Wingman, then Bombers |
 | 1 | capital | the hull | none |
-| 2 | space | 144 | one Raider + Wingman wave, with the `flight-lead` look |
-| 3 | space | 312 | one Bomber wave |
+| 2 | space | 232 | one Interceptor (row 0), one Wingman (row 40), one Raider pair with its Wingman escort in the `flight-lead` look (row 96) |
+| 3 | space | 224 | one Bomber pair (row 24) |
 | 4 | boss | ends with the boss | none |
 
 ## What the fields mean
@@ -70,6 +70,26 @@ as the debug route counts them:
 A sector's end cuts any wave not yet spent. When you shorten a sector, check on
 EASY, the slowest difficulty, that its last wave still arms (see the timeline
 probe below).
+
+**When the next wave can start** (MEASURED for level 1's post-capital waves,
+fix/smoke-2026-10-07 P2, on the emulator with the bot and with no fire):
+
+* a **Light wave** holds the Director until its last Light is gone - killed or
+  off the screen (`src/c/lifecycle.c`, `light_wave_step`) - so the wave after it
+  never shares the screen with it;
+* a **Heavy wave** is spent once its last formation is admitted, but a
+  formation is admitted only when the one before it has gone: two Heavy waves
+  do not share the screen either;
+* a Raider's **Wingman escort outlives its leader** and drifts down for up to
+  ~200 frames; give the next Heavy wave a row or two of pause (level 1's
+  Bomber pair waits for row 24 of its sector) so it does not enter under it;
+* an **elite** sector holds one Light at a time (its ceiling), so a Light wave
+  of several there reads as several waves, one Light after another; a group
+  of Lights that enters together needs a **swarm** sector (three at once, no
+  Heavy);
+* `afterCleared` is checked by the compiler and written into the wave's flags
+  (bit 4), but the Director does not read it (`src/c/director.c` reads the
+  look and Heavy bits only): a row and the rules above are what pace waves.
 
 **The boss's per-level data** is the level file's `bossDef`. Each of these is
 given per difficulty (`easy`, `medium`, `hard`), so a later level can be
@@ -126,6 +146,9 @@ out, none of this needs doing.
 * `tests/level-one-equivalence.test.mjs`: the capital's row and frame, the
   alternation, and the played order and Heavy counts per difficulty.
 * `tests/level-payload.test.mjs`: the skies, and which wave wears a look.
+* `tests/level-one-waves.test.mjs`: level 1's post-capital waves - one per
+  Light kind, one Raider wave, one Bomber pair - and that each arms on every
+  difficulty.
 
 Changing level 1's length also moves:
 

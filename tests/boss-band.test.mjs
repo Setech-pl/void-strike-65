@@ -81,7 +81,12 @@ test("everything before the boss sector is the level that shipped (gameplay up t
   // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): after the capital,
   // one Raider + Wingman wave (144 rows) and one Bomber wave (312 rows); the
   // sectors before the capital and the capital are main's.
-  assert.deepEqual(compiled.sectors.slice(0, 4).map((sector) => sector.rows), [272, 0, 144, 312]);
+  // RE-POINTED (fix/smoke-2026-10-07 P2, owner decision of 2026-10-08): the
+  // post-capital sectors are 232 + 224 rows (one Interceptor, one Wingman, one
+  // Raider pair; one Bomber pair), the same 456 rows in all, so the boss
+  // sector is entered on the row it was; the sectors before the capital and
+  // the capital are main's.
+  assert.deepEqual(compiled.sectors.slice(0, 4).map((sector) => sector.rows), [272, 0, 232, 224]);
   // The sky rule (budget-1.0 M2 variant S2): sector 4 keeps its yellow; the boss
   // sector, now the last, is yellow too.
   assert.deepEqual(compiled.sectors.map((sector) => sector.starColour), [1, 2, 1, 3, 3]);

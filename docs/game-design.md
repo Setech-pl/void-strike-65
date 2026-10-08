@@ -332,6 +332,21 @@ colour pulse is derived from the same timer and never makes the craft disappear.
 
 ## Encounter Director Level 1
 
+**Level 1 after the capital (owner decision of 2026-10-08, fix/smoke-2026-10-07
+P2; supersedes W1's wave list).** One wave of each Light kind the level can
+name - one Interceptor, then one Wingman - then one Raider wave (a Raider pair
+with its Wingman escort in the `flight-lead` look), then one Bomber pair, each
+reading as one wave and none sharing the screen with the next; the waves
+before the capital and the capital are unchanged, and the boss sector is
+entered on the row it was. The table below is the retired pre-step-2 design,
+kept for its history; the authored level is `assets/levels/level-01.json`
+([level-data-howto.md](level-data-howto.md)).
+
+**The boss band (decision M, fix/smoke-2026-10-07 P1).** The player's shots
+are drawn inside the boss band up to the cell that stops them; the band's
+cells are written after the band has been shown each frame, so a shot shows
+in every band row it crosses, a frame later, as in the playfield below.
+
 The production Hybrid Encounter Director advances from world rows rather than
 wall-clock time. Level 1 is exactly 3,712 rows with contiguous, end-exclusive
 phase boundaries:
@@ -438,7 +453,14 @@ section "Decyzje literowe 2026-09-20".
 - **Loader screen (O).** A randomly chosen line from a pool of 8-16 short
   English texts, plus an animation stepped one frame per sector read — not a
   progress bar. The texts are spoken by the fighter's onboard AI: cynical,
-  having seen too much.
+  having seen too much. **As built (fix/smoke-2026-10-07, P3):** the
+  loading/summary screen shows no AI line - it ran into the statistics - and
+  no home on the WARNING / BOSS APPROACHING screen fits without boot bytes
+  or a boss-entry sector; the four placeholder lines stay in
+  `assets/text/loader-ai-lines.json` for the backlog's "AI chatter line: find
+  a home". At START GAME, before a level is played, the screen shows no
+  statistic without a value: of the panel only BEST (the level's best from the
+  save record) is shown.
 - **End screen (P).** Eventually an animation in the top third at full width
   with a text scroll below. A simple message suffices for now.
 

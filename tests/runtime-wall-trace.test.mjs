@@ -223,7 +223,11 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): four integrity
   // replays (hunt fire 7 joined, class (a)); the three hunt replays reach the
   // boss and set its entry frame aside.
-  assert.equal(report.replay.memory_integrity_measured_frames, 15_997);
+  // RE-POINTED (fix/smoke-2026-10-07 P2, class (a)): five integrity replays
+  // (memory-integrity-atr-0-hunt-fire5 joined to keep the booster-cycle
+  // clause's >= 10), and all five now reach the boss and set its entry frame
+  // aside: 5 x 3,999.
+  assert.equal(report.replay.memory_integrity_measured_frames, 19_995);
   assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "baseline-9040")
@@ -238,7 +242,11 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     .filter((session) => session.kind === "memory-integrity-160s");
   assert.deepEqual(integrity.map(({ medium, policy, measured_frames }) =>
     [medium, policy, measured_frames]), [
-    ["ATR", "evasive", 4_000], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999],
+    // RE-POINTED (fix/smoke-2026-10-07 P2): the evasive replay now reaches the
+    // boss too (frame 2,740, after the shorter post-capital waves) and sets its
+    // entry frame aside; EASY's hunt at delay 5 joined (class (a)).
+    ["ATR", "evasive", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999],
+    ["ATR", "hunt", 3_999],
   ]);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "fighter-flash-coverage")
@@ -339,7 +347,9 @@ test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase",
     integrity.dli_sequence_violations,
     integrity.maximum_dlis_per_host_frame,
     integrity.passed,
-  ], [15_997, 319.94, 0, 2, true]);
+  // RE-POINTED (fix/smoke-2026-10-07 P2, class (a)): five replays, each
+  // reaching the boss: 20,000 - 5 measured, 399.9 s.
+  ], [19_995, 399.9, 0, 2, true]);
   assert.ok(integrity.pickup_rf_cycles >= 10);
   assert.equal(integrity.pause_sessions.length, 1);
   assert.ok(integrity.pause_sessions.every(({ timer_before, timer_after }) =>
@@ -1071,7 +1081,10 @@ test("the ATR legal hunt traces stay legal and have a reproducible fingerprint",
   // stays is the legality of the replay against the hard gate and the frame.
   // RE-POINTED 2026-10-07 (M5b-S4b.4): memory-integrity-atr-2-hunt-fire7
   // joined the hunt replays (the booster-cycle clause, class (a) after W1).
-  assert.deepEqual(sessions.map(({ medium }) => medium), ["ATR", "ATR", "ATR"]);
+  // RE-POINTED (fix/smoke-2026-10-07 P2, class (a)):
+  // memory-integrity-atr-0-hunt-fire5 joined the hunt replays (the booster-cycle
+  // clause after the thinner post-capital waves).
+  assert.deepEqual(sessions.map(({ medium }) => medium), ["ATR", "ATR", "ATR", "ATR"]);
   for (const session of sessions) {
     assert.ok(session.maximum_wall_cycles <= report.gate.maximum_wall_cycles,
       `${session.id} peaks at ${session.maximum_wall_cycles}, over the ` +

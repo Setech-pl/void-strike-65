@@ -3516,7 +3516,14 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * waits for the beam. */
 		unsigned laser;
 		int target = -1;
-		if (dftrace_boss_active() && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u &&
+		/* feat/sector-flow (class (a), docs/plans/sector-flow.md): the bot
+		 * seeks a beam - a running laser or the lens park below - only with a
+		 * whole hull (health 10 of the canonical 0-10), and keeps clear of one
+		 * while damaged, so its first laser contact meets ten units. The
+		 * shorter road brought the fighter into the boss at health 3 after a
+		 * Bomber hit (MEASURED: 10 -> 3 at 2,606, the beam at 3,166). */
+		unsigned whole = MEMORY_mem[dftrace_broad_state + 29u] == 10u;
+		if (whole && dftrace_boss_active() && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u &&
 			MEMORY_mem[dftrace_player_lifecycle] == 0u &&
 			MEMORY_mem[dftrace_broad_state + 30u] == 0u) {
 			for (laser = 0u; laser < 4u; ++laser) {
@@ -3533,7 +3540,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * clock - position + 33 (MEASURED on the S4b.4 captures), the fighter
 		 * two left of it, as for a running laser above. */
 		int lens_park = 0;
-		if (target < 0 && dftrace_contact_lens_clock != 0u && dftrace_laser_contact_seen == 0u &&
+		if (target < 0 && whole && dftrace_contact_lens_clock != 0u && dftrace_laser_contact_seen == 0u &&
 			dftrace_boss_active() && dftrace_boss_shown_pos != 0u) {
 			target = (int) dftrace_contact_lens_clock - 2 -
 				(int) MEMORY_mem[dftrace_boss_shown_pos] + 33 - 2;
@@ -3570,6 +3577,18 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				stick = x > 60u ? 0x0bu : 0x07u;
 			else if (threat > 0)
 				stick = x < 196u ? 0x07u : 0x0bu;
+			/* Damaged: out from under any warning or running beam (its span
+			 * is hpos - 2 .. hpos + 1 against the 8-HPOS envelope). */
+			if (!whole && dftrace_boss_active() && dftrace_laser_state != 0u &&
+				dftrace_laser_hpos != 0u) {
+				for (laser = 0u; laser < 4u; ++laser) {
+					unsigned state = MEMORY_mem[dftrace_laser_state + laser];
+					int dx = (int) MEMORY_mem[dftrace_laser_hpos + laser] - 2 - (int) x;
+					if ((state == 1u || state == 2u) &&
+						MEMORY_mem[dftrace_laser_hpos + laser] != 0u && dx > -16 && dx < 16)
+						stick = dx >= 0 ? (x > 60u ? 0x0bu : 0x07u) : (x < 196u ? 0x07u : 0x0bu);
+				}
+			}
 		}
 		else {
 			stick = (int) x < target ? 0x07u : (int) x > target ? 0x0bu : 0x0fu;
@@ -3790,6 +3809,16 @@ static void dftrace_prepare_broadside_proof(void)
 	 * construction, muzzle publication, admission and projectile work is guest
 	 * code from the exact release artifact. */
 	if (!dftrace_broadside_proof_sector_started) {
+		/* feat/sector-flow (class (a), docs/plans/sector-flow.md): the fixture
+		 * re-enters the capital from an OPEN fighter frame with the player
+		 * alive - what frame 3,712 always was until the sector-flow build put
+		 * this replay's second game inside its own capital there (MEASURED:
+		 * the poke zeroed two live tracked muzzles and orphaned their glyphs).
+		 * It now waits for the first such frame from 3,712 on; on main's build
+		 * that is 3,712 itself. */
+		if (MEMORY_mem[dftrace_sector_state] != 7u ||
+			MEMORY_mem[dftrace_player_lifecycle] != 0u)
+			return;
 		MEMORY_mem[dftrace_sector_state] = 0u;
 		MEMORY_mem[dftrace_corridor_phase] = 0u;
 		MEMORY_mem[dftrace_broad_visible_scrolls] = 0u;

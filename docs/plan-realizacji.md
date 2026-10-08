@@ -81,6 +81,15 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
    właściciela na wszystkie pytania planu (Q1–Q17) i przyjęta lista życzeń:
    plan M5 §1.4; okno do końca drogi: §6.1.
 
+**Nota, 2026-10-08 (planowanie, `docs/plan-gameplay-variety`, `OWNER REVIEW
+CANDIDATE`).** [`plans/gameplay-variety.md`](plans/gameplay-variety.md)
+wycenia dziewięć pozycji różnorodności rozgrywki zgłoszonych przez
+właściciela po W2 (decyzje AE w dzienniku) i **proponuje** zmianę kolejności
+poniżej: sesja „przepływ sektorów" (C1 + `afterCleared` + wcześniejszy
+koniec sektora) **przed S5**, a **M3 + M3-H przed M4** (tamten plan §5,
+pytanie Q1). Kolejność poniżej **obowiązuje, dopóki właściciel nie
+odpowie**; ten paragraf nie jest przepisywany.
+
 **Kolejność:**
 
 1. **Showcase** — GIF, wykres, README, ponowne zrzuty z ATR. **DONE**

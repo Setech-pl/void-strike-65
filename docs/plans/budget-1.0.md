@@ -28,6 +28,16 @@ order with and without overlays. The band's DMA (72 per row, IC, in §2 M5)
 measured 90 of fence margin per row; the third DLI measured 174. Nothing
 else here is rewritten.
 
+**Note, 2026-10-08.** The **M6** line ("scope not defined", §2 M6) and the
+**M7** rows on nacelles, the second gun station and a Light in a capital
+sector (§2 M7, §5.2 items 9 and 13) are **re-priced** in
+[gameplay-variety.md](gameplay-variety.md) §3.5–3.10 with the owner's
+decisions of 2026-10-08 (journal §AE): the proton torpedo, the +1 life and
+hull-restore capsules, the per-type capsule colour, item 22. Its §4.1 restates
+the window ledger with those items in both milestone orders, and its §4.1
+lever table reads lever 4 (the `STARFIELD` tail) as **299 B** from the
+generated memory map, not 309. Nothing else here is rewritten.
+
 It answers four questions: does everything left until 1.0 fit in the machine,
 which resource does each milestone spend, where are the shortfalls, and which
 levers pay for them.

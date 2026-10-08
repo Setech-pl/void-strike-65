@@ -1711,6 +1711,65 @@ pomiar.
 
 ---
 
+## AE. RÓŻNORODNOŚĆ ROZGRYWKI PRZED ZAMROŻENIEM SYSTEMÓW — decyzje właściciela (2026-10-08)
+
+Zapisane w sesji planistycznej `docs/plan-gameplay-variety`
+([plans/gameplay-variety.md](plans/gameplay-variety.md), `OWNER REVIEW
+CANDIDATE`). Właściciel zagrał poziom 1 po W2: wszystko działa, ale gra jest
+za mało zróżnicowana. Przed zamrożeniem systemów po M6 poniższe pozycje mają
+być wycenione i umieszczone; właściciel przyjmuje, że **nie wszystko musi się
+zmieścić**. Plan wycenia każdą pozycję i proponuje kolejność; wybór należy do
+właściciela (pytania w planie §7).
+
+**Decyzje (nowe, obowiązujące):**
+
+1. **Torpeda protonowa — tylko w sektorze bossa; zastępuje planowany Nova
+   Missile** (`game-design.md` „Nova Missile — planned"). Jedna torpeda na
+   kapsułę; niszczy **jeden moduł bossa** (płytę, działo albo emiter lasera)
+   od razu. Gdzie leży jej kod (sloty nakładek bossa dzielone z tablicami
+   regionów S5), czym jest rysowana (M1/M2 są laserami), jak się ją odpala
+   jednym przyciskiem, zasada kapsuł w sektorze bossa i wpływ na długość
+   walki (90–120 s) — wycenione w planie §3.5; pytania Q3, Q6, Q7.
+2. **Booster +1 życie** — rzadki, ale **nigdy zerowy**; wyraźnie inny kolor
+   albo ikona; **maksymalnie osiem żyć** (łącznie z decyzją K). HUD
+   sprawdzony: `LIFE n` to jedna cyfra, osiem mieści się bez zmian (plan
+   §1.8, §3.6; reguła spadania — pytanie Q8).
+3. **Booster przywracający kadłub (HULL) gracza** (plan §3.7; reguła —
+   pytanie Q9).
+4. **Cele pozycji 1–4, 8 i 9** (wycena: plan §3; umieszczenie: §5):
+   * fale Lightów są za jednolite i za krótkie: **łańcuch 2–3 fal tego samego
+     przeciwnika** jedna po drugiej, każda z inną obwiednią; **najwyżej 3
+     Lighty naraz** (cel DMA jest już przekroczony w roju);
+   * za mało obwiedni: potwierdzić zestaw (sinus, wąż, łuk, pętla, lustro,
+     salwy), bajty okna, czy tańszy ewaluator da więcej obwiedni na bajt;
+   * Raidery niedostatecznie wykorzystane: poza M3-H (szturmowy/opancerzony,
+     stop-and-shoot) — profile broni z danych (pojedynczy / seria / podwójny),
+     więcej wyglądów; strzał „pół-celowany" dryfujący ku graczowi **otwiera na
+     nowo „bez strzałów celowanych"** i jest wyceniony jako pytanie (Q2);
+   * Bombery pokazują obrażenia w miarę utraty HP: wariant C z M3-H (dziury
+     w kopii sprite'a w RAM, 0 cykli na klatkę) kontra rampa koloru/luminancji;
+     Bomber na 1 HP dziś prawie znika;
+   * martwy czas między falami w głębokiej przestrzeni — **zmierzony** (plan
+     §2.1: 54–61 % klatek sektorów przestrzeni po capitalu bez żywego wroga,
+     niemal w całości ogony sektorów kończonych liczbą wierszy); zmiana
+     przepływu sektorów w Directorze łącząca C1, czytanie `afterCleared` i
+     wcześniejszy koniec sektora, gdy jego fale są wyczerpane, a pole puste
+     (plan §3.8); opcjonalny szybki loader SIO wyceniony osobno;
+   * mało się dzieje między capitalami: gondole zwężające korytarz (4.8a),
+     drugie stanowisko działa (R2–R4), Light w sektorze capital (4.8c) —
+     wycenione, rekomendowane **później** (plan §3.9).
+
+**Czego decyzje NIE zmieniają:** ATR only; `LEVEL_MAX_ID` 16; 16 sektorów
+obrazu poziomu; transport (bez nowego sektora bootu, blok początkowy ≤
+13 652 B, delta menu ATR ≤ +7); bramki czasu (GO ≥ 500, 32 568, limity stresu
+7 000 / 8 500); decyzja AD; decyzja 8; sufity Directora; lasery bossa na
+M1/M2 i rezerwacja P1/P2 na pole siłowe R3; walka MEDIUM 90–120 s; zasady
+kapsuł (SPREAD wszystko-albo-nic, co trzecie zestrzelenie Heavy albo debris,
+Lighty się nie liczą); strzały celowane i lot wstecz poza 1.0 (poza pytaniem
+Q2 o strzał pół-celowany, na co właściciel pozwolił).
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

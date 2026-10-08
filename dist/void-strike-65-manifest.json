@@ -23707,7 +23707,7 @@
     "estimated_additive_cycles": 27342,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "5e09041164395f6edf153632a2c0bde82410cc1d14231340164d96f150fd7433",
+      "reportSha256": "fde83b9d9d6309c87eab5b62c16002cefa0c5674f11975b140f21339cf197296",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
@@ -23883,7 +23883,7 @@
               "effect_active_mask": 30,
               "effect_active_count": 4,
               "effect_rendered_mask": 30,
-              "live_interceptor": true,
+              "live_heavy_formation": true,
               "raider_formation": {
                 "guide_y": 48,
                 "member_state": [
@@ -24008,8 +24008,8 @@
               "plane_rows": 0
             }
           ],
-          "rapid_frames": 2517,
-          "pickup_events": 17,
+          "rapid_frames": 3302,
+          "pickup_events": 20,
           "passed": true
         },
         "weapon_pickup_spread_shot": {
@@ -24027,22 +24027,25 @@
           "remaining_hard_cycles": 468,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "rapid_frames": 2517,
+          "rapid_frames": 3302,
           "spread_frames": 3000,
-          "pickup_events": 17,
+          "pickup_events": 20,
           "granted_booster_modes": [
             3,
             3,
             4,
             5,
             3,
+            3,
             4,
             5,
+            3,
             3,
             4,
             3,
             4,
             5,
+            3,
             3,
             4,
             5,
@@ -24061,7 +24064,8 @@
               "modes": [
                 3,
                 4,
-                5
+                5,
+                3
               ]
             },
             {
@@ -24069,7 +24073,8 @@
               "modes": [
                 3,
                 4,
-                5
+                5,
+                3
               ]
             },
             {
@@ -24084,7 +24089,8 @@
               "modes": [
                 3,
                 4,
-                5
+                5,
+                3
               ]
             },
             {
@@ -24104,13 +24110,16 @@
             4,
             5,
             3,
+            3,
             4,
             5,
+            3,
             3,
             4,
             3,
             4,
             5,
+            3,
             3,
             4,
             5,
@@ -24184,7 +24193,7 @@
               "effect_active_mask": 30,
               "effect_active_count": 4,
               "effect_rendered_mask": 24,
-              "live_interceptor": true,
+              "live_heavy_formation": true,
               "raider_formation": {
                 "guide_y": 6,
                 "member_state": [
@@ -24245,7 +24254,7 @@
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
           "shield_frames": 1000,
-          "pickup_events": 17,
+          "pickup_events": 20,
           "passed": true
         },
         "shield_preimplementation_baseline": {
@@ -24260,9 +24269,9 @@
           "passed": true
         },
         "memory_integrity": {
-          "atr_frames": 19998,
-          "duration_seconds_pal_per_artifact": 399.96,
-          "pickup_rf_cycles": 11,
+          "atr_frames": 22618,
+          "duration_seconds_pal_per_artifact": 452.36,
+          "pickup_rf_cycles": 14,
           "dli_sequence_violations": 0,
           "maximum_dlis_per_host_frame": 2,
           "pause_sessions": [
@@ -25269,7 +25278,7 @@
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "5e09041164395f6edf153632a2c0bde82410cc1d14231340164d96f150fd7433"
+    "reportSha256": "fde83b9d9d6309c87eab5b62c16002cefa0c5674f11975b140f21339cf197296"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {

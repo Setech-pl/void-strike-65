@@ -9,7 +9,7 @@
     },
     "wallTrace": {
       "path": "docs/runtime-wall-trace.json",
-      "sha256": "5e09041164395f6edf153632a2c0bde82410cc1d14231340164d96f150fd7433"
+      "sha256": "fde83b9d9d6309c87eab5b62c16002cefa0c5674f11975b140f21339cf197296"
     },
     "note": "Gameplay images are unenhanced 320x240 crops of Atari800's packed-release framebuffer. The eight-pixel emulator side borders are the only pixels removed."
   },

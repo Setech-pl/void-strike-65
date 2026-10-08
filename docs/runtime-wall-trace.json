@@ -9,8 +9,8 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "61a275a9c672ab40a7386e5f823a21b96fb6303e93a426ae30149a1a5b1b9f7d",
-    "ordered_frames": 133300,
+    "replay_fingerprint_sha256": "76223e892459a805b415a6c4ed0145c26d4ca84bb168d34b87c3c704823c4fe4",
+    "ordered_frames": 135920,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
   "artifacts": {
@@ -2047,7 +2047,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 30,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 48,
             "member_state": [
@@ -2172,8 +2172,8 @@
           "plane_rows": 0
         }
       ],
-      "rapid_frames": 2517,
-      "pickup_events": 17,
+      "rapid_frames": 3302,
+      "pickup_events": 20,
       "passed": true
     },
     "weapon_pickup_spread_shot": {
@@ -2191,22 +2191,25 @@
       "remaining_hard_cycles": 468,
       "target_overrun_frames": 0,
       "hard_overrun_frames": 0,
-      "rapid_frames": 2517,
+      "rapid_frames": 3302,
       "spread_frames": 3000,
-      "pickup_events": 17,
+      "pickup_events": 20,
       "granted_booster_modes": [
         3,
         3,
         4,
         5,
         3,
+        3,
         4,
         5,
+        3,
         3,
         4,
         3,
         4,
         5,
+        3,
         3,
         4,
         5,
@@ -2225,7 +2228,8 @@
           "modes": [
             3,
             4,
-            5
+            5,
+            3
           ]
         },
         {
@@ -2233,7 +2237,8 @@
           "modes": [
             3,
             4,
-            5
+            5,
+            3
           ]
         },
         {
@@ -2248,7 +2253,8 @@
           "modes": [
             3,
             4,
-            5
+            5,
+            3
           ]
         },
         {
@@ -2268,13 +2274,16 @@
         4,
         5,
         3,
+        3,
         4,
         5,
+        3,
         3,
         4,
         3,
         4,
         5,
+        3,
         3,
         4,
         5,
@@ -2348,7 +2357,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 24,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 6,
             "member_state": [
@@ -2409,7 +2418,7 @@
       "target_overrun_frames": 0,
       "hard_overrun_frames": 0,
       "shield_frames": 1000,
-      "pickup_events": 17,
+      "pickup_events": 20,
       "passed": true
     },
     "shield_preimplementation_baseline": {
@@ -2424,9 +2433,9 @@
       "passed": true
     },
     "memory_integrity": {
-      "atr_frames": 19998,
-      "duration_seconds_pal_per_artifact": 399.96,
-      "pickup_rf_cycles": 11,
+      "atr_frames": 22618,
+      "duration_seconds_pal_per_artifact": 452.36,
+      "pickup_rf_cycles": 14,
       "dli_sequence_violations": 0,
       "maximum_dlis_per_host_frame": 2,
       "pause_sessions": [
@@ -3404,7 +3413,7 @@
     "debris_effects_measured_frames": 4999,
     "weapon_pickup_measured_frames": 4000,
     "director_completion_measured_frames": 26849,
-    "memory_integrity_measured_frames": 19998,
+    "memory_integrity_measured_frames": 22618,
     "engine_startup_measured_frames": 1800,
     "engine_restart_measured_frames": 3200,
     "input": "production frontend/options handlers followed by deterministic held-FIRE neutral/sweep/evasive/hunt joystick policies",
@@ -4651,7 +4660,7 @@
         "difficulty": 2,
         "policy": "hunt",
         "fire_delay": 5,
-        "measured_frames": 3999,
+        "measured_frames": 4699,
         "maximum_wall_cycles": 31304,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
@@ -4681,7 +4690,7 @@
         "difficulty": 2,
         "policy": "hunt",
         "fire_delay": 6,
-        "measured_frames": 3999,
+        "measured_frames": 4820,
         "maximum_wall_cycles": 31304,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
@@ -4751,7 +4760,7 @@
         "difficulty": 0,
         "policy": "hunt",
         "fire_delay": 5,
-        "measured_frames": 4000,
+        "measured_frames": 5099,
         "maximum_wall_cycles": 30575,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
@@ -5478,7 +5487,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 57,
           "member_state": [
@@ -5579,7 +5588,7 @@
         "effect_active_mask": 30,
         "effect_active_count": 4,
         "effect_rendered_mask": 22,
-        "live_interceptor": false,
+        "live_heavy_formation": false,
         "raider_formation": {
           "guide_y": 48,
           "member_state": [
@@ -5686,7 +5695,7 @@
         "effect_active_mask": 30,
         "effect_active_count": 4,
         "effect_rendered_mask": 22,
-        "live_interceptor": false,
+        "live_heavy_formation": false,
         "raider_formation": {
           "guide_y": 48,
           "member_state": [
@@ -5733,7 +5742,7 @@
   "coverage": {
     "world_near_with_far_erase": {
       "observed": true,
-      "matching_frames": 48568,
+      "matching_frames": 48758,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -5798,7 +5807,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 45,
             "member_state": [
@@ -5843,7 +5852,7 @@
     },
     "hull_event": {
       "observed": true,
-      "matching_frames": 48568,
+      "matching_frames": 48758,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -5908,7 +5917,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 45,
             "member_state": [
@@ -5953,7 +5962,7 @@
     },
     "director_world_row": {
       "observed": true,
-      "matching_frames": 47718,
+      "matching_frames": 47908,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -6018,7 +6027,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 45,
             "member_state": [
@@ -6063,7 +6072,7 @@
     },
     "director_request": {
       "observed": true,
-      "matching_frames": 52016,
+      "matching_frames": 54540,
       "heaviest": {
         "trace_kind": "memory-integrity-160s",
         "session": "memory-integrity-atr-2-hunt-fire5",
@@ -6128,7 +6137,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 44,
             "member_state": [
@@ -6234,7 +6243,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 2,
             "member_state": [
@@ -6371,7 +6380,7 @@
     },
     "director_heaviest_frame": {
       "clause": "the heaviest frame with a Director request, event or world-row tick fits the gates: fence margin >= 500, DMA-on <= 32,568",
-      "director_frames": 89877,
+      "director_frames": 92434,
       "fence_margin_cycles": 12076,
       "passed": true,
       "frame": {
@@ -6438,7 +6447,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 44,
             "member_state": [
@@ -6529,7 +6538,7 @@
           "held": true
         },
         "L4": {
-          "subject": 49167,
+          "subject": 49641,
           "violations": 0,
           "held": true
         },
@@ -6608,7 +6617,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 89,
             "member_state": [
@@ -6720,7 +6729,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 30,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 48,
             "member_state": [
@@ -6836,7 +6845,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 89,
             "member_state": [
@@ -6883,9 +6892,9 @@
       "three_slot_legal_coincidence_observed": false,
       "classification": "observed through the production scheduler during the natural first capital-section pass on EASY, MEDIUM, and HARD; no phase, world row, muzzle, projectile, object, or intensity state was seeded"
     },
-    "live_interceptor": {
+    "live_heavy_formation": {
       "observed": true,
-      "matching_frames": 40906,
+      "matching_frames": 40940,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -6950,7 +6959,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 57,
             "member_state": [
@@ -6990,7 +6999,7 @@
     },
     "fighter_explosion": {
       "observed": true,
-      "matching_frames": 12637,
+      "matching_frames": 12687,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire3",
@@ -7055,7 +7064,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 30,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 36,
             "member_state": [
@@ -7166,7 +7175,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 89,
             "member_state": [
@@ -7210,7 +7219,7 @@
     },
     "music_with_sfx_preemption": {
       "observed": true,
-      "matching_frames": 79030,
+      "matching_frames": 80863,
       "heaviest": {
         "trace_kind": "memory-integrity-160s",
         "session": "memory-integrity-atr-2-hunt-fire5",
@@ -7275,7 +7284,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 44,
             "member_state": [
@@ -7316,7 +7325,7 @@
     },
     "debris_empty_path": {
       "observed": true,
-      "matching_frames": 81241,
+      "matching_frames": 83651,
       "heaviest": {
         "trace_kind": "memory-integrity-160s",
         "session": "memory-integrity-atr-2-hunt-fire5",
@@ -7381,7 +7390,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 44,
             "member_state": [
@@ -7422,7 +7431,7 @@
     },
     "debris_one_active": {
       "observed": true,
-      "matching_frames": 44118,
+      "matching_frames": 44210,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -7487,7 +7496,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 57,
             "member_state": [
@@ -7592,7 +7601,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 48,
             "member_state": [
@@ -7699,7 +7708,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 24,
             "member_state": [
@@ -7745,7 +7754,7 @@
     },
     "debris_despawn": {
       "observed": true,
-      "matching_frames": 464,
+      "matching_frames": 465,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-sweep-fire5",
@@ -7810,7 +7819,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 46,
             "member_state": [
@@ -7920,7 +7929,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 30,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 48,
             "member_state": [
@@ -7963,7 +7972,7 @@
     },
     "debris_destruction_effects": {
       "observed": true,
-      "matching_frames": 3635,
+      "matching_frames": 3645,
       "heaviest": {
         "trace_kind": "memory-integrity-160s",
         "session": "memory-integrity-atr-2-hunt-fire7",
@@ -8028,7 +8037,7 @@
           "effect_active_mask": 31,
           "effect_active_count": 5,
           "effect_rendered_mask": 31,
-          "live_interceptor": false,
+          "live_heavy_formation": false,
           "raider_formation": {
             "guide_y": 45,
             "member_state": [
@@ -8073,7 +8082,7 @@
         "cpu_dma_off_reference": null
       },
       "spawner_frames": 31,
-      "active_frames": 3635,
+      "active_frames": 3645,
       "active_mask": 31,
       "active_count": 5,
       "spawn_updated_and_rendered": true,
@@ -8082,7 +8091,7 @@
     },
     "interceptor_breakup_effects": {
       "observed": true,
-      "matching_frames": 493,
+      "matching_frames": 495,
       "heaviest": {
         "trace_kind": "weapon-pickup-overlap",
         "session": "weapon-pickup-overlap-2-hunt-fire5",
@@ -8147,7 +8156,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 30,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 48,
             "member_state": [
@@ -8191,7 +8200,7 @@
         ],
         "cpu_dma_off_reference": null
       },
-      "kill_frames": 493,
+      "kill_frames": 495,
       "character_materializer_frames": 0,
       "character_writes": 0,
       "transient_allocations": 0,
@@ -8200,7 +8209,7 @@
       "active_count": 0,
       "flying_fragment_count": 0,
       "full_screen_flash_preserved": true,
-      "yellow_death_then_red_flash_pairs": 468
+      "yellow_death_then_red_flash_pairs": 470
     },
     "weapon_pickup_rapid_fire": {
       "qualified_kills": [
@@ -8268,7 +8277,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 48,
               "member_state": [
@@ -8374,7 +8383,7 @@
             "effect_active_mask": 31,
             "effect_active_count": 5,
             "effect_rendered_mask": 30,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 48,
               "member_state": [
@@ -8478,7 +8487,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 30,
               "member_state": [
@@ -8584,7 +8593,7 @@
             "effect_active_mask": 30,
             "effect_active_count": 4,
             "effect_rendered_mask": 24,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 19,
               "member_state": [
@@ -8692,7 +8701,7 @@
             "effect_active_mask": 31,
             "effect_active_count": 5,
             "effect_rendered_mask": 24,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 45,
               "member_state": [
@@ -8799,7 +8808,7 @@
             "effect_active_mask": 30,
             "effect_active_count": 4,
             "effect_rendered_mask": 30,
-            "live_interceptor": false,
+            "live_heavy_formation": false,
             "raider_formation": {
               "guide_y": 30,
               "member_state": [
@@ -8910,7 +8919,7 @@
             "effect_active_mask": 30,
             "effect_active_count": 4,
             "effect_rendered_mask": 24,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 6,
               "member_state": [
@@ -9019,7 +9028,7 @@
             "effect_active_mask": 31,
             "effect_active_count": 5,
             "effect_rendered_mask": 31,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 19,
               "member_state": [
@@ -9127,7 +9136,7 @@
             "effect_active_mask": 31,
             "effect_active_count": 5,
             "effect_rendered_mask": 31,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 19,
               "member_state": [
@@ -9235,7 +9244,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 44,
               "member_state": [
@@ -9337,7 +9346,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 49,
               "member_state": [
@@ -9372,6 +9381,107 @@
             "far-step",
             "effect-update",
             "pickup-collect"
+          ],
+          "cpu_dma_off_reference": null
+        },
+        {
+          "trace_kind": "memory-integrity-160s",
+          "session": "memory-integrity-atr-2-hunt-fire5",
+          "frame": 4510,
+          "gameplay_frame": 158,
+          "difficulty": 2,
+          "wall_cycles": 27671,
+          "physical_headroom": 7897,
+          "start": {
+            "clock": 197973767,
+            "host_frame": 5566,
+            "scanline": 19,
+            "cycle": 113
+          },
+          "end": {
+            "clock": 198001438,
+            "host_frame": 5566,
+            "scanline": 262,
+            "cycle": 82
+          },
+          "next_start": {
+            "clock": 198009347,
+            "host_frame": 5567
+          },
+          "host_vbi_boundaries": 0,
+          "extra_vbi_boundaries": 0,
+          "missed_frames": 0,
+          "dli_nmis": 0,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "state": {
+            "projectiles": 4,
+            "broadside": 0,
+            "far_rendered": 4,
+            "active_muzzles": 0,
+            "entity_active": 0,
+            "entity_x": 164,
+            "entity_y": 232,
+            "entity_vx_signed": 4,
+            "entity_move_accumulator": 2,
+            "entity_vertical_accumulator": 1,
+            "entity_render_id": 110,
+            "entity_active_mask": 0,
+            "weapon_pickup": {
+              "state": 3,
+              "booster_state": 3,
+              "qualified_kill_counter": 0,
+              "x": 100,
+              "y": 170,
+              "timer": 500,
+              "timer_low": 244,
+              "timer_high": 1,
+              "plane_rows": 0,
+              "plane_union": 0
+            },
+            "player_fighter_projectiles": 2,
+            "rapid_player_fighter_projectiles": 2,
+            "score_bcd": [
+              4,
+              80
+            ],
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
+            "live_heavy_formation": false,
+            "raider_formation": {
+              "guide_y": 6,
+              "member_state": [
+                0,
+                0,
+                0
+              ],
+              "member_hp": [
+                0,
+                0,
+                0
+              ],
+              "live_count": 0,
+              "active_projectiles": 2
+            },
+            "fighter_explosion": false,
+            "capital_explosion": false,
+            "music_active": true,
+            "fire_sfx": false,
+            "hit_sfx": true,
+            "capital_sfx": false,
+            "sound_enabled": true,
+            "player_lifecycle": 0,
+            "sector_state": 7
+          },
+          "events": [
+            "far-erase",
+            "fighter-explosion-render",
+            "music-tick",
+            "far-step",
+            "effect-update",
+            "pickup-collect",
+            "director-request"
           ],
           "cpu_dma_off_reference": null
         },
@@ -9439,7 +9549,7 @@
             "effect_active_mask": 31,
             "effect_active_count": 5,
             "effect_rendered_mask": 31,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 19,
               "member_state": [
@@ -9543,7 +9653,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 45,
               "member_state": [
@@ -9645,7 +9755,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 49,
               "member_state": [
@@ -9680,6 +9790,107 @@
             "far-step",
             "effect-update",
             "pickup-collect"
+          ],
+          "cpu_dma_off_reference": null
+        },
+        {
+          "trace_kind": "memory-integrity-160s",
+          "session": "memory-integrity-atr-2-hunt-fire6",
+          "frame": 4435,
+          "gameplay_frame": 83,
+          "difficulty": 2,
+          "wall_cycles": 27423,
+          "physical_headroom": 8145,
+          "start": {
+            "clock": 194274707,
+            "host_frame": 5462,
+            "scanline": 20,
+            "cycle": 11
+          },
+          "end": {
+            "clock": 194302130,
+            "host_frame": 5462,
+            "scanline": 260,
+            "cycle": 74
+          },
+          "next_start": {
+            "clock": 194310263,
+            "host_frame": 5463
+          },
+          "host_vbi_boundaries": 0,
+          "extra_vbi_boundaries": 0,
+          "missed_frames": 0,
+          "dli_nmis": 0,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "state": {
+            "projectiles": 3,
+            "broadside": 0,
+            "far_rendered": 4,
+            "active_muzzles": 0,
+            "entity_active": 0,
+            "entity_x": 164,
+            "entity_y": 232,
+            "entity_vx_signed": 4,
+            "entity_move_accumulator": 2,
+            "entity_vertical_accumulator": 1,
+            "entity_render_id": 110,
+            "entity_active_mask": 0,
+            "weapon_pickup": {
+              "state": 3,
+              "booster_state": 3,
+              "qualified_kill_counter": 0,
+              "x": 101,
+              "y": 172,
+              "timer": 500,
+              "timer_low": 244,
+              "timer_high": 1,
+              "plane_rows": 0,
+              "plane_union": 0
+            },
+            "player_fighter_projectiles": 1,
+            "rapid_player_fighter_projectiles": 1,
+            "score_bcd": [
+              4,
+              32
+            ],
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
+            "live_heavy_formation": false,
+            "raider_formation": {
+              "guide_y": 15,
+              "member_state": [
+                0,
+                0,
+                0
+              ],
+              "member_hp": [
+                0,
+                0,
+                0
+              ],
+              "live_count": 0,
+              "active_projectiles": 1
+            },
+            "fighter_explosion": false,
+            "capital_explosion": false,
+            "music_active": true,
+            "fire_sfx": false,
+            "hit_sfx": false,
+            "capital_sfx": false,
+            "sound_enabled": true,
+            "player_lifecycle": 0,
+            "sector_state": 7
+          },
+          "events": [
+            "far-erase",
+            "fighter-explosion-render",
+            "music-tick",
+            "far-step",
+            "effect-update",
+            "pickup-collect",
+            "director-request"
           ],
           "cpu_dma_off_reference": null
         },
@@ -9747,7 +9958,7 @@
             "effect_active_mask": 30,
             "effect_active_count": 4,
             "effect_rendered_mask": 30,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 22,
               "member_state": [
@@ -9855,7 +10066,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 45,
               "member_state": [
@@ -9961,7 +10172,7 @@
             "effect_active_mask": 30,
             "effect_active_count": 4,
             "effect_rendered_mask": 30,
-            "live_interceptor": false,
+            "live_heavy_formation": false,
             "raider_formation": {
               "guide_y": 12,
               "member_state": [
@@ -10069,7 +10280,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 45,
               "member_state": [
@@ -10175,7 +10386,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 51,
               "member_state": [
@@ -10210,6 +10421,107 @@
             "far-step",
             "effect-update",
             "pickup-collect"
+          ],
+          "cpu_dma_off_reference": null
+        },
+        {
+          "trace_kind": "memory-integrity-160s",
+          "session": "memory-integrity-atr-0-hunt-fire5",
+          "frame": 4879,
+          "gameplay_frame": 15,
+          "difficulty": 0,
+          "wall_cycles": 27108,
+          "physical_headroom": 8460,
+          "start": {
+            "clock": 210066887,
+            "host_frame": 5906,
+            "scanline": 19,
+            "cycle": 113
+          },
+          "end": {
+            "clock": 210093995,
+            "host_frame": 5906,
+            "scanline": 257,
+            "cycle": 89
+          },
+          "next_start": {
+            "clock": 210102467,
+            "host_frame": 5907
+          },
+          "host_vbi_boundaries": 0,
+          "extra_vbi_boundaries": 0,
+          "missed_frames": 0,
+          "dli_nmis": 0,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "state": {
+            "projectiles": 1,
+            "broadside": 0,
+            "far_rendered": 4,
+            "active_muzzles": 0,
+            "entity_active": 0,
+            "entity_x": 164,
+            "entity_y": 232,
+            "entity_vx_signed": 4,
+            "entity_move_accumulator": 2,
+            "entity_vertical_accumulator": 1,
+            "entity_render_id": 114,
+            "entity_active_mask": 0,
+            "weapon_pickup": {
+              "state": 3,
+              "booster_state": 3,
+              "qualified_kill_counter": 0,
+              "x": 84,
+              "y": 144,
+              "timer": 500,
+              "timer_low": 244,
+              "timer_high": 1,
+              "plane_rows": 0,
+              "plane_union": 0
+            },
+            "player_fighter_projectiles": 1,
+            "rapid_player_fighter_projectiles": 1,
+            "score_bcd": [
+              3,
+              149
+            ],
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
+            "live_heavy_formation": false,
+            "raider_formation": {
+              "guide_y": 20,
+              "member_state": [
+                0,
+                0,
+                0
+              ],
+              "member_hp": [
+                0,
+                0,
+                0
+              ],
+              "live_count": 0,
+              "active_projectiles": 0
+            },
+            "fighter_explosion": false,
+            "capital_explosion": false,
+            "music_active": true,
+            "fire_sfx": false,
+            "hit_sfx": false,
+            "capital_sfx": false,
+            "sound_enabled": true,
+            "player_lifecycle": 0,
+            "sector_state": 7
+          },
+          "events": [
+            "far-erase",
+            "fighter-explosion-render",
+            "music-tick",
+            "far-step",
+            "effect-update",
+            "pickup-collect",
+            "director-request"
           ],
           "cpu_dma_off_reference": null
         },
@@ -10277,7 +10589,7 @@
             "effect_active_mask": 30,
             "effect_active_count": 4,
             "effect_rendered_mask": 20,
-            "live_interceptor": false,
+            "live_heavy_formation": false,
             "raider_formation": {
               "guide_y": 44,
               "member_state": [
@@ -10385,7 +10697,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 44,
               "member_state": [
@@ -10491,7 +10803,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 46,
               "member_state": [
@@ -10597,7 +10909,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": false,
+            "live_heavy_formation": false,
             "raider_formation": {
               "guide_y": 12,
               "member_state": [
@@ -10698,7 +11010,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": false,
+            "live_heavy_formation": false,
             "raider_formation": {
               "guide_y": 12,
               "member_state": [
@@ -10738,7 +11050,7 @@
       ],
       "rapid": {
         "observed": true,
-        "matching_frames": 2517,
+        "matching_frames": 3302,
         "heaviest": {
           "trace_kind": "weapon-pickup-coverage",
           "session": "weapon-pickup-2-hunt-fire4",
@@ -10803,7 +11115,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 45,
               "member_state": [
@@ -10911,7 +11223,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 13,
               "member_state": [
@@ -11018,7 +11330,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 45,
               "member_state": [
@@ -11133,7 +11445,7 @@
               "effect_active_mask": 0,
               "effect_active_count": 0,
               "effect_rendered_mask": 0,
-              "live_interceptor": true,
+              "live_heavy_formation": true,
               "raider_formation": {
                 "guide_y": 12,
                 "member_state": [
@@ -11181,13 +11493,16 @@
         4,
         5,
         3,
+        3,
         4,
         5,
+        3,
         3,
         4,
         3,
         4,
         5,
+        3,
         3,
         4,
         5,
@@ -11261,7 +11576,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 44,
               "member_state": [
@@ -11370,7 +11685,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 44,
               "member_state": [
@@ -11482,7 +11797,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 44,
               "member_state": [
@@ -11588,7 +11903,7 @@
             "effect_active_mask": 30,
             "effect_active_count": 4,
             "effect_rendered_mask": 24,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 6,
               "member_state": [
@@ -11699,7 +12014,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 77,
               "member_state": [
@@ -11801,7 +12116,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 24,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 6,
             "member_state": [
@@ -11913,7 +12228,7 @@
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
-            "live_interceptor": true,
+            "live_heavy_formation": true,
             "raider_formation": {
               "guide_y": 51,
               "member_state": [
@@ -12025,7 +12340,7 @@
           "effect_active_mask": 30,
           "effect_active_count": 4,
           "effect_rendered_mask": 30,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 48,
             "member_state": [
@@ -12068,7 +12383,7 @@
     },
     "debris_bottom_despawn": {
       "observed": true,
-      "matching_frames": 379,
+      "matching_frames": 380,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-sweep-fire5",
@@ -12133,7 +12448,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 46,
             "member_state": [
@@ -12178,7 +12493,7 @@
     },
     "debris_post_capital_sector": {
       "observed": true,
-      "matching_frames": 27659,
+      "matching_frames": 27751,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -12243,7 +12558,7 @@
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
-          "live_interceptor": true,
+          "live_heavy_formation": true,
           "raider_formation": {
             "guide_y": 57,
             "member_state": [
@@ -12362,10 +12677,10 @@
     ],
     "debris_vertical_cadence": {
       "observed": true,
-      "active_transitions": 43632,
-      "world_events": 20754,
-      "vertical_steps": 12170,
-      "held_events": 8584,
+      "active_transitions": 43724,
+      "world_events": 20790,
+      "vertical_steps": 12191,
+      "held_events": 8599,
       "invalid_transitions": 0
     },
     "debris_visual_variants": {
@@ -12471,7 +12786,7 @@
     },
     "accepted_shot_fire_sound": {
       "observed": true,
-      "accepted_shot_frames": 11106,
+      "accepted_shot_frames": 11401,
       "violations": 0
     }
   },
@@ -12540,7 +12855,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 57,
           "member_state": [
@@ -12641,7 +12956,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 48,
           "member_state": [
@@ -12746,7 +13061,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 48,
           "member_state": [
@@ -12898,7 +13213,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 58,
           "member_state": [
@@ -13003,7 +13318,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 60,
           "member_state": [
@@ -13108,7 +13423,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 53,
           "member_state": [
@@ -13213,7 +13528,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 57,
           "member_state": [
@@ -13318,7 +13633,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 54,
           "member_state": [
@@ -13423,7 +13738,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 48,
           "member_state": [
@@ -13524,7 +13839,7 @@
         "effect_active_mask": 0,
         "effect_active_count": 0,
         "effect_rendered_mask": 0,
-        "live_interceptor": true,
+        "live_heavy_formation": true,
         "raider_formation": {
           "guide_y": 48,
           "member_state": [

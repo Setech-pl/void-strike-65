@@ -138,7 +138,11 @@ test("preview consumes the canonical charset, screen, PMG, and palette source", 
     // gameplay preview draws 24 of the 29 rows, the fighter starts in the
     // clipped ones, and so the `player_shape` variant does not change the
     // image (review section 6, C2; follow-up chore/preview-29-rows).
-    [0x00, 0x0e, 0x88, 0x1e, 0x46, 0x0e, 0x44, 0x44, 0x28],
+    // RE-PINNED 2026-10-08 (AUD-05, chore/evidence-integrity): COLPF2 is the
+    // player side, mint $AE since plasma FX B2 (src/main.s:566
+    // GAMEPLAY_COLPF2 = PLAYER_SIDE_COLOUR, assets/graphics/fighter-weapons.json;
+    // docs/plans/plasma-fx.md §14). It was decision U's yellow $1E.
+    [0x00, 0x0e, 0x88, 0xae, 0x46, 0x0e, 0x44, 0x44, 0x28],
   );
   assert.equal(graphics.frontendHardwareState.get("COLPF3"), 0xd8);
   assert.match(
@@ -147,24 +151,32 @@ test("preview consumes the canonical charset, screen, PMG, and palette source", 
     "runtime HUD placement must stay aligned with the canonical gameplay preview",
   );
 
+  // AUD-05 (chore/evidence-integrity): the player-shape check is the one this
+  // test stays recorded for (class C, chore/preview-29-rows). The allied-steel
+  // and hull-source checks moved to the test below so they run while it is
+  // recorded, instead of sitting behind the shape check in one loop.
   const canonical = createGameplayPreview(source);
-  const variants = [
-    replaceOnce(
-      source,
-      "player_shape:\n    .byte %00011000",
-      "player_shape:\n    .byte %00010000",
-    ),
-    // Re-pinned for step 2: the assembled default is $88 now.
-    replaceOnce(
-      source,
-      "GAMEPLAY_COLPF1 = $88",
-      "GAMEPLAY_COLPF1 = $C4",
-    ),
-  ];
+  const shapeVariant = replaceOnce(
+    source,
+    "player_shape:\n    .byte %00011000",
+    "player_shape:\n    .byte %00010000",
+  );
+  assert.notDeepEqual(
+    createGameplayPreview(shapeVariant),
+    canonical,
+    "the gameplay preview must change when player_shape changes",
+  );
+});
 
-  for (const variant of variants) {
-    assert.notDeepEqual(createGameplayPreview(variant), canonical);
-  }
+test("preview follows the allied steel and the capital hull source", () => {
+  const canonical = createGameplayPreview(source);
+  // Re-pinned for step 2: the assembled default is $88 now.
+  const steelVariant = replaceOnce(
+    source,
+    "GAMEPLAY_COLPF1 = $88",
+    "GAMEPLAY_COLPF1 = $C4",
+  );
+  assert.notDeepEqual(createGameplayPreview(steelVariant), canonical);
 
   const changedHulls = structuredClone(capitalHullsDefinition);
   changedHulls.allied.glyphs[0].pixels[0] = "1222";

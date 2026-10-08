@@ -30,10 +30,11 @@
       "file": "tests/preview.test.mjs",
       "test": "preview consumes the canonical charset, screen, PMG, and palette source",
       "class": "C",
-      "first_failing_assertion": "tests/preview.test.mjs:129",
+      "first_failing_assertion": "tests/preview.test.mjs:164",
       "reason": "The gameplay preview does not change when player_shape changes: scripts/preview.mjs draws 24 of the 29 playfield rows and the fighter starts in the clipped ones. A development tool defect; not player-visible, not in the ATR.",
       "cleared_by": "chore/preview-29-rows",
-      "status_2026_10_07": "The first failing assertion is :129 (the charset's length), not :166 - measured on this branch and on main 1a3c8bf, where it already failed at :129. The same test and cause; owner decision of 2026-10-07 (S4b.5) updates the line."
+      "status_2026_10_07": "The first failing assertion is :129 (the charset's length), not :166 - measured on this branch and on main 1a3c8bf, where it already failed at :129. The same test and cause; owner decision of 2026-10-07 (S4b.5) updates the line.",
+      "status_2026_10_08": "AUD-05 (chore/evidence-integrity): the stale COLPF2 pin at :129 ($1E, decision U) is re-pinned to $AE (src/main.s:566, plasma FX B2), so the test now reaches its behavioural checks. Its first failing assertion is :164, the player_shape variant leaves the gameplay preview unchanged - the recorded class C cause, unchanged. The allied-steel and hull-source checks that followed it in one loop are the new test 'preview follows the allied steel and the capital hull source', which passes."
     }
   ],
   "removed_2026_10_01": {

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-08 (chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-08 (feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -81,6 +81,8 @@ released.** Section "ATR-only build" below.
 **M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **built, owner-smoked, merged and released as `v0.2.1` (`OWNER-ACCEPTED`)** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
 
 **Gameplay variety before the systems freeze — plan (2026-10-08, `docs/plan-gameplay-variety`, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/gameplay-variety.md](plans/gameplay-variety.md). The owner's nine items after playing level 1 post-W2 (decisions AE in the journal), each priced against the window, the boss slots, the initial block and the worst rows, placed in a milestone, with a recommendation. **MEASURED (new `scripts/measure-dead-time.mjs` over the committed CSVs): 54–61 % of level 1's post-capital space-sector frames have no enemy live for the natural-sweep bot (1,265 / 1,359 / 1,759 frames HARD / MEDIUM / EASY), 86–90 % of it the tails of sectors ending on their row count after one short wave (22.7–30.3 s a level); the W2 reserves are about a fifth of the tails.** Recommended first, before S5: a Director sector-flow session (C1 + `afterCleared` + an early end when the waves are spent and the field is clear; `DIRECTOR_RAM` 20 → 24 of 35, window 110 → 140, ≈ 90 → 130 of margin on the binding row), which lets the data drop both W2 reserves. The envelope set is M3's form B (357 B, the most envelopes per byte); Raider weapon profiles 30 → 40 B at spawn; the half-aimed shot not recommended; Bomber holes and a lifted luminance ramp both; the proton torpedo (replaces the Nova Missile) 150 → 260 B of slot E + 65 → 80 B of window and +2 sectors at the boss entry against the 250-frame bound — an owner decision before S5; the +1 life and hull-restore capsules ~130 → 165 B of window with the silhouette table out of the initial block (−48 B there); eight lives fit the HUD as it is. The window ends the road −251 expected / −543 budgeted after the four levers in either order; the attract mode gives way first, then the M3 cuts or a fighter-phase overlay in `$1900-$1FFF`. **The owner answered the same day (plan §7.1, journal §AE):** order B adopted — sector flow → S5 → M3-H → M3 → window levers → M4 → M6 boosters → M6 torpedo → the attract mode as a **menu-phase overlay** (0 window during play) → the freeze; no half-aimed shot; the Nova firing rule; Bomber holes and the lifted ramp; 200 B of slot E reserved for the torpedo and the boss-entry bound 250 → 260 as a measured limit (the torpedo session STOPs over it); per-region boss overlays as an S5 Phase A requirement; every boss capsule a torpedo with the fight rebalanced in data; the life capsule drawn rarely at random, never zero, at most once a level; the repair capsule in a rotation of six; the sector-flow rules as every level's default. The window ends the road −66 expected / −323 budgeted after the four levers. **Resident constant data inventoried (plan §8, `scripts/measure-resident-data.mjs`, MEASURED from the listings, the maps and the image): 6,230 B, ≈ 4,700 of them in the initial block; a menu-phase overlay of the menu's data returns ≈ 1,200 B of initial block (AN), LZSS-packing the boot-read-once glyph sources ≈ 200–400 B (G), one duplicate (the two 96-B sector-module source tables) 96 B of `BROADSIDE`; no window bytes but 30.** ATR and boot image byte-identical to `main` `13c61e6`.
+
+**Sector flow — built (2026-10-08, `feat/sector-flow`, `OWNER-SMOKE CANDIDATE`)** (section "Sector flow" below; plan [plans/sector-flow.md](plans/sector-flow.md)): session 1 of order B. A space sector ends as soon as its waves are spent and the field is clear (its rows are the no-kill cut), an `afterCleared` wave waits for a clear field, and C1 holds a sector's end while the live enemies exceed the next space sector's caps. Level 1's swarm chains a third wave (a plain Wingman column), the Bomber pair arms `afterCleared`, the W2 reserves are gone. Dead time after the capital 1,583 / 1,273 / 1,185 → **200 / 83 / 81** frames (E / M / H); the bot reaches the boss at **66.9 / 56.8 / 53.7 s** (88.2 / 77.2 / 71.5). `DIRECTOR_RAM` +3 B, window +163 B (owner-accepted over the 140-B line), transport 212 → 213, initial block 13,618 unchanged; worst fence margin 1,472 → **1,447** (the same row), DMA-on 31,304 unchanged; ATR `b57d5a83…`. Owner decision 3 amended: the capital's row is a maximum.
 
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: plasma FX** (section
 "Plasma FX" below; the player side mint `$AE`, small enemy break-ups in the
@@ -356,6 +358,78 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## Sector flow — the early end, `afterCleared`, C1; level 1's chained Light wave — `OWNER-SMOKE CANDIDATE` (2026-10-08)
+
+**Branch and plan:** `feat/sector-flow` from `main` `5e68875`;
+[plans/sector-flow.md](plans/sector-flow.md) (Phase A §1–§2, as built §3).
+**ATR:** `b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78`,
+boot `1c463a8782f694e28c5071ae813ed0e619f2b299d638c20c3258c27ecb6747fe`,
+evidence bound.
+
+**What changes for a player.** After a wave dies the next sector starts at
+once instead of after a long empty stretch; the Bomber pair follows (a) as
+soon as (a) is cleared; the swarm sends a third wave, a plain Wingman column
+down the left side; no Heavy flies into a swarm and no swarm Lights into an
+elite sector (C1). Level 1's order is unchanged (elite, capital, swarm, (a),
+Bomber pair, (b), boss); so is everything before the capital for a player who
+does not clear sector 0's eight formations before row 272.
+
+**The Director (`src/c/director.c`, C only).** Three verdicts in a window
+segment of their own, `HYBRID_C_WINDOW_FLOW`, placed after the boss entry so
+the Light C keeps `main`'s addresses (page-crossing proof in the plan §3.2):
+the early end (waves spent, no formation pending, the Light lock down, the
+field clear; a wave-less sector keeps its rows), `afterCleared`
+(`wave_flags` bit 4; `director_c_try_event` stays unconditional for the boss
+install), C1 (at the row count the pending members are cancelled and the end
+is held while a Heavy is live where the next space sector admits none, or more
+Lights live than its Light ceiling; a capital or boss waits for its own
+drain). `DIRECTOR_RAM` 35 → **32 B free**; window 1,185 → **1,022 B free**
+(+163, owner-accepted 2026-10-08 over the brief's 140); window record 10 → 11
+sectors, transport 212 → **213**; initial block **13,618**, boot 107.
+
+**Owner decisions (2026-10-08, journal §AE items 14–16):** decision 3
+amended — the capital's authored row is a maximum, and the drain hold before
+the capital stays (it holds when the capital comes early: level-2 diagnostic,
+capital due on row 954 instead of 1,120, the hull started with nothing live
+after a 339-frame hold); the window +163 B; the "no swarm directly after an
+elite" data test stays hard beside C1.
+
+**Level 1's data:** swarm 280 → 384 rows with the chained Wingman column (X
+88); the Bomber wave row 24 → row 0 `afterCleared`; elite (b) 240 → 200 rows.
+Decision 8's order R4 B4 R1 B1 R1 holds.
+
+**Gates:** 57 replays, 0 clause failures, 0 miss events, PAL audit PASS;
+worst fence margin **1,447** (`2-sweep-fire6` f311, `main` 1,472: the
+early-end test runs on that row tick, +50 native in the world stage); DMA-on
+**31,304** (`memory-integrity-atr-2-hunt-fire5` f2388), unchanged; boss
+stress 8,434 / 8,500, the boss frame's own work 5,404 / 7,000, fortress
+6,671 / 8,500, unchanged; boss entry 245 host frames; ATR menu 553 / 544
+(`main` 551 / 542, limit 603). Lights' clause subjects 35,001 / 35,001 /
+10,972 / 39,690 / 13, 0 violations.
+
+**Dead time and the road (natural-sweep bot, `scripts/measure-dead-time.mjs`,
+`coverage.director_level_complete`):** space sectors 61 / 54 / 55 % dead →
+**21 / 11 / 11 %**; after the capital 1,583 / 1,273 / 1,185 → **200 / 83 /
+81** frames (E / M / H). Boss sector entered at 66.9 / 56.8 / 53.7 s (88.2 /
+77.2 / 71.5); fight 76.7 / 92.2 / 112.4 s (71.7 / 93.9 / 120.7); bot deaths
+3 / 6 / 5 (2 / 4 / 5); the capital on row 272 on every difficulty, before and
+after.
+
+**Boss-sector integrity coverage (the requirement of evidence-integrity §4,
+closed):** three integrity replays with laser-active frames (hunt 5 HARD 27,
+hunt 6 HARD 75, hunt 5 EASY 180; boss frames 2,669 → 3,597), no sixth replay
+needed, no lives held; budgets re-derived: hunt 5 4,700 → 4,900, hunt 6 4,821
+→ 5,000, EASY 5,100 kept, evasive 4 and hunt 7 4,000 (no boss at 7,000).
+
+**Trace scenarios moved (class (a), no clause touched):**
+`capital-muzzle-ring-2-sweep-fire4`'s fixture waits for an open fighter frame
+with the player alive; `lower-playfield-laser-contact-atr-hard`'s bot seeks a
+beam only with a whole hull.
+
+**Tests:** `tests/sector-flow.test.mjs` 12 (7 RED on `main`); re-points with
+their reasons in the plan §3.5. `npm test` (default build): the totals and the
+reconciliation are in the session's report and the plan.
+
 ## Evidence integrity — AUD-05, AUD-06, AUD-07, LA-7, boss-sector integrity coverage — `OWNER REVIEW CANDIDATE` (2026-10-08)
 
 **Branch and record:** `chore/evidence-integrity` from `main` `85fccb7`;
@@ -423,7 +497,7 @@ into a swarm (and up to three Lights are admitted beside it), and a swarm's
 Lights cross into an elite sector with the Light wave lock cleared. Level 1 has
 no swarm after an elite (a test over every level source), its swarm drains on
 HARD with 21 % reserve, and clauses L3/L4 hold on every replay. The code fix
-C1 is in the backlog as a prerequisite of M4.
+C1, the M4 prerequisite this section left in the backlog, is built by `feat/sector-flow` (section "Sector flow" above).
 
 **The trace and the clause:** the main CSV records each Light slot's state and
 archetype (`light_state0-3`, `light_archetype0-3`); clause L1-L5 over every
@@ -6739,36 +6813,11 @@ it to size a budget, never to predict a frame. The committed baselines
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
 
-- **C1 — the Director holds a sector's end while the live enemies exceed the
-  next sector's caps — PREREQUISITE OF M4** (owner, 2026-10-08,
-  [plans/w2-lights.md](plans/w2-lights.md) §3.4, §8.1 Q1). A space sector ends
-  on its row count whatever is live, so a live Heavy formation crosses into a
-  swarm sector (F1; up to 3 Lights are then admitted beside it) and a swarm's
-  live Lights cross into an elite sector with the Light wave lock cleared (F2;
-  a Heavy can be admitted beside them and its companion is refused). Both
-  confirmed (W2 Phase A). W2 guards level 1 by data only (no swarm directly
-  after an elite, checked over every level source; the swarm sized to drain on
-  HARD with 21 % reserve; trace clauses L3/L4). Level 2 has swarm → elite
-  twice (sectors 0 → 1 and 3 → 4, row-0 Heavy waves), guarded today only by
-  its sector lengths (ESTIMATE). **Cost (INSTRUCTION COUNT, +20 %):** ~6 B in
-  `DIRECTOR_C_CODE` (`DIRECTOR_RAM`, 35 B free) for the call in
-  `director_c_world_row_tick`, ~40-50 B in `HYBRID_C_WINDOW` (1,185 B free),
-  initial block 0 B if the window part stays in its extension record;
-  ~60-90 cycles, pre-fence, only on the row tick where a sector's rows are
-  reached and on each row tick while it holds. Visible: an elite sector lasts
-  until its formation has gone (≤ ~690 frames with a live Bomber pair, PROBE).
-  Needs a native carry-over test, RED on `main`.
-
-- **Boss-sector integrity coverage — REQUIREMENT OF THE NEXT SESSION THAT
-  REGENERATES THE EVIDENCE (the sector-flow session)** (owner decision
-  2026-10-08, [plans/evidence-integrity.md](plans/evidence-integrity.md) §4).
-  Today three of the five memory-integrity replays reach the boss sector
-  (2,669 boss frames) and two have laser-active frames (hunt 5 and hunt 6,
-  102 frames). Restore it to **at least three replays with laser-active
-  frames**, adding a sixth integrity replay chosen to reach the lasers if
-  needed, **without holding the lives of evasive 4 or hunt 7** (they keep
-  their game-over/restart coverage), and **re-derive every integrity budget**
-  there, since sector flow shortens the road to the boss.
+- **C1 and the boss-sector integrity coverage — CLOSED by `feat/sector-flow`
+  (2026-10-08, `OWNER-SMOKE CANDIDATE`)**, section "Sector flow" above: the
+  Director holds a space sector's end while the live enemies exceed the next
+  space sector's caps (M4's prerequisite met), and three integrity replays
+  carry laser-active frames with no lives held.
 
 - **Frozen-checkpoint gate fields computed from the rows** (chore/evidence-
   integrity item 5, follow-up). `scripts/runtime-wall-trace.mjs` writes these

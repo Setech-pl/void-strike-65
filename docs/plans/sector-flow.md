@@ -9,9 +9,9 @@ window levers → M4 → M6). It also delivers C1, the prerequisite of M4
 rules are the default for every level. Where this document differs from §3.8,
 it says so (§2.4).
 
-**Phase A only.** No source, cfg, level, test or evidence byte has changed yet.
-The owner's brief arrived cut off after Phase A item 2. Phase B starts once the
-rest of it arrives (owner answer, 2026-10-08).
+**IMPLEMENTED, `OWNER-SMOKE CANDIDATE` (2026-10-08).** Phase A below is the
+design as committed before any code; §3 is what was built and measured, and
+lists where the build departs from Phase A.
 
 ## 0. Step 0 and baseline
 
@@ -252,4 +252,166 @@ reach them.
 * boss entry over 250 host frames;
 * stress over 7,000 outside the boss sector or over 8,500 in it.
 
-Phase B waits for the rest of the brief.
+Phase B waits for the rest of the brief (it arrived the same day).
+
+## 3. As built (Phase B, 2026-10-08)
+
+### 3.1 Owner decisions taken in this session
+
+* **The window: +163 B accepted** over the brief's 140-B line (Phase A
+  question; the combined `DIRECTOR_RAM` + window cost 166 B against the plan's
+  164 budgeted). Journal §AE item 15.
+* **Decision 3 amended:** the capital's authored row is a **maximum**; a
+  space sector, sector 0 included, may end earlier. The drain hold before the
+  capital stays. Journal §AE item 14, director-4.6 §11 item 3.
+* **The F1 data test stays hard** ("no swarm directly after an elite sector");
+  C1 adds the code guard beside it. Journal §AE item 16.
+* **Level 1 chains one Light wave** in the swarm (the owner's answer to the
+  level-length question).
+
+### 3.2 The Director change
+
+| | Phase A (IC) | Built (MEASURED) | Source |
+| --- | ---: | ---: | --- |
+| `DIRECTOR_RAM` | +3 → 8 B | **+3 B** (590 → 593; free 35 → **32**) | `build/encounter-director.map`, memory map |
+| `$AE00` window | +110 → 140 B | **+163 B** (C1 105, early end 19, `afterCleared` gate 21, field test 18; free 1,185 → **1,022**) | `.lst` proc spans, manifest |
+| Window record 7 | probably +1 sector | **10 → 11 sectors**; total transport 212 → **213**; boot 107, initial block **13,618** unchanged | manifest |
+| ATR menu frame | +2 to +4 | 551 → **553** (BASIC 542 → 544), limit 603 | `boot_smoke` |
+| Binding row (`2-sweep-fire6` f311) | 0 by path | **−25 of fence margin, 1,472 → 1,447**: f311 is a row tick with sector 0's cursor already past its last wave and no formation pending, so it runs the early-end test (call, wave-count load, five-byte field OR, field busy). Frame 311 on both builds: identical up to `profile_after_interceptor_weapon`, +50 native in the world stage (the row tick), +25 at the fence | `scripts/pal-timing-audit` samples; a focused run of `2-sweep-fire6` on `main`'s build in the baseline worktree |
+| DMA-on maximum | unmoved | **31,304**, the same frame | `gate.measured_wall_cycles_dma_on` |
+
+**Placement (page-crossing proof).** Built first inside `HYBRID_C_WINDOW`,
+the 163 B shifted the Light C and kernel, and a static check of every relative
+branch's taken path on both builds (from each `.lst` and `.map`) found two
+branches of `_light_tick_body` newly crossing a page (+1 cycle per live Light
+per frame when taken). The verdicts were therefore moved into a segment of
+their own, `HYBRID_C_WINDOW_FLOW`, placed **after** `HYBRID_ASM_WINDOW` (the
+M5b-S3 precedent): `HYBRID_C_WINDOW` and the boss entry keep `main`'s
+addresses exactly, and on the final build every branch in the window C, the
+ASM window and the Light kernel has the same page status as `main`;
+`DIRECTOR_C_CODE` loses one crossing (in `director_c_request`) and gains none.
+The flow verdicts' own loop (C1's four-slot count) runs only on cut ticks.
+
+**Departures from Phase A.** The window figure (+163, accepted); the binding
+row is −25, not 0 (Phase A missed that f311's tick reaches the early-end
+test); the `goto` in the first C1 draft cost 4 B of `DIRECTOR_C_RODATA` (cc65
+emits label words) and was replaced by a `do { } while (0)`; the build stages
+`enemy-archetype.h` for `director.c` (the Director reads `light_state`).
+
+### 3.3 Level 1's data
+
+| # | `main` | Built |
+| ---: | --- | --- |
+| 2 swarm | 280 rows; W × 3 (`flight-lead`, X 160) → I × 3 (X 88) | **384 rows** (the three-wave no-kill drain, 759–760 frames on every difficulty, PROBE); W × 3 (`flight-lead`, X 160) → I × 3 (X 88) → **W × 3 plain, X 88** |
+| 4 Bomber pair | B × 1 at row 24 | B × 1 at **row 0, `afterCleared`** |
+| 5 elite (b) | 240 rows | **200 rows** (W2 reserve dropped; with no kills (b)'s Raiders arrive at frame 392 of HARD's 400, PROBE) |
+
+Sectors 0, 1, 3 and the boss unchanged. Decision 8's played order R4 B4 R1 B1
+R1 holds on every difficulty (`tests/level-one-equivalence.test.mjs`); 8 waves
+of 20; the image stays 13 sectors.
+
+### 3.4 RED → GREEN
+
+`tests/sector-flow.test.mjs` (12 tests, synthetic levels by the real
+compiler; the early end, `afterCleared`, C1's carry-over in both directions,
+the no-hold cases, the timeline probe's road to the boss): **7 fail on
+`main`'s build** (`1bfce3c`) — every rule and the time to the boss — and 5
+pass (the guards that keep today's behaviour); **12 / 12 after**.
+`tests/level-one-waves.test.mjs` and `tests/level-payload.test.mjs` pin the
+new data (the chained wave, the `afterCleared` bit).
+
+### 3.5 Re-pointed tests, each with its reason in the file
+
+| Test | Why |
+| --- | --- |
+| `level-one-waves` (three) | the swarm's three waves and nine Lights; F2's 20 % reserve test becomes C1's guarantee (every swarm wave arms and drains with no kills, (a) opens within its ceiling, (b)'s Raiders arrive) |
+| `level-one-equivalence` (three) | decision 3 amended: the capital's row is a maximum (probe MEDIUM row 214, all eight formations spent first); the probe's boss frames re-measured (2,283 / 2,034 MEDIUM / HARD); the swarm's three Light waves |
+| `level-compiler` (two), `boss-band`, `level-payload` | the rows 384 / 200, three Light waves, the `afterCleared` bit |
+| `level-two` | level 2's capital row is a maximum too (Q10) |
+| `basic-window-capacity`, `level-buffer-16`, `hybrid-c-arena`, `level-summary-build` | the window 1,185 → 1,022 B free, the record 1,497 → 1,660 raw B, 10 → 11 sectors, total 212 → 213 (owner-accepted) |
+| `runtime-wall-trace` (four) | the integrity budgets (22,618 → 22,997 frames); debris-effects measures 5,000 frames (the sweep bot at fire 4 loses its first game in the chained third wave and no longer reaches the boss); the ten heaviest wall frames' DMA-off reference checked both ways against the build's 64-frame list (the early-end test reshuffled the model's top 64) |
+
+Two **trace scenarios** moved, class (a), no clause touched
+(`scripts/atari800-wall-trace.h`): `capital-muzzle-ring-2-sweep-fire4`'s
+coverage fixture now starts on the first open fighter frame with the player
+alive from 3,712 on (on this build frame 3,712 fell inside the replay's
+second game's own capital and the poke orphaned two muzzle glyphs; `main`:
+3,712 itself); `lower-playfield-laser-contact-atr-hard`'s bot seeks a beam
+only with a whole hull (the shorter road brought it into the boss at health 3).
+
+### 3.6 Dead time after the capital (`scripts/measure-dead-time.mjs`, `director-complete-*`, natural-sweep bot)
+
+| Sector | EASY `main` → built (frames / dead) | MEDIUM | HARD |
+| --- | --- | --- | --- |
+| 2 swarm | 725 / 422 → **650 / 58** | 623 / 378 → **558 / 16** | 560 / 336 → **526 / 5** |
+| 3 elite (a) | 300 / 225 → **77 / 25** | 266 / 184 → **105 / 9** | 240 / 165 → **134 / 25** |
+| 4 Bomber pair | 560 / 415 → **288 / 48** | 498 / 225 → **169 / 30** | 448 / 267 → **144 / 25** |
+| 5 elite (b) | 600 / 521 → **105 / 69** | 533 / 486 → **71 / 28** | 506 / 417 → **64 / 26** |
+| **space sectors after the capital** | 2,185 / 1,583 → **1,120 / 200** | 1,920 / 1,273 → **903 / 83** | 1,754 / 1,185 → **868 / 81** |
+| all space sectors | 2,864 / 1,759 (61 %) → **1,799 / 376 (21 %)** | 2,524 / 1,359 (54 %) → **1,507 / 169 (11 %)** | 2,297 / 1,265 (55 %) → **1,411 / 161 (11 %)** |
+
+Sector 0 and the capital hold are unchanged (the bot never spends all eight
+pre-capital formations before row 272). What is left: ~24-frame tails (the
+last formation's explosion, `ENEMY_ACTIVE` exploding, counts as live for the
+early end but not for the probe), (b)'s lead-in on EASY (44 frames, the
+kernel's 48-frame retry) and the boss sector's wait for the full drain
+(58–63 frames, debris and effects; 1 frame on `main`, whose sectors ended long
+after the field cleared).
+
+### 3.7 The road to the boss (`coverage.director_level_complete`, natural-sweep bot, lives held)
+
+| | `main` | Built |
+| --- | ---: | ---: |
+| Boss sector entered, E / M / H | 4,412 / 3,859 / 3,573 (88.2 / 77.2 / 71.5 s) | **3,347 / 2,842 / 2,687 (66.9 / 56.8 / 53.7 s)** |
+| Fight | 3,583 / 4,696 / 6,037 (71.7 / 93.9 / 120.7 s) | **3,834 / 4,612 / 5,622 (76.7 / 92.2 / 112.4 s)** |
+| Bot deaths | 2 / 4 / 5 | **3 / 6 / 5** |
+| Capital row, E / M / H | 272 / 272 / 272 | **272 / 272 / 272** |
+| Capital drain hold (frames with an enemy live; nothing live at the hull's start) | 189 / 128 / 189, clear | **189 / 128 / 189, clear** |
+
+**The early capital and its hold (owner, 2026-10-08).** No replay of the 57
+brings the capital early: no bot spends level 1's eight pre-capital
+formations before row 272 (53 capital entries scanned, all on row 272). A
+focused **diagnostic** trace of the level-2 debug route (`build/level-2-s0`,
+`director-complete-1-natural-sweep-fire0`, not evidence) shows it: sector 0
+(the swarm) ends early on row 314 of 480, so the capital is due on row
+**954 instead of 1,120**; the hull starts at frame 2,532 with **nothing
+live**, after a 339-frame drain hold, 337 frames of it with an enemy on
+screen. The probe (kill policy) brings level 1's capital to rows 224 / 214 /
+196 (E / M / H).
+
+### 3.8 Boss-sector integrity coverage (evidence-integrity §4)
+
+| Replay | Budget `main` → built | Boss entry | Boss frames | Laser-active frames |
+| --- | --- | ---: | ---: | ---: |
+| `atr-2-evasive-fire4` | 4,000 → 4,000 | — → — | 0 → 0 | 0 → 0 |
+| `atr-2-hunt-fire5` | 4,700 → **4,900** | 3,736 → 3,729 | 963 → **1,095** | 75 → **27** |
+| `atr-2-hunt-fire6` | 4,821 → **5,000** | 3,738 → 3,723 | 1,082 → **1,276** | 27 → **75** |
+| `atr-2-hunt-fire7` | 4,000 → 4,000 | — → — | 0 → 0 | 0 → 0 |
+| `atr-0-hunt-fire5` | 5,100 → 5,100 | 4,475 → **3,873** | 624 → **1,226** | 0 → **180** |
+| **five replays** | | | 2,669 → **3,597** (3 replays) | 102 in 2 → **282 in 3** |
+
+The requirement is met with no sixth replay: three integrity replays carry
+laser-active frames. Lives are never held; evasive 4 and hunt 7 still reach
+no boss at 7,000 frames (probed) and keep 4,000 and their game-over/restart
+coverage. The budgets were derived from focused diagnostic runs at 7,000
+frames (first laser 4,774 / 4,785 / 4,453).
+
+### 3.9 Gates and figures
+
+| Figure | `main` `5e68875` | Built | Source |
+| --- | ---: | ---: | --- |
+| ATR | `77d4cbf6…` | `b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78` | `dist/` |
+| Boot | `4154b5f4…` | `1c463a8782f694e28c5071ae813ed0e619f2b299d638c20c3258c27ecb6747fe` | `dist/` |
+| Replays / clause failures / miss events | 57 / 0 / 0 | **57 / 0 / 0**, PAL audit PASS | `docs/runtime-wall-trace.json` |
+| Worst fence margin | 1,472 (`2-sweep-fire6` f311) | **1,447**, the same frame (§3.2) | pal-timing audit |
+| DMA-on maximum | 31,304 (`memory-integrity-atr-2-hunt-fire5` f2388) | **31,304**, the same frame | `gate` |
+| Boss stress, native | 8,434 / 8,500 (reachable 7,732) | **8,434** (7,732) | `tests/boss-stress.test.mjs` |
+| The boss frame's own work (7,000) / fortress (8,500) | 5,404 / 6,671 | **5,404 / 6,671** | `tests/boss-runtime.test.mjs`, `tests/boss-fortress.test.mjs` |
+| Boss entry | 245 host frames | **245** | `coverage.director_level_complete` |
+| Lights' clause L1–L5 subjects | 28,847 / 28,847 / 9,729 / 49,641 / 15 | **35,001 / 35,001 / 10,972 / 39,690 / 13**, 0 violations; L2 rows 3,612 → 7,750 (the chained wave) | `coverage.light_archetypes` |
+| Initial block / boot | 13,618 / 107 | **13,618 / 107** | manifest |
+| Transport total | 212 | **213** (the window record) | manifest |
+| `DIRECTOR_RAM` / window free | 35 / 1,185 | **32 / 1,022** | memory map |
+| ATR menu | 551 / 542 | **553 / 544** (limit 603) | `boot_smoke` |
+| Integrity frames | 22,618 | **22,997** | `gate.memory_integrity` |
+

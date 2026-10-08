@@ -29,18 +29,20 @@ space sector carries its own list of **waves**:
 ]
 ```
 
-Level 1 today (data/w2-lights, owner decision a/b and answers of 2026-10-08;
-before it fix/smoke-2026-10-07 P2 and W1) has these sectors, numbered from 0
-as the debug route counts them:
+Level 1 today (feat/sector-flow, owner answers of 2026-10-08; before it
+data/w2-lights, fix/smoke-2026-10-07 P2 and W1) has these sectors, numbered
+from 0 as the debug route counts them. The rows are each sector's **no-kill
+cut**: a sector ends earlier as soon as its waves are spent and the field is
+clear (see "How a space sector ends" below).
 
 | Sector | Kind | Rows | Waves |
 | --- | --- | --- | --- |
 | 0 | space / elite | 272 | Raider + Wingman × 4, then Bombers × 4 |
 | 1 | capital | the hull | none |
-| 2 | space / **swarm** | 280 | a Wingman column × 3 in the `flight-lead` look, then Interceptors × 3; up to three at once, no Heavy |
+| 2 | space / **swarm** | 384 | a Wingman column × 3 in the `flight-lead` look, then Interceptors × 3, then a plain Wingman column × 3 down the other side; up to three at once, no Heavy |
 | 3 | space / elite (a) | 120 | one Raider pair with an Interceptor companion |
-| 4 | space / elite | 224 | one Bomber pair (row 24) |
-| 5 | space / elite (b) | 240 | one Raider pair, no Light (`lights: 0`) |
+| 4 | space / elite | 224 | one Bomber pair (row 0, `afterCleared`) |
+| 5 | space / elite (b) | 200 | one Raider pair, no Light (`lights: 0`) |
 | 6 | boss | ends with the boss | none |
 
 The Bomber pair sits between the two Raider variants so the Heavy waves still
@@ -72,10 +74,30 @@ alternate Raider and Bomber (owner decision 8).
 | `spacing` | frames between them. The Heavy class floor is 24, the Light floor 16 |
 | `entry` | the entry column, 48–200; 124 is the centre |
 | `appearance` | optional: a re-skin from the level's `payload.appearances`, such as level 1's `flight-lead` |
+| `afterCleared` | optional, `true`: the wave arms on its row **only once the field is clear** - no Heavy formation on screen (exploding counts) and no Light, an escort included. The row stays the minimum. Level 1's Bomber pair uses it (row 0 of its sector) |
 
-A sector's end cuts any wave not yet spent. When you shorten a sector, check on
-EASY, the slowest difficulty, that its last wave still arms (see the timeline
-probe below).
+**How a space sector ends (feat/sector-flow, the default for every level,
+owner Q10):**
+
+* **The early end.** Once every wave of the sector has been spawned (no Heavy
+  formation still to admit, the Light wave spent) and the field is clear, the
+  sector ends on the next row tick. A player who kills fast moves on at once.
+* **The rows are the no-kill cut.** `rows` is the LATEST the sector may end,
+  reached only when the player leaves enemies alive. At the cut any wave not
+  yet spent is cut short (its remaining members are cancelled). Size `rows`
+  so that, **with no kills, every wave arms on HARD** (the fastest row clock:
+  2 frames a row; MEDIUM ~2.2, EASY 2.5) - the timeline probe below with
+  `lightTicksFromSector` measures it. A longer cut costs nothing when the
+  player kills: the early end fires first.
+* **C1, the hold.** At the cut the Director does not end the sector while
+  the live enemies exceed the **next** space sector's caps: a Heavy formation
+  where the next sector admits none, or more Lights than its Light ceiling.
+  The world keeps scrolling; the sector ends on the first row tick where the
+  population fits. A capital or a boss after it waits for a full drain of its
+  own instead.
+* **A sector with no waves** is a timed stretch: it lasts its rows.
+* Owner decision 3 (amended 2026-10-08): the capital's row is therefore a
+  maximum - the capital comes earlier when the sectors before it end early.
 
 **When the next wave can start** (MEASURED for level 1's post-capital waves,
 fix/smoke-2026-10-07 P2, on the emulator with the bot and with no fire):
@@ -87,26 +109,23 @@ fix/smoke-2026-10-07 P2, on the emulator with the bot and with no fire):
   formation is admitted only when the one before it has gone: two Heavy waves
   do not share the screen either;
 * a Raider's **Wingman escort outlives its leader** and drifts down for up to
-  ~200 frames; give the next Heavy wave a row or two of pause (level 1's
-  Bomber pair waits for row 24 of its sector) so it does not enter under it;
+  ~200 frames; mark the next Heavy wave `afterCleared` (level 1's Bomber pair
+  does) so it does not enter under it;
 * an **elite** sector holds one Light at a time (its ceiling), so a Light wave
   of several there reads as several waves, one Light after another; a group
   of Lights that enters together needs a **swarm** sector (three at once, no
   Heavy);
-* **a sector's end is not a barrier**: whatever is live flies on into the next
-  sector. A Heavy formation alive at an elite sector's end would fly into a
-  following swarm (and the swarm would admit up to three Lights beside it), so
-  **never put a swarm sector directly after an elite sector**
-  (`tests/level-one-waves.test.mjs` checks every level file); and size a swarm
-  so its own Lights are gone before it ends on HARD (MEASURED for level 1: its
-  last Light leaves at frame 461 of 560), or the elite sector after it opens
-  with the swarm's Lights still flying. A Bomber pair the player does not shoot
-  lives ~540-690 frames, a Raider pair ~330: size the sector after a Heavy
-  wave for it, or its own Heavy wave is cut. The Director fix that would hold a
-  sector's end instead (C1) is a prerequisite of M4 (`docs/STATUS.md` backlog);
-* `afterCleared` is checked by the compiler and written into the wave's flags
-  (bit 4), but the Director does not read it (`src/c/director.c` reads the
-  look and Heavy bits only): a row and the rules above are what pace waves.
+* **a sector's end holds for its successor's caps (C1)** where it used to be
+  no barrier: a Heavy formation alive at an elite sector's cut no longer flies
+  into a following swarm, and a swarm's Lights are held down to the next
+  elite sector's one. The data rule from before C1 stays as a hard test by the
+  owner's choice (2026-10-08): **never put a swarm sector directly after an
+  elite sector** (`tests/level-one-waves.test.mjs` checks every level file).
+  A Bomber pair the player does not shoot lives ~540-690 frames, a Raider pair
+  ~330: elite to elite is legal, so a pair can still be carried into the next
+  elite sector and delay that sector's own Heavy wave - size its rows for
+  that (level 1's elite (b): its Raiders arrive at frame 392 of HARD's 400
+  with the Bomber pair carried in, MEASURED).
 
 **The boss's per-level data** is the level file's `bossDef`. Each of these is
 given per difficulty (`easy`, `medium`, `hard`), so a later level can be

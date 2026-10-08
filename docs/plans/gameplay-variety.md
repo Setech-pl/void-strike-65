@@ -648,8 +648,11 @@ a frame. **Do, in M6** (Q9).
 ### 3.8 Item 8 — dead time: the sector-flow change, and the fast loader
 
 **Session record:** [sector-flow.md](sector-flow.md) (`feat/sector-flow`,
-Phase A 2026-10-08): the as-designed code shape, bytes, cycles and level 1
-data, and where it differs from this section (its §2.4).
+2026-10-08, **implemented, `OWNER-SMOKE CANDIDATE`**): `DIRECTOR_RAM` +3 B,
+window +163 B (owner-accepted), the binding row 1,472 → 1,447; dead time after
+the capital 1,583 / 1,273 / 1,185 → 200 / 83 / 81 frames (E / M / H); the bot
+reaches the boss at 66.9 / 56.8 / 53.7 s with one chained Light wave added.
+Where it differs from this section: its §2.4 and §3.2.
 
 **The change** (one session, `feat/sector-flow`), three rules in
 `director_c_world_row_tick`, each as a verdict from one window function

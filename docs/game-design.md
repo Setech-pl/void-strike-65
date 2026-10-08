@@ -345,10 +345,16 @@ player - up to three Lights at once, no Heavy. Then **elite (a)**, a Raider
 pair with an Interceptor companion; **the Bomber pair**; and **elite (b)**, a
 Raider pair alone - the Bomber between the Raider variants so the Heavy waves
 alternate (owner decision 8). The waves before the capital and the capital are
-unchanged; the boss comes later (≈ 88 / 77 / 72 s for the bot, owner answer
-Q4). No swarm follows an elite sector: a sector's end is not a barrier, so an
-elite sector's live Heavies would fly on into it
-([plans/w2-lights.md](plans/w2-lights.md) §3). The phase table further below is the retired pre-step-2 design,
+unchanged. **Sector flow (feat/sector-flow, owner answers of 2026-10-08,
+`OWNER-SMOKE CANDIDATE`; [plans/sector-flow.md](plans/sector-flow.md)):** the
+swarm chains a third wave, a plain Wingman column down the other side, and
+the Bomber pair arrives as soon as (a) is cleared (`afterCleared`); the
+sectors end as soon as their waves are spent and the field is clear, so the
+bot reaches the boss at ≈ 67 / 57 / 54 s (EASY / MEDIUM / HARD; 88 / 77 / 72
+before). No swarm follows an elite sector in the data (the owner kept that
+rule as a hard test), and C1 now also holds a sector's end in the Director
+while its live enemies exceed the next sector's caps
+([plans/w2-lights.md](plans/w2-lights.md) §3.4). The phase table further below is the retired pre-step-2 design,
 kept for its history; the authored level is `assets/levels/level-01.json`
 ([level-data-howto.md](level-data-howto.md)).
 
@@ -365,21 +371,32 @@ image the sector reader loaded (`src/c/director.c:1-40`). A level is a list of
 sectors, each a kind — SPACE (subtype swarm or elite), CAPITAL or BOSS — with
 its waves armed at authored rows:
 
-* a **SPACE** sector ends on its authored row count, whatever is still live;
+* a **SPACE** sector ends **as soon as its waves have all been spawned and the
+  field is clear** (no Heavy formation, active or exploding, and no Light) -
+  the early end; its authored row count is only the **no-kill cut**, the latest
+  it may end. At the cut the members not yet admitted are cancelled, and **C1**
+  holds the end, the world scrolling on, while the live enemies exceed the
+  next space sector's caps (a Heavy where it admits none, more Lights than its
+  Light ceiling); a capital or boss entry waits for its own full drain instead.
+  A wave marked **`afterCleared`** arms on its row only once the field is
+  clear. A sector that authors no wave keeps its rows (feat/sector-flow,
+  `src/c/director.c:456-555`, owner Q10: the default for every level). Owner
+  decision 3 is amended accordingly: the capital's authored row is a
+  **maximum** (director-4.6 §11 item 3);
 * a **CAPITAL** sector raises the capital-due flag and waits for the drain
   (see "World and difficulty");
 * the **BOSS** sector raises the boss-due flag; on the same drained
   playfield the capital waits for (`src/c/lifecycle.c:673-682`) the world
   scroll stops, the boss is read from disk behind the WARNING screen, and the
-  sector ends at the boss's death, not on a row (`src/c/director.c:377-378`,
-  `:476-481`).
+  sector ends at the boss's death, not on a row (`src/c/director.c:387-388`,
+  `:591-596`).
 
 Level 1 (`assets/levels/level-01.json`) is an elite sector, the capital, the
 swarm, elite (a), the Bomber pair, elite (b) and the boss. Light and Heavy
 admissions are capped per sector kind (Light 3 / 1 / 0 / 1 for swarm / elite /
-capital / boss, Heavy 0 / 2 / 0 / 0; `src/c/director.c:193-194`). The live
+capital / boss, Heavy 0 / 2 / 0 / 0; `src/c/director.c:198-199`). The live
 hazard cost is capped at **3 / 4 / 5** on EASY / MEDIUM / HARD
-(`hazard_budget`, `src/c/director.c:218`), the peak of the retired per-phase
+(`hazard_budget`, `src/c/director.c:223`), the peak of the retired per-phase
 tables. The Director has a private deterministic RNG and does not consume the
 game's existing random state. It owns admission policy and budgets while the
 existing Raider-formation, debris, broadside, pickup, object-pool, and

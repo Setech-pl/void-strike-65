@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-08 (fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-08 (data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -354,6 +354,85 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## W2 — the Lights in level 1: a swarm after the capital, elite Raider sectors (a) and (b), the Light archetype in the trace — `OWNER-SMOKE CANDIDATE` (2026-10-08)
+
+**Branch and plan:** `data/w2-lights` from `main` `cfbc6a0`;
+[plans/w2-lights.md](plans/w2-lights.md) (Phase A: the inventory, the elite ↔
+swarm transition, the sector table; the owner's answers of 2026-10-08 §8.1;
+as built §10). The Lights audit is
+[audits/2026-10-08-lights.md](audits/2026-10-08-lights.md), its points in
+[audits/README.md](audits/README.md).
+
+**ATR:** `77d4cbf6aa74ccb98d2f62bb4e687f8bbbeef64407e839d27e1afc77a7e2358d`,
+boot `4154b5f451de55f50d7e321bd2754f2230d0073d33320e49aaed561bc4745b04`,
+evidence bound.
+
+**Owner decision a/b (2026-10-08, refines decision 15 of 2026-09-16):** elite
+sectors with Raiders come as (a) a Raider formation with an Interceptor
+companion or (b) Raiders with no Light; a Raider with a Wingman remains a third
+option ([plans/director-4.6.md](plans/director-4.6.md) §11 item 20).
+
+**What changes for a player — level 1 after the capital** (data only; before
+the capital and the capital unchanged):
+
+* **A swarm** (280 rows, no Heavy): a column of three Wingmen in the
+  `flight-lead` look, then three Interceptors closing on the player; up to
+  three Lights at once.
+* **Elite (a)** (120 rows): a Raider pair with an Interceptor companion.
+* **The Bomber pair** (P2's sector, 224 rows), between the Raider variants so
+  the Heavy waves alternate (owner decision 8).
+* **Elite (b)** (240 rows): a Raider pair alone; no Light.
+* P2's Raider + `flight-lead` Wingman wave leaves (owner answer Q2); sector 0
+  keeps its Raider + Wingman × 4. The boss's debug route is
+  `build/level-1-s6/` now.
+
+**The elite ↔ swarm transition — confirmed both ways, guarded by data.** A
+space sector ends on its row count whatever is live: a Heavy formation crosses
+into a swarm (and up to three Lights are admitted beside it), and a swarm's
+Lights cross into an elite sector with the Light wave lock cleared. Level 1 has
+no swarm after an elite (a test over every level source), its swarm drains on
+HARD with 21 % reserve, and clauses L3/L4 hold on every replay. The code fix
+C1 is in the backlog as a prerequisite of M4.
+
+**The trace and the clause:** the main CSV records each Light slot's state and
+archetype (`light_state0-3`, `light_archetype0-3`); clause L1-L5 over every
+measured legal replay, each over a non-empty subject (owner addition 2):
+
+| Clause | Subject | Result |
+| --- | ---: | --- |
+| L1 a live Interceptor Light | 28,847 rows with a live Light | 3,395 rows with an Interceptor |
+| L2 two or more Lights at once | 28,847 | 3,612 rows; at most 3 |
+| L3 no Heavy in a swarm sector | 9,729 swarm rows | 0 violations |
+| L4 at most one Light in an elite sector | 49,167 elite rows | 0 violations |
+| L5 variant (a) flies with its Interceptor | 15 (a) formations | 1,219 rows |
+
+On `main`'s build (the new harness, `director-complete-1`, diagnostic): L2,
+L3 and L5 fail (at most one Light; no swarm; no (a)), L1 and L4 hold.
+
+**Gates (all held):**
+
+* **Worst fence margin:** 1,472, unchanged (the same pre-capital frame).
+* **DMA-on:** 31,041 → **31,304** (`memory-integrity-atr-2-hunt-fire5` f2388:
+  the swarm, three Interceptors live, nine shots in flight; fence margin
+  12,076). Under the 32,568 gate by 1,264; **104 over the 31,200 target**.
+* **The Director clause:** the same frame, 31,304, margin 12,076.
+* **Boss frames:** worst margin / DMA-on 8,687 / 29,126.
+* **Stress, native** (code unchanged): boss sector 8,434 of 8,500 (reachable
+  7,732); the worst boss frame's own work 5,404 of 7,000; the fortress's
+  per-frame work 6,671 of 8,500.
+* **Initial block / boot / extension:** 13,618 B / 107 / 105, unchanged; level
+  image 13 sectors; `DIRECTOR_RAM` 35 B and the window 1,185 B free,
+  unchanged; ATR menu frame 551 (BASIC 542); boss entry 245 host frames.
+* **Trace:** 57 replays, 0 clause failures, 0 miss events. Class (a):
+  `slot-e-*` budgets 3,600 / 4,400 → 4,300 / 5,100 (the boss is later).
+* **`npm test`** (default build, twice): 1,195 tests, 1,194 pass, 1 fail - `preview`, recorded, first failing `tests/preview.test.mjs:129`; 0 skipped. +14 tests: the W2 data tests and the Light clause's.
+
+**Level 1 for the bot** (lives held): the boss reached at **88.2 / 77.2 /
+71.5 s** (`main` 67.3 / 59.5 / 55.1; owner answer Q4), the fight 71.7 / 93.9 /
+120.7 s (71.4 / 115.6 / 146.6), lives lost 2 / 4 / 5 (1 / 5 / 4).
+
+**Pending:** the owner's smoke, [hardware-testing.md](hardware-testing.md) §19.
+
 ## Owner smoke fixes of 2026-10-07 — shots in the boss band, level 1 after the capital, the AI line — `OWNER-SMOKE CANDIDATE` (2026-10-08)
 
 **Branch and plan:** `fix/smoke-2026-10-07` from `main` `08c79e7`;
@@ -371,7 +450,7 @@ evidence bound.
   raster race: UPDATE wrote the band's shot cells while ANTIC was fetching the
   band (MEASURED: rows 4-5 almost never shown). The cells are now written at
   SECTOR_COMPLETION, after the band's last line (`boss_shots_late`, slot E).
-* **P2, level 1 after the capital:** one Interceptor, one Wingman, one Raider
+* **P2, level 1 after the capital (superseded by W2 above):** one Interceptor, one Wingman, one Raider
   pair (with its flight-lead escort), one Bomber pair - each alone on the
   screen; before the capital and the capital unchanged; the boss reached when
   it was (67.3 / 59.5 / 55.1 s).

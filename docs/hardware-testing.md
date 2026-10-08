@@ -581,6 +581,49 @@ Emulator figures, for comparison only (EMULATOR): the boss entry reads 64
 sectors in 245 host frames; the menu appears at frame 551 (BASIC 542), as on
 `main`; the level reaches its boss in 67.3 / 59.5 / 55.1 s.
 
+## 19. The Lights in level 1: the swarm, elite (a) and (b), the Bomber pair (`data/w2-lights`)
+
+Plan [plans/w2-lights.md](plans/w2-lights.md) (owner decision a/b and the
+answers of 2026-10-08). **On copies only**, as §12. Default ATR `77d4cbf6…`
+(`npm run play:atr` plays a copy in `build/play/`). Debug routes, each entered
+at one sector after the capital (sector numbers from 0): the swarm
+`level-1-s2` `230a09f3…`, elite (a) `level-1-s3` `514d8c7b…`, the Bomber
+pair `level-1-s4` `656ab470…`, elite (b) `level-1-s5` `2ebf0909…`, the boss
+`level-1-s6` `6c4d5a27…` (the boss route was `level-1-s4` before W2). The
+copies are in `build/play/`; run them from the repository:
+
+```
+npm run play:atr
+atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s2.atr"
+atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s3.atr"
+atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s4.atr"
+atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s5.atr"
+atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s6.atr"
+```
+
+(If `build/play/` was cleaned, copy them again:
+`cp build/level-1-sN/void-strike-65.atr build/play/w2-level-1-sN.atr`.)
+
+- [ ] **The swarm after the capital** (s2, and the full game): a column of
+      three Wingmen in the red flight-lead look with white tips, one above the
+      other, flying straight down; when they have gone, three Interceptors
+      (the X with red pods) one after another, each closing on your column
+      and firing its single laser bolt. Up to three Lights at once, and **no
+      Heavy (Raider or Bomber) anywhere in the swarm**.
+- [ ] **Elite (a)** (s3): a Raider pair arrives with an **Interceptor beside
+      it** that flies free and chases you; no Wingman.
+- [ ] **The Bomber pair** (s4): one Bomber pair, nothing else.
+- [ ] **Elite (b)** (s5): a Raider pair **alone, no Light at all**.
+- [ ] **Nothing flies across the boundaries it should not:** no Heavy enters
+      the swarm from before it, and the elite (a) sector opens with the swarm
+      gone - (a)'s Raiders keep their Interceptor.
+- [ ] **The boss sector** (s6, and the full game) as in §18: unchanged.
+- [ ] **Before the capital and the capital** (the full game): unchanged.
+
+Emulator figures, for comparison only (EMULATOR): the level reaches its boss
+in 88.2 / 77.2 / 71.5 s (was 67.3 / 59.5 / 55.1); the boss entry reads in 245
+host frames; the menu appears at frame 551 (BASIC 542), as on `main`.
+
 ---
 
 ## Recording the result

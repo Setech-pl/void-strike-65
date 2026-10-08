@@ -341,13 +341,17 @@ remains a third option. All three are wave data on the existing archetypes
 (decision AD), within the elite ceilings of one Light and two Heavies.
 Recorded in [plans/director-4.6.md](plans/director-4.6.md) §11 item 20.
 
-**Level 1 after the capital (owner decision of 2026-10-08, fix/smoke-2026-10-07
-P2; supersedes W1's wave list).** One wave of each Light kind the level can
-name - one Interceptor, then one Wingman - then one Raider wave (a Raider pair
-with its Wingman escort in the `flight-lead` look), then one Bomber pair, each
-reading as one wave and none sharing the screen with the next; the waves
-before the capital and the capital are unchanged, and the boss sector is
-entered on the row it was. The table below is the retired pre-step-2 design,
+**Level 1 after the capital (data/w2-lights, owner decision a/b and answers of
+2026-10-08; supersedes P2's one-of-each list).** A **swarm**: a column of three
+Wingmen in the `flight-lead` look, then three Interceptors closing on the
+player - up to three Lights at once, no Heavy. Then **elite (a)**, a Raider
+pair with an Interceptor companion; **the Bomber pair**; and **elite (b)**, a
+Raider pair alone - the Bomber between the Raider variants so the Heavy waves
+alternate (owner decision 8). The waves before the capital and the capital are
+unchanged; the boss comes later (≈ 88 / 77 / 72 s for the bot, owner answer
+Q4). No swarm follows an elite sector: a sector's end is not a barrier, so an
+elite sector's live Heavies would fly on into it
+([plans/w2-lights.md](plans/w2-lights.md) §3). The table below is the retired pre-step-2 design,
 kept for its history; the authored level is `assets/levels/level-01.json`
 ([level-data-howto.md](level-data-howto.md)).
 

@@ -29,16 +29,22 @@ space sector carries its own list of **waves**:
 ]
 ```
 
-Level 1 today (owner decision of 2026-10-08, fix/smoke-2026-10-07 P2; before
-it W1) has these sectors, numbered from 0 as the debug route counts them:
+Level 1 today (data/w2-lights, owner decision a/b and answers of 2026-10-08;
+before it fix/smoke-2026-10-07 P2 and W1) has these sectors, numbered from 0
+as the debug route counts them:
 
 | Sector | Kind | Rows | Waves |
 | --- | --- | --- | --- |
-| 0 | space | 272 | Raider + Wingman, then Bombers |
+| 0 | space / elite | 272 | Raider + Wingman × 4, then Bombers × 4 |
 | 1 | capital | the hull | none |
-| 2 | space | 232 | one Interceptor (row 0), one Wingman (row 40), one Raider pair with its Wingman escort in the `flight-lead` look (row 96) |
-| 3 | space | 224 | one Bomber pair (row 24) |
-| 4 | boss | ends with the boss | none |
+| 2 | space / **swarm** | 280 | a Wingman column × 3 in the `flight-lead` look, then Interceptors × 3; up to three at once, no Heavy |
+| 3 | space / elite (a) | 120 | one Raider pair with an Interceptor companion |
+| 4 | space / elite | 224 | one Bomber pair (row 24) |
+| 5 | space / elite (b) | 240 | one Raider pair, no Light (`lights: 0`) |
+| 6 | boss | ends with the boss | none |
+
+The Bomber pair sits between the two Raider variants so the Heavy waves still
+alternate Raider and Bomber (owner decision 8).
 
 ## What the fields mean
 
@@ -87,6 +93,17 @@ fix/smoke-2026-10-07 P2, on the emulator with the bot and with no fire):
   of several there reads as several waves, one Light after another; a group
   of Lights that enters together needs a **swarm** sector (three at once, no
   Heavy);
+* **a sector's end is not a barrier**: whatever is live flies on into the next
+  sector. A Heavy formation alive at an elite sector's end would fly into a
+  following swarm (and the swarm would admit up to three Lights beside it), so
+  **never put a swarm sector directly after an elite sector**
+  (`tests/level-one-waves.test.mjs` checks every level file); and size a swarm
+  so its own Lights are gone before it ends on HARD (MEASURED for level 1: its
+  last Light leaves at frame 461 of 560), or the elite sector after it opens
+  with the swarm's Lights still flying. A Bomber pair the player does not shoot
+  lives ~540-690 frames, a Raider pair ~330: size the sector after a Heavy
+  wave for it, or its own Heavy wave is cut. The Director fix that would hold a
+  sector's end instead (C1) is a prerequisite of M4 (`docs/STATUS.md` backlog);
 * `afterCleared` is checked by the compiler and written into the wave's flags
   (bit 4), but the Director does not read it (`src/c/director.c` reads the
   look and Heavy bits only): a row and the rules above are what pace waves.
@@ -146,16 +163,21 @@ out, none of this needs doing.
 * `tests/level-one-equivalence.test.mjs`: the capital's row and frame, the
   alternation, and the played order and Heavy counts per difficulty.
 * `tests/level-payload.test.mjs`: the skies, and which wave wears a look.
-* `tests/level-one-waves.test.mjs`: level 1's post-capital waves - one per
-  Light kind, one Raider wave, one Bomber pair - and that each arms on every
-  difficulty.
+* `tests/level-one-waves.test.mjs`: level 1's post-capital sectors - the
+  swarm of both Light kinds, elite (a), the Bomber pair, elite (b) - that each
+  wave arms on every difficulty, that the swarm drains before it ends with no
+  kills, and that no level file puts a swarm directly after an elite sector.
 
 Changing level 1's length also moves:
 
 * `tests/plasma-fx.test.mjs`: how long a native play-through runs before the
   boss entry;
 * `tests/runtime-wall-trace.test.mjs`: the trace replays that now reach the
-  boss, which set its entry frame aside, so their frame totals move.
+  boss, which set its entry frame aside, so their frame totals move;
+* `tests/boss-runtime.test.mjs`, `tests/build-variants.test.mjs`: the sector
+  count (the boss's index and the debug route's range);
+* the trace's `slot-e-*` replays: their frame budgets must reach the boss and
+  what follows it (`scripts/runtime-wall-trace.mjs`, class (a)).
 
 All of these are re-pointed to the new data, each with its reason written in
 the file.

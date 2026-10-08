@@ -1,7 +1,11 @@
 # Plan — W2: the Lights in level 1 (a swarm after the capital, elite Raider sectors a/b, the Bomber pair, the elite → swarm transition, the Light archetype in the trace)
 
-**Status: Phase B in progress — the owner answered Q1-Q4 on 2026-10-08
-(§8.1: D, B, L1-L5, the length accepted).** Phase A stopped for them.
+**Status: implemented, pending the owner's smoke — `OWNER-SMOKE CANDIDATE`
+(2026-10-08).** ATR `77d4cbf6aa74ccb98d2f62bb4e687f8bbbeef64407e839d27e1afc77a7e2358d`,
+evidence bound. The owner answered Q1-Q4 (§8.1: D, B, L1-L5, the length
+accepted), added two rules, and chose the reorder of §8.2; as built: §10.
+**The sector table of §4.1 is superseded by §10.1** (the Bomber pair moved
+between the two Raider variants, (b) 240 rows).
 Branch `data/w2-lights` from `main` `cfbc6a0`. No game byte changed in Phase
 A; the commit holds this plan, the Lights audit copy
 ([../audits/2026-10-08-lights.md](../audits/2026-10-08-lights.md)) with its
@@ -486,6 +490,21 @@ Level 1".
 
 C1 is in STATUS's backlog as a prerequisite of M4, with §3.4's costs.
 
+**And in Phase B:** the reorder of §8.2 (the Bomber pair between the Raider
+variants, (b) 240 rows) — the answer to the alternation conflict.
+
+### 8.2 The alternation conflict (Phase B, 2026-10-08)
+
+Re-pointing the tests found what Phase A missed: §4.1's order puts (a)'s and
+(b)'s Raider waves back to back, and owner decision 8 (2026-09-28, kept by W1
+and P2) says the Heavy waves alternate Raider and Bomber with no repeat
+(`tests/level-one-equivalence.test.mjs` "the authored waves alternate").
+Re-pointing that test would weaken an owner decision, so the owner was asked.
+**Answer: reorder, (b) at 240 rows** — swarm → (a) → the Bomber pair → (b) →
+boss. With no kills the Bomber pair can live into (b), and (b)'s Raiders then
+arrive by frame 394 of HARD's 480 (PROBE, the trace's `lightTicksFromSector`
+mode): a 22 % reserve; with kills 2-38 frames in.
+
 ## 9. Phase B (after the answers)
 
 1. Tests first (§6), RED on `main`'s build, committed.
@@ -501,3 +520,123 @@ C1 is in STATUS's backlog as a prerequisite of M4, with §3.4's costs.
    closed points, [../level-data-howto.md](../level-data-howto.md) (the new
    table, "no swarm after an elite"), hardware-testing §19 (the smoke
    checklist), this plan marked implemented, pending the owner's smoke.
+
+## 10. As built
+
+### 10.1 Level 1 after the capital
+
+| # | Kind | Rows | Waves | Lights | Heavies |
+| ---: | --- | ---: | --- | --- | --- |
+| 2 | space / swarm, caps 3 / 0 | 280 | 0: Wingman × 3, spacing 32, X 160, `flight-lead`; then Interceptor × 3, spacing 24, X 88 | column, then chasers; ≤ 3 at once | none |
+| 3 | space / elite (a), 1 / 2 | 120 | 0: Raider + Interceptor × 1 | the companion | Raider pair |
+| 4 | space / elite, 1 / 2 | 224 | 24: Bomber × 1 (P2's sector) | none | Bomber pair |
+| 5 | space / elite (b), 0 / 2 | 240 | 0: Raider × 1 | none | Raider pair |
+| 6 | boss | — | — | — | — |
+
+Sectors 0-1 unchanged. Skies: white, steel, white, white, white, yellow (the
+last space sector, (b)), yellow (boss). Debug routes: `level-1-s2` … `-s6`.
+
+### 10.2 Commits
+
+`4b7ff6e` Phase A; `879e6a1`, `80ecfba` the owner's answers and additions,
+C1 in STATUS's backlog; `eefd830` RED; `bf79da0` GREEN (data, trace columns,
+clause, re-points); `3ec7b1a` class (a) `slot-e-*` budgets; `48b1840`,
+`80c6b63` evidence; `3b63772` re-points found by `npm test`; this record.
+
+### 10.3 RED → GREEN
+
+* `tests/level-one-waves.test.mjs` on `main`'s build: 3 of 5 fail ("the sector
+  after the capital is not a swarm"; "the swarm admitted 3 Lights"; "a reserve
+  of 1 (< 20 %)"); the pre-capital pin and the every-level guard (level-01,
+  level-02) pass. GREEN after: 5 / 5.
+* `tests/light-coverage.test.mjs`: 9 / 9 RED (no `lightCoverage`), 9 / 9 GREEN.
+* `tests/runtime-wall-trace.test.mjs` "PAL replays carry the Light
+  archetypes": RED on `main`'s evidence (no `coverage.light_archetypes`),
+  GREEN on the new.
+* **The clause on `main`'s build** (the new header and harness in a temporary
+  worktree of `main`, `director-complete-1-natural-sweep-fire0`, diagnostic,
+  removed): L1 held (P2's Interceptor, 80 rows), **L2 failed** (at most one
+  Light), **L3 failed** (no swarm row), L4 held (1,642 elite rows), **L5
+  failed** (no (a) formation).
+* **Owner addition 1:** level 2 passes "no swarm directly after an elite"
+  (swarm, elite, capital, swarm, elite, elite), so nothing is recorded as an
+  expected failure. Its two swarm → elite transitions are F2's, which the rule
+  does not cover and C1 would.
+
+### 10.4 The trace and the clause
+
+Recording: `scripts/atari800-wall-trace.h` +22 lines, the harness's columns
+and addresses +9 — **~31 lines**, under the brief's 60. The clause:
+`lightCoverage` 77 lines with its comment, its wiring and record in the
+harness 29 — **~106**, over Phase A's ~55 estimate (comments and one failure
+message per clause and per empty subject). The trace emulator was re-prepared
+from the new header (`--prepare`) before the first run.
+
+| Clause | Subject (rows or formations) | Result |
+| --- | ---: | --- |
+| L1 a live Interceptor | 28,847 | 3,395 rows |
+| L2 ≥ 2 Lights at once | 28,847 | 3,612 rows; at most 3 |
+| L3 no Heavy in a swarm | 9,729 | 0 violations |
+| L4 ≤ 1 Light in an elite sector | 49,167 | 0 violations |
+| L5 (a) with its Interceptor | 15 formations | 1,219 rows |
+
+### 10.5 Re-pointed, each with its reason in the file
+
+| Test | Why |
+| --- | --- |
+| `tests/level-one-waves.test.mjs` | its subject, P2's post-capital wave list, is what W2 replaces |
+| `tests/level-compiler.test.mjs` | seven sectors; rows 272/0/280/120/224/240, 1,678 with the hull; T12's mask loop over the positions both levels have |
+| `tests/boss-band.test.mjs` | the six sectors before the boss and their skies |
+| `tests/level-one-equivalence.test.mjs` | the Light waves are the swarm's; played order R4 B4 R1 B1 R1 (alternating), 11 formations; the boss sector at row 1,680, frames 3,734 / 3,360; the capital unchanged (606, row 272) |
+| `tests/level-payload.test.mjs` | `flight-lead` on the swarm's Wingman wave (Q2); the skies |
+| `tests/build-variants.test.mjs` | the boss route is sector 6; T8's "7 sectors" |
+| `tests/boss-runtime.test.mjs` | the boss's sector index read from the core page's count |
+| `tests/runtime-wall-trace.test.mjs` | two of the five 4,000-frame integrity replays reach the later boss: 19,998 frames, 399.96 s; the integrity clauses unchanged |
+| `scripts/runtime-wall-trace.mjs` `slot-e-*` (class (a)) | budgets 3,600 / 4,400 → 4,300 / 5,100, the same windows after the path; the clauses unchanged |
+
+The first full trace stopped on exactly those three `slot-e-*` clauses ("the
+pause path was never taken in the boss sector"; "the next game drew no capital
+row", twice): the boss entry moved from frame 2,914 to 3,574 on HARD. Its
+outputs were restored, the budgets fixed, and the evidence regenerated once.
+
+### 10.6 Before and after
+
+| Figure | `main` `cfbc6a0` | This branch | Source |
+| --- | ---: | ---: | --- |
+| ATR | `51d8fac7…` | `77d4cbf6aa74ccb9…` | `dist/` |
+| Boot | `c694bf16…` | `4154b5f451de55f5…` | `dist/` |
+| Worst fence margin | 1,472 (`2-sweep-fire6` f311) | **1,472**, the same frame | the trace CSVs, `pal-timing-audit` samples |
+| DMA-on maximum | 31,041 (`2-evasive-fire7` f564) | **31,304** (`memory-integrity-atr-2-hunt-fire5` f2388: the swarm, three Interceptors, nine shots; fence margin 12,076) — 1,264 under 32,568, **104 over the 31,200 target** | `gate.measured_wall_cycles_dma_on` |
+| Post-capital worst fence margin | 5,230 | 6,261 (`memory-integrity-atr-2-hunt-fire5` f2556, elite (a)); the swarm's 6,855 | the CSVs by `director_sector` |
+| The Director clause's frame | `1-evasive-fire3` f297, 31,011, 9,609 | `memory-integrity-atr-2-hunt-fire5` f2388, 31,304, 12,076 (89,877 Director frames) | `coverage.director_heaviest_frame` |
+| Boss frames: worst margin / DMA-on | 8,323 / 29,082 | 8,687 / 29,126 (the entry frame set aside) | the CSVs |
+| Boss stress, native | 8,434 / 8,500 (reachable 7,732) | **8,434** (7,732), code unchanged | `tests/boss-stress.test.mjs` |
+| The boss frame's own work (7,000) / fortress (8,500) | — | 5,404 / 6,671, code unchanged | `tests/boss-runtime.test.mjs`, `tests/boss-fortress.test.mjs` |
+| Initial block / boot / extension / total | 13,618 / 107 / 105 / 212 | **unchanged** | manifest |
+| Level image | 13 sectors | **13**; its check sum regenerated ($A476 → $6B9D) | manifest |
+| `DIRECTOR_RAM` / window free | 35 / 1,185 B | **unchanged** (`npm run memory-map`: no diff) | memory map |
+| ATR menu frame | 551 / 542 | **551 / 542** | `boot_smoke` |
+| Boss entry | 245 host frames | **245** | `coverage.director_level_complete` |
+| Time to the boss E / M / H | 67.3 / 59.5 / 55.1 s | **88.2 / 77.2 / 71.5 s** (4,412 / 3,859 / 3,573) | same |
+| Fight length | 71.4 / 115.6 / 146.6 s | 71.7 / 93.9 / 120.7 s (3,583 / 4,696 / 6,037) | same |
+| Bot deaths (lives held) | 1 / 5 / 4 | 2 / 4 / 5 | same |
+| Booster cycles (integrity) | 11 | 11 | `gate.memory_integrity` |
+| Trace | 57 replays, 0 / 0 | 57, **0 clause failures, 0 miss events** | `docs/runtime-wall-trace.json` |
+| `npm test`, default build, twice | 1,181 / 1,180 / 1 | **1,195 / 1,194 / 1** both times, 0 skipped; the failure `preview`, recorded, first failing `tests/preview.test.mjs:129` | — |
+
+Recorded failures: tests 1 → 1 (`preview`, the same name and first assertion);
+clauses 0 → 0. None new, none disappeared. A full `npm test` before the
+re-points of `3b63772` failed 5: `preview` and the four tests that commit
+re-points (`boss-runtime.test.mjs:96`, `build-variants.test.mjs:105` T8,
+`runtime-wall-trace.test.mjs:198`, `:360`), each a direct consequence of the
+data change.
+
+### 10.7 Process notes
+
+* Two diagnostics outside the tree, never committed as evidence: the elite →
+  swarm probe on a `git archive` copy in the session's scratch directory (§3.2),
+  and the `main` worktree run of §10.3 (removed with `--force`).
+* `scripts/level-timeline.mjs` gained `lightTicksFromSector` (the real Light
+  update and no kill policy from a sector on) and per-sector
+  `lastLiveLightFrame` / `heavyFrames`; off by default, every existing
+  caller's figures unchanged.

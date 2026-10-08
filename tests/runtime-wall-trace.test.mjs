@@ -586,7 +586,7 @@ test("wall trace records the required legal runtime coverage without incoherent 
     "world_near_with_far_erase",
     "hull_event",
     "active_muzzles",
-    "live_interceptor",
+    "live_heavy_formation",
     "fighter_explosion",
     "broadside_projectiles",
     "capital_explosion",

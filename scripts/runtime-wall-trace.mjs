@@ -1092,7 +1092,7 @@ const numericCsvFields = new Set([
   "start_host_frame", "end_host_frame", "next_start_host_frame", "start_scanline",
   "start_cycle", "end_scanline", "end_cycle", "host_vbi_boundaries",
   "extra_vbi_boundaries", "missed_frames", "dli_nmis", "dma_ctl", "nmi_en",
-  "projectiles", "broadside", "far_rendered", "live_interceptor", "fighter_explosion",
+  "projectiles", "broadside", "far_rendered", "live_heavy_formation", "fighter_explosion",
   "capital_explosion", "music_active", "fire_sfx", "hit_sfx", "capital_sfx",
   "fire_timer_value", "player_burst_state", "player_burst_remaining",
   "player_burst_timer", "audf1", "audc1", "fire_accept_calls", "update_sound_calls",
@@ -2161,7 +2161,7 @@ function frameState(row, includeCpuReference = false) {
       effect_active_mask: row.effect_active_mask,
       effect_active_count: row.effect_active_count,
       effect_rendered_mask: row.effect_rendered_mask,
-      live_interceptor: Boolean(row.live_interceptor),
+      live_heavy_formation: Boolean(row.live_heavy_formation),
       raider_formation: {
         guide_y: row.enemy_y,
         member_state: [row.enemy_member0_state, row.enemy_member1_state,
@@ -8370,7 +8370,7 @@ function main() {
           ? "observed through the production scheduler during the natural first capital-section pass on EASY, MEDIUM, and HARD; no phase, world row, muzzle, projectile, object, or intensity state was seeded"
           : "not observed",
       },
-      live_interceptor: coverageRecord(allRows, (row) => row.live_interceptor !== 0),
+      live_heavy_formation: coverageRecord(allRows, (row) => row.live_heavy_formation !== 0),
       fighter_explosion: coverageRecord(allRows, (row) => row.fighter_explosion !== 0),
       capital_explosion: coverageRecord(allRows, (row) => row.capital_explosion !== 0),
       music_with_sfx_preemption: coverageRecord(allRows, (row) => row.music_active !== 0 &&

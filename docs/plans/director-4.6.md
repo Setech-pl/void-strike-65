@@ -866,7 +866,8 @@ question — three more stale clauses standing between step 2 and its evidence �
 had been measured. Items **15-17** were answered on **2026-09-30**, at step 3,
 on the level 2 draft (`bb3feeb`). Item **18** was answered the same day, at
 step 4, on the §8.2 proposal (`e058fb3`), and item **19** after the step 4
-follow-up (`03f757d`).
+follow-up (`03f757d`). Item **20** was recorded on **2026-10-08**, at
+`data/w2-lights` Phase A ([w2-lights.md](w2-lights.md)).
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -1189,6 +1190,25 @@ follow-up (`03f757d`).
     one frame. MEASURED: menu 601, loader 344, start → loader 1,858,168 cycles,
     sectors and initial block unchanged. The cost is the arena's free space,
     114 → 16 B.
+
+20. **Elite sectors with Raiders come in two variants — (a) and (b)**
+    (decided by the owner, **2026-10-08**; source: the owner's brief for
+    `data/w2-lights`, [w2-lights.md](w2-lights.md) §7; recorded there and here
+    for the first time). It refines decision 15 of **2026-09-16**
+    ([../owner-decisions-2026-09-11.md](../owner-decisions-2026-09-11.md)
+    §15.2: the Light slot is "Wingman ALBO Interceptor", the encounter target
+    "2 Heavy Raiders + 1 znakowy Interceptor"), which named the choice but not
+    the sector variants.
+    * **(a)** a Raider formation with an **Interceptor** companion;
+    * **(b)** Raiders with **no Light**;
+    * **a Raider with a Wingman** remains a third option.
+
+    How it maps to the existing format (not part of the decision): (a) is a
+    wave with `members: ["raider", "interceptor"]` (the Interceptor flies free
+    from its admission and follows no leader), (b) a wave naming `raider`
+    alone, the third `members: ["raider", "wingman"]`. All three are data on
+    the frozen roster (decision AD); the elite ceilings (Light 1, Heavy 2) are
+    unchanged.
 
 ---
 

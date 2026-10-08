@@ -25,6 +25,39 @@ when the repo refutes it.
 | --- | --- | --- |
 | [2026-10-06-pre-m5.md](2026-10-06-pre-m5.md) | `main` `1a3c8bf` | Codex (OpenAI) |
 
+## Thematic audits
+
+A read-only review of one subject, run when a task needs it rather than once
+per milestone. Kept unchanged as received, named `<date>-<subject>.md`, and
+treated like a milestone audit: an input, verified against the repo before it
+is acted on. It carries no severities or IDs of its own; the points below are
+this register's, named by the audit's section.
+
+| Audit | Audited commit | Auditor | Acted on by |
+| --- | --- | --- | --- |
+| [2026-10-08-lights.md](2026-10-08-lights.md) — Light enemies and waves | `main` `08c79e7` | Codex (OpenAI) | `data/w2-lights` ([plans/w2-lights.md](../plans/w2-lights.md)) |
+
+### Lights audit — points
+
+The repo moved between the audited `08c79e7` and `data/w2-lights` (`main`
+`cfbc6a0`): `fix/smoke-2026-10-07` P2 put one Interceptor, one Wingman, one
+Raider pair with its escort and one Bomber pair after the capital, so §1's
+"level 1 schedules no Light Interceptor" was already partly out of date.
+
+| Point | Audit section | Status | Where |
+| --- | --- | --- | --- |
+| LA-1 Level 1 has no standalone Light wave and no Interceptor | §1, §3 | partly fixed by P2 (one Interceptor, one Wingman, alone); W2 plans the swarm | [plans/w2-lights.md](../plans/w2-lights.md) §4 |
+| LA-2 Several Lights at once need a swarm sector; level 1 has none | §3, §6 | open — W2 plans a swarm after the capital | §4 |
+| LA-3 No recorded Raider-sector variants with and without an Interceptor | §4 | **fixed** — owner decision a/b (2026-10-08) recorded | [plans/director-4.6.md](../plans/director-4.6.md) §11 item 20; [game-design.md](../game-design.md) |
+| LA-4 `game-design.md` says every Raider formation brings a Wingman | §4 | **fixed** with LA-3 | [game-design.md](../game-design.md) "Light Wingman" |
+| LA-5 No default replay or clause covers Interceptor Lights or several Lights; the trace records no Light archetype | §5 | open — W2 plans the columns and the clause | §5 |
+| LA-6 The elite → swarm boundary may carry a Heavy | §6 | **confirmed** (and its mirror, swarm → elite); W2 plans the data guard, the code fix is the owner's question | §3 |
+| LA-7 `live_interceptor` names the Heavy formation, not the Light | §5 | open, not in W2's scope | — |
+| LA-8 The opt-in Light CSV and `measure-light-population-native.mjs` name retired scaffolding | §5 | open, not in W2's scope | — |
+| LA-9 `mirror` and `afterCleared` are compiled but not read | §2 | open, M3 (and the smoke-2026-10-07 backlog for `afterCleared`) | — |
+| LA-10 `level-01.json`'s opening prose describes an older schedule | §1 | open — W2 adds a pointer when it edits the file | — |
+| LA-11 Keep M4 before M3 | Recommendation | no action: the order of 2026-10-02 stands | [plan-realizacji.md](../plan-realizacji.md) §0 |
+
 ## Findings ledger
 
 | ID | Severity | Title | Status | Where | Note |

@@ -98,7 +98,8 @@ a completely hidden Raider cannot fire or collide.
 
 ### Light Wingman
 
-Every Raider formation brings one Light Wingman. It is a small two-cell character
+A Raider formation brings at most one Light companion, chosen by its wave: a
+Wingman (this section), an Interceptor, or none (owner decision a/b below). The Wingman is a small two-cell character
 fighter that sits centred behind the first Raider, 12 scanlines above it,
 without switching sides; it moves on the character grid, so its vertical gap
 steps by up to seven lines, which is intentional. It has one hit point, fires one `PULSE` PairShot every
@@ -331,6 +332,14 @@ last segment uses the shared timer's 8+8 blink phase. A solid steel/white Player
 colour pulse is derived from the same timer and never makes the craft disappear.
 
 ## Encounter Director Level 1
+
+**Elite sectors with Raiders — two variants (owner decision a/b, 2026-10-08;
+it refines decision 15 of 2026-09-16, "Wingman or Interceptor").** An elite
+sector's Raiders come as **(a)** a Raider formation with an Interceptor
+companion, or **(b)** Raiders with no Light; a Raider with a Wingman escort
+remains a third option. All three are wave data on the existing archetypes
+(decision AD), within the elite ceilings of one Light and two Heavies.
+Recorded in [plans/director-4.6.md](plans/director-4.6.md) §11 item 20.
 
 **Level 1 after the capital (owner decision of 2026-10-08, fix/smoke-2026-10-07
 P2; supersedes W1's wave list).** One wave of each Light kind the level can

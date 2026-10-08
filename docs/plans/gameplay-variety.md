@@ -647,6 +647,10 @@ a frame. **Do, in M6** (Q9).
 
 ### 3.8 Item 8 — dead time: the sector-flow change, and the fast loader
 
+**Session record:** [sector-flow.md](sector-flow.md) (`feat/sector-flow`,
+Phase A 2026-10-08): the as-designed code shape, bytes, cycles and level 1
+data, and where it differs from this section (its §2.4).
+
 **The change** (one session, `feat/sector-flow`), three rules in
 `director_c_world_row_tick`, each as a verdict from one window function
 `director_c_sector_flow()` so that `DIRECTOR_RAM` pays only for the call and

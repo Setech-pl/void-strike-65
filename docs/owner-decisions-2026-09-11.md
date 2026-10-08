@@ -1796,6 +1796,12 @@ plan §7.1):**
 11. Pytania bez bezpośredniej odpowiedzi (Q5 HUD, Q11 szybki loader, Q13
     pozycje capital, Q14 trójki profili) przyjęte wg rekomendacji planu —
     żadne nie zmienia bramki, limitu budżetu ani zapisanej decyzji.
+13. **Q15 (2026-10-08, trzecie przejście): TAK** — nakładka danych menu
+    (ekrany, muzyka, gwiazdy, listy wyświetlania, glify H3.1 menu — plan §8.3
+    L1a) i **przeniesienie jądra Lightów (rekord 9, 902 B) w dziury `MAIN`
+    `$3615-$3997`** (plan §8.5) wchodzą do **sesji dźwigni okna przed M4**;
+    sesja trybu attract zostaje z samym demo. Okno na końcu drogi: +836
+    oczekiwane / +579 budżetowane (plan §8.5, §5).
 12. **Dodatkowo (2026-10-08):** inwentarz grafiki i danych stałych w pamięci
     rezydentnej (blok początkowy, okno `$AE00`, arena, sąsiedzi `DIRECTOR_RAM`,
     pozostałe segmenty zawsze rezydentne, tablice i dane znaków pisane inline

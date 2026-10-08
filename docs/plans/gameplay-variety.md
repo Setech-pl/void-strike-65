@@ -876,8 +876,9 @@ growth** (§4.3). The boss entry is §4.4's.
 ## 5. The milestone order and the sessions to the freeze
 
 **The order adopted by the owner (2026-10-08; order B of §4.1):** sector
-flow → S5 → M3-H → M3 → window levers → M4 → M6 boosters → M6 torpedo → the
-attract mode (menu overlay) → the freeze.
+flow → S5 → M3-H → M3 → window levers (with the menu-data overlay and the
+Light kernel move, Q15) → M4 → M6 boosters → M6 torpedo → the attract mode
+(the demo alone) → the freeze.
 
 | # | Session | Branch | Scope | Window | Leaves the game shippable because |
 | --- | --- | --- | --- | ---: | --- |
@@ -886,18 +887,18 @@ attract mode (menu overlay) → the freeze.
 | 3 | **M3-H session 1** | `feat/heavy-package` | m3 §7 session 1 + the weapon profiles (§3.3) + the lifted ramp (§3.4) | −333 → −352 (+40 → 50, +4 arena) | level 1 gains slower, armoured, stop-and-shoot Raiders and readable 1-HP Bombers; evidence re-scripted once |
 | 4 | **M3-H session 2** | `feat/heavy-looks` | the armoured look, the damage holes | −99 → −114 | hardware-critical, reviewed on its own |
 | 5 | **M3 session 3** | `feat/wave-paths` | the evaluator, the paths, the chained swarms (§3.1–3.2) as level 1 and level 2 data | −496 → −524 | the window is at 107 → 5 after it: the next session is the lever session |
-| 6 | **Window levers** | `chore/window-levers` | the `STARFIELD` tail, `LEVEL_BUFFER` 16 → 15, the arena and the pins (537) | +537 | no visible change; evidence regenerated |
+| 6 | **Window levers** (owner, Q15, 2026-10-08) | `chore/window-levers` | the `STARFIELD` tail, `LEVEL_BUFFER` 16 → 15, the arena and the pins (537); **the menu-data overlay** (§8.3 L1a: the menu screens, music, star tables, display lists and H3.1 glyphs into a run read at every menu entry into `$0C00-$1FFF`) **and the Light kernel moved into the `MAIN` holes** `$3615-$3997` (§8.5, record 9's destination) | **+537, +902** | no visible change but a short read at every menu entry; addresses in `RODATA`, `STARFIELD`, `ENTITY_CODE` and the kernel's vectors move, so the harness pins, the boot baseline and the memory map are re-recorded once; the kernel's page crossings proven on both builds; evidence regenerated |
 | 7 | **M4** | as budget §2 M4 | the campaign loop, K's lives, the initials entry | −300 → −360 | twelve levels playable; W2 F1's data rule is C1's now |
 | 8 | **M6 boosters** | `feat/boosters` | K1, item 22, the life and repair capsules (§3.6–3.7), the per-type colour | −280 → −345 | the window is now negative on budgeted figures: the attract mode gives way or the fighter overlay lands here |
 | 9 | **M6 torpedo** | `feat/proton-torpedo` | §3.5 in slot E / C with the resident veneers; **the entry measured, STOP over 260 host frames**; module durability rebalanced in data; the fight length reported per difficulty | −65 → −80 | boss-only; the fight inside 90–120 s on MEDIUM |
-| 10 | **Attract mode, menu overlay; item 24** | `feat/attract-mode` | §3.10: the menu overlay in `$0C00-$1FFF` with the stream, the idle timer and the `DEMO` run; item 24's 50 → 60 B of window | −50 → −60 | the last code item before the freeze; 0 window for the attract mode itself |
+| 10 | **Attract mode (the demo alone); item 24** | `feat/attract-mode` | §3.10: the demo's input stream, the idle timer, the `DEMO` label and the exit on FIRE added to the menu overlay session 6 built; item 24's 50 → 60 B of window | −50 → −60 | the last code item before the freeze; 0 window for the attract mode itself |
 | — | **the freeze** | | M7 content (data), M8 balance (data), M9 release | | |
 
-**Refinement proposed after the owner's follow-up (§8.5, Q15):** session 6
-(the window levers) would also build the menu-data overlay and move the
-Light kernel into the `MAIN` holes (+902 B of window), and session 10 would
-add only the demo to that overlay. Not applied to the table above until the
-owner answers.
+**Applied (owner answer to Q15, 2026-10-08):** session 6 builds the
+menu-data overlay and moves the Light kernel into the `MAIN` holes (+902 B
+of window, §8.5); session 10 adds only the demo to that overlay. The
+window ledger of the adopted order is §8.5's right-hand column: it ends
+**+836 expected / +579 budgeted**.
 
 Why M3 + M3-H before M4 (Q1, adopted): the owner's complaint is level 1's variety
 now; M3-H re-scripts level 1's replays once (slower Raiders) and M4 would
@@ -1221,15 +1222,12 @@ on hardware. The four earlier levers (537) are still counted; if the kernel
 move is taken first, `LEVEL_BUFFER` 16 → 15 (128, risk 3) can be left alone
 (+451 budgeted at the end instead of +579).
 
-**Q15 (new, for the owner):** build the menu-data overlay and the Light
-kernel move inside the window-levers session (§5 item 6), before M4, with
-the attract session reduced to the demo itself? Recommended: **yes**; cost:
-the levers session grows by two risk-3 changes (addresses in `RODATA`,
-`STARFIELD`, `ENTITY_CODE` and the kernel's vectors move; evidence
-regenerated once for both); alternative: keep the levers session as it is
-and take the kernel move with the attract session — the window is then
-−183 → −263 budgeted through M6 and the M6 sessions must fit the M3 cuts or
-defer the capsules until the attract session lands.
+**Q15 — answered by the owner, 2026-10-08: yes.** The menu-data overlay
+and the Light kernel move are built inside the window-levers session (§5
+item 6), before M4; the attract-mode session keeps the demo alone. The cost
+accepted: the levers session grows by two risk-3 changes (addresses in
+`RODATA`, `STARFIELD`, `ENTITY_CODE` and the kernel's vectors move;
+evidence regenerated once for both). Recorded in the journal §AE.
 
 ---
 

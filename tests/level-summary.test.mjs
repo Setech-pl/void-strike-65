@@ -1272,3 +1272,51 @@ test("AUD-02: a changed byte in the capital restore run is refused before gamepl
   assert.equal(run.end, "failure", "the damaged capital code was accepted");
   assert.equal(run.cpu.a, SR_BAD_IMAGE);
 });
+
+// --------------------------------------------------------------------------
+// fix/smoke-2026-10-07 P3 (docs/plans/smoke-2026-10-07.md): the owner saw the
+// AI chatter line run into the statistics on the loading screen, and the
+// statistics' labels with no values at START GAME. Read from the screens'
+// own rows - the display list's lines and the screen memory they fetch.
+// --------------------------------------------------------------------------
+
+const STAT_LABELS = ["SCORE", "KILLS", "ACCURACY", "TIME", "LIVES LOST", "BONUS", "GRADE"];
+const shownRows = (memory, list) => displayLines(memory, list)
+  .filter((line) => line.mode === 2)
+  .map((line) => ({ ...line, text: decode(memory, line.address, 40) }));
+
+test("P3: neither summary screen shows an AI chatter line", () => {
+  const start = startGame(new Drive({ trig: (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) }));
+  assert.equal(start.end, "start_gameplay");
+  const end = levelEnd(new Drive({ trig: fireLate }));
+  assert.equal(end.end, "menu");
+  for (const [where, memory, list] of [
+    ["START GAME, first frame", start.snapshot, summary("summary_start_display_list")],
+    ["START GAME, loaded", start.memory, summary("summary_start_display_list")],
+    ["level end, first frame", end.snapshot, summary("summary_display_list")],
+    ["level end, loaded", end.memory, summary("summary_display_list")],
+  ]) {
+    for (const row of shownRows(memory, list)) {
+      assert.ok(!AI_LINES.some((line) => row.text.includes(line.trim())),
+        `${where}: the AI line "${row.text.trim()}" is on the screen (scanline ${row.scanline})`);
+    }
+  }
+});
+
+test("P3: START GAME shows no statistic without its value - only BEST, which the record fills", () => {
+  const drive = new Drive({ trig: (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) });
+  drive.sectors.set(SAVE_SECTOR, saveRecord({ levels: { 1: { grade: "A", bcd: [0x00, 0x12, 0x34] } } }));
+  const run = startGame(drive);
+  assert.equal(run.end, "start_gameplay");
+  for (const [where, memory] of [["first frame", run.snapshot], ["loaded", run.memory]]) {
+    const rows = shownRows(memory, summary("summary_start_display_list"));
+    for (const label of STAT_LABELS) {
+      assert.ok(!rows.some((row) => new RegExp(`\\b${label}\\b`).test(row.text)),
+        `START GAME (${where}) shows the ${label} label with no value`);
+    }
+  }
+  const best = shownRows(run.memory, summary("summary_start_display_list"))
+    .find((row) => /\bBEST\b/.test(row.text));
+  assert.ok(best, "START GAME no longer shows the level's best");
+  assert.match(best.text, /A\s+01234\b/, "BEST without its value");
+});

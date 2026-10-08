@@ -608,12 +608,20 @@ const MEMORY_INTEGRITY_HUNT_FIRE_DELAY = 5;
 // W2 put level 1's boss 408 rows later, so inside 4,000 frames only two of the
 // five integrity replays reached it - 524 boss frames under the DLI-phase
 // integrity check and not one laser-active frame (MEASURED on the W2 CSVs).
-// The budgets grow so each replay again reaches the boss sector and runs the
-// checks there with the lasers active: HARD's boss entry is ~3,574-3,740 and
-// its first laser 422-860 frames later (director-complete-2, the laser-contact
-// replay); EASY's entry is ~4,413 with its first laser 434 later
-// (director-complete-0). Estimates of the W2 session, confirmed by the run.
+// The budgets grow where that buys boss-sector coverage, MEASURED on focused
+// diagnostic runs of this build:
+//   hunt 5 (HARD): entry 3,736, first laser 4,576 -> 4,700;
+//   hunt 6 (HARD): entry 3,738, laser warning 4,783, beam 4,808, the beam
+//     takes the last life at 4,810 -> 4,700 + the 110-frame shortfall + 10%
+//     = 4,821;
+//   hunt 5 (EASY): entry 4,475 -> 5,100 (624 boss frames). No laser fires in
+//     this replay's fight: none in 2,524 boss frames of a 7,000-frame probe,
+//     so no budget buys laser frames here.
+// evasive 4 and hunt 7 (HARD) stay at 4,000: both lose every life after the
+// capital and the level restarts (evasive at 2,067 / 2,981 / 4,053, hunt 7 at
+// 2,670), so neither reaches the boss at any budget (probed to 4,700).
 const MEMORY_INTEGRITY_FRAMES_HARD = 4_700;
+const MEMORY_INTEGRITY_FRAMES_HUNT6 = 4_821;
 const MEMORY_INTEGRITY_FRAMES_EASY = 5_100;
 
 const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
@@ -625,7 +633,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
       difficulty: 2,
       policy,
       fireDelay,
-      frames: MEMORY_INTEGRITY_FRAMES_HARD,
+      frames: policy === "hunt" ? MEMORY_INTEGRITY_FRAMES_HARD : 4_000,
       kind: "memory-integrity-160s",
       // WHICH of the pair arms the OPTION pause test. Owner-rule class (a),
       // twice, in opposite directions.
@@ -662,7 +670,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     difficulty: 2,
     policy: "hunt",
     fireDelay: 6,
-    frames: MEMORY_INTEGRITY_FRAMES_HARD,
+    frames: MEMORY_INTEGRITY_FRAMES_HUNT6,
     kind: "memory-integrity-160s",
     pauseTest: false,
   }, {
@@ -680,7 +688,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     difficulty: 2,
     policy: "hunt",
     fireDelay: 7,
-    frames: MEMORY_INTEGRITY_FRAMES_HARD,
+    frames: 4_000,
     kind: "memory-integrity-160s",
     pauseTest: false,
   }, {

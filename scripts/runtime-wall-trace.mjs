@@ -773,7 +773,14 @@ const slotEPathSessions = ["pause", "game-over", "reset"].map((bossPath) => ({
   difficulty: 2,
   policy: "sweep",
   fireDelay: 0,
-  frames: bossPath === "pause" ? 3_600 : 4_400,
+  /* Class (a), data/w2-lights (docs/plans/w2-lights.md): the swarm and elite
+   * (a)/(b) put HARD's boss entry at frame 3,574 (was 2,914), so the path is
+   * taken at 3,874 (was 3,214) and 3,600 / 4,400 frames no longer contain what
+   * the clauses read after it. The budgets keep the windows after the path the
+   * scenario had - 386 frames for the pause, 1,186 for the next game's capital
+   * after GAME OVER or RESET - rounded up: 4,300 / 5,100. The clauses are
+   * unchanged. */
+  frames: bossPath === "pause" ? 4_300 : 5_100,
   kind: "slot-e-path",
   holdPlayerLives: 3,
   bossPath,

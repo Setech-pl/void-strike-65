@@ -626,6 +626,45 @@ host frames; the menu appears at frame 551 (BASIC 542), as on `main`.
 
 ---
 
+## 20. Sector flow: the early end, `afterCleared`, C1 (`feat/sector-flow`)
+
+Plan [plans/sector-flow.md](plans/sector-flow.md). **On copies only**, as
+§12. Default ATR `b57d5a83…` (`npm run play:atr` plays a copy in
+`build/play/`); the swarm's debug route `build/level-1-s2/void-strike-65.atr`
+`d0d7d5a0…`; elite (a) → the Bomber pair `build/level-1-s3/void-strike-65.atr`
+`04bfd3b7…`. Copy, then run (from the repository):
+
+```
+npm run play:atr
+mkdir -p build/play
+cp build/level-1-s2/void-strike-65.atr build/play/smoke-sector-flow-s2.atr
+atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s2.atr"
+cp build/level-1-s3/void-strike-65.atr build/play/smoke-sector-flow-s3.atr
+atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s3.atr"
+```
+
+- [ ] **No long empty gap after a wave dies**: kill a sector's last enemy and
+      the next sector starts at once (its first enemies within about a second)
+      - after the swarm, after (a), after the Bomber pair, after (b) (the boss
+      sector then waits only for the debris to clear).
+- [ ] **`afterCleared` follows without a pause** (level-1-s3): when (a)'s
+      Raider pair and its Interceptor are gone, the Bomber pair comes straight
+      in - no fixed lead-in.
+- [ ] **The swarm's third wave** (level-1-s2): the flight-lead Wingman column
+      (right), the Interceptors, then a plain Wingman column down the left
+      side; up to three at once.
+- [ ] **No Heavy flies into a swarm, no swarm Lights into an elite sector**:
+      leave enemies alive at a sector's end - the sector holds (the world keeps
+      scrolling) until what is live fits the next sector; at most one Light
+      ever flies beside (a)'s Raiders.
+- [ ] **The order is unchanged**: elite sector, capital, swarm, (a), the Bomber
+      pair, (b), boss - in the full game on each difficulty.
+- [ ] **The capital**: as before when sector 0's formations are not all killed
+      by row 272; if they are, it comes earlier and still only after the
+      playfield has drained (no Heavy carried into it).
+- [ ] **The boss sector is unchanged**: the WARNING screen, the fight, the
+      lasers, the summary.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

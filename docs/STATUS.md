@@ -427,8 +427,11 @@ with the player alive; `lower-playfield-laser-contact-atr-hard`'s bot seeks a
 beam only with a whole hull.
 
 **Tests:** `tests/sector-flow.test.mjs` 12 (7 RED on `main`); re-points with
-their reasons in the plan §3.5. `npm test` (default build): the totals and the
-reconciliation are in the session's report and the plan.
+their reasons in the plan §3.5. `npm test` (default build), twice: **1,223 /
+1,222 / 1 / 0 skipped** both times; the failure is the recorded `preview` @
+`tests/preview.test.mjs:164`; `npm run failures:reconcile` PASS on both runs
+and the trace (0 NEW, 0 MOVED, 0 disappeared). Hardware smoke checklist:
+[hardware-testing.md](hardware-testing.md) §20.
 
 ## Evidence integrity — AUD-05, AUD-06, AUD-07, LA-7, boss-sector integrity coverage — `OWNER REVIEW CANDIDATE` (2026-10-08)
 

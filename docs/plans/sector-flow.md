@@ -414,4 +414,5 @@ frames (first laser 4,774 / 4,785 / 4,453).
 | `DIRECTOR_RAM` / window free | 35 / 1,185 | **32 / 1,022** | memory map |
 | ATR menu | 551 / 542 | **553 / 544** (limit 603) | `boot_smoke` |
 | Integrity frames | 22,618 | **22,997** | `gate.memory_integrity` |
+| `npm test`, default build, twice | 1,211 / 1,210 / 1 | **1,223 / 1,222 / 1 / 0 skipped**, both runs; `preview` @ `:164`, recorded; reconcile PASS (0 NEW, 0 MOVED, 0 disappeared) | `build/npm-test.log`, `build/npm-test-2.log` |
 

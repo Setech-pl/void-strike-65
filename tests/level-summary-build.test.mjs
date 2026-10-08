@@ -152,27 +152,33 @@ test("four regions of art, seven sectors each from sector 600, generated from as
       `region ${index + 1}'s run on the disk is not the generated file`);
   });
   assert.equal(art.source, "assets/graphics/level-summary.json");
-  assert.equal(art.aiLinesSource, "assets/text/loader-ai-lines.json");
+  // RE-POINTED (fix/smoke-2026-10-07 P3): the AI chatter lines left the art
+  // runs with the summary's AI line (backlog: "AI chatter line: find a home").
+  assert.equal(art.aiLinesSource, undefined);
   // The look changes per region: no two runs share a palette and a picture.
   const keys = art.runs.map((run) => fs.readFileSync(build(run.file)).subarray(0, 4 + 192 + 400)
     .toString("hex"));
   assert.equal(new Set(keys).size, 4, "two regions ship the same art");
 });
 
-test("an art run carries the palette, the glyphs, the picture, the AI lines and the labels", () => {
+// RE-POINTED (fix/smoke-2026-10-07 P3): the run no longer carries the four AI
+// chatter lines (168 B) - the summary does not draw them - so the labels
+// follow the picture at 596 (was 764), and no AI line's text is in any run.
+test("an art run carries the palette, the glyphs, the picture and the labels, and no AI line", () => {
   const { art } = levelSummary;
   const run = fs.readFileSync(build(art.runs[0].file));
   const layout = art.layout;
   assert.deepEqual(layout, {
     palette: 0, glyphs: 4, glyphCount: 24, firstGlyphCode: 72,
-    map: 196, mapRows: 10, ai: 596, aiLines: 4, labels: 764,
+    map: 196, mapRows: 10, labels: 596,
   });
-  // The AI lines are frontend records, one per line, each ending the list.
-  for (let line = 0; line < layout.aiLines; line += 1) {
-    const record = run.subarray(layout.ai + line * 42, layout.ai + (line + 1) * 42);
-    assert.equal(record[40], 0x00);
-    assert.equal(record[41], 0xff);
-    assert.match(record.subarray(2, 40).toString("latin1"), /^[A-Z0-9 \-./:?]{38}$/);
+  const aiSource = JSON.parse(fs.readFileSync(path.join(root, "assets/text/loader-ai-lines.json"), "utf8"));
+  for (const summaryRun of art.runs) {
+    const bytes = fs.readFileSync(build(summaryRun.file));
+    for (const text of aiSource.lines) {
+      assert.equal(bytes.indexOf(Buffer.from(text, "latin1")), -1,
+        `region ${summaryRun.region}'s run still carries "${text}"`);
+    }
   }
   // The labels are interface text from code (MIT), in the same run.
   const labels = run.subarray(layout.labels).toString("latin1");
@@ -318,9 +324,10 @@ test("the stat block in zero page is the summary ABI's and no link claims it", (
 // Owner review of M5a-S2 (2026-10-03): START GAME keeps the old loader's
 // identity. The top line is one copy in the sector reader - the interim
 // screen of a session's first START GAME draws it, and the summary module
-// draws the same record - and the AI lines stay the four of
-// assets/text/loader-ai-lines.json, carried by the art runs. No new text.
-test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; the AI lines stay in the art", () => {
+// draws the same record. RE-POINTED (fix/smoke-2026-10-07 P3): the AI lines
+// left the art runs too (the test above); neither the reader nor the module
+// carries one, as before.
+test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either", () => {
   const line = Buffer.from("ENGAGING ENEMY SECTOR", "ascii");
   const count = (image) => {
     let found = 0;

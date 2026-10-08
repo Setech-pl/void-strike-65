@@ -2451,7 +2451,6 @@ async function build() {
   const summaryArtRuns = buildSummaryArtRuns({
     definition: loadSummaryArtDefinition(summaryArtSource),
     hullAsset: JSON.parse(fs.readFileSync(capitalHullsDefinitionPath, "utf8")),
-    aiLinesPath: path.join(rootDirectory, "assets", "text", "loader-ai-lines.json"),
   }).map((run, index) => ({
     ...run,
     startSector: summaryArtBaseSector + index * SUMMARY_ART_SECTORS,
@@ -4166,7 +4165,6 @@ async function build() {
       },
       art: {
         source: "assets/graphics/level-summary.json",
-        aiLinesSource: "assets/text/loader-ai-lines.json",
         sectorsPerRegion: SUMMARY_ART_SECTORS,
         staging: summaryStagingAddress,
         layout: SUMMARY_LAYOUT,

@@ -844,7 +844,11 @@ function assertSummaryBody(lines, firstPictureLine, where) {
   }
 }
 
-test("the START GAME summary: ENGAGING ENEMY SECTOR on top, an AI line under the empty panel", () => {
+// RE-POINTED (fix/smoke-2026-10-07 P3): before a level was played the panel
+// shows only BEST (its seven statistics rows have no values: blank lines in
+// their place), and the AI line under it is gone - it ran into the
+// statistics; its row is blank. Every scanline is where it was.
+test("the START GAME summary: ENGAGING ENEMY SECTOR on top, BEST alone where the panel was, no AI line", () => {
   const drive = new Drive({ trig: (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) });
   const run = startGame(drive);
   assert.equal(run.end, "start_gameplay");
@@ -854,41 +858,36 @@ test("the START GAME summary: ENGAGING ENEMY SECTOR on top, an AI line under the
   // START GAME already shows it (scanline 32, column 9), no level number.
   assert.deepEqual([first[0].mode, first[0].address, first[0].scanline], [2, SCREEN, 32]);
   assert.equal(decode(run.snapshot, first[0].address, 40), ENGAGING);
-  // The picture and the panel sit where the level-end summary has them.
+  // The picture and BEST sit where the level-end summary has them.
   const levelEnd = displayLines(run.snapshot, summary("summary_display_list"));
   assertSummaryBody(first, 1, "START GAME");
-  assert.equal(first[1].scanline, levelEnd[2].scanline, "the picture moved");
-  for (let row = 2; row <= 9; row += 1) {
-    const line = first[1 + 10 + row - 2];
-    assert.deepEqual([line.mode, line.address], [2, SCREEN + row * 40], `panel row ${row}`);
-    assert.equal(line.scanline, levelEnd[12 + row - 2].scanline, `panel row ${row} moved`);
-  }
-  // Under the panel (after BEST): one of the four AI lines, picked from
-  // assets/text/loader-ai-lines.json; then the dotted row and the prompt.
-  const ai = first[19];
-  assert.equal(ai.mode, 2);
-  const shown = decode(run.memory, ai.address, 40);
-  assert.ok(AI_LINES.some((line) => shown === ` ${line} `), `not an AI line: "${shown}"`);
-  assert.deepEqual(first.slice(20).map((line) => [line.mode, line.address]),
-    [[2, SCREEN + 10 * 40], [2, SCREEN + 11 * 40]]);
-  assert.equal(first.length, 22);
+  assert.equal(first[1].scanline, levelEnd[1].scanline, "the picture moved");
+  const best = first[11];
+  assert.deepEqual([best.mode, best.address], [2, SCREEN + 9 * 40], "BEST");
+  assert.equal(best.scanline, levelEnd.find((line) => line.address === SCREEN + 9 * 40).scanline, "BEST moved");
+  // Then, after a blank row (the AI line's), the dotted row and the prompt.
+  assert.deepEqual(first.slice(12).map((line) => [line.mode, line.address, line.scanline]),
+    [[2, SCREEN + 10 * 40, best.scanline + 16], [2, SCREEN + 11 * 40, best.scanline + 24]]);
+  assert.equal(first.length, 14);
   assert.ok(!first.some((line) => /LEVEL/.test(decode(run.memory, line.address, 40))),
     "START GAME shows no LEVEL line until M4");
 });
 
-test("the level-end summary keeps its layout: LEVEL nn on top, the AI line under it", () => {
+// RE-POINTED (fix/smoke-2026-10-07 P3): row 1 (the AI line) is a blank row;
+// the picture and the panel keep their scanlines.
+test("the level-end summary keeps its layout: LEVEL nn on top, a blank row under it, no AI line", () => {
   const drive = new Drive({ trig: fireLate });
   const run = levelEnd(drive);
   assert.equal(run.end, "menu");
   const lines = displayLines(run.snapshot, summary("summary_display_list"));
   assert.deepEqual([lines[0].mode, lines[0].address, lines[0].scanline], [2, SCREEN, 24]);
   assert.match(decode(run.snapshot, SCREEN, 40), /LEVEL 01/);
-  assert.deepEqual([lines[1].mode, lines[1].address], [2, SCREEN + 40]);
-  assertSummaryBody(lines, 2, "level end");
-  assert.deepEqual(lines.slice(12).map((line) => line.address),
+  assertSummaryBody(lines, 1, "level end");
+  assert.equal(lines[1].scanline, 47, "the picture moved");
+  assert.deepEqual(lines.slice(11).map((line) => line.address),
     Array.from({ length: 10 }, (_, index) => SCREEN + (2 + index) * 40));
-  const shown = decode(run.memory, SCREEN + 40, 40);
-  assert.ok(AI_LINES.some((line) => shown === ` ${line} `), `not an AI line: "${shown}"`);
+  assert.equal(lines[11].scanline, 131, "the panel moved");
+  assert.ok(!lines.some((line) => line.address === SCREEN + 40), "row 1 (the AI line's) is shown");
 });
 
 test("before the summary module arrives the screen shows only the summary's top line, in its place and colours", () => {

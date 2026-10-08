@@ -218,16 +218,19 @@ test("the reader's overlay directory and table image match the disk and the wind
 // RE-POINTED 2026-10-03 (M5a-S2, Q3: "S2 moves every text to disk"): the four
 // lines left the reader with the loader screen and travel in every region's
 // summary art run, generated from the same asset.
-test("the AI pool holds exactly four lines generated from the assets source", () => {
+// RE-POINTED (fix/smoke-2026-10-07 P3): the summary no longer draws an AI
+// line (it ran into the statistics), so no art run carries the pool; the
+// asset stays, four lines, for the backlog's "AI chatter line: find a home".
+test("the AI pool holds exactly four lines in the assets source, and no build output carries them", () => {
   const source = JSON.parse(read("assets/text/loader-ai-lines.json").toString("utf8"));
   assert.equal(source.lines.length, 4);
-  const { layout, runs } = manifest.levelSummary.art;
+  const { runs } = manifest.levelSummary.art;
   for (const run of runs) {
     const bytes = read(`build/${run.file}`);
-    const lines = Array.from({ length: 4 }, (_, index) =>
-      bytes.subarray(layout.ai + index * 42 + 2, layout.ai + index * 42 + 40).toString("latin1"));
-    assert.deepEqual(lines, source.lines.map((line) => line.padEnd(38, " ")),
-      `region ${run.region}'s run does not carry the asset's four lines`);
+    for (const line of source.lines) {
+      assert.equal(bytes.indexOf(Buffer.from(line, "latin1")), -1,
+        `region ${run.region}'s run still carries "${line}"`);
+    }
   }
   // Creative text is an asset (LICENSE-ASSETS, "Mixed files"): no line is
   // typed into src/, and the reader no longer carries a pool at all.

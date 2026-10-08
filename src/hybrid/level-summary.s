@@ -538,20 +538,10 @@ summary_art:
         dex
         cpx #$FF
         bne @map
+        ; fix/smoke-2026-10-07 P3: no AI chatter line here any more (it ran
+        ; into the statistics); the backlog's "AI chatter line: find a home".
         lda #<(SUMMARY_STAGING + SUMMARY_ART_LABELS)
         ldx #>(SUMMARY_STAGING + SUMMARY_ART_LABELS)
-        jsr summary_records
-        lda VCOUNT                      ; any of the four AI lines
-        and #$03
-        tax
-        lda summary_ai_offsets,x
-        clc
-        adc #<(SUMMARY_STAGING + SUMMARY_ART_AI)
-        pha
-        lda #>(SUMMARY_STAGING + SUMMARY_ART_AI)
-        adc #$00
-        tax
-        pla
         jsr summary_records
         clc
 @done:
@@ -1010,8 +1000,6 @@ summary_powers_hi:
         .byte >1, >10, >100, >1000, >10000
 summary_letters:
         .byte 0, CH_FRONT_A + 2, CH_FRONT_A + 1, CH_FRONT_A, CH_FRONT_A + 18  ; -, C, B, A, S
-summary_ai_offsets:
-        .byte 0, SUMMARY_ART_AI_RECORD, 2 * SUMMARY_ART_AI_RECORD, 3 * SUMMARY_ART_AI_RECORD
 
 summary_title_records:
         .byte <(SUMMARY_SCREEN + 16), >(SUMMARY_SCREEN + 16)
@@ -1025,9 +1013,10 @@ summary_fire_records:
         .byte "PRESS FIRE", $00
         .byte $FF
 
-; 16 blank lines, the title and the AI line, the 10-row ANTIC 4 picture, then
-; the stats, the animation row and the prompt: 204 lines, no DLI - the picture
-; draws from the frontend charset's codes 72-95, which the menu never uses.
+; 16 blank lines, the title, 8 blank lines (the AI line's until
+; fix/smoke-2026-10-07 P3), the 10-row ANTIC 4 picture, then the stats, the
+; animation row and the prompt: 204 lines, no DLI - the picture draws from the
+; frontend charset's codes 72-95, which the menu never uses.
 ; ---------------------------------------------------------------------------
 ; One animation step per completed sector (moved from the sector reader by
 ; the owner review, byte for byte; the reader calls it only once this module
@@ -1061,7 +1050,7 @@ summary_display_list:
         .byte $70, $70
         .byte $42, <SUMMARY_SCREEN, >SUMMARY_SCREEN
         .byte $20
-        .byte $02
+        .byte $70                       ; P3: the AI line's row, blank
         .byte $30
         .byte $44, <SUMMARY_PICTURE, >SUMMARY_PICTURE
         .repeat SUMMARY_PICTURE_ROWS - 1
@@ -1077,8 +1066,11 @@ summary_display_list:
 ; Owner review (2026-10-03): START GAME's list. Its top line sits a row lower,
 ; at the interim screen's scanline 32 (the frontend text list's row 0); no AI
 ; line under it, so the picture and the panel keep the level-end scanlines
-; (47 and 131); the AI line - row 1's memory, from the art run - shows under
-; the panel, after BEST; then the dotted row and the prompt. 211 lines.
+; (47 and 131). fix/smoke-2026-10-07 P3: before a level was played the panel
+; has no values, so its seven statistics rows are blank lines and only BEST
+; shows, where it was; the AI line under it is gone (it ran into the
+; statistics) and its row is blank too; then the dotted row and the prompt.
+; 211 lines, as before.
 summary_start_display_list:
         .byte $70, $70, $70
         .byte $42, <SUMMARY_SCREEN, >SUMMARY_SCREEN
@@ -1089,11 +1081,11 @@ summary_start_display_list:
         .byte $04
         .endrepeat
         .byte $30
-        .byte $42, <(SUMMARY_SCREEN + 2 * 40), >(SUMMARY_SCREEN + 2 * 40)
-        .repeat 7
-        .byte $02
+        .repeat SUMMARY_ROW_BEST - SUMMARY_ROW_SCORE
+        .byte $70                       ; P3: SCORE ... GRADE, no values yet
         .endrepeat
-        .byte $42, <(SUMMARY_SCREEN + 40), >(SUMMARY_SCREEN + 40)
+        .byte $42, <(SUMMARY_SCREEN + SUMMARY_ROW_BEST * 40), >(SUMMARY_SCREEN + SUMMARY_ROW_BEST * 40)
+        .byte $70                       ; P3: the AI line's row, blank
         .byte $42, <SUMMARY_ANIMATION_ROW, >SUMMARY_ANIMATION_ROW
         .byte $02
         .byte $41, <summary_start_display_list, >summary_start_display_list

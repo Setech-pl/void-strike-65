@@ -9,17 +9,17 @@
 //                    per-cent sign the accuracy line prints (ANTIC 2, code 95)
 //   picture  400 B   10 rows x 40 screen codes: the capital corridor in the
 //                    region's style, as gameplay draws it
-//   AI lines 168 B   the four loader lines (assets/text/loader-ai-lines.json,
-//                    owner decision O, Q3), one frontend record list each
 //   labels           SCORE ... BEST, interface text from this file (MIT)
 //
+// fix/smoke-2026-10-07 P3: the four AI chatter lines (assets/text/
+// loader-ai-lines.json) no longer travel here - the summary no longer draws
+// them (they ran into the statistics); the backlog's "AI chatter line: find
+// a home" keeps the asset and its converter (scripts/loader-ai-lines.mjs).
+//
 // The creative inputs - the hull art, the rows and stars and palette chosen
-// here, the AI lines - are CC BY-NC-SA (LICENSE-ASSETS, "Mixed files"); the
-// labels and this converter are MIT.
+// here - are CC BY-NC-SA (LICENSE-ASSETS, "Mixed files"); the labels and this
+// converter are MIT.
 import fs from "node:fs";
-
-import { loadLoaderAiLines, LOADER_AI_LINE_BYTES, LOADER_AI_LINE_COUNT }
-  from "./loader-ai-lines.mjs";
 
 export const SUMMARY_ART_SECTORS = 7;
 export const SUMMARY_ART_REGIONS = 4;
@@ -31,22 +31,20 @@ export const SUMMARY_LAYOUT = Object.freeze({
   palette: 0, glyphs: 4, glyphCount: SUMMARY_GLYPH_COUNT,
   firstGlyphCode: SUMMARY_FIRST_GLYPH_CODE,
   map: 4 + SUMMARY_GLYPH_COUNT * 8, mapRows: SUMMARY_PICTURE_ROWS,
-  ai: 4 + SUMMARY_GLYPH_COUNT * 8 + SUMMARY_PICTURE_ROWS * 40,
-  aiLines: LOADER_AI_LINE_COUNT,
-  labels: 4 + SUMMARY_GLYPH_COUNT * 8 + SUMMARY_PICTURE_ROWS * 40 + LOADER_AI_LINE_COUNT * 42,
+  labels: 4 + SUMMARY_GLYPH_COUNT * 8 + SUMMARY_PICTURE_ROWS * 40,
 });
 
 // The screen the $0500 module lays out (src/hybrid/level-summary-abi.inc):
-// 40-B rows from $4000, the title on row 0, the AI line on row 1, the stats
-// on rows 2-9, labels from LABEL_COLUMN, values right-aligned to VALUE_END_COLUMN.
+// 40-B rows from $4000, the title on row 0, row 1 blank (the AI line's until
+// fix/smoke-2026-10-07 P3), the stats on rows 2-9, labels from LABEL_COLUMN,
+// values right-aligned to VALUE_END_COLUMN.
 const SCREEN = 0x4000;
 export const SUMMARY_ROWS = Object.freeze({
-  title: 0, ai: 1, score: 2, kills: 3, accuracy: 4, time: 5, lives: 6,
+  title: 0, score: 2, kills: 3, accuracy: 4, time: 5, lives: 6,
   bonus: 7, grade: 8, best: 9, animation: 10, prompt: 11,
 });
 export const SUMMARY_LABEL_COLUMN = 8;
 export const SUMMARY_VALUE_END_COLUMN = 31;
-export const SUMMARY_AI_COLUMN = 1;
 const LABELS = Object.freeze([
   ["score", "SCORE"], ["kills", "KILLS"], ["accuracy", "ACCURACY"], ["time", "TIME"],
   ["lives", "LIVES LOST"], ["bonus", "BONUS"], ["grade", "GRADE"], ["best", "BEST"],
@@ -84,8 +82,7 @@ export function loadSummaryArtDefinition(sourcePath) {
   return definition;
 }
 
-export function buildSummaryArtRuns({ definition, hullAsset, aiLinesPath }) {
-  const aiLines = loadLoaderAiLines(aiLinesPath);
+export function buildSummaryArtRuns({ definition, hullAsset }) {
   const { allied } = hullAsset;
   const star = glyphBytes(definition.star.map((row) => row.replaceAll(".", "0")));
   const percent = definition.percent.map((value, index) =>
@@ -152,14 +149,6 @@ export function buildSummaryArtRuns({ definition, hullAsset, aiLinesPath }) {
       run[offset] = SUMMARY_FIRST_GLYPH_CODE + 22;
     }
 
-    // The AI lines: one record list per line, so the summary draws line k by
-    // pointing render_frontend_data at record k.
-    aiLines.forEach((line, slot) => {
-      Buffer.concat([
-        frontendRecord(SCREEN + SUMMARY_ROWS.ai * 40 + SUMMARY_AI_COLUMN, line),
-        Buffer.from([0xff]),
-      ]).copy(run, SUMMARY_LAYOUT.ai + slot * (LOADER_AI_LINE_BYTES + 4));
-    });
     if (SUMMARY_LAYOUT.labels + labelRecords.length > run.length) {
       throw new Error("the summary art run outgrew its seven sectors");
     }
@@ -182,8 +171,6 @@ export function renderSummaryLayoutInclude() {
     `SUMMARY_PERCENT_CODE    = ${SUMMARY_PERCENT_CODE}`,
     `SUMMARY_ART_MAP         = ${SUMMARY_LAYOUT.map}`,
     `SUMMARY_PICTURE_ROWS    = ${SUMMARY_PICTURE_ROWS}`,
-    `SUMMARY_ART_AI          = ${SUMMARY_LAYOUT.ai}`,
-    `SUMMARY_ART_AI_RECORD   = ${LOADER_AI_LINE_BYTES + 4}`,
     `SUMMARY_ART_LABELS      = ${SUMMARY_LAYOUT.labels}`,
     `SUMMARY_LABEL_COLUMN    = ${SUMMARY_LABEL_COLUMN}`,
     `SUMMARY_VALUE_END       = ${SUMMARY_VALUE_END_COLUMN}`,

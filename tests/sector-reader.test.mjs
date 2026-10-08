@@ -13,6 +13,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { loadLoaderAiLines } from "../scripts/loader-ai-lines.mjs";
 import { Nmos6502, nmos6502Flags } from "../scripts/nmos6502.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 
@@ -663,13 +664,13 @@ test("main.s enters the reader by constant, and START GAME costs MAIN nothing", 
 // in each region's summary art run (tests/overlay-slot.test.mjs checks them
 // against the asset). What stays pinned here: the format, and that the reader
 // carries no copy.
+// RE-POINTED (fix/smoke-2026-10-07 P3): the lines left the art runs (the
+// summary no longer draws them); the format is the asset's, read through its
+// converter, which pads each line to 38 characters.
 test("the AI text pool is four lines of 38 characters", () => {
   const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
   assert.doesNotMatch(source, /AI_LINE_COUNT|ai_line_pool/);
-  const art = fs.readFileSync(path.join(root, "build", manifest.levelSummary.art.runs[0].file));
-  const { layout } = manifest.levelSummary.art;
-  const lines = Array.from({ length: 4 }, (_, index) =>
-    art.subarray(layout.ai + index * 42 + 2, layout.ai + index * 42 + 40).toString("latin1"));
+  const lines = loadLoaderAiLines(path.join(root, "assets", "text", "loader-ai-lines.json"));
   assert.equal(lines.length, 4);
   for (const line of lines) {
     assert.equal(line.length, 38, `"${line}" is not 38 characters`);

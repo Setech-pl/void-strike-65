@@ -642,6 +642,26 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     frames: 4_000,
     kind: "memory-integrity-160s",
     pauseTest: false,
+  }, {
+    // fix/smoke-2026-10-07 P2, owner rule class (a), 2026-10-08: the scenario
+    // moves, the clause does not. The owner's decision of 2026-10-08 leaves
+    // one Interceptor, one Wingman, one Raider pair and one Bomber pair after
+    // level 1's capital, so the integrity replays kill fewer enemies before
+    // the boss and collect 1 + 2 + 2 + 3 = 8 (MEASURED on the level-1-s0
+    // route), under the clause's 10. MEASURED replays to add, collections in
+    // 4,000 frames: difficulty 1 hunt at fire delays 4, 5, 6: 1, 2, 2;
+    // difficulty 0 at 4, 5, 6: 3, 3, 3; difficulty 2 at 3, 4, 8: 2, 1, 3.
+    // EASY's hunt at delay 5 is one replay that restores the count with the
+    // slack W1's rewrite left (8 + 3 = 11): EASY's slower world still reaches
+    // a capsule after the capital (frame 3,051). It does not arm the pause test.
+    id: "memory-integrity-atr-0-hunt-fire5",
+    medium: "ATR",
+    difficulty: 0,
+    policy: "hunt",
+    fireDelay: 5,
+    frames: 4_000,
+    kind: "memory-integrity-160s",
+    pauseTest: false,
   }]);
 
 const pickupFenceSessions = [["ATR", 2], ["ATR", 1]].map(([medium, difficulty]) => ({

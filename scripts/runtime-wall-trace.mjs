@@ -604,6 +604,18 @@ const summaryRecordSessions = [{
 // so the replay is self-describing.
 const MEMORY_INTEGRITY_HUNT_FIRE_DELAY = 5;
 
+// chore/evidence-integrity (class (a), the scenario moves, no clause does):
+// W2 put level 1's boss 408 rows later, so inside 4,000 frames only two of the
+// five integrity replays reached it - 524 boss frames under the DLI-phase
+// integrity check and not one laser-active frame (MEASURED on the W2 CSVs).
+// The budgets grow so each replay again reaches the boss sector and runs the
+// checks there with the lasers active: HARD's boss entry is ~3,574-3,740 and
+// its first laser 422-860 frames later (director-complete-2, the laser-contact
+// replay); EASY's entry is ~4,413 with its first laser 434 later
+// (director-complete-0). Estimates of the W2 session, confirmed by the run.
+const MEMORY_INTEGRITY_FRAMES_HARD = 4_700;
+const MEMORY_INTEGRITY_FRAMES_EASY = 5_100;
+
 const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
   ["evasive", "hunt"].map((policy) => {
     const fireDelay = policy === "hunt" ? MEMORY_INTEGRITY_HUNT_FIRE_DELAY : 4;
@@ -613,7 +625,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
       difficulty: 2,
       policy,
       fireDelay,
-      frames: 4_000,
+      frames: MEMORY_INTEGRITY_FRAMES_HARD,
       kind: "memory-integrity-160s",
       // WHICH of the pair arms the OPTION pause test. Owner-rule class (a),
       // twice, in opposite directions.
@@ -650,7 +662,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     difficulty: 2,
     policy: "hunt",
     fireDelay: 6,
-    frames: 4_000,
+    frames: MEMORY_INTEGRITY_FRAMES_HARD,
     kind: "memory-integrity-160s",
     pauseTest: false,
   }, {
@@ -668,7 +680,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     difficulty: 2,
     policy: "hunt",
     fireDelay: 7,
-    frames: 4_000,
+    frames: MEMORY_INTEGRITY_FRAMES_HARD,
     kind: "memory-integrity-160s",
     pauseTest: false,
   }, {
@@ -688,7 +700,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     difficulty: 0,
     policy: "hunt",
     fireDelay: 5,
-    frames: 4_000,
+    frames: MEMORY_INTEGRITY_FRAMES_EASY,
     kind: "memory-integrity-160s",
     pauseTest: false,
   }]);

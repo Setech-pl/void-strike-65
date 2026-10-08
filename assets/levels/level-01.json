@@ -167,8 +167,8 @@
     {
       "kind": "space",
       "subtype": "elite",
-      "rows": 144,
-      "_w1": "M5b-S4b.4 (owner decision W1, 2026-10-07): from the end of the capital sector to the boss, exactly one wave of each enemy kind that appeared there before, in the order of their first appearance - the raider+wingman formation (here), then the Bombers (sector 4). This sector keeps one raider+wingman wave (144 rows, the old spacing between waves), with the flight-lead appearance of the last one, the level's only re-skinned escort wave; sector 4 keeps one Bomber wave (312 rows, the time the old last wave had before the boss), so the level-1-s3 debug route still starts with Bombers.",
+      "rows": 232,
+      "_p2": "fix/smoke-2026-10-07 P2 (owner decision of 2026-10-08, supersedes W1's wave list): after the capital, one wave of each Light kind the level can name - the Interceptor, then the Wingman - then one Raider wave, then one Bomber pair (sector 3), so each wave reads as one wave. An elite sector holds one Light at a time (the subtype ceiling; src/c/director.c subtype_ceiling_light), so each Light wave is one Light; a Light wave holds the Director's cursor until its Light is gone (src/c/lifecycle.c light_wave_step), so the next wave never shares the screen with it; a Heavy wave arms only when the formation before it has gone (one formation at a time). The rows add a pause: the Wingman arms no earlier than row 40, the Raiders no earlier than row 96; the Bombers no earlier than sector 3's row 24, after the Raiders' escort has drifted off (MEASURED on HARD: it outlives its leader by up to ~200 frames). The Raider wave is one formation, a Raider pair with its Wingman escort in the flight-lead look (the level's only re-skinned wave). Sector 2 grows 144 -> 232 rows and sector 3 shrinks 312 -> 224, so the post-capital rows stay 456 and the level reaches its boss when it did (MEASURED: docs/plans/smoke-2026-10-07.md).",
       "archetypes": [
         "raider",
         "wingman",
@@ -187,11 +187,25 @@
       "waves": [
         {
           "row": 0,
+          "archetype": "interceptor",
+          "count": 1,
+          "spacing": 16,
+          "entry": 124
+        },
+        {
+          "row": 40,
+          "archetype": "wingman",
+          "count": 1,
+          "spacing": 16,
+          "entry": 124
+        },
+        {
+          "row": 96,
           "members": [
             "raider",
             "wingman"
           ],
-          "count": 6,
+          "count": 1,
           "spacing": 24,
           "entry": 124,
           "appearance": "flight-lead"
@@ -201,7 +215,7 @@
     {
       "kind": "space",
       "subtype": "elite",
-      "rows": 312,
+      "rows": 224,
       "archetypes": [
         "raider",
         "wingman",
@@ -219,9 +233,9 @@
       },
       "waves": [
         {
-          "row": 0,
+          "row": 24,
           "archetype": "bomber",
-          "count": 6,
+          "count": 1,
           "spacing": 24,
           "entry": 124
         }

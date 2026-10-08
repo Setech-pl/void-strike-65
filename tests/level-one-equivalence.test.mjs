@@ -115,13 +115,18 @@ test("T4: the Heavy stream keeps the cadence and the density it had before the l
 // level 1 plays one Raider + Wingman wave and one Bomber wave, then the boss,
 // so the 9,000 frames hold four blocks - still alternating - and the boss
 // sector's frames add no Heavy formation.
+// RE-PINNED (fix/smoke-2026-10-07 P2, owner decision of 2026-10-08): after
+// the capital one Raider wave of ONE formation and one Bomber pair, each
+// reading as one wave (the two Light waves before them are not Heavy
+// formations), so the post-capital blocks are R1 B1 on every difficulty -
+// still alternating; the four blocks before the capital are unchanged.
 const PLAYED_ORDER = {
-  0: "R4 B4 R5 B6",
-  1: "R4 B4 R5 B6",
-  2: "R4 B4 R6 B6",
+  0: "R4 B4 R1 B1",
+  1: "R4 B4 R1 B1",
+  2: "R4 B4 R1 B1",
 };
-// Heavy formations in 9,000 frames (W1, measured as above).
-const HEAVY_FORMATIONS = { 0: 19, 1: 19, 2: 20 };
+// Heavy formations in 9,000 frames (P2, measured as above).
+const HEAVY_FORMATIONS = { 0: 10, 1: 10, 2: 10 };
 // One WaveDef names one archetype and the core page holds twenty of them, so
 // six is the floor a level of this density can reach: 116 formations over 20
 // waves. Per-FORMATION alternation needs the "mixed wave" bit, which owner
@@ -145,7 +150,11 @@ test("owner decision 8: the authored waves alternate Raider and Bomber, with no 
   () => {
     const compiled = compileLevelFile(levelSourcePath(1));
     const heavy = compiled.waves.filter((wave) => wave.class === "heavy");
-    assert.equal(heavy.length, compiled.waves.length, "level 1 authors Heavy waves only");
+    // RE-POINTED (fix/smoke-2026-10-07 P2): level 1 now authors two Light
+    // waves after the capital (one Interceptor, one Wingman); the alternation
+    // is a rule of its Heavy waves, which it still checks on all of them.
+    assert.deepEqual(compiled.waves.filter((wave) => wave.class === "light").map((wave) => wave.archetype),
+      ["interceptor", "wingman"], "level 1's Light waves are the two P2 adds");
     assert.equal(heavy[0].archetype, "raider", "the level still opens on the Raider formation");
     assert.equal(heavy[0].escort, "wingman", "and it still has its Wingman escort");
     for (let index = 1; index < heavy.length; index += 1) {

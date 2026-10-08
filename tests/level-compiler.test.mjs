@@ -283,7 +283,12 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   // rows the old last wave had before the boss). W1 shortens the level on
   // purpose, so the 2,896-row total and the 3,710-row end are no longer
   // invariants; the capital's row (272) and its traversal are untouched.
-  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 144, 312, 0]);
+  // RE-POINTED (fix/smoke-2026-10-07 P2, owner decision of 2026-10-08): the
+  // post-capital sectors carry one wave of each Light kind, one Raider wave
+  // and one Bomber pair; sector 3 grows 144 -> 232 rows (three waves in turn)
+  // and sector 4 shrinks 312 -> 224 (one pair), so the post-capital rows stay
+  // 456 and the 1,270-row total - the boss on the row it was - is unchanged.
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 232, 224, 0]);
   assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1270);
   // Every wave names an archetype offset in the frozen four-record roster.
   for (const wave of compiled.waves) {
@@ -545,9 +550,12 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
       assert.equal(two.sectors[index].effectiveHeavies, 0, "and it has no Heavy slot");
     }
 
-    // Waves (R2): level 1 has no Light-dominant wave at all; level 2 opens on
-    // one and has seven.
-    assert.equal(one.waves.filter((wave) => wave.class === "light").length, 0);
+    // Waves (R2): level 2 opens on a Light-dominant wave and has seven.
+    // RE-POINTED (fix/smoke-2026-10-07 P2): level 1 now has two after its
+    // capital - one Interceptor, one Wingman - where it had none; it still
+    // never opens on one (its first wave is the Raider + Wingman formation).
+    assert.equal(one.waves.filter((wave) => wave.class === "light").length, 2);
+    assert.notEqual(one.waves[0].class, "light");
     assert.equal(two.waves.filter((wave) => wave.class === "light").length, 7);
     assert.equal(two.waves[0].archetype, "interceptor");
     assert.equal(two.waves.length, 19);

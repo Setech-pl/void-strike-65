@@ -206,10 +206,13 @@ test("T13: level 1 shows a sky per sector and one re-skinned escort wave; level 
   // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): sector 3 keeps one
   // Raider + Wingman wave, and it is the re-skinned one, so level 1 still
   // shows its one flight-lead escort wave; it is now wave 3, not wave 7.
-  assert.deepEqual(variants, [[2, 1]],
-    "exactly one wave: sector 3's only one, the Raider + Wingman wave that always arms");
-  assert.equal(one.waves[2].sector, 3);
-  assert.equal(one.waves[2].escort, "wingman");
+  // RE-POINTED (fix/smoke-2026-10-07 P2): sector 3 now opens on one
+  // Interceptor wave and one Wingman wave (waves 2 and 3); the Raider +
+  // Wingman wave after them is still the one re-skinned wave, now wave 5.
+  assert.deepEqual(variants, [[4, 1]],
+    "exactly one wave: sector 3's Raider + Wingman wave, which always arms");
+  assert.equal(one.waves[4].sector, 3);
+  assert.equal(one.waves[4].escort, "wingman");
   assert.deepEqual([...one.pages.payload.subarray(PAYLOAD_OFFSET.weaponGlyph,
     PAYLOAD_OFFSET.weaponGlyph + 18)], new Array(18).fill(0), "level 1 keeps level 1's fire");
   // Level 1's waves, rows, counts and spacing are the ones it had before.

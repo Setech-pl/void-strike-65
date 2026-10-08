@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-08 (data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-08 (chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -355,6 +355,34 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Evidence integrity — AUD-05, AUD-06, AUD-07, LA-7, boss-sector integrity coverage — `OWNER REVIEW CANDIDATE` (2026-10-08)
+
+**Branch and record:** `chore/evidence-integrity` from `main` `85fccb7`;
+[plans/evidence-integrity.md](plans/evidence-integrity.md). No game byte
+changed: ATR `77d4cbf6…`, boot `4154b5f4…` as on `main`.
+
+* **AUD-05:** the recorded `preview` test reaches its behavioural checks
+  (COLPF2 `$AE`); it fails at `tests/preview.test.mjs:164`, the recorded class
+  C cause. **AUD-06:** a PAL audit PASS is GO ≥ 500, DMA-on ≤ 32,568, no miss,
+  a non-empty input, bound into `gate.timing_and_dli_passed`. **AUD-07:**
+  `architecture.md` and `game-design.md` describe the code. **LA-7:** the trace
+  column is `live_heavy_formation`.
+* **Reconciliation:** `npm run failures:reconcile -- --tests <log> --trace
+  docs/runtime-wall-trace.json` matches by name and first failing assertion;
+  every recorded test failure carries `first_failing_message`.
+* **Integrity replays in the boss sector:** 2 → **3** of 5, 524 → **2,669** boss
+  frames, 0 → **102** laser-active frames (hunt 5 4,700, hunt 6 4,821, EASY
+  hunt 5 5,100). Evasive 4 and hunt 7 lose every life before the boss at any
+  budget, and EASY hunt 5's fight fires no laser: an owner decision, three
+  alternatives in the record §4.
+* **Gates:** 57 replays, 0 clause failures, 0 miss events, PAL audit PASS;
+  worst fence margin **1,472** (`2-sweep-fire6` f311), DMA-on **31,304**
+  (`memory-integrity-atr-2-hunt-fire5` f2388), both unchanged; boss entry 245
+  host frames; trace 1,656 s.
+* **`npm test`** (default build): run 1 1,211 / 1,209 / 2 / 0 skipped (the
+  stale media hash, bound by `npm run showcase`); run 2 1,211 / 1,210 / 1 / 0
+  skipped, `preview` @ `:164`, recorded. Clause failures recorded: none.
 
 ## W2 — the Lights in level 1: a swarm after the capital, elite Raider sectors (a) and (b), the Light archetype in the trace — `OWNER-SMOKE CANDIDATE` (2026-10-08)
 

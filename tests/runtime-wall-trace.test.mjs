@@ -565,6 +565,11 @@ test("Spread Shot passes PAL wall budget with a legal capsule and projectile-hea
   assert.ok(feature.active_capsule_during_booster_frames > 0);
   assert.ok(feature.worst_legal_capsule_three_projectiles.state.player_fighter_projectiles >= 3);
   assert.equal(feature.worst_legal_capsule_three_projectiles.state.weapon_pickup.state, 2);
+  // RECORDED AS VACUOUS (chore/evidence-integrity, item 5): target/hard
+  // overruns and passed are literals in the harness (weapon_pickup_spread_shot,
+  // a frozen accepted checkpoint) and the three gate counters are
+  // nframes-derived; the live gates are weapon_pickup_shield and the PAL audit
+  // in gate.timing_and_dli_passed (AUD-06). The frame counts above are live.
   assert.deepEqual([
     feature.target_overrun_frames,
     feature.hard_overrun_frames,

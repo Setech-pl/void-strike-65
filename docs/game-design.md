@@ -146,7 +146,7 @@ Difficulty changes the measured vertical rates.
 > damage**: damage the player deals, damage the player takes, contact damage
 > and boss damage. Today only some of that exists: the vertical rates below,
 > the fire pauses 56/44/32, and debris contact damage at 2/5/7 HULL units.
-> Player-dealt damage is a hardcoded `lda #$01` (`src/main.s:3892`) that no
+> Player-dealt damage is a hardcoded `lda #$01` (`src/main.s:4105`) that no
 > difficulty or booster touches. Population **ceilings are never scaled**
 > (owner decision 23 §10.6).
 >
@@ -171,19 +171,16 @@ stars moving one scanline per PAL frame in every sector; they occupy only empty
 cells, so hull, gondola and turret graphics always stay in front. No capital
 lifecycle state changes the physical scene cadence.
 
-During construction, the existing first capital encounter is provisionally due
-on active gameplay frame 600. Menu, OPTIONS, loader, pause, and initialization
-frames do not advance this counter. A live Raider-formation lifecycle or legal
-budget refusal delays actual admission until the first legal frame. Once the
-capital encounter is due, ordinary admission remains closed through its entire
-lifecycle; an already emitted Raider pulse may finish its own bounded lifetime.
-Admissions before and after the traversal use the same one-formation Director
-budget, retry, RNG, and lifecycle policy. This provisional development schedule
-creates a natural early test window for three qualifying Raider kills and the
-resulting `FREE -> PENDING -> ACTIVE` pickup. It moves the original
-encounter rather than adding another one at frame 50 or its former phase
-boundary. Later encounters,
-`BOSS_HANDOFF`, and level timing remain at their established rows.
+The capital encounter is a **CAPITAL sector of the level data**, not a frame
+gate (roadmap 4.6 step 2; the frame-600 development gate is retired,
+`src/c/director.c:18-23`). When the Director's world rows reach it, entering
+the sector raises the capital-due flag, and the hull still waits until the
+playfield has drained (`sector_c_drain_clear`, `src/c/lifecycle.c:673`).
+A capital sector admits no Light and no Heavy (its ceilings are zero,
+`src/c/director.c:193-194`), so ordinary admission stays closed through the
+whole hull pass; an already emitted Raider pulse may finish its own bounded
+lifetime. (Corrected 2026-10-08, AUD-07: this paragraph described the
+retired active-frame-600 schedule.)
 
 The provisional Hostile firing schedule exposes at least three evenly spaced
 legal warning/flash/launch opportunities during that full hull pass. Each warning is
@@ -351,7 +348,7 @@ alternate (owner decision 8). The waves before the capital and the capital are
 unchanged; the boss comes later (≈ 88 / 77 / 72 s for the bot, owner answer
 Q4). No swarm follows an elite sector: a sector's end is not a barrier, so an
 elite sector's live Heavies would fly on into it
-([plans/w2-lights.md](plans/w2-lights.md) §3). The table below is the retired pre-step-2 design,
+([plans/w2-lights.md](plans/w2-lights.md) §3). The phase table further below is the retired pre-step-2 design,
 kept for its history; the authored level is `assets/levels/level-01.json`
 ([level-data-howto.md](level-data-howto.md)).
 
@@ -359,6 +356,43 @@ kept for its history; the authored level is `assets/levels/level-01.json`
 are drawn inside the boss band up to the cell that stops them; the band's
 cells are written after the band has been shown each frame, so a shot shows
 in every band row it crosses, a frame later, as in the playfield below.
+
+**How the Director runs a level today** (roadmap 4.6 step 2, `OWNER-ACCEPTED`;
+the boss sector M5b and level 1's post-capital sectors W2 are
+`OWNER-SMOKE CANDIDATE`s; corrected 2026-10-08, AUD-07). The Director advances
+on world rows, not wall-clock time, and reads its schedule from the level
+image the sector reader loaded (`src/c/director.c:1-40`). A level is a list of
+sectors, each a kind — SPACE (subtype swarm or elite), CAPITAL or BOSS — with
+its waves armed at authored rows:
+
+* a **SPACE** sector ends on its authored row count, whatever is still live;
+* a **CAPITAL** sector raises the capital-due flag and waits for the drain
+  (see "World and difficulty");
+* the **BOSS** sector raises the boss-due flag; on the same drained
+  playfield the capital waits for (`src/c/lifecycle.c:673-682`) the world
+  scroll stops, the boss is read from disk behind the WARNING screen, and the
+  sector ends at the boss's death, not on a row (`src/c/director.c:377-378`,
+  `:476-481`).
+
+Level 1 (`assets/levels/level-01.json`) is an elite sector, the capital, the
+swarm, elite (a), the Bomber pair, elite (b) and the boss. Light and Heavy
+admissions are capped per sector kind (Light 3 / 1 / 0 / 1 for swarm / elite /
+capital / boss, Heavy 0 / 2 / 0 / 0; `src/c/director.c:193-194`). The live
+hazard cost is capped at **3 / 4 / 5** on EASY / MEDIUM / HARD
+(`hazard_budget`, `src/c/director.c:218`), the peak of the retired per-phase
+tables. The Director has a private deterministic RNG and does not consume the
+game's existing random state. It owns admission policy and budgets while the
+existing Raider-formation, debris, broadside, pickup, object-pool, and
+destruction lifecycles retain object ownership. When the boss is defeated the
+level completes: the terminal COMPLETE is held 50 frames
+(`LEVEL_END_HOLD_FRAMES`), then the level-summary screen, the TOP SCORES
+insertion and the menu (`sector_reader_level_end`,
+`src/hybrid/sector-reader.s:277`); there is no next level until the campaign
+loop (M4).
+
+### Retired: the eight-phase schedule (before roadmap 4.6 step 2)
+
+*History, kept for reference. None of this runs in the current build.*
 
 The production Hybrid Encounter Director advances from world rows rather than
 wall-clock time. Level 1 is exactly 3,712 rows with contiguous, end-exclusive
@@ -387,17 +421,25 @@ With no boss consumer, `BOSS_HANDOFF` closes admissions and pickup
 state, enters DRAIN, lets active objects expire, and emits exactly one
 `LEVEL COMPLETE`; it never creates a boss.
 
+### Broadside admission — Layout D.2
+
 The Layout D.2 behavioral correction makes BROADSIDE admission transactional:
 failed pool or muzzle attempts leave intensity unchanged, a committed projectile
-charges exactly two units, and its lifecycle releases exactly two. Natural
-final-approach handoff from post-capital OPEN enters DRAIN, preserves active
-objects until their normal cleanup, and leaves the single COMPLETE state terminal.
+charges exactly two units, and its lifecycle releases exactly two. (Its
+second half - a natural final-approach handoff from post-capital OPEN into
+DRAIN and a single terminal COMPLETE - belonged to the retired schedule above;
+today the level completes after the boss, as described at the top of this
+section.)
 
 ## Planned
 
 ### Campaign, progression and screens — owner decisions E-P (2026-09-20)
 
-Recorded here as player-visible rules. **None of it is implemented.** Full text
+Recorded here as player-visible rules. **Mostly not implemented**; what is
+built, as an `OWNER-SMOKE CANDIDATE`, is the boss that ends level 1 (H) with
+its lasers (I) — [plans/m5-loading-boss.md](plans/m5-loading-boss.md),
+[plans/boss-lasers.md](plans/boss-lasers.md) — and the loader screen's
+as-built form (O, below). Corrected 2026-10-08, AUD-07. Full text
 and rationale: [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md),
 section "Decyzje literowe 2026-09-20".
 
@@ -431,13 +473,15 @@ section "Decyzje literowe 2026-09-20".
   RAM only, so it is lost at power-off; changing difficulty in the menu resets
   it to level 1; the menu shows which levels are available, so the player is
   not guessing.
-- **High scores (M).** RAM only — confirms existing behaviour.
+- **High scores (M).** RAM only — confirms existing behaviour. (The TOP SCORES
+  table is never written; the level-summary screen's per-level best is a
+  separate save record on the game's own disk, M5a-S2.)
 - **Permanent weapon booster (N).** Collecting it raises the player's weapon
   level by one, up to five; collecting the same booster again raises another
   level. The level sets projectile damage, and the player reads his current
   strength off the shot itself **with no HUD**. Dying costs **one** level, not
   all of them. The other boosters keep working as they do today. No existing
-  booster modifies damage (MEASURED: `src/main.s:3892`), so the level stays
+  booster modifies damage (MEASURED: `src/main.s:4105`), so the level stays
   one variable rather than a system of composing modifiers.
 - **Booster level signalling (U).** **Shape and sound, not colour.**
   - **Shape.** A thicker or doubled bolt per level. Player projectile glyphs
@@ -514,10 +558,15 @@ candidate's" — contradicted this section's own heading and was corrected
   It is not a smaller PMG Raider.
 - **Character renderer.** It shares the accepted Light renderer class and
   glyphs with the Light Wingman; no new artwork.
-- **One Light slot.** Current capacity stays one Light-class enemy at a time,
-  explicitly selected as `Wingman OR Interceptor` — not both at once. For
-  smoke, a provisional schedule outside the Light lifecycle shows the Wingman
-  first, then the Interceptor, repeating; real wave composition is roadmap 4.6.
+- **Light slots.** *At acceptance (4.4)* the capacity was one Light-class
+  enemy at a time, `Wingman OR Interceptor`, shown by a provisional smoke
+  schedule. That schedule is retired: since roadmap 4.6 wave composition is
+  level data, the Light kernel has four slots (`LIGHT_SLOT_COUNT = 4`,
+  `src/hybrid/light-kernel.s:57`) and the Director caps Lights per sector at
+  3 swarm / 1 elite / 0 capital / 1 boss (`src/c/director.c:193`), so a swarm
+  flies Wingmen and Interceptors together — up to three live in level 1 (W2,
+  `OWNER-SMOKE CANDIDATE`). The boss sector's ceiling of one is intentional.
+  Corrected 2026-10-08, AUD-07.
 - **Independent and aggressive.** It keeps no formation and follows no Heavy
   leader. It enters at X 124, descends 2 lines per frame (twice the Heavy
   rate) and every other frame closes one 4-HPOS cell on the player's column,

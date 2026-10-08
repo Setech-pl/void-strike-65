@@ -26,8 +26,14 @@ format and BASIC RAM policy remain unchanged.
 
 ### Light Wingman M1 — owner-accepted (`ed72e25`, `5f2f3ae`)
 
-Each Raider formation admission also admits one Light Wingman for Heavy slot 0,
-giving `2 Heavy + 1 Light`. C owns its 12-byte archetype record (HP 1,
+*As accepted at M1.* Each Raider formation admission also admits one Light Wingman for Heavy slot 0,
+giving `2 Heavy + 1 Light`. (Since roadmap 4.6 the escort is the wave's own
+data — a Wingman, an Interceptor or none (`heavy_escort_offset`,
+`src/c/director.c:185`) — and the Light kernel has four slots
+(`LIGHT_SLOT_COUNT = 4`, `src/hybrid/light-kernel.s:57`) under per-sector
+ceilings of 3 swarm / 1 elite / 0 capital / 1 boss (`subtype_ceiling_light`,
+`src/c/director.c:193`); see [game-design.md](game-design.md). Corrected
+2026-10-08, AUD-07.) C owns its 12-byte archetype record (HP 1,
 wingman-follow behavior 1, single-shot policy 2, 96/80/64-frame pauses,
 character renderer class 2, red PairShot, BCD score `$05`, Director value 1),
 admission, formation motion, fire decision, HP and recycle. A small ASM kernel
@@ -226,14 +232,40 @@ inserted exactly once when the player lifecycle enters Game Over; a first-to-las
 scan preserves descending order, places ties after existing equals, and shifts
 both BCD fields together. The renderer reads all ten records rather than
 synthesizing nine zero rows. The worst insertion executes once at Game Over and
-costs 516 NMOS 6502 cycles; it is outside the visible gameplay loop and VBI. No
-disk persistence is performed.
+costs 516 NMOS 6502 cycles; it is outside the visible gameplay loop and VBI. The
+TOP SCORES table is never written to disk; the one runtime disk write is the
+level-summary screen's per-level best record (next section).
 
-## Runtime disk I/O — one boundary only (roadmap 4.3)
+## Runtime disk I/O — at transitions only
 
 Until 4.3 the program read nothing from disk after hardware takeover; ADR-004
-said so, and is now superseded. There is exactly **one** runtime read, at the
-START GAME boundary, and it is deliberately the only one.
+said so, and is now superseded. Roadmap 4.3 added one read at START GAME;
+M5a and M5b added more, so the rule today is not "one read" but **every read
+and the one write happen at a transition, with the gameplay display off** —
+never inside a measured gameplay frame. (Corrected 2026-10-08, AUD-07: this
+section used to say there was exactly one runtime read.) The transitions, as
+the code runs them:
+
+* **START GAME** (`sector_reader_start_gameplay`,
+  `src/hybrid/sector-reader.s:231`): the level-summary module into `$0500`
+  once per session (`sector_reader_ensure_summary`, `:305`), then, behind the
+  summary screen, the region's art, the capital code back into slot A when a
+  boss overlaid it (`sector_reader_restore_if_overlaid`), the save record and
+  the level image (`summary_start_game`, `src/hybrid/level-summary.s:110`).
+* **The boss entry** (M5b, `OWNER-SMOKE CANDIDATE`): `_asm_boss_enter`
+  (`src/hybrid/c-asm-abi.s:618`) blanks the display, shows the WARNING
+  screen and reads, through the reader's run read at `$A006`, the region's
+  staging run and then the boss code into slot A; the boss head reads the
+  install, slots C, D and E and the region's band and charset runs
+  (`boss_head`, `src/hybrid/boss.s:220`). The trace sets this frame aside as a transition and records it as
+  the boss-entry milestone (`scripts/runtime-wall-trace.mjs` `parseCsv`).
+* **The level's end** (`sector_reader_level_end`,
+  `src/hybrid/sector-reader.s:277`): the summary module if needed, the region's
+  art, the save record read, and — only when the level's best improved — the
+  **one runtime write**: the save record PUT to sector 599
+  (`SAVE_RECORD_SECTOR`, `src/hybrid/sector-reader.s:156`) by
+  `summary_write_save` (`src/hybrid/level-summary.s:669`), after checking that
+  the disk in D1: is the game's own (AUD-01), and read back to verify.
 
 `SECTOR_READER` ($A000, its own ca65 link, transported as a raw DFMC record)
 implements **direct SIO** under owner decision W: it drives POKEY and the PIA
@@ -241,22 +273,33 @@ command line itself, calls no OS routine and takes no vector. The runtime has
 run with `I` set and `NMIEN` never enabling the OS VBI since start, and the
 reader keeps it that way — the whole protocol is polled through `IRQST` with
 interrupts masked, which is the mode the hardware documents for exactly this.
+Every run a transition reads is checked against a boot-validated 16-bit fold
+before it is used (AUD-02).
 
-The boundary is what makes it affordable. `START GAME` tears the frontend down
-(`DMACTL = 0`, `GRACTL = 0`, PMG latches cleared, audio silenced), raises a
-**DLI-free** ANTIC 2 loader screen, reads whole sectors into a page-aligned
-buffer at `$A600`, and hands to `start_gameplay`, which rebuilds display list,
-charset base, PMG, palette, DLI vector and `NMIEN` from scratch. Nothing has
-to survive the read, so nothing does. No gameplay frame contains any part of
-this: the reader costs **zero cycles** in the PAL main loop.
+The boundaries are what make it affordable. Each transition blanks the display
+(`sector_reader_blank`: `DMACTL = 0`, `GRACTL = 0`, PMG latches cleared,
+`NMIEN = 0`) and hands back to code that rebuilds what it needs: `START GAME`
+to `start_gameplay`, which rebuilds display list, charset base, PMG, palette,
+DLI vector and `NMIEN` from scratch; the boss entry to the boss install; the
+level's end to the menu. The disk transport costs the PAL main loop nothing.
+**The reader's resident code is not free in gameplay, though:** since M5a-S2
+the level-summary statistics run from the reader's fixed vectors
+(`$A00C-$A01B`) inside gameplay frames — a per-frame scan of the shot and
+Heavy-damage slots (`stats_scan`, `src/hybrid/sector-reader.s:949`; ~110
+cycles on a fighter frame, all after the line-238 fence) and small kill and
+hit counters — and the capital-frame hook checks for the level's end. They
+are measured in every trace row like any other main-loop work.
 
 Failure is a defined state, not a hang. Every error class — absent drive, wire
-fault, device error, wrong disk — ends on a failure screen naming the reason
-and waiting for FIRE, which returns to the menu with RAM state intact.
+fault, device error, wrong disk, a run that fails its check — ends on a failure
+screen naming the reason and waiting for FIRE, which returns to the menu with
+RAM state intact. A refused save write is silent: the summary keeps its RAM
+copy.
 
-The level boundary proper (level → level) is roadmap 4.9 and is not built. The
+The level boundary proper (level → level) is the campaign loop (roadmap 4.9,
+M4) and is not built: after the summary the game returns to the menu. The
 reader exposes `sector_reader_load` and the drain predicate
-`sector_c_drain_clear` by name so 4.9 reuses the test the capital entry
+`sector_c_drain_clear` by name so it reuses the test the capital entry
 already runs rather than writing a second one.
 
 ## Display, scrolling, and frame publication

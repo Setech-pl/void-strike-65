@@ -1353,9 +1353,11 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const windowAsmBytes = parsedLabels.get("__HYBRID_ASM_WINDOW_SIZE__");
   const windowCodeBytes = parsedLabels.get("__HYBRID_C_WINDOW_SIZE__");
   const windowRodataBytes = parsedLabels.get("__HYBRID_C_WINDOW_RODATA_SIZE__");
-  const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes]
+  // feat/sector-flow: the Director's sector-flow verdicts, placed last.
+  const windowFlowBytes = parsedLabels.get("__HYBRID_C_WINDOW_FLOW_SIZE__");
+  const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes]
     .every(Number.isInteger)
-    ? windowAsmBytes + windowCodeBytes + windowRodataBytes : undefined;
+    ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes : undefined;
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
     cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
     arenaCodeBytes, arenaRodataBytes, basicWindowBytes].every(Number.isInteger)) {
@@ -4371,7 +4373,7 @@ async function build() {
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
           "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA",
+          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,

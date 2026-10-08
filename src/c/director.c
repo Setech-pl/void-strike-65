@@ -450,7 +450,10 @@ static void advance_sector(void)
     enter_sector();
 }
 
-#pragma code-name ("HYBRID_C_WINDOW")
+/* HYBRID_C_WINDOW_FLOW is the window's last segment (cfg/encounter-director.cfg):
+ * placed there, these bytes move no byte of the Light C or the boss entry, so
+ * no hot branch in them changes page (docs/plans/sector-flow.md §2.3). */
+#pragma code-name ("HYBRID_C_WINDOW_FLOW")
 
 /* feat/sector-flow (docs/plans/sector-flow.md, gameplay-variety.md §3.8, owner
  * answer Q10: the default for every level). Three rules, each a verdict taken

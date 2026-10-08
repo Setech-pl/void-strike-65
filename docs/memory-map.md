@@ -199,8 +199,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$9D5E-$9D72` | 21 B | segment | `DIRECTOR_C_PRE` — cc65 Director RNG | `resident` | build/encounter-director.map |
 | `$9D73-$9D74` | 2 B | reserved | free tail of `DIRECTOR_C_PRE_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$9D75-$9D88` | 20 B | segment | `DIRECTOR_C_RODATA` — cc65 Director constants | `resident` | build/encounter-director.map |
-| `$9D89-$9FD6` | 590 B | segment | `DIRECTOR_C_CODE` — high cc65 Director code | `resident` | build/encounter-director.map |
-| `$9FD7-$9FF9` | 35 B | reserved | free tail of `DIRECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$9D89-$9FD9` | 593 B | segment | `DIRECTOR_C_CODE` — high cc65 Director code | `resident` | build/encounter-director.map |
+| `$9FDA-$9FF9` | 32 B | reserved | free tail of `DIRECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$9FFA-$9FFF` | 6 B | guard | `DIRECTOR_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg |
 | `$A000-$BFFF` | 8,192 B | machine | RAM under the BASIC ROM: `disable_basic_rom` forces `PORTB` bit 1 and `BASICF` at every stage-2 entry (a description, not a claim) | `boot` `resident` | src/main.s, cfg/encounter-director.cfg |
 | `$A000-$A5D9` | 1,498 B | segment | `SECTOR_READER` — between-levels sector reader, overlay runs, stat hooks | `resident` | build/sector-reader.map |
@@ -216,11 +216,12 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AC00-$AC07` | 8 B | segment | `LEVEL_GEOMETRY` — HullGeometry header (bss inside the level buffer) | `level` | build/encounter-director.map |
 | `$AE00-$B36B` | 1,388 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
 | `$B36C-$B3D8` | 109 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
-| `$B3D9-$B6DB` | 771 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
-| `$B3E8-$B40B` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
-| `$B6DC-$B73A` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
-| `$B73B-$B75E` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
-| `$B75F-$BBFF` | 1,185 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$B3D9-$B47B` | 163 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
+| `$B47C-$B77E` | 771 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
+| `$B48B-$B4AE` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
+| `$B77F-$B7DD` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
+| `$B7DE-$B801` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
+| `$B802-$BBFF` | 1,022 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -277,10 +278,10 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$90ED-$90FF` | 19 B | `A2KERNEL_RAM` (atari-boot.cfg) | `A2_KERNEL` |
 | `$9D54-$9D5D` | 10 B | `ENTITY_CODE_RAM` (atari-boot.cfg) | `ENTITY_RUN_PAD`, `ENTITY_CODE` |
 | `$9D73-$9D74` | 2 B | `DIRECTOR_C_PRE_RAM` (encounter-director.cfg) | `DIRECTOR_C_PRE` |
-| `$9FD7-$9FF9` | 35 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
+| `$9FDA-$9FF9` | 32 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5DA-$A5FF` | 38 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
-| `$B75F-$BBFF` | 1,185 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `LIGHT_KERNEL`, `DISK_GUARD`, `CAPITAL_VECTOR_IMAGE` |
+| `$B802-$BBFF` | 1,022 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `LIGHT_KERNEL`, `DISK_GUARD`, `CAPITAL_VECTOR_IMAGE` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
 
 ### Overlapping cfg areas
@@ -593,14 +594,14 @@ By topic: Heavy, Raider and Interceptor 92%, Director, sectors and waves 8%.
 
 By topic: Light enemies 56%, Director, sectors and waves 24%, Heavy, Raider and Interceptor 21%.
 
-#### `DIRECTOR_C_CODE` `$9D89-$9FD6`, 590 B (build/encounter-director.map)
+#### `DIRECTOR_C_CODE` `$9D89-$9FD9`, 593 B (build/encounter-director.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `_director_c_world_row_tick` | `$9D89` | 272 B | 46.1% | Director, sectors and waves |
-| `_director_c_request` | `$9E99` | 205 B | 34.7% | Director, sectors and waves |
-| `_heavy_request` | `$9F8F` | 72 B | 12.2% | Heavy, Raider and Interceptor |
-| `_advance_sector` | `$9F66` | 41 B | 6.9% | Director, sectors and waves |
+| `_director_c_world_row_tick` | `$9D89` | 275 B | 46.4% | Director, sectors and waves |
+| `_director_c_request` | `$9E9C` | 205 B | 34.6% | Director, sectors and waves |
+| `_heavy_request` | `$9F92` | 72 B | 12.1% | Heavy, Raider and Interceptor |
+| `_advance_sector` | `$9F69` | 41 B | 6.9% | Director, sectors and waves |
 
 By topic: Director, sectors and waves 88%, Heavy, Raider and Interceptor 12%.
 
@@ -661,19 +662,19 @@ By topic: Light enemies 63%, Director, sectors and waves 26%, Heavy, Raider and 
 
 By topic: level summary 97%, unclassified 3%.
 
-#### `LIGHT_KERNEL` `$B3D9-$B6DB`, 771 B (build/light-kernel.map)
+#### `LIGHT_KERNEL` `$B47C-$B77E`, 771 B (build/light-kernel.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `light_update` | `$B4F6` | 261 B | 33.9% | Light enemies |
-| `light_publish` | `$B40C` | 224 B | 29.1% | Light enemies |
-| `light_shot` | `$B5FB` | 100 B | 13.0% | Light enemies |
-| `light_cell_resolve` | `$B693` | 73 B | 9.5% | Light enemies |
-| `capital_vector_table` | `$B3E8` | 36 B | 4.7% | capital ship |
-| `light_destroyed` | `$B65F` | 23 B | 3.0% | Light enemies |
-| `light_spawn_breakup` | `$B676` | 16 B | 2.1% | Light enemies |
-| `light_kernel_vectors` | `$B3D9` | 15 B | 1.9% | Light enemies |
-| `light_top` | `$B4EC` | 10 B | 1.3% | Light enemies |
+| `light_update` | `$B599` | 261 B | 33.9% | Light enemies |
+| `light_publish` | `$B4AF` | 224 B | 29.1% | Light enemies |
+| `light_shot` | `$B69E` | 100 B | 13.0% | Light enemies |
+| `light_cell_resolve` | `$B736` | 73 B | 9.5% | Light enemies |
+| `capital_vector_table` | `$B48B` | 36 B | 4.7% | capital ship |
+| `light_destroyed` | `$B702` | 23 B | 3.0% | Light enemies |
+| `light_spawn_breakup` | `$B719` | 16 B | 2.1% | Light enemies |
+| `light_kernel_vectors` | `$B47C` | 15 B | 1.9% | Light enemies |
+| `light_top` | `$B58F` | 10 B | 1.3% | Light enemies |
 | 2 smaller items | — | 13 B | 1.7% | — |
 
 By topic: Light enemies 95%, capital ship 5%.
@@ -958,7 +959,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | `BOSS_CODE` | 1,965 B | placement name | — | unclassified (74%) | not judged |
 | `HYBRID_C_ARENA` | 596 B | placement name | — | Heavy, Raider and Interceptor (92%) | not judged |
 | `HYBRID_C_EXT` | 681 B | placement name | — | Light enemies (56%) | not judged |
-| `DIRECTOR_C_CODE` | 590 B | placement name | — | Director, sectors and waves (88%) | not judged |
+| `DIRECTOR_C_CODE` | 593 B | placement name | — | Director, sectors and waves (88%) | not judged |
 | `HYBRID_C_WINDOW` | 1,388 B | placement name | — | Light enemies (63%) | not judged |
 | `LEVEL_SUMMARY` | 1,760 B | level summary | 97% | level summary (97%) | fits |
 | `LIGHT_KERNEL` | 771 B | Light enemies | 95% | Light enemies (95%) | fits |

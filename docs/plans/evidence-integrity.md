@@ -60,18 +60,26 @@ laser-active: `laser_states ≠ 0`).
 | `atr-0-hunt-fire5` | 4,000 → 5,100 | 4,475 | 0 → 624 | 0 → 0 |
 | **five replays** | | | **524 → 2,669** (2 → 3 replays) | **0 → 102** (0 → 2 replays) |
 
-**Not reachable by budget; owner decision needed.**
+**Not reachable by budget.**
 * `evasive-fire4` and `hunt-fire7` lose every life after the capital, and the
   level restarts (evasive at 2,067 / 2,981 / 4,053, hunt 7 at 2,670). They
   reach no boss at any budget (probed to 4,700).
 * `atr-0-hunt-fire5`'s fight fires no laser: none in 2,524 boss frames of a
   7,000-frame probe.
 
-Compliant alternatives: (a) hold the two dying replays' lives, as the
-director-complete replays do (scenario change; the replays would lose their
-game-over/restart coverage); (b) add a sixth integrity replay chosen to
-reach the lasers; (c) accept three of five, with the lasers covered by
-`hunt-fire5` and `hunt-fire6`.
+**Owner decision (2026-10-08): alternative (c), accepted for now.** Three of
+five replays in the boss sector (boss frames under the integrity checks 524 →
+2,669), laser-active frames 0 → 102 in two (hunt 5, hunt 6). Evasive 4 and
+hunt 7 keep 4,000 frames and their game-over/restart coverage; their lives are
+not held. The alternatives offered were (a) holding those two replays' lives
+and (b) a sixth integrity replay chosen to reach the lasers.
+
+**Requirement of the next session that regenerates the evidence (the
+sector-flow session):** restore boss-sector integrity coverage to at least
+three replays with laser-active frames, adding a sixth integrity replay chosen
+to reach the lasers if needed, without holding the lives of evasive 4 or
+hunt 7; re-derive every integrity budget there, because sector flow shortens
+the road to the boss. Carried in the STATUS backlog.
 
 Subjects of the boss-sector clauses over the whole trace: boss DLI = 3 (all
 boss rows) 32,151 → 34,296; laser-active rows 1,254 → 1,356; boss phases

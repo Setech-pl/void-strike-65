@@ -374,8 +374,9 @@ changed: ATR `77d4cbf6…`, boot `4154b5f4…` as on `main`.
 * **Integrity replays in the boss sector:** 2 → **3** of 5, 524 → **2,669** boss
   frames, 0 → **102** laser-active frames (hunt 5 4,700, hunt 6 4,821, EASY
   hunt 5 5,100). Evasive 4 and hunt 7 lose every life before the boss at any
-  budget, and EASY hunt 5's fight fires no laser: an owner decision, three
-  alternatives in the record §4.
+  budget, and EASY hunt 5's fight fires no laser. Owner decision 2026-10-08:
+  accepted for now (alternative (c)); restoring three laser-covered replays is
+  a requirement of the sector-flow session (backlog).
 * **Gates:** 57 replays, 0 clause failures, 0 miss events, PAL audit PASS;
   worst fence margin **1,472** (`2-sweep-fire6` f311), DMA-on **31,304**
   (`memory-integrity-atr-2-hunt-fire5` f2388), both unchanged; boss entry 245
@@ -6757,6 +6758,31 @@ started without owner instruction.
   reached and on each row tick while it holds. Visible: an elite sector lasts
   until its formation has gone (≤ ~690 frames with a live Bomber pair, PROBE).
   Needs a native carry-over test, RED on `main`.
+
+- **Boss-sector integrity coverage — REQUIREMENT OF THE NEXT SESSION THAT
+  REGENERATES THE EVIDENCE (the sector-flow session)** (owner decision
+  2026-10-08, [plans/evidence-integrity.md](plans/evidence-integrity.md) §4).
+  Today three of the five memory-integrity replays reach the boss sector
+  (2,669 boss frames) and two have laser-active frames (hunt 5 and hunt 6,
+  102 frames). Restore it to **at least three replays with laser-active
+  frames**, adding a sixth integrity replay chosen to reach the lasers if
+  needed, **without holding the lives of evasive 4 or hunt 7** (they keep
+  their game-over/restart coverage), and **re-derive every integrity budget**
+  there, since sector flow shortens the road to the boss.
+
+- **Frozen-checkpoint gate fields computed from the rows** (chore/evidence-
+  integrity item 5, follow-up). `scripts/runtime-wall-trace.mjs` writes these
+  `gate.*` fields as hard-coded constants from frozen accepted checkpoints, so
+  the tests that assert them measure nothing on the current build:
+  `entity_effects_foundation` `:7994-7995` (`budget_overrun_frames`,
+  `passed`, and its measured figures); `debris_visual_polish` `:8012`;
+  `explosion_colour_flash` `:8046-8047`; `destructible_debris` `:8065-8066`,
+  `:8072`; `enemy_breakup_effects` `:8090-8093`; `weapon_pickup_rapid_fire`
+  `:8111-8112`; `weapon_pickup_spread_shot` `:8162-8163`, `:8180`. Asserted at
+  `tests/runtime-wall-trace.test.mjs:573-580`, `:760`, `:788`, `:851-855`,
+  `:912-914`, each annotated "RECORDED AS VACUOUS". Make them computed from
+  the rows (or retire them as history); the live per-frame gates today are
+  `weapon_pickup_shield` and the PAL audit in `gate.timing_and_dli_passed`.
 
 - **Record the player's state at boss entry (hull, booster, lives, entry
   frame) per director-complete session in the committed trace report, so

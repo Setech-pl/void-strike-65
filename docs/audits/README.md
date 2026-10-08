@@ -35,7 +35,7 @@ this register's, named by the audit's section.
 
 | Audit | Audited commit | Auditor | Acted on by |
 | --- | --- | --- | --- |
-| [2026-10-08-lights.md](2026-10-08-lights.md) — Light enemies and waves | `main` `08c79e7` | Codex (OpenAI) | `data/w2-lights` ([plans/w2-lights.md](../plans/w2-lights.md)): LA-1, LA-2, LA-3, LA-4, LA-5, LA-10 fixed, LA-6 confirmed and guarded |
+| [2026-10-08-lights.md](2026-10-08-lights.md) — Light enemies and waves | `main` `08c79e7` | Codex (OpenAI) | `data/w2-lights` ([plans/w2-lights.md](../plans/w2-lights.md)): LA-1, LA-2, LA-3, LA-4, LA-5, LA-10 fixed, LA-6 confirmed and guarded; `chore/evidence-integrity`: LA-7 fixed. Open: LA-8, LA-9 (LA-11 needs no action) |
 
 ### Lights audit — points
 
@@ -52,7 +52,7 @@ Raider pair with its escort and one Bomber pair after the capital, so §1's
 | LA-4 `game-design.md` says every Raider formation brings a Wingman | §4 | **fixed** with LA-3 | [game-design.md](../game-design.md) "Light Wingman" |
 | LA-5 No default replay or clause covers Interceptor Lights or several Lights; the trace records no Light archetype | §5 | **fixed** (owner smoke pending) — `light_state0-3` / `light_archetype0-3` on the main CSV; clause L1-L5 over every replay, each over a non-empty subject | `bf79da0`; `coverage.light_archetypes` in [runtime-wall-trace.json](../runtime-wall-trace.json) |
 | LA-6 The elite → swarm boundary may carry a Heavy | §6 | **confirmed** (and its mirror, swarm → elite); guarded by data in level 1 (no swarm after an elite over every level file; the swarm drains on HARD; clauses L3/L4 hold); the code fix C1 is a prerequisite of M4 | [plans/w2-lights.md](../plans/w2-lights.md) §3; [STATUS.md](../STATUS.md) backlog |
-| LA-7 `live_interceptor` names the Heavy formation, not the Light | §5 | open, not in W2's scope | — |
+| LA-7 `live_interceptor` names the Heavy formation, not the Light | §5 | **fixed** — the column is `live_heavy_formation` in the trace header, the harness, the coverage record and its test; clause logic unchanged | `chore/evidence-integrity` `22ebd2f` |
 | LA-8 The opt-in Light CSV and `measure-light-population-native.mjs` name retired scaffolding | §5 | open, not in W2's scope | — |
 | LA-9 `mirror` and `afterCleared` are compiled but not read | §2 | open, M3 (and the smoke-2026-10-07 backlog for `afterCleared`) | — |
 | LA-10 `level-01.json`'s opening prose describes an older schedule | §1 | **fixed** — a pointer heads the prose; each post-capital sector carries its own note | `bf79da0` |
@@ -67,6 +67,6 @@ Raider pair with its escort and one Bomber pair after the capital, so §1's
 | AUD-03 | S2 | Decimal mode changes boss DLI scroll arithmetic — boss DLI | fixed | S4b: `4dc8161` (RED), `a9a7336` (GREEN) | `CLD` at `boss_dli`'s entry; [plans/boss-lasers.md](../plans/boss-lasers.md) §13.1, §13.4. |
 | AUD-03 | S2 | Decimal mode — every other interrupt handler | fixed (owner smoke pending) | `fix/audit-hardening`: `63ef6d4` (RED), `22614b8` (GREEN) | `CLD` at `gameplay_dli`'s entry (list B with D set wrote DLISTL `$73` for `$6D`), size-neutral. The frontend and loader DLIs do no arithmetic; the game installs no VBI and no IRQ handler. Test: `tests/audit-hardening.test.mjs` "AUD-03: …". |
 | AUD-04 | S3 | One-column stress fixture misses simultaneous module kills | fixed | S4b: `077e879`, `eb6e75e` (RED), `a6dcfce` (GREEN) | At most two player shots meet the boss a frame; [plans/boss-lasers.md](../plans/boss-lasers.md) §13.2–§13.4. |
-| AUD-05 | S3 | Stale palette pin hides the preview's behavioural checks | open | `chore/evidence-integrity` | |
-| AUD-06 | S3 | Audit PASS permits insufficient margin and zero replays | open | `chore/evidence-integrity` | |
-| AUD-07 | S4 | Unqualified runtime descriptions contradict the current ATR | open | `chore/evidence-integrity` | |
+| AUD-05 | S3 | Stale palette pin hides the preview's behavioural checks | fixed (owner review pending) | `chore/evidence-integrity`: `a037d93` | COLPF2 re-pinned `$1E` → `$AE` (`src/main.s:566`, plasma FX B2); the recorded test now fails at its real cause, `tests/preview.test.mjs:164` (the `player_shape` variant, class C, `chore/preview-29-rows`); the allied-steel and hull-source checks are their own passing test. Records carry the first assertion and message; `scripts/reconcile-failures.mjs` (`9bc72c7`) matches by both. |
+| AUD-06 | S3 | Audit PASS permits insufficient margin and zero replays | fixed (owner review pending) | `chore/evidence-integrity`: `4693600` (RED), `02aaf4d` (GREEN) | PASS = no miss event, worst fence margin ≥ 500, DMA-on ≤ 32,568, ≥ 1 row; `fence_caught` keeps detection apart; the CLI fails on zero replays and on an input it cannot audit, and sets the boss-entry row aside as the harness does; the harness binds the audits' PASS into `gate.timing_and_dli_passed`. Tests: `tests/pal-timing-audit.test.mjs` "AUD-06: …" (10). |
+| AUD-07 | S4 | Unqualified runtime descriptions contradict the current ATR | fixed (owner review pending) | `chore/evidence-integrity`: `03eb693` | All five named passages rewritten to what the code runs, with `file:line`; also fixed: TOP SCORES vs the save record, the M1 Wingman paragraph, the frame-600 capital paragraph, the campaign block's "none implemented", two stale `src/main.s:3892` pointers (→ `:4105`). No code changed. |

@@ -53,6 +53,11 @@ test("wall trace keeps CPU comparison, measured wall time and additive estimate 
   // its meaning: both halves, together.
   if (report.gate.timing_and_dli_passed) {
     assert.ok(values.measured_wall_cycles_dma_on <= report.gate.maximum_wall_cycles);
+    // Item 5 (chore/evidence-integrity): these three counters derive from
+    // Atari800_nframes and cannot see a fence overrun (scripts/pal-timing-
+    // audit.mjs header), so 0 here does not prove the frame budget; the PAL
+    // audit does, over a non-empty replay set, bound into
+    // timing_and_dli_passed (AUD-06).
     assert.equal(report.gate.deadline_overrun_frames, 0);
     assert.equal(report.gate.missed_frames, 0);
     assert.equal(report.gate.extra_vbi_boundaries, 0);
@@ -234,7 +239,12 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // before it: 2 x 3,999 + 3 x 4,000. The integrity clauses are unchanged (the
   // booster cycles, the pause, the DLI phase - next test); the boss itself is
   // covered by the director-complete, slot-e and debris-effects replays.
-  assert.equal(report.replay.memory_integrity_measured_frames, 19_998);
+  // RE-POINTED (chore/evidence-integrity, item 7, class (a)): the budgets grow
+  // so three of the five reach the boss again (scripts/runtime-wall-trace.mjs
+  // MEMORY_INTEGRITY_FRAMES_*): HARD hunt 5 4,700 and hunt 6 4,821, EASY hunt 5
+  // 5,100, each with its entry set aside; evasive 4 and hunt 7 lose every life
+  // before the boss and keep 4,000: 4,000 + 4,699 + 4,820 + 4,000 + 5,099.
+  assert.equal(report.replay.memory_integrity_measured_frames, 22_618);
   assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "baseline-9040")
@@ -253,8 +263,9 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     // boss too (frame 2,740, after the shorter post-capital waves) and sets its
     // entry frame aside; EASY's hunt at delay 5 joined (class (a)).
     // RE-POINTED (data/w2-lights): as above, only hunt 5 and 6 reach the boss.
-    ["ATR", "evasive", 4_000], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 4_000],
-    ["ATR", "hunt", 4_000],
+    // RE-POINTED (chore/evidence-integrity, item 7): the budgets above.
+    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_699], ["ATR", "hunt", 4_820], ["ATR", "hunt", 4_000],
+    ["ATR", "hunt", 5_099],
   ]);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "fighter-flash-coverage")
@@ -380,7 +391,9 @@ test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase",
   // reaching the boss: 20,000 - 5 measured, 399.9 s.
   // RE-POINTED (data/w2-lights): two of the five reach the boss now (the
   // previous test says why): 20,000 - 2 measured, 399.96 s.
-  ], [19_998, 399.96, 0, 2, true]);
+  // RE-POINTED (chore/evidence-integrity, item 7): the budgets of the
+  // previous test, 22,618 measured, 452.36 s.
+  ], [22_618, 452.36, 0, 2, true]);
   assert.ok(integrity.pickup_rf_cycles >= 10);
   assert.equal(integrity.pause_sessions.length, 1);
   assert.ok(integrity.pause_sessions.every(({ timer_before, timer_after }) =>
@@ -734,6 +747,11 @@ test("debris visual polish preserves foundation history and passes its +256 PAL 
   ], [-917, 56, -3_813, -5_896]);
   assert.ok(feature.actual_delta_cycles <= feature.approved_delta_cycles);
   assert.ok(feature.measured_physical_headroom >= feature.minimum_physical_headroom);
+  // RECORDED AS VACUOUS (chore/evidence-integrity, item 5): a frozen accepted
+  // checkpoint. The harness writes these fields as literals (scripts/runtime-wall-trace.mjs debris_visual_polish budget_overrun_frames: 0),
+  // so this assertion measures nothing on the current build. The live per-frame
+  // gates are gate.weapon_pickup_shield (32,568, from the rows) and the PAL
+  // audit bound into gate.timing_and_dli_passed (AUD-06).
   assert.equal(feature.budget_overrun_frames, 0);
   assert.equal(manifest.runtimeTiming.entityEffects.emptyPathCpuCycles <= 124, true);
   assert.equal(manifest.entityEffects.runtimeBudget.debrisVisualPolish.actualDeltaCycles,
@@ -757,6 +775,11 @@ test("explosion colour flash passes its +64 PAL gate with exact GTIA traces", ()
   assert.ok(feature.actual_delta_cycles <= feature.approved_delta_cycles);
   assert.ok(feature.measured_physical_headroom >=
     feature.delta_limited_minimum_physical_headroom);
+  // RECORDED AS VACUOUS (chore/evidence-integrity, item 5): a frozen accepted
+  // checkpoint. The harness writes these fields as literals (explosion_colour_flash budget_overrun_frames: 0),
+  // so this assertion measures nothing on the current build. The live per-frame
+  // gates are gate.weapon_pickup_shield (32,568, from the rows) and the PAL
+  // audit bound into gate.timing_and_dli_passed (AUD-06).
   assert.equal(feature.budget_overrun_frames, 0);
   assert.deepEqual([feature.measured_wall_cycles, feature.measured_physical_headroom],
     [32_122, 3_446]);
@@ -815,6 +838,11 @@ test("destructible debris passes PAL, inactive-path and linked-code budgets", ()
     feature.measured_wall_cycles - feature.baseline_wall_cycles);
   assert.ok(feature.measured_wall_cycles <= feature.maximum_wall_cycles);
   assert.ok(feature.measured_physical_headroom >= feature.minimum_physical_headroom);
+  // RECORDED AS VACUOUS (chore/evidence-integrity, item 5): a frozen accepted
+  // checkpoint. The harness writes these fields as literals (destructible_debris target/hard_overrun_frames: 0, passed: true),
+  // so this assertion measures nothing on the current build. The live per-frame
+  // gates are gate.weapon_pickup_shield (32,568, from the rows) and the PAL
+  // audit bound into gate.timing_and_dli_passed (AUD-06).
   assert.equal(feature.target_overrun_frames, 0);
   assert.equal(feature.hard_overrun_frames, 0);
   assert.ok(feature.no_active_debris_path_delta_cpu_cycles <= 32);
@@ -871,6 +899,11 @@ test("enemy breakup passes the hard PAL gate and draws no character effect", () 
     feature.remaining_target_cycles,
     feature.remaining_hard_cycles,
   ], [32_869, 2_699, 150, -22, 74]);
+  // RECORDED AS VACUOUS (chore/evidence-integrity, item 5): a frozen accepted
+  // checkpoint. The harness writes these fields as literals (enemy_breakup_effects target_overrun_frames: 4, hard_overrun_frames: 0, passed: true),
+  // so this assertion measures nothing on the current build. The live per-frame
+  // gates are gate.weapon_pickup_shield (32,568, from the rows) and the PAL
+  // audit bound into gate.timing_and_dli_passed (AUD-06).
   assert.equal(feature.target_overrun_frames > 0, true);
   assert.equal(feature.hard_overrun_frames, 0);
   assert.equal(feature.passed, true);

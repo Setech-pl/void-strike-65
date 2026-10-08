@@ -6730,6 +6730,11 @@ started without owner instruction.
   until its formation has gone (≤ ~690 frames with a live Bomber pair, PROBE).
   Needs a native carry-over test, RED on `main`.
 
+- **Record the player's state at boss entry (hull, booster, lives, entry
+  frame) per director-complete session in the committed trace report, so
+  fight-length changes can be explained (tool for M8)** (owner brief,
+  chore/evidence-integrity, 2026-10-08). Not implemented.
+
 - ~~HEAVY DESTRUCTION EFFECT~~ — **CLOSED 2026-09-22**, implemented as
   plan-4.6-placement.md §7.4 **variant 2** for **both** Heavy archetypes. See
   "Heavy break-up" below.

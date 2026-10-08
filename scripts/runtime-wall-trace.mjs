@@ -7872,7 +7872,10 @@ function main() {
     PAL_FRAME_CYCLES - heaviest.wall_cycles >= SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES &&
     shieldBoosterHardOverruns.length === 0 && deadlineOverruns.length === 0 &&
     allRows.every((row) => row.extra_vbi_boundaries === 0) &&
-    (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0 &&
+    // The Director clause's second site (42bb21a), re-targeted with the first
+    // (fix/smoke-2026-10-07, owner decision of 2026-10-08): the heaviest frame
+    // WITH Director work fits the gates, not "the heaviest frame has some".
+    directorHeaviest.held &&
     dliSequenceViolations === 0 && maximumDlisPerHostFrame === 2;
   const report = {
     schema_version: 2,

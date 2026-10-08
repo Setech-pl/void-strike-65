@@ -1,6 +1,7 @@
 # Plan — W2: the Lights in level 1 (a swarm after the capital, elite Raider sectors a/b, the Bomber pair, the elite → swarm transition, the Light archetype in the trace)
 
-**Status: Phase A — inventory and plan, STOPPED for the owner (2026-10-08).**
+**Status: Phase B in progress — the owner answered Q1-Q4 on 2026-10-08
+(§8.1: D, B, L1-L5, the length accepted).** Phase A stopped for them.
 Branch `data/w2-lights` from `main` `cfbc6a0`. No game byte changed in Phase
 A; the commit holds this plan, the Lights audit copy
 ([../audits/2026-10-08-lights.md](../audits/2026-10-08-lights.md)) with its
@@ -458,6 +459,15 @@ Level 1".
   swarm cannot go below ~240 rows without losing F2's reserve on HARD; (a)/(b)
   at 120 rows already let a surviving pair cross into the next sector.
   **Recommended: accept.**
+
+### 8.1 The owner's answers (2026-10-08, in this session)
+
+* **Q1: D now, C1 before M4.** No code fix in W2; the data guard, its data
+  test and clauses L3/L4. C1 joins the backlog with M4 as its latest point.
+* **Q2: B.** The post-capital Raider + `flight-lead` Wingman wave leaves;
+  `flight-lead` moves to the swarm's Wingman column.
+* **Q3: L1-L5.**
+* **Q4: accepted** (the boss at ≈ 82 / 72 / 67 s).
 
 ## 9. Phase B (after the answers)
 

@@ -533,6 +533,56 @@ unformatted or foreign floppy's sector 598 (any refusal skips the write).
 
 ---
 
+## 18. Shots in the boss band, level 1 after the capital, the AI line (`fix/smoke-2026-10-07`)
+
+Plan [plans/smoke-2026-10-07.md](plans/smoke-2026-10-07.md) (the owner's smoke
+of 2026-10-07; decisions P1-P3 of 2026-10-08). **On copies only**, as §12.
+Default ATR `51d8fac7…` (`npm run play:atr` plays a copy in `build/play/`);
+the boss sector's debug route `build/level-1-s4/void-strike-65.atr`
+`7cc214ff…`; the sector after the capital `build/level-1-s2/void-strike-65.atr`
+`db0461d6…`. Copy, then run (from the repository):
+
+```
+npm run play:atr
+mkdir -p build/play
+cp build/level-1-s4/void-strike-65.atr build/play/smoke-level-1-s4.atr
+atari800 -xe -pal -nobasic "$PWD/build/play/smoke-level-1-s4.atr"
+cp build/level-1-s2/void-strike-65.atr build/play/smoke-level-1-s2.atr
+atari800 -xe -pal -nobasic "$PWD/build/play/smoke-level-1-s2.atr"
+```
+
+- [ ] **Shots up to the turrets** (level-1-s4, and the full game's boss). Fire
+      at gun-2 in its open bay from the start, and at each other cannon and the
+      emitter once its plate falls: every shot stays on the screen all the way
+      up the black strip under the turrets to the module that stops it, then
+      the spark. No row where it blinks out. At several band positions (the
+      band drifts left and right).
+- [ ] **Shots stop only on what stops them**: a plate's bottom row, a cannon,
+      the emitter, the hull's own cells; through an empty recess and past a
+      girder's stub to the hull above. A shot past the band's top over open
+      sky leaves no mark on the divider.
+- [ ] **After the capital, each Light kind once** (level-1-s2, and the full
+      game): one Interceptor, then one Wingman, then one Raider wave (a Raider
+      pair with its Wingman escort in the red flight-lead look), then **one
+      Bomber pair** - each alone on the screen, a short pause between them,
+      then the boss. Nothing else after the capital.
+- [ ] **The loading screen at START GAME**: `ENGAGING ENEMY SECTOR`, the
+      picture, `BEST` with its value (or `--`), the dotted row, `PRESS FIRE` -
+      no SCORE ... GRADE labels without values, no AI line.
+- [ ] **The summary at the level's end**: `LEVEL 01` on top, the picture, every
+      statistic with its value; no AI line anywhere, nothing overlapping.
+- [ ] **The WARNING / BOSS APPROACHING screen** is as before (the AI line was
+      not moved there: no home without boot bytes; backlog "AI chatter line:
+      find a home").
+- [ ] **The boss fight** as before otherwise: lasers, the boss's shots, the
+      capsule from destroyed modules, the win and the summary.
+
+Emulator figures, for comparison only (EMULATOR): the boss entry reads 64
+sectors in 245 host frames; the menu appears at frame 551 (BASIC 542), as on
+`main`; the level reaches its boss in 67.3 / 59.5 / 55.1 s.
+
+---
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

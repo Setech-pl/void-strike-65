@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-07 (fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-08 (fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -354,6 +354,61 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## Owner smoke fixes of 2026-10-07 — shots in the boss band, level 1 after the capital, the AI line — `OWNER-SMOKE CANDIDATE` (2026-10-08)
+
+**Branch and plan:** `fix/smoke-2026-10-07` from `main` `08c79e7`;
+[plans/smoke-2026-10-07.md](plans/smoke-2026-10-07.md) (the diagnosis, the
+owner's decisions P1-P3 and the Director clause of 2026-10-08, the figures).
+
+**ATR:** `51d8fac71499e0952c5d9de7d7ea566325721796c25cc9646de806778e5950e3`,
+boot `c694bf16828c95aefb07801cfde58669a1bf7d1ac8ffacdc58e77df441d01832`,
+evidence bound.
+
+**What changes for a player:**
+
+* **P1, the boss band (decision M):** the player's shots stay on the screen
+  up the band's empty rows to the module that stops them. The cause was a
+  raster race: UPDATE wrote the band's shot cells while ANTIC was fetching the
+  band (MEASURED: rows 4-5 almost never shown). The cells are now written at
+  SECTOR_COMPLETION, after the band's last line (`boss_shots_late`, slot E).
+* **P2, level 1 after the capital:** one Interceptor, one Wingman, one Raider
+  pair (with its flight-lead escort), one Bomber pair - each alone on the
+  screen; before the capital and the capital unchanged; the boss reached when
+  it was (67.3 / 59.5 / 55.1 s).
+* **P3, the AI line:** off the loading and level-end screens (it ran into the
+  statistics); not moved to the WARNING screen (no home without boot bytes) -
+  backlog "AI chatter line: find a home". START GAME shows only BEST of the
+  statistics.
+
+**Gates (all held):**
+
+* **Worst fence margin:** 1,472, unchanged (the same frame).
+* **DMA-on:** 31,074 → 31,041; boss frames 8,199 / 29,169 → 8,323 / 29,082.
+* **The Director clause** (owner decision of 2026-10-08, re-targeted to its
+  intent: the heaviest frame with a Director request, event or row tick fits
+  the gates): `1-evasive-fire3` f297, 31,011, fence margin 9,609 (`main`:
+  `director-complete-1` f2153, 31,074, 8,096).
+* **Boss stress, native:** 7,982 → **8,434 of 8,500** (unproven 3-5 meetings;
+  reachable 7,732): about 66 cycles left - an S5 constraint
+  ([plans/m5-loading-boss.md](plans/m5-loading-boss.md) "S5 requirements").
+* **Slots:** A 2,045 → 2,042; C 1,992 → 1,880 (13 sectors); D 1,773 → 1,783
+  (9 B free); E 102 → 266 (2 sectors); scratch 244; region 1's charset 976 B;
+  the summary module 1,788 → 1,760 B.
+* **Initial block / boot / extension:** 13,618 B / 107 / 105, unchanged; ATR
+  menu frame 551 (BASIC 542), unchanged.
+* **Boss entry:** 64 sectors, 245 host frames.
+* **Trace:** 57 replays, 0 clause failures, 0 miss events. Scenario rewrites,
+  class (a): `memory-integrity-atr-0-hunt-fire5` (booster cycles 8 → 11),
+  `weapon-pickup-sequence-2-hunt-fire3` (the capsule raster sequence), the
+  laser contact's parked fighter dodges boss shots.
+* **`npm test`** (default build, twice, identical): 1,181 tests, 1,180 pass,
+  1 fail - `preview`, recorded, first failing `tests/preview.test.mjs:129`.
+
+**The fight for the bot** (lives held): 71.4 / 115.6 / 146.6 s (`main` 73.4 /
+100.1 / 129.0): the player enters the boss in another state after P2.
+
+**Pending:** the owner's smoke, [hardware-testing.md](hardware-testing.md) §18.
+
 ## Audit hardening — disk writes, transition loads, interrupt decimal mode — `OWNER-SMOKE CANDIDATE` (2026-10-07)
 
 **Branch and plan:** `fix/audit-hardening` from `main` `f8611ab`;
@@ -438,7 +493,7 @@ evidence bound.
 * **Boss shots:** born at the muzzle and riding the band (QA1).
 * **AUD-03 / AUD-04:** `CLD` in the boss DLI; at most two player shots meet
   the boss a frame.
-* **Level 1 (W1):** one Raider + Wingman wave and one Bomber wave between the
+* **Level 1 (W1, superseded by fix/smoke-2026-10-07 P2):** one Raider + Wingman wave and one Bomber wave between the
   capital and the boss; the level reaches the boss in 67.3 / 59.5 / 55.1 s
   (was 190.3 / 169.9 / 155.1).
 * **Slot E** (`$4C00–$4E3F`) over the expanded hull maps, the boss sector only;

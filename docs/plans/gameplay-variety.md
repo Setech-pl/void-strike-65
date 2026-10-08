@@ -769,7 +769,8 @@ comes before M4; M6 is where the window goes negative on budgeted figures.
 | the arena's free bytes after M3-H's own moves | **95** | none; risk 1 | m3 §6.3 |
 | the `BROADSIDE` pins after M3-H | **15** | none | m3 §6.3 |
 | `LEVEL_BUFFER` 16 → 15 | **128** | every level address re-linked; risk 3 | m5 §6.1 |
-| **subtotal** | **537** | | |
+| **the `MAIN` holes of §8.5: the Light kernel moved to `$3615-$3997` after the menu-data overlay** | **902** | 0 transport; one record destination; needs L1a first; pinned vectors and page crossings re-proven | 3 | §8.5 (**M** sizes) |
+| **subtotal, the four earlier levers (without §8.5 and the cuts)** | **537** | | |
 | ~~the attract mode gives way (m5's rule)~~ — **withdrawn (owner, 2026-10-08): the attract mode is a must-have and a menu-phase overlay; it costs the window nothing** | 0 | — | §3.10 |
 | the M3 cuts | up to 195 | the column helper +12 cycles a tracking frame; one damage stage; the dodge; the volley into the arena | m3 §6.3 |
 | **a fighter-phase overlay in `$1900-$1FFF`** (slot D's RAM outside the boss sector): fighter-only code (the path evaluator, the capsule types, the weapon profiles) read at every level start behind the summary screen and rebuilt after a boss | **up to 1,792** | a run read per level (+8 … 14 sectors ≈ +30 … 53 frames behind the 3-s minimum); the code must not run before its read; the low-RAM range is emulator-measured free only (`diagnostics/low-ram-0700-1fff-2026-10-03.md`) until the owner's 65XE smoke of `$0500`; risk 3–4 | m5 §6.1 last row |
@@ -781,8 +782,10 @@ four levers and one M3 cut (the volley into the arena, 72 B, is the cheapest
 and costs no cycles); on budgeted figures the fighter overlay or a dropped
 item (the torpedo's resident 80, the initials entry 180, the capsules 185)
 is needed as well. The decision is the owner's at the M6 boundary with
-measured figures. The data levers of §8 do not change this ledger: they
-return initial-block bytes and `BROADSIDE` RAM, not window bytes (§8.4).
+measured figures. **The data levers of §8 change it through §8.5 only: the
+Light kernel moved into the `MAIN` holes returns 902 B of window, and the
+road then ends +836 expected / +579 budgeted (§8.5's table); Q15 asks
+whether that lands in the levers session.**
 
 ### 4.2 `DIRECTOR_RAM`, `HYBRID_C_SECTOR`, the arena, the pins
 
@@ -889,6 +892,12 @@ attract mode (menu overlay) → the freeze.
 | 9 | **M6 torpedo** | `feat/proton-torpedo` | §3.5 in slot E / C with the resident veneers; **the entry measured, STOP over 260 host frames**; module durability rebalanced in data; the fight length reported per difficulty | −65 → −80 | boss-only; the fight inside 90–120 s on MEDIUM |
 | 10 | **Attract mode, menu overlay; item 24** | `feat/attract-mode` | §3.10: the menu overlay in `$0C00-$1FFF` with the stream, the idle timer and the `DEMO` run; item 24's 50 → 60 B of window | −50 → −60 | the last code item before the freeze; 0 window for the attract mode itself |
 | — | **the freeze** | | M7 content (data), M8 balance (data), M9 release | | |
+
+**Refinement proposed after the owner's follow-up (§8.5, Q15):** session 6
+(the window levers) would also build the menu-data overlay and move the
+Light kernel into the `MAIN` holes (+902 B of window), and session 10 would
+add only the demo to that overlay. Not applied to the table above until the
+owner answers.
 
 Why M3 + M3-H before M4 (Q1, adopted): the owner's complaint is level 1's variety
 now; M3-H re-scripts level 1's replays once (slower Raiders) and M4 would
@@ -1081,7 +1090,7 @@ but the same scarcity).
 
 | Tables | Phase | Mechanism | Returns IB | Returns W | Cost / risk | Basis |
 | --- | --- | --- | ---: | ---: | --- | --- |
-| **L1a** the menu's data: the menu screens 353 (`RODATA`), the menu music 514 and the star tables 77 (`STARFIELD`), the frontend display lists and the difficulty table 263 and the H3.1 extended glyphs 128 (`ENTITY_CODE`) — 1,335 raw | menu | **the menu-phase overlay the attract mode now needs** (§3.10): one run into `$0C00-$1FFF` read at every menu entry; the resident menu code addresses the tables at their slot addresses | **≈ 1,206** (353 raw + ≈ 442 + 66 + 232 + 113 packed, **AN** at the segments' measured ratios 0.86 / 0.88) | 0 | +≈ 11 sectors per menu entry (≈ 42 frames EMULATOR) on top of the attract stream; every `RODATA` / `STARFIELD` / `ENTITY_CODE` address after the moved tables shifts (risk 3: the harness's pinned labels, the boot baseline re-recorded, the memory map regenerated); the H3.1 glyphs are copied at cold init, so their copy moves to the overlay's install | **M** sizes |
+| **L1a** the menu's data: the menu screens 353 (`RODATA`), the menu music 514 and the star tables 77 (`STARFIELD`), the frontend display lists and the difficulty table 263 and the H3.1 extended glyphs 128 (`ENTITY_CODE`) — 1,335 raw | menu | **the menu-phase overlay the attract mode now needs** (§3.10): one run into `$0C00-$1FFF` read at every menu entry; the resident menu code addresses the tables at their slot addresses | **≈ 850 of transport** (≈ 442 + 66 + 232 + 113 packed `STARFIELD` / `ENTITY_CODE` source bytes, **AN** at the measured ratios 0.86 / 0.88) **plus 528 B of resident RAM at `$3615-$3824`** — not transport: `MAIN` is a filled 8 KB area of the image (`cfg/atari-boot.cfg:7`, `fill = yes`), so a hole in `RODATA` costs the boot sectors nothing and saves them nothing (**corrected 2026-10-08, second pass**; the first figure, 1,206, added the two) | 0 (**but see §8.5: the RAM hole is a home for window code**) | +≈ 11 sectors per menu entry (≈ 42 frames EMULATOR) on top of the attract stream; every `RODATA` / `STARFIELD` / `ENTITY_CODE` address after the moved tables shifts (risk 3: the harness's pinned labels, the boot baseline re-recorded, the memory map regenerated); the H3.1 glyphs are copied at cold init, so their copy moves to the overlay's install | **M** sizes |
 | **L1b** the capital-phase tables, 662 B of the resident `BROADSIDE` half | capital | the **second capital overlay slot** of §4.4 (the capital group's resident ~1,750 B as a slot restored by a 30-sector run after a boss) | 0 | 0 (**662 B of resident `BROADSIDE` RAM**, record 1 ≈ −550 packed B ≈ −4 sectors) | the regrouping (risk 3) and +14 sectors at the post-boss transition behind the summary's 3-s minimum | **M** sizes |
 | **L1c** the boot-read-once glyph sources: the charset block's 989 B less the hull glyphs (`RODATA`), the H3.1 glyphs 128 and the effect glyphs 96 (`ENTITY_CODE`), the hostile looks 32 (arena) | boot, once | an extension record read at boot and unpacked straight into the charsets (the mechanism of the 11 records); the hull glyphs 248 stay resident (re-read at every level start) | **≈ 741 raw `RODATA` + ≈ 197 packed `ENTITY_CODE`** (AN) | 0 | 11 of 11 DFMC records are used: the data rides an existing record's spare (record 2 127 raw, record 11 116, record 9 92, record 1 86) or lever 14's twelfth record (−16 B IB); +6 → 8 extension sectors (+6 → 16 menu frames); boot CPU for the unpack ≈ 1 frame per KB (**G**) against the ATR menu deadline (52 frames of slack today; it has been 0) | **M** sizes, **G** boot cost |
 | L1d the pause screens 110 (`BROADSIDE`) | pause | a 1-sector read at every pause | 0 | 0 (110 B `BROADSIDE`) | a disk read inside a pause (4 frames); not worth it | — |
@@ -1094,7 +1103,7 @@ site costs ~12 B).
 
 | Tables | Today | Packed (G) | Returns IB | Returns W | Cost / risk | Basis |
 | --- | --- | --- | ---: | ---: | --- | --- |
-| **L2a** the charset block's raw 989 B (`RODATA`), copied once at cold init | raw | 0.6 → 0.8 (**G**; glyph rows pack worse than the bitmap's 0.26 and better than code's 0.86) | **≈ 200 → 400** | 0 | the unpack lands directly in `CHARSET`; `publish_level_hull_style` then needs the hull glyphs' 248 B from a resident source: keep them raw (returns ≈ 150 → 300 instead) or unpack them into the pause backup at each level start (+1 KB of copies); boot CPU ≈ 1 frame (**G**) against the deadline | **M** sizes |
+| **L2a** the charset block's raw 989 B (`RODATA`), copied once at cold init | raw | 0.6 → 0.8 (**G**; glyph rows pack worse than the bitmap's 0.26 and better than code's 0.86) | **≈ 200 → 400 of `MAIN` RAM, 0 of transport by itself** (the filled `MAIN` area again; it becomes transport only if a packed source now in `BOOTTAIL` is relocated into the hole, a build change, **G**) | 0 | the unpack lands directly in `CHARSET`; `publish_level_hull_style` then needs the hull glyphs' 248 B from a resident source: keep them raw (returns ≈ 150 → 300 instead) or unpack them into the pause backup at each level start (+1 KB of copies); boot CPU ≈ 1 frame (**G**) against the deadline | **M** sizes |
 | **L2b** the menu screen texts 353 (`RODATA`), copied to screen RAM at each screen entry | raw | 0.5 → 0.7 (**G**; text) | **≈ 100 → 180** | 0 | the decoder writes to screen RAM at each entry (the menu already pays a build); or inside L1a's overlay for free | **M** sizes |
 | L2c `BOOT_SPLASH` (512: 469 code) and `A2_KERNEL` (237) | raw | code at ≈ 0.86 | 10 → 57 net | 0 | budget §4.1 lever 12; the boot deadline risk | budget |
 | not packable | the tables read in place every frame: the player shapes, the explosion masks, `hud_ascii`, `enemy_body_data`, the pickup shapes, the archetypes, the breakup offsets, the Director's and the arena's rodata (≈ 350 B in all) | — | 0 | 0 | packing them would need an unpack into RAM of the same size | — |
@@ -1125,17 +1134,102 @@ first step of L1a and L2a, not a return in itself.
 
 | Ledger | Today | With L3 | With L3 + L2a + L2b | With L3 + L2 + L1a (the menu overlay) | Basis |
 | --- | ---: | ---: | ---: | ---: | --- |
-| initial block, bytes to STOP (§4.3) | 34 (62 after §3.6's table move and K1) | 62 | ≈ 360 → 640 | **≈ 1,500 → 1,850** | **M** + **AN** + **G** as marked |
+| initial block, bytes to STOP (§4.3) | 34 (62 after §3.6's table move and K1) | 62 | 62 (+ ≈ 200 → 400 only with a relocated packed source, **G**) | **≈ 900 → 1,300** (L1a's ≈ 850 of packed sources + L2's relocation) | **M** + **AN** + **G** as marked; corrected 2026-10-08, second pass: `MAIN` holes are RAM, not transport |
+| resident RAM holes inside `MAIN` (`$2000-$3FFF`), usable by window code (§8.5) | **731** (`$3825-$3AFF`, free after boot today) | 731 | 731 (+ ≈ 200 → 400 with L2a) | **1,259** (`$3615-$3AFF`, with L1a) | **M** |
 | `$AE00` window | 1,185 | 1,185 | 1,185 | 1,185 (+30 with L1e) | §4.1 unchanged |
 | resident `BROADSIDE` room (the pins 119, the tail 3) | 122 | **218** | 218 | 218 (+662 with L1b) | **M** |
 | extension sectors / menu frames | 105 / 551 | 104 / ≈ 549 | 104 | +≈ 11 per menu entry (disk, not transport) | **M** |
 
-So the data levers make **the initial block a non-binding resource** (lever
-11's "menu music and frontend tables out of the initial block" becomes L1a
-at risk 3 instead of 4, because the menu overlay exists for the attract mode
-anyway), return 96 → 758 B of `BROADSIDE` room, and **return no window
-bytes but 30**. The window ledger of §4.1 stands; the fighter-phase overlay
-in `$1900-$1FFF` and the second capital slot remain the window-side levers.
+So the data levers return ≈ 850 → 1,300 B of transport (lever 11's "menu
+music and frontend tables out of the initial block" becomes L1a at risk 3
+instead of 4, because the menu overlay exists for the attract mode anyway),
+96 → 758 B of `BROADSIDE` room, **30 B of window directly — and, through the
+`MAIN` holes of §8.5, up to 902 B of window indirectly.** The fighter-phase
+overlay in `$1900-$1FFF` and the second capital slot remain the other
+window-side levers.
+
+### 8.5 The `MAIN` holes as a home for window code (owner follow-up, 2026-10-08)
+
+**The question.** Is the RAM the menu-data overlay frees inside the initial
+block free and usable during gameplay — not overwritten after boot,
+reachable by gameplay code, without a load-order or address constraint — and
+if so, what window code can move there?
+
+**The RAM, exactly.** Two ranges inside `MAIN` (`$2000-$3FFF`, the raw 8-KB
+half of the initial block, `cfg/atari-boot.cfg:7`):
+
+| Range | Bytes | Today | After boot | Evidence |
+| --- | ---: | --- | --- | --- |
+| `$3825-$3AFF` | **731** | the lower part of the packed loader bitmap (`loader_bitmap_lzss`, 1,967 B at `$3825-$3FD3`) | **free**: the blob is consumed once by `unpack_loader_bitmap` in stage 2 (`src/main.s:1287`) before `show_loader` (`:1288`); from `$3B00` up PMG DMA owns the RAM (`PMG_BASE`, memory map "`$3800-$3FFF` — the PMG window"), below it nothing: the only symbol in the range is the blob itself (`build/void-strike-65.lbl`, MEASURED) | **M** |
+| `$3615-$3824` | **528** | the menu screens, the marker positions, the top-score template, the missile mask tables (`:7729-7950`, §8.2) | **free once L1a moves the menu data to the menu overlay**; the four 3-B missile tables and `debris_contact_damage_by_difficulty` (15 B, read in play) move with the layout | **M** |
+| together | **1,259** contiguous at `$3615-$3AFF` | | | |
+
+Not overwritten after boot: no segment, cfg area, equate block or manifest
+range claims either range in any phase but `boot` (the generated memory map,
+rows `$3170-$37FF` and `$3825-$3FD3`); the loader's display list sits at
+`$3C00` and the PMG pages at `$3B00`, both above. Reachable: absolute
+addresses, as the arena (`$7BD0`), `HYBRID_C_SECTOR` (`$8602`) and
+`DIRECTOR_C_LOW` (`$8B88`) already are — director-link areas placed in gaps
+of the main link with a neighbour-guard assert (`cfg/encounter-director.cfg:65-73`).
+The constraint is **when the bytes arrive**: anything linked raw into
+`$3825-$3AFF` would collide with the packed bitmap in the image, so that
+range can only be filled **after** stage 2's unpack — by an extension record
+landing there (every record lands after `show_loader`: `finish_startup_after_loader`
+runs the record reads; `:1288`, `:11566`) or by an unpack from a packed
+source. `$3615-$3824` can take raw bytes in the image (the hole is paid for
+either way) **or** a record. So: **yes, free and usable, with one load-order
+rule — the record that fills `$3825+` is read in the loader phase, which is
+where every extension record is read today.**
+
+**What to move, and what it returns.**
+
+| Candidate | Window bytes returned | Mechanism | Transport | Cycles | Page-crossing effect | Risk |
+| --- | ---: | --- | --- | --- | --- | ---: |
+| **The whole Light kernel link** — `LIGHT_KERNEL` 771 B (`light_update`, `light_publish`, `light_shot`, the backing and cell resolvers, the capital vector table) + `DISK_GUARD` 95 + `CAPITAL_VECTOR_IMAGE` 36 = **902 B**, record 9 | **902** | record 9's `finalDestination` becomes `$3615` instead of `$B3D9`: `cfg/light-kernel.cfg:16`'s start is rewritten by the build from `HYBRID_ASM_WINDOW_BASE` (`scripts/build.mjs:2342-2349`, the assert in `src/hybrid/light-kernel.s`); that derivation changes to the hole's address, the ABI include and the capital vector constants regenerate. **Needs L1a first** (731 B alone is too small for 902) | **0**: the same 7-sector record, another destination; the window record 8 unchanged | **0 inherent**: RAM is RAM; every call is `jsr` absolute; no bank or page register is involved | the kernel's loops carry taken branches: a branch that crosses a page costs +1, so the moved kernel is proven natively on both builds (`memory`: window layout page crossings); the boss head's vector image and the reader's restore copy read the table's new address (constants) | 3: the harness's `LIGHT_KERNEL_*` vector pins, the memory-integrity clauses' cold-RAM ranges, the boot baseline re-recorded |
+| The Director's cold C — `director_c_try_event` 180, `enter_sector` 111, `archetype_allowed` 55, `heavy_ceiling` 46, `compute_ceiling_row` 54, `director_c_light_ceiling` 44, `encounter_light_admit` 40, `enemy_c_light_hit` 59, `compute_wave_end` 35, `director_c_release` 33, `light_reload` 29 (**M**, `build/encounter-director*.lst`) = **686 B**; the per-frame set (`light_tick_body` 428, `enemy_c_light_tick` 85, `light_wave_step` 64, `enemy_c_light_wave` 44, the tokens 47, `light_live_count` 34 = 702 B) may move too, nothing in the window is address-bound | up to **686** (or the whole C half, 1,388, if the holes allow) | `#pragma code-name` per function into a new director-link area at the hole (the arena precedent); the bytes reach RAM by a record — **the 12th DFMC record** (`scripts/chunk-loader.mjs:13` `MAX_CHUNKS = 11`; budget lever 14: −16 B of initial block for the manifest row) — or by the build splicing the area's bytes into `MAIN`'s image at `$3615` (raw, 0 transport, no record; **G** 40–80 lines of `scripts/build.mjs`) | the record route: ≈ 0.78 × 686 = 535 packed B → +5 extension sectors (+5 → 10 menu frames) and −16 B of initial block; the splice route: 0 | 0 inherent | the C half shrinks and shifts: the hot Light paths are re-proven (the same memory) | 3 |
+| M3-H's window ASM (armoured half 96, punch 90, hole tables 24 = 210) and the `BROADSIDE` pin's 98 | 210 (+98 of pin) | lever 4's mechanism instead: `STARFIELD_RAM` ends lower and `BROADSIDE_RAM` starts lower (`cfg/atari-boot.cfg:18-19`), so record 1 lands from `$5A32` once the menu music (514) and the star tables (77) have left and the segment is reordered: **299 + 591 = 890 B** for main-link ASM | 210 → 308 | ≈ 0.83 × 210 in record 1 (+2 sectors) | 0 | the `BROADSIDE` labels the harness pins move | 3 |
+
+**Recommendation: the Light kernel, whole, into `$3615-$3997`** — one
+destination change, no new record, no splice, 902 B back to the window for 0
+transport. It needs L1a, so the menu-data overlay (the attract session's
+mechanism) must exist first; the attract session is the last code item in
+§5, after the window goes negative at M6. **Therefore the window-levers
+session (§5 item 6) should build the menu-data overlay and the kernel move,
+and the attract session later only adds the demo's stream, timer and label
+to that overlay.** That is a change to the adopted session list's contents,
+not its order, and it is the owner's to confirm (Q15 below).
+
+**The window ledger, order B, with the kernel move in the levers session**
+(expected → budgeted, free):
+
+| Point on the road | Without §8.5 | **With the Light kernel moved (+902)** |
+| --- | ---: | ---: |
+| today | 1,185 | 1,185 |
+| after sector flow, S5 | 1,075 → 1,045 | 1,075 → 1,045 |
+| after M3-H | 603 → 529 | 603 → 529 |
+| after M3 | 107 → 5 | 107 → 5 |
+| after the window levers (+537; +902) | 644 → 542 | **1,546 → 1,444** |
+| after M4 | 344 → 182 | 1,246 → 1,084 |
+| after M6 boosters | 49 → −183 | 951 → 719 |
+| after the M6 torpedo | −16 → −263 | 886 → 639 |
+| after item 24 | **−66 → −323** | **836 → 579** |
+| the attract mode (menu overlay) | 0 | 0 |
+
+With the kernel move the road ends **+836 expected / +579 budgeted**: no M3
+cut, no fighter-phase overlay, and ~580 B of window left for what M7–M8 find
+on hardware. The four earlier levers (537) are still counted; if the kernel
+move is taken first, `LEVEL_BUFFER` 16 → 15 (128, risk 3) can be left alone
+(+451 budgeted at the end instead of +579).
+
+**Q15 (new, for the owner):** build the menu-data overlay and the Light
+kernel move inside the window-levers session (§5 item 6), before M4, with
+the attract session reduced to the demo itself? Recommended: **yes**; cost:
+the levers session grows by two risk-3 changes (addresses in `RODATA`,
+`STARFIELD`, `ENTITY_CODE` and the kernel's vectors move; evidence
+regenerated once for both); alternative: keep the levers session as it is
+and take the kernel move with the attract session — the window is then
+−183 → −263 budgeted through M6 and the M6 sessions must fit the M3 cuts or
+defer the capsules until the attract session lands.
 
 ---
 

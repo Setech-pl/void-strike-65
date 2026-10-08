@@ -1782,6 +1782,10 @@ plan §7.1):**
    90–120 s na MEDIUM — sesja torpedy **równoważy wytrzymałość modułów w
    danych i raportuje długość walki per trudność**.
 7. **Kapsuła +1 życie losowana rzadko (nigdy zero), najwyżej raz na poziom**.
+   **Potwierdzone przez właściciela (2026-10-08, drugie przejście) w kształcie
+   z planu §3.6:** losowanie 1 na 4 przy każdej kapsule, wymuszona w ostatnim
+   sektorze przestrzeni, jeśli jeszcze nie padła, raz na poziom; §7.1 planu bez
+   zmian.
 8. **Kapsuła naprawy w rotacji sześciu** (Rapid, Spread, Shield, Rapid, Spread,
    Repair).
 9. **Reguły przepływu sektorów domyślne dla każdego poziomu.**

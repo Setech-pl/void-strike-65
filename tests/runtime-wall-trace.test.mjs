@@ -227,7 +227,14 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // (memory-integrity-atr-0-hunt-fire5 joined to keep the booster-cycle
   // clause's >= 10), and all five now reach the boss and set its entry frame
   // aside: 5 x 3,999.
-  assert.equal(report.replay.memory_integrity_measured_frames, 19_995);
+  // RE-POINTED (data/w2-lights, the planned data change): the boss is 408 rows
+  // later (the swarm and elite (a)/(b)), so inside their unchanged 4,000-frame
+  // budgets only HARD's hunt replays at fire delays 5 and 6 reach it (boss
+  // entry 3,574); the evasive one, HARD's hunt at 7 and EASY's hunt at 5 end
+  // before it: 2 x 3,999 + 3 x 4,000. The integrity clauses are unchanged (the
+  // booster cycles, the pause, the DLI phase - next test); the boss itself is
+  // covered by the director-complete, slot-e and debris-effects replays.
+  assert.equal(report.replay.memory_integrity_measured_frames, 19_998);
   assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "baseline-9040")
@@ -245,8 +252,9 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     // RE-POINTED (fix/smoke-2026-10-07 P2): the evasive replay now reaches the
     // boss too (frame 2,740, after the shorter post-capital waves) and sets its
     // entry frame aside; EASY's hunt at delay 5 joined (class (a)).
-    ["ATR", "evasive", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999],
-    ["ATR", "hunt", 3_999],
+    // RE-POINTED (data/w2-lights): as above, only hunt 5 and 6 reach the boss.
+    ["ATR", "evasive", 4_000], ["ATR", "hunt", 3_999], ["ATR", "hunt", 3_999], ["ATR", "hunt", 4_000],
+    ["ATR", "hunt", 4_000],
   ]);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "fighter-flash-coverage")
@@ -370,7 +378,9 @@ test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase",
     integrity.passed,
   // RE-POINTED (fix/smoke-2026-10-07 P2, class (a)): five replays, each
   // reaching the boss: 20,000 - 5 measured, 399.9 s.
-  ], [19_995, 399.9, 0, 2, true]);
+  // RE-POINTED (data/w2-lights): two of the five reach the boss now (the
+  // previous test says why): 20,000 - 2 measured, 399.96 s.
+  ], [19_998, 399.96, 0, 2, true]);
   assert.ok(integrity.pickup_rf_cycles >= 10);
   assert.equal(integrity.pause_sessions.length, 1);
   assert.ok(integrity.pause_sessions.every(({ timer_before, timer_after }) =>

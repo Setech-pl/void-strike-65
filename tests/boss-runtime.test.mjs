@@ -97,14 +97,18 @@ test("the Director raises BOSS_DUE entering the boss sector, and the gate enters
   const memory = bossGateMemory();
   const STATE_SECTOR = 0x80f6;
   const STATE_FLAGS = 0x80fe;
-  // Sector 4 (the last space sector) at its last row: one more row enters the boss.
-  memory[STATE_SECTOR] = 3;
+  // The last space sector at its last row: one more row enters the boss.
+  // RE-POINTED (data/w2-lights): level 1 has seven sectors now, so the boss is
+  // sector 6, not 4; both indices are read from the core page's sector count
+  // ($AA02) rather than pinned, so the test follows the level it runs on.
+  const bossSector = memory[0xaa02] - 1;
+  memory[STATE_SECTOR] = bossSector - 1;
   memory[STATE_FLAGS] = 0;
-  const len = memory[label("director", "_sector_len") + 3];
+  const len = memory[label("director", "_sector_len") + bossSector - 1];
   memory[label("director", "_sector_row_hi")] = len >> 5;
   memory[label("director", "_sector_row_lo")] = ((len << 3) & 0xff) - 1;
   call(memory, label("director", "_director_c_world_row_tick"));
-  assert.equal(memory[STATE_SECTOR], 4, "the row clock did not enter the boss sector");
+  assert.equal(memory[STATE_SECTOR], bossSector, "the row clock did not enter the boss sector");
   assert.equal(memory[STATE_FLAGS] & 0x20, 0x20, "BOSS_DUE is not raised");
   assert.equal(memory[STATE_FLAGS] & 0x01, 0, "the level must not complete on entering its boss");
   // A Light still published: the gate waits.
@@ -126,7 +130,7 @@ test("the Director raises BOSS_DUE entering the boss sector, and the gate enters
   memory[STATE_FLAGS] = 0;
   memory[label("director", "_sector_row_hi")] = 0x7f;
   call(memory, label("director", "_director_c_world_row_tick"));
-  assert.equal(memory[STATE_SECTOR], 4);
+  assert.equal(memory[STATE_SECTOR], bossSector);
   assert.equal(memory[STATE_FLAGS] & 0x01, 0);
 });
 

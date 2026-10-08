@@ -107,7 +107,8 @@ test("T8: a debug level or sector outside the campaign is refused by the build",
     ["--level=0", /outside 1\.\.16/],
     ["--level=17", /outside 1\.\.16/],
     // RE-PINNED 2026-10-04 (M5b-S3): level 1 has five sectors, the fifth its boss.
-    ["--level=1:sector=9", /outside the level's 5 sectors/],
+    // RE-PINNED (data/w2-lights): seven, the swarm and elite (a)/(b) added.
+    ["--level=1:sector=9", /outside the level's 7 sectors/],
     ["--level=one", /the form is --level=N/],
   ]) {
     assert.throws(() => execFileSync(process.execPath,

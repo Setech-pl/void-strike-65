@@ -946,6 +946,10 @@ half-aimed shot only, as the owner allowed).
 
 ## 7. Owner questions
 
+**The table below is the record of what was asked and recommended on
+2026-10-08; the owner's answers, given the same day, are §7.1 and override
+it where they differ (Q12).**
+
 | # | Question | Recommended answer | Cost of the recommendation | The alternative and its cost |
 | ---: | --- | --- | --- | --- |
 | **Q1** | M3 + M3-H before M4 (order B), or today's order (A)? | **Order B**, with the sector-flow session first in either case | the campaign loop three sessions later; the lever session after M3 instead of inside it | order A: M4's loop first; the lever session between M3-H and M3; the variety items land ~4 sessions later |

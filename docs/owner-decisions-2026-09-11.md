@@ -1808,6 +1808,25 @@ plan §7.1):**
     w `src/main.s`) z trzema dźwigniami na tablicę — plan §8, skrypt
     `scripts/measure-resident-data.mjs`.
 
+14. **Decyzja 3 planu Directora 4.6 (§11) zmieniona (2026-10-08, sesja
+    `feat/sector-flow`, [plans/sector-flow.md](plans/sector-flow.md)):**
+    wiersz capitalu zapisany w danych poziomu jest teraz **maksimum**, a nie
+    stałym wierszem. Sektor przestrzeni — także sektor 0 — może skończyć się
+    wcześniej według reguł przepływu sektorów (fale wyczerpane, pole puste),
+    więc capital może przyjść przed wierszem 272, gdy gracz zniszczy wszystkie
+    formacje przed capitalem. **Wstrzymanie przed capitalem zostaje** (wejście
+    capitalu czeka na opróżnienie pola; żaden Heavy nie wlatuje do sektora
+    capital) i ślad (trace) musi pokazać, że działa, gdy capital przychodzi
+    wcześniej. Raport: wiersz capitalu per trudność w powtórkach
+    natural-sweep, przed i po.
+15. **Okno `$AE00` dla przepływu sektorów: +163 B przyjęte (2026-10-08)**
+    ponad linię 140 B briefu (`DIRECTOR_RAM` +3 B zamiast 24, łącznie 166 B
+    wobec 164 B budżetu planu); rekord okna 10 → 11 sektorów (transport
+    212 → 213, bez sektora bootu).
+16. **Test danych „bez roju bezpośrednio po sektorze elity" zostaje twardym
+    testem (2026-10-08)**; C1 dokłada osłonę w kodzie. Rój dostaje trzecią,
+    dołączoną falę Lightów (odpowiedź właściciela w sesji przepływu sektorów).
+
 **Czego decyzje NIE zmieniają:** ATR only; `LEVEL_MAX_ID` 16; 16 sektorów
 obrazu poziomu; transport (bez nowego sektora bootu, blok początkowy ≤
 13 652 B, delta menu ATR ≤ +7); bramki czasu (GO ≥ 500, 32 568, limity stresu

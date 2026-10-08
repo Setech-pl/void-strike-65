@@ -883,6 +883,14 @@ follow-up (`03f757d`). Item **20** was recorded on **2026-10-08**, at
    frame 600; level 1's data authors the row equivalent to today's frame 600,
    so level 1 reproduces. The replay set is re-scripted at step 2 and the
    evidence re-recorded.
+   **Amended by the owner, 2026-10-08 (`feat/sector-flow`,
+   [sector-flow.md](sector-flow.md)):** the capital's authored row is now a
+   **maximum**, not a fixed row. A space sector, sector 0 included, may end
+   earlier under the sector-flow rules (its waves spent and the field clear),
+   so the capital can come before row 272 when the player destroys every
+   pre-capital formation. The hold before the capital stays: the capital
+   entry still waits for the drain, so no Heavy is carried into the capital
+   sector. The trace must show that hold when the capital comes early.
 4. **Hull length steps 288 / 352 / 416 / 480 rows — CONFIRMED** (decided by the
    owner, 2026-09-23), the four steps as planned, with turret density as four
    count tables over the level's length.

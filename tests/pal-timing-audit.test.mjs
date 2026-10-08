@@ -259,4 +259,8 @@ test("AUD-06: the CLI sets the boss-entry transition row aside, as the harness d
 test("AUD-06: the harness fails the run on an audit that does not pass", () => {
   assert.match(wallTraceSource,
     /if \(!palTimingAudit\.passed\) process\.exitCode = 1;/);
+  // ...and binds the acceptance into gate.timing_and_dli_passed, which the
+  // default build's release gate reads (scripts/runtime-evidence.mjs).
+  assert.match(wallTraceSource,
+    /const timingAndDliPassed = [\s\S]{0,900}?palTimingAuditsPassed\(palTimingAudits\);/);
 });

@@ -38,7 +38,7 @@ import { compileLevelFile, levelSourcePath } from "./level-compiler.mjs";
 import { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
-  reportAudits as reportPalTimingAudits,
+  reportAudits as reportPalTimingAudits, auditsPassed as palTimingAuditsPassed,
   reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -5039,11 +5039,13 @@ function main() {
   {
     const missEvents = reportPalTimingAudits(palTimingAudits, { perAudit: false });
     fs.writeFileSync(path.join(buildDirectory, "pal-timing-audit.json"),
-      `${JSON.stringify({ distinct_miss_events: missEvents, audits: palTimingAudits },
+      `${JSON.stringify({ distinct_miss_events: missEvents,
+        passed: palTimingAuditsPassed(palTimingAudits), audits: palTimingAudits },
         null, 2)}\n`);
     // A distinct miss event is a real dropped PAL frame, so it fails the gate
     // whatever else the run was measuring.
     if (missEvents !== 0) process.exitCode = 1;
+    if (!palTimingAuditsPassed(palTimingAudits)) process.exitCode = 1;
   }
   if (sessionFailures.length === 0) {
     console.log(`Behavioural clauses: ${sessionsToRun.length} session(s) ran to completion`);
@@ -7909,7 +7911,11 @@ function main() {
     // (fix/smoke-2026-10-07, owner decision of 2026-10-08): the heaviest frame
     // WITH Director work fits the gates, not "the heaviest frame has some".
     directorHeaviest.held &&
-    dliSequenceViolations === 0 && maximumDlisPerHostFrame === 2;
+    dliSequenceViolations === 0 && maximumDlisPerHostFrame === 2 &&
+    // AUD-06 (chore/evidence-integrity): every replay's PAL audit holds the
+    // documented gates - no miss event, worst fence margin >= 500, DMA-on
+    // <= 32,568 - and at least one replay was audited.
+    palTimingAuditsPassed(palTimingAudits);
   const report = {
     schema_version: 2,
     method: "Atari800 ANTIC master-clock observation at guest-PC boundaries; no guest logging or instrumentation instructions",

@@ -16,6 +16,13 @@
 // therefore conflate one real miss with its phase-shift aftermath and must not
 // be used to compare builds; DISTINCT MISS EVENTS must.
 //
+// A replay PASSES only when it holds the documented gates (AUD-06,
+// docs/audits/2026-10-06-pre-m5.md): no distinct miss event, a worst fence
+// margin of at least GO_FENCE_MARGIN_CYCLES, a DMA-on maximum no higher than
+// HARD_GATE_CYCLES, and at least one row. `fence_caught` is the detection-only
+// result (no miss event) and is never a PASS on its own. The CLI fails when it
+// audits no replay or cannot audit a file it was given.
+//
 // usage: node scripts/pal-timing-audit.mjs [--json <path>] <csv-or-dir>...
 import fs from "node:fs";
 import path from "node:path";
@@ -24,6 +31,9 @@ export const PAL_FRAME_CYCLES = 35_568;
 export const LINE_CYCLES = 114;
 export const HARD_GATE_CYCLES = 32_568;
 export const TARGET_CYCLES = 31_200;
+// GO: the worst line-238 fence margin a replay must keep (docs/STATUS.md,
+// "worst fence margin (GO >= 500)").
+export const GO_FENCE_MARGIN_CYCLES = 500;
 // wait_frame_at_line waits for VCOUNT == $77 and then for VCOUNT != $77, so
 // arriving anywhere inside PAL scanlines 238-239 still catches the fence. The
 // deadline is therefore the end of that window: the start of scanline 240.
@@ -164,6 +174,17 @@ export function auditSession(sessionId, rows) {
     worst === null || sample.fence_margin_cycles < worst.fence_margin_cycles ? sample : worst, null);
   const sum = (field) => rows.reduce((total, row) => total + (row[field] ?? 0), 0);
   const maximum = (field) => rows.length === 0 ? 0 : Math.max(...rows.map((row) => row[field] ?? 0));
+  const maximumWall = maximum("wall_cycles");
+  const gateFailures = [];
+  if (rows.length === 0) gateFailures.push("no rows to audit");
+  if (missEvents.length !== 0) gateFailures.push(`${missEvents.length} distinct miss event(s)`);
+  if (worstMargin !== null && worstMargin.fence_margin_cycles < GO_FENCE_MARGIN_CYCLES) {
+    gateFailures.push(`fence margin ${worstMargin.fence_margin_cycles} < ${GO_FENCE_MARGIN_CYCLES} ` +
+      `at frame ${worstMargin.frame}`);
+  }
+  if (maximumWall > HARD_GATE_CYCLES) {
+    gateFailures.push(`DMA-on maximum ${maximumWall} > ${HARD_GATE_CYCLES}`);
+  }
 
   return {
     session: sessionId,
@@ -180,7 +201,7 @@ export function auditSession(sessionId, rows) {
     worst_pre_wait_frame: worstPreWait?.frame ?? null,
     worst_fence_margin_cycles: worstMargin?.fence_margin_cycles ?? null,
     worst_fence_margin_frame: worstMargin?.frame ?? null,
-    maximum_wall_cycles: maximum("wall_cycles"),
+    maximum_wall_cycles: maximumWall,
     rows_over_target: rows.filter((row) => row.wall_cycles > TARGET_CYCLES).length,
     rows_over_hard_gate: rows.filter((row) => row.wall_cycles > HARD_GATE_CYCLES).length,
     // Kept for continuity only. Derived from Atari800_nframes crossings, so an
@@ -191,7 +212,10 @@ export function auditSession(sessionId, rows) {
       extra_vbi_boundaries: sum("extra_vbi_boundaries"),
       dli_sequence_violations: maximum("dli_sequence_violations"),
     },
-    passed: missEvents.length === 0,
+    // Detection only: the fence was caught on every row. Not a PASS.
+    fence_caught: missEvents.length === 0,
+    gate_failures: gateFailures,
+    passed: gateFailures.length === 0,
   };
 }
 
@@ -220,7 +244,7 @@ export function formatAudit(audit) {
     `[unreliable: missed ${audit.unreliable_counters.missed_frames}` +
       ` extraVBI ${audit.unreliable_counters.extra_vbi_boundaries}` +
       ` DLIerr ${audit.unreliable_counters.dli_sequence_violations}]`,
-    audit.passed ? "PASS" : "FAIL",
+    audit.passed ? "PASS" : `FAIL (${audit.gate_failures.join("; ")})`,
   ].join("  ");
 }
 
@@ -242,8 +266,19 @@ export function reportAudits(audits, { label = "PAL timing audit", perAudit = tr
   if (perAudit) for (const audit of audits) reportAudit(audit);
   const total = audits.reduce((sum, audit) => sum + audit.distinct_miss_events, 0);
   console.log(`PAL timing audit: ${total} distinct miss events across ` +
-    `${audits.length} replays (${total === 0 ? "PASS" : "FAIL"})`);
+    `${audits.length} replays (${auditsPassed(audits) ? "PASS" : "FAIL"})`);
+  const failed = audits.filter((audit) => !audit.passed);
+  if (failed.length !== 0) {
+    console.log(`PAL timing audit: ${failed.length} replay(s) outside the gates ` +
+      `(GO >= ${GO_FENCE_MARGIN_CYCLES}, DMA-on <= ${HARD_GATE_CYCLES}): ` +
+      failed.map((audit) => audit.session).join(", "));
+  }
   return total;
+}
+
+// The set passes only when it is non-empty and every replay holds the gates.
+export function auditsPassed(audits) {
+  return audits.length > 0 && audits.every((audit) => audit.passed);
 }
 
 const NUMERIC = /^-?\d+$/;
@@ -261,7 +296,11 @@ export function auditCsvFile(file) {
     }
     return row;
   });
-  return auditSession(path.basename(file, ".csv"), rows);
+  // The boss-entry frame is a disk transition with the display off, set aside
+  // by the harness before its audit (scripts/runtime-wall-trace.mjs parseCsv)
+  // and recorded as the boss-entry milestone instead; do the same here.
+  return auditSession(path.basename(file, ".csv"),
+    rows.filter((row) => row.boss_entry !== 1));
 }
 
 // The build directory also holds auxiliary per-subsystem CSVs and traces from
@@ -285,6 +324,10 @@ function main(argv) {
   }
   const files = [];
   for (const target of targets) {
+    if (!fs.existsSync(target)) {
+      files.push(target);
+      continue;
+    }
     if (fs.statSync(target).isDirectory()) {
       for (const name of fs.readdirSync(target).sort()) {
         const file = path.join(target, name);
@@ -293,17 +336,26 @@ function main(argv) {
     } else files.push(target);
   }
   const audits = [];
+  const unreadable = [];
   for (const file of files) {
     try {
       audits.push(auditCsvFile(file));
     } catch (error) {
-      console.log(`  ${path.basename(file, ".csv").padEnd(44)}  skipped: ${error.message}`);
+      unreadable.push(file);
+      console.log(`  ${path.basename(file, ".csv").padEnd(44)}  NOT AUDITED: ${error.message}`);
     }
   }
   const total = reportAudits(audits);
-  if (jsonPath !== undefined)
-    fs.writeFileSync(jsonPath, `${JSON.stringify({ audits, distinct_miss_events: total }, null, 2)}\n`);
-  if (total !== 0) process.exitCode = 1;
+  const passed = auditsPassed(audits) && unreadable.length === 0;
+  if (jsonPath !== undefined) {
+    fs.writeFileSync(jsonPath, `${JSON.stringify({ audits, distinct_miss_events: total,
+      not_audited: unreadable, passed }, null, 2)}\n`);
+  }
+  if (audits.length === 0) console.log("PAL timing audit: no replay was audited (FAIL)");
+  if (unreadable.length !== 0) {
+    console.log(`PAL timing audit: ${unreadable.length} input(s) could not be audited (FAIL)`);
+  }
+  if (!passed) process.exitCode = 1;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) main(process.argv.slice(2));

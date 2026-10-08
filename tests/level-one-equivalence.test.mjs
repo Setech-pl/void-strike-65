@@ -120,13 +120,19 @@ test("T4: the Heavy stream keeps the cadence and the density it had before the l
 // reading as one wave (the two Light waves before them are not Heavy
 // formations), so the post-capital blocks are R1 B1 on every difficulty -
 // still alternating; the four blocks before the capital are unchanged.
+// RE-PINNED (data/w2-lights, owner answers of 2026-10-08, docs/plans/
+// w2-lights.md §8.1): after the capital variant (a)'s Raider pair, P2's Bomber
+// pair and variant (b)'s Raider pair, one formation each - R1 B1 R1, still
+// alternating (the Bomber sits between the Raider variants for exactly that);
+// the swarm before them is Light only; the four blocks before the capital are
+// unchanged. MEASURED as above.
 const PLAYED_ORDER = {
-  0: "R4 B4 R1 B1",
-  1: "R4 B4 R1 B1",
-  2: "R4 B4 R1 B1",
+  0: "R4 B4 R1 B1 R1",
+  1: "R4 B4 R1 B1 R1",
+  2: "R4 B4 R1 B1 R1",
 };
-// Heavy formations in 9,000 frames (P2, measured as above).
-const HEAVY_FORMATIONS = { 0: 10, 1: 10, 2: 10 };
+// Heavy formations in 9,000 frames (W2, measured as above).
+const HEAVY_FORMATIONS = { 0: 11, 1: 11, 2: 11 };
 // One WaveDef names one archetype and the core page holds twenty of them, so
 // six is the floor a level of this density can reach: 116 formations over 20
 // waves. Per-FORMATION alternation needs the "mixed wave" bit, which owner
@@ -153,8 +159,10 @@ test("owner decision 8: the authored waves alternate Raider and Bomber, with no 
     // RE-POINTED (fix/smoke-2026-10-07 P2): level 1 now authors two Light
     // waves after the capital (one Interceptor, one Wingman); the alternation
     // is a rule of its Heavy waves, which it still checks on all of them.
+    // RE-POINTED (data/w2-lights): the two Light waves are the swarm's, the
+    // Wingman column then the Interceptors (docs/plans/w2-lights.md §4.1).
     assert.deepEqual(compiled.waves.filter((wave) => wave.class === "light").map((wave) => wave.archetype),
-      ["interceptor", "wingman"], "level 1's Light waves are the two P2 adds");
+      ["wingman", "interceptor"], "level 1's Light waves are the swarm's two");
     assert.equal(heavy[0].archetype, "raider", "the level still opens on the Raider formation");
     assert.equal(heavy[0].escort, "wingman", "and it still has its Wingman escort");
     for (let index = 1; index < heavy.length; index += 1) {
@@ -201,11 +209,15 @@ test("owner decision 8 / W1: re-authoring the waves left the capital where it wa
     // level's end on purpose - the post-capital sectors are 144 + 312 rows -
     // so the boss sector is entered at row 1,272, on the frames MEASURED here;
     // the capital (below) is unchanged.
-    for (const [difficulty, complete] of [[1, 2827], [2, 2544]]) {
+    // RE-POINTED (data/w2-lights, owner answer Q4 and the reorder of
+    // 2026-10-08): the post-capital sectors are 280 + 120 + 224 + 240 rows, so
+    // the boss sector is entered at row 1,680 (408 rows later), on the frames
+    // MEASURED here; the capital (below) is unchanged.
+    for (const [difficulty, complete] of [[1, 3734], [2, 3360]]) {
       const run = captureTimeline({ buildDirectory, difficulty, frames: 9000 });
       assert.equal(run.completeFrame, null, "the level must not complete before its boss");
       assert.equal(run.bossSectorFrame?.frame, complete);
-      assert.equal(run.bossSectorFrame?.row, 1272);
+      assert.equal(run.bossSectorFrame?.row, 1680);
       assert.ok(run.bossEntryFrame?.frame >= complete, "the entry waits for the drain");
     }
     const medium = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });

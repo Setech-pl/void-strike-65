@@ -247,9 +247,14 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   assert.equal(compiled.level, 1);
   // RE-POINTED 2026-10-04 (M5b-S3, plan §5.1): a fifth sector, the BOSS;
   // sectors 1-4 below are unchanged (tests/boss-band.test.mjs pins them too).
-  assert.equal(compiled.sectors.length, 5);
+  // RE-POINTED (data/w2-lights, owner answers of 2026-10-08, docs/plans/w2-lights.md
+  // §4.1, §8.1): after the capital a swarm (280 rows), elite (a) (120), P2's
+  // Bomber sector (224) and elite (b) (240) - the Bomber between the Raider
+  // variants so the Heavy waves alternate (decision 8) - seven sectors in all;
+  // the 864 post-capital rows move the boss 408 rows later on purpose (Q4).
+  assert.equal(compiled.sectors.length, 7);
   assert.deepEqual(compiled.sectors.map((sector) => sector.kindName),
-    ["space", "capital", "space", "space", "boss"]);
+    ["space", "capital", "space", "space", "space", "space", "boss"]);
   // A capital sector carries no enemy in 1.0 (owner decision, plan §11.1).
   assert.equal(compiled.sectors[1].mask, 0);
   assert.equal(compiled.sectors[1].lights, 0);
@@ -288,8 +293,13 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   // and one Bomber pair; sector 3 grows 144 -> 232 rows (three waves in turn)
   // and sector 4 shrinks 312 -> 224 (one pair), so the post-capital rows stay
   // 456 and the 1,270-row total - the boss on the row it was - is unchanged.
-  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 232, 224, 0]);
-  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1270);
+  // RE-POINTED (data/w2-lights, owner answers of 2026-10-08, docs/plans/w2-lights.md
+  // §4.1, §8.1): after the capital a swarm (280 rows), elite (a) (120), P2's
+  // Bomber sector (224) and elite (b) (240) - the Bomber between the Raider
+  // variants so the Heavy waves alternate (decision 8) - seven sectors in all;
+  // the 864 post-capital rows move the boss 408 rows later on purpose (Q4).
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 280, 120, 224, 240, 0]);
+  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1678);
   // Every wave names an archetype offset in the frozen four-record roster.
   for (const wave of compiled.waves) {
     assert.equal(wave.archetypeOffset % ARCHETYPE_RECORD_BYTES, 0);
@@ -522,7 +532,9 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
 
     // Sector count: six against level 1's four (R4). RE-POINTED 2026-10-04
     // (M5b-S3): level 1 gained its boss, a fifth; the two still differ.
-    assert.equal(one.sectors.length, 5);
+    // RE-POINTED (data/w2-lights): level 1 has seven sectors now (a swarm and
+    // elite (a)/(b) after the capital); the two still differ.
+    assert.equal(one.sectors.length, 7);
     assert.equal(two.sectors.length, 6);
     assert.deepEqual(two.sectors.map((sector) =>
       sector.subtypeName === null ? sector.kindName : `${sector.kindName}/${sector.subtypeName}`),
@@ -541,8 +553,10 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
       mask("raider", "wingman", "bomber"),
       mask("raider", "wingman", "interceptor", "bomber"),
     ]);
+    // RE-POINTED (data/w2-lights): level 1 has seven sectors, level 2 six, so
+    // the masks are compared at every position both levels have.
     for (const [index, sector] of one.sectors.entries()) {
-      if (sector.kindName === "capital") continue;
+      if (sector.kindName === "capital" || index >= two.sectors.length) continue;
       assert.notEqual(two.sectors[index].mask, sector.mask, `sector ${index + 1}'s mask`);
     }
     for (const index of [0, 3]) {

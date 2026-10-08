@@ -194,13 +194,15 @@ test("T13: the compiler refuses every out-of-range payload value", () => {
   rejects(edit((s) => { s.nebula = 1; }), /nebula/, "nor its level default");
 });
 
-test("T13: level 1 shows a sky per sector and one re-skinned escort wave; level 2 the full payload", () => {
+test("T13: level 1 shows a sky per sector and one re-skinned Light wave; level 2 the full payload", () => {
   const one = compileLevelFile(levelSourcePath(1));
   const sky = (level) => level.sectors.map((_, s) => level.core[SECTOR_ARRAY_OFFSET.look + s] & 0x0f);
   // RE-POINTED 2026-10-04 (M5b-S3): the boss sector, now the last, keeps the
   // yellow of the sector before it (assets/levels/level-01.json).
-  assert.deepEqual(sky(one), [1, 2, 1, 3, 3],
-    "white, steel at the capital, white, yellow on sector 4 and the boss");
+  // RE-POINTED (data/w2-lights): seven sectors; the last space sector, elite
+  // (b), and the boss fly under yellow, the capital under steel, the rest white.
+  assert.deepEqual(sky(one), [1, 2, 1, 1, 1, 3, 3],
+    "white, steel at the capital, white, yellow on the last space sector and the boss");
   const variants = one.waves.map((wave, index) => [index, wave.appearance])
     .filter(([, appearance]) => appearance !== 0);
   // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): sector 3 keeps one
@@ -209,10 +211,15 @@ test("T13: level 1 shows a sky per sector and one re-skinned escort wave; level 
   // RE-POINTED (fix/smoke-2026-10-07 P2): sector 3 now opens on one
   // Interceptor wave and one Wingman wave (waves 2 and 3); the Raider +
   // Wingman wave after them is still the one re-skinned wave, now wave 5.
-  assert.deepEqual(variants, [[4, 1]],
-    "exactly one wave: sector 3's Raider + Wingman wave, which always arms");
-  assert.equal(one.waves[4].sector, 3);
-  assert.equal(one.waves[4].escort, "wingman");
+  // RE-POINTED (data/w2-lights, owner answer Q2 of 2026-10-08): the P2
+  // Raider + flight-lead Wingman wave is gone and the look moved to the
+  // swarm's Wingman column, wave 3 (index 2), a Light wave that arms at the
+  // swarm's entry on every difficulty (tests/level-one-waves.test.mjs).
+  assert.deepEqual(variants, [[2, 1]],
+    "exactly one wave: the swarm's Wingman column, which always arms");
+  assert.equal(one.waves[2].sector, 3);
+  assert.equal(one.waves[2].archetype, "wingman");
+  assert.equal(one.waves[2].escort, null);
   assert.deepEqual([...one.pages.payload.subarray(PAYLOAD_OFFSET.weaponGlyph,
     PAYLOAD_OFFSET.weaponGlyph + 18)], new Array(18).fill(0), "level 1 keeps level 1's fire");
   // Level 1's waves, rows, counts and spacing are the ones it had before.

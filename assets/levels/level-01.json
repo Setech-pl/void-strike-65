@@ -1,5 +1,7 @@
 {
   "_": [
+    "HISTORY below (2026-09-28 .. M5b-S3). The sectors after the capital are data/w2-lights' (owner, 2026-10-08): see the sector objects' own notes and docs/plans/w2-lights.md; the prose that follows does not describe them.",
+    "",
     "Level 1, re-authored 2026-09-28 under owner decision 8 (plan section 11):",
     "Raider and Bomber waves ALTERNATE across the whole level. One WaveDef names",
     "one archetype and the core page holds twenty of them, so the alternation is",
@@ -166,14 +168,48 @@
     },
     {
       "kind": "space",
+      "subtype": "swarm",
+      "rows": 280,
+      "_w2": "data/w2-lights (owner answers of 2026-10-08, docs/plans/w2-lights.md §4.1, §8.1): the swarm after the capital - a Wingman column of three in the flight-lead look (Q2: the level's one re-skin moves here from P2's Raider escort), then three Interceptors closing on the player; up to three Lights at once (the swarm ceiling), no Heavy. The Interceptors come last because a Light wave holds the cursor until its last Light has gone and they live 116 frames to the column's 232, so the sector ends on its shortest Lights. 280 rows: with no kills its last Light is gone at its frame 461 on every difficulty and HARD's 280 rows last 560, a 21 % reserve (PROBE), so the elite sector after it opens on an empty playfield - the sector end is not a barrier (plan §3, F2). A swarm never follows an elite sector (F1; tests/level-one-waves.test.mjs, until C1).",
+      "archetypes": [
+        "wingman",
+        "interceptor"
+      ],
+      "lights": 3,
+      "heavies": 0,
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
+      "look": {
+        "stars": "white"
+      },
+      "waves": [
+        {
+          "row": 0,
+          "archetype": "wingman",
+          "count": 3,
+          "spacing": 32,
+          "entry": 160,
+          "appearance": "flight-lead"
+        },
+        {
+          "row": 0,
+          "archetype": "interceptor",
+          "count": 3,
+          "spacing": 24,
+          "entry": 88
+        }
+      ]
+    },
+    {
+      "kind": "space",
       "subtype": "elite",
-      "rows": 232,
-      "_p2": "fix/smoke-2026-10-07 P2 (owner decision of 2026-10-08, supersedes W1's wave list): after the capital, one wave of each Light kind the level can name - the Interceptor, then the Wingman - then one Raider wave, then one Bomber pair (sector 3), so each wave reads as one wave. An elite sector holds one Light at a time (the subtype ceiling; src/c/director.c subtype_ceiling_light), so each Light wave is one Light; a Light wave holds the Director's cursor until its Light is gone (src/c/lifecycle.c light_wave_step), so the next wave never shares the screen with it; a Heavy wave arms only when the formation before it has gone (one formation at a time). The rows add a pause: the Wingman arms no earlier than row 40, the Raiders no earlier than row 96; the Bombers no earlier than sector 3's row 24, after the Raiders' escort has drifted off (MEASURED on HARD: it outlives its leader by up to ~200 frames). The Raider wave is one formation, a Raider pair with its Wingman escort in the flight-lead look (the level's only re-skinned wave). Sector 2 grows 144 -> 232 rows and sector 3 shrinks 312 -> 224, so the post-capital rows stay 456 and the level reaches its boss when it did (MEASURED: docs/plans/smoke-2026-10-07.md).",
+      "rows": 120,
+      "_w2": "Variant (a) (owner decision a/b, 2026-10-08, docs/plans/director-4.6.md §11 item 20): a Raider pair with an Interceptor companion, which flies free from its admission and chases the player. With no kills the pair lives 334 frames, longer than these 240-300, and may cross into the Bomber sector: elite to elite, legal on both sides.",
       "archetypes": [
         "raider",
-        "wingman",
-        "interceptor",
-        "bomber"
+        "interceptor"
       ],
       "lights": 1,
       "heavies": 2,
@@ -187,28 +223,13 @@
       "waves": [
         {
           "row": 0,
-          "archetype": "interceptor",
-          "count": 1,
-          "spacing": 16,
-          "entry": 124
-        },
-        {
-          "row": 40,
-          "archetype": "wingman",
-          "count": 1,
-          "spacing": 16,
-          "entry": 124
-        },
-        {
-          "row": 96,
           "members": [
             "raider",
-            "wingman"
+            "interceptor"
           ],
           "count": 1,
           "spacing": 24,
-          "entry": 124,
-          "appearance": "flight-lead"
+          "entry": 124
         }
       ]
     },
@@ -229,12 +250,40 @@
         "pickups": true
       },
       "look": {
-        "stars": "yellow"
+        "stars": "white"
       },
       "waves": [
         {
           "row": 24,
           "archetype": "bomber",
+          "count": 1,
+          "spacing": 24,
+          "entry": 124
+        }
+      ],
+      "_w2": "P2's Bomber sector, unchanged by data/w2-lights (scope 3) but for its place and its sky: one Bomber pair at row 24, after (a)'s Raiders, between the two Raider variants so the Heavy waves alternate (owner decision 8); white now that (b) is the last space sector."
+    },
+    {
+      "kind": "space",
+      "subtype": "elite",
+      "rows": 240,
+      "_w2": "Variant (b): Raiders with no Light; the sector admits none (lights 0). A Raider with a Wingman escort, the third option, is sector 0's. It comes AFTER the Bomber pair so the Heavy waves still alternate (owner decision 8; the owner's answer of 2026-10-08, docs/plans/w2-lights.md §8.1). 240 rows: if the player kills nothing the Bomber pair can live into this sector, and its Raiders then arrive up to frame 394 of HARD's 480 (PROBE), a 22 % reserve. The last space sector, so it flies under yellow (the sky rule).",
+      "archetypes": [
+        "raider"
+      ],
+      "lights": 0,
+      "heavies": 2,
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
+      "look": {
+        "stars": "yellow"
+      },
+      "waves": [
+        {
+          "row": 0,
+          "archetype": "raider",
           "count": 1,
           "spacing": 24,
           "entry": 124

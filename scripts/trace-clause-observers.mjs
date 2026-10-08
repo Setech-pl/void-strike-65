@@ -188,3 +188,80 @@ export function heaviestDirectorFrame(rows, marginOf) {
         : null,
   };
 }
+
+/* data/w2-lights (docs/plans/w2-lights.md §5, owner answers Q3 and addition 2
+ * of 2026-10-08): the Lights' clause over every measured legal replay. A Light
+ * is LIVE in state 1 (escort) or 2 (free); 3, the break-up pending, is not
+ * hittable (src/c/lifecycle.c). `sectors[director_sector]` is { subtype:
+ * "swarm" | "elite" | null, variantA }, variantA when the sector authors a
+ * Raider + Interceptor wave (decision a/b). Boss rows are set aside.
+ *
+ *   L1 a live Interceptor Light;              subject: rows with a live Light
+ *   L2 two or more Lights live at once;       subject: rows with a live Light
+ *   L3 no Heavy live in a swarm sector;       subject: swarm rows
+ *   L4 at most one live Light in an elite     subject: elite rows
+ *      sector (the runtime elite ceiling);
+ *   L5 a variant (a) formation flies with     subject: Heavy admissions in
+ *      its Interceptor;                        variant (a) sectors
+ *
+ * Every clause fails on an empty subject (owner addition 2). Rows must be in
+ * each session's emission order: L5 counts admissions as enemy_state 0 -> !0. */
+export const LIGHT_LIVE_STATES = new Set([1, 2]);
+export const LIGHT_OFFSET_INTERCEPTOR = 24;
+export const ELITE_LIGHT_CEILING = 1;
+export const LIGHT_TRACE_SLOTS = 4;
+
+export function lightCoverage(rows, sectors) {
+  const c = {
+    L1: { subject: 0, frames: 0 }, L2: { subject: 0, frames: 0 },
+    L3: { subject: 0, violations: 0 }, L4: { subject: 0, violations: 0 },
+    L5: { subject: 0, frames: 0 },
+  };
+  let maximumLiveLights = 0;
+  const previousEnemy = new Map();
+  for (const row of rows) {
+    if (row.boss_state) continue;
+    let live = 0;
+    let interceptor = false;
+    for (let k = 0; k < LIGHT_TRACE_SLOTS; k += 1) {
+      if (!LIGHT_LIVE_STATES.has(row[`light_state${k}`])) continue;
+      live += 1;
+      if (row[`light_archetype${k}`] === LIGHT_OFFSET_INTERCEPTOR) interceptor = true;
+    }
+    maximumLiveLights = Math.max(maximumLiveLights, live);
+    if (live > 0) {
+      c.L1.subject += 1; c.L2.subject += 1;
+      if (interceptor) c.L1.frames += 1;
+      if (live >= 2) c.L2.frames += 1;
+    }
+    const sector = sectors[row.director_sector] ?? { subtype: null, variantA: false };
+    if (sector.subtype === "swarm") {
+      c.L3.subject += 1;
+      if (row.enemy_state !== 0) c.L3.violations += 1;
+    }
+    if (sector.subtype === "elite") {
+      c.L4.subject += 1;
+      if (live > ELITE_LIGHT_CEILING) c.L4.violations += 1;
+    }
+    if (sector.variantA) {
+      if (row.enemy_state !== 0 && (previousEnemy.get(row.session) ?? 0) === 0) c.L5.subject += 1;
+      if (row.enemy_state !== 0 && interceptor) c.L5.frames += 1;
+    }
+    previousEnemy.set(row.session, row.enemy_state);
+  }
+  c.L1.held = c.L1.subject > 0 && c.L1.frames > 0;
+  c.L2.held = c.L2.subject > 0 && c.L2.frames > 0;
+  c.L3.held = c.L3.subject > 0 && c.L3.violations === 0;
+  c.L4.held = c.L4.subject > 0 && c.L4.violations === 0;
+  c.L5.held = c.L5.subject > 0 && c.L5.frames > 0;
+  const failures = [];
+  if (!c.L1.held) failures.push(c.L1.subject === 0 ? "L1: no row with a live Light" : "L1: no live Interceptor Light");
+  if (!c.L2.held) failures.push(c.L2.subject === 0 ? "L2: no row with a live Light" : "L2: never two Lights live at once");
+  if (!c.L3.held) failures.push(c.L3.subject === 0 ? "L3: no swarm row"
+    : `L3: ${c.L3.violations} swarm rows with a Heavy formation live`);
+  if (!c.L4.held) failures.push(c.L4.subject === 0 ? "L4: no elite row"
+    : `L4: ${c.L4.violations} elite rows with more than ${ELITE_LIGHT_CEILING} live Light`);
+  if (!c.L5.held) failures.push(c.L5.subject === 0 ? "L5: no variant (a) formation"
+    : "L5: no variant (a) formation flew with its Interceptor");
+  return { held: failures.length === 0, failures, clauses: c, maximumLiveLights };
+}

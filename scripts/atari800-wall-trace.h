@@ -364,6 +364,9 @@ typedef struct {
 	unsigned boss_shown_pos;
 	unsigned director_sector;
 	unsigned sector_row;
+	/* data/w2-lights: each Light slot's state and archetype offset. */
+	unsigned light_state[4];
+	unsigned light_archetype[4];
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -899,6 +902,8 @@ static unsigned dftrace_boss_shown_pos;
  * clock reaches the wave's row). */
 static unsigned dftrace_director_sector;
 static unsigned dftrace_sector_row;
+static unsigned dftrace_light_state_base;
+static unsigned dftrace_light_archetype_base;
 /* M5b-S4b.5 (owner decision of 2026-10-07, slot E): the boss's slot E lives in
  * the expanded hull maps ($4C00-$4E3F). The maps are snapshotted where every
  * gameplay start has just rebuilt them (main's hull_maps_built), and every
@@ -5675,6 +5680,15 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->director_sector = dftrace_director_sector != 0u ? MEMORY_mem[dftrace_director_sector] : 0u;
 	frame->sector_row = dftrace_sector_row != 0u
 		? MEMORY_mem[dftrace_sector_row] | ((unsigned) MEMORY_mem[dftrace_sector_row + 1u] << 8) : 0u;
+	{
+		unsigned light;
+		for (light = 0u; light < 4u; ++light) {
+			frame->light_state[light] = dftrace_light_state_base != 0u
+				? MEMORY_mem[dftrace_light_state_base + light] : 0u;
+			frame->light_archetype[light] = dftrace_light_archetype_base != 0u
+				? MEMORY_mem[dftrace_light_archetype_base + light] : 0u;
+		}
+	}
 	frame->pause_test_completed = dftrace_pause_test_completed;
 	frame->pause_timer_before = dftrace_pause_timer_before;
 	frame->pause_timer_after = dftrace_pause_timer_after;
@@ -5780,7 +5794,9 @@ static void dftrace_write(void)
 		",boss_entry,boss_state,maximum_boss_dlis_per_host_frame"
 		",laser_states,laser_hpos0,laser_hpos1,laser_hpos2,laser_hpos3"
 		",laser_damage_calls,audf3,audc3,boss_shown_pos,director_sector,sector_row"
-		",hull_map_draws,hull_map_stale_draws,hull_map_dirty_reads,hull_map_rebuilds_after_boss,boss_path_stage\n");
+		",hull_map_draws,hull_map_stale_draws,hull_map_dirty_reads,hull_map_rebuilds_after_boss,boss_path_stage"
+		",light_state0,light_state1,light_state2,light_state3"
+		",light_archetype0,light_archetype1,light_archetype2,light_archetype3\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6052,6 +6068,9 @@ static void dftrace_write(void)
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->boss_shown_pos, frame->director_sector, frame->sector_row,
 			frame->hull_map_draws, frame->hull_map_stale_draws, frame->hull_map_dirty_reads,
 			frame->hull_map_rebuilds_after_boss, frame->boss_path_stage);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->light_state[0], frame->light_state[1],
+			frame->light_state[2], frame->light_state[3], frame->light_archetype[0],
+			frame->light_archetype[1], frame->light_archetype[2], frame->light_archetype[3]);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6832,6 +6851,8 @@ static void dftrace_init(void)
 	dftrace_boss_shown_pos = dftrace_env_optional("DFTRACE_BOSS_SHOWN_POS");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
+	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");
+	dftrace_light_archetype_base = dftrace_env_optional("DFTRACE_LIGHT_ARCHETYPE");
 	dftrace_pokes = getenv("DFTRACE_POKES");
 	DFTRACE_ADDRESS(dftrace_pc_world, "DFTRACE_PC_WORLD");
 	DFTRACE_ADDRESS(dftrace_pc_near, "DFTRACE_PC_NEAR");

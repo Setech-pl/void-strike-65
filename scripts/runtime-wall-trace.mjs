@@ -27,12 +27,14 @@ import {
   acceptedShotsStartFireSound,
   capitalContactHitboxes,
   heaviestDirectorFrame,
+  lightCoverage,
   firstDliSelectsByteThree,
   pickupReleaseClearedOnce,
   pickupTraversalFrameIntact,
   raiderKillAccounting,
 } from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
+import { compileLevelFile, levelSourcePath } from "./level-compiler.mjs";
 import { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
@@ -726,7 +728,8 @@ const engineRestartSessions = ["ATR"].map((medium) => ({
 /* M5b-S4b (owner decision Q10): the laser fixture's worst case on the
  * emulator - four beams firing together over a live player that keeps firing
  * (policy laser-dodge). Debug route only (--artifacts=build/laser-fixture-4-
- * level-1-s4): a default run skips it, so the default evidence is unchanged. */
+ * level-1-s6 since data/w2-lights; level-1-s4 before it): a default run skips
+ * it, so the default evidence is unchanged. */
 const laserFixtureSessions = [{
   id: "laser-dodge-2-fire0",
   difficulty: 2,
@@ -1228,6 +1231,10 @@ for (const name of [
   // decision 4), the rebuilds that end such a stretch, and the boss-path
   // driver's stage (9: its path taken).
   "hull_map_dirty_reads", "hull_map_rebuilds_after_boss", "boss_path_stage",
+  // data/w2-lights: each Light slot's state and archetype offset (the clause
+  // lightCoverage, scripts/trace-clause-observers.mjs).
+  "light_state0", "light_state1", "light_state2", "light_state3",
+  "light_archetype0", "light_archetype1", "light_archetype2", "light_archetype3",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -3702,6 +3709,9 @@ function main() {
     DFTRACE_PC_DIRECTOR_REQUEST: "director_request",
     DFTRACE_PC_DIRECTOR_EVENT: "director_try_event",
     DFTRACE_SECTOR_ROW: "_sector_row_lo",
+    // data/w2-lights: the Light slots' state and archetype arrays.
+    DFTRACE_LIGHT_STATE: "_light_state",
+    DFTRACE_LIGHT_ARCHETYPE: "_light_archetype",
   })) {
     const address = directorLabels.get(labelName);
     invariant(Number.isInteger(address), `Director trace label ${labelName} is missing`);
@@ -7263,6 +7273,22 @@ function main() {
   console.log(`Director's heaviest frame: ${directorHeaviest.heaviest.session} frame ` +
     `${directorHeaviest.heaviest.frame}, ${directorHeaviest.heaviest.wall_cycles} cycles, fence margin ` +
     `${directorHeaviest.margin ?? "none (capital path)"}, over ${directorHeaviest.directorFrames} Director frames`);
+  // data/w2-lights (docs/plans/w2-lights.md §5; owner answers Q3 and
+  // addition 2 of 2026-10-08): the Lights' clause L1-L5 over the same set,
+  // with level 1's sectors as compiled - the default artifacts carry level 1
+  // only (docs/plans/director-4.6.md §11 item 16). Each clause's subject must
+  // be non-empty.
+  const levelOne = compileLevelFile(levelSourcePath(1), {});
+  const lightSectors = levelOne.sectors.map((sector) => ({
+    subtype: sector.kindName === "space" ? sector.subtypeName : null,
+    variantA: levelOne.waves.slice(sector.waveFirst, sector.waveFirst + sector.waveCount)
+      .some((wave) => wave.archetype === "raider" && wave.escort === "interceptor"),
+  }));
+  const lights = lightCoverage(allRows, lightSectors);
+  invariant(lights.held, `The Lights' clause failed: ${lights.failures.join("; ")}`);
+  console.log(`Lights' clause: ${Object.entries(lights.clauses).map(([id, clause]) =>
+    `${id} subject ${clause.subject}, ${clause.frames ?? clause.violations}`).join("; ")}; ` +
+    `at most ${lights.maximumLiveLights} live at once`);
   const baselineHeaviest = maximumRow(baselineRows, (row) => row.wall_cycles);
   const targetedHeaviest = maximumRow(targetedRows, (row) => row.wall_cycles);
   const targetedReferenceHeaviest = maximumRow(baselineRows.filter((row) =>
@@ -8286,6 +8312,16 @@ function main() {
         passed: directorHeaviest.held,
         frame: frameState(directorHeaviest.heaviest),
         global_heaviest_has_director_event: (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0,
+      },
+      light_archetypes: {
+        clause: "L1 a live Interceptor Light; L2 two or more Lights live at once; L3 no Heavy live in a " +
+          "swarm sector; L4 at most one live Light in an elite sector; L5 a variant (a) formation flies " +
+          "with its Interceptor - each over a non-empty subject, boss rows apart",
+        sectors: lightSectors,
+        held: lights.held,
+        failures: lights.failures,
+        clauses: lights.clauses,
+        maximum_live_lights: lights.maximumLiveLights,
       },
       active_muzzles: coverageRecord(allRows, (row) => row.active_muzzles > 0),
       maximum_projectile_pool: {

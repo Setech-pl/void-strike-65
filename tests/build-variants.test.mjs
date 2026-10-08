@@ -124,15 +124,18 @@ test("T8: a debug level or sector outside the campaign is refused by the build",
 // those of a build that never heard of the flag: dist/ and the default build's
 // own files are left byte-identical by the variant build, and the default
 // slot D's tier follows the level id while the variant's is fixed.
-test("S4b: --laser-fixture=4 --level=1:sector=4 writes its own directory, never touches dist/ or the default build", async () => {
+// RE-POINTED (data/w2-lights): level 1's boss sector is sector 6 now (a swarm
+// and elite (a)/(b) joined after the capital), so the fixture's boss route is
+// --level=1:sector=6.
+test("S4b: --laser-fixture=4 --level=1:sector=6 writes its own directory, never touches dist/ or the default build", async () => {
   const before = Object.fromEntries(ARTIFACTS.map((name) => [name, sha256(readDist(name))]));
   const shared = [...SHARED_BUILD_FILES, "boss.bin", "boss.lbl", "overlay-boss-slot-d.bin"];
   const sharedBefore = Object.fromEntries(shared.map((name) =>
     [name, sha256(fs.readFileSync(path.join(root, "build", name)))]));
-  const variant = "laser-fixture-4-level-1-s4";
+  const variant = "laser-fixture-4-level-1-s6";
   const variantDirectory = path.join(root, "build", variant);
   fs.rmSync(variantDirectory, { recursive: true, force: true });
-  execFileSync(process.execPath, ["scripts/build.mjs", "--laser-fixture=4", "--level=1:sector=4", "--quiet"],
+  execFileSync(process.execPath, ["scripts/build.mjs", "--laser-fixture=4", "--level=1:sector=6", "--quiet"],
     { cwd: root, stdio: "pipe" });
   for (const name of ARTIFACTS) {
     assert.equal(sha256(readDist(name)), before[name], `the fixture build must not touch dist/${name}`);

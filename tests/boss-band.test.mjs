@@ -76,8 +76,12 @@ test("level 1 ends in a boss sector: no Heavy, at most one Light, any escort arm
 
 test("everything before the boss sector is the level that shipped (gameplay up to the boss is main's)", () => {
   const compiled = compileLevelFile(levelSourcePath(1), { hullAsset });
-  assert.deepEqual(compiled.sectors.slice(0, 4).map((sector) => sector.kindName),
-    ["space", "capital", "space", "space"]);
+  // RE-POINTED (data/w2-lights, owner answers of 2026-10-08): the sectors
+  // before the boss are seven-minus-one now - a swarm, elite (a) and (b) join
+  // after the capital (docs/plans/w2-lights.md §4.1); the subject stays every
+  // sector before the boss.
+  assert.deepEqual(compiled.sectors.slice(0, 6).map((sector) => sector.kindName),
+    ["space", "capital", "space", "space", "space", "space"]);
   // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision W1): after the capital,
   // one Raider + Wingman wave (144 rows) and one Bomber wave (312 rows); the
   // sectors before the capital and the capital are main's.
@@ -86,10 +90,14 @@ test("everything before the boss sector is the level that shipped (gameplay up t
   // Raider pair; one Bomber pair), the same 456 rows in all, so the boss
   // sector is entered on the row it was; the sectors before the capital and
   // the capital are main's.
-  assert.deepEqual(compiled.sectors.slice(0, 4).map((sector) => sector.rows), [272, 0, 232, 224]);
-  // The sky rule (budget-1.0 M2 variant S2): sector 4 keeps its yellow; the boss
-  // sector, now the last, is yellow too.
-  assert.deepEqual(compiled.sectors.map((sector) => sector.starColour), [1, 2, 1, 3, 3]);
+  // RE-POINTED (data/w2-lights): the swarm (280) and elite (a) (120) before
+  // P2's 224-row Bomber sector, elite (b) (240) after it; the sectors before the
+  // capital and the capital are main's.
+  assert.deepEqual(compiled.sectors.slice(0, 6).map((sector) => sector.rows), [272, 0, 280, 120, 224, 240]);
+  // The sky rule (budget-1.0 M2 variant S2): the last space sector - elite (b)
+  // now - flies under yellow (mint since plasma FX) and the boss sector too;
+  // every other space sector under white.
+  assert.deepEqual(compiled.sectors.map((sector) => sector.starColour), [1, 2, 1, 1, 1, 3, 3]);
 });
 
 test("the boss sector's ceiling is one Light in the runtime and the compiler alike", () => {

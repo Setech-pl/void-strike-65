@@ -1,8 +1,10 @@
 // data/w2-lights (docs/plans/w2-lights.md, owner answers of 2026-10-08):
 // level 1 after the capital sector - a swarm (Light ceiling 3, no Heavy) with
 // a Light wave of each archetype, an elite sector of variant (a) (a Raider
-// formation with an Interceptor companion), one of variant (b) (Raiders with
-// no Light), then the Bomber pair; the waves before the capital and the
+// formation with an Interceptor companion), the Bomber pair, then one of
+// variant (b) (Raiders with no Light) - the Bomber between the two Raider
+// variants so the Heavy waves still alternate (owner decision 8; the owner's
+// answer of 2026-10-08, plan §8.1); the waves before the capital and the
 // capital are unchanged. Re-pointed from fix/smoke-2026-10-07 P2's three tests
 // (one wave of each Light kind, one Raider wave, one Bomber pair): their
 // subject is the post-capital wave list, which this task replaces by the
@@ -94,9 +96,9 @@ test("W2: the waves before the capital and the capital are main's (cfbc6a0)", ()
   ]);
 });
 
-test("W2: after the capital a swarm of both Light archetypes, elite (a), elite (b), then the Bomber pair", () => {
+test("W2: after the capital a swarm of both Light archetypes, elite (a), the Bomber pair, then elite (b)", () => {
   const { after } = postCapital();
-  const [swarm, variantA, variantB, bombers, ...rest] = after;
+  const [swarm, variantA, bombers, variantB, ...rest] = after;
   assert.equal(rest.length, 0, `${after.length} sectors after the capital, not four`);
   assert.equal(swarm.subtype, "swarm", "the sector after the capital is not a swarm");
   assert.equal(swarm.lights, 3, "the swarm does not ask for three Lights");
@@ -120,7 +122,7 @@ test("W2: after the capital a swarm of both Light archetypes, elite (a), elite (
     [{ archetype: "raider", escort: null, count: 1 }], "variant (b) is not Raiders with no Light");
   assert.equal(variantB.lights, 0, "variant (b) admits a Light");
   assert.deepEqual(bombers.waves.map(({ archetype, escort, count }) => ({ archetype, escort, count })),
-    [{ archetype: "bomber", escort: null, count: 1 }], "the last sector is not one Bomber pair");
+    [{ archetype: "bomber", escort: null, count: 1 }], "the sector after (a) is not one Bomber pair");
 });
 
 // Owner addition 1: every level source, each its own subtest so a failure
@@ -168,13 +170,13 @@ test("W2: on every difficulty each post-capital wave arms; the swarm holds sever
     const aLights = within(run.lightSpawns, swarmIndex + 1);
     assert.ok(aLights.some((spawn) => NAME_OF[spawn.archetypeOffset] === "interceptor" &&
       spawn.frame === a[0].frame), `difficulty ${difficulty}: (a)'s Raiders came without their Interceptor`);
-    const b = within(run.heavySpawns, swarmIndex + 2);
-    assert.deepEqual(b.map((spawn) => spawn.archetype), ["raider"], `difficulty ${difficulty}: (b)'s Heavies`);
-    assert.equal(within(run.lightSpawns, swarmIndex + 2).length, 0, `difficulty ${difficulty}: a Light in (b)`);
-    const bombers = within(run.heavySpawns, swarmIndex + 3);
-    assert.deepEqual(bombers.map((spawn) => spawn.archetype), ["bomber"], `difficulty ${difficulty}: the last sector`);
+    const bombers = within(run.heavySpawns, swarmIndex + 2);
+    assert.deepEqual(bombers.map((spawn) => spawn.archetype), ["bomber"], `difficulty ${difficulty}: the Bomber sector`);
     assert.equal(bombers[0].members.filter((member) => member.state !== 0).length, 2,
       `difficulty ${difficulty}: the Bomber formation is not a pair`);
+    const b = within(run.heavySpawns, swarmIndex + 3);
+    assert.deepEqual(b.map((spawn) => spawn.archetype), ["raider"], `difficulty ${difficulty}: (b)'s Heavies`);
+    assert.equal(within(run.lightSpawns, swarmIndex + 3).length, 0, `difficulty ${difficulty}: a Light in (b)`);
   }
 });
 
@@ -183,12 +185,12 @@ test("W2: on every difficulty each post-capital wave arms; the swarm holds sever
 // it opens on an empty playfield. The probe runs the real Light update and no
 // kill policy from the swarm on (scripts/level-timeline.mjs
 // lightTicksFromSector). HARD is the fastest row clock.
-test("W2: with no kills the swarm's Lights are gone before it ends, with a 20 % reserve, on every difficulty", () => {
+test("W2: with no kills the swarm's Lights are gone before it ends and (b)'s Raiders arrive, with a 20 % reserve, on every difficulty", () => {
   const { capital } = postCapital();
   const swarmIndex = capital + 1;
   for (const difficulty of [0, 1, 2]) {
-    const run = captureTimeline({ buildDirectory: path.join(root, "build"), difficulty, frames: 5000,
-      lightTicksFromSector: swarmIndex });
+    const run = captureTimeline({ buildDirectory: path.join(root, "build"), difficulty,
+      lightTicksFromSector: swarmIndex, frames: 6000 });
     const entry = run.directorSectors.find((step) => step.sector === swarmIndex)?.frame;
     const end = run.directorSectors.find((step) => step.sector === swarmIndex + 1)?.frame;
     assert.ok(Number.isInteger(entry) && Number.isInteger(end), `difficulty ${difficulty}: the swarm did not end`);
@@ -200,5 +202,15 @@ test("W2: with no kills the swarm's Lights are gone before it ends, with a 20 % 
       `frame ${drain} of ${end - entry}, a reserve of ${reserve} (< ${RESERVE * 100} %)`);
     assert.ok((run.peakLiveLights[swarmIndex + 1] ?? 0) <= 1,
       `difficulty ${difficulty}: ${run.peakLiveLights[swarmIndex + 1]} Lights in elite (a)`);
+    // (b) after the Bomber pair: with no kills the pair can live into (b), and
+    // (b)'s own Raiders must still arrive inside it with the same reserve.
+    const bEntry = run.directorSectors.find((step) => step.sector === swarmIndex + 3)?.frame;
+    const bEnd = run.directorSectors.find((step) => step.sector === swarmIndex + 4)?.frame;
+    assert.ok(Number.isInteger(bEntry) && Number.isInteger(bEnd), `difficulty ${difficulty}: (b) did not end`);
+    const bRaiders = run.heavySpawns.find((spawn) => spawn.frame >= bEntry && spawn.frame < bEnd);
+    assert.ok(bRaiders, `difficulty ${difficulty}: (b)'s Raiders never arrived with no kills`);
+    const wait = bRaiders.frame - bEntry;
+    assert.ok(bEnd - bRaiders.frame >= RESERVE * wait, `difficulty ${difficulty}: (b)'s Raiders arrive at its ` +
+      `frame ${wait} of ${bEnd - bEntry} (< ${RESERVE * 100} % reserve)`);
   }
 });

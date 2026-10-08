@@ -87,8 +87,11 @@ wycenia dziewięć pozycji różnorodności rozgrywki zgłoszonych przez
 właściciela po W2 (decyzje AE w dzienniku) i **proponuje** zmianę kolejności
 poniżej: sesja „przepływ sektorów" (C1 + `afterCleared` + wcześniejszy
 koniec sektora) **przed S5**, a **M3 + M3-H przed M4** (tamten plan §5,
-pytanie Q1). Kolejność poniżej **obowiązuje, dopóki właściciel nie
-odpowie**; ten paragraf nie jest przepisywany.
+pytanie Q1). **Właściciel odpowiedział tego samego dnia (dziennik §AE, plan §7.1):
+kolejność B przyjęta** — przepływ sektorów → S5 → M3-H → M3 → dźwignie okna →
+M4 → boostery M6 → torpeda M6 → tryb attract jako nakładka menu → zamrożenie;
+plan §5 jest wiążącą listą sesji. Ten paragraf nie jest przepisywany: numery
+1–9 poniżej są historią kolejności z 2026-10-02.
 
 **Kolejność:**
 

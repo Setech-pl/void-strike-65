@@ -2,7 +2,13 @@
 
 **PLANNING session, 2026-10-08. `OWNER REVIEW CANDIDATE`.** Branch
 `docs/plan-gameplay-variety` from `main` `13c61e6`. **Nothing here is
-implemented; this document is the deliverable.** No source, cfg, build
+implemented; this document is the deliverable.** **Amended the same day with
+the owner's answers to §7 (recorded in §7.1 and applied throughout: order B
+adopted, the attract mode as a menu-phase overlay, the torpedo's reserve and
+the 260-frame measured bound, per-region boss overlays as an S5 Phase A
+requirement, the life capsule drawn rarely at random) and with the resident
+constant-data inventory the owner asked for (§8, measured by the committed
+`scripts/measure-resident-data.mjs`).** No source, cfg, build
 script, level, harness, scenario, clause, evidence, `dist/` or `docs/media/`
 byte changed, and no build was run. The ATR and the boot image are `main`'s
 (§0.1). One reusable measurement script is committed with it:
@@ -81,14 +87,23 @@ margin. Window C packs at 0.78, ASM at 0.89 (m3-waves-heavy §0.4).
   sector is cycle-cheap on today's capital rows (≤ 18,374 wall, **M**) but
   still needs the raster-critical publication proof. All three: **later**
   (§3.9).
-* **The window ends the road short in either order.** Every recommended item
-  (this plan's plus M4, M3, M3-H, M6, the attract mode) needs about
-  **1,930 → 2,220 B against 1,185 free**; the four known levers give 537;
-  the attract mode (240) gives way first, as the M5 plan said, and the rest
-  is the M3 cuts (195) or the low-RAM fighter overlay (`$1900-$1FFF`,
-  1,792 B, risk 3–4). The order changes only **when** the lever session
-  comes: before M3 if M3 + M3-H go first (recommended), before M6 otherwise
-  (§4.1).
+* **The window ends the road short in either order.** With the attract mode
+  as a menu-phase overlay (owner, 2026-10-08: 0 window bytes during play)
+  every recommended item (this plan's plus M4, M3, M3-H, M6) needs
+  **1,788 → 2,045 B against 1,185 free**; the four known levers give 537, so
+  the road ends **−66 expected / −323 budgeted**; the M3 cuts (195) or the
+  low-RAM fighter overlay (`$1900-$1FFF`, 1,792 B, risk 3–4) cover the rest.
+  The order the owner adopted (B: M3 + M3-H before M4) puts the lever session
+  after M3 (§4.1, §5).
+* **Resident constant data is 6,230 B, 4,700 of them in the initial block**
+  (35 % of its 13,618 B; the packed loader bitmap alone 1,967). The three
+  levers the owner asked for return, in order of size: a **menu-phase overlay
+  of the menu's data ≈ 1,200 B of initial block** (AN from measured raw
+  sizes), **LZSS-packing the boot-read-once glyph sources ≈ 200–400 B** (G;
+  the decoder exists), and **one measured duplicate, 96 B of `BROADSIDE`**
+  (the two sector-module source tables are identical). None returns window
+  bytes directly; the capital-phase tables (662 B of resident `BROADSIDE`)
+  return resident RAM only with the second capital slot (§8).
 
 ---
 
@@ -584,6 +599,28 @@ cannon, which is the player's choice and the point.
 and the bound decided now (Q6, Q7, Q3). If the owner wants it before S5 the
 session order is the same and S5 lands in what is left.
 
+**The owner's answers (2026-10-08), applied:**
+
+* **Firing: the Nova release-then-press rule** (Q3), as priced above.
+* **Reserve: 200 B of slot E** for the torpedo before S5 (Q6). S5 plans
+  against the remaining 110 B of slot E plus the per-region overlay design
+  of §4.4; the torpedo session takes the reserve.
+* **The boss-entry bound 250 → 260 host frames, as a measured limit** (Q6):
+  the torpedo session measures the entry on its evidence run and **STOPs if
+  it exceeds 260**; the evidence test's bound moves to 260 in that session,
+  not before.
+* **Every boss-sector capsule is a torpedo** (Q7). The fight must stay within
+  MEDIUM 90–120 s: the torpedo session **rebalances module durability in
+  data** (`modules.json` hit points and `bossDef.hpScale`) and **reports the
+  fight length per difficulty** (EASY / MEDIUM / HARD, the bot) with the
+  before-and-after figures.
+* **S5 Phase A requirement — region-specific boss code as per-region
+  overlays.** The R3 force field, the final boss's salvos, R2's escort and
+  each region's look table are priced as **per-region overlays read at the
+  boss entry**, so only the current region's code is resident in a boss
+  sector; S5 Phase A prices S5's full needs against slot E with that design,
+  not the look table alone (§4.4).
+
 ### 3.6 Item 6 — the +1 life capsule
 
 | Piece | What | Home | Bytes | Basis |
@@ -592,11 +629,11 @@ session order is the same and S5 lands in what is left.
 | The silhouette table | `fighter_pickup_pmg_shape` (48 B, `STARFIELD`, initial block) **moves to the window**: the one reader (`render_fighter_pickup_pmg`, `PICKUP_CODE`, `src/main.s:11125`) gets a new operand (3 B in place); the table gains the new types there | initial block **−48 raw (≈ −40 packed)**; window +48 + 16 a new type | 0 | **IC** |
 | Per-type colour (distinct look) | a 5-B `COLPM3` table and a store in `render_fighter_pickup_pmg` | `PICKUP_CODE` tail (65 B; M3-H takes 32) | 10 → 12 | **IC**; budget §2 M6 "~6 B" |
 | Collection | the type branch (re-pointed from `ENTITY_CODE`, §3.5): LIFE: `PLAYER_LIVES` + 1 clamped at 8, `update_hud_status`, a sound; the booster state untouched | window | 30 → 36 | **IC** |
-| **The rule — rare, never zero** | recommended: **the capital sector's completion spawns one life capsule a level** (0 kills needed, so never zero; once a level, so rare and bounded: 3 + 5 (K) + up to 12 → clamped at 8); when the player already has 8 it spawns as a repair capsule (§3.7). The spawn is `weapon_pickup_spawn_capsule_at` with the type forced, called from `sector_c_begin_complete` (`HYBRID_C_SECTOR`, 18 free) through the window | `HYBRID_C_SECTOR` 6 → 8, window 20 → 24 | **IC** |
-| Alternative rule | the rotation grows to N entries with one LIFE: the type pick becomes a window function (byte-neutral: `lda abs` → `jsr` at `src/main.s:10399`), so any rule is data: an N-entry type table | window 30 → 40 | **IC** |
-| **Totals** | | **window 100 → 130 (with the moved table), `PICKUP_CODE` 10 → 12, `HYBRID_C_SECTOR` 6 → 8; initial block −40**; 0 cycles on any frame but a collection | |
+| **The rule — drawn rarely at random, never zero, at most once a level (owner, 2026-10-08, Q8)** | the type pick becomes a window function (byte-neutral: `lda abs` → `jsr` at `src/main.s:10399`): on every capsule spawn after a level's first, while the level's `life_given` flag is clear, one draw of the Director's RNG (`director_c_rng_advance`, the replay-deterministic stream) at **1 in 4** makes the capsule LIFE and sets the flag; **never zero**: if the flag is still clear when the level's last space sector is entered (`enter_sector` sees `sector_kind` bit 7), the next capsule is LIFE whatever the draw; **at most once**: the flag, cleared at every level start by `director_c_init`. The probability and the forcing sector are constants M8 may tune | window 45 → 55, 1 B of state (`DIRECTOR_C_BSS` 7 B or the unowned RAM) | **IC** |
+| Alternative rules, priced and not taken | once a level at the capital's completion (deterministic: `HYBRID_C_SECTOR` 6 → 8, window 20 → 24); or an N-entry rotation with one LIFE (window 30 → 40, kill-dependent, can be zero) | — | **IC** |
+| **Totals** | | **window 125 → 160 (with the moved table and the random rule), `PICKUP_CODE` 10 → 12; initial block −40**; 0 cycles on any frame but a collection; one RNG draw per capsule spawn | |
 
-**Recommendation: do, in M6** (with K1), the capital-end rule (Q8).
+**Recommendation: do, in M6** (with K1), the random rule as the owner decided (Q8).
 
 ### 3.7 Item 7 — the hull-restore capsule
 
@@ -665,6 +702,7 @@ dead time. **Later** (M9, optional), as the M5 plan has it.
 | Weapon roles (the booster level's colour and sound signals, decision U) | inside K1 | — | — | with K1 |
 | A visible, avoidable capsule | the per-type colour of §3.6 (10 → 12 B); the capsule is already avoidable (the player passes beside it) and its three silhouettes differ | 0 | — | **do** with §3.6 |
 | Item 22 — a booster until a life is lost | 15 → 30 B in `PICKUP_CODE` (65-B tail; M3-H's 32 B of RAM leave 33) | 0 | record 2 has 127 raw B spare: no sector | **do** (M6) |
+| **The attract mode (item 15) as a menu-phase overlay (owner, 2026-10-08)** | **0 B of window during play.** The input-stream reader (60 → 72), the idle timer, the `DEMO` label and the exit on FIRE (80 → 96) and the recorded stream (300 → 500, G) live in a **menu overlay read at every entry to the menu** into `$0C00-$1FFF` (the boss's claim is boss-sector only; the summary module keeps `$0500-$0BFF`), 4 → 6 sectors ≈ 15 → 23 host frames (EMULATOR, 3.83 a sector); the one resident hook is the byte-neutral `read_input` re-point, armed and disarmed by the overlay itself; the demo's level read (49 frames) as before. The same overlay is the home the menu's own constant data would move to (§8.3 lever L1a) | +20 on every menu frame (the stream read); 0 in play | risk 3: the menu phase gains a disk read; the harness's menu replays set it aside like the boss entry; the attract stream is hardware-deterministic only for input-independent state (m5 §7 item 15) | **do**, its own session after M6 (§5), as a must-have (owner decision 2026-10-02, reaffirmed 2026-10-08) |
 
 ---
 
@@ -683,14 +721,14 @@ Items with their window bytes, `expected → budgeted`:
 | M3-H sessions 1–2 (with the weapon profiles 40 → 50 and the lifted ramp in the arena) | 472 → 516 | m3 §5, §3.3 |
 | M3 session 3 (paths) | 496 → 524 | m3 §2.4 |
 | M6 K1 | 150 → 180 | budget |
-| M6 life + repair capsules (with the moved silhouette table) | 130 → 165 | §3.6–3.7 |
+| M6 life + repair capsules (with the moved silhouette table and the random life rule) | 145 → 185 | §3.6–3.7 |
 | M6 torpedo, resident part | 65 → 80 | §3.5 |
 | M7 starfield density and speed (item 24) | 50 → 60 | m5 §7 |
-| attract mode (item 15) | 200 → 240 | m5 §7 |
-| **sum** | **1,973 → 2,265** | |
+| attract mode (item 15) — **a menu-phase overlay, 0 window (owner, 2026-10-08)** | 0 | §3.10 |
+| **sum** | **1,788 → 2,045** | |
 
-**Order A — today's (plan-realizacji §0: S5 → M4 → M3 + M3-H → M6), with
-the sector-flow session first:**
+**Order A — the previous order (S5 → M4 → M3 + M3-H → M6), with the
+sector-flow session first, for the record:**
 
 | Point on the road | Free, expected → budgeted |
 | --- | ---: |
@@ -700,11 +738,10 @@ the sector-flow session first:**
 | after M4 (loop + initials) | 775 → 685 |
 | after M3-H | 303 → 169 |
 | after M3 | **−193 → −355** |
-| after M6 (K1, capsules, torpedo) | −538 → −780 |
-| after item 24 | −588 → −840 |
-| after the attract mode | **−788 → −1,080** |
+| after M6 (K1, capsules, torpedo), item 24 | **−603 → −860** |
 
-**Order B — M3 + M3-H before M4 (recommended, §5):**
+**Order B — M3 + M3-H before M4 (adopted by the owner, 2026-10-08; §5),
+with the lever session where §5 puts it:**
 
 | Point on the road | Free, expected → budgeted |
 | --- | ---: |
@@ -713,12 +750,16 @@ the sector-flow session first:**
 | after S5 | 1,075 → 1,045 |
 | after M3-H | 603 → 529 |
 | after M3 | 107 → **5** |
-| after M4 (loop + initials) | **−193 → −355** |
-| after M6, item 24, the attract mode | **−788 → −1,080** |
+| after the window levers (+537) | 644 → 542 |
+| after M4 (loop + initials) | 344 → 182 |
+| after M6 boosters (K1, the capsules) | 49 → **−183** |
+| after the M6 torpedo | −16 → −263 |
+| after item 24 | **−66 → −323** |
+| the attract mode (menu overlay) | 0 |
 
-The totals are the same; the order moves who is short. In order B the whole
-of M3 + M3-H fits what is free today, and the lever session comes **before
-M4**; in order A it comes before M3 session 3.
+The totals are the same in both orders; the order moves who is short. In
+order B the whole of M3 + M3-H fits what is free today and the lever session
+comes before M4; M6 is where the window goes negative on budgeted figures.
 
 **The levers** (each its price):
 
@@ -729,20 +770,19 @@ M4**; in order A it comes before M3 session 3.
 | the `BROADSIDE` pins after M3-H | **15** | none | m3 §6.3 |
 | `LEVEL_BUFFER` 16 → 15 | **128** | every level address re-linked; risk 3 | m5 §6.1 |
 | **subtotal** | **537** | | |
-| the attract mode gives way (m5's rule) | 240 | the feature | m5 §6.1 |
+| ~~the attract mode gives way (m5's rule)~~ — **withdrawn (owner, 2026-10-08): the attract mode is a must-have and a menu-phase overlay; it costs the window nothing** | 0 | — | §3.10 |
 | the M3 cuts | up to 195 | the column helper +12 cycles a tracking frame; one damage stage; the dodge; the volley into the arena | m3 §6.3 |
 | **a fighter-phase overlay in `$1900-$1FFF`** (slot D's RAM outside the boss sector): fighter-only code (the path evaluator, the capsule types, the weapon profiles) read at every level start behind the summary screen and rebuilt after a boss | **up to 1,792** | a run read per level (+8 … 14 sectors ≈ +30 … 53 frames behind the 3-s minimum); the code must not run before its read; the low-RAM range is emulator-measured free only (`diagnostics/low-ram-0700-1fff-2026-10-03.md`) until the owner's 65XE smoke of `$0500`; risk 3–4 | m5 §6.1 last row |
 
-**End of the road:** budgeted −1,080 + 537 = **−543**; the attract mode
-gives way → **−303**; the M3 cuts → −108; the fighter overlay covers the
-rest. Expected −788 + 537 = **−251**; the attract mode → **−11**; the M3
-cuts → +184. So on expected figures everything but the attract mode fits
-with the four levers; on budgeted figures the fighter overlay or a dropped
-item (the torpedo's resident 80, the initials entry 180, the capsules 165)
+**End of the road:** budgeted **−323** after the four levers; the M3 cuts
+→ −128; the fighter overlay in `$1900-$1FFF` covers the rest. Expected
+**−66**; the M3 cuts → +129. So on expected figures everything fits with the
+four levers and one M3 cut (the volley into the arena, 72 B, is the cheapest
+and costs no cycles); on budgeted figures the fighter overlay or a dropped
+item (the torpedo's resident 80, the initials entry 180, the capsules 185)
 is needed as well. The decision is the owner's at the M6 boundary with
-measured figures, as the M5 plan already says; this plan adds one row to
-that choice (the fighter overlay) and recommends building in order B so the
-variety items land before the shortfall.
+measured figures. The data levers of §8 do not change this ledger: they
+return initial-block bytes and `BROADSIDE` RAM, not window bytes (§8.4).
 
 ### 4.2 `DIRECTOR_RAM`, `HYBRID_C_SECTOR`, the arena, the pins
 
@@ -777,8 +817,25 @@ variety items land before the shortfall.
 | disk, regions 632–695 | 64 sectors reserved | 4 × 16 | 0 | 0 |
 | **boss entry** | 64 sectors, 245 frames | +0 … +1 (the look table's home) | +1 … +2 (slot E 3 … 4 sectors) | **249 … 257 against the 250 bound** |
 
+**Per-region overlays (owner requirement for S5 Phase A, 2026-10-08).**
+Region-specific boss code — the R3 force field, the final boss's salvo
+behaviour beyond the engine's `BOSS_KIND_SALVO`, R2's escort, each region's
+look table — is priced as **a per-region run read at the boss entry into
+slot E** (or a slot F if S5 finds one), so only the current region's code is
+resident in its boss sector. Slot E then holds the torpedo's 200-B reserve
+plus the largest region's run: look table 98 → 110 and region code **R1 0,
+R2 escort 40 → 80 (G), R3 force field 150 → 300 (G; P1 / P2 are reserved for
+it), R4 salvos 60 → 120 (G)** — a worst region of **~260 → 410 B**, against
+slot E's 376 B left after the reserve: it fits on expected figures and is
+~35 B over on budgeted ones for R3. S5 Phase A measures each region's code
+as a probe and decides between trimming, a slot F in the capital group's
+resident half (the second capital slot, below) and the `$1900-$1FFF` ceiling
+of slot D. The entry's sectors then vary per region (slot E 3 … 5 sectors);
+**every region's entry is measured against the 260-frame bound** (§3.5).
+
 Slot E is the only slot with room and it is **short by ~60 B on budgeted
-figures with both S5's table and the torpedo**. The reserve to decide before
+figures with both S5's table and the torpedo**, before the per-region design
+above moves region code out of the shared slots. The reserve to decide before
 S5 (Q6): **200 B of slot E for the torpedo** (slot E read as 4 sectors; S5's
 look table then goes to the region's own run, +1 sector for a region whose
 charset run is full, as region 1's is: 976 of 1,024) and **the entry bound
@@ -815,7 +872,9 @@ growth** (§4.3). The boss entry is §4.4's.
 
 ## 5. The milestone order and the sessions to the freeze
 
-**Recommended order (order B of §4.1):**
+**The order adopted by the owner (2026-10-08; order B of §4.1):** sector
+flow → S5 → M3-H → M3 → window levers → M4 → M6 boosters → M6 torpedo → the
+attract mode (menu overlay) → the freeze.
 
 | # | Session | Branch | Scope | Window | Leaves the game shippable because |
 | --- | --- | --- | --- | ---: | --- |
@@ -827,11 +886,11 @@ growth** (§4.3). The boss entry is §4.4's.
 | 6 | **Window levers** | `chore/window-levers` | the `STARFIELD` tail, `LEVEL_BUFFER` 16 → 15, the arena and the pins (537) | +537 | no visible change; evidence regenerated |
 | 7 | **M4** | as budget §2 M4 | the campaign loop, K's lives, the initials entry | −300 → −360 | twelve levels playable; W2 F1's data rule is C1's now |
 | 8 | **M6 boosters** | `feat/boosters` | K1, item 22, the life and repair capsules (§3.6–3.7), the per-type colour | −280 → −345 | the window is now negative on budgeted figures: the attract mode gives way or the fighter overlay lands here |
-| 9 | **M6 torpedo** | `feat/proton-torpedo` | §3.5 in slot E / C with the resident veneers | −65 → −80 | boss-only; the fight re-tuned by `hpScale` |
-| 10 | **Attract mode, item 24** | `feat/attract-mode` | only if the measured window allows after 8–9 | −250 → −300 | the last code item before the freeze |
+| 9 | **M6 torpedo** | `feat/proton-torpedo` | §3.5 in slot E / C with the resident veneers; **the entry measured, STOP over 260 host frames**; module durability rebalanced in data; the fight length reported per difficulty | −65 → −80 | boss-only; the fight inside 90–120 s on MEDIUM |
+| 10 | **Attract mode, menu overlay; item 24** | `feat/attract-mode` | §3.10: the menu overlay in `$0C00-$1FFF` with the stream, the idle timer and the `DEMO` run; item 24's 50 → 60 B of window | −50 → −60 | the last code item before the freeze; 0 window for the attract mode itself |
 | — | **the freeze** | | M7 content (data), M8 balance (data), M9 release | | |
 
-Why M3 + M3-H before M4 (Q1): the owner's complaint is level 1's variety
+Why M3 + M3-H before M4 (Q1, adopted): the owner's complaint is level 1's variety
 now; M3-H re-scripts level 1's replays once (slower Raiders) and M4 would
 otherwise re-script them again for levels 2–12; the whole of M3 + M3-H fits
 today's window with the lever session after it, whereas in today's order the
@@ -839,8 +898,8 @@ lever session interrupts M3 between sessions 2 and 3; and M4's own
 prerequisite (C1) ships in session 1 either way. The cost: the campaign loop
 (twelve levels in one game) comes three sessions later.
 
-**What is dropped or deferred by this plan:** the half-aimed shot (Q2), a
-fourth authored shot look, a per-stage hue change, the Nova's large
+**What is dropped or deferred by this plan:** the half-aimed shot (Q2,
+decided: no), a fourth authored shot look, a per-stage hue change, the Nova's large
 detonation, the fast loader (M9, optional), the capital-sector items (M7 /
 after 1.0), a HUD mark for the torpedo.
 
@@ -865,6 +924,15 @@ Recorded in [../owner-decisions-2026-09-11.md](../owner-decisions-2026-09-11.md)
    that show their damage; dead time between waves measured and reduced by
    the Director's sector flow; more between capital ships — each priced in
    §3, placed in §5, with its open question in §7.
+
+5. **The owner's answers of 2026-10-08 to §7** (recorded in §7.1 and in the
+   journal §AE): order B; no half-aimed shot; the Nova firing rule; Bomber
+   holes and the lifted ramp; 200 B of slot E reserved and the entry bound
+   260 as a measured limit; per-region boss overlays as an S5 Phase A
+   requirement; every boss capsule a torpedo with the fight rebalanced in
+   data; the life capsule drawn rarely at random, never zero, at most once a
+   level; the repair capsule in the rotation of six; the sector-flow rules as
+   every level's default; the attract mode as a menu-phase overlay.
 
 Standing decisions this plan works under and does not reopen: ATR only;
 `LEVEL_MAX_ID` 16; 16-sector level image; no new boot sector, initial block ≤
@@ -895,9 +963,179 @@ half-aimed shot only, as the owner allowed).
 | **Q13** | The capital-sector items (nacelles, the second emplacement, a Light in a capital sector) | **Later**: nacelles and the emplacement in M7 with the second capital slot; the capital Light after 1.0 | 0 now | each needs capital-phase code room that slot A no longer has (§3.9, §4.4) |
 | **Q14** | The weapon profiles' triples and which free `wave_flags` bits they take (5 and 7 on Heavy waves) | **As §3.3**: single 1, double 2 × 6 frames, burst = today's 5 × 15; the owner edits the triples in `assets/levels/*.json` through the compiler's vocabulary | 30 → 40 B window | a profile per archetype record (0 B, no per-wave choice) |
 
+### 7.1 The owner's answers (2026-10-08)
+
+| # | Answer | Applied in |
+| ---: | --- | --- |
+| Q1 | **Order B** — M3 + M3-H before M4; the proposed order adopted: sector flow → S5 → M3-H → M3 → window levers → M4 → M6 boosters → M6 torpedo → freeze | §5, §4.1; `plan-realizacji.md` §0's dated note |
+| Q2 | **No** half-aimed shot; "no aimed shots" stays | §3.3 |
+| Q3 | **The Nova release-then-press rule** | §3.5 |
+| Q4 | **Both** — the holes (variant C) and the lifted luminance ramp | §3.4 |
+| Q5 | adopted as recommended (no HUD change) — changes no gate, limit or decision | §1.8 |
+| Q6 | **200 B of slot E reserved** for the torpedo before S5; **the boss-entry bound 250 → 260 host frames as a measured limit**: the torpedo session measures the entry and STOPs over 260. **S5 Phase A requirement:** region-specific boss code (R3 force field, final salvos, R2 escort, region look tables) priced as per-region overlays read at the boss entry, so only the current region's code is resident; S5's full needs priced against slot E with that design | §3.5, §4.4 |
+| Q7 | **Yes**, every boss capsule is a torpedo; the fight stays within MEDIUM 90–120 s: the torpedo session rebalances module durability in data and reports the fight length per difficulty | §3.5, §5 |
+| Q8 | **Drawn rarely at random (never zero), at most once a level** | §3.6 |
+| Q9 | **The rotation of six** | §3.7 |
+| Q10 | **Yes**, the sector-flow rules are every level's default | §3.8 |
+| Q11 | adopted as recommended (the fast loader not now; M9 optional) — the M5 plan already has it so; changes no gate or decision | §3.8 |
+| Q12 | **the first half withdrawn by the owner**: the attract mode is a must-have and a menu-phase overlay, not the first cut; the fighter-phase overlay in `$1900-$1FFF` stays a priced lever, not taken | §3.10, §4.1 |
+| Q13 | adopted as recommended (the capital items later: nacelles and the emplacement in M7, the capital Light after 1.0) — decision 1 of director-4.6 §11 and budget §5.2 items 9 and 13 stand unchanged | §3.9 |
+| Q14 | adopted as recommended (the profile triples as §3.3; `wave_flags` bits 5 and 7 on Heavy waves) — changes no gate or decision | §3.3 |
+
+Of the questions the owner did not answer directly (Q5, Q11, Q13, Q14),
+none changes a gate, a budget limit or a recorded owner decision, so each is
+adopted as recommended; **none needs a STOP.**
+
 ---
 
-## 8. What this document did not do
+## 8. Resident constant data — the inventory and three levers (owner request, 2026-10-08)
+
+### 8.1 Method and totals
+
+`node scripts/measure-resident-data.mjs` (committed; `--json=…` for the
+full list, `--min=N` for the detail threshold) walks every always-resident
+link's listing and map (`main`, `encounter-director`, `light-kernel`,
+`sector-reader`, `integration-glue`, `capital-player-collision`) and the
+session-resident `level-summary`, sizes every byte-emitting line by the
+offset difference to the next emission of its segment (the listing prints at
+most twelve bytes a line), classifies it CODE / DATA / RES, merges DATA under
+its label, and reads each run's bytes from the runtime image for duplicate
+detection. **Every byte figure below is MEASURED** from `build/*.lst`,
+`build/*.map` and the image; the phases that read a table and the packed
+ratios are from the source (file:line given) and the manifest.
+
+| Home | Load record | Packed | Constant data (B) | Of the home's size |
+| --- | --- | --- | ---: | ---: |
+| `CODE` | initial block | no | 71 (21 small runs) | 4,464 |
+| `RODATA` | initial block | no (the loader bitmap and the loader display list are LZSS blobs inside it) | **3,497** | 3,714 |
+| `BOOT_STAGE2`, `BOOT_SPLASH`, `A2_KERNEL` | initial block | no | 15 + 41 + 8 | 1,332 + 512 + 237 |
+| `STARFIELD` | initial block, two LZ streams (2,039 raw → 1,750 packed, **0.86 M**) | yes | **639** | 2,039 |
+| `ENTITY_CODE` | initial block, LZ (3,156 → 2,786, **0.88 M**) | yes | **596** | 3,156 |
+| `BROADSIDE` | record 1, LZ (6,653 → 5,525, **0.83 M**) | yes | **918** | 6,653 |
+| `PICKUP_CODE` + `HYBRID_C_SECTOR` | record 2 | no | 39 | 944 + 230 |
+| `GLUE` + low C (`DIRECTOR_C_LOW`, `ENEMY_ARCHETYPE_DATA`) | record 4, LZ | yes | 16 + 48 | 250 + 68 + 48 |
+| `HYBRID_C_EXT` (+ `LIGHT_CODE`, `HEAVY_CODE`) | record 5 | no | 0 | 681 + 131 |
+| arena (`HYBRID_ASM_ARENA`, C, `RODATA`) | record 7, LZ | yes | 32 + 39 | 797 |
+| window C half (`HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`) | record 8, LZ | yes | **30** | 1,497 |
+| Light kernel (+ `DISK_GUARD`, `CAPITAL_VECTOR_IMAGE`) | record 9, LZ | yes | 3 (+ the 36-B vector image, emitted as code) | 902 |
+| `SECTOR_READER` | record 10 | no | 218 | 1,498 |
+| `DIRECTOR_RAM` (`DIRECTOR_C_PRE`, `RODATA`, `CODE`) | record 11, LZ | yes | 20 | 631 |
+| `LEVEL_SUMMARY` (`$0500`, session) | disk 584–595, read once a session | no | 235 | 1,760 |
+| **total** | | | **6,230 raw**; in the initial block **3,632 raw + 1,235 raw packed ≈ 4,700 B (35 % of 13,618)** | |
+
+### 8.2 The tables (every run of at least 16 B; smaller runs aggregated)
+
+Phases: **boot** (stage 2 and cold init), **splash**, **menu** (and GAME
+OVER, TOP SCORES, OPTIONS), **loading** (the summary screen and the level
+read), **fighter**, **capital**, **boss**, **summary**, **pause**. "Once"
+means the table is read once and copied, so a packed or disk-loaded form
+needs no per-frame cost.
+
+| Address | Segment (record) | Symbol | B | Read by | Phases | Packed | Source |
+| --- | --- | --- | ---: | --- | --- | --- | --- |
+| `$3188` | `RODATA` (initial) | `hud_ascii` | 26 | the HUD build at START GAME | fighter start | no | `src/main.s:7292` |
+| `$31AA` | `RODATA` | `frontend_screen_data` | 18 | menu construction | menu | no | `:7300` |
+| `$31BF` | `RODATA` | `shared_fighter_explosion_masks` | 48 | the player's and the Heavy's explosion, per frame | fighter, capital, boss | no | `:7309` |
+| `$31F5` / `$3205` | `RODATA` | `player_shape`, `player_engine_shape` | 16 + 16 | the player draw, per frame | fighter, capital, boss | no | `:7316`, `:7334` |
+| `$3215` | `RODATA` | **the gameplay charset block**, 1,024 B: `charset_data` 128 + the fixed cells 248 (`:7640`, `:7664`), `player_fighter_projectile_glyph_head` 40 (`:7671`), `loader_display_list_lzss` 35 (an LZSS blob, boot), 21 B of small runs, `capital_hull_glyphs` 248 (`:7708`), `frontend_glyph_rows` 301 (`:7716`) | 1,024 | `copy_charset` (`:3366`) copies the whole block to `CHARSET` **once at cold init** (`:11581`); `copy_frontend_charset` / `copy_hud_charset` read `frontend_glyph_rows` **once** (`:11582-11583`); `publish_level_hull_style` (`:7813`) re-reads `capital_hull_glyphs` **at every level start** (`:2630`); the projectile head is read at START GAME (`:3992`) | boot (once); the hull glyphs at each level start | no, except the 35-B display list | `:7640-7718` |
+| `$3615` | `RODATA` | `main_menu_screen_data` 88, `options_screen_data` 38, `top_scores_screen_data` 41, `exit_screen_data` 25, `ended_screen_data` 47, `game_over_screen_data` 68, `frontend_marker_positions` 26, `top_score_row_template` 20 | 353 | copied to screen RAM at each screen entry | menu, game over, campaign end | no | `:7729-7950` |
+| `$3825` | `RODATA` | `loader_bitmap_lzss` | 1,967 | `unpack_loader_bitmap` (`:3292`, the LZ-10/5 decoder, resident in `CODE`) **once at boot** (`:1287`); 7,680 B unpacked (0.26) | boot (the loading screen) | **yes** | `scripts/loader-assets.mjs` |
+| — | `RODATA` | 11 small runs | 53 | various | — | no | — |
+| `$5A32` | `STARFIELD` (initial, LZ 0.86) | **the menu music data** (`EMIT_MENU_MUSIC_DATA`, under the label `music_player_end`) | 514 | the menu music player, per frame | **menu only** | yes (≈ 442 packed, AN at the stream ratio) | `:6363`, `assets/music/menu-theme.json` |
+| `$5C34` | `STARFIELD` | `menu_star_screen_low`, `menu_star_glyph` and the star phase / cycle / shape tables | 32 + 45 small | `build_menu_star_glyphs` (`:7396`), the twinkle, per frame | **menu only** | yes | `:6434-6450` |
+| `$5C91` | `STARFIELD` | `fighter_pickup_pmg_shape` | 48 | `render_fighter_pickup_pmg`, per frame while a capsule shows | fighter, boss | yes | `:11522` |
+| `$67FB` | `BROADSIDE` (record 1, LZ 0.83; **the resident half, below slot A**) | `allied_hull_packed_map` 160, `allied_hull_codebook` 16, `allied_collision_boundaries` 32, `enemy_collision_boundaries` 32, `allied_sector_module_sources` 96, `enemy_sector_module_sources` 96, `allied_prow_occupancy_masks` 32, `enemy_prow_occupancy_masks` 32, `allied_prow_collision_boundaries` 32, `enemy_prow_collision_boundaries` 32, `capital_explosion_phases` 54, `capital_explosion_sound_frequency` 24, `capital_explosion_sound_control` 24 | **662** | the hull row builder, the contact, the explosions | **capital only** | yes | `:7855-7937` |
+| `$6B4C` | `BROADSIDE` | `pause_screen_data` 68, `pause_quit_screen_data` 42 | 110 | the pause screen draw | **pause only** | yes | `:7979`, `:7992` |
+| `$7765` | `BROADSIDE` | `enemy_body_data` 48 (+ `enemy_accent_data`, small) | 48 | `draw_enemy_member`, per moved frame | fighter | yes | `:9987` |
+| — | `BROADSIDE` | 22 small runs | 98 | various | — | yes | — |
+| `$7C52` | arena (record 7, LZ) | `hostile_weapon_visual_glyphs` | 32 | the hostile look install into the charset | boot / level start (once) | yes | `src/hybrid/c-asm-abi.s:508` |
+| — | arena `RODATA` | 9 small runs (lane tables, the formation start, the profile field list) | 39 | the Heavy spawn and tick | fighter | yes | `src/c/lifecycle.c:1328-1363` |
+| `$8AEF` | `PICKUP_CODE` (record 2, raw) | `heavy_breakup_offsets` 20 (+ 19 small) | 39 | the Heavy break-up spawn | fighter | no | `src/main.s:12150` |
+| `$8C7D` | `ENEMY_ARCHETYPE_DATA` (record 4, LZ) | `_enemy_archetypes` | 48 | every Light tick, every Heavy spawn | fighter | yes | `src/c/lifecycle.c:213` |
+| `$9400` | `ENTITY_CODE` (initial, LZ 0.88) | `main_menu_display_list` 62, `options_display_list` 48, `top_scores_display_list` 60, `game_over_display_list` 43, `frontend_text_display_list` 32, `difficulty_value_table` 18 | 263 | the frontend's display lists, read in place by ANTIC | **menu only** | yes | `src/main.s:7433-7618`, `:7470` |
+| `$9AEB` | `ENTITY_CODE` | `frontend_h31_extended_glyphs` | 128 | `copy_frontend_charset` **once at cold init** | boot (menu font) | yes | `:11489` |
+| `$9B6B` | `ENTITY_CODE` | `effect_growth_glyph` 16, `entity_debris_glyph` 64, `effect_fragment_glyph` 16 | 96 | copied into the charset once (`:11420`) | boot (once) | yes | `:11496-11501` |
+| `$9D22` | `ENTITY_CODE` | `light_glyph`, `light_interceptor_glyph` | 32 | the Light look install at admission | fighter | yes | `:13027`, `:13040` |
+| — | `ENTITY_CODE` | 16 small runs | 77 | various | — | yes | — |
+| `$9D75` | `DIRECTOR_C_RODATA` (record 11, LZ) | the ceilings, the spacing floors, the hazard tables | 20 | the Director | fighter | yes | `src/c/director.c:193-218` |
+| `$B3BB` | `HYBRID_ASM_WINDOW` (record 8, LZ) — **the window** | `boss_warning_records` | 30 | the WARNING screen's text records | boss entry only | yes | `src/hybrid/c-asm-abi.s:664` |
+| `$A4F6` | `SECTOR_READER` (record 10, raw) | `failure_records` 21, `title_record` 18, `sr_engaging_record` 25, `failure_reasons` 40, `sector_reader_directory` 48, `overlay_directory` 50, 3 small | 218 | the loader's text and the run directories | loading, boss entry, summary | no | `src/hybrid/sector-reader.s:1206-1243` |
+| `$0A05` | `LEVEL_SUMMARY` (disk, session) | the boss-restore tables 48, two display lists 75, the level sums 32, 26 small | 235 | the summary screen | summary | no | `src/hybrid/level-summary.s` |
+| `$4EFE`, `$2000`, `$0500`, `$21C1`, `$9000` | `GLUE`, `CODE`, `BOOT_SPLASH`, `BOOT_STAGE2`, `A2_KERNEL` | small runs only | 16 + 71 + 41 + 15 + 8 | — | boot / various | no | — |
+
+Not constant data, and not in the table: `.res` reservations (RAM state) and
+the level image's blocks (per level, disk).
+
+### 8.3 Three levers per table, and what each returns
+
+Returns are to **the initial block (IB)** or **the `$AE00` window (W)**; a
+third column names resident RAM that is neither — `BROADSIDE` room a
+window-destined ASM routine could be linked into instead (not a window byte,
+but the same scarcity).
+
+**L1 — move phase-only data into an overlay or a disk-loaded block.**
+
+| Tables | Phase | Mechanism | Returns IB | Returns W | Cost / risk | Basis |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| **L1a** the menu's data: the menu screens 353 (`RODATA`), the menu music 514 and the star tables 77 (`STARFIELD`), the frontend display lists and the difficulty table 263 and the H3.1 extended glyphs 128 (`ENTITY_CODE`) — 1,335 raw | menu | **the menu-phase overlay the attract mode now needs** (§3.10): one run into `$0C00-$1FFF` read at every menu entry; the resident menu code addresses the tables at their slot addresses | **≈ 1,206** (353 raw + ≈ 442 + 66 + 232 + 113 packed, **AN** at the segments' measured ratios 0.86 / 0.88) | 0 | +≈ 11 sectors per menu entry (≈ 42 frames EMULATOR) on top of the attract stream; every `RODATA` / `STARFIELD` / `ENTITY_CODE` address after the moved tables shifts (risk 3: the harness's pinned labels, the boot baseline re-recorded, the memory map regenerated); the H3.1 glyphs are copied at cold init, so their copy moves to the overlay's install | **M** sizes |
+| **L1b** the capital-phase tables, 662 B of the resident `BROADSIDE` half | capital | the **second capital overlay slot** of §4.4 (the capital group's resident ~1,750 B as a slot restored by a 30-sector run after a boss) | 0 | 0 (**662 B of resident `BROADSIDE` RAM**, record 1 ≈ −550 packed B ≈ −4 sectors) | the regrouping (risk 3) and +14 sectors at the post-boss transition behind the summary's 3-s minimum | **M** sizes |
+| **L1c** the boot-read-once glyph sources: the charset block's 989 B less the hull glyphs (`RODATA`), the H3.1 glyphs 128 and the effect glyphs 96 (`ENTITY_CODE`), the hostile looks 32 (arena) | boot, once | an extension record read at boot and unpacked straight into the charsets (the mechanism of the 11 records); the hull glyphs 248 stay resident (re-read at every level start) | **≈ 741 raw `RODATA` + ≈ 197 packed `ENTITY_CODE`** (AN) | 0 | 11 of 11 DFMC records are used: the data rides an existing record's spare (record 2 127 raw, record 11 116, record 9 92, record 1 86) or lever 14's twelfth record (−16 B IB); +6 → 8 extension sectors (+6 → 16 menu frames); boot CPU for the unpack ≈ 1 frame per KB (**G**) against the ATR menu deadline (52 frames of slack today; it has been 0) | **M** sizes, **G** boot cost |
+| L1d the pause screens 110 (`BROADSIDE`) | pause | a 1-sector read at every pause | 0 | 0 (110 B `BROADSIDE`) | a disk read inside a pause (4 frames); not worth it | — |
+| L1e `boss_warning_records` 30 (**the window**) | boss entry | the boss install run (the records are shown while the entry reads, so they must land first: the first run of the entry) | 0 | **30** | 0 sectors (the install run has 32 B free) | **M** |
+| L1f the sector reader's texts 83 | loading | the summary art run (the loader's text already lives there since M5a-S2 for the summary) | 0 | 0 (83 B of reader; its tail is 38) | the WARNING / failure screens need them before any run is read | **M** |
+
+**L2 — LZSS-pack data that is unpacked once** (the decoder exists:
+`unpack_loader_bitmap`, LZ-10/5, 46 B, resident in `CODE`; a second call
+site costs ~12 B).
+
+| Tables | Today | Packed (G) | Returns IB | Returns W | Cost / risk | Basis |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| **L2a** the charset block's raw 989 B (`RODATA`), copied once at cold init | raw | 0.6 → 0.8 (**G**; glyph rows pack worse than the bitmap's 0.26 and better than code's 0.86) | **≈ 200 → 400** | 0 | the unpack lands directly in `CHARSET`; `publish_level_hull_style` then needs the hull glyphs' 248 B from a resident source: keep them raw (returns ≈ 150 → 300 instead) or unpack them into the pause backup at each level start (+1 KB of copies); boot CPU ≈ 1 frame (**G**) against the deadline | **M** sizes |
+| **L2b** the menu screen texts 353 (`RODATA`), copied to screen RAM at each screen entry | raw | 0.5 → 0.7 (**G**; text) | **≈ 100 → 180** | 0 | the decoder writes to screen RAM at each entry (the menu already pays a build); or inside L1a's overlay for free | **M** sizes |
+| L2c `BOOT_SPLASH` (512: 469 code) and `A2_KERNEL` (237) | raw | code at ≈ 0.86 | 10 → 57 net | 0 | budget §4.1 lever 12; the boot deadline risk | budget |
+| not packable | the tables read in place every frame: the player shapes, the explosion masks, `hud_ascii`, `enemy_body_data`, the pickup shapes, the archetypes, the breakup offsets, the Director's and the arena's rodata (≈ 350 B in all) | — | 0 | 0 | packing them would need an unpack into RAM of the same size | — |
+
+**L3 — remove duplicates** (by content, from the runtime image):
+
+| Finding | Bytes | Returns | Basis |
+| --- | ---: | --- | --- |
+| **`allied_sector_module_sources` = `enemy_sector_module_sources`** (`$6917` / `$6977`, `BROADSIDE`): the two 96-B tables are byte-identical; the readers index by side | **96 B of `BROADSIDE`** (record 1 ≈ −80 packed): share one table through the enemy side's operand (2 → 3 B) | 0 IB, 0 W; 96 B of resident `BROADSIDE` (the pin M3-H is priced on gains it) | **M** |
+| `player_fighter_projectile_glyph_head` (40 B) is contained in the charset block | 0 | not a duplicate: the head **is** the charset's cells 16–20, read once at START GAME; one copy | **M** |
+| `CAPITAL_VECTOR_IMAGE` (36 B, record 9) = the window's capital vector table | 0 | by design: the restore source the reader copies back after a boss (M5a-S1); a re-read of record 9 would cost a 7-sector read instead | **M** |
+| the HUD charset | 0 | built from `frontend_glyph_rows` by `copy_hud_charset`; no second source | **M** |
+| no other identical run of 8 B or more | — | — | **M** |
+
+**Where moving the inline tables into `assets/` would make a lever easier.**
+The inline tables in `src/main.s` — `charset_data` and the fixed cells (376
+B), the menu screens (353), the menu display lists (263), the player shapes
+(32), the explosion masks (48), `hud_ascii` (26), the pause screens (110),
+the pickup shapes (48) — return nothing by moving to `assets/` with
+byte-identical output, but each becomes a build input a converter can emit
+**packed (L2)** or **as a run file (L1)** the way `scripts/loader-assets.mjs`
+and `scripts/level-summary-assets.mjs` already do for the loader bitmap and
+the summary art; the EMIT_* tables (the hull data, the music, the glyph
+banks) are already there. So the planned texture-set preparation is the
+first step of L1a and L2a, not a return in itself.
+
+### 8.4 What the data levers add to the ledgers
+
+| Ledger | Today | With L3 | With L3 + L2a + L2b | With L3 + L2 + L1a (the menu overlay) | Basis |
+| --- | ---: | ---: | ---: | ---: | --- |
+| initial block, bytes to STOP (§4.3) | 34 (62 after §3.6's table move and K1) | 62 | ≈ 360 → 640 | **≈ 1,500 → 1,850** | **M** + **AN** + **G** as marked |
+| `$AE00` window | 1,185 | 1,185 | 1,185 | 1,185 (+30 with L1e) | §4.1 unchanged |
+| resident `BROADSIDE` room (the pins 119, the tail 3) | 122 | **218** | 218 | 218 (+662 with L1b) | **M** |
+| extension sectors / menu frames | 105 / 551 | 104 / ≈ 549 | 104 | +≈ 11 per menu entry (disk, not transport) | **M** |
+
+So the data levers make **the initial block a non-binding resource** (lever
+11's "menu music and frontend tables out of the initial block" becomes L1a
+at risk 3 instead of 4, because the menu overlay exists for the attract mode
+anyway), return 96 → 758 B of `BROADSIDE` room, and **return no window
+bytes but 30**. The window ledger of §4.1 stands; the fighter-phase overlay
+in `$1900-$1FFF` and the second capital slot remain the window-side levers.
+
+---
+
+## 9. What this document did not do
 
 No source, cfg, build-script, level, harness, scenario, clause, evidence,
 `dist/` or `docs/media/` change; no build; no emulator run; no probe build;
@@ -905,7 +1143,9 @@ no baseline worktree. Measured here: the dead-time probe over the committed
 CSVs (`scripts/measure-dead-time.mjs`, committed), the fence-row scan by live
 population over the same CSVs (a scratch script, not committed), the Heavy
 member costs (`scripts/measure-heavy-member-costs.mjs`, committed earlier,
-re-run), the hull codebook counts (`compileCapitalHulls` over every style).
+re-run), the hull codebook counts (`compileCapitalHulls` over every style),
+the resident constant data (§8: `scripts/measure-resident-data.mjs`,
+committed, over `build/*.lst`, `build/*.map` and the runtime image).
 Not re-run, cited from their plans with the reason given in place: the path
 evaluator prototype (m3 §1.3; the Light tick's code is unchanged since), the
 Raider gate prototype (m3 §1.1), the boss stress (STATUS W2). Every **IC**,

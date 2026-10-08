@@ -1759,6 +1759,45 @@ właściciela (pytania w planie §7).
      drugie stanowisko działa (R2–R4), Light w sektorze capital (4.8c) —
      wycenione, rekomendowane **później** (plan §3.9).
 
+**Odpowiedzi właściciela na pytania planu §7 (2026-10-08, ten sam dzień;
+plan §7.1):**
+
+1. **Kolejność B** — M3 + M3-H przed M4; przyjęta kolejność sesji: przepływ
+   sektorów → S5 → M3-H → M3 → dźwignie okna → M4 → boostery M6 → torpeda M6
+   → tryb attract (nakładka menu) → zamrożenie.
+2. **Bez strzału pół-celowanego**; „bez strzałów celowanych" zostaje.
+3. **Torpeda odpalana regułą Nova**: puszczenie FIRE po zebraniu, kolejne
+   naciśnięcie wystrzeliwuje torpedę zamiast zwykłego strzału.
+4. **Bomber: jedno i drugie** — dziury (wariant C) i podniesiona rampa
+   luminancji.
+5. **200 B slotu E zarezerwowane na torpedę przed S5; limit wejścia bossa
+   250 → 260 klatek hosta jako limit MIERZONY**: sesja torpedy mierzy
+   wejście i STOP, jeśli przekroczy 260. **Wymaganie dla S5 Phase A:** kod
+   specyficzny dla regionu (pole siłowe R3, salwy finałowe, eskorta R2,
+   tablice wyglądów regionów) wyceniany jako **nakładki per region** wczytywane
+   przy wejściu do bossa, tak by rezydentny był tylko kod bieżącego regionu;
+   pełne potrzeby S5 wycenione względem slotu E w tym projekcie, nie tylko
+   tablica wyglądów.
+6. **Każda kapsuła w sektorze bossa jest torpedą**; walka ma zostać w
+   90–120 s na MEDIUM — sesja torpedy **równoważy wytrzymałość modułów w
+   danych i raportuje długość walki per trudność**.
+7. **Kapsuła +1 życie losowana rzadko (nigdy zero), najwyżej raz na poziom**.
+8. **Kapsuła naprawy w rotacji sześciu** (Rapid, Spread, Shield, Rapid, Spread,
+   Repair).
+9. **Reguły przepływu sektorów domyślne dla każdego poziomu.**
+10. **Tryb attract pozostaje must-have (decyzja 2026-10-02) i NIE jest
+    pierwszym cięciem**: wyceniony jako **nakładka fazy menu** wczytywana z
+    dysku (działa tylko w menu), więc nie zużywa bajtów okna podczas gry;
+    rachunki i kolejność zaktualizowane (plan §3.10, §4.1, §5).
+11. Pytania bez bezpośredniej odpowiedzi (Q5 HUD, Q11 szybki loader, Q13
+    pozycje capital, Q14 trójki profili) przyjęte wg rekomendacji planu —
+    żadne nie zmienia bramki, limitu budżetu ani zapisanej decyzji.
+12. **Dodatkowo (2026-10-08):** inwentarz grafiki i danych stałych w pamięci
+    rezydentnej (blok początkowy, okno `$AE00`, arena, sąsiedzi `DIRECTOR_RAM`,
+    pozostałe segmenty zawsze rezydentne, tablice i dane znaków pisane inline
+    w `src/main.s`) z trzema dźwigniami na tablicę — plan §8, skrypt
+    `scripts/measure-resident-data.mjs`.
+
 **Czego decyzje NIE zmieniają:** ATR only; `LEVEL_MAX_ID` 16; 16 sektorów
 obrazu poziomu; transport (bez nowego sektora bootu, blok początkowy ≤
 13 652 B, delta menu ATR ≤ +7); bramki czasu (GO ≥ 500, 32 568, limity stresu

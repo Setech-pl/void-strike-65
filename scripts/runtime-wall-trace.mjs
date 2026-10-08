@@ -620,8 +620,25 @@ const MEMORY_INTEGRITY_HUNT_FIRE_DELAY = 5;
 // evasive 4 and hunt 7 (HARD) stay at 4,000: both lose every life after the
 // capital and the level restarts (evasive at 2,067 / 2,981 / 4,053, hunt 7 at
 // 2,670), so neither reaches the boss at any budget (probed to 4,700).
-const MEMORY_INTEGRITY_FRAMES_HARD = 4_700;
-const MEMORY_INTEGRITY_FRAMES_HUNT6 = 4_821;
+//
+// feat/sector-flow (class (a) again; docs/plans/sector-flow.md §2.7, the
+// evidence-integrity §4 requirement): the sector-flow build re-shapes the road
+// to the boss - early sector ends, a third swarm wave, the Bomber afterCleared -
+// so every integrity budget is re-derived from focused diagnostic runs of this
+// build at 7,000 frames (MEASURED, lives never held):
+//   hunt 5 (HARD): boss entry 3,729, first laser-active frame 4,774, the beam
+//     takes a life at 4,801 (27 laser frames), the last life goes at 5,368 ->
+//     4,700 bought none, 4,900 buys the 27;
+//   hunt 6 (HARD): entry 3,723, first laser 4,785; 75 laser frames by 5,000 ->
+//     5,000;
+//   hunt 5 (EASY): entry 3,873 (4,475 before), first laser 4,453; ~200 laser
+//     frames inside the kept 5,100 - this replay now reaches the lasers, so
+//     three integrity replays carry laser-active frames with no sixth replay;
+//   evasive 4 and hunt 7: still no boss at 7,000 frames (evasive restarts the
+//     level five times, hunt 7 twice), so both keep 4,000 and their
+//     game-over/restart coverage.
+const MEMORY_INTEGRITY_FRAMES_HARD = 4_900;
+const MEMORY_INTEGRITY_FRAMES_HUNT6 = 5_000;
 const MEMORY_INTEGRITY_FRAMES_EASY = 5_100;
 
 const memoryIntegritySessions = ["ATR"].flatMap((medium) =>

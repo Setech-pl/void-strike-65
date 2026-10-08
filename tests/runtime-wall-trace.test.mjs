@@ -244,7 +244,12 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // MEMORY_INTEGRITY_FRAMES_*): HARD hunt 5 4,700 and hunt 6 4,821, EASY hunt 5
   // 5,100, each with its entry set aside; evasive 4 and hunt 7 lose every life
   // before the boss and keep 4,000: 4,000 + 4,699 + 4,820 + 4,000 + 5,099.
-  assert.equal(report.replay.memory_integrity_measured_frames, 22_618);
+  // RE-POINTED (feat/sector-flow, class (a), docs/plans/sector-flow.md §2.7):
+  // the budgets re-derived on the sector-flow build - HARD hunt 5 4,900, hunt 6
+  // 5,000, EASY hunt 5 5,100, all three reaching the lasers; evasive 4 and hunt
+  // 7 still never reach the boss and keep 4,000:
+  // 4,000 + 4,899 + 4,999 + 4,000 + 5,099.
+  assert.equal(report.replay.memory_integrity_measured_frames, 22_997);
   assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "baseline-9040")
@@ -264,7 +269,8 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     // entry frame aside; EASY's hunt at delay 5 joined (class (a)).
     // RE-POINTED (data/w2-lights): as above, only hunt 5 and 6 reach the boss.
     // RE-POINTED (chore/evidence-integrity, item 7): the budgets above.
-    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_699], ["ATR", "hunt", 4_820], ["ATR", "hunt", 4_000],
+    // RE-POINTED (feat/sector-flow): the re-derived budgets above.
+    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_899], ["ATR", "hunt", 4_999], ["ATR", "hunt", 4_000],
     ["ATR", "hunt", 5_099],
   ]);
   assert.equal(report.replay.sessions
@@ -393,7 +399,9 @@ test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase",
   // previous test says why): 20,000 - 2 measured, 399.96 s.
   // RE-POINTED (chore/evidence-integrity, item 7): the budgets of the
   // previous test, 22,618 measured, 452.36 s.
-  ], [22_618, 452.36, 0, 2, true]);
+  // RE-POINTED (feat/sector-flow): the re-derived budgets, 22,997 measured,
+  // 459.94 s.
+  ], [22_997, 459.94, 0, 2, true]);
   assert.ok(integrity.pickup_rf_cycles >= 10);
   assert.equal(integrity.pause_sessions.length, 1);
   assert.ok(integrity.pause_sessions.every(({ timer_before, timer_after }) =>

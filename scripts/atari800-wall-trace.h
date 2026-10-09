@@ -1086,6 +1086,18 @@ static unsigned dfboot_pc_sio_frame;
 static unsigned dfboot_pc_sio_retry;
 static unsigned dfboot_pc_level_load;
 static unsigned dfboot_sio_command_frames;
+/* fix/hardware-boot (docs/diagnostics/hardware-boot.md): stage 2's OS SIOV
+ * reads, from boot_stage2_atr_entry to `start` (a RESET's reboot included).
+ * Every one must be a read armed for receive (DSTATS bit 6, the direction the
+ * OS's own SIO honours), and boot_stage2_error must never execute. */
+static unsigned dfboot_pc_stage2_entry;
+static unsigned dfboot_pc_boot_entry;
+static unsigned dfboot_pc_stage2_error;
+static int dfboot_stage2_live;
+static unsigned dfboot_stage2_runs;
+static unsigned dfboot_stage2_siov_reads;
+static unsigned dfboot_stage2_siov_reads_armed;
+static unsigned dfboot_stage2_error_frame = 0xffffffffu;
 static unsigned dfboot_sio_wire_retries;
 static unsigned dfboot_level_load_begin = 0xffffffffu;
 static unsigned dfboot_level_load_end = 0xffffffffu;
@@ -1643,6 +1655,11 @@ static void dfboot_write(void)
 		dfboot_level_load_begin == 0xffffffffu ? -1 : (int) dfboot_level_load_begin,
 		dfboot_level_load_end == 0xffffffffu ? -1 : (int) dfboot_level_load_end);
 	fprintf(dfboot_file,
+		"  \"stage2\": {\"runs\":%u,\"siov_reads\":%u,\"siov_reads_armed\":%u,"
+		"\"error_frame\":%d},\n",
+		dfboot_stage2_runs, dfboot_stage2_siov_reads, dfboot_stage2_siov_reads_armed,
+		dfboot_stage2_error_frame == 0xffffffffu ? -1 : (int) dfboot_stage2_error_frame);
+	fprintf(dfboot_file,
 		"  \"overlay\": {\"forced\":%d,\"read_begin\":%d,\"read_end\":%d,"
 		"\"command_frames\":%u},\n", dfoverlay_forced,
 		dfboot_overlay_read_begin == 0xffffffffu ? -1 : (int) dfboot_overlay_read_begin,
@@ -1733,6 +1750,9 @@ static void dfboot_init(void)
 	dfboot_pc_overlay_read = dfboot_env_u("DFBOOT_PC_OVERLAY_READ");
 	dfboot_pc_run_read = dfboot_env_u("DFBOOT_PC_RUN_READ");
 	dfboot_pc_level_loaded = dfboot_env_u("DFBOOT_PC_LEVEL_LOADED");
+	dfboot_pc_stage2_entry = dfboot_env_u("DFBOOT_PC_STAGE2_ENTRY");
+	dfboot_pc_boot_entry = dfboot_env_u("DFBOOT_PC_BOOT_ENTRY");
+	dfboot_pc_stage2_error = dfboot_env_u("DFBOOT_PC_STAGE2_ERROR");
 	/* Host decoration drawn into the frame buffer, not Atari output. */
 	Screen_show_disk_led = FALSE;
 	dfboot_initialised = 1;
@@ -1807,6 +1827,29 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x8ebeu], MEMORY_mem[0x8ebfu],
 			MEMORY_mem[0x8e63u], MEMORY_mem[0x8e64u]);
 		exit(2);
+	}
+	/* Armed only by boot_entry's `jsr`: after the takeover both addresses
+	 * are resident code. */
+	if (pc == dfboot_pc_stage2_entry && !dfboot_stage2_live &&
+		dfboot_trace_pc[(dfboot_trace_head - 2u) & 63u] == dfboot_pc_boot_entry) {
+		dfboot_stage2_live = 1;
+		++dfboot_stage2_runs;
+	}
+	if (dfboot_stage2_live) {
+		if (pc == 0xe459u && MEMORY_mem[0x0302u] == 0x52u) {
+			++dfboot_stage2_siov_reads;
+			if ((MEMORY_mem[0x0303u] & 0xc0u) == 0x40u)
+				++dfboot_stage2_siov_reads_armed;
+		}
+		if (pc == dfboot_pc_stage2_error && dfboot_stage2_error_frame == 0xffffffffu) {
+			/* The halt never returns: report it now, by name. */
+			dfboot_stage2_error_frame = frame;
+			dfboot_write();
+			fflush(NULL);
+			exit(0);
+		}
+		if (pc == dfboot_pc_start)
+			dfboot_stage2_live = 0;
 	}
 	if (pc == dfboot_pc_start && dfboot_blank[dfboot_blank_phase].start == 0xffffffffu)
 		dfboot_blank[dfboot_blank_phase].start = frame;

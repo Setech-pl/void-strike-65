@@ -50,7 +50,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { TARGET_MACHINE } from "./atari800-machine.mjs";
+import { SIO_MODE_PATCHED, TARGET_MACHINE, atari800SioArguments } from "./atari800-machine.mjs";
 
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const buildDirectory = path.join(rootDirectory, "build", "capacity-watch");
@@ -232,7 +232,8 @@ function main() {
       const rawPath = path.join(buildDirectory, `${id}.json`);
       fs.rmSync(rawPath, { force: true });
       const result = run(emulatorPath, [
-        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
+        TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: false }),
+        "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
         ...artifact.args,
       ], {
         env: {
@@ -364,6 +365,7 @@ function main() {
     Object.values(checks).every((value) => value === null || value === true));
   const report = {
     id: "capacity-window-watch",
+    sio_mode: SIO_MODE_PATCHED,
     method: "value-change comparison of each watched byte before every emulated instruction " +
       "(a write storing the byte's current value is not observable)",
     hold: { start: hex(holdStart), bytes: holdBytes, expect_hold_is_glue: expectHoldIsGlue,

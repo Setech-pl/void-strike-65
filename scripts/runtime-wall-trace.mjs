@@ -40,7 +40,8 @@ import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
   reportAudits as reportPalTimingAudits, auditsPassed as palTimingAuditsPassed,
   reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
-import { COMPATIBILITY_MACHINE, COMPATIBILITY_MACHINE_NAME, TARGET_MACHINE, TARGET_MACHINE_NAME } from "./atari800-machine.mjs";
+import { COMPATIBILITY_MACHINE, COMPATIBILITY_MACHINE_NAME, PINNED_CONFIG, SIO_MODE_PATCHED, SIO_MODE_REAL,
+  TARGET_MACHINE, TARGET_MACHINE_NAME, atari800SioArguments } from "./atari800-machine.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -1180,6 +1181,10 @@ const bootTraceLabels = {
   DFBOOT_GAME_STATE: "game_state",
   DFBOOT_MAIN_MENU_DLIST: "main_menu_display_list",
   DFBOOT_FRONTEND_DLIST_END: "frontend_display_lists_end",
+  // fix/hardware-boot: the stage-2 clause (scripts/atari800-wall-trace.h).
+  DFBOOT_PC_BOOT_ENTRY: "boot_entry",
+  DFBOOT_PC_STAGE2_ENTRY: "boot_stage2_atr_entry",
+  DFBOOT_PC_STAGE2_ERROR: "boot_stage2_error",
 };
 
 const numericCsvFields = new Set([
@@ -2814,9 +2819,12 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         definitions.push({
           ...artifact,
           path: artifact.artifact.path,
+          // fix/hardware-boot (owner answer Q2, 2026-10-09): the boot is the one
+          // path that runs the OS disk routine SIOV, and the hardware always runs
+          // it without Atari800's SIO patch, so every cold session does too.
           arguments: [
-            TARGET_MACHINE, "-pal", basic ? "-basic" : "-nobasic", "-nosound", "-turbo",
-            "-no-video-accel", "-no-vsync",
+            TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: true }), basic ? "-basic" : "-nobasic",
+            "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
             ...artifact.mediaArguments,
           ],
           fill,
@@ -2877,6 +2885,18 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
     invariant(result.artifact === definition.id && result.cold_ram_fill === definition.fill,
       `${definition.id} boot-smoke identity differs from its invocation`);
+    // fix/hardware-boot: stage 2 first, by name - a stage-2 halt leaves every
+    // later milestone unreached and would otherwise surface as a symptom.
+    const stage2 = result.stage2;
+    const extensionSectors = manifest.transportCapacity.extensionSectors;
+    invariant(stage2 && stage2.error_frame === -1,
+      `${definition.id}: stage 2 reached boot_stage2_error (the red halt) at frame ${stage2?.error_frame}`);
+    invariant(stage2.runs === (definition.reset ? 2 : 1),
+      `${definition.id}: stage 2 ran ${stage2.runs} times`);
+    invariant(stage2.siov_reads === stage2.runs * extensionSectors,
+      `${definition.id}: stage 2 made ${stage2.siov_reads} SIOV reads, expected ${stage2.runs} x ${extensionSectors}`);
+    invariant(stage2.siov_reads_armed === stage2.siov_reads,
+      `${definition.id}: ${stage2.siov_reads - stage2.siov_reads_armed} stage-2 SIOV reads were not armed for receive (DSTATS bit 6)`);
     const watchPath = path.join(outputDirectory, `${definition.id}-watch.json`);
     invariant(fs.existsSync(watchPath), `${definition.id} wrote no slot F watch`);
     const slotFWatch = slotFWriteClause([{ session: definition.id, bossEntry: false,
@@ -3218,6 +3238,8 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
       reset: definition.reset === true,
       force_restore: definition.forceRestore === true,
       slot_f_writers: slotFWatch.writers,
+      stage2: result.stage2,
+      sio_mode: SIO_MODE_REAL,
       machine: definition.compatibility ? COMPATIBILITY_MACHINE_NAME : TARGET_MACHINE_NAME,
       compatibility: definition.compatibility === true,
       reset_frame: result.reset_frame,
@@ -3250,6 +3272,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
 
   const evidence = {
     emulator: "Atari800 7.1.2 PAL/XL",
+    sio_mode: SIO_MODE_REAL,
     frames_observed: BOOT_GAMEPLAY_FRAME,
     duration_seconds_pal: BOOT_GAMEPLAY_FRAME / 50,
     guest_instrumentation_bytes: 0,
@@ -3580,8 +3603,8 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
       const rawPath = path.join(outputDirectory, `${id}.json`);
       const screenshotPrefix = path.join(outputDirectory, id);
       run(emulatorPath, [
-        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel",
-        "-no-vsync", sessionMedia(artifact.path, `menu-${id}`),
+        TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: false }), "-nobasic",
+        "-nosound", "-turbo", "-no-video-accel", "-no-vsync", sessionMedia(artifact.path, `menu-${id}`),
       ], {
         env: {
           ...process.env,
@@ -3737,6 +3760,10 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
   }
   const report = {
     emulator: "Atari800 7.1.2 PAL/XL",
+    sio_mode: SIO_MODE_PATCHED,
+    launch_arguments: [TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: false })
+      .map((argument) => (path.isAbsolute(argument) ? PINNED_CONFIG : argument)), "-nobasic",
+    "-nosound", "-turbo", "-no-video-accel", "-no-vsync"],
     guest_instrumentation_bytes: 0,
     cold_ram_range: "$8000-$9FFF",
     cold_ram_fills: [0x00, 0xa5, 0x5a, 0xff],
@@ -4442,7 +4469,8 @@ function main() {
         readOnly: session.media?.readOnly === true, reuse: session.media?.reuse === true,
       });
       run(emulatorPath, [
-        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
+        TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: false }), "-nobasic",
+        "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
         media,
       ], { env: environment });
     }
@@ -8331,9 +8359,15 @@ function main() {
       version: EXPECTED_ATARI800_VERSION,
       official_source_archive_sha256: OFFICIAL_SOURCE_ARCHIVE_SHA256,
       source_patch: "scripts/atari800-wall-trace.h plus one observer call before each emulated opcode",
+      // fix/hardware-boot: the replays measure gameplay, which the SIO mode
+      // does not reach (the game's reader is register-level either way); the
+      // patch is pinned on by -config rather than inherited from the host.
       model_arguments: [
-        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
+        TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: false })
+          .map((argument) => (path.isAbsolute(argument) ? PINNED_CONFIG : argument)), "-nobasic",
+        "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
       ],
+      sio_mode: SIO_MODE_PATCHED,
       audio_note: "-nosound disables host playback only; guest sound/music state and POKEY register writes remain active",
     },
     boot_smoke: bootSmoke,

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { TARGET_MACHINE } from "./atari800-machine.mjs";
+import { SIO_MODE_PATCHED, SIO_MODE_REAL, TARGET_MACHINE, atari800SioArguments } from "./atari800-machine.mjs";
 
 export const publicArtifactNames = Object.freeze({
   boot: "void-strike-65-boot.bin",
@@ -109,9 +109,14 @@ function cli() {
       fs.writeFileSync(stampPath, `${published}\n`);
     }
   }
-  const args = [TARGET_MACHINE, "-pal", "-nobasic", playCopy];
+  // fix/hardware-boot (owner answer Q2): the play copy loads like the
+  // hardware - real SIO, the OS disk routine at register level, ~27 s to the
+  // menu. --fast keeps Atari800's SIO patch (pinned, not inherited).
+  const realSio = !process.argv.includes("--fast");
+  const args = [TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio }), "-nobasic", playCopy];
   const record = {
     emulator,
+    sio_mode: realSio ? SIO_MODE_REAL : SIO_MODE_PATCHED,
     medium: launch.medium,
     mode: launch.mode,
     artifact: launch.artifact,

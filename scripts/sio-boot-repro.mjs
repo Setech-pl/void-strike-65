@@ -34,7 +34,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseViceLabels } from "./runtime-cycles.mjs";
-import { TARGET_MACHINE } from "./atari800-machine.mjs";
+import { TARGET_MACHINE, atari800SioArguments } from "./atari800-machine.mjs";
 
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const headerPath = path.join(rootDirectory, "scripts", "atari800-sio-diag.h");
@@ -252,8 +252,8 @@ export function runScenario({ emulator, atr, patch, basic, frames, labels, start
   };
   if (pc("start")) env.DFSIO_ARM_PC = pc("start");
   if (startGame && pc("enter_main_menu")) env.DFSIO_FIRE_PC = pc("enter_main_menu");
-  const args = [TARGET_MACHINE, "-pal", basic ? "-basic" : "-nobasic", "-nosound", "-turbo",
-    "-no-video-accel", "-no-vsync", ...(patch ? [] : ["-nopatch"]), media];
+  const args = [TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: !patch }),
+    basic ? "-basic" : "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync", media];
   const began = process.hrtime.bigint();
   run(emulator, args, { env });
   const seconds = Number(process.hrtime.bigint() - began) / 1e9;

@@ -310,7 +310,27 @@ if (laserFixtureSlug !== undefined && !["2", "4"].includes(laserFixtureSlug)) {
   throw new Error(`Unknown laser fixture ${laserFixtureSlug}; the tiers are 2 and 4`);
 }
 const laserFixtureTier = laserFixtureSlug === undefined ? null : Number(laserFixtureSlug);
+// S5-1 (plan docs/plans/s5-boss-regions.md §5): --boss-region=N (2-4) enters
+// region N's boss on level 1's route. Regions 2-4 have no level data yet, so
+// the debug route's level run becomes the region's first level (4 / 7 / 10)
+// with level 1's authored content: its id - which names the region, its
+// theme, the summary's region art, the hull style and the laser tier (1 / 2 /
+// 4) - is that level's throughout (the image header, the directory, the START
+// GAME request). Composes with --level=1:sector=M and --laser-fixture=T
+// (--laser-fixture=4 --boss-region=3 is region 3's level-9 case, tier 4).
+// Debug only: build/[laser-fixture-T-]boss-region-N-level-1-sM/, never dist/.
+const bossRegionArgument = process.argv.find((argument) => argument.startsWith("--boss-region="));
+const bossRegionSlug = bossRegionArgument?.slice("--boss-region=".length);
+if (bossRegionSlug !== undefined && !["2", "3", "4"].includes(bossRegionSlug)) {
+  throw new Error(`Unknown boss region ${bossRegionSlug}; the routes are 2, 3 and 4`);
+}
+const bossRegionValue = bossRegionSlug === undefined ? null : Number(bossRegionSlug);
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
+if (bossRegionValue !== null && levelDebugId !== 1) {
+  throw new Error("--boss-region=N rides level 1's debug route: pass --level=1:sector=M with it");
+}
+// The level run's id: the debug level's, or the boss region's first level.
+const levelRunId = bossRegionValue !== null ? 1 + 3 * (bossRegionValue - 1) : levelDebugId;
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
 // 16 is LEVEL_MAX_ID, declared below with the rest of the layout; this check
@@ -335,7 +355,8 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 // order. The variant's directory is now the build directory itself, so nothing
 // it produces can be read by anything that did not ask for the variant.
 const levelDebugSuffix = levelDebugId === null
-  ? "" : `-level-${levelDebugId}-s${levelDebugSector}`;
+  ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
+    `-level-${levelDebugId}-s${levelDebugSector}`;
 const variantDirectoryName = laserFixtureTier !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : playerColourValue !== null
@@ -357,7 +378,7 @@ const variantDirectoryName = laserFixtureTier !== null
             : bomberHullValue !== null
               ? `bomber-hull-${bomberHullSlug.toLowerCase()}`
               : levelDebugId !== null
-                ? `level-${levelDebugId}-s${levelDebugSector}`
+                ? levelDebugSuffix.slice(1)
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null;
@@ -2276,8 +2297,10 @@ async function build() {
   // would go - the ATR's first level run - so START GAME loads it. The
   // default build is unchanged.
   const levelRuns = [
-    { id: levelDebugId ?? 1, startSector: levelBaseSector, sectors: levelOneSectors },
+    { id: levelRunId ?? 1, startSector: levelBaseSector, sectors: levelOneSectors },
   ];
+  // S5-1: a boss-region route compiles level 1's source under its run's id.
+  const levelSourceIdForRun = (id) => (bossRegionValue !== null ? 1 : id);
   // Decision 1: the region owns the style. --hull-style=Rn forces one region
   // onto every level so the owner can smoke a quarter of the campaign before
   // the campaign exists (§7); the default build reads the level's own region.
@@ -2291,11 +2314,11 @@ async function build() {
   // asks for something the runtime cannot honour fails the build, not the
   // owner's smoke (plan §5).
   const compiledLevels = new Map(levelRuns.map((run) =>
-    [run.id, compileLevelFile(levelSourcePath(run.id), { hullAsset: capitalHullsAsset })]));
+    [run.id, compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
   if (levelDebugId !== null) {
-    const compiled = compiledLevels.get(levelDebugId);
+    const compiled = compiledLevels.get(levelRunId);
     if (levelDebugSector >= compiled.sectors.length) {
       throw new Error(`--level=${levelDebugId}:sector=${levelDebugSector} is outside the ` +
         `level's ${compiled.sectors.length} sectors`);
@@ -2529,7 +2552,7 @@ async function build() {
     stem: "sector-reader",
     // Debug route (plan §7): the only difference the reader sees is WHICH
     // level id START GAME asks for.
-    defines: levelDebugId === null ? [] : [`LEVEL_DEBUG_ID=${levelDebugId}`],
+    defines: levelDebugId === null ? [] : [`LEVEL_DEBUG_ID=${levelRunId}`],
     extraInputs: {
       "/project/build/level-directory.inc": Buffer.from(levelDirectoryInclude),
       "/project/build/main-abi.inc": Buffer.from(sectorReaderMainAbiInclude),
@@ -3934,7 +3957,7 @@ async function build() {
           : bomberHullValue !== null
             ? `bomber-hull-${bomberHullSlug.toLowerCase()}`
           : levelDebugId !== null
-            ? `level-${levelDebugId}-s${levelDebugSector}`
+            ? levelDebugSuffix.slice(1)
           : candidateBuild
             ? "candidate"
             : "release",
@@ -5364,6 +5387,7 @@ async function build() {
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (levelDebugId !== null) {
       console.log(`  variant : debug route - level ${levelDebugId}` +
+        `${bossRegionValue === null ? "" : ` as level ${levelRunId} (boss region ${bossRegionValue})`}` +
         `, entered at sector ${levelDebugSector + 1}`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (hullStyleValue !== null) {

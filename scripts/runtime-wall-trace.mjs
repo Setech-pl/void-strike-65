@@ -763,6 +763,35 @@ const engineRestartSessions = ["ATR"].map((medium) => ({
   engineScreenshotGeneration: 2,
 }));
 
+/* S5-1 (plan docs/plans/s5-boss-regions.md §5): the boss-region routes'
+ * sessions - build/boss-region-N-level-1-s6 (--level=1:sector=6
+ * --boss-region=N), the game entered at region N's boss. The sweep bot firing,
+ * lives held, at each difficulty; and the laser-dodge bot on HARD. Clauses:
+ * the session's one boss entry under 250 host frames, and on MEDIUM the fight
+ * reaching the chain (boss_state >= 3). Debug route only: a default run skips
+ * them, so the default evidence is unchanged. */
+const regionRouteSessions = [2, 3, 4].flatMap((region) => [
+  ...[0, 1, 2].map((difficulty) => ({
+    id: `region-${region}-diag-${difficulty}`,
+    difficulty,
+    policy: "sweep",
+    fireDelay: 2,
+    frames: 5_000,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    bossRegion: region,
+  })), {
+    id: `region-${region}-dodge-2`,
+    difficulty: 2,
+    policy: "laser-dodge",
+    fireDelay: 0,
+    frames: 3_000,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    bossRegion: region,
+  },
+]);
+
 /* M5b-S4b (owner decision Q10): the laser fixture's worst case on the
  * emulator - four beams firing together over a live player that keeps firing
  * (policy laser-dodge). Debug route only (--artifacts=build/laser-fixture-4-
@@ -1957,6 +1986,90 @@ function measuredFrames(sessions) {
     (session.resetTransition === undefined ? 0 : 1), 0);
 }
 
+// S5-1: a PC's routine - the nearest global label at or below it in the
+// first link (in order) that has one within 1 KB; the OS ROM above $C000.
+function labelResolver(links) {
+  const sorted = links.map(([link, map]) => [link, [...map].filter(([name]) => !name.startsWith("__") &&
+    !name.startsWith("@")).sort((a, b) => a[1] - b[1])]);
+  return (pc) => {
+    if (pc >= 0xc000 && !(pc >= 0xd000 && pc < 0xd800)) return "OS ROM";
+    for (const [link, list] of sorted) {
+      let best = null;
+      for (const [name, address] of list) if (address <= pc && pc - address < 0x400) best = [name, address];
+      if (best !== null) return `${link}:${best[0]}${pc === best[1] ? "" : `+${pc - best[1]}`}`;
+    }
+    return `$${pc.toString(16)}`;
+  };
+}
+
+// S5-1 (owner decision Q9): slot F's writers, per replay - see the clause.
+function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockBytes }) {
+  const copyStart = labels.get("copy_hud_charset");
+  const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
+  const violations = [];
+  const writers = new Map();
+  let subject = 0;
+  for (const watch of watches) {
+    const list = watch.slot_f?.writers ?? [];
+    const copy = list.filter(({ pc }) => pc >= copyStart && pc < copyEnd);
+    const startupEnd = copy.reduce((frame, writer) => Math.max(frame, writer.last_frame), -1);
+    if (copy.length === 0) violations.push({ session: watch.session, message: "copy_hud_charset never wrote slot F" });
+    let readerWrites = 0;
+    for (const writer of list) {
+      const reader = writer.pc >= readerAddress && writer.pc < readerEnd;
+      const kind = writer.pc >= copyStart && writer.pc < copyEnd ? "copy_hud_charset"
+        : writer.last_frame <= startupEnd ? "start-up" : reader && writer.first_frame > startupEnd ? "region block read" : null;
+      const key = `$${writer.pc.toString(16)}`;
+      const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
+      entry.sessions += 1;
+      entry.count += writer.count;
+      writers.set(key, entry);
+      if (kind === null) {
+        violations.push({ session: watch.session, message: `$${writer.pc.toString(16)} wrote slot F ` +
+          `${writer.count} times (frames ${writer.first_frame}-${writer.last_frame}, ` +
+          `$${writer.first_address.toString(16)}-$${writer.last_address.toString(16)}) after start-up` });
+      }
+      if (kind === "region block read") readerWrites += writer.count;
+    }
+    if (watch.bossEntry) {
+      if (readerWrites < blockBytes) {
+        violations.push({ session: watch.session, message: `the boss entry wrote ${readerWrites} B of the region ` +
+          `block into slot F (expected >= ${blockBytes})` });
+      }
+      subject += readerWrites > 0 ? 1 : 0;
+    }
+    if ((watch.slot_f?.overflow ?? 0) > 0) {
+      violations.push({ session: watch.session, message: `the watch overflowed (${watch.slot_f.overflow} writes untracked)` });
+    }
+  }
+  return {
+    clause: "slot F ($5200-$53FF) is written only at start-up (up to copy_hud_charset's last write) and by the " +
+      "sector reader's region block read at a boss entry, in every replay",
+    sessions: watches.length, subject, writers: [...writers.values()], violations,
+  };
+}
+
+// S5-1 (owner decision Q8): the HUD row's writers by routine, over the run.
+function hudRowWriterInventory(watches, nameOf) {
+  const writers = new Map();
+  for (const watch of watches) {
+    for (const writer of watch.hud_row?.writers ?? []) {
+      const name = nameOf(writer.pc);
+      const entry = writers.get(name) ?? { routine: name, pcs: new Set(), sessions: new Set(), count: 0 };
+      entry.pcs.add(`$${writer.pc.toString(16)}`);
+      entry.sessions.add(watch.session);
+      entry.count += writer.count;
+      writers.set(name, entry);
+    }
+  }
+  return {
+    note: "every writer of $4000-$4027 in every phase (frontend, summary and reader screens share the row's RAM)",
+    sessions: watches.length,
+    writers: [...writers.values()].map(({ routine, pcs, sessions, count }) =>
+      ({ routine, pcs: [...pcs], sessions: sessions.size, count })).sort((a, b) => b.count - a.count),
+  };
+}
+
 function parseCsv(csvText, sessionDefinition) {
   const lines = csvText.trim().split(/\r?\n/);
   invariant(sessionDefinition.activeFrames > 0
@@ -2002,6 +2115,10 @@ function parseCsv(csvText, sessionDefinition) {
       entity_active_mask: entry.entity_active_mask,
       entity_x: entry.entity_x,
       entity_y: entry.entity_y,
+      // S5-1 (owner decision Q8): the HUD row (40 bytes, hex) as the entry
+      // began and as the install first reached the main loop.
+      hud_before: entry.hud_entry_before ?? "",
+      hud_after: entry.hud_entry_after ?? "",
     };
   }
   // M5b-S4b.5 (slot E's ways out): the frame that spans a RESET's reboot -
@@ -2707,6 +2824,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
         ...addressEnvironment,
         DFBOOT_OUTPUT: outputPath,
+        // S5-1 (owner decision Q9): slot F's writers through boot, menu,
+        // START GAME, gameplay and (the reset session) RESET's reboot.
+        DFWATCH_OUTPUT: path.join(outputDirectory, `${definition.id}-watch.json`),
         DFBOOT_ARTIFACT: definition.id,
         DFBOOT_RAM_FILL: String(definition.fill),
         DFBOOT_SCREENSHOT_PREFIX: screenshotPrefix,
@@ -2718,6 +2838,15 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
     invariant(result.artifact === definition.id && result.cold_ram_fill === definition.fill,
       `${definition.id} boot-smoke identity differs from its invocation`);
+    const watchPath = path.join(outputDirectory, `${definition.id}-watch.json`);
+    invariant(fs.existsSync(watchPath), `${definition.id} wrote no slot F watch`);
+    const slotFWatch = slotFWriteClause([{ session: definition.id, bossEntry: false,
+      ...JSON.parse(fs.readFileSync(watchPath, "utf8")) }], {
+      labels, readerAddress: manifest.sectorReader.address,
+      readerEnd: manifest.sectorReader.address + manifest.sectorReader.bytes, blockBytes: 0,
+    });
+    invariant(slotFWatch.violations.length === 0,
+      `${definition.id}: slot F written after start-up: ${slotFWatch.violations.map(({ message }) => message).join("; ")}`);
     const milestones = result.milestones;
     invariant(Number.isInteger(milestones.loader) && milestones.loader !== 0xffffffff,
       `${definition.id} never reached the loader entry point`);
@@ -3049,6 +3178,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
       screenshots,
       reset: definition.reset === true,
       force_restore: definition.forceRestore === true,
+      slot_f_writers: slotFWatch.writers,
       machine: definition.compatibility ? COMPATIBILITY_MACHINE_NAME : TARGET_MACHINE_NAME,
       compatibility: definition.compatibility === true,
       reset_frame: result.reset_frame,
@@ -3866,6 +3996,8 @@ function main() {
       addressEnvironment.DFTRACE_BOSS_PHASE = hex(bossLabels, "_boss_phase");
       addressEnvironment.DFTRACE_PC_BOSS_DLI = hex(bossLabels, "boss_dli");
       addressEnvironment.DFTRACE_PC_BOSS_ENTER = hex(directorLabels, "_asm_boss_enter");
+      // S5-1: the install's arrival in the main loop (the HUD row's second look).
+      addressEnvironment.DFTRACE_PC_MAIN_LOOP = hex(labels, "main_loop");
       addressEnvironment.DFSUMMARY_SCORE_BOSS = hex(bossLabels, "boss_module_scored");
       // M5b-S4b: the lasers' states and shown HPOS, and the laser's damage call.
       addressEnvironment.DFTRACE_LASER_STATE = hex(bossLabels, "boss_laser_state");
@@ -3935,6 +4067,7 @@ function main() {
   }
   const allRows = [];
   const summaries = [];
+  const sessionWatches = [];
   // Behavioural-clause failures accumulated across the session loop instead of
   // aborting the run at the first one (owner decision 2026-09-19, stage 1).
   // This list is ANDed into report.gate.passed and published in the report:
@@ -4028,7 +4161,9 @@ function main() {
       ...memoryIntegritySessions, ...lowerPlayfieldSessions, ...slotEPathSessions]
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
-        layout.variant !== null ? laserFixtureSessions : [])
+        layout.variant !== null ? laserFixtureSessions : [],
+        layout.variant !== null ? regionRouteSessions.filter(({ bossRegion }) =>
+          layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
       id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
   if (onlySession?.startsWith("pmg-lab-"))
@@ -4124,8 +4259,12 @@ function main() {
     // play a level to its end stop at that level's summary (class (a): they
     // used to keep flying in the terminal COMPLETE until the frame budget).
     const summaryOutput = path.join(buildDirectory, `${session.id}-summary.jsonl`);
+    // S5-1: the writers of slot F and the HUD row over the whole replay.
+    const watchOutput = path.join(buildDirectory, `${session.id}-watch.json`);
+    if (!reuseExistingTraces) fs.rmSync(watchOutput, { force: true });
     const environment = {
       ...process.env,
+      DFWATCH_OUTPUT: watchOutput,
       SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
       ...addressEnvironment,
       ...summaryEnvironment,
@@ -4266,6 +4405,10 @@ function main() {
       ], { env: environment });
     }
     const summaryRecords = readSummaryRecords(summaryOutput);
+    if (fs.existsSync(watchOutput)) {
+      sessionWatches.push({ session: session.id, bossEntry: session.bossEntry !== undefined,
+        ...JSON.parse(fs.readFileSync(watchOutput, "utf8")) });
+    }
     const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
     // Stage 1 of the session-failure accumulation (owner decision 2026-09-19).
     // A failing behavioural clause records {session, message} and the loop
@@ -4291,6 +4434,21 @@ function main() {
       `${session.id} read the hull maps ${dirtyHullReads} times between a boss entry and the next rebuild ` +
       "(slot E's contract, owner decision 4)");
     if (session.bossPath !== undefined) slotEPathClauses(session, rows);
+    // S5-1 (plan s5-boss-regions §5): a region route enters its boss once,
+    // under 250 host frames; on MEDIUM the fight reaches the chain.
+    if (session.bossRegion !== undefined) {
+      invariant(session.bossEntry !== undefined, `${session.id} never entered the boss (subject empty)`);
+      invariant(session.bossEntry.host_frames < 250,
+        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound < 250)`);
+      const chain = rows.find((row) => row.boss_state >= 3);
+      session.regionRoute = { region: session.bossRegion, entry_host_frames: session.bossEntry.host_frames,
+        entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };
+      console.log(`${session.id}: region ${session.bossRegion} entered in ${session.bossEntry.host_frames} ` +
+        `host frames at frame ${session.bossEntry.frame}; chain ${chain === undefined ? "not reached" : `at frame ${chain.frame}`}`);
+      if (session.difficulty === 1) {
+        invariant(chain !== undefined, `${session.id}: the fight never reached the chain in ${session.frames} frames`);
+      }
+    }
     const staleHullDraws = rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0);
     invariant(staleHullDraws === 0,
       `${session.id} drew ${staleHullDraws} capital hull rows from maps changed since the last rebuild ` +
@@ -5139,6 +5297,69 @@ function main() {
       !sessionsToRun.some((session) => session.kind === "director-level-complete"));
   console.log(`Boss-entry debris clause: subject ${bossEntryDebris.subject} boss entries, ` +
     `${bossEntryDebris.violations.length} with debris live`);
+  // S5-1 (owner decision Q8, plan s5-boss-regions §4.1, §6): every HUD cell
+  // after the boss entry as it was before it - the booster's ten cells
+  // included (the owner's smoke finding). Subject: every boss entry of the run.
+  const bossEntryHud = {
+    clause: "the HUD row (40 cells) when the install first reaches the main loop equals the row as the " +
+      "boss entry began, over every boss entry of the run",
+    subject: bossEntrySessions.length,
+    sessions: bossEntrySessions.map((session) => session.id),
+    violations: bossEntrySessions.flatMap((session) => {
+      const { hud_before: before, hud_after: after } = session.bossEntry;
+      if (before.length !== 80 || after.length !== 80) {
+        return [{ session: session.id, frame: session.bossEntry.frame, cells: "no HUD snapshot" }];
+      }
+      const cells = [...Array(40).keys()].filter((cell) => before.slice(cell * 2, cell * 2 + 2) !==
+        after.slice(cell * 2, cell * 2 + 2));
+      return cells.length === 0 ? [] : [{ session: session.id, frame: session.bossEntry.frame, cells,
+        before, after }];
+    }),
+  };
+  for (const violation of bossEntryHud.violations) {
+    recordClauseFailure(violation.session, false,
+      `${violation.session}'s HUD changed across the boss entry at frame ${violation.frame}: ` +
+      `cells ${Array.isArray(violation.cells) ? violation.cells.join(",") : violation.cells}`);
+  }
+  if (sessionsToRun.some((session) => session.kind === "director-level-complete")) {
+    recordClauseFailure("boss-entry-hud", bossEntryHud.subject > 0,
+      "no replay entered the boss: the boss-entry HUD clause has no subject");
+  }
+  bossEntryHud.held = bossEntryHud.violations.length === 0 &&
+    (bossEntryHud.subject > 0 || !sessionsToRun.some((session) => session.kind === "director-level-complete"));
+  console.log(`Boss-entry HUD clause: subject ${bossEntryHud.subject} boss entries, ` +
+    `${bossEntryHud.violations.length} with a HUD cell changed`);
+  // S5-1 (owner decision Q9, plan s5-boss-regions §2.7): slot F's writers in
+  // every replay, every phase. Allowed: the start-up writers that finished by
+  // copy_hud_charset's last write (the boot loader's staging, the charset
+  // copy), and after it only the sector reader - the region block's read at a
+  // boss entry. Subject: the reader's slot F writes in the boss-entry replays.
+  const slotFWrites = slotFWriteClause(sessionWatches, {
+    labels, readerAddress: manifest.sectorReader.address,
+    readerEnd: manifest.sectorReader.address + manifest.sectorReader.bytes,
+    blockBytes: (manifest.boss?.slotF?.blocks?.[0]?.sectors ?? 0) * 128,
+  });
+  for (const violation of slotFWrites.violations) {
+    recordClauseFailure(violation.session, false, `${violation.session}: ${violation.message}`);
+  }
+  if (sessionsToRun.some((session) => session.kind === "director-level-complete")) {
+    recordClauseFailure("slot-f-writes", slotFWrites.subject > 0,
+      "no replay read a region block into slot F: the slot F write clause has no subject");
+  }
+  slotFWrites.held = slotFWrites.violations.length === 0 &&
+    (slotFWrites.subject > 0 || !sessionsToRun.some((session) => session.kind === "director-level-complete"));
+  console.log(`Slot F write clause: ${slotFWrites.sessions} replays watched, subject ${slotFWrites.subject} ` +
+    `block reads, ${slotFWrites.violations.length} foreign writers`);
+  // The HUD row's writers, by routine, over the whole run (the HUD audit's
+  // inventory; informational - the fields' tests are tests/hud-audit.test.mjs).
+  const linkLabels = (file) => {
+    const where = path.join(layout.inputDirectory, file);
+    return fs.existsSync(where) ? parseViceLabels(fs.readFileSync(where, "utf8")) : new Map();
+  };
+  const hudRowWriters = hudRowWriterInventory(sessionWatches, labelResolver([
+    ["reader", linkLabels("sector-reader.lbl")], ["summary", linkLabels("level-summary.lbl")],
+    ["kernel", kernelLabels], ["director", directorLabels], ["main", labels], ["boss", linkLabels("boss.lbl")],
+  ]));
   if (sessionFailures.length === 0) {
     console.log(`Behavioural clauses: ${sessionsToRun.length} session(s) ran to completion`);
   } else {
@@ -8419,6 +8640,9 @@ function main() {
         global_heaviest_has_director_event: (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0,
       },
       boss_entry_debris: bossEntryDebris,
+      boss_entry_hud: bossEntryHud,
+      slot_f_writes: slotFWrites,
+      hud_row_writers: hudRowWriters,
       light_archetypes: {
         clause: "L1 a live Interceptor Light; L2 two or more Lights live at once; L3 no Heavy live in a " +
           "swarm sector; L4 at most one live Light in an elite sector; L5 a variant (a) formation flies " +

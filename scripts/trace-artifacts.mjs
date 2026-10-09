@@ -10,7 +10,8 @@
 import path from "node:path";
 
 // M5b-S4b (owner decision Q10): the laser fixture's debug-route builds too.
-const DEBUG_ROUTE_VARIANT = /^(?:laser-fixture-[24]-)?level-\d+-s\d+$/;
+// S5-1 (plan s5-boss-regions §5): and the boss-region routes.
+const DEBUG_ROUTE_VARIANT = /^(?:laser-fixture-[24]-)?(?:boss-region-[2-4]-)?level-\d+-s\d+$/;
 // The flags a diagnostic run may carry. Every other mode either writes docs/
 // (boot smoke, menu raster, capital/player collision, the full run) or reuses
 // a default-build trace.

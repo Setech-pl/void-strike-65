@@ -4818,6 +4818,98 @@ static int dftrace_first_writer_effective_address(unsigned pc,
 	}
 }
 
+/* S5-1 (plan s5-boss-regions §2.7, §4.7): the writer inventory of two ranges
+ * over a whole session, in every phase - slot F ($5200-$53FF, the HUD
+ * charset's unused upper half the boss's region block is read into) and the
+ * HUD row ($4000-$4027): each distinct writer PC, its count, its first and
+ * last host frame and address. Decoded from the completed store's effective
+ * address (the hook runs before the next opcode), as the first-writer journal
+ * above; zero-page stores cannot reach either range. Written at exit to
+ * DFWATCH_OUTPUT (JSON); off when it is unset. Observes, never writes. */
+#define DFWATCH_RANGES 2u
+#define DFWATCH_WRITERS 128u
+typedef struct {
+	unsigned pc, count, first_frame, last_frame, first_address, last_address;
+} DFWatchWriter;
+static const unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u };
+static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u };
+static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row" };
+static DFWatchWriter dfwatch_writers[DFWATCH_RANGES][DFWATCH_WRITERS];
+static unsigned dfwatch_counts[DFWATCH_RANGES];
+static unsigned dfwatch_overflow[DFWATCH_RANGES];
+static int dfwatch_state = -1;
+static const char *dfwatch_path;
+static unsigned dfwatch_previous_pc;
+
+static void dfwatch_write(void)
+{
+	FILE *file = fopen(dfwatch_path, "w");
+	unsigned range, index;
+	if (file == NULL)
+		return;
+	fputs("{", file);
+	for (range = 0u; range < DFWATCH_RANGES; ++range) {
+		fprintf(file, "%s\"%s\":{\"start\":%u,\"end\":%u,\"overflow\":%u,\"writers\":[",
+			range == 0u ? "" : ",", dfwatch_name[range], dfwatch_start[range],
+			dfwatch_end[range], dfwatch_overflow[range]);
+		for (index = 0u; index < dfwatch_counts[range]; ++index) {
+			const DFWatchWriter *writer = &dfwatch_writers[range][index];
+			fprintf(file, "%s{\"pc\":%u,\"count\":%u,\"first_frame\":%u,\"last_frame\":%u,"
+				"\"first_address\":%u,\"last_address\":%u}", index == 0u ? "" : ",",
+				writer->pc, writer->count, writer->first_frame, writer->last_frame,
+				writer->first_address, writer->last_address);
+		}
+		fputs("]}", file);
+	}
+	fputs("}\n", file);
+	fclose(file);
+}
+
+static void dfwatch_track(unsigned pc, unsigned x_register, unsigned y_register)
+{
+	unsigned previous = dfwatch_previous_pc, address, range, index;
+	dfwatch_previous_pc = pc;
+	if (dfwatch_state < 0) {
+		dfwatch_path = getenv("DFWATCH_OUTPUT");
+		dfwatch_state = dfwatch_path != NULL && *dfwatch_path != '\0';
+		if (dfwatch_state)
+			atexit(dfwatch_write);
+	}
+	if (!dfwatch_state || previous == 0u ||
+		!dftrace_first_writer_effective_address(previous, x_register, y_register, &address))
+		return;
+	for (range = 0u; range < DFWATCH_RANGES; ++range) {
+		DFWatchWriter *writer;
+		if (address < dfwatch_start[range] || address >= dfwatch_end[range])
+			continue;
+		for (index = 0u; index < dfwatch_counts[range]; ++index)
+			if (dfwatch_writers[range][index].pc == previous)
+				break;
+		if (index == dfwatch_counts[range]) {
+			if (index == DFWATCH_WRITERS) {
+				++dfwatch_overflow[range];
+				return;
+			}
+			writer = &dfwatch_writers[range][dfwatch_counts[range]++];
+			writer->pc = previous;
+			writer->count = 0u;
+			writer->first_frame = (unsigned) Atari800_nframes;
+			writer->first_address = address;
+		}
+		writer = &dfwatch_writers[range][index];
+		++writer->count;
+		writer->last_frame = (unsigned) Atari800_nframes;
+		writer->last_address = address;
+	}
+}
+
+/* S5-1 (owner decision Q8): the HUD row as the boss entry began
+ * (_asm_boss_enter) and as the install first reaches the main loop; printed
+ * on the entry row as hex (coverage.boss_entry_hud). */
+static UBYTE dfhud_entry_before[40], dfhud_entry_after[40];
+static int dfhud_entry_state;              /* 0 none, 1 before taken, 2 both */
+static unsigned dftrace_pc_main_loop;
+
 /* Diagnostic-only Player PairShot lifecycle/publication journal. It observes
  * completed production stores and never writes guest state. */
 static void dftrace_player_pairshot_frame_begin(void)
@@ -5828,7 +5920,8 @@ static void dftrace_write(void)
 		",laser_damage_calls,audf3,audc3,boss_shown_pos,director_sector,sector_row"
 		",hull_map_draws,hull_map_stale_draws,hull_map_dirty_reads,hull_map_rebuilds_after_boss,boss_path_stage"
 		",light_state0,light_state1,light_state2,light_state3"
-		",light_archetype0,light_archetype1,light_archetype2,light_archetype3\n");
+		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
+		",hud_entry_before,hud_entry_after\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6103,6 +6196,15 @@ static void dftrace_write(void)
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->light_state[0], frame->light_state[1],
 			frame->light_state[2], frame->light_state[3], frame->light_archetype[0],
 			frame->light_archetype[1], frame->light_archetype[2], frame->light_archetype[3]);
+		/* S5-1: the HUD row across the boss entry, on the entry row only. */
+		fputc(',', file);
+		if (frame->boss_entry && dfhud_entry_state >= 1)
+			for (unsigned cell = 0u; cell < 40u; ++cell)
+				fprintf(file, "%02x", dfhud_entry_before[cell]);
+		fputc(',', file);
+		if (frame->boss_entry && dfhud_entry_state == 2)
+			for (unsigned cell = 0u; cell < 40u; ++cell)
+				fprintf(file, "%02x", dfhud_entry_after[cell]);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6871,6 +6973,7 @@ static void dftrace_init(void)
 	dftrace_boss_phase = dftrace_env_optional("DFTRACE_BOSS_PHASE");
 	dftrace_pc_boss_dli = dftrace_env_optional("DFTRACE_PC_BOSS_DLI");
 	dftrace_pc_boss_enter = dftrace_env_optional("DFTRACE_PC_BOSS_ENTER");
+	dftrace_pc_main_loop = dftrace_env_optional("DFTRACE_PC_MAIN_LOOP");
 	dftrace_laser_state = dftrace_env_optional("DFTRACE_LASER_STATE");
 	dftrace_laser_hpos = dftrace_env_optional("DFTRACE_LASER_HPOS");
 	dftrace_pc_laser_damage = dftrace_env_optional("DFTRACE_PC_LASER_DAMAGE");
@@ -7298,6 +7401,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_enemy_pmg_last_writer[page - 0x3du][y_register & 0xffu] =
 				dftrace_previous_pc;
 	}
+	dfwatch_track(pc, x_register, y_register);
 	if (getenv("DFMENU_OUTPUT") != NULL) {
 		dfmenu_observe(pc);
 		/* M5a-S2: START GAME waits on the summary's FIRE. */
@@ -7364,6 +7468,12 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		 * count is the transition's, not a sequence error. */
 		dftrace_current.boss_entry = 1u;
 		dftrace_dli_integrity_complete_frame_seen = 0;
+		memcpy(dfhud_entry_before, &MEMORY_mem[0x4000], sizeof(dfhud_entry_before));
+		dfhud_entry_state = 1;
+	}
+	if (dfhud_entry_state == 1 && dftrace_pc_main_loop != 0u && pc == dftrace_pc_main_loop) {
+		memcpy(dfhud_entry_after, &MEMORY_mem[0x4000], sizeof(dfhud_entry_after));
+		dfhud_entry_state = 2;
 	}
 	if (dftrace_dli_integrity_enabled && (pc == dftrace_pc_dli ||
 		(dftrace_pc_boss_dli != 0u && pc == dftrace_pc_boss_dli && dftrace_boss_active()))) {

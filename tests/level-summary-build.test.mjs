@@ -372,9 +372,8 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // disk guard and the capital vector image behind the kernel.
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted): 1,185 -> 1,022,
   // the Director's sector-flow verdicts in the C half.
-  // RE-PINNED S5-1 (owner decision Q8, plan s5-boss-regions §4.1): 1,022 ->
-  // 1,008, the boss entry's HUD booster backup (14 B, the window's last segment).
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1008, "the window moved");
+  // (S5-1's HUD booster backup is the arena's, not the window's: still 1,022.)
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1022, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618, "the initial block moved");
 });

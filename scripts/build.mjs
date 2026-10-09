@@ -1377,23 +1377,23 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const arenaAsmBytes = parsedLabels.get("__HYBRID_ASM_ARENA_SIZE__");
   const arenaCodeBytes = parsedLabels.get("__HYBRID_C_ARENA_SIZE__");
   const arenaRodataBytes = parsedLabels.get("__HYBRID_C_ARENA_RODATA_SIZE__");
+  // S5-1: the boss entry's HUD booster backup, the arena's last segment.
+  const arenaTailBytes = parsedLabels.get("__HYBRID_ASM_ARENA_TAIL_SIZE__") ?? 0;
   const windowAsmBytes = parsedLabels.get("__HYBRID_ASM_WINDOW_SIZE__");
   const windowCodeBytes = parsedLabels.get("__HYBRID_C_WINDOW_SIZE__");
   const windowRodataBytes = parsedLabels.get("__HYBRID_C_WINDOW_RODATA_SIZE__");
   // feat/sector-flow: the Director's sector-flow verdicts, placed last.
   const windowFlowBytes = parsedLabels.get("__HYBRID_C_WINDOW_FLOW_SIZE__");
-  // S5-1: the boss entry's HUD booster backup, the window's last segment.
-  const windowTailBytes = parsedLabels.get("__HYBRID_ASM_WINDOW_TAIL_SIZE__");
-  const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes, windowTailBytes]
+  const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes]
     .every(Number.isInteger)
-    ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes + windowTailBytes : undefined;
+    ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes : undefined;
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
     cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
     arenaCodeBytes, arenaRodataBytes, basicWindowBytes].every(Number.isInteger)) {
     throw new Error("Hybrid Director link is missing segment size labels");
   }
   const highBytes = rodataBytes + cCodeBytes;
-  const arenaBytes = arenaAsmBytes + arenaCodeBytes + arenaRodataBytes;
+  const arenaBytes = arenaAsmBytes + arenaCodeBytes + arenaRodataBytes + arenaTailBytes;
   if (combinedRaw.length !==
     abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes +
       arenaBytes + basicWindowBytes) {
@@ -1480,7 +1480,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const arenaSegment = {
     ...makeSegment("arena", hybridArenaAddress, arenaBytes),
     arena: { capacityBytes: hybridArenaCapacityBytes, asmBytes: arenaAsmBytes,
-      codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes },
+      codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes, tailBytes: arenaTailBytes },
   };
   codeSegments.push(arenaSegment);
   // Owner decision B (2026-09-20), placed by owner decision X (2026-09-21):
@@ -4423,7 +4423,7 @@ async function build() {
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
           "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_ASM_WINDOW_TAIL",
+          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,

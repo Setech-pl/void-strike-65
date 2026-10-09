@@ -147,7 +147,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
 | `$7C72-$7EC5` | 596 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
 | `$7EC6-$7EEC` | 39 B | segment | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data | `resident` | build/encounter-director.map |
-| `$7EED-$7F0F` | 35 B | reserved | free tail of `HYBRID_C_ARENA_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$7EED-$7EFA` | 14 B | segment | `HYBRID_ASM_ARENA_TAIL` — the boss entry's HUD booster backup (S5-1), in the arena's free tail | `resident` | build/encounter-director.map |
+| `$7EFB-$7F0F` | 21 B | reserved | free tail of `HYBRID_C_ARENA_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$7F10-$7F69` | 90 B | state | gameplay display list A | `resident` | src/main.s `PLAYFIELD_DLIST_A` |
 | `$7F2B-$8017` | 237 B | transient | A2 kernel staging (`BOOT_A2_STAGING`) | `boot` | manifest `a2Kernel` |
 | `$7F6A-$7FC3` | 90 B | state | gameplay display list B | `resident` | src/main.s `PLAYFIELD_DLIST_B` |
@@ -219,12 +220,11 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AE00-$B36B` | 1,388 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
 | `$B36C-$B3D8` | 109 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
 | `$B3D9-$B47B` | 163 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
-| `$B47C-$B489` | 14 B | segment | `HYBRID_ASM_WINDOW_TAIL` — the boss entry's HUD booster backup (S5-1), the window's last segment | `resident` | build/encounter-director.map |
-| `$B48A-$B78C` | 771 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
-| `$B499-$B4BC` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
-| `$B78D-$B7EB` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
-| `$B7EC-$B80F` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
-| `$B810-$BBFF` | 1,008 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$B47C-$B77E` | 771 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
+| `$B48B-$B4AE` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
+| `$B77F-$B7DD` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
+| `$B7DE-$B801` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
+| `$B802-$BBFF` | 1,022 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -271,7 +271,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$549E-$54E3` | 70 B | `PROJECTILE_RAM` (atari-boot.cfg) | `PROJECTILES` |
 | `$5CDB-$5E05` | 299 B | `STARFIELD_RAM` (atari-boot.cfg) | `STARFIELD` |
 | `$780D-$780F` | 3 B | `BROADSIDE_RAM` (atari-boot.cfg) | `BROADSIDE` |
-| `$7EED-$7F0F` | 35 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA` |
+| `$7EFB-$7F0F` | 21 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA`, `HYBRID_ASM_ARENA_TAIL` |
 | `$7FFF` | 1 B | `HYBRID_LIGHT_SLOTS_RAM` (encounter-director.cfg) | `HYBRID_LIGHT_SLOTS` |
 | `$86F3-$86F9` | 7 B | `HYBRID_C_SECTOR_RAM` (encounter-director.cfg) | `HYBRID_C_SECTOR` |
 | `$876B-$8775` | 11 B | `DIRECTOR_ABI_RAM` (encounter-director.cfg) | `DIRECTOR_ABI` |
@@ -284,7 +284,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$9FDA-$9FF9` | 32 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5DA-$A5FF` | 38 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
-| `$B810-$BBFF` | 1,008 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_ASM_WINDOW_TAIL`, `LIGHT_KERNEL`, `DISK_GUARD`, `CAPITAL_VECTOR_IMAGE` |
+| `$B802-$BBFF` | 1,022 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `LIGHT_KERNEL`, `DISK_GUARD`, `CAPITAL_VECTOR_IMAGE` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
 
 ### Overlapping cfg areas
@@ -407,7 +407,8 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
 | `$7C72-$7EC5` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
 | `$7EC6-$7EEC` | `resident` | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data |
-| `$7EED-$7F0F` | `resident` | free tail of `HYBRID_C_ARENA_RAM` |
+| `$7EED-$7EFA` | `resident` | `HYBRID_ASM_ARENA_TAIL` — the boss entry's HUD booster backup (S5-1), in the arena's free tail |
+| `$7EFB-$7F0F` | `resident` | free tail of `HYBRID_C_ARENA_RAM` |
 | `$7F10-$7F69` | `resident` | gameplay display list A |
 | `$7F2B-$8017` | `boot` | A2 kernel staging (`BOOT_A2_STAGING`) |
 | `$7F6A-$7FC3` | `resident` | gameplay display list B |
@@ -667,19 +668,19 @@ By topic: Light enemies 63%, Director, sectors and waves 26%, Heavy, Raider and 
 
 By topic: level summary 97%, unclassified 3%.
 
-#### `LIGHT_KERNEL` `$B48A-$B78C`, 771 B (build/light-kernel.map)
+#### `LIGHT_KERNEL` `$B47C-$B77E`, 771 B (build/light-kernel.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `light_update` | `$B5A7` | 261 B | 33.9% | Light enemies |
-| `light_publish` | `$B4BD` | 224 B | 29.1% | Light enemies |
-| `light_shot` | `$B6AC` | 100 B | 13.0% | Light enemies |
-| `light_cell_resolve` | `$B744` | 73 B | 9.5% | Light enemies |
-| `capital_vector_table` | `$B499` | 36 B | 4.7% | capital ship |
-| `light_destroyed` | `$B710` | 23 B | 3.0% | Light enemies |
-| `light_spawn_breakup` | `$B727` | 16 B | 2.1% | Light enemies |
-| `light_kernel_vectors` | `$B48A` | 15 B | 1.9% | Light enemies |
-| `light_top` | `$B59D` | 10 B | 1.3% | Light enemies |
+| `light_update` | `$B599` | 261 B | 33.9% | Light enemies |
+| `light_publish` | `$B4AF` | 224 B | 29.1% | Light enemies |
+| `light_shot` | `$B69E` | 100 B | 13.0% | Light enemies |
+| `light_cell_resolve` | `$B736` | 73 B | 9.5% | Light enemies |
+| `capital_vector_table` | `$B48B` | 36 B | 4.7% | capital ship |
+| `light_destroyed` | `$B702` | 23 B | 3.0% | Light enemies |
+| `light_spawn_breakup` | `$B719` | 16 B | 2.1% | Light enemies |
+| `light_kernel_vectors` | `$B47C` | 15 B | 1.9% | Light enemies |
+| `light_top` | `$B58F` | 10 B | 1.3% | Light enemies |
 | 2 smaller items | — | 13 B | 1.7% | — |
 
 By topic: Light enemies 95%, capital ship 5%.

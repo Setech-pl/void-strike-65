@@ -116,7 +116,7 @@ const SEGMENTS = {
   HYBRID_C_WINDOW: ["Director link's half of the BASIC window", "resident"],
   HYBRID_ASM_WINDOW: ["the boss entry's resident half (M5b-S3), last in the Director link's window half", "resident"],
   HYBRID_C_WINDOW_FLOW: ["the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses", "resident"],
-  HYBRID_ASM_WINDOW_TAIL: ["the boss entry's HUD booster backup (S5-1), the window's last segment", "resident"],
+  HYBRID_ASM_ARENA_TAIL: ["the boss entry's HUD booster backup (S5-1), in the arena's free tail", "resident"],
   LIGHT_KERNEL: ["Light ASM kernel; carries the capital vector table", "resident"],
   DISK_GUARD: ["the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record", "resident"],
   CAPITAL_VECTOR_IMAGE: ["the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening)", "resident"],

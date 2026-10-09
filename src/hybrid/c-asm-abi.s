@@ -676,9 +676,11 @@ boss_warning_records:
 ; cells into the boss scratch page's last ten bytes before anything clears the
 ; row; the install puts them back after its HUD rewrite, so an active booster's
 ; label and energy survive the entry exactly. Called in place of the entry's
-; first JSR, which it tail-calls: _asm_boss_enter keeps its size, and this
-; segment is the window's last, so no window byte above it moves.
-.segment "HYBRID_ASM_WINDOW_TAIL"
+; first JSR, which it tail-calls: _asm_boss_enter keeps its size. It lives in
+; the arena's free tail, not the window: the Light kernel starts where the
+; window's Director half ends, so 14 B there moved the kernel (and every
+; resident call into it) by 14 - MEASURED on this branch's first build.
+.segment "HYBRID_ASM_ARENA_TAIL"
 boss_enter_hud_backup:
     ldx #(BOSS_HUD_BOOSTER_CELLS - 1)
 @cell:

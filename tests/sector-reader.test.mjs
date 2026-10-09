@@ -381,6 +381,54 @@ test("wire: a framing error on a data byte retries, and the retry succeeds", () 
     "one retry on sector 0, then the remaining sectors");
 });
 
+// fix/hardware-boot R7 (docs/diagnostics/hardware-boot.md §3.2, owner answer
+// Q3): after a failed attempt the drive may still be sending the rest of its
+// data frame. A retry's command sent into that frame goes unheard, reads as
+// silence and spends one of the load's two device probes. The settle must
+// guarantee quiet for a whole data frame: 129 bytes x 10 bits at 19040 baud.
+test("wire: a failed attempt waits out a whole data frame before the retry's command (R7)", () => {
+  const image = levelImage({ id: 1 });
+  let edges = 0;
+  let badByteEdge = null;
+  const commandEdges = [];
+  class FrameClock extends PokeyStub {
+    read(address) {
+      const value = super.read(address);
+      if (address === reg.VCOUNT && value === 0) edges += 1;
+      return value;
+    }
+    write(address, value) {
+      if (address === reg.PBCTL && value === 0x34) commandEdges.push(edges);
+      return super.write(address, value);
+    }
+    advance() {
+      const before = this.latched & IRQ_SERIN;
+      super.advance();
+      if (!before && (this.latched & IRQ_SERIN) && this.skstat !== SKSTAT_CLEAN && badByteEdge === null) {
+        badByteEdge = edges;
+      }
+    }
+  }
+  let frames = 0;
+  const stub = new FrameClock({
+    respond: (frame) => {
+      frames += 1;
+      const response = sectorResponse(image, (frame[2] | (frame[3] << 8)) - 320);
+      if (frames === 1) response[2].skstat = SKSTAT_FRAMING_ERROR;   // the first data byte
+      return response;
+    },
+  });
+  const result = runLoad(stub);
+  assert.equal(result.status, status.OK);
+  assert.ok(badByteEdge !== null && commandEdges.length >= 2);
+  const quietFrames = commandEdges[1] - badByteEdge;
+  // A budget of N frame edges guarantees at least (N - 1) x 20 ms.
+  const dataFrameMs = (129 * 10 * 1000) / 19040;
+  assert.ok((quietFrames - 1) * 20 >= dataFrameMs,
+    `the retry went out ${quietFrames} frame edges after the failure: at least ${(quietFrames - 1) * 20} ms ` +
+    `guaranteed, against a ${dataFrameMs.toFixed(1)}-ms data frame`);
+});
+
 test("wire: a serial overrun on a data byte retries", () => {
   const image = levelImage({ id: 1 });
   let frames = 0;

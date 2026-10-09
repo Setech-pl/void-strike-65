@@ -12494,8 +12494,6 @@ stage2_load_chunk:
     sta DUNIT
     lda #$52
     sta DCOMND
-    lda #$40
-    sta DSTATS
     lda #$0F
     sta DTIMLO
     lda #$80
@@ -12516,6 +12514,15 @@ stage2_load_chunk:
     lda (frontend_data_ptr),y
     sta stage2_sector_remaining
 stage2_read_sector:
+    ; fix/hardware-boot (docs/diagnostics/hardware-boot.md): SIOV writes its
+    ; status into DSTATS, so the receive direction is armed before EVERY call.
+    ; Armed once per chunk, it was $01 from a chunk's second sector on: SIOV
+    ; sent the read, took ACK and COMPLETE and never read the data frame, the
+    ; chunk CRC failed and every real machine stopped on boot_stage2_error.
+    ; Atari800's SIO patch reads a sector whatever DSTATS says, which hid it.
+    ; The same five bytes moved here from stage2_load_chunk: BOOT_STAGE2 0 B.
+    lda #$40
+    sta DSTATS
     jsr SIOV
     tya
     STAGE2_FAIL_MI

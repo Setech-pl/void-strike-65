@@ -143,7 +143,12 @@ BUDGET_TX         = 2           ; each transmit step
 BUDGET_ACK        = 3           ; >= 40 ms against a 16 ms device deadline
 BUDGET_COMPLETE   = 200         ; 4.0 s: a 1050 retries internally for 2-3 s
 BUDGET_DATA       = 2           ; each received data byte
-BUDGET_SETTLE     = 2           ; after a failed attempt
+; fix/hardware-boot R7 (docs/diagnostics/hardware-boot.md §3.2): after a failed
+; attempt the drive may still be sending the rest of a data frame - 129 bytes,
+; 67.8 ms at 19040 baud. A retry's command sent into it goes unheard, reads as
+; silence and spends one of the load's two device probes. 5 frames guarantee
+; 80 ms of quiet (was 2: 20 ms).
+BUDGET_SETTLE     = 5           ; after a failed attempt
 
 SECTOR_BYTES      = 128
 MAX_LEVEL_SECTORS = 16          ; the level buffer is 2,048 B (Q-1, 2026-09-23)
@@ -1070,9 +1075,10 @@ sector_reader_begin_receive:
         sta SKRES
         rts
 
-; A full serial reset plus two frames of quiet. A late ACK arrives here, where
-; SKCTL = $00 discards it, and the next attempt's command-line assertion tells
-; the drive to abandon whatever it was sending.
+; A full serial reset plus BUDGET_SETTLE frames of quiet. A late ACK or the
+; rest of a data frame arrives here, where SKCTL = $00 discards it; the quiet
+; outlasts a whole data frame, so the next attempt's command does not go out
+; while a drive that does not listen as it transmits is still sending (R7).
 sector_reader_settle:
         lda #SKCTL_RESET
         sta SKCTL

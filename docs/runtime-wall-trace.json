@@ -7300,7 +7300,7 @@
           "count": 7076
         },
         {
-          "routine": "main:LOCAL_MACRO_SYMBOL_0019+6",
+          "routine": "main:render_frontend_data+29",
           "pcs": [
             "$248f"
           ],
@@ -7308,7 +7308,7 @@
           "count": 5207
         },
         {
-          "routine": "director:world_rotate_due_abi+929",
+          "routine": "main:update_hud_status+24",
           "pcs": [
             "$6d78"
           ],
@@ -7324,7 +7324,7 @@
           "count": 1875
         },
         {
-          "routine": "director:_enemy_c_recycle+859",
+          "routine": "main:style_main_menu_title+7",
           "pcs": [
             "$912b"
           ],
@@ -7332,7 +7332,7 @@
           "count": 1708
         },
         {
-          "routine": "director:_enemy_c_recycle+820",
+          "routine": "main:draw_main_menu_scene+4",
           "pcs": [
             "$9104"
           ],
@@ -7340,7 +7340,7 @@
           "count": 1586
         },
         {
-          "routine": "main:broadside_write_destination",
+          "routine": "main:broadside_destination",
           "pcs": [
             "$21a0"
           ],
@@ -7388,7 +7388,7 @@
           "count": 960
         },
         {
-          "routine": "director:_enemy_c_recycle+883",
+          "routine": "main:draw_options_structure+17",
           "pcs": [
             "$9143"
           ],
@@ -7396,7 +7396,7 @@
           "count": 752
         },
         {
-          "routine": "director:world_rotate_due_abi+992",
+          "routine": "main:update_weapon_booster_hud+56",
           "pcs": [
             "$6db7"
           ],
@@ -7404,7 +7404,7 @@
           "count": 528
         },
         {
-          "routine": "director:world_rotate_due_abi+910",
+          "routine": "main:update_hud_status+5",
           "pcs": [
             "$6d65"
           ],
@@ -7420,7 +7420,7 @@
           "count": 420
         },
         {
-          "routine": "director:world_rotate_due_abi+1013",
+          "routine": "main:show_weapon_booster_hud+5",
           "pcs": [
             "$6dcc"
           ],
@@ -7428,7 +7428,7 @@
           "count": 372
         },
         {
-          "routine": "director:_enemy_c_recycle+873",
+          "routine": "main:draw_options_structure+7",
           "pcs": [
             "$9139"
           ],
@@ -7436,7 +7436,7 @@
           "count": 329
         },
         {
-          "routine": "main:add_archetype_score_tail+99",
+          "routine": "boss:boss_install+77",
           "pcs": [
             "$785d"
           ],
@@ -7452,7 +7452,7 @@
           "count": 248
         },
         {
-          "routine": "director:_enemy_c_recycle+971",
+          "routine": "main:draw_game_over_structure+7",
           "pcs": [
             "$919b"
           ],
@@ -7460,7 +7460,7 @@
           "count": 144
         },
         {
-          "routine": "main:add_archetype_score_tail+116",
+          "routine": "boss:boss_install+94",
           "pcs": [
             "$786e"
           ],
@@ -7476,7 +7476,7 @@
           "count": 80
         },
         {
-          "routine": "director:world_rotate_due_abi+960",
+          "routine": "main:update_weapon_booster_hud+24",
           "pcs": [
             "$6d97"
           ],
@@ -7484,7 +7484,7 @@
           "count": 55
         },
         {
-          "routine": "director:world_rotate_due_abi+998",
+          "routine": "main:update_weapon_booster_hud+62",
           "pcs": [
             "$6dbd"
           ],
@@ -7492,7 +7492,7 @@
           "count": 44
         },
         {
-          "routine": "director:world_rotate_due_abi+1004",
+          "routine": "main:update_weapon_booster_hud+68",
           "pcs": [
             "$6dc3"
           ],

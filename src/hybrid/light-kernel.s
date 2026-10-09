@@ -666,3 +666,23 @@ capital_vector_image:
 capital_vector_image_end:
 .assert capital_vector_image_end - capital_vector_image = CAPITAL_VECTOR_COUNT*3, error, "the capital vector image does not match the window table"
 .export capital_vector_image
+
+; S5-1 (owner decision Q8, plan s5-boss-regions §4.1): the HUD's ten booster
+; cells into the boss scratch page's last ten bytes before anything clears the
+; row; the boss install puts them back after its HUD rewrite, so an active
+; booster's label and energy survive the entry exactly. The window's boss
+; entry (src/hybrid/c-asm-abi.s) calls it, by its pin, in place of its first
+; JSR, which this tail-calls. Here, in the kernel link's last segment, it moves
+; nothing: the Light kernel starts where the window's Director half ends, so 14
+; B there moved the kernel (MEASURED on this branch's first candidate).
+.include "boss-layout.inc"
+.segment "HUD_BOOSTER_BACKUP"
+boss_enter_hud_backup:
+    ldx #(BOSS_HUD_BOOSTER_CELLS - 1)
+@cell:
+    lda BOSS_HUD_BOOSTER_SCREEN,x
+    sta BOSS_HUD_BOOSTER_BACKUP,x
+    dex
+    bpl @cell
+    jmp music_stop_gameplay
+.export boss_enter_hud_backup

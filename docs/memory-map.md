@@ -147,8 +147,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
 | `$7C72-$7EC5` | 596 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
 | `$7EC6-$7EEC` | 39 B | segment | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data | `resident` | build/encounter-director.map |
-| `$7EED-$7EFA` | 14 B | segment | `HYBRID_ASM_ARENA_TAIL` — the boss entry's HUD booster backup (S5-1), in the arena's free tail | `resident` | build/encounter-director.map |
-| `$7EFB-$7F0F` | 21 B | reserved | free tail of `HYBRID_C_ARENA_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$7EED-$7F0F` | 35 B | reserved | free tail of `HYBRID_C_ARENA_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$7F10-$7F69` | 90 B | state | gameplay display list A | `resident` | src/main.s `PLAYFIELD_DLIST_A` |
 | `$7F2B-$8017` | 237 B | transient | A2 kernel staging (`BOOT_A2_STAGING`) | `boot` | manifest `a2Kernel` |
 | `$7F6A-$7FC3` | 90 B | state | gameplay display list B | `resident` | src/main.s `PLAYFIELD_DLIST_B` |
@@ -224,7 +223,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$B48B-$B4AE` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
 | `$B77F-$B7DD` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
 | `$B7DE-$B801` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
-| `$B802-$BBFF` | 1,022 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$B802-$B80F` | 14 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's HUD booster backup (S5-1), the Light kernel link's last segment | `resident` | build/light-kernel.map |
+| `$B810-$BBFF` | 1,008 B | unclaimed | **unclaimed — not measured** | — | — |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -246,8 +246,9 @@ No linked segment, cfg reservation, equate block, manifest range or machine area
 | --- | ---: | --- | --- |
 | `$00B6-$00FF` | 74 B | not measured | none in the repository |
 | `$0400-$04FF` | 256 B | not measured | none in the repository |
+| `$B810-$BBFF` | 1,008 B | not measured | none in the repository |
 
-Total: 330 B unclaimed, of which 0 B measured-free.
+Total: 1,338 B unclaimed, of which 0 B measured-free.
 
 ### Free after boot
 
@@ -271,7 +272,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$549E-$54E3` | 70 B | `PROJECTILE_RAM` (atari-boot.cfg) | `PROJECTILES` |
 | `$5CDB-$5E05` | 299 B | `STARFIELD_RAM` (atari-boot.cfg) | `STARFIELD` |
 | `$780D-$780F` | 3 B | `BROADSIDE_RAM` (atari-boot.cfg) | `BROADSIDE` |
-| `$7EFB-$7F0F` | 21 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA`, `HYBRID_ASM_ARENA_TAIL` |
+| `$7EED-$7F0F` | 35 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA` |
 | `$7FFF` | 1 B | `HYBRID_LIGHT_SLOTS_RAM` (encounter-director.cfg) | `HYBRID_LIGHT_SLOTS` |
 | `$86F3-$86F9` | 7 B | `HYBRID_C_SECTOR_RAM` (encounter-director.cfg) | `HYBRID_C_SECTOR` |
 | `$876B-$8775` | 11 B | `DIRECTOR_ABI_RAM` (encounter-director.cfg) | `DIRECTOR_ABI` |
@@ -284,7 +285,6 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$9FDA-$9FF9` | 32 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5DA-$A5FF` | 38 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
-| `$B802-$BBFF` | 1,022 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `LIGHT_KERNEL`, `DISK_GUARD`, `CAPITAL_VECTOR_IMAGE` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
 
 ### Overlapping cfg areas
@@ -407,8 +407,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
 | `$7C72-$7EC5` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
 | `$7EC6-$7EEC` | `resident` | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data |
-| `$7EED-$7EFA` | `resident` | `HYBRID_ASM_ARENA_TAIL` — the boss entry's HUD booster backup (S5-1), in the arena's free tail |
-| `$7EFB-$7F0F` | `resident` | free tail of `HYBRID_C_ARENA_RAM` |
+| `$7EED-$7F0F` | `resident` | free tail of `HYBRID_C_ARENA_RAM` |
 | `$7F10-$7F69` | `resident` | gameplay display list A |
 | `$7F2B-$8017` | `boot` | A2 kernel staging (`BOOT_A2_STAGING`) |
 | `$7F6A-$7FC3` | `resident` | gameplay display list B |

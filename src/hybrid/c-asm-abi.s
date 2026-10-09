@@ -616,7 +616,10 @@ BOSS_REGIONS             = 4
 .segment "HYBRID_ASM_WINDOW"
 
 _asm_boss_enter:
-    jsr boss_enter_hud_backup   ; S5-1: then pin_music_stop_gameplay (below)
+    ; S5-1 (owner decision Q8): the HUD's booster cells backed up first; the
+    ; routine (the Light kernel link's last segment) tail-calls the music stop
+    ; this JSR used to make, so the entry half keeps its size.
+    jsr pin_boss_enter_hud_backup
     jsr pin_pause_silence_audio
     jsr pin_sector_reader_blank
     lda #$00
@@ -671,21 +674,3 @@ boss_warning_records:
     .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
     .byte "BOSS APPROACHING", $00
     .byte $FF
-
-; S5-1 (owner decision Q8, plan s5-boss-regions §4.1): the HUD's ten booster
-; cells into the boss scratch page's last ten bytes before anything clears the
-; row; the install puts them back after its HUD rewrite, so an active booster's
-; label and energy survive the entry exactly. Called in place of the entry's
-; first JSR, which it tail-calls: _asm_boss_enter keeps its size. It lives in
-; the arena's free tail, not the window: the Light kernel starts where the
-; window's Director half ends, so 14 B there moved the kernel (and every
-; resident call into it) by 14 - MEASURED on this branch's first build.
-.segment "HYBRID_ASM_ARENA_TAIL"
-boss_enter_hud_backup:
-    ldx #(BOSS_HUD_BOOSTER_CELLS - 1)
-@cell:
-    lda BOSS_HUD_BOOSTER_SCREEN,x
-    sta BOSS_HUD_BOOSTER_BACKUP,x
-    dex
-    bpl @cell
-    jmp pin_music_stop_gameplay

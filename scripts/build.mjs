@@ -888,6 +888,7 @@ const LIGHT_KERNEL_MAIN_SYMBOLS = Object.freeze([
   ["clear_transient_effects", "breakup precondition"],
   ["spawn_breakup_effects_at", "breakup feedback at the Light's cell"],
   ["apply_player_damage", "the shared player damage gate"],
+  ["music_stop_gameplay", "S5-1: the boss entry's first call, tail-called by the HUD booster backup"],
   ["light_add_score", "BROADSIDE pad, absolute,X by archetype offset"],
   ["update_score_display", "score publication"],
   ["play_hit_sound", "kill feedback"],
@@ -1377,8 +1378,6 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const arenaAsmBytes = parsedLabels.get("__HYBRID_ASM_ARENA_SIZE__");
   const arenaCodeBytes = parsedLabels.get("__HYBRID_C_ARENA_SIZE__");
   const arenaRodataBytes = parsedLabels.get("__HYBRID_C_ARENA_RODATA_SIZE__");
-  // S5-1: the boss entry's HUD booster backup, the arena's last segment.
-  const arenaTailBytes = parsedLabels.get("__HYBRID_ASM_ARENA_TAIL_SIZE__") ?? 0;
   const windowAsmBytes = parsedLabels.get("__HYBRID_ASM_WINDOW_SIZE__");
   const windowCodeBytes = parsedLabels.get("__HYBRID_C_WINDOW_SIZE__");
   const windowRodataBytes = parsedLabels.get("__HYBRID_C_WINDOW_RODATA_SIZE__");
@@ -1393,7 +1392,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     throw new Error("Hybrid Director link is missing segment size labels");
   }
   const highBytes = rodataBytes + cCodeBytes;
-  const arenaBytes = arenaAsmBytes + arenaCodeBytes + arenaRodataBytes + arenaTailBytes;
+  const arenaBytes = arenaAsmBytes + arenaCodeBytes + arenaRodataBytes;
   if (combinedRaw.length !==
     abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes +
       arenaBytes + basicWindowBytes) {
@@ -1480,7 +1479,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const arenaSegment = {
     ...makeSegment("arena", hybridArenaAddress, arenaBytes),
     arena: { capacityBytes: hybridArenaCapacityBytes, asmBytes: arenaAsmBytes,
-      codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes, tailBytes: arenaTailBytes },
+      codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes },
   };
   codeSegments.push(arenaSegment);
   // Owner decision B (2026-09-20), placed by owner decision X (2026-09-21):
@@ -2416,6 +2415,8 @@ async function build() {
       "/project/build/starfield.inc": starfieldInclude,
       // Roadmap 4.6 step 5: the install reads payload looks from the page.
       "/project/build/level-def.inc": levelDefInclude,
+      // S5-1: the HUD booster backup's cells and its home in the boss scratch page.
+      "/project/build/boss-layout.inc": bossLayoutInclude,
     },
   });
   let lightKernelModule = await linkLightKernel(renderDiskGuardInclude());
@@ -2731,11 +2732,12 @@ async function build() {
   // (src/hybrid/boss-entry-pins.inc). Every pin must be the address its link
   // really gave the label, or the build stops here and says which.
   const gameplayMusicLabelsForPins = gameplayMusicLabels;
-  const pinLinks = { main: labels, reader: sectorReaderLabels, music: gameplayMusicLabelsForPins };
+  const pinLinks = { main: labels, reader: sectorReaderLabels, music: gameplayMusicLabelsForPins,
+    kernel: lightKernelLabels };
   const bossEntryPins = [];
   for (const line of fs.readFileSync(
     path.join(rootDirectory, "src", "hybrid", "boss-entry-pins.inc"), "utf8").split(/\r?\n/)) {
-    const match = /^pin_(\w+)\s*=\s*\$([0-9A-Fa-f]+)\s*;\s*(main|reader|music)\b/.exec(line);
+    const match = /^pin_(\w+)\s*=\s*\$([0-9A-Fa-f]+)\s*;\s*(main|reader|music|kernel)\b/.exec(line);
     if (!match) continue;
     const [, label, value, link] = match;
     const pinned = Number.parseInt(value, 16);
@@ -2747,8 +2749,9 @@ async function build() {
     }
     bossEntryPins.push({ label, link, address: pinned });
   }
-  if (bossEntryPins.length !== 8) {
-    throw new Error(`M5b-S3: expected 8 boss-entry pins, found ${bossEntryPins.length}`);
+  // S5-1: + the HUD booster backup in the Light kernel link.
+  if (bossEntryPins.length !== 9) {
+    throw new Error(`M5b-S3 / S5-1: expected 9 boss-entry pins, found ${bossEntryPins.length}`);
   }
   if (labels.get("capital_slot_a") + 0 !== slotAddress ||
     gameplayMusicLabels.get("game_music_data_start") + bossThemeCopyBytes > 0xa880) {

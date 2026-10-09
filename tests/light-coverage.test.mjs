@@ -125,8 +125,11 @@ test("Light clause: boss rows are set aside", () => {
 test("Light clause: the trace records each Light slot's state and archetype", () => {
   const header = fs.readFileSync(path.join(root, "scripts", "atari800-wall-trace.h"), "utf8");
   const harness = fs.readFileSync(path.join(root, "scripts", "runtime-wall-trace.mjs"), "utf8");
+  // RE-POINTED S5-1: the archetype columns are no longer the header's last -
+  // the boss entry's HUD snapshots follow them - so the closing "\n" is not
+  // part of the match; the columns and their order are unchanged.
   for (const columns of ["\",light_state0,light_state1,light_state2,light_state3\"",
-    "\",light_archetype0,light_archetype1,light_archetype2,light_archetype3\\n\""]) {
+    "\",light_archetype0,light_archetype1,light_archetype2,light_archetype3\""]) {
     assert.ok(header.includes(columns), `the trace CSV header has no ${columns} columns`);
   }
   for (const name of ["DFTRACE_LIGHT_STATE", "DFTRACE_LIGHT_ARCHETYPE"]) {

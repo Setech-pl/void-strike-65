@@ -98,7 +98,11 @@ test("T8: the default build has no debug code path, only an absent one", () => {
     "the Director reads debug_start_sector only in a build made with the flag");
   const build = fs.readFileSync(path.join(root, "scripts/build.mjs"), "utf8");
   assert.match(build, /levelDebugId !== null/, "the flag makes it a review variant");
-  assert.match(build, /LEVEL_DEBUG_ID=\$\{levelDebugId\}/);
+  // RE-POINTED S5-1 (plan s5-boss-regions §5): the define names the level
+  // run's id, which --boss-region=N makes the region's first level (4 / 7 /
+  // 10); without that flag it is --level's id, as before.
+  assert.match(build, /LEVEL_DEBUG_ID=\$\{levelRunId\}/);
+  assert.match(build, /const levelRunId = bossRegionValue !== null \? 1 \+ 3 \* \(bossRegionValue - 1\) : levelDebugId;/);
   assert.match(build, /"-D", "LEVEL_DEBUG_START=1"/);
 });
 

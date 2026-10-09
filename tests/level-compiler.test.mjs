@@ -482,8 +482,12 @@ test("levels:check runs the validator alone and the build compiles the authored 
   assert.ok(fs.existsSync(path.join(rootDirectory, "docs/level-authoring.md")),
     "the authoring vocabulary the plan §6 asks for");
   const buildSource = readText("scripts/build.mjs");
-  assert.match(buildSource, /compileLevelFile\(levelSourcePath\(run\.id\)/,
+  // RE-POINTED S5-1 (plan s5-boss-regions §5): a --boss-region route compiles
+  // level 1's authored file under its run's id (levelSourceIdForRun); every
+  // other build compiles the run's own file, as before.
+  assert.match(buildSource, /compileLevelFile\(levelSourcePath\(levelSourceIdForRun\(run\.id\)\)/,
     "the build must compile the authored JSON, not carry the bytes");
+  assert.match(buildSource, /const levelSourceIdForRun = \(id\) => \(bossRegionValue !== null \? 1 : id\);/);
 });
 
 // RE-PINNED at step 2. The step-1 version of this test asserted the OPPOSITE -

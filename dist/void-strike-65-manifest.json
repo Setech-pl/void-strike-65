@@ -11,10 +11,10 @@
     "phaseCount": 8,
     "initialContentBytes": 13618,
     "linkedRuntimeBytes": 17493,
-    "simultaneousResidencyBytes": 21709,
-    "safeResidencyBytes": 478,
-    "residencyDeltaBytes": 3738,
-    "totalMigrationResidencyDeltaBytes": 3682,
+    "simultaneousResidencyBytes": 21723,
+    "safeResidencyBytes": 464,
+    "residencyDeltaBytes": 3752,
+    "totalMigrationResidencyDeltaBytes": 3696,
     "glue": {
       "stagingAddress": 39992,
       "holdingAddress": 33024,
@@ -61,8 +61,8 @@
       "address": 40309,
       "endExclusive": 40922,
       "reservedEndExclusive": 40954,
-      "rawBytes": 4366,
-      "packedBytes": 3489,
+      "rawBytes": 4380,
+      "packedBytes": 3504,
       "codeAddress": 34561,
       "codeBytes": 1469,
       "rodataAddress": 40309,
@@ -91,7 +91,7 @@
         {
           "name": "arena",
           "runAddress": 31696,
-          "bytes": 797
+          "bytes": 811
         },
         {
           "name": "hybrid-window",
@@ -234,7 +234,7 @@
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 11,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 2075,
+    "remainingSafeResidencyBytes": 2061,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 1839,
+      "crc16": 21672,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 1839,
+        "crc16": 21672,
         "records": [
           {
             "startSector": 108,
@@ -369,10 +369,10 @@
           {
             "startSector": 173,
             "sectorCount": 6,
-            "packedLength": 719,
-            "rawLength": 797,
+            "packedLength": 734,
+            "rawLength": 811,
             "finalDestination": 31696,
-            "crc16": 18025,
+            "crc16": 53823,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -383,7 +383,7 @@
             "packedLength": 1330,
             "rawLength": 1660,
             "finalDestination": 44544,
-            "crc16": 21208,
+            "crc16": 20002,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -394,7 +394,7 @@
             "packedLength": 783,
             "rawLength": 902,
             "finalDestination": 46204,
-            "crc16": 6024,
+            "crc16": 60294,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -405,7 +405,7 @@
             "packedLength": 1498,
             "rawLength": 1498,
             "finalDestination": 40960,
-            "crc16": 6384,
+            "crc16": 10259,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -624,9 +624,9 @@
     "identity": {
       "sector": 598,
       "directoryEntry": 9,
-      "block": "56533635a91a",
+      "block": "565336357b37",
       "magic": "VS65",
-      "layoutId": 6825,
+      "layoutId": 14203,
       "layout": {
         "levelBaseSector": 320,
         "levelBufferSectors": 16,
@@ -641,7 +641,9 @@
         "bossReservationSectors": 56,
         "bossRegionBaseSector": 632,
         "bossRegionSectors": 16,
-        "bossRegionCount": 4
+        "bossRegionCount": 4,
+        "bossBlockBaseSector": 696,
+        "bossBlockSectors": 4
       }
     },
     "fold": "per accepted sector: a += its SIO carry-wrap sum; b += a + carry (16-bit)",
@@ -654,7 +656,7 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$77AB"
+        "expected": "$8C69"
       },
       {
         "index": 2,
@@ -664,17 +666,17 @@
       {
         "index": 3,
         "name": "boss region 2 (M5b)",
-        "expected": null
+        "expected": "$49CB"
       },
       {
         "index": 4,
         "name": "boss region 3 (M5b)",
-        "expected": null
+        "expected": "$49CB"
       },
       {
         "index": 5,
         "name": "boss region 4 (M5b)",
-        "expected": null
+        "expected": "$49CB"
       },
       {
         "index": 6,
@@ -694,14 +696,14 @@
       {
         "index": 9,
         "name": "disk identity (audit-hardening)",
-        "expected": "$D8D8"
+        "expected": "$C7C7"
       }
     ],
     "bossHeadSums": [
-      "$1CF6",
-      null,
-      null,
-      null
+      "$9EA6",
+      "$9EA6",
+      "$9EA6",
+      "$9EA6"
     ],
     "summaryArtSums": [
       "$2223",
@@ -840,44 +842,78 @@
     },
     "slotA": {
       "address": 28136,
-      "bytes": 2042,
+      "bytes": 2016,
       "capacityBytes": 2048,
-      "freeBytes": 6,
+      "freeBytes": 32,
       "sectors": 16
     },
     "install": {
       "address": 30736,
-      "bytes": 352,
+      "bytes": 363,
       "capacityBytes": 384,
-      "freeBytes": 32,
+      "freeBytes": 21,
       "sectors": 3
     },
     "slotC": {
       "address": 4096,
-      "bytes": 1880,
-      "codeBytes": 1659,
+      "bytes": 1884,
+      "codeBytes": 1663,
       "capacityBytes": 2048,
-      "freeBytes": 168,
+      "freeBytes": 164,
       "sectors": 13
     },
     "scratch": {
       "address": 6144,
-      "bytes": 244,
+      "bytes": 255,
       "capacityBytes": 256,
-      "freeBytes": 12,
+      "freeBytes": 1,
       "columnMap": 6144
     },
     "slotD": {
       "address": 6400,
-      "bytes": 1783,
-      "codeBytes": 1695,
+      "bytes": 1735,
+      "codeBytes": 1647,
       "capacityBytes": 1792,
-      "freeBytes": 9,
-      "sectors": 14,
+      "freeBytes": 57,
+      "sectors": 13
+    },
+    "slotF": {
+      "address": 20992,
+      "capacityBytes": 512,
       "lookTail": {
-        "address": 6400,
+        "address": 20992,
         "bytes": 98
-      }
+      },
+      "blocks": [
+        {
+          "region": 1,
+          "bytes": 98,
+          "sectors": 1,
+          "startSector": 696,
+          "freeBytes": 414
+        },
+        {
+          "region": 2,
+          "bytes": 98,
+          "sectors": 1,
+          "startSector": 700,
+          "freeBytes": 414
+        },
+        {
+          "region": 3,
+          "bytes": 98,
+          "sectors": 1,
+          "startSector": 704,
+          "freeBytes": 414
+        },
+        {
+          "region": 4,
+          "bytes": 98,
+          "sectors": 1,
+          "startSector": 708,
+          "freeBytes": 414
+        }
+      ]
     },
     "slotE": {
       "address": 19456,
@@ -900,6 +936,10 @@
       "regions": [
         632,
         695
+      ],
+      "blocks": [
+        696,
+        711
       ]
     },
     "runs": [
@@ -909,7 +949,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "5702961da6b2c99b1e21a316d9759f955191f7e3941119c4da732b967c5e2d9b",
+        "sha256": "cb792d0a95633ac59da34e9c35a3425b5ed04f0b2d2b517eecf4641c4c4adea9",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -918,7 +958,7 @@
         "sectors": 3,
         "destination": 30736,
         "bytes": 384,
-        "sha256": "4a27e160f99d2fc52bfb6924e8e8608560706b5a1559aeb0c7888d7d00b87ddd",
+        "sha256": "34a32649c82b46dc74382b1f0cbb38c0ab3dce24f8af6e1bf88b3af96aaeb836",
         "file": "overlay-boss-install.bin"
       },
       {
@@ -927,16 +967,16 @@
         "sectors": 13,
         "destination": 4096,
         "bytes": 1664,
-        "sha256": "f82600cab4d78e13265010269ffd3a990ff07e332372d21a59986acdaa535e10",
+        "sha256": "86c6f79034c6574dde060695ca31c5d12c5c97fb7920ca71ab3b75af7a55d837",
         "file": "overlay-boss-slot-c.bin"
       },
       {
         "name": "boss-slot-d",
         "startSector": 563,
-        "sectors": 14,
+        "sectors": 13,
         "destination": 6400,
-        "bytes": 1792,
-        "sha256": "fee0e64bad07ad1f8a09f1c68d94269f0274f7ea54e67e37ca76912124756e5c",
+        "bytes": 1664,
+        "sha256": "8956a48ce81e8d3315dfdaec3017dffdb45612dfcb982ce6e003a820a2afe965",
         "file": "overlay-boss-slot-d.bin"
       },
       {
@@ -945,7 +985,7 @@
         "sectors": 2,
         "destination": 19456,
         "bytes": 256,
-        "sha256": "b1888139610cefb4d93d843e47ad8adb39712d26c046074d3465b52d6aa6f6cc",
+        "sha256": "2c68d1d4a143ba35767d6067fd891144e4a9acbd632b0f7d330e7ecb6ff0fe13",
         "file": "overlay-boss-slot-e.bin"
       },
       {
@@ -972,7 +1012,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "3a1a86771be985b44962a69de21a839048a751bc2b009c44840383a65c1319c9",
+        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
         "file": "boss-region-1-band-b.bin"
       },
       {
@@ -983,11 +1023,188 @@
         "bytes": 1024,
         "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
         "file": "boss-region-1-charset.bin"
+      },
+      {
+        "name": "boss-region-1-block",
+        "startSector": 696,
+        "sectors": 1,
+        "destination": 20992,
+        "bytes": 128,
+        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "file": "boss-region-1-block.bin"
+      },
+      {
+        "name": "boss-region-2-theme",
+        "startSector": 648,
+        "sectors": 2,
+        "destination": 31120,
+        "bytes": 256,
+        "sha256": "bcadbe86a32d1933ebe8ba43648168e4a8082bfb35d775d70252d0a51bc9fb9a",
+        "file": "boss-region-2-theme.bin"
+      },
+      {
+        "name": "boss-region-2-band-a",
+        "startSector": 650,
+        "sectors": 3,
+        "destination": 43136,
+        "bytes": 384,
+        "sha256": "59a503abec8a4f11a69c1b0e4ee761873562e9837bf04abd329ec88fd6c07022",
+        "file": "boss-region-2-band-a.bin"
+      },
+      {
+        "name": "boss-region-2-band-b",
+        "startSector": 653,
+        "sectors": 3,
+        "destination": 44160,
+        "bytes": 384,
+        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
+        "file": "boss-region-2-band-b.bin"
+      },
+      {
+        "name": "boss-region-2-charset",
+        "startSector": 656,
+        "sectors": 8,
+        "destination": 3072,
+        "bytes": 1024,
+        "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
+        "file": "boss-region-2-charset.bin"
+      },
+      {
+        "name": "boss-region-2-block",
+        "startSector": 700,
+        "sectors": 1,
+        "destination": 20992,
+        "bytes": 128,
+        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "file": "boss-region-2-block.bin"
+      },
+      {
+        "name": "boss-region-3-theme",
+        "startSector": 664,
+        "sectors": 2,
+        "destination": 31120,
+        "bytes": 256,
+        "sha256": "bcadbe86a32d1933ebe8ba43648168e4a8082bfb35d775d70252d0a51bc9fb9a",
+        "file": "boss-region-3-theme.bin"
+      },
+      {
+        "name": "boss-region-3-band-a",
+        "startSector": 666,
+        "sectors": 3,
+        "destination": 43136,
+        "bytes": 384,
+        "sha256": "59a503abec8a4f11a69c1b0e4ee761873562e9837bf04abd329ec88fd6c07022",
+        "file": "boss-region-3-band-a.bin"
+      },
+      {
+        "name": "boss-region-3-band-b",
+        "startSector": 669,
+        "sectors": 3,
+        "destination": 44160,
+        "bytes": 384,
+        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
+        "file": "boss-region-3-band-b.bin"
+      },
+      {
+        "name": "boss-region-3-charset",
+        "startSector": 672,
+        "sectors": 8,
+        "destination": 3072,
+        "bytes": 1024,
+        "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
+        "file": "boss-region-3-charset.bin"
+      },
+      {
+        "name": "boss-region-3-block",
+        "startSector": 704,
+        "sectors": 1,
+        "destination": 20992,
+        "bytes": 128,
+        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "file": "boss-region-3-block.bin"
+      },
+      {
+        "name": "boss-region-4-theme",
+        "startSector": 680,
+        "sectors": 2,
+        "destination": 31120,
+        "bytes": 256,
+        "sha256": "bcadbe86a32d1933ebe8ba43648168e4a8082bfb35d775d70252d0a51bc9fb9a",
+        "file": "boss-region-4-theme.bin"
+      },
+      {
+        "name": "boss-region-4-band-a",
+        "startSector": 682,
+        "sectors": 3,
+        "destination": 43136,
+        "bytes": 384,
+        "sha256": "59a503abec8a4f11a69c1b0e4ee761873562e9837bf04abd329ec88fd6c07022",
+        "file": "boss-region-4-band-a.bin"
+      },
+      {
+        "name": "boss-region-4-band-b",
+        "startSector": 685,
+        "sectors": 3,
+        "destination": 44160,
+        "bytes": 384,
+        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
+        "file": "boss-region-4-band-b.bin"
+      },
+      {
+        "name": "boss-region-4-charset",
+        "startSector": 688,
+        "sectors": 8,
+        "destination": 3072,
+        "bytes": 1024,
+        "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
+        "file": "boss-region-4-charset.bin"
+      },
+      {
+        "name": "boss-region-4-block",
+        "startSector": 708,
+        "sectors": 1,
+        "destination": 20992,
+        "bytes": 128,
+        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "file": "boss-region-4-block.bin"
       }
     ],
     "regions": [
       {
         "region": 1,
+        "name": "Blockade Breaker",
+        "style": 1,
+        "codes": 122,
+        "stageStep": 19,
+        "charsetBytes": 976,
+        "charsetSectors": 8,
+        "modules": 13,
+        "entrySectors": 64
+      },
+      {
+        "region": 2,
+        "name": "Blockade Breaker",
+        "style": 1,
+        "codes": 122,
+        "stageStep": 19,
+        "charsetBytes": 976,
+        "charsetSectors": 8,
+        "modules": 13,
+        "entrySectors": 64
+      },
+      {
+        "region": 3,
+        "name": "Blockade Breaker",
+        "style": 1,
+        "codes": 122,
+        "stageStep": 19,
+        "charsetBytes": 976,
+        "charsetSectors": 8,
+        "modules": 13,
+        "entrySectors": 64
+      },
+      {
+        "region": 4,
         "name": "Blockade Breaker",
         "style": 1,
         "codes": 122,
@@ -1041,8 +1258,8 @@
       "address": 31696,
       "endExclusive": 32528,
       "capacityBytes": 832,
-      "usedBytes": 797,
-      "freeBytes": 35,
+      "usedBytes": 811,
+      "freeBytes": 21,
       "asmBytes": 162,
       "codeBytes": 596,
       "rodataBytes": 39,
@@ -1062,16 +1279,16 @@
         "finalDestination": 31696,
         "startSector": 173,
         "sectors": 6,
-        "rawBytes": 797,
-        "packedBytes": 719,
-        "paddingBytes": 28,
+        "rawBytes": 811,
+        "packedBytes": 734,
+        "paddingBytes": 13,
         "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
       },
       "ownersInArena": [
         {
           "owner": "record 7bd0",
           "start": 31696,
-          "endExclusive": 32493
+          "endExclusive": 32507
         }
       ],
       "worstCaseFullArenaPackedBytes": 840,
@@ -1189,14 +1406,14 @@
       "file": "encounter-director-code-arena.bin",
       "runAddress": 31696,
       "transportAddress": 31696,
-      "endExclusive": 32493,
-      "bytes": 797,
-      "packedBytes": 719,
+      "endExclusive": 32507,
+      "bytes": 811,
+      "packedBytes": 734,
       "externalChunk": {
         "startSector": 173,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 18025
+        "crc16": 53823
       }
     },
     {
@@ -1211,7 +1428,7 @@
         "startSector": 179,
         "sectors": 11,
         "transportBytes": 1408,
-        "crc16": 21208
+        "crc16": 20002
       }
     }
   ],
@@ -23840,11 +24057,11 @@
     "estimated_additive_cycles": 27847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "95803c38f75fe82d5715d1d3175532f17ce67c30e654a71e9b009b305d79763c",
+      "reportSha256": "d5d3cf2d3c87fab7dc492c05b784da8c4a6eb849b952b925feaa2bec06622e83",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
+        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
       },
       "emulator": {
         "name": "Atari800",
@@ -23852,7 +24069,7 @@
         "official_source_archive_sha256": "9602badfd7c45551cb5c4cc77f862af377c43a07caaa0bfc77ac87f9179673e3",
         "source_patch": "scripts/atari800-wall-trace.h plus one observer call before each emulated opcode",
         "model_arguments": [
-          "-xe",
+          "-xl",
           "-pal",
           "-nobasic",
           "-nosound",
@@ -25404,25 +25621,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "a25c3e3ab1b85c0c1f604a2198963c0b6297f1f291398751a24fb4271abd186f"
+        "sha256": "36c405cbf44df0f468db6c05486b294990afa02eaa4b2303ff3704b84ea1cb6a"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
+        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "95803c38f75fe82d5715d1d3175532f17ce67c30e654a71e9b009b305d79763c"
+    "reportSha256": "d5d3cf2d3c87fab7dc492c05b784da8c4a6eb849b952b925feaa2bec06622e83"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "a25c3e3ab1b85c0c1f604a2198963c0b6297f1f291398751a24fb4271abd186f"
+      "sha256": "36c405cbf44df0f468db6c05486b294990afa02eaa4b2303ff3704b84ea1cb6a"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
+      "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
     }
   }
 }

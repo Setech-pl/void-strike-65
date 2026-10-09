@@ -104,6 +104,8 @@ import { measureRuntimeCycles } from "./runtime-cycles.mjs";
 import {
   BOSS_BAND_A_SECTORS,
   BOSS_BAND_B_SECTORS,
+  BOSS_BLOCK_BASE_SECTOR,
+  BOSS_BLOCK_SECTORS,
   BOSS_CHARSET_MAX_SECTORS,
   BOSS_CLAIM,
   BOSS_REGION_RUN_OFFSETS,
@@ -116,6 +118,8 @@ import {
   BOSS_SLOT_D_BYTES,
   BOSS_SLOT_E_ADDRESS,
   BOSS_SLOT_E_BYTES,
+  BOSS_SLOT_F_ADDRESS,
+  BOSS_SLOT_F_BYTES,
   BOSS_STAGING_ADDRESS,
   BOSS_THEME_SECTORS,
   bossRegionDirectory,
@@ -519,6 +523,8 @@ const diskLayout = Object.freeze({
   saveRecordSector, summaryCodeSector, summaryCodeMaxSectors, summaryArtBaseSector,
   summaryArtSectors: SUMMARY_ART_SECTORS, bossReservationSector, bossReservationSectors,
   bossRegionBaseSector, bossRegionSectors: BOSS_REGION_SECTORS, bossRegionCount,
+  // S5-1: the region blocks' reservation (slot F's runs).
+  bossBlockBaseSector: BOSS_BLOCK_BASE_SECTOR, bossBlockSectors: BOSS_BLOCK_SECTORS,
 });
 const diskIdentity = identityBlock(diskLayout);
 // The window copies this many bytes of the region's staging run over the
@@ -1355,9 +1361,11 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const windowRodataBytes = parsedLabels.get("__HYBRID_C_WINDOW_RODATA_SIZE__");
   // feat/sector-flow: the Director's sector-flow verdicts, placed last.
   const windowFlowBytes = parsedLabels.get("__HYBRID_C_WINDOW_FLOW_SIZE__");
-  const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes]
+  // S5-1: the boss entry's HUD booster backup, the window's last segment.
+  const windowTailBytes = parsedLabels.get("__HYBRID_ASM_WINDOW_TAIL_SIZE__");
+  const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes, windowTailBytes]
     .every(Number.isInteger)
-    ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes : undefined;
+    ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes + windowTailBytes : undefined;
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
     cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
     arenaCodeBytes, arenaRodataBytes, basicWindowBytes].every(Number.isInteger)) {
@@ -1798,23 +1806,21 @@ async function build() {
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
   const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
-  const bossRegions = [compileBossRegion(
+  const regionOne = compileBossRegion(
     laserFixtureTier === null ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier),
     { themeImage: bossThemeImage,
       shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter),
-      hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]) })];
+      hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]) });
   // (loadBossRegionDraft carries the same glyphs; the build passes its own
   // weapons asset so a variant that changed it converts the boss with it.)
-  // M5b-S4b.4 (owner decision E4 (b)): the region's look tail is linked into
-  // slot D, which every region shares - one region on the disk until the
-  // tail has a per-region home (S5).
-  if (bossRegions.length !== 1) {
-    throw new Error("M5b-S4b.4: slot D carries one region's look tail; a second region needs its own home");
-  }
+  // S5-1 (owner decision Q10, plan s5-boss-regions §6): four regions on the
+  // disk - regions 2-4 are copies of region 1 (the laser fixture's, on a
+  // fixture build) until their own sessions replace them. Each region's look
+  // tail is its block in slot F now, so the regions no longer share a home.
+  const bossRegions = [regionOne, regionOne, regionOne, regionOne];
   const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
   writeFile(path.join(buildDirectory, "boss-layout.inc"), bossLayoutInclude);
-  writeFile(path.join(buildDirectory, "boss-look-tail.bin"), Buffer.from(bossRegions[0].lookTail));
   writeFile(path.join(buildDirectory, "boss-layout.h"), bossLayoutHeader);
   const entityEffectsDefinitionPath = path.join(
     rootDirectory, "assets", "graphics", "entity-effects.json",
@@ -2808,16 +2814,18 @@ async function build() {
     `        .byte $${(startSector & 0xff).toString(16).padStart(2, "0")}, ` +
     `$${(startSector >> 8).toString(16).padStart(2, "0")}, ${sectors}, ` +
     `$${(destination & 0xff).toString(16).padStart(2, "0")}, $${(destination >> 8).toString(16).padStart(2, "0")}`;
-  const bossRegionRunSector = (index, run) =>
-    bossRegionBaseSector + index * BOSS_REGION_SECTORS + BOSS_REGION_RUN_OFFSETS[run];
+  // S5-1: a region's block has its own reservation, 4 sectors a region from 696.
+  const bossRegionRunSector = (index, run) => (run === "block"
+    ? BOSS_BLOCK_BASE_SECTOR + index * BOSS_BLOCK_SECTORS
+    : bossRegionBaseSector + index * BOSS_REGION_SECTORS + BOSS_REGION_RUN_OFFSETS[run]);
   // M5b-S4a-i (Q-B8): slot C's run is sized to the linked code, so the run
   // table is rendered twice - first with slot C's whole reservation, then
   // with the linked size; the table's bytes do not move a label (checked).
   const renderBossRuns = (slotCSectors, slotDSectors, slotESectors) => [
     "; Generated by scripts/build.mjs for M5b-S4a-i - do not edit.",
     "; {sector lo, sector hi, count, dst lo, dst hi}: the shared install run, slot C,",
-    "; slot D (M5b-S4b), then per region band A, band B and the charset (0 = not on",
-    "; this disk).",
+    "; slot D (M5b-S4b), then per region band A, band B, the charset and the block",
+    "; (S5-1, slot F) (0 = not on this disk).",
     bossRunEntry(bossInstallSector, bossInstallSectors, bossInstallAddress) + "\t; install",
     bossRunEntry(bossSlotCSector, slotCSectors, BOSS_SLOT_C_ADDRESS) + "\t; slot C",
     bossRunEntry(bossSlotDSector, slotDSectors, BOSS_SLOT_D_ADDRESS) + "\t; slot D",
@@ -2825,14 +2833,16 @@ async function build() {
     ...Array.from({ length: bossRegionCount }, (_, index) => {
       const region = bossRegions[index];
       return region === undefined
-        ? ["band A", "band B", "charset"].map((what) =>
+        ? ["band A", "band B", "charset", "block"].map((what) =>
           `        .byte 0, 0, 0, 0, 0\t; region ${index + 1}: ${what}, not on this disk`)
         : [bossRunEntry(bossRegionRunSector(index, "bandA"), BOSS_BAND_A_SECTORS,
           region.runs.bandA.address) + `\t; region ${index + 1}: band A`,
         bossRunEntry(bossRegionRunSector(index, "bandB"), BOSS_BAND_B_SECTORS,
           region.runs.bandB.address) + `\t; region ${index + 1}: band B`,
         bossRunEntry(bossRegionRunSector(index, "charset"), region.runs.charset.sectors,
-          region.runs.charset.address) + `\t; region ${index + 1}: charset`];
+          region.runs.charset.address) + `\t; region ${index + 1}: charset`,
+        bossRunEntry(bossRegionRunSector(index, "block"), region.runs.block.sectors,
+          region.runs.block.address) + `\t; region ${index + 1}: block (slot F)`];
     }).flat(),
     "",
   ].join("\n");
@@ -2873,12 +2883,13 @@ async function build() {
       "-o", `${bossBase}-c.o`, `${bossBase}-c-generated.s`],
     [`${bossBase}-c.o`, `${bossBase}-c.lst`],
   );
-  // audit-hardening (AUD-02): slot A's head checks the seven runs it reads
-  // (install, slots C-E, the region's band A, band B and charset), folded in
-  // that order, against its region's value. Zeros until the boss has linked.
+  // audit-hardening (AUD-02): slot A's head checks the eight runs it reads
+  // (install, slots C-E, the region's band A, band B, charset and - S5-1 -
+  // block), folded in that order, against its region's value. Zeros until the
+  // boss has linked.
   const renderBossSums = (sums = []) => [
     "; Generated by scripts/build.mjs (audit-hardening) - do not edit.",
-    "; The expected fold of the head's seven runs, per region (0 = not on this disk).",
+    "; The expected fold of the head's eight runs, per region (0 = not on this disk).",
     renderSumTable("boss_head_sums", Array.from({ length: bossRegionCount }, (_, index) => ({
       sum: sums[index] ?? null, note: `region ${index + 1}` }))),
   ].join("\n");
@@ -2891,11 +2902,6 @@ async function build() {
         "/project/build/boss-imports.inc": Buffer.from(bossImportsInclude),
         "/project/build/boss-runs.inc": Buffer.from(runsInclude),
         "/project/build/boss-sums.inc": Buffer.from(sumsInclude),
-        // M5b-S4b.4 (E4 (b)): the region's look tail, linked first in slot D.
-        // One region's tail: slot D is shared by the regions, so a disk with
-        // a second region needs the tail a per-region home first (refused
-        // where bossRegions is built).
-        "/project/build/boss-look-tail.bin": Buffer.from(bossRegions[0].lookTail),
         "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
         "/project/build/level-summary-abi.inc": levelSummaryAbiInclude,
         "/project/build/level-def.inc": levelDefInclude,
@@ -2958,7 +2964,8 @@ async function build() {
       const region = bossRegions[index];
       if (region === undefined) return null;
       return guardFold(Buffer.concat([shared, Buffer.from(region.runs.bandA.data),
-        Buffer.from(region.runs.bandB.data), Buffer.from(region.runs.charset.data)]));
+        Buffer.from(region.runs.bandB.data), Buffer.from(region.runs.charset.data),
+        Buffer.from(region.runs.block.data)]));
     });
   })();
   const bossSumsInclude = renderBossSums(bossHeadSums);
@@ -2987,7 +2994,10 @@ async function build() {
   const bossSlotUsed = bossLabels.get("__BOSS_SLOT_RAM_LAST__") - slotAddress;
   const bossInstallUsed = bossLabels.get("__BOSS_INSTALL_RAM_LAST__") - bossInstallAddress;
   const bossSlotCUsed = bossLabels.get("__BOSS_SLOT_C_RAM_LAST__") - BOSS_SLOT_C_ADDRESS;
-  const bossScratchUsed = bossLabels.get("__BOSS_SCRATCH_RAM_LAST__") - BOSS_SCRATCH_ADDRESS;
+  // S5-1: the page's last ten bytes are the pinned HUD booster backup, so the
+  // area's last byte is the page's; the bytes used are the segments' sum.
+  const bossScratchUsed = ["BOSS_SCRATCH", "BOSS_BSS", "BOSS_HUD_BACKUP"]
+    .reduce((sum, name) => sum + (bossLabels.get(`__${name}_SIZE__`) ?? 0), 0);
   const bossSlotDUsed = bossLabels.get("__BOSS_SLOT_D_RAM_LAST__") - BOSS_SLOT_D_ADDRESS;
   const bossSlotEUsed = bossLabels.get("__BOSS_SLOT_E_RAM_LAST__") - BOSS_SLOT_E_ADDRESS;
   const bossCodeSectors = Math.ceil(bossSlotUsed / 128);
@@ -3044,7 +3054,7 @@ async function build() {
     destination: BOSS_SLOT_D_ADDRESS,
     data: bossImage.subarray(slotDOffset, slotDOffset + bossSlotDSectors * 128),
     file: "overlay-boss-slot-d.bin" };
-  const bossRegionRuns = bossRegions.flatMap((region, index) => ["theme", "bandA", "bandB", "charset"]
+  const bossRegionRuns = bossRegions.flatMap((region, index) => ["theme", "bandA", "bandB", "charset", "block"]
     .map((run) => ({
       name: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`,
       startSector: bossRegionRunSector(index, run), sectors: region.runs[run].sectors,
@@ -3067,9 +3077,11 @@ async function build() {
   for (const run of bossDiskRuns) {
     const inCode = run.startSector >= bossReservationSector &&
       run.startSector + run.sectors <= bossReservationSector + bossReservationSectors;
-    const inRegion = run.region !== undefined &&
-      run.startSector >= bossRegionBaseSector + (run.region - 1) * BOSS_REGION_SECTORS &&
-      run.startSector + run.sectors <= bossRegionBaseSector + run.region * BOSS_REGION_SECTORS;
+    const inRegion = run.region !== undefined && (run.name.endsWith("-block")
+      ? run.startSector >= BOSS_BLOCK_BASE_SECTOR + (run.region - 1) * BOSS_BLOCK_SECTORS &&
+        run.startSector + run.sectors <= BOSS_BLOCK_BASE_SECTOR + run.region * BOSS_BLOCK_SECTORS
+      : run.startSector >= bossRegionBaseSector + (run.region - 1) * BOSS_REGION_SECTORS &&
+        run.startSector + run.sectors <= bossRegionBaseSector + run.region * BOSS_REGION_SECTORS);
     if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode : inRegion) ||
       run.startSector + run.sectors - 1 > chunkLoaderConstants.atrSectors) {
       throw new Error(`M5b-S4a-i: the boss run ${run.name} leaves its reservation`);
@@ -3085,8 +3097,16 @@ async function build() {
     }
     writeFile(path.join(buildDirectory, run.file), run.data);
   }
-  if (bossRegionAreaEnd - 1 > chunkLoaderConstants.atrSectors) {
-    throw new Error("M5b-S4a-i: four regions do not fit the disk");
+  if (bossRegionAreaEnd - 1 > chunkLoaderConstants.atrSectors ||
+    BOSS_BLOCK_BASE_SECTOR < bossRegionAreaEnd ||
+    BOSS_BLOCK_BASE_SECTOR + bossRegionCount * BOSS_BLOCK_SECTORS - 1 > chunkLoaderConstants.atrSectors) {
+    throw new Error("M5b-S4a-i / S5-1: four regions and their blocks do not fit the disk");
+  }
+  for (const region of bossRegions) {
+    if (region.runs.block.sectors > BOSS_BLOCK_SECTORS ||
+      region.runs.block.sectors * 128 > BOSS_SLOT_F_BYTES) {
+      throw new Error(`S5-1: region ${region.name}'s block is ${region.runs.block.sectors} sectors`);
+    }
   }
   writeFile(path.join(buildDirectory, "boss.bin"), bossImage);
   writeFile(path.join(buildDirectory, "boss.lbl"), bossLinked.outputs[`${bossBase}.lbl`]);
@@ -4255,9 +4275,14 @@ async function build() {
         columnMap: bossLabels.get("boss_column_map"), ring: bossLabels.get("boss_ring") },
       slotD: { address: BOSS_SLOT_D_ADDRESS, bytes: bossSlotDUsed, codeBytes: bossSlotDCodeBytes,
         capacityBytes: BOSS_SLOT_D_BYTES, freeBytes: BOSS_SLOT_D_BYTES - bossSlotDUsed,
-        sectors: bossSlotDSectors,
-        // M5b-S4b.4 (E4 (b)): region 1's look tail, first in slot D.
-        lookTail: { address: bossLabels.get("boss_look_tail"), bytes: bossRegions[0].lookTail.length } },
+        sectors: bossSlotDSectors },
+      // S5-1 (owner decision Q9): slot F, the HUD charset's unused upper half,
+      // each region's block (today its look tail) read there at the entry.
+      slotF: { address: BOSS_SLOT_F_ADDRESS, capacityBytes: BOSS_SLOT_F_BYTES,
+        lookTail: { address: bossRegions[0].lookTailAddress, bytes: bossRegions[0].lookTail.length },
+        blocks: bossRegions.map((region, index) => ({ region: index + 1, bytes: region.lookTail.length,
+          sectors: region.runs.block.sectors, startSector: bossRegionRunSector(index, "block"),
+          freeBytes: BOSS_SLOT_F_BYTES - region.lookTail.length })) },
       // M5b-S4b.5: slot E over the expanded hull maps, the boss sector only.
       slotE: { address: BOSS_SLOT_E_ADDRESS, bytes: bossSlotEUsed, codeBytes: bossSlotECodeBytes,
         capacityBytes: BOSS_SLOT_E_BYTES, freeBytes: BOSS_SLOT_E_BYTES - bossSlotEUsed,
@@ -4265,7 +4290,8 @@ async function build() {
       laserFixtureTier,
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
-        regions: [bossRegionBaseSector, bossRegionAreaEnd - 1] },
+        regions: [bossRegionBaseSector, bossRegionAreaEnd - 1],
+        blocks: [BOSS_BLOCK_BASE_SECTOR, BOSS_BLOCK_BASE_SECTOR + bossRegionCount * BOSS_BLOCK_SECTORS - 1] },
       runs: bossDiskRuns.map(({ name, startSector, sectors, destination, data, file }) =>
         ({ name, startSector, sectors, destination, bytes: data.length, sha256: sha256(data), file })),
       regions: bossRegions.map((region, index) => ({
@@ -4274,7 +4300,8 @@ async function build() {
         charsetSectors: region.runs.charset.sectors, modules: region.modules.length,
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
-          BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors,
+          BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +
+          region.runs.block.sectors,
       })),
     },
     lightWingman: lightPlacement,
@@ -4373,7 +4400,7 @@ async function build() {
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
           "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
+          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_ASM_WINDOW_TAIL",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,

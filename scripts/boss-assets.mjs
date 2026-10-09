@@ -53,6 +53,13 @@ export const BOSS_SLOT_C_ADDRESS = 0x1000;
 export const BOSS_SLOT_C_BYTES = 0x0800;
 export const BOSS_SCRATCH_ADDRESS = 0x1800;
 export const BOSS_SCRATCH_BYTES = 0x0100;
+// S5-1 (owner decision Q8, plan s5-boss-regions §4.1): the HUD's ten booster
+// cells (columns 30-39: the BOOST label, a space, four energy cells), backed
+// up by the boss entry's resident half before the WARNING screen and put back
+// by the install after its HUD rewrite - the scratch page's last ten bytes.
+export const BOSS_HUD_BOOSTER_SCREEN = 0x4000 + 30;
+export const BOSS_HUD_BOOSTER_CELLS = 10;
+export const BOSS_HUD_BOOSTER_BACKUP = BOSS_SCRATCH_ADDRESS + BOSS_SCRATCH_BYTES - BOSS_HUD_BOOSTER_CELLS;
 // M5b-S4b (owner decision Q7, 2026-10-06): slot D, the lasers and the boss
 // shots inside the band, read at every boss entry, sized to use.
 export const BOSS_SLOT_D_ADDRESS = 0x1900;
@@ -63,10 +70,20 @@ export const BOSS_SLOT_D_BYTES = 0x0700;
 // at the boss entry, live in the boss sector only.
 export const BOSS_SLOT_E_ADDRESS = 0x4c00;
 export const BOSS_SLOT_E_BYTES = 0x0240;
-// M5b-S4b.4 (owner decision E4, option (b)): the region's look tail, linked
-// at the start of slot D. It and its loader take at most 110 B of the
-// $1900-$1FFF remainder; the loader is slot D's own run (0 B of code).
-export const BOSS_LOOK_TAIL_ADDRESS = BOSS_SLOT_D_ADDRESS;
+// S5-1 (owner decision Q9, plan s5-boss-regions §2.7, §4.1): slot F, the HUD
+// charset's unused upper half - codes 64-127 of the charset at $5000, which no
+// HUD cell shows (the HUD draws codes 0-58) - the home of the region's block,
+// read by slot A's head as the region's fourth run at every boss entry. No
+// restore: nothing reads it outside the boss sector.
+export const BOSS_SLOT_F_ADDRESS = 0x5200;
+export const BOSS_SLOT_F_BYTES = 0x0200;
+// The region block's disk reservation: 4 sectors a region from 696.
+export const BOSS_BLOCK_BASE_SECTOR = 696;
+export const BOSS_BLOCK_SECTORS = 4;
+// M5b-S4b.4 (owner decision E4, option (b)): the region's look tail, at most
+// 110 B. S5-1: it is the region block - at the start of slot F, no longer the
+// head of slot D, which every region shared (one region's tail only).
+export const BOSS_LOOK_TAIL_ADDRESS = BOSS_SLOT_F_ADDRESS;
 export const BOSS_LOOK_TAIL_MAX_BYTES = 110;
 // The boss's claim in low RAM (owner answers Q-B5 and Q7): the charset, slot
 // C, the scratch page and slot D - the boss sector's only (phase `overlay`).
@@ -929,13 +946,14 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     const nibble = (row) => (row === null ? 0 : row + 1);
     tail.push(nibble(hullStop[c]) | (nibble(hullStop[c + 1]) << 4));
   }
-  // E4 (b): the charset alone fills the charset area; the look tail is slot D's.
+  // E4 (b): the charset alone fills the charset area; the look tail is the
+  // region block's (slot F, S5-1).
   if (glyphs.length > BOSS_CHARSET_BYTES) {
     fail(`the charset (${glyphs.length} B) exceeds ${BOSS_CHARSET_BYTES} B`);
   }
   if (tail.length > BOSS_LOOK_TAIL_MAX_BYTES) {
     fail(`the look tail is ${tail.length} B; owner decision E4 gives it ${BOSS_LOOK_TAIL_MAX_BYTES} B ` +
-      "of slot D's remainder");
+      "(the region block)");
   }
   const lookTailAddress = BOSS_LOOK_TAIL_ADDRESS;
   const charsetBytes = glyphs.length;
@@ -1060,6 +1078,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       bandA: { address: BOSS_BAND_A_ADDRESS, sectors: BOSS_BAND_A_SECTORS, data: bandA },
       bandB: { address: BOSS_BAND_B_ADDRESS, sectors: BOSS_BAND_B_SECTORS, data: bandB },
       charset: { address: BOSS_CHARSET_ADDRESS, sectors: charsetSectors, data: charsetRun },
+      // S5-1: the region block, read into slot F; today the look tail alone.
+      block: { address: BOSS_SLOT_F_ADDRESS, sectors: Math.ceil(tail.length / 128),
+        data: Uint8Array.from({ length: Math.ceil(tail.length / 128) * 128 }, (_, i) => tail[i] ?? 0) },
     }),
   });
 }
@@ -1091,6 +1112,9 @@ export function renderBossLayoutInclude() {
     `BOSS_DIVIDER_CODES       = ${BOSS_DIVIDER_CODES}`,
     `BOSS_SLOT_C              = ${hex(BOSS_SLOT_C_ADDRESS)}`,
     `BOSS_SCRATCH             = ${hex(BOSS_SCRATCH_ADDRESS)}`,
+    `BOSS_HUD_BOOSTER_SCREEN  = ${hex(BOSS_HUD_BOOSTER_SCREEN)}`,
+    `BOSS_HUD_BOOSTER_CELLS   = ${BOSS_HUD_BOOSTER_CELLS}`,
+    `BOSS_HUD_BOOSTER_BACKUP  = ${hex(BOSS_HUD_BOOSTER_BACKUP)}`,
     `BOSS_MAX_MODULES         = ${BOSS_MAX_MODULES}`,
     `BOSS_MODULE_BYTES        = ${BOSS_MODULE_BYTES}`,
     ...Object.entries(BOSS_KIND).map(([name, value]) =>
@@ -1101,6 +1125,7 @@ export function renderBossLayoutInclude() {
     `BOSS_SHOT_CODES          = ${BOSS_SHOT_CODES}`,
     `BOSS_HOSTILE_SHOT_CODES  = ${BOSS_HOSTILE_SHOT_CODES}`,
     `BOSS_SLOT_D              = ${hex(BOSS_SLOT_D_ADDRESS)}`,
+    `BOSS_SLOT_F              = ${hex(BOSS_SLOT_F_ADDRESS)}`,
     `BOSS_LOOK_TAIL           = ${hex(BOSS_LOOK_TAIL_ADDRESS)}`,
     ...Object.entries(BOSS_TABLE).map(([name, offset]) =>
       `${constantName("BOSS_T_", name).padEnd(24)} = BOSS_TABLES+${offset}`),

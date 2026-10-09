@@ -149,7 +149,7 @@ BOSS_RUN_SLOT_C  = 5
 BOSS_RUN_SLOT_D  = 10
 BOSS_RUN_SLOT_E  = 15
 BOSS_RUN_REGIONS = 20
-BOSS_REGION_RUNS = 3
+BOSS_REGION_RUNS = 4
 
 .assert BOSS_BAND_ROWS = 8, error, "the band is 8 rows (owner answer Q2)"
 .assert hull_scroll_rates = world_scroll_rates + 3, error, "the two scroll-rate tables are no longer one 6-B run"
@@ -222,7 +222,7 @@ boss_vector_image_end:
 boss_head:
     ; audit-hardening (AUD-02): slot A itself was checked by the reader's run
     ; read before it ran, which leaves the disk guard's fold at zero; the
-    ; seven runs the head reads are folded on from there.
+    ; eight runs the head reads (S5-1: the region block too) are folded on.
     ldy #BOSS_RUN_INSTALL
     jsr boss_read_run
     ldy #BOSS_RUN_SLOT_C
@@ -236,14 +236,17 @@ boss_head:
     sec
     sbc #$01
 @region:
-    cmp #$03
-    bcc @have_region
+    ; S5-1: the last region's test first, so the SBC's carry is the CMP's
+    ; (the window's entry half had and fixed the same order, c-asm-abi.s).
     cpx #$03
     beq @have_region
-    sbc #$03
+    cmp #$03
+    bcc @have_region
+    sbc #$03                            ; C=1 from the CMP
     inx
     bne @region
 @have_region:
+    stx boss_head_region                ; S5-1: the check's index (20-B stride)
     lda boss_region_runs,x
     ldx #BOSS_REGION_RUNS
 @run:
@@ -259,7 +262,7 @@ boss_head:
     adc #$05
     dex
     bne @run
-    jmp boss_head_check                 ; A = the region's last offset + 5
+    jmp boss_head_check
 
 ; Y = a run's offset in boss_runs: {sector lo, sector hi, count, dst lo, dst hi}.
 boss_read_run:
@@ -296,23 +299,20 @@ boss_runs:
 ; audit-hardening (AUD-02, docs/plans/audit-hardening.md §3): the head's check,
 ; in a segment of its own at slot A's end, so that the head and every routine
 ; behind it keep their addresses. Nothing the head read is run or used - the
-; install, slots C-E, the band and its tables - unless the seven runs check
+; install, slots C-E, the band and its tables - unless the eight runs check
 ; against the region's value; then the module count is bounded to 1..16
 ; before the controller can index its 16-entry arrays with it. Either refusal
 ; is the reader's failure screen (WRONG DISK), as a missing region is.
-; A = BOSS_RUN_REGIONS + region * 15 + 15 = 35 + 15 * region: its top nibble
-; is region + 2 for the four regions (asserted below).
+; S5-1: eight runs - the region's block (slot F) is its fourth - and the
+; region's index from the head (boss_head_region), the run table's 20-B
+; stride no longer naming it by the last offset's top nibble.
 ; ===========================================================================
 .segment "BOSS_HEAD_CHECK"
 
 boss_head_check:
-    lsr
-    lsr
-    lsr
-    lsr
-    tax
-    lda boss_head_sums_lo-2,x
-    ldy boss_head_sums_hi-2,x
+    ldx boss_head_region
+    lda boss_head_sums_lo,x
+    ldy boss_head_sums_hi,x
     jsr guard_compare
     bcs @refused
     ldx BOSS_T_MODULE_COUNT
@@ -323,12 +323,10 @@ boss_head_check:
 @refused:
     jmp boss_wrong_disk
 
-; The expected fold of the head's seven runs, per region (scripts/build.mjs).
+; The expected fold of the head's eight runs, per region (scripts/build.mjs).
     .include "boss-sums.inc"
 
-.repeat 4, R
-.assert ((BOSS_RUN_REGIONS + (R + 1) * BOSS_REGION_RUNS * 5) >> 4) = R + 2, error, "the head's last offset no longer names its region by its top nibble"
-.endrepeat
+.assert BOSS_RUN_REGIONS + 4 * BOSS_REGION_RUNS * 5 <= 256, error, "the run table outgrows the head's 8-bit offsets"
 
 .segment "BOSS_CODE"
 
@@ -646,34 +644,9 @@ boss_after_hit:
 boss_after_stage:
     ldx _boss_score_module
     bmi boss_after_done
-    ; The module's score, packed BCD (light_add_score's path), then the kill
-    ; stat and the HUD through the reader's kill vector, and the kill sound
-    ; (channel 2). (The harness counts kills at this label, as it does at the
-    ; score routines.)
-boss_module_scored:
-    jsr boss_record_of
-    sed
-    clc
-    lda score_bcd_lo
-    adc BOSS_T_MODULES + BOSS_M_SCORE,y
-    sta score_bcd_lo
-    lda score_bcd_hi
-    adc #$00
-    sta score_bcd_hi
-    cld
-    jsr SECTOR_READER_STATS_KILL
-    jsr play_hit_sound
-    jsr laser_killed                    ; S4b: a destroyed emitter's laser off now
-    ; Gone (decision L): the module disappears (queued), and its columns
-    ; rebuilt now - a shot there meets the module behind it, or the hull.
-    lda _boss_score_module
-    ldx #BOSS_MODE_GONE
-    ldy #$00
-    sty boss_frame_heavy                ; any nonzero: Y is 0, so...
-    inc boss_frame_heavy                ; ... 1
-    jsr boss_enqueue
-    ldx _boss_score_module
-    jmp boss_rebuild_module
+    ; S5-1 (plan s5-boss-regions §4.1): the kill's scoring lives in slot D
+    ; now, so slot A has room for the regions' fourth run.
+    jmp boss_module_scored
 boss_after_done:
     rts
 
@@ -1622,6 +1595,13 @@ boss_queue_value:   .res BOSS_QUEUE_ENTRIES
 boss_candidates:    .res BOSS_MAX_MODULES   ; a rebuild's modules behind the dead one
 .assert boss_column_map = BOSS_SCRATCH, error, "the column map leads the scratch page"
 
+; S5-1 (owner decision Q8): the HUD's booster cells across the entry - the
+; window's entry half writes them before the WARNING screen, the install puts
+; them back (cfg/boss.cfg pins the segment to the page's last ten bytes).
+.segment "BOSS_HUD_BACKUP"
+boss_hud_booster:   .res BOSS_HUD_BOOSTER_CELLS
+.assert boss_hud_booster = BOSS_HUD_BOOSTER_BACKUP, lderror, "the HUD booster backup must be where the window's entry half writes it"
+
 .segment "BOSS_BSS"
 boss_mx:            .res BOSS_MAX_MODULES   ; each module's first column
 boss_mxe:           .res BOSS_MAX_MODULES   ; and the column past its last
@@ -1662,6 +1642,7 @@ boss_dead:          .res 1
 boss_col_start:     .res 1
 boss_candidate_count: .res 1
 boss_frame_heavy:   .res 1
+boss_head_region:   .res 1      ; S5-1: the region the head read, for its check
 boss_column:        .res 1      ; the band column boss_cell_at reads
 boss_queue_head:    .res 1
 boss_queue_tail:    .res 1
@@ -1705,16 +1686,12 @@ boss_mbottom_y:     .res BOSS_MAX_MODULES   ; the line under each module's botto
 ; the player's shots in its column (Q6). No laser starts and none shows while
 ; the player is not ALIVE; a dead emitter's laser goes off at once.
 ; ===========================================================================
-; M5b-S4b.4 (owner decision E4, option (b), 2026-10-07): the region's look
-; tail - its open looks, the nozzle phases, the hull-stop table - first in
-; slot D, out of the charset area, so the region's charset has all 128 codes.
-; The build writes it from the converter (build/boss-look-tail.bin); slot D's
-; own run reads it with the code, so it has no loader. The region's tables
-; point at it (BOSS_T_LOOK_TAIL).
-.segment "BOSS_D_LOOKS"
-boss_look_tail:
-    .incbin "/project/build/boss-look-tail.bin"
-.assert boss_look_tail = BOSS_LOOK_TAIL, error, "the look tail is not where the converter points the region's tables"
+; S5-1 (owner decision Q9, plan s5-boss-regions §4.1): the region's look tail
+; - its open looks, the nozzle phases, the hull-stop table - is the region
+; block, read by the head as the region's fourth run into slot F
+; (BOSS_SLOT_F, the HUD charset's unused upper half); the region's tables
+; point at it (BOSS_T_LOOK_TAIL). Until S5-1 it led slot D, which every region
+; shares, so a disk could carry one region only.
 
 .segment "BOSS_D_CODE"
 
@@ -2800,6 +2777,38 @@ laser_publish:
     sta SIZEM
     rts
 
+.segment "BOSS_D_CODE"
+
+; A module fell (from slot A's boss_after_stage, S5-1: moved from slot A).
+; The module's score, packed BCD (light_add_score's path), then the kill stat
+; and the HUD through the reader's kill vector, and the kill sound (channel
+; 2). (The harness counts kills at this label, as it does at the score
+; routines.)
+boss_module_scored:
+    jsr boss_record_of
+    sed
+    clc
+    lda score_bcd_lo
+    adc BOSS_T_MODULES + BOSS_M_SCORE,y
+    sta score_bcd_lo
+    lda score_bcd_hi
+    adc #$00
+    sta score_bcd_hi
+    cld
+    jsr SECTOR_READER_STATS_KILL
+    jsr play_hit_sound
+    jsr laser_killed                    ; S4b: a destroyed emitter's laser off now
+    ; Gone (decision L): the module disappears (queued), and its columns
+    ; rebuilt now - a shot there meets the module behind it, or the hull.
+    lda _boss_score_module
+    ldx #BOSS_MODE_GONE
+    ldy #$00
+    sty boss_frame_heavy                ; any nonzero: Y is 0, so...
+    inc boss_frame_heavy                ; ... 1
+    jsr boss_enqueue
+    ldx _boss_score_module
+    jmp boss_rebuild_module
+
 .segment "BOSS_D_BSS"
 boss_laser_slots:   .res 1      ; the emitter slots the tier enables
 boss_laser_module:  .res LASERS ; each laser's module, LASER_NONE
@@ -2910,6 +2919,15 @@ boss_install:
 @hud_done:
     jsr update_score_display
     jsr update_hud_status
+    ; S5-1 (owner decision Q8): the booster's ten cells as they were before the
+    ; WARNING screen (an active booster's label and energy, else the plain
+    ; HUD's), backed up by the window's entry half.
+    ldx #(BOSS_HUD_BOOSTER_CELLS - 1)
+@booster:
+    lda boss_hud_booster,x
+    sta BOSS_HUD_BOOSTER_SCREEN,x
+    dex
+    bpl @booster
     lda #$00
     jsr set_gameplay_row_ptr
     jsr generate_starfield_row

@@ -157,6 +157,10 @@ test("decision 32: WARNING - BOSS APPROACHING, the theme started, then every run
     ...run(577, BOSS.slotE.sectors),
     ...run(634, 3), ...run(637, 3),                       // the band: rows 0-5, rows 6-7 + tables
     ...run(640, charsetSectors),                          // the region's charset at $0C00
+    // RE-POINTED S5-1 (owner decision Q9, plan s5-boss-regions §4.1): the
+    // region's block - its look tail, which led slot D until S5-1 - is the
+    // head's fourth region run, into slot F, from the blocks' reservation at 696.
+    ...run(696, region1.runs.block.sectors),
   ]);
   assert.equal(drive.readSectors.length, BOSS.regions[0].entrySectors);
   // When the boss code's first sector is asked for, the screen and the theme

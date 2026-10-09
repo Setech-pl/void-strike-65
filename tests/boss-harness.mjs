@@ -277,9 +277,12 @@ export function bossGateMemory() {
 }
 
 // Run the boss entry from the window's resident half to the main loop.
-export function runBossEntry({ onCommand = null, watch = null } = {}) {
+// S5-1: `prepare(memory)` adjusts the gate's machine first (a level id, a
+// booster); `sectorOf` is the disk in the drive (the built ATR by default).
+export function runBossEntry({ onCommand = null, watch = null, prepare = null, sectorOf = undefined } = {}) {
   const memory = bossGateMemory();
-  const drive = new Drive({ onCommand });
+  prepare?.(memory);
+  const drive = new Drive({ onCommand, ...(sectorOf === undefined ? {} : { sectorOf }) });
   const cpu = cpuOver(drive, memory);
   cpu.sp = 0xf0;
   cpu.pc = label("director", "_asm_boss_enter");
@@ -288,6 +291,17 @@ export function runBossEntry({ onCommand = null, watch = null } = {}) {
     failure: label("reader", "sector_reader_failure_screen"),
   }, { watch });
   return { memory, drive, cpu, end };
+}
+
+// S5-1: a main.s equate chain (NAME = OTHER+$xx) resolved to an address,
+// labels first - for main's state bytes that are equates, not labels.
+const mainSource = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
+export function mainAddress(name) {
+  try { return label("main", name); } catch { /* an equate */ }
+  const match = new RegExp(`^${name}\\s*=\\s*([A-Za-z_]\\w*)?\\s*\\+?\\s*\\$?([0-9A-Fa-f]+)?\\s*(?:;.*)?$`, "m").exec(mainSource);
+  assert.ok(match, `main.s has no equate ${name}`);
+  const [, base, offset] = match;
+  return (base ? mainAddress(base) : 0) + (offset ? Number.parseInt(offset, 16) : 0);
 }
 
 export const word = (memory, address) => memory[address] | (memory[address + 1] << 8);
@@ -302,16 +316,18 @@ export function installRegion(memory, region, { level = 1, difficulty = 1 } = {}
   memory.set(region.runs.bandB.data, region.runs.bandB.address);
   memory.set(region.runs.charset.data, region.runs.charset.address);
   // M5b-S4b.4 (owner decision E4 (b)): the look tail is no longer in the
-  // charset run - the build links it first in slot D, read with slot D's run.
-  // A test region stands in for the build's own: its tail goes where slot D's
-  // run puts the build's, and must fit the bytes the build reserved there.
-  const reserved = manifest.boss.slotD.lookTail?.bytes;
-  if (reserved !== undefined) {
-    if (region.lookTail.length > reserved || region.lookTailAddress !== manifest.boss.slotD.lookTail.address) {
-      throw new Error(`installRegion: the region's ${region.lookTail.length}-B look tail does not fit the ` +
-        `${reserved} B the build reserved at $${manifest.boss.slotD.lookTail.address.toString(16)}`);
+  // charset run. RE-POINTED S5-1 (owner decision Q9): it is the region's
+  // block, read into slot F by the head as the region's fourth run, so a test
+  // region's block goes where the build's goes (before S5-1 it was linked
+  // first in slot D and had to fit the bytes reserved there).
+  if (manifest.boss.slotF !== undefined) {
+    if (region.runs.block.address !== manifest.boss.slotF.address ||
+      region.runs.block.data.length > manifest.boss.slotF.capacityBytes) {
+      throw new Error(`installRegion: the region's ${region.runs.block.data.length}-B block does not fit slot F`);
     }
-    memory.set(region.lookTail, region.lookTailAddress);
+    memory.set(region.runs.block.data, region.runs.block.address);
+  } else if (manifest.boss.slotD.lookTail !== undefined) {
+    memory.set(region.lookTail, manifest.boss.slotD.lookTail.address);
   }
   const charset = label("main", "CHARSET");
   memory.copyWithin(region.runs.charset.address, charset, charset + 7 * 8);

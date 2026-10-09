@@ -88,7 +88,7 @@ test("the once-only install is one 3-sector run at $7810, below the region's the
 // RE-POINTED M5b-S4a-i (§5.13.4): 528-583 holds the boss code (up to 16,
 // sized), the install (544-546) and slot C (547, up to 16, sized); each region
 // its own 16 sectors from 632 - theme 2, band A 3, band B 3, charset <= 8.
-test("the disk: boss code from 528, the install 544-546, slot C from 547, region 1 at 632-647", () => {
+test("the disk: boss code from 528, the install 544-546, slot C from 547, region 1 at 632-647, its block at 696", () => {
   const codeSectors = manifest.boss.slotA.sectors;
   const slotCSectors = manifest.boss.slotC.sectors;
   assert.ok(codeSectors <= 16 && slotCSectors <= 16);
@@ -105,15 +105,25 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
   assert.deepEqual(atrRun(REGION_1_SECTOR + 5, BOSS_BAND_B_SECTORS), Buffer.from(bandB.data));
   assert.deepEqual(atrRun(REGION_1_SECTOR + 8, charset.sectors), Buffer.from(charset.data));
   assert.ok(charset.sectors <= 8);
-  // Regions 2-4 are S5's: their 48 sectors are reserved and empty.
-  assert.ok(atrRun(REGION_1_SECTOR + 16, 48).every((byte) => byte === 0));
-  assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695] });
+  // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk as
+  // copies of region 1 (they were S5's 48 empty reserved sectors), each with
+  // its block in the blocks' reservation 696-711 (owner decision Q9: the look
+  // tail is the region's block in slot F, no longer slot D's head).
+  for (let region = 0; region < 4; region += 1) {
+    const at = REGION_1_SECTOR + region * 16;
+    assert.deepEqual(atrRun(at, BOSS_THEME_SECTORS), readBuild("boss-region-1-theme.bin"), `region ${region + 1} theme`);
+    assert.deepEqual(atrRun(at + 2, BOSS_BAND_A_SECTORS), Buffer.from(bandA.data), `region ${region + 1} band A`);
+    assert.deepEqual(atrRun(at + 8, charset.sectors), Buffer.from(charset.data), `region ${region + 1} charset`);
+    assert.deepEqual(atrRun(696 + region * 4, region1.runs.block.sectors), Buffer.from(region1.runs.block.data),
+      `region ${region + 1} block`);
+  }
+  assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695], blocks: [696, 711] });
 });
 
 // RE-POINTED M5b-S4a-i: entry 1's count is the boss code's linked sectors;
 // entry 2 is region 1's 2-sector theme run at 632 (was the 4-sector staging
 // run at 547).
-test("the overlay directory names the boss code and region 1's theme run; 3-5 stay empty", () => {
+test("the overlay directory names the boss code and the four regions' theme runs", () => {
   const text = readBuild("overlay-directory.inc").toString("utf8");
   const directory = text.split("overlay_directory:")[1].split("overlay_directory_end:")[0];
   const entries = [...directory.matchAll(/^\s+\.byte \$([0-9a-f]{2}), \$([0-9a-f]{2}), \$?(\d+), \$([0-9a-f]{2}), \$([0-9a-f]{2})/gm)]
@@ -124,7 +134,12 @@ test("the overlay directory names the boss code and region 1's theme run; 3-5 st
     destination: manifest.overlays.slotA.address });
   assert.deepEqual(entries[2], { sector: REGION_1_SECTOR, count: BOSS_THEME_SECTORS,
     destination: STAGING_ADDRESS });
-  for (const index of [3, 4, 5]) assert.equal(entries[index].count, 0, `entry ${index}`);
+  // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk (copies
+  // of region 1), so entries 3-5 name their theme runs (they stayed empty).
+  for (const index of [3, 4, 5]) {
+    assert.deepEqual(entries[index], { sector: REGION_1_SECTOR + (index - 2) * 16, count: BOSS_THEME_SECTORS,
+      destination: STAGING_ADDRESS }, `entry ${index}`);
+  }
 });
 
 test("Q-S3: the window's pins are the addresses their links gave those labels", () => {

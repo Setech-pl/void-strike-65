@@ -616,7 +616,7 @@ BOSS_REGIONS             = 4
 .segment "HYBRID_ASM_WINDOW"
 
 _asm_boss_enter:
-    jsr pin_music_stop_gameplay
+    jsr boss_enter_hud_backup   ; S5-1: then pin_music_stop_gameplay (below)
     jsr pin_pause_silence_audio
     jsr pin_sector_reader_blank
     lda #$00
@@ -631,11 +631,15 @@ _asm_boss_enter:
     sec
     sbc #$01
 @region:
-    cmp #$03
-    bcc @read_region
+    ; S5-1: the last region's test first, so the SBC's carry is the CMP's.
+    ; (With the CPX between them C was the CPX's - 0 below the last region -
+    ; and every pass took 4, not 3: levels 4-12 read the wrong region. Latent
+    ; until S5-1 put regions 2-4 on the disk; the same bytes, reordered.)
     cpx #(BOSS_REGION_ENTRY + BOSS_REGIONS - 1)
     beq @read_region
-    sbc #$03                    ; C=1 from the compare
+    cmp #$03
+    bcc @read_region
+    sbc #$03                    ; C=1 from the CMP
     inx
     bne @region
 @read_region:
@@ -667,3 +671,19 @@ boss_warning_records:
     .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
     .byte "BOSS APPROACHING", $00
     .byte $FF
+
+; S5-1 (owner decision Q8, plan s5-boss-regions §4.1): the HUD's ten booster
+; cells into the boss scratch page's last ten bytes before anything clears the
+; row; the install puts them back after its HUD rewrite, so an active booster's
+; label and energy survive the entry exactly. Called in place of the entry's
+; first JSR, which it tail-calls: _asm_boss_enter keeps its size, and this
+; segment is the window's last, so no window byte above it moves.
+.segment "HYBRID_ASM_WINDOW_TAIL"
+boss_enter_hud_backup:
+    ldx #(BOSS_HUD_BOOSTER_CELLS - 1)
+@cell:
+    lda BOSS_HUD_BOOSTER_SCREEN,x
+    sta BOSS_HUD_BOOSTER_BACKUP,x
+    dex
+    bpl @cell
+    jmp pin_music_stop_gameplay

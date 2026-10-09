@@ -116,6 +116,7 @@ const SEGMENTS = {
   HYBRID_C_WINDOW: ["Director link's half of the BASIC window", "resident"],
   HYBRID_ASM_WINDOW: ["the boss entry's resident half (M5b-S3), last in the Director link's window half", "resident"],
   HYBRID_C_WINDOW_FLOW: ["the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses", "resident"],
+  HYBRID_ASM_WINDOW_TAIL: ["the boss entry's HUD booster backup (S5-1), the window's last segment", "resident"],
   LIGHT_KERNEL: ["Light ASM kernel; carries the capital vector table", "resident"],
   DISK_GUARD: ["the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record", "resident"],
   CAPITAL_VECTOR_IMAGE: ["the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening)", "resident"],
@@ -137,10 +138,10 @@ const SEGMENTS = {
   BOSS_C_ASM: ["boss slot C: the overlay's once-per-entry ASM (boss_prepare)", "overlay"],
   BOSS_C_BSS: ["boss slot C: the controller's state (after its code, never read from disk)", "overlay"],
   BOSS_SCRATCH: ["boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates", "overlay"],
+  BOSS_HUD_BACKUP: ["the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes", "overlay"],
   BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry", "boss-entry"],
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.
-  BOSS_D_LOOKS: ["boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): first in slot D, read with its run", "overlay"],
   BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
   BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour; read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
@@ -453,6 +454,9 @@ function collectRows(build) {
   add(m.boss.slotC.address, m.boss.slotC.address + m.boss.slotC.capacityBytes - 1, "slot", `boss slot C: the C controller, run \`boss-slot-c\` (${m.boss.slotC.sectors} sectors)`, "overlay", "manifest `boss.slotC`");
   add(m.boss.scratch.address, m.boss.scratch.address + m.boss.scratch.capacityBytes - 1, "slot", "boss scratch page: the column map, the ring, slot A's state; set by the install", "overlay", "manifest `boss.scratch`");
   add(m.boss.slotD.address, m.boss.slotD.address + m.boss.slotD.capacityBytes - 1, "slot", `boss slot D: the lasers and the boss's shots in the band, run \`boss-slot-d\` (${m.boss.slotD.sectors} sectors)`, "overlay", "manifest `boss.slotD`");
+  // S5-1 (owner decision Q9): slot F, the HUD charset's unused upper half.
+  add(m.boss.slotF.address, m.boss.slotF.address + m.boss.slotF.capacityBytes - 1, "slot", "boss slot F (S5-1, owner decision Q9): the HUD charset's unused upper half (codes 64-127, never shown); the region's block, read at every boss entry as the region's fourth run; no restore", "overlay", "manifest `boss.slotF`, tests/slot-f.test.mjs");
+  add(m.boss.slotF.lookTail.address, m.boss.slotF.lookTail.address + m.boss.slotF.lookTail.bytes - 1, "slot", "boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then)", "overlay", "manifest `boss.slotF.lookTail`");
   // M5b-S4b.5 (owner decision 2026-10-07): slot E over the expanded hull maps.
   add(m.boss.slotE.address, m.boss.slotE.address + m.boss.slotE.capacityBytes - 1, "slot", `boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run \`boss-slot-e\` (${m.boss.slotE.sectors} sectors)`, "overlay", "manifest `boss.slotE`, cfg/boss.cfg");
   add(m.pause.screenBackupAddress, m.pause.screenBackupAddress + m.pause.screenBackupBytes - 1, "transient", "pause-screen backup (`PAUSE_SCREEN_BACKUP`)", "pause", "manifest `pause`");

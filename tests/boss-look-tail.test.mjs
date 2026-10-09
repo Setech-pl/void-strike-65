@@ -4,13 +4,19 @@
 // 128 codes. The tail and its loader may take at most 110 B of $1900-$1FFF;
 // the build links the tail first in slot D, so slot D's own run is its loader
 // (0 B of code).
+//
+// RE-POINTED S5-1 (owner decision Q9, plan s5-boss-regions §4.1): the tail is
+// the region's block now, read by slot A's head as the region's fourth run
+// into slot F ($5200, the HUD charset's unused upper half) - slot D was every
+// region's, so it could carry one region's tail only. The size rule (E4,
+// <= 110 B) and the pointer through the tables are unchanged.
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
 
 import {
   BOSS_CLAIM, BOSS_CHARSET_ADDRESS, BOSS_CHARSET_BYTES, BOSS_LOOK_TAIL_ADDRESS, BOSS_LOOK_TAIL_MAX_BYTES,
-  BOSS_SLOT_D_ADDRESS, BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
+  BOSS_SLOT_F_ADDRESS, BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import { bossPanelRegisters } from "../scripts/boss-preview.mjs";
 import { renderBlock } from "../scripts/memory-map-report.mjs";
@@ -19,8 +25,8 @@ import { label, manifest, readBuild, root } from "./boss-harness.mjs";
 const draft = loadBossRegionDraft(bossRegionDirectory(root, 1));
 const region1 = compileBossRegion(draft, {});
 
-test("E4: the converter keeps the look tail out of the charset run and points the tables at slot D", () => {
-  assert.equal(BOSS_LOOK_TAIL_ADDRESS, BOSS_SLOT_D_ADDRESS);
+test("E4: the converter keeps the look tail out of the charset run and points the tables at slot F", () => {
+  assert.equal(BOSS_LOOK_TAIL_ADDRESS, BOSS_SLOT_F_ADDRESS);
   assert.equal(region1.lookTailAddress, BOSS_LOOK_TAIL_ADDRESS);
   assert.equal(region1.tables[BOSS_TABLE.lookTail] | (region1.tables[BOSS_TABLE.lookTail + 1] << 8),
     BOSS_LOOK_TAIL_ADDRESS, "BOSS_T_LOOK_TAIL");
@@ -34,34 +40,35 @@ test("E4: the converter keeps the look tail out of the charset run and points th
     new Array(run.data.length - region1.charsetBytes).fill(0), "nothing after the glyphs");
 });
 
-test("E4: the look tail is linked first in slot D, inside the boss claim, read by slot D's run", () => {
-  const tail = manifest.boss.slotD.lookTail;
-  assert.equal(tail.address, BOSS_SLOT_D_ADDRESS);
-  assert.equal(label("boss", "boss_look_tail"), BOSS_SLOT_D_ADDRESS);
-  assert.ok(tail.address >= BOSS_CLAIM.start && tail.address + tail.bytes <= BOSS_CLAIM.endExclusive,
-    "inside the boss claim");
-  assert.ok(tail.bytes <= BOSS_LOOK_TAIL_MAX_BYTES, `${tail.bytes} B (and no loader code)`);
-  const run = manifest.boss.runs.find((candidate) => candidate.name === "boss-slot-d");
-  assert.equal(run.destination, BOSS_SLOT_D_ADDRESS);
-  const image = readBuild("overlay-boss-slot-d.bin");
-  const built = readBuild("boss-look-tail.bin");
-  assert.equal(built.length, tail.bytes);
-  assert.deepEqual([...image.subarray(0, tail.bytes)], [...built], "the run's first bytes are the tail");
-  if (manifest.boss.laserFixtureTier === null) {
-    assert.deepEqual([...built], [...region1.lookTail], "the default build's tail is region 1's");
+test("E4 / S5-1: the look tail is each region's block in slot F, read as the region's fourth run", () => {
+  const slotF = manifest.boss.slotF;
+  assert.equal(slotF.address, BOSS_SLOT_F_ADDRESS);
+  assert.equal(slotF.lookTail.address, BOSS_SLOT_F_ADDRESS);
+  assert.ok(slotF.lookTail.bytes <= BOSS_LOOK_TAIL_MAX_BYTES, `${slotF.lookTail.bytes} B`);
+  assert.equal(slotF.blocks.length, 4, "a block for each of the four regions");
+  for (const block of slotF.blocks) {
+    const run = manifest.boss.runs.find((candidate) => candidate.name === `boss-region-${block.region}-block`);
+    assert.ok(run, `region ${block.region}'s block run`);
+    assert.deepEqual([run.destination, run.startSector, run.sectors], [BOSS_SLOT_F_ADDRESS, block.startSector, block.sectors]);
+    const image = readBuild(`boss-region-${block.region}-block.bin`);
+    if (manifest.boss.laserFixtureTier === null) {
+      assert.deepEqual([...image.subarray(0, region1.lookTail.length)], [...region1.lookTail],
+        "the default build's blocks are region 1's tail (regions 2-4 are copies, Q10)");
+    }
   }
+  // Slot D's run no longer carries it: its first bytes are the lasers' code.
+  assert.equal(manifest.boss.runs.find((candidate) => candidate.name === "boss-slot-d").destination, 0x1900);
   const tables = readBuild("boss-region-1-band-b.bin").subarray(128);
   const pointer = tables[BOSS_TABLE.lookTail] | (tables[BOSS_TABLE.lookTail + 1] << 8);
-  assert.equal(pointer, BOSS_SLOT_D_ADDRESS, "the built region's tables point at it");
-  // The built region is the build's own (a fixture build converts the fixture).
+  assert.equal(pointer, BOSS_SLOT_F_ADDRESS, "the built region's tables point at it");
   const charset = readBuild("boss-region-1-charset.bin");
-  assert.ok(image.length >= tail.bytes);
   assert.equal(manifest.boss.regions[0].charsetBytes <= BOSS_CHARSET_BYTES, true);
   assert.ok(charset.length <= BOSS_CHARSET_BYTES, "the charset run fits the charset area");
 });
 
 test("E4: the memory map names the look tail's home", () => {
-  const tail = manifest.boss.slotD.lookTail;
+  // RE-POINTED S5-1: the home is slot F (the region block's run).
+  const tail = manifest.boss.slotF.lookTail;
   const hex = (value) => `$${value.toString(16).toUpperCase().padStart(4, "0")}`;
   const block = renderBlock();
   const row = block.split("\n").find((line) => line.includes("boss region look tail"));

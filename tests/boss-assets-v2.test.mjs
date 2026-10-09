@@ -270,7 +270,11 @@ test("the runs: theme 2, band A 3, band B 3 with the 256-B tables, the charset s
   // RE-POINTED 2026-10-07 (M5b-S4b.4, owner decision E4 (b)): the look tail
   // left the charset run for the start of slot D; the charset run is glyphs.
   assert.equal(region1.charsetBytes, region1.codeCount * 8);
-  assert.equal(region1.lookTailAddress, 0x1900);
+  // RE-POINTED S5-1 (owner decision Q9): the look tail is the region's block,
+  // read into slot F ($5200), one sector, its own run (it led slot D, $1900).
+  assert.equal(region1.lookTailAddress, 0x5200);
+  assert.deepEqual([region1.runs.block.address, region1.runs.block.sectors], [0x5200, 1]);
+  assert.deepEqual([...region1.runs.block.data.subarray(0, region1.lookTail.length)], [...region1.lookTail]);
 });
 
 test("the preview renders the whole band in every stage and the extras, at the Atari palette and 2:1", () => {

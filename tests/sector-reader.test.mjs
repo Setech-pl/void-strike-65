@@ -779,10 +779,12 @@ function cpuOver(stub, memory) {
   });
 }
 
-function runReadRun(stub, index) {
+function runReadRun(stub, index, { emptyEntry = null } = {}) {
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
   memory.set(lightKernelImage, manifest.lightKernel.address);
+  // S5-1: every entry is on the disk now; a test empties one in memory.
+  if (emptyEntry !== null) memory[labels.get("overlay_directory") + emptyEntry * 5 + 2] = 0;
   const cpu = cpuOver(stub, memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
@@ -854,9 +856,12 @@ test("a directory entry the build left empty is rejected without touching SIO", 
   // empty-entry path is exercised on 3 and 5. The assertions are unchanged.
   // RE-POINTED 2026-10-07 (audit-hardening, owner decision 1): entry 9 is the
   // disk's identity sector, so the first index past the end is 10.
+  // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk, so no
+  // entry the build makes is empty; entries 3 and 5 are emptied in memory (a
+  // count of 0, the build's "not on this disk") to keep the path exercised.
   for (const index of [3, 5, 10, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
-    const result = runReadRun(stub, index);
+    const result = runReadRun(stub, index, { emptyEntry: index <= 9 ? index : null });
     assert.equal(result.failed, true, `entry ${index}`);
     assert.equal(result.status, status.BAD_IMAGE, `entry ${index}`);
     assert.equal(stub.commandFrames.length, 0, `entry ${index} reached the wire`);

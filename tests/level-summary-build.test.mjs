@@ -71,8 +71,11 @@ test("the overlay directory has ten entries; the summary code is entry 8 at $050
     "the boss code");
   assert.ok(manifest.boss.slotA.sectors <= 16);
   assert.deepEqual(entry(2), [632 & 0xff, 632 >> 8, 2, 0x90, 0x79], "region 1's theme run");
+  // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk (copies
+  // of region 1), each entry its 2-sector theme run at 632 + 16 x region.
   for (const index of [3, 4, 5]) {
-    assert.deepEqual(entry(index), [0, 0, 0, 0, 0], `entry ${index} belongs to M5b-S5`);
+    const sector = 632 + (index - 2) * 16;
+    assert.deepEqual(entry(index), [sector & 0xff, sector >> 8, 2, 0x90, 0x79], `entry ${index}: region ${index - 1}'s theme`);
   }
   assert.deepEqual(entry(9), [598 & 0xff, 598 >> 8, 1, 0x90, 0x78],
     "entry 9 is the identity sector, read into the record's read-back buffer");
@@ -201,6 +204,8 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
     ["capital restore", 512, 16],
     ["M5b reservation", 528, 56],
     ["M5b regions", 632, 64],
+    // S5-1 (owner decision Q9): the regions' blocks, 4 sectors each from 696.
+    ["S5 region blocks", 696, 16],
     ["summary code", levelSummary.code.startSector, levelSummary.code.sectors],
     ["save record", SAVE_SECTOR, 1],
     ...levelSummary.art.runs.map((run) => [`art ${run.region}`, run.startSector, 7]),
@@ -232,13 +237,27 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
     "528-583 between slot C and slot D must stay empty");
   // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision: slot E): slot E's run
   // follows slot D's (sector 577); the reservation is empty past it.
-  const slotEEnd = slotDEnd + manifest.boss.slotE.sectors;
-  assert.equal(manifest.boss.runs.find((run) => run.name === "boss-slot-e").startSector, slotDEnd);
-  assert.ok(atrSectors(slotDEnd, manifest.boss.slotE.sectors).some((byte) => byte !== 0), "slot E is on the disk");
+  // RE-POINTED S5-1 (plan s5-boss-regions §3.4): slot E's run sits after slot
+  // D's 14-sector room (577), not after its run - equal until S5-1, when the
+  // look tail left slot D for slot F and slot D's run fell to 13 sectors; the
+  // room between them is empty.
+  const slotEStart = 563 + 14;
+  const slotEEnd = slotEStart + manifest.boss.slotE.sectors;
+  assert.equal(manifest.boss.runs.find((run) => run.name === "boss-slot-e").startSector, slotEStart);
+  assert.ok(atrSectors(slotDEnd, slotEStart - slotDEnd).every((byte) => byte === 0),
+    "the room between slot D's run and slot E's must stay empty");
+  assert.ok(atrSectors(slotEStart, manifest.boss.slotE.sectors).some((byte) => byte !== 0), "slot E is on the disk");
   assert.ok(atrSectors(slotEEnd, 584 - slotEEnd).every((byte) => byte === 0),
     "528-583 past slot E must stay empty");
   assert.ok(atrSectors(632, 16).some((byte) => byte !== 0), "region 1 is on the disk");
-  assert.ok(atrSectors(648, 48).every((byte) => byte === 0), "regions 2-4 must stay empty");
+  // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk as
+  // copies of region 1, and every region's block at 696 + 4 x region.
+  for (let region = 1; region < 4; region += 1) {
+    assert.ok(atrSectors(632 + region * 16, 16).equals(atrSectors(632, 16)), `region ${region + 1} is region 1's copy`);
+  }
+  for (let region = 0; region < 4; region += 1) {
+    assert.ok(atrSectors(696 + region * 4, 1).some((byte) => byte !== 0), `region ${region + 1}'s block is on the disk`);
+  }
 });
 
 test("the stat hooks are operand-only in every full segment", () => {
@@ -353,7 +372,9 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // disk guard and the capital vector image behind the kernel.
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted): 1,185 -> 1,022,
   // the Director's sector-flow verdicts in the C half.
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1022, "the window moved");
+  // RE-PINNED S5-1 (owner decision Q8, plan s5-boss-regions §4.1): 1,022 ->
+  // 1,008, the boss entry's HUD booster backup (14 B, the window's last segment).
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1008, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618, "the initial block moved");
 });

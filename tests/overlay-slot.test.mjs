@@ -196,8 +196,11 @@ test("the reader's overlay directory and table image match the disk and the wind
   // disk); 3-5, regions 2-4, stay empty until S5.
   assert.ok(directory.subarray(5, 6).every((byte) => byte !== 0) &&
     directory.subarray(10, 11).every((byte) => byte !== 0), "entries 1-2 are the boss's");
-  assert.ok(directory.subarray(3 * 5, 6 * 5).every((byte) => byte === 0),
-    "entries 3-5 must read as not on this disk until M5b-S5 fills them");
+  // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk now
+  // (copies of region 1), so entries 3-5 name their theme runs.
+  for (const index of [3, 4, 5]) {
+    assert.ok(directory[index * 5 + 2] === 2, `entry ${index} is region ${index - 1}'s 2-sector theme run`);
+  }
 
   // RE-POINTED 2026-10-07 (audit-hardening): the table's boot image moved
   // from the reader to the Light kernel's link, behind the disk guard, so the

@@ -34,8 +34,9 @@ const BOSS_HOMES = Object.freeze({
   BOSS_C_BSS: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_SCRATCH: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
   BOSS_BSS: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
-  // M5b-S4b.4 (owner decision E4 (b)): the region's look tail, first in slot D.
-  BOSS_D_LOOKS: SLOT_D,
+  // S5-1 (owner decision Q8): the HUD booster cells' backup, the scratch page's last ten bytes.
+  BOSS_HUD_BACKUP: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
+  // (M5b-S4b.4's BOSS_D_LOOKS, the look tail first in slot D, left for slot F in S5-1.)
   BOSS_D_CODE: SLOT_D,
   BOSS_D_BSS: SLOT_D,
 });

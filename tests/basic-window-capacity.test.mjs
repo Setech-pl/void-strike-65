@@ -84,8 +84,12 @@ test("the window has room for the Director: the free tail is four digits", () =>
   // 1,022. The 163 B are the Director's three sector-flow verdicts in the C
   // half - C1's hold 105, the afterCleared gate 21, the early end 19 and their
   // shared field test 18.
-  assert.equal(basicWindow.freeBytes, 1022,
-    "the delivered sector-flow figure, re-recorded so a silent change is visible");
+  // Re-recorded S5-1 (owner decision Q8, plan s5-boss-regions §4.1): 1,022 ->
+  // 1,008. The 14 B are the boss entry's HUD booster backup, a segment of its
+  // own after everything else in the window (HYBRID_ASM_WINDOW_TAIL), so no
+  // window byte above it moved.
+  assert.equal(basicWindow.freeBytes, 1008,
+    "the delivered S5-1 figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
 });

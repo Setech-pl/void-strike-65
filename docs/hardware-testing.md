@@ -629,10 +629,12 @@ host frames; the menu appears at frame 551 (BASIC 542), as on `main`.
 ## 20. Sector flow: the early end, `afterCleared`, C1 (`feat/sector-flow`)
 
 Plan [plans/sector-flow.md](plans/sector-flow.md). **On copies only**, as
-§12. Default ATR `b57d5a83…` (`npm run play:atr` plays a copy in
+§12. Default ATR `977108bf…` (`npm run play:atr` plays a copy in
 `build/play/`); the swarm's debug route `build/level-1-s2/void-strike-65.atr`
-`d0d7d5a0…`; elite (a) → the Bomber pair `build/level-1-s3/void-strike-65.atr`
-`04bfd3b7…`. Copy, then run (from the repository):
+`9a9c8587…`; elite (a) → the Bomber pair `build/level-1-s3/void-strike-65.atr`
+`bc427161…`; elite (b) → the boss `build/level-1-s5/void-strike-65.atr`
+`e04025f0…` (the owner's smoke fix of 2026-10-09). Copy, then run (from the
+repository):
 
 ```
 npm run play:atr
@@ -641,7 +643,15 @@ cp build/level-1-s2/void-strike-65.atr build/play/smoke-sector-flow-s2.atr
 atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s2.atr"
 cp build/level-1-s3/void-strike-65.atr build/play/smoke-sector-flow-s3.atr
 atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s3.atr"
+cp build/level-1-s5/void-strike-65.atr build/play/smoke-sector-flow-s5.atr
+atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s5.atr"
 ```
+
+- [ ] **No debris frozen in the boss sector** (level-1-s5, and the full game;
+      the owner's smoke of 2026-10-09): kill (b)'s Raiders while debris is
+      falling - the boss's WARNING screen comes only after that debris has
+      fallen off the bottom, and no debris piece stands still on screen at any
+      time during the fight.
 
 - [ ] **No long empty gap after a wave dies**: kill a sector's last enemy and
       the next sector starts at once (its first enemies within about a second)

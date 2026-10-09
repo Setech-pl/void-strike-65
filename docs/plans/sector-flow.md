@@ -416,3 +416,63 @@ frames (first laser 4,774 / 4,785 / 4,453).
 | Integrity frames | 22,618 | **22,997** | `gate.memory_integrity` |
 | `npm test`, default build, twice | 1,211 / 1,210 / 1 | **1,223 / 1,222 / 1 / 0 skipped**, both runs; `preview` @ `:164`, recorded; reconcile PASS (0 NEW, 0 MOVED, 0 disappeared) | `build/npm-test.log`, `build/npm-test-2.log` |
 
+## 4. The owner's smoke of 2026-10-09: debris frozen through the boss fight
+
+**Defect (owner, twice):** after the boss sector began, a debris piece from
+the previous sector stayed on screen where it was, motionless, shootable.
+
+**Cause, verified.** The boss entry waits for the drain
+(`sector_c_drain_clear`: Heavies, hostile shots, Light slots) but never
+checked debris; the world stops at the entry, and nothing moves a debris cell
+again. Reproduced in this branch's committed evidence: six of eleven boss
+entries had debris live, every HARD sweep-fire0 path
+(`director-complete-2-natural-sweep-fire0` entered at frame 2,750 with debris
+at x 124, y 208, motionless until shot near frame 3,700). **`main` `5e68875`
+has it too:** the same native fixture fails on its build (the drain logic is
+the same); its replays happened to end sector 5 on frames with no debris,
+although debris was live in up to half of that sector's frames. Sector flow
+made it likelier: the boss sector now opens while the action is still on
+screen.
+
+**Fix: the boss entry waits while debris is live** (`sector_c_update_first_capital`'s
+BOSS branch, `src/c/lifecycle.c`): the world still scrolls until the entry,
+the boss sector admits no new debris (its hazard mask is empty), so the piece
+falls off the bottom as it always did and the boss goes in on the first frame
+it has gone. No pop, no new path. Chosen over retiring the debris at the
+entry, which would pop the cell off the screen and cost bytes in the entry's
+resident half of the window. The capital does not wait (its own debris fills
+its corridor); a pickup capsule (a PMG object, not a scrolled cell) does not
+hold the entry.
+
+| | Cost |
+| --- | --- |
+| `HYBRID_C_SECTOR` | 230 → **241 of 248 B** (one page, `$8602-$86F2`: no branch can cross) |
+| `$AE00` window, `DIRECTOR_RAM`, boss slots A–E, boss overlays | **0 B** |
+| Transport / initial block | 213 / 13,618 unchanged (the pickup/window record 1,132 → 1,137 B packed in its 10 sectors) |
+| Cycles | ~9, only on frames while the boss is due and the drain is clear |
+| The wait | HARD sweep path: entry 2,750 → **2,764** |
+
+**Tests.** `tests/sector-flow.test.mjs`: the native fixture (boss due,
+drained field, debris live, the entry stubbed with RTS) is RED on this
+branch's build and on `main`'s, GREEN after; a capsule does not hold the
+entry, the capital does not wait (both pinned). The trace clause
+`coverage.boss_entry_debris` (`scripts/runtime-wall-trace.mjs`): no debris
+live on any boss-entry row, subject every boss entry of the run, non-empty
+whenever the director-complete replays run — **12 entries, 0 with debris
+live** (the committed sector-flow evidence: 6 of 11). `tests/runtime-wall-trace.test.mjs`
+asserts it; `tests/hybrid-lifecycle.test.mjs`'s placement pin 230 → 241.
+
+| Figure | Sector-flow evidence (`b57d5a83…`) | After the fix |
+| --- | ---: | ---: |
+| ATR | `b57d5a83…` | `977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f` |
+| Boot | `1c463a87…` | `a25c3e3ab1b85c0c1f604a2198963c0b6297f1f291398751a24fb4271abd186f` |
+| Replays / clause failures / misses | 57 / 0 / 0 | **57 / 0 / 0** |
+| Boss entries with debris live | 6 of 11 (not checked) | **0 of 12** |
+| Worst fence margin | 1,447 (`2-sweep-fire6` f311) | **1,447**, same |
+| DMA-on maximum | 31,304 | **31,304**, same |
+| Boss entry / ATR menu | 245 / 553 | **245 / 553** |
+| Boss stress / own work / fortress | 8,434 / 5,404 / 6,671 | unchanged (code unchanged) |
+| Boss entered E / M / H (`boss_entry_frame`) | 3,406 / 2,900 / 2,750 | 3,406 / 2,900 / **2,764** |
+| HARD fight / bot deaths | 5,622 frames / 5 | 5,964 / 6 (the later entry moves the fight's frames) |
+| `npm test`, twice | 1,223 / 1,222 / 1 | **1,227 / 1,226 / 1 / 0 skipped**, both; `preview` @ `:164`; reconcile PASS |
+

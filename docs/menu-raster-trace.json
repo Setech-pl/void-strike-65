@@ -49,7 +49,7 @@
       {
         "source": 35968,
         "destination": 18433,
-        "bytes": 1132
+        "bytes": 1137
       },
       {
         "source": 9973,
@@ -79,8 +79,8 @@
       {
         "start_sector": 152,
         "sectors": 10,
-        "packed_bytes": 1132,
-        "raw_bytes": 1132,
+        "packed_bytes": 1137,
+        "raw_bytes": 1137,
         "destination": 35968,
         "staging_id": 2
       },
@@ -244,7 +244,7 @@
       {
         "name": "packed pickup",
         "start": 35968,
-        "end_exclusive": 37100,
+        "end_exclusive": 37105,
         "last_read": 3
       },
       {
@@ -291,7 +291,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78"
+        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-00.json",
       "first_complete_menu_frame": 556,
@@ -809,7 +809,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78"
+        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-a5.json",
       "first_complete_menu_frame": 556,
@@ -1327,7 +1327,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78"
+        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-5a.json",
       "first_complete_menu_frame": 556,
@@ -1845,7 +1845,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78"
+        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-ff.json",
       "first_complete_menu_frame": 556,

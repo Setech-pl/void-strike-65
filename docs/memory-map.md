@@ -105,7 +105,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4439-$475E` | 806 B | transient | packed STARFIELD stream B | `boot` | manifest `starfieldRuntime.streams` |
 | `$475F-$484B` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
 | `$4800-$4BFF` | 1,024 B | state | frontend charset | `resident` | src/main.s `FRONTEND_CHARSET` |
-| `$4801-$4C6C` | 1,132 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
+| `$4801-$4C71` | 1,137 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
 | `$484C-$532D` | 2,786 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
 | `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (2 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
 | `$4C00-$4D1F` | 288 B | state | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector | `resident` | src/main.s `CAPITAL_HULL_RUNTIME_ALLIED` |
@@ -174,8 +174,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$85E2-$85E5` | 4 B | state | prepared-row key | `resident` | src/main.s `PREPARED_HULL_LO` |
 | `$85EF-$85F1` | 3 B | state | corridor phase, hull draw row | `resident` | src/main.s `CORRIDOR_PHASE_HI` |
 | `$85F2-$8601` | 16 B | state | near-star tables | `resident` | src/main.s `STAR_NEAR_ROW` |
-| `$8602-$86E7` | 230 B | segment | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) | `resident` | build/encounter-director.map |
-| `$86E8-$86F9` | 18 B | reserved | free tail of `HYBRID_C_SECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$8602-$86F2` | 241 B | segment | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) | `resident` | build/encounter-director.map |
+| `$86F3-$86F9` | 7 B | reserved | free tail of `HYBRID_C_SECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$86FA-$8700` | 7 B | segment | `DIRECTOR_C_BSS` — cc65 Director mailbox and scratch | `resident` | build/encounter-director.map |
 | `$8701-$876A` | 106 B | segment | `DIRECTOR_ABI` — C/ASM ABI veneer and startup publishers | `resident` | build/encounter-director.map |
 | `$876B-$8775` | 11 B | reserved | free tail of `DIRECTOR_ABI_RAM` | `resident` | cfg/encounter-director.cfg |
@@ -185,7 +185,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$8B88-$8BCB` | 68 B | segment | `DIRECTOR_C_LOW` — low cc65 Director code | `resident` | build/encounter-director.map |
 | `$8BCC-$8C7C` | 177 B | reserved | free tail of `DIRECTOR_C_LOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$8C7D-$8CAC` | 48 B | segment | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table | `resident` | build/encounter-director.map |
-| `$8C80-$90EB` | 1,132 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
+| `$8C80-$90F0` | 1,137 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
 | `$8CAD-$8F55` | 681 B | segment | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light | `resident` | build/encounter-director.map |
 | `$8F56-$8F98` | 67 B | segment | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) | `resident` | build/void-strike-65.map |
 | `$8F99-$8FD8` | 64 B | segment | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) | `resident` | build/void-strike-65.map |
@@ -270,7 +270,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$780D-$780F` | 3 B | `BROADSIDE_RAM` (atari-boot.cfg) | `BROADSIDE` |
 | `$7EED-$7F0F` | 35 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA` |
 | `$7FFF` | 1 B | `HYBRID_LIGHT_SLOTS_RAM` (encounter-director.cfg) | `HYBRID_LIGHT_SLOTS` |
-| `$86E8-$86F9` | 18 B | `HYBRID_C_SECTOR_RAM` (encounter-director.cfg) | `HYBRID_C_SECTOR` |
+| `$86F3-$86F9` | 7 B | `HYBRID_C_SECTOR_RAM` (encounter-director.cfg) | `HYBRID_C_SECTOR` |
 | `$876B-$8775` | 11 B | `DIRECTOR_ABI_RAM` (encounter-director.cfg) | `DIRECTOR_ABI` |
 | `$8B26-$8B66` | 65 B | `PICKUP_CODE_RAM` (atari-boot.cfg) | `PICKUP_CODE` |
 | `$8BCC-$8C7C` | 177 B | `DIRECTOR_C_LOW_RAM` (encounter-director.cfg) | `DIRECTOR_C_LOW` |
@@ -363,7 +363,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4439-$475E` | `boot` | packed STARFIELD stream B |
 | `$475F-$484B` | `boot` | A2 kernel image in the initial block |
 | `$4800-$4BFF` | `resident` | frontend charset |
-| `$4801-$4C6C` | `boot` | packed pickup/collision + window streams held in the frontend charset |
+| `$4801-$4C71` | `boot` | packed pickup/collision + window streams held in the frontend charset |
 | `$484C-$532D` | `boot` | packed ENTITY_CODE source |
 | `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (2 sectors) |
 | `$4C00-$4D1F` | `resident` | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector |
@@ -436,8 +436,8 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$85E2-$85E5` | `resident` | prepared-row key |
 | `$85EF-$85F1` | `resident` | corridor phase, hull draw row |
 | `$85F2-$8601` | `resident` | near-star tables |
-| `$8602-$86E7` | `resident` | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) |
-| `$86E8-$86F9` | `resident` | free tail of `HYBRID_C_SECTOR_RAM` |
+| `$8602-$86F2` | `resident` | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) |
+| `$86F3-$86F9` | `resident` | free tail of `HYBRID_C_SECTOR_RAM` |
 | `$86FA-$8700` | `resident` | `DIRECTOR_C_BSS` — cc65 Director mailbox and scratch |
 | `$8701-$876A` | `resident` | `DIRECTOR_ABI` — C/ASM ABI veneer and startup publishers |
 | `$876B-$8775` | `resident` | free tail of `DIRECTOR_ABI_RAM` |
@@ -447,7 +447,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$8B88-$8BCB` | `resident` | `DIRECTOR_C_LOW` — low cc65 Director code |
 | `$8BCC-$8C7C` | `resident` | free tail of `DIRECTOR_C_LOW_RAM` |
 | `$8C7D-$8CAC` | `resident` | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table |
-| `$8C80-$90EB` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
+| `$8C80-$90F0` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
 | `$8CAD-$8F55` | `resident` | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light |
 | `$8F56-$8F98` | `resident` | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) |
 | `$8F99-$8FD8` | `resident` | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) |

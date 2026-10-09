@@ -11,10 +11,10 @@
     "phaseCount": 8,
     "initialContentBytes": 13618,
     "linkedRuntimeBytes": 17493,
-    "simultaneousResidencyBytes": 21698,
-    "safeResidencyBytes": 489,
-    "residencyDeltaBytes": 3727,
-    "totalMigrationResidencyDeltaBytes": 3671,
+    "simultaneousResidencyBytes": 21709,
+    "safeResidencyBytes": 478,
+    "residencyDeltaBytes": 3738,
+    "totalMigrationResidencyDeltaBytes": 3682,
     "glue": {
       "stagingAddress": 39992,
       "holdingAddress": 33024,
@@ -61,7 +61,7 @@
       "address": 40309,
       "endExclusive": 40922,
       "reservedEndExclusive": 40954,
-      "rawBytes": 4355,
+      "rawBytes": 4366,
       "packedBytes": 3489,
       "codeAddress": 34561,
       "codeBytes": 1469,
@@ -106,7 +106,7 @@
         {
           "name": "window",
           "runAddress": 34306,
-          "bytes": 230
+          "bytes": 241
         }
       ],
       "footprint": {
@@ -129,10 +129,10 @@
       "record": {
         "startSector": 152,
         "sectorCount": 10,
-        "packedLength": 1132,
-        "rawLength": 1132,
+        "packedLength": 1137,
+        "rawLength": 1137,
         "finalDestination": 35968,
-        "crc16": 39114,
+        "crc16": 60707,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -234,7 +234,7 @@
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 11,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 2086,
+    "remainingSafeResidencyBytes": 2075,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 17008,
+      "crc16": 1839,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 17008,
+        "crc16": 1839,
         "records": [
           {
             "startSector": 108,
@@ -306,7 +306,7 @@
             "packedLength": 5525,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 23011,
+            "crc16": 51702,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -314,10 +314,10 @@
           {
             "startSector": 152,
             "sectorCount": 10,
-            "packedLength": 1132,
-            "rawLength": 1132,
+            "packedLength": 1137,
+            "rawLength": 1137,
             "finalDestination": 35968,
-            "crc16": 39114,
+            "crc16": 60707,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -453,7 +453,7 @@
       "transportBytes": 5632,
       "packedBytes": 5525,
       "rawBytes": 6653,
-      "crc16": 23011,
+      "crc16": 51702,
       "stagingAddress": 33024,
       "stagingEndAddress": 38655,
       "finalAddress": 24080
@@ -1028,10 +1028,10 @@
       "address": 34306,
       "endExclusive": 34554,
       "bytes": 248,
-      "usedBytes": 230,
-      "freeBytes": 18,
+      "usedBytes": 241,
+      "freeBytes": 7,
       "owner": "HYBRID_C_SECTOR",
-      "packedBytes": 194,
+      "packedBytes": 199,
       "transport": "second LZ stream of the pickup/collision record",
       "glueHoldingAddress": 33024
     },
@@ -1109,10 +1109,10 @@
     },
     "pickupRecordPackedBytes": {
       "pickupStream": 938,
-      "windowStream": 194,
-      "combined": 1132,
+      "windowStream": 199,
+      "combined": 1137,
       "coldCapacity": 1277,
-      "coldMargin": 145
+      "coldMargin": 140
     },
     "tails": {
       "hybridCExtension": 39,
@@ -1225,7 +1225,7 @@
       "startSector": 152,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 39114
+      "crc16": 60707
     }
   },
   "starfieldRuntime": {
@@ -1403,16 +1403,16 @@
     "pickupCodeAddress": 34678,
     "pickupCodeBytes": 944,
     "pickupPhaseRuntimeBytes": 1042,
-    "pickupPhasePackedBytes": 1132,
+    "pickupPhasePackedBytes": 1137,
     "pickupPhaseExternalChunk": {
       "startSector": 152,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 39114,
+      "crc16": 60707,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34678,
       "coldCapacityBytes": 1277,
-      "coldMarginBytes": 145
+      "coldMarginBytes": 140
     },
     "newGlyphsFromFoundation": 7,
     "runtimeBudget": {
@@ -23840,11 +23840,11 @@
     "estimated_additive_cycles": 27847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "2ad4c681701ea5e0366c54091ce62c46cc7699bc6c67b86e00e722329a2ed3c6",
+      "reportSha256": "95803c38f75fe82d5715d1d3175532f17ce67c30e654a71e9b009b305d79763c",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78"
+        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
       },
       "emulator": {
         "name": "Atari800",
@@ -25355,8 +25355,8 @@
         "baseline_9040_host_vbi_boundary_crossings": 981,
         "targeted_active_frames_crossing_host_vbi": 103,
         "targeted_host_vbi_boundary_crossings": 103,
-        "active_frames_crossing_host_vbi": 16863,
-        "host_vbi_boundary_crossings": 16863,
+        "active_frames_crossing_host_vbi": 16847,
+        "host_vbi_boundary_crossings": 16847,
         "extra_vbi_boundaries": 0,
         "behavioural_clause_failure_count": 0,
         "behavioural_clause_failures": [],
@@ -25404,25 +25404,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "1c463a8782f694e28c5071ae813ed0e619f2b299d638c20c3258c27ecb6747fe"
+        "sha256": "a25c3e3ab1b85c0c1f604a2198963c0b6297f1f291398751a24fb4271abd186f"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78"
+        "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "2ad4c681701ea5e0366c54091ce62c46cc7699bc6c67b86e00e722329a2ed3c6"
+    "reportSha256": "95803c38f75fe82d5715d1d3175532f17ce67c30e654a71e9b009b305d79763c"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "1c463a8782f694e28c5071ae813ed0e619f2b299d638c20c3258c27ecb6747fe"
+      "sha256": "a25c3e3ab1b85c0c1f604a2198963c0b6297f1f291398751a24fb4271abd186f"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "b57d5a83e9adf2b2f7b56e8929458ad15dbfc0b569bb03a50f599b6399709b78"
+      "sha256": "977108bf32d4832f67e4d8e389b5a487f7ca6d853762f42f1e2f67f8b44ac94f"
     }
   }
 }

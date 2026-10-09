@@ -782,8 +782,11 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
      * the chain clause reads, gets the frames to finish the fight. */
     frames: difficulty === 1 ? 12_000 : 5_000,
     // ... and ends at the level's summary once the boss falls (the route
-    // would enter the boss again).
-    ...(difficulty === 1 ? { endAtSummary: true } : {}),
+    // would enter the boss again). S5-2: every difficulty's session - EASY's
+    // fight ends at frame 3,819 and the route then entered the boss a second
+    // time ("entered the boss 2 times in one game"; MEASURED on main 4021de5
+    // too: pre-existing since S5-1, which ran the MEDIUM session).
+    endAtSummary: true,
     kind: "baseline-9040",
     holdPlayerLives: 3,
     bossRegion: region,

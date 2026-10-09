@@ -1,6 +1,7 @@
 # Plan — S5: bosses for regions 2–4 on the shared boss engine, with per-region overlays (plan-s5)
 
-**Status:** `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+**Status:** S5-1 implemented on `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`
+(§6.1). The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -722,6 +723,93 @@ frames (R1 / R2 / R3 / R4; region 3 at 67 → 256 if L1–L3 all fail); slot E's
 1,008 free; ATR menu frame 553 unchanged (no transport record moves); ATR
 ≈ 398 of 720 sectors; `npm test`'s recorded set unchanged (the `preview`
 record stays).
+
+### 6.1 S5-1 as built (2026-10-09, `chore/s5-platform`) — `OWNER-SMOKE CANDIDATE`
+
+**Implemented, pending the owner's smoke** (hardware-testing §21). ATR
+`67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c`, boot
+`6d946eade3b465076ae900e90212bcddae6e4fcd6779af04ba23f39b8f0b088e`.
+
+**The stress composition (Q4, measured first).** With a weapon's spawn on the
+meeting frame region 1 measured **8,751** reachable / 9,457 worst against 8,500
+— `BLOCKED_BOSS_STRESS_SPAWN` ([the diagnostic](../diagnostics/s5-1-stress-spawn-blocked.md)).
+The owner's decision (journal §AG): (B) no gun fires on a module-kill frame,
+(A) the next-gun walk at ≈ 20 a module, the 8,500 limit gating the reachable
+cases (≤ 2 boss hits a frame). As built: region 1 **6,895**, the tier-4 fixture
+**7,744** / **6,954** (warn / beam); slot C 1,659 → 1,663 B (13 sectors); 0
+frames with a kill and a spawn.
+
+**The target machine.** `scripts/atari800-machine.mjs` holds `-xl` (the target)
+and `-xe` (the 130XE); every launch takes them (`tests/target-machine.test.mjs`
+refuses a literal flag elsewhere); the boot smoke's seventh session
+`atr-a5-130xe` is the one 130XE boot. The trace on `-xl`: 45 of 57 replays
+byte-identical to `main`'s evidence, frame by frame — the machine switch moved
+nothing.
+
+**PORTB.** One write in `src/` (`disable_basic_rom`, `src/main.s:1567`,
+`PORTB | $02`, boot stage 2 with the OS ROM mapped) and four PBCTL writes
+(`sector-reader.s:729` `$34`, `:764`, `:769`, `:1103` `$3C`, bit 2 kept), all
+safe (`tests/portb-writes.test.mjs`, RED on an in-tree plant).
+
+**The HUD audit (Q8).** Every field at every screen rebuild, native
+(`tests/hud-audit.test.mjs`) and by the trace's writer inventory of
+`$4000-$4027` (`coverage.hud_row_writers`):
+
+| Rebuild | Score 6-10 | Lives 18 | Hull 25-28 | Booster / weapon 30-39 | Before S5-1 | How it is redrawn |
+| --- | --- | --- | --- | --- | --- | --- |
+| Boss entry | ok | ok | ok | **blank until the booster expired** | defect (the owner's smoke) | **fixed**: the ten cells backed up before the WARNING screen, put back by the install after its HUD rewrite; RED on `main` for Rapid, Spread and Shield |
+| The capital entry | ok | ok | ok | ok | no rebuild | nothing writes the HUD row there but the field routines (the inventory) |
+| A death and the respawn | ok | ok | ok | ok (released to the plain HUD) | correct | `update_hud_status`, `restore_weapon_booster_hud` |
+| After the summary (START GAME) | ok | ok | ok | ok (idle) | correct | `start_gameplay`: `clear_screen`, `init_screen`, score, status |
+| Pause / resume | ok | ok | ok | ok | correct | the whole screen from the 960-B backup |
+
+No other missing redraw. The backup routine (14 B) is the Light kernel link's
+last segment — the window's free tail — called by a ninth boss-entry pin: as
+the window's Director half it moved the Light kernel by 14 B (MEASURED, then
+moved); as the arena's tail it ate M3-H's arena budget (the heavy-breakup pin).
+Window 1,022 → **1,008** free, as §3.1 priced.
+
+**Slot F (Q9).** `$5200-$53FF`; each region's block (its look tail, 98 B, 1
+sector) read by the head as the region's fourth run from 696 + 4 × region,
+folded into the head's check with the other seven (a changed byte refused).
+The look tail left slot D (14 → 13 sectors); `boss_module_scored` moved to slot
+D (slot A 2,042 → 2,016 B); the head keeps the region's index for its check.
+**Write-watch** (trace, every replay and boot-smoke session, RESET included):
+the writers are the start-up ones (the OS's cold start, the boot loader's
+staging — the ones that wrote before the first `copy_hud_charset`, and again
+after a RESET), `copy_hud_charset`, and the sector reader's store at `$A262`
+— 12 block reads in the 12 boss-entry replays; **0 foreign writers**.
+
+**Regions 2-4 on the disk (Q10)** as copies of region 1, each with its theme,
+bands, charset, block and head sum; directory entries 3-5. Entry: **64
+sectors, 245 host frames** for every region (`tests/slot-f.test.mjs`; the trace
+measured 245 on the region-2 / 3 / 4 routes, the fight reaching the chain at
+frame 5,131 on MEDIUM). **Fixed on the way (latent, pre-existing):** the region
+from the level id in both the window's entry half and the head subtracted 4,
+not 3, after the first pass (a CPX between the CMP and the SBC) — levels 4-12
+read the wrong region; same bytes, reordered.
+
+**The routes (§5).** `--boss-region=N` with `--level=1:sector=M` (and
+`--laser-fixture=T`): the level run becomes the region's first level with level
+1's content; `build/[laser-fixture-T-]boss-region-N-level-1-sM/`; trace sessions
+`region-N-diag-{0,1,2}` (MEDIUM's 12,000 frames, ending at the summary) and
+`region-N-dodge-2`, debug route only.
+
+**Deviations from §4.1 / §6, reported.** (1) The block carries the look tail
+only — no 9-byte jump table and no `region_frame` / `region_shot` hooks in slot
+A: no region has code until S5-3, which adds them with the first region code
+(slot A has 32 B free for them); the stress figures above carry no hook cost.
+(2) The initial block: its code and data are `main`'s, its size 13,618 B and
+107 sectors; 12 bytes differ — the boot chunk manifest's entries (lengths and
+CRC-16) of the window, kernel, reader and `$9D75` records this session changes,
+and its check. (3) The scratch page is 255 of 256 (the region index), not
+254.
+
+**Ledger after S5-1 (M):** slot A 2,016 / 2,048 (16 sectors); install 363 /
+384; slot C 1,663 code (13); scratch 255 / 256; slot D 1,647 code (13); slot E
+254 (2; 310 free, 200 for the torpedo); slot F 98 / 512 per region; window 1,008
+free; ATR **345 → 396** of 720 sectors carrying data (+48 regions 2-4, +4
+blocks, −1 slot D's run; MEASURED as non-empty sectors).
 
 ---
 

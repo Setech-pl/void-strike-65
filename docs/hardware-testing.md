@@ -675,6 +675,56 @@ atari800 -xl -pal -nobasic "$PWD/build/play/smoke-sector-flow-s5.atr"
 - [ ] **The boss sector is unchanged**: the WARNING screen, the fight, the
       lasers, the summary.
 
+## 21. The 64 KB machine, the booster bar through the boss entry, regions 2-4 on the disk (`chore/s5-platform`, S5-1)
+
+Plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6 S5-1. **On copies
+only**, as §12. The target machine is the 64 KB 800XL / 65XE (`-xl`); every
+command below is on it, and one is the 130XE compatibility check. Copies in
+`build/play/` (SHA-256 prefixes): the default ATR `s5-1-default.atr`
+`67d95ed8…` (also `npm run play:atr`); level 1's boss sector
+`s5-1-region-1-s6.atr` `a0164e8c…`; region 2 / 3 / 4's boss on level 1's route
+(`--boss-region=N`, the region's first level 4 / 7 / 10) entered at the boss
+sector `s5-1-region-2-s6.atr` `362fb916…`, `s5-1-region-3-s6.atr` `1a429095…`,
+`s5-1-region-4-s6.atr` `8ccc87f8…`, and from elite (b) `s5-1-region-2-s5.atr`
+`ca34b19c…`, `s5-1-region-3-s5.atr` `51572ef5…`, `s5-1-region-4-s5.atr`
+`c9a8a615…`. Rebuild them with `node scripts/build.mjs --level=1:sector=6
+--boss-region=N` (or `sector=5`) and copy from `build/boss-region-N-level-1-sM/`.
+
+```
+npm run play:atr
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-1-default.atr"
+atari800 -xl -pal -basic "$PWD/build/play/s5-1-default.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-1-region-1-s6.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-1-region-2-s5.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-1-region-2-s6.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-1-region-3-s6.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-1-region-4-s6.atr"
+atari800 -xe -pal -nobasic "$PWD/build/play/s5-1-default.atr"   # the 130XE compatibility check
+```
+
+- [ ] **The booster bar through the boss entry** (the owner's smoke finding):
+      collect a Rapid, Spread or Shield capsule in (b) (`s5-1-region-2-s5`,
+      or the full game) and enter the boss with it running - right after the
+      WARNING screen the BOOST label and the energy cells read exactly as
+      before it (no blank bar), and the cells keep running down.
+- [ ] **Every HUD field right after the boss entry, after the capital and after
+      a death**: the score, the lives digit, the four hull cells and the
+      booster (the weapon's mark: the full cells for Rapid / Spread, the shield
+      cells for Shield) - each as the game state says, on each of the three
+      occasions.
+- [ ] **Regions 2-4 load their boss** (`s5-1-region-N-s6` / `-s5`): the WARNING
+      screen, then region 1's look (regions 2-4 are its copies until S5-3 ...
+      S5-5) within the usual loading time (about 5 s on the emulator; the same
+      as level 1's); the fight plays as level 1's.
+- [ ] **The 64 KB machine**: a BASIC-off and a BASIC-on cold boot, a whole
+      level 1 to its summary, and RESET during play (a cold start back to the
+      title) - the same as before.
+- [ ] **The 130XE**: the same cold boot and a level on `-xe` (or a real
+      130XE) - unchanged.
+- [ ] **Nothing else changed**: level 1 plays as before up to the boss; in the
+      boss sector a gun never fires in the same instant a module falls (its
+      shot comes a frame later, invisible at play speed).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

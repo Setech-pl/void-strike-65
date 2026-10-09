@@ -374,6 +374,7 @@ typedef struct {
 	 * Additive: the CSV's last two columns. */
 	unsigned boss_finale;
 	unsigned boss_spawns;
+	unsigned boss_armour_left;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -907,6 +908,7 @@ static unsigned dftrace_boss_shown_pos;
 /* S5-2: the finale's byte (optional: 0 disables it) and the hostile pool's
  * last snapshot, for the spawn count. */
 static unsigned dftrace_boss_finale;
+static unsigned dftrace_boss_armour_left;
 static unsigned char dftrace_boss_shot_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned char dftrace_boss_shot_y[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned char dftrace_boss_shot_lifetime[DFTRACE_INTERCEPTOR_SLOT_COUNT];
@@ -3642,6 +3644,14 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		stick = target_right ? (x < 154u ? 0x07u : 0x0fu) :
 			(x > 94u ? 0x0bu : 0x0fu);
 	}
+	else if (strcmp(dftrace_policy, "sweep-wide") == 0) {
+		/* S5-2: the sweep across the whole reach (HPOS 58-190, the
+		 * broadside-sides dwell points), so the boss's edge plates come
+		 * under fire - the narrow sweep (94-154) never meets them. */
+		int target_right = ((frame / 128u) & 1u) == 0;
+		stick = target_right ? (x < 190u ? 0x07u : 0x0fu) :
+			(x > 58u ? 0x0bu : 0x0fu);
+	}
 	else if (strcmp(dftrace_policy, "broadside-sides") == 0) {
 		/* Long ordinary-joystick dwells expose both capital-side corridors while
 		 * retaining natural scheduling, collision, release and slot reuse. */
@@ -5804,6 +5814,8 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		? 1u + MEMORY_mem[dftrace_boss_phase] : 0u;
 	frame->boss_finale = dftrace_boss_active() && dftrace_boss_finale != 0u
 		? MEMORY_mem[dftrace_boss_finale] : 0u;
+	frame->boss_armour_left = dftrace_boss_active() && dftrace_boss_armour_left != 0u
+		? MEMORY_mem[dftrace_boss_armour_left] : 0u;
 	frame->boss_spawns = 0u;
 	if (dftrace_projectile_active != 0u && dftrace_projectile_y != 0u &&
 		dftrace_projectile_lifetime != 0u) {
@@ -5954,7 +5966,7 @@ static void dftrace_write(void)
 		",hull_map_draws,hull_map_stale_draws,hull_map_dirty_reads,hull_map_rebuilds_after_boss,boss_path_stage"
 		",light_state0,light_state1,light_state2,light_state3"
 		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
-		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns\n");
+		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6238,7 +6250,7 @@ static void dftrace_write(void)
 		if (frame->boss_entry && dfhud_entry_state == 2)
 			for (unsigned cell = 0u; cell < 40u; ++cell)
 				fprintf(file, "%02x", dfhud_entry_after[cell]);
-		fprintf(file, ",%u,%u\n", frame->boss_finale, frame->boss_spawns);
+		fprintf(file, ",%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -7018,6 +7030,7 @@ static void dftrace_init(void)
 	dftrace_boss_path = getenv("DFTRACE_BOSS_PATH");
 	dftrace_boss_shown_pos = dftrace_env_optional("DFTRACE_BOSS_SHOWN_POS");
 	dftrace_boss_finale = dftrace_env_optional("DFTRACE_BOSS_FINALE");
+	dftrace_boss_armour_left = dftrace_env_optional("DFTRACE_BOSS_ARMOUR_LEFT");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 50775,
+      "crc16": 60457,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 50775,
+        "crc16": 60457,
         "records": [
           {
             "startSector": 108,
@@ -394,7 +394,7 @@
             "packedLength": 798,
             "rawLength": 916,
             "finalDestination": 46204,
-            "crc16": 13002,
+            "crc16": 15909,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -656,7 +656,7 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$8C69"
+        "expected": "$0299"
       },
       {
         "index": 2,
@@ -700,10 +700,10 @@
       }
     ],
     "bossHeadSums": [
-      "$9EA6",
-      "$9EA6",
-      "$9EA6",
-      "$9EA6"
+      "$C3DC",
+      "$47E8",
+      "$47E8",
+      "$47E8"
     ],
     "summaryArtSums": [
       "$2223",
@@ -856,10 +856,10 @@
     },
     "slotC": {
       "address": 4096,
-      "bytes": 1884,
-      "codeBytes": 1663,
+      "bytes": 1871,
+      "codeBytes": 1648,
       "capacityBytes": 2048,
-      "freeBytes": 164,
+      "freeBytes": 177,
       "sectors": 13
     },
     "scratch": {
@@ -949,7 +949,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "cb792d0a95633ac59da34e9c35a3425b5ed04f0b2d2b517eecf4641c4c4adea9",
+        "sha256": "9b5edd726167b2566fe9f21d87102a0cfb3251364d100e0031e93616813fdac5",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -958,7 +958,7 @@
         "sectors": 3,
         "destination": 30736,
         "bytes": 384,
-        "sha256": "34a32649c82b46dc74382b1f0cbb38c0ab3dce24f8af6e1bf88b3af96aaeb836",
+        "sha256": "b10d8295d2fb0bfcee65de7779ae5be107bdb1197960640bcfe63a7a05ff9428",
         "file": "overlay-boss-install.bin"
       },
       {
@@ -967,7 +967,7 @@
         "sectors": 13,
         "destination": 4096,
         "bytes": 1664,
-        "sha256": "86c6f79034c6574dde060695ca31c5d12c5c97fb7920ca71ab3b75af7a55d837",
+        "sha256": "0c8599c1e3ade885a81c2ca495c56ec513f301a302b24cfb1dd3d894cc16b6f5",
         "file": "overlay-boss-slot-c.bin"
       },
       {
@@ -976,7 +976,7 @@
         "sectors": 13,
         "destination": 6400,
         "bytes": 1664,
-        "sha256": "8956a48ce81e8d3315dfdaec3017dffdb45612dfcb982ce6e003a820a2afe965",
+        "sha256": "cd0b0bbf4364f4a7d3adc32d35dd2b9ccb49a776dbe82cf6f56f6b96334f7882",
         "file": "overlay-boss-slot-d.bin"
       },
       {
@@ -985,7 +985,7 @@
         "sectors": 2,
         "destination": 19456,
         "bytes": 256,
-        "sha256": "2c68d1d4a143ba35767d6067fd891144e4a9acbd632b0f7d330e7ecb6ff0fe13",
+        "sha256": "d514e8fafcfd041f39d02d339ec00f8ac7d08d4428f9bcb012d03a228f21e0a4",
         "file": "overlay-boss-slot-e.bin"
       },
       {
@@ -1057,7 +1057,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
+        "sha256": "a0d67df8e3ba9602e258cc476c9fa3ceb6f0671cfba7f6c6c5d5cba89f7505f0",
         "file": "boss-region-2-band-b.bin"
       },
       {
@@ -1102,7 +1102,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
+        "sha256": "a0d67df8e3ba9602e258cc476c9fa3ceb6f0671cfba7f6c6c5d5cba89f7505f0",
         "file": "boss-region-3-band-b.bin"
       },
       {
@@ -1147,7 +1147,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
+        "sha256": "a0d67df8e3ba9602e258cc476c9fa3ceb6f0671cfba7f6c6c5d5cba89f7505f0",
         "file": "boss-region-4-band-b.bin"
       },
       {
@@ -1179,6 +1179,7 @@
         "charsetBytes": 976,
         "charsetSectors": 8,
         "modules": 13,
+        "finaleCooldown": 0,
         "entrySectors": 64
       },
       {
@@ -1190,6 +1191,7 @@
         "charsetBytes": 976,
         "charsetSectors": 8,
         "modules": 13,
+        "finaleCooldown": 12,
         "entrySectors": 64
       },
       {
@@ -1201,6 +1203,7 @@
         "charsetBytes": 976,
         "charsetSectors": 8,
         "modules": 13,
+        "finaleCooldown": 12,
         "entrySectors": 64
       },
       {
@@ -1212,6 +1215,7 @@
         "charsetBytes": 976,
         "charsetSectors": 8,
         "modules": 13,
+        "finaleCooldown": 12,
         "entrySectors": 64
       }
     ]
@@ -24057,11 +24061,11 @@
     "estimated_additive_cycles": 27847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "a61dd01ad12f9c6ce8432ec27129cbfb122b00dfa298a39ee4848c9e949fa9a5",
+      "reportSha256": "039054d2f8c1495ff8e2390f307341aab52090bd78d59776ce2fe2f205a745fe",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
+        "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
       },
       "emulator": {
         "name": "Atari800",
@@ -25621,25 +25625,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "6d946eade3b465076ae900e90212bcddae6e4fcd6779af04ba23f39b8f0b088e"
+        "sha256": "8cc7d10a9e30f09eaf85104e0452b83dfd276b5f6de521d800d3b5e08c002d3f"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
+        "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "a61dd01ad12f9c6ce8432ec27129cbfb122b00dfa298a39ee4848c9e949fa9a5"
+    "reportSha256": "039054d2f8c1495ff8e2390f307341aab52090bd78d59776ce2fe2f205a745fe"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "6d946eade3b465076ae900e90212bcddae6e4fcd6779af04ba23f39b8f0b088e"
+      "sha256": "8cc7d10a9e30f09eaf85104e0452b83dfd276b5f6de521d800d3b5e08c002d3f"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
+      "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
     }
   }
 }

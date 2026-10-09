@@ -2019,13 +2019,17 @@ function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockByte
   for (const watch of watches) {
     const list = watch.slot_f?.writers ?? [];
     const copy = list.filter(({ pc }) => pc >= copyStart && pc < copyEnd);
-    const startupEnd = copy.reduce((frame, writer) => Math.max(frame, writer.last_frame), -1);
+    // The start-up writers are those that wrote slot F before the first
+    // charset copy (the OS's cold start, the boot loader's staging): a RESET
+    // is a cold start and runs them again, after it.
+    const copyFirst = copy.reduce((frame, writer) => Math.min(frame, writer.first_frame), Infinity);
     if (copy.length === 0) violations.push({ session: watch.session, message: "copy_hud_charset never wrote slot F" });
     let readerWrites = 0;
     for (const writer of list) {
       const reader = writer.pc >= readerAddress && writer.pc < readerEnd;
       const kind = writer.pc >= copyStart && writer.pc < copyEnd ? "copy_hud_charset"
-        : writer.last_frame <= startupEnd ? "start-up" : reader && writer.first_frame > startupEnd ? "region block read" : null;
+        : reader && writer.first_frame > copyFirst ? "region block read"
+          : writer.first_frame <= copyFirst ? "start-up" : null;
       const key = `$${writer.pc.toString(16)}`;
       const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
       entry.sessions += 1;
@@ -2034,7 +2038,8 @@ function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockByte
       if (kind === null) {
         violations.push({ session: watch.session, message: `$${writer.pc.toString(16)} wrote slot F ` +
           `${writer.count} times (frames ${writer.first_frame}-${writer.last_frame}, ` +
-          `$${writer.first_address.toString(16)}-$${writer.last_address.toString(16)}) after start-up` });
+          `$${writer.first_address.toString(16)}-$${writer.last_address.toString(16)}), not a start-up ` +
+          "writer, the charset copy or the region block's read" });
       }
       if (kind === "region block read") readerWrites += writer.count;
     }
@@ -2050,8 +2055,9 @@ function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockByte
     }
   }
   return {
-    clause: "slot F ($5200-$53FF) is written only at start-up (up to copy_hud_charset's last write) and by the " +
-      "sector reader's region block read at a boss entry, in every replay",
+    clause: "slot F ($5200-$53FF) is written only by the start-up writers (those that wrote it before the first " +
+      "copy_hud_charset - a RESET runs them again), the charset copy, and the sector reader's region block read " +
+      "at a boss entry, in every replay and boot-smoke session",
     sessions: watches.length, subject, writers: [...writers.values()], violations,
   };
 }

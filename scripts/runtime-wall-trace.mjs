@@ -1303,6 +1303,8 @@ for (const name of [
   "laser_damage_calls", "audf3", "audc3",
   // AUD-04: the band position the boss DLI showed (debug sessions place pokes by it).
   "boss_shown_pos",
+  // S5-2: the controller's finale floor (0 = none yet) and the boss shots born this frame.
+  "boss_finale", "boss_spawns",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4021,6 +4023,8 @@ function main() {
       addressEnvironment.DFTRACE_PC_LASER_DAMAGE = hex(bossLabels, "boss_laser_damage");
       addressEnvironment.DFTRACE_PC_BOSS_HEAD = hex(bossLabels, "boss_head");
       addressEnvironment.DFTRACE_BOSS_SHOWN_POS = hex(bossLabels, "boss_shown_pos");
+      // S5-2: the finale's byte (the boss_finale / boss_spawns columns).
+      addressEnvironment.DFTRACE_BOSS_FINALE = hex(bossLabels, "_boss_finale");
     }
   }
 
@@ -4464,6 +4468,43 @@ function main() {
         `host frames at frame ${session.bossEntry.frame}; chain ${chain === undefined ? "not reached" : `at frame ${chain.frame}`}`);
       if (session.difficulty === 1) {
         invariant(chain !== undefined, `${session.id}: the fight never reached the chain in ${session.frames} frames`);
+      }
+      // S5-2 (plan s5-boss-regions §4.2, §5): a region whose data carries a
+      // finale (manifest boss.regions[].finaleCooldown) enters it on the last
+      // armour kill - a frame without a boss shot (owner decision 2026-10-09
+      // (B)) - and fires volleys from the next frame on: boss shots born on
+      // three consecutive frames. Subject: the session's finale frames; the
+      // MEDIUM session, which fights to the chain, must have them.
+      const finaleCooldown = manifest.boss?.regions?.[session.bossRegion - 1]?.finaleCooldown ?? 0;
+      const finaleRows = rows.filter((row) => row.boss_finale !== 0);
+      invariant(finaleCooldown !== 0 || finaleRows.length === 0,
+        `${session.id}: region ${session.bossRegion} has no finale, yet ${finaleRows.length} frames are in one`);
+      if (finaleCooldown !== 0 && finaleRows.length > 0) {
+        const startIndex = rows.indexOf(finaleRows[0]);
+        const start = rows[startIndex];
+        invariant(finaleRows.every((row) => row.boss_finale === finaleCooldown),
+          `${session.id}: the finale's floor is not the region's ${finaleCooldown}`);
+        invariant(start.boss_spawns === 0,
+          `${session.id}: a boss shot was born on frame ${start.frame}, the last armour kill's (rule B)`);
+        const after = rows.slice(startIndex + 1).filter((row) => row.boss_state === 1);
+        let volleys = 0, run = 0, spawns = 0;
+        for (let index = 0; index < after.length; index += 1) {
+          const row = after[index];
+          const consecutive = index > 0 && row.frame === after[index - 1].frame + 1;
+          spawns += row.boss_spawns;
+          run = row.boss_spawns > 0 ? (consecutive ? run + 1 : 1) : 0;
+          if (run === 3) volleys += 1;
+        }
+        invariant(volleys > 0,
+          `${session.id}: the finale began on frame ${start.frame}, but no three boss shots came on three consecutive frames`);
+        session.regionRoute.finale = { start_frame: start.frame, volleys, spawns, floor: finaleCooldown };
+        console.log(`${session.id}: the finale from frame ${start.frame}; ${volleys} volleys, ${spawns} boss shots`);
+      } else if (finaleCooldown !== 0) {
+        session.regionRoute.finale = null;
+        console.log(`${session.id}: the finale never began (the last weapon fell before the last armour)`);
+      }
+      if (finaleCooldown !== 0 && session.difficulty === 1) {
+        invariant(finaleRows.length > 0, `${session.id}: region ${session.bossRegion}'s finale never began (subject empty)`);
       }
     }
     const staleHullDraws = rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0);

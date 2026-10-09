@@ -367,6 +367,13 @@ typedef struct {
 	/* data/w2-lights: each Light slot's state and archetype offset. */
 	unsigned light_state[4];
 	unsigned light_archetype[4];
+	/* S5-2 (docs/plans/s5-boss-regions.md §4.2): the controller's finale floor
+	 * (0 before the finale and in a region without one) and the boss shots
+	 * born this frame in the hostile pool (a slot newly holding a boss shot,
+	 * or holding a newer one: higher on screen or with more lifetime left).
+	 * Additive: the CSV's last two columns. */
+	unsigned boss_finale;
+	unsigned boss_spawns;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -897,6 +904,12 @@ static unsigned dftrace_maximum_boss_dlis_per_host_frame;
 static unsigned dftrace_laser_state;
 static unsigned dftrace_laser_hpos;
 static unsigned dftrace_boss_shown_pos;
+/* S5-2: the finale's byte (optional: 0 disables it) and the hostile pool's
+ * last snapshot, for the spawn count. */
+static unsigned dftrace_boss_finale;
+static unsigned char dftrace_boss_shot_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned char dftrace_boss_shot_y[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned char dftrace_boss_shot_lifetime[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 /* S4b.4 (W1): the Director's sector index and the sector's row clock, so a
  * session can list when each wave starts (a wave starts when its sector's row
  * clock reaches the wave's row). */
@@ -5789,6 +5802,26 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->maximum_boss_dlis_per_host_frame = dftrace_maximum_boss_dlis_per_host_frame;
 	frame->boss_state = dftrace_boss_active() && dftrace_boss_phase != 0u
 		? 1u + MEMORY_mem[dftrace_boss_phase] : 0u;
+	frame->boss_finale = dftrace_boss_active() && dftrace_boss_finale != 0u
+		? MEMORY_mem[dftrace_boss_finale] : 0u;
+	frame->boss_spawns = 0u;
+	if (dftrace_projectile_active != 0u && dftrace_projectile_y != 0u &&
+		dftrace_projectile_lifetime != 0u) {
+		unsigned slot;
+		for (slot = 0u; slot < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++slot) {
+			unsigned index = DFTRACE_INTERCEPTOR_SLOT_BASE + slot;
+			unsigned char active = MEMORY_mem[dftrace_projectile_active + index];
+			unsigned char y = MEMORY_mem[dftrace_projectile_y + index];
+			unsigned char lifetime = MEMORY_mem[dftrace_projectile_lifetime + index];
+			if (dftrace_boss_active() && active == 0x0eu &&
+				(dftrace_boss_shot_active[slot] != 0x0eu || y < dftrace_boss_shot_y[slot] ||
+				lifetime > dftrace_boss_shot_lifetime[slot]))
+				++frame->boss_spawns;
+			dftrace_boss_shot_active[slot] = active;
+			dftrace_boss_shot_y[slot] = y;
+			dftrace_boss_shot_lifetime[slot] = lifetime;
+		}
+	}
 	frame->laser_states = 0u;
 	if (dftrace_boss_active() && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u) {
 		unsigned laser;
@@ -5921,7 +5954,7 @@ static void dftrace_write(void)
 		",hull_map_draws,hull_map_stale_draws,hull_map_dirty_reads,hull_map_rebuilds_after_boss,boss_path_stage"
 		",light_state0,light_state1,light_state2,light_state3"
 		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
-		",hud_entry_before,hud_entry_after\n");
+		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6205,7 +6238,7 @@ static void dftrace_write(void)
 		if (frame->boss_entry && dfhud_entry_state == 2)
 			for (unsigned cell = 0u; cell < 40u; ++cell)
 				fprintf(file, "%02x", dfhud_entry_after[cell]);
-		fputc('\n', file);
+		fprintf(file, ",%u,%u\n", frame->boss_finale, frame->boss_spawns);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -6984,6 +7017,7 @@ static void dftrace_init(void)
 	dftrace_pc_set_enemy_hull_source = dftrace_env_optional("DFTRACE_PC_SET_ENEMY_HULL_SOURCE");
 	dftrace_boss_path = getenv("DFTRACE_BOSS_PATH");
 	dftrace_boss_shown_pos = dftrace_env_optional("DFTRACE_BOSS_SHOWN_POS");
+	dftrace_boss_finale = dftrace_env_optional("DFTRACE_BOSS_FINALE");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

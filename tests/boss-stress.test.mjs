@@ -25,6 +25,16 @@
 // flight) and the limit applies to them as to reachable ones. The limit is
 // Q8's 8,500 in the boss sector on builds with the lasers, Q-B6's 7,000 on
 // builds without them.
+//
+// S5-1 (owner decision Q4, docs/plans/s5-boss-regions.md §7.1): a weapon also
+// fires on the meeting frame. Before, no countdown expired on the synthetic
+// frames, so a kill frame on which a gun spawns its shot (420-495 native,
+// reachable in region 1 as shipped) was outside the figure. Each case now runs
+// once per armed weapon with the controller's countdown expiring on that frame
+// and its walk ending at that weapon (the cursor on the armed module before
+// it: boss_fire_next's longest walk to it), and the case's figure is the worst
+// of those runs. The hostile pool is as the entry and the setup frames leave
+// it (gun-2's earlier shot live in one slot).
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -57,6 +67,27 @@ function advance(memory) {
   for (let slot = 0; slot < 5; slot += 1) if (memory[ACTIVE + slot] !== 0) memory[SHOT_Y + slot] -= SPEED;
 }
 const live = (memory) => [0, 1, 2, 3, 4].filter((slot) => memory[ACTIVE + slot] !== 0);
+
+// S5-1 (Q4): the weapons that can fire on the meeting frame, and the arming.
+const KIND_EMITTER = 2;                            // BOSS_KIND_EMITTER (build/boss-layout.inc)
+const BOSS_SHOT_ACTIVE = 0x0e;                     // src/hybrid/boss.s
+const HOSTILE_BASE = 5, HOSTILE_LIMIT = 5;         // INTERCEPTOR_PROJECTILE_SLOT_BASE / _ACTIVE_LIMIT
+const armedMask = (memory) => memory[lbl("_boss_armed_lo")] | (memory[lbl("_boss_armed_hi")] << 8);
+function weapons(memory) {
+  const armed = armedMask(memory);
+  return [...Array(memory[lbl("_boss_count")]).keys()]
+    .filter((i) => ((armed >> i) & 1) !== 0 && memory[lbl("_boss_kind") + i] !== KIND_EMITTER);
+}
+// The countdown expires on this frame and boss_fire_next's walk ends at `module`.
+function arm(memory, module) {
+  const count = memory[lbl("_boss_count")], armed = armedMask(memory);
+  let previous = module;
+  do previous = (previous + count - 1) % count; while (((armed >> previous) & 1) === 0);
+  memory[lbl("_boss_cursor")] = previous;
+  memory[lbl("_boss_countdown")] = 1;
+}
+const bossShots = (memory) => [...Array(HOSTILE_LIMIT).keys()]
+  .filter((i) => memory[ACTIVE + HOSTILE_BASE + i] === BOSS_SHOT_ACTIVE).length;
 
 function hold(memory, laserMode) {
   memory[LIFECYCLE] = 0;
@@ -154,13 +185,24 @@ function sweep(region, { setup, deadSets, laserMode }) {
               shootAt(memory, front.get(module), slot);
             });
             if (!valid) continue;
-            let cycles = frame(memory, laserMode);
-            for (let next = 0; next < 2 && live(memory).length > 0; next += 1) {
-              advance(memory);
-              cycles = Math.max(cycles, frame(memory, laserMode));
+            // S5-1 (Q4): the case once per weapon firing on the meeting frame.
+            const runs = [];
+            for (const gun of [...weapons(memory), null]) {
+              if (gun === null && runs.length > 0) break;
+              const run = Uint8Array.from(memory);
+              if (gun !== null) arm(run, gun);
+              const shots = bossShots(run);
+              let cycles = frame(run, laserMode);
+              const spawned = bossShots(run) > shots;
+              for (let next = 0; next < 2 && live(run).length > 0; next += 1) {
+                advance(run);
+                cycles = Math.max(cycles, frame(run, laserMode));
+              }
+              runs.push({ cycles, gun: gun === null ? null : region.modules[gun].name, spawned });
             }
+            const { cycles, gun, spawned } = runs.reduce((w, r) => (r.cycles > w.cycles ? r : w));
             cases.push({
-              cycles, p, k, mode, reach: reach(k),
+              cycles, p, k, mode, reach: reach(k), gun, spawned,
               dead: dead.map((i) => region.modules[i].name), hit: hit.map((i) => region.modules[i].name),
               columns: hit.map((i) => front.get(i)),
             });
@@ -172,7 +214,8 @@ function sweep(region, { setup, deadSets, laserMode }) {
   return cases;
 }
 const describe = (c) => `${c.cycles} native cycles: ${c.k} ${c.mode}${c.k > 1 ? "s" : ""} ` +
-  `[${c.hit}] at columns [${c.columns}], p ${c.p}, destroyed [${c.dead}] (${c.reach})`;
+  `[${c.hit}] at columns [${c.columns}], p ${c.p}, destroyed [${c.dead}]` +
+  `${c.spawned ? `, ${c.gun} spawning` : c.gun === null ? ", no weapon armed" : `, ${c.gun} firing off screen`} (${c.reach})`;
 function report(name, cases) {
   const worst = (filter) => cases.filter(filter).reduce((w, c) => (w === null || c.cycles > w.cycles ? c : w), null);
   for (const k of [1, 2, 3, 4, 5]) {
@@ -199,13 +242,31 @@ test("AUD-04: the audit's three cases on region 1 - distinct modules killed in o
     [], `over the ${LIMIT}-cycle limit`);
 });
 
-test("AUD-04: region 1 - every distinct-module kill and stage-change combination stays under the boss limit", () => {
+// The sweeps, run once and shared by the tests below.
+const memo = (fn) => { let value = null; return () => (value ??= fn()); };
+const region1Cases = memo(() => {
   const plates = region1.modules.map((m, i) => [m, i]).filter(([m]) => m.kind === "armour").map(([, i]) => i);
-  const cases = sweep(region1, {
+  return sweep(region1, {
     setup: (p) => { const memory = entered(); placeBand(memory, p); return memory; },
     deadSets: [[], ...plates.map((i) => [i]), plates],
     laserMode: null,
   });
+});
+const fixtureCases = memo(() => {
+  const plates = fixture.modules.map((m, i) => [m, i]).filter(([m]) => m.kind === "armour").map(([, i]) => i);
+  const deadSets = [...Array(1 << plates.length).keys()].map((mask) => plates.filter((_, b) => (mask >> b) & 1));
+  return ["warn", "beam"].map((laserMode) => ({
+    laserMode,
+    cases: sweep(fixture, {
+      setup: (p) => { const memory = entered(); installRegion(memory, fixture, { level: 9 }); placeBand(memory, p); return memory; },
+      deadSets,
+      laserMode,
+    }),
+  }));
+});
+
+test("AUD-04: region 1 - every distinct-module kill and stage-change combination stays under the boss limit", () => {
+  const cases = region1Cases();
   assert.ok(cases.length > 3000, `only ${cases.length} cases`);
   const covered = new Set(cases.flatMap((c) => c.hit));
   for (const name of ["plate-a", "plate-b", "plate-h"]) assert.ok(covered.has(name), `${name} never met`);
@@ -215,16 +276,9 @@ test("AUD-04: region 1 - every distinct-module kill and stage-change combination
 });
 
 test("AUD-04: the tier-4 fixture with four lasers - every combination stays under the boss limit", { skip: !lasers }, () => {
-  const plates = fixture.modules.map((m, i) => [m, i]).filter(([m]) => m.kind === "armour").map(([, i]) => i);
-  const deadSets = [...Array(1 << plates.length).keys()].map((mask) => plates.filter((_, b) => (mask >> b) & 1));
   const covered = new Set();
   const worst = [];
-  for (const laserMode of ["warn", "beam"]) {
-    const cases = sweep(fixture, {
-      setup: (p) => { const memory = entered(); installRegion(memory, fixture, { level: 9 }); placeBand(memory, p); return memory; },
-      deadSets,
-      laserMode,
-    });
+  for (const { laserMode, cases } of fixtureCases()) {
     cases.forEach((c) => c.hit.forEach((name) => covered.add(name)));
     const { reachable, all } = report(`fixture, lasers ${laserMode}`, cases);
     console.log(`# fixture, lasers ${laserMode}: ${cases.length} cases; worst reachable ${reachable.cycles}, ` +
@@ -234,6 +288,21 @@ test("AUD-04: the tier-4 fixture with four lasers - every combination stays unde
   assert.deepEqual([...covered].sort(), fixture.modules.map((m) => m.name).sort(), "a module never met");
   const over = worst.filter((c) => c.cycles > LIMIT);
   assert.deepEqual(over.map(describe), [], `over the ${LIMIT}-cycle limit`);
+});
+
+// S5-1 (owner decision Q4): the composition must actually reach a kill frame
+// on which a weapon spawns its shot, and the worst case of every layout must
+// be one - otherwise the figure above is still the frame without the spawn.
+test("S5-1 (Q4): every layout's sweep reaches kill frames with a weapon's spawn, and its worst case is one", () => {
+  const layouts = [["region 1", region1Cases()],
+    ...(lasers ? fixtureCases().map(({ laserMode, cases }) => [`fixture, lasers ${laserMode}`, cases]) : [])];
+  for (const [name, cases] of layouts) {
+    const subject = cases.filter((c) => c.mode === "kill" && c.spawned);
+    console.log(`# ${name}: ${subject.length} kill frames with a spawn of ${cases.length} cases`);
+    assert.ok(subject.length > 0, `${name}: no kill frame with a spawn (subject empty)`);
+    const all = cases.reduce((w, c) => (c.cycles > w.cycles ? c : w));
+    assert.ok(all.mode === "kill" && all.spawned, `${name}: the worst case is not a kill with a spawn: ${describe(all)}`);
+  }
 });
 
 // ---------------------------------------------------------------------------

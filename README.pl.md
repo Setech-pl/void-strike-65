@@ -56,10 +56,14 @@ trzeba nic trzymać przy włączaniu zasilania.
    Wersja z czubka tego repozytorium, razem ze zmianami, które są jeszcze
    testowane w grze, to [`dist/void-strike-65.atr`](dist/void-strike-65.atr) —
    użyj przycisku **Download raw file** na GitHubie.
-2. **W Atari800:** `atari800 -xe -pal void-strike-65.atr`. Dyskietka startuje
-   z włączonym i z wyłączonym BASIC-iem, więc `-nobasic` jest opcjonalne.
-3. **W Altirze:** ustaw sprzęt na **65XE/130XE**, standard obrazu na **PAL**,
-   potem **File → Boot Image** i wskaż plik ATR.
+2. **W Atari800:** `atari800 -xl -pal void-strike-65.atr` — 800XL / 65XE
+   z 64 KB, komputer, dla którego gra powstaje. Dyskietka startuje z włączonym
+   i z wyłączonym BASIC-iem, więc `-nobasic` jest opcjonalne. Gra działa też
+   na 130XE: `atari800 -xe -pal void-strike-65.atr` (sprawdzenie zgodności
+   z 130XE).
+3. **W Altirze:** ustaw sprzęt na **800XL** (albo **65XE/130XE** z pamięcią
+   **64K**), standard obrazu na **PAL**, potem **File → Boot Image** i wskaż
+   plik ATR.
 4. **Na sprzęcie:** skopiuj plik na SIO2SD jako D1: i włącz Atari, z BASIC-iem
    albo bez.
 5. Poczekaj na ekran loadera i menu główne — z dyskietki to około jedenastu

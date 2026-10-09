@@ -50,6 +50,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { TARGET_MACHINE } from "./atari800-machine.mjs";
 
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const buildDirectory = path.join(rootDirectory, "build", "capacity-watch");
@@ -231,7 +232,7 @@ function main() {
       const rawPath = path.join(buildDirectory, `${id}.json`);
       fs.rmSync(rawPath, { force: true });
       const result = run(emulatorPath, [
-        "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
+        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
         ...artifact.args,
       ], {
         env: {

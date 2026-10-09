@@ -303,7 +303,7 @@ tick, the guns firing, the animated nozzles (S4a-ii); lasers (S4b). Emulator
 figures, for comparison only (EMULATOR): the entry reads 38 sectors in about 146
 frames (2.9 s); the bot's fights took 47 / 57 / 74 s on EASY / MEDIUM / HARD.
 Artifacts as built: default ATR `82113495…` (`npm run play:atr`), debug-route
-ATR `8367aeca…` (`atari800 -xe -pal -nobasic <absolute path to
+ATR `8367aeca…` (`atari800 -xl -pal -nobasic <absolute path to
 build/level-1-s4/void-strike-65.atr>`).
 
 - [ ] **The entry (decision 32, Q-B8).** `WARNING` / `BOSS APPROACHING` with the
@@ -360,7 +360,7 @@ the entry reads 48 sectors in about 184 frames (3.7 s); the bot's fights took
 37 / 47 / 71 s on EASY / MEDIUM / HARD and it took 2 / 3 / 7 hits (a pulse hit
 is one of ten health units, so it lost no life). Artifacts as built: default
 ATR `af0180b3…` (`npm run play:atr`), debug-route ATR `045787b3…`
-(`atari800 -xe -pal -nobasic <absolute path to
+(`atari800 -xl -pal -nobasic <absolute path to
 build/level-1-s4/void-strike-65.atr>`).
 
 - [ ] **The hull is the target.** Ten grey plates of different sizes and
@@ -424,7 +424,7 @@ for comparison only (EMULATOR): the entry reads 49 sectors in about 188 frames
 hits, no life lost. Artifacts (after decision O, plan §5.16.8): default ATR
 `4926dc05…` (`npm run play:atr`), boss debug ATR `255fbc19…`, capital debug ATR
 `a89b2c44…`
-(`atari800 -xe -pal -nobasic <absolute path>`).
+(`atari800 -xl -pal -nobasic <absolute path>`).
 
 - [ ] **Shots all the way to the boss.** Fire at a cannon whose plate is gone:
       the shot stays visible inside the band, light steel (the band cannot
@@ -546,9 +546,9 @@ the boss sector's debug route `build/level-1-s4/void-strike-65.atr`
 npm run play:atr
 mkdir -p build/play
 cp build/level-1-s4/void-strike-65.atr build/play/smoke-level-1-s4.atr
-atari800 -xe -pal -nobasic "$PWD/build/play/smoke-level-1-s4.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/smoke-level-1-s4.atr"
 cp build/level-1-s2/void-strike-65.atr build/play/smoke-level-1-s2.atr
-atari800 -xe -pal -nobasic "$PWD/build/play/smoke-level-1-s2.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/smoke-level-1-s2.atr"
 ```
 
 - [ ] **Shots up to the turrets** (level-1-s4, and the full game's boss). Fire
@@ -594,11 +594,11 @@ copies are in `build/play/`; run them from the repository:
 
 ```
 npm run play:atr
-atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s2.atr"
-atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s3.atr"
-atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s4.atr"
-atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s5.atr"
-atari800 -xe -pal -nobasic "$PWD/build/play/w2-level-1-s6.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/w2-level-1-s2.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/w2-level-1-s3.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/w2-level-1-s4.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/w2-level-1-s5.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/w2-level-1-s6.atr"
 ```
 
 (If `build/play/` was cleaned, copy them again:
@@ -640,11 +640,11 @@ repository):
 npm run play:atr
 mkdir -p build/play
 cp build/level-1-s2/void-strike-65.atr build/play/smoke-sector-flow-s2.atr
-atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s2.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/smoke-sector-flow-s2.atr"
 cp build/level-1-s3/void-strike-65.atr build/play/smoke-sector-flow-s3.atr
-atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s3.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/smoke-sector-flow-s3.atr"
 cp build/level-1-s5/void-strike-65.atr build/play/smoke-sector-flow-s5.atr
-atari800 -xe -pal -nobasic "$PWD/build/play/smoke-sector-flow-s5.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/smoke-sector-flow-s5.atr"
 ```
 
 - [ ] **No debris frozen in the boss sector** (level-1-s5, and the full game;

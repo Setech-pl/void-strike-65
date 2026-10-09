@@ -161,7 +161,7 @@ Nothing below touches `dist/` or any committed evidence.
    ```
    mkdir -p build/play
    cp build/level-1-s3/void-strike-65.atr build/play/my-level-1-s3.atr
-   atari800 -xe -pal -nobasic "$PWD/build/play/my-level-1-s3.atr"
+   atari800 -xl -pal -nobasic "$PWD/build/play/my-level-1-s3.atr"
    ```
 4. **Optionally**, list each spawn and the frame each sector begins on, per
    difficulty, without an emulator:

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { TARGET_MACHINE } from "./atari800-machine.mjs";
 
 export const publicArtifactNames = Object.freeze({
   boot: "void-strike-65-boot.bin",
@@ -108,7 +109,7 @@ function cli() {
       fs.writeFileSync(stampPath, `${published}\n`);
     }
   }
-  const args = ["-xe", "-pal", "-nobasic", playCopy];
+  const args = [TARGET_MACHINE, "-pal", "-nobasic", playCopy];
   const record = {
     emulator,
     medium: launch.medium,

@@ -54,10 +54,13 @@ power-on.
    The build at the tip of this repository, including changes that are still
    being play-tested, is [`dist/void-strike-65.atr`](dist/void-strike-65.atr) —
    use GitHub's **Download raw file** button.
-2. **In Atari800:** `atari800 -xe -pal void-strike-65.atr`. The disk boots with
-   BASIC on or off, so `-nobasic` is optional.
-3. **In Altirra:** set the hardware to **65XE/130XE** and the video standard to
-   **PAL**, then **File → Boot Image** and pick the ATR.
+2. **In Atari800:** `atari800 -xl -pal void-strike-65.atr` — the 64 KB
+   800XL / 65XE, the machine the game is made for. The disk boots with BASIC on
+   or off, so `-nobasic` is optional. It also runs on a 130XE:
+   `atari800 -xe -pal void-strike-65.atr` (the 130XE compatibility check).
+3. **In Altirra:** set the hardware to **800XL** (or **65XE/130XE** with
+   **64K** of memory) and the video standard to **PAL**, then
+   **File → Boot Image** and pick the ATR.
 4. **On real hardware:** copy it to your SIO2SD as D1: and power the Atari on,
    with or without BASIC.
 5. Wait for the title loader and the main menu — about eleven seconds from

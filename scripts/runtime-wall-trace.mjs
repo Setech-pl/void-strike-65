@@ -40,6 +40,7 @@ import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
   reportAudits as reportPalTimingAudits, auditsPassed as palTimingAuditsPassed,
   reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
+import { COMPATIBILITY_MACHINE, COMPATIBILITY_MACHINE_NAME, TARGET_MACHINE, TARGET_MACHINE_NAME } from "./atari800-machine.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -2658,7 +2659,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
           ...artifact,
           path: artifact.artifact.path,
           arguments: [
-            "-xe", "-pal", basic ? "-basic" : "-nobasic", "-nosound", "-turbo",
+            TARGET_MACHINE, "-pal", basic ? "-basic" : "-nobasic", "-nosound", "-turbo",
             "-no-video-accel", "-no-vsync",
             ...artifact.mediaArguments,
           ],
@@ -2680,6 +2681,16 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   // what a boss would leave; the session must then reach gameplay with both
   // back to the shipped bytes, one command frame per restored sector.
   definitions.push({ ...nobasic, id: `${nobasic.id}-force-restore`, forceRestore: true });
+  // S5-1 (plan s5-boss-regions §4.7): every session above runs on the target,
+  // the 64 KB machine; one cold boot on the 130XE stays as its compatibility
+  // check, labelled in the evidence and kept out of the BASIC x fill matrix.
+  definitions.push({ ...nobasic, id: `${nobasic.id}-130xe`, compatibility: true,
+    arguments: nobasic.arguments.map((argument) =>
+      (argument === TARGET_MACHINE ? COMPATIBILITY_MACHINE : argument)) });
+  invariant(definitions.filter(({ arguments: args }) => args.includes(COMPATIBILITY_MACHINE)).length === 1 &&
+    definitions.every(({ arguments: args, compatibility }) =>
+      args.includes(compatibility ? COMPATIBILITY_MACHINE : TARGET_MACHINE)),
+  "Boot smoke: every session but the one compatibility session must run on the target machine");
 
   const allSessions = definitions.map((definition) => {
     const outputPath = path.join(outputDirectory, `${definition.id}.json`);
@@ -3038,6 +3049,8 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
       screenshots,
       reset: definition.reset === true,
       force_restore: definition.forceRestore === true,
+      machine: definition.compatibility ? COMPATIBILITY_MACHINE_NAME : TARGET_MACHINE_NAME,
+      compatibility: definition.compatibility === true,
       reset_frame: result.reset_frame,
       blank_windows: result.blank_windows,
       passed: true,
@@ -3055,7 +3068,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         "stray pixels"] : []));
   invariant(blankFailures.length === 0,
     `Boot smoke: frames before the splash are not blank:\n  ${blankFailures.join("\n  ")}`);
-  const sessions = allSessions.filter(({ reset, force_restore: forced }) => !reset && !forced);
+  const sessions = allSessions.filter(({ reset, force_restore: forced, compatibility }) =>
+    !reset && !forced && !compatibility);
+  const compatibilitySessions = allSessions.filter(({ compatibility }) => compatibility);
   const resetSessions = allSessions.filter(({ reset }) => reset);
   const forcedRestoreSessions = allSessions.filter(({ force_restore: forced }) => forced);
 
@@ -3122,6 +3137,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     },
     sessions,
     reset_sessions: resetSessions,
+    // S5-1: the 130XE cold boot, a compatibility check beside the target's sessions.
+    target_machine: TARGET_MACHINE_NAME,
+    compatibility_sessions: compatibilitySessions,
     // M5a-S1: the capital restore run, forced on the default ATR.
     overlay: {
       slot_a: { address: overlays.slotA.address, bytes: overlays.slotA.bytes,
@@ -3393,7 +3411,7 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
       const rawPath = path.join(outputDirectory, `${id}.json`);
       const screenshotPrefix = path.join(outputDirectory, id);
       run(emulatorPath, [
-        "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel",
+        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel",
         "-no-vsync", sessionMedia(artifact.path, `menu-${id}`),
       ], {
         env: {
@@ -3906,7 +3924,8 @@ function main() {
   assertPublishedAtrUntouched("boot smoke");
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} ATR cold-start sessions and ` +
-      `${bootSmoke.reset_sessions.length} RESET session and ` +
+      `${bootSmoke.reset_sessions.length} RESET session, ` +
+      `${bootSmoke.compatibility_sessions.length} 130XE compatibility session and ` +
       `${bootSmoke.overlay.forced_restore_sessions.length} forced capital restore passed`);
   if (bootSmokeOnly) {
     invariant(bootSmoke !== null, "--boot-smoke-only cannot be combined with --skip-boot-smoke");
@@ -4242,7 +4261,7 @@ function main() {
         readOnly: session.media?.readOnly === true, reuse: session.media?.reuse === true,
       });
       run(emulatorPath, [
-        "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
+        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
         media,
       ], { env: environment });
     }
@@ -8012,7 +8031,7 @@ function main() {
       official_source_archive_sha256: OFFICIAL_SOURCE_ARCHIVE_SHA256,
       source_patch: "scripts/atari800-wall-trace.h plus one observer call before each emulated opcode",
       model_arguments: [
-        "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
+        TARGET_MACHINE, "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
       ],
       audio_note: "-nosound disables host playback only; guest sound/music state and POKEY register writes remain active",
     },

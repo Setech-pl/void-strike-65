@@ -11,10 +11,10 @@
     "phaseCount": 8,
     "initialContentBytes": 13618,
     "linkedRuntimeBytes": 17493,
-    "simultaneousResidencyBytes": 21723,
-    "safeResidencyBytes": 464,
-    "residencyDeltaBytes": 3752,
-    "totalMigrationResidencyDeltaBytes": 3696,
+    "simultaneousResidencyBytes": 21709,
+    "safeResidencyBytes": 478,
+    "residencyDeltaBytes": 3738,
+    "totalMigrationResidencyDeltaBytes": 3682,
     "glue": {
       "stagingAddress": 39992,
       "holdingAddress": 33024,
@@ -61,8 +61,8 @@
       "address": 40309,
       "endExclusive": 40922,
       "reservedEndExclusive": 40954,
-      "rawBytes": 4380,
-      "packedBytes": 3504,
+      "rawBytes": 4366,
+      "packedBytes": 3489,
       "codeAddress": 34561,
       "codeBytes": 1469,
       "rodataAddress": 40309,
@@ -91,7 +91,7 @@
         {
           "name": "arena",
           "runAddress": 31696,
-          "bytes": 811
+          "bytes": 797
         },
         {
           "name": "hybrid-window",
@@ -234,7 +234,7 @@
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 11,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 2061,
+    "remainingSafeResidencyBytes": 2075,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 21672,
+      "crc16": 50775,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 21672,
+        "crc16": 50775,
         "records": [
           {
             "startSector": 108,
@@ -369,10 +369,10 @@
           {
             "startSector": 173,
             "sectorCount": 6,
-            "packedLength": 734,
-            "rawLength": 811,
+            "packedLength": 719,
+            "rawLength": 797,
             "finalDestination": 31696,
-            "crc16": 53823,
+            "crc16": 18025,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -383,7 +383,7 @@
             "packedLength": 1330,
             "rawLength": 1660,
             "finalDestination": 44544,
-            "crc16": 20002,
+            "crc16": 36007,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -391,10 +391,10 @@
           {
             "startSector": 190,
             "sectorCount": 7,
-            "packedLength": 783,
-            "rawLength": 902,
+            "packedLength": 798,
+            "rawLength": 916,
             "finalDestination": 46204,
-            "crc16": 60294,
+            "crc16": 13002,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -1224,11 +1224,11 @@
   },
   "lightKernel": {
     "address": 46204,
-    "bytes": 902,
-    "packedBytes": 783,
+    "bytes": 916,
+    "packedBytes": 798,
     "capacityBytes": 1924,
-    "freeBytes": 1022,
-    "endExclusive": 47106,
+    "freeBytes": 1008,
+    "endExclusive": 47120,
     "windowLimit": 48128,
     "cHalfEndExclusive": 46204,
     "vectors": {
@@ -1258,8 +1258,8 @@
       "address": 31696,
       "endExclusive": 32528,
       "capacityBytes": 832,
-      "usedBytes": 811,
-      "freeBytes": 21,
+      "usedBytes": 797,
+      "freeBytes": 35,
       "asmBytes": 162,
       "codeBytes": 596,
       "rodataBytes": 39,
@@ -1279,16 +1279,16 @@
         "finalDestination": 31696,
         "startSector": 173,
         "sectors": 6,
-        "rawBytes": 811,
-        "packedBytes": 734,
-        "paddingBytes": 13,
+        "rawBytes": 797,
+        "packedBytes": 719,
+        "paddingBytes": 28,
         "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
       },
       "ownersInArena": [
         {
           "owner": "record 7bd0",
           "start": 31696,
-          "endExclusive": 32507
+          "endExclusive": 32493
         }
       ],
       "worstCaseFullArenaPackedBytes": 840,
@@ -1303,9 +1303,9 @@
       "capacityBytes": 3584,
       "guardBytes": 6,
       "directorHalfBytes": 1660,
-      "lightKernelBytes": 902,
-      "usedBytes": 2562,
-      "freeBytes": 1022,
+      "lightKernelBytes": 916,
+      "usedBytes": 2576,
+      "freeBytes": 1008,
       "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
       "boundedBy": {
         "below": "16-sector level buffer $A600-$ADFF",
@@ -1406,14 +1406,14 @@
       "file": "encounter-director-code-arena.bin",
       "runAddress": 31696,
       "transportAddress": 31696,
-      "endExclusive": 32507,
-      "bytes": 811,
-      "packedBytes": 734,
+      "endExclusive": 32493,
+      "bytes": 797,
+      "packedBytes": 719,
       "externalChunk": {
         "startSector": 173,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 53823
+        "crc16": 18025
       }
     },
     {
@@ -1428,7 +1428,7 @@
         "startSector": 179,
         "sectors": 11,
         "transportBytes": 1408,
-        "crc16": 20002
+        "crc16": 36007
       }
     }
   ],
@@ -24057,11 +24057,11 @@
     "estimated_additive_cycles": 27847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "d5d3cf2d3c87fab7dc492c05b784da8c4a6eb849b952b925feaa2bec06622e83",
+      "reportSha256": "a4de0f76d625188674fd51e34e45f79fa86ae89481f0925bfbee182efb45e980",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
+        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
       },
       "emulator": {
         "name": "Atari800",
@@ -25621,25 +25621,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "36c405cbf44df0f468db6c05486b294990afa02eaa4b2303ff3704b84ea1cb6a"
+        "sha256": "6d946eade3b465076ae900e90212bcddae6e4fcd6779af04ba23f39b8f0b088e"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
+        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "d5d3cf2d3c87fab7dc492c05b784da8c4a6eb849b952b925feaa2bec06622e83"
+    "reportSha256": "a4de0f76d625188674fd51e34e45f79fa86ae89481f0925bfbee182efb45e980"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "36c405cbf44df0f468db6c05486b294990afa02eaa4b2303ff3704b84ea1cb6a"
+      "sha256": "6d946eade3b465076ae900e90212bcddae6e4fcd6779af04ba23f39b8f0b088e"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
+      "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
     }
   }
 }

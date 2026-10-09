@@ -119,8 +119,8 @@
       {
         "start_sector": 173,
         "sectors": 6,
-        "packed_bytes": 734,
-        "raw_bytes": 811,
+        "packed_bytes": 719,
+        "raw_bytes": 797,
         "destination": 31696,
         "staging_id": 2
       },
@@ -135,8 +135,8 @@
       {
         "start_sector": 190,
         "sectors": 7,
-        "packed_bytes": 783,
-        "raw_bytes": 902,
+        "packed_bytes": 798,
+        "raw_bytes": 916,
         "destination": 46204,
         "staging_id": 2
       },
@@ -291,7 +291,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
+        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-00.json",
       "first_complete_menu_frame": 556,
@@ -809,7 +809,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
+        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-a5.json",
       "first_complete_menu_frame": 556,
@@ -1327,7 +1327,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
+        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-5a.json",
       "first_complete_menu_frame": 556,
@@ -1845,7 +1845,7 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "ae1e6056a258647099f28bdb46da720af52f0dd22b505799aebeeaa5a51b725f"
+        "sha256": "67d95ed878f008bf2e559a0688c0093556d475986097c6622b0c10d0a190414c"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-ff.json",
       "first_complete_menu_frame": 556,

@@ -14,6 +14,9 @@
 #define ACTIVE_GAMEPLAY_FRAME_HI U8_AT(0x4FF9u)
 #define CORRIDOR_PHASE_LO        U8_AT(0x008Cu)
 #define CORRIDOR_PHASE_HI        U8_AT(0x85EFu)
+/* feat/sector-flow (owner smoke 2026-10-09): bit 0 is the debris slot. */
+#define ENTITY_ACTIVE_MASK       U8_AT(0x8000u)
+#define ENTITY_DEBRIS_ACTIVE     0x01u
 #define ENTITY_SPAWN_TIMER_LO    U8_AT(0x8003u)
 #define ENTITY_SPAWN_TIMER_HI    U8_AT(0x8004u)
 #define DIRECTOR_STATE_FLAGS     U8_AT(0x80FEu)
@@ -677,6 +680,15 @@ uint8_t sector_c_update_first_capital(void)
      * waits for (plan §4.4). The flag is consumed first: the entry never
      * returns, and nothing must see it again in this game. */
     if ((DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_BOSS_DUE) != 0u) {
+        /* feat/sector-flow, the owner's smoke of 2026-10-09: the world stops
+         * at the entry and nothing moves a debris cell again, so a piece live
+         * now would stay frozen on screen for the whole fight. Wait for it:
+         * the world still scrolls until the entry, it falls off the bottom as
+         * it always does, and the boss sector admits no new debris. The
+         * capital does not wait - its own debris fills its corridor. */
+        if ((ENTITY_ACTIVE_MASK & ENTITY_DEBRIS_ACTIVE) != 0u) {
+            return 0u;
+        }
         DIRECTOR_STATE_FLAGS &= (uint8_t)~DIRECTOR_FLAG_BOSS_DUE;
         asm_boss_enter();
     }

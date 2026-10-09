@@ -123,7 +123,10 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // 480 - hull_rows for a right-aligned short hull: 187 + 28 = 215 of the
   // segment's 248 B. It ships in an extension record, not the initial block.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 230 });
+    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 241 });
+  // RE-PINNED 2026-10-09 (feat/sector-flow, the owner's smoke): 230 -> 241 of
+  // 248. The BOSS branch waits while the debris slot is live, so no debris
+  // piece freezes on screen at the boss entry (docs/plans/sector-flow.md §4).
   // RE-PINNED 2026-10-04 (M5b-S3, plan §4.4): 215 -> 230 of 248. The capital
   // entry's test became one mask for CAPITAL_DUE | BOSS_DUE (no cycle on a
   // frame with neither), and a drained BOSS_DUE is consumed and enters the boss.

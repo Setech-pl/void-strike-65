@@ -16,6 +16,10 @@
  * a kill frame never pays it on top of the rebuild and the draws. M5b-S4b:
  * the tier's emitter slots are weapons again (decision 8, the count from slot
  * D's laser_tier); a named emitter fires its laser (slot D), not a shot.
+ * S5-2 (plan docs/plans/s5-boss-regions.md §4.2, owner answers Q3, Q6): the
+ * finale - once the last armour module falls, in a region whose tables carry
+ * a finaleCooldown, every weapon fires the salvo's three-shot volley at half
+ * its reload, never under that cooldown.
  *
  * It lives in slot C ($1000-$17FF, owner answer Q-B5), read from disk at every
  * boss entry with the boss's ASM in slot A (src/hybrid/boss.s), which owns the
@@ -124,9 +128,17 @@ uint8_t boss_heavy;
  * (§5.15.6 item 2): 2 on the kill, counted down by each tick - the kill
  * frame's own tick leaves it at 1. */
 uint8_t boss_expose_pending;
-/* A salvo launcher's burst: shots still to fire, one a frame, and its module. */
-static uint8_t boss_burst_left;
-static uint8_t boss_burst_module;
+/* A salvo launcher's burst - and, in the finale, every weapon's: shots still
+ * to fire, one a frame, and its module. */
+uint8_t boss_burst_left;
+uint8_t boss_burst_module;
+/* S5-2 (plan s5-boss-regions §4.2, owner answers Q3, Q6): the armour modules
+ * still standing (a capped emitter is armour), counted down on each kill so
+ * the finale starts in O(1); the finale's countdown floor once it has started
+ * (the region's finaleCooldown), 0 before - and always in a region without a
+ * finale. */
+uint8_t boss_armour_left;
+uint8_t boss_finale;
 static uint8_t boss_timer;
 static uint8_t boss_chain_left;
 static uint8_t boss_chain_next;
@@ -204,15 +216,9 @@ static void boss_expose(void)
             goto drop;
         }
         boss_record_of();
-        boss_value = FIELD(BOSS_M_COVER_LO)[boss_record];
-        boss_value &= boss_alive_lo;
-        if (boss_value != 0u) {
-            ++boss_i;
-            continue;
-        }
-        boss_value = FIELD(BOSS_M_COVER_HI)[boss_record];
-        boss_value &= boss_alive_hi;
-        if (boss_value != 0u) {
+        boss_value = (uint8_t)(FIELD(BOSS_M_COVER_LO)[boss_record] & boss_alive_lo);
+        boss_t = (uint8_t)(FIELD(BOSS_M_COVER_HI)[boss_record] & boss_alive_hi);
+        if ((uint8_t)(boss_value | boss_t) != 0u) {
             ++boss_i;
             continue;
         }
@@ -239,8 +245,7 @@ drop:
 void boss_c_init(void)
 {
     boss_count = TABLE[BOSS_T_MODULE_COUNT];
-    boss_value = boss_difficulty[0];
-    boss_adjust = (boss_def + BOSS_DEF_HP_SCALE)[boss_value];
+    boss_adjust = (boss_def + BOSS_DEF_HP_SCALE)[boss_difficulty[0]];
     /* Decision 8 enables 1 / 2 / 4 emitter slots on levels 1-4 / 5-8 / 9-12:
      * slot D's laser_tier sets the count from the level id before this init
      * runs (M5b-S4b; a debug fixture build overrides it there). */
@@ -263,29 +268,27 @@ void boss_c_init(void)
         boss_value = FIELD(BOSS_M_KIND)[boss_record];
         boss_i = (uint8_t)(boss_value & 0x0Fu);
         boss_value = (uint8_t)(boss_value >> 4);
+        /* The three hit-point values' source, an offset from the capped
+         * plate's in the tables: the module's record, or - an emitter slot
+         * the tier does not enable - the capped plate's own (S5-2: one
+         * read path for both, the same values). */
+        boss_t = (uint8_t)(boss_record + (BOSS_T_MODULES + BOSS_M_HP - BOSS_T_CAPPED_HP));
         if (boss_i == BOSS_KIND_EMITTER && boss_value > boss_enabled) {
             boss_i = BOSS_KIND_ARMOUR;
-            boss_value = TABLE[BOSS_T_CAPPED_HP];
-            boss_scale();
-            boss_hp[boss_n] = boss_value;
-            boss_value = TABLE[BOSS_T_CAPPED_CRACKED];
-            boss_scale();
-            boss_crack[boss_n] = boss_value;
-            boss_value = TABLE[BOSS_T_CAPPED_BROKEN];
-        } else {
-            boss_value = FIELD(BOSS_M_HP)[boss_record];
-            boss_scale();
-            boss_hp[boss_n] = boss_value;
-            boss_value = FIELD(BOSS_M_HP_CRACKED)[boss_record];
-            boss_scale();
-            boss_crack[boss_n] = boss_value;
-            boss_value = FIELD(BOSS_M_HP_BROKEN)[boss_record];
+            boss_t = 0u;
         }
+        boss_value = (TABLE + BOSS_T_CAPPED_HP)[boss_t];
+        boss_scale();
+        if (boss_value == 0u) {
+            boss_value = 1u;
+        }
+        boss_hp[boss_n] = boss_value;
+        boss_value = (TABLE + BOSS_T_CAPPED_CRACKED)[boss_t];
+        boss_scale();
+        boss_crack[boss_n] = boss_value;
+        boss_value = (TABLE + BOSS_T_CAPPED_BROKEN)[boss_t];
         boss_scale();
         boss_break[boss_n] = boss_value;
-        if (boss_hp[boss_n] == 0u) {
-            boss_hp[boss_n] = 1u;
-        }
         boss_kind[boss_n] = boss_i;
         if (boss_i != BOSS_KIND_ARMOUR) {
             ++boss_weapons_left;
@@ -293,16 +296,18 @@ void boss_c_init(void)
         boss_hidden[boss_n] = boss_n;
     }
     boss_hidden_count = boss_count;
+    boss_armour_left = (uint8_t)(boss_count - boss_weapons_left);
     /* Everything is alive: a module is exposed now when it has no cover. */
     boss_expose();
     boss_newly_lo = 0u;
     boss_newly_hi = 0u;
     boss_expose_pending = 0u;
     boss_burst_left = 0u;
+    boss_finale = 0u;
     boss_fire_offset = 0u;
     boss_phase = PHASE_FIGHT;
-    boss_blast = NONE;
     boss_handoff = 0u;
+    boss_blast = NONE;
     boss_fire_module = NONE;
     boss_stage_module = NONE;
     boss_score_module = NONE;
@@ -380,6 +385,17 @@ uint8_t boss_c_hit(void)
             boss_stats_bonus[1] = boss_def[BOSS_DEF_BONUS_HI];
             return 1u;
         }
+    } else {
+        /* S5-2: the last armour module's kill starts the finale, when the
+         * region has one; its first volley comes on the next frame (this
+         * kill's frame fires nothing, owner decision 2026-10-09 (B)). */
+        --boss_armour_left;
+        if (boss_armour_left == 0u) {
+            boss_finale = TABLE[BOSS_T_FINALE_COOLDOWN];
+            if (boss_finale != 0u) {
+                boss_countdown = 1u;
+            }
+        }
     }
     boss_expose_pending = 2u;
     return 1u;
@@ -387,8 +403,9 @@ uint8_t boss_c_hit(void)
 
 /* The next armed module after the cursor fires (the policy only in S4a-i:
  * boss_fire_module names it), and the countdown restarts from its reload -
- * EASY +1/2, HARD -1/4 - never under the region's cooldown. O(modules), once
- * a firing; the frame's own path stays O(1). */
+ * EASY +1/2, HARD -1/4 - never under the region's cooldown; in the finale a
+ * volley, the reload halved, never under the finale's cooldown. O(modules),
+ * once a firing; the frame's own path stays O(1). */
 static void boss_fire_next(void)
 {
     /* boss_n = the next armed module after the cursor, cyclic (S5-1, owner
@@ -397,25 +414,30 @@ static void boss_fire_next(void)
     boss_next_armed();
     boss_cursor = boss_n;
     boss_fire_module = boss_n;
-    if (boss_kind[boss_n] == BOSS_KIND_SALVO) {
+    if (boss_finale != 0u || boss_kind[boss_n] == BOSS_KIND_SALVO) {
         /* Three shots on three frames, from the columns left of, at and
-         * right of the launcher's centre (§5.13.2 item 6). */
+         * right of the launcher's centre (§5.13.2 item 6) - in the finale,
+         * every weapon's volley (S5-2, owner answer Q3). */
         boss_fire_offset = 0xFFu;
         boss_burst_left = 2u;
         boss_burst_module = boss_n;
     }
     boss_record_of();
     boss_value = FIELD(BOSS_M_RELOAD)[boss_record];
-    boss_t = boss_difficulty[0];
-    if (boss_t == DIFFICULTY_EASY) {
-        boss_quarter = (uint8_t)(boss_value >> 1);
-        boss_value += boss_quarter;
-    } else if (boss_t == DIFFICULTY_HARD) {
-        boss_quarter = (uint8_t)(boss_value >> 2);
-        boss_value -= boss_quarter;
+    if (boss_difficulty[0] == DIFFICULTY_EASY) {
+        boss_value += (uint8_t)(boss_value >> 1);
+    } else if (boss_difficulty[0] == DIFFICULTY_HARD) {
+        boss_value -= (uint8_t)(boss_value >> 2);
     }
-    if (boss_value < TABLE[BOSS_T_FIRE_COOLDOWN]) {
-        boss_value = TABLE[BOSS_T_FIRE_COOLDOWN];
+    /* S5-2: in the finale the reload is halved and the floor is the finale's
+     * cooldown (owner answer Q3). */
+    boss_t = TABLE[BOSS_T_FIRE_COOLDOWN];
+    if (boss_finale != 0u) {
+        boss_value >>= 1;
+        boss_t = boss_finale;
+    }
+    if (boss_value < boss_t) {
+        boss_value = boss_t;
     }
     boss_countdown = boss_value;
 }

@@ -115,7 +115,7 @@ export const BOSS_MAX_RELOAD = 170;      // x 1.5 on EASY stays a byte
 // through build/boss-layout.inc and build/boss-layout.h.
 export const BOSS_TABLE = Object.freeze({
   palette: 0,            // 4 B: COLPF0-3 under the band
-  reserved4: 4,          // 0 (S4b.5: was the band flash's flashLuma; no flash)
+  finaleCooldown: 4,     // S5-2: the finale's countdown floor; 0 = no finale (S4b.5 freed the byte)
   framesPerStep: 5,      // frames per colour clock of drift
   travel: 6,             // the last colour clock of travel (0..travel)
   start: 7,              // the colour clock the band starts on
@@ -266,6 +266,32 @@ export function decodeBossDraftPng(buffer, file, expected = null) {
     indices[pixel] = index;
   }
   return { width: image.width, height: image.height, indices, file };
+}
+
+// S5-2 (plan s5-boss-regions §4.2, §6): regions 2-4 are copies of region 1
+// on the disk until their own sessions replace them (S5-1, owner answer Q10);
+// assets/graphics/boss-regions/placeholders.json holds what each copy changes
+// - its `fire` block only (the finale's floor; region 1 keeps no finale,
+// owner answer Q6). A region that has its own directory drops its entry.
+export const BOSS_PLACEHOLDERS_FILE = "placeholders.json";
+export function loadBossPlaceholders(rootDirectory) {
+  const file = path.join(rootDirectory, "assets", "graphics", "boss-regions", BOSS_PLACEHOLDERS_FILE);
+  const data = JSON.parse(fs.readFileSync(file, "utf8"));
+  const regions = data.regions ?? {};
+  for (const [region, entry] of Object.entries(regions)) {
+    if (!["2", "3", "4"].includes(region)) fail(`${BOSS_PLACEHOLDERS_FILE}: region ${region} is not a placeholder (2-4)`);
+    const keys = Object.keys(entry).filter((key) => key !== "_");
+    if (keys.some((key) => key !== "fire")) {
+      fail(`${BOSS_PLACEHOLDERS_FILE}: region ${region} changes ${keys.join(", ")}; a placeholder changes its fire block only`);
+    }
+  }
+  return regions;
+}
+// Region 1's draft (or the laser fixture's) as region N's placeholder: its
+// fire block with the placeholder's fields over it.
+export function bossPlaceholderDraft(draft, entry = {}) {
+  const { _: note, ...fire } = entry.fire ?? {};
+  return { ...draft, layout: { ...draft.layout, fire: { ...draft.layout.fire, ...fire } } };
 }
 
 export function bossRegionDirectory(rootDirectory, region) {
@@ -679,6 +705,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const chainFrames = integerIn(chain.framesBetween, 1, 255, "chain.framesBetween");
   const fire = layout.fire ?? {};
   const fireCooldown = integerIn(fire.cooldown, 1, 255, "fire.cooldown");
+  // S5-2 (plan s5-boss-regions §4.2, owner answers Q3, Q6): the finale - once
+  // the last armour module falls, every surviving weapon fires three-shot
+  // volleys at half its reload, the countdown's floor stepped down from
+  // fire.cooldown to this. 0 (the default) = no finale.
+  const finaleCooldown = integerIn(fire.finaleCooldown ?? 0, 0, fireCooldown, "fire.finaleCooldown");
   const capped = layout.capped ?? {};
   const cappedHp = integerIn(capped.hp, 1, BOSS_MAX_HP, "capped.hp");
   // S4b (owner decision Q11): a laser's warning and beam, frames; M8 tunes.
@@ -990,6 +1021,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables[BOSS_TABLE.cappedCracked] = cappedCracked;
   tables[BOSS_TABLE.cappedBroken] = cappedBroken;
   tables[BOSS_TABLE.fireCooldown] = fireCooldown;
+  tables[BOSS_TABLE.finaleCooldown] = finaleCooldown;
   tables[BOSS_TABLE.nozzleFrames] = nozzleFrames;
   tables[BOSS_TABLE.nozzleLeftCode] = nozzleBase | (nozzleBanks[0] ? 0x80 : 0);
   tables[BOSS_TABLE.nozzleRightCode] = (nozzleBase + 1) | (nozzleBanks[1] ? 0x80 : 0);
@@ -1049,6 +1081,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     hostileShotCode,
     codeCount,
     laser: { beamFrames: laserBeam },
+    fire: { cooldown: fireCooldown, finaleCooldown },
     seeThrough: [...seeThrough].map((key) => [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)]),
     hullStop,
     glyphs,

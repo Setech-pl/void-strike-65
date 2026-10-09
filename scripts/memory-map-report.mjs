@@ -132,7 +132,7 @@ const SEGMENTS = {
   BOSS_HEAD: ["boss overlay: head JMP and the capital vector table's boss image", "overlay"],
   BOSS_CODE: ["boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off", "overlay"],
   BOSS_HEAD_CHECK: ["boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A", "overlay"],
-  BOSS_C_CODE: ["boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, chain, bonus, clock)", "overlay"],
+  BOSS_C_CODE: ["boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock)", "overlay"],
   BOSS_C_RODATA: ["boss slot C: C read-only data", "overlay"],
   // The fortress session (plan §5.15.7): the once-per-entry ASM moved from slot A.
   BOSS_C_ASM: ["boss slot C: the overlay's once-per-entry ASM (boss_prepare)", "overlay"],

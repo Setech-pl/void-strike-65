@@ -128,6 +128,8 @@ import {
   bossHostileShotGlyphsFrom,
   bossLaserFixtureDraft,
   loadBossRegionDraft,
+  loadBossPlaceholders,
+  bossPlaceholderDraft,
   renderBossLayoutHeader,
   renderBossLayoutInclude,
 } from "./boss-assets.mjs";
@@ -1826,18 +1828,25 @@ async function build() {
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
   const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
-  const regionOne = compileBossRegion(
-    laserFixtureTier === null ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier),
+  const regionOneSource = laserFixtureTier === null
+    ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
+  const compileRegion = (draft) => compileBossRegion(draft,
     { themeImage: bossThemeImage,
       shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter),
       hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]) });
+  const regionOne = compileRegion(regionOneSource);
   // (loadBossRegionDraft carries the same glyphs; the build passes its own
   // weapons asset so a variant that changed it converts the boss with it.)
   // S5-1 (owner decision Q10, plan s5-boss-regions §6): four regions on the
   // disk - regions 2-4 are copies of region 1 (the laser fixture's, on a
   // fixture build) until their own sessions replace them. Each region's look
   // tail is its block in slot F now, so the regions no longer share a home.
-  const bossRegions = [regionOne, regionOne, regionOne, regionOne];
+  // S5-2 (plan §4.2): each copy takes its placeholder entry
+  // (assets/graphics/boss-regions/placeholders.json: the finale on, region 1
+  // keeping it off, owner answer Q6).
+  const bossPlaceholders = loadBossPlaceholders(rootDirectory);
+  const bossRegions = [regionOne, ...[2, 3, 4].map((region) =>
+    compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)])))];
   const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
   writeFile(path.join(buildDirectory, "boss-layout.inc"), bossLayoutInclude);
@@ -4324,6 +4333,8 @@ async function build() {
         region: index + 1, name: region.name, style: region.style, codes: region.codeCount,
         stageStep: region.stageStep, charsetBytes: region.charsetBytes,
         charsetSectors: region.runs.charset.sectors, modules: region.modules.length,
+        // S5-2: the finale's floor (fire.finaleCooldown; 0 = no finale).
+        finaleCooldown: region.fire.finaleCooldown,
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +

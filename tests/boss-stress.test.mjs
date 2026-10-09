@@ -35,6 +35,18 @@
 // it: boss_fire_next's longest walk to it), and the case's figure is the worst
 // of those runs. The hostile pool is as the entry and the setup frames leave
 // it (gun-2's earlier shot live in one slot).
+//
+// S5-2 (plan docs/plans/s5-boss-regions.md §4.2, §6): the finale's volleys. On
+// a layout with a finale (the region 2-4 placeholders: region 1's data with
+// fire.finaleCooldown, and the tier-4 fixture with the same) the sweep runs in
+// the finale - every plate destroyed - and one plate short of it (the meeting
+// may kill the last), and each case runs once more per armed weapon with a
+// volley's second and third shot (the burst step) due on the meeting frame:
+// the volley started by the controller one or two frames earlier, its earlier
+// shots in the pool. Under the owner's rule (B) a step due on a kill frame is
+// held to the next, so the case runs on while it is pending. Region 1 and the
+// fixture as shipped have no volley (no finale, no salvo launcher): their
+// figures are unchanged.
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -51,6 +63,17 @@ const { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } = assets;
 const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
 const fixture = lasers
   ? compileBossRegion(assets.bossLaserFixtureDraft(loadBossRegionDraft(bossRegionDirectory(root, 1)))) : null;
+// S5-2: the region 2-4 placeholders (assets/graphics/boss-regions/placeholders.json)
+// - region 1's data with the finale on - and the tier-4 fixture with the same
+// entry (a laser-fixture route's regions 2-4). One layout while every entry is
+// the same; the test refuses entries that differ (a later session splits them).
+const finaleBuilt = labelsOf.boss.has("_boss_burst_left");
+const placeholderEntries = assets.loadBossPlaceholders(root);
+const placeholderEntry = placeholderEntries["2"];
+const placeholders = compileBossRegion(assets.bossPlaceholderDraft(
+  loadBossRegionDraft(bossRegionDirectory(root, 1)), placeholderEntry));
+const fixtureFinale = lasers ? compileBossRegion(assets.bossPlaceholderDraft(
+  assets.bossLaserFixtureDraft(loadBossRegionDraft(bossRegionDirectory(root, 1))), placeholderEntry)) : null;
 
 let entry = null;
 function entered() {
@@ -119,6 +142,28 @@ function hold(memory, laserMode) {
     }
   }
 }
+// S5-2: a volley's lead frames before the meeting - the controller's UPDATE
+// only (no motion: the case's shots keep their columns), the player's shots
+// put aside meanwhile.
+function lead(memory, laserMode, frames) {
+  const kept = [0, 1, 2, 3, 4].map((slot) => memory[ACTIVE + slot]);
+  kept.forEach((_, slot) => { memory[ACTIVE + slot] = 0; });
+  for (let f = 0; f < frames; f += 1) { hold(memory, laserMode); call(memory, lbl("boss_update")); }
+  kept.forEach((value, slot) => { memory[ACTIVE + slot] = value; });
+}
+const burstLeft = (memory) => (finaleBuilt ? memory[lbl("_boss_burst_left")] : 0);
+// S5-2: the hostile pool as the entry left it (a finale layout's setup frames
+// fire volleys into a pool the harness never moves, which would drop every
+// later spawn).
+const HOSTILE_ARRAYS = ["FIGHTER_PROJECTILE_ACTIVE", "FIGHTER_PROJECTILE_X", "FIGHTER_PROJECTILE_Y",
+  "FIGHTER_PROJECTILE_PREV_Y", "FIGHTER_PROJECTILE_LIFETIME"];
+function entryPool(memory) {
+  const fresh = entered();
+  for (const name of HOSTILE_ARRAYS) {
+    const base = main(name) + HOSTILE_BASE;
+    memory.set(fresh.subarray(base, base + HOSTILE_LIMIT), base);
+  }
+}
 function frame(memory, laserMode) {
   hold(memory, laserMode);
   memory[main("loader_dli_phase")] = 0;
@@ -163,12 +208,13 @@ const reach = (k) => (k <= 2 ? "reachable" : "unproven");
 
 // Every case of a layout: band positions x destroyed-plate sets x subsets of
 // up to five front modules x kill / stage; each case's frame and the worst.
-function sweep(region, { setup, deadSets, laserMode }) {
+function sweep(region, { setup, deadSets, laserMode, volleys = false }) {
   const cases = [];
   for (const p of [0, 16, 32, 48, 63]) {
     for (const dead of deadSets) {
       const base = setup(p);
       if (!destroy(base, region, dead)) continue;
+      if (volleys) entryPool(base);
       const front = fronts(base, region);
       const modules = [...front.keys()];
       for (let k = 1; k <= Math.min(5, modules.length); k += 1) {
@@ -191,15 +237,23 @@ function sweep(region, { setup, deadSets, laserMode }) {
             // Since the owner's rule (B) a firing that falls on a kill frame is
             // held to the next frame, so the case runs on while it is pending.
             const runs = [];
-            for (const gun of [...weapons(memory), null]) {
+            // S5-2: on a layout with volleys, each weapon also with its
+            // volley's second and third shot due on the meeting frame.
+            const steps = volleys ? ["countdown", "burst 2", "burst 3"] : ["countdown"];
+            for (const [gun, step] of [...weapons(memory).flatMap((g) => steps.map((st) => [g, st])), [null, null]]) {
               if (gun === null && runs.length > 0) break;
               const run = Uint8Array.from(memory);
               if (gun !== null) arm(run, gun);
+              if (step === "burst 2" || step === "burst 3") {
+                lead(run, laserMode, step === "burst 2" ? 1 : 2);
+                if (burstLeft(run) === 0 || run[lbl("_boss_phase")] !== 0) continue;   // no volley
+              }
               let cycles = 0, worstFrame = 0, spawned = false, clashes = 0;
               // Up to four frames: the kept shots meet by f3 (two a frame),
               // and a firing held on f3's kill lands on f4.
               for (let f = 0; f < 4; f += 1) {
-                const pending = gun !== null && !spawned && run[lbl("_boss_countdown")] === 1;
+                const pending = gun !== null && !spawned &&
+                  (run[lbl("_boss_countdown")] === 1 || burstLeft(run) > 0);
                 if (f > 0 && live(run).length === 0 && !pending) break;
                 if (f > 0) advance(run);
                 const shots = bossShots(run), down = fallen(run);
@@ -209,12 +263,13 @@ function sweep(region, { setup, deadSets, laserMode }) {
                 spawned ||= spawn;
                 if (c > cycles) { cycles = c; worstFrame = f + 1; }
               }
-              runs.push({ cycles, worstFrame, gun: gun === null ? null : region.modules[gun].name, spawned, clashes });
+              runs.push({ cycles, worstFrame, gun: gun === null ? null : region.modules[gun].name, step, spawned, clashes });
             }
-            const { cycles, worstFrame, gun, spawned } = runs.reduce((w, r) => (r.cycles > w.cycles ? r : w));
+            const { cycles, worstFrame, gun, step, spawned } = runs.reduce((w, r) => (r.cycles > w.cycles ? r : w));
+            const burstSpawns = runs.filter((r) => r.spawned && r.step !== null && r.step.startsWith("burst")).length;
             const clashes = runs.reduce((sum, r) => sum + r.clashes, 0);
             cases.push({
-              cycles, worstFrame, p, k, mode, reach: reach(k), gun, spawned, clashes,
+              cycles, worstFrame, p, k, mode, reach: reach(k), gun, step, spawned, clashes, burstSpawns,
               dead: dead.map((i) => region.modules[i].name), hit: hit.map((i) => region.modules[i].name),
               columns: hit.map((i) => front.get(i)),
             });
@@ -227,7 +282,8 @@ function sweep(region, { setup, deadSets, laserMode }) {
 }
 const describe = (c) => `${c.cycles} native cycles (f${c.worstFrame}): ${c.k} ${c.mode}${c.k > 1 ? "s" : ""} ` +
   `[${c.hit}] at columns [${c.columns}], p ${c.p}, destroyed [${c.dead}]` +
-  `${c.spawned ? `, ${c.gun} spawning` : c.gun === null ? ", no weapon armed" : `, ${c.gun} due, no spawn`} (${c.reach})`;
+  `${c.spawned ? `, ${c.gun} spawning` : c.gun === null ? ", no weapon armed" : `, ${c.gun} due, no spawn`}` +
+  `${c.step === "burst 2" ? " (its volley's second shot)" : c.step === "burst 3" ? " (its volley's third shot)" : ""} (${c.reach})`;
 function report(name, cases) {
   const worst = (filter) => cases.filter(filter).reduce((w, c) => (w === null || c.cycles > w.cycles ? c : w), null);
   for (const k of [1, 2, 3, 4, 5]) {
@@ -277,6 +333,30 @@ const fixtureCases = memo(() => {
   }));
 });
 
+// S5-2: the finale's layouts - in the finale (every plate destroyed) and one
+// plate short of it - with the volleys' burst steps composed.
+const finaleSets = (region) => {
+  const plates = region.modules.map((m, i) => [m, i]).filter(([m]) => m.kind === "armour").map(([, i]) => i);
+  return [plates, ...plates.map((last) => plates.filter((i) => i !== last))];
+};
+const placeholderCases = memo(() => sweep(placeholders, {
+  setup: (p) => { const memory = entered(); installRegion(memory, placeholders, { level: 4 }); placeBand(memory, p); return memory; },
+  deadSets: finaleSets(placeholders),
+  laserMode: null,
+  volleys: true,
+}));
+const fixtureFinaleCases = memo(() => ["warn", "beam"].map((laserMode) => ({
+  laserMode,
+  cases: sweep(fixtureFinale, {
+    setup: (p) => { const memory = entered(); installRegion(memory, fixtureFinale, { level: 10 }); placeBand(memory, p); return memory; },
+    deadSets: finaleSets(fixtureFinale),
+    laserMode,
+    volleys: true,
+  }),
+})));
+const finaleLayouts = () => (!finaleBuilt ? [] : [["regions 2-4 (the finale)", placeholderCases()],
+  ...(lasers ? fixtureFinaleCases().map(({ laserMode, cases }) => [`fixture with the finale, lasers ${laserMode}`, cases]) : [])]);
+
 test("AUD-04: region 1 - every distinct-module kill and stage-change combination stays under the boss limit", () => {
   const cases = region1Cases();
   assert.ok(cases.length > 3000, `only ${cases.length} cases`);
@@ -313,7 +393,8 @@ test("AUD-04: the tier-4 fixture with four lasers - every combination stays unde
 // it. Since the owner's rule (B) that firing is held to the next frame, so the
 // subject is the kill cases whose spawn landed in the case's frames.
 const layouts = () => [["region 1", region1Cases()],
-  ...(lasers ? fixtureCases().map(({ laserMode, cases }) => [`fixture, lasers ${laserMode}`, cases]) : [])];
+  ...(lasers ? fixtureCases().map(({ laserMode, cases }) => [`fixture, lasers ${laserMode}`, cases]) : []),
+  ...finaleLayouts()];
 test("S5-1 (Q4): every layout's sweep reaches kill frames with a weapon's firing due, and its worst case includes the spawn", () => {
   for (const [name, cases] of layouts()) {
     const subject = cases.filter((c) => c.mode === "kill" && c.spawned);
@@ -334,6 +415,34 @@ test("S5-1 (B): no stress frame has both a module kill and a gun's spawn", () =>
     console.log(`# ${name}: ${clashes} frames with a kill and a spawn over ${subject} kill cases with a gun due`);
     assert.ok(subject > 0, `${name}: no kill case with a gun due (subject empty)`);
     assert.equal(clashes, 0, `${name}: ${clashes} frames with a kill and a spawn`);
+  }
+});
+
+// S5-2 (plan s5-boss-regions §6, owner answer Q4): the finale's layouts under
+// the limit in force for regions 2 and 4 - 8,500 on the reachable cases.
+test("S5-2: the finale's layouts - every combination, volleys' burst steps composed, stays under the boss limit", () => {
+  assert.equal(new Set(Object.values(placeholderEntries).map((e) => JSON.stringify(e))).size, 1,
+    "the region 2-4 placeholders differ: sweep each one");
+  assert.ok(finaleBuilt, "the controller has no finale (no volley state to compose)");
+  assert.ok(placeholders.fire.finaleCooldown > 0, "the placeholders carry no finale");
+  const over = [];
+  for (const [name, cases] of finaleLayouts()) {
+    const { reachable, all } = report(name, cases);
+    console.log(`# ${name}: ${cases.length} cases; worst reachable ${reachable.cycles}, worst ${all.cycles} (limit ${LIMIT})`);
+    if (reachable.cycles > LIMIT) over.push(`${name}: ${describe(reachable)}`);
+  }
+  assert.deepEqual(over, [], `over the ${LIMIT}-cycle limit`);
+});
+
+test("S5-2: the burst step reaches the worst frames - kill cases with a volley's later shot, and each finale layout's worst reachable case spawns", () => {
+  assert.ok(finaleBuilt, "the controller has no finale");
+  for (const [name, cases] of finaleLayouts()) {
+    const subject = cases.filter((c) => c.mode === "kill" && c.burstSpawns > 0);
+    const burstWorst = cases.filter((c) => c.step !== null && c.step.startsWith("burst") && c.spawned).length;
+    console.log(`# ${name}: ${subject.length} kill cases with a burst step's spawn; ${burstWorst} cases whose worst run is a burst step`);
+    assert.ok(subject.length > 0, `${name}: no kill case with a burst step's spawn (subject empty)`);
+    const worst = cases.filter((c) => c.reach === "reachable").reduce((w, c) => (c.cycles > w.cycles ? c : w));
+    assert.ok(worst.spawned, `${name}: the worst reachable case has no spawn: ${describe(worst)}`);
   }
 });
 

@@ -1,0 +1,8 @@
+{
+  "_": "S5-2 (docs/plans/s5-boss-regions.md §4.2, §6): regions 2-4 are copies of region 1 on the disk until their own sessions (S5-3 region 3, S5-4 region 4, S5-5 region 2) replace them with their own directories (owner answer Q10). Each entry is what that copy changes, its fire block only. The finale is on in every placeholder - the debug routes --boss-region=N play region 1's boss with it, the review of the finale (plan §6 S5-2) - and off in region 1 (owner answer Q6). fire.finaleCooldown 12 is half of region 1's fire.cooldown 24 (owner answer Q3: the reload halved, a data floor); M8 tunes it per region. docs/level-authoring.md 'The boss' is the format.",
+  "regions": {
+    "2": { "fire": { "finaleCooldown": 12 } },
+    "3": { "fire": { "finaleCooldown": 12 } },
+    "4": { "fire": { "finaleCooldown": 12 } }
+  }
+}

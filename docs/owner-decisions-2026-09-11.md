@@ -1836,6 +1836,48 @@ kapsuł (SPREAD wszystko-albo-nic, co trzecie zestrzelenie Heavy albo debris,
 Lighty się nie liczą); strzały celowane i lot wstecz poza 1.0 (poza pytaniem
 Q2 o strzał pół-celowany, na co właściciel pozwolił).
 
+## AF. S5 — BOSSY REGIONÓW 2–4 NA WSPÓLNYM SILNIKU, NAKŁADKI PER REGION — odpowiedzi właściciela na §7 planu (2026-10-09)
+
+Plan: `docs/plans/s5-boss-regions.md` (sesja `docs/plan-s5`, `OWNER REVIEW
+CANDIDATE`, bajty gry bez zmian). Właściciel odpowiedział tego samego dnia na
+wszystkie dziesięć pytań (§7.1 planu):
+
+1. **Styl per region (Q1):** R2 Bastion (styl 2) z eskortą Interceptorów, R3
+   Siege Spine (forteca, 3 warstwy) z polem siłowym, R4 Void Citadel (forteca,
+   4 warstwy, wyrzutnie salw, finał).
+2. **Wygląd pola siłowego R3 (Q2):** wariant (b) — wiersz glifów pod pasem
+   bossa (dwa kody zestawu regionu), P1/P2 jako poświata generatorów, każdy
+   generator zasila swoją połowę. **S5-3 buduje też build porównawczy
+   wariantu (a)** do smoke'u właściciela, zanim wybór stanie się ostateczny —
+   deliverable S5-3.
+3. **Wzór salwy i finału (Q3):** trzy strzały w trzech klatkach z kolumn
+   x−1, x, x+1; w finale przeładowanie o połowę krótsze, próg z danych
+   (`fire.finaleCooldown`).
+4. **Limit stresu (Q4):** 8 500 zostaje dla R1/R2/R4 (hooki regionu bramkowane
+   flagą); fixture R3 na tier 4 dostaje własny pin **8 750** na mierzonej
+   podstawie marginesu fence. **Kompozycja stresu musi dołożyć spawn broni w
+   klatce zestrzelenia — w S5-1, nie w S5-2**, bo luka dotyczy też regionu 1 w
+   wydanej wersji. **S5-1 mierzy region 1 nową kompozycją; powyżej 8 500 —
+   STOP i raport z klatkami.**
+5. **Eskorta (Q5):** 6 Interceptorów, odstęp 100 klatek; strojenie w M8.
+6. **Finał w regionie 1 (Q6):** wyłączony.
+7. **Wejście bossa R3 ponad 65 sektorów (Q7):** STOP w S5-3 i pytanie wtedy;
+   granicy 250 nie podnosić teraz.
+8. **Pasek boostera w HUD (Q8):** kopia dziesięciu komórek przed ekranem
+   WARNING i ich przywrócenie po instalacji (28 B). **S5-1 audytuje też każde
+   pole HUD (booster, życia, wynik, broń, kadłub) przy każdej przebudowie
+   ekranu (wejście bossa, capital, po śmierci, po podsumowaniu) i naprawia tak
+   samo każde brakujące odrysowanie** — deliverable S5-1.
+9. **Slot F (Q9):** boss zajmuje `$5200–$53FF` (nieużywaną górną połowę
+   zestawu znaków HUD) na sektor bossa, z dowodem write-watch.
+10. **Regiony 2–4 jako kopie regionu 1 po S5-1 (Q10):** tak.
+
+**Czego decyzje NIE zmieniają:** ATR only; granica wejścia bossa 250 klatek
+(260 tylko dla torpedy, mierzone); 200 B slotu E dla torpedy; GO ≥ 500,
+32 568; boss pada z ostatnim uzbrojonym modułem; najwyżej jeden Light w
+sektorze bossa; lasery na M1/M2; PRIOR niezapisywany; walka MEDIUM 90–120 s;
+kolejność B z §AE.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

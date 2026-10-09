@@ -776,7 +776,14 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     difficulty,
     policy: "sweep",
     fireDelay: 2,
-    frames: 5_000,
+    /* MEASURED (region-2-diag-1, 2026-10-09): the sweep bot firing every
+     * other frame scores 316 of the fight's points in 5,000 frames - it
+     * reaches the warnings and beams, not the chain. MEDIUM's session, which
+     * the chain clause reads, gets the frames to finish the fight. */
+    frames: difficulty === 1 ? 12_000 : 5_000,
+    // ... and ends at the level's summary once the boss falls (the route
+    // would enter the boss again).
+    ...(difficulty === 1 ? { endAtSummary: true } : {}),
     kind: "baseline-9040",
     holdPlayerLives: 3,
     bossRegion: region,
@@ -4405,11 +4412,12 @@ function main() {
       ], { env: environment });
     }
     const summaryRecords = readSummaryRecords(summaryOutput);
+    const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
+    // (after parseCsv, which records the session's boss entry)
     if (fs.existsSync(watchOutput)) {
       sessionWatches.push({ session: session.id, bossEntry: session.bossEntry !== undefined,
         ...JSON.parse(fs.readFileSync(watchOutput, "utf8")) });
     }
-    const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
     // Stage 1 of the session-failure accumulation (owner decision 2026-09-19).
     // A failing behavioural clause records {session, message} and the loop
     // continues to the next replay, so the sessions that sat behind the first

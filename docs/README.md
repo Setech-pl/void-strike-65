@@ -81,6 +81,7 @@ cost of keeping them true. The line follows the audience, not the directory.
 | Native menu lifecycle/raster evidence | [menu-raster-trace.json](menu-raster-trace.json) |
 | Visual and colour rules | [art-direction.md](art-direction.md) |
 | Milestone/release hardware checklist | [hardware-testing.md](hardware-testing.md) |
+| Release-note drafts, before the owner publishes them on GitHub | [releases/](releases/) |
 | Accepted implementation plans, one file per feature set | [plans/](plans/) |
 | Cross-model audits, one per milestone, and their findings ledger | [audits/](audits/) |
 | Proof reports | [diagnostics/](diagnostics/) |

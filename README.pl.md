@@ -66,8 +66,10 @@ trzeba nic trzymać przy włączaniu zasilania.
    plik ATR.
 4. **Na sprzęcie:** skopiuj plik na SIO2SD jako D1: i włącz Atari, z BASIC-iem
    albo bez.
-5. Poczekaj na ekran loadera i menu główne — z dyskietki to około jedenastu
-   sekund — i wybierz **START GAME**.
+5. Poczekaj na ekran loadera i menu główne — przy prawdziwej prędkości dysku
+   (SIO2SD, stacja dysków albo Atari800 z `-nopatch`) to około pół minuty, w
+   emulatorze przyspieszającym dostęp do dysku około jedenastu sekund — i wybierz
+   **START GAME**.
 
 Gra czyta **joystick w porcie 1** i jeden przycisk ognia; pauzę włącza
 **spacja**. W emulatorze używaj mapowania klawiatury albo gamepada przypisanego

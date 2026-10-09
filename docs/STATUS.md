@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-09 (feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-09 (fix/hardware-boot: no ATR had ever booted on a real machine - stage 2 armed the OS SIOV's receive direction (DSTATS) once per chunk, so a real 65XE stopped on the red halt about 15 s after power-on, every ATR from e1614e7 to v0.2.2; Atari800's SIO patch hid it from every committed run; F1 re-arms DSTATS before every SIOV call (0 B), R7 the reader's settle 2 -> 5 frames (0 B); the boot smoke runs real SIO (-nopatch), every other launch pins the patch on; boot to menu 1,351 frames (27.0 s) under real SIO; gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, the release gate for v0.2.3; before it feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -89,6 +89,8 @@ released.** Section "ATR-only build" below.
 **S5-1 — the boss platform for regions 2-4 — built (2026-10-09, `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`)** (section "S5-1" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.1): the 64 KB machine everywhere, slot F, regions 2-4 on the disk, the booster bar through the boss entry; boss stress with a spawn 6,895 (R1) / 7,744 (fixture) of 8,500 after the owner's decision §AG; every gate and 45 of 57 replays unchanged frame for frame; ATR `67d95ed8…`.
 
 **S5-2 — the boss finale — built (2026-10-09, `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`)** (section "S5-2" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.2): when the last armour module falls every weapon still standing fires three-shot volleys (x−1, x, x+1) at half its reload, never under the region's `fire.finaleCooldown`; off in region 1 (Q6), on (12) in the region 2–4 placeholders; slot C 1,663 → 1,648 B (13 sectors) with behaviour-preserving trims; boss stress 6,910 (R1) / 7,784 (fixture) / 6,682 (the finale's layouts) of 8,500; every gate unchanged, 46 of 58 replays identical to `main` frame by frame; ATR `70063213…`.
+
+**Hardware boot — the first ATR that boots on a real machine — built (2026-10-09, `fix/hardware-boot`, `OWNER-SMOKE CANDIDATE`, release blocker)** (section "Hardware boot" below; diagnosis [diagnostics/hardware-boot.md](diagnostics/hardware-boot.md)): stage 2 re-arms `DSTATS` before every `SIOV` call (F1, 0 B; every ATR from `e1614e7` to `v0.2.2` stopped on the red halt on hardware), the reader's settle outlasts a data frame (R7, 0 B); the boot smoke runs real SIO, every other launch pins Atari800's SIO patch on; ATR menu **1,351 / 1,342** frames under real SIO (553 / 544 with the patch); gameplay frame-identical to `main` (the replay fingerprint unchanged); ATR `b99fb418…`.
 
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: plasma FX** (section
 "Plasma FX" below; the player side mint `$AE`, small enemy break-ups in the
@@ -363,6 +365,83 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Hardware boot — stage 2 re-arms DSTATS before every SIOV call; real SIO in the boot smoke — `OWNER-SMOKE CANDIDATE` (2026-10-09)
+
+**Branch and diagnosis:** `fix/hardware-boot` from `main` `343d55e`;
+[diagnostics/hardware-boot.md](diagnostics/hardware-boot.md) (Phase A,
+`7d2b3c3`), owner answers Q1-Q5 of 2026-10-09 (Q6, the SIO2SD readings, waits
+for the hardware re-check). **ATR:**
+`b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3`, boot
+`ce3d4adf5a0546ff2e46f46e8f1d57bc5ef832077383faef23e85fd3ce71bd10`, evidence
+bound. **Release blocker:** nothing else merges before it; `v0.2.3` is
+released from `main` after the owner's real-hardware smoke
+([hardware-testing.md](hardware-testing.md) §23); its notes are drafted in
+[releases/v0.2.3.md](releases/v0.2.3.md), not published.
+
+**The defect.** Stage 2 reads the 106 extension sectors through the OS `SIOV`,
+which writes its status into `DSTATS`; `DSTATS = $40` was set once per chunk,
+so from a chunk's second sector on `SIOV` ran a no-data command (ACK, COMPLETE,
+no data frame), the chunk's CRC failed and `boot_stage2_error` painted the
+screen red - on a real 65XE with an SIO2SD after about 15 s, every ATR from
+`e1614e7` (2026-08-28) to `v0.2.2`. Atari800's SIO patch reads a sector
+whatever `DSTATS` says, and every committed launch ran with it.
+
+**F1 (`src/main.s`, `stage2_read_sector`).** `lda #$40 / sta DSTATS` moved from
+`stage2_load_chunk` into the per-sector loop, before `jsr SIOV`. `BOOT_STAGE2`
+0 B (`stage2_read_sector` `$2263` → `$225E`, nothing after the loop moves);
+initial block **13,618 B / 107 sectors**, 34 B to the STOP, unchanged;
+extension 106, total 213; about 640 boot-only cycles.
+
+**R7 (`src/hybrid/sector-reader.s`).** `BUDGET_SETTLE` 2 → **5** frames: after a
+failed attempt a drive may still be sending the rest of a 67.8-ms data frame,
+and a retry's command sent into it reads as silence and spends one of the
+load's two device probes. 0 B; the retry path only (never taken in the trace).
+
+**The SIO mode (owner answer Q2).** `scripts/atari800-machine.mjs` defines it
+once: `REAL_SIO` (`-nopatch`) and `atari800SioArguments`, which gives every
+launch `-config build/atari800-pinned.cfg` - the host's own config with
+`ENABLE_SIO_PATCH=1` forced (Atari800 has no flag to force the patch on).
+Real SIO: every boot-smoke session (4 cold, RESET, forced restore, 130XE) and
+`npm run play:atr` (`--fast` keeps the patch). Patch on, pinned and recorded
+(`sio_mode`): the 57 replays, the menu raster, the capacity watch. The boot
+smoke's direct clause: stage 2 runs once (twice with RESET), makes exactly
+106 `SIOV` reads a run, every one armed for receive, and never executes
+`boot_stage2_error` - checked before any other clause, by name.
+
+**Load times (MEASURED, Atari800 real SIO; owner answer Q4: accepted for
+now).** Power-on → loader **1,094** / menu **1,351** frames (21.9 / 27.0 s),
+BASIC on 1,085 / 1,342 (patch on: 296 / 553). The OS reads 107 sectors at 3.8
+frames each, stage 2 106 at 3.7, plus about 145 frames of CRCs and unpacking.
+START GAME's reads 49 frames; the boss entry 245 host frames (both
+register-level, unchanged). SIO2SD ESTIMATE 27-36 s to the menu.
+`docs/boot-deadline-baseline.json` re-recorded 339 / 596 → **1,094 / 1,351**
+(the 3,000-frame ceiling holds). The boot smoke's host time is unchanged
+(50.8 s): its sessions are frame-bounded.
+
+**Gates:** 57 replays, 0 clause failures, 0 miss events, PAL audit PASS; worst
+fence margin **1,447** (`2-sweep-fire6`) and DMA-on **31,304** unchanged; the
+replay fingerprint (132,810 frames) **identical to `main`'s**; the boot smoke
+7 / 7 under real SIO, 0 wire retries; the menu raster keeps its pin; the GIF
+and every gallery image byte-identical (bindings only).
+
+**Tests.** New, RED on `main`'s code and GREEN after:
+`tests/hardware-boot.test.mjs` (the static DSTATS check; `node
+scripts/sio-boot-repro.mjs --start-game` - four boots, BASIC on/off, patch
+on/off, to gameplay, 0 no-data COMPLETEs - in `npm test`, skipped only without
+`build/atari800-trace`), `tests/sio-patch-policy.test.mjs` (the mode defined
+once, every launch list states it, exactly one real-SIO list in the harness,
+`play:atr` real by default, the committed evidence's stage-2 clause),
+`tests/sector-reader.test.mjs` R7. `npm test` (default build) twice after the
+last change: **1,273 / 1,272 / 1 / 0 skipped** both times, the failure the
+recorded `preview` @ `tests/preview.test.mjs:164`; `npm run failures:reconcile`
+PASS on both runs and the trace (0 NEW, 0 MOVED, 0 disappeared). The first full
+run after the evidence binding found two NEW failures, both the moved build:
+the generated memory map (`stage2_read_sector` `$2263` 113 B → `$225E` 118 B,
+`npm run memory-map`) and the showcase manifest's ATR binding (`npm run
+showcase`, images byte-identical). Hardware smoke checklist:
+[hardware-testing.md](hardware-testing.md) §23. Technical-debt rows 2 and 3
+below updated.
 
 ## S5-2 — the boss finale: volleys after the last armour module, data per region, off in region 1 — `OWNER-SMOKE CANDIDATE` (2026-10-09)
 
@@ -6915,8 +6994,8 @@ sound carry the signal.
 | # | Debt | What it invalidates if it goes wrong |
 | --- | --- | --- |
 | 1 | **RESET during gameplay may re-map the BASIC ROM over `$A000-$BFFF`.** The `BASICF = $01` write should prevent it; an emulator proves this least well. | Decision B stands entirely on it. |
-| 2 | **Real per-sector read rate** — the emulator's SIO is patched. | The inter-level pause and how much content fits on disk. Decision O is designed not to care; E and F do. |
-| 3 | **The ATR boot-without-OPTION fix is emulator-proven only.** | Decision A, and through it the unconditional window (B) and the whole roadmap on real hardware. |
+| 2 | **Real per-sector read rate.** Since `fix/hardware-boot` (2026-10-09) the boot smoke runs real SIO (`-nopatch`) and MEASURES the register-level rate in Atari800: 3.7–3.8 frames a sector (about 75 ms), boot to menu 1,351 frames (27.0 s). The game's own reader was register-level all along. Atari800's drive model is not a real drive; the hardware stopwatch is [hardware-testing.md](hardware-testing.md) §23. | The inter-level pause and how much content fits on disk. Decision O is designed not to care; E and F do. |
+| 3 | **The ATR boot-without-OPTION fix is emulator-proven only.** Until `fix/hardware-boot` (2026-10-09) **no ATR booted on a real machine at all**: stage 2 armed `DSTATS` once per chunk, so a real machine stopped on the red halt with or without OPTION ([diagnostics/hardware-boot.md](diagnostics/hardware-boot.md)); the SIO patch hid it from every committed run. Fixed; both OPTION states boot under real SIO in Atari800; the hardware smoke is [hardware-testing.md](hardware-testing.md) §23. | Decision A, and through it the unconditional window (B) and the whole roadmap on real hardware. |
 | 4 | **What the OS occupies above `$BC20`** was unmeasured. | **Measured 2026-09-20 — see below.** Entry retained because the measurement is Atari800-only. |
 | 5 | **The ATR's sector interleave is not a documented property of the build** (added 2026-09-20). Sectors are laid out logically ordered. | Nothing on SIO2SD or in emulation. On a **real 1050**, logically-ordered sectors make the drive "blow a rev" between reads: roughly **half speed, ~208 ms per sector instead of ~104**. Every real-hardware load figure derived from disk doubles, including the inter-level pause (decision O) and how much content fits inside an acceptable wait. The owner will verify on a CA2001 once he has a monitor for it, and notes that in practice almost everyone will run this on an emulator or SIO2SD. |
 

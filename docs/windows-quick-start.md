@@ -30,8 +30,8 @@ Altirra is a free program that runs Atari games on Windows.
    the extracted game folder, and click **Open**. Dragging the file into the
    Altirra screen also works; if it only mounts the disk, use **File → Boot
    Image**.
-7. Wait for the title loader and the main menu (about eleven seconds from
-   disk).
+7. Wait for the title loader and the main menu (about eleven seconds with
+   Altirra's accelerated disk access, about half a minute at real disk speed).
    Select **START GAME** and press the fire button described below.
 
 You can also download just the [current disk image](../dist/void-strike-65.atr):

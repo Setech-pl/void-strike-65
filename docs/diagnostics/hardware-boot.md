@@ -5,10 +5,29 @@ blocker raised by the owner on 2026-10-09: a stock 65XE PAL with an SIO2SD
 stops during the disk load. Atari800 reproduces it with its SIO patch off
 (`-nopatch`).
 
-**Status: DIAGNOSIS — OWNER DECISION NEEDED.** Figures are MEASURED in Atari800
-7.1.2 on the 64 KB machine (`-xl -pal`) unless marked ESTIMATE. Atari800's
-drive model is not a real drive, so every real-hardware time below is an
-ESTIMATE.
+**Status: FIX BUILT — `OWNER-SMOKE CANDIDATE` (Phase B, 2026-10-09).** Phase A
+ended DIAGNOSIS — OWNER DECISION NEEDED. The owner answered the same day:
+
+- **Q1:** F1 approved.
+- **Q2:** the evidence policy of §9, with `sio-boot-repro.mjs --start-game` in
+  `npm test`.
+- **Q3:** R7 approved with a test; no worded stage-2 error.
+- **Q4:** the load time accepted for now.
+- **Q5:** no hotfix branch; `v0.2.3` from `main` after the real-hardware smoke.
+- **Q6:** pending, the hardware re-check on the fixed build.
+
+The text below is the Phase A diagnosis as written. Phase B is the
+"Hardware boot" section of [../STATUS.md](../STATUS.md) and
+[../hardware-testing.md](../hardware-testing.md) §23.
+
+One Phase A estimate was wrong: real SIO costs the boot smoke **no host
+time**. MEASURED: 50.8 s for the seven sessions with the patch, 50.8 s
+without it. The sessions are bounded by frame (gameplay snapshot at frame
+3400), so the real-SIO boot spends frames the menu used to idle through.
+
+Figures are MEASURED in Atari800 7.1.2 on the 64 KB machine (`-xl -pal`)
+unless marked ESTIMATE. Atari800's drive model is not a real drive, so every
+real-hardware time below is an ESTIMATE.
 
 Evidence: [hardware-boot-2026-10-09.json](hardware-boot-2026-10-09.json),
 produced by `scripts/sio-boot-repro.mjs` (with `scripts/atari800-sio-diag.h`).

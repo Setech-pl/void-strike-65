@@ -63,8 +63,10 @@ power-on.
    **File → Boot Image** and pick the ATR.
 4. **On real hardware:** copy it to your SIO2SD as D1: and power the Atari on,
    with or without BASIC.
-5. Wait for the title loader and the main menu — about eleven seconds from
-   disk — then select **START GAME**.
+5. Wait for the title loader and the main menu — about half a minute at real
+   disk speed (an SIO2SD, a disk drive, or Atari800 with `-nopatch`), about
+   eleven seconds in an emulator that accelerates disk access — then select
+   **START GAME**.
 
 The game reads **joystick port 1** and one fire button; **Space** pauses. On an
 emulator, use the keyboard or gamepad mapping configured for port 1.

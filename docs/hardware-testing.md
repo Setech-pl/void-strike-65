@@ -774,6 +774,53 @@ atari800 -xl -pal -nobasic "$PWD/build/play/s5-2-region-4-s6.atr"
 - [ ] **Regions 3 and 4** (`-region-3-s6`, `-region-4-s6`): the same boss and
       the same finale (they are copies of region 1 until S5-3 and S5-4).
 
+## 23. Booting on real hardware: stage 2's DSTATS, real SIO everywhere it matters (`fix/hardware-boot`)
+
+Diagnosis [diagnostics/hardware-boot.md](diagnostics/hardware-boot.md). Until
+this build **no ATR booted on a real machine**: stage 2 armed the OS disk
+routine's receive direction once per chunk, so from a chunk's second sector on
+it read no data and the boot stopped on a full red screen about 15 s after
+power-on. This is the release gate for `v0.2.3` (owner answer Q5).
+
+**On the real 65XE PAL with the SIO2SD**, on a copy:
+`build/play/fix-hardware-boot.atr` `b99fb418…` (the default ATR; `npm run
+play:atr` plays the same one in Atari800 with real SIO). Copy it to the SD card
+under a new name, so the SIO2SD does not serve a cached older image.
+
+```
+npm run play:atr                                              # real SIO, as the hardware
+npm run play:atr -- --fast                                    # the SIO patch, for a quick look only
+atari800 -xl -pal -nopatch -nobasic "$PWD/build/play/fix-hardware-boot.atr"
+atari800 -xl -pal -nopatch -basic   "$PWD/build/play/fix-hardware-boot.atr"
+```
+
+- [ ] **Cold boot WITHOUT OPTION** (BASIC on at power-on; nothing held): the
+      blue OS screen while the OS loads 107 sectors, still blue while stage 2
+      loads 106 more, then the splash, then the main menu. **No red screen.**
+      Stopwatch from power-on: splash about 22-30 s, menu about **27-36 s**
+      (ESTIMATE for an SIO2SD; Atari800 without the patch MEASURES 21.7 s /
+      26.8 s, frames 1085 / 1342).
+- [ ] **Cold boot WITH OPTION held** (BASIC off): the same, about 0.2 s later
+      (Atari800: frames 1094 / 1351, 21.9 s / 27.0 s).
+- [ ] **The SIO2SD display**: note the sector numbers it shows during the load
+      and how fast they change (the owner's video of 2026-10-09 showed $001,
+      $005, $008, $009 at 1.2-1.7 s each before the red). A healthy load reads
+      213 sectors without a pause longer than a second or so; note any value
+      that stalls.
+- [ ] **START GAME**: the summary screen, level 1 loaded behind it (Atari800:
+      49 frames, 1.0 s, for its reads; the screen stays for its 3-s minimum),
+      then play.
+- [ ] **The boss entry** (play level 1 to its end): the WARNING screen and the
+      boss within about 5-7 s (ESTIMATE; Atari800 about 5 s).
+- [ ] **The level's end**: the summary and the save (the copy's best score).
+- [ ] **RESET during play**: a cold start, the same blue load, the menu again.
+- [ ] **If a real 1050 / XF551 is at hand**: the same cold boot from a floppy
+      copy; stopwatch to the menu (no estimate is measured: Atari800 has no
+      drive model; ESTIMATE 40-55 s).
+- [ ] **If anything stops**: the colour of the screen (red = stage 2, black
+      with `DISK READ FAILED` = the game's own reader), the last SIO2SD
+      sector, and the time from power-on.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

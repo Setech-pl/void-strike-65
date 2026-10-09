@@ -69,10 +69,14 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // 902 B - the disk guard (95 B) and the capital vector image (36 B, moved
   // from the reader) in segments of their own behind the kernel, whose own
   // segment is still 771 B (tests/level-summary-build.test.mjs).
-  assert.equal(window.lightKernelBytes, 902);
-  assert.equal(window.usedBytes, 2562);
-  assert.equal(window.freeBytes, 3584 - 2562);
-  assert.equal(window.freeBytes, 1022, "the tail sector flow leaves");
+  // RE-PINNED S5-1 (owner decision Q8, plan s5-boss-regions §4.1): the
+  // kernel link 902 -> 916 B - the boss entry's HUD booster backup (14 B), a
+  // segment of its own behind the capital vector image; the kernel's own
+  // segment, its address and the Director half are unchanged.
+  assert.equal(window.lightKernelBytes, 916);
+  assert.equal(window.usedBytes, 2576);
+  assert.equal(window.freeBytes, 3584 - 2576);
+  assert.equal(window.freeBytes, 1008, "the tail S5-1 leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);

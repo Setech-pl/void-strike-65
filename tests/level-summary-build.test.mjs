@@ -252,8 +252,21 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   assert.ok(atrSectors(632, 16).some((byte) => byte !== 0), "region 1 is on the disk");
   // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk as
   // copies of region 1, and every region's block at 696 + 4 x region.
+  // RE-POINTED S5-2 (plan s5-boss-regions §4.2, owner answers Q3, Q6): a
+  // copy takes its entry of assets/graphics/boss-regions/placeholders.json -
+  // its fire block only, the finale's floor - so it is region 1's copy but
+  // for the tables' byte 4 (band B's run from sector 5 of the region, the
+  // tables at its byte 128): region 1 keeps 0, the copies their floor.
+  const placeholders = JSON.parse(fs.readFileSync(
+    path.join(root, "assets/graphics/boss-regions/placeholders.json"), "utf8")).regions;
+  const FINALE_BYTE = 5 * 128 + 128 + 4;
+  assert.equal(atrSectors(632, 16)[FINALE_BYTE], 0, "region 1 has a finale (owner answer Q6: off)");
   for (let region = 1; region < 4; region += 1) {
-    assert.ok(atrSectors(632 + region * 16, 16).equals(atrSectors(632, 16)), `region ${region + 1} is region 1's copy`);
+    const copy = Buffer.from(atrSectors(632 + region * 16, 16));
+    assert.equal(copy[FINALE_BYTE], placeholders[String(region + 1)]?.fire?.finaleCooldown ?? 0,
+      `region ${region + 1}'s finale floor is not its placeholder's`);
+    copy[FINALE_BYTE] = 0;
+    assert.ok(copy.equals(atrSectors(632, 16)), `region ${region + 1} is region 1's copy`);
   }
   for (let region = 0; region < 4; region += 1) {
     assert.ok(atrSectors(696 + region * 4, 1).some((byte) => byte !== 0), `region ${region + 1}'s block is on the disk`);

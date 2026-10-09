@@ -4,15 +4,16 @@
   "delta_fail_frames": 50,
   "delta_warn_frames": 10,
   "baseline": {
-    "atr_loader_frames": 339,
-    "atr_menu_frames": 596
+    "atr_loader_frames": 1094,
+    "atr_menu_frames": 1351
   },
   "recorded": {
-    "date": "2026-09-21",
-    "branch": "main",
-    "runtime_checkpoint": "plan-light-multiplicity.md \u00a74.6/\u00a74.7, the ring-rotate token gate",
-    "atr_sha256": "514dba491a61111ec33d69bb883312a3cf1c333e466adb938a27fc478054fb26",
-    "total_transport_sectors": 205,
-    "reason": "Re-recorded for the ring-rotate token gate (plan \u00a74.6/\u00a74.7). Transport 204 -> 205 sectors: the gate puts 6 B of marker store into STARFIELD (advance_starfield_layers), which re-packs that stream 1,780 -> 1,785 packed B, and 5 B net into HYBRID_C_WINDOW plus 3 B into HYBRID_C_EXT. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +1/+1 (338/595 -> 339/596); XEX unmoved at 135/392. Inside the +10 warn band. The level image at $A600 still compares byte-exact and command frames stay XEX 0 / ATR 2 with 0 retries."
+    "date": "2026-10-09",
+    "branch": "fix/hardware-boot",
+    "runtime_checkpoint": "docs/diagnostics/hardware-boot.md: F1 (stage 2 arms DSTATS before every SIOV call) and real SIO (-nopatch) in every cold boot-smoke session, owner answers Q1-Q2",
+    "atr_sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3",
+    "total_transport_sectors": 213,
+    "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+    "reason": "Re-recorded because the boot smoke now runs real SIO (owner answer Q2, 2026-10-09). The old baseline (339/596) measured the OS phase and stage 2 through Atari800's SIO patch, whose SIOV costs no wire time; under -nopatch the 107 OS-boot sectors and the 106 stage-2 sectors cost their wire time (3.7-3.8 frames a sector). MEASURED: atr-a5 loader 1094, menu 1351 (patch on, same build: 296 / 553, +798). Transport unchanged at 107 + 106 = 213 sectors; F1 is byte-neutral. The 3000-frame (60-s) absolute ceiling holds with 1649 frames to spare."
   }
 }

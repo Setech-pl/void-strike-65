@@ -774,10 +774,10 @@ By topic: frontend and HUD 24%, player, input and weapons 17%, unclassified 11%,
 | `boot_stage2_validate_record` | `$2461` | 286 B | 21.5% | boot, loader and transport |
 | `boot_stage2_validate_manifest` | `$2353` | 270 B | 20.3% | boot, loader and transport |
 | `boot_chunk_manifest` | `$2637` | 190 B | 14.3% | boot, loader and transport |
-| `stage2_read_sector` | `$2263` | 113 B | 8.5% | boot, loader and transport |
+| `stage2_read_sector` | `$225E` | 118 B | 8.9% | boot, loader and transport |
 | `boot_stage2_crc16` | `$25CE` | 73 B | 5.5% | boot, loader and transport |
 | `copy_boot_stream_backward` | `$21C1` | 66 B | 5.0% | boot, loader and transport |
-| `stage2_load_chunk` | `$2223` | 64 B | 4.8% | boot, loader and transport |
+| `stage2_load_chunk` | `$2223` | 59 B | 4.4% | boot, loader and transport |
 | `stage2_validate_record_broad` | `$2582` | 54 B | 4.1% | capital ship |
 | `stage2_publish_raw` | `$2304` | 32 B | 2.4% | boot, loader and transport |
 | `stage2_chunk_published` | `$2324` | 29 B | 2.2% | boot, loader and transport |

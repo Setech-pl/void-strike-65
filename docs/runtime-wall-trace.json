@@ -17,23 +17,23 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 27264,
-      "sha256": "8cc7d10a9e30f09eaf85104e0452b83dfd276b5f6de521d800d3b5e08c002d3f"
+      "sha256": "ce3d4adf5a0546ff2e46f46e8f1d57bc5ef832077383faef23e85fd3ce71bd10"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+      "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
       "bytes": 874598,
-      "sha256": "3484cd7ef5abb515c2a83533a390ad19bcdd30b006271de5e130f40680295cc8"
+      "sha256": "d8834367316722afc8962d9c0737eaadfafe77c624e02656907159a023f18ebd"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+    "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
   },
   "emulator": {
     "name": "Atari800",
@@ -43,16 +43,20 @@
     "model_arguments": [
       "-xl",
       "-pal",
+      "-config",
+      "build/atari800-pinned.cfg",
       "-nobasic",
       "-nosound",
       "-turbo",
       "-no-video-accel",
       "-no-vsync"
     ],
+    "sio_mode": "Atari800 SIO patch on, pinned by -config build/atari800-pinned.cfg",
     "audio_note": "-nosound disables host playback only; guest sound/music state and POKEY register writes remain active"
   },
   "boot_smoke": {
     "emulator": "Atari800 7.1.2 PAL/XL",
+    "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
     "frames_observed": 3400,
     "duration_seconds_pal": 68,
     "guest_instrumentation_bytes": 0,
@@ -216,8 +220,8 @@
       "delta_fail_frames": 50,
       "delta_warn_frames": 10,
       "baseline": {
-        "atr_loader_frames": 339,
-        "atr_menu_frames": 596
+        "atr_loader_frames": 1094,
+        "atr_menu_frames": 1351
       },
       "baseline_path": "docs/boot-deadline-baseline.json"
     },
@@ -231,13 +235,16 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
           "arguments": [
             "-xl",
             "-pal",
+            "-config",
+            "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+            "-nopatch",
             "-nobasic",
             "-nosound",
             "-turbo",
@@ -279,7 +286,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 299,
+            "frame": 1097,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -309,7 +316,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 349,
+            "frame": 1147,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -342,7 +349,7 @@
             "frame": 3050,
             "pc": 9970,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 11,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -357,7 +364,7 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 211425569,
+            "screen_checksum": 4126241307,
             "frontend_dlist_checksum": 4243061952,
             "loader_dli_count": 502,
             "portb": 255,
@@ -400,32 +407,32 @@
           }
         ],
         "milestones": {
-          "start": 239,
-          "loader": 296,
-          "menu": 553,
-          "frontend_poll": 555,
+          "start": 1037,
+          "loader": 1094,
+          "menu": 1351,
+          "frontend_poll": 1353,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 553,
-          "frontend_poll_frame": 555,
-          "baseline_frames": 596,
-          "delta_frames": -43,
+          "menu_frame": 1351,
+          "frontend_poll_frame": 1353,
+          "baseline_frames": 1351,
+          "delta_frames": 0,
           "absolute_ceiling_frames": 3000,
-          "warn_at_frames": 606,
-          "fail_at_frames": 646,
+          "warn_at_frames": 1361,
+          "fail_at_frames": 1401,
           "warned": false,
-          "loader_frame": 296,
-          "loader_baseline_frames": 339,
-          "loader_delta_frames": -43,
-          "loader_warn_at_frames": 349,
-          "loader_fail_at_frames": 389,
+          "loader_frame": 1094,
+          "loader_baseline_frames": 1094,
+          "loader_delta_frames": 0,
+          "loader_warn_at_frames": 1104,
+          "loader_fail_at_frames": 1144,
           "loader_warned": false,
           "loader_observation_frames": [
-            299,
-            349
+            1097,
+            1147
           ]
         },
         "sector_reader": {
@@ -459,22 +466,22 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 299,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame299.png",
+            "frame": 1097,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame1097.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 349,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame349.png",
+            "frame": 1147,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame1147.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
             "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame3050.png",
-            "bytes": 1673,
-            "sha256": "2f9397b7e7124dc2e07af710246dd1a462c7623d947458ade42599e95d013c04"
+            "bytes": 1668,
+            "sha256": "dea1baebbb62566709bf363e2357a253b9bec46891c5138e0462216a1f2b1b48"
           },
           {
             "frame": 3400,
@@ -541,17 +548,24 @@
             "count": 256
           }
         ],
+        "stage2": {
+          "runs": 1,
+          "siov_reads": 106,
+          "siov_reads_armed": 106,
+          "error_frame": -1
+        },
+        "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
         "machine": "64 KB Atari 800XL / 65XE class",
         "compatibility": false,
         "reset_frame": -1,
         "blank_windows": [
           {
             "from": 1,
-            "frames": 297,
+            "frames": 1095,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 239
+            "start": 1037
           }
         ],
         "passed": true
@@ -565,13 +579,16 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
           "arguments": [
             "-xl",
             "-pal",
+            "-config",
+            "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+            "-nopatch",
             "-nobasic",
             "-nosound",
             "-turbo",
@@ -613,7 +630,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 299,
+            "frame": 1097,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -643,7 +660,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 349,
+            "frame": 1147,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -676,7 +693,7 @@
             "frame": 3050,
             "pc": 9970,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 11,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -691,7 +708,7 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 211425569,
+            "screen_checksum": 4126241307,
             "frontend_dlist_checksum": 4243061952,
             "loader_dli_count": 502,
             "portb": 255,
@@ -734,32 +751,32 @@
           }
         ],
         "milestones": {
-          "start": 239,
-          "loader": 296,
-          "menu": 553,
-          "frontend_poll": 555,
+          "start": 1037,
+          "loader": 1094,
+          "menu": 1351,
+          "frontend_poll": 1353,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 553,
-          "frontend_poll_frame": 555,
-          "baseline_frames": 596,
-          "delta_frames": -43,
+          "menu_frame": 1351,
+          "frontend_poll_frame": 1353,
+          "baseline_frames": 1351,
+          "delta_frames": 0,
           "absolute_ceiling_frames": 3000,
-          "warn_at_frames": 606,
-          "fail_at_frames": 646,
+          "warn_at_frames": 1361,
+          "fail_at_frames": 1401,
           "warned": false,
-          "loader_frame": 296,
-          "loader_baseline_frames": 339,
-          "loader_delta_frames": -43,
-          "loader_warn_at_frames": 349,
-          "loader_fail_at_frames": 389,
+          "loader_frame": 1094,
+          "loader_baseline_frames": 1094,
+          "loader_delta_frames": 0,
+          "loader_warn_at_frames": 1104,
+          "loader_fail_at_frames": 1144,
           "loader_warned": false,
           "loader_observation_frames": [
-            299,
-            349
+            1097,
+            1147
           ]
         },
         "sector_reader": {
@@ -793,22 +810,22 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 299,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame299.png",
+            "frame": 1097,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame1097.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 349,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame349.png",
+            "frame": 1147,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame1147.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
             "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame3050.png",
-            "bytes": 1673,
-            "sha256": "2f9397b7e7124dc2e07af710246dd1a462c7623d947458ade42599e95d013c04"
+            "bytes": 1668,
+            "sha256": "dea1baebbb62566709bf363e2357a253b9bec46891c5138e0462216a1f2b1b48"
           },
           {
             "frame": 3400,
@@ -875,17 +892,24 @@
             "count": 256
           }
         ],
+        "stage2": {
+          "runs": 1,
+          "siov_reads": 106,
+          "siov_reads_armed": 106,
+          "error_frame": -1
+        },
+        "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
         "machine": "64 KB Atari 800XL / 65XE class",
         "compatibility": false,
         "reset_frame": -1,
         "blank_windows": [
           {
             "from": 1,
-            "frames": 297,
+            "frames": 1095,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 239
+            "start": 1037
           }
         ],
         "passed": true
@@ -899,13 +923,16 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
           "arguments": [
             "-xl",
             "-pal",
+            "-config",
+            "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+            "-nopatch",
             "-basic",
             "-nosound",
             "-turbo",
@@ -947,7 +974,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 290,
+            "frame": 1088,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -977,7 +1004,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 340,
+            "frame": 1138,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -1010,7 +1037,7 @@
             "frame": 3050,
             "pc": 9973,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 12,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -1025,7 +1052,7 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 2887741275,
+            "screen_checksum": 3176602905,
             "frontend_dlist_checksum": 4243061952,
             "loader_dli_count": 502,
             "portb": 255,
@@ -1068,32 +1095,32 @@
           }
         ],
         "milestones": {
-          "start": 230,
-          "loader": 287,
-          "menu": 544,
-          "frontend_poll": 546,
+          "start": 1028,
+          "loader": 1085,
+          "menu": 1342,
+          "frontend_poll": 1344,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 544,
-          "frontend_poll_frame": 546,
-          "baseline_frames": 596,
-          "delta_frames": -52,
+          "menu_frame": 1342,
+          "frontend_poll_frame": 1344,
+          "baseline_frames": 1351,
+          "delta_frames": -9,
           "absolute_ceiling_frames": 3000,
-          "warn_at_frames": 606,
-          "fail_at_frames": 646,
+          "warn_at_frames": 1361,
+          "fail_at_frames": 1401,
           "warned": false,
-          "loader_frame": 287,
-          "loader_baseline_frames": 339,
-          "loader_delta_frames": -52,
-          "loader_warn_at_frames": 349,
-          "loader_fail_at_frames": 389,
+          "loader_frame": 1085,
+          "loader_baseline_frames": 1094,
+          "loader_delta_frames": -9,
+          "loader_warn_at_frames": 1104,
+          "loader_fail_at_frames": 1144,
           "loader_warned": false,
           "loader_observation_frames": [
-            290,
-            340
+            1088,
+            1138
           ]
         },
         "sector_reader": {
@@ -1127,22 +1154,22 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 290,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame290.png",
+            "frame": 1088,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame1088.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 340,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame340.png",
+            "frame": 1138,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame1138.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
             "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame3050.png",
-            "bytes": 1670,
-            "sha256": "4e392c6fda9b764d71673f18464c372aa902175732e864c4119703be0fc2e38f"
+            "bytes": 1671,
+            "sha256": "7509b057085a038fc59a34639fcb513f4e729cf3bd18715ebe2b035ab0221a70"
           },
           {
             "frame": 3400,
@@ -1209,17 +1236,24 @@
             "count": 256
           }
         ],
+        "stage2": {
+          "runs": 1,
+          "siov_reads": 106,
+          "siov_reads_armed": 106,
+          "error_frame": -1
+        },
+        "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
         "machine": "64 KB Atari 800XL / 65XE class",
         "compatibility": false,
         "reset_frame": -1,
         "blank_windows": [
           {
             "from": 1,
-            "frames": 288,
+            "frames": 1086,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 230
+            "start": 1028
           }
         ],
         "passed": true
@@ -1233,13 +1267,16 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
           "arguments": [
             "-xl",
             "-pal",
+            "-config",
+            "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+            "-nopatch",
             "-basic",
             "-nosound",
             "-turbo",
@@ -1281,7 +1318,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 290,
+            "frame": 1088,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -1311,7 +1348,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 340,
+            "frame": 1138,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -1344,7 +1381,7 @@
             "frame": 3050,
             "pc": 9973,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 12,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -1359,7 +1396,7 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 2887741275,
+            "screen_checksum": 3176602905,
             "frontend_dlist_checksum": 4243061952,
             "loader_dli_count": 502,
             "portb": 255,
@@ -1402,32 +1439,32 @@
           }
         ],
         "milestones": {
-          "start": 230,
-          "loader": 287,
-          "menu": 544,
-          "frontend_poll": 546,
+          "start": 1028,
+          "loader": 1085,
+          "menu": 1342,
+          "frontend_poll": 1344,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 544,
-          "frontend_poll_frame": 546,
-          "baseline_frames": 596,
-          "delta_frames": -52,
+          "menu_frame": 1342,
+          "frontend_poll_frame": 1344,
+          "baseline_frames": 1351,
+          "delta_frames": -9,
           "absolute_ceiling_frames": 3000,
-          "warn_at_frames": 606,
-          "fail_at_frames": 646,
+          "warn_at_frames": 1361,
+          "fail_at_frames": 1401,
           "warned": false,
-          "loader_frame": 287,
-          "loader_baseline_frames": 339,
-          "loader_delta_frames": -52,
-          "loader_warn_at_frames": 349,
-          "loader_fail_at_frames": 389,
+          "loader_frame": 1085,
+          "loader_baseline_frames": 1094,
+          "loader_delta_frames": -9,
+          "loader_warn_at_frames": 1104,
+          "loader_fail_at_frames": 1144,
           "loader_warned": false,
           "loader_observation_frames": [
-            290,
-            340
+            1088,
+            1138
           ]
         },
         "sector_reader": {
@@ -1461,22 +1498,22 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 290,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame290.png",
+            "frame": 1088,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame1088.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 340,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame340.png",
+            "frame": 1138,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame1138.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
             "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame3050.png",
-            "bytes": 1670,
-            "sha256": "4e392c6fda9b764d71673f18464c372aa902175732e864c4119703be0fc2e38f"
+            "bytes": 1671,
+            "sha256": "7509b057085a038fc59a34639fcb513f4e729cf3bd18715ebe2b035ab0221a70"
           },
           {
             "frame": 3400,
@@ -1543,17 +1580,24 @@
             "count": 256
           }
         ],
+        "stage2": {
+          "runs": 1,
+          "siov_reads": 106,
+          "siov_reads_armed": 106,
+          "error_frame": -1
+        },
+        "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
         "machine": "64 KB Atari 800XL / 65XE class",
         "compatibility": false,
         "reset_frame": -1,
         "blank_windows": [
           {
             "from": 1,
-            "frames": 288,
+            "frames": 1086,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 230
+            "start": 1028
           }
         ],
         "passed": true
@@ -1569,13 +1613,16 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
           "arguments": [
             "-xl",
             "-pal",
+            "-config",
+            "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+            "-nopatch",
             "-nobasic",
             "-nosound",
             "-turbo",
@@ -1617,7 +1664,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 299,
+            "frame": 1097,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -1647,7 +1694,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 349,
+            "frame": 1147,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -1680,7 +1727,7 @@
             "frame": 3050,
             "pc": 9970,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 11,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -1695,7 +1742,7 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 211425569,
+            "screen_checksum": 4126241307,
             "frontend_dlist_checksum": 4243061952,
             "loader_dli_count": 502,
             "portb": 255,
@@ -1738,32 +1785,32 @@
           }
         ],
         "milestones": {
-          "start": 239,
-          "loader": 296,
-          "menu": 553,
-          "frontend_poll": 555,
+          "start": 1037,
+          "loader": 1094,
+          "menu": 1351,
+          "frontend_poll": 1353,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 553,
-          "frontend_poll_frame": 555,
-          "baseline_frames": 596,
-          "delta_frames": -43,
+          "menu_frame": 1351,
+          "frontend_poll_frame": 1353,
+          "baseline_frames": 1351,
+          "delta_frames": 0,
           "absolute_ceiling_frames": 3000,
-          "warn_at_frames": 606,
-          "fail_at_frames": 646,
+          "warn_at_frames": 1361,
+          "fail_at_frames": 1401,
           "warned": false,
-          "loader_frame": 296,
-          "loader_baseline_frames": 339,
-          "loader_delta_frames": -43,
-          "loader_warn_at_frames": 349,
-          "loader_fail_at_frames": 389,
+          "loader_frame": 1094,
+          "loader_baseline_frames": 1094,
+          "loader_delta_frames": 0,
+          "loader_warn_at_frames": 1104,
+          "loader_fail_at_frames": 1144,
           "loader_warned": false,
           "loader_observation_frames": [
-            299,
-            349
+            1097,
+            1147
           ]
         },
         "sector_reader": {
@@ -1797,22 +1844,22 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 299,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame299.png",
+            "frame": 1097,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame1097.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 349,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame349.png",
+            "frame": 1147,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame1147.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
             "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame3050.png",
-            "bytes": 1673,
-            "sha256": "2f9397b7e7124dc2e07af710246dd1a462c7623d947458ade42599e95d013c04"
+            "bytes": 1668,
+            "sha256": "dea1baebbb62566709bf363e2357a253b9bec46891c5138e0462216a1f2b1b48"
           },
           {
             "frame": 3400,
@@ -1879,25 +1926,32 @@
             "count": 256
           }
         ],
+        "stage2": {
+          "runs": 2,
+          "siov_reads": 212,
+          "siov_reads_armed": 212,
+          "error_frame": -1
+        },
+        "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
         "machine": "64 KB Atari 800XL / 65XE class",
         "compatibility": false,
         "reset_frame": 3401,
         "blank_windows": [
           {
             "from": 1,
-            "frames": 297,
+            "frames": 1095,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 239
+            "start": 1037
           },
           {
             "from": 3403,
-            "frames": 288,
+            "frames": 1086,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 3632
+            "start": 4430
           }
         ],
         "passed": true
@@ -1914,13 +1968,16 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
+            "-config",
+            "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+            "-nopatch",
             "-nobasic",
             "-nosound",
             "-turbo",
@@ -1962,7 +2019,7 @@
             "splash_checksum": 0
           },
           {
-            "frame": 299,
+            "frame": 1097,
             "pc": 10036,
             "scanline": 0,
             "cycle": 10,
@@ -1992,7 +2049,7 @@
             "splash_checksum": 3933122933
           },
           {
-            "frame": 349,
+            "frame": 1147,
             "pc": 10039,
             "scanline": 0,
             "cycle": 12,
@@ -2025,7 +2082,7 @@
             "frame": 3050,
             "pc": 9970,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 11,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -2040,7 +2097,7 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 211425569,
+            "screen_checksum": 4126241307,
             "frontend_dlist_checksum": 4243061952,
             "loader_dli_count": 502,
             "portb": 255,
@@ -2083,32 +2140,32 @@
           }
         ],
         "milestones": {
-          "start": 239,
-          "loader": 296,
-          "menu": 553,
-          "frontend_poll": 555,
+          "start": 1037,
+          "loader": 1094,
+          "menu": 1351,
+          "frontend_poll": 1353,
           "gameplay_init": 3260,
           "main_loop": 3263
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 553,
-          "frontend_poll_frame": 555,
-          "baseline_frames": 596,
-          "delta_frames": -43,
+          "menu_frame": 1351,
+          "frontend_poll_frame": 1353,
+          "baseline_frames": 1351,
+          "delta_frames": 0,
           "absolute_ceiling_frames": 3000,
-          "warn_at_frames": 606,
-          "fail_at_frames": 646,
+          "warn_at_frames": 1361,
+          "fail_at_frames": 1401,
           "warned": false,
-          "loader_frame": 296,
-          "loader_baseline_frames": 339,
-          "loader_delta_frames": -43,
-          "loader_warn_at_frames": 349,
-          "loader_fail_at_frames": 389,
+          "loader_frame": 1094,
+          "loader_baseline_frames": 1094,
+          "loader_delta_frames": 0,
+          "loader_warn_at_frames": 1104,
+          "loader_fail_at_frames": 1144,
           "loader_warned": false,
           "loader_observation_frames": [
-            299,
-            349
+            1097,
+            1147
           ]
         },
         "sector_reader": {
@@ -2142,22 +2199,22 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 299,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame299.png",
+            "frame": 1097,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame1097.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 349,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame349.png",
+            "frame": 1147,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame1147.png",
             "bytes": 2599,
             "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
             "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame3050.png",
-            "bytes": 1673,
-            "sha256": "2f9397b7e7124dc2e07af710246dd1a462c7623d947458ade42599e95d013c04"
+            "bytes": 1668,
+            "sha256": "dea1baebbb62566709bf363e2357a253b9bec46891c5138e0462216a1f2b1b48"
           },
           {
             "frame": 3400,
@@ -2224,17 +2281,24 @@
             "count": 256
           }
         ],
+        "stage2": {
+          "runs": 1,
+          "siov_reads": 106,
+          "siov_reads_armed": 106,
+          "error_frame": -1
+        },
+        "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
         "machine": "130XE (128 KB) compatibility check",
         "compatibility": true,
         "reset_frame": -1,
         "blank_windows": [
           {
             "from": 1,
-            "frames": 297,
+            "frames": 1095,
             "dirty_frames": 0,
             "first_dirty": -1,
             "worst_stray_pixels": 0,
-            "start": 239
+            "start": 1037
           }
         ],
         "passed": true
@@ -2294,7 +2358,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2303,7 +2367,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2312,7 +2376,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2321,7 +2385,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+          "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }

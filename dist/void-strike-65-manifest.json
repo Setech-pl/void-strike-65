@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 60457,
+      "crc16": 57367,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 60457,
+        "crc16": 57367,
         "records": [
           {
             "startSector": 108,
@@ -405,7 +405,7 @@
             "packedLength": 1498,
             "rawLength": 1498,
             "finalDestination": 40960,
-            "crc16": 10259,
+            "crc16": 60814,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -24061,11 +24061,11 @@
     "estimated_additive_cycles": 27847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "039054d2f8c1495ff8e2390f307341aab52090bd78d59776ce2fe2f205a745fe",
+      "reportSha256": "b54eba740ca3d095c8ca2f00b30ff50def184f0a151e4b90367cdf4f57d08586",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+        "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
       },
       "emulator": {
         "name": "Atari800",
@@ -24075,12 +24075,15 @@
         "model_arguments": [
           "-xl",
           "-pal",
+          "-config",
+          "build/atari800-pinned.cfg",
           "-nobasic",
           "-nosound",
           "-turbo",
           "-no-video-accel",
           "-no-vsync"
         ],
+        "sio_mode": "Atari800 SIO patch on, pinned by -config build/atari800-pinned.cfg",
         "audio_note": "-nosound disables host playback only; guest sound/music state and POKEY register writes remain active"
       },
       "semantics": {
@@ -25625,25 +25628,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "8cc7d10a9e30f09eaf85104e0452b83dfd276b5f6de521d800d3b5e08c002d3f"
+        "sha256": "ce3d4adf5a0546ff2e46f46e8f1d57bc5ef832077383faef23e85fd3ce71bd10"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+        "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "039054d2f8c1495ff8e2390f307341aab52090bd78d59776ce2fe2f205a745fe"
+    "reportSha256": "b54eba740ca3d095c8ca2f00b30ff50def184f0a151e4b90367cdf4f57d08586"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "8cc7d10a9e30f09eaf85104e0452b83dfd276b5f6de521d800d3b5e08c002d3f"
+      "sha256": "ce3d4adf5a0546ff2e46f46e8f1d57bc5ef832077383faef23e85fd3ce71bd10"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1"
+      "sha256": "b99fb418de94db1b0ad5b5b4468ba767fb96e8d9f00c74ad8371120b7cf0dae3"
     }
   }
 }

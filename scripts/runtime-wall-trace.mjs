@@ -1993,19 +1993,22 @@ function measuredFrames(sessions) {
     (session.resetTransition === undefined ? 0 : 1), 0);
 }
 
-// S5-1: a PC's routine - the nearest global label at or below it in the
-// first link (in order) that has one within 1 KB; the OS ROM above $C000.
+// S5-1: a PC's routine - the nearest global label at or below it over every
+// link (the closest wins; a tie goes to the earlier link); the OS ROM above
+// $C000. Slot A's addresses are main's capital code or the boss overlay by
+// phase, so a name there is the closer label's, not proof of the phase.
 function labelResolver(links) {
-  const sorted = links.map(([link, map]) => [link, [...map].filter(([name]) => !name.startsWith("__") &&
-    !name.startsWith("@")).sort((a, b) => a[1] - b[1])]);
+  const all = links.flatMap(([link, map]) => [...map]
+    .filter(([name]) => !name.startsWith("__") && !name.startsWith("@") && !/^LOCAL_MACRO_SYMBOL/.test(name))
+    .map(([name, address]) => [link, name, address]));
   return (pc) => {
     if (pc >= 0xc000 && !(pc >= 0xd000 && pc < 0xd800)) return "OS ROM";
-    for (const [link, list] of sorted) {
-      let best = null;
-      for (const [name, address] of list) if (address <= pc && pc - address < 0x400) best = [name, address];
-      if (best !== null) return `${link}:${best[0]}${pc === best[1] ? "" : `+${pc - best[1]}`}`;
+    let best = null;
+    for (const [link, name, address] of all) {
+      if (address <= pc && (best === null || pc - address < pc - best[2])) best = [link, name, address];
     }
-    return `$${pc.toString(16)}`;
+    return best === null || pc - best[2] >= 0x400 ? `$${pc.toString(16)}`
+      : `${best[0]}:${best[1]}${pc === best[2] ? "" : `+${pc - best[2]}`}`;
   };
 }
 

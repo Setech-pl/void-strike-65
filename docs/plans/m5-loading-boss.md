@@ -3332,6 +3332,8 @@ boss theme, 25; M4 — 16, 15 (its own session after M4); M3/M3-H — 23
 
 ## 8. Sessions
 
+> **2026-10-09 (`docs/plan-s5`):** the M5b-S5 row below is superseded by [s5-boss-regions.md](s5-boss-regions.md): regions 2–4 land in five sessions with per-region overlays in a new slot F (`$5200–$53FF`), the finale phase in slot C (+70 B measured), the entry measured at 3.5–4.0 host frames a sector (every region ≤ 65 sectors), and the `--boss-region=N` debug routes. The S5 requirements listed in §1 stand; their answers are there.
+
 Each on its own branch from `main`, one at a time, each leaving the game
 shippable; ordered by risk inside each milestone. "Frames" are ATR menu
 frames at the sizing rule. Every session: `npm test` on the default build,

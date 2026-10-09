@@ -815,6 +815,8 @@ whether that lands in the levers session.**
 
 ### 4.4 The boss overlay slots, with S5
 
+> **2026-10-09 (`docs/plan-s5`):** measured and re-priced in [s5-boss-regions.md](s5-boss-regions.md) §3: the per-region block lives in slot F (`$5200–$53FF`, not slot E), slot D falls to 13 sectors as the look tail leaves it, the finale costs +70 B of slot C (measured) and one sector unless trimmed, the entry costs 3.5–4.0 host frames a sector (65 sectors is the last inside 250), and the R2 escort is data (0 B). The figures in this table are the planning estimates of 2026-10-08.
+
 | Slot | Free today | S5 needs | Torpedo (§3.5) | Left, expected → budgeted |
 | --- | ---: | --- | --- | ---: |
 | A (2,048) | 6 | 0 (regions are data; the finale volleys use the salvo kind that exists) | 0 (operand re-points) | 6 |

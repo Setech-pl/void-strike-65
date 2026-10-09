@@ -503,6 +503,8 @@ Game over and the return to the menu exist today (`STATE_GAME_OVER`,
 
 ### M5 — Boss 4.7
 
+> **2026-10-09 (`docs/plan-s5`):** the boss as built is the layered engine of [m5-loading-boss.md](m5-loading-boss.md) §5.13–5.16 with the lasers of [boss-lasers.md](boss-lasers.md); regions 2–4, the second phase and the per-region overlays are planned in [s5-boss-regions.md](s5-boss-regions.md), whose §3 ledgers (slots, entry sectors, stress, disk, charset) replace this section's B-A / B-B / B-C pricing.
+
 Not designed here. Three plausible forms, priced so the owner can choose.
 
 | | **B-A** static module boss | **B-B** boss that slides sideways | **B-C** boss with `P1`/`P2` gun turrets |

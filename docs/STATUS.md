@@ -418,8 +418,13 @@ ATR menu 553 / 544. Against `main` frame by frame: 46 of 58 CSVs identical, the
 12 boss-entry replays differ on boss rows only, only in timing; level 1's fight
 76.7 / 92.2 / 112.4 s unchanged (every fight ends on `main`'s frame).
 
-**Tests:** see the session's report (`npm test` twice, reconciled).
-New: `boss-finale` (RED on `main`'s build for the counter, the volley, the
+**Tests:** `npm test` (default build) twice after the last change: **1,265 /
+1,264 / 1 / 0 skipped** both times, the failure the recorded `preview` @
+`tests/preview.test.mjs:164`; `npm run failures:reconcile` PASS on both runs and
+the trace (0 NEW, 0 MOVED, 0 disappeared). The first full run after the
+evidence binding found one NEW failure, `tests/level-summary-build.test.mjs:256`
+("region 2 is region 1's copy") - the placeholders' finale byte; re-pointed
+with its reason in the file (`3b05fc7`). New: `boss-finale` (RED on `main`'s build for the counter, the volley, the
 halved reload and floor, rule (B) in the finale, the last weapon); the stress
 test's finale layouts. Hardware smoke checklist:
 [hardware-testing.md](hardware-testing.md) §22.

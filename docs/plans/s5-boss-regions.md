@@ -904,6 +904,14 @@ on MEDIUM is the bot's (it clears the edge plates slowly), not a tuned figure;
 the placeholders' fight is tuned by each region's session (§3.6). Region 1 is
 unchanged (the default replays: every fight ends on `main`'s frame).
 
+**Tests.** `npm test` twice on the default build: 1,265 / 1,264 / 1 / 0 skipped,
+the recorded `preview` failure; reconciled (0 NEW, 0 MOVED). Re-pointed:
+`level-summary-build.test.mjs:256` (the region 2-4 copies differ from region 1
+in the tables' byte 4 now). RED on `main`'s build: `boss-finale`'s five finale
+tests (the counter, the volley, the halved reload and floor, rule (B) in the
+finale, the last weapon) and the stress test's finale-layout tests (no volley
+state).
+
 **Gates.** 57 replays, 0 clause failures, 0 miss events; worst fence margin
 1,447 and DMA-on 31,304 unchanged; boss frames 10,038 → 10,017 (the same frame),
 DMA-on 29,238; ATR menu 553 / 544. Against `main` frame by frame: 46 of 58 CSVs

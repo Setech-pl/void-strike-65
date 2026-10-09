@@ -725,6 +725,55 @@ atari800 -xe -pal -nobasic "$PWD/build/play/s5-1-default.atr"   # the 130XE comp
       boss sector a gun never fires in the same instant a module falls (its
       shot comes a frame later, invisible at play speed).
 
+## 22. The boss finale: volleys after the last plate, off in region 1 (`feat/boss-finale`, S5-2)
+
+Plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6 S5-2. **On copies
+only**, as §12, on the 64 KB machine. Copies in `build/play/` (SHA-256
+prefixes): the default ATR `s5-2-default.atr` `70063213…` (also
+`npm run play:atr`); level 1's boss sector, the finale off,
+`s5-2-region-1-s6.atr` `a0252693…`; region 1's boss **with the finale on** - the
+region 2 / 3 / 4 placeholders on level 1's route, entered at the boss sector -
+`s5-2-region-2-s6.atr` `8d37543e…`, `s5-2-region-3-s6.atr` `cd5b44e3…`,
+`s5-2-region-4-s6.atr` `e2438c76…`, and from elite (b) `s5-2-region-2-s5.atr`
+`ed52d8af…`, `s5-2-region-3-s5.atr` `482bc396…`, `s5-2-region-4-s5.atr`
+`d97ceb59…`. Rebuild them with `node scripts/build.mjs --level=1:sector=6`
+(region 1) or `--level=1:sector=6 --boss-region=N` (or `sector=5`) and copy
+from `build/level-1-s6/` or `build/boss-region-N-level-1-sM/`.
+
+```
+npm run play:atr
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-2-default.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-2-region-1-s6.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-2-region-2-s6.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-2-region-2-s5.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-2-region-3-s6.atr"
+atari800 -xl -pal -nobasic "$PWD/build/play/s5-2-region-4-s6.atr"
+```
+
+- [ ] **The finale begins on the last plate** (`s5-2-region-2-s6`, on MEDIUM):
+      shoot every armour plate first - the edge plates need the fighter near
+      the screen's sides - and keep a gun alive. On the frame the last plate
+      falls nothing fires; from the next frame each surviving gun fires
+      **three shots on three frames from the columns left of, at and right of
+      its centre**, and the volleys come about twice as often as the single
+      shots before. The rhythm should read as volleys, not as a stream.
+- [ ] **No gun fires on the frame a module is destroyed**: during the
+      volleys, destroy a gun - the volley under way pauses one frame
+      (invisible at play speed) and finishes; nothing fires once the last
+      weapon is down, and the chain of blasts follows as before.
+- [ ] **Does the finale read as a last stand?** (the plan's question):
+      `s5-2-region-2-s6` against `s5-2-region-1-s6`, the same boss with and
+      without it.
+- [ ] **Region 1 is unchanged** (`s5-2-default.atr` and `s5-2-region-1-s6`):
+      the fight as before - single shots to the end, also after the last
+      plate falls.
+- [ ] **The fight's length on MEDIUM** with the finale: does it feel right?
+      (The emulator's wide-sweep bot: the finale from about 54 s, the boss
+      down at 140 s - a bot that clears the edge plates slowly; region 1
+      without the finale stays at 92 s.)
+- [ ] **Regions 3 and 4** (`-region-3-s6`, `-region-4-s6`): the same boss and
+      the same finale (they are copies of region 1 until S5-3 and S5-4).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

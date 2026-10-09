@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-09 (chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-09 (feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -87,6 +87,8 @@ released.** Section "ATR-only build" below.
 **S5 — bosses for regions 2–4 on the shared engine, per-region overlays — plan (2026-10-09, `docs/plan-s5`, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/s5-boss-regions.md](plans/s5-boss-regions.md). Phase A measured on probe builds (reverted): **the boss entry costs 3.5–4.0 host frames a sector** (64 / 65 / 66 sectors → 245 / 249 / 252), so the `< 250` bound admits 65 sectors and the torpedo's 260 needs every region at ≤ 65 after S5; an Interceptor escort in the boss sector is **data only** (a count-N wave under `lights: 1` is a stream, one at a time) and costs a boss frame ≈ 1,400–1,600 of margin, +271 DMA-on; a salvo step is ≈ 95 + 420–495 native on three frames; the R3 force field as a glyph row under the band with P1 / P2 as the generators' glow is **212 B, 103–134 native a frame, 122 an absorbed shot** (probe); the finale phase in C is **+70 B of slot C** with an armour counter (+96 with a scan), which crosses slot C's 13-sector boundary unless 65 B are trimmed. The per-region block (the look tail plus region code) gets **slot F, the HUD charset's unused upper half `$5200–$53FF`** (512 B, dead in every phase after start-up, no restore; `BROADSIDE`'s tail after slot A is not capital-only — `wait_for_master_pal_frame`, `light_add_score` live there). The owner's booster-bar finding has one site: the boss install rewrites the HUD row and never calls `show_weapon_booster_hud`; the fix backs the ten cells up before the WARNING screen (28 B). Five sessions (platform and `-xl` first, then the finale, region 3, region 4, region 2 with the `v0.3.0` prep), each ≤ 65 entry sectors, with the ledgers, the `--boss-region=N` debug routes and ten owner questions (style per region, the field's look, the stress pin for region 3's tier 4, the escort's cadence, slot F). **The owner answered the same day (plan §7.1, journal §AF):** the mapping, field (b) with a comparison build of (a) in S5-3, the three-shot volleys, the 8,500 pin kept with R3's tier-4 fixture at 8,750 and the spawn added to the stress composition in S5-1 (region 1 measured first, STOP over 8,500), 6 escorts at spacing 100, the finale off in region 1, no bound change now, the ten-cell backup with a HUD audit of every field in S5-1, slot F, regions 2–4 as copies after S5-1. ATR and boot image byte-identical to `main` `9c41738`.
 
 **S5-1 — the boss platform for regions 2-4 — built (2026-10-09, `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`)** (section "S5-1" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.1): the 64 KB machine everywhere, slot F, regions 2-4 on the disk, the booster bar through the boss entry; boss stress with a spawn 6,895 (R1) / 7,744 (fixture) of 8,500 after the owner's decision §AG; every gate and 45 of 57 replays unchanged frame for frame; ATR `67d95ed8…`.
+
+**S5-2 — the boss finale — built (2026-10-09, `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`)** (section "S5-2" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.2): when the last armour module falls every weapon still standing fires three-shot volleys (x−1, x, x+1) at half its reload, never under the region's `fire.finaleCooldown`; off in region 1 (Q6), on (12) in the region 2–4 placeholders; slot C 1,663 → 1,648 B (13 sectors) with behaviour-preserving trims; boss stress 6,910 (R1) / 7,784 (fixture) / 6,682 (the finale's layouts) of 8,500; every gate unchanged, 46 of 58 replays identical to `main` frame by frame; ATR `70063213…`.
 
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: plasma FX** (section
 "Plasma FX" below; the player side mint `$AE`, small enemy break-ups in the
@@ -361,6 +363,66 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## S5-2 — the boss finale: volleys after the last armour module, data per region, off in region 1 — `OWNER-SMOKE CANDIDATE` (2026-10-09)
+
+**Branch and plan:** `feat/boss-finale` from `main` `4021de5`;
+[plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6 S5-2, as built §6.2.
+**ATR:** `70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1`,
+boot `8cc7d10a9e30f09eaf85104e0452b83dfd276b5f6de521d800d3b5e08c002d3f`,
+evidence bound.
+
+**The finale (owner answers Q3, Q6).** When the last armour module falls (a
+capped emitter counts), every weapon still standing fires the salvo's volley -
+three shots on three frames from columns x−1, x, x+1 - at half its reload
+(after EASY +1/2 / HARD −1/4), never under the region's `fire.finaleCooldown`;
+the first volley on the frame after that kill (rule (B)), nothing after the
+last weapon. O(1) on the kill (an armour counter). Data: `modules.json`
+`fire.finaleCooldown` (0 = none, ≤ `fire.cooldown`), the tables' byte 4.
+**Region 1: off.** Regions 2-4 (copies of region 1) take
+`assets/graphics/boss-regions/placeholders.json` (their `fire` block only):
+12. Debug routes `--level=1:sector=M --boss-region=N` play region 1's boss with
+the finale - the plan's comparison build.
+
+**Bytes.** Slot C 1,663 → **1,648 B** code (13 sectors, 16 B before the
+boundary; the finale +60, six trims −75, each pinned by a test - plan §6.2's
+table), BSS 221 → 223, free 164 → 177 of 2,048. Slots A, D, E move only with
+slot C's BSS (15 B lower): A 2,016, D 1,647 (13 sectors), E 254 (310 free, 200
+for the torpedo); slot F only the region blocks; window 1,008 free;
+`DIRECTOR_RAM` 32 free; initial block **13,618 B / 107 sectors**, 15 bytes of
+checksums differ (the disk guard's fold of the boss-code run, the chunk
+manifest's CRCs, the trailer). Boss entry **64 sectors, 245 host frames** in
+every region.
+
+**Boss work.** A firing tick +13 native (537 → 550); a finale volley's first
+frame 752, its later shots ≈ 590-620. Stress (reachable, ≤ 2 hits a frame,
+limit 8,500): region 1 **6,910**, the tier-4 fixture **7,784 / 6,994** (`main`'s
+build 6,897 / 7,764 / 6,974; STATUS recorded 6,895 / 7,744 / 6,954 at S5-1, a
+small drift before this branch); the finale's layouts with the volleys' burst
+steps **6,682** (regions 2-4), **7,034 / 6,217** (the fixture with the finale);
+0 frames with a kill and a spawn.
+
+**The trace.** Columns `boss_finale`, `boss_spawns`, `boss_armour_left`. The
+finale clause on the region routes (subject: the finale frames) on the new
+sessions `region-N-finale-{0,1,2}` (policy `sweep-wide`: the plain sweep bot
+never meets the edge plates and never reaches the finale). Region 2/3/4 (one
+copy, identical): the finale from f2,446 / f2,698 / f7,438 (E / M / H), 25 / 43
+/ 26 volleys, the boss down at 106 / 140 / 196 s with that bot; the plain
+sweep's MEDIUM fight 102.6 s, no finale. The EASY / HARD diag sessions now end
+at the summary (pre-existing since S5-1: EASY re-entered the boss).
+
+**Gates:** 57 replays, 0 clause failures, 0 miss events, PAL audit PASS; worst
+fence margin **1,447** (`2-sweep-fire6` f311) and DMA-on **31,304** unchanged;
+boss frames' worst margin 10,038 → **10,017** (the same frame), DMA-on 29,238;
+ATR menu 553 / 544. Against `main` frame by frame: 46 of 58 CSVs identical, the
+12 boss-entry replays differ on boss rows only, only in timing; level 1's fight
+76.7 / 92.2 / 112.4 s unchanged (every fight ends on `main`'s frame).
+
+**Tests:** see the session's report (`npm test` twice, reconciled).
+New: `boss-finale` (RED on `main`'s build for the counter, the volley, the
+halved reload and floor, rule (B) in the finale, the last weapon); the stress
+test's finale layouts. Hardware smoke checklist:
+[hardware-testing.md](hardware-testing.md) §22.
 
 ## S5-1 — the boss platform for regions 2-4: the 64 KB machine, the HUD, slot F, regions 2-4 on the disk — `OWNER-SMOKE CANDIDATE` (2026-10-09)
 
@@ -6915,6 +6977,25 @@ started without owner instruction.
   `:912-914`, each annotated "RECORDED AS VACUOUS". Make them computed from
   the rows (or retire them as history); the live per-frame gates today are
   `weapon_pickup_shield` and the PAL audit in `gate.timing_and_dli_passed`.
+
+- **The loading screen's hull art for regions 2-4 shows hull rows without the
+  gun emplacements** (S5-1 review finding, recorded by S5-2, 2026-10-09; not
+  fixed). `assets/graphics/level-summary.json` `segmentRow` 10 / 16 / 22 for
+  regions 2 / 3 / 4 (region 1: 4) picks capital-hull rows with no turret; data
+  only (the converter `scripts/level-summary-assets.mjs` reads the rows from
+  `assets/graphics/capital-hulls.json`). For M7 or the `v0.3.0` prep.
+
+- **Hull style by level: 16-level quarters in play, three-level regions on the
+  loading screen and the boss** (S5-1 review finding, recorded by S5-2,
+  2026-10-09; **an owner decision for M7**). `hullStyleIdForLevel`
+  (`scripts/build.mjs`) maps levels 1-4 / 5-8 / 9-12 / 13-16 to R1-R4 through
+  `LEVEL_MAX_ID` 16, and `alliedColpf1ForLevel` switches the allied steel at
+  level 8 (`level * 2 <= 16`; the decision text says 1-6 / 7-12); `--hull-style`
+  overrides the same mapping. The loading screen's art and the boss region use
+  three-level regions (decision AC: 1-3, 4-6, 7-9, 10-12;
+  `min(3, (id - 1) / 3)`). Recommended: three-level regions everywhere. To
+  reconcile in the same decision: the owner's earlier wish that the capital
+  colours change every four levels with the laser tiers (1-4 / 5-8 / 9-12).
 
 - **Record the player's state at boss entry (hull, booster, lives, entry
   frame) per director-complete session in the committed trace report, so

@@ -139,6 +139,32 @@ harder with no code change (owner decision 7, 2026-10-07):
 The modules' own hit points are the boss region's data
 (`assets/graphics/boss-regions/region-N/modules.json`).
 
+**The boss finale** (S5-2) is the boss region's data too, not the level's:
+`fire.finaleCooldown` in the region's `modules.json` - frames, 0 or absent =
+no finale, at most the region's `fire.cooldown`. Once the region's last armour
+module falls (a capped emitter counts as armour), every weapon still standing
+fires three-shot volleys (one shot a frame, from its centre column and the two
+beside it) at half its reload, never under that floor; the first volley comes
+on the frame after the last plate falls. Region 1 has none (owner answer Q6).
+Regions 2-4 have no art of their own yet: they are copies of region 1, and
+`assets/graphics/boss-regions/placeholders.json` holds what each copy changes -
+its `fire` block only, today `finaleCooldown` 12. Try a value on a region route
+without touching `dist/`:
+
+```
+node scripts/build.mjs --level=1:sector=6 --boss-region=2
+mkdir -p build/play
+cp build/boss-region-2-level-1-s6/void-strike-65.atr build/play/finale-r2.atr
+atari800 -xl -pal -nobasic "$PWD/build/play/finale-r2.atr"
+```
+
+A changed finale changes that region's band B run and its head sum on the
+disk, so the default ATR and the committed evidence move with it. It is pinned
+by `tests/boss-finale.test.mjs` (the behaviour), `tests/boss-stress.test.mjs`
+(the finale's layouts under the boss limit) and the trace's finale clause on
+the region routes (`region-N-finale-{0,1,2}`, the wide-sweep bot; the plain
+sweep bot never meets the edge plates, so it never reaches the finale).
+
 ## Check, build and play a changed level
 
 Nothing below touches `dist/` or any committed evidence.

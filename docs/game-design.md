@@ -483,6 +483,21 @@ section "Decyzje literowe 2026-09-20".
   the column. Destroys everything in its path. **One per level on 1-4, two on
   5-8, four on 9-12**, to be tuned during balancing — rescaled to the
   twelve-level campaign by decision **AC** (2026-09-22) from 1-4 / 5-9 / 10-16.
+- **The boss finale (decision B's second phase; S5-2, owner answers Q3 and
+  Q6 of 2026-10-09; `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §4.2).**
+  When the boss's last armour module falls - the plates are the fight's
+  visible progress - the boss makes its last stand: every weapon still
+  standing fires a **three-shot volley**, one shot a frame from the columns
+  left of, at and right of its centre, at **half its reload**, never faster
+  than the region's finale floor. The first volley comes on the frame after
+  the last plate falls (no gun fires on the frame a module falls, owner
+  decision of 2026-10-09); nothing fires once the last weapon is down, and
+  the boss still falls with its last weapon (armour standing or not). Region
+  data (`fire.finaleCooldown`, 0 = none): **off in region 1** (its fight is
+  accepted as it is, Q6); on in the region 2-4 placeholders - region 1's
+  boss on the `--boss-region=N` debug routes - at a floor of 12 frames, half
+  of region 1's `fire.cooldown`; each region's own session tunes it (region
+  4's Void Citadel is designed around it).
 - **Difficulty scales reload, spacing and damage (J).** See "World and
   difficulty" above.
 - **Lives (K).** Three at start, plus one after each odd level from 3.

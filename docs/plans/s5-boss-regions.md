@@ -1,7 +1,8 @@
 # Plan — S5: bosses for regions 2–4 on the shared boss engine, with per-region overlays (plan-s5)
 
 **Status:** S5-1 implemented on `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`
-(§6.1). The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+(§6.1); **S5-2 implemented on `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`
+(§6.2)**. The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -810,6 +811,104 @@ and its check. (3) The scratch page is 255 of 256 (the region index), not
 254 (2; 310 free, 200 for the torpedo); slot F 98 / 512 per region; window 1,008
 free; ATR **345 → 396** of 720 sectors carrying data (+48 regions 2-4, +4
 blocks, −1 slot D's run; MEASURED as non-empty sectors).
+
+### 6.2 S5-2 as built (2026-10-09, `feat/boss-finale`) — `OWNER-SMOKE CANDIDATE`
+
+**Implemented, pending the owner's smoke** (hardware-testing §22). ATR
+`70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1`, boot
+`8cc7d10a9e30f09eaf85104e0452b83dfd276b5f6de521d800d3b5e08c002d3f`.
+
+**The finale (§4.2, Q3, Q6).** In `src/c/boss.c`: an armour counter
+(`boss_armour_left`, `boss_count − boss_weapons_left` at the init, one down on
+each armour kill — a capped emitter is armour) and `boss_finale`, the floor once
+the finale has begun (0 before, and always without one). The last armour kill
+sets the floor from the tables' byte 4 and the countdown to 1, so the first
+volley comes on the next frame (rule (B) holds the kill frame); in the finale
+`boss_fire_next` gives every weapon the salvo's burst (offsets −1, 0, +1 on three
+frames) and halves the reload after the difficulty's adjustment, floored by the
+finale's cooldown. Nothing fires after the last weapon (the chain phase).
+**Measured (M-N):** the finale +60 B (the plan's probe +70), BSS +2; a firing
+tick +13 native outside the finale (537 → 550 with region 1's full walk); in the
+finale a volley's first frame 283 + 469 = 752 native, its later shots 103 + 489
+and 107 + 509 ≈ 590–620 (§2.3's estimate 515–590).
+
+**The data.** `fire.finaleCooldown` in `modules.json` (0 default, at most
+`fire.cooldown`) → the tables' byte 4 (`reserved4` → `finaleCooldown`); the
+manifest records it per region. Region 1: 0 (Q6). Regions 2–4, the copies of
+region 1, take `assets/graphics/boss-regions/placeholders.json` — each copy's
+`fire` block only (the build refuses anything else): `finaleCooldown` 12, half of
+region 1's 24. **Deviation, reported:** the plan put the trace's finale on "a
+fixture (region 1's data in a review build)"; the region 2–4 placeholders are
+exactly that build on the existing routes (region 2's route is level 4, laser
+tier 1, as level 1), so no new review flag was added.
+
+**Slot C (the trims, L1).** 1,663 → **1,648 B** of code (13 sectors, 16 B
+before the boundary), BSS 221 → 223, free 164 → 177 of 2,048. The finale +60;
+the trims −75, every one behaviour-preserving and pinned by
+`tests/boss-finale.test.mjs` (the init against the documented policy on four
+layouts × three tiers × three difficulties × five HP scales, 180 inits with 75
+capped emitters; every exposure after random kill orders, 270 kills) and the
+existing `boss-fire-rule` (A) model:
+
+| Trim | Bytes | What changed | Proof |
+| --- | ---: | --- | --- |
+| one hit-point read path for a capped emitter and a module (an offset into the tables) | −36 | `boss_c_init` | the init model test |
+| the HP scale indexed by the difficulty directly | −6 | `boss_c_init` | the init model test |
+| the init's stores grouped by value | −4 | `boss_c_init` | the init model test |
+| the exposure's two cover tests as one | −11 | `boss_expose` | the exposure model test |
+| the cover tests as expressions | −6 | `boss_expose` | the exposure model test |
+| the reload's difficulty without temporaries | −12 | `boss_fire_next` | `boss-fire-rule` (A): 1,251 firings, 36 bursts against `main`'s policy |
+
+**The stress composition (Q4).** The finale's layouts — the placeholders (region
+1 + the finale, level 4) and the tier-4 fixture with the same entry (level 10),
+lasers warn / beam — swept in the finale and one plate short of it, each case
+also with a volley's second and third shot due on the meeting frame (the volley
+started by the controller one or two frames earlier, its shots in the pool):
+**6,682** / **7,034** / **6,217** reachable of 8,500 (information, ≤ 5 meetings:
+7,250 / 7,734 / 6,991); 0 frames with a kill and a spawn; 29 / 115 / 115 kill
+cases with a burst step's spawn. Region 1 and the fixture as shipped have no
+volley: **6,910** and **7,784** / **6,994** (`main`'s build: 6,897 / 7,764 /
+6,974 — the +13 / +20 are the finale's tests on firing and kill frames).
+
+**The entry.** 64 sectors, 245 host frames in every region (trace: 12 default
+entries and every region-route session). Initial block 13,618 B / 107 sectors;
+15 bytes of the boot image differ, all checksums: the disk guard's expected fold
+of the boss-code run (`$8C69` → `$0299`, in the Light kernel's extension
+record), that record's CRC-16 in the boot chunk manifest, the manifest's CRC-16
+and the initial block's trailer check.
+
+**The trace.** New columns `boss_finale`, `boss_spawns`, `boss_armour_left`. The
+finale clause on the region routes (subject: the finale's frames): the floor is
+the region's, nothing is born on the last armour kill's frame, at least one
+volley (boss shots born on three consecutive frames). **The plain sweep bot never
+reaches the finale** (it moves between HPOS 94 and 154; two edge plates are
+never hit), so the clause's subject is the new sessions
+`region-N-finale-{0,1,2}` with the policy `sweep-wide` (58 ↔ 190). Also fixed on
+the way (pre-existing since S5-1, reproduced on `main`): the EASY / HARD diag
+sessions now end at the summary (EASY's fight ended at 3,819 and the route
+entered the boss again). Regions 2–4 give identical results (one copy):
+
+| Session (region 2 / 3 / 4) | Bot | Finale from | Volleys | Boss shots (before / finale) | Boss down (chain) | Bot deaths |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `finale-0` EASY | wide sweep | f2,446 (49 s) | 25 | 20 / 121 | f5,298 (106.0 s) | 1 |
+| `finale-1` MEDIUM | wide sweep | f2,698 (54 s) | 43 | 35 / 210 | f7,003 (140.1 s) | 2 |
+| `finale-2` HARD | wide sweep | f7,438 (149 s) | 26 | 136 / 127 | f9,806 (196.1 s) | 5 |
+| `diag-0` EASY | sweep | never | — | 38 / 0 | f3,819 (76.4 s) | 1 |
+| `diag-1` MEDIUM | sweep | never | — | 72 / 0 | f5,131 (102.6 s) | 2 |
+| `diag-2` HARD (5,000 frames) | sweep | never | — | 92 / 0 | not reached | 5 |
+| `dodge-2` HARD (3,000 frames) | laser-dodge | never | — | 44 / 0 | not reached | 0 |
+
+Every session: entry 245 host frames, 0 miss events; the finale sessions' worst
+boss-frame margin 9,783, DMA-on 30,102. Fight length: the wide-sweep bot's 140 s
+on MEDIUM is the bot's (it clears the edge plates slowly), not a tuned figure;
+the placeholders' fight is tuned by each region's session (§3.6). Region 1 is
+unchanged (the default replays: every fight ends on `main`'s frame).
+
+**Gates.** 57 replays, 0 clause failures, 0 miss events; worst fence margin
+1,447 and DMA-on 31,304 unchanged; boss frames 10,038 → 10,017 (the same frame),
+DMA-on 29,238; ATR menu 553 / 544. Against `main` frame by frame: 46 of 58 CSVs
+identical, the 12 boss-entry replays differ on boss rows only and only in timing
+(and two observer samplings of it).
 
 ---
 

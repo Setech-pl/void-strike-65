@@ -1,4 +1,4 @@
-# S5-1 — the boss stress composition with a spawn on the kill frame: region 1 over 8,500 (`BLOCKED_BOSS_STRESS_SPAWN`)
+# S5-1 — the boss stress composition with a spawn on the kill frame: region 1 over 8,500 (`BLOCKED_BOSS_STRESS_SPAWN`, resolved by the owner's decision of 2026-10-09)
 
 **Date:** 2026-10-09. **Branch:** `chore/s5-platform` from `main` `e52fcfe`
 (ATR `977108bf…`, boot `a25c3e3a…`). **Plan:** [s5-boss-regions.md](../plans/s5-boss-regions.md)
@@ -6,12 +6,52 @@
 spawn on the kill frame; region 1 is measured with it first, before any other
 change; over 8,500 the session STOPs and reports with the frames.
 
-**Result: STOP.** Region 1 measures **8,751** native on a reachable frame
-(two kills) and **9,457** at worst (five meetings, unproven), against 8,500.
-Nothing else in S5-1 was started; no source, cfg, script, asset or evidence
-byte changed. The only change is the stress test's composition
-(`tests/boss-stress.test.mjs`), which now fails on the shipped game by design
-until the owner decides (below).
+**Result: STOP** (commit `00b89df`). Region 1 measured **8,751** native on a
+reachable frame (two kills) and **9,457** at worst (five meetings, unproven),
+against 8,500.
+
+## The owner's decision (2026-10-09, journal §AG) and the result
+
+(A) and (B) together, the limit kept at 8,500:
+
+1. **(B)** a gun never fires on a frame on which a module falls; its firing -
+   or a salvo's next shot - moves to the next frame.
+2. **(A)** the next-gun search made cheap (about 20 native a module), the
+   firing order and every gun's behaviour unchanged.
+3. Slot C: at most +25 B net for both, and not across its sector boundary.
+4. **The 8,500 limit gates the reachable cases** (at most two boss hits a
+   frame, AUD-04); the three-to-five-meeting figures below are information,
+   not a gate.
+
+**As built:** (B) in `boss_c_tick` (`src/c/boss.c`): a kill sets
+`boss_expose_pending` to 2 and the tick counts it down first, so 1 after that
+step is this frame's kill; the countdown that runs out then is put back to 1
+and the burst's next step waits - **0 B of RAM**, +19 B of code. (A) the walk
+moved to `_boss_next_armed` in slot C's ASM (`src/hybrid/boss.s`, segment
+`BOSS_C_ASM`, 39 B), called by `boss_fire_next`, which keeps the policy:
+**24 native a module (0-7), 25 (8-15)**, measured 24.4 / 24.5 a module on
+region 1 / the fixture (was 100.8). **Slot C 1,659 → 1,663 B** (+4 net,
+13 sectors, 1 B under the boundary; (B) alone was 1,678 and 14 sectors).
+
+| Layout | Worst reachable before → after | Worst (≤ 5 meetings, information) before → after |
+| --- | ---: | ---: |
+| region 1 | 8,751 → **6,895** (f1: 2 stage hits [plate-a, plate-e], p 0, plate-d destroyed, gun-2 spawning) | 9,457 → 7,634 |
+| tier-4 fixture, lasers warn | 9,393 → **7,744** (f1: 2 kills [plate-g, plate-h], p 16, plate-c destroyed; gun-2's spawn held to f2) | 9,995 → 8,446 |
+| tier-4 fixture, lasers beam | 8,563 → **6,954** (same case) | 9,165 → 7,656 |
+
+The case now runs until the held spawn lands (up to four frames); every
+layout's worst frame is f1. **0 frames with both a kill and a spawn** over
+7,583 (region 1) and 50,640 (fixture, each mode) kill cases with a gun due.
+A probe (not evidence) of the composition the sweep does not build - a kill
+pair on f1 with a gun due, then on f2 the held spawn, the exposure and two
+fresh hits - peaks at 6,649 (region 1), 7,401 / 6,998 (fixture warn / beam).
+
+Tests: `tests/boss-fire-rule.test.mjs` (the rule on single frames, a salvo's
+step held, the cadence without a kill unchanged, the order and countdowns
+against a model of `main`'s policy over 1,251 firings and 36 bursts on three
+layouts and three difficulties, the walk's cost) - 3 RED on `main`'s build
+(the two rules, the cost), GREEN after; `tests/boss-stress.test.mjs` (no
+kill-and-spawn frame - RED on `main`: 10,187 such frames in region 1).
 
 ## The composition (what changed in the test)
 
@@ -25,7 +65,7 @@ test asserts that every layout's sweep reaches kill frames with a spawn
 laser mode) and that each layout's worst case is one. It was RED with the
 arming disabled (subject empty: "region 1: no kill frame with a spawn").
 
-## The figures (M-N, the 6502 harness on `main` `e52fcfe`'s default build)
+## The figures at the STOP (M-N, the 6502 harness on `main` `e52fcfe`'s default build)
 
 | Layout | Worst reachable (≤ 2 meetings) | Worst (≤ 5 meetings) | Before (no spawn) |
 | --- | ---: | ---: | ---: |
@@ -74,7 +114,7 @@ budget's worst case was never composed, and that S5-3 (the field) and S5-4
 (salvo bursts) plan their headroom against a figure 317 native (fixture) to
 1,900 native too low.
 
-## Alternatives for the owner (none implemented)
+## Alternatives put to the owner (before the decision)
 
 | | Player-visible effect | Bytes | Native on the stress frame | Limitations | Risk |
 | --- | --- | --- | --- | --- | --- |
@@ -90,8 +130,4 @@ fires.
 (A) and (B) combine; (A) alone also cheapens every ordinary firing frame
 (+1,433 → ≈ +300) and the finale's bursts of S5-2.
 
-**Smallest recovery to unblock S5-1:** an owner decision among (A), (B), (C)
-or a combination, and the limit that S5-1 then pins for region 1 and the
-fixture. S5-1's other scope (`-xl`, PORTB, the HUD backup, slot F, regions 2–4
-on disk) does not depend on it, but the brief orders the measurement first and
-the STOP before any other change.
+The owner chose (A) and (B) together (above).

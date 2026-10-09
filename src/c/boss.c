@@ -49,6 +49,9 @@ extern volatile uint8_t boss_difficulty[];     /* [0] DIFFICULTY_SETTING: 0 EASY
 extern volatile uint8_t boss_active_frame[];   /* [0] lo, [1] hi */
 extern volatile uint8_t boss_stats_bonus[];    /* [0] lo, [1] hi, packed BCD */
 extern volatile uint8_t boss_laser_slots[];    /* [0] the emitter slots the tier enables (slot D) */
+/* boss_n = the next armed module after boss_cursor, cyclic (src/hybrid/boss.s,
+ * slot C's ASM); the armed set must not be empty. */
+extern void boss_next_armed(void);
 #define TABLE            boss_tables
 #define LEVEL_HEADER_ID  3u
 /* A module record's field, indexed by the record's offset: `abs,Y` on the
@@ -132,7 +135,7 @@ static uint8_t boss_start_hi;
 static uint8_t boss_adjust;
 static uint8_t boss_enabled;
 static uint8_t boss_i;
-static uint8_t boss_n;
+uint8_t boss_n;                     /* also boss_next_armed's result (boss.s) */
 static uint8_t boss_record;
 static uint8_t boss_value;
 static uint8_t boss_quarter;
@@ -149,7 +152,7 @@ static uint8_t boss_u;
 #define MASK_HAS(lo, hi) (boss_t = (lo), boss_t &= boss_bit_lo, boss_u = (hi), \
     boss_u &= boss_bit_hi, (uint8_t)(boss_t | boss_u))
 
-static const uint8_t boss_bit_table[8] = { 0x01u, 0x02u, 0x04u, 0x08u, 0x10u, 0x20u, 0x40u, 0x80u };
+const uint8_t boss_bit_table[8] = { 0x01u, 0x02u, 0x04u, 0x08u, 0x10u, 0x20u, 0x40u, 0x80u };
 
 /* boss_n -> boss_bit_lo/hi, its bit in a 16-bit module mask. */
 static void boss_bit_of(void)
@@ -388,14 +391,10 @@ uint8_t boss_c_hit(void)
  * a firing; the frame's own path stays O(1). */
 static void boss_fire_next(void)
 {
-    boss_n = boss_cursor;
-    do {
-        ++boss_n;
-        if (boss_n == boss_count) {
-            boss_n = 0u;
-        }
-        boss_bit_of();
-    } while (MASK_HAS(boss_armed_lo, boss_armed_hi) == 0u);
+    /* boss_n = the next armed module after the cursor, cyclic (S5-1, owner
+     * decision 2026-10-09 (A): the walk in ASM, ~25 native a module instead
+     * of ~110; the policy and the order unchanged). */
+    boss_next_armed();
     boss_cursor = boss_n;
     boss_fire_module = boss_n;
     if (boss_kind[boss_n] == BOSS_KIND_SALVO) {
@@ -446,6 +445,10 @@ void boss_c_tick(void)
             if (boss_hp[boss_n] == 0u) {
                 boss_burst_left = 0u;
             } else {
+                if (boss_expose_pending == 1u) {
+                    /* A module fell this frame (below): the shot waits one. */
+                    return;
+                }
                 --boss_burst_left;
                 boss_fire_module = boss_n;
                 if (boss_burst_left == 0u) {
@@ -459,6 +462,14 @@ void boss_c_tick(void)
         }
         --boss_countdown;
         if (boss_countdown == 0u) {
+            /* S5-1, owner decision 2026-10-09 (B): no gun fires on a frame on
+             * which a module falls - the firing moves to the next frame. A kill
+             * sets boss_expose_pending to 2 (boss_c_hit) and the step above
+             * counts it down once a frame, so 1 here is this frame's kill. */
+            if (boss_expose_pending == 1u) {
+                ++boss_countdown;
+                return;
+            }
             boss_fire_next();
         }
         return;

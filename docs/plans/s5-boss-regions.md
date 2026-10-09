@@ -315,6 +315,20 @@ countdown expires on its synthetic kill frames — so a kill frame on which a
 weapon also fires (420–495 native, reachable today in region 1) is outside
 the 8,434 figure. Reported for the stress composition's owner (§7, Q4).
 
+> **Correction (2026-10-09, S5-1, M-N):** the 326 above was a short walk (the
+> probe's cursor next to the salvo gun). `boss_fire_next`'s walk costs ≈ 110
+> native **a module walked** (`boss_bit_of` and the mask test each step), and
+> in region 1 as shipped only gun-2 is armed when the fight begins with the
+> cursor resting on it, so every firing walks all 13 modules: the tick 88 →
+> 1,521, and a firing frame costs **+1,902** native (tick +1,433, `boss_fire`
+> +469 — the latter as above). The composition with the spawn put region 1 at
+> 8,751 reachable / 9,457 worst (`BLOCKED_BOSS_STRESS_SPAWN`,
+> [the diagnostic](../diagnostics/s5-1-stress-spawn-blocked.md)). The owner's
+> decision (journal §AG): no gun fires on a module-kill frame (the firing moves
+> to the next frame) and the walk in ASM at ≈ 24 a module; slot C +4 B. A
+> firing frame now costs ≈ +920 with region 1's full walk (the tick 537
+> against 88) and ≈ +625 with a one-step walk.
+
 ### 2.4 The force field, option (b) — a glyph row under the band, P1 / P2 as the generators (M-N)
 
 A probe written as the production routine would be (`field_prepare`,
@@ -451,6 +465,17 @@ owner with the measured basis (§7 Q7).
 
 DMA-on never moves above 29,400 on any boss frame (the band's DMA is the
 same; the escort is pre-fence work); the 32,568 gate is far.
+
+> **Correction (2026-10-09, S5-1, M-N):** the "+ 495 if the composition adds
+> the spawn: 8,976" of R4's row was low — the spawn frame cost +1,902 with the
+> walk of §2.3's correction (region 1 8,751 reachable, the fixture 9,393). After
+> the owner's decision (journal §AG: no firing on a kill frame, the cheap walk,
+> **the 8,500 limit gating the reachable cases**, at most two boss hits a
+> frame) the stress with the spawn reads **6,895** (region 1), **7,744** /
+> **6,954** (the tier-4 fixture, lasers warn / beam), worst on the meeting
+> frame in every layout; the held spawn's frame is cheaper. These, not 8,434,
+> are the bases the rows above start from (the hooks and the field still add
+> their own).
 
 ### 3.4 Disk sectors
 

@@ -88,6 +88,8 @@ function arm(memory, module) {
 }
 const bossShots = (memory) => [...Array(HOSTILE_LIMIT).keys()]
   .filter((i) => memory[ACTIVE + HOSTILE_BASE + i] === BOSS_SHOT_ACTIVE).length;
+const fallen = (memory) => [...Array(memory[lbl("_boss_count")]).keys()]
+  .filter((i) => memory[lbl("_boss_hp") + i] === 0).length;
 
 function hold(memory, laserMode) {
   memory[LIFECYCLE] = 0;
@@ -186,23 +188,33 @@ function sweep(region, { setup, deadSets, laserMode }) {
             });
             if (!valid) continue;
             // S5-1 (Q4): the case once per weapon firing on the meeting frame.
+            // Since the owner's rule (B) a firing that falls on a kill frame is
+            // held to the next frame, so the case runs on while it is pending.
             const runs = [];
             for (const gun of [...weapons(memory), null]) {
               if (gun === null && runs.length > 0) break;
               const run = Uint8Array.from(memory);
               if (gun !== null) arm(run, gun);
-              const shots = bossShots(run);
-              let cycles = frame(run, laserMode);
-              const spawned = bossShots(run) > shots;
-              for (let next = 0; next < 2 && live(run).length > 0; next += 1) {
-                advance(run);
-                cycles = Math.max(cycles, frame(run, laserMode));
+              let cycles = 0, worstFrame = 0, spawned = false, clashes = 0;
+              // Up to four frames: the kept shots meet by f3 (two a frame),
+              // and a firing held on f3's kill lands on f4.
+              for (let f = 0; f < 4; f += 1) {
+                const pending = gun !== null && !spawned && run[lbl("_boss_countdown")] === 1;
+                if (f > 0 && live(run).length === 0 && !pending) break;
+                if (f > 0) advance(run);
+                const shots = bossShots(run), down = fallen(run);
+                const c = frame(run, laserMode);
+                const spawn = bossShots(run) > shots;
+                if (spawn && fallen(run) > down) clashes += 1;
+                spawned ||= spawn;
+                if (c > cycles) { cycles = c; worstFrame = f + 1; }
               }
-              runs.push({ cycles, gun: gun === null ? null : region.modules[gun].name, spawned });
+              runs.push({ cycles, worstFrame, gun: gun === null ? null : region.modules[gun].name, spawned, clashes });
             }
-            const { cycles, gun, spawned } = runs.reduce((w, r) => (r.cycles > w.cycles ? r : w));
+            const { cycles, worstFrame, gun, spawned } = runs.reduce((w, r) => (r.cycles > w.cycles ? r : w));
+            const clashes = runs.reduce((sum, r) => sum + r.clashes, 0);
             cases.push({
-              cycles, p, k, mode, reach: reach(k), gun, spawned,
+              cycles, worstFrame, p, k, mode, reach: reach(k), gun, spawned, clashes,
               dead: dead.map((i) => region.modules[i].name), hit: hit.map((i) => region.modules[i].name),
               columns: hit.map((i) => front.get(i)),
             });
@@ -213,9 +225,9 @@ function sweep(region, { setup, deadSets, laserMode }) {
   }
   return cases;
 }
-const describe = (c) => `${c.cycles} native cycles: ${c.k} ${c.mode}${c.k > 1 ? "s" : ""} ` +
+const describe = (c) => `${c.cycles} native cycles (f${c.worstFrame}): ${c.k} ${c.mode}${c.k > 1 ? "s" : ""} ` +
   `[${c.hit}] at columns [${c.columns}], p ${c.p}, destroyed [${c.dead}]` +
-  `${c.spawned ? `, ${c.gun} spawning` : c.gun === null ? ", no weapon armed" : `, ${c.gun} firing off screen`} (${c.reach})`;
+  `${c.spawned ? `, ${c.gun} spawning` : c.gun === null ? ", no weapon armed" : `, ${c.gun} due, no spawn`} (${c.reach})`;
 function report(name, cases) {
   const worst = (filter) => cases.filter(filter).reduce((w, c) => (w === null || c.cycles > w.cycles ? c : w), null);
   for (const k of [1, 2, 3, 4, 5]) {
@@ -272,7 +284,11 @@ test("AUD-04: region 1 - every distinct-module kill and stage-change combination
   for (const name of ["plate-a", "plate-b", "plate-h"]) assert.ok(covered.has(name), `${name} never met`);
   const { reachable, all } = report("region 1", cases);
   console.log(`# region 1: ${cases.length} cases; worst reachable ${reachable.cycles}, worst ${all.cycles} (limit ${LIMIT})`);
-  assert.ok(all.cycles <= LIMIT, `the worst case is ${describe(all)}`);
+  // RE-POINTED S5-1 (owner decision 2026-10-09 on BLOCKED_BOSS_STRESS_SPAWN):
+  // the limit gates the reachable cases - at most two boss hits a frame, the
+  // AUD-04 cap; the three-to-five-meeting figures are printed as information
+  // (docs/diagnostics/s5-1-stress-spawn-blocked.md), no longer a gate.
+  assert.ok(reachable.cycles <= LIMIT, `the worst reachable case is ${describe(reachable)}`);
 });
 
 test("AUD-04: the tier-4 fixture with four lasers - every combination stays under the boss limit", { skip: !lasers }, () => {
@@ -283,25 +299,41 @@ test("AUD-04: the tier-4 fixture with four lasers - every combination stays unde
     const { reachable, all } = report(`fixture, lasers ${laserMode}`, cases);
     console.log(`# fixture, lasers ${laserMode}: ${cases.length} cases; worst reachable ${reachable.cycles}, ` +
       `worst ${all.cycles} (limit ${LIMIT})`);
-    worst.push(all);
+    worst.push(reachable);
   }
   assert.deepEqual([...covered].sort(), fixture.modules.map((m) => m.name).sort(), "a module never met");
+  // RE-POINTED S5-1 (owner decision 2026-10-09): the reachable cases are the gate (see region 1's test).
   const over = worst.filter((c) => c.cycles > LIMIT);
   assert.deepEqual(over.map(describe), [], `over the ${LIMIT}-cycle limit`);
 });
 
 // S5-1 (owner decision Q4): the composition must actually reach a kill frame
-// on which a weapon spawns its shot, and the worst case of every layout must
-// be one - otherwise the figure above is still the frame without the spawn.
-test("S5-1 (Q4): every layout's sweep reaches kill frames with a weapon's spawn, and its worst case is one", () => {
-  const layouts = [["region 1", region1Cases()],
-    ...(lasers ? fixtureCases().map(({ laserMode, cases }) => [`fixture, lasers ${laserMode}`, cases]) : [])];
-  for (const [name, cases] of layouts) {
+// on which a weapon's firing falls, and the worst case of every layout must
+// include the spawn - otherwise the figure above is still the frame without
+// it. Since the owner's rule (B) that firing is held to the next frame, so the
+// subject is the kill cases whose spawn landed in the case's frames.
+const layouts = () => [["region 1", region1Cases()],
+  ...(lasers ? fixtureCases().map(({ laserMode, cases }) => [`fixture, lasers ${laserMode}`, cases]) : [])];
+test("S5-1 (Q4): every layout's sweep reaches kill frames with a weapon's firing due, and its worst case includes the spawn", () => {
+  for (const [name, cases] of layouts()) {
     const subject = cases.filter((c) => c.mode === "kill" && c.spawned);
-    console.log(`# ${name}: ${subject.length} kill frames with a spawn of ${cases.length} cases`);
-    assert.ok(subject.length > 0, `${name}: no kill frame with a spawn (subject empty)`);
-    const all = cases.reduce((w, c) => (c.cycles > w.cycles ? c : w));
-    assert.ok(all.mode === "kill" && all.spawned, `${name}: the worst case is not a kill with a spawn: ${describe(all)}`);
+    console.log(`# ${name}: ${subject.length} kill cases with a spawn of ${cases.length} cases`);
+    assert.ok(subject.length > 0, `${name}: no kill case with a spawn (subject empty)`);
+    for (const [label, worst] of [["reachable", cases.filter((c) => c.reach === "reachable")], ["all", cases]]
+      .map(([l, list]) => [l, list.reduce((w, c) => (c.cycles > w.cycles ? c : w))])) {
+      assert.ok(worst.spawned, `${name}: the worst ${label} case has no spawn: ${describe(worst)}`);
+    }
+  }
+});
+
+// The owner's rule (B), 2026-10-09: no frame has both a module kill and a gun's spawn.
+test("S5-1 (B): no stress frame has both a module kill and a gun's spawn", () => {
+  for (const [name, cases] of layouts()) {
+    const subject = cases.filter((c) => c.mode === "kill" && c.gun !== null).length;
+    const clashes = cases.reduce((sum, c) => sum + c.clashes, 0);
+    console.log(`# ${name}: ${clashes} frames with a kill and a spawn over ${subject} kill cases with a gun due`);
+    assert.ok(subject > 0, `${name}: no kill case with a gun due (subject empty)`);
+    assert.equal(clashes, 0, `${name}: ${clashes} frames with a kill and a spawn`);
   }
 });
 

@@ -182,6 +182,8 @@ _boss_stats_bonus  = STATS_BONUS
 .import _boss_blast, _boss_handoff, _boss_clock_lo, _boss_clock_hi, _boss_phase
 .import _boss_fire_module, _boss_fire_offset, _boss_heavy
 .import _boss_exposed_lo, _boss_exposed_hi
+.import _boss_armed_lo, _boss_armed_hi, _boss_count, _boss_cursor, _boss_n, _boss_bit_table
+.export _boss_next_armed
 .export boss_laser_slots, _boss_laser_slots
 _boss_laser_slots = boss_laser_slots
 
@@ -1426,6 +1428,33 @@ boss_dl_lms_offsets:
 ; plan's lever for slot A (§5.13.6), taken by the fortress session (§5.15.7).
 ; ---------------------------------------------------------------------------
 .segment "BOSS_C_ASM"
+
+; S5-1, owner decision 2026-10-09 (A): the controller's next-gun search, called
+; from boss_fire_next (src/c/boss.c), which keeps the policy - the next armed
+; module after the cursor, cyclic. _boss_n = that module. The C walk cost ~110
+; native a module (boss_bit_of and the mask test each step); this one 24 (0-7)
+; or 25 (8-15). The armed set is never empty here (boss_c_tick tests it).
+_boss_next_armed:
+    ldx _boss_cursor
+@step:
+    inx
+    cpx _boss_count
+    bcc @test
+    ldx #$00
+@test:
+    cpx #$08
+    bcs @high
+    lda _boss_armed_lo
+    and _boss_bit_table,x
+    beq @step
+    stx _boss_n
+    rts
+@high:
+    lda _boss_armed_hi
+    and _boss_bit_table - 8,x
+    beq @step
+    stx _boss_n
+    rts
 
 ; Once, from the install, after the controller's init (its hit points are the
 ; map's alive test, §5.13.5): the look copy's operand, every module's column

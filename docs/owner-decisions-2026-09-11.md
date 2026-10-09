@@ -1880,6 +1880,32 @@ kolejność B z §AE.
 
 ---
 
+## AG. S5-1 — STRZAŁ BOSSA NIGDY W KLATCE ZESTRZELENIA MODUŁU; TAŃSZE SZUKANIE DZIAŁA — decyzja właściciela po `BLOCKED_BOSS_STRESS_SPAWN` (2026-10-09)
+
+Diagnostyka: `docs/diagnostics/s5-1-stress-spawn-blocked.md`. Kompozycja stresu
+ze spawnem w klatce zestrzelenia (§AF pkt 4) dała w regionie 1 **8 751**
+(osiągalne, dwa trafienia) i **9 457** (pięć trafień) przy limicie 8 500;
+spawn kosztował +1 902 cykli natywnych, z czego +1 433 to przejście
+`boss_fire_next` po wszystkich 13 modułach (~110 cykli na moduł). Decyzja:
+
+1. **(B):** działo nigdy nie strzela w klatce, w której pada moduł — strzał
+   (także kolejny strzał salwy) przechodzi na następną klatkę.
+2. **(A):** szukanie następnego działa tanie (cel ~20 cykli na moduł),
+   kolejność strzałów i zachowanie każdego działa bez zmian.
+3. **Slot C:** (A) + (B) razem najwyżej **+25 B netto** i bez przekroczenia
+   granicy sektora (S5-2 nadal potrzebuje swojego przycięcia); inaczej STOP.
+4. **Limit 8 500 dotyczy przypadków osiągalnych** (najwyżej dwa trafienia
+   bossa na klatkę, decyzja AUD-04); liczby „do 5 trafień" zostają w
+   diagnostyce jako informacja, nie bramka. Po (A)+(B) region 1 i fixture
+   tier 4 (oba tryby laserów) muszą mieścić się w 8 500, inaczej STOP.
+
+**Wynik (S5-1, `chore/s5-platform`):** slot C 1 659 → **1 663 B** (+4 netto,
+13 sektorów, 1 B do granicy); szukanie **24,4 cykla na moduł**; najgorsze
+osiągalne: region 1 **6 895**, fixture ostrzeżenie **7 744**, wiązka
+**6 954**; zero klatek z zestrzeleniem i spawnem jednocześnie.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

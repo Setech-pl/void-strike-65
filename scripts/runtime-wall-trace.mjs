@@ -1996,6 +1996,11 @@ function parseCsv(csvText, sessionDefinition) {
       host_frames: entry.next_start_host_frame - entry.start_host_frame,
       wall_cycles: entry.wall_cycles,
       active_gameplay_frame: entry.active_gameplay_frame,
+      // feat/sector-flow (owner smoke 2026-10-09): the entity slots as the
+      // boss went in - the boss-entry debris clause reads bit 0 (debris).
+      entity_active_mask: entry.entity_active_mask,
+      entity_x: entry.entity_x,
+      entity_y: entry.entity_y,
     };
   }
   // M5b-S4b.5 (slot E's ways out): the frame that spans a RESET's reboot -
@@ -5084,6 +5089,37 @@ function main() {
     if (missEvents !== 0) process.exitCode = 1;
     if (!palTimingAuditsPassed(palTimingAudits)) process.exitCode = 1;
   }
+  // feat/sector-flow (owner smoke of 2026-10-09, docs/plans/sector-flow.md
+  // §4): no debris may be live on the boss entry frame. The world stops
+  // there, so a live debris cell would stay frozen where it was, shootable,
+  // for the whole fight. Subject: every boss entry of the run (ENTITY slot 0,
+  // bit 0 of ENTITY_ACTIVE_MASK, on the entry row); it must be non-empty
+  // whenever the run carries the director-complete replays.
+  const bossEntrySessions = sessionsToRun.filter((session) => session.bossEntry !== undefined);
+  const bossEntryDebris = {
+    clause: "no debris live on the boss entry frame (ENTITY_ACTIVE_MASK bit 0 clear on the entry row), " +
+      "over every boss entry of the run",
+    subject: bossEntrySessions.length,
+    sessions: bossEntrySessions.map((session) => session.id),
+    violations: bossEntrySessions
+      .filter((session) => (session.bossEntry.entity_active_mask & 1) !== 0)
+      .map((session) => ({ session: session.id, frame: session.bossEntry.frame,
+        entity_x: session.bossEntry.entity_x, entity_y: session.bossEntry.entity_y })),
+  };
+  for (const violation of bossEntryDebris.violations) {
+    recordClauseFailure(violation.session, false,
+      `${violation.session} entered the boss at frame ${violation.frame} with debris live ` +
+      `(x ${violation.entity_x}, y ${violation.entity_y}); it stays frozen on screen`);
+  }
+  if (sessionsToRun.some((session) => session.kind === "director-level-complete")) {
+    recordClauseFailure("boss-entry-debris", bossEntryDebris.subject > 0,
+      "no replay entered the boss: the boss-entry debris clause has no subject");
+  }
+  bossEntryDebris.held = bossEntryDebris.violations.length === 0 &&
+    (bossEntryDebris.subject > 0 ||
+      !sessionsToRun.some((session) => session.kind === "director-level-complete"));
+  console.log(`Boss-entry debris clause: subject ${bossEntryDebris.subject} boss entries, ` +
+    `${bossEntryDebris.violations.length} with debris live`);
   if (sessionFailures.length === 0) {
     console.log(`Behavioural clauses: ${sessionsToRun.length} session(s) ran to completion`);
   } else {
@@ -8363,6 +8399,7 @@ function main() {
         frame: frameState(directorHeaviest.heaviest),
         global_heaviest_has_director_event: (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0,
       },
+      boss_entry_debris: bossEntryDebris,
       light_archetypes: {
         clause: "L1 a live Interceptor Light; L2 two or more Lights live at once; L3 no Heavy live in a " +
           "swarm sector; L4 at most one live Light in an elite sector; L5 a variant (a) formation flies " +

@@ -269,3 +269,47 @@ test("level 1: the time to the boss falls on every difficulty", () => {
       `main ${MAIN_BOSS_ENTRY[difficulty]}`);
   }
 });
+
+// Owner smoke of 2026-10-09 (docs/plans/sector-flow.md §4): a debris piece
+// live when the boss went in stayed frozen where it was for the whole fight -
+// the world stops at the entry and nothing moves the cell again. The boss
+// entry (sector_c_update_first_capital's BOSS branch) now waits for the
+// debris slot to clear; the world still scrolls while it waits, so the piece
+// falls off the bottom as it always does, and the boss sector admits no new
+// debris. The entry itself is stubbed (RTS): the unit is the C decision, not
+// the WARNING screen's disk read behind it.
+const FLAG_BOSS_DUE = 0x20;
+const CAPITAL_SECTOR_STATE = 0x4ea5;
+const SECTOR_FIGHTER = 7;
+const ENTITY_ACTIVE_MASK = at("ENTITY_ACTIVE_MASK");
+test("the boss entry waits while debris is live, then goes in on the first frame it has gone", () => {
+  const image = level([elite(32)]);
+  image[at("_asm_boss_enter")] = 0x60;
+  assert.equal(image[CAPITAL_SECTOR_STATE], SECTOR_FIGHTER);
+  image[state.flags] = FLAG_BOSS_DUE;
+  image[ENTITY_ACTIVE_MASK] = 0x01;                 // the debris slot
+  for (let frame = 0; frame < 3; frame += 1) run(image, "sector_update_first_capital");
+  assert.equal(image[state.flags] & FLAG_BOSS_DUE, FLAG_BOSS_DUE,
+    "the boss went in with debris live: it would stay frozen on screen");
+  assert.equal(image[CAPITAL_SECTOR_STATE], SECTOR_FIGHTER, "nothing else moved while it waited");
+  image[ENTITY_ACTIVE_MASK] = 0x00;
+  run(image, "sector_update_first_capital");
+  assert.equal(image[state.flags] & FLAG_BOSS_DUE, 0, "the boss is entered once the debris has gone");
+});
+
+test("the boss-entry debris wait is the debris slot's alone: a capsule does not hold the entry", () => {
+  const image = level([elite(32)]);
+  image[at("_asm_boss_enter")] = 0x60;
+  image[state.flags] = FLAG_BOSS_DUE;
+  image[ENTITY_ACTIVE_MASK] = 0x02;                 // the pickup capsule (a PMG object, not a cell)
+  run(image, "sector_update_first_capital");
+  assert.equal(image[state.flags] & FLAG_BOSS_DUE, 0);
+});
+
+test("the capital entry does not wait for debris: the capital's own debris fills its corridor", () => {
+  const image = level([elite(32)]);
+  image[state.flags] = FLAG_CAPITAL_DUE;
+  image[ENTITY_ACTIVE_MASK] = 0x01;
+  run(image, "sector_update_first_capital");
+  assert.notEqual(image[CAPITAL_SECTOR_STATE], SECTOR_FIGHTER, "the capital waited for debris");
+});

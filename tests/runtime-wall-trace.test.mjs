@@ -1205,3 +1205,13 @@ test("the ATR legal hunt traces stay legal and have a reproducible fingerprint",
     .reduce((sum, session) => sum + session.measured_frames, 0));
   assert.ok(report.determinism.ordered_frames > 0);
 });
+
+// Owner smoke of 2026-10-09 (docs/plans/sector-flow.md §4): no debris live on
+// any boss entry frame of the replays, over a non-empty subject.
+test("no replay enters the boss with debris live, and every boss entry is checked", () => {
+  const clause = report.coverage.boss_entry_debris;
+  assert.ok(clause, "the evidence carries no boss-entry debris clause");
+  assert.ok(clause.subject >= 6, `only ${clause.subject} boss entries checked`);
+  assert.deepEqual(clause.violations, [], "a boss entry with debris live");
+  assert.equal(clause.held, true);
+});

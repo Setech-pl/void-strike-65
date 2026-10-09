@@ -797,6 +797,24 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     holdPlayerLives: 3,
     bossRegion: region,
   },
+  /* S5-2 (plan s5-boss-regions §4.2, §6): the finale on the emulator. The
+   * sweep bot destroys the region's last weapon before its last armour module
+   * (MEASURED, region-2-diag-1: the finale never began), so these sessions put
+   * every armour module at its last hit point on frame 2, the boss installed:
+   * the plates fall first, the finale begins and plays to the chain unchanged.
+   * The trace's finale clause requires it here (subject: the finale frames). */
+  ...[0, 1, 2].map((difficulty) => ({
+    id: `region-${region}-finale-${difficulty}`,
+    difficulty,
+    policy: "sweep",
+    fireDelay: 2,
+    frames: 12_000,
+    endAtSummary: true,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    bossRegion: region,
+    finalePlatesAt: 2,
+  })),
 ]);
 
 /* M5b-S4b (owner decision Q10): the laser fixture's worst case on the
@@ -3999,6 +4017,10 @@ function main() {
   // M5b-S3 (correction 10): the boss DLI and the boss state, gated on the
   // reader's slot-A flag (capital code holds those addresses otherwise), and
   // the window's boss entry, whose frame is the exempt transition.
+  // S5-2: a region route's finale sessions put every armour module of the
+  // region at its last hit point (see regionRouteSessions); the pokes come
+  // from this build's own boss link and region tables.
+  const finalePlatePokes = new Map();
   {
     const bossLabelPath = path.join(layout.inputDirectory, "boss.lbl");
     const readerLabelPath = path.join(layout.inputDirectory, "sector-reader.lbl");
@@ -4025,6 +4047,15 @@ function main() {
       addressEnvironment.DFTRACE_BOSS_SHOWN_POS = hex(bossLabels, "boss_shown_pos");
       // S5-2: the finale's byte (the boss_finale / boss_spawns columns).
       addressEnvironment.DFTRACE_BOSS_FINALE = hex(bossLabels, "_boss_finale");
+      for (const region of [1, 2, 3, 4]) {
+        // Band B's run: rows 6-7 (128 B), then the region's tables at $AD00.
+        const bandB = path.join(layout.inputDirectory, `boss-region-${region}-band-b.bin`);
+        if (!fs.existsSync(bandB)) continue;
+        const tables = fs.readFileSync(bandB).subarray(128, 128 + 256);
+        const armour = [...Array(tables[12]).keys()].filter((n) => (tables[56 + n * 12 + 7] & 0x0f) === 0);
+        finalePlatePokes.set(region, armour.map((n) =>
+          `${(bossLabels.get("_boss_hp") + n).toString(16)}=01`).join(","));
+      }
     }
   }
 
@@ -4336,6 +4367,9 @@ function main() {
        * the Director world row to 0 and restarts the level — cannot happen.
        * Trace-only: no production byte is patched and the default is off. */
       ...(session.bossPath === undefined ? {} : { DFTRACE_BOSS_PATH: session.bossPath }),
+      ...(session.finalePlatesAt === undefined ? {} : {
+        DFTRACE_POKES: `${session.finalePlatesAt}:${finalePlatePokes.get(session.bossRegion)}`,
+      }),
       ...(session.contactLensClock === undefined ? {} : {
         DFTRACE_CONTACT_LENS_CLOCK: String(emitterLensClock()),
       }),
@@ -4474,7 +4508,7 @@ function main() {
       // armour kill - a frame without a boss shot (owner decision 2026-10-09
       // (B)) - and fires volleys from the next frame on: boss shots born on
       // three consecutive frames. Subject: the session's finale frames; the
-      // MEDIUM session, which fights to the chain, must have them.
+      // finale sessions (region-N-finale-*) must have them.
       const finaleCooldown = manifest.boss?.regions?.[session.bossRegion - 1]?.finaleCooldown ?? 0;
       const finaleRows = rows.filter((row) => row.boss_finale !== 0);
       invariant(finaleCooldown !== 0 || finaleRows.length === 0,
@@ -4503,7 +4537,7 @@ function main() {
         session.regionRoute.finale = null;
         console.log(`${session.id}: the finale never began (the last weapon fell before the last armour)`);
       }
-      if (finaleCooldown !== 0 && session.difficulty === 1) {
+      if (finaleCooldown !== 0 && session.finalePlatesAt !== undefined) {
         invariant(finaleRows.length > 0, `${session.id}: region ${session.bossRegion}'s finale never began (subject empty)`);
       }
     }

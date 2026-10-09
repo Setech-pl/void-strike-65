@@ -1,0 +1,751 @@
+{
+  "description": "fix/hardware-boot Phase A (2026-10-09): the real-SIO boot reproduction. Produced by scripts/sio-boot-repro.mjs on the 64 KB machine (-xl -pal), Atari800 7.1.2 from build/atari800-trace with scripts/atari800-sio-diag.h. MEASURED in the emulator; see docs/diagnostics/hardware-boot.md.",
+  "main": {
+    "atr": "dist/void-strike-65.atr",
+    "atr_sha256": "70063213c1c765870cd7de91f1e82e6549abf3e7809f406557225431f08a73a1",
+    "probe": null,
+    "frames": 12000,
+    "start_game": true,
+    "machine": "-xl",
+    "results": [
+      {
+        "id": "patch-nobasic",
+        "patch": true,
+        "basic": false,
+        "host_seconds": 0.52,
+        "stop": {
+          "reason": "pc",
+          "pc": "$5EA9",
+          "label": "main_loop",
+          "frame": 906
+        },
+        "command_frames": 35,
+        "read_commands": 35,
+        "sectors_read": 35,
+        "highest_sector": 606,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 0,
+        "first_sector_without_data_frame": null,
+        "siov_calls": 214,
+        "siov_read_calls_dstats_not_40": 95,
+        "first_siov_dstats_not_40": {
+          "sector": 109,
+          "dstats": "$1",
+          "frame": 89
+        },
+        "milestones": {
+          "start": 239,
+          "show_loader": 296,
+          "enter_main_menu": 553,
+          "sector_reader_load": 689,
+          "start_gameplay": 903,
+          "main_loop": 906
+        },
+        "args": [
+          "-xl",
+          "-pal",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "<media copy>"
+        ]
+      },
+      {
+        "id": "patch-basic",
+        "patch": true,
+        "basic": true,
+        "host_seconds": 0.5,
+        "stop": {
+          "reason": "pc",
+          "pc": "$5EA9",
+          "label": "main_loop",
+          "frame": 897
+        },
+        "command_frames": 35,
+        "read_commands": 35,
+        "sectors_read": 35,
+        "highest_sector": 606,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 0,
+        "first_sector_without_data_frame": null,
+        "siov_calls": 214,
+        "siov_read_calls_dstats_not_40": 95,
+        "first_siov_dstats_not_40": {
+          "sector": 109,
+          "dstats": "$1",
+          "frame": 80
+        },
+        "milestones": {
+          "start": 230,
+          "show_loader": 287,
+          "enter_main_menu": 544,
+          "sector_reader_load": 680,
+          "start_gameplay": 894,
+          "main_loop": 897
+        },
+        "args": [
+          "-xl",
+          "-pal",
+          "-basic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "<media copy>"
+        ]
+      },
+      {
+        "id": "nopatch-nobasic",
+        "patch": false,
+        "basic": false,
+        "host_seconds": 0.44,
+        "stop": {
+          "reason": "red-halt",
+          "pc": "$2625",
+          "label": "@halt",
+          "frame": 567
+        },
+        "command_frames": 152,
+        "read_commands": 151,
+        "sectors_read": 151,
+        "highest_sector": 151,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 42,
+        "first_sector_without_data_frame": 109,
+        "siov_calls": 152,
+        "siov_read_calls_dstats_not_40": 43,
+        "first_siov_dstats_not_40": {
+          "sector": 109,
+          "dstats": "$1",
+          "frame": 496
+        },
+        "milestones": {},
+        "args": [
+          "-xl",
+          "-pal",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "-nopatch",
+          "<media copy>"
+        ]
+      },
+      {
+        "id": "nopatch-basic",
+        "patch": false,
+        "basic": true,
+        "host_seconds": 0.44,
+        "stop": {
+          "reason": "red-halt",
+          "pc": "$2625",
+          "label": "@halt",
+          "frame": 558
+        },
+        "command_frames": 152,
+        "read_commands": 151,
+        "sectors_read": 151,
+        "highest_sector": 151,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 42,
+        "first_sector_without_data_frame": 109,
+        "siov_calls": 152,
+        "siov_read_calls_dstats_not_40": 43,
+        "first_siov_dstats_not_40": {
+          "sector": 109,
+          "dstats": "$1",
+          "frame": 487
+        },
+        "milestones": {},
+        "args": [
+          "-xl",
+          "-pal",
+          "-basic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "-nopatch",
+          "<media copy>"
+        ]
+      }
+    ]
+  },
+  "probe_dstats": {
+    "atr": "build/sio-boot-repro-probe/probe-dstats.atr",
+    "atr_sha256": "e1d454a1f3c0ed34cbe72ca0d095a57d6bd1044778ef953396f9ff8f45a8b6ab",
+    "probe": {
+      "kind": "dstats",
+      "store_from": "$2232",
+      "loop_from": "$2263",
+      "loop_to": "$225E"
+    },
+    "frames": 12000,
+    "start_game": true,
+    "machine": "-xl",
+    "results": [
+      {
+        "id": "patch-nobasic",
+        "patch": true,
+        "basic": false,
+        "host_seconds": 0.52,
+        "stop": {
+          "reason": "pc",
+          "pc": "$5EA9",
+          "label": "main_loop",
+          "frame": 906
+        },
+        "command_frames": 35,
+        "read_commands": 35,
+        "sectors_read": 35,
+        "highest_sector": 606,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 0,
+        "first_sector_without_data_frame": null,
+        "siov_calls": 214,
+        "siov_read_calls_dstats_not_40": 0,
+        "first_siov_dstats_not_40": null,
+        "milestones": {
+          "start": 239,
+          "show_loader": 296,
+          "enter_main_menu": 553,
+          "sector_reader_load": 689,
+          "start_gameplay": 903,
+          "main_loop": 906
+        },
+        "args": [
+          "-xl",
+          "-pal",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "<media copy>"
+        ]
+      },
+      {
+        "id": "patch-basic",
+        "patch": true,
+        "basic": true,
+        "host_seconds": 0.48,
+        "stop": {
+          "reason": "pc",
+          "pc": "$5EA9",
+          "label": "main_loop",
+          "frame": 897
+        },
+        "command_frames": 35,
+        "read_commands": 35,
+        "sectors_read": 35,
+        "highest_sector": 606,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 0,
+        "first_sector_without_data_frame": null,
+        "siov_calls": 214,
+        "siov_read_calls_dstats_not_40": 0,
+        "first_siov_dstats_not_40": null,
+        "milestones": {
+          "start": 230,
+          "show_loader": 287,
+          "enter_main_menu": 544,
+          "sector_reader_load": 680,
+          "start_gameplay": 894,
+          "main_loop": 897
+        },
+        "args": [
+          "-xl",
+          "-pal",
+          "-basic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "<media copy>"
+        ]
+      },
+      {
+        "id": "nopatch-nobasic",
+        "patch": false,
+        "basic": false,
+        "host_seconds": 0.62,
+        "stop": {
+          "reason": "pc",
+          "pc": "$5EA9",
+          "label": "main_loop",
+          "frame": 1704
+        },
+        "command_frames": 249,
+        "read_commands": 248,
+        "sectors_read": 248,
+        "highest_sector": 606,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 0,
+        "first_sector_without_data_frame": null,
+        "siov_calls": 214,
+        "siov_read_calls_dstats_not_40": 0,
+        "first_siov_dstats_not_40": null,
+        "milestones": {
+          "start": 1037,
+          "show_loader": 1094,
+          "enter_main_menu": 1351,
+          "sector_reader_load": 1487,
+          "start_gameplay": 1701,
+          "main_loop": 1704
+        },
+        "args": [
+          "-xl",
+          "-pal",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "-nopatch",
+          "<media copy>"
+        ]
+      },
+      {
+        "id": "nopatch-basic",
+        "patch": false,
+        "basic": true,
+        "host_seconds": 0.62,
+        "stop": {
+          "reason": "pc",
+          "pc": "$5EA9",
+          "label": "main_loop",
+          "frame": 1695
+        },
+        "command_frames": 249,
+        "read_commands": 248,
+        "sectors_read": 248,
+        "highest_sector": 606,
+        "sectors_retried": 0,
+        "naks": 0,
+        "errors": 0,
+        "no_reply": 0,
+        "complete_without_data_frame": 0,
+        "first_sector_without_data_frame": null,
+        "siov_calls": 214,
+        "siov_read_calls_dstats_not_40": 0,
+        "first_siov_dstats_not_40": null,
+        "milestones": {
+          "start": 1028,
+          "show_loader": 1085,
+          "enter_main_menu": 1342,
+          "sector_reader_load": 1478,
+          "start_gameplay": 1692,
+          "main_loop": 1695
+        },
+        "args": [
+          "-xl",
+          "-pal",
+          "-basic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "-nopatch",
+          "<media copy>"
+        ]
+      }
+    ]
+  },
+  "history_labels_none_3000_frames": {
+    "v0.1.1": {
+      "atr_sha256": "3baaa32f30012cb65456ff043976ed1e567b71540e836d099063def1840a55ab",
+      "runs": [
+        {
+          "id": "patch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$20D2",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        },
+        {
+          "id": "patch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$F305",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        },
+        {
+          "id": "nopatch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$20D2",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 19,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        },
+        {
+          "id": "nopatch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$F312",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 19,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        }
+      ]
+    },
+    "921b3c8": {
+      "atr_sha256": "b9cd010e4c69555fd2aab0929deff99d8201e1f315c0c9aa302eddc002e22087",
+      "runs": [
+        {
+          "id": "patch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$2692",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        },
+        {
+          "id": "patch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$F304",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        },
+        {
+          "id": "nopatch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$2692",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 128,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        },
+        {
+          "id": "nopatch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$F2FF",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 128,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 0
+        }
+      ]
+    },
+    "e1614e7": {
+      "atr_sha256": "f68034584284cae4db500cbc34bd352a4bfb5255bb143f066dc6b704f333163c",
+      "runs": [
+        {
+          "id": "patch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$2692",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 43
+        },
+        {
+          "id": "patch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$F310",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 43
+        },
+        {
+          "id": "nopatch-nobasic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$25C0",
+            "label": null,
+            "frame": 535
+          },
+          "sectors_read": 138,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        },
+        {
+          "id": "nopatch-basic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$25C0",
+            "label": null,
+            "frame": 526
+          },
+          "sectors_read": 138,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        }
+      ]
+    },
+    "v0.1.0": {
+      "atr_sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7",
+      "runs": [
+        {
+          "id": "patch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F2",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 90
+        },
+        {
+          "id": "patch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F2",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 90
+        },
+        {
+          "id": "nopatch-nobasic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 567
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        },
+        {
+          "id": "nopatch-basic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 558
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        }
+      ]
+    },
+    "v0.2.0": {
+      "atr_sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8",
+      "runs": [
+        {
+          "id": "patch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F5",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 91
+        },
+        {
+          "id": "patch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F5",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 91
+        },
+        {
+          "id": "nopatch-nobasic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 567
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        },
+        {
+          "id": "nopatch-basic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 558
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        }
+      ]
+    },
+    "v0.2.1": {
+      "atr_sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1",
+      "runs": [
+        {
+          "id": "patch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F5",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 91
+        },
+        {
+          "id": "patch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F5",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 91
+        },
+        {
+          "id": "nopatch-nobasic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 567
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        },
+        {
+          "id": "nopatch-basic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 558
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        }
+      ]
+    },
+    "v0.2.2": {
+      "atr_sha256": "19b82947a3b280e05040d8200d96de81e2ae79b504e6d7f2c010579a4604c4d4",
+      "runs": [
+        {
+          "id": "patch-nobasic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F2",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 94
+        },
+        {
+          "id": "patch-basic",
+          "stop": {
+            "reason": "frames",
+            "pc": "$26F5",
+            "label": null,
+            "frame": 3000
+          },
+          "sectors_read": 0,
+          "complete_without_data_frame": 0,
+          "siov_read_calls_dstats_not_40": 94
+        },
+        {
+          "id": "nopatch-nobasic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 567
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        },
+        {
+          "id": "nopatch-basic",
+          "stop": {
+            "reason": "red-halt",
+            "pc": "$2625",
+            "label": null,
+            "frame": 558
+          },
+          "sectors_read": 151,
+          "complete_without_data_frame": 42,
+          "siov_read_calls_dstats_not_40": 43
+        }
+      ]
+    }
+  }
+}

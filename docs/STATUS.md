@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-09 (fix/hardware-boot: no ATR had ever booted on a real machine - stage 2 armed the OS SIOV's receive direction (DSTATS) once per chunk, so a real 65XE stopped on the red halt about 15 s after power-on, every ATR from e1614e7 to v0.2.2; Atari800's SIO patch hid it from every committed run; F1 re-arms DSTATS before every SIOV call (0 B), R7 the reader's settle 2 -> 5 frames (0 B); the boot smoke runs real SIO (-nopatch), every other launch pins the patch on; boot to menu 1,351 frames (27.0 s) under real SIO; gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, the release gate for v0.2.3; before it feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-10 (fix/hardware-audio: on a real 65XE channels 3 and 4 were silent - the menu's melody and arpeggio, the shots, the engine hum, the capital-hull explosions, the boss hum and ticks - because the OS's SIO and the sector reader left SKCTL = $13, whose bit 4 (asynchronous receive) holds POKEY's timers 3 and 4 in reset; Atari800 does not model the hold; the owner's probe test confirmed it; F1 the reader's rest value $03 (0 B), F2 SKCTL $03 once before the first menu (+5 B ENTITY_CODE, initial block 13,618 -> 13,623 B, 29 B to the STOP); gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, part of the v0.2.3 release gate; before it fix/hardware-boot: no ATR had ever booted on a real machine - stage 2 armed the OS SIOV's receive direction (DSTATS) once per chunk, so a real 65XE stopped on the red halt about 15 s after power-on, every ATR from e1614e7 to v0.2.2; Atari800's SIO patch hid it from every committed run; F1 re-arms DSTATS before every SIOV call (0 B), R7 the reader's settle 2 -> 5 frames (0 B); the boot smoke runs real SIO (-nopatch), every other launch pins the patch on; boot to menu 1,351 frames (27.0 s) under real SIO; gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, the release gate for v0.2.3; before it feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -89,6 +89,8 @@ released.** Section "ATR-only build" below.
 **S5-1 — the boss platform for regions 2-4 — built (2026-10-09, `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`)** (section "S5-1" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.1): the 64 KB machine everywhere, slot F, regions 2-4 on the disk, the booster bar through the boss entry; boss stress with a spawn 6,895 (R1) / 7,744 (fixture) of 8,500 after the owner's decision §AG; every gate and 45 of 57 replays unchanged frame for frame; ATR `67d95ed8…`.
 
 **S5-2 — the boss finale — built (2026-10-09, `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`)** (section "S5-2" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.2): when the last armour module falls every weapon still standing fires three-shot volleys (x−1, x, x+1) at half its reload, never under the region's `fire.finaleCooldown`; off in region 1 (Q6), on (12) in the region 2–4 placeholders; slot C 1,663 → 1,648 B (13 sectors) with behaviour-preserving trims; boss stress 6,910 (R1) / 7,784 (fixture) / 6,682 (the finale's layouts) of 8,500; every gate unchanged, 46 of 58 replays identical to `main` frame by frame; ATR `70063213…`.
+
+**Hardware audio — channels 3 and 4 play on a real machine — built (2026-10-10, `fix/hardware-audio`, `OWNER-SMOKE CANDIDATE`, part of the v0.2.3 gate)** (section "Hardware audio" below; diagnosis [diagnostics/hardware-audio.md](diagnostics/hardware-audio.md)): `SKCTL = $13` left by the OS's SIO and the sector reader held POKEY's timers 3 and 4 on hardware, silencing the menu's melody and arpeggio and every channel-3/4 effect; the reader's rest value `$03` (F1, 0 B) and `$03` once before the first menu (F2, +5 B `ENTITY_CODE`, initial block **13,623 B**, 29 B to the STOP); confirmed by the owner's probe test; gameplay frame-identical to `main`; ATR `75cf839c…`.
 
 **Hardware boot — the first ATR that boots on a real machine — built (2026-10-09, `fix/hardware-boot`, `OWNER-SMOKE CANDIDATE`, release blocker)** (section "Hardware boot" below; diagnosis [diagnostics/hardware-boot.md](diagnostics/hardware-boot.md)): stage 2 re-arms `DSTATS` before every `SIOV` call (F1, 0 B; every ATR from `e1614e7` to `v0.2.2` stopped on the red halt on hardware), the reader's settle outlasts a data frame (R7, 0 B); the boot smoke runs real SIO, every other launch pins Atari800's SIO patch on; ATR menu **1,351 / 1,342** frames under real SIO (553 / 544 with the patch); gameplay frame-identical to `main` (the replay fingerprint unchanged); ATR `b99fb418…`.
 
@@ -365,6 +367,93 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Hardware audio — SKCTL leaves async receive off at the menu and after every load — `OWNER-SMOKE CANDIDATE` (2026-10-10)
+
+**Branch and diagnosis:** `fix/hardware-audio` from `main` `88626d0`;
+[diagnostics/hardware-audio.md](diagnostics/hardware-audio.md) (Phase A,
+`c8c2171`). The owner's real-hardware probe test of 2026-10-10 matched every
+prediction: P1 (both writes) all sound correct, P2 (menu write only) menu
+correct and play silent, P3 (reader only) menu wrong and play correct, P4
+(channel test) channels 3 and 4 silent. **ATR:**
+`75cf839c01c9baa5b5c74ebe7f5de21072e05c941b7abeef176045148c6ad327`, boot
+`7c44df1afb1346804a6328bc365e322a24313bc564019e0ab17df2477900b434`, evidence
+bound. Part of the `v0.2.3` release gate with the hardware boot below; the
+sound fix is in [releases/v0.2.3.md](releases/v0.2.3.md) (draft, not
+published).
+
+**The defect.** The OS's SIO receive enable (`$EC40`, XL OS) leaves `SKCTL =
+$13` after every read and never restores it; the sector reader's
+`sector_reader_quiesce` left `SKCTL_REST = $13` after every load. Bit 4 is
+POKEY's asynchronous receive mode, which on a real chip holds timers 3 and 4 in
+reset while no start bit arrives, so channels 3 and 4 played nothing (Altirra
+Hardware Reference Manual, ch. 5). The menu theme lost its lead (ch3) and
+arpeggio (ch4); play lost the engine bed (ch3), the shot (ch4), the
+capital-hull explosion (ch4) and the boss's bed and hit tick (ch3). The music on
+channels 1 and 2 and the kill / hit noise (ch2) were unaffected. Atari800 does
+not model the hold and played everything, with and without the SIO patch.
+
+**F1 (`src/hybrid/sector-reader.s`).** `SKCTL_REST` `$13` → **`$03`**: keyboard
+scan and debounce, serial mode %000. Every reader operation writes its own mode
+before it uses the port, so only the audio sees the rest value. 0 B, 0 cycles.
+A 0-byte label `sector_reader_quiesce_done` marks the reader's single exit for
+the tests.
+
+**F2 (`src/main.s`, the cold start).** `lda #SKCTL_AUDIO / sta SKCTL` (`$03`)
+once before the first `enter_main_menu`, after the OS's last `SIOV`; no OS call
+follows the takeover. **+5 B in `ENTITY_CODE`** (3,156 → 3,161, tail 10 → 5);
+initial block **13,618 → 13,623 B**, envelope 78 → 73, **34 → 29 B to the
+STOP**; boot / extension / total 107 / 106 / 213 sectors unchanged; the
+`ENTITY_CODE` staging overlap 22 → 27 B, staging → `BROADSIDE` margin 22 → 17;
+6 cycles, once per power-on. `start`'s takeover prefix has 2 spare bytes and
+cannot hold it. Comments fixed in `src/boot-splash.s` and the reader.
+
+**Measured SKCTL (Atari800, the boot repro's STOP and MARK lines):** `$03` at
+`enter_main_menu`, at every `sector_reader_quiesce_done` (5 during START GAME,
+10 more at the boss entry on the `--level=1:sector=6` route) and at
+`main_loop`, real SIO and SIO patch, BASIC on and off (it was `$13` at all of
+them on `main`). Boot to the menu 1,351 frames and START GAME to `main_loop`
+f1704 under real SIO, unchanged.
+
+**Gates:** 57 replays, 0 clause failures, 0 miss events, PAL audit PASS; worst
+fence margin **1,447** (`2-sweep-fire6`) and DMA-on **31,304** unchanged; the
+replay fingerprint (132,810 frames) **identical to `main`'s**; the boot smoke
+7 / 7 under real SIO; the menu raster keeps its pin `cfc72f31…`; the GIF and
+every gallery image byte-identical (bindings only); the generated memory map
+re-recorded (the initial block's last 5 B).
+
+**Tests.** New, RED on `main`'s code and GREEN after (F1 reverted alone turns
+three of them red): `tests/hardware-audio.test.mjs` - the rest values
+(`SKCTL_REST`, `SKCTL_AUDIO`: bit 4 clear, bits 0-1 set, no two-tone), every
+`sta SKCTL` in `src/` against the reviewed list, both exits of the summary's
+save write through quiesce, F2 before the first menu, and a real-SIO run of
+the boss-entry debug route (every reader exit after gameplay begins, and the
+fight, with bit 4 clear); `tests/hardware-boot.test.mjs`'s four
+`--start-game` boots now assert bit 4 clear at the menu, at every reader exit
+and at `main_loop`. `scripts/sio-boot-repro.mjs` and
+`scripts/atari800-sio-diag.h` report SKCTL / AUDCTL on the STOP and MARK lines
+(`skctl_at` in the report), `--labels=<directory>` and `--stop=frames`. The
+Phase A `--audio-probe` flag is removed; the probes rebuild from `c8c2171`.
+The first full run after the evidence binding found 14 NEW failures, all
+F2's 5 B or F1's value, none a behaviour change: eleven byte pins of the
+initial block (13,618 → 13,623), its envelope (78 → 73), the `ENTITY_CODE`
+size and tail (3,156 / 10 → 3,161 / 5), its staging (the packed sources end
+`$532E` → `$5333`, the staging `$5DFA` → `$5DFF`, the margin to `BROADSIDE`
+22 → 17) and `light_glyph` / `light_interceptor_glyph` (`$9D22` / `$9D32` →
+`$9D27` / `$9D37`), each re-pinned with its reason; the reader's rest value in
+`tests/sector-reader.test.mjs` (`$13` → `$03`); and two direct-call fixtures
+(`weapon-pickup-rapid-fire`, `weapon-pickup-spread-shot`) that met a phantom
+target: `scripts/weapon-pickup-runtime.mjs` never cleared the Director's C
+state at `$8100-$8132`, which holds the boot staging's leftovers until START
+GAME, and F2 moved those leftovers. The harness now clears it before
+`director_init`; all 100 tests on that harness pass. The game itself never
+read them: the replay fingerprint is unchanged. After the re-pins and the harness fix, `npm test` (default build) twice:
+**1,278 / 1,277 / 1 / 0 skipped** both times (main 1,273 + the 5 new tests),
+the failure the recorded `preview` @ `tests/preview.test.mjs:164`; `npm run
+failures:reconcile` PASS on both runs and the trace (0 NEW, 0 MOVED, 0
+disappeared). `npm run boot:smoke` on the default build 7 / 7. Hardware smoke checklist:
+[hardware-testing.md](hardware-testing.md) §24 (after §23's boot).
+Technical-debt row 6 added.
 
 ## Hardware boot — stage 2 re-arms DSTATS before every SIOV call; real SIO in the boot smoke — `OWNER-SMOKE CANDIDATE` (2026-10-09)
 
@@ -6998,6 +7087,7 @@ sound carry the signal.
 | 3 | **The ATR boot-without-OPTION fix is emulator-proven only.** Until `fix/hardware-boot` (2026-10-09) **no ATR booted on a real machine at all**: stage 2 armed `DSTATS` once per chunk, so a real machine stopped on the red halt with or without OPTION ([diagnostics/hardware-boot.md](diagnostics/hardware-boot.md)); the SIO patch hid it from every committed run. Fixed; both OPTION states boot under real SIO in Atari800; the hardware smoke is [hardware-testing.md](hardware-testing.md) §23. | Decision A, and through it the unconditional window (B) and the whole roadmap on real hardware. |
 | 4 | **What the OS occupies above `$BC20`** was unmeasured. | **Measured 2026-09-20 — see below.** Entry retained because the measurement is Atari800-only. |
 | 5 | **The ATR's sector interleave is not a documented property of the build** (added 2026-09-20). Sectors are laid out logically ordered. | Nothing on SIO2SD or in emulation. On a **real 1050**, logically-ordered sectors make the drive "blow a rev" between reads: roughly **half speed, ~208 ms per sector instead of ~104**. Every real-hardware load figure derived from disk doubles, including the inter-level pause (decision O) and how much content fits inside an acceptable wait. The owner will verify on a CA2001 once he has a monitor for it, and notes that in practice almost everyone will run this on an emulator or SIO2SD. |
+| 6 | **Atari800 cannot hear what POKEY really plays** (added 2026-10-10, `fix/hardware-audio`). It does not model SKCTL bit 4 holding timers 3 and 4, so channels 3 and 4 were silent on hardware from the first ATR to `b99fb418…` while every emulator run played them ([diagnostics/hardware-audio.md](diagnostics/hardware-audio.md)). Fixed; `tests/hardware-audio.test.mjs` and `tests/hardware-boot.test.mjs` assert SKCTL bit 4 clear at the menu, at every sector-reader exit (START GAME, the boss entry) and in play. Other POKEY behaviour Atari800 does not model (init-mode clocks, two-tone, timer phase) would be just as silent in every committed run. | Whether a sound is audible on hardware: only the ear test ([hardware-testing.md](hardware-testing.md) §24) proves it. |
 
 ### The window measurement (debt item 4, done)
 

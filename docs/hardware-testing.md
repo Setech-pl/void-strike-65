@@ -821,6 +821,46 @@ atari800 -xl -pal -nopatch -basic   "$PWD/build/play/fix-hardware-boot.atr"
       with `DISK READ FAILED` = the game's own reader), the last SIO2SD
       sector, and the time from power-on.
 
+## 24. Sound on real hardware: all four POKEY channels (`fix/hardware-audio`)
+
+Diagnosis [diagnostics/hardware-audio.md](diagnostics/hardware-audio.md). Until
+this build, **channels 3 and 4 were silent on a real machine**. The OS's disk
+routine and the game's sector reader left SKCTL = `$13`, and its bit 4
+(asynchronous receive) holds POKEY's timers 3 and 4 in reset. So the menu
+played only drums and bass, and play had no shots, engine, capital explosion
+or boss hum. Atari800 does not model the hold and plays everything, so **only
+this checklist can catch a regression by ear**. The tests assert the register
+instead (`tests/hardware-audio.test.mjs`). The owner's probe test of
+2026-10-10 confirmed the fix (probe P1).
+
+**On the real 65XE PAL with the SIO2SD**, monitor or TV sound up, on a copy:
+`build/play/fix-hardware-audio.atr` `75cf839c…` (the default ATR), under a
+new file name on the SD card. Run §23's boot first. Listen for each item and
+compare it with Atari800 (`npm run play:atr`), which plays the same sound:
+
+- [ ] **Splash**: the data-cassette chirp (channel 1) during the loader.
+- [ ] **Main menu, first visit after power-on**: the whole theme - the bass,
+      the drums, **the lead melody (channel 3)** and **the chord arpeggio
+      (channel 4)**. Drums and bass alone are the old fault.
+- [ ] **OPTIONS → SOUND OFF, then ON**: silence, then the theme again.
+- [ ] **START GAME**: the summary screen's music while level 1 loads.
+- [ ] **Play, from the first frame**: the quiet **engine hum** (channel 3)
+      under the music.
+- [ ] **Shots**: a short blip for every shot (channel 4), single, Rapid and
+      Spread.
+- [ ] **Enemy kills and taking a hit**: the noise burst (channel 2).
+- [ ] **The capital ship's hull explosions** (channel 4) as its sections blow.
+- [ ] **Space pauses, Space again resumes**: silence, then the music, the
+      engine hum and any running effect come back.
+- [ ] **The boss**: its **hum** (channel 3) once the fight starts, and **a tick
+      on every hit** on a plate or module (channel 3); shots still blip.
+- [ ] **The level's end and back in the menu** (or GAME OVER, then the menu):
+      the full menu theme with melody and arpeggio again. This is the first
+      menu after a game load, so it checks the reader's fix on its own.
+- [ ] **RESET, then the menu**: the full theme after the cold start.
+- [ ] **If something is silent**: note which item, and whether the menu theme
+      has its melody at that moment.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

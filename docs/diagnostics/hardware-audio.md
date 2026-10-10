@@ -12,7 +12,29 @@
 - Atari800 plays every voice and effect, with and without its SIO patch;
 - other games sound normal on the same machine.
 
-**Status: DIAGNOSIS — OWNER HARDWARE TEST NEEDED.**
+**Status: FIX BUILT — `OWNER-SMOKE CANDIDATE` (Phase B, 2026-10-10).** Phase A
+ended DIAGNOSIS — OWNER HARDWARE TEST NEEDED. The owner's real-hardware
+results the same day matched every prediction of §5:
+
+- **P1:** everything correct - the full menu music; in play the music, shots,
+  engine and explosions.
+- **P2:** menu music correct; the effects in play silent.
+- **P3:** menu music wrong; the effects in play correct.
+- **P4:** menu music wrong, channels 3 and 4 silent.
+- P0 and P5 not tested.
+
+The owner approved F1 and F2 (§6) with a regression test. Phase B is the
+"Hardware audio" section of [../STATUS.md](../STATUS.md) and
+[../hardware-testing.md](../hardware-testing.md) §24. The `--audio-probe` flag
+was removed in Phase B. The probes rebuild from `c8c2171`
+(`node scripts/build.mjs --audio-probe=Pn`).
+
+**Correction to §6.** Its initial-block figure (13,629 → 13,634) was measured
+on the probes, whose `AUDIO PROBE` title packs 11 B worse than `VOID STRIKE
+65`. On the real build F2 moves the initial block **13,618 → 13,623 B**
+(envelope 78 → 73, 34 → 29 B to the STOP). `ENTITY_CODE` +5 B is the same.
+
+The text below is the Phase A diagnosis as written.
 
 Unless marked ESTIMATE, figures are MEASURED in Atari800 7.1.2 on the 64 KB
 machine (`-xl -pal`) or read from the source and the XL OS ROM (`ATARIXL.ROM`,

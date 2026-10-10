@@ -73,9 +73,14 @@ const directorCadence = (reenter) => ({
     "    if (ESCORT_KILLS != BOSS_ESCORT_AFTER) {\n" +
     "        return;\n" +
     "    }\n" +
+    "    /* director_c_try_event zeroes $80FC and $80FD for a Light wave and\n" +
+    "     * moves the cursor past it: it runs once, and the bytes are set\n" +
+    "     * after it. The count is parked past any module count, so no later\n" +
+    "     * kill triggers again. */\n" +
     "    director_c_try_event();\n" +
     "    light_wave_remaining = 0u;\n" +
-    "    ++ESCORT_TIMER;\n" +
+    "    ESCORT_KILLS = 0x80u;\n" +
+    "    ESCORT_TIMER = 1u;\n" +
     "}\n" +
     "#pragma code-name (\"HYBRID_C_WINDOW_FLOW\")\n\n" +
     "/* The boss controller, on each fight frame with no kill and no exposure\n" +

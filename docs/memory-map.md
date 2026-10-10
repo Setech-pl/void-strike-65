@@ -123,7 +123,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$5000-$5E0F` | 3,600 B | transient | loader bitmap lines 102-191 (second LMS) | `loader` | manifest `loaderScreen` |
 | `$5000-$53FF` | 1,024 B | state | gameplay HUD charset | `resident` | src/main.s `HUD_CHARSET` |
 | `$5200-$53FF` | 512 B | slot | boss slot F (S5-1, owner decision Q9): the HUD charset's unused upper half (codes 64-127, never shown); the region's block, read at every boss entry as the region's fourth run; no restore | `overlay` | manifest `boss.slotF`, tests/slot-f.test.mjs |
-| `$5200-$5261` | 98 B | slot | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) | `overlay` | manifest `boss.slotF.lookTail` |
+| `$5200-$526D` | 110 B | slot | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) | `overlay` | manifest `boss.slotF.lookTail` |
 | `$5318-$5DFE` | 2,791 B | transient | ENTITY_CODE packed source after its backward staging copy | `boot` | manifest `entityEffects` |
 | `$5333-$5532` | 512 B | transient | boot splash blob in the initial block, copied to `$0500` | `boot` | manifest `transportCapacity.bootSplash` |
 | `$5400-$549D` | 158 B | segment | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state | `resident` | build/void-strike-65.map |
@@ -384,7 +384,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$5000-$5E0F` | `loader` | loader bitmap lines 102-191 (second LMS) |
 | `$5000-$53FF` | `resident` | gameplay HUD charset |
 | `$5200-$53FF` | `overlay` | boss slot F (S5-1, owner decision Q9): the HUD charset's unused upper half (codes 64-127, never shown); the region's block, read at every boss entry as the region's fourth run; no restore |
-| `$5200-$5261` | `overlay` | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) |
+| `$5200-$526D` | `overlay` | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) |
 | `$5318-$5DFE` | `boot` | ENTITY_CODE packed source after its backward staging copy |
 | `$5333-$5532` | `boot` | boot splash blob in the initial block, copied to `$0500` |
 | `$5400-$549D` | `resident` | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state |

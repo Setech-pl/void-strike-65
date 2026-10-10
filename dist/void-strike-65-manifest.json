@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 58952,
+      "crc16": 22985,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 58952,
+        "crc16": 22985,
         "records": [
           {
             "startSector": 108,
@@ -394,7 +394,7 @@
             "packedLength": 798,
             "rawLength": 916,
             "finalDestination": 46204,
-            "crc16": 58567,
+            "crc16": 2427,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -576,7 +576,7 @@
           "bytes": 896,
           "usedBytes": 667,
           "file": "level-summary-art-2.bin",
-          "sha256": "7fbf9aeaf8dc20b1f41f9fce3ded7a9ee73368b62099e051605709787a247ee6"
+          "sha256": "c3af5e0cd699f1d19704e404980796e49268c34dd32a9b5309cc61b601d93d45"
         },
         {
           "region": 3,
@@ -586,7 +586,7 @@
           "bytes": 896,
           "usedBytes": 667,
           "file": "level-summary-art-3.bin",
-          "sha256": "43e8159e2a8db2daeaff57c2f462a9242b989ca9c0ce7f58f67dca8e204c2085"
+          "sha256": "e48aabbc32707be687e1575eb2791fdfc927f06fefcb761eb27251d16191e545"
         },
         {
           "region": 4,
@@ -596,7 +596,7 @@
           "bytes": 896,
           "usedBytes": 667,
           "file": "level-summary-art-4.bin",
-          "sha256": "f887d2359db4f379cc09b931bdd8924885c09ca16a7d8793308b5d6302b6a63a"
+          "sha256": "b7b8d64e1dd7f9f30e9706c7f5ecf87958dfb379f9ffa69436b78abceae515af"
         }
       ]
     },
@@ -656,7 +656,7 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$0299"
+        "expected": "$4FE6"
       },
       {
         "index": 2,
@@ -691,7 +691,7 @@
       {
         "index": 8,
         "name": "level summary code (M5a-S2)",
-        "expected": "$8DAC"
+        "expected": "$5D7C"
       },
       {
         "index": 9,
@@ -700,19 +700,19 @@
       }
     ],
     "bossHeadSums": [
-      "$C3DC",
-      "$47E8",
-      "$47E8",
-      "$47E8"
+      "$A54E",
+      "$295A",
+      "$295A",
+      "$295A"
     ],
     "summaryArtSums": [
       "$2223",
-      "$0BE9",
-      "$7730",
-      "$D037"
+      "$B6DE",
+      "$540C",
+      "$D269"
     ],
     "summaryLevelSums": [
-      "$D74F",
+      "$1455",
       null,
       null,
       null,
@@ -882,36 +882,36 @@
       "capacityBytes": 512,
       "lookTail": {
         "address": 20992,
-        "bytes": 98
+        "bytes": 110
       },
       "blocks": [
         {
           "region": 1,
-          "bytes": 98,
+          "bytes": 110,
           "sectors": 1,
           "startSector": 696,
-          "freeBytes": 414
+          "freeBytes": 402
         },
         {
           "region": 2,
-          "bytes": 98,
+          "bytes": 110,
           "sectors": 1,
           "startSector": 700,
-          "freeBytes": 414
+          "freeBytes": 402
         },
         {
           "region": 3,
-          "bytes": 98,
+          "bytes": 110,
           "sectors": 1,
           "startSector": 704,
-          "freeBytes": 414
+          "freeBytes": 402
         },
         {
           "region": 4,
-          "bytes": 98,
+          "bytes": 110,
           "sectors": 1,
           "startSector": 708,
-          "freeBytes": 414
+          "freeBytes": 402
         }
       ]
     },
@@ -949,7 +949,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "9b5edd726167b2566fe9f21d87102a0cfb3251364d100e0031e93616813fdac5",
+        "sha256": "a8c56712c88dc86f6557c0fb7e973f263ab5d5e35819562e45b8cf81530bb3a9",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -1003,7 +1003,7 @@
         "sectors": 3,
         "destination": 43136,
         "bytes": 384,
-        "sha256": "59a503abec8a4f11a69c1b0e4ee761873562e9837bf04abd329ec88fd6c07022",
+        "sha256": "20a46ce4e4e42e558b1b046e0f70610e8f1249f9e5fe2f7b2941ed0aac89c5c6",
         "file": "boss-region-1-band-a.bin"
       },
       {
@@ -1012,7 +1012,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "96f9a7f7a59bd626d1433052c621168fa8de3c9f63ea73ae02a023fac7ddb7c9",
+        "sha256": "59e2b8e59bed11a86fd5db33b31a5f803828a90fd29a3e7fe9cc170740c145b5",
         "file": "boss-region-1-band-b.bin"
       },
       {
@@ -1021,7 +1021,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
+        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
         "file": "boss-region-1-charset.bin"
       },
       {
@@ -1030,7 +1030,7 @@
         "sectors": 1,
         "destination": 20992,
         "bytes": 128,
-        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "sha256": "7d515b274d541f6863bfa46dc1f6755c2ee9126439fd1e80c99137c3cc67871d",
         "file": "boss-region-1-block.bin"
       },
       {
@@ -1048,7 +1048,7 @@
         "sectors": 3,
         "destination": 43136,
         "bytes": 384,
-        "sha256": "59a503abec8a4f11a69c1b0e4ee761873562e9837bf04abd329ec88fd6c07022",
+        "sha256": "20a46ce4e4e42e558b1b046e0f70610e8f1249f9e5fe2f7b2941ed0aac89c5c6",
         "file": "boss-region-2-band-a.bin"
       },
       {
@@ -1057,7 +1057,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "a0d67df8e3ba9602e258cc476c9fa3ceb6f0671cfba7f6c6c5d5cba89f7505f0",
+        "sha256": "7f841a4f9ab4dd5eca351f2a2a7357bd9ed4023b4cf491c0bfba606c0e9aa345",
         "file": "boss-region-2-band-b.bin"
       },
       {
@@ -1066,7 +1066,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
+        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
         "file": "boss-region-2-charset.bin"
       },
       {
@@ -1075,7 +1075,7 @@
         "sectors": 1,
         "destination": 20992,
         "bytes": 128,
-        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "sha256": "7d515b274d541f6863bfa46dc1f6755c2ee9126439fd1e80c99137c3cc67871d",
         "file": "boss-region-2-block.bin"
       },
       {
@@ -1093,7 +1093,7 @@
         "sectors": 3,
         "destination": 43136,
         "bytes": 384,
-        "sha256": "59a503abec8a4f11a69c1b0e4ee761873562e9837bf04abd329ec88fd6c07022",
+        "sha256": "20a46ce4e4e42e558b1b046e0f70610e8f1249f9e5fe2f7b2941ed0aac89c5c6",
         "file": "boss-region-3-band-a.bin"
       },
       {
@@ -1102,7 +1102,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "a0d67df8e3ba9602e258cc476c9fa3ceb6f0671cfba7f6c6c5d5cba89f7505f0",
+        "sha256": "7f841a4f9ab4dd5eca351f2a2a7357bd9ed4023b4cf491c0bfba606c0e9aa345",
         "file": "boss-region-3-band-b.bin"
       },
       {
@@ -1111,7 +1111,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
+        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
         "file": "boss-region-3-charset.bin"
       },
       {
@@ -1120,7 +1120,7 @@
         "sectors": 1,
         "destination": 20992,
         "bytes": 128,
-        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "sha256": "7d515b274d541f6863bfa46dc1f6755c2ee9126439fd1e80c99137c3cc67871d",
         "file": "boss-region-3-block.bin"
       },
       {
@@ -1138,7 +1138,7 @@
         "sectors": 3,
         "destination": 43136,
         "bytes": 384,
-        "sha256": "59a503abec8a4f11a69c1b0e4ee761873562e9837bf04abd329ec88fd6c07022",
+        "sha256": "20a46ce4e4e42e558b1b046e0f70610e8f1249f9e5fe2f7b2941ed0aac89c5c6",
         "file": "boss-region-4-band-a.bin"
       },
       {
@@ -1147,7 +1147,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "a0d67df8e3ba9602e258cc476c9fa3ceb6f0671cfba7f6c6c5d5cba89f7505f0",
+        "sha256": "7f841a4f9ab4dd5eca351f2a2a7357bd9ed4023b4cf491c0bfba606c0e9aa345",
         "file": "boss-region-4-band-b.bin"
       },
       {
@@ -1156,7 +1156,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "c1b740aa18ca69625709a02427248821b76c531c4bb03b97daefdec778792105",
+        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
         "file": "boss-region-4-charset.bin"
       },
       {
@@ -1165,7 +1165,7 @@
         "sectors": 1,
         "destination": 20992,
         "bytes": 128,
-        "sha256": "ec967e43ee0154bf088541adae935cdfbcb9e8e40f037a4e52b8cffa6f4badb0",
+        "sha256": "7d515b274d541f6863bfa46dc1f6755c2ee9126439fd1e80c99137c3cc67871d",
         "file": "boss-region-4-block.bin"
       }
     ],
@@ -1178,7 +1178,7 @@
         "stageStep": 19,
         "charsetBytes": 976,
         "charsetSectors": 8,
-        "modules": 13,
+        "modules": 15,
         "finaleCooldown": 0,
         "entrySectors": 64
       },
@@ -1190,7 +1190,7 @@
         "stageStep": 19,
         "charsetBytes": 976,
         "charsetSectors": 8,
-        "modules": 13,
+        "modules": 15,
         "finaleCooldown": 12,
         "entrySectors": 64
       },
@@ -1202,7 +1202,7 @@
         "stageStep": 19,
         "charsetBytes": 976,
         "charsetSectors": 8,
-        "modules": 13,
+        "modules": 15,
         "finaleCooldown": 12,
         "entrySectors": 64
       },
@@ -1214,7 +1214,7 @@
         "stageStep": 19,
         "charsetBytes": 976,
         "charsetSectors": 8,
-        "modules": 13,
+        "modules": 15,
         "finaleCooldown": 12,
         "entrySectors": 64
       }
@@ -1842,7 +1842,7 @@
     },
     "level1": {
       "sectors": 7,
-      "waves": 8,
+      "waves": 9,
       "hullRows": 480
     }
   },
@@ -24061,11 +24061,11 @@
     "estimated_additive_cycles": 27847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "f36d2dcc27e7c0deffe00392840556ca99f8939c86f856d83240b6672f5734de",
+      "reportSha256": "a021b374b2c5c821720cb7db89dbbe94725f3d3325f62ed1f11a0a83353a7ba5",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "75cf839c01c9baa5b5c74ebe7f5de21072e05c941b7abeef176045148c6ad327"
+        "sha256": "020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4"
       },
       "emulator": {
         "name": "Atari800",
@@ -24329,8 +24329,8 @@
           "logical_step_scanlines": 2,
           "physical_address_changes_during_native_motion": 68,
           "release_frames": 1,
-          "booster_overlap_frames_all_replays": 1840,
-          "booster_overlap_frames_pickup_lifecycle_union": 352,
+          "booster_overlap_frames_all_replays": 1886,
+          "booster_overlap_frames_pickup_lifecycle_union": 398,
           "booster_overlap_sessions": [
             "2-sweep-fire0",
             "2-sweep-fire2",
@@ -24364,8 +24364,8 @@
               "plane_rows": 0
             }
           ],
-          "rapid_frames": 3800,
-          "pickup_events": 21,
+          "rapid_frames": 3682,
+          "pickup_events": 22,
           "passed": true
         },
         "weapon_pickup_spread_shot": {
@@ -24383,9 +24383,9 @@
           "remaining_hard_cycles": 468,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "rapid_frames": 3800,
-          "spread_frames": 3416,
-          "pickup_events": 21,
+          "rapid_frames": 3682,
+          "spread_frames": 3536,
+          "pickup_events": 22,
           "granted_booster_modes": [
             3,
             3,
@@ -24396,6 +24396,7 @@
             4,
             5,
             3,
+            4,
             3,
             4,
             3,
@@ -24431,7 +24432,8 @@
                 3,
                 4,
                 5,
-                3
+                3,
+                4
               ]
             },
             {
@@ -24472,6 +24474,7 @@
             4,
             5,
             3,
+            4,
             3,
             4,
             3,
@@ -24485,9 +24488,9 @@
             3,
             4
           ],
-          "spread_volley_frames": 1602,
+          "spread_volley_frames": 1673,
           "active_capsule_three_projectile_frames": 68,
-          "active_capsule_during_booster_frames": 1840,
+          "active_capsule_during_booster_frames": 1886,
           "worst_legal_capsule_three_projectiles": {
             "trace_kind": "weapon-pickup-coverage",
             "session": "weapon-pickup-2-hunt-fire4",
@@ -24613,7 +24616,7 @@
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
           "shield_frames": 1000,
-          "pickup_events": 21,
+          "pickup_events": 22,
           "passed": true
         },
         "shield_preimplementation_baseline": {
@@ -24630,7 +24633,7 @@
         "memory_integrity": {
           "atr_frames": 22997,
           "duration_seconds_pal_per_artifact": 459.94,
-          "pickup_rf_cycles": 15,
+          "pickup_rf_cycles": 16,
           "dli_sequence_violations": 0,
           "maximum_dlis_per_host_frame": 2,
           "pause_sessions": [
@@ -25628,25 +25631,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "7c44df1afb1346804a6328bc365e322a24313bc564019e0ab17df2477900b434"
+        "sha256": "4b8886dae3d2fb291f055f11ebdad6fb997006b6ee5573f7cc83705deec4c5b6"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "75cf839c01c9baa5b5c74ebe7f5de21072e05c941b7abeef176045148c6ad327"
+        "sha256": "020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "f36d2dcc27e7c0deffe00392840556ca99f8939c86f856d83240b6672f5734de"
+    "reportSha256": "a021b374b2c5c821720cb7db89dbbe94725f3d3325f62ed1f11a0a83353a7ba5"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "7c44df1afb1346804a6328bc365e322a24313bc564019e0ab17df2477900b434"
+      "sha256": "4b8886dae3d2fb291f055f11ebdad6fb997006b6ee5573f7cc83705deec4c5b6"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "75cf839c01c9baa5b5c74ebe7f5de21072e05c941b7abeef176045148c6ad327"
+      "sha256": "020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4"
     }
   }
 }

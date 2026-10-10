@@ -194,14 +194,14 @@ const pinHudBackup = (address) => ({
   to: `pin_boss_enter_hud_backup        = $${address}`,
 });
 
-const regionEscort = {
+const regionEscort = (data = ESCORT_DATA) => ({
   file: "assets/graphics/boss-regions/region-1/modules.json",
   transform(text) {
     const layout = JSON.parse(text);
-    layout.escort = { ...ESCORT_DATA };
+    layout.escort = { ...data };
     return JSON.stringify(layout, null, 2);
   },
-};
+});
 
 const levelEscort = (reenter) => ({
   file: "assets/levels/level-01.json",
@@ -217,19 +217,38 @@ const levelEscort = (reenter) => ({
   },
 });
 
-export const ESCORT_VARIANTS = Object.freeze({
+const ESCORT_VARIANTS_EXTRA = {};
+const ESCORT_VARIANTS_BASE = Object.freeze({
   t: {
     summary: `trigger after ${ESCORT_DATA.afterWeapons} weapon kills, then one escort every ` +
       `${ESCORT_DATA.baseFrames}+0..${ESCORT_DATA.jitterMask} frames until the boss falls`,
     edits: [directorCadence(false), BOSS_C_EXTERNS, defeatEdit(), BOSS_C_TICK, BOSS_S_INSTALL,
-      bossExports(), pinHudBackup("B82D"), regionEscort, levelEscort(false)],
+      bossExports(), pinHudBackup("B82D"), regionEscort(), levelEscort(false)],
   },
   tw: {
     summary: "T, and an Interceptor that leaves the bottom edge alive re-enters at the top",
     edits: [directorCadence(true), BOSS_C_EXTERNS, defeatEdit(), BOSS_C_TICK,
       BOSS_S_INSTALL, bossExports(), LIFECYCLE_REENTER, LIFECYCLE_REENTER_FLAG, pinHudBackup("B852"),
-      regionEscort, levelEscort(true)],
+      regionEscort(), levelEscort(true)],
   },
+});
+
+export const ESCORT_VARIANTS = ESCORT_VARIANTS_EXTRA;
+Object.assign(ESCORT_VARIANTS_EXTRA, ESCORT_VARIANTS_BASE);
+
+// Data-only probes on T's code (Phase A, measured for the owner's choice):
+//   t1  the escort starts at the first weapon kill (a parked edge-hider
+//       reaches one: gun-5 behind plate-a);
+//   ts  the slower cadence, 200 + 0..63 frames (4.0-5.3 s).
+const T1_DATA = Object.freeze({ ...ESCORT_DATA, afterWeapons: 1 });
+const TS_DATA = Object.freeze({ ...ESCORT_DATA, baseFrames: 200 });
+const withData = (variant, data, summary) => ({
+  summary,
+  edits: variant.edits.map((edit) => (edit.file.endsWith("region-1/modules.json") ? regionEscort(data) : edit)),
+});
+Object.assign(ESCORT_VARIANTS_EXTRA, {
+  t1: withData(ESCORT_VARIANTS_BASE.t, T1_DATA, "T with the escort starting at the first weapon kill"),
+  ts: withData(ESCORT_VARIANTS_BASE.t, TS_DATA, "T with one escort every 200+0..63 frames"),
 });
 
 // The Director-link labels the boss link imports for the variant.

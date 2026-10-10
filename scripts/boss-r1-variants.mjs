@@ -47,6 +47,13 @@ export const VARIANTS = Object.freeze({
     plateHp: {},
     escort: null,
   },
+  as: {
+    _: "Lever, information only: variant a with the far-end guns as salvo launchers (three shots a turn, x-1, x, x+1).",
+    guns: FAR_END_GUNS.map((gun) => ({ ...gun, kind: "salvo" })),
+    gunHpFactor: 0.5,
+    plateHp: {},
+    escort: null,
+  },
   b: {
     _: "Variant a with one Interceptor stream in the boss sector (count 6, spacing 100, lights 1).",
     guns: FAR_END_GUNS,
@@ -122,7 +129,7 @@ export function variantDraft(name) {
   const added = variant.guns.map((gun) => ({
     _: `feat/boss-r1-tuning (owner smoke 2026-10-09): a far-end gun recessed behind ${gun.cover}, so the ` +
       "screen edge is under fire; gun-1's art.",
-    name: gun.name, kind: "pulse", x: gun.x, row: template.row, width: template.width, height: template.height,
+    name: gun.name, kind: gun.kind ?? "pulse", x: gun.x, row: template.row, width: template.width, height: template.height,
     hp: Math.max(1, Math.round(template.hp * variant.gunHpFactor)), score: gun.score, reload: gun.reload,
     cavityRows: template.cavityRows,
   }));

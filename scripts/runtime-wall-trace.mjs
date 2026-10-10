@@ -28,6 +28,8 @@ import {
   capitalContactHitboxes,
   heaviestDirectorFrame,
   lightCoverage,
+  LIGHT_LIVE_STATES,
+  LIGHT_TRACE_SLOTS,
   firstDliSelectsByteThree,
   pickupReleaseClearedOnce,
   pickupTraversalFrameIntact,
@@ -7540,6 +7542,18 @@ function main() {
       // feat/boss-r1-tuning: the bot that played the boss sector (the fight
       // length's proxy, owner decision 2026-10-10).
       boss_policy: session.policy,
+      // feat/boss-r1-tuning (owner decision 2026-10-10, variant B): the boss
+      // sector's escort - the fight's frames with a Light live and the most
+      // live at once (the runtime admits one, decision 5a).
+      ...(() => {
+        const fightRows = rows.filter((row) => row.boss_state > 0 && row.boss_entry !== 1);
+        const liveOf = (row) => Array.from({ length: LIGHT_TRACE_SLOTS }, (_, k) => row[`light_state${k}`])
+          .filter((state) => LIGHT_LIVE_STATES.has(state)).length;
+        return {
+          boss_light_frames: fightRows.filter((row) => liveOf(row) > 0).length,
+          boss_max_live_lights: fightRows.reduce((most, row) => Math.max(most, liveOf(row)), 0),
+        };
+      })(),
       boss_sector: lastSector,
       boss_sector_entered_frame: sectorEntered.frame,
       boss_entry_frame: entry.frame,

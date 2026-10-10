@@ -58,7 +58,8 @@ export const VARIANTS = Object.freeze({
     _: "Variant a with one Interceptor stream in the boss sector (count 6, spacing 100, lights 1).",
     guns: FAR_END_GUNS,
     gunHpFactor: 0.5,
-    plateHp: {},
+    // Owner decision 2026-10-10: the chosen variant, with plate-a / plate-h trimmed.
+    plateHp: { "plate-a": 12, "plate-h": 12 },
     escort: { count: 6, spacing: 100 },
   },
 });
@@ -115,6 +116,12 @@ export function variantDraft(name) {
   const variant = VARIANTS[name];
   if (variant === undefined) throw new Error(`unknown variant ${name}; ${Object.keys(VARIANTS).join(", ")}`);
   const layout = JSON.parse(fs.readFileSync(path.join(regionOne, "modules.json"), "utf8"));
+  // Since 2026-10-10 assets/ carries variant b (the owner's choice): its
+  // region 1 already has the far-end guns, so the transformation would apply twice.
+  if (layout.modules.some((module) => module.name === "gun-5")) {
+    throw new Error("region 1 already carries the far-end guns (variant b, owner decision 2026-10-10); " +
+      "the variants derive from main dcc331a's region 1");
+  }
   const template = layout.modules.find((module) => module.name === "gun-1");
   const modules = layout.modules.map((module) => {
     const next = { ...module };

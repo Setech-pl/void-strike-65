@@ -98,3 +98,30 @@ test("the loading screen of every region shows the hull's gun rows 8-10", () => 
     }
   }
 });
+
+// Owner decision 2026-10-10, variant B (journal §AH; replaces "no Light escort
+// in R1"): one Interceptor stream in level 1's boss sector, at most one Light
+// live; plate-a and plate-h 16 -> 12 so MEDIUM lands within the rule.
+test("variant B: level 1's boss sector authors one Interceptor stream under lights 1 (6 escorts, spacing 100)", () => {
+  const level = JSON.parse(fs.readFileSync(path.join(root, "assets", "levels", "level-01.json"), "utf8"));
+  const boss = level.sectors.find((sector) => sector.kind === "boss");
+  assert.deepEqual(boss.archetypes, ["interceptor"]);
+  assert.equal(boss.lights, 1, "at most one Light in the boss sector");
+  assert.deepEqual(boss.waves.map(({ archetype, count, spacing, row }) => ({ archetype, count, spacing, row })),
+    [{ archetype: "interceptor", count: 6, spacing: 100, row: 0 }]);
+});
+
+test("variant B: plate-a and plate-h at 12 hit points (were 16), every other plate unchanged", () => {
+  const plates = Object.fromEntries(draft.layout.modules.filter((module) => module.kind === "armour")
+    .map((module) => [module.name, module.hp]));
+  assert.deepEqual(plates, { "plate-a": 12, "plate-b": 16, "plate-c": 16, "plate-d": 20, "plate-e": 20,
+    "plate-f": 12, "plate-g": 16, "plate-h": 12 });
+});
+
+test("variant B on the emulator: every director-complete fight meets the escort, never more than one Light live", () => {
+  const report = JSON.parse(fs.readFileSync(path.join(root, "docs", "runtime-wall-trace.json"), "utf8"));
+  for (const entry of report.coverage.director_level_complete.natural_difficulty_sessions) {
+    assert.ok(entry.boss_light_frames > 0, `${entry.session}: no escort in the fight (subject empty)`);
+    assert.equal(entry.boss_max_live_lights, 1, `${entry.session}: ${entry.boss_max_live_lights} Lights live at once`);
+  }
+});

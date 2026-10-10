@@ -581,7 +581,9 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // never opens on one (its first wave is the Raider + Wingman formation).
     // RE-POINTED (feat/sector-flow, owner answer of 2026-10-08): the swarm
     // chains a third Light wave, so level 1 has three.
-    assert.equal(one.waves.filter((wave) => wave.class === "light").length, 3);
+    // RE-POINTED (feat/boss-r1-tuning, owner decision 2026-10-10, variant B):
+    // the boss sector's Interceptor escort is a fourth.
+    assert.equal(one.waves.filter((wave) => wave.class === "light").length, 4);
     assert.notEqual(one.waves[0].class, "light");
     assert.equal(two.waves.filter((wave) => wave.class === "light").length, 7);
     assert.equal(two.waves[0].archetype, "interceptor");

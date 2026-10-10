@@ -2,7 +2,7 @@
   "formatVersion": 2,
   "name": "Blockade Breaker",
   "style": 1,
-  "_": "Region 1's boss (owner decision H, 2026-10-04): the layered fortress Blockade Breaker of docs/boss-concepts.md, style 1. Two layers: the armour plates ARE the hull's lower face (layer 1, rows 3-7); four pulse cannons and the emitter slot sit recessed behind them in the deep layer (rows 1-3). gun-2 sits in an open bay and fires from the first frame; the others open fire once their plates fall. The emitter slot (slot 1) is enabled on levels 1-4 (decision 8) and fires its laser once plate-d falls (S4b, owner decisions of 2026-10-06). The boss falls with its last weapon; armour left standing is not required. Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. A destroyed module disappears (owner decision L): its top cavityRows rows, inside the hull, become a plain cavity, the rows below it band background - every plate hangs below the hull (0), the cannons and the emitter sit inside it. docs/level-authoring.md, 'The boss', is the format; plan §5.15 the design. Hit points: decision I's MEDIUM target is 90-120 s since owner decision 6 of 2026-10-07 (was 45-60 s): every plate and cannon doubled - plates by size 12 / 16 / 20 (were 6 / 8 / 10), cannons 28 (were 14) - and the emitter doubled to 20 (owner decision 5); boss_def keeps its per-difficulty scale (x 3/4, x 1, x 5/4). MEASURED with the director-complete bot: EASY 81.3, MEDIUM 101.8, HARD 130.5 s. M8 tunes on hardware. Scores packed BCD. feat/boss-r1-tuning (owner smoke findings 2026-10-09, decisions 2026-10-10, docs/plans/boss-r1-tuning.md): guns at the far ends - gun-5 behind plate-a, gun-6 behind plate-h (gun-1's art) - so no reachable player x is out of every weapon's reach; every gun's hit points halved, 28 -> 14, the emitter keeps 20. The fight is measured with the aiming bot in the boss sector, read as a ratio against main's plain-sweep replay.",
+  "_": "Region 1's boss (owner decision H, 2026-10-04): the layered fortress Blockade Breaker of docs/boss-concepts.md, style 1. Two layers: the armour plates ARE the hull's lower face (layer 1, rows 3-7); four pulse cannons and the emitter slot sit recessed behind them in the deep layer (rows 1-3). gun-2 sits in an open bay and fires from the first frame; the others open fire once their plates fall. The emitter slot (slot 1) is enabled on levels 1-4 (decision 8) and fires its laser once plate-d falls (S4b, owner decisions of 2026-10-06). The boss falls with its last weapon; armour left standing is not required. Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. A destroyed module disappears (owner decision L): its top cavityRows rows, inside the hull, become a plain cavity, the rows below it band background - every plate hangs below the hull (0), the cannons and the emitter sit inside it. docs/level-authoring.md, 'The boss', is the format; plan §5.15 the design. Hit points: decision I's MEDIUM target is 90-120 s since owner decision 6 of 2026-10-07 (was 45-60 s): every plate and cannon doubled - plates by size 12 / 16 / 20 (were 6 / 8 / 10), cannons 28 (were 14) - and the emitter doubled to 20 (owner decision 5); boss_def keeps its per-difficulty scale (x 3/4, x 1, x 5/4). MEASURED with the director-complete bot: EASY 81.3, MEDIUM 101.8, HARD 130.5 s. M8 tunes on hardware. Scores packed BCD. feat/boss-r1-tuning (owner smoke findings 2026-10-09, decisions 2026-10-10, docs/plans/boss-r1-tuning.md): guns at the far ends - gun-5 behind plate-a, gun-6 behind plate-h (gun-1's art) - so no reachable player x is out of every weapon's reach; every gun's hit points halved, 28 -> 14, the emitter keeps 20. The fight is measured with the aiming bot in the boss sector, read as a ratio against main's plain-sweep replay. Owner decision 2026-10-10 (variant B): plate-a and plate-h 16 -> 12, so MEDIUM's fight lands within 90-120 s by the aiming bot with the escort.",
   "seeThrough": [
     [
       16,
@@ -178,7 +178,7 @@
       "row": 4,
       "width": 5,
       "height": 3,
-      "hp": 16,
+      "hp": 12,
       "score": 20,
       "cavityRows": 0
     },
@@ -255,7 +255,7 @@
       "row": 4,
       "width": 4,
       "height": 4,
-      "hp": 16,
+      "hp": 12,
       "score": 20,
       "cavityRows": 0
     }

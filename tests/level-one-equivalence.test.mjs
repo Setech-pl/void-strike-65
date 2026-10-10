@@ -169,7 +169,10 @@ test("owner decision 8: the authored waves alternate Raider and Bomber, with no 
     assert.deepEqual(compiled.waves.filter((wave) => wave.class === "light").map((wave) => wave.archetype),
       // RE-POINTED (feat/sector-flow, owner answer of 2026-10-08): the swarm
       // chains a plain Wingman column after the Interceptors.
-      ["wingman", "interceptor", "wingman"], "level 1's Light waves are the swarm's three");
+      // RE-POINTED (feat/boss-r1-tuning, owner decision 2026-10-10, variant B):
+      // the boss sector's Interceptor escort follows them.
+      ["wingman", "interceptor", "wingman", "interceptor"],
+      "level 1's Light waves are the swarm's three and the boss sector's escort");
     assert.equal(heavy[0].archetype, "raider", "the level still opens on the Raider formation");
     assert.equal(heavy[0].escort, "wingman", "and it still has its Wingman escort");
     for (let index = 1; index < heavy.length; index += 1) {

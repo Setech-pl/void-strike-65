@@ -2331,11 +2331,12 @@ async function build() {
   ];
   // S5-1: a boss-region route compiles level 1's source under its run's id.
   const levelSourceIdForRun = (id) => (bossRegionValue !== null ? 1 : id);
-  // --boss-variant: level 1's source from the variant's directory when it has one.
-  const bossVariantLevelSource = (id) => {
-    const variantLevel = bossVariantDirectory === null || id !== 1
+  // --boss-variant: level 1's source from the variant's directory when it has
+  // one (the run's own id: a boss-region route takes level 1's source anyway).
+  const bossVariantLevel = (id) => {
+    const variantLevel = bossVariantDirectory === null || levelSourceIdForRun(id) !== 1
       ? null : path.join(bossVariantDirectory, "level-01.json");
-    return variantLevel !== null && fs.existsSync(variantLevel) ? variantLevel : levelSourcePath(id);
+    return variantLevel !== null && fs.existsSync(variantLevel) ? variantLevel : null;
   };
   // Decision 1: the region owns the style. --hull-style=Rn forces one region
   // onto every level so the owner can smoke a quarter of the campaign before
@@ -2350,7 +2351,9 @@ async function build() {
   // asks for something the runtime cannot honour fails the build, not the
   // owner's smoke (plan §5).
   const compiledLevels = new Map(levelRuns.map((run) =>
-    [run.id, compileLevelFile(bossVariantLevelSource(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
+    [run.id, bossVariantLevel(run.id) !== null
+      ? compileLevelFile(bossVariantLevel(run.id), { hullAsset: capitalHullsAsset })
+      : compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
   if (levelDebugId !== null) {

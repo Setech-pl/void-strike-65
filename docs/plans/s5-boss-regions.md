@@ -589,6 +589,14 @@ an escort that keeps coming for N lives. Recommended N 6, S 100 (two seconds
 between escorts; M8 tunes). **0 bytes of code**, −1,400 … −1,600 of margin
 while it lives (§2.2). Region 2's block is its look tail only.
 
+**Superseded for the escort's flow (feat/boss-escort-flow, owner decision AI of
+2026-10-10, docs/plans/boss-escort-flow.md):** R2's escort reuses region 1's
+mechanism - the region's `escort` block (`afterWeapons`, `baseFrames`,
+`jitterMask`; today region 1's 1 / 150 / 63, which the placeholder copies
+carry) and one boss-sector wave of `count 1`; the Director publishes it at the
+first weapon kill and admits one Interceptor every 150 + 0..63 frames until the
+boss falls. S5-5 may retune R2 (the Bastion) by data only.
+
 ### 4.4 Region 3: Siege Spine with the force field (option (b) recommended)
 
 Style 1, three layers, ≤ 14 modules, two emitter slots (levels 7–8) and

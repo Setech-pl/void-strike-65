@@ -1953,6 +1953,44 @@ najgorszy margines klatek bossa 10 017 → **6 026** (Light żywy), DMA-on
 
 ---
 
+## AI. ESKORTA BOSSA OD PIERWSZEGO ZESTRZELONEGO DZIAŁA, CO 3–4 S DO KOŃCA WALKI — odpowiedzi właściciela na §6 planu `boss-escort-flow` (2026-10-10)
+
+Kontekst: smoke właściciela z 2026-10-10 (region 1, wariant B z **AH**) —
+eskorta pojawiała się trzy razy na początku walki i nigdy więcej (strumień
+sześciu Interceptorów co 100 klatek od pierwszej klatki walki). Plan:
+[plans/boss-escort-flow.md](plans/boss-escort-flow.md); porównanie T / TW /
+T1 / TS zagrane przez właściciela.
+
+1. **Start eskorty: po PIERWSZYM zestrzelonym module-broni** (działo albo
+   emiter; pancerz się nie liczy) — wariant T1. Kryjówka przy lewej krawędzi
+   ma pozostać zamknięta (zmierzone: przy starcie po dwóch zestrzeleniach
+   myśliwiec zaparkowany przy lewej krawędzi dosięga tylko gun-5, więc
+   eskorta nie przychodzi wcale — 0 trafień w 80 s; od pierwszego — 6).
+2. **Kadencja:** jeden Interceptor co **150 + 0..63 klatki** (3,0–4,3 s),
+   tylko w klatce bez zestrzelenia modułu, do upadku bossa; najwyżej jeden
+   Light naraz, żaden po zniszczeniu bossa (jak zbudowano).
+3. **Powrót u góry (TW): odrzucony.** Żadnego kodu TW w wydawanym buildzie.
+4. **Regiony 2–4:** ten sam start i kadencja co region 1 (są kopiami).
+   S5-5 może później przestroić R2 (Bastion) samymi danymi; zaplanowana
+   eskorta R2 używa tego mechanizmu.
+5. **Długość walki: tymczasowo MEDIUM do ok. 126 s** (bot celujący, jako
+   stosunek do starego sweepu). Bez zmian HP płyt ani innych danych bossa w
+   tym zadaniu. **Powód:** następne zadanie zmienia zachowanie Interceptora
+   (koniec ataków kamikaze — odskakuje i strzela), co zmienia śmierci bota,
+   a więc i długość walki; walkę stroi się po nim. EASY nadal krócej niż
+   MEDIUM, HARD nie krócej.
+6. **Nowa straż regresji:** przypadek „zaparkowany przy lewej krawędzi,
+   strzela, MEDIUM, 80 s walki" jest stałą powtórką z klauzulą (co najmniej
+   jedna eskorta i co najmniej jedno trafienie gracza; niepusty podmiot);
+   musi padać na wariancie T (N = 2), przechodzić na końcowym buildzie.
+7. Ta decyzja **zastępuje** ustawienie „eskorta: 6 co 100 klatek" z **AH**
+   dla R1. Właściciel zlecił **zmianę zachowania Interceptora jako następne
+   zadanie** (nie w tym).
+
+**Wynik (`feat/boss-escort-flow`):** zapisany w planie, §9, i w STATUS.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

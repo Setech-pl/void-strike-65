@@ -196,8 +196,13 @@ and converted by `scripts/boss-assets.mjs` (formatVersion 2).
 
 The boss sector itself takes no `rows` (its clock is the boss's death), admits
 no Heavy and at most one Light, and an escort wave must arm on row 0 (the world
-stops in the boss sector, Q1). Region 1's boss sector has no escort (owner
-answer, §5.15.6 item 4): "at most one Light" is met by none.
+stops in the boss sector, Q1). **The escort** (feat/boss-escort-flow, owner
+decision AI of 2026-10-10) has two halves: the boss sector's one wave names
+it - `{ "archetype": "interceptor", "count": 1, "row": 0 }`, one Interceptor
+per arming - and the boss region's `escort` block says when (below). The
+build refuses a level and its boss region that disagree: an escort block
+under a boss sector with no wave or more than one, a wave with no block, or a
+count other than 1. Region 1 (and its copies 2-4) has the escort.
 
 The laser tier comes from the level, not the region: levels 1-4 enable emitter
 slot 1, levels 5-8 slots 1-2, levels 9 and on slots 1-4 (decisions B, 8). An
@@ -258,6 +263,7 @@ cell's intact, cracked and broken looks must agree on it.
 | `chain` | `blasts` (at least one a module: the chain passes every module, standing armour included), `framesBetween` |
 | `fire.cooldown` | the least frames between two firings (one countdown serves every weapon: the next armed weapon fires when it runs out, and it restarts from that weapon's `reload`, EASY +1/2, HARD -1/4). A pulse cannon fires one PULSE shot of the shared hostile pool from its centre column at the band's bottom edge, straight down; a salvo launcher three, on three frames, from the columns left of, at and right of its centre; one spawn a frame, a full pool drops the shot |
 | `fire.finaleCooldown` | default 0 (no finale), at most `fire.cooldown`: the boss's second phase (S5-2, owner answers Q3, Q6). When the last armour module falls (a capped emitter counts as armour), every weapon still standing fires the salvo's three-shot volley, its reload halved, never under this many frames; the first volley on the frame after that kill, nothing after the last weapon. The tables' byte 4. Region 1: 0. Regions 2-4 (copies of region 1 until their sessions): `assets/graphics/boss-regions/placeholders.json`, their `fire` block only |
+| `escort` | default none (no escort): `{ afterWeapons, baseFrames, jitterMask }` (feat/boss-escort-flow, owner decision AI). The level's boss-sector escort wave is published at the `afterWeapons`-th weapon kill (1-16; a gun or an emitter, armour does not count), its first Interceptor on the next frame with no module kill and no exposure check, then one every `baseFrames` (128-255, longer than a pass of 116 frames) + (RNG & `jitterMask`) (0, 1, 3 … 63; the sum at most 255) frames, only on such frames, until the boss falls; at most one Light live, none after the defeat. The tables' bytes 17-19, read by `src/c/director.c`. Region 1: 1 / 150 / 63 (one every 3.0-4.3 s). Regions 2-4 copy it |
 | `capped.hp` | a capped emitter's hit points |
 | `seeThrough` | default none: the `[column, row]` cells of hull art a player shot passes - decision M's girders, the only see-through hull art (decision O); every other hull cell stops a shot, and a column with no such cell is open sky once its modules are gone. **No hull art may lie between a weapon and the band's bottom** (decision O: every weapon hangs in its own recess; the converter refuses it). Region 1: the three girder stubs `[16, 4]`, `[35, 4]`, `[49, 4]` |
 | `nozzles` | `left` and `right`: the `[column, row]` cells that show that nozzle; `framesPerPhase` (the three phases cycle; both nozzles go dark at the defeat). `band.png` must show each side's phase 0 there. The window shows band columns 4 + p/4 to 43 + p/4, so over the travel (p 0-63) columns 4-59: put the ends inside that range |

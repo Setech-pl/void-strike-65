@@ -595,7 +595,8 @@ const bossEdgeGuardSessions = [{
   policy: "park-48",
   fireDelay: 2,
   frames: 7_100,
-  kind: "baseline-9040",
+  /* Its own kind: the baseline-9040 set is a fixed 9,040-frame aggregate. */
+  kind: "boss-edge-guard",
   holdPlayerLives: 3,
   edgeGuard: { x: 48, windowFrames: BOSS_EDGE_GUARD_FRAMES },
 }];

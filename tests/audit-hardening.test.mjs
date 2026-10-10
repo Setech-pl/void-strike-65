@@ -67,12 +67,15 @@ function usage() {
   return { seen, watch };
 }
 
-test("AUD-02: a band B sector whose module count reads 29, not 13, with a correct SIO checksum, ends at WRONG DISK before the controller starts", () => {
+// RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): region 1 has 15
+// modules (gun-5 and gun-6 at the far ends), so the flipped bit 4 reads 31,
+// not 29 - still outside 1..16; the clause is unchanged.
+test("AUD-02: a band B sector whose module count reads 31, not 15, with a correct SIO checksum, ends at WRONG DISK before the controller starts", () => {
   const bandB = bossRun("boss-region-1-band-b");
   const at = 0xad00 + 12 - bandB.destination;          // BOSS_T_MODULE_COUNT
   const sector = bandB.startSector + Math.floor(at / SECTOR_BYTES);
   const offset = at % SECTOR_BYTES;
-  assert.equal(atrSector(sector)[offset], 13, "region 1's module count is not the audit's 13");
+  assert.equal(atrSector(sector)[offset], 15, "region 1's module count is not the shipped 15");
   // Every store the controller (slot C's code) makes into its own state.
   const code = label("boss", "__BOSS_C_CODE_RUN__");
   const bssStart = label("boss", "__BOSS_C_BSS_RUN__");
@@ -96,7 +99,8 @@ test("AUD-02: a band B sector whose module count reads 29, not 13, with a correc
 
 test("AUD-02: the module count is bounded to 1..16 before the controller starts", () => {
   const charset = bossRun("boss-region-1-charset");
-  for (const count of [0, 17, 29, 255, 13]) {
+  // RE-POINTED feat/boss-r1-tuning: the shipped count is 15 (was 13).
+  for (const count of [0, 17, 29, 255, 15]) {
     const { seen, watch } = usage();
     // Band B has landed by the charset's first command: the count is changed
     // in memory, after its run's bytes went through the drive unchanged.
@@ -106,7 +110,7 @@ test("AUD-02: the module count is bounded to 1..16 before the controller starts"
         if (sector === charset.startSector) cpu.memory[0xad00 + 12] = count;
       },
     });
-    if (count === 13) {
+    if (count === 15) {
       assert.equal(run.end, "main_loop", "the shipped count was refused");
     } else {
       assert.equal(run.end, "failure", `a count of ${count} was accepted`);

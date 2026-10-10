@@ -128,6 +128,13 @@ AUDCTL      = $D208
 KBCODE      = $D209         ; last key code POKEY's own scan latched
 RANDOM      = $D20A
 SKSTAT      = $D20F         ; bit 2: 0 = a key is down
+SKCTL       = $D20F         ; write; bit 4 (async receive) stops channels 3+4
+; fix/hardware-audio (docs/diagnostics/hardware-audio.md): the OS's SIO and the
+; sector reader once left SKCTL = $13. Bit 4 is asynchronous receive mode, which
+; on a real POKEY holds timers 3 and 4 in reset while no start bit arrives, so
+; channels 3 and 4 were silent on hardware (Atari800 does not model the hold).
+; $03 is the OS's power-on value: keyboard scan and debounce, serial mode %000.
+SKCTL_AUDIO = $03
 
 ; -----------------------------------------------------------------------------
 ; PIA and ANTIC
@@ -11622,6 +11629,11 @@ finish_startup_after_loader:
     lda #$00
     sta COLBK
 
+    ; The OS's last SIOV (stage 2) left SKCTL = $13; the menu's channels 3 and 4
+    ; play only once bit 4 is clear. No OS call follows the takeover, and the
+    ; sector reader leaves SKCTL_AUDIO behind after every load.
+    lda #SKCTL_AUDIO
+    sta SKCTL
     jsr silence_audio
     lda #$01
     sta sound_enabled           ; options default: SOUND ON

@@ -302,7 +302,8 @@ test("the stat hooks are operand-only in every full segment", () => {
     fs.readFileSync(build("light-kernel.lbl"), "utf8"));
   assert.equal(Number.parseInt(kernelSegment[1], 16), 771, "the Light kernel grew");
   assert.equal(manifest.broadsideRuntime.bytes, 6653, "BROADSIDE grew");
-  assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13621,
+  // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: the bound 13,621 -> 13,626; the stat hooks still add none.
+  assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13621 + 5,
     "a byte landed in the initial block (target 0 for this session)");
 });
 
@@ -389,5 +390,6 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // booster backup (14 B) as the Light kernel link's last segment.
   assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1008, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618, "the initial block moved");
+  // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623, "the initial block moved");
 });

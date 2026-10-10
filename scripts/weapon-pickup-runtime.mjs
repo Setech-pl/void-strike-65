@@ -215,6 +215,15 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   }
   memory[requiredLabel(labels, "CAPITAL_SECTOR_STATE")] = 7; // OPEN
   memory[requiredLabel(labels, "frame_counter")] = 42;
+  // The Director's C state ($8100 up: the Light, C, encounter, Heavy, screen,
+  // rotate, break-up, sector and look records) sits where the boot staged
+  // packed bytes, and this harness never runs START GAME, so before this
+  // clear it read whatever the staging left there: no Light, no Heavy only by
+  // the luck of the layout. fix/hardware-audio's 5 B in ENTITY_CODE moved
+  // those leftovers and two fixtures met a phantom target. Start them from
+  // nothing live, the state these direct-call fixtures assume.
+  memory.fill(0, requiredLabel(labels, "__HYBRID_LIGHT_STATE_RUN__"),
+    requiredLabel(labels, "__HYBRID_LIGHT_LOOK_RAM_LAST__"));
   runRoutine(memory, labels, "director_init", { a: 0x6d });
   memory[0x80f6] = 3;  // sector index
   memory[0x80f8] = 1;  // intensity

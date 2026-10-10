@@ -110,7 +110,12 @@ SIO_ERROR       = $45           ; 'E'
 SKCTL_TRANSMIT  = $23           ; mode %010 + keyboard scan/debounce
 SKCTL_RECEIVE   = $33           ; mode %011, asynchronous receive
 SKCTL_RESET     = $00           ; full serial reset (HRM §5.6 p.117)
-SKCTL_REST      = $13           ; what the reader leaves behind
+; fix/hardware-audio: the rest value was $13 until 2026-10-10. Bit 4
+; (asynchronous receive) holds timers 3 and 4 in reset on a real POKEY while no
+; start bit arrives, which silenced every channel-3/4 voice after a load. Every
+; operation above writes its own mode before it uses the port, so the rest value
+; serves only the audio: $03, keyboard scan and debounce, serial mode %000.
+SKCTL_REST      = $03           ; what the reader leaves behind; bit 4 clear
 
 IRQ_SERIN       = $20           ; bit 5, latched: a byte is in SERIN
 IRQ_SEROUT_RDY  = $10           ; bit 4, latched: SEROUT free for the next byte
@@ -497,7 +502,7 @@ sector_reader_read_run:
 ;   C=1, A=status       nothing usable in the buffer
 ;
 ; The reader owns POKEY from entry until it returns and leaves AUDCTL = 0,
-; IRQEN = 0, SKCTL = $13, PBCTL = $3C behind it. Audio must already be silent.
+; IRQEN = 0, SKCTL = $03, PBCTL = $3C behind it. Audio must already be silent.
 ; ===========================================================================
 .export sector_reader_load
 sector_reader_load:
@@ -1107,6 +1112,7 @@ sector_reader_quiesce:
         sta SKCTL
         lda #PBCTL_IDLE
         sta PBCTL
+sector_reader_quiesce_done:             ; the boot repro reads SKCTL here
         rts
 
 ; The five-byte frame for the command in A and its carry wrap-around checksum

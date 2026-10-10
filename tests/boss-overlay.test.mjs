@@ -168,7 +168,8 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
   // Placed last in the window: the hot Light C keeps its addresses.
   assert.ok(label("director", "_asm_boss_enter") >= label("director", "__HYBRID_C_WINDOW_RODATA_RUN__"));
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. No byte of the boss is in it.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618,
+  // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623. Still no byte of the boss.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623,
     "no byte of the boss lands in the initial block");
 });
 

@@ -478,7 +478,8 @@ test("world_rotate_due agrees with update_starfield on every frame", () => {
 test("the rotate gate adds no byte to the initial block and no sector to any record", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. The rotate gate still adds no byte.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13618);
+  // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623. The rotate gate still adds no byte.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623);
   assert.equal(manifest.bootSectors, 107);
   // BROADSIDE (extension record 1): the routine replaces zero-pin bytes, so
   // the segment's size, the pin's address and every label after it hold.

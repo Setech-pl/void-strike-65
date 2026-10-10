@@ -18,7 +18,8 @@
  *   DFSIO_ARM_PC   hex PC; marks and FIRE pulses are armed from its first hit
  *                  (the boot overlay at $21C1 shares addresses with the
  *                  resident suffix, so marks below it would fire during boot)
- *   DFSIO_MARK_PCS comma-separated hex PCs logged on each hit (20 per PC)
+ *   DFSIO_MARK_PCS comma-separated hex PCs logged on each hit (20 per PC), with
+ *                  the last SKCTL and AUDCTL written (fix/hardware-audio)
  *   DFSIO_SCREENSHOT a PNG/PCX path written at the stop
  *   DFSIO_FIRE_PC  hex PC; from its first armed hit, FIRE is pressed for 6
  *                  frames every 100 frames (the menu, the summary screen)
@@ -167,8 +168,8 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	if (dfsio_armed) {
 		for (index = 0; index < dfsio_mark_count; index++)
 			if (pc == dfsio_mark[index] && dfsio_mark_hits[index]++ < 20u)
-				fprintf(dfsio_file, "MARK pc=%04x f=%u y=%d hit=%u\n", pc, frame, ANTIC_ypos,
-					dfsio_mark_hits[index]);
+				fprintf(dfsio_file, "MARK pc=%04x f=%u y=%d hit=%u skctl=%02x audctl=%02x\n", pc, frame,
+					ANTIC_ypos, dfsio_mark_hits[index], POKEY_SKCTL, POKEY_AUDCTL[0]);
 		if (pc == dfsio_fire_pc && dfsio_fire_from == ~0u) dfsio_fire_from = frame + 50u;
 	}
 	/* Joystick neutral; FIRE pulses once the fire PC has been reached. */

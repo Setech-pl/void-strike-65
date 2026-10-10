@@ -118,7 +118,10 @@ test("fit preserves the reviewed staging and placement gates", () => {
   // BROADSIDE, and the initial block's packed sources ended lower, away from
   // the pickup stream.
   assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 162);
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 22);
+  // RE-PINNED 2026-10-10, fix/hardware-audio (F2): 22 -> 17, the cold start's
+  // 5-byte SKCTL write lengthens the ENTITY_CODE staging; the pickup margin
+  // stays 162.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 17);
   assert.ok(manifest.broadsideRuntime.bytes <= manifest.broadsideRuntime.reservedBytes);
   assert.equal(manifest.a2Kernel.runAddress, 0x9000);
   assert.equal(manifest.a2Kernel.bytes, 237);
@@ -126,7 +129,9 @@ test("fit preserves the reviewed staging and placement gates", () => {
   assert.equal(manifest.entityEffects.codeRunAddress & 0xff, 0);
   // RE-PINNED 2026-10-06, plasma FX B1.2: 75 -> 78. The initial block's content
   // fell 13,621 -> 13,618 B inside the same 107 sectors (13,696 B).
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 78);
+  // RE-PINNED 2026-10-10, fix/hardware-audio (F2): 78 -> 73, the cold start's
+  // 5-byte SKCTL write; 13,618 -> 13,623 B in the same 107 sectors.
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 73);
   assert.equal(manifest.transportCapacity.manifest.parsed.records.length, 11);
   assert.equal(manifest.transportCapacity.format, "DFMC-v1 multi-chunk");
 });

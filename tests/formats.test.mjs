@@ -125,7 +125,10 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.broadsideRuntime.runAddress,
     manifest.entityEffects.sourceToStagingMarginBytes,
     manifest.entityEffects.stagingToBroadsideMarginBytes,
-  ], [0x532e, 0x5318, 0x5dfa, 0x5e10, -22, 22]);
+  ], [0x5333, 0x5318, 0x5dff, 0x5e10, -27, 17]);
+  // RE-PINNED 2026-10-10, fix/hardware-audio (F2): the cold start's 5-byte
+  // SKCTL write - the packed sources end $532E -> $5333, 27 B into the
+  // staging; the staging ends $5DFA -> $5DFF; the margin to BROADSIDE 22 -> 17.
   // RE-PINNED 2026-10-06, plasma FX B1-B1.2 (docs/plans/plasma-fx.md §12): the
   // packed sources end $5331 -> $532E (the initial block is 3 B smaller), 22 B
   // into the staging (copied backwards); the staging ends $5DEA -> $5DFA and

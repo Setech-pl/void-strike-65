@@ -48,4 +48,20 @@ test("the built ATR boots through real SIO to gameplay, BASIC on and off (script
       assert.ok(run.milestones.enter_main_menu > 0 && run.milestones.sector_reader_load > run.milestones.enter_main_menu,
         `${run.id}: the menu, then START GAME's read`);
     }
+    // fix/hardware-audio (docs/diagnostics/hardware-audio.md): SKCTL bit 4 is
+    // POKEY's asynchronous receive mode, which on a real machine holds timers 3
+    // and 4 in reset, so channels 3 and 4 are silent; Atari800 plays them. The
+    // menu, every exit of the sector reader during START GAME and gameplay must
+    // see it clear - with the SIO patch (no OS SIO) and without it alike.
+    for (const run of report.results) {
+      assert.equal(Number.parseInt(run.stop.skctl.slice(1), 16) & 0x10, 0,
+        `${run.id}: SKCTL ${run.stop.skctl} at main_loop has async receive on`);
+      const seen = (label) => run.skctl_at.filter((mark) => mark.label === label);
+      assert.ok(seen("enter_main_menu").length > 0, `${run.id}: no SKCTL at the menu`);
+      assert.ok(seen("sector_reader_quiesce_done").length >= 2, `${run.id}: START GAME's loads were not observed`);
+      for (const mark of [...seen("enter_main_menu"), ...seen("sector_reader_quiesce_done"), ...seen("main_loop")]) {
+        assert.equal(Number.parseInt(mark.skctl.slice(1), 16) & 0x10, 0,
+          `${run.id}: SKCTL ${mark.skctl} at ${mark.label} f${mark.frame} has async receive on`);
+      }
+    }
   });

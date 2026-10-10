@@ -668,7 +668,9 @@ test("the reader hands POKEY back quiesced", () => {
   runLoad(stub);
 
   assert.equal(stub.irqen, 0x00, "IRQEN must be left clear");
-  assert.equal(stub.skctl, 0x13, "SKCTL must be left at rest");
+  // fix/hardware-audio: $03, not $13 - bit 4 (async receive) holds POKEY's
+  // timers 3 and 4 on a real machine and silences channels 3 and 4.
+  assert.equal(stub.skctl, 0x03, "SKCTL must be left at rest, async receive off");
   assert.equal(stub.commandLine, false, "the command line must be released");
 });
 

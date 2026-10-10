@@ -129,7 +129,8 @@ export function parseSioLog(text) {
         daux: Number.parseInt(fields.daux, 16), dcomnd: Number.parseInt(fields.dcomnd, 16),
         dbuf: Number.parseInt(fields.dbuf, 16) });
     } else if (line.startsWith("MARK ")) {
-      marks.push({ pc: Number.parseInt(fields.pc, 16), frame: Number(fields.f) });
+      marks.push({ pc: Number.parseInt(fields.pc, 16), frame: Number(fields.f),
+        skctl: fields.skctl === undefined ? null : Number.parseInt(fields.skctl, 16) });
     } else if (line.startsWith("STOP ")) {
       stop = { reason: line.split(" ")[1], pc: Number.parseInt(fields.pc, 16), frame: Number(fields.f),
         colbk: Number.parseInt(fields.colbk, 16),
@@ -191,6 +192,10 @@ export function summariseRun(parsed, labels) {
       return found ? { sector: found.daux, dstats: `$${hex(found.dstats)}`, frame: found.frame } : null;
     })(),
     milestones: firstMark,
+    // fix/hardware-audio: SKCTL at each hit of a milestone (the first 20 per
+    // PC). Bit 4 set outside a transfer silences channels 3 and 4 on hardware.
+    skctl_at: parsed.marks.filter(({ skctl }) => skctl !== null).map(({ pc, frame, skctl }) => ({
+      label: name.get(pc) ?? `$${hex(pc)}`, frame, skctl: `$${hex(skctl).padStart(2, "0")}` })),
   };
 }
 
@@ -242,7 +247,8 @@ export function buildDstatsProbe(atrBytes, labels) {
 }
 
 const MILESTONES = ["start", "show_loader", "enter_main_menu", "start_gameplay",
-  "sector_reader_load", "sector_reader_settle", "sector_reader_failure_screen", "main_loop"];
+  "sector_reader_load", "sector_reader_settle", "sector_reader_failure_screen", "main_loop",
+  "sector_reader_quiesce_done"];
 
 export function runScenario({ emulator, atr, patch, basic, frames, labels, startGame, outputDirectory, id,
   frameStop = false }) {

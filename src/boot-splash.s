@@ -340,8 +340,10 @@ splash_segment_load:
 ; Skip. Hardware registers only: the OS VBI is off (NMIEN = $80, DLI only) so
 ; STRIG0 is never refreshed, and the CPU I-flag has been set since `sei` at
 ; `start` with no `cli` anywhere, so the OS keyboard IRQ never runs and CH is
-; never written. SKCTL keeps the OS's $03, so POKEY still updates SKSTAT and
-; KBCODE without any handler.
+; never written. SKCTL keeps what the OS's last SIOV left ($13: keyboard scan
+; and debounce on), so POKEY still updates SKSTAT and KBCODE without any
+; handler. Its bit 4 stops channels 3 and 4; the splash uses channel 1 alone,
+; and the frontend writes $03 before the menu (fix/hardware-audio).
 
 splash_poll_skip:
     lda TRIG0

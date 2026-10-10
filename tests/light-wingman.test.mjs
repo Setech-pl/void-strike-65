@@ -233,7 +233,9 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // 38 -> 22, the first time this margin is SPENT since 2026-09-28: the
   // break-up's two extra glyphs (16 B of source, codes 108-109) lead the
   // ENTITY_CODE glyph bank.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 22,
+  // Re-recorded 2026-10-10, fix/hardware-audio (F2): 22 -> 17, the cold
+  // start's 5-byte SKCTL write lengthens the ENTITY_CODE staging.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 17,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

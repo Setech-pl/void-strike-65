@@ -64,7 +64,9 @@ test("the blanking costs 9 bytes of the initial block and no sector", () => {
   const content = manifest.transportCapacity.initialBootContentBytes;
   // RE-POINTED 2026-10-06: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621; the blanking's own 9 B are unchanged.
   const PLASMA_FX_BYTES = -3;
-  assert.equal(content, MAIN_INITIAL_CONTENT_BYTES + BLANKING_BYTES + PLASMA_FX_BYTES);
+  // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623 B; the blanking's own 9 B are unchanged.
+  const HARDWARE_AUDIO_BYTES = 5;
+  assert.equal(content, MAIN_INITIAL_CONTENT_BYTES + BLANKING_BYTES + PLASMA_FX_BYTES + HARDWARE_AUDIO_BYTES);
   assert.ok(content <= INITIAL_BLOCK_STOP_BYTES);
   assert.equal(manifest.transportCapacity.initialBootSectors, 107);
   assert.equal(labels.get("start"), 0x201e);

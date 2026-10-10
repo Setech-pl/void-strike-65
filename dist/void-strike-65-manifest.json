@@ -11,10 +11,10 @@
     "phaseCount": 8,
     "initialContentBytes": 13623,
     "linkedRuntimeBytes": 17498,
-    "simultaneousResidencyBytes": 21714,
-    "safeResidencyBytes": 473,
-    "residencyDeltaBytes": 3738,
-    "totalMigrationResidencyDeltaBytes": 3687,
+    "simultaneousResidencyBytes": 21787,
+    "safeResidencyBytes": 400,
+    "residencyDeltaBytes": 3811,
+    "totalMigrationResidencyDeltaBytes": 3760,
     "glue": {
       "stagingAddress": 39992,
       "holdingAddress": 33024,
@@ -59,12 +59,12 @@
     },
     "director": {
       "address": 40309,
-      "endExclusive": 40922,
+      "endExclusive": 40952,
       "reservedEndExclusive": 40954,
-      "rawBytes": 4366,
-      "packedBytes": 3489,
+      "rawBytes": 4439,
+      "packedBytes": 3560,
       "codeAddress": 34561,
-      "codeBytes": 1469,
+      "codeBytes": 1499,
       "rodataAddress": 40309,
       "rodataBytes": 68,
       "placements": [
@@ -96,12 +96,12 @@
         {
           "name": "hybrid-window",
           "runAddress": 44544,
-          "bytes": 1660
+          "bytes": 1703
         },
         {
           "name": "high",
           "runAddress": 40309,
-          "bytes": 613
+          "bytes": 643
         },
         {
           "name": "window",
@@ -111,7 +111,7 @@
       ],
       "footprint": {
         "abiBytes": 106,
-        "codeBytes": 1363,
+        "codeBytes": 1393,
         "rodataBytes": 68,
         "dataBytes": 0,
         "bssBytes": 16,
@@ -234,7 +234,7 @@
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 11,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 2070,
+    "remainingSafeResidencyBytes": 1997,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 22985,
+      "crc16": 30989,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 22985,
+        "crc16": 30989,
         "records": [
           {
             "startSector": 108,
@@ -306,7 +306,7 @@
             "packedLength": 5525,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 27910,
+            "crc16": 62640,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -350,7 +350,7 @@
             "packedLength": 735,
             "rawLength": 735,
             "finalDestination": 30736,
-            "crc16": 22940,
+            "crc16": 51897,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -380,10 +380,10 @@
           {
             "startSector": 179,
             "sectorCount": 11,
-            "packedLength": 1330,
-            "rawLength": 1660,
+            "packedLength": 1373,
+            "rawLength": 1703,
             "finalDestination": 44544,
-            "crc16": 36007,
+            "crc16": 36591,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -393,8 +393,8 @@
             "sectorCount": 7,
             "packedLength": 798,
             "rawLength": 916,
-            "finalDestination": 46204,
-            "crc16": 2427,
+            "finalDestination": 46247,
+            "crc16": 32558,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -405,7 +405,7 @@
             "packedLength": 1498,
             "rawLength": 1498,
             "finalDestination": 40960,
-            "crc16": 9516,
+            "crc16": 64104,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -413,10 +413,10 @@
           {
             "startSector": 209,
             "sectorCount": 5,
-            "packedLength": 507,
-            "rawLength": 613,
+            "packedLength": 535,
+            "rawLength": 643,
             "finalDestination": 40309,
-            "crc16": 53373,
+            "crc16": 52377,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -453,7 +453,7 @@
       "transportBytes": 5632,
       "packedBytes": 5525,
       "rawBytes": 6653,
-      "crc16": 27910,
+      "crc16": 62640,
       "stagingAddress": 33024,
       "stagingEndAddress": 38655,
       "finalAddress": 24080
@@ -478,15 +478,15 @@
   "directorRuntime": {
     "implementation": "cc65-c",
     "runAddress": 40309,
-    "endExclusive": 40922,
+    "endExclusive": 40952,
     "reservedEndExclusive": 40954,
-    "bytes": 613,
-    "packedBytes": 507,
+    "bytes": 643,
+    "packedBytes": 535,
     "externalChunk": {
       "startSector": 209,
       "sectors": 5,
       "transportBytes": 640,
-      "crc16": 53373
+      "crc16": 52377
     }
   },
   "directorCodeRuntime": null,
@@ -618,7 +618,7 @@
     }
   },
   "diskGuard": {
-    "address": 46975,
+    "address": 47018,
     "bytes": 95,
     "record": "the Light kernel's DFMC record (owner Q2: +1 extension sector)",
     "identity": {
@@ -656,7 +656,7 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$4FE6"
+        "expected": "$B6AC"
       },
       {
         "index": 2,
@@ -691,7 +691,7 @@
       {
         "index": 8,
         "name": "level summary code (M5a-S2)",
-        "expected": "$5D7C"
+        "expected": "$9FD1"
       },
       {
         "index": 9,
@@ -700,10 +700,10 @@
       }
     ],
     "bossHeadSums": [
-      "$A54E",
-      "$295A",
-      "$295A",
-      "$295A"
+      "$5C98",
+      "$E0A4",
+      "$E0A4",
+      "$E0A4"
     ],
     "summaryArtSums": [
       "$2223",
@@ -712,7 +712,7 @@
       "$D269"
     ],
     "summaryLevelSums": [
-      "$1455",
+      "$EAFB",
       null,
       null,
       null,
@@ -740,7 +740,7 @@
       "sha256": "92df3e460b2abbf81e664329d7ecb86c638739393390197b29d7720acc61e5c2"
     },
     "capitalVectors": {
-      "address": 46219,
+      "address": 46262,
       "entries": 12,
       "bytes": 36,
       "table": [
@@ -748,76 +748,76 @@
           "name": "CAPITAL_VECTOR_INIT",
           "target": "init_broadside",
           "targetAddress": 27578,
-          "address": 46219
+          "address": 46262
         },
         {
           "name": "CAPITAL_VECTOR_UPDATE",
           "target": "update_broadside",
           "targetAddress": 28136,
-          "address": 46222
+          "address": 46265
         },
         {
           "name": "CAPITAL_VECTOR_TICK_EXPLOSIONS",
           "target": "tick_capital_explosions",
           "targetAddress": 29366,
-          "address": 46225
+          "address": 46268
         },
         {
           "name": "CAPITAL_VECTOR_TICK_FLASHES",
           "target": "tick_launch_flashes",
           "targetAddress": 28993,
-          "address": 46228
+          "address": 46271
         },
         {
           "name": "CAPITAL_VECTOR_ENGINE",
           "target": "update_engine_animation",
           "targetAddress": 29110,
-          "address": 46231
+          "address": 46274
         },
         {
           "name": "CAPITAL_VECTOR_HULL_CONTACT",
           "target": "handle_player_hull_contact",
           "targetAddress": 30074,
-          "address": 46234
+          "address": 46277
         },
         {
           "name": "CAPITAL_VECTOR_RENDER_FLASHES",
           "target": "render_launch_flashes",
           "targetAddress": 29041,
-          "address": 46237
+          "address": 46280
         },
         {
           "name": "CAPITAL_VECTOR_RENDER_EXPLOSIONS",
           "target": "render_capital_explosions",
           "targetAddress": 29535,
-          "address": 46240
+          "address": 46283
         },
         {
           "name": "CAPITAL_VECTOR_SECTOR_COMPLETION",
           "target": "update_sector_completion",
           "targetAddress": 29177,
-          "address": 46243
+          "address": 46286
         },
         {
           "name": "CAPITAL_VECTOR_RESTORE_MUZZLES",
           "target": "restore_active_muzzles",
           "targetAddress": 25930,
-          "address": 46246
+          "address": 46289
         },
         {
           "name": "CAPITAL_VECTOR_PREPARE_ROW",
           "target": "prepare_next_hull_row",
           "targetAddress": 38060,
-          "address": 46249
+          "address": 46292
         },
         {
           "name": "CAPITAL_VECTOR_SCROLL_HULL",
           "target": "scroll_hull_columns",
           "targetAddress": 37603,
-          "address": 46252
+          "address": 46295
         }
       ],
-      "imageInLightKernel": 47070
+      "imageInLightKernel": 47113
     },
     "runs": [
       {
@@ -849,17 +849,17 @@
     },
     "install": {
       "address": 30736,
-      "bytes": 363,
+      "bytes": 352,
       "capacityBytes": 384,
-      "freeBytes": 21,
+      "freeBytes": 32,
       "sectors": 3
     },
     "slotC": {
       "address": 4096,
-      "bytes": 1871,
-      "codeBytes": 1648,
+      "bytes": 1885,
+      "codeBytes": 1662,
       "capacityBytes": 2048,
-      "freeBytes": 177,
+      "freeBytes": 163,
       "sectors": 13
     },
     "scratch": {
@@ -949,7 +949,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "a8c56712c88dc86f6557c0fb7e973f263ab5d5e35819562e45b8cf81530bb3a9",
+        "sha256": "f063a45dfd2a09faeccab7524c060815c72407fd6acc4a29d7c9a439de0c2c68",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -958,7 +958,7 @@
         "sectors": 3,
         "destination": 30736,
         "bytes": 384,
-        "sha256": "b10d8295d2fb0bfcee65de7779ae5be107bdb1197960640bcfe63a7a05ff9428",
+        "sha256": "195abca186d4e12d2d794d427990260590d33a71647717be94d0cd69b60d7673",
         "file": "overlay-boss-install.bin"
       },
       {
@@ -967,7 +967,7 @@
         "sectors": 13,
         "destination": 4096,
         "bytes": 1664,
-        "sha256": "0c8599c1e3ade885a81c2ca495c56ec513f301a302b24cfb1dd3d894cc16b6f5",
+        "sha256": "7d7f06a9d6f87717c8fb86c7db2f7dbd588a0f125d385f7da7e36884ac3ec8b3",
         "file": "overlay-boss-slot-c.bin"
       },
       {
@@ -976,7 +976,7 @@
         "sectors": 13,
         "destination": 6400,
         "bytes": 1664,
-        "sha256": "cd0b0bbf4364f4a7d3adc32d35dd2b9ccb49a776dbe82cf6f56f6b96334f7882",
+        "sha256": "ee1197bcc4acd1476ce8e1e3970ea30076b36543baf30b7c1605f7d04910e0c0",
         "file": "overlay-boss-slot-d.bin"
       },
       {
@@ -985,7 +985,7 @@
         "sectors": 2,
         "destination": 19456,
         "bytes": 256,
-        "sha256": "d514e8fafcfd041f39d02d339ec00f8ac7d08d4428f9bcb012d03a228f21e0a4",
+        "sha256": "5fc00a6b748387d5a764591f7cae7a212b176916a84a3418927fa50c21349fcf",
         "file": "overlay-boss-slot-e.bin"
       },
       {
@@ -1012,7 +1012,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "59e2b8e59bed11a86fd5db33b31a5f803828a90fd29a3e7fe9cc170740c145b5",
+        "sha256": "d711bfd3b491c920647778915b8c3c38c9ce3931713b5940657615afb213b613",
         "file": "boss-region-1-band-b.bin"
       },
       {
@@ -1057,7 +1057,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "7f841a4f9ab4dd5eca351f2a2a7357bd9ed4023b4cf491c0bfba606c0e9aa345",
+        "sha256": "9faec7d67f888d540007f522a0ff2bda801dc51392d4310032b72cbde3ca032f",
         "file": "boss-region-2-band-b.bin"
       },
       {
@@ -1102,7 +1102,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "7f841a4f9ab4dd5eca351f2a2a7357bd9ed4023b4cf491c0bfba606c0e9aa345",
+        "sha256": "9faec7d67f888d540007f522a0ff2bda801dc51392d4310032b72cbde3ca032f",
         "file": "boss-region-3-band-b.bin"
       },
       {
@@ -1147,7 +1147,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "7f841a4f9ab4dd5eca351f2a2a7357bd9ed4023b4cf491c0bfba606c0e9aa345",
+        "sha256": "9faec7d67f888d540007f522a0ff2bda801dc51392d4310032b72cbde3ca032f",
         "file": "boss-region-4-band-b.bin"
       },
       {
@@ -1227,20 +1227,20 @@
     "extensionTailBytes": 131
   },
   "lightKernel": {
-    "address": 46204,
+    "address": 46247,
     "bytes": 916,
     "packedBytes": 798,
-    "capacityBytes": 1924,
-    "freeBytes": 1008,
-    "endExclusive": 47120,
+    "capacityBytes": 1881,
+    "freeBytes": 965,
+    "endExclusive": 47163,
     "windowLimit": 48128,
-    "cHalfEndExclusive": 46204,
+    "cHalfEndExclusive": 46247,
     "vectors": {
-      "LIGHT_KERNEL_PUBLISH": 46204,
-      "LIGHT_KERNEL_UPDATE": 46207,
-      "LIGHT_KERNEL_SHOT": 46210,
-      "LIGHT_KERNEL_BACKING": 46213,
-      "LIGHT_KERNEL_CELL_RESOLVE": 46216
+      "LIGHT_KERNEL_PUBLISH": 46247,
+      "LIGHT_KERNEL_UPDATE": 46250,
+      "LIGHT_KERNEL_SHOT": 46253,
+      "LIGHT_KERNEL_BACKING": 46256,
+      "LIGHT_KERNEL_CELL_RESOLVE": 46259
     },
     "transport": "own DFMC record, LZ, direct landing above the Director window half"
   },
@@ -1306,10 +1306,10 @@
       "endExclusive": 48128,
       "capacityBytes": 3584,
       "guardBytes": 6,
-      "directorHalfBytes": 1660,
+      "directorHalfBytes": 1703,
       "lightKernelBytes": 916,
-      "usedBytes": 2576,
-      "freeBytes": 1008,
+      "usedBytes": 2619,
+      "freeBytes": 965,
       "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
       "boundedBy": {
         "below": "16-sector level buffer $A600-$ADFF",
@@ -1322,9 +1322,9 @@
         "finalDestination": 44544,
         "startSector": 179,
         "sectors": 11,
-        "rawBytes": 1660,
-        "packedBytes": 1330,
-        "paddingBytes": 57,
+        "rawBytes": 1703,
+        "packedBytes": 1373,
+        "paddingBytes": 14,
         "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
       }
     },
@@ -1387,7 +1387,7 @@
         "startSector": 166,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 22940
+        "crc16": 51897
       }
     },
     {
@@ -1425,14 +1425,14 @@
       "file": "encounter-director-code-hybrid-window.bin",
       "runAddress": 44544,
       "transportAddress": 44544,
-      "endExclusive": 46204,
-      "bytes": 1660,
-      "packedBytes": 1330,
+      "endExclusive": 46247,
+      "bytes": 1703,
+      "packedBytes": 1373,
       "externalChunk": {
         "startSector": 179,
         "sectors": 11,
         "transportBytes": 1408,
-        "crc16": 36007
+        "crc16": 36591
       }
     }
   ],
@@ -1739,8 +1739,8 @@
         "targetWallLimitCycles": 32422,
         "hardWallLimitCycles": 32568,
         "minimumPhysicalHeadroomCycles": 3000,
-        "measuredWallCycles": 31304,
-        "actualDeltaCycles": -768,
+        "measuredWallCycles": 31310,
+        "actualDeltaCycles": -762,
         "missedSynchronization": 0,
         "deadlineOverruns": 0,
         "extraVbiBoundaries": 0
@@ -2580,10 +2580,10 @@
     "normalFrameCycles": 118,
     "worstRowFrameCycles": 336,
     "pauseOptionPollCycles": 13,
-    "cpuWorstFrameCyclesDmaOff": 14947,
-    "cpuComparisonHeadroomCycles": 20621,
-    "measuredWallCyclesDmaOn": 31304,
-    "measuredPhysicalHeadroomCycles": 4264
+    "cpuWorstFrameCyclesDmaOff": 14954,
+    "cpuComparisonHeadroomCycles": 20614,
+    "measuredWallCyclesDmaOn": 31310,
+    "measuredPhysicalHeadroomCycles": 4258
   },
   "runtimeTiming": {
     "method": "NMOS-6502 execution of linked release bytes with replayed legal gameplay sessions",
@@ -2591,8 +2591,8 @@
     "thresholdCycles": 32500,
     "cpuDmaOff": {
       "optionPollCycles": 13,
-      "heaviestActiveFrameCycles": 14934,
-      "heaviestMainLoopCycles": 14947,
+      "heaviestActiveFrameCycles": 14941,
+      "heaviestMainLoopCycles": 14954,
       "gameplayMusicTickMinimumCycles": 118,
       "gameplayMusicTickMaximumCycles": 336,
       "procedures": {
@@ -2648,7 +2648,7 @@
       }
     },
     "estimatedAdditive": {
-      "mainLoopCycles": 14947,
+      "mainLoopCycles": 14954,
       "dma": {
         "refresh": 2808,
         "playerMissile": 1200,
@@ -2666,15 +2666,15 @@
         "maximumWsyncStallCycles": 228,
         "conservativeCycles": 369
       },
-      "cycles": 27847,
+      "cycles": 27854,
       "classification": "diagnostic estimate only; not a measured PAL frame or physical headroom"
     },
     "legalHeavyCombination": {
       "origin": "deterministic legal replay",
       "session": "2-sweep-fire0",
       "frame": 239,
-      "activeCpuCycles": 14934,
-      "mainLoopCpuCycles": 14947,
+      "activeCpuCycles": 14941,
+      "mainLoopCpuCycles": 14954,
       "projectileOccupancy": 15,
       "player_fighterProjectileOccupancy": 7,
       "broadsideOccupancy": 0,
@@ -2940,8 +2940,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 239,
-        "activeCpuCycles": 14934,
-        "mainLoopCpuCycles": 14947,
+        "activeCpuCycles": 14941,
+        "mainLoopCpuCycles": 14954,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -3206,8 +3206,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 239,
-        "activeCpuCycles": 14791,
-        "mainLoopCpuCycles": 14804,
+        "activeCpuCycles": 14798,
+        "mainLoopCpuCycles": 14811,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -3471,8 +3471,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire2",
         "frame": 239,
-        "activeCpuCycles": 14652,
-        "mainLoopCpuCycles": 14665,
+        "activeCpuCycles": 14659,
+        "mainLoopCpuCycles": 14672,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -3737,8 +3737,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 531,
-        "activeCpuCycles": 14438,
-        "mainLoopCpuCycles": 14451,
+        "activeCpuCycles": 14445,
+        "mainLoopCpuCycles": 14458,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -4007,8 +4007,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 269,
-        "activeCpuCycles": 14124,
-        "mainLoopCpuCycles": 14137,
+        "activeCpuCycles": 14131,
+        "mainLoopCpuCycles": 14144,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -4269,8 +4269,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 271,
-        "activeCpuCycles": 14094,
-        "mainLoopCpuCycles": 14107,
+        "activeCpuCycles": 14101,
+        "mainLoopCpuCycles": 14114,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -4531,8 +4531,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 239,
-        "activeCpuCycles": 14076,
-        "mainLoopCpuCycles": 14089,
+        "activeCpuCycles": 14083,
+        "mainLoopCpuCycles": 14096,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -4796,8 +4796,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire5",
         "frame": 239,
-        "activeCpuCycles": 14058,
-        "mainLoopCpuCycles": 14071,
+        "activeCpuCycles": 14065,
+        "mainLoopCpuCycles": 14078,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -5061,8 +5061,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 487,
-        "activeCpuCycles": 14016,
-        "mainLoopCpuCycles": 14029,
+        "activeCpuCycles": 14023,
+        "mainLoopCpuCycles": 14036,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -5319,8 +5319,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 81,
-        "activeCpuCycles": 13995,
-        "mainLoopCpuCycles": 14008,
+        "activeCpuCycles": 14002,
+        "mainLoopCpuCycles": 14015,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -5585,8 +5585,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 529,
-        "activeCpuCycles": 13865,
-        "mainLoopCpuCycles": 13878,
+        "activeCpuCycles": 13872,
+        "mainLoopCpuCycles": 13885,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -5855,8 +5855,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 601,
-        "activeCpuCycles": 13829,
-        "mainLoopCpuCycles": 13842,
+        "activeCpuCycles": 13836,
+        "mainLoopCpuCycles": 13849,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -6121,8 +6121,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 601,
-        "activeCpuCycles": 13829,
-        "mainLoopCpuCycles": 13842,
+        "activeCpuCycles": 13836,
+        "mainLoopCpuCycles": 13849,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -6387,8 +6387,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 523,
-        "activeCpuCycles": 13778,
-        "mainLoopCpuCycles": 13791,
+        "activeCpuCycles": 13785,
+        "mainLoopCpuCycles": 13798,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -6658,8 +6658,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 527,
-        "activeCpuCycles": 13778,
-        "mainLoopCpuCycles": 13791,
+        "activeCpuCycles": 13785,
+        "mainLoopCpuCycles": 13798,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -6928,8 +6928,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 521,
-        "activeCpuCycles": 13769,
-        "mainLoopCpuCycles": 13782,
+        "activeCpuCycles": 13776,
+        "mainLoopCpuCycles": 13789,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -7199,8 +7199,8 @@
         "origin": "deterministic legal replay",
         "session": "1-evasive-fire3",
         "frame": 266,
-        "activeCpuCycles": 13752,
-        "mainLoopCpuCycles": 13765,
+        "activeCpuCycles": 13759,
+        "mainLoopCpuCycles": 13772,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -7470,8 +7470,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 519,
-        "activeCpuCycles": 13746,
-        "mainLoopCpuCycles": 13759,
+        "activeCpuCycles": 13753,
+        "mainLoopCpuCycles": 13766,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -7740,8 +7740,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire5",
         "frame": 487,
-        "activeCpuCycles": 13742,
-        "mainLoopCpuCycles": 13755,
+        "activeCpuCycles": 13749,
+        "mainLoopCpuCycles": 13762,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -7990,8 +7990,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 647,
-        "activeCpuCycles": 13730,
-        "mainLoopCpuCycles": 13743,
+        "activeCpuCycles": 13737,
+        "mainLoopCpuCycles": 13750,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -8244,8 +8244,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 339,
-        "activeCpuCycles": 13724,
-        "mainLoopCpuCycles": 13737,
+        "activeCpuCycles": 13731,
+        "mainLoopCpuCycles": 13744,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -8511,8 +8511,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 247,
-        "activeCpuCycles": 13703,
-        "mainLoopCpuCycles": 13716,
+        "activeCpuCycles": 13710,
+        "mainLoopCpuCycles": 13723,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -8782,8 +8782,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 251,
-        "activeCpuCycles": 13688,
-        "mainLoopCpuCycles": 13701,
+        "activeCpuCycles": 13695,
+        "mainLoopCpuCycles": 13708,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -9053,8 +9053,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 81,
-        "activeCpuCycles": 13686,
-        "mainLoopCpuCycles": 13699,
+        "activeCpuCycles": 13693,
+        "mainLoopCpuCycles": 13706,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -9319,8 +9319,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 503,
-        "activeCpuCycles": 13650,
-        "mainLoopCpuCycles": 13663,
+        "activeCpuCycles": 13657,
+        "mainLoopCpuCycles": 13670,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -9572,8 +9572,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 497,
-        "activeCpuCycles": 13638,
-        "mainLoopCpuCycles": 13651,
+        "activeCpuCycles": 13645,
+        "mainLoopCpuCycles": 13658,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -9826,8 +9826,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 431,
-        "activeCpuCycles": 13625,
-        "mainLoopCpuCycles": 13638,
+        "activeCpuCycles": 13632,
+        "mainLoopCpuCycles": 13645,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -10076,8 +10076,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 479,
-        "activeCpuCycles": 13621,
-        "mainLoopCpuCycles": 13634,
+        "activeCpuCycles": 13628,
+        "mainLoopCpuCycles": 13641,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -10330,8 +10330,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 655,
-        "activeCpuCycles": 13615,
-        "mainLoopCpuCycles": 13628,
+        "activeCpuCycles": 13622,
+        "mainLoopCpuCycles": 13635,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -10583,8 +10583,8 @@
         "origin": "deterministic legal replay",
         "session": "1-evasive-fire3",
         "frame": 433,
-        "activeCpuCycles": 13611,
-        "mainLoopCpuCycles": 13624,
+        "activeCpuCycles": 13618,
+        "mainLoopCpuCycles": 13631,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 4,
         "broadsideOccupancy": 0,
@@ -10848,8 +10848,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 167,
-        "activeCpuCycles": 13604,
-        "mainLoopCpuCycles": 13617,
+        "activeCpuCycles": 13611,
+        "mainLoopCpuCycles": 13624,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -11106,8 +11106,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 489,
-        "activeCpuCycles": 13596,
-        "mainLoopCpuCycles": 13609,
+        "activeCpuCycles": 13603,
+        "mainLoopCpuCycles": 13616,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -11360,8 +11360,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 337,
-        "activeCpuCycles": 13593,
-        "mainLoopCpuCycles": 13606,
+        "activeCpuCycles": 13600,
+        "mainLoopCpuCycles": 13613,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -11626,8 +11626,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 657,
-        "activeCpuCycles": 13587,
-        "mainLoopCpuCycles": 13600,
+        "activeCpuCycles": 13594,
+        "mainLoopCpuCycles": 13607,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -11880,8 +11880,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 645,
-        "activeCpuCycles": 13574,
-        "mainLoopCpuCycles": 13587,
+        "activeCpuCycles": 13581,
+        "mainLoopCpuCycles": 13594,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -12134,8 +12134,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire5",
         "frame": 319,
-        "activeCpuCycles": 13574,
-        "mainLoopCpuCycles": 13587,
+        "activeCpuCycles": 13581,
+        "mainLoopCpuCycles": 13594,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -12384,8 +12384,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 499,
-        "activeCpuCycles": 13572,
-        "mainLoopCpuCycles": 13585,
+        "activeCpuCycles": 13579,
+        "mainLoopCpuCycles": 13592,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -12638,8 +12638,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire2",
         "frame": 159,
-        "activeCpuCycles": 13570,
-        "mainLoopCpuCycles": 13583,
+        "activeCpuCycles": 13577,
+        "mainLoopCpuCycles": 13590,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -12882,8 +12882,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 249,
-        "activeCpuCycles": 13567,
-        "mainLoopCpuCycles": 13580,
+        "activeCpuCycles": 13574,
+        "mainLoopCpuCycles": 13587,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -13153,8 +13153,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 637,
-        "activeCpuCycles": 13566,
-        "mainLoopCpuCycles": 13579,
+        "activeCpuCycles": 13573,
+        "mainLoopCpuCycles": 13586,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -13407,8 +13407,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 243,
-        "activeCpuCycles": 13563,
-        "mainLoopCpuCycles": 13576,
+        "activeCpuCycles": 13570,
+        "mainLoopCpuCycles": 13583,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -13678,8 +13678,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire2",
         "frame": 81,
-        "activeCpuCycles": 13558,
-        "mainLoopCpuCycles": 13571,
+        "activeCpuCycles": 13565,
+        "mainLoopCpuCycles": 13578,
         "projectileOccupancy": 11,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -13943,8 +13943,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 649,
-        "activeCpuCycles": 13552,
-        "mainLoopCpuCycles": 13565,
+        "activeCpuCycles": 13559,
+        "mainLoopCpuCycles": 13572,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -14197,8 +14197,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 501,
-        "activeCpuCycles": 13550,
-        "mainLoopCpuCycles": 13563,
+        "activeCpuCycles": 13557,
+        "mainLoopCpuCycles": 13570,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -14451,8 +14451,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 81,
-        "activeCpuCycles": 13547,
-        "mainLoopCpuCycles": 13560,
+        "activeCpuCycles": 13554,
+        "mainLoopCpuCycles": 13567,
         "projectileOccupancy": 11,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -14717,8 +14717,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 607,
-        "activeCpuCycles": 13545,
-        "mainLoopCpuCycles": 13558,
+        "activeCpuCycles": 13552,
+        "mainLoopCpuCycles": 13565,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -14967,8 +14967,8 @@
         "origin": "deterministic legal replay",
         "session": "1-evasive-fire3",
         "frame": 264,
-        "activeCpuCycles": 13543,
-        "mainLoopCpuCycles": 13556,
+        "activeCpuCycles": 13550,
+        "mainLoopCpuCycles": 13563,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -15232,8 +15232,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 659,
-        "activeCpuCycles": 13539,
-        "mainLoopCpuCycles": 13552,
+        "activeCpuCycles": 13546,
+        "mainLoopCpuCycles": 13559,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -15486,8 +15486,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire2",
         "frame": 267,
-        "activeCpuCycles": 13533,
-        "mainLoopCpuCycles": 13546,
+        "activeCpuCycles": 13540,
+        "mainLoopCpuCycles": 13553,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -15748,8 +15748,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 439,
-        "activeCpuCycles": 13498,
-        "mainLoopCpuCycles": 13511,
+        "activeCpuCycles": 13505,
+        "mainLoopCpuCycles": 13518,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -15997,8 +15997,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 99,
-        "activeCpuCycles": 13497,
-        "mainLoopCpuCycles": 13510,
+        "activeCpuCycles": 13504,
+        "mainLoopCpuCycles": 13517,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -16267,8 +16267,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 245,
-        "activeCpuCycles": 13478,
-        "mainLoopCpuCycles": 13491,
+        "activeCpuCycles": 13485,
+        "mainLoopCpuCycles": 13498,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -16538,8 +16538,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 599,
-        "activeCpuCycles": 13477,
-        "mainLoopCpuCycles": 13490,
+        "activeCpuCycles": 13484,
+        "mainLoopCpuCycles": 13497,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -16788,8 +16788,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 599,
-        "activeCpuCycles": 13477,
-        "mainLoopCpuCycles": 13490,
+        "activeCpuCycles": 13484,
+        "mainLoopCpuCycles": 13497,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -17038,8 +17038,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 433,
-        "activeCpuCycles": 13472,
-        "mainLoopCpuCycles": 13485,
+        "activeCpuCycles": 13479,
+        "mainLoopCpuCycles": 13492,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -17288,8 +17288,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 491,
-        "activeCpuCycles": 13469,
-        "mainLoopCpuCycles": 13482,
+        "activeCpuCycles": 13476,
+        "mainLoopCpuCycles": 13489,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -17542,8 +17542,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 481,
-        "activeCpuCycles": 13435,
-        "mainLoopCpuCycles": 13448,
+        "activeCpuCycles": 13442,
+        "mainLoopCpuCycles": 13455,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -17796,8 +17796,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 319,
-        "activeCpuCycles": 13435,
-        "mainLoopCpuCycles": 13448,
+        "activeCpuCycles": 13442,
+        "mainLoopCpuCycles": 13455,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -18045,8 +18045,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 487,
-        "activeCpuCycles": 13425,
-        "mainLoopCpuCycles": 13438,
+        "activeCpuCycles": 13432,
+        "mainLoopCpuCycles": 13445,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -18298,8 +18298,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 441,
-        "activeCpuCycles": 13424,
-        "mainLoopCpuCycles": 13437,
+        "activeCpuCycles": 13431,
+        "mainLoopCpuCycles": 13444,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -18548,8 +18548,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire2",
         "frame": 163,
-        "activeCpuCycles": 13418,
-        "mainLoopCpuCycles": 13431,
+        "activeCpuCycles": 13425,
+        "mainLoopCpuCycles": 13438,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -18806,8 +18806,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 743,
-        "activeCpuCycles": 13410,
-        "mainLoopCpuCycles": 13423,
+        "activeCpuCycles": 13417,
+        "mainLoopCpuCycles": 13430,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -19056,8 +19056,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 241,
-        "activeCpuCycles": 13404,
-        "mainLoopCpuCycles": 13417,
+        "activeCpuCycles": 13411,
+        "mainLoopCpuCycles": 13424,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -19327,8 +19327,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 543,
-        "activeCpuCycles": 13403,
-        "mainLoopCpuCycles": 13416,
+        "activeCpuCycles": 13410,
+        "mainLoopCpuCycles": 13423,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -19601,8 +19601,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 239,
-        "activeCpuCycles": 14934,
-        "mainLoopCpuCycles": 14947,
+        "activeCpuCycles": 14941,
+        "mainLoopCpuCycles": 14954,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -19867,8 +19867,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 239,
-        "activeCpuCycles": 14934,
-        "mainLoopCpuCycles": 14947,
+        "activeCpuCycles": 14941,
+        "mainLoopCpuCycles": 14954,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -20133,8 +20133,8 @@
         "origin": "coherent fixed-pool stress fixture cloned from a legal director frame",
         "session": "2-neutral-fire0-projectile-stress",
         "frame": 401,
-        "activeCpuCycles": 12627,
-        "mainLoopCpuCycles": 12640,
+        "activeCpuCycles": 12634,
+        "mainLoopCpuCycles": 12647,
         "projectileOccupancy": 19,
         "player_fighterProjectileOccupancy": 10,
         "broadsideOccupancy": 0,
@@ -20366,8 +20366,8 @@
         "origin": "synthetic fixed-pool cycle stress; excluded from natural gameplay evidence",
         "session": "2-neutral-fire0-broadside-stress",
         "frame": 0,
-        "activeCpuCycles": 8911,
-        "mainLoopCpuCycles": 8924,
+        "activeCpuCycles": 8918,
+        "mainLoopCpuCycles": 8931,
         "projectileOccupancy": 0,
         "player_fighterProjectileOccupancy": 0,
         "broadsideOccupancy": 3,
@@ -20521,8 +20521,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 531,
-        "activeCpuCycles": 14438,
-        "mainLoopCpuCycles": 14451,
+        "activeCpuCycles": 14445,
+        "mainLoopCpuCycles": 14458,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -20791,8 +20791,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 543,
-        "activeCpuCycles": 13403,
-        "mainLoopCpuCycles": 13416,
+        "activeCpuCycles": 13410,
+        "mainLoopCpuCycles": 13423,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -21063,8 +21063,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 239,
-        "activeCpuCycles": 14934,
-        "mainLoopCpuCycles": 14947,
+        "activeCpuCycles": 14941,
+        "mainLoopCpuCycles": 14954,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -21329,8 +21329,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 711,
-        "activeCpuCycles": 13002,
-        "mainLoopCpuCycles": 13015,
+        "activeCpuCycles": 13009,
+        "mainLoopCpuCycles": 13022,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -21561,8 +21561,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 239,
-        "activeCpuCycles": 14934,
-        "mainLoopCpuCycles": 14947,
+        "activeCpuCycles": 14941,
+        "mainLoopCpuCycles": 14954,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -21827,8 +21827,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 31,
-        "activeCpuCycles": 13265,
-        "mainLoopCpuCycles": 13278,
+        "activeCpuCycles": 13272,
+        "mainLoopCpuCycles": 13285,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -22085,8 +22085,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 361,
-        "activeCpuCycles": 13215,
-        "mainLoopCpuCycles": 13228,
+        "activeCpuCycles": 13222,
+        "mainLoopCpuCycles": 13235,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -22355,8 +22355,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 243,
-        "activeCpuCycles": 13117,
-        "mainLoopCpuCycles": 13130,
+        "activeCpuCycles": 13124,
+        "mainLoopCpuCycles": 13137,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -22627,8 +22627,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 759,
-        "activeCpuCycles": 12727,
-        "mainLoopCpuCycles": 12740,
+        "activeCpuCycles": 12734,
+        "mainLoopCpuCycles": 12747,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -22902,8 +22902,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 533,
-        "activeCpuCycles": 13150,
-        "mainLoopCpuCycles": 13163,
+        "activeCpuCycles": 13157,
+        "mainLoopCpuCycles": 13170,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -23174,8 +23174,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 269,
-        "activeCpuCycles": 14124,
-        "mainLoopCpuCycles": 14137,
+        "activeCpuCycles": 14131,
+        "mainLoopCpuCycles": 14144,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -23436,8 +23436,8 @@
         "origin": "deterministic legal replay",
         "session": "2-contact-debris-fire0",
         "frame": 61,
-        "activeCpuCycles": 11736,
-        "mainLoopCpuCycles": 11749,
+        "activeCpuCycles": 11743,
+        "mainLoopCpuCycles": 11756,
         "projectileOccupancy": 2,
         "player_fighterProjectileOccupancy": 0,
         "broadsideOccupancy": 0,
@@ -24054,18 +24054,18 @@
       "estimatedAdditive is a diagnostic bus-budget sum, not a measured PAL frame and never a physical headroom value.",
       "The window under the BASIC ROM is unconditional RAM (owner decision B) and the build owns $A000-$BC1F, but no runtime range uses it yet, so it contributes nothing to the runtime ranges or the CPU accounting."
     ],
-    "cpu_cycles_dma_off": 14947,
-    "cpu_comparison_headroom": 20621,
-    "measured_wall_cycles_dma_on": 31304,
-    "measured_physical_headroom": 4264,
-    "estimated_additive_cycles": 27847,
+    "cpu_cycles_dma_off": 14954,
+    "cpu_comparison_headroom": 20614,
+    "measured_wall_cycles_dma_on": 31310,
+    "measured_physical_headroom": 4258,
+    "estimated_additive_cycles": 27854,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "a021b374b2c5c821720cb7db89dbbe94725f3d3325f62ed1f11a0a83353a7ba5",
+      "reportSha256": "9ef1d81dbd4b0d1c78156d8297fe6981113c0648f8e90ffc0ff79481077af91a",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4"
+        "sha256": "90f3e24e4bfebde0f72f2fc02f321607a6d1989150e07763415539d10d0271c5"
       },
       "emulator": {
         "name": "Atari800",
@@ -24087,11 +24087,11 @@
         "audio_note": "-nosound disables host playback only; guest sound/music state and POKEY register writes remain active"
       },
       "semantics": {
-        "cpu_cycles_dma_off": 14947,
-        "cpu_comparison_headroom": 20621,
-        "measured_wall_cycles_dma_on": 31304,
-        "measured_physical_headroom": 4264,
-        "estimated_additive_cycles": 27847
+        "cpu_cycles_dma_off": 14954,
+        "cpu_comparison_headroom": 20614,
+        "measured_wall_cycles_dma_on": 31310,
+        "measured_physical_headroom": 4258,
+        "estimated_additive_cycles": 27854
       },
       "gate": {
         "pal_frame_cycles": 35568,
@@ -24182,22 +24182,22 @@
             "frame": 420,
             "gameplay_frame": 164,
             "difficulty": 2,
-            "wall_cycles": 30241,
-            "physical_headroom": 5327,
+            "wall_cycles": 30276,
+            "physical_headroom": 5292,
             "start": {
-              "clock": 42790415,
+              "clock": 42790387,
               "host_frame": 1203,
               "scanline": 18,
-              "cycle": 59
+              "cycle": 31
             },
             "end": {
-              "clock": 42820656,
+              "clock": 42820663,
               "host_frame": 1203,
               "scanline": 283,
-              "cycle": 90
+              "cycle": 97
             },
             "next_start": {
-              "clock": 42825955,
+              "clock": 42825983,
               "host_frame": 1204
             },
             "host_vbi_boundaries": 0,
@@ -24488,7 +24488,7 @@
             3,
             4
           ],
-          "spread_volley_frames": 1673,
+          "spread_volley_frames": 1644,
           "active_capsule_three_projectile_frames": 68,
           "active_capsule_during_booster_frames": 1886,
           "worst_legal_capsule_three_projectiles": {
@@ -24497,22 +24497,22 @@
             "frame": 249,
             "gameplay_frame": 249,
             "difficulty": 2,
-            "wall_cycles": 30243,
-            "physical_headroom": 5325,
+            "wall_cycles": 30269,
+            "physical_headroom": 5299,
             "start": {
-              "clock": 36708287,
+              "clock": 36708271,
               "host_frame": 1032,
               "scanline": 18,
-              "cycle": 59
+              "cycle": 43
             },
             "end": {
-              "clock": 36738530,
+              "clock": 36738540,
               "host_frame": 1032,
               "scanline": 283,
-              "cycle": 92
+              "cycle": 102
             },
             "next_start": {
-              "clock": 36743839,
+              "clock": 36743827,
               "host_frame": 1033
             },
             "host_vbi_boundaries": 0,
@@ -24608,11 +24608,11 @@
           "target_wall_cycles": 32422,
           "maximum_wall_cycles": 32568,
           "minimum_physical_headroom": 3000,
-          "measured_wall_cycles": 31304,
-          "measured_physical_headroom": 4264,
-          "actual_delta_cycles": -768,
-          "remaining_target_cycles": 1118,
-          "remaining_hard_cycles": 1264,
+          "measured_wall_cycles": 31310,
+          "measured_physical_headroom": 4258,
+          "actual_delta_cycles": -762,
+          "remaining_target_cycles": 1112,
+          "remaining_hard_cycles": 1258,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
           "shield_frames": 1000,
@@ -24860,7 +24860,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "75238c0cfe9e8053e54564aec4a3f7ebb77d61f83d1ea54df0280bf5162607d0"
+              "screenshot_sequence_sha256": "a1155a9bd1e829fcdfe959ec147b171f6e57a8d72dff54bf415c55ba526d7433"
             },
             {
               "id": "engine-atr-a5-1-delayed",
@@ -24930,7 +24930,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "75238c0cfe9e8053e54564aec4a3f7ebb77d61f83d1ea54df0280bf5162607d0"
+              "screenshot_sequence_sha256": "a1155a9bd1e829fcdfe959ec147b171f6e57a8d72dff54bf415c55ba526d7433"
             },
             {
               "id": "engine-atr-a5-2-immediate",
@@ -25000,7 +25000,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "e78ce02fb5f1b79096a4c17e182b69ad23144e85bf857f0c9cf1b0dd4be2c871"
+              "screenshot_sequence_sha256": "efddebe11d8ab0ddeb40abc573402870032374afecbb453fcc369dba67c3f7f3"
             },
             {
               "id": "engine-atr-a5-2-delayed",
@@ -25070,7 +25070,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "e78ce02fb5f1b79096a4c17e182b69ad23144e85bf857f0c9cf1b0dd4be2c871"
+              "screenshot_sequence_sha256": "efddebe11d8ab0ddeb40abc573402870032374afecbb453fcc369dba67c3f7f3"
             },
             {
               "id": "engine-atr-5a-0-immediate",
@@ -25280,7 +25280,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "75238c0cfe9e8053e54564aec4a3f7ebb77d61f83d1ea54df0280bf5162607d0"
+              "screenshot_sequence_sha256": "a1155a9bd1e829fcdfe959ec147b171f6e57a8d72dff54bf415c55ba526d7433"
             },
             {
               "id": "engine-atr-5a-1-delayed",
@@ -25350,7 +25350,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "75238c0cfe9e8053e54564aec4a3f7ebb77d61f83d1ea54df0280bf5162607d0"
+              "screenshot_sequence_sha256": "a1155a9bd1e829fcdfe959ec147b171f6e57a8d72dff54bf415c55ba526d7433"
             },
             {
               "id": "engine-atr-5a-2-immediate",
@@ -25420,7 +25420,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "e78ce02fb5f1b79096a4c17e182b69ad23144e85bf857f0c9cf1b0dd4be2c871"
+              "screenshot_sequence_sha256": "efddebe11d8ab0ddeb40abc573402870032374afecbb453fcc369dba67c3f7f3"
             },
             {
               "id": "engine-atr-5a-2-delayed",
@@ -25490,7 +25490,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "e78ce02fb5f1b79096a4c17e182b69ad23144e85bf857f0c9cf1b0dd4be2c871"
+              "screenshot_sequence_sha256": "efddebe11d8ab0ddeb40abc573402870032374afecbb453fcc369dba67c3f7f3"
             }
           ],
           "restart_sessions": [
@@ -25529,7 +25529,7 @@
                 143
               ],
               "screenshots": 150,
-              "screenshot_sequence_sha256": "e78ce02fb5f1b79096a4c17e182b69ad23144e85bf857f0c9cf1b0dd4be2c871"
+              "screenshot_sequence_sha256": "efddebe11d8ab0ddeb40abc573402870032374afecbb453fcc369dba67c3f7f3"
             }
           ],
           "evidence": {
@@ -25570,8 +25570,8 @@
           "screenshots_per_session": 150,
           "passed": true
         },
-        "measured_wall_cycles_dma_on": 31304,
-        "measured_physical_headroom": 4264,
+        "measured_wall_cycles_dma_on": 31310,
+        "measured_physical_headroom": 4258,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "baseline_9040_deadline_overrun_frames": 0,
@@ -25582,8 +25582,8 @@
         "baseline_9040_host_vbi_boundary_crossings": 981,
         "targeted_active_frames_crossing_host_vbi": 103,
         "targeted_host_vbi_boundary_crossings": 103,
-        "active_frames_crossing_host_vbi": 16847,
-        "host_vbi_boundary_crossings": 16847,
+        "active_frames_crossing_host_vbi": 17790,
+        "host_vbi_boundary_crossings": 17790,
         "extra_vbi_boundaries": 0,
         "behavioural_clause_failure_count": 0,
         "behavioural_clause_failures": [],
@@ -25631,25 +25631,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "4b8886dae3d2fb291f055f11ebdad6fb997006b6ee5573f7cc83705deec4c5b6"
+        "sha256": "fce37c740d685386ca148bd240d89b4748e9835ee13757b0461ca9f32286b4c7"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4"
+        "sha256": "90f3e24e4bfebde0f72f2fc02f321607a6d1989150e07763415539d10d0271c5"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "a021b374b2c5c821720cb7db89dbbe94725f3d3325f62ed1f11a0a83353a7ba5"
+    "reportSha256": "9ef1d81dbd4b0d1c78156d8297fe6981113c0648f8e90ffc0ff79481077af91a"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "4b8886dae3d2fb291f055f11ebdad6fb997006b6ee5573f7cc83705deec4c5b6"
+      "sha256": "fce37c740d685386ca148bd240d89b4748e9835ee13757b0461ca9f32286b4c7"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4"
+      "sha256": "90f3e24e4bfebde0f72f2fc02f321607a6d1989150e07763415539d10d0271c5"
     }
   }
 }

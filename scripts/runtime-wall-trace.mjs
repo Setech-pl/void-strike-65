@@ -887,7 +887,6 @@ const bossTuningSessions = [
     frames: 4_000,
     kind: "baseline-9040",
     holdPlayerLives: 3,
-    endAtSummary: true,
   }))),
 ];
 

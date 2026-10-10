@@ -909,6 +909,14 @@ static unsigned dftrace_boss_shown_pos;
  * last snapshot, for the spawn count. */
 static unsigned dftrace_boss_finale;
 static unsigned dftrace_boss_armour_left;
+/* feat/boss-r1-tuning: the boss-aim policy's view of the controller. */
+static unsigned dftrace_boss_hp;
+static unsigned dftrace_boss_kind;
+static unsigned dftrace_boss_alive;
+static unsigned dftrace_boss_exposed;
+static unsigned dftrace_boss_count;
+static unsigned dftrace_boss_module_table;
+static int dftrace_aim_target = -1;
 static unsigned char dftrace_boss_shot_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned char dftrace_boss_shot_y[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned char dftrace_boss_shot_lifetime[DFTRACE_INTERCEPTOR_SLOT_COUNT];
@@ -3681,6 +3689,61 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				stick &= 0x0du;
 		}
 	}
+	else if (strcmp(dftrace_policy, "boss-aim") == 0 && dftrace_boss_active() &&
+		dftrace_boss_hp != 0u && dftrace_boss_shown_pos != 0u) {
+		/* feat/boss-r1-tuning: the boss sector played as a player aims - fly
+		 * under a live, exposed module that is a weapon or covers a live
+		 * weapon (the plates that guard nothing are left standing, as the
+		 * defeat rule lets a player leave them), the nearest one that is in
+		 * reach now, and hold it until it falls or drifts out of reach; with
+		 * none in reach, the whole-reach sweep. A player's shot leaves the
+		 * fighter's centre (x + 8) and meets band column (x + 8 - 32 + p) / 4,
+		 * so the fighter stands at 4c + 26 - p under column c's centre. No
+		 * dodging (the sweep bot never dodged; lives are held). */
+		unsigned p = MEMORY_mem[dftrace_boss_shown_pos];
+		unsigned count = MEMORY_mem[dftrace_boss_count];
+		unsigned alive = MEMORY_mem[dftrace_boss_alive] | (MEMORY_mem[dftrace_boss_alive + 1u] << 8);
+		unsigned exposed = MEMORY_mem[dftrace_boss_exposed] | (MEMORY_mem[dftrace_boss_exposed + 1u] << 8);
+		unsigned guards = 0u, i;
+		int best = -1, best_distance = 1000;
+		unsigned best_x = x;
+		if (count > 16u) count = 16u;
+		for (i = 0u; i < count; ++i) {
+			unsigned record = dftrace_boss_module_table + 12u * i;
+			if (((alive >> i) & 1u) != 0u && MEMORY_mem[dftrace_boss_kind + i] != 0u)
+				guards |= MEMORY_mem[record + 9u] | (MEMORY_mem[record + 10u] << 8);
+		}
+		for (i = 0u; i < count; ++i) {
+			unsigned record = dftrace_boss_module_table + 12u * i;
+			unsigned column = MEMORY_mem[record] + (MEMORY_mem[record + 2u] >> 1);
+			int target = (int) (4u * column) + 26 - (int) p;
+			int distance;
+			if (((alive >> i) & 1u) == 0u || ((exposed >> i) & 1u) == 0u ||
+				MEMORY_mem[dftrace_boss_hp + i] == 0u)
+				continue;
+			if (MEMORY_mem[dftrace_boss_kind + i] == 0u && ((guards >> i) & 1u) == 0u)
+				continue;
+			target &= ~1;
+			if (target < 48 || target > 200)
+				continue;
+			distance = target > (int) x ? target - (int) x : (int) x - target;
+			if ((int) i == dftrace_aim_target)
+				distance = -1;
+			if (distance < best_distance) {
+				best_distance = distance;
+				best = (int) i;
+				best_x = (unsigned) target;
+			}
+		}
+		dftrace_aim_target = best;
+		if (best >= 0)
+			stick = x < best_x ? 0x07u : x > best_x ? 0x0bu : 0x0fu;
+		else {
+			int target_right = ((frame / 128u) & 1u) == 0;
+			stick = target_right ? (x < 190u ? 0x07u : 0x0fu) :
+				(x > 58u ? 0x0bu : 0x0fu);
+		}
+	}
 	else if ((strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
 		strncmp(dftrace_policy, "park-", 5) == 0) && dftrace_boss_active()) {
 		/* feat/boss-r1-tuning (owner smoke 2026-10-09): in the boss sector,
@@ -3700,6 +3763,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
 		strcmp(dftrace_policy, "broadside-proof") == 0 ||
 		strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
+		strcmp(dftrace_policy, "boss-aim") == 0 ||
 		strncmp(dftrace_policy, "park-", 5) == 0) {
 		int target_right = ((frame / 72u) & 1u) == 0;
 		stick = target_right ? (x < 154u ? 0x07u : 0x0fu) :
@@ -7092,6 +7156,12 @@ static void dftrace_init(void)
 	dftrace_boss_shown_pos = dftrace_env_optional("DFTRACE_BOSS_SHOWN_POS");
 	dftrace_boss_finale = dftrace_env_optional("DFTRACE_BOSS_FINALE");
 	dftrace_boss_armour_left = dftrace_env_optional("DFTRACE_BOSS_ARMOUR_LEFT");
+	dftrace_boss_hp = dftrace_env_optional("DFTRACE_BOSS_HP");
+	dftrace_boss_kind = dftrace_env_optional("DFTRACE_BOSS_KIND");
+	dftrace_boss_alive = dftrace_env_optional("DFTRACE_BOSS_ALIVE");
+	dftrace_boss_exposed = dftrace_env_optional("DFTRACE_BOSS_EXPOSED");
+	dftrace_boss_count = dftrace_env_optional("DFTRACE_BOSS_COUNT");
+	dftrace_boss_module_table = dftrace_env_optional("DFTRACE_BOSS_MODULE_TABLE");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

@@ -879,6 +879,20 @@ const bossTuningSessions = [
     holdPlayerLives: 3,
     endAtSummary: true,
   })),
+  /* boss-aim-N: the same replay, the boss sector played as a player aims
+   * (policy boss-aim: under the nearest live, exposed weapon or plate that
+   * guards one, in reach now). The fight-length proxy that does not depend on
+   * where the layout puts its modules. */
+  ...[0, 1, 2].map((difficulty) => ({
+    id: `boss-aim-${difficulty}`,
+    difficulty,
+    policy: "boss-aim",
+    fireDelay: 0,
+    frames: DIRECTOR_COMPLETION_FRAMES,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    endAtSummary: true,
+  })),
   ...[["left", 48], ["right", 200]].flatMap(([side, x]) => [0, 1, 2].map((difficulty) => ({
     id: `boss-park-${side}-${difficulty}`,
     difficulty,
@@ -4106,6 +4120,13 @@ function main() {
       // S5-2: the finale's byte (the boss_finale / boss_spawns columns).
       addressEnvironment.DFTRACE_BOSS_FINALE = hex(bossLabels, "_boss_finale");
       addressEnvironment.DFTRACE_BOSS_ARMOUR_LEFT = hex(bossLabels, "_boss_armour_left");
+      // feat/boss-r1-tuning: the boss-aim policy reads the controller's state.
+      addressEnvironment.DFTRACE_BOSS_HP = hex(bossLabels, "_boss_hp");
+      addressEnvironment.DFTRACE_BOSS_KIND = hex(bossLabels, "_boss_kind");
+      addressEnvironment.DFTRACE_BOSS_ALIVE = hex(bossLabels, "_boss_alive_lo");
+      addressEnvironment.DFTRACE_BOSS_EXPOSED = hex(bossLabels, "_boss_exposed_lo");
+      addressEnvironment.DFTRACE_BOSS_COUNT = hex(bossLabels, "_boss_count");
+      addressEnvironment.DFTRACE_BOSS_MODULE_TABLE = hex(bossLabels, "_boss_module_table");
     }
   }
 

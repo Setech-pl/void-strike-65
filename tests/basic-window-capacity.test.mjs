@@ -47,7 +47,7 @@ test("the window's free tail agrees with the linker map's Light kernel tail", ()
 // links now leave 2,075 B. The floor below is what the Director's own code
 // will be spent from over roadmap 4.6 (plan §3.1: ~2,075 B free, against a
 // Director net need of ~400 B and a 4.7 boss controller of 300-500 B).
-test("the window has room for the Director: the free tail is four digits", () => {
+test("the window has room for the Director: the free tail stays at 900 B or more", () => {
   assert.equal(basicWindow.capacityBytes, 3584,
     "Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B");
   assert.equal(basicWindow.address, 0xae00);
@@ -58,7 +58,13 @@ test("the window has room for the Director: the free tail is four digits", () =>
   // is therefore the one that matters from here on: what is left for roadmap
   // 4.7's boss controller, which §3.1 sizes at 300-500 B. 1,593 B clears that
   // three times over, and the tail is still four digits.
-  assert.ok(basicWindow.freeBytes >= 1000,
+  // RE-RECORDED 2026-10-10, feat/boss-escort-flow (owner decision AI): the
+  // floor 1,000 -> 900. The escort clock's 43 B (plan boss-escort-flow §5,
+  // shown to the owner as "965 free" before the choice) take the tail to three
+  // digits. What the floor protects - room for 4.7's boss controller, 300-500 B
+  // - still clears; that controller lives in slot C since M5b, so the window's
+  // tail is now general headroom.
+  assert.ok(basicWindow.freeBytes >= 900,
     `the BASIC window reports ${basicWindow.freeBytes} free bytes; 4.7's boss ` +
     `controller needs 300-500 of them`);
   // Re-recorded 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 1,593 -> 1,480.
@@ -89,8 +95,13 @@ test("the window has room for the Director: the free tail is four digits", () =>
   // link's last segment (HUD_BOOSTER_BACKUP, behind the disk guard and the
   // capital vector image), so neither the window's Director half nor the
   // kernel moved; the entry half reaches it by a pin.
-  assert.equal(basicWindow.freeBytes, 1008,
-    "the delivered S5-1 figure, re-recorded so a silent change is visible");
+  // Re-recorded feat/boss-escort-flow (owner decision AI): 1,008 -> 965. The
+  // 43 B are the Director's escort clock, director_c_boss_escort_frame, in
+  // HYBRID_C_WINDOW_FLOW (the window's last segment), so the Light C keeps its
+  // addresses and the kernel above moves by 43 B; the entry half's pin on the
+  // HUD backup moves with it ($B802 -> $B82D).
+  assert.equal(basicWindow.freeBytes, 965,
+    "the delivered boss-escort-flow figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
 });

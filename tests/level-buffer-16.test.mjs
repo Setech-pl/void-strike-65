@@ -62,7 +62,10 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // 19 B - so the window's free tail is 1,316 (plan ~157 B, STOP +20 %).
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted +163 B): 1,497 ->
   // 1,660 - the Director's sector-flow verdicts (docs/plans/sector-flow.md).
-  assert.equal(window.directorHalfBytes, 1660, "the Light C, the cold Director half, step 5, the boss entry, sector flow");
+  // RE-PINNED 2026-10-10, feat/boss-escort-flow (owner decision AI, plan
+  // boss-escort-flow §5): +43 B in HYBRID_C_WINDOW_FLOW - the Director's escort
+  // clock, director_c_boss_escort_frame (the Light kernel above it moves).
+  assert.equal(window.directorHalfBytes, 1703, "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock");
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
   // RE-PINNED 2026-10-07, audit-hardening (owner Q2): the kernel link 771 ->
@@ -74,9 +77,9 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // segment of its own behind the capital vector image; the kernel's own
   // segment, its address and the Director half are unchanged.
   assert.equal(window.lightKernelBytes, 916);
-  assert.equal(window.usedBytes, 2576);
-  assert.equal(window.freeBytes, 3584 - 2576);
-  assert.equal(window.freeBytes, 1008, "the tail S5-1 leaves");
+  assert.equal(window.usedBytes, 2619);
+  assert.equal(window.freeBytes, 3584 - 2619);
+  assert.equal(window.freeBytes, 965, "the tail the boss escort's clock leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
@@ -91,7 +94,9 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // RE-PINNED 2026-10-04 (M5b-S3): 1,369 -> 1,497 raw B, 9 -> 10 sectors.
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted): 1,497 -> 1,660
   // raw B, 10 -> 11 sectors - the sector-flow verdicts.
-  assert.equal(window.transport.rawBytes, 1660, "the window record carries steps 2-5, the boss entry and sector flow");
+  // RE-PINNED 2026-10-10, feat/boss-escort-flow (owner decision AI): 1,660 ->
+  // 1,703 raw B, still 11 sectors (1,373 packed: 14 B to the twelfth).
+  assert.equal(window.transport.rawBytes, 1703, "the window record carries steps 2-5, the boss entry, sector flow and the escort clock");
   // The transport rule of plan §3.3 and owner decision 6: this step may not
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that

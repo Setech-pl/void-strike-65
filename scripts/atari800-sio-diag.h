@@ -108,9 +108,13 @@ void voidstrike65_sio_event(int kind, int value)
 static void dfsio_exit(const char *why, unsigned pc)
 {
 	unsigned index;
-	fprintf(dfsio_file, "STOP %s pc=%04x f=%u y=%d i=%d nmien=%02x irqen=%02x portb=%02x colbk=%02x sio_events=%u\n",
+	/* fix/hardware-audio: the last SKCTL and AUDCTL written. POKEY_SKCTL is the
+	 * write register, not SKSTAT; bit 4 set (asynchronous receive) stops
+	 * channels 3 and 4 on a real POKEY, which Atari800 does not model. */
+	fprintf(dfsio_file, "STOP %s pc=%04x f=%u y=%d i=%d nmien=%02x irqen=%02x portb=%02x colbk=%02x sio_events=%u skctl=%02x audctl=%02x\n",
 		why, pc, (unsigned) Atari800_nframes, ANTIC_ypos, (CPU_regP & 0x04) ? 1 : 0,
-		ANTIC_NMIEN, POKEY_IRQEN, PIA_PORTB | PIA_PORTB_mask, GTIA_COLBK, dfsio_events);
+		ANTIC_NMIEN, POKEY_IRQEN, PIA_PORTB | PIA_PORTB_mask, GTIA_COLBK, dfsio_events,
+		POKEY_SKCTL, POKEY_AUDCTL[0]);
 	fprintf(dfsio_file, "DCB ddevic=%02x dunit=%02x dcomnd=%02x dstats=%02x dbuf=%04x dtimlo=%02x dbyt=%04x daux=%04x status=%02x\n",
 		MEMORY_mem[0x300], MEMORY_mem[0x301], MEMORY_mem[0x302], MEMORY_mem[0x303],
 		MEMORY_mem[0x304] | (MEMORY_mem[0x305] << 8), MEMORY_mem[0x306],

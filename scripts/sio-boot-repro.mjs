@@ -17,10 +17,16 @@
 //   node scripts/sio-boot-repro.mjs [--atr=dist/void-strike-65.atr]
 //     [--atari800-source=build/atari800-trace] [--frames=N] [--only=nopatch]
 //     [--labels=build] [--json=build/sio-boot-repro.json] [--start-game]
+//     [--stop=frames] [--out=build/sio-boot-repro]
 //
 // --labels=build resolves the milestone PCs from build/void-strike-65.lbl and
-// build/sector-reader.lbl (they must belong to the ATR); --labels=none uses only
-// the label-free stops (the red halt, the frame budget) for older ATRs.
+// build/sector-reader.lbl (they must belong to the ATR); --labels=<directory>
+// reads the same two files from a variant's build directory (for example
+// build/audio-probe-P1); --labels=none uses only the label-free stops (the red
+// halt, the frame budget) for older ATRs. Every STOP line carries the last
+// SKCTL and AUDCTL written (fix/hardware-audio). --stop=frames runs the whole
+// --frames budget instead of stopping at the menu or main_loop, so the
+// screenshot and the POKEY state are the ones on screen at that frame.
 // --start-game presses FIRE from the main menu on and stops at main_loop, so the
 // run covers START GAME, the game's own direct-SIO reader and the summary.
 // --probe=dstats boots a probe copy of the ATR instead (never written to dist/):
@@ -126,7 +132,9 @@ export function parseSioLog(text) {
       marks.push({ pc: Number.parseInt(fields.pc, 16), frame: Number(fields.f) });
     } else if (line.startsWith("STOP ")) {
       stop = { reason: line.split(" ")[1], pc: Number.parseInt(fields.pc, 16), frame: Number(fields.f),
-        colbk: Number.parseInt(fields.colbk, 16) };
+        colbk: Number.parseInt(fields.colbk, 16),
+        skctl: fields.skctl === undefined ? null : Number.parseInt(fields.skctl, 16),
+        audctl: fields.audctl === undefined ? null : Number.parseInt(fields.audctl, 16) };
     } else if (line.startsWith("DCB ")) {
       dcb = fields;
     }
@@ -163,7 +171,9 @@ export function summariseRun(parsed, labels) {
   }
   return {
     stop: parsed.stop ? { reason: parsed.stop.reason, pc: `$${hex(parsed.stop.pc)}`,
-      label: name.get(parsed.stop.pc) ?? null, frame: parsed.stop.frame } : null,
+      label: name.get(parsed.stop.pc) ?? null, frame: parsed.stop.frame,
+      skctl: parsed.stop.skctl === null ? null : `$${hex(parsed.stop.skctl).padStart(2, "0")}`,
+      audctl: parsed.stop.audctl === null ? null : `$${hex(parsed.stop.audctl).padStart(2, "0")}` } : null,
     command_frames: parsed.transactions.length,
     read_commands: reads.length,
     sectors_read: bySector.size,
@@ -184,11 +194,14 @@ export function summariseRun(parsed, labels) {
   };
 }
 
+// "build" (the default build's labels), "none", or a variant's build
+// directory (e.g. build/audio-probe-P1), whose labels belong to its ATR.
 function loadLabels(mode) {
   if (mode === "none") return new Map();
   const labels = new Map();
+  const directory = path.resolve(rootDirectory, mode === "build" ? "build" : mode);
   for (const file of ["void-strike-65.lbl", "sector-reader.lbl"]) {
-    const labelPath = path.join(rootDirectory, "build", file);
+    const labelPath = path.join(directory, file);
     invariant(fs.existsSync(labelPath), `${labelPath} is missing (build first, or pass --labels=none)`);
     for (const [label, address] of parseViceLabels(fs.readFileSync(labelPath, "utf8"))) labels.set(label, address);
   }
@@ -231,14 +244,17 @@ export function buildDstatsProbe(atrBytes, labels) {
 const MILESTONES = ["start", "show_loader", "enter_main_menu", "start_gameplay",
   "sector_reader_load", "sector_reader_settle", "sector_reader_failure_screen", "main_loop"];
 
-export function runScenario({ emulator, atr, patch, basic, frames, labels, startGame, outputDirectory, id }) {
+export function runScenario({ emulator, atr, patch, basic, frames, labels, startGame, outputDirectory, id,
+  frameStop = false }) {
   const media = path.join(outputDirectory, `${id}.atr`);
   fs.copyFileSync(atr, media);
   const logPath = path.join(outputDirectory, `${id}.log`);
   const pc = (name) => labels.has(name) ? hex(labels.get(name)) : null;
   // boot_stage2_error is not a stop: its address is resident code after the
   // overlay is replaced. The header's red-halt detector catches its halt.
-  const stops = [startGame ? pc("main_loop") : pc("enter_main_menu"),
+  // frameStop (--stop=frames): run the whole frame budget, for a screenshot of
+  // the screen that is up then (the menu, the game) and the POKEY state there.
+  const stops = [frameStop ? null : startGame ? pc("main_loop") : pc("enter_main_menu"),
     pc("sector_reader_failure_screen")].filter(Boolean);
   const marks = MILESTONES.map(pc).filter(Boolean);
   const env = {
@@ -268,6 +284,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const frames = Number(option("frames", "6000"));
   const only = option("only", "");
   const startGame = process.argv.includes("--start-game");
+  const frameStop = option("stop", "") === "frames";
   const labels = loadLabels(option("labels", "build"));
   const outputDirectory = path.resolve(rootDirectory, option("out", "build/sio-boot-repro"));
   fs.mkdirSync(outputDirectory, { recursive: true });
@@ -286,7 +303,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (only === "patch" && !patch) continue;
     for (const basic of [false, true]) {
       const id = `${patch ? "patch" : "nopatch"}-${basic ? "basic" : "nobasic"}`;
-      const result = runScenario({ emulator, atr, patch, basic, frames, labels, startGame, outputDirectory, id });
+      const result = runScenario({ emulator, atr, patch, basic, frames, labels, startGame, outputDirectory, id,
+        frameStop });
       results.push(result);
       const m = result.milestones;
       console.log(`${id.padEnd(16)} stop=${result.stop?.reason}@${result.stop?.label ?? result.stop?.pc} f${result.stop?.frame}` +
@@ -294,7 +312,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         ` retried=${result.sectors_retried} NAK=${result.naks} ERR=${result.errors} noreply=${result.no_reply}` +
         ` C-without-data=${result.complete_without_data_frame} SIOV-dstats!=40=${result.siov_read_calls_dstats_not_40}` +
         ` loader=${m.show_loader ?? "-"} menu=${m.enter_main_menu ?? "-"} level-read=${m.sector_reader_load ?? "-"}` +
-        ` gameplay=${m.main_loop ?? "-"} host=${result.host_seconds}s`);
+        ` gameplay=${m.main_loop ?? "-"} skctl=${result.stop?.skctl ?? "-"} audctl=${result.stop?.audctl ?? "-"}` +
+        ` host=${result.host_seconds}s`);
     }
   }
   const report = { atr: path.relative(rootDirectory, atr), atr_sha256: atrSha, probe, frames, start_game: startGame,
@@ -302,7 +321,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const jsonPath = option("json", path.join(outputDirectory, "report.json"));
   fs.writeFileSync(path.resolve(rootDirectory, jsonPath), `${JSON.stringify(report, null, 2)}\n`);
   const target = startGame ? "main_loop" : "enter_main_menu";
-  const failed = results.filter(({ patch, stop }) => !patch && stop?.label !== target);
+  const failed = frameStop
+    ? results.filter(({ patch, stop }) => !patch && stop?.reason === "pc")
+    : results.filter(({ patch, stop }) => !patch && stop?.label !== target);
   if (failed.length > 0) {
     console.error(`FAIL: ${failed.map(({ id, stop }) => `${id} ended at ${stop?.reason} ${stop?.label ?? stop?.pc}`).join("; ")}`);
     process.exit(1);

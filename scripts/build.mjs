@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
+import { installAudioProbe, parseAudioProbe } from "./audio-probe.mjs";
 import {
   guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
   renderGuardInclude, renderSumTable,
@@ -340,7 +341,13 @@ const levelDebugSector = levelDebugMatch === null
 if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
   throw new Error(`--level=${levelDebugId} is outside 1..16`);
 }
-const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
+// fix/hardware-audio (docs/diagnostics/hardware-audio.md): --audio-probe=P0..P5
+// builds one real-hardware audio probe - the default build with in-memory
+// source edits and the probe's name in the menu title. Review variant:
+// build/audio-probe-<id>/, never dist/, no runtime measurement, no gate.
+const audioProbeId = parseAudioProbe(process.argv);
+const audioProbe = audioProbeId === null ? null : installAudioProbe(rootDirectory, audioProbeId);
+const isReviewVariant = audioProbeId !== null || enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null;
@@ -359,7 +366,9 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 const levelDebugSuffix = levelDebugId === null
   ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
     `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = laserFixtureTier !== null
+const variantDirectoryName = audioProbeId !== null
+  ? `audio-probe-${audioProbeId}`
+  : laserFixtureTier !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
@@ -3950,7 +3959,8 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null
+    buildVariant: audioProbeId !== null || playerColourValue !== null || bomberColourValue !== null ||
+      laserFixtureTier !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -5364,6 +5374,7 @@ async function build() {
   writeFile(path.join(artifactDirectory, "void-strike-65-manifest.json"), manifestBytes);
 
   if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
+  audioProbe?.assertConsumed();
 
   if (!quiet) {
     console.log(candidateBuild
@@ -5375,7 +5386,10 @@ async function build() {
     console.log(`  entry   : $${startAddress.toString(16)}`);
     console.log(`  ATR     : ${atr.length} bytes`);
     console.log(`  staging : $${packedResidentStagingAddress.toString(16)} reused after BROADSIDE publish`);
-    if (enemyReviewHarness) {
+    if (audioProbe !== null) {
+      console.log(`  variant : audio probe ${audioProbeId} - ${audioProbe.summary}`);
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (enemyReviewHarness) {
       console.log(`  variant : compile-time enemy review harness`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (enemyCombatReviewHarness) {

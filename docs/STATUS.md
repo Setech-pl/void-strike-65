@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-10 (fix/hardware-audio: on a real 65XE channels 3 and 4 were silent - the menu's melody and arpeggio, the shots, the engine hum, the capital-hull explosions, the boss hum and ticks - because the OS's SIO and the sector reader left SKCTL = $13, whose bit 4 (asynchronous receive) holds POKEY's timers 3 and 4 in reset; Atari800 does not model the hold; the owner's probe test confirmed it; F1 the reader's rest value $03 (0 B), F2 SKCTL $03 once before the first menu (+5 B ENTITY_CODE, initial block 13,618 -> 13,623 B, 29 B to the STOP); gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, part of the v0.2.3 release gate; before it fix/hardware-boot: no ATR had ever booted on a real machine - stage 2 armed the OS SIOV's receive direction (DSTATS) once per chunk, so a real 65XE stopped on the red halt about 15 s after power-on, every ATR from e1614e7 to v0.2.2; Atari800's SIO patch hid it from every committed run; F1 re-arms DSTATS before every SIOV call (0 B), R7 the reader's settle 2 -> 5 frames (0 B); the boot smoke runs real SIO (-nopatch), every other launch pins the patch on; boot to menu 1,351 frames (27.0 s) under real SIO; gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, the release gate for v0.2.3; before it feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-10 (feat/boss-r1-tuning: the owner's smoke of 2026-10-09 - the player hid at a screen edge of region 1's boss, the guns too durable - and the owner's decisions of 2026-10-10: variant B, guns at the far ends (gun-5 behind plate-a, gun-6 behind plate-h), every gun 28 -> 14 HP (the emitter 20), plates a and h 16 -> 12, one Light escort stream in the boss sector, six Light-class escorts one at a time (replaces "no Light escort in R1"); the fight measured with the aiming bot in the boss sector as a ratio against main's plain sweep - 91.8 / 118.1 / 139.9 s (E / M / H); the look tail at its 110 B cap accepted; regions 2-4's loading screens show the gun rows; README v0.2.3; worst fence margin 1,447 and DMA-on 31,304 unchanged, boss frames 6,026 / 30,029, boss stress 6,965, entry 245 - OWNER-SMOKE CANDIDATE; before it fix/hardware-audio: on a real 65XE channels 3 and 4 were silent - the menu's melody and arpeggio, the shots, the engine hum, the capital-hull explosions, the boss hum and ticks - because the OS's SIO and the sector reader left SKCTL = $13, whose bit 4 (asynchronous receive) holds POKEY's timers 3 and 4 in reset; Atari800 does not model the hold; the owner's probe test confirmed it; F1 the reader's rest value $03 (0 B), F2 SKCTL $03 once before the first menu (+5 B ENTITY_CODE, initial block 13,618 -> 13,623 B, 29 B to the STOP); gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, part of the v0.2.3 release gate; before it fix/hardware-boot: no ATR had ever booted on a real machine - stage 2 armed the OS SIOV's receive direction (DSTATS) once per chunk, so a real 65XE stopped on the red halt about 15 s after power-on, every ATR from e1614e7 to v0.2.2; Atari800's SIO patch hid it from every committed run; F1 re-arms DSTATS before every SIOV call (0 B), R7 the reader's settle 2 -> 5 frames (0 B); the boot smoke runs real SIO (-nopatch), every other launch pins the patch on; boot to menu 1,351 frames (27.0 s) under real SIO; gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, the release gate for v0.2.3; before it feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -89,6 +89,8 @@ released.** Section "ATR-only build" below.
 **S5-1 — the boss platform for regions 2-4 — built (2026-10-09, `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`)** (section "S5-1" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.1): the 64 KB machine everywhere, slot F, regions 2-4 on the disk, the booster bar through the boss entry; boss stress with a spawn 6,895 (R1) / 7,744 (fixture) of 8,500 after the owner's decision §AG; every gate and 45 of 57 replays unchanged frame for frame; ATR `67d95ed8…`.
 
 **S5-2 — the boss finale — built (2026-10-09, `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`)** (section "S5-2" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.2): when the last armour module falls every weapon still standing fires three-shot volleys (x−1, x, x+1) at half its reload, never under the region's `fire.finaleCooldown`; off in region 1 (Q6), on (12) in the region 2–4 placeholders; slot C 1,663 → 1,648 B (13 sectors) with behaviour-preserving trims; boss stress 6,910 (R1) / 7,784 (fixture) / 6,682 (the finale's layouts) of 8,500; every gate unchanged, 46 of 58 replays identical to `main` frame by frame; ATR `70063213…`.
+
+**Region 1's boss tuning — far-end guns, half-durability guns, a Light escort — built (2026-10-10, `feat/boss-r1-tuning`, `OWNER-SMOKE CANDIDATE`)** (section "Region 1's boss tuning" below; plan [plans/boss-r1-tuning.md](plans/boss-r1-tuning.md); journal §AH): the owner's variant B. The coverage map has no safe position. The fight's length is now measured with the aiming bot in the boss sector, as a ratio against `main`'s plain sweep: 91.8 / 118.1 / 139.9 s (E / M / H). Worst fence margin 1,447 and DMA-on 31,304 unchanged; boss frames 6,026 / 30,029 with the escort; boss stress 6,965; entry 245; initial block unchanged; ATR `020fea98…`.
 
 **Hardware audio — channels 3 and 4 play on a real machine — built (2026-10-10, `fix/hardware-audio`, `OWNER-SMOKE CANDIDATE`, part of the v0.2.3 gate)** (section "Hardware audio" below; diagnosis [diagnostics/hardware-audio.md](diagnostics/hardware-audio.md)): `SKCTL = $13` left by the OS's SIO and the sector reader held POKEY's timers 3 and 4 on hardware, silencing the menu's melody and arpeggio and every channel-3/4 effect; the reader's rest value `$03` (F1, 0 B) and `$03` once before the first menu (F2, +5 B `ENTITY_CODE`, initial block **13,623 B**, 29 B to the STOP); confirmed by the owner's probe test; gameplay frame-identical to `main`; ATR `75cf839c…`.
 
@@ -367,6 +369,111 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Region 1's boss tuning — far-end guns, half-durability guns, a Light escort; the aiming bot measures the fight — `OWNER-SMOKE CANDIDATE` (2026-10-10)
+
+**Branch and plan:** `feat/boss-r1-tuning` from `main` `dcc331a`;
+[plans/boss-r1-tuning.md](plans/boss-r1-tuning.md) (Phase A §1–§7, as built §8).
+Owner decisions: journal §AH.
+
+**The owner's smoke of 2026-10-09:** the player hid at a screen edge and
+survived there indefinitely; the guns were too durable and the fight got
+boring. MEASURED on `main`: a fighter parked at HPOS 48 and firing took 0 hits
+in 80 s of fight on every difficulty. The coverage model
+(`npm run boss:coverage`) showed x 48–54 out of every weapon's reach even with
+every weapon exposed.
+
+**Variant B, chosen by the owner on 2026-10-10 after playing the comparison
+builds:**
+* two pulse guns at the boss's far ends, gun-5 behind plate-a (x 12–14) and
+  gun-6 behind plate-h (x 50–52), drawn with gun-1's art;
+* every gun 28 → 14 hit points, the emitter 20 unchanged;
+* plate-a and plate-h 16 → 12;
+* one Interceptor stream in level 1's boss sector (`lights: 1`, 6 escorts,
+  spacing 100, one live at a time). This replaces "no Light escort in R1"
+  (m5-loading-boss owner answer 4).
+
+The coverage map has no safe position with every weapon exposed, in region 1
+and in its copies (regions 2–4, with and without the finale). Parked at the
+left edge on the comparison build, the fighter took 4 / 5 / 5 hits in 80 s
+(E / M / H; variant A without the escort: 0 / 0 / 1).
+
+**The fight's length (owner decision 2026-10-10):** measured with the aiming
+bot (`boss-aim`) in the boss sector. It is the sweep, frame for frame, until
+the boss entry; then it stands under the nearest live, exposed weapon or the
+plate that guards one, leading it for the drift. The length is read as a ratio
+against `main`'s plain-sweep replay. The director-complete replays switch to
+this bot in the boss sector only; every frame before the boss is unchanged.
+
+| | `main` (plain sweep) | after (boss-aim, as the ratio) |
+| --- | --- | --- |
+| EASY / MEDIUM / HARD | 76.7 / 92.2 / 119.3 s | **91.8 / 118.1 / 139.9 s** (raw 44.2 / 57.1 / 62.5 s; `main`'s layout under the same bot 36.9 / 44.6 / 53.3) |
+| bot deaths, whole replay (lives held) | 3 / 6 / 6 | 3 / 2 / 2 |
+| bot deaths in the boss sector | 1 / 4 / 5 | 1 / 0 / 1 |
+| escort: fight frames with a Light live / most live | — | 414 / 340 / 408, at most 1 |
+
+**Gates.**
+* 57 replays, 0 clause failures, 0 miss events, PAL audit PASS.
+* Worst fence margin **1,447** (`2-sweep-fire6`) and DMA-on **31,304**,
+  unchanged.
+* Boss frames: worst margin 10,017 → **6,026** (a Light-live frame,
+  `director-complete-2` f3,292), DMA-on 29,238 → **30,029**. Inside GO and
+  the hard gate; boss frames are not the binding rows.
+* Boss stress, reachable worst (limit 8,500): region 1 6,910 → **6,965**;
+  the region 2–4 finale copies 6,682 → **6,657**; the tier-4 fixture
+  7,784 / 6,994 → **7,805 / 7,015**; with the finale 7,034 / 6,217 →
+  **7,115 / 6,337**. The escort runs in the Light kernel, outside the boss's
+  own sum.
+* Boss entry 64 sectors, **245** host frames (12 entries).
+
+**Budgets.**
+* Modules 13 → **15** of 16; charset codes 122 of 128, unchanged.
+* The look tail 98 → **110 B**, at the owner's E4 cap (accepted 2026-10-10;
+  `$5200–$526D`).
+* Slot C, slot D, slot E (its 200 B torpedo reserve) and the initial block
+  (13,623 B, 107 sectors) unchanged. 15 boot-image bytes differ, all checksums.
+* Level 1: 9 waves (+1).
+
+**Also in this session:**
+* Regions 2–4's loading screens show the hull's gun rows: `segmentRow`
+  10 / 16 / 22 → 4, the framing region 1 has. This closes the S5-1 review
+  backlog item.
+* README / README.pl: "Plays release v0.2.3" (Setech Arcade pins v0.2.3).
+
+**The evidence.** The replay frames total 132,810 → 123,451 (the aimed fights
+are shorter). `lower-playfield-laser-contact-atr-hard` no longer finishes the
+fight inside its budget, so its second START summary and its post-boss hull
+rebuild are gone; its clauses pass. The menu raster keeps its pin; the GIF and
+the gallery are byte-identical.
+
+**Tooling (debug routes only):**
+* `npm run boss:coverage` (`scripts/boss-coverage.mjs`, MODEL);
+* `scripts/boss-r1-variants.mjs` (the comparison drafts) and
+  `node scripts/build.mjs --boss-variant=NAME`;
+* `npm run boss:preview -- --variant=NAME`;
+* the bot policies `boss-aim`, `sweep-boss-wide` and `park-X`, with sessions
+  `boss-aim-N`, `boss-fight-N` and `boss-park-SIDE-N` on
+  `build/[boss-variant-NAME-]level-1-sM`;
+* `scripts/measure-boss-fight.mjs`.
+
+**Tests.**
+* New: `tests/boss-r1-tuning.test.mjs`, 9 tests. On `main`'s data: the six
+  of Phase B's first commit RED, and the escort and plate tests RED. All 9
+  GREEN.
+* Re-pointed with their reasons in place: `boss-cover-rule`, `boss-fire-rule`,
+  `boss-fortress`, `boss-lasers`, `boss-lasers-s44`, `boss-look-tail` (E4
+  digests from `main`'s art), `level-compiler` T12, `level-one-equivalence`,
+  `audit-hardening` AUD-02. No clause weakened.
+* `npm test` on the default build: twice after the last change, **1,287 / 1,286 / 1 / 0
+  skipped** both times; the failure is the recorded `preview`
+  (`tests/preview.test.mjs:164`). `npm run failures:reconcile` PASS on both runs
+  and the trace (0 NEW, 0 MOVED, 0 disappeared). The first full run after the
+  evidence binding found one NEW failure, `audit-hardening` AUD-02's module count
+  13, re-pointed to 15.
+
+**ATR** `020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4`,
+**boot** `4b8886dae3d2fb291f055f11ebdad6fb997006b6ee5573f7cc83705deec4c5b6`.
+Smoke checklist: [hardware-testing.md](hardware-testing.md) §25.
 
 ## Hardware audio — SKCTL leaves async receive off at the menu and after every load — `OWNER-SMOKE CANDIDATE` (2026-10-10)
 
@@ -7151,13 +7258,6 @@ started without owner instruction.
   `:912-914`, each annotated "RECORDED AS VACUOUS". Make them computed from
   the rows (or retire them as history); the live per-frame gates today are
   `weapon_pickup_shield` and the PAL audit in `gate.timing_and_dli_passed`.
-
-- **The loading screen's hull art for regions 2-4 shows hull rows without the
-  gun emplacements** (S5-1 review finding, recorded by S5-2, 2026-10-09; not
-  fixed). `assets/graphics/level-summary.json` `segmentRow` 10 / 16 / 22 for
-  regions 2 / 3 / 4 (region 1: 4) picks capital-hull rows with no turret; data
-  only (the converter `scripts/level-summary-assets.mjs` reads the rows from
-  `assets/graphics/capital-hulls.json`). For M7 or the `v0.3.0` prep.
 
 - **Hull style by level: 16-level quarters in play, three-level regions on the
   loading screen and the boss** (S5-1 review finding, recorded by S5-2,

@@ -1906,6 +1906,53 @@ osiągalne: region 1 **6 895**, fixture ostrzeżenie **7 744**, wiązka
 
 ---
 
+## AH. BOSS REGIONU 1 — DZIAŁA NA SKRAJACH, POŁOWA WYTRZYMAŁOŚCI DZIAŁ, ESKORTA INTERCEPTORA — decyzje właściciela po smoke'u (2026-10-09 / 2026-10-10)
+
+Plan i pomiary: `docs/plans/boss-r1-tuning.md`. Gałąź `feat/boss-r1-tuning`.
+
+**Ustalenia ze smoke'u (2026-10-09, Blockade Breaker):**
+
+1. Działa stoją za blisko środka: gracz chowa się przy lewej albo prawej
+   krawędzi ekranu i przeżywa tam bez końca. Działa mają stać na skrajach bossa,
+   tak by żadna osiągalna pozycja nie była bezpieczna (właściciel: Interceptor
+   też mógłby pomóc).
+2. Działa są za wytrzymałe i walka się nudzi: wytrzymałość dział o połowę,
+   emiter lasera bez zmian.
+
+**Pomiar przed decyzją (ZMIERZONE, Atari800):** na `main` myśliwiec
+zaparkowany przy HPOS 48 i strzelający dostał **0 / 0 / 0** trafień w 80 s
+walki (E / M / H); przy HPOS 200 — 1 / 1 / 2. Wariant A (działa przy skrajach,
+bez eskorty) spełnia mapę pokrycia (brak bezpiecznej pozycji przy wszystkich
+odsłoniętych broniach), ale zaparkowany gracz dostał 0 / 0 / 1 — zabija
+płytę i działo na skraju w ok. 15 s. Wariant B (A + eskorta): **4 / 5 / 5**.
+
+**Decyzje (2026-10-10):**
+
+1. **Wariant B:** działa gun-5 i gun-6 na skrajach, za plate-a i plate-h;
+   wszystkie działa 28 → 14 PW, emiter 20; **jeden strumień Interceptorów w
+   sektorze bossa poziomu 1** (`lights: 1`, 6 eskort, odstęp 100 klatek, jeden
+   naraz); plate-a i plate-h 16 → 12, żeby MEDIUM mieściło się w 90–120 s.
+   **Zastępuje decyzję „bez eskorty Light w R1”** (`docs/plans/m5-loading-boss.md`).
+2. **Długość walki odtąd mierzy bot celujący** (`boss-aim`) w sektorze bossa,
+   czytany jako stosunek do starej powtórki `main` (zwykły sweep): szacunek =
+   długość sweepu na `main` × (bot celujący na wariancie / bot celujący na
+   `main`). Powtórki pełnego poziomu przełączają się na tego bota **tylko w
+   sektorze bossa**; wszystko przed bossem bez zmian. Reguła bez zmian: MEDIUM
+   90–120 s, EASY krócej, HARD nie krócej.
+3. **Ogon wyglądów (look tail) na limicie 110 B** (decyzja E4): przyjęty.
+   Każdy kolejny otwarty wygląd wymaga przycięcia albo decyzji.
+
+**Wynik (`feat/boss-r1-tuning`):** wariant B zbudowany. Mapa pokrycia bez
+bezpiecznej pozycji (region 1 i kopie 2–4); walka botem celującym, jako
+stosunek do starego sweepu: **91,8 / 118,1 / 139,9 s** (E / M / H); eskorta
+żywa w 414 / 340 / 408 klatkach walki, nigdy więcej niż jeden Light; stres
+bossa osiągalny **6 965** (limit 8 500); wejście 64 sektory, 245 klatek hosta;
+najgorszy margines klatek bossa 10 017 → **6 026** (Light żywy), DMA-on
+29 238 → 30 029; najgorszy margines całości 1 447 bez zmian. ATR
+`020fea98…`, boot `4b8886da…`. `OWNER-SMOKE CANDIDATE`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

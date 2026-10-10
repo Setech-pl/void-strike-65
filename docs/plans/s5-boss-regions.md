@@ -953,6 +953,26 @@ the decision journal as §AF.
 | Q9 | **Yes**: slot F at `$5200–$53FF`, with a write-watch proof | §2.7, §4.1, S5-1 |
 | Q10 | **Yes**: regions 2–4 as copies of region 1 after S5-1 | S5-1 |
 
+### 7.2 Region 1's boss tuning (2026-10-09 / 2026-10-10)
+
+The owner's smoke of region 1's Blockade Breaker on 2026-10-09 found two things.
+The player could hide at a screen edge, and the guns were too durable. The
+owner's decisions of 2026-10-10 (journal §AH; plan
+[boss-r1-tuning.md](boss-r1-tuning.md)):
+* **variant B**: far-end guns gun-5 and gun-6 behind plate-a and plate-h; every
+  gun 28 → 14, the emitter 20; plates a and h 16 → 12; one Interceptor stream in
+  region 1's boss sector (`lights: 1`, 6 escorts, spacing 100), replacing "no
+  Light escort in R1";
+* **the fight's length is measured with the aiming bot** (`boss-aim`) in the
+  boss sector, as a ratio against `main`'s plain-sweep replay; the
+  director-complete replays switch to it in the boss sector only;
+* the look tail at its 110 B cap is accepted.
+
+The later region sessions inherit three things. Regions 2–4 are copies of this
+region 1: 15 modules, the look tail full, the escort in level 1's data only. The
+tier-4 laser fixture is at the 16-module limit. The fight-length rule is read by
+the aiming bot's ratio.
+
 ---
 
 ## 8. What this document did not do

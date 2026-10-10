@@ -1,9 +1,10 @@
 # Region 1's boss tuning — far-end guns, halved gun durability, an optional escort
 
 **Branch:** `feat/boss-r1-tuning` from `main` `dcc331a` (ATR `75cf839c…`, boot
-`7c44df1a…`). **Status:** Phase A, comparison builds for the owner,
-`OWNER DECISION REQUIRED`. No committed change to `src/`, `assets/` or `dist/`.
-Tooling only (commits `ea7306c` … this one).
+`7c44df1a…`). **Status:** the owner chose **variant B** on 2026-10-10 (§6.1).
+It is implemented, pending the owner's smoke (§8): `OWNER-SMOKE CANDIDATE`,
+ATR `020fea98…`, boot `4b8886da…`. §1–§7 are the Phase A record; their
+`build/play/` copies are the comparison builds.
 
 **The owner's smoke findings (2026-10-09, Blockade Breaker):**
 1. The guns sit too close to the middle. The player can hide at the left or right
@@ -228,6 +229,14 @@ and adds 0 code bytes.
 | Q2 | The fight-length proxy for the 90–120 s rule from now on (the plain sweep cannot finish a far-end layout) | **the aim bot, read as the ratio against `main`'s plain sweep** (§4.2); the director-complete replays switch their boss sector to `boss-aim` (class (a): the scenario moves, no clause weakens; every frame before the boss unchanged) |
 | Q3 | The look tail at the E4 cap (110 / 110 B) | accept; any later open look needs a trim or a decision |
 
+### 6.1 The owner's answers (2026-10-10, journal §AH)
+
+| # | Answer |
+| ---: | --- |
+| Q1 | **B**, with plate-a and plate-h trimmed 16 → 12 so MEDIUM lands within 90–120 s by the aiming bot. B **replaces the earlier "no Light escort in R1"** (m5-loading-boss §5.15.6 answer 4, annotated there). |
+| Q2 | **The aiming bot**, read as a ratio against `main`'s plain-sweep replay. The full-level replays switch to it inside the boss sector only; everything before the boss stays identical. |
+| Q3 | **Accepted**: the look tail at its 110 B cap. |
+
 ## 7. Phase B (after the choice)
 
 The tests come first: RED on `main`, GREEN after.
@@ -243,3 +252,73 @@ Then:
   (the gun emplacement) are shown;
 * the evidence in the usual order;
 * the owner's findings and choice recorded in the decision record and the S5 plan.
+
+## 8. As built (Phase B, 2026-10-10) — `OWNER-SMOKE CANDIDATE`
+
+**Implemented, pending the owner's smoke** ([hardware-testing.md](../hardware-testing.md)
+§25). ATR `020fea98806c92b83d313e0edb4c5a0f497aaf6c8eea22f52ec875d40c155df4`,
+boot `4b8886dae3d2fb291f055f11ebdad6fb997006b6ee5573f7cc83705deec4c5b6`.
+
+**The data.**
+* `assets/graphics/boss-regions/region-1/`: gun-5 and gun-6 written by
+  `scripts/boss-r1-variants.mjs --write-assets=a`, the art copied from gun-1's
+  cells; every gun 14 HP; plate-a and plate-h 12. The script now refuses to run
+  on a region 1 that already has the far-end guns.
+* `assets/levels/level-01.json`: the boss sector authors
+  `archetypes ["interceptor"], lights 1, waves [{ interceptor, count 6,
+  spacing 100, row 0 }]` (9 waves).
+* `assets/graphics/level-summary.json`: regions 2–4 at `segmentRow` 4.
+* README / README.pl: v0.2.3.
+
+**The measure.** The director-complete replays (and `director-complete-2-
+write-protected`) play with `boss-aim`: the sweep until the boss entry, then
+aimed. Each session's record carries `boss_policy`, `boss_light_frames` and
+`boss_max_live_lights`. The fight-length test reads the committed evidence with
+the anchors of §4.2: `main`'s plain sweep 3,834 / 4,612 / 5,964 frames and
+`main`'s layout under `boss-aim` 1,847 / 2,231 / 2,663.
+
+| MEASURED (default evidence) | E | M | H |
+| --- | ---: | ---: | ---: |
+| fight, `boss-aim` | 44.2 s | 57.1 s | 62.5 s |
+| as the ratio to `main`'s plain sweep (the rule) | **91.8 s** | **118.1 s** | **139.9 s** |
+| `main` before (plain sweep) | 76.7 s | 92.2 s | 119.3 s |
+| bot deaths, boss sector (before → after) | 1 → 1 | 4 → 0 | 5 → 1 |
+| bot deaths, whole replay (before → after) | 3 → 3 | 6 → 2 | 6 → 2 |
+| escort live, fight frames / most at once | 414 / 1 | 340 / 1 | 408 / 1 |
+
+The rule holds: MEDIUM is within 90–120 s, EASY is shorter, and HARD is not
+shorter. The deaths come from a different bot before and after, so they do not
+compare.
+
+**Gates (before → after).**
+
+| | `main` `dcc331a` | after |
+| --- | --- | --- |
+| worst fence margin | 1,447 (`2-sweep-fire6`) | 1,447 (same row) |
+| DMA-on maximum | 31,304 | 31,304 |
+| boss frames: worst margin / DMA-on | 10,017 / 29,238 | **6,026 / 30,029** (Light live, `director-complete-2` f3,292) |
+| boss stress, reachable worst (limit 8,500) | region 1 6,910; fixture 7,784 / 6,994; finale copies 6,682 | 6,965; 7,805 / 7,015; 6,657 |
+| boss entry | 64 sectors, 245 host frames | 64 sectors, 245 host frames |
+| initial block | 13,623 B, 107 sectors | unchanged |
+| look tail | 98 B | 110 B (the cap, accepted) |
+| replays / clause failures / miss events | 57 / 0 / 0 | 57 / 0 / 0 |
+
+**Tests.** New `tests/boss-r1-tuning.test.mjs` (9): RED on `main`'s data
+(six RED at Phase B's first commit, the plate and escort tests RED on the
+committed level), all GREEN. Re-pointed in place, with reasons and no clause
+weakened:
+* boss-cover-rule: each weapon is fought at a band position in its reach;
+* boss-fire-rule: 4,000 frames restore the burst subject;
+* boss-fortress: six cannons, the reach is the player's, the kill orders;
+* boss-lasers: the kill order;
+* boss-lasers-s44: the shielded fixture drops gun-6 to fit 16 modules;
+* boss-look-tail: E4 excludes the far-end cells; digests from `main`'s art;
+* level-compiler T12 and level-one-equivalence: the escort is a fourth Light
+  wave;
+* audit-hardening AUD-02: module count 15; it was found NEW by the first full
+  run after the evidence binding.
+
+Two full `npm test` runs on the default build after the last change: **1,287 /
+1,286 / 1 / 0 skipped** both times. The one failure is the recorded `preview`
+(`tests/preview.test.mjs:164`). `npm run failures:reconcile` PASS on both runs
+and on the trace: 0 NEW, 0 MOVED, 0 disappeared.

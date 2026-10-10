@@ -861,6 +861,52 @@ compare it with Atari800 (`npm run play:atr`), which plays the same sound:
 - [ ] **If something is silent**: note which item, and whether the menu theme
       has its melody at that moment.
 
+## 25. Region 1's boss: far-end guns, half-durability guns, the Interceptor escort (`feat/boss-r1-tuning`)
+
+Plan [plans/boss-r1-tuning.md](plans/boss-r1-tuning.md). Before this build the
+player could hide at a screen edge in the boss fight. MEASURED: parked at
+HPOS 48 and firing, the fighter took 0 hits in 80 s on every difficulty. The
+boss now has a pulse gun at each far end, gun-5 behind plate-a and gun-6
+behind plate-h, drawn with gun-1's art. Every gun has half its old hit points
+(14; the emitter keeps 20). Plates a and h drop to 12. One Interceptor at a
+time escorts the boss, six in all, the next about 2 s after the last one goes.
+The fight's length is measured with the aiming bot (the owner's decision of
+2026-10-10). ATR `020fea98…`, boot `4b8886da…`.
+
+**Atari800**, copies in `build/play/` (rebuild with `node scripts/build.mjs
+--level=1:sector=6 [--boss-region=N]`):
+
+```
+atari800 -xl -pal -nobasic "$PWD/build/play/feat-boss-r1-tuning-020fea98.atr"             # the default game
+atari800 -xl -pal -nobasic "$PWD/build/play/feat-boss-r1-tuning-boss-route-df262502.atr"  # straight to the boss
+atari800 -xl -pal -nobasic "$PWD/build/play/feat-boss-r1-tuning-region-2-route-25a69413.atr"  # region 2's copy (region 3: a1231c56, region 4: 0580c026)
+```
+
+- [ ] **The far ends**: gun-5 and gun-6 read as the boss's end guns, recessed
+      above plate-a and plate-h, closed until their plate falls, then open and
+      firing.
+- [ ] **No refuge at an edge**: sit at the far left or right with the end gun
+      alive and exposed. Its shots and the escort reach you there.
+- [ ] **The escort**: one Interceptor at a time in the boss sector, never two;
+      it reads as pressure, not as noise over the boss; six in all.
+- [ ] **The guns go down faster** (14 hit points): the fight no longer feels
+      like a grind; MEDIUM lasts about as long as before by the bot's ratio.
+- [ ] **The laser** (the emitter behind plate-d) is unchanged: warning, beam,
+      20 hit points.
+- [ ] **The loading screens of regions 2-4** (`--level=1:sector=6
+      --boss-region=N`, then the summary): the hull art now shows the gun
+      emplacement rows, as region 1's does.
+- [ ] **The win**: the chain blasts every module, the nozzles go dark, the
+      summary follows.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the default ATR
+`020fea98…` under a new file name, after §23's boot and §24's sound check:
+
+- [ ] **The boss fight on hardware**: play level 1 to its boss (or load a copy
+      of the boss route's ATR). The escort and the boss's fire are both on
+      screen with no flicker, tearing or slowdown; the end guns' shots and the
+      boss hum and ticks sound as in Atari800.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

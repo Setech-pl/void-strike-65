@@ -215,6 +215,14 @@ a later region's boss decided at S5, and the engine's tests' style-2 fixture.
 PNGs in any pixel editor; `npm run boss:preview` (or `-- --region=N`) converts
 them and renders the whole band, every stage and the extras at the Atari palette
 and 2:1 aspect into `build/boss-preview/region-N.png` without building the game.
+`npm run boss:coverage [-- --region=N]` prints the layout's fire coverage: for
+every player x from 48 to 200, the weapons whose fire can reach it over the
+whole band drift, with every weapon exposed and at the opening. A layout must
+leave **no safe position** (owner smoke 2026-10-09; `tests/boss-r1-tuning.test.mjs`
+pins region 1 and its copies). A shot meets band column c when the fighter
+stands at about 4c + 26 − p, so weapons at the far ends need the boss sector's
+aiming bot (`boss-aim`), which the director-complete replays use since
+2026-10-10.
 
 | File | Size | Content |
 | --- | --- | --- |

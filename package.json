@@ -31,6 +31,7 @@
     "levels:check": "node scripts/level-compiler.mjs",
     "levels:preview": "node scripts/level-preview.mjs",
     "boss:preview": "node scripts/boss-preview.mjs",
+    "boss:coverage": "node scripts/boss-coverage.mjs",
     "level:play": "node scripts/build.mjs",
     "clean": "node scripts/clean.mjs",
     "package": "npm run build && node scripts/package-release.mjs",

@@ -333,6 +333,24 @@ if (bossRegionValue !== null && levelDebugId !== 1) {
 }
 // The level run's id: the debug level's, or the boss region's first level.
 const levelRunId = bossRegionValue !== null ? 1 + 3 * (bossRegionValue - 1) : levelDebugId;
+// feat/boss-r1-tuning (owner smoke 2026-10-09): --boss-variant=NAME builds the
+// game with region 1's boss draft from build/boss-variants/NAME/region-1/ and,
+// when that directory has one, level 1's source from
+// build/boss-variants/NAME/level-01.json (scripts/boss-r1-variants.mjs writes
+// both), so the owner can compare boss layouts before one is committed to
+// assets/. Composes with --level=N[:sector=M]. Review variant:
+// build/boss-variant-NAME[-level-N-sM]/, never dist/, no runtime measurement.
+const bossVariantArgument = process.argv.find((argument) => argument.startsWith("--boss-variant="));
+const bossVariantSlug = bossVariantArgument?.slice("--boss-variant=".length);
+if (bossVariantSlug !== undefined && !/^[a-z0-9]+$/.test(bossVariantSlug)) {
+  throw new Error(`Unknown boss variant ${bossVariantSlug}; the name is lower-case letters and digits`);
+}
+const bossVariantDirectory = bossVariantSlug === undefined
+  ? null : path.join(defaultBuildDirectory, "boss-variants", bossVariantSlug);
+if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirectory, "region-1", "modules.json"))) {
+  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
+    "draft (node scripts/boss-r1-variants.mjs writes it)");
+}
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
 // 16 is LEVEL_MAX_ID, declared below with the rest of the layout; this check
@@ -343,7 +361,8 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
-  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null;
+  pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
+  bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -359,7 +378,9 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 const levelDebugSuffix = levelDebugId === null
   ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
     `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = laserFixtureTier !== null
+const variantDirectoryName = bossVariantSlug !== undefined
+  ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
+  : laserFixtureTier !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
@@ -1827,7 +1848,8 @@ async function build() {
   // variant that installs the laser fixture (region 1 with four uncovered
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
-  const regionOneDraft = loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1));
+  const regionOneDraft = loadBossRegionDraft(bossVariantDirectory === null
+    ? bossRegionDirectory(rootDirectory, 1) : path.join(bossVariantDirectory, "region-1"));
   const regionOneSource = laserFixtureTier === null
     ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
   const compileRegion = (draft) => compileBossRegion(draft,
@@ -2309,6 +2331,12 @@ async function build() {
   ];
   // S5-1: a boss-region route compiles level 1's source under its run's id.
   const levelSourceIdForRun = (id) => (bossRegionValue !== null ? 1 : id);
+  // --boss-variant: level 1's source from the variant's directory when it has one.
+  const bossVariantLevelSource = (id) => {
+    const variantLevel = bossVariantDirectory === null || id !== 1
+      ? null : path.join(bossVariantDirectory, "level-01.json");
+    return variantLevel !== null && fs.existsSync(variantLevel) ? variantLevel : levelSourcePath(id);
+  };
   // Decision 1: the region owns the style. --hull-style=Rn forces one region
   // onto every level so the owner can smoke a quarter of the campaign before
   // the campaign exists (§7); the default build reads the level's own region.
@@ -2322,7 +2350,7 @@ async function build() {
   // asks for something the runtime cannot honour fails the build, not the
   // owner's smoke (plan §5).
   const compiledLevels = new Map(levelRuns.map((run) =>
-    [run.id, compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
+    [run.id, compileLevelFile(bossVariantLevelSource(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
   if (levelDebugId !== null) {

@@ -858,6 +858,39 @@ const laserFixtureSessions = [{
   holdPlayerLives: 3,
 }];
 
+/* feat/boss-r1-tuning (owner smoke 2026-10-09: the player hid at a screen edge
+ * and survived; guns at the boss's far ends are the fix): debug routes only.
+ *   boss-fight-N: director-complete-N's replay (the sweep bot, fire from frame
+ *     0, lives held, to the summary) with the sweep widened to the whole reach
+ *     in the boss sector (policy sweep-boss-wide, HPOS 58-190; the plain sweep
+ *     never meets the far ends); the level before the boss frame for frame as
+ *     the sweep plays it. On build/[boss-variant-NAME-]level-1-s0.
+ *   boss-park-SIDE-N: the edge-hiding player - the sweep until the boss
+ *     sector, then parked at HPOS 48 (left) or 200 (right), firing, lives
+ *     held. On build/[boss-variant-NAME-]level-1-s6. */
+const bossTuningSessions = [
+  ...[0, 1, 2].map((difficulty) => ({
+    id: `boss-fight-${difficulty}`,
+    difficulty,
+    policy: "sweep-boss-wide",
+    fireDelay: 0,
+    frames: DIRECTOR_COMPLETION_FRAMES,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    endAtSummary: true,
+  })),
+  ...[["left", 48], ["right", 200]].flatMap(([side, x]) => [0, 1, 2].map((difficulty) => ({
+    id: `boss-park-${side}-${difficulty}`,
+    difficulty,
+    policy: `park-${x}`,
+    fireDelay: 2,
+    frames: 4_000,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    endAtSummary: true,
+  }))),
+];
+
 /* M5b-S4b.5 (owner decision 4, 2026-10-07): slot E's ways out of the boss
  * sector, on the emulator. The sweep bot plays level 1 on HARD to its boss with
  * its lives held; 300 frames into the fight the boss-path driver pauses and
@@ -4231,6 +4264,7 @@ function main() {
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
         layout.variant !== null ? laserFixtureSessions : [],
+        layout.variant !== null ? bossTuningSessions : [],
         layout.variant !== null ? regionRouteSessions.filter(({ bossRegion }) =>
           layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,

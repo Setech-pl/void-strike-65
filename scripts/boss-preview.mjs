@@ -157,11 +157,18 @@ export function renderBossPreview(region) {
   return { png: encodePng(rgb, width, height), width, height };
 }
 
-export function writeBossPreview(regionNumber, { outputDirectory = path.join(rootDirectory, "build", "boss-preview") } = {}) {
-  const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, regionNumber)));
+// feat/boss-r1-tuning: `-- --variant=NAME` previews region 1's comparison draft
+// from build/boss-variants/NAME/region-1/ (scripts/boss-r1-variants.mjs) into
+// build/boss-preview/region-1-variant-NAME.png.
+export function writeBossPreview(regionNumber, { outputDirectory = path.join(rootDirectory, "build", "boss-preview"),
+  variant = null } = {}) {
+  const directory = variant === null ? bossRegionDirectory(rootDirectory, regionNumber)
+    : path.join(rootDirectory, "build", "boss-variants", variant, `region-${regionNumber}`);
+  const region = compileBossRegion(loadBossRegionDraft(directory));
   const { png, width, height } = renderBossPreview(region);
   fs.mkdirSync(outputDirectory, { recursive: true });
-  const outputPath = path.join(outputDirectory, `region-${regionNumber}.png`);
+  const outputPath = path.join(outputDirectory,
+    `region-${regionNumber}${variant === null ? "" : `-variant-${variant}`}.png`);
   fs.writeFileSync(outputPath, png);
   return { outputPath, width, height, region };
 }
@@ -169,10 +176,11 @@ export function writeBossPreview(regionNumber, { outputDirectory = path.join(roo
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const argument = process.argv.find((value) => value.startsWith("--region="));
-    const regions = argument ? [Number(argument.slice("--region=".length))]
+    const variant = process.argv.find((value) => value.startsWith("--variant="))?.slice("--variant=".length) ?? null;
+    const regions = variant !== null ? [1] : argument ? [Number(argument.slice("--region=".length))]
       : [1, 2, 3, 4].filter((n) => fs.existsSync(bossRegionDirectory(rootDirectory, n)));
     for (const n of regions) {
-      const { outputPath, width, height, region } = writeBossPreview(n);
+      const { outputPath, width, height, region } = writeBossPreview(n, { variant });
       console.log(`Boss region ${n} (${region.name}, style ${region.style}): ` +
         `${path.relative(rootDirectory, outputPath)} ${width}x${height}`);
       console.log(`  ${region.codeCount} of 128 codes (K ${region.stageStep} staged x 3, ` +

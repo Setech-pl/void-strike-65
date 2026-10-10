@@ -3681,8 +3681,26 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				stick &= 0x0du;
 		}
 	}
+	else if ((strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
+		strncmp(dftrace_policy, "park-", 5) == 0) && dftrace_boss_active()) {
+		/* feat/boss-r1-tuning (owner smoke 2026-10-09): in the boss sector,
+		 * sweep-boss-wide sweeps the whole reach as sweep-wide does (HPOS
+		 * 58-190), so guns at the boss's far ends come under fire; park-X
+		 * flies to HPOS X and stays there (the edge-hiding player). Before
+		 * the boss both are the plain sweep, frame for frame. */
+		if (dftrace_policy[0] == 'p') {
+			unsigned target_x = (unsigned) atoi(dftrace_policy + 5);
+			stick = x < target_x ? 0x07u : x > target_x ? 0x0bu : 0x0fu;
+		} else {
+			int target_right = ((frame / 128u) & 1u) == 0;
+			stick = target_right ? (x < 190u ? 0x07u : 0x0fu) :
+				(x > 58u ? 0x0bu : 0x0fu);
+		}
+	}
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
-		strcmp(dftrace_policy, "broadside-proof") == 0) {
+		strcmp(dftrace_policy, "broadside-proof") == 0 ||
+		strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
+		strncmp(dftrace_policy, "park-", 5) == 0) {
 		int target_right = ((frame / 72u) & 1u) == 0;
 		stick = target_right ? (x < 154u ? 0x07u : 0x0fu) :
 			(x > 94u ? 0x0bu : 0x0fu);

@@ -917,6 +917,8 @@ static unsigned dftrace_boss_exposed;
 static unsigned dftrace_boss_count;
 static unsigned dftrace_boss_module_table;
 static int dftrace_aim_target = -1;
+static unsigned dftrace_aim_last_p;
+static int dftrace_aim_dir = 1;
 static unsigned char dftrace_boss_shot_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned char dftrace_boss_shot_y[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned char dftrace_boss_shot_lifetime[DFTRACE_INTERCEPTOR_SLOT_COUNT];
@@ -3697,11 +3699,27 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * defeat rule lets a player leave them), the nearest one that is in
 		 * reach now, and hold it until it falls or drifts out of reach; with
 		 * none in reach, the whole-reach sweep. A player's shot leaves the
-		 * fighter's centre (x + 8) and meets band column (x + 8 - 32 + p) / 4,
-		 * so the fighter stands at 4c + 26 - p under column c's centre. No
+		 * fighter's centre (x + 8) and meets band column (x + 8 - 32 + p) / 4
+		 * at the band position p of its arrival, so the fighter stands at
+		 * 4c + 26 - p under column c's centre. No
 		 * dodging (the sweep bot never dodged; lives are held). */
-		unsigned p = MEMORY_mem[dftrace_boss_shown_pos];
+		unsigned now_p = MEMORY_mem[dftrace_boss_shown_pos];
 		unsigned count = MEMORY_mem[dftrace_boss_count];
+		/* Lead the target: a shot climbs 6 lines a frame from the fighter to
+		 * the band's foot (line 88), and the band drifts one colour clock every
+		 * 2 frames meanwhile (region 1's motion), turning at 0 and 63 - so aim
+		 * at where the band will be when the shot arrives. */
+		int lead = y > 88u ? (int) ((y - 88u) / 6u) / 2 : 0;
+		int future, dir;
+		unsigned p;
+		if (now_p > dftrace_aim_last_p) dftrace_aim_dir = 1;
+		else if (now_p < dftrace_aim_last_p) dftrace_aim_dir = -1;
+		dftrace_aim_last_p = now_p;
+		dir = dftrace_aim_dir;
+		future = (int) now_p + dir * lead;
+		if (future > 63) future = 126 - future;
+		if (future < 0) future = -future;
+		p = (unsigned) future;
 		unsigned alive = MEMORY_mem[dftrace_boss_alive] | (MEMORY_mem[dftrace_boss_alive + 1u] << 8);
 		unsigned exposed = MEMORY_mem[dftrace_boss_exposed] | (MEMORY_mem[dftrace_boss_exposed + 1u] << 8);
 		unsigned guards = 0u, i;

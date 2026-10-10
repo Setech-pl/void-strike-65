@@ -6,15 +6,18 @@
 // coming at a jittered interval until the boss falls; and asked whether an
 // Interceptor could return to the top after reaching the bottom edge.
 //
-//   T   the trigger and the cadence: the boss controller (slot C) arms one
-//       escort through the bytes director_c_try_event publishes, the first
-//       ESCORT_LEAD frames after the N-th weapon kill, then every
-//       baseFrames + (RNG & jitterMask) frames; never on a kill or an exposure
-//       frame; none after the defeat. The install no longer arms the stream.
+//   T   the trigger and the cadence: the Director (src/c/director.c) arms one
+//       escort through the window's Light wave stepper on the first quiet
+//       fight frame after the N-th weapon kill, then every
+//       baseFrames + (RNG & jitterMask) frames; the boss controller (slot C)
+//       reports its weapon kills and its quiet frames (no kill, no exposure
+//       check). The install no longer arms the stream.
 //   TW  T, and the boss sector's wave carries the re-entry flag (wave_flags
 //       bit 6): an Interceptor that leaves the bottom edge alive re-enters at
-//       the top at its own column, its reload restarted as at an admission;
-//       the defeat clears the flag, so the live one leaves for good.
+//       the top at its own column, its reload restarted as at an admission.
+//       The next escort waits for a clear field, so none is ever pending when
+//       the boss falls; a live one keeps re-entering through the chain and
+//       the hold (about 3 s) until the hand-off.
 //
 // Each variant is the default build plus source edits applied IN MEMORY while
 // scripts/build.mjs reads its inputs (the method of the retired
@@ -33,134 +36,127 @@ import path from "node:path";
 // are not shot.
 export const ESCORT_DATA = Object.freeze({ afterWeapons: 2, baseFrames: 150, jitterMask: 63 });
 
+// The Director decides (src/c/director.c, the window's last segment, so the
+// hot Light C keeps its addresses and only the kernel above it moves). The
+// world stops in a boss sector, so no row tick can arm the escort: the boss
+// controller reports its weapon kills and each quiet fight frame.
+const directorCadence = (reenter) => ({
+  file: "src/c/director.c",
+  from: "#pragma code-name (\"DIRECTOR_C_CODE\")\n\nvoid director_c_world_row_tick(void)\n",
+  to: "/* feat/boss-escort-flow (owner smoke 2026-10-10): the boss sector's escort\n" +
+    " * starts once the boss is losing - after the region's count of weapon\n" +
+    " * kills, on the first quiet frame after it - and then comes every\n" +
+    " * baseFrames + (RNG & jitterMask) frames\n" +
+    " * until the boss falls. The world stops in a boss sector, so no row tick\n" +
+    " * arms it: the boss controller (slot C) reports its weapon kills and each\n" +
+    " * quiet fight frame, and the Director decides. $80FC and $80FD - the\n" +
+    " * armed wave's Heavy formations and their spacing - are idle in a boss\n" +
+    " * sector (no Heavy wave, no row tick) and enter_sector zeroed both: they\n" +
+    " * count the weapon kills and the frames to the next escort. The region's\n" +
+    " * three bytes are at $AD11-$AD13 (scripts/boss-assets.mjs). */\n" +
+    "#define ESCORT_KILLS             STATE_WAVE_REMAINING\n" +
+    "#define ESCORT_TIMER             STATE_SPACING\n" +
+    "#define BOSS_ESCORT_AFTER        U8_AT(0xAD11u)\n" +
+    "#define BOSS_ESCORT_BASE         U8_AT(0xAD12u)\n" +
+    "#define BOSS_ESCORT_JITTER       U8_AT(0xAD13u)\n" +
+    "\n" +
+    "/* The boss controller, on a weapon kill that is not the last. The kill\n" +
+    " * that makes the region's count publishes the sector's escort wave with\n" +
+    " * nothing pending and starts the clock: the first escort comes on the\n" +
+    " * next quiet frame. A region with no escort counts to 0, which no kill\n" +
+    " * reaches; scripts/build.mjs refuses a region with an escort under a\n" +
+    " * level whose boss sector authors no escort wave, and the reverse. */\n" +
+    "#pragma code-name (\"DIRECTOR_C_CODE\")\n" +
+    "void director_c_boss_weapon_down(void)\n" +
+    "{\n" +
+    "    ++ESCORT_KILLS;\n" +
+    "    if (ESCORT_KILLS != BOSS_ESCORT_AFTER) {\n" +
+    "        return;\n" +
+    "    }\n" +
+    "    director_c_try_event();\n" +
+    "    light_wave_remaining = 0u;\n" +
+    "    ++ESCORT_TIMER;\n" +
+    "}\n" +
+    "#pragma code-name (\"HYBRID_C_WINDOW_FLOW\")\n\n" +
+    "/* The boss controller, on each fight frame with no kill and no exposure\n" +
+    " * check: an escort is armed only on such a frame, and the stepper admits\n" +
+    " * it on the same frame (it runs after the boss's update). baseFrames is\n" +
+    " * longer than a pass (scripts/boss-assets.mjs), so the last escort has\n" +
+    " * left by then unless it re-enters; then the next waits for the slot.\n" +
+    " * The RNG's high bits, as the low bits of x * 5 + 1 cycle short. */\n" +
+    "void director_c_boss_escort_frame(void)\n" +
+    "{\n" +
+    "    if (ESCORT_TIMER == 0u) {\n" +
+    "        return;\n" +
+    "    }\n" +
+    "    --ESCORT_TIMER;\n" +
+    "    if (ESCORT_TIMER != 0u) {\n" +
+    "        return;\n" +
+    "    }\n" +
+    (reenter
+      ? "    /* TW: the last escort may still be re-entering; the next waits for\n" +
+        "     * a clear field, so none is ever left pending when the boss falls. */\n" +
+        "    if (field_busy() != 0u) {\n" +
+        "        ++ESCORT_TIMER;\n" +
+        "        return;\n" +
+        "    }\n"
+      : "") +
+
+    "    light_wave_timer = 0u;\n" +
+    "    light_wave_remaining = 1u;\n" +
+    "    light_wave_lock = 1u;\n" +
+    "    director_c_rng_advance();\n" +
+    "    ESCORT_TIMER = (uint8_t)(BOSS_ESCORT_BASE +\n" +
+    "        (uint8_t)((uint8_t)(STATE_RNG >> 2) & BOSS_ESCORT_JITTER));\n" +
+    "}\n\n" +
+    "#pragma code-name (\"DIRECTOR_C_CODE\")\n\nvoid director_c_world_row_tick(void)\n",
+});
+
 const BOSS_C_EXTERNS = {
   file: "src/c/boss.c",
   from: "extern void boss_next_armed(void);\n",
   to: "extern void boss_next_armed(void);\n" +
-    "/* feat/boss-escort-flow: the boss sector's escort. The controller arms the\n" +
-    " * window's Light wave stepper (src/c/lifecycle.c light_wave_step) through\n" +
-    " * the bytes director_c_try_event publishes; the boss link imports them. */\n" +
-    "extern volatile uint8_t light_wave_lock;\n" +
-    "extern uint8_t light_wave_remaining;\n" +
-    "extern uint8_t light_wave_timer;\n" +
-    "extern uint8_t director_c_rng_advance(void);\n" +
-    "#define BOSS_ESCORT_LEAD 25u\n",
+    "/* feat/boss-escort-flow: the escort is the Director's (src/c/director.c);\n" +
+    " * the controller reports its weapon kills and each quiet fight frame. */\n" +
+    "extern void director_c_boss_weapon_down(void);\n" +
+    "extern void director_c_boss_escort_frame(void);\n",
 };
 
-const BOSS_C_STATE = {
-  file: "src/c/boss.c",
-  from: "uint8_t boss_finale;\n",
-  to: "uint8_t boss_finale;\n" +
-    "/* feat/boss-escort-flow: weapon kills still to come before the first\n" +
-    " * escort (0 = started, or none: the install zeroes it for a level with\n" +
-    " * no escort wave), and frames to the next one (0 = idle). */\n" +
-    "uint8_t boss_escort_wait;\n" +
-    "uint8_t boss_escort_timer;\n",
-};
-
-const BOSS_C_INIT = {
-  file: "src/c/boss.c",
-  from: "    boss_start_lo = boss_active_frame[0];\n    boss_start_hi = boss_active_frame[1];\n}\n",
-  to: "    boss_start_lo = boss_active_frame[0];\n    boss_start_hi = boss_active_frame[1];\n" +
-    "    /* feat/boss-escort-flow: the escort waits for the region's count of\n" +
-    "     * weapon kills. */\n" +
-    "    boss_escort_wait = TABLE[BOSS_T_ESCORT_AFTER];\n" +
-    "    boss_escort_timer = 0u;\n" +
-    "}\n",
-};
-
-const defeatEdit = (reenter) => ({
+const defeatEdit = () => ({
   file: "src/c/boss.c",
   from: "            boss_stats_bonus[1] = boss_def[BOSS_DEF_BONUS_HI];\n            return 1u;\n        }\n",
   to: "            boss_stats_bonus[1] = boss_def[BOSS_DEF_BONUS_HI];\n" +
-    "            /* feat/boss-escort-flow: no escort after the defeat - an\n" +
-    "             * admission still pending is cancelled" +
-    (reenter ? ", and the live one\n             * leaves at the bottom edge for good. */\n" +
-      "            light_wave_remaining = 0u;\n" +
-      "            heavy_wave_flags &= (uint8_t)~WAVE_FLAG_REENTER;\n"
-      : ". */\n            light_wave_remaining = 0u;\n") +
     "            return 1u;\n        }\n" +
-    "        if (boss_escort_wait != 0u) {\n" +
-    "            --boss_escort_wait;\n" +
-    "            if (boss_escort_wait == 0u) {\n" +
-    "                boss_escort_timer = BOSS_ESCORT_LEAD;\n" +
-    "            }\n" +
-    "        }\n",
+    "        director_c_boss_weapon_down();          /* feat/boss-escort-flow */\n",
 });
-
-const BOSS_C_ARM = {
-  file: "src/c/boss.c",
-  from: "/* Every frame: in the fight, the one countdown to the next firing module;\n",
-  to: "/* feat/boss-escort-flow: one escort. The install published the boss\n" +
-    " * sector's wave with nothing pending; each escort asks the window's\n" +
-    " * stepper for one admission, which waits for the slot (lights 1). The\n" +
-    " * next comes baseFrames + (RNG & jitterMask) frames on - the RNG's high\n" +
-    " * bits, as the low bits of x * 5 + 1 cycle short. */\n" +
-    "static void boss_escort_arm(void)\n" +
-    "{\n" +
-    "    light_wave_timer = 0u;\n" +
-    "    light_wave_remaining = 1u;\n" +
-    "    light_wave_lock = 1u;\n" +
-    "    boss_t = director_c_rng_advance();\n" +
-    "    boss_t = (uint8_t)((uint8_t)(boss_t >> 2) & TABLE[BOSS_T_ESCORT_JITTER]);\n" +
-    "    boss_escort_timer = (uint8_t)(TABLE[BOSS_T_ESCORT_BASE] + boss_t);\n" +
-    "}\n\n" +
-    "/* Every frame: in the fight, the one countdown to the next firing module;\n",
-};
 
 const BOSS_C_TICK = {
   file: "src/c/boss.c",
   from: "                boss_expose();\n                boss_heavy = 1u;\n            }\n        }\n",
-  to: "                boss_expose();\n                boss_heavy = 1u;\n            }\n        }\n" +
-    "        /* feat/boss-escort-flow: the escort's countdown. Never on a kill\n" +
-    "         * frame (expose_pending 1 here) or the exposure check's frame\n" +
-    "         * (boss_heavy): the stepper admits after this tick, on the same\n" +
-    "         * frame. */\n" +
-    "        if (boss_escort_timer != 0u) {\n" +
-    "            --boss_escort_timer;\n" +
-    "            if (boss_escort_timer == 0u) {\n" +
-    "                if ((uint8_t)(boss_expose_pending | boss_heavy) != 0u) {\n" +
-    "                    boss_escort_timer = 1u;\n" +
-    "                } else {\n" +
-    "                    boss_escort_arm();\n" +
-    "                }\n" +
-    "            }\n" +
+  to: "                boss_expose();\n                boss_heavy = 1u;\n            }\n" +
+    "        } else {\n" +
+    "            /* feat/boss-escort-flow: a quiet frame - no kill, no exposure\n" +
+    "             * check - is the only kind the escort may be armed on. */\n" +
+    "            director_c_boss_escort_frame();\n" +
     "        }\n",
 };
 
-const BOSS_C_REENTER_EXTERNS = {
-  file: "src/c/boss.c",
-  from: "#define BOSS_ESCORT_LEAD 25u\n",
-  to: "#define BOSS_ESCORT_LEAD 25u\n" +
-    "extern volatile uint8_t heavy_wave_flags;\n" +
-    "#define WAVE_FLAG_REENTER 0x40u\n",
-};
-
-// The install's step 9 armed the row-0 wave's whole count at once. It still
-// publishes the wave, but leaves nothing pending: the controller asks for
-// each escort once the boss is losing. A level with no escort wave zeroes the
-// controller's kill count, so it never asks.
+// The install's step 9 armed the row-0 wave's whole count at once; the
+// Director publishes it at the trigger now.
 const BOSS_S_INSTALL = {
   file: "src/hybrid/boss.s",
-  from: "    jsr _director_c_try_event\n@no_escort:\n",
-  to: "    jsr _director_c_try_event\n" +
-    "    lda #$00                            ; feat/boss-escort-flow: nothing pending;\n" +
-    "    sta _light_wave_remaining           ; the controller asks for each escort\n" +
-    "    beq @escort_done\n" +
-    "@no_escort:\n" +
-    "    sta _boss_escort_wait               ; A = 0: no escort wave, no escort\n" +
-    "@escort_done:\n",
+  from: "    ldx DIRECTOR_STATE_SECTOR\n    lda _sector_wave_count,x\n    beq @no_escort\n" +
+    "    jsr _director_c_try_event\n@no_escort:\n",
+  to: "    ; feat/boss-escort-flow: the Director arms it once the boss is losing\n" +
+    "    ; (src/c/director.c director_c_boss_weapon_down).\n",
 };
 
-const bossExports = (reenter) => ({
+const bossExports = () => ({
   file: "src/hybrid/boss.s",
   from: "_boss_stats_bonus  = STATS_BONUS\n",
   to: "_boss_stats_bonus  = STATS_BONUS\n" +
-    "; feat/boss-escort-flow: the escort's bytes in the Director link.\n" +
-    ".export _light_wave_lock, _light_wave_remaining, _light_wave_timer\n" +
-    ".export _director_c_rng_advance\n" +
-    ".import _boss_escort_wait\n" +
-    (reenter ? ".export _heavy_wave_flags\n" : ""),
+    "; feat/boss-escort-flow: the Director's escort calls.\n" +
+    ".export _director_c_boss_weapon_down, _director_c_boss_escort_frame\n",
 });
 
 const LIFECYCLE_REENTER = {
@@ -181,15 +177,6 @@ const LIFECYCLE_REENTER = {
     "            light_state[light_slot] = ENEMY_INACTIVE;\n            return 0u;\n        }\n",
 };
 
-// TW grows the Director link's half of the window, so the Light kernel above
-// it moves and the boss entry's pin on its HUD backup moves with it (the build
-// names the new address when the pin is stale).
-const PIN_HUD_BACKUP_TW = {
-  file: "src/hybrid/boss-entry-pins.inc",
-  from: "pin_boss_enter_hud_backup        = $B802",
-  to: "pin_boss_enter_hud_backup        = $B81F",
-};
-
 const LIFECYCLE_REENTER_FLAG = {
   file: "src/c/lifecycle.c",
   from: "#define LIGHT_RETIRE_Y           232u\n",
@@ -197,6 +184,15 @@ const LIFECYCLE_REENTER_FLAG = {
     "/* feat/boss-escort-flow: wave_flags bit 6 (scripts/level-compiler.mjs). */\n" +
     "#define WAVE_FLAG_REENTER        0x40u\n",
 };
+
+// The window grows, so the Light kernel above it moves and the boss entry's
+// pin on its HUD backup moves with it; scripts/build.mjs names the address
+// the kernel link really gave the label when the pin is stale.
+const pinHudBackup = (address) => ({
+  file: "src/hybrid/boss-entry-pins.inc",
+  from: "pin_boss_enter_hud_backup        = $B802",
+  to: `pin_boss_enter_hud_backup        = $${address}`,
+});
 
 const regionEscort = {
   file: "assets/graphics/boss-regions/region-1/modules.json",
@@ -215,7 +211,7 @@ const levelEscort = (reenter) => ({
     if (boss === undefined || boss.waves?.length !== 1) {
       throw new Error("escort variant: level 1 must have one boss-sector wave");
     }
-    // One escort per arming: the controller asks for each.
+    // One escort per arming: the Director asks for each.
     boss.waves[0] = { ...boss.waves[0], count: 1, ...(reenter ? { reenter: true } : {}) };
     return JSON.stringify(level, null, 2);
   },
@@ -225,21 +221,20 @@ export const ESCORT_VARIANTS = Object.freeze({
   t: {
     summary: `trigger after ${ESCORT_DATA.afterWeapons} weapon kills, then one escort every ` +
       `${ESCORT_DATA.baseFrames}+0..${ESCORT_DATA.jitterMask} frames until the boss falls`,
-    edits: [BOSS_C_EXTERNS, BOSS_C_STATE, BOSS_C_INIT, defeatEdit(false), BOSS_C_ARM, BOSS_C_TICK,
-      BOSS_S_INSTALL, bossExports(false), regionEscort, levelEscort(false)],
+    edits: [directorCadence(false), BOSS_C_EXTERNS, defeatEdit(), BOSS_C_TICK, BOSS_S_INSTALL,
+      bossExports(), pinHudBackup("B82D"), regionEscort, levelEscort(false)],
   },
   tw: {
     summary: "T, and an Interceptor that leaves the bottom edge alive re-enters at the top",
-    edits: [BOSS_C_EXTERNS, BOSS_C_REENTER_EXTERNS, BOSS_C_STATE, BOSS_C_INIT, defeatEdit(true),
-      BOSS_C_ARM, BOSS_C_TICK, BOSS_S_INSTALL, bossExports(true), LIFECYCLE_REENTER,
-      LIFECYCLE_REENTER_FLAG, PIN_HUD_BACKUP_TW, regionEscort, levelEscort(true)],
+    edits: [directorCadence(true), BOSS_C_EXTERNS, defeatEdit(), BOSS_C_TICK,
+      BOSS_S_INSTALL, bossExports(), LIFECYCLE_REENTER, LIFECYCLE_REENTER_FLAG, pinHudBackup("B852"),
+      regionEscort, levelEscort(true)],
   },
 });
 
 // The Director-link labels the boss link imports for the variant.
 export function escortVariantBossImports(id) {
-  return ["_light_wave_lock", "_light_wave_remaining", "_light_wave_timer", "_director_c_rng_advance",
-    ...(id === "tw" ? ["_heavy_wave_flags"] : [])];
+  return ["_director_c_boss_weapon_down", "_director_c_boss_escort_frame"];
 }
 
 export function parseEscortVariant(argv) {

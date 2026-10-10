@@ -721,7 +721,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // falls. No block, no escort: a level's escort wave then never arms.
   const escort = layout.escort ?? null;
   const escortAfter = escort === null ? 0 : integerIn(escort.afterWeapons, 1, BOSS_MAX_MODULES, "escort.afterWeapons");
-  const escortBase = escort === null ? 0 : integerIn(escort.baseFrames, 16, 255, "escort.baseFrames");
+  // Longer than an Interceptor's pass (232 lines at 2 a frame, 116 frames):
+  // the last escort has left when the next is armed, unless it re-enters.
+  const escortBase = escort === null ? 0 : integerIn(escort.baseFrames, 128, 255, "escort.baseFrames");
   const escortJitter = escort === null ? 0 : integerIn(escort.jitterMask ?? 0, 0, 63, "escort.jitterMask");
   if ((escortJitter & (escortJitter + 1)) !== 0) fail("escort.jitterMask is 0, 1, 3, 7, 15, 31 or 63");
   if (escortBase + escortJitter > 255) fail("escort.baseFrames + escort.jitterMask exceeds 255 frames");

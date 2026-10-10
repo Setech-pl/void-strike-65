@@ -1,11 +1,10 @@
 # The boss escort's flow: when it starts, how often it comes, and re-entry
 
 **Branch:** `feat/boss-escort-flow` from `main` `0ed69e1` (ATR `020fea98…`, boot
-`4b8886da…`, the `feat/boss-r1-tuning` merge, variant B). **Status:** Phase A, the
-comparison builds. **OWNER DECISION REQUIRED** (§6). Nothing under `src/`,
-`assets/` or `dist/` has changed: every variant is the default build plus
-in-memory source edits (`scripts/boss-escort-variants.mjs`,
-`node scripts/build.mjs --escort-variant=ID [--level=1:sector=M]`).
+`4b8886da…`, the `feat/boss-r1-tuning` merge, variant B). **Status:** the owner
+chose **T1** on 2026-10-10 (§6.1, decision AI in the journal); built,
+`OWNER-SMOKE CANDIDATE` (§9), ATR `90f3e24e…`, boot `fce37c74…`. §1-§8 are the
+Phase A record.
 
 **The owner's smoke findings (2026-10-10, region 1 boss with the escort):**
 1. The escort appears about three times at the start of the fight, then never
@@ -260,6 +259,18 @@ pass). The swarm rows above show 0 to −7.
   binding row −24.
 * It needs a fight-length trim (Q5).
 
+### 6.1 The owner's answers (2026-10-10, journal §AI)
+
+| # | Answer |
+| ---: | --- |
+| Q1 | **After the FIRST weapon kill** (T1): the left-edge hiding spot stays closed |
+| Q2 | **150 + 0..63 frames**, only on frames with no kill, until the boss falls (as built) |
+| Q3 | **TW out**: no TW code in the shipped build (the variant script keeps only the data-only `n2`, the guard's negative control) |
+| Q4 | **Regions 2-4 follow region 1**; S5-5 may retune R2 (the Bastion) by data later |
+| Q5 | **No boss data change in this task; MEDIUM up to about 126 s accepted TEMPORARILY.** The next task changes the Interceptor's behaviour (no kamikaze runs: it backs off and fires), which changes the bot's deaths and so the fight's length; the fight is retuned after it. EASY stays shorter than MEDIUM, HARD not shorter |
+| 6 | **A permanent left-edge guard**: a replay with a clause - parked at the left edge, firing, MEDIUM, 80 s of fight: at least one escort and one hit, a non-empty subject; RED on T (N = 2), GREEN on the final build |
+| 7 | This replaces AH's "escort 6 every 100" for R1. **The Interceptor's behaviour change is the next task, not this one** |
+
 ## 7. How to play each (Atari800, the 64 KB machine)
 
 ```
@@ -315,3 +326,105 @@ Then:
 * the evidence in the usual order;
 * the choice recorded in the decision journal and in s5-boss-regions §4.3 (R2's
   escort reuses this mechanism).
+
+## 9. As built (Phase B, 2026-10-10) - `OWNER-SMOKE CANDIDATE`
+
+ATR `90f3e24e4bfebde0f72f2fc02f321607a6d1989150e07763415539d10d0271c5`, boot
+`fce37c740d685386ca148bd240d89b4748e9835ee13757b0461ca9f32286b4c7`. Built from
+source, the ATR was byte-identical to Phase A's T1 (`045db580…`, full game and
+boss route) before the boss wave's now unused `spacing` was dropped.
+
+**The code** (§2 as designed):
+* `src/c/director.c`: `director_c_boss_weapon_down` (DIRECTOR_C_CODE, 30 B)
+  and `director_c_boss_escort_frame` (HYBRID_C_WINDOW_FLOW, 43 B).
+* `src/c/boss.c`: the two calls (+14 B, 13 sectors).
+* `src/hybrid/boss.s`: the install arms nothing (−11 B).
+* `boss-entry-pins.inc`: `pin_boss_enter_hud_backup` `$B802 → $B82D`.
+* `scripts/boss-assets.mjs`: the escort block, tables 17-19, and
+  `bossEscortPairingProblem`; `scripts/build.mjs` refuses a level and its boss
+  region that disagree.
+
+**The data:**
+* `assets/graphics/boss-regions/region-1/modules.json`: `escort` 1 / 150 / 63
+  (regions 2-4 copy it).
+* `assets/levels/level-01.json`: the boss wave `{ interceptor, count 1, row 0 }`.
+
+**The guard (owner answer 6).** The replay `boss-edge-left-1` runs in the
+default evidence:
+* MEDIUM, the sweep to the boss, then parked at HPOS 48 and firing, lives held.
+* Its clause is `bossEdgeGuardClause` in `scripts/runtime-wall-trace.mjs`; the
+  record is `coverage.boss_edge_guard`.
+
+| Run | Window / parked frames | Escorts (first) | Hits | Clause |
+| --- | --- | --- | ---: | --- |
+| final build (`dist/`, the full trace) | 4,025 / 3,951 | **16** (f4,166), all the Interceptor | **6** | **PASS** |
+| `n2` (escort from the 2nd weapon kill; `build/escort-variant-n2-level-1-s0`, focused) | 4,000 / 3,961 | **0** | 1 (a boss shot) | **FAIL**: "no escort reached the left edge in 4000 frames of the fight" |
+
+**Fight length** (the director-complete replays, the aiming bot as the ratio
+to `main`'s plain sweep):
+
+| | EASY | MEDIUM | HARD |
+| --- | ---: | ---: | ---: |
+| fight frames | 2,436 | 3,044 | 3,189 |
+| **as the rule's ratio** | **101.1 s** | **125.9 s** | **142.8 s** |
+| before (`main`, variant B) | 91.8 s | 118.1 s | 139.9 s |
+| escort live, fight frames / most at once | 796 / 1 | 1,013 / 1 | 1,022 / 1 |
+
+EASY is shorter than MEDIUM and HARD not shorter. MEDIUM sits inside the
+temporary 126 s (owner answer 5), and the test's bound says so with its reason
+(`tests/boss-r1-tuning.test.mjs`).
+
+**Item 6 (the backlog: the laser contact replay finishes the boss again).**
+* The cause was the bot, not the budget. After its contact,
+  `lower-contact-laser` swept the plain 94-154, which never meets the far-end
+  guns, so the fight could not end.
+* It now plays the rest of the boss with the aiming bot, 300 frames after its
+  first contact (`scripts/atari800-wall-trace.h`; class (a), no clause
+  touched).
+* The fight ends at the chain on f6,783, the post-boss hull rebuild comes at
+  f6,945, and the second START summary at f8,136 (accepted f8,292). All of it
+  fits inside the existing 9,500 frames, so the budget needed no change.
+
+**Tests.**
+* New: `tests/boss-escort-flow.test.mjs`, 10 tests (6502 harness on the built
+  bytes, plus the data and the converter / build refusals). On `main`'s build:
+  1 pass / 8 fail (the pairing test was added after). All 10 GREEN.
+* Re-pointed with reasons in place:
+  * `boss-r1-tuning`: the escort wave's count 1; MEDIUM up to 126 s for now.
+  * `level-buffer-16`, `level-summary-build` and `basic-window-capacity`: the
+    window's +43 B. The capacity floor went 1,000 → 900 free bytes; 965 was
+    the figure shown to the owner before the choice.
+* `npm test` on the default build, twice after the last change: **1,297 /
+  1,296 / 1 / 0 skipped** both times. The failure is the recorded `preview`.
+  `failures:reconcile` PASS on both runs and on the trace (0 NEW, 0 MOVED, 0
+  disappeared).
+* The first full run after the evidence binding found 4 NEW failures, the
+  window pins above, which were re-recorded.
+
+**Gates, before → after** (sources: `docs/runtime-wall-trace.json`, the PAL
+audit, the manifests, `tests/boss-stress.test.mjs`):
+
+| | `main` `0ed69e1` | after |
+| --- | --- | --- |
+| worst fence margin (its row) | 1,447 (`2-sweep-fire6`) | **1,423** (`2-sweep-fire6` f311) |
+| DMA-on maximum | 31,304 | **31,310** |
+| boss frames: worst margin / DMA-on | 6,026 / 30,029 | **7,795** (`director-complete-1` f5,216) / **29,912** |
+| boss stress, reachable worst (limit 8,500) | region 1 6,965; fixture 7,805 / 7,015; finale copies 6,657; fixture finale 7,115 / 6,337 | 6,979; 7,809 / 7,019; 6,676; 7,151 / 6,405 |
+| boss entry | 64 sectors, 245 host frames (12 entries) | 64 sectors, **245** (13 entries: + the guard) |
+| replays / clause failures / miss events | 57 / 0 / 0 | **58** / 0 / 0 |
+| code window: used / free; its record | 2,576 / 1,008; 1,330 packed, 11 sectors | **2,619 / 965**; 1,373 packed, 11 sectors |
+| DIRECTOR_RAM (DIRECTOR_C_CODE end / reserved end) | `$9FDA` / `$9FFA` | **`$9FF8`** / `$9FFA` (2 B left); its chunk 507 → 535 packed, 5 sectors |
+| boss slot A / C / D / E | 2,016 / 1,648 (13) / 1,735 (13) / 266 | 2,016 / **1,662 (13)** / 1,735 (13) / 266 |
+| the install run | 363 B | 352 B |
+| initial block | 13,623 B, 107 sectors | 13,623 B, 107 sectors |
+| ATR menu frame (boot smoke) | unchanged milestones | frame-identical (one snapshot 3 cycles earlier inside its frame) |
+
+**Every replay that reached the boss before still does.** The 12 are
+director-complete 0 / 1 / 2 and write-protected, the laser contact,
+memory-integrity 0-hunt-5 / 2-hunt-5 / 2-hunt-6, slot-E pause / game-over /
+reset, and weapon-pickup-spread 0-hunt-4. The guard adds a 13th.
+
+**Media.** The GIF regenerated with 2 bytes different (392,075 → 392,077 B).
+The boot milestones and the START summary's timing are frame-identical to
+`main`; which frame differs was not investigated. The menu raster keeps its
+pin. The memory map was regenerated.

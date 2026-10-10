@@ -907,6 +907,48 @@ atari800 -xl -pal -nobasic "$PWD/build/play/feat-boss-r1-tuning-region-2-route-2
       screen with no flicker, tearing or slowdown; the end guns' shots and the
       boss hum and ticks sound as in Atari800.
 
+## 26. The boss escort's flow: from the first weapon kill, then every 3-4 s (`feat/boss-escort-flow`)
+
+Plan [plans/boss-escort-flow.md](plans/boss-escort-flow.md); journal §AI.
+Before this build the escort came three times at the start of the fight and
+never again. Now:
+* the first Interceptor comes right after the boss loses its first weapon (a
+  gun or the emitter);
+* then one every 3.0-4.3 s until the boss falls;
+* never two at once, and none after the boss is destroyed.
+
+MEDIUM's fight is a little longer (up to about 126 s by the bot), accepted
+until the next task changes the Interceptor's behaviour. ATR `90f3e24e…`,
+boot `fce37c74…`.
+
+**Atari800**, copies in `build/play/` (rebuild the boss route with
+`node scripts/build.mjs --level=1:sector=6`):
+
+```
+atari800 -xl -pal -nobasic "$PWD/build/play/feat-boss-escort-flow-90f3e24e.atr"             # the default game
+atari800 -xl -pal -nobasic "$PWD/build/play/feat-boss-escort-flow-boss-route-91de3f27.atr"  # straight to the boss
+```
+
+- [ ] **No escort before the first weapon falls.** Destroy plates only (e.g.
+      plate-c, plate-e): no Interceptor comes.
+- [ ] **The first escort.** Destroy one weapon (gun-2, in the open bay, is
+      the quickest). An Interceptor enters at the top within a moment.
+- [ ] **Every few seconds after that**, a little irregular, for the rest of
+      the fight. **Never two Interceptors** on screen at once.
+- [ ] **The left edge is no refuge.** Park at the far left and keep firing.
+      Once gun-5 falls, escorts keep coming at you there.
+- [ ] **None after the boss falls.** During the chain of blasts and the hold,
+      no new Interceptor enters (one already on screen may finish its pass).
+- [ ] **Regions 2-4** (`--level=1:sector=6 --boss-region=N`) behave the same.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the default ATR
+`90f3e24e…` under a new file name, after §23's boot and §24's sound check:
+
+- [ ] **The boss fight on hardware.** Play level 1 to its boss (or load a copy
+      of the boss route's ATR) and fight it to the summary. The escorts arrive
+      as in Atari800, with no flicker, tearing or slowdown when an escort and
+      the boss's fire are on screen together. The summary follows the win.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

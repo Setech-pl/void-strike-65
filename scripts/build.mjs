@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
+import { escortVariantBossImports, installEscortVariant, parseEscortVariant } from "./boss-escort-variants.mjs";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
   guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
@@ -358,7 +359,14 @@ const levelDebugSector = levelDebugMatch === null
 if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
   throw new Error(`--level=${levelDebugId} is outside 1..16`);
 }
-const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
+// feat/boss-escort-flow (docs/plans/boss-escort-flow.md): --escort-variant=t|tw
+// builds the boss escort's comparison variants - the default build with
+// in-memory source edits (scripts/boss-escort-variants.mjs). Composes with
+// --level=N[:sector=M]. Review variant: build/escort-variant-<id>[-level-N-sM]/,
+// never dist/.
+const escortVariantId = parseEscortVariant(process.argv);
+const escortVariant = escortVariantId === null ? null : installEscortVariant(rootDirectory, escortVariantId);
+const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
@@ -378,7 +386,9 @@ const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
 const levelDebugSuffix = levelDebugId === null
   ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
     `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = bossVariantSlug !== undefined
+const variantDirectoryName = escortVariantId !== null
+  ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
+  : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
   : laserFixtureTier !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
@@ -2824,7 +2834,8 @@ async function build() {
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end"],
     // B2 (owner decision 2026-10-06): the boss restores COLPM1 / COLPM2 to
     // the Heavy's hull colour on leaving the boss sector.
-    director: ["_sector_wave_count", "_director_c_try_event", "_heavy_hull_colour"],
+    director: ["_sector_wave_count", "_director_c_try_event", "_heavy_hull_colour",
+      ...(escortVariantId === null ? [] : escortVariantBossImports(escortVariantId))],
     // audit-hardening (AUD-02): the head checks its runs with the disk guard.
     kernel: ["guard_reset", "guard_compare"],
   };
@@ -3982,7 +3993,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined
+      bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -5396,6 +5407,7 @@ async function build() {
   writeFile(path.join(artifactDirectory, "void-strike-65-manifest.json"), manifestBytes);
 
   if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
+  escortVariant?.assertConsumed();
 
   if (!quiet) {
     console.log(candidateBuild
@@ -5407,7 +5419,11 @@ async function build() {
     console.log(`  entry   : $${startAddress.toString(16)}`);
     console.log(`  ATR     : ${atr.length} bytes`);
     console.log(`  staging : $${packedResidentStagingAddress.toString(16)} reused after BROADSIDE publish`);
-    if (enemyReviewHarness) {
+    if (escortVariant !== null) {
+      console.log(`  variant : boss escort ${escortVariantId.toUpperCase()} - ${escortVariant.summary}` +
+        (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (enemyReviewHarness) {
       console.log(`  variant : compile-time enemy review harness`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (enemyCombatReviewHarness) {

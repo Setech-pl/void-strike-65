@@ -128,6 +128,11 @@ export const BOSS_TABLE = Object.freeze({
   cavity: 14,            // a destroyed module's rows inside the hull (decision L); 0 = the blank code
   shotCode: 15,          // the first of the four in-band shot codes (decision M, plan §5.16)
   hullStop: 16,          // the hull-stop table's offset into the look tail (decision M)
+  // feat/boss-escort-flow (owner smoke 2026-10-10): the escort's cadence, read
+  // by the boss controller (src/c/boss.c). 0 / 0 / 0 = no escort.
+  escortAfter: 17,       // weapon kills (guns or emitters) before the first escort
+  escortBase: 18,        // frames from one escort's arming to the next
+  escortJitter: 19,      // a mask on the Director's RNG added to escortBase (2^k - 1)
   cappedCode: 20,        // the capped emitter plate (intact, staged)
   cappedHp: 21,
   cappedCracked: 22,
@@ -710,6 +715,16 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // volleys at half its reload, the countdown's floor stepped down from
   // fire.cooldown to this. 0 (the default) = no finale.
   const finaleCooldown = integerIn(fire.finaleCooldown ?? 0, 0, fireCooldown, "fire.finaleCooldown");
+  // feat/boss-escort-flow (owner smoke 2026-10-10): the level's boss-sector
+  // escort wave starts once afterWeapons weapon modules are destroyed, then
+  // one escort every baseFrames + (RNG & jitterMask) frames until the boss
+  // falls. No block, no escort: a level's escort wave then never arms.
+  const escort = layout.escort ?? null;
+  const escortAfter = escort === null ? 0 : integerIn(escort.afterWeapons, 1, BOSS_MAX_MODULES, "escort.afterWeapons");
+  const escortBase = escort === null ? 0 : integerIn(escort.baseFrames, 16, 255, "escort.baseFrames");
+  const escortJitter = escort === null ? 0 : integerIn(escort.jitterMask ?? 0, 0, 63, "escort.jitterMask");
+  if ((escortJitter & (escortJitter + 1)) !== 0) fail("escort.jitterMask is 0, 1, 3, 7, 15, 31 or 63");
+  if (escortBase + escortJitter > 255) fail("escort.baseFrames + escort.jitterMask exceeds 255 frames");
   const capped = layout.capped ?? {};
   const cappedHp = integerIn(capped.hp, 1, BOSS_MAX_HP, "capped.hp");
   // S4b (owner decision Q11): a laser's warning and beam, frames; M8 tunes.
@@ -1022,6 +1037,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables[BOSS_TABLE.cappedBroken] = cappedBroken;
   tables[BOSS_TABLE.fireCooldown] = fireCooldown;
   tables[BOSS_TABLE.finaleCooldown] = finaleCooldown;
+  tables[BOSS_TABLE.escortAfter] = escortAfter;
+  tables[BOSS_TABLE.escortBase] = escortBase;
+  tables[BOSS_TABLE.escortJitter] = escortJitter;
   tables[BOSS_TABLE.nozzleFrames] = nozzleFrames;
   tables[BOSS_TABLE.nozzleLeftCode] = nozzleBase | (nozzleBanks[0] ? 0x80 : 0);
   tables[BOSS_TABLE.nozzleRightCode] = (nozzleBase + 1) | (nozzleBanks[1] ? 0x80 : 0);
@@ -1082,6 +1100,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     codeCount,
     laser: { beamFrames: laserBeam },
     fire: { cooldown: fireCooldown, finaleCooldown },
+    escort: { afterWeapons: escortAfter, baseFrames: escortBase, jitterMask: escortJitter },
     seeThrough: [...seeThrough].map((key) => [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)]),
     hullStop,
     glyphs,

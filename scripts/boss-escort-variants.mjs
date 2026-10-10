@@ -239,16 +239,16 @@ Object.assign(ESCORT_VARIANTS_EXTRA, ESCORT_VARIANTS_BASE);
 // Data-only probes on T's code (Phase A, measured for the owner's choice):
 //   t1  the escort starts at the first weapon kill (a parked edge-hider
 //       reaches one: gun-5 behind plate-a);
-//   ts  the slower cadence, 200 + 0..63 frames (4.0-5.3 s).
+//   ts  the slower cadence, 190 + 0..63 frames (3.8-5.1 s).
 const T1_DATA = Object.freeze({ ...ESCORT_DATA, afterWeapons: 1 });
-const TS_DATA = Object.freeze({ ...ESCORT_DATA, baseFrames: 200 });
+const TS_DATA = Object.freeze({ ...ESCORT_DATA, baseFrames: 190 });
 const withData = (variant, data, summary) => ({
   summary,
   edits: variant.edits.map((edit) => (edit.file.endsWith("region-1/modules.json") ? regionEscort(data) : edit)),
 });
 Object.assign(ESCORT_VARIANTS_EXTRA, {
   t1: withData(ESCORT_VARIANTS_BASE.t, T1_DATA, "T with the escort starting at the first weapon kill"),
-  ts: withData(ESCORT_VARIANTS_BASE.t, TS_DATA, "T with one escort every 200+0..63 frames"),
+  ts: withData(ESCORT_VARIANTS_BASE.t, TS_DATA, "T with one escort every 190+0..63 frames"),
 });
 
 // The Director-link labels the boss link imports for the variant.

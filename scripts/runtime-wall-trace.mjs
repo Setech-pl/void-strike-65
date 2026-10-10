@@ -578,6 +578,27 @@ const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   holdPlayerLives: 3,
   endAtSummary: true,
 }));
+/* feat/boss-escort-flow (owner answer 6, 2026-10-10): the left-edge guard. The
+ * smoke of 2026-10-09 found a fighter could hide at the boss's left edge; the
+ * escort is what reaches it there, and only if it starts from the first
+ * weapon kill (a fighter parked at HPOS 48 reaches one weapon, gun-5).
+ * MEDIUM, the sweep until the boss (the director-complete replay's path,
+ * frame for frame), then parked at HPOS 48 and firing (policy park-48), lives
+ * held. Clause (bossEdgeGuardClause): in the first 80 s of the fight at least
+ * one Interceptor escort and at least one hit on the player. MEASURED in Phase
+ * A: the entry at frame 2,900, the engagement at 2,950; the budget is the
+ * engagement plus 4,000 frames plus 150 of slack. */
+const BOSS_EDGE_GUARD_FRAMES = 4_000;
+const bossEdgeGuardSessions = [{
+  id: "boss-edge-left-1",
+  difficulty: 1,
+  policy: "park-48",
+  fireDelay: 2,
+  frames: 7_100,
+  kind: "baseline-9040",
+  holdPlayerLives: 3,
+  edgeGuard: { x: 48, windowFrames: BOSS_EDGE_GUARD_FRAMES },
+}];
 /* M5a-S2 (§4.8.4, Q16), the save record on a real write path:
  *   - the record director-complete-1 wrote to ITS copy of the disk is read
  *     back by a second boot of that same copy, whose START GAME summary must
@@ -2060,6 +2081,58 @@ function slotEPathClauses(session, rows) {
   const rebuilt = rebuiltAt >= 0 ? rebuiltAt : rows.findIndex((row) => row.frame > session.resetTransition?.frame);
   invariant(rebuilt >= 0 && rows.slice(rebuilt).reduce((sum, row) => sum + row.hull_map_draws, 0) > 0,
     `${session.id}: the next game drew no capital row (the rebuilt maps were never read)`);
+}
+
+// feat/boss-escort-flow (owner answer 6, 2026-10-10): the left-edge guard. The
+// window is the first `windowFrames` active-gameplay frames from the boss's
+// engagement; the subject is the window's frames with the fighter at the edge
+// (x <= session.edgeGuard.x + 6), which must cover it. In it: at least one
+// escort admitted - a Light slot going live with the Interceptor's record
+// (24) - and at least one hit on the player (a shot or a contact).
+const INTERCEPTOR_RECORD = 24;
+function bossEdgeGuardClause(session, rows) {
+  const { x, windowFrames } = session.edgeGuard;
+  const engaged = rows.find((row) => row.boss_state === 1 && row.boss_entry !== 1);
+  invariant(engaged !== undefined, `${session.id}: the boss was never engaged (subject empty)`);
+  const window = rows.filter((row) => row.frame >= engaged.frame &&
+    row.active_gameplay_frame - engaged.active_gameplay_frame < windowFrames);
+  const last = window.at(-1);
+  invariant(last.active_gameplay_frame - engaged.active_gameplay_frame === windowFrames - 1,
+    `${session.id}: the replay ends ${last.active_gameplay_frame - engaged.active_gameplay_frame + 1} frames into ` +
+    `the fight, before the ${windowFrames}-frame window`);
+  const parked = window.filter((row) => row.player_x <= x + 6).length;
+  invariant(parked >= windowFrames / 2,
+    `${session.id}: the fighter was at the edge on ${parked} of ${window.length} frames (subject too small)`);
+  const escorts = [];
+  for (let i = 1; i < window.length; i += 1) {
+    for (let k = 0; k < LIGHT_TRACE_SLOTS; k += 1) {
+      const before = window[i - 1][`light_state${k}`];
+      const now = window[i][`light_state${k}`];
+      if (before === 0 && LIGHT_LIVE_STATES.has(now)) {
+        escorts.push({ frame: window[i].frame, archetype: window[i][`light_archetype${k}`] });
+      }
+    }
+  }
+  const hits = window.filter((row) => row.player_damage_applied).length;
+  session.edgeGuardRecord = {
+    clause: `parked at HPOS ${x}, firing, MEDIUM: at least one Interceptor escort and one hit on the player ` +
+      `in the first ${windowFrames} frames of the fight`,
+    engaged_frame: engaged.frame,
+    window_frames: window.length,
+    parked_frames: parked,
+    escorts: escorts.length,
+    first_escort_frame: escorts[0]?.frame ?? null,
+    escort_archetypes: [...new Set(escorts.map((escort) => escort.archetype))],
+    hits,
+    passed: false,
+  };
+  console.log(`${session.id}: engaged at ${engaged.frame}; ${parked}/${window.length} frames at the edge; ` +
+    `${escorts.length} escorts (first ${escorts[0]?.frame ?? "-"}); ${hits} hits`);
+  invariant(escorts.every((escort) => escort.archetype === INTERCEPTOR_RECORD),
+    `${session.id}: an escort that is not the Interceptor (records ${session.edgeGuardRecord.escort_archetypes})`);
+  invariant(escorts.length >= 1, `${session.id}: no escort reached the left edge in ${windowFrames} frames of the fight`);
+  invariant(hits >= 1, `${session.id}: the player parked at the left edge took no hit in ${windowFrames} frames`);
+  session.edgeGuardRecord.passed = true;
 }
 
 // The frames a set of replays measures: every emitted frame but a boss entry,
@@ -4290,7 +4363,7 @@ function main() {
       ...directorCompletionSessions, ...summaryRecordSessions,
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
-      ...memoryIntegritySessions, ...lowerPlayfieldSessions, ...slotEPathSessions]
+      ...memoryIntegritySessions, ...lowerPlayfieldSessions, ...slotEPathSessions, ...bossEdgeGuardSessions]
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
         layout.variant !== null ? laserFixtureSessions : [],
@@ -4569,6 +4642,7 @@ function main() {
       `${session.id} read the hull maps ${dirtyHullReads} times between a boss entry and the next rebuild ` +
       "(slot E's contract, owner decision 4)");
     if (session.bossPath !== undefined) slotEPathClauses(session, rows);
+    if (session.edgeGuard !== undefined) bossEdgeGuardClause(session, rows);
     // S5-1 (plan s5-boss-regions §5): a region route enters its boss once,
     // under 250 host frames; on MEDIUM the fight reaches the chain.
     if (session.bossRegion !== undefined) {
@@ -8822,6 +8896,8 @@ function main() {
         boss_terminal_through_frame: hardDirectorCompletion.boss_terminal_through_frame,
         natural_difficulty_sessions: directorCompletionEvidence,
       },
+      // feat/boss-escort-flow (owner answer 6): the left-edge guard's record.
+      boss_edge_guard: sessionsToRun.find((session) => session.edgeGuard !== undefined)?.edgeGuardRecord ?? null,
       // fix/smoke-2026-10-07 (owner decision of 2026-10-08): the record of the
       // re-targeted clause, which replaced heaviest_frame_includes_director_work.
       director_heaviest_frame: {

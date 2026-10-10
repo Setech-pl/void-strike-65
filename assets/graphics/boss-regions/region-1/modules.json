@@ -42,6 +42,12 @@
     "_": "One countdown (§5.13.2 item 6): the next armed cannon fires when it reaches 0 and the countdown restarts from that cannon's reload (EASY +1/2, HARD -1/4), never under this cooldown. gun-2's slower reload opens the fight; the faster cannons behind the plates raise the rate as they are exposed.",
     "cooldown": 24
   },
+  "escort": {
+    "_": "feat/boss-escort-flow (owner smoke and answers of 2026-10-10, docs/plans/boss-escort-flow.md): the level's boss-sector Interceptor escort starts at the first weapon kill (a gun or an emitter; armour does not count) - a fighter parked at the left edge reaches one weapon, gun-5, so a later start leaves that edge a refuge (MEASURED: N = 2, 0 escorts and 0 hits in 80 s parked) - then one Interceptor every baseFrames + (RNG & jitterMask) frames (3.0-4.3 s), only on a frame with no module kill, until the boss falls; at most one Light live (the level's lights 1). Compiled into the tables' bytes 17-19; src/c/director.c reads them. Replaces the stream of six escorts 100 frames apart from the fight's first frame (variant B).",
+    "afterWeapons": 1,
+    "baseFrames": 150,
+    "jitterMask": 63
+  },
   "capped": {
     "_": "An emitter slot the level's laser tier does not enable (decision 8: 1 / 2 / 4 slots on levels 1-4 / 5-8 / 9-12) becomes armour with the capped plate (extras.png) and these hit points.",
     "hp": 8

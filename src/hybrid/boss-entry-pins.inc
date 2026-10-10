@@ -23,4 +23,4 @@ pin_sector_reader_show_records   = $A0A7   ; reader
 pin_sector_reader_failure_screen = $A0D6   ; reader
 pin_sr_slot_a_overlaid           = $A576   ; reader
 ; S5-1 (owner decision Q8): the HUD booster backup, the kernel link's last segment.
-pin_boss_enter_hud_backup        = $B802   ; kernel
+pin_boss_enter_hud_backup        = $B82D   ; kernel

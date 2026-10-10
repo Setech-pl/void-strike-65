@@ -99,9 +99,6 @@ export const SUMMARY_DEFAULTS = Object.freeze({
 export const LIGHT_LOOK_SLOTS = 3;
 export const LIGHT_LOOK_BYTES = 16;
 export const WAVE_FLAG_APPEARANCE_MASK = 0x03;
-// feat/boss-escort-flow: wave_flags bit 6, an Interceptor that leaves the
-// bottom edge alive re-enters at the top (src/c/lifecycle.c light_tick_body).
-export const WAVE_FLAG_REENTER = 0x40;
 // One row is eight ANTIC 4 pixels, four per cell. A Light's screen code
 // carries the hostile bit, so %11 is the hostile red COLPF3.
 export const LIGHT_LOOK_PIXEL = Object.freeze({ ".": 0, W: 1, S: 2, R: 3 });
@@ -794,28 +791,17 @@ function compileSectors(source, context, warnings) {
       const mirror = requireBoolean(context, waveWhere, "mirror", wave.mirror, false);
       const onCleared = requireBoolean(context, waveWhere, "afterCleared",
         wave.afterCleared, false);
-      // feat/boss-escort-flow (owner question 2026-10-10): an Interceptor of
-      // this wave that leaves the bottom edge alive re-enters at the top. Only
-      // the Interceptor flies free and chases, so only its waves - a Light
-      // wave of Interceptors, or a Heavy wave they escort - may ask.
-      const reenter = requireBoolean(context, waveWhere, "reenter", wave.reenter, false);
-      if (reenter && archetype !== "interceptor" && escort !== "interceptor") {
-        fail(context, waveWhere, "asks to re-enter, but only an Interceptor re-enters at the " +
-          "top; this wave has none");
-      }
       if (wave.path !== undefined) {
         fail(context, waveWhere, "names a path; the path evaluator and its library are " +
           "plan step 6 (docs/plans/director-4.6.md §8)");
       }
       // wave_flags: bits 0-1 appearance slot, bit 2 mirror, bit 3 Heavy class,
-      // bits 4-5 trigger mode (0 = on row, 1 = when the previous wave cleared),
-      // bit 6 re-entry (feat/boss-escort-flow).
+      // bits 4-5 trigger mode (0 = on row, 1 = when the previous wave cleared).
       const flags = appearance | (mirror ? 0x04 : 0) |
-        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) |
-        (reenter ? WAVE_FLAG_REENTER : 0);
+        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0);
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
-        onCleared, reenter, archetype, escort, class: waveClass,
+        onCleared, archetype, escort, class: waveClass,
         rowModules: row / HULL_MODULE_ROWS,
         archetypeOffset: ARCHETYPE_INDEX[archetype] * ARCHETYPE_RECORD_BYTES,
         escortOffset: escort === null

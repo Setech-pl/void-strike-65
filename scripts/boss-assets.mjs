@@ -273,6 +273,33 @@ export function decodeBossDraftPng(buffer, file, expected = null) {
   return { width: image.width, height: image.height, indices, file };
 }
 
+// feat/boss-escort-flow: the escort is two halves - the region's cadence
+// (tables 17-19, read by src/c/director.c) and the level's boss-sector wave
+// (its archetype and look, published once the region's kill count is reached).
+// One without the other is a level that silently never meets its escort, or
+// a region that arms the wave after the sector's last (the cursor would read
+// the next level data as a wave). `compiledLevel` is scripts/level-compiler.mjs
+// compileLevel's result; null when the pair is consistent.
+export function bossEscortPairingProblem(compiledLevel, region) {
+  const boss = compiledLevel.sectors.find((sector) => sector.kindName === "boss");
+  if (boss === undefined) return null;
+  const waves = compiledLevel.waves.filter((wave) => wave.sector === boss.index + 1);
+  const regionEscort = region.tables[BOSS_TABLE.escortAfter] !== 0;
+  if (regionEscort && waves.length !== 1) {
+    return `the boss region has an escort (escort.afterWeapons ${region.tables[BOSS_TABLE.escortAfter]}) ` +
+      `but level ${compiledLevel.level}'s boss sector authors ${waves.length} waves; it must author one`;
+  }
+  if (!regionEscort && waves.length !== 0) {
+    return `level ${compiledLevel.level}'s boss sector authors an escort wave but its boss region has no ` +
+      "escort block, so the wave would never arm";
+  }
+  if (regionEscort && waves[0].count !== 1) {
+    return `level ${compiledLevel.level}'s boss escort wave has count ${waves[0].count}; the Director ` +
+      "admits one Interceptor per arming, so the count is 1";
+  }
+  return null;
+}
+
 // S5-2 (plan s5-boss-regions §4.2, §6): regions 2-4 are copies of region 1
 // on the disk until their own sessions replace them (S5-1, owner answer Q10);
 // assets/graphics/boss-regions/placeholders.json holds what each copy changes

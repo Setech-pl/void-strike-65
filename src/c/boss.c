@@ -56,6 +56,11 @@ extern volatile uint8_t boss_laser_slots[];    /* [0] the emitter slots the tier
 /* boss_n = the next armed module after boss_cursor, cyclic (src/hybrid/boss.s,
  * slot C's ASM); the armed set must not be empty. */
 extern void boss_next_armed(void);
+/* feat/boss-escort-flow (docs/plans/boss-escort-flow.md): the escort is the
+ * Director's (src/c/director.c); the controller reports its weapon kills and
+ * each quiet fight frame. */
+extern void director_c_boss_weapon_down(void);
+extern void director_c_boss_escort_frame(void);
 #define TABLE            boss_tables
 #define LEVEL_HEADER_ID  3u
 /* A module record's field, indexed by the record's offset: `abs,Y` on the
@@ -385,6 +390,7 @@ uint8_t boss_c_hit(void)
             boss_stats_bonus[1] = boss_def[BOSS_DEF_BONUS_HI];
             return 1u;
         }
+        director_c_boss_weapon_down();          /* feat/boss-escort-flow */
     } else {
         /* S5-2: the last armour module's kill starts the finale, when the
          * region has one; its first volley comes on the next frame (this
@@ -460,6 +466,10 @@ void boss_c_tick(void)
                 boss_expose();
                 boss_heavy = 1u;
             }
+        } else {
+            /* feat/boss-escort-flow: a quiet frame - no kill, no exposure
+             * check - is the only kind the escort may be armed on. */
+            director_c_boss_escort_frame();
         }
         if (boss_burst_left != 0u) {
             /* The salvo's next shot: one spawn a frame, the countdown waits. */

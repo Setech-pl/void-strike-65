@@ -303,7 +303,7 @@
     },
     {
       "_": "M5b-S3: the boss sector (plan §5.1-5.2). The world scroll stops (Q1). No escort here: the core page's 20 waves are all taken by sectors 1-4, and freeing one would change the level before the boss. The runtime admits one Light in a boss sector (decision 5a) and the install arms a row-0 escort wave for a level that authors one. SUPERSEDED for the escort by owner decision 2026-10-10 (feat/boss-r1-tuning, variant B; journal §AH): the boss sector has an escort now.",
-      "_escort": "feat/boss-r1-tuning variant B (owner decision 2026-10-10, journal §AH; replaces 'no Light escort in R1'): one Interceptor stream under lights 1 - the kernel admits one at a time, the next 100 frames after the slot frees, six in all (plan s5-boss-regions §4.3, Q5). The owner's smoke of 2026-10-09: the player hid at a screen edge; MEASURED on the comparison build, a fighter parked at the left edge took 4-5 hits in 80 s with it, 0-1 without.",
+      "_escort": "feat/boss-escort-flow (owner smoke and answers of 2026-10-10, docs/plans/boss-escort-flow.md; replaces variant B's stream of six escorts 100 frames apart from the fight's first frame): the wave names the escort - the Interceptor, one per arming (count 1) - and the boss region's escort block says when: from the first weapon kill, one every 150 + 0..63 frames, only on a frame with no module kill, until the boss falls. The Director publishes the wave at the trigger (src/c/director.c); scripts/build.mjs refuses a boss region and a level that disagree. Variant B's finding stands: a fighter parked at the left edge took 0 hits in 80 s without an escort.",
       "kind": "boss",
       "look": {
         "stars": "yellow"
@@ -311,7 +311,7 @@
       "archetypes": ["interceptor"],
       "lights": 1,
       "waves": [
-        { "archetype": "interceptor", "count": 6, "spacing": 100, "row": 0 }
+        { "archetype": "interceptor", "count": 1, "row": 0 }
       ]
     }
   ],

@@ -4,7 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
-import { escortVariantBossImports, installEscortVariant, parseEscortVariant } from "./boss-escort-variants.mjs";
+import { installEscortVariant, parseEscortVariant } from "./boss-escort-variants.mjs";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
   guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
@@ -131,6 +131,7 @@ import {
   loadBossRegionDraft,
   loadBossPlaceholders,
   bossPlaceholderDraft,
+  bossEscortPairingProblem,
   renderBossLayoutHeader,
   renderBossLayoutInclude,
 } from "./boss-assets.mjs";
@@ -359,9 +360,9 @@ const levelDebugSector = levelDebugMatch === null
 if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
   throw new Error(`--level=${levelDebugId} is outside 1..16`);
 }
-// feat/boss-escort-flow (docs/plans/boss-escort-flow.md): --escort-variant=t|tw
-// builds the boss escort's comparison variants - the default build with
-// in-memory source edits (scripts/boss-escort-variants.mjs). Composes with
+// feat/boss-escort-flow (docs/plans/boss-escort-flow.md): --escort-variant=n2
+// builds the left-edge guard's negative control - the default build with an
+// in-memory data edit (scripts/boss-escort-variants.mjs). Composes with
 // --level=N[:sector=M]. Review variant: build/escort-variant-<id>[-level-N-sM]/,
 // never dist/.
 const escortVariantId = parseEscortVariant(process.argv);
@@ -2377,6 +2378,12 @@ async function build() {
   for (const compiled of compiledLevels.values()) {
     if (!quiet) for (const warning of compiled.warnings) console.warn(`level warning: ${warning}`);
   }
+  // feat/boss-escort-flow: a level and its boss region agree on the escort
+  // (the region of level N is min(3, (N - 1) / 3), as boss_head picks it).
+  for (const [id, compiled] of compiledLevels) {
+    const problem = bossEscortPairingProblem(compiled, bossRegions[Math.min(3, Math.floor((id - 1) / 3))]);
+    if (problem !== null) throw new Error(`level run ${id}: ${problem}`);
+  }
   const levelImages = new Map(levelRuns.map((run) =>
     [run.id, buildLevelImage({
       id: run.id, sectors: run.sectors, musicBytes: gameplayMusicModule.raw,
@@ -2834,8 +2841,8 @@ async function build() {
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end"],
     // B2 (owner decision 2026-10-06): the boss restores COLPM1 / COLPM2 to
     // the Heavy's hull colour on leaving the boss sector.
-    director: ["_sector_wave_count", "_director_c_try_event", "_heavy_hull_colour",
-      ...(escortVariantId === null ? [] : escortVariantBossImports(escortVariantId))],
+    // feat/boss-escort-flow: slot C reports weapon kills and quiet frames.
+    director: ["_heavy_hull_colour", "_director_c_boss_weapon_down", "_director_c_boss_escort_frame"],
     // audit-hardening (AUD-02): the head checks its runs with the disk guard.
     kernel: ["guard_reset", "guard_compare"],
   };

@@ -176,6 +176,8 @@ _boss_def          = LEVEL_PAYLOAD_BOSS_DEF
 _boss_difficulty   = DIFFICULTY_SETTING
 _boss_active_frame = ACTIVE_GAMEPLAY_FRAME_LO
 _boss_stats_bonus  = STATS_BONUS
+; feat/boss-escort-flow: the Director's escort calls (the Director link).
+.export _director_c_boss_weapon_down, _director_c_boss_escort_frame
 .import _boss_c_init, _boss_c_hit, _boss_c_tick
 .import _boss_hit_module, _boss_hit_cell, _boss_stage_module, _boss_stage_add
 .import _boss_score_module, _boss_newly_lo, _boss_newly_hi, _boss_kind, _boss_hp
@@ -3007,14 +3009,10 @@ boss_install:
     lda #$FF
     sta boss_shown_lms
     jsr boss_apply_pos
-    ; 9. A level that authors an escort arms its row-0 wave now that the
-    ;    boss is in (decision 5a: one Light at most; the world never moves
-    ;    again, so no later row can arm).
-    ldx DIRECTOR_STATE_SECTOR
-    lda _sector_wave_count,x
-    beq @no_escort
-    jsr _director_c_try_event
-@no_escort:
+    ; 9. (feat/boss-escort-flow) The level's escort is not armed here any
+    ;    more: the Director publishes it at the region's count of weapon
+    ;    kills and admits one at a time from then on (src/c/director.c
+    ;    director_c_boss_weapon_down / director_c_boss_escort_frame).
     ; 10. The engine bed back, the display up on a frame edge with the HUD's
     ;     state, and the PAL-frame handshake re-armed (§5.11.3): the loop
     ;     waits for this frame's first DLI like the first frame of a game.

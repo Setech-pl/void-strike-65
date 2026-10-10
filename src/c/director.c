@@ -382,8 +382,9 @@ static void enter_sector(void)
         STATE_FLAGS |= FLAG_CAPITAL_DUE;
     }
     /* M5b-S3: the boss sector's escort waits for the boss. A Light armed now
-     * would keep the drain from ever clearing; the install arms the row-0
-     * wave once the boss is in, and the world stops, so no later row arms. */
+     * would keep the drain from ever clearing; feat/boss-escort-flow: the
+     * Director arms it once the boss is losing (director_c_boss_weapon_down),
+     * and the world stops, so no row arms it. */
     if (director_scratch0 == SECTOR_KIND_BOSS) {
         STATE_FLAGS |= FLAG_BOSS_DUE;
         return;
@@ -553,6 +554,75 @@ static void director_c_sector_cut(void)
     advance_sector();
 }
 
+/* feat/boss-escort-flow (owner smoke and answers of 2026-10-10,
+ * docs/plans/boss-escort-flow.md): the boss sector's escort starts once the
+ * boss is losing - at the region's count of weapon kills, on the first quiet
+ * frame after it - and then comes every baseFrames + (RNG & jitterMask)
+ * frames until the boss falls. The world stops in a boss sector, so no row
+ * tick arms it: the boss controller (slot C) reports its weapon kills and
+ * each quiet fight frame, and the Director decides. $80FC and $80FD - the
+ * armed wave's Heavy formations and their spacing - are idle in a boss sector
+ * (no Heavy wave, no row tick) and enter_sector zeroed both: they count the
+ * weapon kills and the frames to the next escort. The region's three bytes
+ * are the boss tables' 17-19 at $AD11-$AD13 (scripts/boss-assets.mjs
+ * BOSS_TABLE.escortAfter / escortBase / escortJitter). */
+#define ESCORT_KILLS             STATE_WAVE_REMAINING
+#define ESCORT_TIMER             STATE_SPACING
+#define BOSS_ESCORT_AFTER        U8_AT(0xAD11u)
+#define BOSS_ESCORT_BASE         U8_AT(0xAD12u)
+#define BOSS_ESCORT_JITTER       U8_AT(0xAD13u)
+
+/* The boss controller, on a weapon kill that is not the last. The kill that
+ * makes the region's count publishes the sector's escort wave with nothing
+ * pending and starts the clock: the first escort comes on the next quiet
+ * frame. A region with no escort counts to 0, which no kill reaches;
+ * scripts/build.mjs refuses a region with an escort under a level whose boss
+ * sector authors no escort wave, and the reverse.
+ *
+ * director_c_try_event zeroes $80FC and $80FD for a Light wave and moves the
+ * cursor past it, so it runs once and the two bytes are set after it; the
+ * count is parked past any module count, so no later kill triggers again
+ * (MEASURED in Phase A: without the park every later kill re-armed the
+ * cursor's next entry, the Raider record, into a Light slot). */
+#pragma code-name ("DIRECTOR_C_CODE")
+void director_c_boss_weapon_down(void)
+{
+    ++ESCORT_KILLS;
+    if (ESCORT_KILLS != BOSS_ESCORT_AFTER) {
+        return;
+    }
+    director_c_try_event();
+    light_wave_remaining = 0u;
+    ESCORT_KILLS = 0x80u;
+    ESCORT_TIMER = 1u;
+}
+
+/* The boss controller, on each fight frame with no kill and no exposure
+ * check: an escort is armed only on such a frame, and the stepper admits it
+ * on the same frame (it runs after the boss's update). baseFrames is longer
+ * than an Interceptor's pass (scripts/boss-assets.mjs refuses less), so the
+ * last escort has left when the next is armed, nothing is ever left pending,
+ * and none can follow the defeat, after which the controller stops calling.
+ * The RNG's high bits, as the low bits of x * 5 + 1 cycle short. In the
+ * window's last segment: the hot Light C keeps its addresses. */
+#pragma code-name ("HYBRID_C_WINDOW_FLOW")
+void director_c_boss_escort_frame(void)
+{
+    if (ESCORT_TIMER == 0u) {
+        return;
+    }
+    --ESCORT_TIMER;
+    if (ESCORT_TIMER != 0u) {
+        return;
+    }
+    light_wave_timer = 0u;
+    light_wave_remaining = 1u;
+    light_wave_lock = 1u;
+    director_c_rng_advance();
+    ESCORT_TIMER = (uint8_t)(BOSS_ESCORT_BASE +
+        (uint8_t)((uint8_t)(STATE_RNG >> 2) & BOSS_ESCORT_JITTER));
+}
+
 #pragma code-name ("DIRECTOR_C_CODE")
 
 void director_c_world_row_tick(void)
@@ -589,7 +659,7 @@ void director_c_world_row_tick(void)
         return;
     }
     /* M5b-S3: the boss sector ends at the boss's death, not on a row, and its
-     * escort is armed by the boss install once the boss is in (plan §5.2): a
+     * escort is the boss controller's to start (feat/boss-escort-flow): a
      * row tick while the entry waits for the drain must not arm it early. */
     if (director_scratch0 == SECTOR_KIND_BOSS) {
         return;

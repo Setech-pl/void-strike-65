@@ -73,7 +73,15 @@ test("region 1: a gun stands at each far end of the boss (left of column 16, rig
 // MEDIUM 90-120 s, EASY shorter, HARD not shorter.
 const PLAIN_SWEEP_FRAMES = [3834, 4612, 5964];
 const AIM_FRAMES_ON_MAIN = [1847, 2231, 2663];
-test("the fight's length by the aiming bot keeps the owner's rule (MEDIUM 90-120 s, EASY shorter, HARD not shorter)", () => {
+// RE-POINTED feat/boss-escort-flow (owner answer 5 of 2026-10-10, owner-decisions
+// §AI): MEDIUM up to 126 s is accepted TEMPORARILY. The escort from the first
+// weapon kill lengthens the aiming bot's fight (its deaths with lives held);
+// the next task changes the Interceptor's behaviour (no kamikaze runs: it backs
+// off and fires), which changes those deaths, and the fight is retuned after
+// it - this bound returns to 120 then. EASY shorter and HARD not shorter are
+// unchanged.
+const MEDIUM_MAX_SECONDS = 126;
+test("the fight's length by the aiming bot keeps the owner's rule (MEDIUM 90-126 s for now, EASY shorter, HARD not shorter)", () => {
   const report = JSON.parse(fs.readFileSync(path.join(root, "docs", "runtime-wall-trace.json"), "utf8"));
   const sessions = report.coverage.director_level_complete.natural_difficulty_sessions;
   assert.deepEqual(sessions.map(({ boss_policy: policy }) => policy), ["boss-aim", "boss-aim", "boss-aim"],
@@ -82,7 +90,7 @@ test("the fight's length by the aiming bot keeps the owner's rule (MEDIUM 90-120
     (PLAIN_SWEEP_FRAMES[difficulty] * frames / AIM_FRAMES_ON_MAIN[difficulty]) / 50);
   const [easy, medium, hard] = seconds;
   const where = seconds.map((s) => s.toFixed(1)).join(" / ");
-  assert.ok(medium >= 90 && medium <= 120, `MEDIUM ${medium.toFixed(1)} s (E / M / H ${where})`);
+  assert.ok(medium >= 90 && medium <= MEDIUM_MAX_SECONDS, `MEDIUM ${medium.toFixed(1)} s (E / M / H ${where})`);
   assert.ok(easy < medium, `EASY ${easy.toFixed(1)} s is not shorter than MEDIUM (${where})`);
   assert.ok(hard >= medium, `HARD ${hard.toFixed(1)} s is shorter than MEDIUM (${where})`);
 });
@@ -100,15 +108,19 @@ test("the loading screen of every region shows the hull's gun rows 8-10", () => 
 });
 
 // Owner decision 2026-10-10, variant B (journal §AH; replaces "no Light escort
-// in R1"): one Interceptor stream in level 1's boss sector, at most one Light
+// in R1"): an Interceptor escort in level 1's boss sector, at most one Light
 // live; plate-a and plate-h 16 -> 12 so MEDIUM lands within the rule.
-test("variant B: level 1's boss sector authors one Interceptor stream under lights 1 (6 escorts, spacing 100)", () => {
+// RE-POINTED feat/boss-escort-flow (owner answers of 2026-10-10, owner-decisions
+// §AI): the stream of six escorts 100 frames apart is replaced by the Director's
+// cadence - the wave names the escort (one per arming), the region says when
+// (tests/boss-escort-flow.test.mjs holds the cadence).
+test("variant B: level 1's boss sector authors one Interceptor escort wave under lights 1", () => {
   const level = JSON.parse(fs.readFileSync(path.join(root, "assets", "levels", "level-01.json"), "utf8"));
   const boss = level.sectors.find((sector) => sector.kind === "boss");
   assert.deepEqual(boss.archetypes, ["interceptor"]);
   assert.equal(boss.lights, 1, "at most one Light in the boss sector");
-  assert.deepEqual(boss.waves.map(({ archetype, count, spacing, row }) => ({ archetype, count, spacing, row })),
-    [{ archetype: "interceptor", count: 6, spacing: 100, row: 0 }]);
+  assert.deepEqual(boss.waves.map(({ archetype, count, row }) => ({ archetype, count, row })),
+    [{ archetype: "interceptor", count: 1, row: 0 }]);
 });
 
 test("variant B: plate-a and plate-h at 12 hit points (were 16), every other plate unchanged", () => {

@@ -170,7 +170,10 @@ test("region 1 is the fortress: plates are the hull's face, cannons recessed beh
   assert.equal(region1.style, 1);
   assert.ok(region1.modules.length <= 16 && region1.modules.length >= 12);
   const kinds = region1.modules.map((module) => module.kind);
-  assert.equal(kinds.filter((kind) => kind === "pulse").length, 4);
+  // RE-POINTED feat/boss-r1-tuning (owner findings 2026-10-09, decision
+  // 2026-10-10): four cannons -> six, gun-5 and gun-6 at the far ends behind
+  // plate-a and plate-h (both still behind armour, checked below).
+  assert.equal(kinds.filter((kind) => kind === "pulse").length, 6);
   assert.equal(kinds.filter((kind) => kind === "emitter").length, 1);
   assert.ok(kinds.filter((kind) => kind === "armour").length >= 8);
   // The front armour covers the hull's columns: at least 36 of the hull's
@@ -199,8 +202,15 @@ test("region 1 is the fortress: plates are the hull's face, cannons recessed beh
   assert.equal(region1.modules[byName.get("gun-3")].cover, 1 << byName.get("plate-e"),
     "gun-3 is shielded by plate-e, which spans all of its columns");
   // Every weapon inside the director-complete bot's reach (§5.15.6 item 5).
+  // RE-POINTED feat/boss-r1-tuning (owner decisions 2026-10-10): the guns stand
+  // at the boss's far ends, outside the plain sweep's columns 20-46, and the
+  // director-complete replays play the boss sector with the aiming bot, whose
+  // reach is the player's: every column of every weapon must be met by a
+  // player shot (an even HPOS in 56..207) at some band position 0..63.
+  const inReach = (c) => [...Array(64).keys()].some((p) =>
+    [0, 1, 2, 3].some((k) => { const x = 4 * c + 32 - p + k; return (x & 1) === 0 && x >= 56 && x <= 207; }));
   for (const m of region1.modules.filter((module) => module.kind !== "armour")) {
-    assert.ok(m.x >= 20 && m.x + m.width <= 47, `${m.name} at ${m.x}`);
+    for (let c = m.x; c < m.x + m.width; c += 1) assert.ok(inReach(c), `${m.name} column ${c} is out of reach`);
   }
 });
 
@@ -253,7 +263,8 @@ test("the emitter slot is a weapon on every level now the lasers exist (S4b, dec
     const index = byName.get("emitter");
     assert.equal(memory[lbl("_boss_kind") + index], BOSS_KIND.emitter, `level ${level}`);
     assert.equal(hp(memory, index), region1.modules[index].hp);
-    assert.equal(memory[lbl("_boss_weapons_left")], 5, `level ${level}: the four cannons and the emitter`);
+    // RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): six cannons.
+    assert.equal(memory[lbl("_boss_weapons_left")], 7, `level ${level}: the six cannons and the emitter`);
   }
 });
 
@@ -308,7 +319,10 @@ test("the exposure check runs one frame after the kill (§5.15.6 item 2)", () =>
 // plate-d in front of it fall before the last cannon; the rest as before.
 test("the defeat: the last weapon's death starts the chain with armour still standing (decision A)", () => {
   const memory = fortress(32);
-  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "plate-d", "emitter"]) {
+  // RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): gun-5 and
+  // gun-6 behind plate-a and plate-h are weapons too and fall before gun-2.
+  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "plate-d", "emitter",
+    "plate-a", "gun-5", "plate-h", "gun-6"]) {
     kill(memory, region1, name);
     assert.equal(memory[lbl("_boss_phase")], 0, `still the fight after ${name}`);
   }
@@ -316,7 +330,9 @@ test("the defeat: the last weapon's death starts the chain with armour still sta
   assert.equal(memory[lbl("_boss_phase")], 2, "the chain");
   // RE-POINTED (decision N): the cowl plates are no longer modules.
   // RE-POINTED M5b-S4b: plate-d and the emitter fell above; three plates stand.
-  for (const name of ["plate-a", "plate-b", "plate-h"]) {
+  // RE-POINTED feat/boss-r1-tuning: plate-a and plate-h guard guns now and fell
+  // above; plate-b stands.
+  for (const name of ["plate-b"]) {
     assert.ok(hp(memory, byName.get(name)) > 0, `${name} stands: armour is not required`);
   }
 });
@@ -645,7 +661,10 @@ test("the nozzles at both ends animate through their phases and go dark first in
   assert.equal(seen[0].size, 3, "the left nozzle did not cycle its three phases");
   assert.equal(seen[1].size, 3, "the right nozzle did not cycle its three phases");
   // RE-POINTED M5b-S4b: the emitter is a weapon now; it and plate-d fall too.
-  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "plate-d", "emitter"]) {
+  // RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): gun-5 and
+  // gun-6 behind plate-a and plate-h are weapons too and fall before gun-2.
+  for (const name of ["plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "plate-d", "emitter",
+    "plate-a", "gun-5", "plate-h", "gun-6"]) {
     kill(memory, region1, name);
   }
   const g2 = byName.get("gun-2");
@@ -761,7 +780,10 @@ test("Q-B6/Q8 on the fortress: five shots a frame through every reachable module
     cycles += nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli")) + nmi(memory, lbl("boss_dli"));
     worst = Math.max(worst, cycles);
   };
-  const order = ["plate-d", "emitter", "plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "gun-2"];
+  // RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): gun-5 and
+  // gun-6 behind plate-a and plate-h are weapons too and fall before gun-2.
+  const order = ["plate-d", "emitter", "plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1",
+    "plate-a", "gun-5", "plate-h", "gun-6", "gun-2"];
   for (const name of order) {
     const index = byName.get(name);
     for (let guard = 0; guard < 400 && hp(memory, index) > 0 && memory[lbl("_boss_phase")] === 0; guard += 1) {

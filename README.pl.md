@@ -4,7 +4,7 @@
 
 **[▶ Zagraj w przeglądarce](https://setech-pl.github.io/setech-arcade/play/void-strike-65/)**
 
-*Uruchamia wydanie v0.2.2, przypięte w Setech Arcade, na wbudowanym w emulator
+*Uruchamia wydanie v0.2.3, przypięte w Setech Arcade, na wbudowanym w emulator
 AltirraOS; najlepiej grać na klawiaturze albo gamepadzie. ATR na prawdziwy
 sprzęt i emulatory jest na
 [stronie wydań](https://github.com/Setech-pl/void-strike-65/releases).*

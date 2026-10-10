@@ -474,7 +474,10 @@ test("leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 res
   memory[HULL_COLOUR()] = 0x96;                       // the Heavy's last hull colour, whatever it was
   alive(memory);
   memory[main("player_x")] = 60;
-  const order = ["plate-d", "emitter", "plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1", "gun-2"];
+  // RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): gun-5 and
+  // gun-6 behind plate-a and plate-h are weapons too and fall before gun-2.
+  const order = ["plate-d", "emitter", "plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1",
+    "plate-a", "gun-5", "plate-h", "gun-6", "gun-2"];
   for (const name of order) {
     const index = byName.get(name);
     for (let guard = 0; guard < 600 && hp(memory, index) > 0 && memory[lbl("_boss_phase")] === 0; guard += 1) {

@@ -76,15 +76,25 @@ test("decision N: a weapon whose cover stands takes no damage in any of its colu
   }
 });
 
+// RE-POINTED feat/boss-r1-tuning (class (a), the scenario moves): every weapon
+// was fought at band position 32, where the far-end guns (gun-5 behind plate-a,
+// gun-6 behind plate-h) and their plates are out of a shot's reach; each weapon
+// is now fought at the band position nearest 32 at which its cover's centre
+// and every one of its columns are in reach. The clause is unchanged.
+const reachableAt = (weapon) => [...POSITIONS].sort((a, b) => Math.abs(a - 32) - Math.abs(b - 32) || a - b)
+  .find((p) => coverOf(weapon).every((cover) => reachX(cover.x + (cover.width >> 1), p) !== null) &&
+    Array.from({ length: weapon.width }, (_, i) => weapon.x + i).every((c) => reachX(c, p) !== null));
 test("decision N: once its cover falls a weapon takes damage in every one of its columns", () => {
   for (const weapon of weapons) {
     const index = region1.modules.indexOf(weapon);
-    const memory = fight(32);
+    const p = reachableAt(weapon);
+    assert.ok(p !== undefined, `${weapon.name}: no band position has its cover and its columns in reach`);
+    const memory = fight(p);
     for (const cover of coverOf(weapon)) {
       const ci = region1.modules.indexOf(cover);
       for (let guard = 0; guard < 60 && hp(memory, ci) > 0; guard += 1) {
         const c = cover.x + (cover.width >> 1);
-        fly(memory, c, reachX(c, 32));
+        fly(memory, c, reachX(c, p));
         settle(memory);
       }
       assert.equal(hp(memory, ci), 0, `${cover.name} did not fall`);
@@ -92,7 +102,7 @@ test("decision N: once its cover falls a weapon takes damage in every one of its
     settle(memory);
     for (let c = weapon.x; c < weapon.x + weapon.width; c += 1) {
       const before = hp(memory, index);
-      fly(memory, c, reachX(c, 32));
+      fly(memory, c, reachX(c, p));
       assert.equal(hp(memory, index), before - 1, `${weapon.name} column ${c}: no damage once uncovered`);
       settle(memory);
     }

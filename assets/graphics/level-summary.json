@@ -12,21 +12,21 @@
     {
       "region": 2,
       "hullStyle": "R2",
-      "segmentRow": 10,
+      "segmentRow": 4,
       "palette": { "COLPF0": "$0E", "COLPF1": "$9A", "COLPF3": "$26" },
       "stars": [[22, 0], [13, 2], [26, 5], [16, 7], [20, 9]]
     },
     {
       "region": 3,
       "hullStyle": "R3",
-      "segmentRow": 16,
+      "segmentRow": 4,
       "palette": { "COLPF0": "$0C", "COLPF1": "$7A", "COLPF3": "$54" },
       "stars": [[15, 0], [25, 2], [12, 4], [21, 7], [28, 9]]
     },
     {
       "region": 4,
       "hullStyle": "R4",
-      "segmentRow": 22,
+      "segmentRow": 4,
       "palette": { "COLPF0": "$0C", "COLPF1": "$AA", "COLPF3": "$B4" },
       "stars": [[19, 1], [13, 3], [27, 4], [23, 8], [16, 9]]
     }

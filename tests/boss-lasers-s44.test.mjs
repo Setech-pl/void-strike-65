@@ -127,8 +127,12 @@ function shieldedFixture() {
     }
     images[name] = { ...image, indices };
   }
+  // RE-POINTED feat/boss-r1-tuning (class (a), the fixture moves): region 1 has
+  // 15 modules, so the tier-4 fixture (16) plus the shield is 17, over the
+  // converter's 16; gun-6, a far-end pulse gun that plays no part in the
+  // lasers' places, leaves this fixture (its art stays as hull).
   return compileBossRegion({ ...draft, images,
-    layout: { ...draft.layout, modules: [...draft.layout.modules, shield] } });
+    layout: { ...draft.layout, modules: [...draft.layout.modules.filter((m) => m.name !== "gun-6"), shield] } });
 }
 
 test("decision 4: with both places busy, the exposed emitter takes the first that frees, ahead of a waiting one", () => {

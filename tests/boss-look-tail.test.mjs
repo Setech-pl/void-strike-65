@@ -81,9 +81,18 @@ test("E4: the memory map names the look tail's home", () => {
 // 30-34, rows 1-3, the S4b final emitter's 30-33 and the column a five-wide
 // design takes. E4 moves bytes, not pixels; a design (S4b.4 step 2) may change
 // the emitter's cells and nothing else.
-const S4B_FINAL_OUTSIDE_EMITTER = ["4ccb127ccc1f23f8", "aaed8c5b84b77555", "a4986473a9658e9f",
-  "342abeb7ba8e6986", "70c01e32cd1c94cf", "4ccb127ccc1f23f8"];
-const emitterCell = (c, r) => c >= 30 && c <= 34 && r >= 1 && r <= 3;
+// RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): gun-5 and gun-6
+// at the far ends change the cells of their footprints and recesses - columns
+// 12-14 and 50-52, rows 1-3 - so those are excluded too. The digests are
+// main dcc331a's art hashed with this exclusion; main's art hashed with the
+// emitter-only exclusion gives the S4b final digests above
+// (4ccb127ccc1f23f8, aaed8c5b84b77555, a4986473a9658e9f, 342abeb7ba8e6986,
+// 70c01e32cd1c94cf, 4ccb127ccc1f23f8), so the band still equals the S4b final
+// build everywhere but the emitter and the two far-end guns.
+const S4B_FINAL_OUTSIDE_EMITTER = ["a5354d889e09f1c6", "cdeaa9e39e4caa2e", "339ddca54c393f8b",
+  "63a6c49f06f7dbba", "4d74be8af807aa5e", "a5354d889e09f1c6"];
+const emitterCell = (c, r) => (c >= 30 && c <= 34 && r >= 1 && r <= 3) ||
+  (((c >= 12 && c <= 14) || (c >= 50 && c <= 52)) && r >= 1 && r <= 3);
 
 test("E4: region 1's band renders pixel-identical to the S4b final build outside the emitter's cells", () => {
   const digests = bossPanelRegisters(region1).map((registers) => {

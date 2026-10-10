@@ -558,10 +558,18 @@ const capitalPlayerGeometrySessions = [["ATR", 1], ["ATR", 2]].flatMap(([medium,
 // it: the budget grows for the fight (MEASURED on MEDIUM: entry at frame 8,787,
 // the three guns down by 10,243); the clauses below are unchanged in kind.
 const DIRECTOR_COMPLETION_FRAMES = 15_000;
+// feat/boss-r1-tuning (owner decision 2026-10-10, class (a): the scenario
+// moves, no clause weakens): the boss sector is played by the aiming bot
+// (policy boss-aim: the sweep, frame for frame, until the boss entry; then
+// under the nearest live, exposed weapon or plate that guards one, leading it
+// for the drift). The plain sweep meets band columns 17-48 only and can never
+// finish a boss with guns at its far ends. The fight's length is read as a
+// ratio against main's plain-sweep replay (docs/plans/boss-r1-tuning.md §4.2).
+const DIRECTOR_COMPLETION_POLICY = "boss-aim";
 const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   id: `director-complete-${difficulty}-natural-sweep-fire0`,
   difficulty,
-  policy: "sweep",
+  policy: DIRECTOR_COMPLETION_POLICY,
   fireDelay: 0,
   frames: DIRECTOR_COMPLETION_FRAMES,
   kind: "director-level-complete",
@@ -586,7 +594,7 @@ const summaryRecordSessions = [{
 }, {
   id: "director-complete-2-write-protected",
   difficulty: 2,
-  policy: "sweep",
+  policy: DIRECTOR_COMPLETION_POLICY,
   fireDelay: 0,
   frames: DIRECTOR_COMPLETION_FRAMES,
   kind: "summary-write-protected",
@@ -7529,6 +7537,9 @@ function main() {
     return {
       session: session.id,
       difficulty: session.difficulty,
+      // feat/boss-r1-tuning: the bot that played the boss sector (the fight
+      // length's proxy, owner decision 2026-10-10).
+      boss_policy: session.policy,
       boss_sector: lastSector,
       boss_sector_entered_frame: sectorEntered.frame,
       boss_entry_frame: entry.frame,

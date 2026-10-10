@@ -187,7 +187,11 @@ test("(A) the firing order and every gun's countdown are the documented policy's
       m[lbl("_boss_cursor")] = s.cursor;
       m[lbl("_boss_countdown")] = 1;
       m[lbl("_boss_expose_pending")] = 0;
-      for (let f = 0; f < 3000; f += 1) {
+      // RE-POINTED feat/boss-r1-tuning (class (a), the scenario moves): region 1
+      // has 15 modules, so a random armed set holds the salvo launcher less often
+      // and 3,000 frames compared 27 bursts against the subject's 30; 4,000
+      // frames restore the subject. The comparison and its floor are unchanged.
+      for (let f = 0; f < 4000; f += 1) {
         if (f % 23 === 0 && s.burstLeft === 0) {
           // A new armed set (any modules, emitters too: the walk passes them),
           // and a short countdown so the walk runs often.

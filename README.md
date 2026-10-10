@@ -4,7 +4,7 @@
 
 **[▶ Play in your browser](https://setech-pl.github.io/setech-arcade/play/void-strike-65/)**
 
-*Plays release v0.2.2, the version pinned on Setech Arcade, on the emulator's
+*Plays release v0.2.3, the version pinned on Setech Arcade, on the emulator's
 built-in AltirraOS; best with a keyboard or a gamepad. The ATR for real
 hardware and emulators is on the
 [releases page](https://github.com/Setech-pl/void-strike-65/releases).*

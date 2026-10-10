@@ -526,6 +526,22 @@ static unsigned dftrace_hold_player_lives;
  * there, away from the guns' recesses where the boss's shots fall. 0 = off. */
 static unsigned dftrace_contact_lens_clock;
 static unsigned dftrace_laser_contact_seen;
+/* feat/boss-escort-flow (class (a): the scenario moves, no clause weakens;
+ * STATUS backlog item 6): lower-contact-laser plays the rest of the boss with
+ * the aiming bot once its laser contact is over - the frame of the first
+ * contact latched here, the switch 300 frames on (the beam's 50, the death,
+ * the respawn). After the contact it swept the plain 94-154, which never meets
+ * the far-end guns (feat/boss-r1-tuning), so the fight never ended and the
+ * replay lost its post-boss summary and hull rebuild. */
+static unsigned dftrace_laser_contact_frame;
+static int dftrace_laser_after_contact(unsigned frame)
+{
+	if (dftrace_laser_contact_seen == 0u)
+		return 0;
+	if (dftrace_laser_contact_frame == 0u)
+		dftrace_laser_contact_frame = frame;
+	return frame >= dftrace_laser_contact_frame + 300u;
+}
 /* chore/contact-scenario-redesign: the PMG row the fighter-phase preamble of
  * the contact sessions holds (dftrace_contact_preamble). Zero means off. */
 static unsigned dftrace_contact_preamble_row;
@@ -3576,7 +3592,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		}
 		stick = x < best ? 0x07u : x > best ? 0x0bu : 0x0fu;
 	}
-	else if (strcmp(dftrace_policy, "lower-contact-laser") == 0) {
+	else if (strcmp(dftrace_policy, "lower-contact-laser") == 0 && !dftrace_laser_after_contact(frame)) {
 		/* M5b-S4b (docs/plans/boss-lasers.md §7): the sweep bot plays the level;
 		 * in the boss sector, once a laser warns or fires on screen while the
 		 * player is ALIVE with no damage cooldown, it steers under that beam on
@@ -3691,7 +3707,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				stick &= 0x0du;
 		}
 	}
-	else if (strcmp(dftrace_policy, "boss-aim") == 0 && dftrace_boss_active() &&
+	else if ((strcmp(dftrace_policy, "boss-aim") == 0 ||
+		(strcmp(dftrace_policy, "lower-contact-laser") == 0 && dftrace_laser_after_contact(frame))) &&
+		dftrace_boss_active() &&
 		dftrace_boss_hp != 0u && dftrace_boss_shown_pos != 0u) {
 		/* feat/boss-r1-tuning: the boss sector played as a player aims - fly
 		 * under a live, exposed module that is a weapon or covers a live

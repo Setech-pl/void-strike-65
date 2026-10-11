@@ -7,10 +7,11 @@
 //   s  SLOWER CHASE - the same pursuit, horizontal tracking at half the
 //      player's top speed (one 4-HPOS cell every fourth frame instead of every
 //      other one); the descent, the fire and the pass are unchanged.
-//   r  STANDOFF - dives in to a standoff distance above the player, backs off
-//      upward when the player closes in, tracks the player's column at half
-//      the player's speed, fires its laser straight down only when it is in
-//      the player's column, and leaves upward when its time is up.
+//   r  STANDOFF - descends as today to a standoff above the player (each Light
+//      slot two rows higher, so a swarm stacks), backs off upward when the
+//      player closes in, tracks the player's column at the player's speed,
+//      fires its laser straight down only when it is in the player's column,
+//      and climbs out when its time is up.
 //
 // A variant is the default build plus edits applied IN MEMORY while
 // scripts/build.mjs reads its inputs (the method of scripts/boss-escort-variants.mjs):
@@ -25,12 +26,13 @@ import path from "node:path";
 // without touching the code below (plan §3.2 gives the reasons).
 export const STANDOFF = Object.freeze({
   lifeFrames: 100,    // frames from admission to the climb out
-  far: 56,            // approach while the player is further below than 7 rows
-  near: 32,           // back off while closer than 4 rows; <= PLAYER_Y_MIN (32)
-  dive: 4,            // the approach, lines a frame
-  climb: 8,           // the climb out, lines a frame: out in <= 23 frames
+  far: 56,            // descend while the player is further below than 7 rows
+  near: 48,           // back off while the player is closer than 6 rows
+  slotRows: 16,       // each Light slot holds 2 rows higher: a swarm stacks
+  dive: 2,            // the descent, lines a frame (today's rate)
   backoff: 2,         // the back-off, lines a frame (the player climbs 1)
-  trackMask: 3,       // one 4-HPOS cell every (mask + 1) frames
+  climb: 8,           // the climb out, lines a frame: out in <= 23 frames
+  trackDive: 1,       // one cell every 2nd frame, the player's speed (today's)
 });
 
 const LIFECYCLE = "src/c/lifecycle.c";
@@ -54,10 +56,11 @@ const rDefines = (s) => ({
     `#define INTERCEPTOR_LIFE_FRAMES  ${s.lifeFrames}u\n` +
     `#define INTERCEPTOR_STANDOFF_FAR ${s.far}u\n` +
     `#define INTERCEPTOR_STANDOFF_NEAR ${s.near}u\n` +
+    `#define INTERCEPTOR_SLOT_SHIFT   ${Math.log2(s.slotRows)}u\n` +
     `#define INTERCEPTOR_DIVE         ${s.dive}u\n` +
     `#define INTERCEPTOR_CLIMB        ${s.climb}u\n` +
     `#define INTERCEPTOR_BACKOFF      ${s.backoff}u\n` +
-    `#define INTERCEPTOR_TRACK_MASK   ${s.trackMask}u\n` +
+    `#define INTERCEPTOR_TRACK_DIVE   ${s.trackDive}u\n` +
     "#define PLAYER_Y                 U8_AT(0x0081u)\n",
 });
 
@@ -101,21 +104,26 @@ const rMotion = {
     "            } else {\n" +
     "                ++light_fire_work;\n" +
     "                light_burst_left[light_slot] = light_fire_work;\n" +
-    "                /* The player's distance below, top to top. A Light below\n" +
-    "                 * the player wraps to a large value and keeps descending.\n" +
-    "                 * NEAR is at most the player's highest Y, so at y 0 the\n" +
-    "                 * gap is never under it and the back-off never wraps. */\n" +
+    "                /* The player's distance below, top to top, less the\n" +
+    "                 * slot's own rows (a swarm stacks instead of merging; the\n" +
+    "                 * Director's ceilings keep the slot under 3, so with the\n" +
+    "                 * player at Y 32 or lower down nothing wraps). It tracks at\n" +
+    "                 * the player's speed (half speed while holding is 13 packed\n" +
+    "                 * bytes, a twelfth window sector). */\n" +
+    "                light_target_x = (uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT);\n" +
     "                light_scratch = (uint8_t)(PLAYER_Y - light_work);\n" +
+    "                light_scratch = (uint8_t)(light_scratch - light_target_x);\n" +
     "                if (light_scratch >= INTERCEPTOR_STANDOFF_FAR) {\n" +
     "                    light_work = (uint8_t)(light_work + INTERCEPTOR_DIVE);\n" +
-    "                } else if (light_scratch < INTERCEPTOR_STANDOFF_NEAR) {\n" +
+    "                } else if (light_scratch < INTERCEPTOR_STANDOFF_NEAR &&\n" +
+    "                           light_work >= INTERCEPTOR_BACKOFF) {\n" +
     "                    light_work = (uint8_t)(light_work - INTERCEPTOR_BACKOFF);\n" +
     "                }\n" +
     "                light_target_x = (uint8_t)(PLAYER_X & 0xFCu);\n" +
     "                if (light_target_x > LIGHT_X_LAST) {\n" +
     "                    light_target_x = LIGHT_X_LAST;\n" +
     "                }\n" +
-    "                if ((FRAME_COUNTER & INTERCEPTOR_TRACK_MASK) == 0u) {\n" +
+    "                if ((FRAME_COUNTER & INTERCEPTOR_TRACK_DIVE) == 0u) {\n" +
     "                    light_fire_work = light_x[light_slot];\n" +
     "                    if (light_fire_work < light_target_x) {\n" +
     "                        light_fire_work = (uint8_t)(light_fire_work + LIGHT_X_STEP);\n" +
@@ -128,6 +136,16 @@ const rMotion = {
     "            }\n" +
     "        }\n" +
     "        light_y[light_slot] = light_work;\n",
+};
+
+// Budget, not behaviour: the escort's column in one 8-bit add. cc65 promotes
+// ENEMY_X_0 + 4 + 2 to int and emits two additions; (x + 6) & $FC cast to a
+// byte is the same value for every x.
+const escortColumnAdd = {
+  file: LIFECYCLE,
+  from: "        light_work = (uint8_t)((ENEMY_X_0 + LIGHT_CENTRE_OFFSET + LIGHT_ROUND) & 0xFCu);\n",
+  to: "        light_work = (uint8_t)(ENEMY_X_0 + (uint8_t)(LIGHT_CENTRE_OFFSET + LIGHT_ROUND));\n" +
+    "        light_work = (uint8_t)(light_work & 0xFCu);\n",
 };
 
 const rFire = {
@@ -195,7 +213,7 @@ export const INTERCEPTOR_VARIANTS = Object.freeze({
   },
   r: {
     summary: "standoff - dives to a standoff above the player, backs off, fires only when aligned, leaves upward",
-    edits: [rDefines(STANDOFF), rMotion, rFire, ...flowToLow, kernelPin(0xB809)],
+    edits: [rDefines(STANDOFF), rMotion, escortColumnAdd, rFire, ...flowToLow, kernelPin(0xB81C)],
   },
 });
 

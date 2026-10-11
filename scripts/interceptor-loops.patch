@@ -14,7 +14,7 @@ index 45f028a..a468190 100644
    # core page, INSIDE the level buffer. file = "" - nothing is emitted into any
    # artifact and no transport byte is spent; the sector reader fills the buffer
 diff --git a/src/c/lifecycle.c b/src/c/lifecycle.c
-index 549bbdd..162a665 100644
+index 549bbdd..74e34a9 100644
 --- a/src/c/lifecycle.c
 +++ b/src/c/lifecycle.c
 @@ -97,6 +97,20 @@
@@ -43,33 +43,35 @@ index 549bbdd..162a665 100644
   *     NONE - one copy more, never a wrong bitmap. */
  uint8_t light_wave_look;
 +/* The loops each slot's Interceptor has left, in wave_flags units ($40 a
-+ * loop): written at admission from the armed wave's flags, read only while
-+ * the slot lives. */
++ * loop, bits 6-7): the armed wave's flags written whole at admission, masked
++ * where they are read; read only while the slot lives. */
 +uint8_t light_loops[LIGHT_SLOT_COUNT];
  /* The look THIS admission wants: the published look, or - for appearance 0 -
   * the record's own offset, so a level without variants keys every pair on
   * the archetype exactly as before. */
-@@ -929,6 +947,8 @@ static uint8_t light_admit(void)
+@@ -929,6 +947,10 @@ static uint8_t light_admit(void)
      light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
      light_hp[light_slot] = light_work;
      light_burst_left[light_slot] = 0u;
-+    light_work = (uint8_t)(heavy_wave_flags & INTERCEPTOR_LOOP_MASK);
-+    light_loops[light_slot] = light_work;
++    /* The armed wave's flags whole: the mask waits for the top phase, so
++     * the admission frame - the binding row of the fence (MEASURED) - pays
++     * one load and one store. */
++    light_loops[light_slot] = heavy_wave_flags;
      light_y[light_slot] = 0u;
      light_x[light_slot] = light_admit_entry;
      light_state[light_slot] = light_admit_state;
-@@ -1144,7 +1164,27 @@ static uint8_t light_tick_body(void)
+@@ -1144,7 +1166,29 @@ static uint8_t light_tick_body(void)
              light_target_x = 0u;
              light_fire_work = light_burst_left[light_slot];
              if (light_fire_work >= INTERCEPTOR_LIFE_FRAMES) {
 -                light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
-+                light_scratch = light_loops[light_slot];
-+                if (light_scratch == 0u) {
++                /* The body's result byte is free until it returns. */
++                light_tick_result = (uint8_t)(light_loops[light_slot] & INTERCEPTOR_LOOP_MASK);
++                if (light_tick_result == 0u) {
 +                    light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
 +                } else {
-+                    /* Each slot holds 2 rows lower, as its standoff holds
-+                     * 2 rows higher: a swarm at the top does not merge. The
-+                     * body's result byte is free until it returns. */
++                    /* Each slot holds 2 rows lower, as its standoff holds 2
++                     * rows higher: a swarm at the top does not merge. */
 +                    light_tick_result = (uint8_t)((uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT) +
 +                        INTERCEPTOR_TOP_HOLD);
 +                    if (light_work >= (uint8_t)(light_tick_result + INTERCEPTOR_CLIMB)) {
@@ -80,15 +82,17 @@ index 549bbdd..162a665 100644
 +                    light_fire_work = (uint8_t)(light_fire_work + INTERCEPTOR_TOP_STEP);
 +                    light_burst_left[light_slot] = light_fire_work;
 +                    if (light_fire_work == 0u) {
-+                        light_scratch = (uint8_t)(light_scratch - INTERCEPTOR_LOOP_UNIT);
-+                        light_loops[light_slot] = light_scratch;
++                        /* A loop spent: bits 6-7 are at least 1 here, so the
++                         * flags' low bits ride along unborrowed. */
++                        light_tick_result = (uint8_t)(light_loops[light_slot] - INTERCEPTOR_LOOP_UNIT);
++                        light_loops[light_slot] = light_tick_result;
 +                    }
 +                }
              } else {
                  ++light_fire_work;
                  light_burst_left[light_slot] = light_fire_work;
 diff --git a/src/hybrid/boss-entry-pins.inc b/src/hybrid/boss-entry-pins.inc
-index 8902171..30838db 100644
+index 8902171..051ee9f 100644
 --- a/src/hybrid/boss-entry-pins.inc
 +++ b/src/hybrid/boss-entry-pins.inc
 @@ -23,4 +23,7 @@ pin_sector_reader_show_records   = $A0A7   ; reader
@@ -96,10 +100,10 @@ index 8902171..30838db 100644
  pin_sr_slot_a_overlaid           = $A576   ; reader
  ; S5-1 (owner decision Q8): the HUD booster backup, the kernel link's last segment.
 -pin_boss_enter_hud_backup        = $B820   ; kernel
-+pin_boss_enter_hud_backup        = $B840   ; kernel
++pin_boss_enter_hud_backup        = $B845   ; kernel
 +; feat/interceptor-standoff: the boss entry's region read and its records, behind it.
-+pin_boss_enter_read              = $B84E   ; kernel
-+pin_boss_warning_records         = $B873   ; kernel
++pin_boss_enter_read              = $B853   ; kernel
++pin_boss_warning_records         = $B878   ; kernel
 diff --git a/src/hybrid/c-asm-abi.s b/src/hybrid/c-asm-abi.s
 index 2143fa0..076d390 100644
 --- a/src/hybrid/c-asm-abi.s

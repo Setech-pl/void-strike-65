@@ -795,13 +795,23 @@ function compileSectors(source, context, warnings) {
         fail(context, waveWhere, "names a path; the path evaluator and its library are " +
           "plan step 6 (docs/plans/director-4.6.md §8)");
       }
+      // feat/interceptor-standoff (the owner's smoke of 2026-10-11): how many
+      // times an Interceptor of this wave climbs to the top-hold row and dives
+      // back to its standoff before it leaves. Only an Interceptor flies it, so
+      // the wave's Light - its archetype, or a Heavy wave's escort - must be one.
+      const loops = requireInteger(context, waveWhere, "loops", wave.loops ?? 0, 0, 3);
+      if (loops !== 0 && (waveClass === "heavy" ? escort : archetype) !== "interceptor") {
+        fail(context, waveWhere, `asks for ${loops} loop(s); only an Interceptor loops, ` +
+          "and this wave's Light is not one");
+      }
       // wave_flags: bits 0-1 appearance slot, bit 2 mirror, bit 3 Heavy class,
-      // bits 4-5 trigger mode (0 = on row, 1 = when the previous wave cleared).
+      // bits 4-5 trigger mode (0 = on row, 1 = when the previous wave cleared),
+      // bits 6-7 the Interceptor's loops.
       const flags = appearance | (mirror ? 0x04 : 0) |
-        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0);
+        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) | loops << 6;
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
-        onCleared, archetype, escort, class: waveClass,
+        onCleared, loops, archetype, escort, class: waveClass,
         rowModules: row / HULL_MODULE_ROWS,
         archetypeOffset: ARCHETYPE_INDEX[archetype] * ARCHETYPE_RECORD_BYTES,
         escortOffset: escort === null

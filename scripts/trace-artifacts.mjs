@@ -13,7 +13,8 @@ import path from "node:path";
 // S5-1 (plan s5-boss-regions §5): and the boss-region routes.
 // feat/boss-r1-tuning: and the boss comparison variants' routes.
 // feat/boss-escort-flow: and the escort variants' routes.
-const DEBUG_ROUTE_VARIANT = /^(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-)?(?:laser-fixture-[24]-)?(?:boss-region-[2-4]-)?level-\d+-s\d+$/;
+// feat/interceptor-standoff (plan §12): and the Interceptor loop variants' routes.
+const DEBUG_ROUTE_VARIANT = /^(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-|interceptor-loops-[0-3]-)?(?:laser-fixture-[24]-)?(?:boss-region-[2-4]-)?level-\d+-s\d+$/;
 // The flags a diagnostic run may carry. Every other mode either writes docs/
 // (boot smoke, menu raster, capital/player collision, the full run) or reuses
 // a default-build trace.

@@ -1,0 +1,216 @@
+diff --git a/cfg/encounter-director.cfg b/cfg/encounter-director.cfg
+index 45f028a..a468190 100644
+--- a/cfg/encounter-director.cfg
++++ b/cfg/encounter-director.cfg
+@@ -24,7 +24,9 @@ MEMORY {
+   # the armed wave's published look, the admission's look key and one key per
+   # appearance pair. The next five bytes of the same unowned gap, leaving
+   # $8133-$813F, 13 B. docs/memory-map.md carries the range.
+-  HYBRID_LIGHT_LOOK_RAM: start = $812E, size = $0005, type = rw, file = "", define = yes;
++  # feat/interceptor-standoff (the top-hold loop): four more, light_loops (the
++  # loops each slot's Interceptor has left), leaving $8137-$813F, 9 B.
++  HYBRID_LIGHT_LOOK_RAM: start = $812E, size = $0009, type = rw, file = "", define = yes;
+   # Roadmap 4.6 step 2 (docs/plans/director-4.6.md §2.2, §3.4): the LevelDef
+   # core page, INSIDE the level buffer. file = "" - nothing is emitted into any
+   # artifact and no transport byte is spent; the sector reader fills the buffer
+diff --git a/src/c/lifecycle.c b/src/c/lifecycle.c
+index 549bbdd..162a665 100644
+--- a/src/c/lifecycle.c
++++ b/src/c/lifecycle.c
+@@ -97,6 +97,20 @@
+ #define INTERCEPTOR_CLIMB        8u
+ #define INTERCEPTOR_BACKOFF      2u
+ #define INTERCEPTOR_TRACK_DIVE   1u     /* FRAME_COUNTER mask: one cell every 2nd frame */
++/* The top-hold loop (the owner's smoke of 2026-10-11, plan
++ * interceptor-standoff §12): an Interceptor whose wave authors loops does not
++ * leave after its 100 frames. It climbs at the same 8 lines a frame to the
++ * top-hold row - the playfield's second row for slot 0, two rows lower per
++ * slot, on screen (a Light is drawn from y 24) - holds there, then descends to its standoff and flies it again. The
++ * top phase is the age running on from 100 in steps of 4 until it wraps to 0:
++ * 39 frames, the climb and then the hold; the wrap restarts the standoff with
++ * its descent, and spends a loop. With none left it climbs out as before.
++ * The count is wave_flags bits 6-7 (scripts/level-compiler.mjs), kept per slot
++ * in the same units ($40 a loop). */
++#define INTERCEPTOR_LOOP_MASK    0xC0u
++#define INTERCEPTOR_LOOP_UNIT    0x40u
++#define INTERCEPTOR_TOP_HOLD     32u
++#define INTERCEPTOR_TOP_STEP     4u
+ #define PLAYER_Y                 U8_AT(0x0081u)
+ /* Light multiplicity (plan-light-multiplicity.md §2.1). Four SoA slots is the
+  * declared format; how many of them a sector may fill is a separate ceiling
+@@ -522,6 +536,10 @@ uint8_t heavy_breakup_pending;
+  *     installs that pair because light_appearance_installed was reset to
+  *     NONE - one copy more, never a wrong bitmap. */
+ uint8_t light_wave_look;
++/* The loops each slot's Interceptor has left, in wave_flags units ($40 a
++ * loop): written at admission from the armed wave's flags, read only while
++ * the slot lives. */
++uint8_t light_loops[LIGHT_SLOT_COUNT];
+ /* The look THIS admission wants: the published look, or - for appearance 0 -
+  * the record's own offset, so a level without variants keys every pair on
+  * the archetype exactly as before. */
+@@ -929,6 +947,8 @@ static uint8_t light_admit(void)
+     light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
+     light_hp[light_slot] = light_work;
+     light_burst_left[light_slot] = 0u;
++    light_work = (uint8_t)(heavy_wave_flags & INTERCEPTOR_LOOP_MASK);
++    light_loops[light_slot] = light_work;
+     light_y[light_slot] = 0u;
+     light_x[light_slot] = light_admit_entry;
+     light_state[light_slot] = light_admit_state;
+@@ -1144,7 +1164,27 @@ static uint8_t light_tick_body(void)
+             light_target_x = 0u;
+             light_fire_work = light_burst_left[light_slot];
+             if (light_fire_work >= INTERCEPTOR_LIFE_FRAMES) {
+-                light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
++                light_scratch = light_loops[light_slot];
++                if (light_scratch == 0u) {
++                    light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
++                } else {
++                    /* Each slot holds 2 rows lower, as its standoff holds
++                     * 2 rows higher: a swarm at the top does not merge. The
++                     * body's result byte is free until it returns. */
++                    light_tick_result = (uint8_t)((uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT) +
++                        INTERCEPTOR_TOP_HOLD);
++                    if (light_work >= (uint8_t)(light_tick_result + INTERCEPTOR_CLIMB)) {
++                        light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
++                    } else {
++                        light_work = light_tick_result;
++                    }
++                    light_fire_work = (uint8_t)(light_fire_work + INTERCEPTOR_TOP_STEP);
++                    light_burst_left[light_slot] = light_fire_work;
++                    if (light_fire_work == 0u) {
++                        light_scratch = (uint8_t)(light_scratch - INTERCEPTOR_LOOP_UNIT);
++                        light_loops[light_slot] = light_scratch;
++                    }
++                }
+             } else {
+                 ++light_fire_work;
+                 light_burst_left[light_slot] = light_fire_work;
+diff --git a/src/hybrid/boss-entry-pins.inc b/src/hybrid/boss-entry-pins.inc
+index 8902171..30838db 100644
+--- a/src/hybrid/boss-entry-pins.inc
++++ b/src/hybrid/boss-entry-pins.inc
+@@ -23,4 +23,7 @@ pin_sector_reader_show_records   = $A0A7   ; reader
+ pin_sector_reader_failure_screen = $A0D6   ; reader
+ pin_sr_slot_a_overlaid           = $A576   ; reader
+ ; S5-1 (owner decision Q8): the HUD booster backup, the kernel link's last segment.
+-pin_boss_enter_hud_backup        = $B820   ; kernel
++pin_boss_enter_hud_backup        = $B840   ; kernel
++; feat/interceptor-standoff: the boss entry's region read and its records, behind it.
++pin_boss_enter_read              = $B84E   ; kernel
++pin_boss_warning_records         = $B873   ; kernel
+diff --git a/src/hybrid/c-asm-abi.s b/src/hybrid/c-asm-abi.s
+index 2143fa0..076d390 100644
+--- a/src/hybrid/c-asm-abi.s
++++ b/src/hybrid/c-asm-abi.s
+@@ -611,10 +611,14 @@ BOSS_CODE_ENTRY          = 1
+ BOSS_REGION_ENTRY        = 2
+ BOSS_REGIONS             = 4
+ 
+-.export _asm_boss_enter, boss_warning_records
++.export _asm_boss_enter
+ 
+ .segment "HYBRID_ASM_WINDOW"
+ 
++; feat/interceptor-standoff (the top-hold loop): only the head stays here. The
++; read of the region and the boss code, and the WARNING screen's records, live
++; in the Light kernel link's last segment (src/hybrid/light-kernel.s), behind
++; the HUD booster backup, so the window's boot-loaded record keeps 11 sectors.
+ _asm_boss_enter:
+     ; S5-1 (owner decision Q8): the HUD's booster cells backed up first; the
+     ; routine (the Light kernel link's last segment) tail-calls the music stop
+@@ -624,8 +628,8 @@ _asm_boss_enter:
+     jsr pin_sector_reader_blank
+     lda #$00
+     sta BOSS_LEVEL_BUFFER_MAGIC
+-    lda #<boss_warning_records
+-    ldx #>boss_warning_records
++    lda #<pin_boss_warning_records
++    ldx #>pin_boss_warning_records
+     jsr pin_sector_reader_show_records
+     ; The region from the level id, three levels a region (decision AC, as
+     ; the summary's art has it): min(3, (id - 1) / 3).
+@@ -646,31 +650,4 @@ _asm_boss_enter:
+     inx
+     bne @region
+ @read_region:
+-    jsr BOSS_READ_RUN
+-    bcs @failed
+-    ldx #$00
+-@theme:
+-    lda BOSS_STAGING_THEME,x
+-    sta pin_game_music_data_start,x
+-    inx
+-    bne @theme
+-    jsr BOSS_MUSIC_START
+-    lda #$01
+-    sta pin_sr_slot_a_overlaid
+-    ldx #BOSS_CODE_ENTRY
+-    jsr BOSS_READ_RUN
+-    bcs @failed
+-    jmp pin_capital_slot_a
+-@failed:
+-    jmp pin_sector_reader_failure_screen
+-
+-; The reader's record format: {dst_lo, dst_hi, text, $00}..., $FF. Inside the
+-; frontend glyph contract (A-Z 0-9 space - . / :); centred on the 40-column
+-; rows 6 and 8 of the text screen, two rows above the summary's dotted row,
+-; which the reader steps once per sector under it.
+-boss_warning_records:
+-    .byte <(BOSS_SCREEN + 6 * 40 + 16), >(BOSS_SCREEN + 6 * 40 + 16)
+-    .byte "WARNING", $00
+-    .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
+-    .byte "BOSS APPROACHING", $00
+-    .byte $FF
++    jmp pin_boss_enter_read
+diff --git a/src/hybrid/light-kernel.s b/src/hybrid/light-kernel.s
+index 24e3d16..1023cb8 100644
+--- a/src/hybrid/light-kernel.s
++++ b/src/hybrid/light-kernel.s
+@@ -692,3 +692,45 @@ boss_enter_hud_backup:
+     bpl @cell
+     jmp music_stop_gameplay
+ .export boss_enter_hud_backup
++
++; feat/interceptor-standoff (the top-hold loop): the boss entry's resident half
++; from the region read on (M5b-S3; its head and history in
++; src/hybrid/c-asm-abi.s), and the WARNING screen's records, moved here from the
++; window's Director half so the window's boot-loaded record keeps 11 sectors.
++; The head jumps here by its pin with X = the region's directory entry.
++.include "boss-entry-pins.inc"
++BOSS_SCREEN              = $4000
++BOSS_READ_RUN            = $A006
++BOSS_MUSIC_START         = $A608
++BOSS_CODE_ENTRY          = 1
++
++boss_enter_read:
++    jsr BOSS_READ_RUN
++    bcs @failed
++    ldx #$00
++@theme:
++    lda BOSS_STAGING_THEME,x
++    sta pin_game_music_data_start,x
++    inx
++    bne @theme
++    jsr BOSS_MUSIC_START
++    lda #$01
++    sta pin_sr_slot_a_overlaid
++    ldx #BOSS_CODE_ENTRY
++    jsr BOSS_READ_RUN
++    bcs @failed
++    jmp pin_capital_slot_a
++@failed:
++    jmp pin_sector_reader_failure_screen
++
++; The reader's record format: {dst_lo, dst_hi, text, $00}..., $FF. Inside the
++; frontend glyph contract (A-Z 0-9 space - . / :); centred on the 40-column
++; rows 6 and 8 of the text screen, two rows above the summary's dotted row,
++; which the reader steps once per sector under it.
++boss_warning_records:
++    .byte <(BOSS_SCREEN + 6 * 40 + 16), >(BOSS_SCREEN + 6 * 40 + 16)
++    .byte "WARNING", $00
++    .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
++    .byte "BOSS APPROACHING", $00
++    .byte $FF
++.export boss_enter_read, boss_warning_records

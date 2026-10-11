@@ -2017,6 +2017,50 @@ obniżono do 900 B bez zatrzymania sesji; zegar eskorty kosztował 43 B
 
 **Wynik:** zapisany w planie `interceptor-standoff` i w STATUS.
 
+## AK. INTERCEPTOR BEZ TARANOWANIA: STANOWISKO 7 RZĘDÓW NAD GRACZEM, STRZAŁ TYLKO W JEGO KOLUMNIE — odpowiedzi właściciela na §9 planu `interceptor-standoff` (2026-10-11, po zagraniu w buildy)
+
+Kontekst: faza A zadania `feat/interceptor-standoff` zbudowała dwa warianty
+zachowania Interceptora — S (wolniejszy pościg) i R (stanowisko) — i
+zmierzyła je (plan `interceptor-standoff` §2–§6). Właściciel zagrał w oba.
+
+1. **Q1 — zachowanie:** **R** dla każdego Interceptora (fale poziomów i
+   eskorta bossa). S i kod wyłącznie próbny (sondy długości walki) znikają
+   z wydawanego buildu.
+2. **Q2 — wartości R jak zbudowane:** opada jak dotąd (2 linie na klatkę,
+   jedna komórka w bok co drugą klatkę) do **7 rzędów** nad graczem; cofa się
+   w górę, gdy gracz podejdzie **bliżej niż 6 rzędów**; każdy slot Light
+   stoi **o 2 rzędy wyżej** (rój się nie zlewa w jedną komórkę); laser tylko
+   w kolumnie gracza; po **100 klatkach** wylatuje w górę **8 linii na
+   klatkę**. Najdłuższe życie poniżej 128 klatek — progu zegara eskorty
+   (`scripts/boss-assets.mjs`), który nie pozwala eskorcie czekać do upadku
+   bossa.
+3. **Q3 — próg areny w `tests/heavy-breakup.test.mjs` 28 → 14 B.** To
+   **zmiana bramki, nie pin** (reguła **AJ** pkt 2). Powód: wiersze per slot
+   trzymają Interceptory roju wizualnie osobno, a rekord okna zachowuje 11
+   sektorów tylko z bramką afterCleared (21 B) przeniesioną do areny. **14 B
+   to nowy próg;** każde dalsze użycie areny w tym zadaniu to STOP.
+4. **Q4 — błąd strzału w odłamek naprawić teraz:** osobny commit, test RED na
+   `main` i GREEN po. Twardy warunek: rekord okna 1 384 z 1 387 B (11
+   sektorów); przekroczenie to STOP z opcjami. (Bajty poszły do rekordu
+   kernela Light, nie okna — plan §8.1.)
+5. **Q5 — replay strażnika lewej krawędzi** `boss-edge-left-1`: 7 100 →
+   7 400 klatek; warunek bez zmian (co najmniej jedna eskorta i co najmniej
+   jedno trafienie w oknie 4 000 klatek walki, niepusty podmiot); pokazać
+   FAIL na wariancie T (N = 2) i PASS na buildzie końcowym.
+6. **Q6 — dźwignia długości walki:** płyty b–g **−4 HP** (b, c, g 16 → 12;
+   d, e 20 → 16; f 12 → 8) i sześć dział **14 → 12**. **Tymczasowa
+   akceptacja MEDIUM do 126 s (AI pkt 5) się kończy** — obowiązuje reguła
+   MEDIUM 90–120 s, EASY krócej, HARD nie krócej. HARD wychodzi ok. 50 s
+   dłużej niż MEDIUM — do przeglądu w M8.
+7. **Q7 — DMA-on 31 493** (293 ponad cel 31 200, poniżej twardej bramki
+   32 568) — **zaakceptowane**; zapisane w STATUS z wierszem.
+
+Limity STOP bez zmian; rekord okna ≤ 1 387 B (11 sektorów) to limit STOP
+tego zadania. NOWE albo PRZESUNIĘTE w `failures:reconcile` to STOP, łącznie
+z pinami i progami innymi niż ten z Q3.
+
+**Wynik:** plan `interceptor-standoff` §9.1 i §11 (jak zbudowano), STATUS.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

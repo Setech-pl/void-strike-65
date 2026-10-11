@@ -110,7 +110,7 @@ z tabelą wyników.
 | Raider | Ciężki | Szybki myśliwiec, strzela seriami | 10 |
 | Bomber | Ciężki | Sylwetka katamaranu; przeczesuje swój pas, zatrzymuje się, celuje, wypuszcza torpedy | 50 |
 | Wingman | Lekki | Lata w formacji | 5 |
-| Interceptor | Lekki | Szybki pościg, pojedynczy celowany laser | 21 |
+| Interceptor | Lekki | Nurkuje na pozycję strzelecką nad tobą, trzyma się twojej kolumny, strzela laserem prosto w dół, gdy jest nad tobą, cofa się, gdy podlecisz, potem odlatuje w górę | 21 |
 | Boss | — | Koniec każdego poziomu | 100 |
 
 Kadłub Bombera ciemnieje w miarę obrywania, więc po kolorze poznasz, ile mu

@@ -340,8 +340,8 @@ Recorded in [plans/director-4.6.md](plans/director-4.6.md) §11 item 20.
 
 **Level 1 after the capital (data/w2-lights, owner decision a/b and answers of
 2026-10-08; supersedes P2's one-of-each list).** A **swarm**: a column of three
-Wingmen in the `flight-lead` look, then three Interceptors closing on the
-player - up to three Lights at once, no Heavy. Then **elite (a)**, a Raider
+Wingmen in the `flight-lead` look, then three Interceptors that stack above
+the player and fire down on it (the standoff) - up to three Lights at once, no Heavy. Then **elite (a)**, a Raider
 pair with an Interceptor companion; **the Bomber pair**; and **elite (b)**, a
 Raider pair alone - the Bomber between the Raider variants so the Heavy waves
 alternate (owner decision 8). The waves before the capital and the capital are
@@ -599,15 +599,27 @@ candidate's" — contradicted this section's own heading and was corrected
   flies Wingmen and Interceptors together — up to three live in level 1 (W2,
   `OWNER-SMOKE CANDIDATE`). The boss sector's ceiling of one is intentional.
   Corrected 2026-10-08, AUD-07.
-- **Independent and aggressive.** It keeps no formation and follows no Heavy
-  leader. It enters at X 124, descends 2 lines per frame (twice the Heavy
-  rate) and every other frame closes one 4-HPOS cell on the player's column,
-  clamped to 48-200.
+- **Independent, no kamikaze runs — the standoff** (feat/interceptor-standoff,
+  owner answers Q1/Q2 of 2026-10-11, decision AK; `OWNER-SMOKE CANDIDATE`).
+  It keeps no formation and follows no Heavy leader. It enters at X 124 and
+  descends 2 lines per frame (twice the Heavy rate) until the player is
+  **7 rows below it**; there it **holds**, and while the player is **closer
+  than 6 rows** it **backs off upward** 2 lines a frame (the Interceptor is the
+  only archetype allowed to fly upward). Each Light slot holds **2 rows higher**
+  than the one before, so a swarm stacks into a column instead of merging into
+  one cell. Every other frame it moves one 4-HPOS cell toward the player's
+  column, clamped to 48-200 — the player's own top speed. After **100 frames**
+  it **climbs out** 8 lines a frame and leaves past the top; its longest life
+  is under the boss escort clock's 128-frame floor. It never steers into the
+  player; contact still counts if the player flies into it. Before this
+  (roadmap 4.4 to 2026-10-11) it closed on the player all the way to the
+  bottom edge — in effect a ram.
 - **Laser bolt (roadmap 4.4c).** It fires through the established hostile
-  PairShot path, but with its own weapon class `LASER`: a single thin bolt, then
+  PairShot path, but with its own weapon class `LASER`: a single thin bolt,
+  **only when it is in the player's column** (straight down, never aimed), then
   a pause of 56/44/32 frames for EASY/MEDIUM/HARD — one, two or three shots per
-  pass. Fast pursuit, slow deliberate fire. Speed, hitbox, damage and lifetime
-  are those of every hostile PairShot.
+  visit. Speed, hitbox, damage and lifetime are those of every hostile
+  PairShot.
 - **HP and score.** 1 HP; a kill scores 15 points, three times the Wingman's 5.
   Contact follows the Light contract.
 

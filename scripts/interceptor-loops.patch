@@ -14,7 +14,7 @@ index 45f028a..a468190 100644
    # core page, INSIDE the level buffer. file = "" - nothing is emitted into any
    # artifact and no transport byte is spent; the sector reader fills the buffer
 diff --git a/src/c/lifecycle.c b/src/c/lifecycle.c
-index 549bbdd..74e34a9 100644
+index 549bbdd..b4dfde3 100644
 --- a/src/c/lifecycle.c
 +++ b/src/c/lifecycle.c
 @@ -97,6 +97,20 @@
@@ -49,18 +49,19 @@ index 549bbdd..74e34a9 100644
  /* The look THIS admission wants: the published look, or - for appearance 0 -
   * the record's own offset, so a level without variants keys every pair on
   * the archetype exactly as before. */
-@@ -929,6 +947,10 @@ static uint8_t light_admit(void)
-     light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
-     light_hp[light_slot] = light_work;
+@@ -931,6 +949,11 @@ static uint8_t light_admit(void)
      light_burst_left[light_slot] = 0u;
-+    /* The armed wave's flags whole: the mask waits for the top phase, so
-+     * the admission frame - the binding row of the fence (MEASURED) - pays
-+     * one load and one store. */
-+    light_loops[light_slot] = heavy_wave_flags;
      light_y[light_slot] = 0u;
      light_x[light_slot] = light_admit_entry;
++    /* The armed wave's flags whole: the mask waits for the top phase, so
++     * the admission frame - the binding row of the fence (MEASURED) - pays
++     * one load and one store. After the two zero stores, which share one
++     * load. */
++    light_loops[light_slot] = heavy_wave_flags;
      light_state[light_slot] = light_admit_state;
-@@ -1144,7 +1166,29 @@ static uint8_t light_tick_body(void)
+     light_reload();
+     return 1u;
+@@ -1144,7 +1167,29 @@ static uint8_t light_tick_body(void)
              light_target_x = 0u;
              light_fire_work = light_burst_left[light_slot];
              if (light_fire_work >= INTERCEPTOR_LIFE_FRAMES) {

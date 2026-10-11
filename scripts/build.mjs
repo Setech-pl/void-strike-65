@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { installEscortVariant, parseEscortVariant } from "./boss-escort-variants.mjs";
+import { installInterceptorVariant, parseInterceptorVariant } from "./interceptor-variants.mjs";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
   guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
@@ -367,7 +368,17 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 // never dist/.
 const escortVariantId = parseEscortVariant(process.argv);
 const escortVariant = escortVariantId === null ? null : installEscortVariant(rootDirectory, escortVariantId);
-const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyCombatReviewHarness ||
+// feat/interceptor-standoff (docs/plans/interceptor-standoff.md): the
+// Interceptor's comparison builds, --interceptor-variant=s|r, in-memory source
+// edits (scripts/interceptor-variants.mjs). Composes with --level=N[:sector=M].
+// Review variant: build/interceptor-variant-<id>[-level-N-sM]/, never dist/.
+const interceptorVariantId = parseInterceptorVariant(process.argv);
+if (interceptorVariantId !== null && escortVariantId !== null) {
+  throw new Error("--interceptor-variant and --escort-variant do not compose");
+}
+const interceptorVariant = interceptorVariantId === null
+  ? null : installInterceptorVariant(rootDirectory, interceptorVariantId);
+const isReviewVariant = escortVariantId !== null || interceptorVariantId !== null || enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
@@ -389,6 +400,8 @@ const levelDebugSuffix = levelDebugId === null
     `-level-${levelDebugId}-s${levelDebugSector}`;
 const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
+  : interceptorVariantId !== null
+  ? `interceptor-variant-${interceptorVariantId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
   : laserFixtureTier !== null
@@ -4000,7 +4013,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null
+      bossVariantSlug !== undefined || escortVariantId !== null || interceptorVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -5415,6 +5428,7 @@ async function build() {
 
   if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
   escortVariant?.assertConsumed();
+  interceptorVariant?.assertConsumed();
 
   if (!quiet) {
     console.log(candidateBuild
@@ -5426,7 +5440,11 @@ async function build() {
     console.log(`  entry   : $${startAddress.toString(16)}`);
     console.log(`  ATR     : ${atr.length} bytes`);
     console.log(`  staging : $${packedResidentStagingAddress.toString(16)} reused after BROADSIDE publish`);
-    if (escortVariant !== null) {
+    if (interceptorVariant !== null) {
+      console.log(`  variant : Interceptor ${interceptorVariantId.toUpperCase()} - ${interceptorVariant.summary}` +
+        (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (escortVariant !== null) {
       console.log(`  variant : boss escort ${escortVariantId.toUpperCase()} - ${escortVariant.summary}` +
         (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);

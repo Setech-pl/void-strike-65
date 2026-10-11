@@ -4018,6 +4018,7 @@ function main() {
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
   // Light multiplicity plan §4.3.
   const lightTrace = process.argv.includes("--light-trace");
+  const hostileShotTrace = process.argv.includes("--hostile-shot-trace");
   const lightCeiling = argumentValue("light-ceiling");
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
@@ -4386,7 +4387,9 @@ function main() {
       ? path.join(buildDirectory, `${session.id}-atari800.png`) : undefined;
     const firstWriterOutput = session.kind === "raider-first-writer-native"
       ? path.join(buildDirectory, `${session.id}-first-writer.csv`) : undefined;
-    const interceptorProjectileOutput = session.kind === "raider-first-writer-native"
+    // feat/interceptor-standoff: --hostile-shot-trace logs every hostile shot
+    // of a diagnostic run (no anomaly stop), to attribute the player's hits.
+    const interceptorProjectileOutput = session.kind === "raider-first-writer-native" || hostileShotTrace
       ? path.join(buildDirectory, `${session.id}-enemy-projectiles.csv`) : undefined;
     const playerPairShotOutput = session.kind === "player-pairshot-speed-native" ||
       session.kind === "player-pairshot-reentry-native"
@@ -4490,6 +4493,7 @@ function main() {
       ...(interceptorProjectileOutput === undefined ? {} : {
         DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT: interceptorProjectileOutput,
       }),
+      ...(hostileShotTrace ? { DFTRACE_INTERCEPTOR_PROJECTILE_QUIET: "1" } : {}),
       ...(playerPairShotOutput === undefined ? {} : {
         DFTRACE_PLAYER_PAIRSHOT_OUTPUT: playerPairShotOutput,
       }),

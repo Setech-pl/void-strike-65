@@ -553,6 +553,10 @@ static unsigned dftrace_pmg_lab_screenshot_frame = 0xffffffffu;
 static const char *dftrace_session;
 static const char *dftrace_output;
 static const char *dftrace_interceptor_projectile_output;
+/* feat/interceptor-standoff: DFTRACE_INTERCEPTOR_PROJECTILE_QUIET logs the
+ * hostile-shot rows without the anomaly stop, so a diagnostic run can count
+ * which shots hit the player over a whole replay (boss band shots included). */
+static int dftrace_interceptor_projectile_quiet;
 static const char *dftrace_sector_clock_output;
 static const char *dftrace_player_pairshot_output;
 static const char *dftrace_light_output;
@@ -5629,7 +5633,9 @@ static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
 		}
 		/* A newly allocated shot is published after the displayed-list snapshot
 		 * used by this observer. Start enforcing visibility on its next frame. */
-		if (active != 0u && dftrace_interceptor_previous_active[index] != 0u && !visible)
+		if (dftrace_interceptor_projectile_quiet)
+			;
+		else if (active != 0u && dftrace_interceptor_previous_active[index] != 0u && !visible)
 			dftrace_interceptor_first_anomaly = 1u;
 		else if (active == 0u && dftrace_interceptor_previous_active[index] != 0u &&
 			!ttl_terminal && !boundary_terminal && !player_collision_terminal &&
@@ -7104,6 +7110,7 @@ static void dftrace_init(void)
 	dftrace_session = getenv("DFTRACE_SESSION");
 	dftrace_output = getenv("DFTRACE_OUTPUT");
 	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
+	dftrace_interceptor_projectile_quiet = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_QUIET") != NULL;
 	dftrace_sector_clock_output = getenv("DFTRACE_SECTOR_CLOCK_OUTPUT");
 	dftrace_light_output = getenv("DFTRACE_LIGHT_OUTPUT");
 	if (dftrace_light_output != NULL) {

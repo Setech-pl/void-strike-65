@@ -298,9 +298,12 @@ test("the stat hooks are operand-only in every full segment", () => {
   // RE-POINTED 2026-10-07 (audit-hardening): the kernel's link also carries
   // the disk guard and the capital vector image now, in segments of their own
   // behind it; the kernel's own segment is what this pin protects.
+  // RE-PINNED feat/interceptor-standoff (owner answer Q4, plan
+  // interceptor-standoff §8.1): 771 -> 775 B, light_shot's call and X restore
+  // (a lethal debris shot clobbered the PairShot loop's X). Not a stat hook.
   const kernelSegment = /^al\s+([0-9a-f]+)\s+\.__LIGHT_KERNEL_SIZE__$/im.exec(
     fs.readFileSync(build("light-kernel.lbl"), "utf8"));
-  assert.equal(Number.parseInt(kernelSegment[1], 16), 771, "the Light kernel grew");
+  assert.equal(Number.parseInt(kernelSegment[1], 16), 775, "the Light kernel grew");
   assert.equal(manifest.broadsideRuntime.bytes, 6653, "BROADSIDE grew");
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: the bound 13,621 -> 13,626; the stat hooks still add none.
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13621 + 5,
@@ -390,7 +393,9 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // booster backup (14 B) as the Light kernel link's last segment.
   // RE-PINNED 2026-10-10 (feat/boss-escort-flow, owner decision AI): 1,008 ->
   // 965, the Director's escort clock (43 B) in the window's last segment.
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 965, "the window moved");
+  // RE-PINNED feat/interceptor-standoff (owner answer Q4): 965 -> 961,
+  // light_shot's X restore in the Light kernel.
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 961, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623, "the initial block moved");

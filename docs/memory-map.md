@@ -219,12 +219,12 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AE00-$B36B` | 1,388 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
 | `$B36C-$B3D8` | 109 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
 | `$B3D9-$B4A6` | 206 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
-| `$B4A7-$B7A9` | 771 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
+| `$B4A7-$B7AD` | 775 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
 | `$B4B6-$B4D9` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
-| `$B7AA-$B808` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
-| `$B809-$B82C` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
-| `$B82D-$B83A` | 14 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's HUD booster backup (S5-1), the Light kernel link's last segment | `resident` | build/light-kernel.map |
-| `$B83B-$BBFF` | 965 B | unclaimed | **unclaimed — not measured** | — | — |
+| `$B7AE-$B80C` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
+| `$B80D-$B830` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
+| `$B831-$B83E` | 14 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's HUD booster backup (S5-1), the Light kernel link's last segment | `resident` | build/light-kernel.map |
+| `$B83F-$BBFF` | 961 B | unclaimed | **unclaimed — not measured** | — | — |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -246,9 +246,9 @@ No linked segment, cfg reservation, equate block, manifest range or machine area
 | --- | ---: | --- | --- |
 | `$00B6-$00FF` | 74 B | not measured | none in the repository |
 | `$0400-$04FF` | 256 B | not measured | none in the repository |
-| `$B83B-$BBFF` | 965 B | not measured | none in the repository |
+| `$B83F-$BBFF` | 961 B | not measured | none in the repository |
 
-Total: 1,295 B unclaimed, of which 0 B measured-free.
+Total: 1,291 B unclaimed, of which 0 B measured-free.
 
 ### Free after boot
 
@@ -668,17 +668,17 @@ By topic: Light enemies 63%, Director, sectors and waves 26%, Heavy, Raider and 
 
 By topic: level summary 97%, unclassified 3%.
 
-#### `LIGHT_KERNEL` `$B4A7-$B7A9`, 771 B (build/light-kernel.map)
+#### `LIGHT_KERNEL` `$B4A7-$B7AD`, 775 B (build/light-kernel.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `light_update` | `$B5C4` | 261 B | 33.9% | Light enemies |
-| `light_publish` | `$B4DA` | 224 B | 29.1% | Light enemies |
-| `light_shot` | `$B6C9` | 100 B | 13.0% | Light enemies |
-| `light_cell_resolve` | `$B761` | 73 B | 9.5% | Light enemies |
-| `capital_vector_table` | `$B4B6` | 36 B | 4.7% | capital ship |
-| `light_destroyed` | `$B72D` | 23 B | 3.0% | Light enemies |
-| `light_spawn_breakup` | `$B744` | 16 B | 2.1% | Light enemies |
+| `light_update` | `$B5C4` | 261 B | 33.7% | Light enemies |
+| `light_publish` | `$B4DA` | 224 B | 28.9% | Light enemies |
+| `light_shot` | `$B6C9` | 104 B | 13.4% | Light enemies |
+| `light_cell_resolve` | `$B765` | 73 B | 9.4% | Light enemies |
+| `capital_vector_table` | `$B4B6` | 36 B | 4.6% | capital ship |
+| `light_destroyed` | `$B731` | 23 B | 3.0% | Light enemies |
+| `light_spawn_breakup` | `$B748` | 16 B | 2.1% | Light enemies |
 | `light_kernel_vectors` | `$B4A7` | 15 B | 1.9% | Light enemies |
 | `light_top` | `$B5BA` | 10 B | 1.3% | Light enemies |
 | 2 smaller items | — | 13 B | 1.7% | — |
@@ -968,7 +968,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | `DIRECTOR_C_CODE` | 623 B | placement name | — | Director, sectors and waves (84%) | not judged |
 | `HYBRID_C_WINDOW` | 1,388 B | placement name | — | Light enemies (63%) | not judged |
 | `LEVEL_SUMMARY` | 1,760 B | level summary | 97% | level summary (97%) | fits |
-| `LIGHT_KERNEL` | 771 B | Light enemies | 95% | Light enemies (95%) | fits |
+| `LIGHT_KERNEL` | 775 B | Light enemies | 95% | Light enemies (95%) | fits |
 | `SECTOR_READER` | 1,498 B | boot, loader and transport, Director, sectors and waves | 84% | boot, loader and transport (84%) | fits |
 | `CODE` | 4,464 B | placement name | — | frontend and HUD (24%) | not judged |
 | `BOOT_STAGE2` | 1,332 B | boot, loader and transport | 92% | boot, loader and transport (92%) | fits |

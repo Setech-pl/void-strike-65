@@ -76,10 +76,13 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // kernel link 902 -> 916 B - the boss entry's HUD booster backup (14 B), a
   // segment of its own behind the capital vector image; the kernel's own
   // segment, its address and the Director half are unchanged.
-  assert.equal(window.lightKernelBytes, 916);
-  assert.equal(window.usedBytes, 2619);
-  assert.equal(window.freeBytes, 3584 - 2619);
-  assert.equal(window.freeBytes, 965, "the tail the boss escort's clock leaves");
+  // RE-PINNED feat/interceptor-standoff (owner answer Q4, plan
+  // interceptor-standoff §8.1): the kernel link 916 -> 920 B - light_shot
+  // calls the old target path and restores the PairShot loop's X.
+  assert.equal(window.lightKernelBytes, 920);
+  assert.equal(window.usedBytes, 2623);
+  assert.equal(window.freeBytes, 3584 - 2623);
+  assert.equal(window.freeBytes, 961, "the tail light_shot's X restore leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);

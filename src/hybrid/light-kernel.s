@@ -514,7 +514,13 @@ light_shot:
     bpl @slot
 @target:
     ldx LIGHT_SLOT_SAVE          ; no slot owns the cell: the old target path
-    jmp entity_player_fighter_projectile_target
+    ; A call, not a tail jump (interceptor-standoff Q4): its lethal debris
+    ; branch loads X, and the PairShot loop goes on from X - a garbage slot
+    ; skipped a higher shot's move and the summary counted it twice. LDX
+    ; keeps the carry the target path returns.
+    jsr entity_player_fighter_projectile_target
+    ldx LIGHT_SLOT_SAVE
+    rts
 
 ; Lethal hit, for the slot in LIGHT_SLOT. Already-emitted Light shots are
 ; independent of the Light and of the leader: they keep their lifecycle.

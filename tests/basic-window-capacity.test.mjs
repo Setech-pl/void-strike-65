@@ -100,8 +100,13 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // HYBRID_C_WINDOW_FLOW (the window's last segment), so the Light C keeps its
   // addresses and the kernel above moves by 43 B; the entry half's pin on the
   // HUD backup moves with it ($B802 -> $B82D).
-  assert.equal(basicWindow.freeBytes, 965,
-    "the delivered boss-escort-flow figure, re-recorded so a silent change is visible");
+  // Re-recorded feat/interceptor-standoff (owner answer Q4, plan
+  // interceptor-standoff §8.1): 965 -> 961. The 4 B are light_shot's call and
+  // X restore in the Light kernel (a lethal debris shot clobbered the
+  // PairShot loop's X); the Director half does not move, the pin on the HUD
+  // backup does ($B82D -> $B831).
+  assert.equal(basicWindow.freeBytes, 961,
+    "the delivered interceptor-standoff figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
 });

@@ -32,6 +32,7 @@ const INTERCEPTOR = 24;
 const HOSTILE_BASE = 5, HOSTILE_LIMIT = 5;
 const ESCORT_LIFE = 60;
 const BASE = 150, JITTER = 63;
+const BASE_FLOOR = 128;   // scripts/boss-assets.mjs refuses escort.baseFrames under it
 const T_ESCORT_AFTER = 17, T_ESCORT_BASE = 18, T_ESCORT_JITTER = 19;
 const P = 32;
 
@@ -82,7 +83,15 @@ function frame(m, run) {
   for (const k of [0, 1, 2, 3]) {
     if (m[dir("_light_state") + k] === 0) continue;
     run.age[k] += 1;
-    if (run.age[k] >= ESCORT_LIFE) m[dir("_light_state") + k] = 0;
+    if (run.realTick) {
+      // The Interceptor's own life: its C tick, as the kernel's light_update
+      // calls it per slot (feat/interceptor-standoff).
+      m[dir("_light_slot")] = k;
+      call(m, dir("_enemy_c_light_tick"));
+      if (m[dir("_light_state") + k] === 0) run.lives.push(run.age[k]);
+    } else if (run.age[k] >= ESCORT_LIFE) {
+      m[dir("_light_state") + k] = 0;
+    }
   }
   const live = [0, 1, 2, 3].filter((k) => m[dir("_light_state") + k] !== 0).length;
   run.maxLive = Math.max(run.maxLive, live);
@@ -90,7 +99,8 @@ function frame(m, run) {
   run.frame += 1;
   return { killed: fallen(m) > down };
 }
-const newRun = () => ({ frame: 0, admissions: [], age: [0, 0, 0, 0], maxLive: 0, lastKill: -10 });
+const newRun = () => ({ frame: 0, admissions: [], age: [0, 0, 0, 0], maxLive: 0, lastKill: -10,
+  realTick: false, lives: [] });
 const frames = (m, run, count) => { for (let i = 0; i < count; i += 1) frame(m, run); };
 
 // A shot into one of `module`'s front columns, the module at its last hit point.
@@ -236,4 +246,36 @@ test("runtime: a region with no escort never starts one, whatever is killed", ()
   kill(m, run, index("gun-1"));
   frames(m, run, 600);
   assert.deepEqual(run.admissions, []);
+});
+
+// feat/interceptor-standoff (owner answers Q1/Q2, 2026-10-11): the escort's
+// caps with the Interceptor's OWN life instead of the harness's ESCORT_LIFE.
+// The standoff holds it on screen longer than a straight pass could; the
+// caps hold only while every life stays under the clock's 128-frame floor,
+// so an arming never finds the slot busy and nothing is left pending at the
+// defeat. The player is parked low in the escort's column, the longest life.
+// A guard: GREEN on main as well (its pass is 116 frames).
+test("runtime, the Interceptor's own tick: never two live, every life under the clock's floor, none after the defeat", () => {
+  for (const defeatAfter of [1, 45, 110, 170]) {
+    const { m, run } = fight();
+    run.realTick = true;
+    m[main("player_x")] = 124;
+    m[main("player_y")] = 190;
+    kill(m, run, index("gun-2"));
+    frames(m, run, 30);
+    kill(m, run, index("plate-c"));   // uncovers gun-1, the defeat below
+    frames(m, run, 700);
+    const last = run.admissions.at(-1).frame;
+    frames(m, run, Math.max(0, last + defeatAfter - run.frame));
+    m[lbl("_boss_weapons_left")] = 1;
+    const k = kill(m, run, index("gun-1"));
+    assert.notEqual(m[lbl("_boss_phase")], 0, "the kill was not the defeat");
+    frames(m, run, 600);
+    assert.ok(run.admissions.length >= 4, `${run.admissions.length} escorts`);
+    assert.ok(Math.max(...run.lives) >= 100, `the escorts lived ${run.lives.join(" ")} frames`);
+    assert.ok(Math.max(...run.lives) < BASE_FLOOR, `an escort lived ${Math.max(...run.lives)} frames`);
+    assert.equal(run.maxLive, 1, `${run.maxLive} Lights live at once`);
+    assert.deepEqual(run.admissions.filter((a) => a.frame > k), [],
+      `an escort after the defeat at ${k} (defeat ${defeatAfter} frames after an admission)`);
+  }
 });

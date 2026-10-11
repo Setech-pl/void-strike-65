@@ -2,10 +2,11 @@
 
 **Branch:** `feat/interceptor-standoff` from `main` `ef1924d` (ATR `90f3e24e…`,
 boot `fce37c74…`, the `feat/boss-escort-flow` merge, decision AI).
-**Status:** Phase B built and committed (R, the debris-shot fix, the fight's
-retune, the guard's budget); the evidence regeneration STOPPED on a NEW clause
-failure in `failures:reconcile` - `OWNER DECISION REQUIRED` (§11.6). The owner's
-answers are §9.1 (decision AK).
+**Status:** Phase B built and committed; the laser-contact STOP answered
+(§11.7) and the evidence bound (`84cc2a4`: 58 replays, 0 clause failures,
+trace reconcile clean). The first full `npm test` STOPPED on three NEW test
+failures - `OWNER DECISION REQUIRED` (§11.8). The owner's answers are §9.1
+and decision AK.
 
 **The owner's finding (2026-10-11, after playing the escort flow):** the
 Interceptor chases at the player's own top speed, so every pass ends shot down
@@ -489,4 +490,33 @@ trace the fifth row is 2,869):**
 The whole drop is Q4: -126 on `main`, -130 on the final code. R + Q6 alone is
 +8, exactly Phase A's R. The worst row stays `2-sweep-fire6` f311 on every
 build.
+
+### 11.8 STOP: three NEW test failures in the first full `npm test`
+
+The evidence regeneration finished on `47edb70`'s header, and the evidence
+commit is `84cc2a4` (ATR `2b6be844…`, boot `a2b92e07…`):
+* 58 replays, 0 clause failures, 0 miss events.
+* Trace reconcile: 0 NEW, 0 MOVED.
+* Only `lower-playfield-laser-contact-atr-hard` differs from the stopped run
+  on the same ATR (audit rows, frames, maxima and session records).
+* The menu raster pin is kept, and the memory map is unchanged.
+
+The first full `npm test` on the default build: **1,304 tests, 1,300 pass, 4
+fail**. Reconcile: the recorded `preview` matched, **NEW 3**, MOVED 0. All
+three follow from R's level timing or R's fire gate (class (a)). The
+replays involved are identical to the stopped run's, so the sidestep did not
+cause them. No test was changed (the owner's rule: NEW is a STOP). The log is
+`build/interceptor-standoff-stop/npm-test-1.log`.
+
+| Test (first assertion) | Expected → actual | Cause (**M**) | Proposed re-point |
+| --- | --- | --- | --- |
+| `runtime-wall-trace:217` `debris_effects_measured_frames` | 5,000 → 4,999 | `debris-effects-2-sweep-fire4` now reaches and beats the boss inside its 5,000 frames (`hull_map_rebuilds_after_boss` 0 → 1). Its entry frame is set aside as a transition, as in M5b-S4b.4. On `main` the bot lost its first game in the swarm's third wave. | 4,999, with the sector-flow comment updated (the replay reaches the boss again) |
+| `runtime-wall-trace:398` the integrity frames | [22,997, 459.94] → [22,996, 459.92] | `memory-integrity-atr-2-hunt-fire7` now reaches the boss inside its 4,000 frames (3,999 measured); `-hunt-fire6` now also beats it | 22,996 / 459.92 |
+| `hostile-projectile-emitter-independence:318` "offset 24: shot emitted" | the Interceptor's shot | The fixture parks the player at x 200, outside the Interceptor's column, so R's column gate rightly holds fire. The clause (a shot survives its Light's destruction) is never reached. | for offset 24, put the player in the Interceptor's column before the firing frame, as `light-interceptor`'s fire-gate tests were re-pointed in `ef74ab0`; the clause unchanged |
+
+The first two are measured frame counts, not floors or gates. The third is a
+fixture position. Not done because of the STOP: the second full `npm test`,
+STATUS, the §27 smoke checklist, and marking this plan implemented. The STATUS
+and smoke-checklist drafts are kept as
+`build/interceptor-standoff-stop/status-and-smoke-draft.patch`.
 

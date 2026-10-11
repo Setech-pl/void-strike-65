@@ -105,7 +105,13 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // X restore in the Light kernel (a lethal debris shot clobbered the
   // PairShot loop's X); the Director half does not move, the pin on the HUD
   // backup does ($B82D -> $B831).
-  assert.equal(basicWindow.freeBytes, 961,
+  // Re-recorded feat/interceptor-standoff (owner answers Q1-Q3, plan
+  // interceptor-standoff §3): 961 -> 978. The standoff's tick is +41 B in
+  // HYBRID_C_WINDOW and three sector-flow verdicts (58 B) left the window's
+  // last segment - 37 B for DIRECTOR_C_LOW, 21 B for the arena - so the
+  // Director half is 17 B shorter; the kernel above moves down with it ($B831
+  // -> $B820 on the pin).
+  assert.equal(basicWindow.freeBytes, 978,
     "the delivered interceptor-standoff figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);

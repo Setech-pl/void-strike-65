@@ -491,7 +491,13 @@ test("the rotate gate adds no byte to the initial block and no sector to any rec
   assert.equal(L("allied_prow_occupancy_masks"), 0x6a4f,
     "the label after the pin must not move");
   // The arena (extension record 7): the claim's bytes.
-  assert.ok(manifest.residentCapacity.arena.freeBytes >= 28,
+  // FLOOR LOWERED 28 -> 14 B, feat/interceptor-standoff - an owner decision
+  // (answer Q3 of 2026-10-11, decision AK in docs/owner-decisions-2026-09-11.md),
+  // a gate change, not a pin: the Interceptor's standoff holds each Light slot
+  // two rows higher so a swarm stays visually separate, and the window record
+  // keeps its 11 sectors only with the afterCleared gate (21 B) moved here.
+  // 14 B is the new floor.
+  assert.ok(manifest.residentCapacity.arena.freeBytes >= 14,
     `arena free ${manifest.residentCapacity.arena.freeBytes} B`);
   assert.equal(manifest.residentCapacity.arena.transport.sectors, 6);
 });

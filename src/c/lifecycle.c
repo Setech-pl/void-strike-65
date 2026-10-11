@@ -68,17 +68,36 @@
 #define LIGHT_FIRE_TOP           24u
 #define LIGHT_FIRE_BOTTOM        224u
 #define LIGHT_RETIRE_Y           232u
-/* Interceptor: no leader, no formation. It descends twice as fast as a Heavy
- * and closes on the player's column one four-HPOS cell on every other frame,
- * which averages the player's own maximum horizontal speed. Both bounds and
- * the entry column are four-aligned, so stepping can never leave the ring. */
+/* Interceptor: no leader, no formation. It tracks the player's column one
+ * four-HPOS cell on every other frame, which averages the player's own maximum
+ * horizontal speed (the standoff below). Both bounds and the entry column are
+ * four-aligned, so stepping can never leave the ring. */
 #define LIGHT_X_FIRST            48u
 #define LIGHT_X_ENTRY            124u
 /* WaveDef `wave_member_offset` for a Heavy wave with no Light escort. */
 #define NO_ESCORT                0xFFu
 #define LIGHT_X_STEP             4u
-#define INTERCEPTOR_DESCENT      2u
-#define INTERCEPTOR_TRACK_PHASE  2u
+/* The Interceptor's standoff (feat/interceptor-standoff, owner answers Q1/Q2
+ * of 2026-10-11, docs/plans/interceptor-standoff.md): no kamikaze runs. It
+ * descends 2 lines a frame until the player is 7 rows below it (each Light
+ * slot holds 2 rows higher, so a swarm stacks instead of merging into one
+ * cell), holds, backs off upward 2 lines a frame while the player is closer
+ * than 6 rows, fires its laser only in the player's column, and after 100
+ * frames climbs out 8 lines a frame and retires when y wraps past the top into
+ * the retire test. Its worst life is 121 frames, under the boss escort
+ * clock's 128-frame floor (scripts/boss-assets.mjs) - what keeps an escort
+ * from pending past the boss's defeat. light_burst_left holds its age: every
+ * Light record fires single shots, so the burst count is free. Distances are
+ * lines, top to top. */
+#define INTERCEPTOR_LIFE_FRAMES  100u
+#define INTERCEPTOR_STANDOFF_FAR 56u    /* descends while the player is >= 7 rows below */
+#define INTERCEPTOR_STANDOFF_NEAR 48u   /* backs off while the player is < 6 rows below */
+#define INTERCEPTOR_SLOT_SHIFT   4u     /* slot << 4: 2 rows a slot */
+#define INTERCEPTOR_DIVE         2u
+#define INTERCEPTOR_CLIMB        8u
+#define INTERCEPTOR_BACKOFF      2u
+#define INTERCEPTOR_TRACK_DIVE   1u     /* FRAME_COUNTER mask: one cell every 2nd frame */
+#define PLAYER_Y                 U8_AT(0x0081u)
 /* Light multiplicity (plan-light-multiplicity.md §2.1). Four SoA slots is the
  * declared format; how many of them a sector may fill is a separate ceiling
  * that steps 2-3 introduce. Step 1a fills slot 0 only, so every loop below is
@@ -1112,39 +1131,64 @@ static uint8_t light_tick_body(void)
     }
     if (light_state[light_slot] != LIGHT_ACTIVE_ESCORT) {
         /* Free flight. A Wingman that lost its leader drifts straight down at
-         * the Heavy descent rate; an Interceptor is born free-flying, descends
-         * at twice that rate and closes on the player's column one four-HPOS
-         * cell every other frame, which averages the player's own maximum
-         * horizontal speed. PLAYER_X_MIN equals LIGHT_X_FIRST, so only the
-         * upper bound needs clamping, exactly as the formation branch does. */
-        light_work = (uint8_t)(light_y[light_slot] + 1u);
-        if (light_record != LIGHT_OFFSET_WINGMAN) {
+         * the Heavy descent rate; an Interceptor is born free-flying and flies
+         * its standoff (the constants above). PLAYER_X_MIN equals
+         * LIGHT_X_FIRST, so only the upper bound needs clamping, exactly as
+         * the formation branch does. */
+        light_work = light_y[light_slot];
+        if (light_record == LIGHT_OFFSET_WINGMAN) {
             ++light_work;
-            light_y[light_slot] = light_work;
-            if ((light_work & INTERCEPTOR_TRACK_PHASE) == 0u) {
+        } else {
+            /* No column while it leaves: the fire gate below compares
+             * light_x with light_target_x, and no Light X is 0. */
+            light_target_x = 0u;
+            light_fire_work = light_burst_left[light_slot];
+            if (light_fire_work >= INTERCEPTOR_LIFE_FRAMES) {
+                light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
+            } else {
+                ++light_fire_work;
+                light_burst_left[light_slot] = light_fire_work;
+                /* The player's distance below, top to top, less the
+                 * slot's own rows (a swarm stacks instead of merging; the
+                 * Director's ceilings keep the slot under 3, so with the
+                 * player at Y 32 or lower down nothing wraps). It tracks at
+                 * the player's speed (half speed while holding is 13 packed
+                 * bytes, a twelfth window sector). */
+                light_target_x = (uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT);
+                light_scratch = (uint8_t)(PLAYER_Y - light_work);
+                light_scratch = (uint8_t)(light_scratch - light_target_x);
+                if (light_scratch >= INTERCEPTOR_STANDOFF_FAR) {
+                    light_work = (uint8_t)(light_work + INTERCEPTOR_DIVE);
+                } else if (light_scratch < INTERCEPTOR_STANDOFF_NEAR &&
+                           light_work >= INTERCEPTOR_BACKOFF) {
+                    light_work = (uint8_t)(light_work - INTERCEPTOR_BACKOFF);
+                }
                 light_target_x = (uint8_t)(PLAYER_X & 0xFCu);
                 if (light_target_x > LIGHT_X_LAST) {
                     light_target_x = LIGHT_X_LAST;
                 }
-                light_work = light_x[light_slot];
-                if (light_work < light_target_x) {
-                    light_work = (uint8_t)(light_work + LIGHT_X_STEP);
-                    light_x[light_slot] = light_work;
-                } else if (light_work > light_target_x) {
-                    light_work = (uint8_t)(light_work - LIGHT_X_STEP);
-                    light_x[light_slot] = light_work;
+                if ((FRAME_COUNTER & INTERCEPTOR_TRACK_DIVE) == 0u) {
+                    light_fire_work = light_x[light_slot];
+                    if (light_fire_work < light_target_x) {
+                        light_fire_work = (uint8_t)(light_fire_work + LIGHT_X_STEP);
+                        light_x[light_slot] = light_fire_work;
+                    } else if (light_fire_work > light_target_x) {
+                        light_fire_work = (uint8_t)(light_fire_work - LIGHT_X_STEP);
+                        light_x[light_slot] = light_fire_work;
+                    }
                 }
-                light_work = light_y[light_slot];
             }
-        } else {
-            light_y[light_slot] = light_work;
         }
+        light_y[light_slot] = light_work;
         if (light_work >= LIGHT_RETIRE_Y) {
             light_state[light_slot] = ENEMY_INACTIVE;
             return 0u;
         }
     } else {
-        light_work = (uint8_t)((ENEMY_X_0 + LIGHT_CENTRE_OFFSET + LIGHT_ROUND) & 0xFCu);
+        /* The escort's column in one 8-bit add: cc65 promotes
+         * ENEMY_X_0 + 4 + 2 to int and emits two; the byte is the same. */
+        light_work = (uint8_t)(ENEMY_X_0 + (uint8_t)(LIGHT_CENTRE_OFFSET + LIGHT_ROUND));
+        light_work = (uint8_t)(light_work & 0xFCu);
         if (light_work > LIGHT_X_LAST) {
             light_work = LIGHT_X_LAST;
         }
@@ -1166,24 +1210,21 @@ static uint8_t light_tick_body(void)
         (PLAYER_LIFECYCLE & 1u) != 0u) {
         return 0u;
     }
+    /* An Interceptor fires only in the player's column: straight down onto
+     * the fighter, never an aimed shot. Out of it, the reload waits. */
+    if (light_record != LIGHT_OFFSET_WINGMAN &&
+        light_x[light_slot] != light_target_x) {
+        return 0u;
+    }
     /* Plan §2.5: a slot whose reload expires on a spent frame fires next
      * frame instead. The timer is simply not taken past zero, so no cadence
      * state moves and nothing is lost but one frame. */
     if (light_take_token() == 0u) {
         return 0u;
     }
-    light_fire_work = light_burst_left[light_slot];
-    if (light_fire_work == 0u) {
-        light_fire_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_COUNT);
-    }
-    --light_fire_work;
-    light_burst_left[light_slot] = light_fire_work;
-    if (light_fire_work != 0u) {
-        light_fire_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_INTERVAL);
-        light_fire_timer[light_slot] = light_fire_work;
-    } else {
-        light_reload();
-    }
+    /* Every Light record fires single shots (burst 1), so a shot is a
+     * reload; light_burst_left is the Interceptor's age. */
+    light_reload();
     return LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_WEAPON);
 }
 

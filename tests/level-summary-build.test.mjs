@@ -395,7 +395,9 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // 965, the Director's escort clock (43 B) in the window's last segment.
   // RE-PINNED feat/interceptor-standoff (owner answer Q4): 965 -> 961,
   // light_shot's X restore in the Light kernel.
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 961, "the window moved");
+  // RE-PINNED feat/interceptor-standoff (owner answers Q1-Q3): 961 -> 978,
+  // the standoff's tick and three sector-flow verdicts out of the window.
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 978, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623, "the initial block moved");

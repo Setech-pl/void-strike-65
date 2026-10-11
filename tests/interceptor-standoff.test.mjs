@@ -119,6 +119,8 @@ const PATHS = {
   "parked mid-screen": () => ({ x: 124, y: 120 }),
   "climbing at full speed": (f) => ({ x: 124, y: Math.max(72, 200 - f) }),
   "weaving low": (f) => ({ x: 48 + ((f * 2) % 304 < 152 ? (f * 2) % 152 : 304 - (f * 2) % 304), y: 180 }),
+  // Not a fighter's path - the worst case for the column gate.
+  "jumping between the ends": (f) => ({ x: f & 1 ? 48 : 200, y: 190 }),
 };
 
 // Flies one Interceptor (slot 0) to retirement along `pathName`; returns the
@@ -181,19 +183,6 @@ test("it fires only when it is in the player's column, and does fire there (1 / 
       }
     }
   }
-  // A player who is never in a column it can reach is never fired at: the
-  // fighter jumps between the screen's ends every frame.
-  const image = game(2);
-  admit(image);
-  let fired = 0;
-  for (let f = 0; f < 300 && slotOf(image).live; f += 1) {
-    image[L("player_x")] = f & 1 ? 48 : 200;
-    image[L("player_y")] = 190;
-    const [result] = frame(image);
-    if (result === LASER) fired += 1;
-    assert.notEqual(result, LASER, `fired at x ${slotOf(image).x} with the player at ${image[L("player_x")]}`);
-  }
-  assert.equal(fired, 0);
 });
 
 test("it climbs out after its 100 frames and retires inside the escort clock's 128-frame floor", () => {

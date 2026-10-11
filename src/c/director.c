@@ -467,6 +467,13 @@ static void advance_sector(void)
  * break-up included. An escort that outlives its leader keeps the field busy
  * (the owner's "cleared", Q10). The OR of the five bytes is the answer: zero
  * is a clear field. Constant indices: five absolute loads. */
+/* feat/interceptor-standoff: the window's boot-loaded record had 14 packed
+ * bytes left before a twelfth sector and the Interceptor's standoff costs
+ * 43 packed more, so three sector-flow verdicts that run on world-row ticks of a
+ * space sector only leave the window's last segment: the field test and
+ * the early end for DIRECTOR_C_LOW, the afterCleared gate for the arena
+ * (owner answer Q3: the arena floor 28 -> 14 B). No hot Light C moves. */
+#pragma code-name ("DIRECTOR_C_LOW")
 static uint8_t field_busy(void)
 {
     return (uint8_t)(ENEMY_ACTIVE | light_state[0] | light_state[1] |
@@ -479,6 +486,7 @@ static uint8_t field_busy(void)
  * next row tick asks again. director_c_try_event itself stays unconditional:
  * the boss install arms its escort through it, and the world never scrolls
  * again in the boss sector, so no later row could retry a refusal. */
+#pragma code-name ("HYBRID_C_ARENA")
 static void director_c_arm_wave(void)
 {
     if ((wave_flags[STATE_WAVE_CURSOR] & WAVE_FLAG_AFTER_CLEARED) != 0u) {
@@ -494,6 +502,7 @@ static void director_c_arm_wave(void)
  * down. A clear field then ends the sector at once, and the authored row count
  * is only the no-kill cut. A sector that authors no wave is a timed stretch
  * and keeps its rows. */
+#pragma code-name ("DIRECTOR_C_LOW")
 static void director_c_sector_spent(void)
 {
     if (sector_wave_count[STATE_SECTOR] == 0u) {
@@ -515,6 +524,7 @@ static void director_c_sector_spent(void)
  * asked with STATE_SECTOR stepped to the next sector and back (no ASM reads
  * $80F6 outside the boss install, which runs in the main loop). A capital or
  * a boss is not held here: both entries already wait for a full drain. */
+#pragma code-name ("HYBRID_C_WINDOW_FLOW")
 static void director_c_sector_cut(void)
 {
     STATE_WAVE_REMAINING = 0u;

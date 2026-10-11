@@ -270,34 +270,75 @@ test("admission per difficulty: entry x 124, leaderless, and the record's own po
   }
 });
 
-test("descent is 2 lines per frame and retires at the recycled bottom ring row (232)", () => {
+// RE-POINTED feat/interceptor-standoff (owner answers Q1/Q2 of 2026-10-11,
+// docs/plans/interceptor-standoff.md §2.2): the Interceptor no longer flies a
+// straight 116-frame pass to the recycled bottom ring row. It still descends
+// 2 lines a frame, but only down to its standoff 7 rows above the player; it
+// holds there, backs off under 6 rows, and after 100 frames climbs out 8 lines
+// a frame and retires when y wraps past the top into the same retire test
+// (232). An independent reference model of that spec, not a copy of the C.
+const PLAYER_PARKED_Y = 190;
+function standoffReference(playerY, frames) {
+  let y = 0;
+  let age = 0;
+  const trace = [];
+  for (let frame = 0; frame < frames; frame += 1) {
+    if (age >= 100) {
+      y = (y - 8) & 0xff;
+    } else {
+      age += 1;
+      const gap = (playerY - y) & 0xff;
+      if (gap >= 56) y += 2;
+      else if (gap < 48 && y >= 2) y -= 2;
+    }
+    trace.push(y);
+    if (y >= 232) break;
+  }
+  return trace;
+}
+
+test("descent is 2 lines per frame down to the standoff; after 100 frames it climbs out and retires past the top", () => {
   const image = game();
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
-  image[L("player_x")] = 124;         // no horizontal drift to isolate descent
-  for (let frame = 1; frame <= 115; frame += 1) {
+  image[L("player_x")] = 124;         // no horizontal drift to isolate the motion
+  image[L("player_y")] = PLAYER_PARKED_Y;
+  const expected = standoffReference(PLAYER_PARKED_Y, 300);
+  assert.deepEqual(expected.slice(0, 3), [2, 4, 6], "the descent is still 2 lines a frame");
+  assert.equal(Math.max(...expected.filter((y) => y < 232)), PLAYER_PARKED_Y - 54,
+    "it holds 54 lines (under 7 rows) above the player");
+  for (const [index, y] of expected.entries()) {
     run(image, "enemy_light_tick");
-    assert.equal(light(image).y, frame * 2, `frame ${frame}`);
+    if (y >= 232) {
+      assert.equal(light(image).state, 0, `frame ${index + 1}: retired once y wraps past the top`);
+      break;
+    }
+    assert.equal(light(image).y, y, `frame ${index + 1}`);
     assert.equal(light(image).state, 1);
   }
-  run(image, "enemy_light_tick");     // 116th frame: y reaches 232
-  assert.equal(light(image).state, 0, "retired before the recycled bottom ring row");
+  assert.equal(expected.length, 118, "a parked player sees it for 118 frames");
 });
 
+// RE-POINTED feat/interceptor-standoff (owner answers Q1/Q2): the cell step
+// keys on the frame counter's parity instead of y's (y no longer advances 2
+// lines every frame - it holds at the standoff), so the pursuit still averages
+// the player's own top speed whatever the Interceptor does vertically. The
+// harness advances FRAME_COUNTER once per tick, as the runtime does.
 test("pursuit closes on the player one 4-HPOS cell every other frame, clamped to 48-200", () => {
   // Independent reference model of the spec, not a copy of the C source.
-  function reference(playerX) {
+  function reference(playerX, frameCounter) {
     let x = 124;
-    let y = 0;
+    let counter = frameCounter;
+    const vertical = standoffReference(PLAYER_PARKED_Y, 40);
     const trace = [];
     for (let frame = 0; frame < 40; frame += 1) {
-      y += 2;
-      if ((y & 2) === 0) {
+      counter = (counter + 1) & 0xff;
+      if ((counter & 1) === 0) {
         const target = Math.min(playerX & 0xfc, 200);
         if (x < target) x += 4;
         else if (x > target) x -= 4;
       }
-      trace.push({ x, y });
+      trace.push({ x, y: vertical[frame] });
     }
     return trace;
   }
@@ -307,7 +348,8 @@ test("pursuit closes on the player one 4-HPOS cell every other frame, clamped to
     selectNextLight(image, OFFSET_INTERCEPTOR);
     run(image, "enemy_spawn_raiders");
     image[L("player_x")] = playerX;
-    const expected = reference(playerX);
+    image[L("player_y")] = PLAYER_PARKED_Y;
+    const expected = reference(playerX, image[L("frame_counter")]);
     for (const { x, y } of expected) {
       run(image, "enemy_light_tick");
       assert.equal(light(image).y, y);
@@ -326,6 +368,9 @@ test("pursuit ignores Heavy slot 0 entirely: an alive P1 formation does not swit
   image[L("ENEMY_X")] = 40;
   image[L("ENEMY_Y")] = 40;
   image[L("player_x")] = 200;
+  // RE-POINTED feat/interceptor-standoff: the player far below, so the
+  // Interceptor's first frame is its 2-line descent (it holds at its standoff).
+  image[L("player_y")] = PLAYER_PARKED_Y;
   run(image, "enemy_light_tick");
   // A follow-mode Light would centre on ENEMY_X (40); the Interceptor stays
   // on its own pursuit track instead.
@@ -346,7 +391,12 @@ test("single laser bolt cadence: burst 1, post 56/44/32, 1/2/3 shots per pass, t
     const image = game(difficulty);
     selectNextLight(image, OFFSET_INTERCEPTOR);
     run(image, "enemy_spawn_raiders");
+    // RE-POINTED feat/interceptor-standoff: it fires only in the player's
+    // column and only below LIGHT_FIRE_TOP, so the player is parked in its
+    // entry column, low enough for it to descend into view. Its 100-frame
+    // visit holds the same reload frames as the old pass.
     image[L("player_x")] = 124;
+    image[L("player_y")] = PLAYER_PARKED_Y;
     const observed = [];
     for (let frame = 0; frame < 200 && light(image).state !== 0; frame += 1) {
       const { a } = run(image, "enemy_light_tick");
@@ -365,6 +415,10 @@ test("fire is gated by visibility and by the player dying, exactly like the Wing
   const image = game();
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
+  // RE-POINTED feat/interceptor-standoff: the player in its column (it fires
+  // only there - tests/interceptor-standoff.test.mjs) and far below it.
+  image[L("player_x")] = 124;
+  image[L("player_y")] = PLAYER_PARKED_Y;
   // Spend the admission frame's appearance install before poking the cadence.
   assert.equal(run(image, "enemy_light_tick").a, LIGHT_RETURN_INSTALL);
   image[L("light_fire_timer")] = 0;
@@ -626,6 +680,10 @@ test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASE
   assert.deepEqual(glyph(101), laser.map((value) => value >> 4));
 
   // Interceptor: the real Light emit tags the shot with the C-returned class.
+  // RE-POINTED feat/interceptor-standoff: the player in its column (x 100),
+  // where alone it fires, and far below it.
+  image[L("player_x")] = 100;
+  image[L("player_y")] = PLAYER_PARKED_Y;
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
   image[L("light_x")] = 100;

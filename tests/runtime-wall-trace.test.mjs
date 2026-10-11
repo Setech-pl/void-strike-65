@@ -214,7 +214,11 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // replay no longer reaches the boss inside 5,000 frames and sets no entry
   // frame aside. Its debris clauses passed with their subjects; the boss is
   // covered by the director-complete, slot-e and integrity replays.
-  assert.equal(report.replay.debris_effects_measured_frames, 5_000);
+  // RE-POINTED (feat/interceptor-standoff, owner approval of 2026-10-11): with
+  // the Interceptor's standoff the fire-4 sweep bot reaches and beats the boss
+  // inside 5,000 frames again; its boss-entry frame is set aside (MEASURED,
+  // 4,999).
+  assert.equal(report.replay.debris_effects_measured_frames, 4_999);
   // RE-POINTED 2026-10-03 (M5a-S2): the director-complete replays end at the
   // level-end summary inside their 10,500-frame budgets (they used to fly on
   // in the terminal COMPLETE), and each records that summary.
@@ -255,7 +259,10 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // 5,000, EASY hunt 5 5,100, all three reaching the lasers; evasive 4 and hunt
   // 7 still never reach the boss and keep 4,000:
   // 4,000 + 4,899 + 4,999 + 4,000 + 5,099.
-  assert.equal(report.replay.memory_integrity_measured_frames, 22_997);
+  // RE-POINTED (feat/interceptor-standoff, owner approval of 2026-10-11): hunt
+  // 7 now reaches the boss and sets its entry aside (the next test):
+  // 4,000 + 4,899 + 4,999 + 3,999 + 5,099.
+  assert.equal(report.replay.memory_integrity_measured_frames, 22_996);
   assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "baseline-9040")
@@ -276,7 +283,8 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     // RE-POINTED (data/w2-lights): as above, only hunt 5 and 6 reach the boss.
     // RE-POINTED (chore/evidence-integrity, item 7): the budgets above.
     // RE-POINTED (feat/sector-flow): the re-derived budgets above.
-    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_899], ["ATR", "hunt", 4_999], ["ATR", "hunt", 4_000],
+    // RE-POINTED (feat/interceptor-standoff): hunt 7 reaches the boss (above).
+    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_899], ["ATR", "hunt", 4_999], ["ATR", "hunt", 3_999],
     ["ATR", "hunt", 5_099],
   ]);
   assert.equal(report.replay.sessions
@@ -286,7 +294,8 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     .filter((session) => session.kind === "debris-effects-coverage")
     // RE-POINTED (feat/sector-flow): no boss entry inside the budget any more
     // (the reason is at debris_effects_measured_frames above).
-    .reduce((sum, session) => sum + session.measured_frames, 0), 5_000);
+    // RE-POINTED (feat/interceptor-standoff): the boss entry is back (above).
+    .reduce((sum, session) => sum + session.measured_frames, 0), 4_999);
   assert.equal(report.ten_heaviest_frames_in_9040_replay.length, 10);
   assert.equal(report.five_heaviest_frames.length, 5);
   assert.equal(report.five_heaviest_frames_scope, "all measured legal runtime replays");
@@ -409,7 +418,10 @@ test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase",
   // previous test, 22,618 measured, 452.36 s.
   // RE-POINTED (feat/sector-flow): the re-derived budgets, 22,997 measured,
   // 459.94 s.
-  ], [22_997, 459.94, 0, 2, true]);
+  // RE-POINTED (feat/interceptor-standoff, owner approval of 2026-10-11):
+  // memory-integrity-atr-2-hunt-fire7 now reaches the boss inside its 4,000
+  // frames and sets the entry frame aside: 22,996 measured, 459.92 s.
+  ], [22_996, 459.92, 0, 2, true]);
   assert.ok(integrity.pickup_rf_cycles >= 10);
   assert.equal(integrity.pause_sessions.length, 1);
   assert.ok(integrity.pause_sessions.every(({ timer_before, timer_after }) =>

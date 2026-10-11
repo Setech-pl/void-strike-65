@@ -304,7 +304,10 @@ test("Light Wingman and Interceptor shots survive the Light's destruction", () =
     image[L("ENEMY_X")] = 80;
     image[L("ENEMY_Y")] = 112;
     image[L("PLAYER_LIFECYCLE")] = 0;
-    image[L("player_x")] = 200;
+    // RE-POINTED (feat/interceptor-standoff, owner approval of 2026-10-11):
+    // the Interceptor fires only in the player's column, so for it the player
+    // stands in its entry column (124); the Wingman keeps x 200.
+    image[L("player_x")] = offset === 24 ? 124 : 200;
     image[L("player_y")] = 60;
     // Light multiplicity step 2: the appearance install is hoisted onto the
     // admission frame and is the one tick return that outranks a fire, so

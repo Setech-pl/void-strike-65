@@ -404,15 +404,89 @@ The full trace gives the same PASS row.
 `npm run failures:reconcile -- --trace docs/runtime-wall-trace.json`: **NEW**
 `lower-playfield-laser-contact-atr-hard: did not capture 16 consecutive
 contact rasters`. **M** (its CSV): the bot reaches the boss at f2,827 with 3 of
-10 hull units - a **debris piece** lands on it on the boss-entry frame
-(entity y 216 -> 224 over the fighter at y 225, 10 -> 3; a debris contact in
-level 1 at f1,305 too). The policy seeks a beam only with a whole hull, so it
+10 hull units - a **debris piece** lands on it the frame before the boss's
+entry (f2,828) (entity y 216 -> 224 over the fighter at y 225, 10 -> 3; a
+debris contact in level 1 at f1,305 too). The policy seeks a beam only with a whole hull, so it
 dodges every warning (f3,499 ... f5,074); lives are held, so the hull is whole
 again only after the death at f5,645, and no laser warns after f5,074 (the
 armour falls through f5,038; the emitter most likely destroyed by the bot's
-fire - not verified per module). The level's timing moved with R; on `main`
-the bot met the beam whole. Class (a), a stale scenario - not a defect a
+fire - not verified per module; §11.7 verifies it). The level's timing moved
+with R; on `main` the bot met the beam whole (after a respawn, §11.7). Class (a), a stale scenario - not a defect a
 player sees (debris contact damage is by design) - but under the owner's rule
 NEW is a STOP. The evidence was not committed (the run is preserved under
 `build/interceptor-standoff-stop/`); `dist/` and `docs/runtime-wall-trace.json`
 stay at `main`'s.
+
+### 11.7 The owner's answer to the STOP (2026-10-11): the class, then option 1
+
+**A. The debris at the boss entry (M, the replay's CSV on this build and on
+`main`'s).**
+
+| | This build (`bf33337`, ATR `2b6be844…`) | `main` (`ef1924d`, ATR `90f3e24e…`) |
+| --- | --- | --- |
+| The piece | spawned f2,739 by sector 5's last Heavy kill, x 124 | live across the sector end too (f2,669 -> f2,763) |
+| Sector 5 -> 6 (the boss sector) | f2,763, the piece at y 72 - **alive** | f2,687, the piece at y 56 - **alive** |
+| What ends it | **contact** with the bot at f2,827 (y 224, the fighter at 225) | falls off the bottom at f2,763 |
+| Boss entry | **f2,828**, no debris live | **f2,764**, no debris live |
+| The bot's hull at the entry | 10 -> **3** at f2,827: **one** contact, cooldown 0 -> 25, `DEBRIS_DAMAGE_HARD = 7` | **3** (one debris contact in sector 4, f2,605, 10 -> 3) |
+| After the entry | damaged through every warning (f3,499 ... f5,074); hits only f4,104 and f4,711; dies f5,645 | three pulse hits (f3,218, f3,354, f3,626) kill it; whole again f3,652; the beam meets it whole at **f4,076** |
+
+* **Debris and "field clear":** not counted, by design. `field_busy` is the
+  Heavy formation and the four Light slots (sector flow, Q10: "an escort that
+  outlives its leader keeps the field busy"; the debris hazard is not an
+  enemy). A sector may end with a piece falling.
+* **Debris in the boss sector:** allowed, until the entry. The boss entry waits
+  while the debris slot is live (`sector_c_update_first_capital`, the owner's
+  smoke of 2026-10-09, sector-flow §4): "the world still scrolls until the
+  entry, it falls off the bottom as it always did, and the boss goes in on the
+  first frame it has gone". The boss sector admits no new debris. Contact
+  damage during that run-in is the ordinary debris contact. On the entry frame
+  no debris is live, in both runs (clause `coverage.boss_entry_debris`).
+* **10 -> 3:** one contact. `apply_player_damage` takes one event per frame
+  behind the 25-frame cooldown (0 before, 25 after); HARD's debris contact is
+  7 units (`src/main.s`, asserted; game-design: 2 / 5 / 7).
+
+So both were designed behaviour, and the failure was **class (a)**, a stale
+scenario. `main`'s bot also entered damaged, but there the Interceptors'
+pulse hits killed it within 860 frames. With the standoff it is hit far less,
+stayed damaged past the last warning, and lives are held.
+
+**The emitter (M, a diagnostic memory peek on the failing replay, never
+committed):** at f5,074, the last warning, on HARD's HP:
+
+| Alive | Dead |
+| --- | --- |
+| emitter (2 HP), gun-1 (12), gun-4 (11), gun-5 (15), gun-6 (15), plate-a (15), plate-h (15) | plates b, c, d, e, f, g; gun-2; gun-3 |
+
+The emitter warned at f5,074 with 2 HP left, had 1 at f5,149, and was dead by
+f5,671: the bot's fire destroyed it after its last laser. At f9,498 gun-5,
+gun-6, plate-a and plate-h still stood: the plain sweep (94-154) the bot keeps
+until its first contact never reaches the far ends.
+
+**Option 1, as conditioned** (`47edb70`, `scripts/atari800-wall-trace.h`):
+inside the `lower-contact-laser` policy, used by this session alone, and only
+while the Director's BOSS_DUE flag is up (`STATE_FLAGS` `$80FE` bit `$20`, the
+boss sector's run-in), the bot never steps towards a debris piece above it
+within 24 HPOS and steps away from one within 16. That is the step it already
+takes for a boss shot; contact is within 11. No other policy's code changed.
+
+| Run (focused, this build's candidate) | Result |
+| --- | --- |
+| before (`bf33337`'s header) | **FAIL**: "did not capture 16 consecutive contact rasters" - frame-identical to the full run's failure |
+| after (`47edb70`) | **PASS**: frame-identical up to f2,815; the piece falls off at f2,833; the boss enters at f2,834; the beam meets a whole fighter at **f3,261** (laser 0, HPOS 153, 25 warning frames, 10 -> 0, 16 rasters); the boss falls at f6,469 |
+
+**The fence margin, 1,423 -> 1,301 (M, focused runs of the four lowest rows on
+each build's candidate - the rows Phase A tracked; in the final build's full
+trace the fifth row is 2,869):**
+
+| Build | `2-sweep-fire6` | `2-evasive-fire3` | `2-sweep-fire4` | `memory-integrity-atr-2-hunt-fire6` |
+| --- | ---: | ---: | ---: | ---: |
+| `main` `ef1924d` | **1,423** | 1,569 | 2,155 | 2,616 |
+| `main` + Q4 only (`3844efc` applied) | **1,297** | 1,465 | 2,036 | 2,519 |
+| `main` + R + Q6, without Q4 (`bf33337` with `3844efc`'s kernel change reverted, the pin `$B81C`) | **1,431** | 1,573 | 2,157 | 2,623 |
+| final (`bf33337`, the full trace) | **1,301** | 1,467 | 2,038 | 2,523 |
+
+The whole drop is Q4: -126 on `main`, -130 on the final code. R + Q6 alone is
++8, exactly Phase A's R. The worst row stays `2-sweep-fire6` f311 on every
+build.
+

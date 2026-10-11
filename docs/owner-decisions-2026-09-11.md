@@ -2059,6 +2059,21 @@ Limity STOP bez zmian; rekord okna ≤ 1 387 B (11 sektorów) to limit STOP
 tego zadania. NOWE albo PRZESUNIĘTE w `failures:reconcile` to STOP, łącznie
 z pinami i progami innymi niż ten z Q3.
 
+8. **STOP na `lower-playfield-laser-contact-atr-hard` (odpowiedź tego samego
+   dnia):** najpierw klasa, z klatkami. Odłamek, który trafił bota tuż przed
+   wejściem bossa, żył już na końcu sektora 5 — odłamki nie wchodzą do
+   „czystego pola” (sector flow, Q10), a wejście bossa czeka, aż odłamek
+   zniknie (smoke właściciela z 2026-10-09). Jeden kontakt, 7 jednostek na
+   HARD. Na `main` jest tak samo (tam bota zabiły potem trafienia
+   Interceptorów, więc spotkał laser cały po odrodzeniu). To zachowanie
+   zaprojektowane, więc **klasa (a)** i opcja 1, z warunkami: unik przed
+   spadającym odłamkiem tylko w polityce tego replayu (`lower-contact-laser`)
+   i tylko przy wejściu bossa w toku (BOSS_DUE); każdy inny replay bez zmian
+   (inaczej PRZESUNIĘTE = STOP); klauzula nietknięta, z niepustym podmiotem,
+   FAIL przed i PASS po; lista modułów żywych przy ostatnim ostrzeżeniu
+   lasera. Do tego pomiar marginesu fence: `main` + samo Q4 i `main` + R + Q6
+   bez Q4 (spadek 1 423 → 1 301 to w całości Q4). Wyniki: plan §11.7.
+
 **Wynik:** plan `interceptor-standoff` §9.1 i §11 (jak zbudowano), STATUS.
 
 ---

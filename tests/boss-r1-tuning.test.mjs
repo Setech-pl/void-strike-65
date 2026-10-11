@@ -50,10 +50,13 @@ test("regions 2-4 (copies of region 1 with the finale): no safe position either"
 
 // Owner finding 2: halve the guns' durability; the laser emitter keeps its own.
 // main's values: every pulse gun 28, the emitter 20.
-test("region 1: every gun at half main's durability (28 -> 14), the emitter unchanged at 20", () => {
+// RE-POINTED feat/interceptor-standoff (owner answer Q6 of 2026-10-11,
+// docs/plans/interceptor-standoff.md §6): every gun 14 -> 12, part of the
+// fight's retune once the Interceptor stopped dying on the fighter.
+test("region 1: every gun at 12 hit points (main 28, boss-r1-tuning 14), the emitter unchanged at 20", () => {
   const guns = draft.layout.modules.filter((module) => module.kind === "pulse" || module.kind === "salvo");
   assert.ok(guns.length >= 6, `${guns.length} guns; the far-end pair is missing`);
-  assert.deepEqual(guns.filter((gun) => gun.hp !== 14).map((gun) => `${gun.name}: ${gun.hp}`), []);
+  assert.deepEqual(guns.filter((gun) => gun.hp !== 12).map((gun) => `${gun.name}: ${gun.hp}`), []);
   const emitter = draft.layout.modules.find((module) => module.kind === "emitter");
   assert.equal(emitter.hp, 20);
 });
@@ -74,14 +77,13 @@ test("region 1: a gun stands at each far end of the boss (left of column 16, rig
 const PLAIN_SWEEP_FRAMES = [3834, 4612, 5964];
 const AIM_FRAMES_ON_MAIN = [1847, 2231, 2663];
 // RE-POINTED feat/boss-escort-flow (owner answer 5 of 2026-10-10, owner-decisions
-// §AI): MEDIUM up to 126 s is accepted TEMPORARILY. The escort from the first
-// weapon kill lengthens the aiming bot's fight (its deaths with lives held);
-// the next task changes the Interceptor's behaviour (no kamikaze runs: it backs
-// off and fires), which changes those deaths, and the fight is retuned after
-// it - this bound returns to 120 then. EASY shorter and HARD not shorter are
-// unchanged.
-const MEDIUM_MAX_SECONDS = 126;
-test("the fight's length by the aiming bot keeps the owner's rule (MEDIUM 90-126 s for now, EASY shorter, HARD not shorter)", () => {
+// §AI): MEDIUM up to 126 s was accepted TEMPORARILY, until the Interceptor's
+// behaviour changed. That change is feat/interceptor-standoff, and the
+// temporary acceptance ENDS with it (owner answer Q6 of 2026-10-11, decision
+// AK): the bound is the owner's rule again, MEDIUM 90-120 s, after the plate
+// and gun retune. EASY shorter and HARD not shorter are unchanged.
+const MEDIUM_MAX_SECONDS = 120;
+test("the fight's length by the aiming bot keeps the owner's rule (MEDIUM 90-120 s, EASY shorter, HARD not shorter)", () => {
   const report = JSON.parse(fs.readFileSync(path.join(root, "docs", "runtime-wall-trace.json"), "utf8"));
   const sessions = report.coverage.director_level_complete.natural_difficulty_sessions;
   assert.deepEqual(sessions.map(({ boss_policy: policy }) => policy), ["boss-aim", "boss-aim", "boss-aim"],
@@ -123,11 +125,14 @@ test("variant B: level 1's boss sector authors one Interceptor escort wave under
     [{ archetype: "interceptor", count: 1, row: 0 }]);
 });
 
-test("variant B: plate-a and plate-h at 12 hit points (were 16), every other plate unchanged", () => {
+// RE-POINTED feat/interceptor-standoff (owner answer Q6 of 2026-10-11):
+// plates b-g 4 hit points lighter (b, c, g 16 -> 12; d, e 20 -> 16; f 12 -> 8);
+// a and h keep variant B's 12.
+test("variant B and the standoff's retune: plates a and h at 12, plates b-g 4 hit points lighter", () => {
   const plates = Object.fromEntries(draft.layout.modules.filter((module) => module.kind === "armour")
     .map((module) => [module.name, module.hp]));
-  assert.deepEqual(plates, { "plate-a": 12, "plate-b": 16, "plate-c": 16, "plate-d": 20, "plate-e": 20,
-    "plate-f": 12, "plate-g": 16, "plate-h": 12 });
+  assert.deepEqual(plates, { "plate-a": 12, "plate-b": 12, "plate-c": 12, "plate-d": 16, "plate-e": 16,
+    "plate-f": 8, "plate-g": 12, "plate-h": 12 });
 });
 
 test("variant B on the emulator: every director-complete fight meets the escort, never more than one Light live", () => {

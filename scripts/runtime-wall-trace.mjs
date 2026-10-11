@@ -4018,7 +4018,11 @@ function main() {
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
   // Light multiplicity plan §4.3.
   const lightTrace = process.argv.includes("--light-trace");
-  const hostileShotTrace = process.argv.includes("--hostile-shot-trace");
+  // feat/interceptor-standoff: --hit-trace, a diagnostic run's hit
+  // attribution (scripts/measure-interceptor-hits.mjs): the Light slots'
+  // CSV as --light-trace writes it (never the ceiling poke) and every hostile
+  // shot's rows without the observer's anomaly stop.
+  const hitTrace = process.argv.includes("--hit-trace");
   const lightCeiling = argumentValue("light-ceiling");
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
@@ -4387,9 +4391,7 @@ function main() {
       ? path.join(buildDirectory, `${session.id}-atari800.png`) : undefined;
     const firstWriterOutput = session.kind === "raider-first-writer-native"
       ? path.join(buildDirectory, `${session.id}-first-writer.csv`) : undefined;
-    // feat/interceptor-standoff: --hostile-shot-trace logs every hostile shot
-    // of a diagnostic run (no anomaly stop), to attribute the player's hits.
-    const interceptorProjectileOutput = session.kind === "raider-first-writer-native" || hostileShotTrace
+    const interceptorProjectileOutput = session.kind === "raider-first-writer-native" || hitTrace
       ? path.join(buildDirectory, `${session.id}-enemy-projectiles.csv`) : undefined;
     const playerPairShotOutput = session.kind === "player-pairshot-speed-native" ||
       session.kind === "player-pairshot-reentry-native"
@@ -4493,7 +4495,7 @@ function main() {
       ...(interceptorProjectileOutput === undefined ? {} : {
         DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT: interceptorProjectileOutput,
       }),
-      ...(hostileShotTrace ? { DFTRACE_INTERCEPTOR_PROJECTILE_QUIET: "1" } : {}),
+      ...(hitTrace ? { DFTRACE_INTERCEPTOR_PROJECTILE_QUIET: "1" } : {}),
       ...(playerPairShotOutput === undefined ? {} : {
         DFTRACE_PLAYER_PAIRSHOT_OUTPUT: playerPairShotOutput,
       }),
@@ -4507,7 +4509,7 @@ function main() {
       // states and the frame's five kernel vector-entry counts, so the
       // analysis can bucket frames by live count and separate the admission
       // and kill frames from the standing ones. Opt-in with --light-trace.
-      ...(lightTrace ? {
+      ...(lightTrace || hitTrace ? {
         DFTRACE_LIGHT_OUTPUT: path.join(buildDirectory, `${session.id}-light.csv`),
         DFTRACE_LIGHT_BASE: String(directorLabels.get("light_state")),
         DFTRACE_LIGHT_VECTOR_BASE: String(kernelLabels.get("light_kernel_vectors")),

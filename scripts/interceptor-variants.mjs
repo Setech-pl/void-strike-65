@@ -206,6 +206,32 @@ const flowToLow = [
   pragmaBefore("static void director_c_sector_cut(void)", "HYBRID_C_WINDOW_FLOW"),
 ];
 
+// Fight-length probes on top of R (plan §6): region 1's plates b-g lose
+// `step` hit points each; the escort's start and cadence are owner-fixed (AI).
+const platesDown = (step) => ({
+  file: "assets/graphics/boss-regions/region-1/modules.json",
+  transform(text) {
+    const layout = JSON.parse(text);
+    for (const module of layout.modules) {
+      if (/^plate-[b-g]$/.test(module.name)) module.hp -= step;
+    }
+    return JSON.stringify(layout, null, 2);
+  },
+});
+
+const INTERCEPTOR_R_EDITS = [rDefines(STANDOFF), rMotion, escortColumnAdd, rFire, ...flowToLow, kernelPin(0xB81C)];
+
+const gunsDown = (step) => ({
+  file: "assets/graphics/boss-regions/region-1/modules.json",
+  transform(text) {
+    const layout = JSON.parse(text);
+    for (const module of layout.modules) {
+      if (/^gun-\d$/.test(module.name)) module.hp -= step;
+    }
+    return JSON.stringify(layout, null, 2);
+  },
+});
+
 export const INTERCEPTOR_VARIANTS = Object.freeze({
   s: {
     summary: "slower chase - horizontal tracking at half the player's top speed",
@@ -213,7 +239,23 @@ export const INTERCEPTOR_VARIANTS = Object.freeze({
   },
   r: {
     summary: "standoff - dives to a standoff above the player, backs off, fires only when aligned, leaves upward",
-    edits: [rDefines(STANDOFF), rMotion, escortColumnAdd, rFire, ...flowToLow, kernelPin(0xB81C)],
+    edits: INTERCEPTOR_R_EDITS,
+  },
+  rp2: {
+    summary: "R with region 1's plates b-g 2 HP lighter (fight-length probe)",
+    edits: [...INTERCEPTOR_R_EDITS, platesDown(2)],
+  },
+  rg2: {
+    summary: "R with region 1's guns 2 HP lighter (fight-length probe)",
+    edits: [...INTERCEPTOR_R_EDITS, gunsDown(2)],
+  },
+  rp4g2: {
+    summary: "R with region 1's plates b-g 4 and guns 2 HP lighter (fight-length probe)",
+    edits: [...INTERCEPTOR_R_EDITS, platesDown(4), gunsDown(2)],
+  },
+  rp4: {
+    summary: "R with region 1's plates b-g 4 HP lighter (fight-length probe)",
+    edits: [...INTERCEPTOR_R_EDITS, platesDown(4)],
   },
 });
 
@@ -249,6 +291,10 @@ export function installInterceptorVariant(rootDirectory, id) {
     if (edits === undefined) return result;
     let text = Buffer.isBuffer(result) ? result.toString("utf8") : result;
     for (const edit of edits) {
+      if (edit.transform !== undefined) {
+        text = edit.transform(text);
+        continue;
+      }
       const at = text.indexOf(edit.from);
       if (at < 0 || text.indexOf(edit.from, at + 1) >= 0) {
         throw new Error(`Interceptor variant ${id}: an edit of ${edit.file} does not match exactly once`);

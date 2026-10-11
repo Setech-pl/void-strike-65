@@ -3,7 +3,7 @@
 // laser, or anything else - over a diagnostic wall-trace run.
 //
 //   node scripts/runtime-wall-trace.mjs --artifacts=build/<route> --only-session=<id> \
-//     --light-trace --hostile-shot-trace --atari800-source=build/atari800-trace
+//     --hit-trace --atari800-source=build/atari800-trace
 //   node scripts/measure-interceptor-hits.mjs [--json] build/<route>/runtime-wall-trace/<id>.csv [...]
 //
 // MEASURED from three files the run writes beside each other:
@@ -11,8 +11,8 @@
 //                               a death a row whose player_lives_after is below
 //                               player_lives (lives are held); light_archetypeN
 //                               names each Light slot's record (24 = Interceptor);
-//   <id>-light.csv              each slot's state, x and y per tick (--light-trace);
-//   <id>-enemy-projectiles.csv  each hostile shot per tick (--hostile-shot-trace):
+//   <id>-light.csv              each slot's state, x and y per tick (--hit-trace);
+//   <id>-enemy-projectiles.csv  each hostile shot per tick (--hit-trace):
 //                               ACTIVE is (weapon_class << 3) | owner, so a Light's
 //                               LASER is $16; a release with player_collision_terminal
 //                               set is a shot that met the fighter.
@@ -52,7 +52,7 @@ export function interceptorHits(csvFile) {
   const lightFile = `${base}-light.csv`;
   const shotFile = `${base}-enemy-projectiles.csv`;
   if (!fs.existsSync(lightFile) || !fs.existsSync(shotFile)) {
-    throw new Error(`${path.basename(csvFile)}: run it with --light-trace --hostile-shot-trace`);
+    throw new Error(`${path.basename(csvFile)}: run it with --hit-trace`);
   }
   const lightByFrame = new Map(readTraceCsv(lightFile).map((row) => [row.frame, row]));
   const shots = readTraceCsv(shotFile);

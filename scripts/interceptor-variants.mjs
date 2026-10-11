@@ -24,10 +24,11 @@ import path from "node:path";
 // R's tunables, in one place so a comparison build can try other values
 // without touching the code below (plan §3.2 gives the reasons).
 export const STANDOFF = Object.freeze({
-  lifeFrames: 96,     // frames from admission to the climb out
+  lifeFrames: 100,    // frames from admission to the climb out
   far: 56,            // approach while the player is further below than 7 rows
   near: 32,           // back off while closer than 4 rows; <= PLAYER_Y_MIN (32)
-  dive: 4,            // the approach and the climb out, lines a frame
+  dive: 4,            // the approach, lines a frame
+  climb: 8,           // the climb out, lines a frame: out in <= 23 frames
   backoff: 2,         // the back-off, lines a frame (the player climbs 1)
   trackMask: 3,       // one 4-HPOS cell every (mask + 1) frames
 });
@@ -54,6 +55,7 @@ const rDefines = (s) => ({
     `#define INTERCEPTOR_STANDOFF_FAR ${s.far}u\n` +
     `#define INTERCEPTOR_STANDOFF_NEAR ${s.near}u\n` +
     `#define INTERCEPTOR_DIVE         ${s.dive}u\n` +
+    `#define INTERCEPTOR_CLIMB        ${s.climb}u\n` +
     `#define INTERCEPTOR_BACKOFF      ${s.backoff}u\n` +
     `#define INTERCEPTOR_TRACK_MASK   ${s.trackMask}u\n` +
     "#define PLAYER_Y                 U8_AT(0x0081u)\n",
@@ -95,7 +97,7 @@ const rMotion = {
     "            light_target_x = 0u;\n" +
     "            light_fire_work = light_burst_left[light_slot];\n" +
     "            if (light_fire_work >= INTERCEPTOR_LIFE_FRAMES) {\n" +
-    "                light_work = (uint8_t)(light_work - INTERCEPTOR_DIVE);\n" +
+    "                light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);\n" +
     "            } else {\n" +
     "                ++light_fire_work;\n" +
     "                light_burst_left[light_slot] = light_fire_work;\n" +

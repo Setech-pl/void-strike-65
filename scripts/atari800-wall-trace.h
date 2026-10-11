@@ -3661,6 +3661,29 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
 			}
+			/* feat/interceptor-standoff (class (a), the owner's answer of
+			 * 2026-10-11): while the boss is due - the boss sector's run-in,
+			 * the world still scrolling - a debris piece from the sector
+			 * before may still be falling (the entry waits for it to go,
+			 * sector-flow §4), and one HARD contact costs 7 units, so the bot
+			 * met the lasers damaged and never sought a beam (MEASURED: 10 ->
+			 * 3 at 2,827, the entry 2,828). The same step as for a boss shot:
+			 * never towards a piece above within 24 HPOS, away from one within
+			 * 16 (contact is within 11, the fighter 16 HPOS wide, debris 8).
+			 * Debris is entity slot 0; the Director's STATE_FLAGS ($80FE,
+			 * BOSS_DUE $20) is eight bytes after STATE_SECTOR
+			 * (src/c/director.c). This policy only: no other replay moves. */
+			if (dftrace_director_sector != 0u &&
+				(MEMORY_mem[dftrace_director_sector + 8u] & 0x20u) != 0u &&
+				(MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u &&
+				MEMORY_mem[dftrace_entity_y] < y) {
+				int dx = (int) MEMORY_mem[dftrace_entity_x] - (int) x - 4;
+				if (dx > -24 && dx < 24) {
+					if (dx >= 0 && (stick & 0x08u) == 0u) stick |= 0x08u;
+					if (dx < 0 && (stick & 0x04u) == 0u) stick |= 0x04u;
+					if (dx > -16 && dx < 16) threat = dx >= 0 ? -1 : 1;
+				}
+			}
 			if (threat < 0)
 				stick = x > 60u ? 0x0bu : 0x07u;
 			else if (threat > 0)

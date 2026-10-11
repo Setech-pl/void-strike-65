@@ -2073,8 +2073,21 @@ z pinami i progami innymi niż ten z Q3.
    FAIL przed i PASS po; lista modułów żywych przy ostatnim ostrzeżeniu
    lasera. Do tego pomiar marginesu fence: `main` + samo Q4 i `main` + R + Q6
    bez Q4 (spadek 1 423 → 1 301 to w całości Q4). Wyniki: plan §11.7.
+9. **STOP na trzech NOWYCH porażkach testów (§11.8) i smoke właściciela
+   (2026-10-11):** trzy przepięcia **zatwierdzone** — dwie zmierzone liczby
+   klatek (debris-effects 5 000 → 4 999, integralność 22 997 → 22 996 /
+   459,92 s, replaye dochodzą teraz do bossa) i fixture, który stawia gracza w
+   kolumnie Interceptora. Smoke: w roju Interceptor odleciał górą i już nie
+   wrócił. Właściciel chce, żeby **zatrzymał się przy górze ekranu (wciąż
+   widoczny) i zanurkował z powrotem** do swojego dystansu, zamiast odlatywać;
+   liczba takich pętli pochodzi z **danych fali** (decyzja AD), po ostatniej
+   pętli odlatuje górą dokładnie jak R. Propozycja: rój i elita 2 pętle,
+   eskorta bossa 0 (bez zmian; jeśli eskorta też musiałaby się zmienić — STOP).
+   Najpierw **Faza A-lite**: trzy pełne ATR-y (1, 2, 3 pętle) i trasa do
+   bossa, pomiary, plan, STOP; dwa pełne `npm test` czekają na wybór. Wyniki:
+   plan §12.
 
-**Wynik:** plan `interceptor-standoff` §9.1 i §11 (jak zbudowano), STATUS.
+**Wynik:** plan `interceptor-standoff` §9.1, §11 (jak zbudowano) i §12, STATUS.
 
 ---
 

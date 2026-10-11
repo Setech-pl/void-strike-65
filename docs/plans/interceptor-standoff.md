@@ -2,11 +2,13 @@
 
 **Branch:** `feat/interceptor-standoff` from `main` `ef1924d` (ATR `90f3e24e…`,
 boot `fce37c74…`, the `feat/boss-escort-flow` merge, decision AI).
-**Status:** Phase B built and committed; the laser-contact STOP answered
-(§11.7) and the evidence bound (`84cc2a4`: 58 replays, 0 clause failures,
-trace reconcile clean). The first full `npm test` STOPPED on three NEW test
-failures - `OWNER DECISION REQUIRED` (§11.8). The owner's answers are §9.1
-and decision AK.
+**Status:** Phase B built and committed; the evidence bound (`84cc2a4`); the
+three re-points of §11.8 approved and committed (`a0c5d8e`). The owner's smoke
+finding of 2026-10-11 (an Interceptor climbed off the top of the swarm and
+never came back) opened **Phase A-lite, the top-hold loop (§12)**: built as a
+review variant, measured, `OWNER DECISION REQUIRED` (§12.7). The second full
+`npm test`, STATUS and the §27 checklist wait for that choice. The owner's
+answers are §9.1 and decision AK.
 
 **The owner's finding (2026-10-11, after playing the escort flow):** the
 Interceptor chases at the player's own top speed, so every pass ends shot down
@@ -520,3 +522,224 @@ STATUS, the §27 smoke checklist, and marking this plan implemented. The STATUS
 and smoke-checklist drafts are kept as
 `build/interceptor-standoff-stop/status-and-smoke-draft.patch`.
 
+---
+
+## 12. Phase A-lite: the top-hold loop (the owner's smoke of 2026-10-11)
+
+**The finding:** in the swarm an Interceptor climbed away off the top and
+never came back. **Wanted:** it stops near the top of the screen, still
+visible, and dives back to its standoff, then repeats R's hover-and-fire. The
+number of loops comes from the wave's data (decision AD: per-wave behaviour
+by data, no new archetype code). After the last loop it leaves off the top
+exactly as R does. Proposed: swarm and elite waves 2 loops, the boss escort 0
+(unchanged).
+
+The re-points of §11.8 were committed first (`a0c5d8e`). The two measured frame
+counts are asserted in more than one place, and the commit lists every form.
+The two full `npm test` runs are held, as the owner asked.
+
+### 12.1 What is built (`--interceptor-loops=N`, N = 0-3; `2af8465`, `0209205`, `8d41dea`)
+
+A review variant, like Phase A's. `scripts/interceptor-loop-variants.mjs`
+applies `scripts/interceptor-loops.patch` (a plain unified diff) and level 1's
+loop counts **in memory** while `scripts/build.mjs` reads its inputs. Nothing
+under `src/`, `cfg/` or `assets/` changes on disk. The default build is
+byte-identical (ATR `2b6be844…`). Phase B applies the chosen loop with
+`git apply scripts/interceptor-loops.patch` and the data edit. N = 0 is the
+loop's code with level 1's data unchanged; it plays exactly like R, which
+separates the code's cost from the loops' cost.
+
+* **The data.** The level compiler's new wave field `loops` (0-3) is encoded in
+  wave_flags bits 6-7 (bits 4-5 stay the trigger mode). The compiler accepts it
+  only on a wave whose Light is an Interceptor: a Light wave's archetype, or a
+  Heavy wave's escort. That covers the swarm's Interceptor wave (sector 3) and
+  elite (a)'s Raider + Interceptor wave (sector 4). The boss sector's escort
+  row keeps 0. Without `loops` the compiler emits the same flags as before.
+  Level 2 is reachable only by a debug route, and the variant leaves it alone.
+* **Per slot.** `light_loops[4]` takes 4 B of the unowned gap above
+  `HYBRID_LIGHT_LOOK` (`HYBRID_LIGHT_LOOK_RAM` 5 → 9 B, `$812E-$8136`; the gap
+  is 13 → 9 B, `$8137-$813F`). `light_admit` writes the armed wave's flags into
+  it whole (`heavy_wave_flags`, which `director_c_try_event` publishes for
+  every wave). The mask waits for the top phase, so the admission frame pays
+  one load and one store (13 cycles; see §12.3 for why that matters).
+* **The tick.** After R's 100 frames, an Interceptor with loops left climbs at
+  R's 8 lines a frame to its top-hold row and holds there. When its age byte
+  wraps, a loop is spent, and R's descent and standoff begin again. While it
+  climbs and holds, the column gate stays cleared as in R's climb-out, so it
+  does not fire. With no loops left it climbs out, as R does.
+* **The window record.** The first inline cut packed to 1,436 of the window's
+  1,387 bytes, a twelfth sector. Two moves make room:
+  - The boss entry's resident half (cold: it runs once, at the boss entry)
+    gives its region read and the WARNING records (67 B) to the Light kernel
+    link's last segment, behind the HUD booster backup. That is S5-1's place,
+    and it moves no kernel byte. The head (42 B) stays in the window and jumps
+    there by a new pin (3 B; `pin_boss_enter_read`, `pin_boss_warning_records`).
+  - The top phase reuses the tick's result byte, which is free until the body
+    returns.
+
+### 12.2 The values and their reasons
+
+| Value | Chosen | Why |
+| --- | --- | --- |
+| Top-hold row | **y 32 for slot 0, +16 a slot** (48, 64) | A Light is drawn from y 24 (`ENTITY_GAMEPLAY_TOP`, the row under the HUD divider; `light_top` in the kernel). y 32 is the playfield's second row: on screen, with one row of air, so the hold does not read as leaving. Two rows a slot is the standoff's own stacking (Q3): a swarm at the top does not merge into one cell. |
+| Top phase | **39 frames (0.78 s)**: the climb, then the hold | The age byte runs on from 100 in steps of 4 and wraps to 0 after 39 frames: no counter byte, no compare. **M**: from the sweep bot's standoffs (player at `PLAYER_Y_MAX` 225) the climb takes 17 / 13 / 9 frames, so the holds are **22 / 26 / 30 frames (0.44 / 0.52 / 0.60 s)** for slots 0 / 1 / 2. With the player higher up, the hold is up to 39 frames. |
+| Climb | 8 lines a frame | R's climb-out, unchanged. |
+| A loop | 139 frames (2.8 s) | R's 100 frames (descent, standoff, column fire) plus the 39-frame top phase. The descent from the hold row is R's 2 lines a frame. |
+| Longest life | 100 + N × 139 + the climb-out | **M**: 260 / 399 / 538 frames for N = 1 / 2 / 3 (R 121). |
+| Escort | 0 loops | Its row authors none. The 121-frame life, the cadence and "none after the defeat" are R's (§12.5). |
+
+### 12.3 Bytes (**M**, manifests; the same on every N)
+
+| | R (default build) | loop variant |
+| --- | ---: | ---: |
+| **window record** (11 sectors, 1,387 packed) | 1,384 | **1,386 (1 B left)** |
+| `light_tick_body` | 469 B | 570 B |
+| window Director half (C window / ASM window / flow) | 1,686 (1,429 / 109 / 148) | 1,723 (1,530 / 45 / 148) |
+| Light kernel link (base, size) | `$B496`, 920 B | `$B4BB`, 987 B (+67, the moved region read and records) |
+| Light kernel record (7 sectors, 875 packed) | 802 | **866 (9 left)** |
+| window free tail (to `$BC00`) | 978 B | 874 B |
+| C extension `HYBRID_C_EXT` / record (6 sectors, 747) | 681 / 735 | 690 / **742** (`light_admit` +9) |
+| Light state RAM | — | **+4 B** (`light_loops`, `$8133-$8136`) |
+| `DIRECTOR_RAM` (`DIRECTOR_C_CODE` `$9D89-$9FF7`), `DIRECTOR_C_LOW` + its record, arena (14 B free) | — | **unchanged** |
+| transport sectors / initial block | 213 / 13,623 B (107) | **213 / 13,623 B (107)** |
+| boss-entry pins | `hud_backup` `$B820` | `hud_backup` `$B845`, `enter_read` `$B853`, `warning_records` `$B878` |
+
+### 12.4 Gates (**M**, all 58 replays focused on each build's `level-1-s0` route; R's route reproduces the evidence row for row)
+
+| | R | N = 0 | N = 1 | N = 2 | N = 3 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| worst fence margin (`2-sweep-fire6` f311) | 1,301 | **1,285** | 1,285 | 1,285 | 1,285 |
+| next row (`2-evasive-fire3` f287) | 1,467 | 1,457 | 1,457 | 1,457 | 1,457 |
+| DMA-on maximum (`memory-integrity-atr-2-hunt-fire7` f2,379) | 31,493 | 31,493 | 31,493 | 31,493 | 31,493 |
+| missed frames / clause failures | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+
+`summary-record-readback-1` reads a record that `director-complete-1` writes
+earlier in a full run. Run alone it fails identically on every build,
+including R. That is a focused-run artefact, not counted above.
+
+**The fence's −16 is the admission write.** Both binding rows are Light
+admission frames, the row the evidence already names as the binding one. Every
+other frame's margin moves by noise only (median 0). The first cut masked the
+flags at admission and split cc65's shared zero load: 29 cycles, −52 on f311.
+The raw store in the same place: 19 cycles, −28. The final write sits after
+`light_x`: 13 cycles, −16. The
+top phase runs off the fence (the Light tick is post-fence on those frames). No
+frame of any replay passes R's DMA-on maximum, including the swarm rows where
+three Interceptors loop.
+
+### 12.5 Play (**M**; `director-complete-N` is the natural sweep bot, lives held; the hunting bots are `memory-integrity` and `weapon-pickup`, lives not held)
+
+| | R (before R: sector-flow) | N = 1 | N = 2 | N = 3 |
+| --- | --- | --- | --- | --- |
+| **road to the boss**, sweep bot E / M / H | **68.0 / 59.7 / 56.6 s** (66.9 / 56.8 / 53.7) | 69.3 / 67.5 / 56.6 | 69.3 / 66.5 / 56.6 | 69.3 / 66.5 / 56.6 |
+| **swarm**, sweep bot E / M / H | 12.7 / 11.4 / 10.1 s | 13.2 / 14.2 / 10.1 | 13.2 / 14.3 / 10.1 | 13.2 / 14.3 / 10.1 |
+| swarm, hunting bots HARD hunt 5 / EASY hunt 5 | 15.4 / 15.4 s | 17.5 / 18.2 | 19.6 (lives lost) / 20.3 | 17.2 / 23.1 |
+| road to the boss, hunting bots HARD hunt 5 / 6 / 7, EASY hunt 5 | 74.3 / 74.4 / 74.1 / 78.7 s | 75.4 / 76.9 / 76.4 / 83.9 | **— / — / —** / 83.1 | 75.4 / 75.7 / — / 85.7 |
+| **longest Interceptor life**, swarm / elite (all replays) | 121 / 121 | 260 / 260 | 399 / 399 | 538 / 419 |
+| **Interceptor laser hits**, hunting bots (hunt 5 / 6 / 7, `weapon-pickup-2-hunt-fire4`) | 4 / 4 / 4 / 3 | 8 / 8 / 8 / 3 | 9 / 9 / 9 / 3 | 9 / 9 / 9 / 3 |
+| … lasers fired / deaths by the laser | 11 / 11 / 9 / 8; 0 / 0 / 0 / 1 | 17 / 19 / 17 / 9; 0 / 0 / 0 / 1 | 24 / 24 / 23 / 9; **1 / 1 / 1 / 1** | 40 / 40 / 23 / 9; 1 / 1 / 1 / 1 |
+| Interceptors that met the fighter | 0 | 0 | 0 | 0 |
+| sweep bot: Interceptor laser hits before the boss | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 |
+| **fight** by the ratio, E / M / H | 76.9 / 104.4 / 154.4 s | 86.5 / 106.0 / 154.4 | 86.5 / 103.0 / 154.4 | 86.5 / 103.0 / 154.4 |
+
+* **The sweep bot shoots most Interceptors before their first loop.** On HARD
+  none lives past 72 frames, so HARD's road is R's. EASY and MEDIUM gain 1.3 s
+  and 6.8-7.8 s.
+* **The hunting bot does not dodge.** It sits under an Interceptor's column,
+  and each loop doubles the laser time over it. On N = 2 the HARD hunting bot
+  loses lives in the swarm and elite (a): 10 hits in a row in the swarm on
+  `hunt-fire5`, f2,391-2,684. All three HARD hunting replays end in a game
+  over before the boss.
+* **The fights move only because the bot reaches the boss in another state**
+  (position, booster, RNG). On the boss route, which starts every build from
+  the same entry, R and N = 2 are identical:
+  - `boss-park-left-0/1/2`: escorts 19 / 17 / 15, hits 3 / 5 / 4 (all laser),
+    longest escort 121 frames;
+  - their `-light.csv` traces are **byte-identical**.
+
+  The escort's life never passes 121 frames in any replay of any build. No
+  escort is admitted after the defeat, and never two at once. The rule (EASY
+  shorter, MEDIUM 90-120 s, HARD not shorter) holds on every N.
+* **The holds (`--hit-trace` y traces):** every looping Interceptor holds at
+  y 32 / 48 / 64 for slot 0 / 1 / 2, for 22 / 26 / 30 frames, exactly N times,
+  then leaves off the top. No escort holds.
+* **The guard:** `boss-edge-left-1` passes on N = 2: engaged at f3,168, 18
+  escorts (first at f4,175), 4 hits.
+
+### 12.6 Sector flow (**M**)
+
+* **A looping swarm still ends.** A slot is freed when its Interceptor leaves
+  after its last loop or dies, so the swarm wave's lock lifts and the cursor
+  moves on. Every swarm in every replay ended.
+* **No wave starves.** The Director's arming events per sector are the same on
+  every build in every replay that reaches the boss: sector 0 one, the swarm
+  three, elite (a), the Bomber and elite (b) one each, the boss escort one. The
+  Light admissions per sector are R's too. Elite (a) lasts longer while its
+  companion loops (MEDIUM 95 → 229 frames on N = 2). The Bomber wave
+  (`afterCleared`) arms after it, as designed.
+* **Measured frame counts the tests pin** (Phase B, on the chosen N):
+
+  | Count | R / N = 1 | N = 2 | N = 3 |
+  | --- | --- | --- | --- |
+  | integrity sum | 22,996 | 22,999 (hunt 5 / 6 / 7 no longer reach the boss: 4,900 / 5,000 / 4,000) | 22,997 |
+  | debris-effects | 4,999 | 4,999 | 4,999 |
+  | the guard | 7,399 | 7,399 | 7,399 |
+  | laser contact | 9,499 | 9,499 | 9,499 |
+
+  On N = 2 the HARD integrity replays lose the boss-sector coverage that their
+  budgets were derived to buy (`scripts/runtime-wall-trace.mjs`
+  `MEMORY_INTEGRITY_FRAMES_*`, evidence-integrity §4). Re-deriving those
+  budgets would be a class (a) scenario change for the owner.
+
+### 12.7 Recommendation and the owner's questions
+
+**Recommended: N = 1 for the swarm and the elite, the escort 0.**
+* It answers the finding: the Interceptor stops on screen, holds, dives back
+  and flies a second standoff.
+* It doubles its laser time over a careless player (laser hits 4 → 8 on the
+  hunting bots), with no death to the laser.
+* It leaves every measured frame count the tests pin as it is: every hunting
+  replay still reaches the boss inside its budget.
+
+N = 2 (the proposal) makes the HARD swarm lethal to a bot that does not dodge,
+and costs the integrity replays their boss coverage. It is worth playing: a
+player who dodges the column may find N = 1 too short. The count is per wave,
+so mixed values (swarm 2, elite 1) need no code.
+
+| # | Question | Options | Recommended |
+| ---: | --- | --- | --- |
+| L1 | Loops for the swarm and elite waves | 1 / 2 / 3 / per wave (e.g. swarm 2, elite 1) | **1** |
+| L2 | The top-hold row and the top phase | y 32 (+16 a slot), 39 frames / another | **as built** |
+| L3 | The window record at 1,386 of 1,387 after moving the boss entry's region read into the kernel record (866 of 875) | accept / ask for another placement | **accept** |
+| L4 | The worst fence margin 1,301 → 1,285 (the admission write, 13 cycles) | accept / ask for a cheaper write | **accept** |
+| L5 | If N ≥ 2: the HARD integrity budgets | re-derive them (class (a)) / keep them and lose the boss coverage | **re-derive** |
+
+### 12.8 How to play (Atari800, the 64 KB machine)
+
+```
+atari800 -xl -pal -nobasic "$PWD/build/play/void-strike-65-interceptor-loops-1-986fbda7.atr"             # N = 1
+atari800 -xl -pal -nobasic "$PWD/build/play/void-strike-65-interceptor-loops-2-ba33c357.atr"             # N = 2 (the proposal)
+atari800 -xl -pal -nobasic "$PWD/build/play/void-strike-65-interceptor-loops-3-54392df7.atr"             # N = 3
+atari800 -xl -pal -nobasic "$PWD/build/play/void-strike-65-interceptor-loops-2-boss-route-a2af8138.atr"  # N = 2, straight to the boss
+```
+
+| Build | ATR SHA-256 | boot |
+| --- | --- | --- |
+| N = 1 | `986fbda7764951cc78f14a97dbd48e907579379c5a2117d209f529a09584846f` | `d536c939…` |
+| N = 2 | `ba33c357d30d415affac4d968e70edeb2b0503ed8bafaa37a1ad06120c7d63d3` | `c8a04269…` |
+| N = 3 | `54392df7b45920df996eeca389a3818d9737b463220c901236f74819fec19cdd` | `1479f5d7…` |
+| N = 2, boss route | `a2af81387b12d5ed826bb79b0336da865a48f91fc669c97ba1c0f201f3802e0a` | |
+
+To rebuild: `node scripts/build.mjs --interceptor-loops=N [--level=1[:sector=M]]`
+(N = 0 for the loop's code with R's data).
+
+**What to look for:** in the swarm after the capital, each Interceptor, after
+its standoff:
+* climbs to the top rows;
+* stops there, one, two or three rows apart;
+* holds for about half a second without firing;
+* dives back to its standoff above you and fires down your column again;
+* N times, then leaves off the top.
+
+Elite (a)'s companion does the same. The boss escort still leaves after one
+pass.

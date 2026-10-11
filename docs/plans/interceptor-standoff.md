@@ -2,8 +2,10 @@
 
 **Branch:** `feat/interceptor-standoff` from `main` `ef1924d` (ATR `90f3e24e…`,
 boot `fce37c74…`, the `feat/boss-escort-flow` merge, decision AI).
-**Status:** Phase A - audit, comparison builds, measurements. `OWNER DECISION
-REQUIRED` (§9).
+**Status:** Phase B built and committed (R, the debris-shot fix, the fight's
+retune, the guard's budget); the evidence regeneration STOPPED on a NEW clause
+failure in `failures:reconcile` - `OWNER DECISION REQUIRED` (§11.6). The owner's
+answers are §9.1 (decision AK).
 
 **The owner's finding (2026-10-11, after playing the escort flow):** the
 Interceptor chases at the player's own top speed, so every pass ends shot down
@@ -290,6 +292,18 @@ elite-to-elite carry-over is timing-sensitive; clause L5 watches it.
 | Q6 | The fight's lever | plates b-g −4 and guns 14 → 12 (76.9 / 103.7 / 154.4) / another probe | **plates −4, guns 12** |
 | Q7 | The DMA-on target | R puts the swarm row at 31,493 (293 over 31,200; hard gate 32,568) - accept / ask for a cheaper tick | **accept** |
 
+### 9.1 The owner's answers (2026-10-11, after playing the builds; decision AK)
+
+| # | Answer |
+| ---: | --- |
+| Q1 | **R** for every Interceptor; S and the probe-only code out of the shipped build |
+| Q2 | R's values as built |
+| Q3 | the arena floor 28 -> **14 B**, a gate change recorded in AK (the per-slot rows keep a swarm visually separate); 14 B is the new floor, any further arena use in this task a STOP |
+| Q4 | fix now, its own commit, RED on `main` / GREEN after; the window record (1,384 of 1,387) is a STOP limit - say where the 4 B go |
+| Q5 | `boss-edge-left-1` 7,100 -> 7,400 frames, the clause unchanged; FAIL on T (N = 2), PASS on the final build |
+| Q6 | plates b-g -4 HP, guns 14 -> 12; the temporary 126 s acceptance (AI) ends. **HARD is ~50 s longer than MEDIUM** (154.4 vs 104.4 s) - for review in M8 |
+| Q7 | DMA-on 31,493 accepted (293 over the 31,200 target, under the 32,568 gate) |
+
 ## 10. How to play each (Atari800, the 64 KB machine)
 
 ```
@@ -320,3 +334,85 @@ To rebuild: `node scripts/build.mjs --interceptor-variant=s|r [--level=1:sector=
   longer dives onto you at the bottom.
 * Park at the left edge and fire: S leaves you alone, R still hits you.
 * S: does a half-speed chase still feel like a ram?
+
+---
+
+## 11. Phase B (as built so far)
+
+### 11.1 Commits
+
+| Commit | What | Window record (packed of 1,387, 11 sectors) |
+| --- | --- | ---: |
+| `3844efc` | Q4: `light_shot` calls the old target path and restores X (+4 B, LIGHT_KERNEL 771 -> 775) | 1,373 -> **1,373** (the bytes are in the Light kernel's own record, 798 -> 802 of 875) |
+| `bdf1d4a` | the tests first (RED on `main`) | - |
+| `ef74ab0` | R in `src/` for every Interceptor; `scripts/interceptor-variants.mjs` removed | 1,373 -> **1,384** |
+| `748e4e3` | Q6: region 1's plates b-g -4, guns 12 (regions 2-4 copy it) | 1,384 (no resident byte) |
+| `32567aa` | Q5: the guard's replay 7,400 frames | - |
+| `ccf99fb` | decision AK; game-design, how-to-play (EN, PL), level-authoring | - |
+
+### 11.2 Bytes (default build, **M**)
+
+Window: HYBRID_C_WINDOW 1,388 -> 1,429 (the tick, +41), HYBRID_C_WINDOW_FLOW
+206 -> 148 (37 B to DIRECTOR_C_LOW, 21 B to the arena); the Director half
+1,703 -> 1,686, the Light kernel $B4A7 -> $B496 and 916 -> 920 B, the free
+tail 965 -> **978**. Records: window 1,384 / 1,387; low + GLUE 362 / 363 (1 B
+left); arena 740 / 747 (818 B, 14 free); Light kernel 802 / 875. DIRECTOR_RAM,
+the C extension, slots A/C/D/E, the install run, the initial block (13,623 B /
+107 sectors) and the 213 transport sectors unchanged. No new RAM.
+
+### 11.3 Tests
+
+RED on `main` `ef1924d` (re-run on a detached `main` build at the end of
+Phase B), GREEN here: `tests/interceptor-standoff.test.mjs` (4: never closes
+inside the standoff and backs off; fires only in the column, 1 / 2 / 3 a
+visit; climbs out after 100 frames, every life under 128 - worst 118 on the
+test's five paths; the swarm 2 rows a slot) and
+`tests/light-shot-slot-restore.test.mjs` (2). A guard, GREEN on both: the
+escort's caps with the Interceptor's own tick (`tests/boss-escort-flow.test.mjs`).
+Re-pointed with reasons in the commits: `light-interceptor` (6),
+`hybrid-c-arena`, the window pins, `boss-r1-tuning`; the floor
+`heavy-breakup:494` (Q3).
+
+### 11.4 The guard (Q5), focused on the `level-1-s0` route
+
+| Build | Window / parked | Escorts (first) | Hits | Clause |
+| --- | --- | ---: | ---: | --- |
+| final (`build/level-1-s0`) | 4,000 / 3,950 (engaged f3,206) | **18** (f4,212) | **3** | **PASS** |
+| T, N = 2 (`build/escort-variant-n2-level-1-s0`) | 4,000 / 3,950 | **0** | 0 | **FAIL**: "no escort reached the left edge in 4000 frames of the fight" |
+
+The full trace gives the same PASS row.
+
+### 11.5 Play and gates on the final build (**M**)
+
+* **Fight, the director-complete replays (the evidence run):** 1,852 / 2,525 /
+  3,447 frames = **76.9 / 104.4 / 154.4 s** by the ratio (before: 101.1 /
+  125.9 / 142.8). Escort live 627 / 855 / 1,428 fight frames, never two.
+* **Interceptor hits** (`--hit-trace` on the route): 0 Interceptors met the
+  fighter in any replay. Level 1 before the boss, laser hits: boss-aim 0 / 0 /
+  0, hunting bots 4 / 4 / 4 / 3 (contact 0 everywhere; on `main` 1+1+1+0
+  contact, 3+3+3+3 laser). Boss sector (aim E / M / H): 0 / 2 / 3 laser, 0
+  contact, deaths 0 / 0 / 1.
+* **Gates (the full trace, 58 replays, 0 miss events):** worst fence margin
+  **1,301** (`2-sweep-fire6` f311; `main` 1,423, Phase A's R 1,431 - the Q4
+  call costs +12 native cycles per player shot, up to 5, on that row); DMA-on
+  **31,493** (`memory-integrity-atr-2-hunt-fire7` f2,379, as Q7 accepted);
+  boss entry 245 host frames on all 16 entries; director-complete boss frames
+  worst margin 8,427 (`-2` f3,643), DMA-on 29,845.
+
+### 11.6 STOP: a NEW clause failure
+
+`npm run failures:reconcile -- --trace docs/runtime-wall-trace.json`: **NEW**
+`lower-playfield-laser-contact-atr-hard: did not capture 16 consecutive
+contact rasters`. **M** (its CSV): the bot reaches the boss at f2,827 with 3 of
+10 hull units - a **debris piece** lands on it on the boss-entry frame
+(entity y 216 -> 224 over the fighter at y 225, 10 -> 3; a debris contact in
+level 1 at f1,305 too). The policy seeks a beam only with a whole hull, so it
+dodges every warning (f3,499 ... f5,074); lives are held, so the hull is whole
+again only after the death at f5,645, and no laser warns after f5,074 (the
+armour falls through f5,038; the emitter most likely destroyed by the bot's
+fire - not verified per module). The level's timing moved with R; on `main`
+the bot met the beam whole. Class (a), a stale scenario - not a defect a
+player sees (debris contact damage is by design) - but under the owner's rule
+NEW is a STOP. The evidence was not committed (the run is preserved under
+`build/interceptor-standoff-stop/`); `dist/` and `docs/runtime-wall-trace.json`
+stay at `main`'s.

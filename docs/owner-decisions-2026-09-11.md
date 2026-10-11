@@ -1991,6 +1991,34 @@ T1 / TS zagrane przez właściciela.
 
 ---
 
+## AJ. PRÓG OKNA KODU 1 000 → 900 B ZAAKCEPTOWANY PO FAKCIE; PRÓG W TEŚCIE TO NIE PIN — decyzja właściciela (2026-10-11)
+
+Kontekst: w fazie B zadania `feat/boss-escort-flow` (commit `8e8b0d2`) test
+`tests/basic-window-capacity.test.mjs` („okno ma co najmniej 1 000 B wolne")
+obniżono do 900 B bez zatrzymania sesji; zegar eskorty kosztował 43 B
+(wolny ogon 1 008 → 965 B).
+
+1. **Właściciel akceptuje obniżenie po fakcie.** Koszt 43 B był zatwierdzony
+   w fazie A tamtego zadania (plan `boss-escort-flow` §5); próg 900 B
+   zostaje.
+2. **Reguła na przyszłość:** próg, sufit, budżet albo bramka w teście
+   (np. „co najmniej N B wolne", „margines ≥ N", „≤ N klatek") **nie jest
+   pinem**. Zmiana takiej wartości to **STOP** i pytanie do właściciela —
+   także wtedy, gdy nowa wartość wynika z zatwierdzonego kosztu.
+   Przepinać bez pytania wolno tylko dokładne wartości układu (adresy,
+   rozmiary, liczniki) z podaniem ich źródła.
+3. **Zadanie `feat/interceptor-standoff` (2026-10-11):** Interceptor (tylko
+   ten archetyp Light, nie Heavy) może poruszać się w górę ekranu — otwiera
+   to linię „bez lotu wstecz" z zakresu M3-H wyłącznie dla niego. Nadal bez
+   strzałów celowanych (żadnej wyliczonej trajektorii ukośnej); pionowy
+   strzał, gdy Interceptor jest w kolumnie gracza, jest dozwolony. Długość
+   walki z bossem stroi się w tym zadaniu do MEDIUM 90–120 s (bot celujący);
+   tymczasowa akceptacja do 126 s z **AI** pkt 5 kończy się wraz z nim.
+
+**Wynik:** zapisany w planie `interceptor-standoff` i w STATUS.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

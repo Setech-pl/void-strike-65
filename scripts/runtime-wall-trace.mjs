@@ -587,14 +587,18 @@ const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
  * held. Clause (bossEdgeGuardClause): in the first 80 s of the fight at least
  * one Interceptor escort and at least one hit on the player. MEASURED in Phase
  * A: the entry at frame 2,900, the engagement at 2,950; the budget is the
- * engagement plus 4,000 frames plus 150 of slack. */
+ * engagement plus 4,000 frames plus 150 of slack.
+ * feat/interceptor-standoff (owner answer Q5, 2026-10-11): 7,100 -> 7,400
+ * frames, the clause unchanged. Level 1 runs longer once its Interceptors no
+ * longer die on the fighter, and at 7,100 the replay ended 3,894 frames into
+ * the fight, before the clause's 4,000-frame window closed (class (a)). */
 const BOSS_EDGE_GUARD_FRAMES = 4_000;
 const bossEdgeGuardSessions = [{
   id: "boss-edge-left-1",
   difficulty: 1,
   policy: "park-48",
   fireDelay: 2,
-  frames: 7_100,
+  frames: 7_400,
   /* Its own kind: the baseline-9040 set is a fixed 9,040-frame aggregate. */
   kind: "boss-edge-guard",
   holdPlayerLives: 3,

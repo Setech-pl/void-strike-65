@@ -125,7 +125,6 @@ import {
   BOSS_THEME_SECTORS,
   bossRegionDirectory,
   compileBossRegion,
-  bossFlashGlyph,
   bossShotGlyphsFrom,
   bossHostileShotGlyphsFrom,
   bossLaserFixtureDraft,
@@ -355,16 +354,21 @@ if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirecto
     "draft (node scripts/boss-r1-variants.mjs writes it)");
 }
 // fix/boss-polish (owner request 2026-10-12, docs/plans/boss-polish.md): the
-// three fixes as one review variant - a damaging hit on a boss module that
-// leaves it alive flashes the module (the setting names the flash glyph's
-// colour, COLPF0 steel or COLPF2 amber, and its frames), spent HULL quarters
-// vanish in the HUD, and the boss loading screen's title (owner decision AL 1).
-// Composes with --level=N[:sector=M] and --boss-region=N. Review variant:
+// three fixes as one review variant - the feedback of a damaging hit a boss
+// module lives through (the setting), spent HULL quarters vanish in the HUD,
+// and the boss loading screen's title (owner decision AL 1). Settings (owner
+// answers of 2026-10-12, F3 rejected): b3 / b6 the whole module's bit 7
+// toggled for 3 / 6 frames (F1b); c3 the struck cell's for 3 frames (F1c);
+// n0 no picture, the tick only. Composes with --level=N[:sector=M] and
+// --boss-region=N. Review variant:
 // build/boss-polish-<id>[-boss-region-N][-level-N-sM]/, never dist/.
 const bossPolishArgument = process.argv.find((argument) => argument.startsWith("--boss-polish="));
 const bossPolishSlug = bossPolishArgument?.slice("--boss-polish=".length);
 const bossPolishSettings = new Map([
-  ["s2", { pixel: 1, frames: 2 }], ["s4", { pixel: 1, frames: 4 }], ["a3", { pixel: 3, frames: 3 }],
+  ["b3", { define: "BOSS_FLASH_FRAMES=3", moduleFlash: true }],
+  ["b6", { define: "BOSS_FLASH_FRAMES=6", moduleFlash: true }],
+  ["c3", { define: "BOSS_HIT_TOGGLE_FRAMES=3", moduleFlash: false }],
+  ["n0", { define: "BOSS_HIT_NO_FEEDBACK=1", moduleFlash: false }],
 ]);
 if (bossPolishSlug !== undefined && !bossPolishSettings.has(bossPolishSlug)) {
   throw new Error(`Unknown boss polish ${bossPolishSlug}; the settings are ${[...bossPolishSettings.keys()].join(", ")}`);
@@ -1886,7 +1890,7 @@ async function build() {
     ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
   const compileRegion = (draft) => compileBossRegion(draft,
     { themeImage: bossThemeImage,
-      ...(bossPolish === null ? {} : { flashGlyph: bossFlashGlyph(bossPolish.pixel), title: true }),
+      ...(bossPolish === null ? {} : { moduleFlash: bossPolish.moduleFlash, title: true }),
       shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter),
       hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]) });
   const regionOne = compileRegion(regionOneSource);
@@ -3025,7 +3029,7 @@ async function build() {
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
-        ...(bossPolish === null ? [] : ["-D", `BOSS_FLASH_FRAMES=${bossPolish.frames}`]),
+        ...(bossPolish === null ? [] : ["-D", bossPolish.define]),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );

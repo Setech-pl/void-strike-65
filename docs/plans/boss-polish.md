@@ -2,8 +2,12 @@
 
 **Branch:** `fix/boss-polish` from `main` `26ad91d` (ATR `3b05ca34…`, boot
 `731e5703…`, the `feat/interceptor-standoff` merge, decision AK).
-**Status:** Phase A done: audit, candidates, review builds and measurements.
-Waiting for the owner's choice (§7).
+**Status:** Phase A, round 2 (§9). The owner played round 1 and rejected F3
+(2026-10-12): the solid fill reads as a white rectangle, not as the module
+flashing. Round 2 builds and measures the bit-7 candidates F1b and F1c and a
+no-feedback build. Waiting for the owner's play. If the owner rejects all
+three, the flash is dropped and damaging hits keep today's spark. §0-§8 are
+the round-1 record; their F3 figures no longer describe the code.
 
 **The owner's requests (2026-10-12, after playing the boss):**
 1. A hit on a boss module that does not destroy it shows a small explosion,
@@ -281,3 +285,135 @@ the boss-entry sector and frame pins (64 → 65, 245 → 249); slot E's size and
 sectors; the charset bytes; the Light kernel record; the WARNING records' rows;
 and the showcase and media hashes. Then the evidence regeneration, two full
 `npm test` runs with reconciliation, and the documents.
+
+---
+
+## 9. Round 2 — the owner's answers of 2026-10-12 and the bit-7 candidates
+
+**The owner's answers:**
+1. F3 rejected; build F1b (toggle bit 7 on the hit module's non-blank cells
+   for N frames, then toggle it back; no colour register written, no buffer)
+   at 3 and 6 frames, F1c (the struck cell only) at 3 frames, and a build with
+   no picture on a damaging hit; then STOP for the owner's play.
+2. **Decision AM:** the boss entry's limit is 280 host frames in every task
+   (`e8949e7`; journal §AM; the S5 "65 sectors" rule replaced).
+3. Hits that do no damage keep the deflection glyph.
+4. Title layout as built. Phase B measures the WARNING → name/INCOMING delay
+   per region route.
+5. HULL as built.
+
+### 9.1 As built (`--boss-polish=b3|b6|c3|n0`; F3's code is gone)
+
+* **F1b** (`b3`, `b6`, src/hybrid/boss.s `BOSS_FLASH_FRAMES`): the round-1
+  state machine (the queue first, then a due OFF, then an asked ON: one
+  module draw a frame), with one `boss_draw_module` mode, `BOSS_MODE_FLASH`,
+  that toggles bit 7 of every non-blank cell. ON and OFF are the same toggle,
+  so a cell that already had bit 7 comes back exactly
+  (`tests/boss-hit-flash.test.mjs`, the gun-1 round trip). The OFF is
+  unconditional, so **every** other draw of the flashing module ends the
+  flash first: the queue (`boss_flash_guard_q`) and, new, the defeat chain's
+  blast (`boss_flash_guard_m`, slot A +3 B). The ring's rebase carries a
+  spark, a muzzle flash or a heat glyph across both toggles. The converter's
+  fire-column check stays: no shot can be in a toggled cell.
+* **F1c** (`c3`, `BOSS_HIT_TOGGLE_FRAMES`): the struck cell's own code with
+  bit 7 toggled, shown through the cell-flash ring for 3 frames (the spark's
+  mechanism). A second hit on the same cell shows the same toggle. The ring
+  restores the saved code. Limitation: a stage change inside those 3 frames
+  shows the toggled old-stage code in that one cell until the ring expires.
+* **n0** (`BOSS_HIT_NO_FEEDBACK`): the tick only.
+* Every build keeps the kill's spark, the deflection, the HULL change and the
+  title.
+
+### 9.2 What each one changes on screen (region 1; `build/play/boss-toggle-preview.png`)
+
+Rows: the band as the fight starts; F1b on plate-d, gun-2 and gun-1; F1c on
+the same three. Pixels changed, of the module's lit pixels (M, the converter's
+charset):
+
+| module | lit pixels | F1b | F1c |
+|---|---:|---:|---:|
+| plate-d (5 × 4) | 574 | 20 (its amber marks turn dark red) | **0** (its struck cell has no colour-3 pixel) |
+| gun-2, open (3 × 2) | 120 | 32 (amber → dark red) | 14 |
+| gun-1, closed (3 × 2) | 90 | 42 (dark red → amber) | 4 |
+
+A plate is steel, grey and a few amber marks, so **on a plate F1b is faint and
+F1c shows nothing**. On a gun both read clearly. This follows from the band's
+palette, not from the code: bit 7 changes only colour-3 pixels.
+
+### 9.3 Measurements (round 2)
+
+`main` from §5. Boss route = `build/boss-polish-X-level-1-s6`, focused run
+`s41-diag-1`, 4,000 boss frames (M). Stress = the 6502 harness (M).
+
+| | `main` | F1b `b3` | F1b `b6` | F1c `c3` | none `n0` |
+|---|---:|---:|---:|---:|---:|
+| slot A (of 2,048) | 2,016 | 2,047 | 2,047 | 2,045 | 2,026 |
+| slot E code | 254 B, 2 sectors | 358 B, **3** | 358 B, **3** | 254 B, 2 | 254 B, 2 |
+| slot E RAM (of 576) | 266 | 373 | 373 | 266 | 266 |
+| install | 352 | 362 | 362 | 352 | 352 |
+| boss entry: sectors / host frames | 64 / 245 | 65 / **249** | 65 / 249 | 64 / 245 | 64 / 245 |
+| boss frames worst margin (frame) | 8,789 (f1,246) | 9,379 (f1,246) | 8,900 (f1,030) | 8,763 (f1,246) | 9,533 (f1,246) |
+| boss frames DMA-on max | 29,670 | 29,622 | 29,588 | 29,610 | 29,610 |
+| PAL misses / clauses | 0 / pass | 0 / pass | 0 / pass | 0 / pass | 0 / pass |
+| stress region 1, reachable (limit 8,500) | 6,987 | 7,006 | 7,006 (same code) | 7,021 | 7,004 |
+| stress fixture warn / beam | 7,987 / 7,019 | 8,006 / 7,037 | same | 8,009 / 7,040 | 8,004 / 7,036 |
+| two stage changes, one module flashing (UPDATE) | 4,789 | 4,297 | same | 4,831 | 4,212 |
+| gameplay identity (A/B, every byte, every frame) | — | PASS | PASS | PASS | PASS (no difference at all) |
+| Light kernel record | 866 | 865 | 865 | 865 | 865 |
+
+The worst fence margin (1,287) and DMA-on (31,443) outside the boss sector
+are as in §5 (ANALOGY; Phase B measures them).
+
+### 9.4 Room left after the choice, and the M6 torpedo (~200 B in slot E)
+
+Slot E's run tops at 4 sectors (512 B; the build's reservation check refuses
+5, `docs/plans/s5-boss-regions.md` §2.1), and slot E's RAM is 576 B.
+
+| choice | slot A free | slot E code after | + torpedo 200 B | entry with the torpedo (EST, 3.5-4.0 frames a sector) |
+|---|---:|---:|---|---|
+| F1b | 1 B | 358 B (3 sectors) | **558 B: 5 sectors, refused**; RAM 573 of 576 | — the torpedo would need ≤ 154 B in slot E, or another home |
+| F1c | 3 B | 254 B (2) | 454 B, 4 sectors, RAM ≈ 466 | 66 sectors ≈ 252-253 of 280 |
+| none | 22 B | 254 B (2) | 454 B, 4 sectors | 66 sectors ≈ 252-253 of 280 |
+
+### 9.5 Sound on a damaging hit (asked)
+
+**Yes, today.** Every damaging hit plays the boss tick
+(`boss_tick_sound`, slot A): **channel 3**, AUDF `$18`, AUDC `$A6` (pure tone,
+volume 6), for **2 frames** (`BOSS_TICK_FRAMES`), then the engine bed (`$68` /
+`$22`) comes back. An absorbed hit uses `$40` / `$A4` and a hull hit `$28` /
+`$C5` (a poly-4 clank). A kill adds the hit sound on channel 2, and the
+destruction adds the explosion on channel 4. The boss theme plays on channels
+1-2. All of this is unchanged in every round-2 build, n0 included.
+
+A stronger hit sound:
+* **0 B** on channel 3: a longer tick (`BOSS_TICK_FRAMES` 2 → 3-4) and/or
+  louder (`$A6` → `$A8`-`$AA`), table bytes only. The conflict: channel 3 is
+  the engine bed and the laser warning's rising tone, so a longer tick masks
+  them for its frames (as the tick does today).
+* **≈ 10-15 B** for a separate damage sound on channel 4 (EST). Channel 4 is
+  the destruction's explosion, so it conflicts only on kill frames. Its timer
+  would also need a reset at the install.
+* Atari800 plays channels 3-4 like a 65XE now that SKCTL is fixed
+  (`fix/hardware-audio`), so a hardware smoke hears the same.
+
+### 9.6 Builds (`build/play/`)
+
+| ATR | What | SHA-256 |
+|---|---|---|
+| `boss-polish-b3-boss-route.atr` | F1b, 3 frames | `5e752dfb3209…` |
+| `boss-polish-b6-boss-route.atr` | F1b, 6 frames | `1dacae3c7600…` |
+| `boss-polish-c3-boss-route.atr` | F1c, 3 frames | `6bf620832d39…` |
+| `boss-polish-n0-boss-route.atr` | no picture, the tick only | `4d03314cedae…` |
+| `boss-polish-b3-full.atr` | the full game with F1b 3 frames, HULL and the title | `af38926b26b9…` |
+| `main-boss-route.atr` | `main`'s boss route (the spark) | `925f69cb1d15…` |
+
+### 9.7 Owner questions (round 2)
+
+1. Which feedback? `b3`, `b6`, `c3`, `n0`, or none of them (the flash is
+   dropped; damaging hits keep today's spark)? *Recommendation: `b3` if the
+   gun flash reads well to you, since it is the only candidate that shows on
+   every gun. Know that plates barely change, and that it takes slot E's
+   third sector and leaves the torpedo no room in slot E (§9.4). If plates
+   matter more, `n0` (or a louder tick, §9.5) is the cheapest.*
+2. A stronger damage sound: channel 3, longer/louder (0 B), or channel 4
+   (≈ 10-15 B)? *Recommendation: channel 3, 3 frames, `$A8` (0 B).*

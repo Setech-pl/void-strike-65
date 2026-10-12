@@ -1,24 +1,28 @@
 // fix/boss-polish (owner request 2026-10-12, docs/plans/boss-polish.md): a
-// damaging hit that a boss module lives through flashes the module - its
-// non-blank cells show the region's flash glyph (code 127) for the flash's
-// frames, then get their codes back - instead of the spark, which read as a
-// small explosion. A kill keeps the spark (the destruction's look is
-// unchanged).
+// damaging hit that a boss module lives through no longer shows the spark,
+// which read as a small explosion. The owner's answers of 2026-10-12 (the
+// solid fill F3 rejected) leave three candidates, one per review build:
+//   F1b (boss_flash_frame): bit 7 of the module's non-blank cells toggled for
+//       the flash's frames - pixel value 3 shows COLPF3's colour instead of
+//       COLPF2's - then toggled back; no colour register is written;
+//   F1c (boss_hit_toggle): the same on the struck cell only, through the ring;
+//   none: the tick only.
+// A kill keeps the spark (the destruction's look is unchanged).
 //
-// The flash is presentation only. The proof (A/B): the same entered machine
-// runs the same fight twice, once as built and once with the flash's frame
-// step patched to the plain queue draw (no flash at all); every gameplay byte
-// - hit points, stages, the column map and stop lines, exposure, score, hits,
-// the controller's phase - is equal after every frame, and the band is equal
-// once both have settled: through stage changes and kills of a flashing
-// module, the band's drift, the defeat's chain and the player's death.
+// The feedback is presentation only. The proof (A/B): the same entered
+// machine runs the same fight twice, once as built and once with the feedback
+// patched out; every gameplay byte - hit points, stages, the column map and
+// stop lines, exposure, score, hits, the controller's phase - is equal after
+// every frame, and the band is equal once both have settled: through stage
+// changes and kills of a flashing module, the band's drift, the defeat's
+// chain and the player's death.
 //
 // Runs on the 6502 harness over the default build's images (or a review
 // variant's: VS65_HARNESS_BUILD, tests/boss-harness.mjs).
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BOSS_FLASH_CODE, bossBandRowAddress, bossRegionDirectory, compileBossRegion, loadBossRegionDraft }
+import { bossBandRowAddress, bossRegionDirectory, compileBossRegion, loadBossRegionDraft }
   from "../scripts/boss-assets.mjs";
 import {
   call, label, labelsOf, mainAddress, placeBand, root, runBossEntry, shootAt, visibleCells,
@@ -28,7 +32,8 @@ const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 
 const byName = new Map(region1.modules.map((module, index) => [module.name, index]));
 const lbl = (name) => label("boss", name);
 const main = (name) => mainAddress(name);
-const flashBuilt = labelsOf.boss.has("boss_flash_frame");
+const MODULE_FLASH = labelsOf.boss.has("boss_flash_frame");
+const CELL_TOGGLE = labelsOf.boss.has("boss_hit_toggle");
 const STATS_HITS = 0xae;
 const cell = (memory, column, row) => memory[bossBandRowAddress(row) + column];
 const band = (memory) => Array.from({ length: 8 }, (_, row) =>
@@ -37,6 +42,7 @@ const cellsOf = (memory, module) => [...Array(module.width * module.height).keys
   cell(memory, module.x + (i % module.width), module.row + Math.floor(i / module.width)));
 const hp = (memory, index) => memory[lbl("_boss_hp") + index];
 const columnMap = (memory) => [...memory.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)];
+const toggled = (code) => ((code & 0x7f) === 0 ? code : code ^ 0x80);
 
 let entry = null;
 function fortress(p = 32) {
@@ -50,12 +56,6 @@ function shoot(memory, column) {
   shootAt(memory, column);
   update(memory);
 }
-// The frames a flash shows: as built, read off the band (the first test pins it).
-function flashFrames(memory, module) {
-  let frames = 0;
-  while (cellsOf(memory, module).some((code) => code === BOSS_FLASH_CODE)) { update(memory); frames += 1; }
-  return frames;
-}
 // A visible column whose front module is `index`.
 function frontColumn(memory, index) {
   const { left, right } = visibleCells(memory[lbl("boss_shown_pos")]);
@@ -63,56 +63,97 @@ function frontColumn(memory, index) {
   for (let c = left; c <= right; c += 1) if (map[c] === index) return c;
   return null;
 }
+// What a hit the module lives through shows, frame by frame, until the module
+// is as it was: the hit's frame first.
+function feedback(memory, name) {
+  const index = byName.get(name);
+  const module = region1.modules[index];
+  const before = cellsOf(memory, module);
+  const column = frontColumn(memory, index);
+  assert.notEqual(column, null, `${name} is not the front of a visible column`);
+  const life = hp(memory, index);
+  shoot(memory, column);
+  assert.equal(hp(memory, index), life - 1, `the hit damaged ${name}`);
+  const frames = [cellsOf(memory, module)];
+  for (let frame = 0; frame < 10; frame += 1) { update(memory); frames.push(cellsOf(memory, module)); }
+  const struck = (module.height - 1) * module.width + (column - module.x);
+  return { before, frames, struck };
+}
+const shown = (frames, before) => frames.findIndex((cells) => cells.join() === before.join());
 
-test("a hit the module lives through flashes the whole module, no spark; the flash then gives every cell back", () => {
-  assert.ok(flashBuilt, "the build has no hit flash");
+for (const name of ["plate-d", "gun-2"]) {
+  test(`a hit ${name} lives through: no spark, the build's feedback, then every cell exactly as before`, () => {
+    const memory = fortress(32);
+    const { before, frames, struck } = feedback(memory, name);
+    assert.ok(!frames.flat().includes(region1.spark), "a damaging hit the module lives through showed the spark");
+    if (MODULE_FLASH) {
+      assert.deepEqual(frames[0], before.map(toggled), "the module's non-blank cells are not all toggled");
+    } else if (CELL_TOGGLE) {
+      assert.deepEqual(frames[0], before.map((code, i) => (i === struck ? code ^ 0x80 : code)),
+        "only the struck cell is toggled");
+    } else {
+      assert.deepEqual(frames[0], before, "a hit with no feedback changed the module");
+    }
+    const back = shown(frames, before);
+    assert.ok(back >= 0, "the module never came back exactly as before (a wrong glyph left)");
+    if (MODULE_FLASH || CELL_TOGGLE) assert.ok(back >= 2 && back <= 7, `the feedback shows ${back} frames`);
+    assert.ok(frames.slice(back).every((cells) => cells.join() === before.join()), "the module changed again");
+  });
+}
+
+test("F1b: a module whose cells already have bit 7 set comes back exactly after the flash's two toggles", () => {
+  if (!MODULE_FLASH) return;
+  const memory = fortress(32);
+  const gun = region1.modules.findIndex((m) => m.kind === "pulse" &&
+    cellsOf(memory, m).some((code) => code & 0x80) && cellsOf(memory, m).some((code) => code && !(code & 0x80)));
+  assert.ok(gun >= 0, "no module has cells both with and without bit 7");
+  const module = region1.modules[gun];
+  const before = cellsOf(memory, module);
+  memory[lbl("boss_flash_m")] = gun;
+  call(memory, lbl("boss_flash_toggle"));
+  assert.deepEqual(cellsOf(memory, module), before.map(toggled), `${module.name} not toggled`);
+  call(memory, lbl("boss_flash_toggle"));
+  assert.deepEqual(cellsOf(memory, module), before, `${module.name} did not come back exactly`);
+});
+
+test("a kill keeps the spark and toggles nothing", () => {
   const memory = fortress(32);
   const plate = byName.get("plate-d");
   const module = region1.modules[plate];
   const before = cellsOf(memory, module);
-  const column = frontColumn(memory, plate);
-  assert.notEqual(column, null, "plate-d is not the front of a visible column");
-  const life = hp(memory, plate);
-  shoot(memory, column);
-  assert.equal(hp(memory, plate), life - 1, "the hit damaged the plate");
-  assert.ok(!band(memory).flat().includes(region1.spark), "a damaging hit the plate lives through showed the spark");
-  assert.deepEqual(cellsOf(memory, module), before.map((code) => (code === 0 ? 0 : BOSS_FLASH_CODE)),
-    "the plate's non-blank cells do not all show the flash glyph");
-  const frames = 1 + flashFrames(memory, module);
-  assert.ok(frames >= 2 && frames <= 4, `the flash shows ${frames} frames`);
-  assert.deepEqual(cellsOf(memory, module), before, "the flash left a wrong glyph in the plate");
-});
-
-test("a kill keeps the spark and shows no flash", () => {
-  const memory = fortress(32);
-  const plate = byName.get("plate-d");
-  const module = region1.modules[plate];
   memory[lbl("_boss_hp") + plate] = 1;
   const column = frontColumn(memory, plate);
   shoot(memory, column);
   assert.equal(hp(memory, plate), 0);
   assert.equal(cell(memory, column, module.row + module.height - 1), region1.spark, "the kill's spark");
-  assert.ok(!cellsOf(memory, module).includes(BOSS_FLASH_CODE), "the kill flashed the plate");
+  const cells = cellsOf(memory, module);
+  cells.forEach((code, i) => {
+    if (code !== region1.spark) assert.equal(code, before[i], "the kill toggled a cell of the plate");
+  });
 });
 
-test("a stage change flashes the new stage's look and gives it back", () => {
+test("a stage change ends showing the new stage's look", () => {
   const memory = fortress(32);
   const plate = byName.get("plate-d");
   const module = region1.modules[plate];
   memory[lbl("_boss_hp") + plate] = memory[lbl("_boss_crack") + plate] + 1;
   const intact = cellsOf(memory, module);
   shoot(memory, frontColumn(memory, plate));
-  for (let frame = 0; frame < 8; frame += 1) update(memory);
+  for (let frame = 0; frame < 10; frame += 1) update(memory);
   const cracked = intact.map((code) => (code === 0 ? 0 : code + region1.stageStep));
-  assert.deepEqual(cellsOf(memory, module), cracked, "the plate is not shown cracked after the flash");
+  assert.deepEqual(cellsOf(memory, module), cracked, "the plate is not shown cracked after the feedback");
 });
 
-// The A/B proof: the build as it is, and the same machine with its flash step
-// patched to the plain queue draw.
-function withoutFlash(memory) {
-  const at = lbl("boss_flash_frame");
-  const to = lbl("boss_queue_draw");
-  memory.set([0x4c, to & 0xff, to >> 8], at);
+// The A/B proof: the build as it is, and the same machine with its feedback
+// patched out (F1b: the flash's frame step is the plain queue draw; F1c: the
+// toggle returns at once; no feedback: nothing to patch).
+function withoutFeedback(memory) {
+  if (MODULE_FLASH) {
+    const to = lbl("boss_queue_draw");
+    memory.set([0x4c, to & 0xff, to >> 8], lbl("boss_flash_frame"));
+  } else if (CELL_TOGGLE) {
+    memory[lbl("boss_hit_toggle")] = 0x60;
+  }
   return memory;
 }
 const GAMEPLAY = ["_boss_hp", "_boss_stage", "_boss_exposed_lo", "_boss_exposed_hi", "_boss_armed_lo",
@@ -131,10 +172,10 @@ function gameplay(memory) {
   return bytes;
 }
 
-test("the flash changes no gameplay and leaves no glyph: hits, stage changes and kills of a flashing module, " +
-  "the drift, the player's death and the defeat, against the same fight with no flash", () => {
+test("the feedback changes no gameplay and leaves no glyph: hits, stage changes and kills of a flashing module, " +
+  "the drift, the player's death and the defeat, against the same fight with no feedback", () => {
   const a = fortress(32);
-  const b = withoutFlash(fortress(32));
+  const b = withoutFeedback(fortress(32));
   const both = (step) => { step(a); step(b); };
   // Every frame the gameplay bytes are equal, and a band cell may differ only
   // inside a module's cells (the flash, or a queued look a frame later: the
@@ -143,9 +184,9 @@ test("the flash changes no gameplay and leaves no glyph: hits, stage changes and
     (m.row + Math.floor(i / m.width)) * 64 + m.x + (i % m.width))));
   let flashed = 0;
   const compare = (what) => {
-    assert.deepEqual(gameplay(a), gameplay(b), `${what}: the flash changed a gameplay byte`);
+    assert.deepEqual(gameplay(a), gameplay(b), `${what}: the feedback changed a gameplay byte`);
     const bandA = band(a).flat(), bandB = band(b).flat();
-    if (bandA.includes(BOSS_FLASH_CODE)) flashed += 1;
+    if (bandA.join() !== bandB.join()) flashed += 1;
     bandA.forEach((code, i) => {
       if (code !== bandB[i]) {
         assert.ok(footprint.has(i), `${what}: band cell (${i % 64}, ${i >> 6}) is ${code}, not ${bandB[i]}, ` +
@@ -212,5 +253,9 @@ test("the flash changes no gameplay and leaves no glyph: hits, stage changes and
   assert.notEqual(a[lbl("_boss_phase")], 0, "the boss was not defeated");
   for (let frame = 0; frame < 120; frame += 1) { both(update); compare("the chain"); }
   assert.deepEqual(band(a), band(b), "the chain: the band differs (a glyph left behind)");
-  assert.ok(flashed >= 20, `the fight as built showed the flash on ${flashed} frames only`);
+  if (MODULE_FLASH || CELL_TOGGLE) {
+    assert.ok(flashed >= 20, `the fight as built showed its feedback on ${flashed} frames only`);
+  } else {
+    assert.equal(flashed, 0, "a build with no feedback differs from itself");
+  }
 });

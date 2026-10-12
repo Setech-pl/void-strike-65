@@ -136,6 +136,16 @@ A level holds at most 20 waves in total, across all its sectors.
 | `appearance` | a look's name, or 0-3 | 0 | 0 = the archetype's own art; otherwise a `payload.appearances` look, by name or slot number. On a Light wave its members wear it; on a Heavy wave its **Light escort** does, and the Heavy pair keeps its PMG art, so a Heavy wave without an escort is refused |
 | `loops` | 0-3 | 0 | an **Interceptor**'s top-hold loops (decision AK points 9-10, flags bits 6-7): after each 100-frame standoff it climbs to its top-hold row (y 32, two rows lower per Light slot), holds, dives back and flies the standoff again, this many times, then climbs out upward. 0 is a single pass. Only a wave whose Light is an Interceptor - its archetype, or a Heavy wave's escort - may carry it. Each loop adds 139 frames to the Interceptor's life (100 + 139 × loops + the climb out), and a Light wave holds the cursor until its last Light has gone, so loops lengthen the sector. A boss sector's escort keeps 0: its life must stay under the escort clock's 128-frame floor. Level 1's swarm and elite (a) Interceptors carry 2 |
 
+**No toughness field.** A wave cannot make its enemies tougher: hit points come
+from the archetype record alone (decision AD). Since feat/interceptor-armour
+(decision AN, `OWNER-SMOKE CANDIDATE`) every **Interceptor has 3** - swarm,
+elite companion and boss escort alike - and flashes its red pods for 3 frames
+on each hit it survives; plan a sector's length with three hits per
+Interceptor in mind (level 1's road with the sweep bot: 68.8 / 65.5 / 56.1 s
+on EASY / MEDIUM / HARD before, 75.7 / 75.7 / 65.5 s after). Wave flags bit 5
+stays unused: the Phase A review variants' `armour` field is not part of the
+format.
+
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every wave compiles with `wave_path = $FF`,
 "the archetype's own movement".

@@ -637,8 +637,21 @@ candidate's" — contradicted this section's own heading and was corrected
   a pause of 56/44/32 frames for EASY/MEDIUM/HARD — one, two or three shots per
   visit. Speed, hitbox, damage and lifetime are those of every hostile
   PairShot.
-- **HP and score.** 1 HP; a kill scores 15 points, three times the Wingman's 5.
-  Contact follows the Light contract.
+- **HP and score.** **3 HP** in every wave — the swarm, elite (a)'s
+  companion and the boss escort — from its archetype record, with no wave or
+  difficulty bonus (feat/interceptor-armour, owner answer H3 of 2026-10-12,
+  decision AN; `OWNER-SMOKE CANDIDATE`; 1 HP until then). A kill still scores
+  15 points (`0x15` BCD), three times the Wingman's 5, and dies, releases its
+  slot and leaves its debris exactly as the one-hit kill did. Contact follows
+  the Light contract.
+- **Survived-hit feedback: the pod flash** (owner answer F1, decision AN). A
+  hit it lives through draws **that Interceptor's** two cells with bit 7
+  cleared for **3 frames** (the hit frame and the next two), so its red rotor
+  pods (colour 3, `COLPF3`) show `COLPF2` — the Interceptor stays itself,
+  with no blink, explosion or colour-register write, and every other Light
+  keeps its colours. Kernel cost: the flash shift, 7 cycles per live Light per
+  frame; the resolver's flashing-code test only on a captured cell carrying a
+  Light code.
 
 Weapon classes also own their movement rate (roadmap 4.5b candidate):
 `PULSE` and `LASER` fall 2 lines every frame; `BOMBER` (3) falls 2 lines every

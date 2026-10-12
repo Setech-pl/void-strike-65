@@ -1050,6 +1050,45 @@ new file name:
       Atari800, with no flicker, tearing or slowdown, also with an escort, the
       boss's fire and a laser on screen together.
 
+## 29. The tougher Interceptor: three hits, the pod flash (`feat/interceptor-armour`)
+
+Plan [plans/interceptor-armour.md](plans/interceptor-armour.md); journal §AN.
+In Atari800 (`-xl -pal -nobasic`), on the final ATR (its SHA-256 is in the
+plan's §11 and STATUS) and on its boss route, at EASY, MEDIUM and HARD:
+
+- [ ] **An Interceptor takes three hits.** The first two do not kill it; the
+      third does — in the swarm (sector 3), as elite (a)'s companion (sector
+      4) and as the boss escort.
+- [ ] **A hit it survives flashes its red pods** for about 3 frames (they
+      turn the playfield's other colour), on **that** Interceptor only: the
+      others beside it, the Wingmen and the Heavies keep their colours. No
+      blink, no small explosion, no flash of the screen, and it still looks
+      like an Interceptor.
+- [ ] **The third hit is the kill you know:** the same explosion and debris,
+      the kill sound, **21 points** (unchanged), and the next Interceptor
+      appears as before.
+- [ ] **Nothing else changes:** it still holds above you, fires down your
+      column, loops twice in the swarm and climbs out; the boss escort still
+      appears from the first gun you destroy, every 3-4 s, never two at once,
+      none after the boss falls.
+- [ ] **The boss loading screen** is as in §28: `WARNING`, then the boss's
+      name and `INCOMING`, then the fight (its code now arrives with the
+      region's theme; plan §11).
+- [ ] **A booster's HUD label and energy survive the boss entry** (§S5-1):
+      enter the boss with Spread active, the label and energy are back after
+      the loading screen.
+- [ ] **The pace:** level 1 takes a little longer to clear (the bot's road to
+      the boss 75.7 / 75.7 / 65.5 s on EASY / MEDIUM / HARD, against 68.8 /
+      65.5 / 56.1); the boss fight is unchanged (MEDIUM about 108 s by the
+      bot).
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **The flash on hardware:** visible, on one Interceptor, with three
+      Interceptors and a Bomber on screen, no flicker, tearing or slowdown;
+      the boss entry loads and plays as before.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

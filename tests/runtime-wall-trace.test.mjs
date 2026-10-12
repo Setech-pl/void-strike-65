@@ -301,7 +301,8 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     // RE-POINTED (feat/sector-flow): no boss entry inside the budget any more
     // (the reason is at debris_effects_measured_frames above).
     // RE-POINTED (feat/interceptor-standoff): the boss entry is back (above).
-    .reduce((sum, session) => sum + session.measured_frames, 0), 4_999);
+    // RE-POINTED (feat/interceptor-armour): gone again (above), 5,000.
+    .reduce((sum, session) => sum + session.measured_frames, 0), 5_000);
   assert.equal(report.ten_heaviest_frames_in_9040_replay.length, 10);
   assert.equal(report.five_heaviest_frames.length, 5);
   assert.equal(report.five_heaviest_frames_scope, "all measured legal runtime replays");

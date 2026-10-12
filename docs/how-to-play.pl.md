@@ -110,11 +110,12 @@ z tabelą wyników.
 | Raider | Ciężki | Szybki myśliwiec, strzela seriami | 10 |
 | Bomber | Ciężki | Sylwetka katamaranu; przeczesuje swój pas, zatrzymuje się, celuje, wypuszcza torpedy | 50 |
 | Wingman | Lekki | Lata w formacji | 5 |
-| Interceptor | Lekki | Nurkuje na pozycję strzelecką nad tobą, trzyma się twojej kolumny, strzela laserem prosto w dół, gdy jest nad tobą, cofa się, gdy podlecisz. W niektórych falach wznosi się potem pod górną krawędź ekranu, zawisa tam i nurkuje z powrotem na kolejne przejście (na poziomie 1 dwa razy), zanim odleci w górę | 21 |
+| Interceptor | Lekki | Nurkuje na pozycję strzelecką nad tobą, trzyma się twojej kolumny, strzela laserem prosto w dół, gdy jest nad tobą, cofa się, gdy podlecisz. W niektórych falach wznosi się potem pod górną krawędź ekranu, zawisa tam i nurkuje z powrotem na kolejne przejście (na poziomie 1 dwa razy), zanim odleci w górę. Wytrzymuje dwa trafienia, ginie od trzeciego | 21 |
 | Boss | — | Koniec każdego poziomu | 100 |
 
 Kadłub Bombera ciemnieje w miarę obrywania, więc po kolorze poznasz, ile mu
-zostało.
+zostało. Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a
+on przeżyje, jego czerwone gondole na chwilę błyskają.
 
 Niektóre fale wysyłają Wingmany albo Interceptory z innymi oznaczeniami lub w
 innym kształcie. To wciąż ten sam przeciwnik: lata, strzela i daje punkty

@@ -31,6 +31,27 @@ the fence margin one for one, and it let work before the fence move the DMA-on
 maximum. Neither holds. **The owner's answers to the re-base's questions are
 recorded in §8.2 (2026-10-02).**
 
+**Note of 2026-10-12, feat/interceptor-armour (owner decision AN pt 6; not a
+re-plan).** Two of this plan's homes changed under it before its sessions:
+
+* **P8's path state (8 B at `$8133-$813A`, §2.4 item P8) has no home.**
+  feat/interceptor-standoff took `$8133-$8136` (`light_loops[4]`) and
+  feat/interceptor-armour `$8137-$813A` (`light_flash[4]`, the survived hit's
+  flash), both inside `HYBRID_LIGHT_LOOK_RAM`, now `$812E-$813A`. M3's session
+  1 finds P8 a new home first.
+* **Unowned state RAM left:** `$813B-$813F` (5 B) and `$85E6-$85EE` (9 B),
+  14 B. M3-H's H15 (13 B of state, §3.5 item H15) still fits there; nothing
+  else of this plan does.
+* **Unchanged for this plan:** the `BROADSIDE` pin `hull_sequence_reserve`
+  (103 B free, the 98 B §5 prices are untouched — the owner kept it for M3-H);
+  the window record (1,322 of 1,387 B). **Changed:** the Light kernel record
+  packs 847 of 875 B (7 sectors, 28 B spare; it was 865) after the boss
+  entry's once-per-entry tail moved out to the region theme runs; the
+  `PICKUP_CODE` tail is 9 B (20 after feat/interceptor-standoff; H16's 32 B of
+  RAM there had already lost that home). §5's kernel line (armoured half 96,
+  punch 90, hole tables 24) still needs the kernel record's eighth sector or a
+  kernel lever, as before.
+
 It covers Director plan step 6 ([director-4.6.md](director-4.6.md) §8) and the
 budget lines M3 and M3-H ([budget-1.0.md](budget-1.0.md) §2), plus the two
 requirements the owner added after the budget: two Raider kinds, and a damaged

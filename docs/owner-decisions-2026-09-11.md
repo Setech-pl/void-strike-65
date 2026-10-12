@@ -2215,6 +2215,47 @@ wygrywa, a sesja raportuje różnicę.
 
 ---
 
+## AN. INTERCEPTOR NA TRZY TRAFIENIA, BŁYSK GONDOLI NA PRZEŻYTYM TRAFIENIU — odpowiedzi właściciela na §8 planu `interceptor-armour` (2026-10-12, po zagraniu w buildy fazy A)
+
+1. **Sygnał przeżytego trafienia: F1, błysk gondoli.** Trafiony Interceptor,
+   który przeżył, rysuje swoje dwie komórki z wyzerowanym bitem 7 przez 3
+   klatki: czerwone gondole (COLPF3) pokazują COLPF2. Tylko ten Interceptor;
+   żaden rejestr koloru nie jest zapisywany. Mrugnięcie (F2) odrzucone.
+2. **Wytrzymałość: H3 — 3 trafienia wszędzie** (rój, towarzysz elity, eskorta
+   bossa), z rekordu archetypu (dane, decyzja **AD**). **Bez flagi fali**:
+   bit 5 `wave_flags` zostaje nieużywany, pole `armour` znika z formatu
+   poziomu. Warianty H2/HD/HE odrzucone. Punkty za Interceptora bez zmian.
+3. **`boss-edge-left-1`: 7 400 → 7 800 klatek**, warunek przejścia bez zmian
+   (klasa (a): scenariusz się wydłuża, klauzula nie).
+4. **`lower-playfield-laser-contact-atr-hard`:** tylko bot tej powtórki
+   dostaje unik botów polujących (bolt lasera Interceptora), poszerzony o
+   pociski Bombera — w drodze do bossa. Każda inna powtórka gra bajt w bajt
+   jak dotąd. Gdyby to nie przywróciło kontaktu z całym kadłubem: STOP z
+   opcjami.
+5. **Miejsce na kod: nie w szpilce `hull_sequence_reserve`** (BROADSIDE) —
+   ta należy do M3-H (98 ze 103 B zaplanowane). Najpierw opcja C („zimny
+   dom”): kod uruchamiany raz na wejście bossa nie musi być rezydentny.
+   **Zbudowane:** ogon wejścia bossa po pierwszym odczycie (start motywu,
+   tytuł, odczyt kodu bossa, skok do slotu A) jest segmentem
+   `BOSS_ENTRY_COLD` linku bossa (32 B), kopiowanym do przebiegu motywu
+   każdego regionu pod `$7A48`; rekordy tytułu przesuwają się `$C0 → $D8`
+   (nazwa bossa najwyżej 25 znaków, sprawdzane przy budowie; limit motywu `$C0 → $B8`, motyw zajmuje 177 B). Kopia HUD-u
+   boosterów (biegnie przed jakimkolwiek odczytem, więc nie może być zimna)
+   wchodzi inline do głowy wejścia w `PICKUP_CODE` (ogon 20 → 9 B), bo bez
+   niej rekord jądra Light miałby 13 B zapasu, a cel to ≥ 14. Wynik: rekord
+   jądra Light 865 → **847 z 875 B (28 B zapasu)**, okno 1 322 bez zmian,
+   BROADSIDE bez zmian, blok początkowy 13 623 bez zmian, wejście bossa 65
+   sektorów / 249 klatek (limit 280, decyzja **AM**).
+6. **RAM: `light_flash[4]` pod `$8137–$813A` zaakceptowane.** Zapis M3 na
+   stan ścieżki (P8, `$8133–$813A`) potrzebuje nowego domu (połowę zajęło
+   już `light_loops` z `interceptor-standoff`); wolne zostają `$813B–$813F`
+   (5 B) i `$85E6–$85EE` (9 B) — pokrywają 13 B H15 z M3-H.
+
+**Wynik:** plan `interceptor-armour` §10–§11, plan `m3-waves-heavy`
+(dopisek), memory-map, STATUS. `OWNER-SMOKE CANDIDATE`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

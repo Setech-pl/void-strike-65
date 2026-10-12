@@ -3,9 +3,9 @@
 **Branch:** `feat/interceptor-armour` from `main` `2f7e615` (the `fix/boss-polish`
 merge: this plan's predecessor `docs/plans/boss-polish.md`, decision AM, the
 module hit flash b3). ATR `ddf01a9f…`, boot `186739b2…`.
-**Status:** **Phase A — measured, OWNER DECISION REQUIRED** (2026-10-12). Nothing
-is in the default build: every candidate is a review variant
-(`--interceptor-armour=ID`), and the default build is byte-identical to `main`.
+**Status:** **Phase B built — `OWNER-SMOKE CANDIDATE`** (2026-10-12): F1 + H3
+in the default build, placement C (§10, §11). Phase A's review variants and
+their tooling are removed; §1-§9 are Phase A's record and describe them.
 
 **The owner's finding (2026-10-12, after playing the standoff Interceptor):**
 one shot destroys it. Wanted: it takes several hits. A hit it survives must be
@@ -446,3 +446,117 @@ RAM, in every option: `light_flash[4]` at `$8137-$813A` (`HYBRID_LIGHT_LOOK_RAM`
 feat/interceptor-standoff already took `$8133-$8136`. After this, `$813B-$813F`
 and `$85E6-$85EE` (14 B) still cover H15's 13 B; P8's 8 B need a new home in
 M3's session either way.
+
+## 11. Phase B as built (2026-10-12) — `OWNER-SMOKE CANDIDATE`
+
+Owner answers §10 and placement C (journal §AN). Branch commits after Phase A:
+`08ea108` (the placement STOP), `4990829` (the feature), `ae67e8d` (tests,
+re-pins, the two replays), `d0dc72c` (the cold tail's layout fix and four
+tests), the evidence and the docs (see `git log`).
+
+### 11.1 What the game does
+
+* **Every Interceptor takes 3 hits** — the swarm, elite (a)'s companion, the
+  boss escort — from its archetype record (`src/c/lifecycle.c`, byte 0 of the
+  third record 1 → 3). No wave flag: the level compiler's `armour` field and
+  `wave_flags` bit 5 are gone again.
+* **A hit it lives through flashes its pods** (F1): `enemy_c_light_hit`
+  returns 0, the Light kernel's `light_hit_landed` writes `%01110000` into
+  `light_flash[slot]`; `light_update` shifts it left once a frame (`asl
+  LIGHT_FLASH,x`, no test: 0 stays 0); the render clears bit 7 of the slot's
+  two codes while the pattern's bit 7 is set — the hit frame and the next two
+  (M: tests/interceptor-armour.test.mjs). The erase compares a cell ignoring
+  bit 7 (`eor`/`asl`); the resolver takes `$78-$7D` as Light codes (one
+  masked subtract after the unchanged below-range exit). No colour register.
+* **The kill is unchanged**: 0x15 BCD, the slot released on the kill frame,
+  the debris, the kill count — equal frame for frame to a one-hit-point kill on
+  the same frame (the A/B test).
+
+### 11.2 Placement C, as built
+
+| Code | Home | Why there |
+| --- | --- | --- |
+| the flash (start, shift, render, erase, resolver) | Light kernel, +18 B (`LIGHT_KERNEL` 775 → 793) | hot, per frame |
+| `light_flash[4]` | `$8137-$813A`, `HYBRID_LIGHT_LOOK_RAM` 9 → 13 B | §10 RAM answer |
+| `light_admit`'s clear | `HYBRID_C_EXT`, +6 B (869 → 875; record 746 of 747) | the admission |
+| the boss entry after the region read: theme start, title, the boss code's read, the jump to slot A | **`BOSS_ENTRY_COLD`** (boss link, 32 B at `$7A48`), copied by `scripts/build.mjs` into every region's theme run at `$B8` | once per entry; the region read lands it before it runs (`src/hybrid/light-kernel.s` `boss_enter_read`: `jsr BOSS_READ_RUN` → copy → `jmp BOSS_ENTRY_COLD`); the boss code's read lands in slot A, below it |
+| the HUD booster backup | inlined into `boss_enter_head` (`PICKUP_CODE`), +11 B | it runs before any read, so it cannot be cold; with it in the kernel the record kept 13 B, one short of the owner's 14 |
+
+The title's records move `$C0 → $D8` in each theme run (40 B: a boss name of at
+most 25 characters, checked; the laser fixture's is 22, the four regions' at
+most 16); the theme's limit `$C0 → $B8` (177 B used). Rejected on the way, all
+measured on `--level=1:sector=0` builds: everything in the kernel (889 of 875,
+an eighth boot-loaded sector); the cold tail at `$C0` with the records at `$E0`
+(32 B: the laser fixture's title did not fit — found by the first full
+`npm test`).
+
+### 11.3 Bytes (M, manifests)
+
+| | `main` | Phase B |
+| --- | ---: | ---: |
+| Light kernel record (7 sectors, cap 875) | 865 | **847** (28 spare) |
+| kernel link (window's kernel half) | 982 | 957 |
+| window record (11 sectors) / free tail | 1,322 / 946 | 1,322 / **971** |
+| C extension record (cap 747) | 742 | 746 |
+| pickup record (cap 1,259) / `PICKUP_CODE` fill | 1,180 / 20 | 1,191 / **9** |
+| BROADSIDE record / `hull_sequence_reserve` | 5,525 / 103 free | unchanged (M3-H keeps its 98 B) |
+| initial block / boot / total sectors | 13,623 / 107 / 213 | unchanged |
+| boss entry | 65 sectors, 249 frames | 65 sectors, 249 frames (limit 280) |
+| boss-entry pins | 12 | 11 (`boss_enter_read` `$B810 → $B814`, `boss_warning_records` `$B835 → $B82A`; `pin_boss_enter_hud_backup` gone) |
+
+### 11.4 Cycles (M)
+
+* Per live Interceptor per frame: the shift 7 (the same as Phase A's guard
+  when idle), the render +6, the erase +2 a cell, one `ldy` fewer: about
+  **+14**, as Phase A measured. A survived hit: `light_shot` 236 cycles (Phase A, with the flash start behind a call; inline now).
+* Worst fence margin **1,287 → 1,260** (`2-sweep-fire6` f311, a Light
+  admission frame; decision L4: accepted at 1,285, STOP only below 1,000 —
+  1,260 is 25 under the accepted figure, the cause the flash's admission
+  clear and per-Light work). DMA-on **31,443 → 31,483**
+  (`weapon-pickup-2-hunt-fire4` f2,361; gate 32,568). The effects-stagger
+  peak 992 → 1,009 (ceiling 1,122).
+* Boss frames (director-complete): worst margin 8,359 → **8,569**, DMA-on
+  29,987 → 29,884. Boss stress unchanged (the slots are untouched).
+
+### 11.5 Play (M; sweep bot, lives held; the fight by the aim proxy)
+
+| | EASY | MEDIUM | HARD |
+| --- | ---: | ---: | ---: |
+| road to the boss, s (main) | 68.8 → **75.7** | 65.5 → **75.7** | 56.1 → **65.5** |
+| swarm sector, s | 12.7 → 17.9 | 13.8 → 17.9 | 9.6 → 13.5 |
+| boss fight, s (main) | 86.5 → **82.4** | 103.0 → **108.3** | 154.4 → **150.5** |
+| boss escorts | 9 | 12 | 17 |
+
+MEDIUM stays inside 90-120 s, EASY is shorter, HARD is not shorter than
+MEDIUM: no boss retune. Every HARD hunt reaches the boss (hunt-5 f3,735,
+hunt-6 f3,811, hunt-7 f3,622; EASY hunt-5 f4,448); 0 Light contacts; the
+no-kill swarm arms 9 of 9 on every difficulty.
+
+### 11.6 The replays
+
+* **`boss-edge-left-1`** 7,400 → 7,800 frames (answer 3): engaged at 3,543,
+  18 escorts and 17 hits in the window; the clause unchanged.
+* **`lower-playfield-laser-contact-atr-hard`** (answer 4): its policy alone
+  steps out from under an Interceptor bolt (`$16`) or a Bomber shell (class 3,
+  `$18-$1F`) on the road to the boss — never towards one within 24 HPOS above,
+  away from one within 12 (`scripts/atari800-wall-trace.h`). The beam meets a
+  whole hull again: contact f3,294, 10 → 0, 0 misses.
+* **Lost boss reach, reported (not a STOP under the brief's rule):**
+  `debris-effects-2-sweep-fire4` and `capital-muzzle-ring-2-sweep-fire4`
+  (HARD, lives not held, the sweep and broadside-proof bots, not hunting
+  bots) lose their last life before the boss (game over f4,141) where on
+  `main` they reached it. Their clauses pass; the boss-entry clauses hold
+  over 14 entries (16 on `main`); HARD keeps six replays through the boss
+  sector. If the owner wants their reach back, decision L5's first option
+  (the same scoped dodge for those two replays) is the remedy.
+
+### 11.7 Tests
+
+`tests/interceptor-armour.test.mjs` (4): RED on `main` (4 of 4), GREEN here.
+Re-pointed (behaviour): light-interceptor admission and kill, light-wingman's
+record, hostile-projectile-emitter-independence's kill, runtime-wall-trace's
+debris-effects frames. Re-pinned (exact layout values; no floor, ceiling or
+gate moved): the window tail 946 → 971 (three files) and used 2,638 → 2,613,
+the kernel link 982 → 957, the kernel segment 775 → 793, the C extension 869
+→ 875 and its tail 30 → 24, the `PICKUP_CODE` fill 20 → 9, the
+effects-stagger peak 992 → 1,009, the build's boss-entry pin count 12 → 11.

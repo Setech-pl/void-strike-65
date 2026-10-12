@@ -594,83 +594,28 @@ hostile_weapon_visual_glyphs:
 ; It links before main, the gameplay music player and the reader, so their
 ; addresses are pins (src/hybrid/boss-entry-pins.inc), checked by the build.
 ; HYBRID_ASM_WINDOW is placed LAST in the window (cfg/encounter-director.cfg)
-; so the window's C half - the hot Light C - does not move.
+; so the window's C half - the hot Light C - does not move. Since
+; feat/interceptor-standoff the code itself lives outside the window (below).
 ; ===========================================================================
 .include "boss-entry-pins.inc"
 .include "boss-layout.inc"
 
-BOSS_SCREEN              = $4000
-BOSS_LEVEL_BUFFER_MAGIC  = $A600    ; the image header's first byte, 'V'
-BOSS_LEVEL_ID            = $A603    ; the image header's level id
-; Frozen vectors: the reader's run read ($A006, append-only table) and the
-; gameplay music block's first JMP (music v2 §1.4).
-BOSS_READ_RUN            = $A006
-BOSS_MUSIC_START         = $A608
-; The overlay directory's fixed order (scripts/build.mjs OVERLAY_DIRECTORY).
-BOSS_CODE_ENTRY          = 1
-BOSS_REGION_ENTRY        = 2
-BOSS_REGIONS             = 4
-
-.export _asm_boss_enter, boss_warning_records
+.export _asm_boss_enter
 
 .segment "HYBRID_ASM_WINDOW"
 
-_asm_boss_enter:
-    ; S5-1 (owner decision Q8): the HUD's booster cells backed up first; the
-    ; routine (the Light kernel link's last segment) tail-calls the music stop
-    ; this JSR used to make, so the entry half keeps its size.
-    jsr pin_boss_enter_hud_backup
-    jsr pin_pause_silence_audio
-    jsr pin_sector_reader_blank
-    lda #$00
-    sta BOSS_LEVEL_BUFFER_MAGIC
-    lda #<boss_warning_records
-    ldx #>boss_warning_records
-    jsr pin_sector_reader_show_records
-    ; The region from the level id, three levels a region (decision AC, as
-    ; the summary's art has it): min(3, (id - 1) / 3).
-    ldx #BOSS_REGION_ENTRY
-    lda BOSS_LEVEL_ID
-    sec
-    sbc #$01
-@region:
-    ; S5-1: the last region's test first, so the SBC's carry is the CMP's.
-    ; (With the CPX between them C was the CPX's - 0 below the last region -
-    ; and every pass took 4, not 3: levels 4-12 read the wrong region. Latent
-    ; until S5-1 put regions 2-4 on the disk; the same bytes, reordered.)
-    cpx #(BOSS_REGION_ENTRY + BOSS_REGIONS - 1)
-    beq @read_region
-    cmp #$03
-    bcc @read_region
-    sbc #$03                    ; C=1 from the CMP
-    inx
-    bne @region
-@read_region:
-    jsr BOSS_READ_RUN
-    bcs @failed
-    ldx #$00
-@theme:
-    lda BOSS_STAGING_THEME,x
-    sta pin_game_music_data_start,x
-    inx
-    bne @theme
-    jsr BOSS_MUSIC_START
-    lda #$01
-    sta pin_sr_slot_a_overlaid
-    ldx #BOSS_CODE_ENTRY
-    jsr BOSS_READ_RUN
-    bcs @failed
-    jmp pin_capital_slot_a
-@failed:
-    jmp pin_sector_reader_failure_screen
+; feat/interceptor-standoff (owner answers L1-L5 of 2026-10-12, the window
+; full): nothing of the entry stays in the window. Its head lives in the
+; free tail of main's PICKUP_CODE (src/main.s, boss_enter_head), the read of the
+; region and the boss code, and the WARNING screen's records, in the Light
+; kernel link's last segment (src/hybrid/light-kernel.s), so the window's
+; boot-loaded record keeps 11 sectors. C calls the head by its pin.
+_asm_boss_enter = pin_boss_enter_head
 
-; The reader's record format: {dst_lo, dst_hi, text, $00}..., $FF. Inside the
-; frontend glyph contract (A-Z 0-9 space - . / :); centred on the 40-column
-; rows 6 and 8 of the text screen, two rows above the summary's dotted row,
-; which the reader steps once per sector under it.
-boss_warning_records:
-    .byte <(BOSS_SCREEN + 6 * 40 + 16), >(BOSS_SCREEN + 6 * 40 + 16)
-    .byte "WARNING", $00
-    .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
-    .byte "BOSS APPROACHING", $00
-    .byte $FF
+; Never executed: the C before this segment ends in an RTS, and nothing jumps
+; here. Four bytes put the Light kernel link - which starts where the Director
+; link's window half ends - at $B478, where none of its taken branches crosses
+; a page (MEASURED from the listings and maps: at $B474, without the pad,
+; light_update's slot loop gains one; at $B4BB, the loop's Phase A-lite
+; layout, the kernel had seven).
+    .res 4, $00

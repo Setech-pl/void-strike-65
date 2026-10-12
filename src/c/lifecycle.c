@@ -97,6 +97,23 @@
 #define INTERCEPTOR_CLIMB        8u
 #define INTERCEPTOR_BACKOFF      2u
 #define INTERCEPTOR_TRACK_DIVE   1u     /* FRAME_COUNTER mask: one cell every 2nd frame */
+/* The top-hold loop (the owner's smoke of 2026-10-11, plan
+ * interceptor-standoff §12): an Interceptor whose wave authors loops does not
+ * leave after its 100 frames. It climbs at the same 8 lines a frame to the
+ * top-hold row - the playfield's second row for slot 0, two rows lower per
+ * slot, on screen (a Light is drawn from y 24) - holds there, then descends
+ * to its standoff and flies it again. The top phase is the age running on
+ * from 100 in steps of 4 until it wraps to 0: 39 frames, the climb and then
+ * the hold; the wrap restarts the standoff with its descent, and spends a
+ * loop. With none left it climbs out as before - always up (owner answer E1
+ * of 2026-10-12, §13: a downward exit clear of the player's column never
+ * opens, because the standoff tracks that column). The count is wave_flags
+ * bits 6-7 (scripts/level-compiler.mjs), kept per slot in the same units
+ * ($40 a loop). */
+#define INTERCEPTOR_LOOP_MASK    0xC0u
+#define INTERCEPTOR_LOOP_UNIT    0x40u
+#define INTERCEPTOR_TOP_HOLD     32u
+#define INTERCEPTOR_TOP_STEP     4u
 #define PLAYER_Y                 U8_AT(0x0081u)
 /* Light multiplicity (plan-light-multiplicity.md §2.1). Four SoA slots is the
  * declared format; how many of them a sector may fill is a separate ceiling
@@ -522,6 +539,10 @@ uint8_t heavy_breakup_pending;
  *     installs that pair because light_appearance_installed was reset to
  *     NONE - one copy more, never a wrong bitmap. */
 uint8_t light_wave_look;
+/* The loops each slot's Interceptor has left, in wave_flags units ($40 a
+ * loop, bits 6-7): the armed wave's flags written whole at admission, masked
+ * where they are read; read only while the slot lives. */
+uint8_t light_loops[LIGHT_SLOT_COUNT];
 /* The look THIS admission wants: the published look, or - for appearance 0 -
  * the record's own offset, so a level without variants keys every pair on
  * the archetype exactly as before. */
@@ -590,8 +611,9 @@ uint8_t light_take_deferrable_token(void)
     return light_take_token();
 }
 
-/* Live slots, counted rather than kept: a four-byte scan, at admission only. */
-static uint8_t light_live_count(void)
+/* Live slots, counted rather than kept: a four-byte scan, at admission and
+ * at a sector's row-count end (director_c_sector_cut). */
+uint8_t light_live_count(void)
 {
     light_work = 0u;
     light_slot = LIGHT_SLOT_COUNT;
@@ -931,6 +953,11 @@ static uint8_t light_admit(void)
     light_burst_left[light_slot] = 0u;
     light_y[light_slot] = 0u;
     light_x[light_slot] = light_admit_entry;
+    /* The armed wave's flags whole: the mask waits for the top phase, so
+     * the admission frame - the binding row of the fence (MEASURED) - pays
+     * one load and one store. After the two zero stores, which share one
+     * load. */
+    light_loops[light_slot] = heavy_wave_flags;
     light_state[light_slot] = light_admit_state;
     light_reload();
     return 1u;
@@ -1144,7 +1171,29 @@ static uint8_t light_tick_body(void)
             light_target_x = 0u;
             light_fire_work = light_burst_left[light_slot];
             if (light_fire_work >= INTERCEPTOR_LIFE_FRAMES) {
-                light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
+                /* The body's result byte is free until it returns. */
+                light_tick_result = (uint8_t)(light_loops[light_slot] & INTERCEPTOR_LOOP_MASK);
+                if (light_tick_result == 0u) {
+                    light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
+                } else {
+                    /* Each slot holds 2 rows lower, as its standoff holds 2
+                     * rows higher: a swarm at the top does not merge. */
+                    light_tick_result = (uint8_t)((uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT) +
+                        INTERCEPTOR_TOP_HOLD);
+                    if (light_work >= (uint8_t)(light_tick_result + INTERCEPTOR_CLIMB)) {
+                        light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
+                    } else {
+                        light_work = light_tick_result;
+                    }
+                    light_fire_work = (uint8_t)(light_fire_work + INTERCEPTOR_TOP_STEP);
+                    light_burst_left[light_slot] = light_fire_work;
+                    if (light_fire_work == 0u) {
+                        /* A loop spent: bits 6-7 are at least 1 here, so the
+                         * flags' low bits ride along unborrowed. */
+                        light_tick_result = (uint8_t)(light_loops[light_slot] - INTERCEPTOR_LOOP_UNIT);
+                        light_loops[light_slot] = light_tick_result;
+                    }
+                }
             } else {
                 ++light_fire_work;
                 light_burst_left[light_slot] = light_fire_work;

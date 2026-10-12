@@ -692,3 +692,45 @@ boss_enter_hud_backup:
     bpl @cell
     jmp music_stop_gameplay
 .export boss_enter_hud_backup
+
+; feat/interceptor-standoff (the top-hold loop): the boss entry's resident half
+; from the region read on (M5b-S3; its head and history in
+; src/hybrid/c-asm-abi.s), and the WARNING screen's records, moved here from the
+; window's Director half so the window's boot-loaded record keeps 11 sectors.
+; The head jumps here by its pin with X = the region's directory entry.
+.include "boss-entry-pins.inc"
+BOSS_SCREEN              = $4000
+BOSS_READ_RUN            = $A006
+BOSS_MUSIC_START         = $A608
+BOSS_CODE_ENTRY          = 1
+
+boss_enter_read:
+    jsr BOSS_READ_RUN
+    bcs @failed
+    ldx #$00
+@theme:
+    lda BOSS_STAGING_THEME,x
+    sta pin_game_music_data_start,x
+    inx
+    bne @theme
+    jsr BOSS_MUSIC_START
+    lda #$01
+    sta pin_sr_slot_a_overlaid
+    ldx #BOSS_CODE_ENTRY
+    jsr BOSS_READ_RUN
+    bcs @failed
+    jmp pin_capital_slot_a
+@failed:
+    jmp pin_sector_reader_failure_screen
+
+; The reader's record format: {dst_lo, dst_hi, text, $00}..., $FF. Inside the
+; frontend glyph contract (A-Z 0-9 space - . / :); centred on the 40-column
+; rows 6 and 8 of the text screen, two rows above the summary's dotted row,
+; which the reader steps once per sector under it.
+boss_warning_records:
+    .byte <(BOSS_SCREEN + 6 * 40 + 16), >(BOSS_SCREEN + 6 * 40 + 16)
+    .byte "WARNING", $00
+    .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
+    .byte "BOSS APPROACHING", $00
+    .byte $FF
+.export boss_enter_read, boss_warning_records

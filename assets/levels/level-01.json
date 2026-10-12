@@ -199,7 +199,9 @@
           "archetype": "interceptor",
           "count": 3,
           "spacing": 24,
-          "entry": 88
+          "entry": 88,
+          "_loops": "feat/interceptor-standoff (owner answers L1 and E1 of 2026-10-12, decision AK point 10): after its standoff each Interceptor climbs to its top-hold row, holds, dives back and flies it again - twice - then climbs out upward.",
+          "loops": 2
         },
         {
           "row": 0,
@@ -237,7 +239,9 @@
           ],
           "count": 1,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "_loops": "The companion Interceptor loops twice, as the swarm's (decision AK point 10).",
+          "loops": 2
         }
       ]
     },

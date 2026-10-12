@@ -13190,6 +13190,59 @@ entity_debris_publish_after_pairshot_erase:
 .export restore_recycled_row_near_and_debris
 
 ; -----------------------------------------------------------------------------
+; The boss entry's head (M5b-S3; feat/interceptor-standoff, owner answers L1-L5
+; of 2026-10-12). It ran in the window (src/hybrid/c-asm-abi.s) until the
+; window's boot record ran out of bytes; it runs once per boss entry, so it
+; moved here, into PICKUP_CODE's free tail, which the pickup record carries
+; with room to spare. The Director's C calls it by its
+; pin (src/hybrid/boss-entry-pins.inc, pin_boss_enter_head), and it names the
+; reader's and the Light kernel's routines by theirs: both link after main.
+; What it does and why in this order: docs/plans/m5-loading-boss.md §4.4.
+
+.include "boss-entry-pins.inc"
+
+BOSS_ENTRY_LEVEL_BUFFER_MAGIC = $A600   ; the image header's first byte, 'V'
+BOSS_ENTRY_LEVEL_ID           = $A603   ; the image header's level id
+; The overlay directory's fixed order (scripts/build.mjs OVERLAY_DIRECTORY).
+BOSS_ENTRY_REGION_ENTRY       = 2
+BOSS_ENTRY_REGIONS            = 4
+
+.segment "PICKUP_CODE"
+
+boss_enter_head:
+    ; S5-1 (owner decision Q8): the HUD's booster cells backed up first; the
+    ; routine (the Light kernel link's last segment) tail-calls the music stop
+    ; this JSR used to make, so the entry half keeps its size.
+    jsr pin_boss_enter_hud_backup
+    jsr pause_silence_audio
+    jsr pin_sector_reader_blank
+    lda #$00
+    sta BOSS_ENTRY_LEVEL_BUFFER_MAGIC
+    lda #<pin_boss_warning_records
+    ldx #>pin_boss_warning_records
+    jsr pin_sector_reader_show_records
+    ; The region from the level id, three levels a region (decision AC, as
+    ; the summary's art has it): min(3, (id - 1) / 3).
+    ldx #BOSS_ENTRY_REGION_ENTRY
+    lda BOSS_ENTRY_LEVEL_ID
+    sec
+    sbc #$01
+@region:
+    ; S5-1: the last region's test first, so the SBC's carry is the CMP's.
+    ; (With the CPX between them C was the CPX's - 0 below the last region -
+    ; and every pass took 4, not 3: levels 4-12 read the wrong region. Latent
+    ; until S5-1 put regions 2-4 on the disk; the same bytes, reordered.)
+    cpx #(BOSS_ENTRY_REGION_ENTRY + BOSS_ENTRY_REGIONS - 1)
+    beq @read_region
+    cmp #$03
+    bcc @read_region
+    sbc #$03                    ; C=1 from the CMP
+    inx
+    bne @region
+@read_region:
+    jmp pin_boss_enter_read
+
+; -----------------------------------------------------------------------------
 ; ADR-003 boot splash (2026-09-22)
 ;
 ; The blob is a separate linked segment that loads into the BOOT_STAGE2 file

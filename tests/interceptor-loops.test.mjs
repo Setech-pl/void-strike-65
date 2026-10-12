@@ -189,7 +189,8 @@ test("after its two loops it climbs out upward, as R does, and its slot is freed
   assert.equal(runs.length, 2);
   // After the second hold: the dive back and the standoff, then only up.
   const after = life.slice(runs[1].end + 1);
-  const lowest = after.reduce((best, { y }, i) => (y > after[best].y ? i : best), 0);
+  // The last frame of the final standoff (its lowest point; it holds there).
+  const lowest = after.reduce((best, { y }, i) => (y >= after[best].y ? i : best), 0);
   const exit = after.slice(lowest);
   assert.ok(exit.length >= 2, "no climb out after the last standoff");
   for (let i = 1; i < exit.length; i += 1) {

@@ -16,6 +16,8 @@
 
 pin_music_stop_gameplay          = $6101   ; main
 pin_pause_silence_audio          = $6089   ; main
+; feat/interceptor-standoff (the window full): the entry's head, PICKUP_CODE's tail.
+pin_boss_enter_head              = $8B26   ; main
 pin_capital_slot_a               = $6DE8   ; main
 pin_game_music_data_start        = $A717   ; music
 pin_sector_reader_blank          = $A03D   ; reader
@@ -23,4 +25,7 @@ pin_sector_reader_show_records   = $A0A7   ; reader
 pin_sector_reader_failure_screen = $A0D6   ; reader
 pin_sr_slot_a_overlaid           = $A576   ; reader
 ; S5-1 (owner decision Q8): the HUD booster backup, the kernel link's last segment.
-pin_boss_enter_hud_backup        = $B820   ; kernel
+pin_boss_enter_hud_backup        = $B802   ; kernel
+; feat/interceptor-standoff: the boss entry's region read and its records, behind it.
+pin_boss_enter_read              = $B810   ; kernel
+pin_boss_warning_records         = $B835   ; kernel

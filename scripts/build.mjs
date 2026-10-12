@@ -5,7 +5,6 @@ import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { installEscortVariant, parseEscortVariant } from "./boss-escort-variants.mjs";
-import { installInterceptorLoops, parseInterceptorLoops } from "./interceptor-loop-variants.mjs";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
   guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
@@ -368,16 +367,7 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 // never dist/.
 const escortVariantId = parseEscortVariant(process.argv);
 const escortVariant = escortVariantId === null ? null : installEscortVariant(rootDirectory, escortVariantId);
-// feat/interceptor-standoff (plan §12): --interceptor-loops=N builds the
-// Interceptor's top-hold loop - scripts/interceptor-loops.patch and level 1's
-// loop counts as in-memory edits (scripts/interceptor-loop-variants.mjs).
-// Composes with --level=N[:sector=M]. Review variant:
-// build/interceptor-loops-N[-level-N-sM]/, never dist/.
-const interceptorLoops = parseInterceptorLoops(process.argv);
-const interceptorLoopVariant = interceptorLoops === null
-  ? null : installInterceptorLoops(rootDirectory, interceptorLoops);
-const isReviewVariant = escortVariantId !== null || interceptorLoops !== null ||
-  enemyReviewHarness || enemyCombatReviewHarness ||
+const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
@@ -399,8 +389,6 @@ const levelDebugSuffix = levelDebugId === null
     `-level-${levelDebugId}-s${levelDebugSector}`;
 const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
-  : interceptorLoops !== null
-  ? `interceptor-loops-${interceptorLoops}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
   : laserFixtureTier !== null
@@ -2825,9 +2813,9 @@ async function build() {
     bossEntryPins.push({ label, link, address: pinned });
   }
   // S5-1: + the HUD booster backup in the Light kernel link.
-  // feat/interceptor-standoff: + the boss entry's region read and its records
-  // under --interceptor-loops (scripts/interceptor-loops.patch).
-  const expectedBossEntryPins = interceptorLoops === null ? 9 : 12;
+  // feat/interceptor-standoff (the top-hold loop's window bytes): + the boss
+  // entry's region read and its records in the kernel link, its head in main.
+  const expectedBossEntryPins = 12;
   if (bossEntryPins.length !== expectedBossEntryPins) {
     throw new Error(`M5b-S3 / S5-1: expected ${expectedBossEntryPins} boss-entry pins, found ${bossEntryPins.length}`);
   }
@@ -4021,7 +4009,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null || interceptorLoops !== null
+      bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -5436,7 +5424,6 @@ async function build() {
 
   if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
   escortVariant?.assertConsumed();
-  interceptorLoopVariant?.assertConsumed();
 
   if (!quiet) {
     console.log(candidateBuild
@@ -5450,10 +5437,6 @@ async function build() {
     console.log(`  staging : $${packedResidentStagingAddress.toString(16)} reused after BROADSIDE publish`);
     if (escortVariant !== null) {
       console.log(`  variant : boss escort ${escortVariantId.toUpperCase()} - ${escortVariant.summary}` +
-        (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
-      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
-    } else if (interceptorLoopVariant !== null) {
-      console.log(`  variant : Interceptor loops ${interceptorLoops} - ${interceptorLoopVariant.summary}` +
         (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (enemyReviewHarness) {

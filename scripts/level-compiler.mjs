@@ -799,20 +799,17 @@ function compileSectors(source, context, warnings) {
       // times an Interceptor of this wave climbs to the top-hold row and dives
       // back to its standoff before it leaves. Only an Interceptor flies it, so
       // the wave's Light - its archetype, or a Heavy wave's escort - must be one.
-      // A looping Interceptor then leaves by the nearer edge (owner answers
-      // L1, 2026-10-12); one that never loops climbs out as before.
-      const loops = requireInteger(context, waveWhere, "loops", wave.loops ?? 0, 0, 2);
+      // After the last loop it climbs out upward, as one that never loops.
+      const loops = requireInteger(context, waveWhere, "loops", wave.loops ?? 0, 0, 3);
       if (loops !== 0 && (waveClass === "heavy" ? escort : archetype) !== "interceptor") {
         fail(context, waveWhere, `asks for ${loops} loop(s); only an Interceptor loops, ` +
           "and this wave's Light is not one");
       }
       // wave_flags: bits 0-1 appearance slot, bit 2 mirror, bit 3 Heavy class,
       // bits 4-5 trigger mode (0 = on row, 1 = when the previous wave cleared),
-      // bits 6-7 the Interceptor's loops plus one (0 = none, R's climb out; 1 =
-      // loops spent, leave by the nearer edge; 2-3 = loops left).
+      // bits 6-7 the Interceptor's loops.
       const flags = appearance | (mirror ? 0x04 : 0) |
-        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) |
-        (loops === 0 ? 0 : loops + 1) << 6;
+        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) | loops << 6;
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
         onCleared, loops, archetype, escort, class: waveClass,

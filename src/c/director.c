@@ -542,14 +542,10 @@ static void director_c_sector_cut(void)
                     }
                 }
                 director_scratch1 = director_c_light_ceiling();
-                director_scratch2 = 0u;
-                director_scratch3 = LIGHT_SLOT_COUNT_ABI;
-                do {
-                    --director_scratch3;
-                    if (light_state[director_scratch3] != 0u) {
-                        ++director_scratch2;
-                    }
-                } while (director_scratch3 != 0u);
+                /* The admission's own count (lifecycle.c): the same scan of
+                 * light_state, kept once in the window (feat/interceptor-
+                 * standoff: the window's boot record had no byte left). */
+                director_scratch2 = light_live_count();
                 if (director_scratch2 > director_scratch1) {
                     break;
                 }

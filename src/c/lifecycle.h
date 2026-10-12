@@ -36,6 +36,8 @@ uint8_t enemy_c_light_hit(void);
  * in the window, which is why that wrapper is declared here too rather than
  * staying static. */
 uint8_t light_take_deferrable_token(void);
+/* Live Light slots; the sector cut's hold asks it too (director.c). */
+uint8_t light_live_count(void);
 uint8_t enemy_c_heavy_breakup_claim(void);
 /* The armed Light wave's stepper, once per frame (plan §2.2). */
 void enemy_c_light_wave(void);

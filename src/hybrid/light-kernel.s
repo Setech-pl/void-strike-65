@@ -60,6 +60,10 @@ LIGHT_CODE_COUNT = LIGHT_APPEARANCE_PAIRS*LIGHT_CELL_COUNT
 ; The tick's exclusive return byte; src/c/lifecycle.c holds the same value.
 LIGHT_RETURN_INSTALL = $40
 LIGHT_RETURN_BREAKUP = $80
+; feat/interceptor-armour (owner answer F1 of 2026-10-12): a survived hit's
+; flash, LIGHT_FLASH's start value. The update shifts it left once a frame
+; before the render, which reads bit 7: set on the three frames after the hit.
+LIGHT_FLASH_PATTERN = %01110000
 ; light_state values C owns. BREAKUP_PENDING is the highest on purpose: a slot
 ; is hittable only below it, which is one compare.
 LIGHT_BREAKUP_PENDING = 3
@@ -149,7 +153,8 @@ light_publish:
 @erase_cell:
     tya
     ora LIGHT_SLOT_SAVE         ; a pair starts on an even code, so ora adds
-    cmp (dst_ptr),y             ; a lower layer that overwrote it owns it now
+    eor (dst_ptr),y             ; a lower layer that overwrote it owns it now;
+    asl                         ; bit 7 aside - the hit flash clears it
     bne :+
     lda LIGHT_BACKING0,x
     sta (dst_ptr),y
@@ -196,8 +201,7 @@ light_publish:
     lsr
     lsr
     tax                          ; X = ring row
-    ldy LIGHT_SLOT
-    lda LIGHT_X,y
+    lda LIGHT_X,y                ; Y = LIGHT_SLOT still: light_top loaded it
     sec
     sbc #GAMEPLAY_LEFT_HPOS
     lsr
@@ -213,7 +217,12 @@ light_publish:
     ; resolver below keys on screen_hi, so publishing it first would make this
     ; slot claim the very cell it is capturing and hand back its stale backing.
     sta LIGHT_SCRATCH
-    lda LIGHT_CODE,y
+    ; feat/interceptor-armour: a survived hit draws the slot's cells with bit
+    ; 7 cleared on the frames bit 7 of LIGHT_FLASH is set - colour 3 shows
+    ; COLPF2 there, not the hostile COLPF3.
+    lda LIGHT_FLASH,y
+    and #$80
+    eor LIGHT_CODE,y
     sta LIGHT_SLOT_SAVE          ; incremented per cell
     tya
     asl
@@ -301,6 +310,11 @@ light_update:
     bne :+
     jmp @next                    ; an empty slot: two instructions and a jump
 :
+    ; feat/interceptor-armour: one frame of a survived hit's feedback. It is
+    ; a bit pattern light_hit_landed writes, shifted left once a frame until
+    ; it is 0; bit 7 is this frame's - the render reads only that bit. 0
+    ; stays 0, so no test: 7 cycles, the cost of the test's untaken case.
+    asl LIGHT_FLASH,x
     jsr ENEMY_LIGHT_TICK
     tay
     beq @alive
@@ -372,9 +386,7 @@ light_update:
     lda #PLAYER_HEALTH_UNITS
     jsr apply_player_damage
     jsr ENEMY_LIGHT_HIT
-    tay
-    beq @next
-    jsr light_destroyed
+    jsr light_hit_landed
 @next:
     dec LIGHT_SLOT
     bpl :+
@@ -502,10 +514,7 @@ light_shot:
     lda #FIGHTER_PROJECTILE_FREE
     sta FIGHTER_PROJECTILE_ACTIVE,x
     jsr SECTOR_READER_STATS_LIGHT_HIT ; M5a-S2: one hit, then ENEMY_LIGHT_HIT
-    tay
-    beq :+
-    jsr light_destroyed
-:
+    jsr light_hit_landed
     ldx LIGHT_SLOT_SAVE
     clc
     rts
@@ -520,6 +529,17 @@ light_shot:
     ; keeps the carry the target path returns.
     jsr entity_player_fighter_projectile_target
     ldx LIGHT_SLOT_SAVE
+    rts
+
+; feat/interceptor-armour: A = enemy_light_hit's return, for the slot in
+; LIGHT_SLOT. 0 is a hit it lives through: C has taken the hit point, and the
+; kernel starts that slot's flash. Anything else is the kill, below.
+light_hit_landed:
+    tay
+    bne light_destroyed
+    ldy LIGHT_SLOT
+    lda #LIGHT_FLASH_PATTERN
+    sta LIGHT_FLASH,y
     rts
 
 ; Lethal hit, for the slot in LIGHT_SLOT. Already-emitted Light shots are
@@ -589,11 +609,18 @@ light_cell_resolve_sanitized:
 ; step 5 moved the kernel up 112 B, it did, +1 cycle on every captured cell
 ; (MEASURED natively). The local rts is layout-proof and one cycle under both.
 light_cell_resolve:
-    cmp #LIGHT_SCREEN_CODE
+    ; feat/interceptor-armour: a flashing Light's cells carry bit 7 clear,
+    ; $78..$7D. Below them is still the common case, one compare as before;
+    ; above, one masked subtract takes both ranges.
+    cmp #(LIGHT_SCREEN_CODE & $7F)
     bcs :+
     rts                          ; below the Light codes: the common case
 :
-    cmp #(LIGHT_SCREEN_CODE+LIGHT_CODE_COUNT)
+    pha                          ; C = 1: the subtract needs no sec
+    sbc #(LIGHT_SCREEN_CODE & $7F)
+    and #$7F                     ; bit 7 aside - the hit flash clears it
+    cmp #LIGHT_CODE_COUNT
+    pla
     bcs @keep
     ; It is a Light code. The caller's X goes to the one scratch byte the
     ; kernel owns; its Y and the captured byte go on the stack, so the 16-byte
@@ -673,25 +700,13 @@ capital_vector_image_end:
 .assert capital_vector_image_end - capital_vector_image = CAPITAL_VECTOR_COUNT*3, error, "the capital vector image does not match the window table"
 .export capital_vector_image
 
-; S5-1 (owner decision Q8, plan s5-boss-regions §4.1): the HUD's ten booster
-; cells into the boss scratch page's last ten bytes before anything clears the
-; row; the boss install puts them back after its HUD rewrite, so an active
-; booster's label and energy survive the entry exactly. The window's boss
-; entry (src/hybrid/c-asm-abi.s) calls it, by its pin, in place of its first
-; JSR, which this tail-calls. Here, in the kernel link's last segment, it moves
-; nothing: the Light kernel starts where the window's Director half ends, so 14
-; B there moved the kernel (MEASURED on this branch's first candidate).
+; S5-1 (owner decision Q8): the HUD booster backup lived here, in this
+; segment, until feat/interceptor-armour (owner answer of 2026-10-12) inlined it
+; into its one caller, the entry's head in main's PICKUP_CODE (src/main.s
+; boss_enter_head), for the hit flash's room in this record. The segment keeps
+; its name: the region read below heads it now.
 .include "boss-layout.inc"
 .segment "HUD_BOOSTER_BACKUP"
-boss_enter_hud_backup:
-    ldx #(BOSS_HUD_BOOSTER_CELLS - 1)
-@cell:
-    lda BOSS_HUD_BOOSTER_SCREEN,x
-    sta BOSS_HUD_BOOSTER_BACKUP,x
-    dex
-    bpl @cell
-    jmp music_stop_gameplay
-.export boss_enter_hud_backup
 
 ; feat/interceptor-standoff (the top-hold loop): the boss entry's resident half
 ; from the region read on (M5b-S3; its head and history in
@@ -701,9 +716,6 @@ boss_enter_hud_backup:
 .include "boss-entry-pins.inc"
 BOSS_SCREEN              = $4000
 BOSS_READ_RUN            = $A006
-BOSS_MUSIC_START         = $A608
-BOSS_CODE_ENTRY          = 1
-BOSS_TITLE_RECORDS       = BOSS_STAGING_THEME + $C0   ; scripts/boss-assets.mjs BOSS_TITLE_OFFSET
 
 boss_enter_read:
     jsr BOSS_READ_RUN
@@ -714,13 +726,12 @@ boss_enter_read:
     sta pin_game_music_data_start,x
     inx
     bne @theme
-    jsr boss_enter_title                ; the theme, then the title (below)
-    lda #$01
-    sta pin_sr_slot_a_overlaid
-    ldx #BOSS_CODE_ENTRY
-    jsr BOSS_READ_RUN
-    bcs @failed
-    jmp pin_capital_slot_a
+    ; feat/interceptor-armour (owner answer of 2026-10-12, placement C): the
+    ; rest runs once per entry, so it is not resident. It came in with the
+    ; theme: the boss link's BOSS_ENTRY_COLD, copied into every region's theme
+    ; run at BOSS_ENTRY_COLD (src/hybrid/boss.s, boss_entry_cold) - the
+    ; theme starts, the title, then the boss code's read and slot A.
+    jmp BOSS_ENTRY_COLD
 @failed:
     jmp pin_sector_reader_failure_screen
 
@@ -735,15 +746,4 @@ boss_warning_records:
     .byte "WARNING", $00
     .byte $FF
 
-; fix/boss-polish (owner decision AL 1, variant A): the theme starts, then the
-; boss's name and INCOMING go under the WARNING, from the region's run that
-; just landed (scripts/boss-assets.mjs BOSS_TITLE_OFFSET), drawn without a
-; clear. After the records, so the pinned labels above keep their addresses.
-boss_enter_title:
-    jsr BOSS_MUSIC_START
-    lda #<BOSS_TITLE_RECORDS
-    sta frontend_data_ptr
-    lda #>BOSS_TITLE_RECORDS
-    sta frontend_data_ptr+1
-    jmp render_frontend_records
 .export boss_enter_read, boss_warning_records

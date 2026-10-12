@@ -273,7 +273,10 @@ const EnemyArchetypeTable enemy_archetypes = { {
         1u
     },
     {
-        1u,
+        /* feat/interceptor-armour (owner answer of 2026-10-12, H3): three
+         * hits in every wave - the swarm, elite (a)'s companion and the boss
+         * escort; the kernel flashes the two it lives through. */
+        3u,
         ENEMY_MOVEMENT_INTERCEPTOR_PURSUIT,
         ENEMY_FIRE_LIGHT_DOUBLE_TAP,
         1u, 0u,
@@ -553,6 +556,13 @@ static uint8_t light_look_key;
  * than per slot so that the tick's per-frame test stays one indexed compare
  * of two arrays under the same index - the shape of the compare it replaces. */
 uint8_t light_pair_key[LIGHT_APPEARANCE_PAIRS];
+/* feat/interceptor-armour (owner answer F1 of 2026-10-12): the survived
+ * hit's flash, per slot - a bit pattern the Light kernel writes when
+ * enemy_c_light_hit returns 0 (the hit taken, the Light alive) and shifts left
+ * once a frame; while its bit 7 is set the render draws the slot's two cells
+ * with bit 7 cleared, so their colour-3 pixels show COLPF2. light_admit clears
+ * it, so a slot never inherits its last occupant's flash. */
+uint8_t light_flash[LIGHT_SLOT_COUNT];
 #pragma bss-name ("BSS")
 
 static void heavy_publish_profile(void);
@@ -952,6 +962,7 @@ static uint8_t light_admit(void)
     light_hp[light_slot] = light_work;
     light_burst_left[light_slot] = 0u;
     light_y[light_slot] = 0u;
+    light_flash[light_slot] = 0u;
     light_x[light_slot] = light_admit_entry;
     /* The armed wave's flags whole: the mask waits for the top phase, so
      * the admission frame - the binding row of the fence (MEASURED) - pays

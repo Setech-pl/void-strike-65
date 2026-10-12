@@ -13204,6 +13204,7 @@ entity_debris_publish_after_pairshot_erase:
 ; What it does and why in this order: docs/plans/m5-loading-boss.md §4.4.
 
 .include "boss-entry-pins.inc"
+.include "boss-layout.inc"
 
 BOSS_ENTRY_LEVEL_BUFFER_MAGIC = $A600   ; the image header's first byte, 'V'
 BOSS_ENTRY_LEVEL_ID           = $A603   ; the image header's level id
@@ -13214,10 +13215,19 @@ BOSS_ENTRY_REGIONS            = 4
 .segment "PICKUP_CODE"
 
 boss_enter_head:
-    ; S5-1 (owner decision Q8): the HUD's booster cells backed up first; the
-    ; routine (the Light kernel link's last segment) tail-calls the music stop
-    ; this JSR used to make, so the entry half keeps its size.
-    jsr pin_boss_enter_hud_backup
+    ; S5-1 (owner decision Q8): the HUD's ten booster cells into the boss
+    ; scratch page's last ten bytes before anything clears the row; the boss
+    ; install puts them back after its HUD rewrite, so an active booster's
+    ; label and energy survive the entry exactly. feat/interceptor-armour
+    ; (owner answer of 2026-10-12): inlined here from the Light kernel link's
+    ; last segment, whose record the hit flash needed.
+    ldx #(BOSS_HUD_BOOSTER_CELLS - 1)
+@hud_cell:
+    lda BOSS_HUD_BOOSTER_SCREEN,x
+    sta BOSS_HUD_BOOSTER_BACKUP,x
+    dex
+    bpl @hud_cell
+    jsr music_stop_gameplay
     jsr pause_silence_audio
     jsr pin_sector_reader_blank
     lda #$00

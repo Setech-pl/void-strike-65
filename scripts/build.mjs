@@ -5,7 +5,6 @@ import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { installEscortVariant, parseEscortVariant } from "./boss-escort-variants.mjs";
-import { installInterceptorArmour, parseInterceptorArmour } from "./interceptor-armour-variants.mjs";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
   guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
@@ -120,6 +119,9 @@ import {
   BOSS_SLOT_D_BYTES,
   BOSS_SLOT_E_ADDRESS,
   BOSS_SLOT_E_BYTES,
+  BOSS_ENTRY_COLD_ADDRESS,
+  BOSS_ENTRY_COLD_BYTES,
+  BOSS_ENTRY_COLD_OFFSET,
   BOSS_SLOT_F_ADDRESS,
   BOSS_SLOT_F_BYTES,
   BOSS_STAGING_ADDRESS,
@@ -368,16 +370,7 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 // never dist/.
 const escortVariantId = parseEscortVariant(process.argv);
 const escortVariant = escortVariantId === null ? null : installEscortVariant(rootDirectory, escortVariantId);
-// feat/interceptor-armour (docs/plans/interceptor-armour.md): the tougher
-// Interceptor's candidates - scripts/interceptor-armour-*.patch and level 1's
-// armour flags as in-memory edits (scripts/interceptor-armour-variants.mjs).
-// Composes with --level=N[:sector=M]. Review variant:
-// build/interceptor-armour-ID[-level-N-sM]/, never dist/.
-const interceptorArmourId = parseInterceptorArmour(process.argv);
-const interceptorArmourVariant = interceptorArmourId === null
-  ? null : installInterceptorArmour(rootDirectory, interceptorArmourId);
-const isReviewVariant = escortVariantId !== null || interceptorArmourId !== null ||
-  enemyReviewHarness || enemyCombatReviewHarness ||
+const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
@@ -399,8 +392,6 @@ const levelDebugSuffix = levelDebugId === null
     `-level-${levelDebugId}-s${levelDebugSector}`;
 const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
-  : interceptorArmourId !== null
-  ? `interceptor-armour-${interceptorArmourId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
   : laserFixtureTier !== null
@@ -934,7 +925,6 @@ const LIGHT_KERNEL_MAIN_SYMBOLS = Object.freeze([
   ["clear_transient_effects", "breakup precondition"],
   ["spawn_breakup_effects_at", "breakup feedback at the Light's cell"],
   ["apply_player_damage", "the shared player damage gate"],
-  ["music_stop_gameplay", "S5-1: the boss entry's first call, tail-called by the HUD booster backup"],
   ["light_add_score", "BROADSIDE pad, absolute,X by archetype offset"],
   ["update_score_display", "score publication"],
   ["play_hit_sound", "kill feedback"],
@@ -966,15 +956,6 @@ const LIGHT_KERNEL_MAIN_SYMBOLS = Object.freeze([
   ["FIGHTER_PROJECTILE_INTERCEPTOR", "hostile owner bits"],
   ["FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK", "leader-slot attribution mask"],
   ["FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT", "weapon_class shift above the owner bits"],
-]);
-
-// feat/interceptor-armour (docs/plans/interceptor-armour.md): the survived-hit
-// flash's halves in the BROADSIDE zero pin, under --interceptor-armour only.
-const LIGHT_KERNEL_ARMOUR_SYMBOLS = Object.freeze([
-  ["light_flash_start", "interceptor-armour: start a survived hit's flash"],
-  ["light_flash_step", "interceptor-armour: one frame of the flash; A = $80"],
-  ["light_blink_step", "interceptor-armour: one frame of the blink; A = the hide bit"],
-  ["boss_enter_title", "interceptor-armour: the boss title, moved to the BROADSIDE zero pin"],
 ]);
 
 // The kernel's five entry points, in the frozen order of its vector table. Each
@@ -1036,12 +1017,8 @@ function renderLightKernelMainAbiInclude(labels) {
     "; (plan §3.1 [C1]); these are its only dependencies on main.s.",
     "",
   ];
-  for (const [name, note] of [...LIGHT_KERNEL_MAIN_SYMBOLS, ...LIGHT_KERNEL_ARMOUR_SYMBOLS]) {
+  for (const [name, note] of LIGHT_KERNEL_MAIN_SYMBOLS) {
     const address = labels.get(name);
-    // feat/interceptor-armour: the review variant's symbols exist only in its
-    // own main image (scripts/interceptor-armour-variants.mjs); the default
-    // build's include is unchanged without them.
-    if (!Number.isInteger(address) && LIGHT_KERNEL_ARMOUR_SYMBOLS.some(([optional]) => optional === name)) continue;
     if (!Number.isInteger(address)) {
       throw new Error(`4.6: main.s no longer exports ${name}, which the Light kernel uses`);
     }
@@ -1691,10 +1668,10 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     // The rotate gate for Heavy break-ups (docs/plans/m3-waves-heavy.md §9):
     // the routine the claim calls, which src/main.s asserts is its own label.
     ["WORLD_ROTATE_DUE", "world_rotate_due_abi"],
+    // feat/interceptor-armour: per slot, the survived hit's flash pattern
+    // (src/c/lifecycle.c light_flash).
+    ["LIGHT_FLASH", "light_flash"],
   ];
-  // feat/interceptor-armour: the flash timers, only in the review variant's
-  // link (scripts/interceptor-armour-variants.mjs).
-  if (Number.isInteger(labels.get("light_flash"))) symbols.push(["LIGHT_FLASH", "light_flash"]);
   for (const [, name] of symbols) {
     if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);
   }
@@ -2028,8 +2005,8 @@ async function build() {
       // feat/interceptor-standoff: the boss entry's head, and the pins it calls by.
       "/project/build/boss-entry-pins.inc": fs.readFileSync(
         path.join(rootDirectory, "src", "hybrid", "boss-entry-pins.inc")),
-      // feat/interceptor-armour: the boss title's records (BOSS_STAGING_THEME),
-      // for the variant's main image only; the default main.s includes none.
+      // feat/interceptor-armour: the head's inlined HUD booster backup
+      // (BOSS_HUD_BOOSTER_*).
       "/project/build/boss-layout.inc": bossLayoutInclude,
     },
     [
@@ -2848,7 +2825,9 @@ async function build() {
   // S5-1: + the HUD booster backup in the Light kernel link.
   // feat/interceptor-standoff (the top-hold loop's window bytes): + the boss
   // entry's region read and its records in the kernel link, its head in main.
-  const expectedBossEntryPins = 12;
+  // feat/interceptor-armour (owner answer of 2026-10-12): - the HUD booster
+  // backup, inlined into the head (main), whose only caller it was.
+  const expectedBossEntryPins = 11;
   if (bossEntryPins.length !== expectedBossEntryPins) {
     throw new Error(`M5b-S3 / S5-1: expected ${expectedBossEntryPins} boss-entry pins, found ${bossEntryPins.length}`);
   }
@@ -2878,9 +2857,12 @@ async function build() {
       "DIFFICULTY_SETTING", "PLAYER_LIFECYCLE", "player_x", "apply_player_damage",
       // S4b.5 (owner decision F3): a destroyed module counts for the capsule rule.
       "ENTITY_STATE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
-      "integration_pickup_reveal_body"],
+      "integration_pickup_reveal_body",
+      // feat/interceptor-armour: the entry's cold tail (BOSS_ENTRY_COLD).
+      "frontend_data_ptr", "render_frontend_records"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
-      "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end"],
+      "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end",
+      "sr_slot_a_overlaid"],
     // B2 (owner decision 2026-10-06): the boss restores COLPM1 / COLPM2 to
     // the Heavy's hull colour on leaving the boss sector.
     // feat/boss-escort-flow: slot C reports weapon kills and quiet frames.
@@ -3129,7 +3111,9 @@ async function build() {
   const bossCodeSectors = Math.ceil(bossSlotUsed / 128);
   const slotABytes = capitalSlotImage.length;
   const installBytes = bossInstallSectors * 128;
-  if (bossImage.length !== slotABytes + installBytes + BOSS_SLOT_C_BYTES + BOSS_SLOT_D_BYTES + BOSS_SLOT_E_BYTES ||
+  if (bossImage.length !== slotABytes + installBytes + BOSS_SLOT_C_BYTES + BOSS_SLOT_D_BYTES + BOSS_SLOT_E_BYTES +
+      BOSS_ENTRY_COLD_BYTES ||
+    bossLabels.get("boss_entry_cold") !== BOSS_ENTRY_COLD_ADDRESS ||
     !(bossSlotEUsed > 0 && bossSlotEUsed <= BOSS_SLOT_E_BYTES) || bossSlotESectors > bossSlotEMaxSectors ||
     bossSlotESector + bossSlotEMaxSectors > bossReservationSector + bossReservationSectors ||
     !(bossSlotDUsed > 0 && bossSlotDUsed <= BOSS_SLOT_D_BYTES) || bossSlotDSectors > bossSlotDMaxSectors ||
@@ -3180,11 +3164,25 @@ async function build() {
     destination: BOSS_SLOT_D_ADDRESS,
     data: bossImage.subarray(slotDOffset, slotDOffset + bossSlotDSectors * 128),
     file: "overlay-boss-slot-d.bin" };
+  // feat/interceptor-armour (owner answer of 2026-10-12, placement C): the
+  // boss entry's cold tail, the last area of the boss image, rides in every
+  // region's theme run at BOSS_ENTRY_COLD_OFFSET (zero there until now).
+  const bossEntryCold = bossImage.subarray(bossImage.length - BOSS_ENTRY_COLD_BYTES);
+  const regionRunData = (region, run) => {
+    const data = Buffer.from(region.runs[run].data);
+    if (run === "theme") {
+      if (data.subarray(BOSS_ENTRY_COLD_OFFSET, BOSS_ENTRY_COLD_OFFSET + BOSS_ENTRY_COLD_BYTES).some((byte) => byte !== 0)) {
+        throw new Error(`interceptor-armour: region ${region.name}'s theme run is not empty at the entry's cold tail`);
+      }
+      data.set(bossEntryCold, BOSS_ENTRY_COLD_OFFSET);
+    }
+    return data;
+  };
   const bossRegionRuns = bossRegions.flatMap((region, index) => ["theme", "bandA", "bandB", "charset", "block"]
     .map((run) => ({
       name: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`,
       startSector: bossRegionRunSector(index, run), sectors: region.runs[run].sectors,
-      destination: region.runs[run].address, data: Buffer.from(region.runs[run].data),
+      destination: region.runs[run].address, data: regionRunData(region, run),
       file: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}.bin`,
       region: index + 1,
     })));
@@ -4042,7 +4040,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null || interceptorArmourId !== null
+      bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -5457,7 +5455,6 @@ async function build() {
 
   if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
   escortVariant?.assertConsumed();
-  interceptorArmourVariant?.assertConsumed();
 
   if (!quiet) {
     console.log(candidateBuild
@@ -5471,10 +5468,6 @@ async function build() {
     console.log(`  staging : $${packedResidentStagingAddress.toString(16)} reused after BROADSIDE publish`);
     if (escortVariant !== null) {
       console.log(`  variant : boss escort ${escortVariantId.toUpperCase()} - ${escortVariant.summary}` +
-        (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
-      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
-    } else if (interceptorArmourVariant !== null) {
-      console.log(`  variant : Interceptor armour ${interceptorArmourId} - ${interceptorArmourVariant.summary}` +
         (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (enemyReviewHarness) {

@@ -72,6 +72,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _heavy_escort_offset, _heavy_wave_flags
 .import _light_wave_archetype, _light_wave_spacing_frames
 .import _light_pair_key
+.import _light_flash
 
 .export director_init, director_world_row_tick, director_request, director_release
 .export director_rng_advance, director_try_event
@@ -331,6 +332,10 @@ light_code = _light_code
 ; $90/$A0/$B0 for payload slots 1-3. The kernel's install reads its source
 ; from here.
 light_pair_key = _light_pair_key
+; feat/interceptor-armour: per slot, the frames of the survived-hit flash the
+; kernel still draws (src/c/lifecycle.c).
+light_flash = _light_flash
+.export light_flash
 
 ; Roadmap 4.6 step 5: the sky (budget-1.0 M2 variant S2). The near-star
 ; publish draws the star from the immediate operand of its `lda #$10`, in the

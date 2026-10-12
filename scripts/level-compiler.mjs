@@ -805,25 +805,14 @@ function compileSectors(source, context, warnings) {
         fail(context, waveWhere, `asks for ${loops} loop(s); only an Interceptor loops, ` +
           "and this wave's Light is not one");
       }
-      // feat/interceptor-armour (docs/plans/interceptor-armour.md, the HD/HE
-      // review variants): an armoured wave's Interceptors take an armour bonus
-      // on top of their record's hit points at admission. Only an Interceptor
-      // wave may be armoured. It takes bit 5, the trigger mode's unused upper
-      // bit; no shipped level sets it, so every image is unchanged.
-      const armour = requireBoolean(context, waveWhere, "armour", wave.armour, false);
-      if (armour && (waveClass === "heavy" ? escort : archetype) !== "interceptor") {
-        fail(context, waveWhere, "is armoured; only an Interceptor wave may be, " +
-          "and this wave's Light is not one");
-      }
       // wave_flags: bits 0-1 appearance slot, bit 2 mirror, bit 3 Heavy class,
-      // bit 4 trigger mode (0 = on row, 1 = when the previous wave cleared),
-      // bit 5 armour, bits 6-7 the Interceptor's loops.
+      // bits 4-5 trigger mode (0 = on row, 1 = when the previous wave cleared),
+      // bits 6-7 the Interceptor's loops.
       const flags = appearance | (mirror ? 0x04 : 0) |
-        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) |
-        (armour ? 0x20 : 0) | loops << 6;
+        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) | loops << 6;
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
-        onCleared, loops, armour, archetype, escort, class: waveClass,
+        onCleared, loops, archetype, escort, class: waveClass,
         rowModules: row / HULL_MODULE_ROWS,
         archetypeOffset: ARCHETYPE_INDEX[archetype] * ARCHETYPE_RECORD_BYTES,
         escortOffset: escort === null

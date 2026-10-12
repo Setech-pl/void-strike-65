@@ -226,7 +226,17 @@ export const BOSS_HOSTILE_SHOT_CODES = 2;
 // $FF) at a fixed offset in the run's slack, drawn under WARNING once the run
 // has landed. Text rows of the reader's 40-column screen at $4000; the
 // summary's dash row is row 10.
-export const BOSS_TITLE_OFFSET = 0xc0;
+// feat/interceptor-armour (owner answer of 2026-10-12, placement C): the boss
+// entry's once-per-entry tail - the theme's start, the title, the boss code's
+// read - is not resident either: it is the boss link's BOSS_ENTRY_COLD
+// (src/hybrid/boss.s boss_entry_cold), copied by scripts/build.mjs into every
+// region's theme run at BOSS_ENTRY_COLD_OFFSET, where the theme's limit was;
+// the title's records follow it, so a boss name may be at most
+// BOSS_THEME_CAPACITY - BOSS_TITLE_OFFSET - 15 = 17 characters (checked).
+export const BOSS_ENTRY_COLD_OFFSET = 0xc0;
+export const BOSS_ENTRY_COLD_BYTES = 0x20;
+export const BOSS_ENTRY_COLD_ADDRESS = BOSS_STAGING_ADDRESS + BOSS_ENTRY_COLD_OFFSET;
+export const BOSS_TITLE_OFFSET = BOSS_ENTRY_COLD_OFFSET + BOSS_ENTRY_COLD_BYTES;
 export const BOSS_TITLE_ADDRESS = BOSS_STAGING_ADDRESS + BOSS_TITLE_OFFSET;
 export const BOSS_TITLE_SCREEN = 0x4000;
 export const BOSS_TITLE_NAME_ROW = 7;
@@ -1165,8 +1175,8 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   }
   {
     const records = bossTitleRecords(String(layout.name ?? "").toUpperCase());
-    if ((themeImage?.length ?? 0) > BOSS_TITLE_OFFSET) {
-      fail(`the boss theme is ${themeImage.length} B; the title's records start at ${BOSS_TITLE_OFFSET}`);
+    if ((themeImage?.length ?? 0) > BOSS_ENTRY_COLD_OFFSET) {
+      fail(`the boss theme is ${themeImage.length} B; the entry's cold code starts at ${BOSS_ENTRY_COLD_OFFSET}`);
     }
     if (BOSS_TITLE_OFFSET + records.length > BOSS_THEME_CAPACITY) {
       fail(`the title's records are ${records.length} B; the theme run has ` +
@@ -1249,6 +1259,9 @@ export function renderBossLayoutInclude() {
     `BOSS_BAND_A_ROWS         = ${BOSS_BAND_A_ROWS}`,
     `BOSS_STAGING             = ${hex(BOSS_STAGING_ADDRESS)}`,
     `BOSS_STAGING_THEME       = ${hex(BOSS_STAGING_ADDRESS)}`,
+    `BOSS_ENTRY_COLD          = ${hex(BOSS_ENTRY_COLD_ADDRESS)}`,
+    `BOSS_ENTRY_COLD_BYTES    = ${BOSS_ENTRY_COLD_BYTES}`,
+    `BOSS_TITLE_RECORDS       = ${hex(BOSS_TITLE_ADDRESS)}`,
     `BOSS_BAND_A              = ${hex(BOSS_BAND_A_ADDRESS)}`,
     `BOSS_BAND_B              = ${hex(BOSS_BAND_B_ADDRESS)}`,
     `BOSS_TABLES              = ${hex(BOSS_TABLES_ADDRESS)}`,

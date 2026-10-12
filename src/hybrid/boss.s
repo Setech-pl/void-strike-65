@@ -3167,3 +3167,41 @@ boss_install:
 boss_dl_header:
     .byte $C2, <SCREEN, >SCREEN
     .byte $44, <GAMEPLAY_DIVIDER_SCREEN, >GAMEPLAY_DIVIDER_SCREEN
+
+; ---------------------------------------------------------------------------
+; feat/interceptor-armour (owner answer of 2026-10-12, placement C): the boss
+; entry's once-per-entry tail. The resident half (src/hybrid/light-kernel.s
+; boss_enter_read) reads the region's theme run, copies the theme over the
+; level's track and jumps here: scripts/build.mjs copies this segment into
+; every region's theme run at BOSS_ENTRY_COLD, so it landed with the theme
+; and the disk guard checked it with that run. It was resident in the Light
+; kernel's record, which the hit flash needed. Nothing here may be read by
+; the boss code's run it starts: that run lands in slot A, below the staging.
+; ---------------------------------------------------------------------------
+BOSS_ENTRY_READ_RUN    = $A006      ; the reader's vector (sector_reader_read_run)
+BOSS_ENTRY_MUSIC_START = $A608      ; the level image's player: start the track
+BOSS_ENTRY_CODE_RUN    = 1          ; the overlay directory's boss code entry
+
+.segment "BOSS_ENTRY_COLD"
+boss_entry_cold:
+    ; fix/boss-polish (owner decision AL 1, variant A): the theme starts, then
+    ; the boss's name and INCOMING go under the WARNING, from the records
+    ; behind this code in the same run, drawn without a clear.
+    jsr BOSS_ENTRY_MUSIC_START
+    lda #<BOSS_TITLE_RECORDS
+    sta frontend_data_ptr
+    lda #>BOSS_TITLE_RECORDS
+    sta frontend_data_ptr+1
+    jsr render_frontend_records
+    lda #$01
+    sta sr_slot_a_overlaid
+    ldx #BOSS_ENTRY_CODE_RUN
+    jsr BOSS_ENTRY_READ_RUN
+    bcs @failed
+    jmp capital_slot_a
+@failed:
+    jmp sector_reader_failure_screen
+boss_entry_cold_end:
+.assert boss_entry_cold = BOSS_ENTRY_COLD, lderror, "the entry's cold tail must be where the theme run puts it"
+.assert boss_entry_cold_end - boss_entry_cold <= BOSS_ENTRY_COLD_BYTES, error, "the entry's cold tail outgrew its place in the theme run"
+.assert BOSS_ENTRY_COLD + BOSS_ENTRY_COLD_BYTES = BOSS_TITLE_RECORDS, error, "the title's records follow the cold tail"

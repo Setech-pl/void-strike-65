@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 58007,
+      "crc16": 18057,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 58007,
+        "crc16": 18057,
         "records": [
           {
             "startSector": 108,
@@ -394,7 +394,7 @@
             "packedLength": 847,
             "rawLength": 957,
             "finalDestination": 46200,
-            "crc16": 5731,
+            "crc16": 30527,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -661,22 +661,22 @@
       {
         "index": 2,
         "name": "boss region 1 (M5b)",
-        "expected": "$C94A"
+        "expected": "$C142"
       },
       {
         "index": 3,
         "name": "boss region 2 (M5b)",
-        "expected": "$8A0B"
+        "expected": "$8203"
       },
       {
         "index": 4,
         "name": "boss region 3 (M5b)",
-        "expected": "$8506"
+        "expected": "$7CFE"
       },
       {
         "index": 5,
         "name": "boss region 4 (M5b)",
-        "expected": "$C142"
+        "expected": "$B93A"
       },
       {
         "index": 6,
@@ -994,7 +994,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "a832d767eb1c098fcda573217307c99b845b54cb825d90a64c2c91e17b2a25ef",
+        "sha256": "437e73e58846676789ae06729a1de40bed4a03a9bdbec1d9a609b815ca5ea165",
         "file": "boss-region-1-theme.bin"
       },
       {
@@ -1039,7 +1039,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "a521ac60e5fa4bc38106831faad2601c1ccd86bfac5d918bf77db4acc5ab46a9",
+        "sha256": "eb4b74cdecef145fa1ef52a0e6814b7e2f8280ef87d596b6208a277adccebaba",
         "file": "boss-region-2-theme.bin"
       },
       {
@@ -1084,7 +1084,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "655e249c9722b75ab2dcb3fd44696f74066a3db55a7a7bb3e469d37a03e23b3b",
+        "sha256": "d0705a3bace931c2c27a46feadaad266032ae7f47659914d548629ddac96b6af",
         "file": "boss-region-3-theme.bin"
       },
       {
@@ -1129,7 +1129,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "41c3e70daf190a38333fc050c776f362eae9362209998087a1d35f72a48b10fc",
+        "sha256": "7bdf21abffbca745d1fcb025b5268f4916f9249d8781af99768721a4782d1fb8",
         "file": "boss-region-4-theme.bin"
       },
       {
@@ -24061,11 +24061,11 @@
     "estimated_additive_cycles": 27916,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "1564a025342a69486ab7f6671f87f02d0daf8170e1ac0d230ce641eda5b15df6",
+      "reportSha256": "5613c7ee6620c1b0302fefc568c9e91e030ea89aaa0a088a5390fda9ccd68528",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+        "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
       },
       "emulator": {
         "name": "Atari800",
@@ -25626,25 +25626,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "3b964a56d17a8a3ac63a7a5351f7a7019e353e79f34cb47a4cbb2547bc6eb3d0"
+        "sha256": "70643ea4ddbcfc79aed3932f6b5193f82145b56aa8385802d7bd0999f0a2136c"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+        "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "1564a025342a69486ab7f6671f87f02d0daf8170e1ac0d230ce641eda5b15df6"
+    "reportSha256": "5613c7ee6620c1b0302fefc568c9e91e030ea89aaa0a088a5390fda9ccd68528"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "3b964a56d17a8a3ac63a7a5351f7a7019e353e79f34cb47a4cbb2547bc6eb3d0"
+      "sha256": "70643ea4ddbcfc79aed3932f6b5193f82145b56aa8385802d7bd0999f0a2136c"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+      "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
     }
   }
 }

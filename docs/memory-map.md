@@ -144,7 +144,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7810-$7AF9` | 746 B | transient | packed C extension record landing (`HYBRID_C_EXT_STAGING`) | `boot` | manifest `directorCodeRuntimes` |
 | `$7810-$7979` | 362 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry | `boss-entry` | build/boss.map |
 | `$7810-$788F` | 128 B | transient | save-record sector buffer | `summary` | manifest `levelSummary.saveRecord` |
-| `$7A50-$7A6F` | 32 B | segment | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A50, run once per entry | `boss-entry` | build/boss.map |
+| `$7A48-$7A67` | 32 B | segment | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry | `boss-entry` | build/boss.map |
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
 | `$7C72-$7EDA` | 617 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
 | `$7EDB-$7F01` | 39 B | segment | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data | `resident` | build/encounter-director.map |
@@ -405,7 +405,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7810-$7AF9` | `boot` | packed C extension record landing (`HYBRID_C_EXT_STAGING`) |
 | `$7810-$7979` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry |
 | `$7810-$788F` | `summary` | save-record sector buffer |
-| `$7A50-$7A6F` | `boss-entry` | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A50, run once per entry |
+| `$7A48-$7A67` | `boss-entry` | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry |
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
 | `$7C72-$7EDA` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
 | `$7EDB-$7F01` | `resident` | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data |
@@ -1004,16 +1004,16 @@ Design notes; the generated block above has every range. Plan §5.12.
   64 B; the theme uses 176), drawn under WARNING by the kernel's
   `boss_enter_title` right after the run lands, then copied with the theme
   into the music block (unread there) and dead.
-  **feat/interceptor-armour (decision AN pt 5, placement C):** `$7A50-$7A6F`
-  (run bytes `$C0-$DF`, 32 B) is now **the boss entry's cold tail**
+  **feat/interceptor-armour (decision AN pt 5, placement C):** `$7A48-$7A67`
+  (run bytes `$B8-$D7`, 32 B) is now **the boss entry's cold tail**
   (`boss_entry_cold`, the boss link's `BOSS_ENTRY_COLD`, `cfg/boss.cfg`
   `BOSS_ENTRY_COLD_RAM`): the theme's start, the title, the boss code's read
   and the jump to slot A, copied by `scripts/build.mjs` into every region's
   theme run and entered by the kernel's `boss_enter_read` once the run has
-  landed and the theme is copied. The title's records follow at `$7A70-$7A8F`
-  (`BOSS_TITLE_OFFSET` `$E0`, at most 32 B: a boss name of at most 17
-  characters, checked by the build). The theme's limit stays `$C0` (177 B
-  used). The boss code's run lands in slot A, below, so the tail survives
+  landed and the theme is copied. The title's records follow at `$7A68-$7A8F`
+  (`BOSS_TITLE_OFFSET` `$D8`, at most 40 B: a boss name of at most 25
+  characters, checked by the build; the laser fixture's is 22). The theme's
+  limit falls `$C0` -> `$B8` (177 B used). The boss code's run lands in slot A, below, so the tail survives
   the read it starts. Dead once it has jumped to slot A.
 - **Slot B**: band rows 0-5 at `$A880-$A9FF` (over the level's hull block,
   dead after the capital sector; the entry clears the level's magic so the

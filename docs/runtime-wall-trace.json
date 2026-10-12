@@ -17,23 +17,23 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 27264,
-      "sha256": "3b964a56d17a8a3ac63a7a5351f7a7019e353e79f34cb47a4cbb2547bc6eb3d0"
+      "sha256": "70643ea4ddbcfc79aed3932f6b5193f82145b56aa8385802d7bd0999f0a2136c"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+      "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 874579,
-      "sha256": "bea5bf3afdd73041949b23f9ef1cab3f2926c8d060753f66af4fe618dce45be2"
+      "bytes": 874580,
+      "sha256": "f81743894da3cbb457880049830021b10c29d171c499d7dc3b44ed9791da35aa"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+    "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
   },
   "emulator": {
     "name": "Atari800",
@@ -235,7 +235,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -579,7 +579,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -923,7 +923,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1267,7 +1267,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1613,7 +1613,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1968,7 +1968,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -2358,7 +2358,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2367,7 +2367,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2376,7 +2376,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2385,7 +2385,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e2bb5008d944c31c829c1954d8c6395d96446f1028901b333028f12822ba0f82"
+          "sha256": "581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }

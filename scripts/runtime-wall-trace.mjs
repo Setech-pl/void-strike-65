@@ -4666,11 +4666,12 @@ function main() {
     if (session.bossPath !== undefined) slotEPathClauses(session, rows);
     if (session.edgeGuard !== undefined) bossEdgeGuardClause(session, rows);
     // S5-1 (plan s5-boss-regions §5): a region route enters its boss once,
-    // under 250 host frames; on MEDIUM the fight reaches the chain.
+    // in at most 280 host frames (owner decision AM, 2026-10-12; was < 250);
+    // on MEDIUM the fight reaches the chain.
     if (session.bossRegion !== undefined) {
       invariant(session.bossEntry !== undefined, `${session.id} never entered the boss (subject empty)`);
-      invariant(session.bossEntry.host_frames < 250,
-        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound < 250)`);
+      invariant(session.bossEntry.host_frames <= 280,
+        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 280)`);
       const chain = rows.find((row) => row.boss_state >= 3);
       session.regionRoute = { region: session.bossRegion, entry_host_frames: session.bossEntry.host_frames,
         entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };

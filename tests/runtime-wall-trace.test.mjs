@@ -394,7 +394,12 @@ test("PAL replay ends the level in its boss: drained entry, fight, chain, hold, 
     assert.equal(entry.boss_terminal_through_frame, entry.last_measured_frame,
       `${where}: the boss must hold to the last measured frame`);
     assert.ok(entry.boss_fight_frames > 0, `${where}: no fight time`);
-    assert.ok(entry.boss_entry_host_frames > 0 && entry.boss_entry_host_frames < 250,
+    // RE-GATED fix/boss-polish (owner decision AM, 2026-10-12): the boss
+    // entry's limit is 280 host frames in every task (was < 250) - the loading
+    // screen shows the title and the loader bar, the banner will load first
+    // later, and S5-3 / S5-4 and the M6 torpedo need the room. A gate change
+    // the owner approved, not a pin.
+    assert.ok(entry.boss_entry_host_frames > 0 && entry.boss_entry_host_frames <= 280,
       `${where}: the boss entry took ${entry.boss_entry_host_frames} host frames`);
   }
 });

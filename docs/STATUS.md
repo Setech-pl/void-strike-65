@@ -58,6 +58,16 @@ supersedes those four figures.
 **Owner decision, 2026-09-30: the game ships as the ATR only; the XEX is not
 released.** Section "ATR-only build" below.
 
+**Owner decision AM, 2026-10-12: the boss entry's limit is 280 host frames
+(was 250), in every task from now on.** The boss loading screen now shows the
+title and the loader bar, and the banner (decision AL) will load first later;
+S5-3 / S5-4 and the M6 torpedo need the headroom. The S5 rule "more than 65
+sectors is a STOP" is replaced by the 280-frame limit: the sector count is
+reported, the frames are the gate. The gates in
+`tests/runtime-wall-trace.test.mjs`, `scripts/runtime-wall-trace.mjs` and
+`tests/slot-f.test.mjs` moved with that reason (an approved gate change, not a
+pin). Journal §AM.
+
 **Licensing (2026-10-01):** code and engineering docs MIT ([LICENSE](../LICENSE)); game content and the ATR as a whole CC BY-NC-SA 4.0 ([LICENSE-ASSETS](../LICENSE-ASSETS)); the names and logos are reserved; tools, AI-generated and unknown-origin images in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md); `package.json` `(MIT AND CC-BY-NC-SA-4.0)`.
 
 **Resource budget to 1.0 (2026-10-01, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/budget-1.0.md](plans/budget-1.0.md) — the inventory, what M2–M9 each spend, the first shortfall (the `$AE00` window at M5, the boss), the priced levers and the owner decisions with their latest milestone.

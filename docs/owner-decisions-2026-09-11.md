@@ -2195,6 +2195,26 @@ wygrywa, a sesja raportuje różnicę.
 
 ---
 
+## AM. LIMIT WEJŚCIA BOSSA 250 → 280 KLATEK HOSTA — decyzja właściciela (2026-10-12, po zagraniu w buildy fazy A `fix/boss-polish`)
+
+1. **Limit wejścia bossa to 280 klatek hosta** (było: 250), **we wszystkich
+   zadaniach od teraz** — niezależnie od wyniku błysku modułu w `fix/boss-polish`.
+   Powód: ekran ładowania bossa pokazuje teraz tytuł i pasek ładowania, a
+   później najpierw załaduje się baner (decyzja **AL** pkt 2); S5-3/S5-4 i
+   torpeda M6 potrzebują zapasu.
+2. **Reguła S5 „więcej niż 65 sektorów to STOP” zostaje zastąpiona limitem 280
+   klatek** (plan `s5-boss-regions`). Liczba sektorów wejścia jest odtąd
+   raportowana, ale granicą jest czas wejścia w klatkach.
+3. Bramka w teście i w śladzie (`tests/runtime-wall-trace.test.mjs`,
+   `scripts/runtime-wall-trace.mjs`, `tests/slot-f.test.mjs`) zmienia się z
+   powodem — to **zatwierdzona zmiana bramki, nie pin** (reguła **AJ** pkt 2).
+   Limit z pkt 2 decyzji **AL** (ok. 280 tylko dla zadania banerów) jest tym
+   samym wchłonięty.
+
+**Wynik:** plan `boss-polish` §9, plan `s5-boss-regions`, STATUS.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

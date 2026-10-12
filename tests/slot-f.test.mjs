@@ -104,7 +104,7 @@ test("Q9: a changed byte in the region's block is refused at the boss entry (the
   assert.equal(changed.end, "failure", "a changed block byte reached the install");
 });
 
-test("Q10: every region's boss entry reads its own block, in at most 65 sectors", () => {
+test("Q10: every region's boss entry reads its own block, in the sectors the manifest names", () => {
   for (const [region, level] of [[1, 1], [2, 4], [3, 7], [4, 10]]) {
     const entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = level; } });
     assert.equal(entry.end, "main_loop", `region ${region}`);
@@ -114,7 +114,10 @@ test("Q10: every region's boss entry reads its own block, in at most 65 sectors"
     for (const other of manifest.boss.slotF.blocks.filter((b) => b.region !== region)) {
       assert.ok(!sectors.includes(other.startSector), `region ${region} read region ${other.region}'s block`);
     }
+    // RE-GATED fix/boss-polish (owner decision AM, 2026-10-12): the S5 rule
+    // "at most 65 sectors" is replaced by the boss entry's 280-host-frame
+    // limit, which the trace holds (tests/runtime-wall-trace.test.mjs,
+    // scripts/runtime-wall-trace.mjs); the count is still checked exactly.
     assert.equal(sectors.length, manifest.boss.regions[region - 1].entrySectors);
-    assert.ok(sectors.length <= 65, `region ${region}: ${sectors.length} sectors`);
   }
 });

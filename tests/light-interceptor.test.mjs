@@ -264,7 +264,9 @@ test("admission per difficulty: entry x 124, leaderless, and the record's own po
     // index is no longer kept as state: 56/44/32 are the Interceptor record's
     // three difficulty columns, so a wrong column shows here.
     assert.deepEqual(light(image), {
-      state: 1, hp: 1, x: 124, y: 0, timer: pause, leaderless: 1,
+      // RE-POINTED feat/interceptor-armour (owner answer H3 of 2026-10-12):
+      // the record's hit points 1 -> 3.
+      state: 1, hp: 3, x: 124, y: 0, timer: pause, leaderless: 1,
       offset: OFFSET_INTERCEPTOR, burstLeft: 0,
     });
   }
@@ -432,21 +434,30 @@ test("fire is gated by visibility and by the player dying, exactly like the Wing
   assert.equal(run(image, "enemy_light_tick").a, 2, "fires, returning weapon_class LASER");
 });
 
-test("a player PairShot kills the Interceptor, scores 0x15 BCD, and only the fighter lifecycle retires it", () => {
+// RE-POINTED feat/interceptor-armour (owner answer H3 of 2026-10-12): three
+// PairShots, not one. The first two are spent and leave it alive with its hit
+// points 2 and 1 and the score untouched; the third kills it exactly as the one
+// shot did (tests/interceptor-armour.test.mjs compares the two kills).
+test("three player PairShots kill the Interceptor, the third scores 0x15 BCD, and only the fighter lifecycle retires it", () => {
   const image = game();
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
   image[L("light_x")] = 100;
   image[L("light_y")] = 99;
   const active = L("FIGHTER_PROJECTILE_ACTIVE");
-  image[active] = 1;
-  image[L("FIGHTER_PROJECTILE_X")] = 102;
-  image[L("FIGHTER_PROJECTILE_Y")] = 100;
   image[L("score_bcd_lo")] = 0x00;
   image[L("score_bcd_hi")] = 0x00;
-  const hit = run(image, "light_shot", { x: 0 });
-  assert.equal(hit.carry, false);
-  assert.equal(image[active], 0);
+  for (const hpLeft of [2, 1, 0]) {
+    image[active] = 1;
+    image[L("FIGHTER_PROJECTILE_X")] = 102;
+    image[L("FIGHTER_PROJECTILE_Y")] = 100;
+    const hit = run(image, "light_shot", { x: 0 });
+    assert.equal(hit.carry, false);
+    assert.equal(image[active], 0);
+    if (hpLeft === 0) break;
+    assert.deepEqual([light(image).state, light(image).hp], [1, hpLeft]);
+    assert.deepEqual([image[L("score_bcd_lo")], image[L("score_bcd_hi")]], [0x00, 0x00]);
+  }
   assert.equal(light(image).state, 0);
   assert.deepEqual([image[L("score_bcd_lo")], image[L("score_bcd_hi")]], [0x15, 0x00]);
   const member = L("ENEMY_MEMBER_STATE");
@@ -537,7 +548,11 @@ test("placement contract: legal composite and packed size, state inside its rese
   // 2026-10-12, plan interceptor-standoff §13.11): 65 -> 20. The boss entry's
   // head, 45 B, moved here from the code window (pin_boss_enter_head $8B26),
   // the last window home with room; the pickup record packs 1,180 of 1,259.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 20);
+  // Re-recorded feat/interceptor-armour (owner answer of 2026-10-12, placement
+  // C): 20 -> 9. The boss entry's HUD booster backup (11 B more than its
+  // call), inlined into the head from the Light kernel link; the pickup
+  // record packs 1,191 of 1,259.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 9);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
@@ -573,7 +588,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Re-recorded feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12): 39 -> 30, the other side of the composite's 860 -> 869 -
   // light_admit's per-slot loop store, 9 B.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 30);
+  // Re-recorded feat/interceptor-armour (owner answer F1 of 2026-10-12): 30
+  // -> 24, the other side of the composite's 869 -> 875 - light_admit clears
+  // the slot's hit flash, 6 B. Still above the 16-B owner floor.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 24);
   // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
   // self-modified read tail was at $9D21, ahead of the art tables, and went
   // with the v1 player. Nothing about the tables themselves changed.

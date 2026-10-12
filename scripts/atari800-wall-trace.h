@@ -3662,6 +3662,34 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
 			}
+			/* feat/interceptor-armour (class (a), the owner's answer 4 of
+			 * 2026-10-12): on the road to the boss, the HARD hunts' Light
+			 * dodge (DFTRACE_LIGHT_DODGE, an Interceptor's laser bolt, $16),
+			 * widened to the Bomber's shells (weapon class BOMBER (3) << 3,
+			 * $18-$1F): never towards one falling within 24 HPOS above, away
+			 * from one within 12. With three-hit Interceptors the sweep stays
+			 * longer in the swarm, and a Bomber shell met it there (MEASURED:
+			 * ACTIVE $1A at f3,169), so it came to the lasers damaged and never
+			 * sought a beam. Every slot of the pool: a Heavy's emission takes
+			 * any free one, and the player's own codes never carry bit 3.
+			 * This policy only: no other replay moves. */
+			if (!dftrace_boss_active() && dftrace_projectile_x != 0u &&
+				dftrace_projectile_y != 0u && dftrace_projectile_active != 0u) {
+				unsigned slot;
+				int block_right = 0, block_left = 0;
+				for (slot = 0u; slot < 10u; ++slot) {
+					unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					if ((active != 0x16u && (active & 0x38u) != 0x18u) ||
+						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						continue;
+					if (dx >= 0) block_right = 1; else block_left = 1;
+					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+				}
+				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
+				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
+			}
 			/* feat/interceptor-standoff (class (a), the owner's answer of
 			 * 2026-10-11): while the boss is due - the boss sector's run-in,
 			 * the world still scrolling - a debris piece from the sector

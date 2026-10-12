@@ -106,8 +106,11 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12): light_admit stores the armed wave's loop count per slot,
   // +9 B: 860 -> 869, the record 742 of 747 B.
+  // RE-PINNED feat/interceptor-armour (owner answer F1 of 2026-10-12):
+  // light_admit clears the slot's hit flash, +6 B: 869 -> 875, the record
+  // 746 of 747 B.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 869 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 875 });
   const window = manifest.residentCapacity.basicWindow;
   // Q-1 (owner, 2026-09-23): the window starts at $AE00, not $B600 - the level
   // buffer gave back 16 sectors and the window took them.

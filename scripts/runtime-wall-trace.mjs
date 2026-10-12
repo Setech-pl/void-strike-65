@@ -591,14 +591,18 @@ const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
  * feat/interceptor-standoff (owner answer Q5, 2026-10-11): 7,100 -> 7,400
  * frames, the clause unchanged. Level 1 runs longer once its Interceptors no
  * longer die on the fighter, and at 7,100 the replay ended 3,894 frames into
- * the fight, before the clause's 4,000-frame window closed (class (a)). */
+ * the fight, before the clause's 4,000-frame window closed (class (a)).
+ * feat/interceptor-armour (owner answer of 2026-10-12): 7,400 -> 7,800
+ * frames, the clause unchanged. Three-hit Interceptors take the sweep longer
+ * to clear (the fight began at f3,542-3,602 against f3,167 in Phase A), so at
+ * 7,400 the replay ended before the clause's window closed again. */
 const BOSS_EDGE_GUARD_FRAMES = 4_000;
 const bossEdgeGuardSessions = [{
   id: "boss-edge-left-1",
   difficulty: 1,
   policy: "park-48",
   fireDelay: 2,
-  frames: 7_400,
+  frames: 7_800,
   /* Its own kind: the baseline-9040 set is a fixed 9,040-frame aggregate. */
   kind: "boss-edge-guard",
   holdPlayerLives: 3,

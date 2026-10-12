@@ -310,7 +310,10 @@ test("the stat hooks are operand-only in every full segment", () => {
   // (a lethal debris shot clobbered the PairShot loop's X). Not a stat hook.
   const kernelSegment = /^al\s+([0-9a-f]+)\s+\.__LIGHT_KERNEL_SIZE__$/im.exec(
     fs.readFileSync(build("light-kernel.lbl"), "utf8"));
-  assert.equal(Number.parseInt(kernelSegment[1], 16), 775, "the Light kernel grew");
+  // RE-PINNED feat/interceptor-armour (owner answer F1 of 2026-10-12): 775 ->
+  // 793 B, the survived hit's flash (start, shift, render, erase, resolver).
+  // Not a stat hook.
+  assert.equal(Number.parseInt(kernelSegment[1], 16), 793, "the Light kernel grew");
   assert.equal(manifest.broadsideRuntime.bytes, 6653, "BROADSIDE grew");
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: the bound 13,621 -> 13,626; the stat hooks still add none.
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13621 + 5,
@@ -412,7 +415,13 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // call that draws the region's title in: the kernel link 987 -> 982 B,
   // so the free tail 941 -> 946 (the other side of the same re-pin in
   // tests/basic-window-capacity.test.mjs and tests/level-buffer-16.test.mjs).
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 946, "the window moved");
+  // RE-PINNED feat/interceptor-armour (owner answers F1, H3 and placement C of
+  // 2026-10-12): the kernel link 982 -> 957 B - the hit flash in the kernel
+  // (+18 B), the boss entry's title, theme start and code read (once per
+  // entry) out to every region's theme run (BOSS_ENTRY_COLD), the HUD booster
+  // backup inlined into the head in PICKUP_CODE; the free tail 946 -> 971 (the other side of the same re-pin in
+  // tests/basic-window-capacity.test.mjs and tests/level-buffer-16.test.mjs).
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 971, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623, "the initial block moved");

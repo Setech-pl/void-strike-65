@@ -96,12 +96,19 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // RE-PINNED fix/boss-polish (plan boss-polish §8, owner decision AL 1): the WARNING screen's
   // "BOSS APPROACHING" record (19 B) out of the kernel's last segment, the 14-B
   // call that draws the region's title in: 987 -> 982 B.
-  assert.equal(window.lightKernelBytes, 982);
+  // RE-PINNED feat/interceptor-armour (owner answers F1, H3 and placement C of
+  // 2026-10-12): the kernel link 982 -> 957 B - the hit flash in the kernel
+  // (+18 B), the boss entry's title, theme start and code read (once per
+  // entry) out to every region's theme run (BOSS_ENTRY_COLD), the HUD booster
+  // backup inlined into the head in PICKUP_CODE; the free tail 946 -> 971.
+  assert.equal(window.lightKernelBytes, 957);
   // RE-PINNED fix/boss-polish (the other side of the kernel's 987 -> 982):
   // used 2,643 -> 2,638, the tail 941 -> 946.
-  assert.equal(window.usedBytes, 2638);
-  assert.equal(window.freeBytes, 3584 - 2638);
-  assert.equal(window.freeBytes, 946, "the tail the boss title's kernel change leaves");
+  // RE-PINNED feat/interceptor-armour (the other side of the kernel's 982 ->
+  // 957): used 2,638 -> 2,613, the tail 946 -> 971.
+  assert.equal(window.usedBytes, 2613);
+  assert.equal(window.freeBytes, 3584 - 2613);
+  assert.equal(window.freeBytes, 971, "the tail the hit flash and the cold boss entry leave");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);

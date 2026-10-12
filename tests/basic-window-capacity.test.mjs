@@ -120,7 +120,12 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // "BOSS APPROACHING" record (19 B) out of the kernel's last segment, the 14-B
   // call that draws the region's title in: the kernel link 987 -> 982 B,
   // so the free tail 941 -> 946. No window byte moved.
-  assert.equal(basicWindow.freeBytes, 946,
+  // RE-PINNED feat/interceptor-armour (owner answers F1, H3 and placement C of
+  // 2026-10-12): the kernel link 982 -> 957 B - the hit flash in the kernel
+  // (+18 B), the boss entry's title, theme start and code read (once per
+  // entry) out to every region's theme run (BOSS_ENTRY_COLD), the HUD booster
+  // backup inlined into the head in PICKUP_CODE; the free tail 946 -> 971.
+  assert.equal(basicWindow.freeBytes, 971,
     "the delivered interceptor-standoff figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);

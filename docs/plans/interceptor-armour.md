@@ -409,3 +409,40 @@ To rebuild: `node scripts/build.mjs --interceptor-armour=ID [--level=1:sector=6]
 * No other Interceptor, Wingman or shot changes colour or blinks with it.
 * The elite companion (sector 4) and the boss escorts take the same hits.
 * On the boss route, the MEDIUM fight should feel about as long as `main`'s.
+
+## 10. Owner answers (2026-10-12) and the placement STOP
+
+Answers: **F1** (pod flash); **H3** everywhere from the record, no wave flag
+(bit 5 stays unused); `boss-edge-left-1` 7,400 → 7,800 frames, its pass
+condition unchanged; `lower-playfield-laser-contact-atr-hard` gets the hunting
+bots' dodge widened to Bomber shells, that replay only; item 5 (the BROADSIDE
+pin) conditional on who reserved it.
+
+**Who reserved `hull_sequence_reserve` (`src/main.s:7903`, `$69D7-$6A4E`).**
+Roadmap 4.6 step 4 left it as a 120-B zero pin when the hull sequences moved to
+the level page (`src/main.s:7894-7898`; director-4.6 §2.4, §8.2). It has a
+planned owner: **M3-H**, [m3-waves-heavy.md](m3-waves-heavy.md) §0.3 item 5
+(line 146: "the plan uses the pin") and §5 (line 854): `world_rotate_due` 17 B
+(built, §9) and then the Heavy rotate gate 58 B, the base veneer 26 B and the
+pending test 14 B — **98 of the 103 free bytes, 5 left**; budgeted again in
+[gameplay-variety.md](gameplay-variety.md) line 142 ("M3 is priced on 98 + 6 of
+them"); M3-H is the third item of order B (decision AE). Phase A's F1 put 36 B
+there (`light_flash_start`, `boss_enter_title`, `boss_enter_hud_backup`):
+67 B would remain against M3-H's 98, **31 B short**. Per the owner's
+instruction: STOP.
+
+**Alternatives measured (M, `--level=1:sector=0` builds of F1 + H3's code,
+`scripts/build.mjs` manifests):**
+
+| Option | Where the overflow goes | Light kernel record (cap 875, 7 sectors) | Other records | Takes planned bytes from |
+| --- | --- | ---: | --- | --- |
+| everything in the kernel | — | **889** (8 sectors: a boot-loaded record grows, ruled out) | — | — |
+| P — Phase A | 36 B to the BROADSIDE pin | 861 | BROADSIDE 5,559 of 5,611 | M3-H's pin: 31 B short |
+| **K** — recommended | `boss_enter_title` (14 B) to the `PICKUP_CODE` free tail beside its caller's head (`boss_enter_head`), `$8B53-$8B60`; the flash's own code stays in the kernel, made smaller (the update's guard dropped: a lone `asl LIGHT_FLASH,x`, 7 cycles as the guard's untaken case; the resolver's flash test as one masked subtract) | **875** (0 spare) | pickup record 1,180 → 1,194 of 1,259; window 1,322 (0 B); BROADSIDE unchanged | the `PICKUP_CODE` tail, 20 → 6 B: M3-H's H16 (32 B of RAM there, line 731) had already lost that home to feat/interceptor-standoff's 45 B; the 5-B spawn rotate gate (reserve lever A, line 1240) still fits |
+| W | `boss_enter_title` into the window's `HYBRID_ASM_WINDOW` pad (pre-approved ≤ 24 B) | not built | window ≈ +14 packed | the window; the kernel moves `$B478` → `$B484`, whose taken branches were laid out against page crossings (`src/hybrid/c-asm-abi.s:620-625`) — re-measure |
+
+RAM, in every option: `light_flash[4]` at `$8137-$813A` (`HYBRID_LIGHT_LOOK_RAM`
+9 → 13 B). M3's plan earmarked `$8133-$813A` for P8 (path state, line 576);
+feat/interceptor-standoff already took `$8133-$8136`. After this, `$813B-$813F`
+and `$85E6-$85EE` (14 B) still cover H15's 13 B; P8's 8 B need a new home in
+M3's session either way.

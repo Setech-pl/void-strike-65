@@ -116,7 +116,7 @@ const SEGMENTS = {
   HYBRID_C_WINDOW: ["Director link's half of the BASIC window", "resident"],
   HYBRID_ASM_WINDOW: ["the boss entry's resident half (M5b-S3), last in the Director link's window half", "resident"],
   HYBRID_C_WINDOW_FLOW: ["the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses", "resident"],
-  HUD_BOOSTER_BACKUP: ["the boss entry's HUD booster backup (S5-1), the Light kernel link's last segment", "resident"],
+  HUD_BOOSTER_BACKUP: ["the boss entry's region read and WARNING records, the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour)", "resident"],
   LIGHT_KERNEL: ["Light ASM kernel; carries the capital vector table", "resident"],
   DISK_GUARD: ["the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record", "resident"],
   CAPITAL_VECTOR_IMAGE: ["the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening)", "resident"],
@@ -141,6 +141,7 @@ const SEGMENTS = {
   BOSS_HUD_BACKUP: ["the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes", "overlay"],
   BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry", "boss-entry"],
+  BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A50, run once per entry", "boss-entry"],
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.
   BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],

@@ -621,7 +621,7 @@ title records' address as a literal.
 | slot F (R1 table) | 110 B | 110 B | M |
 | region charset | 976 B, 122 codes | 976 B, 122 codes | M |
 | theme run | 176 of 256 B | 176 + the title's records at `$C0` (R1: 31 B) | M |
-| npm test | 1,309 tests, 1 recorded failure | §11.5 | M |
+| npm test (two full runs, default build) | 1,309 tests, 1 recorded failure | **1,324 tests, 1,323 pass, 1 fail each**: the recorded `tests/preview.test.mjs` (matched by name and first assertion); `failures:reconcile` 0 NEW, 0 MOVED, 0 disappeared after each; the trace 0 clause failures | M |
 | ATR / boot | `3b05ca34…` / `731e5703…` | `ddf01a9f…` / `186739b2…` | M |
 
 ### 11.5 Follow-ups

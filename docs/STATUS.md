@@ -441,7 +441,10 @@ Plan [plans/boss-polish.md](plans/boss-polish.md) (§11 as built); journal
 
 **Tests.** New: `tests/boss-hit-flash.test.mjs` (6) and
 `tests/boss-polish.test.mjs` (9), 13 of the 15 RED on `main`. Re-pinned or
-re-pointed, each with its reason at the site: plan §11.3.
+re-pointed, each with its reason at the site: plan §11.3. Two full `npm test`
+runs on the default build: 1,324 tests, 1,323 pass, 1 fail each (the recorded
+preview test); `npm run failures:reconcile` after each: 1 matched, **0 NEW,
+0 MOVED**; the trace 0 clause failures.
 
 **ATR** `ddf01a9fdd53a0adb2060509c401d74d8c02981286bf7c59bbe1263254cc8049`,
 **boot** `186739b23680f4a347dd30835685ba5128ebc1dba2be0f67206b01c4ba8a015d`.

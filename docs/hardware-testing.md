@@ -949,6 +949,70 @@ atari800 -xl -pal -nobasic "$PWD/build/play/feat-boss-escort-flow-boss-route-91d
       as in Atari800, with no flicker, tearing or slowdown when an escort and
       the boss's fire are on screen together. The summary follows the win.
 
+## 27. The Interceptor without kamikaze runs: it holds above you, fires, loops and climbs out (`feat/interceptor-standoff`)
+
+Plan [plans/interceptor-standoff.md](plans/interceptor-standoff.md) (§11, §13);
+journal §AK. Before this build every Interceptor chased the fighter at its own
+top speed and ended its pass rammed or shot down. Now every Interceptor:
+* comes down to about **7 rows above** the fighter and holds there;
+* **backs off upwards** when the fighter climbs closer than 6 rows;
+* tracks the fighter's column, and fires its laser **only when it is in that
+  column**;
+* after about 2 s it climbs away.
+
+**Level 1's swarm and elite (a) Interceptors loop twice:**
+* each climbs to its own hold row near the top of the screen, waits there
+  about 0.8 s without firing, then dives back above you and flies the standoff
+  again;
+* after the second loop it climbs out at the top;
+* in a swarm the Interceptors hold on different rows, both above you (each
+  two rows above the one before) and at the top (each two rows below the one
+  before).
+
+The boss escort keeps a single pass: it climbs out after its first standoff.
+The swarm is 408 rows long, so that with no kills all its waves still come.
+The fight by the bot is about 86 / 103 / 154 s on EASY / MEDIUM / HARD.
+ATR `3b05ca34…`, boot `731e5703…`.
+
+**Atari800**, copies in `build/play/` (rebuild the boss route with
+`node scripts/build.mjs --level=1:sector=6`):
+
+```
+atari800 -xl -pal -nobasic "$PWD/build/play/feat-interceptor-standoff-3b05ca34.atr"             # the default game
+atari800 -xl -pal -nobasic "$PWD/build/play/feat-interceptor-standoff-boss-route-925f69cb.atr"  # straight to the boss
+```
+
+- [ ] **No ramming.** In level 1's Interceptor waves an Interceptor stops
+      above you instead of diving into you. Fly up towards it: it backs off
+      upwards and does not collide.
+- [ ] **The laser only when aligned.** It fires only when it is in your
+      column. Sidestep and it holds fire until it has caught up.
+- [ ] **Two loops in the swarm and elite (a).** After its standoff each
+      Interceptor climbs to a hold row near the top, **stays on screen**
+      there without firing, dives back and holds above you again; after the
+      second loop it climbs out at the top and does not come back.
+- [ ] **The swarm stacks.** Three Interceptors hold on three different rows,
+      above you and at the top, never merged into one cell.
+- [ ] **The swarm still ends.** Without shooting, the Wingman column after
+      the Interceptors still comes (all three on HARD too), and the elite
+      sector follows. Shooting everything ends the swarm early, as before.
+- [ ] **The boss escort is unchanged:** one pass, then out at the top; the
+      first right after the boss's first weapon falls, then one every 3-4 s,
+      never two at once, none after the boss falls.
+- [ ] **The left edge is still covered.** Park at the far left of the boss
+      and keep firing: escorts come over you and hit you there.
+- [ ] **The fight's length on MEDIUM** feels right (the bot: about 103 s;
+      the rule is 90-120 s).
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the default ATR
+`3b05ca34…` under a new file name, after §23's boot and §24's sound check:
+
+- [ ] **Level 1 and the boss on hardware.** Play level 1 to its boss and
+      fight it to the summary. The Interceptors hold, loop, back off and fire
+      as in Atari800, with no flicker, tearing or slowdown, also with three
+      Interceptors and debris in the swarm, and with an escort, the boss's
+      fire and a laser on screen together.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

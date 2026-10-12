@@ -2,16 +2,16 @@
 
 **Branch:** `feat/interceptor-standoff` from `main` `ef1924d` (ATR `90f3e24e…`,
 boot `fce37c74…`, the `feat/boss-escort-flow` merge, decision AI).
-**Status:** Phase B built and committed; the evidence bound (`84cc2a4`); the
-three re-points of §11.8 approved and committed (`a0c5d8e`). The owner's smoke
-finding of 2026-10-11 (an Interceptor climbed off the top of the swarm and
-never came back) opened **Phase A-lite, the top-hold loop (§12)**. The owner's
-answers L1-L5 of 2026-10-12 (2 loops, the escort 0, a new exit direction, the
-window full after the moves, the fence accepted, the HARD hunts kept reaching
-the boss) opened **§13: the final behaviour as a review variant, measured,
-waiting for the owner's smoke and E1/E2 (§13.9)**. Phase B of the loop (tests
-first, the evidence, two full `npm test`, STATUS, the §27 checklist) follows
-the owner's OK. The owner's answers are §9.1 and decision AK.
+**Status:** `OWNER-SMOKE CANDIDATE` (2026-10-12). The standoff (variant R,
+§11) and the top-hold loop (§12-§13) are built, with Phase B complete:
+* E1 (b): always up;
+* E2: the HARD hunts' dodge;
+* Q1: the swarm 408 rows;
+* Q2: the re-pins.
+
+The evidence is bound (`1f372e7`, ATR `3b05ca34…`). Two full `npm test`
+runs gave 0 NEW and 0 MOVED (§13.12). STATUS and the §27 smoke checklist
+are written. The owner's answers are §9.1 and decision AK.
 
 **The owner's finding (2026-10-11, after playing the escort flow):** the
 Interceptor chases at the player's own top speed, so every pass ends shot down
@@ -1135,3 +1135,12 @@ wave arms with no kills.
   Their swarm used to end on the 384-row cut (EASY hunt 5: 20.3 s); it now ends
   early, when its last Light has gone, at 1,045 frames (20.9 s; the boss at
   89.0 s, was 83.1). Every other replay's swarm ended early, before the cut.
+* **Two full `npm test` runs** on the default build: 1,309 tests, 1,308
+  pass, 1 fail each. After each, `failures:reconcile` gave 1 matched (the
+  recorded preview test), **0 NEW, 0 MOVED**, and the trace 0 clause failures.
+* **The candidate:**
+  - `build/play/feat-interceptor-standoff-3b05ca34.atr` (the default game);
+  - `build/play/feat-interceptor-standoff-boss-route-925f69cb.atr`
+    (`--level=1:sector=6`).
+
+  STATUS and `hardware-testing.md` §27 carry it as `OWNER-SMOKE CANDIDATE`.

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-11 (feat/boss-escort-flow: the owner's smoke of 2026-10-10 - the boss escort came three times at the start and never again - and the owner's answers of the same day (journal §AI): the escort starts at the FIRST weapon kill (the left-edge refuge stays closed: the new guard replay boss-edge-left-1, 16 escorts and 6 hits parked at the left edge; 0 escorts on the N = 2 control), then one Light escort every 150 + 0..63 frames on frames with no kill until the boss falls, never two, none after the defeat; the Director decides (window +43 B, DIRECTOR_RAM +30 B, slot C +14 B in its 13 sectors, slots A/D/E and the initial block unchanged); no re-entry (TW out); regions 2-4 follow region 1; MEDIUM 125.9 s by the aiming bot, up to 126 s accepted temporarily until the next task (the escort's behaviour: no kamikaze runs); the laser-contact replay finishes the boss again; worst fence margin 1,447 -> 1,423, DMA-on 31,304 -> 31,310, boss frames 7,795 / 29,912, boss stress 6,979, entry 245 - OWNER-SMOKE CANDIDATE; before it feat/boss-r1-tuning: the owner's smoke of 2026-10-09 - the player hid at a screen edge of region 1's boss, the guns too durable - and the owner's decisions of 2026-10-10: variant B, guns at the far ends (gun-5 behind plate-a, gun-6 behind plate-h), every gun 28 -> 14 HP (the emitter 20), plates a and h 16 -> 12, one Light escort stream in the boss sector, six Light-class escorts one at a time (replaces "no Light escort in R1"); the fight measured with the aiming bot in the boss sector as a ratio against main's plain sweep - 91.8 / 118.1 / 139.9 s (E / M / H); the look tail at its 110 B cap accepted; regions 2-4's loading screens show the gun rows; README v0.2.3; worst fence margin 1,447 and DMA-on 31,304 unchanged, boss frames 6,026 / 30,029, boss stress 6,965, entry 245 - OWNER-SMOKE CANDIDATE; before it fix/hardware-audio: on a real 65XE channels 3 and 4 were silent - the menu's melody and arpeggio, the shots, the engine hum, the capital-hull explosions, the boss hum and ticks - because the OS's SIO and the sector reader left SKCTL = $13, whose bit 4 (asynchronous receive) holds POKEY's timers 3 and 4 in reset; Atari800 does not model the hold; the owner's probe test confirmed it; F1 the reader's rest value $03 (0 B), F2 SKCTL $03 once before the first menu (+5 B ENTITY_CODE, initial block 13,618 -> 13,623 B, 29 B to the STOP); gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, part of the v0.2.3 release gate; before it fix/hardware-boot: no ATR had ever booted on a real machine - stage 2 armed the OS SIOV's receive direction (DSTATS) once per chunk, so a real 65XE stopped on the red halt about 15 s after power-on, every ATR from e1614e7 to v0.2.2; Atari800's SIO patch hid it from every committed run; F1 re-arms DSTATS before every SIOV call (0 B), R7 the reader's settle 2 -> 5 frames (0 B); the boot smoke runs real SIO (-nopatch), every other launch pins the patch on; boot to menu 1,351 frames (27.0 s) under real SIO; gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, the release gate for v0.2.3; before it feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-12 (feat/interceptor-standoff: the owner's finding - the Light laser fighter rammed (kamikaze runs) - and the owner's answers of 2026-10-11/12 (journal §AK): every one of them holds 7 rows above the player, backs off under 6, each Light slot 2 rows higher, fires its laser only in the player's column; level 1's swarm and elite (a) ones loop twice (a top-hold row on screen, 39 frames, no fire) and then climb out upward (E1 (b): the downward exit never fires because it tracks the player's column at the player's speed; "break away sideways, then dive" in the backlog after the window levers); the boss escort one pass; the swarm 384 -> 408 rows (all 9 Lights arm with no kills on every difficulty); the debris-shot PairShot fix; region 1's plates b-g -4 HP, guns 14 -> 12: the fight 86.5 / 103.0 / 154.4 s; the HARD hunting bots dodge the laser; window record 1,322 of 1,387 B (the window effectively full: any further resident byte is a STOP until the window levers), window tail 941 (floor 900), Light kernel 866 of 875, pickup tail 20 B; worst fence margin 1,423 -> 1,287 (owner floor 1,285), DMA-on 31,310 -> 31,443 accepted, boss frames 8,427 / 29,846, boss stress 6,987, entry 245 - OWNER-SMOKE CANDIDATE; before it feat/boss-escort-flow: the owner's smoke of 2026-10-10 - the boss escort came three times at the start and never again - and the owner's answers of the same day (journal §AI): the escort starts at the FIRST weapon kill (the left-edge refuge stays closed: the new guard replay boss-edge-left-1, 16 escorts and 6 hits parked at the left edge; 0 escorts on the N = 2 control), then one Light escort every 150 + 0..63 frames on frames with no kill until the boss falls, never two, none after the defeat; the Director decides (window +43 B, DIRECTOR_RAM +30 B, slot C +14 B in its 13 sectors, slots A/D/E and the initial block unchanged); no re-entry (TW out); regions 2-4 follow region 1; MEDIUM 125.9 s by the aiming bot, up to 126 s accepted temporarily until the next task (the escort's behaviour: no kamikaze runs); the laser-contact replay finishes the boss again; worst fence margin 1,447 -> 1,423, DMA-on 31,304 -> 31,310, boss frames 7,795 / 29,912, boss stress 6,979, entry 245 - OWNER-SMOKE CANDIDATE; before it feat/boss-r1-tuning: the owner's smoke of 2026-10-09 - the player hid at a screen edge of region 1's boss, the guns too durable - and the owner's decisions of 2026-10-10: variant B, guns at the far ends (gun-5 behind plate-a, gun-6 behind plate-h), every gun 28 -> 14 HP (the emitter 20), plates a and h 16 -> 12, one Light escort stream in the boss sector, six Light-class escorts one at a time (replaces "no Light escort in R1"); the fight measured with the aiming bot in the boss sector as a ratio against main's plain sweep - 91.8 / 118.1 / 139.9 s (E / M / H); the look tail at its 110 B cap accepted; regions 2-4's loading screens show the gun rows; README v0.2.3; worst fence margin 1,447 and DMA-on 31,304 unchanged, boss frames 6,026 / 30,029, boss stress 6,965, entry 245 - OWNER-SMOKE CANDIDATE; before it fix/hardware-audio: on a real 65XE channels 3 and 4 were silent - the menu's melody and arpeggio, the shots, the engine hum, the capital-hull explosions, the boss hum and ticks - because the OS's SIO and the sector reader left SKCTL = $13, whose bit 4 (asynchronous receive) holds POKEY's timers 3 and 4 in reset; Atari800 does not model the hold; the owner's probe test confirmed it; F1 the reader's rest value $03 (0 B), F2 SKCTL $03 once before the first menu (+5 B ENTITY_CODE, initial block 13,618 -> 13,623 B, 29 B to the STOP); gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, part of the v0.2.3 release gate; before it fix/hardware-boot: no ATR had ever booted on a real machine - stage 2 armed the OS SIOV's receive direction (DSTATS) once per chunk, so a real 65XE stopped on the red halt about 15 s after power-on, every ATR from e1614e7 to v0.2.2; Atari800's SIO patch hid it from every committed run; F1 re-arms DSTATS before every SIOV call (0 B), R7 the reader's settle 2 -> 5 frames (0 B); the boot smoke runs real SIO (-nopatch), every other launch pins the patch on; boot to menu 1,351 frames (27.0 s) under real SIO; gameplay frame-identical to main - OWNER-SMOKE CANDIDATE, the release gate for v0.2.3; before it feat/boss-finale, S5-2: the boss finale - once the last armour module falls every surviving weapon fires three-shot volleys at half its reload, floored by the region's fire.finaleCooldown; off in region 1, on in the region 2-4 placeholders; slot C trimmed back to 1,648 B / 13 sectors; the stress composition with the volleys' burst steps; the finale clause on the region routes - OWNER-SMOKE CANDIDATE; before it chore/s5-platform, S5-1: the target machine is the 64 KB 800XL / 65XE (-xl) at every launch, one labelled 130XE boot; the PORTB check; the booster bar kept through the boss entry and every HUD field audited; slot F with the region block; regions 2-4 on the disk as copies of region 1; the boss's region index fixed for levels 4-12; the stress composition with a spawn on the kill frame, then the owner's decision (no gun fires on a module-kill frame, the cheap next-gun walk) - OWNER-SMOKE CANDIDATE; before it feat/sector-flow, the owner's smoke of 2026-10-09: the boss entry waits while debris is live - no debris frozen through the fight; then feat/sector-flow: the Director ends a space sector when its waves are spent and the field is clear, arms afterCleared waves, holds a sector's end while the live enemies exceed the next sector's caps (C1, the M4 prerequisite, closed); level 1's swarm chains a third wave, the Bomber pair arms afterCleared, the W2 reserves dropped; dead time after the capital 61/54/55 % -> 21/11/11 %; owner decision 3 amended - the capital row is a maximum; three integrity replays reach the lasers - OWNER-SMOKE CANDIDATE; before it chore/evidence-integrity: the audit's AUD-05, AUD-06, AUD-07 and the Lights audit's LA-7 fixed, recorded failures reconciled by name and first assertion, three of the five integrity replays in the boss sector - OWNER REVIEW CANDIDATE, game bytes unchanged; before it data/w2-lights: level 1 after the capital - a swarm of both Light archetypes, the elite Raider sectors (a) and (b) of owner decision a/b, the Bomber pair between them; the trace records the Light archetype, clause L1-L5; the elite <-> swarm carry-over confirmed and guarded by data, its code fix C1 a prerequisite of M4 - OWNER-SMOKE CANDIDATE; before it fix/smoke-2026-10-07: the owner's smoke of 2026-10-07 - the player's shots shown in the boss band up to their target, level 1 after the capital one wave per kind, the AI line off the summary - OWNER-SMOKE CANDIDATE; before it fix/audit-hardening: the October 2026 audit's AUD-01, AUD-02 and the rest of AUD-03 - the save written only to the game's own disk, every transition load checked before use, CLD in the gameplay DLI - OWNER-SMOKE CANDIDATE; before it feat/boss-lasers: M5b-S4b the boss lasers - OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -89,6 +89,8 @@ released.** Section "ATR-only build" below.
 **S5-1 — the boss platform for regions 2-4 — built (2026-10-09, `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`)** (section "S5-1" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.1): the 64 KB machine everywhere, slot F, regions 2-4 on the disk, the booster bar through the boss entry; boss stress with a spawn 6,895 (R1) / 7,744 (fixture) of 8,500 after the owner's decision §AG; every gate and 45 of 57 replays unchanged frame for frame; ATR `67d95ed8…`.
 
 **S5-2 — the boss finale — built (2026-10-09, `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`)** (section "S5-2" below; plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.2): when the last armour module falls every weapon still standing fires three-shot volleys (x−1, x, x+1) at half its reload, never under the region's `fire.finaleCooldown`; off in region 1 (Q6), on (12) in the region 2–4 placeholders; slot C 1,663 → 1,648 B (13 sectors) with behaviour-preserving trims; boss stress 6,910 (R1) / 7,784 (fixture) / 6,682 (the finale's layouts) of 8,500; every gate unchanged, 46 of 58 replays identical to `main` frame by frame; ATR `70063213…`.
+
+**No more kamikaze runs — the standoff: hold above the player, fire only in the player's column, loop twice in level 1, climb out — built (2026-10-12, `feat/interceptor-standoff`, `OWNER-SMOKE CANDIDATE`)** (section "No more kamikaze runs" below; plan [plans/interceptor-standoff.md](plans/interceptor-standoff.md); journal §AK): no Interceptor met the fighter in any replay; level 1's swarm and elite (a) Interceptors loop twice through an on-screen top-hold row, then climb out upward, the boss escort one pass; the swarm 408 rows; the fight 86.5 / 103.0 / 154.4 s; window record 1,322 of 1,387 B (effectively full), worst fence margin 1,287, DMA-on 31,443; ATR `3b05ca34…`.
 
 **The boss escort's flow — from the first weapon kill, then every 3-4 s until the boss falls — built (2026-10-11, `feat/boss-escort-flow`, `OWNER-SMOKE CANDIDATE`)** (section "The boss escort's flow" below; plan [plans/boss-escort-flow.md](plans/boss-escort-flow.md); journal §AI): replaces variant B's six escorts 100 frames apart from the fight's first frame. The Director arms one Interceptor at the first weapon kill and then every 150 + 0..63 frames on frames with no kill; the left-edge guard replay is permanent; MEDIUM up to 126 s is accepted temporarily (the next task changes the Interceptor's behaviour). ATR `90f3e24e…`.
 
@@ -372,6 +374,136 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## No more kamikaze runs — the standoff: hold above the player, fire only in the player's column, loop twice in level 1, climb out — `OWNER-SMOKE CANDIDATE` (2026-10-12)
+
+Plan [plans/interceptor-standoff.md](plans/interceptor-standoff.md) (§11 the
+standoff as built, §13 the loop as built); journal §AK points 1-11. The
+owner's finding after the escort flow: the Interceptor chased at the
+player's own top speed, so every pass ended rammed or shot down. The owner's
+smoke of 2026-10-11 then found the Interceptor climbing off the top of the
+swarm and never coming back (answers L1-L5 of 2026-10-12, then E1/E2, then
+Q1/Q2 of Phase B).
+
+**What the game does now.** Every Interceptor, in the level waves and as the
+boss escort (variant R, owner answers Q1/Q2 of 2026-10-11):
+* descends as before (2 lines a frame, one cell sideways every other frame) to
+  **7 rows above** the player and holds there;
+* backs off upwards while the player is **under 6 rows** below it;
+* each Light slot holds **2 rows higher** than the one before, so a swarm
+  stacks instead of merging into one cell;
+* fires its laser **only in the player's column** (1 / 2 / 3 shots a visit,
+  EASY / MEDIUM / HARD);
+* ends its standoff after **100 frames**.
+
+Then (owner answers L1, L2, E1; AK points 9-11):
+* **level 1's swarm and elite (a) Interceptors loop twice** - a wave's
+  `loops` (0-3, Interceptor waves only, wave_flags bits 6-7). Each loop climbs
+  to the slot's **top-hold row** (y 32 / 48 / 64 for slots 0 / 1 / 2, on
+  screen), holds 39 frames without firing, dives back and flies the standoff
+  again. The longest life is 399 frames;
+* after the last loop it **climbs out upward** at 8 lines a frame, as R does,
+  and frees its slot;
+* **the boss escort keeps 0 loops**: one pass, its longest life 121 frames,
+  under the escort clock's 128-frame floor.
+
+**Why the exit is always up (E1 (b)).** The owner asked for an exit by the
+nearer vertical edge, never down through or next to the player's column. The
+Interceptor tracks the player's column at the player's top speed, so the
+28-HPOS clearance that rule needs never opens: in all 58 replays no exit
+would have gone down (plan §13.5). The visible alternative, "break away
+sideways, then dive", needs a window record of 1,423 of 1,387 B. It is in the
+backlog below as an option after the window levers.
+
+**The swarm's rows (owner answer Q1 of Phase B).** With two loops the swarm's
+Interceptors live about 400 frames and its Wingman column waits for the last
+of them. HARD's 384-row cut (+768 frames) cancelled two of the column's
+three, so the swarm is **384 → 408 rows**. With no kills all 9 Lights arm on
+every difficulty (the last at +814 / +813 / +814 frames, HARD's cut at +816:
+2 frames to spare), and the swarm ends at +1,020 / +1,013 / +1,014. A player
+who kills ends it early as before: the sweep bot's swarm lasts
+13.2 / 14.3 / 10.1 s (E / M / H).
+
+**The debris-shot fix (owner answer Q4).** A lethal shot on a debris piece
+handed the PairShot loop a garbage slot, so a higher shot skipped its move and
+the level-end summary counted it twice. `light_shot` now calls the target path
+and restores X: +4 B in the Light kernel's record, ~+12 native cycles per
+player shot no Light owns.
+
+**The fight's length (owner answer Q6).** Region 1's plates b-g are 4 HP
+lighter, and every gun goes 14 → 12. Regions 2-4 copy region 1.
+
+| By the aiming bot, as the ratio | EASY | MEDIUM | HARD |
+| --- | ---: | ---: | ---: |
+| before (`main`, the escort flow) | 101.1 s | 125.9 s | 142.8 s |
+| **after** | **86.5 s** | **103.0 s** | **154.4 s** |
+
+MEDIUM is inside 90-120 s, EASY is shorter, HARD is not shorter. The escort
+flow's temporary acceptance of up to 126 s (AI point 5) has ended (AK point
+6); `tests/boss-r1-tuning.test.mjs` holds MEDIUM to 120 s again.
+
+**Play (M, all 58 replays).** No Interceptor met the fighter. Level 1's hits
+before the boss are laser only. The three HARD hunting bots (`memory-integrity`
+hunt 5 / 6 / 7) step away from an Interceptor's laser (owner answer L5, kept
+by E2: their policy only, every other replay unchanged), so they keep
+reaching the boss. Without the dodge each loop doubles the laser time over a
+bot that sits in the column, and all three died before the boss.
+
+**The left-edge guard (owner answer Q5).** `boss-edge-left-1` runs 7,400
+frames; the clause is unchanged. The `n2` control still gets no escort.
+
+**The laser-contact replay (AK point 8).** A debris piece from sector 5 hit
+the HARD laser-contact bot in the boss sector's run-in; that debris behaviour
+is designed and happens on `main` too (class (a)). The bot now steps away from
+falling debris while the boss is due, in its own policy only.
+
+**Gates (`docs/runtime-wall-trace.json`, the PAL audit; before = `main`).**
+* 58 replays, 0 clause failures, 0 missed frames, PAL audit
+  PASS.
+* Worst fence margin 1,423 → **1,287** (`2-sweep-fire6`). The owner accepted
+  1,285 (L4; STOP below 1,000). The binding rows are Light admission frames:
+  the loop count's store at admission is 13 cycles.
+* DMA-on maximum 31,310 → **31,443** (`weapon-pickup-2-hunt-fire4` f2,356): over the 31,200 target,
+  under the 32,568 gate, accepted by the owner (AK point 7).
+* Boss frames (the director-complete replays): worst margin **8,427 (`director-complete-2` f3,643)**,
+  DMA-on **29,846**.
+* Boss stress, the reachable worst for region 1: 6,979 → **6,987** (limit
+  8,500).
+* Boss entry **245** host frames (64 sectors, 16 entries), under the
+  250 bound.
+
+**Budgets (M).**
+
+| | value | limit |
+| --- | ---: | --- |
+| window record (packed) | **1,322 of 1,387 B**, 11 sectors, 65 B free | the owner: any further resident byte is a STOP until the window levers (order B, after S5 / M3-H / M3) |
+| window free tail | **941 B** (978 before the loop) | floor 900 |
+| Light kernel record | **866 of 875 B**, 7 sectors, base `$B478` | no taken branch crosses a page |
+| `PICKUP_CODE` free tail | **20 B** (65 before) | the boss entry's head moved here, 45 B at `$8B26` |
+| C extension | 869 B (record 742 of 747) | |
+| arena | 14 B free | floor 14 B (owner decision, AK point 3) |
+| initial block | 13,623 B / 107 sectors, unchanged | |
+| transport | 213 sectors, unchanged | |
+| level 1 image | 13 sectors, unchanged | the 16-sector buffer |
+
+New RAM: `light_loops[4]` at `$8133-$8136` (`HYBRID_LIGHT_LOOK_RAM` 5 → 9 B;
+the unowned gap after it is `$8137-$813F`, 9 B). Memory map updated.
+
+**Tests.**
+* New: `tests/interceptor-standoff.test.mjs` (4),
+  `tests/light-shot-slot-restore.test.mjs` (2) and
+  `tests/interceptor-loops.test.mjs` (5), each RED before its change.
+* Re-pinned with the owner's approval and a reason at each site (plan §11.8,
+  §13.11): the window, kernel, pickup and extension figures, the boss-entry
+  pins, the WARNING records' link, the wave flags' loops bits, and the
+  swarm's 408 rows.
+* Two full `npm test` runs on the default build: 1,309 tests, 1,308 pass,
+  1 fail each. `npm run failures:reconcile` after each: 1 matched (the
+  recorded preview test), **0 NEW, 0 MOVED**; the trace 0 clause failures,
+  0 NEW.
+
+**ATR** `3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842`, **boot** `731e5703a2149cba6adf02a14bd06a5cf99af51a8e9617afe6de54ef932b7a01`. Smoke checklist:
+[hardware-testing.md](hardware-testing.md) §27.
+
 ## The boss escort's flow — from the first weapon kill, then every 3-4 s until the boss falls — `OWNER-SMOKE CANDIDATE` (2026-10-11)
 
 Plan [plans/boss-escort-flow.md](plans/boss-escort-flow.md) (§9 as built);
@@ -394,7 +526,7 @@ frames apart from the fight's first frame).
   `{ interceptor, count 1 }`. The build refuses a level and boss region that
   disagree.
 
-**Temporary acceptance (owner answer 5).** MEDIUM is **125.9 s** by the aiming
+**Temporary acceptance (owner answer 5) — ENDED by `feat/interceptor-standoff` (AK point 6: MEDIUM 103.0 s, the 90-120 s rule again).** MEDIUM was **125.9 s** by the aiming
 bot as the ratio (EASY 101.1, HARD 142.8; before: 91.8 / 118.1 / 139.9). The
 owner accepts up to about **126 s** until the next task:
 * the next task changes the Interceptor's behaviour (no kamikaze runs: it backs

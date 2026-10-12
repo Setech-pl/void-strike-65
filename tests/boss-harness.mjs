@@ -13,7 +13,10 @@ import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-export const buildPath = (name) => path.join(root, "build", name);
+// fix/boss-polish: VS65_HARNESS_BUILD=<dir> runs the boss tests on a review
+// variant's build (build/<dir>/, its own ATR) instead of the default build.
+const harnessBuild = process.env.VS65_HARNESS_BUILD ?? null;
+export const buildPath = (name) => path.join(root, "build", ...(harnessBuild === null ? [] : [harnessBuild]), name);
 export const readBuild = (name) => fs.readFileSync(buildPath(name));
 export const exists = (name) => fs.existsSync(buildPath(name));
 
@@ -51,7 +54,8 @@ export function label(link, name) {
 }
 
 export const manifest = JSON.parse(readBuild("manifest.json").toString("utf8"));
-export const builtAtr = fs.readFileSync(path.join(root, "dist", "void-strike-65.atr"));
+export const builtAtr = fs.readFileSync(harnessBuild === null
+  ? path.join(root, "dist", "void-strike-65.atr") : buildPath("void-strike-65.atr"));
 
 export const SECTOR_BYTES = 128;
 export const ATR_HEADER_BYTES = 16;
@@ -260,7 +264,7 @@ export function nmi(memory, address, { hooks = {}, a, x, y, p, out = null } = {}
 // image in the buffer, gameplay state, the playfield drained.
 export function bossGateMemory() {
   const memory = new Uint8Array(0x10000);
-  installRuntimeSegments(memory, root);
+  installRuntimeSegments(memory, root, ...(harnessBuild === null ? [] : [buildPath("")]));
   memory.set(readBuild("sector-reader.bin"), 0xa000);
   memory.set(readBuild("level-summary.bin"), 0x0500);
   memory.set(readBuild("level-1.bin"), 0xa600);

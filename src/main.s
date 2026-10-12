@@ -2240,7 +2240,9 @@ draw_game_over_structure:
 
 render_frontend_data:
     jsr clear_screen
-@record:
+; fix/boss-polish: the records drawn over the screen as it is (the boss
+; loading screen's title, under its WARNING - src/hybrid/light-kernel.s).
+render_frontend_records:
     jsr read_frontend_data
     cmp #$FF
     beq @done
@@ -2250,7 +2252,7 @@ render_frontend_data:
 @text:
     jsr read_frontend_data
     cmp #$00
-    beq @record
+    beq render_frontend_records
     jsr encode_frontend_character
     ldy #$00
     sta (dst_ptr),y
@@ -8249,7 +8251,13 @@ update_hud_status:
     lda #CH_HUD_HULL_FULL
     bne @store_hull
 @damaged:
+.ifdef HUD_HULL_SPENT_BLANK
+    ; fix/boss-polish (owner request 2026-10-12): a spent quarter vanishes, as
+    ; a spent BOOST cell does - the HUD's blank, its bottom rule kept.
+    lda #CH_SPACE
+.else
     lda #CH_HUD_HULL_DAMAGED
+.endif
 @store_hull:
     sta SCREEN+HUD_HULL_SEGMENTS_OFFSET,x
     dex

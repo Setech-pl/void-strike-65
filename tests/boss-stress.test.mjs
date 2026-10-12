@@ -421,7 +421,10 @@ test("S5-1 (B): no stress frame has both a module kill and a gun's spawn", () =>
 // S5-2 (plan s5-boss-regions §6, owner answer Q4): the finale's layouts under
 // the limit in force for regions 2 and 4 - 8,500 on the reachable cases.
 test("S5-2: the finale's layouts - every combination, volleys' burst steps composed, stays under the boss limit", () => {
-  assert.equal(new Set(Object.values(placeholderEntries).map((e) => JSON.stringify(e))).size, 1,
+  // fix/boss-polish (decision AL 1): each placeholder names its own boss for
+  // the loading screen's title; the name never reaches the fight, so the
+  // entries are compared without it.
+  assert.equal(new Set(Object.values(placeholderEntries).map(({ name, ...e }) => JSON.stringify(e))).size, 1,
     "the region 2-4 placeholders differ: sweep each one");
   assert.ok(finaleBuilt, "the controller has no finale (no volley state to compose)");
   assert.ok(placeholders.fire.finaleCooldown > 0, "the placeholders carry no finale");

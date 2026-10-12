@@ -219,6 +219,29 @@ export const BOSS_SHOT_CODES = 4;
 // from the gun's muzzle to the band's edge, with two codes right after the
 // player shot's four: the pool's PULSE glyph, left and right phase.
 export const BOSS_HOSTILE_SHOT_CODES = 2;
+// fix/boss-polish (owner request 2026-10-12): a module that takes a hit and
+// lives flashes - its non-blank cells show one solid glyph for a few frames,
+// then get their codes back (src/hybrid/boss.s, BOSS_MODE_FLASH_ON / _OFF).
+// The glyph is the charset's last code, in every region, so slot A names it
+// as a constant and the region tables (full) carry no byte for it.
+export const BOSS_FLASH_CODE = 127;
+export const BOSS_FLASH_MAX_CELLS = 128;   // src/hybrid/boss.s BOSS_FLASH_CELLS
+// The colour clocks of the flash glyph: every pixel one value - 1 COLPF0,
+// 2 COLPF1, 3 COLPF2 (a code under 128 never selects COLPF3).
+export const bossFlashGlyph = (pixelValue) => new Array(8).fill(pixelValue * 0x55);
+// fix/boss-polish (owner decision AL 1): the boss loading screen's title,
+// variant A - WARNING (the resident record, src/hybrid/light-kernel.s) over
+// the boss's name and INCOMING, read from the region's theme run, which the
+// boss entry reads first: the reader's records ({dst lo, dst hi, text, 0}...,
+// $FF) at a fixed offset in the run's slack, drawn under WARNING once the run
+// has landed. Text rows of the reader's 40-column screen at $4000; the
+// summary's dash row is row 10.
+export const BOSS_TITLE_OFFSET = 0xc0;
+export const BOSS_TITLE_ADDRESS = BOSS_STAGING_ADDRESS + BOSS_TITLE_OFFSET;
+export const BOSS_TITLE_SCREEN = 0x4000;
+export const BOSS_TITLE_NAME_ROW = 7;
+export const BOSS_TITLE_INCOMING_ROW = 8;
+export const BOSS_TITLE_INCOMING = "INCOMING";
 
 // The four shot glyphs from the gameplay's PlayerFighter phase glyphs
 // (scripts/fighter-weapons.mjs: phaseStride glyphs a horizontal phase, the
@@ -313,8 +336,9 @@ export function loadBossPlaceholders(rootDirectory) {
   for (const [region, entry] of Object.entries(regions)) {
     if (!["2", "3", "4"].includes(region)) fail(`${BOSS_PLACEHOLDERS_FILE}: region ${region} is not a placeholder (2-4)`);
     const keys = Object.keys(entry).filter((key) => key !== "_");
-    if (keys.some((key) => key !== "fire")) {
-      fail(`${BOSS_PLACEHOLDERS_FILE}: region ${region} changes ${keys.join(", ")}; a placeholder changes its fire block only`);
+    if (keys.some((key) => key !== "fire" && key !== "name")) {
+      fail(`${BOSS_PLACEHOLDERS_FILE}: region ${region} changes ${keys.join(", ")}; a placeholder changes its ` +
+        "fire block and its name only");
     }
   }
   return regions;
@@ -323,7 +347,9 @@ export function loadBossPlaceholders(rootDirectory) {
 // fire block with the placeholder's fields over it.
 export function bossPlaceholderDraft(draft, entry = {}) {
   const { _: note, ...fire } = entry.fire ?? {};
-  return { ...draft, layout: { ...draft.layout, fire: { ...draft.layout.fire, ...fire } } };
+  // fix/boss-polish (decision AL 1): the region's own boss name, for its title.
+  return { ...draft, layout: { ...draft.layout, ...(entry.name === undefined ? {} : { name: entry.name }),
+    fire: { ...draft.layout.fire, ...fire } } };
 }
 
 export function bossRegionDirectory(rootDirectory, region) {
@@ -707,8 +733,22 @@ function resolveModules(layout) {
 // The conversion
 // ---------------------------------------------------------------------------
 
+// The title's records: each line centred on the 40 columns (the reader's
+// frontend glyphs: A-Z 0-9 space - . / :).
+export function bossTitleRecords(name) {
+  if (typeof name !== "string" || !/^[A-Z0-9 ./:-]{1,40}$/.test(name)) {
+    fail(`the boss's title name ${JSON.stringify(name)} must be 1-40 of A-Z 0-9 space - . / :`);
+  }
+  const record = (row, text) => {
+    const dst = BOSS_TITLE_SCREEN + row * 40 + Math.floor((40 - text.length) / 2);
+    return [dst & 0xff, dst >> 8, ...Buffer.from(text, "ascii"), 0];
+  };
+  return Uint8Array.from([...record(BOSS_TITLE_NAME_ROW, name),
+    ...record(BOSS_TITLE_INCOMING_ROW, BOSS_TITLE_INCOMING), 0xff]);
+}
+
 export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null,
-  hostileShotGlyphs = draft.hostileShotGlyphs ?? null } = {}) {
+  hostileShotGlyphs = draft.hostileShotGlyphs ?? null, flashGlyph = null, title = false } = {}) {
   const { layout, images } = draft;
   if (layout?.formatVersion !== BOSS_FORMAT_VERSION) {
     fail(`unsupported formatVersion ${JSON.stringify(layout?.formatVersion)} (expected ${BOSS_FORMAT_VERSION})`);
@@ -949,7 +989,36 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   };
   const stagedCode = (ref) => (BOSS_FIRST_CODE + ref.index) | (ref.bank ? 0x80 : 0);
   const plainCode = (ref) => ref.index === null ? 0 : (plainBase + ref.index) | (ref.bank ? 0x80 : 0);
-  const glyphs = new Uint8Array(codeCount * 8);
+  if (flashGlyph !== null && codeCount > BOSS_FLASH_CODE) {
+    fail(`the region needs ${codeCount} codes; the hit flash's glyph takes code ${BOSS_FLASH_CODE}`);
+  }
+  if (flashGlyph !== null) {
+    // The flash saves and gives back a live module's cells (src/hybrid/boss.s):
+    // a shot drawn in one of them would come back after the shot had moved on.
+    // A player's shot stops under its column's front module, which the
+    // front-first order makes the lowest; a gun's shot falls down its fire
+    // column, so every module under the gun there must cover it (it is dead
+    // before the gun can fire).
+    for (const module of modules) {
+      if (module.width * module.height > BOSS_FLASH_MAX_CELLS) {
+        fail(`module ${module.name} has ${module.width * module.height} cells; the hit flash's buffer holds ` +
+          `${BOSS_FLASH_MAX_CELLS}`);
+      }
+      if (module.kind !== BOSS_KIND.pulse && module.kind !== BOSS_KIND.salvo) continue;
+      const centre = module.x + (module.width >> 1);
+      for (const other of modules) {
+        if (other === module || (module.coverMask & (1 << other.index)) !== 0) continue;
+        const below = other.row + other.height > module.row + module.height;
+        const inColumn = [centre, centre + 1].some((c) => c >= other.x && c < other.x + other.width);
+        if (below && inColumn) {
+          fail(`module ${other.name} stands under ${module.name}'s fire column without covering it: ` +
+            "a shot there would pass through a module the hit flash saves and restores");
+        }
+      }
+    }
+  }
+  const glyphs = new Uint8Array((flashGlyph === null ? codeCount : BOSS_FLASH_CODE + 1) * 8);
+  if (flashGlyph !== null) glyphs.set(flashGlyph, BOSS_FLASH_CODE * 8);
   staged.forEach(({ glyphs: [intact, cracked, broken] }, i) => {
     glyphs.set(intact, (BOSS_FIRST_CODE + i) * 8);
     glyphs.set(cracked, (BOSS_FIRST_CODE + K + i) * 8);
@@ -1110,6 +1179,17 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       fail(`the boss theme is ${themeImage.length} B; its run holds ${BOSS_THEME_CAPACITY}`);
     }
     theme.set(themeImage, 0);
+  }
+  if (title) {
+    const records = bossTitleRecords(String(layout.name ?? "").toUpperCase());
+    if ((themeImage?.length ?? 0) > BOSS_TITLE_OFFSET) {
+      fail(`the boss theme is ${themeImage.length} B; the title's records start at ${BOSS_TITLE_OFFSET}`);
+    }
+    if (BOSS_TITLE_OFFSET + records.length > BOSS_THEME_CAPACITY) {
+      fail(`the title's records are ${records.length} B; the theme run has ` +
+        `${BOSS_THEME_CAPACITY - BOSS_TITLE_OFFSET} after ${BOSS_TITLE_OFFSET}`);
+    }
+    theme.set(records, BOSS_TITLE_OFFSET);
   }
   const bandA = new Uint8Array(BOSS_BAND_A_SECTORS * 128);
   bandRows.slice(0, BOSS_BAND_A_ROWS).forEach((row, index) => bandA.set(row, index * BOSS_BAND_COLUMNS));

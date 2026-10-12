@@ -560,3 +560,18 @@ gate moved): the window tail 946 → 971 (three files) and used 2,638 → 2,613,
 the kernel link 982 → 957, the kernel segment 775 → 793, the C extension 869
 → 875 and its tail 30 → 24, the `PICKUP_CODE` fill 20 → 9, the
 effects-stagger peak 992 → 1,009, the build's boss-entry pin count 12 → 11.
+
+Two full `npm test` runs on the default build (ATR `581fa463…`): 1,328 tests,
+1,327 pass, 1 fail each — the recorded preview test; `npm run
+failures:reconcile` after each: 1 matched, 0 NEW, 0 MOVED; the trace 0 clause
+failures. (The first full run on the earlier evidence `af57d2f` found 19 NEW
+failures, all of this branch, fixed in `d0dc72c`; the next found 2, fixed in
+`0659296`.)
+
+### 11.8 Evidence and play
+
+ATR `581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd`, boot
+`70643ea4ddbcfc79aed3932f6b5193f82145b56aa8385802d7bd0999f0a2136c`. Smoke:
+[hardware-testing.md](../hardware-testing.md) §29. Play builds in
+`build/play/` (`atari800 -xl -pal -nobasic <absolute path>`): the full game
+(the default ATR) and the boss route (`--level=1:sector=6`).

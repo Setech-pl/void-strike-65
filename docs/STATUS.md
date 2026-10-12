@@ -452,7 +452,9 @@ no-kill swarm arms 9 of 9 on every difficulty.
 
 **Tests.** New: `tests/interceptor-armour.test.mjs` (4), RED on `main` (4 of
 4), GREEN here. Re-pointed and re-pinned, each with its reason at the site:
-plan §11.7. NPM_RESULT
+plan §11.7. Two full `npm test` runs on the default build: 1,328 tests, 1,327
+pass, 1 fail each (the recorded preview test); `npm run failures:reconcile`
+after each: 1 matched, **0 NEW, 0 MOVED**; the trace 0 clause failures.
 
 **ATR** `581fa463943859d6d8f1fe1dc0a2854621cd389757ee5c4d22670724f6618ccd`,
 **boot** `70643ea4ddbcfc79aed3932f6b5193f82145b56aa8385802d7bd0999f0a2136c`.

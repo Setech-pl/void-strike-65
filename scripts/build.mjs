@@ -2007,6 +2007,9 @@ async function build() {
         path.join(rootDirectory, "src", "boot-splash.s")),
       "/project/build/heavy-member.s": fs.readFileSync(
         path.join(rootDirectory, "src", "hybrid", "heavy-member.s")),
+      // feat/interceptor-standoff: the boss entry's head, and the pins it calls by.
+      "/project/build/boss-entry-pins.inc": fs.readFileSync(
+        path.join(rootDirectory, "src", "hybrid", "boss-entry-pins.inc")),
     },
     [
       "--cpu",
@@ -2824,7 +2827,7 @@ async function build() {
   // S5-1: + the HUD booster backup in the Light kernel link.
   // feat/interceptor-standoff: + the boss entry's region read and its records
   // under --interceptor-loops (scripts/interceptor-loops.patch).
-  const expectedBossEntryPins = interceptorLoops === null ? 9 : 11;
+  const expectedBossEntryPins = interceptorLoops === null ? 9 : 12;
   if (bossEntryPins.length !== expectedBossEntryPins) {
     throw new Error(`M5b-S3 / S5-1: expected ${expectedBossEntryPins} boss-entry pins, found ${bossEntryPins.length}`);
   }

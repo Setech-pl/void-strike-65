@@ -4,13 +4,16 @@
 // screen, still visible, and dive back to its standoff instead of leaving.
 // Phase A-lite builds the loop as a review variant:
 //
-//   --interceptor-loops=N  (N = 0..3) after its 100 frames an Interceptor of a
+//   --interceptor-loops=N  (N = 0..2) after its 100 frames an Interceptor of a
 //       level-1 swarm or elite wave climbs (8 lines a frame, as R) to its
 //       top-hold row - y 32 for slot 0, two rows lower per slot - holds, then
-//       descends to its standoff and flies it again; N times, then it climbs
-//       out as R does. The boss escort's wave keeps 0 loops. N = 0 is the
-//       loop's code with level 1's data unchanged (R's behaviour), so the
-//       code's own cost can be told from the loops'.
+//       descends to its standoff and flies it again; N times, then it leaves
+//       by the nearer vertical edge (owner answers L1-L5 of 2026-10-12): down
+//       only from the lower half of the playfield and with the player's hull
+//       28 HPOS clear of its column either side, otherwise up as R does. The
+//       boss escort's wave keeps 0 loops and R's climb out. N = 0 is the
+//       code with level 1's data unchanged (R's behaviour), so the code's own
+//       cost can be told from the loops'.
 //
 // The code is scripts/interceptor-loops.patch, applied IN MEMORY while
 // scripts/build.mjs reads its inputs (the method of
@@ -20,15 +23,19 @@
 // default build reads none of this. The patch is a plain unified diff, so the
 // chosen loop lands later with `git apply scripts/interceptor-loops.patch`.
 //
-// What the patch does (plan §12 has the bytes):
-//   src/c/lifecycle.c       the top phase in the tick; light_loops[] written
-//                           at admission from the armed wave's flags (bits 6-7)
+// What the patch does (plan §12-§13 have the bytes):
+//   src/c/lifecycle.c       the top phase and the exit direction in the tick;
+//                           light_loops[] written at admission from the armed
+//                           wave's flags (bits 6-7: the loops plus one)
 //   cfg/encounter-director.cfg  HYBRID_LIGHT_LOOK_RAM 5 -> 9 B (light_loops)
-//   src/hybrid/c-asm-abi.s, light-kernel.s, boss-entry-pins.inc
-//                           the boss entry's region read and its WARNING
-//                           records move behind the HUD booster backup in the
-//                           Light kernel link's last segment, so the window's
+//   src/hybrid/c-asm-abi.s, light-kernel.s, boss-entry-pins.inc, src/main.s
+//                           the boss entry leaves the window: its region read
+//                           and WARNING records behind the HUD booster backup
+//                           in the Light kernel link's last segment, its head
+//                           in PICKUP_CODE's free tail, so the window's
 //                           boot-loaded record keeps its 11 sectors
+//   src/c/director.c, lifecycle.h  the sector cut's hold counts live Lights
+//                           with the admission's own light_live_count
 
 import fs from "node:fs";
 import path from "node:path";
@@ -39,9 +46,9 @@ const LEVEL_ONE = "assets/levels/level-01.json";
 export function parseInterceptorLoops(argv) {
   const argument = argv.find((value) => value.startsWith("--interceptor-loops="));
   if (argument === undefined) return null;
-  const match = /^--interceptor-loops=([0-3])$/.exec(argument);
+  const match = /^--interceptor-loops=([0-2])$/.exec(argument);
   if (match === null) {
-    throw new Error(`Unknown ${argument}; the form is --interceptor-loops=N with N 0..3`);
+    throw new Error(`Unknown ${argument}; the form is --interceptor-loops=N with N 0..2`);
   }
   return Number(match[1]);
 }

@@ -1092,3 +1092,46 @@ Options:
 
 **Recommended: 1.** It keeps the sector-flow property that every authored
 wave arms with no kills.
+
+### 13.12 The owner's answers Q1, Q2 (2026-10-12) and Phase B to the candidate
+
+* **Q2: the ten re-pins approved** and applied (`13e97fa`), each with its
+  reason at the site. Two assertions that the first failures had hidden are the
+  other side of an approved figure, so they were re-pinned with them:
+  - `level-buffer-16.test.mjs:91-94`: the kernel link 920 → **987** B (the boss
+    entry's region read and WARNING records, `$B810-$B852`), used 2,606 →
+    2,643, the tail 941;
+  - `light-interceptor.test.mjs:573`: the C extension's tail 39 → **30** B
+    (the composite 860 → 869).
+
+  `tests/boss-harness.mjs` gains the Light kernel's labels for the WARNING
+  records' read.
+* **Q1: option 1, the swarm 384 → 408 rows** (data, `af43e56`).
+  `level-one-waves.test.mjs:209` is unchanged and green. With no kills
+  (`scripts/level-timeline.mjs`, `lightTicksFromSector`), **M**:
+
+  | | armed | the last arms at | the swarm ends |
+  | --- | ---: | ---: | ---: |
+  | EASY | 9 / 9 | +814 | +1,020 |
+  | MEDIUM | 9 / 9 | +813 | +1,013 |
+  | HARD | 9 / 9 | +814 | +1,014 |
+
+  HARD has the fastest row clock: its 408-row cut lands at +816, 2 frames
+  after the last arms. The test guards that margin. The level image stays 13
+  sectors. Re-pinned because of the rows only:
+  - `boss-band.test.mjs:100` and `level-compiler.test.mjs:308`: the swarm
+    384 → 408;
+  - `level-compiler.test.mjs:309`: the row total 1,742 → 1,766.
+* **The evidence, once more** (`1f372e7`, ATR `3b05ca34…`, boot `731e5703…`):
+  - 58 replays, 0 clause failures, 0 missed frames;
+  - worst fence margin **1,287** (`2-sweep-fire6`) and DMA-on **31,443**
+    (`weapon-pickup-2-hunt-fire4`), both unchanged;
+  - boss entry 245; boss frames 8,427 / 29,846; the fight 86.5 / 103.0 /
+    154.4 s.
+
+  The road to the boss and the sweep bot's swarm (13.2 / 14.3 / 10.1 s) are
+  frame-identical to §13.4. Two EASY hunting replays move:
+  `memory-integrity-atr-0-hunt-fire5` and `weapon-pickup-spread-0-hunt-fire4`.
+  Their swarm used to end on the 384-row cut (EASY hunt 5: 20.3 s); it now ends
+  early, when its last Light has gone, at 1,045 frames (20.9 s; the boss at
+  89.0 s, was 83.1). Every other replay's swarm ended early, before the cut.

@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { installEscortVariant, parseEscortVariant } from "./boss-escort-variants.mjs";
+import { installInterceptorArmour, parseInterceptorArmour } from "./interceptor-armour-variants.mjs";
 import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
   guardFold, identityBlock, identitySector as renderIdentitySector, layoutId, levelReadOrder,
@@ -367,7 +368,16 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 // never dist/.
 const escortVariantId = parseEscortVariant(process.argv);
 const escortVariant = escortVariantId === null ? null : installEscortVariant(rootDirectory, escortVariantId);
-const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyCombatReviewHarness ||
+// feat/interceptor-armour (docs/plans/interceptor-armour.md): the tougher
+// Interceptor's candidates - scripts/interceptor-armour-*.patch and level 1's
+// armour flags as in-memory edits (scripts/interceptor-armour-variants.mjs).
+// Composes with --level=N[:sector=M]. Review variant:
+// build/interceptor-armour-ID[-level-N-sM]/, never dist/.
+const interceptorArmourId = parseInterceptorArmour(process.argv);
+const interceptorArmourVariant = interceptorArmourId === null
+  ? null : installInterceptorArmour(rootDirectory, interceptorArmourId);
+const isReviewVariant = escortVariantId !== null || interceptorArmourId !== null ||
+  enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
@@ -389,6 +399,8 @@ const levelDebugSuffix = levelDebugId === null
     `-level-${levelDebugId}-s${levelDebugSector}`;
 const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
+  : interceptorArmourId !== null
+  ? `interceptor-armour-${interceptorArmourId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
   : laserFixtureTier !== null
@@ -956,6 +968,15 @@ const LIGHT_KERNEL_MAIN_SYMBOLS = Object.freeze([
   ["FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT", "weapon_class shift above the owner bits"],
 ]);
 
+// feat/interceptor-armour (docs/plans/interceptor-armour.md): the survived-hit
+// flash's halves in the BROADSIDE zero pin, under --interceptor-armour only.
+const LIGHT_KERNEL_ARMOUR_SYMBOLS = Object.freeze([
+  ["light_flash_start", "interceptor-armour: start a survived hit's flash"],
+  ["light_flash_step", "interceptor-armour: one frame of the flash; A = $80"],
+  ["light_blink_step", "interceptor-armour: one frame of the blink; A = the hide bit"],
+  ["boss_enter_title", "interceptor-armour: the boss title, moved to the BROADSIDE zero pin"],
+]);
+
 // The kernel's five entry points, in the frozen order of its vector table. Each
 // is three bytes; main.s reaches them by constant, exactly as it reaches the
 // sector reader at $A000.
@@ -1015,8 +1036,12 @@ function renderLightKernelMainAbiInclude(labels) {
     "; (plan §3.1 [C1]); these are its only dependencies on main.s.",
     "",
   ];
-  for (const [name, note] of LIGHT_KERNEL_MAIN_SYMBOLS) {
+  for (const [name, note] of [...LIGHT_KERNEL_MAIN_SYMBOLS, ...LIGHT_KERNEL_ARMOUR_SYMBOLS]) {
     const address = labels.get(name);
+    // feat/interceptor-armour: the review variant's symbols exist only in its
+    // own main image (scripts/interceptor-armour-variants.mjs); the default
+    // build's include is unchanged without them.
+    if (!Number.isInteger(address) && LIGHT_KERNEL_ARMOUR_SYMBOLS.some(([optional]) => optional === name)) continue;
     if (!Number.isInteger(address)) {
       throw new Error(`4.6: main.s no longer exports ${name}, which the Light kernel uses`);
     }
@@ -1667,6 +1692,9 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     // the routine the claim calls, which src/main.s asserts is its own label.
     ["WORLD_ROTATE_DUE", "world_rotate_due_abi"],
   ];
+  // feat/interceptor-armour: the flash timers, only in the review variant's
+  // link (scripts/interceptor-armour-variants.mjs).
+  if (Number.isInteger(labels.get("light_flash"))) symbols.push(["LIGHT_FLASH", "light_flash"]);
   for (const [, name] of symbols) {
     if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);
   }
@@ -2000,6 +2028,9 @@ async function build() {
       // feat/interceptor-standoff: the boss entry's head, and the pins it calls by.
       "/project/build/boss-entry-pins.inc": fs.readFileSync(
         path.join(rootDirectory, "src", "hybrid", "boss-entry-pins.inc")),
+      // feat/interceptor-armour: the boss title's records (BOSS_STAGING_THEME),
+      // for the variant's main image only; the default main.s includes none.
+      "/project/build/boss-layout.inc": bossLayoutInclude,
     },
     [
       "--cpu",
@@ -4011,7 +4042,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null
+      bossVariantSlug !== undefined || escortVariantId !== null || interceptorArmourId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -5426,6 +5457,7 @@ async function build() {
 
   if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
   escortVariant?.assertConsumed();
+  interceptorArmourVariant?.assertConsumed();
 
   if (!quiet) {
     console.log(candidateBuild
@@ -5439,6 +5471,10 @@ async function build() {
     console.log(`  staging : $${packedResidentStagingAddress.toString(16)} reused after BROADSIDE publish`);
     if (escortVariant !== null) {
       console.log(`  variant : boss escort ${escortVariantId.toUpperCase()} - ${escortVariant.summary}` +
+        (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (interceptorArmourVariant !== null) {
+      console.log(`  variant : Interceptor armour ${interceptorArmourId} - ${interceptorArmourVariant.summary}` +
         (levelDebugId === null ? "" : `, debug route level ${levelDebugId} sector ${levelDebugSector}`));
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (enemyReviewHarness) {

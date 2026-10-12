@@ -126,14 +126,11 @@ BOSS_MODE_NONE  = $01           ; a queued draw a later one superseded
 ; fill): ON saves every cell in the flash's buffer and shows the region's flash
 ; glyph on each non-blank one; OFF gives back each cell that still shows the
 ; glyph (anything drawn over it since - a blast, a gone draw, an open look -
-; stays). The buffer follows the region block in slot F, so ON and OFF index
-; it as the look tail plus BOSS_FLASH_SAVE (boss_look counts the cells).
+; stays). The buffer is slot E's (boss_flash_save); boss_look counts the cells.
 BOSS_MODE_FLASH_ON  = $41
 BOSS_MODE_FLASH_OFF = $43
 BOSS_FLASH_CODE     = 127       ; scripts/boss-assets.mjs BOSS_FLASH_CODE
-BOSS_FLASH_SAVE     = $80       ; the buffer: BOSS_LOOK_TAIL + $80, after the 1-sector block
-BOSS_FLASH_CELLS    = 128       ; the converter's bound on a module's cells (one byte of index)
-.assert BOSS_FLASH_SAVE + BOSS_FLASH_CELLS = $100, error, "the flash buffer is indexed by one byte"
+BOSS_FLASH_CELLS    = 32        ; scripts/boss-assets.mjs BOSS_FLASH_MAX_CELLS
 .endif
 
 ; The fortress session (plan §5.15, decisions I-K, §5.15.6): the hit feedback,
@@ -2521,7 +2518,7 @@ boss_flash_cell:
     and #$02                            ; OFF?
     bne @off
     lda (dst_ptr),y
-    sta BOSS_LOOK_TAIL + BOSS_FLASH_SAVE,x
+    sta boss_flash_save,x
     beq @code                           ; a blank cell stays blank
     lda #BOSS_FLASH_CODE
 @code:
@@ -2530,7 +2527,7 @@ boss_flash_cell:
     lda (dst_ptr),y
     cmp #BOSS_FLASH_CODE
     bne @code                           ; drawn over since: it stays
-    lda BOSS_LOOK_TAIL + BOSS_FLASH_SAVE,x
+    lda boss_flash_save,x
     rts
 
 boss_flash_off:
@@ -2539,7 +2536,7 @@ boss_flash_off:
     lda #BOSS_MODE_FLASH_OFF
 boss_flash_draw:
     sta boss_mode
-    lda #BOSS_FLASH_SAVE
+    lda #$00
     sta boss_look
     lda boss_flash_m
     jmp boss_draw_module
@@ -2985,6 +2982,7 @@ boss_hostile_pos:   .res 1      ; the band position last frame (the shots ride i
 boss_flash_timer:   .res 1      ; the flash's frames left; 0 = none (the install)
 boss_flash_m:       .res 1      ; the flashing module
 boss_flash_req:     .res 1      ; the module a hit asked to flash; $FF none (the install)
+boss_flash_save:    .res BOSS_FLASH_CELLS ; the flashing module's codes, row by row
 .endif
 
 

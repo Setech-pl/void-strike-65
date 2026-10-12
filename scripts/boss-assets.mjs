@@ -225,7 +225,7 @@ export const BOSS_HOSTILE_SHOT_CODES = 2;
 // The glyph is the charset's last code, in every region, so slot A names it
 // as a constant and the region tables (full) carry no byte for it.
 export const BOSS_FLASH_CODE = 127;
-export const BOSS_FLASH_MAX_CELLS = 128;   // src/hybrid/boss.s BOSS_FLASH_CELLS
+export const BOSS_FLASH_MAX_CELLS = 32;    // src/hybrid/boss.s BOSS_FLASH_CELLS (its buffer in slot E)
 // The colour clocks of the flash glyph: every pixel one value - 1 COLPF0,
 // 2 COLPF1, 3 COLPF2 (a code under 128 never selects COLPF3).
 export const bossFlashGlyph = (pixelValue) => new Array(8).fill(pixelValue * 0x55);

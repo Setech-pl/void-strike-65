@@ -341,8 +341,9 @@ Recorded in [plans/director-4.6.md](plans/director-4.6.md) §11 item 20.
 **Level 1 after the capital (data/w2-lights, owner decision a/b and answers of
 2026-10-08; supersedes P2's one-of-each list).** A **swarm**: a column of three
 Wingmen in the `flight-lead` look, then three Interceptors that stack above
-the player and fire down on it (the standoff) - up to three Lights at once, no Heavy. Then **elite (a)**, a Raider
-pair with an Interceptor companion; **the Bomber pair**; and **elite (b)**, a
+the player and fire down on it (the standoff), each looping twice through its
+top-hold row - up to three Lights at once, no Heavy. Then **elite (a)**, a Raider
+pair with an Interceptor companion that loops twice too; **the Bomber pair**; and **elite (b)**, a
 Raider pair alone - the Bomber between the Raider variants so the Heavy waves
 alternate (owner decision 8). The waves before the capital and the capital are
 unchanged. **Sector flow (feat/sector-flow, owner answers of 2026-10-08,
@@ -610,7 +611,20 @@ candidate's" — contradicted this section's own heading and was corrected
   one cell. Every other frame it moves one 4-HPOS cell toward the player's
   column, clamped to 48-200 — the player's own top speed. After **100 frames**
   it **climbs out** 8 lines a frame and leaves past the top; its longest life
-  is under the boss escort clock's 128-frame floor. It never steers into the
+  is under the boss escort clock's 128-frame floor.
+- **The top-hold loop** (feat/interceptor-standoff, the owner's smoke of
+  2026-10-11 and answers L1/L2/E1 of 2026-10-12, decision AK points 9-10;
+  `OWNER-SMOKE CANDIDATE`). A wave may author **loops** (level data, 0-3):
+  after its 100 frames the Interceptor climbs at 8 lines a frame to its
+  **top-hold row** — y 32, the playfield's second row, for the first Light
+  slot, two rows lower per slot, so it stays on screen — holds there without
+  firing (the climb and the hold take 39 frames together), then dives back to
+  its standoff and flies it again. After the last loop it **climbs out
+  upward** as above. Level 1's swarm and elite (a) Interceptors loop **twice**
+  (a life of about 400 frames); **the boss escort loops 0** and keeps its
+  single pass, life ≤ 121 frames. A downward exit "by the nearer edge" was
+  built and measured and is not used (E1): clear of the player's column it
+  can never trigger, because the standoff tracks that column. It never steers into the
   player; contact still counts if the player flies into it. Before this
   (roadmap 4.4 to 2026-10-11) it closed on the player all the way to the
   bottom edge — in effect a ram.

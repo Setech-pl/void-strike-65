@@ -134,6 +134,7 @@ A level holds at most 20 waves in total, across all its sectors.
 | `mirror` | boolean | false | mirror the entry |
 | `afterCleared` | boolean | false | arm when the previous wave cleared instead of on `row`. **Compiled (flags bit 4) but not read by the Director yet** (fix/smoke-2026-10-07: `src/c/director.c` reads the look and Heavy bits only); what paces waves today is in [level-data-howto.md](level-data-howto.md), "When the next wave can start" |
 | `appearance` | a look's name, or 0-3 | 0 | 0 = the archetype's own art; otherwise a `payload.appearances` look, by name or slot number. On a Light wave its members wear it; on a Heavy wave its **Light escort** does, and the Heavy pair keeps its PMG art, so a Heavy wave without an escort is refused |
+| `loops` | 0-3 | 0 | an **Interceptor**'s top-hold loops (decision AK points 9-10, flags bits 6-7): after each 100-frame standoff it climbs to its top-hold row (y 32, two rows lower per Light slot), holds, dives back and flies the standoff again, this many times, then climbs out upward. 0 is a single pass. Only a wave whose Light is an Interceptor - its archetype, or a Heavy wave's escort - may carry it. Each loop adds 139 frames to the Interceptor's life (100 + 139 × loops + the climb out), and a Light wave holds the cursor until its last Light has gone, so loops lengthen the sector. A boss sector's escort keeps 0: its life must stay under the escort clock's 128-frame floor. Level 1's swarm and elite (a) Interceptors carry 2 |
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every wave compiles with `wave_path = $FF`,
@@ -162,6 +163,7 @@ field:
 * an entry column outside 48-200;
 * `lights` above 4 or `heavies` above 2 — the packed nibbles hold no more;
 * a wave arming at or past its own sector's end;
+* `loops` above 3, or on a wave whose Light is not an Interceptor;
 * a `path` (step 6), or a turret density other than 3 (step 4);
 * a sky other than `white`, `steel` or `yellow`, or a nebula (step 5);
 * an `appearance` that names no authored look, or sits on a Heavy wave with

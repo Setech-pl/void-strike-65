@@ -2130,6 +2130,27 @@ z pinami i progami innymi niż ten z Q3.
       wyjścia) jako jeden pełny ATR i jeden ATR trasy do bossa, ta sama tabela
       pomiarów plus liczba wyjść w górę i w dół; STOP i smoke właściciela.
       Potem Faza B. Wyniki: plan §13.
+11. **Odpowiedzi właściciela E1, E2 (2026-10-12), po Fazie A-lite §13:**
+    - **E1: (b) zawsze w górę.** Kod kierunku wyjścia usunięty; zostają
+      przeniesienia, które zwolniły okno (głowa wejścia bossa w ogonie
+      rekordu pickupów, wspólne liczenie żywych Lightów). **Dlaczego wyjście w
+      dół nigdy nie zachodzi:** przez cały dystans Interceptor śledzi kolumnę
+      gracza z prędkością samego gracza, więc 28 HPOS odstępu, których wymaga
+      reguła „nigdy w dół przez kolumnę gracza ani tuż obok niej”, nigdy się
+      nie otwiera (zmierzone: 0 wyjść w dół w 58 replayach, każde z 10 wyjść z
+      roju i elity zaczęło się nad graczem, dx 0–2). Do backlogu jako opcja po
+      dźwigniach okna: **(c) „odbij w bok, potem nurkuj”** — zmierzone
+      +74 B surowych / +51 B spakowanych, **rekord okna 1 423 z 1 387 B**
+      (dwunasty sektor).
+    - **E2:** zawężony unik przed laserem Interceptora zostaje w trzech
+      replayach HARD z polującym botem.
+    - Także: potwierdzić, że dwa nie-regresy (`summary-record-readback-1`
+      uruchomiony sam; sesje diag regionów 2–4) są zapisane albo leżą poza
+      domyślnym materiałem dowodowym, więc reconcile nie zgłosi ich jako NOWE.
+      Potem Faza B: najpierw testy (RED na bieżącym commicie, GREEN po),
+      regeneracja materiału dowodowego, dwa pełne `npm test` z
+      `failures:reconcile` po każdym (NOWE albo PRZESUNIĘTE = STOP), STATUS,
+      lista smoke §27, końcowy ATR; `OWNER-SMOKE CANDIDATE`; STOP.
 
 **Wynik:** plan `interceptor-standoff` §9.1, §11 (jak zbudowano), §12 i §13, STATUS.
 

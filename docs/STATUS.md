@@ -7329,6 +7329,22 @@ it to size a budget, never to predict a frame. The committed baselines
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
 
+- **The Interceptor's downward exit: "break away sideways, then dive"**
+  (feat/interceptor-standoff, owner answer E1 of 2026-10-12, decision AK
+  point 10; **an option after the window levers**, order B). The owner asked
+  that a looping Interceptor leave by the nearer vertical edge, never down
+  through or next to the player's column. Built and measured: no Interceptor
+  ever left downward in 58 replays. The standoff tracks the player's column
+  at the player's top speed, so the 28-HPOS clearance the rule needs never
+  opens; the rule reduced to "always up", which ships (E1 (b), 0 B). The way
+  to a visible downward exit: from the lower half the Interceptor first
+  slides out of the player's column (4 HPOS a frame, away from the player;
+  at a wall it climbs instead), then dives once 28 HPOS clear. MEASURED as a
+  build: +74 raw / +51 packed in `light_tick_body` over the rule as asked,
+  **window record 1,423 of 1,387 B: a twelfth sector**. It waits for the
+  window levers, or for another home for window code. Plan
+  [plans/interceptor-standoff.md](plans/interceptor-standoff.md) §13.5, §13.10.
+
 - **C1 and the boss-sector integrity coverage — CLOSED by `feat/sector-flow`
   (2026-10-08, `OWNER-SMOKE CANDIDATE`)**, section "Sector flow" above: the
   Director holds a space sector's end while the live enemies exceed the next

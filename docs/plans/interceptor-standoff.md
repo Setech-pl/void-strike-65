@@ -990,3 +990,105 @@ To rebuild: `node scripts/build.mjs --interceptor-loops=2 [--level=1:sector=6]`.
 | ---: | --- | --- | --- |
 | E1 | The exit direction, given §13.5 (the rule as asked never sends one down) | (a) as built: the rule stays, in practice always up, 51 window bytes; (b) **always up**: 0 B, the window keeps ~66 B; (c) break away then dive: +51 B over (a), needs a window lever first (STOP) | **(b)**, unless a visible downward exit is wanted. Then (c) after the window levers, or the escort clock into slot C now, at +1 entry sector (≈ 249 frames) |
 | E2 | The HARD hunts' dodge (§13.6) | keep it / re-derive budgets instead | **keep it** |
+
+### 13.10 The owner's answers E1, E2 (2026-10-12) and Phase B as built
+
+* **E1: (b) always up.** The exit-direction code is gone. The level
+  compiler's `loops` is 0-3 again, stored as the loops themselves in
+  wave_flags bits 6-7, and the tick is §12's. The two moves that made room
+  stay:
+  - the boss entry's head is in `PICKUP_CODE`'s tail;
+  - the sector cut uses `light_live_count`.
+
+  **Why a downward exit never fires (§13.5):** the standoff tracks the
+  player's column at the player's top speed, so the 28-HPOS clearance the
+  owner's safety rule needs never opens. The visible downward exit, "break
+  away sideways, then dive", measured at a window record of **1,423 of
+  1,387 B**, is in the STATUS backlog as an option after the window levers.
+* **E2:** the scoped laser dodge for the three HARD integrity hunts stays
+  (`ddae343`).
+* **Tests first:** `tests/interceptor-loops.test.mjs` (5) asserts:
+  - the loop count from the wave's data: level 1's swarm and elite 2, the
+    escort 0; only an Interceptor, at most 3;
+  - the tick holds 0 / 1 / 2 / 3 times as the flags say;
+  - the hold rows y 32 / 48 / 64, on screen, with no fire on the way up or
+    in the hold;
+  - after two loops it goes up and out, and the slot is freed;
+  - the escort is unchanged: one pass, under 128 frames.
+
+  RED on `8950956` (1 pass / 4 fail; the escort's test passes before and
+  after), GREEN on `07869e7` (5 / 0).
+* **The code (`07869e7`):**
+  - `light_loops[4]` at `$8133-$8136` (`HYBRID_LIGHT_LOOK_RAM` 5 → 9 B, the
+    unowned gap 13 → 9 B, `$8137-$813F`);
+  - the admission write of the armed wave's flags (13 cycles);
+  - the top phase in the tick;
+  - level 1's swarm and elite (a) Interceptor waves `loops: 2`;
+  - the boss entry out of the window: the region read and its records behind
+    the HUD booster backup in the kernel link, the head at `$8B26` in main;
+  - the sector cut's shared count;
+  - the review variant removed (12 boss-entry pins, fixed).
+* **The window, final (M):**
+  - window record **1,322 of 1,387 B (11 sectors), 65 B free**; raw
+    Director half 1,686 → 1,656 B;
+  - Light kernel record 866 of 875 (7 sectors), base `$B478`;
+  - pickup record 1,180 of 1,259 (10 sectors); `PICKUP_CODE` free tail
+    65 → 20 B;
+  - initial block 13,623 B / 107 sectors; 213 transport sectors;
+  - window free tail (to `$BC00`) 978 → 941 B.
+
+  A 4-B unexecuted pad at the end of the Director half places the kernel at
+  `$B478`, where none of its taken branches crosses a page. Without the pad
+  (`$B474`), `light_update`'s slot loop gains one crossing; §12's `$B4BB` had
+  seven. The tick body's crossings are §12's.
+
+### 13.11 First full `npm test` (Phase B): STOP on NEW
+
+The evidence is bound (`a04e48d`, `65e73f7`; ATR `e25f6d14…`). The first full
+`npm test` gave 1,309 tests: 1,296 pass, 13 fail.
+
+`failures:reconcile` reported:
+* 1 matched: the recorded preview test;
+* **12 NEW, 0 MOVED**;
+* the trace: 0 clause failures, nothing NEW.
+
+One NEW was a binding step the regeneration left out (`npm run showcase`, the
+media manifest's ATR hash); it is fixed in `65e73f7`. That leaves 11 for the
+owner.
+
+**Ten exact layout or data values the change moved (re-pins, each with its
+source; no floor, gate or budget changes):**
+
+| Test | Value | Source |
+| --- | --- | --- |
+| `basic-window-capacity.test.mjs:114` | window free tail 978 → **941** B (the 900-B floor is unchanged) | manifest `residentCapacity.basicWindow`: the kernel link +67 B (the region read and records), the Director half −30 B |
+| `level-summary-build.test.mjs:400` | the same figure, 978 → **941** | as above |
+| `level-buffer-16.test.mjs:72`, `:108` | window Director half 1,686 → **1,656** raw B | manifest: the head −45, the shared count −26, the tick's top phase and the pad +45 net |
+| `light-interceptor.test.mjs:536` | `PICKUP_CODE` stream fill 65 → **20** B | the boss entry's head, 45 B at `$8B26` |
+| `hybrid-lifecycle.test.mjs:106` | C extension composite 860 → **869** B (record 742 of 747) | `light_admit`'s `light_loops` write, +9 B |
+| `boss-overlay.test.mjs:148` | main / reader / music pins 8 → **9** | `pin_boss_enter_head` (main) |
+| `boss-overlay.test.mjs:169` | the entry's resident half "in the window, last" | the window keeps only the 4-B pad; `_asm_boss_enter` is main's `$8B26`. The `WINDOW_HOOKS_STOP` budget is unchanged and still met (4 B) |
+| `boss-overlay.test.mjs:179` | the WARNING records looked up in the Director link | they live in the Light kernel link (§12.1); same text, same assertions |
+| `level-payload.test.mjs:230` | level 1's wave flags under the `0xFC` mask | waves 4 and 5 (the swarm's and elite (a)'s Interceptors) now carry `loops` 2 in bits 6-7 |
+
+**One behavioural failure — an owner decision:**
+`level-one-waves.test.mjs:209` asserts "with no kills every swarm wave arms".
+* With 2 loops each swarm Interceptor lives about 400 frames instead of 121.
+  A Light wave holds the cursor until its last Light has gone, so the third
+  wave (the Wingman column) arms at +748 frames after the swarm's entry.
+* On HARD the swarm's 384 rows end at +768, so only 1 of its 3 Wingmen is
+  admitted. The other two are cancelled by the row-count cut (sector flow,
+  rule 3).
+* EASY and MEDIUM, with slower row clocks, still admit all 9.
+* With kills, the normal case, the early end comes first. Every replay's
+  swarm ended with its three waves armed (§12.6).
+
+Options:
+1. **Swarm rows 384 → 408** (data). MEASURED with no kills: all 9 arm on
+   every difficulty (HARD's last at +814, the sector ending at +1,014). A
+   player who kills ends the swarm early as before. The evidence is
+   regenerated once more.
+2. Re-point the test to "HARD: 7 of 9 with no kills" and keep the data.
+
+**Recommended: 1.** It keeps the sector-flow property that every authored
+wave arms with no kills.

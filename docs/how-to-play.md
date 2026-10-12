@@ -106,7 +106,7 @@ disk. The same is true of the score table.
 | Raider | Heavy | Fast fighter, fires in bursts | 10 |
 | Bomber | Heavy | Catamaran silhouette; sweeps its lane, stops, aims, looses torpedoes | 50 |
 | Wingman | Light | Flies in formation | 5 |
-| Interceptor | Light | Dives to a firing position above you, follows your column, fires its laser straight down when it is over you, backs off if you close in, then climbs away | 21 |
+| Interceptor | Light | Dives to a firing position above you, follows your column, fires its laser straight down when it is over you, backs off if you close in. In some waves it then climbs to the top of the screen, holds there and dives back for another pass (in level 1, twice) before it climbs away | 21 |
 | Boss | — | End of every level | 100 |
 
 The Bomber's hull darkens as it takes damage, so the colour tells you how much

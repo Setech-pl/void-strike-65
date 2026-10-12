@@ -2156,6 +2156,45 @@ z pinami i progami innymi niż ten z Q3.
 
 ---
 
+## AL. NAZWY BOSSÓW I TYTUŁ EKRANU ŁADOWANIA BOSSA, BANERY, KSZTAŁT BASTIONU — decyzje właściciela (2026-10-11, materiał projektowy poza repo)
+
+Źródło: `docs/design/boss-banners/README.md` (skopiowane bez zmian z
+materiału właściciela; obrazy, makiety i skrypty Pythona w tym samym
+katalogu). Gdzie ten materiał i repo różnią się w fakcie technicznym, repo
+wygrywa, a sesja raportuje różnicę.
+
+1. **Tytuł ekranu ładowania bossa — wariant A**, per region, z danych
+   regionu: wiersz 1 `WARNING`, wiersz 2 nazwa bossa, wiersz 3 `INCOMING`.
+   **Cztery nazwy są ostateczne:** `BLOCKADE BREAKER` (R1), `BASTION` (R2),
+   `SIEGE SPINE` (R3), `VOID CITADEL` (R4). Sam tytuł na dzisiejszym ekranie
+   należy do `fix/boss-polish`. **Nie może leżeć w bloku początkowym ani w
+   tablicy slotu F** (R1 na limicie 110 B); jeśli nie mieści się nigdzie
+   indziej — STOP z opcjami.
+2. **Banery bossów — osobne zadanie po S5-5, przed v0.3.0.** Jeden baner na
+   typ bossa w górnej trzeciej ekranu: tryb F, 64 linie, obraz 160×64 na
+   środku, boki puste; pod nim tytuł (pkt 1) i pasek ładowania. **Wybrany
+   monochrom, biały na czarnym**; wariant z gradientem w kolorze regionu
+   odrzucony. Baner ładuje się **pierwszy**, więc dla **tego zadania** limit
+   wejścia bossa rośnie z 250 do **ok. 280 klatek**. W każdym innym zadaniu
+   (w tym `fix/boss-polish`) obowiązuje 250. Obrazy to zatwierdzony kierunek;
+   wolno je czyścić piksel po pikselu, sylwetki zostają.
+3. **Kształt Bastionu (R2) — wzorzec dla S5-5** (wersja v3, makieta
+   `mockups/r2-bastion-boss-band-mockup.png`): kulisty hub z **rdzeniem** w
+   środku; **wrota hangaru** pod hubem jako płyta pancerna nad rdzeniem (rdzeń
+   nietrafialny, dopóki wrota nie padną); **cztery poziome kratownice**, po
+   dwie na stronę — górna para dłuższa, z działami zewnętrznymi G1/G4 na
+   końcach, dolna krótsza, z działami wewnętrznymi G2/G3; każde działo strzela
+   dzisiejszym pionowym laserem w dół; kolejność walki: działa → wrota →
+   rdzeń; działa zewnętrzne leżą poza 40 widocznymi kolumnami i wchodzą w
+   widok, gdy pas się przesuwa; hangar to tylko dekoracja (eskorta dalej z
+   Directora, decyzja **AI**). Pas 48 × 5 znaków na makiecie to założenie —
+   S5-5 bierze prawdziwy rozmiar pasa z repo i zachowuje układ. Baner i pas w
+   grze mają czytać się jak ten sam okręt.
+
+**Wynik:** plan `boss-polish` (tytuł), S5-5 (Bastion), zadanie banerów.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

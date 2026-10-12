@@ -83,6 +83,7 @@ cost of keeping them true. The line follows the audience, not the directory.
 | Milestone/release hardware checklist | [hardware-testing.md](hardware-testing.md) |
 | Release-note drafts, before the owner publishes them on GitHub | [releases/](releases/) |
 | Accepted implementation plans, one file per feature set | [plans/](plans/) |
+| Owner design input made outside the repo (pictures, mockups, the scripts that drew them), one folder per topic | [design/](design/) |
 | Cross-model audits, one per milestone, and their findings ledger | [audits/](audits/) |
 | Proof reports | [diagnostics/](diagnostics/) |
 | Archived roadmap, old plan, old rules, old headroom report | [history/](history/) |

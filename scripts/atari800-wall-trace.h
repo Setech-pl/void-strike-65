@@ -994,6 +994,7 @@ static int dftrace_boss_active(void)
 	return dftrace_boss_flag != 0u && MEMORY_mem[dftrace_boss_flag] != 0u;
 }
 static int dftrace_pause_test_enabled;
+static int dftrace_light_dodge;
 static unsigned dftrace_pause_stage;
 static unsigned dftrace_pause_press_host;
 static unsigned dftrace_pause_enter_host = 0xffffffffu;
@@ -3908,6 +3909,25 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				stick = 0x07u;
 			else if (x > target + 3u)
 				stick = 0x0bu;
+			}
+		}
+		/* feat/interceptor-standoff (class (a), the owner's answer L5 of
+		 * 2026-10-12): the HARD integrity hunts only (DFTRACE_LIGHT_DODGE).
+		 * The boss-shot step of the sweep policy, for an Interceptor's laser
+		 * bolt only (active byte LASER (2) << 3 | the Light owner 6 = $16,
+		 * slots 5-9; a Wingman's bolt is not dodged): never towards one
+		 * falling within 24 HPOS above, away from one within 12. */
+		if (dftrace_light_dodge && dftrace_projectile_active != 0u) {
+			unsigned slot;
+			for (slot = 5u; slot < 10u; ++slot) {
+				unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
+				int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+				if (MEMORY_mem[dftrace_projectile_active + slot] != 0x16u ||
+					sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+					continue;
+				stick |= dx >= 0 ? 0x08u : 0x04u;
+				if (dx > -12 && dx < 12)
+					stick = dx >= 0 ? (x > 60u ? 0x0bu : 0x07u) : (x < 196u ? 0x07u : 0x0bu);
 			}
 		}
 	}
@@ -7432,6 +7452,7 @@ static void dftrace_init(void)
 	dftrace_rapid_screenshot = getenv("DFTRACE_RAPID_SCREENSHOT");
 	dftrace_spread_screenshot = getenv("DFTRACE_SPREAD_SCREENSHOT");
 	dftrace_pause_test_enabled = getenv("DFTRACE_PAUSE_TEST") != NULL;
+	dftrace_light_dodge = getenv("DFTRACE_LIGHT_DODGE") != NULL;
 	dftrace_engine_screenshot_prefix = getenv("DFTRACE_ENGINE_SCREENSHOT_PREFIX");
 	{
 		unsigned index;

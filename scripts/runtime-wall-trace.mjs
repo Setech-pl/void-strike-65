@@ -708,6 +708,14 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
       // replay that still contains the behaviour; the assertion, the arming
       // condition and the coverage it names are all untouched.
       pauseTest: policy === "hunt",
+      // feat/interceptor-standoff, class (a), owner answer L5 of 2026-10-12:
+      // the HARD hunts step out from under a Light's falling bolt (the
+      // emulator's DFTRACE_LIGHT_DODGE). With the top-hold loop an
+      // Interceptor flies its standoff three times over a bot that sits in
+      // its column, and all three HARD hunts died in the swarm before the
+      // boss (MEASURED, plan interceptor-standoff §12.5, §13). Only these
+      // three replays dodge; every other replay plays as before.
+      lightDodge: policy === "hunt",
     };
   })).concat([{
     // ATR-only restoration, owner rule class (a), 2026-09-30: the scenario
@@ -728,6 +736,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     frames: MEMORY_INTEGRITY_FRAMES_HUNT6,
     kind: "memory-integrity-160s",
     pauseTest: false,
+    lightDodge: true,
   }, {
     // M5b-S4b.4, owner rule class (a), 2026-10-07: the scenario moves, the
     // clause does not. Owner decision W1 shortened level 1 after its capital,
@@ -746,6 +755,7 @@ const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
     frames: 4_000,
     kind: "memory-integrity-160s",
     pauseTest: false,
+    lightDodge: true,
   }, {
     // fix/smoke-2026-10-07 P2, owner rule class (a), 2026-10-08: the scenario
     // moves, the clause does not. The owner's decision of 2026-10-08 leaves
@@ -4527,6 +4537,7 @@ function main() {
 	    DFTRACE_FRONTEND_DELAY: String(session.frontendDelay),
 	  }),
       ...(session.pauseTest ? { DFTRACE_PAUSE_TEST: "1" } : {}),
+      ...(session.lightDodge ? { DFTRACE_LIGHT_DODGE: "1" } : {}),
       /* Owner decision 2026-09-21: the observer holds PLAYER_LIVES at this
        * value for the whole replay. The fighter still takes damage, dies and
        * respawns; only GAME OVER — and with it `director_c_init`, which resets

@@ -534,7 +534,7 @@ export function bossLaserFixtureDraft(draft, tier = 4) {
   // A see-through girder stub in a cut recess is gone with it.
   const cut = (c, r) => added.some((m) => c >= m.x && c < m.x + m.width && r >= m.row + m.height);
   const seeThrough = (draft.layout.seeThrough ?? []).filter(([c, r]) => !cut(c, r));
-  return { ...draft, images, layout: { ...draft.layout, name: `Laser fixture, tier ${tier}`, modules, seeThrough } };
+  return { ...draft, images, layout: { ...draft.layout, name: `Laser fixture - tier ${tier}`, modules, seeThrough } };
 }
 
 // One 4 x 8 cell of a draft image: its eight glyph bytes, its colour bank
@@ -738,7 +738,7 @@ export function bossTitleRecords(name) {
 }
 
 export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null,
-  hostileShotGlyphs = draft.hostileShotGlyphs ?? null, moduleFlash = false, title = false } = {}) {
+  hostileShotGlyphs = draft.hostileShotGlyphs ?? null } = {}) {
   const { layout, images } = draft;
   if (layout?.formatVersion !== BOSS_FORMAT_VERSION) {
     fail(`unsupported formatVersion ${JSON.stringify(layout?.formatVersion)} (expected ${BOSS_FORMAT_VERSION})`);
@@ -979,8 +979,8 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   };
   const stagedCode = (ref) => (BOSS_FIRST_CODE + ref.index) | (ref.bank ? 0x80 : 0);
   const plainCode = (ref) => ref.index === null ? 0 : (plainBase + ref.index) | (ref.bank ? 0x80 : 0);
-  if (moduleFlash) {
-    // fix/boss-polish (F1b): the flash toggles bit 7 of a live module's cells
+  {
+    // fix/boss-polish (b3): the hit flash toggles bit 7 of a live module's cells
     // and toggles it back (src/hybrid/boss.s): a shot drawn in one of them
     // would be toggled too and come back wrong after the shot had moved on.
     // A player's shot stops under its column's front module, which the
@@ -1163,7 +1163,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     }
     theme.set(themeImage, 0);
   }
-  if (title) {
+  {
     const records = bossTitleRecords(String(layout.name ?? "").toUpperCase());
     if ((themeImage?.length ?? 0) > BOSS_TITLE_OFFSET) {
       fail(`the boss theme is ${themeImage.length} B; the title's records start at ${BOSS_TITLE_OFFSET}`);

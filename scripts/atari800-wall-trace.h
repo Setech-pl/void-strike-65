@@ -7540,6 +7540,37 @@ static void dffence_event(const char *event, unsigned pc)
 		dffence_iterations, dffence_leave_iterations);
 }
 
+/* fix/boss-polish (plan boss-polish §11): the boss loading screen's title
+ * timing, opt-in. DFTITLE_OUTPUT names a file; DFTITLE_FROM and DFTITLE_TO are
+ * two PCs (the kernel's boss_enter_read, entered with WARNING on screen, and
+ * boss_enter_title, which draws the name and INCOMING). Each pair appends one
+ * line: the host frame at each and the difference. */
+static FILE *dftitle_file;
+static unsigned dftitle_from_pc, dftitle_to_pc, dftitle_from_host;
+static int dftitle_armed = -1;
+
+static void dftitle_observe(unsigned pc)
+{
+	unsigned host;
+	if (dftitle_armed < 0) {
+		dftitle_armed = getenv("DFTITLE_OUTPUT") != NULL;
+		if (!dftitle_armed) return;
+		dftitle_file = fopen(getenv("DFTITLE_OUTPUT"), "a");
+		if (dftitle_file == NULL) { perror("title timing"); exit(2); }
+		dftitle_from_pc = dftrace_env_u("DFTITLE_FROM");
+		dftitle_to_pc = dftrace_env_u("DFTITLE_TO");
+		dftitle_from_host = 0xffffffffu;
+	}
+	if (!dftitle_armed) return;
+	host = (unsigned) Atari800_nframes;
+	if (pc == dftitle_from_pc) dftitle_from_host = host;
+	if (pc == dftitle_to_pc && dftitle_from_host != 0xffffffffu) {
+		fprintf(dftitle_file, "%u,%u,%u\n", dftitle_from_host, host, host - dftitle_from_host);
+		fflush(dftitle_file);
+		dftitle_from_host = 0xffffffffu;
+	}
+}
+
 static void dffence_observe(unsigned pc, unsigned x_register)
 {
 	unsigned state, host, vbi;
@@ -7691,6 +7722,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	dftrace_near_observe(pc, x_register);
 	dftrace_watch_interceptor_projectiles();
 	dffence_observe(pc, x_register);
+	dftitle_observe(pc);
 	if (dftrace_published_dlist_lo == 0u && MEMORY_mem[dftrace_game_state] == 6u)
 		dftrace_published_dlist_lo = MEMORY_mem[dftrace_active_dlist_lo];
 	if (host_frame != dftrace_display_host_frame) {

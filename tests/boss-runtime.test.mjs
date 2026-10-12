@@ -139,7 +139,7 @@ test("the Director raises BOSS_DUE entering the boss sector, and the gate enters
 // C sized to its code, then the region's band A, band B and charset - every
 // run sized to its contents. S3 read 28 sectors (the 4-sector staging run
 // with the glyphs, a full 16-sector slot A, a 2-sector band B).
-test("decision 32: WARNING - BOSS APPROACHING, the theme started, then every run in the planned order", () => {
+test("decision 32: WARNING, then the boss's title, the theme started, then every run in the planned order", () => {
   const { end, drive } = bossEntered();
   assert.equal(end, "main_loop", "the entry did not reach the main loop");
   const run = (first, count) => Array.from({ length: count }, (_, i) => first + i);
@@ -167,8 +167,12 @@ test("decision 32: WARNING - BOSS APPROACHING, the theme started, then every run
   // are already up and slot A is already marked for the next START GAME.
   const at = atFirstCodeSector;
   assert.ok(at, "no boss code sector was read");
-  assert.equal(decode(at, 0x4000 + 6 * 40 + 16, 7), "WARNING");
-  assert.equal(decode(at, 0x4000 + 8 * 40 + 12, 16), "BOSS APPROACHING");
+  // RE-POINTED fix/boss-polish (owner decision AL 1, title variant A): WARNING
+  // on row 5, region 1's boss name on row 7, INCOMING on row 8 (was WARNING row
+  // 6, BOSS APPROACHING row 8).
+  assert.equal(decode(at, 0x4000 + 5 * 40 + 16, 7), "WARNING");
+  assert.equal(decode(at, 0x4000 + 7 * 40 + 12, 16), "BLOCKADE BREAKER");
+  assert.equal(decode(at, 0x4000 + 8 * 40 + 16, 8), "INCOMING");
   assert.equal(at[label("main", "MUSIC_ACTIVE")], 1, "the boss theme is not playing under the screen");
   const theme = atrRun(632, 2).subarray(0, 256);
   const data = label("music", "game_music_data_start");

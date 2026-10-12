@@ -119,17 +119,16 @@ BOSS_MODE_FILL  = $40
 BOSS_MODE_ADD   = $80
 BOSS_MODE_GONE  = $C0
 BOSS_MODE_NONE  = $01           ; a queued draw a later one superseded
-.ifdef BOSS_FLASH_FRAMES
-; fix/boss-polish (owner answers of 2026-10-12, candidate F1b): a module that
-; takes a hit and lives flashes for BOSS_FLASH_FRAMES frames instead of
+; fix/boss-polish (owner answers of 2026-10-12, b3; plan boss-polish §9-§10): a
+; module that takes a hit and lives flashes for BOSS_MFLASH_FRAMES frames instead of
 ; showing the spark - bit 7 of each non-blank cell toggled, so its pixel value
 ; 3 shows COLPF3's colour (the hull's dark red) instead of COLPF2's and back;
 ; no colour register is written. One FILL mode (bit 6, so @fill takes it; bit
 ; 0 tells it from the plain fill) toggles; the same draw toggles back, so the
 ; cells come back exactly with no buffer. Every other draw of the flashing
-; module ends the flash first (boss_flash_guard_q / _m).
-BOSS_MODE_FLASH = $41
-.endif
+; module ends the flash first (boss_mflash_guard_q / _m).
+BOSS_MODE_MFLASH = $41
+BOSS_MFLASH_FRAMES = 3          ; the owner's b3 (2026-10-12)
 
 ; The fortress session (plan §5.15, decisions I-K, §5.15.6): the hit feedback,
 ; the boss's fire, the draw queue, the nozzles.
@@ -539,9 +538,7 @@ boss_update:
     jsr boss_fire
     lda _boss_blast
     bmi @queue
-.ifdef BOSS_FLASH_FRAMES
-    jsr boss_flash_guard_m              ; slot E: the blast's module, its flash off first
-.endif
+    jsr boss_mflash_guard_m             ; slot E: the blast's module, its flash off first
     ; One link of the chain (plan §5.6, §5.11.4 item 4): blast glyphs over
     ; the module, the shared enemy-explosion slot's COLBK flash, the band's
     ; shake and the capital explosion's sound.
@@ -566,11 +563,7 @@ boss_update:
     lda boss_frame_heavy
     ora _boss_heavy
     bne :+
-.ifdef BOSS_FLASH_FRAMES
-    jsr boss_flash_frame                ; slot E: the flash's draw, else the queue's
-.else
-    jsr boss_queue_draw
-.endif
+    jsr boss_mflash_frame               ; slot E: the flash's draw, else the queue's
 :
     jmp boss_nozzles
 
@@ -624,37 +617,15 @@ boss_hit:
     jsr boss_cell_at
     lda boss_hit_result
     beq @absorbed
-.ifdef BOSS_FLASH_FRAMES
-    ; fix/boss-polish (F1b): a hit the module lives through asks for its flash
-    ; (slot E, boss_flash_frame) and ticks; a kill keeps the spark.
+    ; fix/boss-polish (b3): a hit the module lives through asks for its flash
+    ; (slot E, boss_mflash_frame) and ticks; a kill keeps the spark.
     ldx #BOSS_TONE_DAMAGE
     lda _boss_score_module
     bpl @kill
     lda _boss_hit_module
-    sta boss_flash_req
+    sta boss_mflash_req
     jmp boss_tick_sound
 @kill:
-.endif
-.ifdef BOSS_HIT_TOGGLE_FRAMES
-    ; fix/boss-polish (F1c): a hit the module lives through toggles bit 7 of
-    ; the struck cell for BOSS_HIT_TOGGLE_FRAMES frames through the ring (its
-    ; saved code comes back) and ticks; a kill keeps the spark.
-    ldx #BOSS_TONE_DAMAGE
-    lda _boss_score_module
-    bpl @kill
-    jsr boss_tick_sound                 ; keeps dst_ptr
-    jmp boss_hit_toggle
-@kill:
-.endif
-.ifdef BOSS_HIT_NO_FEEDBACK
-    ; fix/boss-polish (comparison): a hit the module lives through only ticks;
-    ; a kill keeps the spark.
-    ldx #BOSS_TONE_DAMAGE
-    lda _boss_score_module
-    bpl @kill
-    jmp boss_tick_sound
-@kill:
-.endif
     lda BOSS_T_SPARK
     ldx #BOSS_TONE_DAMAGE
     jmp boss_feedback
@@ -669,18 +640,6 @@ boss_feedback:
     pla
     ldy #BOSS_SPARK_FRAMES
     jmp boss_ring_set
-.ifdef BOSS_HIT_TOGGLE_FRAMES
-; F1c: dst_ptr = the struck cell, boss_ring_tag = its module: the ring shows
-; the cell's own code with bit 7 toggled and gives it back.
-boss_hit_toggle:
-    ldy #BOSS_HIT_TOGGLE_FRAMES
-    jsr boss_ring_set                   ; X = the record, Y = 0
-    lda boss_ring_saved,x               ; the cell's own code, toggled (a
-    eor #$80                            ; second hit on it toggles the same)
-    sta boss_ring_glyph,x
-    sta (dst_ptr),y
-    rts
-.endif
 
 ; X = a band row, boss_column a column -> dst_ptr = that cell. Keeps X.
 boss_cell_at:
@@ -1071,9 +1030,7 @@ boss_queue_draw:
     sta boss_queue_head
     jmp boss_queue_draw
 @draw:
-.ifdef BOSS_FLASH_FRAMES
-    jsr boss_flash_guard_q              ; slot E: a flashing module's flash off first
-.endif
+    jsr boss_mflash_guard_q             ; slot E: a flashing module's flash off first
     sta boss_mode
     lda boss_queue_value,x
     sta boss_add
@@ -1242,15 +1199,11 @@ boss_draw_module:
     lda BOSS_T_CAVITY
     jmp @store
 @fill:
-.ifdef BOSS_FLASH_FRAMES
     lda boss_mode
     lsr                                 ; C: a flash's draw (bit 0)
     lda boss_fill
     bcc @store
-    jsr boss_flash_cell                 ; slot E: A = the cell's code
-.else
-    lda boss_fill
-.endif
+    jsr boss_mflash_cell                ; slot E: A = the cell's code
 @store:
     sta (dst_ptr),y
     iny
@@ -2490,9 +2443,8 @@ laser_place:
     rts
 
 .segment "BOSS_E_CODE"
-.ifdef BOSS_FLASH_FRAMES
 ; ---------------------------------------------------------------------------
-; fix/boss-polish (owner answers of 2026-10-12, candidate F1b): the hit flash.
+; fix/boss-polish (owner answers of 2026-10-12, b3): the hit flash.
 ; A damaging hit that leaves the module alive asks for its flash; a kill keeps
 ; the spark (the destruction's look is unchanged). The flash takes the frame's
 ; one module draw (plan §5.15.6 item 2): the queue first, then a due OFF, then
@@ -2502,56 +2454,56 @@ laser_place:
 ; ---------------------------------------------------------------------------
 
 ; UPDATE's draw slot, on a frame with no kill and no exposure check.
-boss_flash_frame:
-    lda boss_flash_timer
+boss_mflash_frame:
+    lda boss_mflash_timer
     beq @idle
-    dec boss_flash_timer
-    beq boss_flash_toggle               ; its frames are over: toggled back
+    dec boss_mflash_timer
+    beq boss_mflash_toggle              ; its frames are over: toggled back
 @queue:
     jmp boss_queue_draw
 @idle:
     ldx boss_queue_head
     cpx boss_queue_tail
     bne @queue
-    ldx boss_flash_req
+    ldx boss_mflash_req
     bmi @done
     lda #$FF
-    sta boss_flash_req
+    sta boss_mflash_req
     lda _boss_hp,x                      ; none for a module destroyed since
     beq @done
-    stx boss_flash_m
-    lda #BOSS_FLASH_FRAMES
-    sta boss_flash_timer
-    bne boss_flash_toggle
+    stx boss_mflash_m
+    lda #BOSS_MFLASH_FRAMES
+    sta boss_mflash_timer
+    bne boss_mflash_toggle
 @done:
     rts
 
 ; boss_queue_draw, X = the head: when the head's module is the flashing one,
 ; its flash ends first. Keeps A and X.
-boss_flash_guard_q:
+boss_mflash_guard_q:
     pha
     lda boss_queue_module,x
-    jsr boss_flash_guard_m
+    jsr boss_mflash_guard_m
     ldx boss_queue_head
     pla
     rts
 
 ; A = a module about to be drawn: when it is the flashing one, its flash ends
 ; first. Keeps A.
-boss_flash_guard_m:
-    ldy boss_flash_timer
+boss_mflash_guard_m:
+    ldy boss_mflash_timer
     beq @keep
-    cmp boss_flash_m
+    cmp boss_mflash_m
     bne @keep
     pha
-    jsr boss_flash_off
+    jsr boss_mflash_off
     pla
 @keep:
     rts
 
 ; boss_draw_module's flash mode, Y = the cell's column: A = the cell's code
 ; with bit 7 toggled; a blank cell stays as it is. Keeps Y.
-boss_flash_cell:
+boss_mflash_cell:
     lda (dst_ptr),y
     tax
     and #$7F
@@ -2563,15 +2515,14 @@ boss_flash_cell:
     txa
     rts
 
-boss_flash_off:
+boss_mflash_off:
     lda #$00
-    sta boss_flash_timer
-boss_flash_toggle:
-    lda #BOSS_MODE_FLASH
+    sta boss_mflash_timer
+boss_mflash_toggle:
+    lda #BOSS_MODE_MFLASH
     sta boss_mode
-    lda boss_flash_m
+    lda boss_mflash_m
     jmp boss_draw_module
-.endif
 ; X = a laser in its warning: this frame's colour for its missile (F1).
 laser_warn_colour:
     ; Owner decision of 2026-10-07 (variant (a), flicker): white and the beam's
@@ -3009,11 +2960,9 @@ boss_hostile_lo:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT ; each boss shot's 
 boss_hostile_hi:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT
 boss_hostile_code:  .res 1
 boss_hostile_pos:   .res 1      ; the band position last frame (the shots ride its drift)
-.ifdef BOSS_FLASH_FRAMES
-boss_flash_timer:   .res 1      ; the flash's frames left; 0 = none (the install)
-boss_flash_m:       .res 1      ; the flashing module
-boss_flash_req:     .res 1      ; the module a hit asked to flash; $FF none (the install)
-.endif
+boss_mflash_timer:  .res 1      ; the flash's frames left; 0 = none (the install)
+boss_mflash_m:      .res 1      ; the flashing module
+boss_mflash_req:    .res 1      ; the module a hit asked to flash; $FF none (the install)
 
 
 ; ===========================================================================
@@ -3156,12 +3105,10 @@ boss_install:
     jsr _boss_c_init                    ; the init reads them
     jsr boss_prepare
     jsr laser_prepare                   ; the lasers' missiles M1 / M2
-.ifdef BOSS_FLASH_FRAMES
     lda #$00                            ; fix/boss-polish: no flash, none asked
-    sta boss_flash_timer
+    sta boss_mflash_timer
     lda #$FF
-    sta boss_flash_req
-.endif
+    sta boss_mflash_req
     ; 8. The band at its start position, still.
     lda #$01
     sta boss_dir

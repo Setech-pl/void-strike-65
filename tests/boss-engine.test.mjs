@@ -304,7 +304,11 @@ test("the four damage stages: intact, cracked (+K), broken (+2K), gone (cavity i
       fire(memory, column);
       const now = hp(memory, i);
       if (now === 0) break;
-      settle(memory, 3);
+      // RE-POINTED fix/boss-polish (owner choice b3, 2026-10-12): a hit the
+      // module lives through flashes it - bit 7 toggled for 3 frames, after
+      // the stage's queued draw - so the look is read once the flash is over
+      // (3 frames more); the stage assertions below are unchanged.
+      settle(memory, 3 + 3);
       const expected = now <= broken ? 2 : now <= cracked ? 1 : 0;
       assert.deepEqual(codesOf(memory, module), intact.map((code) => code + expected * K),
         `${name} at ${now} HP is stage ${expected}`);

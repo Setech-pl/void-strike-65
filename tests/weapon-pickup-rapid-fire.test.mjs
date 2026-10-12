@@ -529,9 +529,12 @@ test("HULL plates and the ten-cell BOOST field remain distinct at native screen 
     ["full-hull-no-booster", 10, 0, 0, [5, 5, 5, 5], Array(10).fill(0)],
     ["full-hull-full-boost", 10, 500, 3, [5, 5, 5, 5],
       [34, 47, 47, 51, 52, 0, 7, 7, 7, 7]],
-    ["partial-hull-half-boost", 7, 250, 3, [5, 5, 12, 12],
+    // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL
+    // quarter is the HUD's blank (0), as a spent BOOST cell is, no longer the
+    // cracked plate (12); the two fields stay disjoint.
+    ["partial-hull-half-boost", 7, 250, 3, [5, 5, 0, 0],
       [34, 47, 47, 51, 52, 0, 7, 7, 0, 0]],
-    ["critical-hull-blinking-boost", 1, 111, 3, [12, 12, 12, 12],
+    ["critical-hull-blinking-boost", 1, 111, 3, [0, 0, 0, 0],
       [34, 47, 47, 51, 52, 0, 7, 0, 0, 0]],
   ]);
 });

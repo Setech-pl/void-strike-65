@@ -89,8 +89,14 @@ test("E4: the memory map names the look tail's home", () => {
 // (4ccb127ccc1f23f8, aaed8c5b84b77555, a4986473a9658e9f, 342abeb7ba8e6986,
 // 70c01e32cd1c94cf, 4ccb127ccc1f23f8), so the band still equals the S4b final
 // build everywhere but the emitter and the two far-end guns.
-const S4B_FINAL_OUTSIDE_EMITTER = ["a5354d889e09f1c6", "cdeaa9e39e4caa2e", "339ddca54c393f8b",
-  "63a6c49f06f7dbba", "4d74be8af807aa5e", "a5354d889e09f1c6"];
+// RE-PINNED fix/boss-polish (plan boss-polish §10, the owner's acceptance of
+// 2026-10-12): the plates' amber rim and rivets (panels 1, 5, 6 - the fight's
+// start, the open looks, the capped slots) and their amber cracks (panel 2),
+// so the b3 hit flash shows on every stage. Panels 3 (broken) and 4 (gone) are
+// unchanged. Was "a5354d889e09f1c6", "cdeaa9e39e4caa2e", ..., "4d74be8af807aa5e",
+// "a5354d889e09f1c6" (main 26ad91d).
+const S4B_FINAL_OUTSIDE_EMITTER = ["b921b68ca5d56659", "fa7d49ab92e6cbb7", "339ddca54c393f8b",
+  "63a6c49f06f7dbba", "317d3575439e3cb9", "b921b68ca5d56659"];
 const emitterCell = (c, r) => (c >= 30 && c <= 34 && r >= 1 && r <= 3) ||
   (((c >= 12 && c <= 14) || (c >= 50 && c <= 52)) && r >= 1 && r <= 3);
 

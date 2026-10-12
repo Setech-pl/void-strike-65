@@ -266,7 +266,14 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
     assert.equal(copy[FINALE_BYTE], placeholders[String(region + 1)]?.fire?.finaleCooldown ?? 0,
       `region ${region + 1}'s finale floor is not its placeholder's`);
     copy[FINALE_BYTE] = 0;
-    assert.ok(copy.equals(atrSectors(632, 16)), `region ${region + 1} is region 1's copy`);
+    // RE-POINTED fix/boss-polish (owner decision AL 1): each region's theme
+    // run carries its own boss title's records from byte $C0 (the run's
+    // slack, scripts/boss-assets.mjs BOSS_TITLE_OFFSET); the rest stays region
+    // 1's copy. The titles themselves: tests/boss-polish.test.mjs.
+    const original = Buffer.from(atrSectors(632, 16));
+    copy.fill(0, 0xc0, 0x100);
+    original.fill(0, 0xc0, 0x100);
+    assert.ok(copy.equals(original), `region ${region + 1} is region 1's copy`);
   }
   for (let region = 0; region < 4; region += 1) {
     assert.ok(atrSectors(696 + region * 4, 1).some((byte) => byte !== 0), `region ${region + 1}'s block is on the disk`);
@@ -400,7 +407,12 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12): 978 -> 941, the boss entry's read and records in the Light
   // kernel link, its head in PICKUP_CODE's tail.
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 941, "the window moved");
+  // RE-PINNED fix/boss-polish (plan boss-polish §8, owner decision AL 1): the WARNING screen's
+  // "BOSS APPROACHING" record (19 B) out of the kernel's last segment, the 14-B
+  // call that draws the region's title in: the kernel link 987 -> 982 B,
+  // so the free tail 941 -> 946 (the other side of the same re-pin in
+  // tests/basic-window-capacity.test.mjs and tests/level-buffer-16.test.mjs).
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 946, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623, "the initial block moved");

@@ -187,7 +187,7 @@ test("slot E's contract, the way out: START GAME after a boss-sector game rebuil
 // decision C): F2 flashed the band on a stage change and a kill; now nothing
 // flashes it. The flash's state and routine are gone; a plain hit, a stage
 // change and a kill each keep their spark (the colour registers: below).
-test("F2, then decision 2: the band flash's state and routine are gone; a hit, a stage change and a kill keep the spark", () => {
+test("F2, then decision 2: the band flash's state and routine are gone; a kill keeps the spark, a hit it lives through flashes the module", () => {
   const memory = install();
   for (const name of ["boss_palette", "boss_flash_timer", "boss_flash_on"]) {
     assert.throws(() => lbl(name), new RegExp(`no ${name}`), `${name} is still linked`);
@@ -199,10 +199,17 @@ test("F2, then decision 2: the band flash's state and routine are gone; a hit, a
     columnOf(memory, n)];
   const sparked = () => spark() === region1.spark ||
     [...memory.subarray(0xa880, 0xa880 + 6 * 64), ...memory.subarray(0xac80, 0xac80 + 2 * 64)].includes(region1.spark);
-  for (const [what, left] of [["a plain hit", crack + 3], ["a stage change", crack + 1], ["a kill", 1]]) {
+  // RE-POINTED fix/boss-polish (owner request and choice b3, 2026-10-12): a
+  // plain hit and a stage change - hits the module lives through - no longer
+  // spark; they flash the module (bit 7 of its cells, tests/boss-hit-flash.test.mjs),
+  // which is not the band flash above: no colour register is written. A kill
+  // keeps its spark.
+  for (const [what, left, spark] of [["a plain hit", crack + 3, false], ["a stage change", crack + 1, false],
+    ["a kill", 1, true]]) {
     for (let f = 0; f < 4; f += 1) frame(memory);
     hit(memory, "plate-a", left);
-    assert.ok(sparked(), `${what} lost its spark`);
+    assert.equal(hp(memory, n), left - 1, `${what} missed plate-a`);
+    assert.equal(sparked(), spark, spark ? `${what} lost its spark` : `${what} still sparks`);
   }
 });
 

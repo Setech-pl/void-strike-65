@@ -714,11 +714,7 @@ boss_enter_read:
     sta pin_game_music_data_start,x
     inx
     bne @theme
-.ifdef BOSS_TITLE
     jsr boss_enter_title                ; the theme, then the title (below)
-.else
-    jsr BOSS_MUSIC_START
-.endif
     lda #$01
     sta pin_sr_slot_a_overlaid
     ldx #BOSS_CODE_ENTRY
@@ -730,23 +726,15 @@ boss_enter_read:
 
 ; The reader's record format: {dst_lo, dst_hi, text, $00}..., $FF. Inside the
 ; frontend glyph contract (A-Z 0-9 space - . / :); centred on the 40-column
-; rows 6 and 8 of the text screen, two rows above the summary's dotted row,
+; rows 5, 7 and 8 of the text screen, above the summary's dotted row (row 10),
 ; which the reader steps once per sector under it.
 boss_warning_records:
-.ifdef BOSS_TITLE
     ; fix/boss-polish (owner decision AL 1, variant A): WARNING alone first,
     ; on row 5; the region's run brings the name (row 7) and INCOMING (row 8).
     .byte <(BOSS_SCREEN + 5 * 40 + 16), >(BOSS_SCREEN + 5 * 40 + 16)
     .byte "WARNING", $00
-.else
-    .byte <(BOSS_SCREEN + 6 * 40 + 16), >(BOSS_SCREEN + 6 * 40 + 16)
-    .byte "WARNING", $00
-    .byte <(BOSS_SCREEN + 8 * 40 + 12), >(BOSS_SCREEN + 8 * 40 + 12)
-    .byte "BOSS APPROACHING", $00
-.endif
     .byte $FF
 
-.ifdef BOSS_TITLE
 ; fix/boss-polish (owner decision AL 1, variant A): the theme starts, then the
 ; boss's name and INCOMING go under the WARNING, from the region's run that
 ; just landed (scripts/boss-assets.mjs BOSS_TITLE_OFFSET), drawn without a
@@ -758,5 +746,4 @@ boss_enter_title:
     lda #>BOSS_TITLE_RECORDS
     sta frontend_data_ptr+1
     jmp render_frontend_records
-.endif
 .export boss_enter_read, boss_warning_records

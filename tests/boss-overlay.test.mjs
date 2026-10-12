@@ -111,7 +111,13 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
   // tail is the region's block in slot F, no longer slot D's head).
   for (let region = 0; region < 4; region += 1) {
     const at = REGION_1_SECTOR + region * 16;
-    assert.deepEqual(atrRun(at, BOSS_THEME_SECTORS), readBuild("boss-region-1-theme.bin"), `region ${region + 1} theme`);
+    // RE-POINTED fix/boss-polish (owner decision AL 1): each region's theme run
+    // is its own file now - the same theme, then its own boss title's records
+    // from byte $C0 (tests/boss-polish.test.mjs reads them).
+    const theme = readBuild(`boss-region-${region + 1}-theme.bin`);
+    assert.deepEqual(atrRun(at, BOSS_THEME_SECTORS), theme, `region ${region + 1} theme`);
+    assert.deepEqual(theme.subarray(0, 0xc0), readBuild("boss-region-1-theme.bin").subarray(0, 0xc0),
+      `region ${region + 1} plays region 1's theme`);
     assert.deepEqual(atrRun(at + 2, BOSS_BAND_A_SECTORS), Buffer.from(bandA.data), `region ${region + 1} band A`);
     assert.deepEqual(atrRun(at + 8, charset.sectors), Buffer.from(charset.data), `region ${region + 1} charset`);
     assert.deepEqual(atrRun(696 + region * 4, region1.runs.block.sectors), Buffer.from(region1.runs.block.data),
@@ -183,7 +189,7 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
     "no byte of the boss lands in the initial block");
 });
 
-test("decision 32: the screen's record reads WARNING / BOSS APPROACHING, centred, in the glyph contract", () => {
+test("decision 32: the screen's resident record reads WARNING, centred, in the glyph contract", () => {
   // RE-POINTED feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12): the records live in the Light kernel link (plan
   // interceptor-standoff §12.1), as transported from the kernel's address.
@@ -198,7 +204,11 @@ test("decision 32: the screen's record reads WARNING / BOSS APPROACHING, centred
     offset += 1;
     lines.push({ row: Math.floor((address - 0x4000) / 40), column: (address - 0x4000) % 40, text });
   }
-  assert.deepEqual(lines.map(({ text }) => text), ["WARNING", "BOSS APPROACHING"]);
+  // RE-POINTED fix/boss-polish (owner decision AL 1, title variant A): the
+  // kernel keeps WARNING alone (row 5); the boss's name (row 7) and INCOMING
+  // (row 8) come from the region's theme run (tests/boss-polish.test.mjs).
+  assert.deepEqual(lines.map(({ text }) => text), ["WARNING"]);
+  assert.deepEqual(lines.map(({ row }) => row), [5]);
   for (const { column, text } of lines) {
     assert.ok(Math.abs(column - Math.floor((40 - text.length) / 2)) <= 1, `${text} is not centred`);
     assert.match(text, /^[A-Z0-9 \-./:]*$/);

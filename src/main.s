@@ -8235,8 +8235,8 @@ apply_player_damage:
     rts
 
 .segment "BROADSIDE"
-; LIFE retains its single numeric cell. HULL is always four low plate glyphs:
-; intact quarters remain solid and damaged quarters remain visibly cracked.
+; LIFE retains its single numeric cell. HULL is four low plate glyphs while
+; whole: an intact quarter is a plate, a spent one the HUD's blank (as BOOST).
 ; Stored health is still the canonical 0-10 value; this is presentation only.
 update_hud_status:
     lda PLAYER_LIVES
@@ -8251,13 +8251,9 @@ update_hud_status:
     lda #CH_HUD_HULL_FULL
     bne @store_hull
 @damaged:
-.ifdef HUD_HULL_SPENT_BLANK
     ; fix/boss-polish (owner request 2026-10-12): a spent quarter vanishes, as
     ; a spent BOOST cell does - the HUD's blank, its bottom rule kept.
     lda #CH_SPACE
-.else
-    lda #CH_HUD_HULL_DAMAGED
-.endif
 @store_hull:
     sta SCREEN+HUD_HULL_SEGMENTS_OFFSET,x
     dex

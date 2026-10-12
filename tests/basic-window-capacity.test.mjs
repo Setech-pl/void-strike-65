@@ -116,7 +116,11 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // entry's region read and WARNING records moved into the Light kernel link
   // (+67 B) and its head left the window for PICKUP_CODE's tail, the Director
   // half 30 B shorter; the 900-B floor is unchanged.
-  assert.equal(basicWindow.freeBytes, 941,
+  // RE-PINNED fix/boss-polish (plan boss-polish §8, owner decision AL 1): the WARNING screen's
+  // "BOSS APPROACHING" record (19 B) out of the kernel's last segment, the 14-B
+  // call that draws the region's title in: the kernel link 987 -> 982 B,
+  // so the free tail 941 -> 946. No window byte moved.
+  assert.equal(basicWindow.freeBytes, 946,
     "the delivered interceptor-standoff figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);

@@ -1177,7 +1177,8 @@ test("player-debris damage uses fixed EASY/MEDIUM/HARD HULL units atomically", (
 
 test("debris damage updates HULL plates in the contact frame and enters canonical death flow", () => {
   const live = exercisePlayerDebrisCollision({ difficulty: 1, playerHealth: 10 });
-  assert.deepEqual([...live.memory.subarray(0x4019, 0x401d)], [5, 5, 12, 12],
+  // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL quarter is the HUD's blank (0), as a spent BOOST cell, no longer the cracked plate (12).
+  assert.deepEqual([...live.memory.subarray(0x4019, 0x401d)], [5, 5, 0, 0],
     "MEDIUM 10->5 must be visible in the HUD before the collision routine returns");
 
   const lethal = exercisePlayerDebrisCollision({
@@ -1194,7 +1195,8 @@ test("debris damage updates HULL plates in the contact frame and enters canonica
   // Death-frame deferral (2026-09-17): DYING lasts 25 frames; the PMG explosion
   // begins on the first DYING tick, not in the contact frame.
   }, { health: 0, lives: 0, lifecycle: 1, deathTimer: 25, damageCalls: 1 });
-  assert.deepEqual([...lethal.memory.subarray(0x4019, 0x401d)], [12, 12, 12, 12]);
+  // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL quarter is the HUD's blank (0), as a spent BOOST cell, no longer the cracked plate (12).
+  assert.deepEqual([...lethal.memory.subarray(0x4019, 0x401d)], [0, 0, 0, 0]);
 
   for (let frame = 0; frame < 25; frame += 1) runRoutine(lethal.memory, "update_player_death");
   assert.equal(lethal.memory[addresses.playerLifecycle], 3,
@@ -1357,7 +1359,8 @@ test("lethal Interceptor contact updates HUD, uses one death event, and reaches 
     damageCalls: 1,
     deathCalls: 0,    // begin_player_fighter_explosion runs on the first DYING tick
     hudCalls: 1,
-    hullHud: [12, 12, 12, 12],
+    // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL quarter is the HUD's blank (0), as a spent BOOST cell, no longer the cracked plate (12).
+    hullHud: [0, 0, 0, 0],
   });
   for (let frame = 0; frame < 25; frame += 1) runRoutine(memory, "update_player_death");
   assert.equal(memory[addresses.playerLifecycle], 3);
@@ -1630,7 +1633,8 @@ test("Interceptor contact result is exact after an ATR cold boot", () => {
       effectPending: 0,
       scoreLo: 0x10,
       scoreHi: 0,
-      hullHud: [12, 12, 12, 12],
+      // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL quarter is the HUD's blank (0), as a spent BOOST cell, no longer the cracked plate (12).
+      hullHud: [0, 0, 0, 0],
       damageCalls: 1,
       deathCalls: 0,
       breakups: 1,

@@ -127,9 +127,13 @@ test("an idle main menu has no path to gameplay without a gated FIRE event", () 
 });
 
 test("frontend text records explicitly test the byte returned by the reader", () => {
+  // RE-POINTED fix/boss-polish: the record loop has its own global entry,
+  // render_frontend_records (the boss title draws over WARNING without a
+  // clear), so the loop is read from there; the explicit compare is unchanged.
+  assert.match(routine("render_frontend_data"), /jsr clear_screen\s*(;[^\n]*\s*)*$/);
   assert.match(
-    routine("render_frontend_data"),
-    /@text:\s+jsr read_frontend_data\s+cmp #\$00\s+beq @record/,
+    routine("render_frontend_records"),
+    /@text:\s+jsr read_frontend_data\s+cmp #\$00\s+beq render_frontend_records/,
     "pointer advancement changes CPU flags, so the terminator needs its own comparison",
   );
 });

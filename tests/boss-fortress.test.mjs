@@ -416,7 +416,12 @@ test("decision L: a fallen plate leaves no rim anywhere, and the cannon it expos
 // Hit feedback (decision J; §5.13.2 item 5)
 // ---------------------------------------------------------------------------
 
-test("a spark in the struck cell under every band position, restored after 2 frames", () => {
+// RE-POINTED fix/boss-polish (owner request and choice b3, 2026-10-12): a
+// damaging hit the module lives through no longer sparks (it read as a small
+// explosion); the whole module flashes - bit 7 of its non-blank cells toggled
+// for 3 frames (tests/boss-hit-flash.test.mjs) - and every cell comes back.
+// A kill keeps the spark; the hull's deflection is unchanged.
+test("a damaging hit flashes the struck module under every band position (no spark), restored after 3 frames", () => {
   for (const p of [0, 5, 17, 31, 48, 63]) {
     const memory = fortress(p);
     const { left, right } = visibleCells(p);
@@ -433,14 +438,18 @@ test("a spark in the struck cell under every band position, restored after 2 fra
     assert.ok(modules.length > 0, `p ${p}: no exposed module on screen`);
     for (const { index, column } of modules) {
       const m = region1.modules[index];
-      const row = m.row + m.height - 1;
-      const code = cell(memory, column, row);
+      const cells = () => [...Array(m.width * m.height).keys()].map((k) =>
+        cell(memory, m.x + (k % m.width), m.row + Math.floor(k / m.width)));
+      const before = cells();
+      const flashed = before.map((code) => ((code & 0x7f) === 0 ? code : code ^ 0x80));
       shoot(memory, column);
-      assert.equal(cell(memory, column, row), region1.spark, `p ${p}: ${m.name} column ${column}`);
+      assert.deepEqual(cells(), flashed, `p ${p}: ${m.name} column ${column} flashed`);
+      assert.ok(!cells().includes(region1.spark), `p ${p}: ${m.name} showed the spark`);
       update(memory);
-      assert.equal(cell(memory, column, row), region1.spark, `p ${p}: the spark lasts two frames`);
       update(memory);
-      assert.equal(cell(memory, column, row), code, `p ${p}: ${m.name} restored`);
+      assert.deepEqual(cells(), flashed, `p ${p}: the flash lasts three frames`);
+      update(memory);
+      assert.deepEqual(cells(), before, `p ${p}: ${m.name} restored`);
     }
     if (armour !== null) {
       const row = lowestHullRow(memory, armour);

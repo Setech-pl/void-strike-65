@@ -353,27 +353,6 @@ if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirecto
   throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
     "draft (node scripts/boss-r1-variants.mjs writes it)");
 }
-// fix/boss-polish (owner request 2026-10-12, docs/plans/boss-polish.md): the
-// three fixes as one review variant - the feedback of a damaging hit a boss
-// module lives through (the setting), spent HULL quarters vanish in the HUD,
-// and the boss loading screen's title (owner decision AL 1). Settings (owner
-// answers of 2026-10-12, F3 rejected): b3 / b6 the whole module's bit 7
-// toggled for 3 / 6 frames (F1b); c3 the struck cell's for 3 frames (F1c);
-// n0 no picture, the tick only. Composes with --level=N[:sector=M] and
-// --boss-region=N. Review variant:
-// build/boss-polish-<id>[-boss-region-N][-level-N-sM]/, never dist/.
-const bossPolishArgument = process.argv.find((argument) => argument.startsWith("--boss-polish="));
-const bossPolishSlug = bossPolishArgument?.slice("--boss-polish=".length);
-const bossPolishSettings = new Map([
-  ["b3", { define: "BOSS_FLASH_FRAMES=3", moduleFlash: true }],
-  ["b6", { define: "BOSS_FLASH_FRAMES=6", moduleFlash: true }],
-  ["c3", { define: "BOSS_HIT_TOGGLE_FRAMES=3", moduleFlash: false }],
-  ["n0", { define: "BOSS_HIT_NO_FEEDBACK=1", moduleFlash: false }],
-]);
-if (bossPolishSlug !== undefined && !bossPolishSettings.has(bossPolishSlug)) {
-  throw new Error(`Unknown boss polish ${bossPolishSlug}; the settings are ${[...bossPolishSettings.keys()].join(", ")}`);
-}
-const bossPolish = bossPolishSlug === undefined ? null : bossPolishSettings.get(bossPolishSlug);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
 // 16 is LEVEL_MAX_ID, declared below with the rest of the layout; this check
@@ -392,7 +371,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  bossVariantSlug !== undefined || bossPolish !== null;
+  bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -408,9 +387,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
 const levelDebugSuffix = levelDebugId === null
   ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
     `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = bossPolish !== null
-  ? `boss-polish-${bossPolishSlug}${levelDebugSuffix}`
-  : escortVariantId !== null
+const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
@@ -1890,7 +1867,6 @@ async function build() {
     ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
   const compileRegion = (draft) => compileBossRegion(draft,
     { themeImage: bossThemeImage,
-      ...(bossPolish === null ? {} : { moduleFlash: bossPolish.moduleFlash, title: true }),
       shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter),
       hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]) });
   const regionOne = compileRegion(regionOneSource);
@@ -2040,7 +2016,6 @@ async function build() {
         ? ["-D", `PICKUP_BOOST_COLOUR_OVERRIDE=${pickupColourValue}`] : []),
       ...(playerColourValue !== null
         ? ["-D", `PLAYER_SIDE_COLOUR_OVERRIDE=${playerColourValue}`] : []),
-      ...(bossPolish !== null ? ["-D", "HUD_HULL_SPENT_BLANK=1"] : []),
       "-I",
       "/project/build",
       "-l",
@@ -2483,7 +2458,6 @@ async function build() {
   });
   const linkLightKernel = (diskGuardInclude) => buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "hybrid", "light-kernel.s"),
-    defines: bossPolish === null ? [] : ["BOSS_TITLE=1"],
     configPath: path.join(rootDirectory, "cfg", "light-kernel.cfg"),
     configText: lightKernelConfig,
     stem: "light-kernel",
@@ -3029,7 +3003,6 @@ async function build() {
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
-        ...(bossPolish === null ? [] : ["-D", bossPolish.define]),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -4038,7 +4011,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null || bossPolish !== null
+      bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"

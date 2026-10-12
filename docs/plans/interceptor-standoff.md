@@ -2,7 +2,8 @@
 
 **Branch:** `feat/interceptor-standoff` from `main` `ef1924d` (ATR `90f3e24e…`,
 boot `fce37c74…`, the `feat/boss-escort-flow` merge, decision AI).
-**Status:** `OWNER-SMOKE CANDIDATE` (2026-10-12). The standoff (variant R,
+**Status:** **implemented** — the owner's smoke passed (2026-10-12) and the
+branch is merged to `main` at `26ad91d`. The standoff (variant R,
 §11) and the top-hold loop (§12-§13) are built, with Phase B complete:
 * E1 (b): always up;
 * E2: the HARD hunts' dodge;

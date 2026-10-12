@@ -452,6 +452,11 @@ byte moves (nothing resident but the window's 14 B).
 > visible colour-3 pixels (COLPF2, or COLPF3 in a bit-7 cell). The hit flash
 > toggles bit 7 of the hit module's cells and shows nothing on a stage without
 > them. A data test holds it for every region (plan `boss-polish` §10.3).
+> **The boss's name (decision AL 1):** each region's boss name is data - a
+> region's own `modules.json` `"name"` (S5-3 Siege Spine, S5-4 Void Citadel,
+> S5-5 Bastion: keep the final names), until then its `placeholders.json`
+> entry's. The converter writes it with INCOMING into the region's theme run
+> at byte `$C0`, so the theme may use 192 B (`docs/level-authoring.md`).
 > **Slot E:** after the hit flash it is 358 B of code in 3 sectors (373 of 576
 > B RAM); the M6 torpedo's ~200 B no longer fits beside it, and the torpedo's
 > home is M6's decision (candidates: plan `boss-polish` §10.4).

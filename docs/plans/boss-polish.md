@@ -2,14 +2,12 @@
 
 **Branch:** `fix/boss-polish` from `main` `26ad91d` (ATR `3b05ca34…`, boot
 `731e5703…`, the `feat/interceptor-standoff` merge, decision AK).
-**Status:** Phase A, round 3 (§10): the owner chose **b3**, with region 1's
-plate art to be fixed so the flash shows on every stage. Waiting for the
-owner's look at the redrawn stages. Round 2 (§9): The owner played round 1 and rejected F3
-(2026-10-12): the solid fill reads as a white rectangle, not as the module
-flashing. Round 2 builds and measures the bit-7 candidates F1b and F1c and a
-no-feedback build. Waiting for the owner's play. If the owner rejects all
-three, the flash is dropped and damaging hits keep today's spark. §0-§8 are
-the round-1 record; their F3 figures no longer describe the code.
+**Status:** **implemented, pending the owner's smoke — `OWNER-SMOKE CANDIDATE`**
+(2026-10-12). The owner chose **b3** and accepted the redrawn plate stages
+(§9-§10). Phase B (§11) made b3, the vanishing HULL quarters and the boss
+title the default build. ATR `ddf01a9f…`, boot `186739b2…`. §0-§8 are the
+round-1 record (F3, rejected) and §9 the round-2 record; their figures for the
+removed candidates no longer describe the code.
 
 **The owner's requests (2026-10-12, after playing the boss):**
 1. A hit on a boss module that does not destroy it shows a small explosion,
@@ -278,6 +276,8 @@ harness takes pictures on gameplay frames only.
 
 ## 8. Phase B (after the choice)
 
+*As built, with every re-pin and its source: §11.3.*
+
 The tests come first: the flash test is RED on `main`; the HULL and title
 tests follow. Then the chosen setting becomes the default and the other
 settings' code goes. Re-pins: the spark test
@@ -524,3 +524,110 @@ Candidates, as the boss build reports them (M, `build/boss-polish-b3-level-1-s6`
 | install | 22 B | once per entry only |
 | slot A | 1 B | full |
 | shrink | — | A torpedo ≤ ≈ 150 B fits slot E's 4th sector with its state (EST). |
+
+---
+
+## 11. Phase B — as built (owner OK of 2026-10-12)
+
+**Commits:** `f9dd63b` (code and tests) and `72c48ec` (the evidence), plus
+this documentation. The variants are gone: there is no `--boss-polish` flag,
+no F1c, no n0 and no F3 code, and every flash path is unconditional.
+
+### 11.1 The game
+
+* **Hit flash (b3):** a damaging hit that a module lives through toggles bit
+  7 of the module's non-blank cells for `BOSS_MFLASH_FRAMES` = 3 frames
+  (`src/hybrid/boss.s`, `boss_mflash_*`). The flash takes the frame's single
+  module draw. The queue and the defeat chain's blast end a flash before they
+  draw its module. A kill keeps the spark. Absorbed and hull hits keep the
+  deflection, and the 2-frame channel-3 tick is unchanged (owner answer 2).
+  The labels are `boss_mflash_*`, so `tests/boss-s4b5.test.mjs`'s guard
+  against the removed *band* flash (`boss_flash_timer`, `boss_flash_on`) is
+  untouched.
+* **HULL:** a spent quarter is `CH_SPACE`, in the normal HUD and in the boss
+  sector's (`src/main.s` `update_hud_status`; the install calls the same
+  routine).
+* **Title:** WARNING (row 5) is resident in the Light kernel's records; the
+  region's name (row 7) and INCOMING (row 8) are the reader's records at
+  `$C0` in each region's theme run. They are drawn by `boss_enter_title`
+  through `render_frontend_records` (the record loop's new entry, no clear)
+  right after the run lands. Names: `modules.json` `"name"` and
+  `placeholders.json` `"name"`.
+* **Art (§10):** region 1's plate stages and the capped plate carry amber;
+  regions 2-4 copy it.
+
+### 11.2 Tests: RED on `main` `26ad91d`, GREEN here
+
+The new files were run on `main`'s own build in a temporary detached worktree,
+since removed. On `main`'s converter `tests/boss-polish.test.mjs` takes the
+title records' address as a literal.
+
+| test | `main` | here |
+|---|---|---|
+| `tests/boss-hit-flash.test.mjs`: a hit plate-d / gun-2 lives through flashes the whole module 3 frames, no spark, every cell back | RED | GREEN |
+| … a module with bit-7 cells comes back exactly after two toggles | RED | GREEN |
+| … the A/B gameplay identity (every gameplay byte every frame; the band equal once settled; drift, death, defeat) | RED | GREEN |
+| … a kill keeps the spark; a stage change ends on the new stage | GREEN (guard) | GREEN |
+| `tests/boss-polish.test.mjs`: HULL blank at 0-10 units; the respawn's four plates; the boss HUD at 10 / 7 / 4 / 2 / 0 | RED | GREEN |
+| … the loading screen, regions 1-4: WARNING / name / INCOMING | RED | GREEN |
+| … the title lives in the theme runs (not resident, not slot F) | RED | GREEN |
+| … the art rule: every stage of every destructible module, regions 1-4, ≥ 4 colour-3 pixels | RED | GREEN |
+
+### 11.3 Re-pins and re-points, with their sources
+
+| site | old → new | why |
+|---|---|---|
+| `tests/boss-fortress.test.mjs` "a spark in the struck cell…" | spark 2 frames → the module flashed 3 frames, no spark | owner request 1, choice b3; the hull's deflection part unchanged |
+| `tests/boss-engine.test.mjs` "the four damage stages" | settle 3 → 3 + 3 frames | the flash it now sees on the stage-change hit; the stage assertions unchanged |
+| `tests/boss-s4b5.test.mjs` "F2, then decision 2…" | a plain hit and a stage change spark → flash (no spark); a kill sparks; + a check that each hit lands | owner request 1; the band-flash label guard untouched |
+| `tests/boss-overlay.test.mjs` the disk | regions 2-4's theme = region 1's file → each region's own file, the first 192 B region 1's | the title records at `$C0` (decision AL 1) |
+| `tests/boss-overlay.test.mjs` decision 32 | records WARNING / BOSS APPROACHING → WARNING (row 5) alone | title variant A |
+| `tests/boss-runtime.test.mjs` decision 32 | WARNING row 6, BOSS APPROACHING row 8 → WARNING row 5, BLOCKADE BREAKER row 7, INCOMING row 8 | title variant A |
+| `tests/boss-look-tail.test.mjs` E4 band digests | panels 1, 2, 5, 6 → the accepted art's digests; 3, 4 unchanged | plan §10, the owner's acceptance |
+| `tests/level-summary-build.test.mjs` disk runs | region N is region 1's copy → … except its theme run's title bytes `$C0-$FF` | decision AL 1 |
+| `tests/level-summary-build.test.mjs` the window | 941 → 946 | the kernel 987 → 982 B (the other side of the next two rows) |
+| `tests/basic-window-capacity.test.mjs` | 941 → 946 | the same |
+| `tests/level-buffer-16.test.mjs` | kernel 987 → 982, used 2,643 → 2,638, tail 941 → 946 | the WARNING records' 19 B out, the 14-B title call in |
+| `tests/entity-effects.test.mjs` (×4) | HULL `[5,5,12,12]` / `[12,12,12,12]` → `[5,5,0,0]` / `[0,0,0,0]` | owner request 2 |
+| `tests/weapon-pickup-rapid-fire.test.mjs:532,534` | `[5,5,12,12]`, `[12,12,12,12]` → `[5,5,0,0]`, `[0,0,0,0]` | owner request 2 |
+| `tests/frontend.test.mjs` the terminator compare | `beq @record` in `render_frontend_data` → `beq render_frontend_records` in its own routine | the record loop's global entry |
+| `tests/runtime-wall-trace.test.mjs`, `scripts/runtime-wall-trace.mjs`, `tests/slot-f.test.mjs` | entry < 250 → ≤ 280; ≤ 65 sectors removed | **gate change**, owner decision AM (`e8949e7`) |
+| `tests/boss-stress.test.mjs` the placeholders' equality | entries compared without their `name` | the names never reach the fight |
+| `scripts/boss-assets.mjs` the laser fixtures' name | `Laser fixture, tier N` → `Laser fixture - tier N` | the comma is not a frontend glyph; the converter writes every region's title now |
+| evidence (`docs/runtime-wall-trace.json`, `menu-raster-trace.json`, `docs/media/`, `dist/`, the memory map's generated block) | regenerated | `72c48ec` |
+
+### 11.4 Before / after (main = `docs/STATUS.md` and the evidence at `26ad91d`)
+
+| figure | main | here | source |
+|---|---:|---:|---|
+| worst fence margin (row) | 1,287 (`2-sweep-fire6`) | 1,287 (`2-sweep-fire6`) | M, PAL audit over 58 replays |
+| DMA-on maximum | 31,443 (`weapon-pickup-2-hunt-fire4` f2,356) | 31,443 (same) | M, `docs/runtime-wall-trace.json` |
+| replays / clause failures / missed frames | 58 / 0 / 0 | 58 / 0 / 0 | M |
+| boss frames (director-complete, rows in the boss sector) worst margin / DMA-on | 8,427 / 29,846 (STATUS) | 8,359 (`director-complete-1` f4,156) / 29,987 (`-2` f5,831) | M. This session's method is all rows with `boss_state ≥ 1`, the entry row excluded; STATUS does not record how main's figure was taken, so the 68-cycle difference may be the method. |
+| boss fight frames (director-complete E / M / H) | 2,084 / 2,492 / 3,447 | 2,084 / 2,492 / 3,447 | M; the fight is frame-identical, so the aim-bot fight lengths (86.5 / 103.0 / 154.4 s) stand |
+| boss stress, region 1, worst reachable (limit 8,500) | 6,987 | 7,006 | M, 6502 harness |
+| boss stress, tier-4 fixture warn / beam | 7,987 / 7,019 | 8,006 / 7,037 | M |
+| boss entry | 64 sectors, 245 host frames | **65 sectors, 249 host frames** (16 entries; limit 280, decision AM) | M |
+| WARNING → name / INCOMING | — | **7 host frames** on every route, regions 1-4 | M, the trace header's opt-in title observer (`DFTITLE_*`), focused runs on `build/[boss-region-N-]level-1-s6` |
+| window record | 1,322 of 1,387 B, 11 sectors | unchanged | M |
+| window free tail | 941 B | 946 B | M |
+| Light kernel record | 866 of 875 B packed (987 raw) | 865 (982 raw) | M |
+| pickup tail / arena / DIRECTOR_RAM | 20 / 14 / 2 B | unchanged | M |
+| initial block | 13,623 B, 107 sectors | unchanged | M |
+| slot A | 2,016 of 2,048 B | **2,047 (1 B free)** | M |
+| slot C / D | 1,662 B, 13 / 1,647 B, 13 | unchanged | M |
+| slot E | 254 B, 2 sectors (266 B RAM) | **358 B, 3 sectors** (373 of 576 B RAM) | M |
+| install | 352 of 384 B | 362 | M |
+| slot F (R1 table) | 110 B | 110 B | M |
+| region charset | 976 B, 122 codes | 976 B, 122 codes | M |
+| theme run | 176 of 256 B | 176 + the title's records at `$C0` (R1: 31 B) | M |
+| npm test | 1,309 tests, 1 recorded failure | §11.5 | M |
+| ATR / boot | `3b05ca34…` / `731e5703…` | `ddf01a9f…` / `186739b2…` | M |
+
+### 11.5 Follow-ups
+
+* **The Interceptor tougher (more hits to destroy)** — the owner's next task,
+  its own branch after this one and before S5-3. No work here.
+* **The M6 torpedo's home**: slot E has no room beside the flash (§10.4).
+* **S5-3/4/5:** keep the art rule (§10.3) and the final names in data
+  (`docs/plans/s5-boss-regions.md`).

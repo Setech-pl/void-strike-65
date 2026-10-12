@@ -1013,6 +1013,43 @@ atari800 -xl -pal -nobasic "$PWD/build/play/feat-interceptor-standoff-boss-route
       Interceptors and debris in the swarm, and with an escort, the boss's
       fire and a laser on screen together.
 
+## 28. Boss polish: the module hit flash, vanishing HULL quarters, the boss title (`fix/boss-polish`)
+
+Plan [plans/boss-polish.md](plans/boss-polish.md); journal §AL, §AM. In
+Atari800 (`-xl -pal -nobasic`), on the final ATR (its SHA-256 is in the plan's
+§11 and STATUS) and on its boss route:
+
+- [ ] **A hit a module lives through flashes the module**, no small
+      explosion: on a plate at each stage (intact, cracked, broken) and on an
+      exposed gun, the whole module's amber goes dark red (and a gun's dark
+      red goes amber) for about 3 frames, then back. Nothing is left changed.
+- [ ] **The plates' new amber** reads as part of the plate: the intact
+      plate's bottom rim and two top rivets, the cracked plate's glowing
+      cracks, the broken plate's hatching as before; each stage is still the
+      stage you know.
+- [ ] **A kill is unchanged:** the spark in the struck cell, the module
+      disappears, the kill sound; the defeat's chain of blasts as before.
+- [ ] **A hit that does no damage** (the hull, a covered module) still shows
+      the grey deflection; the hit sounds (the 2-frame tick) are unchanged.
+- [ ] **HULL quarters vanish.** Take damage in a normal sector: each spent
+      quarter disappears (as a spent BOOST cell does), no cracked plate. The
+      same in the boss sector after its loading screen, after more damage
+      there, and after a death: the respawn shows four plates again.
+- [ ] **The boss loading screen** reads `WARNING`, then `BLOCKADE BREAKER`
+      and `INCOMING` under it, centred, the dash row stepping below. The name
+      and INCOMING appear a few frames after WARNING (plan §11). On the review
+      routes (`--boss-region=2|3|4 --level=1:sector=6`): `BASTION`,
+      `SIEGE SPINE`, `VOID CITADEL`.
+- [ ] **The fight feels as before** (the flash changes no hit, no stage, no
+      score; MEDIUM about 103 s by the bot).
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **The boss on hardware:** the flash, the title and the HULL gauge as in
+      Atari800, with no flicker, tearing or slowdown, also with an escort, the
+      boss's fire and a laser on screen together.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

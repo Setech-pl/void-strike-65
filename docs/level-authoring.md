@@ -236,7 +236,7 @@ aiming bot (`boss-aim`), which the director-complete replays use since
 | `band.png` | 256 x 64 | the band as the fight starts: 64 cells x 8 rows, a cell 4 x 8 pixels; a covered module's closed look (S3's shutters) |
 | `cracked.png`, `broken.png` | 256 x 64 | every module's cracked and broken look, read inside module rectangles only |
 | `open.png` | 256 x 64 | a covered module's exposed look; a module whose cells here equal `band.png`'s has none |
-| `extras.png` | 60 x 8 | 15 cells: the spark (a damaging hit); the deflection (a hit that does no damage: the hull, a covered module); the muzzle flash; the cavity (a destroyed module's rows inside the hull; drawn blank it is the band background); the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
+| `extras.png` | 60 x 8 | 15 cells: the spark (a kill; a hit the module lives through flashes it instead, fix/boss-polish); the deflection (a hit that does no damage: the hull, a covered module); the muzzle flash; the cavity (a destroyed module's rows inside the hull; drawn blank it is the band background); the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
 | `modules.json` | | the layout (below) |
 
 **The PNG format.** Non-interlaced, 8 bits a channel, **RGBA** (32-bit), every
@@ -297,11 +297,33 @@ columns then meets the module behind it, or the hull. The exposure check
 runs on the frame after a kill, and a module's redraw (a stage, a hole, an open
 look) goes through a queue that draws one module a frame (§5.15.6 item 2).
 
-**Every hit reads** (decision J): a damaging hit shows the spark in the struck
-cell (the module's bottom row at the shot's column) for 2 frames, flashes the
-band for one frame and ticks on channel 3; a covered module's or the hull's
-absorb shows the deflection (the hull: on the column's hull stop cell) with
-a tick of its own. The kill sounds on channel 2, the win's blasts on channel 4.
+**Every hit reads** (decision J, as amended by fix/boss-polish, owner choice b3
+of 2026-10-12): a damaging hit the module lives through **flashes the whole
+module** - bit 7 of its non-blank cells toggled for 3 frames, so its colour-3
+pixels show COLPF3 instead of COLPF2 (amber to the hull's dark red, and back)
+- and ticks on channel 3 for 2 frames; a kill shows the spark in the struck
+cell (the module's bottom row at the shot's column) for 2 frames. A covered
+module's or the hull's absorb shows the deflection (the hull: on the column's
+hull stop cell) with a tick of its own. The band's colours never change. The
+kill sounds on channel 2, the win's blasts on channel 4.
+
+**The art rule the flash needs** (plan `boss-polish` §10.3): every damage stage
+of every destructible module - intact, cracked, broken, in the look it is hit
+in (an open look), and the capped plate's three - must carry **clearly visible
+colour-3 pixels** (`pf2 bank` amber, or `pf3 bank` in a bit-7 cell). A stage
+without them shows no flash. `tests/boss-polish.test.mjs` refuses a stage with
+fewer than 4 for every region on the disk. The converter also refuses a module
+standing in a gun's fire column under the gun without covering it (a boss shot
+drawn in a toggled cell would come back wrong).
+
+**The boss's name** (decision AL 1): the loading screen shows `WARNING`, then
+the region's boss name, then `INCOMING`. The name is `modules.json`'s `"name"`
+(region 1: `"Blockade Breaker"`); a region still copied from region 1 takes
+its entry's `"name"` in `placeholders.json` (`"Bastion"`, `"Siege Spine"`,
+`"Void Citadel"`). It is shown upper-case and must use the reader's glyphs
+(A-Z 0-9 space - . / :, at most 40). The converter writes it, with `INCOMING`,
+as the reader's records into the region's theme run at byte `$C0` (the run's
+slack; the theme may use 192 B), so it costs no resident byte and no sector.
 
 **Damage stages.** A module cracks at 2/3 of its hit points and breaks at 1/3.
 Every module cell is a *staged* glyph: the converter puts each distinct

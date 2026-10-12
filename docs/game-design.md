@@ -24,9 +24,10 @@ and top scores rather than demonstration data.
 ### HUD and player lifecycle
 
 The gameplay HUD contains `SCORE`, `LIFE`, and `HULL`. Four low, angular plate
-cells follow the full `HULL` label at all times: intact quarters are solid and
-damaged quarters remain visible as cracked plates. This indicator never blinks
-or disappears.
+cells follow the full `HULL` label: an intact quarter is a solid plate and a
+spent quarter vanishes, as a spent `BOOST` cell does (fix/boss-polish, owner
+request 2026-10-12; the boss sector's HUD the same). The plates never blink;
+an empty hull shows the label alone until the respawn's four plates.
 
 While Rapid Fire, Spread Shot, or Shield is active, the ten cells to the right show the
 full `BOOST` label, one blank separator, and four tall, narrow energy cells.
@@ -388,7 +389,9 @@ its waves armed at authored rows:
   (see "World and difficulty");
 * the **BOSS** sector raises the boss-due flag; on the same drained
   playfield the capital waits for (`src/c/lifecycle.c:673-682`) the world
-  scroll stops, the boss is read from disk behind the WARNING screen, and the
+  scroll stops, the boss is read from disk behind the WARNING screen - WARNING,
+  then the boss's name and INCOMING (decision AL: BLOCKADE BREAKER, BASTION,
+  SIEGE SPINE, VOID CITADEL for regions 1-4) - and the
   sector ends at the boss's death, not on a row (`src/c/director.c:387-388`,
   `:591-596`).
 
@@ -545,7 +548,7 @@ section "Decyzje literowe 2026-09-20".
   progress bar. The texts are spoken by the fighter's onboard AI: cynical,
   having seen too much. **As built (fix/smoke-2026-10-07, P3):** the
   loading/summary screen shows no AI line - it ran into the statistics - and
-  no home on the WARNING / BOSS APPROACHING screen fits without boot bytes
+  no home on the boss's WARNING screen fits without boot bytes
   or a boss-entry sector; the four placeholder lines stay in
   `assets/text/loader-ai-lines.json` for the backlog's "AI chatter line: find
   a home". At START GAME, before a level is played, the screen shows no

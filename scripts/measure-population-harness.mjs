@@ -19,12 +19,16 @@ import { Nmos6502 } from "./nmos6502.mjs";
 import { installRuntimeSegments } from "./runtime-image.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+// feat/interceptor-armour: VS65_HARNESS_BUILD=<dir> drives a review variant's
+// build (build/<dir>/), as tests/boss-harness.mjs does for the boss tests.
+const harnessBuild = process.env.VS65_HARNESS_BUILD ?? null;
+const buildDirectory = path.join(root, "build", ...(harnessBuild === null ? [] : [harnessBuild]));
 
 const labels = new Map();
-for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl", "build/capital-player-collision.lbl",
-  "build/light-kernel.lbl"]) {
-  const p = path.join(root, file);
+for (const file of ["void-strike-65.lbl", "encounter-director.lbl",
+  "integration-glue.lbl", "capital-player-collision.lbl",
+  "light-kernel.lbl"]) {
+  const p = path.join(buildDirectory, file);
   if (!fs.existsSync(p)) continue;
   for (const line of fs.readFileSync(p, "utf8").split(/\r?\n/)) {
     const m = /^al\s+([0-9a-f]+)\s+\.?(\S+)$/i.exec(line.trim());
@@ -41,7 +45,7 @@ const STICK0 = 0xd300, TRIG0 = 0xd010, CONSOL = 0xd01f, VCOUNT = 0xd40b;
 
 export function machine({ difficulty = 2 } = {}) {
   const memory = new Uint8Array(0x10000);
-  installRuntimeSegments(memory, root);
+  installRuntimeSegments(memory, root, buildDirectory);
   const io = { stick: 0x0f, trigger: 1, console: 0xff,
     vcountReads: [0, 1, 0x70, 0x71, 0x77, 0x78], index: 0 };
   const cpu = new Nmos6502(memory, {

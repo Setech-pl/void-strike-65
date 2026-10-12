@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "6f88fa9345979ae772a92e690ec86eb0dd8c9597e422e215c8c904c439debbba",
+    "replay_fingerprint_sha256": "78a033d15af0b1471148a0b6693edcb450ecf1def7c2e40202a74b20251b0d1c",
     "ordered_frames": 131590,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -17,23 +17,23 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 27264,
-      "sha256": "476ee42e2cd1a98e3850012e7ac94823a59a9b9d9b3915a44abad4058ae8be36"
+      "sha256": "731e5703a2149cba6adf02a14bd06a5cf99af51a8e9617afe6de54ef932b7a01"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+      "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 874599,
-      "sha256": "2ec7980360d1e16e1b3ef3dc825cf4985a965971c94283a54b0007ad731e74e6"
+      "bytes": 874597,
+      "sha256": "eb45ed8fc293addfb61e61f951a22fb354c7f254bbd5e33af9a716727ed8f4f2"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+    "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
   },
   "emulator": {
     "name": "Atari800",
@@ -68,7 +68,7 @@
       "level_buffer_address": 42496,
       "level_image_file": "level-1.bin",
       "level_image_bytes": 1664,
-      "level_image_checksum": 638724186,
+      "level_image_checksum": 154923389,
       "level_image_header_hex": "565301010d780609",
       "verified_at_frames": [
         3400
@@ -235,7 +235,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -400,7 +400,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 638724186,
+            "level_checksum": 154923389,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 2003782027
@@ -579,7 +579,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -744,7 +744,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 638724186,
+            "level_checksum": 154923389,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 2003782027
@@ -923,7 +923,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1088,7 +1088,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 638724186,
+            "level_checksum": 154923389,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 2003782027
@@ -1267,7 +1267,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1432,7 +1432,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 638724186,
+            "level_checksum": 154923389,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 2003782027
@@ -1613,7 +1613,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1778,7 +1778,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 638724186,
+            "level_checksum": 154923389,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 2003782027
@@ -1968,7 +1968,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -2133,7 +2133,7 @@
             "portb": 255,
             "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
             "level_header": "565301010d780609",
-            "level_checksum": 638724186,
+            "level_checksum": 154923389,
             "slot_checksum": 3464593022,
             "table_checksum": 3080542364,
             "splash_checksum": 2003782027
@@ -2358,7 +2358,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2367,7 +2367,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2376,7 +2376,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2385,7 +2385,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e25f6d14831bedc3fb8c67cbdb15aae27f017d685b0210b8679f5ab9858c95dd"
+          "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }
@@ -2827,8 +2827,8 @@
       "logical_step_scanlines": 2,
       "physical_address_changes_during_native_motion": 68,
       "release_frames": 1,
-      "booster_overlap_frames_all_replays": 1902,
-      "booster_overlap_frames_pickup_lifecycle_union": 414,
+      "booster_overlap_frames_all_replays": 1832,
+      "booster_overlap_frames_pickup_lifecycle_union": 344,
       "booster_overlap_sessions": [
         "2-sweep-fire0",
         "2-sweep-fire2",
@@ -2862,8 +2862,8 @@
           "plane_rows": 0
         }
       ],
-      "rapid_frames": 3194,
-      "pickup_events": 23,
+      "rapid_frames": 3431,
+      "pickup_events": 22,
       "passed": true
     },
     "weapon_pickup_spread_shot": {
@@ -2881,9 +2881,9 @@
       "remaining_hard_cycles": 468,
       "target_overrun_frames": 0,
       "hard_overrun_frames": 0,
-      "rapid_frames": 3194,
-      "spread_frames": 3508,
-      "pickup_events": 23,
+      "rapid_frames": 3431,
+      "spread_frames": 2769,
+      "pickup_events": 22,
       "granted_booster_modes": [
         3,
         3,
@@ -2902,7 +2902,6 @@
         4,
         5,
         3,
-        4,
         3,
         4,
         5,
@@ -2949,8 +2948,7 @@
             3,
             4,
             5,
-            3,
-            4
+            3
           ]
         },
         {
@@ -2982,16 +2980,15 @@
         4,
         5,
         3,
-        4,
         3,
         4,
         5,
         3,
         4
       ],
-      "spread_volley_frames": 1557,
+      "spread_volley_frames": 1323,
       "active_capsule_three_projectile_frames": 68,
-      "active_capsule_during_booster_frames": 1902,
+      "active_capsule_during_booster_frames": 1832,
       "worst_legal_capsule_three_projectiles": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -3117,7 +3114,7 @@
       "target_overrun_frames": 0,
       "hard_overrun_frames": 0,
       "shield_frames": 1250,
-      "pickup_events": 23,
+      "pickup_events": 22,
       "passed": true
     },
     "shield_preimplementation_baseline": {
@@ -3134,7 +3131,7 @@
     "memory_integrity": {
       "atr_frames": 22996,
       "duration_seconds_pal_per_artifact": 459.92,
-      "pickup_rf_cycles": 17,
+      "pickup_rf_cycles": 16,
       "dli_sequence_violations": 0,
       "maximum_dlis_per_host_frame": 2,
       "pause_sessions": [
@@ -6491,7 +6488,7 @@
   "coverage": {
     "world_near_with_far_erase": {
       "observed": true,
-      "matching_frames": 48891,
+      "matching_frames": 49127,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -6601,7 +6598,7 @@
     },
     "hull_event": {
       "observed": true,
-      "matching_frames": 48891,
+      "matching_frames": 49127,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -6711,7 +6708,7 @@
     },
     "director_world_row": {
       "observed": true,
-      "matching_frames": 47968,
+      "matching_frames": 48204,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -6821,7 +6818,7 @@
     },
     "director_request": {
       "observed": true,
-      "matching_frames": 44740,
+      "matching_frames": 44865,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -7151,7 +7148,7 @@
     },
     "director_heaviest_frame": {
       "clause": "the heaviest frame with a Director request, event or world-row tick fits the gates: fence margin >= 500, DMA-on <= 32,568",
-      "director_frames": 85215,
+      "director_frames": 85284,
       "fence_margin_cycles": 11443,
       "passed": true,
       "frame": {
@@ -7453,7 +7450,7 @@
             "$560a"
           ],
           "sessions": 58,
-          "count": 1093
+          "count": 1091
         },
         {
           "routine": "main:update_score_display+13",
@@ -7461,7 +7458,7 @@
             "$5615"
           ],
           "sessions": 58,
-          "count": 1093
+          "count": 1091
         },
         {
           "routine": "main:update_score_display+22",
@@ -7469,7 +7466,7 @@
             "$561e"
           ],
           "sessions": 58,
-          "count": 1093
+          "count": 1091
         },
         {
           "routine": "main:update_score_display+33",
@@ -7477,7 +7474,7 @@
             "$5629"
           ],
           "sessions": 58,
-          "count": 1093
+          "count": 1091
         },
         {
           "routine": "main:update_score_display+42",
@@ -7485,7 +7482,7 @@
             "$5632"
           ],
           "sessions": 58,
-          "count": 1093
+          "count": 1091
         },
         {
           "routine": "main:draw_options_structure+17",
@@ -7509,7 +7506,15 @@
             "$6db7"
           ],
           "sessions": 26,
-          "count": 448
+          "count": 446
+        },
+        {
+          "routine": "main:restore_weapon_booster_hud+5",
+          "pcs": [
+            "$5c76"
+          ],
+          "sessions": 25,
+          "count": 400
         },
         {
           "routine": "boss:boss_install+77",
@@ -7520,20 +7525,12 @@
           "count": 400
         },
         {
-          "routine": "main:restore_weapon_booster_hud+5",
-          "pcs": [
-            "$5c76"
-          ],
-          "sessions": 25,
-          "count": 390
-        },
-        {
           "routine": "main:show_weapon_booster_hud+5",
           "pcs": [
             "$6dcc"
           ],
           "sessions": 30,
-          "count": 348
+          "count": 342
         },
         {
           "routine": "main:draw_options_structure+7",
@@ -7549,7 +7546,7 @@
             "$6de1"
           ],
           "sessions": 30,
-          "count": 232
+          "count": 228
         },
         {
           "routine": "boss:boss_install+94",
@@ -7581,7 +7578,7 @@
             "$6d97"
           ],
           "sessions": 28,
-          "count": 50
+          "count": 49
         },
         {
           "routine": "main:update_weapon_booster_hud+62",
@@ -7589,7 +7586,7 @@
             "$6dbd"
           ],
           "sessions": 27,
-          "count": 38
+          "count": 36
         },
         {
           "routine": "main:update_shield_booster_hud+32",
@@ -7605,7 +7602,7 @@
             "$6dc3"
           ],
           "sessions": 26,
-          "count": 33
+          "count": 32
         },
         {
           "routine": "main:update_shield_booster_hud+38",
@@ -7685,28 +7682,28 @@
       "failures": [],
       "clauses": {
         "L1": {
-          "subject": 37591,
-          "frames": 5204,
+          "subject": 38422,
+          "frames": 6002,
           "held": true
         },
         "L2": {
-          "subject": 37591,
-          "frames": 8966,
+          "subject": 38422,
+          "frames": 8999,
           "held": true
         },
         "L3": {
-          "subject": 12230,
+          "subject": 12329,
           "violations": 0,
           "held": true
         },
         "L4": {
-          "subject": 44071,
+          "subject": 44617,
           "violations": 0,
           "held": true
         },
         "L5": {
           "subject": 17,
-          "frames": 869,
+          "frames": 993,
           "held": true
         }
       },
@@ -8054,7 +8051,7 @@
     },
     "live_heavy_formation": {
       "observed": true,
-      "matching_frames": 43952,
+      "matching_frames": 43917,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -8159,7 +8156,7 @@
     },
     "fighter_explosion": {
       "observed": true,
-      "matching_frames": 13136,
+      "matching_frames": 13153,
       "heaviest": {
         "trace_kind": "boss-edge-guard",
         "session": "boss-edge-left-1",
@@ -8379,7 +8376,7 @@
     },
     "music_with_sfx_preemption": {
       "observed": true,
-      "matching_frames": 77576,
+      "matching_frames": 77815,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -8485,7 +8482,7 @@
     },
     "debris_empty_path": {
       "observed": true,
-      "matching_frames": 76958,
+      "matching_frames": 77049,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -8591,7 +8588,7 @@
     },
     "debris_one_active": {
       "observed": true,
-      "matching_frames": 47807,
+      "matching_frames": 47693,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -8803,30 +8800,141 @@
     },
     "debris_contact": {
       "observed": true,
-      "matching_frames": 72,
+      "matching_frames": 71,
       "heaviest": {
-        "trace_kind": "weapon-pickup-spread-coverage",
-        "session": "weapon-pickup-spread-0-hunt-fire4",
-        "frame": 3640,
-        "gameplay_frame": 56,
-        "difficulty": 0,
-        "wall_cycles": 29686,
-        "physical_headroom": 5882,
+        "trace_kind": "baseline-9040",
+        "session": "2-evasive-fire7",
+        "frame": 485,
+        "gameplay_frame": 229,
+        "difficulty": 2,
+        "wall_cycles": 29128,
+        "physical_headroom": 6440,
         "start": {
-          "clock": 157319347,
-          "host_frame": 4423,
+          "clock": 45102307,
+          "host_frame": 1268,
           "scanline": 18,
           "cycle": 31
         },
         "end": {
-          "clock": 157349033,
-          "host_frame": 4423,
-          "scanline": 278,
-          "cycle": 77
+          "clock": 45131435,
+          "host_frame": 1268,
+          "scanline": 273,
+          "cycle": 89
         },
         "next_start": {
-          "clock": 157354915,
-          "host_frame": 4424
+          "clock": 45137887,
+          "host_frame": 1269
+        },
+        "host_vbi_boundaries": 0,
+        "extra_vbi_boundaries": 0,
+        "missed_frames": 0,
+        "dli_nmis": 1,
+        "dma_ctl": 62,
+        "nmi_en": 128,
+        "state": {
+          "projectiles": 3,
+          "broadside": 0,
+          "far_rendered": 4,
+          "active_muzzles": 0,
+          "entity_active": 1,
+          "entity_x": 120,
+          "entity_y": 192,
+          "entity_vx_signed": 0,
+          "entity_move_accumulator": 0,
+          "entity_vertical_accumulator": 1,
+          "entity_render_id": 112,
+          "entity_active_mask": 2,
+          "weapon_pickup": {
+            "state": 2,
+            "booster_state": 0,
+            "qualified_kill_counter": 0,
+            "x": 146,
+            "y": 70,
+            "timer": 0,
+            "timer_low": 0,
+            "timer_high": 0,
+            "plane_rows": 16,
+            "plane_union": 255
+          },
+          "player_fighter_projectiles": 2,
+          "rapid_player_fighter_projectiles": 0,
+          "score_bcd": [
+            1,
+            16
+          ],
+          "effect_active_mask": 0,
+          "effect_active_count": 0,
+          "effect_rendered_mask": 0,
+          "live_heavy_formation": true,
+          "raider_formation": {
+            "guide_y": 24,
+            "member_state": [
+              1,
+              1,
+              4
+            ],
+            "member_hp": [
+              4,
+              4,
+              0
+            ],
+            "live_count": 2,
+            "active_projectiles": 1
+          },
+          "fighter_explosion": false,
+          "capital_explosion": false,
+          "music_active": true,
+          "fire_sfx": false,
+          "hit_sfx": false,
+          "capital_sfx": false,
+          "sound_enabled": true,
+          "player_lifecycle": 0,
+          "sector_state": 7
+        },
+        "events": [
+          "world-copy",
+          "far-erase",
+          "hull-copy",
+          "broadside-update",
+          "fighter-explosion-render",
+          "capital-explosion-render",
+          "music-tick",
+          "debris-contact",
+          "debris-despawn",
+          "near-copy",
+          "far-step",
+          "effect-update",
+          "director-world-row"
+        ],
+        "cpu_dma_off_reference": null
+      }
+    },
+    "debris_despawn": {
+      "observed": true,
+      "matching_frames": 502,
+      "heaviest": {
+        "trace_kind": "baseline-9040",
+        "session": "2-sweep-fire5",
+        "frame": 125,
+        "gameplay_frame": 125,
+        "difficulty": 2,
+        "wall_cycles": 29771,
+        "physical_headroom": 5797,
+        "start": {
+          "clock": 32297827,
+          "host_frame": 908,
+          "scanline": 18,
+          "cycle": 31
+        },
+        "end": {
+          "clock": 32327598,
+          "host_frame": 908,
+          "scanline": 279,
+          "cycle": 48
+        },
+        "next_start": {
+          "clock": 32333395,
+          "host_frame": 909
         },
         "host_vbi_boundaries": 0,
         "extra_vbi_boundaries": 0,
@@ -8839,157 +8947,50 @@
           "broadside": 0,
           "far_rendered": 4,
           "active_muzzles": 0,
-          "entity_active": 1,
-          "entity_x": 84,
-          "entity_y": 224,
-          "entity_vx_signed": 0,
-          "entity_move_accumulator": 0,
-          "entity_vertical_accumulator": 2,
-          "entity_render_id": 114,
-          "entity_active_mask": 2,
-          "weapon_pickup": {
-            "state": 2,
-            "booster_state": 0,
-            "qualified_kill_counter": 0,
-            "x": 84,
-            "y": 73,
-            "timer": 3,
-            "timer_low": 3,
-            "timer_high": 0,
-            "plane_rows": 16,
-            "plane_union": 255
-          },
-          "player_fighter_projectiles": 3,
-          "rapid_player_fighter_projectiles": 0,
-          "score_bcd": [
-            3,
-            21
-          ],
-          "effect_active_mask": 0,
-          "effect_active_count": 0,
-          "effect_rendered_mask": 0,
-          "live_heavy_formation": true,
-          "raider_formation": {
-            "guide_y": 51,
-            "member_state": [
-              0,
-              1,
-              0
-            ],
-            "member_hp": [
-              0,
-              4,
-              0
-            ],
-            "live_count": 1,
-            "active_projectiles": 5
-          },
-          "fighter_explosion": false,
-          "capital_explosion": false,
-          "music_active": true,
-          "fire_sfx": true,
-          "hit_sfx": false,
-          "capital_sfx": false,
-          "sound_enabled": true,
-          "player_lifecycle": 0,
-          "sector_state": 7
-        },
-        "events": [
-          "far-erase",
-          "broadside-update",
-          "fighter-explosion-render",
-          "capital-explosion-render",
-          "music-tick",
-          "debris-contact",
-          "debris-despawn",
-          "far-step",
-          "effect-update"
-        ],
-        "cpu_dma_off_reference": null
-      }
-    },
-    "debris_despawn": {
-      "observed": true,
-      "matching_frames": 502,
-      "heaviest": {
-        "trace_kind": "memory-integrity-160s",
-        "session": "memory-integrity-atr-0-hunt-fire5",
-        "frame": 3614,
-        "gameplay_frame": 30,
-        "difficulty": 0,
-        "wall_cycles": 30085,
-        "physical_headroom": 5483,
-        "start": {
-          "clock": 156394591,
-          "host_frame": 4397,
-          "scanline": 18,
-          "cycle": 43
-        },
-        "end": {
-          "clock": 156424676,
-          "host_frame": 4397,
-          "scanline": 282,
-          "cycle": 32
-        },
-        "next_start": {
-          "clock": 156430159,
-          "host_frame": 4398
-        },
-        "host_vbi_boundaries": 0,
-        "extra_vbi_boundaries": 0,
-        "missed_frames": 0,
-        "dli_nmis": 1,
-        "dma_ctl": 62,
-        "nmi_en": 128,
-        "state": {
-          "projectiles": 9,
-          "broadside": 0,
-          "far_rendered": 4,
-          "active_muzzles": 0,
-          "entity_active": 1,
-          "entity_x": 84,
+          "entity_active": 0,
+          "entity_x": 164,
           "entity_y": 232,
           "entity_vx_signed": 0,
           "entity_move_accumulator": 0,
           "entity_vertical_accumulator": 1,
           "entity_render_id": 114,
-          "entity_active_mask": 2,
+          "entity_active_mask": 0,
           "weapon_pickup": {
-            "state": 2,
+            "state": 0,
             "booster_state": 0,
-            "qualified_kill_counter": 0,
-            "x": 84,
-            "y": 72,
+            "qualified_kill_counter": 2,
+            "x": 0,
+            "y": 0,
             "timer": 0,
             "timer_low": 0,
             "timer_high": 0,
-            "plane_rows": 16,
-            "plane_union": 255
+            "plane_rows": 0,
+            "plane_union": 0
           },
           "player_fighter_projectiles": 4,
           "rapid_player_fighter_projectiles": 0,
           "score_bcd": [
-            2,
-            149
+            0,
+            32
           ],
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
           "live_heavy_formation": true,
           "raider_formation": {
-            "guide_y": 51,
+            "guide_y": 46,
             "member_state": [
-              0,
+              1,
+              1,
+              1
+            ],
+            "member_hp": [
+              1,
               1,
               0
             ],
-            "member_hp": [
-              0,
-              4,
-              0
-            ],
-            "live_count": 1,
-            "active_projectiles": 5
+            "live_count": 2,
+            "active_projectiles": 4
           },
           "fighter_explosion": false,
           "capital_explosion": false,
@@ -9020,7 +9021,7 @@
     },
     "debris_shot": {
       "observed": true,
-      "matching_frames": 215,
+      "matching_frames": 221,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -9236,7 +9237,7 @@
         ],
         "cpu_dma_off_reference": null
       },
-      "spawner_frames": 29,
+      "spawner_frames": 31,
       "active_frames": 4116,
       "active_mask": 31,
       "active_count": 5,
@@ -11683,26 +11684,26 @@
         {
           "trace_kind": "memory-integrity-160s",
           "session": "memory-integrity-atr-0-hunt-fire5",
-          "frame": 3664,
+          "frame": 3920,
           "gameplay_frame": 80,
           "difficulty": 0,
-          "wall_cycles": 28330,
-          "physical_headroom": 7238,
+          "wall_cycles": 28888,
+          "physical_headroom": 6680,
           "start": {
-            "clock": 158172991,
-            "host_frame": 4447,
+            "clock": 167278415,
+            "host_frame": 4703,
             "scanline": 18,
-            "cycle": 43
+            "cycle": 59
           },
           "end": {
-            "clock": 158201321,
-            "host_frame": 4447,
-            "scanline": 266,
-            "cycle": 101
+            "clock": 167307303,
+            "host_frame": 4703,
+            "scanline": 271,
+            "cycle": 105
           },
           "next_start": {
-            "clock": 158208575,
-            "host_frame": 4448
+            "clock": 167313983,
+            "host_frame": 4704
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11711,23 +11712,23 @@
           "dma_ctl": 62,
           "nmi_en": 128,
           "state": {
-            "projectiles": 5,
+            "projectiles": 8,
             "broadside": 0,
             "far_rendered": 4,
             "active_muzzles": 0,
             "entity_active": 0,
-            "entity_x": 84,
-            "entity_y": 232,
-            "entity_vx_signed": 0,
-            "entity_move_accumulator": 0,
-            "entity_vertical_accumulator": 1,
+            "entity_x": 92,
+            "entity_y": 176,
+            "entity_vx_signed": -4,
+            "entity_move_accumulator": 2,
+            "entity_vertical_accumulator": 2,
             "entity_render_id": 114,
             "entity_active_mask": 0,
             "weapon_pickup": {
               "state": 5,
               "booster_state": 5,
               "qualified_kill_counter": 0,
-              "x": 84,
+              "x": 95,
               "y": 152,
               "timer": 250,
               "timer_low": 250,
@@ -11738,15 +11739,15 @@
             "player_fighter_projectiles": 3,
             "rapid_player_fighter_projectiles": 0,
             "score_bcd": [
-              2,
-              149
+              3,
+              32
             ],
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
             "live_heavy_formation": true,
             "raider_formation": {
-              "guide_y": 51,
+              "guide_y": 46,
               "member_state": [
                 0,
                 1,
@@ -11758,12 +11759,12 @@
                 0
               ],
               "live_count": 1,
-              "active_projectiles": 2
+              "active_projectiles": 5
             },
             "fighter_explosion": false,
             "capital_explosion": false,
             "music_active": true,
-            "fire_sfx": true,
+            "fire_sfx": false,
             "hit_sfx": false,
             "capital_sfx": false,
             "sound_enabled": true,
@@ -11771,44 +11772,40 @@
             "sector_state": 7
           },
           "events": [
-            "world-copy",
             "far-erase",
-            "hull-copy",
             "broadside-update",
             "fighter-explosion-render",
             "capital-explosion-render",
             "music-tick",
-            "near-copy",
             "far-step",
             "effect-update",
-            "pickup-collect",
-            "director-world-row"
+            "pickup-collect"
           ],
           "cpu_dma_off_reference": null
         },
         {
           "trace_kind": "memory-integrity-160s",
           "session": "memory-integrity-atr-0-hunt-fire5",
-          "frame": 4442,
-          "gameplay_frame": 90,
+          "frame": 4837,
+          "gameplay_frame": 229,
           "difficulty": 0,
-          "wall_cycles": 27280,
-          "physical_headroom": 8288,
+          "wall_cycles": 27611,
+          "physical_headroom": 7957,
           "start": {
-            "clock": 194523677,
-            "host_frame": 5469,
+            "clock": 208573044,
+            "host_frame": 5864,
             "scanline": 20,
-            "cycle": 5
+            "cycle": 12
           },
           "end": {
-            "clock": 194550957,
-            "host_frame": 5469,
-            "scanline": 259,
-            "cycle": 39
+            "clock": 208600655,
+            "host_frame": 5864,
+            "scanline": 262,
+            "cycle": 35
           },
           "next_start": {
-            "clock": 194559248,
-            "host_frame": 5470
+            "clock": 208608612,
+            "host_frame": 5865
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11817,7 +11814,7 @@
           "dma_ctl": 62,
           "nmi_en": 128,
           "state": {
-            "projectiles": 2,
+            "projectiles": 1,
             "broadside": 0,
             "far_rendered": 4,
             "active_muzzles": 0,
@@ -11833,7 +11830,7 @@
               "state": 3,
               "booster_state": 3,
               "qualified_kill_counter": 0,
-              "x": 90,
+              "x": 93,
               "y": 148,
               "timer": 500,
               "timer_low": 244,
@@ -11841,18 +11838,18 @@
               "plane_rows": 0,
               "plane_union": 0
             },
-            "player_fighter_projectiles": 2,
-            "rapid_player_fighter_projectiles": 2,
+            "player_fighter_projectiles": 1,
+            "rapid_player_fighter_projectiles": 1,
             "score_bcd": [
-              3,
-              53
+              4,
+              16
             ],
             "effect_active_mask": 0,
             "effect_active_count": 0,
             "effect_rendered_mask": 0,
             "live_heavy_formation": false,
             "raider_formation": {
-              "guide_y": 20,
+              "guide_y": 12,
               "member_state": [
                 0,
                 0,
@@ -11869,7 +11866,7 @@
             "fighter_explosion": false,
             "capital_explosion": false,
             "music_active": true,
-            "fire_sfx": true,
+            "fire_sfx": false,
             "hit_sfx": false,
             "capital_sfx": false,
             "sound_enabled": true,
@@ -11882,109 +11879,6 @@
             "music-tick",
             "far-step",
             "effect-update",
-            "pickup-collect",
-            "director-request"
-          ],
-          "cpu_dma_off_reference": null
-        },
-        {
-          "trace_kind": "memory-integrity-160s",
-          "session": "memory-integrity-atr-0-hunt-fire5",
-          "frame": 4707,
-          "gameplay_frame": 99,
-          "difficulty": 0,
-          "wall_cycles": 27533,
-          "physical_headroom": 8035,
-          "start": {
-            "clock": 203949204,
-            "host_frame": 5734,
-            "scanline": 20,
-            "cycle": 12
-          },
-          "end": {
-            "clock": 203976737,
-            "host_frame": 5734,
-            "scanline": 261,
-            "cycle": 71
-          },
-          "next_start": {
-            "clock": 203984768,
-            "host_frame": 5735
-          },
-          "host_vbi_boundaries": 0,
-          "extra_vbi_boundaries": 0,
-          "missed_frames": 0,
-          "dli_nmis": 0,
-          "dma_ctl": 62,
-          "nmi_en": 128,
-          "state": {
-            "projectiles": 3,
-            "broadside": 0,
-            "far_rendered": 4,
-            "active_muzzles": 0,
-            "entity_active": 0,
-            "entity_x": 164,
-            "entity_y": 232,
-            "entity_vx_signed": 4,
-            "entity_move_accumulator": 2,
-            "entity_vertical_accumulator": 1,
-            "entity_render_id": 114,
-            "entity_active_mask": 0,
-            "weapon_pickup": {
-              "state": 4,
-              "booster_state": 4,
-              "qualified_kill_counter": 0,
-              "x": 84,
-              "y": 144,
-              "timer": 500,
-              "timer_low": 244,
-              "timer_high": 1,
-              "plane_rows": 0,
-              "plane_union": 0
-            },
-            "player_fighter_projectiles": 2,
-            "rapid_player_fighter_projectiles": 0,
-            "score_bcd": [
-              4,
-              128
-            ],
-            "effect_active_mask": 30,
-            "effect_active_count": 4,
-            "effect_rendered_mask": 30,
-            "live_heavy_formation": false,
-            "raider_formation": {
-              "guide_y": 20,
-              "member_state": [
-                0,
-                0,
-                0
-              ],
-              "member_hp": [
-                0,
-                0,
-                0
-              ],
-              "live_count": 0,
-              "active_projectiles": 1
-            },
-            "fighter_explosion": false,
-            "capital_explosion": false,
-            "music_active": true,
-            "fire_sfx": true,
-            "hit_sfx": false,
-            "capital_sfx": false,
-            "sound_enabled": true,
-            "player_lifecycle": 0,
-            "sector_state": 7
-          },
-          "events": [
-            "far-erase",
-            "fighter-explosion-render",
-            "music-tick",
-            "far-step",
-            "effect-erase",
-            "effect-update",
-            "effect-render",
             "pickup-collect",
             "director-request"
           ],
@@ -12207,26 +12101,26 @@
         {
           "trace_kind": "weapon-pickup-spread-coverage",
           "session": "weapon-pickup-spread-0-hunt-fire4",
-          "frame": 3689,
-          "gameplay_frame": 105,
+          "frame": 3953,
+          "gameplay_frame": 113,
           "difficulty": 0,
-          "wall_cycles": 28542,
-          "physical_headroom": 7026,
+          "wall_cycles": 28910,
+          "physical_headroom": 6658,
           "start": {
-            "clock": 159062207,
-            "host_frame": 4472,
+            "clock": 168452143,
+            "host_frame": 4736,
             "scanline": 18,
-            "cycle": 59
+            "cycle": 43
           },
           "end": {
-            "clock": 159090749,
-            "host_frame": 4472,
-            "scanline": 268,
-            "cycle": 101
+            "clock": 168481053,
+            "host_frame": 4736,
+            "scanline": 271,
+            "cycle": 111
           },
           "next_start": {
-            "clock": 159097775,
-            "host_frame": 4473
+            "clock": 168487711,
+            "host_frame": 4737
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -12235,23 +12129,23 @@
           "dma_ctl": 62,
           "nmi_en": 128,
           "state": {
-            "projectiles": 6,
+            "projectiles": 8,
             "broadside": 0,
             "far_rendered": 4,
             "active_muzzles": 0,
             "entity_active": 0,
-            "entity_x": 84,
-            "entity_y": 224,
-            "entity_vx_signed": 0,
-            "entity_move_accumulator": 0,
-            "entity_vertical_accumulator": 2,
-            "entity_render_id": 114,
+            "entity_x": 92,
+            "entity_y": 184,
+            "entity_vx_signed": -4,
+            "entity_move_accumulator": 3,
+            "entity_vertical_accumulator": 0,
+            "entity_render_id": 116,
             "entity_active_mask": 0,
             "weapon_pickup": {
               "state": 5,
               "booster_state": 5,
               "qualified_kill_counter": 0,
-              "x": 84,
+              "x": 96,
               "y": 152,
               "timer": 250,
               "timer_low": 250,
@@ -12270,7 +12164,7 @@
             "effect_rendered_mask": 0,
             "live_heavy_formation": true,
             "raider_formation": {
-              "guide_y": 51,
+              "guide_y": 46,
               "member_state": [
                 0,
                 1,
@@ -12282,7 +12176,7 @@
                 0
               ],
               "live_count": 1,
-              "active_projectiles": 3
+              "active_projectiles": 5
             },
             "fighter_explosion": false,
             "capital_explosion": false,
@@ -12295,44 +12189,40 @@
             "sector_state": 7
           },
           "events": [
-            "world-copy",
             "far-erase",
-            "hull-copy",
             "broadside-update",
             "fighter-explosion-render",
             "capital-explosion-render",
             "music-tick",
-            "near-copy",
             "far-step",
             "effect-update",
-            "pickup-collect",
-            "director-world-row"
+            "pickup-collect"
           ],
           "cpu_dma_off_reference": null
         },
         {
           "trace_kind": "weapon-pickup-spread-coverage",
           "session": "weapon-pickup-spread-0-hunt-fire4",
-          "frame": 4473,
-          "gameplay_frame": 121,
+          "frame": 4800,
+          "gameplay_frame": 192,
           "difficulty": 0,
-          "wall_cycles": 27205,
-          "physical_headroom": 8363,
+          "wall_cycles": 26970,
+          "physical_headroom": 8598,
           "start": {
-            "clock": 195626292,
-            "host_frame": 5500,
+            "clock": 207257028,
+            "host_frame": 5827,
             "scanline": 20,
             "cycle": 12
           },
           "end": {
-            "clock": 195653497,
-            "host_frame": 5500,
-            "scanline": 258,
-            "cycle": 85
+            "clock": 207283998,
+            "host_frame": 5827,
+            "scanline": 256,
+            "cycle": 78
           },
           "next_start": {
-            "clock": 195661859,
-            "host_frame": 5501
+            "clock": 207292592,
+            "host_frame": 5828
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -12341,7 +12231,7 @@
           "dma_ctl": 62,
           "nmi_en": 128,
           "state": {
-            "projectiles": 2,
+            "projectiles": 1,
             "broadside": 0,
             "far_rendered": 4,
             "active_muzzles": 0,
@@ -12357,26 +12247,26 @@
               "state": 3,
               "booster_state": 3,
               "qualified_kill_counter": 0,
-              "x": 87,
-              "y": 145,
+              "x": 91,
+              "y": 147,
               "timer": 500,
               "timer_low": 244,
               "timer_high": 1,
               "plane_rows": 0,
               "plane_union": 0
             },
-            "player_fighter_projectiles": 2,
-            "rapid_player_fighter_projectiles": 2,
+            "player_fighter_projectiles": 1,
+            "rapid_player_fighter_projectiles": 1,
             "score_bcd": [
-              3,
-              85
+              4,
+              32
             ],
-            "effect_active_mask": 0,
-            "effect_active_count": 0,
-            "effect_rendered_mask": 0,
+            "effect_active_mask": 30,
+            "effect_active_count": 4,
+            "effect_rendered_mask": 30,
             "live_heavy_formation": false,
             "raider_formation": {
-              "guide_y": 21,
+              "guide_y": 12,
               "member_state": [
                 0,
                 0,
@@ -12394,7 +12284,7 @@
             "capital_explosion": false,
             "music_active": true,
             "fire_sfx": true,
-            "hit_sfx": false,
+            "hit_sfx": true,
             "capital_sfx": false,
             "sound_enabled": true,
             "player_lifecycle": 0,
@@ -12405,7 +12295,9 @@
             "fighter-explosion-render",
             "music-tick",
             "far-step",
+            "effect-erase",
             "effect-update",
+            "effect-render",
             "pickup-collect",
             "director-request"
           ],
@@ -12414,26 +12306,26 @@
         {
           "trace_kind": "weapon-pickup-spread-coverage",
           "session": "weapon-pickup-spread-0-hunt-fire4",
-          "frame": 4734,
-          "gameplay_frame": 126,
+          "frame": 5710,
+          "gameplay_frame": 78,
           "difficulty": 0,
-          "wall_cycles": 27403,
-          "physical_headroom": 8165,
+          "wall_cycles": 28074,
+          "physical_headroom": 7494,
           "start": {
-            "clock": 204909540,
-            "host_frame": 5761,
+            "clock": 239623904,
+            "host_frame": 6737,
             "scanline": 20,
-            "cycle": 12
+            "cycle": 8
           },
           "end": {
-            "clock": 204936943,
-            "host_frame": 5761,
-            "scanline": 260,
-            "cycle": 55
+            "clock": 239651978,
+            "host_frame": 6737,
+            "scanline": 266,
+            "cycle": 38
           },
           "next_start": {
-            "clock": 204945104,
-            "host_frame": 5762
+            "clock": 239659469,
+            "host_frame": 6738
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -12466,18 +12358,18 @@
               "plane_rows": 0,
               "plane_union": 0
             },
-            "player_fighter_projectiles": 2,
+            "player_fighter_projectiles": 1,
             "rapid_player_fighter_projectiles": 0,
             "score_bcd": [
               5,
-              0
+              32
             ],
-            "effect_active_mask": 30,
-            "effect_active_count": 4,
-            "effect_rendered_mask": 16,
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
             "live_heavy_formation": false,
             "raider_formation": {
-              "guide_y": 21,
+              "guide_y": 12,
               "member_state": [
                 0,
                 0,
@@ -12489,7 +12381,7 @@
                 0
               ],
               "live_count": 0,
-              "active_projectiles": 1
+              "active_projectiles": 2
             },
             "fighter_explosion": false,
             "capital_explosion": false,
@@ -12506,9 +12398,7 @@
             "fighter-explosion-render",
             "music-tick",
             "far-step",
-            "effect-erase",
             "effect-update",
-            "effect-render",
             "pickup-collect",
             "director-request"
           ],
@@ -12517,7 +12407,7 @@
       ],
       "rapid": {
         "observed": true,
-        "matching_frames": 3194,
+        "matching_frames": 3431,
         "heaviest": {
           "trace_kind": "weapon-pickup-coverage",
           "session": "weapon-pickup-2-hunt-fire4",
@@ -12972,7 +12862,6 @@
         4,
         5,
         3,
-        4,
         3,
         4,
         5,
@@ -12981,7 +12870,7 @@
       ],
       "spread": {
         "observed": true,
-        "matching_frames": 3508,
+        "matching_frames": 2769,
         "heaviest": {
           "trace_kind": "weapon-pickup-spread-coverage",
           "session": "weapon-pickup-spread-0-hunt-fire4",
@@ -13090,7 +12979,7 @@
       },
       "logical_three_projectile_volley": {
         "observed": true,
-        "matching_frames": 1557,
+        "matching_frames": 1323,
         "heaviest": {
           "trace_kind": "weapon-pickup-spread-coverage",
           "session": "weapon-pickup-spread-0-hunt-fire4",
@@ -13419,7 +13308,7 @@
       },
       "active_capsule_during_booster": {
         "observed": true,
-        "matching_frames": 1902,
+        "matching_frames": 1832,
         "heaviest": {
           "trace_kind": "baseline-9040",
           "session": "2-sweep-fire2",
@@ -13745,7 +13634,7 @@
     },
     "debris_shot_post_capital": {
       "observed": true,
-      "matching_frames": 91,
+      "matching_frames": 97,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -13853,30 +13742,30 @@
     },
     "debris_bottom_despawn": {
       "observed": true,
-      "matching_frames": 401,
+      "matching_frames": 400,
       "heaviest": {
-        "trace_kind": "memory-integrity-160s",
-        "session": "memory-integrity-atr-0-hunt-fire5",
-        "frame": 3614,
-        "gameplay_frame": 30,
-        "difficulty": 0,
-        "wall_cycles": 30085,
-        "physical_headroom": 5483,
+        "trace_kind": "baseline-9040",
+        "session": "2-sweep-fire5",
+        "frame": 125,
+        "gameplay_frame": 125,
+        "difficulty": 2,
+        "wall_cycles": 29771,
+        "physical_headroom": 5797,
         "start": {
-          "clock": 156394591,
-          "host_frame": 4397,
+          "clock": 32297827,
+          "host_frame": 908,
           "scanline": 18,
-          "cycle": 43
+          "cycle": 31
         },
         "end": {
-          "clock": 156424676,
-          "host_frame": 4397,
-          "scanline": 282,
-          "cycle": 32
+          "clock": 32327598,
+          "host_frame": 908,
+          "scanline": 279,
+          "cycle": 48
         },
         "next_start": {
-          "clock": 156430159,
-          "host_frame": 4398
+          "clock": 32333395,
+          "host_frame": 909
         },
         "host_vbi_boundaries": 0,
         "extra_vbi_boundaries": 0,
@@ -13885,54 +13774,54 @@
         "dma_ctl": 62,
         "nmi_en": 128,
         "state": {
-          "projectiles": 9,
+          "projectiles": 8,
           "broadside": 0,
           "far_rendered": 4,
           "active_muzzles": 0,
-          "entity_active": 1,
-          "entity_x": 84,
+          "entity_active": 0,
+          "entity_x": 164,
           "entity_y": 232,
           "entity_vx_signed": 0,
           "entity_move_accumulator": 0,
           "entity_vertical_accumulator": 1,
           "entity_render_id": 114,
-          "entity_active_mask": 2,
+          "entity_active_mask": 0,
           "weapon_pickup": {
-            "state": 2,
+            "state": 0,
             "booster_state": 0,
-            "qualified_kill_counter": 0,
-            "x": 84,
-            "y": 72,
+            "qualified_kill_counter": 2,
+            "x": 0,
+            "y": 0,
             "timer": 0,
             "timer_low": 0,
             "timer_high": 0,
-            "plane_rows": 16,
-            "plane_union": 255
+            "plane_rows": 0,
+            "plane_union": 0
           },
           "player_fighter_projectiles": 4,
           "rapid_player_fighter_projectiles": 0,
           "score_bcd": [
-            2,
-            149
+            0,
+            32
           ],
           "effect_active_mask": 0,
           "effect_active_count": 0,
           "effect_rendered_mask": 0,
           "live_heavy_formation": true,
           "raider_formation": {
-            "guide_y": 51,
+            "guide_y": 46,
             "member_state": [
-              0,
+              1,
+              1,
+              1
+            ],
+            "member_hp": [
+              1,
               1,
               0
             ],
-            "member_hp": [
-              0,
-              4,
-              0
-            ],
-            "live_count": 1,
-            "active_projectiles": 5
+            "live_count": 2,
+            "active_projectiles": 4
           },
           "fighter_explosion": false,
           "capital_explosion": false,
@@ -13963,7 +13852,7 @@
     },
     "debris_post_capital_sector": {
       "observed": true,
-      "matching_frames": 30593,
+      "matching_frames": 30479,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire7",
@@ -14147,10 +14036,10 @@
     ],
     "debris_vertical_cadence": {
       "observed": true,
-      "active_transitions": 47282,
-      "world_events": 22501,
-      "vertical_steps": 13191,
-      "held_events": 9310,
+      "active_transitions": 47168,
+      "world_events": 22448,
+      "vertical_steps": 13160,
+      "held_events": 9288,
       "invalid_transitions": 0
     },
     "debris_visual_variants": {
@@ -14256,7 +14145,7 @@
     },
     "accepted_shot_fire_sound": {
       "observed": true,
-      "accepted_shot_frames": 10646,
+      "accepted_shot_frames": 10696,
       "violations": 0
     }
   },

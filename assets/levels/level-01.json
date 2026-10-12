@@ -169,9 +169,10 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 384,
+      "rows": 408,
       "_w2": "data/w2-lights (owner answers of 2026-10-08, docs/plans/w2-lights.md §4.1, §8.1): the swarm after the capital - a Wingman column of three in the flight-lead look (Q2: the level's one re-skin moves here from P2's Raider escort), then three Interceptors closing on the player; up to three Lights at once (the swarm ceiling), no Heavy. The Interceptors come last because a Light wave holds the cursor until its last Light has gone and they live 116 frames to the column's 232, so the sector ends on its shortest Lights. 280 rows: with no kills its last Light is gone at its frame 461 on every difficulty and HARD's 280 rows last 560, a 21 % reserve (PROBE), so the elite sector after it opens on an empty playfield - the sector end is not a barrier (plan §3, F2). A swarm never follows an elite sector (F1; tests/level-one-waves.test.mjs, until C1).",
       "_flow": "feat/sector-flow (owner, 2026-10-08; docs/plans/sector-flow.md): the sector ends as soon as its three waves are spent and the field is clear, so its rows are only the no-kill cut, and C1 holds the end while more Lights live than the elite sector after it admits. A third wave chained on (owner answer): a plain Wingman column down the other side (X 88) after the Interceptors. 384 rows: with no kills the last Light leaves at frame 759-760 after entry on every difficulty and HARD's 384 rows last 768 (PROBE, scripts/level-timeline.mjs lightTicksFromSector); the W2 reserve is gone - C1 replaces it.",
+      "_loops_rows": "feat/interceptor-standoff Phase B (owner answer Q1 of 2026-10-12, plan interceptor-standoff §13.11): 384 -> 408 rows. With two loops each swarm Interceptor lives about 400 frames, and the Wingman column waits for the last of them, so with no kills HARD's 384-row cut (+768) cancelled two of its three Wingmen; at 408 rows all 9 Lights arm on every difficulty. A player who kills ends the swarm early as before.",
       "archetypes": [
         "wingman",
         "interceptor"

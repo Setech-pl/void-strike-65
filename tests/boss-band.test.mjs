@@ -97,7 +97,10 @@ test("everything before the boss sector is the level that shipped (gameplay up t
   // are each space sector's no-kill cut now - the swarm 384 (its chained third
   // wave), elite (b) 200 (the W2 reserve dropped); the sectors before the
   // capital and the capital are main's.
-  assert.deepEqual(compiled.sectors.slice(0, 6).map((sector) => sector.rows), [272, 0, 384, 120, 224, 200]);
+  // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q1 of
+  // 2026-10-12, plan interceptor-standoff §13.11): the swarm 384 -> 408, so
+  // that with two loops every swarm wave still arms with no kills on HARD.
+  assert.deepEqual(compiled.sectors.slice(0, 6).map((sector) => sector.rows), [272, 0, 408, 120, 224, 200]);
   // The sky rule (budget-1.0 M2 variant S2): the last space sector - elite (b)
   // now - flies under yellow (mint since plasma FX) and the boss sector too;
   // every other space sector under white.

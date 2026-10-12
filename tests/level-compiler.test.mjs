@@ -305,8 +305,12 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   // maximum. The swarm grows 280 -> 384 for its chained third wave (its
   // no-kill drain, 760 frames, on HARD), elite (b) drops its W2 reserve
   // 240 -> 200 (its Raiders still arrive with no kills on HARD).
-  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 384, 120, 224, 200, 0]);
-  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1742);
+  // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q1 of
+  // 2026-10-12, plan interceptor-standoff §13.11): the swarm 384 -> 408 - its
+  // Interceptors loop twice, and HARD's 384-row cut cancelled two Wingmen of
+  // the column that waits for them; the total 1,742 -> 1,766.
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 408, 120, 224, 200, 0]);
+  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 1766);
   // Every wave names an archetype offset in the frozen four-record roster.
   for (const wave of compiled.waves) {
     assert.equal(wave.archetypeOffset % ARCHETYPE_RECORD_BYTES, 0);

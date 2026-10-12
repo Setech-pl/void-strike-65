@@ -533,7 +533,11 @@ test("placement contract: legal composite and packed size, state inside its rese
   // player_fighter_spread_volley_sides is appended here because MAIN is full and
   // its LZ image is the capped initial block; extension record 2 stays at 9
   // sectors (1,128 of 1,131 B).
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 65);
+  // Re-recorded feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12, plan interceptor-standoff §13.11): 65 -> 20. The boss entry's
+  // head, 45 B, moved here from the code window (pin_boss_enter_head $8B26),
+  // the last window home with room; the pickup record packs 1,180 of 1,259.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 20);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
@@ -566,7 +570,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Re-recorded 2026-10-01, roadmap 4.6 step 5: 25 -> 39. light_admit took
   // 26 B for the look key and encounter_light_admit's 40 B left for the code
   // window (plan §8.3), so the composite shrank by 14.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 39);
+  // Re-recorded feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12): 39 -> 30, the other side of the composite's 860 -> 869 -
+  // light_admit's per-slot loop store, 9 B.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 30);
   // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
   // self-modified read tail was at $9D21, ahead of the art tables, and went
   // with the v1 player. Nothing about the tables themselves changed.

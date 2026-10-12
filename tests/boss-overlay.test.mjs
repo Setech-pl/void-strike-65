@@ -145,7 +145,10 @@ test("the overlay directory names the boss code and the four regions' theme runs
 test("Q-S3: the window's pins are the addresses their links gave those labels", () => {
   const source = fs.readFileSync(path.join(root, "src/hybrid/boss-entry-pins.inc"), "utf8");
   const pins = [...source.matchAll(/^pin_(\w+)\s*=\s*\$([0-9A-Fa-f]+)\s*;\s*(main|reader|music)\b/gm)];
-  assert.equal(pins.length, 8);
+  // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12): 8 -> 9, pin_boss_enter_head (main) - the entry's head moved
+  // from the window to PICKUP_CODE's tail.
+  assert.equal(pins.length, 9);
   for (const [, name, value, link] of pins) {
     assert.equal(Number.parseInt(value, 16), label(link, name),
       `pin_${name} is not ${link}'s ${name}`);
@@ -165,8 +168,15 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
   const asmBytes = label("director", "__HYBRID_ASM_WINDOW_SIZE__");
   assert.ok(asmBytes > 0 && asmBytes <= WINDOW_HOOKS_STOP,
     `the resident half is ${asmBytes} B (STOP over ${WINDOW_HOOKS_STOP})`);
-  // Placed last in the window: the hot Light C keeps its addresses.
-  assert.ok(label("director", "_asm_boss_enter") >= label("director", "__HYBRID_C_WINDOW_RODATA_RUN__"));
+  // RE-POINTED feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12, plan interceptor-standoff §13.11): the entry's resident half
+  // is no longer in the window. Its head is main's, in PICKUP_CODE's tail
+  // (pin_boss_enter_head); the window's ASM keeps only the 4-B pad, inside
+  // the budget above, and the hot Light C keeps its addresses.
+  assert.equal(label("director", "_asm_boss_enter"), label("main", "boss_enter_head"));
+  assert.ok(label("main", "boss_enter_head") >= label("main", "__PICKUP_CODE_RUN__") &&
+    label("main", "boss_enter_head") < label("main", "__PICKUP_CODE_RUN__") + label("main", "__PICKUP_CODE_SIZE__"),
+    "the entry's head is in PICKUP_CODE");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. No byte of the boss is in it.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623. Still no byte of the boss.
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623,
@@ -174,15 +184,17 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
 });
 
 test("decision 32: the screen's record reads WARNING / BOSS APPROACHING, centred, in the glyph contract", () => {
-  // The window's half of the Director link, as transported: from $AE00.
-  const windowImage = readBuild("encounter-director-code-hybrid-window.bin");
-  let offset = label("director", "boss_warning_records") - 0xae00;
+  // RE-POINTED feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12): the records live in the Light kernel link (plan
+  // interceptor-standoff §12.1), as transported from the kernel's address.
+  const kernelImage = readBuild("light-kernel.bin");
+  let offset = label("kernel", "boss_warning_records") - label("kernel", "__LIGHT_KERNEL_LOAD__");
   const lines = [];
-  while (windowImage[offset] !== 0xff) {
-    const address = windowImage.readUInt16LE(offset);
+  while (kernelImage[offset] !== 0xff) {
+    const address = kernelImage.readUInt16LE(offset);
     offset += 2;
     let text = "";
-    while (windowImage[offset] !== 0) text += String.fromCharCode(windowImage[offset++]);
+    while (kernelImage[offset] !== 0) text += String.fromCharCode(kernelImage[offset++]);
     offset += 1;
     lines.push({ row: Math.floor((address - 0x4000) / 40), column: (address - 0x4000) % 40, text });
   }

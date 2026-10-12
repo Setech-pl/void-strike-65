@@ -41,6 +41,7 @@ export const labelsOf = {
   summary: readLabels("level-summary.lbl"),
   music: readLabels("gameplay-music.lbl"),
   boss: readLabels("boss.lbl"),
+  kernel: readLabels("light-kernel.lbl"),
 };
 
 export function label(link, name) {

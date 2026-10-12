@@ -69,7 +69,12 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // interceptor-standoff §3): 1,703 -> 1,686 - the standoff's tick +41 B in
   // HYBRID_C_WINDOW, three sector-flow verdicts (58 B) moved out of
   // HYBRID_C_WINDOW_FLOW to DIRECTOR_C_LOW (37 B) and the arena (21 B).
-  assert.equal(window.directorHalfBytes, 1686, "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock");
+  // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12, plan §13.11): 1,686 -> 1,656 - the boss entry's head (45 B)
+  // left for PICKUP_CODE's tail and the director's live-Light scan became
+  // one call to lifecycle's count (-26 B); the tick's top-hold phase and the
+  // 4-B pad that keeps the kernel's branches on their pages (+41 B net).
+  assert.equal(window.directorHalfBytes, 1656, "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock");
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
   // RE-PINNED 2026-10-07, audit-hardening (owner Q2): the kernel link 771 ->
@@ -83,10 +88,15 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // RE-PINNED feat/interceptor-standoff (owner answer Q4, plan
   // interceptor-standoff §8.1): the kernel link 916 -> 920 B - light_shot
   // calls the old target path and restores the PairShot loop's X.
-  assert.equal(window.lightKernelBytes, 920);
-  assert.equal(window.usedBytes, 2606);
-  assert.equal(window.freeBytes, 3584 - 2606);
-  assert.equal(window.freeBytes, 978, "the tail the Interceptor's standoff leaves");
+  // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12, plan §13.11): the kernel link 920 -> 987 B - the boss
+  // entry's region read and WARNING records ($B810-$B852, 67 B) behind the
+  // HUD backup; with the Director half's -30 the
+  // window's tail is 978 -> 941 (the 900-B floor unchanged).
+  assert.equal(window.lightKernelBytes, 987);
+  assert.equal(window.usedBytes, 2643);
+  assert.equal(window.freeBytes, 3584 - 2643);
+  assert.equal(window.freeBytes, 941, "the tail the Interceptor's top-hold loop leaves");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
@@ -105,7 +115,10 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // 1,703 raw B, still 11 sectors (1,373 packed: 14 B to the twelfth).
   // RE-PINNED feat/interceptor-standoff (owner answers Q1-Q3): 1,703 -> 1,686
   // raw B, still 11 sectors (1,384 packed: 3 B to the twelfth).
-  assert.equal(window.transport.rawBytes, 1686, "the window record carries steps 2-5, the boss entry, sector flow and the escort clock");
+  // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12): 1,686 -> 1,656 raw B, still 11 sectors (1,322 packed of
+  // 1,387: 65 B to the twelfth).
+  assert.equal(window.transport.rawBytes, 1656, "the window record carries steps 2-5, the boss entry, sector flow and the escort clock");
   // The transport rule of plan §3.3 and owner decision 6: this step may not
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that

@@ -111,7 +111,12 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // last segment - 37 B for DIRECTOR_C_LOW, 21 B for the arena - so the
   // Director half is 17 B shorter; the kernel above moves down with it ($B831
   // -> $B820 on the pin).
-  assert.equal(basicWindow.freeBytes, 978,
+  // Re-recorded feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12, plan interceptor-standoff §13.11): 978 -> 941. The boss
+  // entry's region read and WARNING records moved into the Light kernel link
+  // (+67 B) and its head left the window for PICKUP_CODE's tail, the Director
+  // half 30 B shorter; the 900-B floor is unchanged.
+  assert.equal(basicWindow.freeBytes, 941,
     "the delivered interceptor-standoff figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);

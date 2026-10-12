@@ -226,9 +226,12 @@ test("T13: level 1 shows a sky per sector and one re-skinned Light wave; level 2
   // RE-POINTED (feat/sector-flow, docs/plans/sector-flow.md §2.5): the Bomber
   // wave after elite (a) now arms afterCleared (bit 4), the one wave of level 1
   // that sets it; every other wave carries only the Heavy class bit.
+  // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
+  // 2026-10-12): bits 6-7 carry an Interceptor wave's loop count - level 1's
+  // swarm and elite (a) Interceptor waves 2, every other wave 0.
   for (const [index, wave] of one.waves.entries()) {
     assert.equal(one.core[WAVE_ARRAY_OFFSET.flags + index] & 0xfc,
-      (wave.class === "heavy" ? 0x08 : 0x00) | (wave.onCleared ? 0x10 : 0x00),
+      (wave.class === "heavy" ? 0x08 : 0x00) | (wave.onCleared ? 0x10 : 0x00) | (wave.loops << 6),
       `wave ${index + 1} flags beyond the look`);
   }
   assert.deepEqual(one.waves.filter((wave) => wave.onCleared).map((wave) => [wave.sector, wave.archetype]),

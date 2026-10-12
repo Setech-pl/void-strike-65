@@ -107,11 +107,11 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4800-$4BFF` | 1,024 B | state | frontend charset | `resident` | src/main.s `FRONTEND_CHARSET` |
 | `$4801-$4C9C` | 1,180 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
 | `$484C-$5332` | 2,791 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
-| `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (2 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
+| `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (3 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
+| `$4C00-$4D65` | 358 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish); read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
 | `$4C00-$4D1F` | 288 B | state | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector | `resident` | src/main.s `CAPITAL_HULL_RUNTIME_ALLIED` |
-| `$4C00-$4CFD` | 254 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour; read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
-| `$4CFE-$4D09` | 12 B | segment | `BOSS_E_BSS` — boss slot E: its state, after its code, never read from disk (none since the warning ramp's removal) | `overlay` | build/boss.map |
 | `$4D20-$4E3F` | 288 B | state | expanded Hostile hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector | `resident` | src/main.s `CAPITAL_HULL_RUNTIME_ENEMY` |
+| `$4D66-$4D74` | 15 B | segment | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish) - after its code, never read from disk | `overlay` | build/boss.map |
 | `$4E40-$4E6F` | 48 B | state | broadside slot state | `resident` | src/main.s `BROAD_STATE_BASE` |
 | `$4E70-$4ED0` | 97 B | state | difficulty, hull scroll, final-raster bolt tops, flash backing, sector, player lifecycle, capital explosion, engine and Raider state | `resident` | src/main.s `DIFFICULTY_SETTING` |
 | `$4ED1-$4ED6` | 6 B | state | star RNG, near-star phase, PAL frame ids | `resident` | src/main.s `STAR_RNG_STATE` |
@@ -135,14 +135,14 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$5E10-$780C` | 6,653 B | segment | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A | `resident` | build/void-strike-65.map |
 | `$6DE8-$75E7` | 2,048 B | slot | overlay slot A (`update_broadside` onward; run `capital-slot-a`) | `overlay` | manifest `overlays.slotA` |
 | `$6DE8-$6E0E` | 39 B | segment | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image | `overlay` | build/boss.map |
-| `$6E0F-$75A3` | 1,941 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
-| `$75A4-$75C7` | 36 B | segment | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A | `overlay` | build/boss.map |
+| `$6E0F-$75C2` | 1,972 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
+| `$75C3-$75E6` | 36 B | segment | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A | `overlay` | build/boss.map |
 | `$780D-$780F` | 3 B | reserved | free tail of `BROADSIDE_RAM` | `resident` | cfg/atari-boot.cfg |
 | `$7810-$7BCF` | 960 B | transient | pause-screen backup (`PAUSE_SCREEN_BACKUP`) | `pause` | manifest `pause` |
 | `$7810-$7BBF` | 944 B | transient | STARFIELD stream A staging | `boot` | manifest `starfieldRuntime.streams` |
 | `$7810-$7B8F` | 896 B | transient | summary art run (largest region run) read for the summary screen | `summary` | manifest `levelSummary.art` |
 | `$7810-$7AF5` | 742 B | transient | packed C extension record landing (`HYBRID_C_EXT_STAGING`) | `boot` | manifest `directorCodeRuntimes` |
-| `$7810-$796F` | 352 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry | `boss-entry` | build/boss.map |
+| `$7810-$7979` | 362 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry | `boss-entry` | build/boss.map |
 | `$7810-$788F` | 128 B | transient | save-record sector buffer | `summary` | manifest `levelSummary.saveRecord` |
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
 | `$7C72-$7EDA` | 617 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
@@ -223,8 +223,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$B487-$B4AA` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
 | `$B77F-$B7DD` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
 | `$B7DE-$B801` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
-| `$B802-$B852` | 81 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's HUD booster backup (S5-1), the Light kernel link's last segment | `resident` | build/light-kernel.map |
-| `$B853-$BBFF` | 941 B | unclaimed | **unclaimed — not measured** | — | — |
+| `$B802-$B84D` | 76 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's HUD booster backup (S5-1), the Light kernel link's last segment | `resident` | build/light-kernel.map |
+| `$B84E-$BBFF` | 946 B | unclaimed | **unclaimed — not measured** | — | — |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -246,9 +246,9 @@ No linked segment, cfg reservation, equate block, manifest range or machine area
 | --- | ---: | --- | --- |
 | `$00B6-$00FF` | 74 B | not measured | none in the repository |
 | `$0400-$04FF` | 256 B | not measured | none in the repository |
-| `$B853-$BBFF` | 941 B | not measured | none in the repository |
+| `$B84E-$BBFF` | 946 B | not measured | none in the repository |
 
-Total: 1,271 B unclaimed, of which 0 B measured-free.
+Total: 1,276 B unclaimed, of which 0 B measured-free.
 
 ### Free after boot
 
@@ -368,11 +368,11 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4800-$4BFF` | `resident` | frontend charset |
 | `$4801-$4C9C` | `boot` | packed pickup/collision + window streams held in the frontend charset |
 | `$484C-$5332` | `boot` | packed ENTITY_CODE source |
-| `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (2 sectors) |
+| `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (3 sectors) |
+| `$4C00-$4D65` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish); read at the boss entry over the expanded hull maps, the boss sector only |
 | `$4C00-$4D1F` | `resident` | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector |
-| `$4C00-$4CFD` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour; read at the boss entry over the expanded hull maps, the boss sector only |
-| `$4CFE-$4D09` | `overlay` | `BOSS_E_BSS` — boss slot E: its state, after its code, never read from disk (none since the warning ramp's removal) |
 | `$4D20-$4E3F` | `resident` | expanded Hostile hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector |
+| `$4D66-$4D74` | `overlay` | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish) - after its code, never read from disk |
 | `$4E40-$4E6F` | `resident` | broadside slot state |
 | `$4E70-$4ED0` | `resident` | difficulty, hull scroll, final-raster bolt tops, flash backing, sector, player lifecycle, capital explosion, engine and Raider state |
 | `$4ED1-$4ED6` | `resident` | star RNG, near-star phase, PAL frame ids |
@@ -402,7 +402,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7810-$7BBF` | `boot` | STARFIELD stream A staging |
 | `$7810-$7B8F` | `summary` | summary art run (largest region run) read for the summary screen |
 | `$7810-$7AF5` | `boot` | packed C extension record landing (`HYBRID_C_EXT_STAGING`) |
-| `$7810-$796F` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry |
+| `$7810-$7979` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry |
 | `$7810-$788F` | `summary` | save-record sector buffer |
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
 | `$7C72-$7EDA` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
@@ -470,8 +470,8 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$6DE8-$75E7` | `resident` | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A |
 | `$6DE8-$75E7` | `overlay` | overlay slot A (`update_broadside` onward; run `capital-slot-a`) |
 | `$6DE8-$6E0E` | `overlay` | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image |
-| `$6E0F-$75A3` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
-| `$75A4-$75C7` | `overlay` | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A |
+| `$6E0F-$75C2` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
+| `$75C3-$75E6` | `overlay` | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A |
 
 **`$A600-$ADFF` — the level buffer**
 
@@ -538,36 +538,36 @@ By topic: unclassified 90%, player, input and weapons 10%.
 
 By topic: unclassified 83%, Heavy, Raider and Interceptor 9%, player, input and weapons 5%, frontend and HUD 3%.
 
-#### `BOSS_CODE` `$6E0F-$75A3`, 1,941 B (build/boss.map)
+#### `BOSS_CODE` `$6E0F-$75C2`, 1,972 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `boss_draw_module` | `$73F2` | 152 B | 7.8% | unclassified |
-| `boss_enqueue` | `$72B6` | 140 B | 7.2% | unclassified |
-| `boss_update` | `$6FD7` | 127 B | 6.5% | unclassified |
-| `boss_fire` | `$7126` | 126 B | 6.5% | player, input and weapons |
-| `boss_rebuild_module` | `$74F1` | 126 B | 6.5% | unclassified |
-| `boss_ring_set` | `$71EC` | 120 B | 6.2% | display, PMG and raster |
-| `boss_dli` | `$6EE5` | 102 B | 5.3% | display, PMG and raster |
-| `boss_runs` | `$6E81` | 100 B | 5.2% | unclassified |
-| `boss_hit` | `$7056` | 95 B | 4.9% | unclassified |
-| `boss_motion` | `$6F88` | 79 B | 4.1% | unclassified |
-| `boss_head` | `$6E0F` | 68 B | 3.5% | unclassified |
-| `boss_ring_rebase` | `$7277` | 63 B | 3.2% | display, PMG and raster |
-| `boss_column_base` | `$74B3` | 62 B | 3.2% | unclassified |
+| `boss_draw_module` | `$7408` | 161 B | 8.2% | unclassified |
+| `boss_enqueue` | `$72C9` | 140 B | 7.1% | unclassified |
+| `boss_update` | `$6FD7` | 130 B | 6.6% | unclassified |
+| `boss_fire` | `$7139` | 126 B | 6.4% | player, input and weapons |
+| `boss_rebuild_module` | `$7510` | 126 B | 6.4% | unclassified |
+| `boss_ring_set` | `$71FF` | 120 B | 6.1% | display, PMG and raster |
+| `boss_hit` | `$7059` | 111 B | 5.6% | unclassified |
+| `boss_dli` | `$6EE5` | 102 B | 5.2% | display, PMG and raster |
+| `boss_runs` | `$6E81` | 100 B | 5.1% | unclassified |
+| `boss_motion` | `$6F88` | 79 B | 4.0% | unclassified |
+| `boss_head` | `$6E0F` | 68 B | 3.4% | unclassified |
+| `boss_ring_rebase` | `$728A` | 63 B | 3.2% | display, PMG and raster |
+| `boss_column_base` | `$74D2` | 62 B | 3.1% | unclassified |
 | `boss_apply_pos` | `$6F4B` | 61 B | 3.1% | unclassified |
-| `boss_open_looks` | `$70EC` | 58 B | 3.0% | unclassified |
-| `boss_queue_draw` | `$7342` | 53 B | 2.7% | unclassified |
-| `boss_nozzles` | `$7377` | 48 B | 2.5% | unclassified |
-| `boss_frame_timers` | `$71A4` | 43 B | 2.2% | unclassified |
-| `boss_nozzle_darken` | `$73BA` | 38 B | 2.0% | unclassified |
-| `boss_read_run` | `$6E53` | 36 B | 1.9% | unclassified |
-| `boss_column_from` | `$7490` | 35 B | 1.8% | unclassified |
-| `boss_tick_sound` | `$71CF` | 29 B | 1.5% | music and audio |
-| `boss_completion` | `$756F` | 21 B | 1.1% | unclassified |
-| 24 smaller items | — | 159 B | 8.2% | — |
+| `boss_open_looks` | `$70FF` | 58 B | 2.9% | unclassified |
+| `boss_queue_draw` | `$7355` | 56 B | 2.8% | unclassified |
+| `boss_nozzles` | `$738D` | 48 B | 2.4% | unclassified |
+| `boss_frame_timers` | `$71B7` | 43 B | 2.2% | unclassified |
+| `boss_nozzle_darken` | `$73D0` | 38 B | 1.9% | unclassified |
+| `boss_read_run` | `$6E53` | 36 B | 1.8% | unclassified |
+| `boss_column_from` | `$74AF` | 35 B | 1.8% | unclassified |
+| `boss_tick_sound` | `$71E2` | 29 B | 1.5% | music and audio |
+| `boss_completion` | `$758E` | 21 B | 1.1% | unclassified |
+| 24 smaller items | — | 159 B | 8.1% | — |
 
-By topic: unclassified 76%, display, PMG and raster 16%, player, input and weapons 6%, music and audio 2%, boot, loader and transport 0%.
+By topic: unclassified 76%, display, PMG and raster 15%, player, input and weapons 6%, music and audio 2%, boot, loader and transport 0%.
 
 #### `HYBRID_C_ARENA` `$7C72-$7EDA`, 617 B (build/encounter-director.map)
 
@@ -765,7 +765,7 @@ By topic: boot, loader and transport 84%, level summary 10%, unclassified 2%, ca
 | `allocate_player_fighter_projectile_at_slot` | `$2D01` | 48 B | 1.1% | player, input and weapons |
 | `unpack_loader_bitmap` | `$27BC` | 46 B | 1.0% | boot, loader and transport |
 | `init_playfield_row_table` | `$2948` | 45 B | 1.0% | display, PMG and raster |
-| 137 smaller items | — | 1,796 B | 40.2% | — |
+| 138 smaller items | — | 1,796 B | 40.2% | — |
 
 By topic: frontend and HUD 24%, player, input and weapons 17%, unclassified 11%, debris and effects 11%, Heavy, Raider and Interceptor 10%, music and audio 8%, capital ship 6%, boot, loader and transport 6%, Director, sectors and waves 3%, display, PMG and raster 2%, starfield 2%, padding and slack 0%, pickups and boosters 0%.
 
@@ -964,7 +964,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | --- | ---: | --- | ---: | --- | --- |
 | `BOSS_C_CODE` | 1,358 B | placement name | — | unclassified (90%) | not judged |
 | `BOSS_D_CODE` | 1,647 B | placement name | — | unclassified (83%) | not judged |
-| `BOSS_CODE` | 1,941 B | placement name | — | unclassified (76%) | not judged |
+| `BOSS_CODE` | 1,972 B | placement name | — | unclassified (76%) | not judged |
 | `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 690 B | placement name | — | Light enemies (56%) | not judged |
 | `DIRECTOR_C_CODE` | 623 B | placement name | — | Director, sectors and waves (84%) | not judged |
@@ -996,6 +996,11 @@ Design notes; the generated block above has every range. Plan §5.12.
 - **`$7810-$798F`**: the boss install run, run once in place per entry;
   **`$7990-$7B8F`**: the region's staging run (glyphs, theme). Both inside the
   pause backup / summary staging RAM, dead once the install has run.
+  fix/boss-polish (decision AL 1): the theme run's bytes `$C0-$FF` (`$7A50-$7A8F`)
+  hold the region's title records (the boss's name and INCOMING, at most
+  64 B; the theme uses 176), drawn under WARNING by the kernel's
+  `boss_enter_title` right after the run lands, then copied with the theme
+  into the music block (unread there) and dead.
 - **Slot B**: band rows 0-5 at `$A880-$A9FF` (over the level's hull block,
   dead after the capital sector; the entry clears the level's magic so the
   next START GAME re-reads it), rows 6-7 at `$AC80-$ACFF`, the region tables

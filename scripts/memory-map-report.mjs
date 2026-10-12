@@ -144,8 +144,8 @@ const SEGMENTS = {
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.
   BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
-  BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour; read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
-  BOSS_E_BSS: ["boss slot E: its state, after its code, never read from disk (none since the warning ramp's removal)", "overlay"],
+  BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish); read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
+  BOSS_E_BSS: ["boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish) - after its code, never read from disk", "overlay"],
 };
 
 // ---------------------------------------------------------------- readers

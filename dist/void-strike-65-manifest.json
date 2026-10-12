@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 3434,
+      "crc16": 19674,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 3434,
+        "crc16": 19674,
         "records": [
           {
             "startSector": 108,
@@ -306,7 +306,7 @@
             "packedLength": 5525,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 42941,
+            "crc16": 63572,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -391,10 +391,10 @@
           {
             "startSector": 190,
             "sectorCount": 7,
-            "packedLength": 866,
-            "rawLength": 987,
+            "packedLength": 865,
+            "rawLength": 982,
             "finalDestination": 46200,
-            "crc16": 40395,
+            "crc16": 52695,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -453,7 +453,7 @@
       "transportBytes": 5632,
       "packedBytes": 5525,
       "rawBytes": 6653,
-      "crc16": 42941,
+      "crc16": 63572,
       "stagingAddress": 33024,
       "stagingEndAddress": 38655,
       "finalAddress": 24080
@@ -656,27 +656,27 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$4C42"
+        "expected": "$9256"
       },
       {
         "index": 2,
         "name": "boss region 1 (M5b)",
-        "expected": "$49CB"
+        "expected": "$EC6D"
       },
       {
         "index": 3,
         "name": "boss region 2 (M5b)",
-        "expected": "$49CB"
+        "expected": "$AD2E"
       },
       {
         "index": 4,
         "name": "boss region 3 (M5b)",
-        "expected": "$49CB"
+        "expected": "$A829"
       },
       {
         "index": 5,
         "name": "boss region 4 (M5b)",
-        "expected": "$49CB"
+        "expected": "$E465"
       },
       {
         "index": 6,
@@ -700,10 +700,10 @@
       }
     ],
     "bossHeadSums": [
-      "$EBF9",
-      "$7005",
-      "$7005",
-      "$7005"
+      "$F436",
+      "$7842",
+      "$7842",
+      "$7842"
     ],
     "summaryArtSums": [
       "$2223",
@@ -842,16 +842,16 @@
     },
     "slotA": {
       "address": 28136,
-      "bytes": 2016,
+      "bytes": 2047,
       "capacityBytes": 2048,
-      "freeBytes": 32,
+      "freeBytes": 1,
       "sectors": 16
     },
     "install": {
       "address": 30736,
-      "bytes": 352,
+      "bytes": 362,
       "capacityBytes": 384,
-      "freeBytes": 32,
+      "freeBytes": 22,
       "sectors": 3
     },
     "slotC": {
@@ -917,11 +917,11 @@
     },
     "slotE": {
       "address": 19456,
-      "bytes": 266,
-      "codeBytes": 254,
+      "bytes": 373,
+      "codeBytes": 358,
       "capacityBytes": 576,
-      "freeBytes": 310,
-      "sectors": 2
+      "freeBytes": 203,
+      "sectors": 3
     },
     "laserFixtureTier": null,
     "charset": {
@@ -949,7 +949,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "07daaf02a06b11c326c6e1c466760372b0d8763155e0d1d373696d60c4499360",
+        "sha256": "38fb92e713dc374981cc1f7bcd3b1cb5db5ce15df7e5b78bb8e21d74575773ae",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -958,7 +958,7 @@
         "sectors": 3,
         "destination": 30736,
         "bytes": 384,
-        "sha256": "9251a6c1cb403394dfa0a4acfaf10f61fa1ca009d5348c43322ec1622a31884e",
+        "sha256": "1363673e029ee054a0f74cd28698d578a542840d4af4338238cac56c05b22ba2",
         "file": "overlay-boss-install.bin"
       },
       {
@@ -967,7 +967,7 @@
         "sectors": 13,
         "destination": 4096,
         "bytes": 1664,
-        "sha256": "aff4af2686085ec40fd606d9d71c922316d3a9b0a2b60b407e0be1048bdaa6b3",
+        "sha256": "53f625b98608396b242ffe527f45fef4b4cf4b81701bed3665433d8447c518e2",
         "file": "overlay-boss-slot-c.bin"
       },
       {
@@ -976,16 +976,16 @@
         "sectors": 13,
         "destination": 6400,
         "bytes": 1664,
-        "sha256": "ee1197bcc4acd1476ce8e1e3970ea30076b36543baf30b7c1605f7d04910e0c0",
+        "sha256": "11366b4184b3b5974c949bf25e8451376d3db338ed6b2cf2825ca0af2962bcf7",
         "file": "overlay-boss-slot-d.bin"
       },
       {
         "name": "boss-slot-e",
         "startSector": 577,
-        "sectors": 2,
+        "sectors": 3,
         "destination": 19456,
-        "bytes": 256,
-        "sha256": "5fc00a6b748387d5a764591f7cae7a212b176916a84a3418927fa50c21349fcf",
+        "bytes": 384,
+        "sha256": "0cf63545733036e6705e9f7dc4d65b5129aefd56548310d840ac536a01ef6486",
         "file": "overlay-boss-slot-e.bin"
       },
       {
@@ -994,7 +994,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "bcadbe86a32d1933ebe8ba43648168e4a8082bfb35d775d70252d0a51bc9fb9a",
+        "sha256": "a8da7eb22084407b5762554abfb890e0a25ad0194e3508056c4313197711db62",
         "file": "boss-region-1-theme.bin"
       },
       {
@@ -1021,7 +1021,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
+        "sha256": "2587d6d542772263c0fa22a53438bf9feca61fd36a6afa1f77f1973fcc4fe0a1",
         "file": "boss-region-1-charset.bin"
       },
       {
@@ -1039,7 +1039,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "bcadbe86a32d1933ebe8ba43648168e4a8082bfb35d775d70252d0a51bc9fb9a",
+        "sha256": "d6658d468942463fc1470020f990d012b72a09f23b609fb130269cd3692b8cf8",
         "file": "boss-region-2-theme.bin"
       },
       {
@@ -1066,7 +1066,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
+        "sha256": "2587d6d542772263c0fa22a53438bf9feca61fd36a6afa1f77f1973fcc4fe0a1",
         "file": "boss-region-2-charset.bin"
       },
       {
@@ -1084,7 +1084,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "bcadbe86a32d1933ebe8ba43648168e4a8082bfb35d775d70252d0a51bc9fb9a",
+        "sha256": "0bb85d44ee3f3250b59fda19efb2edf33edb78fd2f5d4aa568eaf07361df613b",
         "file": "boss-region-3-theme.bin"
       },
       {
@@ -1111,7 +1111,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
+        "sha256": "2587d6d542772263c0fa22a53438bf9feca61fd36a6afa1f77f1973fcc4fe0a1",
         "file": "boss-region-3-charset.bin"
       },
       {
@@ -1129,7 +1129,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "bcadbe86a32d1933ebe8ba43648168e4a8082bfb35d775d70252d0a51bc9fb9a",
+        "sha256": "b852487ca2b6a8e15c45d87b27f4da845e22bbd22c30e8383f2696ef51b0f834",
         "file": "boss-region-4-theme.bin"
       },
       {
@@ -1156,7 +1156,7 @@
         "sectors": 8,
         "destination": 3072,
         "bytes": 1024,
-        "sha256": "905c1fdfb979e1c3ea9fbdeeedf95d7aa5448e3038165821f7a5c0a5167ffe44",
+        "sha256": "2587d6d542772263c0fa22a53438bf9feca61fd36a6afa1f77f1973fcc4fe0a1",
         "file": "boss-region-4-charset.bin"
       },
       {
@@ -1180,11 +1180,11 @@
         "charsetSectors": 8,
         "modules": 15,
         "finaleCooldown": 0,
-        "entrySectors": 64
+        "entrySectors": 65
       },
       {
         "region": 2,
-        "name": "Blockade Breaker",
+        "name": "Bastion",
         "style": 1,
         "codes": 122,
         "stageStep": 19,
@@ -1192,11 +1192,11 @@
         "charsetSectors": 8,
         "modules": 15,
         "finaleCooldown": 12,
-        "entrySectors": 64
+        "entrySectors": 65
       },
       {
         "region": 3,
-        "name": "Blockade Breaker",
+        "name": "Siege Spine",
         "style": 1,
         "codes": 122,
         "stageStep": 19,
@@ -1204,11 +1204,11 @@
         "charsetSectors": 8,
         "modules": 15,
         "finaleCooldown": 12,
-        "entrySectors": 64
+        "entrySectors": 65
       },
       {
         "region": 4,
-        "name": "Blockade Breaker",
+        "name": "Void Citadel",
         "style": 1,
         "codes": 122,
         "stageStep": 19,
@@ -1216,7 +1216,7 @@
         "charsetSectors": 8,
         "modules": 15,
         "finaleCooldown": 12,
-        "entrySectors": 64
+        "entrySectors": 65
       }
     ]
   },
@@ -1228,11 +1228,11 @@
   },
   "lightKernel": {
     "address": 46200,
-    "bytes": 987,
-    "packedBytes": 866,
+    "bytes": 982,
+    "packedBytes": 865,
     "capacityBytes": 1928,
-    "freeBytes": 941,
-    "endExclusive": 47187,
+    "freeBytes": 946,
+    "endExclusive": 47182,
     "windowLimit": 48128,
     "cHalfEndExclusive": 46200,
     "vectors": {
@@ -1307,9 +1307,9 @@
       "capacityBytes": 3584,
       "guardBytes": 6,
       "directorHalfBytes": 1656,
-      "lightKernelBytes": 987,
-      "usedBytes": 2643,
-      "freeBytes": 941,
+      "lightKernelBytes": 982,
+      "usedBytes": 2638,
+      "freeBytes": 946,
       "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
       "boundedBy": {
         "below": "16-sector level buffer $A600-$ADFF",
@@ -24061,11 +24061,11 @@
     "estimated_additive_cycles": 27916,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "853ea6b009b8c72b48e998c7eb87443e8d5ae350579f04eec37dec092a3254e0",
+      "reportSha256": "60ad68cef98516cc9628e779fa31da1c498cc322f6a97cc1cf86d4e98d8046cb",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
+        "sha256": "ddf01a9fdd53a0adb2060509c401d74d8c02981286bf7c59bbe1263254cc8049"
       },
       "emulator": {
         "name": "Atari800",
@@ -24384,7 +24384,7 @@
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
           "rapid_frames": 3431,
-          "spread_frames": 2769,
+          "spread_frames": 2770,
           "pickup_events": 22,
           "granted_booster_modes": [
             3,
@@ -25582,8 +25582,8 @@
         "baseline_9040_host_vbi_boundary_crossings": 1001,
         "targeted_active_frames_crossing_host_vbi": 108,
         "targeted_host_vbi_boundary_crossings": 108,
-        "active_frames_crossing_host_vbi": 16519,
-        "host_vbi_boundary_crossings": 16519,
+        "active_frames_crossing_host_vbi": 16526,
+        "host_vbi_boundary_crossings": 16526,
         "extra_vbi_boundaries": 0,
         "behavioural_clause_failure_count": 0,
         "behavioural_clause_failures": [],
@@ -25631,25 +25631,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "731e5703a2149cba6adf02a14bd06a5cf99af51a8e9617afe6de54ef932b7a01"
+        "sha256": "186739b23680f4a347dd30835685ba5128ebc1dba2be0f67206b01c4ba8a015d"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
+        "sha256": "ddf01a9fdd53a0adb2060509c401d74d8c02981286bf7c59bbe1263254cc8049"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "853ea6b009b8c72b48e998c7eb87443e8d5ae350579f04eec37dec092a3254e0"
+    "reportSha256": "60ad68cef98516cc9628e779fa31da1c498cc322f6a97cc1cf86d4e98d8046cb"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "731e5703a2149cba6adf02a14bd06a5cf99af51a8e9617afe6de54ef932b7a01"
+      "sha256": "186739b23680f4a347dd30835685ba5128ebc1dba2be0f67206b01c4ba8a015d"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "3b05ca343d857c172e4301f7216c2c10d3136fbf35352bd2434d18c153a4a842"
+      "sha256": "ddf01a9fdd53a0adb2060509c401d74d8c02981286bf7c59bbe1263254cc8049"
     }
   }
 }

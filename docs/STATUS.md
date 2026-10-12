@@ -440,7 +440,7 @@ Plan [plans/boss-polish.md](plans/boss-polish.md) (§11 as built); journal
 | initial block, slot C, slot D, slot F, the charset | unchanged | 13,623 B; 13 / 13 sectors; 110 B; 976 B, 122 codes |
 
 **Tests.** New: `tests/boss-hit-flash.test.mjs` (6) and
-`tests/boss-polish.test.mjs` (10), 13 of them RED on `main`. Re-pinned or
+`tests/boss-polish.test.mjs` (9), 13 of the 15 RED on `main`. Re-pinned or
 re-pointed, each with its reason at the site: plan §11.3.
 
 **ATR** `ddf01a9fdd53a0adb2060509c401d74d8c02981286bf7c59bbe1263254cc8049`,

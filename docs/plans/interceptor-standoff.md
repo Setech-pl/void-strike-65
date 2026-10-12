@@ -5,10 +5,13 @@ boot `fce37c74…`, the `feat/boss-escort-flow` merge, decision AI).
 **Status:** Phase B built and committed; the evidence bound (`84cc2a4`); the
 three re-points of §11.8 approved and committed (`a0c5d8e`). The owner's smoke
 finding of 2026-10-11 (an Interceptor climbed off the top of the swarm and
-never came back) opened **Phase A-lite, the top-hold loop (§12)**: built as a
-review variant, measured, `OWNER DECISION REQUIRED` (§12.7). The second full
-`npm test`, STATUS and the §27 checklist wait for that choice. The owner's
-answers are §9.1 and decision AK.
+never came back) opened **Phase A-lite, the top-hold loop (§12)**. The owner's
+answers L1-L5 of 2026-10-12 (2 loops, the escort 0, a new exit direction, the
+window full after the moves, the fence accepted, the HARD hunts kept reaching
+the boss) opened **§13: the final behaviour as a review variant, measured,
+waiting for the owner's smoke and E1/E2 (§13.9)**. Phase B of the loop (tests
+first, the evidence, two full `npm test`, STATUS, the §27 checklist) follows
+the owner's OK. The owner's answers are §9.1 and decision AK.
 
 **The owner's finding (2026-10-11, after playing the escort flow):** the
 Interceptor chases at the player's own top speed, so every pass ends shot down
@@ -743,3 +746,247 @@ its standoff:
 
 Elite (a)'s companion does the same. The boss escort still leaves after one
 pass.
+
+## 13. Phase A-lite, final behaviour: 2 loops and the exit direction (the owner's answers L1-L5, 2026-10-12)
+
+**The answers (decision AK point 10):**
+
+| Question | Answer |
+| --- | --- |
+| L1 | Swarm and elite waves 2 loops; the boss escort 0 and unchanged. **New:** after its last loop, a swarm/elite Interceptor leaves by the **nearer vertical edge** (up or down). It never steers into the player: if leaving down would pass through or next to the player's column, it leaves up. Zero Interceptor contacts in every replay. A downward exit frees the slot as an upward one does. Window: 1 B left; free bytes by moving once-per-event code out first, else STOP with options (including "always up", 0 B). |
+| L2 | The top-hold row and time as built. |
+| L3 | The window record up to 1,387 B (11 sectors) after the moves is accepted. The window is effectively full: any further resident byte is a STOP until the window levers are done. |
+| L4 | Fence margin 1,285 accepted; STOP only below 1,000. |
+| L5 | Keep the HARD hunts reaching the boss with a scoped dodge for those replays only. Failing that, re-derive their budgets as class (a). |
+
+Phase A-lite builds the final behaviour first, measures it, and STOPs for the
+owner's smoke.
+
+### 13.1 What is built (`dfc4db0`, `ddae343`; still a review variant, `--interceptor-loops=2`)
+
+* **The data.** `loops` 0-2, stored as loops + 1 in wave_flags bits 6-7:
+  - 0: none, R's climb out (the escort);
+  - 1: loops spent, leave by the nearer edge;
+  - 2-3: loops left.
+
+  With the +1, "loops spent" and "never looped" are different values, so the
+  escort is told apart at no runtime cost. Level 1's swarm and elite (a) carry
+  2. The compiler refuses 3.
+* **The exit (the tick, `light_tick_body`).** On the first frame out (age
+  100) it decides once:
+  - **down** when it is in the lower half (y ≥ 128, the midpoint of the
+    playfield's y 24-232) **and** the player's hull is at least 28 HPOS clear
+    of its column on either side;
+  - **up** otherwise.
+
+  The age byte records the choice (101 up, 102 down), so the direction never
+  flips. Down is the climb's 8 lines a frame mirrored. It retires by the same
+  `y ≥ 232` test as the climb's wrap, so the slot is freed the same way
+  (sector flow below). It does not fire while it leaves (`light_target_x` 0,
+  as R).
+* **The clearance, 28 HPOS:**
+  - Contact (`light-kernel.s` `@contact`) is `player_x − light_x` in −15..7:
+    the player's 16 HPOS against the Light's 8.
+  - A dive from y 128 to the retire row lasts at most 13 frames.
+  - In those frames the player covers at most 26 HPOS at its 2 HPOS a frame.
+  - Hence 28 HPOS of clear space between the hulls, with one frame of slack.
+  - It is one subtract, one add and one compare:
+    `(uint8_t)(player_x − light_x + 44) ≥ 80`.
+* **The escort** keeps 0 loops and R's branch: it climbs out, life ≤ 121
+  frames.
+
+### 13.2 The window: what moved out, record by record (**M**, manifests)
+
+| Step | Window record (11 sectors, 1,387 packed) | Raw Director half | Other record |
+| --- | ---: | ---: | --- |
+| §12's 2 loops (Phase A-lite) | 1,386 | 1,723 | — |
+| + the exit in the tick | 1,437 (a 12th sector) | 1,791 | — |
+| − the boss entry's **head** (45 B, run once per boss entry) → `PICKUP_CODE`'s free tail `$8B26` (main link; `pin_boss_enter_head`) | 1,392 | 1,746 | pickup record (10 sectors, 1,259) **1,137 → 1,180**; `PICKUP_CODE` free tail 65 → 20 B |
+| the lower-half test as a sign test | 1,391 | 1,745 | — |
+| − the sector cut's own live-Light scan → `light_live_count()` (the admission's; the same scan of `light_state`) | 1,369 | 1,719 | — |
+| + 4 B unexecuted pad, so the Light kernel stays at `$B4BB`, where §12 measured it | **1,372 (15 B left)** | 1,723 | — |
+
+The Light kernel record is **866 of 875 (7 sectors), unchanged**. Its
+boss-entry pins are §12's: `hud_backup` `$B845`, `enter_read` `$B853`,
+`warning_records` `$B878`; the new pin is `boss_enter_head` `$8B26` (main).
+Nothing else changes:
+
+* C extension record 742 / 747;
+* low record 362 / 363;
+* arena 14 B free;
+* `DIRECTOR_RAM`;
+* Light state RAM: +4 B (`light_loops`, `$8133-$8136`), as in §12;
+* transport 213 sectors;
+* initial block 13,623 B / 107 sectors.
+
+The default build is byte-identical without the variant.
+
+**Taken-branch page crossings, compared with §12's N = 2:**
+
+* The Light kernel's crossings are identical: same address, same bytes.
+* `light_take_token` loses one crossing. The non-static `light_live_count`
+  sits before it now.
+* In `light_tick_body`, the standoff's distance compare crosses instead of
+  the top phase's two branches: ±1 cycle a live Interceptor.
+
+### 13.3 Gates (**M**, all 58 replays focused on the variant's `level-1-s0` route; the HARD hunts with the dodge, §13.6)
+
+| | R | §12 N = 2 | §13 (2 loops + exit) |
+| --- | ---: | ---: | ---: |
+| worst fence margin (`2-sweep-fire6` f311) | 1,301 | 1,285 | **1,285** |
+| next row (`2-evasive-fire3`) | 1,467 | 1,457 | 1,457 |
+| DMA-on maximum | 31,493 | 31,493 | **31,456** (`weapon-pickup-2-hunt-fire4`); 31,490 without the dodge |
+| missed frames / clause failures | 0 / 0 | 0 / 0 | 0 / 0 |
+
+`summary-record-readback-1` reads what `director-complete-1` writes earlier in
+a full run. Run alone, it fails the same way on every build (§12.4).
+
+### 13.4 Play (**M**)
+
+| | R | §12 N = 2 | §13 |
+| --- | --- | --- | --- |
+| road to the boss, sweep bot E / M / H | 68.0 / 59.7 / 56.6 s | 69.3 / 66.5 / 56.6 | **69.3 / 66.5 / 56.6** |
+| swarm, sweep bot E / M / H | 12.7 / 11.4 / 10.1 s | 13.2 / 14.3 / 10.1 | **13.2 / 14.3 / 10.1** |
+| road to the boss, HARD hunt 5 / 6 / 7, EASY hunt 5 | 74.3 / 74.4 / 74.1 / 78.7 s | — / — / — / 83.1 | **73.3 / 73.4 / 72.6 / 83.1** (HARD with the dodge) |
+| swarm, HARD hunt 5 / EASY hunt 5 | 15.4 / 15.4 s | 19.6 / 20.3 | 13.6 / 20.3 |
+| longest Interceptor life, swarm / elite / escort | 121 / 121 / 121 | 399 / 399 / 121 | **399 / 399 / 121** |
+| Interceptor laser hits, HARD hunt 5 / 6 / 7, `weapon-pickup-2-hunt-fire4` | 4 / 4 / 4 / 3 | 9 / 9 / 9 / 3 | **0 / 0 / 0 / 3** (9 / 9 / 9 / 3 without the dodge) |
+| … lasers fired; deaths by the laser | 11 / 11 / 9 / 8; 0 / 0 / 0 / 1 | 24 / 24 / 23 / 9; 1 / 1 / 1 / 1 | 10 / 10 / 5 / 9; **0 / 0 / 0 / 1** |
+| Interceptors that met the fighter (all 58 replays) | 0 | 0 | **0** |
+| fight by the ratio E / M / H | 76.9 / 104.4 / 154.4 s | 86.5 / 103.0 / 154.4 | **86.5 / 103.0 / 154.4** |
+
+The sweep bot's replays are frame-identical to §12's N = 2 (the exits below
+all go up). The hunting bot without the dodge is frame-identical to §12's too.
+
+### 13.5 The exits: up vs down (**M**, `--hit-trace` y traces of all 58 replays)
+
+| | up | down | shot down | still live at the end |
+| --- | ---: | ---: | ---: | ---: |
+| swarm (level-1 sector 2) | 9 | **0** | 45 | 0 |
+| elite (a) (sector 3) | 1 | **0** | 13 | 0 |
+| boss escort (sector 6) | 40 | — | 69 | 3 |
+
+**No Interceptor left downward in any replay.** All 10 swarm/elite exits began
+in the lower half (y 138 / 154 / 170: slots 2 / 1 / 0 at their standoff over a
+player at the bottom). In every one the player was **in its column** (dx 0;
+once 2).
+
+That is the design, not the replays:
+* through the whole standoff the Interceptor tracks the player's column one
+  4-HPOS cell every other frame, which is the player's own top speed;
+* so the gap between them never grows past the 4-HPOS tracking lag;
+* no player, bot or human, can open 28 HPOS by the time it leaves.
+
+Under the owner's rule, "never down through or next to the player's column"
+therefore means "up" whenever the player sits in the lower half. With the
+player in the upper half, the Interceptor is in the upper half too, and leaves
+up anyway.
+
+**Other ways to get a downward exit, both measured as builds of the window
+(not traced):**
+
+* **Break away, then dive.** It slides sideways out of the player's column at
+  4 HPOS a frame, away from the player; when 28 HPOS clear, it dives. At a
+  wall it gives up and climbs.
+  - Cost: **+74 raw / +51 packed: window record 1,423 of 1,387, a 12th
+    sector.**
+  - It does not fit without a further window move. Nothing once-per-event is
+    left in the window's ASM, and its cold C has no home with room in both
+    RAM and record. The next candidates are the window levers (order B, after
+    S5, M3-H and M3) or the escort clock (43 B) into slot C, which is +1 boss
+    entry sector (entry ≈ 249 of 250 frames).
+* **Always up** costs 0 B. It drops the exit code: the window record falls
+  to about 1,321, and the two moves above stay, which leaves about 66 B of
+  window free.
+
+### 13.6 L5: the HARD integrity hunts (`ddae343`)
+
+Without help, with 2 loops all three die in the swarm before the boss. The
+causes:
+* 9 laser hits each, 1 death each by the laser;
+* a game over and a restart for hunt 7;
+* so their budgets no longer buy the boss sector.
+
+The owner's first preference, a scoped dodge, keeps them there.
+
+* **The dodge.** `DFTRACE_LIGHT_DODGE`, set by `lightDodge` on
+  `memory-integrity-atr-2-hunt-fire5/6/7` only. It is the sweep policy's
+  boss-shot step, applied to an Interceptor's LASER bolt (active byte `$16`,
+  hostile slots 5-9): never towards one falling within 24 HPOS above, away
+  from one within 12. It is 20 lines in `scripts/atari800-wall-trace.h`.
+  - A first cut dodged every Light bolt. It also stepped away from the
+    Wingmen's bolts, and hunt 7 met a Raider in sector 0 (death at f410). The
+    LASER filter leaves the Wingmen alone.
+* **Result:** the three reach the boss at **f3,667 / 3,669 / 3,628** within
+  their budgets of 4,900 / 5,000 / 4,000.
+  - 0 Interceptor laser hits before the boss, 0 contacts.
+  - Hunt 7 has 372 boss frames, against R's 295.
+* **Every other replay is byte-identical:** all 58 replays were rerun on the
+  rebuilt emulator. 116 of 116 CSVs (the main and the `-light` trace of each)
+  equal the run before the dodge. For the three hunts this is the dodge run
+  repeated, so it shows determinism.
+* **Measured frame counts the tests pin:** the integrity sum stays **22,996**.
+  The same four integrity replays reach the boss as on R, so no budget is
+  re-derived and nothing is re-pinned. Debris-effects 4,999, the guard 7,399
+  and laser contact 9,499 are unchanged. Every difficulty keeps replays that
+  go through the boss sector.
+
+### 13.7 Sector flow, the escort, the boss entry (**M**)
+
+* **Sector flow.**
+  - Every swarm ends.
+  - Arming events and Light admissions per sector are §12's.
+  - A downward exit would retire by the same test, but none happened (§13.5).
+* **The escort.** On the boss route (`boss-park-left-0/1/2`), escorts are
+  19 / 17 / 15 and hits 3 / 5 / 4 (all laser); none lives past 121 frames,
+  none comes after the defeat, and never two at once. The `-light.csv` traces
+  equal §12's in every position, state and HP. Five of six are
+  byte-identical. In `boss-park-left-1`, one observer column (`v_shot`, the
+  count of `light_shot` vector entries in a frame) reads 3 instead of 2 on
+  two frames. The guard `boss-edge-left-1` passes.
+* **The boss entry, from its new home, on every route that enters a boss:**
+
+  | Route | Entries | Sectors | Host frames (< 250) |
+  | --- | ---: | ---: | ---: |
+  | region 1, `level-1-s0` (every replay that reaches the boss) | 16 | 64 | **245** |
+  | region 1, boss route `level-1-s6` | 6 | 64 | **245** |
+  | region 2 review route | 3 | 64 | **245** |
+  | region 3 review route | 3 | 64 | **245** |
+  | region 4 review route | 3 | 64 | **245** |
+
+  The region-route diag sessions miss their chain and summary in 5,000 /
+  12,000 frames on R's own region routes too. Measured side by side, the
+  failures are identical. The boss frames' margins are 8,770-10,014, against
+  R's 8,788-10,013.
+
+### 13.8 How to play (Atari800, the 64 KB machine)
+
+```
+atari800 -xl -pal -nobasic "$PWD/build/play/void-strike-65-interceptor-exit-00d23c16.atr"             # the full game
+atari800 -xl -pal -nobasic "$PWD/build/play/void-strike-65-interceptor-exit-boss-route-99568acd.atr"  # straight to the boss
+```
+
+| Build | ATR SHA-256 | boot |
+| --- | --- | --- |
+| full game | `00d23c163067b55b9eb6e4869c7a7511c647e6dfe91bf81fb41ed3055ff4a330` | `dda6c4fe…` |
+| boss route | `99568acd06159a948ccee08d331bee7a9210d139d0f4c2e75c27c48eb805e674` | `0fc8911d…` |
+
+To rebuild: `node scripts/build.mjs --interceptor-loops=2 [--level=1:sector=6]`.
+
+**What to look for:**
+
+* In the swarm after the capital, each Interceptor flies its standoff, climbs
+  to the top rows, holds, dives back, and does it again.
+* After the second loop's standoff it leaves:
+  - up whenever you are under it;
+  - down only if, in the lower half, you are at least 7 cells to its side
+    when it leaves. As §13.5 shows, that cannot happen while it tracks you.
+* No exit touches the fighter.
+* The boss escort still leaves upward after one pass.
+
+### 13.9 Owner questions
+
+| # | Question | Options | Recommended |
+| ---: | --- | --- | --- |
+| E1 | The exit direction, given §13.5 (the rule as asked never sends one down) | (a) as built: the rule stays, in practice always up, 51 window bytes; (b) **always up**: 0 B, the window keeps ~66 B; (c) break away then dive: +51 B over (a), needs a window lever first (STOP) | **(b)**, unless a visible downward exit is wanted. Then (c) after the window levers, or the escort clock into slot C now, at +1 entry sector (≈ 249 frames) |
+| E2 | The HARD hunts' dodge (§13.6) | keep it / re-derive budgets instead | **keep it** |

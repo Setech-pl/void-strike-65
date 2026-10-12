@@ -2086,8 +2086,52 @@ z pinami i progami innymi niż ten z Q3.
    Najpierw **Faza A-lite**: trzy pełne ATR-y (1, 2, 3 pętle) i trasa do
    bossa, pomiary, plan, STOP; dwa pełne `npm test` czekają na wybór. Wyniki:
    plan §12.
+10. **Odpowiedzi właściciela L1–L5 po zagraniu w buildy z pętlą
+    (2026-10-12):**
+    - **L1:** rój i elita **2 pętle**, eskorta bossa **0** (bez zmian: odlatuje
+      górą jak R, życie ≤ 121 klatek, żadnej po upadku bossa, nigdy dwie naraz).
+      **Nowe — kierunek wyjścia:** po ostatniej pętli Interceptor roju/elity
+      odlatuje ku **bliższej pionowej krawędzi** pola gry (góra albo dół) i
+      znika. Nigdy nie skręca w gracza: jeśli wyjście w dół szłoby przez
+      kolumnę gracza albo tuż obok niej, odlatuje w górę (odstęp poziomy do
+      wyboru z uzasadnieniem albo tańsza reguła o tym samym skutku). Zero
+      kontaktów Interceptora z graczem w każdym replayu pozostaje wymogiem.
+      Wyjście w dół zwalnia slot Lighta dokładnie jak wyjście w górę (sektor
+      ma się kończyć, żadna fala nie głoduje). Okno: został 1 B; jeśli kierunek
+      potrzebuje bajtów rezydentnych, najpierw szukać kolejnego kodu
+      jednorazowego do wyniesienia z okna (jak przeniesienie wejścia bossa) i
+      podać każde przeniesienie z rozmiarami rekordów; jeśli dalej się nie
+      mieści — STOP z opcjami (w tym „zawsze w górę”, 0 B).
+    - **L2:** wiersz przytrzymania i czas jak zbudowano.
+    - **L3:** rekord okna do 1 387 B (11 sektorów) po przeniesieniach
+      zaakceptowany. **Okno jest praktycznie pełne: każdy kolejny bajt
+      rezydentny to STOP, dopóki nie zostaną zrobione dźwignie okna** (w
+      kolejności B: sector flow → S5 → M3-H → M3 → **dźwignie okna** → M4 …;
+      dziś trwa S5, więc przed dźwigniami są jeszcze S5-3…S5-5, M3-H i M3).
+    - **L4:** najgorszy margines fence 1 285 zaakceptowany; jeśli kierunek
+      wyjścia go obniży — podać wartość i przyczynę; STOP dopiero poniżej
+      1 000.
+    - **L5:** tak, w tej kolejności dla replayów, których bot HARD przestał
+      dochodzić do bossa: (1) zachować dojście — tylko bot tych replayów
+      dostaje zawężony unik przed laserem Interceptora (jak unik odłamka w
+      laser-contact), ok. 20 linii, każdy inny replay bajtowo identyczny w
+      zachowaniu; (2) inaczej przeliczyć ich budżety klatek jako klasa (a),
+      klauzule nietknięte, z listą stary/nowy budżet i powodem. STOP, jeśli
+      któryś poziom trudności straciłby ostatni replay przechodzący przez
+      sektor bossa.
+    - Także: `docs/memory-map.md` — 4 B pod `$8133` dostają właściciela (stan
+      pętli Interceptora) i nowe liczby wolnej luki; dowód, że wejście bossa
+      działa na każdej trasie z bossem (region 1 i trasy przeglądowe regionów
+      2–4): sektory i klatki hosta wejścia na trasę (limit 250) oraz rozmiar
+      rekordu jądra z liczbą sektorów; kod wariantu usunięty z buildu
+      wysyłkowego (skrypt wariantu może zostać tylko, jeśli build domyślny
+      jest bez niego bajtowo identyczny).
+    - Najpierw **Faza A-lite**: ostateczne zachowanie (2 pętle + kierunek
+      wyjścia) jako jeden pełny ATR i jeden ATR trasy do bossa, ta sama tabela
+      pomiarów plus liczba wyjść w górę i w dół; STOP i smoke właściciela.
+      Potem Faza B. Wyniki: plan §13.
 
-**Wynik:** plan `interceptor-standoff` §9.1, §11 (jak zbudowano) i §12, STATUS.
+**Wynik:** plan `interceptor-standoff` §9.1, §11 (jak zbudowano), §12 i §13, STATUS.
 
 ---
 

@@ -446,6 +446,16 @@ byte moves (nothing resident but the window's 14 B).
 | host frames (M slope) | 245 | 249 → 245 | 249 → 241 | **256 → 245** | 249 → 245 | |
 | with the torpedo (+2) | — | 256 → 252 | 256 → 248 | **263 → 252** | 256 → 252 | bound 260 (M6) |
 
+> **Art rule (fix/boss-polish, owner answers of 2026-10-12), for S5-3, S5-4,
+> S5-5 and every later boss:** every damage stage of every destructible
+> module (intact, cracked, broken; open looks included) must contain clearly
+> visible colour-3 pixels (COLPF2, or COLPF3 in a bit-7 cell). The hit flash
+> toggles bit 7 of the hit module's cells and shows nothing on a stage without
+> them. A data test holds it for every region (plan `boss-polish` §10.3).
+> **Slot E:** after the hit flash it is 358 B of code in 3 sectors (373 of 576
+> B RAM); the M6 torpedo's ~200 B no longer fits beside it, and the torpedo's
+> home is M6's decision (candidates: plan `boss-polish` §10.4).
+
 > **Superseded by owner decision AM (2026-10-12):** the boss entry's limit is
 > **280 host frames** in every task, and the rule "more than 65 sectors is a
 > STOP" below is replaced by it. The sector count is still reported; the

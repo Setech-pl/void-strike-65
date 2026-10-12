@@ -2,7 +2,9 @@
 
 **Branch:** `fix/boss-polish` from `main` `26ad91d` (ATR `3b05ca34…`, boot
 `731e5703…`, the `feat/interceptor-standoff` merge, decision AK).
-**Status:** Phase A, round 2 (§9). The owner played round 1 and rejected F3
+**Status:** Phase A, round 3 (§10): the owner chose **b3**, with region 1's
+plate art to be fixed so the flash shows on every stage. Waiting for the
+owner's look at the redrawn stages. Round 2 (§9): The owner played round 1 and rejected F3
 (2026-10-12): the solid fill reads as a white rectangle, not as the module
 flashing. Round 2 builds and measures the bit-7 candidates F1b and F1c and a
 no-feedback build. Waiting for the owner's play. If the owner rejects all
@@ -417,3 +419,108 @@ A stronger hit sound:
    matter more, `n0` (or a louder tick, §9.5) is the cheapest.*
 2. A stronger damage sound: channel 3, longer/louder (0 B), or channel 4
    (≈ 10-15 B)? *Recommendation: channel 3, 3 frames, `$A8` (0 B).*
+
+---
+
+## 10. Round 3 — b3 chosen; every stage gets colour-3 pixels (owner answers of 2026-10-12)
+
+**The owner's answers:**
+1. **b3** (bit 7 of the whole hit module toggled for 3 frames). The owner's
+   smoke: plates flashed only partly at stage 1, not at all at stage 2 (the
+   grey stage), and again at stage 3. The cause is §9.2: bit 7 recolours only
+   colour-3 pixels. The fix is in the data: every stage of every destructible
+   module gets a clear colour-3 element, with no new charset codes, slot F
+   ≤ 110 B, and no code change. Then STOP for the owner's look.
+2. The hit sound stays: the 2-frame channel-3 tick (a longer one would mask
+   the laser warning's tone).
+3. The design rule and slot E's room are recorded here, in STATUS and in
+   `docs/plans/s5-boss-regions.md` (§10.3, §10.4).
+
+### 10.1 The art (region 1's drafts; regions 2-4 are its copies)
+
+All edits are in `assets/graphics/boss-regions/region-1/`: `band.png` and
+`open.png` (kept identical at the plates, or the converter reads the plates
+as open looks), `cracked.png` and `extras.png`. `broken.png` is unchanged.
+
+* **Intact plate:** the plate's bottom rim (rows 5-6 of its bottom row's
+  cells, grey and steel today) is amber, and the two top corners' rivet holes
+  are amber rivets.
+* **Cracked plate (the grey stage):** the crack line in every cell of the
+  shared crack pattern glows amber. The stipple stays grey.
+* **Broken plate:** already amber hatching; unchanged.
+* **Capped plate** (an emitter slot the level's tier does not enable): its
+  middle band and bottom rim are amber when intact, and its crack is amber
+  when cracked.
+* Guns and the emitter already have colour 3 in every stage (below); no
+  change.
+
+**Codes:** 122 (no new code; 6 still free), K 19, charset 976 B (8 sectors),
+look tail 110 B. Each plate code has its own cracked and broken slots, so
+adding amber needs no code. A plate cell shared by every plate (the rim, the
+corner) gets the same edit everywhere, so no cell becomes a new glyph.
+
+### 10.2 Colour-3 pixels per module per stage (M, the converter's charset; hit look: a gun's open look)
+
+| module | intact before → after | cracked before → after | broken before → after |
+|---|---|---|---|
+| plate-a | 8 → 48 | 0 → 90 | 60 → 60 |
+| plate-b | 0 → 32 | 0 → 96 | 64 → 64 |
+| plate-c | 10 → 42 | 0 → 96 | 64 → 64 |
+| plate-d | 20 → 60 | 0 → 120 | 80 → 80 |
+| plate-e | 0 → 40 | 0 → 120 | 80 → 80 |
+| plate-f | 0 → 16 | 0 → 48 | 32 → 32 |
+| plate-g | 10 → 58 | 0 → 108 | 72 → 72 |
+| plate-h | 0 → 32 | 0 → 96 | 64 → 64 |
+| capped plate | 2 → 8 | 1 → 7 | 5 → 5 |
+| gun-1 … gun-6 (open) | 32 | 29 | 29 |
+| emitter (lens staged) | 30 | 25 | 16 |
+
+All of this is colour 3 in cells without bit 7 (COLPF2, amber), which the
+toggle turns COLPF3 (dark red).
+
+**Preview:** `build/play/boss-b3-stages-after.png` (and `-before.png` for
+the old art). Rows are intact, cracked and broken. On the left every module
+is shown in the look it is hit in; on the right the same with the b3 toggle.
+
+**Build:** `build/play/boss-polish-b3-plates-boss-route.atr` (`36a7de2205a2…`)
+and the full game `boss-polish-b3-plates-full.atr` (`ddf01a9fdd53…`). On the
+b3 route build (`VS65_HARNESS_BUILD`) `tests/boss-hit-flash.test.mjs` passes
+6/6, the A/B gameplay identity included.
+
+Two other tests change on b3, both expected and re-pointed in Phase B:
+* `tests/boss-engine.test.mjs` "the four damage stages" sees the flash on its
+  stage-change hit.
+* `tests/boss-s4b5.test.mjs` asserts that the removed band flash's label
+  `boss_flash_timer` stays gone, and the module flash reuses that name. Phase B
+  renames the module flash's labels instead, so that guard keeps its meaning.
+
+### 10.3 The design rule (S5-3/4/5 and every later boss)
+
+**Every damage stage of every destructible module (intact, cracked, broken;
+open looks included) must contain clearly visible colour-3 pixels.** Those are
+COLPF2 in a cell without bit 7, or COLPF3 in a bit-7 cell. Otherwise the b3
+hit flash does not show on that stage. Phase B adds a data test that enforces
+this for every region.
+
+### 10.4 Slot E after b3, and a home for the M6 torpedo (~200 B) — nothing moved
+
+Slot E after b3: **358 B of code, 3 sectors**, with 15 B of state, so 373 of
+its 576 B RAM are used (203 free). The torpedo's ~200 B would make 558 B of
+code and 573 B with today's state. That leaves 3 B for the torpedo's own
+state, so in practice it does not fit. It would also take 5 sectors, about
++2 sectors of entry (≈ 257 of 280 frames, EST).
+
+*Correction to the brief's wording:* the code alone stays under the RAM; it is
+the torpedo's own state that overflows.
+
+Candidates, as the boss build reports them (M, `build/boss-polish-b3-level-1-s6`):
+
+| home | free | note |
+|---|---:|---|
+| slot F after the region block (`$5280-$53FF`) | 384 B RAM | Each region's block has 4 reserved sectors, 1 used, so code here travels in every region's block (4 copies on disk). Entry +2 sectors. The slot F write clause would need the torpedo's state elsewhere. |
+| slot C (the C controller) | 163 B RAM (code 1,662 of 13 sectors, 2 B to the 14th) | Too small alone. A split torpedo, C policy here and ASM elsewhere, fits the C/ASM rule. |
+| slot D | 57 B RAM | too small |
+| region charset tail (`$0FD0-$0FFF`) | 48 B (region 1: 976 of 1,024) | data only; varies per region |
+| install | 22 B | once per entry only |
+| slot A | 1 B | full |
+| shrink | — | A torpedo ≤ ≈ 150 B fits slot E's 4th sector with its state (EST). |

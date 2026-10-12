@@ -68,6 +68,15 @@ reported, the frames are the gate. The gates in
 `tests/slot-f.test.mjs` moved with that reason (an approved gate change, not a
 pin). Journal §AM.
 
+**Boss art rule (fix/boss-polish, owner answers of 2026-10-12):** every damage
+stage of every destructible boss module - intact, cracked, broken, open looks
+included - must contain clearly visible colour-3 pixels (COLPF2, or COLPF3 in a
+bit-7 cell), or the b3 hit flash (bit 7 toggled) does not show on that stage.
+Region 1's plates were redrawn for it (plan `boss-polish` §10). **Slot E after
+b3:** 358 B of code, 3 sectors, 373 of 576 B RAM; the M6 torpedo's ~200 B does
+not fit beside it with its own state, so M6 needs another home or a smaller
+torpedo (candidates with free bytes: plan `boss-polish` §10.4).
+
 **Licensing (2026-10-01):** code and engineering docs MIT ([LICENSE](../LICENSE)); game content and the ATR as a whole CC BY-NC-SA 4.0 ([LICENSE-ASSETS](../LICENSE-ASSETS)); the names and logos are reserved; tools, AI-generated and unknown-origin images in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md); `package.json` `(MIT AND CC-BY-NC-SA-4.0)`.
 
 **Resource budget to 1.0 (2026-10-01, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/budget-1.0.md](plans/budget-1.0.md) — the inventory, what M2–M9 each spend, the first shortfall (the `$AE00` window at M5, the boss), the priced levers and the owner decisions with their latest milestone.

@@ -3198,7 +3198,7 @@ boss_entry_cold:
     ldx #BOSS_ENTRY_CODE_RUN
     jsr BOSS_ENTRY_READ_RUN
     bcs @failed
-    jmp capital_slot_a
+    jmp boss_slot               ; the boss code's head, in slot A, just read
 @failed:
     jmp sector_reader_failure_screen
 boss_entry_cold_end:

@@ -141,7 +141,7 @@ const SEGMENTS = {
   BOSS_HUD_BACKUP: ["the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes", "overlay"],
   BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry", "boss-entry"],
-  BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A50, run once per entry", "boss-entry"],
+  BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry", "boss-entry"],
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.
   BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1)", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],

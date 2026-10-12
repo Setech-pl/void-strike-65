@@ -232,8 +232,9 @@ export const BOSS_HOSTILE_SHOT_CODES = 2;
 // (src/hybrid/boss.s boss_entry_cold), copied by scripts/build.mjs into every
 // region's theme run at BOSS_ENTRY_COLD_OFFSET, where the theme's limit was;
 // the title's records follow it, so a boss name may be at most
-// BOSS_THEME_CAPACITY - BOSS_TITLE_OFFSET - 15 = 17 characters (checked).
-export const BOSS_ENTRY_COLD_OFFSET = 0xc0;
+// BOSS_THEME_CAPACITY - BOSS_TITLE_OFFSET - 15 = 25 characters (checked; the
+// laser fixture's is 22). The theme's limit falls $C0 -> $B8 (it uses 177 B).
+export const BOSS_ENTRY_COLD_OFFSET = 0xb8;
 export const BOSS_ENTRY_COLD_BYTES = 0x20;
 export const BOSS_ENTRY_COLD_ADDRESS = BOSS_STAGING_ADDRESS + BOSS_ENTRY_COLD_OFFSET;
 export const BOSS_TITLE_OFFSET = BOSS_ENTRY_COLD_OFFSET + BOSS_ENTRY_COLD_BYTES;

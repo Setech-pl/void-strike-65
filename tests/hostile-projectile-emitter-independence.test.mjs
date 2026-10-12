@@ -321,11 +321,15 @@ test("Light Wingman and Interceptor shots survive the Light's destruction", () =
     assert.equal(image[active + SLOT_BASE], tag, `offset ${offset}: shot emitted`);
     run(image, "render_fighter_projectile_overlays");
 
-    // Kill the Light with a player PairShot in slot 0.
-    image[active] = 1;
-    image[L("FIGHTER_PROJECTILE_X")] = image[L("light_x")] + 2;
-    image[L("FIGHTER_PROJECTILE_Y")] = (image[L("light_y")] & 0xf8) + 4;
-    run(image, "light_shot", { x: 0 });
+    // Kill the Light with player PairShots in slot 0. RE-POINTED
+    // (feat/interceptor-armour, owner answer H3 of 2026-10-12): an
+    // Interceptor takes three, the Wingman one.
+    for (let shot = 0; shot < (offset === 24 ? 3 : 1); shot += 1) {
+      image[active] = 1;
+      image[L("FIGHTER_PROJECTILE_X")] = image[L("light_x")] + 2;
+      image[L("FIGHTER_PROJECTILE_Y")] = (image[L("light_y")] & 0xf8) + 4;
+      run(image, "light_shot", { x: 0 });
+    }
     assert.equal(image[L("light_state")], 0, `offset ${offset}: Light destroyed`);
     assert.equal(image[active + SLOT_BASE], tag, `offset ${offset}: shot still active`);
 

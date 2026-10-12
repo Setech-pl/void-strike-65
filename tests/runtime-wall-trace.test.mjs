@@ -218,7 +218,13 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // the Interceptor's standoff the fire-4 sweep bot reaches and beats the boss
   // inside 5,000 frames again; its boss-entry frame is set aside (MEASURED,
   // 4,999).
-  assert.equal(report.replay.debris_effects_measured_frames, 4_999);
+  // RE-POINTED (feat/interceptor-armour, owner answer H3 of 2026-10-12): with
+  // three-hit Interceptors the fire-4 sweep bot (lives not held) loses its
+  // last life before the boss (game over at frame 4,141, MEASURED) and sets no
+  // boss-entry frame aside: 5,000. Its debris clauses pass with their
+  // subjects; the boss is covered by the director-complete, slot-e,
+  // integrity, laser-contact and edge-guard replays.
+  assert.equal(report.replay.debris_effects_measured_frames, 5_000);
   // RE-POINTED 2026-10-03 (M5a-S2): the director-complete replays end at the
   // level-end summary inside their 10,500-frame budgets (they used to fly on
   // in the terminal COMPLETE), and each records that summary.

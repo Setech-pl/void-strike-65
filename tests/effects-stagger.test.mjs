@@ -73,7 +73,12 @@ test("PairShot and generic-effect backing resolvers stay below the local fix cei
   // skips the three backing resolvers when the cell it covers is blank (code
   // 0, which none of them can resolve to anything else). The delta over the
   // baseline is 170. The gate below is unchanged.
-  assert.equal(peak, 992);
-  assert.equal(peak - 822, 170);
+  // RE-PINNED feat/interceptor-armour (owner answer F1 of 2026-10-12): 992 ->
+  // 1,009. The Light kernel's erase compares a cell ignoring bit 7 (eor/asl,
+  // +2 a cell) and its resolver takes the flashing codes $78-$7D too, so the
+  // captures on the peak frame cost 17 more. Delta over the baseline 187; the
+  // gate below is unchanged.
+  assert.equal(peak, 1009);
+  assert.equal(peak - 822, 187);
   assert.ok(peak - 822 < 300);
 });

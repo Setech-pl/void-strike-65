@@ -2,7 +2,8 @@
 
 **Status:** S5-1 implemented on `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`
 (§6.1); **S5-2 implemented on `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`
-(§6.2)**. The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+(§6.2)**; **S5-3 Phase A on `feat/boss-region-3` (§6.3): the review builds and
+the measurements, awaiting the owner's choice**. The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -948,6 +949,198 @@ state).
 DMA-on 29,238; ATR menu 553 / 544. Against `main` frame by frame: 46 of 58 CSVs
 identical, the 12 boss-entry replays differ on boss rows only and only in timing
 (and two observer samplings of it).
+
+### 6.3 S5-3 Phase A (2026-10-13, `feat/boss-region-3`) — Siege Spine, the force field; awaiting the owner's choice
+
+**Recommendation first.** Ship field look **(b)** — the field glyph row across
+both halves, the P1 / P2 glow rings — with three changes against §4.4, each
+forced by the repo and measured below: (1) the field row is the band's own front
+row (row 7), not ring row 8; (2) the glow shows in the lasers' colours (P1 / P2
+share `COLPM1` / `COLPM2` with M1 / M2); (3) the field stops shots through the
+column map, so slot A, the window, the install and the initial block stay at
+0 B. Then Phase B tunes the hit points so MEDIUM lands in 90–120 s (today
+130.9 s). Region 3 enters in **256 host frames (67 sectors)** against the 280
+limit; its tier-4 stress figure is **8,057** native against the planned 8,750
+pin (and under 8,500).
+
+**Step 0.** `main` `9b7ccaf` (the interceptor-armour merge, decision §AN, present),
+clean; worktrees: the primary checkout only; `dist/` ATR `581fa463…`, boot
+`70643ea4…`. Branch `feat/boss-region-3`. Every Phase A build is a review
+variant (`--field-variant=a|b`, below): **the default build stays
+byte-identical to `main`** (rebuilt and compared at each commit).
+
+#### 6.3.1 Audit — what region 3 takes from the shared boss code (file:line at `9b7ccaf`)
+
+| Need | Where it is | What S5-3 does with it |
+| --- | --- | --- |
+| Modules, stages, cover, the column map | `src/hybrid/boss.s` `boss_prepare` (`:1463`), `boss_column_at` / `boss_column_base` (`:1238–1310`), `boss_rebuild_module` (`:1314`); `src/c/boss.c` (cover, stages, defeat) | unchanged; the field sets its columns to `BOSS_COLUMN_ARMOUR` with the stop line under the field row, and a falling half rebuilds each column with `boss_column_at` |
+| A shot's meeting and the hull's deflection | `boss_shot_meet` (`:1559`), `boss_hit`'s ARMOUR path (`:573–600`): deflection on the stop row's cell, the hull tick, no damage, not a hit (Q-B7) | the field's absorb **is** this path: 0 B, no per-shot code |
+| Look table (slot F) | `scripts/boss-assets.mjs` `BOSS_LOOK_TAIL_MAX_BYTES` 110, `BOSS_SLOT_F_ADDRESS` `$5200` | R3's look tail is **80 B** (no open looks: open guns show their gun from the start); the field's code follows the tail's 110 B at `$526E` |
+| Lasers (M1 / M2, ≤ 2 beams, PRIOR untouched) | slot D `laser_tier` (`:1760`), `laser_prepare`, `laser_frame` (`:2295`), `laser_publish` from the DLI's phase 0 (`:2872`) | unchanged; two gated calls added (the field's frame and its DLI publish) |
+| Escort | the region's `escort` block → tables 17–19, `src/c/director.c` | region 1's 1 / 150 / 63 (decision AI), as data |
+| Final salvos | `fire.finaleCooldown` → tables byte 4, `boss.c` `boss_finale` | 12 (the placeholders' value) |
+| Hit flash b3 | slot E `boss_mflash_frame` (`:2457`) | unchanged: generators and every module flash |
+| Rule (B) | `boss.c` (no firing on a kill frame) | unchanged: 0 frames with a kill and a spawn (stress) |
+| Title | `boss-assets.mjs` `bossTitleRecords`, the theme run at `$D8` | `modules.json` `"name": "Siege Spine"` → SIEGE SPINE (seen on the emulator, below) |
+| P1 / P2 in the boss sector | free since S4b (`boss.s:1745`), owner decision "reserved for the R3 field" | the glow / the segments |
+
+**Where the plan and the repo disagree (reported):**
+* **The field row.** §4.4 put it in ring row 8 under the band's CHBASE (the
+  phase-1 DLI one row lower). Ring row 8 is gameplay playfield: the player's
+  shots, the boss's pulse shots and the Interceptor escort are drawn there with
+  the gameplay charset's codes, which the region charset would show as region
+  glyphs. The field is drawn in **band row 7** instead (the band's front row,
+  under the spine and the plates, which end at row 5): no DLI change, no
+  display-list change, no garbled objects.
+* **The glow's colour.** P1 / P2 wear `COLPM1` / `COLPM2`, which the band DLI
+  publishes every frame for the lasers' M1 / M2 (B2): the glow is the beam's
+  `$46` and flickers white during a warning. A separate colour needs a DLI
+  inside the band (raster-critical; not proposed).
+* **Hooks.** §4.1 put `jsr region_frame` / `region_shot` in slot A (2,047 of
+  2,048 B since boss-polish: no room). They live in slot D (frame, DLI publish:
+  +16 B, still 13 sectors, 1 B to the boundary) and slot E (the collapse step
+  at SECTOR_COMPLETION: +8 B, 366 B, 3 sectors); each is `lda $526E / beq /
+  jsr`, so a block without code (regions 1, 2, 4) pays ~7 cycles a call.
+* **No per-shot hook.** The plan's `field_shot` (122 native an absorb) is not
+  needed: an absorbed shot is the hull's path.
+
+#### 6.3.2 The design as built (Phase A, review variant)
+
+**The band** (`assets/graphics/boss-regions/region-3/`, drawn by
+`scripts/boss-r3-art.mjs`; preview `build/play/boss-r3-band-preview.png`,
+stages `build/play/boss-b3-stages-after.png`): a segmented spine with dorsal
+spikes (columns 14–48, rows 0–3), a generator sphere at each end (`gen-l`
+11–13, `gen-r` 49–51, rows 1–3, armour, 20 HP), the domed siege cannon at the
+centre (emitter slot 1, region 1's projector tower under a dome, exposed: fires
+from the first frame), emitters 2 and 3 behind plates a and d, guns 2 and 3
+behind plates b and c, guns 1 and 4 open near the ends; vents (the nozzles)
+beside each sphere; the field in row 7 from column 14 to 48 in two halves (14–31
+`gen-l`, 32–48 `gen-r`). 13 modules; **108 of 128 codes** (K 21 staged ×3, 30
+plain); charset **864 B, 7 sectors** (region 1: 8); look tail 80 B. Palette:
+cold steel `$0C`, field blue `$96`, amber `$28`, dark steel hull `$04` (region 1
+burgundy) — the owner retouches. **Art rule:** every stage of every module has
+colour-3 pixels — the lowest the capped plate 8 / 7 / 5 and the guns 16 / 13 / 8, generators
+44 / 37 / 30 (floor 4). **Coverage** (`npm run boss:coverage -- --region=3`):
+no safe position at the opening or with every weapon exposed.
+
+**The field** (`src/hybrid/boss.s`, `BOSS_FIELD`, region 3's block):
+* first boss frame: every field column `ARMOUR`, stop line under row 7; P1 /
+  P2's shapes written, their size;
+* every frame (slot D's `laser_frame`): a half whose generator(s) are all
+  destroyed starts to fall (its glow off); look (b) swaps the field glyph's two
+  phases every 4 frames (one 8-byte glyph rewrite animates every field cell);
+* SECTOR_COMPLETION (slot E), not on a kill or exposure-check frame: one
+  column of a falling half a frame, from its generator's side — the cell
+  cleared, its map and stop line rebuilt by `boss_column_at`; a cell showing a
+  deflection waits a frame;
+* the DLI's phase 0 (slot D's `laser_publish`, A only): P1 / P2's HPOS from the
+  band position, 0 off the window or once its half fell; at the defeat or the
+  last life lost, both off.
+* The converter takes `modules.json` `field` (row, framesPerPhase, halves with
+  their generators) and `field.png` (the glyph's two phases); field cells must
+  be blank in `band.png` (the converter draws them), are left out of the hull
+  stop and of decision O, and refuse a generator inside its own field.
+
+**The looks compared.**
+
+| | (b) — recommended | (a) — comparison |
+| --- | --- | --- |
+| field row | phase A/B glyph across both halves (blue / white shimmer) | none |
+| P1 / P2 | double-width ring round each generator (28 lines) | quad-width bar, 32 colour clocks × 4 lines, beside each generator (columns 14–21, 41–48) |
+| where a shot stops | on the field cell it struck (the deflection shows there) | the same cells — so in columns 22–40 the deflection shows on an **invisible** field |
+| gameplay | identical (MEASURED: the same fight frame for frame, 3,166 frames MEDIUM) | identical |
+| field code / region block | 339 B / 449 B, **4 sectors** | 270 B / 380 B, 3 sectors |
+| entry | **67 sectors, 256 host frames** | 66, 253 |
+
+#### 6.3.3 Measurements (labels: **M** emulator trace, **M-N** native harness)
+
+Routes: `node scripts/build.mjs --field-variant=b|a --boss-region=3
+--level=1:sector=6` (and `--laser-fixture=4` for tier 4, `sector=0` for the aim
+bot's whole-level replay). Region 3 on its route is level 7: laser tier 2
+(emitter 3 capped); tier 4 is level 9's.
+
+| | main R1 (`9b7ccaf`) | R3 (b) | R3 (a) | Source |
+| --- | ---: | ---: | ---: | --- |
+| boss entry, host frames / sectors | 249 / 65 | **256 / 67** (tier 4: 257) | 253 / 66 | M, the entry row (limit 280) |
+| boss frames, worst fence margin, tier 2: E / M / H (aim bot) | 8,569 (all three, STATUS) | 8,469 / 8,017 / **7,415** | — / 8,035 / — | M |
+| … DMA-on max, tier 2 | 29,884 | 30,327 / 30,319 / 30,106 | — / 30,318 / — | M |
+| boss frames, tier 4: E / M / H (aim bot) | — | 8,076 / 8,921 / 8,473; DMA-on 30,259 / 30,164 / 30,051 | — | M |
+| wide-sweep finale sessions (tier 2 / tier 4) worst margin, DMA-on | — | 9,155 / 8,659; 30,321 / **30,386** | 9,587 / 9,285 | M |
+| stress, reachable (lasers warn / beam), tier 2 | R1 7,006 (no lasers forced) | 7,831 / 6,965 | 7,753 / 6,892 | M-N |
+| stress, tier-4 (planned pin 8,750) | R1 fixture **8,006** / 7,037 | **8,057** / 7,045 | 8,048 / 7,036 | M-N (`scripts/measure-boss-stress-field.mjs`) |
+| … the worst any (≤ 5 meetings, unproven) | 8,892 / 8,443 | 8,546 / 7,722 | — | M-N |
+| frames with a kill and a spawn | 0 | 0 | 0 | M-N (rule (B)) |
+| fight by the aim ratio, tier 2: E / M / H | 82.4 / 108.3 / 150.5 s | **109.9 / 130.9 / 207.4 s** | — / 130.9 / — | M (ratio of main's plain sweep, `boss-r1-tuning`) |
+| … tier 4 (level 9) | — | 109.4 / 140.7 / 207.3 s | — | M |
+| escorts in the fight, tier 2: E / M / H | 9 / 12 / 17 | 11 / 12 / 18 | — | M |
+| hits on the bot (laser / other), tier 2 E / M / H | — | 2/3, 2/5, 3/10 | — / 2/5 / — | M (`laser_damage_calls` / the rest: pulses, escort) |
+| slot A / install / window / Light kernel / initial block | 2,047 / 362 / 1,322 / 847 / 13,623 | unchanged | unchanged | M (manifest) |
+| slot D / slot E | 1,647 (13) / 358 (3) | **1,663 (13)** / **366 (3)** | same | M |
+| slot F, region 3's block | 110 (R1) | 449 of 512 (4 sectors) | 380 (3) | M |
+| charset | 976 B, 8 sectors | 864 B, 7 | same | M |
+| RAM | — | field state in the block (11 B); P1 / P2 planes 28 / 4 lines | — | M |
+
+The stress figure moved from **8,907 to 8,057** during Phase A: the collapse
+step first ran in the frame hook and landed on a two-kill frame; it now runs at
+SECTOR_COMPLETION and skips kill and exposure-check frames, as the draw queue
+does (plan §5.15.7). The brief's "tier-4 fixture about 7,805" is stale: `main`'s
+own `tests/boss-stress.test.mjs` prints 8,006 (lasers warn) on this tree.
+
+**The diag bots and region 3.** The plain sweep (HPOS 94–154: band columns
+≈ 17–48) never meets the generators, so `region-3-diag-*` never leave the field
+(MEDIUM: 12,000 frames, chain not reached); the wide sweep (58–190) breaks both
+generators but needs more than 12,000 frames (`region-3-finale-*`: finale from
+f11,208 on EASY). The aim bot (`boss-aim`, taught the field: it does not shoot
+into a powered half and takes a generator while a weapon is behind the field)
+finishes every difficulty. Phase B rewrites region 3's diag / finale sessions
+on the aim bot (a bot change, not a memory write).
+
+**Harness fixes on the way (each ≤ 15 lines, committed):** the slot F
+write-watch admits the block's own code writing its state inside the block;
+the Heavy P1 / P2 body check has no subject in the boss sector (P1 / P2 are the
+field's); `DFTRACE_SHOT_PREFIX` / `DFTRACE_SHOT_HOSTS` take host-frame
+screenshots (the loading screen); `boss-aim` sees the field through
+`DFTRACE_BOSS_COLUMN_MAP` (R1-neutral: an exposed live module's centre column
+is never ARMOUR without a field). With them the region-3 dodge and aim sessions
+pass every clause.
+
+**Not reached:** no full-game route reaches region 3 (only levels 1–2 are
+authored; `LEVEL_MAX_ID` 16); the level route (`sector=0`, level 1's content
+played as level 7, then the R3 boss) stands in for it.
+
+#### 6.3.4 Review builds (`build/play/`)
+
+| ATR | SHA-256 (prefix) | What |
+| --- | --- | --- |
+| `s5-3-r3-field-b-boss-route.atr` | `1327aedb` | R3, look (b), level 7 (tier 2), entered at the boss |
+| `s5-3-r3-field-a-boss-route.atr` | `3eef6480` | R3, look (a), level 7 |
+| `s5-3-r3-field-b-tier4-boss-route.atr` | `6a387bbc` | R3 (b), tier 4 (level 9's lasers) |
+| `s5-3-r3-field-a-tier4-boss-route.atr` | `161d70b6` | R3 (a), tier 4 |
+| `s5-3-r3-field-b-level-route.atr` | `2f2046b4` | level 1's content as level 7, then the R3 boss (b) |
+| `s5-3-main-r1-boss-route.atr` | `1bfe9f5e` | main's R1 boss route, for comparison |
+| `s5-3-full-game.atr` | `581fa463` | the default build (= `main`) |
+
+Screenshots: `s5-3-r3-loading-screen.png` (WARNING / SIEGE SPINE / INCOMING),
+`s5-3-r3-band-b.png`, `s5-3-r3-band-b-laser.png`, `s5-3-r3-band-a.png`;
+previews `boss-r3-band-preview.png`, `boss-b3-stages-after.png` (every module in
+its three stages, normal and with the b3 flash).
+
+#### 6.3.5 Owner questions (recommendation first)
+
+| # | Question | Recommended | Alternative |
+| ---: | --- | --- | --- |
+| S3-1 | The field's look | **(b)** the glyph row with the generators' rings | (a) the segments beside the generators (one sector less, −3 host frames; the middle of the field invisible) |
+| S3-2 | The field in the band's front row (row 7), not ring row 8 | **yes** (no DLI change, nothing garbled in the playfield) | ring row 8 needs every gameplay object kept out of it or the region charset to carry their glyphs: not proposed |
+| S3-3 | The rings' colour is the lasers' (`$46`, white flicker in a warning) | **keep the rings** (they read as the generators feeding the cannon) | drop P1 / P2 from (b): the glyph row alone, block 4 → 3 sectors (−3 host frames), −≈ 60 B |
+| S3-4 | A half falls with its own generator (plan §4.4) | **per half** (the fight has a middle: one side opens first) | one field until both generators fall (`halves` with both generators each: data only) |
+| S3-5 | Phase B's tuning: MEDIUM 130.9 → 90–120 s | **hit points by data**: generators 20 → 16, plates 12 → 10, guns 12 → 10, the siege cannon 24 → 20 (target ≈ 105 s MEDIUM; EASY and HARD follow the scale) | the escort or the fire cooldown (changes the pressure, not the length) |
+| S3-6 | The palette (steel hull, blue trim and field) | **as drawn**; the owner retouches the PNGs | region 1's burgundy hull |
+
+Phase B starts on the owner's answers: tests first (RED on `main`), the chosen
+look as the default build's region 3, the other look removed, the hit points
+tuned, region 3's sessions on the aim bot with the field clauses, the
+evidence regenerated.
+
 
 ---
 

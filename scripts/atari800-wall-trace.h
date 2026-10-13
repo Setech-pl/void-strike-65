@@ -379,7 +379,8 @@ typedef struct {
 	 * (half 0 | half 1 << 2; 0 powered, 1 collapsing, 2 down; 15 = no field),
 	 * the field cells of a powered half showing the deflection, the module
 	 * hit points lost behind a field half that was powered (cumulative), the
-	 * field cells still drawn in a half that is down. Additive. */
+	 * cells of a half that is down still showing the field glyph (a shot
+	 * drawn there is not one). Additive. */
 	unsigned field_state;
 	unsigned field_deflections;
 	unsigned field_violations;
@@ -957,6 +958,7 @@ static unsigned dftrace_field_half;
 static unsigned dftrace_field_from;
 static unsigned dftrace_field_end;
 static unsigned dftrace_field_row_cells;
+static unsigned dftrace_field_code;
 static unsigned dftrace_field_violations;
 static unsigned char dftrace_field_hp[16];
 static int dftrace_field_hp_valid;
@@ -6107,7 +6109,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 				column < MEMORY_mem[dftrace_field_end + half] && column < 64u; ++column) {
 				unsigned code = MEMORY_mem[dftrace_field_row_cells + column];
 				if (state == 0u && code == deflect) ++frame->field_deflections;
-				if (state == 2u && code != 0u) ++frame->field_cells_down;
+				if (state == 2u && code == dftrace_field_code) ++frame->field_cells_down;
 			}
 		}
 		for (module = 0u; module < count; ++module) {
@@ -7361,6 +7363,7 @@ static void dftrace_init(void)
 	dftrace_field_from = dftrace_env_optional("DFTRACE_FIELD_FROM");
 	dftrace_field_end = dftrace_env_optional("DFTRACE_FIELD_END");
 	dftrace_field_row_cells = dftrace_env_optional("DFTRACE_FIELD_ROW_CELLS");
+	dftrace_field_code = dftrace_env_optional("DFTRACE_FIELD_CODE");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

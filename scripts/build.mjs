@@ -4507,7 +4507,7 @@ async function build() {
         finaleCooldown: region.fire.finaleCooldown,
         // S5-3: the force field (null without one): its row, its halves with
         // their generators, its code's bytes in the block (slot F).
-        field: region.field === null ? null : { row: region.field.row,
+        field: region.field === null ? null : { row: region.field.row, code: region.field.code,
           rowCells: BOSS_BAND_B_ADDRESS + (region.field.row - BOSS_BAND_A_ROWS) * BOSS_BAND_COLUMNS,
           halves: region.field.halves.map(({ from, to, generators }) => ({ from, to,
             generators: generators.map((index) => region.modules[index].name) })),

@@ -51,9 +51,20 @@ test("E4 / S5-1: the look tail is each region's block in slot F, read as the reg
     assert.ok(run, `region ${block.region}'s block run`);
     assert.deepEqual([run.destination, run.startSector, run.sectors], [BOSS_SLOT_F_ADDRESS, block.startSector, block.sectors]);
     const image = readBuild(`boss-region-${block.region}-block.bin`);
-    if (manifest.boss.laserFixtureTier === null) {
+    // RE-POINTED S5-3 (feat/boss-region-3, the owner's answers of 2026-10-13):
+    // region 3 is Siege Spine from its own draft - its block is its own look
+    // tail, then the field's code after the tail's 110 B; regions 2 and 4 are
+    // still copies of region 1 (Q10).
+    if (block.region === 3) {
+      const region3 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 3)));
+      assert.deepEqual([...image.subarray(0, region3.lookTail.length)], [...region3.lookTail],
+        "region 3's block starts with its own look tail");
+      assert.ok(region3.lookTail.length <= BOSS_LOOK_TAIL_MAX_BYTES);
+      assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 3's field code (a JMP) after the tail's 110 B");
+    } else if (manifest.boss.laserFixtureTier === null) {
       assert.deepEqual([...image.subarray(0, region1.lookTail.length)], [...region1.lookTail],
-        "the default build's blocks are region 1's tail (regions 2-4 are copies, Q10)");
+        "the default build's blocks are region 1's tail (regions 2 and 4 are copies, Q10)");
+      assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES] ?? 0, 0, "a block without code leaves BOSS_F_HOOK zero");
     }
   }
   // Slot D's run no longer carries it: its first bytes are the lasers' code.

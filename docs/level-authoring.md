@@ -246,6 +246,7 @@ aiming bot (`boss-aim`), which the director-complete replays use since
 | `band.png` | 256 x 64 | the band as the fight starts: 64 cells x 8 rows, a cell 4 x 8 pixels; a covered module's closed look (S3's shutters) |
 | `cracked.png`, `broken.png` | 256 x 64 | every module's cracked and broken look, read inside module rectangles only |
 | `open.png` | 256 x 64 | a covered module's exposed look; a module whose cells here equal `band.png`'s has none |
+| `field.png` | 8 x 8 | only with a `field` block (S5-3): the field glyph's two phases, A and B, side by side; one colour bank |
 | `extras.png` | 60 x 8 | 15 cells: the spark (a kill; a hit the module lives through flashes it instead, fix/boss-polish); the deflection (a hit that does no damage: the hull, a covered module); the muzzle flash; the cavity (a destroyed module's rows inside the hull; drawn blank it is the band background); the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
 | `modules.json` | | the layout (below) |
 
@@ -276,6 +277,7 @@ cell's intact, cracked and broken looks must agree on it.
 | `fire.cooldown` | the least frames between two firings (one countdown serves every weapon: the next armed weapon fires when it runs out, and it restarts from that weapon's `reload`, EASY +1/2, HARD -1/4). A pulse cannon fires one PULSE shot of the shared hostile pool from its centre column at the band's bottom edge, straight down; a salvo launcher three, on three frames, from the columns left of, at and right of its centre; one spawn a frame, a full pool drops the shot |
 | `fire.finaleCooldown` | default 0 (no finale), at most `fire.cooldown`: the boss's second phase (S5-2, owner answers Q3, Q6). When the last armour module falls (a capped emitter counts as armour), every weapon still standing fires the salvo's three-shot volley, its reload halved, never under this many frames; the first volley on the frame after that kill, nothing after the last weapon. The tables' byte 4. Region 1: 0. Regions 2-4 (copies of region 1 until their sessions): `assets/graphics/boss-regions/placeholders.json`, their `fire` block only |
 | `escort` | default none (no escort): `{ afterWeapons, baseFrames, jitterMask }` (feat/boss-escort-flow, owner decision AI). The level's boss-sector escort wave is published at the `afterWeapons`-th weapon kill (1-16; a gun or an emitter, armour does not count), its first Interceptor on the next frame with no module kill and no exposure check, then one every `baseFrames` (128-255, longer than an Interceptor's life - at most 121 frames with the standoff, feat/interceptor-standoff) + (RNG & `jitterMask`) (0, 1, 3 … 63; the sum at most 255) frames, only on such frames, until the boss falls; at most one Light live, none after the defeat. The tables' bytes 17-19, read by `src/c/director.c`. Region 1: 1 / 150 / 63 (one every 3.0-4.3 s). Regions 2-4 copy it |
+| `field` | default none (S5-3, region 3's Siege Spine; plan `s5-boss-regions` §6.3, the owner's answers of 2026-10-13): `{ row, framesPerPhase, halves: [{ from, to, generators }] }` - a force field in band row `row` from column `from` to `to` per half (two halves), each powered by its `generators` (1-2 armour modules, never inside their own half). While a half is powered every player shot in its columns stops on the field cell - the hull's deflection and tick, no damage, not a hit; the modules behind it still fire, and the boss's shots, the lasers and the player pass. When a half's generators have all fallen it collapses one column a frame from the generator's side. The field cells must be blank in `band.png` (the converter draws phase A of `field.png` there; the region block's code swaps the phases every `framesPerPhase` frames); they are left out of the hull stop and of decision O, so they may lie under a weapon. The field's code (`src/hybrid/boss.s`, `BOSS_FIELD`) rides in the region's block after the look tail's 110 B (slot F) |
 | `capped.hp` | a capped emitter's hit points |
 | `seeThrough` | default none: the `[column, row]` cells of hull art a player shot passes - decision M's girders, the only see-through hull art (decision O); every other hull cell stops a shot, and a column with no such cell is open sky once its modules are gone. **No hull art may lie between a weapon and the band's bottom** (decision O: every weapon hangs in its own recess; the converter refuses it). Region 1: the three girder stubs `[16, 4]`, `[35, 4]`, `[49, 4]` |
 | `nozzles` | `left` and `right`: the `[column, row]` cells that show that nozzle; `framesPerPhase` (the three phases cycle; both nozzles go dark at the defeat). `band.png` must show each side's phase 0 there. The window shows band columns 4 + p/4 to 43 + p/4, so over the travel (p 0-63) columns 4-59: put the ends inside that range |
@@ -361,9 +363,16 @@ Each naming the file, the cell or the module:
   non-emitter, a module with an open look but no cover;
 * a palette colour whose luminance plus `flashLuma` passes 15;
 * a nozzle cell that is not its side's phase 0, or inside a module;
-* a charset and look tail over 1 KB, or a theme over its 2 sectors.
+* a charset and look tail over 1 KB, or a theme over its 2 sectors;
+* a `field` without `field.png`, a field cell that is a module's or a nozzle's
+  or not blank in `band.png`, halves outside the band or in each other, a
+  generator that is unknown, not armour or inside its own half, a blank phase,
+  or phases in two colour banks.
 
 ### The disk
+
+Region 3 (Siege Spine) has its own directory since S5-3; regions 2 and 4 are
+still copies of region 1 (`placeholders.json`).
 
 Each region owns 16 sectors from 632: the theme (2, read first, under the
 WARNING screen), band A (3), band B (3, with the 256 B of tables) and the

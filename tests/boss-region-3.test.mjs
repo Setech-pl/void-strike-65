@@ -39,11 +39,14 @@ test("region 3 is Siege Spine from its own draft: the layout, the hit points, th
   assert.ok(hasDraft, "assets/graphics/boss-regions/region-3/ has no draft");
   assert.equal(region3.name, "Siege Spine");
   const hp = Object.fromEntries(region3.modules.map((module) => [module.name, module.hp]));
-  // Owner answer 5 of 2026-10-13: generators 16, plates and guns 10, the siege cannon 20.
+  // Owner answer 5 of 2026-10-13 (generators 20 -> 16, plates and guns 12 -> 10,
+  // the siege cannon 24 -> 20, aiming for about 105 s on MEDIUM), then one more
+  // step toward that aim (plan s5-boss-regions §6.3.7): generators 14, plates
+  // 8, the siege cannon 18, emitters 2-3 16; guns 10.
   assert.deepEqual(hp, {
-    "gen-l": 16, "gen-r": 16, "gun-1": 10, "gun-2": 10, "gun-3": 10, "gun-4": 10,
-    "emitter-1": 20, "emitter-2": 20, "emitter-3": 20,
-    "plate-a": 10, "plate-b": 10, "plate-c": 10, "plate-d": 10,
+    "gen-l": 14, "gen-r": 14, "gun-1": 10, "gun-2": 10, "gun-3": 10, "gun-4": 10,
+    "emitter-1": 18, "emitter-2": 16, "emitter-3": 16,
+    "plate-a": 8, "plate-b": 8, "plate-c": 8, "plate-d": 8,
   });
   assert.equal(region3.modules.find((m) => m.name === "emitter-1").slot, 1, "the siege cannon is emitter slot 1");
   assert.ok(region3.field !== null, "the region carries a field");

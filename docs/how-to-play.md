@@ -150,6 +150,12 @@ Then the beam lights for one second and destroys everything in its path.
 
 One laser on levels 1-4. Two on 5-8. Four on 9-12.
 
+The boss of levels 7-9, the Siege Spine, hides behind a force field — the
+shimmering line under its spine. Your shots stop there and do nothing. Each
+half of the field is fed by the generator sphere at its end of the ship: break
+a generator and its half of the field collapses. Its guns keep firing through
+the field the whole time.
+
 ## Capital ships
 
 The ship on your side is the same one all game — you get to know it. The

@@ -4201,7 +4201,8 @@ function main() {
         addressEnvironment.DFTRACE_FIELD_HALF = hex(bossLabels, "field_half");
         addressEnvironment.DFTRACE_FIELD_FROM = hex(bossLabels, "field_from");
         addressEnvironment.DFTRACE_FIELD_END = hex(bossLabels, "field_end");
-        addressEnvironment.DFTRACE_FIELD_ROW_CELLS = `$${fieldRegion.field.rowCells.toString(16)}`;
+        addressEnvironment.DFTRACE_FIELD_ROW_CELLS = `0x${fieldRegion.field.rowCells.toString(16)}`;
+        addressEnvironment.DFTRACE_FIELD_CODE = `0x${fieldRegion.field.code.toString(16)}`;
       }
     }
   }
@@ -4704,11 +4705,15 @@ function main() {
         const violations = rows.reduce((max, row) => Math.max(max, row.field_violations), 0);
         invariant(violations === 0,
           `${session.id}: ${violations} hit points lost behind a powered field half`);
+        // The bots that attack the boss (the diag and finale sessions) meet the
+        // field; the laser-dodge session's subject is the lasers.
         const deflected = powered.filter((row) => row.field_deflections > 0).length;
-        invariant(deflected > 0, `${session.id}: the field never showed a deflection on a powered half`);
+        if (!session.id.startsWith(`region-${session.bossRegion}-dodge-`)) {
+          invariant(deflected > 0, `${session.id}: the field never showed a deflection on a powered half`);
+        }
         const left = bossRows.filter((row) => row.field_cells_down > 0);
         invariant(left.length === 0,
-          `${session.id}: ${left.length} frames show field cells in a half that is down (first frame ${left[0]?.frame})`);
+          `${session.id}: ${left.length} frames show the field glyph in a half that is down (first frame ${left[0]?.frame})`);
         const down = bossRows.find((row) => row.field_state === (2 | (2 << 2)));
         if (chain !== undefined) {
           invariant(down !== undefined && down.frame < chain.frame,

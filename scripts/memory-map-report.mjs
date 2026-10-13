@@ -147,6 +147,8 @@ const SEGMENTS = {
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
   BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish); read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
   BOSS_E_BSS: ["boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish) - after its code, never read from disk", "overlay"],
+  // S5-3 (feat/boss-region-3): region 3's field code, in slot F after the look tail's 110 B.
+  BOSS_F_CODE: ["region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only", "overlay"],
 };
 
 // ---------------------------------------------------------------- readers

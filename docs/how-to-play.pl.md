@@ -156,6 +156,11 @@ na swojej drodze.
 
 Jeden laser na poziomach 1-4. Dwa na 5-8. Cztery na 9-12.
 
+Boss poziomów 7-9, Siege Spine, chowa się za polem siłowym — migoczącą linią
+pod swoim kręgosłupem. Twoje strzały zatrzymują się na niej i nic nie robią.
+Każdą połowę pola zasila kula generatora na jej końcu okrętu: zniszcz generator,
+a jego połowa pola się zawali. Działa bossa przez cały czas strzelają przez pole.
+
 ## Okręty liniowe
 
 Okręt po Twojej stronie jest przez całą grę ten sam — zdążysz go poznać.

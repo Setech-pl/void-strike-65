@@ -136,8 +136,11 @@ function stageCounts(region) {
 test("the art rule: every damage stage of every destructible module has colour-3 pixels, regions 1-4", () => {
   const draft = loadBossRegionDraft(bossRegionDirectory(root, 1));
   const placeholders = loadBossPlaceholders(root);
+  // RE-POINTED S5-3 (feat/boss-region-3): region 3 is Siege Spine from its own
+  // draft; regions 2 and 4 are still region 1's copies.
   const regions = [compileBossRegion(draft),
-    ...[2, 3, 4].map((n) => compileBossRegion(bossPlaceholderDraft(draft, placeholders[String(n)])))];
+    ...[2, 3, 4].map((n) => compileBossRegion(n === 3 ? loadBossRegionDraft(bossRegionDirectory(root, 3))
+      : bossPlaceholderDraft(draft, placeholders[String(n)])))];
   regions.forEach((region, r) => {
     for (const { name, stages } of stageCounts(region)) {
       stages.forEach((count, stage) => assert.ok(count >= COLOUR3_FLOOR,

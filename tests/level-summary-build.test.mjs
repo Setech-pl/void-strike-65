@@ -262,6 +262,10 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   const FINALE_BYTE = 5 * 128 + 128 + 4;
   assert.equal(atrSectors(632, 16)[FINALE_BYTE], 0, "region 1 has a finale (owner answer Q6: off)");
   for (let region = 1; region < 4; region += 1) {
+    // RE-POINTED S5-3 (feat/boss-region-3, the owner's answers of 2026-10-13):
+    // region 3 is Siege Spine from its own draft, no longer a copy (its own
+    // runs: tests/boss-region-3.test.mjs, tests/boss-overlay.test.mjs).
+    if (region === 2) continue;
     const copy = Buffer.from(atrSectors(632 + region * 16, 16));
     assert.equal(copy[FINALE_BYTE], placeholders[String(region + 1)]?.fire?.finaleCooldown ?? 0,
       `region ${region + 1}'s finale floor is not its placeholder's`);

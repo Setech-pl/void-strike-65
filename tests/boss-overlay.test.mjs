@@ -118,6 +118,19 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
     assert.deepEqual(atrRun(at, BOSS_THEME_SECTORS), theme, `region ${region + 1} theme`);
     assert.deepEqual(theme.subarray(0, 0xc0), readBuild("boss-region-1-theme.bin").subarray(0, 0xc0),
       `region ${region + 1} plays region 1's theme`);
+    // RE-POINTED S5-3 (feat/boss-region-3, the owner's answers of
+    // 2026-10-13): region 3 is Siege Spine from its own draft - its band A
+    // and charset runs are its own (the built files), its block its tail and
+    // the field's code; regions 2 and 4 are still copies of region 1.
+    if (region === 2) {
+      for (const [run, offset] of [["band-a", 2], ["charset", 8]]) {
+        const built = manifest.boss.runs.find((r) => r.name === `boss-region-3-${run}`);
+        assert.deepEqual(atrRun(at + offset, built.sectors), readBuild(built.file), `region 3 ${run}`);
+      }
+      const block = manifest.boss.runs.find((r) => r.name === "boss-region-3-block");
+      assert.deepEqual(atrRun(696 + region * 4, block.sectors), readBuild(block.file), "region 3 block");
+      continue;
+    }
     assert.deepEqual(atrRun(at + 2, BOSS_BAND_A_SECTORS), Buffer.from(bandA.data), `region ${region + 1} band A`);
     assert.deepEqual(atrRun(at + 8, charset.sectors), Buffer.from(charset.data), `region ${region + 1} charset`);
     assert.deepEqual(atrRun(696 + region * 4, region1.runs.block.sectors), Buffer.from(region1.runs.block.data),

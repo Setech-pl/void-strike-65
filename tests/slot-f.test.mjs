@@ -32,6 +32,14 @@ test("Q9: slot F is $5200-$53FF in the manifest, and no segment of any link reac
       if (Number.parseInt(size, 16) === 0) continue;
       segments += 1;
       const from = Number.parseInt(start, 16), to = Number.parseInt(end, 16) + 1;
+      // RE-POINTED S5-3 (feat/boss-region-3): the boss link's BOSS_F_CODE is
+      // region 3's field code - linked at BOSS_F_HOOK (slot F + the look
+      // tail's 110 B) only to be carried in region 3's block run, never
+      // loaded with the link; every other segment still stays out.
+      if (file === "boss.map" && name === "BOSS_F_CODE") {
+        assert.ok(from === SLOT_F[0] + 110 && to <= SLOT_F[1], `${name} $${start}-$${end} is not after the look tail`);
+        continue;
+      }
       assert.ok(!(from < SLOT_F[1] && SLOT_F[0] < to), `${file}: ${name} $${start}-$${end} reaches slot F`);
     }
   }

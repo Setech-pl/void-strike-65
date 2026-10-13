@@ -1031,8 +1031,14 @@ const lowerPlayfieldSessions = [{
    * from the boss's entry, firing up into its shield (plate-d): the emitter
    * warns the frame after the shield falls (decision 4) and its beam meets the
    * fighter there, away from the guns' recesses where the boss's shots fall.
-   * The lens's centre colour clock comes from region 1's data. */
-  contactLensClock: true,
+   * The lens's centre colour clock comes from region 1's data.
+   * feat/boss-r1-twin-lasers (class (a), layout L2): region 1 has two cannons;
+   * the park is under emitter-r's lens (columns 41-43, behind plate-f), whose
+   * neighbours gun-3 and gun-4 stay covered by their own plates - under
+   * emitter-l's (21-23), five columns from gun-2's open bay, a gun-2 shot
+   * met the parked fighter before the first laser (MEASURED: health 10 -> 9
+   * at f3,300), so it never sought the beam. */
+  contactLensClock: "emitter-r",
   contactOwner: 1,
   contactModeId: 1,
 }, {
@@ -2083,9 +2089,11 @@ function prepareAtari800(sourceDirectory) {
 
 // M5b-S4b.4 (decision 8): region 1's emitter's lens, its centre colour clock
 // in the band (x * 4 + width * 2), for the laser-contact policy.
-function emitterLensClock() {
+// feat/boss-r1-twin-lasers: the session names the emitter (region 1 has two).
+function emitterLensClock(name) {
   const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1)));
-  const emitter = region.modules.find((module) => module.kind === "emitter");
+  const emitter = region.modules.find((module) => module.kind === "emitter" && module.name === name);
+  invariant(emitter !== undefined, `region 1 has no emitter named ${name}`);
   return emitter.x * 4 + emitter.width * 2;
 }
 
@@ -4519,7 +4527,7 @@ function main() {
        * Trace-only: no production byte is patched and the default is off. */
       ...(session.bossPath === undefined ? {} : { DFTRACE_BOSS_PATH: session.bossPath }),
       ...(session.contactLensClock === undefined ? {} : {
-        DFTRACE_CONTACT_LENS_CLOCK: String(emitterLensClock()),
+        DFTRACE_CONTACT_LENS_CLOCK: String(emitterLensClock(session.contactLensClock)),
       }),
       ...(session.holdPlayerLives === undefined ? {} : {
         DFTRACE_HOLD_PLAYER_LIVES: String(session.holdPlayerLives),

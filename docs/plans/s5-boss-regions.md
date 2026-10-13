@@ -2,8 +2,8 @@
 
 **Status:** S5-1 implemented on `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`
 (§6.1); **S5-2 implemented on `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`
-(§6.2)**; **S5-3 Phase A on `feat/boss-region-3` (§6.3): the review builds and
-the measurements, awaiting the owner's choice**. The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+(§6.2)**; **S5-3 implemented on `feat/boss-region-3`, `OWNER-SMOKE CANDIDATE`
+(§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -950,7 +950,7 @@ DMA-on 29,238; ATR menu 553 / 544. Against `main` frame by frame: 46 of 58 CSVs
 identical, the 12 boss-entry replays differ on boss rows only and only in timing
 (and two observer samplings of it).
 
-### 6.3 S5-3 Phase A (2026-10-13, `feat/boss-region-3`) — Siege Spine, the force field; awaiting the owner's choice
+### 6.3 S5-3 (2026-10-13, `feat/boss-region-3`) — Siege Spine, the force field — `OWNER-SMOKE CANDIDATE`
 
 **Recommendation first.** Ship field look **(b)** — the field glyph row across
 both halves, the P1 / P2 glow rings — with three changes against §4.4, each
@@ -1141,6 +1141,123 @@ look as the default build's region 3, the other look removed, the hit points
 tuned, region 3's sessions on the aim bot with the field clauses, the
 evidence regenerated.
 
+
+#### 6.3.6 The owner's answers (2026-10-13, after playing the Phase A builds)
+
+Journal §AO. (1) Look (b). (2) The field in the band's front row. (3) **The
+glow rings dropped** — the answer list carried two contradictory item 3s; asked,
+the owner chose "drop". (4) Each half falls with its own generator. (5) Hit
+points as proposed (generators 20 → 16, plates and guns 12 → 10, the siege
+cannon 24 → 20), aiming for about 105 s on MEDIUM, EASY shorter, HARD not
+shorter; HARD's length noted for M8. (6) The palette against the levels 7-9
+ally steel `$84`. Also: the two observer exceptions narrowed to the field's own
+state and its glow, each with a test that a real violation still fails; the
+tier-4 baseline recorded (8,006 on this tree, the brief's 7,805 stale) and R3's
+pin set from the measured value (≤ 8,750), the reachable stress ≤ 8,500; region
+3's diag and finale sessions on the aiming bot that sees the field.
+
+#### 6.3.7 Phase B as built — `OWNER-SMOKE CANDIDATE`
+
+**What ships.** Region 3 is Siege Spine from
+`assets/graphics/boss-regions/region-3/` in every build (its
+`placeholders.json` entry removed); regions 2 and 4 stay copies of region 1.
+The field is look (b) without any sprite: the field glyph in band row 7,
+columns 14-48, two halves (14-31 `gen-l`, 32-48 `gen-r`); P1 / P2 stay unused
+in the boss sector. `--field-variant` and look (a) are gone (no variant script
+keeps them).
+
+**Code and bytes (M, the manifest).**
+
+| | main | S5-3 |
+| --- | ---: | ---: |
+| slot A / install / slot C | 2,047 / 362 / 1,662 (13 sectors) | unchanged |
+| slot D | 1,647 B, 13 sectors | **1,655 B**, 13 (`laser_frame`'s gated call, +8) |
+| slot E | 358 B, 3 sectors | **366 B**, 3 (`boss_shots_late`'s gated call, +8) |
+| region 3's block (slot F) | 110 B, 1 sector (a copy) | **323 B, 3 sectors**: look tail 80 B, the field's code from `$526E` (213 B: frame, late step, init, the tables, 8 B of state) |
+| region 3's charset | 976 B, 8 sectors | 864 B, 7 sectors (108 of 128 codes) |
+| region 3's entry | 65 sectors, 249 host frames | **66 sectors, 253 host frames** (limit 280) |
+| window, Light kernel, pickup tail, DIRECTOR_RAM, initial block, boot, transport | 1,322 / 847 / 9 B / 2 B / 13,623 B / 107 / 213 | unchanged |
+
+Per frame (IC, native): the frame hook ~7 cycles on regions 1, 2 and 4 (a
+zero hook byte) at each of the two call sites; region 3's frame step ≈ 45
+(the halves' generator test) + ≈ 90 every 4th frame (the glyph's phase); the
+late step ≈ 25, and on a collapsing half ≈ 400 once a frame (the
+`boss_column_at` walk), never on a kill or exposure-check frame; the absorb is
+the hull's existing path.
+
+**The fight (M, the aiming bot's ratio; owner answer 5).** The proposal
+measured 91.6 / 118.8 / 161.1 s on levels 7-8 (tier 2) and 90.3 / 128.8 /
+171.4 s on level 9 (tier 4): level 9's MEDIUM over 120. One more step toward
+the aim — generators 14, plates 8, the siege cannon 18, emitters 2-3 16, guns
+10 — gives:
+
+| Levels | EASY | MEDIUM | HARD | Escorts E / M / H | Hits on the bot (laser / other) E / M / H |
+| --- | ---: | ---: | ---: | --- | --- |
+| 7-8 (tier 2) | **89.5 s** | **118.8 s** | **150.1 s** | 10 / 12 / 13 | 1/3, 2/9, 3/7 |
+| 9 (tier 4) | **109.4 s** | **118.2 s** | **152.0 s** | 12 / 13 / 14 | 1/5, 1/9, 2/9 |
+| region 1 (main, unchanged) | 82.4 s | 108.3 s | 150.5 s | 9 / 12 / 17 | — |
+
+MEDIUM is inside 90-120 on every level, EASY shorter, HARD not shorter — but
+**not about 105 s**: on levels 7-8 MEDIUM did not move between the two steps
+(2,873 frames both times). The fight there is bound by when the generators'
+columns drift into reach at the band's ends (each about a third of the
+travel), not by hit points; nearer 105 s needs a layout change (the generators
+a column or two inward) — offered to the owner's smoke, or M8. **HARD is far
+longer than MEDIUM** (≈ 150 s against ≈ 118 s) — for review in M8, as region
+1's.
+
+**The palette (owner answer 6, M).** The ally steel `$84` is hue 226°. Region
+3: hull `$04` and plate steel `$0C` grey (no hue), amber `$28` 34°, trim and
+field `$96` → **`$66`** (204° → 294°: 22° from the ally steel → 68°).
+`tests/boss-region-3.test.mjs` holds every coloured register ≥ 45° from `$84`.
+Previews: `build/play/s5-3-palette-before-trim-96.png`,
+`s5-3-palette-after-trim-66.png`.
+
+**Timing (M).**
+
+| | main `9b7ccaf` | S5-3 | Source |
+| --- | ---: | ---: | --- |
+| worst fence margin (default replays) | 1,260 (`2-sweep-fire6` f311) | **1,260** (same frame) | `build/runtime-wall-trace/pal-timing-audit.json` |
+| DMA-on maximum | 31,483 | **31,483** | the evidence |
+| boss frames, region 1 (director-complete) | 8,569 / 29,884 | **8,558 / 29,932** | `scripts/measure-boss-fight.mjs` |
+| region 1's fights | 1,985 / 2,619 / 3,359 frames | **identical** | the evidence (`boss-aim`'s field view is region-1-neutral) |
+| region 3 boss frames, aim bot, levels 7-8 E / M / H | — | 8,781 / 8,878 / **8,198**; DMA-on 30,409 / 29,949 / 30,455 | M, focused runs |
+| … level 9 E / M / H | — | 8,431 / **7,396** / 7,968; DMA-on 30,352 / 30,256 / **30,668** | M |
+| stress, region 3 level 7 / level 9 (warn) | — | **7,782 / 8,007** (pin 8,750, reachable limit 8,500) | M-N, `tests/boss-region-3.test.mjs` |
+| stress, region 1 / the tier-4 fixture (warn) | 7,006 / 8,006 | **7,019 / 8,018** (the two gated calls, +12-13) | M-N, `tests/boss-stress.test.mjs` |
+
+**The trace.** Region 3's route sessions (`--boss-region=3`, debug only)
+play the boss with the aiming bot (`region-3-diag-*`, `region-3-finale-*`;
+regions 2 and 4 keep their bots). New columns `field_state`,
+`field_deflections`, `field_violations`, `field_cells_down` and the clause
+(subject: boss frames with a powered half): **0 hit points lost behind a
+powered half**, a deflection on a powered half (the bots that attack the
+boss), no field glyph left in a fallen half, both halves down before the
+chain. All seven sessions pass: entry 253 host frames; MEDIUM: the field
+powered on 1,726 frames, 96 with a deflection, down at f1,745, the chain at
+f3,215, 12 finale volleys. The default run (58 replays) is unchanged in
+behaviour; its slot F clause saw 14 block reads and 0 foreign writers.
+
+**Observer changes and their tests.** The slot F write clause moved to
+`scripts/trace-clause-observers.mjs`; its one exception is a PC inside the
+field's code writing only `field_state` … `field_state_end` (by the watch's new
+lowest / highest address); `tests/slot-f-write-clause.test.mjs` proves a
+foreign write into the state, a field-code write anywhere else in slot F, a
+writer that strayed between its first and last address and any field write on
+a disk without field code still fail. The Heavy P1 / P2 body check's
+boss-sector exception (Phase A, for the glow) is **reverted** — no sprite uses
+P1 / P2 now, so the check is `main`'s, unchanged.
+
+**Tests.** New: `tests/boss-region-3.test.mjs` (7) and
+`tests/slot-f-write-clause.test.mjs` (5), RED on `main` `9b7ccaf` in a detached
+worktree (7 of 7; the clause file fails to import), GREEN here. Re-pointed,
+each with its reason at the site: `boss-look-tail` (region 3's block is its tail
+and the field code; regions 2 and 4 copies), `boss-overlay` (region 3's own band
+A, charset, block on the disk), `level-summary-build` (region 3 no placeholder),
+`slot-f` (BOSS_F_CODE after the tail's 110 B is region 3's block code),
+`boss-polish`'s art rule (region 3 from its draft). The loading-screen title
+test (SIEGE SPINE) was already green on `main` (the placeholder carried the
+name).
 
 ---
 

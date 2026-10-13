@@ -1089,6 +1089,45 @@ new file name:
       Interceptors and a Bomber on screen, no flicker, tearing or slowdown;
       the boss entry loads and plays as before.
 
+## 30. Region 3's boss: Siege Spine and its force field (`feat/boss-region-3`)
+
+Plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.3; journal §AO.
+In Atari800 (`-xl -pal -nobasic`), on the region 3 boss route
+(`build/play/s5-3-r3-boss-route.atr`, level 7), its level 9 route
+(`s5-3-r3-tier4-boss-route.atr`) and the whole-level route
+(`s5-3-r3-level-route.atr`), at EASY, MEDIUM and HARD:
+
+- [ ] **The loading screen** reads `WARNING`, then `SIEGE SPINE` and
+      `INCOMING`, then the fight.
+- [ ] **The band reads like the banner:** a long segmented spine with dorsal
+      spikes, a generator sphere at each end, the domed siege cannon at the
+      centre, guns along the spine; steel plates, a dark hull, **violet** trim
+      and field that do not look like the allied ship's blue.
+- [ ] **The field blocks shots until its generator falls:** the shimmering
+      line under the spine; every shot into it stops on it with the small
+      deflection and the hull tick, no damage. The boss's shots and lasers
+      come through it.
+- [ ] **Each half falls with its own generator:** break the left sphere and
+      the left half of the line disappears column by column from that end;
+      the right half stays and still blocks until the right sphere falls.
+- [ ] **Hits read:** a generator, a plate or a gun that survives a hit
+      flashes for about 3 frames; a kill shows the spark; nothing flashes the
+      whole band.
+- [ ] **The escort and the final salvos:** an Interceptor from the first
+      weapon destroyed, then every 3-4 s, never two at once; once the last
+      plate (and a capped emitter, on level 7-8) falls, every gun fires
+      three-shot volleys.
+- [ ] **The fight's feel on MEDIUM:** about two minutes by the bot (118 s on
+      levels 7-9); HARD is far longer (about 150 s), noted for M8.
+- [ ] **Region 1 is unchanged:** level 1's boss (`s5-3-main-r1-boss-route.atr`
+      against `build/play/s5-3-r1-boss-route.atr`) plays as before.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR and of the
+region 3 route under new file names:
+
+- [ ] **No flicker or slowdown** while the field shimmers, a half collapses
+      and two lasers fire; the boss entry loads and plays (66 sectors).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

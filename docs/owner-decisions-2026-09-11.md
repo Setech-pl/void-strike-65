@@ -2254,6 +2254,46 @@ wygrywa, a sesja raportuje różnicę.
 **Wynik:** plan `interceptor-armour` §10–§11, plan `m3-waves-heavy`
 (dopisek), memory-map, STATUS. `OWNER-SMOKE CANDIDATE`.
 
+## AO. SIEGE SPINE — odpowiedzi właściciela na fazę A S5-3 (2026-10-13, po zagraniu w buildy porównawcze)
+
+1. **Wygląd pola: (b)** — rząd znaków pola (dwie fazy jednego znaku,
+   migotanie) w paśmie bossa.
+2. **Rząd pola: przedni rząd pasma (rząd 7)**, nie rząd 8 pierścienia pod
+   pasmem (tam strzały, pociski bossa i eskorta rysowałyby się w zestawie
+   znaków regionu).
+3. **Pierścienie poświaty generatorów (P1 / P2): usunięte.** Pole pokazuje
+   sam rząd znaków; P1 / P2 zostają w sektorze bossa nieużywane, wyjątek
+   obserwatora dla ciała Heavy w sektorze bossa wycofany. (Odpowiedź
+   doprecyzowana pytaniem: w liście odpowiedzi były dwa sprzeczne punkty 3.)
+4. **Każda połowa pola pada ze swoim generatorem** (jak w planie §4.4).
+5. **Strojenie punktami życia:** generatory 20 → 16, płyty i działa 12 → 10,
+   działo oblężnicze 24 → 20, cel około 105 s na MEDIUM; EASY krócej, HARD
+   nie krócej; HARD dużo dłuższy niż MEDIUM odnotowany do przeglądu w M8 (jak
+   R1). **Zbudowane:** propozycja dała 91,6 / 118,8 / 161,1 s (poziomy 7-8) i
+   90,3 / 128,8 / 171,4 s (poziom 9); jeszcze jeden krok w stronę celu
+   (generatory 14, płyty 8, działo 18, emitery 2-3 16) daje 89,5 / 118,8 /
+   150,1 s i 109,4 / 118,2 / 152,0 s — MEDIUM w 90-120 na każdym poziomie,
+   ale nie 105: na poziomach 7-8 MEDIUM nie drgnęło (2 873 klatki w obu
+   krokach), bo walkę wiążą okna zasięgu generatorów na końcach pasma, nie
+   punkty życia. Bliżej 105 s wymagałoby zmiany układu (generatory bliżej
+   środka) — do decyzji właściciela przy smoke lub w M8.
+6. **Paleta:** sojusznicza stal na poziomach 7-9 to `$84` (odcień 226°).
+   Kadłub `$04` i stal `$0C` są szare (bez odcienia), bursztyn `$28` 34°;
+   obwódka i pole `$96` (204°) były za blisko — przesunięte na fiolet
+   **`$66` (294°)**. Podgląd przed / po w `build/play/`.
+7. **Obserwatory trace'u:** wyjątek zapisu do slotu F obejmuje tylko kod
+   pola zapisujący własne bajty stanu (`field_state` … `field_state_end`,
+   sprawdzane po najniższym i najwyższym adresie zapisu); test
+   `tests/slot-f-write-clause.test.mjs` dowodzi, że obcy zapis nadal oblewa.
+8. **Odniesienie stresu:** fixture tier 4 (R1) na tym drzewie to **8 006**
+   (7 805 z briefu było nieaktualne); R3 na poziomie 9 (tier 4): 8 007
+   (przypięcie 8 750, osiągalne ≤ 8 500), poziom 7: 7 782.
+9. **Sesje regionu 3** (`region-3-diag-*`, `region-3-finale-*`) grają bossa
+   botem celującym, który widzi pole; regiony 2 i 4 bez zmian.
+
+**Wynik:** plan `s5-boss-regions` §6.3, STATUS, game-design, level-authoring,
+how-to-play (EN / PL), hardware-testing §30. `OWNER-SMOKE CANDIDATE`.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

@@ -502,6 +502,26 @@ section "Decyzje literowe 2026-09-20".
   boss on the `--boss-region=N` debug routes - at a floor of 12 frames, half
   of region 1's `fire.cooldown`; each region's own session tunes it (region
   4's Void Citadel is designed around it).
+- **Region 3's boss: Siege Spine and its force field (S5-3, owner answers of
+  2026-10-13; `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.3).**
+  Levels 7-9 end on a long segmented spine with dorsal spikes, a generator
+  sphere at each end, a domed siege cannon at the centre (a laser on every
+  laser tier), two more emitters and two guns behind armour plates, and two
+  open guns near the ends (the edges stay under fire). Under the spine runs a
+  **force field** in two halves, each fed by the generator at its end: while a
+  half is powered every player shot in its columns stops on the field (the
+  deflection, no damage); the boss's guns and lasers fire through it. Breaking
+  a generator collapses its half column by column from that end, so the fight
+  goes generator, then plates, then the weapons behind them - one side
+  usually opens first. The defeat rule is unchanged (the last weapon), the
+  escort is region 1's cadence (decision AI), the final salvos are on (floor
+  12 frames), the b3 hit flash shows on every module and generator. Colours:
+  steel plates, a dark steel hull and a **violet** trim and field (`$66`, hue
+  294°, clear of the levels 7-9 ally steel `$84`, 226°, so it reads as the
+  enemy at a glance). No sprite: P1 / P2 stay unused in the boss sector.
+  Fight (aiming bot, the ratio rule): 89.5 / 118.8 / 150.1 s on levels 7-8,
+  109.4 / 118.2 / 152.0 s on level 9 (EASY / MEDIUM / HARD); **HARD is far
+  longer than MEDIUM, for review in M8**, as region 1's.
 - **Difficulty scales reload, spacing and damage (J).** See "World and
   difficulty" above.
 - **Lives (K).** Three at start, plus one after each odd level from 3.

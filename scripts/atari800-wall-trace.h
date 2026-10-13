@@ -936,6 +936,11 @@ static unsigned dftrace_boss_alive;
 static unsigned dftrace_boss_exposed;
 static unsigned dftrace_boss_count;
 static unsigned dftrace_boss_module_table;
+/* S5-3: the band's column map (boss_column_map, scratch page; optional): a
+ * column whose value is ARMOUR ($FE) at a live module's centre is a force
+ * field's - the boss-aim policy does not shoot into it and, while a weapon
+ * is behind it, takes the field's generators (armour that guards nothing). */
+static unsigned dftrace_boss_column_map;
 static int dftrace_aim_target = -1;
 static unsigned dftrace_aim_last_p;
 static int dftrace_aim_dir = 1;
@@ -3800,10 +3805,15 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		int best = -1, best_distance = 1000;
 		unsigned best_x = x;
 		if (count > 16u) count = 16u;
+		int field_blocked = 0;
 		for (i = 0u; i < count; ++i) {
 			unsigned record = dftrace_boss_module_table + 12u * i;
-			if (((alive >> i) & 1u) != 0u && MEMORY_mem[dftrace_boss_kind + i] != 0u)
+			if (((alive >> i) & 1u) != 0u && MEMORY_mem[dftrace_boss_kind + i] != 0u) {
 				guards |= MEMORY_mem[record + 9u] | (MEMORY_mem[record + 10u] << 8);
+				if (dftrace_boss_column_map != 0u && MEMORY_mem[dftrace_boss_column_map +
+					((MEMORY_mem[record] + (MEMORY_mem[record + 2u] >> 1)) & 63u)] == 0xfeu)
+					field_blocked = 1;
+			}
 		}
 		for (i = 0u; i < count; ++i) {
 			unsigned record = dftrace_boss_module_table + 12u * i;
@@ -3813,7 +3823,11 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			if (((alive >> i) & 1u) == 0u || ((exposed >> i) & 1u) == 0u ||
 				MEMORY_mem[dftrace_boss_hp + i] == 0u)
 				continue;
-			if (MEMORY_mem[dftrace_boss_kind + i] == 0u && ((guards >> i) & 1u) == 0u)
+			if (dftrace_boss_column_map != 0u &&
+				MEMORY_mem[dftrace_boss_column_map + (column & 63u)] == 0xfeu)
+				continue;
+			if (MEMORY_mem[dftrace_boss_kind + i] == 0u && ((guards >> i) & 1u) == 0u &&
+				!(field_blocked && MEMORY_mem[dftrace_boss_column_map + (column & 63u)] == i))
 				continue;
 			target &= ~1;
 			if (target < 48 || target > 200)
@@ -7276,6 +7290,7 @@ static void dftrace_init(void)
 	dftrace_boss_exposed = dftrace_env_optional("DFTRACE_BOSS_EXPOSED");
 	dftrace_boss_count = dftrace_env_optional("DFTRACE_BOSS_COUNT");
 	dftrace_boss_module_table = dftrace_env_optional("DFTRACE_BOSS_MODULE_TABLE");
+	dftrace_boss_column_map = dftrace_env_optional("DFTRACE_BOSS_COLUMN_MAP");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");
@@ -7599,6 +7614,31 @@ static void dftitle_observe(unsigned pc)
 	}
 }
 
+/* S5-3: DFTRACE_SHOT_PREFIX=<path> DFTRACE_SHOT_HOSTS=<n>[,<n>...] saves the
+ * finished picture of each listed host frame (at the vertical blank, line 248)
+ * as <path>-host<n>.png - the boss loading screen and the band for a review,
+ * which the trace's gameplay-frame screenshots never see. Opt-in, debug runs. */
+static void dfshot_observe(void)
+{
+	static unsigned last = 0xffffffffu;
+	const char *prefix = getenv("DFTRACE_SHOT_PREFIX");
+	const char *list = getenv("DFTRACE_SHOT_HOSTS");
+	unsigned host = (unsigned) Atari800_nframes;
+	char name[1024];
+	if (prefix == NULL || list == NULL || ANTIC_ypos < 248 || host == last)
+		return;
+	while (*list != '\0') {
+		if ((unsigned) strtoul(list, NULL, 10) == host) {
+			last = host;
+			snprintf(name, sizeof(name), "%s-host%u.png", prefix, host);
+			if (!Screen_SaveScreenshot(name, 0)) { perror("shot"); exit(2); }
+			return;
+		}
+		while (*list != '\0' && *list != ',') ++list;
+		if (*list == ',') ++list;
+	}
+}
+
 static void dffence_observe(unsigned pc, unsigned x_register)
 {
 	unsigned state, host, vbi;
@@ -7751,6 +7791,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	dftrace_watch_interceptor_projectiles();
 	dffence_observe(pc, x_register);
 	dftitle_observe(pc);
+	dfshot_observe();
 	if (dftrace_published_dlist_lo == 0u && MEMORY_mem[dftrace_game_state] == 6u)
 		dftrace_published_dlist_lo = MEMORY_mem[dftrace_active_dlist_lo];
 	if (host_frame != dftrace_display_host_frame) {

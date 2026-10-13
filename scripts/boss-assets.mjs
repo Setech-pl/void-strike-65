@@ -208,6 +208,16 @@ export const BOSS_MODULE_MAX_WIDTH = 6;
 export const BOSS_MODULE_MAX_HEIGHT = 4;
 export const BOSS_MODULE_MAX_CELLS = 24;
 export const BOSS_EXTRAS_IMAGE = Object.freeze({ width: BOSS_EXTRAS.cells * 4, height: 8 });
+// S5-3 (feat/boss-region-3, plan s5-boss-regions §4.4): the force field. A
+// region's modules.json may carry a `field` block - a row, one or two halves
+// of columns, each powered by its generators (armour modules) - and its
+// field.png, the field glyph's two phases (8 x 8: phase A, phase B). The
+// converter draws phase A in every field cell (look "b"; look "a", the
+// comparison build, leaves them blank); the region block's code (slot F)
+// stops the player's shots in a powered half and swaps the phases.
+export const BOSS_FIELD_ART_FILE = "field.png";
+export const BOSS_FIELD_IMAGE = Object.freeze({ width: 8, height: 8 });
+export const BOSS_FIELD_LOOKS = Object.freeze(["a", "b"]);
 export const BOSS_NOZZLE_PHASES = 3;
 // Decision M (plan §5.16): the player's shots are drawn inside the band with
 // four codes of the region's charset - horizontal phase 0 / 2 colour clocks x
@@ -372,6 +382,12 @@ export function loadBossRegionDraft(directory) {
   // M5b-S4b.4 (owner decisions E1-E3 and 1): the emitter's own art -
   // emitter.png, when the region has one, drawn at the footprint
   // modules.json gives the emitter.
+  // S5-3 (plan s5-boss-regions §4.4): the force field's glyph, when the
+  // region has one - field.png, its two phases side by side.
+  const fieldArt = path.join(directory, BOSS_FIELD_ART_FILE);
+  if (fs.existsSync(fieldArt)) {
+    draft.fieldImage = decodeBossDraftPng(fs.readFileSync(fieldArt), BOSS_FIELD_ART_FILE, BOSS_FIELD_IMAGE);
+  }
   const art = path.join(directory, BOSS_EMITTER_ART_FILE);
   return fs.existsSync(art) ? applyBossEmitterArt(draft, fs.readFileSync(art), BOSS_EMITTER_ART_FILE, null)
     : draft;
@@ -730,6 +746,56 @@ function resolveModules(layout) {
   return { modules, owner };
 }
 
+// S5-3: the `field` block. Refuses a field without field.png, halves outside
+// the band or overlapping, a field cell that is a module's or a nozzle's, a
+// generator that is unknown, not armour or inside its own field, and a
+// phase that is blank or mixes the colour banks.
+export const BOSS_FIELD_MAX_HALVES = 2;
+export const BOSS_FIELD_MAX_GENERATORS = 2;
+function resolveBossField(source, modules, owner, nozzleCells, image, look) {
+  if (source === undefined || source === null) return null;
+  if (!BOSS_FIELD_LOOKS.includes(look)) fail(`the field's look is ${JSON.stringify(look)}; ${BOSS_FIELD_LOOKS.join(" or ")}`);
+  if (image === undefined) fail(`the region has a field but no ${BOSS_FIELD_ART_FILE}`);
+  const row = integerIn(source.row, 0, BOSS_BAND_ROWS - 1, "field.row");
+  const framesPerPhase = integerIn(source.framesPerPhase, 1, 255, "field.framesPerPhase");
+  if (!Array.isArray(source.halves) || source.halves.length < 1 || source.halves.length > BOSS_FIELD_MAX_HALVES) {
+    fail(`field.halves has 1..${BOSS_FIELD_MAX_HALVES} halves`);
+  }
+  const keys = new Set();
+  const byName = new Map(modules.map((module) => [module.name, module]));
+  const halves = source.halves.map((half, i) => {
+    const from = integerIn(half.from, 0, BOSS_BAND_COLUMNS - 1, `field.halves[${i}].from`);
+    const to = integerIn(half.to, from, BOSS_BAND_COLUMNS - 1, `field.halves[${i}].to`);
+    const generators = half.generators;
+    if (!Array.isArray(generators) || generators.length < 1 || generators.length > BOSS_FIELD_MAX_GENERATORS) {
+      fail(`field.halves[${i}] names 1..${BOSS_FIELD_MAX_GENERATORS} generators`);
+    }
+    for (const name of generators) {
+      const module = byName.get(name);
+      if (module === undefined) fail(`field.halves[${i}] names unknown generator ${JSON.stringify(name)}`);
+      if (module.kind !== BOSS_KIND.armour) fail(`field generator ${name} is a ${module.kindName}; a generator is armour`);
+      if (module.x <= to && from < module.x + module.width) {
+        fail(`field generator ${name} stands in its own field's columns ${from}-${to}: it could never be hit`);
+      }
+    }
+    for (let c = from; c <= to; c += 1) {
+      const key = row * BOSS_BAND_COLUMNS + c;
+      if (keys.has(key)) fail(`field cell (${c}, ${row}) is in two halves`);
+      if (owner.has(key)) fail(`field cell (${c}, ${row}) lies inside module ${owner.get(key)}`);
+      if (nozzleCells.has(key)) fail(`field cell (${c}, ${row}) is a nozzle cell`);
+      keys.add(key);
+    }
+    return { from, to, generators };
+  });
+  const phases = [0, 1].map((phase) => {
+    const cell = cellOf(image, phase, 0, `the field's phase ${"AB"[phase]}`);
+    if (cell.blank) fail(`${BOSS_FIELD_ART_FILE}: the field's phase ${"AB"[phase]} is blank`);
+    return cell;
+  });
+  if ((phases[0].bank ?? 0) !== (phases[1].bank ?? 0)) fail(`${BOSS_FIELD_ART_FILE}: the two phases use different colour banks`);
+  return { row, framesPerPhase, halves, phases, keys, look };
+}
+
 // ---------------------------------------------------------------------------
 // The conversion
 // ---------------------------------------------------------------------------
@@ -749,7 +815,7 @@ export function bossTitleRecords(name) {
 }
 
 export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null,
-  hostileShotGlyphs = draft.hostileShotGlyphs ?? null } = {}) {
+  hostileShotGlyphs = draft.hostileShotGlyphs ?? null, fieldLook = "b" } = {}) {
   const { layout, images } = draft;
   if (layout?.formatVersion !== BOSS_FORMAT_VERSION) {
     fail(`unsupported formatVersion ${JSON.stringify(layout?.formatVersion)} (expected ${BOSS_FORMAT_VERSION})`);
@@ -832,6 +898,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       nozzleCells.set(key, side);
     }
   }
+
+  // S5-3: the force field's cells - no module's, no nozzle's, blank in
+  // band.png (the converter draws them) - and its halves' generators.
+  const field = resolveBossField(layout.field, modules, owner, nozzleCells, draft.fieldImage, fieldLook);
+  const fieldKeys = field === null ? new Set() : field.keys;
 
   // The staged block: one entry a distinct (intact, cracked, broken) triple.
   const stagedKeys = new Map();
@@ -955,6 +1026,12 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       const key = r * BOSS_BAND_COLUMNS + c;
       if (cellRefs.has(key)) continue;
       const cell = cellOf(images.band, c, r, `band cell (${c}, ${r})`);
+      if (fieldKeys.has(key)) {
+        if (!cell.blank) fail(`band cell (${c}, ${r}) is a field cell: leave it blank (the converter draws the field)`);
+        cellRefs.set(key, field.look === "b" ? { block: "plain", index: plainIndex(field.phases[0]),
+          bank: field.phases[0].bank ?? 0 } : null);
+        continue;
+      }
       if (nozzleCells.has(key)) {
         const side = nozzleCells.get(key) === "left" ? 0 : 1;
         if (cell.key !== nozzlePhases[side][0].key) {
@@ -1065,7 +1142,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     for (let c = module.x; c < module.x + module.width; c += 1) {
       for (let r = module.row + module.height; r < BOSS_BAND_ROWS; r += 1) {
         const key = r * BOSS_BAND_COLUMNS + c;
-        if (bandRows[r][c] !== 0 && !owner.has(key)) {
+        if (bandRows[r][c] !== 0 && !owner.has(key) && !fieldKeys.has(key)) {
           fail(`hull art at (${c}, ${r}) below module ${module.name}: every weapon hangs in its own ` +
             "recess with nothing drawn under it (decision O)");
         }
@@ -1075,7 +1152,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const hullStop = Array.from({ length: BOSS_BAND_COLUMNS }, (_, c) => {
     for (let r = BOSS_BAND_ROWS - 1; r >= 0; r -= 1) {
       const key = r * BOSS_BAND_COLUMNS + c;
-      if (bandRows[r][c] !== 0 && !owner.has(key) && !seeThrough.has(key)) return r;
+      if (bandRows[r][c] !== 0 && !owner.has(key) && !seeThrough.has(key) && !fieldKeys.has(key)) return r;
     }
     return null;
   });
@@ -1228,6 +1305,16 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       cavityRows: module.cavityRows, stages: module.stages,
       cover: module.coverMask, open: openLooks.has(module.index) })),
     themeBytes: themeImage === null ? 0 : themeImage.length,
+    // S5-3: the force field (null without one): its row, the field code
+    // (look "b"; 0 for look "a"), both phases' bytes, the halves with their
+    // generators' module indices (the front-first order).
+    field: field === null ? null : {
+      look: field.look, row: field.row, framesPerPhase: field.framesPerPhase,
+      code: field.look === "b" ? plainCode({ index: plainIndex(field.phases[0]), bank: field.phases[0].bank ?? 0 }) : 0,
+      phases: field.phases.map((phase) => phase.bytes),
+      halves: field.halves.map((half) => ({ from: half.from, to: half.to,
+        generators: half.generators.map((name) => modules.find((m) => m.name === name).index) })),
+    },
     runs: Object.freeze({
       theme: { address: BOSS_STAGING_ADDRESS, sectors: BOSS_THEME_SECTORS, data: theme },
       bandA: { address: BOSS_BAND_A_ADDRESS, sectors: BOSS_BAND_A_SECTORS, data: bandA },

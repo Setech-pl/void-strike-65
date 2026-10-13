@@ -1,0 +1,72 @@
+{
+  "formatVersion": 2,
+  "name": "Siege Spine",
+  "style": 1,
+  "_": "Region 3's boss (S5-3, feat/boss-region-3; docs/plans/s5-boss-regions.md §4.4 and §6.3; the owner's banner in docs/design/boss-banners/): Siege Spine, the layered fortress with a force field. A long segmented spine with dorsal spikes (hull), a generator sphere at each end (gen-l, gen-r: armour), a domed siege cannon at the centre (emitter slot 1, fires from the first frame), two more emitters (slots 2-3) and two guns behind front plates, and two open guns near the ends. The field, in the band's front row between the generators, stops every player shot in its half while that half's generator stands (the region block's code, slot F); the boss's shots, its lasers and the player pass through. Destroying both generators drops the field for good. The boss falls with its last weapon. Art drawn by the agent with scripts/boss-r3-art.mjs (decision G); the owner retouches the PNGs. Hit points: Phase A's first values; Phase B tunes MEDIUM to 90-120 s with the aiming bot.",
+  "palette": {
+    "_": "COLPF0 cold steel (the plates' and spheres' face), COLPF1 field blue (trim, the field), COLPF2 amber (cores, lights, damage glow, sparks), COLPF3 the hull's dark slate-blue bulk.",
+    "colpf0": 12,
+    "colpf1": 150,
+    "colpf2": 40,
+    "colpf3": 4
+  },
+  "motion": {
+    "_": "As region 1: one colour clock every 2 frames across 63 and back, from 32; the window shows band columns 4-59 over the travel.",
+    "framesPerColourClock": 2,
+    "travelColourClocks": 63,
+    "startColourClock": 32,
+    "shakeFrames": 24,
+    "shakeAmplitude": 2
+  },
+  "chain": {
+    "blasts": 16,
+    "framesBetween": 6
+  },
+  "fire": {
+    "_": "One countdown as region 1; the finale on (fire.finaleCooldown, the S5-2 placeholders' value for regions 2-4).",
+    "cooldown": 24,
+    "finaleCooldown": 12
+  },
+  "escort": {
+    "_": "Region 1's cadence (owner decision AI, regions 2-4 follow region 1): the first escort at the first weapon kill, then one every 150 + 0..63 frames.",
+    "afterWeapons": 1,
+    "baseFrames": 150,
+    "jitterMask": 63
+  },
+  "capped": {
+    "hp": 8
+  },
+  "laser": {
+    "beamFrames": 50
+  },
+  "field": {
+    "_": "S5-3: the force field. Row 7 (the band's front row) from column 14 to 48, in two halves; each half stops every player shot in its columns while its generator stands (the shot's deflection on the field cell, the hull's tick), and collapses column by column from its generator once that generator is destroyed. The converter draws the field glyph (field.png phase A) in the field's cells; the region block's code swaps it with phase B every framesPerPhase frames.",
+    "row": 7,
+    "framesPerPhase": 4,
+    "halves": [
+      { "from": 14, "to": 31, "generators": ["gen-l"] },
+      { "from": 32, "to": 48, "generators": ["gen-r"] }
+    ]
+  },
+  "nozzles": {
+    "_": "The generators' vents beside each sphere (region 1's nozzle phases).",
+    "left": [[10, 1], [10, 2], [10, 3]],
+    "right": [[52, 1], [52, 2], [52, 3]],
+    "framesPerPhase": 6
+  },
+  "modules": [
+    { "name": "gen-l", "kind": "armour", "x": 11, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 50, "cavityRows": 3 },
+    { "name": "gen-r", "kind": "armour", "x": 49, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 50, "cavityRows": 3 },
+    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 60 },
+    { "name": "gun-2", "kind": "pulse", "x": 24, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 70 },
+    { "name": "gun-3", "kind": "pulse", "x": 37, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 75 },
+    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 60 },
+    { "name": "emitter-1", "kind": "emitter", "x": 30, "row": 2, "width": 3, "height": 3, "hp": 24, "score": 80, "slot": 1, "cavityRows": 2, "stages": "lens" },
+    { "name": "emitter-2", "kind": "emitter", "x": 19, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 60, "slot": 2, "stages": "lens" },
+    { "name": "emitter-3", "kind": "emitter", "x": 41, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 60, "slot": 3, "stages": "lens" },
+    { "name": "plate-a", "kind": "armour", "x": 18, "row": 4, "width": 5, "height": 2, "hp": 12, "score": 20 },
+    { "name": "plate-b", "kind": "armour", "x": 23, "row": 4, "width": 4, "height": 2, "hp": 12, "score": 20 },
+    { "name": "plate-c", "kind": "armour", "x": 36, "row": 4, "width": 4, "height": 2, "hp": 12, "score": 20 },
+    { "name": "plate-d", "kind": "armour", "x": 40, "row": 4, "width": 5, "height": 2, "hp": 12, "score": 20 }
+  ]
+}

@@ -4234,6 +4234,8 @@ function main() {
       addressEnvironment.DFTRACE_BOSS_EXPOSED = hex(bossLabels, "_boss_exposed_lo");
       addressEnvironment.DFTRACE_BOSS_COUNT = hex(bossLabels, "_boss_count");
       addressEnvironment.DFTRACE_BOSS_MODULE_TABLE = hex(bossLabels, "_boss_module_table");
+      // S5-3: the column map, so the boss-aim policy sees a force field.
+      addressEnvironment.DFTRACE_BOSS_COLUMN_MAP = hex(bossLabels, "boss_column_map");
     }
   }
 

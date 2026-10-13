@@ -157,6 +157,47 @@ export function renderBossPreview(region) {
   return { png: encodePng(rgb, width, height), width, height };
 }
 
+// S5-3 (fix/boss-polish's preview, plan boss-polish §10): every module in each
+// damage stage - intact, cracked, broken, in the look it is hit in - on the
+// left, and the same with the b3 hit flash (bit 7 of every non-blank module
+// cell toggled) on the right: build/boss-preview/region-N-stages.png.
+export function renderBossStagesPreview(region) {
+  const palette = [0x00, ...[0, 1, 2, 3].map((i) => region.tables[BOSS_TABLE.palette + i])];
+  const bandWidth = BOSS_BAND_COLUMNS * 4 * PIXEL_WIDTH;
+  const bandHeight = BOSS_BAND_ROWS * 8 * PIXEL_HEIGHT;
+  const [, cracked, broken, , opened] = panels(region);
+  const inModule = (r, c) => region.modules.some((m) => r >= m.row && r < m.row + m.height &&
+    c >= m.x && c < m.x + m.width);
+  const flashed = (rows) => rows.map((row, r) => row.map((code, c) =>
+    (inModule(r, c) && (code & 0x7f) !== 0 ? code ^ 0x80 : code)));
+  const stages = [opened, cracked, broken];
+  const width = 2 * bandWidth + 3 * GAP;
+  const height = GAP + stages.length * (bandHeight + GAP);
+  const registers = new Uint8Array(width * height).fill(0x02);
+  stages.forEach((rows, s) => [rows, flashed(rows)].forEach((view, side) => {
+    const top = GAP + s * (bandHeight + GAP);
+    const left = GAP + side * (bandWidth + GAP);
+    view.forEach((row, r) => row.forEach((code, c) => {
+      const bytes = glyphBytes(region, code);
+      for (let line = 0; line < 8; line += 1) {
+        for (let px = 0; px < 4; px += 1) {
+          const value = (bytes[line] >> (6 - px * 2)) & 3;
+          const register = value === 3 ? (code & 0x80 ? palette[4] : palette[3]) : palette[value];
+          for (let dy = 0; dy < PIXEL_HEIGHT; dy += 1) {
+            for (let dx = 0; dx < PIXEL_WIDTH; dx += 1) {
+              registers[(top + (r * 8 + line) * PIXEL_HEIGHT + dy) * width + left + (c * 4 + px) * PIXEL_WIDTH + dx] = register;
+            }
+          }
+        }
+      }
+    }));
+  }));
+  const rgb = Buffer.alloc(width * height * 3);
+  const colours = Array.from({ length: 256 }, (_, value) => atariPalRegisterToRgb(value));
+  registers.forEach((register, i) => rgb.set(colours[register], i * 3));
+  return { png: encodePng(rgb, width, height), width, height };
+}
+
 // feat/boss-r1-tuning: `-- --variant=NAME` previews region 1's comparison draft
 // from build/boss-variants/NAME/region-1/ (scripts/boss-r1-variants.mjs) into
 // build/boss-preview/region-1-variant-NAME.png.
@@ -170,6 +211,9 @@ export function writeBossPreview(regionNumber, { outputDirectory = path.join(roo
   const outputPath = path.join(outputDirectory,
     `region-${regionNumber}${variant === null ? "" : `-variant-${variant}`}.png`);
   fs.writeFileSync(outputPath, png);
+  if (variant === null) {
+    fs.writeFileSync(path.join(outputDirectory, `region-${regionNumber}-stages.png`), renderBossStagesPreview(region).png);
+  }
   return { outputPath, width, height, region };
 }
 

@@ -3269,7 +3269,8 @@ async function build() {
   // feat/interceptor-armour (owner answer of 2026-10-12, placement C): the
   // boss entry's cold tail, the last area of the boss image, rides in every
   // region's theme run at BOSS_ENTRY_COLD_OFFSET (zero there until now).
-  const bossEntryCold = bossImage.subarray(bossImage.length - BOSS_ENTRY_COLD_BYTES);
+  // (S5-3: a field build's slot F code follows it in the image.)
+  const bossEntryCold = bossImage.subarray(bossFixedImageBytes - BOSS_ENTRY_COLD_BYTES, bossFixedImageBytes);
   const regionRunData = (region, run) => {
     const data = Buffer.from(region.runs[run].data);
     if (run === "theme") {
@@ -4142,7 +4143,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null
+      bossVariantSlug !== undefined || escortVariantId !== null || fieldVariant !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"

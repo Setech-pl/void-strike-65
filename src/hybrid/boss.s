@@ -2092,6 +2092,12 @@ boss_shots_late:
     cmp #(BAND_TOP_Y / 2)
     bcs @wait
 @shown:
+.ifdef BOSS_FIELD
+    lda BOSS_F_HOOK                     ; S5-3: a falling field half's next column
+    beq :+                              ; (slot F), once the band has been shown
+    jsr BOSS_F_HOOK + 6
+:
+.endif
     ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
 @restore:
     lda boss_shot_hi,x
@@ -3275,6 +3281,7 @@ FIELD_SHAPE_Y       = BAND_TOP_Y + FIELD_ROW * 8 + 2
 field_hooks:
     jmp field_frame                     ; BOSS_F_HOOK: every frame, from laser_frame
     jmp field_publish                   ; BOSS_F_HOOK + 3: the band DLI's phase 0
+    jmp field_late                      ; BOSS_F_HOOK + 6: SECTOR_COMPLETION (slot E)
 
 ; Every boss frame, from laser_frame, before the player's shots meet the band.
 field_frame:
@@ -3294,7 +3301,7 @@ field_frame:
     ldx #(FIELD_HALVES - 1)
 @half:
     lda field_half,x
-    bne @collapse
+    bne @next                           ; collapsing (field_late) or down
     ldy field_gen_a,x                   ; powered while a generator stands
     lda _boss_hp,y
     bne @next
@@ -3306,32 +3313,6 @@ field_frame:
     inc field_half,x                    ; 1: collapsing, from the generator's side
     lda #$00
     sta field_glow,x
-    beq @next
-@collapse:
-    lsr
-    bcc @next                           ; 2: down
-    ldy field_cursor,x
-.ifdef BOSS_FIELD_LOOK_B
-    lda FIELD_ROW_CELLS,y
-    cmp #FIELD_CODE
-    bne @next                           ; a deflection shows there: next frame
-    lda #$00
-    sta FIELD_ROW_CELLS,y
-.endif
-    stx field_x
-    tya
-    tax
-    jsr boss_column_at                  ; the column as without the field (keeps X)
-    ldx field_x
-    lda field_cursor,x
-    cmp field_last,x
-    beq @down
-    clc
-    adc field_dir,x
-    sta field_cursor,x
-    bne @next
-@down:
-    inc field_half,x
 @next:
     dex
     bpl @half
@@ -3354,6 +3335,50 @@ field_frame:
     bpl :-
 @rts:
 .endif
+    rts
+
+; SECTOR_COMPLETION, once the band has been shown: a collapsing half's next
+; column - its cell cleared (look "b"), its map and stop line as without the
+; field (boss_column_at: the module walk, the boss's costliest step here) -
+; one column a frame, never on a kill frame or the exposure check's (the
+; draw queue's rule, plan §5.15.7: the stress frame is a kill frame).
+field_late:
+    lda boss_frame_heavy
+    ora _boss_heavy
+    ora _boss_phase
+    bne @rts
+    ldx #(FIELD_HALVES - 1)
+@half:
+    lda field_half,x
+    lsr
+    bcs @step                           ; 1: collapsing (0 powered, 2 down)
+    dex
+    bpl @half
+@rts:
+    rts
+@step:
+    ldy field_cursor,x
+.ifdef BOSS_FIELD_LOOK_B
+    lda FIELD_ROW_CELLS,y
+    cmp #FIELD_CODE
+    bne @rts                            ; a deflection shows there: next frame
+    lda #$00
+    sta FIELD_ROW_CELLS,y
+.endif
+    stx field_x
+    tya
+    tax
+    jsr boss_column_at                  ; the column as without the field (keeps X)
+    ldx field_x
+    lda field_cursor,x
+    cmp field_last,x
+    beq @down
+    clc
+    adc field_dir,x
+    sta field_cursor,x
+    rts
+@down:
+    inc field_half,x                    ; 2: down
     rts
 
 ; Once, on the first boss frame: every field column hull to a shot, its stop

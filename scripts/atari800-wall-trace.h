@@ -4871,6 +4871,18 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 	unsigned archetype = MEMORY_mem[dftrace_enemy_archetype];
 	unsigned height = MEMORY_mem[(dftrace_enemy_frame_heights + archetype) & 0xffffu];
 	unsigned body = (dftrace_enemy_body_data + archetype * 16u) & 0xffffu;
+	/* S5-3: in the boss sector P1 / P2 are no Heavy's (the compiler admits no
+	 * Heavy there): they are reserved for region 3's force field, whose
+	 * sprites are its own, so the Heavy body check has no subject. */
+	if (dftrace_boss_active()) {
+		for (slot = 0u; slot < 2u; ++slot) {
+			if (accumulate) continue;
+			frame->enemy_pmg_mismatch[slot] = 0u;
+			frame->enemy_pmg_mismatch_row[slot] = DFTRACE_ENEMY_PMG_NO_ROW;
+			frame->enemy_pmg_mismatch_writer[slot] = 0u;
+		}
+		return;
+	}
 	for (slot = 0u; slot < 2u; ++slot) {
 		unsigned plane = 0x3d00u + slot * 0x100u;
 		unsigned live = MEMORY_mem[dftrace_enemy_member_state + slot] != 0u;

@@ -192,6 +192,8 @@ test("runtime: the install arms nothing - no escort in 400 frames without a weap
 test("runtime: armour kills start nothing; the first weapon kill does, two frames on (after its exposure check)", () => {
   const { m, run } = fight();
   // Plates first: armour is not a weapon (plate-c, -d, -e guard gun-1, the emitter, gun-3).
+  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): plate-c guards emitter-l,
+  // plate-e gun-3; still armour, still no escort.
   for (const plate of ["plate-c", "plate-e"]) { kill(m, run, index(plate)); frames(m, run, 30); }
   assert.deepEqual(run.admissions, [], "an armour kill started the escort");
   const k = kill(m, run, index("gun-2"));
@@ -207,7 +209,8 @@ test("runtime: escorts keep coming every 150 + 0..63 frames, never two live, nev
   kill(m, run, index("gun-2"));
   // More kills along the way: they must neither re-trigger nor bring one early.
   frames(m, run, 300);
-  kill(m, run, index("plate-c"));
+  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): gun-1 behind plate-d.
+  kill(m, run, index("plate-d"));
   frames(m, run, 200);
   kill(m, run, index("gun-1"));
   frames(m, run, 1500);
@@ -241,7 +244,8 @@ test("runtime: a region with no escort never starts one, whatever is killed", ()
   placeBand(m, P);
   kill(m, run, index("gun-2"));
   frames(m, run, 50);
-  kill(m, run, index("plate-c"));
+  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): gun-1 behind plate-d.
+  kill(m, run, index("plate-d"));
   frames(m, run, 50);
   kill(m, run, index("gun-1"));
   frames(m, run, 600);
@@ -263,7 +267,8 @@ test("runtime, the Interceptor's own tick: never two live, every life under the 
     m[main("player_y")] = 190;
     kill(m, run, index("gun-2"));
     frames(m, run, 30);
-    kill(m, run, index("plate-c"));   // uncovers gun-1, the defeat below
+    // RE-POINTED feat/boss-r1-twin-lasers (layout L2): plate-d covers gun-1.
+    kill(m, run, index("plate-d"));   // uncovers gun-1, the defeat below
     frames(m, run, 700);
     const last = run.admissions.at(-1).frame;
     frames(m, run, Math.max(0, last + defeatAfter - run.frame));

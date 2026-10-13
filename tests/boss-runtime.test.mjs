@@ -195,8 +195,11 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   // boss_prepare patches the look copy's operand and (fortress session) the
   // nozzle copy's four operands; fix/boss-readability (decision M) adds the
   // hull-stop table's, in the column map's base routine.
+  // feat/boss-r1-twin-lasers: the install patches the band's last shown row
+  // into boss_apply_pos.
   for (const at of [operand, ...["boss_nozzle_src_l", "boss_nozzle_src_r", "boss_nozzle_dst_l", "boss_nozzle_dst_r"]
-    .map((name) => label("boss", name) + 1), label("boss", "boss_hull_stop_operand")]) {
+    .map((name) => label("boss", name) + 1), label("boss", "boss_hull_stop_operand"),
+  label("boss", "boss_band_last_operand")]) {
     asRead.set(code.subarray(at - SLOT.address, at - SLOT.address + 2), at - SLOT.address);
   }
   assert.deepEqual([...asRead], [...code]);
@@ -209,22 +212,28 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   // The band's rows in slot B.
   region1.bandRows.forEach((row, index) => assert.deepEqual(
     [...memory.subarray(BAND_ROW_BASE[index], BAND_ROW_BASE[index] + 64)], row, `band row ${index}`));
-  // The list: HUD, divider, 8 HSCROL rows into the band, 19 ring rows, JVB.
+  // The list: HUD, divider, the band's HSCROL rows, the ring's rows, JVB.
+  // RE-POINTED feat/boss-r1-twin-lasers (owner smoke of 2026-10-13): the band
+  // rows are those down to the band's last row with a cell - region 1's
+  // one-row belt leaves rows 5-7 blank, so 5 band rows and 22 ring rows (were
+  // 8 and 19); a shot under the belt is then in the ring's charset and colours.
+  const shown = BOSS.regions[0].bandShownRows;
+  assert.equal(shown, 5);
   const list = memory.subarray(DLIST_A, DLIST_A + 90);
   assert.deepEqual([...list.subarray(0, 6)], [0xc2, 0x00, 0x40, 0x44, 0x28, 0x40]);
   const start = memory[T("start")];
   const lms = (start + 15 & 0xf0) >> 2;
-  for (let row = 0; row < 8; row += 1) {
-    assert.equal(list[6 + row * 3], row === 7 ? 0xd4 : 0x54, `band row ${row} mode`);
+  for (let row = 0; row < shown; row += 1) {
+    assert.equal(list[6 + row * 3], row === shown - 1 ? 0xd4 : 0x54, `band row ${row} mode`);
     assert.equal(list[7 + row * 3] | (list[8 + row * 3] << 8), BAND_ROW_BASE[row] + lms);
   }
   const rowLo = label("main", "PLAYFIELD_ROW_LO");
   const rowHi = label("main", "PLAYFIELD_ROW_HI");
-  for (let ring = 0; ring < 19; ring += 1) {
-    const at = 30 + ring * 3;
-    assert.equal(list[at], ring === 18 ? 0xc4 : 0x44);
+  for (let ring = shown; ring < 27; ring += 1) {
+    const at = 6 + ring * 3;
+    assert.equal(list[at], ring === 26 ? 0xc4 : 0x44);
     assert.equal(list[at + 1] | (list[at + 2] << 8),
-      memory[rowLo + 8 + ring] | (memory[rowHi + 8 + ring] << 8), `ring row ${8 + ring}`);
+      memory[rowLo + ring] | (memory[rowHi + ring] << 8), `ring row ${ring}`);
   }
   assert.deepEqual([...list.subarray(87, 90)], [0x41, DLIST_A & 0xff, DLIST_A >> 8]);
   const dlis = (bytes) => [0, 3, ...Array.from({ length: 27 }, (_, i) => 6 + i * 3)]
@@ -337,7 +346,9 @@ test("the band drifts by HSCROL every step, the LMS moves every 16 colour clocks
     // LMS*4 - HSCROL is the position on screen.
     const lastH = writes.filter(([r]) => r === 0xd404).at(-1);
     if (lastH) assert.equal(lms * 4 - lastH[1], memory[shown]);
-    for (let row = 1; row < 8; row += 1) {
+    // RE-POINTED feat/boss-r1-twin-lasers: the band's shown rows only - the
+    // rows under them are the ring's, whose LMS never moves.
+    for (let row = 1; row < BOSS.regions[0].bandShownRows; row += 1) {
       assert.equal(word(memory, DLIST_A + 7 + row * 3), BAND_ROW_BASE[row] + lms, `row ${row} LMS`);
     }
   }

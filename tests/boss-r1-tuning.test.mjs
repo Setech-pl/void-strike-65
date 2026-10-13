@@ -128,11 +128,14 @@ test("variant B: level 1's boss sector authors one Interceptor escort wave under
 // RE-POINTED feat/interceptor-standoff (owner answer Q6 of 2026-10-11):
 // plates b-g 4 hit points lighter (b, c, g 16 -> 12; d, e 20 -> 16; f 12 -> 8);
 // a and h keep variant B's 12.
-test("variant B and the standoff's retune: plates a and h at 12, plates b-g 4 hit points lighter", () => {
+// RE-POINTED feat/boss-r1-twin-lasers (owner answer 3 of 2026-10-13): the
+// fight trimmed by plate hit points after the band rework, to MEDIUM about
+// 110 s by the aiming bot - a, b, c, g, h 12 -> 8; d, e 16 -> 10; f 8 -> 6.
+test("the twin-laser retune: plates a, b, c, g and h at 8, d and e at 10, f at 6", () => {
   const plates = Object.fromEntries(draft.layout.modules.filter((module) => module.kind === "armour")
     .map((module) => [module.name, module.hp]));
-  assert.deepEqual(plates, { "plate-a": 12, "plate-b": 12, "plate-c": 12, "plate-d": 16, "plate-e": 16,
-    "plate-f": 8, "plate-g": 12, "plate-h": 12 });
+  assert.deepEqual(plates, { "plate-a": 8, "plate-b": 8, "plate-c": 8, "plate-d": 10, "plate-e": 10,
+    "plate-f": 6, "plate-g": 8, "plate-h": 8 });
 });
 
 test("variant B on the emulator: every director-complete fight meets the escort, never more than one Light live", () => {

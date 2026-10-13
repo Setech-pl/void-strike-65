@@ -4513,6 +4513,8 @@ async function build() {
         // feat/boss-r1-twin-lasers: the twin cannons' names (one laser, fired
         // from them in turn), or null.
         twin: region.twin,
+        // The band rows the display list shows; the ring's rows under them.
+        bandShownRows: region.bandShownRows,
         // S5-3: the force field (null without one): its row, its halves with
         // their generators, its code's bytes in the block (slot F).
         field: region.field === null ? null : { row: region.field.row, code: region.field.code,

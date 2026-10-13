@@ -113,10 +113,20 @@ test("the other layout rules: overlap, 16 modules, emitter slots, a weapon, the 
     /module b overlaps module a at cell \(11, 7\)/);
   const seventeen = Array.from({ length: 17 }, (_, i) => gun(`g${i}`, 2 + i * 3));
   rejects(() => compileBossRegion(fixtureDraft(fixtureLayout(seventeen))), /17 modules; a boss has 1..16/);
-  rejects(() => compileBossRegion(fixtureDraft(fixtureLayout([
-    { name: "e", kind: "emitter", x: 10, row: 7, width: 2, height: 1, hp: 4, score: 1, slot: 1 },
-    { name: "f", kind: "emitter", x: 20, row: 7, width: 2, height: 1, hp: 4, score: 1, slot: 1 }]))),
-  /emitter slot 1 is authored twice/);
+  // RE-POINTED feat/boss-r1-twin-lasers (owner answer of 2026-10-13, layout
+  // L2): slot 1 may hold the twin cannons - two emitters, one laser fired from
+  // them in turn - so a third slot-1 emitter is refused, a slot-2 emitter
+  // beside the twins (the second takes slot 2's laser), and any other slot
+  // authored twice.
+  const emitter = (name, x, slot) => ({ name, kind: "emitter", x, row: 7, width: 2, height: 1, hp: 4, score: 1, slot });
+  assert.deepEqual(compileBossRegion(fixtureDraft(fixtureLayout([emitter("e", 10, 1), emitter("f", 20, 1)]))).twin,
+    ["e", "f"]);
+  rejects(() => compileBossRegion(fixtureDraft(fixtureLayout([emitter("e", 10, 1), emitter("f", 20, 1),
+    emitter("g", 30, 1)]))), /emitter slot 1 is authored twice/);
+  rejects(() => compileBossRegion(fixtureDraft(fixtureLayout([emitter("e", 10, 1), emitter("f", 20, 1),
+    emitter("g", 30, 2)]))), /no slot-2 emitter/);
+  rejects(() => compileBossRegion(fixtureDraft(fixtureLayout([emitter("e", 10, 2), emitter("f", 20, 2)]))),
+    /emitter slot 2 is authored twice/);
   rejects(() => compileBossRegion(fixtureDraft(fixtureLayout([gun("a", 10, { slot: 2 })]))),
     /only an emitter has a slot/);
   rejects(() => compileBossRegion(fixtureDraft(fixtureLayout([{ name: "p", kind: "armour", x: 10,

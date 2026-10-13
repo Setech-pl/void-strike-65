@@ -18,7 +18,7 @@ import test from "node:test";
 
 import * as assets from "../scripts/boss-assets.mjs";
 import {
-  call, cpuOver, Drive, installRegion, label, labelsOf, nmi, placeBand, root, runBossEntry,
+  call, cpuOver, Drive, installRegion, label, labelsOf, manifest, nmi, placeBand, root, runBossEntry,
   runUntil, shootAt, visibleCells,
 } from "./boss-harness.mjs";
 
@@ -158,10 +158,14 @@ test("B2: the install writes M1's and M2's columns from the lens core, COLPM1 / 
   call(memory, lbl("laser_prepare"), { hooks });
   assert.deepEqual(writesTo(writes, PRIOR), [], "the install wrote PRIOR");
   assert.deepEqual([writesTo(writes, 0xd013), writesTo(writes, 0xd014)], [[0x46], [0x46]], "COLPM1 / COLPM2");
-  const emitter = byName.get("emitter");
-  assert.equal(laser(memory, "module", 0), emitter, "the emitter (slot 1) is not laser 0");
-  for (let i = 1; i < LASERS; i += 1) assert.equal(laser(memory, "module", i), 0xff, `laser ${i} has a module`);
+  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): slot 1 holds the twin
+  // cannons - emitter-l laser 0, emitter-r laser 1 (slot 2's, which region 1
+  // never uses); their lenses on one line.
+  const emitter = byName.get("emitter-l");
+  assert.deepEqual([0, 1, 2, 3].map((i) => laser(memory, "module", i)), [emitter, byName.get("emitter-r"), 0xff, 0xff],
+    "slot 1's twins are not lasers 0 and 1");
   const top = B2_LINE(region1.modules[emitter]);
+  assert.equal(B2_LINE(region1.modules[byName.get("emitter-r")]), top);
   for (let line = 0; line < 256; line += 1) {
     const expected = line >= top && line < 240 ? 0x28 : 0x00;    // M1's and M2's left bits, never M0's or M3's
     assert.equal(memory[MISSILES + line], expected, `missile plane line ${line}`);
@@ -171,8 +175,10 @@ test("B2: the install writes M1's and M2's columns from the lens core, COLPM1 / 
 test("the laser count per tier: region 1 on level 1 has 1; the fixture has 2 on level 5 and 4 on level 9", () => {
   const one = regionOne();
   assert.equal(one[lbl("boss_laser_slots")], 1);
-  assert.equal(one[lbl("_boss_kind") + byName.get("emitter")], BOSS_KIND.emitter,
-    "region 1's emitter is still capped on level 1");
+  // RE-POINTED feat/boss-r1-twin-lasers: both twin cannons are slot 1's.
+  for (const name of ["emitter-l", "emitter-r"]) {
+    assert.equal(one[lbl("_boss_kind") + byName.get(name)], BOSS_KIND.emitter, `region 1's ${name} is capped on level 1`);
+  }
   // RE-POINTED S4b.1 (owner decision D1): the fixture's emitters are dedicated
   // modules (emitter-2/3/4), never the pulse guns.
   const two = laserFixture(5);
@@ -436,20 +442,26 @@ test("QA1: a boss pulse shot is born at the gun's muzzle and drawn in the band d
   const centre = module.x + (module.width >> 1);
   const base = memory[0xad00 + assets.BOSS_TABLE.shotCode] + assets.BOSS_SHOT_CODES;
   const isHostile = (code) => code === base || code === base + 1;
+  // RE-POINTED feat/boss-r1-twin-lasers (owner smoke of 2026-10-13): down to
+  // the shown band's edge - region 1's ends under its belt (row 4, line 64;
+  // was the 8-row band's, line 88); under it the shot is the ring's.
+  const edge = 24 + manifest.boss.regions[0].bandShownRows * 8;
   let y = muzzle;
   const seen = [];
-  for (; y < 88; y += 8) {
+  for (; y < edge; y += 8) {
     memory[main("FIGHTER_PROJECTILE_Y") + slot] = y;
     update(memory);
     const row = (y - 24) >> 3;
     assert.ok(isHostile(memory[bossBandRowAddress(row) + centre]), `no shot drawn in row ${row}`);
-    for (let other = 4; other < 8; other += 1) {
+    for (let other = 2; other < 8; other += 1) {
       if (other !== row) assert.ok(!isHostile(memory[bossBandRowAddress(other) + centre]), `a stale shot in row ${other}`);
     }
     seen.push(row);
   }
-  assert.ok(seen.length >= 3, `the shot crossed only rows ${seen}`);
-  memory[main("FIGHTER_PROJECTILE_Y") + slot] = 88;
+  const rows = Array.from({ length: (edge - muzzle) >> 3 }, (_, k) => ((muzzle - 24) >> 3) + k);
+  assert.ok(rows.length >= 1);
+  assert.deepEqual(seen, rows, "the shot was not drawn in every band row between the muzzle and the edge");
+  memory[main("FIGHTER_PROJECTILE_Y") + slot] = edge;
   update(memory);
   for (let row = 0; row < 8; row += 1) {
     assert.ok(!isHostile(memory[bossBandRowAddress(row) + centre]), `the shot stayed drawn in row ${row} past the edge`);
@@ -476,8 +488,10 @@ test("leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 res
   memory[main("player_x")] = 60;
   // RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): gun-5 and
   // gun-6 behind plate-a and plate-h are weapons too and fall before gun-2.
-  const order = ["plate-d", "emitter", "plate-g", "gun-4", "plate-f", "plate-e", "gun-3", "plate-c", "gun-1",
-    "plate-a", "gun-5", "plate-h", "gun-6", "gun-2"];
+  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): the twin cannons behind
+  // plate-c and plate-f, gun-1 behind plate-d.
+  const order = ["plate-c", "emitter-l", "plate-f", "emitter-r", "plate-g", "gun-4", "plate-e", "gun-3", "plate-d",
+    "gun-1", "plate-a", "gun-5", "plate-h", "gun-6", "gun-2"];
   for (const name of order) {
     const index = byName.get(name);
     for (let guard = 0; guard < 600 && hp(memory, index) > 0 && memory[lbl("_boss_phase")] === 0; guard += 1) {
@@ -634,7 +648,9 @@ test("QA1: inside the band a boss shot rides the band's drift and stays in its g
   const centre = module.x + (module.width >> 1);
   const base = memory[0xad00 + assets.BOSS_TABLE.shotCode] + assets.BOSS_SHOT_CODES;
   let p = 32;
-  for (let y = 24 + (module.row + module.height) * 8; y < 88; y += 2) {
+  // RE-POINTED feat/boss-r1-twin-lasers: inside the shown band (to line 64 in
+  // region 1; was 88) - under it the shot is the ring's and rides nothing.
+  for (let y = 24 + (module.row + module.height) * 8; y < 24 + manifest.boss.regions[0].bandShownRows * 8; y += 2) {
     p = Math.min(63, p + 1);                     // the band drifts a clock a frame here (twice the game's)
     placeBand(memory, p);
     memory[main("FIGHTER_PROJECTILE_Y") + slot] = y;

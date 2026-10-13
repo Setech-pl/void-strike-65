@@ -94,6 +94,13 @@ DIRECTOR_STATE_SECTOR = $80F6
 SR_BAD_IMAGE    = 4
 
 ; The band: display rows 1-8 under the divider, scanlines 24-87 (plan §5.3).
+; feat/boss-r1-twin-lasers (owner smoke of 2026-10-13): the list shows the band
+; only down to its last row holding a cell (boss_band_measure, at the install);
+; the rows under it are ring rows, so a shot there has the playfield's charset
+; and colours. BAND_BOTTOM_Y stays the 8-row band's edge for the player's reach
+; and the shots' meeting test; the shown edge is patched into
+; boss_hostile_bottom_operand, boss_late_bottom_operand and
+; boss_capsule_y_operand, the last shown row into boss_band_last_operand.
 BAND_TOP_Y      = GAMEPLAY_TOP + 8
 BAND_BOTTOM_Y   = BAND_TOP_Y + BOSS_BAND_ROWS * 8
 ; A shot that reaches the band's bottom edge has reached the band; the player
@@ -105,8 +112,8 @@ BOSS_PLAYER_Y_MIN = BAND_BOTTOM_Y
 ; ch_offset 4 - h/4, x_min moved by (h & 3) - 4; the HRM's horizontal-scroll
 ; rule). The normal window's first colour clock is HPOS 48.
 BAND_ORIGIN_HPOS = 32
-; The ring rows that stay visible under the band: display rows 9-27.
-RING_FIRST_VISIBLE = BOSS_BAND_ROWS
+; The ring rows that stay visible under the band: from the first row under
+; the shown band (display row 6 or 9) to display row 27.
 RING_ROWS       = 27
 
 ; boss_draw_module's four ways to fill a module's cells (bits 7 and 6, read
@@ -174,6 +181,8 @@ BOSS_REGION_RUNS = 4
 .export boss_tick_timer, boss_queue_head, boss_queue_tail
 .export boss_nozzle_dark, boss_column_from, boss_ring_set
 .export boss_stop_y, boss_shot_lo, boss_shot_hi, boss_hull_stop_operand, boss_shot_meet
+.export boss_band_last_operand, boss_hostile_bottom_operand, boss_late_bottom_operand
+.export boss_capsule_y_operand, boss_band_measure
 .export boss_shots_late
 ; The controller's view of the region's tables, the level, main and the
 ; summary (src/c/boss.c): every address it reads is one of this link's.
@@ -425,7 +434,8 @@ boss_apply_pos:
     cmp boss_shown_lms
     beq @done
     sta boss_shown_lms
-    ldx #(BOSS_BAND_ROWS - 1)
+@last:
+    ldx #(BOSS_BAND_ROWS - 1)           ; the band's last shown row (the install)
 @row:
     lda boss_shown_lms
     ora boss_band_lo,x                  ; each row is 64 B on a 64-B boundary
@@ -440,6 +450,7 @@ boss_apply_pos:
     bpl @row
 @done:
     rts
+boss_band_last_operand = @last + 1
 
 ; ===========================================================================
 ; PREPARE_ROW, every frame from update_starfield (the world is stopped, so it
@@ -2136,10 +2147,12 @@ boss_capsule_kill:
     adc #(BAND_ORIGIN_HPOS - 8)         ; the capsule centred on it (spawn adds 4)
     jsr weapon_pickup_spawn_capsule_at
     jsr integration_pickup_reveal_body
-    lda #BAND_BOTTOM_Y
+@capsule_y:
+    lda #BAND_BOTTOM_Y                  ; the shown band's edge (the install)
     sta ENTITY_Y + WEAPON_PICKUP_SLOT
 @rts:
     rts
+boss_capsule_y_operand = @capsule_y + 1
 
 ; Every boss frame (from laser_frame): the boss sector's world is still (Q1),
 ; and a capsule falls at half the world's speed (src/main.s
@@ -2209,7 +2222,8 @@ boss_shots_late:
     lda FIGHTER_PROJECTILE_ACTIVE,x
     beq @next
     lda FIGHTER_PROJECTILE_Y,x
-    cmp #BAND_BOTTOM_Y
+@late_bottom:
+    cmp #BAND_BOTTOM_Y                  ; the shown band's edge (the install)
     bcs @next                           ; below the band: the ring draws it
     lda FIGHTER_PROJECTILE_X,x
     sec
@@ -2255,6 +2269,7 @@ boss_shots_late:
     dex
     bpl @shot
     jmp boss_completion
+boss_late_bottom_operand = @late_bottom + 1
 .segment "BOSS_D_CODE"
 
 ; S4b.4 (owner decision 4): right after the controller's tick, which exposes
@@ -2883,8 +2898,9 @@ laser_hostile_shots:
     lda FIGHTER_PROJECTILE_ACTIVE + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
     beq @next
     lda FIGHTER_PROJECTILE_Y + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
-    cmp #BAND_BOTTOM_Y
-    bcs @next
+@hostile_bottom:
+    cmp #BAND_BOTTOM_Y                  ; the shown band's edge (the install):
+    bcs @next                           ; under it a shot is the ring's
     lda FIGHTER_PROJECTILE_X + INTERCEPTOR_PROJECTILE_SLOT_BASE,x
     sec                                 ; rides the band: HPOS = 32 + 4c - p
     sbc laser_d
@@ -2926,6 +2942,35 @@ laser_hostile_shots:
 @next:
     dex
     bpl @shot
+    rts
+boss_hostile_bottom_operand = @hostile_bottom + 1
+
+; feat/boss-r1-twin-lasers (owner smoke of 2026-10-13), once, from the
+; install: X = the band's last row holding a cell (row 0 when none does), A
+; = the line under it, the shown band's edge. Region 1's one-row belt leaves
+; rows 5-7 blank; drawn in the band they showed a shot in the band's charset
+; and colours (grey), so the list ends the band under its last row.
+boss_band_measure:
+    ldx #(BOSS_BAND_ROWS - 1)
+@row:
+    lda boss_band_lo,x
+    sta dst_ptr
+    lda boss_band_hi,x
+    sta dst_ptr+1
+    ldy #(BOSS_BAND_COLUMNS - 1)
+@cell:
+    lda (dst_ptr),y
+    bne @found
+    dey
+    bpl @cell
+    dex
+    bne @row
+@found:
+    txa
+    asl
+    asl
+    asl
+    adc #(BAND_TOP_Y + 8)               ; C=0: X <= 7
     rts
 
 ; The band DLI's phase 0 (A only): each laser's HPOS for the frame starting -
@@ -3148,7 +3193,16 @@ boss_install:
     jsr weapon_pickup_clear_sector
     jsr draw_player
     ; 6. The band's display list over list A, which both list pointers name
-    ;    from now on (the world never rotates in a boss sector).
+    ;    from now on (the world never rotates in a boss sector): the band
+    ;    down to its last row holding a cell, then the ring (feat/boss-r1-
+    ;    twin-lasers: a shot under the band is drawn in the ring's charset
+    ;    and colours); that row and the shown edge patched into the code
+    ;    that reads them.
+    jsr boss_band_measure
+    stx boss_band_last_operand
+    sta boss_hostile_bottom_operand
+    sta boss_late_bottom_operand
+    sta boss_capsule_y_operand
     ldx #$00
 @header:
     lda boss_dl_header,x
@@ -3159,7 +3213,7 @@ boss_install:
     ldy #$00
 @band:
     lda #$54                            ; ANTIC 4, HSCROL, LMS
-    cpy #(BOSS_BAND_ROWS - 1)
+    cpy boss_band_last_operand          ; C=1 from the last shown row on
     bne :+
     lda #$D4                            ; + the band's DLI
 :
@@ -3172,9 +3226,7 @@ boss_install:
     inx
     inx
     iny
-    cpy #BOSS_BAND_ROWS
-    bne @band
-    ldy #RING_FIRST_VISIBLE
+    bcc @band                           ; Y = the ring's first shown row
 @ring:
     lda #$44                            ; ANTIC 4, LMS
     cpy #(RING_ROWS - 1)

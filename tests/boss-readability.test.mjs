@@ -33,6 +33,10 @@ const cell = (memory, column, row) => memory[bossBandRowAddress(row) + column];
 const columnCells = (memory, column) => [...Array(8).keys()].map((row) => cell(memory, column, row));
 const columnMap = (memory) => [...memory.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)];
 // The region's four in-band shot codes (undefined before this change).
+// feat/boss-r1-twin-lasers (owner smoke of 2026-10-13): the band rows the
+// list shows (region 1's end under its belt, row 4); under them a shot is the
+// ring's, never a band cell.
+const SHOWN = manifest.boss.regions[0].bandShownRows;
 const shotCodes = Number.isInteger(region1.shotCode)
   ? new Set([0, 1, 2, 3].map((i) => region1.shotCode + i)) : new Set();
 const isShot = (code) => shotCodes.has(code);
@@ -159,11 +163,18 @@ test("a shot is drawn cell by cell inside the band until the cell that stops it,
   const last = track.at(-1);
   assert.equal(last.active, false, "the shot never met gun-2");
   assert.equal(hp(memory, gun2), before - 1, "gun-2 took no damage");
+  // RE-POINTED feat/boss-r1-twin-lasers: drawn in each shown band row; under
+  // the shown band (rows 5-7 in region 1) the ring draws it, the band never.
   for (const step of track.slice(0, -1)) {
     assert.ok(step.row > 3, `the shot flew on at row ${step.row}, inside gun-2`);
+    if (step.row >= SHOWN) {
+      assert.equal(step.cells.filter(isShot).length, 0, `the shot under the shown band (row ${step.row}) is a band cell`);
+      continue;
+    }
     assert.ok(isShot(step.cells[step.row]), `the shot is not drawn in row ${step.row} (y ${step.y})`);
     assert.equal(step.cells.filter(isShot).length, 1, "more than one cell shows the shot");
   }
+  assert.ok(track.some((step) => step.row < SHOWN && isShot(step.cells[step.row])), "never drawn in the band");
   assert.ok(track.length >= 5, `the shot was visible for only ${track.length - 1} frames`);
   settle(memory, 3);
   assert.ok(!bandHasShot(memory), "a shot glyph stayed in the band");
@@ -172,13 +183,15 @@ test("a shot is drawn cell by cell inside the band until the cell that stops it,
 // RE-POINTED (owner decision O, which withdraws M1): there is no strip under
 // gun-1 any more - the shot is drawn through its empty recess, row 3
 // included, up to the cannon.
+// RE-POINTED feat/boss-r1-twin-lasers (layout L2): gun-1 at columns 31-33,
+// behind plate-d (was 22-24, behind plate-c).
 test("decision O: a shot flies up a recessed cannon's empty recess and hits the cannon", () => {
   const memory = fortress(32);
-  kill(memory, "plate-c");
+  kill(memory, "plate-d");
   const gun1 = byName.get("gun-1");
   const before = hp(memory, gun1);
   const hits = memory[STATS_HITS];
-  const track = fly(memory, 24);
+  const track = fly(memory, 33);
   assert.equal(track.at(-1).active, false);
   assert.equal(hp(memory, gun1), before - 1, "gun-1 took no damage");
   assert.equal(memory[STATS_HITS], hits + 1, "the hit is not counted");
@@ -194,8 +207,14 @@ test("a shot over open sky beyond the hull is drawn in the band and removed when
   const last = track.at(-1);
   assert.equal(last.active, false, "the shot was not removed");
   assert.ok(last.y < BAND_TOP_Y, `the shot was removed at y ${last.y}, inside the band`);
-  assert.ok(track.filter((step) => step.active && isShot(step.cells[step.row])).length >= 8,
+  // RE-POINTED feat/boss-r1-twin-lasers: through the shown band - every
+  // frame inside it, five rows at six lines a frame (was eight frames through
+  // eight rows); under it the shot is the ring's.
+  const inside = track.filter((step) => step.active && step.row >= 0 && step.row < SHOWN);
+  assert.ok(inside.length >= 5 && inside.every((step) => isShot(step.cells[step.row])),
     "the shot was not drawn on its way through the band");
+  assert.ok(track.filter((step) => step.row >= SHOWN).every((step) => !step.cells.some(isShot)),
+    "the shot was drawn in the band under its shown rows");
 });
 
 // RE-POINTED (decision O): the girders are region 1's named see-through cells
@@ -212,24 +231,34 @@ test("the girders stop nothing: a girder column's shot meets the hull above it",
     assert.equal(last.active, false);
     assert.ok(last.row < hullRows, `the girder at column ${column} stopped the shot at row ${last.row}`);
     assert.equal(last.cells[last.row], region1.deflect, `no deflection on the hull's row ${last.row}`);
-    assert.ok(track.some((step) => step.active && step.row >= hullRows && isShot(step.cells[step.row])),
-      "the shot is not drawn below the hull");
+    // RE-POINTED feat/boss-r1-twin-lasers: below the hull the shot flies
+    // through the girder (drawn behind it) and, under the shown band, in the
+    // ring; it is never a band cell there.
+    assert.ok(track.some((step) => step.active && step.row === hullRows), "the shot never reached the girder's row");
+    assert.ok(track.some((step) => step.active && step.row >= SHOWN && !step.cells.some(isShot)),
+      "the shot is not the ring's below the hull");
   }
 });
 
 // RE-POINTED (decision O): gun-4's row-4 pieces under it are gone; its
 // recess is empty to the plate, and the shot is drawn in it.
+// RE-POINTED feat/boss-r1-twin-lasers (the one-row belt): plate-g is the
+// belt's cell in row 4 under gun-4 - no hull art - and once it falls the
+// recess is that row, where the shot is drawn.
 test("a shot in a column under gun-4 flies through its empty recess to the cannon", () => {
+  const plateG = region1.modules[byName.get("plate-g")];
   const memory = fortress(32);
   kill(memory, "plate-g");
   const gun4 = byName.get("gun-4");
   for (const column of [44, 46]) {
-    assert.equal(region1.bandRows[4][column], 0, `column ${column}: hull art in row 4 under gun-4`);
+    assert.ok(column >= plateG.x && column < plateG.x + plateG.width && plateG.row === 4,
+      `column ${column}: row 4 under gun-4 is not plate-g's`);
+    assert.equal(cell(memory, column, 4), 0, `column ${column}: something stays in row 4 under gun-4`);
     const before = hp(memory, gun4);
     const track = fly(memory, column);
     assert.equal(track.at(-1).active, false);
     assert.equal(hp(memory, gun4), before - 1, `column ${column}: gun-4 took no damage`);
-    assert.ok(track.some((step) => step.active && step.row >= 5 && isShot(step.cells[step.row])),
+    assert.ok(track.some((step) => step.active && step.row === 4 && isShot(step.cells[step.row])),
       `column ${column}: the shot is not drawn in the recess`);
   }
 });

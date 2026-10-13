@@ -506,7 +506,10 @@ export const BOSS_LASER_FIXTURE = Object.freeze({
     Object.freeze({ name: "emitter-3", slot: 3, x: 7, row: 1 }),
     Object.freeze({ name: "emitter-4", slot: 4, x: 53, row: 1, cover: Object.freeze([]) }),
   ]),
-  removed: Object.freeze(["plate-d", "plate-e"]),
+  // feat/boss-r1-twin-lasers: plate-c too - the slot-1 emitter (region 1's
+  // emitter-l) stands behind it, and the fixture's emitters are exposed from
+  // the first frame.
+  removed: Object.freeze(["plate-c", "plate-d", "plate-e"]),
 });
 export function bossLaserFixtureDraft(draft, tier = 4) {
   if (![1, 2, 3, 4].includes(tier)) fail(`the laser fixture's tier is ${tier}; 1..4`);
@@ -514,7 +517,8 @@ export function bossLaserFixtureDraft(draft, tier = 4) {
   const emitter = draft.layout.modules.find((module) => module.kind === "emitter" && module.slot === 1);
   if (emitter === undefined) fail("the laser fixture needs region 1's emitter (slot 1)");
   // feat/boss-r1-twin-lasers: the fixture's slots are one emitter each - a
-  // twin cannon of region 1 stays as its art, not a module (hull).
+  // twin cannon of region 1 stays as its art, not a module (hull); the one
+  // kept is the fixture's "emitter", as its slots 2-4 are emitter-2..4.
   const partners = new Set(draft.layout.modules.filter((module) => module !== emitter && module.kind === "emitter" &&
     module.slot === 1).map((module) => module.name));
   const added = BOSS_LASER_FIXTURE.emitters.filter(({ slot }) => slot <= tier).map(({ name, slot, x, row, cover }) => {
@@ -522,7 +526,7 @@ export function bossLaserFixtureDraft(draft, tier = 4) {
     return { ...rest, name, slot, x, row, ...(cover === undefined ? {} : { cover: [...cover] }) };
   });
   const modules = [...draft.layout.modules.filter((module) => !BOSS_LASER_FIXTURE.removed.includes(module.name) &&
-    !partners.has(module.name)), ...added];
+    !partners.has(module.name)).map((module) => (module === emitter ? { ...module, name: "emitter" } : module)), ...added];
   const images = {};
   for (const [name, image] of Object.entries(draft.images)) {
     const indices = Uint8Array.from(image.indices);
@@ -1137,6 +1141,20 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
 
   const bandRows = Array.from({ length: BOSS_BAND_ROWS }, (_, r) =>
     Array.from({ length: BOSS_BAND_COLUMNS }, (_, c) => codeOf(cellRefs.get(r * BOSS_BAND_COLUMNS + c))));
+  // feat/boss-r1-twin-lasers (owner smoke of 2026-10-13): the display list
+  // shows the band down to its last row holding a cell (src/hybrid/boss.s
+  // boss_band_measure, at the install); the rows under it are the ring's, in
+  // the playfield's charset and colours. Nothing the fight draws may lie
+  // there: every module (its looks, stages, flash and blasts stay inside it)
+  // and the field must end on a shown row.
+  const bandShownRows = bossBandShownRows(bandRows);
+  for (const module of modules) {
+    if (module.row + module.height > bandShownRows) {
+      fail(`module ${module.name} reaches band row ${module.row + module.height - 1}, under the band's ` +
+        `last row holding a cell (${bandShownRows - 1}): the list would not show it`);
+    }
+  }
+  if (field !== null && field.row >= bandShownRows) fail(`the field's row ${field.row} is not a shown band row`);
 
   // The look tail, after the last glyph: the open looks, then the nozzles'
   // six phase images.
@@ -1315,6 +1333,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     lookTailAddress,
     charsetBytes,
     bandRows,
+    bandShownRows,
     tables,
     openLooks: new Map([...openLooks].map(([index, look]) => [index,
       look.map((ref) => (ref.block === "plain" ? plainCode(ref) : stagedCode(ref)))])),
@@ -1352,6 +1371,14 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
         data: Uint8Array.from({ length: Math.ceil(tail.length / 128) * 128 }, (_, i) => tail[i] ?? 0) },
     }),
   });
+}
+
+// feat/boss-r1-twin-lasers: the rows the display list shows - down to the
+// last row holding a cell (row 0 always), as boss_band_measure finds them.
+export function bossBandShownRows(bandRows) {
+  let last = BOSS_BAND_ROWS - 1;
+  while (last > 0 && bandRows[last].every((code) => code === 0)) last -= 1;
+  return last + 1;
 }
 
 // Band row r's first byte: rows 0-5 in place at $A880, rows 6-7 at $AC80.

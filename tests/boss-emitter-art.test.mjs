@@ -37,7 +37,9 @@ test("region 1 and both laser fixtures wear the projector tower and fit the char
 
 test("the converter refuses emitter art that breaks E2 or E3", () => {
   const draft = loadBossRegionDraft(directory);
-  const meta = { x: 31, row: 1, width: 3, height: 3, stages: false };
+  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): emitter-l's footprint,
+  // columns 21-23 (the central slot, 31-33, is gun-1's now).
+  const meta = { x: 21, row: 1, width: 3, height: 3, stages: false };
   // Five panels of 12 x 24 draft pixels, as RGBA: a light block with a lens.
   const png = (edit) => {
     const W = 60, H = 24, rgba = Buffer.alloc(W * H * 4);

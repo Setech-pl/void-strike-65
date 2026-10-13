@@ -231,9 +231,11 @@ test("finale: nothing fires once the last weapon has fallen, a volley cut short"
   update(m);
   settle(m, 2);
   // Every weapon but one destroyed, one a frame (the volleys run meanwhile).
+  // RE-POINTED feat/boss-r1-twin-lasers: the survivor is a pulse gun (a volley
+  // is a gun's) - in the front-first order the first weapon is emitter-l now.
   const weapons = indices(finale12, (x) => x.kind !== "armour");
-  for (const module of weapons.slice(1)) { kill(m, module); settle(m, 2); }
-  const survivor = weapons[0];
+  const survivor = weapons.find((module) => finale12.modules[module].kind === "pulse");
+  for (const module of weapons.filter((w) => w !== survivor)) { kill(m, module); settle(m, 2); }
   assert.equal(m[lbl("_boss_weapons_left")], 1);
   // Its volley begins, and it falls on the volley's second frame.
   m[lbl("_boss_countdown")] = 1;

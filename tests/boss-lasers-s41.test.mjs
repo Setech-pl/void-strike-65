@@ -109,12 +109,15 @@ test("D1: no module fires both weapons - region 1 and both laser fixtures, every
       const memory = install(region, { level, difficulty });
       if (what === "region 1") {
         // plate-d over the emitter destroyed through the engine, so it fires.
-        const plateD = region.modules.findIndex((m) => m.name === "plate-d");
-        memory[lbl("_boss_hp") + plateD] = 1;
-        const column = region.modules[plateD].x + 1;
+        // RE-POINTED feat/boss-r1-twin-lasers (layout L2, the one-row belt):
+        // plate-c over emitter-l, the shot inside its row (the belt's row 4
+        // ends at line 64; the old plates reached the band's edge).
+        const plateC = region.modules.findIndex((m) => m.name === "plate-c");
+        memory[lbl("_boss_hp") + plateC] = 1;
+        const column = region.modules[plateC].x + 1;
         memory[main("FIGHTER_PROJECTILE_ACTIVE")] = 1;
         memory[main("FIGHTER_PROJECTILE_X")] = column * 4 + 32 - memory[lbl("boss_shown_pos")] + 1;
-        memory[main("FIGHTER_PROJECTILE_Y")] = 80;
+        memory[main("FIGHTER_PROJECTILE_Y")] = 24 + (region.modules[plateC].row + 1) * 8 - 4;
       }
       const { lasers, pulses } = fight(memory, 1500);
       const laserModules = new Set(lasers.map(({ module }) => module));

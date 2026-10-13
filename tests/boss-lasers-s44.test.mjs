@@ -27,7 +27,12 @@ const region1 = compileBossRegion(draftOf());
 const LASERS = 4, OFF = 0, WARN = 1, BEAM = 2;
 const RELOAD = [300, 225, 150];
 const WARNING = [40, 32, 25];
-const emitterOf = (region) => region.modules.findIndex((m) => m.kind === "emitter" && m.name === "emitter");
+// RE-POINTED feat/boss-r1-twin-lasers (layout L2): region 1's slot-1 emitter
+// is the left twin, emitter-l, behind plate-c; the laser fixture keeps it as
+// its "emitter".
+const emitterOf = (region) => region.modules.findIndex((m) => m.kind === "emitter" &&
+  (m.name === "emitter" || m.name === "emitter-l"));
+const SHIELD = "plate-c";
 const indexOf = (region, name) => region.modules.findIndex((m) => m.name === name);
 
 let entry = null;
@@ -57,17 +62,21 @@ function frame(memory) {
   nmi(memory, lbl("boss_dli"));
 }
 // A player shot into a band column, as the D1 test aims one.
-function shoot(memory, column) {
+// RE-POINTED feat/boss-r1-twin-lasers: at line `y` - destroy aims inside the
+// module's bottom row (the one-row belt ends at line 64; the old plates
+// reached the band's edge, so line 80 met them).
+function shoot(memory, column, y = 80) {
   memory[main("FIGHTER_PROJECTILE_ACTIVE")] = 1;
   memory[main("FIGHTER_PROJECTILE_X")] = column * 4 + 32 - memory[lbl("boss_shown_pos")] + 1;
-  memory[main("FIGHTER_PROJECTILE_Y")] = 80;
+  memory[main("FIGHTER_PROJECTILE_Y")] = y;
 }
 // The module's last hit point, then a shot into its column: the frame (from
 // now) on which its hit points reach 0.
 function destroy(memory, region, name, { limit = 60 } = {}) {
   const n = indexOf(region, name);
   memory[lbl("_boss_hp") + n] = 1;
-  shoot(memory, region.modules[n].x + 1);
+  const m = region.modules[n];
+  shoot(memory, m.x + 1, 24 + (m.row + m.height) * 8 - 4);
   for (let f = 1; f <= limit; f += 1) {
     frame(memory);
     if (memory[lbl("_boss_hp") + n] === 0) return f;
@@ -90,7 +99,7 @@ for (const difficulty of [0, 1, 2]) {
     const emitter = emitterOf(region1);
     const laser = laserOf(memory, emitter);
     assert.notEqual(laser, undefined, "region 1's emitter has a laser");
-    const killed = destroy(memory, region1, "plate-d");
+    const killed = destroy(memory, region1, SHIELD);
     assert.equal(state(memory, laser), OFF, "not on the frame the shield falls");
     frame(memory);
     assert.equal(state(memory, laser), WARN, `the warning starts on the next frame (shield down on ${killed})`);
@@ -109,11 +118,13 @@ for (const difficulty of [0, 1, 2]) {
 // The tier-4 fixture with slot 1's emitter shielded again: plate-d, narrowed
 // to columns 30-33, stands in front of it and no other emitter, so slots 2-4
 // fire on their cadence while slot 1 waits for its shield to fall.
+// RE-POINTED feat/boss-r1-twin-lasers: the fixture's slot-1 emitter is region
+// 1's emitter-l (columns 21-23), so the shield is plate-c as authored
+// (columns 21-24), in front of it and no other emitter.
 function shieldedFixture() {
   const base = draftOf();
   const draft = assets.bossLaserFixtureDraft(base, 4);
-  const plateD = base.layout.modules.find((m) => m.name === "plate-d");
-  const shield = { ...plateD, width: 4 };
+  const shield = { ...base.layout.modules.find((m) => m.name === SHIELD) };
   delete shield._;
   const images = {};
   for (const [name, image] of Object.entries(draft.images)) {
@@ -151,7 +162,7 @@ test("decision 4: with both places busy, the exposed emitter takes the first tha
     f += 1;
     assert.ok(f < 3000, "two lasers on and a third waiting");
   }
-  destroy(memory, region, "plate-d");
+  destroy(memory, region, SHIELD);
   assert.equal(on().length, 2, "both places still busy when the shield falls");
   const rival = waiting()[0];
   // The first start after a place frees is slot 1's.
@@ -165,24 +176,32 @@ test("decision 4: with both places busy, the exposed emitter takes the first tha
 });
 
 test("decision 5: the emitter's durability is twice S4b's on every difficulty", () => {
-  const emitter = emitterOf(region1);
-  assert.equal(region1.modules[emitter].hp, 20, "10 x 2 in region 1's data");
-  // boss_def's per-difficulty scale (x 3/4, x 1, x 5/4 in quarters of the
-  // base): S4b's 10 gave 8 / 10 / 12; 20 gives 15 / 20 / 25.
-  const scaled = [15, 20, 25];
-  for (const difficulty of [0, 1, 2]) {
-    const memory = install(region1, { difficulty });
-    assert.equal(memory[lbl("_boss_hp") + emitter], scaled[difficulty], ["EASY", "MEDIUM", "HARD"][difficulty]);
+  // RE-POINTED feat/boss-r1-twin-lasers: both twin cannons.
+  for (const emitter of ["emitter-l", "emitter-r"].map((name) => indexOf(region1, name))) {
+    assert.equal(region1.modules[emitter].hp, 20, "10 x 2 in region 1's data");
+    // boss_def's per-difficulty scale (x 3/4, x 1, x 5/4 in quarters of the
+    // base): S4b's 10 gave 8 / 10 / 12; 20 gives 15 / 20 / 25.
+    const scaled = [15, 20, 25];
+    for (const difficulty of [0, 1, 2]) {
+      const memory = install(region1, { difficulty });
+      assert.equal(memory[lbl("_boss_hp") + emitter], scaled[difficulty], ["EASY", "MEDIUM", "HARD"][difficulty]);
+    }
   }
 });
 
-test("decision 1: the projector tower - three by three at columns 31-33, rows 1-3, the beam centred on the lens", () => {
-  const emitter = region1.modules[emitterOf(region1)];
-  assert.deepEqual([emitter.x, emitter.row, emitter.width, emitter.height, emitter.cavityRows], [31, 1, 3, 3, 3]);
+// RE-POINTED feat/boss-r1-twin-lasers (layout L2): two towers, at columns
+// 21-23 and 41-43 (was one at 31-33), each beam centred on its own lens.
+test("decision 1: the projector towers - three by three at columns 21-23 and 41-43, rows 1-3, each beam centred on its lens", () => {
   const memory = install(region1, { difficulty: 1 });
-  const laser = laserOf(memory, emitterOf(region1));
-  const lens = emitter.x + (emitter.width >> 1);
-  assert.equal(memory[lbl("boss_laser_centre") + laser], lens * 4 + 2, "the beam's centre colour clock is the lens cell's centre");
+  for (const [name, x] of [["emitter-l", 21], ["emitter-r", 41]]) {
+    const n = indexOf(region1, name);
+    const emitter = region1.modules[n];
+    assert.deepEqual([emitter.x, emitter.row, emitter.width, emitter.height, emitter.cavityRows], [x, 1, 3, 3, 3]);
+    const laser = laserOf(memory, n);
+    const lens = emitter.x + (emitter.width >> 1);
+    assert.equal(memory[lbl("boss_laser_centre") + laser], lens * 4 + 2,
+      `${name}: the beam's centre colour clock is the lens cell's centre`);
+  }
 });
 
 test("decision 1: only the lens has damage stages - its own cracked and dark looks; the tower keeps its look", () => {
@@ -190,7 +209,7 @@ test("decision 1: only the lens has damage stages - its own cracked and dark loo
   const m = region1.modules[n];
   const lensIndex = (m.height - 1) * m.width + (m.width >> 1);
   const memory = install(region1, { difficulty: 1 });
-  destroy(memory, region1, "plate-d");
+  destroy(memory, region1, SHIELD);
   // The shield down, the first shot warns and fires at once: hit the tower
   // once its laser is off, so the lens shows no heat.
   const laser = laserOf(memory, n);
@@ -237,7 +256,7 @@ test("E2: the warning heats the lens with the emitter's own glyphs, never the sp
   const memory = install(region1, { difficulty: 1 });
   const m = region1.modules[emitterOf(region1)];
   const laser = laserOf(memory, emitterOf(region1));
-  destroy(memory, region1, "plate-d");
+  destroy(memory, region1, SHIELD);
   const lens = cellAddress(m.x + (m.width >> 1), m.row + m.height - 1);
   const seen = new Set();
   for (let f = 0; f < 60; f += 1) {

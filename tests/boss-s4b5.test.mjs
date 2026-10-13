@@ -19,7 +19,7 @@ import test from "node:test";
 
 import * as assets from "../scripts/boss-assets.mjs";
 import {
-  BAND_BOTTOM_Y, Drive, bossGateMemory, call, cpuOver, installRegion, label, manifest, nmi, placeBand,
+  Drive, bossGateMemory, call, cpuOver, installRegion, label, manifest, nmi, placeBand,
   readBuild, root, runBossEntry, runUntil, shootAt, visibleCells,
 } from "./boss-harness.mjs";
 
@@ -98,8 +98,17 @@ test("slot E: one more run at the boss entry, read over the expanded hull maps",
   // comparison covers the bytes the run reads, the code; slotE.bytes (code +
   // state) is still held inside the hull maps above.
   assert.ok(slotE.codeBytes <= slotE.bytes);
-  assert.deepEqual([...memory.subarray(HULL_MAPS[0], HULL_MAPS[0] + slotE.codeBytes)],
-    [...image.subarray(0, slotE.codeBytes)], "slot E is in place after the entry");
+  // RE-POINTED feat/boss-r1-twin-lasers: the install patches two of its
+  // operands - the shown band's edge for the shots drawn in the band and for
+  // the capsule's first line - so those two bytes are compared with the edge.
+  const landed = [...memory.subarray(HULL_MAPS[0], HULL_MAPS[0] + slotE.codeBytes)];
+  const expected = [...image.subarray(0, slotE.codeBytes)];
+  for (const name of ["boss_late_bottom_operand", "boss_capsule_y_operand"]) {
+    const at = lbl(name) - HULL_MAPS[0];
+    assert.equal(landed[at], 24 + manifest.boss.regions[0].bandShownRows * 8, `${name}: the shown band's edge`);
+    expected[at] = landed[at];
+  }
+  assert.deepEqual(landed, expected, "slot E is in place after the entry");
 });
 
 test("slot E's contract, by the source: only draw_hull_row reads the hull maps; only start_gameplay rebuilds them", () => {
@@ -146,7 +155,9 @@ test("slot E's contract, in the boss sector: no reader of the hull maps runs - t
   call(memory, lbl("boss_update"), { watch });
   frame(memory, { watch });
   // Every weapon destroyed: the defeat's chain to its hand-off.
-  for (const name of ["plate-d", "emitter", "gun-1", "gun-2", "gun-3", "gun-4"]) {
+  // RE-POINTED feat/boss-r1-twin-lasers: region 1's two cannons, gun-1 behind
+  // plate-d; gun-5 and gun-6 since feat/boss-r1-tuning.
+  for (const name of ["plate-d", "emitter-l", "emitter-r", "gun-1", "gun-2", "gun-3", "gun-4", "gun-5", "gun-6"]) {
     memory[lbl("_boss_hp") + indexOf(name)] = 0;
   }
   for (let f = 0; f < 400 && memory[lbl("_boss_phase")] !== 3; f += 1) frame(memory, { watch });
@@ -234,7 +245,11 @@ test("F3: a destroyed module advances the capsule rule exactly as an enemy kill,
   const n = kill(memory, "plate-c");                  // the third counted kill: a capsule
   assert.equal(memory[count], 0, "the count starts again");
   assert.equal(memory[state], 2, "the capsule shows at once (ACTIVE)");
-  assert.equal(memory[main("ENTITY_Y") + PICKUP_SLOT], BAND_BOTTOM_Y, "just below the band");
+  // RE-POINTED feat/boss-r1-twin-lasers (owner smoke of 2026-10-13): just
+  // below the shown band - region 1's ends under its belt, row 4 (line 64;
+  // was the 8-row band's edge, line 88).
+  assert.equal(memory[main("ENTITY_Y") + PICKUP_SLOT], 24 + manifest.boss.regions[0].bandShownRows * 8,
+    "just below the band");
   const m = region1.modules[n];
   const centre = (m.x * 4 + m.width * 2) - memory[lbl("boss_shown_pos")] + 32;
   const x = memory[main("ENTITY_X") + PICKUP_SLOT];
@@ -262,12 +277,13 @@ test("F3: the enemy kill path's capsule rule is the one a module's kill follows 
 test("F4: destroying a module scores its region score, every kind (unchanged; M8 tunes)", () => {
   const authored = JSON.parse(fs.readFileSync(path.join(bossRegionDirectory(root, 1), "modules.json"), "utf8"));
   const scores = new Map(authored.modules.map((m) => [m.name, Number.parseInt(String(m.score), 10)]));
-  assert.deepEqual(["plate-a", "plate-b", "gun-2", "emitter"].map((name) => scores.get(name)),
-    [20, 30, 50, 60], "plates 20 / 30, cannons 50, the emitter 60");
+  // RE-POINTED feat/boss-r1-twin-lasers: the emitter is the twin cannons.
+  assert.deepEqual(["plate-a", "plate-b", "gun-2", "emitter-l", "emitter-r"].map((name) => scores.get(name)),
+    [20, 30, 50, 60, 60], "plates 20 / 30, cannons 50, the emitters 60");
   const memory = install();
   const score = () => memory[main("score_bcd_lo")] | (memory[main("score_bcd_hi")] << 8);
   const bcd = (value) => Number.parseInt(value.toString(16), 10);
-  for (const name of ["plate-a", "plate-b", "gun-2", "plate-d", "emitter"]) {
+  for (const name of ["plate-a", "plate-b", "gun-2", "plate-c", "emitter-l"]) {
     const before = bcd(score());
     kill(memory, name);
     assert.equal(bcd(score()) - before, scores.get(name), `${name} scored`);

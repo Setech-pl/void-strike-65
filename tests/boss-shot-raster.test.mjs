@@ -32,6 +32,12 @@ const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
 const BAND_TOP_Y = 24;
 const BAND_BOTTOM_Y = 88;
+// feat/boss-r1-twin-lasers (owner smoke of 2026-10-13): the list shows the
+// band down to its last row with a cell - region 1's ends under its belt
+// (row 4, line 64); the lines under it are ring lines, and a shot there is
+// the ring's. boss_shots_late still waits for line 88 (BAND_BOTTOM_Y).
+const SHOWN = manifest.boss.regions[0].bandShownRows;
+const SHOWN_EDGE = BAND_TOP_Y + SHOWN * 8;
 const SHOT_SPEED = 6;
 const VCOUNT = 0xd40b;
 const BAND_CYCLES_PER_LINE = 46;
@@ -61,11 +67,12 @@ function fortress(p = 32) {
 // One call on the raster: VCOUNT follows the CPU's cycles from `startLine`;
 // every write into the band is logged with the line it lands on.
 function onRaster(memory, address, startLine, writes) {
+  // RE-POINTED feat/boss-r1-twin-lasers: band lines down to the shown edge.
   const lineAt = (cycles) => {
-    if (startLine >= BAND_BOTTOM_Y) return startLine + cycles / RING_CYCLES_PER_LINE;
-    const bandCycles = (BAND_BOTTOM_Y - startLine) * BAND_CYCLES_PER_LINE;
+    if (startLine >= SHOWN_EDGE) return startLine + cycles / RING_CYCLES_PER_LINE;
+    const bandCycles = (SHOWN_EDGE - startLine) * BAND_CYCLES_PER_LINE;
     return cycles < bandCycles ? startLine + cycles / BAND_CYCLES_PER_LINE
-      : BAND_BOTTOM_Y + (cycles - bandCycles) / RING_CYCLES_PER_LINE;
+      : SHOWN_EDGE + (cycles - bandCycles) / RING_CYCLES_PER_LINE;
   };
   const cpu = call(memory, address, {
     hooks: {
@@ -142,10 +149,13 @@ function kill(memory, name) {
 
 // Each weapon with its cover down (gun-2 has none), and the band positions
 // at which its middle column is on screen.
+// RE-POINTED feat/boss-r1-twin-lasers (layout L2): gun-1 behind plate-d, the
+// twin cannons behind plate-c and plate-f.
 const TARGETS = [
-  { name: "gun-1", cover: ["plate-c"] },
+  { name: "gun-1", cover: ["plate-d"] },
   { name: "gun-2", cover: [] },
-  { name: "emitter", cover: ["plate-d"] },
+  { name: "emitter-l", cover: ["plate-c"] },
+  { name: "emitter-r", cover: ["plate-f"] },
   { name: "gun-3", cover: ["plate-e"] },
   { name: "gun-4", cover: ["plate-g"] },
 ];
@@ -169,7 +179,9 @@ test("P1: a shot flown up to every weapon is on the screen in every band row it 
         assert.equal(flight.active, false, `${name} at ${p}, UPDATE line ${updateLine}: the shot never met it`);
         assert.ok(hp(memory, index) < before, `${name} at ${p}, UPDATE line ${updateLine}: no damage`);
         const stopRow = module.row + module.height - 1;
-        for (let row = stopRow + 1; row < 8; row += 1) {
+        // RE-POINTED feat/boss-r1-twin-lasers: the shown band's rows (under
+        // them the ring draws the shot, as everywhere else on the screen).
+        for (let row = stopRow + 1; row < SHOWN; row += 1) {
           assert.ok(flight.visited.has(row), `${name}: the shot never reached row ${row}`);
           assert.ok(flight.shown.has(row),
             `${name} at position ${p}, UPDATE from line ${updateLine}: the shot was in band row ${row} ` +

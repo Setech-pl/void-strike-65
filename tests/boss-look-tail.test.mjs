@@ -106,12 +106,20 @@ test("E4: the memory map names the look tail's home", () => {
 // so the b3 hit flash shows on every stage. Panels 3 (broken) and 4 (gone) are
 // unchanged. Was "a5354d889e09f1c6", "cdeaa9e39e4caa2e", ..., "4d74be8af807aa5e",
 // "a5354d889e09f1c6" (main 26ad91d).
-const S4B_FINAL_OUTSIDE_EMITTER = ["b921b68ca5d56659", "fa7d49ab92e6cbb7", "339ddca54c393f8b",
-  "63a6c49f06f7dbba", "317d3575439e3cb9", "b921b68ca5d56659"];
-const emitterCell = (c, r) => (c >= 30 && c <= 34 && r >= 1 && r <= 3) ||
+// RE-PINNED feat/boss-r1-twin-lasers (owner answers of 2026-10-13, layout
+// L2 and the band rework l2b1): the whole band is new - the spine on row 0,
+// the struts and trusses, the one-row armour belt at row 4 (plate-f widened to
+// columns 41-43, plate-g 44-48), gun-1 in the central slot - so the pin is the
+// owner's chosen band's own art outside the two cannons' cells (columns 21-23 and
+// 41-43, rows 1-3; was the single emitter's 30-34) and the far-end guns'.
+// Was "b921b68ca5d56659", "fa7d49ab92e6cbb7", "339ddca54c393f8b",
+// "63a6c49f06f7dbba", "317d3575439e3cb9", "b921b68ca5d56659" (main 7b84d89).
+const S4B_FINAL_OUTSIDE_EMITTER = ["7a6e3ecb50e36775", "9715cceab101a455", "f19b7963e55e7044",
+  "7e12604cb9a89a69", "f2bc89a173432c20", "7a6e3ecb50e36775"];
+const emitterCell = (c, r) => (((c >= 21 && c <= 23) || (c >= 41 && c <= 43)) && r >= 1 && r <= 3) ||
   (((c >= 12 && c <= 14) || (c >= 50 && c <= 52)) && r >= 1 && r <= 3);
 
-test("E4: region 1's band renders pixel-identical to the S4b final build outside the emitter's cells", () => {
+test("E4: region 1's band renders pixel-identical to the owner's chosen band (l2b1) outside the cannons' cells", () => {
   const digests = bossPanelRegisters(region1).map((registers) => {
     const hash = crypto.createHash("sha256");
     for (let y = 0; y < 64; y += 1) {

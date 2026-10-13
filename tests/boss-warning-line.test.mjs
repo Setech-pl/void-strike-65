@@ -40,7 +40,9 @@ function sequence() {
     nmi(memory, lbl("boss_dli"));
     return writes;
   }
-  const plateD = region.modules.findIndex((m) => m.name === "plate-d");
+  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): the first emitter is the
+  // left twin, emitter-l, behind plate-c (was the central emitter, plate-d).
+  const plateD = region.modules.findIndex((m) => m.name === "plate-c");
   const emitter = region.modules.findIndex((m) => m.kind === "emitter");
   const laser = [0, 1, 2, 3].find((i) => memory[lbl("boss_laser_module") + i] === emitter);
   memory[lbl("_boss_hp") + plateD] = 1;

@@ -211,9 +211,8 @@ export function writeBossPreview(regionNumber, { outputDirectory = path.join(roo
   const outputPath = path.join(outputDirectory,
     `region-${regionNumber}${variant === null ? "" : `-variant-${variant}`}.png`);
   fs.writeFileSync(outputPath, png);
-  if (variant === null) {
-    fs.writeFileSync(path.join(outputDirectory, `region-${regionNumber}-stages.png`), renderBossStagesPreview(region).png);
-  }
+  fs.writeFileSync(path.join(outputDirectory,
+    `region-${regionNumber}${variant === null ? "" : `-variant-${variant}`}-stages.png`), renderBossStagesPreview(region).png);
   return { outputPath, width, height, region };
 }
 

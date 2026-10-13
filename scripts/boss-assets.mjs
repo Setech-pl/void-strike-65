@@ -408,6 +408,15 @@ export function applyBossEmitterArt(draft, png, file, meta) {
   const modules = draft.layout.modules.map((module) => ({ ...module }));
   const emitter = modules.find((module) => module.kind === "emitter" && (module.slot ?? 1) === 1);
   if (emitter === undefined) fail(`${file}: the region has no emitter (slot 1)`);
+  // feat/boss-r1-twin-lasers: the twin cannons - a second slot-1 emitter -
+  // wear the same art at their own footprint (its size the first's).
+  const twins = modules.filter((module) => module !== emitter && module.kind === "emitter" && (module.slot ?? 1) === 1);
+  for (const twin of twins) {
+    if (twin.width !== emitter.width || twin.height !== emitter.height) {
+      fail(`${file}: twin cannon ${twin.name} is ${twin.width} x ${twin.height}; ${emitter.name} is ` +
+        `${emitter.width} x ${emitter.height} - the twins wear one art`);
+    }
+  }
   const old = { x: emitter.x, row: emitter.row, width: emitter.width, height: emitter.height };
   if (meta !== null) {
     for (const key of ["x", "row", "width", "height"]) emitter[key] = meta[key];
@@ -440,9 +449,11 @@ export function applyBossEmitterArt(draft, png, file, meta) {
       indices.fill(0, y * image.width + old.x * 4, y * image.width + (old.x + old.width) * 4);
     }
     const panel = name === "cracked" ? 3 : name === "broken" ? 4 : 0;
-    for (let y = 0; y < panelHeight; y += 1) {
-      for (let x = 0; x < panelWidth; x += 1) {
-        indices[(emitter.row * 8 + y) * image.width + emitter.x * 4 + x] = at(panel, x, y);
+    for (const target of [emitter, ...twins]) {
+      for (let y = 0; y < panelHeight; y += 1) {
+        for (let x = 0; x < panelWidth; x += 1) {
+          indices[(target.row * 8 + y) * image.width + target.x * 4 + x] = at(panel, x, y);
+        }
       }
     }
     images[name] = { ...image, indices };
@@ -502,12 +513,16 @@ export function bossLaserFixtureDraft(draft, tier = 4) {
   const removed = draft.layout.modules.filter((module) => BOSS_LASER_FIXTURE.removed.includes(module.name));
   const emitter = draft.layout.modules.find((module) => module.kind === "emitter" && module.slot === 1);
   if (emitter === undefined) fail("the laser fixture needs region 1's emitter (slot 1)");
+  // feat/boss-r1-twin-lasers: the fixture's slots are one emitter each - a
+  // twin cannon of region 1 stays as its art, not a module (hull).
+  const partners = new Set(draft.layout.modules.filter((module) => module !== emitter && module.kind === "emitter" &&
+    module.slot === 1).map((module) => module.name));
   const added = BOSS_LASER_FIXTURE.emitters.filter(({ slot }) => slot <= tier).map(({ name, slot, x, row, cover }) => {
     const { _: note, ...rest } = emitter;
     return { ...rest, name, slot, x, row, ...(cover === undefined ? {} : { cover: [...cover] }) };
   });
-  const modules = [...draft.layout.modules.filter((module) => !BOSS_LASER_FIXTURE.removed.includes(module.name)),
-    ...added];
+  const modules = [...draft.layout.modules.filter((module) => !BOSS_LASER_FIXTURE.removed.includes(module.name) &&
+    !partners.has(module.name)), ...added];
   const images = {};
   for (const [name, image] of Object.entries(draft.images)) {
     const indices = Uint8Array.from(image.indices);
@@ -704,8 +719,17 @@ function resolveModules(layout) {
     let slot = 0;
     if (kind === BOSS_KIND.emitter) {
       slot = integerIn(source.slot, 1, 4, `emitter ${name} slot`);
-      if (slots.has(slot)) fail(`emitter slot ${slot} is authored twice`);
+      // feat/boss-r1-twin-lasers (owner decision, variant A): slot 1 may hold
+      // two emitters - the twin cannons, one laser fired from them in turn,
+      // never both at once. The second takes slot 2's laser (slot D's
+      // laser_prepare), so a twin region has no slot-2 emitter.
+      const twinOfSlotOne = slot === 1 && slots.has(1) && !slots.has("1b");
+      if (slots.has(slot) && !twinOfSlotOne) fail(`emitter slot ${slot} is authored twice`);
+      if (twinOfSlotOne) slots.add("1b");
       slots.add(slot);
+      if (slots.has("1b") && slots.has(2)) {
+        fail("slot 1 holds the twin cannons, whose second takes slot 2's laser: the region has no slot-2 emitter");
+      }
     } else if (source.slot !== undefined) {
       fail(`module ${name} is a ${source.kind}; only an emitter has a slot`);
     }
@@ -1276,6 +1300,12 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     hostileShotCode,
     codeCount,
     laser: { beamFrames: laserBeam },
+    // feat/boss-r1-twin-lasers: the twin cannons' names (slot 1's two
+    // emitters, one laser between them), or null.
+    twin: (() => {
+      const pair = modules.filter((module) => module.kind === BOSS_KIND.emitter && module.slot === 1);
+      return pair.length === 2 ? pair.map((module) => module.name) : null;
+    })(),
     fire: { cooldown: fireCooldown, finaleCooldown },
     escort: { afterWeapons: escortAfter, baseFrames: escortBase, jitterMask: escortJitter },
     seeThrough: [...seeThrough].map((key) => [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)]),

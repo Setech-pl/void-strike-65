@@ -1790,6 +1790,9 @@ laser_prepare:
     sta boss_laser_erase
     sta boss_laser_done
     sta laser_rr
+.ifdef BOSS_TWIN
+    sta laser_twin
+.endif
     ldx #(LASERS - 1)
 @reset:
     sta boss_laser_state,x
@@ -1832,6 +1835,14 @@ laser_prepare:
     lsr
     sta laser_i
     dec laser_i                         ; slot 1-4 -> laser 0-3
+.ifdef BOSS_TWIN
+    ; feat/boss-r1-twin-lasers (owner decision, variant A): slot 1's second
+    ; emitter is its twin cannon - slot 2's laser (the converter refuses a
+    ; slot-2 emitter beside it), one laser between them (laser_twin_on).
+    bne :+
+    jsr laser_twin_index
+:
+.endif
     lda BOSS_T_MODULES + BOSS_M_WIDTH,y
     asl
     sta laser_t
@@ -1947,6 +1958,9 @@ laser_rearm:
 ; At most LASER_MAX_ON lasers in their warning or beam at once (D3): the ready
 ; ones start in turn from the rotating cursor, which moves past each one
 ; started, so no emitter starves.
+.ifdef BOSS_TWIN
+.segment "BOSS_E_CODE"                  ; slot D's RAM has no room for the twin's checks
+.endif
 laser_admit:
     ldy #$00
     ldx #(LASERS - 1)
@@ -1967,6 +1981,10 @@ laser_admit:
     bcs @done
     lda boss_laser_ready,x
     bpl @later
+.ifdef BOSS_TWIN
+    jsr laser_twin_on
+    bne @later
+.endif
     jsr laser_begin
     inc laser_n
 @later:
@@ -1984,6 +2002,10 @@ laser_admit:
     tax
     lda boss_laser_ready,x
     beq @skip
+.ifdef BOSS_TWIN
+    jsr laser_twin_on
+    bne @skip
+.endif
     jsr laser_begin
     inc laser_n
     txa
@@ -1997,6 +2019,72 @@ laser_admit:
     bne @try
 @done:
     rts
+
+.ifdef BOSS_TWIN
+; feat/boss-r1-twin-lasers (owner decision, variant A), in slot E with
+; laser_admit: the twin cannons - slot 1's two emitters, lasers 0 and 1 -
+; fire one laser between them, in turn.
+
+; laser_prepare, a slot-1 emitter (laser_i 0): when laser 0 is taken, this is
+; its twin - slot 2's laser (the converter refuses a slot-2 emitter beside it).
+laser_twin_index:
+    lda boss_laser_module
+    cmp #LASER_NONE
+    beq :+
+    inc laser_i
+    inc laser_twin
+:
+    rts
+
+; X = a ready laser -> A (Z) nonzero when it is a
+; twin cannon and the other is in its warning or beam: the twins never fire
+; together. A ready laser is OFF, so lasers 0 and 1 OR to the other's state.
+; Keeps X and Y.
+laser_twin_on:
+    lda laser_twin
+    beq @rts
+    cpx #2
+    bcs @free
+    lda boss_laser_state
+    ora boss_laser_state+1
+@rts:
+    rts
+@free:
+    lda #$00
+    rts
+
+.segment "BOSS_D_CODE"
+
+; Back in slot D (slot E's run stays 4 sectors). laser_off, X = a laser going
+; off, its state not yet cleared: a twin's firing over (or its kill cutting
+; it) restarts the other's reload, and the other is next in the waiting
+; order - the turns alternate at the one cannon's cadence. A first shot
+; waiting (S4b.4) keeps its mark; a kill while waiting leaves the other's
+; count alone. Keeps X.
+laser_twin_off:
+    lda boss_laser_state,x
+    beq @rts
+    lda laser_twin
+    beq @rts
+    cpx #2
+    bcs @rts
+    stx laser_x
+    txa
+    eor #$01
+    sta laser_rr
+    tax
+    lda boss_laser_ready,x
+    and #$80
+    sta boss_laser_ready,x
+    ldy DIFFICULTY_SETTING
+    lda LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_RELOAD,y
+    sta boss_laser_reload_lo,x
+    lda LEVEL_PAYLOAD_BOSS_DEF + BOSS_DEF_LASER_RELOAD + 3,y
+    sta boss_laser_reload_hi,x
+    ldx laser_x
+@rts:
+    rts
+.endif
 
 ; X = a ready laser: its warning starts, for the difficulty's frames. Keeps X.
 laser_begin:
@@ -2593,6 +2681,9 @@ laser_killed:
 ; X = a laser: off now - no HPOS from the next DLI, its heat cell back, the
 ; engine bed back if it was warning. Keeps X.
 laser_off:
+.ifdef BOSS_TWIN
+    jsr laser_twin_off                  ; slot E: the other twin's turn next
+.endif
     jsr b2_free
     lda boss_laser_state,x
     cmp #LASER_WARN
@@ -2966,6 +3057,9 @@ boss_shots_admit_left: .res 1   ; AUD-04: meetings left this frame
 ; laser_prepare at the install, like every slot-D variable), so that slot D
 ; has the room for boss_nozzle_operand.
 .segment "BOSS_E_BSS"
+.ifdef BOSS_TWIN
+laser_twin:         .res 1      ; nonzero: lasers 0 and 1 are slot 1's twin cannons
+.endif
 boss_hostile_lo:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT ; each boss shot's band cell, last frame
 boss_hostile_hi:    .res INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT
 boss_hostile_code:  .res 1

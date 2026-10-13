@@ -1898,6 +1898,10 @@ async function build() {
     : region === 3 ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, 3)))
       : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
   const bossField = bossRegions[2].field;
+  // feat/boss-r1-twin-lasers (owner decision, variant A): slot D carries the
+  // twin cannons' turn-taking when a region on the disk has them (region 1;
+  // regions 2 and 4 as its copies).
+  const bossTwin = bossRegions.some((region) => region.twin !== null);
   const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
   writeFile(path.join(buildDirectory, "boss-layout.inc"), bossLayoutInclude);
@@ -3071,6 +3075,7 @@ async function build() {
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
         ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1"]),
+        ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -4505,6 +4510,9 @@ async function build() {
         charsetSectors: region.runs.charset.sectors, modules: region.modules.length,
         // S5-2: the finale's floor (fire.finaleCooldown; 0 = no finale).
         finaleCooldown: region.fire.finaleCooldown,
+        // feat/boss-r1-twin-lasers: the twin cannons' names (one laser, fired
+        // from them in turn), or null.
+        twin: region.twin,
         // S5-3: the force field (null without one): its row, its halves with
         // their generators, its code's bytes in the block (slot F).
         field: region.field === null ? null : { row: region.field.row, code: region.field.code,

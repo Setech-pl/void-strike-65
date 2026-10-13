@@ -91,11 +91,15 @@ export function layoutDraft(name) {
       to: move.x, module });
     module.x = move.x;
   }
+  // The twins follow one another where the central cannon was listed (the
+  // first is the laser fixture's slot-1 emitter).
+  let at = modules.findIndex((module) => module.name === emitter.name);
   for (const twin of layout.twins) {
     const { _: note, ...rest } = emitter;
     const added = { _: TWIN_NOTE, ...rest, name: twin.name, x: twin.x, ...(twin.cover ? { cover: twin.cover } : {}) };
-    if (twin.replaces) modules = modules.map((module) => (module.name === twin.replaces ? added : module));
-    else modules.splice(modules.indexOf(modules.find((module) => module.name === emitter.name)) + 1, 0, added);
+    if (twin.replaces) modules[at] = added;
+    else modules.splice(at + 1, 0, added);
+    at = modules.indexOf(added);
   }
   const owned = new Set();
   for (const module of modules) {

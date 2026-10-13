@@ -451,7 +451,9 @@ MEDIUM, for M8.**
 **Tests.** New: `tests/boss-region-3.test.mjs` (7), `tests/slot-f-write-clause.test.mjs`
 (5), RED on `main` (7 of 7; the clause file fails to import), GREEN here.
 Re-pointed with their reasons at the sites: plan §6.3.7. Two full `npm test`
-runs: see the plan and the final report.
+runs on the default build: 1,340 tests, 1,339 pass, 1 fail each (the recorded
+preview test); `npm run failures:reconcile` after each: **0 NEW, 0 MOVED**;
+the trace 0 clause failures.
 
 **ATR** `e079093ef92bafd5256235e60be4b24fcdde1327b239797c1eb0be14334ba5f9`,
 **boot** `508991fa90de54a671cfca462500b4775548cfbb104a7e1019881b70da5f79d3`.

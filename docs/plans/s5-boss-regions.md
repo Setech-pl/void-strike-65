@@ -1257,7 +1257,9 @@ A, charset, block on the disk), `level-summary-build` (region 3 no placeholder),
 `slot-f` (BOSS_F_CODE after the tail's 110 B is region 3's block code),
 `boss-polish`'s art rule (region 3 from its draft). The loading-screen title
 test (SIEGE SPINE) was already green on `main` (the placeholder carried the
-name).
+name). Two full `npm test` runs on the default build (ATR `e079093e…`): 1,340
+tests, 1,339 pass, 1 fail each (the recorded preview test); reconciled after
+each: 0 NEW, 0 MOVED.
 
 ---
 

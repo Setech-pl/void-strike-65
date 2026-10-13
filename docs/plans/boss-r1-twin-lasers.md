@@ -1,6 +1,7 @@
 # Plan — Blockade Breaker's twin laser cannons (feat/boss-r1-twin-lasers)
 
-Status: **Phase A — awaiting the owner's choice of layout** (2026-10-13).
+Status: **Phase A-2 — awaiting the owner's choice of plate height** (2026-10-13).
+Layout L2 and rule (B) (a) chosen (§9.1).
 Owner decision in force (variant A): region 1's boss gets two laser cannons
 that fire **alternately** — at most one boss beam on screen at a time, so the
 one-laser rule for levels 1–4 (decision AC) stands; the survivor keeps firing
@@ -179,3 +180,109 @@ alone at the same cadence; each cannon's stages, PF2 pixels and b3 flash;
 rule (B) as decided; the escort starting at the first weapon kill. Then the
 chosen layout into `assets/`, the other removed, `BOSS_TWIN` always on, the
 fight tuned, the evidence regenerated, the documents, and the banner note.
+
+## 9. Phase A-2 — the R1 band rework (owner smoke of 2026-10-13)
+
+### 9.1 The owner's answers to §7
+
+1. **Layout L2** (left + right, columns 21–23 and 41–43, gun-1 in the
+   central slot).
+2. **Rule (B): (a)** — the repo's rule stands: only a gun's shot is held back
+   on a module-kill frame; a laser's warning may begin on one. (Recorded in
+   the decision record at Phase B.)
+3. **Fight length:** MEDIUM about 110 s, EASY shorter, HARD not shorter —
+   tuned by plate hit points after the band rework.
+
+**New finding (screenshots):** the plates hang under the modules like crates,
+and once they fall the boss reads as separate floating pieces. Asked for, in
+this task: a continuous indestructible spine along the band's top, every
+weapon visibly hung from it, the gaps filled with hull where the layout
+allows (echoing the banner's continuous deck); the plates an armour belt, in
+two heights for comparison.
+
+### 9.2 The rework (`scripts/boss-r1-twin-variants.mjs`, `--boss-variant=l2b3|l2b1`)
+
+* **Spine:** band row 0, columns 7–56 (engine to engine), lines 1–4 — a grey
+  edge, burgundy hull with a steel rivet, a grey edge — drawn on the
+  background only, so the blocks' tops and the antennas sit on it. Hull: it
+  stops shots (a deflection), never takes damage.
+* **Struts:** a two-pixel grey strut from the spine to each weapon's top at
+  its centre column (gun-2 and gun-4, which start at row 2, hang by one).
+* **Truss:** an X-brace in burgundy in every empty cell of rows 1–2 between
+  the engines that no module owns; row 2 only where neither side is a
+  weapon's cell (decision N's clear columns beside gun-2), never under a
+  weapon (decision O). Most cells there already hold machinery, so it filled
+  two (columns 24 and 30, row 1).
+* **Plate belt:** every plate's top moves to row 4 (b, e from 3; g from 5) —
+  one line across the boss. **l2b3:** three rows (4–6; the plate's top row,
+  its next row and its bottom row with the amber rim). **l2b1:** one row (4;
+  the top row's lines 0–4 over the bottom row's rim, lines 5–7). The same
+  mapping in the band, open, cracked and broken looks; hit points unchanged.
+  Every plate still covers its weapons' columns (the converter's checks pass:
+  covers, fire columns, decision O).
+
+Previews (`build/play/`): `twin-l2b3-band-preview.png`,
+`twin-l2b1-band-preview.png` (every stage);
+`twin-l2b3-plates-gone.png`, `twin-l2b1-plates-gone.png` (intact; every plate
+gone, weapons open; every module gone); `twin-l2b3-stages.png`,
+`twin-l2b1-stages.png` (intact / cracked / broken, normal and flashed — every
+stage keeps amber PF2 pixels and darkens when flashed).
+
+### 9.3 Measurements
+
+Labels as §5. L2 (no rework) repeated for reference.
+
+| | L2 | **l2b3** (belt 3 rows) | **l2b1** (belt 1 row) | label |
+| --- | ---: | ---: | ---: | --- |
+| fight E / M / H, frames | 2,342 / 2,988 / 3,553 | 2,241 / 2,997 / 3,872 | 2,262 / 3,201 / 3,611 | M |
+| fight E / M / H, s | 97.2 / 123.5 / 159.1 | **93.0 / 123.9 / 173.4** | **93.9 / 132.3 / 161.7** | R |
+| frames with two boss beams | 0 | 0 | 0 | M |
+| laser order (M) | 1 1 0 0 0 | 1 1 0 0 | 1 1 0 0 | M |
+| escorts E / M / H (first) | 12 / 15 / 19 (6.1 / 7.9 / 3.0 s) | 11 / 14 / 20 (8.6 / 12.6 / 3.0 s) | 11 / 16 / 19 (8.8 / 12.0 / 3.0 s) | M |
+| hits on the bot E / M / H (laser) | 1 (1) / 4 (0) / 7 (2) | 0 / 7 (2) / 8 (1) | 1 (0) / 8 (0) / 8 (2) | M |
+| boss frames worst margin / DMA-on | 6,761 / 29,641 | 7,657 / 30,035 | 7,755 / 29,753 | M |
+| left edge (`boss-park-left-1`) | 17 escorts, 15 hits | 17, 15 | 17, 15 | M (proxy) |
+| boss entry R1 / R2 / R4, host frames | 253 / 253 / 253 | 253 / 253 / 253 | **249 / 249 / 249** | M |
+| entry sectors R1, R2, R4 / R3 | 66 / 67 | 66 / 67 | **65** / 67 | manifest |
+| charset codes (of 128) | 121 | **126** | **105** | converter |
+| charset run | 968 B, 8 sectors | 1,008 B, 8 sectors | 840 B, 7 sectors | converter |
+| slot F R1 block (look tail, limit 110) | 110 | 110 | 110 | converter |
+| stress R1, worst reachable | 7,391 | 7,272 | 7,272 | M-N |
+| stress tier-4 fixture (warn / beam) | 8,067 / 7,206 | 8,053 / 7,216 | 8,053 / 7,216 | M-N |
+| stress regions 2–4 finale / fixture finale | 6,965 / 7,430 | 6,976 / 7,456 | 6,976 / 7,456 | M-N |
+| rule (B) clashes | 0 | 0 | 0 | M-N |
+| slot D / slot E | 1,630 B, 13 / 496 B, 4 | same | same | manifest |
+| resident bytes | 0 | 0 | 0 | manifest |
+
+**What the spine costs.** Five plain codes (the spine merged into the row-0
+cells it crosses, its plain run, the truss, the struts); the plate belt saves
+codes as it shrinks — l2b1's one row frees 7 staged triples (K 19 → 12).
+l2b3 leaves 2 codes free; l2b1 23.
+
+**Laser reach (M).** The cannons' lens rows are unchanged (rows 1–3), so the
+beams leave the lens core (M1 / M2, unchanged code) and run to the ring's last
+line as before: the bot took laser hits in both builds, and the screenshots
+`build/play/twin-l2b1-shot-host4987.png` (right cannon) and `…-host6127.png`
+(left cannon) show the beam from the cannon's tip to the bottom of the
+playfield (the trace's 256 x 192 crop starts below the band's top rows, so
+the spine shows in the previews, not these).
+
+The fights are all over 120 s on MEDIUM; Phase B trims plate hit points to
+about 110 s (owner answer 3), l2b1 by more (132.3 s) than l2b3 (123.9 s).
+
+### 9.4 Review builds (`build/play/`, `atari800 -xl -pal -nobasic <path>`)
+
+| build | SHA-256 prefix |
+| --- | --- |
+| `twin-l2b3-full-game.atr` | `eb774fd4340f63f7` |
+| `twin-l2b3-r1-boss-route.atr` | `5e26b601934f67ae` |
+| `twin-l2b1-full-game.atr` | `105f56e5eb445c86` |
+| `twin-l2b1-r1-boss-route.atr` | `8bdb8be6070017fb` |
+
+### 9.5 Owner question
+
+**Plate height: l2b1, the one-row belt (recommended)** — it reads as a belt
+along the boss's underside, not boxes; it frees 21 codes (105 of 128) and a
+charset sector (the entry back to 249 host frames); its MEDIUM needs the
+larger trim (132 → ~110 s). Or **l2b3**, three rows — closer to today's
+plates, 126 of 128 codes (2 left for later changes), MEDIUM 124 → ~110 s.

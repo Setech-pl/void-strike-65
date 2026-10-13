@@ -1444,7 +1444,7 @@ for (const name of [
   // S5-3: region 3's force field - the halves' states (15 = no field), the
   // deflections on a powered half, hit points lost behind a powered half
   // (cumulative), field cells left in a fallen half.
-  "field_state", "field_deflections", "field_violations", "field_cells_down",
+  "field_state", "field_deflections", "field_violations", "field_cells_down", "gravity_on", "gravity_steps",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4212,6 +4212,10 @@ function main() {
         addressEnvironment.DFTRACE_FIELD_ROW_CELLS = `0x${fieldRegion.field.rowCells.toString(16)}`;
         addressEnvironment.DFTRACE_FIELD_CODE = `0x${fieldRegion.field.code.toString(16)}`;
       }
+      // S5-4: the level id (which region's code is in slot F) and region 4's
+      // gravity well's state, when the disk carries it.
+      addressEnvironment.DFTRACE_BOSS_LEVEL_ID = `0x${(bossLabels.get("_boss_level") + 3).toString(16)}`;
+      if (bossLabels.has("gravity_on")) addressEnvironment.DFTRACE_GRAVITY_ON = hex(bossLabels, "gravity_on");
     }
   }
 
@@ -5623,9 +5627,14 @@ function main() {
     const where = path.join(layout.inputDirectory, "boss.lbl");
     if (!fs.existsSync(where)) return null;
     const boss = parseViceLabels(fs.readFileSync(where, "utf8"));
-    if (!boss.has("field_hooks")) return null;
-    return { codeStart: boss.get("field_hooks"), codeEnd: boss.get("field_state"),
-      stateStart: boss.get("field_state"), stateEnd: boss.get("field_state_end") };
+    // S5-4: region 4's gravity well too - each region's code writing only
+    // its own state (the two share BOSS_F_HOOK; one is in memory at a time).
+    const watches = [["field_hooks", "field_state", "field_state_end"],
+      ["gravity_hooks", "gravity_state", "gravity_state_end"]]
+      .filter(([hooks]) => boss.has(hooks))
+      .map(([hooks, state, end]) => ({ codeStart: boss.get(hooks), codeEnd: boss.get(state),
+        stateStart: boss.get(state), stateEnd: boss.get(end) }));
+    return watches.length === 0 ? null : watches;
   })();
   const slotFWrites = slotFWriteClause(sessionWatches, {
     field: fieldWatch,

@@ -275,7 +275,9 @@ export function lightCoverage(rows, sectors) {
 // inside the field's state bytes (field_state .. field_state_end); a writer in
 // the field's code that writes anywhere else in slot F, or any other writer,
 // is foreign. `field` is { codeStart, codeEnd, stateStart, stateEnd } from the
-// boss link's labels, or null (no field code on the disk).
+// boss link's labels, or null (no field code on the disk). S5-4: or a list of
+// them - region 3's field and region 4's gravity well, each its own code
+// writing its own state.
 export function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockBytes, field = null }) {
   const copyStart = labels.get("copy_hud_charset");
   const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
@@ -294,10 +296,11 @@ export function slotFWriteClause(watches, { labels, readerAddress, readerEnd, bl
     let readerWrites = 0;
     for (const writer of list) {
       const reader = writer.pc >= readerAddress && writer.pc < readerEnd;
-      const fieldState = field !== null && writer.pc >= field.codeStart && writer.pc < field.codeEnd &&
-        writer.first_address >= field.stateStart && writer.last_address < field.stateEnd &&
-        (writer.min_address ?? writer.first_address) >= field.stateStart &&
-        (writer.max_address ?? writer.last_address) < field.stateEnd;
+      const fieldState = (field === null ? [] : [field].flat()).some((code) =>
+        writer.pc >= code.codeStart && writer.pc < code.codeEnd &&
+        writer.first_address >= code.stateStart && writer.last_address < code.stateEnd &&
+        (writer.min_address ?? writer.first_address) >= code.stateStart &&
+        (writer.max_address ?? writer.last_address) < code.stateEnd);
       const kind = writer.pc >= copyStart && writer.pc < copyEnd ? "copy_hud_charset"
         : reader && writer.first_frame > copyFirst ? "region block read"
           : fieldState && writer.first_frame > copyFirst ? "the field's state"

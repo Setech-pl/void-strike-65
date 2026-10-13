@@ -3519,3 +3519,103 @@ field_timer:    .byte FIELD_FRAMES
 field_phase:    .byte 0                 ; 0 phase A shown, 8 phase B
 field_state_end:
 .endif
+
+; ===========================================================================
+; S5-4 (feat/boss-region-4, docs/plans/s5-boss-regions.md §4.5, §6.4; owner
+; decision of 2026-10-13): the gravity well - region 4's code in its region
+; block (slot F, after the look tail's 110 B, at BOSS_F_HOOK), assembled when
+; the build gives region 4 its well (BOSS_GRAVITY) and appended to region 4's
+; block only. It shares the field's address: only the current region's block
+; is in memory (S5-1), so region 3's field and region 4's well never meet.
+;
+; While a salvo spire stands, in the fight, with the player's ship alive (not
+; dying, not in a respawn's invulnerability): every GRAVITY_FRAMES frames the
+; ship moves one step (2 colour clocks, the input's own step - player_x stays
+; even, so the input's edge tests, which test for equality, still hold) towards
+; the x that puts its centre under the void core's centre, as the band now
+; shows it (the drift moves the core, so the target moves with it). The
+; target lies in GRAVITY_X_BASE - 63 .. GRAVITY_X_BASE, inside the input's
+; limits (asserted), so a step never leaves the screen; it is 2 clocks a step
+; at most once every GRAVITY_FRAMES frames against the input's 2 a frame, so
+; the player can always hold or move away. The core pulses meanwhile: every
+; GRAVITY_PULSE_FRAMES frames the hit flash (b3) is asked for the core - the
+; frame's one module draw, bit 7 of the core's cells for its 3 frames - unless
+; a hit's flash is waiting or showing (a hit goes first). Both spires fallen:
+; the pull and the pulse stop at once. No resident byte, no byte of slots A-E:
+; the frame hook (slot D's laser_frame) and the late hook (slot E) S5-3 laid.
+; ===========================================================================
+.ifdef BOSS_GRAVITY
+.include "boss-gravity.inc"
+
+HPOSP0              = $D000
+.assert GRAVITY_X_BASE - 63 > PLAYER_X_LIMIT_MIN, error, "the well's target must stay right of the input's left limit"
+.assert GRAVITY_X_BASE < PLAYER_X_LIMIT_MAX, error, "the well's target must stay left of the input's right limit"
+
+.segment "BOSS_G_CODE"
+gravity_hooks:
+    jmp gravity_frame                   ; BOSS_F_HOOK: every frame, from laser_frame (slot D)
+    jmp gravity_rts                     ; BOSS_F_HOOK + 3: SECTOR_COMPLETION (slot E): nothing
+
+; Every boss frame, from laser_frame, before the player's shots meet the band.
+gravity_frame:
+    lda #$00
+    sta gravity_on
+    lda _boss_phase
+    bne gravity_rts                     ; the fight only: not the chain or the hold
+    lda PLAYER_LIFECYCLE
+    bne gravity_rts                     ; the ship alive: never dying or invulnerable
+    lda _boss_hp + GRAVITY_SPIRE_L
+    ora _boss_hp + GRAVITY_SPIRE_R
+    beq gravity_rts                     ; both spires fallen: off for good
+    inc gravity_on
+    dec gravity_pulse                   ; the core's pulse
+    bne @drift
+    lda #GRAVITY_PULSE_FRAMES
+    sta gravity_pulse
+    lda boss_mflash_req
+    bpl @drift                          ; a hit's flash waits: it goes first
+    lda boss_mflash_timer
+    bne @drift                          ; a flash is showing
+    lda #GRAVITY_CORE
+    sta boss_mflash_req
+@drift:
+    dec gravity_timer
+    bne gravity_rts
+    lda #GRAVITY_FRAMES
+    sta gravity_timer
+    lda #GRAVITY_X_BASE
+    sec
+    sbc boss_shown_pos                  ; the x under the core as shown now
+    sec
+    sbc player_x                        ; the way to it (signed: -152 .. +104)
+    beq gravity_rts
+    bmi @left
+    cmp #2
+    bcc gravity_rts                     ; one clock off (an odd target): there
+    inc player_x
+    inc player_x
+    bne @moved
+@left:
+    cmp #$FF
+    beq gravity_rts
+    dec player_x
+    dec player_x
+@moved:
+    lda player_x
+    sta HPOSP0
+    inc gravity_steps
+    bne gravity_rts
+    inc gravity_steps + 1
+gravity_rts:
+    rts
+
+; The state - data, not BSS: the block is read from the disk at every entry,
+; so every fight starts from these values. The trace's slot F write clause
+; admits the well's writes here, and nowhere else.
+gravity_state:
+gravity_on:     .byte 0                 ; 1 on a frame the pull is on
+gravity_pulse:  .byte GRAVITY_PULSE_FRAMES
+gravity_timer:  .byte GRAVITY_FRAMES
+gravity_steps:  .word 0                 ; the steps taken (the trace counts them)
+gravity_state_end:
+.endif

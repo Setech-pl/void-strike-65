@@ -2189,6 +2189,8 @@ function labelResolver(links) {
 }
 
 // S5-1 (owner decision Q9): slot F's writers, per replay - see the clause.
+const SLOT_F_CODE = 0x5200 + 110;                  // BOSS_SLOT_F + BOSS_LOOK_TAIL_MAX_BYTES (S5-3)
+const SLOT_F_END = 0x5400;
 function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockBytes }) {
   const copyStart = labels.get("copy_hud_charset");
   const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
@@ -2206,9 +2208,15 @@ function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockByte
     let readerWrites = 0;
     for (const writer of list) {
       const reader = writer.pc >= readerAddress && writer.pc < readerEnd;
+      // S5-3: the region block's own code (region 3's field) keeps its state in
+      // the block, after the look tail's 110 B: a writer inside the block that
+      // writes there only is the block's, not a foreign writer.
+      const blockCode = writer.pc >= SLOT_F_CODE && writer.pc < SLOT_F_END &&
+        writer.first_address >= SLOT_F_CODE && writer.last_address < SLOT_F_END;
       const kind = writer.pc >= copyStart && writer.pc < copyEnd ? "copy_hud_charset"
         : reader && writer.first_frame > copyFirst ? "region block read"
-          : writer.first_frame <= copyFirst ? "start-up" : null;
+          : blockCode && writer.first_frame > copyFirst ? "the region block's code"
+            : writer.first_frame <= copyFirst ? "start-up" : null;
       const key = `$${writer.pc.toString(16)}`;
       const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
       entry.sessions += 1;

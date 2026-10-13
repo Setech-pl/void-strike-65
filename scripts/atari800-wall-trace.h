@@ -375,6 +375,15 @@ typedef struct {
 	unsigned boss_finale;
 	unsigned boss_spawns;
 	unsigned boss_armour_left;
+	/* S5-3: region 3's force field (0 without one): the halves' states
+	 * (half 0 | half 1 << 2; 0 powered, 1 collapsing, 2 down; 15 = no field),
+	 * the field cells of a powered half showing the deflection, the module
+	 * hit points lost behind a field half that was powered (cumulative), the
+	 * field cells still drawn in a half that is down. Additive. */
+	unsigned field_state;
+	unsigned field_deflections;
+	unsigned field_violations;
+	unsigned field_cells_down;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -941,6 +950,16 @@ static unsigned dftrace_boss_module_table;
  * field's - the boss-aim policy does not shoot into it and, while a weapon
  * is behind it, takes the field's generators (armour that guards nothing). */
 static unsigned dftrace_boss_column_map;
+/* S5-3: the field's state bytes and tables (boss link labels; optional) and
+ * its row's cells; a frame watches the field only while the region block's
+ * hook ($526E) is a JMP (region 3's code is in slot F). */
+static unsigned dftrace_field_half;
+static unsigned dftrace_field_from;
+static unsigned dftrace_field_end;
+static unsigned dftrace_field_row_cells;
+static unsigned dftrace_field_violations;
+static unsigned char dftrace_field_hp[16];
+static int dftrace_field_hp_valid;
 static int dftrace_aim_target = -1;
 static unsigned dftrace_aim_last_p;
 static int dftrace_aim_dir = 1;
@@ -4871,18 +4890,6 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 	unsigned archetype = MEMORY_mem[dftrace_enemy_archetype];
 	unsigned height = MEMORY_mem[(dftrace_enemy_frame_heights + archetype) & 0xffffu];
 	unsigned body = (dftrace_enemy_body_data + archetype * 16u) & 0xffffu;
-	/* S5-3: in the boss sector P1 / P2 are no Heavy's (the compiler admits no
-	 * Heavy there): they are reserved for region 3's force field, whose
-	 * sprites are its own, so the Heavy body check has no subject. */
-	if (dftrace_boss_active()) {
-		for (slot = 0u; slot < 2u; ++slot) {
-			if (accumulate) continue;
-			frame->enemy_pmg_mismatch[slot] = 0u;
-			frame->enemy_pmg_mismatch_row[slot] = DFTRACE_ENEMY_PMG_NO_ROW;
-			frame->enemy_pmg_mismatch_writer[slot] = 0u;
-		}
-		return;
-	}
 	for (slot = 0u; slot < 2u; ++slot) {
 		unsigned plane = 0x3d00u + slot * 0x100u;
 		unsigned live = MEMORY_mem[dftrace_enemy_member_state + slot] != 0u;
@@ -5115,6 +5122,7 @@ static int dftrace_first_writer_effective_address(unsigned pc,
 #define DFWATCH_WRITERS 128u
 typedef struct {
 	unsigned pc, count, first_frame, last_frame, first_address, last_address;
+	unsigned min_address, max_address;  /* S5-3: every address it wrote lies between */
 } DFWatchWriter;
 static const unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u };
 static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u };
@@ -5140,9 +5148,10 @@ static void dfwatch_write(void)
 		for (index = 0u; index < dfwatch_counts[range]; ++index) {
 			const DFWatchWriter *writer = &dfwatch_writers[range][index];
 			fprintf(file, "%s{\"pc\":%u,\"count\":%u,\"first_frame\":%u,\"last_frame\":%u,"
-				"\"first_address\":%u,\"last_address\":%u}", index == 0u ? "" : ",",
+				"\"first_address\":%u,\"last_address\":%u,\"min_address\":%u,\"max_address\":%u}",
+				index == 0u ? "" : ",",
 				writer->pc, writer->count, writer->first_frame, writer->last_frame,
-				writer->first_address, writer->last_address);
+				writer->first_address, writer->last_address, writer->min_address, writer->max_address);
 		}
 		fputs("]}", file);
 	}
@@ -5180,11 +5189,14 @@ static void dfwatch_track(unsigned pc, unsigned x_register, unsigned y_register)
 			writer->count = 0u;
 			writer->first_frame = (unsigned) Atari800_nframes;
 			writer->first_address = address;
+			writer->min_address = writer->max_address = address;
 		}
 		writer = &dfwatch_writers[range][index];
 		++writer->count;
 		writer->last_frame = (unsigned) Atari800_nframes;
 		writer->last_address = address;
+		if (address < writer->min_address) writer->min_address = address;
+		if (address > writer->max_address) writer->max_address = address;
 	}
 }
 
@@ -6080,6 +6092,46 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		? MEMORY_mem[dftrace_boss_finale] : 0u;
 	frame->boss_armour_left = dftrace_boss_active() && dftrace_boss_armour_left != 0u
 		? MEMORY_mem[dftrace_boss_armour_left] : 0u;
+	frame->field_state = 15u;
+	frame->field_deflections = 0u;
+	frame->field_cells_down = 0u;
+	if (dftrace_boss_active() && dftrace_field_half != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
+		dftrace_boss_hp != 0u && dftrace_boss_count != 0u) {
+		unsigned half, column, module, count = MEMORY_mem[dftrace_boss_count];
+		unsigned deflect = MEMORY_mem[0xad00u + 250u];
+		if (count > 16u) count = 16u;
+		frame->field_state = MEMORY_mem[dftrace_field_half] | (MEMORY_mem[dftrace_field_half + 1u] << 2);
+		for (half = 0u; half < 2u; ++half) {
+			unsigned state = MEMORY_mem[dftrace_field_half + half];
+			for (column = MEMORY_mem[dftrace_field_from + half];
+				column < MEMORY_mem[dftrace_field_end + half] && column < 64u; ++column) {
+				unsigned code = MEMORY_mem[dftrace_field_row_cells + column];
+				if (state == 0u && code == deflect) ++frame->field_deflections;
+				if (state == 2u && code != 0u) ++frame->field_cells_down;
+			}
+		}
+		for (module = 0u; module < count; ++module) {
+			unsigned hp = MEMORY_mem[dftrace_boss_hp + module];
+			if (dftrace_field_hp_valid && hp < dftrace_field_hp[module]) {
+				unsigned record = dftrace_boss_module_table + 12u * module;
+				unsigned left = MEMORY_mem[record], right = left + MEMORY_mem[record + 2u];
+				int shielded = 1, overlaps = 0;
+				for (half = 0u; half < 2u; ++half) {
+					unsigned from = MEMORY_mem[dftrace_field_from + half];
+					unsigned end = MEMORY_mem[dftrace_field_end + half];
+					if (left < end && from < right) {
+						overlaps = 1;
+						if (MEMORY_mem[dftrace_field_half + half] != 0u) shielded = 0;
+					}
+				}
+				if (overlaps && shielded) ++dftrace_field_violations;
+			}
+			dftrace_field_hp[module] = (unsigned char) hp;
+		}
+		dftrace_field_hp_valid = 1;
+	} else
+		dftrace_field_hp_valid = 0;
+	frame->field_violations = dftrace_field_violations;
 	frame->boss_spawns = 0u;
 	if (dftrace_projectile_active != 0u && dftrace_projectile_y != 0u &&
 		dftrace_projectile_lifetime != 0u) {
@@ -6230,7 +6282,8 @@ static void dftrace_write(void)
 		",hull_map_draws,hull_map_stale_draws,hull_map_dirty_reads,hull_map_rebuilds_after_boss,boss_path_stage"
 		",light_state0,light_state1,light_state2,light_state3"
 		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
-		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left\n");
+		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left"
+		",field_state,field_deflections,field_violations,field_cells_down\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6514,7 +6567,8 @@ static void dftrace_write(void)
 		if (frame->boss_entry && dfhud_entry_state == 2)
 			for (unsigned cell = 0u; cell < 40u; ++cell)
 				fprintf(file, "%02x", dfhud_entry_after[cell]);
-		fprintf(file, ",%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
+			frame->field_state, frame->field_deflections, frame->field_violations, frame->field_cells_down);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -7303,6 +7357,10 @@ static void dftrace_init(void)
 	dftrace_boss_count = dftrace_env_optional("DFTRACE_BOSS_COUNT");
 	dftrace_boss_module_table = dftrace_env_optional("DFTRACE_BOSS_MODULE_TABLE");
 	dftrace_boss_column_map = dftrace_env_optional("DFTRACE_BOSS_COLUMN_MAP");
+	dftrace_field_half = dftrace_env_optional("DFTRACE_FIELD_HALF");
+	dftrace_field_from = dftrace_env_optional("DFTRACE_FIELD_FROM");
+	dftrace_field_end = dftrace_env_optional("DFTRACE_FIELD_END");
+	dftrace_field_row_cells = dftrace_env_optional("DFTRACE_FIELD_ROW_CELLS");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

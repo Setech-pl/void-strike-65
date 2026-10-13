@@ -34,6 +34,7 @@ import {
   pickupReleaseClearedOnce,
   pickupTraversalFrameIntact,
   raiderKillAccounting,
+  slotFWriteClause,
 } from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { compileLevelFile, levelSourcePath } from "./level-compiler.mjs";
@@ -825,7 +826,12 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
   ...[0, 1, 2].map((difficulty) => ({
     id: `region-${region}-diag-${difficulty}`,
     difficulty,
-    policy: "sweep",
+    /* S5-3 (owner answers of 2026-10-13): region 3's generators stand at the
+     * band's ends, beyond the plain sweep's reach (HPOS 94-154, band columns
+     * about 17-48), so its field never fell and its fight never ended
+     * (MEASURED, Phase A); region 3 plays its boss with the aiming bot taught
+     * to see the field. Regions 2 and 4 are unchanged. */
+    policy: region === 3 ? "boss-aim" : "sweep",
     fireDelay: 2,
     /* MEASURED (region-2-diag-1, 2026-10-09): the sweep bot firing every
      * other frame scores 316 of the fight's points in 5,000 frames - it
@@ -861,7 +867,9 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
   ...[0, 1, 2].map((difficulty) => ({
     id: `region-${region}-finale-${difficulty}`,
     difficulty,
-    policy: "sweep-wide",
+    // S5-3: region 3's wide sweep broke the generators but did not finish the
+    // fight in 12,000 frames (MEASURED, Phase A): the aiming bot, as above.
+    policy: region === 3 ? "boss-aim" : "sweep-wide",
     fireDelay: 2,
     frames: 12_000,
     endAtSummary: true,
@@ -1427,6 +1435,10 @@ for (const name of [
   "boss_shown_pos",
   // S5-2: the controller's finale floor (0 = none yet) and the boss shots born this frame.
   "boss_finale", "boss_spawns", "boss_armour_left",
+  // S5-3: region 3's force field - the halves' states (15 = no field), the
+  // deflections on a powered half, hit points lost behind a powered half
+  // (cumulative), field cells left in a fallen half.
+  "field_state", "field_deflections", "field_violations", "field_cells_down",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -2185,67 +2197,6 @@ function labelResolver(links) {
     }
     return best === null || pc - best[2] >= 0x400 ? `$${pc.toString(16)}`
       : `${best[0]}:${best[1]}${pc === best[2] ? "" : `+${pc - best[2]}`}`;
-  };
-}
-
-// S5-1 (owner decision Q9): slot F's writers, per replay - see the clause.
-const SLOT_F_CODE = 0x5200 + 110;                  // BOSS_SLOT_F + BOSS_LOOK_TAIL_MAX_BYTES (S5-3)
-const SLOT_F_END = 0x5400;
-function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockBytes }) {
-  const copyStart = labels.get("copy_hud_charset");
-  const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
-  const violations = [];
-  const writers = new Map();
-  let subject = 0;
-  for (const watch of watches) {
-    const list = watch.slot_f?.writers ?? [];
-    const copy = list.filter(({ pc }) => pc >= copyStart && pc < copyEnd);
-    // The start-up writers are those that wrote slot F before the first
-    // charset copy (the OS's cold start, the boot loader's staging): a RESET
-    // is a cold start and runs them again, after it.
-    const copyFirst = copy.reduce((frame, writer) => Math.min(frame, writer.first_frame), Infinity);
-    if (copy.length === 0) violations.push({ session: watch.session, message: "copy_hud_charset never wrote slot F" });
-    let readerWrites = 0;
-    for (const writer of list) {
-      const reader = writer.pc >= readerAddress && writer.pc < readerEnd;
-      // S5-3: the region block's own code (region 3's field) keeps its state in
-      // the block, after the look tail's 110 B: a writer inside the block that
-      // writes there only is the block's, not a foreign writer.
-      const blockCode = writer.pc >= SLOT_F_CODE && writer.pc < SLOT_F_END &&
-        writer.first_address >= SLOT_F_CODE && writer.last_address < SLOT_F_END;
-      const kind = writer.pc >= copyStart && writer.pc < copyEnd ? "copy_hud_charset"
-        : reader && writer.first_frame > copyFirst ? "region block read"
-          : blockCode && writer.first_frame > copyFirst ? "the region block's code"
-            : writer.first_frame <= copyFirst ? "start-up" : null;
-      const key = `$${writer.pc.toString(16)}`;
-      const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
-      entry.sessions += 1;
-      entry.count += writer.count;
-      writers.set(key, entry);
-      if (kind === null) {
-        violations.push({ session: watch.session, message: `$${writer.pc.toString(16)} wrote slot F ` +
-          `${writer.count} times (frames ${writer.first_frame}-${writer.last_frame}, ` +
-          `$${writer.first_address.toString(16)}-$${writer.last_address.toString(16)}), not a start-up ` +
-          "writer, the charset copy or the region block's read" });
-      }
-      if (kind === "region block read") readerWrites += writer.count;
-    }
-    if (watch.bossEntry) {
-      if (readerWrites < blockBytes) {
-        violations.push({ session: watch.session, message: `the boss entry wrote ${readerWrites} B of the region ` +
-          `block into slot F (expected >= ${blockBytes})` });
-      }
-      subject += readerWrites > 0 ? 1 : 0;
-    }
-    if ((watch.slot_f?.overflow ?? 0) > 0) {
-      violations.push({ session: watch.session, message: `the watch overflowed (${watch.slot_f.overflow} writes untracked)` });
-    }
-  }
-  return {
-    clause: "slot F ($5200-$53FF) is written only by the start-up writers (those that wrote it before the first " +
-      "copy_hud_charset - a RESET runs them again), the charset copy, and the sector reader's region block read " +
-      "at a boss entry, in every replay and boot-smoke session",
-    sessions: watches.length, subject, writers: [...writers.values()], violations,
   };
 }
 
@@ -4244,6 +4195,14 @@ function main() {
       addressEnvironment.DFTRACE_BOSS_MODULE_TABLE = hex(bossLabels, "_boss_module_table");
       // S5-3: the column map, so the boss-aim policy sees a force field.
       addressEnvironment.DFTRACE_BOSS_COLUMN_MAP = hex(bossLabels, "boss_column_map");
+      // S5-3: the field's state and tables (region 3's block), its row's cells.
+      const fieldRegion = manifest.boss?.regions?.find((region) => region.field !== null && region.field !== undefined);
+      if (bossLabels.has("field_half") && fieldRegion !== undefined) {
+        addressEnvironment.DFTRACE_FIELD_HALF = hex(bossLabels, "field_half");
+        addressEnvironment.DFTRACE_FIELD_FROM = hex(bossLabels, "field_from");
+        addressEnvironment.DFTRACE_FIELD_END = hex(bossLabels, "field_end");
+        addressEnvironment.DFTRACE_FIELD_ROW_CELLS = `$${fieldRegion.field.rowCells.toString(16)}`;
+      }
     }
   }
 
@@ -4730,6 +4689,35 @@ function main() {
       }
       if (finaleCooldown !== 0 && session.id.startsWith(`region-${session.bossRegion}-finale-`)) {
         invariant(finaleRows.length > 0, `${session.id}: region ${session.bossRegion}'s finale never began (subject empty)`);
+      }
+      // S5-3 (plan s5-boss-regions §4.4, §5; owner answers of 2026-10-13): a
+      // region with a force field. Subject: the boss frames with a powered
+      // half. No module loses a hit point while every field half over it is
+      // powered; the field shows a deflection on a powered half; a half that
+      // is down shows no field cell; when the fight reaches the chain, both
+      // halves are down (the weapons stand behind the field).
+      const fieldRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.field ?? null;
+      if (fieldRegion !== null) {
+        const bossRows = rows.filter((row) => row.boss_state >= 1 && row.field_state !== 15);
+        const powered = bossRows.filter((row) => (row.field_state & 3) === 0 || (row.field_state >> 2) === 0);
+        invariant(powered.length > 0, `${session.id}: no boss frame with a powered field half (subject empty)`);
+        const violations = rows.reduce((max, row) => Math.max(max, row.field_violations), 0);
+        invariant(violations === 0,
+          `${session.id}: ${violations} hit points lost behind a powered field half`);
+        const deflected = powered.filter((row) => row.field_deflections > 0).length;
+        invariant(deflected > 0, `${session.id}: the field never showed a deflection on a powered half`);
+        const left = bossRows.filter((row) => row.field_cells_down > 0);
+        invariant(left.length === 0,
+          `${session.id}: ${left.length} frames show field cells in a half that is down (first frame ${left[0]?.frame})`);
+        const down = bossRows.find((row) => row.field_state === (2 | (2 << 2)));
+        if (chain !== undefined) {
+          invariant(down !== undefined && down.frame < chain.frame,
+            `${session.id}: the chain began on frame ${chain.frame} with the field not down`);
+        }
+        session.regionRoute.field = { powered_frames: powered.length, deflection_frames: deflected,
+          violations, down_frame: down?.frame ?? null };
+        console.log(`${session.id}: the field powered on ${powered.length} boss frames, a deflection on ` +
+          `${deflected}, ${violations} hit points behind it, down at frame ${down?.frame ?? "-"}`);
       }
     }
     const staleHullDraws = rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0);
@@ -5617,7 +5605,17 @@ function main() {
   // copy_hud_charset's last write (the boot loader's staging, the charset
   // copy), and after it only the sector reader - the region block's read at a
   // boss entry. Subject: the reader's slot F writes in the boss-entry replays.
+  // S5-3: the field's code and state (region 3's block), from the boss link.
+  const fieldWatch = (() => {
+    const where = path.join(layout.inputDirectory, "boss.lbl");
+    if (!fs.existsSync(where)) return null;
+    const boss = parseViceLabels(fs.readFileSync(where, "utf8"));
+    if (!boss.has("field_hooks")) return null;
+    return { codeStart: boss.get("field_hooks"), codeEnd: boss.get("field_state"),
+      stateStart: boss.get("field_state"), stateEnd: boss.get("field_state_end") };
+  })();
   const slotFWrites = slotFWriteClause(sessionWatches, {
+    field: fieldWatch,
     labels, readerAddress: manifest.sectorReader.address,
     readerEnd: manifest.sectorReader.address + manifest.sectorReader.bytes,
     blockBytes: (manifest.boss?.slotF?.blocks?.[0]?.sectors ?? 0) * 128,
@@ -5632,7 +5630,7 @@ function main() {
   slotFWrites.held = slotFWrites.violations.length === 0 &&
     (slotFWrites.subject > 0 || !sessionsToRun.some((session) => session.kind === "director-level-complete"));
   console.log(`Slot F write clause: ${slotFWrites.sessions} replays watched, subject ${slotFWrites.subject} ` +
-    `block reads, ${slotFWrites.violations.length} foreign writers`);
+    `block reads, ${slotFWrites.fieldWrites} field-state writes, ${slotFWrites.violations.length} foreign writers`);
   // The HUD row's writers, by routine, over the whole run (the HUD audit's
   // inventory; informational - the fields' tests are tests/hud-audit.test.mjs).
   const linkLabels = (file) => {

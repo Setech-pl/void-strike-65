@@ -125,6 +125,9 @@ import {
   BOSS_SLOT_F_ADDRESS,
   BOSS_SLOT_F_BYTES,
   BOSS_LOOK_TAIL_MAX_BYTES,
+  BOSS_BAND_B_ADDRESS,
+  BOSS_BAND_A_ROWS,
+  BOSS_BAND_COLUMNS,
   BOSS_STAGING_ADDRESS,
   BOSS_THEME_SECTORS,
   bossRegionDirectory,
@@ -357,21 +360,6 @@ if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirecto
   throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
     "draft (node scripts/boss-r1-variants.mjs writes it)");
 }
-// S5-3 (feat/boss-region-3, plan docs/plans/s5-boss-regions.md §4.4, §6.3):
-// --field-variant=a|b builds region 3 from its own draft
-// (assets/graphics/boss-regions/region-3/, Siege Spine with the force field)
-// instead of the placeholder copy of region 1, with the field's look "b" (the
-// glyph row and P1 / P2 glow rings, the plan's choice) or "a" (P1 / P2 field
-// segments beside the generators, the comparison build): the region block
-// carries the field's code (slot F) and slot D its two gated calls. Composes
-// with --level=1:sector=M, --boss-region=3 and --laser-fixture=T. Review
-// variant (Phase A): build/field-variant-X[-laser-fixture-T][-boss-region-N]-level-1-sM/
-// or build/field-variant-X/ (the full game), never dist/.
-const fieldVariantArgument = process.argv.find((argument) => argument.startsWith("--field-variant="));
-const fieldVariant = fieldVariantArgument?.slice("--field-variant=".length) ?? null;
-if (fieldVariant !== null && !["a", "b"].includes(fieldVariant)) {
-  throw new Error(`Unknown field variant ${fieldVariant}; the looks are a and b`);
-}
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
 // 16 is LEVEL_MAX_ID, declared below with the rest of the layout; this check
@@ -390,7 +378,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  bossVariantSlug !== undefined || fieldVariant !== null;
+  bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -406,10 +394,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
 const levelDebugSuffix = levelDebugId === null
   ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
     `-level-${levelDebugId}-s${levelDebugSector}`;
-const fieldVariantPrefix = fieldVariant === null ? "" : `field-variant-${fieldVariant}`;
-const variantDirectoryName = fieldVariant !== null
-  ? `${fieldVariantPrefix}${laserFixtureTier === null ? "" : `-laser-fixture-${laserFixtureTier}`}${levelDebugSuffix}`
-  : escortVariantId !== null
+const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
@@ -1904,19 +1889,15 @@ async function build() {
   // (assets/graphics/boss-regions/placeholders.json: the finale on, region 1
   // keeping it off, owner answer Q6).
   const bossPlaceholders = loadBossPlaceholders(rootDirectory);
-  const bossRegions = [regionOne, ...[2, 3, 4].map((region) =>
-    compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)])))];
-  // S5-3 (Phase A): --field-variant=a|b - region 3 from its own draft, the
-  // field in the given look; its block gains the field's code after the link.
-  if (fieldVariant !== null) {
-    bossRegions[2] = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, 3)),
-      { themeImage: bossThemeImage,
-        shotGlyphs: bossShotGlyphsFrom(fighterWeaponsAsset.glyphs.player_fighter),
-        hostileShotGlyphs: bossHostileShotGlyphsFrom(fighterWeaponsAsset.hostileWeaponVisuals[0]),
-        fieldLook: fieldVariant });
-  }
-  const bossField = fieldVariant === null ? null : bossRegions[2].field;
-  if (fieldVariant !== null && bossField === null) throw new Error("--field-variant: region 3's draft has no field");
+  // S5-3 (feat/boss-region-3, owner answers of 2026-10-13): region 3 is Siege
+  // Spine from its own draft (assets/graphics/boss-regions/region-3/), its
+  // force field's code in its block (slot F) - in every build, the laser
+  // fixture's included (the fixture replaces region 1's draft and the copies
+  // made of it). Regions 2 and 4 stay copies of region 1 until S5-5 / S5-4.
+  const bossRegions = [1, 2, 3, 4].map((region) => (region === 1 ? regionOne
+    : region === 3 ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, 3)))
+      : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
+  const bossField = bossRegions[2].field;
   const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
   writeFile(path.join(buildDirectory, "boss-layout.inc"), bossLayoutInclude);
@@ -3005,26 +2986,17 @@ async function build() {
     const halves = bossField.halves.map((half) => {
       const gen = generator(half.generators[0]);
       const fromLeft = gen.x < half.from;
-      const clock = bossField.look === "b" ? 32 + 4 * gen.x - 2
-        : 32 + 4 * (fromLeft ? half.from : half.to - 7);
       return { ...half, start: fromLeft ? half.from : half.to, last: fromLeft ? half.to : half.from,
-        dir: fromLeft ? 1 : 0xff, clock, gen };
+        dir: fromLeft ? 1 : 0xff };
     });
-    const gens = halves.map((half) => half.gen);
-    if (halves.length !== 2 || gens[0].row !== gens[1].row || gens[0].height !== gens[1].height) {
-      throw new Error("S5-3: the field code takes two halves with generators of one row and height");
-    }
+    if (halves.length !== 2) throw new Error("S5-3: the field code takes two halves");
     const lines = [
       "; Generated by scripts/build.mjs (S5-3, the force field) - do not edit.",
       `FIELD_ROW               = ${bossField.row}`,
       `FIELD_FRAMES            = ${bossField.framesPerPhase}`,
       `FIELD_CODE              = ${hex(bossField.code)}`,
       `FIELD_HALVES            = ${halves.length}`,
-      `FIELD_GLOW_ROW          = ${gens[0].row}`,
-      `FIELD_GLOW_ROWS         = ${gens[0].height}`,
-      ...halves.flatMap((half, i) => [
-        `FIELD_H${i}_START          = ${half.start}`,
-        `FIELD_H${i}_SPRITE_CLOCK   = ${half.clock}`]),
+      ...halves.map((half, i) => `FIELD_H${i}_START          = ${half.start}`),
       ".macro FIELD_TABLES",
       `field_from:     .byte ${halves.map((h) => h.from).join(", ")}`,
       `field_end:      .byte ${halves.map((h) => h.to + 1).join(", ")}`,
@@ -3098,7 +3070,7 @@ async function build() {
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
-        ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1", ...(bossField.look === "b" ? ["-D", "BOSS_FIELD_LOOK_B=1"] : [])]),
+        ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1"]),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -4143,7 +4115,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null || fieldVariant !== null
+      bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4508,9 +4480,14 @@ async function build() {
       // each region's block (today its look tail) read there at the entry.
       slotF: { address: BOSS_SLOT_F_ADDRESS, capacityBytes: BOSS_SLOT_F_BYTES,
         lookTail: { address: bossRegions[0].lookTailAddress, bytes: bossRegions[0].lookTail.length },
-        blocks: bossRegions.map((region, index) => ({ region: index + 1, bytes: region.lookTail.length,
-          sectors: region.runs.block.sectors, startSector: bossRegionRunSector(index, "block"),
-          freeBytes: BOSS_SLOT_F_BYTES - region.lookTail.length })) },
+        // S5-3: a block with region code is its look tail's 110 B and the code.
+        blocks: bossRegions.map((region, index) => {
+          const bytes = region.fieldCodeBytes === undefined ? region.lookTail.length
+            : BOSS_LOOK_TAIL_MAX_BYTES + region.fieldCodeBytes;
+          return { region: index + 1, bytes, lookTailBytes: region.lookTail.length,
+            codeBytes: region.fieldCodeBytes ?? 0, sectors: region.runs.block.sectors,
+            startSector: bossRegionRunSector(index, "block"), freeBytes: BOSS_SLOT_F_BYTES - bytes };
+        }) },
       // M5b-S4b.5: slot E over the expanded hull maps, the boss sector only.
       slotE: { address: BOSS_SLOT_E_ADDRESS, bytes: bossSlotEUsed, codeBytes: bossSlotECodeBytes,
         capacityBytes: BOSS_SLOT_E_BYTES, freeBytes: BOSS_SLOT_E_BYTES - bossSlotEUsed,
@@ -4528,6 +4505,13 @@ async function build() {
         charsetSectors: region.runs.charset.sectors, modules: region.modules.length,
         // S5-2: the finale's floor (fire.finaleCooldown; 0 = no finale).
         finaleCooldown: region.fire.finaleCooldown,
+        // S5-3: the force field (null without one): its row, its halves with
+        // their generators, its code's bytes in the block (slot F).
+        field: region.field === null ? null : { row: region.field.row,
+          rowCells: BOSS_BAND_B_ADDRESS + (region.field.row - BOSS_BAND_A_ROWS) * BOSS_BAND_COLUMNS,
+          halves: region.field.halves.map(({ from, to, generators }) => ({ from, to,
+            generators: generators.map((index) => region.modules[index].name) })),
+          codeBytes: region.fieldCodeBytes ?? 0, blockBytes: BOSS_LOOK_TAIL_MAX_BYTES + (region.fieldCodeBytes ?? 0) },
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +

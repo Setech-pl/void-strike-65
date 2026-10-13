@@ -2,44 +2,32 @@
 // boss-sector stress composition (tests/boss-stress.test.mjs's accounting -
 // the band DLI's three phases, UPDATE, SECTOR_COMPLETION and MOTION, native
 // cycles) on a region with the force field, entered through the real boss
-// entry on a --field-variant build, so the field's code is read from that
-// build's disk into slot F as the game reads it.
+// entry (the window's resident half, the head's reads from the built disk), so
+// the field's code is read into slot F as the game reads it.
 //
-//   VS65_HARNESS_BUILD=field-variant-b-laser-fixture-4-boss-region-3-level-1-s6 \
-//     node scripts/measure-boss-stress-field.mjs [--level=9]
+//   node scripts/measure-boss-stress-field.mjs [--level=9]      (default level 7)
+//   VS65_HARNESS_BUILD=<dir under build/> node scripts/... (another build)
 //
 // The cases: every band position of five, the generators and the plates
 // destroyed in every combination (each half collapsed), one to five front
 // modules met (kill or a stage change), the lasers held in a warning's heat
 // frame or their beams (two on, the others ready), each armed weapon's firing
 // due on the meeting frame (held to the next by rule (B)); and the field's own
-// frames - a shot absorbed by a powered half (one or two meetings, with a
-// module met beside it) and a half collapsing on the meeting frame (its step's
-// boss_column_at walk). The figure of a case is its worst frame; "reachable"
-// is at most two meetings a frame (AUD-04's cap). MEASURED, native.
+// frames - a shot absorbed by a powered half (alone or beside a module met)
+// and a half collapsing on the meeting frame. The figure of a case is its
+// worst frame; "reachable" is at most two meetings a frame (AUD-04's cap).
+// tests/boss-region-3.test.mjs gates the figures. MEASURED, native.
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const harnessBuild = process.env.VS65_HARNESS_BUILD;
-if (harnessBuild === undefined) throw new Error("set VS65_HARNESS_BUILD to a --field-variant build directory (under build/)");
-const levelArgument = process.argv.find((a) => a.startsWith("--level="));
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
-// The harness reads build/<dir>/level-1.bin: the region route's level image.
-const routeLevel = JSON.parse(fs.readFileSync(path.join(root, "build", harnessBuild, "manifest.json"), "utf8"));
-const levelImage = fs.readdirSync(path.join(root, "build", harnessBuild)).find((f) => /^level-\d+\.bin$/.test(f) && f !== "level-1.bin");
-if (levelImage !== undefined && !fs.existsSync(path.join(root, "build", harnessBuild, "level-1.bin"))) {
-  fs.copyFileSync(path.join(root, "build", harnessBuild, levelImage), path.join(root, "build", harnessBuild, "level-1.bin"));
-}
-const { call, label, labelsOf, manifest, nmi, placeBand, runBossEntry, shootAt, visibleCells } =
-  await import("../tests/boss-harness.mjs");
-void routeLevel;
+import { call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
 
+export function fieldStress({ level = 7 } = {}) {
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
 const LIMIT = 8500;
-const level = levelArgument === undefined ? null : Number(levelArgument.slice("--level=".length));
-
-const entry = runBossEntry({ prepare: level === null ? null : (memory) => { memory[0xa603] = level; } });
+const entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = level; } });
 if (entry.end !== "main_loop") throw new Error(`the boss entry ended at ${entry.end}`);
 const entered = () => Uint8Array.from(entry.memory);
 const hp = (memory, i) => memory[lbl("_boss_hp") + i];
@@ -147,14 +135,9 @@ function collapsing(m, half, column) {
   m[lbl("boss_column_map") + column] = 0xfe;
   m[lbl("boss_stop_y") + column] = FIELD_STOP_Y;
 }
-const fieldCode = (() => {
-  const text = fs.readFileSync(path.join(root, "build", harnessBuild, "boss-field.inc"), "utf8");
-  return Number.parseInt(/FIELD_CODE\s*=\s*\$([0-9A-F]+)/.exec(text)[1], 16);
-})();
-const fieldRow = 0xac80 + 64;                               // band B's second row (row 7)
-
-const names = JSON.parse(fs.readFileSync(path.join(root, "assets", "graphics", "boss-regions", "region-3", "modules.json"), "utf8"));
-void names;
+const field = manifest.boss.regions[2].field;
+const fieldRow = field.rowCells;
+const fieldCode = entry.memory[fieldRow + field.halves[0].from];   // the field glyph, as the entry drew it
 const kinds = [...Array(count).keys()].map((i) => entered()[lbl("_boss_kind") + i]);
 const tableKind = (i) => entered()[label("boss", "_boss_module_table") + 12 * i + 7] & 0x0f;
 const plates = [...Array(count).keys()].filter((i) => tableKind(i) === 0 && kinds[i] === 0);
@@ -242,17 +225,20 @@ const describe = (c) => `${c.cycles} (f${c.worstFrame}) lasers ${c.laserMode}, p
   `destroyed [${c.dead}]${c.collapse === null ? "" : `, half ${c.collapse} collapsing`}` +
   `${c.spawned ? `, module ${c.gun} spawning` : ""} (${c.reach})`;
 const worstOf = (list) => list.reduce((w, c) => (w === null || c.cycles > w.cycles ? c : w), null);
-console.log(`# ${harnessBuild}${level === null ? "" : ` (level ${level})`}: ${cases.length} cases, limit ${LIMIT}`);
-for (const laserMode of ["warn", "beam"]) {
-  const subset = cases.filter((c) => c.laserMode === laserMode);
-  const reachable = worstOf(subset.filter((c) => c.reach === "reachable"));
-  console.log(`# lasers ${laserMode}: worst reachable ${describe(reachable)}`);
-  console.log(`#   worst any: ${describe(worstOf(subset))}`);
-  console.log(`#   worst absorb: ${describe(worstOf(subset.filter((c) => c.absorb.length > 0 && c.reach === "reachable")))}`);
-  console.log(`#   worst collapse: ${describe(worstOf(subset.filter((c) => c.collapse !== null && c.reach === "reachable")))}`);
+return { cases, describe, worstOf, level };
 }
-console.log(`# frames with a kill and a spawn: ${cases.reduce((s, c) => s + c.clashes, 0)}`);
-for (const laserMode of ["warn", "beam"]) {
-  const subset = cases.filter((c) => c.laserMode === laserMode && c.collapse === null && c.reach === "reachable");
-  console.log(`# lasers ${laserMode}, no half collapsing on the meeting frame: worst reachable ${describe(worstOf(subset))}`);
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const levelArgument = process.argv.find((a) => a.startsWith("--level="));
+  const { cases, describe, worstOf, level } = fieldStress({
+    level: levelArgument === undefined ? 7 : Number(levelArgument.slice("--level=".length)) });
+  console.log(`# region 3, level ${level}: ${cases.length} cases`);
+  for (const laserMode of ["warn", "beam"]) {
+    const subset = cases.filter((c) => c.laserMode === laserMode);
+    console.log(`# lasers ${laserMode}: worst reachable ${describe(worstOf(subset.filter((c) => c.reach === "reachable")))}`);
+    console.log(`#   worst any: ${describe(worstOf(subset))}`);
+    console.log(`#   worst absorb: ${describe(worstOf(subset.filter((c) => c.absorb.length > 0 && c.reach === "reachable")))}`);
+    console.log(`#   worst collapse: ${describe(worstOf(subset.filter((c) => c.collapse !== null && c.reach === "reachable")))}`);
+  }
+  console.log(`# frames with a kill and a spawn: ${cases.reduce((s, c) => s + c.clashes, 0)}`);
 }

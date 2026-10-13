@@ -212,12 +212,11 @@ export const BOSS_EXTRAS_IMAGE = Object.freeze({ width: BOSS_EXTRAS.cells * 4, h
 // region's modules.json may carry a `field` block - a row, one or two halves
 // of columns, each powered by its generators (armour modules) - and its
 // field.png, the field glyph's two phases (8 x 8: phase A, phase B). The
-// converter draws phase A in every field cell (look "b"; look "a", the
-// comparison build, leaves them blank); the region block's code (slot F)
-// stops the player's shots in a powered half and swaps the phases.
+// converter draws phase A in every field cell; the region block's code (slot
+// F, src/hybrid/boss.s BOSS_FIELD) stops the player's shots in a powered half
+// and swaps the phases (owner answers of 2026-10-13: look (b), no glow).
 export const BOSS_FIELD_ART_FILE = "field.png";
 export const BOSS_FIELD_IMAGE = Object.freeze({ width: 8, height: 8 });
-export const BOSS_FIELD_LOOKS = Object.freeze(["a", "b"]);
 export const BOSS_NOZZLE_PHASES = 3;
 // Decision M (plan §5.16): the player's shots are drawn inside the band with
 // four codes of the region's charset - horizontal phase 0 / 2 colour clocks x
@@ -752,9 +751,8 @@ function resolveModules(layout) {
 // phase that is blank or mixes the colour banks.
 export const BOSS_FIELD_MAX_HALVES = 2;
 export const BOSS_FIELD_MAX_GENERATORS = 2;
-function resolveBossField(source, modules, owner, nozzleCells, image, look) {
+function resolveBossField(source, modules, owner, nozzleCells, image) {
   if (source === undefined || source === null) return null;
-  if (!BOSS_FIELD_LOOKS.includes(look)) fail(`the field's look is ${JSON.stringify(look)}; ${BOSS_FIELD_LOOKS.join(" or ")}`);
   if (image === undefined) fail(`the region has a field but no ${BOSS_FIELD_ART_FILE}`);
   const row = integerIn(source.row, 0, BOSS_BAND_ROWS - 1, "field.row");
   const framesPerPhase = integerIn(source.framesPerPhase, 1, 255, "field.framesPerPhase");
@@ -793,7 +791,7 @@ function resolveBossField(source, modules, owner, nozzleCells, image, look) {
     return cell;
   });
   if ((phases[0].bank ?? 0) !== (phases[1].bank ?? 0)) fail(`${BOSS_FIELD_ART_FILE}: the two phases use different colour banks`);
-  return { row, framesPerPhase, halves, phases, keys, look };
+  return { row, framesPerPhase, halves, phases, keys };
 }
 
 // ---------------------------------------------------------------------------
@@ -815,7 +813,7 @@ export function bossTitleRecords(name) {
 }
 
 export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null,
-  hostileShotGlyphs = draft.hostileShotGlyphs ?? null, fieldLook = "b" } = {}) {
+  hostileShotGlyphs = draft.hostileShotGlyphs ?? null } = {}) {
   const { layout, images } = draft;
   if (layout?.formatVersion !== BOSS_FORMAT_VERSION) {
     fail(`unsupported formatVersion ${JSON.stringify(layout?.formatVersion)} (expected ${BOSS_FORMAT_VERSION})`);
@@ -901,7 +899,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
 
   // S5-3: the force field's cells - no module's, no nozzle's, blank in
   // band.png (the converter draws them) - and its halves' generators.
-  const field = resolveBossField(layout.field, modules, owner, nozzleCells, draft.fieldImage, fieldLook);
+  const field = resolveBossField(layout.field, modules, owner, nozzleCells, draft.fieldImage);
   const fieldKeys = field === null ? new Set() : field.keys;
 
   // The staged block: one entry a distinct (intact, cracked, broken) triple.
@@ -1028,8 +1026,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       const cell = cellOf(images.band, c, r, `band cell (${c}, ${r})`);
       if (fieldKeys.has(key)) {
         if (!cell.blank) fail(`band cell (${c}, ${r}) is a field cell: leave it blank (the converter draws the field)`);
-        cellRefs.set(key, field.look === "b" ? { block: "plain", index: plainIndex(field.phases[0]),
-          bank: field.phases[0].bank ?? 0 } : null);
+        cellRefs.set(key, { block: "plain", index: plainIndex(field.phases[0]), bank: field.phases[0].bank ?? 0 });
         continue;
       }
       if (nozzleCells.has(key)) {
@@ -1305,12 +1302,12 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       cavityRows: module.cavityRows, stages: module.stages,
       cover: module.coverMask, open: openLooks.has(module.index) })),
     themeBytes: themeImage === null ? 0 : themeImage.length,
-    // S5-3: the force field (null without one): its row, the field code
-    // (look "b"; 0 for look "a"), both phases' bytes, the halves with their
-    // generators' module indices (the front-first order).
+    // S5-3: the force field (null without one): its row, the field code, both
+    // phases' bytes, the halves with their generators' module indices (the
+    // front-first order).
     field: field === null ? null : {
-      look: field.look, row: field.row, framesPerPhase: field.framesPerPhase,
-      code: field.look === "b" ? plainCode({ index: plainIndex(field.phases[0]), bank: field.phases[0].bank ?? 0 }) : 0,
+      row: field.row, framesPerPhase: field.framesPerPhase,
+      code: plainCode({ index: plainIndex(field.phases[0]), bank: field.phases[0].bank ?? 0 }),
       phases: field.phases.map((phase) => phase.bytes),
       halves: field.halves.map((half) => ({ from: half.from, to: half.to,
         generators: half.generators.map((name) => modules.find((m) => m.name === name).index) })),

@@ -2,11 +2,11 @@
   "formatVersion": 2,
   "name": "Siege Spine",
   "style": 1,
-  "_": "Region 3's boss (S5-3, feat/boss-region-3; docs/plans/s5-boss-regions.md §4.4 and §6.3; the owner's banner in docs/design/boss-banners/): Siege Spine, the layered fortress with a force field. A long segmented spine with dorsal spikes (hull), a generator sphere at each end (gen-l, gen-r: armour), a domed siege cannon at the centre (emitter slot 1, fires from the first frame), two more emitters (slots 2-3) and two guns behind front plates, and two open guns near the ends. The field, in the band's front row between the generators, stops every player shot in its half while that half's generator stands (the region block's code, slot F); the boss's shots, its lasers and the player pass through. Destroying both generators drops the field for good. The boss falls with its last weapon. Art drawn by the agent with scripts/boss-r3-art.mjs (decision G); the owner retouches the PNGs. Hit points: Phase A's first values; Phase B tunes MEDIUM to 90-120 s with the aiming bot.",
+  "_": "Region 3's boss (S5-3, feat/boss-region-3; docs/plans/s5-boss-regions.md §4.4 and §6.3; the owner's banner in docs/design/boss-banners/): Siege Spine, the layered fortress with a force field. A long segmented spine with dorsal spikes (hull), a generator sphere at each end (gen-l, gen-r: armour), a domed siege cannon at the centre (emitter slot 1, fires from the first frame), two more emitters (slots 2-3) and two guns behind front plates, and two open guns near the ends. The field, in the band's front row between the generators, stops every player shot in its half while that half's generator stands (the region block's code, slot F); the boss's shots, its lasers and the player pass through. Destroying both generators drops the field for good. The boss falls with its last weapon. Art drawn by the agent with scripts/boss-r3-art.mjs (decision G); the owner retouches the PNGs. Hit points (owner answer 5 of 2026-10-13, after the Phase A smoke): generators 20 -> 16, plates and guns 12 -> 10, the siege cannon 24 -> 20, emitters 2-3 20; the fight by the aiming bot's ratio (docs/plans/s5-boss-regions.md §6.3). The force field: look (b) without the generators' glow (owner answers 1-4).",
   "palette": {
-    "_": "COLPF0 cold steel (the plates' and spheres' face), COLPF1 field blue (trim, the field), COLPF2 amber (cores, lights, damage glow, sparks), COLPF3 the hull's dark slate-blue bulk.",
+    "_": "COLPF0 cold steel (the plates' and spheres' face), COLPF1 field violet (trim, the field; hue 294, clear of the ally steel $84 at 226 on levels 7-9), COLPF2 amber (cores, lights, damage glow, sparks), COLPF3 the hull's dark slate-blue bulk.",
     "colpf0": 12,
-    "colpf1": 150,
+    "colpf1": 102,
     "colpf2": 40,
     "colpf3": 4
   },
@@ -55,18 +55,18 @@
     "framesPerPhase": 6
   },
   "modules": [
-    { "name": "gen-l", "kind": "armour", "x": 11, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 50, "cavityRows": 3 },
-    { "name": "gen-r", "kind": "armour", "x": 49, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 50, "cavityRows": 3 },
-    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 60 },
-    { "name": "gun-2", "kind": "pulse", "x": 24, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 70 },
-    { "name": "gun-3", "kind": "pulse", "x": 37, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 75 },
-    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 2, "width": 2, "height": 2, "hp": 12, "score": 50, "reload": 60 },
-    { "name": "emitter-1", "kind": "emitter", "x": 30, "row": 2, "width": 3, "height": 3, "hp": 24, "score": 80, "slot": 1, "cavityRows": 2, "stages": "lens" },
+    { "name": "gen-l", "kind": "armour", "x": 11, "row": 1, "width": 3, "height": 3, "hp": 16, "score": 50, "cavityRows": 3 },
+    { "name": "gen-r", "kind": "armour", "x": 49, "row": 1, "width": 3, "height": 3, "hp": 16, "score": 50, "cavityRows": 3 },
+    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 60 },
+    { "name": "gun-2", "kind": "pulse", "x": 24, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 70 },
+    { "name": "gun-3", "kind": "pulse", "x": 37, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 75 },
+    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 60 },
+    { "name": "emitter-1", "kind": "emitter", "x": 30, "row": 2, "width": 3, "height": 3, "hp": 20, "score": 80, "slot": 1, "cavityRows": 2, "stages": "lens" },
     { "name": "emitter-2", "kind": "emitter", "x": 19, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 60, "slot": 2, "stages": "lens" },
     { "name": "emitter-3", "kind": "emitter", "x": 41, "row": 1, "width": 3, "height": 3, "hp": 20, "score": 60, "slot": 3, "stages": "lens" },
-    { "name": "plate-a", "kind": "armour", "x": 18, "row": 4, "width": 5, "height": 2, "hp": 12, "score": 20 },
-    { "name": "plate-b", "kind": "armour", "x": 23, "row": 4, "width": 4, "height": 2, "hp": 12, "score": 20 },
-    { "name": "plate-c", "kind": "armour", "x": 36, "row": 4, "width": 4, "height": 2, "hp": 12, "score": 20 },
-    { "name": "plate-d", "kind": "armour", "x": 40, "row": 4, "width": 5, "height": 2, "hp": 12, "score": 20 }
+    { "name": "plate-a", "kind": "armour", "x": 18, "row": 4, "width": 5, "height": 2, "hp": 10, "score": 20 },
+    { "name": "plate-b", "kind": "armour", "x": 23, "row": 4, "width": 4, "height": 2, "hp": 10, "score": 20 },
+    { "name": "plate-c", "kind": "armour", "x": 36, "row": 4, "width": 4, "height": 2, "hp": 10, "score": 20 },
+    { "name": "plate-d", "kind": "armour", "x": 40, "row": 4, "width": 5, "height": 2, "hp": 10, "score": 20 }
   ]
 }

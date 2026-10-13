@@ -265,3 +265,72 @@ export function lightCoverage(rows, sectors) {
     : "L5: no variant (a) formation flew with its Interceptor");
   return { held: failures.length === 0, failures, clauses: c, maximumLiveLights };
 }
+
+// S5-1 (owner decision Q9): slot F's writers, per replay. Allowed: the
+// start-up writers that finished by copy_hud_charset's last write (the boot
+// loader's staging, the charset copy), and after it the sector reader - the
+// region block's read at a boss entry. S5-3 (the owner's answers of
+// 2026-10-13): and the region block's own field code (region 3), writing only
+// its own state - every write from a PC inside the field's code, landing
+// inside the field's state bytes (field_state .. field_state_end); a writer in
+// the field's code that writes anywhere else in slot F, or any other writer,
+// is foreign. `field` is { codeStart, codeEnd, stateStart, stateEnd } from the
+// boss link's labels, or null (no field code on the disk).
+export function slotFWriteClause(watches, { labels, readerAddress, readerEnd, blockBytes, field = null }) {
+  const copyStart = labels.get("copy_hud_charset");
+  const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
+  const violations = [];
+  const writers = new Map();
+  let subject = 0;
+  let fieldWrites = 0;
+  for (const watch of watches) {
+    const list = watch.slot_f?.writers ?? [];
+    const copy = list.filter(({ pc }) => pc >= copyStart && pc < copyEnd);
+    // The start-up writers are those that wrote slot F before the first
+    // charset copy (the OS's cold start, the boot loader's staging): a RESET
+    // is a cold start and runs them again, after it.
+    const copyFirst = copy.reduce((frame, writer) => Math.min(frame, writer.first_frame), Infinity);
+    if (copy.length === 0) violations.push({ session: watch.session, message: "copy_hud_charset never wrote slot F" });
+    let readerWrites = 0;
+    for (const writer of list) {
+      const reader = writer.pc >= readerAddress && writer.pc < readerEnd;
+      const fieldState = field !== null && writer.pc >= field.codeStart && writer.pc < field.codeEnd &&
+        writer.first_address >= field.stateStart && writer.last_address < field.stateEnd &&
+        (writer.min_address ?? writer.first_address) >= field.stateStart &&
+        (writer.max_address ?? writer.last_address) < field.stateEnd;
+      const kind = writer.pc >= copyStart && writer.pc < copyEnd ? "copy_hud_charset"
+        : reader && writer.first_frame > copyFirst ? "region block read"
+          : fieldState && writer.first_frame > copyFirst ? "the field's state"
+            : writer.first_frame <= copyFirst ? "start-up" : null;
+      const key = `$${writer.pc.toString(16)}`;
+      const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
+      entry.sessions += 1;
+      entry.count += writer.count;
+      writers.set(key, entry);
+      if (kind === null) {
+        violations.push({ session: watch.session, message: `$${writer.pc.toString(16)} wrote slot F ` +
+          `${writer.count} times (frames ${writer.first_frame}-${writer.last_frame}, ` +
+          `$${writer.first_address.toString(16)}-$${writer.last_address.toString(16)}), not a start-up ` +
+          "writer, the charset copy, the region block's read or the field's own state" });
+      }
+      if (kind === "region block read") readerWrites += writer.count;
+      if (kind === "the field's state") fieldWrites += writer.count;
+    }
+    if (watch.bossEntry) {
+      if (readerWrites < blockBytes) {
+        violations.push({ session: watch.session, message: `the boss entry wrote ${readerWrites} B of the region ` +
+          `block into slot F (expected >= ${blockBytes})` });
+      }
+      subject += readerWrites > 0 ? 1 : 0;
+    }
+    if ((watch.slot_f?.overflow ?? 0) > 0) {
+      violations.push({ session: watch.session, message: `the watch overflowed (${watch.slot_f.overflow} writes untracked)` });
+    }
+  }
+  return {
+    clause: "slot F ($5200-$53FF) is written only by the start-up writers (those that wrote it before the first " +
+      "copy_hud_charset - a RESET runs them again), the charset copy, the sector reader's region block read " +
+      "at a boss entry, and the field's code into its own state bytes, in every replay and boot-smoke session",
+    sessions: watches.length, subject, fieldWrites, writers: [...writers.values()], violations,
+  };
+}

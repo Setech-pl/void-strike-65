@@ -2092,12 +2092,10 @@ boss_shots_late:
     cmp #(BAND_TOP_Y / 2)
     bcs @wait
 @shown:
-.ifdef BOSS_FIELD
     lda BOSS_F_HOOK                     ; S5-3: a falling field half's next column
     beq :+                              ; (slot F), once the band has been shown
-    jsr BOSS_F_HOOK + 6
+    jsr BOSS_F_HOOK + 3
 :
-.endif
     ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
 @restore:
     lda boss_shot_hi,x
@@ -2299,14 +2297,12 @@ b2_pair_three:
 ; The defeat or the last life lost ends the boss sector for the lasers: all
 ; off, the column erased, COLPM1 / COLPM2 restored.
 laser_frame:
-.ifdef BOSS_FIELD
     ; S5-3: a region's field (its block's code, slot F) - BOSS_F_HOOK is 0 in
     ; a block without code.
     lda BOSS_F_HOOK
     beq :+
     jsr BOSS_F_HOOK
 :
-.endif
     jsr boss_capsule_fall               ; S4b.5 (F3): a capsule falls (slot E)
     lda #BOSS_SHOT_ADMIT                ; AUD-04: this frame's meetings
     sta boss_shots_admit_left
@@ -2896,12 +2892,6 @@ laser_publish:
     sta COLPM2
     lda boss_laser_sizem
     sta SIZEM
-.ifdef BOSS_FIELD
-    lda BOSS_F_HOOK                     ; S5-3: the field's sprites (slot F, A only)
-    beq :+
-    jmp BOSS_F_HOOK + 3
-:
-.endif
     rts
 
 .segment "BOSS_D_CODE"
@@ -3227,14 +3217,13 @@ boss_entry_cold_end:
 .assert BOSS_ENTRY_COLD + BOSS_ENTRY_COLD_BYTES = BOSS_TITLE_RECORDS, error, "the title's records follow the cold tail"
 
 ; ===========================================================================
-; S5-3 (feat/boss-region-3, docs/plans/s5-boss-regions.md §4.4, §6.3): the
-; force field - region 3's code, the first region code in the region block
-; (slot F, BOSS_SLOT_F + the look tail's 110 B). Built only on a build that
-; carries a field (BOSS_FIELD; scripts/build.mjs --field-variant=a|b in Phase
-; A): the boss link emits it into BOSS_SLOT_F_RAM and the build appends it to
-; region 3's block, so only region 3's entry reads it. Every other region's
-; block leaves BOSS_F_HOOK zero (its one sector's padding), and the two gated
-; calls in slot D skip.
+; S5-3 (feat/boss-region-3, docs/plans/s5-boss-regions.md §4.4, §6.3; the
+; owner's answers of 2026-10-13): the force field - region 3's code, the first
+; region code in a region block (slot F, after the look tail's 110 B, at
+; BOSS_F_HOOK). The build assembles it when a region carries a field
+; (BOSS_FIELD) and appends it to that region's block only; every other
+; region's block leaves BOSS_F_HOOK zero (its one sector's padding), and the
+; two gated calls (slot D's laser_frame, slot E's boss_shots_late) skip.
 ;
 ; The field stops a player's shot without a line of slot A: while a half is
 ; powered (any of its generators standing) its columns are hull to the column
@@ -3242,62 +3231,38 @@ boss_entry_cold_end:
 ; there meets the field cell and boss_hit's hull path shows the deflection
 ; and the hull tick - no damage, not a hit (Q-B7). The modules behind it stay
 ; exposed: they fire, and the boss's shots, the lasers and the player pass.
-; When a half's last generator falls, the half collapses one column a frame
-; from that generator's side: each column's cell cleared (look "b") and its
-; map and stop line rebuilt by boss_column_at, as if there never was a field.
-; The look: "b" the field glyph in every field cell, its two phases swapped
-; every FIELD_FRAMES frames, and P1 / P2 a glow ring around each generator;
-; "a" no glyph row, P1 / P2 a quad-width field segment beside each generator.
-; P1 / P2 wear COLPM1 / COLPM2, which the band DLI publishes for M1 / M2 (the
-; lasers, B2): the glow shows in the lasers' colours. PRIOR is not written.
+; When a half's generators have all fallen, the half collapses one column a
+; frame from the generator's side: the cell cleared and its map and stop line
+; rebuilt by boss_column_at, as if there never was a field. The look: the
+; field glyph (field.png) in every field cell, its two phases swapped every
+; FIELD_FRAMES frames (one 8-byte glyph rewrite). No sprite (owner answer 3:
+; the generators' glow rings dropped; P1 / P2 stay unused in the boss sector).
 ; ===========================================================================
+BOSS_F_HOOK         = BOSS_SLOT_F + 110        ; BOSS_LOOK_TAIL_MAX_BYTES
+
 .ifdef BOSS_FIELD
 .include "boss-field.inc"
 
-BOSS_F_HOOK         = BOSS_SLOT_F + 110        ; BOSS_LOOK_TAIL_MAX_BYTES
-FIELD_PLAYER1       = $3D00                    ; src/main.s PMG_BASE + $0500
-FIELD_PLAYER2       = $3E00                    ; PMG_BASE + $0600
-FIELD_HPOSP1        = $D001
-FIELD_SIZEP1        = $D009
 FIELD_ROW_CELLS     = BOSS_BAND_B + (FIELD_ROW - BOSS_BAND_A_ROWS) * BOSS_BAND_COLUMNS
 FIELD_STOP_Y        = BAND_TOP_Y + (FIELD_ROW + 1) * 8
 FIELD_GLYPH         = BOSS_CHARSET + (FIELD_CODE & $7F) * 8
-FIELD_HPOS_MIN      = GAMEPLAY_LEFT_HPOS
-FIELD_HPOS_MAX      = GAMEPLAY_LEFT_HPOS + GAMEPLAY_SCREEN_COLUMNS * 4 - FIELD_SPRITE_CLOCKS
 .assert FIELD_ROW >= BOSS_BAND_A_ROWS, error, "the field row is in band B"
 .assert FIELD_HALVES = 2, error, "the field code walks two halves"
 
-.ifdef BOSS_FIELD_LOOK_B
-FIELD_SPRITE_SIZE   = $01                      ; double: 16 colour clocks
-FIELD_SPRITE_CLOCKS = 16
-FIELD_SHAPE_Y       = BAND_TOP_Y + FIELD_GLOW_ROW * 8 - 2
-.else
-FIELD_SPRITE_SIZE   = $03                      ; quad: 32 colour clocks
-FIELD_SPRITE_CLOCKS = 32
-FIELD_SHAPE_Y       = BAND_TOP_Y + FIELD_ROW * 8 + 2
-.endif
-
 .segment "BOSS_F_CODE"
 field_hooks:
-    jmp field_frame                     ; BOSS_F_HOOK: every frame, from laser_frame
-    jmp field_publish                   ; BOSS_F_HOOK + 3: the band DLI's phase 0
-    jmp field_late                      ; BOSS_F_HOOK + 6: SECTOR_COMPLETION (slot E)
+    jmp field_frame                     ; BOSS_F_HOOK: every frame, from laser_frame (slot D)
+    jmp field_late                      ; BOSS_F_HOOK + 3: SECTOR_COMPLETION (slot E)
 
-; Every boss frame, from laser_frame, before the player's shots meet the band.
+; Every boss frame, from laser_frame, before the player's shots meet the band:
+; the first frame's setup, a half whose generators all fell starts to fall,
+; the glyph's other phase.
 field_frame:
     lda field_state
     bne @run
     inc field_state
     jsr field_init
 @run:
-    lda _boss_phase                     ; the defeat or the last life lost: the
-    ora boss_laser_done                 ; glow off for good (the cells stay)
-    beq @fight
-    lda #$00
-    sta field_glow
-    sta field_glow+1
-    rts
-@fight:
     ldx #(FIELD_HALVES - 1)
 @half:
     lda field_half,x
@@ -3311,12 +3276,9 @@ field_frame:
     bne @next
 @drop:
     inc field_half,x                    ; 1: collapsing, from the generator's side
-    lda #$00
-    sta field_glow,x
 @next:
     dex
     bpl @half
-.ifdef BOSS_FIELD_LOOK_B
     dec field_timer                     ; the shimmer: the glyph's other phase
     bne @rts
     lda #FIELD_FRAMES
@@ -3334,14 +3296,14 @@ field_frame:
     dex
     bpl :-
 @rts:
-.endif
     rts
 
 ; SECTOR_COMPLETION, once the band has been shown: a collapsing half's next
-; column - its cell cleared (look "b"), its map and stop line as without the
-; field (boss_column_at: the module walk, the boss's costliest step here) -
-; one column a frame, never on a kill frame or the exposure check's (the
-; draw queue's rule, plan §5.15.7: the stress frame is a kill frame).
+; column - its cell cleared, its map and stop line as without the field
+; (boss_column_at: the module walk, the costliest step here) - one column a
+; frame, never on a kill frame or the exposure check's (the draw queue's rule,
+; plan §5.15.7: the stress frame is a kill frame). A cell showing a deflection
+; waits a frame (the cell-flash ring would give the field glyph back).
 field_late:
     lda boss_frame_heavy
     ora _boss_heavy
@@ -3358,13 +3320,11 @@ field_late:
     rts
 @step:
     ldy field_cursor,x
-.ifdef BOSS_FIELD_LOOK_B
     lda FIELD_ROW_CELLS,y
     cmp #FIELD_CODE
-    bne @rts                            ; a deflection shows there: next frame
+    bne @rts
     lda #$00
     sta FIELD_ROW_CELLS,y
-.endif
     stx field_x
     tya
     tax
@@ -3382,8 +3342,7 @@ field_late:
     rts
 
 ; Once, on the first boss frame: every field column hull to a shot, its stop
-; line under the field row; the sprites' shape in P1 and P2 (the reader
-; cleared PMG at the WARNING screen) and their size.
+; line under the field row.
 field_init:
     ldx #(FIELD_HALVES - 1)
 @half:
@@ -3399,74 +3358,18 @@ field_init:
     bne @column
     dex
     bpl @half
-    lda #FIELD_SPRITE_SIZE
-    sta FIELD_SIZEP1
-    sta FIELD_SIZEP1+1
-    ldx #(field_shape_end - field_shape - 1)
-:
-    lda field_shape,x
-    sta FIELD_PLAYER1 + FIELD_SHAPE_Y,x
-    sta FIELD_PLAYER2 + FIELD_SHAPE_Y,x
-    dex
-    bpl :-
-    rts
-
-; The band DLI's phase 0, after the lasers (A only): P1 / P2 at their band
-; position this frame, off screen outside the window or once their half fell.
-field_publish:
-    bit field_glow
-    bpl @off1
-    lda #FIELD_H0_SPRITE_CLOCK
-    sec
-    sbc boss_shown_pos
-    cmp #FIELD_HPOS_MIN
-    bcc @off1
-    cmp #(FIELD_HPOS_MAX + 1)
-    bcc @set1
-@off1:
-    lda #$00
-@set1:
-    sta FIELD_HPOSP1
-    bit field_glow+1
-    bpl @off2
-    lda #FIELD_H1_SPRITE_CLOCK
-    sec
-    sbc boss_shown_pos
-    cmp #FIELD_HPOS_MIN
-    bcc @off2
-    cmp #(FIELD_HPOS_MAX + 1)
-    bcc @set2
-@off2:
-    lda #$00
-@set2:
-    sta FIELD_HPOSP1+1
     rts
 
 FIELD_TABLES                            ; boss-field.inc: the halves, the phases
 
-.ifdef BOSS_FIELD_LOOK_B
-; A ring round a 3 x 3 sphere, 16 colour clocks wide, lines -2 .. +25.
-field_shape:
-    .byte %00111100, %01000010
-    .repeat FIELD_GLOW_ROWS * 8
-        .byte %10000001
-    .endrepeat
-    .byte %01000010, %00111100
-field_shape_end:
-.else
-; A field segment: four lines across 32 colour clocks.
-field_shape:
-    .byte $FF, $FF, $FF, $FF
-field_shape_end:
-.endif
-
 ; The state - data, not BSS: the block is read from the disk at every entry,
-; so every boss fight starts from these values.
+; so every boss fight starts from these values. The trace's slot F write
+; clause admits the field code's writes here, and nowhere else.
 field_state:    .byte 0
-field_glow:     .byte $80, $80          ; bit 7: the half's sprite shows
 field_half:     .byte 0, 0              ; 0 powered, 1 collapsing, 2 down
 field_cursor:   .byte FIELD_H0_START, FIELD_H1_START
 field_x:        .byte 0
 field_timer:    .byte FIELD_FRAMES
 field_phase:    .byte 0                 ; 0 phase A shown, 8 phase B
+field_state_end:
 .endif

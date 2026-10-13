@@ -436,7 +436,16 @@ targets; the shown rows; the raster model's band edge), `boss-escort-flow`
 `boss-assets-v2` (the twin slot rule), `boss-emitter-art` (emitter-l's
 footprint). **Re-pinned** (exact layout values): `boss-look-tail` E4's band
 digests (the new band outside the cannons' cells), `boss-r1-tuning`'s plate
-hit points (the trim). No floor, ceiling, budget or gate changed.
+hit points (the trim), `audit-hardening` AUD-02's shipped module count
+(15 → 16: the flipped bit 4 reads 0, still outside 1..16; found as the one
+NEW failure of a first full run, `8d93d6c`). No floor, ceiling, budget or
+gate changed.
+
+**Full runs (default build, after `8d93d6c`).** Two `npm test` runs: 1,354
+tests, 1,353 pass, 1 fail each - the recorded preview test
+(`tests/preview.test.mjs:164`); `npm run failures:reconcile` after each:
+matched 1, **NEW 0, MOVED 0**, disappeared 0; the trace report's gate
+(timing and DLIs) passed, 0 clause failures.
 
 ### 10.6 The default build's guards
 

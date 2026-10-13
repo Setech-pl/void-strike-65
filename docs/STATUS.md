@@ -451,7 +451,11 @@ EASY / MEDIUM / HARD (main 82.4 / 108.3 / 150.5); plates a, b, c, g, h 12 →
 **Tests.** New: `tests/boss-r1-twin-lasers.test.mjs` (14): RED on `b7ccf87`
 (9 of 14 with Phase A-2's data; the 3 route tests of regions 1, 2, 4 with
 the new data and the old boss code), GREEN here. Re-pointed and re-pinned
-with their reasons at the sites (plan §10).
+with their reasons at the sites (plan §10.5). Two full `npm test` runs on the
+default build: 1,354 tests, 1,353 pass, 1 fail each (the recorded preview
+test); `npm run failures:reconcile` after each: **0 NEW, 0 MOVED**; the trace
+0 clause failures. (A first run had found one NEW - AUD-02's shipped module
+count, 15 -> 16 - re-pinned at `8d93d6c`, and both runs repeated.)
 
 **ATR** `3c8f1110129242fde50baf91c02877ac3a1c1b1eeaac5c44cf15904d71e24dd9`,
 **boot** `a187caef40b84465d9f70e8d0e3e94296ea5bd39c3a9323fa73a82329b313781`.

@@ -86,6 +86,22 @@ function panels(region) {
   return [base(), staged(1), staged(2), gone(), opened(), capped()];
 }
 
+// feat/boss-r1-twin-lasers (owner smoke of 2026-10-13: once the plates fall
+// the boss must still read as one ship): every armour module gone (decision
+// L), every weapon standing in its open look.
+function platesGone(region) {
+  const rows = panels(region)[4];
+  region.modules.forEach((module) => {
+    if (module.kind !== "armour") return;
+    for (let r = module.row; r < module.row + module.height; r += 1) {
+      for (let c = module.x; c < module.x + module.width; c += 1) {
+        rows[r][c] = r - module.row < module.cavityRows ? region.cavity : 0;
+      }
+    }
+  });
+  return rows;
+}
+
 function glyphBytes(region, code) {
   const glyph = code & 0x7f;
   if (glyph < 7) return new Array(8).fill(0);   // the divider's codes: blank in the band
@@ -113,11 +129,11 @@ export function bossPanelRegisters(region) {
   });
 }
 
-export function renderBossPreview(region) {
+export function renderBossPreview(region, { views: chosen = null } = {}) {
   const palette = [0x00, ...[0, 1, 2, 3].map((i) => region.tables[BOSS_TABLE.palette + i])];
   const bandWidth = BOSS_BAND_COLUMNS * 4 * PIXEL_WIDTH;
   const bandHeight = BOSS_BAND_ROWS * 8 * PIXEL_HEIGHT;
-  const views = panels(region);
+  const views = chosen ?? panels(region);
   const extrasCells = [region.spark, region.deflect, region.muzzle, region.cavity,
     region.capped.code, region.capped.code + region.stageStep,
     region.capped.code + 2 * region.stageStep];
@@ -128,7 +144,8 @@ export function renderBossPreview(region) {
     // M5b-S4b.4 (E2): an emitter's own heat glyphs, when it has emitter art.
     ...(region.heat[0] === region.spark ? [] : region.heat.map((code) => ({ code, bytes: glyphBytes(region, code) })))];
   const width = bandWidth + 2 * GAP;
-  const height = GAP + views.length * (bandHeight + GAP) + 8 * PIXEL_HEIGHT * 2 + GAP;
+  const extrasHeight = chosen === null ? 8 * PIXEL_HEIGHT * 2 + GAP : 0;
+  const height = GAP + views.length * (bandHeight + GAP) + extrasHeight;
   const registers = new Uint8Array(width * height).fill(0x02);   // a dark grey frame
   const drawCell = (code, bytes, left, top, scale = 1) => {
     for (let line = 0; line < 8; line += 1) {
@@ -149,8 +166,10 @@ export function renderBossPreview(region) {
       drawCell(code, glyphBytes(region, code), GAP + c * 4 * PIXEL_WIDTH, top + r * 8 * PIXEL_HEIGHT)));
   });
   const extrasTop = GAP + views.length * (bandHeight + GAP);
-  extraBytes.forEach(({ code, bytes }, i) =>
-    drawCell(code, bytes, GAP + i * (4 * PIXEL_WIDTH * 2 + GAP), extrasTop, 2));
+  if (chosen === null) {
+    extraBytes.forEach(({ code, bytes }, i) =>
+      drawCell(code, bytes, GAP + i * (4 * PIXEL_WIDTH * 2 + GAP), extrasTop, 2));
+  }
   const rgb = Buffer.alloc(width * height * 3);
   const colours = Array.from({ length: 256 }, (_, value) => atariPalRegisterToRgb(value));
   registers.forEach((register, i) => rgb.set(colours[register], i * 3));
@@ -213,6 +232,11 @@ export function writeBossPreview(regionNumber, { outputDirectory = path.join(roo
   fs.writeFileSync(outputPath, png);
   fs.writeFileSync(path.join(outputDirectory,
     `region-${regionNumber}${variant === null ? "" : `-variant-${variant}`}-stages.png`), renderBossStagesPreview(region).png);
+  // The band intact, every plate gone, every module gone.
+  const views = panels(region);
+  fs.writeFileSync(path.join(outputDirectory,
+    `region-${regionNumber}${variant === null ? "" : `-variant-${variant}`}-plates-gone.png`),
+  renderBossPreview(region, { views: [views[0], platesGone(region), views[3]] }).png);
   return { outputPath, width, height, region };
 }
 

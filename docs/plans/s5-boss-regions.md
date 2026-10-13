@@ -1316,6 +1316,31 @@ region 1: 15 modules, the look tail full, the escort in level 1's data only. The
 tier-4 laser fixture is at the 16-module limit. The fight-length rule is read by
 the aiming bot's ratio.
 
+### 7.3 Region 1's twin laser cannons and the band rework (2026-10-13)
+
+`feat/boss-r1-twin-lasers` (journal §AP; plan
+[boss-r1-twin-lasers.md](boss-r1-twin-lasers.md); `OWNER-SMOKE CANDIDATE`)
+reworked region 1, and **regions 2 and 4 inherit it** as its copies (their
+review routes `--boss-region=2|4`; entry 65 sectors each):
+* **two laser cannons in slot 1**, fired in turn, never two beams at once on
+  any level - region 1 and its copies carry no slot-2 emitter, so on levels
+  5-6 and 10-12 the tier's second and later slots find none; region 3 keeps its
+  own three emitters;
+* **the hull spine** along row 0, the weapons hanging from it, the plates a
+  **one-row belt** at row 4; 16 modules (the converter's limit), 105 codes,
+  the look tail unchanged at 110 B;
+* **the shown band:** the list ends the band under its last row with a cell
+  (5 rows for regions 1, 2 and 4, 8 for region 3, whose field is row 7), so a
+  shot under the belt is drawn in the playfield's charset and colours; a later
+  region's layout must keep every module and the field on a shown row (the
+  converter refuses one below);
+* slot E 366 → 496 B (3 → 4 sectors, the lasers' admission moved there for the
+  twins), slot D 1,655 → 1,661 B (13 sectors): the boss entry stays 65
+  sectors for regions 1, 2 and 4 (region 1's charset 7 sectors, one fewer),
+  region 3 66 → 67;
+* the laser fixture's slot-1 emitter is region 1's emitter-l (named "emitter"),
+  with plate-c removed as well.
+
 ---
 
 ## 8. What this document did not do

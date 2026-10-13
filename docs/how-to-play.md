@@ -148,7 +148,12 @@ The laser cannot be dodged once fired — but it announces itself. The gun heats
 for about two seconds, with a rising tone. That is the time to leave the line.
 Then the beam lights for one second and destroys everything in its path.
 
-One laser on levels 1-4. Two on 5-8. Four on 9-12.
+The boss of levels 1-6 and 10-12 carries two laser cannons, one left and one
+right of its centre. They take turns — never both at once — and when one is
+destroyed the other keeps firing alone. Its guns and cannons hang under an
+armoured spine that no shot breaks; the belt of armour plates below them must
+fall before the weapon above a plate can be hit. The Siege Spine of levels 7-9
+fires up to two lasers at once.
 
 The boss of levels 7-9, the Siege Spine, hides behind a force field — the
 shimmering line under its spine. Your shots stop there and do nothing. Each

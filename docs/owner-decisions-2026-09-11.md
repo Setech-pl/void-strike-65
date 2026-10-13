@@ -2296,6 +2296,67 @@ how-to-play (EN / PL), hardware-testing §30. `OWNER-SMOKE CANDIDATE`.
 
 ---
 
+## AP. BLOCKADE BREAKER: DWA DZIAŁA LASEROWE NA ZMIANĘ, GRZBIET, PAS PANCERNY — odpowiedzi właściciela na fazy A i A-2 `feat/boss-r1-twin-lasers` (2026-10-13, po zagraniu w buildy porównawcze)
+
+Decyzja w mocy (wariant A briefu): boss regionu 1 dostaje **dwa działa
+laserowe strzelające na zmianę** — na poziomach 1-3 najwyżej jeden promień
+bossa naraz, więc reguła jednego lasera na poziomach 1-4 (**AC**) zostaje;
+po zniszczeniu jednego drugie strzela dalej samo, w tym samym rytmie.
+
+1. **Układ L2** — działa symetrycznie względem środka, kolumny 21-23 (za
+   plate-c) i 41-43 (za plate-f); gun-1 do środkowej wnęki (31-33, za
+   plate-d), kolumna 24 dołącza do otwartej zatoki. Drugie działo bierze
+   laser slotu 2, więc region z bliźniakami nie ma emitera slotu 2.
+2. **Reguła (B): wariant (a)** — zostaje reguła z repo: na klatce zniszczenia
+   modułu wstrzymane są tylko strzały dział; ostrzeżenie lasera może się na
+   niej zacząć (`src/c/boss.c:497`; laser jest dopuszczany w `laser_frame`
+   przed spotkaniem strzałów z pasmem). Test:
+   `tests/boss-r1-twin-lasers.test.mjs` „rule (B) (a)".
+3. **Długość walki:** MEDIUM około 110 s botem celującym (stosunek do
+   czystego sweepu z `main`), EASY krócej, HARD nie krócej; strojenie
+   punktami życia płyt po przeróbce pasma.
+4. **Przeróbka pasma (smoke właściciela, faza A-2):** ciągły, niezniszczalny
+   **grzbiet kadłuba** wzdłuż górnego rzędu pasma od końca do końca, z którego
+   zwisają działa, oba działa laserowe i maszyneria (zastrzały, kratownice w
+   pustych komórkach); po zniszczeniu wszystkich płyt boss nadal czyta się jak
+   jeden uszkodzony okręt. Płyty to **pas pancerny**; porównane dwie wysokości:
+   trzy rzędy (`l2b3`) i jeden rząd (`l2b1`). **Wybrany `l2b1`** — jednorzędowy
+   pas z grzbietem, zastrzałami i wypełnieniem jak zbudowane; `l2b3` usunięty
+   z gry (skrypt wariantów usunięty, układ zapisany w assetach). Grzbiet
+   kosztuje 5 kodów znaków; region 1 ma 105 ze 128 kodów, tablica wyglądów
+   (slot F) bez zmian 110 B.
+5. **Smoke właściciela `l2b1`: pociski szarzeją tuż pod pasem.** Przyczyna:
+   lista wyświetlania pokazywała wszystkie 8 rzędów pasma, więc puste rzędy
+   5-7 pod nowym pasem były rzędami pasma — zestaw znaków i paleta pasma
+   (strzał gracza rysowany w COLPF0 `$0A`, pocisk bossa `$0A` / `$06`; w
+   polu gry `$AE` i `$0E` / `$88`). Dotyczyło strzałów gracza, pocisków
+   bossa i laserów Interceptora w eskorcie (ta sama pula); odłamki i eskorta
+   były pod pasmem niewidoczne. **Naprawa (preferowana przez właściciela):**
+   pasmo kończy się pod ostatnim rzędem z komórką — instalacja mierzy ten
+   rząd (`boss_band_measure`, slot D, 31 B) i buduje listę: pasmo do niego,
+   pod nim rzędy pierścienia w zestawie znaków i kolorach gry. Regiony 1, 2
+   i 4: 5 rzędów pasma; region 3: 8 (pole w rzędzie 7 — puste komórki rzędu 6
+   między kadłubem a polem zostają w barwach pasma, to wnętrze bossa; tańszej
+   naprawy w danych nie ma, kolory pasma R3 nie mają `$AE` ani `$88`). Bez
+   bajtów rezydentnych; slot A i E bez zmian. Pierwsza linia pod pasmem
+   (linia 64) nadal łapie część barw pasma przez czas zapisu DLI po `WSYNC`
+   — tak samo jak na `main` na linii 88 (zmierzone na klatkach emulatora).
+6. **Dane:** plate-f poszerzona do kolumn 41-43, plate-g 44-48, żeby
+   emitter-r miał jedną płytę przed wszystkimi kolumnami (decyzja **N**);
+   płyty przycięte: a, b, c, g, h 12 → 8; d, e 16 → 10; f 8 → 6 — botem
+   celującym EASY 89,1 / MEDIUM 108,7 / HARD 154,0 s (przed: 114,2 / 117,7 /
+   174,2 s na tym układzie).
+7. **Notatka dla zadania banerów** (pkt 2 decyzji **AL**: baner i pasmo w
+   grze mają czytać się jak ten sam okręt): R1 to ciągły pokład (grzbiet),
+   dwa działa laserowe na lewo i prawo od środka, cienki pas pancerny —
+   `docs/design/boss-banners/r1-twin-lasers-note.md`.
+
+**Wynik:** plan `boss-r1-twin-lasers`, STATUS, game-design, level-authoring,
+how-to-play (EN / PL), hardware-testing §31, plan S5, memory-map.
+`OWNER-SMOKE CANDIDATE`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

@@ -1128,6 +1128,52 @@ region 3 route under new file names:
 - [ ] **No flicker or slowdown** while the field shimmers, a half collapses
       and two lasers fire; the boss entry loads and plays (66 sectors).
 
+## 31. Region 1's twin laser cannons, the spine and the armour belt (`feat/boss-r1-twin-lasers`)
+
+Plan [plans/boss-r1-twin-lasers.md](plans/boss-r1-twin-lasers.md); journal §AP.
+In Atari800 (`-xl -pal -nobasic`), on the region 1 boss route
+(`build/play/twin-lasers-r1-boss-route.atr`, level 1) and the whole game
+(`build/play/twin-lasers-full-game.atr`), at EASY, MEDIUM and HARD:
+
+- [ ] **One damaged ship:** a continuous hull spine along the band's top, end
+      to end; every gun and both cannons hang from it by a strut; the plates
+      are one thin armour belt under them. Destroy every plate: the boss still
+      reads as one ship, the spine whole.
+- [ ] **The spine stops shots:** a shot into a spine column (a plate's column
+      after the plate fell, no weapon above) stops on the hull with the small
+      deflection; nothing of the spine breaks.
+- [ ] **Two cannons, left and right of the centre, never both at once:** the
+      right cannon fires as soon as plate-f falls, the left as soon as
+      plate-c falls; with both exposed they take turns; never two beams (or a
+      beam and a warning) on screen together.
+- [ ] **The survivor fires alone:** destroy one cannon; the other keeps firing
+      at the same rhythm.
+- [ ] **Each plate protects its weapon:** a weapon behind a standing plate
+      takes no damage in any of its columns (the deflection shows); once the
+      plate falls it takes damage in every column.
+- [ ] **Hits read on both cannons:** a hit they survive flashes them for about
+      3 frames (the b3 flash); a kill shows the spark; every damage stage
+      keeps its amber pixels.
+- [ ] **No grey shots under the boss:** your shots, the boss's shells and an
+      Interceptor's laser keep their normal colours right up to the armour
+      belt (the rows under the belt are the playfield's now); a capsule from a
+      destroyed module appears just under the belt.
+- [ ] **The escort:** the first weapon destroyed - a cannon counts - brings an
+      Interceptor, then one every 3-4 s, never two at once.
+- [ ] **The fight's feel on MEDIUM:** about 110 s by the bot; EASY shorter,
+      HARD longer.
+- [ ] **Regions 2 and 4** (copies of region 1, `twin-lasers-r2-boss-route.atr`
+      and `twin-lasers-r4-boss-route.atr`, each region's boss on level 1's
+      route) look and play the same, with the final salvos once the last
+      plate falls.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **No flicker or slowdown** while a cannon fires and the guns shoot; no
+      colour band or flicker on the line just under the belt; the boss entry
+      loads and plays (65 sectors).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

@@ -154,7 +154,12 @@ Działo nagrzewa się przez jakieś dwie sekundy, z narastającym dźwiękiem. T
 czas na zejście z linii. Potem promień zapala się na sekundę i niszczy wszystko
 na swojej drodze.
 
-Jeden laser na poziomach 1-4. Dwa na 5-8. Cztery na 9-12.
+Boss poziomów 1-6 i 10-12 ma dwa działa laserowe, jedno na lewo, drugie na
+prawo od środka. Strzelają na zmianę — nigdy oba naraz — a gdy jedno zostanie
+zniszczone, drugie strzela dalej samo. Jego działa wiszą pod opancerzonym
+grzbietem, którego żaden strzał nie przebije; pas płyt pancernych pod nimi
+musi paść, zanim da się trafić broń nad płytą. Siege Spine z poziomów 7-9
+strzela najwyżej dwoma laserami naraz.
 
 Boss poziomów 7-9, Siege Spine, chowa się za polem siłowym — migoczącą linią
 pod swoim kręgosłupem. Twoje strzały zatrzymują się na niej i nic nie robią.

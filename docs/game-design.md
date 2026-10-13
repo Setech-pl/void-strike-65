@@ -502,6 +502,26 @@ section "Decyzje literowe 2026-09-20".
   boss on the `--boss-region=N` debug routes - at a floor of 12 frames, half
   of region 1's `fire.cooldown`; each region's own session tunes it (region
   4's Void Citadel is designed around it).
+- **Region 1's boss: Blockade Breaker with twin laser cannons (owner answers
+  of 2026-10-13; `OWNER-SMOKE CANDIDATE`, [plans/boss-r1-twin-lasers.md](plans/boss-r1-twin-lasers.md)).**
+  Levels 1-3 (and the region 2 and 4 copies, levels 4-6 and 10-12) end on one
+  damaged ship: a **continuous hull spine** along the band's top, end to end,
+  from which every gun and cannon hangs by a strut (burgundy trusses fill the
+  empty cells under it); the spine is hull - it stops every shot and cannot
+  be destroyed, so with every plate gone the boss still reads as one ship.
+  The plates are a **one-row armour belt** under the weapons (row 4), each
+  plate still in front of every column of the weapon above it. **Two laser
+  cannons**, left and right of the centre (columns 21-23 behind plate-c, 41-43
+  behind plate-f), fire **one laser in turn**: never two beams at once, each
+  cannon's first shot as soon as its plate falls, then strict turns at one
+  cannon's cadence; the survivor of the two keeps firing alone. gun-1 sits in
+  the central slot (behind plate-d), gun-2 in the open bay as before. Every
+  stage keeps its amber pixels, so the b3 hit flash shows on both cannons.
+  Rule (B) as recorded (owner answer 2 (a)): only gun shots wait on a
+  module-kill frame; a laser warning may start on it. Under the belt the
+  display list ends the band (the owner's smoke of 2026-10-13: shots turned
+  grey there), so a projectile under the boss has the playfield's colours.
+  Plates trimmed to MEDIUM about 110 s: a, b, c, g, h 8; d, e 10; f 6.
 - **Region 3's boss: Siege Spine and its force field (S5-3, owner answers of
   2026-10-13; `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.3).**
   Levels 7-9 end on a long segmented spine with dorsal spikes, a generator

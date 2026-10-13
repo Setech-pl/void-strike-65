@@ -222,9 +222,30 @@ emitter whose slot is not enabled becomes **capped armour**: the capped plate
 over its cells, `capped.hp` hit points, kind armour. **Until the lasers exist
 (S4b) every slot is capped** (§5.15.6 item 6).
 
+**Twin cannons in slot 1** (feat/boss-r1-twin-lasers, owner answers of
+2026-10-13). Slot 1 may hold **two** emitters of the same size: one laser,
+fired from them in turn - never both at once, the survivor alone once one
+falls. The second takes slot 2's laser, so a region with twins has **no slot-2
+emitter** (refused); a third slot-1 emitter is refused. Both wear `emitter.png`
+at their own footprints. The build assembles the twin code (`BOSS_TWIN`) only
+when a region carries twins; the manifest's `boss.regions[].twin` names them.
+
+**The shown band** (the owner's smoke of 2026-10-13). The display list shows
+the band down to its **last row holding a cell**; the rows under it are the
+ring's, in the playfield's charset and colours, so a shot or a shell there
+looks as it does anywhere else on the screen. Every module (its looks,
+stages, flash and blasts stay inside it) and the field must lie on a shown
+row - the converter refuses one below; `boss.regions[].bandShownRows` records
+the count (5 for region 1's one-row belt, 8 for region 3's field row).
+
 Region 1 is the layered fortress Blockade Breaker (decision H); the S4a-i core
 boss (style 2) is kept in the engine as `assets/graphics/boss-regions/bastion/`,
 a later region's boss decided at S5, and the engine's tests' style-2 fixture.
+Since feat/boss-r1-twin-lasers region 1 is layout L2 with the band l2b1: a hull
+spine along row 0 (columns 7-56) that no module owns, every weapon hanging
+from it, the plates a one-row belt at row 4, the twin cannons emitter-l
+(21-23, behind plate-c) and emitter-r (41-43, behind plate-f), gun-1 in the
+central slot (31-33, behind plate-d).
 
 ### The region's drafts
 

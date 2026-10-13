@@ -89,8 +89,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$1898-$18F4` | 93 B | segment | `BOSS_BSS` — boss scratch page: slot A's band, collision, feedback, queue and nozzle state | `overlay` | build/boss.map |
 | `$18F6-$18FF` | 10 B | segment | `BOSS_HUD_BACKUP` — the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes | `overlay` | build/boss.map |
 | `$1900-$1FFF` | 1,792 B | slot | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (13 sectors) | `overlay` | manifest `boss.slotD` |
-| `$1900-$1F76` | 1,655 B | segment | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1) | `overlay` | build/boss.map |
-| `$1F77-$1FCE` | 88 B | segment | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) | `overlay` | build/boss.map |
+| `$1900-$1F7C` | 1,661 B | segment | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install | `overlay` | build/boss.map |
+| `$1F7D-$1FD4` | 88 B | segment | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) | `overlay` | build/boss.map |
 | `$2000-$5536` | 13,623 B | transient | initial boot block image, 107 sectors (code, data and packed sources) | `boot` | manifest `transportCapacity` |
 | `$2000-$316F` | 4,464 B | segment | `CODE` — main: resident code | `resident` | build/void-strike-65.map |
 | `$21C1-$26F4` | 1,332 B | segment | `BOOT_STAGE2` — stage-2 loader; the resident suffix is unpacked over it | `boot` | build/void-strike-65.map |
@@ -107,11 +107,11 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4800-$4BFF` | 1,024 B | state | frontend charset | `resident` | src/main.s `FRONTEND_CHARSET` |
 | `$4801-$4CA7` | 1,191 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
 | `$484C-$5332` | 2,791 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
-| `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (3 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
-| `$4C00-$4D6D` | 366 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish); read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
+| `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
+| `$4C00-$4DEF` | 496 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins); read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
 | `$4C00-$4D1F` | 288 B | state | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector | `resident` | src/main.s `CAPITAL_HULL_RUNTIME_ALLIED` |
 | `$4D20-$4E3F` | 288 B | state | expanded Hostile hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector | `resident` | src/main.s `CAPITAL_HULL_RUNTIME_ENEMY` |
-| `$4D6E-$4D7C` | 15 B | segment | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish) - after its code, never read from disk | `overlay` | build/boss.map |
+| `$4DF0-$4DFF` | 16 B | segment | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk | `overlay` | build/boss.map |
 | `$4E40-$4E6F` | 48 B | state | broadside slot state | `resident` | src/main.s `BROAD_STATE_BASE` |
 | `$4E70-$4ED0` | 97 B | state | difficulty, hull scroll, final-raster bolt tops, flash backing, sector, player lifecycle, capital explosion, engine and Raider state | `resident` | src/main.s `DIFFICULTY_SETTING` |
 | `$4ED1-$4ED6` | 6 B | state | star RNG, near-star phase, PAL frame ids | `resident` | src/main.s `STAR_RNG_STATE` |
@@ -143,7 +143,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7810-$7BBF` | 944 B | transient | STARFIELD stream A staging | `boot` | manifest `starfieldRuntime.streams` |
 | `$7810-$7B8F` | 896 B | transient | summary art run (largest region run) read for the summary screen | `summary` | manifest `levelSummary.art` |
 | `$7810-$7AF9` | 746 B | transient | packed C extension record landing (`HYBRID_C_EXT_STAGING`) | `boot` | manifest `directorCodeRuntimes` |
-| `$7810-$7979` | 362 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry | `boss-entry` | build/boss.map |
+| `$7810-$7985` | 374 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers) | `boss-entry` | build/boss.map |
 | `$7810-$788F` | 128 B | transient | save-record sector buffer | `summary` | manifest `levelSummary.saveRecord` |
 | `$7A48-$7A67` | 32 B | segment | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry | `boss-entry` | build/boss.map |
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
@@ -334,8 +334,8 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$1898-$18F4` | `overlay` | `BOSS_BSS` — boss scratch page: slot A's band, collision, feedback, queue and nozzle state |
 | `$18F6-$18FF` | `overlay` | `BOSS_HUD_BACKUP` — the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes |
 | `$1900-$1FFF` | `overlay` | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (13 sectors) |
-| `$1900-$1F76` | `overlay` | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test) and the boss's shots in the band (QA1) |
-| `$1F77-$1FCE` | `overlay` | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) |
+| `$1900-$1F7C` | `overlay` | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install |
+| `$1F7D-$1FD4` | `overlay` | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) |
 
 **`$2000-$37FF` — the initial block over `MAIN` (stage 2 and its suffix)**
 
@@ -370,11 +370,11 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4800-$4BFF` | `resident` | frontend charset |
 | `$4801-$4CA7` | `boot` | packed pickup/collision + window streams held in the frontend charset |
 | `$484C-$5332` | `boot` | packed ENTITY_CODE source |
-| `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (3 sectors) |
-| `$4C00-$4D6D` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish); read at the boss entry over the expanded hull maps, the boss sector only |
+| `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) |
+| `$4C00-$4DEF` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins); read at the boss entry over the expanded hull maps, the boss sector only |
 | `$4C00-$4D1F` | `resident` | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector |
 | `$4D20-$4E3F` | `resident` | expanded Hostile hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector |
-| `$4D6E-$4D7C` | `overlay` | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish) - after its code, never read from disk |
+| `$4DF0-$4DFF` | `overlay` | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk |
 | `$4E40-$4E6F` | `resident` | broadside slot state |
 | `$4E70-$4ED0` | `resident` | difficulty, hull scroll, final-raster bolt tops, flash backing, sector, player lifecycle, capital explosion, engine and Raider state |
 | `$4ED1-$4ED6` | `resident` | star RNG, near-star phase, PAL frame ids |
@@ -405,7 +405,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7810-$7BBF` | `boot` | STARFIELD stream A staging |
 | `$7810-$7B8F` | `summary` | summary art run (largest region run) read for the summary screen |
 | `$7810-$7AF9` | `boot` | packed C extension record landing (`HYBRID_C_EXT_STAGING`) |
-| `$7810-$7979` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry |
+| `$7810-$7985` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers) |
 | `$7810-$788F` | `summary` | save-record sector buffer |
 | `$7A48-$7A67` | `boss-entry` | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry |
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
@@ -510,35 +510,36 @@ Items are label spans from the listings, placed with the link map's per-module o
 
 By topic: unclassified 90%, player, input and weapons 10%.
 
-#### `BOSS_D_CODE` `$1900-$1F76`, 1,655 B (build/boss.map)
+#### `BOSS_D_CODE` `$1900-$1F7C`, 1,661 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `laser_prepare` | `$1916` | 238 B | 14.4% | unclassified |
-| `laser_publish` | `$1E8A` | 187 B | 11.3% | unclassified |
-| `laser_hostile_shots` | `$1DF1` | 153 B | 9.2% | Heavy, Raider and Interceptor |
-| `laser_frame` | `$1BA2` | 144 B | 8.7% | unclassified |
-| `laser_admit` | `$1A50` | 87 B | 5.3% | unclassified |
-| `laser_place` | `$1C79` | 86 B | 5.2% | unclassified |
-| `laser_collide` | `$1D68` | 81 B | 4.9% | unclassified |
-| `laser_rearm` | `$1A04` | 76 B | 4.6% | unclassified |
-| `laser_warn` | `$1C32` | 71 B | 4.3% | unclassified |
-| `laser_cool` | `$1D2F` | 57 B | 3.4% | unclassified |
-| `laser_first_shot` | `$1AD6` | 54 B | 3.3% | player, input and weapons |
-| `boss_module_scored` | `$1F45` | 50 B | 3.0% | frontend and HUD |
-| `b2_prepare` | `$1B21` | 45 B | 2.7% | unclassified |
-| `laser_off` | `$1CF6` | 43 B | 2.6% | unclassified |
-| `laser_begin` | `$1AA7` | 39 B | 2.4% | unclassified |
-| `b2_take` | `$1B68` | 35 B | 2.1% | unclassified |
-| `laser_erase_step` | `$1DD5` | 28 B | 1.7% | unclassified |
-| `b2_restore` | `$1B4E` | 26 B | 1.6% | unclassified |
-| `boss_shot_admit` | `$1DB9` | 25 B | 1.5% | player, input and weapons |
+| `laser_prepare` | `$1916` | 246 B | 14.8% | unclassified |
+| `laser_publish` | `$1E90` | 187 B | 11.3% | unclassified |
+| `laser_hostile_shots` | `$1DD8` | 153 B | 9.2% | Heavy, Raider and Interceptor |
+| `laser_frame` | `$1B86` | 144 B | 8.7% | unclassified |
+| `laser_place` | `$1C5D` | 86 B | 5.2% | unclassified |
+| `laser_collide` | `$1D4F` | 81 B | 4.9% | unclassified |
+| `laser_rearm` | `$1A0C` | 76 B | 4.6% | unclassified |
+| `laser_warn` | `$1C16` | 71 B | 4.3% | unclassified |
+| `laser_cool` | `$1D16` | 57 B | 3.4% | unclassified |
+| `laser_first_shot` | `$1ABA` | 54 B | 3.3% | player, input and weapons |
+| `laser_twin_off` | `$1A58` | 51 B | 3.1% | unclassified |
+| `boss_module_scored` | `$1F4B` | 50 B | 3.0% | frontend and HUD |
+| `laser_off` | `$1CDA` | 46 B | 2.8% | unclassified |
+| `b2_prepare` | `$1B05` | 45 B | 2.7% | unclassified |
+| `laser_begin` | `$1A8B` | 39 B | 2.3% | unclassified |
+| `b2_take` | `$1B4C` | 35 B | 2.1% | unclassified |
+| `boss_band_measure` | `$1E71` | 31 B | 1.9% | unclassified |
+| `laser_erase_step` | `$1DBC` | 28 B | 1.7% | unclassified |
+| `b2_restore` | `$1B32` | 26 B | 1.6% | unclassified |
+| `boss_shot_admit` | `$1DA0` | 25 B | 1.5% | player, input and weapons |
 | `laser_tier` | `$1900` | 22 B | 1.3% | unclassified |
-| `boss_nozzle_operand` | `$1CCF` | 22 B | 1.3% | unclassified |
-| `laser_exposed` | `$1B0C` | 21 B | 1.3% | unclassified |
-| `b2_free` | `$1B8B` | 19 B | 1.1% | unclassified |
-| `laser_killed` | `$1CE5` | 17 B | 1.0% | unclassified |
-| 5 smaller items | — | 29 B | 1.8% | — |
+| `boss_nozzle_operand` | `$1CB3` | 22 B | 1.3% | unclassified |
+| `laser_exposed` | `$1AF0` | 21 B | 1.3% | unclassified |
+| `b2_free` | `$1B6F` | 19 B | 1.1% | unclassified |
+| `laser_killed` | `$1CC9` | 17 B | 1.0% | unclassified |
+| 5 smaller items | — | 29 B | 1.7% | — |
 
 By topic: unclassified 83%, Heavy, Raider and Interceptor 9%, player, input and weapons 5%, frontend and HUD 3%.
 
@@ -968,7 +969,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | Segment | Size | Name promises | Share of those topics | Dominant topic | Verdict |
 | --- | ---: | --- | ---: | --- | --- |
 | `BOSS_C_CODE` | 1,358 B | placement name | — | unclassified (90%) | not judged |
-| `BOSS_D_CODE` | 1,655 B | placement name | — | unclassified (83%) | not judged |
+| `BOSS_D_CODE` | 1,661 B | placement name | — | unclassified (83%) | not judged |
 | `BOSS_CODE` | 1,972 B | placement name | — | unclassified (76%) | not judged |
 | `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
@@ -1167,8 +1168,8 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$21C1-$26F4` | 1,332 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime (since boot-loading-blank-screen, 2026-10-01: +9 B for the stage-2 display blanking; 1,323 B `$21C1-$26EB` after boot-xex-reclaim) |
 | `$0500-$0BFF` | 1,792 B | **M5a-S2** (owner decision 2026-10-03): the level-summary module, its own link (`cfg/level-summary.cfg`), read from the disk once per session at the first START GAME and resident until RESET. 1,598 B used, 194 B free (1,489 / 303 before the owner review of 2026-10-03 added START GAME's own display list, the frame-edge publish and the reader's dotted-row step behind a third vector at `$0506`). Claimed: no other link or cfg area may reach it, and `tests/level-summary-build.test.mjs` fails if any segment, cfg area or boot-path range does. Before the first START GAME of a session `$0500-$06FF` still holds the boot splash (next row) |
 | `$0C00-$18FF` | 3,328 B | **the boss's claim** (owner answer Q-B5, M5b-S4a-i): the region charset `$0C00-$0FFF`, slot C `$1000-$17FF` (the C controller), the scratch page `$1800-$18FF`; read or set at every boss entry, nothing survives a boss sector; no other link, cfg area or boot range may reach it (tests/boss-claim.test.mjs). Was the unclaimed lever of 2026-10-03, MEASURED never written after `start` in Atari800 ([diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md)); real hardware unproven until the owner's smoke |
-| `$1900-$1FFF` | 1,792 B | **boss slot D** since M5b-S4b (owner decision Q7, 2026-10-06): the region's look tail first (98 B, owner decision E4 (b), 2026-10-07), then the lasers (B2: missiles M1 / M2; S4b.4's first shot on exposure) and the boss's shots in the band, the boss sector only (1,773 B since S4b.5's warning flicker; `$1FED-$1FFF`, 19 B, left; S4b.4: 1,714 B). Before S4b: the measured-free unclaimed lever recorded for M3/M6 (plan §6.1) |
-| `$4C00-$4E3F` | 576 B | **boss slot E** since M5b-S4b.5 (owner decision of 2026-10-07): read at the boss entry over the expanded hull maps, the boss sector only - the capsule from a destroyed module and the warning's flicker colour (102 B, 474 B free, 1 sector). Its contract: only the capital's `draw_hull_row` reads the maps and every gameplay start rebuilds them (`hull_maps_built`); the trace holds every replay to no reader between a boss entry and the next rebuild, the pause, the last death and RESET in the boss sector included. S5's candidate home for the per-region look tables |
+| `$1900-$1FFF` | 1,792 B | **boss slot D** since M5b-S4b (owner decision Q7, 2026-10-06): the region's look tail first (98 B, owner decision E4 (b), 2026-10-07), then the lasers (B2: missiles M1 / M2; S4b.4's first shot on exposure) and the boss's shots in the band, the boss sector only (1,773 B since S4b.5's warning flicker; `$1FED-$1FFF`, 19 B, left; S4b.4: 1,714 B). Before S4b: the measured-free unclaimed lever recorded for M3/M6 (plan §6.1). feat/boss-r1-twin-lasers: code 1,661 B in 13 sectors (3 B to a 14th) - the twins' turn hand-over (`laser_twin_off`, 51 B) and the band's shown-rows measure (`boss_band_measure`, 31 B), the admission moved to slot E |
+| `$4C00-$4E3F` | 576 B | **boss slot E** since M5b-S4b.5 (owner decision of 2026-10-07): read at the boss entry over the expanded hull maps, the boss sector only - the capsule from a destroyed module and the warning's flicker colour (102 B, 474 B free, 1 sector). Its contract: only the capital's `draw_hull_row` reads the maps and every gameplay start rebuilds them (`hull_maps_built`); the trace holds every replay to no reader between a boss entry and the next rebuild, the pause, the last death and RESET in the boss sector included. S5's candidate home for the per-region look tables. feat/boss-r1-twin-lasers: a build whose regions carry twin cannons (`BOSS_TWIN`) moves the lasers' admission and the twins' index and gate here from slot D - 496 B, 4 sectors (was 366 B, 3; the boss entry +1 sector, 65 with region 1's 7-sector charset) |
 | `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding **[BUILD 2026-10-03: 510 B of code and tables, 2 B padding — manifest `transportCapacity.bootSplash.codeBytes`]**. The stage-2 entry copies it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +

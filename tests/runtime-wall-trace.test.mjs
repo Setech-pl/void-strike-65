@@ -224,7 +224,11 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // boss-entry frame aside: 5,000. Its debris clauses pass with their
   // subjects; the boss is covered by the director-complete, slot-e,
   // integrity, laser-contact and edge-guard replays.
-  assert.equal(report.replay.debris_effects_measured_frames, 5_000);
+  // RE-PINNED (fix/interceptor-speed, owner approval of 2026-10-14): with
+  // Interceptors a shot can catch, the HARD fire-4 sweep bot shoots them down
+  // and reaches the boss again (debris-effects-2-sweep-fire4, boss entry at
+  // frame 3,169, MEASURED); its boss-entry frame is set aside: 4,999.
+  assert.equal(report.replay.debris_effects_measured_frames, 4_999);
   // RE-POINTED 2026-10-03 (M5a-S2): the director-complete replays end at the
   // level-end summary inside their 10,500-frame budgets (they used to fly on
   // in the terminal COMPLETE), and each records that summary.
@@ -302,7 +306,8 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
     // (the reason is at debris_effects_measured_frames above).
     // RE-POINTED (feat/interceptor-standoff): the boss entry is back (above).
     // RE-POINTED (feat/interceptor-armour): gone again (above), 5,000.
-    .reduce((sum, session) => sum + session.measured_frames, 0), 5_000);
+    // RE-PINNED (fix/interceptor-speed): back again (above), 4,999.
+    .reduce((sum, session) => sum + session.measured_frames, 0), 4_999);
   assert.equal(report.ten_heaviest_frames_in_9040_replay.length, 10);
   assert.equal(report.five_heaviest_frames.length, 5);
   assert.equal(report.five_heaviest_frames_scope, "all measured legal runtime replays");

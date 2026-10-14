@@ -23,12 +23,18 @@
 //      with at least 10 frames of the warning left on every difficulty;
 //   9. the stress composition (scripts/measure-boss-stress-r4.mjs) under the
 //      reachable limit 8,500, and no frame with a kill and a gun's spawn.
+// fix/r4-immobile (the owner's smoke of the merged citadel and the answers to
+// Phase C): the band never moves (motion.framesPerColourClock 0); the pull is
+// G2 (2 colour clocks every 4 frames); the whole ship, its lasers and the
+// gravity column on screen, centred, every module in the player's reach; no
+// refuge in reach of the core's endgame (the cannons' beams meet the lens's).
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
 import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "../scripts/boss-assets.mjs";
+import { coverageMap, PLAYER_POSITIONS } from "../scripts/boss-coverage.mjs";
 import { BOSS_DEF_LASER_WARNING_OFFSET } from "../scripts/level-compiler.mjs";
 import { atariPalRegisterToRgb } from "../scripts/preview.mjs";
 import { call, includeConstants, label, manifest, nmi, placeBand, root, runBossEntry, shootAt } from "./boss-harness.mjs";
@@ -37,7 +43,8 @@ const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
 const draftDirectory = bossRegionDirectory(root, 4);
 const hasDraft = fs.existsSync(path.join(draftDirectory, "modules.json"));
-const region4 = hasDraft ? compileBossRegion(loadBossRegionDraft(draftDirectory)) : null;
+const draft4 = hasDraft ? loadBossRegionDraft(draftDirectory) : null;
+const region4 = hasDraft ? compileBossRegion(draft4) : null;
 const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
 const index = (name) => region4.modules.findIndex((module) => module.name === name);
 const hasWell = (() => { try { lbl("gravity_on"); return true; } catch { return false; } })();
@@ -46,13 +53,14 @@ test("region 4 is the Void Citadel from its own draft: the layout, the hit point
   assert.ok(hasDraft, "assets/graphics/boss-regions/region-4/ has no draft");
   assert.equal(region4.name, "Void Citadel");
   const hp = Object.fromEntries(region4.modules.map((module) => [module.name, module.hp]));
-  // Phase B's tuning (plan s5-boss-regions §6.4.7): the spires and cannons first,
-  // then the spires one column inward (the owner's standing answer), then the
-  // end phase (the core, its lens) for HARD - 91.8 / 102.2 / 158.3 s.
+  // fix/r4-immobile's tuning (plan s5-boss-regions §6.4.8; re-pinned: the
+  // still band keeps every module in reach, the untuned fight ran 60 s on
+  // MEDIUM): every module x 1.75, then the end phase (the core, its lens) for
+  // HARD - 92.6 / 107.3 / 154.3 s.
   assert.deepEqual(hp, {
-    "spire-l": 6, "spire-r": 6, core: 12, "core-lens": 10, "cannon-l": 10, "cannon-r": 10,
-    "gun-1": 7, "gun-2": 7, "gun-3": 7, "gun-4": 7, "gun-5": 7, "gun-6": 7,
-    "plate-a": 6, "plate-b": 6, "plate-d": 6, "plate-e": 6,
+    "spire-l": 11, "spire-r": 11, core: 29, "core-lens": 26, "cannon-l": 18, "cannon-r": 18,
+    "gun-1": 12, "gun-2": 12, "gun-3": 12, "gun-4": 12, "gun-5": 12, "gun-6": 12,
+    "plate-a": 10, "plate-b": 10, "plate-d": 10, "plate-e": 10,
   });
   const kinds = (kind) => region4.modules.filter((module) => module.kind === kind).map((module) => module.name).sort();
   assert.deepEqual(kinds("salvo"), ["spire-l", "spire-r"]);
@@ -62,7 +70,10 @@ test("region 4 is the Void Citadel from its own draft: the layout, the hit point
   "the cannons beside the core and the core's lens: three lasers (the engine's four slots, at most four emitters)");
   assert.equal(region4.modules.length, 16);
   assert.ok(region4.gravity !== null, "the region carries a gravity well");
-  assert.deepEqual([region4.gravity.framesPerStep, region4.gravity.pulseFrames], [8, 16], "G1 (owner answer 1)");
+  // Re-pinned 8 -> 4: G2, the owner's answer 1 to fix/r4-immobile's Phase C.
+  assert.deepEqual([region4.gravity.framesPerStep, region4.gravity.pulseFrames], [4, 16], "G2 (fix/r4-immobile)");
+  assert.deepEqual([region4.tables[BOSS_TABLE.framesPerStep], region4.tables[BOSS_TABLE.start]], [0, 32],
+    "a still band at position 32 (fix/r4-immobile)");
   assert.equal(region4.modules[region4.gravity.axis].name, "core-lens", "the axis is the core's beam (owner answer 4)");
   assert.deepEqual(region4.gravity.spires.map((i) => region4.modules[i].name), ["spire-l", "spire-r"]);
   assert.equal(region4.bandShownRows, 5, "the band ends at its last non-empty row (decision AP)");
@@ -129,9 +140,15 @@ test("one ship: the deck is whole from end to end, and nothing stands at the ban
   assert.ok(hasDraft);
   const owner = new Set(region4.modules.flatMap((m) => [...Array(m.width * m.height).keys()]
     .map((k) => `${m.x + (k % m.width)},${m.row + Math.floor(k / m.width)}`)));
-  for (let c = 14; c <= 49; c += 1) {
+  // Re-pinned 14-49 -> 16-47 (fix/r4-immobile: the bays closed up, the hull
+  // compacted, the spires against its ends - the ship 14-49).
+  for (let c = 16; c <= 47; c += 1) {
     assert.ok(region4.bandRows[0][c] !== 0 && !owner.has(`${c},0`), `the deck's cell (${c}, 0) is hull`);
   }
+  // fix/r4-immobile (the owner: remove the engines): no nozzle cell on the band.
+  const nozzleCodes = [BOSS_TABLE.nozzleLeftCode, BOSS_TABLE.nozzleRightCode].map((t) => region4.tables[t]);
+  assert.ok(region4.bandRows.every((row) => row.every((code) => !nozzleCodes.includes(code & 0x7f) || code === 0)),
+    "a nozzle cell on the band");
   // The owner's design rule (2026-10-14): a module gating the end of the fight
   // must not sit at the band's extreme ends - the spires one column inward.
   for (const name of ["spire-l", "spire-r"]) {
@@ -170,15 +187,16 @@ const HP = (memory, name) => memory[lbl("_boss_hp") + index(name)];
 const AXIS = 32 + 4 * (30 + 1) + 2;                 // core-lens's lens column's centre, colour clocks
 const target = (memory) => AXIS - 4 - memory[lbl("boss_shown_pos")];
 
-test("the pull: towards the axis, 2 clocks every 8 frames, only while a spire stands, the fight on and the ship alive", () => {
+test("the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive", () => {
   assert.ok(hasWell, "the boss link has no gravity well (region 4's block code)");
   const memory = citadel();
   memory[X()] = 60;
   const xs = [];
   for (let f = 0; f < 64; f += 1) { frame(memory); xs.push(memory[X()]); }
   const steps = xs.map((x, i) => x - (i === 0 ? 60 : xs[i - 1])).filter((d) => d !== 0);
-  assert.ok(steps.length >= 7 && steps.every((d) => d === 2), `steps ${steps}`);
-  for (let i = 8; i < xs.length; i += 1) assert.ok(xs[i] - xs[i - 8] <= 2, "never more than 2 clocks in 8 frames");
+  // Re-pinned 8 -> 4 frames a step: G2 (fix/r4-immobile, the owner's answer 1).
+  assert.ok(steps.length >= 15 && steps.every((d) => d === 2), `steps ${steps}`);
+  for (let i = 4; i < xs.length; i += 1) assert.ok(xs[i] - xs[i - 4] <= 2, "never more than 2 clocks in 4 frames");
   assert.ok(xs.every((x) => x % 2 === 0 && x >= 48 && x <= 200), "x even and on screen");
   assert.ok(xs.at(-1) < target(memory), "towards the target, not past it");
   // A respawn's invulnerability (lifecycle 2), a death (1): no step.
@@ -297,19 +315,21 @@ test("the axis beam fires while the well is on, and the core's lens takes no dam
   assert.equal(m[main("FIGHTER_PROJECTILE_ACTIVE")], 0, "the shot was not stopped");
 });
 
-test("fairness: leaving the axis beam's window against the pull and the drift leaves >= 10 warning frames on every difficulty", () => {
+test("fairness: leaving the axis beam's window against the pull leaves >= 10 warning frames on every difficulty", () => {
   assert.ok(hasWell, "the boss link has no gravity well (region 4's block code)");
   const def = includeConstants("level-def.inc").get("LEVEL_PAYLOAD_BOSS_DEF") + BOSS_DEF_LASER_WARNING_OFFSET;
   const probe = citadel();
   const warnings = [0, 1, 2].map((d) => probe[def + d]);
   for (const [d, warning] of warnings.entries()) {
     let worst = 0;
-    for (const p of [0, 31, 63]) {
-      for (const dir of [1, -1]) {
-        for (let phase = 0; phase < 8; phase += 1) {
+    // fix/r4-immobile: the band is still at its start (32), as the install
+    // leaves it; every phase of the pull's countdown.
+    for (const p of [region4.tables[BOSS_TABLE.start]]) {
+      for (const dir of [0]) {
+        for (let phase = 0; phase < region4.gravity.framesPerStep; phase += 1) {
           for (let k = -7; k <= 3; k += 1) {
             const memory = citadel({ difficulty: d, p });
-            memory[lbl("boss_dir")] = dir === 1 ? 1 : 0xff;
+            memory[lbl("boss_dir")] = dir;
             memory[lbl("gravity_timer")] = phase + 1;
             const edge0 = AXIS - 2 - memory[lbl("boss_shown_pos")];
             const x0 = (edge0 - k) & ~1;
@@ -331,6 +351,74 @@ test("fairness: leaving the axis beam's window against the pull and the drift le
     console.log(`# difficulty ${d}: warning ${warning} frames, worst escape ${worst}, ${warning - worst} left`);
     assert.ok(warning - worst >= 10, `difficulty ${d}: warning ${warning}, worst escape ${worst} frames, ${warning - worst} left`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// fix/r4-immobile: the still citadel.
+// ---------------------------------------------------------------------------
+test("the band never moves: 600 fight frames from the entry at position 32, the drift's direction 0", () => {
+  const memory = citadel();
+  assert.equal(memory[lbl("boss_dir")], 0, "the install left the drift's direction");
+  const start = region4.tables[BOSS_TABLE.start];
+  memory[lbl("boss_pos")] = start;
+  memory[lbl("boss_dli_pos")] = start;
+  memory[X()] = 124;
+  const seen = new Set();
+  for (let f = 0; f < 600; f += 1) { frame(memory); seen.add(memory[lbl("boss_shown_pos")]); }
+  assert.deepEqual([...seen], [start], "the band position moved");
+});
+
+// The player's shot leaves the fighter's centre (x + 8, x even 48..200) and
+// meets band column (s - 32 + p) / 4; the screen shows HPOS 48..207.
+const SHOT_REACH = Object.freeze({ low: 48 + 8, high: 200 + 8 });
+const SCREEN = Object.freeze({ low: 48, high: 207 });
+const hposOf = (column, p) => 32 + 4 * column - p;
+
+test("everything on screen and in reach: the ship centred, every module shootable, the lasers and the column shown", () => {
+  const p = region4.tables[BOSS_TABLE.start];
+  const columns = region4.modules.flatMap((m) => [...Array(m.width).keys()].map((i) => m.x + i));
+  const left = hposOf(Math.min(...columns), p), right = hposOf(Math.max(...columns), p) + 3;
+  assert.ok(left >= SCREEN.low && right <= SCREEN.high, `the ship at HPOS ${left}-${right}`);
+  assert.equal(left - SCREEN.low, SCREEN.high - right, `the ship centred: ${left - SCREEN.low} / ${SCREEN.high - right} clocks`);
+  for (const m of region4.modules) {
+    const reach = [...Array(m.width).keys()].some((i) => {
+      const hpos = hposOf(m.x + i, p);
+      return hpos + 3 >= SHOT_REACH.low && hpos <= SHOT_REACH.high;
+    });
+    assert.ok(reach, `${m.name} (columns ${m.x}-${m.x + m.width - 1}) out of the player's shots`);
+  }
+  for (const m of region4.modules.filter((module) => module.kind === "emitter")) {
+    const edge = m.x * 4 + m.width * 2 - 2 - p + 32;
+    assert.ok(edge >= SCREEN.low && edge + 3 <= SCREEN.high, `${m.name}'s beam at HPOS ${edge}`);
+  }
+  assert.ok(hasWell, "the boss link has no gravity well (region 4's block code)");
+  const memory = citadel({ p });
+  memory[lbl("boss_dir")] = 0;
+  memory[X()] = 60;
+  const shown = new Set();
+  for (let f = 0; f < 64; f += 1) { frame(memory); if (memory[lbl("boss_m0_hpos")] !== 0) shown.add(memory[lbl("boss_m0_hpos")]); }
+  assert.ok(shown.size >= 1 && [...shown].every((h) => h >= SCREEN.low && h + 1 <= SCREEN.high), `the column at ${[...shown]}`);
+});
+
+test("no refuge in reach of the core's endgame: every x that can shoot the lens or the core is under fire", () => {
+  // The owner's answer 2 to fix/r4-immobile's Phase C (option 3): with every
+  // weapon alive on levels 10-12 (tier 4: every laser slot), no x from which a
+  // shot meets the lens's or the core's columns is out of every weapon's reach.
+  const p = region4.tables[BOSS_TABLE.start];
+  // The geometry at the band's one position (a still band: the drift no
+  // longer sweeps the fire across the gaps).
+  const still = { ...draft4.layout.motion, framesPerColourClock: 0, startColourClock: p };
+  const map = coverageMap(region4, still, { state: "full", lasers: 4 });
+  const safe = new Set(map.safe);
+  const endgame = new Set(["core", "core-lens"].flatMap((name) => {
+    const m = region4.modules[index(name)];
+    return [...Array(m.width).keys()].map((i) => m.x + i);
+  }));
+  const inReach = PLAYER_POSITIONS.filter((x) => endgame.has(Math.floor((x + 8 - 32 + p) / 4)));
+  assert.ok(inReach.length > 0);
+  console.log(`# the full state's gaps: ${map.safe.join(" ")}; the endgame's reach x ${inReach[0]}-${inReach.at(-1)}`);
+  const refuges = inReach.filter((x) => safe.has(x));
+  assert.deepEqual(refuges, [], `refuges in reach of the core's endgame: ${refuges}`);
 });
 
 test("the stress composition: region 4's reachable worst under 8,500, no frame with a kill and a spawn", { timeout: 600_000 }, async () => {

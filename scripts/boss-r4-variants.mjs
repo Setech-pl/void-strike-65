@@ -9,6 +9,8 @@
 //   g1p the committed draft unchanged (G1+), so its full game and the native
 //       harness build into build/boss-variant-g1p/, never dist/
 //   g2  the pull at 2 colour clocks every 4 frames (G2), for comparison
+//   g1pt, g2t  the same with a first hit-point trim towards MEDIUM ~105 s (the
+//       still band keeps every module in reach: the fight ran 60 s untuned)
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,9 +18,20 @@ import { fileURLToPath } from "node:url";
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = path.join(rootDirectory, "assets", "graphics", "boss-regions", "region-4");
 
+// The first trim: every module's hit points x 1.75 (the untuned fight's
+// MEDIUM 60.4 s against the aimed 105 s).
+const TRIM_HP = Object.freeze({ "spire-l": 11, "spire-r": 11, core: 21, "core-lens": 18, "cannon-l": 18,
+  "cannon-r": 18, "gun-1": 12, "gun-5": 12, "gun-2": 12, "gun-3": 12, "gun-6": 12, "gun-4": 12,
+  "plate-a": 10, "plate-b": 10, "plate-d": 10, "plate-e": 10 });
+function trim(layout) {
+  for (const module of layout.modules) module.hp = TRIM_HP[module.name];
+}
+
 export const R4_VARIANTS = Object.freeze({
   g1p: () => {},
   g2: (layout) => { layout.gravity.framesPerStep = 4; },
+  g1pt: (layout) => { trim(layout); },
+  g2t: (layout) => { layout.gravity.framesPerStep = 4; trim(layout); },
 });
 
 export function writeRegion4Variant(name) {

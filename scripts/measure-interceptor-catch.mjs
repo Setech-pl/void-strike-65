@@ -111,43 +111,50 @@ function spawnShot(m) {
   put(m, "FIGHTER_PROJECTILE_LIFETIME", 0xff, 0);
 }
 
-// Phase of a slot from its age byte and motion.
-function phaseOf(m, slot, prevY) {
+// Phase of a slot, read before the frame runs: from its age byte the motion
+// the coming tick makes once the standoff's frames are spent (the climb, or
+// the top-hold at its row), else from the last frame's motion. A descent
+// after a top phase is the dive back.
+const holdRow = (slot) => 32 + 16 * slot;          // INTERCEPTOR_TOP_HOLD + slot rows
+function phaseOf(m, slot, prevY, afterTop = false) {
   const age = at(m, "_light_burst_left", slot);
   const y = at(m, "light_y", slot);
   const loops = at(m, "_light_loops", slot) & 0xc0;
-  if (age < LIFE) {
-    if (prevY === null) return "entry";
-    if (y > prevY) return "descent";
-    if (y < prevY) return "backoff";
-    return "hold";
+  if (age >= LIFE) {
+    if (loops === 0) return "exit-climb";
+    return y > holdRow(slot) ? "loop-climb" : "top-hold";
   }
-  if (loops === 0) return "exit-climb";
-  if (y < prevY) return "loop-climb";
-  return "top-hold";
+  if (prevY === null) return "entry";
+  if (y > prevY) return afterTop ? "dive-back" : "descent";
+  if (y < prevY) return "backoff";
+  return "hold";
 }
 
 // One flight of `slot` among `count` Interceptors; at the first frame of each
 // wanted phase (or `delay` frames into it) fire one shot from below it and
 // follow that shot to a hit, its loss, or the Light's retirement.
-function measure({ count, slot, loops, phase, delay = 0, aim = "below", backoff = false }) {
+function measure({ count, slot, loops, phase, delay = 0, aim = "below", backoff = false, move = 0, moveFrames = 0 }) {
   const m = boot({ difficulty: DIFFICULTY });
   parkX = PLAYER_X;
   parkY = PLAYER_Y;
   admit(m, count, loops);
   let prevY = null;
   let seen = 0;
+  let afterTop = false;
   let lastPhase = null;
-  let loopIndex = 0;
   for (let f = 0; f < 1200; f += 1) {
     if (at(m, "light_state", slot) === 0) return { result: "phase not reached" };
-    const ph = phaseOf(m, slot, prevY);
-    if (ph === "loop-climb" && lastPhase !== "loop-climb" && lastPhase !== null) loopIndex += 1;
+    const ph = phaseOf(m, slot, prevY, afterTop);
+    if (lastPhase === "top-hold" && ph !== "top-hold") afterTop = true;
     lastPhase = ph;
     // A player climbing close starts the back-off: one line a frame upward.
     if (backoff && (ph === "hold" || ph === "backoff") && parkY > 120) parkY -= 1;
     if (ph === phase) {
-      if (seen === delay) {
+      // A player flying sideways under its hover: `moveFrames` frames at the
+      // ship's 2 HPOS a frame (the Interceptor follows), then the shot from
+      // where the ship is, still moving (move = +-2) or just stopped.
+      if (move !== 0 && seen < moveFrames) parkX = Math.min(200, Math.max(48, parkX + move));
+      if (seen === delay + moveFrames) {
         const lightX = at(m, "light_x", slot);
         const lightY = at(m, "light_y", slot);
         if (aim === "below") parkX = Math.max(48, lightX - 4);
@@ -161,8 +168,10 @@ function measure({ count, slot, loops, phase, delay = 0, aim = "below", backoff 
         const hpBefore = at(m, "light_hp", slot);
         spawnShot(m);
         const startY = at(m, "FIGHTER_PROJECTILE_Y");
+        const shotX = at(m, "FIGHTER_PROJECTILE_X");
         const trace = [];
         for (let t = 1; t <= 60; t += 1) {
+          if (aim === "moving") parkX = Math.min(200, Math.max(48, parkX + move));
           frame(m);
           park(m);
           const hit = at(m, "light_hp", slot) < hpBefore || at(m, "light_state", slot) >= 3;
@@ -171,12 +180,12 @@ function measure({ count, slot, loops, phase, delay = 0, aim = "below", backoff 
             sy: at(m, "FIGHTER_PROJECTILE_Y"), shot });
           if (hit) {
             return { result: "HIT", frames: t, fireY: lightY, fireX: lightX, hitY: at(m, "light_y", slot),
-              shotStartY: startY, px: parkX };
+              shotStartY: startY, shotX };
           }
           if (shot === 0) {
-            return { result: "MISS (shot spent)", frames: t, fireY: lightY, fireX: lightX,
+            return { result: "MISS", frames: t, fireY: lightY, fireX: lightX,
               lightY: at(m, "light_y", slot), lightX: at(m, "light_x", slot),
-              lightState: at(m, "light_state", slot), shotStartY: startY, px: parkX, trace };
+              lightState: at(m, "light_state", slot), shotStartY: startY, shotX, trace };
           }
         }
         return { result: "MISS (timeout)", fireY: lightY, trace };
@@ -190,18 +199,19 @@ function measure({ count, slot, loops, phase, delay = 0, aim = "below", backoff 
   return { result: "phase not reached in 1200 frames" };
 }
 
+const PLAYER_HEALTH = 0x4e5d;   // BROAD_PLAYER_HEALTH = BROAD_DAMAGE_COOLDOWN - 1
+
 // The flight with no shot: per slot its life (admission to retirement), the
 // frames it hovers in its standoff band before it climbs, each top-hold's
 // frames, the frames of every climb, and its lasers. The player is parked in
 // its column at PLAYER_Y, kept alive (health refilled every frame).
-const PLAYER_HEALTH = 0x4e5d;   // BROAD_PLAYER_HEALTH = BROAD_DAMAGE_COOLDOWN - 1
 function flight({ count, loops }) {
   const m = boot({ difficulty: DIFFICULTY });
   parkX = PLAYER_X;
   parkY = PLAYER_Y;
   admit(m, count, loops);
   const slots = Array.from({ length: count }, () => ({ life: 0, holdStandoff: 0, topHolds: [], climbs: [],
-    lasers: 0, phase: null, run: 0, prevY: null, done: false }));
+    lasers: 0, phase: null, run: 0, prevY: null, done: false, afterTop: false }));
   const laserSeen = new Set();
   for (let f = 0; f < 2000; f += 1) {
     m.memory[PLAYER_HEALTH] = 10;
@@ -210,7 +220,8 @@ function flight({ count, loops }) {
       if (st.done) continue;
       if (at(m, "light_state", s) === 0) { st.done = true; close(st); continue; }
       st.life += 1;
-      const ph = phaseOf(m, s, st.prevY);
+      const ph = phaseOf(m, s, st.prevY, st.afterTop);
+      if (st.phase === "top-hold" && ph !== "top-hold") st.afterTop = true;
       if (ph !== st.phase) { close(st); st.phase = ph; st.run = 0; }
       st.run += 1;
       if (ph === "hold") st.holdStandoff += 1;
@@ -233,29 +244,58 @@ function flight({ count, loops }) {
   }
 }
 
-const scenarios = [
-  { name: "entry descent (first visible frame +2)", phase: "descent", delay: 14 },
-  { name: "standoff hold (first frame)", phase: "hold" },
-  { name: "back-off (first frame, player climbing)", phase: "backoff", backoff: true },
-  { name: "loop climb to the top-hold (first frame)", phase: "loop-climb", loops: 2 },
-  { name: "top-hold (first frame)", phase: "top-hold", loops: 2 },
-  { name: "exit climb (first frame), escort", phase: "exit-climb", loops: 0 },
-  { name: "exit climb (first frame), after 2 loops", phase: "exit-climb", loops: 2 },
-];
-
-const rows = [];
-for (const count of [1, 3]) {
-  for (let slot = 0; slot < count; slot += 1) {
-    if (count === 3 && slot === 0) continue;
-    for (const s of scenarios) {
-      for (const aim of ["below", "parked"]) {
-        const r = measure({ count, slot, loops: s.loops ?? 0, phase: s.phase, delay: s.delay ?? 0,
-          aim, backoff: s.backoff ?? false });
-        rows.push({ slot, count, scenario: s.name, aim, ...r });
-      }
+// Time to kill: the player holds fire (the production fire path, normal
+// weapon) from the frame the Interceptor first shows (y >= 24) until it dies;
+// "parked" stays in the column it has converged on, "aiming" keeps its shot
+// line through the Interceptor's centre every frame (x = light_x - 4).
+function timeToKill({ loops, aim }) {
+  const m = boot({ difficulty: DIFFICULTY });
+  parkX = PLAYER_X;
+  parkY = PLAYER_Y;
+  admit(m, 1, loops);
+  let firing = null;
+  let shots = 0;
+  const seen = new Set();
+  for (let f = 0; f < 1200; f += 1) {
+    m.memory[PLAYER_HEALTH] = 10;
+    const state = at(m, "light_state");
+    if (firing !== null && (state === 0 || state >= 3)) {
+      const y = at(m, "light_y");
+      return { result: y >= 232 || y < 24 ? "left" : "killed", frames: f - firing, shots,
+        hits: 3 - (state >= 3 || !(y >= 232 || y < 24) ? 0 : at(m, "light_hp")) };
+    }
+    if (firing === null && at(m, "light_y") >= 24 && at(m, "light_y") < 232) firing = f;
+    // The aiming player flies at the ship's own 2 HPOS a frame toward the x
+    // whose shot crosses the Interceptor's centre (light_x + 4 = x + 8).
+    if (aim === "aiming") {
+      const want = Math.max(48, at(m, "light_x") - 4);
+      parkX += Math.sign(want - parkX) * Math.min(2, Math.abs(want - parkX));
+    }
+    m.io.trigger = firing === null ? 1 : 0;
+    park(m);
+    frame(m);
+    for (let i = 0; i < SHOT_SLOTS; i += 1) {
+      const active = at(m, "FIGHTER_PROJECTILE_ACTIVE", i) !== 0;
+      if (active && !seen.has(i)) { seen.add(i); if (firing !== null) shots += 1; }
+      if (!active) seen.delete(i);
     }
   }
+  return { result: "timeout", shots };
 }
+
+const scenarios = [
+  { name: "entry descent (2nd visible row)", phase: "descent", delay: 14 },
+  { name: "standoff hold (first frame)", phase: "hold" },
+  { name: "standoff, ship moving right 16 f, fires moving", phase: "hold", move: 2, moveFrames: 16, aim: "moving" },
+  { name: "standoff, ship moving left 16 f, fires moving", phase: "hold", move: -2, moveFrames: 16, aim: "moving" },
+  { name: "standoff, ship moved right 16 f, stops, fires", phase: "hold", move: 2, moveFrames: 16, aim: "parked" },
+  { name: "back-off (first frame, ship climbing)", phase: "backoff", backoff: true },
+  { name: "loop climb to the top-hold (first frame)", phase: "loop-climb", loops: 2 },
+  { name: "top-hold (first frame)", phase: "top-hold", loops: 2 },
+  { name: "dive back from the top-hold (first frame)", phase: "dive-back", loops: 2 },
+  { name: "exit climb (first frame), one pass (escort)", phase: "exit-climb", loops: 0 },
+  { name: "exit climb (first frame), after 2 loops", phase: "exit-climb", loops: 2 },
+];
 
 if (args.get("flight")) {
   const out = {
@@ -267,6 +307,28 @@ if (args.get("flight")) {
   process.exit(0);
 }
 
+if (args.get("ttk")) {
+  const out = {};
+  for (const loops of [0, 2]) for (const aim of ["parked", "aiming"]) out[`loops${loops}-${aim}`] = timeToKill({ loops, aim });
+  console.log(JSON.stringify(out));
+  process.exit(0);
+}
+
+const rows = [];
+for (const count of [1, 3]) {
+  for (let slot = 0; slot < count; slot += 1) {
+    if (count === 3 && slot === 0) continue;
+    for (const s of scenarios) {
+      const aims = s.aim === undefined ? ["below", "parked"] : [s.aim];
+      for (const aim of aims) {
+        const r = measure({ count, slot, loops: s.loops ?? 0, phase: s.phase, delay: s.delay ?? 0,
+          aim, backoff: s.backoff ?? false, move: s.move ?? 0, moveFrames: s.moveFrames ?? 0 });
+        rows.push({ slot, count, scenario: s.name, aim, ...r });
+      }
+    }
+  }
+}
+
 if (args.get("json")) {
   console.log(JSON.stringify(rows, null, 2));
 } else {
@@ -275,6 +337,6 @@ if (args.get("json")) {
     const where = r.fireY === undefined ? "" : `light (${r.fireX},${r.fireY})`;
     const out = r.result === "HIT" ? `HIT in ${r.frames} f at y ${r.hitY}` :
       `${r.result}${r.frames ? ` after ${r.frames} f` : ""}${r.lightY !== undefined ? `, light then (${r.lightX},${r.lightY}) state ${r.lightState}` : ""}`;
-    console.log(`slot ${r.slot}/${r.count} ${r.scenario.padEnd(44)} ${r.aim.padEnd(6)} ${where.padEnd(16)} ${out}`);
+    console.log(`slot ${r.slot}/${r.count} ${r.scenario.padEnd(48)} ${r.aim.padEnd(6)} ${where.padEnd(16)} ${out}`);
   }
 }

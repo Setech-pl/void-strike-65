@@ -22,6 +22,9 @@
 //            (one cell every 4th frame while it hovers, the descent keeps
 //            every 2nd), "3/4" (3 cells in 8 frames while it hovers)
 //   reload   the record's reload per difficulty [E, M, H] (data; main 56/44/32)
+//   hp       { "region-N": { "<module name>": hit points } }: a region's boss
+//            module hit points (assets/graphics/boss-regions/region-N/modules.json),
+//            the fight's data lever (plan §6)
 //   pad      the unexecuted pad at the end of the window's Director half
 //            (src/hybrid/c-asm-abi.s; main 4): growth there would move the
 //            Light kernel off $B478, so the pad gives the bytes back
@@ -93,6 +96,20 @@ function editsFor(params) {
     edits.push(replace(TRACK_FROM, TRACK_TO[params.track]));
   }
   if (params.reload !== undefined) edits.push(reloadEdit(params.reload));
+  for (const [region, modules] of Object.entries(params.hp ?? {})) {
+    edits.push({
+      file: `assets/graphics/boss-regions/${region}/modules.json`,
+      transform(text) {
+        const layout = JSON.parse(text);
+        for (const [name, hp] of Object.entries(modules)) {
+          const module = layout.modules.find((entry) => entry.name === name);
+          if (module === undefined) throw new Error(`interceptor speed: ${region} has no module ${name}`);
+          module.hp = hp;
+        }
+        return JSON.stringify(layout, null, 2);
+      },
+    });
+  }
   if (params.pad !== undefined && params.pad !== 4) {
     edits.push({
       file: "src/hybrid/c-asm-abi.s",
@@ -142,6 +159,26 @@ export const INTERCEPTOR_SPEED_VARIANTS = Object.freeze({
   v1: {
     summary: "centred on the ship's column, on-screen climbs 3 lines a frame, the floor fit (dive 4, hover 64, top phase 64, reload 56/31/20)",
     params: { align: true, ...FLOOR_FIT, pad: 1 },
+  },
+  // Phase A probes of the fight's data lever on v1 (plan §6): region 4.
+  v1r4a: {
+    summary: "v1, region 4's core 29 -> 24 and lens 26 -> 22",
+    params: { align: true, ...FLOOR_FIT, pad: 1, hp: { "region-4": { core: 24, "core-lens": 22 } } },
+  },
+  v1r4b: {
+    summary: "v1r4a and region 4's cannons 18 -> 15",
+    params: { align: true, ...FLOOR_FIT, pad: 1,
+      hp: { "region-4": { core: 24, "core-lens": 22, "cannon-l": 15, "cannon-r": 15 } } },
+  },
+  v1r4c: {
+    summary: "v1, every region 4 module about a fifth lighter",
+    params: { align: true, ...FLOOR_FIT, pad: 1, hp: { "region-4": { "spire-l": 9, "spire-r": 9, core: 23,
+      "core-lens": 21, "cannon-l": 14, "cannon-r": 14, "gun-1": 10, "gun-2": 10, "gun-3": 10, "gun-4": 10,
+      "gun-5": 10, "gun-6": 10, "plate-a": 8, "plate-b": 8, "plate-d": 8, "plate-e": 8 } } },
+  },
+  v1e40: {
+    summary: "v1 with EASY's reload 56 -> 40",
+    params: { align: true, ...FLOOR_FIT, reload: [40, 31, 20], pad: 1 },
   },
   v2: {
     summary: "v1 plus tracking at 3/4 of the player's speed while it hovers",

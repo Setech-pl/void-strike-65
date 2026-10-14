@@ -1800,7 +1800,18 @@ warning's (the flare). The clause's first form judged a death frame by its
 end-of-frame lifecycle (the well tests it when it runs: a death later that
 frame left the pull on) — a harness fix, judged by the frame-start lifecycle.
 
-**Gates and evidence.** @@GATES@@
+**Gates and evidence.** Evidence bound at `69e38b6` (ATR `3a8f014d…`,
+boot `c473b3a1…`; build:candidate -> runtime:wall-trace -> --menu-raster-only
+-> build -> memory-map -> showcase:gif -> showcase): 58 replays, 0 clause
+failures, 0 miss events; worst fence margin 1,260 and DMA-on 31,483
+unchanged, every replay's summary equal to `main`'s (`e7d9020`); region 1's
+boss frames (director-complete) 9,219 / 29,902 -> 9,191 / 29,821 (the
+scanline fix's store order and the M0 publish in the shared slot D); every
+stress composition but region 4's +14 native (region 1 7,046, the fixture
+7,836 / 6,880, the finale layouts 6,715, region 3 7,824 / 8,077), region 4
+8,315 of 8,500. Two full `npm test` runs on the default build: 1,366 tests,
+1,365 pass, the recorded preview failure only; `failures:reconcile` 0 NEW,
+0 MOVED after each.
 
 ---
 

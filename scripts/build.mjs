@@ -404,7 +404,7 @@ const levelDebugSuffix = levelDebugId === null
 const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
-  ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
+  ? `boss-variant-${bossVariantSlug}${laserFixtureTier === null ? "" : `-laser-fixture-${laserFixtureTier}`}${levelDebugSuffix}`
   : laserFixtureTier !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : playerColourValue !== null

@@ -3793,8 +3793,9 @@ gravity_state_end:
 ; * unless the rail is at its last position, the rail slides RAIL_PITCH
 ;   columns inward: RAIL_DELAY frames after the kill (the kill's spark and
 ;   gone draw first; rule (B)), one column every RAIL_FRAMES frames, on a
-;   quiet frame only (never on a kill or exposure-check frame, as the draw
-;   queue and region 3's collapse), one column a frame for both rails. A
+;   quiet frame only - no shot met the band this frame (so no kill either)
+;   and it is not the exposure check's (the stress frame is a meeting frame,
+;   plan s5-boss-regions §6.5) - one column a frame for both rails. A
 ;   column step gives the cell-flash ring's cells back (they are about to
 ;   move), shifts the rail's window - its cells in the three rows, its
 ;   columns' map entries and stop lines - one column inward, moves every gun
@@ -3906,10 +3907,12 @@ rail_side:
     dec rail_timer,x
     bne @rts
 @due:
+    lda boss_shots_admit_left           ; never on a frame a shot met the band
+    cmp #BOSS_SHOT_ADMIT                ; (AUD-04's count: none admitted) -
+    bne @rts                            ; so never on a kill frame either -
     lda rail_stepped                    ; one column a frame for both rails,
-    ora boss_frame_heavy                ; never on a kill or exposure-check
-    ora _boss_heavy                     ; frame: the next frame then
-    bne @rts
+    ora _boss_heavy                     ; never on the exposure check's frame:
+    bne @rts                            ; the next frame then
     inc rail_stepped
     jsr rail_column
     lda #RAIL_FRAMES
@@ -3941,10 +3944,7 @@ rail_lock:
     lda BOSS_T_MODULES + BOSS_M_COVER_HI,y
     and #>~(1 << RAIL_CORE)
     sta BOSS_T_MODULES + BOSS_M_COVER_HI,y
-    lda _boss_expose_pending
-    bne :+
-    inc _boss_expose_pending
-:
+    inc _boss_expose_pending            ; (0: a lock's frame is no kill's nor the check's)
     ldx rail_x
     lda rail_k,x
     cmp #RAIL_POSITIONS

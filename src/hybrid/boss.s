@@ -3595,11 +3595,6 @@ gravity_frame:
     beq gravity_off                     ; both spires fallen: off for good
     inc gravity_on
 .if GRAVITY_COLUMN
-    lda gravity_drawn
-    bne @column
-    inc gravity_drawn
-    jsr gravity_draw                    ; the column's lines, once
-@column:
   .if GRAVITY_COLUMN = 1
     ldx #$03                            ; the shimmer: quad (8 clocks), then
     ldy #(GRAVITY_X_BASE + 8 - 4)       ; double (4 clocks), by 4-frame halves
@@ -3661,13 +3656,15 @@ gravity_rts:
 
 .if GRAVITY_COLUMN
 ; SECTOR_COMPLETION, after laser_frame set this frame's SIZEM bits: the
-; column's (M0's, SIZEM bits 0-1), published by the next band DLI. The wave
-; (GRAVITY_COLUMN 2): one line in eight rewritten a frame, never on a kill or
-; exposure-check frame (the draw queue's rule; the stress frame is a kill
-; frame); the eighth slice moves the wave GRAVITY_WAVE_STEP lines down.
+; column's (M0's, SIZEM bits 0-1), published by the next band DLI. Then, never
+; on a kill or exposure-check frame (the draw queue's rule; the stress frame
+; is a kill frame), one line in eight of the column rewritten: the shimmer
+; draws its column so in its first eight quiet frames, then stops; the wave
+; (GRAVITY_COLUMN 2) goes on, the eighth slice moving it GRAVITY_WAVE_STEP
+; lines down. No frame writes more than a slice (22 lines).
 gravity_late:
     lda gravity_on
-    beq gravity_rts
+    beq @rts
     lda boss_laser_sizem
   .if GRAVITY_COLUMN = 1
     ora gravity_size
@@ -3675,10 +3672,15 @@ gravity_late:
     ora #$03
   .endif
     sta boss_laser_sizem
-  .if GRAVITY_COLUMN = 2
     lda boss_frame_heavy
     ora _boss_heavy
-    bne gravity_rts
+    bne @rts
+  .if GRAVITY_COLUMN = 1
+    lda gravity_drawn
+    cmp #8
+    bcs @rts
+    inc gravity_drawn
+  .endif
     lda gravity_slice
     clc
     adc #1
@@ -3690,17 +3692,22 @@ gravity_late:
     adc #GRAVITY_WAVE_STEP
     sta gravity_phase
 :
+    lda gravity_slice
     clc
-    adc gravity_slice
-    adc #GRAVITY_COLUMN_TOP             ; the slice's first line (C = 0)
+    adc #GRAVITY_COLUMN_TOP             ; the slice's first line
     tay
+    clc
     adc gravity_phase                   ; its wave index
     and #$0F
     tax
 @line:
     lda LASER_MISSILES,y
     and #$FC
+  .if GRAVITY_COLUMN = 1
+    ora #$03
+  .else
     ora gravity_wave,x
+  .endif
     sta LASER_MISSILES,y
     txa
     eor #$08                            ; eight lines on: half the wave's period
@@ -3711,32 +3718,7 @@ gravity_late:
     tay
     cpy #(LASER_LAST_LINE + 1)
     bcc @line
-    rts
-  .endif
-  .if GRAVITY_COLUMN = 1
-    rts
-  .endif
-
-; Once, on the well's first frame: M0's bits from the first line under the
-; band down to the ring's last line (the lasers' lines keep their own bits;
-; the boss sector's end erases the whole plane).
-gravity_draw:
-    ldy #GRAVITY_COLUMN_TOP
-    ldx #$00
-@line:
-  .if GRAVITY_COLUMN = 1
-    lda #$03
-  .else
-    tya
-    and #$0F
-    tax
-    lda gravity_wave,x
-  .endif
-    ora LASER_MISSILES,y
-    sta LASER_MISSILES,y
-    iny
-    cpy #(LASER_LAST_LINE + 1)
-    bne @line
+@rts:
     rts
 
   .if GRAVITY_COLUMN = 2
@@ -3756,7 +3738,7 @@ gravity_pulse:  .byte GRAVITY_PULSE_FRAMES
 gravity_timer:  .byte GRAVITY_FRAMES
 gravity_steps:  .word 0                 ; the steps taken (the trace counts them)
 .if GRAVITY_COLUMN
-gravity_drawn:  .byte 0                 ; the column's lines drawn
+gravity_drawn:  .byte 0                 ; the shimmer's column: slices drawn (8: all)
 gravity_size:   .byte 3                 ; M0's SIZEM bits this frame
 gravity_slice:  .byte 0                 ; the wave's next slice (one line in eight)
 gravity_phase:  .byte 0                 ; the wave's offset

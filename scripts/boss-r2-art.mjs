@@ -537,7 +537,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const variant = (process.argv.find((a) => a.startsWith("--variant=")) ?? "--variant=ga").slice(10);
   const out = process.argv.find((a) => a.startsWith("--out="))?.slice(6) ??
     path.join(rootDirectory, "build", "boss-variants", `r2${variant}`, "region-2");
-  const { pngs, modules } = drawRegion2(variant);
+  const { pngs } = drawRegion2(variant);
+  // --hp=GUN,CANNON,DOORS,CORE: a hit-point trial (Phase A's tuning probes).
+  const hpArgument = process.argv.find((a) => a.startsWith("--hp="))?.slice(5);
+  const modules = hpArgument === undefined ? r2ModulesJson(variant) : (() => {
+    const [gun, cannon, doors, core] = hpArgument.split(",").map(Number);
+    return r2ModulesJson(variant, { gun, cannon, doors, core });
+  })();
   const check = process.argv.includes("--check");
   let differs = 0;
   if (!check) fs.mkdirSync(out, { recursive: true });

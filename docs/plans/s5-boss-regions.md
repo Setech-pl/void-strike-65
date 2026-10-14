@@ -6,7 +6,8 @@
 (§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. **S5-4 implemented on `feat/boss-region-4` (§6.4:
 Phase A, A-2 §6.4.6, as built §6.4.7), merged; its follow-up `fix/r4-immobile`
 (§6.4.8: the still citadel, G2, no engines, no refuge at the core),
-`OWNER-SMOKE CANDIDATE`.** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+`OWNER-SMOKE CANDIDATE`.** **S5-5 Phase A on `feat/boss-region-2` (§6.5: the
+Bastion's review variants, measured; waiting for the owner's choice).** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -1895,6 +1896,338 @@ holds the band there on every fight frame.
 **Gates and evidence.** Worst fence margin 1,260 and DMA-on 31,483 unchanged (58 replays, 0 misses, 0 clause failures); region 1's boss frames 9,191 / 29,821 and entry 249 unchanged; region 4's entry 261; the install 374 -> 381 of 384 B (transient), 0 resident bytes. The evidence bound to ATR `fee54bea...` (build:candidate -> runtime:wall-trace -> --menu-raster-only -> build -> memory-map -> showcase:gif -> showcase); full `npm test` twice, 1,368 of 1,369 (the recorded preview failure), reconciled PASS, 0 NEW, 0 MOVED. Two diagnostic region route sessions (region-4-diag-1, finale-1) hit the level-end stats clause by one shot - a shot fired on the boss's completion hand-off frame, counted by the observer but not by the game's `stats_scan` (earlier in the frame); pre-existing, reported, not changed (STATUS).
 
 ---
+
+### 6.5 S5-5 (2026-10-15, `feat/boss-region-2`) — the Bastion: hangar, cannons, sliding rails — Phase A
+
+**Recommendation first.** Ship the Bastion as **N-C with the t1 hit points**:
+a one-cell hangar column (the core under a cap, the doors under it) at
+column 31, the two laser cannons two cells wide hugging it, a sliding rail
+of four 3-cell guns each side - the owner's estimate for the rails (two safe
+slides, the third covers the cannon, a fourth gun left on the stopped rail);
+cannons 8, rail guns 12, doors 28, core 32 hit points. Everything is inside
+its limit: entry **253 host frames** (66 sectors; 27 left under 280 for the
+banner task's ~25), stress **7,920** native worst reachable (580 left under
+8,500), boss frames >= 8,713 of margin, DMA-on <= 30,218, **0 resident bytes,
+0 bytes of slots A-D**, slot E +7 B (511 of 512, still 4 sectors), region 2's
+block 510 of 512 B. The fight by the aiming bot's ratio: **careful 90.0 /
+105.8 / 152.2 s**, careless 82.2 / 97.3 / 130.1 s (E / M / H).
+
+**What the data says about the order puzzle (the owner should know before
+choosing).** In no geometry does the *aiming bot* find the careless order
+harder in hits: careless skips the cannons' hit points (the fight 8-20 %
+shorter) and the covered cannons add 1-4 laser hits (careful 0-1), with one
+more death on HARD; most hits on a bot that never dodges are the boss's pulse
+shots and the core's volleys. Two geometric facts drove the design:
+1. **A beam endangers x in [edge - 7, edge + 3]** (`laser_collide`, the ship's
+   collision box is its left eight clocks while its shot leaves its centre):
+   a beam threatens far to its left and only a clock to its right. Beside the
+   owner's 4-cell hub the two beams leave a corridor (x 116-132) over the
+   whole hangar - a covered cannon never threatens a player shooting the doors
+   or the core (G-A, G-B: the refuge the owner's rule forbids). A 2-cell core
+   between hugging cannons still leaves its centre column (x 122, where the
+   bot stands) between the beams (N-A, N-B). Only a **one-cell core and doors**
+   put their whole reach (x 116-119) under the left cannon's beam - and under
+   the core's own volley (columns 30-32), closing the endgame's last gap (N-C).
+2. **The hit points decide the rest:** cheap cannons and heavy doors / core
+   (t1) shrink careless's saving to ~8 % and keep a careless player longer
+   under the covered beams. More levers for Phase B are listed in the
+   questions (S5Q-4).
+
+**Step 0.** `main` `131fd8f` (S5-4 §AQ, r4-immobile, interceptor-speed §AS
+merged), clean; worktrees: the primary checkout only; `dist/` ATR
+`0f639496...`, boot `e3d3b9e8...`. Branch `feat/boss-region-2`. Every Phase A
+build is a review variant (`--boss-variant=r2ga|r2gb|r2na|r2nb|r2nc[t1]`): **the
+default build stays byte-identical to `main`** (ATR `0f639496`, rebuilt and
+compared at every commit).
+
+**Baseline (each with its source; the brief agrees).** Worst fence margin
+1,260 (`2-sweep-fire6`), DMA-on 31,059 (STATUS, interceptor-speed; the trace);
+region 1's boss frames 8,869 / 30,211 (STATUS); stress region 1 7,046, the
+tier-4 fixture 7,836 / 6,880, the finale layouts 6,715, region 3 7,824 /
+8,077, region 4 8,094 (MEASURED on this tree = `main`, `tests/boss-stress`,
+`boss-region-3`, `boss-region-4`); entry R1 249, R3 256 (67 sectors), R4 261
+(68) host frames (STATUS); 58 replays, 16 boss entries, 0 clause failures;
+window 1,322 / 1,387, Light kernel 847 / 875, slot A 2,047 / 2,048, slot E
+504 B code (4 sectors), initial block 13,623 B / 107 sectors (manifest);
+fights R1 97.4 / 111.0 / 152.7, R3 109.3 / 112.3 / 174.9, R4 100.2 / 107.0 /
+139.3 s (STATUS); `npm test` 1,374 with the recorded preview failure (STATUS).
+
+#### 6.5.1 Audit — what region 2 takes from the shared boss code (file:line at `131fd8f`)
+
+| Need | Where it is | What S5-5 does with it |
+| --- | --- | --- |
+| A module's columns at run time | `src/hybrid/boss.s` `boss_mx` / `boss_mxe` (`:1648`, BSS), the module record's x (`BOSS_T_MODULES`, slot B RAM, read by `boss_draw_module` `:1156`, `boss_fire` `:726`, `boss_capsule_kill` `:2132`, the trace's aim bot) | **all RAM**: a slide adds ±1 to every rail gun's record x and span each column step - draws, fire columns, the capsule and the bot follow |
+| Hit detection | `boss_shot_meet` (`:1574`): column = (x - 32 + p) / 4, `boss_column_map` + `boss_stop_y` (scratch page); `boss_column_at` (`:1253`) the front-first walk, `boss_column_base` (`:1279`) the hull bitmap and the hull-stop table (look tail) | a step **shifts the map entries and stop lines** with the cells (one copy loop); the static tables are read only by `boss_prepare` and a kill's rebuild |
+| A kill's columns | `boss_module_scored` (`:3060`) → `boss_rebuild_module` (`:1329`): only the dead module's columns, later live modules first, else the static hull | every rail-gun kill happens in its rail's **front-gun slot** (the next gun locks in there), so the converter gives that slot's columns the stop under the rail's last row: a dead socket stays solid with **no code** |
+| Covering | the column map's front module | a slide shifts the rail's entries over the cannon's columns: the rail is their front, the cannon's columns deflect (hull path, `boss_hit` `:588`) |
+| Cover and exposure | `src/c/boss.c` `boss_expose` (`:215`), the record's cover bytes (RAM); `boss_c_hit` (`:331`), the defeat at `boss_weapons_left == 0` (`:376`) | a covered cannon: `boss_weapons_left` - 1, its bit cleared from the doors' cover, the exposure check asked (`boss_expose_pending`); the guns behind the front one carry the core's bit (the lock) until they lock in |
+| Rule (B), the fire countdown | `boss_c_tick` (`:454`, `:480`) | unchanged; a locked-out gun is not exposed, so never armed - it never fires on the move |
+| Lasers per tier, twins | slot D `laser_tier`, `laser_prepare` (`:1797`), slot E `laser_twin_index` (`:2045`), `laser_rearm` (`:1936`, counts an exposed emitter) | a covered cannon stays exposed to the controller: it reloads and fires; **the twin pair is independent from tier 2** (`BOSS_RAIL` builds: +7 B of slot E, 511 of 512) - one beam on level 4, two on levels 5-6 (decision AC) |
+| A beam's heat on a covered cannon | `laser_warn` (`:2480`): the ring's heat glyph on the emitter's bottom-centre cell | that cell is now the rail's: the heat shows on the rail (the warning stays visible); the ring's records are given back before every step |
+| Region code | slot F `BOSS_F_HOOK` = `$526E` (`:3414`), called from `laser_frame` (`:2406`) and `boss_shots_late` (`:2192`) | **`BOSS_RAIL`**: 400 B of code at `$526E`, its tables and state in the block's room between the 80-B look tail and the hook (`BOSS_R_DATA`) |
+| The escort | `src/c/director.c` `director_c_boss_weapon_down` (`:594`), `director_c_boss_escort_frame` (`:615`, `$80FD` the clock); its column the wave's `entry` (`src/c/lifecycle.c:1014`; level 1's boss wave: the default 124) | entry 124 is band column 31 at position 32 - **the doors' column**: the escort launches from the doors with 0 bytes; the block flashes the doors (b3) at the clock's 6th frame and zeroes the clock once they fall |
+| Hit flash b3 | slot E `boss_mflash_frame` (`:2574`) | every module; the cover warning and the launch cue are its requests |
+| Title | `modules.json` `"name"` → the theme run | BASTION (the placeholder's name already) |
+| Stress | `tests/boss-stress.test.mjs` | `scripts/measure-boss-stress-r2.mjs` (new): every rail-position pair, kill frames and step frames |
+
+**Where the brief and the repo disagree (reported).**
+* **"A gun about 3 columns wide + 1 gap; the rail front at the outermost
+  on-screen position; about 12 columns between the edge and the cannon."**
+  Measured on the band: the screen shows columns 12-51 at the still position
+  32, a shot reaches **14-52** (HPOS 56-208) - the outermost gun slot in reach
+  is 14-16. G-A is exactly the estimate (2 safe slides, the third covers, 4
+  guns a side). The hub's width is the disagreement: the estimate's 3-4-cell
+  hangar with 3-cell cannons beside it leaves a corridor between the beams
+  over the whole hangar (above, fact 1).
+* **"The rail front blinks while one position from the cannon."** Region 2's
+  block has 2 B left (400 of 402 B of code): a three-cell blink with its
+  restore costs ~45 B. Built instead: **the gun whose fall would cover the
+  cannon pulses** (its b3 flash every 16 frames, ~20 B) - the dangerous
+  target is marked, not the rail. The blink stays an option if bytes are
+  found (S5Q-5).
+* **"Shots that hit the rail over a covered cannon are deflected; its beam is
+  drawn from under the rail."** As built - but the cannon is hidden: the rail's
+  cells replace its cells (character graphics cannot overlay), the beam leaves
+  from under the rail, its warning heat shows on the rail.
+* **A rail gun may be hit while it moves (brief: "hit detection follows the
+  rail exactly").** Built: the next gun is **locked out while its rail slides**
+  (covered by the core's bit until it locks into the front slot): a shot at a
+  moving gun deflects, it never fires on the move, and no second slide can
+  queue during one. Hit detection follows every column step exactly (the
+  harness: a gun's columns hit, its old columns not).
+* **Step on hit frames.** A column step costs ~1,700 native; on a frame with
+  two non-kill hits and both lasers warning it measured **9,663** (over 8,500).
+  A slide now steps only on a frame no shot met the band (AUD-04's count) and
+  not the exposure check's: worst **7,920**.
+
+#### 6.5.2 Geometry (MEASURED on the band; diagrams `build/play/s5-5-r2-geometry-*.png`)
+
+Band columns at the still position 32: the screen shows **12-51**, a shot
+reaches **14-52**; HPOS = 4 x column. One shift = one gun pitch.
+
+| | G-A (estimate) | G-B (+1 safe shift) | N-A | N-B | **N-C (recommended)** |
+| --- | --- | --- | --- | --- | --- |
+| hangar / core / doors | 30-33 / 31-32 / 30-33 | same | 31-32 / 31-32 / 31-32 | same | **31 / 31 / 31** (one cell) |
+| cannons (rows 1-3) | 27-29, 34-36 (3 cells) | same | 29-30, 33-34 (2) | same | **29-30, 32-33** (2) |
+| gun width / pitch | 3 / 4 | 2 / 3 | 3 / 4 | 2 / 3 | **3 / 4** |
+| left rail front, start → each slide | 17 → 21 → 25 → **29** | 17 → 20 → 23 → 26 → **29** | 18 → 22 → 26 → **30** | 18 → 21 → 24 → 27 → **30** | **18 → 22 → 26 → 30** |
+| front-gun slot (left / right) | 14-16 / 47-49 | 15-16 / 47-48 | 15-17 / 46-48 | 16-17 / 46-47 | **15-17 / 45-47** |
+| safe slides before covering | 2 | 3 | 2 | 3 | **2** |
+| guns per side (slides + 1) | 4 | 5 | 4 | 5 | **4** |
+| modules / codes / charset | 12 / 105 / 840 B (7) | 14 / 99 / 792 (7) | 12 / 88 / 704 (6) | 14 / 82 / 656 (6) | **12 / 75 / 600 B (5)** |
+| the slide window (columns a step shifts) | 18 | 18 | 19 | 19 | 19 / 20 |
+
+Each slide's front and the rail's cells move one column per step (4 frames a
+step, 12 frames after the kill: ~28 frames a slide); the girder runs to the
+band's edge, so at every position the rail runs off the screen; the next gun
+peeks in at column 12 (left) and 51 (right). G-B's alternative look: 2-cell
+guns (their barrel on the cells' boundary). Other options priced: a shift
+smaller than a pitch (the next gun revealed over two kills) needs a gun to
+lock in on every other kill - the lock's code twice (no room in the block).
+
+#### 6.5.3 The design (review variants; previews in `build/play/`)
+
+**The ship** (`scripts/boss-r2-art.mjs`, drafts in
+`build/boss-variants/r2*/region-2/`): one overhead **track** (row 0) from
+screen edge to screen edge, rivets every other column (the slides read against
+them); the **hangar** at the centre - G-A/G-B a 4-cell sphere with the core
+inside, N-* a cap over the core column - the **doors** under it (row 4, amber
+hazard chevrons); the **laser cannons** (region 1's tower; 2-cell as region
+4's) hang from the track beside it; outside them the **rails**: a lattice
+girder (row 1) under the track from the band's edge to the rail's front (a
+hazard-striped buffer, rows 1-3), its guns hanging from it (rows 2-3); a dead
+gun leaves an **empty socket** (the region's cavity glyph: a dark rack). Still
+band at 32 (the slides are the only motion). Palette: pale steel `$0C`, mid
+steel `$06`, hazard amber `$28` (hue 34°, 168° from the ally steel `$88`),
+olive bulk `$E2` (hue 82°, 144°) - every hued register >= 45° from `$88`.
+5 shown rows. Every stage of every module has colour-3 pixels
+(`s5-5-r2-*-stages.png`: intact / cracked / broken, normal and flashed).
+
+**The fight.** Cannons and each rail's front gun exposed from the start;
+behind each front gun its rail's others (each covered by the one in front, and
+locked); the **doors** open when every cannon and every rail gun is destroyed
+or covered (cover = the cannons and the rails' last guns); the **core** - a
+salvo launcher (reload 90) - opens behind them and falls last (the defeat, the
+last weapon). The finale (the doors are the region's only armour): the core's
+volleys at half reload. Escort: region 1's cadence (after the first weapon
+kill, 150 + 0..63 frames, one at a time), launched from the doors (column 31)
+with the doors' flash as the cue, none after the doors fall (the block zeroes
+the Director's clock) and none after the boss falls (as before).
+* **Rail kill:** the front gun dies (its spark, its gone draw - the socket);
+  12 frames on the rail slides one pitch, one column every 4 frames with a
+  clank on channel 3 (the hull tick's poly4); the next gun locks into the
+  front slot and is exposed on the next tick.
+* **Cover:** the slide that reaches the cannon covers it: a standing cannon
+  is hidden behind the rail's dead socket and buffer, shots there deflect, its
+  beam keeps firing from under the rail (its heat on the rail), the defeat and
+  the doors stop waiting for it. A destroyed cannon is simply passed over.
+* **Warning:** one slide from covering a standing cannon, the front gun (the
+  one whose fall covers it) pulses every 16 frames.
+* The rail never reaches the hub (the converter proves it for every layout).
+
+**The previews (`build/play/`):** `s5-5-r2-ga-sequence.png` and
+`s5-5-r2-nc-sequence.png` (the harness's band through a scripted fight: the
+start, mid-slide, each slide, a cannon covered with its heat showing, all rail
+guns gone, the doors open, the doors gone), `s5-5-r2-geometry-{ga,gb,na,nb,nc}.png`
+(one side at every rail position, the ruler: green the screen, cyan the
+shots' reach, red the cannon, amber the hangar), `s5-5-r2-{ga,gb,na,nb,nc}-stages.png`.
+
+**The block code** (`src/hybrid/boss.s` `BOSS_RAIL`; the converter's `rails`
+and `hangar` blocks, `scripts/boss-assets.mjs`; `boss-rail.inc` from
+`scripts/build.mjs`): 400 B at `$526E` (the late hook only; the frame hook is
+an `rts`) + 30 B of tables and state in the block's room after the look tail.
+Per frame (IC): ~60 cycles idle, a kill's detection ~40, a column step ~1,700
+(the ring's records given back, 19-20 columns x 5 arrays shifted, 4 guns
+moved). Shared code: slot E +7 B (the twins' tier rule, `BOSS_RAIL` builds
+only); slots A, C, D, install, window, Light kernel, resident: 0 B.
+
+#### 6.5.4 Measurements (M emulator trace, M-N native harness, R the aiming bot's ratio, S the coverage model)
+
+Routes: `node scripts/build.mjs --boss-variant=r2<v> --boss-region=2
+--level=1:sector=0` (level 1's content as level 4, then the boss; tier 1) and
+`--laser-fixture=2` added (tier 2: levels 5-6's two lasers); `sector=6`
+entered at the boss. Sessions `boss-aim-careful-N` / `boss-aim-careless-N`
+(new: the aiming bot preferring the emitters / the pulse guns),
+`boss-aim-N` (the plain bot = careful here: the cannons are nearest),
+`region-2-dodge-2`, `boss-park-left-1`. Seconds = frames x plain[d] /
+aimMain[d] / 50 (3,834 / 4,612 / 5,964 over 1,847 / 2,231 / 2,663, region 1's
+rule).
+
+**Fight time (R), E / M / H, tier 1 (level 4); careful | careless:**
+
+| variant (hit points gun / cannon / doors / core) | careful | careless | hits on the bot careful / careless (laser) E, M, H | deaths careful / careless E, M, H |
+| --- | --- | --- | --- | --- |
+| G-A (12/16/16/24) | 87.3 / 106.8 / 149.5 | 77.7 / 86.1 / 119.3 | 7(0)/8(1), 15(1)/16(1), 21(1)/19(1) | 0/1, 2/1, 3/2 |
+| G-B (12/16/16/24) | 102.2 / **134.9** / 168.7 | 93.9 / 107.1 / 143.2 | 7/10, 22/17, 21/22 | 0/1, 2/2, 3/3 |
+| N-A (12/16/16/24) | 87.3 / 110.2 / 145.5 | 75.5 / 90.6 / 116.6 | 8/9, 15/18, 21/16 | 0/1, 2/1, 3/2 |
+| N-B (12/16/16/24) | 101.8 / **127.5** / 163.1 | 86.6 / 106.4 / 144.1 | 8/11, 24/17, 25/24 | 0/1, 2/2, 3/4 |
+| N-C (12/16/16/24) | 87.3 / 110.1 / 145.8 | 75.6 / 89.0 / 117.9 | 9(0)/8(1), 15(1)/14(2), 21(1)/18(2) | 0/1, 2/2, 3/3 |
+| G-A t1 (12/8/28/32) | 91.3 / 113.5 / 150.9 | 83.6 / 95.4 / 131.5 | 8(0)/8(1), 19(0)/18(1), 21(1)/21(1) | 0/1, 2/1, 3/2 |
+| **N-C t1 (12/8/28/32)** | **90.0 / 105.8 / 152.2** | **82.2 / 97.3 / 130.1** | 8(0)/8(1), 14(0)/15(2), 21(1)/20(3) | 0/1, 1/2, 3/3 |
+
+Tier 2 (levels 5-6, `--laser-fixture=2`): N-C t1 careful identical frame for
+frame on EASY/MEDIUM (the cannons die first), HARD 152.2; careless 82.2 /
+100.7 / 132.0 s, laser hits 3 / 3 / 4 (tier 1: 1 / 2 / 3), deaths 1 / 3 / 4.
+G-A t1 tier 2: 91.3 / 113.5 / 150.9 | 83.6 / 95.2 / 131.2. **Bold:** MEDIUM
+outside 90-120 (G-B, N-B at these hit points; their extra slide adds ~25 s).
+
+**Per fight (M, N-C t1, MEDIUM):** rails 3/3 slides each, careless 2 covers,
+careful 0 (the cannons died first); escorts careful 13 (12 shot down, 1 left),
+careless 12 (10 shot down, 2 left); hits in the boss sector 15 / 15: escort
+lasers 0 / 0, boss lasers 0 / 2, the rest the rail guns' pulses and the core's
+volleys (`measure-interceptor-hits.mjs`, `measure-interceptor-play.mjs`,
+`--hit-trace`). Escorts per fight, all variants: 9-17.
+
+**Gates and budgets (M / M-N):**
+
+| | main R1 | R3 (L7) | R4 | R2 G-A | R2 G-B | R2 N-A | R2 N-B | **R2 N-C** | source |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| boss entry, host frames / sectors | 249 / 65 | 256 / 67 | 261 / 68 | 260 / 68 | 260 / 68 | 256 / 67 | 257 / 67 | **253 / 66** | M (limit 280) |
+| … headroom for the banner (~25) | 31 | 24 | 19 | 20 | 20 | 24 | 23 | **27** | |
+| boss frames worst margin (the aim runs, all) | 8,869 | 7,396 | 6,527 | 8,255 | 8,210 | 8,675 | 7,709 | **8,713** | M |
+| … DMA-on max | 30,211 | 30,668 | 30,440 | 30,210 | 30,160 | 30,122 | 30,324 | **30,218** | M (gate 32,568) |
+| stress worst reachable, level 4 / 5 | 7,046 | 7,824 / 8,077 | 8,094 | 7,876 / 7,920 | 7,901 / 7,793 | 7,876 / 7,920 | 7,647 / 7,542 | **7,876 / 7,920** | M-N (limit 8,500) |
+| … worst with a column step on the frame | — | — | — | 7,222 / 7,212 | 7,377 / 7,317 | 7,288 / 7,278 | 7,443 / 7,383 | **7,346 / 7,346** | M-N |
+| … headroom (M6 VOID LANCE) | 1,454 | 423 | 406 | 580 | 599 | 580 | 853 | **580** | |
+| frames with a kill and a spawn | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | M-N |
+| region 2's block (slot F) | 110 B (copy) | | | 510 / 512 B, 4 sectors (code 400 / 402, tail 80, data 30) | same | same | same | **same** | manifest |
+| charset / codes | 840 / 105 | 864 / 108 | 864 / 108 | 840 / 105 | 792 / 99 | 704 / 88 | 656 / 82 | **600 B / 75** | manifest |
+| slot E code | 504 (4) | | | 511 (4) | | | | **511 (4)** | manifest |
+| slots A / C / D, install, window, Light kernel, initial block, resident | 2,047 / 1,662 / 1,663 … | | | **unchanged** (0 B) | | | | | manifest |
+
+The escort's own Light tick (outside the boss routines): 532 native worst
+(interceptor-speed's catch harness) - on a step frame 7,346 + 532 = 7,878.
+`region-2-dodge-2` (HARD, the laser-contact bot): 5 laser hits, every
+variant; boss frames >= 12,573 margin. Every R2 session: 0 PAL misses, the
+slot F write clause 0 foreign writers (the rails' code writing only its
+state), the entry's debris and HUD clauses held.
+
+**Fire gaps (S, `scripts/boss-coverage.mjs`'s model per rail state; x even
+48-200).** The doors' / core's reach: G-A/G-B x 112-126 / 116-122; N-A/N-B
+116-122; N-C 116-118.
+
+| state | G-A | N-A | **N-C** |
+| --- | --- | --- | --- |
+| opening (both cannons, the front guns) | safe 116-132 over the hangar | 122 | **none in reach of the doors / core** |
+| careless, covered cannons + last guns | 116-132 | 122 | **none** |
+| careless core phase (covered beams + the core's volley) | 116 | none | **none** |
+| careful doors phase (no boss weapon; escorts only) | 112-126 | 116-122 | 116-118 |
+| careful core phase (the core alone) | 116 | 116 | **none** |
+
+The careful doors phase has no boss weapon by design (every weapon but the
+core is gone); the escorts - launched from the doors, over the ship - are its
+danger until the doors fall. Elsewhere: between a rail's front and its cannon
+(x ~66-110) nothing reaches the ship, and nothing there can be hit but the
+track (a stalemate, no progress).
+
+**The left edge (`boss-park-left-1`, x 48, 4,000 frames, MEDIUM):** G-A 20
+hits, 2 deaths (from x 48 the shot meets column 14 - G-A's front gun - so the
+player kills it and the escort starts); G-B, N-A, N-B, N-C **0 hits** - from x
+48 the shot meets the girder (their front-gun slot starts at 15-16), nothing
+dies, the escort never starts, and no weapon reaches x 48. A stalemate, not a
+winning refuge (the fight cannot end from there); options in S5Q-6. Region 1's
+left-edge guard is untouched (the default build is `main`'s).
+
+**The difficulty curve (R, the aiming bot, E / M / H):** R1 97.4 / 111.0 /
+152.7 · **R2 (N-C t1, careful) 90.0 / 105.8 / 152.2** · R3 109.3 / 112.3 /
+174.9 · R4 100.2 / 107.0 / 139.3 s. R2 sits with R1; its HARD between R1's and
+R3's. "Hardest boss" in hits on this bot: R2 15 (MEDIUM) against R4's 17
+(fix/r4-immobile) - the bot does not dodge; the owner's play decides.
+
+**RAM:** 0 resident bytes; region 2's state 13 B inside its block (rail k,
+front; step, timer, dead, scratch); the scratch page, slot C/D BSS unchanged;
+slot E BSS unchanged.
+
+#### 6.5.5 Review builds (`build/play/`, `atari800 -xl -pal -nobasic <absolute path>`)
+
+| ATR | SHA-256 (prefix) | What |
+| --- | --- | --- |
+| `s5-5-r2-nct1-boss-route.atr` | `232f89f6` | **N-C, t1 hit points (recommended)**, level 4 (one laser: the twins alternate), entered at the boss |
+| `s5-5-r2-nct1-tier2-boss-route.atr` | `b054ce3a` | the same, two lasers (levels 5-6) |
+| `s5-5-r2-nct1-level-route.atr` | `b06a5fda` | level 1's content as level 4, then the boss |
+| `s5-5-r2-nc-{boss-route,tier2-boss-route,level-route}.atr` | `b55c3725` / `54c0b63f` / `87eadd2c` | N-C at the first hit points |
+| `s5-5-r2-ga-{…}.atr` | `337199ba` / `56ccc817` / `76b54534` | G-A, the owner's estimate (the sphere hangar) |
+| `s5-5-r2-gat1-{…}.atr` | `f7aa4155` / `83f34c57` / `77d310f1` | G-A at t1 |
+| `s5-5-r2-gb-{…}.atr` | `6c2e7ce1` / `23d4b781` / `a06f1660` | G-B (one safe slide more, 2-cell guns) |
+| `s5-5-r2-na-{…}.atr` | `6b533d80` / `dd27968e` / `d2771bc8` | N-A (2-cell hangar) |
+| `s5-5-r2-nb-{…}.atr` | `92cb9e36` / `91e77929` / `f182d1f5` | N-B |
+| `s5-5-main-r1-boss-route.atr` | `d4c143b0` | `main`'s region 1 boss route, for comparison |
+| `s5-5-full-game-main.atr` | `0f639496` | the default build (= `main`) |
+
+The measurements of G-A ... N-B ran on builds before `efaf609` (the rails'
+window per side, `rail_dead` moved: the same behaviour, other bytes); every ATR
+here is rebuilt from the branch's head.
+
+**What to look for:** the BASTION title; one ship (the track edge to edge,
+the hangar, the cannons hung from the track, the rails under it running off
+both screen edges); a rail-gun kill - the socket stays, after a beat the rail
+clanks one pitch inward and the next gun locks in; the pulsing gun one slide
+before a cannon; the slide that hides a standing cannon - its beam and heat
+still come from under the rail, shots there deflect; the rail never reaches
+the hangar; the doors flash before each escort launches and the escorts stop
+when they fall; the core's volleys at the end; careful (cannons first) against
+careless (rails first); fight length on MEDIUM; on N-C, whether the slim
+hangar still reads as the Bastion's hub.
+
+#### 6.5.6 Owner questions (recommendation first)
+
+| # | Question | Recommended | Alternatives |
+| ---: | --- | --- | --- |
+| S5Q-1 | The geometry | **N-C**: the one-cell hangar column with the cannons hugging it - the only layout whose covered cannons threaten the endgame and whose core leaves no refuge; 2 safe slides, the 3rd covers, 4 guns a side; 253 host frames | **G-A** (the estimate's look, the sphere hangar; a covered cannon never reaches the hangar's corridor x 116-132 - the refuge rule fails there); G-B / N-B (one safe slide more, 5 guns a side; MEDIUM 128-135 s at these hit points - needs lighter guns); N-A |
+| S5Q-2 | When the doors open | **after every cannon and rail gun is destroyed or covered** (built): the order puzzle binds, the core is the finale | from the start (the core could be rushed while everything fires; the escorts stop early); after the cannons only (the rail guns then outlive the core - the defeat rule needs a C change, slot C has 2 B) |
+| S5Q-3 | The core | **a salvo launcher** (its volleys are the endgame's danger; the doors are the only armour, so the finale halves its reload) | a passive core (the endgame safe but for escorts until the doors fall) |
+| S5Q-4 | The careless order is not harder for the bot | **t1 hit points** (cannons 8, guns 12, doors 28, core 32: careless only ~8 % shorter, 2-4 laser hits against 0-1); tune further on the owner's play | Phase B levers, priced: a covered cannon fires on its own cadence even on level 4 (the twins' turn-taking off once one is covered: ~5 B, the block has 2 - a trim needed; two beams on level 4 after a cover, against decision AC); covered cannons' reload halved (bossDef per level, levels 4-6 are not authored: data then); heavier doors / core still |
+| S5Q-5 | The cover warning | **the gun whose fall would cover the cannon pulses** (built, ~20 B) | the rail's front blinks (~45 B: the block has 2 B; needs a trim elsewhere) |
+| S5Q-6 | The left edge (x 48) on N-C | **leave it**: a stalemate - nothing reaches the ship, nothing can be hit from there | move the rails' front-gun slot to column 14 (as G-A: x 48 then shoots the front gun and the escort starts; the cover then needs the cannons one column further out) |
+| S5Q-7 | The lasers per level (AC) | **one beam on level 4 (the twins alternate), two on levels 5-6 (independent from tier 2)** - covered cannons keep their turn | the twins on every level (one beam on levels 5-6 too, as region 1's copies had) |
+| S5Q-8 | The slide | **12 frames after the kill, one column every 4 frames (~28 frames a slide), a clank a step** | faster (2 frames a column) or slower; data |
+| S5Q-9 | The palette | **olive `$E2` / amber `$28` / steel** (as drawn); the owner retouches the PNGs | — |
+
+Phase B starts on the owner's answers: tests first (RED on `main`), the chosen
+variant as region 2's own directory (`assets/graphics/boss-regions/region-2/`,
+its placeholder entry removed), the hit points tuned, region 2's route
+sessions on the aiming bot with the rails' and the hangar's clauses, the
+evidence regenerated; the unchosen variants removed.
 
 ## 7. Owner questions
 

@@ -6,7 +6,7 @@
 // region 4's block - and its gravity well's code, when the build has it - is
 // read into slot F as the game reads it.
 //
-//   VS65_HARNESS_BUILD=r4-variant-g2-boss-region-4-level-1-s6 node scripts/measure-boss-stress-r4.mjs
+//   node scripts/measure-boss-stress-r4.mjs    (the default build; VS65_HARNESS_BUILD=<build/ dir> for another)
 //
 // The cases: every band position of five; the plates destroyed in every
 // combination, against the spires standing (the well on), either fallen, or

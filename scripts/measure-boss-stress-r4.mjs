@@ -22,7 +22,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { call, label, manifest, nmi, placeBand, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
+import { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
+import { call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
 
 export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
   const lbl = (name) => label("boss", name);
@@ -136,8 +137,9 @@ export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
     if (chosen.length === k) { yield chosen; return; }
     for (let i = from; i < list.length; i += 1) yield* subsets(list, k, i + 1, [...chosen, list[i]]);
   }
-  const region = manifest.boss.regions[3];
-  const names = region.modules?.map((module) => module.name) ?? null;
+  // The module names in the controller's (front-first) order, from the draft.
+  const names = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 4))).modules
+    .map((module) => module.name);
   const tableKind = (i) => entered()[lbl("_boss_module_table") + 12 * i + 7] & 0x0f;
   const kinds = [...Array(count).keys()].map(tableKind);
   const plates = [...Array(count).keys()].filter((i) => kinds[i] === 0);

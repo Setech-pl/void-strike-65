@@ -3,7 +3,9 @@
 **Status:** S5-1 implemented on `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`
 (§6.1); **S5-2 implemented on `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`
 (§6.2)**; **S5-3 implemented on `feat/boss-region-3`, `OWNER-SMOKE CANDIDATE`
-(§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+(§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. **S5-4 Phase A on `feat/boss-region-4`
+(§6.4): the Void Citadel and its gravity well as review variants, waiting for
+the owner's choice.** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -1260,6 +1262,262 @@ test (SIEGE SPINE) was already green on `main` (the placeholder carried the
 name). Two full `npm test` runs on the default build (ATR `e079093e…`): 1,340
 tests, 1,339 pass, 1 fail each (the recorded preview test); reconciled after
 each: 0 NEW, 0 MOVED.
+
+### 6.4 S5-4 (2026-10-13, `feat/boss-region-4`) — the Void Citadel, the gravity well — Phase A
+
+**Recommendation first.** Ship the Void Citadel as drawn with the **gentle
+well G1** (the ship steps 2 colour clocks towards the core every 8 frames
+while a spire stands): the pull is on for about 83 % of the fight and the
+aiming bot still finishes every difficulty; MEDIUM is unchanged by it (108.8 s
+against 108.4 s without it), the worst-case escape from a beam leaves 15 of
+HARD's 25 warning frames. G2 adds 20 % to MEDIUM. Everything is inside its
+limit: entry **253 host frames** (66 sectors; limit 280), stress **8,322**
+reachable (8,500), boss frames ≥ 7,613 margin / ≤ 30,550 DMA-on, 0 resident
+bytes, 0 B of slots A–E (the well is 117 B of region 4's block in slot F),
+charset 108 codes / 7 sectors. **Phase B's open work is the length:** at the
+t1 hit points MEDIUM is in range but **EASY is longer than MEDIUM and HARD is
+195–230 s** — the spires at the band's ends bind the fight's end. The
+optional scanline fix (COLPF2 first) is measured on all four regions and
+recommended (0 B).
+
+**Step 0.** `main` `e7d9020` (the twin-lasers work, decision §AP, present),
+clean; worktrees: the primary checkout only; `dist/` ATR `3c8f1110…`, boot
+`a187caef…`. Branch `feat/boss-region-4`. Every Phase A build is a review
+variant (`--r4-variant=g0|g1|g2`): **the default build stays byte-identical
+to `main`** (rebuilt and compared at the Phase A commit, `ee97f08`).
+
+**Baseline (each figure with its source; the brief agrees with all of them).**
+Worst fence margin 1,260 (`2-sweep-fire6` f311) and DMA-on 31,483 (STATUS,
+`docs/runtime-wall-trace.json`); boss frames 9,219 / 29,902 (region 1,
+director-complete; STATUS); region 3 7,396 / 30,668 (STATUS §S5-3); entry 249
+host frames / 65 sectors (regions 1, 2, 4), region 3 67 sectors (manifest);
+stress region 1 7,032, region 3 7,810 / 8,063, the tier-4 fixture 7,822
+(STATUS, `tests/boss-stress.test.mjs`); 58 replays, 0 clause failures; window
+1,322 of 1,387 B, Light kernel 847 of 875 B, slot A 2,047 of 2,048 B, slot D
+1,661 B, slot E 496 B (4 sectors), install 374 B; region 1 105 codes, look
+tail 110 B; initial block 13,623 B / 107 sectors; region 1's fight 89.1 /
+108.7 / 154.0 s; `npm test` 1,354 tests, 1 recorded failure (preview).
+
+#### 6.4.1 Audit — what region 4 takes from the shared boss code (file:line at `e7d9020`)
+
+| Need | Where it is | What S5-4 does with it |
+| --- | --- | --- |
+| 16 modules, stages, cover, the column map | `scripts/boss-assets.mjs` `resolveModules` (`BOSS_MAX_MODULES` 16, a module ≤ 6 × 4 cells, ≤ 24); `src/c/boss.c` `boss_c_init`, `boss_expose` | the Void Citadel is 16 modules; the core's cover is an explicit list (the shutter plate and both spires) |
+| The core | `BOSS_KIND.core` (4): a weapon without a reload (`boss_c_init` counts it; never in the fire rotation) — the Bastion fixture's kind | the void core; the boss falls with its last weapon, the core one of them |
+| Salvo spires | `BOSS_KIND.salvo` (3); `boss.c:423` `boss_fire_next`: three shots on three frames at x − 1, x, x + 1 | the two spires at the band's ends |
+| Every gun's fire column (the finale's volleys) | `boss-assets.mjs` the fire-column rule: no module under a gun's columns `centre`, `centre + 1` that does not cover it | the guns are 3 cells wide (a 2-wide gun fires down its neighbour's column) |
+| Decision O | `boss-assets.mjs` "hull art below module": nothing under a weapon but a module | every gun hangs in a recess down to the belt |
+| Look table, charset | `BOSS_LOOK_TAIL_MAX_BYTES` 110, ≤ 128 codes | region 4: tail 80 B, 108 codes, 7 sectors |
+| Lasers per tier | slot D `laser_tier` (`boss.s:1771`): levels 10–12 = tier 4, slots 1–4; `LASER_MAX_ON` 2; slot E `laser_admit` (`:1975`) | four emitters, slots 1–4 (no twin) |
+| Escort | the region's `escort` block → tables 17–19, `src/c/director.c` | region 1's 1 / 150 / 63 (decision AI) |
+| Final salvos | `fire.finaleCooldown` → tables byte 4; `boss.c:400` | 12 (the placeholders' value) |
+| Rule (B) (a) | `boss.c:480`, `:501`: no gun fires on a kill frame | unchanged (0 frames with a kill and a spawn, stress) |
+| Hit flash b3 | slot E `boss_mflash_frame` (`boss.s:2570`): a request byte, 3 frames of bit 7 on the module's cells, the frame's one module draw | **the core's pulse asks it** (below) |
+| The shown band | slot D `boss_band_measure` (`:2953`) | region 4 ends at row 4: 5 shown rows |
+| Region code | slot F's block, `BOSS_F_HOOK` = `$526E` (`:3387`): `jsr` from slot D's `laser_frame` (`:2402`, every boss frame, before the shots meet the band) and slot E's `boss_shots_late` (`:2188`), each gated by the hook's first byte | **the gravity well is region 4's block code** — 0 B of slots A–E |
+| Title | `modules.json` `"name"` → the theme run | `VOID CITADEL` (seen on the emulator) |
+| **Where the player's X moves** | `src/main.s` `read_input` (`:3787`): left / right by 2 colour clocks, edges `cmp #PLAYER_X_MIN / beq` (**equality**, `PLAYER_X_MIN` 48, `PLAYER_X_MAX` 200, `:522`), `HPOSP0` from `player_x` (`:3878`); the main loop calls it before `integration_update_enemy` (`:2741`, `:2744`), whose boss UPDATE runs `laser_frame` | the well moves `player_x` from the frame hook after the input, in **2-clock steps** (an odd x would pass the equality edge tests), and writes `HPOSP0` as `main.s:9765` does |
+
+**Where the brief and the repo disagree (reported):**
+* **"1 px every 4 frames".** The input moves the ship 2 colour clocks a
+  frame and tests its edges for equality; a 1-clock step would make
+  `player_x` odd and let the ship run past `PLAYER_X_MIN` / `PLAYER_X_MAX`.
+  The well steps 2 clocks: **G1 = 2 every 8 frames, G2 = 2 every 4** — the
+  brief's averages (0.25 and 0.5 clock a frame).
+* **"16 modules in two blocks of 8"** (the banner) is 16 modules in the band,
+  but not 8 + 8: the spires and the core are three of them (below).
+
+#### 6.4.2 The design (Phase A, review variant)
+
+**The band** (`assets/graphics/boss-regions/region-4/`, drawn by
+`scripts/boss-r4-art.mjs`; previews `build/play/s5-4-r4-band-preview.png`,
+`s5-4-r4-stages.png`, `s5-4-r4-plates-gone.png`). Symmetric about column 31.5:
+
+| Columns | Rows | What |
+| --- | --- | --- |
+| 14–49 | 0 | **the deck**, one continuous hull from end to end, the octagon's corners cut at 14 and 49 — it never breaks |
+| 14, 49 | 1–3 | the octagon's sides; 13 / 50 rows 1–2 the **gantries** to the spires, a vent under each (row 3) |
+| 11–12, 51–52 | 0–3 | **spire-l, spire-r** (salvo): twin needles with void-magenta coils, the muzzle at the foot |
+| 30–33 | 1–3 | **the void core** (kind core, 4 × 3, no damage stages): a black void inside a bright rim, a magenta glow ring, a curl — hung under the deck so the deck stays whole when it falls |
+| 15–17, 46–48 | 1–2 | **gun-1, gun-4** (outer guns) |
+| 18–20, 43–45 | 1–3 | **emitter-3, emitter-4** (region 1's projector tower) |
+| 22–24, 39–41 | 1–3 | **emitter-1, emitter-2** |
+| 26–28, 35–37 | 1–2 | **gun-2, gun-3** in open bays beside the core (25–29, 34–38): they fire from the first frame, where the well pulls the ship |
+| 21, 42 | 1–4 | struts between the blocks, their feet on the belt row |
+| 15–20, 22–24, 30–33, 39–41, 43–48 | 4 | **the armour belt**: plate-a, plate-b, plate-c (the core's shutter), plate-d, plate-e — one row, steel faces, a magenta rim |
+
+Nothing below the belt: 5 shown rows. 16 modules (2 spires, the core, 4
+emitters, 4 guns, 5 plates); **108 of 128 codes** (K 18 staged × 3, 39 plain,
+2 nozzles, 7 divider); charset **864 B, 7 sectors**; look tail **80 B**.
+**Every stage of every module has colour-3 pixels** (the stages preview:
+normal and flashed — each darkens). Palette: pale steel `$0C`, mid steel
+`$06`, void magenta `$58` (COLPF2: the core's glow, the coils, lights; hue
+326°, 100° from the ally steel `$84`), dark violet hull `$62` (hue 294°, 68°).
+Every hued register is ≥ 45° from `$84`.
+
+**The fight.** Opening: the spires (salvos at the band's ends) and the two
+open inner guns (beside the core) fire; the four lasers and the outer guns
+wait behind the belt (a laser's first shot as its plate falls, S4b.4). The
+core cannot be hurt while a spire stands (its cover) or its shutter stands
+(in front). The boss falls with its last weapon — the core included. The
+finale (every plate down) as the region 2–4 placeholders: volleys, floor 12.
+
+**The gravity well** (`src/hybrid/boss.s`, `BOSS_GRAVITY`, region 4's block;
+117 B at `$526E`, its state 5 B inside the block):
+* **when:** every boss frame (slot D's frame hook) while `_boss_phase` is the
+  fight, `PLAYER_LIFECYCLE` is alive (0: never while dying or in a respawn's
+  invulnerability) and either spire has hit points — the entry is over before
+  the first hook runs; the chain and the hold are not the fight;
+* **the pull:** every `GRAVITY_FRAMES` frames (G1 8, G2 4) one 2-clock step of
+  `player_x` towards `GRAVITY_X_BASE − boss_shown_pos` (152 − p: the ship's
+  centre under the core's centre as the band now shows it), `HPOSP0` with it;
+  within one clock of the target, no step;
+* **never off-screen:** the target is 89…152, inside the input's 48…200
+  (asserted at link time), and a step only ever moves towards it;
+* **slower than the player:** at most 2 clocks every 4 frames (G2) against the
+  input's 2 a frame — holding still against it costs a tap, and moving away
+  still makes 1.5 clocks a frame (G2) or 1.75 (G1);
+* **the signal:** every 16 frames the core's hit flash is asked
+  (`boss_mflash_req`) — 3 frames of bit 7 on the core's cells: its magenta glow
+  dims, a heartbeat — unless a hit's flash is waiting or showing (a hit goes
+  first). No colour register, no other cell;
+* **off:** both spires destroyed → the pull and the pulse stop on that frame,
+  for good;
+* **G0** is the Void Citadel without the well (no block code), for comparison.
+
+**The regenerating-plates fallback (priced, not built; owner's alternative).**
+A repair node (one of the 16 modules, e.g. a third spire or the core's
+role) and block code that, while it lives, gives a destroyed plate back its hit
+points every N frames: the kill run backwards — its alive and exposed bits,
+the armour counter (and the finale: a regrown plate after the last armour fell
+needs a rule — the finale stays on, or stops), its columns rebuilt
+(`boss_rebuild_module`, `boss.s`), its draw queued. **G (analogy to region 3's
+field code, 213 B):** 90–140 B of block code (block 2 sectors, as the well);
+the regrow frame about one kill's rebuild, deferred to quiet frames as the
+field's collapse is. Not measured.
+
+#### 6.4.3 Measurements (labels: **M** emulator trace, **M-N** native harness, **IC** instruction count, **R** the aiming bot's ratio, **S** simulation of the game's steps)
+
+Routes: `node scripts/build.mjs --r4-variant=g0|g1|g2 --boss-region=4
+--level=1:sector=0` (level 1's content played as level 10, then region 4's
+boss; the aim bot's `boss-aim-N`) and `--level=1:sector=6` (entered at the
+boss; `region-4-dodge-2`, `boss-park-left-1`). Level 10 is laser tier 4. The
+ratio rule as region 1's: seconds = aim frames × plain[d] / aimMain[d] / 50
+(plain 3,834 / 4,612 / 5,964, aimMain 1,847 / 2,231 / 2,663). Hit points:
+**t1** (below); the opening values in the last rows.
+
+| | main R1 (`e7d9020`) | R4 G0 (no well) | R4 G1 (2 / 8 frames) | R4 G2 (2 / 4 frames) | label |
+| --- | ---: | ---: | ---: | ---: | --- |
+| boss entry, host frames / sectors | 249 / 65 | 249 / 65 | **253 / 66** | 253 / 66 | M (limit 280) |
+| region 4's block (slot F) | 110 B (R4 a copy of R1) | 80 B, 1 sector | **227 B** (tail 80 in 110 + the well 117), 2 sectors | 227 B, 2 | M (manifest) |
+| fight E / M / H, frames | ≈ 2,146 / 2,629 / 3,438 (from the seconds) | 2,884 / 2,622 / 4,350 | 3,079 / **2,631** / 4,643 | 3,331 / 3,138 / 5,141 | M |
+| fight E / M / H, s | 89.1 / 108.7 / 154.0 | 119.7 / 108.4 / 194.8 | 127.8 / **108.8** / 208.0 | 138.3 / 129.7 / 230.3 | R |
+| the pull on (frames of the fight) E / M / H | — | 0 | 2,666 / 2,170 / 3,653 (≈ 83 %) | 2,927 / 2,674 / 4,400 (≈ 86 %) | M (`gravity_on`) |
+| the pull's steps E / M / H | — | 0 | 332 / 270 / 452 | 725 / 661 / 1,090 | M (`gravity_steps`) |
+| the pull off (both spires down), fight frame E / M / H | — | — | 2,939 / 2,443 / 4,475 | 3,200 / 2,947 / 4,948 | M |
+| plates all down, fight frame E / M / H | — | 912 / 861 / 885 | 928 / 852 / 918 | 1,045 / 879 / 1,093 | M (the finale from there) |
+| hits on the bot E / M / H (laser) | 1 (0) / 8 (0) / 8 (2) (twin plan §9.3, l2b1) | 2 (0) / 6 (1) / 18 (2) | 3 (1) / 7 (1) / 18 (2) | 5 (1) / 5 (1) / 17 (1) | M |
+| … of them while the pull was on (laser) E / M / H | — | — | 1 (1) / 6 (1) / 15 (2) | 4 (1) / 4 (1) / 15 (1) | M |
+| deaths (lives held) E / M / H | — | 0 / 1 / 3 | 1 / 1 / 3 | 1 / 1 / 2 | M |
+| escorts in the fight E / M / H | 11 / 16 / 19 (twin plan §9.3) | 16 / 15 / 24 | 17 / 15 / 25 | 19 / 18 / 27 | M |
+| boss frames worst margin E / M / H | 9,219 (director-complete) | 9,903 / 10,049 / 8,595 | 8,679 / 9,342 / **7,613** | 8,381 / 7,957 / 8,499 | M |
+| … DMA-on max E / M / H | 29,902 | 30,192 / 30,296 / **30,676** | 30,045 / 30,388 / 30,550 | 30,065 / 30,392 / 30,352 | M (gate 32,568) |
+| left edge (`boss-park-left-1`, parked at x 48, 4,000 frames) | 17 hits (`boss-edge-left-1`) | 18 hits, 1 death | 18, 1 | 18, 1 | M — no refuge |
+| `region-4-dodge-2` (HARD, laser-dodge): hits, worst margin / DMA-on | — | 3; 15,142 / 28,282 | 3; 12,875 / 28,233 | 3; 12,875 / 28,230 | M (the bot breaks no plate: no laser fires) |
+| stress, reachable (lasers warn / beam; limit 8,500) | 7,032 (R1) | 8,164 / 7,447 | **8,322** / 7,605 | 8,322 / 7,605 | M-N (`scripts/measure-boss-stress-r4.mjs`) |
+| … the finale's worst reachable (warn / beam) | 6,976 (regions 2–4) | 7,494 / 6,751 | 7,652 / 6,904 | 7,652 / 6,904 | M-N |
+| … the worst any (≤ 3 meetings, unproven) | — | 8,398 | 8,556 | 8,556 | M-N |
+| frames with a kill and a spawn (rule (B)) | 0 | 0 | 0 | 0 | M-N |
+| the well's own cost on the worst frame (step + pulse request) | — | — | +158 native | +158 | M-N (G1 and G2 run the same code on their step frames) |
+| the well a frame, IC | — | — | ≈ 30 cycles (no step), ≈ 75 (a step), +≈ 20 (the pulse request) | same | IC |
+| worst escape from a beam against the pull and the band's drift / HARD's 25-frame warning | — | 8 frames / 17 left | 10 / **15 left** | 12 / 13 left | S (MEDIUM's 32: 24 / 22 / 20 left) |
+| charset / look tail / shown rows | 840 B, 7 / 110 B / 5 | 864 B, 7 sectors / 80 B / 5 | same | same | converter |
+| slot A / install / C / D / E / window / Light kernel / initial block | 2,047 / 374 / 1,662 / 1,661 / 496 / 1,322 / 847 / 13,623 B | unchanged | unchanged | unchanged | M (manifest) |
+| **opening hit points**, fight E / M / H (s) | — | 161.3 / 175.9 / 246.3 | 172.9 / 175.1 / 279.5 | 173.0 / 226.2 / 278.9 | R |
+| … hits on the bot (laser) | — | 8 (1) / 6 (1) / 20 (2) | 13 (3) / 9 (1) / 17 (3) | 11 (2) / 15 (2) / 26 (4) | M |
+
+Notes on the table:
+* **The well is felt and beatable.** With G1 the pull is on for about 83 % of
+  the fight (the spires die last: the core waits for them), 270 steps on
+  MEDIUM; the aim bot, which only steers at its target, finishes every
+  difficulty. G1 leaves MEDIUM where it was (108.8 against 108.4 s) and costs
+  about one hit on EASY and MEDIUM; **G2 adds 20 % to MEDIUM** (129.7 s) and,
+  at the opening hit points, doubled the hits on MEDIUM (15 against 6).
+* **The spires bind the fight's end.** Cutting every hit point by about 40 %
+  shortened the fight only by about 26–38 % (EASY 161 → 120 s): the spires
+  stand at the band's ends (in reach 39 % / 50 % of the travel), and the core
+  opens only after both. **EASY is longer than MEDIUM in every variant** and
+  **HARD is 195–230 s** — both for Phase B's tuning (below).
+* **Stress:** the worst reachable frame is a two-kill frame with two lasers in
+  their warning and a spire's salvo due: 8,322 with the well, 158 over G0, 178
+  under the limit. The finale's frames are cheaper (7,652). No new fixture is
+  needed for a pin: the measured value sits under 8,500 (Phase B adds it to
+  `tests/boss-stress.test.mjs` from the measurement).
+* **The core's pulse (M-N):** on the harness, the core's twelve cells carry
+  bit 7 for 3 frames every 16 while a spire stands; the drift steps 2 clocks
+  every 4 frames (G2) and stops one clock from the target (x 90 at p 62–63).
+  Screenshots `build/play/s5-4-r4-loading-screen.png` (WARNING / VOID CITADEL /
+  INCOMING), `s5-4-r4-band-ingame.png`.
+
+**The optional scanline fix (M, measured on all four regions' routes, a probe
+build reverted afterwards).** Phase 1 of the band DLI writes CHBASE, then
+COLPF0, COLPF1, COLPF2, COLPF3 after `WSYNC`; on the first line under the band
+the later stores land after the line has started. Probe: COLPF2 written right
+after CHBASE (the pinned assertions — charset first, COLPF3 last,
+`tests/boss-engine.test.mjs:172-180` — still hold; 0 B, 0 cycles). 600 host
+frames each (1,100–1,699), the dodge session firing, the first line under the
+band:
+
+| route | line | before (band colours on the line) | after |
+| --- | ---: | --- | --- |
+| R1 (`level-1-s6`, `laser-dodge-2-fire0`) | 64 | `$28` 20 px (COLPF2), `$32` 24 (COLPF3), `$0A` 10 (COLPF0) on 18 frames | **`$AE` 20** (the shot's own colour), `$32` 24, `$0A` 10 |
+| R2 (`region-2-dodge-2`) | 64 | the same as R1 | the same as R1 after |
+| R3 (`region-3-dodge-2`) | 88 | `$28` 22, `$0C` 4 (+ PMG pixels: beams, escort) | **`$AE` 22**, `$0C` 4 |
+| R4 G1 (`region-4-dodge-2`) | 64 | `$58` 22, `$0C` 8 | **`$AE` 22**, `$0C` 8 |
+
+The player shot's top pixel takes its own colour on every route; the band's
+COLPF0 / COLPF3 pixels there (other objects' edges) stay as they are — no
+order fixes all four stores. Every other pixel of the 600 frames is identical.
+
+#### 6.4.4 Review builds (`build/play/`, `atari800 -xl -pal -nobasic <absolute path>`)
+
+| ATR | SHA-256 (prefix) | What |
+| --- | --- | --- |
+| `s5-4-r4-g1-boss-route.atr` | `c88ad309f4bf9e27` | **R4 with the gentle well (recommended)**, level 10 (tier 4), entered at the boss |
+| `s5-4-r4-g2-boss-route.atr` | `2907c520a214df78` | R4, the stronger well |
+| `s5-4-r4-g0-boss-route.atr` | `8e0ce28076fd43a6` | R4 without the well |
+| `s5-4-r4-g1-level-route.atr` | `2ee9f871ff0c93ca` | level 1's content as level 10, then the R4 boss (G1) |
+| `s5-4-r4-g2-level-route.atr` | `bab9bd07a1b9ce52` | the same, G2 |
+| `s5-4-r4-g0-level-route.atr` | `a3470b3f6ee7d9cc` | the same, G0 |
+| `s5-4-main-r1-boss-route.atr` | `fba21e9b63edc9a3` | main's R1 boss route, for comparison |
+| `s5-4-full-game.atr` | `3c8f1110129242fd` | the default build (= `main`) |
+
+Previews: `s5-4-r4-band-preview.png` (every panel), `s5-4-r4-stages.png`
+(intact / cracked / broken, normal and flashed), `s5-4-r4-plates-gone.png`
+(intact; every plate gone; every module gone). All at the t1 hit points.
+
+**What to look for:** the band reads as one ship and as the banner's
+fortress (spires, the void core, the two blocks, the belt); the pull is felt
+— the ship slides towards the core when the stick is let go — and is always
+beatable; the core's heartbeat while it pulls; the pull stops at once when
+the second spire falls (the heartbeat with it); stepping out of a beam's
+warning against the pull; the two open guns beside the core; the finale's
+volleys once the belt is gone; the escort.
+
+#### 6.4.5 Owner questions (recommendation first)
+
+| # | Question | Recommended | Alternative |
+| ---: | --- | --- | --- |
+| S4-1 | The well's strength | **G1** (2 clocks every 8 frames): felt all fight long, MEDIUM unchanged (108.8 s), escape margin 15 frames on HARD | G2 (2 every 4): +20 % on MEDIUM, 13 frames' margin on HARD; or G0 / the regenerating plates (priced in §6.4.2) |
+| S4-2 | The core's signal | **the heartbeat as built** (the b3 flash on the core every 16 frames, 3 frames dimmed; 0 B outside the well) | a longer beat (e.g. every 24 frames), data only; or a colour cycle of the core's own glyphs (≈ 30 B, one glyph rewrite a step) |
+| S4-3 | The first scanline under the band (COLPF2 first) | **do it here** (0 B, 0 cycles, every region's shot pixel right, the pin's assertions hold; `tests/boss-engine.test.mjs` gains the order) | leave it (the line as main has it) |
+| S4-4 | Phase B's tuning | **by data, MEDIUM about 105 s, EASY shorter, HARD not shorter but nearer region 1's (≈ 155 s)**: the spires' hit points first (they bind the end), then EASY's own lever — HARD and EASY are the open part | move the spires one column inward (art; their reach 45 % / 56 %) |
+| S4-5 | The band | **as drawn** (the palette violet hull `$62`, magenta `$58`, steel `$0C` / `$06`); the owner retouches the PNGs | — |
+
+Phase B starts on the owner's answers: tests first (RED on `main`), the
+chosen well as region 4's in every build (`--r4-variant` removed), the hit
+points tuned, region 4's route sessions with the well's clauses, the
+evidence regenerated.
 
 ---
 

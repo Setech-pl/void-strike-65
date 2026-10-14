@@ -2,7 +2,7 @@
   "formatVersion": 2,
   "name": "Void Citadel",
   "style": 1,
-  "_": "Region 4's boss (S5-4, feat/boss-region-4; docs/plans/s5-boss-regions.md §4.5 and §6.4; the owner's banner in docs/design/boss-banners/): the Void Citadel, the final regional boss. An octagonal fortress - one solid hull from end to end (rows 0-3, columns 14-49), the weapons set into it in two blocks, one each side of the centre - with the black void core at the centre and a salvo spire on a gantry at each end. Seen from below: the hull, the weapons in their bays, a one-row armour belt (row 4) under them, nothing below the belt (decision AP: one ship, armour reads as armour, the band ends at its last row). The gravity well (owner decision of 2026-10-13): while any spire stands, the player's ship is pulled sideways towards the core's column and the core pulses; destroying both spires switches the pull off and opens the core (its cover is the spires and the shutter plate in front of it). The two inner guns stand in open bays beside the core and fire from the first frame - the well pulls the ship into their lanes; the four laser cannons (slots 1-4, every one enabled on levels 10-12) and the outer guns sit behind the belt. The boss falls with its last weapon - the core is one. Art drawn by the agent with scripts/boss-r4-art.mjs (decision G); the owner retouches the PNGs. Hit points: Phase A's opening values, tuned by data in Phase B (MEDIUM 90-120 s by the aiming bot).",
+  "_": "Region 4's boss (S5-4, feat/boss-region-4; docs/plans/s5-boss-regions.md §4.5 and §6.4; the owner's banner in docs/design/boss-banners/): the Void Citadel, the final regional boss. An octagonal fortress - one solid hull from end to end (rows 0-3, columns 14-49), the weapons set into it in two blocks, one each side of the centre - with the black void core at the centre and a salvo spire on a gantry at each end. Seen from below: the hull, the weapons in their bays, a one-row armour belt (row 4) under them, nothing below the belt (decision AP: one ship, armour reads as armour, the band ends at its last row). The gravity well (owner decision of 2026-10-13): while any spire stands, the player's ship is pulled sideways towards the core's column and the core pulses; destroying both spires switches the pull off and opens the core (its cover is the spires and the shutter plate in front of it). The two inner guns stand in open bays beside the core and fire from the first frame - the well pulls the ship into their lanes; the four laser cannons (slots 1-4, every one enabled on levels 10-12) and the outer guns sit behind the belt. The boss falls with its last weapon - the core is one. Art drawn by the agent with scripts/boss-r4-art.mjs (decision G); the owner retouches the PNGs. Hit points (Phase A, trial t1 - docs/plans/s5-boss-regions.md §6.4.3): the opening values (spires 16, core 24, emitters 14, guns 10, plates 8 / 6 / 8 / 6 / 8) gave 161-246 s by the aiming bot's ratio; every value cut by about 40 % (spires 10, core 14, emitters 8, guns 6, plates 5 / 4 / 5 / 4 / 5) gives MEDIUM 108.4 / 108.8 / 129.7 s without the well, with G1 and with G2 - EASY and HARD are Phase B's tuning (EASY runs longer than MEDIUM, HARD 195-230 s).",
   "palette": {
     "_": "COLPF0 pale steel (the belt's and the turrets' faces, the core's rim), COLPF1 mid steel (trim, edges), COLPF2 void magenta (the core's glow, the spires' coils, lights, damage glow, sparks; hue 326, clear of the ally steel $84 at 226 on levels 10-12), COLPF3 the hull's dark violet bulk (hue 294).",
     "colpf0": 12,
@@ -47,22 +47,22 @@
     "framesPerPhase": 6
   },
   "modules": [
-    { "name": "spire-l", "kind": "salvo", "x": 11, "row": 0, "width": 2, "height": 4, "hp": 16, "score": 80, "reload": 110, "cavityRows": 0 },
-    { "name": "spire-r", "kind": "salvo", "x": 51, "row": 0, "width": 2, "height": 4, "hp": 16, "score": 80, "reload": 110, "cavityRows": 0 },
-    { "name": "core", "kind": "core", "x": 30, "row": 1, "width": 4, "height": 3, "hp": 24, "score": 99, "cavityRows": 3, "stages": false,
+    { "name": "spire-l", "kind": "salvo", "x": 11, "row": 0, "width": 2, "height": 4, "hp": 10, "score": 80, "reload": 110, "cavityRows": 0 },
+    { "name": "spire-r", "kind": "salvo", "x": 51, "row": 0, "width": 2, "height": 4, "hp": 10, "score": 80, "reload": 110, "cavityRows": 0 },
+    { "name": "core", "kind": "core", "x": 30, "row": 1, "width": 4, "height": 3, "hp": 14, "score": 99, "cavityRows": 3, "stages": false,
       "cover": ["plate-c", "spire-l", "spire-r"] },
-    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 1, "width": 3, "height": 2, "hp": 10, "score": 50, "reload": 65, "cavityRows": 2 },
-    { "name": "gun-2", "kind": "pulse", "x": 26, "row": 1, "width": 3, "height": 2, "hp": 10, "score": 50, "reload": 80, "cavityRows": 2 },
-    { "name": "gun-3", "kind": "pulse", "x": 35, "row": 1, "width": 3, "height": 2, "hp": 10, "score": 50, "reload": 85, "cavityRows": 2 },
-    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 1, "width": 3, "height": 2, "hp": 10, "score": 50, "reload": 65, "cavityRows": 2 },
-    { "name": "emitter-1", "kind": "emitter", "x": 22, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 60, "slot": 1, "cavityRows": 3, "stages": "lens" },
-    { "name": "emitter-2", "kind": "emitter", "x": 39, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 60, "slot": 2, "cavityRows": 3, "stages": "lens" },
-    { "name": "emitter-3", "kind": "emitter", "x": 18, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 60, "slot": 3, "cavityRows": 3, "stages": "lens" },
-    { "name": "emitter-4", "kind": "emitter", "x": 43, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 60, "slot": 4, "cavityRows": 3, "stages": "lens" },
-    { "name": "plate-a", "kind": "armour", "x": 15, "row": 4, "width": 6, "height": 1, "hp": 8, "score": 30, "cavityRows": 0 },
-    { "name": "plate-b", "kind": "armour", "x": 22, "row": 4, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 0 },
-    { "name": "plate-c", "kind": "armour", "x": 30, "row": 4, "width": 4, "height": 1, "hp": 8, "score": 30, "cavityRows": 0 },
-    { "name": "plate-d", "kind": "armour", "x": 39, "row": 4, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 0 },
-    { "name": "plate-e", "kind": "armour", "x": 43, "row": 4, "width": 6, "height": 1, "hp": 8, "score": 30, "cavityRows": 0 }
+    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 65, "cavityRows": 2 },
+    { "name": "gun-2", "kind": "pulse", "x": 26, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 80, "cavityRows": 2 },
+    { "name": "gun-3", "kind": "pulse", "x": 35, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 85, "cavityRows": 2 },
+    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 65, "cavityRows": 2 },
+    { "name": "emitter-1", "kind": "emitter", "x": 22, "row": 1, "width": 3, "height": 3, "hp": 8, "score": 60, "slot": 1, "cavityRows": 3, "stages": "lens" },
+    { "name": "emitter-2", "kind": "emitter", "x": 39, "row": 1, "width": 3, "height": 3, "hp": 8, "score": 60, "slot": 2, "cavityRows": 3, "stages": "lens" },
+    { "name": "emitter-3", "kind": "emitter", "x": 18, "row": 1, "width": 3, "height": 3, "hp": 8, "score": 60, "slot": 3, "cavityRows": 3, "stages": "lens" },
+    { "name": "emitter-4", "kind": "emitter", "x": 43, "row": 1, "width": 3, "height": 3, "hp": 8, "score": 60, "slot": 4, "cavityRows": 3, "stages": "lens" },
+    { "name": "plate-a", "kind": "armour", "x": 15, "row": 4, "width": 6, "height": 1, "hp": 5, "score": 30, "cavityRows": 0 },
+    { "name": "plate-b", "kind": "armour", "x": 22, "row": 4, "width": 3, "height": 1, "hp": 4, "score": 20, "cavityRows": 0 },
+    { "name": "plate-c", "kind": "armour", "x": 30, "row": 4, "width": 4, "height": 1, "hp": 5, "score": 30, "cavityRows": 0 },
+    { "name": "plate-d", "kind": "armour", "x": 39, "row": 4, "width": 3, "height": 1, "hp": 4, "score": 20, "cavityRows": 0 },
+    { "name": "plate-e", "kind": "armour", "x": 43, "row": 4, "width": 6, "height": 1, "hp": 5, "score": 30, "cavityRows": 0 }
   ]
 }

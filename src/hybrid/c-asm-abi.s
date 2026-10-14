@@ -618,9 +618,10 @@ hostile_weapon_visual_glyphs:
 _asm_boss_enter = pin_boss_enter_head
 
 ; Never executed: the C before this segment ends in an RTS, and nothing jumps
-; here. Four bytes put the Light kernel link - which starts where the Director
+; here. The pad puts the Light kernel link - which starts where the Director
 ; link's window half ends - at $B478, where none of its taken branches crosses
 ; a page (MEASURED from the listings and maps: at $B474, without the pad,
 ; light_update's slot loop gains one; at $B4BB, the loop's Phase A-lite
-; layout, the kernel had seven).
-    .res 4, $00
+; layout, the kernel had seven). Four bytes until fix/interceptor-speed, whose
+; centred column took three of them (the tick's PLAYER_X + 6).
+    .res 1, $00

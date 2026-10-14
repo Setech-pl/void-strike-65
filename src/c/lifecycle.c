@@ -79,41 +79,49 @@
 #define LIGHT_X_STEP             4u
 /* The Interceptor's standoff (feat/interceptor-standoff, owner answers Q1/Q2
  * of 2026-10-11, docs/plans/interceptor-standoff.md): no kamikaze runs. It
- * descends 2 lines a frame until the player is 7 rows below it (each Light
- * slot holds 2 rows higher, so a swarm stacks instead of merging into one
- * cell), holds, backs off upward 2 lines a frame while the player is closer
- * than 6 rows, fires its laser only in the player's column, and after 100
- * frames climbs out 8 lines a frame and retires when y wraps past the top into
- * the retire test. Its worst life is 121 frames, under the boss escort
- * clock's 128-frame floor (scripts/boss-assets.mjs) - what keeps an escort
- * from pending past the boss's defeat. light_burst_left holds its age: every
- * Light record fires single shots, so the burst count is free. Distances are
- * lines, top to top. */
-#define INTERCEPTOR_LIFE_FRAMES  100u
+ * dives until the player is 7 rows below it (each Light slot holds 2 rows
+ * higher, so a swarm stacks instead of merging into one cell), holds, backs
+ * off upward 2 lines a frame while the player is closer than 6 rows, fires
+ * its laser only in the player's column, and after its hover climbs out and
+ * retires when y wraps past the top into the retire test. light_burst_left
+ * holds its age: every Light record fires single shots, so the burst count is
+ * free. Distances are lines, top to top.
+ *
+ * Its speeds (fix/interceptor-speed, owner answers Q1-Q3 of 2026-10-14,
+ * docs/plans/interceptor-speed.md): a player shot (6 lines a frame) catches
+ * it in every phase. The climbs on screen are 3 lines a frame, so a shot from
+ * below closes at 3 (they were 8 and outran it). The column it tracks is the
+ * ship's centre, where the ship's shot leaves - see light_target_x below. The
+ * slower climb lengthens the exit, so the hover is 64 frames and the dive 4
+ * lines a frame: the worst life stays 121 frames (the ship on the bottom row),
+ * under the boss escort clock's 128-frame floor (scripts/boss-assets.mjs) -
+ * what keeps an escort from pending past the boss's defeat. */
+#define INTERCEPTOR_LIFE_FRAMES  64u
 #define INTERCEPTOR_STANDOFF_FAR 56u    /* descends while the player is >= 7 rows below */
 #define INTERCEPTOR_STANDOFF_NEAR 48u   /* backs off while the player is < 6 rows below */
 #define INTERCEPTOR_SLOT_SHIFT   4u     /* slot << 4: 2 rows a slot */
-#define INTERCEPTOR_DIVE         2u
-#define INTERCEPTOR_CLIMB        8u
+#define INTERCEPTOR_DIVE         4u
+#define INTERCEPTOR_CLIMB        3u
 #define INTERCEPTOR_BACKOFF      2u
 #define INTERCEPTOR_TRACK_DIVE   1u     /* FRAME_COUNTER mask: one cell every 2nd frame */
 /* The top-hold loop (the owner's smoke of 2026-10-11, plan
  * interceptor-standoff §12): an Interceptor whose wave authors loops does not
- * leave after its 100 frames. It climbs at the same 8 lines a frame to the
+ * leave after its hover. It climbs at the same 3 lines a frame to the
  * top-hold row - the playfield's second row for slot 0, two rows lower per
  * slot, on screen (a Light is drawn from y 24) - holds there, then descends
  * to its standoff and flies it again. The top phase is the age running on
- * from 100 in steps of 4 until it wraps to 0: 39 frames, the climb and then
- * the hold; the wrap restarts the standoff with its descent, and spends a
- * loop. With none left it climbs out as before - always up (owner answer E1
- * of 2026-10-12, §13: a downward exit clear of the player's column never
- * opens, because the standoff tracks that column). The count is wave_flags
- * bits 6-7 (scripts/level-compiler.mjs), kept per slot in the same units
- * ($40 a loop). */
+ * from 64 in steps of 3 until it wraps to 0: 64 frames, the climb and then
+ * the hold (16 / 27 / 37 frames for slots 0 / 1 / 2 over a ship on the bottom
+ * row); the wrap restarts the standoff with its descent, and spends a loop.
+ * (256 - INTERCEPTOR_LIFE_FRAMES) must be a multiple of the step. With none
+ * left it climbs out as before - always up (owner answer E1 of 2026-10-12,
+ * §13: a downward exit clear of the player's column never opens, because the
+ * standoff tracks that column). The count is wave_flags bits 6-7
+ * (scripts/level-compiler.mjs), kept per slot in the same units ($40 a loop). */
 #define INTERCEPTOR_LOOP_MASK    0xC0u
 #define INTERCEPTOR_LOOP_UNIT    0x40u
 #define INTERCEPTOR_TOP_HOLD     32u
-#define INTERCEPTOR_TOP_STEP     4u
+#define INTERCEPTOR_TOP_STEP     3u
 #define PLAYER_Y                 U8_AT(0x0081u)
 /* Light multiplicity (plan-light-multiplicity.md §2.1). Four SoA slots is the
  * declared format; how many of them a sector may fill is a separate ceiling
@@ -275,12 +283,16 @@ const EnemyArchetypeTable enemy_archetypes = { {
     {
         /* feat/interceptor-armour (owner answer of 2026-10-12, H3): three
          * hits in every wave - the swarm, elite (a)'s companion and the boss
-         * escort; the kernel flashes the two it lives through. */
+         * escort; the kernel flashes the two it lives through.
+         * fix/interceptor-speed (owner answers Q3, Q5 of 2026-10-14): the
+         * reload 40 / 31 / 20 keeps 1 / 2 / 3 lasers a visit inside the
+         * 64-frame hover; EASY's 40 (was 56) fires before a ship parked under
+         * it can shoot it down, so no screen edge is a refuge on EASY. */
         3u,
         ENEMY_MOVEMENT_INTERCEPTOR_PURSUIT,
         ENEMY_FIRE_LIGHT_DOUBLE_TAP,
         1u, 0u,
-        56u, 44u, 32u,
+        40u, 31u, 20u,
         ENEMY_RENDERER_CHARACTER_2X1,
         ENEMY_WEAPON_LASER,
         0x15u,
@@ -1223,7 +1235,13 @@ static uint8_t light_tick_body(void)
                            light_work >= INTERCEPTOR_BACKOFF) {
                     light_work = (uint8_t)(light_work - INTERCEPTOR_BACKOFF);
                 }
-                light_target_x = (uint8_t)(PLAYER_X & 0xFCu);
+                /* The ship's centre column, (player_x + 8 - 4 + 2) & $FC with
+                 * the escort's rounding: the ship's shot leaves at player_x + 8
+                 * and crosses the Light's [x, x + 8). Its left edge, player_x &
+                 * $FC, held the Light one HPOS beside that line, out of every
+                 * shot (fix/interceptor-speed §2.2). The laser at light_x + 2
+                 * still lands on the fighter. */
+                light_target_x = (uint8_t)((uint8_t)(PLAYER_X + (uint8_t)(LIGHT_CENTRE_OFFSET + LIGHT_ROUND)) & 0xFCu);
                 if (light_target_x > LIGHT_X_LAST) {
                     light_target_x = LIGHT_X_LAST;
                 }

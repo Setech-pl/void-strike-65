@@ -976,8 +976,9 @@ static unsigned dftrace_boss_level_id;
  * band (optional: 0 keeps the lead, the drifting regions' path). */
 static unsigned dftrace_boss_motion_step;
 static unsigned dftrace_gravity_on;
-/* S5-5: region 2's rails' state (rail_k, rail_front, rail_dead: two bytes
- * each) and scratch (rail_step: two bytes), boss link labels; optional. */
+/* S5-5: region 2's rails' state (rail_k, rail_front: two bytes each) and
+ * scratch (rail_step, rail_timer, rail_dead: two bytes each), boss link
+ * labels; optional. */
 static unsigned dftrace_rail_state;
 static unsigned dftrace_rail_scratch;
 static unsigned dftrace_gravity_column;
@@ -6172,7 +6173,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 4u &&
 		MEMORY_mem[dftrace_boss_level_id] <= 6u) {
 		frame->rail_k = MEMORY_mem[dftrace_rail_state] | (MEMORY_mem[dftrace_rail_state + 1u] << 4);
-		frame->rail_dead = MEMORY_mem[dftrace_rail_state + 4u] | (MEMORY_mem[dftrace_rail_state + 5u] << 4);
+		frame->rail_dead = MEMORY_mem[dftrace_rail_scratch + 4u] | (MEMORY_mem[dftrace_rail_scratch + 5u] << 4);
 		frame->rail_sliding = (MEMORY_mem[dftrace_rail_scratch] != 0u ? 1u : 0u) |
 			(MEMORY_mem[dftrace_rail_scratch + 1u] != 0u ? 2u : 0u);
 	}

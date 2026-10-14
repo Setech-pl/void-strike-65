@@ -954,7 +954,6 @@ function resolveBossRails(source, modules, owner) {
     const edge = dir > 0 ? BOSS_RAIL_SCREEN.left : BOSS_RAIL_SCREEN.right;
     const window = Math.max(dir * (nose - outer) + 1, dir * (frontAt(positions) - edge) + 1);
     const windowOuter = nose - dir * (window - 1);
-    if (windowOuter < 0 || windowOuter > BOSS_BAND_COLUMNS - 1) fail(`the ${sideName} rail's window leaves the band`);
     // No slide reaches a module that is not the rail's or its cannon.
     const reach = [Math.min(frontAt(positions), windowOuter + dir * positions * pitch),
       Math.max(frontAt(positions), windowOuter + dir * positions * pitch)];
@@ -969,8 +968,10 @@ function resolveBossRails(source, modules, owner) {
     }
     return { name: sideName, dir, nose, cannon, guns, window, firstModule: indices[0] };
   });
-  if (sides[0].window !== sides[1].window || sides[0].guns.length !== sides[1].guns.length) {
-    fail("the two rails are mirror images: the same window and the same number of guns");
+  if (sides[0].guns.length !== sides[1].guns.length) fail("the two rails carry the same number of guns");
+  for (const side of sides) {
+    const outer = side.nose - side.dir * (side.window - 1);
+    if (outer < 0 || outer > BOSS_BAND_COLUMNS - 1) fail(`the ${side.name} rail's window leaves the band`);
   }
   return { framesPerStep, delayFrames, pulseFrames, pitch, positions, rowFirst, sides };
 }

@@ -75,6 +75,20 @@ export const R2_LAYOUTS = Object.freeze({
     core: { x: 31, width: 2, row: 1, height: 3 },
     doors: { x: 30, width: 4, row: 4 },
   }),
+  // N-C (Phase A, the beams' hit window): a beam endangers x in [edge - 7,
+  // edge + 3] - far to its left, a clock to its right - so the beams beside a
+  // 2-cell core leave its centre column out of both; a 1-cell core and doors
+  // at column 31 put their whole reach (x 116-119) under the left cannon's
+  // beam, and the core's own volley (columns 30-32) covers it too.
+  centre: Object.freeze({
+    nose: 18,
+    axis: 62,
+    rows: [1, 3],
+    cannon: { width: 2, xLeft: 29 },
+    hub: { x: 31, width: 1 },
+    core: { x: 31, width: 1, row: 1, height: 3 },
+    doors: { x: 31, width: 1, row: 4 },
+  }),
   narrow: Object.freeze({
     nose: 18,
     rows: [1, 3],
@@ -89,10 +103,19 @@ export const R2_VARIANTS = Object.freeze({
   gb: Object.freeze({ gunWidth: 2, pitch: 2 + 1, guns: 5, positions: 4, layout: "wide" }),
   na: Object.freeze({ gunWidth: 3, pitch: 3 + 1, guns: 4, positions: 3, layout: "narrow" }),
   nb: Object.freeze({ gunWidth: 2, pitch: 2 + 1, guns: 5, positions: 4, layout: "narrow" }),
+  nc: Object.freeze({ gunWidth: 3, pitch: 3 + 1, guns: 4, positions: 3, layout: "centre" }),
 });
 export const R2_LAYOUT = R2_LAYOUTS.wide;
-const layoutOf = (variant) => R2_LAYOUTS[R2_VARIANTS[variant].layout];
-const mirror = (x, width) => 63 - (x + width - 1);
+const layoutOf = (variant) => {
+  const layout = R2_LAYOUTS[R2_VARIANTS[variant].layout];
+  mirrorAxis = layout.axis ?? 63;
+  return layout;
+};
+// A layout's right side mirrors its left about column (axis / 2): 63 (31.5,
+// the screen's centre) for the wide and narrow hubs, 62 (31) for the centre
+// layout's one-cell core.
+let mirrorAxis = 63;
+const mirror = (x, width) => mirrorAxis - (x + width - 1);
 
 // The modules of a variant, left to right, with the rails' data.
 export function r2Modules(variant) {
@@ -282,6 +305,26 @@ gWrrrrWg
   }
   return [...cap, ...core];
 }
+// The centre hangar: a cap and the core, 1 x 3 cells (4 x 24 pixels): an
+// amber reactor rod in a steel frame.
+function centreHubPicture() {
+  const cap = pic(`
+.gg.
+gWWg
+gWrg
+grrg
+grWg
+grrg
+gWWg
+gWWg
+`);
+  const core = [];
+  for (let y = 0; y < 24; y += 1) {
+    const edge = y === 0 || y === 23;
+    core.push(edge ? "gWWg" : y >= 3 && y <= 20 ? (y % 6 === 2 ? "WaaW" : "gaag") : "gWWg");
+  }
+  return [...cap, ...core];
+}
 // The hangar doors, 4 x 1 cells: two leaves meeting at the centre, amber
 // hazard chevrons (every stage keeps colour 3: the hit flash, the launch cue).
 const DOORS = pic(`
@@ -383,9 +426,19 @@ export function drawRegion2(variant) {
   const extrasCanvas = new Canvas(15 * CELL_W, CELL_H);
   extrasCells.forEach((cell, i) => extrasCanvas.draw(cell, i * CELL_W, 0));
   const gun = v.gunWidth === 3 ? GUN3 : GUN2;
-  const hub = L.hub.width === 4 ? hubPicture() : narrowHubPicture();
+  const hub = L.hub.width === 4 ? hubPicture() : L.hub.width === 2 ? narrowHubPicture() : centreHubPicture();
   const coreOf = (picture) => (L.hub.width === 4 ? picture.slice(8, 32).map((line) => line.slice(4, 12)) : picture.slice(8, 32));
-  const doors = L.doors.width === 4 ? DOORS : DOORS.map((line) => line.slice(0, 4) + line.slice(12, 16));
+  const doors = L.doors.width === 4 ? DOORS : L.doors.width === 2 ? DOORS.map((line) => line.slice(0, 4) + line.slice(12, 16))
+    : pic(`
+gggg
+WaaW
+aWaW
+WaWa
+aWaW
+WaaW
+gggg
+....
+`);
   const cannons = [L.cannon.xLeft, mirror(L.cannon.xLeft, L.cannon.width)];
   for (const stage of ["intact", "cracked", "broken"]) {
     for (const [what, picture] of [["gun", gun], ["doors", doors], ["core", coreOf(hub)]]) {

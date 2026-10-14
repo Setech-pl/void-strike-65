@@ -3828,8 +3828,8 @@ RAIL_ROW_B          = RAIL_ROW_A + BOSS_BAND_COLUMNS
 RAIL_ROW_C          = RAIL_ROW_B + BOSS_BAND_COLUMNS
 RAIL_DOORS_COVER    = BOSS_T_MODULES + RAIL_DOORS * BOSS_MODULE_BYTES + BOSS_M_COVER_LO
 .assert RAIL_ROW + 2 < BOSS_BAND_A_ROWS, error, "the rails' rows are band A's"
-.assert RAIL_L_FRONT + 1 >= RAIL_WINDOW, error, "the left rail's window starts inside the band"
-.assert RAIL_R_FRONT + RAIL_WINDOW <= BOSS_BAND_COLUMNS, error, "the right rail's window ends inside the band"
+.assert RAIL_L_FRONT + 1 >= RAIL_L_WINDOW, error, "the left rail's window starts inside the band"
+.assert RAIL_R_FRONT + RAIL_R_WINDOW <= BOSS_BAND_COLUMNS, error, "the right rail's window ends inside the band"
 .assert (RAIL_PULSE & (RAIL_PULSE - 1)) = 0, error, "the warning's period is a power of two"
 
 .segment "BOSS_R_CODE"
@@ -3980,7 +3980,7 @@ rail_column:
     ldx rail_x
     lda rail_dir,x
     sta rail_t
-    lda #RAIL_WINDOW
+    lda rail_window,x
     sta rail_u
     ldy rail_front,x                    ; the source: the front first
     tya
@@ -4039,6 +4039,7 @@ rail_column:
 rail_scratch:
 rail_step:      .byte 0, 0              ; columns left in the slide under way
 rail_timer:     .byte 0, 0              ; frames to its next column
+rail_dead:      .byte 0, 0              ; guns destroyed (that slid the rail)
 rail_stepped:   .byte 0                 ; a column stepped this frame
 rail_x:         .byte 0
 rail_t:         .byte 0
@@ -4050,10 +4051,10 @@ rail_scratch_end:
 .segment "BOSS_R_DATA"
 RAIL_TABLES                             ; boss-rail.inc: rail_guns (per side, front first),
                                         ; rail_first, rail_dir, rail_cannon, rail_not_lo/hi,
-                                        ; rail_module, rail_record (each side's lowest module)
+                                        ; rail_module, rail_record (each side's lowest module),
+                                        ; rail_window (the columns a step shifts)
 rail_state:
 rail_k:         .byte 0, 0              ; slides done (0 .. RAIL_POSITIONS)
 rail_front:     .byte RAIL_L_FRONT, RAIL_R_FRONT   ; each rail's front column now
-rail_dead:      .byte 0, 0              ; guns destroyed
 rail_state_end:
 .endif

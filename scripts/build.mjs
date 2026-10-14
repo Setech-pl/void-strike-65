@@ -3039,7 +3039,8 @@ async function build() {
       `RAIL_POSITIONS          = ${bossRail.positions}`,
       `RAIL_GUNS               = ${left.guns.length}`,
       `RAIL_ROW                = ${bossRail.rowFirst}`,
-      `RAIL_WINDOW             = ${left.window}`,
+      `RAIL_L_WINDOW           = ${left.window}`,
+      `RAIL_R_WINDOW           = ${right.window}`,
       `RAIL_L_FRONT            = ${left.nose}`,
       `RAIL_R_FRONT            = ${right.nose}`,
       `RAIL_DOORS              = ${hangar.doors}`,
@@ -3056,6 +3057,7 @@ async function build() {
       `rail_not_hi:    .byte ${[left, right].map((side) => hex((~(1 << side.cannon) >> 8) & 0xff)).join(", ")}`,
       `rail_module:    .byte ${left.firstModule}, ${right.firstModule}`,
       `rail_record:    .byte ${left.firstModule * 12}, ${right.firstModule * 12}`,
+      `rail_window:    .byte ${left.window}, ${right.window}`,
       ".endmacro",
       "",
     ].join("\n"));

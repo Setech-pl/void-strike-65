@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 267,
+      "crc16": 18266,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 267,
+        "crc16": 18266,
         "records": [
           {
             "startSector": 108,
@@ -350,7 +350,7 @@
             "packedLength": 746,
             "rawLength": 746,
             "finalDestination": 30736,
-            "crc16": 52848,
+            "crc16": 20620,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -372,7 +372,7 @@
             "packedLength": 740,
             "rawLength": 818,
             "finalDestination": 31696,
-            "crc16": 7452,
+            "crc16": 28173,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -383,7 +383,7 @@
             "packedLength": 1322,
             "rawLength": 1656,
             "finalDestination": 44544,
-            "crc16": 37372,
+            "crc16": 65341,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -394,7 +394,7 @@
             "packedLength": 847,
             "rawLength": 957,
             "finalDestination": 46200,
-            "crc16": 54320,
+            "crc16": 28038,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -656,7 +656,7 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$F4F4"
+        "expected": "$8786"
       },
       {
         "index": 2,
@@ -703,7 +703,7 @@
       "$A030",
       "$183C",
       "$BA42",
-      "$D3BA"
+      "$BB65"
     ],
     "summaryArtSums": [
       "$2223",
@@ -957,7 +957,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "d69ac807a77ada6c0b3f53579f22c87bd1be8cd3f90f59a7eb04165a4be628a6",
+        "sha256": "bd62ac18f67a775e949ecb7b450b43e11a22d71d64a92e8d0f6598e15ede9bf2",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -1155,7 +1155,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "8aa8e83a40ade903d85fc2cad4814ad7acb457de1de785de5dcce32f7e415f3c",
+        "sha256": "de1c24cd32b326900b622b2814b45b60c9bbebd7ea40af375c6319aa17d551e1",
         "file": "boss-region-4-band-b.bin"
       },
       {
@@ -1455,7 +1455,7 @@
         "startSector": 166,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 52848
+        "crc16": 20620
       }
     },
     {
@@ -1485,7 +1485,7 @@
         "startSector": 173,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 7452
+        "crc16": 28173
       }
     },
     {
@@ -1500,7 +1500,7 @@
         "startSector": 179,
         "sectors": 11,
         "transportBytes": 1408,
-        "crc16": 37372
+        "crc16": 65341
       }
     }
   ],
@@ -1807,8 +1807,8 @@
         "targetWallLimitCycles": 32422,
         "hardWallLimitCycles": 32568,
         "minimumPhysicalHeadroomCycles": 3000,
-        "measuredWallCycles": 31483,
-        "actualDeltaCycles": -589,
+        "measuredWallCycles": 31059,
+        "actualDeltaCycles": -1013,
         "missedSynchronization": 0,
         "deadlineOverruns": 0,
         "extraVbiBoundaries": 0
@@ -2650,8 +2650,8 @@
     "pauseOptionPollCycles": 13,
     "cpuWorstFrameCyclesDmaOff": 15016,
     "cpuComparisonHeadroomCycles": 20552,
-    "measuredWallCyclesDmaOn": 31483,
-    "measuredPhysicalHeadroomCycles": 4085
+    "measuredWallCyclesDmaOn": 31059,
+    "measuredPhysicalHeadroomCycles": 4509
   },
   "runtimeTiming": {
     "method": "NMOS-6502 execution of linked release bytes with replayed legal gameplay sessions",
@@ -24124,16 +24124,16 @@
     ],
     "cpu_cycles_dma_off": 15016,
     "cpu_comparison_headroom": 20552,
-    "measured_wall_cycles_dma_on": 31483,
-    "measured_physical_headroom": 4085,
+    "measured_wall_cycles_dma_on": 31059,
+    "measured_physical_headroom": 4509,
     "estimated_additive_cycles": 27916,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "eecc0481285461c783d59696b9b0a8f5a0b6afc5deaea969dcb882e2eb805691",
+      "reportSha256": "4999cb5666ba93839824b13d36470514773bee7d3c234df1973762c0c92c8268",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "fee54beaa73735f9efde4ebf59419b2e01221b8e88e48f5e9332a72ef4a9d096"
+        "sha256": "0f63949688d8904619c2bee554a37fc361d024690a9cd1444bd1e4f25bdc8b3b"
       },
       "emulator": {
         "name": "Atari800",
@@ -24157,8 +24157,8 @@
       "semantics": {
         "cpu_cycles_dma_off": 15016,
         "cpu_comparison_headroom": 20552,
-        "measured_wall_cycles_dma_on": 31483,
-        "measured_physical_headroom": 4085,
+        "measured_wall_cycles_dma_on": 31059,
+        "measured_physical_headroom": 4509,
         "estimated_additive_cycles": 27916
       },
       "gate": {
@@ -24245,28 +24245,28 @@
           "no_active_player_fighter_projectile_path_delta_cpu_cycles": 0,
           "no_active_player_fighter_projectile_path_limit_cpu_cycles": 48,
           "debris_shot_path": {
-            "trace_kind": "baseline-9040",
-            "session": "2-evasive-fire7",
-            "frame": 420,
-            "gameplay_frame": 164,
+            "trace_kind": "memory-integrity-160s",
+            "session": "memory-integrity-atr-2-hunt-fire5",
+            "frame": 2994,
+            "gameplay_frame": 178,
             "difficulty": 2,
-            "wall_cycles": 30275,
-            "physical_headroom": 5293,
+            "wall_cycles": 30334,
+            "physical_headroom": 5234,
             "start": {
-              "clock": 42790387,
-              "host_frame": 1203,
+              "clock": 135373903,
+              "host_frame": 3806,
               "scanline": 18,
-              "cycle": 31
+              "cycle": 43
             },
             "end": {
-              "clock": 42820662,
-              "host_frame": 1203,
-              "scanline": 283,
-              "cycle": 96
+              "clock": 135404237,
+              "host_frame": 3806,
+              "scanline": 284,
+              "cycle": 53
             },
             "next_start": {
-              "clock": 42825983,
-              "host_frame": 1204
+              "clock": 135409471,
+              "host_frame": 3807
             },
             "host_vbi_boundaries": 0,
             "extra_vbi_boundaries": 0,
@@ -24279,46 +24279,46 @@
               "broadside": 0,
               "far_rendered": 4,
               "active_muzzles": 0,
-              "entity_active": 1,
-              "entity_x": 120,
-              "entity_y": 32,
-              "entity_vx_signed": 0,
+              "entity_active": 2,
+              "entity_x": 96,
+              "entity_y": 144,
+              "entity_vx_signed": -4,
               "entity_move_accumulator": 0,
-              "entity_vertical_accumulator": 2,
-              "entity_render_id": 110,
-              "entity_active_mask": 1,
+              "entity_vertical_accumulator": 4,
+              "entity_render_id": 114,
+              "entity_active_mask": 3,
               "weapon_pickup": {
-                "state": 0,
+                "state": 2,
                 "booster_state": 0,
-                "qualified_kill_counter": 2,
-                "x": 102,
-                "y": 142,
+                "qualified_kill_counter": 0,
+                "x": 95,
+                "y": 36,
                 "timer": 0,
                 "timer_low": 0,
                 "timer_high": 0,
-                "plane_rows": 0,
-                "plane_union": 0
+                "plane_rows": 16,
+                "plane_union": 255
               },
               "player_fighter_projectiles": 3,
               "rapid_player_fighter_projectiles": 0,
               "score_bcd": [
-                0,
-                117
+                3,
+                85
               ],
-              "effect_active_mask": 30,
-              "effect_active_count": 4,
-              "effect_rendered_mask": 30,
+              "effect_active_mask": 0,
+              "effect_active_count": 0,
+              "effect_rendered_mask": 0,
               "live_heavy_formation": true,
               "raider_formation": {
-                "guide_y": 48,
+                "guide_y": 46,
                 "member_state": [
-                  1,
                   0,
-                  1
+                  1,
+                  0
                 ],
                 "member_hp": [
-                  1,
                   0,
+                  4,
                   0
                 ],
                 "live_count": 1,
@@ -24331,7 +24331,7 @@
               "hit_sfx": false,
               "capital_sfx": false,
               "sound_enabled": true,
-              "player_lifecycle": 2,
+              "player_lifecycle": 0,
               "sector_state": 7
             },
             "events": [
@@ -24342,9 +24342,7 @@
               "music-tick",
               "far-step",
               "debris-shot",
-              "effect-erase",
-              "effect-update",
-              "effect-render"
+              "effect-update"
             ],
             "cpu_dma_off_reference": null
           },
@@ -24397,15 +24395,14 @@
           "logical_step_scanlines": 2,
           "physical_address_changes_during_native_motion": 68,
           "release_frames": 1,
-          "booster_overlap_frames_all_replays": 1976,
-          "booster_overlap_frames_pickup_lifecycle_union": 390,
+          "booster_overlap_frames_all_replays": 1879,
+          "booster_overlap_frames_pickup_lifecycle_union": 439,
           "booster_overlap_sessions": [
             "2-sweep-fire0",
             "2-sweep-fire2",
             "2-sweep-fire4",
             "2-sweep-fire5",
             "2-sweep-fire6",
-            "boss-edge-left-1",
             "capital-muzzle-ring-2-sweep-fire4",
             "debris-effects-2-sweep-fire4",
             "director-complete-1-natural-sweep-fire0",
@@ -24433,8 +24430,8 @@
               "plane_rows": 0
             }
           ],
-          "rapid_frames": 2741,
-          "pickup_events": 22,
+          "rapid_frames": 3185,
+          "pickup_events": 23,
           "passed": true
         },
         "weapon_pickup_spread_shot": {
@@ -24452,9 +24449,9 @@
           "remaining_hard_cycles": 468,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "rapid_frames": 2741,
-          "spread_frames": 3734,
-          "pickup_events": 22,
+          "rapid_frames": 3185,
+          "spread_frames": 3962,
+          "pickup_events": 23,
           "granted_booster_modes": [
             3,
             3,
@@ -24462,9 +24459,10 @@
             5,
             3,
             4,
-            5,
             3,
             4,
+            5,
+            3,
             3,
             4,
             5,
@@ -24491,7 +24489,9 @@
               "modes": [
                 3,
                 4,
-                5
+                5,
+                3,
+                4
               ]
             },
             {
@@ -24500,8 +24500,7 @@
                 3,
                 4,
                 5,
-                3,
-                4
+                3
               ]
             },
             {
@@ -24540,9 +24539,10 @@
             5,
             3,
             4,
-            5,
             3,
             4,
+            5,
+            3,
             3,
             4,
             5,
@@ -24557,9 +24557,9 @@
             3,
             4
           ],
-          "spread_volley_frames": 1589,
+          "spread_volley_frames": 1667,
           "active_capsule_three_projectile_frames": 68,
-          "active_capsule_during_booster_frames": 1976,
+          "active_capsule_during_booster_frames": 1879,
           "worst_legal_capsule_three_projectiles": {
             "trace_kind": "weapon-pickup-coverage",
             "session": "weapon-pickup-2-hunt-fire4",
@@ -24677,15 +24677,15 @@
           "target_wall_cycles": 32422,
           "maximum_wall_cycles": 32568,
           "minimum_physical_headroom": 3000,
-          "measured_wall_cycles": 31483,
-          "measured_physical_headroom": 4085,
-          "actual_delta_cycles": -589,
-          "remaining_target_cycles": 939,
-          "remaining_hard_cycles": 1085,
+          "measured_wall_cycles": 31059,
+          "measured_physical_headroom": 4509,
+          "actual_delta_cycles": -1013,
+          "remaining_target_cycles": 1363,
+          "remaining_hard_cycles": 1509,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
           "shield_frames": 1250,
-          "pickup_events": 22,
+          "pickup_events": 23,
           "passed": true
         },
         "shield_preimplementation_baseline": {
@@ -24702,7 +24702,7 @@
         "memory_integrity": {
           "atr_frames": 22996,
           "duration_seconds_pal_per_artifact": 459.92,
-          "pickup_rf_cycles": 16,
+          "pickup_rf_cycles": 17,
           "dli_sequence_violations": 0,
           "maximum_dlis_per_host_frame": 2,
           "pause_sessions": [
@@ -25639,8 +25639,8 @@
           "screenshots_per_session": 150,
           "passed": true
         },
-        "measured_wall_cycles_dma_on": 31483,
-        "measured_physical_headroom": 4085,
+        "measured_wall_cycles_dma_on": 31059,
+        "measured_physical_headroom": 4509,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "baseline_9040_deadline_overrun_frames": 0,
@@ -25651,8 +25651,8 @@
         "baseline_9040_host_vbi_boundary_crossings": 1001,
         "targeted_active_frames_crossing_host_vbi": 108,
         "targeted_host_vbi_boundary_crossings": 108,
-        "active_frames_crossing_host_vbi": 17154,
-        "host_vbi_boundary_crossings": 17154,
+        "active_frames_crossing_host_vbi": 16605,
+        "host_vbi_boundary_crossings": 16605,
         "extra_vbi_boundaries": 0,
         "behavioural_clause_failure_count": 0,
         "behavioural_clause_failures": [],
@@ -25700,25 +25700,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "62e40077e9c81124da184de48b9ea0e4c395759237fc76a09273103c8d81a0fc"
+        "sha256": "e3d3b9e82466bc3cd44ee5d9c2ab7c26b54fc1cf5f208828af3d335f42e4f065"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "fee54beaa73735f9efde4ebf59419b2e01221b8e88e48f5e9332a72ef4a9d096"
+        "sha256": "0f63949688d8904619c2bee554a37fc361d024690a9cd1444bd1e4f25bdc8b3b"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "eecc0481285461c783d59696b9b0a8f5a0b6afc5deaea969dcb882e2eb805691"
+    "reportSha256": "4999cb5666ba93839824b13d36470514773bee7d3c234df1973762c0c92c8268"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "62e40077e9c81124da184de48b9ea0e4c395759237fc76a09273103c8d81a0fc"
+      "sha256": "e3d3b9e82466bc3cd44ee5d9c2ab7c26b54fc1cf5f208828af3d335f42e4f065"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "fee54beaa73735f9efde4ebf59419b2e01221b8e88e48f5e9332a72ef4a9d096"
+      "sha256": "0f63949688d8904619c2bee554a37fc361d024690a9cd1444bd1e4f25bdc8b3b"
     }
   }
 }

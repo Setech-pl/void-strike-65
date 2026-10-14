@@ -390,6 +390,12 @@ typedef struct {
 	unsigned gravity_on;
 	unsigned gravity_steps;
 	unsigned gravity_column;    /* the column's HPOS the band DLI publishes (0: off) */
+	/* S5-5: region 2's rails (0 without them): the slides done (left | right
+	 * << 4), the guns destroyed (left | right << 4), a slide under way (bit 0
+	 * left, bit 1 right). */
+	unsigned rail_k;
+	unsigned rail_dead;
+	unsigned rail_sliding;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -970,6 +976,10 @@ static unsigned dftrace_boss_level_id;
  * band (optional: 0 keeps the lead, the drifting regions' path). */
 static unsigned dftrace_boss_motion_step;
 static unsigned dftrace_gravity_on;
+/* S5-5: region 2's rails' state (rail_k, rail_front, rail_dead: two bytes
+ * each) and scratch (rail_step: two bytes), boss link labels; optional. */
+static unsigned dftrace_rail_state;
+static unsigned dftrace_rail_scratch;
 static unsigned dftrace_gravity_column;
 static unsigned dftrace_field_from;
 static unsigned dftrace_field_end;
@@ -3833,7 +3843,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				stick &= 0x0du;
 		}
 	}
-	else if ((strcmp(dftrace_policy, "boss-aim") == 0 ||
+	else if ((strncmp(dftrace_policy, "boss-aim", 8) == 0 ||
 		(strcmp(dftrace_policy, "lower-contact-laser") == 0 && dftrace_laser_after_contact(frame))) &&
 		dftrace_boss_active() &&
 		dftrace_boss_hp != 0u && dftrace_boss_shown_pos != 0u) {
@@ -3868,7 +3878,13 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		unsigned alive = MEMORY_mem[dftrace_boss_alive] | (MEMORY_mem[dftrace_boss_alive + 1u] << 8);
 		unsigned exposed = MEMORY_mem[dftrace_boss_exposed] | (MEMORY_mem[dftrace_boss_exposed + 1u] << 8);
 		unsigned guards = 0u, i;
-		int best = -1, best_distance = 1000;
+		int best = -1, best_distance = 1000, best_tier = 9;
+		/* S5-5 (feat/boss-region-2): two aiming players for the Bastion's
+		 * order puzzle - "boss-aim-careful" takes the laser cannons (the
+		 * emitters) first, "boss-aim-careless" the rail guns (the pulse guns)
+		 * first; each is the plain aiming bot within its preference. */
+		int prefer = strcmp(dftrace_policy, "boss-aim-careful") == 0 ? 2
+			: strcmp(dftrace_policy, "boss-aim-careless") == 0 ? 1 : -1;
 		unsigned best_x = x;
 		if (count > 16u) count = 16u;
 		int field_blocked = 0;
@@ -3901,10 +3917,14 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			distance = target > (int) x ? target - (int) x : (int) x - target;
 			if ((int) i == dftrace_aim_target)
 				distance = -1;
-			if (distance < best_distance) {
-				best_distance = distance;
-				best = (int) i;
-				best_x = (unsigned) target;
+			{
+				int tier = prefer < 0 || (int) MEMORY_mem[dftrace_boss_kind + i] == prefer ? 0 : 1;
+				if (tier < best_tier || (tier == best_tier && distance < best_distance)) {
+					best_tier = tier;
+					best_distance = distance;
+					best = (int) i;
+					best_x = (unsigned) target;
+				}
 			}
 		}
 		dftrace_aim_target = best;
@@ -3935,7 +3955,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
 		strcmp(dftrace_policy, "broadside-proof") == 0 ||
 		strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
-		strcmp(dftrace_policy, "boss-aim") == 0 ||
+		strncmp(dftrace_policy, "boss-aim", 8) == 0 ||
 		strncmp(dftrace_policy, "park-", 5) == 0) {
 		int target_right = ((frame / 72u) & 1u) == 0;
 		stick = target_right ? (x < 154u ? 0x07u : 0x0fu) :
@@ -6145,6 +6165,17 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->gravity_on = 0u;
 	frame->gravity_steps = 0u;
 	frame->gravity_column = 0u;
+	frame->rail_k = 0u;
+	frame->rail_dead = 0u;
+	frame->rail_sliding = 0u;
+	if (dftrace_boss_active() && dftrace_rail_state != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
+		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 4u &&
+		MEMORY_mem[dftrace_boss_level_id] <= 6u) {
+		frame->rail_k = MEMORY_mem[dftrace_rail_state] | (MEMORY_mem[dftrace_rail_state + 1u] << 4);
+		frame->rail_dead = MEMORY_mem[dftrace_rail_state + 4u] | (MEMORY_mem[dftrace_rail_state + 5u] << 4);
+		frame->rail_sliding = (MEMORY_mem[dftrace_rail_scratch] != 0u ? 1u : 0u) |
+			(MEMORY_mem[dftrace_rail_scratch + 1u] != 0u ? 2u : 0u);
+	}
 	if (dftrace_boss_active() && dftrace_gravity_on != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
 		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 10u) {
 		frame->gravity_on = MEMORY_mem[dftrace_gravity_on];
@@ -6342,7 +6373,8 @@ static void dftrace_write(void)
 		",light_state0,light_state1,light_state2,light_state3"
 		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
 		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left"
-		",field_state,field_deflections,field_violations,field_cells_down,gravity_on,gravity_steps,gravity_column\n");
+		",field_state,field_deflections,field_violations,field_cells_down,gravity_on,gravity_steps,gravity_column"
+		",rail_k,rail_dead,rail_sliding\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6626,9 +6658,10 @@ static void dftrace_write(void)
 		if (frame->boss_entry && dfhud_entry_state == 2)
 			for (unsigned cell = 0u; cell < 40u; ++cell)
 				fprintf(file, "%02x", dfhud_entry_after[cell]);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
 			frame->field_state, frame->field_deflections, frame->field_violations, frame->field_cells_down,
-			frame->gravity_on, frame->gravity_steps, frame->gravity_column);
+			frame->gravity_on, frame->gravity_steps, frame->gravity_column,
+			frame->rail_k, frame->rail_dead, frame->rail_sliding);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -7426,6 +7459,8 @@ static void dftrace_init(void)
 	dftrace_boss_motion_step = dftrace_env_optional("DFTRACE_BOSS_MOTION_STEP");
 	dftrace_gravity_on = dftrace_env_optional("DFTRACE_GRAVITY_ON");
 	dftrace_gravity_column = dftrace_env_optional("DFTRACE_GRAVITY_COLUMN");
+	dftrace_rail_state = dftrace_env_optional("DFTRACE_RAIL_STATE");
+	dftrace_rail_scratch = dftrace_env_optional("DFTRACE_RAIL_SCRATCH");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

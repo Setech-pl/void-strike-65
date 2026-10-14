@@ -2047,6 +2047,14 @@ laser_twin_index:
     cmp #LASER_NONE
     beq :+
     inc laser_i
+.ifdef BOSS_RAIL
+    ; S5-5 (decision AC for region 2, levels 4-6): on a tier that enables
+    ; slot 2 the twin is slot 2's own laser - the two cannons fire
+    ; independently (two beams on levels 5-6, one on level 4).
+    lda boss_laser_slots
+    cmp #2
+    bcs :+
+.endif
     inc laser_twin
 :
     rts
@@ -3760,4 +3768,292 @@ gravity_steps:  .word 0                 ; the steps taken (the trace counts them
 gravity_slice:  .byte 0                 ; the column's next slice (one line in eight)
 gravity_phase:  .byte 0                 ; the wave's offset
 gravity_state_end:
+.endif
+
+
+; ===========================================================================
+; S5-5 (feat/boss-region-2, docs/plans/s5-boss-regions.md §6.5; the owner's
+; design of 2026-10-14): the Bastion's sliding rails and its hangar - region
+; 2's code in its region block (slot F, at BOSS_F_HOOK), assembled when a
+; region carries a `rails` block (BOSS_RAIL, scripts/boss-assets.mjs) and
+; appended to that region's block only; its tables and state in the block's
+; room between the look tail and BOSS_F_HOOK (BOSS_R_DATA). It shares the
+; field's and the well's address: only the current region's block is in
+; memory (S5-1).
+;
+; Each side's rail is hull art in three band rows (its girder under the
+; track, its guns hanging from it) from the band's edge to its front column,
+; carrying a row of guns, each covered by the one in front of it - and,
+; behind the front gun, by the core (the converter): only the locked-in front
+; gun can be hurt or fire, and it always stands in the rail's front-gun slot.
+; When it falls -
+; * its socket stays solid: the controller's rebuild of its columns reads the
+;   hull stop the converter gives the front-gun slot, under the rail's last
+;   row - a shot there deflects;
+; * unless the rail is at its last position, the rail slides RAIL_PITCH
+;   columns inward: RAIL_DELAY frames after the kill (the kill's spark and
+;   gone draw first; rule (B)), one column every RAIL_FRAMES frames, on a
+;   quiet frame only (never on a kill or exposure-check frame, as the draw
+;   queue and region 3's collapse), one column a frame for both rails. A
+;   column step gives the cell-flash ring's cells back (they are about to
+;   move), shifts the rail's window - its cells in the three rows, its
+;   columns' map entries and stop lines - one column inward, moves every gun
+;   of the rail one column with it (the module record's x, its span: hit
+;   detection follows the rail exactly) and clanks on channel 3;
+; * the slide done, the next gun - now in the front-gun slot - locks in: the
+;   core's bit leaves its cover, the exposure check runs on the next tick (it
+;   never fires or takes a hit on the move);
+; * after RAIL_POSITIONS slides the rail's front covers its cannon and stops
+;   for good: a cannon still standing is covered - the rail is its columns'
+;   front, so a shot deflects there - and still fires (it stays exposed to
+;   the controller: its laser reloads and fires as before), but the defeat no
+;   longer waits for it (one weapon less) and the doors' cover no longer
+;   names it (the converter: no other cover does). A rail never reaches the
+;   hub (the converter).
+; * the warning: while a rail rests one slide from covering a standing
+;   cannon, the gun whose fall would cover it pulses (its hit flash, b3,
+;   every RAIL_PULSE frames).
+; The hangar: the doors flash (b3) when the escort's clock (the Director's)
+; is RAIL_CUE frames from arming an escort; once they fall no escort is armed
+; again (an escort in flight flies on).
+; No resident byte; no byte of slots A-E.
+; ===========================================================================
+.ifdef BOSS_RAIL
+.include "boss-rail.inc"
+.import _boss_weapons_left, _boss_expose_pending
+
+RAIL_ROW_A          = BOSS_BAND_A + RAIL_ROW * BOSS_BAND_COLUMNS
+RAIL_ROW_B          = RAIL_ROW_A + BOSS_BAND_COLUMNS
+RAIL_ROW_C          = RAIL_ROW_B + BOSS_BAND_COLUMNS
+RAIL_DOORS_COVER    = BOSS_T_MODULES + RAIL_DOORS * BOSS_MODULE_BYTES + BOSS_M_COVER_LO
+.assert RAIL_ROW + 2 < BOSS_BAND_A_ROWS, error, "the rails' rows are band A's"
+.assert RAIL_L_FRONT + 1 >= RAIL_WINDOW, error, "the left rail's window starts inside the band"
+.assert RAIL_R_FRONT + RAIL_WINDOW <= BOSS_BAND_COLUMNS, error, "the right rail's window ends inside the band"
+.assert (RAIL_PULSE & (RAIL_PULSE - 1)) = 0, error, "the warning's period is a power of two"
+
+.segment "BOSS_R_CODE"
+rail_hooks:
+    jmp rail_rts                        ; BOSS_F_HOOK: nothing before the shots meet
+    jmp rail_late                       ; BOSS_F_HOOK + 3: SECTOR_COMPLETION (slot E)
+
+; SECTOR_COMPLETION, once the band has been shown (slot E's boss_shots_late),
+; after the frame's kills and the controller's tick: the hangar; per side, a
+; front gun fallen this frame, a slide's next column, the warning.
+rail_late:
+    lda _boss_phase
+    bne rail_rts                        ; the fight only
+    sta rail_stepped
+    lda _boss_hp + RAIL_DOORS
+    bne @open
+    sta RAIL_ESCORT_TIMER               ; the doors fell: no escort armed again
+    beq @rails
+@open:
+    lda RAIL_ESCORT_TIMER
+    cmp #RAIL_CUE
+    bne @rails
+    lda #RAIL_DOORS                     ; an escort comes: the doors flash
+    sta boss_mflash_req
+@rails:
+    ldx #1
+@side:
+    stx rail_x
+    jsr rail_side
+    ldx rail_x
+    dex
+    bpl @side
+rail_rts:
+    rts
+
+; X = rail_x = a side: its front gun fallen this frame starts a slide, unless
+; the rail is at its last position; a slide's next column; the warning.
+rail_side:
+    jsr rail_index
+    lda rail_k,x
+    cmp #RAIL_POSITIONS
+    bcs @rts
+    lda rail_guns,y
+    tay
+    lda _boss_hp,y
+    bne @live
+    lda rail_step,x
+    bne @slide                          ; already sliding
+    inc rail_dead,x
+    lda #RAIL_PITCH
+    sta rail_step,x
+    lda #RAIL_DELAY
+    sta rail_timer,x
+@rts:
+    rts
+@live:
+    lda rail_step,x                     ; (a slide under way has no live front gun)
+    bne @slide
+    lda rail_k,x                        ; one slide from covering a standing
+    cmp #(RAIL_POSITIONS - 1)           ; cannon: the gun whose fall would
+    bne @rts                            ; cover it pulses
+    ldy rail_cannon,x
+    lda _boss_hp,y
+    beq @rts
+    lda frame_counter
+    and #(RAIL_PULSE - 1)
+    bne @rts
+    jsr rail_index
+    lda rail_guns,y
+    sta boss_mflash_req
+    rts
+@slide:
+    lda rail_timer,x
+    beq @due
+    dec rail_timer,x
+    bne @rts
+@due:
+    lda rail_stepped                    ; one column a frame for both rails,
+    ora boss_frame_heavy                ; never on a kill or exposure-check
+    ora _boss_heavy                     ; frame: the next frame then
+    bne @rts
+    inc rail_stepped
+    jsr rail_column
+    lda #RAIL_FRAMES
+    sta rail_timer,x
+    dec rail_step,x
+    bne @rts
+    jmp rail_lock                       ; the slide done
+
+; X = rail_x = a side -> Y = its front gun's place in rail_guns. Keeps X.
+rail_index:
+    lda rail_dead,x
+    clc
+    adc rail_first,x
+    tay
+    rts
+
+; X = rail_x = a side, its slide done: the next gun locks in (the core's bit
+; leaves its cover; the exposure check on the next tick); at the last
+; position a cannon still standing is covered.
+rail_lock:
+    inc rail_k,x
+    jsr rail_index
+    lda rail_guns,y
+    tax
+    jsr boss_record_of                  ; Y = its record
+    lda BOSS_T_MODULES + BOSS_M_COVER_LO,y
+    and #<~(1 << RAIL_CORE)
+    sta BOSS_T_MODULES + BOSS_M_COVER_LO,y
+    lda BOSS_T_MODULES + BOSS_M_COVER_HI,y
+    and #>~(1 << RAIL_CORE)
+    sta BOSS_T_MODULES + BOSS_M_COVER_HI,y
+    lda _boss_expose_pending
+    bne :+
+    inc _boss_expose_pending
+:
+    ldx rail_x
+    lda rail_k,x
+    cmp #RAIL_POSITIONS
+    bne @rts
+    ldy rail_cannon,x
+    lda _boss_hp,y
+    beq @rts                            ; destroyed before the rail reached it
+    dec _boss_weapons_left              ; covered: the defeat no longer waits for it,
+    lda RAIL_DOORS_COVER                ; nor do the doors
+    and rail_not_lo,x
+    sta RAIL_DOORS_COVER
+    lda RAIL_DOORS_COVER + 1
+    and rail_not_hi,x
+    sta RAIL_DOORS_COVER + 1
+@rts:
+    rts
+
+; X = rail_x = a side: one column inward - the ring's cells back, the
+; window's cells, map entries and stop lines shifted (the destination of one
+; column is the source of the one before it), every gun's record x and span
+; moved (a side's guns are consecutive modules, the converter), a clank.
+rail_column:
+    ldx #(BOSS_RING_RECORDS - 1)
+@record:
+    lda boss_ring_timer,x
+    beq :+
+    lda #$00
+    sta boss_ring_timer,x
+    jsr boss_ring_restore               ; keeps X
+:
+    dex
+    bpl @record
+    ldx rail_x
+    lda rail_dir,x
+    sta rail_t
+    lda #RAIL_WINDOW
+    sta rail_u
+    ldy rail_front,x                    ; the source: the front first
+    tya
+    clc
+    adc rail_t
+    sta rail_front,x
+    tax                                 ; its destination
+@copy:
+    lda RAIL_ROW_A,y
+    sta RAIL_ROW_A,x
+    lda RAIL_ROW_B,y
+    sta RAIL_ROW_B,x
+    lda RAIL_ROW_C,y
+    sta RAIL_ROW_C,x
+    lda boss_column_map,y
+    sta boss_column_map,x
+    lda boss_stop_y,y
+    sta boss_stop_y,x
+    tya                                 ; the next destination is this source
+    tax
+    sec
+    sbc rail_t
+    tay
+    dec rail_u
+    bne @copy
+    ldx rail_x
+    ldy rail_record,x                   ; the side's first gun's record
+    lda rail_module,x                   ; and module
+    tax
+    lda #RAIL_GUNS
+    sta rail_u
+@gun:
+    lda BOSS_T_MODULES + BOSS_M_X,y
+    clc
+    adc rail_t
+    sta BOSS_T_MODULES + BOSS_M_X,y
+    sta boss_mx,x
+    clc
+    adc #RAIL_GUN_WIDTH
+    sta boss_mxe,x
+    tya                                 ; C = 0 (the span ends inside the band)
+    adc #BOSS_MODULE_BYTES
+    tay
+    inx
+    dec rail_u
+    bne @gun
+    ldx #BOSS_TONE_HULL                 ; the clank
+    jsr boss_tick_sound
+    ldx rail_x
+    rts
+
+; The state - data, not BSS: the block is read from the disk at every entry,
+; so every fight starts from these values. The trace's slot F write clause
+; admits the rails' writes in rail_scratch .. rail_scratch_end and
+; rail_state .. rail_state_end, and nowhere else.
+rail_scratch:
+rail_step:      .byte 0, 0              ; columns left in the slide under way
+rail_timer:     .byte 0, 0              ; frames to its next column
+rail_stepped:   .byte 0                 ; a column stepped this frame
+rail_x:         .byte 0
+rail_t:         .byte 0
+rail_u:         .byte 0
+rail_scratch_end:
+
+; The tables and the rest of the state, in the block's room between the look
+; tail and BOSS_F_HOOK.
+.segment "BOSS_R_DATA"
+RAIL_TABLES                             ; boss-rail.inc: rail_guns (per side, front first),
+                                        ; rail_first, rail_dir, rail_cannon, rail_not_lo/hi,
+                                        ; rail_module, rail_record (each side's lowest module)
+rail_state:
+rail_k:         .byte 0, 0              ; slides done (0 .. RAIL_POSITIONS)
+rail_front:     .byte RAIL_L_FRONT, RAIL_R_FRONT   ; each rail's front column now
+rail_dead:      .byte 0, 0              ; guns destroyed
+rail_state_end:
 .endif

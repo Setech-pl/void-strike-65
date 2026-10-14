@@ -357,9 +357,15 @@ if (bossVariantSlug !== undefined && !/^[a-z0-9]+$/.test(bossVariantSlug)) {
 }
 const bossVariantDirectory = bossVariantSlug === undefined
   ? null : path.join(defaultBuildDirectory, "boss-variants", bossVariantSlug);
-if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirectory, "region-1", "modules.json"))) {
-  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
-    "draft (node scripts/boss-r1-variants.mjs writes it)");
+// S5-5 (feat/boss-region-2, Phase A): a variant may carry region 2's draft
+// instead (build/boss-variants/NAME/region-2/, scripts/boss-r2-art.mjs); a
+// region the variant does not carry is the committed one.
+const bossVariantRegion = (region) => (bossVariantDirectory !== null &&
+  fs.existsSync(path.join(bossVariantDirectory, `region-${region}`, "modules.json"))
+  ? path.join(bossVariantDirectory, `region-${region}`) : null);
+if (bossVariantDirectory !== null && bossVariantRegion(1) === null && bossVariantRegion(2) === null) {
+  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/ has no ` +
+    "region-1/ or region-2/ draft (node scripts/boss-r1-variants.mjs / boss-r2-art.mjs writes it)");
 }
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -1871,8 +1877,7 @@ async function build() {
   // variant that installs the laser fixture (region 1 with four uncovered
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
-  const regionOneDraft = loadBossRegionDraft(bossVariantDirectory === null
-    ? bossRegionDirectory(rootDirectory, 1) : path.join(bossVariantDirectory, "region-1"));
+  const regionOneDraft = loadBossRegionDraft(bossVariantRegion(1) ?? bossRegionDirectory(rootDirectory, 1));
   const regionOneSource = laserFixtureTier === null
     ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
   const compileRegion = (draft) => compileBossRegion(draft,
@@ -1899,11 +1904,16 @@ async function build() {
   // region 4 is the Void Citadel from its own draft
   // (assets/graphics/boss-regions/region-4/), its gravity well's code in its
   // block (slot F) - in every build.
+  // S5-5 (Phase A): region 2 is the Bastion only on a review variant that
+  // carries its draft; otherwise still region 1's copy.
   const bossRegions = [1, 2, 3, 4].map((region) => (region === 1 ? regionOne
     : region === 3 || region === 4
       ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, region)))
-      : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
+      : region === 2 && bossVariantRegion(2) !== null
+        ? compileRegion(loadBossRegionDraft(bossVariantRegion(2)))
+        : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
   const bossGravity = bossRegions[3].gravity;
+  const bossRail = bossRegions[1].rails;
   const bossField = bossRegions[2].field;
   // feat/boss-r1-twin-lasers (owner decision, variant A): slot D carries the
   // twin cannons' turn-taking when a region on the disk has them (region 1;
@@ -2996,6 +3006,61 @@ async function build() {
       `$${(BOSS_SLOT_F_ADDRESS + bossFieldOffset).toString(16).toUpperCase()}, ` +
       `size = $${(BOSS_SLOT_F_BYTES - bossFieldOffset).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
     .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    BOSS_G_CODE:   load = BOSS_SLOT_G_RAM,  type = rw, define = yes;\n`);
+  // S5-5: a rail build's slot F code (region 2's block) - the same address
+  // again, its own memory area last in the image, after the well's.
+  const bossConfigRail = bossRail === null ? bossConfig : bossConfig
+    .replace(/\n}\s*\nSEGMENTS/, `\n    BOSS_SLOT_R_RAM:  start = ` +
+      `$${(BOSS_SLOT_F_ADDRESS + bossFieldOffset).toString(16).toUpperCase()}, ` +
+      `size = $${(BOSS_SLOT_F_BYTES - bossFieldOffset).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
+    .replace(/\n}\s*\nSEGMENTS/, `\n    BOSS_SLOT_RD_RAM: start = ` +
+      `$${(BOSS_SLOT_F_ADDRESS + bossRegions[1].lookTail.length).toString(16).toUpperCase()}, ` +
+      `size = $${(bossFieldOffset - bossRegions[1].lookTail.length).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
+    .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    BOSS_R_CODE:   load = BOSS_SLOT_R_RAM,  type = rw, define = yes;\n` +
+      `    BOSS_R_DATA:   load = BOSS_SLOT_RD_RAM, type = rw, define = yes;\n`);
+  // S5-5: the rails' constants for the boss link (region 2's rail block):
+  // the cadences, the rows, each side's front and window, the hangar's doors
+  // and core, the Director's escort clock (src/c/director.c STATE_SPACING,
+  // read here so the address cannot drift), the tables' address.
+  const bossRailInclude = bossRail === null ? null : (() => {
+    const region = bossRegions[1];
+    const hangar = region.hangar;
+    if (hangar === null) throw new Error("S5-5: region 2's rails need its hangar block");
+    const directorSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"), "utf8");
+    const stateAddress = (name) => Number.parseInt(new RegExp(`#define ${name}\\s+U8_AT\\(0x([0-9A-Fa-f]+)u\\)`)
+      .exec(directorSource)[1], 16);
+    const [left, right] = bossRail.sides;
+    const hex = (value) => `$${value.toString(16).toUpperCase().padStart(2, "0")}`;
+    return Buffer.from([
+      "; Generated by scripts/build.mjs (S5-5, the sliding rails) - do not edit.",
+      `RAIL_FRAMES             = ${bossRail.framesPerStep}`,
+      `RAIL_DELAY              = ${bossRail.delayFrames}`,
+      `RAIL_PULSE              = ${bossRail.pulseFrames}`,
+      `RAIL_PITCH              = ${bossRail.pitch}`,
+      `RAIL_POSITIONS          = ${bossRail.positions}`,
+      `RAIL_GUNS               = ${left.guns.length}`,
+      `RAIL_ROW                = ${bossRail.rowFirst}`,
+      `RAIL_WINDOW             = ${left.window}`,
+      `RAIL_L_FRONT            = ${left.nose}`,
+      `RAIL_R_FRONT            = ${right.nose}`,
+      `RAIL_DOORS              = ${hangar.doors}`,
+      `RAIL_CORE               = ${hangar.core}`,
+      `RAIL_CUE                = ${hangar.cueFrames}`,
+      `RAIL_ESCORT_TIMER       = $${stateAddress("STATE_SPACING").toString(16).toUpperCase()}`,
+      `RAIL_GUN_WIDTH          = ${bossRail.gunWidth}`,
+      ".macro RAIL_TABLES",
+      `rail_guns:      .byte ${[...left.guns, ...right.guns].join(", ")}`,
+      `rail_first:     .byte 0, ${left.guns.length}`,
+      "rail_dir:       .byte $01, $FF",
+      `rail_cannon:    .byte ${left.cannon}, ${right.cannon}`,
+      `rail_not_lo:    .byte ${[left, right].map((side) => hex(~(1 << side.cannon) & 0xff)).join(", ")}`,
+      `rail_not_hi:    .byte ${[left, right].map((side) => hex((~(1 << side.cannon) >> 8) & 0xff)).join(", ")}`,
+      `rail_module:    .byte ${left.firstModule}, ${right.firstModule}`,
+      `rail_record:    .byte ${left.firstModule * 12}, ${right.firstModule * 12}`,
+      ".endmacro",
+      "",
+    ].join("\n"));
+  })();
+  if (bossRailInclude !== null) writeFile(path.join(buildDirectory, "boss-rail.inc"), bossRailInclude);
   // S5-4: the well's constants for the boss link (region 4's gravity block):
   // its cadences, the spires', the core's and the axis's module indices, the
   // axis's beam centre in band colour clocks (its lens column's centre) and
@@ -3117,11 +3182,13 @@ async function build() {
         "/project/build/level-def.inc": levelDefInclude,
         ...(bossFieldInclude === null ? {} : { "/project/build/boss-field.inc": bossFieldInclude }),
         ...(bossGravityInclude === null ? {} : { "/project/build/boss-gravity.inc": bossGravityInclude }),
+        ...(bossRailInclude === null ? {} : { "/project/build/boss-rail.inc": bossRailInclude }),
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
         ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1"]),
         ...(bossGravityInclude === null ? [] : ["-D", "BOSS_GRAVITY=1"]),
+        ...(bossRailInclude === null ? [] : ["-D", "BOSS_RAIL=1"]),
         ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
@@ -3131,7 +3198,7 @@ async function build() {
       {
         [`${bossBase}.o`]: assembled.outputs[`${bossBase}.o`],
         [`${bossBase}-c.o`]: bossCAssembled.outputs[`${bossBase}-c.o`],
-        [`${bossBase}.cfg`]: Buffer.from(bossConfig),
+        [`${bossBase}.cfg`]: Buffer.from(bossConfigRail),
       },
       ["-C", `${bossBase}.cfg`, "-o", `${bossBase}.bin`, "-m", `${bossBase}.map`,
         "-Ln", `${bossBase}.lbl`, `${bossBase}.o`, `${bossBase}-c.o`],
@@ -3181,6 +3248,31 @@ async function build() {
     data.set(region.lookTail, 0);
     data.set(gravityCode, bossFieldOffset);
     bossRegions[3] = { ...region, gravityCodeBytes: gravityCode.length,
+      runs: { ...region.runs, block: { address: BOSS_SLOT_F_ADDRESS, sectors, data } } };
+  }
+  // S5-5: a rail build's code joins region 2's block after its look tail.
+  if (bossRailInclude !== null) {
+    const from = bossFixedImageBytes + (bossFieldCode?.length ?? 0) + (bossRegions[3].gravityCodeBytes ?? 0);
+    const railCodeBytes = bossLink.labels.get("__BOSS_R_CODE_SIZE__");
+    const railDataBytes = bossLink.labels.get("__BOSS_R_DATA_SIZE__");
+    const image = Buffer.from(bossLink.linked.outputs[`${bossBase}.bin`]);
+    const railCode = image.subarray(from, from + railCodeBytes);
+    // The data's memory area follows the code's in the image (no fill).
+    const railDataFrom = from + railCodeBytes;
+    const railData = image.subarray(railDataFrom, railDataFrom + railDataBytes);
+    if (bossLink.labels.get("rail_hooks") !== BOSS_SLOT_F_ADDRESS + bossFieldOffset) {
+      throw new Error("S5-5: the rails' hooks are not at BOSS_F_HOOK");
+    }
+    const region = bossRegions[1];
+    if (region.lookTail.length > bossFieldOffset) throw new Error("S5-5: region 2's look tail overruns BOSS_F_HOOK");
+    const blockBytes = bossFieldOffset + railCode.length;
+    if (blockBytes > BOSS_SLOT_F_BYTES) throw new Error(`S5-5: region 2's block is ${blockBytes} B; slot F has ${BOSS_SLOT_F_BYTES}`);
+    const sectors = Math.ceil(blockBytes / 128);
+    const data = new Uint8Array(sectors * 128);
+    data.set(region.lookTail, 0);
+    data.set(railData, region.lookTail.length);
+    data.set(railCode, bossFieldOffset);
+    bossRegions[1] = { ...region, railCodeBytes: railCode.length, railDataBytes: railData.length,
       runs: { ...region.runs, block: { address: BOSS_SLOT_F_ADDRESS, sectors, data } } };
   }
   const bossSlotCCodeBytes = bossLink.labels.get("__BOSS_C_BSS_RUN__") - BOSS_SLOT_C_ADDRESS;
@@ -3260,7 +3352,8 @@ async function build() {
   const slotABytes = capitalSlotImage.length;
   const installBytes = bossInstallSectors * 128;
   if (bossImage.length !== bossFixedImageBytes + (bossFieldCode?.length ?? 0) +
-    (bossRegions[3].gravityCodeBytes ?? 0) ||
+    (bossRegions[3].gravityCodeBytes ?? 0) +
+    (bossRegions[1].railCodeBytes ?? 0) + (bossRegions[1].railDataBytes ?? 0) ||
     bossLabels.get("boss_entry_cold") !== BOSS_ENTRY_COLD_ADDRESS ||
     !(bossSlotEUsed > 0 && bossSlotEUsed <= BOSS_SLOT_E_BYTES) || bossSlotESectors > bossSlotEMaxSectors ||
     bossSlotESector + bossSlotEMaxSectors > bossReservationSector + bossReservationSectors ||
@@ -4557,7 +4650,7 @@ async function build() {
         // S5-3: a block with region code is its look tail's 110 B and the code
         // (S5-4: region 3's field or region 4's gravity well).
         blocks: bossRegions.map((region, index) => {
-          const code = region.fieldCodeBytes ?? region.gravityCodeBytes;
+          const code = region.fieldCodeBytes ?? region.gravityCodeBytes ?? region.railCodeBytes;
           const bytes = code === undefined ? region.lookTail.length : BOSS_LOOK_TAIL_MAX_BYTES + code;
           return { region: index + 1, bytes, lookTailBytes: region.lookTail.length,
             codeBytes: code ?? 0, sectors: region.runs.block.sectors,
@@ -4603,6 +4696,18 @@ async function build() {
           spires: region.gravity.spires.map((index) => region.modules[index].name),
           core: region.modules[region.gravity.core].name, axis: region.modules[region.gravity.axis].name,
           axisSlot: region.gravity.axisSlot, codeBytes: region.gravityCodeBytes ?? 0 },
+        // S5-5: the sliding rails and the hangar (null without them): the
+        // cadences and geometry, each side's guns and cannon by name, the
+        // rails' code's bytes in the block (slot F).
+        ...(region.rails === null ? {} : { rails: { framesPerStep: region.rails.framesPerStep,
+          delayFrames: region.rails.delayFrames, pulseFrames: region.rails.pulseFrames,
+          pitch: region.rails.pitch, positions: region.rails.positions, rowFirst: region.rails.rowFirst,
+          sides: region.rails.sides.map((side) => ({ name: side.name, dir: side.dir, nose: side.nose,
+            window: side.window, cannon: region.modules[side.cannon].name,
+            guns: side.guns.map((index) => region.modules[index].name) })),
+          codeBytes: region.railCodeBytes ?? 0 } }),
+        ...(region.hangar === null ? {} : { hangar: { doors: region.modules[region.hangar.doors].name,
+          core: region.modules[region.hangar.core].name, cueFrames: region.hangar.cueFrames } }),
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +

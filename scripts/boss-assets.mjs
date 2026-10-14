@@ -859,6 +859,136 @@ function resolveBossGravity(source, modules) {
   return { framesPerStep, pulseFrames, waveStep, spires, core, axis };
 }
 
+// S5-5 (feat/boss-region-2, the owner's design of 2026-10-14): the `rails`
+// block - region 2's sliding gun rails, their code in the region's block
+// (src/hybrid/boss.s, BOSS_RAIL). Each side's rail is hull art in three band
+// rows (`rows`: its girder, then its guns) from the band's edge to its front
+// column (`nose`), carrying a row of guns. A kill of the rail's front gun
+// slides the rail - its cells, its guns' columns and its columns' shot stops -
+// one `pitch` inward (one column every framesPerStep frames, delayFrames
+// after the kill); after `positions` slides its front covers its cannon (that
+// cannon is invulnerable from then on, and still fires) and it stops. The
+// converter proves the geometry: the guns are pulse or salvo guns in the
+// rail's rows, outside its front, each covered by the one in front of it (the
+// kills come in order); every slide but the last leaves the cannon clear, the
+// last covers all of its columns, no slide reaches another module; the moving
+// window (the cells a slide shifts) holds every gun at every position and
+// fills the screen's edge at the last.
+export const BOSS_RAIL_ROWS = 3;
+export const BOSS_RAIL_SCREEN = Object.freeze({ left: 12, right: 51 });   // the still band at 32
+const hangarCore = (rails, byName) => {
+  const core = byName.get(rails.core);
+  if (core === undefined) fail("rails.core names the hangar's core (the guns behind the front one wait on it)");
+  return core;
+};
+function resolveBossRails(source, modules, owner) {
+  if (source === undefined || source === null) return null;
+  const byName = new Map(modules.map((module) => [module.name, module]));
+  const named = (name, what) => {
+    const module = byName.get(name);
+    if (module === undefined) fail(`rails.${what} names unknown module ${JSON.stringify(name)}`);
+    return module;
+  };
+  const framesPerStep = integerIn(source.framesPerStep, 1, 255, "rails.framesPerStep");
+  const delayFrames = integerIn(source.delayFrames, 1, 255, "rails.delayFrames");
+  const pulseFrames = integerIn(source.pulseFrames, 2, 128, "rails.pulseFrames");
+  if ((pulseFrames & (pulseFrames - 1)) !== 0) fail("rails.pulseFrames is a power of two");
+  const pitch = integerIn(source.pitch, 1, 8, "rails.pitch");
+  const positions = integerIn(source.positions, 1, 8, "rails.positions");
+  if (!Array.isArray(source.rows) || source.rows.length !== 2) fail("rails.rows is [first, last]");
+  const [rowFirst, rowLast] = source.rows.map((r) => integerIn(r, 0, BOSS_BAND_A_ROWS - 1, "rails.rows"));
+  if (rowLast - rowFirst + 1 !== BOSS_RAIL_ROWS) fail(`rails.rows spans ${BOSS_RAIL_ROWS} band rows`);
+  const sides = ["left", "right"].map((sideName) => {
+    const side = source[sideName];
+    if (side === undefined) fail(`rails.${sideName} is missing`);
+    const dir = sideName === "left" ? 1 : -1;
+    const nose = integerIn(side.nose, 0, BOSS_BAND_COLUMNS - 1, `rails.${sideName}.nose`);
+    const cannon = named(side.cannon, `${sideName}.cannon`);
+    if (cannon.kind !== BOSS_KIND.emitter) fail(`rail cannon ${cannon.name} is a ${cannon.kindName}; it is an emitter`);
+    if (!Array.isArray(side.guns) || side.guns.length < 1 || side.guns.length > 8) {
+      fail(`rails.${sideName}.guns names 1..8 guns`);
+    }
+    const guns = side.guns.map((name, i) => {
+      const gun = named(name, `${sideName}.guns`);
+      if (gun.kind !== BOSS_KIND.pulse && gun.kind !== BOSS_KIND.salvo) {
+        fail(`rail gun ${name} is a ${gun.kindName}; a rail carries pulse or salvo guns`);
+      }
+      if (gun.row < rowFirst || gun.row + gun.height - 1 > rowLast) fail(`rail gun ${name} is outside the rail's rows`);
+      if (dir > 0 ? gun.x + gun.width - 1 >= nose : gun.x <= nose) fail(`rail gun ${name} is not behind the rail's front`);
+      return gun;
+    });
+    if (positions >= guns.length) fail(`rails.positions ${positions}: the ${sideName} rail needs a gun more than its slides`);
+    return { sideName, dir, nose, cannon, guns };
+  }).map(({ sideName, dir, nose, cannon, guns }) => {
+    // Only the locked-in front gun can be hurt or fire: each gun behind it is
+    // covered by the gun in front (authored) and by the core - the lock, which
+    // src/hybrid/boss.s rail_lock clears when the gun locks into the front-gun
+    // slot, so the converter adds it after the cover graph's cyclic check
+    // (compileBossRegion); the guns are consecutive modules of one width (the
+    // slide's walk).
+    hangarCore(source, byName);
+    guns.forEach((gun, i) => {
+      const front = i === 0 ? 0 : 1 << guns[i - 1].index;
+      if (gun.coverMask !== front) {
+        fail(`rail gun ${gun.name}'s cover is ${i === 0 ? "none" : `[${guns[i - 1].name}]`}: ` +
+          "a rail's guns lock in front first");
+      }
+      if (gun.width !== guns[0].width || gun.height !== guns[0].height) fail(`rail gun ${gun.name}'s size differs`);
+    });
+    const indices = guns.map((gun) => gun.index).sort((a, b) => a - b);
+    if (indices.some((index, i) => index !== indices[0] + i) || indices[0] === 0) {
+      fail(`the ${sideName} rail's guns are not consecutive modules after the first`);
+    }
+    const cannonFirst = dir > 0 ? cannon.x : cannon.x + cannon.width - 1;
+    const cannonLast = dir > 0 ? cannon.x + cannon.width - 1 : cannon.x;
+    const frontAt = (k) => nose + dir * k * pitch;
+    if (dir * (frontAt(positions - 1) - cannonFirst) >= 0) {
+      fail(`the ${sideName} rail reaches its cannon before its last slide (front ${frontAt(positions - 1)})`);
+    }
+    if (dir * (frontAt(positions) - cannonLast) < 0) {
+      fail(`the ${sideName} rail's last slide leaves part of its cannon uncovered (front ${frontAt(positions)})`);
+    }
+    // The cells a slide shifts: every gun at every position, and at the last
+    // the screen's edge (the rail runs off the screen).
+    const outer = dir > 0 ? Math.min(...guns.map((g) => g.x)) : Math.max(...guns.map((g) => g.x + g.width - 1));
+    const edge = dir > 0 ? BOSS_RAIL_SCREEN.left : BOSS_RAIL_SCREEN.right;
+    const window = Math.max(dir * (nose - outer) + 1, dir * (frontAt(positions) - edge) + 1);
+    const windowOuter = nose - dir * (window - 1);
+    if (windowOuter < 0 || windowOuter > BOSS_BAND_COLUMNS - 1) fail(`the ${sideName} rail's window leaves the band`);
+    // No slide reaches a module that is not the rail's or its cannon.
+    const reach = [Math.min(frontAt(positions), windowOuter + dir * positions * pitch),
+      Math.max(frontAt(positions), windowOuter + dir * positions * pitch)];
+    for (const module of modules) {
+      if (guns.includes(module) || module === cannon) continue;
+      const rowsMeet = module.row <= rowLast && module.row + module.height - 1 >= rowFirst;
+      const columnsMeet = module.x <= reach[1] && module.x + module.width - 1 >= reach[0];
+      if (rowsMeet && columnsMeet) fail(`the ${sideName} rail's slides reach module ${module.name}`);
+    }
+    for (let r = rowFirst; r <= rowLast; r += 1) {
+      if (owner.has(r * BOSS_BAND_COLUMNS + nose)) fail(`the ${sideName} rail's front (${nose}, ${r}) is a module's cell`);
+    }
+    return { name: sideName, dir, nose, cannon, guns, window, firstModule: indices[0] };
+  });
+  if (sides[0].window !== sides[1].window || sides[0].guns.length !== sides[1].guns.length) {
+    fail("the two rails are mirror images: the same window and the same number of guns");
+  }
+  return { framesPerStep, delayFrames, pulseFrames, pitch, positions, rowFirst, sides };
+}
+// The hangar: its doors (armour) launch the escort - their flash cueFrames
+// before each escort is armed - and stop it when they fall; the core.
+function resolveBossHangar(source, modules, escortAfter) {
+  if (source === undefined || source === null) return null;
+  const byName = new Map(modules.map((module) => [module.name, module]));
+  const doors = byName.get(source.doors);
+  const core = byName.get(source.core);
+  if (doors === undefined || doors.kind !== BOSS_KIND.armour) fail("hangar.doors names the armour module of the doors");
+  if (core === undefined || core.kind === BOSS_KIND.armour) fail("hangar.core names a weapon module");
+  if ((core.coverMask & (1 << doors.index)) === 0) fail("the hangar's doors cover its core");
+  if (escortAfter === 0) fail("a hangar launches an escort: the region needs its escort block");
+  const cueFrames = integerIn(source.cueFrames, 2, 127, "hangar.cueFrames");
+  return { doors, core, cueFrames };
+}
+
 // ---------------------------------------------------------------------------
 // The conversion
 // ---------------------------------------------------------------------------
@@ -975,6 +1105,22 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // band.png (the converter draws them) - and its halves' generators.
   const field = resolveBossField(layout.field, modules, owner, nozzleCells, draft.fieldImage);
   const gravity = resolveBossGravity(layout.gravity, modules);
+  const rails = resolveBossRails(layout.rails, modules, owner);
+  const hangar = resolveBossHangar(layout.hangar, modules, escortAfter);
+  if (rails !== null) {
+    if (hangar === null || hangar.core.name !== layout.rails.core) fail("rails need the hangar, and rails.core is its core");
+    // The lock: every gun behind a rail's front gun waits on the core too.
+    for (const side of rails.sides) side.guns.slice(1).forEach((gun) => { gun.coverMask |= 1 << hangar.core.index; });
+    // A covered cannon leaves the doors' cover (src/hybrid/boss.s rail_lock):
+    // no other module's cover may name it.
+    for (const side of rails.sides) {
+      for (const module of modules) {
+        if ((module.coverMask & (1 << side.cannon.index)) !== 0 && module !== hangar.doors) {
+          fail(`module ${module.name}'s cover names rail cannon ${side.cannon.name}: only the hangar's doors may`);
+        }
+      }
+    }
+  }
   const fieldKeys = field === null ? new Set() : field.keys;
 
   // The staged block: one entry a distinct (intact, cracked, broken) triple.
@@ -1242,6 +1388,19 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     }
     return null;
   });
+  // S5-5: a rail's front gun always falls in its front-gun slot (the guns
+  // behind it lock in there); the controller's rebuild of its columns then
+  // reads this stop - under the rail's last row: the dead gun's socket stays
+  // solid, as its cavity glyphs show it (src/hybrid/boss.s BOSS_RAIL).
+  if (rails !== null) {
+    for (const side of rails.sides) {
+      const gun = side.guns[0];
+      for (let c = gun.x; c < gun.x + gun.width; c += 1) {
+        if (hullStop[c] === null) fail(`rail gun ${gun.name}'s column ${c} has no hull above it (the girder)`);
+        hullStop[c] = rails.rowFirst + BOSS_RAIL_ROWS - 1;
+      }
+    }
+  }
   const hullStopTailOffset = tail.length;
   for (let c = 0; c < BOSS_BAND_COLUMNS; c += 2) {
     const nibble = (row) => (row === null ? 0 : row + 1);
@@ -1404,6 +1563,18 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     // S5-4: the gravity well (null without one): its cadences, the spires',
     // the core's and the axis's module indices (the front-first order), the
     // axis's lens column (its centre: the beam's) and its laser slot.
+    // S5-5: the sliding rails (null without them): the cadences, the geometry,
+    // each side's guns' and cannon's module indices (front first) and its
+    // front's three cell codes (the cover warning blinks them); the hangar.
+    rails: rails === null ? null : {
+      framesPerStep: rails.framesPerStep, delayFrames: rails.delayFrames, pulseFrames: rails.pulseFrames,
+      pitch: rails.pitch, positions: rails.positions, rowFirst: rails.rowFirst,
+      gunWidth: rails.sides[0].guns[0].width,
+      sides: rails.sides.map((side) => ({ name: side.name, dir: side.dir, nose: side.nose, window: side.window,
+        cannon: side.cannon.index, guns: side.guns.map((gun) => gun.index), firstModule: side.firstModule,
+        frontSlot: [side.guns[0].x, side.guns[0].x + side.guns[0].width - 1] })),
+    },
+    hangar: hangar === null ? null : { doors: hangar.doors.index, core: hangar.core.index, cueFrames: hangar.cueFrames },
     gravity: gravity === null ? null : {
       framesPerStep: gravity.framesPerStep, pulseFrames: gravity.pulseFrames, waveStep: gravity.waveStep,
       spires: gravity.spires.map((module) => module.index), core: gravity.core.index,

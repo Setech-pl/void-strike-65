@@ -955,6 +955,19 @@ const bossTuningSessions = [
     holdPlayerLives: 3,
     endAtSummary: true,
   })),
+  /* S5-5 (feat/boss-region-2): the Bastion's order puzzle measured - the
+   * same replay with the aiming bot that takes the laser cannons first
+   * (careful) or the rail guns first (careless). */
+  ...["careful", "careless"].flatMap((order) => [0, 1, 2].map((difficulty) => ({
+    id: `boss-aim-${order}-${difficulty}`,
+    difficulty,
+    policy: `boss-aim-${order}`,
+    fireDelay: 0,
+    frames: DIRECTOR_COMPLETION_FRAMES,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    endAtSummary: true,
+  }))),
   ...[["left", 48], ["right", 200]].flatMap(([side, x]) => [0, 1, 2].map((difficulty) => ({
     id: `boss-park-${side}-${difficulty}`,
     difficulty,
@@ -1449,6 +1462,9 @@ for (const name of [
   // deflections on a powered half, hit points lost behind a powered half
   // (cumulative), field cells left in a fallen half.
   "field_state", "field_deflections", "field_violations", "field_cells_down", "gravity_on", "gravity_steps", "gravity_column",
+  // S5-5: region 2's rails - the slides done and the guns destroyed (left |
+  // right << 4), a slide under way (bit 0 left, bit 1 right).
+  "rail_k", "rail_dead", "rail_sliding",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4227,6 +4243,11 @@ function main() {
         addressEnvironment.DFTRACE_GRAVITY_ON = hex(bossLabels, "gravity_on");
         addressEnvironment.DFTRACE_GRAVITY_COLUMN = hex(bossLabels, "boss_m0_hpos");
       }
+      // S5-5: region 2's rails' state, when the disk carries them.
+      if (bossLabels.has("rail_state")) {
+        addressEnvironment.DFTRACE_RAIL_STATE = hex(bossLabels, "rail_state");
+        addressEnvironment.DFTRACE_RAIL_SCRATCH = hex(bossLabels, "rail_scratch");
+      }
     }
   }
 
@@ -5698,10 +5719,15 @@ function main() {
     const boss = parseViceLabels(fs.readFileSync(where, "utf8"));
     // S5-4: region 4's gravity well too - each region's code writing only
     // its own state (the two share BOSS_F_HOOK; one is in memory at a time).
-    const watches = [["field_hooks", "field_state", "field_state_end"],
-      ["gravity_hooks", "gravity_state", "gravity_state_end"]]
+    // S5-5: region 2's rails too - their code ([rail_hooks, rail_scratch))
+    // writing its scratch (after the code) and its state (in the block's
+    // room before BOSS_F_HOOK).
+    const watches = [["field_hooks", "field_state", "field_state", "field_state_end"],
+      ["gravity_hooks", "gravity_state", "gravity_state", "gravity_state_end"],
+      ["rail_hooks", "rail_scratch", "rail_scratch", "rail_scratch_end"],
+      ["rail_hooks", "rail_scratch", "rail_state", "rail_state_end"]]
       .filter(([hooks]) => boss.has(hooks))
-      .map(([hooks, state, end]) => ({ codeStart: boss.get(hooks), codeEnd: boss.get(state),
+      .map(([hooks, codeEnd, state, end]) => ({ codeStart: boss.get(hooks), codeEnd: boss.get(codeEnd),
         stateStart: boss.get(state), stateEnd: boss.get(end) }));
     return watches.length === 0 ? null : watches;
   })();

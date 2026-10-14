@@ -126,7 +126,8 @@ function duty(landing, x, hit, phases) {
 // region has one (a volley: offsets -1, 0, +1); a salvo always does.
 export function bossWeapons(region, motion, { finale = false } = {}) {
   const cycle = driftCycle(motion);
-  return region.modules.filter((module) => module.kind !== "armour").map((module) => {
+  // fix/r4-immobile: a core module never fires (region 4's void core).
+  return region.modules.filter((module) => module.kind !== "armour" && module.kind !== "core").map((module) => {
     const isEmitter = module.kind === "emitter";
     const offsets = module.kind === "salvo" || finale ? [-1, 0, 1] : [0];
     return {
@@ -258,7 +259,10 @@ if (isMain) {
     : bossRegionDirectory(rootDirectory, Number(regionArgument?.slice(9) ?? 1));
   const draft = loadBossRegionDraft(directory);
   const json = process.argv.includes("--json");
-  const coverage = regionCoverage(draft);
+  // --lasers=N: the emitter slots the level's tier enables (1 on levels 1-4,
+  // 4 on levels 10-12 - region 4).
+  const lasers = Number(process.argv.find((a) => a.startsWith("--lasers="))?.slice(9) ?? 1);
+  const coverage = regionCoverage(draft, { lasers });
   if (json) console.log(JSON.stringify(coverage, null, 1));
   else console.log(report(path.relative(rootDirectory, directory) || directory, coverage));
 }

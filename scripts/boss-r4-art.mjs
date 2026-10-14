@@ -74,16 +74,22 @@ export const R4_LAYOUT = Object.freeze({
   // slots hold the two cannons and the core's lens).
   guns: [{ name: "gun-1", x: 17 }, { name: "gun-5", x: 20 }, { name: "gun-2", x: 24 },
     { name: "gun-3", x: 37 }, { name: "gun-6", x: 41 }, { name: "gun-4", x: 44 }],
-  emitters: [{ name: "cannon-l", slot: 1, x: 27 }, { name: "cannon-r", slot: 3, x: 34 }],
-  plates: [{ name: "plate-a", x: 17, width: 6 }, { name: "plate-b", x: 27, width: 3 },
-    { name: "plate-d", x: 34, width: 3 }, { name: "plate-e", x: 41, width: 6 }],
+  // fix/r4-immobile (the owner's answer 2, option 3): the cannons two cells
+  // wide, hugging the core, so their beams meet the lens's - x 108-136 under
+  // fire without a hole (the 3-wide towers left x 116 and 128-132, refuges in
+  // reach of the core's endgame on a still band).
+  emitters: [{ name: "cannon-l", slot: 1, x: 28, width: 2 }, { name: "cannon-r", slot: 3, x: 33, width: 2 }],
+  plates: [{ name: "plate-a", x: 17, width: 6 }, { name: "plate-b", x: 28, width: 2 },
+    { name: "plate-d", x: 33, width: 2 }, { name: "plate-e", x: 41, width: 6 }],
   // The open guns' bays: no hull under or beside them below the deck, so the
   // gun hangs in a recess and reads as open (decisions N and O).
   bays: [[24, 26], [37, 39]],
   // The struts between the blocks' belt plates, and their feet on the belt row;
-  // 33 the core's right flank (the core is three cells wide).
+  // the walls beside the cannons, down to the belt (fix/r4-immobile: 27 left,
+  // 35-36 right - the core is three cells wide, the ship's centre between 31
+  // and 32).
   struts: [23, 40],
-  flank: 33,
+  flank: [27, 35, 36],
 });
 
 // --- the pictures ------------------------------------------------------------
@@ -537,7 +543,7 @@ function moduleCells() {
   add(L.lens.x, L.lens.row, L.lens.width, 1);
   for (const s of L.spires) add(s.x, 0, 2, 4);
   for (const g of L.guns) add(g.x, 1, 3, 2);
-  for (const e of L.emitters) add(e.x, 1, 3, 3);
+  for (const e of L.emitters) add(e.x, 1, e.width, 3);
   for (const p of L.plates) add(p.x, 4, p.width, 1);
   return cells;
 }
@@ -546,6 +552,18 @@ export function drawRegion4() {
   const L = R4_LAYOUT;
   const emitterPng = fs.readFileSync(path.join(regionOne, "emitter.png"));
   const [rest, , , emitterCracked, emitterBroken] = decodePanels(emitterPng, 5, 12, 24);
+  // fix/r4-immobile: the cannons' tower two cells wide - region 1's without
+  // its outer flanges (columns 0-1 and 10-11), its lens across the cells'
+  // boundary where the beam leaves; the heat and the damage stages change
+  // only the lens cell (the right cell's bottom row, the converter's rule),
+  // so the left cell keeps the rest look in every panel.
+  const narrow = decodePanels(emitterPng, 5, 12, 24).map((panel) => panel.map((line) => line.slice(2, 10)));
+  for (const panel of narrow.slice(1)) {
+    for (let y = 16; y < 24; y += 1) panel[y] = narrow[0][y].slice(0, 4) + panel[y].slice(4);
+  }
+  const narrowCanvas = new Canvas(5 * 8, 24);
+  narrow.forEach((panel, i) => narrowCanvas.draw(panel, i * 8, 0));
+  const narrowPng = narrowCanvas.png();
   const extras = fs.readFileSync(path.join(regionOne, "extras.png"));
   const extrasPanels = decodePanels(extras, 15, 4, 8);
   const taken = moduleCells();
@@ -577,8 +595,10 @@ export function drawRegion4() {
     // Row 4: the belt's feet under the struts, the octagon's lower corners.
     for (const c of L.struts) hull(HULL.strutFoot, c, 4);
     // The core's right flank: the wall beside the core, its foot on the belt.
-    for (let r = 1; r <= 3; r += 1) hull(r === 3 ? HULL.wallFoot : HULL.wall, L.flank, r);
-    hull(HULL.strutFoot, L.flank, 4);
+    for (const c of L.flank) {
+      for (let r = 1; r <= 3; r += 1) hull(r === 3 ? HULL.wallFoot : HULL.wall, c, r);
+      hull(HULL.strutFoot, c, 4);
+    }
     hull(HULL.cornerFootLeft, L.hull.from, 4);
     hull(HULL.cornerFootRight, L.hull.to, 4);
     // The gantries from the hull's ends to the spires (rows 1-2).
@@ -588,7 +608,8 @@ export function drawRegion4() {
     for (const s of L.spires) canvas.draw(SPIRE[stage], s.x * CELL_W, 0);
     for (const g of L.guns) canvas.draw(GUN[stage], g.x * CELL_W, CELL_H);
     const tower = stage === "cracked" ? emitterCracked : stage === "broken" ? emitterBroken : rest;
-    for (const e of L.emitters) canvas.draw(tower, e.x * CELL_W, CELL_H);
+    const narrowTower = narrow[stage === "cracked" ? 3 : stage === "broken" ? 4 : 0];
+    for (const e of L.emitters) canvas.draw(narrowTower, e.x * CELL_W, CELL_H);
     for (const p of L.plates) canvas.draw(platePicture(PLATE[stage], p.width), p.x * CELL_W, 4 * CELL_H);
     // The core's lens: its housing in every stage, the tower's lens cell at
     // its centre (the stage's own: rest, cracked, broken).
@@ -605,7 +626,7 @@ export function drawRegion4() {
   return {
     pngs: {
       band: images.band.png(), open: images.open.png(), cracked: images.cracked.png(),
-      broken: images.broken.png(), extras, emitter: emitterPng,
+      broken: images.broken.png(), extras, emitter: narrowPng,
     },
   };
 }

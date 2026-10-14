@@ -1331,6 +1331,14 @@ static unsigned dfsummary_stats[12], dfsummary_kills, dfsummary_shots, dfsummary
 static unsigned dfsummary_entry_kills, dfsummary_entry_shots, dfsummary_failures;
 static UBYTE dfsummary_slots[5];
 static unsigned dfsummary_slot_frame[5], dfsummary_frame_counter, dfsummary_cancelled;
+/* fix/interceptor-speed (the owner's answer Q6a of 2026-10-14): the level-end
+ * summary's shots are counted where the game counts them - the game's
+ * stats_scan, once a frame on the publication path (src/hybrid/sector-reader.s).
+ * The observer still counts every allocation itself, and snapshots its counters
+ * at each stats_scan entry; the level-end record takes the snapshot. A shot
+ * allocated on the boss's hand-off frame after the frame's scan was counted
+ * here and never by the game (MEASURED: director-complete-1, 627 against 626). */
+static unsigned dfsummary_stats_scan, dfsummary_scan_shots, dfsummary_scan_cancelled;
 static unsigned dfsummary_entry_cancelled;
 static UBYTE dfsummary_first_screen[DFSUMMARY_ROWS * 40u];
 #define DFSUMMARY_ENTRY_ROWS 24u
@@ -1383,6 +1391,7 @@ static void dfsummary_init(void)
 		dfsummary_env("DFTRACE_BOSS_FLAG");
 	dfsummary_projectile_active = dfsummary_env("DFSUMMARY_PROJECTILE_ACTIVE");
 	dfsummary_frame_counter = dfsummary_env("DFSUMMARY_FRAME_COUNTER");
+	dfsummary_stats_scan = dfsummary_env("DFSUMMARY_STATS_SCAN");
 }
 
 static void dfsummary_hex(const UBYTE *bytes, unsigned length)
@@ -1462,6 +1471,10 @@ static void dfsummary_observe(unsigned pc)
 			++dfsummary_cancelled;
 		dfsummary_slots[slot] = active;
 	}
+	if (pc == dfsummary_stats_scan) {
+		dfsummary_scan_shots = dfsummary_shots;
+		dfsummary_scan_cancelled = dfsummary_cancelled;
+	}
 	/* The module's own addresses count only once the reader has read it in:
 	 * before that, $0500-$06FF is the boot splash's code. */
 	resident = MEMORY_mem[dfsummary_resident_flag & 0xffffu] != 0u;
@@ -1479,8 +1492,8 @@ static void dfsummary_observe(unsigned pc)
 		dfsummary_stats[10] = MEMORY_mem[0x4ff8u] | ((unsigned) MEMORY_mem[0x4ff9u] << 8);
 		dfsummary_stats[11] = MEMORY_mem[0x008du] | ((unsigned) MEMORY_mem[0x008eu] << 8);
 		dfsummary_entry_kills = dfsummary_kills;
-		dfsummary_entry_shots = dfsummary_shots;
-		dfsummary_entry_cancelled = dfsummary_cancelled;
+		dfsummary_entry_shots = dfsummary_kind ? dfsummary_scan_shots : dfsummary_shots;
+		dfsummary_entry_cancelled = dfsummary_kind ? dfsummary_scan_cancelled : dfsummary_cancelled;
 		memset(dfsummary_first_screen, 0, sizeof(dfsummary_first_screen));
 		memcpy(dfsummary_entry_screen, &MEMORY_mem[0x4000u], sizeof(dfsummary_entry_screen));
 		dfsummary_entry_dlist = ANTIC_dlist;
@@ -1492,6 +1505,7 @@ static void dfsummary_observe(unsigned pc)
 		if (dfsummary_kind == 0u) {
 			/* A new game: the observer's counters start with it. */
 			dfsummary_kills = dfsummary_shots = dfsummary_cancelled = 0u;
+			dfsummary_scan_shots = dfsummary_scan_cancelled = 0u;
 		}
 	}
 	if (!dfsummary_open)
@@ -3653,7 +3667,14 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * while damaged, so its first laser contact meets ten units. The
 		 * shorter road brought the fighter into the boss at health 3 after a
 		 * Bomber hit (MEASURED: 10 -> 3 at 2,606, the beam at 3,166). */
-		unsigned whole = MEMORY_mem[dftrace_broad_state + 29u] == 10u;
+		/* fix/interceptor-speed (class (a), the owner's answer Q6b of
+		 * 2026-10-14): and no shield running (the pickup booster's state 5,
+		 * WEAPON_PICKUP_STATE_SHIELD): a shield absorbs the beam's call, so a
+		 * shielded first contact meets no ten units (MEASURED: a shield
+		 * picked up in the boss sector at 3,811, the beam's call at 3,952,
+		 * health 3 -> 3). */
+		unsigned whole = MEMORY_mem[dftrace_broad_state + 29u] == 10u &&
+			MEMORY_mem[dftrace_entity_state + 2u] != 5u;
 		if (whole && dftrace_boss_active() && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u &&
 			MEMORY_mem[dftrace_player_lifecycle] == 0u &&
 			MEMORY_mem[dftrace_broad_state + 30u] == 0u) {
@@ -3744,9 +3765,11 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			 * Debris is entity slot 0; the Director's STATE_FLAGS ($80FE,
 			 * BOSS_DUE $20) is eight bytes after STATE_SECTOR
 			 * (src/c/director.c). This policy only: no other replay moves. */
-			if (dftrace_director_sector != 0u &&
-				(MEMORY_mem[dftrace_director_sector + 8u] & 0x20u) != 0u &&
-				(MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u &&
+			/* fix/interceptor-speed (class (a), Q6b): on the whole road, not
+			 * only while the boss is due - the quicker Interceptors moved the
+			 * road, and a piece met the fighter in sector 4 (MEASURED: 10 -> 3
+			 * at 2,743), so it came to the boss damaged. */
+			if ((MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u &&
 				MEMORY_mem[dftrace_entity_y] < y) {
 				int dx = (int) MEMORY_mem[dftrace_entity_x] - (int) x - 4;
 				if (dx > -24 && dx < 24) {
@@ -3760,7 +3783,12 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			else if (threat > 0)
 				stick = x < 196u ? 0x07u : 0x0bu;
 			/* Damaged: out from under any warning or running beam (its span
-			 * is hpos - 2 .. hpos + 1 against the 8-HPOS envelope). */
+			 * is hpos - 2 .. hpos + 1 against the 8-HPOS envelope).
+			 * fix/interceptor-speed (class (a), Q6b): or shielded (`whole`
+			 * above); and the escape runs to the ship's own limits (48 / 200,
+			 * PLAYER_X_MIN / MAX) - at x 60 with the beam's span at 67 the old
+			 * 60 / 196 margins sent the ship right, through the beam
+			 * (MEASURED at 3,952). */
 			if (!whole && dftrace_boss_active() && dftrace_laser_state != 0u &&
 				dftrace_laser_hpos != 0u) {
 				for (laser = 0u; laser < 4u; ++laser) {
@@ -3768,7 +3796,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 					int dx = (int) MEMORY_mem[dftrace_laser_hpos + laser] - 2 - (int) x;
 					if ((state == 1u || state == 2u) &&
 						MEMORY_mem[dftrace_laser_hpos + laser] != 0u && dx > -16 && dx < 16)
-						stick = dx >= 0 ? (x > 60u ? 0x0bu : 0x07u) : (x < 196u ? 0x07u : 0x0bu);
+						stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
 				}
 			}
 		}

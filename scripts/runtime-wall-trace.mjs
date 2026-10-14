@@ -1836,6 +1836,7 @@ function summaryTraceEnvironment(inputDirectory, labels) {
     DFSUMMARY_SCORE_DEBRIS: address(labels, "add_debris_score"),
     DFSUMMARY_PROJECTILE_ACTIVE: address(labels, "FIGHTER_PROJECTILE_ACTIVE"),
     DFSUMMARY_FRAME_COUNTER: address(labels, "frame_counter"),
+    DFSUMMARY_STATS_SCAN: address(reader, "stats_scan"),
   };
 }
 

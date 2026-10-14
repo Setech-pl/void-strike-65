@@ -38,7 +38,7 @@ import {
 } from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { compileLevelFile, levelSourcePath } from "./level-compiler.mjs";
-import { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
+import { BOSS_TABLE, BOSS_TABLES_ADDRESS, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
   reportAudits as reportPalTimingAudits, auditsPassed as palTimingAuditsPassed,
@@ -4219,6 +4219,9 @@ function main() {
       // S5-4: the level id (which region's code is in slot F) and region 4's
       // gravity well's state, when the disk carries it.
       addressEnvironment.DFTRACE_BOSS_LEVEL_ID = `0x${(bossLabels.get("_boss_level") + 3).toString(16)}`;
+      // fix/r4-immobile: the region's motion byte, so the boss-aim policy
+      // leads its aim only for a drifting band (region 4 is still).
+      addressEnvironment.DFTRACE_BOSS_MOTION_STEP = `0x${(BOSS_TABLES_ADDRESS + BOSS_TABLE.framesPerStep).toString(16)}`;
       if (bossLabels.has("gravity_on")) {
         addressEnvironment.DFTRACE_GRAVITY_ON = hex(bossLabels, "gravity_on");
         addressEnvironment.DFTRACE_GRAVITY_COLUMN = hex(bossLabels, "boss_m0_hpos");

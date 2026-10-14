@@ -22,7 +22,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
+import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
 
 export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
@@ -152,9 +152,15 @@ export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
   for (const s of [[], [spires[0]], [spires[1]], spires]) {
     for (let mask = 0; mask < (1 << plates.length); mask += 1) deadSets.push([...s, ...plates.filter((_, b) => (mask >> b) & 1)]);
   }
+  // fix/r4-immobile: the band positions the region's motion can show - five
+  // across the travel for a drifting band, the start alone for a still one
+  // (BOSS_TABLE framesPerStep 0; the tables at $AD00 after the entry).
+  const table = (offset) => entry.memory[0xad00 + offset];
+  const positions = table(BOSS_TABLE.framesPerStep) === 0
+    ? [table(BOSS_TABLE.start)] : [0, 16, 32, 48, 63];
   const cases = [];
   for (const laserMode of ["warn", "beam"]) {
-    for (const p of [0, 16, 32, 48, 63]) {
+    for (const p of positions) {
       for (const dead of deadSets) {
         const base = entered();
         placeBand(base, p);

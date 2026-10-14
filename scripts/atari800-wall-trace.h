@@ -965,6 +965,10 @@ static unsigned dftrace_field_half;
  * field's and the well's code share BOSS_F_HOOK ($526E): each is watched only
  * in its own region (optional: 0 disables). */
 static unsigned dftrace_boss_level_id;
+/* fix/r4-immobile: the region's motion table byte (frames per colour clock;
+ * 0 = a still band) - the boss-aim policy leads its aim only for a drifting
+ * band (optional: 0 keeps the lead, the drifting regions' path). */
+static unsigned dftrace_boss_motion_step;
 static unsigned dftrace_gravity_on;
 static unsigned dftrace_gravity_column;
 static unsigned dftrace_field_from;
@@ -3821,7 +3825,8 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * the band's foot (line 88), and the band drifts one colour clock every
 		 * 2 frames meanwhile (region 1's motion), turning at 0 and 63 - so aim
 		 * at where the band will be when the shot arrives. */
-		int lead = y > 88u ? (int) ((y - 88u) / 6u) / 2 : 0;
+		int lead = y > 88u && (dftrace_boss_motion_step == 0u ||
+			MEMORY_mem[dftrace_boss_motion_step] != 0u) ? (int) ((y - 88u) / 6u) / 2 : 0;
 		int future, dir;
 		unsigned p;
 		if (now_p > dftrace_aim_last_p) dftrace_aim_dir = 1;
@@ -7390,6 +7395,7 @@ static void dftrace_init(void)
 	dftrace_field_row_cells = dftrace_env_optional("DFTRACE_FIELD_ROW_CELLS");
 	dftrace_field_code = dftrace_env_optional("DFTRACE_FIELD_CODE");
 	dftrace_boss_level_id = dftrace_env_optional("DFTRACE_BOSS_LEVEL_ID");
+	dftrace_boss_motion_step = dftrace_env_optional("DFTRACE_BOSS_MOTION_STEP");
 	dftrace_gravity_on = dftrace_env_optional("DFTRACE_GRAVITY_ON");
 	dftrace_gravity_column = dftrace_env_optional("DFTRACE_GRAVITY_COLUMN");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");

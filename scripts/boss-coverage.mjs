@@ -59,6 +59,9 @@ const LASER_DEFAULTS = Object.freeze({ warning: { easy: 40, medium: 32, hard: 25
 // The band position, frame by frame, over one drift cycle (boss_motion).
 export function driftCycle(motion) {
   const framesPerStep = motion.framesPerColourClock;
+  // fix/r4-immobile: a still band (0 frames per colour clock) shows its start
+  // position for the whole fight - one phase.
+  if (framesPerStep === 0) return [motion.startColourClock];
   const travel = motion.travelColourClocks;
   let p = motion.startColourClock;
   let dir = 1;

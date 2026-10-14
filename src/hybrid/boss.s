@@ -3606,6 +3606,32 @@ gravity_frame:
     ora _boss_hp + GRAVITY_SPIRE_R
     beq gravity_off                     ; both spires fallen: off for good
     inc gravity_on
+    ; The axis's laser (core-lens): covered by the spires, so untouchable while
+    ; the well is on - and still firing, its reload counted here (laser_rearm
+    ; counts an exposed emitter's only). Ready at 0: laser_admit starts it as
+    ; any other; laser_frame runs its warning and beam (the lens alive).
+    ldx #GRAVITY_AXIS_LASER
+    lda boss_laser_state,x
+    ora boss_laser_ready,x
+    bne @armed
+    ldy boss_laser_module,x
+    lda _boss_hp,y
+    beq @armed                          ; the lens destroyed (not while covered)
+    lda boss_laser_reload_lo,x
+    ora boss_laser_reload_hi,x
+    beq @ready
+    lda boss_laser_reload_lo,x
+    bne :+
+    dec boss_laser_reload_hi,x
+:
+    dec boss_laser_reload_lo,x
+    bne @armed
+    lda boss_laser_reload_hi,x
+    bne @armed
+@ready:
+    lda #$01
+    sta boss_laser_ready,x
+@armed:
     lda boss_laser_state + GRAVITY_AXIS_LASER
     cmp #LASER_BEAM
     beq @pulse                          ; the axis firing: its beam is the column

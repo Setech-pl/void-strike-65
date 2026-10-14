@@ -91,8 +91,11 @@ export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
   }
   // The well's worst frame: its step due and the core's pulse asked, the
   // ship at the screen's left limit (far from the target, so it steps).
+  // R4_STRESS_NO_WELL=1: the well's step and pulse not forced on the meeting
+  // frame (the well's own share of the worst frame, for the M6 reclaim list).
+  const forceWell = process.env.R4_STRESS_NO_WELL !== "1";
   function well(m) {
-    if (!gravity) return;
+    if (!gravity || !forceWell) return;
     m[lbl("gravity_timer")] = 1;
     m[lbl("gravity_pulse")] = 1;
     m[PLAYER_X] = 48;

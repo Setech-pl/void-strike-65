@@ -31,7 +31,7 @@ import test from "node:test";
 import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "../scripts/boss-assets.mjs";
 import { BOSS_DEF_LASER_WARNING_OFFSET } from "../scripts/level-compiler.mjs";
 import { atariPalRegisterToRgb } from "../scripts/preview.mjs";
-import { call, includeConstants, label, manifest, nmi, placeBand, root, runBossEntry } from "./boss-harness.mjs";
+import { call, includeConstants, label, manifest, nmi, placeBand, root, runBossEntry, shootAt } from "./boss-harness.mjs";
 
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -47,9 +47,10 @@ test("region 4 is the Void Citadel from its own draft: the layout, the hit point
   assert.equal(region4.name, "Void Citadel");
   const hp = Object.fromEntries(region4.modules.map((module) => [module.name, module.hp]));
   // Phase B's tuning (plan s5-boss-regions §6.4.7): the spires and cannons first,
-  // then the spires one column inward (the owner's standing answer).
+  // then the spires one column inward (the owner's standing answer), then the
+  // end phase (the core, its lens) for HARD - 91.8 / 102.2 / 158.3 s.
   assert.deepEqual(hp, {
-    "spire-l": 6, "spire-r": 6, core: 16, "core-lens": 14, "cannon-l": 10, "cannon-r": 10,
+    "spire-l": 6, "spire-r": 6, core: 12, "core-lens": 10, "cannon-l": 10, "cannon-r": 10,
     "gun-1": 7, "gun-2": 7, "gun-3": 7, "gun-4": 7, "gun-5": 7, "gun-6": 7,
     "plate-a": 6, "plate-b": 6, "plate-d": 6, "plate-e": 6,
   });
@@ -268,6 +269,32 @@ test("owner answer 4: the axis is danger - the pull's rest x is inside the axis 
   const edge = AXIS - 2 - memory[lbl("boss_shown_pos")];
   const x = memory[X()];
   assert.ok(edge - x >= -3 && edge - x <= 7, `rest x ${x}, beam edge ${edge}: no refuge on the axis`);
+});
+
+test("the axis beam fires while the well is on, and the core's lens takes no damage while a spire stands", () => {
+  assert.ok(hasWell, "the boss link has no gravity well (region 4's block code)");
+  const memory = citadel();
+  memory[X()] = 60;
+  const lens = index("core-lens");
+  const laser = region4.modules[lens].slot - 1;       // slot k is laser k - 1
+  const hp0 = HP(memory, "core-lens");
+  let warned = null, fired = null;
+  for (let f = 0; f < 400 && fired === null; f += 1) {
+    frame(memory);
+    const state = memory[lbl("boss_laser_state") + laser];
+    if (state === 1 && warned === null) warned = f;
+    if (state === 2) fired = f;
+  }
+  assert.ok(warned !== null && fired !== null && fired > warned, `the lens warned on ${warned}, fired on ${fired}`);
+  const exposed = memory[lbl("_boss_exposed_lo")] | (memory[lbl("_boss_exposed_hi")] << 8);
+  assert.equal((exposed >> lens) & 1, 0, "the lens is covered (the spires) while it fires");
+  // A shot into the lens's centre column is absorbed: no hit point lost.
+  const m = citadel();
+  m[X()] = 60;
+  for (const slot of [0, 1]) shootAt(m, 31, slot);
+  for (let f = 0; f < 8; f += 1) frame(m);
+  assert.equal(HP(m, "core-lens"), hp0, "the lens took damage while covered");
+  assert.equal(m[main("FIGHTER_PROJECTILE_ACTIVE")], 0, "the shot was not stopped");
 });
 
 test("fairness: leaving the axis beam's window against the pull and the drift leaves >= 10 warning frames on every difficulty", () => {

@@ -3,9 +3,9 @@
 **Status:** S5-1 implemented on `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`
 (§6.1); **S5-2 implemented on `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`
 (§6.2)**; **S5-3 implemented on `feat/boss-region-3`, `OWNER-SMOKE CANDIDATE`
-(§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. **S5-4 Phase A on `feat/boss-region-4`
-(§6.4): the Void Citadel and its gravity well as review variants, waiting for
-the owner's choice.** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+(§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. **S5-4 Phase A and A-2 on `feat/boss-region-4`
+(§6.4, §6.4.6): the Void Citadel, its gravity well, the cannons beside the core
+and the gravity column as review variants, waiting for the owner's look.** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -1518,6 +1518,134 @@ Phase B starts on the owner's answers: tests first (RED on `main`), the
 chosen well as region 4's in every build (`--r4-variant` removed), the hit
 points tuned, region 4's route sessions with the well's clauses, the
 evidence regenerated.
+
+#### 6.4.6 Phase A-2 — laser cannons beside the core, the gravity column (the owner's smoke of 2026-10-14)
+
+**The owner's finding:** the pull works but is no threat, and a player cannot
+see what is happening. Asked for: (1) laser cannons directly beside the core,
+tougher than guns, behind the belt, so the pull drags the ship into their
+fire; (2) a bright gravity column under the core while the well is on, from
+the band down, following the drift, never in a laser's colour register, one
+of P1 / P2 kept free for the M6 VOID LANCE; stress under 8,500; no resident
+bytes. Standing answers for after this look are recorded in the brief (G1, the
+scanline fix, the palette, the tuning rule, the spires' rule).
+
+**Recommendation first.** The **straight shimmer column** (`g1s`): it reads
+at once, costs 72 native on the worst frame (8,414 / 8,500) and keeps the
+boss frames' margin ≥ 7,189; the wave (`g1w`) undulates and reads as a gravity
+field, at 8,395 on the stress frame but ≈ 1,500–2,000 of margin on every quiet
+frame it redraws (worst 5,675). Both use **missile M0**; P1 and P2 stay free.
+
+**The cannons (data, `assets/graphics/boss-regions/region-4/`).** `cannon-l`
+27–29 (slot 1) and `cannon-r` 34–36 (slot 2) hug the core, region 1's
+projector tower, 12 HP (guns 6), each behind its own belt plate (plate-b
+27–29, plate-d 34–36 — the belt under the core is now continuous, 27–36);
+the open guns stand where the inner emitters were (gun-2 22–24, gun-3 39–41);
+emitters 3 and 4 and the outer guns behind plates a and e. 16 modules, 108
+codes, every stage with PF2 (`build/play/s5-4-a2-stages.png`).
+**How they fire:** each cannon its own laser (slots 1 and 2), the four lasers
+of decision AC on levels 10–12, at most two warning or firing at once
+(`LASER_MAX_ON`), the existing rotation — 0 B. Why: AC's count stays four (a
+twin pair would make it three), and the two cannons' beams are 7 columns (28
+colour clocks) apart, so with both on there is a safe corridor of 17 positions
+between them — exactly where the well's rest point (the ship under the core)
+lies: the pull holds the ship in the eye and drags it **across** a cannon's
+beam whenever it comes back from the sides.
+
+**Fairness (S, the game's steps):** a beam endangers 11 positions of x; any
+two beams are ≥ 28 clocks apart (cannon to cannon; cannon to emitter 36), so a
+safe spot is never more than 11 clocks away. Escaping against both the pull
+(G1) and the band's drift: **10 frames** at worst — EASY 40 → **30 left**,
+MEDIUM 32 → **22 left**, HARD 25 → **15 left**.
+
+**The PMG audit (file:line at `57933dc`).**
+
+| Object | Register | In region 4's boss sector |
+| --- | --- | --- |
+| P0 | COLPM0 = `$0E` white (`src/main.s:579`; the shield booster pulses `$84`, `:585`, `:11490`) | the ship |
+| **M0** | **COLPM0** (the ship's) | **the gravity column** (was parked, `src/hybrid/boss.s` `b2_prepare`) |
+| P1, P2 | COLPM1 / COLPM2 — written every frame for the beams (`laser_publish`, `b2_prepare`) | **free** (the M6 VOID LANCE: either; the column uses neither) |
+| M1, M2 | COLPM1 / COLPM2 = `$46`, white flicker in a warning | the laser beams |
+| P3 | COLPM3 = gold `$1C` | the capsule (and the death fire's colours) |
+| M3 | COLPM3 | parked |
+| PRIOR | `$00` (never written in the boss sector; no fifth player) | — |
+| collision registers | never read (`M0PL`/`P0PL` defined only, `src/main.s:96-100`) | — |
+
+**No PMG object has a colour register of its own**: P1 / P2 are the beams'
+(region 3's problem), P3 / M3 the capsule's gold, P0 / M0 the ship's white.
+M0 was chosen: white as asked, no laser register; its price is that it wears
+the ship's colour — where the ship sits in the column their pixels merge, and
+with the shield booster on the column pulses blue with the ship. The
+alternative is **M3** in the capsule's gold (the same code, one register
+apart) — not white.
+
+**The column (region 4's block code + 2 B of slot D + 8 B of slot E).** M0's
+bits from line 64 (the first line under the band) to 239, in the missile
+bytes the beams share (M0's bits only); `HPOSM0` centred under the core as the
+band shows it (published by the band DLI's phase 0, like the beams: slot D's
+`laser_publish` ends in a jump to slot E's `boss_m0_publish`); off screen (0)
+whenever the pull is off — dying, respawning, the chain, both spires down.
+Drawn a slice (22 lines) a quiet frame, never on a kill or exposure frame: a
+one-time 176-line draw cost the first fight frame 2,500–7,000 of margin
+(MEASURED, then fixed, `d58ca03`).
+* **Shimmer (`g1s`):** quad (8 clocks) and double (4 clocks) width by 4-frame
+  halves, re-centred.
+* **Wave (`g1w`):** an S-bend over 16 lines (M0's left / both / right halves
+  at quad width), one line in eight rewritten each quiet frame, the bend moving
+  2 lines down every 8 frames.
+
+**Measurements (M, MEASURED unless marked; t1 hit points, the cannons 12).**
+
+| | G1 (A, no column) | **G1 + shimmer** | G1 + wave | label |
+| --- | ---: | ---: | ---: | --- |
+| region 4's block / sectors | 228 B / 2 | **353 B / 3** | 342 B / 3 | manifest |
+| slot D / slot E | 1,661 (13) / 496 (4) | 1,663 (13) / 504 (4) | 1,663 (13) / 504 (4) | manifest |
+| boss entry, host frames / sectors | 253 / 66 | **257 / 67** | 257 / 67 | M (limit 280) |
+| stress, worst reachable warn / beam (8,500) | 8,338 / 7,605 (cannons in) | **8,414** / 7,681 | 8,395 / 7,662 | M-N |
+| … finale warn / beam | 7,652 / 6,920 | 7,728 / 6,996 | 7,709 / 6,977 | M-N |
+| … headroom to 8,500 (M6 VOID LANCE) | 162 | **86** | 105 | M-N |
+| frames with a kill and a spawn | 0 | 0 | 0 | M-N |
+| fight E / M / H (s) | — | 117.9 / 139.9 / 217.1 | identical (the column is visual only) | R |
+| hits on the bot E / M / H (laser) | — | 5 (1) / 4 (1) / 22 (2) | identical | M |
+| … of them under the pull | — | 4 / 3 / 19 | identical | M |
+| escorts E / M / H | — | 16 / 18 / 25 | identical | M |
+| boss frames worst margin E / M / H | — | **9,593 / 9,239 / 7,189** | 7,999 / 7,665 / 5,675 | M |
+| … DMA-on max E / M / H | — | 29,917 / 30,509 / 30,365 | 30,023 / 30,508 / 30,429 | M |
+| left edge (`boss-park-left-1`) | — | 18 hits | 18 hits | M |
+| worst beam escape, frames left E / M / H | 30 / 22 / 15 | 30 / 22 / 15 | 30 / 22 / 15 | S |
+| P1 / P2 | free | free | free | audit |
+
+The cannons made the fight longer (MEDIUM 108.8 → 139.9 s, HARD 217 s) —
+Phase B's tuning (standing answer: the spires' hit points first, then the
+spires one column inward if EASY stays longer than MEDIUM). **`region-4-diag-*`
+(the plain sweep) never reach the spires** — the chain clause fails on the
+debug route as region 3's did before Phase B moved them to the aiming bot;
+Phase B does the same for region 4.
+
+**Review builds (`build/play/`, `atari800 -xl -pal -nobasic <absolute path>`).**
+
+| ATR | SHA-256 (prefix) | What |
+| --- | --- | --- |
+| `s5-4-a2-r4-g1s-boss-route.atr` | `49a344e26df6aced` | **the shimmer column**, the cannons, G1 — entered at the boss |
+| `s5-4-a2-r4-g1w-boss-route.atr` | `52ed04d6fe92e54c` | the wave column |
+| `s5-4-a2-r4-g1s-level-route.atr` | `01d2c5a050244348` | level 1's content as level 10, then the boss (shimmer) |
+| `s5-4-a2-r4-g1w-level-route.atr` | `b756661f77db4650` | the same, wave |
+
+Contact sheets from the emulator (Atari800 frames, `DFTRACE_SHOT_*`):
+`s5-4-a2-column-shimmer-sheet.png`, `s5-4-a2-column-wave-sheet.png` (32
+consecutive frames each, cropped round the column; the core's heartbeat shows
+in frames 5–7), `s5-4-a2-column-shimmer-wide.png`, and
+`s5-4-a2-shimmer-beside-cannon.png` / `s5-4-a2-wave-beside-cannon.png`
+(cannon-l's warning line beside the column, 16 frames). Previews:
+`s5-4-a2-band-preview.png`, `s5-4-a2-stages.png`, `s5-4-a2-plates-gone.png`.
+
+**Owner questions (A-2).**
+
+| # | Question | Recommended | Alternative |
+| ---: | --- | --- | --- |
+| A2-1 | The column's look | **the shimmer** (cheap, readable, margin ≥ 7,189) | the wave (reads as a field; margin ≥ 5,675, 19 more native of stress headroom) |
+| A2-2 | The column's register | **M0 (the ship's white)** — as asked, no laser register; the ship merges with it where it sits in the column, and it pulses with the shield | M3 in the capsule's gold (same bytes; not white) |
+| A2-3 | The cannons' fire | **independent, four lasers, two at once (AC)** — the corridor between the cannons is the well's eye | the cannons as a twin pair (one laser between them; levels 10–12 then have three) |
 
 ---
 

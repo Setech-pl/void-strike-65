@@ -11,8 +11,8 @@
     "colpf3": 98
   },
   "motion": {
-    "_": "As region 1: one colour clock every 2 frames across 63 and back, from 32; the window shows band columns 4-59 over the travel.",
-    "framesPerColourClock": 2,
+    "_": "fix/r4-immobile (the owner's smoke of the Void Citadel: the drift with the gravity well was a mishmash): still - 0 frames per colour clock, the band at position 32 for the whole fight, the ship (columns 14-49) centred on screen; the win's shake stays.",
+    "framesPerColourClock": 0,
     "travelColourClocks": 63,
     "startColourClock": 32,
     "shakeFrames": 24,
@@ -41,8 +41,8 @@
     "beamFrames": 50
   },
   "gravity": {
-    "_": "S5-4 (owner decisions of 2026-10-13 / 2026-10-14): the gravity well. While either spire stands, in the fight, the ship alive, the ship steps 2 colour clocks towards the axis every framesPerStep frames (G1); the core pulses (its hit flash) every pulseFrames; the gravity column (missile M0, white) shows the axis from the band down, an S-wave moving waveStep lines every 8 frames, flaring in the axis's warning, giving way to its beam. The axis is core-lens's beam: the well pulls the ship into its danger (owner answer 4). Both spires destroyed: the pull, the pulse and the column stop at once.",
-    "framesPerStep": 8,
+    "_": "S5-4 (owner decisions of 2026-10-13 / 2026-10-14): the gravity well. While either spire stands, in the fight, the ship alive, the ship steps 2 colour clocks towards the axis every framesPerStep frames (G1); the core pulses (its hit flash) every pulseFrames; the gravity column (missile M0, white) shows the axis from the band down, an S-wave moving waveStep lines every 8 frames, flaring in the axis's warning, giving way to its beam. The axis is core-lens's beam: the well pulls the ship into its danger (owner answer 4). Both spires destroyed: the pull, the pulse and the column stop at once. fix/r4-immobile: G1+ - 2 colour clocks every 6 frames (the owner: one step stronger than G1).",
+    "framesPerStep": 6,
     "pulseFrames": 16,
     "waveStep": 2,
     "spires": ["spire-l", "spire-r"],
@@ -50,14 +50,14 @@
     "axis": "core-lens"
   },
   "nozzles": {
-    "_": "The citadel's vents: one cell each side in the hull's side, at its foot, pointing at the spire (region 1's nozzle phases) - nothing floats once a spire has fallen.",
-    "left": [[14, 3]],
-    "right": [[49, 3]],
+    "_": "fix/r4-immobile (the owner: remove the engines): none on the band - a still citadel has no drive; the converter still gives the two nozzle codes their phases (unseen).",
+    "left": [],
+    "right": [],
     "framesPerPhase": 6
   },
   "modules": [
-    { "name": "spire-l", "kind": "salvo", "x": 12, "row": 0, "width": 2, "height": 4, "hp": 6, "score": 80, "reload": 110, "cavityRows": 0 },
-    { "name": "spire-r", "kind": "salvo", "x": 50, "row": 0, "width": 2, "height": 4, "hp": 6, "score": 80, "reload": 110, "cavityRows": 0 },
+    { "name": "spire-l", "kind": "salvo", "x": 14, "row": 0, "width": 2, "height": 4, "hp": 6, "score": 80, "reload": 110, "cavityRows": 0 },
+    { "name": "spire-r", "kind": "salvo", "x": 48, "row": 0, "width": 2, "height": 4, "hp": 6, "score": 80, "reload": 110, "cavityRows": 0 },
     { "_": "The void core (owner answer 4 of 2026-10-14: 3 x 3, round on screen). It cannot be hurt while a spire or its lens stands.",
       "name": "core", "kind": "core", "x": 30, "row": 1, "width": 3, "height": 3, "hp": 12, "score": 99, "cavityRows": 3, "stages": false,
       "cover": ["core-lens", "spire-l", "spire-r"] },
@@ -67,15 +67,15 @@
     { "_": "The laser cannons beside the core (Phase A-2, the owner's smoke of 2026-10-14), each behind its own belt plate; independent (owner answer 3).",
       "name": "cannon-l", "kind": "emitter", "x": 27, "row": 1, "width": 3, "height": 3, "hp": 10, "score": 80, "slot": 1, "cavityRows": 3, "stages": "lens" },
     { "name": "cannon-r", "kind": "emitter", "x": 34, "row": 1, "width": 3, "height": 3, "hp": 10, "score": 80, "slot": 3, "cavityRows": 3, "stages": "lens" },
-    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 65, "cavityRows": 2 },
-    { "name": "gun-5", "kind": "pulse", "x": 18, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 75, "cavityRows": 2 },
-    { "name": "gun-2", "kind": "pulse", "x": 22, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 80, "cavityRows": 2 },
-    { "name": "gun-3", "kind": "pulse", "x": 39, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 85, "cavityRows": 2 },
-    { "name": "gun-6", "kind": "pulse", "x": 43, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 75, "cavityRows": 2 },
-    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 65, "cavityRows": 2 },
-    { "name": "plate-a", "kind": "armour", "x": 15, "row": 4, "width": 6, "height": 1, "hp": 6, "score": 30, "cavityRows": 0 },
+    { "name": "gun-1", "kind": "pulse", "x": 17, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 65, "cavityRows": 2 },
+    { "name": "gun-5", "kind": "pulse", "x": 20, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 75, "cavityRows": 2 },
+    { "name": "gun-2", "kind": "pulse", "x": 24, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 80, "cavityRows": 2 },
+    { "name": "gun-3", "kind": "pulse", "x": 37, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 85, "cavityRows": 2 },
+    { "name": "gun-6", "kind": "pulse", "x": 41, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 75, "cavityRows": 2 },
+    { "name": "gun-4", "kind": "pulse", "x": 44, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 65, "cavityRows": 2 },
+    { "name": "plate-a", "kind": "armour", "x": 17, "row": 4, "width": 6, "height": 1, "hp": 6, "score": 30, "cavityRows": 0 },
     { "name": "plate-b", "kind": "armour", "x": 27, "row": 4, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 0 },
     { "name": "plate-d", "kind": "armour", "x": 34, "row": 4, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 0 },
-    { "name": "plate-e", "kind": "armour", "x": 43, "row": 4, "width": 6, "height": 1, "hp": 6, "score": 30, "cavityRows": 0 }
+    { "name": "plate-e", "kind": "armour", "x": 41, "row": 4, "width": 6, "height": 1, "hp": 6, "score": 30, "cavityRows": 0 }
   ]
 }

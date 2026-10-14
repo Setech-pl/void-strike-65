@@ -356,9 +356,15 @@ if (bossVariantSlug !== undefined && !/^[a-z0-9]+$/.test(bossVariantSlug)) {
 }
 const bossVariantDirectory = bossVariantSlug === undefined
   ? null : path.join(defaultBuildDirectory, "boss-variants", bossVariantSlug);
-if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirectory, "region-1", "modules.json"))) {
-  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
-    "draft (node scripts/boss-r1-variants.mjs writes it)");
+// fix/r4-immobile: a variant may carry region 4's draft instead
+// (build/boss-variants/NAME/region-4/, scripts/boss-r4-variants.mjs); a region
+// the variant does not carry is the committed one.
+const bossVariantRegion = (region) => (bossVariantDirectory !== null &&
+  fs.existsSync(path.join(bossVariantDirectory, `region-${region}`, "modules.json"))
+  ? path.join(bossVariantDirectory, `region-${region}`) : null);
+if (bossVariantDirectory !== null && bossVariantRegion(1) === null && bossVariantRegion(4) === null) {
+  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/ has no ` +
+    "region-1/ or region-4/ draft (node scripts/boss-r1-variants.mjs / boss-r4-variants.mjs writes it)");
 }
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -1870,8 +1876,7 @@ async function build() {
   // variant that installs the laser fixture (region 1 with four uncovered
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
-  const regionOneDraft = loadBossRegionDraft(bossVariantDirectory === null
-    ? bossRegionDirectory(rootDirectory, 1) : path.join(bossVariantDirectory, "region-1"));
+  const regionOneDraft = loadBossRegionDraft(bossVariantRegion(1) ?? bossRegionDirectory(rootDirectory, 1));
   const regionOneSource = laserFixtureTier === null
     ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
   const compileRegion = (draft) => compileBossRegion(draft,
@@ -1900,7 +1905,8 @@ async function build() {
   // block (slot F) - in every build.
   const bossRegions = [1, 2, 3, 4].map((region) => (region === 1 ? regionOne
     : region === 3 || region === 4
-      ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, region)))
+      ? compileRegion(loadBossRegionDraft((region === 4 ? bossVariantRegion(4) : null) ??
+        bossRegionDirectory(rootDirectory, region)))
       : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
   const bossGravity = bossRegions[3].gravity;
   const bossField = bossRegions[2].field;

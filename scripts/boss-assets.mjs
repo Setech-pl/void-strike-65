@@ -898,9 +898,15 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // carries no flash step; an old palette.flashLuma is refused, not ignored.
   if (palette.flashLuma !== undefined) fail("palette.flashLuma: the band flash was removed (S4b.5)");
   const motion = layout.motion ?? {};
-  const framesPerStep = integerIn(motion.framesPerColourClock, 1, 255, "motion.framesPerColourClock");
+  // fix/r4-immobile (the owner's smoke of the Void Citadel): 0 frames per
+  // colour clock is a band that never drifts - the install leaves boss_dir 0
+  // (src/hybrid/boss.s); its start must then lie strictly inside the travel,
+  // where boss_motion never turns.
+  const framesPerStep = integerIn(motion.framesPerColourClock, 0, 255, "motion.framesPerColourClock");
   const travel = integerIn(motion.travelColourClocks, 1, 63, "motion.travelColourClocks");
-  const start = integerIn(motion.startColourClock, 0, travel, "motion.startColourClock");
+  const start = framesPerStep === 0
+    ? integerIn(motion.startColourClock, 1, travel - 1, "motion.startColourClock (a still band)")
+    : integerIn(motion.startColourClock, 0, travel, "motion.startColourClock");
   const shakeFrames = integerIn(motion.shakeFrames, 0, 255, "motion.shakeFrames");
   const shakeAmplitude = integerIn(motion.shakeAmplitude, 0, 3, "motion.shakeAmplitude");
   const chain = layout.chain ?? {};
@@ -950,7 +956,10 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const nozzleCells = new Map();
   for (const side of ["left", "right"]) {
     const cells = nozzles[side];
-    if (!Array.isArray(cells) || cells.length < 1) fail(`nozzles.${side} names no cell`);
+    // fix/r4-immobile: an empty list is a side with no nozzle on the band (a
+    // still boss has no drive); the engine still steps the two nozzle codes'
+    // glyphs, unseen.
+    if (!Array.isArray(cells)) fail(`nozzles.${side} is a list of cells`);
     for (const cell of cells) {
       if (!Array.isArray(cell) || cell.length !== 2) fail(`nozzles.${side}: a cell is [column, row]`);
       const [c, r] = [integerIn(cell[0], 0, 63, `nozzles.${side} column`),

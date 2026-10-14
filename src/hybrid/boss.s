@@ -3285,10 +3285,17 @@ boss_install:
     sta boss_mflash_timer
     lda #$FF
     sta boss_mflash_req
-    ; 8. The band at its start position, still.
+    ; 8. The band at its start position, still. fix/r4-immobile: a region
+    ; whose motion.framesPerColourClock is 0 never drifts - boss_dir 0, so
+    ; boss_motion adds nothing (the converter keeps its start inside
+    ; 1..travel-1, where boss_motion never turns); the win's shake stays.
     lda #$01
-    sta boss_dir
     sta boss_step_timer
+    lda BOSS_T_FRAMES_PER_STEP
+    beq :+
+    lda #$01
+:
+    sta boss_dir
     lda #$00
     sta boss_shake_timer
     lda BOSS_T_START

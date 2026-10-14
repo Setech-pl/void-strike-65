@@ -46,7 +46,12 @@ const pic = (text) => text.trim().split("\n").map((line) => line.trim());
 // rows 0 and 4); the belt is row 4. The window shows band columns 4-59 over
 // the drift; a shot reaches columns 6-59.
 export const R4_LAYOUT = Object.freeze({
-  hull: { from: 14, to: 49 },
+  // fix/r4-immobile (the owner's smoke of the Void Citadel: the drift with the
+  // well a mishmash): the band is still, so the whole ship stands on screen -
+  // the bays closed up (two empty columns each side), the hull 16-47, the ship
+  // 14-49 (36 columns) centred at band position 32, every column inside the
+  // player's shots (HPOS 56-208: columns 14-51 there).
+  hull: { from: 16, to: 47 },
   // Phase B (the owner's answer 4 of 2026-10-14): the core, 3 x 3 (round on
   // screen), fires its own beam down the gravity column from the lens under
   // it (core-lens, the belt row) - the well's axis is that beam.
@@ -56,28 +61,28 @@ export const R4_LAYOUT = Object.freeze({
   // MEDIUM with the spires at 11-12 / 51-52): one column inward, mounted on
   // the hull's sides - a module gating the fight's end does not sit at the
   // band's extreme ends.
-  spires: [{ name: "spire-l", x: 12 }, { name: "spire-r", x: 50 }],
+  spires: [{ name: "spire-l", x: 14 }, { name: "spire-r", x: 48 }],
   gantries: [],
-  // The vents: one cell each side in the hull's side, at its foot, pointing at
-  // the spire - nothing floats once a spire has fallen.
-  nozzles: { left: 14, right: 49, rows: [3] },
+  // fix/r4-immobile: no vents - a still citadel has no drive (the owner's
+  // "remove the engines").
+  nozzles: { left: null, right: null, rows: [] },
   // Phase A-2 (the owner's smoke of 2026-10-14): the laser cannons hug the
   // core on both sides (slots 1 and 2), each behind its own belt plate, so
   // the well pulls the ship across their beams; the open guns stand where
   // the inner emitters were.
   // Phase B: the outer emitters are pulse guns (the engine's four laser
   // slots hold the two cannons and the core's lens).
-  guns: [{ name: "gun-1", x: 15 }, { name: "gun-5", x: 18 }, { name: "gun-2", x: 22 },
-    { name: "gun-3", x: 39 }, { name: "gun-6", x: 43 }, { name: "gun-4", x: 46 }],
+  guns: [{ name: "gun-1", x: 17 }, { name: "gun-5", x: 20 }, { name: "gun-2", x: 24 },
+    { name: "gun-3", x: 37 }, { name: "gun-6", x: 41 }, { name: "gun-4", x: 44 }],
   emitters: [{ name: "cannon-l", slot: 1, x: 27 }, { name: "cannon-r", slot: 3, x: 34 }],
-  plates: [{ name: "plate-a", x: 15, width: 6 }, { name: "plate-b", x: 27, width: 3 },
-    { name: "plate-d", x: 34, width: 3 }, { name: "plate-e", x: 43, width: 6 }],
+  plates: [{ name: "plate-a", x: 17, width: 6 }, { name: "plate-b", x: 27, width: 3 },
+    { name: "plate-d", x: 34, width: 3 }, { name: "plate-e", x: 41, width: 6 }],
   // The open guns' bays: no hull under or beside them below the deck, so the
   // gun hangs in a recess and reads as open (decisions N and O).
-  bays: [[22, 26], [37, 41]],
+  bays: [[24, 26], [37, 39]],
   // The struts between the blocks' belt plates, and their feet on the belt row;
   // 33 the core's right flank (the core is three cells wide).
-  struts: [21, 42],
+  struts: [23, 40],
   flank: 33,
 });
 

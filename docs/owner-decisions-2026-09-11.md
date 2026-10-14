@@ -2357,6 +2357,59 @@ how-to-play (EN / PL), hardware-testing §31, plan S5, memory-map.
 
 ---
 
+## AQ. VOID CITADEL: STUDNIA GRAWITACYJNA, KOLUMNA GRAWITACJI, PROMIEŃ RDZENIA — decyzje właściciela S5-4 (2026-10-13 / 2026-10-14, po zagraniu w buildy fazy A i A-2 `feat/boss-region-4`)
+
+0. **Supermechanika regionu 4 (2026-10-13):** studnia grawitacyjna — dopóki
+   stoi choć jedna iglica salw, statek gracza jest ściągany w bok ku osi
+   rdzenia; rdzeń pulsuje; zniszczenie obu iglic wyłącza ciąg. Zapasowo
+   zaakceptowane: płyty odrastające przy żywym węźle naprawczym (wycenione w
+   fazie A, niezbudowane).
+1. **Smoke fazy A (2026-10-14):** ciąg działa, ale nie jest groźny i gracz
+   nie rozumie, co się dzieje. Zlecone: działa laserowe tuż obok rdzenia (za
+   pasem pancernym, twardsze od dział) oraz widoczna **kolumna grawitacji**
+   pod rdzeniem, nigdy w rejestrze koloru laserów, z jednym z P1 / P2 wolnym
+   dla celownika M6 VOID LANCE.
+2. **Odpowiedzi po fazie A-2:** kolumna jako **fala** (`g1w`; najgorszy
+   margines klatek bossa 5 675 zaakceptowany); kolor **M0, biały** (rejestr
+   statku gracza, nie laserów; **P1 i P2 wolne** dla celownika VOID LANCE);
+   działa **niezależne** (cztery sloty AC).
+3. **Geometria (odpowiedź 4):** studnia ma ciągnąć gracza **w niebezpieczeństwo**
+   — na osi nie może być bezpiecznego miejsca. Preferowane przesunięcie dział
+   do środka okazało się niewykonalne (wieże 3 komórki nie położą promienia na
+   osi: dwa promienie po bokach rdzenia zawsze zostawiają korytarz), więc
+   zbudowana alternatywa właściciela: **rdzeń strzela własnym promieniem w dół
+   kolumny** — soczewka `core-lens` pod rdzeniem (rząd pasa), oś studni to jej
+   promień, kolumna migocze w ostrzeżeniu i ustępuje promieniowi. Soczewka jest
+   **osłonięta iglicami** (nietykalna, dopóki studnia działa) i mimo to strzela
+   (kod studni liczy jej przeładowanie); po upadku iglic jest odsłonięta, strzela
+   od razu i da się ją zniszczyć. **Konsekwencja:** silnik ma cztery sloty
+   laserów i najwyżej cztery emitery, więc zewnętrzne emitery stały się działami
+   impulsowymi — na poziomach 10-12 są **trzy lasery** (dwa działa i soczewka,
+   wszystkie przy studni); AC wyznacza sloty, które tier włącza (region 1 też
+   ma mniej emiterów niż tier). Uczciwość: z włączonym ciągiem gracz zawsze
+   schodzi z ostrzeżonego promienia — zmierzone ≥ 20 klatek zapasu na HARD (min.
+   10 wymagane).
+4. **Odpowiedzi stałe:** siła G1 (2 cykle koloru co 8 klatek); poprawka
+   pierwszej linii pod pasmem — **COLPF2 jako pierwszy kolor** w fazie 1 DLI
+   pasma (0 B; test kolejności przepięty z powodem); paleta jak narysowana;
+   długość walki: EASY krócej, MEDIUM ok. 105 s, HARD nie krócej i możliwie
+   blisko 154 s regionu 1 — najpierw punkty życia iglic i dział, potem iglice
+   o kolumnę do środka (zrobione: EASY był dłuższy od MEDIUM), potem faza
+   końcowa (rdzeń, soczewka). **Zbudowane:** 91,8 / 102,2 / 158,3 s.
+   Sesje `region-4-diag-*` / `-finale-*` grają botem celującym.
+5. **Zasady projektowe (zapisane w STATUS, planie S5 i planie M6):** (a) moduł,
+   od którego zależy koniec walki, nie stoi na skrajnych końcach pasma; (b)
+   supermechanika bossa ma tworzyć zagrożenie, nie schronienie; (c) przydział
+   PMG w sektorze bossa: kolumna = M0, P1 / P2 wolne dla celownika VOID LANCE,
+   M1 / M2 lasery, P3 / M3 kapsuła. Zapas stresu R4 dla M6 i kandydaci do
+   odzyskania cykli: plan S5 §6.4.7, plan `gameplay-variety` §3.5.
+
+**Wynik:** plan `s5-boss-regions` §6.4, STATUS, game-design, level-authoring,
+how-to-play (EN / PL), hardware-testing §32, memory-map, notatka dla zadania
+banerów. `OWNER-SMOKE CANDIDATE`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

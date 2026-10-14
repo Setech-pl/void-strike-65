@@ -599,6 +599,35 @@ cannon, which is the player's choice and the point.
 and the bound decided now (Q6, Q7, Q3). If the owner wants it before S5 the
 session order is the same and S5 lands in what is left.
 
+**S5-4 note for M6 (2026-10-14, `feat/boss-region-4`; journal §AQ; plan
+[s5-boss-regions.md](s5-boss-regions.md) §6.4.7).** The owner calls the
+torpedo's targeting the **VOID LANCE reticle**. What region 4 leaves it:
+* **PMG:** in region 4's boss sector **M0 is the gravity column** (COLPM0,
+  the ship's white) - the table above's "M3 or M0, both free" no longer holds
+  there; **P1 and P2 stay free** in every region (the reticle's home; COLPM1 /
+  COLPM2 are the beams' colour, written every frame by the band DLI, so a
+  reticle in P1 / P2 wears the beams' `$46` and their warning flicker unless
+  M6 gives it its own colour time), **M3** is free (COLPM3, the capsule's
+  gold). M1 / M2 the lasers, P3 the capsule, P0 the ship.
+* **Stress headroom:** region 4's worst reachable stress frame is **8,315**
+  native of the 8,500 limit - **185 left**; a torpedo's ~250-300 native a
+  frame while it flies (estimate above) does **not** fit region 4's worst
+  frame. The biggest region 4 costs on that frame (a two-kill frame, two
+  lasers in their warning's heat step, a spire's salvo due; MEASURED with
+  `scripts/measure-boss-stress-r4.mjs`), the reclaim candidates:
+  1. **the lasers' warning heat step on a kill frame - about 770 native**
+     (the same composition with the beams on instead: 7,452 against 8,224):
+     the heat glyph draws could wait a frame on a kill frame, as the draw
+     queue does;
+  2. **the gravity well's step and the core's pulse request on that frame -
+     154 native** (8,224 without them): the well could skip kill frames, as
+     its column already does;
+  3. the second kill of a two-kill frame (AUD-04's cap of two meetings a
+     frame; the rebuild of a module's columns).
+* **Design rules the M6 boss weapon inherits (the owner, 2026-10-14):** a
+  signature mechanic must create danger, not a refuge; a module gating the
+  fight's end must not sit at the band's extreme ends.
+
 **The owner's answers (2026-10-08), applied:**
 
 * **Firing: the Nova release-then-press rule** (Q3), as priced above.

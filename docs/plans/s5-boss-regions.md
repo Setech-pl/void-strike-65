@@ -1647,6 +1647,161 @@ in frames 5–7), `s5-4-a2-column-shimmer-wide.png`, and
 | A2-2 | The column's register | **M0 (the ship's white)** — as asked, no laser register; the ship merges with it where it sits in the column, and it pulses with the shield | M3 in the capsule's gold (same bytes; not white) |
 | A2-3 | The cannons' fire | **independent, four lasers, two at once (AC)** — the corridor between the cannons is the well's eye | the cannons as a twin pair (one laser between them; levels 10–12 then have three) |
 
+#### 6.4.7 Phase B — as built (2026-10-14) — `OWNER-SMOKE CANDIDATE`
+
+**The owner's answers to §6.4.6 (journal §AQ).** (1) The column as the
+**wave**. (2) **M0, white.** (3) The cannons **independent**. (4) **The well
+must pull the player into danger** — no safe spot on its axis: preferably the
+cannons moved inward so their beams cover the core's column; else the core
+fires its own beam down the gravity column; fairness a hard rule (≥ 10 frames
+left on HARD). Standing answers: G1; the scanline fix here; the palette as
+drawn; the fight length rule (spires' and cannons' hit points first, then the
+spires one column inward without asking); `region-4-diag-*` on the aiming
+bot; the records below.
+
+**Answer 4 — why the alternative.** A beam hits the ship when its left edge
+is within −3 … +7 colour clocks of `player_x` (`laser_collide`, 4-clock beam,
+`LASER_PLAYER_WIDTH` 8); for the well's rest point that puts the beam's lens
+in band column 30 or 31 — inside the core. The cannons are 3-cell towers that
+cannot overlap the core: hugging even a one-column core they leave a corridor
+between their beams (a 2-column core: 9 clocks of safe x right of the rest
+point). So **the core fires its own beam**: `core-lens`, a 3 × 1 lens emitter
+under the core in the belt row (30–32, lens column 31, laser slot 2); **the
+well's axis is its beam** — the pull's target is the x whose hit window its
+beam centres on (`GRAVITY_X_BASE` = beam centre − 4), the column is centred
+on it (`GRAVITY_AXIS`), flares in the beam's warning (shown by 2-frame
+groups) and gives way to the beam. **The lens is covered by both spires**: it
+cannot be hurt while the well is on, yet it fires — the well's block code
+counts its reload while it is covered (`laser_rearm` counts an exposed
+emitter's only; `laser_admit` and `laser_frame` then run it as any other); the
+spires down, it is exposed, fires at once (the shield's first shot) and can be
+destroyed; the core falls after it. (First built exposed: on the route session
+`region-4-diag-0` the aiming bot destroyed it before its first reload and the
+axis was a refuge for the rest of the fight — MEASURED, then covered.)
+**Consequence (recorded):** the engine has four laser slots and takes at most
+four emitter modules (slot 1 twice at most); independent cannons + the lens +
+two outer emitters would be five, so **the outer emitters became pulse guns**
+(gun-5, gun-6): three lasers on levels 10–12, all at the well (cannon-l 1,
+core-lens 2, cannon-r 3). Decision AC sets the slots a tier enables; region 1
+also authors fewer emitters than its tier.
+
+**The band as built** (`assets/graphics/boss-regions/region-4/`,
+`scripts/boss-r4-art.mjs`; previews `build/play/s5-4-band-preview.png`,
+`s5-4-stages.png`, `s5-4-plates-gone.png`, the spires before / after
+`s5-4-spires-before.png` / `s5-4-spires-after.png`):
+
+| Columns | Rows | What |
+| --- | --- | --- |
+| 14–49 | 0 | the deck, whole, corners cut |
+| 12–13, 50–51 | 0–3 | spire-l, spire-r (salvo; **one column inward** — standing answer, EASY ran longer than MEDIUM — against the hull's sides; the vents in the hull's feet, 14 / 49 row 3) |
+| 30–32 | 1–3 | the void core (3 × 3, round on screen; no stages; cover: core-lens and the spires) |
+| 30–32 | 4 | **core-lens** (the axis; cover: the spires) |
+| 27–29, 34–36 | 1–3 | **cannon-l, cannon-r** (slots 1, 3), each behind its own belt plate (plate-b, plate-d) |
+| 15–17, 18–20, 43–45, 46–48 | 1–2 | gun-1, gun-5, gun-6, gun-4 behind plate-a (15–20) and plate-e (43–48) |
+| 22–24, 39–41 | 1–2 | gun-2, gun-3 in open bays |
+| 21, 33, 42 | 1–4 | struts and the core's right flank |
+
+16 modules, **106 of 128 codes**, charset **848 B, 7 sectors**, look tail
+80 B, 5 shown rows; PF2 in every stage of every module (test).
+
+**The well's code** (`src/hybrid/boss.s`, `BOSS_GRAVITY`; region 4's block
+**406 B, 4 sectors** — the look tail 80 B in its 110, the code 296 B; the
+data in `modules.json` `gravity`, resolved by `scripts/boss-assets.mjs`): the
+pull (G1, 2 clocks every 8 frames), the axis laser's reload while covered,
+the column's flare, the pulse (the core's b3 flash every 16 frames), the wave
+(one line in eight a quiet frame, never on a kill or exposure frame).
+Shared slots: slot D +2 B (1,663 B, 13 sectors), slot E +8 B (504 B, 4
+sectors). Resident, window, slot A, install, slot C, initial block: 0 B.
+**The scanline fix:** the band DLI's phase 1 writes COLPF2 first after the
+charset (0 B; `tests/boss-engine.test.mjs` re-pinned with the reason).
+
+**Fairness (owner answer 4's hard rule).** MEASURED on the 6502 harness
+(`tests/boss-region-4.test.mjs`): from every x inside the axis beam's hit
+window, every band position and direction, every phase of the pull, holding
+away from the axis against the pull and the drift — **worst 5 frames** to
+leave: **35 / 27 / 20 frames of the warning left** (EASY / MEDIUM / HARD; the
+rule ≥ 10). The analytic worst (crossing the whole 11-clock window against the
+pull and the drift): 10 frames — 30 / 22 / 15 left.
+
+**The fight (the aiming bot's ratio; trials on the level route):**
+
+| trial | spires / core / lens / cannons / guns / plates | E / M / H (s) |
+| --- | --- | ---: |
+| A-2 | 10 / 14 / — / 12 / 6 / 5 (the inner emitters) | 117.9 / 139.9 / 217.1 |
+| t0 (the lens, exposed) | 10 / 14 / 16 / 12 / 6 / 5 | 137.6 / 138.2 / 207.0 |
+| t2 | 5 / 14 / 12 / 8 / 6 / 5 | 98.4 / 87.3 / 172.9 |
+| t3 (spires inward) | the same | 77.0 / 86.6 / 139.8 |
+| t6 | 6 / 16 / 14 / 10 / 7 / 6 | 87.0 / 119.6 / 153.0 |
+| u1 (the lens covered) | the same | 97.4 / 105.4 / 166.3 |
+| **u3 (shipped)** | **6 / 12 / 10 / 10 / 7 / 6** | **91.8 / 102.2 / 158.3** |
+
+EASY shorter, MEDIUM about 105, HARD 4 s from region 1's 154. Between t2 and
+t8 MEDIUM stepped between ~89 s and ~120 s with no hit-point value between
+(the spires' reach windows, one band cycle each); covering the lens moved the
+spires' fall earlier in the fight and opened the middle.
+
+| | E | M | H | label |
+| --- | ---: | ---: | ---: | --- |
+| hits on the bot (laser) | 4 (2) | 7 (3) | 10 (3) | M (`boss-aim-N`, level route) |
+| … under the pull (laser) | 3 (2) | 4 (2) | 7 (3) | M |
+| deaths (lives held) | 1 | 3 | 2 | M |
+| escorts | 12 | 14 | 18 | M |
+| the pull on (frames) / steps | 1,670 / 194 | 1,748 / 211 | 2,669 / 330 | M |
+| boss frames worst margin / DMA-on | 7,503 / 30,090 | 6,881 / 30,433 | 7,077 / 30,503 | M (gate 32,568) |
+| boss entry | 261 host frames, 68 sectors | | | M (limit 280) |
+
+**Stress (native, `scripts/measure-boss-stress-r4.mjs`, `tests/boss-region-4.test.mjs`):**
+worst reachable **8,315** (two kills, two lasers in their warning's heat
+step, a spire's salvo due, the well's step and pulse due) — **185 to the
+8,500 limit**; 0 frames with a kill and a spawn. **The M6 headroom and the
+reclaim candidates** (the VOID LANCE runs in the boss sector too): the
+lasers' warning heat step on a kill frame ≈ **770** native (the same
+composition with the beams on: 7,452 against 8,224); the well's step and
+pulse request on that frame **154** (8,224 without them); the second kill of
+a two-kill frame (AUD-04's cap). Recorded in plan
+[gameplay-variety.md](gameplay-variety.md) §3.5 (the M6 note) and STATUS.
+
+**Design rules (the owner, 2026-10-14; STATUS, this plan, the M6 note):**
+1. **A module that gates the end of the fight must not sit at the band's
+   extreme ends** — its reach windows, not its hit points, bind the fight.
+2. **A boss's signature mechanic must create danger, not a refuge.**
+3. **PMG in the boss sector:** the gravity column is **M0** (COLPM0, the
+   ship's white; region 4 only); **P1 / P2 free** for the M6 VOID LANCE
+   reticle (their colour registers are the beams', written every frame);
+   M1 / M2 the lasers; P3 / M3 the capsule (gold); P0 the ship.
+
+**Tests.** New `tests/boss-region-4.test.mjs` (12): 11 RED on `main`
+`e7d9020` (11 of 11, in a detached worktree, removed), GREEN here; the
+twelfth (the axis fires while covered) added with the covered lens.
+Re-pointed with their reasons at the sites: `boss-lasers` (M0 the column),
+`boss-look-tail` (region 4's block), `boss-overlay`, `level-summary-build`
+(region 4 its own draft), `slot-f` (`BOSS_G_CODE`), `boss-region-3` (region 4
+has code); re-pinned: `boss-engine` (phase 1's colour order, the scanline
+fix). `scripts/memory-map-report.mjs` names `BOSS_G_CODE`.
+
+**The trace.** `gravity_on`, `gravity_steps`, `gravity_column` columns; the
+well's clause on region 4's route sessions (subject: boss frames with the
+pull on): never on a frame that starts with the ship not alive; at most one
+step per 8 frames of a run, x even; once off with the ship alive, never on
+again, and off at the chain; the column never without the pull.
+`region-4-diag-*` and `region-4-finale-*` on the aiming bot. MEASURED, the seven sessions on `build/boss-region-4-level-1-s6`,
+every clause holding (the diag and finale sessions are the same replay since
+both play the aiming bot):
+
+| session | entry | the pull on / steps | the column shown | off for good | chain | worst margin / DMA-on |
+| --- | --- | ---: | ---: | --- | --- | --- |
+| `region-4-diag-0` / `-finale-0` (EASY) | 261 | 3,065 / 367 | 2,560 | f3,614 | f3,713 (finale from f906, 13 volleys) | 6,765 / 30,426 |
+| `region-4-diag-1` / `-finale-1` (MEDIUM) | 261 | 2,339 / 278 | 1,962 | f3,710 | f4,039 (f996, 16) | 7,423 / 30,429 |
+| `region-4-diag-2` / `-finale-2` (HARD) | 261 | 2,849 / 348 | 2,203 | f4,220 | f4,588 (f1,185, 16) | 6,942 / 30,353 |
+| `region-4-dodge-2` (HARD) | 261 | 2,332 / 290 | 1,787 | — | — | 11,543 / 28,154 |
+
+The column is hidden on the frames of the axis's beam and half of its
+warning's (the flare). The clause's first form judged a death frame by its
+end-of-frame lifecycle (the well tests it when it runs: a death later that
+frame left the pull on) — a harness fix, judged by the frame-start lifecycle.
+
+**Gates and evidence.** @@GATES@@
+
 ---
 
 ## 7. Owner questions

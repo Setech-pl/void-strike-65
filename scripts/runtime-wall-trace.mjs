@@ -4755,8 +4755,10 @@ function main() {
         const fight = rows.filter((row) => row.boss_state === 1 && row.boss_entry !== 1);
         const on = fight.filter((row) => row.gravity_on === 1);
         invariant(on.length > 0, `${session.id}: the pull was never on (subject empty)`);
-        const notAlive = rows.filter((row) => row.gravity_on === 1 &&
-          (row.player_lifecycle !== 0 || row.player_lifecycle_after !== 0));
+        // The well tests the ship's lifecycle when it runs (UPDATE): a death
+        // later in that frame (lifecycle 0 -> 1) leaves the frame's pull on,
+        // the next frame's off. Judged by the frame-start lifecycle.
+        const notAlive = rows.filter((row) => row.gravity_on === 1 && row.player_lifecycle !== 0);
         invariant(notAlive.length === 0,
           `${session.id}: the pull on while the ship was not alive (${notAlive.length} frames, first ${notAlive[0]?.frame})`);
         let runStart = null, worstRate = 0;

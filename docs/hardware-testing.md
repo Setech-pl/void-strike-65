@@ -1174,6 +1174,54 @@ new file name:
       colour band or flicker on the line just under the belt; the boss entry
       loads and plays (65 sectors).
 
+## 32. Region 4's boss: the Void Citadel and its gravity well (`feat/boss-region-4`)
+
+Plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.4; journal §AQ.
+In Atari800 (`-xl -pal -nobasic`), on the region 4 boss route
+(`build/play/s5-4-r4-boss-route.atr`, level 10), the level route
+(`build/play/s5-4-r4-level-route.atr`, level 1's content as level 10, then
+the boss) and the whole game (`build/play/s5-4-full-game.atr`), at EASY,
+MEDIUM and HARD:
+
+- [ ] **The title:** the loading screen reads WARNING / VOID CITADEL /
+      INCOMING.
+- [ ] **One ship, like the banner:** an octagonal fortress, one deck end to
+      end, the black void core with its bright rim at the centre and its lens
+      under it, a laser cannon on each side of the core, the spires against
+      the hull's ends, a thin armour belt. Destroy everything: the deck stays
+      whole, nothing floats.
+- [ ] **The pull is felt but always beatable:** let go of the stick - the
+      ship slides towards the white column under the core; holding against
+      it, or moving away, always works.
+- [ ] **The core pulses while it pulls** (it dims for a moment about three
+      times a second); **the gravity column** (a white S-wave under the core,
+      down the screen) follows the boss's drift.
+- [ ] **No refuge on the axis:** the core fires its own laser straight down
+      the column - the column flickers while the shot warms up, then the beam
+      replaces it; stepping out of it against the pull is fair, with time to
+      spare; the core's lens cannot be damaged while a spire stands.
+- [ ] **The cannons beside the core:** each behind its own belt plate, firing
+      as soon as its plate falls; at most two beams on screen.
+- [ ] **The pull stops when the spires fall:** destroy both spires - the pull,
+      the pulse and the column stop at once; then the core's lens fires once
+      and can be destroyed, then the core.
+- [ ] **Hits read:** every module flashes when hit (b3), a kill shows the
+      spark, every damage stage keeps its magenta pixels.
+- [ ] **The escort and the final salvos:** the first weapon destroyed brings
+      an Interceptor, then one every 3-4 s; once the last plate falls every
+      surviving weapon fires three-shot volleys.
+- [ ] **The first line under every boss** (all four regions): your shot's top
+      pixel keeps its own colour right under the band (the scanline fix).
+- [ ] **The fight's feel on MEDIUM:** about 100 s by the bot; EASY shorter,
+      HARD longer.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **No flicker or slowdown** with the pull, the column's wave, two beams
+      and the guns at once; the column has no tear; the boss entry loads and
+      plays (68 sectors).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

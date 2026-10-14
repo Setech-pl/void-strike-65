@@ -148,7 +148,7 @@ The laser cannot be dodged once fired — but it announces itself. The gun heats
 for about two seconds, with a rising tone. That is the time to leave the line.
 Then the beam lights for one second and destroys everything in its path.
 
-The boss of levels 1-6 and 10-12 carries two laser cannons, one left and one
+The boss of levels 1-6 carries two laser cannons, one left and one
 right of its centre. They take turns — never both at once — and when one is
 destroyed the other keeps firing alone. Its guns and cannons hang under an
 armoured spine that no shot breaks; the belt of armour plates below them must
@@ -160,6 +160,16 @@ shimmering line under its spine. Your shots stop there and do nothing. Each
 half of the field is fed by the generator sphere at its end of the ship: break
 a generator and its half of the field collapses. Its guns keep firing through
 the field the whole time.
+
+The last boss, the Void Citadel of levels 10-12, has a gravity well. While
+either of the two spires at its ends stands, your ship is pulled sideways
+towards the white column under its black core — the core pulses while it
+pulls. You are always faster than the pull, but you must keep steering
+against it. The column is no place to rest: the core fires its own laser
+straight down it (the column flickers as the shot warms up), and a laser
+cannon stands on each side of the core. Destroy both spires and the pull,
+the pulse and the column stop at once — then the core's lens and the core
+itself can be hit.
 
 ## Capital ships
 

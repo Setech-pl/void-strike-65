@@ -154,7 +154,7 @@ Działo nagrzewa się przez jakieś dwie sekundy, z narastającym dźwiękiem. T
 czas na zejście z linii. Potem promień zapala się na sekundę i niszczy wszystko
 na swojej drodze.
 
-Boss poziomów 1-6 i 10-12 ma dwa działa laserowe, jedno na lewo, drugie na
+Boss poziomów 1-6 ma dwa działa laserowe, jedno na lewo, drugie na
 prawo od środka. Strzelają na zmianę — nigdy oba naraz — a gdy jedno zostanie
 zniszczone, drugie strzela dalej samo. Jego działa wiszą pod opancerzonym
 grzbietem, którego żaden strzał nie przebije; pas płyt pancernych pod nimi
@@ -165,6 +165,16 @@ Boss poziomów 7-9, Siege Spine, chowa się za polem siłowym — migoczącą li
 pod swoim kręgosłupem. Twoje strzały zatrzymują się na niej i nic nie robią.
 Każdą połowę pola zasila kula generatora na jej końcu okrętu: zniszcz generator,
 a jego połowa pola się zawali. Działa bossa przez cały czas strzelają przez pole.
+
+Ostatni boss, Void Citadel z poziomów 10-12, ma studnię grawitacyjną. Dopóki
+stoi choć jedna z dwóch iglic na jego końcach, Twój statek jest ściągany w bok,
+ku białej kolumnie pod jego czarnym rdzeniem — rdzeń pulsuje, kiedy ściąga.
+Zawsze jesteś szybszy od tego ciągu, ale musisz cały czas sterować przeciw
+niemu. W kolumnie nie da się przeczekać: rdzeń strzela własnym laserem prosto
+w dół, wzdłuż niej (kolumna migocze, kiedy strzał się nagrzewa), a po obu
+stronach rdzenia stoją działa laserowe. Zniszcz obie iglice, a ciąg, pulsowanie
+i kolumna znikną od razu — dopiero wtedy da się trafić soczewkę rdzenia i sam
+rdzeń.
 
 ## Okręty liniowe
 

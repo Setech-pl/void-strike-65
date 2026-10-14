@@ -1222,6 +1222,39 @@ new file name:
       and the guns at once; the column has no tear; the boss entry loads and
       plays (68 sectors).
 
+## 33. The still Void Citadel: no drift, G2, no engines, no refuge at the core (`fix/r4-immobile`)
+
+Plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.4.8; journal §AR.
+In Atari800 (`-xl -pal -nobasic`), on the region 4 boss route
+(`build/play/r4-immobile-r4-boss-route-*.atr`, level 10) and the whole game
+(`build/play/r4-immobile-full-game-*.atr`), at EASY, MEDIUM and HARD; §32's
+checks still apply, except the column following a drift:
+
+- [ ] **The citadel does not move:** from the first fight frame to the last
+      the band stays put; only the win's shake moves it.
+- [ ] **The whole ship on screen, centred:** both spires, the deck, the core,
+      the cannons and the belt in view, the same gap of black at both screen
+      edges; both spires can be shot (the left one from near the left edge).
+- [ ] **No engines:** no vent glows at the hull's ends.
+- [ ] **One ship, like the banner:** the narrow cannons hug the core; destroy
+      everything - the deck and its walls stay, nothing floats.
+- [ ] **The pull (G2) is strong but beatable:** let go of the stick - the ship
+      slides to the column noticeably faster than before; holding against it
+      or moving away always works; stepping out of the warned core beam
+      against the pull has time to spare on HARD.
+- [ ] **No spot beside the core is safe:** with the cannons alive, no position
+      from which the lens or the core can be shot is outside the three beams;
+      the gaps between the outer guns remain (accepted).
+- [ ] **Region 1-3's bosses still drift** as before.
+- [ ] **The fight's feel:** MEDIUM about 107 s by the bot, EASY shorter,
+      HARD about 154 s.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **No flicker or slowdown** with the faster pull, the column's wave, two
+      beams and the guns; the boss entry loads and plays (68 sectors).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

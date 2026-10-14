@@ -23,6 +23,30 @@ banner in these points - the silhouette the banner should echo:
   is a sprite (missile M0), not band art; a banner may hint at it as a faint
   vertical line under the core.
 
+## After `fix/r4-immobile` (journal §AR) - the silhouette changed
+
+- **Still and whole:** the band no longer drifts; the ship hangs centred with
+  the whole of it on screen. A banner may show it complete, nothing cropped.
+- **Shorter:** the open bays closed up - the hull is 32 cells (16-47), the
+  spires against its ends (14-15, 48-49); the ship 36 cells, not 40.
+- **No engines:** the vent cells at the hull's ends are gone.
+- **Narrow cannons hugging the core:** two cells wide (28-29, 33-34), right
+  against the core; a dark wall beside each (27; 35-36). Their beams meet the
+  core's beam edge to edge.
+
+## The boss entry's headroom (the owner's answer 4 of §AR)
+
+Region 4's boss entry is **261 host frames** (68 sectors) against the limit
+**280** (decision AM): **19 frames left**, while the banner task is expected to
+cost about **+25**. Left to the banner task; its options:
+
+1. **A smaller banner** - fewer sectors on the loading screen's read.
+2. **The banner replacing the loading screen's gun-row data** - the same
+   screen's bytes reused, not added.
+3. **Reclaimed entry frames** - a shorter read elsewhere in the entry (the
+   boss entry costs 3.5-4.0 host frames a sector, plan `s5-boss-regions` §1).
+4. **An owner decision on the limit** (280 -> about 290).
+
 Source of truth: `assets/graphics/boss-regions/region-4/` (`band.png`,
 `modules.json`) and `npm run boss:preview -- --region=4`. Plan:
 [../../plans/s5-boss-regions.md](../../plans/s5-boss-regions.md) §6.4; journal §AQ.

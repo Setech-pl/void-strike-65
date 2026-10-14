@@ -543,37 +543,43 @@ section "Decyzje literowe 2026-09-20".
   109.4 / 118.2 / 152.0 s on level 9 (EASY / MEDIUM / HARD); **HARD is far
   longer than MEDIUM, for review in M8**, as region 1's.
 - **Region 4's boss: the Void Citadel and its gravity well (S5-4, the
-  owner's decisions of 2026-10-13 and 2026-10-14; `OWNER-SMOKE CANDIDATE`,
-  [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.4).** Levels 10-12
-  end on an octagonal fortress: one solid deck from end to end, the weapons
-  set into it in two blocks, a **black void core** with a bright rim at the
-  centre, a **salvo spire** against each end of the hull, a one-row armour
-  belt under the weapons. **The gravity well:** while either spire stands the
-  player's ship is pulled sideways - 2 colour clocks every 8 frames, a
-  quarter of its own speed, so it can always hold or move away - towards the
-  well's **axis**, and the core pulses (it dims for 3 frames every 16). The
-  axis is shown by a **gravity column**: a white S-wave under the core, from
-  the boss down the playfield, following the boss's drift (missile M0, the
-  ship's white - never a laser's colour; P1 / P2 stay free for the M6 VOID
-  LANCE reticle). **The axis is danger, not a refuge** (owner answer 4): the
+  owner's decisions of 2026-10-13 and 2026-10-14; the still citadel of
+  `fix/r4-immobile`, journal §AR; `OWNER-SMOKE CANDIDATE`,
+  [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.4, §6.4.8).** Levels
+  10-12 end on an octagonal fortress that **does not drift**: it hangs still,
+  centred, the whole ship on screen - one solid deck from end to end, the
+  weapons set into it in two blocks, a **black void core** with a bright rim
+  at the centre, a **salvo spire** against each end of the hull, a one-row
+  armour belt under the weapons, no engines. **The gravity well:** while
+  either spire stands the player's ship is pulled sideways - 2 colour clocks
+  every 4 frames (G2), a quarter of its own speed, so it can always hold or
+  move away - towards the well's **axis**, and the core pulses (it dims for 3
+  frames every 16). The axis is shown by a **gravity column**: a white S-wave
+  under the core, from the boss down the playfield (missile M0, the ship's
+  white - never a laser's colour; P1 / P2 stay free for the M6 VOID LANCE
+  reticle). **The axis is danger, not a refuge** (owner answer 4): the
   core fires its own beam down the column from its lens - the column flares
   in the beam's warning and gives way to the beam - and the lens cannot be
-  hurt while a spire stands; two laser cannons hug the core on both sides,
-  each behind its own belt plate. Destroying both spires stops the pull, the
+  hurt while a spire stands; two narrow laser cannons hug the core on both
+  sides, each behind its own belt plate, their beams edge to edge with the
+  core's - no spot from which the lens or the core can be shot lies outside
+  the lasers (the still band no longer sweeps fire across the gaps; the outer
+  gaps between the guns stay, owner answer 2 of §AR). Destroying both spires stops the pull, the
   pulse and the column at once and exposes the lens; the core falls only
   after the spires and its lens. Three lasers (the cannons and the lens: the
   engine's four slots hold at most four emitters), six guns, four plates;
   the escort is region 1's cadence, the final salvos are on (floor 12), the
   b3 flash shows on every module. **Fairness rule:** with the pull on, the
   player can always leave a warned beam with at least 10 frames of the
-  warning left (measured: 20 on HARD). Colours: pale steel, a dark violet
+  warning left (measured: 21 on HARD). Colours: pale steel, a dark violet
   hull (`$62`) and void magenta (`$58`), both far from the levels 10-12 ally
-  steel `$84`. Fight (aiming bot, the ratio rule): **91.8 / 102.2 / 158.3 s**
+  steel `$84`. Fight (aiming bot, the ratio rule): **92.6 / 107.3 / 154.3 s**
   (EASY / MEDIUM / HARD).
 - **Design rules from the Void Citadel (the owner, 2026-10-14).** (1) A module
   that gates the end of the fight must not sit at the band's extreme ends -
   its reach windows (the band's drift) bind the fight's length, not its hit
-  points. (2) A boss's signature mechanic must create danger, not a refuge -
+  points; on a still band (region 4) every module must lie in the player's
+  shots (HPOS 56-208). (2) A boss's signature mechanic must create danger, not a refuge -
   the place a mechanic pushes the player to must be under fire.
 - **Difficulty scales reload, spacing and damage (J).** See "World and
   difficulty" above.

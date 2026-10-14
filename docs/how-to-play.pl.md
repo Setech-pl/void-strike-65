@@ -166,13 +166,16 @@ pod swoim kręgosłupem. Twoje strzały zatrzymują się na niej i nic nie robi�
 Każdą połowę pola zasila kula generatora na jej końcu okrętu: zniszcz generator,
 a jego połowa pola się zawali. Działa bossa przez cały czas strzelają przez pole.
 
-Ostatni boss, Void Citadel z poziomów 10-12, ma studnię grawitacyjną. Dopóki
-stoi choć jedna z dwóch iglic na jego końcach, Twój statek jest ściągany w bok,
+Ostatni boss, Void Citadel z poziomów 10-12, nie dryfuje: wisi nieruchomo na
+środku ekranu, cały okręt widać naraz. Ma studnię grawitacyjną. Dopóki stoi
+choć jedna z dwóch iglic na jego końcach, Twój statek jest ściągany w bok,
 ku białej kolumnie pod jego czarnym rdzeniem — rdzeń pulsuje, kiedy ściąga.
 Zawsze jesteś szybszy od tego ciągu, ale musisz cały czas sterować przeciw
 niemu. W kolumnie nie da się przeczekać: rdzeń strzela własnym laserem prosto
 w dół, wzdłuż niej (kolumna migocze, kiedy strzał się nagrzewa), a po obu
-stronach rdzenia stoją działa laserowe. Zniszcz obie iglice, a ciąg, pulsowanie
+stronach rdzenia stoją działa laserowe, tak blisko, że ich promienie stykają się
+z promieniem rdzenia: obok rdzenia nie ma luki, z której dałoby się go
+ostrzeliwać. Zniszcz obie iglice, a ciąg, pulsowanie
 i kolumna znikną od razu — dopiero wtedy da się trafić soczewkę rdzenia i sam
 rdzeń.
 

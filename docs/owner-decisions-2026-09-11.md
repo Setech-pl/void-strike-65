@@ -2410,6 +2410,50 @@ banerów. `OWNER-SMOKE CANDIDATE`.
 
 ---
 
+## AR. VOID CITADEL NIERUCHOMY, CIĄG G2, BEZ SILNIKÓW, BEZ SCHRONIEŃ PRZY RDZENIU — decyzje właściciela `fix/r4-immobile` (2026-10-14, smoke połączonego S5-4 i odpowiedzi na fazę C)
+
+0. **Smoke:** boss ma sens, ale poziomy dryf pasma razem ze studnią to
+   mieszanina. Zlecone: **unieruchomić Void Citadel** (regiony 1-3 bez zmian,
+   tylko dane regionu i nakładka bossa, 0 B rezydentnych), cały statek na
+   ekranie i wyśrodkowany; usunąć silniki, jeśli to tylko zmiana grafiki i
+   układu; mocniejszy ciąg G1+ (2 cykle koloru co 6 klatek) i porównawczo G2
+   (co 4 klatki).
+1. **Zbudowane (faza C):** pasmo nieruchome — `motion.framesPerColourClock` 0
+   znaczy „bez dryfu": instalacja zostawia kierunek dryfu 0 (+7 B instalacji,
+   381 z 384); wstrząs po zwycięstwie zostaje. Statek zwarty: zatoki domknięte,
+   kadłub 16-47, iglice 14-15 / 48-49 — statek 14-49 (36 kolumn) wyśrodkowany na
+   pozycji 32, 8 cykli koloru marginesu z każdej strony. Powód zwężenia: strzał
+   gracza wychodzi ze środka statku (HPOS 56-208), więc lewa iglica w dawnym
+   układzie (HPOS 48-55) byłaby nieosiągalna i walki nie dałoby się skończyć.
+   Na nieruchomym paśmie zasada (a) z §AQ.5 przechodzi w regułę testu: każdy
+   moduł w zasięgu strzałów gracza. Silniki (dwie komórki dysz na końcach
+   kadłuba) usunięte — konwerter przyjmuje puste listy dysz.
+2. **Odpowiedź 1: G2** (2 cykle koloru co 4 klatki). Uczciwość: najgorsza
+   ucieczka z ostrzeżonego promienia osi trwa 4 klatki — zapas 36 / 28 / 21
+   klatek (EASY / MEDIUM / HARD; wymagane ≥ 10 na HARD).
+3. **Odpowiedź 2: opcja 3.** Nieruchome pasmo nie przeciąga ognia po lukach;
+   luki przy rdzeniu (x 116 i 128-132) zamknięte przez zbliżenie dział do
+   soczewki: **działa mają 2 komórki szerokości** (28-29 i 33-34), ich promienie
+   stykają się z promieniem soczewki — x 108-136 pod ogniem; żadne x, z którego
+   strzał trafia soczewkę lub rdzeń (x 112-122), nie leży poza zasięgiem broni.
+   Zewnętrzne luki zostają (bez salw dział — zapas stresu dla M6): 48, 74-76,
+   86-92, 102-106, 138-144, 154-160, 170-172, 182-184 (z x 102-106 da się trafić
+   cannon-l, nie rdzeń).
+4. **Odpowiedź 3:** silniki pozostają usunięte.
+5. **Odpowiedź 4:** zapas wejścia dla zadania banerów (19 klatek do limitu 280
+   wobec ok. 25 potrzebnych) zostaje dla tego zadania; opcje (mniejszy baner,
+   baner zamiast danych rzędu dział na ekranie ładowania, odzyskane klatki
+   wejścia, decyzja właściciela o limicie) zapisane w STATUS i w notatce dla
+   zadania banerów.
+6. **Strojenie (ta sama zasada):** wszystkie moduły ×1,75, potem faza końcowa
+   (rdzeń 29, soczewka 26): **92,6 / 107,3 / 154,3 s** (bot celujący).
+
+**Wynik:** plan `s5-boss-regions` §6.4.8, STATUS, game-design,
+level-authoring, how-to-play (EN / PL), hardware-testing §33, notatka dla
+zadania banerów. `OWNER-SMOKE CANDIDATE`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

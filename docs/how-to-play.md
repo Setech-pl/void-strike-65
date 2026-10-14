@@ -161,13 +161,16 @@ half of the field is fed by the generator sphere at its end of the ship: break
 a generator and its half of the field collapses. Its guns keep firing through
 the field the whole time.
 
-The last boss, the Void Citadel of levels 10-12, has a gravity well. While
-either of the two spires at its ends stands, your ship is pulled sideways
+The last boss, the Void Citadel of levels 10-12, does not drift: it hangs
+still in the middle of the screen, the whole ship in view. It has a gravity
+well. While either of the two spires at its ends stands, your ship is pulled
+sideways
 towards the white column under its black core — the core pulses while it
 pulls. You are always faster than the pull, but you must keep steering
 against it. The column is no place to rest: the core fires its own laser
 straight down it (the column flickers as the shot warms up), and a laser
-cannon stands on each side of the core. Destroy both spires and the pull,
+cannon stands on each side of the core, so close that their beams meet the
+core's: there is no gap beside the core to shoot it from. Destroy both spires and the pull,
 the pulse and the column stop at once — then the core's lens and the core
 itself can be hit.
 

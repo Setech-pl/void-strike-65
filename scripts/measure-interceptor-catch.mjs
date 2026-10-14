@@ -17,23 +17,34 @@
 // the player already is (the column the Interceptor has converged on).
 //
 // Usage: node scripts/measure-interceptor-catch.mjs [--difficulty=0|1|2]
-//        [--player-y=N] [--json]
+//        [--player-y=N] [--json | --flight | --ttk]
+// tests/interceptor-speed.test.mjs imports measure, flight and timeToKill.
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { boot, frame, L } from "./measure-population-harness.mjs";
 
 const args = new Map(process.argv.slice(2).map((a) => {
   const [k, v] = a.replace(/^--/, "").split("=");
   return [k, v ?? true];
 }));
-const DIFFICULTY = Number(args.get("difficulty") ?? 1);
-const PLAYER_Y = Number(args.get("player-y") ?? 225);   // PLAYER_Y_MAX: the standoff's lowest
+let DIFFICULTY = Number(args.get("difficulty") ?? 1);
+let PLAYER_Y = Number(args.get("player-y") ?? 225);   // PLAYER_Y_MAX: the standoff's lowest
+export function configure({ difficulty = DIFFICULTY, playerY = PLAYER_Y } = {}) {
+  DIFFICULTY = difficulty;
+  PLAYER_Y = playerY;
+}
 const PLAYER_X = 124;
 const OFFSET_INTERCEPTOR = 24;
 const LIGHT_SLOT_COUNT = 4;
 const MAX_SECTORS = 10;
 const SHOT_SLOTS = 5;
-// The standoff's frames (INTERCEPTOR_LIFE_FRAMES): a review variant built with
-// --interceptor-speed=custom names its own in VS65_INTERCEPTOR_SPEED.
-const LIFE = JSON.parse(process.env.VS65_INTERCEPTOR_SPEED ?? "{}").life ?? Number(args.get("life") ?? 100);
+// The standoff's frames (INTERCEPTOR_LIFE_FRAMES) as the source the build
+// compiled says, so the phases read right on main's build and on this one.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const LIFE = Number(args.get("life") ?? /#define INTERCEPTOR_LIFE_FRAMES\s+(\d+)u/.exec(
+  fs.readFileSync(path.join(root, "src", "c", "lifecycle.c"), "utf8"))[1]);
 
 function call(m, name) {
   const stop = 0x7fff;
@@ -133,7 +144,7 @@ function phaseOf(m, slot, prevY, afterTop = false) {
 // One flight of `slot` among `count` Interceptors; at the first frame of each
 // wanted phase (or `delay` frames into it) fire one shot from below it and
 // follow that shot to a hit, its loss, or the Light's retirement.
-function measure({ count, slot, loops, phase, delay = 0, aim = "below", backoff = false, move = 0, moveFrames = 0 }) {
+export function measure({ count, slot, loops, phase, delay = 0, aim = "below", backoff = false, move = 0, moveFrames = 0 }) {
   const m = boot({ difficulty: DIFFICULTY });
   parkX = PLAYER_X;
   parkY = PLAYER_Y;
@@ -205,13 +216,13 @@ const PLAYER_HEALTH = 0x4e5d;   // BROAD_PLAYER_HEALTH = BROAD_DAMAGE_COOLDOWN -
 // frames it hovers in its standoff band before it climbs, each top-hold's
 // frames, the frames of every climb, and its lasers. The player is parked in
 // its column at PLAYER_Y, kept alive (health refilled every frame).
-function flight({ count, loops }) {
+export function flight({ count, loops }) {
   const m = boot({ difficulty: DIFFICULTY });
   parkX = PLAYER_X;
   parkY = PLAYER_Y;
   admit(m, count, loops);
   const slots = Array.from({ length: count }, () => ({ life: 0, holdStandoff: 0, topHolds: [], climbs: [],
-    lasers: 0, phase: null, run: 0, prevY: null, done: false, afterTop: false }));
+    lasers: 0, phase: null, run: 0, prevY: null, done: false, afterTop: false, lowestY: 0 }));
   const laserSeen = new Set();
   for (let f = 0; f < 2000; f += 1) {
     m.memory[PLAYER_HEALTH] = 10;
@@ -226,6 +237,7 @@ function flight({ count, loops }) {
       st.run += 1;
       if (ph === "hold") st.holdStandoff += 1;
       st.prevY = at(m, "light_y", s);
+      if (st.prevY < 232) st.lowestY = Math.max(st.lowestY, st.prevY);
     }
     // A Light's LASER is ACTIVE $16 in the hostile slots 5-9; count arrivals.
     for (let i = 5; i < 10; i += 1) {
@@ -237,7 +249,8 @@ function flight({ count, loops }) {
     park(m);
     frame(m);
   }
-  return slots.map(({ life, holdStandoff, topHolds, climbs, lasers }) => ({ life, holdStandoff, topHolds, climbs, lasers }));
+  return slots.map(({ life, holdStandoff, topHolds, climbs, lasers, lowestY }) =>
+    ({ life, holdStandoff, topHolds, climbs, lasers, lowestY }));
   function close(st) {
     if (st.phase === "top-hold") st.topHolds.push(st.run);
     if (st.phase === "loop-climb" || st.phase === "exit-climb") st.climbs.push(`${st.phase}:${st.run}`);
@@ -248,7 +261,7 @@ function flight({ count, loops }) {
 // weapon) from the frame the Interceptor first shows (y >= 24) until it dies;
 // "parked" stays in the column it has converged on, "aiming" keeps its shot
 // line through the Interceptor's centre every frame (x = light_x - 4).
-function timeToKill({ loops, aim }) {
+export function timeToKill({ loops, aim }) {
   const m = boot({ difficulty: DIFFICULTY });
   parkX = PLAYER_X;
   parkY = PLAYER_Y;
@@ -283,7 +296,7 @@ function timeToKill({ loops, aim }) {
   return { result: "timeout", shots };
 }
 
-const scenarios = [
+export const scenarios = [
   { name: "entry descent (2nd visible row)", phase: "descent", delay: 14 },
   { name: "standoff hold (first frame)", phase: "hold" },
   { name: "standoff, ship moving right 16 f, fires moving", phase: "hold", move: 2, moveFrames: 16, aim: "moving" },
@@ -297,46 +310,51 @@ const scenarios = [
   { name: "exit climb (first frame), after 2 loops", phase: "exit-climb", loops: 2 },
 ];
 
-if (args.get("flight")) {
-  const out = {
-    escort: flight({ count: 1, loops: 0 }),
-    swarm1: flight({ count: 1, loops: 2 }),
-    swarm3: flight({ count: 3, loops: 2 }),
-  };
-  console.log(JSON.stringify(out));
-  process.exit(0);
-}
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) main();
 
-if (args.get("ttk")) {
-  const out = {};
-  for (const loops of [0, 2]) for (const aim of ["parked", "aiming"]) out[`loops${loops}-${aim}`] = timeToKill({ loops, aim });
-  console.log(JSON.stringify(out));
-  process.exit(0);
-}
+function main() {
+  if (args.get("flight")) {
+    const out = {
+      escort: flight({ count: 1, loops: 0 }),
+      swarm1: flight({ count: 1, loops: 2 }),
+      swarm3: flight({ count: 3, loops: 2 }),
+    };
+    console.log(JSON.stringify(out));
+    return;
+  }
 
-const rows = [];
-for (const count of [1, 3]) {
-  for (let slot = 0; slot < count; slot += 1) {
-    if (count === 3 && slot === 0) continue;
-    for (const s of scenarios) {
-      const aims = s.aim === undefined ? ["below", "parked"] : [s.aim];
-      for (const aim of aims) {
-        const r = measure({ count, slot, loops: s.loops ?? 0, phase: s.phase, delay: s.delay ?? 0,
-          aim, backoff: s.backoff ?? false, move: s.move ?? 0, moveFrames: s.moveFrames ?? 0 });
-        rows.push({ slot, count, scenario: s.name, aim, ...r });
+  if (args.get("ttk")) {
+    const out = {};
+    for (const loops of [0, 2]) for (const aim of ["parked", "aiming"]) out[`loops${loops}-${aim}`] = timeToKill({ loops, aim });
+    console.log(JSON.stringify(out));
+    return;
+  }
+
+  const rows = [];
+  for (const count of [1, 3]) {
+    for (let slot = 0; slot < count; slot += 1) {
+      if (count === 3 && slot === 0) continue;
+      for (const s of scenarios) {
+        const aims = s.aim === undefined ? ["below", "parked"] : [s.aim];
+        for (const aim of aims) {
+          const r = measure({ count, slot, loops: s.loops ?? 0, phase: s.phase, delay: s.delay ?? 0,
+            aim, backoff: s.backoff ?? false, move: s.move ?? 0, moveFrames: s.moveFrames ?? 0 });
+          rows.push({ slot, count, scenario: s.name, aim, ...r });
+        }
       }
     }
   }
-}
 
-if (args.get("json")) {
-  console.log(JSON.stringify(rows, null, 2));
-} else {
-  console.log(`difficulty ${DIFFICULTY}, player y ${PLAYER_Y}`);
-  for (const r of rows) {
-    const where = r.fireY === undefined ? "" : `light (${r.fireX},${r.fireY})`;
-    const out = r.result === "HIT" ? `HIT in ${r.frames} f at y ${r.hitY}` :
-      `${r.result}${r.frames ? ` after ${r.frames} f` : ""}${r.lightY !== undefined ? `, light then (${r.lightX},${r.lightY}) state ${r.lightState}` : ""}`;
-    console.log(`slot ${r.slot}/${r.count} ${r.scenario.padEnd(48)} ${r.aim.padEnd(6)} ${where.padEnd(16)} ${out}`);
+  if (args.get("json")) {
+    console.log(JSON.stringify(rows, null, 2));
+  } else {
+    console.log(`difficulty ${DIFFICULTY}, player y ${PLAYER_Y}`);
+    for (const r of rows) {
+      const where = r.fireY === undefined ? "" : `light (${r.fireX},${r.fireY})`;
+      const out = r.result === "HIT" ? `HIT in ${r.frames} f at y ${r.hitY}` :
+        `${r.result}${r.frames ? ` after ${r.frames} f` : ""}${r.lightY !== undefined ? `, light then (${r.lightX},${r.lightY}) state ${r.lightState}` : ""}`;
+      console.log(`slot ${r.slot}/${r.count} ${r.scenario.padEnd(48)} ${r.aim.padEnd(6)} ${where.padEnd(16)} ${out}`);
+    }
   }
 }

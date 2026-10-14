@@ -3,9 +3,10 @@
 **Status:** S5-1 implemented on `chore/s5-platform`, `OWNER-SMOKE CANDIDATE`
 (§6.1); **S5-2 implemented on `feat/boss-finale`, `OWNER-SMOKE CANDIDATE`
 (§6.2)**; **S5-3 implemented on `feat/boss-region-3`, `OWNER-SMOKE CANDIDATE`
-(§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. **S5-4 Phase A and A-2 on `feat/boss-region-4`
-(§6.4, §6.4.6): the Void Citadel, its gravity well, the cannons beside the core
-and the gravity column as review variants, waiting for the owner's look.** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+(§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. **S5-4 implemented on `feat/boss-region-4` (§6.4:
+Phase A, A-2 §6.4.6, as built §6.4.7), merged; its follow-up `fix/r4-immobile`
+(§6.4.8: the still citadel, G2, no engines, no refuge at the core),
+`OWNER-SMOKE CANDIDATE`.** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -1812,6 +1813,86 @@ stress composition but region 4's +14 native (region 1 7,046, the fixture
 8,315 of 8,500. Two full `npm test` runs on the default build: 1,366 tests,
 1,365 pass, the recorded preview failure only; `failures:reconcile` 0 NEW,
 0 MOVED after each.
+
+#### 6.4.8 `fix/r4-immobile` — the still citadel (2026-10-14) — `OWNER-SMOKE CANDIDATE`
+
+**The owner's smoke of the merged citadel:** the boss makes sense, but its
+horizontal drift together with the gravity well is a mishmash. Asked: no drift
+in region 4 (regions 1-3 unchanged; region data and the boss overlay only, 0
+resident bytes), the whole ship on screen and centred, the engines removed if
+that is art and layout only, the pull one step stronger (G1+, 2 colour clocks
+every 6 frames) with G2 (every 4) to compare; fairness a hard rule. Phase C
+(a look) then the owner's answers (journal §AR): **G2**, the refuges next to
+the core closed by narrowing the gap between the cannons and the lens (option
+3; no gun bursts - the stress headroom stays for M6), the engines stay
+removed, the banner task's entry headroom left to that task.
+
+**What changed.**
+
+| | before (`main` `53847b2`) | after |
+| --- | --- | --- |
+| band | drifts 0-63 and back, one colour clock every 2 frames | **still at position 32** (`motion.framesPerColourClock` 0: the install leaves `boss_dir` 0, `boss_motion` adds nothing; the converter keeps a still band's start inside 1..travel-1, where it never turns); the win's shake stays |
+| ship | columns 12-51 (40), the hull 14-49, open bays with two empty columns each side | **14-49 (36)**: the bays closed up, the hull 16-47, the spires 14-15 / 48-49 against its ends - HPOS 56-199 at position 32, 8 clocks clear each side of the screen (48-207) |
+| engines | a vent cell at each end of the hull's foot | **none** (the converter takes empty nozzle lists; the engine still steps the two nozzle codes' glyphs, unseen) |
+| cannons | 3 x 3 towers at 27-29 / 34-36, beam edges 112 / 140 | **2 x 3 at 28-29 / 33-34**, beam edges 114 / 134 (region 1's tower without its outer flanges, `emitter.png`); the plates b / d under them 2 wide; walls at 27 and 35-36 |
+| pull | G1, 2 clocks every 8 frames | **G2, every 4** |
+| hit points | spires 6, core 12, lens 10, cannons 10, guns 7, plates 6 | spires 11, **core 29, lens 26**, cannons 18, guns 12, plates 10 |
+| install | 374 of 384 B | **381** of 384 B |
+
+**Why the ship had to shrink, not only stop.** A player's shot leaves the
+fighter's centre, x + 8 with x 48..200: HPOS 56-208, band columns
+(24 + p) / 4 .. (176 + p) / 4 at position p - two fewer than the screen shows.
+Centred at 32, the old ship's left spire (columns 12-13, HPOS 48-55) was out
+of every shot: the well would never fall and the fight never end. On a still
+band the S5-4 rule "a module gating the fight's end does not sit at the
+band's extreme ends" becomes the test's rule: every module in the player's
+reach (`tests/boss-region-4.test.mjs`).
+
+**The refuges (answer 2).** A still band no longer sweeps the guns' fire
+across the screen. A beam threatens x in [edge - 7, edge + 3]; three-cell
+emitters beside the three-cell core leave a two-clock hole between beams -
+x 116 (between cannon-l's and the lens's: the lens and the core shootable from
+outside every laser) and 128-132. The 2-cell cannons put the three beams edge
+to edge: x 108-136 under fire. MEASURED (the coverage model,
+`scripts/boss-coverage.mjs --region=4 --lasers=4`, now counting a still band's
+one position, every laser slot, and no core as a weapon), every weapon alive:
+the gaps are 48, 74-76, 86-92, 102-106, 138-144, 154-160, 170-172, 182-184; the
+endgame's reach (x 112-122, the shots meeting the lens's or the core's
+columns) holds none. From 102-106 a shot meets cannon-l, not the core. While a
+spire stands the pull drags the ship off any gap towards the axis.
+
+**Measurements** (M emulator trace, M-N native harness, R the aiming bot's
+ratio).
+
+| | value | label |
+| --- | --- | --- |
+| escape from the warned axis beam against the pull, worst | 4 frames: **36 / 28 / 21 left** (E / M / H; rule >= 10) | M-N |
+| fight, Phase C untuned (G1+ / G2, the old cannons) | 65.7 / 60.4 / 85.1 s; 70.9 / 60.4 / 88.6 s | R |
+| fight, x 1.75 (d1) / the core 25, the lens 22 (d2) | 87.7 / 100.9 / 145.2 s; 90.2 / 104.1 / 148.9 s | R |
+| **fight, as built (d3: the core 29, the lens 26)** | **92.6 / 107.3 / 154.3 s** | R |
+| hits on the bot (laser), as built | 11 (2) / 17 (1) / 21 (3); deaths 2 / 2 / 3; escorts 13 / 15 / 18 | M |
+| boss frames, worst margin / DMA-on (the aim runs) | 7,163 / 30,277; 6,527 / 30,204; 6,849 / 30,440 | M |
+| stress, region 4's worst reachable | **8,094** of 8,500 (main 8,315): 406 left for M6 | M-N |
+| entry | 261 host frames, 68 sectors (limit 280: 19 left; the banner task's ~25 does not fit - STATUS) | M |
+| region 4's charset, block | 108 of 128 codes, 864 B (7 sectors); 406 B (4 sectors) | M |
+
+The aiming bot led its aim for a drifting band (region 1's motion): on the
+still band it shot two columns beside its target and never finished. It now
+leads only when the region's motion byte drifts (`DFTRACE_BOSS_MOTION_STEP`,
+region 1's path unchanged); the stress composition and the coverage model take
+a still band's one position.
+
+**Tests.** `tests/boss-region-4.test.mjs` 15 (12 + the band never moves,
+everything on screen and in reach, no refuge in the endgame's reach): RED on
+`main` `53847b2` 6 of 15 with this branch's coverage model (the data, one
+ship, the pull, the band, on screen, the refuge at x 116); fairness passes on
+`main` too (a guard). Re-pinned, exact layout values with their source: the
+hit points (the tuning above), G1's 8 -> G2's 4 frames a step (answer 1), the
+deck 14-49 -> 16-47 (the compacted hull). The trace: the manifest records a
+still band's position (`stillAt`), and the well's clause on the region routes
+holds the band there on every fight frame.
+
+**Gates and evidence.** Worst fence margin 1,260 and DMA-on 31,483 unchanged (58 replays, 0 misses, 0 clause failures); region 1's boss frames 9,191 / 29,821 and entry 249 unchanged; region 4's entry 261; the install 374 -> 381 of 384 B (transient), 0 resident bytes. The evidence bound to ATR `fee54bea...` (build:candidate -> runtime:wall-trace -> --menu-raster-only -> build -> memory-map -> showcase:gif -> showcase); full `npm test` twice, 1,368 of 1,369 (the recorded preview failure), reconciled PASS, 0 NEW, 0 MOVED. Two diagnostic region route sessions (region-4-diag-1, finale-1) hit the level-end stats clause by one shot - a shot fired on the boss's completion hand-off frame, counted by the observer but not by the game's `stats_scan` (earlier in the frame); pre-existing, reported, not changed (STATUS).
 
 ---
 

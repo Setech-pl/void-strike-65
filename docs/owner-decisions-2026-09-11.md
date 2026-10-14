@@ -2454,6 +2454,61 @@ zadania banerów. `OWNER-SMOKE CANDIDATE`.
 
 ---
 
+## AS. INTERCEPTOR DO TRAFIENIA — odpowiedzi właściciela `fix/interceptor-speed` (2026-10-14, po zagraniu w buildy porównawcze)
+
+0. **Smoke:** Interceptor jest o wiele za szybki — „nawet strzały gracza go
+   nie doganiają". Chodzi o efekt: w każdej fazie lotu strzał wymierzony w
+   Interceptora może go trafić, wznoszącego się też (zanim zniknie z ekranu);
+   jego ruchy da się śledzić wzrokiem; nadal najszybszy i najzwinniejszy wróg;
+   standoff zostaje (wisi nad graczem, strzela, nigdy nie taranuje). Dotyczy
+   roju, towarzysza elity (a) i eskorty bossa.
+1. **Audyt (faza A):** dwie przyczyny, nie jedna. (a) Wznoszenia — do wiszenia
+   u góry i odlot — 8 linii na klatkę, strzał gracza 6: strzał zostaje w tyle.
+   (b) Standoff śledzi **lewą krawędź** statku (`PLAYER_X & $FC`), a strzał
+   wychodzi ze **środka** (x + 8): Interceptor wisi zawsze o jeden HPOS obok
+   linii strzału i odskakuje w 2 klatki, gdy gracz ustawi się pod jego
+   środkiem. Gracz trzymający ogień pod nim nie trafiał go nigdy (harness: 0
+   trafień z 12 / 40 strzałów).
+2. **Odpowiedź Q1: V1** — kolumna to środek statku (`(x + 6) & $FC`, laser
+   nadal trafia myśliwiec), wznoszenia na ekranie 3 linie na klatkę. V2
+   (spokojniejsze śledzenie w zawisie, +14 B okna) odrzucony; kod wariantów
+   usunięty.
+3. **Odpowiedź Q2: przyjęte** — Interceptor w linii strzału jest teraz celem
+   (trzymany ogień zabija go w 31 klatek); właściciel ocenił w grze, że nie
+   jest „siedzącym celem". 3 HP wszędzie bez zmian (§AN).
+4. **Odpowiedź Q3: dopasowanie do podłogi jak w V1** (0 B): wolniejsze
+   wyjście wydłuża życie, więc zawis 100 → 64 klatki, nurkowanie 2 → 4 linie
+   na klatkę, faza górna 39 → 64 klatki (krok wieku 3), przeładowanie 56 / 44
+   / 32 → 40 / 31 / 20 (EASY: odp. Q5; nadal 1 / 2 / 3 strzały na wizytę). Najdłuższe życie
+   eskorty 121 klatek, pod podłogą 128. Bez wygaszania poza ekranem.
+5. **Odpowiedź Q4: region 4 o około jedną piątą lżejszy** (iglice 9, rdzeń 23,
+   soczewka 21, działa 14, działka 10, płyty 8): eskorta w linii strzału bota
+   bierze strzały celowane w bossa, MEDIUM regionu 4 urosło do 132 s. Po
+   zmianie walki (bot celujący, E / M / H): R1 i R2 97,4 / 111,0 / 152,7 s,
+   R3 109,3 / 112,3 / 174,9 s, R4 100,2 / 107,0 / 139,3 s — wszystkie w regule.
+6. **Odpowiedź Q5: EASY przeładowanie 56 → 40** — inaczej na EASY każda
+   eskorta ginęła przed pierwszym laserem i lewa krawędź znów była schronieniem
+   (0 trafień); przy 40: 17, jak na `main`.
+7. **Odpowiedź Q6a: obserwator liczby strzałów na końcu poziomu liczy w tym
+   samym momencie klatki co gra.** Gra liczy strzał w `stats_scan` raz na
+   klatkę na ścieżce publikacji; obserwator liczy każdą alokację sam, ale
+   zapamiętuje swoje liczniki przy każdym wejściu w `stats_scan`, a rekord
+   końca poziomu bierze ten stan. Strzał oddany w klatce przekazania bossa po
+   jej skanie nie jest już liczony tylko przez obserwatora (wcześniej 627
+   wobec 626 gry). Sprawdzenie zostaje dokładne. Usunięte z otwartej listy
+   STATUS.
+8. **Odpowiedź Q6b: scenariusz kontaktu z laserem na HARD przepisany
+   uczciwie** (bot, bez zapisów do pamięci; klauzula bez zmian): bot szuka
+   promienia tylko z całym kadłubem i bez tarczy, ucieka z promienia aż do
+   granic statku (48 / 200 — przy x 60 stary margines kierował go w prawo,
+   przez promień), omija spadające szczątki na całej drodze, nie tylko przed
+   bossem.
+
+**Wynik:** plan `interceptor-speed`, STATUS, game-design, level-authoring,
+hardware-testing §34. `OWNER-SMOKE CANDIDATE`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

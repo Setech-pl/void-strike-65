@@ -1255,6 +1255,43 @@ new file name:
 - [ ] **No flicker or slowdown** with the faster pull, the column's wave, two
       beams and the guns; the boss entry loads and plays (68 sectors).
 
+## 34. The Interceptor a shot can catch (`fix/interceptor-speed`)
+
+Plan [plans/interceptor-speed.md](plans/interceptor-speed.md); journal §AS.
+In Atari800 (`-xl -pal -nobasic`), on the whole game
+(`build/play/interceptor-speed-full-game-*.atr`) and region 1's boss route
+(`build/play/interceptor-speed-boss-route-*.atr`), at EASY, MEDIUM and HARD:
+
+- [ ] **A shot aimed at it lands:** in the swarm after the capital and with
+      elite (a)'s companion, sit under an Interceptor and fire - it takes the
+      hits (the pod flash), the third kills it.
+- [ ] **A climbing one is caught:** fire straight up as it climbs to the top
+      rows, and as it leaves after its last loop - the shot reaches it before
+      it leaves the screen.
+- [ ] **Its moves can be followed by eye:** the climbs are slower than
+      before and easy to track; the dive onto its hover is faster.
+- [ ] **Still the fastest enemy:** it dives in fast and tracks the ship at
+      its own speed; it does not feel like a sitting target.
+- [ ] **Standoff as before:** it hovers above the ship and fires only in its
+      column (1 / 2 / 3 bolts a visit on EASY / MEDIUM / HARD), backs off when
+      the ship climbs close, a swarm stacks 2 rows apart, loops twice at the
+      top rows in level 1, then climbs out; it never rams.
+- [ ] **3-hit armour as before**, the pod flash on the two hits it survives.
+- [ ] **The boss escort:** one pass; shot down far more often than before; it
+      sometimes takes shots aimed at the boss; never two at once, none after
+      the boss falls.
+- [ ] **EASY's left edge is no refuge:** parked at the left edge of region
+      1's boss on EASY, the escort's lasers still reach the ship.
+- [ ] **Region 4's fight** (`node scripts/build.mjs --level=1:sector=6
+      --boss-region=4`, level 10): MEDIUM about 107 s by the bot, EASY
+      shorter, HARD about 139 s; every module about a fifth lighter.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **No flicker or slowdown** in the swarm with three Interceptors and
+      their lasers, and in the boss fight with the escort.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

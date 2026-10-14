@@ -685,25 +685,36 @@ candidate's" — contradicted this section's own heading and was corrected
 - **Independent, no kamikaze runs — the standoff** (feat/interceptor-standoff,
   owner answers Q1/Q2 of 2026-10-11, decision AK; `OWNER-SMOKE CANDIDATE`).
   It keeps no formation and follows no Heavy leader. It enters at X 124 and
-  descends 2 lines per frame (twice the Heavy rate) until the player is
+  dives **4 lines per frame** (four times the Heavy rate) until the player is
   **7 rows below it**; there it **holds**, and while the player is **closer
   than 6 rows** it **backs off upward** 2 lines a frame (the Interceptor is the
   only archetype allowed to fly upward). Each Light slot holds **2 rows higher**
   than the one before, so a swarm stacks into a column instead of merging into
-  one cell. Every other frame it moves one 4-HPOS cell toward the player's
-  column, clamped to 48-200 — the player's own top speed. After **100 frames**
-  it **climbs out** 8 lines a frame and leaves past the top; its longest life
-  is under the boss escort clock's 128-frame floor.
+  one cell. Every other frame it moves one 4-HPOS cell toward **the centre of
+  the player's ship** (`(x + 6) & $FC`), clamped to 48-200 — the player's own
+  top speed. After a **64-frame hover** it **climbs out** 3 lines a frame and
+  leaves past the top; its longest life (121 frames, the ship on the bottom
+  row) is under the boss escort clock's 128-frame floor.
+- **Catchable in every phase** (fix/interceptor-speed, owner answers Q1-Q6 of
+  2026-10-14, decision AS; `OWNER-SMOKE CANDIDATE`). A player shot (6 lines a
+  frame, from the ship's centre) fired from directly below catches it in its
+  dive, its hover, its back-off, its climbs, its top-hold and its exit: the
+  climbs (3 lines a frame) are slower than the shot, and the column it tracks
+  is the one the ship's shot leaves in. Until then it climbed at 8 lines a
+  frame and tracked the ship's left edge, one HPOS beside the shot's line, so
+  a player holding fire under it never hit it. It is still the fastest thing on
+  screen: a 4-line dive and tracking at the ship's own speed.
 - **The top-hold loop** (feat/interceptor-standoff, the owner's smoke of
   2026-10-11 and answers L1/L2/E1 of 2026-10-12, decision AK points 9-10;
   `OWNER-SMOKE CANDIDATE`). A wave may author **loops** (level data, 0-3):
-  after its 100 frames the Interceptor climbs at 8 lines a frame to its
+  after its hover the Interceptor climbs at 3 lines a frame to its
   **top-hold row** — y 32, the playfield's second row, for the first Light
   slot, two rows lower per slot, so it stays on screen — holds there without
-  firing (the climb and the hold take 39 frames together), then dives back to
+  firing (the climb and the hold take 64 frames together; the hold 16 / 27 /
+  37 frames for the three slots over a ship on the bottom row), then dives back to
   its standoff and flies it again. After the last loop it **climbs out
   upward** as above. Level 1's swarm and elite (a) Interceptors loop **twice**
-  (a life of about 400 frames); **the boss escort loops 0** and keeps its
+  (a life of about 375 frames); **the boss escort loops 0** and keeps its
   single pass, life ≤ 121 frames. A downward exit "by the nearer edge" was
   built and measured and is not used (E1): clear of the player's column it
   can never trigger, because the standoff tracks that column. It never steers into the
@@ -713,8 +724,9 @@ candidate's" — contradicted this section's own heading and was corrected
 - **Laser bolt (roadmap 4.4c).** It fires through the established hostile
   PairShot path, but with its own weapon class `LASER`: a single thin bolt,
   **only when it is in the player's column** (straight down, never aimed), then
-  a pause of 56/44/32 frames for EASY/MEDIUM/HARD — one, two or three shots per
-  visit. Speed, hitbox, damage and lifetime are those of every hostile
+  a pause of 40/31/20 frames for EASY/MEDIUM/HARD — one, two or three shots per
+  visit (56/44/32 until fix/interceptor-speed: the shorter hover, and EASY's
+  first bolt before a ship parked under it can shoot it down). Speed, hitbox, damage and lifetime are those of every hostile
   PairShot.
 - **HP and score.** **3 HP** in every wave — the swarm, elite (a)'s
   companion and the boss escort — from its archetype record, with no wave or

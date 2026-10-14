@@ -219,8 +219,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AB00-$ABFF` | 256 B | slot | LevelDef payload page | `level` | manifest `levelDef.payload` |
 | `$AC00-$AC7F` | 128 B | slot | HullGeometry page (after its linked 8-B header) | `level` | manifest `levelDef.geometry`, `sectorReader.levels` |
 | `$AC00-$AC07` | 8 B | segment | `LEVEL_GEOMETRY` — HullGeometry header (bss inside the level buffer) | `level` | build/encounter-director.map |
-| `$AE00-$B3F9` | 1,530 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
-| `$B3FA-$B3FD` | 4 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
+| `$AE00-$B3FC` | 1,533 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
+| `$B3FD` | 1 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
 | `$B3FE-$B477` | 122 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
 | `$B478-$B790` | 793 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
 | `$B487-$B4AA` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
@@ -619,22 +619,22 @@ By topic: Light enemies 57%, Director, sectors and waves 23%, Heavy, Raider and 
 
 By topic: Director, sectors and waves 84%, Heavy, Raider and Interceptor 12%, player, input and weapons 5%.
 
-#### `HYBRID_C_WINDOW` `$AE00-$B3F9`, 1,530 B (build/encounter-director.map)
+#### `HYBRID_C_WINDOW` `$AE00-$B3FC`, 1,533 B (build/encounter-director.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `_light_tick_body` | `$B198` | 570 B | 37.3% | Light enemies |
-| `_director_c_try_event` | `$AE21` | 180 B | 11.8% | Director, sectors and waves |
-| `_enter_sector` | `$AF88` | 111 B | 7.3% | Director, sectors and waves |
-| `_enemy_c_light_tick` | `$B02E` | 85 B | 5.6% | Light enemies |
+| `_light_tick_body` | `$B198` | 573 B | 37.4% | Light enemies |
+| `_director_c_try_event` | `$AE21` | 180 B | 11.7% | Director, sectors and waves |
+| `_enter_sector` | `$AF88` | 111 B | 7.2% | Director, sectors and waves |
+| `_enemy_c_light_tick` | `$B02E` | 85 B | 5.5% | Light enemies |
 | `_light_wave_step` | `$B158` | 64 B | 4.2% | Light enemies |
-| `_enemy_c_light_hit` | `$B083` | 59 B | 3.9% | Light enemies |
+| `_enemy_c_light_hit` | `$B083` | 59 B | 3.8% | Light enemies |
 | `_archetype_allowed` | `$AFF7` | 55 B | 3.6% | Heavy, Raider and Interceptor |
 | `_compute_ceiling_row` | `$AF01` | 54 B | 3.5% | unclassified |
 | `_heavy_ceiling` | `$AF37` | 46 B | 3.0% | Heavy, Raider and Interceptor |
 | `_director_c_light_ceiling` | `$AED5` | 44 B | 2.9% | Light enemies |
 | `_enemy_c_light_wave` | `$B0EE` | 44 B | 2.9% | Light enemies |
-| `_encounter_light_admit` | `$B3D2` | 40 B | 2.6% | Light enemies |
+| `_encounter_light_admit` | `$B3D5` | 40 B | 2.6% | Light enemies |
 | (after _compute_wave_end) | `$AF65` | 35 B | 2.3% | Director, sectors and waves |
 | `_light_live_count` | `$B0CC` | 34 B | 2.2% | Light enemies |
 | `_director_c_release` | `$AE00` | 33 B | 2.2% | Director, sectors and waves |
@@ -976,7 +976,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `DIRECTOR_C_CODE` | 623 B | placement name | — | Director, sectors and waves (84%) | not judged |
-| `HYBRID_C_WINDOW` | 1,530 B | placement name | — | Light enemies (66%) | not judged |
+| `HYBRID_C_WINDOW` | 1,533 B | placement name | — | Light enemies (66%) | not judged |
 | `LEVEL_SUMMARY` | 1,760 B | level summary | 97% | level summary (97%) | fits |
 | `LIGHT_KERNEL` | 793 B | Light enemies | 95% | Light enemies (95%) | fits |
 | `SECTOR_READER` | 1,498 B | boot, loader and transport, Director, sectors and waves | 84% | boot, loader and transport (84%) | fits |
@@ -1151,7 +1151,7 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$8776-$8857` | 226 B | `LIGHT_RESIDENT` Light Wingman kernel (update, PairShot hit, kill, glyph) heading the pickup/collision stream — **[BUILD 2026-10-03, generated map: `LIGHT_RESIDENT` is empty (manifest `lightWingman.residentBytes` 0); `PICKUP_CODE` alone is `$8776-$8B25`, 944 B]** |
 | `$8858-$8B60` | 777 B | fighter PMG pickup, projectile publication scaffold, narrow effect/PairShot backing resolver, and provisional active-gameplay admission policy (retired inert padding reclaimed) — **[BUILD 2026-10-03, generated map: part of `PICKUP_CODE` `$8776-$8B25`, 944 B]** |
 | `$8B61-$8B66` | 6 B | zero fill of the pickup/collision stream image — **[BUILD 2026-10-03, generated map: the stream fill is `$8B26-$8B66`, 65 B]** |
-| `$8B26-$8B52` | 45 B | **the boss entry's head** (`boss_enter_head`, `src/main.s`, the last of `PICKUP_CODE`) — feat/interceptor-standoff (decision AK point 10): moved out of the window's `HYBRID_ASM_WINDOW`, which is now a 4-B unexecuted pad; the Director's C calls it by `pin_boss_enter_head` (`src/hybrid/boss-entry-pins.inc`). It runs once per boss entry and jumps to the region read in the Light kernel link's last segment. The pickup record carries it (1,137 → 1,180 of 1,259 B, 10 sectors); the stream's zero fill is now `$8B53-$8B66`, **20 B**. **feat/interceptor-armour (decision AN pt 5): `$8B26-$8B5D`, 56 B** — the HUD booster backup (S5-1, 14 B with its `jsr music_stop_gameplay`) is inlined at the head's start, out of the Light kernel link, whose record the hit flash needed; `pin_boss_enter_hud_backup` is gone. The pickup record packs 1,191 of 1,259 B; the zero fill is `$8B5E-$8B66`, **9 B** |
+| `$8B26-$8B52` | 45 B | **the boss entry's head** (`boss_enter_head`, `src/main.s`, the last of `PICKUP_CODE`) — feat/interceptor-standoff (decision AK point 10): moved out of the window's `HYBRID_ASM_WINDOW`, which is now a 4-B unexecuted pad (**1 B since fix/interceptor-speed, `$B3FD`**: the Interceptor tick's centred column took 3 B of the Director half, and the pad gives them back so the Light kernel stays at `$B478`; decision AS); the Director's C calls it by `pin_boss_enter_head` (`src/hybrid/boss-entry-pins.inc`). It runs once per boss entry and jumps to the region read in the Light kernel link's last segment. The pickup record carries it (1,137 → 1,180 of 1,259 B, 10 sectors); the stream's zero fill is now `$8B53-$8B66`, **20 B**. **feat/interceptor-armour (decision AN pt 5): `$8B26-$8B5D`, 56 B** — the HUD booster backup (S5-1, 14 B with its `jsr music_stop_gameplay`) is inlined at the head's start, out of the Light kernel link, whose record the hit flash needed; `pin_boss_enter_hud_backup` is gone. The pickup record packs 1,191 of 1,259 B; the zero fill is `$8B5E-$8B66`, **9 B** |
 | `$8B67-$8B87` | 33 B | shared inclusive final-raster swept-AABB capital-bolt/Player Fighter collision module |
 | `$8B88-$8C79` | 242 B | low cc65 Director code — **[BUILD 2026-10-03, generated map: `DIRECTOR_C_LOW` is `$8B88-$8BCB`, 68 B; free tail `$8BCC-$8C7C`, 177 B]** |
 | `$8C7A-$8C7C` | 3 B | free gap — **[BUILD 2026-10-03, generated map: inside the 177-B tail `$8BCC-$8C7C`]** |

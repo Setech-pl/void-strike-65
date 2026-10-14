@@ -53,15 +53,19 @@ export const R4_LAYOUT = Object.freeze({
   // The vents: one cell each side under the gantry, against the hull's wall,
   // so nothing floats once a spire has fallen.
   nozzles: { left: 13, right: 50, rows: [3] },
-  guns: [{ name: "gun-1", x: 15 }, { name: "gun-2", x: 26 }, { name: "gun-3", x: 35 }, { name: "gun-4", x: 46 }],
-  emitters: [{ name: "emitter-1", slot: 1, x: 22 }, { name: "emitter-2", slot: 2, x: 39 },
+  // Phase A-2 (the owner's smoke of 2026-10-14): the laser cannons hug the
+  // core on both sides (slots 1 and 2), each behind its own belt plate, so
+  // the well pulls the ship across their beams; the open guns stand where
+  // the inner emitters were.
+  guns: [{ name: "gun-1", x: 15 }, { name: "gun-2", x: 22 }, { name: "gun-3", x: 39 }, { name: "gun-4", x: 46 }],
+  emitters: [{ name: "cannon-l", slot: 1, x: 27 }, { name: "cannon-r", slot: 2, x: 34 },
     { name: "emitter-3", slot: 3, x: 18 }, { name: "emitter-4", slot: 4, x: 43 }],
-  plates: [{ name: "plate-a", x: 15, width: 6 }, { name: "plate-b", x: 22, width: 3 },
-    { name: "plate-c", x: 30, width: 4 }, { name: "plate-d", x: 39, width: 3 },
+  plates: [{ name: "plate-a", x: 15, width: 6 }, { name: "plate-b", x: 27, width: 3 },
+    { name: "plate-c", x: 30, width: 4 }, { name: "plate-d", x: 34, width: 3 },
     { name: "plate-e", x: 43, width: 6 }],
   // The open guns' bays: no hull under or beside them below the deck, so the
   // gun hangs in a recess and reads as open (decisions N and O).
-  bays: [[25, 29], [34, 38]],
+  bays: [[22, 26], [37, 41]],
   // The struts between the blocks' belt plates, and their feet on the belt row.
   struts: [21, 42],
 });

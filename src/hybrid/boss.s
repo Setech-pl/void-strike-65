@@ -3028,7 +3028,23 @@ laser_publish:
     sta COLPM2
     lda boss_laser_sizem
     sta SIZEM
+.ifdef BOSS_GRAVITY_COLUMN
+    jmp boss_m0_publish                 ; S5-4 Phase A-2: and the gravity column (slot E)
+.else
     rts
+.endif
+.ifdef BOSS_GRAVITY_COLUMN
+.segment "BOSS_E_CODE"
+; S5-4 Phase A-2 (the owner's smoke of 2026-10-14): region 4's gravity column,
+; missile M0 (COLPM0, the ship's white - no laser's register), at the HPOS the
+; well set this frame (0: off screen); from laser_publish, A only. The byte is
+; data in slot E, read from the disk at every entry (0 in every other region).
+boss_m0_publish:
+    lda boss_m0_hpos
+    sta HPOSM0
+    rts
+boss_m0_hpos:   .byte 0
+.endif
 
 .segment "BOSS_D_CODE"
 
@@ -3554,20 +3570,54 @@ HPOSP0              = $D000
 .segment "BOSS_G_CODE"
 gravity_hooks:
     jmp gravity_frame                   ; BOSS_F_HOOK: every frame, from laser_frame (slot D)
+.if GRAVITY_COLUMN
+    jmp gravity_late                    ; BOSS_F_HOOK + 3: SECTOR_COMPLETION (slot E): the column's size, its wave
+.else
     jmp gravity_rts                     ; BOSS_F_HOOK + 3: SECTOR_COMPLETION (slot E): nothing
+.endif
+
+gravity_off:
+    rts
 
 ; Every boss frame, from laser_frame, before the player's shots meet the band.
 gravity_frame:
     lda #$00
     sta gravity_on
+.if GRAVITY_COLUMN
+    sta boss_m0_hpos                    ; the column off unless the pull is on
+.endif
     lda _boss_phase
-    bne gravity_rts                     ; the fight only: not the chain or the hold
+    bne gravity_off                     ; the fight only: not the chain or the hold
     lda PLAYER_LIFECYCLE
-    bne gravity_rts                     ; the ship alive: never dying or invulnerable
+    bne gravity_off                     ; the ship alive: never dying or invulnerable
     lda _boss_hp + GRAVITY_SPIRE_L
     ora _boss_hp + GRAVITY_SPIRE_R
-    beq gravity_rts                     ; both spires fallen: off for good
+    beq gravity_off                     ; both spires fallen: off for good
     inc gravity_on
+.if GRAVITY_COLUMN
+    lda gravity_drawn
+    bne @column
+    inc gravity_drawn
+    jsr gravity_draw                    ; the column's lines, once
+@column:
+  .if GRAVITY_COLUMN = 1
+    ldx #$03                            ; the shimmer: quad (8 clocks), then
+    ldy #(GRAVITY_X_BASE + 8 - 4)       ; double (4 clocks), by 4-frame halves
+    lda gravity_pulse                   ; of the pulse's count, centred under
+    and #$04                            ; the core (GRAVITY_X_BASE + 8)
+    beq :+
+    ldx #$01
+    ldy #(GRAVITY_X_BASE + 8 - 2)
+:
+    stx gravity_size
+    tya
+  .else
+    lda #(GRAVITY_X_BASE + 8 - 4)       ; quad M0 (8 clocks) centred under the core
+  .endif
+    sec
+    sbc boss_shown_pos
+    sta boss_m0_hpos
+.endif
     dec gravity_pulse                   ; the core's pulse
     bne @drift
     lda #GRAVITY_PULSE_FRAMES
@@ -3609,6 +3659,94 @@ gravity_frame:
 gravity_rts:
     rts
 
+.if GRAVITY_COLUMN
+; SECTOR_COMPLETION, after laser_frame set this frame's SIZEM bits: the
+; column's (M0's, SIZEM bits 0-1), published by the next band DLI. The wave
+; (GRAVITY_COLUMN 2): one line in eight rewritten a frame, never on a kill or
+; exposure-check frame (the draw queue's rule; the stress frame is a kill
+; frame); the eighth slice moves the wave GRAVITY_WAVE_STEP lines down.
+gravity_late:
+    lda gravity_on
+    beq gravity_rts
+    lda boss_laser_sizem
+  .if GRAVITY_COLUMN = 1
+    ora gravity_size
+  .else
+    ora #$03
+  .endif
+    sta boss_laser_sizem
+  .if GRAVITY_COLUMN = 2
+    lda boss_frame_heavy
+    ora _boss_heavy
+    bne gravity_rts
+    lda gravity_slice
+    clc
+    adc #1
+    and #$07
+    sta gravity_slice
+    bne :+
+    lda gravity_phase
+    clc
+    adc #GRAVITY_WAVE_STEP
+    sta gravity_phase
+:
+    clc
+    adc gravity_slice
+    adc #GRAVITY_COLUMN_TOP             ; the slice's first line (C = 0)
+    tay
+    adc gravity_phase                   ; its wave index
+    and #$0F
+    tax
+@line:
+    lda LASER_MISSILES,y
+    and #$FC
+    ora gravity_wave,x
+    sta LASER_MISSILES,y
+    txa
+    eor #$08                            ; eight lines on: half the wave's period
+    tax
+    tya
+    clc
+    adc #8
+    tay
+    cpy #(LASER_LAST_LINE + 1)
+    bcc @line
+    rts
+  .endif
+  .if GRAVITY_COLUMN = 1
+    rts
+  .endif
+
+; Once, on the well's first frame: M0's bits from the first line under the
+; band down to the ring's last line (the lasers' lines keep their own bits;
+; the boss sector's end erases the whole plane).
+gravity_draw:
+    ldy #GRAVITY_COLUMN_TOP
+    ldx #$00
+@line:
+  .if GRAVITY_COLUMN = 1
+    lda #$03
+  .else
+    tya
+    and #$0F
+    tax
+    lda gravity_wave,x
+  .endif
+    ora LASER_MISSILES,y
+    sta LASER_MISSILES,y
+    iny
+    cpy #(LASER_LAST_LINE + 1)
+    bne @line
+    rts
+
+  .if GRAVITY_COLUMN = 2
+; M0's two bits a line (quad: each four colour clocks): left, both, right -
+; an S-bend over sixteen lines.
+gravity_wave:   .byte $02, $02, $02, $02, $03, $03, $01, $01, $01, $01, $01, $01, $03, $03, $02, $02
+  .endif
+GRAVITY_COLUMN_TOP = BAND_TOP_Y + GRAVITY_BAND_ROWS * 8
+.endif
+
 ; The state - data, not BSS: the block is read from the disk at every entry,
 ; so every fight starts from these values. The trace's slot F write clause
 ; admits the well's writes here, and nowhere else.
@@ -3617,5 +3755,11 @@ gravity_on:     .byte 0                 ; 1 on a frame the pull is on
 gravity_pulse:  .byte GRAVITY_PULSE_FRAMES
 gravity_timer:  .byte GRAVITY_FRAMES
 gravity_steps:  .word 0                 ; the steps taken (the trace counts them)
+.if GRAVITY_COLUMN
+gravity_drawn:  .byte 0                 ; the column's lines drawn
+gravity_size:   .byte 3                 ; M0's SIZEM bits this frame
+gravity_slice:  .byte 0                 ; the wave's next slice (one line in eight)
+gravity_phase:  .byte 0                 ; the wave's offset
+.endif
 gravity_state_end:
 .endif

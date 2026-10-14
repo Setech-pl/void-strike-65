@@ -44,7 +44,11 @@ const LIGHT_RETURN_INSTALL = 0x40;
 const STANDOFF_FAR = 56;      // descends while the player is 7 rows or more below
 const STANDOFF_NEAR = 48;     // backs off while the player is under 6 rows below
 const SLOT_ROWS = 16;         // each Light slot holds two rows higher
-const LIFE_FRAMES = 100;      // then climbs out
+// RE-PINNED fix/interceptor-speed (owner answer Q3 of 2026-10-14, plan
+// interceptor-speed §4): the hover 100 -> 64 frames, so the slower climb's
+// exit keeps the escort's life under the floor (src/c/lifecycle.c
+// INTERCEPTOR_LIFE_FRAMES).
+const LIFE_FRAMES = 64;       // then climbs out
 const ESCORT_FLOOR = 128;     // scripts/boss-assets.mjs: baseFrames >= 128
 
 function run(image, target, { a = 0, x = 0 } = {}) {
@@ -111,7 +115,11 @@ function frame(image) {
   return results;
 }
 
-const column = (playerX) => Math.min(playerX & 0xfc, 200);
+// RE-POINTED fix/interceptor-speed (owner answer Q1 of 2026-10-14, plan
+// interceptor-speed §2.2): the column is the ship's centre, (x + 6) & $FC - the
+// ship's shot leaves at x + 8 and crosses it; the left edge (x & $FC) held the
+// Interceptor one HPOS beside every shot. Its laser still lands on the fighter.
+const column = (playerX) => Math.min((playerX + 6) & 0xfc, 200);
 
 // The player's scripted path: a function of the frame index.
 const PATHS = {
@@ -185,7 +193,7 @@ test("it fires only when it is in the player's column, and does fire there (1 / 
   }
 });
 
-test("it climbs out after its 100 frames and retires inside the escort clock's 128-frame floor", () => {
+test("it climbs out after its hover and retires inside the escort clock's 128-frame floor", () => {
   let worst = 0;
   for (const difficulty of [0, 1, 2]) {
     for (const pathName of Object.keys(PATHS)) {
@@ -209,7 +217,9 @@ test("a swarm holds apart: each Light slot two rows above the one before, never 
   image[L("player_x")] = 124;
   image[L("player_y")] = 190;
   admit(image, 3);
-  for (let f = 0; f < 80; f += 1) frame(image);
+  // RE-POINTED fix/interceptor-speed: sampled at frame 50, inside the 64-frame
+  // hover (the dive is 4 lines a frame; at 80 the swarm has begun to climb).
+  for (let f = 0; f < 50; f += 1) frame(image);
   const ys = [0, 1, 2].map((slot) => slotOf(image, slot));
   assert.ok(ys.every(({ live }) => live), "the swarm retired early");
   for (const slot of [1, 2]) {

@@ -145,8 +145,10 @@ test("Light Wingman and Interceptor are the second and third 12-byte C records; 
   // 4.4c: the Interceptor fires one LASER (2) bolt per burst, post 56/44/32.
   // RE-POINTED feat/interceptor-armour (owner answer H3 of 2026-10-12): the
   // Interceptor's hit points 1 -> 3; the rest of the record is unchanged.
+  // RE-PINNED fix/interceptor-speed (owner answers Q3, Q5 of 2026-10-14):
+  // the post-burst pause (the reload) 56 / 44 / 32 -> 40 / 31 / 20.
   assert.deepEqual([...readRuntimeBytes(root, table + 24, 12)],
-    [3, 2, 3, 1, 0, 56, 44, 32, 2, 2, 0x15, 1]);
+    [3, 2, 3, 1, 0, 40, 31, 20, 2, 2, 0x15, 1]);
 });
 
 test("Light kernel placement is legal, resident and inside every reviewed gate", () => {

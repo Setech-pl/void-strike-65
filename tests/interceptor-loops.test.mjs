@@ -169,12 +169,17 @@ test("the top-hold rows are on screen, apart per slot, and nothing is fired on t
       assert.ok(y >= LIGHT_TOP, `slot ${slot}'s hold row ${y} is off screen`);
       assert.ok(end - start + 1 >= 20, `slot ${slot}: a hold of ${end - start + 1} frames`);
     }
-    // From the end of each standoff (frame 100 of the loop) to the end of the
-    // hold: climbing or holding, never firing.
+    // From the end of each standoff to the end of the hold: climbing or
+    // holding, never firing.
+    // RE-POINTED fix/interceptor-speed (plan interceptor-speed §B): the walk
+    // back ends on the last hover frame (the one before the first frame that
+    // climbs); the check starts at the first climbing frame, i + 1. A laser on
+    // the hover's last frame is the standoff's (age 63 of 64) - on main none
+    // ever fell there, so the extra frame went unnoticed.
     for (const { start, end } of runs) {
       let i = start;
       while (i > 0 && life[i - 1].y > life[i].y) i -= 1;
-      for (let k = i; k <= end; k += 1) {
+      for (let k = i + 1; k <= end; k += 1) {
         assert.notEqual(life[k].result, LASER, `slot ${slot}: fired at life frame ${k} on the way up or in the hold`);
       }
     }
@@ -198,8 +203,10 @@ test("after its two loops it climbs out upward, as R does, and its slot is freed
   }
   assert.ok(exit.at(-1).y < LIGHT_TOP, `it left from y ${exit.at(-1).y}, not off the top`);
   assert.equal(image[L("light_state")], 0, "the slot is not freed");
-  // 100 + 2 x 139 frames of loops, then the climb out from the standoff.
-  assert.ok(life.length > 100 + 2 * 139 && life.length < 100 + 3 * 139,
+  // RE-PINNED fix/interceptor-speed (owner answer Q3 of 2026-10-14): the
+  // hover 64 + 2 x (the 64-frame top phase + the hover) frames of loops, then
+  // the climb out from the standoff (was 100 + 2 x 139).
+  assert.ok(life.length > 64 + 2 * 128 && life.length < 64 + 3 * 128,
     `a life of ${life.length} frames`);
 });
 

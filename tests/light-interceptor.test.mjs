@@ -256,7 +256,9 @@ test("the armed wave names the escort: Wingman escorts, Interceptor flies free, 
 });
 
 test("admission per difficulty: entry x 124, leaderless, and the record's own post-burst pause", () => {
-  for (const [difficulty, pause] of [[0, 56], [1, 44], [2, 32]]) {
+  // RE-PINNED fix/interceptor-speed (owner answers Q3, Q5 of 2026-10-14):
+  // the record's reload 56 / 44 / 32 -> 40 / 31 / 20.
+  for (const [difficulty, pause] of [[0, 40], [1, 31], [2, 20]]) {
     const image = game(difficulty);
     selectNextLight(image, OFFSET_INTERCEPTOR);
     run(image, "enemy_spawn_raiders");
@@ -279,18 +281,24 @@ test("admission per difficulty: entry x 124, leaderless, and the record's own po
 // holds there, backs off under 6 rows, and after 100 frames climbs out 8 lines
 // a frame and retires when y wraps past the top into the same retire test
 // (232). An independent reference model of that spec, not a copy of the C.
+// RE-PINNED fix/interceptor-speed (owner answers Q1-Q3 of 2026-10-14, plan
+// interceptor-speed §3-§4): the dive 2 -> 4 lines a frame, the hover 100 ->
+// 64 frames, the climb out 8 -> 3 lines a frame (a player shot, 6, catches it).
 const PLAYER_PARKED_Y = 190;
+const DIVE = 4;
+const HOVER = 64;
+const CLIMB = 3;
 function standoffReference(playerY, frames) {
   let y = 0;
   let age = 0;
   const trace = [];
   for (let frame = 0; frame < frames; frame += 1) {
-    if (age >= 100) {
-      y = (y - 8) & 0xff;
+    if (age >= HOVER) {
+      y = (y - CLIMB) & 0xff;
     } else {
       age += 1;
       const gap = (playerY - y) & 0xff;
-      if (gap >= 56) y += 2;
+      if (gap >= 56) y += DIVE;
       else if (gap < 48 && y >= 2) y -= 2;
     }
     trace.push(y);
@@ -299,14 +307,14 @@ function standoffReference(playerY, frames) {
   return trace;
 }
 
-test("descent is 2 lines per frame down to the standoff; after 100 frames it climbs out and retires past the top", () => {
+test("descent is 4 lines per frame down to the standoff; after its 64-frame hover it climbs out and retires past the top", () => {
   const image = game();
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
   image[L("player_x")] = 124;         // no horizontal drift to isolate the motion
   image[L("player_y")] = PLAYER_PARKED_Y;
   const expected = standoffReference(PLAYER_PARKED_Y, 300);
-  assert.deepEqual(expected.slice(0, 3), [2, 4, 6], "the descent is still 2 lines a frame");
+  assert.deepEqual(expected.slice(0, 3), [4, 8, 12], "the descent is 4 lines a frame");
   assert.equal(Math.max(...expected.filter((y) => y < 232)), PLAYER_PARKED_Y - 54,
     "it holds 54 lines (under 7 rows) above the player");
   for (const [index, y] of expected.entries()) {
@@ -318,7 +326,9 @@ test("descent is 2 lines per frame down to the standoff; after 100 frames it cli
     assert.equal(light(image).y, y, `frame ${index + 1}`);
     assert.equal(light(image).state, 1);
   }
-  assert.equal(expected.length, 118, "a parked player sees it for 118 frames");
+  // RE-PINNED fix/interceptor-speed: the 64-frame hover and the climb from
+  // y 136 at 3 lines a frame (46 frames) - 110 (was 118).
+  assert.equal(expected.length, 110, "a parked player sees it for 110 frames");
 });
 
 // RE-POINTED feat/interceptor-standoff (owner answers Q1/Q2): the cell step
@@ -336,7 +346,9 @@ test("pursuit closes on the player one 4-HPOS cell every other frame, clamped to
     for (let frame = 0; frame < 40; frame += 1) {
       counter = (counter + 1) & 0xff;
       if ((counter & 1) === 0) {
-        const target = Math.min(playerX & 0xfc, 200);
+        // RE-POINTED fix/interceptor-speed (owner answer Q1): the ship's
+        // centre column, (x + 6) & $FC.
+        const target = Math.min((playerX + 6) & 0xfc, 200);
         if (x < target) x += 4;
         else if (x > target) x -= 4;
       }
@@ -345,7 +357,10 @@ test("pursuit closes on the player one 4-HPOS cell every other frame, clamped to
     return trace;
   }
 
-  for (const playerX of [252, 0x30, 124]) {
+  // RE-POINTED fix/interceptor-speed: the right-hand probe is the ship's real
+  // maximum, PLAYER_X_MAX 200 (src/main.s), not 252: the ship never passes 200,
+  // and the centred column (x + 6) wraps a byte only from 250.
+  for (const playerX of [200, 0x30, 124]) {
     const image = game();
     selectNextLight(image, OFFSET_INTERCEPTOR);
     run(image, "enemy_spawn_raiders");
@@ -378,25 +393,28 @@ test("pursuit ignores Heavy slot 0 entirely: an alive P1 formation does not swit
   // on its own pursuit track instead.
   assert.equal(light(image).leaderless, 1);
   assert.notEqual(light(image).x, (40 + 4 + 2) & 0xfc);
-  assert.equal(light(image).y, 2);
+  // RE-PINNED fix/interceptor-speed: its first frame dives 4 lines.
+  assert.equal(light(image).y, 4);
 });
 
-test("single laser bolt cadence: burst 1, post 56/44/32, 1/2/3 shots per pass, tick returns LASER", () => {
+test("single laser bolt cadence: burst 1, post 40/31/20, 1/2/3 shots per pass, tick returns LASER", () => {
   // 4.4c owner decision: one deliberate bolt per burst. Zero-based frame
-  // indices; the pass fires on ticks 57 / 45, 90 / 33, 66, 99.
+  // indices.
+  // RE-PINNED fix/interceptor-speed (owner answers Q3, Q5 of 2026-10-14): the
+  // reload 40 / 31 / 20 inside the 64-frame hover - still 1 / 2 / 3 shots a
+  // visit; MEASURED on the build (were 56 / 44, 89 / 32, 65, 98).
   const LASER = 2;
   for (const [difficulty, fires] of [
-    [0, [56]],
-    [1, [44, 89]],
-    [2, [32, 65, 98]],
+    [0, [40]],
+    [1, [31, 63]],
+    [2, [20, 41, 62]],
   ]) {
     const image = game(difficulty);
     selectNextLight(image, OFFSET_INTERCEPTOR);
     run(image, "enemy_spawn_raiders");
     // RE-POINTED feat/interceptor-standoff: it fires only in the player's
     // column and only below LIGHT_FIRE_TOP, so the player is parked in its
-    // entry column, low enough for it to descend into view. Its 100-frame
-    // visit holds the same reload frames as the old pass.
+    // entry column, low enough for it to descend into view.
     image[L("player_x")] = 124;
     image[L("player_y")] = PLAYER_PARKED_Y;
     const observed = [];
@@ -711,12 +729,14 @@ test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASE
   image[L("player_y")] = PLAYER_PARKED_Y;
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
-  image[L("light_x")] = 100;
+  // RE-POINTED fix/interceptor-speed (owner answer Q1): the ship's column at
+  // x 100 is its centre's, (100 + 6) & $FC = 104.
+  image[L("light_x")] = 104;
   image[L("light_y")] = 100;
   // Spend the admission frame's appearance install first: it is the one return
   // that outranks a fire, and this test pokes the cadence to zero.
   run(image, "light_update");
-  image[L("light_x")] = 100;
+  image[L("light_x")] = 104;
   image[L("light_y")] = 100;
   image[L("light_fire_timer")] = 0;
   const active = L("FIGHTER_PROJECTILE_ACTIVE");

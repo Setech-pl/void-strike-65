@@ -57,10 +57,13 @@ test("region 4 is the Void Citadel from its own draft: the layout, the hit point
   // still band keeps every module in reach, the untuned fight ran 60 s on
   // MEDIUM): every module x 1.75, then the end phase (the core, its lens) for
   // HARD - 92.6 / 107.3 / 154.3 s.
+  // RE-PINNED fix/interceptor-speed (owner answer Q4 of 2026-10-14, plan
+  // interceptor-speed §5.5-§6): the catchable escort takes the shots aimed at
+  // the boss, so every module about a fifth lighter (probe v1r4c).
   assert.deepEqual(hp, {
-    "spire-l": 11, "spire-r": 11, core: 29, "core-lens": 26, "cannon-l": 18, "cannon-r": 18,
-    "gun-1": 12, "gun-2": 12, "gun-3": 12, "gun-4": 12, "gun-5": 12, "gun-6": 12,
-    "plate-a": 10, "plate-b": 10, "plate-d": 10, "plate-e": 10,
+    "spire-l": 9, "spire-r": 9, core: 23, "core-lens": 21, "cannon-l": 14, "cannon-r": 14,
+    "gun-1": 10, "gun-2": 10, "gun-3": 10, "gun-4": 10, "gun-5": 10, "gun-6": 10,
+    "plate-a": 8, "plate-b": 8, "plate-d": 8, "plate-e": 8,
   });
   const kinds = (kind) => region4.modules.filter((module) => module.kind === kind).map((module) => module.name).sort();
   assert.deepEqual(kinds("salvo"), ["spire-l", "spire-r"]);

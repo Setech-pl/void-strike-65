@@ -2,8 +2,9 @@
 
 **Branch:** `fix/interceptor-speed` from `main` `2394f63` (the `fix/r4-immobile`
 merge; ATR `fee54bea…`, boot `62e40077…`).
-**Status:** Phase A done — audit, measurements and comparison builds;
-**STOP for the owner's choice** (§9).
+**Status:** implemented (Phase B, §10, the owner's answers of 2026-10-14),
+pending the owner's smoke — `OWNER-SMOKE CANDIDATE`. Phase A (§0-§9) kept as
+the record of the choice.
 
 **The owner's finding (2026-10-14, after playing the latest builds):** the
 Interceptor is far too fast — "even the player's shots can't catch it".
@@ -408,3 +409,63 @@ shot down far more often — and soaks up shots meant for the boss.
 | Q4 | Region 4's fight (MEDIUM 132.2 s on V1) | `v1r4c` (every module about a fifth lighter: 100.2 / 107.0 / 139.3 s); another trim | **`v1r4c`** |
 | Q5 | EASY's left edge (0 hits parked on V1) | reload 56 → 40 (`v1e40`, 17 hits as `main`); leave it | **reload 40** |
 | Q6 | The two trace findings (§7) | the observer fix for the stats race + the laser-contact bot's honest rewrite, in Phase B | **both, in Phase B** |
+
+## 10. Phase B — as built (the owner's answers of 2026-10-14, journal §AS)
+
+**The answers.** Q1 V1; Q2 (a), the 3 hits stay; Q3 the floor fit as V1
+(hover 64, dive 4, top phase 64, 0 B; no off-screen retire); Q4 `v1r4c`,
+every region re-measured; Q5 EASY's reload 56 -> 40; Q6a the observer fix,
+the check exact; Q6b the laser-contact bot's honest rewrite. V2 rejected; the
+review variants removed (`scripts/interceptor-speed-variants.mjs` deleted,
+`scripts/build.mjs` and `scripts/trace-artifacts.mjs` back to `main`'s).
+
+**The game (`src/c/lifecycle.c`, data and defines only, decision AD).**
+`INTERCEPTOR_LIFE_FRAMES` 100 -> 64, `INTERCEPTOR_DIVE` 2 -> 4,
+`INTERCEPTOR_CLIMB` 8 -> 3, `INTERCEPTOR_TOP_STEP` 4 -> 3 (`(256 - 64) % 3 == 0`,
+the top phase 64 frames); the tracked column `(PLAYER_X + 6) & $FC`; the
+record's reload 56 / 44 / 32 -> **40 / 31 / 20**. Region 4's modules (spires
+9, core 23, lens 21, cannons 14, guns 10, plates 8). The window pad 4 -> 1 B
+(`src/hybrid/c-asm-abi.s`) keeps the Light kernel at `$B478`: window record
+1,322 packed, Director half 1,656 / tail 971, initial block 13,623 B,
+`DIRECTOR_RAM` unchanged.
+
+**The trace (`scripts/atari800-wall-trace.h`, `scripts/runtime-wall-trace.mjs`).**
+Q6a: the summary observer snapshots its shot counters at every `stats_scan`
+entry (`DFSUMMARY_STATS_SCAN`) and the level-end record takes the snapshot -
+the game's own moment; the check stays exact. Q6b: the `lower-contact-laser`
+policy meets a beam only at 10 / 10 and with no shield (pickup state 5),
+escapes a beam to the ship's limits 48 / 200 and sidesteps falling debris on
+the whole road. No clause changed; no memory writes.
+
+**Tests.** `tests/interceptor-speed.test.mjs` (5): RED on `main` `2394f63`
+5 of 5, GREEN here. Re-pinned or re-pointed, each with its reason at the site
+(exact values; no floor, gate or budget moved):
+
+| test | value | source |
+| --- | --- | --- |
+| `interceptor-standoff` | hover 100 -> 64; column `(x + 6) & $FC`; the swarm sampled at frame 50 | `lifecycle.c` |
+| `interceptor-loops` | life window `64 + 2*128 .. 64 + 3*128` (was 100 / 139); the no-fire window from the first climbing frame | the harness (M) |
+| `light-interceptor` | admission pauses 40 / 31 / 20; the reference model 4 / 64 / 3 (118 -> 110 frames); pursuit `(x + 6) & $FC` at `PLAYER_X_MAX` 200; cadence E 40, M 31,63, H 20,41,62; visuals `light_x` 104 | the build (M) |
+| `light-wingman` | the record bytes `[3,2,3,1,0,40,31,20,2,2,0x15,1]` | `lifecycle.c` |
+| `boss-region-4` | the hit points above | `modules.json` |
+| `runtime-wall-trace` | the debris-effects replay's frames 5,000 -> 4,999 (it reaches the boss at frame 3,169; the entry frame is set aside) | the trace (M; owner approval 2026-10-14) |
+
+**Measured on the final build.**
+
+| | `main` `2394f63` | as built |
+| --- | --- | --- |
+| worst fence margin | 1,260 (`2-sweep-fire6`) | 1,260 (same row) |
+| DMA-on maximum | 31,483 | 31,059 |
+| PAL audit / clause failures | 0 misses, 58 replays / 0 | 0 / 0 |
+| replays that enter the boss | 14 | 16 |
+| R1 boss frames, worst margin / DMA-on | 9,191 / 29,821 | 8,869 / 30,211 |
+| R1 fight (E / M / H, the aiming bot's ratio) | 89.1 / 108.7 / 154.0 s | 97.4 / 111.0 / 152.7 s |
+| R3 fight | 89.5 / 118.8 / 150.1 s | 109.3 / 112.3 / 174.9 s |
+| R4 fight | 92.6 / 107.3 / 154.3 s | 100.2 / 107.0 / 139.3 s |
+| parked left, hits E / M / H | 17 / 17 / 16 | 17 / 16 / 15 |
+| road to the boss (sweep, E / M / H) | 75.7 / 76.2 / 66.0 s | 66.5 / 60.8 / 59.2 s |
+| ATR | `fee54bea` | `0f639496` |
+
+Every fight in the band; no further retune. **Status:** implemented,
+`OWNER-SMOKE CANDIDATE`; smoke checklist
+[hardware-testing.md](../hardware-testing.md) §34.

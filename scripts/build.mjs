@@ -360,24 +360,6 @@ if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirecto
   throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
     "draft (node scripts/boss-r1-variants.mjs writes it)");
 }
-// S5-4 (feat/boss-region-4, plan docs/plans/s5-boss-regions.md §4.5, §6.4):
-// --r4-variant=g0|g1|g2 builds region 4 from its own draft
-// (assets/graphics/boss-regions/region-4/, the Void Citadel) instead of the
-// placeholder copy of region 1, with its gravity well off (g0), gentle (g1:
-// 2 colour clocks every 8 frames) or stronger (g2: 2 every 4): the region
-// block carries the well's code (slot F) after its look tail. Composes with
-// --level=1:sector=M, --boss-region=4 and --laser-fixture=T. Review variant
-// (Phase A): build/r4-variant-gN[-laser-fixture-T][-boss-region-N]-level-1-sM/
-// or build/r4-variant-gN/ (the full game), never dist/.
-const r4VariantArgument = process.argv.find((argument) => argument.startsWith("--r4-variant="));
-const r4Variant = r4VariantArgument?.slice("--r4-variant=".length) ?? null;
-const R4_GRAVITY_FRAMES = Object.freeze({ g0: 0, g1: 8, g2: 4, g1s: 8, g1w: 8 });
-// Phase A-2 (the owner's smoke of 2026-10-14): the gravity column under the
-// core - missile M0 - as a width shimmer (g1s) or a travelling wave (g1w).
-const R4_GRAVITY_COLUMN = Object.freeze({ g0: 0, g1: 0, g2: 0, g1s: 1, g1w: 2 });
-if (r4Variant !== null && !(r4Variant in R4_GRAVITY_FRAMES)) {
-  throw new Error(`Unknown region 4 variant ${r4Variant}; the wells are g0, g1 and g2`);
-}
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
 // 16 is LEVEL_MAX_ID, declared below with the rest of the layout; this check
@@ -396,7 +378,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  bossVariantSlug !== undefined || r4Variant !== null;
+  bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -412,9 +394,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
 const levelDebugSuffix = levelDebugId === null
   ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
     `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = r4Variant !== null
-  ? `r4-variant-${r4Variant}${laserFixtureTier === null ? "" : `-laser-fixture-${laserFixtureTier}`}${levelDebugSuffix}`
-  : escortVariantId !== null
+const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
@@ -1913,14 +1893,16 @@ async function build() {
   // Spine from its own draft (assets/graphics/boss-regions/region-3/), its
   // force field's code in its block (slot F) - in every build, the laser
   // fixture's included (the fixture replaces region 1's draft and the copies
-  // made of it). Regions 2 and 4 stay copies of region 1 until S5-5 / S5-4.
+  // made of it). Region 2 stays a copy of region 1 until S5-5.
+  // S5-4 (feat/boss-region-4, the owner's answers of 2026-10-13 / 2026-10-14):
+  // region 4 is the Void Citadel from its own draft
+  // (assets/graphics/boss-regions/region-4/), its gravity well's code in its
+  // block (slot F) - in every build.
   const bossRegions = [1, 2, 3, 4].map((region) => (region === 1 ? regionOne
-    : region === 3 || (region === 4 && r4Variant !== null)
+    : region === 3 || region === 4
       ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, region)))
       : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
-  // S5-4 (Phase A): --r4-variant=g1|g2 - region 4's gravity well, its code in
-  // region 4's block (slot F); g0 is the Void Citadel without it.
-  const bossGravityFrames = r4Variant === null ? 0 : R4_GRAVITY_FRAMES[r4Variant];
+  const bossGravity = bossRegions[3].gravity;
   const bossField = bossRegions[2].field;
   // feat/boss-r1-twin-lasers (owner decision, variant A): slot D carries the
   // twin cannons' turn-taking when a region on the disk has them (region 1;
@@ -3008,36 +2990,35 @@ async function build() {
   // S5-4: a gravity build's slot F code (region 4's block) - the same address
   // as the field's (only the current region's block is in memory), its own
   // memory area last in the image, after the field's.
-  const bossConfig = bossGravityFrames === 0 ? bossConfigField : bossConfigField
+  const bossConfig = bossGravity === null ? bossConfigField : bossConfigField
     .replace(/\n}\s*\nSEGMENTS/, `\n    BOSS_SLOT_G_RAM:  start = ` +
       `$${(BOSS_SLOT_F_ADDRESS + bossFieldOffset).toString(16).toUpperCase()}, ` +
       `size = $${(BOSS_SLOT_F_BYTES - bossFieldOffset).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
     .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    BOSS_G_CODE:   load = BOSS_SLOT_G_RAM,  type = rw, define = yes;\n`);
-  // S5-4: the well's constants for the boss link (a gravity build only):
-  // region 4's spires and core (the front-first indices), the x that puts the
-  // ship's centre (player_x + 8) under the core's centre at band position 0,
-  // the input's limits (src/main.s) for the link's assertions.
-  const bossGravityInclude = bossGravityFrames === 0 ? null : (() => {
+  // S5-4: the well's constants for the boss link (region 4's gravity block):
+  // its cadences, the spires', the core's and the axis's module indices, the
+  // axis's beam centre in band colour clocks (its lens column's centre) and
+  // laser, the pull's target (the x whose collision box the beam's centre
+  // meets: the beam's centre - 4, src/hybrid/boss.s laser_collide), the band's
+  // shown rows (the column starts under them), the input's limits (src/main.s)
+  // for the link's assertions.
+  const bossGravityInclude = bossGravity === null ? null : (() => {
     const region = bossRegions[3];
-    const index = (name) => {
-      const at = region.modules.findIndex((module) => module.name === name);
-      if (at < 0) throw new Error(`S5-4: region 4 has no module ${name} for the gravity well`);
-      return at;
-    };
-    const core = region.modules[index("core")];
     const mainSource = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
     const limit = (name) => Number(new RegExp(`^${name} = (\\d+)`, "m").exec(mainSource)[1]);
+    const axis = 32 + 4 * bossGravity.axisColumn + 2;
     return Buffer.from([
       "; Generated by scripts/build.mjs (S5-4, the gravity well) - do not edit.",
-      `GRAVITY_FRAMES          = ${bossGravityFrames}`,
-      `GRAVITY_COLUMN          = ${R4_GRAVITY_COLUMN[r4Variant]}`,
+      `GRAVITY_FRAMES          = ${bossGravity.framesPerStep}`,
+      `GRAVITY_PULSE_FRAMES    = ${bossGravity.pulseFrames}`,
+      `GRAVITY_WAVE_STEP       = ${bossGravity.waveStep}`,
       `GRAVITY_BAND_ROWS       = ${region.bandShownRows}`,
-      "GRAVITY_WAVE_STEP       = 2",
-      "GRAVITY_PULSE_FRAMES    = 16",
-      `GRAVITY_SPIRE_L         = ${index("spire-l")}`,
-      `GRAVITY_SPIRE_R         = ${index("spire-r")}`,
-      `GRAVITY_CORE            = ${index("core")}`,
-      `GRAVITY_X_BASE          = ${32 + 4 * core.x + 2 * core.width - 8}`,
+      `GRAVITY_SPIRE_L         = ${bossGravity.spires[0]}`,
+      `GRAVITY_SPIRE_R         = ${bossGravity.spires[1]}`,
+      `GRAVITY_CORE            = ${bossGravity.core}`,
+      `GRAVITY_AXIS            = ${axis}`,
+      `GRAVITY_AXIS_LASER      = ${bossGravity.axisSlot - 1}`,
+      `GRAVITY_X_BASE          = ${axis - 4}`,
       `PLAYER_X_LIMIT_MIN      = ${limit("PLAYER_X_MIN")}`,
       `PLAYER_X_LIMIT_MAX      = ${limit("PLAYER_X_MAX")}`,
       "",
@@ -3140,7 +3121,6 @@ async function build() {
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
         ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1"]),
         ...(bossGravityInclude === null ? [] : ["-D", "BOSS_GRAVITY=1"]),
-        ...(bossGravityInclude !== null && R4_GRAVITY_COLUMN[r4Variant] !== 0 ? ["-D", "BOSS_GRAVITY_COLUMN=1"] : []),
         ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
@@ -4208,7 +4188,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null || r4Variant !== null
+      bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4611,6 +4591,14 @@ async function build() {
           halves: region.field.halves.map(({ from, to, generators }) => ({ from, to,
             generators: generators.map((index) => region.modules[index].name) })),
           codeBytes: region.fieldCodeBytes ?? 0, blockBytes: BOSS_LOOK_TAIL_MAX_BYTES + (region.fieldCodeBytes ?? 0) },
+        // S5-4: the gravity well (null without one): its cadences, the spires,
+        // the core and the axis (the beam the well pulls the ship into), its
+        // code's bytes in the block (slot F).
+        gravity: region.gravity === null ? null : { framesPerStep: region.gravity.framesPerStep,
+          pulseFrames: region.gravity.pulseFrames, waveStep: region.gravity.waveStep,
+          spires: region.gravity.spires.map((index) => region.modules[index].name),
+          core: region.modules[region.gravity.core].name, axis: region.modules[region.gravity.axis].name,
+          axisSlot: region.gravity.axisSlot, codeBytes: region.gravityCodeBytes ?? 0 },
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +

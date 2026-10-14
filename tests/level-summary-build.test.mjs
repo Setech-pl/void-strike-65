@@ -265,7 +265,9 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
     // RE-POINTED S5-3 (feat/boss-region-3, the owner's answers of 2026-10-13):
     // region 3 is Siege Spine from its own draft, no longer a copy (its own
     // runs: tests/boss-region-3.test.mjs, tests/boss-overlay.test.mjs).
-    if (region === 2) continue;
+    // RE-POINTED feat/boss-region-4 (S5-4): region 4 is the Void Citadel from
+    // its own draft (tests/boss-region-4.test.mjs, tests/boss-overlay.test.mjs).
+    if (region === 2 || region === 3) continue;
     const copy = Buffer.from(atrSectors(632 + region * 16, 16));
     assert.equal(copy[FINALE_BYTE], placeholders[String(region + 1)]?.fire?.finaleCooldown ?? 0,
       `region ${region + 1}'s finale floor is not its placeholder's`);

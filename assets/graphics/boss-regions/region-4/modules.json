@@ -40,30 +40,41 @@
   "laser": {
     "beamFrames": 50
   },
+  "gravity": {
+    "_": "S5-4 (owner decisions of 2026-10-13 / 2026-10-14): the gravity well. While either spire stands, in the fight, the ship alive, the ship steps 2 colour clocks towards the axis every framesPerStep frames (G1); the core pulses (its hit flash) every pulseFrames; the gravity column (missile M0, white) shows the axis from the band down, an S-wave moving waveStep lines every 8 frames, flaring in the axis's warning, giving way to its beam. The axis is core-lens's beam: the well pulls the ship into its danger (owner answer 4). Both spires destroyed: the pull, the pulse and the column stop at once.",
+    "framesPerStep": 8,
+    "pulseFrames": 16,
+    "waveStep": 2,
+    "spires": ["spire-l", "spire-r"],
+    "core": "core",
+    "axis": "core-lens"
+  },
   "nozzles": {
-    "_": "The citadel's vents: one cell each side under the gantry, against the hull's wall, pointing at the spire (region 1's nozzle phases) - nothing floats once a spire has fallen.",
-    "left": [[13, 3]],
-    "right": [[50, 3]],
+    "_": "The citadel's vents: one cell each side in the hull's side, at its foot, pointing at the spire (region 1's nozzle phases) - nothing floats once a spire has fallen.",
+    "left": [[14, 3]],
+    "right": [[49, 3]],
     "framesPerPhase": 6
   },
   "modules": [
-    { "name": "spire-l", "kind": "salvo", "x": 11, "row": 0, "width": 2, "height": 4, "hp": 10, "score": 80, "reload": 110, "cavityRows": 0 },
-    { "name": "spire-r", "kind": "salvo", "x": 51, "row": 0, "width": 2, "height": 4, "hp": 10, "score": 80, "reload": 110, "cavityRows": 0 },
-    { "name": "core", "kind": "core", "x": 30, "row": 1, "width": 4, "height": 3, "hp": 14, "score": 99, "cavityRows": 3, "stages": false,
-      "cover": ["plate-c", "spire-l", "spire-r"] },
-    { "_": "Phase A-2 (the owner's smoke of 2026-10-14): the laser cannons hug the core on both sides, each behind its own belt plate - the well pulls the ship across their beams. Region 1's projector tower (emitter.png); tougher than the guns.",
-      "name": "cannon-l", "kind": "emitter", "x": 27, "row": 1, "width": 3, "height": 3, "hp": 12, "score": 80, "slot": 1, "cavityRows": 3, "stages": "lens" },
-    { "name": "cannon-r", "kind": "emitter", "x": 34, "row": 1, "width": 3, "height": 3, "hp": 12, "score": 80, "slot": 2, "cavityRows": 3, "stages": "lens" },
-    { "name": "emitter-3", "kind": "emitter", "x": 18, "row": 1, "width": 3, "height": 3, "hp": 8, "score": 60, "slot": 3, "cavityRows": 3, "stages": "lens" },
-    { "name": "emitter-4", "kind": "emitter", "x": 43, "row": 1, "width": 3, "height": 3, "hp": 8, "score": 60, "slot": 4, "cavityRows": 3, "stages": "lens" },
-    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 65, "cavityRows": 2 },
-    { "name": "gun-2", "kind": "pulse", "x": 22, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 80, "cavityRows": 2 },
-    { "name": "gun-3", "kind": "pulse", "x": 39, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 85, "cavityRows": 2 },
-    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 1, "width": 3, "height": 2, "hp": 6, "score": 50, "reload": 65, "cavityRows": 2 },
-    { "name": "plate-a", "kind": "armour", "x": 15, "row": 4, "width": 6, "height": 1, "hp": 5, "score": 30, "cavityRows": 0 },
-    { "name": "plate-b", "kind": "armour", "x": 27, "row": 4, "width": 3, "height": 1, "hp": 5, "score": 20, "cavityRows": 0 },
-    { "name": "plate-c", "kind": "armour", "x": 30, "row": 4, "width": 4, "height": 1, "hp": 5, "score": 30, "cavityRows": 0 },
-    { "name": "plate-d", "kind": "armour", "x": 34, "row": 4, "width": 3, "height": 1, "hp": 5, "score": 20, "cavityRows": 0 },
-    { "name": "plate-e", "kind": "armour", "x": 43, "row": 4, "width": 6, "height": 1, "hp": 5, "score": 30, "cavityRows": 0 }
+    { "name": "spire-l", "kind": "salvo", "x": 12, "row": 0, "width": 2, "height": 4, "hp": 6, "score": 80, "reload": 110, "cavityRows": 0 },
+    { "name": "spire-r", "kind": "salvo", "x": 50, "row": 0, "width": 2, "height": 4, "hp": 6, "score": 80, "reload": 110, "cavityRows": 0 },
+    { "_": "The void core (owner answer 4 of 2026-10-14: 3 x 3, round on screen). It cannot be hurt while a spire or its lens stands.",
+      "name": "core", "kind": "core", "x": 30, "row": 1, "width": 3, "height": 3, "hp": 16, "score": 99, "cavityRows": 3, "stages": false,
+      "cover": ["core-lens", "spire-l", "spire-r"] },
+    { "_": "The core's own beam (owner answer 4 of 2026-10-14: the well must pull the player into danger): the lens under the core fires down the gravity column - the well's axis is its beam, the column flares in its warning. Exposed from the first frame, the toughest weapon; destroying it ends the axis's danger.",
+      "name": "core-lens", "kind": "emitter", "x": 30, "row": 4, "width": 3, "height": 1, "hp": 14, "score": 99, "slot": 2, "cavityRows": 0, "stages": "lens" },
+    { "_": "The laser cannons beside the core (Phase A-2, the owner's smoke of 2026-10-14), each behind its own belt plate; independent (owner answer 3).",
+      "name": "cannon-l", "kind": "emitter", "x": 27, "row": 1, "width": 3, "height": 3, "hp": 10, "score": 80, "slot": 1, "cavityRows": 3, "stages": "lens" },
+    { "name": "cannon-r", "kind": "emitter", "x": 34, "row": 1, "width": 3, "height": 3, "hp": 10, "score": 80, "slot": 3, "cavityRows": 3, "stages": "lens" },
+    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 65, "cavityRows": 2 },
+    { "name": "gun-5", "kind": "pulse", "x": 18, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 75, "cavityRows": 2 },
+    { "name": "gun-2", "kind": "pulse", "x": 22, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 80, "cavityRows": 2 },
+    { "name": "gun-3", "kind": "pulse", "x": 39, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 85, "cavityRows": 2 },
+    { "name": "gun-6", "kind": "pulse", "x": 43, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 75, "cavityRows": 2 },
+    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 1, "width": 3, "height": 2, "hp": 7, "score": 50, "reload": 65, "cavityRows": 2 },
+    { "name": "plate-a", "kind": "armour", "x": 15, "row": 4, "width": 6, "height": 1, "hp": 6, "score": 30, "cavityRows": 0 },
+    { "name": "plate-b", "kind": "armour", "x": 27, "row": 4, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 0 },
+    { "name": "plate-d", "kind": "armour", "x": 34, "row": 4, "width": 3, "height": 1, "hp": 6, "score": 20, "cavityRows": 0 },
+    { "name": "plate-e", "kind": "armour", "x": 43, "row": 4, "width": 6, "height": 1, "hp": 6, "score": 30, "cavityRows": 0 }
   ]
 }

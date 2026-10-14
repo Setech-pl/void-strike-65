@@ -63,8 +63,10 @@ test("region 3 is Siege Spine from its own draft: the layout, the hit points, th
   assert.ok(block.codeBytes > 0, "region 3's block carries the field's code");
   assert.ok(block.bytes <= manifest.boss.slotF.capacityBytes, `region 3's block is ${block.bytes} B`);
   assert.ok(region3.lookTail.length <= 110, "the look tail fits slot F's rule");
-  // Regions 1, 2 and 4 carry no code: their hook byte ($526E, the block's padding) is 0.
-  for (const r of [0, 1, 3]) assert.equal(manifest.boss.slotF.blocks[r].codeBytes, 0, `region ${r + 1} has code`);
+  // Regions 1 and 2 carry no code: their hook byte ($526E, the block's padding) is 0.
+  // RE-POINTED feat/boss-region-4 (S5-4): region 4's block carries its gravity
+  // well's code (tests/boss-region-4.test.mjs).
+  for (const r of [0, 1]) assert.equal(manifest.boss.slotF.blocks[r].codeBytes, 0, `region ${r + 1} has code`);
 });
 
 test("region 3's escort and finale: region 1's escort cadence, the finale on", () => {

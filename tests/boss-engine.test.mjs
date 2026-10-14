@@ -178,6 +178,14 @@ test("the band DLI: the region's charset under the HUD's last line, the gameplay
     "phase 1: the gameplay charset first, before the ring's first line");
   assert.deepEqual(afterWsync(phases[1]).filter(([r]) => r >= 0xd016 && r <= 0xd019).at(-1),
     [0xd019, label("main", "GAMEPLAY_COLPF3")], "phase 1: COLPF3 the last colour store");
+  // RE-PINNED feat/boss-region-4 (owner decision of 2026-10-14, the scanline
+  // fix; plan s5-boss-regions §6.4.3): COLPF2 is phase 1's first colour store,
+  // right after the charset - on the first line under the band the later
+  // stores land after the line has begun, and COLPF2 is the player's shot's
+  // colour (measured on all four regions' routes: its top pixel there takes
+  // the playfield's $AE instead of the band's). Was COLPF0, COLPF1, COLPF2.
+  assert.deepEqual(afterWsync(phases[1]).filter(([r]) => r >= 0xd016 && r <= 0xd019).map(([r]) => r),
+    [0xd018, 0xd016, 0xd017, 0xd019], "phase 1's colour stores: COLPF2 first, COLPF3 last");
   assert.deepEqual(phases[2].filter(([r]) => r === 0xd409), [[0xd409, label("main", "HUD_CHARSET") >> 8]],
     "phase 2: the HUD's charset");
   assert.equal(memory[phase], 0, "three phases a frame");

@@ -36,7 +36,9 @@ test("Q9: slot F is $5200-$53FF in the manifest, and no segment of any link reac
       // region 3's field code - linked at BOSS_F_HOOK (slot F + the look
       // tail's 110 B) only to be carried in region 3's block run, never
       // loaded with the link; every other segment still stays out.
-      if (file === "boss.map" && name === "BOSS_F_CODE") {
+      // RE-POINTED feat/boss-region-4 (S5-4): BOSS_G_CODE is region 4's
+      // gravity well, linked at the same address for region 4's block run.
+      if (file === "boss.map" && (name === "BOSS_F_CODE" || name === "BOSS_G_CODE")) {
         assert.ok(from === SLOT_F[0] + 110 && to <= SLOT_F[1], `${name} $${start}-$${end} is not after the look tail`);
         continue;
       }

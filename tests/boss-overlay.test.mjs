@@ -122,13 +122,17 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
     // 2026-10-13): region 3 is Siege Spine from its own draft - its band A
     // and charset runs are its own (the built files), its block its tail and
     // the field's code; regions 2 and 4 are still copies of region 1.
-    if (region === 2) {
+    // RE-POINTED feat/boss-region-4 (S5-4, the owner's answers of 2026-10-13
+    // / 2026-10-14): region 4 is the Void Citadel from its own draft too - its
+    // own band A and charset runs, its block its tail and the well's code;
+    // region 2 is still a copy of region 1.
+    if (region === 2 || region === 3) {
       for (const [run, offset] of [["band-a", 2], ["charset", 8]]) {
-        const built = manifest.boss.runs.find((r) => r.name === `boss-region-3-${run}`);
-        assert.deepEqual(atrRun(at + offset, built.sectors), readBuild(built.file), `region 3 ${run}`);
+        const built = manifest.boss.runs.find((r) => r.name === `boss-region-${region + 1}-${run}`);
+        assert.deepEqual(atrRun(at + offset, built.sectors), readBuild(built.file), `region ${region + 1} ${run}`);
       }
-      const block = manifest.boss.runs.find((r) => r.name === "boss-region-3-block");
-      assert.deepEqual(atrRun(696 + region * 4, block.sectors), readBuild(block.file), "region 3 block");
+      const block = manifest.boss.runs.find((r) => r.name === `boss-region-${region + 1}-block`);
+      assert.deepEqual(atrRun(696 + region * 4, block.sectors), readBuild(block.file), `region ${region + 1} block`);
       continue;
     }
     assert.deepEqual(atrRun(at + 2, BOSS_BAND_A_SECTORS), Buffer.from(bandA.data), `region ${region + 1} band A`);

@@ -389,6 +389,7 @@ typedef struct {
 	 * on (the well's own byte), the steps it has taken (its counter). */
 	unsigned gravity_on;
 	unsigned gravity_steps;
+	unsigned gravity_column;    /* the column's HPOS the band DLI publishes (0: off) */
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -965,6 +966,7 @@ static unsigned dftrace_field_half;
  * in its own region (optional: 0 disables). */
 static unsigned dftrace_boss_level_id;
 static unsigned dftrace_gravity_on;
+static unsigned dftrace_gravity_column;
 static unsigned dftrace_field_from;
 static unsigned dftrace_field_end;
 static unsigned dftrace_field_row_cells;
@@ -6109,10 +6111,13 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->field_cells_down = 0u;
 	frame->gravity_on = 0u;
 	frame->gravity_steps = 0u;
+	frame->gravity_column = 0u;
 	if (dftrace_boss_active() && dftrace_gravity_on != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
 		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 10u) {
 		frame->gravity_on = MEMORY_mem[dftrace_gravity_on];
 		frame->gravity_steps = MEMORY_mem[dftrace_gravity_on + 3u] | (MEMORY_mem[dftrace_gravity_on + 4u] << 8);
+		if (dftrace_gravity_column != 0u)
+			frame->gravity_column = MEMORY_mem[dftrace_gravity_column];
 	}
 	if (dftrace_boss_active() && dftrace_field_half != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
 		(dftrace_boss_level_id == 0u || (MEMORY_mem[dftrace_boss_level_id] >= 7u &&
@@ -6304,7 +6309,7 @@ static void dftrace_write(void)
 		",light_state0,light_state1,light_state2,light_state3"
 		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
 		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left"
-		",field_state,field_deflections,field_violations,field_cells_down,gravity_on,gravity_steps\n");
+		",field_state,field_deflections,field_violations,field_cells_down,gravity_on,gravity_steps,gravity_column\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6588,9 +6593,9 @@ static void dftrace_write(void)
 		if (frame->boss_entry && dfhud_entry_state == 2)
 			for (unsigned cell = 0u; cell < 40u; ++cell)
 				fprintf(file, "%02x", dfhud_entry_after[cell]);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
 			frame->field_state, frame->field_deflections, frame->field_violations, frame->field_cells_down,
-			frame->gravity_on, frame->gravity_steps);
+			frame->gravity_on, frame->gravity_steps, frame->gravity_column);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -7386,6 +7391,7 @@ static void dftrace_init(void)
 	dftrace_field_code = dftrace_env_optional("DFTRACE_FIELD_CODE");
 	dftrace_boss_level_id = dftrace_env_optional("DFTRACE_BOSS_LEVEL_ID");
 	dftrace_gravity_on = dftrace_env_optional("DFTRACE_GRAVITY_ON");
+	dftrace_gravity_column = dftrace_env_optional("DFTRACE_GRAVITY_COLUMN");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

@@ -149,6 +149,7 @@ const SEGMENTS = {
   BOSS_E_BSS: ["boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk", "overlay"],
   // S5-3 (feat/boss-region-3): region 3's field code, in slot F after the look tail's 110 B.
   BOSS_F_CODE: ["region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only", "overlay"],
+  BOSS_G_CODE: ["region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M0), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only", "overlay"],
 };
 
 // ---------------------------------------------------------------- readers

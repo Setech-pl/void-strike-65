@@ -47,27 +47,38 @@ const pic = (text) => text.trim().split("\n").map((line) => line.trim());
 // the drift; a shot reaches columns 6-59.
 export const R4_LAYOUT = Object.freeze({
   hull: { from: 14, to: 49 },
-  core: { name: "core", x: 30, row: 1, width: 4, height: 3 },
-  spires: [{ name: "spire-l", x: 11 }, { name: "spire-r", x: 51 }],
-  gantries: [13, 50],
-  // The vents: one cell each side under the gantry, against the hull's wall,
-  // so nothing floats once a spire has fallen.
-  nozzles: { left: 13, right: 50, rows: [3] },
+  // Phase B (the owner's answer 4 of 2026-10-14): the core, 3 x 3 (round on
+  // screen), fires its own beam down the gravity column from the lens under
+  // it (core-lens, the belt row) - the well's axis is that beam.
+  core: { name: "core", x: 30, row: 1, width: 3, height: 3 },
+  lens: { name: "core-lens", x: 30, row: 4, width: 3 },
+  // Phase B (the owner's standing answer of 2026-10-14: EASY ran longer than
+  // MEDIUM with the spires at 11-12 / 51-52): one column inward, mounted on
+  // the hull's sides - a module gating the fight's end does not sit at the
+  // band's extreme ends.
+  spires: [{ name: "spire-l", x: 12 }, { name: "spire-r", x: 50 }],
+  gantries: [],
+  // The vents: one cell each side in the hull's side, at its foot, pointing at
+  // the spire - nothing floats once a spire has fallen.
+  nozzles: { left: 14, right: 49, rows: [3] },
   // Phase A-2 (the owner's smoke of 2026-10-14): the laser cannons hug the
   // core on both sides (slots 1 and 2), each behind its own belt plate, so
   // the well pulls the ship across their beams; the open guns stand where
   // the inner emitters were.
-  guns: [{ name: "gun-1", x: 15 }, { name: "gun-2", x: 22 }, { name: "gun-3", x: 39 }, { name: "gun-4", x: 46 }],
-  emitters: [{ name: "cannon-l", slot: 1, x: 27 }, { name: "cannon-r", slot: 2, x: 34 },
-    { name: "emitter-3", slot: 3, x: 18 }, { name: "emitter-4", slot: 4, x: 43 }],
+  // Phase B: the outer emitters are pulse guns (the engine's four laser
+  // slots hold the two cannons and the core's lens).
+  guns: [{ name: "gun-1", x: 15 }, { name: "gun-5", x: 18 }, { name: "gun-2", x: 22 },
+    { name: "gun-3", x: 39 }, { name: "gun-6", x: 43 }, { name: "gun-4", x: 46 }],
+  emitters: [{ name: "cannon-l", slot: 1, x: 27 }, { name: "cannon-r", slot: 3, x: 34 }],
   plates: [{ name: "plate-a", x: 15, width: 6 }, { name: "plate-b", x: 27, width: 3 },
-    { name: "plate-c", x: 30, width: 4 }, { name: "plate-d", x: 34, width: 3 },
-    { name: "plate-e", x: 43, width: 6 }],
+    { name: "plate-d", x: 34, width: 3 }, { name: "plate-e", x: 43, width: 6 }],
   // The open guns' bays: no hull under or beside them below the deck, so the
   // gun hangs in a recess and reads as open (decisions N and O).
   bays: [[22, 26], [37, 41]],
-  // The struts between the blocks' belt plates, and their feet on the belt row.
+  // The struts between the blocks' belt plates, and their feet on the belt row;
+  // 33 the core's right flank (the core is three cells wide).
   struts: [21, 42],
+  flank: 33,
 });
 
 // --- the pictures ------------------------------------------------------------
@@ -423,6 +434,20 @@ gaa.|aaaa|.aag
 `),
 };
 
+// The core's lens, 3 x 1 cells in the belt row under the core: a housing
+// hung from the core's rim, the lens at its centre (region 1's tower lens,
+// whose own heat looks the warning shows); only the lens has damage stages.
+const LENS_SIDES = pic(`
+gggg|gggg
+gWWW|WWWg
+gWaa|aaWg
+gWaW|WaWg
+gWaa|aaWg
+.gWW|WWg.
+..gg|gg..
+....|....
+`);
+
 // The void core, 4 x 3 cells (16 x 24 pixels: a slightly wide oval on screen
 // at the 2:1 pixel), hung under the deck: a black void inside a bright rim, a
 // void-magenta glow ring inside the rim, the housing's grey ring outside, a
@@ -430,7 +455,7 @@ gaa.|aaaa|.aag
 // It has no damage stages (stages false): its glow is the colour-3 the hit
 // flash and the gravity well's pulse toggle.
 function corePicture() {
-  const width = 16;
+  const width = 12;
   const height = 24;
   const lines = [];
   for (let y = 0; y < height; y += 1) {
@@ -504,6 +529,7 @@ function moduleCells() {
   };
   const L = R4_LAYOUT;
   add(L.core.x, L.core.row, L.core.width, L.core.height);
+  add(L.lens.x, L.lens.row, L.lens.width, 1);
   for (const s of L.spires) add(s.x, 0, 2, 4);
   for (const g of L.guns) add(g.x, 1, 3, 2);
   for (const e of L.emitters) add(e.x, 1, 3, 3);
@@ -545,6 +571,9 @@ export function drawRegion4() {
     }
     // Row 4: the belt's feet under the struts, the octagon's lower corners.
     for (const c of L.struts) hull(HULL.strutFoot, c, 4);
+    // The core's right flank: the wall beside the core, its foot on the belt.
+    for (let r = 1; r <= 3; r += 1) hull(r === 3 ? HULL.wallFoot : HULL.wall, L.flank, r);
+    hull(HULL.strutFoot, L.flank, 4);
     hull(HULL.cornerFootLeft, L.hull.from, 4);
     hull(HULL.cornerFootRight, L.hull.to, 4);
     // The gantries from the hull's ends to the spires (rows 1-2).
@@ -556,6 +585,12 @@ export function drawRegion4() {
     const tower = stage === "cracked" ? emitterCracked : stage === "broken" ? emitterBroken : rest;
     for (const e of L.emitters) canvas.draw(tower, e.x * CELL_W, CELL_H);
     for (const p of L.plates) canvas.draw(platePicture(PLATE[stage], p.width), p.x * CELL_W, 4 * CELL_H);
+    // The core's lens: its housing in every stage, the tower's lens cell at
+    // its centre (the stage's own: rest, cracked, broken).
+    const [sideL, sideR] = [0, 1].map((half) => LENS_SIDES.map((line) => line.split("|")[half]));
+    canvas.draw(sideL, L.lens.x * CELL_W, 4 * CELL_H);
+    canvas.draw(sideR, (L.lens.x + 2) * CELL_W, 4 * CELL_H);
+    canvas.draw(tower.slice(16, 24).map((line) => line.slice(4, 8)), (L.lens.x + 1) * CELL_W, 4 * CELL_H);
     // The nozzles: each side's phase 0 (extras.png cells 7 and 10).
     for (const [side, cell] of [["left", 7], ["right", 10]]) {
       for (const row of L.nozzles.rows) canvas.draw(extrasPanels[cell], L.nozzles[side] * CELL_W, row * CELL_H);

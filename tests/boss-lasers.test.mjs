@@ -419,7 +419,11 @@ test("the band DLI places M1 / M2 from their lasers' edges, never M0 / M3, and p
   for (let i = 0; i < LASERS; i += 1) assert.equal(laser(memory, "hpos", i), expected[i], `boss_laser_hpos ${i}`);
   assert.deepEqual(writesTo(phase0, HPOSM0 + 1), [expected[1]], "HPOSM1");
   assert.deepEqual(writesTo(phase0, HPOSM0 + 2), [expected[0]], "HPOSM2");
-  assert.deepEqual([writesTo(phase0, HPOSM0), writesTo(phase0, HPOSM0 + 3)], [[], []], "M0 / M3 placed");
+  // RE-POINTED feat/boss-region-4 (S5-4, owner answers 1-2 of 2026-10-14): M0
+  // is region 4's gravity column - phase 0 publishes it from the well's byte
+  // (slot E's boss_m0_publish), 0 (off screen) in every region without a
+  // well, as here. M3 is still never placed.
+  assert.deepEqual([writesTo(phase0, HPOSM0), writesTo(phase0, HPOSM0 + 3)], [[0], []], "M0 off, M3 not placed");
   assert.deepEqual(writesTo(phase0, SIZEM), [0x3c]);
   const afterWsync = phase1.slice(phase1.findIndex(([a]) => a === WSYNC) + 1)
     .filter(([a]) => a >= 0xd000 && a < 0xd500);

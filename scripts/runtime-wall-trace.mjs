@@ -831,7 +831,11 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
      * about 17-48), so its field never fell and its fight never ended
      * (MEASURED, Phase A); region 3 plays its boss with the aiming bot taught
      * to see the field. Regions 2 and 4 are unchanged. */
-    policy: region === 3 ? "boss-aim" : "sweep",
+    /* S5-4 (the owner's answers of 2026-10-14): region 4's spires stand near
+     * the band's ends too, beyond the plain sweep (MEASURED, Phase A-2:
+     * region-4-diag-1 never reached the chain in 12,000 frames); region 4
+     * plays its boss with the aiming bot as region 3 does. */
+    policy: region >= 3 ? "boss-aim" : "sweep",
     fireDelay: 2,
     /* MEASURED (region-2-diag-1, 2026-10-09): the sweep bot firing every
      * other frame scores 316 of the fight's points in 5,000 frames - it
@@ -869,7 +873,7 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     difficulty,
     // S5-3: region 3's wide sweep broke the generators but did not finish the
     // fight in 12,000 frames (MEASURED, Phase A): the aiming bot, as above.
-    policy: region === 3 ? "boss-aim" : "sweep-wide",
+    policy: region >= 3 ? "boss-aim" : "sweep-wide",
     fireDelay: 2,
     frames: 12_000,
     endAtSummary: true,
@@ -1444,7 +1448,7 @@ for (const name of [
   // S5-3: region 3's force field - the halves' states (15 = no field), the
   // deflections on a powered half, hit points lost behind a powered half
   // (cumulative), field cells left in a fallen half.
-  "field_state", "field_deflections", "field_violations", "field_cells_down", "gravity_on", "gravity_steps",
+  "field_state", "field_deflections", "field_violations", "field_cells_down", "gravity_on", "gravity_steps", "gravity_column",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4215,7 +4219,10 @@ function main() {
       // S5-4: the level id (which region's code is in slot F) and region 4's
       // gravity well's state, when the disk carries it.
       addressEnvironment.DFTRACE_BOSS_LEVEL_ID = `0x${(bossLabels.get("_boss_level") + 3).toString(16)}`;
-      if (bossLabels.has("gravity_on")) addressEnvironment.DFTRACE_GRAVITY_ON = hex(bossLabels, "gravity_on");
+      if (bossLabels.has("gravity_on")) {
+        addressEnvironment.DFTRACE_GRAVITY_ON = hex(bossLabels, "gravity_on");
+        addressEnvironment.DFTRACE_GRAVITY_COLUMN = hex(bossLabels, "boss_m0_hpos");
+      }
     }
   }
 
@@ -4735,6 +4742,54 @@ function main() {
           violations, down_frame: down?.frame ?? null };
         console.log(`${session.id}: the field powered on ${powered.length} boss frames, a deflection on ` +
           `${deflected}, ${violations} hit points behind it, down at frame ${down?.frame ?? "-"}`);
+      }
+      // S5-4 (plan s5-boss-regions §4.5, §6.4; the owner's decisions of
+      // 2026-10-13 / 2026-10-14): a region with a gravity well. Subject: the
+      // boss frames with the pull on. The pull never on while the ship is not
+      // alive; at most one step (2 colour clocks) every 8 frames of a run and
+      // x even; once off in the fight with the ship alive (the spires fallen)
+      // never on again, and off at the chain; the gravity column never shown
+      // without the pull.
+      const gravityRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.gravity ?? null;
+      if (gravityRegion !== null && gravityRegion !== undefined) {
+        const fight = rows.filter((row) => row.boss_state === 1 && row.boss_entry !== 1);
+        const on = fight.filter((row) => row.gravity_on === 1);
+        invariant(on.length > 0, `${session.id}: the pull was never on (subject empty)`);
+        const notAlive = rows.filter((row) => row.gravity_on === 1 &&
+          (row.player_lifecycle !== 0 || row.player_lifecycle_after !== 0));
+        invariant(notAlive.length === 0,
+          `${session.id}: the pull on while the ship was not alive (${notAlive.length} frames, first ${notAlive[0]?.frame})`);
+        let runStart = null, worstRate = 0;
+        for (let i = 0; i < fight.length; i += 1) {
+          const row = fight[i];
+          if (row.gravity_on === 1 && runStart === null) runStart = i;
+          if (runStart !== null && (row.gravity_on !== 1 || i === fight.length - 1)) {
+            const run = fight.slice(runStart, row.gravity_on === 1 ? i + 1 : i);
+            const steps = run.at(-1).gravity_steps - run[0].gravity_steps;
+            invariant(steps <= Math.floor(run.length / gravityRegion.framesPerStep) + 1,
+              `${session.id}: ${steps} steps in ${run.length} frames from frame ${run[0].frame}`);
+            worstRate = Math.max(worstRate, steps / run.length);
+            runStart = null;
+          }
+        }
+        const odd = on.filter((row) => row.player_x % 2 !== 0 || row.player_x_after % 2 !== 0);
+        invariant(odd.length === 0, `${session.id}: an odd x under the pull (frame ${odd[0]?.frame})`);
+        const lastOn = on.at(-1);
+        const offAlive = fight.filter((row) => row.gravity_on === 0 && row.player_lifecycle === 0 &&
+          row.player_lifecycle_after === 0);
+        const firstOff = offAlive.find((row) => row.frame > on[0].frame);
+        invariant(firstOff === undefined || firstOff.frame > lastOn.frame,
+          `${session.id}: the pull came back on frame ${lastOn.frame} after it fell on frame ${firstOff?.frame}`);
+        const chainRows = rows.filter((row) => row.boss_state >= 3);
+        invariant(chainRows.every((row) => row.gravity_on === 0), `${session.id}: the pull on in the chain`);
+        const columnAlone = rows.filter((row) => row.gravity_column !== 0 && row.gravity_on !== 1);
+        invariant(columnAlone.length === 0,
+          `${session.id}: the gravity column shown without the pull (${columnAlone.length} frames, first ${columnAlone[0]?.frame})`);
+        const shown = on.filter((row) => row.gravity_column !== 0).length;
+        session.regionRoute.gravity = { pull_frames: on.length, steps: on.at(-1).gravity_steps,
+          column_frames: shown, off_frame: firstOff?.frame ?? null };
+        console.log(`${session.id}: the pull on ${on.length} boss frames, ${on.at(-1).gravity_steps} steps, ` +
+          `the column shown on ${shown}, off for good at frame ${firstOff?.frame ?? "-"}`);
       }
     }
     const staleHullDraws = rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0);

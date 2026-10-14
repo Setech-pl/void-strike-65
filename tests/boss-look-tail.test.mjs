@@ -61,9 +61,18 @@ test("E4 / S5-1: the look tail is each region's block in slot F, read as the reg
         "region 3's block starts with its own look tail");
       assert.ok(region3.lookTail.length <= BOSS_LOOK_TAIL_MAX_BYTES);
       assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 3's field code (a JMP) after the tail's 110 B");
+    } else if (block.region === 4) {
+      // RE-POINTED feat/boss-region-4 (S5-4, the owner's answers of 2026-10-13
+      // / 2026-10-14): region 4 is the Void Citadel from its own draft - its
+      // block is its own look tail, then the gravity well's code after the
+      // tail's 110 B.
+      const region4 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 4)));
+      assert.deepEqual([...image.subarray(0, region4.lookTail.length)], [...region4.lookTail],
+        "region 4's block starts with its own look tail");
+      assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 4's well code (a JMP) after the tail's 110 B");
     } else if (manifest.boss.laserFixtureTier === null) {
       assert.deepEqual([...image.subarray(0, region1.lookTail.length)], [...region1.lookTail],
-        "the default build's blocks are region 1's tail (regions 2 and 4 are copies, Q10)");
+        "the default build's blocks are region 1's tail (region 2 is a copy, Q10)");
       assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES] ?? 0, 0, "a block without code leaves BOSS_F_HOOK zero");
     }
   }

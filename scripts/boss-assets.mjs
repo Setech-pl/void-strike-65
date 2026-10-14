@@ -822,6 +822,43 @@ function resolveBossField(source, modules, owner, nozzleCells, image) {
   return { row, framesPerPhase, halves, phases, keys };
 }
 
+// S5-4 (feat/boss-region-4, the owner's decisions of 2026-10-13 / 2026-10-14):
+// the `gravity` block - region 4's gravity well, its code in the region's
+// block (src/hybrid/boss.s, BOSS_GRAVITY). While any of its spires stands the
+// player's ship steps 2 colour clocks towards the axis every framesPerStep
+// frames; the core pulses every pulseFrames; the gravity column (missile M0)
+// shows the axis. The axis is an emitter's beam - its lens's column - so the
+// well pulls the ship into that beam's danger (owner answer 4: the signature
+// mechanic creates danger, not a refuge). Refuses a spire that is unknown or
+// not a salvo launcher, an axis that is not an emitter one row tall, and a
+// core that is unknown or not the core kind.
+export const BOSS_GRAVITY_MAX_SPIRES = 2;
+function resolveBossGravity(source, modules) {
+  if (source === undefined || source === null) return null;
+  const byName = new Map(modules.map((module) => [module.name, module]));
+  const named = (name, what) => {
+    const module = byName.get(name);
+    if (module === undefined) fail(`gravity.${what} names unknown module ${JSON.stringify(name)}`);
+    return module;
+  };
+  const framesPerStep = integerIn(source.framesPerStep, 1, 255, "gravity.framesPerStep");
+  const pulseFrames = integerIn(source.pulseFrames, 1, 255, "gravity.pulseFrames");
+  const waveStep = integerIn(source.waveStep, 1, 15, "gravity.waveStep");
+  if (!Array.isArray(source.spires) || source.spires.length !== BOSS_GRAVITY_MAX_SPIRES) {
+    fail(`gravity.spires names ${BOSS_GRAVITY_MAX_SPIRES} spires`);
+  }
+  const spires = source.spires.map((name) => {
+    const module = named(name, "spires");
+    if (module.kind !== BOSS_KIND.salvo) fail(`gravity spire ${name} is a ${module.kindName}; a spire is a salvo launcher`);
+    return module;
+  });
+  const core = named(source.core, "core");
+  if (core.kind !== BOSS_KIND.core) fail(`gravity core ${core.name} is a ${core.kindName}; it is the core`);
+  const axis = named(source.axis, "axis");
+  if (axis.kind !== BOSS_KIND.emitter) fail(`gravity axis ${axis.name} is a ${axis.kindName}; the axis is an emitter's beam`);
+  return { framesPerStep, pulseFrames, waveStep, spires, core, axis };
+}
+
 // ---------------------------------------------------------------------------
 // The conversion
 // ---------------------------------------------------------------------------
@@ -928,6 +965,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // S5-3: the force field's cells - no module's, no nozzle's, blank in
   // band.png (the converter draws them) - and its halves' generators.
   const field = resolveBossField(layout.field, modules, owner, nozzleCells, draft.fieldImage);
+  const gravity = resolveBossGravity(layout.gravity, modules);
   const fieldKeys = field === null ? new Set() : field.keys;
 
   // The staged block: one entry a distinct (intact, cracked, broken) triple.
@@ -1354,6 +1392,14 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     // S5-3: the force field (null without one): its row, the field code, both
     // phases' bytes, the halves with their generators' module indices (the
     // front-first order).
+    // S5-4: the gravity well (null without one): its cadences, the spires',
+    // the core's and the axis's module indices (the front-first order), the
+    // axis's lens column (its centre: the beam's) and its laser slot.
+    gravity: gravity === null ? null : {
+      framesPerStep: gravity.framesPerStep, pulseFrames: gravity.pulseFrames, waveStep: gravity.waveStep,
+      spires: gravity.spires.map((module) => module.index), core: gravity.core.index,
+      axis: gravity.axis.index, axisColumn: gravity.axis.x + (gravity.axis.width >> 1), axisSlot: gravity.axis.slot,
+    },
     field: field === null ? null : {
       row: field.row, framesPerPhase: field.framesPerPhase,
       code: plainCode({ index: plainIndex(field.phases[0]), bank: field.phases[0].bank ?? 0 }),

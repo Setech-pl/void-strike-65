@@ -4752,7 +4752,7 @@ function main() {
       // alive; at most one step (2 colour clocks) every 8 frames of a run and
       // x even; once off in the fight with the ship alive (the spires fallen)
       // never on again, and off at the chain; the gravity column never shown
-      // without the pull.
+      // without the pull; a still band (fix/r4-immobile) never moves.
       const gravityRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.gravity ?? null;
       if (gravityRegion !== null && gravityRegion !== undefined) {
         const fight = rows.filter((row) => row.boss_state === 1 && row.boss_entry !== 1);
@@ -4790,6 +4790,14 @@ function main() {
         const columnAlone = rows.filter((row) => row.gravity_column !== 0 && row.gravity_on !== 1);
         invariant(columnAlone.length === 0,
           `${session.id}: the gravity column shown without the pull (${columnAlone.length} frames, first ${columnAlone[0]?.frame})`);
+        // fix/r4-immobile: a still band (the manifest's stillAt) shows its one
+        // position on every fight frame.
+        const stillAt = manifest.boss?.regions?.[session.bossRegion - 1]?.stillAt ?? null;
+        if (stillAt !== null) {
+          const moved = fight.filter((row) => row.boss_shown_pos !== stillAt);
+          invariant(moved.length === 0,
+            `${session.id}: the still band at ${moved[0]?.boss_shown_pos}, not ${stillAt} (frame ${moved[0]?.frame})`);
+        }
         const shown = on.filter((row) => row.gravity_column !== 0).length;
         session.regionRoute.gravity = { pull_frames: on.length, steps: on.at(-1).gravity_steps,
           column_frames: shown, off_frame: firstOff?.frame ?? null };

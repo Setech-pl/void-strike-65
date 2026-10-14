@@ -119,6 +119,7 @@ import {
   BOSS_SLOT_D_BYTES,
   BOSS_SLOT_E_ADDRESS,
   BOSS_SLOT_E_BYTES,
+  BOSS_TABLE,
   BOSS_ENTRY_COLD_ADDRESS,
   BOSS_ENTRY_COLD_BYTES,
   BOSS_ENTRY_COLD_OFFSET,
@@ -4584,6 +4585,9 @@ async function build() {
         twin: region.twin,
         // The band rows the display list shows; the ring's rows under them.
         bandShownRows: region.bandShownRows,
+        // fix/r4-immobile: a still band's position (motion.framesPerColourClock
+        // 0: the band never drifts), or null for a drifting band.
+        stillAt: region.tables[BOSS_TABLE.framesPerStep] === 0 ? region.tables[BOSS_TABLE.start] : null,
         // S5-3: the force field (null without one): its row, its halves with
         // their generators, its code's bytes in the block (slot F).
         field: region.field === null ? null : { row: region.field.row, code: region.field.code,

@@ -982,7 +982,10 @@ const bossTuningSessions = [
   /* S5-5 (feat/boss-region-2): the Bastion's order puzzle measured - the
    * same replay with the aiming bot that takes the laser cannons first
    * (careful) or the rail guns first (careless). */
-  ...["careful", "careless"].flatMap((order) => [0, 1, 2].map((difficulty) => ({
+  /* S5-5 Phase B (the owner's answer of 2026-10-15): and the same bots
+   * leaving every warned or running beam ("-dodge", the laser-contact bot's
+   * escape) - the hits on a bot that dodges the beams. */
+  ...["careful", "careless", "careful-dodge", "careless-dodge"].flatMap((order) => [0, 1, 2].map((difficulty) => ({
     id: `boss-aim-${order}-${difficulty}`,
     difficulty,
     policy: `boss-aim-${order}`,

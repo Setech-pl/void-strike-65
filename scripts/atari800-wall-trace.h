@@ -3888,8 +3888,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * order puzzle - "boss-aim-careful" takes the laser cannons (the
 		 * emitters) first, "boss-aim-careless" the rail guns (the pulse guns)
 		 * first; each is the plain aiming bot within its preference. */
-		int prefer = strcmp(dftrace_policy, "boss-aim-careful") == 0 ? 2
-			: strcmp(dftrace_policy, "boss-aim-careless") == 0 ? 1 : -1;
+		/* S5-5 Phase B: either one with "-dodge" (below) too. */
+		int prefer = strncmp(dftrace_policy, "boss-aim-careful", 16) == 0 ? 2
+			: strncmp(dftrace_policy, "boss-aim-careless", 17) == 0 ? 1 : -1;
 		unsigned best_x = x;
 		/* S5-5 Phase B (the owner's answer of 2026-10-15): "boss-aim-park-X"
 		 * aims as the plain bot until a boss module has fallen (the escort's
@@ -3954,6 +3955,22 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			int target_right = ((frame / 128u) & 1u) == 0;
 			stick = target_right ? (x < 190u ? 0x07u : 0x0fu) :
 				(x > 58u ? 0x0bu : 0x0fu);
+		}
+		/* S5-5 Phase B (the owner's answer of 2026-10-15: the honest
+		 * difficulty is the hits on a bot that leaves a warned beam): the
+		 * "-dodge" aiming bots leave every laser in its warning or beam with
+		 * the laser-contact bot's escape (lower-contact-laser's damaged step
+		 * above: out from under a beam whose span is within 16 HPOS, to the
+		 * ship's limits 48 / 200), and aim again once it is off. */
+		if (strstr(dftrace_policy, "-dodge") != NULL && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u) {
+			unsigned beam;
+			for (beam = 0u; beam < 4u; ++beam) {
+				unsigned state = MEMORY_mem[dftrace_laser_state + beam];
+				int dx = (int) MEMORY_mem[dftrace_laser_hpos + beam] - 2 - (int) x;
+				if ((state == 1u || state == 2u) &&
+					MEMORY_mem[dftrace_laser_hpos + beam] != 0u && dx > -16 && dx < 16)
+					stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
+			}
 		}
 	}
 	else if ((strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||

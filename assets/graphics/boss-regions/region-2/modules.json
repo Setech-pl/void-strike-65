@@ -18,16 +18,26 @@
     "shakeFrames": 24,
     "shakeAmplitude": 2
   },
-  "chain": { "blasts": 16, "framesBetween": 6 },
-  "fire": { "cooldown": 24, "finaleCooldown": 12 },
+  "chain": {
+    "blasts": 16,
+    "framesBetween": 6
+  },
+  "fire": {
+    "cooldown": 24,
+    "finaleCooldown": 12
+  },
   "escort": {
     "_": "Region 1's cadence (decision AI); the escort launches from the doors (entry 124: the doors' column) and stops when they fall (the block's code).",
     "afterWeapons": 1,
     "baseFrames": 150,
     "jitterMask": 63
   },
-  "capped": { "hp": 8 },
-  "laser": { "beamFrames": 50 },
+  "capped": {
+    "hp": 8
+  },
+  "laser": {
+    "beamFrames": 50
+  },
   "rails": {
     "_": "The sliding rails (src/hybrid/boss.s BOSS_RAIL): a kill of a rail's front gun slides the rail one pitch inward after delayFrames, one column every framesPerStep frames (the next gun locked until it locks into the front slot); after `positions` slides it covers its cannon and stops. One slide from covering a standing cannon, the gun whose fall would cover it pulses every pulseFrames.",
     "framesPerStep": 4,
@@ -35,10 +45,29 @@
     "pulseFrames": 16,
     "pitch": 4,
     "positions": 2,
-    "rows": [1, 3],
+    "rows": [
+      1,
+      3
+    ],
     "core": "core",
-    "left": { "guns": ["rail-l-1", "rail-l-2", "rail-l-3"], "cannon": "cannon-l", "nose": 22 },
-    "right": { "guns": ["rail-r-1", "rail-r-2", "rail-r-3"], "cannon": "cannon-r", "nose": 40 }
+    "left": {
+      "guns": [
+        "rail-l-1",
+        "rail-l-2",
+        "rail-l-3"
+      ],
+      "cannon": "cannon-l",
+      "nose": 22
+    },
+    "right": {
+      "guns": [
+        "rail-r-1",
+        "rail-r-2",
+        "rail-r-3"
+      ],
+      "cannon": "cannon-r",
+      "nose": 40
+    }
   },
   "hangar": {
     "_": "The doors launch the escort (their flash cueFrames before each) and stop it when they fall. Locked they are barred armour (band.png); the moment they unlock their open look (open.png, amber chevrons) is drawn and they flash, the hit's high tone held unlockFrames frames.",
@@ -47,17 +76,157 @@
     "cueFrames": 6,
     "unlockFrames": 16
   },
-  "nozzles": { "left": [], "right": [], "framesPerPhase": 6 },
+  "nozzles": {
+    "left": [],
+    "right": [],
+    "framesPerPhase": 6
+  },
   "modules": [
-    { "name": "rail-l-1", "kind": "pulse", "x": 19, "row": 2, "width": 3, "height": 2, "hp": 12, "score": 40, "reload": 70, "cavityRows": 2, "cover": [] },
-    { "name": "rail-l-2", "kind": "pulse", "x": 15, "row": 2, "width": 3, "height": 2, "hp": 12, "score": 40, "reload": 70, "cavityRows": 2, "cover": ["rail-l-1"] },
-    { "name": "rail-l-3", "kind": "pulse", "x": 11, "row": 2, "width": 3, "height": 2, "hp": 12, "score": 40, "reload": 70, "cavityRows": 2, "cover": ["rail-l-2"] },
-    { "name": "cannon-l", "kind": "emitter", "x": 29, "row": 1, "width": 2, "height": 3, "hp": 8, "score": 80, "slot": 1, "cavityRows": 3, "stages": "lens", "cover": [] },
-    { "name": "core", "kind": "salvo", "x": 31, "row": 1, "width": 1, "height": 3, "hp": 32, "score": 99, "reload": 90, "cavityRows": 3, "cover": ["doors"] },
-    { "name": "cannon-r", "kind": "emitter", "x": 32, "row": 1, "width": 2, "height": 3, "hp": 8, "score": 80, "slot": 1, "cavityRows": 3, "stages": "lens", "cover": [] },
-    { "name": "rail-r-1", "kind": "pulse", "x": 41, "row": 2, "width": 3, "height": 2, "hp": 12, "score": 40, "reload": 70, "cavityRows": 2, "cover": [] },
-    { "name": "rail-r-2", "kind": "pulse", "x": 45, "row": 2, "width": 3, "height": 2, "hp": 12, "score": 40, "reload": 70, "cavityRows": 2, "cover": ["rail-r-1"] },
-    { "name": "rail-r-3", "kind": "pulse", "x": 49, "row": 2, "width": 3, "height": 2, "hp": 12, "score": 40, "reload": 70, "cavityRows": 2, "cover": ["rail-r-2"] },
-    { "name": "doors", "kind": "armour", "x": 31, "row": 4, "width": 1, "height": 1, "hp": 28, "score": 60, "cavityRows": 0, "cover": ["cannon-l", "cannon-r", "rail-l-3", "rail-r-3"] }
+    {
+      "name": "rail-l-1",
+      "kind": "pulse",
+      "x": 19,
+      "row": 2,
+      "width": 3,
+      "height": 2,
+      "hp": 15,
+      "score": 40,
+      "reload": 70,
+      "cavityRows": 2,
+      "cover": []
+    },
+    {
+      "name": "rail-l-2",
+      "kind": "pulse",
+      "x": 15,
+      "row": 2,
+      "width": 3,
+      "height": 2,
+      "hp": 15,
+      "score": 40,
+      "reload": 70,
+      "cavityRows": 2,
+      "cover": [
+        "rail-l-1"
+      ]
+    },
+    {
+      "name": "rail-l-3",
+      "kind": "pulse",
+      "x": 11,
+      "row": 2,
+      "width": 3,
+      "height": 2,
+      "hp": 15,
+      "score": 40,
+      "reload": 70,
+      "cavityRows": 2,
+      "cover": [
+        "rail-l-2"
+      ]
+    },
+    {
+      "name": "cannon-l",
+      "kind": "emitter",
+      "x": 29,
+      "row": 1,
+      "width": 2,
+      "height": 3,
+      "hp": 8,
+      "score": 80,
+      "slot": 1,
+      "cavityRows": 3,
+      "stages": "lens",
+      "cover": []
+    },
+    {
+      "name": "core",
+      "kind": "salvo",
+      "x": 31,
+      "row": 1,
+      "width": 1,
+      "height": 3,
+      "hp": 50,
+      "score": 99,
+      "reload": 90,
+      "cavityRows": 3,
+      "cover": [
+        "doors"
+      ]
+    },
+    {
+      "name": "cannon-r",
+      "kind": "emitter",
+      "x": 32,
+      "row": 1,
+      "width": 2,
+      "height": 3,
+      "hp": 8,
+      "score": 80,
+      "slot": 1,
+      "cavityRows": 3,
+      "stages": "lens",
+      "cover": []
+    },
+    {
+      "name": "rail-r-1",
+      "kind": "pulse",
+      "x": 41,
+      "row": 2,
+      "width": 3,
+      "height": 2,
+      "hp": 15,
+      "score": 40,
+      "reload": 70,
+      "cavityRows": 2,
+      "cover": []
+    },
+    {
+      "name": "rail-r-2",
+      "kind": "pulse",
+      "x": 45,
+      "row": 2,
+      "width": 3,
+      "height": 2,
+      "hp": 15,
+      "score": 40,
+      "reload": 70,
+      "cavityRows": 2,
+      "cover": [
+        "rail-r-1"
+      ]
+    },
+    {
+      "name": "rail-r-3",
+      "kind": "pulse",
+      "x": 49,
+      "row": 2,
+      "width": 3,
+      "height": 2,
+      "hp": 15,
+      "score": 40,
+      "reload": 70,
+      "cavityRows": 2,
+      "cover": [
+        "rail-r-2"
+      ]
+    },
+    {
+      "name": "doors",
+      "kind": "armour",
+      "x": 31,
+      "row": 4,
+      "width": 1,
+      "height": 1,
+      "hp": 46,
+      "score": 60,
+      "cavityRows": 0,
+      "cover": [
+        "cannon-l",
+        "cannon-r",
+        "rail-l-3",
+        "rail-r-3"
+      ]
+    }
   ]
 }

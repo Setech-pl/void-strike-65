@@ -92,131 +92,184 @@ export function r2Guns() {
 }
 
 // --- the pictures ------------------------------------------------------------
-// One visual language (the owner's look of 2026-10-15, after the window
-// build): grey bars only on what is locked and cannot be hurt (the doors, a
-// locked bay); amber on what can be hurt (a gun's lamps and muzzle, an open
-// cannon, the open doors, the core - the brightest); steel and olive the
-// structure (the track, the girders, the rail ends, the hangar's shell); a
-// destroyed module a dark, broken socket.
+// feat/boss-art (docs/plans/boss-art.md §4.2; the owner's drawing of the
+// Bastion, docs/design/boss-art/bastion-art-ABC.png, variants A and B, and
+// the recipe read off region 3): light falls from above - every part's top
+// and left edges lit steel (W), its body mid steel (g), its lower right in
+// shadow; each part a closed shape with its own outline; amber (a) only on
+// what can be hurt (a gun's visor and muzzle, an open cannon, the open
+// doors, the core); the pf3 bank (r) is the olive bulk in rows 0 and 4 and,
+// under the per-row palette, the red of the hazard stripes, the guns'
+// shadow and the core's lower half in rows 1-3. Grey bars only on what is
+// locked and cannot be hurt (the doors, a locked bay).
 //
-// The overhead track, row 0: a steel beam over the olive bulk, a rivet in
-// every column (the slides read against them).
+// The overhead track, row 0: a lit top edge, the olive beam, a rivet every
+// other column (the slides read against them), a steel lower lip.
 const TRACK = pic(`
-gggg
 WWWW
+gggg
 rrrr
-rrWr
 rrrr
+rWrr
 rrrr
 gggg
-gggg
+....
 `);
-// A rail's girder, row 1: a lattice spar right under the track.
+const TRACK_PLAIN = TRACK.map((line, y) => (y === 4 ? "rrrr" : line));
+// A rail's girder, row 1: a truss right under the track - top and bottom
+// chords, a cross between them, the hangers the guns hang from.
 const GIRDER = pic(`
-WWWW
-gggg
+gWWg
 g..g
 .gg.
+.WW.
 .gg.
 g..g
-gggg
-gggg
+gWWg
+.gg.
 `);
-// The guide the rail slides on (row 1, in the gap between a rail's front and
-// its cannon's bay): a thin channel under the track - where the rail will go.
+// The guide the rail slides on (row 1, between a rail's front and its
+// cannon's bay): a dashed channel under the track - where the rail will go.
 const GUIDE = pic(`
 gggg
 ....
-g..g
+....
+gg.g
 ....
 ....
-g..g
 ....
 ....
 `);
-// The rail's front, rows 1-3 (the owner's look at 3b5a8ea: a real bumper,
-// the window build's quality): a buffer beam - a steel post on the girder's
-// side, a hazard-striped plate facing the bay, a rounded buffer head with an
-// amber pad at its foot. The left rail's; the right rail's its mirror.
+// The rail's front, rows 1-3: a buffer beam - a steel post on the girder's
+// side, red hazard stripes (the pf3 bank: never amber, it cannot be hurt)
+// facing the bay, a rounded buffer head at its foot. The left rail's; the
+// right rail's its mirror.
 const BUMPER_LEFT = pic(`
-WWW.
+WWWg
+gWWW
+grrW
+gWrr
+gWWr
+grWW
+grrW
+gWrr
+gWWr
+grWW
+grrW
+gWrr
+gWWr
+grWW
+grrW
+gWrr
+gWWr
+grWW
+gggg
+gWWW
+WWWW
 gWWg
-gWaa
-gWWa
-gWWW
-gWaW
-gWaa
-gWWa
-gWWW
-gWaW
-gWaa
-gWWa
-gWWW
-gWaW
-gWaa
-gWWa
-gWWW
-gWWW
-gWgg
-gWWW
-gWaa
-gWaa
-gWWW
 .gg.
+....
 `);
 const flip = (picture) => picture.map((line) => [...line].reverse().join(""));
 const BUMPER_RIGHT = flip(BUMPER_LEFT);
 
-// A rail gun, 3 x 2 cells (the window build's pod, restored at the owner's
-// look of 2026-10-15): a solid inverted-triangle turret hung straight from the
-// girder - a dark frame, olive stripes, amber lights in its centre cell - the
-// barrel down the centre column to an amber muzzle (a gun fires down
-// x + floor(w / 2)).
+// A rail gun, 3 x 2 cells: an inverted, rounded turret hung from the girder,
+// lit from the upper left, its lower right in shadow (pf3), an amber visor
+// across its face, the barrel down the centre column to an amber muzzle (a
+// gun fires down x + floor(w / 2)). The left cell and the centre are the pf2
+// bank, the right cell the pf3 bank.
 const GUN3 = pic(`
-.gWW|WWWW|WWg.
-gWrr|gaag|rrWg
-gWrr|gWWg|rrWg
-gWrW|gaag|WrWg
-gWrr|gWWg|rrWg
-gWrr|gaag|rrWg
-.gWW|WWWW|WWg.
-..gW|gWWg|Wg..
-...g|WaaW|g...
-...g|WaaW|g...
+gWWW|WWWW|WWgg
+gWWW|WWWW|Wggg
+.gWW|WWWW|Wgg.
+.gaa|aaaa|grr.
+.gWW|WWWW|ggg.
+..gW|WWWW|gg..
+..gW|WWWW|gg..
+...g|WWWW|g...
+...g|WWWg|g...
 ....|gWWg|....
-....|gaag|....
 ....|gWWg|....
+....|.gg.|....
+....|.aa.|....
 ....|.aa.|....
 ....|.WW.|....
 ....|....|....
 `);
-// The hangar's shell, a sphere five cells wide (columns 29-33, rows 0-4 - 20
-// x 40 pixels, round on screen at the 2:1 pixel): olive bulk, a steel rim,
-// rivets; the track runs behind it. The core sits in its middle, the doors -
-// the gate - at its foot. Row 0 five glyphs, each wall three, two feet
-// (thirteen; the owner's look at 3b5a8ea gave the charset its sixth sector).
+// Cracked: a split down the turret's face, the visor broken, the shadow
+// side chipped. Broken: the shell torn open, the steel dark, embers left.
+const GUN3_CRACKED = pic(`
+gWWW|WgWW|WWgg
+gWWW|W.WW|Wggg
+.gWW|WW.W|Wgg.
+.gaa|a.aa|grr.
+.gW.|WWW.|ggg.
+..gW|W.WW|gg..
+..gW|WW.W|gg..
+...g|WWW.|g...
+...g|W.Wg|g...
+....|gW.g|....
+....|g.Wg|....
+....|.gg.|....
+....|.aa.|....
+....|.a..|....
+....|.WW.|....
+....|....|....
+`);
+const GUN3_BROKEN = pic(`
+g.WW|..g.|W.g.
+.W..|....|.g..
+.g.W|....|g.g.
+..a.|.a.a|..r.
+.g..|W...|g.g.
+...g|..W.|.g..
+..g.|....|g...
+....|.W.g|....
+...g|....|....
+....|g..g|....
+....|.W..|....
+....|.g..|....
+....|.a..|....
+....|..a.|....
+....|....|....
+....|....|....
+`);
+
+// The hangar's sphere, five cells wide (columns 29-33) and rows 0-3 (20 x 32
+// pixels, round on screen at the 2:1 pixel) under the track: a steel rim lit
+// on its upper left, darker on its lower right; the core is its middle three
+// cells by three, the gate's jambs (columns 29 and 33, row 4) its feet. The
+// rim is steel only (W, g): in rows 1-3 the pf3 bank is the core's red.
 function shellPicture() {
   const lines = [];
   for (let y = 0; y < 40; y += 1) {
     let line = "";
     for (let x = 0; x < 20; x += 1) {
-      const dx = (x + 0.5 - 10) / 10;
-      const dy = (y + 0.5 - 20) / 20;
-      const r = Math.hypot(dx, dy);
       let ch = ".";
-      if (r <= 1.0 && r > 0.9) ch = "g";
-      else if (r <= 0.9 && r > 0.8) ch = "W";
-      else if (r <= 0.8) ch = (x % 4 === 1 && y % 8 === 4) ? "W" : "r";
+      if (y < 32) {
+        const dx = (x + 0.5 - 10) / 10;
+        const dy = (y + 0.5 - 17) / 16.5;
+        const r = Math.hypot(dx, dy);
+        const lit = dx + 0.6 * dy < 0;
+        if (r <= 1.0 && r > 0.9) ch = lit ? "W" : "g";
+        else if (r <= 0.9 && r > 0.82) ch = lit ? "g" : (x + y) % 2 === 0 ? "g" : ".";
+      } else if (x < 4 || x >= 16) {
+        // the jambs: a steel foot under each wall
+        const inner = x < 4 ? x : 19 - x;
+        ch = y === 39 ? "." : y === 38 ? "g" : inner === 3 ? "." : inner === 0 ? "g" : "W";
+      }
       line += ch;
     }
     lines.push(line);
   }
   return lines;
 }
-// The core, 3 x 3 cells (columns 30-32, rows 1-3): an amber reactor sphere
-// in a bright steel ring, a white eye at its centre - the brightest thing on
-// the ship. Only the eye cell is staged ("stages": "centre"): its cracks are
-// the core's damage.
+// The core, 3 x 3 cells (columns 30-32, rows 1-3): the reactor sphere seen
+// through the rim (the owner's drawing) - red (the pf3 bank: the row
+// palette's red, lit on top, deep at its foot) with a white highlight to the
+// upper left, a rim light on its lower right, a steel ring at its edge. Only
+// the eye - the centre cell - is staged ("stages": "centre"): its cracks are
+// the core's damage. The b3 flash turns its red amber.
 function corePicture() {
   const lines = [];
   for (let y = 0; y < 24; y += 1) {
@@ -225,50 +278,48 @@ function corePicture() {
       const dx = (x + 0.5 - 6) / 6;
       const dy = (y + 0.5 - 12) / 12;
       const r = Math.hypot(dx, dy);
-      const shine = Math.hypot((x + 0.5 - 4) / 1.6, (y + 0.5 - 7) / 3.2);
+      const shine = Math.hypot((x + 0.5 - 4) / 1.4, (y + 0.5 - 6) / 2.4);
+      const rim = Math.hypot(dx - 0.18, dy - 0.18);
       let ch = ".";
       if (r <= 1.0 && r > 0.86) ch = "g";
-      else if (r <= 0.86 && r > 0.74) ch = "W";
-      else if (r <= 0.74) ch = r < 0.24 || shine < 1 ? "W" : "a";
+      else if (r <= 0.86) ch = shine < 1 ? "W" : rim > 0.66 && dx + dy > 0.6 ? "g" : "r";
       line += ch;
     }
     lines.push(line);
   }
   return lines;
 }
-// The laser cannon, 2 x 3 cells (the owner's look at 3b5a8ea: a pointed,
-// readable silhouette, the detail of region 1's tower): a stepped spire
-// pointing up at the track, its housing widening to a belt, the arch of its
-// legs round the lens - the beam's emitter, the muzzle (a beam leaves the
-// cannon's centre, columns x + 0.5 .. x + 1.5) at its foot. Open, lit: its
-// windows, panels and lens hazard amber. Locked: the same steel, unlit - grey
-// with dark insets, the lens a dark socket (no amber anywhere: the locked
-// cannon reads at once from the open one).
+// The laser cannon, 2 x 3 cells: a turret - a domed cap with a visor, a
+// narrower housing with a window, a ribbed neck - and the lens collar at its
+// foot (the beam's emitter: a beam leaves the cannon's centre, columns
+// x + 0.5 .. x + 1.5). Open, lit: its visor, window and lens amber. Locked:
+// the same steel, unlit - grey with dark insets (no colour-3 pixel: the
+// locked cannon reads at once from the open one).
 const CANNON_OPEN = pic(`
-...WW...
 ..gWWg..
-..gaag..
+.gWWWWg.
+gWWWWWWg
+gWWWWWgg
+gaaaaaag
+gWWWWWgg
+.gWWWgg.
 ..gWWg..
+.gWWWWg.
 .gWggWg.
 .gWaaWg.
 .gWggWg.
-gWWWWWWg
-gWgaagWg
-gWWWWWWg
-WWggggWW
-WgaaaagW
-WgaWWagW
-WgaaaagW
-WWggggWW
-gWWWWWWg
+..gWWg..
+..g..g..
+..gWWg..
+..g..g..
+.gWWWWg.
 gWWggWWg
-gWgaagWg
 gW.aa.Wg
-gWaWWaWg
+gWa..aWg
 gW.aa.Wg
-.gWaaWg.
-..gaag..
-..gWWg..
+.gWWWWg.
+..g..g..
+...gg...
 `);
 const CANNON_LOCKED = CANNON_OPEN.map((line) => line.replace(/a/g, "."));
 
@@ -294,23 +345,23 @@ aWWa
 ....
 ....
 `)];
-// The locked doors (row 4, the gate under the core) and a locked cannon bay's
-// armour (row 4, the two cells under the cannon): one glyph - steel bars over the olive bulk (the pf3 bank,
-// band.png), tiling into a grating; the only bars on the ship. A shot there
-// shows the deflection glyph (the controller absorbs it: boss.s boss_hit).
-// Unlocked - open.png, the look the controller draws when the exposure check
-// opens them - the doors are amber hazard stripes, the bay's armour gone and
-// the cannon an amber tower (the pf2 bank): another colour and another
-// pattern (the owner's readability rule of 2026-10-15).
+// The locked doors (row 4, the gate under the core) and a locked cannon
+// bay's armour (row 4, the two cells under the cannon): one glyph - a steel
+// frame, heavy bars over the olive bulk (the pf3 bank), tiling into a
+// grating; the only bars on the ship. A shot there shows the deflection
+// glyph (the controller absorbs it: boss.s boss_hit). Unlocked - open.png -
+// the doors are amber hazard stripes, the bay's armour gone and the cannon
+// an amber tower (the pf2 bank): another colour and another pattern (the
+// owner's readability rule of 2026-10-15).
 const BARS = pic(`
 WWWW
-WrWr
-WrWr
-WrWr
-WrWr
-WrWr
-WrWr
+WgWr
+WgWr
+WgWr
+WgWr
+WgWr
 gggg
+....
 `);
 const DOORS_OPEN = pic(`
 gggg
@@ -319,8 +370,8 @@ WWaa
 WaaW
 aaWW
 aWWa
-WWaa
 gggg
+....
 `);
 // A destroyed module's socket (extras' cavity cell): dark - a few dim
 // fragments and a broken edge, nothing like the bars (a dead rail gun's
@@ -403,6 +454,8 @@ const repeat = (picture, count) => picture.map((line) => line.repeat(count));
 // A module's look from its cells' pictures, row by row: [[cell, ...], ...].
 const join = (rows) => rows.flatMap((cells) => cells[0].map((_, y) => cells.map((cell) => cell[y]).join("")));
 
+const gunPicture = (stage) => ({ intact: GUN3, cracked: GUN3_CRACKED, broken: GUN3_BROKEN })[stage];
+
 export function drawRegion2() {
   const { left, right } = r2Guns();
   const extras = fs.readFileSync(path.join(regionOne, "extras.png"));
@@ -442,7 +495,7 @@ export function drawRegion2() {
   const shell = shellPicture();
   const cannons = [R2.cannon.xLeft, mirror(R2.cannon.xLeft, R2.cannon.width)];
   for (const stage of ["intact", "cracked", "broken"]) {
-    for (const [what, picture] of [["gun", staged(GUN3, stage)], ["doors", doorsOpen(stage)], ["core", core(stage)]]) {
+    for (const [what, picture] of [["gun", gunPicture(stage)], ["doors", doorsOpen(stage)], ["core", core(stage)]]) {
       const n = colour3(picture);
       if (n < 4) throw new Error(`${what} ${stage}: ${n} colour-3 pixels (the hit flash needs 4)`);
     }
@@ -456,14 +509,14 @@ export function drawRegion2() {
     const closed = file === "band";
     const canvas = new Canvas(BAND_W, BAND_H);
     // Row 0: the track, edge to edge (behind the hangar's sphere).
-    for (let c = 0; c < 64; c += 1) canvas.cell(TRACK, c, 0);
+    for (let c = 0; c < 64; c += 1) canvas.cell(c % 2 === 0 ? TRACK : TRACK_PLAIN, c, 0);
     // The rails: the girder from the band's edge to the bumper, the guns, the
     // bumper; the guide from the bumper to the cannon's bay.
     const cannonEdge = { l: R2.cannon.xLeft, r: mirror(R2.cannon.xLeft, R2.cannon.width) + R2.cannon.width - 1 };
     for (const [guns, nose, side] of [[left, R2.nose, "l"], [right, mirror(R2.nose, 1), "r"]]) {
       const columns = side === "l" ? [...Array(nose).keys()] : [...Array(63 - nose).keys()].map((i) => nose + 1 + i);
       for (const c of columns) canvas.cell(GIRDER, c, 1);
-      for (const g of guns) canvas.draw(staged(GUN3, stage), g.x * CELL_W, 2 * CELL_H);
+      for (const g of guns) canvas.draw(gunPicture(stage), g.x * CELL_W, 2 * CELL_H);
       canvas.draw(side === "l" ? BUMPER_LEFT : BUMPER_RIGHT, nose * CELL_W, CELL_H);
       const gap = side === "l" ? [nose + 1, cannonEdge.l - 1] : [cannonEdge.r + 1, nose - 1];
       for (let c = gap[0]; c <= gap[1]; c += 1) canvas.cell(GUIDE, c, 1);

@@ -379,6 +379,7 @@ boss_dli:
     sta COLPF2
     lda BOSS_T_PALETTE+3
     sta COLPF3
+@publish:
     jsr laser_publish                   ; S4b: the lasers' HPOS and SIZEM (A only)
     inc gameplay_dli_phase
     pla
@@ -417,6 +418,8 @@ boss_dli:
     rti
 @hud:
     jmp gameplay_dli_sync_hud
+; feat/boss-art: boss_pal_prepare points phase 0's publish at boss_pal_frame.
+boss_dli_publish = @publish + 1
 
 ; Publish band position p = boss_dli_pos (colour clocks, 0..travel): with the
 ; LMS L cells in and HSCROL h, L*4 - h = p and h is 0..15, so the coarse LMS
@@ -1471,6 +1474,40 @@ _boss_next_armed:
     stx _boss_n
     rts
 
+; Once, from the install, before it copies the divider over the charset's
+; first codes, where the region's charset run carries the row palette
+; (scripts/boss-assets.mjs bossRowPalette: the switch mask, the switches'
+; count, their COLPF1s, their COLPF3s): the count and colours into slot D's
+; BSS, the DLI bit on each switching row's instruction, the phase-0 publish
+; through boss_pal_frame. Falls into boss_prepare.
+boss_pal_prepare:
+    lda BOSS_ROWS_MASK
+    beq boss_prepare                    ; no row palette: as before
+    ldx #(2 * BOSS_ROW_SWITCHES_MAX)
+@copy:
+    lda BOSS_ROWS_COUNT,x
+    sta boss_pal_count,x
+    dex
+    bpl @copy
+    ldy #6                              ; band row 0's instruction (after the HUD's 3 and the divider's 3)
+@row:
+    lsr BOSS_ROWS_MASK                  ; the divider's copy overwrites it
+    bcc @next
+    lda PLAYFIELD_DLIST_A,y
+    ora #$80                            ; + the row's DLI
+    sta PLAYFIELD_DLIST_A,y
+@next:
+    iny
+    iny
+    iny
+    lda BOSS_ROWS_MASK
+    bne @row
+    lda #<boss_pal_frame
+    sta boss_dli_publish
+    lda #>boss_pal_frame
+    sta boss_dli_publish+1
+    .assert * = boss_prepare, error, "boss_pal_prepare falls into boss_prepare"
+
 ; Once, from the install, after the controller's init (its hit points are the
 ; map's alive test, §5.13.5): the look copy's operand, every module's column
 ; span, a capped emitter's plate (an emitter slot the tier did not enable is
@@ -1614,6 +1651,70 @@ boss_shots_prepare:
     sta boss_hull_stop_operand+1
     rts
 
+; ---------------------------------------------------------------------------
+; feat/boss-art (the owner's variant B, docs/plans/boss-art.md §3): a palette
+; per band row. Row 0 is the region's palette, which the band DLI's phase 0
+; sets; under each row whose next row differs (the region's switch mask) a DLI
+; stores that row's COLPF1 and COLPF3. COLPF0 and COLPF2 stay the region's -
+; the in-band shots' colours - and only two stores land on a row's first line
+; in time after the WSYNC (plan s5-boss-regions §6.4.3: CHBASE and one colour
+; store, the second written 12 cycles after it, landed; the next did not).
+; Here COLPF1's value is loaded before the WSYNC: the stores are written 4 and
+; 12 cycles after it, and the prolog is 11 cycles (phase 1's 20).
+; A region without a row palette (mask 0) runs exactly as before: the phase-0
+; publish stays laser_publish and no row carries a DLI.
+; ---------------------------------------------------------------------------
+
+; The band DLI's phase 0 (A only, after its WSYNC), when the region has a row
+; palette: the rows' DLI takes the band's DLIs from the first switch on, its
+; sources at the first switch; then the lasers' publish.
+boss_pal_frame:
+    lda #<boss_pal_dli
+    sta VDSLST
+    lda #>boss_pal_dli
+    sta VDSLST+1
+    lda #<boss_pal_colpf1
+    sta boss_pal_src1
+    lda #<boss_pal_colpf3
+    sta boss_pal_src3
+    lda boss_pal_count
+    sta boss_pal_left
+    jmp laser_publish
+
+; The DLI under a switching row (A only): the switch's pair, its sources then
+; stepped to the next; after the last switch the band's own DLI (phase 1, the
+; band's end) is boss_dli's again.
+boss_pal_dli:
+    pha
+boss_pal_src1 = * + 1
+    lda boss_pal_colpf1
+    sta WSYNC
+    sta COLPF1                          ; written 4 cycles after the WSYNC
+boss_pal_src3 = * + 1
+    lda boss_pal_colpf3
+    sta COLPF3                          ; and 12 (the edge that lands, s5-boss-regions §6.4.3)
+    inc boss_pal_src1
+    inc boss_pal_src3
+    dec boss_pal_left
+    bne @done
+    lda #<boss_dli
+    sta VDSLST
+    lda #>boss_dli
+    sta VDSLST+1
+@done:
+    pla
+    rti
+
+.segment "BOSS_D_BSS"
+; The row palette's switches (feat/boss-art), copied as the run lays them out:
+; the count, each switch's COLPF1, each switch's COLPF3. In slot D's BSS
+; tail: slot C's RAM is full with the code.
+boss_pal_count:     .res 1
+boss_pal_colpf1:    .res BOSS_ROW_SWITCHES_MAX
+boss_pal_colpf3:    .res BOSS_ROW_SWITCHES_MAX
+boss_pal_left:      .res 1
+.assert >boss_pal_colpf1 = >(boss_pal_colpf3 + BOSS_ROW_SWITCHES_MAX), error, "the row DLI steps its sources' low bytes only"
+.assert BOSS_ROWS_COLPF1 = BOSS_ROWS_COUNT + 1 && BOSS_ROWS_COLPF3 = BOSS_ROWS_COLPF1 + BOSS_ROW_SWITCHES_MAX, error, "the run lays the row palette out as the BSS"
 
 .segment "BOSS_CODE"
 
@@ -3161,14 +3262,8 @@ boss_install:
     ; DLI phases run out of step with the lines (as start_gameplay does it).
     lda #$00
     sta DMACTL
-    ; 1. The divider row is a starfield row drawn under the band's CHBASE:
-    ;    the gameplay charset's codes 0-6 into the region's charset.
-    ldx #(BOSS_DIVIDER_CODES * 8 - 1)
-@divider:
-    lda CHARSET,x
-    sta BOSS_CHARSET,x
-    dex
-    bpl @divider
+    ; 1. (feat/boss-art: the divider's copy is step 7's, after boss_prepare
+    ;    has read the row palette its bytes carried in the charset run.)
     ; 2. The boss's capital vector table.
     ldx #(CAPITAL_VECTOR_COUNT * 3 - 1)
 @vector:
@@ -3292,7 +3387,16 @@ boss_install:
     ;    test needs the hit points (§5.13.5, the install order).
     jsr laser_tier                      ; S4b: the slots the tier enables, before
     jsr _boss_c_init                    ; the init reads them
-    jsr boss_prepare
+    jsr boss_pal_prepare                ; feat/boss-art: the row palette, then boss_prepare
+    ;    The divider row is a starfield row drawn under the band's CHBASE:
+    ;    the gameplay charset's codes 0-6 into the region's charset (the
+    ;    display is off until step 10; nothing before reads these codes).
+    ldx #(BOSS_DIVIDER_CODES * 8 - 1)
+@divider:
+    lda CHARSET,x
+    sta BOSS_CHARSET,x
+    dex
+    bpl @divider
     jsr laser_prepare                   ; the lasers' missiles M1 / M2
     lda #$00                            ; fix/boss-polish: no flash, none asked
     sta boss_mflash_timer

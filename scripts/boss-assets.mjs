@@ -1512,6 +1512,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   charsetRun.set(glyphs, 0);
   // The divider's codes are the install's to copy: zero in the run.
   charsetRun.fill(0, 0, BOSS_DIVIDER_CODES * 8);
+  // feat/boss-art (the owner's variant B): the per-row palette rides in the
+  // divider's bytes, which the run carried as zeros; boss_rows_prepare reads
+  // it before the install copies the divider over it.
+  const rowPalette = bossRowPalette(layout, paletteBytes, bandShownRows);
+  charsetRun.set(rowPalette.bytes, 0);
 
   // A column with a hull stop absorbs a shot once no module covers it
   // (decisions M and O: every hull cell but a girder's see-through one).
@@ -1521,7 +1526,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   }
 
   const tables = new Uint8Array(BOSS_TABLES_BYTES);
-  tables.set(paletteBytes, BOSS_TABLE.palette);
+  tables.set(rowPalette.rows[0], BOSS_TABLE.palette);
   tables[BOSS_TABLE.framesPerStep] = framesPerStep;
   tables[BOSS_TABLE.travel] = travel;
   tables[BOSS_TABLE.start] = start;
@@ -1630,6 +1635,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     charsetBytes,
     bandRows,
     bandShownRows,
+    // feat/boss-art: per shown row its four colours ([COLPF0..3]), and the
+    // rows under which the band's DLI switches (the switch mask).
+    // proposed: the rows as modules.json gives them, also while "off".
+    rowPalette: { rows: rowPalette.rows, switches: rowPalette.switches, mask: rowPalette.mask,
+      on: rowPalette.on, proposed: rowPalette.proposed, onePalette: [...paletteBytes] },
     tables,
     openLooks: new Map([...openLooks].map(([index, look]) => [index,
       look.map((ref) => (ref.block === "plain" ? plainCode(ref) : stagedCode(ref)))])),
@@ -1698,6 +1708,57 @@ export function bossBandShownRows(bandRows) {
   return last + 1;
 }
 
+// feat/boss-art (the owner's variant B, docs/plans/boss-art.md §3): a palette
+// per band row. modules.json's optional rowPalette gives COLPF1 and COLPF3
+// for every shown row; row 0's pair replaces palette.colpf1 / colpf3 in the
+// band's palette (the band DLI's phase 0 sets it), so palette alone is the
+// one-palette look (variant A) and "off": true keeps the rows for a
+// comparison without using them. COLPF0 and COLPF2 stay the region's in every row - the
+// in-band shots' colours (the hostile pulse COLPF0 / COLPF1 edge, the
+// player's shot COLPF2) - and only two stores land on a row's first line in
+// time after the WSYNC (the scanline fix's measurement, plan s5-boss-regions
+// §6.4.3). A DLI under row r switches to row r + 1's pair only where it
+// differs. The bytes, in the charset run's divider area ($0C00): the switch
+// mask (bit r: a switch under row r), the switches' count, then COLPF1 of
+// each switch, then COLPF3 of each switch, in row order.
+export const BOSS_ROW_SWITCHES_MAX = BOSS_BAND_ROWS - 1;
+export const BOSS_ROW_PALETTE = Object.freeze({ mask: 0, count: 1, colpf1: 2, colpf3: 2 + BOSS_ROW_SWITCHES_MAX,
+  bytes: 2 + 2 * BOSS_ROW_SWITCHES_MAX });
+export function bossRowPalette(layout, paletteBytes, shownRows) {
+  const source = layout.rowPalette;
+  const rows = Array.from({ length: shownRows }, () => [...paletteBytes]);
+  const bytes = new Uint8Array(BOSS_ROW_PALETTE.bytes);
+  if (source === undefined || source === null) return { rows, switches: [], mask: 0, bytes, on: false, proposed: null };
+  const proposed = Array.from({ length: shownRows }, () => [...paletteBytes]);
+  for (const [key, index] of [["colpf1", 1], ["colpf3", 3]]) {
+    const values = source[key];
+    if (!Array.isArray(values) || values.length !== shownRows) {
+      fail(`rowPalette.${key} lists one colour per shown band row (${shownRows})`);
+    }
+    values.forEach((value, row) => { proposed[row][index] = integerIn(value, 0, 255, `rowPalette.${key}[${row}]`); });
+  }
+  if (source.off !== undefined && typeof source.off !== "boolean") fail("rowPalette.off is true or false");
+  if (source.off === true) return { rows, switches: [], mask: 0, bytes, on: false, proposed };
+  proposed.forEach((colours, row) => { rows[row] = colours; });
+  for (const key of Object.keys(source)) {
+    if (!["_", "colpf1", "colpf3", "off"].includes(key)) {
+      fail(`rowPalette.${key}: a row switches COLPF1 and COLPF3 only (COLPF0 and COLPF2 are the in-band shots')`);
+    }
+  }
+  const switches = [];
+  let mask = 0;
+  for (let row = 1; row < shownRows; row += 1) {
+    if (rows[row][1] === rows[row - 1][1] && rows[row][3] === rows[row - 1][3]) continue;
+    mask |= 1 << (row - 1);
+    bytes[BOSS_ROW_PALETTE.colpf1 + switches.length] = rows[row][1];
+    bytes[BOSS_ROW_PALETTE.colpf3 + switches.length] = rows[row][3];
+    switches.push(row);
+  }
+  bytes[BOSS_ROW_PALETTE.mask] = mask;
+  bytes[BOSS_ROW_PALETTE.count] = switches.length;
+  return { rows, switches, mask, bytes, on: true, proposed };
+}
+
 // Band row r's first byte: rows 0-5 in place at $A880, rows 6-7 at $AC80.
 export function bossBandRowAddress(row) {
   return row < BOSS_BAND_A_ROWS
@@ -1726,6 +1787,11 @@ export function renderBossLayoutInclude() {
     `BOSS_TABLES              = ${hex(BOSS_TABLES_ADDRESS)}`,
     `BOSS_CHARSET             = ${hex(BOSS_CHARSET_ADDRESS)}`,
     `BOSS_DIVIDER_CODES       = ${BOSS_DIVIDER_CODES}`,
+    `BOSS_ROW_SWITCHES_MAX    = ${BOSS_ROW_SWITCHES_MAX}`,
+    `BOSS_ROWS_MASK           = BOSS_CHARSET+${BOSS_ROW_PALETTE.mask}`,
+    `BOSS_ROWS_COUNT          = BOSS_CHARSET+${BOSS_ROW_PALETTE.count}`,
+    `BOSS_ROWS_COLPF1         = BOSS_CHARSET+${BOSS_ROW_PALETTE.colpf1}`,
+    `BOSS_ROWS_COLPF3         = BOSS_CHARSET+${BOSS_ROW_PALETTE.colpf3}`,
     `BOSS_SLOT_C              = ${hex(BOSS_SLOT_C_ADDRESS)}`,
     `BOSS_SCRATCH             = ${hex(BOSS_SCRATCH_ADDRESS)}`,
     `BOSS_HUD_BOOSTER_SCREEN  = ${hex(BOSS_HUD_BOOSTER_SCREEN)}`,

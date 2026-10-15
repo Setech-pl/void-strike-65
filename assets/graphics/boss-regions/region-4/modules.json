@@ -6,9 +6,14 @@
   "palette": {
     "_": "COLPF0 pale steel (the belt's and the turrets' faces, the core's rim), COLPF1 mid steel (trim, edges), COLPF2 void magenta (the core's glow, the spires' coils, lights, damage glow, sparks; hue 326, clear of the ally steel $84 at 226 on levels 10-12), COLPF3 the hull's dark violet bulk (hue 294).",
     "colpf0": 12,
-    "colpf1": 6,
+    "colpf1": 24,
     "colpf2": 88,
     "colpf3": 98
+  },
+  "rowPalette": {
+    "_": "feat/boss-art (the owner's variant B): light from above - COLPF1, a gold trim (the recipe of region 3's violet: a saturated trim over light faces), $1C on the deck down to $16 on the belt; COLPF3 the citadel's void-purple bulk, lit on the deck ($64) and deep below ($62). Hues 52 (the trim), 294 and 326 degrees (COLPF2 the magenta glow), 174, 68 and 100 from the ally steel $84. The b3 flash swaps magenta $58 and purple (RGB distance 112 / 176).",
+    "colpf1": [28, 26, 24, 24, 22],
+    "colpf3": [100, 100, 98, 98, 98]
   },
   "motion": {
     "_": "fix/r4-immobile (the owner's smoke of the Void Citadel: the drift with the gravity well was a mishmash): still - 0 frames per colour clock, the band at position 32 for the whole fight, the ship (columns 14-49) centred on screen; the win's shake stays.",

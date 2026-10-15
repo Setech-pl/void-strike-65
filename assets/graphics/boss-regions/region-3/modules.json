@@ -10,6 +10,11 @@
     "colpf2": 40,
     "colpf3": 4
   },
+  "rowPalette": {
+    "_": "feat/boss-art (the owner's variant B), two switches only (region 3's stress is the tightest): light from above - COLPF1, the violet trim, $6A on the spine's top rows, $66 at the guns and generators, $64 from the plates down (the field too); COLPF3 the dark slate bulk $06 / $04 / $02. Hues 294 degrees and grey, 68 from the ally steel $84; the b3 flash swaps amber $28 and the slate (RGB distance 131-190).",
+    "colpf1": [106, 106, 102, 102, 100, 100, 100, 100],
+    "colpf3": [6, 6, 4, 4, 2, 2, 2, 2]
+  },
   "motion": {
     "_": "As region 1: one colour clock every 2 frames across 63 and back, from 32; the window shows band columns 4-59 over the travel.",
     "framesPerColourClock": 2,

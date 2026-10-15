@@ -19,10 +19,11 @@
 // the core, a three-cell amber reactor, inside it and the hangar doors under
 // the core; beside it a laser cannon each side in its armoured bay, hung from
 // the track; outside them a rail each side - a sliding girder under the track
-// carrying a row of guns, its outer part beyond the screen edge. A locked bay
-// and the locked doors are the same barred grey armour over the olive bulk
-// (band.png); open, the cannon is an amber tower and the doors amber hazard
-// chevrons (open.png). The first rail-gun kill on a side slides that rail one
+// carrying a row of guns, its outer part beyond the screen edge. A bay's
+// armour is the row under its whole cannon - between the cannon and the
+// player - and the same barred grey armour over the olive bulk as the locked
+// doors (band.png); open, the armour is gone, the cannon an amber tower and
+// the doors amber hazard chevrons (open.png). The first rail-gun kill on a side slides that rail one
 // gun pitch inward and opens that side's bay (the window); the second slides
 // it over the cannon, for good (src/hybrid/boss.s BOSS_RAIL).
 //
@@ -74,7 +75,7 @@ export const R2 = Object.freeze({
   pitch: 4,
   guns: 3,
   positions: 2,
-  cannon: { width: 2, xLeft: 27 },     // the laser cannons, rows 1-3, in their bays
+  cannon: { width: 2, xLeft: 27 },     // the laser cannons, rows 1-3, their bays' armour row 4 under them
   hub: { x: 29, width: 5 },            // the hangar's hull, rows 0-4
   core: { x: 30, width: 3, row: 1, height: 3 },
   doors: { x: 30, width: 3, row: 4 },
@@ -240,14 +241,14 @@ aWWa
 ....
 ....
 `)];
-// The locked doors (row 4, the gate under the core) and a locked cannon bay
-// (2 x 3 cells): one glyph - steel bars over the olive bulk (the pf3 bank,
+// The locked doors (row 4, the gate under the core) and a locked cannon bay's
+// armour (row 4, the two cells under the cannon): one glyph - steel bars over the olive bulk (the pf3 bank,
 // band.png), tiling into a grating; the only bars on the ship. A shot there
 // shows the deflection glyph (the controller absorbs it: boss.s boss_hit).
 // Unlocked - open.png, the look the controller draws when the exposure check
-// opens them - the doors are amber hazard stripes and the cannon an amber
-// tower (the pf2 bank): another colour and another pattern (the owner's
-// readability rule of 2026-10-15).
+// opens them - the doors are amber hazard stripes, the bay's armour gone and
+// the cannon an amber tower (the pf2 bank): another colour and another
+// pattern (the owner's readability rule of 2026-10-15).
 const BARS = pic(`
 WWWW
 WrWr
@@ -359,13 +360,14 @@ export function drawRegion2() {
   // its outer flanges, the lens across the cells' boundary; the heat and the
   // stages change only the lens cell (the right cell's bottom row), so the
   // left cell keeps the rest look in every panel. Open, the tower is lit:
-  // under its steel mount (row 1, shown over a locked bay's armour too) its
-  // mid steel turns hazard amber outside the lens cell (the bay's opening
-  // reads as the cannon turning amber). The warning's heat (HEAT) is a glow
+  // under its steel mount (row 1) its mid steel turns hazard amber outside
+  // the lens cell (the bay's opening reads as the armour falling away and the
+  // cannon turning amber; locked, the same glyphs in the bulk's olive). The warning's heat (HEAT) is a glow
   // of its own (decision E2), not a piece of the cannon's lens - a covered
   // cannon's warning shows on its rail's end as a lamp, with nothing of the
   // cannon beside it.
   const narrow = decodePanels(regionOnePng, 5, 12, 24).map((panel) => panel.map((line) => line.slice(2, 10)));
+  const ARMOUR_ROW = Array(CELL_H).fill(".".repeat(R2.cannon.width * CELL_W));
   for (const panel of narrow.slice(1)) {
     for (let y = 16; y < 24; y += 1) panel[y] = narrow[0][y].slice(0, 4) + panel[y].slice(4);
   }
@@ -374,10 +376,12 @@ export function drawRegion2() {
   });
   const lit = narrow.map((panel) => panel.map((line, y) => (y < 8 ? line
     : y < 16 ? line.replace(/g/g, "a") : line.slice(0, 4).replace(/g/g, "a") + line.slice(4))));
-  const narrowCanvas = new Canvas(5 * 8, 24);
-  lit.forEach((panel, i) => narrowCanvas.draw(panel, i * 8, 0));
+  // emitter.png: the cannon over its armour row - empty in every panel (the
+  // open look: the armour gone, the beam from the muzzle).
+  const narrowCanvas = new Canvas(5 * 8, 32);
+  lit.forEach((panel, i) => narrowCanvas.draw([...panel, ...ARMOUR_ROW], i * 8, 0));
   const emitterPng = narrowCanvas.png();
-  const [rest, , , emitterCracked, emitterBroken] = lit;
+  const [rest, , , emitterCracked, emitterBroken] = lit.map((panel) => [...panel, ...ARMOUR_ROW]);
   const extrasCanvas = new Canvas(15 * CELL_W, CELL_H);
   extrasCells.forEach((cell, i) => extrasCanvas.draw(cell, i * CELL_W, 0));
   const sphere = corePicture();
@@ -388,10 +392,13 @@ export function drawRegion2() {
   };
   const doorsOpen = (stage) => repeat(stagedCells(DOORS_OPEN, stage), R2.doors.width);
   const doorsLocked = repeat(BARS, R2.doors.width);
-  // A locked bay: the cannon's top (row 1, its steel mount - the open look's
-  // own cells) over the armour panel in front of its body and muzzle (rows
-  // 2-3, the bars). Its beam starts under the panel (boss.s rail_frame).
-  const bay = [...lit[0].slice(0, 8), ...join([0, 1].map(() => [BARS, BARS]))];
+  // A locked bay (the owner's look of 2026-10-15 at 110c274: "the armour
+  // must be BETWEEN the cannon and the player"): the whole cannon, rows 1-3,
+  // its open look's own glyphs in the pf3 bank (the amber parts the bulk's
+  // dark olive - no glyph of its own), over its armour - the doors' bars -
+  // in row 4, between the muzzle and the player. Its beam starts under the
+  // armour (boss.s rail_frame).
+  const bay = [...lit[0].map((line) => line.replace(/a/g, "r")), ...join([[BARS, BARS]])];
   const shell = shellPicture();
   const cannons = [R2.cannon.xLeft, mirror(R2.cannon.xLeft, R2.cannon.width)];
   for (const stage of ["intact", "cracked", "broken"]) {
@@ -421,8 +428,9 @@ export function drawRegion2() {
       const gap = side === "l" ? [nose + 1, cannonEdge.l - 1] : [cannonEdge.r + 1, nose - 1];
       for (let c = gap[0]; c <= gap[1]; c += 1) canvas.cell(GUIDE, c, 1);
     }
-    // The cannons: locked, their bays' bars; open, the lit tower (its
-    // stages: rest, cracked, broken).
+    // The cannons: locked, the whole cannon (the olive bank) over its bay's
+    // bars; open, the lit tower (its stages: rest, cracked, broken) over an
+    // empty row.
     const tower = closed ? bay : stage === "cracked" ? emitterCracked : stage === "broken" ? emitterBroken : rest;
     for (const x of cannons) canvas.draw(tower, x * CELL_W, CELL_H);
     // The hangar's sphere over the track, the core in it (its eye staged),

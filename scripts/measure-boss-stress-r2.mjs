@@ -123,7 +123,8 @@ export function regionTwoStress({ level = 4, maxMeetings = 3 } = {}) {
   const tableKind = (i) => entered()[lbl("_boss_module_table") + 12 * i + 7] & 0x0f;
   const kinds = [...Array(count).keys()].map(tableKind);
   const gunsOf = (s) => {
-    const first = entered()[lbl("rail_module") + (s.name === "left" ? 0 : 1)];
+    // The side's lowest gun module: rail_guns + 2 + side (boss-rail.inc).
+    const first = entered()[lbl("rail_guns") + 2 + (s.name === "left" ? 0 : 1)];
     const ids = [...Array(s.guns.length).keys()].map((i) => first + i);
     return s.dir > 0 ? ids.reverse() : ids;   // front first: the left rail's front gun has the highest index
   };

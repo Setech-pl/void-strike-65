@@ -3035,8 +3035,10 @@ async function build() {
       `RAIL_POSITIONS          = ${bossRail.positions}`,
       `RAIL_GUNS               = ${left.guns.length}`,
       `RAIL_ROW                = ${bossRail.rowFirst}`,
-      `RAIL_L_WINDOW           = ${left.window}`,
-      `RAIL_R_WINDOW           = ${right.window}`,
+      `RAIL_WINDOW             = ${(() => {
+        if (left.window !== right.window) throw new Error("S5-5: the rails shift one window (the converter's)");
+        return left.window;
+      })()}`,
       `RAIL_L_FRONT            = ${left.nose}`,
       `RAIL_R_FRONT            = ${right.nose}`,
       `RAIL_DOORS              = ${hangar.doors}`,
@@ -3049,28 +3051,48 @@ async function build() {
       // the core's armoured left flank once the doors fall (the jamb).
       `RAIL_UNLOCKS            = $${[hangar.doors, ...[left, right].filter((side) => region.modules[side.cannon].bay)
         .map((side) => side.cannon)].reduce((mask, i) => mask | (1 << i), 0).toString(16).toUpperCase()}`,
-      // The owner's look of 2026-10-15: the beams start under the cannons'
-      // bottom row (one row for both: the block clears it from the missile plane).
-      `RAIL_CANNON_BOTTOM      = ${(() => {
-        const bottoms = [left, right].map((side) => region.modules[side.cannon].row + region.modules[side.cannon].height - 1);
-        if (bottoms[0] !== bottoms[1]) throw new Error("S5-5: region 2's cannons end on one band row (their beams' start)");
-        return bottoms[0];
-      })()}`,
+      // The owner's look of 2026-10-15 at 110c274: each cannon over its bay's
+      // armour row (its module's last row); the warning heats the lens in the
+      // cannon's last row, the beam starts under the cannon - under the armour
+      // while the bay is locked (the block writes the missile plane's armour
+      // row and moves the lens cell and the stop lines; one row for both).
+      ...(() => {
+        const cannons = [left, right].map((side) => region.modules[side.cannon]);
+        if (cannons.some((cannon) => !cannon.bay || cannon.width !== 2 || cannon.cavityRows !== cannon.height - 1) ||
+          cannons[0].row !== cannons[1].row || cannons[0].height !== cannons[1].height) {
+          throw new Error("S5-5: region 2's cannons are two cells wide, in bays, on the same rows");
+        }
+        if (left.cannon !== 0 || right.cannon !== 2) {
+          throw new Error("S5-5: region 2's cannons are modules 0 and 2 (the block's side * 2)");
+        }
+        const lensRow = cannons[0].row + cannons[0].cavityRows - 1;
+        return [
+          `RAIL_LENS_ROW           = ${lensRow}`,
+          `RAIL_ARMOUR_ROW         = ${lensRow + 1}`,
+          `RAIL_LENS_L             = ${cannons[0].x + (cannons[0].width >> 1)}`,
+          `RAIL_LENS_R             = ${cannons[1].x + (cannons[1].width >> 1)}`,
+        ];
+      })(),
       `RAIL_JAMBED             = ${hangar.jamb === null ? 0 : 1}`,
       `RAIL_JAMB               = ${hangar.jamb ?? 0}`,
       `RAIL_ESCORT_TIMER       = $${stateAddress("STATE_SPACING").toString(16).toUpperCase()}`,
       `RAIL_GUN_WIDTH          = ${bossRail.gunWidth}`,
       ".macro RAIL_TABLES",
-      `rail_guns:      .byte ${[...left.guns, ...right.guns].join(", ")}`,
+      // Front first; rail_guns + 2 + side is each side's lowest module (the
+      // left rail's guns are numbered from its outer end, the right's from
+      // its front).
+      `rail_guns:      .byte ${(() => {
+        const guns = [...left.guns, ...right.guns];
+        if (guns[2] !== left.firstModule || guns[3] !== right.firstModule) {
+          throw new Error("S5-5: rail_guns + 2 + side is the side's lowest gun module");
+        }
+        return guns.join(", ");
+      })()}`,
       `rail_first:     .byte 0, ${left.guns.length}`,
       "rail_dir:       .byte $01, $FF",
-      `rail_cannon:    .byte ${left.cannon}, ${right.cannon}`,
       `rail_not_lo:    .byte ${[left, right].map((side) => hex(~(1 << side.cannon) & 0xff)).join(", ")}`,
       ...(left.cannon >= 8 || right.cannon >= 8
         ? [`rail_not_hi:    .byte ${[left, right].map((side) => hex((~(1 << side.cannon) >> 8) & 0xff)).join(", ")}`] : []),
-      `rail_module:    .byte ${left.firstModule}, ${right.firstModule}`,
-      `rail_record:    .byte ${left.firstModule * 12}, ${right.firstModule * 12}`,
-      `rail_window:    .byte ${left.window}, ${right.window}`,
       ".endmacro",
       "",
     ].join("\n"));

@@ -402,6 +402,9 @@ export function loadBossRegionDraft(directory) {
 // band, open, cracked and broken; cells of its old footprint outside the new
 // one become band background. A footprint (meta) may move it - the tests'
 // refusal cases use one; a region's emitter.png takes modules.json's.
+// The emitter's lens row inside its footprint: the bottom row, or a bay's
+// cannon's last row (the armour row under it).
+export const bossLensRow = (module) => (module.bay === true ? module.cavityRows : module.height) - 1;
 export const BOSS_EMITTER_ART_FILE = "emitter.png";
 export const BOSS_EMITTER_PANELS = Object.freeze(["rest", "heatA", "heatB", "cracked", "broken"]);
 export function applyBossEmitterArt(draft, png, file, meta) {
@@ -429,8 +432,8 @@ export function applyBossEmitterArt(draft, png, file, meta) {
   const art = decodeBossDraftPng(png, file,
     { width: BOSS_EMITTER_PANELS.length * panelWidth, height: panelHeight });
   const at = (panel, x, y) => art.indices[y * art.width + panel * panelWidth + x];
-  const lens = { x: Math.floor(emitter.width / 2) * 4, y: (emitter.height - 1) * 8 };
-  const inLens = (x, y) => x >= lens.x && x < lens.x + 4 && y >= lens.y;
+  const lens = { x: Math.floor(emitter.width / 2) * 4, y: bossLensRow(emitter) * 8 };
+  const inLens = (x, y) => x >= lens.x && x < lens.x + 4 && y >= lens.y && y < lens.y + 8;
   for (const panel of [1, 2]) {
     for (let y = 0; y < panelHeight; y += 1) {
       for (let x = 0; x < panelWidth; x += 1) {
@@ -773,10 +776,18 @@ function resolveModules(layout) {
     const stages = source.stages ?? true;
     // S5-5 ("B - the window"): an emitter in an armoured bay - band.png draws
     // the locked bay, emitter.png the cannon it opens on (applyBossEmitterArt).
+    // The owner's look of 2026-10-15 at 110c274 ("the armour must be BETWEEN
+    // the cannon and the player"): the bay's armour is the module's last row,
+    // under the whole cannon (cavityRows: the cannon's rows, height - 1) -
+    // band.png bars it, the open look leaves it empty; the lens (the warning's
+    // heat, a "lens" stage, the beam) is the cannon's last row.
     if (source.bay !== undefined) {
       if (source.bay !== true || kind !== BOSS_KIND.emitter) fail(`module ${name}: "bay": true is an emitter's`);
       if (!Array.isArray(source.cover) || source.cover.length === 0) {
         fail(`emitter ${name} is in a bay: its cover names what opens the bay`);
+      }
+      if (cavityRows !== height - 1 || height < 2) {
+        fail(`emitter ${name} is in a bay: its last row is the armour under the cannon (cavityRows ${height - 1})`);
       }
     }
     return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows,
@@ -974,22 +985,30 @@ function resolveBossRails(source, modules, owner) {
     const outer = dir > 0 ? Math.min(...guns.map((g) => g.x)) : Math.max(...guns.map((g) => g.x + g.width - 1));
     const edge = dir > 0 ? BOSS_RAIL_SCREEN.left : BOSS_RAIL_SCREEN.right;
     const window = Math.max(dir * (nose - outer) + 1, dir * (frontAt(positions) - edge) + 1);
-    const windowOuter = nose - dir * (window - 1);
-    // No slide reaches a module that is not the rail's or its cannon.
-    const reach = [Math.min(frontAt(positions), windowOuter + dir * positions * pitch),
-      Math.max(frontAt(positions), windowOuter + dir * positions * pitch)];
-    for (const module of modules) {
-      if (guns.includes(module) || module === cannon) continue;
-      const rowsMeet = module.row <= rowLast && module.row + module.height - 1 >= rowFirst;
-      const columnsMeet = module.x <= reach[1] && module.x + module.width - 1 >= reach[0];
-      if (rowsMeet && columnsMeet) fail(`the ${sideName} rail's slides reach module ${module.name}`);
-    }
     for (let r = rowFirst; r <= rowLast; r += 1) {
       if (owner.has(r * BOSS_BAND_COLUMNS + nose)) fail(`the ${sideName} rail's front (${nose}, ${r}) is a module's cell`);
     }
-    return { name: sideName, dir, nose, cannon, guns, window, firstModule: indices[0] };
+    return { name: sideName, dir, nose, cannon, guns, window, firstModule: indices[0], frontAt };
   });
   if (sides[0].guns.length !== sides[1].guns.length) fail("the two rails carry the same number of guns");
+  // One window for both sides (the block's code shifts one count of
+  // columns): the wider side's - the narrower side's extra columns are its
+  // girder, shifted onto girder.
+  const window = Math.max(...sides.map((side) => side.window));
+  for (const side of sides) {
+    side.window = window;
+    const windowOuter = side.nose - side.dir * (window - 1);
+    // No slide reaches a module that is not the rail's or its cannon.
+    const reach = [Math.min(side.frontAt(positions), windowOuter + side.dir * positions * pitch),
+      Math.max(side.frontAt(positions), windowOuter + side.dir * positions * pitch)];
+    for (const module of modules) {
+      if (side.guns.includes(module) || module === side.cannon) continue;
+      const rowsMeet = module.row <= rowLast && module.row + module.height - 1 >= rowFirst;
+      const columnsMeet = module.x <= reach[1] && module.x + module.width - 1 >= reach[0];
+      if (rowsMeet && columnsMeet) fail(`the ${side.name} rail's slides reach module ${module.name}`);
+    }
+    delete side.frontAt;
+  }
   for (const side of sides) {
     const outer = side.nose - side.dir * (side.window - 1);
     if (outer < 0 || outer > BOSS_BAND_COLUMNS - 1) fail(`the ${side.name} rail's window leaves the band`);
@@ -1224,7 +1243,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       const cracked = cellOf(images.cracked, c, r, what);
       const broken = cellOf(images.broken, c, r, what);
       let ref;
-      const lens = r === module.row + module.height - 1 && c === module.x + (module.width >> 1);
+      const lens = r === module.row + bossLensRow(module) && c === module.x + (module.width >> 1);
       const centre = r === module.row + (module.height >> 1) && c === module.x + (module.width >> 1);
       if (module.stages === true || (module.stages === "lens" && lens) || (module.stages === "centre" && centre)) {
         ref = stagedIndex(intact, cracked, broken, what);

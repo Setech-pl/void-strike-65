@@ -590,21 +590,26 @@ boss_hit:
     beq :+
     rts
 :
-    lda _boss_hit_cell
-    sta boss_column
-    lda _boss_hit_module
-    cmp #BOSS_COLUMN_ARMOUR
-    bne @module
-    ; The hull: the deflection on the column's hull stop cell - a cell of the
-    ; hull no module owns (not a girder's), so no module's draw can take it while
-    ; the ring holds it (the stray glyph of plan §5.16.1) - the hull tick.
-    ldy boss_column
+    ; The struck cell: the one that stopped the shot (the column's stop
+    ; line, read before the controller's hit can rebuild the column) - a
+    ; module's bottom row, or (S5-5) the row region 2's block moved its stop
+    ; to; the hull's stop cell - a cell of the hull no module owns (not a
+    ; girder's), so no module's draw can take it while the ring holds it (the
+    ; stray glyph of plan §5.16.1).
+    ldy _boss_hit_cell
+    sty boss_column
     lda boss_stop_y,y
     sec
     sbc #(BAND_TOP_Y + 8)               ; the stop line - (BAND_TOP_Y + 8) = row * 8
     lsr
     lsr
     lsr
+    pha                                 ; its row
+    lda _boss_hit_module
+    cmp #BOSS_COLUMN_ARMOUR
+    bne @module
+    ; The hull: the deflection there, the hull tick.
+    pla
     tax
     jsr boss_cell_at
 @hull:
@@ -619,16 +624,10 @@ boss_hit:
     beq :+
     jsr boss_after_hit
 :
-    ; The struck cell: the module's bottom row at the shot's column.
     ldx _boss_hit_module
     stx boss_ring_tag
-    jsr boss_record_of
-    lda BOSS_T_MODULES + BOSS_M_HEIGHT,y
-    and #$0F                            ; the height (bits 4-7: cavityRows)
-    clc
-    adc BOSS_T_MODULES + BOSS_M_ROW,y
+    pla                                 ; the struck cell's row
     tax
-    dex
     jsr boss_cell_at
     lda boss_hit_result
     beq @absorbed
@@ -1137,6 +1136,7 @@ boss_tone_audc:
 ; X = module -> Y = its record's offset in the module table (x 12). A, Y.
 boss_record_of:
     txa
+boss_record_a:                          ; A = module (S5-5: region 2's block)
     asl
     asl
     sta boss_record_x                   ; x 4
@@ -3838,13 +3838,29 @@ RAIL_ROW_B          = RAIL_ROW_A + BOSS_BAND_COLUMNS
 RAIL_ROW_C          = RAIL_ROW_B + BOSS_BAND_COLUMNS
 RAIL_DOORS_COVER    = BOSS_T_MODULES + RAIL_DOORS * BOSS_MODULE_BYTES + BOSS_M_COVER_LO
 .assert RAIL_ROW + 2 < BOSS_BAND_A_ROWS, error, "the rails' rows are band A's"
-.assert RAIL_L_FRONT + 1 >= RAIL_L_WINDOW, error, "the left rail's window starts inside the band"
-.assert RAIL_R_FRONT + RAIL_R_WINDOW <= BOSS_BAND_COLUMNS, error, "the right rail's window ends inside the band"
+.assert RAIL_L_FRONT + 1 >= RAIL_WINDOW, error, "the left rail's window starts inside the band"
+.assert RAIL_R_FRONT + RAIL_WINDOW <= BOSS_BAND_COLUMNS, error, "the right rail's window ends inside the band"
 .assert (RAIL_PULSE & (RAIL_PULSE - 1)) = 0, error, "the warning's period is a power of two"
 .assert RAIL_UNLOCKS < $100, error, "the doors and the cannons are modules 0-7"
-RAIL_BEAM_TOP       = BAND_TOP_Y + 8 * RAIL_CANNON_BOTTOM + B2_CORE_LINE
-RAIL_BEAM_LINES     = 8 - B2_CORE_LINE
 .assert (RAIL_UNLOCKS & (1 << RAIL_DOORS)) <> 0, error, "the doors unlock"
+.assert RAIL_POSITIONS = 2, error, "the warning's check: one slide from the last (dey)"
+; The bays (the owner's look of 2026-10-15 at 110c274): each cannon's module
+; is the cannon (rows .. RAIL_LENS_ROW) over its armour (RAIL_ARMOUR_ROW, its
+; last row). laser_prepare gave each beam the plane from the armour row's lens
+; line and the warning's heat the armour row's cell; the block's frame hook
+; moves the heat to the lens and writes the armour row's lines; a bay's
+; opening moves its columns' stop to the lens row.
+RAIL_ARMOUR_TOP     = BAND_TOP_Y + 8 * RAIL_ARMOUR_ROW
+RAIL_LENS_CELLS     = BOSS_BAND_A + RAIL_LENS_ROW * BOSS_BAND_COLUMNS
+RAIL_LENS_STOP      = BAND_TOP_Y + 8 * (RAIL_LENS_ROW + 1)
+.assert RAIL_ARMOUR_ROW < BOSS_BAND_A_ROWS, error, "the bays are band A's"
+.assert >(RAIL_LENS_CELLS + RAIL_LENS_L) = >(RAIL_LENS_CELLS + BOSS_BAND_COLUMNS + RAIL_LENS_L), error, "the left lens and armour cells share a page (the heat's low byte only)"
+.assert >(RAIL_LENS_CELLS + RAIL_LENS_R) = >(RAIL_LENS_CELLS + BOSS_BAND_COLUMNS + RAIL_LENS_R), error, "the right lens and armour cells share a page (the heat's low byte only)"
+.assert <RAIL_LENS_CELLS + RAIL_LENS_R < $100, error, "the lens cells' low bytes index the stop lines"
+rail_x              = laser_x           ; scratch: slot D's, idle once laser_frame is done
+rail_t              = laser_t           ; (rail_late runs at SECTOR_COMPLETION) - and the
+rail_u              = boss_tmp          ; column map's, idle outside a rebuild
+rail_stepped        = laser_n           ; a column stepped this frame
 
 .segment "BOSS_R_CODE"
 rail_hooks:
@@ -3864,10 +3880,9 @@ rail_late:
 .if RAIL_JAMBED
     lda #BOSS_COLUMN_ARMOUR             ; and the core's left flank armoured -
     sta boss_column_map + RAIL_JAMB     ; the column its own volley leaves open
-    bne @rails                          ; (the controller exposes it next frame)
-.else
-    beq @rails
-.endif
+.else                                   ; (the controller exposes it next frame);
+    beq @rails                          ; no unlock is left, the escort's clock 0:
+.endif                                  ; on to the rails
 @open:
     lda _boss_newly_lo                  ; unlocked this frame - the doors or a
     and #RAIL_UNLOCKS                   ; bay: the tone and the flash (after
@@ -3877,13 +3892,11 @@ rail_late:
     iny
     lsr
     bcc :-
-    tya
-    pha
     ldx #BOSS_TONE_DAMAGE
-    jsr boss_tick_sound
+    jsr boss_tick_sound                 ; (keeps Y)
     lda #RAIL_UNLOCK
     sta boss_tick_timer
-    pla
+    tya
     bpl @flash
 @cue:
     lda RAIL_ESCORT_TIMER
@@ -3909,13 +3922,17 @@ rail_side:
     lda rail_k,x
     cmp #RAIL_POSITIONS
     bcs @rts
+    lda rail_step,x
+    bne @slide                          ; a slide under way (no live front gun)
     lda rail_guns,y
     tay
     lda _boss_hp,y
     bne @live
-    lda rail_step,x
-    bne @slide                          ; already sliding
-    inc rail_dead,x
+    inc rail_dead,x                     ; the front gun fell: its bay opens - a
+    ldy rail_heat,x                     ; shot in the bay's columns meets the
+    lda #RAIL_LENS_STOP                 ; cannon's muzzle row now, not the armour
+    sta boss_stop_y - <RAIL_LENS_CELLS - 1,y  ; (the second kill: the cannon or
+    sta boss_stop_y - <RAIL_LENS_CELLS,y      ; its socket, the rail closing in)
     lda #RAIL_PITCH
     sta rail_step,x
     lda #RAIL_DELAY
@@ -3923,12 +3940,12 @@ rail_side:
 @rts:
     rts
 @live:
-    lda rail_step,x                     ; (a slide under way has no live front gun)
-    bne @slide
-    lda rail_k,x                        ; one slide from covering a standing
-    cmp #(RAIL_POSITIONS - 1)           ; cannon: the gun whose fall would
+    ldy rail_k,x                        ; one slide from covering a standing
+    dey                                 ; cannon: the gun whose fall would
     bne @rts                            ; cover it pulses
-    ldy rail_cannon,x
+    txa                                 ; (its cannon: module side * 2, build.mjs)
+    asl
+    tay
     lda _boss_hp,y
     beq @rts
     lda frame_counter
@@ -3955,8 +3972,7 @@ rail_side:
     lda #RAIL_FRAMES
     sta rail_timer,x
     dec rail_step,x
-    bne @rts
-    jmp rail_lock                       ; the slide done
+    bne @rts                            ; the slide done: rail_lock
 
 ; X = rail_x = a side, its slide done: the next gun locks in (the core's bit
 ; leaves its cover; the exposure check on the next tick); at the last
@@ -3965,8 +3981,7 @@ rail_lock:
     inc rail_k,x
     jsr rail_index
     lda rail_guns,y
-    tax
-    jsr boss_record_of                  ; Y = its record
+    jsr boss_record_a                   ; Y = its record (keeps X)
 .if RAIL_CORE < 8                       ; (the core's bit in one byte)
     lda BOSS_T_MODULES + BOSS_M_COVER_LO,y
     and #<~(1 << RAIL_CORE)
@@ -3977,11 +3992,12 @@ rail_lock:
     sta BOSS_T_MODULES + BOSS_M_COVER_HI,y
 .endif
     inc _boss_expose_pending            ; (0: a lock's frame is no kill's nor the check's)
-    ldx rail_x
     lda rail_k,x
     cmp #RAIL_POSITIONS
     bne @rts
-    ldy rail_cannon,x
+    txa                                 ; its cannon (module side * 2)
+    asl
+    tay
     lda _boss_hp,y
     beq @rts                            ; destroyed before the rail reached it
     dec _boss_weapons_left              ; covered: the defeat no longer waits for it,
@@ -4001,25 +4017,19 @@ rail_lock:
 ; column is the source of the one before it), every gun's record x and span
 ; moved (a side's guns are consecutive modules, the converter), a clank.
 rail_column:
-    ldx #(BOSS_RING_RECORDS - 1)
-@record:
-    lda boss_ring_timer,x
-    beq :+
-    lda #$00
-    sta boss_ring_timer,x
-    jsr boss_ring_restore               ; keeps X
-:
-    dex
-    bpl @record
+    ldy #LASER_HEAT_FRAMES              ; every ring record expires (the longest,
+:                                       ; a heat's, in as many frames' timers;
+    jsr boss_frame_timers               ; the tick's: the clank's below) - keeps Y
+    dey
+    bne :-
     ldx rail_x
+    lda #RAIL_WINDOW
+    sta rail_u
     lda rail_dir,x
     sta rail_t
-    lda rail_window,x
-    sta rail_u
     ldy rail_front,x                    ; the source: the front first
-    tya
     clc
-    adc rail_t
+    adc rail_front,x
     sta rail_front,x
     tax                                 ; its destination
 @copy:
@@ -4041,9 +4051,9 @@ rail_column:
     dec rail_u
     bne @copy
     ldx rail_x
-    ldy rail_record,x                   ; the side's first gun's record
-    lda rail_module,x                   ; and module
+    lda rail_guns + 2,x                 ; the side's lowest gun module (build.mjs)
     tax
+    jsr boss_record_of                  ; and its record
     lda #RAIL_GUNS
     sta rail_u
 @gun:
@@ -4066,21 +4076,29 @@ rail_column:
     ldx rail_x
     rts
 
+; X = rail_x = a side -> Y = its front gun's place in rail_guns. Keeps X.
+rail_index:
+    lda rail_dead,x
+    clc
+    adc rail_first,x
+    tay
+    rts
+
 rail_code_end:                          ; (the trace's slot F write clause: the code at the hook)
-; The rest of the state, after the code (the room before the hook is full).
+; The tables (boss-rail.inc: rail_guns per side front first, rail_first,
+; rail_dir, rail_not_lo(/hi)) and the rest of the state, after the code (the
+; room before the hook is full).
+RAIL_TABLES
 rail_state:
 rail_k:         .byte 0, 0              ; slides done (0 .. RAIL_POSITIONS)
 rail_front:     .byte RAIL_L_FRONT, RAIL_R_FRONT   ; each rail's front column now
-rail_stepped:   .byte 0                 ; a column stepped this frame
 rail_state_end:
 
-; The tables and the rest of the state, in the block's room between the look
-; tail and BOSS_F_HOOK.
+; The lens cells, the scratch and the frame hook, in the block's room between
+; the look tail and BOSS_F_HOOK.
 .segment "BOSS_R_DATA"
-RAIL_TABLES                             ; boss-rail.inc: rail_guns (per side, front first),
-                                        ; rail_first, rail_dir, rail_cannon, rail_not_lo(/hi),
-                                        ; rail_module, rail_record (each side's lowest module),
-                                        ; rail_window (the columns a step shifts)
+rail_heat:      .byte <(RAIL_LENS_CELLS + RAIL_LENS_L), <(RAIL_LENS_CELLS + RAIL_LENS_R)
+                                        ; each cannon's lens cell (laser 0 left, 1 right)
 
 ; The state - data, not BSS: the block is read from the disk at every entry,
 ; so every fight starts from these values. The trace's slot F write clause
@@ -4090,9 +4108,6 @@ rail_scratch:
 rail_step:      .byte 0, 0              ; columns left in the slide under way
 rail_timer:     .byte 0, 0              ; frames to its next column
 rail_dead:      .byte 0, 0              ; guns destroyed (that slid the rail)
-rail_x:         .byte 0
-rail_t:         .byte 0
-rail_u:         .byte 0
 rail_scratch_end:
 
 ; Code too: the block's room after the look tail is RAM read from the disk
@@ -4106,38 +4121,42 @@ rail_scratch_end:
 ; first; the right one's twin is laser 1 on every tier). An open bay's or a
 ; destroyed cannon's laser is exposed: slot D's own, as is a death's or the
 ; defeat's hold (laser_all_off sets the reload again every frame).
+; The owner's look of 2026-10-15 at 110c274 - the armour between the cannon
+; and the player: the warning heats each cannon's lens (its last row), not
+; the armour; the missile plane's armour row (gameplay's PRIOR 0 shows a
+; missile over the playfield, ORed or in front) carries every beam but a
+; locked bay's - its beam starts under the armour, an open or covered
+; cannon's right under its muzzle or the rail's end (laser_prepare gave the
+; beams the plane from the armour row's lens line; nothing else of the boss
+; sector uses it in the band).
 rail_frame:
-    ; The owner's look of 2026-10-15: every beam starts under its cannon's
-    ; row - below the bay's armour, the open cannon's muzzle and a covering
-    ; rail's end - never behind their cells (the playfield is in front of the
-    ; missiles): the lines of the cannons' bottom row laser_prepare gave the
-    ; beam (from its lens line) are cleared, every frame (nothing else of the
-    ; boss sector uses the missile plane in the band).
-    lda #$00
-    ldx #RAIL_BEAM_LINES
-:
-    sta LASER_MISSILES + RAIL_BEAM_TOP - 1,x
-    dex
-    bne :-
-    inx                                 ; X = 1
+    lda #B2_COLUMN_BITS
+    sta laser_b                         ; the armour row's bits
+    ldx #1
 @bay:
-    lda boss_laser_state,x
-    bne @next                           ; its warning or beam: slot D's
+    lda rail_heat,x
+    sta boss_laser_cell_lo,x            ; (its high byte laser_prepare's)
     jsr laser_exposed
     bne @next
+    lda boss_laser_state,x
+    beq @off
+    lda b2_three,x                      ; its warning or beam (slot D's): not on
+    eor #$FF                            ; the armour row - its missile's bit off
+    and laser_b
+    sta laser_b
+    bpl @next                           ; (always)
+@off:
     sta boss_laser_shielded,x           ; A = 0
     jsr laser_reload
 @next:
     dex
     bpl @bay
-    rts
-
-; X = rail_x = a side -> Y = its front gun's place in rail_guns. Keeps X.
-rail_index:
-    lda rail_dead,x
-    clc
-    adc rail_first,x
-    tay
+    lda laser_b
+    ldx #8
+:
+    sta LASER_MISSILES + RAIL_ARMOUR_TOP - 1,x
+    dex
+    bne :-
     rts
 
 .endif

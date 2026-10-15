@@ -2579,6 +2579,73 @@ track, the dark sockets.
 glyph (-2), the bay's mount shared with the open look (0); the bumper still
 one glyph. Entry 66 sectors / 253 host frames.
 
+#### 6.5.12 The armour between the cannon and the player (2026-10-15) — awaiting the owner's look
+
+**The owner's look at `110c274`:** a bay's armour must be between the cannon
+and the player - the whole cannon always visible (steel locked, amber open;
+nothing over it but a covering rail), the armour a separate shield in the
+row under it; locked, the beam visibly starts under the armour and a shot
+deflects on the armour; open, the armour gone, the beam from the muzzle and a
+shot hits the cannon; covered, the beam from under the rail's end.
+
+**As built:** each cannon's module is the cannon (rows 1-3) over its armour
+row (row 4, the doors' row: `"height": 4`, `"cavityRows": 3`; the converter
+checks a bay's last row is its armour and puts its lens - the warning's
+heat, a `"lens"` stage - on the cannon's last row). Locked (`band.png`): the
+cannon's own open-look glyphs in the olive bank (its amber parts the bulk's
+dark olive), the doors' bar glyph under it; open (`open.png`, the module's
+open look): the amber cannon over an empty row. The modules re-sort (the
+cannons' bottom row is 4): cannon-l 0, doors 1, cannon-r 2, the rails 3-5 and
+7-9, the core 6.
+
+**Hit detection:** `boss_hit` (slot A) takes the struck cell from the
+column's stop line (read before the controller's hit can rebuild the column)
+instead of the module's record - the same cell for every module of regions
+1, 3, 4 (their stop lines are their bottom rows), -13 B. Locked, a shot stops
+under the armour row and deflects there; a bay's opening (its rail's front
+gun's kill, `rail_side`) moves its two columns' stop to the cannon's muzzle
+row, so a shot hits the cannon there - and, after the second kill, the
+cannon's socket or the rail closing in.
+
+**The beams (MEASURED: gameplay's PRIOR is 0):** a missile is not behind the
+playfield - M1 ORs with PF0/PF1 and is in front of colour 3, M2 is behind
+PF0/PF1 and ORs with colour 3 (Atari800's `gtia.c`, the hardware's priority
+equations) - so §6.5.11's "the playfield in front" was a partial reading,
+and bars cannot hide a beam. `laser_prepare` gives every beam the plane from
+the armour row's lens line; region 2's frame hook (`rail_frame`) writes the
+armour row's eight lines every frame - every beam's bits but the missile of
+a locked cannon in its warning or beam (`b2_three`): a locked bay's beam
+starts under its armour, an open or covered cannon's right under its muzzle
+or the rail's end, each beam on its own missile when both fire at once
+(levels 5-6: 1,274 frames with one bay open and one locked and both beams
+on, 0 wrong bits). The hook also moves the warning's heat from the armour row
+to each lens (the cell's low byte; the page asserted).
+
+**Bytes (MEASURED, the labels):** region 2's block **509 of 512 B** (look
+tail 43, data room 65 of 67, code 401 of 402), unchanged in sum:
+`rail_frame` 31 -> 57 B (+26); `rail_side` 118 -> 120 (+2: the bays' stop
++11, the slide check hoisted -5, `dey` for the warning's check -1, the fall
+into `rail_lock` -3); `rail_lock` 55 -> 51 (`boss_record_a`, -4);
+`rail_column` 140 -> 128 (the ring's flush as four passes of
+`boss_frame_timers` -10, one window for both rails, -12); `rail_late` 75 -> 71
+(the jamb's fall-through, `tya` for the stack, -4); the tables 20 -> 14 B
+(`rail_cannon` / `rail_module` / `rail_record` / `rail_window` out - side x 2,
+`rail_guns + 2 + side` - the lens cells in, -6); the scratch and state 10 ->
+6 B (slot D's and the column map's idle bytes, -4); the look tail 41 -> 43
+(the cannons' shared open look two cells taller, +2). Slot A 13 B
+lighter. Charset **80 of 80 codes** (5 sectors, 640 B: the locked lens one
+plain glyph; a steel - not olive - locked cannon would need 3 glyphs more).
+Entry 66 sectors / 253 host frames. Stress 7,433 -> 7,723 (level 4) and
+7,325 -> 7,615 (level 5) of 8,500 (MEASURED, the composition: its worst, two
+cannons' kills with the lasers warning, draws and rebuilds a four-row
+module; the hook ESTIMATE about +60 cycles a frame, the flush's four passes
+about +330 on a slide's column frames). Regions 1, 3, 4 compile
+byte-identical. `tests/boss-region-2.test.mjs` to the new rules: RED on
+`110c274` 5 of 20 (the layout, the looks, the locked bay, the window, the
+beams), GREEN here 20 of 20; the boss tests 299 of 299. Atari800 frames of
+the built ATR (`region-2-diag-1`, `DFTRACE_SHOT_HOSTS`): a locked bay's beam
+from under its bars, an open cannon's from its muzzle.
+
 ## 7. Owner questions
 
 | # | Question | Recommended answer | Cost of the recommendation | The alternative and its cost |

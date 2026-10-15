@@ -14,10 +14,13 @@
 //   2. the art rule (plan boss-polish §10.3), the locked bays and doors one
 //      barred glyph, the palette against the ally steel of levels 4-6 ($88);
 //      one ship; every module in reach;
-//   3. the bays: locked at the start - shots deflect, the cannon keeps firing
-//      with its warning showing; the first rail-gun kill on a side opens that
-//      side's bay (the open look, the flash and the tone) and the cannon can
-//      be hurt; the other bay stays locked;
+//   3. the bays (the owner's look of 2026-10-15 at 110c274: "the armour
+//      must be BETWEEN the cannon and the player"): the whole cannon over its
+//      armour row; locked at the start - shots deflect on the armour, the
+//      cannon keeps firing with its warning on its lens, its beam from under
+//      the armour; the first rail-gun kill on a side opens that side's bay
+//      (the armour gone, the open look, the flash and the tone) and shots hit
+//      the cannon's muzzle row; the other bay stays locked;
 //   4. a rail slides exactly one pitch per kill of its front gun, never
 //      otherwise; hit detection follows it;
 //   5. the second kill slides it over its cannon: a cannon still standing is
@@ -75,10 +78,11 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
     m.x, m.row, m.width, m.height]]));
   assert.deepEqual(at, {
     "rail-l-1": ["pulse", 17, 2, 3, 2], "rail-l-2": ["pulse", 13, 2, 3, 2], "rail-l-3": ["pulse", 9, 2, 3, 2],
-    "cannon-l": ["emitter", 27, 1, 2, 3], core: ["salvo", 30, 1, 3, 3], "cannon-r": ["emitter", 34, 1, 2, 3],
+    "cannon-l": ["emitter", 27, 1, 2, 4], core: ["salvo", 30, 1, 3, 3], "cannon-r": ["emitter", 34, 1, 2, 4],
     "rail-r-1": ["pulse", 43, 2, 3, 2], "rail-r-2": ["pulse", 47, 2, 3, 2], "rail-r-3": ["pulse", 51, 2, 3, 2],
     doors: ["armour", 30, 4, 3, 1],
-  }, "the window (the owner's choice of 2026-10-15): the core and the doors three cells, the cannons beside the hangar");
+  }, "the window (the owner's choice of 2026-10-15): the core and the doors three cells, the cannons beside the hangar, " +
+    "each over its bay's armour row (the owner's look at 110c274)");
   // The hit points (Phase B's t3, tuned again once the owner has played).
   const hp = Object.fromEntries(region2.modules.map((m) => [m.name, m.hp]));
   for (const name of SIDES.flatMap((s) => s.guns)) assert.equal(hp[name], hp["rail-l-1"], `${name}: every rail gun alike`);
@@ -95,6 +99,7 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
   for (const s of SIDES) {
     const cannon = region2.modules[index(s.cannon)];
     assert.ok(cannon.bay, `${s.cannon} is in a bay`);
+    assert.equal(cannon.cavityRows, cannon.height - 1, `${s.cannon}: the cannon's rows over one armour row`);
     assert.equal(cannon.cover, bit(s.guns[0]), `${s.cannon}'s cover is ${s.guns[0]} alone`);
     assert.ok(region2.openLooks.has(index(s.cannon)), `${s.cannon} has no open look`);
   }
@@ -197,21 +202,32 @@ test("locked and open read apart: a locked bay is the locked doors' barred glyph
   assert.ok(closed("doors").every((code) => code === bars), "the locked doors: not the barred glyph");
   const doorsOpen = region2.openLooks.get(index("doors"));
   assert.ok(doorsOpen.every((code) => (code & 0x7f) !== (bars & 0x7f) && (code & 0x80) === 0), "the open doors: the bars or PF3");
-  // A locked bay (the owner's look of 2026-10-15): the cannon's mount in its
-  // top row - the open look's own cells - over the armour panel (the bars)
-  // in front of its body and muzzle; open, those rows are the amber cannon.
+  // A locked bay (the owner's look of 2026-10-15 at 110c274): the whole
+  // cannon - its open look's own glyphs, the colour-3 parts in the olive bank
+  // - over its armour row, the bars between the cannon and the player; open,
+  // the amber cannon over an empty row.
+  const glyph = (code) => [...region2.runs.charset.data.subarray((code & 0x7f) * 8, (code & 0x7f) * 8 + 8)];
+  const hasColour3 = (code) => glyph(code).some((byte) => [0, 2, 4, 6].some((shift) => ((byte >> shift) & 3) === 3));
   for (const name of ["cannon-l", "cannon-r"]) {
+    const m = region2.modules[index(name)];
     const look = closed(name), open = region2.openLooks.get(index(name));
-    assert.deepEqual(look.slice(0, 2), open.slice(0, 2), `${name} locked: its mount not the cannon's`);
-    assert.ok(look.slice(2).every((code) => code === bars), `${name} locked: the armour panel is not the bars`);
-    assert.ok(open.slice(2).every((code) => (code & 0x7f) !== (bars & 0x7f) && (code & 0x80) === 0), `${name} open: the bars or PF3`);
+    const cannonCells = m.width * m.cavityRows;
+    for (let k = 0; k < cannonCells; k += 1) {
+      assert.notEqual(look[k] & 0x7f, 0, `${name} locked: cell ${k} of the cannon is empty`);
+      assert.deepEqual(glyph(look[k]), glyph(open[k]), `${name} locked: cell ${k} is not the open cannon's glyph`);
+      assert.equal(look[k] & 0x80, hasColour3(look[k]) ? 0x80 : look[k] & 0x80, `${name} locked: cell ${k}'s colour 3 is not the olive`);
+    }
+    assert.ok(look.slice(cannonCells).every((code) => code === bars), `${name} locked: the armour row is not the bars`);
+    assert.ok(open.slice(cannonCells).every((code) => (code & 0x7f) === 0), `${name} open: the armour row is not empty`);
+    assert.ok(open.slice(0, cannonCells).every((code) => (code & 0x7f) !== (bars & 0x7f) && (code & 0x80) === 0),
+      `${name} open: the bars or PF3 on the cannon`);
   }
   // Bars nowhere else on the ship.
   const owners = new Map(["doors", "cannon-l", "cannon-r"].map((n) => [n, region2.modules[index(n)]]));
   region2.bandRows.forEach((row, r) => row.forEach((code, c) => {
     if ((code & 0x7f) !== (bars & 0x7f)) return;
-    const inside = [...owners.values()].some((m) => c >= m.x && c < m.x + m.width && r >= m.row && r < m.row + m.height);
-    assert.ok(inside, `the bars at (${c}, ${r}), outside the locked doors and bays`);
+    const inside = [...owners.values()].some((m) => c >= m.x && c < m.x + m.width && r === m.row + m.height - 1);
+    assert.ok(inside, `the bars at (${c}, ${r}), outside the locked doors and the bays' armour rows`);
   }));
   assert.notEqual(region2.cavity & 0x7f, bars & 0x7f, "an empty socket wears the bars");
 });
@@ -311,6 +327,12 @@ const lookOf = (memory, name) => {
 };
 const deflected = (memory, column) => [...Array(8).keys()].some((r) => memory[lbl("boss_ring_timer") + r] !== 0 &&
   (memory[lbl("boss_ring_lo") + r] & 63) === column && memory[lbl("boss_ring_glyph") + r] === region2.deflect);
+// A ring record (a spark or a deflection) on the band cell (column, row).
+const ringAt = (memory, column, row, glyph) => [...Array(8).keys()].some((r) => memory[lbl("boss_ring_timer") + r] !== 0 &&
+  memory[lbl("boss_ring_lo") + r] + 256 * memory[lbl("boss_ring_hi") + r] === BAND_A + row * 64 + column &&
+  memory[lbl("boss_ring_glyph") + r] === glyph);
+const ARMOUR_ROW = 4, LENS_ROW = 3;
+const stopRow = (memory, column) => (memory[lbl("boss_stop_y") + column] - 24 - 8) >> 3;   // BAND_TOP_Y 24
 // The lasers' states over `frames` frames: per module the frames in its
 // warning (1) and its beam (2), and the most beams on at once.
 function watchLasers(memory, frames, { lens = null } = {}) {
@@ -336,19 +358,22 @@ function watchLasers(memory, frames, { lens = null } = {}) {
 const unlockTone = (writes) => writes.some(([a, v]) => a === 0xd204 && v === 0x18) && writes.some(([a, v]) => a === 0xd205 && v === 0xa6);
 const POKEY = (writes) => ({ write: (address, value) => { if (address === 0xd204 || address === 0xd205) writes.push([address, value]); } });
 
-test("the bays: locked at the start - shots deflect, the barred look, and the cannon under it keeps firing with its warning", () => {
+test("the bays: locked at the start - shots deflect on the armour, the barred look under the whole cannon, and the cannon keeps firing with its warning", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   for (const level of [4, 5]) {
     const memory = bastion({ level });
     const bars = region2.bandRows[4][30];
     for (const s of SIDES) {
       assert.ok(!exposed(memory, s.cannon), `level ${level}: ${s.cannon} is open at the start`);
-      assert.ok(lookOf(memory, s.cannon).slice(2).every((code) => code === bars), `level ${level}: ${s.cannon}'s bay is not barred`);
+      assert.ok(lookOf(memory, s.cannon).slice(6).every((code) => code === bars), `level ${level}: ${s.cannon}'s armour row is not barred`);
+      assert.ok(lookOf(memory, s.cannon).slice(0, 6).every((code) => (code & 0x7f) !== 0 && code !== bars),
+        `level ${level}: ${s.cannon} is not whole over its armour`);
       const hp = HP(memory, s.cannon);
       for (const c of columnsOf(memory, s.cannon)) {
         assert.equal(map(memory, c), index(s.cannon), `the map's column ${c}`);
+        assert.equal(stopRow(memory, c), ARMOUR_ROW, `level ${level}: a shot at column ${c} stops under row ${stopRow(memory, c)}`);
         shoot(memory, c);
-        assert.ok(deflected(memory, c), `level ${level}: no deflection on ${s.cannon}'s bay at column ${c}`);
+        assert.ok(ringAt(memory, c, ARMOUR_ROW, region2.deflect), `level ${level}: no deflection on ${s.cannon}'s armour at (${c}, 4)`);
         run(memory, 3);
       }
       assert.equal(HP(memory, s.cannon), hp, `level ${level}: the locked ${s.cannon} took damage`);
@@ -386,7 +411,10 @@ test("the window: the first rail-gun kill on a side opens that side's bay - the 
   run(memory, 8);
   assert.deepEqual(lookOf(memory, "cannon-l").map((c) => c & 0x7f), region2.openLooks.get(index("cannon-l")).map((c) => c & 0x7f),
     "the open bay's look");
-  assert.ok(lookOf(memory, "cannon-r").slice(2).every((code) => code === region2.bandRows[4][30]), "the right bay is not barred");
+  assert.ok(lookOf(memory, "cannon-r").slice(6).every((code) => code === region2.bandRows[4][30]), "the right bay is not barred");
+  assert.ok(lookOf(memory, "cannon-l").slice(6).every((code) => (code & 0x7f) === 0), "the left bay's armour is not gone");
+  for (const c of [27, 28]) assert.equal(stopRow(memory, c), LENS_ROW, `the open bay's column ${c}: shots stop under the muzzle row`);
+  for (const c of [34, 35]) assert.equal(stopRow(memory, c), ARMOUR_ROW, `the locked bay's column ${c}: shots stop under the armour`);
   // The rail slid one pitch with the kill.
   run(memory, 40);
   assert.deepEqual([front(memory, 0), slides(memory, 0)], [24, 1]);
@@ -396,28 +424,48 @@ test("the window: the first rail-gun kill on a side opens that side's bay - the 
   const hp = HP(memory, "cannon-l");
   shoot(memory, 27);
   assert.equal(HP(memory, "cannon-l"), hp - 1, "the open cannon took no damage");
-  destroy(memory, "cannon-l");
+  // The kill's spark on the cannon's muzzle row, not in the empty armour row.
+  memory[lbl("_boss_hp") + index("cannon-l")] = 1;
+  run(memory, 3);
+  shoot(memory, 28);
+  assert.equal(HP(memory, "cannon-l"), 0);
+  assert.ok(ringAt(memory, 28, LENS_ROW, region2.spark), "the kill's spark is not on the cannon's muzzle row");
 });
 
-// The beams start under the cannons' row (the owner's look of 2026-10-15):
-// the missile plane holds no beam bit on the lines of the cannons' rows - the
-// playfield is in front of the missiles, so a beam there hid behind the bay's
-// armour, the muzzle or a covering rail's end - and every line from the row
-// under them (the band's row 4) down. BAND_TOP_Y = GAMEPLAY_TOP + 8 = 24.
+// The beams (the owner's looks of 2026-10-15): no beam line in the cannons'
+// rows - gameplay's PRIOR 0 shows a missile over the playfield (ORed, or M1
+// in front of colour 3), so a beam there would cross the cannon; on the
+// armour row (the band's row 4) a locked bay's beam is off - it starts under
+// the armour - and an open or covered cannon's on - it starts right under the
+// muzzle or the rail's end; on every line from the row under the band down.
+// BAND_TOP_Y = GAMEPLAY_TOP + 8 = 24.
 const MISSILES = 0x3b00, BEAM_BITS = 0x28, BAND_TOP_Y = 24;
-test("the beams start under the cannons: no beam line behind a bay, an open cannon or a covering rail", () => {
+test("the beams: a locked bay's from under its armour, an open or covered cannon's from under its muzzle or the rail's end", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   for (const level of [4, 5]) {
     for (const state of ["locked", "open", "covered"]) {
       const memory = bastion({ level });
-      if (state !== "locked") { destroy(memory, "rail-l-1"); destroy(memory, "rail-r-1"); }
-      if (state === "covered") { destroy(memory, "rail-l-2"); destroy(memory, "rail-r-2"); }
-      run(memory, 2);
-      const lines = (from, to) => [...Array(to - from).keys()].map((k) => memory[MISSILES + from + k] & BEAM_BITS);
-      assert.ok(lines(BAND_TOP_Y + 8, BAND_TOP_Y + 32).every((bits) => bits === 0),
-        `level ${level}, ${state}: a beam line in the cannons' rows`);
-      assert.ok(lines(BAND_TOP_Y + 32, 240).every((bits) => bits === BEAM_BITS),
-        `level ${level}, ${state}: the beam does not run from the row under the cannons`);
+      if (state !== "locked") destroy(memory, "rail-l-1");
+      if (state === "covered") destroy(memory, "rail-l-2");
+      const lines = (from, to) => [...Array(to - from).keys()].map((k) => memory[MISSILES + from + k]);
+      let beams = 0;
+      for (let f = 0; f < 3000 && beams < 2; f += 1) {
+        frame(memory);
+        for (const laser of [0, 1]) {
+          if (memory[lbl("boss_laser_state") + laser] !== 2) continue;
+          const bit = [0, 0x08, 0x20][memory[lbl("b2_missile") + laser]];
+          const locked = !exposed(memory, laser === 0 ? "cannon-l" : "cannon-r");
+          const what = `level ${level}, ${state}: laser ${laser} (${locked ? "locked" : "open"}) frame ${f}`;
+          assert.ok(bit !== 0, `${what}: a beam with no missile`);
+          assert.ok(lines(BAND_TOP_Y + 8, BAND_TOP_Y + 32).every((bits) => (bits & BEAM_BITS) === 0), `${what}: a beam line in the cannons' rows`);
+          assert.ok(lines(BAND_TOP_Y + 32, BAND_TOP_Y + 40).every((bits) => (bits & bit) === (locked ? 0 : bit)),
+            `${what}: the armour row ${locked ? "carries the locked bay's beam" : "does not carry the open cannon's beam"}`);
+          assert.ok(lines(BAND_TOP_Y + 40, 240).every((bits) => (bits & bit) === bit), `${what}: the beam does not run on under the band`);
+          if (laser === 0) beams += 1;
+          if (laser === 0) f += 60;
+        }
+      }
+      assert.ok(beams > 0, `level ${level}, ${state}: the left cannon never fired`);
     }
   }
 });

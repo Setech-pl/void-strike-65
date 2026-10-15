@@ -2545,6 +2545,40 @@ levels 5-6): the doors phase, careful, 10.2 / 12.1 / 16.6 s and 10.2 / 13.2 /
 130.1 s and 85.1 / 99.6 / 129.2 s; the dodging bots 90.4 / 109.6 / 147.8 and
 84.7 / 109.9 / 139.4 s (level 4). 0 PAL misses, every clause held.
 
+#### 6.5.11 The bays' beams and the look's regressions (2026-10-15) — awaiting the owner's look
+
+**The owner's look at the graphics pass:** (1) a locked bay showed only bars
+and its beam started inside them - the beam's top hidden behind the panel, no
+cannon visible; (2) against the window build the pods became small saucers
+with a gap under the girder, the rail ends a grey pillar that vanished, the
+ship mostly grey.
+
+**The beam (MEASURED cause):** `laser_prepare` (slot D) ORs the beam into the
+static missile plane from line 3 of the emitter's bottom row (B2_CORE_LINE)
+down; the playfield is in front of the missiles, so every pixel of that row's
+cells - the bars, the muzzle, a covering rail's end - hid the beam's top.
+Region 2's frame hook now clears those five lines of the plane every frame
+(`rail_frame`, +9 B, nothing else in the boss sector uses the plane in the
+band): every beam starts on the row under the cannons, in the locked, open
+and covered states alike (tested on levels 4 and 5). Paid by the unlock cue's
+module kept on the stack (-3 B) and a redundant reload of X in the side loop
+(-3 B); `rail_state` and `rail_stepped` moved after the code (the data room
+before the hook is full). Region 2's block **509 of 512 B**.
+
+**The look:** the window build's pods restored as they were (solid inverted
+triangles hung straight from the girder - no gap - olive stripes, amber
+lights, the amber muzzle); the rail end a solid amber bumper in a steel frame
+(one glyph, both rails); a locked bay shows the cannon's steel mount (the
+open look's top row) above the armour panel, which covers its body and muzzle;
+open, the body and muzzle are amber. Kept: the dome, the sphere core, the
+bars only on the locked doors and bays (tested: nowhere else), the guide
+track, the dark sockets.
+
+**Codes 79 of 80** (5 sectors, 632 B) - from the graphics pass's 78: the pods
++1 staged glyph (5 -> 6 triples, +3 codes), the dome's top three cells one
+glyph (-2), the bay's mount shared with the open look (0); the bumper still
+one glyph. Entry 66 sectors / 253 host frames.
+
 ## 7. Owner questions
 
 | # | Question | Recommended answer | Cost of the recommendation | The alternative and its cost |

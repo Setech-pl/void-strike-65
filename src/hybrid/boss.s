@@ -3842,6 +3842,8 @@ RAIL_DOORS_COVER    = BOSS_T_MODULES + RAIL_DOORS * BOSS_MODULE_BYTES + BOSS_M_C
 .assert RAIL_R_FRONT + RAIL_R_WINDOW <= BOSS_BAND_COLUMNS, error, "the right rail's window ends inside the band"
 .assert (RAIL_PULSE & (RAIL_PULSE - 1)) = 0, error, "the warning's period is a power of two"
 .assert RAIL_UNLOCKS < $100, error, "the doors and the cannons are modules 0-7"
+RAIL_BEAM_TOP       = BAND_TOP_Y + 8 * RAIL_CANNON_BOTTOM + B2_CORE_LINE
+RAIL_BEAM_LINES     = 8 - B2_CORE_LINE
 .assert (RAIL_UNLOCKS & (1 << RAIL_DOORS)) <> 0, error, "the doors unlock"
 
 .segment "BOSS_R_CODE"
@@ -3875,12 +3877,13 @@ rail_late:
     iny
     lsr
     bcc :-
-    sty rail_t
+    tya
+    pha
     ldx #BOSS_TONE_DAMAGE
     jsr boss_tick_sound
     lda #RAIL_UNLOCK
     sta boss_tick_timer
-    lda rail_t
+    pla
     bpl @flash
 @cue:
     lda RAIL_ESCORT_TIMER
@@ -3893,8 +3896,7 @@ rail_late:
     ldx #1
 @side:
     stx rail_x
-    jsr rail_side
-    ldx rail_x
+    jsr rail_side                       ; (every way out keeps X = rail_x)
     dex
     bpl @side
 rail_rts:
@@ -4065,6 +4067,12 @@ rail_column:
     rts
 
 rail_code_end:                          ; (the trace's slot F write clause: the code at the hook)
+; The rest of the state, after the code (the room before the hook is full).
+rail_state:
+rail_k:         .byte 0, 0              ; slides done (0 .. RAIL_POSITIONS)
+rail_front:     .byte RAIL_L_FRONT, RAIL_R_FRONT   ; each rail's front column now
+rail_stepped:   .byte 0                 ; a column stepped this frame
+rail_state_end:
 
 ; The tables and the rest of the state, in the block's room between the look
 ; tail and BOSS_F_HOOK.
@@ -4073,10 +4081,6 @@ RAIL_TABLES                             ; boss-rail.inc: rail_guns (per side, fr
                                         ; rail_first, rail_dir, rail_cannon, rail_not_lo(/hi),
                                         ; rail_module, rail_record (each side's lowest module),
                                         ; rail_window (the columns a step shifts)
-rail_state:
-rail_k:         .byte 0, 0              ; slides done (0 .. RAIL_POSITIONS)
-rail_front:     .byte RAIL_L_FRONT, RAIL_R_FRONT   ; each rail's front column now
-rail_state_end:
 
 ; The state - data, not BSS: the block is read from the disk at every entry,
 ; so every fight starts from these values. The trace's slot F write clause
@@ -4086,7 +4090,6 @@ rail_scratch:
 rail_step:      .byte 0, 0              ; columns left in the slide under way
 rail_timer:     .byte 0, 0              ; frames to its next column
 rail_dead:      .byte 0, 0              ; guns destroyed (that slid the rail)
-rail_stepped:   .byte 0                 ; a column stepped this frame
 rail_x:         .byte 0
 rail_t:         .byte 0
 rail_u:         .byte 0
@@ -4104,7 +4107,19 @@ rail_scratch_end:
 ; destroyed cannon's laser is exposed: slot D's own, as is a death's or the
 ; defeat's hold (laser_all_off sets the reload again every frame).
 rail_frame:
-    ldx #1
+    ; The owner's look of 2026-10-15: every beam starts under its cannon's
+    ; row - below the bay's armour, the open cannon's muzzle and a covering
+    ; rail's end - never behind their cells (the playfield is in front of the
+    ; missiles): the lines of the cannons' bottom row laser_prepare gave the
+    ; beam (from its lens line) are cleared, every frame (nothing else of the
+    ; boss sector uses the missile plane in the band).
+    lda #$00
+    ldx #RAIL_BEAM_LINES
+:
+    sta LASER_MISSILES + RAIL_BEAM_TOP - 1,x
+    dex
+    bne :-
+    inx                                 ; X = 1
 @bay:
     lda boss_laser_state,x
     bne @next                           ; its warning or beam: slot D's

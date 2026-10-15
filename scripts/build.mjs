@@ -3049,6 +3049,13 @@ async function build() {
       // the core's armoured left flank once the doors fall (the jamb).
       `RAIL_UNLOCKS            = $${[hangar.doors, ...[left, right].filter((side) => region.modules[side.cannon].bay)
         .map((side) => side.cannon)].reduce((mask, i) => mask | (1 << i), 0).toString(16).toUpperCase()}`,
+      // The owner's look of 2026-10-15: the beams start under the cannons'
+      // bottom row (one row for both: the block clears it from the missile plane).
+      `RAIL_CANNON_BOTTOM      = ${(() => {
+        const bottoms = [left, right].map((side) => region.modules[side.cannon].row + region.modules[side.cannon].height - 1);
+        if (bottoms[0] !== bottoms[1]) throw new Error("S5-5: region 2's cannons end on one band row (their beams' start)");
+        return bottoms[0];
+      })()}`,
       `RAIL_JAMBED             = ${hangar.jamb === null ? 0 : 1}`,
       `RAIL_JAMB               = ${hangar.jamb ?? 0}`,
       `RAIL_ESCORT_TIMER       = $${stateAddress("STATE_SPACING").toString(16).toUpperCase()}`,

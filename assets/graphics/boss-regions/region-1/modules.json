@@ -21,14 +21,14 @@
   "palette": {
     "_": "COLPF0 light steel (the plates' face), COLPF1 mid grey (bevels, trim), COLPF2 amber (cannons, lights, damage glow, sparks, flames), COLPF3 dark burgundy (the hull's bulk). The band never flashes (S4b.5, owner decision of 2026-10-07).",
     "colpf0": 10,
-    "colpf1": 66,
+    "colpf1": 38,
     "colpf2": 40,
     "colpf3": 50
   },
   "rowPalette": {
-    "_": "feat/boss-art (the owner's variant B): light from above - COLPF1, the red trim, $44 on the spine and row 1, $42 below; COLPF3 the hull's dark bulk inside the panels, $34 on the spine, $32 below, $30 at the plates. Hues 354 and 16 degrees, 128 and 150 from the ally steel $88. The b3 flash swaps amber $28 and the bulk (RGB distance 139-193).",
-    "colpf1": [68, 68, 66, 66, 66],
-    "colpf3": [52, 50, 50, 50, 48]
+    "_": "feat/boss-art (the owner's variant B; colours as Atari800's PAL palette shows them, docs/plans/boss-art.md §3.4): light from above - COLPF1, the rust trim, lit $2A on the spine, $26, $24 from the guns' feet down; COLPF3 the dark red of the slabs' recesses, $34 on the spine, $32, $30 from the guns' feet down. The b3 flash swaps amber $28 and the recess red (Atari800 RGB distance 84-147).",
+    "colpf1": [42, 38, 38, 36, 36],
+    "colpf3": [52, 50, 50, 48, 48]
   },
   "motion": {
     "_": "The band drifts one colour clock every framesPerColourClock frames across travelColourClocks and back (plan §5.2): the window shows band columns 0-55 over the travel, so both engine ends come into view in turn; the win shakes it by HSCROL jitter (Q-S5).",

@@ -182,6 +182,7 @@ BOSS_REGION_RUNS = 4
 .export boss_nozzle_dark, boss_column_from, boss_ring_set
 .export boss_stop_y, boss_shot_lo, boss_shot_hi, boss_hull_stop_operand, boss_shot_meet
 .export boss_band_last_operand, boss_hostile_bottom_operand, boss_late_bottom_operand
+.export boss_dli_publish, boss_pal_src1, boss_pal_src3   ; feat/boss-art: for the harness
 .export boss_capsule_y_operand, boss_band_measure
 .export boss_shots_late
 ; The controller's view of the region's tables, the level, main and the

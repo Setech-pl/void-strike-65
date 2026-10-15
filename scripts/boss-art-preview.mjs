@@ -1,7 +1,8 @@
 // feat/boss-art (docs/plans/boss-art.md §5): the owner's comparison - each
 // boss as the screen shows it at the fight's start (the 40 columns of the
 // window at its start position), from the converter's real band data and
-// colour tables at the PAL palette, 2:1 pixels:
+// colour tables at Atari800's PAL palette (scripts/atari800-pal-palette.mjs:
+// what the emulator shows), 2:1 pixels:
 //
 //   build/boss-art/preview/region-N-compare.png
 //       today (main's draft, --main=<dir> with main's region-N folders)
@@ -22,7 +23,8 @@ import { fileURLToPath } from "node:url";
 import {
   BOSS_BAND_COLUMNS, BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
 } from "./boss-assets.mjs";
-import { atariPalRegisterToRgb, encodePng } from "./preview.mjs";
+import { atari800PalRgb } from "./atari800-pal-palette.mjs";
+import { encodePng } from "./preview.mjs";
 
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PIXEL_W = 6;
@@ -150,7 +152,7 @@ function beside(a, b, gap = 8) {
 
 export function toPng({ registers, width, height }) {
   const rgb = Buffer.alloc(width * height * 3);
-  const colours = Array.from({ length: 256 }, (_, value) => atariPalRegisterToRgb(value));
+  const colours = Array.from({ length: 256 }, (_, value) => atari800PalRgb(value));
   registers.forEach((register, i) => rgb.set(colours[register], i * 3));
   return encodePng(rgb, width, height);
 }

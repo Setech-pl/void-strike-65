@@ -265,11 +265,12 @@ function shellPicture() {
   return lines;
 }
 // The core, 3 x 3 cells (columns 30-32, rows 1-3): the reactor sphere seen
-// through the rim (the owner's drawing) - red (the pf3 bank: the row
-// palette's red, lit on top, deep at its foot) with a white highlight to the
-// upper left, a rim light on its lower right, a steel ring at its edge. Only
-// the eye - the centre cell - is staged ("stages": "centre"): its cracks are
-// the core's damage. The b3 flash turns its red amber.
+// through the rim (the owner's drawing: from orange to red) - its top third
+// amber (the pf2 bank) with a white highlight to the upper left, its lower
+// two thirds red (the pf3 bank: the row palette's red, deep at its foot), a
+// rim light on its lower right, a steel ring at its edge. Only the eye - the
+// centre cell - is staged ("stages": "centre"): its cracks are the core's
+// damage. The b3 flash swaps its amber and red.
 function corePicture() {
   const lines = [];
   for (let y = 0; y < 24; y += 1) {
@@ -278,11 +279,16 @@ function corePicture() {
       const dx = (x + 0.5 - 6) / 6;
       const dy = (y + 0.5 - 12) / 12;
       const r = Math.hypot(dx, dy);
-      const shine = Math.hypot((x + 0.5 - 4) / 1.4, (y + 0.5 - 6) / 2.4);
+      const shine = Math.hypot((x + 0.5 - 4) / 1.4, (y + 0.5 - 5) / 2.4);
       const rim = Math.hypot(dx - 0.18, dy - 0.18);
+      const top = y < 8;
       let ch = ".";
       if (r <= 1.0 && r > 0.86) ch = "g";
-      else if (r <= 0.86) ch = shine < 1 ? "W" : rim > 0.66 && dx + dy > 0.6 ? "g" : "r";
+      else if (r <= 0.86) {
+        if (shine < 1) ch = "W";
+        else if (top) ch = "a";
+        else ch = rim > 0.66 && dx + dy > 0.6 ? "g" : "r";
+      }
       line += ch;
     }
     lines.push(line);

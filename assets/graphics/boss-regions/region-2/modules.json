@@ -11,9 +11,9 @@
     "colpf3": 226
   },
   "rowPalette": {
-    "_": "feat/boss-art (the owner's variant B): light from above - COLPF1, the steel, from $0A on the track down to $04 at the gate; COLPF3 the olive bulk on the track (row 0) and behind the gate's bars (row 4), red in rows 1-3 - the hazard stripes, the guns' lamps, the core lit from above ($46, $44, $42 deep at its foot). Hues 82 and 354 degrees, 144 and 128 from the ally steel $88. The b3 flash in rows 1-3 swaps amber $28 and red.",
+    "_": "feat/boss-art (the owner's variant B and his drawing; colours as Atari800's PAL palette shows them, docs/plans/boss-art.md §3.4): light from above - COLPF1, the steel, $0A on the track down to $04 at the gate; COLPF3 the olive-brown bulk on the track (row 0) and behind the gate's bars (row 4), red in rows 1-3 - the hazard stripes, the guns' lamps, the core's lower two thirds ($34, deep $32 at its foot; its top third is the amber - the core from orange to red). The b3 flash swaps amber $28 and the row's COLPF3 (Atari800 RGB distance 84-137).",
     "colpf1": [10, 8, 6, 6, 4],
-    "colpf3": [226, 70, 68, 66, 226]
+    "colpf3": [226, 52, 52, 50, 226]
   },
   "motion": {
     "_": "Still at position 32: the rails' slides are the only motion (the owner's rule: no mishmash of motions).",

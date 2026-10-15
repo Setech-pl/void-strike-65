@@ -4741,12 +4741,20 @@ async function build() {
           pitch: region.rails.pitch, positions: region.rails.positions, rowFirst: region.rails.rowFirst,
           sides: region.rails.sides.map((side) => ({ name: side.name, dir: side.dir, nose: side.nose,
             window: side.window, cannon: region.modules[side.cannon].name, cannonIndex: side.cannon,
-            guns: side.guns.map((index) => region.modules[index].name), gunIndices: side.guns })),
+            guns: side.guns.map((index) => region.modules[index].name), gunIndices: side.guns,
+            // The owner's look at 110c274: the cannon's bay - its columns, the
+            // cannon's last (lens) row and the armour row under it (the trace's
+            // bay clauses).
+            ...(region.modules[side.cannon].bay ? { bay: { x: region.modules[side.cannon].x,
+              width: region.modules[side.cannon].width,
+              lensRow: region.modules[side.cannon].row + region.modules[side.cannon].cavityRows - 1,
+              armourRow: region.modules[side.cannon].row + region.modules[side.cannon].height - 1 } } : {}) })),
           codeBytes: region.railCodeBytes ?? 0 } }),
         ...(region.hangar === null ? {} : { hangar: { doors: region.modules[region.hangar.doors].name,
           core: region.modules[region.hangar.core].name, cueFrames: region.hangar.cueFrames,
           unlockFrames: region.hangar.unlockFrames, doorsIndex: region.hangar.doors,
-          coreIndex: region.hangar.core } }),
+          coreIndex: region.hangar.core, jamb: region.hangar.jamb ?? null,
+          doorsX: region.modules[region.hangar.doors].x, doorsRow: region.modules[region.hangar.doors].row } }),
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +

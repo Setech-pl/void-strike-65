@@ -458,7 +458,10 @@ function collectRows(build) {
   add(m.levelSummary.code.address, m.levelSummary.code.endExclusive - 1, "slot", "level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it", "session", "manifest `levelSummary.code`, tests/level-summary-build.test.mjs");
   // M5b-S4a-i (owner answer Q-B5): the boss's claim and its three homes.
   add(m.boss.claim.start, m.boss.claim.endExclusive - 1, "slot", "boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it", "overlay", "manifest `boss.claim`, tests/boss-claim.test.mjs");
-  add(m.boss.charset.address, m.boss.charset.address + m.boss.charset.capacityBytes - 1, "slot", "boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install", "overlay", "manifest `boss.charset`");
+  add(m.boss.charset.address, m.boss.charset.address + m.boss.charset.capacityBytes - 1, "slot", "boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install" +
+    ((m.boss.regions ?? []).length === 0 ? "" : `; each region's run: ${m.boss.regions.map((region) =>
+      `R${region.region} ${region.codes} codes / ${region.charsetSectors} sectors`).join(", ")}` +
+      " (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen)"), "overlay", "manifest `boss.charset`");
   add(m.boss.slotC.address, m.boss.slotC.address + m.boss.slotC.capacityBytes - 1, "slot", `boss slot C: the C controller, run \`boss-slot-c\` (${m.boss.slotC.sectors} sectors)`, "overlay", "manifest `boss.slotC`");
   add(m.boss.scratch.address, m.boss.scratch.address + m.boss.scratch.capacityBytes - 1, "slot", "boss scratch page: the column map, the ring, slot A's state; set by the install", "overlay", "manifest `boss.scratch`");
   add(m.boss.slotD.address, m.boss.slotD.address + m.boss.slotD.capacityBytes - 1, "slot", `boss slot D: the lasers and the boss's shots in the band, run \`boss-slot-d\` (${m.boss.slotD.sectors} sectors)`, "overlay", "manifest `boss.slotD`");

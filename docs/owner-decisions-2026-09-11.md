@@ -2571,6 +2571,59 @@ level-authoring, memory-map, how-to-play (EN / PL: „zniszcz działa, zanim
 szyny się zamkną"), hardware-testing §35 (Bastion) i §36 (smoke czterech
 regionów do `v0.3.0`), README (EN / PL), szkic notatek `v0.3.0`, notatka dla
 zadania banerów. S5 kompletne. `OWNER-SMOKE CANDIDATE`.
+
+## AU. BASTION: „B — OKNO", ZATOKI DZIAŁ, JAKOŚĆ; REGUŁA ZASOBÓW BOSSÓW (2026-10-15, smoke'i i przeglądy właściciela S5-5)
+
+0. **Smoke kandydata N-C (§AT): nieprzyjęty.** Właściciel wybiera **„B — okno"**:
+   szeroki hangar w środku, działa laserowe w **opancerzonych zatokach** obok
+   niego. Zamknięta zatoka: strzały się odbijają, działo strzela dalej
+   (ostrzeżenie widoczne). **Pierwsze** zniszczone działko szyny po stronie
+   przesuwa szynę i **otwiera zatokę** (bursztyn, trafialne, sygnał otwarcia),
+   bez limitu czasu; **drugie** zakrywa żywe działo na stałe albo zasuwa puste
+   gniazdo. Ostrzeżenie (miganie) przy otwartej zatoce. Wrota otwierają się po
+   zniszczeniu lub zakryciu wszystkich dział i działek, rdzeń pada ostatni.
+   Bez bajtów rezydentnych, blok ≤ 512 B. **Mechanika przyjęta** po grze.
+1. **Lewa kolumna rdzenia opancerzona** po upadku wrót (jego salwa pokrywa
+   resztę zasięgu) — przyjęte.
+2. **Faza wrót krótka** (ok. 8–15 s na MEDIUM, bot ostrożny), czas przechodzi
+   do rdzenia: wrota 46 → 22 PW, rdzeń 50 → 74 PW; kadencja eskorty (§AI) bez
+   zmian.
+3. **Przegląd grafiki:** kraty tylko na tym, co zamknięte; zniszczony moduł to
+   ciemne, rozbite gniazdo; hangar to kopuła, rdzeń to kula — punkt
+   centralny; prowadnica w lukach; mniej szumu pasków.
+4. **Pancerz MIĘDZY działem a graczem** (przegląd `110c274`): całe działo
+   zawsze widoczne (stal zamknięte, bursztyn otwarte; nic go nie zasłania poza
+   szyną), pancerz — krata wrót — w rzędzie pod nim. Zamknięte: strzał odbija
+   się od pancerza, promień zaczyna się pod pancerzem; otwarte: pancerz znika,
+   promień od wylotu, strzał trafia działo; zakryte: promień spod końca szyny.
+   Układ przyjęty (`3b5a8ea`). ZMIERZONE przy tym: PRIOR rozgrywki to 0 —
+   pocisk nie jest za polem gry (M1 OR / przed kolorem 3, M2 za PF0/PF1), więc
+   blok regionu 2 zapisuje rząd pancerza w płaszczyźnie pocisków sam.
+5. **Jakość** (przegląd `3b5a8ea`): działa narysowane od nowa (spiczasta,
+   czytelna sylwetka; zamknięte — szara stal bez oliwki, otwarte —
+   bursztyn), zderzaki szyn z kształtem i paskami, kopuła znów okrągła;
+   wrota jedną prostą bramą (dozwolone przez właściciela), kody dysz poza
+   przebiegiem charsetu. Charset R2 **88 z 96 kodów, 6 sektorów** (jeden sektor
+   więcej — zgoda właściciela z góry); wejście bossa 256 klatek, zapas dla
+   zadania banerów 24 (zadanie banerów wchłonie stratę razem z R3 i R4).
+   Przyjęte (`478389b`).
+6. **Stała reguła od 2026-10-15: nie oszczędzać zasobów na bossach.** Jeśli
+   boss potrzebuje dodatkowego sektora charsetu lub dysku albo więcej pamięci
+   dla jakości, wolno — pod warunkiem, że trzymają twarde bramki: wejście
+   bossa ≤ 280 klatek hosta, najgorszy margines fence ≥ 500, bramka DMA
+   32 568, stress sektora bossa ≤ 8 500, żadnych bajtów rezydentnych bez
+   pytania.
+7. **Strojenie fazy B (dane):** bot ostrożny na MEDIUM 109,6 s (poziom 4) i
+   112,4 s (poziomy 5-6) — w przedziale 90–120 s; EASY krótszy (89,8),
+   HARD nie krótszy (142,8 / 143,7); faza wrót bota ostrożnego na MEDIUM
+   12,1 / 13,2 s (8–15). Wszystkie cele spełnione: **punkty wytrzymałości bez
+   zmian** (działka szyn 15, działa 8, wrota 22, rdzeń 74).
+
+**Wynik:** plan `s5-boss-regions` §6.5.9-§6.5.14, STATUS, game-design,
+level-authoring, memory-map, how-to-play (EN / PL: „otwórz pancerz działa i
+zniszcz je, zanim szyna się zamknie"), hardware-testing §35-§36, README
+(EN / PL), szkic notatek `v0.3.0`, notatka dla zadania banerów. S5 kompletne.
+`OWNER-SMOKE CANDIDATE`.
 ---
 
 ## Backlog — dopisane 2026-09-20

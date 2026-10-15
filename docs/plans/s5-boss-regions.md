@@ -2675,9 +2675,68 @@ core unchanged.
 **Budget:** charset **88 of 96 codes, 6 sectors**; the boss entry **67
 sectors, 256 host frames** (MEASURED, `region-2-diag-1`: +3), the banner
 task's headroom 24 frames under the hard 280 (decision AM; the banner task
-absorbs it with R3 and R4, the owner's call). Region 2's block 509 of 512 B
+absorbs it with R3 and R4, the owner's call). Region 2's block 511 of 512 B
+(509 used, 2 unused in its data room)
 (no code change), 0 resident bytes, stress 7,723 / 7,615 of 8,500
 (unchanged), the PAL audit 0 misses. Regions 1, 3, 4 byte-identical.
+
+#### 6.5.14 Phase B finished — as built (2026-10-15) — `OWNER-SMOKE CANDIDATE`
+
+**The owner's look at `478389b`: accepted**, and his standing rule (journal
+§AU 6): a boss may spend charset / disk sectors and memory on its quality
+while the hard gates hold - the boss entry <= 280 host frames, the worst
+fence margin >= 500, the DMA gate 32,568, the boss-sector stress <= 8,500, no
+resident byte without asking.
+
+**Tuning by data (MEASURED, the aiming bot's ratio; level 4 / levels 5-6,
+E / M / H, seconds; before = `478389b`, after = this branch):**
+
+| bot | level 4 | levels 5-6 | doors phase on MEDIUM (L4 / L5-6) |
+| --- | --- | --- | --- |
+| careful | 89.8 / **109.6** / 142.8 | 89.8 / **112.4** / 143.7 | 12.1 / 13.2 s |
+| careful, leaving beams | 90.4 / 109.6 / 147.8 | 90.4 / 116.7 / 149.6 | 12.1 / 12.5 s |
+| careless | 85.1 / 100.4 / 130.1 | 85.1 / 99.6 / 129.2 | 13.2 / 13.2 s |
+| careless, leaving beams | 84.7 / 109.9 / 139.4 | 85.1 / 108.7 / 137.4 | 13.2 / 12.9 s |
+
+Every target holds before any change - the careful bot on MEDIUM inside
+90-120 s, EASY shorter, HARD not shorter, the doors phase 8-15 s with the time
+in the core (core phase 783 / 786 frames on MEDIUM against the doors' 293 /
+320) - so **no hit point moves** (rail guns 15, cannons 8, doors 22, core 74);
+the escort's cadence (decision AI) unchanged: 8-12 escorts a fight. After =
+before, frame for frame (the game's bytes did not change in this step).
+
+**Trace clauses (scripts/runtime-wall-trace.mjs, the rails' block; new
+observer columns `boss_exposed`, `bay_cells`, `bay_stops`, `bay_maps`,
+`laser_missiles`, `beam_rows`, `beam_armour`, `beam_below`, `jamb_map`; the
+manifest's `rails.sides[].bay` and `hangar.jamb`):** the bays locked at the
+start (neither cannon exposed, both armour cells the doors' bars, a bay's
+shots stopped under its armour row); a cannon exposed only after its side's
+first rail kill and at most 8 frames after it (MEASURED: 1 frame); open and
+uncovered, its armour gone and its shots meeting its muzzle row; a covered
+cannon never met by a shot's column again; no beam line in the cannons' rows
+on any fight frame; a beam's armour-row bit off while its cannon was locked
+and on once it was open or covered, on under the band always; the doors
+unlocked only with every cannon destroyed or covered and every rail gun
+destroyed; the core's flank armour on every frame after the doors fall; the
+careful bot's doors phase on MEDIUM <= 15 s. The aiming bots' sessions on a
+boss-region route are that region's sessions (its clauses run on them).
+**34 sessions** (the 24 aiming-bot sessions on the level routes of level 4
+and levels 5-6, `region-2-diag-0..2`, `-dodge-2`, `-finale-0..2`,
+`-edge-left-1`, and the two-beam `region-2-diag-1` / `-finale-1`): 0 clause
+failures, 0 misses; 24-1,000 beam frames checked a session; the careless
+order covers both cannons in every run; the left-edge guard holds. Region 2's
+boss frames: worst fence margin **5,804** (a slide's column frame - the
+ring's flush, four passes of `boss_frame_timers`; 6,478 on the window build),
+DMA-on **29,984**, the entry **256** host frames in every session.
+
+**The evidence (regenerated: build:candidate -> runtime:wall-trace -> the
+menu raster -> build -> memory-map -> the GIF -> the showcase):** 58 replays,
+0 misses, 0 clause failures, 16 boss entries; worst fence margin 1,260
+(2-sweep-fire6) and DMA-on 31,059 unchanged; region 1's boss frames 8,937 /
+30,315 (8,897 / 30,315: slot A's `boss_hit` -13 B shifted the code after it).
+Region 2's block 511 of 512 B (509 used), slot A 2,034 of 2,048 B, 0 resident
+bytes; ATR `77382e29`. `npm test` twice on the default build: 1,393 of 1,394
+(the recorded preview failure), reconciled, 0 NEW, 0 MOVED. **S5 complete.**
 
 ## 7. Owner questions
 

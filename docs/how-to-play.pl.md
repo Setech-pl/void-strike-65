@@ -161,20 +161,24 @@ grzbietem, którego żaden strzał nie przebije; pas płyt pancernych pod nimi
 musi paść, zanim da się trafić broń nad płytą. Siege Spine z poziomów 7-9
 strzela najwyżej dwoma laserami naraz.
 
-Boss poziomów 4-6, Bastion, nie dryfuje. W jego środku jest hangar: z jego
-wrót startują myśliwce eskorty, a za nimi siedzi rdzeń. Obok hangaru stoją dwa
-działa laserowe. Na zewnątrz nich, po lewej i po prawej, biegnie długa szyna
+Boss poziomów 4-6, Bastion, nie dryfuje. W jego środku jest okrągły hangar
+z bursztynowym rdzeniem reaktora w środku; z bramy u jego stóp startują
+myśliwce eskorty. Obok hangaru stoją dwa działa laserowe, każde w
+opancerzonej zatoce: szara stal za zakratowaną osłoną, która stoi między
+działem a Tobą. Twoje strzały odbijają się od osłony, a działo i tak strzela
+spod niej. Na zewnątrz dział, po lewej i po prawej, biegnie długa szyna
 z działkami, która wychodzi poza ekran. Zestrzel przednie działko szyny, a cała
-szyna przesunie się o krok do środka i wprowadzi zza krawędzi następne działko.
-Drugie przesunięcie wsuwa szynę nad działo laserowe po tej stronie: zakrytego
-działa nie da się już uszkodzić, a ono strzela dalej aż do końca walki. Kiedy
-działko jest o jedno przesunięcie od zakrycia działa, mruga — to ostrzeżenie.
-**Zniszcz działa laserowe, zanim szyny się zamkną.** Wrota są zamknięte —
-szary, zakratowany pancerz, Twoje strzały się od niego odbijają — dopóki każde
-działo i każde działko szyny nie zostanie zniszczone albo zakryte. Wtedy
-otwierają się z błyskiem i dźwiękiem i robią się bursztynowe: rozbij je,
-zatrzymasz eskortę, a rdzeń za nimi jest Twój. Szyny nigdy nie zakrywają
-hangaru.
+szyna przesunie się o krok do środka i wprowadzi zza krawędzi następne
+działko — a osłona działa po tej stronie odpada: działo robi się bursztynowe
+i teraz możesz je trafić. Drugie przesunięcie wsuwa szynę nad działo:
+zakrytego działa nie da się już uszkodzić, a ono strzela dalej aż do końca
+walki. Dopóki osłona działa jest otwarta, działko, którego zniszczenie by je
+zakryło, mruga — to ostrzeżenie. **Otwórz pancerz działa i zniszcz je, zanim
+szyna się zamknie.** Brama jest zamknięta — szara krata, Twoje strzały się od
+niej odbijają — dopóki każde działo i każde działko szyny nie zostanie
+zniszczone albo zakryte. Wtedy otwiera się z błyskiem i dźwiękiem i robi się
+bursztynowa: rozbij ją, zatrzymasz eskortę, a rdzeń za nią jest Twój. Szyny
+nigdy nie zakrywają hangaru.
 
 Boss poziomów 7-9, Siege Spine, chowa się za polem siłowym — migoczącą linią
 pod swoim kręgosłupem. Twoje strzały zatrzymują się na niej i nic nie robią.

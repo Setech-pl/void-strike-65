@@ -38,7 +38,8 @@ import {
 } from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { compileLevelFile, levelSourcePath } from "./level-compiler.mjs";
-import { BOSS_TABLE, BOSS_TABLES_ADDRESS, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
+import { BOSS_BAND_A_ADDRESS, BOSS_BAND_COLUMNS, BOSS_TABLE, BOSS_TABLES_ADDRESS, bossRegionDirectory, compileBossRegion,
+  loadBossRegionDraft } from "./boss-assets.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
   reportAudits as reportPalTimingAudits, auditsPassed as palTimingAuditsPassed,
@@ -52,6 +53,10 @@ const rootDirectory = path.resolve(scriptDirectory, "..");
 let buildDirectory = path.join(rootDirectory, "build", "runtime-wall-trace");
 const reportPath = path.join(rootDirectory, "docs", "runtime-wall-trace.json");
 const headerPath = path.join(scriptDirectory, "atari800-wall-trace.h");
+// The boss band's first line and the lasers' static missile plane (src/hybrid/boss.s
+// BAND_TOP_Y = GAMEPLAY_TOP + 8, LASER_MISSILES).
+const BOSS_BAND_TOP_Y = 24;
+const LASER_MISSILE_PLANE = 0x3b00;
 const PAL_FRAME_CYCLES = 35_568;
 // Roadmap 4.3 plan §10.3: a two-sector load that takes far longer than this
 // means the wait primitive is wrong rather than the budget being tight. The
@@ -1494,6 +1499,14 @@ for (const name of [
   "rail_k", "rail_dead", "rail_sliding",
   // S5-5 Phase B: the boss modules alive (the controller's 16-bit mask).
   "boss_alive",
+  // S5-5 Phase B (the owner's looks of 2026-10-15): region 2's bays - the
+  // exposure mask, the armour-row cells (left | right << 8 | the doors' first
+  // cell << 16), the bays' left columns' stop lines (left | right << 8), the
+  // column map at the four bay columns (a byte each), each laser's missile
+  // (laser 0 | laser 1 << 4), the missile plane's bits (the cannons' rows'
+  // lines ORed; the armour row's first | last line << 8; the line under it),
+  // the column map at the core's armoured flank.
+  "boss_exposed", "bay_cells", "bay_stops", "bay_maps", "laser_missiles", "beam_rows", "beam_armour", "beam_below", "jamb_map",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4276,6 +4289,25 @@ function main() {
       if (bossLabels.has("rail_state")) {
         addressEnvironment.DFTRACE_RAIL_STATE = hex(bossLabels, "rail_state");
         addressEnvironment.DFTRACE_RAIL_SCRATCH = hex(bossLabels, "rail_scratch");
+        // S5-5 Phase B: the bays (the manifest's rails.sides[].bay, hangar).
+        const railRegion = manifest.boss?.regions?.find((region) => region.rails !== undefined && region.rails !== null);
+        const bays = railRegion?.rails?.sides?.map((side) => side.bay);
+        if (bays?.every((bay) => bay !== undefined) && railRegion.hangar !== undefined) {
+          const cell = (column, row) => `0x${(BOSS_BAND_A_ADDRESS + row * BOSS_BAND_COLUMNS + column).toString(16)}`;
+          const planeLine = (row) => `0x${(LASER_MISSILE_PLANE + BOSS_BAND_TOP_Y + 8 * row).toString(16)}`;
+          addressEnvironment.DFTRACE_BAY_L_CELL = cell(bays[0].x, bays[0].armourRow);
+          addressEnvironment.DFTRACE_BAY_R_CELL = cell(bays[1].x, bays[1].armourRow);
+          addressEnvironment.DFTRACE_BAY_DOORS_CELL = cell(railRegion.hangar.doorsX, railRegion.hangar.doorsRow);
+          addressEnvironment.DFTRACE_BAY_L_COLUMN = String(bays[0].x);
+          addressEnvironment.DFTRACE_BAY_R_COLUMN = String(bays[1].x);
+          addressEnvironment.DFTRACE_BOSS_STOP_Y = hex(bossLabels, "boss_stop_y");
+          addressEnvironment.DFTRACE_BAY_PLANE_CANNON = planeLine(railRegion.rails.rowFirst);
+          addressEnvironment.DFTRACE_BAY_PLANE_ARMOUR = planeLine(bays[0].armourRow);
+          addressEnvironment.DFTRACE_B2_MISSILE = hex(bossLabels, "b2_missile");
+          if (railRegion.hangar.jamb !== null) {
+            addressEnvironment.DFTRACE_RAIL_JAMB_MAP = `0x${(bossLabels.get("boss_column_map") + railRegion.hangar.jamb).toString(16)}`;
+          }
+        }
       }
     }
   }
@@ -4434,7 +4466,12 @@ function main() {
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
         layout.variant !== null ? laserFixtureSessions : [],
-        layout.variant !== null ? bossTuningSessions : [],
+        // S5-5 Phase B: on a boss-region route the aiming bots' sessions are
+        // that region's too (its rails', bays' and hangar's clauses).
+        layout.variant !== null ? bossTuningSessions.map((session) => {
+          const route = /boss-region-(\d)-/.exec(layout.variant);
+          return route !== null && session.id.startsWith("boss-aim-") ? { ...session, bossRegion: Number(route[1]) } : session;
+        }) : [],
         layout.variant !== null ? regionRouteSessions.filter(({ bossRegion }) =>
           layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
@@ -4915,12 +4952,114 @@ function main() {
         if (session.id.startsWith(`region-${session.bossRegion}-finale-`)) {
           invariant(covers.length > 0, `${session.id}: the careless order covered no cannon (subject empty)`);
         }
+        // S5-5 Phase B (the owner's looks of 2026-10-15, "B - the window" and
+        // "the armour between the cannon and the player"): the bays. Subject:
+        // the fight frames. Locked at the start: neither cannon exposed, both
+        // armour cells the doors' bars, a shot in a bay stopped under its
+        // armour row. A cannon is exposed only once its side's first front gun
+        // has fallen, and at most UNLOCK_BOUND frames after it; while it stands
+        // exposed and uncovered (UNLOCK_SETTLE frames on) its armour cell holds
+        // no bars, its bay's shots stop under its lens row and meet the cannon. A
+        // covered cannon is never met by a shot again and its armour never
+        // returns. No beam line ever lies in the cannons' rows; a beam's
+        // armour-row bit (both lines) is off while its cannon was locked as the
+        // frame began (the frame hook reads the frame's start) and on once it
+        // was open or covered; on under the band in every state.
+        const bays = railRegion.sides.map((side) => side.bay);
+        if (bays.every((bay) => bay !== undefined)) {
+          const UNLOCK_BOUND = 8, UNLOCK_SETTLE = 6;
+          const exposedOf = (row, index) => ((row.boss_exposed >> index) & 1) === 1;
+          const byte = (value, k) => (value >>> (8 * k)) & 0xff;
+          const stopUnder = (row) => BOSS_BAND_TOP_Y + 8 * (row + 1);
+          const first = fight[0];
+          invariant(railRegion.sides.every((side) => !exposedOf(first, side.cannonIndex)),
+            `${session.id}: a bay is open at the start (exposed ${first.boss_exposed})`);
+          invariant(byte(first.bay_cells, 2) !== 0 && byte(first.bay_cells, 0) === byte(first.bay_cells, 2) &&
+            byte(first.bay_cells, 1) === byte(first.bay_cells, 2),
+            `${session.id}: the bays' armour rows are not the doors' bars at the start (cells ${first.bay_cells})`);
+          bays.forEach((bay, side) => invariant(byte(first.bay_stops, side) === stopUnder(bay.armourRow),
+            `${session.id}: bay ${side}'s shots stop on line ${byte(first.bay_stops, side)} at the start, not under its armour`));
+          const firstKill = [null, null], openedAt = [null, null], coveredAt = [null, null];
+          for (const cover of covers) coveredAt[cover.side] = cover.frame;
+          let beamFrames = 0;
+          for (let i = 1; i < fight.length; i += 1) {
+            const before = fight[i - 1], row = fight[i];
+            invariant((row.beam_rows & 0x28) === 0, `${session.id}: a beam line in the cannons' rows on frame ${row.frame}`);
+            railRegion.sides.forEach((side, s) => {
+              const cannon = side.cannonIndex, bay = bays[s];
+              if (firstKill[s] === null && nibble(row.rail_dead, s) >= 1) firstKill[s] = row.frame;
+              const open = exposedOf(row, cannon);
+              if (open && openedAt[s] === null) openedAt[s] = row.frame;
+              invariant(!open || firstKill[s] !== null,
+                `${session.id}: bay ${s} opened on frame ${row.frame} before its rail's first kill`);
+              if (firstKill[s] !== null && alive(row, cannon) && row.frame - firstKill[s] > UNLOCK_BOUND) {
+                invariant(open, `${session.id}: bay ${s} still locked ${row.frame - firstKill[s]} frames after its rail's first kill`);
+              }
+              const coveredNow = coveredAt[s] !== null && row.frame >= coveredAt[s];
+              const maps = [byte(row.bay_maps, 2 * s), byte(row.bay_maps, 2 * s + 1)];
+              if (open && openedAt[s] !== null && row.frame - openedAt[s] >= UNLOCK_SETTLE) {
+                // (the bars - the doors' locked glyph at the start - not "empty": a
+                // shot crossing the armour row is drawn in its cell)
+                invariant(byte(row.bay_cells, s) !== byte(first.bay_cells, 2),
+                  `${session.id}: bay ${s}'s armour still drawn on frame ${row.frame}`);
+                if (alive(row, cannon) && !coveredNow && nibble(row.rail_k, s) < railRegion.positions && row.rail_sliding === 0) {
+                  invariant(byte(row.bay_stops, s) === stopUnder(bay.lensRow) && maps.every((m) => m === cannon),
+                    `${session.id}: the open bay ${s}'s shots do not meet its cannon's muzzle row on frame ${row.frame} ` +
+                    `(stop ${byte(row.bay_stops, s)}, map ${maps})`);
+                }
+              }
+              if (coveredNow) {
+                invariant(maps.every((m) => m !== cannon), `${session.id}: the covered cannon ${s} met by a shot's column on frame ${row.frame}`);
+              }
+              for (const laser of [s]) {
+                if (((row.laser_states >> (2 * laser)) & 3) !== 2) continue;
+                const bit = [0, 0x08, 0x20][(row.laser_missiles >> (4 * laser)) & 15] ?? 0;
+                invariant(bit !== 0, `${session.id}: laser ${laser}'s beam with no missile on frame ${row.frame}`);
+                const locked = !exposedOf(before, cannon);
+                const want = locked ? 0 : bit;
+                invariant((row.beam_armour & bit) === want && ((row.beam_armour >> 8) & bit) === want,
+                  `${session.id}: laser ${laser}'s beam ${locked ? "crosses its locked bay's armour" : "leaves a gap under its muzzle"} ` +
+                  `on frame ${row.frame} (armour row ${row.beam_armour})`);
+                invariant((row.beam_below & bit) === bit, `${session.id}: laser ${laser}'s beam is off under the band on frame ${row.frame}`);
+                beamFrames += 1;
+              }
+            });
+          }
+          invariant(beamFrames > 0, `${session.id}: no beam in the fight (the beam clause's subject empty)`);
+          session.regionRoute.bays = { first_kill: firstKill, opened: openedAt, covered: coveredAt, beam_frames: beamFrames };
+          console.log(`${session.id}: bays - first kills ${firstKill.join(" / ")}, opened ${openedAt.join(" / ")}, covered ` +
+            `${coveredAt.join(" / ")}, ${beamFrames} beam frames checked`);
+        }
         const bossRows = rows.filter((row) => row.boss_state >= 1 && row.boss_entry !== 1);
         const fallOf = (index) => bossRows.find((row, i) => i > 0 && alive(bossRows[i - 1], index) && !alive(row, index));
         const doorsFell = fallOf(hangarRegion.doorsIndex);
         const coreFell = fallOf(hangarRegion.coreIndex);
         invariant(coreFell === undefined || (doorsFell !== undefined && doorsFell.frame <= coreFell.frame),
           `${session.id}: the core fell on frame ${coreFell?.frame} before the doors`);
+        // S5-5 Phase B: the doors unlock (exposed) only once every cannon is
+        // destroyed or covered and every rail gun destroyed; once they fall,
+        // the core's armoured flank (the jamb) is armour to every shot. The
+        // careful bot on MEDIUM keeps the doors phase short (the owner's call
+        // of 2026-10-15: about 8-15 s, the time in the core), as the proxy
+        // measures it (scripts/measure-boss-r2-fight.mjs).
+        const doorsOpen = fight.find((row) => ((row.boss_exposed >> hangarRegion.doorsIndex) & 1) === 1);
+        if (doorsOpen !== undefined && railRegion.sides.every((side) => side.bay !== undefined)) {
+          railRegion.sides.forEach((side, s) => {
+            const cannonGone = !alive(doorsOpen, side.cannonIndex) || covers.some((c) => c.side === s && c.frame <= doorsOpen.frame);
+            invariant(cannonGone && side.gunIndices.every((g) => !alive(doorsOpen, g)),
+              `${session.id}: the doors unlocked on frame ${doorsOpen.frame} with side ${s}'s cannon or a rail gun standing`);
+          });
+          if (hangarRegion.jamb !== null && hangarRegion.jamb !== undefined && doorsFell !== undefined) {
+            const late = fight.filter((row) => row.frame > doorsFell.frame + 1);
+            const open = late.filter((row) => row.jamb_map !== 0xfe);
+            invariant(open.length === 0, `${session.id}: the core's flank (column ${hangarRegion.jamb}) not armour on ${open.length} ` +
+              `frames after the doors fell (first ${open[0]?.frame})`);
+          }
+          if (/^boss-aim-careful(-dodge)?-1$/.test(session.id) && doorsFell !== undefined) {
+            const seconds = (doorsFell.frame - doorsOpen.frame) * 4612 / 2231 / 50;
+            invariant(seconds <= 15, `${session.id}: the doors phase ${seconds.toFixed(1)} s (the owner: about 8-15 s on MEDIUM)`);
+          }
+        }
         let escorts = 0, afterDoors = 0, together = 0;
         for (let i = 1; i < fight.length; i += 1) {
           let live = 0;

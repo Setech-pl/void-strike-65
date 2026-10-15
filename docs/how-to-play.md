@@ -155,19 +155,23 @@ armoured spine that no shot breaks; the belt of armour plates below them must
 fall before the weapon above a plate can be hit. The Siege Spine of levels 7-9
 fires up to two lasers at once.
 
-The boss of levels 4-6, the Bastion, does not drift. At its centre is a
-hangar: the escort fighters launch from its doors, and the core sits behind
-them. Beside the hangar stand two laser cannons. Outside them, left and right,
-runs a long rail of guns that reaches off the screen. Shoot the front gun of a
-rail and the whole rail slides one step inward, bringing the next gun in from
-beyond the edge. The second slide pushes the rail over that side's laser
-cannon: a covered cannon cannot be hurt any more, and it keeps firing until
-the end of the fight. When a gun is one slide away from covering a cannon, it
-blinks — that is your warning. **Destroy the cannons before the rails close
-in.** The doors stay locked — barred grey armour, your shots bounce off — until
-every cannon and every rail gun is destroyed or covered. Then they open with a
-flash and a chime and turn amber: break them, stop the escort, and the core
-behind them is yours. The rails never cover the hangar.
+The boss of levels 4-6, the Bastion, does not drift. At its centre is a round
+hangar with an amber reactor core inside it; the escort fighters launch from
+the gate at its foot. Beside the hangar stand two laser cannons, each in an
+armoured bay: grey steel behind a barred shield that sits between the cannon
+and you. Your shots bounce off the shield, and the cannon fires through under
+it all the same. Outside the cannons, left and right, runs a long rail of guns
+that reaches off the screen. Shoot the front gun of a rail and the whole rail
+slides one step inward, bringing the next gun in from beyond the edge — and
+the shield of that side's cannon falls away: the cannon turns amber, and now
+you can hit it. The second slide pushes the rail over the cannon: a covered
+cannon cannot be hurt any more, and it keeps firing until the end of the
+fight. While a cannon's shield is open, the gun whose fall would cover it
+blinks — that is your warning. **Open a cannon's armour, destroy it before the
+rail closes in.** The gate stays locked — barred grey, your shots bounce off —
+until every cannon and every rail gun is destroyed or covered. Then it opens
+with a flash and a chime and turns amber: break it, stop the escort, and the
+core behind it is yours. The rails never cover the hangar.
 
 The boss of levels 7-9, the Siege Spine, hides behind a force field — the
 shimmering line under its spine. Your shots stop there and do nothing. Each

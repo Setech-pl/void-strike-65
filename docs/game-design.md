@@ -522,42 +522,52 @@ section "Decyzje literowe 2026-09-20".
   display list ends the band (the owner's smoke of 2026-10-13: shots turned
   grey there), so a projectile under the boss has the playfield's colours.
   Plates trimmed to MEDIUM about 110 s: a, b, c, g, h 8; d, e 10; f 6.
-- **Region 2's boss: the Bastion - the hangar, the cannons, the sliding rails
-  (S5-5, the owner's design of 2026-10-14 and his choice of 2026-10-15, N-C
-  with W2; `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.5).**
+- **Region 2's boss: the Bastion - the dome hangar, the armoured cannon bays,
+  the sliding rails (S5-5, the owner's design of 2026-10-14, his choice "B -
+  the window" of 2026-10-15 and his looks of the same day; journal §AT, §AU;
+  `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.5).**
   Levels 4-6 end on a still fortress (no drift: the rails' slides are its only
   motion) hung from one overhead track that runs from screen edge to screen
-  edge. At the centre the **hangar**: a one-cell cap, the **core** under it
-  and the **hangar doors** under the core - the escort Interceptors launch
-  over the doors (decision AI's cadence; the doors flash just before each).
-  Hugging the hangar, a **laser cannon** on each side. Outside them, left and
-  right, a **gun rail**: a girder from beyond the screen edge to its hazard-
-  striped front, three guns on it, only the front one able to fire or be hurt.
-  **The order puzzle:** destroying a rail's front gun slides the whole rail
-  one gun pitch (4 columns) inward a beat later (one column every 4 frames,
-  a clank each), bringing the next gun in from beyond the edge; the dead gun's
-  socket stays on the rail. The **second** slide pushes the rail over that
-  side's cannon: a **covered cannon** cannot be hurt any more (shots deflect
-  off the rail) and **keeps firing** to the end of the fight. One slide before
-  that, the gun whose fall would cover the cannon **pulses** - the warning. A
-  rail stops there and never covers the hangar. **Destroy the cannons before
-  the rails close in.** **The doors:** locked - barred grey armour over the
-  olive bulk, shots deflected with the deflection glyph - until every cannon
-  and every rail gun is destroyed or covered; then they open with a flash and
-  a held high tone and turn to amber hazard chevrons, take damage (b3, amber
-  in every stage), and when they fall the escort stops for good and the core
-  - a salvo launcher - is exposed; the finale (its volleys at half reload)
-  starts with the doors' fall, and the core falls last. **Fairness:** the
-  core's whole reach lies under the left cannon's beam (danger, not a refuge),
-  yet the beam's warning always leaves at least 22 frames to step out on HARD,
-  and in the core phase the covered cannon's beams come with repeated windows
-  of 150-689 frames between them (per level and difficulty). Lasers (decision
-  AC): one beam on level 4 (the cannons take turns, a covered one keeps its
-  turn), two on levels 5-6 (independent). A parked fighter at the left edge
-  can hit nothing and is reached by nothing but the escort, which a first kill
-  starts - it attacks there (measured: a stalemate, not a refuge). Colours:
-  pale and mid steel, hazard amber `$28` and the olive bulk `$E2`, both far
-  from the levels 4-6 ally steel `$88`.
+  edge. At the centre the **hangar**, a round dome five cells wide with the
+  **core** inside it - a round amber reactor with a white eye, the brightest
+  thing on the ship (a salvo launcher) - and the **doors** at its foot, a
+  single barred gate: the escort Interceptors launch over it (decision AI's
+  cadence; the gate flashes just before each). Beside the dome, a **laser
+  cannon in an armoured bay** on each side: the whole cannon always in view (a
+  stepped steel spire, unlit while locked), its **armour** - the gate's bars -
+  in the row under it, between the cannon and the player. Locked, shots
+  deflect off the armour and the cannon fires through under it (its beam
+  starts below the armour). Outside them, left and right, a **gun rail**: a
+  girder from beyond the screen edge to its striped buffer, three guns on it,
+  only the front one able to fire or be hurt. **The window:** destroying a
+  rail's front gun slides the whole rail one gun pitch (4 columns) inward a
+  beat later (one column every 4 frames, a clank each), bringing the next gun
+  in from beyond the edge - and **opens that side's bay** with a flash and a
+  tone: the armour falls away, the cannon lights amber and can be hurt, its
+  beam now from the muzzle; no timer closes it. The **second** slide pushes
+  the rail over the cannon: a **covered cannon** cannot be hurt any more
+  (shots deflect off the rail) and **keeps firing** to the end of the fight,
+  its beam from under the rail's end; over an empty socket the rail just
+  slides. While a bay is open and its cannon stands, the gun whose fall would
+  cover it **pulses** - the warning. A rail stops there and never covers the
+  hangar. **Open a cannon's armour, destroy it before the rail closes in.**
+  **The gate:** locked until every cannon and every rail gun is destroyed or
+  covered; then it opens with a flash and a held high tone and turns to amber
+  hazard stripes; the doors' phase is short (22 hit points, about 12 s on
+  MEDIUM for a careful player), and when they fall the escort stops for good,
+  the core is exposed - its left flank armoured, so its own volley covers
+  every column it can be shot from - the finale (its volleys at half reload)
+  begins, and the core (74 hit points) falls last. **Fairness:** the core's
+  whole reach lies under a cannon's beam or its volley (danger, not a refuge),
+  every beam's warning leaves at least 22 frames to step out on HARD. Lasers
+  (decision AC): one beam on level 4 (the cannons take turns, a locked or
+  covered one keeps its turn), two on levels 5-6 (independent). A parked
+  fighter at the left edge can hit nothing and is reached by the escort, which
+  a first kill starts (measured: a stalemate, not a refuge). Colours: pale and
+  mid steel, hazard amber `$28` and the olive bulk `$E2`, both far from the
+  levels 4-6 ally steel `$88`; the region's charset 88 codes in six sectors
+  (the owner's standing rule of 2026-10-15: bosses spend what their quality
+  needs within the hard gates).
 - **Region 3's boss: Siege Spine and its force field (S5-3, owner answers of
   2026-10-13; `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.3).**
   Levels 7-9 end on a long segmented spine with dorsal spikes, a generator

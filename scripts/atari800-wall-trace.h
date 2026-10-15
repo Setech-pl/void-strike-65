@@ -400,6 +400,23 @@ typedef struct {
 	 * outside the boss) - the rails' and the hangar's clauses read a cannon's,
 	 * the doors' and the core's bits. */
 	unsigned boss_alive;
+	/* S5-5 Phase B (the owner's looks of 2026-10-15): region 2's bays (0
+	 * without them) - the exposure mask (the controller's), the armour-row
+	 * cells (left | right << 8 | the doors' cell << 16), the stop lines of
+	 * the bays' left columns (left | right << 8), the column map at the four
+	 * bay columns (a byte each, left first), each laser's missile (laser 0 |
+	 * laser 1 << 4: 1 M1, 2 M2, 0 none), the missile plane's bits - OR of the
+	 * cannons' rows' lines, the armour row's first | last line << 8, the
+	 * line under it - and the column map at the core's armoured flank. */
+	unsigned boss_exposed;
+	unsigned bay_cells;
+	unsigned bay_stops;
+	unsigned bay_maps;
+	unsigned laser_missiles;
+	unsigned beam_rows;
+	unsigned beam_armour;
+	unsigned beam_below;
+	unsigned jamb_map;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -985,6 +1002,14 @@ static unsigned dftrace_gravity_on;
  * labels; optional. */
 static unsigned dftrace_rail_state;
 static unsigned dftrace_rail_scratch;
+/* S5-5 Phase B: region 2's bays (optional): the armour-row cells of the two
+ * bays' left columns and the doors' first cell, the two bays' left columns,
+ * the stop lines' and the column map's labels, the plane's line under the
+ * band's row 0 (the cannons' first line), the armour row's first line, the
+ * lasers' missiles, the column map's entry at the core's flank (0: none). */
+static unsigned dftrace_bay_l_cell, dftrace_bay_r_cell, dftrace_bay_doors_cell;
+static unsigned dftrace_bay_l_column, dftrace_bay_r_column, dftrace_boss_stop_y;
+static unsigned dftrace_bay_plane_cannon, dftrace_bay_plane_armour, dftrace_b2_missile, dftrace_rail_jamb_map;
 static unsigned dftrace_gravity_column;
 static unsigned dftrace_field_from;
 static unsigned dftrace_field_end;
@@ -6207,6 +6232,8 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->rail_k = 0u;
 	frame->rail_dead = 0u;
 	frame->rail_sliding = 0u;
+	frame->boss_exposed = frame->bay_cells = frame->bay_stops = frame->bay_maps = 0u;
+	frame->laser_missiles = frame->beam_rows = frame->beam_armour = frame->beam_below = frame->jamb_map = 0u;
 	if (dftrace_boss_active() && dftrace_rail_state != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
 		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 4u &&
 		MEMORY_mem[dftrace_boss_level_id] <= 6u) {
@@ -6214,6 +6241,21 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		frame->rail_dead = MEMORY_mem[dftrace_rail_scratch + 4u] | (MEMORY_mem[dftrace_rail_scratch + 5u] << 4);
 		frame->rail_sliding = (MEMORY_mem[dftrace_rail_scratch] != 0u ? 1u : 0u) |
 			(MEMORY_mem[dftrace_rail_scratch + 1u] != 0u ? 2u : 0u);
+		if (dftrace_bay_l_cell != 0u) {
+			unsigned line, rows = 0u, l = dftrace_bay_l_column, r = dftrace_bay_r_column;
+			frame->boss_exposed = MEMORY_mem[dftrace_boss_exposed] | (MEMORY_mem[dftrace_boss_exposed + 1u] << 8);
+			frame->bay_cells = MEMORY_mem[dftrace_bay_l_cell] | (MEMORY_mem[dftrace_bay_r_cell] << 8) |
+				(MEMORY_mem[dftrace_bay_doors_cell] << 16);
+			frame->bay_stops = MEMORY_mem[dftrace_boss_stop_y + l] | (MEMORY_mem[dftrace_boss_stop_y + r] << 8);
+			frame->bay_maps = MEMORY_mem[dftrace_boss_column_map + l] | (MEMORY_mem[dftrace_boss_column_map + l + 1u] << 8) |
+				(MEMORY_mem[dftrace_boss_column_map + r] << 16) | ((unsigned) MEMORY_mem[dftrace_boss_column_map + r + 1u] << 24);
+			frame->laser_missiles = MEMORY_mem[dftrace_b2_missile] | (MEMORY_mem[dftrace_b2_missile + 1u] << 4);
+			for (line = dftrace_bay_plane_cannon; line < dftrace_bay_plane_armour; ++line) rows |= MEMORY_mem[line];
+			frame->beam_rows = rows;
+			frame->beam_armour = MEMORY_mem[dftrace_bay_plane_armour] | (MEMORY_mem[dftrace_bay_plane_armour + 7u] << 8);
+			frame->beam_below = MEMORY_mem[dftrace_bay_plane_armour + 8u];
+			frame->jamb_map = dftrace_rail_jamb_map != 0u ? MEMORY_mem[dftrace_rail_jamb_map] : 0u;
+		}
 	}
 	if (dftrace_boss_active() && dftrace_gravity_on != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
 		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 10u) {
@@ -6413,7 +6455,8 @@ static void dftrace_write(void)
 		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
 		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left"
 		",field_state,field_deflections,field_violations,field_cells_down,gravity_on,gravity_steps,gravity_column"
-		",rail_k,rail_dead,rail_sliding,boss_alive\n");
+		",rail_k,rail_dead,rail_sliding,boss_alive"
+		",boss_exposed,bay_cells,bay_stops,bay_maps,laser_missiles,beam_rows,beam_armour,beam_below,jamb_map\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6697,10 +6740,12 @@ static void dftrace_write(void)
 		if (frame->boss_entry && dfhud_entry_state == 2)
 			for (unsigned cell = 0u; cell < 40u; ++cell)
 				fprintf(file, "%02x", dfhud_entry_after[cell]);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
 			frame->field_state, frame->field_deflections, frame->field_violations, frame->field_cells_down,
 			frame->gravity_on, frame->gravity_steps, frame->gravity_column,
 			frame->rail_k, frame->rail_dead, frame->rail_sliding, frame->boss_alive);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_exposed, frame->bay_cells, frame->bay_stops, frame->bay_maps,
+			frame->laser_missiles, frame->beam_rows, frame->beam_armour, frame->beam_below, frame->jamb_map);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -7500,6 +7545,16 @@ static void dftrace_init(void)
 	dftrace_gravity_column = dftrace_env_optional("DFTRACE_GRAVITY_COLUMN");
 	dftrace_rail_state = dftrace_env_optional("DFTRACE_RAIL_STATE");
 	dftrace_rail_scratch = dftrace_env_optional("DFTRACE_RAIL_SCRATCH");
+	dftrace_bay_l_cell = dftrace_env_optional("DFTRACE_BAY_L_CELL");
+	dftrace_bay_r_cell = dftrace_env_optional("DFTRACE_BAY_R_CELL");
+	dftrace_bay_doors_cell = dftrace_env_optional("DFTRACE_BAY_DOORS_CELL");
+	dftrace_bay_l_column = dftrace_env_optional("DFTRACE_BAY_L_COLUMN");
+	dftrace_bay_r_column = dftrace_env_optional("DFTRACE_BAY_R_COLUMN");
+	dftrace_boss_stop_y = dftrace_env_optional("DFTRACE_BOSS_STOP_Y");
+	dftrace_bay_plane_cannon = dftrace_env_optional("DFTRACE_BAY_PLANE_CANNON");
+	dftrace_bay_plane_armour = dftrace_env_optional("DFTRACE_BAY_PLANE_ARMOUR");
+	dftrace_b2_missile = dftrace_env_optional("DFTRACE_B2_MISSILE");
+	dftrace_rail_jamb_map = dftrace_env_optional("DFTRACE_RAIL_JAMB_MAP");
 	dftrace_director_sector = dftrace_env_optional("DFTRACE_DIRECTOR_SECTOR");
 	dftrace_sector_row = dftrace_env_optional("DFTRACE_SECTOR_ROW");
 	dftrace_light_state_base = dftrace_env_optional("DFTRACE_LIGHT_STATE");

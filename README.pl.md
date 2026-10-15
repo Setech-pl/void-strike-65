@@ -211,13 +211,14 @@ w buildach przeglądowych (`node scripts/build.mjs --level=1:sector=6
 
 - **Blockade Breaker** (poziomy 1-3): uszkodzony okręt pod opancerzonym
   grzbietem; dwa działa laserowe strzelają na zmianę za pasem płyt pancernych.
-- **Bastion** (poziomy 4-6): hangar w środku, działo laserowe z każdej jego
-  strony i szyna działek na każdym skrzydle, wychodząca poza ekran. Każde
-  zniszczone działko szyny przesuwa ją o krok do środka; drugie przesunięcie
-  zakrywa działo po tej stronie — tego działa nie da się już uszkodzić, a ono
-  strzela dalej. Wrota hangaru są zamknięte, dopóki każde działo i każde
-  działko szyny nie zostanie zniszczone albo zakryte. Zniszcz działa laserowe,
-  zanim szyny się zamkną.
+- **Bastion** (poziomy 4-6): okrągły hangar z rdzeniem reaktora w środku,
+  działo laserowe w opancerzonej zatoce z każdej jego strony i szyna działek
+  na każdym skrzydle, wychodząca poza ekran. Każde zniszczone działko szyny
+  przesuwa ją o krok do środka; pierwsze przesunięcie otwiera pancerz działa
+  po tej stronie, drugie zakrywa działo — tego działa nie da się już
+  uszkodzić, a ono strzela dalej. Brama hangaru jest zamknięta, dopóki każde
+  działo i każde działko szyny nie zostanie zniszczone albo zakryte. Otwórz
+  pancerz działa i zniszcz je, zanim szyna się zamknie.
 - **Siege Spine** (poziomy 7-9): segmentowy kręgosłup za polem siłowym
   z dwóch połówek, każdą zasila kula generatora na jej końcu.
 - **Void Citadel** (poziomy 10-12): nieruchoma forteca ze studnią

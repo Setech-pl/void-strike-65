@@ -78,7 +78,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$0500-$06FF` | 512 B | segment | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) | `splash` | build/void-strike-65.map |
 | `$0BE0-$0BFF` | 32 B | reserved | free tail of `LEVEL_SUMMARY_RAM` | `session` | cfg/level-summary.cfg |
 | `$0C00-$1FFF` | 5,120 B | slot | boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it | `overlay` | manifest `boss.claim`, tests/boss-claim.test.mjs |
-| `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install | `overlay` | manifest `boss.charset` |
+| `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 105 codes / 7 sectors, R2 88 codes / 6 sectors, R3 108 codes / 7 sectors, R4 108 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) | `overlay` | manifest `boss.charset` |
 | `$1000-$17FF` | 2,048 B | slot | boss slot C: the C controller, run `boss-slot-c` (13 sectors) | `overlay` | manifest `boss.slotC` |
 | `$1000-$154D` | 1,358 B | segment | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) | `overlay` | build/boss.map |
 | `$154E-$1557` | 10 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
@@ -326,7 +326,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | Range | Phases | Occupant |
 | --- | --- | --- |
 | `$0C00-$1FFF` | `overlay` | boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it |
-| `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install |
+| `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 105 codes / 7 sectors, R2 88 codes / 6 sectors, R3 108 codes / 7 sectors, R4 108 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) |
 | `$1000-$17FF` | `overlay` | boss slot C: the C controller, run `boss-slot-c` (13 sectors) |
 | `$1000-$154D` | `overlay` | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) |
 | `$154E-$1557` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |

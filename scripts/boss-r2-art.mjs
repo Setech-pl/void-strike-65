@@ -1,31 +1,37 @@
 // S5-5 (feat/boss-region-2, docs/plans/s5-boss-regions.md §6.5; the owner's
-// design of 2026-10-14 and his choice of 2026-10-15, N-C with W2): region 2's
-// boss, the Bastion, drawn as the converter's PNG drafts. As
-// scripts/boss-r4-art.mjs: the art is authored here as ASCII pictures - one
-// character a draft pixel, one ANTIC 4 pixel (a colour clock wide, a scanline
-// tall) - and written into assets/graphics/boss-regions/region-2/ (band, open,
-// cracked, broken, extras, emitter). The PNGs are the editable source the
-// converter reads (the owner retouches them in any pixel editor); this script
-// is how the agent drew them (decision G) and redraws them. modules.json is
-// the region's data, edited by hand (the hit points are tuned there).
+// design of 2026-10-14, his choice of 2026-10-15 and, after his smoke of the
+// N-C candidate, his choice "B - the window" of 2026-10-15): region 2's boss,
+// the Bastion, drawn as the converter's PNG drafts. As scripts/boss-r4-art.mjs:
+// the art is authored here as ASCII pictures - one character a draft pixel,
+// one ANTIC 4 pixel (a colour clock wide, a scanline tall) - and written into
+// assets/graphics/boss-regions/region-2/ (band, open, cracked, broken, extras,
+// emitter). The PNGs are the editable source the converter reads (the owner
+// retouches them in any pixel editor); this script is how the agent drew them
+// (decision G) and redraws them. modules.json is the region's data, edited by
+// hand (the hit points are tuned there).
 //
 //   node scripts/boss-r2-art.mjs            write the drafts
 //   node scripts/boss-r2-art.mjs --check    exit 1 if the drafts differ from the pictures
 //
-// The ship (the owner's design of 2026-10-14; docs/design/boss-banners/ for
-// the spirit): one overhead track from screen edge to screen edge (row 0); at
-// the centre the hangar - a one-cell cap over the core, the hangar doors under
-// it; beside it a laser cannon each side, hugging it, hung from the track;
-// outside them a rail each side - a sliding girder under the track carrying a
-// row of guns, its outer part beyond the screen edge. A rail-gun kill slides
-// that rail one gun pitch inward; the second slide covers its side's cannon
-// (src/hybrid/boss.s BOSS_RAIL). The doors are barred armour (steel bars over
-// the olive bulk) while locked and amber hazard chevrons once they open (the
-// open look: the owner's readability rule of 2026-10-15).
+// The ship (docs/design/boss-banners/, the R2 banner's hub): one overhead
+// track from screen edge to screen edge (row 0); at the centre the hangar - a
+// wide armoured hull, five cells, round-shouldered, the ship's centre - with
+// the core, a three-cell amber reactor, inside it and the hangar doors under
+// the core; beside it a laser cannon each side in its armoured bay, hung from
+// the track; outside them a rail each side - a sliding girder under the track
+// carrying a row of guns, its outer part beyond the screen edge. A locked bay
+// and the locked doors are the same barred grey armour over the olive bulk
+// (band.png); open, the cannon is an amber tower and the doors amber hazard
+// chevrons (open.png). The first rail-gun kill on a side slides that rail one
+// gun pitch inward and opens that side's bay (the window); the second slides
+// it over the cannon, for good (src/hybrid/boss.s BOSS_RAIL).
 //
 //   . background   W COLPF0   g COLPF1   a colour 3, pf2 bank   r colour 3, pf3 bank
 //
-// A cell (4 x 8 pixels) uses one bank: never 'a' and 'r' in one cell.
+// A cell (4 x 8 pixels) uses one bank: never 'a' and 'r' in one cell. The
+// region's charset holds at most 80 codes (five sectors: the boss entry's
+// banner headroom), so the art repeats its cells: the core's rows, the
+// hangar's walls, the bars and the chevrons are one glyph each.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,33 +53,31 @@ const pic = (text) => text.trim().split("\n").map((line) => line.trim().replace(
 // --- the geometry ------------------------------------------------------------
 // Band columns 0-63, the band still at position 32: the screen shows columns
 // 12-51, a player's shot reaches 14-52 (HPOS 56-208). The right side mirrors
-// the left about column 31 (column c's mirror is 62 - c): the hangar is one
-// column, 31. The rails' rows are 1-3: the girder in row 1 right under the
-// track, the guns hanging from it in rows 2-3, the rail's front (the nose,
-// one column) in rows 1-3.
+// the left about column 31 (column c's mirror is 62 - c). The rails' rows are
+// 1-3: the girder in row 1 right under the track, the guns hanging from it in
+// rows 2-3, the rail's front (the nose, one column) in rows 1-3.
 //
-// N-C (Phase A, the beams' hit window): a beam endangers x in [edge - 7,
-// edge + 3] - far to its left, a clock to its right - so only a one-cell core
-// and doors at column 31 put their whole reach (x 116-119) under the left
-// cannon's beam; the core's own volley (columns 30-32) covers it too. The
-// cannons are 2 cells wide, hugging the hangar (29-30, 32-33).
-// W2 (the owner's choice of 2026-10-15): the rails start one position closer
-// than N-C's - the left rail's front at column 22, its front gun at 19-21 -
-// so the second rail-gun kill covers the cannon: guns 3 cells wide at a
-// 4-column pitch, front 22 -> 26 (next to the cannon) -> 30 (over it, the
-// dead front socket and the nose covering 29-30); then the rail stops. Three
-// guns a side: two that slide the rail, one left on the stopped rail.
+// "B - the window" (the owner's choice after the N-C smoke, 2026-10-15): the
+// hangar is wide and the ship's centre - five cells, 29-33 (its walls 29 and
+// 33, the core and the doors 30-32 between them); the cannons, two cells
+// wide, in their bays right beside it (27-28, 34-35). The rails start one gun
+// pitch (4 columns) further out than W2's, so the second rail-gun kill still
+// covers the cannon: front 20 -> 24 (the bay open beside it) -> 28 (over the
+// cannon); then the rail stops, short of the hangar's wall. Three 3-cell guns
+// a side - two that slide the rail, one left on the stopped rail (a fourth
+// would wait behind it for ever) - the third beyond the screen's edge until
+// the first slide brings it in.
 export const R2 = Object.freeze({
-  nose: 22,                            // the left rail's front column at the start
+  nose: 20,                            // the left rail's front column at the start
   rows: [1, 3],                        // the rails' rows: the girder, then the guns
   gunWidth: 3,
   pitch: 4,
   guns: 3,
   positions: 2,
-  cannon: { width: 2, xLeft: 29 },     // the laser cannons, rows 1-3 (region 1's tower, narrowed)
-  hub: { x: 31, width: 1 },            // the hangar's cap, row 0
-  core: { x: 31, width: 1, row: 1, height: 3 },
-  doors: { x: 31, width: 1, row: 4 },
+  cannon: { width: 2, xLeft: 27 },     // the laser cannons, rows 1-3, in their bays
+  hub: { x: 29, width: 5 },            // the hangar's hull, rows 0-4
+  core: { x: 30, width: 3, row: 1, height: 3 },
+  doors: { x: 30, width: 3, row: 4 },
 });
 const mirror = (x, width) => 62 - (x + width - 1);
 
@@ -185,52 +189,100 @@ gWrr|gaag|rrWg
 ....|.WW.|....
 ....|....|....
 `);
-// The hangar: a cap over the track (row 0) and the core, 1 x 3 cells (4 x 24
-// pixels): an amber reactor rod in a steel frame.
-function centreHubPicture() {
-  const cap = pic(`
-.gg.
-gWWg
-gWrg
-grrg
-grWg
-grrg
-gWWg
-gWWg
+// The hangar's hull, five cells wide (columns 29-33, rows 0-4): a cap on the
+// track (row 0: two round shoulders, the top three cells one glyph), the
+// walls (rows 1-3: one glyph a side), the feet beside the doors (row 4). The
+// olive bulk with a steel rim, as the track. Seven glyphs for 13 cells.
+const HUB_CAP_LEFT = pic(`
+..gW
+.gWr
+gWrr
+gWrr
+gWrW
+gWrr
+gWrr
+gWrr
 `);
-  const core = [];
-  for (let y = 0; y < 24; y += 1) {
-    const edge = y === 0 || y === 23;
-    core.push(edge ? "gWWg" : y >= 3 && y <= 20 ? (y % 6 === 2 ? "WaaW" : "gaag") : "gWWg");
-  }
-  return [...cap, ...core];
-}
-// The hangar doors, one cell under the core (row 4). Locked - covered while a
-// cannon or a rail's last gun stands - they are barred armour: steel bars and
-// a brace over the olive bulk (the pf3 bank, band.png). Unlocked - exposed,
-// open.png, the look the controller draws when the exposure check opens them
-// - amber hazard chevrons (the pf2 bank): another colour and another pattern
-// (the owner's readability rule of 2026-10-15). A shot at the locked doors
-// shows the deflection glyph (the controller absorbs it: boss.s boss_hit).
-const DOORS_LOCKED = pic(`
-gWWg
-WrWr
-WrWr
-WgWg
-WrWr
-WrWr
-gWWg
+const HUB_CAP = pic(`
+WWWW
+rrrr
+rWWr
+rrrr
+rrrr
+rWWr
+rrrr
+WWWW
+`);
+const HUB_WALL_LEFT = pic(`
+gWrr
+gWrr
+gWrW
+gWrr
+gWrr
+gWrr
+gWrW
+gWrr
+`);
+const HUB_FOOT_LEFT = pic(`
+gWrr
+gWrr
+.gWr
+.gWW
+..gg
 ....
+....
+....
+`);
+// The core, 3 x 3 cells (columns 30-32, rows 1-3): an amber reactor - a
+// bright rod between two vented flanks - the same three cells in every row
+// (two staged glyphs: the flanks are one, mirror-symmetric).
+const CORE_FLANK = pic(`
+gWWg
+gaag
+gaag
+gWWg
+gaag
+gaag
+gWWg
+gaag
+`);
+const CORE_ROD = pic(`
+WaaW
+aWWa
+aaaa
+aWWa
+aaaa
+aWWa
+aaaa
+WaaW
+`);
+// The locked doors (row 4, under the core) and a locked cannon bay (2 x 3
+// cells, a cannon's own cells while it is covered): one glyph - steel bars
+// over the olive bulk (the pf3 bank, band.png), tiling into a grating. A shot
+// there shows the deflection glyph (the controller absorbs it: boss.s
+// boss_hit). Unlocked - exposed, open.png, the look the controller draws when
+// the exposure check opens them - the doors are amber hazard stripes and the
+// cannon an amber tower (the pf2 bank): another colour and another pattern
+// (the owner's readability rule of 2026-10-15).
+const BARS = pic(`
+WWWW
+WrWr
+WrWr
+WrWr
+WrWr
+WrWr
+WrWr
+gggg
 `);
 const DOORS_OPEN = pic(`
 gggg
+aWWa
+WWaa
 WaaW
-aWaW
-WaWa
-aWaW
-WaaW
+aaWW
+aWWa
+WWaa
 gggg
-....
 `);
 // The empty socket a destroyed module leaves (extras' cavity cell): a dark
 // rack - side rails and a floor (a dead rail gun stays a solid socket).
@@ -295,43 +347,58 @@ function staged(picture, stage) {
 }
 const colour3 = (picture) => picture.join("").split("").filter((ch) => ch === "a" || ch === "r").length;
 
+// A cell picture repeated across `count` cells (one glyph).
+const repeat = (picture, count) => picture.map((line) => line.repeat(count));
+// A module's look from its cells' pictures, row by row: [[cell, ...], ...].
+const join = (rows) => rows.flatMap((cells) => cells[0].map((_, y) => cells.map((cell) => cell[y]).join("")));
+
 export function drawRegion2() {
   const { left, right } = r2Guns();
   const regionOnePng = fs.readFileSync(path.join(regionOne, "emitter.png"));
   // As region 4's cannons (scripts/boss-r4-art.mjs): region 1's tower without
   // its outer flanges, the lens across the cells' boundary; the heat and the
   // stages change only the lens cell (the right cell's bottom row), so the
-  // left cell keeps the rest look in every panel.
+  // left cell keeps the rest look in every panel. Open, the tower is lit:
+  // its mid steel turns hazard amber outside the lens cell (the bay's opening
+  // reads as the cannon turning amber).
   const narrow = decodePanels(regionOnePng, 5, 12, 24).map((panel) => panel.map((line) => line.slice(2, 10)));
   for (const panel of narrow.slice(1)) {
     for (let y = 16; y < 24; y += 1) panel[y] = narrow[0][y].slice(0, 4) + panel[y].slice(4);
   }
+  const lit = narrow.map((panel) => panel.map((line, y) =>
+    (y < 16 ? line.replace(/g/g, "a") : line.slice(0, 4).replace(/g/g, "a") + line.slice(4))));
   const narrowCanvas = new Canvas(5 * 8, 24);
-  narrow.forEach((panel, i) => narrowCanvas.draw(panel, i * 8, 0));
+  lit.forEach((panel, i) => narrowCanvas.draw(panel, i * 8, 0));
   const emitterPng = narrowCanvas.png();
-  const [rest, , , emitterCracked, emitterBroken] = narrow;
+  const [rest, , , emitterCracked, emitterBroken] = lit;
   const extras = fs.readFileSync(path.join(regionOne, "extras.png"));
   const extrasCells = decodePanels(extras, 15, 4, 8);
   extrasCells[3] = SOCKET;
   const extrasCanvas = new Canvas(15 * CELL_W, CELL_H);
   extrasCells.forEach((cell, i) => extrasCanvas.draw(cell, i * CELL_W, 0));
-  const hub = centreHubPicture();
-  const core = hub.slice(8, 32);
+  // The core's and the doors' cells are staged one glyph at a time and then
+  // repeated, so every stage keeps them one glyph each.
+  const core = (stage) => join([0, 1, 2].map(() => [staged(CORE_FLANK, stage), staged(CORE_ROD, stage),
+    staged(CORE_FLANK, stage)]));
+  const doorsOpen = (stage) => repeat(staged(DOORS_OPEN, stage), R2.doors.width);
+  const doorsLocked = repeat(BARS, R2.doors.width);
+  const bay = join([0, 1, 2].map(() => [BARS, BARS]));
   const cannons = [R2.cannon.xLeft, mirror(R2.cannon.xLeft, R2.cannon.width)];
   for (const stage of ["intact", "cracked", "broken"]) {
-    for (const [what, picture] of [["gun", GUN3], ["doors", DOORS_OPEN], ["core", core]]) {
-      const n = colour3(staged(picture, stage));
+    for (const [what, picture] of [["gun", staged(GUN3, stage)], ["doors", doorsOpen(stage)], ["core", core(stage)]]) {
+      const n = colour3(picture);
       if (n < 4) throw new Error(`${what} ${stage}: ${n} colour-3 pixels (the hit flash needs 4)`);
     }
   }
-  // band.png the closed looks (the doors locked), open.png the doors opened,
-  // cracked.png and broken.png the stages of the look a module is hit in.
-  const looks = { band: ["intact", DOORS_LOCKED], open: ["intact", DOORS_OPEN],
-    cracked: ["cracked", DOORS_OPEN], broken: ["broken", DOORS_OPEN] };
+  // band.png the closed looks (the bays and the doors locked), open.png the
+  // bays and the doors opened, cracked.png and broken.png the stages of the
+  // look a module is hit in (a cannon and the doors are hit open).
+  const looks = { band: "intact", open: "intact", cracked: "cracked", broken: "broken" };
   const images = {};
-  for (const [file, [stage, doors]] of Object.entries(looks)) {
+  for (const [file, stage] of Object.entries(looks)) {
+    const closed = file === "band";
     const canvas = new Canvas(BAND_W, BAND_H);
-    // Row 0: the track, edge to edge, behind the hub's top.
+    // Row 0: the track, edge to edge.
     for (let c = 0; c < 64; c += 1) canvas.cell(TRACK[c & 1], c, 0);
     // The rails: the girder from the band's edge to the nose, a mount over
     // each gun, the guns, the nose.
@@ -342,13 +409,23 @@ export function drawRegion2() {
       for (const g of guns) canvas.draw(staged(GUN3, stage), g.x * CELL_W, 2 * CELL_H);
       (side === "l" ? NOSE_LEFT : NOSE_RIGHT).forEach((picture, i) => canvas.cell(picture, nose, 1 + i));
     }
-    // The cannons: region 1's tower (its stages: rest, cracked, broken).
-    const tower = stage === "cracked" ? emitterCracked : stage === "broken" ? emitterBroken : rest;
+    // The cannons: locked, their bays' bars; open, the lit tower (its
+    // stages: rest, cracked, broken).
+    const tower = closed ? bay : stage === "cracked" ? emitterCracked : stage === "broken" ? emitterBroken : rest;
     for (const x of cannons) canvas.draw(tower, x * CELL_W, CELL_H);
-    // The hub's cap, the core under it (its stages), the doors under the core.
-    canvas.draw(hub.slice(0, 8), R2.hub.x * CELL_W, 0, { over: true });
-    canvas.draw(staged(core, stage), R2.core.x * CELL_W, CELL_H);
-    canvas.draw(staged(doors, stage), R2.doors.x * CELL_W, R2.doors.row * CELL_H);
+    // The hangar's hull, the core in it (its stages), the doors under the core.
+    const hubRight = mirror(R2.hub.x, 1);
+    canvas.cell(HUB_CAP_LEFT, R2.hub.x, 0);
+    canvas.cell(flip(HUB_CAP_LEFT), hubRight, 0);
+    for (let c = R2.hub.x + 1; c < hubRight; c += 1) canvas.cell(HUB_CAP, c, 0);
+    for (let r = 1; r <= 3; r += 1) {
+      canvas.cell(HUB_WALL_LEFT, R2.hub.x, r);
+      canvas.cell(flip(HUB_WALL_LEFT), hubRight, r);
+    }
+    canvas.cell(HUB_FOOT_LEFT, R2.hub.x, 4);
+    canvas.cell(flip(HUB_FOOT_LEFT), hubRight, 4);
+    canvas.draw(core(stage), R2.core.x * CELL_W, CELL_H);
+    canvas.draw(closed ? doorsLocked : doorsOpen(stage), R2.doors.x * CELL_W, R2.doors.row * CELL_H);
     images[file] = canvas;
   }
   return {

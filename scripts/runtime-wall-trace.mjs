@@ -5834,13 +5834,13 @@ function main() {
     const boss = parseViceLabels(fs.readFileSync(where, "utf8"));
     // S5-4: region 4's gravity well too - each region's code writing only
     // its own state (the two share BOSS_F_HOOK; one is in memory at a time).
-    // S5-5: region 2's rails too - their code ([rail_hooks, rail_scratch))
-    // writing its scratch (after the code) and its state (in the block's
-    // room before BOSS_F_HOOK).
+    // S5-5: region 2's rails too - their code at the hook ([rail_hooks,
+    // rail_code_end)) writing its state and scratch (in the block's room
+    // before BOSS_F_HOOK; "B - the window" moved the scratch there).
     const watches = [["field_hooks", "field_state", "field_state", "field_state_end"],
       ["gravity_hooks", "gravity_state", "gravity_state", "gravity_state_end"],
-      ["rail_hooks", "rail_scratch", "rail_scratch", "rail_scratch_end"],
-      ["rail_hooks", "rail_scratch", "rail_state", "rail_state_end"]]
+      ["rail_hooks", "rail_code_end", "rail_scratch", "rail_scratch_end"],
+      ["rail_hooks", "rail_code_end", "rail_state", "rail_state_end"]]
       .filter(([hooks]) => boss.has(hooks))
       .map(([hooks, codeEnd, state, end]) => ({ codeStart: boss.get(hooks), codeEnd: boss.get(codeEnd),
         stateStart: boss.get(state), stateEnd: boss.get(end) }));

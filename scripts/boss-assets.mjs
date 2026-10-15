@@ -441,15 +441,24 @@ export function applyBossEmitterArt(draft, png, file, meta) {
       }
     }
   }
+  // S5-5 ("B - the window", the owner's choice of 2026-10-15): an emitter in
+  // an armoured bay ("bay": true, a cover of its own) keeps band.png's cells -
+  // the locked bay, its closed look - and wears the art in open, cracked and
+  // broken only: its open look.
+  const bay = (module) => module.bay === true;
   const images = {};
   for (const [name, image] of Object.entries(draft.images)) {
     if (name === "extras") { images[name] = image; continue; }
     const indices = Uint8Array.from(image.indices);
-    for (let y = old.row * 8; y < (old.row + old.height) * 8; y += 1) {
-      indices.fill(0, y * image.width + old.x * 4, y * image.width + (old.x + old.width) * 4);
+    const closedLook = name === "band";
+    if (!(closedLook && meta === null && bay(emitter))) {
+      for (let y = old.row * 8; y < (old.row + old.height) * 8; y += 1) {
+        indices.fill(0, y * image.width + old.x * 4, y * image.width + (old.x + old.width) * 4);
+      }
     }
     const panel = name === "cracked" ? 3 : name === "broken" ? 4 : 0;
     for (const target of [emitter, ...twins]) {
+      if (closedLook && bay(target)) continue;
       for (let y = 0; y < panelHeight; y += 1) {
         for (let x = 0; x < panelWidth; x += 1) {
           indices[(target.row * 8 + y) * image.width + target.x * 4 + x] = at(panel, x, y);
@@ -758,8 +767,16 @@ function resolveModules(layout) {
       fail(`module ${name} is a ${source.kind}; only an emitter stages its lens alone`);
     }
     const stages = source.stages ?? true;
+    // S5-5 ("B - the window"): an emitter in an armoured bay - band.png draws
+    // the locked bay, emitter.png the cannon it opens on (applyBossEmitterArt).
+    if (source.bay !== undefined) {
+      if (source.bay !== true || kind !== BOSS_KIND.emitter) fail(`module ${name}: "bay": true is an emitter's`);
+      if (!Array.isArray(source.cover) || source.cover.length === 0) {
+        fail(`emitter ${name} is in a bay: its cover names what opens the bay`);
+      }
+    }
     return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows,
-      stages, cover: source.cover ?? "auto", authoredIndex };
+      stages, bay: source.bay === true, cover: source.cover ?? "auto", authoredIndex };
   });
   if (!modules.some((module) => module.kind !== BOSS_KIND.armour)) {
     fail("the boss has no weapon module; it would be defeated before the fight");
@@ -991,7 +1008,17 @@ function resolveBossHangar(source, modules, escortAfter) {
   // locked until they open - an open look of their own (open.png) - and the
   // moment they open sounds for unlockFrames frames (with their flash).
   const unlockFrames = integerIn(source.unlockFrames, 2, 127, "hangar.unlockFrames");
-  return { doors, core, cueFrames, unlockFrames };
+  // S5-5 ("B - the window": no refuge in reach of the core): a volley's three
+  // shots (columns centre - 1 .. centre + 1) meet every player position that
+  // shoots columns centre .. centre + 2, and the left one of the two that
+  // shoot centre - 1 not (a pulse shot hits x in s - 7 .. s + 1, a player's
+  // shot leaves x + 8). A core wider than one cell has columns left of its
+  // centre: the block armours the one column a core of up to three has there
+  // once the doors fall (the jamb) - wider, its reach would outrun its volley.
+  const centre = core.x + (core.width >> 1);
+  if (centre - core.x > 1) fail(`the hangar's core ${core.name} is ${core.width} cells: at most three (its volley's reach)`);
+  const jamb = centre > core.x ? core.x : null;
+  return { doors, core, cueFrames, unlockFrames, jamb };
 }
 
 // ---------------------------------------------------------------------------
@@ -1084,6 +1111,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   }));
   const nozzles = layout.nozzles ?? {};
   const nozzleFrames = integerIn(nozzles.framesPerPhase, 1, 255, "nozzles.framesPerPhase");
+  // S5-5: a region with no nozzle on the band may leave the nozzles' phase
+  // images out of its look tail ("phases": false, 48 B): the engine still
+  // steps the two nozzle codes - unseen - from the tail's hull-stop table.
+  if (nozzles.phases !== undefined && nozzles.phases !== false) fail("nozzles.phases is false or absent");
+  const nozzlePhasesInTail = nozzles.phases !== false;
 
   const { modules, owner } = resolveModules(layout);
   const chainBlasts = integerIn(chain.blasts, modules.length, 32, "chain.blasts");
@@ -1095,6 +1127,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     // still boss has no drive); the engine still steps the two nozzle codes'
     // glyphs, unseen.
     if (!Array.isArray(cells)) fail(`nozzles.${side} is a list of cells`);
+    if (!nozzlePhasesInTail && cells.length > 0) fail(`nozzles.${side} has cells: their phases belong in the look tail`);
     for (const cell of cells) {
       if (!Array.isArray(cell) || cell.length !== 2) fail(`nozzles.${side}: a cell is [column, row]`);
       const [c, r] = [integerIn(cell[0], 0, 63, `nozzles.${side} column`),
@@ -1363,12 +1396,21 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // six phase images.
   const tail = [];
   const openOffsets = new Array(BOSS_MAX_MODULES).fill(BOSS_NO_LOOK);
+  // S5-5: in a region that asks for it ("shareOpenLooks": true), two modules
+  // with the same open look (region 2's two cannons) share its bytes.
+  if (layout.shareOpenLooks !== undefined && layout.shareOpenLooks !== true) fail("shareOpenLooks is true or absent");
+  const lookOffsets = new Map();
   for (const [index, look] of openLooks) {
-    openOffsets[index] = tail.length;
-    tail.push(...look.map((ref) => (ref.block === "plain" ? plainCode(ref) : stagedCode(ref))));
+    const bytes = look.map((ref) => (ref.block === "plain" ? plainCode(ref) : stagedCode(ref)));
+    const key = layout.shareOpenLooks === true ? bytes.join(",") : `module ${index}`;
+    if (!lookOffsets.has(key)) {
+      lookOffsets.set(key, tail.length);
+      tail.push(...bytes);
+    }
+    openOffsets[index] = lookOffsets.get(key);
   }
-  const nozzleTailOffset = tail.length;
-  for (const phases of nozzlePhases) for (const phase of phases) tail.push(...phase.bytes);
+  let nozzleTailOffset = tail.length;
+  if (nozzlePhasesInTail) for (const phases of nozzlePhases) for (const phase of phases) tail.push(...phase.bytes);
   // Decisions M and O: per column the row a shot stops on when no module
   // stands in it - the lowest non-blank cell that is no module's and not a
   // girder's see-through cell - packed a nibble a column (the row + 1; 0 =
@@ -1412,6 +1454,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     }
   }
   const hullStopTailOffset = tail.length;
+  if (!nozzlePhasesInTail) nozzleTailOffset = hullStopTailOffset;
   for (let c = 0; c < BOSS_BAND_COLUMNS; c += 2) {
     const nibble = (row) => (row === null ? 0 : row + 1);
     tail.push(nibble(hullStop[c]) | (nibble(hullStop[c + 1]) << 4));
@@ -1564,7 +1607,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     modules: modules.map((module) => ({ name: module.name, kind: module.kindName, x: module.x,
       row: module.row, width: module.width, height: module.height, hp: module.hp,
       thresholds: bossThresholds(module.hp), slot: module.slot, reload: module.reload,
-      cavityRows: module.cavityRows, stages: module.stages,
+      cavityRows: module.cavityRows, stages: module.stages, bay: module.bay,
       cover: module.coverMask, open: openLooks.has(module.index) })),
     themeBytes: themeImage === null ? 0 : themeImage.length,
     // S5-3: the force field (null without one): its row, the field code, both
@@ -1585,7 +1628,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
         frontSlot: [side.guns[0].x, side.guns[0].x + side.guns[0].width - 1] })),
     },
     hangar: hangar === null ? null : { doors: hangar.doors.index, core: hangar.core.index, cueFrames: hangar.cueFrames,
-      unlockFrames: hangar.unlockFrames },
+      unlockFrames: hangar.unlockFrames, jamb: hangar.jamb },
     gravity: gravity === null ? null : {
       framesPerStep: gravity.framesPerStep, pulseFrames: gravity.pulseFrames, waveStep: gravity.waveStep,
       spires: gravity.spires.map((module) => module.index), core: gravity.core.index,

@@ -2436,6 +2436,82 @@ session that reached it (3-8 volleys).
 
 **Review builds (`build/play/`, not committed):** see STATUS.
 
+#### 6.5.9 "B - the window" (2026-10-15, after the owner's smoke of the N-C candidate) — review build, awaiting the owner's play
+
+**The owner's smoke: NOT accepted.** The one-cell hangar read as a thin pole (the
+doors a sliver, the core no module, no centre to the ship), and both cannons
+exposed from the start let him kill them first and clear the rails. His choice
+"B - the window": a wide hangar, the cannons in armoured bays that the first
+rail-gun kill on a side opens, the second kill covering a standing cannon for
+good. Evidence not regenerated (the owner's order); the default build waits on
+it (`build:candidate` only).
+
+**As built (review).**
+* Geometry (band columns at the still position 32; the screen 12-51, the
+  shots 14-52): the hangar's hull **29-33** (five cells, rows 0-4), the core
+  **30-32** (rows 1-3), the doors **30-32** (row 4); the cannons **27-28 /
+  34-35** beside it; the rail fronts **20 -> 24 -> 28** and **42 -> 38 -> 34**
+  (the second slide covers the cannon, the rail stops short of the hull);
+  three 3-cell guns a side (17-19, 13-15, 9-11 / 43-45, 47-49, 51-53): two
+  slide the rail, the third stays on the stopped rail and is killed in the
+  front slot - every gun destroyable. Off screen at the start: the left rail's
+  third gun (9-11) and the girders to the band's edges; the right third gun
+  shows one cell (51). Each first slide brings the next gun in from the edge.
+* The bays are data: each cannon's cover is its rail's front gun (`"bay":
+  true`: band.png draws the locked bay, emitter.png the cannon it opens on); the
+  controller absorbs a shot at a locked bay (the deflection glyph) and opens it
+  on the tick after that gun's kill (the open look, the existing queue). A
+  locked cannon fires: region 2's frame hook runs slot D's reload countdown for
+  a laser whose emitter is not exposed and drops its shield (no first shot at
+  the opening) - `rail_frame`, 21 B. The unlock cue (flash + held tone) now
+  for the doors and both bays (`RAIL_UNLOCKS`), +12 B.
+* No refuge at the core: a volley (columns c - 1 .. c + 1 of its centre c)
+  meets every position that shoots columns c .. c + 2 and the left one of the
+  two that shoot c - 1 not; a three-cell core has that one column. Once the
+  doors fall the block armours it (`RAIL_JAMB`, column 30, +5 B): the core's
+  reach x 116-122 lies entirely under its volley. The doors' phase has no boss
+  weapon by the engine's fire-column rule (the core's shots would cross the
+  doors' cells): the escort the doors launch is its danger.
+* Bytes: region 2's block 510 of 512 (look tail 41 B - the unseen nozzle
+  phases left out, `"phases": false`, the two cannons' open looks shared,
+  `"shareOpenLooks": true`; BOSS_R_DATA 65 B: tables, state, scratch,
+  `rail_frame`, `rail_index`; code 400 of 402); charset 79 codes, 632 B, 5
+  sectors; the boss entry 66 sectors / **253 host frames** (27 left for the
+  banner's ~25); 0 resident bytes, slots A-E unchanged (slot D +0: a label).
+* Hit points unchanged (t3: guns 15, cannons 8, doors 46, core 50).
+
+**Measured (M: Atari800 debug routes; R: the aiming bot's ratio; M-N native).**
+| E / M / H, seconds (R) | careful | careless | careful-dodge | careless-dodge |
+| --- | --- | --- | --- | --- |
+| level 4 | 93.3 / 110.6 / 143.7 | 84.8 / 101.4 / 132.8 | 93.2 / 110.6 / 149.1 | 86.8 / 114.0 / 144.4 |
+| levels 5-6 | 93.3 / 113.7 / 144.7 | 84.8 / 100.8 / 131.9 | 93.2 / 117.6 / 152.2 | 85.6 / 111.5 / 139.0 |
+| level 4: covers; beams in the doors + core phases | none; 0 | both; 2 / 3 / 5 | none; 0 | both; 2 / 3 / 5 |
+| levels 5-6 | none; 0 | both; 4 / 8 / 10 | none; 0 | both; 4 / 6 / 10 |
+| hits (boss laser), level 4 | 10 (1) / 18 (0) / 18 (1) | 9 (0) / 18 (0) / 19 (1) | 8 (0) / 18 (0) / 20 (0) | 9 (0) / 19 (0) / 19 (0) |
+| hits (boss laser), levels 5-6 | 10 (1) / 14 (2) / 19 (2) | 9 (0) / 24 (1) / 20 (2) | 8 (0) / 18 (0) / 19 (0) | 9 (0) / 19 (0) / 19 (0) |
+
+The careless order still runs shorter than the careful one (it skips the
+cannons' 16 hit points); its permanent beams no longer stand over the wide
+core's reach, so they cost the bot little in hits (0-2) and the dodging bot
++3-13 % in time. Tuning by data is the owner's step after he has played.
+Fairness: >= 10 warning frames after leaving a beam - 37 / 29 / 22 (E / M / H);
+in the careless core phase no beam ever endangers the core's reach (x 116-122:
+the window is always open, the core's volleys are its danger); the left
+beam covers the jamb's left shooter (x 112). Route sessions (boss route,
+level 4 unless noted): `region-2-diag-0/1/2` 94.3 / 112.1 / 147.5 s,
+`region-2-finale-0/1/2` 85.8 / 105.2 / 136.3 s (both cannons covered),
+`region-2-edge-left-1` 27 escorts and 25 hits on the parked player (no
+refuge), `region-2-dodge-2` 5 laser hits; 0 PAL misses, every clause held;
+worst margin 8,532, DMA-on <= 29,939. Stress (M-N, `tests/boss-region-2`):
+worst reachable **7,388** (level 4), 7,280 (level 5) - two kills on the
+cannons with a gun's firing due, lasers warning; 0 kill frames with a spawn.
+
+Tests: `tests/boss-region-2.test.mjs` rewritten (19): RED on the N-C candidate
+`6130ca4` 12 of 19 (every rule that changed; the palette, one ship, the cover
+warning, the escort, the lasers per level, the beams' escape and the stress
+unchanged), GREEN here; the other boss tests 290 of 291 then 291 (the
+generated memory map regenerated).
+
 ## 7. Owner questions
 
 | # | Question | Recommended answer | Cost of the recommendation | The alternative and its cost |

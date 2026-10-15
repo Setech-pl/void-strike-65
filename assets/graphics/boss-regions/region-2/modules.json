@@ -2,9 +2,9 @@
   "formatVersion": 2,
   "name": "Bastion",
   "style": 2,
-  "_": "Region 2's boss (S5-5, feat/boss-region-2; the owner's design of 2026-10-14, his choice of 2026-10-15: N-C with W2), drawn by scripts/boss-r2-art.mjs. The hangar at the centre (a one-cell cap, the core under it, the doors under the core; the escort launches from the doors), a laser cannon each side hugging it, a sliding rail of three guns outside each cannon. A rail-gun kill slides its rail one pitch inward; the second slide covers that side's cannon - invulnerable, still firing - and the rail stops (it never reaches the hangar). The doors are locked (barred armour, band.png) until every cannon and rail gun is destroyed or covered, then open (amber chevrons, open.png) with a flash and a sound; the core, a salvo launcher, falls last.",
+  "_": "Region 2's boss (S5-5, feat/boss-region-2; the owner's design of 2026-10-14, his choice \"B - the window\" of 2026-10-15), drawn by scripts/boss-r2-art.mjs. The hangar at the centre, wide (five cells: its hull, the core - a three-cell reactor, a salvo launcher - and the doors under it; the escort launches from the doors), a laser cannon each side in an armoured bay beside it, a sliding rail of three guns outside each cannon. A locked bay is the locked doors' barred armour: shots deflect, the cannon under it still fires. The first rail-gun kill on a side slides its rail one pitch inward and opens that side's bay (the cannon amber and hittable: the window, no timer); the second slides the rail over the cannon - if it still stands, invulnerable and firing for good. The doors are locked until every cannon and rail gun is destroyed or covered, then open with a flash and a sound; the core falls last.",
   "palette": {
-    "_": "COLPF0 pale steel, COLPF1 mid steel, COLPF2 hazard amber (lights, the core, the opened doors' chevrons; hue 34, 168 degrees from the ally steel $88 of levels 4-6), COLPF3 the olive bulk (the track, the locked doors; hue 82, 144 degrees).",
+    "_": "COLPF0 pale steel, COLPF1 mid steel, COLPF2 hazard amber (lights, the core, the open bays' cannons, the opened doors' stripes; hue 34, 168 degrees from the ally steel $88 of levels 4-6), COLPF3 the olive bulk (the track, the hangar's hull, the locked bays' and doors' bars; hue 82, 144 degrees).",
     "colpf0": 12,
     "colpf1": 6,
     "colpf2": 40,
@@ -39,7 +39,7 @@
     "beamFrames": 50
   },
   "rails": {
-    "_": "The sliding rails (src/hybrid/boss.s BOSS_RAIL): a kill of a rail's front gun slides the rail one pitch inward after delayFrames, one column every framesPerStep frames (the next gun locked until it locks into the front slot); after `positions` slides it covers its cannon and stops. One slide from covering a standing cannon, the gun whose fall would cover it pulses every pulseFrames.",
+    "_": "The sliding rails (src/hybrid/boss.s BOSS_RAIL): a kill of a rail's front gun slides the rail one pitch inward after delayFrames, one column every framesPerStep frames (the next gun locked until it locks into the front slot); after `positions` slides it covers its cannon and stops. The rail's first kill also opens its cannon's bay (the cannon's cover is the rail's front gun). While the bay is open and its cannon stands, the gun whose fall would cover it pulses every pulseFrames.",
     "framesPerStep": 4,
     "delayFrames": 12,
     "pulseFrames": 16,
@@ -57,7 +57,7 @@
         "rail-l-3"
       ],
       "cannon": "cannon-l",
-      "nose": 22
+      "nose": 20
     },
     "right": {
       "guns": [
@@ -66,26 +66,29 @@
         "rail-r-3"
       ],
       "cannon": "cannon-r",
-      "nose": 40
+      "nose": 42
     }
   },
   "hangar": {
-    "_": "The doors launch the escort (their flash cueFrames before each) and stop it when they fall. Locked they are barred armour (band.png); the moment they unlock their open look (open.png, amber chevrons) is drawn and they flash, the hit's high tone held unlockFrames frames.",
+    "_": "The doors launch the escort (their flash cueFrames before each) and stop it when they fall. Locked they are barred armour (band.png); the moment they - or a cannon's bay - unlock, the open look (open.png: amber stripes, the lit tower) is drawn and it flashes, the hit's high tone held unlockFrames frames. Once the doors fall, the core's left flank is armoured (its volley's columns cover the rest of its reach).",
     "doors": "doors",
     "core": "core",
     "cueFrames": 6,
     "unlockFrames": 16
   },
   "nozzles": {
+    "_": "None on the band (a still ship has no drive), and no phase images in the look tail (phases false): the engine steps the two nozzle codes unseen.",
     "left": [],
     "right": [],
-    "framesPerPhase": 6
+    "framesPerPhase": 6,
+    "phases": false
   },
+  "shareOpenLooks": true,
   "modules": [
     {
       "name": "rail-l-1",
       "kind": "pulse",
-      "x": 19,
+      "x": 17,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -98,7 +101,7 @@
     {
       "name": "rail-l-2",
       "kind": "pulse",
-      "x": 15,
+      "x": 13,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -113,7 +116,7 @@
     {
       "name": "rail-l-3",
       "kind": "pulse",
-      "x": 11,
+      "x": 9,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -128,7 +131,7 @@
     {
       "name": "cannon-l",
       "kind": "emitter",
-      "x": 29,
+      "x": 27,
       "row": 1,
       "width": 2,
       "height": 3,
@@ -137,14 +140,17 @@
       "slot": 1,
       "cavityRows": 3,
       "stages": "lens",
-      "cover": []
+      "bay": true,
+      "cover": [
+        "rail-l-1"
+      ]
     },
     {
       "name": "core",
       "kind": "salvo",
-      "x": 31,
+      "x": 30,
       "row": 1,
-      "width": 1,
+      "width": 3,
       "height": 3,
       "hp": 50,
       "score": 99,
@@ -157,7 +163,7 @@
     {
       "name": "cannon-r",
       "kind": "emitter",
-      "x": 32,
+      "x": 34,
       "row": 1,
       "width": 2,
       "height": 3,
@@ -166,12 +172,15 @@
       "slot": 1,
       "cavityRows": 3,
       "stages": "lens",
-      "cover": []
+      "bay": true,
+      "cover": [
+        "rail-r-1"
+      ]
     },
     {
       "name": "rail-r-1",
       "kind": "pulse",
-      "x": 41,
+      "x": 43,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -184,7 +193,7 @@
     {
       "name": "rail-r-2",
       "kind": "pulse",
-      "x": 45,
+      "x": 47,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -199,7 +208,7 @@
     {
       "name": "rail-r-3",
       "kind": "pulse",
-      "x": 49,
+      "x": 51,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -214,9 +223,9 @@
     {
       "name": "doors",
       "kind": "armour",
-      "x": 31,
+      "x": 30,
       "row": 4,
-      "width": 1,
+      "width": 3,
       "height": 1,
       "hp": 46,
       "score": 60,

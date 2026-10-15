@@ -1,31 +1,42 @@
 // S5-5 (feat/boss-region-2, docs/plans/s5-boss-regions.md §6.5; the owner's
-// design of 2026-10-14 and his choice of 2026-10-15: N-C with W2): region 2's
-// boss, the Bastion - the hangar (its doors over the core), the two laser
-// cannons hugging it, the two sliding gun rails. The data
-// (assets/graphics/boss-regions/region-2/), the built disk's region 2, and the
-// rails and the hangar on the 6502 harness through the real boss entry at
-// level 4 (tier 1: the twin cannons take turns) or level 5 (tier 2: two
-// beams) - the rails' code is read from the built disk into slot F:
-//   1. the layout, the hit points, the rails and the hangar are region 2's own
-//      data (W2: three 3-cell guns a side at a 4-column pitch, two slides, the
-//      second covering the cannon), and the built disk carries them;
-//   2. the art rule (plan boss-polish §10.3) and the palette against the ally
-//      steel of levels 4-6 ($88); one ship; every module in reach;
-//   3. a rail slides exactly one pitch per kill of its front gun, never
-//      otherwise, and stops over its cannon - never over the doors or the core;
-//   4. hit detection follows the rail: a gun's current columns hit it, its old
-//      ones do not;
-//   5. a covered cannon is invulnerable (the shot deflects) and keeps firing;
-//   6. the doors: locked until every cannon and rail gun is destroyed or
-//      covered - another colour and pattern, shots deflect - then open: their
-//      open look, their flash and a tone; the core only behind them;
-//   7. the escort: launched from the doors' column, its cue the doors' flash,
-//      none once the doors fall;
-//   8. fairness: the core's reach lies under the left cannon's beam (danger,
-//      not a refuge), every beam left with >= 10 warning frames to spare, and
-//      repeated windows (>= 50 frames each) to shoot the core outside every
-//      warned or active beam in the core phase, per level and difficulty;
-//   9. the stress composition (scripts/measure-boss-stress-r2.mjs) under the
+// design of 2026-10-14, his choice "B - the window" of 2026-10-15 after his
+// smoke of the N-C candidate): region 2's boss, the Bastion - the wide hangar
+// (its hull, the core inside it, the doors under the core), the two laser
+// cannons in their armoured bays beside it, the two sliding gun rails. The
+// data (assets/graphics/boss-regions/region-2/), the built disk's region 2,
+// and the bays, the rails and the hangar on the 6502 harness through the real
+// boss entry at level 4 (tier 1: the twin cannons take turns) or level 5
+// (tier 2: two beams) - the rails' code is read from the built disk into slot F:
+//   1. the layout, the hit points, the rails, the bays and the hangar are
+//      region 2's own data (a five-cell hangar, three 3-cell guns a side at a
+//      4-column pitch, two slides, each cannon's cover its rail's front gun),
+//      and the built disk carries them in the boss entry's sectors;
+//   2. the art rule (plan boss-polish §10.3), the locked bays and doors one
+//      barred glyph, the palette against the ally steel of levels 4-6 ($88);
+//      one ship; every module in reach;
+//   3. the bays: locked at the start - shots deflect, the cannon keeps firing
+//      with its warning showing; the first rail-gun kill on a side opens that
+//      side's bay (the open look, the flash and the tone) and the cannon can
+//      be hurt; the other bay stays locked;
+//   4. a rail slides exactly one pitch per kill of its front gun, never
+//      otherwise; hit detection follows it;
+//   5. the second kill slides it over its cannon: a cannon still standing is
+//      covered for good - shots deflect, it keeps firing; a destroyed one's
+//      empty socket is just slid over; never the hangar, the doors or the core;
+//   6. the warning: while a bay is open and its cannon stands, the gun whose
+//      fall would cover it pulses;
+//   7. the doors: locked until every cannon and rail gun is destroyed or
+//      covered, then open - their open look, flash and tone; the core only
+//      behind them, its left flank armoured once they fall; it falls last;
+//   8. the escort: launched over the doors, its cue the doors' flash, none
+//      once the doors fall;
+//   9. the lasers per level (decision AC): one beam on level 4, two on 5-6,
+//      the locked and the covered cannons firing too;
+//  10. fairness: no refuge in reach of the core - its volley meets every
+//      position its hittable columns are shot from; every beam left with >= 10
+//      warning frames to spare; in the careless core phase the core's reach is
+//      never under a beam;
+//  11. the stress composition (scripts/measure-boss-stress-r2.mjs) under the
 //      reachable limit 8,500, and no frame with a kill and a gun's spawn.
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -51,30 +62,47 @@ const BAND_A = layout.get("BOSS_BAND_A");
 const ARMOUR_COLUMN = 0xfe;                              // BOSS_COLUMN_ARMOUR
 const STILL = 32;
 
-test("region 2 is the Bastion from its own draft: W2's layout, the hit points, the rails, the hangar, on the built disk", () => {
+const SIDES = Object.freeze([
+  { name: "left", side: 0, guns: ["rail-l-1", "rail-l-2", "rail-l-3"], cannon: "cannon-l", fronts: [20, 24, 28] },
+  { name: "right", side: 1, guns: ["rail-r-1", "rail-r-2", "rail-r-3"], cannon: "cannon-r", fronts: [42, 38, 34] },
+]);
+const HANGAR = Object.freeze({ x: 29, width: 5 });     // the hull's columns 29-33, rows 0-4
+
+test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the rails, on the built disk", () => {
   assert.ok(hasDraft, "assets/graphics/boss-regions/region-2/ has no draft");
   assert.equal(region2.name, "Bastion");
   const at = Object.fromEntries(region2.modules.map((m) => [m.name, [m.kind,
     m.x, m.row, m.width, m.height]]));
   assert.deepEqual(at, {
-    "rail-l-1": ["pulse", 19, 2, 3, 2], "rail-l-2": ["pulse", 15, 2, 3, 2], "rail-l-3": ["pulse", 11, 2, 3, 2],
-    "cannon-l": ["emitter", 29, 1, 2, 3], core: ["salvo", 31, 1, 1, 3], "cannon-r": ["emitter", 32, 1, 2, 3],
-    "rail-r-1": ["pulse", 41, 2, 3, 2], "rail-r-2": ["pulse", 45, 2, 3, 2], "rail-r-3": ["pulse", 49, 2, 3, 2],
-    doors: ["armour", 31, 4, 1, 1],
-  }, "W2 (the owner's choice of 2026-10-15): three 3-cell guns a side, the hangar one column at 31");
-  // The hit points (tuned in Phase B, plan s5-boss-regions §6.5.8).
+    "rail-l-1": ["pulse", 17, 2, 3, 2], "rail-l-2": ["pulse", 13, 2, 3, 2], "rail-l-3": ["pulse", 9, 2, 3, 2],
+    "cannon-l": ["emitter", 27, 1, 2, 3], core: ["salvo", 30, 1, 3, 3], "cannon-r": ["emitter", 34, 1, 2, 3],
+    "rail-r-1": ["pulse", 43, 2, 3, 2], "rail-r-2": ["pulse", 47, 2, 3, 2], "rail-r-3": ["pulse", 51, 2, 3, 2],
+    doors: ["armour", 30, 4, 3, 1],
+  }, "the window (the owner's choice of 2026-10-15): the core and the doors three cells, the cannons beside the hangar");
+  // The hit points (Phase B's t3, tuned again once the owner has played).
   const hp = Object.fromEntries(region2.modules.map((m) => [m.name, m.hp]));
-  for (const name of ["rail-l-1", "rail-l-2", "rail-l-3", "rail-r-1", "rail-r-2", "rail-r-3"]) {
-    assert.equal(hp[name], hp["rail-l-1"], `${name}: every rail gun alike`);
-  }
+  for (const name of SIDES.flatMap((s) => s.guns)) assert.equal(hp[name], hp["rail-l-1"], `${name}: every rail gun alike`);
   assert.equal(hp["cannon-l"], hp["cannon-r"]);
   const { rails, hangar } = region2;
   assert.ok(rails !== null && hangar !== null, "the region carries its rails and its hangar");
   assert.deepEqual([rails.pitch, rails.positions, rails.gunWidth, rails.framesPerStep, rails.delayFrames, rails.pulseFrames],
     [4, 2, 3, 4, 12, 16], "a 4-column pitch, two slides; 12 frames, then 4 a column (the owner's slide timing)");
-  assert.deepEqual(rails.sides.map((s) => [s.nose, s.guns.map((i) => region2.modules[i].name), region2.modules[s.cannon].name]), [
-    [22, ["rail-l-1", "rail-l-2", "rail-l-3"], "cannon-l"], [40, ["rail-r-1", "rail-r-2", "rail-r-3"], "cannon-r"]]);
+  assert.deepEqual(rails.sides.map((s) => [s.nose, s.guns.map((i) => region2.modules[i].name), region2.modules[s.cannon].name]),
+    SIDES.map((s) => [s.fronts[0], s.guns, s.cannon]));
+  // The bays: each cannon is covered by its rail's front gun - the first kill
+  // on a side opens it - and has an open look of its own.
+  const bit = (name) => 1 << index(name);
+  for (const s of SIDES) {
+    const cannon = region2.modules[index(s.cannon)];
+    assert.ok(cannon.bay, `${s.cannon} is in a bay`);
+    assert.equal(cannon.cover, bit(s.guns[0]), `${s.cannon}'s cover is ${s.guns[0]} alone`);
+    assert.ok(region2.openLooks.has(index(s.cannon)), `${s.cannon} has no open look`);
+  }
   assert.deepEqual([region2.modules[hangar.doors].name, region2.modules[hangar.core].name], ["doors", "core"]);
+  assert.equal(region2.modules[index("doors")].cover,
+    bit("cannon-l") | bit("cannon-r") | bit("rail-l-3") | bit("rail-r-3"), "the doors wait on the cannons and the rails' last guns");
+  assert.equal(region2.modules[index("core")].cover, bit("doors"), "the core behind the doors");
+  assert.equal(hangar.jamb, 30, "the core's left flank, armoured once the doors fall");
   assert.ok(region2.openLooks.has(hangar.doors), "the doors have an open look");
   assert.deepEqual([region2.tables[BOSS_TABLE.framesPerStep], region2.tables[BOSS_TABLE.start]], [0, STILL], "a still band at 32");
   assert.equal(region2.bandShownRows, 5, "the band ends at its last non-empty row (the doors' row)");
@@ -91,12 +119,25 @@ test("region 2 is the Bastion from its own draft: W2's layout, the hit points, t
   assert.ok(block.codeBytes > 0, "region 2's block carries the rails' code");
   assert.ok(block.bytes <= manifest.boss.slotF.capacityBytes, `region 2's block is ${block.bytes} B`);
   assert.ok(region2.lookTail.length <= 110, "the look tail fits slot F's rule");
-  assert.ok(region2.codeCount <= 128, `${region2.codeCount} codes`);
+  // The banner task's headroom (decision AM: 280 host frames, the banner
+  // ~25): the boss entry stays at 66 sectors - the charset in five.
+  assert.ok(region2.codeCount <= 80, `${region2.codeCount} codes: the charset outgrows five sectors`);
+  assert.equal(built.entrySectors, 66, "region 2's boss entry is 66 sectors");
 });
 
-test("the geometry: the first slide leaves each cannon clear, the second covers it, no slide reaches the hangar", () => {
+test("the geometry: the hangar five cells; the first slide leaves each cannon clear, the second covers it; every gun reachable", () => {
   assert.ok(hasDraft);
   const { rails } = region2;
+  const owner = new Set(region2.modules.flatMap((m) => [...Array(m.width * m.height).keys()]
+    .map((k) => `${m.x + (k % m.width)},${m.row + Math.floor(k / m.width)}`)));
+  // The hangar's hull: its walls and its cap are hull art, no module's.
+  for (let r = 0; r <= 4; r += 1) {
+    for (const c of [HANGAR.x, HANGAR.x + HANGAR.width - 1]) {
+      assert.ok(region2.bandRows[r][c] !== 0 && !owner.has(`${c},${r}`), `the hangar's wall (${c}, ${r})`);
+    }
+  }
+  for (let c = HANGAR.x; c < HANGAR.x + HANGAR.width; c += 1) assert.ok(region2.bandRows[0][c] !== 0, `the hangar's cap (${c}, 0)`);
+  assert.ok(HANGAR.width >= 4, "the hangar is the ship's centre (the owner: at least about four cells)");
   for (const side of rails.sides) {
     const cannon = region2.modules[side.cannon];
     const fronts = [0, 1, 2].map((k) => side.nose + side.dir * k * rails.pitch);
@@ -104,14 +145,20 @@ test("the geometry: the first slide leaves each cannon clear, the second covers 
     assert.ok(!inside(fronts[0]) && !inside(fronts[1]), `${side.name}: fronts ${fronts}`);
     const covered = side.dir > 0 ? fronts[2] >= cannon.x + cannon.width - 1 : fronts[2] <= cannon.x;
     assert.ok(covered, `${side.name}: the second slide covers ${cannon.name} (front ${fronts[2]})`);
-    assert.ok(fronts.every((c) => c !== 31), `${side.name}: a front at the hangar's column`);
-    // The guns' slots: each gun locks into the front slot (in the shots'
-    // reach, columns 14-52 at the still position).
+    assert.ok(fronts.every((c) => c < HANGAR.x || c > HANGAR.x + HANGAR.width - 1), `${side.name}: a front in the hangar`);
+    // Every gun locks into the front slot in turn (positions + 1 guns: no gun
+    // waits behind the stopped rail), and the slot is in the shots' reach
+    // (columns 14-52 at the still position).
+    assert.equal(side.guns.length, rails.positions + 1, `${side.name}: a gun no slide brings to the front slot`);
     assert.ok(side.frontSlot[0] >= 14 && side.frontSlot[1] <= 52, `${side.name}'s front slot ${side.frontSlot}`);
   }
+  // The rails run off the screen (columns 12-51): the left rail's third gun
+  // starts beyond the edge and comes in with the first slide.
+  const third = region2.modules[index("rail-l-3")];
+  assert.ok(third.x + third.width - 1 < 12 && third.x + third.width - 1 + rails.pitch >= 12, "the left rail's third gun");
 });
 
-test("the art rule: every damage stage of every region 2 module has colour-3 pixels; the opened doors' PF2", () => {
+test("the art rule: every damage stage of every region 2 module has colour-3 pixels; the open bays and doors are PF2", () => {
   assert.ok(hasDraft);
   const colour3 = (code) => {
     let n = 0;
@@ -131,20 +178,27 @@ test("the art rule: every damage stage of every region 2 module has colour-3 pix
       assert.ok(count >= 4, `${module.name} stage ${stage}: ${count} colour-3 pixels`);
     });
   });
-  // The doors once open take damage in the PF2 bank (bit 7 clear), so b3's
-  // flash turns their amber to the hull's olive and back.
-  const doorsOpen = region2.openLooks.get(index("doors"));
-  assert.ok(doorsOpen.every((code) => (code & 0x80) === 0 && staged(code)), "the opened doors are staged PF2 cells");
+  // Opened, the doors and the cannons are in the PF2 bank (bit 7 clear): b3's
+  // flash turns their amber to the olive and back.
+  for (const name of ["doors", "cannon-l", "cannon-r"]) {
+    assert.ok(region2.openLooks.get(index(name)).every((code) => (code & 0x80) === 0), `${name} open: a PF3 cell`);
+  }
+  assert.ok(region2.openLooks.get(index("doors")).every(staged), "the opened doors are staged cells");
 });
 
-test("the doors read locked or open: another colour bank and another glyph", () => {
+test("locked and open read apart: a locked bay is the locked doors' barred glyph, open another bank and glyph", () => {
   assert.ok(hasDraft);
-  const doors = region2.modules[index("doors")];
-  const locked = region2.bandRows[doors.row][doors.x];
-  const open = region2.openLooks.get(index("doors"))[0];
-  assert.notEqual(locked & 0x7f, open & 0x7f, "the same glyph locked and open");
-  assert.equal(locked & 0x80, 0x80, "locked: the olive (PF3) bank - barred armour");
-  assert.equal(open & 0x80, 0, "open: the amber (PF2) bank - the chevrons");
+  const closed = (name) => {
+    const m = region2.modules[index(name)];
+    return [...Array(m.width * m.height).keys()].map((k) => region2.bandRows[m.row + Math.floor(k / m.width)][m.x + (k % m.width)]);
+  };
+  const bars = closed("doors")[0];
+  assert.equal(bars & 0x80, 0x80, "locked: the olive (PF3) bank - barred armour");
+  for (const name of ["doors", "cannon-l", "cannon-r"]) {
+    assert.ok(closed(name).every((code) => code === bars), `${name} locked: not the barred glyph`);
+    const open = region2.openLooks.get(index(name));
+    assert.ok(open.every((code) => (code & 0x7f) !== (bars & 0x7f) && (code & 0x80) === 0), `${name} open: the bars or PF3`);
+  }
 });
 
 test("the palette reads as the enemy on levels 4-6: no colour register near the ally steel $88's hue", () => {
@@ -184,7 +238,8 @@ test("one ship: the track is whole from screen edge to screen edge, and every mo
 });
 
 // ---------------------------------------------------------------------------
-// The rails and the hangar on the 6502 harness, through the real boss entry.
+// The bays, the rails and the hangar on the 6502 harness, through the real
+// boss entry.
 // ---------------------------------------------------------------------------
 const entries = new Map();
 function bastion({ level = 4, difficulty = 1 } = {}) {
@@ -235,138 +290,261 @@ function destroy(memory, name, { settle = 60 } = {}) {
 }
 const map = (memory, column) => memory[lbl("boss_column_map") + column];
 const cell = (memory, column, row) => memory[BAND_A + row * 64 + column];
+const lookOf = (memory, name) => {
+  const m = region2.modules[index(name)];
+  return [...Array(m.width * m.height).keys()].map((k) => cell(memory, m.x + (k % m.width), m.row + Math.floor(k / m.width)));
+};
+const deflected = (memory, column) => [...Array(8).keys()].some((r) => memory[lbl("boss_ring_timer") + r] !== 0 &&
+  (memory[lbl("boss_ring_lo") + r] & 63) === column && memory[lbl("boss_ring_glyph") + r] === region2.deflect);
+// The lasers' states over `frames` frames: per module the frames in its
+// warning (1) and its beam (2), and the most beams on at once.
+function watchLasers(memory, frames, { lens = null } = {}) {
+  const seen = new Map();
+  let together = 0, heat = 0;
+  for (let f = 0; f < frames; f += 1) {
+    frame(memory);
+    let beams = 0;
+    for (let laser = 0; laser < 4; laser += 1) {
+      const state = memory[lbl("boss_laser_state") + laser];
+      const module = memory[lbl("boss_laser_module") + laser];
+      if (module === 0xff || state === 0) continue;
+      const entry = seen.get(module) ?? { warn: 0, beam: 0 };
+      entry[state === 1 ? "warn" : "beam"] += 1;
+      seen.set(module, entry);
+      if (state === 2) beams += 1;
+    }
+    together = Math.max(together, beams);
+    if (lens !== null && region2.heat.includes(cell(memory, lens[0], lens[1]) & 0x7f)) heat += 1;
+  }
+  return { seen, together, heat };
+}
+const unlockTone = (writes) => writes.some(([a, v]) => a === 0xd204 && v === 0x18) && writes.some(([a, v]) => a === 0xd205 && v === 0xa6);
+const POKEY = (writes) => ({ write: (address, value) => { if (address === 0xd204 || address === 0xd205) writes.push([address, value]); } });
+
+test("the bays: locked at the start - shots deflect, the barred look, and the cannon under it keeps firing with its warning", () => {
+  assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
+  for (const level of [4, 5]) {
+    const memory = bastion({ level });
+    const bars = region2.bandRows[4][30];
+    for (const s of SIDES) {
+      assert.ok(!exposed(memory, s.cannon), `level ${level}: ${s.cannon} is open at the start`);
+      assert.ok(lookOf(memory, s.cannon).every((code) => code === bars), `level ${level}: ${s.cannon}'s bay is not barred`);
+      const hp = HP(memory, s.cannon);
+      for (const c of columnsOf(memory, s.cannon)) {
+        assert.equal(map(memory, c), index(s.cannon), `the map's column ${c}`);
+        shoot(memory, c);
+        assert.ok(deflected(memory, c), `level ${level}: no deflection on ${s.cannon}'s bay at column ${c}`);
+        run(memory, 3);
+      }
+      assert.equal(HP(memory, s.cannon), hp, `level ${level}: the locked ${s.cannon} took damage`);
+    }
+    // Both locked cannons warn and fire (level 4: in turn, one beam; level 5:
+    // their own cadences), the warning's heat on the bay's lens cell.
+    const { seen, together, heat } = watchLasers(memory, 1500, { lens: [28, 3] });
+    for (const s of SIDES) {
+      const entry = seen.get(index(s.cannon));
+      assert.ok(entry?.warn > 0 && entry?.beam > 0, `level ${level}: the locked ${s.cannon} never fired (${JSON.stringify(entry)})`);
+      assert.ok(!exposed(memory, s.cannon), `level ${level}: ${s.cannon}'s bay opened on its own`);
+    }
+    assert.ok(heat > 0, `level ${level}: no heat on the locked left bay's lens cell`);
+    if (level === 4) assert.equal(together, 1, `level 4: ${together} beams at once in 1,500 frames (the twins take turns)`);
+  }
+});
+
+test("the window: the first rail-gun kill on a side opens that side's bay - the open look, the flash, the tone - and the cannon can be hurt", () => {
+  assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
+  const memory = bastion();
+  run(memory, 4);
+  memory[lbl("_boss_hp") + index("rail-l-1")] = 1;
+  shoot(memory, 18);
+  assert.equal(HP(memory, "rail-l-1"), 0);
+  const writes = [];
+  let flashed = false;
+  for (let f = 0; f < 8; f += 1) {
+    frame(memory, { hooks: POKEY(writes) });
+    if (memory[lbl("boss_mflash_timer")] !== 0 && memory[lbl("boss_mflash_m")] === index("cannon-l")) flashed = true;
+  }
+  assert.ok(exposed(memory, "cannon-l"), "the first kill did not open the left bay");
+  assert.ok(!exposed(memory, "cannon-r"), "the right bay opened with the left rail's kill");
+  assert.ok(flashed, "the left bay did not flash as it opened");
+  assert.ok(unlockTone(writes), `the unlock's tone: ${JSON.stringify(writes)}`);
+  run(memory, 8);
+  assert.deepEqual(lookOf(memory, "cannon-l").map((c) => c & 0x7f), region2.openLooks.get(index("cannon-l")).map((c) => c & 0x7f),
+    "the open bay's look");
+  assert.ok(lookOf(memory, "cannon-r").every((code) => code === region2.bandRows[4][30]), "the right bay is not barred");
+  // The rail slid one pitch with the kill.
+  run(memory, 40);
+  assert.deepEqual([front(memory, 0), slides(memory, 0)], [24, 1]);
+  // Open: shots hurt the cannon; no timer closes the window.
+  run(memory, 600);
+  assert.ok(exposed(memory, "cannon-l"), "the window closed on its own");
+  const hp = HP(memory, "cannon-l");
+  shoot(memory, 27);
+  assert.equal(HP(memory, "cannon-l"), hp - 1, "the open cannon took no damage");
+  destroy(memory, "cannon-l");
+});
 
 test("a rail slides exactly one pitch per kill of its front gun, never otherwise, and stops over its cannon", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   const memory = bastion();
-  assert.deepEqual([front(memory, 0), front(memory, 1), slides(memory, 0), slides(memory, 1)], [22, 40, 0, 0]);
+  assert.deepEqual([front(memory, 0), front(memory, 1), slides(memory, 0), slides(memory, 1)], [20, 42, 0, 0]);
   run(memory, 400);
-  assert.deepEqual([front(memory, 0), front(memory, 1)], [22, 40], "a rail moved on its own");
-  // A kill that is not a rail's front gun moves no rail.
-  destroy(memory, "cannon-r", { settle: 200 });
-  assert.deepEqual([front(memory, 0), front(memory, 1)], [22, 40], "a cannon's kill moved a rail");
+  assert.deepEqual([front(memory, 0), front(memory, 1)], [20, 42], "a rail moved on its own");
   // The left rail's front gun: one pitch, one column at a time, after the delay.
   memory[lbl("_boss_hp") + index("rail-l-1")] = 1;
-  shoot(memory, 20);
+  shoot(memory, 18);
   const seen = [front(memory, 0)];
   for (let f = 0; f < 80; f += 1) { frame(memory); seen.push(front(memory, 0)); }
   const steps = seen.map((c, i) => (i === 0 ? 0 : c - seen[i - 1])).filter((d) => d !== 0);
   assert.deepEqual(steps, [1, 1, 1, 1], `the left rail's front ${[...new Set(seen)]}`);
-  assert.ok(seen.indexOf(23) >= 12, "the first column before the delay ran out");
-  assert.deepEqual([front(memory, 0), slides(memory, 0), front(memory, 1), slides(memory, 1)], [26, 1, 40, 0]);
-  run(memory, 300);
-  assert.deepEqual([front(memory, 0), slides(memory, 0)], [26, 1], "the rail slid again on its own");
+  assert.ok(seen.indexOf(21) >= 12, "the first column before the delay ran out");
+  assert.deepEqual([front(memory, 0), slides(memory, 0), front(memory, 1), slides(memory, 1)], [24, 1, 42, 0]);
+  // A kill that is not a rail's front gun moves no rail: the open cannon's.
+  destroy(memory, "cannon-l", { settle: 200 });
+  assert.deepEqual([front(memory, 0), front(memory, 1)], [24, 42], "a cannon's kill moved a rail");
   destroy(memory, "rail-l-2");
-  assert.deepEqual([front(memory, 0), slides(memory, 0)], [30, 2], "the second kill slid it over the cannon");
+  assert.deepEqual([front(memory, 0), slides(memory, 0)], [28, 2], "the second kill slid it over the cannon's socket");
   destroy(memory, "rail-l-3", { settle: 200 });
-  assert.deepEqual([front(memory, 0), slides(memory, 0)], [30, 2], "the rail went past its last position");
+  assert.deepEqual([front(memory, 0), slides(memory, 0)], [28, 2], "the rail went past its last position");
   // The right rail, the mirror.
   destroy(memory, "rail-r-1");
   destroy(memory, "rail-r-2");
-  assert.deepEqual([front(memory, 1), slides(memory, 1)], [32, 2]);
+  assert.deepEqual([front(memory, 1), slides(memory, 1)], [34, 2]);
 });
 
 test("hit detection follows the rail: a gun's current columns hit it, its old columns do not", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   const memory = bastion();
-  assert.deepEqual(columnsOf(memory, "rail-l-2"), [15, 16, 17]);
+  assert.deepEqual(columnsOf(memory, "rail-l-2"), [13, 14, 15]);
   destroy(memory, "rail-l-1");
-  assert.deepEqual(columnsOf(memory, "rail-l-2"), [19, 20, 21], "the gun's record moved with the rail");
+  assert.deepEqual(columnsOf(memory, "rail-l-2"), [17, 18, 19], "the gun's record moved with the rail");
   assert.ok(exposed(memory, "rail-l-2"), "the next gun locked in");
   const hp = HP(memory, "rail-l-2");
-  for (const column of [15, 16, 17]) { shoot(memory, column); run(memory, 3); }
+  for (const column of [14, 15]) { shoot(memory, column); run(memory, 3); }
   assert.equal(HP(memory, "rail-l-2"), hp, "a shot at the gun's old columns hit it");
-  for (const column of [19, 20, 21]) {
+  for (const column of [17, 18, 19]) {
     const before = HP(memory, "rail-l-2");
     shoot(memory, column);
     assert.equal(HP(memory, "rail-l-2"), before - 1, `a shot at column ${column} missed the gun there`);
     run(memory, 3);
   }
-  for (let c = 19; c <= 21; c += 1) assert.equal(map(memory, c), index("rail-l-2"), `the map's column ${c}`);
+  for (let c = 17; c <= 19; c += 1) assert.equal(map(memory, c), index("rail-l-2"), `the map's column ${c}`);
 });
 
-test("a covered cannon is invulnerable - the shot deflects - and keeps firing; the rail never covers the doors or the core", () => {
+test("the second kill covers a standing cannon for good - shots deflect, it keeps firing; the rail never reaches the hangar", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   for (const level of [4, 5]) {
     const memory = bastion({ level });
-    destroy(memory, "rail-l-1");
-    destroy(memory, "rail-l-2");
-    destroy(memory, "rail-r-1");
-    destroy(memory, "rail-r-2");
-    for (const c of [29, 30, 32, 33]) assert.equal(map(memory, c), ARMOUR_COLUMN, `level ${level}: column ${c} is not the rail's`);
-    assert.equal(map(memory, 31), index("doors"), "the hangar's column is the doors'");
+    for (const name of ["rail-l-1", "rail-l-2", "rail-r-1", "rail-r-2"]) destroy(memory, name);
+    for (const c of [27, 28, 34, 35]) assert.equal(map(memory, c), ARMOUR_COLUMN, `level ${level}: column ${c} is not the rail's`);
+    for (const c of [30, 31, 32]) assert.equal(map(memory, c), index("doors"), `level ${level}: column ${c} is not the doors'`);
+    for (let r = 0; r <= 4; r += 1) {
+      for (const c of [29, 33]) assert.equal(cell(memory, c, r), region2.bandRows[r][c], `the rail drew over the hangar (${c}, ${r})`);
+    }
+    // Covered for good: it stays exposed to the controller (it fires) and
+    // every shot there deflects, for the rest of the fight.
     const hp = HP(memory, "cannon-l");
-    for (const c of [29, 30]) {
-      shoot(memory, c);
-      const ring = [...Array(8).keys()].filter((r) => memory[lbl("boss_ring_timer") + r] !== 0 &&
-        (memory[lbl("boss_ring_lo") + r] & 63) === c && memory[lbl("boss_ring_glyph") + r] === region2.deflect);
-      assert.equal(ring.length, 1, `level ${level}: no deflection at column ${c}`);
-      run(memory, 3);
+    for (let round = 0; round < 3; round += 1) {
+      for (const c of [27, 28]) {
+        shoot(memory, c);
+        assert.ok(deflected(memory, c), `level ${level}: no deflection at column ${c}`);
+        run(memory, 3);
+      }
+      run(memory, 300);
     }
     assert.equal(HP(memory, "cannon-l"), hp, "the covered cannon took damage");
-    // It keeps firing: each covered cannon's laser warns and fires.
-    const fired = new Set();
-    for (let f = 0; f < 1200 && fired.size < 2; f += 1) {
-      frame(memory);
-      for (let laser = 0; laser < 4; laser += 1) {
-        if (memory[lbl("boss_laser_state") + laser] === 2) fired.add(memory[lbl("boss_laser_module") + laser]);
-      }
+    const { seen } = watchLasers(memory, 1500);
+    for (const s of SIDES) {
+      assert.ok(seen.get(index(s.cannon))?.beam > 0, `level ${level}: the covered ${s.cannon} never fired`);
     }
-    assert.deepEqual([...fired].sort((a, b) => a - b), [index("cannon-l"), index("cannon-r")].sort((a, b) => a - b),
-      `level ${level}: the covered cannons' beams`);
   }
 });
 
-test("the doors: locked until every cannon and rail gun is destroyed or covered, deflecting; then open, flashing, sounding; the core behind them", () => {
+test("the cover warning: while a bay is open and its cannon stands, the gun whose fall would cover it pulses", () => {
+  assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
+  const pulses = (m, frames) => {
+    let n = 0;
+    for (let f = 0; f < frames; f += 1) {
+      frame(m);
+      if (m[lbl("boss_mflash_m")] === index("rail-l-2") && m[lbl("boss_mflash_timer")] === 3) n += 1;
+    }
+    return n;
+  };
+  const memory = bastion();
+  run(memory, 4);
+  destroy(memory, "rail-l-1");
+  assert.ok(exposed(memory, "cannon-l"));
+  const n = pulses(memory, 96);
+  assert.ok(n >= 5 && n <= 6, `${n} pulses of rail-l-2 in 96 frames`);
+  // With its cannon destroyed in the window, no warning.
+  destroy(memory, "cannon-l");
+  assert.equal(pulses(memory, 96), 0, "a warning with no cannon to cover");
+});
+
+test("the doors: locked until every cannon and rail gun is destroyed or covered; then open, flashing, sounding; the core behind them, last", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   const memory = bastion();
-  const doors = region2.modules[index("doors")];
-  const lockedCode = region2.bandRows[doors.row][doors.x];
+  const lockedCode = region2.bandRows[4][30];
   const openCode = region2.openLooks.get(index("doors"))[0];
-  assert.equal(cell(memory, 31, 4), lockedCode, "the doors start locked");
+  assert.ok([30, 31, 32].every((c) => cell(memory, c, 4) === lockedCode), "the doors start locked");
   // Locked: a shot deflects (the glyph), no hit point lost - the doors' or the core's.
   const doorsHp = HP(memory, "doors"), coreHp = HP(memory, "core");
-  shoot(memory, 31);
-  assert.equal(cell(memory, 31, 4), region2.deflect, "no deflection glyph on the locked doors");
-  run(memory, 3);
+  for (const c of [30, 31, 32]) {
+    shoot(memory, c);
+    assert.equal(cell(memory, c, 4), region2.deflect, `no deflection glyph on the locked doors at ${c}`);
+    run(memory, 3);
+  }
   assert.deepEqual([HP(memory, "doors"), HP(memory, "core")], [doorsHp, coreHp]);
   // Every cannon and rail gun destroyed or covered: the left side covered,
-  // the right side's cannon destroyed, its rail emptied.
+  // the right side's cannon destroyed in its window, its rail emptied.
   destroy(memory, "rail-l-1");
   destroy(memory, "rail-l-2");
   destroy(memory, "rail-l-3");
-  destroy(memory, "cannon-r");
   destroy(memory, "rail-r-1");
+  destroy(memory, "cannon-r");
   destroy(memory, "rail-r-2");
   assert.ok(!exposed(memory, "doors"), "the doors opened with a rail gun standing");
   memory[lbl("_boss_hp") + index("rail-r-3")] = 1;
   shoot(memory, columnsOf(memory, "rail-r-3")[1]);
-  // The unlock: the exposure check's frame, then the open look, the flash and
-  // the tone.
   const writes = [];
   let flashed = false;
   for (let f = 0; f < 8; f += 1) {
-    frame(memory, { hooks: { write: (address, value) => { if (address === 0xd204 || address === 0xd205) writes.push([address, value]); } } });
+    frame(memory, { hooks: POKEY(writes) });
     if (memory[lbl("boss_mflash_timer")] !== 0 && memory[lbl("boss_mflash_m")] === index("doors")) flashed = true;
   }
   assert.ok(exposed(memory, "doors"), "the doors did not open");
   assert.ok(flashed, "the doors did not flash as they opened");
-  assert.ok(writes.some(([a, v]) => a === 0xd204 && v === 0x18) && writes.some(([a, v]) => a === 0xd205 && v === 0xa6),
-    `the unlock's tone: ${JSON.stringify(writes)}`);
+  assert.ok(unlockTone(writes), `the unlock's tone: ${JSON.stringify(writes)}`);
   run(memory, 6);
-  assert.equal(cell(memory, 31, 4), openCode, "the doors' open look");
-  // Open: they take damage and flash (b3); the core still behind them.
+  assert.ok([30, 31, 32].every((c) => cell(memory, c, 4) === openCode), "the doors' open look");
+  // Open: they take damage (b3); the core still behind them and silent.
   shoot(memory, 31);
   assert.equal(HP(memory, "doors"), doorsHp - 1, "the open doors took no damage");
   assert.equal(HP(memory, "core"), coreHp);
   run(memory, 4);
   destroy(memory, "doors");
   assert.ok(exposed(memory, "core"), "the core is exposed once the doors fall");
+  // The core: its left flank armoured, its other columns hit.
+  assert.equal(map(memory, 30), ARMOUR_COLUMN, "the core's left flank");
+  shoot(memory, 30);
+  assert.ok(deflected(memory, 30), "no deflection on the core's left flank");
+  assert.equal(HP(memory, "core"), coreHp, "the left flank hurt the core");
+  run(memory, 3);
+  for (const c of [31, 32]) {
+    const before = HP(memory, "core");
+    shoot(memory, c);
+    assert.equal(HP(memory, "core"), before - 1, `the core took no damage at column ${c}`);
+    run(memory, 3);
+  }
+  // The core falls last: its kill is the defeat (the covered cannon-l stands).
+  assert.ok(HP(memory, "cannon-l") > 0, "the covered cannon stands");
+  memory[lbl("_boss_hp") + index("core")] = 1;
   shoot(memory, 31);
-  assert.equal(HP(memory, "core"), coreHp - 1, "the core took no damage");
+  assert.equal(HP(memory, "core"), 0);
+  assert.ok(memory[lbl("_boss_phase")] !== 0, "the core's kill was not the defeat");
 });
 
-test("the escort: launched over the doors' column, the doors flash as its cue, none armed once the doors fall", () => {
+test("the escort: launched over the doors' columns, the doors flash as its cue, none armed once the doors fall", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   // The escort's entry: level 1's boss wave (the route's) enters at HPOS 124,
   // band column 31 at the still position - the doors.
@@ -387,48 +565,56 @@ test("the escort: launched over the doors' column, the doors flash as its cue, n
   assert.equal(memory[timer], 0);
 });
 
-test("the cover warning: one slide from covering a standing cannon, the gun whose fall would cover it pulses", () => {
+test("the lasers per level (decision AC): one beam on level 4, two on levels 5-6", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
-  const memory = bastion();
-  const pulses = (m, frames) => {
-    let n = 0;
-    for (let f = 0; f < frames; f += 1) {
-      frame(m);
-      if (m[lbl("boss_mflash_m")] === index("rail-l-2") && m[lbl("boss_mflash_timer")] === 3) n += 1;
-    }
-    return n;
-  };
-  run(memory, 4);
-  destroy(memory, "rail-l-1");
-  const n = pulses(memory, 96);
-  assert.ok(n >= 5 && n <= 6, `${n} pulses of rail-l-2 in 96 frames`);
-  // With its cannon destroyed, no warning.
-  const quiet = bastion();
-  destroy(quiet, "cannon-l");
-  destroy(quiet, "rail-l-1");
-  assert.equal(pulses(quiet, 96), 0, "a warning with no cannon to cover");
+  // Both bays open and both cannons standing: the cannons' own cadences.
+  for (const [level, most] of [[4, 1], [5, 2]]) {
+    const memory = bastion({ level });
+    destroy(memory, "rail-l-1");
+    destroy(memory, "rail-r-1");
+    const { seen, together } = watchLasers(memory, 3000);
+    assert.equal(seen.size, 2, `level ${level}: ${seen.size} cannons fired`);
+    assert.equal(together, most, `level ${level}: ${together} beams at once`);
+  }
 });
 
-// The beam's hit window (laser_collide): edge - x in -3 .. 7, the edge the
-// beam's left colour clock, 32 + (x * 4 + width * 2) - 2 - p.
+// The model of the hits (scripts/boss-coverage.mjs): a pulse shot from band
+// column c lands at HPOS 4c + 33 - p, even, and hits the player at x when
+// s - x is in -1..7; a beam's left clock 32 + (x * 4 + width * 2) - 2 - p hits
+// when h - x is in -3..7; a player's shot meets column (x + 8 - 32 + p) / 4.
+const shotHits = (c, x) => { const s = (4 * c + 33 - STILL) & ~1; return s - x >= -1 && s - x <= 7; };
 const beamEdge = (m) => 32 + (m.x * 4 + m.width * 2) - 2 - STILL;
 const inBeam = (m, x) => beamEdge(m) - x >= -3 && beamEdge(m) - x <= 7;
-// The x a shot meets band column c from: (x + 8 - 32 + p) / 4 = c, x even.
-const reachOf = (c) => [...Array(4).keys()].map((k) => 4 * c + k + 32 - 8 - STILL).filter((x) => x % 2 === 0);
+const shooterOf = (x) => Math.floor((x + 8 - 32 + STILL) / 4);
+const PLAYER_X = [...Array(77).keys()].map((i) => 48 + 2 * i);
 
-test("fairness: the core's reach lies under the left cannon's beam, every beam is left with >= 10 warning frames to spare", () => {
+test("fairness: no refuge in reach of the core - its volley meets every position its hittable columns are shot from", () => {
   assert.ok(hasDraft);
-  const cannonL = region2.modules[index("cannon-l")];
-  const cannonR = region2.modules[index("cannon-r")];
-  assert.ok(reachOf(31).every((x) => inBeam(cannonL, x)), `the core's reach ${reachOf(31)}: a refuge from the left beam`);
-  assert.ok(reachOf(31).every((x) => !inBeam(cannonR, x)), "the right beam over the core's reach too (geometry moved)");
+  const core = region2.modules[index("core")];
+  const centre = core.x + (core.width >> 1);
+  const volley = [centre - 1, centre, centre + 1];
+  const hittable = [...Array(core.width).keys()].map((k) => core.x + k).filter((c) => c !== region2.hangar.jamb);
+  const reach = PLAYER_X.filter((x) => hittable.includes(shooterOf(x)));
+  assert.deepEqual(reach, [116, 118, 120, 122], "the core's reach once its flank is armoured");
+  for (const x of reach) assert.ok(volley.some((c) => shotHits(c, x)), `x ${x}: a refuge from the core's volley`);
+  // The armoured flank is the one column whose left shooter the volley misses.
+  const flank = PLAYER_X.filter((x) => shooterOf(x) === region2.hangar.jamb);
+  assert.deepEqual(flank.map((x) => volley.some((c) => shotHits(c, x))), [false, true], `the flank's shooters ${flank}`);
+  // The doors' phase: the core is covered by the doors (it cannot fire through
+  // them - the converter's fire-column rule), so the doors' reach is the
+  // escort's, which the doors launch.
+  assert.equal(core.cover, 1 << index("doors"));
+});
+
+test("fairness: every beam is left with >= 10 warning frames to spare", () => {
+  assert.ok(hasDraft);
   const def = includeConstants("level-def.inc").get("LEVEL_PAYLOAD_BOSS_DEF") + BOSS_DEF_LASER_WARNING_OFFSET;
   const warnings = [0, 1, 2].map((d) => bastion()[def + d]);
   // The worst escape: from the window's deepest x, two colour clocks a frame
   // (the ship's speed), out of an 11-clock window on the still band.
   let worst = 0;
-  for (const cannon of [cannonL, cannonR]) {
-    for (let x = 48; x <= 200; x += 2) {
+  for (const cannon of ["cannon-l", "cannon-r"].map((name) => region2.modules[index(name)])) {
+    for (const x of PLAYER_X) {
       if (!inBeam(cannon, x)) continue;
       const out = Math.min(...[-2, 2].map((d) => { let f = 0, y = x; while (inBeam(cannon, y)) { y += d; f += 1; } return f; }));
       worst = Math.max(worst, out);
@@ -440,41 +626,39 @@ test("fairness: the core's reach lies under the left cannon's beam, every beam i
   });
 });
 
-test("fairness: in the core phase, repeated windows to shoot the core outside every warned or active beam", { timeout: 300_000 }, () => {
+test("fairness: in the careless core phase, the covered cannons' beams leave the core's reach open", { timeout: 300_000 }, () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
-  // The careless end: both cannons covered (still firing), the doors down;
-  // the core's reach (x 116, 118) is under the left beam. A window is a run of
-  // frames with no beam that endangers that reach in its warning or beam.
+  // The careless end: both cannons covered (still firing), the doors down.
+  // No beam ever endangers the core's reach (x 116-122): the window to shoot
+  // the core stays open between the core's own volleys; the left beam covers
+  // the flank's left shooter (x 112).
   const cannonL = region2.modules[index("cannon-l")];
+  const reach = [116, 118, 120, 122];
   for (const level of [4, 5]) {
     for (const difficulty of [0, 1, 2]) {
       const memory = bastion({ level, difficulty });
       for (const name of ["rail-l-1", "rail-l-2", "rail-r-1", "rail-r-2", "rail-l-3", "rail-r-3"]) destroy(memory, name);
       destroy(memory, "doors");
       assert.ok(exposed(memory, "core"));
-      const windows = [];
-      // open < 0 until the first danger ends: the measurement's first run of
-      // free frames starts mid-cycle, not after a beam.
-      let open = -1, beams = 0;
+      // (The harness moves no shot: the core's firings are the controller's.)
+      let danger = 0, beams = 0, volleys = 0;
       for (let f = 0; f < 3000; f += 1) {
         frame(memory);
-        let danger = false;
         for (let laser = 0; laser < 4; laser += 1) {
           const state = memory[lbl("boss_laser_state") + laser];
           const module = memory[lbl("boss_laser_module") + laser];
           if (state === 0 || module === 0xff) continue;
-          const m = region2.modules[module];
-          if (reachOf(31).some((x) => inBeam(m, x))) danger = true;
+          if (state === 2) beams += 1;
+          if (reach.some((x) => inBeam(region2.modules[module], x))) danger += 1;
         }
-        if (memory[lbl("boss_laser_state")] === 2 && memory[lbl("boss_laser_module")] === index("cannon-l")) beams += 1;
-        if (danger) { if (open > 0) windows.push(open); open = 0; } else if (open >= 0) open += 1;
+        if (memory[lbl("_boss_fire_module")] === index("core")) volleys += 1;
       }
-      console.log(`# level ${level}, difficulty ${difficulty}: ${windows.length} windows between the left beams in 3,000 frames, ` +
-        `shortest ${Math.min(...windows)}, longest ${Math.max(...windows)}; left-beam frames ${beams}`);
-      assert.ok(beams > 0, `level ${level} difficulty ${difficulty}: the covered left cannon never fired`);
-      // Repeated: at least three windows, none under a second (50 frames).
-      assert.ok(windows.length >= 3 && windows.every((w) => w >= 50), `level ${level} difficulty ${difficulty}: windows ${windows}`);
-      assert.ok(inBeam(cannonL, 116) && inBeam(cannonL, 118));
+      console.log(`# level ${level}, difficulty ${difficulty}: beam frames ${beams}, frames a beam endangers the core's reach ${danger}, ` +
+        `the core's shots ${volleys} in 3,000 frames`);
+      assert.ok(beams > 0, `level ${level} difficulty ${difficulty}: the covered cannons never fired`);
+      assert.equal(danger, 0, `level ${level} difficulty ${difficulty}: a beam over the core's reach`);
+      assert.ok(volleys > 0, `level ${level} difficulty ${difficulty}: the core never fired`);
+      assert.ok(inBeam(cannonL, 112));
     }
   }
 });

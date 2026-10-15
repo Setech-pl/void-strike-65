@@ -3044,6 +3044,13 @@ async function build() {
       `RAIL_CUE                = ${hangar.cueFrames}`,
       `RAIL_UNLOCK             = ${hangar.unlockFrames}`,
       `RAIL_CANNONS_HI         = ${left.cannon >= 8 || right.cannon >= 8 ? 1 : 0}`,
+      // "B - the window": the modules whose unlock flashes and sounds - the
+      // doors and the cannons in their bays (their cover opens them) - and
+      // the core's armoured left flank once the doors fall (the jamb).
+      `RAIL_UNLOCKS            = $${[hangar.doors, ...[left, right].filter((side) => region.modules[side.cannon].bay)
+        .map((side) => side.cannon)].reduce((mask, i) => mask | (1 << i), 0).toString(16).toUpperCase()}`,
+      `RAIL_JAMBED             = ${hangar.jamb === null ? 0 : 1}`,
+      `RAIL_JAMB               = ${hangar.jamb ?? 0}`,
       `RAIL_ESCORT_TIMER       = $${stateAddress("STATE_SPACING").toString(16).toUpperCase()}`,
       `RAIL_GUN_WIDTH          = ${bossRail.gunWidth}`,
       ".macro RAIL_TABLES",

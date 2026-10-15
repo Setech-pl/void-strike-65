@@ -1969,6 +1969,11 @@ laser_rearm:
     lda #$01
     sta boss_laser_ready,x
     rts
+; S5-5 (region 2's block, BOSS_RAIL): a cannon in its locked bay counts its
+; reload here too (rail_frame) - the countdown alone, not the exposure it
+; waits on above. (After the routine's last cheap label: an assignment ends
+; their scope.)
+laser_reload = @reload
 
 ; At most LASER_MAX_ON lasers in their warning or beam at once (D3): the ready
 ; ones start in turn from the rotating cursor, which moves past each one
@@ -3836,10 +3841,12 @@ RAIL_DOORS_COVER    = BOSS_T_MODULES + RAIL_DOORS * BOSS_MODULE_BYTES + BOSS_M_C
 .assert RAIL_L_FRONT + 1 >= RAIL_L_WINDOW, error, "the left rail's window starts inside the band"
 .assert RAIL_R_FRONT + RAIL_R_WINDOW <= BOSS_BAND_COLUMNS, error, "the right rail's window ends inside the band"
 .assert (RAIL_PULSE & (RAIL_PULSE - 1)) = 0, error, "the warning's period is a power of two"
+.assert RAIL_UNLOCKS < $100, error, "the doors and the cannons are modules 0-7"
+.assert (RAIL_UNLOCKS & (1 << RAIL_DOORS)) <> 0, error, "the doors unlock"
 
 .segment "BOSS_R_CODE"
 rail_hooks:
-    jmp rail_rts                        ; BOSS_F_HOOK: nothing before the shots meet
+    jmp rail_frame                      ; BOSS_F_HOOK: every frame, from laser_frame (slot D)
     jmp rail_late                       ; BOSS_F_HOOK + 3: SECTOR_COMPLETION (slot E)
 
 ; SECTOR_COMPLETION, once the band has been shown (slot E's boss_shots_late),
@@ -3852,27 +3859,35 @@ rail_late:
     lda _boss_hp + RAIL_DOORS
     bne @open
     sta RAIL_ESCORT_TIMER               ; the doors fell: no escort armed again
+.if RAIL_JAMBED
+    lda #BOSS_COLUMN_ARMOUR             ; and the core's left flank armoured -
+    sta boss_column_map + RAIL_JAMB     ; the column its own volley leaves open
+    bne @rails                          ; (the controller exposes it next frame)
+.else
     beq @rails
-@open:
-.if RAIL_DOORS < 8
-    lda _boss_newly_lo                  ; unlocked this frame: the tone and
-    and #(1 << RAIL_DOORS)              ; the flash (after their open look:
-.else                                   ; boss_mflash_frame drains the queue
-    lda _boss_newly_hi                  ; first)
-    and #(1 << (RAIL_DOORS - 8))
 .endif
-    beq @cue
+@open:
+    lda _boss_newly_lo                  ; unlocked this frame - the doors or a
+    and #RAIL_UNLOCKS                   ; bay: the tone and the flash (after
+    beq @cue                            ; the open look: boss_mflash_frame
+    ldy #$FF                            ; drains the queue first), on the
+:                                       ; lowest of them
+    iny
+    lsr
+    bcc :-
+    sty rail_t
     ldx #BOSS_TONE_DAMAGE
     jsr boss_tick_sound
     lda #RAIL_UNLOCK
     sta boss_tick_timer
-    bne @flash
+    lda rail_t
+    bpl @flash
 @cue:
     lda RAIL_ESCORT_TIMER
     cmp #RAIL_CUE
     bne @rails
-@flash:
     lda #RAIL_DOORS                     ; an escort comes: the doors flash
+@flash:
     sta boss_mflash_req
 @rails:
     ldx #1
@@ -3940,14 +3955,6 @@ rail_side:
     dec rail_step,x
     bne @rts
     jmp rail_lock                       ; the slide done
-
-; X = rail_x = a side -> Y = its front gun's place in rail_guns. Keeps X.
-rail_index:
-    lda rail_dead,x
-    clc
-    adc rail_first,x
-    tay
-    rts
 
 ; X = rail_x = a side, its slide done: the next gun locks in (the core's bit
 ; leaves its cover; the exposure check on the next tick); at the last
@@ -4057,6 +4064,20 @@ rail_column:
     ldx rail_x
     rts
 
+rail_code_end:                          ; (the trace's slot F write clause: the code at the hook)
+
+; The tables and the rest of the state, in the block's room between the look
+; tail and BOSS_F_HOOK.
+.segment "BOSS_R_DATA"
+RAIL_TABLES                             ; boss-rail.inc: rail_guns (per side, front first),
+                                        ; rail_first, rail_dir, rail_cannon, rail_not_lo(/hi),
+                                        ; rail_module, rail_record (each side's lowest module),
+                                        ; rail_window (the columns a step shifts)
+rail_state:
+rail_k:         .byte 0, 0              ; slides done (0 .. RAIL_POSITIONS)
+rail_front:     .byte RAIL_L_FRONT, RAIL_R_FRONT   ; each rail's front column now
+rail_state_end:
+
 ; The state - data, not BSS: the block is read from the disk at every entry,
 ; so every fight starts from these values. The trace's slot F write clause
 ; admits the rails' writes in rail_scratch .. rail_scratch_end and
@@ -4071,15 +4092,37 @@ rail_t:         .byte 0
 rail_u:         .byte 0
 rail_scratch_end:
 
-; The tables and the rest of the state, in the block's room between the look
-; tail and BOSS_F_HOOK.
-.segment "BOSS_R_DATA"
-RAIL_TABLES                             ; boss-rail.inc: rail_guns (per side, front first),
-                                        ; rail_first, rail_dir, rail_cannon, rail_not_lo(/hi),
-                                        ; rail_module, rail_record (each side's lowest module),
-                                        ; rail_window (the columns a step shifts)
-rail_state:
-rail_k:         .byte 0, 0              ; slides done (0 .. RAIL_POSITIONS)
-rail_front:     .byte RAIL_L_FRONT, RAIL_R_FRONT   ; each rail's front column now
-rail_state_end:
+; Code too: the block's room after the look tail is RAM read from the disk
+; with the rest (the code at BOSS_F_HOOK is full).
+; BOSS_F_HOOK, every frame before laser_frame's lasers: a cannon in its locked
+; bay fires as an open one does (the owner's choice "B - the window"): while
+; its laser is off, its reload counts down - slot D's countdown, which waits
+; on the controller's exposure for an emitter it counts itself - and its
+; shield is dropped, so the bay's opening is no first shot. Lasers 0 and 1
+; are the cannons' (laser_prepare: the slot-1 twins in module order, the left
+; first; the right one's twin is laser 1 on every tier). An open bay's or a
+; destroyed cannon's laser is exposed: slot D's own, as is a death's or the
+; defeat's hold (laser_all_off sets the reload again every frame).
+rail_frame:
+    ldx #1
+@bay:
+    lda boss_laser_state,x
+    bne @next                           ; its warning or beam: slot D's
+    jsr laser_exposed
+    bne @next
+    sta boss_laser_shielded,x           ; A = 0
+    jsr laser_reload
+@next:
+    dex
+    bpl @bay
+    rts
+
+; X = rail_x = a side -> Y = its front gun's place in rail_guns. Keeps X.
+rail_index:
+    lda rail_dead,x
+    clc
+    adc rail_first,x
+    tay
+    rts
+
 .endif

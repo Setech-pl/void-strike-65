@@ -148,12 +148,26 @@ The laser cannot be dodged once fired — but it announces itself. The gun heats
 for about two seconds, with a rising tone. That is the time to leave the line.
 Then the beam lights for one second and destroys everything in its path.
 
-The boss of levels 1-6 carries two laser cannons, one left and one
+The boss of levels 1-3 carries two laser cannons, one left and one
 right of its centre. They take turns — never both at once — and when one is
 destroyed the other keeps firing alone. Its guns and cannons hang under an
 armoured spine that no shot breaks; the belt of armour plates below them must
 fall before the weapon above a plate can be hit. The Siege Spine of levels 7-9
 fires up to two lasers at once.
+
+The boss of levels 4-6, the Bastion, does not drift. At its centre is a
+hangar: the escort fighters launch from its doors, and the core sits behind
+them. Beside the hangar stand two laser cannons. Outside them, left and right,
+runs a long rail of guns that reaches off the screen. Shoot the front gun of a
+rail and the whole rail slides one step inward, bringing the next gun in from
+beyond the edge. The second slide pushes the rail over that side's laser
+cannon: a covered cannon cannot be hurt any more, and it keeps firing until
+the end of the fight. When a gun is one slide away from covering a cannon, it
+blinks — that is your warning. **Destroy the cannons before the rails close
+in.** The doors stay locked — barred grey armour, your shots bounce off — until
+every cannon and every rail gun is destroyed or covered. Then they open with a
+flash and a chime and turn amber: break them, stop the escort, and the core
+behind them is yours. The rails never cover the hangar.
 
 The boss of levels 7-9, the Siege Spine, hides behind a force field — the
 shimmering line under its spine. Your shots stop there and do nothing. Each

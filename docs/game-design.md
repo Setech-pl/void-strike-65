@@ -498,13 +498,13 @@ section "Decyzje literowe 2026-09-20".
   decision of 2026-10-09); nothing fires once the last weapon is down, and
   the boss still falls with its last weapon (armour standing or not). Region
   data (`fire.finaleCooldown`, 0 = none): **off in region 1** (its fight is
-  accepted as it is, Q6); on in the region 2-4 placeholders - region 1's
-  boss on the `--boss-region=N` debug routes - at a floor of 12 frames, half
-  of region 1's `fire.cooldown`; each region's own session tunes it (region
-  4's Void Citadel is designed around it).
+  accepted as it is, Q6); on in regions 2-4 (each its own boss since S5-3 …
+  S5-5) at a floor of 12 frames, half of region 1's `fire.cooldown` (region
+  4's Void Citadel is designed around it; region 2's Bastion has its doors as
+  its only armour, so its finale is the core's endgame).
 - **Region 1's boss: Blockade Breaker with twin laser cannons (owner answers
   of 2026-10-13; `OWNER-SMOKE CANDIDATE`, [plans/boss-r1-twin-lasers.md](plans/boss-r1-twin-lasers.md)).**
-  Levels 1-3 (and the region 2 and 4 copies, levels 4-6 and 10-12) end on one
+  Levels 1-3 end on one
   damaged ship: a **continuous hull spine** along the band's top, end to end,
   from which every gun and cannon hangs by a strut (burgundy trusses fill the
   empty cells under it); the spine is hull - it stops every shot and cannot
@@ -522,6 +522,42 @@ section "Decyzje literowe 2026-09-20".
   display list ends the band (the owner's smoke of 2026-10-13: shots turned
   grey there), so a projectile under the boss has the playfield's colours.
   Plates trimmed to MEDIUM about 110 s: a, b, c, g, h 8; d, e 10; f 6.
+- **Region 2's boss: the Bastion - the hangar, the cannons, the sliding rails
+  (S5-5, the owner's design of 2026-10-14 and his choice of 2026-10-15, N-C
+  with W2; `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.5).**
+  Levels 4-6 end on a still fortress (no drift: the rails' slides are its only
+  motion) hung from one overhead track that runs from screen edge to screen
+  edge. At the centre the **hangar**: a one-cell cap, the **core** under it
+  and the **hangar doors** under the core - the escort Interceptors launch
+  over the doors (decision AI's cadence; the doors flash just before each).
+  Hugging the hangar, a **laser cannon** on each side. Outside them, left and
+  right, a **gun rail**: a girder from beyond the screen edge to its hazard-
+  striped front, three guns on it, only the front one able to fire or be hurt.
+  **The order puzzle:** destroying a rail's front gun slides the whole rail
+  one gun pitch (4 columns) inward a beat later (one column every 4 frames,
+  a clank each), bringing the next gun in from beyond the edge; the dead gun's
+  socket stays on the rail. The **second** slide pushes the rail over that
+  side's cannon: a **covered cannon** cannot be hurt any more (shots deflect
+  off the rail) and **keeps firing** to the end of the fight. One slide before
+  that, the gun whose fall would cover the cannon **pulses** - the warning. A
+  rail stops there and never covers the hangar. **Destroy the cannons before
+  the rails close in.** **The doors:** locked - barred grey armour over the
+  olive bulk, shots deflected with the deflection glyph - until every cannon
+  and every rail gun is destroyed or covered; then they open with a flash and
+  a held high tone and turn to amber hazard chevrons, take damage (b3, amber
+  in every stage), and when they fall the escort stops for good and the core
+  - a salvo launcher - is exposed; the finale (its volleys at half reload)
+  starts with the doors' fall, and the core falls last. **Fairness:** the
+  core's whole reach lies under the left cannon's beam (danger, not a refuge),
+  yet the beam's warning always leaves at least 22 frames to step out on HARD,
+  and in the core phase the covered cannon's beams come with repeated windows
+  of 150-689 frames between them (per level and difficulty). Lasers (decision
+  AC): one beam on level 4 (the cannons take turns, a covered one keeps its
+  turn), two on levels 5-6 (independent). A parked fighter at the left edge
+  can hit nothing and is reached by nothing but the escort, which a first kill
+  starts - it attacks there (measured: a stalemate, not a refuge). Colours:
+  pale and mid steel, hazard amber `$28` and the olive bulk `$E2`, both far
+  from the levels 4-6 ally steel `$88`.
 - **Region 3's boss: Siege Spine and its force field (S5-3, owner answers of
   2026-10-13; `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.3).**
   Levels 7-9 end on a long segmented spine with dorsal spikes, a generator

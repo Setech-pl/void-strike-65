@@ -118,6 +118,11 @@ W grę da się grać i gra nie jest skończona. Ta lista opisuje wersję z `dist
   niezależnie od siebie, ogień `BROADSIDE` z obu stron z błyskami
   ostrzegawczymi, niezniszczalne kadłuby i wieżyczki, które trzeba omijać.
 - **Niszczalne szczątki**, punktowane i za strzał, i za taranowanie.
+- **Boss.** Poziom 1 kończy się na Blockade Breaker — bossie zbudowanym
+  z modułów: płyt pancernych, działek i dwóch dział laserowych, których
+  promień najpierw widocznie i słyszalnie się nagrzewa — wczytywanym
+  z dyskietki za ekranem WARNING z jego nazwą; po nim ekran podsumowania
+  poziomu.
 - **Deterministyczny Encounter Director** dla poziomu 1, prowadzony przez
   przebyte rzędy świata, a nie przez zegar, z ograniczonymi pulami obiektów.
 - **Trzy czasowe boostery**, po jednym naraz, z kapsuł: Rapid Fire, Spread Shot
@@ -135,12 +140,8 @@ Zaprojektowane i rozstrzygnięte, ale nie ma tego w wersji do pobrania.
 - **Kampania na dwanaście poziomów.** Koniec poziomu, następny poziom, poziomy
   jako dane i wybór poziomu od najdalszego osiągniętego — trzymany tylko w RAM,
   więc ginie po wyłączeniu maszyny.
-- **Boss na końcu każdego poziomu.** Jeden kontroler bossa; każdy boss to rekord
-  opisujący układ modułów, rozmieszczenie dział i punkty słabe, zbudowany z
-  powtarzalnych modułów. Broń bossa korzysta z istniejących klas pocisków
-  przeciwników, więc dwunastu bossów nie oznacza dwunastu nowych rodzin
-  pocisków. Boss ma też laser, którego nie da się uniknąć po wystrzale — ale
-  działo najpierw widocznie się nagrzewa, z dźwiękiem, przez około dwie sekundy.
+- **Boss na końcu każdego poziomu.** Bossowie czterech regionów już istnieją
+  (patrz „Bossowie, tak jak zaprojektowani" niżej); brakuje jeszcze poziomów, które do nich prowadzą.
 - **Stały booster broni.** Pięć poziomów. Każda kapsuła podnosi poziom o jeden;
   poziom poznaje się po kształcie własnych pocisków i po dźwięku wystrzału, bez
   żadnego wskaźnika na HUD-zie. Śmierć kosztuje jeden poziom, nie wszystkie.
@@ -202,14 +203,28 @@ się na nowo z bieżącej wersji poleceniami `npm run showcase -- --capture`,
 
 ## Bossowie, tak jak zaprojektowani
 
-**Grafika koncepcyjna. Jeszcze nie zaimplementowana** — patrz „Co powstaje"
-powyżej. Te ilustracje pokazują zamierzony kształt i mechanikę, a nie finalną
-grafikę na Atari: konstrukcja szersza niż ekran, przesuwająca się na boki i
-odsłaniająca kolejne swoje części, z modułami ochronnymi, które trzeba zdjąć,
-żeby dojść do dział pod nimi.
+**Czterech bossów jest gotowych** — po jednym na każdy region trzech poziomów
+— narysowanych grafiką znakową Atari, każdy z własną mechaniką. W ATR do
+pobrania poziom 1 kończy się na pierwszym z nich; bossowie regionów 2-4 grają
+w buildach przeglądowych (`node scripts/build.mjs --level=1:sector=6
+--boss-region=N`), dopóki nie powstaną ich poziomy.
 
-Wszyscy trzej są w [boss-concepts.md](docs/boss-concepts.md), razem z grafikami
-koncepcyjnymi: [Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),
+- **Blockade Breaker** (poziomy 1-3): uszkodzony okręt pod opancerzonym
+  grzbietem; dwa działa laserowe strzelają na zmianę za pasem płyt pancernych.
+- **Bastion** (poziomy 4-6): hangar w środku, działo laserowe z każdej jego
+  strony i szyna działek na każdym skrzydle, wychodząca poza ekran. Każde
+  zniszczone działko szyny przesuwa ją o krok do środka; drugie przesunięcie
+  zakrywa działo po tej stronie — tego działa nie da się już uszkodzić, a ono
+  strzela dalej. Wrota hangaru są zamknięte, dopóki każde działo i każde
+  działko szyny nie zostanie zniszczone albo zakryte. Zniszcz działa laserowe,
+  zanim szyny się zamkną.
+- **Siege Spine** (poziomy 7-9): segmentowy kręgosłup za polem siłowym
+  z dwóch połówek, każdą zasila kula generatora na jej końcu.
+- **Void Citadel** (poziomy 10-12): nieruchoma forteca ze studnią
+  grawitacyjną, która ściąga Twój statek pod laser jej rdzenia.
+
+Oryginalne grafiki koncepcyjne są w [boss-concepts.md](docs/boss-concepts.md):
+[Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),
 [Siege Spine](docs/media/concepts/void-strike-65-boss-02-siege-spine.png) i
 [Void Citadel](docs/media/concepts/void-strike-65-boss-03-void-citadel.png).
 

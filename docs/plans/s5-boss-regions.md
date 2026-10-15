@@ -6,8 +6,9 @@
 (§6.3: Phase A, the owner's answers §6.3.6, as built §6.3.7)**. **S5-4 implemented on `feat/boss-region-4` (§6.4:
 Phase A, A-2 §6.4.6, as built §6.4.7), merged; its follow-up `fix/r4-immobile`
 (§6.4.8: the still citadel, G2, no engines, no refuge at the core),
-`OWNER-SMOKE CANDIDATE`.** **S5-5 Phase A on `feat/boss-region-2` (§6.5: the
-Bastion's review variants, measured; waiting for the owner's choice).** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
+`OWNER-SMOKE CANDIDATE`.** **S5-5 implemented on `feat/boss-region-2` (§6.5:
+Phase A, the owner's choice §6.5.7, as built §6.5.8), `OWNER-SMOKE CANDIDATE` -
+with it every S5 session is built (S5 complete, pending the owner's smokes).** The plan itself: `OWNER REVIEW CANDIDATE` (2026-10-09, branch `docs/plan-s5`,
 planning only; **the owner answered every question of §7 the same day — §7.1 —
 and the session table of §6 carries the answers**). No artifact byte changed: the ATR and the boot image are
 `main` `9c41738`'s (§0.1). Phase A measured on probe builds under
@@ -2228,6 +2229,212 @@ variant as region 2's own directory (`assets/graphics/boss-regions/region-2/`,
 its placeholder entry removed), the hit points tuned, region 2's route
 sessions on the aiming bot with the rails' and the hangar's clauses, the
 evidence regenerated; the unchosen variants removed.
+
+#### 6.5.7 The owner's choice (2026-10-15, after playing N-C; journal §AT)
+
+Straight to Phase B, no new comparison round:
+1. **N-C with W2:** the rails start one position closer - the second rail-gun
+   kill covers the cannon (one safe slide a side); the rail guns a side fitted
+   to the new geometry; the rails never cover the doors or the core.
+2. **A covered cannon** stays invulnerable (shots deflected) and keeps firing;
+   it may fire more often than an exposed cannon by data only, or by code only
+   if a trim inside region 2's block pays for it - else the rate stays.
+3. **The cover warning** on the gun whose kill would cover a cannon stays.
+4. **Fairness:** in the core phase, repeated windows to stand in the core's
+   reach and shoot it outside every warned or active beam; at least 10 frames
+   left after leaving a warned beam (as R4) - per level and difficulty, else
+   STOP.
+5. **The doors' readability (required):** locked and unlocked doors look
+   different (colour and pattern), shots on locked doors visibly deflected, the
+   unlock unmistakable (a visible change and a sound), damage with b3 and PF2
+   in every stage after it - the cheapest technique, its bytes reported, a STOP
+   with options if the block cannot hold it; no resident bytes.
+6. As built: the doors open only after every cannon and rail gun is destroyed or
+   covered; the core fires volleys and falls last; lasers per decision AC (one
+   beam on level 4, the cannons in turn; two on levels 5-6); the slide's timing
+   and the palette stay; the colour-distance test covers R2 against `$88`.
+7. **The left edge:** the stalemate stays, confirmed by a replay that the
+   escort attacks a player who has killed a module and parks there - else STOP.
+8. **Hit points:** from t1 (8 / 12 / 28 / 32), tuned by data: careful MEDIUM
+   90-120 s, EASY shorter, HARD not shorter; the honest difficulty measure
+   reported - beams in the doors and core phases, hits on a bot that leaves a
+   warned beam, careful and careless, E / M / H.
+9. G-A, G-B, N-A, N-B and W1 rejected; the variants' code removed.
+
+#### 6.5.8 Phase B — as built (2026-10-15) — `OWNER-SMOKE CANDIDATE`
+
+**W2 (MEASURED on the band; `build/play/s5-5-r2-w2-geometry.png`, one side at
+every rail position).** Band columns at the still position 32: the screen
+shows 12-51, a shot reaches 14-52.
+
+| | left | right |
+| --- | --- | --- |
+| hangar: cap / core / doors | 31 (rows 0 / 1-3 / 4) | |
+| cannon (rows 1-3, 2 cells) | 29-30 | 32-33 |
+| rail front: start -> slide 1 -> slide 2 (stops) | 22 -> 26 -> **30** (covers 29-30) | 40 -> 36 -> **32** (covers 32-33) |
+| guns (3 cells, pitch 4), front first | 19-21, 15-17, 11-13 (the third partly beyond the edge) | 41-43, 45-47, 49-51 |
+| front-gun slot | 19-21 | 41-43 |
+| safe slides before the cover / guns a side | 1 / **3** (2 that slide + 1 left on the stopped rail) | the same |
+| modules / codes / charset | 10 / 76 / 608 B | |
+
+Three guns a side, not four: with two slides a fourth gun would stay locked
+behind the stopped rail - never exposed, so never killable (the converter
+refuses fewer guns than slides + 1). Each slide: 12 frames after the kill,
+one column every 4 frames (a clank each) on frames no shot met the band.
+
+**The doors' readability (0 resident bytes).** Data: `band.png` draws them
+locked - steel bars and a brace over the olive bulk (the PF3 bank), another
+colour and another pattern than the open look; `open.png` draws them
+unlocked - amber chevrons (PF2), staged (cracked / broken), so they take
+damage with b3 and PF2 pixels in every stage; the converter now refuses a
+hangar whose doors have no open look. A shot at locked doors is the
+controller's covered hit: the deflection glyph and the absorb tick (no
+code). The unlock: the exposure check that opens them draws their open look
+(the controller's queue, existing code); the block adds the moment's flash
+and a held tone - the hit's high tone ($18 / $A6) for `hangar.unlockFrames`
+16 frames - **19 B**, paid inside the block by assembling the cover masks'
+high bytes only when a module bit lives there (the core's lock and the doors'
+cover: the core is module 5, the cannons 4 and 6) - **17 B** - plus its 2
+free bytes. Region 2's block **512 of 512 B** (look tail 81 B, the rails'
+tables and state 28 of 29 B, code 402 of 402 B); the look +1 code (8 B of
+charset, the charset's sector count unchanged), the look tail +1 B.
+
+**A covered cannon's rate: unchanged** (the owner's answer 2). No data lever:
+the beam's reload is `boss_def`'s per difficulty, shared by every laser - a
+covered cannon is not a state the data names. Code: an extra reload countdown
+for a covered cannon's laser in the block, about 36 B (IC); after the unlock
+cue the block has 0 B and no further trim was found that pays for it (the
+remaining code is the slide, the lock, the warning and the escort's cue). It
+fires at the exposed rate, through to the end of the fight (tested).
+
+**The fight (R, the aiming bot's ratio; tier 1 = level 4, tier 2 = levels
+5-6, `--laser-fixture=2`).** Trials on the level route:
+
+| trial (guns / cannons / doors / core) | careful E / M / H | careless E / M / H |
+| --- | ---: | ---: |
+| t1 (12 / 8 / 28 / 32) | 71.8 / 86.2 / 117.6 | 64.6 / - / - |
+| t2 (14 / 8 / 40 / 44) | 84.3 / 103.2 / 136.6 | 79.5 / 93.5 / 126.5 |
+| **t3 (15 / 8 / 46 / 50), shipped** | **91.5 / 110.1 / 149.8** | **85.8 / 102.6 / 133.9** |
+
+The doors and the core are the heavy modules: their phases are the ones a
+careless player spends under covered cannons. W2 has two guns fewer than
+N-C's four a side, so t1 ran 15-20 s shorter than Phase A's N-C t1.
+
+**The honest difficulty (M, t3).** Per difficulty E / M / H:
+
+| | careful | careless | careful-dodge | careless-dodge |
+| --- | --- | --- | --- | --- |
+| tier 1: fight (s) | 91.5 / 110.1 / 149.8 | 85.8 / 102.6 / 133.9 | 91.5 / 110.1 / 150.2 | 92.9 / 118.8 / 161.9 |
+| … beams in the doors + core phases | 0 / 0 / 0 | 2 / 2 / 4 | 0 / 0 / 0 | 2 / 3 / 7 |
+| … hits on the bot (boss laser) | 10 (0) / 18 (0) / 21 (1) | 10 (1) / 19 (1) / 17 (3) | 10 (0) / 18 (0) / 21 (0) | 9 (0) / 19 (0) / 19 (0) |
+| … deaths (lives held) | 1 / 1 / 3 | 1 / 2 / 3 | 1 / 1 / 2 | 0 / 2 / 2 |
+| tier 2: fight (s) | 91.5 / 110.1 / 149.8 | 85.6 / 102.6 / 138.1 | 91.5 / 110.1 / 150.2 | 94.4 / 119.4 / 165.5 |
+| … beams in the doors + core phases | 0 / 0 / 0 | 2 / 4 / 8 | 0 / 0 / 0 | 4 / 6 / 16 |
+| … hits (boss laser) / deaths | 10 (0) / 18 (0) / 21 (1); 1 / 1 / 3 | 11 (1) / 19 (2) / 22 (5); 1 / 2 / 5 | laser 0 | laser 0 |
+
+The careful order meets no beam after the cannons fall (both cannons are its
+first targets, the twins' first shots aside). The careless order covers both
+cannons (every careless run, tier 1 and 2) and meets 2-16 beams in the doors
+and core phases: a bot that does not dodge takes 1-5 laser hits (careful 0-1)
+and dies up to 2 times more; **a bot that leaves every warned beam** (the
+`-dodge` bots: the aiming bot with the laser-contact bot's escape, the
+existing scoped dodge of `lower-contact-laser`, reused - no aiming policy
+dodged before) takes no laser hit in either order but pays the careless order
+in time - **+8 % on MEDIUM, +8-10 % on HARD** (118.8 / 161.9 s against 110.1 /
+150.2 s on tier 1; 119.4 / 165.5 on tier 2). In hits alone the aiming bot does
+not find careless harder (most hits are the boss's pulse shots and the
+core's volleys); the owner's play decides.
+
+**Hits by source and the escort (M, `--hit-trace`, tier 1, careful | careless,
+E / M / H; `measure-interceptor-hits.mjs`, `measure-interceptor-play.mjs`).**
+Escort contacts 0 and escort lasers 0 in every run; every hit in the boss
+sector is the boss's (its shots, volleys and beams). Escorts per fight 11 /
+12 / 14 | 9 / 11 / 12; shot down 9 / 11 / 14 | 9 / 10 / 11 (the rest left).
+
+**Fairness (M-N, `tests/boss-region-2.test.mjs`).** The core's and the doors'
+reach (x 116, 118) lies under the left cannon's beam (its hit window x
+111-121), not the right's (123-133): danger, not a refuge. Leaving a warned
+beam: worst 3 frames from inside either window at 2 colour clocks a frame -
+**37 / 29 / 22 warning frames left** (E / M / H; the rule >= 10). The core
+phase with both cannons covered and still firing, 3,000 frames, windows
+between the left beam's warnings and beams (each >= 50 frames, the test's
+floor):
+
+| | EASY | MEDIUM | HARD |
+| --- | ---: | ---: | ---: |
+| level 4 (one beam, the twins in turn) | 3 windows of 689 | 4 of 531 | 6 of 374 |
+| levels 5-6 (two beams, independent) | 7 of 300 | 9 of 225 | 13 of 150 |
+
+**The left edge (M, `region-2-edge-left-1`, MEDIUM, the new policy
+`boss-aim-park-48`: aim until a module falls, then park at HPOS 48, firing):**
+3,847 of the fight's first 4,050 frames at the edge, **22 escorts and 20 hits**
+on the parked player (the first escort at frame 99) - the left-edge guard's
+clause holds: a stalemate, not a refuge.
+
+**Gates and budgets (M / M-N; R1, R3, R4: STATUS / §6.5.4 on `main`
+`131fd8f`; the stress re-measured on this branch):**
+
+| | R1 | **R2 (W2, t3)** | R3 (L7 / L9) | R4 | limit |
+| --- | ---: | ---: | ---: | ---: | --- |
+| boss entry, host frames / sectors | 249 / 65 | **253 / 66** | 256 / 67 | 261 / 68 | 280 (AM) |
+| … headroom for the banner task (~25) | 31 | **27** | 24 | 19 | |
+| boss frames worst margin / DMA-on (all R2 sessions: 32) | see the evidence | **8,881 / 30,198** | 7,396 / 30,668 | 6,527 / 30,440 | 500 / 32,568 |
+| stress, worst reachable (native) | 7,046 -> **7,043** | **7,523** (977 left) | 7,824 / 8,077 -> **7,821 / 8,074** | 8,094 -> **8,091** | 8,500 |
+| frames with a kill and a spawn | 0 | 0 | 0 | 0 | rule (B) |
+
+The −3 on R1, R3, R4 and the finale fixture (6,715 -> 6,712): slot E's code
+grew 7 B (the twins' tier rule, now in every build) and shifted what follows
+it (MEASURED, the same composition). R2's worst stress frame: a column step
+of the left rail with two stage hits (cannon-l and a gun) and both lasers in
+their warning's heat (`scripts/measure-boss-stress-r2.mjs`, levels 4 and 5).
+
+Bytes: **0 resident**; slots A 2,047, C 1,662, D 1,663 code unchanged; slot E
+504 -> **511 B** code (4 sectors); the install 381; region 2's block 512 of
+512 (4 sectors); window record 1,322 of 1,387, Light kernel 847 of 875,
+initial block 13,623 B / 107 sectors - unchanged (the manifest).
+
+**Difficulty curve (R, the aiming bot, E / M / H):** R1 97.4 / 111.0 / 152.7 ·
+**R2 careful 91.5 / 110.1 / 149.8, careless 85.8 / 102.6 / 133.9 (dodging:
+92.9 / 118.8 / 161.9)** · R3 109.3 / 112.3 / 174.9 · R4 100.2 / 107.0 / 139.3 s.
+By beams in the endgame R2's careless order is the most dangerous phase of the
+four bosses; by the non-dodging bot's hits on MEDIUM R2 (18-19) sits with R4
+(17, fix/r4-immobile) - the bot does not dodge the boss's shots.
+The owner sets the order after playing all four.
+
+**Tests.** New `tests/boss-region-2.test.mjs` (15): RED on `main` `131fd8f`
+(15 of 15, a detached worktree, removed), GREEN here. Re-pointed with their
+reasons at the sites (no floor, gate or budget moved): `boss-look-tail`
+(region 2's block is its own), `boss-overlay` (region 2's own runs on the
+disk), `slot-f` (`BOSS_R_CODE` at the hook, `BOSS_R_DATA` between the look
+tail and the hook), `boss-region-3` (only region 1's block has no code),
+`level-summary-build` (no region is a copy), `boss-stress` (the S5-2 finale
+composition kept as a fixture - region 1 with `finaleCooldown` 12 - its label
+"the finale fixture"), and the copies' coverage / escort / art / shown-rows
+tests (`boss-r1-tuning`, `boss-escort-flow`, `boss-polish`,
+`boss-r1-twin-lasers`) on the regions' own drafts. `scripts/memory-map-report.mjs`
+names `BOSS_R_CODE` / `BOSS_R_DATA`.
+
+**The trace.** Column `boss_alive`; the rails' and the hangar's clause on
+region 2's route sessions (per side the slides and front-gun kills step by
+one, a slide only after its kill and within 12 + 4 x 4 + 40 frames, never past
+the last position; a covered cannon never falls and fires again; the doors
+before the core; no escort admitted after the doors fell; never two Lights at
+once; the careless sessions must cover a cannon); `region-2-diag-*` on the
+careful aiming bot, `region-2-finale-*` on the careless one,
+`region-2-edge-left-1` under the left-edge guard's clause. MEASURED on
+`build/boss-region-2-level-1-s6`, every clause holding, 0 misses:
+
+| session | chain | slides / covers | doors fell / core | escorts | worst margin / DMA-on |
+| --- | --- | --- | --- | ---: | --- |
+| `region-2-diag-0` / `-1` / `-2` (careful) | f2,233 / 2,774 / 3,379 | 2 / 2, none | f1,863 / 2,233; 2,287 / 2,774; 2,775 / 3,379 | 10 / 12 / 15 | 10,179 / 29,619; 10,147 / 29,807; 9,922 / 29,788 |
+| `region-2-finale-0` / `-1` / `-2` (careless) | f2,108 / 2,569 / 3,167 | 2 / 2, both cannons | f1,677 / 2,108; 2,082 / 2,569; 2,501 / 3,167 | 9 / 11 / 13 | 9,729 / 29,232; 9,228 / 29,373; 8,881 / 30,198 |
+| `region-2-dodge-2` (laser-dodge, HARD) | - | 0 | - | 0 | 12,555 / 27,975 |
+| `region-2-edge-left-1` | - (stalemate) | 0 | - | 28 | 11,044 / 29,236 |
+
+The finale (the core's volleys at half reload) from the doors' fall in every
+session that reached it (3-8 volleys).
+
+**Review builds (`build/play/`, not committed):** see STATUS.
 
 ## 7. Owner questions
 

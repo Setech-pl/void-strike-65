@@ -2507,6 +2507,70 @@ zadania banerów. `OWNER-SMOKE CANDIDATE`.
 **Wynik:** plan `interceptor-speed`, STATUS, game-design, level-authoring,
 hardware-testing §34. `OWNER-SMOKE CANDIDATE`.
 
+
+---
+
+## AT. BASTION: HANGAR, DZIAŁA, SZYNY — wybór właściciela S5-5 (2026-10-15, po zagraniu w N-C z fazy A `feat/boss-region-2`)
+
+0. **Projekt (2026-10-14):** w środku hangar (wrota nad rdzeniem; z wrót
+   startuje eskorta, zniszczenie wrót zamyka hangar i odsłania rdzeń), obok
+   niego dwa działa laserowe, na zewnątrz dwie niezniszczalne szyny z
+   działkami wychodzące poza ekran. Zniszczenie działka szyny przesuwa całą
+   szynę o jedną pozycję do środka; szyna wsunięta dość daleko zakrywa działo
+   po swojej stronie — zakryte działo jest nietykalne, ale strzela do końca
+   walki. Szyna nigdy nie zakrywa wrót ani rdzenia. Kolejność ma znaczenie:
+   najpierw działa, potem szyny.
+1. **Układ: N-C z wariantem W2.** Hangar o szerokości jednej kolumny (31),
+   działa po dwie komórki tuż przy nim. Szyny startują o jedną pozycję bliżej
+   niż w N-C, więc **drugie** zniszczone działko szyny wsuwa ją nad działo
+   (jedno bezpieczne przesunięcie na stronę): przody 22 → 26 → 30 i 40 → 36 →
+   32. **Trzy działka na stronę** (dwa przesuwają szynę, trzecie zostaje na
+   zatrzymanej) — czwarte zostałoby za zatrzymaną szyną zamknięte na zawsze i
+   nie dałoby się go zniszczyć. G-A, G-B, N-A, N-B i W1 odrzucone, kod
+   wariantów usunięty.
+2. **Zakryte działo:** nietykalne (strzały odbite), strzela dalej. Szybszy
+   ogień zakrytego działa — **niezbudowany:** w danych nie ma takiej dźwigni
+   (przeładowanie promienia jest w `boss_def` na poziom trudności, wspólne dla
+   wszystkich laserów), kod ok. 36 B, a blok regionu 2 po sygnale otwarcia
+   wrót ma 0 B wolnych i nie znalazło się przycięcie, które by za to zapłaciło.
+   Tempo bez zmian.
+3. **Ostrzeżenie:** miga działko, którego zniszczenie zakryłoby działo
+   (zostaje).
+4. **Uczciwość (twarda reguła):** zasięg rdzenia i wrót (x 116, 118) leży pod
+   promieniem lewego działa (niebezpieczeństwo, nie schronienie); wyjście z
+   ostrzeżonego promienia zostawia **37 / 29 / 22** klatki zapasu (E / M /
+   H; wymagane ≥ 10); w fazie rdzenia przy obu
+   działach zakrytych okna między promieniami lewego działa: poziom 4 — 689 /
+   531 / 374 klatek, poziomy 5-6 — 300 / 225 / 150.
+5. **Czytelność wrót (wymagana):** zamknięte — szary, zakratowany pancerz na
+   oliwkowym tle (bank PF3, `band.png`), strzały odbijają się z glifem
+   odbicia; otwarte — bursztynowe szewrony (PF2, `open.png`, z etapami
+   uszkodzeń, błysk b3). Chwila otwarcia: kontroler rysuje wygląd otwarty,
+   blok dokłada błysk wrót i wysoki ton trzymany 16 klatek — **19 B**,
+   opłacone w bloku (17 B przycięcia: starsze bajty masek osłon składane tylko
+   tam, gdzie leży bit modułu, plus 2 B wolne). Blok regionu 2: 512 z 512 B.
+   0 B rezydentnych.
+6. **Bez zmian:** wrota otwierają się po zniszczeniu lub zakryciu każdego
+   działa i działka szyny; rdzeń strzela salwami i pada ostatni; lasery wg AC
+   (poziom 4 — jeden promień, działa na zmianę; poziomy 5-6 — dwa); tempo
+   przesuwu (12 klatek, potem 4 na kolumnę) i paleta (oliwka / bursztyn);
+   test odległości kolorów obejmuje R2 wobec `$88`.
+7. **Lewa krawędź:** pat zostaje. Replay `region-2-edge-left-1` (bot celuje
+   do pierwszego zniszczonego modułu, potem stoi przy HPOS 48): 22 eskorty i
+   20 trafień w pierwszych 4 000 klatkach walki — eskorta atakuje.
+8. **Strojenie (t3):** działka szyn 15, działa 8, wrota 46, rdzeń 50 (cięższe
+   wrota i rdzeń — fazy, w których nieostrożny gracz ma nad sobą zakryte
+   działa). Bot celujący, E / M / H: **ostrożny 91,5 / 110,1 / 149,8 s**,
+   nieostrożny 85,8 / 102,6 / 133,9 s; boty schodzące z promieni: ostrożny
+   91,5 / 110,1 / 150,2, nieostrożny 92,9 / 118,8 / 161,9 s. Nieostrożna
+   kolejność: 2-16 promieni w fazach wrót i rdzenia (ostrożna 0), bez
+   uników 1-5 trafień laserem (ostrożna 0-1).
+
+**Wynik:** plan `s5-boss-regions` §6.5.7-§6.5.8, STATUS, game-design,
+level-authoring, memory-map, how-to-play (EN / PL: „zniszcz działa, zanim
+szyny się zamkną"), hardware-testing §35 (Bastion) i §36 (smoke czterech
+regionów do `v0.3.0`), README (EN / PL), szkic notatek `v0.3.0`, notatka dla
+zadania banerów. S5 kompletne. `OWNER-SMOKE CANDIDATE`.
 ---
 
 ## Backlog — dopisane 2026-09-20

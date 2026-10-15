@@ -114,6 +114,10 @@ The game is playable and unfinished. This list is the build in `dist/`.
   independently, `BROADSIDE` fire from both sides with warning flashes,
   indestructible hulls and turrets to fly around.
 - **Destructible debris**, scored whether you shoot it or ram it.
+- **The boss.** Level 1 ends on Blockade Breaker, a boss built from modules —
+  armour plates, guns and two laser cannons whose beams warm up visibly and
+  audibly first — loaded from the disk behind a WARNING screen with its name,
+  followed by the level-summary screen.
 - **A deterministic Encounter Director** for level 1, driven by travelled world
   rows rather than wall-clock time, with bounded object pools.
 - **Three timed boosters**, one at a time, from pickup capsules: Rapid Fire,
@@ -131,12 +135,8 @@ Designed and decided, not in the build you can download.
 - **A twelve-level campaign.** Level complete, next level, levels as data, and
   a level select that starts from the furthest level you reached — held in RAM
   only, so it is gone when the machine is switched off.
-- **A boss at the end of every level.** One boss controller; each boss is a
-  record describing module layout, gun placement and weak points, built from
-  repeating modules. Its weapons reuse the existing enemy projectile classes,
-  so twelve bosses do not mean twelve new projectile families. It also has a
-  laser that cannot be dodged once fired — the gun heats visibly, with sound,
-  for about two seconds first.
+- **A boss at the end of every level.** The four regions' bosses exist (see
+  "The bosses, as designed" below); what remains is the levels that lead to them.
 - **A permanent weapon booster.** Five levels. Each capsule raises the level by
   one; the level is signalled by the shape of your shots and by the firing
   sound, with no HUD element. Dying costs one level, not all of them.
@@ -195,13 +195,27 @@ are regenerated from the current build by `npm run showcase -- --capture`,
 
 ## The bosses, as designed
 
-**Concept art. Not implemented yet** — see "What is being built" above. These
-illustrations show the intended shape and mechanics, not final Atari graphics: a
-structure wider than the screen, drifting sideways to reveal its sections, with
-protective modules to strip away before the weapons underneath can be reached.
+**Four bosses are built** — one for each region of three levels — and drawn as
+Atari character graphics, each with its own signature mechanic. In the
+downloadable ATR, level 1 ends on the first of them; the bosses of regions 2-4
+play on review builds (`node scripts/build.mjs --level=1:sector=6
+--boss-region=N`) until their levels are authored.
 
-All three are in [boss-concepts.md](docs/boss-concepts.md), with their concept
-art: [Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),
+- **Blockade Breaker** (levels 1-3): a damaged warship under an armoured
+  spine; two laser cannons take turns behind a belt of armour plates.
+- **Bastion** (levels 4-6): a hangar at the centre, a laser cannon on each
+  side of it, and a rail of guns on each flank running off the screen. Every
+  rail gun you destroy slides its rail one step inward; the second slide
+  covers that side's cannon, which then cannot be hurt and keeps firing. The
+  hangar doors stay locked until every cannon and rail gun is destroyed or
+  covered. Destroy the cannons before the rails close in.
+- **Siege Spine** (levels 7-9): a segmented spine behind a force field in two
+  halves, each fed by a generator sphere at its end.
+- **Void Citadel** (levels 10-12): a still fortress with a gravity well that
+  pulls your ship towards its core's own laser.
+
+The original concept art is in [boss-concepts.md](docs/boss-concepts.md):
+[Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),
 [Siege Spine](docs/media/concepts/void-strike-65-boss-02-siege-spine.png) and
 [Void Citadel](docs/media/concepts/void-strike-65-boss-03-void-citadel.png).
 

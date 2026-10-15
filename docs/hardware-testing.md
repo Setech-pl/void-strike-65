@@ -1292,6 +1292,86 @@ new file name:
 - [ ] **No flicker or slowdown** in the swarm with three Interceptors and
       their lasers, and in the boss fight with the escort.
 
+## 35. Region 2's boss: the Bastion - the hangar, the cannons, the sliding rails (`feat/boss-region-2`)
+
+Plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.5; journal §AT.
+In Atari800 (`-xl -pal -nobasic`), on the region 2 boss route
+(`build/play/s5-5-r2-boss-route-*.atr`, level 4: one beam, the cannons take
+turns), its tier-2 copy (`build/play/s5-5-r2-tier2-boss-route-*.atr`, levels
+5-6: two beams), the level route (`build/play/s5-5-r2-level-route-*.atr`,
+level 1's content as level 4, then the boss) and the whole game
+(`build/play/s5-5-full-game-*.atr`), at EASY, MEDIUM and HARD:
+
+- [ ] **The title:** the loading screen reads WARNING / BASTION / INCOMING.
+- [ ] **One ship:** the overhead track from screen edge to screen edge, the
+      slim hangar at the centre (its cap, the core, the doors under it), a
+      laser cannon hugging it on each side, a gun rail on each flank whose
+      girder runs off the screen; destroy everything - the track stays,
+      nothing floats.
+- [ ] **A rail moves one step per rail-gun kill:** shoot a rail's front gun -
+      its socket stays on the rail; a beat later the rail slides one gun
+      inward, a column at a time with a clank, and the next gun comes in from
+      the edge. Nothing else ever moves a rail.
+- [ ] **The cover warning:** after the first kill on a side, the next front
+      gun on that rail blinks while its cannon stands.
+- [ ] **A covered cannon:** kill that gun - the rail slides over the cannon;
+      the cannon cannot be hurt (shots there show the deflection glyph) and
+      **keeps firing** from under the rail, its warning heat showing on the
+      rail, until the end of the fight.
+- [ ] **The rails never cover the hangar** (doors, core).
+- [ ] **The doors:** grey barred armour while locked - shots bounce off with
+      the deflection glyph; once every cannon and rail gun is destroyed or
+      covered they turn amber with a flash and a held high tone; then they
+      take damage (they flash when hit) and fall; the core behind them falls
+      last; once the doors fall the core's volleys come at half reload.
+- [ ] **The escort** launches over the doors (the doors flash just before
+      each), one at a time, from the first weapon kill; none after the doors
+      fall.
+- [ ] **The order puzzle:** cannons first (careful) - no beam after the
+      cannons fall; rails first (careless) - the covered cannons fire through
+      the doors and core phases. The careful order should feel clearly safer.
+- [ ] **Fair beams:** with both cannons covered, the core can be shot between
+      the left beams (it stands under the left cannon's beam), and stepping
+      out of a warned beam always works with time to spare.
+- [ ] **The left edge:** parked at the far left after the first kill, the
+      escort reaches you there.
+- [ ] **Hits read:** every module flashes when hit (b3), a kill shows the
+      spark, every damage stage keeps its amber pixels.
+- [ ] **The fight's feel on MEDIUM:** about 110 s by the careful bot; EASY
+      shorter, HARD about 150 s.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **No flicker or slowdown** with a rail sliding, two beams and the escort
+      at once; the boss entry loads and plays (66 sectors).
+
+## 36. `v0.3.0`: the four regions' bosses (the release smoke, S5-5)
+
+Plan [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6 (S5-5's `v0.3.0`
+prep; the plan names this list "§21", a number S5-1 took first). On the
+default ATR (`dist/void-strike-65.atr`, the whole game: level 1's boss) and
+the four boss routes (`node scripts/build.mjs --level=1:sector=6
+--boss-region=N`, region 1 without `--boss-region`), at MEDIUM, then on the
+real 65XE PAL with the SIO2SD (a copy under a new file name), §23 and §24's
+boot and sound checks first:
+
+- [ ] **Region 1, Blockade Breaker** (§31): the twin cannons in turn, the
+      spine, the belt; the left-edge guard (the escort reaches a parked ship).
+- [ ] **Region 2, the Bastion** (§35): the rails, the cover, the doors.
+- [ ] **Region 3, Siege Spine** (§30): the field in two halves, each falling
+      with its generator.
+- [ ] **Region 4, the Void Citadel** (§32, §33): still, the pull, the core's
+      beam down the gravity column.
+- [ ] **Every region:** WARNING / the boss's name / INCOMING; the booster bar
+      kept through the entry; the b3 flash; the final salvos (regions 2-4);
+      the escort from the first weapon kill, never two at once, none after the
+      boss falls; the chain, the summary.
+- [ ] **No flicker, no slowdown, no tear** in any boss fight on the real
+      machine; every boss entry loads (65-68 sectors).
+- [ ] **Record** the ATR's SHA-256, the emulator and hardware versions and
+      each section's result (below).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

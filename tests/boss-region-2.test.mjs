@@ -124,10 +124,14 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
   assert.ok(block.codeBytes > 0, "region 2's block carries the rails' code");
   assert.ok(block.bytes <= manifest.boss.slotF.capacityBytes, `region 2's block is ${block.bytes} B`);
   assert.ok(region2.lookTail.length <= 110, "the look tail fits slot F's rule");
-  // The banner task's headroom (decision AM: 280 host frames, the banner
-  // ~25): the boss entry stays at 66 sectors - the charset in five.
-  assert.ok(region2.codeCount <= 80, `${region2.codeCount} codes: the charset outgrows five sectors`);
-  assert.equal(built.entrySectors, 66, "region 2's boss entry is 66 sectors");
+  // The owner's look at 3b5a8ea (the art's codes): the charset one sector
+  // more, six (96 codes) and no more; the boss entry 67 sectors (decision
+  // AM: 280 host frames; the banner task absorbs the headroom with R3, R4).
+  assert.ok(region2.codeCount > 80 && region2.codeCount <= 96, `${region2.codeCount} codes: not six sectors`);
+  assert.equal(region2.runs.charset.data.length, 6 * 128, "the charset is six sectors");
+  assert.equal(built.entrySectors, 67, "region 2's boss entry is 67 sectors");
+  // The nozzles are never drawn: their two codes outside the charset's run.
+  assert.deepEqual(region2.nozzle.codes, [126, 127], "the nozzle codes are in the run");
 });
 
 test("the geometry: the hangar five cells; the first slide leaves each cannon clear, the second covers it; every gun reachable", () => {
@@ -188,7 +192,10 @@ test("the art rule: every damage stage of every region 2 module has colour-3 pix
   for (const name of ["doors", "cannon-l", "cannon-r"]) {
     assert.ok(region2.openLooks.get(index(name)).every((code) => (code & 0x80) === 0), `${name} open: a PF3 cell`);
   }
-  assert.ok(region2.openLooks.get(index("doors")).every(staged), "the opened doors are staged cells");
+  // The owner's look at 3b5a8ea: the doors a single simple gate - one plain
+  // glyph, no damage stages.
+  const doorsOpen = region2.openLooks.get(index("doors"));
+  assert.ok(doorsOpen.every((code) => !staged(code) && code === doorsOpen[0]), "the opened doors are not one plain glyph");
 });
 
 test("locked and open read apart: a locked bay is the locked doors' barred glyph, open another bank and glyph", () => {
@@ -202,21 +209,22 @@ test("locked and open read apart: a locked bay is the locked doors' barred glyph
   assert.ok(closed("doors").every((code) => code === bars), "the locked doors: not the barred glyph");
   const doorsOpen = region2.openLooks.get(index("doors"));
   assert.ok(doorsOpen.every((code) => (code & 0x7f) !== (bars & 0x7f) && (code & 0x80) === 0), "the open doors: the bars or PF3");
-  // A locked bay (the owner's look of 2026-10-15 at 110c274): the whole
-  // cannon - its open look's own glyphs, the colour-3 parts in the olive bank
-  // - over its armour row, the bars between the cannon and the player; open,
-  // the amber cannon over an empty row.
+  // A locked bay (the owner's looks of 2026-10-15 at 110c274 and 3b5a8ea):
+  // the whole cannon in grey steel - glyphs of its own, no colour-3 pixel -
+  // over its armour row, the bars between the cannon and the player; open,
+  // the amber cannon (another glyph in every cell) over an empty row.
   const glyph = (code) => [...region2.runs.charset.data.subarray((code & 0x7f) * 8, (code & 0x7f) * 8 + 8)];
-  const hasColour3 = (code) => glyph(code).some((byte) => [0, 2, 4, 6].some((shift) => ((byte >> shift) & 3) === 3));
+  const colour3Pixels = (code) => glyph(code).reduce((n, byte) => n + [0, 2, 4, 6].filter((shift) => ((byte >> shift) & 3) === 3).length, 0);
   for (const name of ["cannon-l", "cannon-r"]) {
     const m = region2.modules[index(name)];
     const look = closed(name), open = region2.openLooks.get(index(name));
     const cannonCells = m.width * m.cavityRows;
     for (let k = 0; k < cannonCells; k += 1) {
       assert.notEqual(look[k] & 0x7f, 0, `${name} locked: cell ${k} of the cannon is empty`);
-      assert.deepEqual(glyph(look[k]), glyph(open[k]), `${name} locked: cell ${k} is not the open cannon's glyph`);
-      assert.equal(look[k] & 0x80, hasColour3(look[k]) ? 0x80 : look[k] & 0x80, `${name} locked: cell ${k}'s colour 3 is not the olive`);
+      assert.equal(colour3Pixels(look[k]), 0, `${name} locked: cell ${k} is not grey steel`);
+      assert.notDeepEqual(glyph(look[k]), glyph(open[k]), `${name} locked: cell ${k} is the open cannon's glyph`);
     }
+    assert.ok(open.slice(0, cannonCells).reduce((n, code) => n + colour3Pixels(code), 0) >= 16, `${name} open: not amber`);
     assert.ok(look.slice(cannonCells).every((code) => code === bars), `${name} locked: the armour row is not the bars`);
     assert.ok(open.slice(cannonCells).every((code) => (code & 0x7f) === 0), `${name} open: the armour row is not empty`);
     assert.ok(open.slice(0, cannonCells).every((code) => (code & 0x7f) !== (bars & 0x7f) && (code & 0x80) === 0),

@@ -1340,14 +1340,19 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   }
 
   // Codes: 0-6 the divider, then the staged block (K x 3), the plain block,
-  // the two nozzle codes.
+  // the two nozzle codes. S5-5 (the owner's look at 3b5a8ea: the codes for
+  // the art): a region whose band draws no nozzle and whose look tail holds
+  // no phase images (nozzles.phases false) keeps its two nozzle codes out of
+  // the charset's run - the last two codes of the charset area, never drawn,
+  // their glyphs only written (unseen) by the engine's nozzle step.
   const K = staged.length;
   const plainBase = BOSS_FIRST_CODE + 3 * K;
-  const nozzleBase = plainBase + plain.length;
-  const shotCode = nozzleBase + 2;
+  const nozzlesInRun = nozzlePhasesInTail;
+  const nozzleBase = nozzlesInRun ? plainBase + plain.length : BOSS_MAX_CODES - 2;
+  const shotCode = nozzlesInRun ? nozzleBase + 2 : plainBase + plain.length;
   const hostileShotCode = shotCode + BOSS_SHOT_CODES;
   const codeCount = hostileShotCode + BOSS_HOSTILE_SHOT_CODES;
-  if (codeCount > BOSS_MAX_CODES) {
+  if (codeCount > (nozzlesInRun ? BOSS_MAX_CODES : nozzleBase)) {
     fail(`the region needs ${codeCount} codes (${K} staged x 3, ${plain.length} plain, 2 nozzles, ` +
       `${BOSS_SHOT_CODES + BOSS_HOSTILE_SHOT_CODES} shots, ${BOSS_DIVIDER_CODES} divider); ` +
       `ANTIC 4 has ${BOSS_MAX_CODES}`);
@@ -1389,7 +1394,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     glyphs.set(broken, (BOSS_FIRST_CODE + 2 * K + i) * 8);
   });
   plain.forEach((bytes, i) => glyphs.set(bytes, (plainBase + i) * 8));
-  nozzlePhases.forEach((phases, side) => glyphs.set(phases[0].bytes, (nozzleBase + side) * 8));
+  if (nozzlesInRun) nozzlePhases.forEach((phases, side) => glyphs.set(phases[0].bytes, (nozzleBase + side) * 8));
   // The in-band shot (decision M): the playfield shot's colour-3 pixels in
   // COLPF0, the band colour closest to it (plan §5.16.5 answer 2).
   if (shotGlyphs !== null) {

@@ -134,19 +134,38 @@ g..g
 ....
 ....
 `);
-// The rail's front, rows 1-3: a solid amber bumper in a steel frame (one
-// glyph, both rails) - the rail's end, clear against the girder.
-const BUMPER = pic(`
-WWWW
-WaaW
-WaaW
-WaaW
-WaaW
-WaaW
-WaaW
-gggg
+// The rail's front, rows 1-3 (the owner's look at 3b5a8ea: a real bumper,
+// the window build's quality): a buffer beam - a steel post on the girder's
+// side, a hazard-striped plate facing the bay, a rounded buffer head with an
+// amber pad at its foot. The left rail's; the right rail's its mirror.
+const BUMPER_LEFT = pic(`
+WWW.
+gWWg
+gWaa
+gWWa
+gWWW
+gWaW
+gWaa
+gWWa
+gWWW
+gWaW
+gWaa
+gWWa
+gWWW
+gWaW
+gWaa
+gWWa
+gWWW
+gWWW
+gWgg
+gWWW
+gWaa
+gWaa
+gWWW
+.gg.
 `);
 const flip = (picture) => picture.map((line) => [...line].reverse().join(""));
+const BUMPER_RIGHT = flip(BUMPER_LEFT);
 
 // A rail gun, 3 x 2 cells (the window build's pod, restored at the owner's
 // look of 2026-10-15): a solid inverted-triangle turret hung straight from the
@@ -174,8 +193,8 @@ gWrr|gaag|rrWg
 // The hangar's shell, a sphere five cells wide (columns 29-33, rows 0-4 - 20
 // x 40 pixels, round on screen at the 2:1 pixel): olive bulk, a steel rim,
 // rivets; the track runs behind it. The core sits in its middle, the doors -
-// the gate - at its foot. Row 0 three glyphs, each wall three, two
-// feet - the top's middle three cells one glyph (eleven).
+// the gate - at its foot. Row 0 five glyphs, each wall three, two feet
+// (thirteen; the owner's look at 3b5a8ea gave the charset its sixth sector).
 function shellPicture() {
   const lines = [];
   for (let y = 0; y < 40; y += 1) {
@@ -192,8 +211,6 @@ function shellPicture() {
     }
     lines.push(line);
   }
-  // The dome's top three cells one glyph (the budget: 80 codes).
-  for (let y = 0; y < 8; y += 1) lines[y] = lines[y].slice(0, 4) + lines[y].slice(8, 12).repeat(3) + lines[y].slice(16);
   return lines;
 }
 // The core, 3 x 3 cells (columns 30-32, rows 1-3): an amber reactor sphere
@@ -219,6 +236,42 @@ function corePicture() {
   }
   return lines;
 }
+// The laser cannon, 2 x 3 cells (the owner's look at 3b5a8ea: a pointed,
+// readable silhouette, the detail of region 1's tower): a stepped spire
+// pointing up at the track, its housing widening to a belt, the arch of its
+// legs round the lens - the beam's emitter, the muzzle (a beam leaves the
+// cannon's centre, columns x + 0.5 .. x + 1.5) at its foot. Open, lit: its
+// windows, panels and lens hazard amber. Locked: the same steel, unlit - grey
+// with dark insets, the lens a dark socket (no amber anywhere: the locked
+// cannon reads at once from the open one).
+const CANNON_OPEN = pic(`
+...WW...
+..gWWg..
+..gaag..
+..gWWg..
+.gWggWg.
+.gWaaWg.
+.gWggWg.
+gWWWWWWg
+gWgaagWg
+gWWWWWWg
+WWggggWW
+WgaaaagW
+WgaWWagW
+WgaaaagW
+WWggggWW
+gWWWWWWg
+gWWggWWg
+gWgaagWg
+gW.aa.Wg
+gWaWWaWg
+gW.aa.Wg
+.gWaaWg.
+..gaag..
+..gWWg..
+`);
+const CANNON_LOCKED = CANNON_OPEN.map((line) => line.replace(/a/g, "."));
+
 // The warning's heat on the lens cell (decision E2: the emitter's own two
 // glyphs, A then B): a lamp that glows - on the open tower, on a locked bay's
 // bars and on the rail end over a covered cannon alike.
@@ -352,36 +405,22 @@ const join = (rows) => rows.flatMap((cells) => cells[0].map((_, y) => cells.map(
 
 export function drawRegion2() {
   const { left, right } = r2Guns();
-  const regionOnePng = fs.readFileSync(path.join(regionOne, "emitter.png"));
   const extras = fs.readFileSync(path.join(regionOne, "extras.png"));
   const extrasCells = decodePanels(extras, 15, 4, 8);
   extrasCells[3] = SOCKET;
-  // As region 4's cannons (scripts/boss-r4-art.mjs): region 1's tower without
-  // its outer flanges, the lens across the cells' boundary; the heat and the
-  // stages change only the lens cell (the right cell's bottom row), so the
-  // left cell keeps the rest look in every panel. Open, the tower is lit:
-  // under its steel mount (row 1) its mid steel turns hazard amber outside
-  // the lens cell (the bay's opening reads as the armour falling away and the
-  // cannon turning amber; locked, the same glyphs in the bulk's olive). The warning's heat (HEAT) is a glow
-  // of its own (decision E2), not a piece of the cannon's lens - a covered
-  // cannon's warning shows on its rail's end as a lamp, with nothing of the
-  // cannon beside it.
-  const narrow = decodePanels(regionOnePng, 5, 12, 24).map((panel) => panel.map((line) => line.slice(2, 10)));
+  // The cannon's five panels (emitter.png): rest, heat A, heat B, cracked,
+  // broken - they differ in the lens cell only (the right cell's bottom row:
+  // the warning's heat, decision E2 - a glow of its own, not a piece of the
+  // cannon's lens, so a covered cannon's warning shows on its rail's end as a
+  // lamp with nothing of the cannon beside it; and the lens's damage stages).
   const ARMOUR_ROW = Array(CELL_H).fill(".".repeat(R2.cannon.width * CELL_W));
-  for (const panel of narrow.slice(1)) {
-    for (let y = 16; y < 24; y += 1) panel[y] = narrow[0][y].slice(0, 4) + panel[y].slice(4);
-  }
-  HEAT.forEach((heat, i) => {
-    for (let y = 0; y < 8; y += 1) narrow[1 + i][16 + y] = narrow[1 + i][16 + y].slice(0, 4) + heat[y];
-  });
-  const lit = narrow.map((panel) => panel.map((line, y) => (y < 8 ? line
-    : y < 16 ? line.replace(/g/g, "a") : line.slice(0, 4).replace(/g/g, "a") + line.slice(4))));
-  // emitter.png: the cannon over its armour row - empty in every panel (the
-  // open look: the armour gone, the beam from the muzzle).
-  const narrowCanvas = new Canvas(5 * 8, 32);
-  lit.forEach((panel, i) => narrowCanvas.draw([...panel, ...ARMOUR_ROW], i * 8, 0));
-  const emitterPng = narrowCanvas.png();
-  const [rest, , , emitterCracked, emitterBroken] = lit.map((panel) => [...panel, ...ARMOUR_ROW]);
+  const lensCell = CANNON_OPEN.slice(16, 24).map((line) => line.slice(4, 8));
+  const withLens = (cell) => CANNON_OPEN.map((line, y) => (y < 16 ? line : line.slice(0, 4) + cell[y - 16]));
+  const panels = [lensCell, ...HEAT, staged(lensCell, "cracked"), staged(lensCell, "broken")].map(withLens);
+  const panelCanvas = new Canvas(5 * 8, 32);
+  panels.forEach((panel, i) => panelCanvas.draw([...panel, ...ARMOUR_ROW], i * 8, 0));
+  const emitterPng = panelCanvas.png();
+  const [rest, , , emitterCracked, emitterBroken] = panels.map((panel) => [...panel, ...ARMOUR_ROW]);
   const extrasCanvas = new Canvas(15 * CELL_W, CELL_H);
   extrasCells.forEach((cell, i) => extrasCanvas.draw(cell, i * CELL_W, 0));
   const sphere = corePicture();
@@ -390,15 +429,16 @@ export function drawRegion2() {
     const eye = staged(sphere.slice(8, 16).map((line) => line.slice(4, 8)), stage);
     return sphere.map((line, y) => (y >= 8 && y < 16 ? line.slice(0, 4) + eye[y - 8] + line.slice(8) : line));
   };
-  const doorsOpen = (stage) => repeat(stagedCells(DOORS_OPEN, stage), R2.doors.width);
+  // The open doors one plain gate glyph (the owner's look at 3b5a8ea: the
+  // doors a single simple gate; no damage stages - "stages": false).
+  const doorsOpen = () => repeat(DOORS_OPEN, R2.doors.width);
   const doorsLocked = repeat(BARS, R2.doors.width);
-  // A locked bay (the owner's look of 2026-10-15 at 110c274: "the armour
-  // must be BETWEEN the cannon and the player"): the whole cannon, rows 1-3,
-  // its open look's own glyphs in the pf3 bank (the amber parts the bulk's
-  // dark olive - no glyph of its own), over its armour - the doors' bars -
-  // in row 4, between the muzzle and the player. Its beam starts under the
-  // armour (boss.s rail_frame).
-  const bay = [...lit[0].map((line) => line.replace(/a/g, "r")), ...join([[BARS, BARS]])];
+  // A locked bay (the owner's looks of 2026-10-15 at 110c274 - "the armour
+  // must be BETWEEN the cannon and the player" - and at 3b5a8ea - grey steel,
+  // not olive): the whole cannon, rows 1-3, unlit steel (CANNON_LOCKED), over
+  // its armour - the doors' bars - in row 4, between the muzzle and the
+  // player. Its beam starts under the armour (boss.s rail_frame).
+  const bay = [...CANNON_LOCKED, ...join([[BARS, BARS]])];
   const shell = shellPicture();
   const cannons = [R2.cannon.xLeft, mirror(R2.cannon.xLeft, R2.cannon.width)];
   for (const stage of ["intact", "cracked", "broken"]) {
@@ -424,7 +464,7 @@ export function drawRegion2() {
       const columns = side === "l" ? [...Array(nose).keys()] : [...Array(63 - nose).keys()].map((i) => nose + 1 + i);
       for (const c of columns) canvas.cell(GIRDER, c, 1);
       for (const g of guns) canvas.draw(staged(GUN3, stage), g.x * CELL_W, 2 * CELL_H);
-      for (let r = 1; r <= 3; r += 1) canvas.cell(BUMPER, nose, r);
+      canvas.draw(side === "l" ? BUMPER_LEFT : BUMPER_RIGHT, nose * CELL_W, CELL_H);
       const gap = side === "l" ? [nose + 1, cannonEdge.l - 1] : [cannonEdge.r + 1, nose - 1];
       for (let c = gap[0]; c <= gap[1]; c += 1) canvas.cell(GUIDE, c, 1);
     }

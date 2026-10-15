@@ -233,6 +233,7 @@
       "hp": 22,
       "score": 60,
       "cavityRows": 0,
+      "stages": false,
       "cover": [
         "cannon-l",
         "cannon-r",

@@ -2646,6 +2646,39 @@ beams), GREEN here 20 of 20; the boss tests 299 of 299. Atari800 frames of
 the built ATR (`region-2-diag-1`, `DFTRACE_SHOT_HOSTS`): a locked bay's beam
 from under its bars, an open cannon's from its muzzle.
 
+#### 6.5.13 The look's quality (2026-10-15) — awaiting the owner's look
+
+**The owner's look at `3b5a8ea`:** the bay layout accepted; the quality not -
+the cannons blockier and less detailed than in the window build, the locked
+cannon muddy olive, the rail ends plain blocks (the charset at 80 of 80).
+The owner allows a simple gate for the doors and pre-approves one more
+charset sector (no more).
+
+**Codes freed:** the open doors one plain gate glyph (`"stages": false`, -2);
+the two nozzle codes - never drawn in region 2 - out of the charset's run
+(the converter: a region with `nozzles.phases` false and no nozzle cell keeps
+them at codes 126-127, the charset area's last bytes, which the engine's
+nozzle step writes unseen; -2); the bays' armour is the doors' bar glyph.
+Not enough: the art below needs 88 codes - **the sixth sector** (96 codes,
+768 B).
+
+**The art:** the cannon redrawn (it was region 1's tower cropped to two
+cells, its lens cell broken): a stepped spire pointing up at the track, a
+belt, the legs' arch round the lens at its foot - open lit amber (windows,
+panels, lens), locked the same steel unlit: grey with dark insets, no
+colour-3 pixel (tested); the lens alone staged, the heat its own lamp (E2).
+The rail ends a buffer beam each side (mirrored): a steel post, a plate with
+diagonal hazard stripes facing the bay, a rounded buffer head with an amber
+pad. The dome's top three cells their own glyphs again (round). Pods and
+core unchanged.
+
+**Budget:** charset **88 of 96 codes, 6 sectors**; the boss entry **67
+sectors, 256 host frames** (MEASURED, `region-2-diag-1`: +3), the banner
+task's headroom 24 frames under the hard 280 (decision AM; the banner task
+absorbs it with R3 and R4, the owner's call). Region 2's block 509 of 512 B
+(no code change), 0 resident bytes, stress 7,723 / 7,615 of 8,500
+(unchanged), the PAL audit 0 misses. Regions 1, 3, 4 byte-identical.
+
 ## 7. Owner questions
 
 | # | Question | Recommended answer | Cost of the recommendation | The alternative and its cost |

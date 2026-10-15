@@ -835,7 +835,13 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
      * the band's ends too, beyond the plain sweep (MEASURED, Phase A-2:
      * region-4-diag-1 never reached the chain in 12,000 frames); region 4
      * plays its boss with the aiming bot as region 3 does. */
-    policy: region >= 3 ? "boss-aim" : "sweep",
+    /* S5-5 (feat/boss-region-2, Phase B): region 2's rails run off both
+     * screen edges and its hangar stands at the centre - the plain sweep never
+     * reaches the rails' outer guns; region 2 plays its boss with the aiming
+     * bot that takes the laser cannons first (careful), its finale sessions
+     * with the one that takes the rail guns first (careless: the rails cover
+     * the cannons), so both orders are on the route. */
+    policy: region === 2 ? "boss-aim-careful" : region >= 3 ? "boss-aim" : "sweep",
     fireDelay: 2,
     /* MEASURED (region-2-diag-1, 2026-10-09): the sweep bot firing every
      * other frame scores 316 of the fight's points in 5,000 frames - it
@@ -873,7 +879,7 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     difficulty,
     // S5-3: region 3's wide sweep broke the generators but did not finish the
     // fight in 12,000 frames (MEASURED, Phase A): the aiming bot, as above.
-    policy: region >= 3 ? "boss-aim" : "sweep-wide",
+    policy: region === 2 ? "boss-aim-careless" : region >= 3 ? "boss-aim" : "sweep-wide",
     fireDelay: 2,
     frames: 12_000,
     endAtSummary: true,
@@ -881,6 +887,24 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     holdPlayerLives: 3,
     bossRegion: region,
   })),
+  /* S5-5 Phase B (the owner's answer of 2026-10-15): the left-edge stalemate
+   * on region 2 - from HPOS 48 a shot meets the left rail's girder and no
+   * boss weapon reaches the ship - stays, provided the escort reaches a
+   * player who has started it: the aiming bot until a module falls (the
+   * escort's start, decision AI), then parked at HPOS 48, firing, MEDIUM. The
+   * left-edge guard's clause (bossEdgeGuardClause): in the fight's first
+   * 4,000 frames at least one Interceptor escort and one hit on the player. */
+  ...(region === 2 ? [{
+    id: "region-2-edge-left-1",
+    difficulty: 1,
+    policy: "boss-aim-park-48",
+    fireDelay: 2,
+    frames: 5_000,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    bossRegion: region,
+    edgeGuard: { x: 48, windowFrames: BOSS_EDGE_GUARD_FRAMES },
+  }] : []),
 ]);
 
 /* M5b-S4b (owner decision Q10): the laser fixture's worst case on the
@@ -1465,6 +1489,8 @@ for (const name of [
   // S5-5: region 2's rails - the slides done and the guns destroyed (left |
   // right << 4), a slide under way (bit 0 left, bit 1 right).
   "rail_k", "rail_dead", "rail_sliding",
+  // S5-5 Phase B: the boss modules alive (the controller's 16-bit mask).
+  "boss_alive",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4695,7 +4721,9 @@ function main() {
         entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };
       console.log(`${session.id}: region ${session.bossRegion} entered in ${session.bossEntry.host_frames} ` +
         `host frames at frame ${session.bossEntry.frame}; chain ${chain === undefined ? "not reached" : `at frame ${chain.frame}`}`);
-      if (session.difficulty === 1) {
+      // S5-5: not the edge-parking player's (region-2-edge-left-1): a
+      // stalemate by design, its subject the escort.
+      if (session.difficulty === 1 && session.edgeGuard === undefined) {
         invariant(chain !== undefined, `${session.id}: the fight never reached the chain in ${session.frames} frames`);
       }
       // S5-2 (plan s5-boss-regions §4.2, §5): a region whose data carries a
@@ -4825,6 +4853,90 @@ function main() {
           column_frames: shown, off_frame: firstOff?.frame ?? null };
         console.log(`${session.id}: the pull on ${on.length} boss frames, ${on.at(-1).gravity_steps} steps, ` +
           `the column shown on ${shown}, off for good at frame ${firstOff?.frame ?? "-"}`);
+      }
+      // S5-5 (feat/boss-region-2, Phase B; the owner's design of 2026-10-14
+      // and his answers of 2026-10-15): a region with sliding rails and a
+      // hangar. Subject: the fight frames. Per side: the slides done (rail_k)
+      // and the front guns destroyed that slide the rail (rail_dead) never go
+      // back and step by one; a slide only after a kill (k <= dead <= k + 1),
+      // within delay + pitch x framesPerStep frames plus the quiet frames it
+      // waits for; never past the last position. A slide that reaches the
+      // last position with the cannon standing covers it: that cannon then
+      // never falls (invulnerable) and its laser fires again if the fight runs
+      // on for 700 frames (it keeps firing). The doors fall before the core;
+      // no escort is admitted once they have fallen; never two Lights at once
+      // (decision AI). The careless sessions (region-2-finale-*) must cover a
+      // cannon (subject).
+      const railRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.rails ?? null;
+      const hangarRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.hangar ?? null;
+      if (railRegion !== null && railRegion !== undefined && hangarRegion !== null && hangarRegion !== undefined) {
+        const fight = rows.filter((row) => row.boss_state === 1 && row.boss_entry !== 1);
+        invariant(fight.length > 0, `${session.id}: no fight frame (subject empty)`);
+        const nibble = (value, side) => (value >> (4 * side)) & 15;
+        const alive = (row, index) => ((row.boss_alive >> index) & 1) === 1;
+        const slideBound = railRegion.delayFrames + railRegion.pitch * railRegion.framesPerStep + 40;
+        const slides = [0, 0], covers = [];
+        const deadAt = [null, null];
+        for (let i = 1; i < fight.length; i += 1) {
+          const before = fight[i - 1], row = fight[i];
+          for (const side of [0, 1]) {
+            const k0 = nibble(before.rail_k, side), k1 = nibble(row.rail_k, side);
+            const d0 = nibble(before.rail_dead, side), d1 = nibble(row.rail_dead, side);
+            invariant(k1 >= k0 && k1 - k0 <= 1 && k1 <= railRegion.positions,
+              `${session.id}: rail ${side} slid ${k0} -> ${k1} on frame ${row.frame}`);
+            invariant(d1 >= d0 && d1 - d0 <= 1, `${session.id}: rail ${side}'s kills ${d0} -> ${d1} on frame ${row.frame}`);
+            invariant(k1 <= d1 && d1 <= k1 + 1,
+              `${session.id}: rail ${side} at ${k1} slides with ${d1} front-gun kills on frame ${row.frame}`);
+            if (d1 > d0) deadAt[side] = row.frame;
+            if (k1 > k0) {
+              slides[side] += 1;
+              invariant(deadAt[side] !== null && row.frame - deadAt[side] <= slideBound,
+                `${session.id}: rail ${side}'s slide ended on frame ${row.frame}, ${row.frame - (deadAt[side] ?? 0)} frames ` +
+                `after its kill (bound ${slideBound})`);
+              const cannon = railRegion.sides[side].cannonIndex;
+              if (k1 === railRegion.positions && alive(row, cannon)) covers.push({ side, frame: row.frame, cannon });
+            }
+          }
+        }
+        for (const cover of covers) {
+          const after = fight.filter((row) => row.frame >= cover.frame);
+          const fell = after.find((row) => !alive(row, cover.cannon));
+          invariant(fell === undefined,
+            `${session.id}: the cannon covered on frame ${cover.frame} fell on frame ${fell?.frame}`);
+          const laser = cover.side;          // cannon-l is laser 0; cannon-r slot 1's twin, laser 1
+          if (after.length >= 700) {
+            const fired = after.some((row) => ((row.laser_states >> (2 * laser)) & 3) === 2);
+            invariant(fired, `${session.id}: the cannon covered on frame ${cover.frame} never fired again`);
+          }
+        }
+        if (session.id.startsWith(`region-${session.bossRegion}-finale-`)) {
+          invariant(covers.length > 0, `${session.id}: the careless order covered no cannon (subject empty)`);
+        }
+        const bossRows = rows.filter((row) => row.boss_state >= 1 && row.boss_entry !== 1);
+        const fallOf = (index) => bossRows.find((row, i) => i > 0 && alive(bossRows[i - 1], index) && !alive(row, index));
+        const doorsFell = fallOf(hangarRegion.doorsIndex);
+        const coreFell = fallOf(hangarRegion.coreIndex);
+        invariant(coreFell === undefined || (doorsFell !== undefined && doorsFell.frame <= coreFell.frame),
+          `${session.id}: the core fell on frame ${coreFell?.frame} before the doors`);
+        let escorts = 0, afterDoors = 0, together = 0;
+        for (let i = 1; i < fight.length; i += 1) {
+          let live = 0;
+          for (let k = 0; k < LIGHT_TRACE_SLOTS; k += 1) {
+            const now = fight[i][`light_state${k}`];
+            if (LIGHT_LIVE_STATES.has(now)) live += 1;
+            if (fight[i - 1][`light_state${k}`] === 0 && LIGHT_LIVE_STATES.has(now) && fight[i].frame === fight[i - 1].frame + 1) {
+              escorts += 1;
+              if (doorsFell !== undefined && fight[i].frame > doorsFell.frame) afterDoors += 1;
+            }
+          }
+          if (live > 1) together += 1;
+        }
+        invariant(afterDoors === 0, `${session.id}: ${afterDoors} escorts admitted after the doors fell on frame ${doorsFell?.frame}`);
+        invariant(together === 0, `${session.id}: two Lights live at once on ${together} fight frames`);
+        session.regionRoute.rails = { slides, covers: covers.map(({ side, frame }) => ({ side, frame })),
+          doors_fell_frame: doorsFell?.frame ?? null, core_fell_frame: coreFell?.frame ?? null, escorts };
+        console.log(`${session.id}: rail slides ${slides.join(" / ")}, covers ${covers.map((c) => `${["left", "right"][c.side]}@${c.frame}`)
+          .join(", ") || "none"}, the doors fell ${doorsFell?.frame ?? "-"}, the core ${coreFell?.frame ?? "-"}, ${escorts} escorts`);
       }
     }
     const staleHullDraws = rows.reduce((sum, row) => sum + row.hull_map_stale_draws, 0);

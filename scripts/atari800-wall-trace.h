@@ -396,6 +396,10 @@ typedef struct {
 	unsigned rail_k;
 	unsigned rail_dead;
 	unsigned rail_sliding;
+	/* S5-5 Phase B: the boss modules alive (the controller's 16-bit mask; 0
+	 * outside the boss) - the rails' and the hangar's clauses read a cannon's,
+	 * the doors' and the core's bits. */
+	unsigned boss_alive;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -3887,7 +3891,20 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		int prefer = strcmp(dftrace_policy, "boss-aim-careful") == 0 ? 2
 			: strcmp(dftrace_policy, "boss-aim-careless") == 0 ? 1 : -1;
 		unsigned best_x = x;
+		/* S5-5 Phase B (the owner's answer of 2026-10-15): "boss-aim-park-X"
+		 * aims as the plain bot until a boss module has fallen (the escort's
+		 * start, decision AI), then flies to HPOS X and stays there firing -
+		 * the edge-hider who has started the escort. */
+		int park_after_kill = -1;
 		if (count > 16u) count = 16u;
+		if (strncmp(dftrace_policy, "boss-aim-park-", 14) == 0) {
+			unsigned dead = 0u;
+			for (i = 0u; i < count; ++i)
+				if (((alive >> i) & 1u) == 0u)
+					dead = 1u;
+			if (dead)
+				park_after_kill = atoi(dftrace_policy + 14);
+		}
 		int field_blocked = 0;
 		for (i = 0u; i < count; ++i) {
 			unsigned record = dftrace_boss_module_table + 12u * i;
@@ -3929,7 +3946,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			}
 		}
 		dftrace_aim_target = best;
-		if (best >= 0)
+		if (park_after_kill >= 0)
+			stick = (int) x < park_after_kill ? 0x07u : (int) x > park_after_kill ? 0x0bu : 0x0fu;
+		else if (best >= 0)
 			stick = x < best_x ? 0x07u : x > best_x ? 0x0bu : 0x0fu;
 		else {
 			int target_right = ((frame / 128u) & 1u) == 0;
@@ -6160,6 +6179,8 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		? MEMORY_mem[dftrace_boss_finale] : 0u;
 	frame->boss_armour_left = dftrace_boss_active() && dftrace_boss_armour_left != 0u
 		? MEMORY_mem[dftrace_boss_armour_left] : 0u;
+	frame->boss_alive = dftrace_boss_active() && dftrace_boss_alive != 0u
+		? (MEMORY_mem[dftrace_boss_alive] | (MEMORY_mem[dftrace_boss_alive + 1u] << 8)) : 0u;
 	frame->field_state = 15u;
 	frame->field_deflections = 0u;
 	frame->field_cells_down = 0u;
@@ -6375,7 +6396,7 @@ static void dftrace_write(void)
 		",light_archetype0,light_archetype1,light_archetype2,light_archetype3"
 		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left"
 		",field_state,field_deflections,field_violations,field_cells_down,gravity_on,gravity_steps,gravity_column"
-		",rail_k,rail_dead,rail_sliding\n");
+		",rail_k,rail_dead,rail_sliding,boss_alive\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6659,10 +6680,10 @@ static void dftrace_write(void)
 		if (frame->boss_entry && dfhud_entry_state == 2)
 			for (unsigned cell = 0u; cell < 40u; ++cell)
 				fprintf(file, "%02x", dfhud_entry_after[cell]);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_finale, frame->boss_spawns, frame->boss_armour_left,
 			frame->field_state, frame->field_deflections, frame->field_violations, frame->field_cells_down,
 			frame->gravity_on, frame->gravity_steps, frame->gravity_column,
-			frame->rail_k, frame->rail_dead, frame->rail_sliding);
+			frame->rail_k, frame->rail_dead, frame->rail_sliding, frame->boss_alive);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");

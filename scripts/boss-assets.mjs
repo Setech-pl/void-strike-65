@@ -760,8 +760,12 @@ function resolveModules(layout) {
     // controller never stages it. An emitter may stage its lens alone
     // ("stages": "lens"): the bottom row's centre cell is staged, every other
     // cell plain and unchanged until the emitter is destroyed.
-    if (source.stages !== undefined && typeof source.stages !== "boolean" && source.stages !== "lens") {
-      fail(`module ${name} stages is true, false or "lens"`);
+    // S5-5 (the Bastion's graphics pass): any module may stage its centre cell
+    // alone ("stages": "centre" - the core's eye; the runtime adds the stage
+    // step to staged codes only), so a round shape costs one staged glyph.
+    if (source.stages !== undefined && typeof source.stages !== "boolean" && source.stages !== "lens" &&
+      source.stages !== "centre") {
+      fail(`module ${name} stages is true, false, "lens" or "centre"`);
     }
     if (source.stages === "lens" && kind !== BOSS_KIND.emitter) {
       fail(`module ${name} is a ${source.kind}; only an emitter stages its lens alone`);
@@ -1094,6 +1098,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   if (escortBase + escortJitter > 255) fail("escort.baseFrames + escort.jitterMask exceeds 255 frames");
   const capped = layout.capped ?? {};
   const cappedHp = integerIn(capped.hp, 1, BOSS_MAX_HP, "capped.hp");
+  // S5-5 (the Bastion's graphics pass): a region whose emitters are all slot
+  // 1 - enabled on every tier (decision 8) - never caps one, so it may leave
+  // the capped plate's look out of its charset ("look": false; three codes).
+  if (capped.look !== undefined && capped.look !== false) fail("capped.look is false or absent");
+  const cappedLook = capped.look !== false;
   // S4b (owner decision Q11): a laser's warning and beam, frames; M8 tunes.
   const laser = layout.laser ?? {};
   if (laser.warningFrames !== undefined) {
@@ -1216,7 +1225,8 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       const broken = cellOf(images.broken, c, r, what);
       let ref;
       const lens = r === module.row + module.height - 1 && c === module.x + (module.width >> 1);
-      if (module.stages === true || (module.stages === "lens" && lens)) {
+      const centre = r === module.row + (module.height >> 1) && c === module.x + (module.width >> 1);
+      if (module.stages === true || (module.stages === "lens" && lens) || (module.stages === "centre" && centre)) {
         ref = stagedIndex(intact, cracked, broken, what);
       } else {
         // E3: no stages - the cracked and broken drafts show the intact look.
@@ -1246,7 +1256,10 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
 
   // extras.png: the bays, the spark, the capped plate, the nozzles, the blasts.
   const extra = (index, what) => cellOf(images.extras, index, 0, `extras ${what}`);
-  const cappedRef = stagedIndex(extra(BOSS_EXTRAS.capped, "capped"),
+  if (!cappedLook && modules.some((module) => module.kind === BOSS_KIND.emitter && module.slot !== 1)) {
+    fail("capped.look is false, but an emitter of slot 2-4 is capped on the tiers that do not enable it");
+  }
+  const cappedRef = !cappedLook ? null : stagedIndex(extra(BOSS_EXTRAS.capped, "capped"),
     extra(BOSS_EXTRAS.capped + 1, "capped cracked"), extra(BOSS_EXTRAS.capped + 2, "capped broken"),
     "the capped emitter plate");
   const plainRef = (cell) => ({ index: plainIndex(cell), bank: cell.bank ?? 0 });
@@ -1497,7 +1510,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   tables[BOSS_TABLE.cavity] = plainCode(cavityRef);
   tables[BOSS_TABLE.shotCode] = shotCode;
   tables[BOSS_TABLE.hullStop] = hullStopTailOffset;
-  tables[BOSS_TABLE.cappedCode] = stagedCode(cappedRef);
+  tables[BOSS_TABLE.cappedCode] = cappedRef === null ? 0 : stagedCode(cappedRef);
   const [cappedCracked, cappedBroken] = bossThresholds(cappedHp);
   tables[BOSS_TABLE.cappedHp] = cappedHp;
   tables[BOSS_TABLE.cappedCracked] = cappedCracked;
@@ -1596,7 +1609,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     tables,
     openLooks: new Map([...openLooks].map(([index, look]) => [index,
       look.map((ref) => (ref.block === "plain" ? plainCode(ref) : stagedCode(ref)))])),
-    capped: { code: stagedCode(cappedRef), hp: cappedHp, cracked: cappedCracked, broken: cappedBroken },
+    capped: { code: cappedRef === null ? 0 : stagedCode(cappedRef), hp: cappedHp, cracked: cappedCracked, broken: cappedBroken },
     cavity: plainCode(cavityRef),
     spark: plainCode(sparkRef),
     deflect: plainCode(deflectRef),

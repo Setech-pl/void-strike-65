@@ -129,7 +129,12 @@ function stageCounts(region) {
     return { name: module.name, stages: [0, 1, 2].map((stage) => look.filter((code) => code & 0x7f)
       .reduce((sum, code) => sum + colour3(region, staged(code) ? code + stage * K : code), 0)) };
   });
-  counts.push({ name: "capped plate", stages: [0, 1, 2].map((stage) => colour3(region, region.capped.code + stage * K)) });
+  // RE-POINTED feat/boss-region-2 (the Bastion's graphics pass): a region
+  // whose emitters are all slot 1 has no capped plate look ("capped.look":
+  // false, code 0) - the plate is never drawn, so it has no stage to flash.
+  if (region.capped.code !== 0) {
+    counts.push({ name: "capped plate", stages: [0, 1, 2].map((stage) => colour3(region, region.capped.code + stage * K)) });
+  }
   return counts;
 }
 

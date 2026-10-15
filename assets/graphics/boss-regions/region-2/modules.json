@@ -33,7 +33,9 @@
     "jitterMask": 63
   },
   "capped": {
-    "hp": 8
+    "_": "Never drawn: both cannons are slot 1, enabled on every tier (decision 8) - no look in the charset.",
+    "hp": 8,
+    "look": false
   },
   "laser": {
     "beamFrames": 50
@@ -152,10 +154,11 @@
       "row": 1,
       "width": 3,
       "height": 3,
-      "hp": 50,
+      "hp": 74,
       "score": 99,
       "reload": 90,
       "cavityRows": 3,
+      "stages": "centre",
       "cover": [
         "doors"
       ]
@@ -227,7 +230,7 @@
       "row": 4,
       "width": 3,
       "height": 1,
-      "hp": 46,
+      "hp": 22,
       "score": 60,
       "cavityRows": 0,
       "cover": [

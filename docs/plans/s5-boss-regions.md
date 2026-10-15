@@ -2512,6 +2512,39 @@ warning, the escort, the lasers per level, the beams' escape and the stress
 unchanged), GREEN here; the other boss tests 290 of 291 then 291 (the
 generated memory map regenerated).
 
+#### 6.5.10 The window's graphics pass (2026-10-15) — awaiting the owner's look
+
+**The owner's play of the window build:** the mechanic accepted as built; the
+core's armoured left column accepted; the doors phase kept without a boss
+weapon but short (8-15 s on MEDIUM, careful); the look not yet good enough.
+
+**As drawn** (`scripts/boss-r2-art.mjs`; previews `build/play/s5-5-gfx-*`):
+one visual language - grey bars only on the locked doors and bays; amber on
+what can be hurt; steel and olive the structure; a destroyed module a dark,
+broken socket (the cavity glyph, no bars). The hangar a sphere (13 glyphs:
+round on screen at the 2:1 pixel, the track behind it), the doors the gate at
+its foot; the core a round amber reactor in a bright ring, a white eye at its
+centre - only the eye staged (`"stages": "centre"`, the converter now allows
+it for any module; the runtime steps staged codes only). Gun pods with two
+lamps and an amber muzzle; the rail ends one solid steel bumper glyph; a
+guide track under the beam in each gap between a rail's front and its bay.
+The warning's heat a lamp of its own (decision E2), so a covered cannon's
+warning shows on the bumper as a light - the old heat was the tower's lens
+half, which read as a piece of the cannon beside the rail.
+
+Codes: 78 of 80 (5 sectors, 624 B): the gun staged a cell at a time (its two
+corner stubs one glyph), the track one glyph, the girder mount dropped, and
+the capped plate's look left out (`"capped": { "look": false }`: both cannons
+are slot 1, never capped - three codes). Regions 1, 3, 4 byte-identical.
+Region 2's block 510 of 512 (unchanged), entry 66 sectors / 253 host frames.
+
+Hit points: doors 46 -> **22**, core 50 -> **74**. MEASURED (R, level 4 /
+levels 5-6): the doors phase, careful, 10.2 / 12.1 / 16.6 s and 10.2 / 13.2 /
+16.5 s (E / M / H); the core phase 19.0 / 32.4 / 45.4 s; the fight careful
+89.8 / 109.6 / 142.8 s and 89.8 / 112.4 / 143.7 s, careless 85.1 / 100.4 /
+130.1 s and 85.1 / 99.6 / 129.2 s; the dodging bots 90.4 / 109.6 / 147.8 and
+84.7 / 109.9 / 139.4 s (level 4). 0 PAL misses, every clause held.
+
 ## 7. Owner questions
 
 | # | Question | Recommended answer | Cost of the recommendation | The alternative and its cost |

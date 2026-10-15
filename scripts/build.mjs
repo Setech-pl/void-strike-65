@@ -357,15 +357,9 @@ if (bossVariantSlug !== undefined && !/^[a-z0-9]+$/.test(bossVariantSlug)) {
 }
 const bossVariantDirectory = bossVariantSlug === undefined
   ? null : path.join(defaultBuildDirectory, "boss-variants", bossVariantSlug);
-// S5-5 (feat/boss-region-2, Phase A): a variant may carry region 2's draft
-// instead (build/boss-variants/NAME/region-2/, scripts/boss-r2-art.mjs); a
-// region the variant does not carry is the committed one.
-const bossVariantRegion = (region) => (bossVariantDirectory !== null &&
-  fs.existsSync(path.join(bossVariantDirectory, `region-${region}`, "modules.json"))
-  ? path.join(bossVariantDirectory, `region-${region}`) : null);
-if (bossVariantDirectory !== null && bossVariantRegion(1) === null && bossVariantRegion(2) === null) {
-  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/ has no ` +
-    "region-1/ or region-2/ draft (node scripts/boss-r1-variants.mjs / boss-r2-art.mjs writes it)");
+if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirectory, "region-1", "modules.json"))) {
+  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
+    "draft (node scripts/boss-r1-variants.mjs writes it)");
 }
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -404,7 +398,7 @@ const levelDebugSuffix = levelDebugId === null
 const variantDirectoryName = escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
-  ? `boss-variant-${bossVariantSlug}${laserFixtureTier === null ? "" : `-laser-fixture-${laserFixtureTier}`}${levelDebugSuffix}`
+  ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
   : laserFixtureTier !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : playerColourValue !== null
@@ -1877,7 +1871,8 @@ async function build() {
   // variant that installs the laser fixture (region 1 with four uncovered
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
-  const regionOneDraft = loadBossRegionDraft(bossVariantRegion(1) ?? bossRegionDirectory(rootDirectory, 1));
+  const regionOneDraft = loadBossRegionDraft(bossVariantDirectory === null
+    ? bossRegionDirectory(rootDirectory, 1) : path.join(bossVariantDirectory, "region-1"));
   const regionOneSource = laserFixtureTier === null
     ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
   const compileRegion = (draft) => compileBossRegion(draft,
@@ -1899,25 +1894,26 @@ async function build() {
   // Spine from its own draft (assets/graphics/boss-regions/region-3/), its
   // force field's code in its block (slot F) - in every build, the laser
   // fixture's included (the fixture replaces region 1's draft and the copies
-  // made of it). Region 2 stays a copy of region 1 until S5-5.
+  // made of it).
   // S5-4 (feat/boss-region-4, the owner's answers of 2026-10-13 / 2026-10-14):
   // region 4 is the Void Citadel from its own draft
   // (assets/graphics/boss-regions/region-4/), its gravity well's code in its
   // block (slot F) - in every build.
-  // S5-5 (Phase A): region 2 is the Bastion only on a review variant that
-  // carries its draft; otherwise still region 1's copy.
+  // S5-5 (feat/boss-region-2): region 2 is the Bastion from its own draft
+  // (assets/graphics/boss-regions/region-2/), its sliding rails' and hangar's
+  // code in its block (slot F) - in every build. No region is region 1's copy
+  // any more; placeholders.json stays the format for a region without a
+  // directory (none today).
   const bossRegions = [1, 2, 3, 4].map((region) => (region === 1 ? regionOne
-    : region === 3 || region === 4
+    : fs.existsSync(path.join(bossRegionDirectory(rootDirectory, region), "modules.json"))
       ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, region)))
-      : region === 2 && bossVariantRegion(2) !== null
-        ? compileRegion(loadBossRegionDraft(bossVariantRegion(2)))
-        : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
+      : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
   const bossGravity = bossRegions[3].gravity;
   const bossRail = bossRegions[1].rails;
   const bossField = bossRegions[2].field;
   // feat/boss-r1-twin-lasers (owner decision, variant A): slot D carries the
   // twin cannons' turn-taking when a region on the disk has them (region 1;
-  // regions 2 and 4 as its copies).
+  // S5-5: region 2's cannons, independent from tier 2 - BOSS_RAIL).
   const bossTwin = bossRegions.some((region) => region.twin !== null);
   const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
@@ -3046,6 +3042,8 @@ async function build() {
       `RAIL_DOORS              = ${hangar.doors}`,
       `RAIL_CORE               = ${hangar.core}`,
       `RAIL_CUE                = ${hangar.cueFrames}`,
+      `RAIL_UNLOCK             = ${hangar.unlockFrames}`,
+      `RAIL_CANNONS_HI         = ${left.cannon >= 8 || right.cannon >= 8 ? 1 : 0}`,
       `RAIL_ESCORT_TIMER       = $${stateAddress("STATE_SPACING").toString(16).toUpperCase()}`,
       `RAIL_GUN_WIDTH          = ${bossRail.gunWidth}`,
       ".macro RAIL_TABLES",
@@ -3054,7 +3052,8 @@ async function build() {
       "rail_dir:       .byte $01, $FF",
       `rail_cannon:    .byte ${left.cannon}, ${right.cannon}`,
       `rail_not_lo:    .byte ${[left, right].map((side) => hex(~(1 << side.cannon) & 0xff)).join(", ")}`,
-      `rail_not_hi:    .byte ${[left, right].map((side) => hex((~(1 << side.cannon) >> 8) & 0xff)).join(", ")}`,
+      ...(left.cannon >= 8 || right.cannon >= 8
+        ? [`rail_not_hi:    .byte ${[left, right].map((side) => hex((~(1 << side.cannon) >> 8) & 0xff)).join(", ")}`] : []),
       `rail_module:    .byte ${left.firstModule}, ${right.firstModule}`,
       `rail_record:    .byte ${left.firstModule * 12}, ${right.firstModule * 12}`,
       `rail_window:    .byte ${left.window}, ${right.window}`,
@@ -4709,7 +4708,8 @@ async function build() {
             guns: side.guns.map((index) => region.modules[index].name) })),
           codeBytes: region.railCodeBytes ?? 0 } }),
         ...(region.hangar === null ? {} : { hangar: { doors: region.modules[region.hangar.doors].name,
-          core: region.modules[region.hangar.core].name, cueFrames: region.hangar.cueFrames } }),
+          core: region.modules[region.hangar.core].name, cueFrames: region.hangar.cueFrames,
+          unlockFrames: region.hangar.unlockFrames } }),
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +

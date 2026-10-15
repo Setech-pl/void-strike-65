@@ -3816,7 +3816,12 @@ gravity_state_end:
 ;   every RAIL_PULSE frames).
 ; The hangar: the doors flash (b3) when the escort's clock (the Director's)
 ; is RAIL_CUE frames from arming an escort; once they fall no escort is armed
-; again (an escort in flight flies on).
+; again (an escort in flight flies on). The moment they unlock - the exposure
+; check opens them (every cannon and rail gun destroyed or covered: their
+; cover, the converter and rail_lock) - the controller draws their open look
+; (amber chevrons over the locked look's bars, the region's data) and they
+; flash and sound: the hit's high tone held RAIL_UNLOCK frames (the owner's
+; readability rule of 2026-10-15; S5-5 Phase B).
 ; No resident byte; no byte of slots A-E.
 ; ===========================================================================
 .ifdef BOSS_RAIL
@@ -3849,9 +3854,24 @@ rail_late:
     sta RAIL_ESCORT_TIMER               ; the doors fell: no escort armed again
     beq @rails
 @open:
+.if RAIL_DOORS < 8
+    lda _boss_newly_lo                  ; unlocked this frame: the tone and
+    and #(1 << RAIL_DOORS)              ; the flash (after their open look:
+.else                                   ; boss_mflash_frame drains the queue
+    lda _boss_newly_hi                  ; first)
+    and #(1 << (RAIL_DOORS - 8))
+.endif
+    beq @cue
+    ldx #BOSS_TONE_DAMAGE
+    jsr boss_tick_sound
+    lda #RAIL_UNLOCK
+    sta boss_tick_timer
+    bne @flash
+@cue:
     lda RAIL_ESCORT_TIMER
     cmp #RAIL_CUE
     bne @rails
+@flash:
     lda #RAIL_DOORS                     ; an escort comes: the doors flash
     sta boss_mflash_req
 @rails:
@@ -3938,12 +3958,15 @@ rail_lock:
     lda rail_guns,y
     tax
     jsr boss_record_of                  ; Y = its record
+.if RAIL_CORE < 8                       ; (the core's bit in one byte)
     lda BOSS_T_MODULES + BOSS_M_COVER_LO,y
     and #<~(1 << RAIL_CORE)
     sta BOSS_T_MODULES + BOSS_M_COVER_LO,y
+.else
     lda BOSS_T_MODULES + BOSS_M_COVER_HI,y
-    and #>~(1 << RAIL_CORE)
+    and #<~(1 << (RAIL_CORE - 8))
     sta BOSS_T_MODULES + BOSS_M_COVER_HI,y
+.endif
     inc _boss_expose_pending            ; (0: a lock's frame is no kill's nor the check's)
     ldx rail_x
     lda rail_k,x
@@ -3956,9 +3979,11 @@ rail_lock:
     lda RAIL_DOORS_COVER                ; nor do the doors
     and rail_not_lo,x
     sta RAIL_DOORS_COVER
+.if RAIL_CANNONS_HI
     lda RAIL_DOORS_COVER + 1
     and rail_not_hi,x
     sta RAIL_DOORS_COVER + 1
+.endif
 @rts:
     rts
 
@@ -4050,7 +4075,7 @@ rail_scratch_end:
 ; tail and BOSS_F_HOOK.
 .segment "BOSS_R_DATA"
 RAIL_TABLES                             ; boss-rail.inc: rail_guns (per side, front first),
-                                        ; rail_first, rail_dir, rail_cannon, rail_not_lo/hi,
+                                        ; rail_first, rail_dir, rail_cannon, rail_not_lo(/hi),
                                         ; rail_module, rail_record (each side's lowest module),
                                         ; rail_window (the columns a step shifts)
 rail_state:

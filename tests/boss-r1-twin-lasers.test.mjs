@@ -240,8 +240,11 @@ test("runtime: killing a twin cannon starts the escort, two frames on", () => {
 // ---------------------------------------------------------------------------
 
 const placeholders = loadBossPlaceholders(root);
-const regions = [region1, ...[2, 3, 4].map((n) => compileBossRegion(n === 3
-  ? loadBossRegionDraft(bossRegionDirectory(root, 3)) : bossPlaceholderDraft(draft, placeholders[String(n)])))];
+// RE-POINTED feat/boss-region-2 (S5-5): every region is its own draft now (a
+// region without a directory would still be region 1's copy).
+const regions = [region1, ...[2, 3, 4].map((n) => compileBossRegion(
+  fs.existsSync(path.join(bossRegionDirectory(root, n), "modules.json"))
+    ? loadBossRegionDraft(bossRegionDirectory(root, n)) : bossPlaceholderDraft(draft, placeholders[String(n)])))];
 
 test("data: the list shows each region's band down to its last row with a cell - 5 rows for regions 1, 2 and 4, 8 for region 3", () => {
   assert.deepEqual(regions.map((region) => bossBandShownRows(region.bandRows)), [5, 5, 8, 5]);

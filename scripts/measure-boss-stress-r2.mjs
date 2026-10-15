@@ -6,7 +6,8 @@
 // cannons independent, two beams) from a build's disk, so region 2's block -
 // its rails' code - is read into slot F as the game reads it.
 //
-//   VS65_HARNESS_BUILD=boss-variant-r2ga node scripts/measure-boss-stress-r2.mjs [--level=4|5]
+//   node scripts/measure-boss-stress-r2.mjs [--level=4|5]     (on the default build;
+//   tests/boss-region-2.test.mjs gates it)
 //
 // The cases: the rails at every pair of positions (each reached through the
 // game: its front guns shot down at HP 1, its slides run to the end), with

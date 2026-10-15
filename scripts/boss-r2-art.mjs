@@ -1,26 +1,27 @@
 // S5-5 (feat/boss-region-2, docs/plans/s5-boss-regions.md §6.5; the owner's
-// design of 2026-10-14): region 2's boss, the Bastion, drawn as the
-// converter's PNG drafts. As scripts/boss-r4-art.mjs: the art is authored here
-// as ASCII pictures - one character a draft pixel, one ANTIC 4 pixel (a colour
-// clock wide, a scanline tall) - and written as the region's drafts (band,
-// open, cracked, broken, extras, emitter) with its modules.json. The PNGs are
-// the editable source the converter reads (the owner retouches them in any
-// pixel editor); this script is how the agent drew them (decision G):
+// design of 2026-10-14 and his choice of 2026-10-15, N-C with W2): region 2's
+// boss, the Bastion, drawn as the converter's PNG drafts. As
+// scripts/boss-r4-art.mjs: the art is authored here as ASCII pictures - one
+// character a draft pixel, one ANTIC 4 pixel (a colour clock wide, a scanline
+// tall) - and written into assets/graphics/boss-regions/region-2/ (band, open,
+// cracked, broken, extras, emitter). The PNGs are the editable source the
+// converter reads (the owner retouches them in any pixel editor); this script
+// is how the agent drew them (decision G) and redraws them. modules.json is
+// the region's data, edited by hand (the hit points are tuned there).
 //
-//   node scripts/boss-r2-art.mjs --variant=ga|gb [--out=DIR]   write the drafts
-//   node scripts/boss-r2-art.mjs --variant=ga --check [--out=DIR]
-//
-// Phase A writes review variants (build/boss-variants/r2<variant>/region-2/,
-// built with --boss-variant=r2<variant>); the default build is untouched.
+//   node scripts/boss-r2-art.mjs            write the drafts
+//   node scripts/boss-r2-art.mjs --check    exit 1 if the drafts differ from the pictures
 //
 // The ship (the owner's design of 2026-10-14; docs/design/boss-banners/ for
 // the spirit): one overhead track from screen edge to screen edge (row 0); at
-// the centre the hangar hub, a sphere with the core inside and the hangar
-// doors under it; beside the hub a laser cannon each side, hung from the
-// track; outside them a rail each side - a sliding girder under the track
-// carrying a row of gun sockets, its outer part beyond the screen edge. A
-// rail-gun kill slides that rail one gun pitch inward; a rail that has slid
-// far enough covers its side's cannon (src/hybrid/boss.s BOSS_RAIL).
+// the centre the hangar - a one-cell cap over the core, the hangar doors under
+// it; beside it a laser cannon each side, hugging it, hung from the track;
+// outside them a rail each side - a sliding girder under the track carrying a
+// row of guns, its outer part beyond the screen edge. A rail-gun kill slides
+// that rail one gun pitch inward; the second slide covers its side's cannon
+// (src/hybrid/boss.s BOSS_RAIL). The doors are barred armour (steel bars over
+// the olive bulk) while locked and amber hazard chevrons once they open (the
+// open look: the owner's readability rule of 2026-10-15).
 //
 //   . background   W COLPF0   g COLPF1   a colour 3, pf2 bank   r colour 3, pf3 bank
 //
@@ -45,88 +46,44 @@ const pic = (text) => text.trim().split("\n").map((line) => line.trim().replace(
 
 // --- the geometry ------------------------------------------------------------
 // Band columns 0-63, the band still at position 32: the screen shows columns
-// 12-51, a player's shot reaches 14-52 (HPOS 56-208). Symmetric about 31.5
-// (column c's mirror is 63 - c). The rails' rows are 1-3: the girder in row 1
-// right under the track, the guns hanging from it in rows 2-3, the rail's
-// front (the nose, one column) in rows 1-3.
+// 12-51, a player's shot reaches 14-52 (HPOS 56-208). The right side mirrors
+// the left about column 31 (column c's mirror is 62 - c): the hangar is one
+// column, 31. The rails' rows are 1-3: the girder in row 1 right under the
+// track, the guns hanging from it in rows 2-3, the rail's front (the nose,
+// one column) in rows 1-3.
 //
-// G-A (the owner's first estimate): guns 3 cells wide at a 4-column pitch; the
-// rail's front starts at column 17, the front gun at 14-16 (the outermost one
-// in reach); two kills slide it next to the cannon (front 25), the third over
-// it (front 29: the dead front socket and the nose cover the cannon's 27-29);
-// then the rail stops - four guns a side, the fourth left on the stopped rail.
-// G-B (one safe shift more): guns 2 cells wide at a 3-column pitch, five a
-// side; three kills are safe (front 26), the fourth covers (front 29).
-//
-// The wide hub (G-A, G-B) is the owner's estimate: a 4-cell sphere, 3-cell
-// cannons beside it. MEASURED in Phase A: the cannons' beams then leave a
-// corridor over the hub (x 116-132) - the doors and the core are shot from
-// outside every beam, so a covered cannon never threatens a player there and
-// the careless order skips the cannons' hit points: careless ran shorter than
-// careful with the same hits. The narrow hub (N-A, N-B): a 2-cell hangar, the
-// cannons 2 cells wide hugging it (as region 4's hug its core), the rails one
-// column further in - the beams flank the core.
-export const R2_LAYOUTS = Object.freeze({
-  wide: Object.freeze({
-    nose: 17,                          // the left rail's front column at the start
-    rows: [1, 3],                      // the rails' rows: the girder, then the guns
-    cannon: { width: 3, xLeft: 27 },   // the laser cannons, rows 1-3 (region 1's tower)
-    hub: { x: 30, width: 4 },          // the hangar's sphere, rows 0-3
-    core: { x: 31, width: 2, row: 1, height: 3 },
-    doors: { x: 30, width: 4, row: 4 },
-  }),
-  // N-C (Phase A, the beams' hit window): a beam endangers x in [edge - 7,
-  // edge + 3] - far to its left, a clock to its right - so the beams beside a
-  // 2-cell core leave its centre column out of both; a 1-cell core and doors
-  // at column 31 put their whole reach (x 116-119) under the left cannon's
-  // beam, and the core's own volley (columns 30-32) covers it too.
-  centre: Object.freeze({
-    nose: 18,
-    axis: 62,
-    rows: [1, 3],
-    cannon: { width: 2, xLeft: 29 },
-    hub: { x: 31, width: 1 },
-    core: { x: 31, width: 1, row: 1, height: 3 },
-    doors: { x: 31, width: 1, row: 4 },
-  }),
-  narrow: Object.freeze({
-    nose: 18,
-    rows: [1, 3],
-    cannon: { width: 2, xLeft: 29 },   // region 1's tower without its outer flanges
-    hub: { x: 31, width: 2 },          // the hangar: a cap over the core
-    core: { x: 31, width: 2, row: 1, height: 3 },
-    doors: { x: 31, width: 2, row: 4 },
-  }),
+// N-C (Phase A, the beams' hit window): a beam endangers x in [edge - 7,
+// edge + 3] - far to its left, a clock to its right - so only a one-cell core
+// and doors at column 31 put their whole reach (x 116-119) under the left
+// cannon's beam; the core's own volley (columns 30-32) covers it too. The
+// cannons are 2 cells wide, hugging the hangar (29-30, 32-33).
+// W2 (the owner's choice of 2026-10-15): the rails start one position closer
+// than N-C's - the left rail's front at column 22, its front gun at 19-21 -
+// so the second rail-gun kill covers the cannon: guns 3 cells wide at a
+// 4-column pitch, front 22 -> 26 (next to the cannon) -> 30 (over it, the
+// dead front socket and the nose covering 29-30); then the rail stops. Three
+// guns a side: two that slide the rail, one left on the stopped rail.
+export const R2 = Object.freeze({
+  nose: 22,                            // the left rail's front column at the start
+  rows: [1, 3],                        // the rails' rows: the girder, then the guns
+  gunWidth: 3,
+  pitch: 4,
+  guns: 3,
+  positions: 2,
+  cannon: { width: 2, xLeft: 29 },     // the laser cannons, rows 1-3 (region 1's tower, narrowed)
+  hub: { x: 31, width: 1 },            // the hangar's cap, row 0
+  core: { x: 31, width: 1, row: 1, height: 3 },
+  doors: { x: 31, width: 1, row: 4 },
 });
-export const R2_VARIANTS = Object.freeze({
-  ga: Object.freeze({ gunWidth: 3, pitch: 3 + 1, guns: 4, positions: 3, layout: "wide" }),
-  gb: Object.freeze({ gunWidth: 2, pitch: 2 + 1, guns: 5, positions: 4, layout: "wide" }),
-  na: Object.freeze({ gunWidth: 3, pitch: 3 + 1, guns: 4, positions: 3, layout: "narrow" }),
-  nb: Object.freeze({ gunWidth: 2, pitch: 2 + 1, guns: 5, positions: 4, layout: "narrow" }),
-  nc: Object.freeze({ gunWidth: 3, pitch: 3 + 1, guns: 4, positions: 3, layout: "centre" }),
-});
-export const R2_LAYOUT = R2_LAYOUTS.wide;
-const layoutOf = (variant) => {
-  const layout = R2_LAYOUTS[R2_VARIANTS[variant].layout];
-  mirrorAxis = layout.axis ?? 63;
-  return layout;
-};
-// A layout's right side mirrors its left about column (axis / 2): 63 (31.5,
-// the screen's centre) for the wide and narrow hubs, 62 (31) for the centre
-// layout's one-cell core.
-let mirrorAxis = 63;
-const mirror = (x, width) => mirrorAxis - (x + width - 1);
+const mirror = (x, width) => 62 - (x + width - 1);
 
-// The modules of a variant, left to right, with the rails' data.
-export function r2Modules(variant) {
-  const v = R2_VARIANTS[variant];
-  if (v === undefined) throw new Error(`unknown R2 variant ${variant}; ${Object.keys(R2_VARIANTS).join(", ")}`);
-  const L = layoutOf(variant);
-  const guns = (side) => Array.from({ length: v.guns }, (_, i) => {
-    const x = L.nose - v.gunWidth - i * v.pitch;
-    return { name: `rail-${side}-${i + 1}`, x: side === "l" ? x : mirror(x, v.gunWidth), width: v.gunWidth };
+// The rail guns, front first, each side.
+export function r2Guns() {
+  const guns = (side) => Array.from({ length: R2.guns }, (_, i) => {
+    const x = R2.nose - R2.gunWidth - i * R2.pitch;
+    return { name: `rail-${side}-${i + 1}`, x: side === "l" ? x : mirror(x, R2.gunWidth), width: R2.gunWidth };
   });
-  return { v, left: guns("l"), right: guns("r") };
+  return { left: guns("l"), right: guns("r") };
 }
 
 // --- the pictures ------------------------------------------------------------
@@ -175,7 +132,7 @@ gWWg
 gggg
 `);
 // The rail's front (left rail: its right end; mirrored for the right rail):
-// a buffer plate with hazard stripes - the cover warning blinks it.
+// a buffer plate with hazard stripes.
 const NOSE_LEFT = [pic(`
 WWg.
 aaWg
@@ -207,10 +164,9 @@ gg..
 const flip = (picture) => picture.map((line) => [...line].reverse().join(""));
 const NOSE_RIGHT = NOSE_LEFT.map(flip);
 
-// A rail gun. G-A: 3 x 2 cells - an olive turret under the girder's mount,
-// amber lights in its centre cell, the barrel down the centre column (a gun
-// fires down x + floor(w / 2)). G-B: 2 x 2 cells - the barrel on the cells'
-// boundary (the fire column is the right cell's).
+// A rail gun, 3 x 2 cells: an olive turret under the girder's mount, amber
+// lights in its centre cell, the barrel down the centre column (a gun fires
+// down x + floor(w / 2)).
 const GUN3 = pic(`
 .gWW|WWWW|WWg.
 gWrr|gaag|rrWg
@@ -229,84 +185,8 @@ gWrr|gaag|rrWg
 ....|.WW.|....
 ....|....|....
 `);
-const GUN2 = pic(`
-gWWW|WWWg
-Wrrr|aaaW
-WrWg|gWaW
-Wrrr|aaaW
-WrWg|gWaW
-Wrrr|aaaW
-gWWW|WWWg
-.gWW|WWg.
-..gW|Wg..
-..ga|ag..
-..gW|Wg..
-..ga|ag..
-...W|W...
-...a|a...
-...W|W...
-....|....
-`);
-
-// The hub: a sphere 4 cells wide, rows 0-3 (16 x 32 pixels: round on screen
-// at the 2:1 pixel), the core inside it (columns 31-32, rows 1-3), the doors
-// under it (row 4). The shell is olive bulk with a steel rim; the core an
-// amber reactor in a steel ring.
-function hubPicture() {
-  const width = 16;
-  const height = 32;
-  const lines = [];
-  for (let y = 0; y < height; y += 1) {
-    let line = "";
-    for (let x = 0; x < width; x += 1) {
-      const dx = (x + 0.5 - width / 2) / (width / 2);
-      const dy = (y + 0.5 - height / 2) / (height / 2);
-      const r = Math.hypot(dx, dy);
-      const inCore = x >= 4 && x < 12 && y >= 8;
-      let ch = ".";
-      if (r <= 1.0 && r > 0.88) ch = "g";
-      else if (r <= 0.88 && r > 0.78) ch = "W";
-      else if (r <= 0.78) {
-        if (!inCore) ch = (x + y) % 7 === 0 ? "W" : "r";
-        else {
-          const cy = (y - 20) / 12;
-          const cx = (x - 7.5) / 4;
-          const c = Math.hypot(cx, cy);
-          ch = c > 0.95 ? "g" : c > 0.78 ? "W" : c > 0.3 ? "a" : "W";
-        }
-      }
-      line += ch;
-    }
-    lines.push(line);
-  }
-  // The core's cells use the pf2 bank only: the shell's olive inside them is
-  // the steel ring.
-  return lines.map((line, y) => (y < 8 ? line : line.slice(0, 4) + line.slice(4, 12).replace(/r/g, "g") + line.slice(12)));
-}
-// The narrow hangar: a cap over the track (row 0) and the core, 2 x 3 cells
-// (8 x 24 pixels): an amber reactor column in a steel frame.
-function narrowHubPicture() {
-  const cap = pic(`
-...gg...
-..gWWg..
-.gWrrWg.
-gWrrrrWg
-grrWrrrg
-grrrrrWg
-gWrrrrWg
-.gWWWWg.
-`);
-  const core = [];
-  for (let y = 0; y < 24; y += 1) {
-    const edge = y === 0 || y === 23;
-    const glow = y >= 3 && y <= 20;
-    const hot = y % 6 === 2 || y % 6 === 3;
-    core.push(edge ? ".gWWWWg." : glow ? (hot ? "gWaWWaWg" : "gWaaaaWg") : "gWggggWg");
-  }
-  return [...cap, ...core];
-}
-// The centre hangar: a cap and the core, 1 x 3 cells (4 x 24 pixels): an
-// amber reactor rod in a steel frame.
+// The hangar: a cap over the track (row 0) and the core, 1 x 3 cells (4 x 24
+// pixels): an amber reactor rod in a steel frame.
 function centreHubPicture() {
   const cap = pic(`
 .gg.
@@ -325,17 +205,32 @@ gWWg
   }
   return [...cap, ...core];
 }
-// The hangar doors, 4 x 1 cells: two leaves meeting at the centre, amber
-// hazard chevrons (every stage keeps colour 3: the hit flash, the launch cue).
-const DOORS = pic(`
-gggg|gggg|gggg|gggg
-gWWW|WWWW|WWWW|WWWg
-gaWa|WaWa|aWaW|aWag
-gWaW|aWag|gaWa|WaWg
-gaWa|WaWa|aWaW|aWag
-gWWW|WWWg|gWWW|WWWg
-.ggg|gggg|gggg|ggg.
-....|....|....|....
+// The hangar doors, one cell under the core (row 4). Locked - covered while a
+// cannon or a rail's last gun stands - they are barred armour: steel bars and
+// a brace over the olive bulk (the pf3 bank, band.png). Unlocked - exposed,
+// open.png, the look the controller draws when the exposure check opens them
+// - amber hazard chevrons (the pf2 bank): another colour and another pattern
+// (the owner's readability rule of 2026-10-15). A shot at the locked doors
+// shows the deflection glyph (the controller absorbs it: boss.s boss_hit).
+const DOORS_LOCKED = pic(`
+gWWg
+WrWr
+WrWr
+WgWg
+WrWr
+WrWr
+gWWg
+....
+`);
+const DOORS_OPEN = pic(`
+gggg
+WaaW
+aWaW
+WaWa
+aWaW
+WaaW
+gggg
+....
 `);
 // The empty socket a destroyed module leaves (extras' cavity cell): a dark
 // rack - side rails and a floor (a dead rail gun stays a solid socket).
@@ -400,157 +295,77 @@ function staged(picture, stage) {
 }
 const colour3 = (picture) => picture.join("").split("").filter((ch) => ch === "a" || ch === "r").length;
 
-export function drawRegion2(variant) {
-  const { v, left, right } = r2Modules(variant);
-  const L = layoutOf(variant);
+export function drawRegion2() {
+  const { left, right } = r2Guns();
   const regionOnePng = fs.readFileSync(path.join(regionOne, "emitter.png"));
-  let emitterPng = regionOnePng;
-  let [rest, , , emitterCracked, emitterBroken] = decodePanels(regionOnePng, 5, 12, 24);
-  if (L.cannon.width === 2) {
-    // As region 4's cannons (scripts/boss-r4-art.mjs): region 1's tower
-    // without its outer flanges, the lens across the cells' boundary; the
-    // heat and the stages change only the lens cell (the right cell's bottom
-    // row), so the left cell keeps the rest look in every panel.
-    const narrow = decodePanels(regionOnePng, 5, 12, 24).map((panel) => panel.map((line) => line.slice(2, 10)));
-    for (const panel of narrow.slice(1)) {
-      for (let y = 16; y < 24; y += 1) panel[y] = narrow[0][y].slice(0, 4) + panel[y].slice(4);
-    }
-    const narrowCanvas = new Canvas(5 * 8, 24);
-    narrow.forEach((panel, i) => narrowCanvas.draw(panel, i * 8, 0));
-    emitterPng = narrowCanvas.png();
-    [rest, , , emitterCracked, emitterBroken] = narrow;
+  // As region 4's cannons (scripts/boss-r4-art.mjs): region 1's tower without
+  // its outer flanges, the lens across the cells' boundary; the heat and the
+  // stages change only the lens cell (the right cell's bottom row), so the
+  // left cell keeps the rest look in every panel.
+  const narrow = decodePanels(regionOnePng, 5, 12, 24).map((panel) => panel.map((line) => line.slice(2, 10)));
+  for (const panel of narrow.slice(1)) {
+    for (let y = 16; y < 24; y += 1) panel[y] = narrow[0][y].slice(0, 4) + panel[y].slice(4);
   }
+  const narrowCanvas = new Canvas(5 * 8, 24);
+  narrow.forEach((panel, i) => narrowCanvas.draw(panel, i * 8, 0));
+  const emitterPng = narrowCanvas.png();
+  const [rest, , , emitterCracked, emitterBroken] = narrow;
   const extras = fs.readFileSync(path.join(regionOne, "extras.png"));
   const extrasCells = decodePanels(extras, 15, 4, 8);
   extrasCells[3] = SOCKET;
   const extrasCanvas = new Canvas(15 * CELL_W, CELL_H);
   extrasCells.forEach((cell, i) => extrasCanvas.draw(cell, i * CELL_W, 0));
-  const gun = v.gunWidth === 3 ? GUN3 : GUN2;
-  const hub = L.hub.width === 4 ? hubPicture() : L.hub.width === 2 ? narrowHubPicture() : centreHubPicture();
-  const coreOf = (picture) => (L.hub.width === 4 ? picture.slice(8, 32).map((line) => line.slice(4, 12)) : picture.slice(8, 32));
-  const doors = L.doors.width === 4 ? DOORS : L.doors.width === 2 ? DOORS.map((line) => line.slice(0, 4) + line.slice(12, 16))
-    : pic(`
-gggg
-WaaW
-aWaW
-WaWa
-aWaW
-WaaW
-gggg
-....
-`);
-  const cannons = [L.cannon.xLeft, mirror(L.cannon.xLeft, L.cannon.width)];
+  const hub = centreHubPicture();
+  const core = hub.slice(8, 32);
+  const cannons = [R2.cannon.xLeft, mirror(R2.cannon.xLeft, R2.cannon.width)];
   for (const stage of ["intact", "cracked", "broken"]) {
-    for (const [what, picture] of [["gun", gun], ["doors", doors], ["core", coreOf(hub)]]) {
+    for (const [what, picture] of [["gun", GUN3], ["doors", DOORS_OPEN], ["core", core]]) {
       const n = colour3(staged(picture, stage));
       if (n < 4) throw new Error(`${what} ${stage}: ${n} colour-3 pixels (the hit flash needs 4)`);
     }
   }
-  const looks = { band: "intact", open: "intact", cracked: "cracked", broken: "broken" };
+  // band.png the closed looks (the doors locked), open.png the doors opened,
+  // cracked.png and broken.png the stages of the look a module is hit in.
+  const looks = { band: ["intact", DOORS_LOCKED], open: ["intact", DOORS_OPEN],
+    cracked: ["cracked", DOORS_OPEN], broken: ["broken", DOORS_OPEN] };
   const images = {};
-  for (const [file, stage] of Object.entries(looks)) {
+  for (const [file, [stage, doors]] of Object.entries(looks)) {
     const canvas = new Canvas(BAND_W, BAND_H);
     // Row 0: the track, edge to edge, behind the hub's top.
     for (let c = 0; c < 64; c += 1) canvas.cell(TRACK[c & 1], c, 0);
     // The rails: the girder from the band's edge to the nose, a mount over
     // each gun, the guns, the nose.
-    for (const [guns, nose, side] of [[left, L.nose, "l"], [right, mirror(L.nose, 1), "r"]]) {
+    for (const [guns, nose, side] of [[left, R2.nose, "l"], [right, mirror(R2.nose, 1), "r"]]) {
       const columns = side === "l" ? [...Array(nose).keys()] : [...Array(63 - nose).keys()].map((i) => nose + 1 + i);
       const mounted = new Set(guns.flatMap((g) => [...Array(g.width).keys()].map((i) => g.x + i)));
       for (const c of columns) canvas.cell(mounted.has(c) ? GIRDER_MOUNT : GIRDER, c, 1);
-      for (const g of guns) canvas.draw(staged(gun, stage), g.x * CELL_W, 2 * CELL_H);
+      for (const g of guns) canvas.draw(staged(GUN3, stage), g.x * CELL_W, 2 * CELL_H);
       (side === "l" ? NOSE_LEFT : NOSE_RIGHT).forEach((picture, i) => canvas.cell(picture, nose, 1 + i));
     }
     // The cannons: region 1's tower (its stages: rest, cracked, broken).
     const tower = stage === "cracked" ? emitterCracked : stage === "broken" ? emitterBroken : rest;
     for (const x of cannons) canvas.draw(tower, x * CELL_W, CELL_H);
-    // The hub, the core inside it (its stages), the doors under it.
-    canvas.draw(hub.slice(0, 8), L.hub.x * CELL_W, 0, { over: true });
-    if (L.hub.width === 4) {
-      const shell = hub.map((line) => line.slice(0, 4) + "........" + line.slice(12));
-      canvas.draw(shell.slice(8), L.hub.x * CELL_W, CELL_H);
-    }
-    canvas.draw(staged(coreOf(hub), stage), L.core.x * CELL_W, CELL_H);
-    canvas.draw(staged(doors, stage), L.doors.x * CELL_W, L.doors.row * CELL_H);
+    // The hub's cap, the core under it (its stages), the doors under the core.
+    canvas.draw(hub.slice(0, 8), R2.hub.x * CELL_W, 0, { over: true });
+    canvas.draw(staged(core, stage), R2.core.x * CELL_W, CELL_H);
+    canvas.draw(staged(doors, stage), R2.doors.x * CELL_W, R2.doors.row * CELL_H);
     images[file] = canvas;
   }
   return {
-    pngs: {
-      band: images.band.png(), open: images.open.png(), cracked: images.cracked.png(),
-      broken: images.broken.png(), extras: extrasCanvas.png(), emitter: emitterPng,
-    },
-    modules: r2ModulesJson(variant),
+    band: images.band.png(), open: images.open.png(), cracked: images.cracked.png(),
+    broken: images.broken.png(), extras: extrasCanvas.png(), emitter: emitterPng,
   };
 }
 
-// The region's modules.json for a variant (Phase A: generated with the
-// drafts; Phase B commits the chosen one as data).
-export function r2ModulesJson(variant, hp = { gun: 12, cannon: 16, doors: 16, core: 24 }) {
-  const { v, left, right } = r2Modules(variant);
-  const L = layoutOf(variant);
-  const gunModule = (g, i, side) => ({ name: g.name, kind: "pulse", x: g.x, row: 2, width: g.width, height: 2,
-    hp: hp.gun, score: 40, reload: 70, cavityRows: 2,
-    cover: i === 0 ? [] : [`rail-${side}-${i}`] });
-  return {
-    formatVersion: 2,
-    name: "Bastion",
-    style: 2,
-    _: `Region 2's boss (S5-5, feat/boss-region-2; the owner's design of 2026-10-14), review variant ${variant.toUpperCase()} - drawn by scripts/boss-r2-art.mjs. The hangar hub at the centre (the core inside, the doors under it; the escort launches from the doors), a laser cannon each side of it, a sliding rail of guns outside each cannon. A rail-gun kill slides its rail one pitch inward; a rail far enough in covers its cannon - invulnerable, still firing. The doors open to fire once every cannon and rail gun is destroyed or covered; the core, a salvo launcher, falls last.`,
-    palette: { _: "COLPF0 pale steel, COLPF1 mid steel, COLPF2 hazard amber (lights, the core, the doors' chevrons; hue 34, 168 degrees from the ally steel $88), COLPF3 the olive bulk (hue 82, 144 degrees).",
-      colpf0: 12, colpf1: 6, colpf2: 40, colpf3: 226 },
-    motion: { _: "Still at position 32: the rails' slides are the only motion (the owner's rule: no mishmash of motions).",
-      framesPerColourClock: 0, travelColourClocks: 63, startColourClock: 32, shakeFrames: 24, shakeAmplitude: 2 },
-    chain: { blasts: 16, framesBetween: 6 },
-    fire: { cooldown: 24, finaleCooldown: 12 },
-    escort: { _: "Region 1's cadence (decision AI); the escort launches from the doors (entry 124: the doors' column) and stops when they fall (the block's code).",
-      afterWeapons: 1, baseFrames: 150, jitterMask: 63 },
-    capped: { hp: 8 },
-    laser: { beamFrames: 50 },
-    rails: {
-      _: "The sliding rails (src/hybrid/boss.s BOSS_RAIL): a kill of a rail's front gun slides the rail one pitch inward after delayFrames, one column every framesPerStep frames (the next gun hidden until it locks in); after `positions` slides it covers its cannon and stops. One slide from covering a standing cannon, the gun whose fall would cover it pulses every pulseFrames.",
-      framesPerStep: 4, delayFrames: 12, pulseFrames: 16, pitch: v.pitch, positions: v.positions, rows: [...L.rows],
-      core: "core",
-      left: { guns: left.map((g) => g.name), cannon: "cannon-l", nose: L.nose },
-      right: { guns: right.map((g) => g.name), cannon: "cannon-r", nose: mirror(L.nose, 1) },
-    },
-    hangar: { _: "The doors launch the escort (their flash cueFrames before each) and stop it when they fall.",
-      doors: "doors", core: "core", cueFrames: 6 },
-    nozzles: { left: [], right: [], framesPerPhase: 6 },
-    modules: [
-      ...left.map((g, i) => gunModule(g, i, "l")),
-      { name: "cannon-l", kind: "emitter", x: L.cannon.xLeft, row: 1, width: L.cannon.width, height: 3, hp: hp.cannon, score: 80,
-        slot: 1, cavityRows: 3, stages: "lens", cover: [] },
-      { name: "core", kind: "salvo", x: L.core.x, row: L.core.row, width: L.core.width, height: L.core.height,
-        hp: hp.core, score: 99, reload: 90, cavityRows: 3, cover: ["doors"] },
-      { name: "cannon-r", kind: "emitter", x: mirror(L.cannon.xLeft, L.cannon.width), row: 1, width: L.cannon.width,
-        height: 3, hp: hp.cannon,
-        score: 80, slot: 1, cavityRows: 3, stages: "lens", cover: [] },
-      ...right.map((g, i) => gunModule(g, i, "r")),
-      { name: "doors", kind: "armour", x: L.doors.x, row: L.doors.row, width: L.doors.width, height: 1, hp: hp.doors,
-        score: 60, cavityRows: 0,
-        cover: ["cannon-l", "cannon-r", left.at(-1).name, right.at(-1).name] },
-    ],
-  };
-}
+export const REGION_2_DIRECTORY = path.join(rootDirectory, "assets", "graphics", "boss-regions", "region-2");
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const variant = (process.argv.find((a) => a.startsWith("--variant=")) ?? "--variant=ga").slice(10);
-  const out = process.argv.find((a) => a.startsWith("--out="))?.slice(6) ??
-    path.join(rootDirectory, "build", "boss-variants", `r2${variant}`, "region-2");
-  const { pngs } = drawRegion2(variant);
-  // --hp=GUN,CANNON,DOORS,CORE: a hit-point trial (Phase A's tuning probes).
-  const hpArgument = process.argv.find((a) => a.startsWith("--hp="))?.slice(5);
-  const modules = hpArgument === undefined ? r2ModulesJson(variant) : (() => {
-    const [gun, cannon, doors, core] = hpArgument.split(",").map(Number);
-    return r2ModulesJson(variant, { gun, cannon, doors, core });
-  })();
   const check = process.argv.includes("--check");
+  const pngs = drawRegion2();
   let differs = 0;
-  if (!check) fs.mkdirSync(out, { recursive: true });
-  const files = { ...Object.fromEntries(Object.entries(pngs).map(([n, b]) => [`${n}.png`, b])),
-    "modules.json": Buffer.from(`${JSON.stringify(modules, null, 2)}\n`) };
-  for (const [name, bytes] of Object.entries(files)) {
-    const file = path.join(out, name);
+  if (!check) fs.mkdirSync(REGION_2_DIRECTORY, { recursive: true });
+  for (const [name, bytes] of Object.entries(pngs)) {
+    const file = path.join(REGION_2_DIRECTORY, `${name}.png`);
     if (check) {
       if (!fs.existsSync(file) || !fs.readFileSync(file).equals(bytes)) {
         console.log(`differs: ${path.relative(rootDirectory, file)}`);

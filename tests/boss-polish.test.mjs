@@ -138,8 +138,12 @@ test("the art rule: every damage stage of every destructible module has colour-3
   const placeholders = loadBossPlaceholders(root);
   // RE-POINTED S5-3 (feat/boss-region-3): region 3 is Siege Spine from its own
   // draft; regions 2 and 4 are still region 1's copies.
+  // RE-POINTED feat/boss-region-2 (S5-5): every region is its own draft now
+  // (region 4 since S5-4, region 2 since S5-5); a region without a directory
+  // would still be region 1's copy.
+  const own = (n) => fs.existsSync(path.join(bossRegionDirectory(root, n), "modules.json"));
   const regions = [compileBossRegion(draft),
-    ...[2, 3, 4].map((n) => compileBossRegion(n === 3 ? loadBossRegionDraft(bossRegionDirectory(root, 3))
+    ...[2, 3, 4].map((n) => compileBossRegion(own(n) ? loadBossRegionDraft(bossRegionDirectory(root, n))
       : bossPlaceholderDraft(draft, placeholders[String(n)])))];
   regions.forEach((region, r) => {
     for (const { name, stages } of stageCounts(region)) {

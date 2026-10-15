@@ -38,8 +38,17 @@ test("Q9: slot F is $5200-$53FF in the manifest, and no segment of any link reac
       // loaded with the link; every other segment still stays out.
       // RE-POINTED feat/boss-region-4 (S5-4): BOSS_G_CODE is region 4's
       // gravity well, linked at the same address for region 4's block run.
-      if (file === "boss.map" && (name === "BOSS_F_CODE" || name === "BOSS_G_CODE")) {
+      // RE-POINTED feat/boss-region-2 (S5-5): BOSS_R_CODE is region 2's
+      // rails, linked at the same address for region 2's block run; their
+      // tables and state, BOSS_R_DATA, in that block between its look tail
+      // and BOSS_F_HOOK.
+      if (file === "boss.map" && (name === "BOSS_F_CODE" || name === "BOSS_G_CODE" || name === "BOSS_R_CODE")) {
         assert.ok(from === SLOT_F[0] + 110 && to <= SLOT_F[1], `${name} $${start}-$${end} is not after the look tail`);
+        continue;
+      }
+      if (file === "boss.map" && name === "BOSS_R_DATA") {
+        assert.ok(from >= SLOT_F[0] + manifest.boss.slotF.blocks[1].lookTailBytes && to <= SLOT_F[0] + 110,
+          `${name} $${start}-$${end} is not between region 2's look tail and BOSS_F_HOOK`);
         continue;
       }
       assert.ok(!(from < SLOT_F[1] && SLOT_F[0] < to), `${file}: ${name} $${start}-$${end} reaches slot F`);

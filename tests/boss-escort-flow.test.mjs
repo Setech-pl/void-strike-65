@@ -19,8 +19,7 @@ import path from "node:path";
 import test from "node:test";
 
 import {
-  bossEscortPairingProblem, bossPlaceholderDraft, bossRegionDirectory, compileBossRegion, loadBossPlaceholders,
-  loadBossRegionDraft,
+  bossEscortPairingProblem, bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import { compileLevelFile, levelSourcePath } from "../scripts/level-compiler.mjs";
 import { call, installRegion, label, placeBand, root, runBossEntry, shootAt, visibleCells } from "./boss-harness.mjs";
@@ -137,10 +136,11 @@ test("data: region 1's escort - after 1 weapon kill, every 150 + (RNG & 63) fram
   assert.deepEqual([...region1.tables.subarray(T_ESCORT_AFTER, T_ESCORT_JITTER + 1)], [1, BASE, JITTER]);
 });
 
-test("data: regions 2-4 (copies of region 1) carry region 1's escort", () => {
-  const placeholders = loadBossPlaceholders(root);
+// RE-POINTED feat/boss-region-2 (S5-5): regions 2-4 are their own drafts now
+// (S5-3, S5-4, S5-5), no longer copies; each carries region 1's escort.
+test("data: regions 2-4 carry region 1's escort", () => {
   for (const region of ["2", "3", "4"]) {
-    const compiled = compileBossRegion(bossPlaceholderDraft(draft(), placeholders[region]));
+    const compiled = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, Number(region))));
     assert.deepEqual([...compiled.tables.subarray(T_ESCORT_AFTER, T_ESCORT_JITTER + 1)], [1, BASE, JITTER],
       `region ${region}`);
   }

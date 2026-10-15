@@ -69,7 +69,12 @@ const fixture = lasers
 // the same; the test refuses entries that differ (a later session splits them).
 const finaleBuilt = labelsOf.boss.has("_boss_burst_left");
 const placeholderEntries = assets.loadBossPlaceholders(root);
-const placeholderEntry = placeholderEntries["2"];
+// RE-POINTED feat/boss-region-2 (S5-5, the owner's choice of 2026-10-15): no
+// region is a copy of region 1 any more (placeholders.json has no entry), so
+// the S5-2 composition keeps the last placeholder's entry here - region 1's
+// layout with the finale's floor 12 - as the fixture of the shared finale and
+// volley code, its figure comparable with the records before.
+const placeholderEntry = placeholderEntries["2"] ?? { fire: { finaleCooldown: 12 } };
 const placeholders = compileBossRegion(assets.bossPlaceholderDraft(
   loadBossRegionDraft(bossRegionDirectory(root, 1)), placeholderEntry));
 const fixtureFinale = lasers ? compileBossRegion(assets.bossPlaceholderDraft(
@@ -354,7 +359,7 @@ const fixtureFinaleCases = memo(() => ["warn", "beam"].map((laserMode) => ({
     volleys: true,
   }),
 })));
-const finaleLayouts = () => (!finaleBuilt ? [] : [["regions 2-4 (the finale)", placeholderCases()],
+const finaleLayouts = () => (!finaleBuilt ? [] : [["the finale fixture (region 1, finaleCooldown 12)", placeholderCases()],
   ...(lasers ? fixtureFinaleCases().map(({ laserMode, cases }) => [`fixture with the finale, lasers ${laserMode}`, cases]) : [])]);
 
 test("AUD-04: region 1 - every distinct-module kill and stage-change combination stays under the boss limit", () => {
@@ -424,7 +429,7 @@ test("S5-2: the finale's layouts - every combination, volleys' burst steps compo
   // fix/boss-polish (decision AL 1): each placeholder names its own boss for
   // the loading screen's title; the name never reaches the fight, so the
   // entries are compared without it.
-  assert.equal(new Set(Object.values(placeholderEntries).map(({ name, ...e }) => JSON.stringify(e))).size, 1,
+  assert.ok(new Set(Object.values(placeholderEntries).map(({ name, ...e }) => JSON.stringify(e))).size <= 1,
     "the region 2-4 placeholders differ: sweep each one");
   assert.ok(finaleBuilt, "the controller has no finale (no volley state to compose)");
   assert.ok(placeholders.fire.finaleCooldown > 0, "the placeholders carry no finale");

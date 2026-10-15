@@ -70,9 +70,19 @@ test("E4 / S5-1: the look tail is each region's block in slot F, read as the reg
       assert.deepEqual([...image.subarray(0, region4.lookTail.length)], [...region4.lookTail],
         "region 4's block starts with its own look tail");
       assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 4's well code (a JMP) after the tail's 110 B");
+    } else if (block.region === 2) {
+      // RE-POINTED feat/boss-region-2 (S5-5, the owner's choice of
+      // 2026-10-15): region 2 is the Bastion from its own draft - its block is
+      // its own look tail, the rails' tables and state in the room before
+      // BOSS_F_HOOK, then the rails' code after the tail's 110 B. No region is
+      // a copy of region 1 any more.
+      const region2 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 2)));
+      assert.deepEqual([...image.subarray(0, region2.lookTail.length)], [...region2.lookTail],
+        "region 2's block starts with its own look tail");
+      assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 2's rails' code (a JMP) after the tail's 110 B");
     } else if (manifest.boss.laserFixtureTier === null) {
       assert.deepEqual([...image.subarray(0, region1.lookTail.length)], [...region1.lookTail],
-        "the default build's blocks are region 1's tail (region 2 is a copy, Q10)");
+        "the default build's region 1 block is its tail");
       assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES] ?? 0, 0, "a block without code leaves BOSS_F_HOOK zero");
     }
   }

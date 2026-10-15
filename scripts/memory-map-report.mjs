@@ -150,6 +150,10 @@ const SEGMENTS = {
   // S5-3 (feat/boss-region-3): region 3's field code, in slot F after the look tail's 110 B.
   BOSS_F_CODE: ["region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only", "overlay"],
   BOSS_G_CODE: ["region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M0), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only", "overlay"],
+  // S5-5 (feat/boss-region-2): region 2's rails' code after the look tail's
+  // 110 B, their tables and state in the block's room before it.
+  BOSS_R_CODE: ["region 2's sliding rails and hangar (S5-5): a front gun's kill slides its rail one pitch inward, the cover, the warning pulse, the doors' escort cue and unlock cue; its code and scratch in region 2's block (slot F, after the look tail's 110 B, at the field's and the well's address - one region's block is in memory at a time); read with that block at region 2's boss entry only", "overlay"],
+  BOSS_R_DATA: ["region 2's rails' tables and state (S5-5): in region 2's block between its look tail and BOSS_F_HOOK; read with that block at region 2's boss entry only", "overlay"],
 };
 
 // ---------------------------------------------------------------- readers

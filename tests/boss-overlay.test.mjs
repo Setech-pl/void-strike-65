@@ -126,7 +126,11 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
     // / 2026-10-14): region 4 is the Void Citadel from its own draft too - its
     // own band A and charset runs, its block its tail and the well's code;
     // region 2 is still a copy of region 1.
-    if (region === 2 || region === 3) {
+    // RE-POINTED feat/boss-region-2 (S5-5, the owner's choice of 2026-10-15):
+    // region 2 is the Bastion from its own draft - its own band A and charset
+    // runs, its block its tail, the rails' tables and their code. Only region 1
+    // is region 1's.
+    if (region === 1 || region === 2 || region === 3) {
       for (const [run, offset] of [["band-a", 2], ["charset", 8]]) {
         const built = manifest.boss.runs.find((r) => r.name === `boss-region-${region + 1}-${run}`);
         assert.deepEqual(atrRun(at + offset, built.sectors), readBuild(built.file), `region ${region + 1} ${run}`);

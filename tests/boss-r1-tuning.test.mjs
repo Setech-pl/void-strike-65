@@ -35,10 +35,15 @@ test("region 1: every reachable player x is under some weapon's fire with every 
   }
 });
 
-test("regions 2-4 (copies of region 1 with the finale): no safe position either", () => {
+// RE-POINTED feat/boss-region-2 (S5-5, the owner's choice of 2026-10-15): no
+// region is a copy of region 1 any more (regions 2-4 have their own drafts and
+// tests: their rule is no refuge in reach of the endgame); the subject left is
+// region 1's layout with the finale on (S5-2's composition, the last
+// placeholder's entry), kept as a fixture of the finale's coverage.
+test("region 1's layout with the finale (the copies' S5-2 composition): no safe position either", () => {
   const placeholders = loadBossPlaceholders(root);
-  for (const region of ["2", "3", "4"]) {
-    const copy = bossPlaceholderDraft(draft, placeholders[region]);
+  for (const region of ["2"]) {
+    const copy = bossPlaceholderDraft(draft, placeholders[region] ?? { fire: { finaleCooldown: 12 } });
     const compiled = compileBossRegion(copy);
     const finale = (compiled.fire.finaleCooldown ?? 0) !== 0;
     for (const options of [{ finale: false }, { finale }]) {

@@ -987,7 +987,11 @@ function resolveBossHangar(source, modules, escortAfter) {
   if ((core.coverMask & (1 << doors.index)) === 0) fail("the hangar's doors cover its core");
   if (escortAfter === 0) fail("a hangar launches an escort: the region needs its escort block");
   const cueFrames = integerIn(source.cueFrames, 2, 127, "hangar.cueFrames");
-  return { doors, core, cueFrames };
+  // S5-5 Phase B (the owner's readability rule of 2026-10-15): the doors look
+  // locked until they open - an open look of their own (open.png) - and the
+  // moment they open sounds for unlockFrames frames (with their flash).
+  const unlockFrames = integerIn(source.unlockFrames, 2, 127, "hangar.unlockFrames");
+  return { doors, core, cueFrames, unlockFrames };
 }
 
 // ---------------------------------------------------------------------------
@@ -1200,6 +1204,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       }
     }
     if (differs) openLooks.set(module.index, look);
+  }
+  // S5-5 Phase B (the owner's readability rule of 2026-10-15): the hangar's
+  // doors look different while locked (band.png) and once open (open.png).
+  if (hangar !== null && !openLooks.has(hangar.doors.index)) {
+    fail(`the hangar's doors ${hangar.doors.name} have no open look: open.png draws them unlocked, band.png locked`);
   }
 
   // extras.png: the bays, the spark, the capped plate, the nozzles, the blasts.
@@ -1575,7 +1584,8 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
         cannon: side.cannon.index, guns: side.guns.map((gun) => gun.index), firstModule: side.firstModule,
         frontSlot: [side.guns[0].x, side.guns[0].x + side.guns[0].width - 1] })),
     },
-    hangar: hangar === null ? null : { doors: hangar.doors.index, core: hangar.core.index, cueFrames: hangar.cueFrames },
+    hangar: hangar === null ? null : { doors: hangar.doors.index, core: hangar.core.index, cueFrames: hangar.cueFrames,
+      unlockFrames: hangar.unlockFrames },
     gravity: gravity === null ? null : {
       framesPerStep: gravity.framesPerStep, pulseFrames: gravity.pulseFrames, waveStep: gravity.waveStep,
       spires: gravity.spires.map((module) => module.index), core: gravity.core.index,

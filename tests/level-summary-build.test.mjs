@@ -267,7 +267,10 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
     // runs: tests/boss-region-3.test.mjs, tests/boss-overlay.test.mjs).
     // RE-POINTED feat/boss-region-4 (S5-4): region 4 is the Void Citadel from
     // its own draft (tests/boss-region-4.test.mjs, tests/boss-overlay.test.mjs).
-    if (region === 2 || region === 3) continue;
+    // RE-POINTED feat/boss-region-2 (S5-5, the owner's choice of 2026-10-15):
+    // region 2 is the Bastion from its own draft (tests/boss-region-2.test.mjs,
+    // tests/boss-overlay.test.mjs) - no region is a copy any more.
+    if (region === 1 || region === 2 || region === 3) continue;
     const copy = Buffer.from(atrSectors(632 + region * 16, 16));
     assert.equal(copy[FINALE_BYTE], placeholders[String(region + 1)]?.fire?.finaleCooldown ?? 0,
       `region ${region + 1}'s finale floor is not its placeholder's`);

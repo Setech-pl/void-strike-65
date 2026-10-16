@@ -72,11 +72,16 @@ test("region 4 is the Void Citadel from its own draft: the layout, the hit point
   // RE-PINNED fix/interceptor-speed (owner answer Q4 of 2026-10-14, plan
   // interceptor-speed §5.5-§6): the catchable escort takes the shots aimed at
   // the boss, so every module about a fifth lighter (probe v1r4c).
+  // RE-PINNED feat/boss-order-scale (the owner's decision AX 2-4: the
+  // Citadel ends region 2, MEDIUM about 102 s on level 4's one laser slot):
+  // x 1.10, then the level-4 pool about 7 % more (docs/boss-curve.json) -
+  // spires 11, the core 27, its lens 25, cannons 16, guns 11, plates 10.
   assert.deepEqual(hp, {
-    "spire-l": 9, "spire-r": 9, core: 23, "core-lens": 21, "cannon-l": 14, "cannon-r": 14,
-    "gun-1": 10, "gun-2": 10, "gun-3": 10, "gun-4": 10, "gun-5": 10, "gun-6": 10,
-    "plate-a": 8, "plate-b": 8, "plate-d": 8, "plate-e": 8,
+    "spire-l": 11, "spire-r": 11, core: 27, "core-lens": 25, "cannon-l": 16, "cannon-r": 16,
+    "gun-1": 11, "gun-2": 11, "gun-3": 11, "gun-4": 11, "gun-5": 11, "gun-6": 11,
+    "plate-a": 10, "plate-b": 10, "plate-d": 10, "plate-e": 10,
   });
+  assert.equal(draft4.layout.capped.hp, 10, "the capped plate (levels 4-6: the capped cannons) at the plates' 10");
   const kinds = (kind) => region4.modules.filter((module) => module.kind === kind).map((module) => module.name).sort();
   assert.deepEqual(kinds("salvo"), ["spire-l", "spire-r"]);
   assert.deepEqual(kinds("core"), ["core"]);

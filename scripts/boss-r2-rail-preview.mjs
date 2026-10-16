@@ -32,7 +32,7 @@ const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
 const BAND_A = BOSS_BAND_A_ADDRESS;
 const MISSILES = 0x3b00;                // boss.s LASER_MISSILES
-const BAND_TOP = 32;                    // boss.s BAND_TOP_Y
+const BAND_TOP = 24;                    // boss.s BAND_TOP_Y (GAMEPLAY_TOP + 8)
 const BEAM = 0x46;                      // boss.s B2_COLOUR
 const EXTRA = 24;                       // lines of the playfield under the band
 const index = (name) => region.modules.findIndex((m) => m.name === name);
@@ -70,16 +70,23 @@ function destroy(m, name) {
   if (m[lbl("_boss_hp") + index(name)] !== 0) throw new Error(`${name} did not fall`);
   run(m, 90);                            // the slide (delay + 3 columns x 4 frames) and the redraws
 }
-// The cannon's laser in its beam (slot D's state, as a firing holds it).
+// The cannon's laser in its beam through the game's own path: its reload run
+// out, the admission's warning, then the beam (its missile allocated, so the
+// armour row's mask is the game's); captured a few frames into the beam.
 function withBeam(m, laser) {
   const b = Uint8Array.from(m);
-  for (let f = 0; f < 3; f += 1) {
-    b[lbl("boss_laser_state") + laser] = 2;
-    b[lbl("boss_laser_timer") + laser] = 40;
-    b[lbl("boss_laser_fired") + laser] = 1;
+  for (let f = 0; f < 400; f += 1) {
+    if (b[lbl("boss_laser_state") + laser] === 0) {
+      b[lbl("boss_laser_reload_lo") + laser] = 0;
+      b[lbl("boss_laser_reload_hi") + laser] = 0;
+    }
     frame(b);
+    if (b[lbl("boss_laser_state") + laser] === 2 && b[lbl("b2_three") + laser] !== 0) {
+      run(b, 3);
+      return b;
+    }
   }
-  return b;
+  throw new Error(`laser ${laser} never reached its beam`);
 }
 
 function capture(m, first, count, beam, laser) {
@@ -91,7 +98,7 @@ function capture(m, first, count, beam, laser) {
   registers.set(grid.registers);
   if (beam) {
     const hpos = m[lbl("boss_laser_hpos") + laser] || m[lbl("boss_laser_edge") + laser];
-    const mask = m[lbl("b2_three") + laser] || 0x3c;
+    const mask = m[lbl("b2_one") + laser] === 0x04 ? 0x0c : 0x30;   // its missile's bits (M1 / M2)
     for (let y = 0; y < height; y += 1) {
       if ((m[MISSILES + BAND_TOP + y] & mask) === 0) continue;
       for (let x = hpos - first * 4; x < hpos - first * 4 + 4; x += 1) {

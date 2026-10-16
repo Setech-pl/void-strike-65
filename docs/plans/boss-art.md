@@ -323,3 +323,82 @@ indistinguishable) costs 100 a frame: about **352** left. The owner decides.
 
 Previews: `node scripts/boss-art-preview.mjs --main=<main's drafts>
 --phase-a=<Phase A's drafts>` → `region-N-review.png` (today / Phase A / now).
+
+## 10. Phase B (2026-10-16): the owner's last looks, tests, clauses, evidence
+
+### 10.1 The looks after Phase A
+
+* `854d4d7` (accepted): R2's cannons redrawn in R1's and R3's family - a
+  pointed finned spire narrowing into a long barrel and a squared muzzle,
+  lit left, the trim on the shadow side; locked light steel, open amber on
+  the plate and the muzzle. R4 one row switch (row 3).
+* `3131f47` (the owner's two last changes, then Phase B without a stop):
+  R2's trim a darker military olive-green (hue D: `$D6 / $D4 / $D4 / $D2`,
+  the armour row grey `$04`; 118° from `$88`, the weakest flash pair 84);
+  the cannons' damage on the whole cannon (`"stages": true`; the converter
+  never stages a bay's armour row, so the open bay stays empty) - R2 99 codes,
+  7 charset sectors.
+* `bd7f89d`: the open cannon's barrel carries an amber ring (every cell of
+  the open look reads apart from the locked one - the region-2 test).
+
+### 10.2 Tests and clauses
+
+* `tests/boss-art.test.mjs` (15): the row palettes the owner chose (R1 rows
+  1, 3; R2 1, 3, 4; R3 none; R4 3), COLPF0 / COLPF2 constant, row 0 the
+  tables' palette; the bytes in the charset run's divider area; per route
+  the install's DLI bits (3 + switches DLIs), slot D's colours, the frame
+  hook's operand, the divider restored; each switch writes exactly WSYNC,
+  COLPF1, COLPF3 (`STA COLPF1` 4 and `STA COLPF3` 12 cycles after the
+  WSYNC); the native cost 154 / 208 / 0 / 100; the flash pair >= 80 and the
+  ally rule per row; PF2 pixels in every stage; the stress compositions
+  count the switches (`bandDliSwitches` in `tests/boss-harness.mjs`) - RED
+  until they did.
+* The trace (`scripts/atari800-wall-trace.h`, `scripts/runtime-wall-trace.mjs`):
+  observer fields `row_switch_frames / _min / _max / _rows / _line_bits /
+  _max_cycle / _cut_frames`; the clause: in every band frame (phase 0 and
+  phase 1 ran) exactly its region's switches, each on its row's first line
+  (line 24 + 8 x row), both stores done by cycle 14
+  (`ROW_SWITCH_LANDING_MAX_CYCLE`, MEASURED on all four routes); evidence
+  `coverage.boss_row_switches`. The first full trace failed it once:
+  `slot-e-pause-2`'s pause entry turns DMA off after phase 0, before row 1
+  (the screen blank for the rest of that frame; the pause display list has
+  no DLI, the resume sets `VDSLST` to `boss_dli`) - such a frame is now
+  counted apart as cut (`d25af06`; the rerun: 1,336 band frames with 2
+  switches each, 1 cut).
+* The entry gate 300 host frames (decision AV) in `scripts/runtime-wall-trace.mjs`,
+  `tests/runtime-wall-trace.test.mjs` and `tests/slot-f.test.mjs`.
+
+### 10.3 Measurements (M, final art)
+
+| | R1 | R2 | R3 | R4 |
+| --- | --- | --- | --- | --- |
+| row switches / native cost a frame | 2 / 154 | 3 / 208 | 0 / 0 | 1 / 100 |
+| stress worst reachable, main → **final** | 6,996 → **7,154** | 7,723 → **7,935** | L7 7,771 → **7,775**; L9 8,025 → **8,029** | 8,044 → **8,148** |
+| M6 headroom (8,500 −) | **1,346** | **565** | **471** (L9) | **352** |
+| boss entry, host frames (sectors; ≤ 300) | **249** (65) | **264** (69) | **260** (68) | **264** (69) |
+| boss-route frames worst fence margin, main → **final** | 15,370 → **14,935** | 11,965 → **11,337** | 13,095 → **13,095** | 9,407 → **9,209** |
+| boss-route DMA-on max (≤ 32,568) | 27,580 | 27,993 | 27,897 | 28,503 |
+
+The default trace: 58 replays, 0 misses, 0 clause failures; worst fence
+margin 1,260 and DMA-on 31,059 unchanged; region 1's boss frames 8,937 /
+30,315 → 8,538 / 29,891.
+
+**Fights that differ from main.** Every replay matches main up to the boss
+entry. In the fight two differ (`memory-integrity-atr-2-hunt-fire5`: one
+shot meets module 3 instead of the hull at frame 3694, one capsule fewer;
+`director-complete-2`: HARD's fight 3,410 → 3,380 frames). A debug journal
+at `boss_shot_meet` on both builds: whether a drift step shows this frame
+or the next depends on whether `boss_motion` runs before or after the
+band's last line, and the shot test reads the shown position (hits follow
+the screen). Main: 107 of 822 shot tests with the step pending; this
+branch: 5. Raster timing (the switches' +154 cycles in the band), not a
+hit-box change; the column map after a real entry is byte-identical.
+
+### 10.4 Evidence and test runs
+
+`build:candidate` → `runtime:wall-trace` → the menu raster → `build` →
+`memory-map` → `showcase:gif` → `showcase` (`da7cef2`). The first full
+`npm test` had one NEW failure - `tests/target-machine.test.mjs:39`: the
+preview's file suffix `"-a"` spelt Atari800's machine option; renamed
+`-one-palette` (`d682053`), the test unchanged - so both runs were redone:
+each 1,409 of 1,410 (the recorded `tests/preview.test.mjs:164`), `failures:reconcile` PASS after each (0 NEW, 0 MOVED).

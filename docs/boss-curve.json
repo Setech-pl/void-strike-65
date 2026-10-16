@@ -1,0 +1,381 @@
+{
+ "generated": "scripts/measure-boss-curve.mjs --run --fresh --report --write",
+ "order": [
+  1,
+  4,
+  3,
+  2
+ ],
+ "inputsSha256": "0450c1dc5f8fafa5e039c4c0ebba059af0c391f34cc75c4d25aa52264e386a91",
+ "starts": [
+  0,
+  3,
+  5
+ ],
+ "bots": [
+  "boss-aim",
+  "boss-aim-careful-dodge"
+ ],
+ "cells": [
+  {
+   "region": 1,
+   "levels": "1-3",
+   "tier": 1,
+   "difficulty": 0,
+   "replays": 3,
+   "seconds": 70,
+   "secondsRange": [
+    65.9,
+    76.1
+   ],
+   "aimHitsPerMinute": 4.2,
+   "aimDeaths": 0,
+   "aimBossFirePerMinute": 3.6,
+   "aimEscortLaserPerMinute": 0.6,
+   "dodgeHitsPerMinute": 6.3,
+   "dodgeDeaths": 0,
+   "finished": true,
+   "entryHostFrames": 257
+  },
+  {
+   "region": 1,
+   "levels": "1-3",
+   "tier": 1,
+   "difficulty": 1,
+   "replays": 3,
+   "seconds": 89.3,
+   "secondsRange": [
+    87.1,
+    91.6
+   ],
+   "aimHitsPerMinute": 5.5,
+   "aimDeaths": 0.3,
+   "aimBossFirePerMinute": 4.6,
+   "aimEscortLaserPerMinute": 0.9,
+   "dodgeHitsPerMinute": 6.1,
+   "dodgeDeaths": 0.7,
+   "finished": true,
+   "entryHostFrames": 257
+  },
+  {
+   "region": 1,
+   "levels": "1-3",
+   "tier": 1,
+   "difficulty": 2,
+   "replays": 3,
+   "seconds": 114.1,
+   "secondsRange": [
+    109.3,
+    120.2
+   ],
+   "aimHitsPerMinute": 9.4,
+   "aimDeaths": 1.7,
+   "aimBossFirePerMinute": 8.7,
+   "aimEscortLaserPerMinute": 0.8,
+   "dodgeHitsPerMinute": 10.9,
+   "dodgeDeaths": 0,
+   "finished": true,
+   "entryHostFrames": 257
+  },
+  {
+   "region": 2,
+   "levels": "4",
+   "tier": 1,
+   "difficulty": 0,
+   "replays": 3,
+   "seconds": 84.3,
+   "secondsRange": [
+    81.7,
+    87.4
+   ],
+   "aimHitsPerMinute": 12.3,
+   "aimDeaths": 1,
+   "aimBossFirePerMinute": 6.9,
+   "aimEscortLaserPerMinute": 5.4,
+   "dodgeHitsPerMinute": 10.4,
+   "dodgeDeaths": 0.3,
+   "finished": true,
+   "entryHostFrames": 272
+  },
+  {
+   "region": 2,
+   "levels": "4",
+   "tier": 1,
+   "difficulty": 1,
+   "replays": 3,
+   "seconds": 99.4,
+   "secondsRange": [
+    96.8,
+    104.4
+   ],
+   "aimHitsPerMinute": 14.5,
+   "aimDeaths": 1.7,
+   "aimBossFirePerMinute": 7.1,
+   "aimEscortLaserPerMinute": 7.5,
+   "dodgeHitsPerMinute": 13.9,
+   "dodgeDeaths": 1,
+   "finished": true,
+   "entryHostFrames": 272
+  },
+  {
+   "region": 2,
+   "levels": "4",
+   "tier": 1,
+   "difficulty": 2,
+   "replays": 3,
+   "seconds": 126.4,
+   "secondsRange": [
+    121.5,
+    135.8
+   ],
+   "aimHitsPerMinute": 17.3,
+   "aimDeaths": 2,
+   "aimBossFirePerMinute": 6.4,
+   "aimEscortLaserPerMinute": 10.9,
+   "dodgeHitsPerMinute": 15.4,
+   "dodgeDeaths": 1,
+   "finished": true,
+   "entryHostFrames": 272
+  },
+  {
+   "region": 2,
+   "levels": "5-6",
+   "tier": 2,
+   "difficulty": 0,
+   "replays": 3,
+   "seconds": 98.9,
+   "secondsRange": [
+    93.5,
+    101.9
+   ],
+   "aimHitsPerMinute": 9.2,
+   "aimDeaths": 1,
+   "aimBossFirePerMinute": 5.9,
+   "aimEscortLaserPerMinute": 3.3,
+   "dodgeHitsPerMinute": 9.6,
+   "dodgeDeaths": 0.3,
+   "finished": true,
+   "entryHostFrames": 272
+  },
+  {
+   "region": 2,
+   "levels": "5-6",
+   "tier": 2,
+   "difficulty": 1,
+   "replays": 3,
+   "seconds": 120.3,
+   "secondsRange": [
+    114.6,
+    131.1
+   ],
+   "aimHitsPerMinute": 11.6,
+   "aimDeaths": 2.3,
+   "aimBossFirePerMinute": 5.8,
+   "aimEscortLaserPerMinute": 5.8,
+   "dodgeHitsPerMinute": 9.1,
+   "dodgeDeaths": 1,
+   "finished": true,
+   "entryHostFrames": 272
+  },
+  {
+   "region": 2,
+   "levels": "5-6",
+   "tier": 2,
+   "difficulty": 2,
+   "replays": 3,
+   "seconds": 150.7,
+   "secondsRange": [
+    145.7,
+    160.6
+   ],
+   "aimHitsPerMinute": 16,
+   "aimDeaths": 3,
+   "aimBossFirePerMinute": 8,
+   "aimEscortLaserPerMinute": 8,
+   "dodgeHitsPerMinute": 14.7,
+   "dodgeDeaths": 1.7,
+   "finished": true,
+   "entryHostFrames": 272
+  },
+  {
+   "region": 3,
+   "levels": "7-8",
+   "tier": 2,
+   "difficulty": 0,
+   "replays": 3,
+   "seconds": 93.8,
+   "secondsRange": [
+    88.9,
+    101.5
+   ],
+   "aimHitsPerMinute": 12.1,
+   "aimDeaths": 1,
+   "aimBossFirePerMinute": 8.9,
+   "aimEscortLaserPerMinute": 2.7,
+   "dodgeHitsPerMinute": 11.6,
+   "dodgeDeaths": 0.7,
+   "finished": true,
+   "entryHostFrames": 268
+  },
+  {
+   "region": 3,
+   "levels": "7-8",
+   "tier": 2,
+   "difficulty": 1,
+   "replays": 3,
+   "seconds": 113.1,
+   "secondsRange": [
+    109.1,
+    120.7
+   ],
+   "aimHitsPerMinute": 16.1,
+   "aimDeaths": 2.3,
+   "aimBossFirePerMinute": 12.4,
+   "aimEscortLaserPerMinute": 3.7,
+   "dodgeHitsPerMinute": 14.9,
+   "dodgeDeaths": 1.3,
+   "finished": true,
+   "entryHostFrames": 268
+  },
+  {
+   "region": 3,
+   "levels": "7-8",
+   "tier": 2,
+   "difficulty": 2,
+   "replays": 3,
+   "seconds": 133.5,
+   "secondsRange": [
+    131.6,
+    136.3
+   ],
+   "aimHitsPerMinute": 13.4,
+   "aimDeaths": 2.3,
+   "aimBossFirePerMinute": 11.7,
+   "aimEscortLaserPerMinute": 1.7,
+   "dodgeHitsPerMinute": 15.9,
+   "dodgeDeaths": 1.7,
+   "finished": true,
+   "entryHostFrames": 268
+  },
+  {
+   "region": 3,
+   "levels": "9",
+   "tier": 4,
+   "difficulty": 0,
+   "replays": 3,
+   "seconds": 93.6,
+   "secondsRange": [
+    88.9,
+    101.7
+   ],
+   "aimHitsPerMinute": 13.3,
+   "aimDeaths": 1.3,
+   "aimBossFirePerMinute": 11.1,
+   "aimEscortLaserPerMinute": 2.2,
+   "dodgeHitsPerMinute": 11.3,
+   "dodgeDeaths": 1,
+   "finished": true,
+   "entryHostFrames": 268
+  },
+  {
+   "region": 3,
+   "levels": "9",
+   "tier": 4,
+   "difficulty": 1,
+   "replays": 3,
+   "seconds": 117.2,
+   "secondsRange": [
+    112.1,
+    120.1
+   ],
+   "aimHitsPerMinute": 14.1,
+   "aimDeaths": 4.3,
+   "aimBossFirePerMinute": 11.6,
+   "aimEscortLaserPerMinute": 2.5,
+   "dodgeHitsPerMinute": 13.9,
+   "dodgeDeaths": 1,
+   "finished": true,
+   "entryHostFrames": 268
+  },
+  {
+   "region": 3,
+   "levels": "9",
+   "tier": 4,
+   "difficulty": 2,
+   "replays": 3,
+   "seconds": 145.9,
+   "secondsRange": [
+    141.9,
+    152.9
+   ],
+   "aimHitsPerMinute": 17.7,
+   "aimDeaths": 3.7,
+   "aimBossFirePerMinute": 15,
+   "aimEscortLaserPerMinute": 2.7,
+   "dodgeHitsPerMinute": 17.5,
+   "dodgeDeaths": 2,
+   "finished": true,
+   "entryHostFrames": 268
+  },
+  {
+   "region": 4,
+   "levels": "10-12",
+   "tier": 4,
+   "difficulty": 0,
+   "replays": 3,
+   "seconds": 96.4,
+   "secondsRange": [
+    96.2,
+    96.6
+   ],
+   "aimHitsPerMinute": 15.5,
+   "aimDeaths": 1,
+   "aimBossFirePerMinute": 12.1,
+   "aimEscortLaserPerMinute": 3.4,
+   "dodgeHitsPerMinute": 13.2,
+   "dodgeDeaths": 1,
+   "finished": true,
+   "entryHostFrames": 272
+  },
+  {
+   "region": 4,
+   "levels": "10-12",
+   "tier": 4,
+   "difficulty": 1,
+   "replays": 3,
+   "seconds": 121.8,
+   "secondsRange": [
+    118.5,
+    124.1
+   ],
+   "aimHitsPerMinute": 20.4,
+   "aimDeaths": 2,
+   "aimBossFirePerMinute": 14.9,
+   "aimEscortLaserPerMinute": 5.4,
+   "dodgeHitsPerMinute": 20.1,
+   "dodgeDeaths": 1.7,
+   "finished": true,
+   "entryHostFrames": 271
+  },
+  {
+   "region": 4,
+   "levels": "10-12",
+   "tier": 4,
+   "difficulty": 2,
+   "replays": 3,
+   "seconds": 160.2,
+   "secondsRange": [
+    156.6,
+    162.1
+   ],
+   "aimHitsPerMinute": 25.4,
+   "aimDeaths": 3.7,
+   "aimBossFirePerMinute": 18.7,
+   "aimEscortLaserPerMinute": 6.7,
+   "dodgeHitsPerMinute": 22.7,
+   "dodgeDeaths": 2.3,
+   "finished": true,
+   "entryHostFrames": 271
+  }
+ ]
+}

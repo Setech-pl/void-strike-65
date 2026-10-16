@@ -2624,6 +2624,37 @@ level-authoring, memory-map, how-to-play (EN / PL: „otwórz pancerz działa i
 zniszcz je, zanim szyna się zamknie"), hardware-testing §35-§36, README
 (EN / PL), szkic notatek `v0.3.0`, notatka dla zadania banerów. S5 kompletne.
 `OWNER-SMOKE CANDIDATE`.
+
+---
+
+## AV. GRAFIKA BOSSÓW: PALETA NA RZĄD PER BOSS, POPRAWKI BASTIONU, LIMIT WEJŚCIA 300 — decyzja właściciela (2026-10-16, po przeglądzie fazy A `feat/boss-art`)
+
+1. **Paleta na rząd (wariant B) per boss:** R1 tak; R2 tak (gradient rdzenia
+   jej potrzebuje); **R3 nie — R3 dokładnie jak dziś** (grafika i paleta), żeby
+   zachować zapas cykli M6; R4 tak, ale **2 przełączenia rzędu zamiast 3**
+   (zostaje ok. 342 cykli natywnych dla M6), wygląd złotego obszycia możliwie
+   bez zmian.
+2. **Obszycie R1: rdza** (jak zaproponowano).
+3. **Obszycie R4: złoto** (jak zaproponowano) — odróżnia też R4 od fioletu R3.
+4. **R2 bliżej przepisu R3:** nasycony kolor obszycia rysujący kontury (jak
+   fiolet R3 i złoto R4), w regule odległości od `$88`; działa laserowe jako
+   jedna pełna, opancerzona wieża z wyraźną lufą i wylotem, oświetlona z
+   lewej — układ zatoki bez zmian (całe działo widoczne, pancerz w rzędzie
+   pod nim), zamknięte = szare, otwarte = bursztyn; gondole szyn z widocznym
+   szczegółem (bursztynowy wizjer i czerwona lampka czytelne w skali gry,
+   krawędź oświetlona i krawędź w cieniu); kopuła, gradient rdzenia
+   (pomarańcz u góry, czerwień u dołu) i paski ostrzegawcze końców szyn
+   zostają.
+5. **Limit wejścia bossa: 300 klatek hosta — stały, we wszystkich zadaniach
+   od teraz** (zastępuje 280 z decyzji **AM**), żeby baner ładowania zmieścił
+   się później. Bramka w teście i w śladzie (`tests/runtime-wall-trace.test.mjs`,
+   `scripts/runtime-wall-trace.mjs`, `tests/slot-f.test.mjs`) zmienia się z tym
+   powodem w fazie B `feat/boss-art` — **zatwierdzona zmiana bramki, nie pin**
+   (reguła **AJ** pkt 2).
+
+**Wynik:** plan `boss-art`; faza B dopiero po przyjęciu poprawek przez
+właściciela.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

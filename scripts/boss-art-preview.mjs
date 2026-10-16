@@ -8,6 +8,9 @@
 //       today (main's draft, --main=<dir> with main's region-N folders)
 //       the new art with one palette for the band (variant A)
 //       the new art with a palette per row (variant B)
+//   build/boss-art/preview/region-N-review.png (with --phase-a=<dir>, the
+//       region folders of an earlier pass): today, the earlier pass with
+//       its row palettes, the new art with its row palettes
 //   build/boss-art/preview/region-N-stages[-a].png
 //       every module in each damage stage (intact - its open look where it
 //       has one -, cracked, broken), left as drawn, right with the b3 hit
@@ -15,7 +18,7 @@
 //   build/boss-art/preview/region-N-gone[-a].png
 //       the fight's later looks: every armour module gone, every module gone
 //
-//   node scripts/boss-art-preview.mjs [--region=N] [--main=build/boss-art/main]
+//   node scripts/boss-art-preview.mjs [--region=N] [--main=build/boss-art/main] [--phase-a=<dir>]
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -167,7 +170,7 @@ function drawnSpan(region, rows) {
   return { first: Math.max(0, lo - 1), count: Math.min(BOSS_BAND_COLUMNS, hi + 2) - Math.max(0, lo - 1) };
 }
 
-export function writeComparison(regionNumber, { mainDirectory = null, outputDirectory } = {}) {
+export function writeComparison(regionNumber, { mainDirectory = null, phaseADirectory = null, outputDirectory } = {}) {
   const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, regionNumber)));
   fs.mkdirSync(outputDirectory, { recursive: true });
   const window = windowColumns(region);
@@ -183,6 +186,14 @@ export function writeComparison(regionNumber, { mainDirectory = null, outputDire
   const files = {};
   files.compare = path.join(outputDirectory, `region-${regionNumber}-compare.png`);
   fs.writeFileSync(files.compare, toPng(stack(panels)));
+  if (phaseADirectory !== null) {
+    const earlier = compileBossRegion(loadBossRegionDraft(path.join(phaseADirectory, `region-${regionNumber}`)));
+    const w = windowColumns(earlier);
+    const review = [...panels.slice(0, mainDirectory === null ? 0 : 1),
+      bandRegisters(earlier, earlier.bandRows, true, w.first, w.count), panels[panels.length - 1]];
+    files.review = path.join(outputDirectory, `region-${regionNumber}-review.png`);
+    fs.writeFileSync(files.review, toPng(stack(review)));
+  }
   const span = drawnSpan(region, L.opened);
   for (const [suffix, perRow] of [["", true], ["-a", false]]) {
     const stages = [L.opened, L.cracked, L.broken].map((rows) =>
@@ -200,10 +211,13 @@ export function writeComparison(regionNumber, { mainDirectory = null, outputDire
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const only = process.argv.find((arg) => arg.startsWith("--region="));
   const main = process.argv.find((arg) => arg.startsWith("--main="))?.slice(7) ?? null;
+  const phaseA = process.argv.find((arg) => arg.startsWith("--phase-a="))?.slice(10) ?? null;
   const regions = only ? [Number(only.slice(9))] : [1, 2, 3, 4];
   const outputDirectory = path.join(rootDirectory, "build", "boss-art", "preview");
   for (const n of regions) {
-    const { region, files } = writeComparison(n, { mainDirectory: main === null ? null : path.resolve(main), outputDirectory });
+    const { region, files } = writeComparison(n, {
+      mainDirectory: main === null ? null : path.resolve(main),
+      phaseADirectory: phaseA === null ? null : path.resolve(phaseA), outputDirectory });
     console.log(`R${n} ${region.name}: ${region.codeCount} codes, ${region.runs.charset.sectors} charset sectors, ` +
       `switches ${JSON.stringify(region.rowPalette.switches)}`);
     for (const file of Object.values(files)) console.log(`  ${path.relative(rootDirectory, file)}`);

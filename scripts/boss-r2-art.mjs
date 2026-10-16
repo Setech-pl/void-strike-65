@@ -94,14 +94,15 @@ export function r2Guns() {
 // --- the pictures ------------------------------------------------------------
 // feat/boss-art (docs/plans/boss-art.md §4.2; the owner's drawing of the
 // Bastion, docs/design/boss-art/bastion-art-ABC.png, variants A and B, and
-// the recipe read off region 3): light falls from above - every part's top
-// and left edges lit steel (W), its body mid steel (g), its lower right in
-// shadow; each part a closed shape with its own outline; amber (a) only on
-// what can be hurt (a gun's visor and muzzle, an open cannon, the open
-// doors, the core); the pf3 bank (r) is the olive bulk in rows 0 and 4 and,
-// under the per-row palette, the red of the hazard stripes, the guns'
-// shadow and the core's lower half in rows 1-3. Grey bars only on what is
-// locked and cannot be hurt (the doors, a locked bay).
+// region 3's recipe - after the owner's look at Phase A, a saturated trim):
+// light falls from above - every part's faces light steel (W), its top and
+// left edges lit, its outline and its shadowed right side the trim (g: the
+// row palette's green in rows 0-3, steel grey in the armour row 4); amber
+// (a) only on what can be hurt (a gun's visor and muzzle, an open cannon,
+// the open doors, the core); the pf3 bank (r) is the olive bulk in rows 0
+// and 4 and, under the per-row palette, the red of the hazard stripes, the
+// guns' lamps and the core's lower two thirds in rows 1-3. Grey bars only on
+// what is locked and cannot be hurt (the doors, a locked bay).
 //
 // The overhead track, row 0: a lit top edge, the olive beam, a rivet every
 // other column (the slides read against them), a steel lower lip.
@@ -173,65 +174,68 @@ gWWg
 const flip = (picture) => picture.map((line) => [...line].reverse().join(""));
 const BUMPER_RIGHT = flip(BUMPER_LEFT);
 
-// A rail gun, 3 x 2 cells: an inverted, rounded turret hung from the girder,
-// lit from the upper left, its lower right in shadow (pf3), an amber visor
-// across its face, the barrel down the centre column to an amber muzzle (a
-// gun fires down x + floor(w / 2)). The left cell and the centre are the pf2
-// bank, the right cell the pf3 bank.
+// A rail gun, 3 x 2 cells (the owner's look at Phase A: "plain grey cones
+// with a red dot" - give them detail that reads at play size): an inverted
+// turret hung from the girder, its top and left edges lit (W), its right
+// edge in shadow (the trim); a wide amber visor framed in the trim across
+// its face (the left and centre cells: the pf2 bank), a red lamp beside it
+// (the right cell: the pf3 bank, the row palette's red) set in lit steel, the
+// barrel down the centre column to an amber muzzle (a gun fires down
+// x + floor(w / 2)).
 const GUN3 = pic(`
-gWWW|WWWW|WWgg
-gWWW|WWWW|Wggg
-.gWW|WWWW|Wgg.
-.gaa|aaaa|grr.
-.gWW|WWWW|ggg.
-..gW|WWWW|gg..
-..gW|WWWW|gg..
-...g|WWWW|g...
-...g|WWWg|g...
-....|gWWg|....
-....|gWWg|....
-....|.gg.|....
+WWWW|WWWW|WWWg
+Wggg|gggg|WWWg
+Wgaa|aaaa|Wrrg
+Wgaa|aaaa|Wrrg
+.ggg|gggg|gggg
+.WWW|WWWW|Wggg
+..WW|WWWW|Wgg.
+..WW|WWWW|Wgg.
+...W|WWWW|gg..
+...W|WWWW|g...
+....|WWWg|....
+....|WWgg|....
+....|gWgg|....
+....|gaag|....
 ....|.aa.|....
-....|.aa.|....
-....|.WW.|....
 ....|....|....
 `);
 // Cracked: a split down the turret's face, the visor broken, the shadow
 // side chipped. Broken: the shell torn open, the steel dark, embers left.
 const GUN3_CRACKED = pic(`
-gWWW|WgWW|WWgg
-gWWW|W.WW|Wggg
-.gWW|WW.W|Wgg.
-.gaa|a.aa|grr.
-.gW.|WWW.|ggg.
-..gW|W.WW|gg..
-..gW|WW.W|gg..
-...g|WWW.|g...
-...g|W.Wg|g...
-....|gW.g|....
-....|g.Wg|....
-....|.gg.|....
-....|.aa.|....
+WWWW|W.WW|WWWg
+Wggg|g.gg|WW.g
+Wgaa|a.aa|Wrrg
+Wga.|aa.a|Wr.g
+.gg.|gg.g|grrg
+.WWW|.WWW|g.gg
+..WW|W.WW|Wgg.
+..W.|WW.W|Wg..
+...W|WW.W|gg..
+...W|WWW.|g...
+....|W.Wg|....
+....|WW.g|....
+....|g.gg|....
+....|gaa.|....
 ....|.a..|....
-....|.WW.|....
 ....|....|....
 `);
 const GUN3_BROKEN = pic(`
-g.WW|..g.|W.g.
-.W..|....|.g..
-.g.W|....|g.g.
-..a.|.a.a|..r.
-.g..|W...|g.g.
-...g|..W.|.g..
-..g.|....|g...
-....|.W.g|....
-...g|....|....
+W.W.|W..W|.W.g
+.g..|.g..|g..g
+W.a.|a.a.|.r.g
+.ga.|.a..|grr.
+..g.|g..g|..r.
+.W..|.W..|g.g.
+..W.|...W|..g.
+...g|.W..|g...
+....|W..g|....
+...g|.W..|g...
+....|..Wg|....
+....|W...|....
 ....|g..g|....
-....|.W..|....
-....|.g..|....
 ....|.a..|....
 ....|..a.|....
-....|....|....
 ....|....|....
 `);
 
@@ -295,39 +299,43 @@ function corePicture() {
   }
   return lines;
 }
-// The laser cannon, 2 x 3 cells: a turret - a domed cap with a visor, a
-// narrower housing with a window, a ribbed neck - and the lens collar at its
-// foot (the beam's emitter: a beam leaves the cannon's centre, columns
-// x + 0.5 .. x + 1.5). Open, lit: its visor, window and lens amber. Locked:
-// the same steel, unlit - grey with dark insets (no colour-3 pixel: the
-// locked cannon reads at once from the open one).
+// The laser cannon, 2 x 3 cells (the owner's look at Phase A: "stacked
+// spools" - one solid armoured turret with a clear barrel and muzzle): a
+// tall armoured turret body, chamfered, over rows 1-2 - its top and left
+// edges lit (W), its right side in shadow (the trim), one armour plate on
+// its face, a collar under it - the barrel down its centre (columns 2-5,
+// lit on the left) to the amber muzzle - the lens - in row 3 (the beam's emitter: a beam leaves the
+// cannon's centre, columns x + 0.5 .. x + 1.5). Open, lit: its armour plate
+// and the muzzle amber - an amber tower. Locked: the same
+// turret in plain light steel (no colour-3 pixel: the locked cannon reads at
+// once from the open one).
 const CANNON_OPEN = pic(`
-..gWWg..
-.gWWWWg.
-gWWWWWWg
-gWWWWWgg
-gaaaaaag
-gWWWWWgg
+.WWWWWg.
+WWWWWWWg
+WWaaaaWg
+Waaaaagg
+Waaaaagg
+Waaaaagg
+Waaaaagg
+Waaaaagg
+WaaaaWgg
+WWWWWWgg
+gWWWWggg
+.WWWWgg.
 .gWWWgg.
-..gWWg..
-.gWWWWg.
-.gWggWg.
-.gWaaWg.
-.gWggWg.
-..gWWg..
-..g..g..
-..gWWg..
-..g..g..
-.gWWWWg.
-gWWggWWg
-gW.aa.Wg
-gWa..aWg
-gW.aa.Wg
-.gWWWWg.
-..g..g..
-...gg...
+..WWgg..
+..WWgg..
+..WWgg..
+..WWgg..
+..WWgg..
+..WWgg..
+..Waag..
+..aaaa..
+..gaag..
+........
+........
 `);
-const CANNON_LOCKED = CANNON_OPEN.map((line) => line.replace(/a/g, "."));
+const CANNON_LOCKED = CANNON_OPEN.map((line) => line.replace(/a/g, "W"));
 
 // The warning's heat on the lens cell (decision E2: the emitter's own two
 // glyphs, A then B): a lamp that glows - on the open tower, on a locked bay's

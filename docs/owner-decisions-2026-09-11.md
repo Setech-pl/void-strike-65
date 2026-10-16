@@ -2773,6 +2773,45 @@ właściciela; po akceptacji faza B.
     `rail-r.png` i ATR trasy bossa regionu 4 `92047d67…`, 2026-10-16). Faza B
     ze wszystkimi decyzjami z **AX** i **AW**.
 
+**Faza B — wykonanie (2026-10-17, `OWNER-SMOKE CANDIDATE`, do smoke'a
+właściciela).** Zapisane tu, bo rozstrzygają szczegóły, których decyzja nie
+przesądzała:
+
+14. **Kolejność jako dane:** `assets/graphics/boss-regions/order.json`
+    `[1, 4, 3, 2]`; katalogi bossów zachowują nazwy, pod którymi zostały
+    narysowane (Bastion w `region-2/`, Void Citadel w `region-4/`). Flagi
+    przeglądowe fazy A (`--boss-order`, `--boss-proposal`) i pliki propozycji
+    usunięte.
+15. **Tier laserów idzie za poziomem (AC), więc Cytadela na poziomach 4-6 ma
+    mniej dział:** soczewka rdzenia (oś studni) przeszła do slotu 1, żeby
+    promień osi strzelał już na poziomie 4 z jednym slotem — inaczej studnia
+    ciągnęłaby statek pod kolumnę bez promienia (wbrew odpowiedzi 4 z
+    2026-10-14: studnia ciągnie w niebezpieczeństwo). Działo lewe to slot 2
+    (od poziomu 5), prawe slot 3; na poziomie 4 oba stoją jako zaślepione
+    płyty (żaluzjowy pancerz), na 5-6 prawe. `emitterArt: "cannon-l"`
+    zostawia `emitter.png` przy dziale. Bez luki obok rdzenia na poziomach 4
+    i 5 (test).
+16. **Krzywa — tylko danymi (HP i przeładowania bossów; skala trudności
+    poziomu bez zmian), zmierzona od zera na danych końcowych, trzy powtórki
+    na komórkę (`docs/boss-curve.json`):** EASY / MEDIUM / HARD na pierwszym
+    poziomie regionu — Breaker 70 / 89 / 114 s, Cytadela 84 / 99 / 126 s,
+    Spine 94 / 113 / 134 s, Bastion 96 / 122 / 160 s; trafienia na minutę
+    (bot celujący, MEDIUM) 5,5 / 14,5 / 16,1 / 20,4. Dane: Breaker **x 0,70**
+    HP (nie 0,73: przy 0,73 walka trwała 95 s i Cytadela na poziomie 4 nie
+    była od niej dłuższa); Cytadela ok. x 1,25 puli poziomu 4 i działa x 1,2
+    przeładowania; Spine x 0,90 HP i działa **x 0,75** przeładowania (nie
+    0,85: przy 0,85 jej 13,2 trafienia na minutę były poniżej 14,3 Cytadeli);
+    Bastion działka szyn 15 -> 16, rdzeń 74 -> 79, brama 22 -> 24, przeładowanie
+    działek szyn 70 -> 125, rdzenia 90 -> 130 (presja 28 -> 20,4 na minutę).
+    EASY Spine'a na poziomach 7-8 rozwiązany danymi: 94 s, 0,83 MEDIUM.
+17. **Presja Cytadeli na poziomie 4 to w połowie laser eskorty** (7,5 z 14,5
+    na minutę): studnia ściąga statek do środkowej kolumny, gdzie eskorta
+    wchodzi i wisi (martwa strefa). Eskorta jest wspólnym Interceptorem
+    (bez HP per region, punkt 7), więc zostaje — do oceny w smoke'u.
+18. **Klauzula śladu „zatoki zakratowane na starcie"** sprawdza pierwsze 16
+    klatek walki, nie pierwszą: strzał w zamkniętą zatokę w klatce 0 rysuje
+    tam na chwilę glif odbicia (MEASURED na trasie Bastionu w regionie 4).
+
 ---
 
 ## Backlog — dopisane 2026-09-20

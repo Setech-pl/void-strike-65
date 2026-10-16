@@ -1507,6 +1507,13 @@ for (const name of [
   // lines ORed; the armour row's first | last line << 8; the line under it),
   // the column map at the core's armoured flank.
   "boss_exposed", "bay_cells", "bay_stops", "bay_maps", "laser_missiles", "beam_rows", "beam_armour", "beam_below", "jamb_map",
+  // feat/boss-art (variant B): the row palette's switch DLIs, session-long -
+  // the host frames whose band DLI ran phase 0, the fewest and the most
+  // switches such a frame saw, the landings' 8-line rows (1 << (line >> 3),
+  // ORed), their lines inside a row (1 << (line & 7), ORed), the latest
+  // landing cycle. Additive.
+  "row_switch_frames", "row_switch_min", "row_switch_max", "row_switch_rows", "row_switch_line_bits",
+  "row_switch_max_cycle",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -2192,6 +2199,45 @@ function slotEPathClauses(session, rows) {
 // escort admitted - a Light slot going live with the Interceptor's record
 // (24) - and at least one hit on the player (a shot or a contact).
 const INTERCEPTOR_RECORD = 24;
+// feat/boss-art (docs/plans/boss-art.md; the owner's variant B, decision AV):
+// the row palette's switch DLIs. In a session that reached the boss, every
+// host frame whose band DLI ran its phase 0 saw exactly its region's switches
+// (the regions' counts differ - 2, 3, 0, 1 - so the count names the region,
+// and a region route must show its own), each landing on the first line of
+// its row (line 24 + 8 x row: the band's rows start at line 24) by cycle
+// ROW_SWITCH_LANDING_MAX_CYCLE - MEASURED in Phase A on all four routes:
+// stores done by then show the row's colours from its first line's leftmost
+// pixel. The band's three DLIs at boss_dli are decision 9's (the integrity
+// clause); the switch DLIs are the handler's own.
+const ROW_SWITCH_LANDING_MAX_CYCLE = 14;
+function rowSwitchClause(session, rows, manifest) {
+  const last = rows.at(-1);
+  const regions = manifest.boss?.regions ?? [];
+  if (last === undefined || regions.length === 0 || last.row_switch_frames === undefined) return;
+  invariant(last.row_switch_frames > 0, `${session.id}: no band frame of the boss ran its DLI's phase 0`);
+  invariant(last.row_switch_min === last.row_switch_max,
+    `${session.id}: band frames saw ${last.row_switch_min} to ${last.row_switch_max} row switches (one count a region)`);
+  const expectedMask = (switches) => switches.reduce((mask, row) => mask | (1 << ((24 + 8 * row) >> 3)), 0);
+  const matches = regions.map((region, index) => ({ index, switches: region.rowSwitches ?? [] }))
+    .filter(({ switches }) => switches.length === last.row_switch_max);
+  invariant(matches.length === 1,
+    `${session.id}: ${last.row_switch_max} row switches a frame is no region's (${regions.map((r) => (r.rowSwitches ?? []).length)})`);
+  const [{ index, switches }] = matches;
+  if (session.bossRegion !== undefined) {
+    invariant(index === session.bossRegion - 1,
+      `${session.id}: region ${session.bossRegion}'s route showed region ${index + 1}'s row switches`);
+  }
+  invariant(last.row_switch_rows === expectedMask(switches),
+    `${session.id}: the switches landed on 8-line rows ${last.row_switch_rows.toString(2)}, region ${index + 1}'s are ` +
+    `${expectedMask(switches).toString(2)} (rows ${switches.join(", ")})`);
+  invariant(last.row_switch_line_bits === (switches.length === 0 ? 0 : 1),
+    `${session.id}: a switch landed on a row's line other than its first (lines ${last.row_switch_line_bits.toString(2)})`);
+  invariant(last.row_switch_max_cycle <= ROW_SWITCH_LANDING_MAX_CYCLE,
+    `${session.id}: a switch's stores were done at cycle ${last.row_switch_max_cycle} (bound <= ${ROW_SWITCH_LANDING_MAX_CYCLE})`);
+  session.rowSwitches = { region: index + 1, switches, frames: last.row_switch_frames,
+    landing_max_cycle: last.row_switch_max_cycle };
+}
+
 function bossEdgeGuardClause(session, rows) {
   const { x, windowFrames } = session.edgeGuard;
   const engaged = rows.find((row) => row.boss_state === 1 && row.boss_entry !== 1);
@@ -4244,6 +4290,9 @@ function main() {
       addressEnvironment.DFTRACE_BOSS_FLAG = hex(readerLabels, "sr_slot_a_overlaid");
       addressEnvironment.DFTRACE_BOSS_PHASE = hex(bossLabels, "_boss_phase");
       addressEnvironment.DFTRACE_PC_BOSS_DLI = hex(bossLabels, "boss_dli");
+      // feat/boss-art: the row palette's switch handler and its landing.
+      addressEnvironment.DFTRACE_PC_BOSS_PAL_DLI = hex(bossLabels, "boss_pal_dli");
+      addressEnvironment.DFTRACE_PC_BOSS_PAL_LANDED = hex(bossLabels, "boss_pal_landed");
       addressEnvironment.DFTRACE_PC_BOSS_ENTER = hex(directorLabels, "_asm_boss_enter");
       // S5-1: the install's arrival in the main loop (the HUD row's second look).
       addressEnvironment.DFTRACE_PC_MAIN_LOOP = hex(labels, "main_loop");
@@ -4749,13 +4798,14 @@ function main() {
       "(slot E's contract, owner decision 4)");
     if (session.bossPath !== undefined) slotEPathClauses(session, rows);
     if (session.edgeGuard !== undefined) bossEdgeGuardClause(session, rows);
+    if (session.bossEntry !== undefined) rowSwitchClause(session, rows, manifest);
     // S5-1 (plan s5-boss-regions §5): a region route enters its boss once,
-    // in at most 280 host frames (owner decision AM, 2026-10-12; was < 250);
-    // on MEDIUM the fight reaches the chain.
+    // in at most 300 host frames (owner decision AV, 2026-10-16; was 280 by
+    // decision AM, < 250 before); on MEDIUM the fight reaches the chain.
     if (session.bossRegion !== undefined) {
       invariant(session.bossEntry !== undefined, `${session.id} never entered the boss (subject empty)`);
-      invariant(session.bossEntry.host_frames <= 280,
-        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 280)`);
+      invariant(session.bossEntry.host_frames <= 300,
+        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 300)`);
       const chain = rows.find((row) => row.boss_state >= 3);
       session.regionRoute = { region: session.bossRegion, entry_host_frames: session.bossEntry.host_frames,
         entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };
@@ -9304,6 +9354,15 @@ function main() {
       },
       // feat/boss-escort-flow (owner answer 6): the left-edge guard's record.
       boss_edge_guard: sessionsToRun.find((session) => session.edgeGuard !== undefined)?.edgeGuardRecord ?? null,
+      // feat/boss-art (variant B, decision AV): the row-switch clause's record,
+      // one entry a session that reached the boss.
+      boss_row_switches: {
+        clause: "every band frame shows exactly its region's row switches, each on its row's first line, " +
+          `its colour stores done by cycle ${ROW_SWITCH_LANDING_MAX_CYCLE}`,
+        landing_max_cycle_bound: ROW_SWITCH_LANDING_MAX_CYCLE,
+        sessions: sessionsToRun.filter((session) => session.rowSwitches !== undefined)
+          .map((session) => ({ session: session.id, ...session.rowSwitches })),
+      },
       // fix/smoke-2026-10-07 (owner decision of 2026-10-08): the record of the
       // re-targeted clause, which replaced heaviest_frame_includes_director_work.
       director_heaviest_frame: {

@@ -127,9 +127,14 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
   // The owner's look at 3b5a8ea (the art's codes): the charset one sector
   // more, six (96 codes) and no more; the boss entry 67 sectors (decision
   // AM: 280 host frames; the banner task absorbs the headroom with R3, R4).
-  assert.ok(region2.codeCount > 80 && region2.codeCount <= 96, `${region2.codeCount} codes: not six sectors`);
-  assert.equal(region2.runs.charset.data.length, 6 * 128, "the charset is six sectors");
-  assert.equal(built.entrySectors, 67, "region 2's boss entry is 67 sectors");
+  // RE-PINNED feat/boss-art (the owner's look at 854d4d7: the cannons' damage
+  // on the whole cannon; §AU - bosses spend resources within the hard gates;
+  // decision AV - the entry's limit 300 host frames): seven sectors (112
+  // codes) and no more; the entry 69 sectors (slot C's 14th, the charset's
+  // 7th). Was six (96) and 67.
+  assert.ok(region2.codeCount > 96 && region2.codeCount <= 112, `${region2.codeCount} codes: not seven sectors`);
+  assert.equal(region2.runs.charset.data.length, 7 * 128, "the charset is seven sectors");
+  assert.equal(built.entrySectors, 69, "region 2's boss entry is 69 sectors");
   // The nozzles are never drawn: their two codes outside the charset's run.
   assert.deepEqual(region2.nozzle.codes, [126, 127], "the nozzle codes are in the run");
 });

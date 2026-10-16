@@ -137,6 +137,8 @@ test("Q10: every region's boss entry reads its own block, in the sectors the man
     // "at most 65 sectors" is replaced by the boss entry's 280-host-frame
     // limit, which the trace holds (tests/runtime-wall-trace.test.mjs,
     // scripts/runtime-wall-trace.mjs); the count is still checked exactly.
+    // RE-GATED feat/boss-art (owner decision AV, 2026-10-16): the limit is 300
+    // host frames now (was 280).
     assert.equal(sectors.length, manifest.boss.regions[region - 1].entrySectors);
   }
 });

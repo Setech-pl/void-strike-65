@@ -1694,6 +1694,7 @@ boss_pal_src1 = * + 1
 boss_pal_src3 = * + 1
     lda boss_pal_colpf3
     sta COLPF3                          ; and 12 (the edge that lands, s5-boss-regions §6.4.3)
+boss_pal_landed:                        ; the trace's landing hook (both stores done)
     inc boss_pal_src1
     inc boss_pal_src3
     dec boss_pal_left

@@ -367,6 +367,29 @@ test("PAL replays carry the Light archetypes: L1-L5 held, every subject non-empt
     `maximum live Lights ${evidence.maximum_live_lights}`);
 });
 
+// feat/boss-art (the owner's variant B, decision AV; docs/plans/boss-art.md):
+// the row-switch clause's record. Every replay that reached the boss showed,
+// in every band frame, exactly its region's row switches (manifest
+// boss.regions[].rowSwitches), each landing on its row's first line with its
+// two colour stores done by the measured cycle. The default build's replays
+// meet region 1 (two switches); the region routes' sessions (run on their
+// review builds) hold the same clause for regions 2-4.
+test("PAL replays carry the row-palette switches: each boss session its region's, on the rows' first lines, in time", () => {
+  const evidence = report.coverage.boss_row_switches;
+  assert.ok(evidence, "the evidence has no coverage.boss_row_switches");
+  assert.equal(evidence.landing_max_cycle_bound, 14);
+  assert.ok(evidence.sessions.length > 0, "no replay reached the boss");
+  const expected = manifest.boss.regions.map((region) => region.rowSwitches);
+  for (const session of evidence.sessions) {
+    assert.deepEqual(session.switches, expected[session.region - 1], `${session.session}: region ${session.region}`);
+    assert.ok(session.frames > 0, `${session.session}: no band frame`);
+    assert.ok(session.landing_max_cycle <= evidence.landing_max_cycle_bound,
+      `${session.session}: the stores were done at cycle ${session.landing_max_cycle}`);
+  }
+  assert.ok(evidence.sessions.some((session) => session.region === 1 && session.switches.length === 2),
+    "no replay met region 1's two switches");
+});
+
 // RE-POINTED M5b-S4a-i (plan §5.13.7, class (a)): the layered engine has no
 // core phase - fight, chain at the last weapon's death, hold - and every boss
 // row shows one of those states (S3's retired core state 2 never).
@@ -411,7 +434,10 @@ test("PAL replay ends the level in its boss: drained entry, fight, chain, hold, 
     // screen shows the title and the loader bar, the banner will load first
     // later, and S5-3 / S5-4 and the M6 torpedo need the room. A gate change
     // the owner approved, not a pin.
-    assert.ok(entry.boss_entry_host_frames > 0 && entry.boss_entry_host_frames <= 280,
+    // RE-GATED feat/boss-art (owner decision AV, 2026-10-16): 300 host
+    // frames, the standing limit in every task from now (was 280), so the
+    // loading banner fits later. A gate change the owner approved, not a pin.
+    assert.ok(entry.boss_entry_host_frames > 0 && entry.boss_entry_host_frames <= 300,
       `${where}: the boss entry took ${entry.boss_entry_host_frames} host frames`);
   }
 });

@@ -259,8 +259,11 @@ for (const [region, level] of [[1, 1], [2, 4], [3, 7], [4, 10]]) {
     const shown = bossBandShownRows(regions[region - 1].bandRows);
     const list = main("PLAYFIELD_DLIST_A");
     // The band rows: HSCROL and LMS, the band's DLI on its last shown row.
+    // RE-POINTED feat/boss-art (variant B, decision AV): and a DLI on the row
+    // before each row-palette switch (tests/boss-art.test.mjs).
+    const switches = regions[region - 1].rowPalette.switches;
     for (let row = 0; row < shown; row += 1) {
-      assert.equal(m[list + 6 + row * 3], row === shown - 1 ? 0xd4 : 0x54, `band row ${row}`);
+      assert.equal(m[list + 6 + row * 3], row === shown - 1 || switches.includes(row + 1) ? 0xd4 : 0x54, `band row ${row}`);
     }
     // Every row under it is a ring row (no HSCROL): its LMS the ring's own row.
     for (let row = shown; row < 27; row += 1) {

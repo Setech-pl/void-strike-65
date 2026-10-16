@@ -15,7 +15,7 @@ import test from "node:test";
 
 import {
   BOSS_BAND_COLUMNS, BOSS_BAND_IMAGE, BOSS_DIVIDER_CODES, BOSS_FIRST_CODE, BOSS_KIND,
-  BOSS_MAX_CODES, BOSS_MODULE, BOSS_MODULE_BYTES, BOSS_NO_LOOK, BOSS_TABLE, BossDraftError,
+  BOSS_MAX_CODES, BOSS_MODULE, BOSS_MODULE_BYTES, BOSS_NO_LOOK, BOSS_ROW_PALETTE, BOSS_TABLE, BossDraftError,
   bossRegionDirectory, bossThresholds, compileBossRegion, decodeBossDraftPng, loadBossRegionDraft,
   resolveBossCovers,
 } from "../scripts/boss-assets.mjs";
@@ -251,7 +251,14 @@ test("the core boss: Q-B3's hit points, an open core, capped plate and the cavit
     assert.equal(region.hole, undefined, "no rim glyphs (decision L)");
     assert.equal(region.tables[BOSS_TABLE.cavity], region.cavity);
     region.modules.forEach((module) => assert.ok(module.cavityRows >= 0 && module.cavityRows <= module.height));
-    assert.ok([...region.runs.charset.data.subarray(0, BOSS_DIVIDER_CODES * 8)].every((b) => b === 0));
+    // RE-POINTED feat/boss-art (variant B, decision AV): the run's first
+    // BOSS_ROW_PALETTE.bytes bytes carry the row palette - its mask and
+    // count, then each switch's COLPF1 and COLPF3 (tests/boss-art.test.mjs) -
+    // which the install reads before it copies the divider over them; the
+    // divider's other codes stay blank.
+    assert.equal(region.runs.charset.data[BOSS_ROW_PALETTE.count], region.rowPalette.switches.length);
+    assert.ok([...region.runs.charset.data.subarray(BOSS_ROW_PALETTE.bytes, BOSS_DIVIDER_CODES * 8)]
+      .every((b) => b === 0));
     // Every band column with hull is armour, open sky elsewhere. Re-pointed in
     // fix/boss-readability (decisions M and O, plan §5.16): "hull" is a cell no
     // module owns and that is not a girder's see-through cell.

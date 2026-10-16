@@ -4755,6 +4755,10 @@ async function build() {
           unlockFrames: region.hangar.unlockFrames, doorsIndex: region.hangar.doors,
           coreIndex: region.hangar.core, jamb: region.hangar.jamb ?? null,
           doorsX: region.modules[region.hangar.doors].x, doorsRow: region.modules[region.hangar.doors].row } }),
+        // feat/boss-art (the owner's variant B, decision AV): the band rows
+        // whose palette switches (a DLI on the row before each; the trace's
+        // row-switch clauses).
+        rowSwitches: region.rowPalette.switches,
         entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +

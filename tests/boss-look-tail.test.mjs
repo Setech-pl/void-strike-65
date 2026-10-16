@@ -133,8 +133,13 @@ test("E4: the memory map names the look tail's home", () => {
 // 41-43, rows 1-3; was the single emitter's 30-34) and the far-end guns'.
 // Was "b921b68ca5d56659", "fa7d49ab92e6cbb7", "339ddca54c393f8b",
 // "63a6c49f06f7dbba", "317d3575439e3cb9", "b921b68ca5d56659" (main 7b84d89).
-const S4B_FINAL_OUTSIDE_EMITTER = ["7a6e3ecb50e36775", "9715cceab101a455", "f19b7963e55e7044",
-  "7e12604cb9a89a69", "f2bc89a173432c20", "7a6e3ecb50e36775"];
+// RE-PINNED feat/boss-art (the owner's art pass: region 1 redrawn by
+// scripts/boss-r1-art.mjs on today's cells - the light slabs, the rust trim;
+// accepted "as in Phase A" in decision AV, 2026-10-16): the pin is the new
+// art's. Was "7a6e3ecb50e36775", "9715cceab101a455", "f19b7963e55e7044",
+// "7e12604cb9a89a69", "f2bc89a173432c20", "7a6e3ecb50e36775" (main 6d27ad9).
+const S4B_FINAL_OUTSIDE_EMITTER = ["f9d50c9d19320ee7", "e130dbf1e53024fe", "aace1c6f35bf439f",
+  "5ffcc25ec79f376e", "c2ea44c751bb23c0", "f9d50c9d19320ee7"];
 const emitterCell = (c, r) => (((c >= 21 && c <= 23) || (c >= 41 && c <= 43)) && r >= 1 && r <= 3) ||
   (((c >= 12 && c <= 14) || (c >= 50 && c <= 52)) && r >= 1 && r <= 3);
 

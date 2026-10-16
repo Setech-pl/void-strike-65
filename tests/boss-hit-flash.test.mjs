@@ -95,10 +95,15 @@ for (const name of ["plate-d", "gun-2"]) {
 
 test("a module whose cells already have bit 7 set comes back exactly after the flash's two toggles", () => {
   const memory = fortress(32);
-  const gun = region1.modules.findIndex((m) => m.kind === "pulse" &&
-    cellsOf(memory, m).some((code) => code & 0x80) && cellsOf(memory, m).some((code) => code && !(code & 0x80)));
-  assert.ok(gun >= 0, "no module has cells both with and without bit 7");
+  // RE-POINTED feat/boss-art: region 1's new art (the owner's look at Phase
+  // A) has no gun drawn in both banks, so the case sets bit 7 on one cell of
+  // gun-2 itself - the toggle is the same for any cell.
+  const gun = byName.get("gun-2");
   const module = region1.modules[gun];
+  const first = cellsOf(memory, module).findIndex((code) => (code & 0x7f) !== 0);
+  memory[bossBandRowAddress(module.row + Math.floor(first / module.width)) + module.x + (first % module.width)] |= 0x80;
+  assert.ok(cellsOf(memory, module).some((code) => code & 0x80) &&
+    cellsOf(memory, module).some((code) => (code & 0x7f) && !(code & 0x80)), "gun-2 has cells both with and without bit 7");
   const before = cellsOf(memory, module);
   memory[lbl("boss_mflash_m")] = gun;
   call(memory, lbl("boss_mflash_toggle"));

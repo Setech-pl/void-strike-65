@@ -197,9 +197,11 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   // hull-stop table's, in the column map's base routine.
   // feat/boss-r1-twin-lasers: the install patches the band's last shown row
   // into boss_apply_pos.
+  // feat/boss-art (variant B): and, on a region with a row palette, phase 0's
+  // frame hook (boss_pal_prepare points it at boss_pal_frame).
   for (const at of [operand, ...["boss_nozzle_src_l", "boss_nozzle_src_r", "boss_nozzle_dst_l", "boss_nozzle_dst_r"]
     .map((name) => label("boss", name) + 1), label("boss", "boss_hull_stop_operand"),
-  label("boss", "boss_band_last_operand")]) {
+  label("boss", "boss_band_last_operand"), label("boss", "boss_dli_publish")]) {
     asRead.set(code.subarray(at - SLOT.address, at - SLOT.address + 2), at - SLOT.address);
   }
   assert.deepEqual([...asRead], [...code]);
@@ -223,8 +225,13 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   assert.deepEqual([...list.subarray(0, 6)], [0xc2, 0x00, 0x40, 0x44, 0x28, 0x40]);
   const start = memory[T("start")];
   const lms = (start + 15 & 0xf0) >> 2;
+  // RE-POINTED feat/boss-art (variant B, decision AV): region 1's row palette
+  // switches on rows 1 and 3 - a DLI on the row before each.
+  const switches = region1.rowPalette.switches;
+  assert.deepEqual(switches, [1, 3]);
+  assert.equal(word(memory, label("boss", "boss_dli_publish")), label("boss", "boss_pal_frame"));
   for (let row = 0; row < shown; row += 1) {
-    assert.equal(list[6 + row * 3], row === shown - 1 ? 0xd4 : 0x54, `band row ${row} mode`);
+    assert.equal(list[6 + row * 3], row === shown - 1 || switches.includes(row + 1) ? 0xd4 : 0x54, `band row ${row} mode`);
     assert.equal(list[7 + row * 3] | (list[8 + row * 3] << 8), BAND_ROW_BASE[row] + lms);
   }
   const rowLo = label("main", "PLAYFIELD_ROW_LO");
@@ -238,7 +245,9 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   assert.deepEqual([...list.subarray(87, 90)], [0x41, DLIST_A & 0xff, DLIST_A >> 8]);
   const dlis = (bytes) => [0, 3, ...Array.from({ length: 27 }, (_, i) => 6 + i * 3)]
     .filter((offset) => (bytes[offset] & 0x80) !== 0).length;
-  assert.equal(dlis(list), 3, "decision 9: three DLIs in the boss sector");
+  // RE-POINTED feat/boss-art: decision 9's three band DLIs, and one a
+  // row-palette switch (decision AV; the trace still sees three at boss_dli).
+  assert.equal(dlis(list), 3 + switches.length, "decision 9: three DLIs in the boss sector, and the switches");
   assert.equal(memory[label("main", "PLAYFIELD_ACTIVE_DLIST_LO")], DLIST_A & 0xff);
   assert.equal(word(memory, 0x0200), label("boss", "boss_dli"));
   // Pause resumes into the boss DLI; the player stays below the band.

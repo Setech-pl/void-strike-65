@@ -23,7 +23,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
-import { call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
+import { bandDliSwitches, call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
 
 export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
   const lbl = (name) => label("boss", name);
@@ -105,6 +105,8 @@ export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
     if (wellDue) well(m);
     m[main("loader_dli_phase")] = 0;
     let cycles = nmi(m, lbl("boss_dli"));
+    // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
+    cycles += bandDliSwitches(m).cycles;
     cycles += call(m, lbl("boss_update")).cycles;
     cycles += call(m, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
     cycles += call(m, lbl("boss_motion")).cycles;

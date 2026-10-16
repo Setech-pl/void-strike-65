@@ -417,6 +417,17 @@ typedef struct {
 	unsigned beam_armour;
 	unsigned beam_below;
 	unsigned jamb_map;
+	/* feat/boss-art (docs/plans/boss-art.md): the row palette's switch DLIs,
+	 * session-long - the host frames whose band DLI ran phase 0, the fewest
+	 * and the most switches such a frame saw, and at every switch's landing
+	 * (both its colour stores done) the 8-line rows (1 << (scanline >> 3),
+	 * ORed), the lines inside a row (scanline & 7, ORed) and the latest cycle. */
+	unsigned row_switch_frames;
+	unsigned row_switch_min;
+	unsigned row_switch_max;
+	unsigned row_switch_rows;
+	unsigned row_switch_line_bits;
+	unsigned row_switch_max_cycle;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -962,6 +973,19 @@ static unsigned dftrace_boss_phase;
 static unsigned dftrace_pc_boss_dli;
 static unsigned dftrace_pc_boss_enter;
 static unsigned dftrace_maximum_boss_dlis_per_host_frame;
+/* feat/boss-art: the row palette's switch handler and its landing (optional:
+ * 0 disables them) and the session-long record (DFTraceFrame row_switch_*). */
+static unsigned dftrace_pc_boss_pal_dli;
+static unsigned dftrace_pc_boss_pal_landed;
+static unsigned dftrace_row_switch_host_frame = 0xffffffffu;
+static int dftrace_row_switch_phase0;
+static unsigned dftrace_row_switch_count;
+static unsigned dftrace_row_switch_frames;
+static unsigned dftrace_row_switch_min = 0xffu;
+static unsigned dftrace_row_switch_max;
+static unsigned dftrace_row_switch_rows;
+static unsigned dftrace_row_switch_line_bits;
+static unsigned dftrace_row_switch_max_cycle;
 /* M5b-S4b: the lasers' state and shown HPOS arrays and the damage call site
  * (all optional: 0 disables them). */
 static unsigned dftrace_laser_state;
@@ -6215,6 +6239,12 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->dli_sequence_violations = dftrace_dli_sequence_violations;
 	frame->maximum_dlis_per_host_frame = dftrace_maximum_dlis_per_host_frame;
 	frame->maximum_boss_dlis_per_host_frame = dftrace_maximum_boss_dlis_per_host_frame;
+	frame->row_switch_frames = dftrace_row_switch_frames;
+	frame->row_switch_min = dftrace_row_switch_frames != 0u ? dftrace_row_switch_min : 0u;
+	frame->row_switch_max = dftrace_row_switch_max;
+	frame->row_switch_rows = dftrace_row_switch_rows;
+	frame->row_switch_line_bits = dftrace_row_switch_line_bits;
+	frame->row_switch_max_cycle = dftrace_row_switch_max_cycle;
 	frame->boss_state = dftrace_boss_active() && dftrace_boss_phase != 0u
 		? 1u + MEMORY_mem[dftrace_boss_phase] : 0u;
 	frame->boss_finale = dftrace_boss_active() && dftrace_boss_finale != 0u
@@ -6456,7 +6486,8 @@ static void dftrace_write(void)
 		",hud_entry_before,hud_entry_after,boss_finale,boss_spawns,boss_armour_left"
 		",field_state,field_deflections,field_violations,field_cells_down,gravity_on,gravity_steps,gravity_column"
 		",rail_k,rail_dead,rail_sliding,boss_alive"
-		",boss_exposed,bay_cells,bay_stops,bay_maps,laser_missiles,beam_rows,beam_armour,beam_below,jamb_map\n");
+		",boss_exposed,bay_cells,bay_stops,bay_maps,laser_missiles,beam_rows,beam_armour,beam_below,jamb_map"
+		",row_switch_frames,row_switch_min,row_switch_max,row_switch_rows,row_switch_line_bits,row_switch_max_cycle\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6744,8 +6775,10 @@ static void dftrace_write(void)
 			frame->field_state, frame->field_deflections, frame->field_violations, frame->field_cells_down,
 			frame->gravity_on, frame->gravity_steps, frame->gravity_column,
 			frame->rail_k, frame->rail_dead, frame->rail_sliding, frame->boss_alive);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u\n", frame->boss_exposed, frame->bay_cells, frame->bay_stops, frame->bay_maps,
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u", frame->boss_exposed, frame->bay_cells, frame->bay_stops, frame->bay_maps,
 			frame->laser_missiles, frame->beam_rows, frame->beam_armour, frame->beam_below, frame->jamb_map);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u\n", frame->row_switch_frames, frame->row_switch_min, frame->row_switch_max,
+			frame->row_switch_rows, frame->row_switch_line_bits, frame->row_switch_max_cycle);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -7514,6 +7547,8 @@ static void dftrace_init(void)
 	dftrace_boss_phase = dftrace_env_optional("DFTRACE_BOSS_PHASE");
 	dftrace_pc_boss_dli = dftrace_env_optional("DFTRACE_PC_BOSS_DLI");
 	dftrace_pc_boss_enter = dftrace_env_optional("DFTRACE_PC_BOSS_ENTER");
+	dftrace_pc_boss_pal_dli = dftrace_env_optional("DFTRACE_PC_BOSS_PAL_DLI");
+	dftrace_pc_boss_pal_landed = dftrace_env_optional("DFTRACE_PC_BOSS_PAL_LANDED");
 	dftrace_pc_main_loop = dftrace_env_optional("DFTRACE_PC_MAIN_LOOP");
 	dftrace_laser_state = dftrace_env_optional("DFTRACE_LASER_STATE");
 	dftrace_laser_hpos = dftrace_env_optional("DFTRACE_LASER_HPOS");
@@ -8104,6 +8139,31 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	if (dfhud_entry_state == 1 && dftrace_pc_main_loop != 0u && pc == dftrace_pc_main_loop) {
 		memcpy(dfhud_entry_after, &MEMORY_mem[0x4000], sizeof(dfhud_entry_after));
 		dfhud_entry_state = 2;
+	}
+	/* feat/boss-art: the row palette's switches, per host frame. A host
+	 * frame's band DLI phase 0 (at the HUD's last line) arms it; its switches
+	 * follow on the band's rows in the same host frame; the next host frame
+	 * folds the count into the session's fewest and most. */
+	if (dftrace_pc_boss_pal_dli != 0u && dftrace_boss_active() &&
+		(pc == dftrace_pc_boss_dli || pc == dftrace_pc_boss_pal_dli || pc == dftrace_pc_boss_pal_landed)) {
+		unsigned host_frame = (unsigned) Atari800_nframes;
+		if (host_frame != dftrace_row_switch_host_frame) {
+			if (dftrace_row_switch_phase0) {
+				++dftrace_row_switch_frames;
+				if (dftrace_row_switch_count < dftrace_row_switch_min) dftrace_row_switch_min = dftrace_row_switch_count;
+				if (dftrace_row_switch_count > dftrace_row_switch_max) dftrace_row_switch_max = dftrace_row_switch_count;
+			}
+			dftrace_row_switch_host_frame = host_frame;
+			dftrace_row_switch_phase0 = 0;
+			dftrace_row_switch_count = 0u;
+		}
+		if (pc == dftrace_pc_boss_dli && MEMORY_mem[dftrace_dli_phase] == 0u) dftrace_row_switch_phase0 = 1;
+		else if (pc == dftrace_pc_boss_pal_dli) ++dftrace_row_switch_count;
+		else if (pc == dftrace_pc_boss_pal_landed) {
+			dftrace_row_switch_rows |= 1u << ((unsigned) (ANTIC_ypos >> 3) & 31u);
+			dftrace_row_switch_line_bits |= 1u << ((unsigned) ANTIC_ypos & 7u);
+			if ((unsigned) ANTIC_xpos > dftrace_row_switch_max_cycle) dftrace_row_switch_max_cycle = (unsigned) ANTIC_xpos;
+		}
 	}
 	if (dftrace_dli_integrity_enabled && (pc == dftrace_pc_dli ||
 		(dftrace_pc_boss_dli != 0u && pc == dftrace_pc_boss_dli && dftrace_boss_active()))) {

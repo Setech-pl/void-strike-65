@@ -259,6 +259,25 @@ export function nmi(memory, address, { hooks = {}, a, x, y, p, out = null } = {}
   return cpu.cycles;
 }
 
+// feat/boss-art (docs/plans/boss-art.md §3.1): the row palette's DLIs of one
+// frame. After the band DLI's phase 0 (whose frame hook points VDSLST at the
+// switch handler on a region with a row palette) the display fires one DLI a
+// switching row until the last switch hands VDSLST back to boss_dli; run
+// right after phase 0, this returns their cycles and count (0 on a region
+// without a row palette). The stress compositions count them.
+export function bandDliSwitches(memory, { hooks = {} } = {}) {
+  const bossDli = label("boss", "boss_dli");
+  const vector = () => memory[0x0200] | (memory[0x0201] << 8);
+  let cycles = 0;
+  let switches = 0;
+  while (vector() !== bossDli) {
+    assert.ok(switches < 7, "the row switches never handed VDSLST back to boss_dli");
+    cycles += nmi(memory, vector(), { hooks });
+    switches += 1;
+  }
+  return { cycles, switches };
+}
+
 // The machine a game leaves behind at the boss gate: the whole runtime, the
 // reader, the summary module resident (it was read at START GAME), level 1's
 // image in the buffer, gameplay state, the playfield drained.

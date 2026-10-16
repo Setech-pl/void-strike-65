@@ -52,7 +52,8 @@ import test from "node:test";
 
 import * as assets from "../scripts/boss-assets.mjs";
 import {
-  call, installRegion, label, labelsOf, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells,
+  bandDliSwitches, call, installRegion, label, labelsOf, manifest, nmi, placeBand, root, runBossEntry, shootAt,
+  visibleCells,
 } from "./boss-harness.mjs";
 
 const lbl = (name) => label("boss", name);
@@ -173,6 +174,8 @@ function frame(memory, laserMode) {
   hold(memory, laserMode);
   memory[main("loader_dli_phase")] = 0;
   let cycles = nmi(memory, lbl("boss_dli"));
+  // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
+  cycles += bandDliSwitches(memory).cycles;
   cycles += call(memory, lbl("boss_update")).cycles;
   // RE-POINTED (fix/smoke-2026-10-07 P1): the band's shot cells are written at
   // SECTOR_COMPLETION now (boss_shots_late); counted with the boss's work (the

@@ -527,7 +527,9 @@ section "Decyzje literowe 2026-09-20".
   14.5; the Spine (levels 7-8) 94 / 113 / 134 s, 16.1; the Bastion 96 / 122 /
   160 s, 20.4. A region's later laser tier fights longer (the Citadel on
   levels 5-6 99 / 120 / 151 s, the Spine on level 9 94 / 117 / 146 s). The
-  data: the Breaker x 0.70 of its hit points; the Citadel about x 1.17 and its
+  data: the Breaker x 0.70 of its hit points; the Citadel about x 1.25 (its
+  level-4 pool, 170 -> 212: spires 12, core 29, lens 27, guns 11, plates and
+  the capped plate 11) and its
   guns' reload x 1.2; the Spine x 0.90 and its guns' reload x 0.75; the
   Bastion's rail guns 15 -> 16, core 74 -> 79, doors 22 -> 24, its rail guns'
   reload 70 -> 125 and the core's 90 -> 130. The Citadel's pressure on level 4

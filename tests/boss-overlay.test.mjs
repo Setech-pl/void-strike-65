@@ -193,12 +193,16 @@ test("Q-S3: the window's pins are the addresses their links gave those labels", 
 
 test("the window pays the entry's resident half inside the plan's S3 figure, and last", () => {
   const asmBytes = label("director", "__HYBRID_ASM_WINDOW_SIZE__");
-  assert.ok(asmBytes > 0 && asmBytes <= WINDOW_HOOKS_STOP,
+  // RE-POINTED feat/boss-order-scale (the owner's dead zone of 2026-10-16):
+  // the pad's last byte went to the tick, so the segment may be empty; the
+  // kernel stays at $B478 (src/hybrid/c-asm-abi.s).
+  assert.ok(asmBytes >= 0 && asmBytes <= WINDOW_HOOKS_STOP,
     `the resident half is ${asmBytes} B (STOP over ${WINDOW_HOOKS_STOP})`);
   // RE-POINTED feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12, plan interceptor-standoff §13.11): the entry's resident half
   // is no longer in the window. Its head is main's, in PICKUP_CODE's tail
-  // (pin_boss_enter_head); the window's ASM keeps only the 4-B pad, inside
+  // (pin_boss_enter_head); the window's ASM keeps only the 4-B pad (0 B since
+  // feat/boss-order-scale), inside
   // the budget above, and the hot Light C keeps its addresses.
   assert.equal(label("director", "_asm_boss_enter"), label("main", "boss_enter_head"));
   assert.ok(label("main", "boss_enter_head") >= label("main", "__PICKUP_CODE_RUN__") &&

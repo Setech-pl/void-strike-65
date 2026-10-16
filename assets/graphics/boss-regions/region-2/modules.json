@@ -106,7 +106,7 @@
       "height": 2,
       "hp": 16,
       "score": 40,
-      "reload": 100,
+      "reload": 125,
       "cavityRows": 2,
       "cover": []
     },
@@ -119,7 +119,7 @@
       "height": 2,
       "hp": 16,
       "score": 40,
-      "reload": 100,
+      "reload": 125,
       "cavityRows": 2,
       "cover": [
         "rail-l-1"
@@ -134,7 +134,7 @@
       "height": 2,
       "hp": 16,
       "score": 40,
-      "reload": 100,
+      "reload": 125,
       "cavityRows": 2,
       "cover": [
         "rail-l-2"
@@ -166,7 +166,7 @@
       "height": 3,
       "hp": 79,
       "score": 99,
-      "reload": 105,
+      "reload": 130,
       "cavityRows": 3,
       "stages": "centre",
       "cover": [
@@ -199,7 +199,7 @@
       "height": 2,
       "hp": 16,
       "score": 40,
-      "reload": 100,
+      "reload": 125,
       "cavityRows": 2,
       "cover": []
     },
@@ -212,7 +212,7 @@
       "height": 2,
       "hp": 16,
       "score": 40,
-      "reload": 100,
+      "reload": 125,
       "cavityRows": 2,
       "cover": [
         "rail-r-1"
@@ -227,7 +227,7 @@
       "height": 2,
       "hp": 16,
       "score": 40,
-      "reload": 100,
+      "reload": 125,
       "cavityRows": 2,
       "cover": [
         "rail-r-2"

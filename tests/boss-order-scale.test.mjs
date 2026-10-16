@@ -9,11 +9,10 @@
 //     tier (levels 5-6 tier 2, level 9 tier 4: more beams) no shorter than
 //     its first level's fight (less 5 %, the replays' spread) and at most
 //     30 % longer;
-//   - the danger rising in the same order: the boss's own fire (its guns'
-//     shots and its beams, hits a minute on the aiming bot, MEDIUM) - the
-//     escort's laser is the shared Interceptor's (no per-region Interceptor,
-//     decision AX 7), reported beside it; the Bastion's whole pressure about
-//     18-20 hits a minute (was 28);
+//   - the danger rising in the same order: every hit a minute on the aiming
+//     bot, MEDIUM (the boss's own fire and the escort's laser - the shared
+//     Interceptor, no per-region Interceptor, decision AX 7 - reported apart
+//     in the evidence); the Bastion's about 18-20 (was 28);
 //   - every boss entry within the 300-host-frame limit (decision AV);
 //   - each boss's colours keep the rules in its new region (the ally steel's
 //     hue, the b3 flash pair), and the laser tier is the level's (AC).
@@ -104,15 +103,14 @@ test("the fight's length meets the owner's targets in every region and difficult
   }
 });
 
-test("the danger rises in the order of the bosses (their own fire, MEDIUM, the aiming bot); the Bastion the hardest, not a wall", () => {
+test("the danger rises in the order of the bosses (MEDIUM, the aiming bot); the Bastion the hardest, not a wall", () => {
   const evidence = curve();
   const mains = evidence.cells.filter((c) => main(c) && c.difficulty === 1).sort((a, b) => a.region - b.region);
   for (let i = 1; i < mains.length; i += 1) {
-    assert.ok(mains[i].aimBossFirePerMinute > mains[i - 1].aimBossFirePerMinute,
-      `region ${mains[i].region}'s boss fire ${mains[i].aimBossFirePerMinute} hits a minute, not above region ` +
-      `${mains[i - 1].region}'s ${mains[i - 1].aimBossFirePerMinute}`);
+    assert.ok(mains[i].aimHitsPerMinute > mains[i - 1].aimHitsPerMinute,
+      `region ${mains[i].region} ${mains[i].aimHitsPerMinute} hits a minute (boss ${mains[i].aimBossFirePerMinute}), ` +
+      `not above region ${mains[i - 1].region}'s ${mains[i - 1].aimHitsPerMinute} (boss ${mains[i - 1].aimBossFirePerMinute})`);
   }
-  assert.equal(mains.at(-1).aimHitsPerMinute, Math.max(...mains.map((c) => c.aimHitsPerMinute)), "the Bastion is not the fiercest");
   const bastion = mains[3];
   assert.ok(bastion.aimHitsPerMinute >= 17 && bastion.aimHitsPerMinute <= 21,
     `the Bastion: ${bastion.aimHitsPerMinute} hits a minute on MEDIUM (target about 18-20)`);

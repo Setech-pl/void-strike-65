@@ -155,23 +155,17 @@ armoured spine that no shot breaks; the belt of armour plates below them must
 fall before the weapon above a plate can be hit. The Siege Spine of levels 7-9
 fires up to two lasers at once.
 
-The boss of levels 4-6, the Bastion, does not drift. At its centre is a round
-hangar with an amber reactor core inside it; the escort fighters launch from
-the gate at its foot. Beside the hangar stand two laser cannons, each in an
-armoured bay: grey steel behind a barred shield that sits between the cannon
-and you. Your shots bounce off the shield, and the cannon fires through under
-it all the same. Outside the cannons, left and right, runs a long rail of guns
-that reaches off the screen. Shoot the front gun of a rail and the whole rail
-slides one step inward, bringing the next gun in from beyond the edge — and
-the shield of that side's cannon falls away: the cannon turns amber, and now
-you can hit it. The second slide pushes the rail over the cannon: a covered
-cannon cannot be hurt any more, and it keeps firing until the end of the
-fight. While a cannon's shield is open, the gun whose fall would cover it
-blinks — that is your warning. **Open a cannon's armour, destroy it before the
-rail closes in.** The gate stays locked — barred grey, your shots bounce off —
-until every cannon and every rail gun is destroyed or covered. Then it opens
-with a flash and a chime and turns amber: break it, stop the escort, and the
-core behind it is yours. The rails never cover the hangar.
+The boss of levels 4-6, the Void Citadel, does not drift: it hangs still in
+the middle of the screen, the whole ship in view. It has a gravity well. While
+either of the two spires at its ends stands, your ship is pulled sideways
+towards the white column under its black core — the core pulses while it
+pulls. You are always faster than the pull, but you must keep steering
+against it. The column is no place to rest: the core fires its own laser
+straight down it (the column flickers as the shot warms up), and from level 5
+the laser cannon left of the core fires too, so close that its beam meets the
+core's: there is no gap beside the core to shoot it from. Destroy both spires
+and the pull, the pulse and the column stop at once — then the core's lens and
+the core itself can be hit.
 
 The boss of levels 7-9, the Siege Spine, hides behind a force field — the
 shimmering line under its spine. Your shots stop there and do nothing. Each
@@ -179,18 +173,25 @@ half of the field is fed by the generator sphere at its end of the ship: break
 a generator and its half of the field collapses. Its guns keep firing through
 the field the whole time.
 
-The last boss, the Void Citadel of levels 10-12, does not drift: it hangs
-still in the middle of the screen, the whole ship in view. It has a gravity
-well. While either of the two spires at its ends stands, your ship is pulled
-sideways
-towards the white column under its black core — the core pulses while it
-pulls. You are always faster than the pull, but you must keep steering
-against it. The column is no place to rest: the core fires its own laser
-straight down it (the column flickers as the shot warms up), and a laser
-cannon stands on each side of the core, so close that their beams meet the
-core's: there is no gap beside the core to shoot it from. Destroy both spires and the pull,
-the pulse and the column stop at once — then the core's lens and the core
-itself can be hit.
+The last boss, the Bastion of levels 10-12, does not drift. At its centre is a
+round hangar with an amber reactor core inside it; the escort fighters launch
+from the gate at its foot. Beside the hangar stand two laser cannons, each in
+an armoured bay: grey steel behind a barred shield that sits between the cannon
+and you. Your shots bounce off the shield, and the cannon fires through under
+it all the same. Both cannons fire, each on its own. Outside the cannons, left
+and right, runs a rail of guns that reaches off the screen; the end of each
+rail is an L, a foot of armour reaching inward along the shield's row. Shoot
+the front gun of a rail and the whole rail slides one step inward, bringing
+the next gun in from beyond the edge — and the shield of that side's cannon
+falls away: the cannon turns amber, and now you can hit it. The second slide
+pushes the rail's foot in front of the cannon: a covered cannon turns back to
+grey steel and cannot be hurt any more, and it keeps firing from under the foot
+until the end of the fight. While a cannon's shield is open, the gun whose fall
+would cover it blinks — that is your warning. **Open a cannon's armour, destroy
+it before the rail closes in.** The gate stays locked — barred grey, your shots
+bounce off — until every cannon and every rail gun is destroyed or covered.
+Then it opens with a flash and a chime and turns amber: break it, stop the
+escort, and the core behind it is yours. The rails never cover the hangar.
 
 ## Capital ships
 

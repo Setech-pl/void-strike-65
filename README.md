@@ -203,17 +203,18 @@ play on review builds (`node scripts/build.mjs --level=1:sector=6
 
 - **Blockade Breaker** (levels 1-3): a damaged warship under an armoured
   spine; two laser cannons take turns behind a belt of armour plates.
-- **Bastion** (levels 4-6): a round hangar with its reactor core at the
-  centre, a laser cannon in an armoured bay on each side of it, and a rail of
-  guns on each flank running off the screen. Every rail gun you destroy slides
-  its rail one step inward; the first slide opens that side's cannon's armour,
-  the second covers the cannon, which then cannot be hurt and keeps firing.
-  The hangar gate stays locked until every cannon and rail gun is destroyed or
-  covered. Open a cannon's armour, destroy it before the rail closes in.
+- **Void Citadel** (levels 4-6): a still fortress with a gravity well that
+  pulls your ship towards its core's own laser.
 - **Siege Spine** (levels 7-9): a segmented spine behind a force field in two
   halves, each fed by a generator sphere at its end.
-- **Void Citadel** (levels 10-12): a still fortress with a gravity well that
-  pulls your ship towards its core's own laser.
+- **Bastion** (levels 10-12), the last: a round hangar with its reactor core
+  at the centre, a laser cannon in an armoured bay on each side of it, and a
+  rail of guns on each flank running off the screen. Every rail gun you
+  destroy slides its rail one step inward; the first slide opens that side's
+  cannon's armour, the second pushes the rail's armoured foot in front of the
+  cannon, which then cannot be hurt and keeps firing. The hangar gate stays
+  locked until every cannon and rail gun is destroyed or covered. Open a
+  cannon's armour, destroy it before the rail closes in.
 
 The original concept art is in [boss-concepts.md](docs/boss-concepts.md):
 [Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),

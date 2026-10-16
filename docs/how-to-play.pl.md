@@ -161,17 +161,36 @@ grzbietem, którego żaden strzał nie przebije; pas płyt pancernych pod nimi
 musi paść, zanim da się trafić broń nad płytą. Siege Spine z poziomów 7-9
 strzela najwyżej dwoma laserami naraz.
 
-Boss poziomów 4-6, Bastion, nie dryfuje. W jego środku jest okrągły hangar
-z bursztynowym rdzeniem reaktora w środku; z bramy u jego stóp startują
+Boss poziomów 4-6, Void Citadel, nie dryfuje: wisi nieruchomo na środku
+ekranu, cały okręt widać naraz. Ma studnię grawitacyjną. Dopóki stoi choć
+jedna z dwóch iglic na jego końcach, Twój statek jest ściągany w bok, ku
+białej kolumnie pod jego czarnym rdzeniem — rdzeń pulsuje, kiedy ściąga.
+Zawsze jesteś szybszy od tego ciągu, ale musisz cały czas sterować przeciw
+niemu. W kolumnie nie da się przeczekać: rdzeń strzela własnym laserem prosto
+w dół, wzdłuż niej (kolumna migocze, kiedy strzał się nagrzewa), a od poziomu
+5 strzela też działo laserowe na lewo od rdzenia, tak blisko, że jego promień
+styka się z promieniem rdzenia: obok rdzenia nie ma luki, z której dałoby się
+go ostrzeliwać. Zniszcz obie iglice, a ciąg, pulsowanie i kolumna znikną od
+razu — dopiero wtedy da się trafić soczewkę rdzenia i sam rdzeń.
+
+Boss poziomów 7-9, Siege Spine, chowa się za polem siłowym — migoczącą linią
+pod swoim kręgosłupem. Twoje strzały zatrzymują się na niej i nic nie robią.
+Każdą połowę pola zasila kula generatora na jej końcu okrętu: zniszcz generator,
+a jego połowa pola się zawali. Działa bossa przez cały czas strzelają przez pole.
+
+Ostatni boss, Bastion z poziomów 10-12, nie dryfuje. W jego środku jest okrągły
+hangar z bursztynowym rdzeniem reaktora w środku; z bramy u jego stóp startują
 myśliwce eskorty. Obok hangaru stoją dwa działa laserowe, każde w
 opancerzonej zatoce: szara stal za zakratowaną osłoną, która stoi między
 działem a Tobą. Twoje strzały odbijają się od osłony, a działo i tak strzela
-spod niej. Na zewnątrz dział, po lewej i po prawej, biegnie długa szyna
-z działkami, która wychodzi poza ekran. Zestrzel przednie działko szyny, a cała
-szyna przesunie się o krok do środka i wprowadzi zza krawędzi następne
-działko — a osłona działa po tej stronie odpada: działo robi się bursztynowe
-i teraz możesz je trafić. Drugie przesunięcie wsuwa szynę nad działo:
-zakrytego działa nie da się już uszkodzić, a ono strzela dalej aż do końca
+spod niej. Strzelają oba działa, każde po swojemu. Na zewnątrz dział, po lewej
+i po prawej, biegnie szyna z działkami, która wychodzi poza ekran; koniec
+każdej szyny to litera L — stopa pancerza sięgająca do środka wzdłuż rzędu
+osłony. Zestrzel przednie działko szyny, a cała szyna przesunie się o krok do
+środka i wprowadzi zza krawędzi następne działko — a osłona działa po tej
+stronie odpada: działo robi się bursztynowe i teraz możesz je trafić. Drugie
+przesunięcie wsuwa stopę szyny przed działo: zakryte działo wraca do szarej
+stali, nie da się go już uszkodzić, a ono strzela dalej spod stopy aż do końca
 walki. Dopóki osłona działa jest otwarta, działko, którego zniszczenie by je
 zakryło, mruga — to ostrzeżenie. **Otwórz pancerz działa i zniszcz je, zanim
 szyna się zamknie.** Brama jest zamknięta — szara krata, Twoje strzały się od
@@ -179,24 +198,6 @@ niej odbijają — dopóki każde działo i każde działko szyny nie zostanie
 zniszczone albo zakryte. Wtedy otwiera się z błyskiem i dźwiękiem i robi się
 bursztynowa: rozbij ją, zatrzymasz eskortę, a rdzeń za nią jest Twój. Szyny
 nigdy nie zakrywają hangaru.
-
-Boss poziomów 7-9, Siege Spine, chowa się za polem siłowym — migoczącą linią
-pod swoim kręgosłupem. Twoje strzały zatrzymują się na niej i nic nie robią.
-Każdą połowę pola zasila kula generatora na jej końcu okrętu: zniszcz generator,
-a jego połowa pola się zawali. Działa bossa przez cały czas strzelają przez pole.
-
-Ostatni boss, Void Citadel z poziomów 10-12, nie dryfuje: wisi nieruchomo na
-środku ekranu, cały okręt widać naraz. Ma studnię grawitacyjną. Dopóki stoi
-choć jedna z dwóch iglic na jego końcach, Twój statek jest ściągany w bok,
-ku białej kolumnie pod jego czarnym rdzeniem — rdzeń pulsuje, kiedy ściąga.
-Zawsze jesteś szybszy od tego ciągu, ale musisz cały czas sterować przeciw
-niemu. W kolumnie nie da się przeczekać: rdzeń strzela własnym laserem prosto
-w dół, wzdłuż niej (kolumna migocze, kiedy strzał się nagrzewa), a po obu
-stronach rdzenia stoją działa laserowe, tak blisko, że ich promienie stykają się
-z promieniem rdzenia: obok rdzenia nie ma luki, z której dałoby się go
-ostrzeliwać. Zniszcz obie iglice, a ciąg, pulsowanie
-i kolumna znikną od razu — dopiero wtedy da się trafić soczewkę rdzenia i sam
-rdzeń.
 
 ## Okręty liniowe
 

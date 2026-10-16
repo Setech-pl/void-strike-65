@@ -299,40 +299,41 @@ function corePicture() {
   }
   return lines;
 }
-// The laser cannon, 2 x 3 cells (the owner's look at Phase A: "stacked
-// spools" - one solid armoured turret with a clear barrel and muzzle): a
-// tall armoured turret body, chamfered, over rows 1-2 - its top and left
-// edges lit (W), its right side in shadow (the trim), one armour plate on
-// its face, a collar under it - the barrel down its centre (columns 2-5,
-// lit on the left) to the amber muzzle - the lens - in row 3 (the beam's emitter: a beam leaves the
-// cannon's centre, columns x + 0.5 .. x + 1.5). Open, lit: its armour plate
-// and the muzzle amber - an amber tower. Locked: the same
-// turret in plain light steel (no colour-3 pixel: the locked cannon reads at
-// once from the open one).
+// The laser cannon, 2 x 3 cells (the owner's looks at Phase A - "stacked
+// spools" - and at its first redraw - "teeth / clubs", "salmon mushrooms":
+// region 1's turret guns' and region 3's spikes' family): a pointed armoured
+// spire hung from the track, narrowing down row 1 - a mounting plate, an
+// armour plate, a band between two fins pointing down - into a long barrel
+// (columns 3-4, row 2) and a distinct muzzle at its foot (row 3: a squared
+// brake round the lens, its glow under it); lit on the left (W), the green trim on its shadow side (the beam's
+// emitter: a beam leaves the cannon's centre, columns x + 0.5 .. x + 1.5).
+// Open, lit: amber accents on the plate, the band and the muzzle. Locked:
+// the same spire in plain steel (no colour-3 pixel: the locked cannon reads
+// at once from the open one).
 const CANNON_OPEN = pic(`
-.WWWWWg.
-WWWWWWWg
-WWaaaaWg
-Waaaaagg
-Waaaaagg
-Waaaaagg
-Waaaaagg
-Waaaaagg
-WaaaaWgg
 WWWWWWgg
-gWWWWggg
-.WWWWgg.
-.gWWWgg.
+WWWWWWgg
+WWaaaaWg
+WWaaaaWg
+WWWWWWgg
+W.WWWg.g
+W.Waag.g
+W.WWWg.g
 ..WWgg..
+...Wg...
+...Wg...
+...Wg...
+...Wg...
+...Wg...
+...Wg...
+...Wg...
+...Wg...
 ..WWgg..
-..WWgg..
-..WWgg..
-..WWgg..
-..WWgg..
-..Waag..
-..aaaa..
-..gaag..
-........
+.WWaagg.
+.Waaaag.
+.WWaagg.
+..gWgg..
+...aa...
 ........
 `);
 const CANNON_LOCKED = CANNON_OPEN.map((line) => line.replace(/a/g, "W"));

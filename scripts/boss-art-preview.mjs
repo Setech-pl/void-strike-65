@@ -11,11 +11,11 @@
 //   build/boss-art/preview/region-N-review.png (with --phase-a=<dir>, the
 //       region folders of an earlier pass): today, the earlier pass with
 //       its row palettes, the new art with its row palettes
-//   build/boss-art/preview/region-N-stages[-a].png
+//   build/boss-art/preview/region-N-stages[-one-palette].png
 //       every module in each damage stage (intact - its open look where it
 //       has one -, cracked, broken), left as drawn, right with the b3 hit
-//       flash (bit 7 of its non-blank cells toggled), with B (and -a: A)
-//   build/boss-art/preview/region-N-gone[-a].png
+//       flash (bit 7 of its non-blank cells toggled), with B (and -one-palette: A)
+//   build/boss-art/preview/region-N-gone[-one-palette].png
 //       the fight's later looks: every armour module gone, every module gone
 //
 //   node scripts/boss-art-preview.mjs [--region=N] [--main=build/boss-art/main] [--phase-a=<dir>]
@@ -195,7 +195,7 @@ export function writeComparison(regionNumber, { mainDirectory = null, phaseADire
     fs.writeFileSync(files.review, toPng(stack(review)));
   }
   const span = drawnSpan(region, L.opened);
-  for (const [suffix, perRow] of [["", true], ["-a", false]]) {
+  for (const [suffix, perRow] of [["", true], ["-one-palette", false]]) {   // variant B, variant A
     const stages = [L.opened, L.cracked, L.broken].map((rows) =>
       beside(bandRegisters(region, rows, perRow, span.first, span.count),
         bandRegisters(region, L.flashed(rows), perRow, span.first, span.count)));

@@ -3454,6 +3454,51 @@ static int dftrace_contact_preamble(unsigned frame, unsigned x, unsigned y,
 	return 1;
 }
 
+/* feat/boss-order-scale (decision AW): the beam escape on the drawn ship,
+ * x .. x + 15 - shared by the damaged contact bot and the "-dodge" aiming
+ * bots. A warned or running beam is near when its centre is within 20 HPOS of
+ * the ship's centre (dx = hpos - x - 6; over the ship at -9..9). Beams on both
+ * sides and none over the ship: hold in the gap. Otherwise the nearest beam
+ * decides: away from it, if that way leaves the ship clear inside its limits
+ * (48 / 200) with 12 HPOS to spare for the band's drift - regions 1 and 3
+ * carry a beam 1 HPOS every 2 frames, onto a ship parked at the limit
+ * (MEASURED: R1, warned at 71, at 63 three frames into the beam); if not, it
+ * crosses the beam while the beam only warns (or is already over the ship),
+ * else holds. Returns the stick, or 0 when no beam is near. */
+#define DFTRACE_BEAM_DRIFT_SPARE 12
+static unsigned dftrace_beam_escape(unsigned x)
+{
+	int left = 0, right = 0, near_dx = 0, near_hpos = 0, near_state = 0, near_abs = 99, dir, over;
+	unsigned beam;
+	for (beam = 0u; beam < 4u; ++beam) {
+		unsigned state = MEMORY_mem[dftrace_laser_state + beam];
+		unsigned hpos = MEMORY_mem[dftrace_laser_hpos + beam];
+		int dx = (int) hpos - 6 - (int) x;
+		int size = dx < 0 ? -dx : dx;
+		if ((state != 1u && state != 2u) || hpos == 0u || size >= 20)
+			continue;
+		if (dx >= 0) left = 1; else right = 1;
+		if (size < near_abs) {
+			near_abs = size;
+			near_dx = dx;
+			near_hpos = (int) hpos;
+			near_state = (int) state;
+		}
+	}
+	if (!left && !right)
+		return 0u;
+	over = near_dx >= -9 && near_dx <= 9;
+	if (left && right && !over)
+		return 0x0fu;
+	dir = near_dx >= 0 ? -1 : 1;
+	if ((dir < 0 && near_hpos - 16 - DFTRACE_BEAM_DRIFT_SPARE < 48) ||
+		(dir > 0 && near_hpos + 4 + DFTRACE_BEAM_DRIFT_SPARE > 200))
+		dir = near_state == 1 || over ? -dir : 0;
+	if ((dir < 0 && x <= 48u) || (dir > 0 && x >= 200u))
+		dir = 0;
+	return dir < 0 ? 0x0bu : dir > 0 ? 0x07u : 0x0fu;
+}
+
 static void dftrace_set_gameplay_input(unsigned frame)
 {
 	unsigned stick = 0x0f;
@@ -3868,19 +3913,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			 * (MEASURED at 3,952). */
 			if (!whole && dftrace_boss_active() && dftrace_laser_state != 0u &&
 				dftrace_laser_hpos != 0u) {
-				for (laser = 0u; laser < 4u; ++laser) {
-					unsigned state = MEMORY_mem[dftrace_laser_state + laser];
-					int dx = (int) MEMORY_mem[dftrace_laser_hpos + laser] - 6 - (int) x;
-					/* At a limit (48 / 200) it holds unless the beam is over
-					 * the drawn ship - then crossing it is the only way out
-					 * (decision AW: turning round at the wall walked it into
-					 * a beam 17 HPOS away, MEASURED). */
-					int over = dx >= -9 && dx <= 9;
-					if ((state == 1u || state == 2u) &&
-						MEMORY_mem[dftrace_laser_hpos + laser] != 0u && dx > -20 && dx < 20)
-						stick = dx >= 0 ? (x > 48u ? 0x0bu : over ? 0x07u : 0x0fu) :
-							(x < 200u ? 0x07u : over ? 0x0bu : 0x0fu);
-				}
+				unsigned escape = dftrace_beam_escape(x);
+				if (escape != 0u)
+					stick = escape;
 			}
 		}
 		else {
@@ -4032,16 +4067,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * drawn ship's centre - decision AW; 16 of x + 4 before - to the
 		 * ship's limits 48 / 200), and aim again once it is off. */
 		if (strstr(dftrace_policy, "-dodge") != NULL && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u) {
-			unsigned beam;
-			for (beam = 0u; beam < 4u; ++beam) {
-				unsigned state = MEMORY_mem[dftrace_laser_state + beam];
-				int dx = (int) MEMORY_mem[dftrace_laser_hpos + beam] - 6 - (int) x;
-				int over = dx >= -9 && dx <= 9;     /* the beam over the drawn ship */
-				if ((state == 1u || state == 2u) &&
-					MEMORY_mem[dftrace_laser_hpos + beam] != 0u && dx > -20 && dx < 20)
-					stick = dx >= 0 ? (x > 48u ? 0x0bu : over ? 0x07u : 0x0fu) :
-						(x < 200u ? 0x07u : over ? 0x0bu : 0x0fu);
-			}
+			unsigned escape = dftrace_beam_escape(x);
+			if (escape != 0u)
+				stick = escape;
 		}
 	}
 	else if ((strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||

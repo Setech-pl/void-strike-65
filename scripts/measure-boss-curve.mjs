@@ -10,8 +10,9 @@
 // A cell is a region (its boss at its first level's laser tier; regions 2 and
 // 3 also at their later tier: levels 5-6 tier 2, level 9 tier 4) x a
 // difficulty. Each cell is measured three times - level 1's road entered at
-// sectors 0, 3 and 6 (three different arrivals at the boss: the same
-// production code, different states) - with two bots:
+// sectors 0, 3 and 5 (three different arrivals at the boss: the same
+// production code, different states; sector 6 is the boss sector itself, where
+// the aiming bot's road-to-boss switch never fires) - with two bots:
 //   boss-aim                 the fight's length (the owner's rule, journal
 //                            §AH: frames x main's plain sweep / main's aiming
 //                            bot, per difficulty, / 50) and its hits a minute;
@@ -20,7 +21,9 @@
 // memory. The cell's figures are the three replays' means (and their range).
 // The evidence names its inputs' SHA-256 (the boss data and the level's
 // bossDef): a change to them leaves it stale until this is run again.
-import { spawn, spawnSync } from "node:child_process";
+// --run resumes: a session already measured on the same data (its route's
+// stamp, the shown boss's data) is kept; --fresh measures everything again.
+import { spawn } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -30,7 +33,7 @@ import { bossDanger } from "./measure-boss-danger.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Map(process.argv.slice(2).map((a) => { const [k, v] = a.replace(/^--/, "").split("="); return [k, v ?? true]; }));
-const STARTS = [0, 3, 6];
+const STARTS = [0, 3, 5];
 const BOTS = ["boss-aim", "boss-aim-careful-dodge"];
 const DIFFICULTIES = [0, 1, 2];
 export const CELLS = [
@@ -55,12 +58,38 @@ export function curveInputsHash() {
   return hash.digest("hex");
 }
 
+// A route's stamp: the data its boss fight reads (the order, the level, the
+// shown boss's draft).
+const order = () => JSON.parse(fs.readFileSync(path.join(root, "assets/graphics/boss-regions/order.json"), "utf8")).order;
+function routeStamp(cell) {
+  const hash = crypto.createHash("sha256");
+  for (const file of ["assets/graphics/boss-regions/order.json", "assets/levels/level-01.json",
+    `assets/graphics/boss-regions/region-${order()[cell.region - 1]}/modules.json`]) {
+    hash.update(fs.readFileSync(path.join(root, file)));
+  }
+  return hash.update(JSON.stringify(cell.flags)).digest("hex");
+}
+const measured = (route, id) => {
+  const log = path.join(OUT, route, `${id}.log`);
+  return fs.existsSync(log) && fs.readFileSync(log, "utf8").includes("Focused report:");
+};
+
 async function runAll() {
   const jobs = Number(args.get("jobs") ?? 10);
   const only = args.get("only");
-  // The builds, a few at a time.
-  const builds = CELLS.flatMap((cell) => STARTS.map((start) => ({ cell, start, route: routeName(cell, start) })))
+  if (args.get("fresh")) fs.rmSync(OUT, { recursive: true, force: true });
+  const all = CELLS.flatMap((cell) => STARTS.map((start) => ({ cell, start, route: routeName(cell, start) })))
     .filter((b) => only === undefined || b.route === only);
+  // A route measured on other data starts again.
+  for (const { cell, route } of all) {
+    const stamp = path.join(OUT, route, "stamp");
+    if (fs.existsSync(stamp) && fs.readFileSync(stamp, "utf8") !== routeStamp(cell)) {
+      fs.rmSync(path.join(OUT, route), { recursive: true, force: true });
+    }
+  }
+  const pending = (route) => BOTS.flatMap((bot) => DIFFICULTIES.map((d) => `${bot}-${d}`)).filter((id) => !measured(route, id));
+  const builds = all.filter(({ route }) => pending(route).length > 0);
+  // The builds, a few at a time.
   for (let i = 0; i < builds.length; i += 4) {
     await Promise.all(builds.slice(i, i + 4).map(({ cell, start }) => new Promise((resolve, reject) => {
       const child = spawn("node", ["scripts/build.mjs", `--level=1:sector=${start}`, ...cell.flags, "--quiet"],
@@ -68,7 +97,11 @@ async function runAll() {
       child.on("exit", (code) => (code === 0 ? resolve() : reject(new Error(`build ${cell.flags} s${start}: ${code}`))));
     })));
   }
-  const sessions = builds.flatMap(({ route }) => BOTS.flatMap((bot) => DIFFICULTIES.map((d) => ({ route, id: `${bot}-${d}` }))));
+  for (const { cell, route } of builds) {
+    fs.mkdirSync(path.join(OUT, route), { recursive: true });
+    fs.writeFileSync(path.join(OUT, route, "stamp"), routeStamp(cell));
+  }
+  const sessions = builds.flatMap(({ route }) => pending(route).map((id) => ({ route, id })));
   let next = 0, done = 0, failed = 0;
   await new Promise((resolve) => {
     const launch = () => {
@@ -128,21 +161,16 @@ export function report() {
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  if (args.get("run")) {
-    const status = spawnSync("node", ["-e", "process.exit(0)"]);
-    void status;
-    await runAll();
-  }
+  if (args.get("run")) await runAll();
   if (args.get("report")) {
     const cells = report();
-    const order = JSON.parse(fs.readFileSync(path.join(root, "assets/graphics/boss-regions/order.json"), "utf8")).order;
     for (const c of cells) {
       console.log(`R${c.region} L${c.levels.padEnd(5)} t${c.tier} ${"EMH"[c.difficulty]} ${String(c.seconds).padStart(6)} s ` +
         `[${c.secondsRange.join("-")}] aim ${c.aimHitsPerMinute}/min d${c.aimDeaths} | dodge ${c.dodgeHitsPerMinute}/min ` +
         `d${c.dodgeDeaths} | entry ${c.entryHostFrames}${c.finished ? "" : " UNFINISHED"}`);
     }
     if (args.get("write")) {
-      const evidence = { generated: "scripts/measure-boss-curve.mjs --run --report --write", order,
+      const evidence = { generated: "scripts/measure-boss-curve.mjs --run --fresh --report --write", order: order(),
         inputsSha256: curveInputsHash(), starts: STARTS, bots: BOTS, cells };
       fs.writeFileSync(path.join(root, "docs", "boss-curve.json"), `${JSON.stringify(evidence, null, 1)}\n`);
       console.log("wrote docs/boss-curve.json");

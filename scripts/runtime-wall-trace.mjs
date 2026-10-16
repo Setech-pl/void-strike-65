@@ -892,7 +892,11 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     difficulty,
     // S5-3: region 3's wide sweep broke the generators but did not finish the
     // fight in 12,000 frames (MEASURED, Phase A): the aiming bot, as above.
-    policy: region === bastionRegion ? "boss-aim-careless" : "boss-aim",
+    /* feat/boss-order-scale: the finale begins when the last armour falls
+     * with a weapon standing; on the Citadel's level 4 its capped cannons are
+     * armour that guards nothing, which the aiming bot leaves standing - so
+     * every finale session but the Bastion's clears the armour first. */
+    policy: region === bastionRegion ? "boss-aim-careless" : "boss-aim-plates",
     fireDelay: 2,
     frames: 12_000,
     endAtSummary: true,
@@ -5091,9 +5095,15 @@ function main() {
                 const bit = [0, 0x08, 0x20][(row.laser_missiles >> (4 * laser)) & 15] ?? 0;
                 invariant(bit !== 0, `${session.id}: laser ${laser}'s beam with no missile on frame ${row.frame}`);
                 const locked = !exposedOf(before, cannon);
-                const want = locked ? 0 : bit;
+                // feat/boss-order-scale (the L, decision AX 5 and 13): a covered
+                // cannon's beam starts under the rail's foot - off on the armour
+                // row, as a locked bay's - once its rail stands at its last
+                // position as the frame begins (rail_veil reads rail_k).
+                const underFoot = railRegion.foot !== undefined && nibble(before.rail_k, s) >= railRegion.positions;
+                const want = locked || underFoot ? 0 : bit;
                 invariant((row.beam_armour & bit) === want && ((row.beam_armour >> 8) & bit) === want,
-                  `${session.id}: laser ${laser}'s beam ${locked ? "crosses its locked bay's armour" : "leaves a gap under its muzzle"} ` +
+                  `${session.id}: laser ${laser}'s beam ${locked ? "crosses its locked bay's armour"
+                    : underFoot ? "crosses the rail's foot over its covered cannon" : "leaves a gap under its muzzle"} ` +
                   `on frame ${row.frame} (armour row ${row.beam_armour})`);
                 invariant((row.beam_below & bit) === bit, `${session.id}: laser ${laser}'s beam is off under the band on frame ${row.frame}`);
                 beamFrames += 1;

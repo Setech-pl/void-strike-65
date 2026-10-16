@@ -4811,7 +4811,10 @@ async function build() {
         ...(region.rails === null ? {} : { rails: { framesPerStep: region.rails.framesPerStep,
           delayFrames: region.rails.delayFrames, pulseFrames: region.rails.pulseFrames,
           pitch: region.rails.pitch, positions: region.rails.positions, rowFirst: region.rails.rowFirst,
-          sides: region.rails.sides.map((side) => ({ name: side.name, dir: side.dir, nose: side.nose,
+          // feat/boss-order-scale (the L, decision AX 5): the foot in the
+          // armour row - a covered cannon's beam starts under it.
+          ...(region.rails.footRow === null ? {} : { foot: { row: region.rails.footRow, length: region.rails.footLength } }),
+          sides: region.rails.sides.map((side) => ({ name: side.name, dir: side.dir, nose: side.nose, bumper: side.bumper,
             window: side.window, cannon: region.modules[side.cannon].name, cannonIndex: side.cannon,
             guns: side.guns.map((index) => region.modules[index].name), gunIndices: side.guns,
             // The owner's look at 110c274: the cannon's bay - its columns, the

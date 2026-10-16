@@ -4005,8 +4005,13 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * emitters) first, "boss-aim-careless" the rail guns (the pulse guns)
 		 * first; each is the plain aiming bot within its preference. */
 		/* S5-5 Phase B: either one with "-dodge" (below) too. */
+		/* feat/boss-order-scale: "boss-aim-plates" clears the armour first -
+		 * every live, exposed plate, also one that guards nothing (a capped
+		 * cannon on a lower laser tier) - the player the finale is for (it
+		 * begins when the last armour falls with a weapon standing). */
 		int prefer = strncmp(dftrace_policy, "boss-aim-careful", 16) == 0 ? 2
-			: strncmp(dftrace_policy, "boss-aim-careless", 17) == 0 ? 1 : -1;
+			: strncmp(dftrace_policy, "boss-aim-careless", 17) == 0 ? 1
+			: strncmp(dftrace_policy, "boss-aim-plates", 15) == 0 ? 0 : -1;
 		unsigned best_x = x;
 		/* S5-5 Phase B (the owner's answer of 2026-10-15): "boss-aim-park-X"
 		 * aims as the plain bot until a boss module has fallen (the escort's
@@ -4043,7 +4048,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			if (dftrace_boss_column_map != 0u &&
 				MEMORY_mem[dftrace_boss_column_map + (column & 63u)] == 0xfeu)
 				continue;
-			if (MEMORY_mem[dftrace_boss_kind + i] == 0u && ((guards >> i) & 1u) == 0u &&
+			if (MEMORY_mem[dftrace_boss_kind + i] == 0u && ((guards >> i) & 1u) == 0u && prefer != 0 &&
 				!(field_blocked && MEMORY_mem[dftrace_boss_column_map + (column & 63u)] == i))
 				continue;
 			target &= ~1;

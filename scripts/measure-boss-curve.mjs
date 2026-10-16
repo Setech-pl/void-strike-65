@@ -150,6 +150,10 @@ export function report() {
         region: cell.region, levels: cell.levels, tier: cell.tier, difficulty: d, replays: aim.length,
         seconds: round1(mean(seconds)), secondsRange: [Math.min(...seconds), Math.max(...seconds)],
         aimHitsPerMinute: round1(mean(aim.map(perMin))), aimDeaths: round1(mean(aim.map((r) => r.boss.deaths))),
+        // The boss's own fire (its guns' shots and its beams; not the escort's
+        // laser, which is the shared Interceptor's).
+        aimBossFirePerMinute: round1(mean(aim.map((r) => (r.boss.bossPulse + r.boss.beam) / (r.fightFrames / 3000)))),
+        aimEscortLaserPerMinute: round1(mean(aim.map((r) => r.boss.lightLaser / (r.fightFrames / 3000)))),
         dodgeHitsPerMinute: dodge.length ? round1(mean(dodge.map(perMin))) : null,
         dodgeDeaths: dodge.length ? round1(mean(dodge.map((r) => r.boss.deaths))) : null,
         finished: aim.every((r) => r.finished), entryHostFrames: Math.max(...aim.map((r) => r.entryHostFrames ?? 0)),
@@ -166,7 +170,8 @@ if (isMain) {
     const cells = report();
     for (const c of cells) {
       console.log(`R${c.region} L${c.levels.padEnd(5)} t${c.tier} ${"EMH"[c.difficulty]} ${String(c.seconds).padStart(6)} s ` +
-        `[${c.secondsRange.join("-")}] aim ${c.aimHitsPerMinute}/min d${c.aimDeaths} | dodge ${c.dodgeHitsPerMinute}/min ` +
+        `[${c.secondsRange.join("-")}] aim ${c.aimHitsPerMinute}/min (boss ${c.aimBossFirePerMinute}, escort ${c.aimEscortLaserPerMinute}) ` +
+        `d${c.aimDeaths} | dodge ${c.dodgeHitsPerMinute}/min ` +
         `d${c.dodgeDeaths} | entry ${c.entryHostFrames}${c.finished ? "" : " UNFINISHED"}`);
     }
     if (args.get("write")) {

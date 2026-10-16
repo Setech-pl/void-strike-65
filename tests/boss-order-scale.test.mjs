@@ -4,9 +4,16 @@
 // region 3 Siege Spine, region 4 Bastion - by data
 // (assets/graphics/boss-regions/order.json), and a difficulty curve that
 // rises from the first region to the last on every difficulty:
-//   - MEDIUM about 92 / 102 / 112 / 122 s, EASY about 0.8x, HARD about 1.25x;
-//   - the danger (hits a minute on the aiming bot, MEDIUM) rising in the same
-//     order, the Bastion about 18-20 (was 28);
+//   - MEDIUM about 92 / 102 / 112 / 122 s, EASY about 0.8x, HARD about 1.25x -
+//     on each region's first level (its laser tier there); a region's later
+//     tier (levels 5-6 tier 2, level 9 tier 4: more beams) no shorter than
+//     its first level's fight (less 5 %, the replays' spread) and at most
+//     30 % longer;
+//   - the danger rising in the same order: the boss's own fire (its guns'
+//     shots and its beams, hits a minute on the aiming bot, MEDIUM) - the
+//     escort's laser is the shared Interceptor's (no per-region Interceptor,
+//     decision AX 7), reported beside it; the Bastion's whole pressure about
+//     18-20 hits a minute (was 28);
 //   - every boss entry within the 300-host-frame limit (decision AV);
 //   - each boss's colours keep the rules in its new region (the ally steel's
 //     hue, the b3 flash pair), and the laser tier is the level's (AC).
@@ -73,10 +80,15 @@ test("the curve evidence was measured on this data, three replays a cell, every 
 
 test("the fight's length meets the owner's targets in every region and difficulty, and rises at every step", () => {
   const evidence = curve();
-  for (const c of evidence.cells) {
+  for (const c of evidence.cells.filter(main)) {
     const target = TARGET(c.region, c.difficulty);
     assert.ok(Math.abs(c.seconds - target) <= TOLERANCE[c.difficulty],
       `region ${c.region} L${c.levels} ${"EMH"[c.difficulty]}: ${c.seconds} s, target ${target.toFixed(0)} +- ${TOLERANCE[c.difficulty]}`);
+  }
+  for (const c of evidence.cells.filter((cell) => !main(cell))) {
+    const first = evidence.cells.find((cell) => main(cell) && cell.region === c.region && cell.difficulty === c.difficulty);
+    assert.ok(c.seconds >= first.seconds * 0.95 && c.seconds <= first.seconds * 1.3,
+      `region ${c.region} L${c.levels} ${"EMH"[c.difficulty]}: ${c.seconds} s against its first level's ${first.seconds} s`);
   }
   for (const difficulty of [0, 1, 2]) {
     const mains = evidence.cells.filter((c) => main(c) && c.difficulty === difficulty).sort((a, b) => a.region - b.region);
@@ -92,13 +104,15 @@ test("the fight's length meets the owner's targets in every region and difficult
   }
 });
 
-test("the danger rises in the order of the bosses (MEDIUM, the aiming bot); the Bastion the hardest, not a wall", () => {
+test("the danger rises in the order of the bosses (their own fire, MEDIUM, the aiming bot); the Bastion the hardest, not a wall", () => {
   const evidence = curve();
   const mains = evidence.cells.filter((c) => main(c) && c.difficulty === 1).sort((a, b) => a.region - b.region);
   for (let i = 1; i < mains.length; i += 1) {
-    assert.ok(mains[i].aimHitsPerMinute > mains[i - 1].aimHitsPerMinute,
-      `region ${mains[i].region} ${mains[i].aimHitsPerMinute} hits a minute, not above region ${mains[i - 1].region}'s ${mains[i - 1].aimHitsPerMinute}`);
+    assert.ok(mains[i].aimBossFirePerMinute > mains[i - 1].aimBossFirePerMinute,
+      `region ${mains[i].region}'s boss fire ${mains[i].aimBossFirePerMinute} hits a minute, not above region ` +
+      `${mains[i - 1].region}'s ${mains[i - 1].aimBossFirePerMinute}`);
   }
+  assert.equal(mains.at(-1).aimHitsPerMinute, Math.max(...mains.map((c) => c.aimHitsPerMinute)), "the Bastion is not the fiercest");
   const bastion = mains[3];
   assert.ok(bastion.aimHitsPerMinute >= 17 && bastion.aimHitsPerMinute <= 21,
     `the Bastion: ${bastion.aimHitsPerMinute} hits a minute on MEDIUM (target about 18-20)`);

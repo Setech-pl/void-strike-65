@@ -5042,8 +5042,15 @@ function main() {
           const first = fight[0];
           invariant(railRegion.sides.every((side) => !exposedOf(first, side.cannonIndex)),
             `${session.id}: a bay is open at the start (exposed ${first.boss_exposed})`);
-          invariant(byte(first.bay_cells, 2) !== 0 && byte(first.bay_cells, 0) === byte(first.bay_cells, 2) &&
-            byte(first.bay_cells, 1) === byte(first.bay_cells, 2),
+          // feat/boss-order-scale: "at the start" is the fight's first 16
+          // frames, not its first frame - a shot that meets a locked bay's
+          // armour on that frame draws the deflection glyph there for its
+          // ring's few frames (MEASURED: boss-aim-2 on the Bastion's region-4
+          // route, s3: cells $B4 $B4 $40, the left bay deflecting); the bars
+          // must show in both bays on one of them.
+          const barred = (row) => byte(row.bay_cells, 2) !== 0 && byte(row.bay_cells, 0) === byte(row.bay_cells, 2) &&
+            byte(row.bay_cells, 1) === byte(row.bay_cells, 2);
+          invariant(fight.slice(0, 16).some(barred),
             `${session.id}: the bays' armour rows are not the doors' bars at the start (cells ${first.bay_cells})`);
           bays.forEach((bay, side) => invariant(byte(first.bay_stops, side) === stopUnder(bay.armourRow),
             `${session.id}: bay ${side}'s shots stop on line ${byte(first.bay_stops, side)} at the start, not under its armour`));

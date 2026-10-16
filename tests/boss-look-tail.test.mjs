@@ -20,7 +20,7 @@ import {
 } from "../scripts/boss-assets.mjs";
 import { bossPanelRegisters } from "../scripts/boss-preview.mjs";
 import { renderBlock } from "../scripts/memory-map-report.mjs";
-import { label, manifest, readBuild, root } from "./boss-harness.mjs";
+import { bossOrder, label, manifest, readBuild, root } from "./boss-harness.mjs";
 
 const draft = loadBossRegionDraft(bossRegionDirectory(root, 1));
 const region1 = compileBossRegion(draft, {});
@@ -51,26 +51,30 @@ test("E4 / S5-1: the look tail is each region's block in slot F, read as the reg
     assert.ok(run, `region ${block.region}'s block run`);
     assert.deepEqual([run.destination, run.startSector, run.sectors], [BOSS_SLOT_F_ADDRESS, block.startSector, block.sectors]);
     const image = readBuild(`boss-region-${block.region}-block.bin`);
+    // RE-POINTED feat/boss-order-scale (decision AX 1): a region's block is
+    // the block of the boss the order gives it (its directory), the code with
+    // it - the Citadel's well in region 2, the Bastion's rails in region 4.
+    const directory = bossOrder[block.region - 1];
     // RE-POINTED S5-3 (feat/boss-region-3, the owner's answers of 2026-10-13):
     // region 3 is Siege Spine from its own draft - its block is its own look
     // tail, then the field's code after the tail's 110 B; regions 2 and 4 are
     // still copies of region 1 (Q10).
-    if (block.region === 3) {
+    if (directory === 3) {
       const region3 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 3)));
       assert.deepEqual([...image.subarray(0, region3.lookTail.length)], [...region3.lookTail],
-        "region 3's block starts with its own look tail");
+        `region ${block.region}'s block starts with the Spine's look tail`);
       assert.ok(region3.lookTail.length <= BOSS_LOOK_TAIL_MAX_BYTES);
       assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 3's field code (a JMP) after the tail's 110 B");
-    } else if (block.region === 4) {
+    } else if (directory === 4) {
       // RE-POINTED feat/boss-region-4 (S5-4, the owner's answers of 2026-10-13
       // / 2026-10-14): region 4 is the Void Citadel from its own draft - its
       // block is its own look tail, then the gravity well's code after the
       // tail's 110 B.
       const region4 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 4)));
       assert.deepEqual([...image.subarray(0, region4.lookTail.length)], [...region4.lookTail],
-        "region 4's block starts with its own look tail");
+        `region ${block.region}'s block starts with the Citadel's look tail`);
       assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 4's well code (a JMP) after the tail's 110 B");
-    } else if (block.region === 2) {
+    } else if (directory === 2) {
       // RE-POINTED feat/boss-region-2 (S5-5, the owner's choice of
       // 2026-10-15): region 2 is the Bastion from its own draft - its block is
       // its own look tail, the rails' tables and state in the room before
@@ -78,7 +82,7 @@ test("E4 / S5-1: the look tail is each region's block in slot F, read as the reg
       // a copy of region 1 any more.
       const region2 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 2)));
       assert.deepEqual([...image.subarray(0, region2.lookTail.length)], [...region2.lookTail],
-        "region 2's block starts with its own look tail");
+        `region ${block.region}'s block starts with the Bastion's look tail`);
       assert.equal(image[BOSS_LOOK_TAIL_MAX_BYTES], 0x4c, "region 2's rails' code (a JMP) after the tail's 110 B");
     } else if (manifest.boss.laserFixtureTier === null) {
       assert.deepEqual([...image.subarray(0, region1.lookTail.length)], [...region1.lookTail],

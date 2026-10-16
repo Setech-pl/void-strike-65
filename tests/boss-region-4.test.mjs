@@ -3,11 +3,16 @@
 // Citadel, with its gravity well. The data (assets/graphics/boss-regions/
 // region-4/), the built disk's region 4, and the well on the 6502 harness
 // through the real boss entry at level 10 (the well's code is read from the
-// built disk into slot F):
+// built disk into slot F).
+// RE-POINTED feat/boss-order-scale (decision AX 1): the Void Citadel ends
+// region 2 now, levels 4-6 (tier 1 on level 4, tier 2 on levels 5-6; ally
+// steel $88), entered at level 4; its lens - the axis - is laser slot 1, so the
+// axis beam fires on every tier (owner answer 4: the well pulls into danger),
+// the cannons slots 2 and 3:
 //   1. the layout, the hit points, the gravity block, the escort, the finale
 //      and the name are region 4's own data, and the built disk carries them;
 //   2. the art rule (plan boss-polish §10.3) holds for every module stage;
-//   3. the palette reads as the enemy's on levels 10-12 (ally steel $84);
+//   3. the palette reads as the enemy's on its levels (ally steel $88 / $84);
 //   4. one ship: the deck is whole from end to end, and no module stands at
 //      the band's extreme ends (a module gating the fight's end in reach);
 //   5. the pull: towards the axis only while a spire stands, in the fight,
@@ -37,7 +42,9 @@ import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft
 import { coverageMap, PLAYER_POSITIONS } from "../scripts/boss-coverage.mjs";
 import { BOSS_DEF_LASER_WARNING_OFFSET } from "../scripts/level-compiler.mjs";
 import { atariPalRegisterToRgb } from "../scripts/preview.mjs";
-import { call, includeConstants, label, manifest, nmi, placeBand, root, runBossEntry, shootAt } from "./boss-harness.mjs";
+import {
+  bossLevel, call, includeConstants, label, manifest, nmi, placeBand, regionOf, root, runBossEntry, shootAt,
+} from "./boss-harness.mjs";
 
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -48,6 +55,11 @@ const region4 = hasDraft ? compileBossRegion(draft4) : null;
 const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
 const index = (name) => region4.modules.findIndex((module) => module.name === name);
 const hasWell = (() => { try { lbl("gravity_on"); return true; } catch { return false; } })();
+// The Citadel's levels on the built disk (decision AX 1: region 2).
+const LEVEL = bossLevel(4);
+const SLOT = regionOf(4) - 1;
+const TIER = (level) => (level <= 4 ? 1 : level <= 8 ? 2 : 4);
+const ALLY = LEVEL <= 8 ? 0x88 : 0x84;
 
 test("region 4 is the Void Citadel from its own draft: the layout, the hit points, the well, on the built disk", () => {
   assert.ok(hasDraft, "assets/graphics/boss-regions/region-4/ has no draft");
@@ -69,8 +81,9 @@ test("region 4 is the Void Citadel from its own draft: the layout, the hit point
   assert.deepEqual(kinds("salvo"), ["spire-l", "spire-r"]);
   assert.deepEqual(kinds("core"), ["core"]);
   assert.deepEqual(region4.modules.filter((m) => m.kind === "emitter").map((m) => [m.name, m.slot])
-    .sort((a, b) => a[1] - b[1]), [["cannon-l", 1], ["core-lens", 2], ["cannon-r", 3]],
-  "the cannons beside the core and the core's lens: three lasers (the engine's four slots, at most four emitters)");
+    .sort((a, b) => a[1] - b[1]), [["core-lens", 1], ["cannon-l", 2], ["cannon-r", 3]],
+  "the core's lens and the cannons beside the core: three lasers (the engine's four slots, at most four emitters); " +
+  "RE-PINNED feat/boss-order-scale: the lens slot 1 (was 2, cannon-l's), so the axis fires on level 4's one slot");
   assert.equal(region4.modules.length, 16);
   assert.ok(region4.gravity !== null, "the region carries a gravity well");
   // Re-pinned 8 -> 4: G2, the owner's answer 1 to fix/r4-immobile's Phase C.
@@ -80,10 +93,10 @@ test("region 4 is the Void Citadel from its own draft: the layout, the hit point
   assert.equal(region4.modules[region4.gravity.axis].name, "core-lens", "the axis is the core's beam (owner answer 4)");
   assert.deepEqual(region4.gravity.spires.map((i) => region4.modules[i].name), ["spire-l", "spire-r"]);
   assert.equal(region4.bandShownRows, 5, "the band ends at its last non-empty row (decision AP)");
-  const built = manifest.boss.regions[3];
+  const built = manifest.boss.regions[SLOT];
   assert.equal(built.name, "Void Citadel");
   assert.equal(built.modules, region4.modules.length, "the built disk's region 4 is the draft's");
-  const block = manifest.boss.slotF.blocks[3];
+  const block = manifest.boss.slotF.blocks[SLOT];
   assert.ok(block.codeBytes > 0, "region 4's block carries the well's code");
   assert.ok(block.bytes <= manifest.boss.slotF.capacityBytes, `region 4's block is ${block.bytes} B`);
   assert.ok(region4.lookTail.length <= 110, "the look tail fits slot F's rule");
@@ -96,7 +109,7 @@ test("region 4's escort and finale: region 1's escort cadence, the finale on", (
     assert.equal(region4.tables[BOSS_TABLE[byte]], region1.tables[BOSS_TABLE[byte]], `${byte} differs from region 1's`);
   }
   assert.equal(region4.fire.finaleCooldown, 12, "the final salvos are on in region 4");
-  assert.equal(manifest.boss.regions[3].finaleCooldown, 12);
+  assert.equal(manifest.boss.regions[SLOT].finaleCooldown, 12);
 });
 
 test("the art rule: every damage stage of every region 4 module has colour-3 pixels", () => {
@@ -121,7 +134,7 @@ test("the art rule: every damage stage of every region 4 module has colour-3 pix
   });
 });
 
-test("the palette reads as the enemy on levels 10-12: no colour register near the ally steel's hue", () => {
+test("the palette reads as the enemy on its levels: no colour register near the ally steel's hue", () => {
   assert.ok(hasDraft);
   const hue = (value) => {
     const [r, g, b] = atariPalRegisterToRgb(value).map((c) => c / 255);
@@ -130,12 +143,12 @@ test("the palette reads as the enemy on levels 10-12: no colour register near th
     const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
     return (h * 60 + 360) % 360;
   };
-  const ally = hue(0x84);
+  const ally = hue(ALLY);
   [0, 1, 2, 3].map((i) => region4.tables[BOSS_TABLE.palette + i]).forEach((value, i) => {
     const h = hue(value);
     if (h === null) return;
     const distance = Math.min(Math.abs(h - ally), 360 - Math.abs(h - ally));
-    assert.ok(distance >= 45, `COLPF${i} $${value.toString(16)} is ${distance.toFixed(0)} degrees from $84`);
+    assert.ok(distance >= 45, `COLPF${i} $${value.toString(16)} is ${distance.toFixed(0)} degrees from $${ALLY.toString(16)}`);
   });
 });
 
@@ -161,11 +174,12 @@ test("one ship: the deck is whole from end to end, and nothing stands at the ban
 });
 
 // ---------------------------------------------------------------------------
-// The well on the 6502 harness, through the real boss entry at level 10.
+// The well on the 6502 harness, through the real boss entry at the Citadel's
+// first level (4 since feat/boss-order-scale; was 10).
 // ---------------------------------------------------------------------------
 let entry = null;
 function citadel({ difficulty = 1, p = 32 } = {}) {
-  if (entry === null) entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = 10; } });
+  if (entry === null) entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = LEVEL; } });
   const memory = Uint8Array.from(entry.memory);
   memory[main("DIFFICULTY_SETTING")] = difficulty;
   placeBand(memory, p);
@@ -411,11 +425,14 @@ test("no refuge in reach of the core's endgame: every x that can shoot the lens 
   // The owner's answer 2 to fix/r4-immobile's Phase C (option 3): with every
   // weapon alive on levels 10-12 (tier 4: every laser slot), no x from which a
   // shot meets the lens's or the core's columns is out of every weapon's reach.
+  // RE-POINTED feat/boss-order-scale (decision AX 1): on the Citadel's own
+  // levels - tier 1 (level 4: the lens alone) and tier 2 (levels 5-6).
   const p = region4.tables[BOSS_TABLE.start];
   // The geometry at the band's one position (a still band: the drift no
   // longer sweeps the fire across the gaps).
   const still = { ...draft4.layout.motion, framesPerColourClock: 0, startColourClock: p };
-  const map = coverageMap(region4, still, { state: "full", lasers: 4 });
+  for (const level of [LEVEL, LEVEL + 1]) {
+  const map = coverageMap(region4, still, { state: "full", lasers: TIER(level) });
   const safe = new Set(map.safe);
   const endgame = new Set(["core", "core-lens"].flatMap((name) => {
     const m = region4.modules[index(name)];
@@ -423,17 +440,22 @@ test("no refuge in reach of the core's endgame: every x that can shoot the lens 
   }));
   const inReach = PLAYER_POSITIONS.filter((x) => endgame.has(Math.floor((x + 8 - 32 + p) / 4)));
   assert.ok(inReach.length > 0);
-  console.log(`# the full state's gaps: ${map.safe.join(" ")}; the endgame's reach x ${inReach[0]}-${inReach.at(-1)}`);
+  console.log(`# level ${level}: the full state's gaps: ${map.safe.join(" ")}; the endgame's reach x ${inReach[0]}-${inReach.at(-1)}`);
   const refuges = inReach.filter((x) => safe.has(x));
-  assert.deepEqual(refuges, [], `refuges in reach of the core's endgame: ${refuges}`);
+  assert.deepEqual(refuges, [], `level ${level}: refuges in reach of the core's endgame: ${refuges}`);
+  }
 });
 
-test("the stress composition: region 4's reachable worst under 8,500, no frame with a kill and a spawn", { timeout: 600_000 }, async () => {
+// RE-POINTED feat/boss-order-scale (decision AX 1): on the Citadel's levels,
+// tier 1 (level 4) and tier 2 (level 5); it was level 10's tier 4.
+test("the stress composition: the Citadel's reachable worst under 8,500, no frame with a kill and a spawn", { timeout: 900_000 }, async () => {
   assert.ok(hasWell, "the boss link has no gravity well (region 4's block code)");
   const { regionFourStress } = await import("../scripts/measure-boss-stress-r4.mjs");
-  const { cases, worstOf } = regionFourStress({ maxMeetings: 2 });
-  const worst = worstOf(cases.filter((c) => c.reach === "reachable"));
-  console.log(`# region 4 stress: ${cases.length} cases, worst reachable ${worst.cycles} (lasers ${worst.laserMode}, ${worst.k} ${worst.mode})`);
-  assert.ok(worst.cycles <= 8500, `region 4's worst reachable frame ${worst.cycles} native cycles`);
-  assert.equal(cases.reduce((sum, c) => sum + c.clashes, 0), 0, "rule (B): a kill frame with a gun's spawn");
+  for (const level of [LEVEL, LEVEL + 1]) {
+    const { cases, worstOf } = regionFourStress({ level, maxMeetings: 2 });
+    const worst = worstOf(cases.filter((c) => c.reach === "reachable"));
+    console.log(`# the Citadel, level ${level} stress: ${cases.length} cases, worst reachable ${worst.cycles} (lasers ${worst.laserMode}, ${worst.k} ${worst.mode})`);
+    assert.ok(worst.cycles <= 8500, `level ${level}: the Citadel's worst reachable frame ${worst.cycles} native cycles`);
+    assert.equal(cases.reduce((sum, c) => sum + c.clashes, 0), 0, "rule (B): a kill frame with a gun's spawn");
+  }
 });

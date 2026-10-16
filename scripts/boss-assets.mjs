@@ -409,11 +409,18 @@ export const BOSS_EMITTER_ART_FILE = "emitter.png";
 export const BOSS_EMITTER_PANELS = Object.freeze(["rest", "heatA", "heatB", "cracked", "broken"]);
 export function applyBossEmitterArt(draft, png, file, meta) {
   const modules = draft.layout.modules.map((module) => ({ ...module }));
-  const emitter = modules.find((module) => module.kind === "emitter" && (module.slot ?? 1) === 1);
-  if (emitter === undefined) fail(`${file}: the region has no emitter (slot 1)`);
-  // feat/boss-r1-twin-lasers: the twin cannons - a second slot-1 emitter -
-  // wear the same art at their own footprint (its size the first's).
-  const twins = modules.filter((module) => module !== emitter && module.kind === "emitter" && (module.slot ?? 1) === 1);
+  // feat/boss-order-scale: modules.json's emitterArt names the emitter the
+  // art is drawn for (the Citadel's cannon-l, since its lens took laser slot 1
+  // - level 4's one slot); without it, the slot-1 emitter.
+  const named = draft.layout.emitterArt;
+  const emitter = named === undefined
+    ? modules.find((module) => module.kind === "emitter" && (module.slot ?? 1) === 1)
+    : modules.find((module) => module.kind === "emitter" && module.name === named);
+  if (emitter === undefined) fail(`${file}: the region has no emitter ${named ?? "(slot 1)"}`);
+  // feat/boss-r1-twin-lasers: the twin cannons - a second emitter of the
+  // art's slot - wear the same art at their own footprint (its size the first's).
+  const twins = modules.filter((module) => module !== emitter && module.kind === "emitter" &&
+    (module.slot ?? 1) === (emitter.slot ?? 1));
   for (const twin of twins) {
     if (twin.width !== emitter.width || twin.height !== emitter.height) {
       fail(`${file}: twin cannon ${twin.name} is ${twin.width} x ${twin.height}; ${emitter.name} is ` +

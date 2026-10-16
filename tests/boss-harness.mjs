@@ -54,6 +54,12 @@ export function label(link, name) {
 }
 
 export const manifest = JSON.parse(readBuild("manifest.json").toString("utf8"));
+// feat/boss-order-scale (decision AX 1): which region shows which boss - a
+// boss directory (assets/graphics/boss-regions/region-N/) ends the region the
+// built disk's order (order.json) gives it; its levels are that region's.
+export const bossOrder = manifest.boss.order ?? [1, 2, 3, 4];
+export const regionOf = (directory) => bossOrder.indexOf(directory) + 1;
+export const bossLevel = (directory, step = 0) => 3 * regionOf(directory) - 2 + step;
 export const builtAtr = fs.readFileSync(harnessBuild === null
   ? path.join(root, "dist", "void-strike-65.atr") : buildPath("void-strike-65.atr"));
 

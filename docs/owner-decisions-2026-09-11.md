@@ -2675,6 +2675,36 @@ zestawu znaków), na otwartym dziale bursztynowy pierścień na lufie (każda
 komórka odróżnia się od zamkniętej — reguła czytelności z 2026-10-15); faza B
 z testami, klauzulami śladu i bramką 300. `OWNER-SMOKE CANDIDATE`.
 
+## AW. MARTWA STREFA INTERCEPTORA I TRAFIENIA W STATEK TAKI, JAKI WIDAĆ — decyzja właściciela (2026-10-16, `feat/boss-order-scale`, krok 1)
+
+1. **Martwa strefa (po audycie `gfx-regression-2026-10-16`):** Interceptor w
+   zawisie nie przesuwa się w bok, póki środek statku gracza jest w odległości
+   do 4 HPOS od jego kolumny; poza nią śledzenie bez zmian (decyzja **AS**).
+   Zatwierdzone +14 B okna kodu; więcej = STOP z opcjami. **Wykonanie:**
+   strefa = dokładnie te pozycje, w których strzał statku (`player_x + 8`)
+   przecina `[x, x + 8)` Interceptora — strona, z której strzał przeszedłby
+   obok, jest wyłączona (reguła złapania z **AS**); w strefie jego kolumna jest
+   kolumną gracza: stoi i strzela. +14 B spłacone przycięciami w tym samym
+   ticku i ostatnim bajtem wypełnienia okna: **0 B netto**, jądro Light zostaje
+   na `$B478`.
+2. **Trafienia w statek (wariant 2, doprecyzowany):** strefa ujawniła wadę
+   sprzed **AS**: wrogie strzały trafiały tylko w lewe 8 HPOS statku (stare
+   `PLAYER_COLLISION_WIDTH`), a statek jest rysowany na 16 HPOS (P0 podwójnej
+   szerokości) — statek na x ≡ 2 (mod 4) nie dostawał żadnego lasera
+   Interceptora (MEASURED na `main`). Od teraz **każdy wrogi strzał** (impulsy
+   Raiderów i Bomberów, impulsy i promienie bossów, lasery Light) trafia w
+   statek **taki, jaki widzi gracz**: kadłub zajmuje pełne 16 HPOS (rzędy 5-8
+   `player_shape` mają wszystkie 8 bitów), więc pudło to `x .. x + 15` w
+   rzędach 0-14 — to samo, co już miały pociski kapitałów. Stała, **0 B**.
+3. Ponieważ to utrudnia każdą walkę: **pomiar przed krzywą** — trafienia w
+   boty według źródła i trudności przed/po na poziomie 1 i na każdym bossie;
+   każda reguła uczciwości sprawdzona na nowo (≥ 10 klatek na zejście z
+   ostrzeżonego promienia, brak schronienia i brak miejsca bez wyjścia w R2 i
+   R4, straż lewej krawędzi, brak taranowania); jeśli któraś pęka — STOP z
+   opcjami. Klauzule kontaktu nigdy nie są osłabiane; nieaktualne scenariusze
+   przepisuje się uczciwie. Potem faza A kolejności bossów i krzywej, z nowym
+   pudłem wszędzie; zmiana pudła pokazana w raporcie osobno.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

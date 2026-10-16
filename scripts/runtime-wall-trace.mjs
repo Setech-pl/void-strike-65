@@ -827,6 +827,14 @@ const engineRestartSessions = ["ATR"].map((medium) => ({
  * the session's one boss entry under 250 host frames, and on MEDIUM the fight
  * reaching the chain (boss_state >= 3). Debug route only: a default run skips
  * them, so the default evidence is unchanged. */
+/* feat/boss-order-scale (decision AX 1): the sessions follow the boss, not
+ * the region number - the Bastion's (boss directory region-2) aiming orders
+ * and edge guard go with the region order.json gives it (region 4); every
+ * other route region plays its boss with the aiming bot. */
+const bastionRegion = (() => {
+  const file = path.join(rootDirectory, "assets", "graphics", "boss-regions", "order.json");
+  return (fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")).order : [1, 2, 3, 4]).indexOf(2) + 1;
+})();
 const regionRouteSessions = [2, 3, 4].flatMap((region) => [
   ...[0, 1, 2].map((difficulty) => ({
     id: `region-${region}-diag-${difficulty}`,
@@ -846,7 +854,7 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
      * bot that takes the laser cannons first (careful), its finale sessions
      * with the one that takes the rail guns first (careless: the rails cover
      * the cannons), so both orders are on the route. */
-    policy: region === 2 ? "boss-aim-careful" : region >= 3 ? "boss-aim" : "sweep",
+    policy: region === bastionRegion ? "boss-aim-careful" : "boss-aim",
     fireDelay: 2,
     /* MEASURED (region-2-diag-1, 2026-10-09): the sweep bot firing every
      * other frame scores 316 of the fight's points in 5,000 frames - it
@@ -884,7 +892,7 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     difficulty,
     // S5-3: region 3's wide sweep broke the generators but did not finish the
     // fight in 12,000 frames (MEASURED, Phase A): the aiming bot, as above.
-    policy: region === 2 ? "boss-aim-careless" : region >= 3 ? "boss-aim" : "sweep-wide",
+    policy: region === bastionRegion ? "boss-aim-careless" : "boss-aim",
     fireDelay: 2,
     frames: 12_000,
     endAtSummary: true,
@@ -899,8 +907,8 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
    * escort's start, decision AI), then parked at HPOS 48, firing, MEDIUM. The
    * left-edge guard's clause (bossEdgeGuardClause): in the fight's first
    * 4,000 frames at least one Interceptor escort and one hit on the player. */
-  ...(region === 2 ? [{
-    id: "region-2-edge-left-1",
+  ...(region === bastionRegion ? [{
+    id: `region-${region}-edge-left-1`,
     difficulty: 1,
     policy: "boss-aim-park-48",
     fireDelay: 2,
@@ -4821,7 +4829,7 @@ function main() {
         entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };
       console.log(`${session.id}: region ${session.bossRegion} entered in ${session.bossEntry.host_frames} ` +
         `host frames at frame ${session.bossEntry.frame}; chain ${chain === undefined ? "not reached" : `at frame ${chain.frame}`}`);
-      // S5-5: not the edge-parking player's (region-2-edge-left-1): a
+      // S5-5: not the edge-parking player's (region-N-edge-left-1): a
       // stalemate by design, its subject the escort.
       if (session.difficulty === 1 && session.edgeGuard === undefined) {
         invariant(chain !== undefined, `${session.id}: the fight never reached the chain in ${session.frames} frames`);
@@ -4965,7 +4973,7 @@ function main() {
       // never falls (invulnerable) and its laser fires again if the fight runs
       // on for 700 frames (it keeps firing). The doors fall before the core;
       // no escort is admitted once they have fallen; never two Lights at once
-      // (decision AI). The careless sessions (region-2-finale-*) must cover a
+      // (decision AI). The careless sessions (region-N-finale-*) must cover a
       // cannon (subject).
       const railRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.rails ?? null;
       const hangarRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.hangar ?? null;

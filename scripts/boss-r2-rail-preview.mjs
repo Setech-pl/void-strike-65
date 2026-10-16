@@ -15,18 +15,18 @@
 //                 bay's from under its muzzle)
 //
 //   node scripts/boss-r2-rail-preview.mjs [--level=N]   (the build in build/;
-//   VS65_HARNESS_BUILD=<dir under build/> for another, e.g. a --boss-proposal
-//   build with --level=10: the Bastion in region 4)
+//   VS65_HARNESS_BUILD=<dir under build/> for another; the Bastion ends
+//   region 4, so the level is its first, 10, by default)
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { BOSS_BAND_A_ADDRESS, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { bandRegisters, toPng } from "./boss-art-preview.mjs";
-import { bandDliSwitches, call, label, manifest, nmi, runBossEntry, shootAt } from "../tests/boss-harness.mjs";
+import { bandDliSwitches, bossLevel, call, label, manifest, nmi, runBossEntry, shootAt } from "../tests/boss-harness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const level = Number(process.argv.find((a) => a.startsWith("--level="))?.slice(8) ?? 4);
+const level = Number(process.argv.find((a) => a.startsWith("--level="))?.slice(8) ?? bossLevel(2));
 const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 2)));
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);

@@ -337,40 +337,15 @@ const laserTierValue = laserTierSlug === undefined ? null : Number(laserTierSlug
 if (laserTierValue !== null && laserFixtureTier !== null) {
   throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
 }
-// feat/boss-order-scale (Phase A, docs/plans/boss-order-scale.md): which boss
-// ends which region is data - assets/graphics/boss-regions/order.json,
+// feat/boss-order-scale (the owner's decision AX 1): which boss ends which
+// region is data - assets/graphics/boss-regions/order.json,
 // {"order": [A, B, C, D]}: region k (levels 3k-2 .. 3k) shows the boss drawn in
 // boss-regions/region-<order[k-1]>/ (absent: 1, 2, 3, 4). The runtime still
 // picks region min(3, (id - 1) / 3); the build puts the boss's data, and its
-// block code (the rails, the field, the well), in that region's runs.
-// --boss-order=ABCD overrides it for a review build:
-// build/boss-order-ABCD[-...]/, never dist/.
-const bossOrderArgument = process.argv.find((argument) => argument.startsWith("--boss-order="));
-const bossOrderSlug = bossOrderArgument?.slice("--boss-order=".length);
-if (bossOrderSlug !== undefined && (!/^[1-4]{4}$/.test(bossOrderSlug) ||
-    [...bossOrderSlug].sort().join("") !== "1234")) {
-  throw new Error(`Unknown boss order ${bossOrderSlug}; it is a permutation of 1234`);
-}
-// --boss-proposal=NAME (Phase A review): docs/plans/boss-order-scale/NAME.json,
-// {"order": [A, B, C, D], "hpPercent": {"1": P1, ...}} - an order and each
-// boss's module hit points scaled (rounded, 1..100) - so the owner plays a
-// proposed curve before it becomes the bosses' own data.
-// build/boss-proposal-NAME[-...]/, never dist/.
-const bossProposalArgument = process.argv.find((argument) => argument.startsWith("--boss-proposal="));
-const bossProposalSlug = bossProposalArgument?.slice("--boss-proposal=".length);
-if (bossProposalSlug !== undefined && !/^[a-z0-9]+$/.test(bossProposalSlug)) {
-  throw new Error(`Unknown boss proposal ${bossProposalSlug}; the name is lower-case letters and digits`);
-}
-if (bossProposalSlug !== undefined && bossOrderSlug !== undefined) {
-  throw new Error("--boss-proposal carries its own order: pass it or --boss-order, not both");
-}
-const bossProposal = bossProposalSlug === undefined ? null : JSON.parse(fs.readFileSync(
-  path.join(rootDirectory, "docs", "plans", "boss-order-scale", `${bossProposalSlug}.json`), "utf8"));
-const bossHpPercent = bossProposal?.hpPercent ?? {};
+// block code (the rails, the field, the well), in that region's runs. (Phase
+// A's review flags --boss-order and --boss-proposal went with the choice.)
 const bossOrderFile = path.join(rootDirectory, "assets", "graphics", "boss-regions", "order.json");
-const bossOrder = bossProposal !== null ? bossProposal.order
-  : bossOrderSlug !== undefined ? [...bossOrderSlug].map(Number)
-  : fs.existsSync(bossOrderFile) ? JSON.parse(fs.readFileSync(bossOrderFile, "utf8")).order : [1, 2, 3, 4];
+const bossOrder = fs.existsSync(bossOrderFile) ? JSON.parse(fs.readFileSync(bossOrderFile, "utf8")).order : [1, 2, 3, 4];
 if (!Array.isArray(bossOrder) || [...bossOrder].sort().join(",") !== "1,2,3,4") {
   throw new Error(`${path.relative(rootDirectory, bossOrderFile)}: "order" must be a permutation of 1, 2, 3, 4`);
 }
@@ -431,8 +406,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  laserTierValue !== null || bossOrderSlug !== undefined || bossProposalSlug !== undefined ||
-  bossVariantSlug !== undefined;
+  laserTierValue !== null || bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -479,11 +453,7 @@ const variantDirectoryNameInner = (escortVariantId !== null
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
-const variantPrefix = bossOrderSlug !== undefined ? `boss-order-${bossOrderSlug}`
-  : bossProposalSlug !== undefined ? `boss-proposal-${bossProposalSlug}` : null;
-const variantDirectoryName = variantPrefix === null ? variantDirectoryNameInner
-  : variantDirectoryNameInner === null ? variantPrefix
-  : `${variantPrefix}-${variantDirectoryNameInner}`;
+const variantDirectoryName = variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1967,18 +1937,10 @@ async function build() {
   // feat/boss-order-scale: region k shows the boss drawn in
   // boss-regions/region-<bossOrder[k-1]>/ (order.json); the block code goes
   // with its boss - the slots below are wherever the order put it.
-  // A proposal's hit points (--boss-proposal): each module's hp x the boss's
-  // percent, rounded, 1..100 (the converter's range).
-  const scaleHp = (draft, source) => {
-    const percent = bossHpPercent[String(source)];
-    if (percent === undefined || percent === 100) return draft;
-    return { ...draft, layout: { ...draft.layout, modules: draft.layout.modules.map((module) =>
-      ({ ...module, hp: Math.min(100, Math.max(1, Math.round(module.hp * percent / 100))) })) } };
-  };
   const bossRegions = bossOrder.map((source) => (source === 1
-    ? (bossHpPercent["1"] === undefined ? regionOne : compileRegion(scaleHp(regionOneSource, 1)))
+    ? regionOne
     : fs.existsSync(path.join(bossRegionDirectory(rootDirectory, source), "modules.json"))
-      ? compileRegion(scaleHp(loadBossRegionDraft(bossRegionDirectory(rootDirectory, source)), source))
+      ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, source)))
       : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(source)]))));
   const slotOf = (feature) => {
     const slots = bossRegions.flatMap((region, slot) => (region[feature] ? [slot] : []));
@@ -4427,8 +4389,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      laserTierValue !== null || bossOrderSlug !== undefined || bossProposalSlug !== undefined ||
-      bossVariantSlug !== undefined || escortVariantId !== null
+      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4809,7 +4770,6 @@ async function build() {
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       order: bossOrder,
-      ...(bossProposalSlug === undefined ? {} : { proposal: bossProposalSlug, hpPercent: bossHpPercent }),
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1],

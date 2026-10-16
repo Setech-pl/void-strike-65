@@ -1511,9 +1511,10 @@ for (const name of [
   // the host frames whose band DLI ran phase 0, the fewest and the most
   // switches such a frame saw, the landings' 8-line rows (1 << (line >> 3),
   // ORed), their lines inside a row (1 << (line & 7), ORed), the latest
-  // landing cycle. Additive.
+  // landing cycle, the frames cut before the band's end (phase 0 ran, phase 1
+  // did not: the pause's entry turns DMA off mid-frame). Additive.
   "row_switch_frames", "row_switch_min", "row_switch_max", "row_switch_rows", "row_switch_line_bits",
-  "row_switch_max_cycle",
+  "row_switch_max_cycle", "row_switch_cut_frames",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -2201,7 +2202,10 @@ function slotEPathClauses(session, rows) {
 const INTERCEPTOR_RECORD = 24;
 // feat/boss-art (docs/plans/boss-art.md; the owner's variant B, decision AV):
 // the row palette's switch DLIs. In a session that reached the boss, every
-// host frame whose band DLI ran its phase 0 saw exactly its region's switches
+// host frame whose band DLI ran its phase 0 and its phase 1 (ANTIC drew the
+// band to its end: the pause's entry turns DMA off mid-frame, after phase 0 -
+// MEASURED on slot-e-pause-2, one such frame, counted apart as cut) saw
+// exactly its region's switches
 // (the regions' counts differ - 2, 3, 0, 1 - so the count names the region,
 // and a region route must show its own), each landing on the first line of
 // its row (line 24 + 8 x row: the band's rows start at line 24) by cycle
@@ -2235,7 +2239,7 @@ function rowSwitchClause(session, rows, manifest) {
   invariant(last.row_switch_max_cycle <= ROW_SWITCH_LANDING_MAX_CYCLE,
     `${session.id}: a switch's stores were done at cycle ${last.row_switch_max_cycle} (bound <= ${ROW_SWITCH_LANDING_MAX_CYCLE})`);
   session.rowSwitches = { region: index + 1, switches, frames: last.row_switch_frames,
-    landing_max_cycle: last.row_switch_max_cycle };
+    cut_frames: last.row_switch_cut_frames, landing_max_cycle: last.row_switch_max_cycle };
 }
 
 function bossEdgeGuardClause(session, rows) {
@@ -9357,7 +9361,8 @@ function main() {
       // feat/boss-art (variant B, decision AV): the row-switch clause's record,
       // one entry a session that reached the boss.
       boss_row_switches: {
-        clause: "every band frame shows exactly its region's row switches, each on its row's first line, " +
+        clause: "every band frame (phase 0 and phase 1 ran: drawn to the band's end) shows exactly its region's " +
+          "row switches, each on its row's first line, " +
           `its colour stores done by cycle ${ROW_SWITCH_LANDING_MAX_CYCLE}`,
         landing_max_cycle_bound: ROW_SWITCH_LANDING_MAX_CYCLE,
         sessions: sessionsToRun.filter((session) => session.rowSwitches !== undefined)

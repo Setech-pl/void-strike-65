@@ -383,6 +383,7 @@ test("PAL replays carry the row-palette switches: each boss session its region's
   for (const session of evidence.sessions) {
     assert.deepEqual(session.switches, expected[session.region - 1], `${session.session}: region ${session.region}`);
     assert.ok(session.frames > 0, `${session.session}: no band frame`);
+    assert.ok(Number.isInteger(session.cut_frames), `${session.session}: no count of frames cut before the band's end`);
     assert.ok(session.landing_max_cycle <= evidence.landing_max_cycle_bound,
       `${session.session}: the stores were done at cycle ${session.landing_max_cycle}`);
   }

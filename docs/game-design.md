@@ -390,8 +390,9 @@ its waves armed at authored rows:
 * the **BOSS** sector raises the boss-due flag; on the same drained
   playfield the capital waits for (`src/c/lifecycle.c:673-682`) the world
   scroll stops, the boss is read from disk behind the WARNING screen - WARNING,
-  then the boss's name and INCOMING (decision AL: BLOCKADE BREAKER, BASTION,
-  SIEGE SPINE, VOID CITADEL for regions 1-4) - and the
+  then the boss's name and INCOMING (decision AL: BLOCKADE BREAKER, VOID
+  CITADEL, SIEGE SPINE, BASTION for regions 1-4 since feat/boss-order-scale)
+  - and the
   sector ends at the boss's death, not on a row (`src/c/director.c:387-388`,
   `:591-596`).
 
@@ -502,6 +503,51 @@ section "Decyzje literowe 2026-09-20".
   S5-5) at a floor of 12 frames, half of region 1's `fire.cooldown` (region
   4's Void Citadel is designed around it; region 2's Bastion has its doors as
   its only armour, so its finale is the core's endgame).
+- **The boss order and the difficulty curve (feat/boss-order-scale, the
+  owner's decision AX of 2026-10-16; `OWNER-SMOKE CANDIDATE`,
+  [plans/boss-order-scale.md](plans/boss-order-scale.md)).** The four bosses
+  end their regions easiest to hardest: **region 1 the Blockade Breaker,
+  region 2 the Void Citadel, region 3 the Siege Spine, region 4 the Bastion**
+  - data, `assets/graphics/boss-regions/order.json` (`[1, 4, 3, 2]`: the
+  boss directories keep the names they were drawn under). Each boss's block
+  code (the well, the field, the rails) goes with it; the laser tier is the
+  level's (decision AC), so a moved boss fires its new levels' slots - the
+  Citadel's lens (the well's axis) is its slot 1, so the axis fires on level
+  4's one slot and the pull still drags the ship into danger (owner answer 4);
+  its cannons stand capped on level 4 (the left one fires from level 5). The
+  curve, by data only (each boss's hit points and reloads; the level's
+  per-difficulty scale untouched): fights of about **92 / 102 / 112 / 122 s
+  on MEDIUM**, EASY about 0.8x and HARD about 1.25x of it, longer at every
+  step on every difficulty, and the danger rising in the same order - the
+  Bastion the fiercest but not a wall (about 18-20 hits a minute on the
+  aiming bot, MEDIUM; 28 before). MEASURED per region and difficulty, three
+  replays a cell, in `docs/boss-curve.json` (EASY / MEDIUM / HARD seconds on
+  each region's first level; hits a minute on the aiming bot, MEDIUM):
+  the Breaker 70 / 89 / 114 s, 5.5; the Citadel (level 4) 84 / 99 / 126 s,
+  14.5; the Spine (levels 7-8) 94 / 113 / 134 s, 16.1; the Bastion 96 / 122 /
+  160 s, 20.4. A region's later laser tier fights longer (the Citadel on
+  levels 5-6 99 / 120 / 151 s, the Spine on level 9 94 / 117 / 146 s). The
+  data: the Breaker x 0.70 of its hit points; the Citadel about x 1.17 and its
+  guns' reload x 1.2; the Spine x 0.90 and its guns' reload x 0.75; the
+  Bastion's rail guns 15 -> 16, core 74 -> 79, doors 22 -> 24, its rail guns'
+  reload 70 -> 125 and the core's 90 -> 130. The Citadel's pressure on level 4
+  is half its escort's laser (7.5 of 14.5 a minute: the well pulls the ship to
+  the centre column, where the escort enters and holds).
+- **The drawn hit box (decision AW, 2026-10-16).** Every hostile shot - a
+  boss's pulse or salvo shot, a beam, an Interceptor's laser - is tested
+  against the ship as the player sees it, `x .. x + 15` (16 HPOS,
+  `PLAYER_VISIBLE_WIDTH_HPOS`); it met only the left 8 HPOS before, so a
+  ship at x = 2 mod 4 took no Interceptor laser at all. Every fight is harder
+  for it (boss hits on the bots +29 % / +37 % on MEDIUM); every fairness rule
+  holds on the drawn ship.
+- **The Bastion's L (decision AX 5 and 11-13, the owner's choices of
+  2026-10-16).** Each rail's guns stand three columns apart and the rail
+  slides 3 columns a kill (the front slot stays at 17-19 / 43-45, the rail
+  travels 6 columns); its inner end is an L - a two-cell armoured foot in the
+  armour row in front of the bumper. The second slide puts the foot in front
+  of a standing cannon: the cannon shows locked steel again (covered), shots
+  on the foot deflect (or are absorbed by its own running beam - never
+  damage), and its beam starts under the foot. Mechanics otherwise as built.
 - **The boss art pass: a palette per band row (the owner's variant B and his
   looks of 2026-10-16, journal §AV; `OWNER-SMOKE CANDIDATE`,
   [plans/boss-art.md](plans/boss-art.md)).** The bosses take region 3's
@@ -537,7 +583,7 @@ section "Decyzje literowe 2026-09-20".
   display list ends the band (the owner's smoke of 2026-10-13: shots turned
   grey there), so a projectile under the boss has the playfield's colours.
   Plates trimmed to MEDIUM about 110 s: a, b, c, g, h 8; d, e 10; f 6.
-- **Region 2's boss: the Bastion - the dome hangar, the armoured cannon bays,
+- **The Bastion (region 2 as built; region 4 since feat/boss-order-scale) - the dome hangar, the armoured cannon bays,
   the sliding rails (S5-5, the owner's design of 2026-10-14, his choice "B -
   the window" of 2026-10-15 and his looks of the same day; journal §AT, §AU;
   `OWNER-SMOKE CANDIDATE`, [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.5).**
@@ -603,7 +649,7 @@ section "Decyzje literowe 2026-09-20".
   Fight (aiming bot, the ratio rule): 89.5 / 118.8 / 150.1 s on levels 7-8,
   109.4 / 118.2 / 152.0 s on level 9 (EASY / MEDIUM / HARD); **HARD is far
   longer than MEDIUM, for review in M8**, as region 1's.
-- **Region 4's boss: the Void Citadel and its gravity well (S5-4, the
+- **The Void Citadel (region 4 as built; region 2 since feat/boss-order-scale) and its gravity well (S5-4, the
   owner's decisions of 2026-10-13 and 2026-10-14; the still citadel of
   `fix/r4-immobile`, journal §AR; `OWNER-SMOKE CANDIDATE`,
   [plans/s5-boss-regions.md](plans/s5-boss-regions.md) §6.4, §6.4.8).** Levels
@@ -765,6 +811,13 @@ candidate's" — contradicted this section's own heading and was corrected
   frame and tracked the ship's left edge, one HPOS beside the shot's line, so
   a player holding fire under it never hit it. It is still the fastest thing on
   screen: a 4-line dive and tracking at the ship's own speed.
+- **The dead zone** (feat/boss-order-scale step 1, the owner's decision of
+  2026-10-16 after the gfx-regression audit; `OWNER-SMOKE CANDIDATE`). While
+  the ship's centre is within 4 HPOS of the hovering Interceptor's own - exactly
+  while the ship's shot, `player_x + 8`, crosses its `[x, x + 8)` - it does
+  not step sideways: it holds its column, which is the player's, and fires
+  (`(uint8)(light_x - player_x - 1) < 8`, `src/c/lifecycle.c`). Outside the
+  zone the tracking is unchanged. 0 B net in the window.
 - **The top-hold loop** (feat/interceptor-standoff, the owner's smoke of
   2026-10-11 and answers L1/L2/E1 of 2026-10-12, decision AK points 9-10;
   `OWNER-SMOKE CANDIDATE`). A wave may author **loops** (level data, 0-3):

@@ -2750,6 +2750,29 @@ Najpierw pokaz zmiany Bastionu (podgląd jednej strony w każdej pozycji szyny,
 z promieniem i bez, oraz ATR trasy bossa regionu 4), potem STOP na przegląd
 właściciela; po akceptacji faza B.
 
+11. **Wybory dla „L" (2026-10-16):** geometria — działa szyny co 3 kolumny,
+    przesunięcie 3 (jedyne trafialne działo zostaje w dzisiejszym gnieździe
+    17–19 na każdym etapie, szyna jedzie 6 kolumn; czekające działa mogą się
+    stykać; przyjęty skutek: strzały w 2 kolumnach między zderzakiem a zatoką
+    zatrzymują się na stopie). Zasłonięte działo w wyglądzie zamkniętej stali;
+    glify stopy zatwierdzone (**AU**).
+12. **Bajty — slot E odrzucony, sloty C i D przyjęte (2026-10-16):** wybrana
+    najpierw opcja A (procedura zatoki i nowy test promienia w slocie E,
+    5 sektorów) jest **niewykonalna**: czytnik zapisuje całe sektory po 128 B,
+    obszar slotu E ma 576 B (4,5 sektora), a piąty sektor zapisał
+    `$4E40-$4E7F` — stan rezydentny (`BROAD_STATE` … `DIFFICULTY_SETTING`);
+    gra psuła się przy wejściu bossa (MEASURED: „production frontend selected
+    difficulty 83"). Sprawdzenie w buildzie porównywało tylko liczbę sektorów
+    z `ceil(bajty / 128)`. **Przyjęte:** `rail_frame` w slocie C (15 sektorów
+    w obszarze 2 048 B), jego początek i zapis rzędu pancerza w slocie D
+    (14 sektorów = cały obszar), slot E bez zmian (4 sektory); +2 sektory przy
+    każdym wejściu bossa (najgorsze wejście 272 z 300). **Nowe sprawdzenie w
+    buildzie zostaje:** build odrzuca każdy slot, którego sektory wychodzą
+    poza jego obszar RAM.
+13. **„L" Bastionu zatwierdzone jak zbudowane** (przegląd `rail-l.png`,
+    `rail-r.png` i ATR trasy bossa regionu 4 `92047d67…`, 2026-10-16). Faza B
+    ze wszystkimi decyzjami z **AX** i **AW**.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

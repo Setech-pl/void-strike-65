@@ -2705,6 +2705,51 @@ z testami, klauzulami śladu i bramką 300. `OWNER-SMOKE CANDIDATE`.
    przepisuje się uczciwie. Potem faza A kolejności bossów i krzywej, z nowym
    pudłem wszędzie; zmiana pudła pokazana w raporcie osobno.
 
+## AX. KOLEJNOŚĆ BOSSÓW, KRZYWA TRUDNOŚCI, WYGLĄD ZASŁONIĘTEGO DZIAŁA BASTIONU — decyzja właściciela (2026-10-16, po fazie A `feat/boss-order-scale`)
+
+1. **Kolejność:** region 1 Blockade Breaker, region 2 Void Citadel, region 3
+   Siege Spine, region 4 Bastion (propozycja z planu `boss-order-scale` §6).
+2. **Krzywa:** MEDIUM ok. **92 / 102 / 112 / 122 s** (zastępuje płaskie
+   pasmo 90–120 dla późniejszych bossów), EASY ok. **0,8×**, HARD ok.
+   **1,25×** MEDIUM; długość rośnie na każdym kroku na każdym poziomie
+   trudności.
+3. **Kształt na poziom trudności:** najpierw 3 powtórzenia na komórkę, potem
+   strojenie wyłącznie danymi (ćwiartki `hpScale`). Bez nowego kodu dla
+   drobniejszej skali per boss; jeśli dane nie naprawią EASY Siege Spine na
+   poziomach 7–8 — raport i pytanie.
+4. **Kolejność zagrożenia:** przeładowania danymi — działa Citadel ok. 20 %
+   wolniej, Spine ok. 15 % szybciej; zmierzyć ponownie, aż zagrożenie rośnie
+   w kolejności bossów.
+5. **Bastion — mechanika bez zmian, zmienia się tylko PREZENTACJA:** gdy szyna
+   zasłania żywe działo, wewnętrzny koniec szyny jest „L": pionowo zderzak jak
+   dziś, poziomo stopa w rzędzie pancerza (pod działami); w ostatniej pozycji
+   stopa wjeżdża PRZED działo i je osłania; działo zostaje w pełni widoczne
+   nad stopą (w wyglądzie zamkniętej stali), promień startuje pod stopą,
+   ostrzeżenie widoczne; strzały w stopę odbijają się jak od krat zamkniętej
+   zatoki. Przed ostatnim przesunięciem stopa jedzie z szyną po rzędzie
+   pancerza, nie nachodzi wcześniej na zatokę ani drzwi, nigdy nie zasłania
+   drzwi ani rdzenia. Pulsujące ostrzeżenie na działku, którego zestrzelenie
+   zasłoni działo, zostaje. Testy zatok i promieni oraz klauzule śladu dla
+   nowego wyglądu (zasłonięte = działo widoczne + stopa w rzędzie pancerza +
+   promień pod stopą). Zestaw znaków regionu 2 może rosnąć (**AU**); blok ma
+   mało miejsca — najpierw przycięcia w nim; jeśli dalej się nie mieści — STOP
+   z opcjami.
+6. **Trudność Bastionu:** zostaje najtrudniejszy, ale nie ściana — ok.
+   **18–20 trafień/min na MEDIUM** (bot celujący; indeks ok. 1,2), walka
+   blisko 122 s, wszystkie reguły uczciwości; strojenie danymi (najpierw
+   przeładowania dział szyn i działek, potem salwy, potem punkty życia).
+   Raport przed/po.
+7. **Punkty życia Interceptora na region:** nie teraz.
+8. **Dryfujące promienie R1 i R3:** zostają.
+9. **Punkty życia Blockade Breaker:** ok. **73 %**, żeby MEDIUM wypadało
+   blisko 92 s.
+10. **Decyzja AW** (pudło 16 HPOS dla każdego wrogiego strzału) i martwa
+    strefa — zostają jak zbudowane.
+
+Najpierw pokaz zmiany Bastionu (podgląd jednej strony w każdej pozycji szyny,
+z promieniem i bez, oraz ATR trasy bossa regionu 4), potem STOP na przegląd
+właściciela; po akceptacji faza B.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

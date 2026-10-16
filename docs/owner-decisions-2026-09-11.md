@@ -2652,8 +2652,28 @@ zniszcz je, zanim szyna się zamknie"), hardware-testing §35-§36, README
    powodem w fazie B `feat/boss-art` — **zatwierdzona zmiana bramki, nie pin**
    (reguła **AJ** pkt 2).
 
-**Wynik:** plan `boss-art`; faza B dopiero po przyjęciu poprawek przez
-właściciela.
+6. **Przegląd poprawek (2026-10-16, `6299c7d`):** zielone obszycie R2, gondole,
+   kopuła i rdzeń przyjęte. **R4: 1 przełączenie rzędu** (zostaje ok. 352
+   cykli natywnych dla M6; 2 przełączenia dawały 298 — szacunek ~342 z fazy A
+   pomijał 35 cykli haka ramki). R3 bez zmian, R1 jak w fazie A. Działa
+   laserowe R2 przerysowane w języku rodziny R1 i R3: spiczasta opancerzona
+   iglica zwężająca się w długą lufę z wyraźnym wylotem, oświetlona z lewej,
+   obszycie po stronie cienia; układ zatoki bez zmian; zamknięte = stal,
+   otwarte = bursztynowe akcenty na płycie i wylocie.
+7. **Przegląd `854d4d7`:** nowe działa R2 **przyjęte** (kształt, światło,
+   wygląd zamknięte / otwarte). Dwie ostatnie zmiany, potem faza B bez
+   kolejnego postoju: obszycie R2 ciemniejsze, mniej nasycone — oliwkowa,
+   wojskowa zieleń pasująca do toru (gradient w dół zostaje, reguły 45° i
+   ≥ 80 zostają); uszkodzenia działa na **całym** dziale (każda komórka modułu
+   pokazuje etapy pęknięte i zniszczone, jak moduły R3), z pikselami PF2 w
+   każdym etapie i widocznym błyskiem b3 — wolno użyć więcej kodów znaków
+   (reguła **AU**).
+
+**Wynik:** plan `boss-art` §9-§10; obszycie R2 `$D6`/`$D4`/`$D4`/`$D2` (odcień
+D, 118° od `$88`), działo ze stopniami na całym dziale (99 kodów, 7 sektorów
+zestawu znaków), na otwartym dziale bursztynowy pierścień na lufie (każda
+komórka odróżnia się od zamkniętej — reguła czytelności z 2026-10-15); faza B
+z testami, klauzulami śladu i bramką 300. `OWNER-SMOKE CANDIDATE`.
 
 ---
 

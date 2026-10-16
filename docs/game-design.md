@@ -502,6 +502,21 @@ section "Decyzje literowe 2026-09-20".
   S5-5) at a floor of 12 frames, half of region 1's `fire.cooldown` (region
   4's Void Citadel is designed around it; region 2's Bastion has its doors as
   its only armour, so its finale is the core's endgame).
+- **The boss art pass: a palette per band row (the owner's variant B and his
+  looks of 2026-10-16, journal §AV; `OWNER-SMOKE CANDIDATE`,
+  [plans/boss-art.md](plans/boss-art.md)).** The bosses take region 3's
+  recipe: light steel faces, a saturated trim drawing every outline and
+  shadow edge, a dark bulk only in the recesses, light from above. The band
+  DLI's phase 0 arms a switch on the first line of each row whose colours
+  change - COLPF1 (the trim) and COLPF3 (the bulk) only: COLPF0 and COLPF2
+  are the in-band shots' colours and the b3 flash's, fixed for the region.
+  Region 1 rust over light slabs (two switches), region 2 a military
+  olive-green trim, the core orange to red, the cannons pointed finned
+  spires with their damage on the whole cannon (three switches), region 3
+  exactly as before (none), region 4 gold over violet (one). Every row keeps
+  the flash pair at least 80 apart (Atari800's palette) and every colour at
+  least 45 degrees from the ally steel; locked parts stay grey steel, what can
+  be hurt shows amber. Mechanics, hit boxes and timings are unchanged.
 - **Region 1's boss: Blockade Breaker with twin laser cannons (owner answers
   of 2026-10-13; `OWNER-SMOKE CANDIDATE`, [plans/boss-r1-twin-lasers.md](plans/boss-r1-twin-lasers.md)).**
   Levels 1-3 end on one

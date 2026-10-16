@@ -17,10 +17,12 @@ in these points - the silhouette the banner should show:
   barred glyph wide three cells: grey bars while locked, amber hazard stripes
   once open.
 - **Two armoured cannon bays beside the dome**, one each side: the whole laser
-  cannon always in view - a stepped spire pointing up at the track, a belt,
-  the arch of its legs round the lens at its foot (grey unlit steel while
-  locked, lit amber once open) - and under it, between the cannon and the
-  player, its **armour**: the gate's bars, in the gate's row.
+  cannon always in view - since `feat/boss-art` (the owner's looks of
+  2026-10-16) a pointed armoured spire hung from the track: a mounting plate,
+  an armour plate, two fins pointing down, narrowing into a long barrel with
+  a squared muzzle brake at its foot (light steel while locked; amber plate,
+  barrel ring and muzzle once open) - and under it, between the cannon and
+  the player, its **armour**: the gate's bars, in the gate's row.
 - **Two gun rails running off the screen**, left and right: a lattice girder
   under the track from beyond the screen edge to a striped buffer (a steel
   post, diagonal hazard stripes facing the bay, a rounded buffer head with an
@@ -31,23 +33,27 @@ in these points - the silhouette the banner should show:
   the edge" in the game too. Between each rail's buffer and its bay, a dashed
   guide track (where the rail will go).
 - The band is **still**; the rails' slides are its only motion.
-- Colours: pale and mid steel, hazard amber `$28`, olive bulk `$E2`.
+- Colours (`feat/boss-art`, a palette per band row): pale steel faces, a
+  military olive-green trim drawing every outline and shadow edge (`$D6` on
+  the track down to `$D2`), hazard amber `$28`, olive bulk `$E2` on the track
+  and behind the gate, red in the middle rows (the hazard stripes, the pods'
+  lamps, the core's lower two thirds: the core from orange to red).
 
 ## The boss entries' headroom
 
 The banner task's expected cost is **~25 host frames** against the boss
-entry's limit **280** (decision AM). MEASURED on each region's route (STATUS):
+entry's limit - **300** host frames since decision AV (2026-10-16; 280 by
+decision AM before), raised so that the banner fits. MEASURED on each
+region's route after `feat/boss-art` (STATUS):
 
-| region | entry, host frames (sectors) | headroom |
+| region | entry, host frames (sectors) | headroom under 300 |
 | --- | ---: | ---: |
-| R1 Blockade Breaker | 249 (65) | 31 |
-| R2 Bastion | 256 (67: its charset six sectors since the owner's look at `3b5a8ea`) | 24 |
-| R3 Siege Spine | 256 (67) | 24 |
-| R4 Void Citadel | 261 (68) | 19 |
+| R1 Blockade Breaker | 249 (65: slot C's 14th sector, R1's charset one fewer) | 51 |
+| R2 Bastion | 264 (69: slot C's 14th, its charset's 7th - the whole cannon's damage stages) | 36 |
+| R3 Siege Spine | 260 (68: slot C's 14th) | 40 |
+| R4 Void Citadel | 264 (69: slot C's 14th) | 36 |
 
-R2, R3 and R4 are under the ~25: the owner's call (2026-10-15) - the banner
-task absorbs the lost headroom across R2-R4 (the owner's standing rule: a boss
-may spend sectors on its quality within the hard gates).
+Every region leaves the ~25 the banner needs.
 
 Source of truth: `assets/graphics/boss-regions/region-2/` (`band.png`,
 `open.png`, `emitter.png`, `modules.json`), drawn by `scripts/boss-r2-art.mjs`;

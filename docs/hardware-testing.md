@@ -1380,6 +1380,42 @@ boot and sound checks first:
 - [ ] **Record** the ATR's SHA-256, the emulator and hardware versions and
       each section's result (below).
 
+## 37. The boss art pass: a palette per band row, the redrawn bosses (`feat/boss-art`)
+
+Plan [plans/boss-art.md](plans/boss-art.md); journal §AV. In Atari800
+(`-xl -pal -nobasic`), on the four boss routes (`build/play/boss-art-b-r1-*`,
+`-r2-*`, `-r3-*`, `-r4-*`) and the whole game (`build/play/boss-art-b-full-game-*.atr`),
+at MEDIUM:
+
+- [ ] **Light from above:** in R1, R2 and R4 each band row has its own trim
+      and bulk shade - lighter on the top rows - with no flicker, tear or
+      wrong-coloured line at a row's top edge, while the band drifts (R1) or
+      stands (R2, R4), with beams and shots crossing it.
+- [ ] **R1 Blockade Breaker:** light steel slabs with a rust trim, the dark
+      red only in the recesses; the guns dark behind their plates, amber when
+      exposed.
+- [ ] **R2 Bastion:** a military olive-green trim on every outline; the pods
+      with an amber visor and a red lamp you can read at play size; the
+      cannons pointed finned spires with a long barrel and a squared muzzle -
+      light steel while locked (over grey bars), amber plate, barrel ring and
+      muzzle once open; a hit cannon's damage on the whole cannon (cracked,
+      broken); the core orange on top, red below; the striped rail ends.
+- [ ] **R3 Siege Spine:** exactly as before (no row palette).
+- [ ] **R4 Void Citadel:** the gold trim; the hull lit on its top and left
+      edges.
+- [ ] **What can be hurt:** grey / steel parts read as locked, amber parts
+      as hittable; every module flashes when hit (b3) in every damage stage,
+      on every row.
+- [ ] **Nothing else changed colour:** your shots, the boss shots, the beams,
+      the capsule and the HUD as before; the rows under the band are the
+      playfield's.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **The row colours on the real GTIA:** no shimmer or wrong colour at a
+      row's first line; each boss entry loads (65 / 69 / 68 / 69 sectors).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

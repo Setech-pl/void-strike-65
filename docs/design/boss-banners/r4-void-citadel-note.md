@@ -36,7 +36,11 @@ banner in these points - the silhouette the banner should echo:
 
 ## The boss entry's headroom (the owner's answer 4 of §AR)
 
-Region 4's boss entry is **261 host frames** (68 sectors) against the limit
+**Superseded (decision AV, 2026-10-16):** the limit is **300** host frames
+now; after `feat/boss-art` region 4 enters in **264** (69 sectors) - **36
+frames left**, the banner's ~25 fits. The options below stay as levers.
+
+Region 4's boss entry was **261 host frames** (68 sectors) against the limit
 **280** (decision AM): **19 frames left**, while the banner task is expected to
 cost about **+25**. Left to the banner task; its options:
 

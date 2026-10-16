@@ -474,6 +474,13 @@ byte moves (nothing resident but the window's 14 B).
 > `scripts/runtime-wall-trace.mjs`). At 3.5–4.0 frames a sector, 280 admits
 > about 72-73 sectors (EST), the torpedo's two included.
 
+> **Superseded again by owner decision AV (2026-10-16, `feat/boss-art`):** the
+> standing limit is **300 host frames** (the gates moved with that reason), so
+> the loading banner fits. After the boss art pass (plan
+> [boss-art.md](boss-art.md): a palette per band row in R1, R2 and R4, slot C
+> 14 sectors) the entries are R1 **249**, R2 **264**, R3 **260**, R4 **264**
+> host frames (65 / 69 / 68 / 69 sectors).
+
 **The target for every region is ≤ 65 sectors after S5** (the 250 bound now
 and the torpedo's 260 later; superseded by AM, above). Region 3 reaches it with two of three levers,
 each worth one sector: (L1) the finale fitted into slot C's 13 sectors (−65 B

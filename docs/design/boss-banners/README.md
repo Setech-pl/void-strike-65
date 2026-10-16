@@ -18,7 +18,8 @@ difference.
    - The title (decision 1) and the loader bar sit underneath.
    - **Monochrome white on black** was chosen; the region-coloured gradient variant was rejected (see `mockups/`).
    - The banner is loaded **first**, so the player watches it while the rest of the boss loads under it. For that, the
-     owner allows the boss-entry limit to rise from 250 to **about 280 frames**.
+     owner allows the boss-entry limit to rise from 250 to **about 280 frames** - **300** since decision AV
+     (2026-10-16): the standing limit, so the banner fits (headroom per region in `r2-bastion-note.md`).
    - The pictures here are the owner-approved direction. The session may clean them up pixel by pixel but keeps the
      silhouettes.
 3. **Bastion (R2) shape for S5-5**, chosen to fit the current boss mechanics (see `mockups/r2-bastion-boss-band-mockup.png`):

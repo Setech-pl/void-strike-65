@@ -2,8 +2,11 @@
 
 **Branch:** `feat/boss-order-scale` from `main` `4767691` (the `fix/gfx-regression`
 pin on top of `feat/boss-art`; ATR `33b1acb3…`).
-**Status:** Phase A — measured, proposed, built; **OWNER DECISION PENDING**
-(§9). Step 1 (the dead zone) and the hit-box change the owner added mid-session
+**Status:** Phase B built — `OWNER-SMOKE CANDIDATE` (2026-10-17): the owner's
+decisions AW and AX applied, the order and the curve the bosses' own data
+(journal §AX 14-18, `docs/boss-curve.json`); the review flags and proposal
+files below are gone. Phase A (the rest of this plan) as it was:
+**OWNER DECISION PENDING** then (§9). Step 1 (the dead zone) and the hit-box change the owner added mid-session
 (decision AW) are committed; the order and the curve are review builds only
 (`--boss-proposal`), the bosses' own data is unchanged. Evidence not
 regenerated (Phase B).

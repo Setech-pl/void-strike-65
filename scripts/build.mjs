@@ -3157,6 +3157,20 @@ async function build() {
       `RAIL_JAMB               = ${hangar.jamb ?? 0}`,
       `RAIL_ESCORT_TIMER       = $${stateAddress("STATE_SPACING").toString(16).toUpperCase()}`,
       `RAIL_GUN_WIDTH          = ${bossRail.gunWidth}`,
+      // feat/boss-order-scale (decision AX 5, the L): the foot - its row, its
+      // length (the window's front is its tip) and each cannon's covered look
+      // (locked steel above the foot) in the look tail.
+      ...(() => {
+        if (bossRail.footRow === null) throw new Error("decision AX 5: region 2's rails carry the L's foot");
+        return [
+          `RAIL_FOOT               = ${bossRail.footLength}`,
+          `RAIL_FOOT_ROW           = ${bossRail.footRow}`,
+          ...(() => {
+            if (left.coveredLook !== right.coveredLook) throw new Error("decision AX 5: the cannons share one covered look");
+            return [`RAIL_COVER              = ${left.coveredLook}`];
+          })(),
+        ];
+      })(),
       ".macro RAIL_TABLES",
       // Front first; rail_guns + 2 + side is each side's lowest module (the
       // left rail's guns are numbered from its outer end, the right's from
@@ -3470,6 +3484,17 @@ async function build() {
   const bossCodeSectors = Math.ceil(bossSlotUsed / 128);
   const slotABytes = capitalSlotImage.length;
   const installBytes = bossInstallSectors * 128;
+  // feat/boss-order-scale (MEASURED, the L's first placement): the reader
+  // writes whole sectors, so a slot's run must end inside its RAM area -
+  // slot E's 576 B are 4.5 sectors, and a fifth sector wrote $4E40-$4E7F,
+  // resident state (BROAD_STATE ... DIFFICULTY_SETTING), and the game broke.
+  // The checks below only compared the sector count with ceil(bytes / 128).
+  for (const [name, sectors, bytes] of [["C", bossSlotCSectors, BOSS_SLOT_C_BYTES],
+    ["D", bossSlotDSectors, BOSS_SLOT_D_BYTES], ["E", bossSlotESectors, BOSS_SLOT_E_BYTES]]) {
+    if (sectors * 128 > bytes) {
+      throw new Error(`boss slot ${name}: ${sectors} sectors (${sectors * 128} B) overrun its ${bytes}-B area`);
+    }
+  }
   if (bossImage.length !== bossFixedImageBytes + (bossFieldCode?.length ?? 0) +
     (bossGravitySlot === null ? 0 : bossRegions[bossGravitySlot].gravityCodeBytes ?? 0) +
     (bossRailSlot === null ? 0 : (bossRegions[bossRailSlot].railCodeBytes ?? 0) +

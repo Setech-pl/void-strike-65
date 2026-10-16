@@ -930,6 +930,18 @@ function resolveBossRails(source, modules, owner) {
   if (!Array.isArray(source.rows) || source.rows.length !== 2) fail("rails.rows is [first, last]");
   const [rowFirst, rowLast] = source.rows.map((r) => integerIn(r, 0, BOSS_BAND_A_ROWS - 1, "rails.rows"));
   if (rowLast - rowFirst + 1 !== BOSS_RAIL_ROWS) fail(`rails.rows spans ${BOSS_RAIL_ROWS} band rows`);
+  // feat/boss-order-scale (decision AX 5, the L): the rail's inner end may
+  // carry a foot - `length` cells inward of the bumper (the nose) in the row
+  // under the rail (the cannons' armour row). The slide moves it with the
+  // rail (src/hybrid/boss.s rail_column's fourth row); the window's front is
+  // its tip, and the last slide stands it in front of the cannon while the
+  // bumper stops short of it (the cannon stays in view: its covered look).
+  const foot = source.foot === undefined || source.foot === null ? null : {
+    row: integerIn(source.foot.row, 0, BOSS_BAND_A_ROWS - 1, "rails.foot.row"),
+    length: integerIn(source.foot.length, 1, 4, "rails.foot.length"),
+  };
+  if (foot !== null && foot.row !== rowLast + 1) fail("rails.foot.row is the row under the rail's last row");
+  const rowsMoved = foot === null ? rowLast : foot.row;
   const sides = ["left", "right"].map((sideName) => {
     const side = source[sideName];
     if (side === undefined) fail(`rails.${sideName} is missing`);
@@ -951,7 +963,9 @@ function resolveBossRails(source, modules, owner) {
     });
     if (positions >= guns.length) fail(`rails.positions ${positions}: the ${sideName} rail needs a gun more than its slides`);
     return { sideName, dir, nose, cannon, guns };
-  }).map(({ sideName, dir, nose, cannon, guns }) => {
+  }).map(({ sideName, dir, nose: bumper, cannon, guns }) => {
+    // The window's front: the foot's tip (the bumper without a foot).
+    const nose = bumper + dir * (foot?.length ?? 0);
     // Only the locked-in front gun can be hurt or fire: each gun behind it is
     // covered by the gun in front (authored) and by the core - the lock, which
     // src/hybrid/boss.s rail_lock clears when the gun locks into the front-gun
@@ -980,15 +994,23 @@ function resolveBossRails(source, modules, owner) {
     if (dir * (frontAt(positions) - cannonLast) < 0) {
       fail(`the ${sideName} rail's last slide leaves part of its cannon uncovered (front ${frontAt(positions)})`);
     }
+    if (foot !== null) {
+      const bumperLast = bumper + dir * positions * pitch;
+      if (dir * (bumperLast - cannonFirst) >= 0) fail(`the ${sideName} rail's bumper reaches its cannon (${bumperLast}): the foot covers it`);
+      if (foot.row !== cannon.row + cannon.height - 1) fail(`the ${sideName} rail's foot is not in its cannon's armour row`);
+      for (let k = 0; k <= foot.length; k += 1) {
+        if (owner.has(foot.row * BOSS_BAND_COLUMNS + bumper + dir * k)) fail(`the ${sideName} rail's foot meets a module`);
+      }
+    }
     // The cells a slide shifts: every gun at every position, and at the last
     // the screen's edge (the rail runs off the screen).
     const outer = dir > 0 ? Math.min(...guns.map((g) => g.x)) : Math.max(...guns.map((g) => g.x + g.width - 1));
     const edge = dir > 0 ? BOSS_RAIL_SCREEN.left : BOSS_RAIL_SCREEN.right;
     const window = Math.max(dir * (nose - outer) + 1, dir * (frontAt(positions) - edge) + 1);
     for (let r = rowFirst; r <= rowLast; r += 1) {
-      if (owner.has(r * BOSS_BAND_COLUMNS + nose)) fail(`the ${sideName} rail's front (${nose}, ${r}) is a module's cell`);
+      if (owner.has(r * BOSS_BAND_COLUMNS + bumper)) fail(`the ${sideName} rail's front (${bumper}, ${r}) is a module's cell`);
     }
-    return { name: sideName, dir, nose, cannon, guns, window, firstModule: indices[0], frontAt };
+    return { name: sideName, dir, nose, bumper, cannon, guns, window, firstModule: indices[0], frontAt };
   });
   if (sides[0].guns.length !== sides[1].guns.length) fail("the two rails carry the same number of guns");
   // One window for both sides (the block's code shifts one count of
@@ -1003,7 +1025,7 @@ function resolveBossRails(source, modules, owner) {
       Math.max(side.frontAt(positions), windowOuter + side.dir * positions * pitch)];
     for (const module of modules) {
       if (side.guns.includes(module) || module === side.cannon) continue;
-      const rowsMeet = module.row <= rowLast && module.row + module.height - 1 >= rowFirst;
+      const rowsMeet = module.row <= rowsMoved && module.row + module.height - 1 >= rowFirst;
       const columnsMeet = module.x <= reach[1] && module.x + module.width - 1 >= reach[0];
       if (rowsMeet && columnsMeet) fail(`the ${side.name} rail's slides reach module ${module.name}`);
     }
@@ -1013,7 +1035,7 @@ function resolveBossRails(source, modules, owner) {
     const outer = side.nose - side.dir * (side.window - 1);
     if (outer < 0 || outer > BOSS_BAND_COLUMNS - 1) fail(`the ${side.name} rail's window leaves the band`);
   }
-  return { framesPerStep, delayFrames, pulseFrames, pitch, positions, rowFirst, sides };
+  return { framesPerStep, delayFrames, pulseFrames, pitch, positions, rowFirst, foot, sides };
 }
 // The hangar: its doors (armour) launch the escort - their flash cueFrames
 // before each escort is armed - and stop it when they fall; the core.
@@ -1452,6 +1474,29 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     }
     openOffsets[index] = lookOffsets.get(key);
   }
+  // feat/boss-order-scale (decision AX 5): a rail with a foot covers its
+  // cannon with the foot alone - the cannon's covered look, drawn when the
+  // last slide covers it (boss.s rail_cover): its closed cells above, in its
+  // armour row the foot cells the last slide brings there.
+  const coveredOffsets = [];
+  if (rails !== null && rails.foot !== null) {
+    for (const side of rails.sides) {
+      const { cannon } = side;
+      const shift = side.dir * rails.positions * rails.pitch;
+      const bytes = [];
+      for (let r = cannon.row; r < cannon.row + cannon.height; r += 1) {
+        for (let c = cannon.x; c < cannon.x + cannon.width; c += 1) {
+          bytes.push(r === rails.foot.row ? bandRows[r][c - shift] : bandRows[r][c]);
+        }
+      }
+      // One look for both cannons when their bytes agree (region 2's: one
+      // symmetric foot glyph) - the block's bytes.
+      const same = coveredOffsets.findIndex((offset) => tail.slice(offset, offset + bytes.length).join() === bytes.join());
+      if (same >= 0) { coveredOffsets.push(coveredOffsets[same]); continue; }
+      coveredOffsets.push(tail.length);
+      tail.push(...bytes);
+    }
+  }
   let nozzleTailOffset = tail.length;
   if (nozzlePhasesInTail) for (const phases of nozzlePhases) for (const phase of phases) tail.push(...phase.bytes);
   // Decisions M and O: per column the row a shot stops on when no module
@@ -1676,7 +1721,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       framesPerStep: rails.framesPerStep, delayFrames: rails.delayFrames, pulseFrames: rails.pulseFrames,
       pitch: rails.pitch, positions: rails.positions, rowFirst: rails.rowFirst,
       gunWidth: rails.sides[0].guns[0].width,
-      sides: rails.sides.map((side) => ({ name: side.name, dir: side.dir, nose: side.nose, window: side.window,
+      footRow: rails.foot?.row ?? null, footLength: rails.foot?.length ?? 0,
+      sides: rails.sides.map((side, i) => ({ name: side.name, dir: side.dir, nose: side.nose, bumper: side.bumper,
+        window: side.window, coveredLook: coveredOffsets[i] ?? null,
         cannon: side.cannon.index, guns: side.guns.map((gun) => gun.index), firstModule: side.firstModule,
         frontSlot: [side.guns[0].x, side.guns[0].x + side.guns[0].width - 1] })),
     },

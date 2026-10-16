@@ -50,7 +50,7 @@
     "framesPerStep": 4,
     "delayFrames": 12,
     "pulseFrames": 16,
-    "pitch": 4,
+    "pitch": 3,
     "positions": 2,
     "rows": [
       1,
@@ -74,6 +74,11 @@
       ],
       "cannon": "cannon-r",
       "nose": 42
+    },
+    "foot": {
+      "_": "feat/boss-order-scale (decision AX 5, the L): the rail's inner end - a foot in the armour row, `length` cells inward of the bumper (the nose); the slide moves it with the rail, and at the last position it stands in front of the cannon (the cannon's covered look: locked steel above the foot).",
+      "row": 4,
+      "length": 2
     }
   },
   "hangar": {
@@ -108,7 +113,7 @@
     {
       "name": "rail-l-2",
       "kind": "pulse",
-      "x": 13,
+      "x": 14,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -123,7 +128,7 @@
     {
       "name": "rail-l-3",
       "kind": "pulse",
-      "x": 9,
+      "x": 11,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -201,7 +206,7 @@
     {
       "name": "rail-r-2",
       "kind": "pulse",
-      "x": 47,
+      "x": 46,
       "row": 2,
       "width": 3,
       "height": 2,
@@ -216,7 +221,7 @@
     {
       "name": "rail-r-3",
       "kind": "pulse",
-      "x": 51,
+      "x": 49,
       "row": 2,
       "width": 3,
       "height": 2,

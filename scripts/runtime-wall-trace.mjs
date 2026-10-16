@@ -4331,6 +4331,12 @@ function main() {
       // S5-4: the level id (which region's code is in slot F) and region 4's
       // gravity well's state, when the disk carries it.
       addressEnvironment.DFTRACE_BOSS_LEVEL_ID = `0x${(bossLabels.get("_boss_level") + 3).toString(16)}`;
+      // feat/boss-order-scale: the observers follow the boss order (the
+      // manifest's regions), not the level ranges of today's order.
+      for (const [name, feature] of [["RAIL", "rails"], ["FIELD", "field"], ["GRAVITY", "gravity"]]) {
+        const slot = (manifest.boss?.regions ?? []).findIndex((region) => region[feature]);
+        if (slot >= 0) addressEnvironment[`DFTRACE_${name}_REGION`] = `0x${(slot + 1).toString(16)}`;
+      }
       // fix/r4-immobile: the region's motion byte, so the boss-aim policy
       // leads its aim only for a drifting band (region 4 is still).
       addressEnvironment.DFTRACE_BOSS_MOTION_STEP = `0x${(BOSS_TABLES_ADDRESS + BOSS_TABLE.framesPerStep).toString(16)}`;

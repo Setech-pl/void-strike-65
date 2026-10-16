@@ -1019,11 +1019,24 @@ static unsigned dftrace_field_half;
  * field's and the well's code share BOSS_F_HOOK ($526E): each is watched only
  * in its own region (optional: 0 disables). */
 static unsigned dftrace_boss_level_id;
+/* The region a level's boss stands in: min(3, (id - 1) / 3) + 1, as boss_head
+ * picks it (src/hybrid/boss.s). */
+static unsigned dftrace_level_region(void)
+{
+	unsigned id = MEMORY_mem[dftrace_boss_level_id];
+	unsigned region = id == 0u ? 0u : (id - 1u) / 3u;
+	return (region > 3u ? 3u : region) + 1u;
+}
 /* fix/r4-immobile: the region's motion table byte (frames per colour clock;
  * 0 = a still band) - the boss-aim policy leads its aim only for a drifting
  * band (optional: 0 keeps the lead, the drifting regions' path). */
 static unsigned dftrace_boss_motion_step;
 static unsigned dftrace_gravity_on;
+/* feat/boss-order-scale: which region (1-4) holds the rails, the field and
+ * the well - the boss order is data (assets/graphics/boss-regions/order.json),
+ * so the observers follow the manifest (DFTRACE_*_REGION) instead of the
+ * level ranges 4-6 / 7-9 / 10-12; the defaults are today's order. */
+static unsigned dftrace_rail_region = 2u, dftrace_field_region = 3u, dftrace_gravity_region = 4u;
 /* S5-5: region 2's rails' state (rail_k, rail_front: two bytes each) and
  * scratch (rail_step, rail_timer, rail_dead: two bytes each), boss link
  * labels; optional. */
@@ -6316,8 +6329,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->boss_exposed = frame->bay_cells = frame->bay_stops = frame->bay_maps = 0u;
 	frame->laser_missiles = frame->beam_rows = frame->beam_armour = frame->beam_below = frame->jamb_map = 0u;
 	if (dftrace_boss_active() && dftrace_rail_state != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
-		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 4u &&
-		MEMORY_mem[dftrace_boss_level_id] <= 6u) {
+		dftrace_boss_level_id != 0u && dftrace_level_region() == dftrace_rail_region) {
 		frame->rail_k = MEMORY_mem[dftrace_rail_state] | (MEMORY_mem[dftrace_rail_state + 1u] << 4);
 		frame->rail_dead = MEMORY_mem[dftrace_rail_scratch + 4u] | (MEMORY_mem[dftrace_rail_scratch + 5u] << 4);
 		frame->rail_sliding = (MEMORY_mem[dftrace_rail_scratch] != 0u ? 1u : 0u) |
@@ -6339,15 +6351,14 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		}
 	}
 	if (dftrace_boss_active() && dftrace_gravity_on != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
-		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 10u) {
+		dftrace_boss_level_id != 0u && dftrace_level_region() == dftrace_gravity_region) {
 		frame->gravity_on = MEMORY_mem[dftrace_gravity_on];
 		frame->gravity_steps = MEMORY_mem[dftrace_gravity_on + 3u] | (MEMORY_mem[dftrace_gravity_on + 4u] << 8);
 		if (dftrace_gravity_column != 0u)
 			frame->gravity_column = MEMORY_mem[dftrace_gravity_column];
 	}
 	if (dftrace_boss_active() && dftrace_field_half != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
-		(dftrace_boss_level_id == 0u || (MEMORY_mem[dftrace_boss_level_id] >= 7u &&
-			MEMORY_mem[dftrace_boss_level_id] <= 9u)) &&
+		(dftrace_boss_level_id == 0u || dftrace_level_region() == dftrace_field_region) &&
 		dftrace_boss_hp != 0u && dftrace_boss_count != 0u) {
 		unsigned half, column, module, count = MEMORY_mem[dftrace_boss_count];
 		unsigned deflect = MEMORY_mem[0xad00u + 250u];
@@ -7628,6 +7639,9 @@ static void dftrace_init(void)
 	dftrace_boss_level_id = dftrace_env_optional("DFTRACE_BOSS_LEVEL_ID");
 	dftrace_boss_motion_step = dftrace_env_optional("DFTRACE_BOSS_MOTION_STEP");
 	dftrace_gravity_on = dftrace_env_optional("DFTRACE_GRAVITY_ON");
+	if (dftrace_env_optional("DFTRACE_RAIL_REGION") != 0u) dftrace_rail_region = dftrace_env_optional("DFTRACE_RAIL_REGION");
+	if (dftrace_env_optional("DFTRACE_FIELD_REGION") != 0u) dftrace_field_region = dftrace_env_optional("DFTRACE_FIELD_REGION");
+	if (dftrace_env_optional("DFTRACE_GRAVITY_REGION") != 0u) dftrace_gravity_region = dftrace_env_optional("DFTRACE_GRAVITY_REGION");
 	dftrace_gravity_column = dftrace_env_optional("DFTRACE_GRAVITY_COLUMN");
 	dftrace_rail_state = dftrace_env_optional("DFTRACE_RAIL_STATE");
 	dftrace_rail_scratch = dftrace_env_optional("DFTRACE_RAIL_SCRATCH");

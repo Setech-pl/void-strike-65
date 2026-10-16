@@ -235,7 +235,10 @@ export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const { cases, describe, worstOf, level, gravity } = regionFourStress();
+  // feat/boss-order-scale: --level=N enters the Citadel where the order put it.
+  const levelArgument = process.argv.find((a) => a.startsWith("--level="));
+  const { cases, describe, worstOf, level, gravity } = regionFourStress(
+    levelArgument === undefined ? {} : { level: Number(levelArgument.slice("--level=".length)) });
   console.log(`# region 4, level ${level}, gravity code ${gravity ? "on the disk" : "absent"}: ${cases.length} cases`);
   for (const laserMode of ["warn", "beam"]) {
     const subset = cases.filter((c) => c.laserMode === laserMode);

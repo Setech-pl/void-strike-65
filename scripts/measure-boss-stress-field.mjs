@@ -137,7 +137,8 @@ function collapsing(m, half, column) {
   m[lbl("boss_column_map") + column] = 0xfe;
   m[lbl("boss_stop_y") + column] = FIELD_STOP_Y;
 }
-const field = manifest.boss.regions[2].field;
+// feat/boss-order-scale: the field wherever the order put its boss.
+const field = (manifest.boss.regions.find((candidate) => candidate.field) ?? manifest.boss.regions[2]).field;
 const fieldRow = field.rowCells;
 const fieldCode = entry.memory[fieldRow + field.halves[0].from];   // the field glyph, as the entry drew it
 const kinds = [...Array(count).keys()].map((i) => entered()[lbl("_boss_kind") + i]);

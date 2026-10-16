@@ -35,7 +35,8 @@ export function regionTwoStress({ level = 4, maxMeetings = 3 } = {}) {
   const entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = level; } });
   if (entry.end !== "main_loop") throw new Error(`the boss entry ended at ${entry.end}`);
   if (entry.memory[0x526e] !== 0x4c) throw new Error("region 2's block carries no rail code on this disk");
-  const region = manifest.boss.regions[1];
+  // feat/boss-order-scale: the Bastion wherever the order put it (its rails).
+  const region = manifest.boss.regions.find((candidate) => candidate.rails) ?? manifest.boss.regions[1];
   const rails = region.rails;
   const entered = () => Uint8Array.from(entry.memory);
   const hp = (memory, i) => memory[lbl("_boss_hp") + i];

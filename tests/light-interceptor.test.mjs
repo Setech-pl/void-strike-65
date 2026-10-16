@@ -348,7 +348,10 @@ test("pursuit closes on the player one 4-HPOS cell every other frame, clamped to
       if ((counter & 1) === 0) {
         // RE-POINTED fix/interceptor-speed (owner answer Q1): the ship's
         // centre column, (x + 6) & $FC.
-        const target = Math.min((playerX + 6) & 0xfc, 200);
+        // RE-POINTED feat/boss-order-scale (the owner's dead zone of
+        // 2026-10-16): no step while the ship's shot, playerX + 8, crosses
+        // [x, x + 8) - from 124 toward 48 it stops at 56, not 52.
+        const target = ((x - playerX - 1) & 0xff) < 8 ? x : Math.min((playerX + 6) & 0xfc, 200);
         if (x < target) x += 4;
         else if (x > target) x -= 4;
       }

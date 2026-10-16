@@ -1,4 +1,22 @@
-# Note for the banner task: region 2's band after `feat/boss-region-2`
+# Note for the banner task: the Bastion's band after `feat/boss-region-2` (region 4 since `feat/boss-order-scale`)
+
+## Which banner shows at which region (`feat/boss-order-scale`)
+
+The owner's decision AX 1 (2026-10-16) put the bosses in the order easiest to
+hardest; the order is data (`assets/graphics/boss-regions/order.json`,
+`[1, 4, 3, 2]`). A banner belongs to its boss, not to a region number - the
+`bitmaps/rN-<name>` files keep the names they were drawn under:
+
+| region (levels) | boss | banner (`bitmaps/`) | note |
+| --- | --- | --- | --- |
+| 1 (1-3) | Blockade Breaker | `r1-blockade-breaker-160x64` | `r1-twin-lasers-note.md` |
+| 2 (4-6) | Void Citadel | `r4-void-citadel-160x64` | `r4-void-citadel-note.md` |
+| 3 (7-9) | Siege Spine | `r3-siege-spine-160x64` | - |
+| 4 (10-12) | Bastion | `r2-bastion-160x64` | this note |
+
+The banner task should read the boss of a region from the built disk
+(`build/manifest.json` `boss.order` / `boss.regions[k].name`), not assume
+region k = `rk`.
 
 Owner request (decision AL point 3's rule, applied to region 2): the R2 banner
 and the in-game band must read as the same ship. The Bastion as built (S5-5,
@@ -28,7 +46,13 @@ in these points - the silhouette the banner should show:
   post, diagonal hazard stripes facing the bay, a rounded buffer head with an
   amber pad), three pod turrets hanging from it (the outermost off screen).
   Destroying the front turret slides the whole rail inward and opens that
-  side's bay; the second slide covers the cannon on that side. A banner may
+  side's bay; the second slide covers the cannon on that side. **Since
+  `feat/boss-order-scale` the rail ends in an L** (decision AX 5, the owner's
+  choices of 2026-10-16): the pods three columns apart, the rail travels 6
+  columns, and a two-cell armoured foot reaches inward along the armour row
+  from the buffer - the second slide puts the foot in front of the cannon,
+  which turns back to locked steel. A banner may show the foot under the
+  buffer. A banner may
   show the rails long and cropped by the frame - their outer part is "beyond
   the edge" in the game too. Between each rail's buffer and its bay, a dashed
   guide track (where the rail will go).
@@ -44,16 +68,20 @@ in these points - the silhouette the banner should show:
 The banner task's expected cost is **~25 host frames** against the boss
 entry's limit - **300** host frames since decision AV (2026-10-16; 280 by
 decision AM before), raised so that the banner fits. MEASURED on each
-region's route after `feat/boss-art` (STATUS):
+region's route after `feat/boss-order-scale` (the order, and the Bastion's L:
+its rail code in slots C and D, +2 sectors at every boss entry, decision AX
+12; STATUS):
 
-| region | entry, host frames (sectors) | headroom under 300 |
-| --- | ---: | ---: |
-| R1 Blockade Breaker | 249 (65: slot C's 14th sector, R1's charset one fewer) | 51 |
-| R2 Bastion | 264 (69: slot C's 14th, its charset's 7th - the whole cannon's damage stages) | 36 |
-| R3 Siege Spine | 260 (68: slot C's 14th) | 40 |
-| R4 Void Citadel | 264 (69: slot C's 14th) | 36 |
+| region | boss | entry, host frames (sectors) | headroom under 300 |
+| --- | --- | ---: | ---: |
+| R1 | Blockade Breaker | 257 (67) | 43 |
+| R2 | Void Citadel | 272 (71) | 28 |
+| R3 | Siege Spine | 268 (70) | 32 |
+| R4 | Bastion | 271 (71) | 29 |
 
-Every region leaves the ~25 the banner needs.
+Every region leaves the ~25 the banner needs - R2 with the least, 3 frames
+over. (After `feat/boss-art`: 249 / 264 / 260 / 264 - R2 was the Bastion then,
+R4 the Citadel.)
 
 Source of truth: `assets/graphics/boss-regions/region-2/` (`band.png`,
 `open.png`, `emitter.png`, `modules.json`), drawn by `scripts/boss-r2-art.mjs`;

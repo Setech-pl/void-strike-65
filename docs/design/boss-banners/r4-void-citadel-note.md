@@ -1,4 +1,10 @@
-# Note for the banner task: region 4's band after `feat/boss-region-4`
+# Note for the banner task: the Void Citadel's band after `feat/boss-region-4` (region 2 since `feat/boss-order-scale`)
+
+Since `feat/boss-order-scale` (decision AX 1) the Void Citadel ends region 2
+(levels 4-6): its banner (`bitmaps/r4-void-citadel-160x64`) shows there; the region-to-banner
+table and the entries' headroom are in `r2-bastion-note.md`. On level 4 (laser
+tier 1) its two cannons stand capped (slatted armour) and only the core's lens
+fires; on levels 5-6 the left cannon fires too.
 
 Owner request (decision AL point 3's rule, applied to region 4): the R4 banner
 and the in-game band must read as the same ship. The band departs from the

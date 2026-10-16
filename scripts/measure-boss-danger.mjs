@@ -88,10 +88,15 @@ export function bossDanger(csvFile) {
       for (const shot of releases.get(frame) ?? []) {
         const x = shot.prior_x || shot.x;
         const y = shot.prior_y || shot.y;
-        const dx = (x - row.player_x) & 0xff;
+        // The ship moves up to 2 HPOS in the frame: its x before or after it,
+        // 2 HPOS either side.
+        const overlaps = [row.player_x, row.player_x_after ?? row.player_x].some((px) => {
+          const dx = x - px;
+          return dx >= -3 && dx <= PLAYER_VISIBLE_WIDTH + 1;
+        });
         const dy = (y - row.player_y + 16) & 0xff;
-        if ((shot.player_collision_terminal === 1 || dx < PLAYER_VISIBLE_WIDTH || dx === 0xff) &&
-          (shot.player_collision_terminal === 1 || dy < 16 + PLAYER_COLLISION_LAST_ROW + 1)) return shot.prior_active;
+        if (shot.player_collision_terminal === 1 ||
+          (overlaps && dy < 16 + PLAYER_COLLISION_LAST_ROW + 1)) return shot.prior_active;
       }
     }
     return undefined;

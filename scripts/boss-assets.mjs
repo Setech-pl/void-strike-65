@@ -1245,7 +1245,13 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       let ref;
       const lens = r === module.row + bossLensRow(module) && c === module.x + (module.width >> 1);
       const centre = r === module.row + (module.height >> 1) && c === module.x + (module.width >> 1);
-      if (module.stages === true || (module.stages === "lens" && lens) || (module.stages === "centre" && centre)) {
+      // feat/boss-art (the owner's look at 854d4d7: a cannon's damage on the
+      // whole cannon): a bay's armour row is never staged - open, it is empty
+      // (code 0: the shots and the beam pass), so "stages": true stages the
+      // cannon's rows only.
+      const armourRow = module.bay === true && r >= module.row + module.cavityRows;
+      if ((module.stages === true && !armourRow) || (module.stages === "lens" && lens) ||
+        (module.stages === "centre" && centre)) {
         ref = stagedIndex(intact, cracked, broken, what);
       } else {
         // E3: no stages - the cracked and broken drafts show the intact look.

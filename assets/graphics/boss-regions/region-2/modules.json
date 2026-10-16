@@ -11,8 +11,8 @@
     "colpf3": 226
   },
   "rowPalette": {
-    "_": "feat/boss-art (the owner's variant B and his drawing; colours as Atari800's PAL palette shows them, docs/plans/boss-art.md §3.4; the owner's look at Phase A: a saturated trim that draws the outlines, as region 3's violet and region 4's gold): light from above - COLPF1 the green trim (hue C, 90 degrees from the ally steel $88), $C8 on the track, $C6 at the guns, $C4 at their muzzles, the armour row's steel grey $04 (the locked bars stay grey); COLPF3 the olive-brown bulk on the track (row 0) and behind the gate's bars (row 4), red in rows 1-3 - the hazard stripes, the guns' lamps, the core's lower two thirds ($34, deep $32 at its foot; its top third is the amber - the core from orange to red). Three switches (rows 1, 3, 4). The b3 flash swaps amber $28 and the row's COLPF3 (Atari800 RGB distance 84-137).",
-    "colpf1": [200, 198, 198, 196, 4],
+    "_": "feat/boss-art (the owner's variant B and his drawing; colours as Atari800's PAL palette shows them, docs/plans/boss-art.md §3.4; the owner's look at Phase A: a saturated trim that draws the outlines, as region 3's violet and region 4's gold): light from above - COLPF1 the military olive-green trim (hue D, 118 degrees from the ally steel $88; the owner's look at 854d4d7: darker and less saturated than the first green, with the olive track), $D6 on the track, $D4 at the guns, $D2 at their muzzles, the armour row's steel grey $04 (the locked bars stay grey); COLPF3 the olive-brown bulk on the track (row 0) and behind the gate's bars (row 4), red in rows 1-3 - the hazard stripes, the guns' lamps, the core's lower two thirds ($34, deep $32 at its foot; its top third is the amber - the core from orange to red). Three switches (rows 1, 3, 4). The b3 flash swaps amber $28 and the row's COLPF3 (Atari800 RGB distance 84-137).",
+    "colpf1": [214, 212, 212, 210, 4],
     "colpf3": [226, 52, 52, 50, 226]
   },
   "motion": {
@@ -146,7 +146,7 @@
       "score": 80,
       "slot": 1,
       "cavityRows": 3,
-      "stages": "lens",
+      "stages": true,
       "bay": true,
       "cover": [
         "rail-l-1"
@@ -179,7 +179,7 @@
       "score": 80,
       "slot": 1,
       "cavityRows": 3,
-      "stages": "lens",
+      "stages": true,
       "bay": true,
       "cover": [
         "rail-r-1"

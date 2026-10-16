@@ -477,14 +477,18 @@ export function drawRegion2() {
   const extrasCells = decodePanels(extras, 15, 4, 8);
   extrasCells[3] = SOCKET;
   // The cannon's five panels (emitter.png): rest, heat A, heat B, cracked,
-  // broken - they differ in the lens cell only (the right cell's bottom row:
-  // the warning's heat, decision E2 - a glow of its own, not a piece of the
-  // cannon's lens, so a covered cannon's warning shows on its rail's end as a
-  // lamp with nothing of the cannon beside it; and the lens's damage stages).
+  // broken - the heat panels differ from the rest in the lens cell only (the
+  // right cell's bottom row: the warning's heat, decision E2 - a glow of its
+  // own, not a piece of the cannon's lens, so a covered cannon's warning
+  // shows on its rail's end as a lamp with nothing of the cannon beside it).
   const ARMOUR_ROW = Array(CELL_H).fill(".".repeat(R2.cannon.width * CELL_W));
   const lensCell = CANNON_OPEN.slice(16, 24).map((line) => line.slice(4, 8));
   const withLens = (cell) => CANNON_OPEN.map((line, y) => (y < 16 ? line : line.slice(0, 4) + cell[y - 16]));
-  const panels = [lensCell, ...HEAT, staged(lensCell, "cracked"), staged(lensCell, "broken")].map(withLens);
+  // The owner's look at 854d4d7: the cannon's damage shows on the whole
+  // cannon ("stages": true; the bay's armour row stays unstaged) - its
+  // cracked and broken panels are the cannon staged cell by cell.
+  const panels = [...[lensCell, ...HEAT].map(withLens),
+    stagedCells(CANNON_OPEN, "cracked"), stagedCells(CANNON_OPEN, "broken")];
   const panelCanvas = new Canvas(5 * 8, 32);
   panels.forEach((panel, i) => panelCanvas.draw([...panel, ...ARMOUR_ROW], i * 8, 0));
   const emitterPng = panelCanvas.png();

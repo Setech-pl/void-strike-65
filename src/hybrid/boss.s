@@ -1848,7 +1848,8 @@ LASER_NONE          = $FF
 LASER_BEAM_CLOCKS   = 4         ; quad width: one missile bit, four colour clocks
 LASER_LAST_LINE     = 239       ; the ring's last line
 ; src/main.s: MISSILES = PMG_BASE + $0300, PLAYER_LIVES = PLAYER_LIFECYCLE+$01,
-; PLAYER_ALIVE = 0, PLAYER_COLLISION_WIDTH = 8 (pinned by tests/boss-lasers.test.mjs).
+; PLAYER_ALIVE = 0, PLAYER_VISIBLE_WIDTH_HPOS = 16 (the beam meets the ship as
+; drawn: feat/boss-order-scale, the owner's decision of 2026-10-16; was 8).
 LASER_MISSILES      = $3B00
 ; B2: M1 / M2 wear COLPM1 / COLPM2 under gameplay's PRIOR (no Heavy in the
 ; boss sector; P1 / P2 stay free for S5's force field).
@@ -1862,7 +1863,7 @@ B2_COLUMN_BITS      = $28       ; M1's and M2's left bits: quad width, four cloc
 B2_CORE_LINE        = 3         ; the beam leaves the lens core: its cell's line 3
 LASER_PLAYER_LIVES  = PLAYER_LIFECYCLE + 1
 LASER_PLAYER_ALIVE  = 0
-LASER_PLAYER_WIDTH  = 8
+LASER_PLAYER_WIDTH  = 16        ; the ship as drawn: P0 double-width, all 8 bits on rows 5-8
 LASER_HEAT_FRAMES   = 4
 LASER_MAX_ON        = 2         ; S4b.1 (owner decision D3): lasers in a warning or a beam at once
 LASER_TONE_AUDF     = $18       ; + the warning's frames left: the pitch rises

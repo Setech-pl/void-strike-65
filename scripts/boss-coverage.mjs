@@ -20,9 +20,10 @@
 //     centre clock (x * 4 + width * 2) less 2, its HPOS edge - p + 32, shown
 //     while edge - p lies in 16..171, 4 clocks wide, for beamFrames frames;
 //   * the hit tests - main.s interceptor_projectile_hits_player: a shot at
-//     HPOS s hits the player at x when s - x is in -1..7
-//     (PLAYER_COLLISION_WIDTH 8, INTERCEPTOR_PROJECTILE_WIDTH_HPOS 2);
-//     boss.s laser_collide: a beam at HPOS h when h - x is in -3..7;
+//     HPOS s hits the player at x when s - x is in -1..15
+//     (PLAYER_VISIBLE_WIDTH_HPOS 16 - the ship as drawn, feat/boss-order-scale;
+//     INTERCEPTOR_PROJECTILE_WIDTH_HPOS 2);
+//     boss.s laser_collide: a beam at HPOS h when h - x is in -3..15;
 //   * the player - main.s read_input: x moves 2 at a time from
 //     PLAYER_RESPAWN_X 124 inside PLAYER_X_MIN 48 .. PLAYER_X_MAX 200, so
 //     every even x in 48..200 is reachable and no odd one is.
@@ -48,8 +49,8 @@ const SHOT_HPOS_MIN = 48;                 // GAMEPLAY_LEFT_HPOS
 const SHOT_HPOS_LIMIT = 48 + 40 * 4 - 1;  // the spawn's cmp: raw < 207
 const SHOT_SPEED = 2;                     // INTERCEPTOR_PROJECTILE_SPEED
 const BAND_ROWS = 8;
-const SHOT_HIT = Object.freeze({ low: -1, high: 7 });   // s - x
-const BEAM_HIT = Object.freeze({ low: -3, high: 7 });   // h - x
+const SHOT_HIT = Object.freeze({ low: -1, high: 15 });  // s - x
+const BEAM_HIT = Object.freeze({ low: -3, high: 15 });  // h - x
 const BEAM_EDGE_MIN = 48 - BAND_ORIGIN_HPOS;
 const BEAM_EDGE_LIMIT = 48 + 40 * 4 - BAND_ORIGIN_HPOS - 4;
 export const DIFFICULTIES = Object.freeze(["easy", "medium", "hard"]);

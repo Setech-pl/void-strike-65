@@ -60,13 +60,14 @@ test("region 1's layout with the finale (the copies' S5-2 composition): no safe 
 // fight's retune once the Interceptor stopped dying on the fighter.
 // RE-PINNED feat/boss-order-scale (the owner's decision AX 6: the Breaker's
 // hit points about 73 %, the curve's first step, MEDIUM about 92 s): every
-// module x 0.73, rounded - the guns 12 -> 9, the twin cannons 20 -> 15.
-test("region 1: every gun at 9 hit points (main 28, boss-r1-tuning 14, interceptor-standoff 12), the cannons at 15", () => {
+// module x 0.70 of main, rounded (0.73 measured 95 s on MEDIUM, the Citadel's
+// first level no longer above it) - the guns 12 -> 8, the twin cannons 20 -> 14.
+test("region 1: every gun at 8 hit points (main 28, boss-r1-tuning 14, interceptor-standoff 12), the cannons at 14", () => {
   const guns = draft.layout.modules.filter((module) => module.kind === "pulse" || module.kind === "salvo");
   assert.ok(guns.length >= 6, `${guns.length} guns; the far-end pair is missing`);
-  assert.deepEqual(guns.filter((gun) => gun.hp !== 9).map((gun) => `${gun.name}: ${gun.hp}`), []);
+  assert.deepEqual(guns.filter((gun) => gun.hp !== 8).map((gun) => `${gun.name}: ${gun.hp}`), []);
   const emitter = draft.layout.modules.find((module) => module.kind === "emitter");
-  assert.equal(emitter.hp, 15);
+  assert.equal(emitter.hp, 14);
 });
 
 test("region 1: a gun stands at each far end of the boss (left of column 16, right of column 48)", () => {
@@ -139,9 +140,9 @@ test("variant B: level 1's boss sector authors one Interceptor escort wave under
 // RE-POINTED feat/boss-r1-twin-lasers (owner answer 3 of 2026-10-13): the
 // fight trimmed by plate hit points after the band rework, to MEDIUM about
 // 110 s by the aiming bot - a, b, c, g, h 12 -> 8; d, e 16 -> 10; f 8 -> 6.
-// RE-PINNED feat/boss-order-scale (decision AX 6, x 0.73 rounded): a, b, c, g,
+// RE-PINNED feat/boss-order-scale (decision AX 6, x 0.70 rounded): a, b, c, g,
 // h 8 -> 6; d, e 10 -> 7; f 6 -> 4.
-test("the twin-laser retune, then the curve's x 0.73: plates a, b, c, g and h at 6, d and e at 7, f at 4", () => {
+test("the twin-laser retune, then the curve's x 0.70: plates a, b, c, g and h at 6, d and e at 7, f at 4", () => {
   const plates = Object.fromEntries(draft.layout.modules.filter((module) => module.kind === "armour")
     .map((module) => [module.name, module.hp]));
   assert.deepEqual(plates, { "plate-a": 6, "plate-b": 6, "plate-c": 6, "plate-d": 7, "plate-e": 7,

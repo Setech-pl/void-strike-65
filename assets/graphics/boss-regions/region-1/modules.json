@@ -101,7 +101,7 @@
       "row": 1,
       "width": 3,
       "height": 2,
-      "hp": 9,
+      "hp": 8,
       "score": 50,
       "reload": 55,
       "cavityRows": 2
@@ -113,7 +113,7 @@
       "row": 2,
       "width": 3,
       "height": 2,
-      "hp": 9,
+      "hp": 8,
       "score": 50,
       "reload": 90,
       "cavityRows": 2
@@ -126,7 +126,7 @@
       "row": 1,
       "width": 3,
       "height": 3,
-      "hp": 15,
+      "hp": 14,
       "score": 60,
       "slot": 1,
       "cavityRows": 3,
@@ -140,7 +140,7 @@
       "row": 1,
       "width": 3,
       "height": 3,
-      "hp": 15,
+      "hp": 14,
       "score": 60,
       "slot": 1,
       "cavityRows": 3,
@@ -153,7 +153,7 @@
       "row": 1,
       "width": 3,
       "height": 2,
-      "hp": 9,
+      "hp": 8,
       "score": 50,
       "reload": 60,
       "cavityRows": 2
@@ -165,7 +165,7 @@
       "row": 2,
       "width": 3,
       "height": 2,
-      "hp": 9,
+      "hp": 8,
       "score": 50,
       "reload": 65,
       "cavityRows": 2
@@ -178,7 +178,7 @@
       "row": 1,
       "width": 3,
       "height": 2,
-      "hp": 9,
+      "hp": 8,
       "score": 50,
       "reload": 60,
       "cavityRows": 2
@@ -191,7 +191,7 @@
       "row": 1,
       "width": 3,
       "height": 2,
-      "hp": 9,
+      "hp": 8,
       "score": 50,
       "reload": 60,
       "cavityRows": 2

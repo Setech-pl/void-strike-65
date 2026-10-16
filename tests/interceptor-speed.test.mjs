@@ -100,7 +100,7 @@ test("region 4's boss is about a fifth lighter (the fight's data lever, owner an
   const layout = JSON.parse(fs.readFileSync(path.join(root, "assets", "graphics", "boss-regions", "region-4",
     "modules.json"), "utf8"));
   const hp = Object.fromEntries(layout.modules.map(({ name, hp: points }) => [name, points]));
-  assert.deepEqual(hp, { "spire-l": 11, "spire-r": 11, core: 27, "core-lens": 25, "cannon-l": 16, "cannon-r": 16,
+  assert.deepEqual(hp, { "spire-l": 12, "spire-r": 12, core: 29, "core-lens": 27, "cannon-l": 16, "cannon-r": 16,
     "gun-1": 11, "gun-5": 11, "gun-2": 11, "gun-3": 11, "gun-6": 11, "gun-4": 11,
-    "plate-a": 10, "plate-b": 10, "plate-d": 10, "plate-e": 10 });
+    "plate-a": 11, "plate-b": 11, "plate-d": 11, "plate-e": 11 });
 });

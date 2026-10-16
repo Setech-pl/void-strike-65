@@ -55,18 +55,18 @@
     "framesPerPhase": 6
   },
   "modules": [
-    { "name": "gen-l", "kind": "armour", "x": 11, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 50, "cavityRows": 3 },
-    { "name": "gen-r", "kind": "armour", "x": 49, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 50, "cavityRows": 3 },
-    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 60 },
-    { "name": "gun-2", "kind": "pulse", "x": 24, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 70 },
-    { "name": "gun-3", "kind": "pulse", "x": 37, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 75 },
-    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 2, "width": 2, "height": 2, "hp": 10, "score": 50, "reload": 60 },
-    { "name": "emitter-1", "kind": "emitter", "x": 30, "row": 2, "width": 3, "height": 3, "hp": 18, "score": 80, "slot": 1, "cavityRows": 2, "stages": "lens" },
-    { "name": "emitter-2", "kind": "emitter", "x": 19, "row": 1, "width": 3, "height": 3, "hp": 16, "score": 60, "slot": 2, "stages": "lens" },
-    { "name": "emitter-3", "kind": "emitter", "x": 41, "row": 1, "width": 3, "height": 3, "hp": 16, "score": 60, "slot": 3, "stages": "lens" },
-    { "name": "plate-a", "kind": "armour", "x": 18, "row": 4, "width": 5, "height": 2, "hp": 8, "score": 20 },
-    { "name": "plate-b", "kind": "armour", "x": 23, "row": 4, "width": 4, "height": 2, "hp": 8, "score": 20 },
-    { "name": "plate-c", "kind": "armour", "x": 36, "row": 4, "width": 4, "height": 2, "hp": 8, "score": 20 },
-    { "name": "plate-d", "kind": "armour", "x": 40, "row": 4, "width": 5, "height": 2, "hp": 8, "score": 20 }
+    { "name": "gen-l", "kind": "armour", "x": 11, "row": 1, "width": 3, "height": 3, "hp": 13, "score": 50, "cavityRows": 3 },
+    { "name": "gen-r", "kind": "armour", "x": 49, "row": 1, "width": 3, "height": 3, "hp": 13, "score": 50, "cavityRows": 3 },
+    { "name": "gun-1", "kind": "pulse", "x": 15, "row": 2, "width": 2, "height": 2, "hp": 9, "score": 50, "reload": 51 },
+    { "name": "gun-2", "kind": "pulse", "x": 24, "row": 2, "width": 2, "height": 2, "hp": 9, "score": 50, "reload": 60 },
+    { "name": "gun-3", "kind": "pulse", "x": 37, "row": 2, "width": 2, "height": 2, "hp": 9, "score": 50, "reload": 64 },
+    { "name": "gun-4", "kind": "pulse", "x": 46, "row": 2, "width": 2, "height": 2, "hp": 9, "score": 50, "reload": 51 },
+    { "name": "emitter-1", "kind": "emitter", "x": 30, "row": 2, "width": 3, "height": 3, "hp": 16, "score": 80, "slot": 1, "cavityRows": 2, "stages": "lens" },
+    { "name": "emitter-2", "kind": "emitter", "x": 19, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 60, "slot": 2, "stages": "lens" },
+    { "name": "emitter-3", "kind": "emitter", "x": 41, "row": 1, "width": 3, "height": 3, "hp": 14, "score": 60, "slot": 3, "stages": "lens" },
+    { "name": "plate-a", "kind": "armour", "x": 18, "row": 4, "width": 5, "height": 2, "hp": 7, "score": 20 },
+    { "name": "plate-b", "kind": "armour", "x": 23, "row": 4, "width": 4, "height": 2, "hp": 7, "score": 20 },
+    { "name": "plate-c", "kind": "armour", "x": 36, "row": 4, "width": 4, "height": 2, "hp": 7, "score": 20 },
+    { "name": "plate-d", "kind": "armour", "x": 40, "row": 4, "width": 5, "height": 2, "hp": 7, "score": 20 }
   ]
 }

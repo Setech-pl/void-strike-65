@@ -1,5 +1,15 @@
 {
-  "description": "Phase A proposal (docs/plans/boss-order-scale.md): Blockade Breaker -> Void Citadel -> Siege Spine -> Bastion. MEDIUM targets 92 / 102 / 112 / 122 s; each boss's module hit points scaled from its measured fight at the tiers its region plays (feat/boss-order-scale tier runs).",
-  "order": [1, 4, 3, 2],
-  "hpPercent": { "1": 75, "4": 105, "3": 90, "2": 112 }
+  "description": "Phase A proposal (docs/plans/boss-order-scale.md): Blockade Breaker -> Void Citadel -> Siege Spine -> Bastion. MEDIUM targets 92 / 102 / 112 / 122 s; each boss's module hit points scaled from its measured fight at the tiers its region plays (feat/boss-order-scale tier runs). v2: re-scaled after the first measurement (v1 R1 75 / R4 105 / R3 90 / R2 112 gave MEDIUM 102.5 / 90-100 / 110-120 / 132 s).",
+  "order": [
+    1,
+    4,
+    3,
+    2
+  ],
+  "hpPercent": {
+    "1": 67,
+    "4": 110,
+    "3": 90,
+    "2": 100
+  }
 }

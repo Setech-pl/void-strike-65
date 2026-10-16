@@ -6,7 +6,8 @@
 // cannons independent, two beams) from a build's disk, so region 2's block -
 // its rails' code - is read into slot F as the game reads it.
 //
-//   node scripts/measure-boss-stress-r2.mjs [--level=4|5]     (on the default build;
+//   node scripts/measure-boss-stress-r2.mjs [--level=N]     (on the default build;
+//   feat/boss-order-scale: the Bastion's first level by default - 10, region 4;
 //   tests/boss-region-2.test.mjs gates it)
 //
 // The cases: the rails at every pair of positions (each reached through the
@@ -27,9 +28,9 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { bandDliSwitches, call, label, manifest, nmi, placeBand, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
+import { bandDliSwitches, bossLevel, call, label, manifest, nmi, placeBand, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
 
-export function regionTwoStress({ level = 4, maxMeetings = 3 } = {}) {
+export function regionTwoStress({ level = bossLevel(2), maxMeetings = 3 } = {}) {
   const lbl = (name) => label("boss", name);
   const main = (name) => label("main", name);
   const entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = level; } });
@@ -265,7 +266,7 @@ export function regionTwoStress({ level = 4, maxMeetings = 3 } = {}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const level = Number(process.argv.find((a) => a.startsWith("--level="))?.slice(8) ?? 4);
+  const level = Number(process.argv.find((a) => a.startsWith("--level="))?.slice(8) ?? bossLevel(2));
   const { cases, describe, worstOf } = regionTwoStress({ level });
   console.log(`# region 2, level ${level}: ${cases.length} cases`);
   for (const laserMode of ["warn", "beam"]) {

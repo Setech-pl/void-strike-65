@@ -3871,9 +3871,15 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				for (laser = 0u; laser < 4u; ++laser) {
 					unsigned state = MEMORY_mem[dftrace_laser_state + laser];
 					int dx = (int) MEMORY_mem[dftrace_laser_hpos + laser] - 6 - (int) x;
+					/* At a limit (48 / 200) it holds unless the beam is over
+					 * the drawn ship - then crossing it is the only way out
+					 * (decision AW: turning round at the wall walked it into
+					 * a beam 17 HPOS away, MEASURED). */
+					int over = dx >= -9 && dx <= 9;
 					if ((state == 1u || state == 2u) &&
 						MEMORY_mem[dftrace_laser_hpos + laser] != 0u && dx > -20 && dx < 20)
-						stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
+						stick = dx >= 0 ? (x > 48u ? 0x0bu : over ? 0x07u : 0x0fu) :
+							(x < 200u ? 0x07u : over ? 0x0bu : 0x0fu);
 				}
 			}
 		}
@@ -4030,9 +4036,11 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			for (beam = 0u; beam < 4u; ++beam) {
 				unsigned state = MEMORY_mem[dftrace_laser_state + beam];
 				int dx = (int) MEMORY_mem[dftrace_laser_hpos + beam] - 6 - (int) x;
+				int over = dx >= -9 && dx <= 9;     /* the beam over the drawn ship */
 				if ((state == 1u || state == 2u) &&
 					MEMORY_mem[dftrace_laser_hpos + beam] != 0u && dx > -20 && dx < 20)
-					stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
+					stick = dx >= 0 ? (x > 48u ? 0x0bu : over ? 0x07u : 0x0fu) :
+						(x < 200u ? 0x07u : over ? 0x0bu : 0x0fu);
 			}
 		}
 	}

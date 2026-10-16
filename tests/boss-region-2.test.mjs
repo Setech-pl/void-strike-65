@@ -680,10 +680,12 @@ test("the lasers per level (decision AC): one beam on level 4, two on levels 5-6
 // The model of the hits (scripts/boss-coverage.mjs): a pulse shot from band
 // column c lands at HPOS 4c + 33 - p, even, and hits the player at x when
 // s - x is in -1..7; a beam's left clock 32 + (x * 4 + width * 2) - 2 - p hits
-// when h - x is in -3..7; a player's shot meets column (x + 8 - 32 + p) / 4.
-const shotHits = (c, x) => { const s = (4 * c + 33 - STILL) & ~1; return s - x >= -1 && s - x <= 7; };
+// when h - x is in -3..15 (RE-POINTED feat/boss-order-scale, decision AW: the
+// drawn ship x .. x + 15; -3..7 and -1..7 were the legacy 8-HPOS box); a
+// player's shot meets column (x + 8 - 32 + p) / 4.
+const shotHits = (c, x) => { const s = (4 * c + 33 - STILL) & ~1; return s - x >= -1 && s - x <= 15; };
 const beamEdge = (m) => 32 + (m.x * 4 + m.width * 2) - 2 - STILL;
-const inBeam = (m, x) => beamEdge(m) - x >= -3 && beamEdge(m) - x <= 7;
+const inBeam = (m, x) => beamEdge(m) - x >= -3 && beamEdge(m) - x <= 15;
 const shooterOf = (x) => Math.floor((x + 8 - 32 + STILL) / 4);
 const PLAYER_X = [...Array(77).keys()].map((i) => 48 + 2 * i);
 
@@ -696,9 +698,12 @@ test("fairness: no refuge in reach of the core - its volley meets every position
   const reach = PLAYER_X.filter((x) => hittable.includes(shooterOf(x)));
   assert.deepEqual(reach, [116, 118, 120, 122], "the core's reach once its flank is armoured");
   for (const x of reach) assert.ok(volley.some((c) => shotHits(c, x)), `x ${x}: a refuge from the core's volley`);
-  // The armoured flank is the one column whose left shooter the volley misses.
+  // The armoured flank's shooters. RE-PINNED feat/boss-order-scale (decision
+  // AW): on the drawn ship the volley meets both (the legacy 8-HPOS box let
+  // the left one, x 112, through) - stricter, still no refuge; the flank's
+  // armour still stops their shots.
   const flank = PLAYER_X.filter((x) => shooterOf(x) === region2.hangar.jamb);
-  assert.deepEqual(flank.map((x) => volley.some((c) => shotHits(c, x))), [false, true], `the flank's shooters ${flank}`);
+  assert.deepEqual(flank.map((x) => volley.some((c) => shotHits(c, x))), [true, true], `the flank's shooters ${flank}`);
   // The doors' phase: the core is covered by the doors (it cannot fire through
   // them - the converter's fire-column rule), so the doors' reach is the
   // escort's, which the doors launch.

@@ -277,11 +277,12 @@ test("the signals: the core pulses every 16 frames and the column shows exactly 
 
 test("owner answer 4: the axis is danger - the pull's rest x is inside the axis beam's hit window", () => {
   assert.ok(hasWell, "the boss link has no gravity well (region 4's block code)");
-  // laser_collide: a hit when edge - x is in -3 .. 7 (edge: the beam's left
+  // laser_collide: a hit when edge - x is in -3 .. 15 since decision AW (the
+  // drawn ship; -3 .. 7 before) (edge: the beam's left
   // clock, 4 wide). At every band position the pull's target is inside it.
   for (let p = 0; p <= 63; p += 1) {
     const edge = AXIS - 2 - p, t = AXIS - 4 - p;
-    for (const x of [t - 1, t, t + 1]) assert.ok(edge - x >= -3 && edge - x <= 7, `p ${p}: target ${x}, edge ${edge}`);
+    for (const x of [t - 1, t, t + 1]) assert.ok(edge - x >= -3 && edge - x <= 15, `p ${p}: target ${x}, edge ${edge}`);
   }
   // And the ship the well brings to rest (the band held) is inside it.
   const memory = citadel();
@@ -289,7 +290,7 @@ test("owner answer 4: the axis is danger - the pull's rest x is inside the axis 
   for (let f = 0; f < 240; f += 1) frame(memory, { holdBand: true });
   const edge = AXIS - 2 - memory[lbl("boss_shown_pos")];
   const x = memory[X()];
-  assert.ok(edge - x >= -3 && edge - x <= 7, `rest x ${x}, beam edge ${edge}: no refuge on the axis`);
+  assert.ok(edge - x >= -3 && edge - x <= 15, `rest x ${x}, beam edge ${edge}: no refuge on the axis`);
 });
 
 test("the axis beam fires while the well is on, and the core's lens takes no damage while a spire stands", () => {
@@ -330,19 +331,22 @@ test("fairness: leaving the axis beam's window against the pull leaves >= 10 war
     for (const p of [region4.tables[BOSS_TABLE.start]]) {
       for (const dir of [0]) {
         for (let phase = 0; phase < region4.gravity.framesPerStep; phase += 1) {
-          for (let k = -7; k <= 3; k += 1) {
+          // RE-POINTED feat/boss-order-scale (decision AW): every start
+          // inside the beam on the drawn ship, edge - x in -3 .. 15 (k -15..3;
+          // it was -3 .. 7, the legacy 8-HPOS box, k -7..3).
+          for (let k = -15; k <= 3; k += 1) {
             const memory = citadel({ difficulty: d, p });
             memory[lbl("boss_dir")] = dir;
             memory[lbl("gravity_timer")] = phase + 1;
             const edge0 = AXIS - 2 - memory[lbl("boss_shown_pos")];
             const x0 = (edge0 - k) & ~1;
-            if (edge0 - x0 < -3 || edge0 - x0 > 7) continue;
+            if (edge0 - x0 < -3 || edge0 - x0 > 15) continue;
             memory[X()] = x0;
             const away = x0 >= target(memory) ? 2 : -2;      // against the pull
             let frames = 0;
             for (; frames < 60; frames += 1) {
               const edge = AXIS - 2 - memory[lbl("boss_shown_pos")];
-              if (edge - memory[X()] < -3 || edge - memory[X()] > 7) break;
+              if (edge - memory[X()] < -3 || edge - memory[X()] > 15) break;
               memory[X()] = Math.min(200, Math.max(48, memory[X()] + away));
               frame(memory);
             }

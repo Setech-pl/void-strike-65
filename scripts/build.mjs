@@ -337,6 +337,26 @@ const laserTierValue = laserTierSlug === undefined ? null : Number(laserTierSlug
 if (laserTierValue !== null && laserFixtureTier !== null) {
   throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
 }
+// feat/boss-order-scale (Phase A, docs/plans/boss-order-scale.md): which boss
+// ends which region is data - assets/graphics/boss-regions/order.json,
+// {"order": [A, B, C, D]}: region k (levels 3k-2 .. 3k) shows the boss drawn in
+// boss-regions/region-<order[k-1]>/ (absent: 1, 2, 3, 4). The runtime still
+// picks region min(3, (id - 1) / 3); the build puts the boss's data, and its
+// block code (the rails, the field, the well), in that region's runs.
+// --boss-order=ABCD overrides it for a review build:
+// build/boss-order-ABCD[-...]/, never dist/.
+const bossOrderArgument = process.argv.find((argument) => argument.startsWith("--boss-order="));
+const bossOrderSlug = bossOrderArgument?.slice("--boss-order=".length);
+if (bossOrderSlug !== undefined && (!/^[1-4]{4}$/.test(bossOrderSlug) ||
+    [...bossOrderSlug].sort().join("") !== "1234")) {
+  throw new Error(`Unknown boss order ${bossOrderSlug}; it is a permutation of 1234`);
+}
+const bossOrderFile = path.join(rootDirectory, "assets", "graphics", "boss-regions", "order.json");
+const bossOrder = bossOrderSlug !== undefined ? [...bossOrderSlug].map(Number)
+  : fs.existsSync(bossOrderFile) ? JSON.parse(fs.readFileSync(bossOrderFile, "utf8")).order : [1, 2, 3, 4];
+if (!Array.isArray(bossOrder) || [...bossOrder].sort().join(",") !== "1,2,3,4") {
+  throw new Error(`${path.relative(rootDirectory, bossOrderFile)}: "order" must be a permutation of 1, 2, 3, 4`);
+}
 // S5-1 (plan docs/plans/s5-boss-regions.md §5): --boss-region=N (2-4) enters
 // region N's boss on level 1's route. Regions 2-4 have no level data yet, so
 // the debug route's level run becomes the region's first level (4 / 7 / 10)
@@ -394,7 +414,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  laserTierValue !== null || bossVariantSlug !== undefined;
+  laserTierValue !== null || bossOrderSlug !== undefined || bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -410,7 +430,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
 const levelDebugSuffix = levelDebugId === null
   ? "" : `${bossRegionValue === null ? "" : `-boss-region-${bossRegionValue}`}` +
     `-level-${levelDebugId}-s${levelDebugSector}`;
-const variantDirectoryName = escortVariantId !== null
+const variantDirectoryNameInner = (escortVariantId !== null
   ? `escort-variant-${escortVariantId}${levelDebugSuffix}`
   : bossVariantSlug !== undefined
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
@@ -440,7 +460,10 @@ const variantDirectoryName = escortVariantId !== null
                 ? levelDebugSuffix.slice(1)
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
-                  : null;
+                  : null);
+const variantDirectoryName = bossOrderSlug === undefined ? variantDirectoryNameInner
+  : variantDirectoryNameInner === null ? `boss-order-${bossOrderSlug}`
+  : `boss-order-${bossOrderSlug}-${variantDirectoryNameInner}`;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1921,13 +1944,24 @@ async function build() {
   // code in its block (slot F) - in every build. No region is region 1's copy
   // any more; placeholders.json stays the format for a region without a
   // directory (none today).
-  const bossRegions = [1, 2, 3, 4].map((region) => (region === 1 ? regionOne
-    : fs.existsSync(path.join(bossRegionDirectory(rootDirectory, region), "modules.json"))
-      ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, region)))
-      : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(region)]))));
-  const bossGravity = bossRegions[3].gravity;
-  const bossRail = bossRegions[1].rails;
-  const bossField = bossRegions[2].field;
+  // feat/boss-order-scale: region k shows the boss drawn in
+  // boss-regions/region-<bossOrder[k-1]>/ (order.json); the block code goes
+  // with its boss - the slots below are wherever the order put it.
+  const bossRegions = bossOrder.map((source) => (source === 1 ? regionOne
+    : fs.existsSync(path.join(bossRegionDirectory(rootDirectory, source), "modules.json"))
+      ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, source)))
+      : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(source)]))));
+  const slotOf = (feature) => {
+    const slots = bossRegions.flatMap((region, slot) => (region[feature] ? [slot] : []));
+    if (slots.length > 1) throw new Error(`boss order: ${slots.length} regions carry ${feature}; slot F holds one`);
+    return slots[0] ?? null;
+  };
+  const bossGravitySlot = slotOf("gravity");
+  const bossRailSlot = slotOf("rails");
+  const bossFieldSlot = slotOf("field");
+  const bossGravity = bossGravitySlot === null ? null : bossRegions[bossGravitySlot].gravity;
+  const bossRail = bossRailSlot === null ? null : bossRegions[bossRailSlot].rails;
+  const bossField = bossFieldSlot === null ? null : bossRegions[bossFieldSlot].field;
   // feat/boss-r1-twin-lasers (owner decision, variant A): slot D carries the
   // twin cannons' turn-taking when a region on the disk has them (region 1;
   // S5-5: region 2's cannons, independent from tier 2 - BOSS_RAIL).
@@ -3026,8 +3060,8 @@ async function build() {
       `$${(BOSS_SLOT_F_ADDRESS + bossFieldOffset).toString(16).toUpperCase()}, ` +
       `size = $${(BOSS_SLOT_F_BYTES - bossFieldOffset).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
     .replace(/\n}\s*\nSEGMENTS/, `\n    BOSS_SLOT_RD_RAM: start = ` +
-      `$${(BOSS_SLOT_F_ADDRESS + bossRegions[1].lookTail.length).toString(16).toUpperCase()}, ` +
-      `size = $${(bossFieldOffset - bossRegions[1].lookTail.length).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
+      `$${(BOSS_SLOT_F_ADDRESS + bossRegions[bossRailSlot].lookTail.length).toString(16).toUpperCase()}, ` +
+      `size = $${(bossFieldOffset - bossRegions[bossRailSlot].lookTail.length).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
     .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    BOSS_R_CODE:   load = BOSS_SLOT_R_RAM,  type = rw, define = yes;\n` +
       `    BOSS_R_DATA:   load = BOSS_SLOT_RD_RAM, type = rw, define = yes;\n`);
   // S5-5: the rails' constants for the boss link (region 2's rail block):
@@ -3035,7 +3069,7 @@ async function build() {
   // and core, the Director's escort clock (src/c/director.c STATE_SPACING,
   // read here so the address cannot drift), the tables' address.
   const bossRailInclude = bossRail === null ? null : (() => {
-    const region = bossRegions[1];
+    const region = bossRegions[bossRailSlot];
     const hangar = region.hangar;
     if (hangar === null) throw new Error("S5-5: region 2's rails need its hangar block");
     const directorSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"), "utf8");
@@ -3123,7 +3157,7 @@ async function build() {
   // shown rows (the column starts under them), the input's limits (src/main.s)
   // for the link's assertions.
   const bossGravityInclude = bossGravity === null ? null : (() => {
-    const region = bossRegions[3];
+    const region = bossRegions[bossGravitySlot];
     const mainSource = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
     const limit = (name) => Number(new RegExp(`^${name} = (\\d+)`, "m").exec(mainSource)[1]);
     const axis = 32 + 4 * bossGravity.axisColumn + 2;
@@ -3148,7 +3182,7 @@ async function build() {
   // S5-3: the field's constants and tables for the boss link (a field build
   // only): region 3's field, its halves' generators, both phases' bytes.
   const bossFieldInclude = bossField === null ? null : (() => {
-    const region = bossRegions[2];
+    const region = bossRegions[bossFieldSlot];
     const hex = (value) => `$${value.toString(16).toUpperCase().padStart(2, "0")}`;
     const generator = (index) => region.modules[index];
     const halves = bossField.halves.map((half) => {
@@ -3276,14 +3310,14 @@ async function build() {
     if (bossLink.labels.get("field_hooks") !== BOSS_SLOT_F_ADDRESS + bossFieldOffset) {
       throw new Error("S5-3: the field's hooks are not at BOSS_F_HOOK");
     }
-    const region = bossRegions[2];
+    const region = bossRegions[bossFieldSlot];
     const blockBytes = bossFieldOffset + bossFieldCode.length;
     if (blockBytes > BOSS_SLOT_F_BYTES) throw new Error(`S5-3: region 3's block is ${blockBytes} B; slot F has ${BOSS_SLOT_F_BYTES}`);
     const sectors = Math.ceil(blockBytes / 128);
     const data = new Uint8Array(sectors * 128);
     data.set(region.lookTail, 0);
     data.set(bossFieldCode, bossFieldOffset);
-    bossRegions[2] = { ...region, fieldCodeBytes: bossFieldCode.length,
+    bossRegions[bossFieldSlot] = { ...region, fieldCodeBytes: bossFieldCode.length,
       runs: { ...region.runs, block: { address: BOSS_SLOT_F_ADDRESS, sectors, data } } };
   }
   // S5-4: a gravity build's code joins region 4's block after its look tail.
@@ -3294,7 +3328,7 @@ async function build() {
     if (bossLink.labels.get("gravity_hooks") !== BOSS_SLOT_F_ADDRESS + bossFieldOffset) {
       throw new Error("S5-4: the well's hooks are not at BOSS_F_HOOK");
     }
-    const region = bossRegions[3];
+    const region = bossRegions[bossGravitySlot];
     if (region.lookTail.length > bossFieldOffset) throw new Error("S5-4: region 4's look tail overruns BOSS_F_HOOK");
     const blockBytes = bossFieldOffset + gravityCode.length;
     if (blockBytes > BOSS_SLOT_F_BYTES) throw new Error(`S5-4: region 4's block is ${blockBytes} B; slot F has ${BOSS_SLOT_F_BYTES}`);
@@ -3302,12 +3336,13 @@ async function build() {
     const data = new Uint8Array(sectors * 128);
     data.set(region.lookTail, 0);
     data.set(gravityCode, bossFieldOffset);
-    bossRegions[3] = { ...region, gravityCodeBytes: gravityCode.length,
+    bossRegions[bossGravitySlot] = { ...region, gravityCodeBytes: gravityCode.length,
       runs: { ...region.runs, block: { address: BOSS_SLOT_F_ADDRESS, sectors, data } } };
   }
   // S5-5: a rail build's code joins region 2's block after its look tail.
   if (bossRailInclude !== null) {
-    const from = bossFixedImageBytes + (bossFieldCode?.length ?? 0) + (bossRegions[3].gravityCodeBytes ?? 0);
+    const from = bossFixedImageBytes + (bossFieldCode?.length ?? 0) +
+      (bossGravitySlot === null ? 0 : bossRegions[bossGravitySlot].gravityCodeBytes ?? 0);
     const railCodeBytes = bossLink.labels.get("__BOSS_R_CODE_SIZE__");
     const railDataBytes = bossLink.labels.get("__BOSS_R_DATA_SIZE__");
     const image = Buffer.from(bossLink.linked.outputs[`${bossBase}.bin`]);
@@ -3318,7 +3353,7 @@ async function build() {
     if (bossLink.labels.get("rail_hooks") !== BOSS_SLOT_F_ADDRESS + bossFieldOffset) {
       throw new Error("S5-5: the rails' hooks are not at BOSS_F_HOOK");
     }
-    const region = bossRegions[1];
+    const region = bossRegions[bossRailSlot];
     if (region.lookTail.length > bossFieldOffset) throw new Error("S5-5: region 2's look tail overruns BOSS_F_HOOK");
     const blockBytes = bossFieldOffset + railCode.length;
     if (blockBytes > BOSS_SLOT_F_BYTES) throw new Error(`S5-5: region 2's block is ${blockBytes} B; slot F has ${BOSS_SLOT_F_BYTES}`);
@@ -3327,7 +3362,7 @@ async function build() {
     data.set(region.lookTail, 0);
     data.set(railData, region.lookTail.length);
     data.set(railCode, bossFieldOffset);
-    bossRegions[1] = { ...region, railCodeBytes: railCode.length, railDataBytes: railData.length,
+    bossRegions[bossRailSlot] = { ...region, railCodeBytes: railCode.length, railDataBytes: railData.length,
       runs: { ...region.runs, block: { address: BOSS_SLOT_F_ADDRESS, sectors, data } } };
   }
   const bossSlotCCodeBytes = bossLink.labels.get("__BOSS_C_BSS_RUN__") - BOSS_SLOT_C_ADDRESS;
@@ -3407,8 +3442,9 @@ async function build() {
   const slotABytes = capitalSlotImage.length;
   const installBytes = bossInstallSectors * 128;
   if (bossImage.length !== bossFixedImageBytes + (bossFieldCode?.length ?? 0) +
-    (bossRegions[3].gravityCodeBytes ?? 0) +
-    (bossRegions[1].railCodeBytes ?? 0) + (bossRegions[1].railDataBytes ?? 0) ||
+    (bossGravitySlot === null ? 0 : bossRegions[bossGravitySlot].gravityCodeBytes ?? 0) +
+    (bossRailSlot === null ? 0 : (bossRegions[bossRailSlot].railCodeBytes ?? 0) +
+      (bossRegions[bossRailSlot].railDataBytes ?? 0)) ||
     bossLabels.get("boss_entry_cold") !== BOSS_ENTRY_COLD_ADDRESS ||
     !(bossSlotEUsed > 0 && bossSlotEUsed <= BOSS_SLOT_E_BYTES) || bossSlotESectors > bossSlotEMaxSectors ||
     bossSlotESector + bossSlotEMaxSectors > bossReservationSector + bossReservationSectors ||
@@ -4337,7 +4373,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
+      laserTierValue !== null || bossOrderSlug !== undefined || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4717,6 +4753,7 @@ async function build() {
         sectors: bossSlotESectors },
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
+      order: bossOrder,
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1],

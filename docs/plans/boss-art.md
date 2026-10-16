@@ -259,3 +259,67 @@ recommended look = B everywhere):
    leave 16-20 frames under 280 for the banner task.
 5. **A second charset** (§3.5): not needed now; if a later look needs it, it
    needs a resident restore — an owner decision.
+
+## 9. The owner's look at Phase A (decision AV, 2026-10-16) and the corrections
+
+The owner's choices: B for R1, R2 and R4 (R4 with 2 switches, to keep about
+342 native cycles for M6); **R3 exactly as today**; R1 rust, R4 gold; R2
+redrawn closer to R3's recipe; the boss entry's standing limit is now **300
+host frames** (decision **AV** pt 5, replacing 280 from **AM**; the gates move in
+Phase B).
+
+### 9.1 What changed (`b13ed43` and this commit)
+
+* **R3** — `region-3/modules.json` is main's again: no row palette, the data
+  byte-identical to main's (every run compared), no frame hook, no B cycles.
+* **R4** — the violet bulk's step `$64 → $62` moved from row 2 to row 3:
+  switches at rows 1 and 3 (2, was 3); the gold trim unchanged.
+* **R2** — the trim is now a saturated green (`$C8` on the track, `$C6` at the
+  guns, `$C4` at their muzzles; hue C, 90° from the ally steel `$88`) drawing
+  every outline and shadow edge; the armour row's COLPF1 steel grey `$04`, so
+  the locked bars stay grey. The laser cannons are one armoured turret (a
+  chamfered body with one armour plate, a collar, the barrel down columns 2-5
+  lit on the left, the muzzle at the foot); locked, plain light steel; open,
+  the plate and the muzzle amber. The rail pods carry a 6-pixel amber visor in
+  a trim frame, a 2×2 red lamp set in lit steel, a lit top and left edge, the
+  trim shadow on the right, an amber muzzle. Kept: the dome, the core (amber
+  top, red below), the hazard-striped rail ends, the olive track. 3 switches
+  (rows 1, 3, 4; was 4). 89 codes, 6 charset sectors.
+* Mechanics: `boss-art-mechanics.mjs` identical to main in all four regions;
+  rules (`boss-art-rules.mjs`): every row's flash pair ≥ 84, every colour
+  ≥ 68° from the ally steel (R2's green 90°).
+
+### 9.2 Measurements (M, candidate and route builds at `b13ed43`'s art)
+
+Stress = the harness's worst reachable frame (it counts the band DLI's phase 0
+with the frame hook) + the switch DLIs (`measure-boss-row-dli.mjs`: hook 35,
+a switch 54, the last 65). M6 headroom = 8,500 − worst reachable.
+
+| | R1 | R2 | R3 | R4 |
+| --- | --- | --- | --- | --- |
+| row switches (Phase A → now) | 2 → 2 | 4 → **3** | 2 → **0** | 3 → **2** |
+| B's native cost a frame | 154 | 227 → **208** | 154 → **0** | 208 → **154** |
+| stress worst reachable, main → Phase A → **now** | 6,996 → 7,154 → **7,154** | 7,723 → 7,989 → **7,935** | L7 7,771 → 7,929 → **7,775**; L9 8,025 → 8,183 → **8,029** | 8,044 → 8,256 → **8,202** |
+| M6 headroom (8,500 −), main → **now** | 1,504 → **1,346** | 777 → **565** | L9 475 → **471** | 456 → **298** |
+| boss entry, host frames (≤ 300) | **249** | **260** | **260** | **264** |
+| boss frames worst fence margin, main → **now** | 15,370 → **14,935** | 11,965 → **11,337** | 13,095 → **13,095** | 9,407 → **8,987** |
+| boss frames DMA-on max (≤ 32,568) | **27,580** | **27,999** | **27,897** | **28,503** |
+
+0 misses, 0 extra VBIs, 0 DLI errors on all four route sessions (HARD, 3,000
+frames). R3's +4 cycles over main are not B (it has none; the same +4 was in
+Phase A's R3 figure; not traced). The entry's +4 frames on R2-R4 is slot C's
+14th sector (shared).
+
+**Correction:** Phase A's "2 switches leave about 342" for R4 was wrong — it
+left out the frame hook's 35 cycles. Measured: **298**. One switch (rows 0-2
+`$EA`/`$64`, rows 3-4 `$E8`/`$62`; preview `region-4-one-switch.png`, almost
+indistinguishable) costs 100 a frame: about **352** left. The owner decides.
+
+### 9.3 Builds
+
+* R2 route (level 4) `build/play/boss-art-a2-r2-boss-route-level4-b872b056.atr`
+* R4 route (level 10) `build/play/boss-art-a2-r4-boss-route-level10-68b7b005.atr`
+* full game (candidate) `build/play/boss-art-a2-full-game-71d065b2.atr`
+
+Previews: `node scripts/boss-art-preview.mjs --main=<main's drafts>
+--phase-a=<Phase A's drafts>` → `region-N-review.png` (today / Phase A / now).

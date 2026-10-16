@@ -322,6 +322,21 @@ if (laserFixtureSlug !== undefined && !["2", "4"].includes(laserFixtureSlug)) {
   throw new Error(`Unknown laser fixture ${laserFixtureSlug}; the tiers are 2 and 4`);
 }
 const laserFixtureTier = laserFixtureSlug === undefined ? null : Number(laserFixtureSlug);
+// feat/boss-order-scale (Phase A, docs/plans/boss-order-scale.md): --laser-tier=T
+// (1, 2, 4) fixes the laser tier as --laser-fixture does, with every region's
+// own boss data, so the four bosses can be measured on equal terms (a route's
+// tier otherwise follows its level id: 1 / 2 / 4 for regions 2 / 3 / 4).
+// Composes with --level=1:sector=M [--boss-region=N]. Debug only:
+// build/laser-tier-T-[boss-region-N-]level-1-sM/, never dist/.
+const laserTierArgument = process.argv.find((argument) => argument.startsWith("--laser-tier="));
+const laserTierSlug = laserTierArgument?.slice("--laser-tier=".length);
+if (laserTierSlug !== undefined && !["1", "2", "4"].includes(laserTierSlug)) {
+  throw new Error(`Unknown laser tier ${laserTierSlug}; the tiers are 1, 2 and 4`);
+}
+const laserTierValue = laserTierSlug === undefined ? null : Number(laserTierSlug);
+if (laserTierValue !== null && laserFixtureTier !== null) {
+  throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
+}
 // S5-1 (plan docs/plans/s5-boss-regions.md §5): --boss-region=N (2-4) enters
 // region N's boss on level 1's route. Regions 2-4 have no level data yet, so
 // the debug route's level run becomes the region's first level (4 / 7 / 10)
@@ -379,7 +394,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  bossVariantSlug !== undefined;
+  laserTierValue !== null || bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -401,6 +416,8 @@ const variantDirectoryName = escortVariantId !== null
   ? `boss-variant-${bossVariantSlug}${levelDebugSuffix}`
   : laserFixtureTier !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
+  : laserTierValue !== null
+  ? `laser-tier-${laserTierValue}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -3223,6 +3240,7 @@ async function build() {
       },
       ["--cpu", "6502", "-g",
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
+        ...(laserTierValue === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserTierValue}`]),
         ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1"]),
         ...(bossGravityInclude === null ? [] : ["-D", "BOSS_GRAVITY=1"]),
         ...(bossRailInclude === null ? [] : ["-D", "BOSS_RAIL=1"]),
@@ -4319,7 +4337,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      bossVariantSlug !== undefined || escortVariantId !== null
+      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4698,6 +4716,7 @@ async function build() {
         capacityBytes: BOSS_SLOT_E_BYTES, freeBytes: BOSS_SLOT_E_BYTES - bossSlotEUsed,
         sectors: bossSlotESectors },
       laserFixtureTier,
+      ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1],

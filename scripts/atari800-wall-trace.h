@@ -3708,7 +3708,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			for (laser = 0u; laser < 4u && dftrace_laser_state != 0u; ++laser) {
 				unsigned hpos = MEMORY_mem[dftrace_laser_hpos + laser];
 				if (MEMORY_mem[dftrace_laser_state + laser] != 0u && hpos != 0u) {
-					int distance = (int) candidate + 4 - (int) hpos - 2;
+					int distance = (int) candidate + 8 - (int) hpos - 2;
 					if (distance < 0) distance = -distance;
 					if (distance < nearest) nearest = distance;
 				}
@@ -3774,20 +3774,29 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			 * band in that column: until a laser warns, the bot steps away
 			 * from a boss shot coming down on it, so it meets the beam whole
 			 * (the clause's ten units from full health). Slots 5-9. */
+			/* feat/boss-order-scale (the owner's decision AW, 2026-10-16:
+			 * hostile shots and beams meet the ship as drawn, x .. x + 15):
+			 * every bot here measures a threat from the drawn ship's centre,
+			 * x + 8 - a shot (2 wide) is dx = shot_x - x - 7, hitting at
+			 * -8..8; a beam (4 wide) dx = hpos - x - 6, hitting at -9..9 - and
+			 * keeps its windows' old margins past the hit (16 / 28 for a
+			 * shot, 20 for a beam; they were 12 / 24 and 16 round x + 4,
+			 * when the hit box was the ship's left 8 HPOS). Honest: a player
+			 * sees the whole ship. */
 			if (dftrace_boss_active() && dftrace_projectile_x != 0u &&
 				dftrace_projectile_y != 0u && dftrace_projectile_active != 0u) {
 				unsigned slot;
 				int block_right = 0, block_left = 0;
 				for (slot = 5u; slot < 10u; ++slot) {
 					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 					if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
-						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 						continue;
 					/* Never towards a falling shot within 24 HPOS; away from
 					 * one within 12. */
 					if (dx >= 0) block_right = 1; else block_left = 1;
-					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+					if (dx > -16 && dx < 16) threat = dx >= 0 ? -1 : 1;
 				}
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
@@ -3810,12 +3819,12 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				for (slot = 0u; slot < 10u; ++slot) {
 					unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
 					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 					if ((active != 0x16u && (active & 0x38u) != 0x18u) ||
-						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 						continue;
 					if (dx >= 0) block_right = 1; else block_left = 1;
-					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+					if (dx > -16 && dx < 16) threat = dx >= 0 ? -1 : 1;
 				}
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
@@ -3850,7 +3859,8 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			else if (threat > 0)
 				stick = x < 196u ? 0x07u : 0x0bu;
 			/* Damaged: out from under any warning or running beam (its span
-			 * is hpos - 2 .. hpos + 1 against the 8-HPOS envelope).
+			 * against the drawn ship, x .. x + 15, since decision AW; the
+			 * 8-HPOS envelope before).
 			 * fix/interceptor-speed (class (a), Q6b): or shielded (`whole`
 			 * above); and the escape runs to the ship's own limits (48 / 200,
 			 * PLAYER_X_MIN / MAX) - at x 60 with the beam's span at 67 the old
@@ -3860,9 +3870,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				dftrace_laser_hpos != 0u) {
 				for (laser = 0u; laser < 4u; ++laser) {
 					unsigned state = MEMORY_mem[dftrace_laser_state + laser];
-					int dx = (int) MEMORY_mem[dftrace_laser_hpos + laser] - 2 - (int) x;
+					int dx = (int) MEMORY_mem[dftrace_laser_hpos + laser] - 6 - (int) x;
 					if ((state == 1u || state == 2u) &&
-						MEMORY_mem[dftrace_laser_hpos + laser] != 0u && dx > -16 && dx < 16)
+						MEMORY_mem[dftrace_laser_hpos + laser] != 0u && dx > -20 && dx < 20)
 						stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
 				}
 			}
@@ -3882,12 +3892,12 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				int threat = 0, block_right = 0, block_left = 0;
 				for (slot = 5u; slot < 10u; ++slot) {
 					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 					if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
-						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 						continue;
 					if (dx >= 0) block_right = 1; else block_left = 1;
-					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+					if (dx > -16 && dx < 16) threat = dx >= 0 ? -1 : 1;
 				}
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
@@ -4012,15 +4022,16 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * difficulty is the hits on a bot that leaves a warned beam): the
 		 * "-dodge" aiming bots leave every laser in its warning or beam with
 		 * the laser-contact bot's escape (lower-contact-laser's damaged step
-		 * above: out from under a beam whose span is within 16 HPOS, to the
+		 * above: out from under a beam whose centre is within 20 HPOS of the
+		 * drawn ship's centre - decision AW; 16 of x + 4 before - to the
 		 * ship's limits 48 / 200), and aim again once it is off. */
 		if (strstr(dftrace_policy, "-dodge") != NULL && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u) {
 			unsigned beam;
 			for (beam = 0u; beam < 4u; ++beam) {
 				unsigned state = MEMORY_mem[dftrace_laser_state + beam];
-				int dx = (int) MEMORY_mem[dftrace_laser_hpos + beam] - 2 - (int) x;
+				int dx = (int) MEMORY_mem[dftrace_laser_hpos + beam] - 6 - (int) x;
 				if ((state == 1u || state == 2u) &&
-					MEMORY_mem[dftrace_laser_hpos + beam] != 0u && dx > -16 && dx < 16)
+					MEMORY_mem[dftrace_laser_hpos + beam] != 0u && dx > -20 && dx < 20)
 					stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
 			}
 		}
@@ -4138,12 +4149,12 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			unsigned slot;
 			for (slot = 5u; slot < 10u; ++slot) {
 				unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-				int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+				int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 				if (MEMORY_mem[dftrace_projectile_active + slot] != 0x16u ||
-					sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+					sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 					continue;
 				stick |= dx >= 0 ? 0x08u : 0x04u;
-				if (dx > -12 && dx < 12)
+				if (dx > -16 && dx < 16)
 					stick = dx >= 0 ? (x > 60u ? 0x0bu : 0x07u) : (x < 196u ? 0x07u : 0x0bu);
 			}
 		}

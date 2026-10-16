@@ -20,8 +20,8 @@
 //                               ACTIVE = (weapon_class << 3) | owner.
 // A hit is attributed, in this order, to: an Interceptor that met the fighter
 // that row (contact, the kernel's test - scripts/measure-interceptor-hits.mjs);
-// a boss beam (laser_damage_calls moved); a hostile shot that met the fighter
-// within one row, by its ACTIVE byte - $16 a Light's laser, class 3 a Bomber's
+// a boss beam (laser_damage_calls moved); a hostile shot released within one
+// row over the drawn ship (or flagged player_collision_terminal), by its ACTIVE byte - $16 a Light's laser, class 3 a Bomber's
 // shell, $0E a pulse with the Light owner (in the boss sector the boss's pulse,
 // on the road a Wingman's), any other class-1 pulse a Raider's; else "other"
 // (debris, a hull, a Heavy's contact).
@@ -71,10 +71,31 @@ export function bossDanger(csvFile) {
   }
   const difficulty = Number(/-(\d)$/.exec(path.basename(base))?.[1] ?? 1);
   const lightByFrame = new Map(readTraceCsv(lightFile).map((row) => [row.frame, row]));
-  const shotHits = new Map();
+  // A shot's release on the hit's row or next to it. player_collision_terminal
+  // marks only some of them (MEASURED: hits whose shot left at the ship's row,
+  // overlapping it, with the flag clear), so the release is matched by where
+  // it was: overlapping the drawn ship (x - player_x in -1..15) at the ship's
+  // rows (y within 16 lines above player_y .. its bottom row).
+  const releases = new Map();
   for (const shot of readTraceCsv(shotFile)) {
-    if (shot.event === "release" && shot.player_collision_terminal === 1) shotHits.set(shot.frame, shot.prior_active);
+    if (shot.event !== "release" || shot.prior_active === 0) continue;
+    const list = releases.get(shot.frame) ?? [];
+    list.push(shot);
+    releases.set(shot.frame, list);
   }
+  const shotAt = (row) => {
+    for (const frame of [row.frame, row.frame - 1, row.frame + 1]) {
+      for (const shot of releases.get(frame) ?? []) {
+        const x = shot.prior_x || shot.x;
+        const y = shot.prior_y || shot.y;
+        const dx = (x - row.player_x) & 0xff;
+        const dy = (y - row.player_y + 16) & 0xff;
+        if ((shot.player_collision_terminal === 1 || dx < PLAYER_VISIBLE_WIDTH || dx === 0xff) &&
+          (shot.player_collision_terminal === 1 || dy < 16 + PLAYER_COLLISION_LAST_ROW + 1)) return shot.prior_active;
+      }
+    }
+    return undefined;
+  };
   const entry = rows.find((row) => row.boss_entry === 1);
   const engaged = rows.find((row) => row.boss_state === 1 && row.boss_entry !== 1);
   const chain = rows.find((row) => row.boss_state >= 3);
@@ -113,7 +134,7 @@ export function bossDanger(csvFile) {
     const bucket = inBoss ? boss : road;
     bucket.hits += 1;
     if (row.player_lives_after < row.player_lives) bucket.deaths += 1;
-    const shot = shotHits.get(row.frame) ?? shotHits.get(row.frame - 1) ?? shotHits.get(row.frame + 1);
+    const shot = shotAt(row);
     let source;
     if (ram) source = "interceptorContact";
     else if ((row.laser_damage_calls ?? 0) !== (previous.laser_damage_calls ?? 0)) source = "beam";

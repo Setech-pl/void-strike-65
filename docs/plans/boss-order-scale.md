@@ -2,7 +2,7 @@
 
 **Branch:** `feat/boss-order-scale` from `main` `4767691` (the `fix/gfx-regression`
 pin on top of `feat/boss-art`; ATR `33b1acb3…`).
-**Status:** Phase B finished — `OWNER-SMOKE CANDIDATE` (2026-10-17): the owner's
+**Status:** Phase B finished — **OWNER-ACCEPTED** (owner smoke PASS 2026-10-17 on all five ATRs, merged into main at `05346cc`; built 2026-10-17): the owner's
 decisions AW and AX 1-21 applied (the Bastion's palette O and one-slab wrecks,
 the Breaker 73 %, the Spine's reload x 0.85), the order and the curve the
 bosses' own data (`docs/boss-curve.json`), the evidence regenerated; the final

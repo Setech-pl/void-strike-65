@@ -1474,6 +1474,8 @@ new file name:
 - [ ] **The L and the capped cannons** on the real GTIA as in Atari800, with
       no flicker on the foot or the covered cannon while its beam runs.
 
+**Result (2026-10-17): owner smoke PASS** on all five ATRs in Atari800 - `boss-order-scale-full-game-eb77e4c2.atr` (SHA-256 `eb77e4c2b550e2e0…`, = `dist/`), `-r1-breaker-6fb343e6` (`6fb343e64bece448…`), `-r2-citadel-c823c589` (`c823c589d9021077…`), `-r3-spine-c224162b` (`c224162b04daff0e…`), `-r4-bastion-d51b032e` (`d51b032e7cf3a00f…`). Accepted as measured: the danger judged by the boss's own fire (by every hit the Spine sits under the Citadel) and the Spine's EASY 97.2 s against the Bastion's 96.4 s (within the replays' spread). The real-hardware items above were not part of this report.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

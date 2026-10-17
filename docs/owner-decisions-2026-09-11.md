@@ -2705,7 +2705,7 @@ z testami, klauzulami śladu i bramką 300. `OWNER-SMOKE CANDIDATE`.
    przepisuje się uczciwie. Potem faza A kolejności bossów i krzywej, z nowym
    pudłem wszędzie; zmiana pudła pokazana w raporcie osobno.
 
-## AX. KOLEJNOŚĆ BOSSÓW, KRZYWA TRUDNOŚCI, WYGLĄD ZASŁONIĘTEGO DZIAŁA BASTIONU — decyzja właściciela (2026-10-16, po fazie A `feat/boss-order-scale`)
+## AX. KOLEJNOŚĆ BOSSÓW, KRZYWA TRUDNOŚCI, WYGLĄD ZASŁONIĘTEGO DZIAŁA BASTIONU — decyzja właściciela (2026-10-16, po fazie A `feat/boss-order-scale`) — potwierdzona smoke'iem właściciela (2026-10-17)
 
 1. **Kolejność:** region 1 Blockade Breaker, region 2 Void Citadel, region 3
    Siege Spine, region 4 Bastion (propozycja z planu `boss-order-scale` §6).
@@ -2773,8 +2773,7 @@ właściciela; po akceptacji faza B.
     `rail-r.png` i ATR trasy bossa regionu 4 `92047d67…`, 2026-10-16). Faza B
     ze wszystkimi decyzjami z **AX** i **AW**.
 
-**Faza B — wykonanie (2026-10-17, `OWNER-SMOKE CANDIDATE`, do smoke'a
-właściciela).** Zapisane tu, bo rozstrzygają szczegóły, których decyzja nie
+**Faza B — wykonanie (2026-10-17; smoke właściciela PASS 2026-10-17, punkt 22).** Zapisane tu, bo rozstrzygają szczegóły, których decyzja nie
 przesądzała:
 
 14. **Kolejność jako dane:** `assets/graphics/boss-regions/order.json`
@@ -2851,6 +2850,16 @@ tylko prezentacja, bez zmian mechaniki):**
     Danymi nie da się tego odwrócić bez złamania innego celu (mniej HP
     Spine'a: MEDIUM poniżej 105 s; więcej HP Bastionu: HARD ponad 162,5 s).
     Do oceny w smoke'u właściciela.
+22. **Smoke właściciela (2026-10-17): PASS** na wszystkich pięciu ATR-ach
+    (`feat/boss-order-scale`, HEAD `3e9a5d1`): cała gra `eb77e4c2`, trasy
+    bossów R1 `6fb343e6`, R2 `c823c589`, R3 `c224162b`, R4 `d51b032e`.
+    Oba odstępstwa z punktu 21 przyjęte jak zmierzone: niebezpieczeństwo
+    oceniane według własnego ognia bossa (według wszystkich trafień Spine
+    pod Cytadelą) oraz EASY Spine'a 97,2 s wobec 96,4 s Bastionu w rozrzucie
+    powtórek. Zmiany w `tests/boss-order-scale.test.mjs` i przepisana linia
+    „Last update" w STATUS zatwierdzone. §AX (1-21) potwierdzone; gałąź
+    scalona z `main` (`05346cc`). Bez tagu: `v0.3.0` po banerach regionów i
+    audycie M5.
 
 ---
 

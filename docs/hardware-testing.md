@@ -1394,12 +1394,14 @@ at MEDIUM:
 - [ ] **R1 Blockade Breaker:** light steel slabs with a rust trim, the dark
       red only in the recesses; the guns dark behind their plates, amber when
       exposed.
-- [ ] **R2 Bastion:** a military olive-green trim on every outline; the pods
-      with an amber visor and a red lamp you can read at play size; the
+- [ ] **R2 Bastion** (since feat/boss-order-scale levels 10-12, orange and
+      red - the owner's choice O): an orange trim on every outline; the pods
+      with a yellow visor and a red lamp you can read at play size; the
       cannons pointed finned spires with a long barrel and a squared muzzle -
-      light steel while locked (over grey bars), amber plate, barrel ring and
+      light steel while locked (over grey bars), yellow plate, barrel ring and
       muzzle once open; a hit cannon's damage on the whole cannon (cracked,
-      broken); the core orange on top, red below; the striped rail ends.
+      broken); the core yellow on top, red below; the striped rail ends; a
+      destroyed rail gun or cannon one flat burnt slab under the girder.
 - [ ] **R3 Siege Spine:** exactly as before (no row palette).
 - [ ] **R4 Void Citadel:** the gold trim; the hull lit on its top and left
       edges.

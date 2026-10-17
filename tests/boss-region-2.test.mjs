@@ -615,6 +615,30 @@ test("the cover warning: while a bay is open and its cannon stands, the gun whos
   assert.equal(pulses(memory, 96), 0, "a warning with no cannon to cover");
 });
 
+// feat/boss-order-scale (the owner's "less scrap", 2026-10-17): a cannon
+// destroyed in its open bay leaves one burnt slab under the track (its
+// wreckRows 1), not three; the rows under it background, and a shot in its
+// columns stops at the slab - as a dead rail gun's does.
+test("a cannon destroyed in its open bay leaves one slab row; a shot there stops at the slab", () => {
+  assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
+  for (const [gun, name] of [["rail-l-1", "cannon-l"], ["rail-r-1", "cannon-r"]]) {
+    const memory = bastion();
+    run(memory, 4);
+    destroy(memory, gun);
+    destroy(memory, name, { settle: 120 });
+    const m = region2.modules[index(name)];
+    assert.equal(m.wreckRows, 1);
+    for (const c of columnsOf(memory, name)) {
+      const rows = [...Array(m.height).keys()].map((r) => cell(memory, c, m.row + r));
+      assert.deepEqual(rows, [region2.cavity, 0, 0, 0], `${name} column ${c}: the wreck ${rows}`);
+      assert.equal(stopRow(memory, c), m.row, `${name} column ${c}: a shot stops at row ${stopRow(memory, c)}`);
+    }
+    // A shot there meets the slab: the deflection on the slab's cell.
+    shoot(memory, m.x);
+    assert.ok(ringAt(memory, m.x, m.row, region2.deflect), `${name}: no deflection on the slab`);
+  }
+});
+
 test("the doors: locked until every cannon and rail gun is destroyed or covered; then open, flashing, sounding; the core behind them, last", () => {
   assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
   const memory = bastion();

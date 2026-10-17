@@ -73,7 +73,7 @@ function panels(region) {
   const gone = () => {
     const rows = base();
     region.modules.forEach((module) => eachCell(rows, module, (code, i) =>
-      Math.floor(i / module.width) < module.cavityRows ? region.cavity : 0));
+      Math.floor(i / module.width) < (module.wreckRows ?? module.cavityRows) ? region.cavity : 0));
     return rows;
   };
   const capped = () => {

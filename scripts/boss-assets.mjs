@@ -167,7 +167,7 @@ export const BOSS_TABLE = Object.freeze({
 export const BOSS_MODULE_BYTES = 12;
 export const BOSS_MODULE = Object.freeze({
   x: 0, row: 1, width: 2,
-  height: 3,             // the height in bits 0-3; the rows inside the hull (cavityRows) in bits 4-7
+  height: 3,             // the height in bits 0-3; the gone draw's cavity rows (wreckRows: cavityRows unless a bay's cannon shortens it) in bits 4-7
   hp: 4, hpCracked: 5, hpBroken: 6,
   kind: 7,               // kind in bits 0-3, an emitter's slot (1-4) in bits 4-7
   score: 8,              // packed BCD, added once when the module is destroyed
@@ -797,7 +797,16 @@ function resolveModules(layout) {
         fail(`emitter ${name} is in a bay: its last row is the armour under the cannon (cavityRows ${height - 1})`);
       }
     }
-    return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows,
+    // feat/boss-order-scale (the owner's "less scrap", 2026-10-17): a bay's
+    // cannon may fall as fewer rows than it has inside the hull - its wreck
+    // the top wreckRows rows (the cavity), the rows under it background. Only
+    // the gone draw reads it (the record's height byte, bits 4-7); cavityRows
+    // keeps the bay's geometry (the lens, the armour row).
+    const wreckRows = integerIn(source.wreckRows ?? cavityRows, 0, cavityRows, `module ${name} wreckRows`);
+    if (wreckRows !== cavityRows && (source.bay !== true || wreckRows < 1)) {
+      fail(`module ${name}: "wreckRows" is a bay's cannon's (1 to its cavityRows)`);
+    }
+    return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows, wreckRows,
       stages, bay: source.bay === true, cover: source.cover ?? "auto", authoredIndex };
   });
   if (!modules.some((module) => module.kind !== BOSS_KIND.armour)) {
@@ -1552,6 +1561,17 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       }
     }
   }
+  // The same for a bay's cannon whose wreck is shorter than the cannon (its
+  // wreckRows): once it falls, a shot in its columns stops under the wreck,
+  // not on the hull above it.
+  for (const module of modules.filter((m) => m.wreckRows < m.cavityRows)) {
+    for (let c = module.x; c < module.x + module.width; c += 1) {
+      if (hullStop[c] === null || hullStop[c] >= module.row) {
+        fail(`module ${module.name}'s column ${c} has no hull above its wreck`);
+      }
+      hullStop[c] = module.row + module.wreckRows - 1;
+    }
+  }
   const hullStopTailOffset = tail.length;
   if (!nozzlePhasesInTail) nozzleTailOffset = hullStopTailOffset;
   for (let c = 0; c < BOSS_BAND_COLUMNS; c += 2) {
@@ -1626,7 +1646,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     record[BOSS_MODULE.x] = module.x;
     record[BOSS_MODULE.row] = module.row;
     record[BOSS_MODULE.width] = module.width;
-    record[BOSS_MODULE.height] = module.height | (module.cavityRows << 4);
+    record[BOSS_MODULE.height] = module.height | (module.wreckRows << 4);
     record[BOSS_MODULE.hp] = module.hp;
     record[BOSS_MODULE.hpCracked] = hpCracked;
     record[BOSS_MODULE.hpBroken] = hpBroken;
@@ -1716,7 +1736,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     modules: modules.map((module) => ({ name: module.name, kind: module.kindName, x: module.x,
       row: module.row, width: module.width, height: module.height, hp: module.hp,
       thresholds: bossThresholds(module.hp), slot: module.slot, reload: module.reload,
-      cavityRows: module.cavityRows, stages: module.stages, bay: module.bay,
+      cavityRows: module.cavityRows, wreckRows: module.wreckRows, stages: module.stages, bay: module.bay,
       cover: module.coverMask, open: openLooks.has(module.index) })),
     themeBytes: themeImage === null ? 0 : themeImage.length,
     // S5-3: the force field (null without one): its row, the field code, both

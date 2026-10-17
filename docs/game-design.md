@@ -558,8 +558,9 @@ section "Decyzje literowe 2026-09-20".
   DLI's phase 0 arms a switch on the first line of each row whose colours
   change - COLPF1 (the trim) and COLPF3 (the bulk) only: COLPF0 and COLPF2
   are the in-band shots' colours and the b3 flash's, fixed for the region.
-  Region 1 rust over light slabs (two switches), region 2 a military
-  olive-green trim, the core orange to red, the cannons pointed finned
+  Region 1 rust over light slabs (two switches), region 2 an orange trim
+  over red (the owner's choice O of 2026-10-17, replacing the olive), the
+  core yellow to red, the cannons pointed finned
   spires with their damage on the whole cannon (three switches), region 3
   exactly as before (none), region 4 gold over violet (one). Every row keeps
   the flash pair at least 80 apart (Atari800's palette) and every colour at
@@ -626,9 +627,10 @@ section "Decyzje literowe 2026-09-20".
   (decision AC): one beam on level 4 (the cannons take turns, a locked or
   covered one keeps its turn), two on levels 5-6 (independent). A parked
   fighter at the left edge can hit nothing and is reached by the escort, which
-  a first kill starts (measured: a stalemate, not a refuge). Colours: pale and
-  mid steel, hazard amber `$28` and the olive bulk `$E2`, both far from the
-  levels 4-6 ally steel `$88`; the region's charset 88 codes in six sectors
+  a first kill starts (measured: a stalemate, not a refuge). Colours (the owner's
+  choice O, 2026-10-17): pale steel, the hittable yellow `$EC`, the orange
+  trim `$1A-$16` and the dark orange bulk `$12` over the red `$34 / $32`, all
+  far from the ally steel `$88`; the region's charset 88 codes in six sectors
   (the owner's standing rule of 2026-10-15: bosses spend what their quality
   needs within the hard gates).
 - **Region 3's boss: Siege Spine and its force field (S5-3, owner answers of

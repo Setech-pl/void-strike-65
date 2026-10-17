@@ -62,10 +62,13 @@ test("region 1's layout with the finale (the copies' S5-2 composition): no safe 
 // hit points about 73 %, the curve's first step, MEDIUM about 92 s): every
 // module x 0.70 of main, rounded (0.73 measured 95 s on MEDIUM, the Citadel's
 // first level no longer above it) - the guns 12 -> 8, the twin cannons 20 -> 14.
-test("region 1: every gun at 8 hit points (main 28, boss-r1-tuning 14, interceptor-standoff 12), the cannons at 14", () => {
+// RE-PINNED again (the owner's Phase B brief of 2026-10-17: "Breaker HP about
+// 73 %", with the Spine's reload back to x 0.85): the guns 8 -> 9 - the
+// boss's hit points 130 of main's 178, 73.0 %; the cannons and plates kept.
+test("region 1: every gun at 9 hit points (main 28, boss-r1-tuning 14, interceptor-standoff 12), the cannons at 14", () => {
   const guns = draft.layout.modules.filter((module) => module.kind === "pulse" || module.kind === "salvo");
   assert.ok(guns.length >= 6, `${guns.length} guns; the far-end pair is missing`);
-  assert.deepEqual(guns.filter((gun) => gun.hp !== 8).map((gun) => `${gun.name}: ${gun.hp}`), []);
+  assert.deepEqual(guns.filter((gun) => gun.hp !== 9).map((gun) => `${gun.name}: ${gun.hp}`), []);
   const emitter = draft.layout.modules.find((module) => module.kind === "emitter");
   assert.equal(emitter.hp, 14);
 });

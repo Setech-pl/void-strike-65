@@ -107,7 +107,7 @@
       "hp": 16,
       "score": 40,
       "reload": 125,
-      "cavityRows": 2,
+      "cavityRows": 1,
       "cover": []
     },
     {
@@ -120,7 +120,7 @@
       "hp": 16,
       "score": 40,
       "reload": 125,
-      "cavityRows": 2,
+      "cavityRows": 1,
       "cover": [
         "rail-l-1"
       ]
@@ -135,7 +135,7 @@
       "hp": 16,
       "score": 40,
       "reload": 125,
-      "cavityRows": 2,
+      "cavityRows": 1,
       "cover": [
         "rail-l-2"
       ]
@@ -200,7 +200,7 @@
       "hp": 16,
       "score": 40,
       "reload": 125,
-      "cavityRows": 2,
+      "cavityRows": 1,
       "cover": []
     },
     {
@@ -213,7 +213,7 @@
       "hp": 16,
       "score": 40,
       "reload": 125,
-      "cavityRows": 2,
+      "cavityRows": 1,
       "cover": [
         "rail-r-1"
       ]
@@ -228,7 +228,7 @@
       "hp": 16,
       "score": 40,
       "reload": 125,
-      "cavityRows": 2,
+      "cavityRows": 1,
       "cover": [
         "rail-r-2"
       ]

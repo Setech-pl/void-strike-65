@@ -1539,12 +1539,16 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // behind it lock in there); the controller's rebuild of its columns then
   // reads this stop - under the rail's last row: the dead gun's socket stays
   // solid, as its cavity glyphs show it (src/hybrid/boss.s BOSS_RAIL).
+  // feat/boss-order-scale (the owner's look of 2026-10-17): under the wreck's
+  // last row - its cavityRows; the rows under it are background, so a shot
+  // stops where the wreck is drawn (a full-height cavity: the rail's last row,
+  // as before).
   if (rails !== null) {
     for (const side of rails.sides) {
       const gun = side.guns[0];
       for (let c = gun.x; c < gun.x + gun.width; c += 1) {
         if (hullStop[c] === null) fail(`rail gun ${gun.name}'s column ${c} has no hull above it (the girder)`);
-        hullStop[c] = rails.rowFirst + BOSS_RAIL_ROWS - 1;
+        hullStop[c] = rails.rowFirst + BOSS_RAIL_ROWS - 1 - (gun.height - gun.cavityRows);
       }
     }
   }

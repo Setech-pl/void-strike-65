@@ -377,6 +377,9 @@ const levelRunId = bossRegionValue !== null ? 1 + 3 * (bossRegionValue - 1) : le
 // both), so the owner can compare boss layouts before one is committed to
 // assets/. Composes with --level=N[:sector=M]. Review variant:
 // build/boss-variant-NAME[-level-N-sM]/, never dist/, no runtime measurement.
+// feat/boss-order-scale (the owner's Bastion palette variants): any
+// build/boss-variants/NAME/region-K/ with a draft replaces boss directory K
+// (region-1 no longer required); composes with --boss-region=N.
 const bossVariantArgument = process.argv.find((argument) => argument.startsWith("--boss-variant="));
 const bossVariantSlug = bossVariantArgument?.slice("--boss-variant=".length);
 if (bossVariantSlug !== undefined && !/^[a-z0-9]+$/.test(bossVariantSlug)) {
@@ -384,9 +387,14 @@ if (bossVariantSlug !== undefined && !/^[a-z0-9]+$/.test(bossVariantSlug)) {
 }
 const bossVariantDirectory = bossVariantSlug === undefined
   ? null : path.join(defaultBuildDirectory, "boss-variants", bossVariantSlug);
-if (bossVariantDirectory !== null && !fs.existsSync(path.join(bossVariantDirectory, "region-1", "modules.json"))) {
-  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/region-1/ has no ` +
-    "draft (node scripts/boss-r1-variants.mjs writes it)");
+// The draft directory of boss directory K: the variant's, when it has one.
+const bossDraftDirectory = (k) => (bossVariantDirectory !== null &&
+  fs.existsSync(path.join(bossVariantDirectory, `region-${k}`, "modules.json"))
+  ? path.join(bossVariantDirectory, `region-${k}`) : bossRegionDirectory(rootDirectory, k));
+if (bossVariantDirectory !== null && ![1, 2, 3, 4].some((k) =>
+  fs.existsSync(path.join(bossVariantDirectory, `region-${k}`, "modules.json")))) {
+  throw new Error(`--boss-variant=${bossVariantSlug}: build/boss-variants/${bossVariantSlug}/ has no region-K/ ` +
+    "draft (node scripts/boss-r1-variants.mjs writes region 1's)");
 }
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -1901,8 +1909,7 @@ async function build() {
   // variant that installs the laser fixture (region 1 with four uncovered
   // emitter slots) as region 1 and fixes the tier; the default build never
   // takes this path.
-  const regionOneDraft = loadBossRegionDraft(bossVariantDirectory === null
-    ? bossRegionDirectory(rootDirectory, 1) : path.join(bossVariantDirectory, "region-1"));
+  const regionOneDraft = loadBossRegionDraft(bossDraftDirectory(1));
   const regionOneSource = laserFixtureTier === null
     ? regionOneDraft : bossLaserFixtureDraft(regionOneDraft, laserFixtureTier);
   const compileRegion = (draft) => compileBossRegion(draft,
@@ -1939,8 +1946,8 @@ async function build() {
   // with its boss - the slots below are wherever the order put it.
   const bossRegions = bossOrder.map((source) => (source === 1
     ? regionOne
-    : fs.existsSync(path.join(bossRegionDirectory(rootDirectory, source), "modules.json"))
-      ? compileRegion(loadBossRegionDraft(bossRegionDirectory(rootDirectory, source)))
+    : fs.existsSync(path.join(bossDraftDirectory(source), "modules.json"))
+      ? compileRegion(loadBossRegionDraft(bossDraftDirectory(source)))
       : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(source)]))));
   const slotOf = (feature) => {
     const slots = bossRegions.flatMap((region, slot) => (region[feature] ? [slot] : []));

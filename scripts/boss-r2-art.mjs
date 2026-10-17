@@ -417,18 +417,23 @@ aWWa
 gggg
 ....
 `);
-// A destroyed module's socket (extras' cavity cell): dark - a few dim
-// fragments and a broken edge, nothing like the bars (a dead rail gun's
-// socket stays solid: a shot deflects there).
+// A destroyed module's socket (extras' cavity cell). feat/boss-order-scale
+// (the owner's look of 2026-10-17: the sparse dashes read as "pine needles
+// fallen off a Christmas tree"): a low, flat burnt stump - one row, hung from
+// the girder, solid in the row's dark trim with one ember (the pf3 bank's
+// red), a ragged lower edge; nothing like a gun or the bars. A rail gun's
+// wreck is one row (its cavityRows 1: the row under it background, a shot
+// stops under the stump); a cannon's socket, until the rail covers it, is
+// its rows of it.
 const SOCKET = pic(`
-g...
-..g.
+gggg
+gggg
+grgg
+gggg
+g.gg
+.g.g
 ....
-.g..
-...g
 ....
-g.g.
-.g..
 `);
 
 // --- drawing -----------------------------------------------------------------

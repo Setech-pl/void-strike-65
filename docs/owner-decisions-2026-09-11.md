@@ -2812,6 +2812,46 @@ przesądzała:
     klatek walki, nie pierwszą: strzał w zamkniętą zatokę w klatce 0 rysuje
     tam na chwilę glif odbicia (MEASURED na trasie Bastionu w regionie 4).
 
+**Przegląd właściciela „L" i dwie poprawki wyglądu Bastionu (2026-10-17,
+tylko prezentacja, bez zmian mechaniki):**
+
+19. **Paleta Bastionu: wariant O (pomarańcz + czerwień)**, wybrany z V
+    (fiolet Spine'a i Cytadeli) i O, pokazanych obok siebie z działającego
+    buildu. Wykończenie pomarańczowe `$1A / $18 / $16` (jaśniejsze u góry),
+    masa ciemnopomarańczowa `$12` (tor, za kratą bramy), czerwone pasy,
+    lampki i dolne dwie trzecie rdzenia `$34 / $32` bez zmian (78-81 od
+    pomarańczu). Akcent trafialny przeszedł z `$28` na żółty **`$EC`**: w
+    palecie PAL Atari800 `$28` to łososiowy pomarańcz, tylko 38 od
+    wykończenia `$18`. Pary błysku b3 181-220 (próg 80), 143° od stali
+    sojusznika `$88/$84` (narzędzie reguł). Zablokowana stal, szara krata
+    i szary rząd pancerza bez zmian. Sprawdzone w grze: strzały bossa w
+    pasie to wykończenie (PF1) i blada stal (PF0), nie żółty — żółte są tylko
+    błysk wylotu i iskra trafienia, jak wcześniej bursztyn.
+20. **„Mniej złomu": wrak to jedna płyta.** Zniszczone działko szyny i
+    działo zniszczone w otwartej zatoce zostawiają jeden płaski, wypalony
+    rząd pod torem (pełny, w ciemnym wykończeniu rzędu, z jednym czerwonym
+    żarem), pod nim tło. Działka szyn: `cavityRows` 2 -> 1. Działa w
+    zatokach: nowe pole `"wreckRows": 1` (tylko w konwerterze: bity 4-7
+    bajtu wysokości rekordu modułu i tabela zatrzymań; 0 bajtów 6502, 0
+    sektorów). Skutek przyjęty przez właściciela: strzał w miejsce martwego
+    działka lub działa zatrzymuje się na płycie, nie leci do toru.
+21. **Dane krzywej według briefu właściciela (zastępują dane z punktu 16):**
+    Spine — przeładowanie dział **x 0,85** (51 / 60 / 64 / 51; „15 %
+    szybciej", opcja 2 z `docs/diagnostics/boss-order-scale-m6-headroom-2026-10-17.md`:
+    zapas M6 poziomu 9 wraca do 475); Breaker **73 %** HP (działa 8 -> 9,
+    działa laserowe 14, płyty 6 / 7 / 4: 130 ze 178). Zmierzone od zera
+    (108 sesji, `docs/boss-curve.json`): EASY / MEDIUM / HARD — Breaker
+    78 / 93 / 125 s, Cytadela 84 / 99 / 126 s, Spine 97 / 106 / 139 s,
+    Bastion 96 / 122 / 161 s; MEDIUM i HARD rosną na każdym kroku. Skutki
+    opcji 2, zapisane w teście krzywej: niebezpieczeństwo rośnie według
+    własnego ognia bossa (5,8 / 7,1 / 10,1 / 14,9 na minutę), nie według
+    wszystkich trafień (Spine 13,2 pod Cytadelą 14,5 — połowa to laser
+    eskorty); EASY Spine'a 97,2 s o 0,8 s nad Bastionem 96,4 s (powtórki
+    Spine'a 89-112 s) — test dopuszcza na EASY spadek w rozrzucie 5 %.
+    Danymi nie da się tego odwrócić bez złamania innego celu (mniej HP
+    Spine'a: MEDIUM poniżej 105 s; więcej HP Bastionu: HARD ponad 162,5 s).
+    Do oceny w smoke'u właściciela.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

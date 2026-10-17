@@ -518,23 +518,27 @@ section "Decyzje literowe 2026-09-20".
   curve, by data only (each boss's hit points and reloads; the level's
   per-difficulty scale untouched): fights of about **92 / 102 / 112 / 122 s
   on MEDIUM**, EASY about 0.8x and HARD about 1.25x of it, longer at every
-  step on every difficulty, and the danger rising in the same order - the
-  Bastion the fiercest but not a wall (about 18-20 hits a minute on the
-  aiming bot, MEDIUM; 28 before). MEASURED per region and difficulty, three
-  replays a cell, in `docs/boss-curve.json` (EASY / MEDIUM / HARD seconds on
-  each region's first level; hits a minute on the aiming bot, MEDIUM):
-  the Breaker 70 / 89 / 114 s, 5.5; the Citadel (level 4) 84 / 99 / 126 s,
-  14.5; the Spine (levels 7-8) 94 / 113 / 134 s, 16.1; the Bastion 96 / 122 /
-  160 s, 20.4. A region's later laser tier fights longer (the Citadel on
-  levels 5-6 99 / 120 / 151 s, the Spine on level 9 94 / 117 / 146 s). The
-  data: the Breaker x 0.70 of its hit points; the Citadel about x 1.25 (its
-  level-4 pool, 170 -> 212: spires 12, core 29, lens 27, guns 11, plates and
-  the capped plate 11) and its
-  guns' reload x 1.2; the Spine x 0.90 and its guns' reload x 0.75; the
-  Bastion's rail guns 15 -> 16, core 74 -> 79, doors 22 -> 24, its rail guns'
-  reload 70 -> 125 and the core's 90 -> 130. The Citadel's pressure on level 4
-  is half its escort's laser (7.5 of 14.5 a minute: the well pulls the ship to
-  the centre column, where the escort enters and holds).
+  step on MEDIUM and HARD (on EASY within the replays' spread), and the
+  danger - the boss's own fire - rising in the same order: the Bastion the
+  fiercest but not a wall (about 18-20 hits a minute on the aiming bot,
+  MEDIUM; 28 before). MEASURED per region and difficulty, three replays a
+  cell, in `docs/boss-curve.json` (EASY / MEDIUM / HARD seconds on each
+  region's first level; every hit and the boss's own fire a minute on the
+  aiming bot, MEDIUM): the Breaker 78 / 93 / 125 s, 8.0 (5.8); the Citadel
+  (level 4) 84 / 99 / 126 s, 14.5 (7.1); the Spine (levels 7-8) 97 / 106 /
+  139 s, 13.2 (10.1); the Bastion 96 / 122 / 161 s, 20.4 (14.9). A region's
+  later laser tier fights longer (the Citadel on levels 5-6 99 / 120 / 151 s,
+  the Spine on level 9 104 / 112 / 138 s). The data (the owner's brief of
+  2026-10-17): the Breaker 73 % of its hit points (guns 9, cannons 14,
+  plates 6 / 7 / 4: 130 of 178); the Citadel about x 1.25 (its level-4 pool,
+  170 -> 212: spires 12, core 29, lens 27, guns 11, plates and the capped
+  plate 11) and its guns' reload x 1.2; the Spine x 0.90 and its guns' reload
+  x 0.85 (51 / 60 / 64 / 51); the Bastion's rail guns 15 -> 16, core 74 ->
+  79, doors 22 -> 24, its rail guns' reload 70 -> 125 and the core's 90 ->
+  130. Every hit a minute includes the shared escort's laser: on level 4 it
+  is half the Citadel's (7.5 of 14.5: the well pulls the ship to the centre
+  column, where the escort enters and holds), so by every hit the Spine
+  (13.2) sits under the Citadel; by the boss's own fire the order holds.
 - **The drawn hit box (decision AW, 2026-10-16).** Every hostile shot - a
   boss's pulse or salvo shot, a beam, an Interceptor's laser - is tested
   against the ship as the player sees it, `x .. x + 15` (16 HPOS,

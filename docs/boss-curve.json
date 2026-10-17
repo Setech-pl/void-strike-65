@@ -6,7 +6,7 @@
   3,
   2
  ],
- "inputsSha256": "0450c1dc5f8fafa5e039c4c0ebba059af0c391f34cc75c4d25aa52264e386a91",
+ "inputsSha256": "d335141212e8da44e8f37e7a5576d18e042cf95cfb76cfe685c7f03ed4a571fc",
  "starts": [
   0,
   3,
@@ -23,16 +23,16 @@
    "tier": 1,
    "difficulty": 0,
    "replays": 3,
-   "seconds": 70,
+   "seconds": 78.3,
    "secondsRange": [
-    65.9,
-    76.1
+    71.6,
+    85.9
    ],
-   "aimHitsPerMinute": 4.2,
+   "aimHitsPerMinute": 6.4,
    "aimDeaths": 0,
-   "aimBossFirePerMinute": 3.6,
-   "aimEscortLaserPerMinute": 0.6,
-   "dodgeHitsPerMinute": 6.3,
+   "aimBossFirePerMinute": 4.4,
+   "aimEscortLaserPerMinute": 2.1,
+   "dodgeHitsPerMinute": 7.9,
    "dodgeDeaths": 0,
    "finished": true,
    "entryHostFrames": 257
@@ -43,17 +43,17 @@
    "tier": 1,
    "difficulty": 1,
    "replays": 3,
-   "seconds": 89.3,
+   "seconds": 93.2,
    "secondsRange": [
-    87.1,
-    91.6
+    88.6,
+    97.4
    ],
-   "aimHitsPerMinute": 5.5,
-   "aimDeaths": 0.3,
-   "aimBossFirePerMinute": 4.6,
-   "aimEscortLaserPerMinute": 0.9,
-   "dodgeHitsPerMinute": 6.1,
-   "dodgeDeaths": 0.7,
+   "aimHitsPerMinute": 8,
+   "aimDeaths": 1,
+   "aimBossFirePerMinute": 5.8,
+   "aimEscortLaserPerMinute": 2.2,
+   "dodgeHitsPerMinute": 6.7,
+   "dodgeDeaths": 0.3,
    "finished": true,
    "entryHostFrames": 257
   },
@@ -63,17 +63,17 @@
    "tier": 1,
    "difficulty": 2,
    "replays": 3,
-   "seconds": 114.1,
+   "seconds": 125,
    "secondsRange": [
-    109.3,
-    120.2
+    114.9,
+    133.8
    ],
-   "aimHitsPerMinute": 9.4,
-   "aimDeaths": 1.7,
-   "aimBossFirePerMinute": 8.7,
-   "aimEscortLaserPerMinute": 0.8,
-   "dodgeHitsPerMinute": 10.9,
-   "dodgeDeaths": 0,
+   "aimHitsPerMinute": 10.5,
+   "aimDeaths": 1.3,
+   "aimBossFirePerMinute": 7.2,
+   "aimEscortLaserPerMinute": 3.2,
+   "dodgeHitsPerMinute": 10.3,
+   "dodgeDeaths": 0.7,
    "finished": true,
    "entryHostFrames": 257
   },
@@ -203,17 +203,17 @@
    "tier": 2,
    "difficulty": 0,
    "replays": 3,
-   "seconds": 93.8,
+   "seconds": 97.2,
    "secondsRange": [
-    88.9,
-    101.5
+    89.4,
+    111.9
    ],
-   "aimHitsPerMinute": 12.1,
+   "aimHitsPerMinute": 11.7,
    "aimDeaths": 1,
-   "aimBossFirePerMinute": 8.9,
+   "aimBossFirePerMinute": 9,
    "aimEscortLaserPerMinute": 2.7,
-   "dodgeHitsPerMinute": 11.6,
-   "dodgeDeaths": 0.7,
+   "dodgeHitsPerMinute": 12.4,
+   "dodgeDeaths": 1,
    "finished": true,
    "entryHostFrames": 268
   },
@@ -223,17 +223,17 @@
    "tier": 2,
    "difficulty": 1,
    "replays": 3,
-   "seconds": 113.1,
+   "seconds": 106.1,
    "secondsRange": [
-    109.1,
-    120.7
+    98.6,
+    110.1
    ],
-   "aimHitsPerMinute": 16.1,
-   "aimDeaths": 2.3,
-   "aimBossFirePerMinute": 12.4,
-   "aimEscortLaserPerMinute": 3.7,
-   "dodgeHitsPerMinute": 14.9,
-   "dodgeDeaths": 1.3,
+   "aimHitsPerMinute": 13.2,
+   "aimDeaths": 1.7,
+   "aimBossFirePerMinute": 10.1,
+   "aimEscortLaserPerMinute": 2.7,
+   "dodgeHitsPerMinute": 10.5,
+   "dodgeDeaths": 0.7,
    "finished": true,
    "entryHostFrames": 268
   },
@@ -243,17 +243,17 @@
    "tier": 2,
    "difficulty": 2,
    "replays": 3,
-   "seconds": 133.5,
+   "seconds": 138.8,
    "secondsRange": [
-    131.6,
-    136.3
+    132.1,
+    143.6
    ],
-   "aimHitsPerMinute": 13.4,
-   "aimDeaths": 2.3,
-   "aimBossFirePerMinute": 11.7,
-   "aimEscortLaserPerMinute": 1.7,
-   "dodgeHitsPerMinute": 15.9,
-   "dodgeDeaths": 1.7,
+   "aimHitsPerMinute": 10,
+   "aimDeaths": 2,
+   "aimBossFirePerMinute": 7.4,
+   "aimEscortLaserPerMinute": 1.9,
+   "dodgeHitsPerMinute": 14.4,
+   "dodgeDeaths": 1,
    "finished": true,
    "entryHostFrames": 268
   },
@@ -263,16 +263,16 @@
    "tier": 4,
    "difficulty": 0,
    "replays": 3,
-   "seconds": 93.6,
+   "seconds": 104.4,
    "secondsRange": [
-    88.9,
-    101.7
+    89.4,
+    112
    ],
-   "aimHitsPerMinute": 13.3,
+   "aimHitsPerMinute": 11.2,
    "aimDeaths": 1.3,
-   "aimBossFirePerMinute": 11.1,
-   "aimEscortLaserPerMinute": 2.2,
-   "dodgeHitsPerMinute": 11.3,
+   "aimBossFirePerMinute": 10.3,
+   "aimEscortLaserPerMinute": 0.9,
+   "dodgeHitsPerMinute": 11.6,
    "dodgeDeaths": 1,
    "finished": true,
    "entryHostFrames": 268
@@ -283,17 +283,17 @@
    "tier": 4,
    "difficulty": 1,
    "replays": 3,
-   "seconds": 117.2,
+   "seconds": 111.5,
    "secondsRange": [
-    112.1,
-    120.1
+    111.3,
+    111.7
    ],
-   "aimHitsPerMinute": 14.1,
-   "aimDeaths": 4.3,
-   "aimBossFirePerMinute": 11.6,
-   "aimEscortLaserPerMinute": 2.5,
-   "dodgeHitsPerMinute": 13.9,
-   "dodgeDeaths": 1,
+   "aimHitsPerMinute": 9.6,
+   "aimDeaths": 3.3,
+   "aimBossFirePerMinute": 7.8,
+   "aimEscortLaserPerMinute": 1.1,
+   "dodgeHitsPerMinute": 9.4,
+   "dodgeDeaths": 0.3,
    "finished": true,
    "entryHostFrames": 268
   },
@@ -303,17 +303,17 @@
    "tier": 4,
    "difficulty": 2,
    "replays": 3,
-   "seconds": 145.9,
+   "seconds": 138.1,
    "secondsRange": [
-    141.9,
-    152.9
+    132.1,
+    141.7
    ],
-   "aimHitsPerMinute": 17.7,
-   "aimDeaths": 3.7,
-   "aimBossFirePerMinute": 15,
-   "aimEscortLaserPerMinute": 2.7,
-   "dodgeHitsPerMinute": 17.5,
-   "dodgeDeaths": 2,
+   "aimHitsPerMinute": 11.4,
+   "aimDeaths": 2.3,
+   "aimBossFirePerMinute": 8.7,
+   "aimEscortLaserPerMinute": 1.3,
+   "dodgeHitsPerMinute": 15.5,
+   "dodgeDeaths": 1.3,
    "finished": true,
    "entryHostFrames": 268
   },
@@ -363,15 +363,15 @@
    "tier": 4,
    "difficulty": 2,
    "replays": 3,
-   "seconds": 160.2,
+   "seconds": 160.5,
    "secondsRange": [
     156.6,
-    162.1
+    163.1
    ],
    "aimHitsPerMinute": 25.4,
    "aimDeaths": 3.7,
-   "aimBossFirePerMinute": 18.7,
-   "aimEscortLaserPerMinute": 6.7,
+   "aimBossFirePerMinute": 19,
+   "aimEscortLaserPerMinute": 6.4,
    "dodgeHitsPerMinute": 22.7,
    "dodgeDeaths": 2.3,
    "finished": true,

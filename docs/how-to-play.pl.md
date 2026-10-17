@@ -179,7 +179,7 @@ Każdą połowę pola zasila kula generatora na jej końcu okrętu: zniszcz gene
 a jego połowa pola się zawali. Działa bossa przez cały czas strzelają przez pole.
 
 Ostatni boss, Bastion z poziomów 10-12, nie dryfuje. W jego środku jest okrągły
-hangar z bursztynowym rdzeniem reaktora w środku; z bramy u jego stóp startują
+hangar z żółto-czerwonym rdzeniem reaktora w środku; z bramy u jego stóp startują
 myśliwce eskorty. Obok hangaru stoją dwa działa laserowe, każde w
 opancerzonej zatoce: szara stal za zakratowaną osłoną, która stoi między
 działem a Tobą. Twoje strzały odbijają się od osłony, a działo i tak strzela
@@ -188,7 +188,7 @@ i po prawej, biegnie szyna z działkami, która wychodzi poza ekran; koniec
 każdej szyny to litera L — stopa pancerza sięgająca do środka wzdłuż rzędu
 osłony. Zestrzel przednie działko szyny, a cała szyna przesunie się o krok do
 środka i wprowadzi zza krawędzi następne działko — a osłona działa po tej
-stronie odpada: działo robi się bursztynowe i teraz możesz je trafić. Drugie
+stronie odpada: działo robi się żółte i teraz możesz je trafić. Drugie
 przesunięcie wsuwa stopę szyny przed działo: zakryte działo wraca do szarej
 stali, nie da się go już uszkodzić, a ono strzela dalej spod stopy aż do końca
 walki. Dopóki osłona działa jest otwarta, działko, którego zniszczenie by je
@@ -196,7 +196,7 @@ zakryło, mruga — to ostrzeżenie. **Otwórz pancerz działa i zniszcz je, zan
 szyna się zamknie.** Brama jest zamknięta — szara krata, Twoje strzały się od
 niej odbijają — dopóki każde działo i każde działko szyny nie zostanie
 zniszczone albo zakryte. Wtedy otwiera się z błyskiem i dźwiękiem i robi się
-bursztynowa: rozbij ją, zatrzymasz eskortę, a rdzeń za nią jest Twój. Szyny
+żółta: rozbij ją, zatrzymasz eskortę, a rdzeń za nią jest Twój. Szyny
 nigdy nie zakrywają hangaru.
 
 ## Okręty liniowe

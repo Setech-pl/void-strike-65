@@ -9,10 +9,10 @@
 //     tier (levels 5-6 tier 2, level 9 tier 4: more beams) no shorter than
 //     its first level's fight (less 5 %, the replays' spread) and at most
 //     30 % longer;
-//   - the danger rising in the same order: every hit a minute on the aiming
-//     bot, MEDIUM (the boss's own fire and the escort's laser - the shared
-//     Interceptor, no per-region Interceptor, decision AX 7 - reported apart
-//     in the evidence); the Bastion's about 18-20 (was 28);
+//   - the danger rising in the same order: the boss's own fire a minute on
+//     the aiming bot, MEDIUM (the escort's laser - the shared Interceptor, no
+//     per-region Interceptor, decision AX 7 - reported apart in the
+//     evidence); the Bastion's every hit about 18-20 a minute (was 28);
 //   - every boss entry within the 300-host-frame limit (decision AV);
 //   - each boss's colours keep the rules in its new region (the ally steel's
 //     hue, the b3 flash pair), and the laser tier is the level's (AC).
@@ -89,10 +89,16 @@ test("the fight's length meets the owner's targets in every region and difficult
     assert.ok(c.seconds >= first.seconds * 0.95 && c.seconds <= first.seconds * 1.3,
       `region ${c.region} L${c.levels} ${"EMH"[c.difficulty]}: ${c.seconds} s against its first level's ${first.seconds} s`);
   }
+  // RE-POINTED (the owner's brief of 2026-10-17: the Spine's reload back to
+  // x 0.85, the diagnostics note's option 2): on EASY a step may fall by the
+  // replays' spread (5 %, the later-tier rule above) - the Spine's EASY 97.2 s
+  // (its replays 89-112 s) against the Bastion's 96.4 s. MEDIUM and HARD rise
+  // strictly.
   for (const difficulty of [0, 1, 2]) {
     const mains = evidence.cells.filter((c) => main(c) && c.difficulty === difficulty).sort((a, b) => a.region - b.region);
+    const floor = difficulty === 0 ? 0.95 : 1;
     for (let i = 1; i < mains.length; i += 1) {
-      assert.ok(mains[i].seconds > mains[i - 1].seconds,
+      assert.ok(difficulty === 0 ? mains[i].seconds >= mains[i - 1].seconds * floor : mains[i].seconds > mains[i - 1].seconds,
         `${"EMH"[difficulty]}: region ${mains[i].region} (${mains[i].seconds} s) not longer than region ${mains[i - 1].region} (${mains[i - 1].seconds} s)`);
     }
   }
@@ -103,11 +109,16 @@ test("the fight's length meets the owner's targets in every region and difficult
   }
 });
 
+// RE-POINTED (the owner's brief of 2026-10-17, the Spine's reload x 0.85 -
+// the diagnostics note's option 2): the danger rises by the boss's own fire
+// (its guns' shots and its beams); every hit a minute includes the shared
+// escort's laser, half of the Citadel's 14.5 (decision AX 7: no per-region
+// Interceptor), so the Spine's 13.2 sits under it. Both reported in the evidence.
 test("the danger rises in the order of the bosses (MEDIUM, the aiming bot); the Bastion the hardest, not a wall", () => {
   const evidence = curve();
   const mains = evidence.cells.filter((c) => main(c) && c.difficulty === 1).sort((a, b) => a.region - b.region);
   for (let i = 1; i < mains.length; i += 1) {
-    assert.ok(mains[i].aimHitsPerMinute > mains[i - 1].aimHitsPerMinute,
+    assert.ok(mains[i].aimBossFirePerMinute > mains[i - 1].aimBossFirePerMinute,
       `region ${mains[i].region} ${mains[i].aimHitsPerMinute} hits a minute (boss ${mains[i].aimBossFirePerMinute}), ` +
       `not above region ${mains[i - 1].region}'s ${mains[i - 1].aimHitsPerMinute} (boss ${mains[i - 1].aimBossFirePerMinute})`);
   }

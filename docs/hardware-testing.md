@@ -1441,11 +1441,20 @@ Plan [plans/boss-order-scale.md](plans/boss-order-scale.md); journal §AW,
 - [ ] **The Bastion's L on route 4:** both cannons fire, each on its own;
       each rail's pods three columns apart, a two-cell armoured foot reaching
       inward along the armour row from its buffer; the first kill on a side
-      opens that bay (amber), the second slides the foot in front of the
+      opens that bay (yellow), the second slides the foot in front of the
       cannon - the cannon back in locked steel, your shots stop on the foot,
       its beam starts under the foot; the rails never reach the hangar. The
       Bastion's pressure is hard but fair: about 18-20 hits a minute on a
       player who aims and does not dodge (MEDIUM), down from 28.
+- [ ] **The Bastion's palette O and its wrecks (the owner's choice of
+      2026-10-17):** an orange trim and a dark orange track over the red
+      stripes, lamps and core; what you can hurt is yellow (an open cannon,
+      the pods' visors, the core's top third, the opened gate) and reads apart
+      from the orange; the boss's shots inside the band read as shots (trim
+      and steel), not as yellow parts; every hit flash visible. A destroyed
+      rail gun, and a cannon destroyed in its open bay, leave one flat burnt
+      slab under the track with a red ember - nothing below it - and your
+      shot at that spot stops on the slab.
 - [ ] **The drawn hit box (decision AW):** a boss shot, a beam or an
       Interceptor's laser that touches any part of your ship hits it - left
       half or right half alike; a shot that passes beside the drawn ship

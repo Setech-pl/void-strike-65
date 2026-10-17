@@ -66,3 +66,11 @@ problem decision AX named). x 0.75 fixed both and cost the headroom.
    Spine's cells re-measured into the evidence.
 3. **x 0.80**, between them: not measured (a Spine curve run and its stress,
    about 40 minutes).
+
+## Resolution (the owner's brief, 2026-10-17)
+
+Option 2: the Spine's guns' reload back to **x 0.85** of main (51 / 60 / 64 /
+51; the brief's "Spine reload 15 % faster"), with the Breaker at about 73 %
+of its hit points. Re-measured on `7ee430e`: level 9's worst reachable 8,025
+(headroom 475), level 7 7,771. The final per-region table is in
+`docs/STATUS.md` (feat/boss-order-scale).

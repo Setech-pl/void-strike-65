@@ -92,11 +92,15 @@ test("the longest life stays under the escort floor; 1 / 2 / 3 lasers a visit; t
   }
 });
 
+// RE-PINNED feat/boss-order-scale (decision AX 2-4): the Void Citadel's hit
+// points are the curve's now - it ends region 2 (tests/boss-region-4.test.mjs
+// pins them, docs/boss-curve.json measures them); Q4's fifth lighter stays the
+// step they were taken from (9 / 23 / 21 / 14 / 10 / 8).
 test("region 4's boss is about a fifth lighter (the fight's data lever, owner answer Q4)", () => {
   const layout = JSON.parse(fs.readFileSync(path.join(root, "assets", "graphics", "boss-regions", "region-4",
     "modules.json"), "utf8"));
   const hp = Object.fromEntries(layout.modules.map(({ name, hp: points }) => [name, points]));
-  assert.deepEqual(hp, { "spire-l": 9, "spire-r": 9, core: 23, "core-lens": 21, "cannon-l": 14, "cannon-r": 14,
-    "gun-1": 10, "gun-5": 10, "gun-2": 10, "gun-3": 10, "gun-6": 10, "gun-4": 10,
-    "plate-a": 8, "plate-b": 8, "plate-d": 8, "plate-e": 8 });
+  assert.deepEqual(hp, { "spire-l": 12, "spire-r": 12, core: 29, "core-lens": 27, "cannon-l": 16, "cannon-r": 16,
+    "gun-1": 11, "gun-5": 11, "gun-2": 11, "gun-3": 11, "gun-6": 11, "gun-4": 11,
+    "plate-a": 11, "plate-b": 11, "plate-d": 11, "plate-e": 11 });
 });

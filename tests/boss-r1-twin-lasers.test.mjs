@@ -20,7 +20,7 @@ import {
   loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import {
-  call, installRegion, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells,
+  bossLevel, call, installRegion, label, manifest, nmi, placeBand, regionOf, root, runBossEntry, shootAt, visibleCells,
 } from "./boss-harness.mjs";
 
 const lbl = (name) => label("boss", name);
@@ -251,9 +251,11 @@ test("data: the list shows each region's band down to its last row with a cell -
   assert.deepEqual(manifest.boss.regions.map(({ bandShownRows }) => bandShownRows), [5, 5, 8, 5]);
 });
 
-for (const [region, level] of [[1, 1], [2, 4], [3, 7], [4, 10]]) {
-  test(`region ${region}'s route: a shot under the boss is drawn in a ring row, in the playfield's charset and colours`, () => {
-    const entryRun = runBossEntry({ prepare: (m) => { m[0xa603] = level; } });
+// RE-POINTED feat/boss-order-scale (decision AX 1): each boss (its directory)
+// on its own region's route.
+for (const region of [1, 2, 3, 4]) {
+  test(`region ${regionOf(region)}'s route (${regions[region - 1].name.trim()}): a shot under the boss is drawn in a ring row, in the playfield's charset and colours`, () => {
+    const entryRun = runBossEntry({ prepare: (m) => { m[0xa603] = bossLevel(region); } });
     assert.equal(entryRun.end, "main_loop");
     const m = Uint8Array.from(entryRun.memory);
     const shown = bossBandShownRows(regions[region - 1].bandRows);

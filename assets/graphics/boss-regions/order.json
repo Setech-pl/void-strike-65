@@ -1,0 +1,4 @@
+{
+  "_": "feat/boss-order-scale (the owner's decision AX 1, 2026-10-16): which boss ends which region - region k (levels 3k-2 .. 3k) shows the boss drawn in boss-regions/region-<order[k-1]>/. Region 1 the Blockade Breaker, region 2 the Void Citadel, region 3 the Siege Spine, region 4 the Bastion: easiest to hardest. The build puts each boss's data and its block code (the rails, the field, the well) in its region's runs (scripts/build.mjs).",
+  "order": [1, 4, 3, 2]
+}

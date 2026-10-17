@@ -6,7 +6,8 @@
 // region 4's block - and its gravity well's code, when the build has it - is
 // read into slot F as the game reads it.
 //
-//   node scripts/measure-boss-stress-r4.mjs    (the default build; VS65_HARNESS_BUILD=<build/ dir> for another)
+//   node scripts/measure-boss-stress-r4.mjs [--level=N]   (the default build; VS65_HARNESS_BUILD=<build/ dir> for another;
+//   feat/boss-order-scale: the Citadel's first level by default - 4, region 2)
 //
 // The cases: every band position of five; the plates destroyed in every
 // combination, against the spires standing (the well on), either fallen, or
@@ -23,9 +24,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
-import { bandDliSwitches, call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
+import { bandDliSwitches, bossLevel, call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
 
-export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
+export function regionFourStress({ level = bossLevel(4), maxMeetings = 3 } = {}) {
   const lbl = (name) => label("boss", name);
   const has = (name) => { try { lbl(name); return true; } catch { return false; } };
   const main = (name) => label("main", name);
@@ -235,7 +236,10 @@ export function regionFourStress({ level = 10, maxMeetings = 3 } = {}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const { cases, describe, worstOf, level, gravity } = regionFourStress();
+  // feat/boss-order-scale: --level=N enters the Citadel where the order put it.
+  const levelArgument = process.argv.find((a) => a.startsWith("--level="));
+  const { cases, describe, worstOf, level, gravity } = regionFourStress(
+    levelArgument === undefined ? {} : { level: Number(levelArgument.slice("--level=".length)) });
   console.log(`# region 4, level ${level}, gravity code ${gravity ? "on the disk" : "absent"}: ${cases.length} cases`);
   for (const laserMode of ["warn", "beam"]) {
     const subset = cases.filter((c) => c.laserMode === laserMode);

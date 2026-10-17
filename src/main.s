@@ -4224,7 +4224,11 @@ interceptor_projectile_hits_player:
     lda FIGHTER_PROJECTILE_X,x
     sec
     sbc player_x
-    cmp #PLAYER_COLLISION_WIDTH
+    ; Every hostile shot meets the ship as it is drawn (feat/boss-order-scale,
+    ; the owner's decision of 2026-10-16): P0 double-width, its hull's widest
+    ; rows (5-8 of player_shape) set all eight bits, so x .. x + 15. The legacy
+    ; 8 left the right half of the ship untouchable.
+    cmp #PLAYER_VISIBLE_WIDTH_HPOS
     bcc @hit
     cmp #(256-(INTERCEPTOR_PROJECTILE_WIDTH_HPOS-1))
     bcc @miss

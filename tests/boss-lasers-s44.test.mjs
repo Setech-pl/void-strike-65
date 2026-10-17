@@ -177,11 +177,13 @@ test("decision 4: with both places busy, the exposed emitter takes the first tha
 
 test("decision 5: the emitter's durability is twice S4b's on every difficulty", () => {
   // RE-POINTED feat/boss-r1-twin-lasers: both twin cannons.
+  // RE-PINNED feat/boss-order-scale (decision AX 6: the Breaker x 0.70): 20 -> 14
+  // - the curve's first step supersedes decision 5's x 2 for region 1.
   for (const emitter of ["emitter-l", "emitter-r"].map((name) => indexOf(region1, name))) {
-    assert.equal(region1.modules[emitter].hp, 20, "10 x 2 in region 1's data");
+    assert.equal(region1.modules[emitter].hp, 14, "20 x 0.70 in region 1's data");
     // boss_def's per-difficulty scale (x 3/4, x 1, x 5/4 in quarters of the
-    // base): S4b's 10 gave 8 / 10 / 12; 20 gives 15 / 20 / 25.
-    const scaled = [15, 20, 25];
+    // base): S4b's 10 gave 8 / 10 / 12; 20 gave 15 / 20 / 25; 14 gives 11 / 14 / 17.
+    const scaled = [11, 14, 17];
     for (const difficulty of [0, 1, 2]) {
       const memory = install(region1, { difficulty });
       assert.equal(memory[lbl("_boss_hp") + emitter], scaled[difficulty], ["EASY", "MEDIUM", "HARD"][difficulty]);

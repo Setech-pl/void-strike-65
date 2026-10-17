@@ -167,7 +167,7 @@ export const BOSS_TABLE = Object.freeze({
 export const BOSS_MODULE_BYTES = 12;
 export const BOSS_MODULE = Object.freeze({
   x: 0, row: 1, width: 2,
-  height: 3,             // the height in bits 0-3; the rows inside the hull (cavityRows) in bits 4-7
+  height: 3,             // the height in bits 0-3; the gone draw's cavity rows (wreckRows: cavityRows unless a bay's cannon shortens it) in bits 4-7
   hp: 4, hpCracked: 5, hpBroken: 6,
   kind: 7,               // kind in bits 0-3, an emitter's slot (1-4) in bits 4-7
   score: 8,              // packed BCD, added once when the module is destroyed
@@ -409,11 +409,18 @@ export const BOSS_EMITTER_ART_FILE = "emitter.png";
 export const BOSS_EMITTER_PANELS = Object.freeze(["rest", "heatA", "heatB", "cracked", "broken"]);
 export function applyBossEmitterArt(draft, png, file, meta) {
   const modules = draft.layout.modules.map((module) => ({ ...module }));
-  const emitter = modules.find((module) => module.kind === "emitter" && (module.slot ?? 1) === 1);
-  if (emitter === undefined) fail(`${file}: the region has no emitter (slot 1)`);
-  // feat/boss-r1-twin-lasers: the twin cannons - a second slot-1 emitter -
-  // wear the same art at their own footprint (its size the first's).
-  const twins = modules.filter((module) => module !== emitter && module.kind === "emitter" && (module.slot ?? 1) === 1);
+  // feat/boss-order-scale: modules.json's emitterArt names the emitter the
+  // art is drawn for (the Citadel's cannon-l, since its lens took laser slot 1
+  // - level 4's one slot); without it, the slot-1 emitter.
+  const named = draft.layout.emitterArt;
+  const emitter = named === undefined
+    ? modules.find((module) => module.kind === "emitter" && (module.slot ?? 1) === 1)
+    : modules.find((module) => module.kind === "emitter" && module.name === named);
+  if (emitter === undefined) fail(`${file}: the region has no emitter ${named ?? "(slot 1)"}`);
+  // feat/boss-r1-twin-lasers: the twin cannons - a second emitter of the
+  // art's slot - wear the same art at their own footprint (its size the first's).
+  const twins = modules.filter((module) => module !== emitter && module.kind === "emitter" &&
+    (module.slot ?? 1) === (emitter.slot ?? 1));
   for (const twin of twins) {
     if (twin.width !== emitter.width || twin.height !== emitter.height) {
       fail(`${file}: twin cannon ${twin.name} is ${twin.width} x ${twin.height}; ${emitter.name} is ` +
@@ -790,7 +797,16 @@ function resolveModules(layout) {
         fail(`emitter ${name} is in a bay: its last row is the armour under the cannon (cavityRows ${height - 1})`);
       }
     }
-    return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows,
+    // feat/boss-order-scale (the owner's "less scrap", 2026-10-17): a bay's
+    // cannon may fall as fewer rows than it has inside the hull - its wreck
+    // the top wreckRows rows (the cavity), the rows under it background. Only
+    // the gone draw reads it (the record's height byte, bits 4-7); cavityRows
+    // keeps the bay's geometry (the lens, the armour row).
+    const wreckRows = integerIn(source.wreckRows ?? cavityRows, 0, cavityRows, `module ${name} wreckRows`);
+    if (wreckRows !== cavityRows && (source.bay !== true || wreckRows < 1)) {
+      fail(`module ${name}: "wreckRows" is a bay's cannon's (1 to its cavityRows)`);
+    }
+    return { name, kind, kindName: source.kind, x, row, width, height, hp, score, slot, reload, cavityRows, wreckRows,
       stages, bay: source.bay === true, cover: source.cover ?? "auto", authoredIndex };
   });
   if (!modules.some((module) => module.kind !== BOSS_KIND.armour)) {
@@ -930,6 +946,18 @@ function resolveBossRails(source, modules, owner) {
   if (!Array.isArray(source.rows) || source.rows.length !== 2) fail("rails.rows is [first, last]");
   const [rowFirst, rowLast] = source.rows.map((r) => integerIn(r, 0, BOSS_BAND_A_ROWS - 1, "rails.rows"));
   if (rowLast - rowFirst + 1 !== BOSS_RAIL_ROWS) fail(`rails.rows spans ${BOSS_RAIL_ROWS} band rows`);
+  // feat/boss-order-scale (decision AX 5, the L): the rail's inner end may
+  // carry a foot - `length` cells inward of the bumper (the nose) in the row
+  // under the rail (the cannons' armour row). The slide moves it with the
+  // rail (src/hybrid/boss.s rail_column's fourth row); the window's front is
+  // its tip, and the last slide stands it in front of the cannon while the
+  // bumper stops short of it (the cannon stays in view: its covered look).
+  const foot = source.foot === undefined || source.foot === null ? null : {
+    row: integerIn(source.foot.row, 0, BOSS_BAND_A_ROWS - 1, "rails.foot.row"),
+    length: integerIn(source.foot.length, 1, 4, "rails.foot.length"),
+  };
+  if (foot !== null && foot.row !== rowLast + 1) fail("rails.foot.row is the row under the rail's last row");
+  const rowsMoved = foot === null ? rowLast : foot.row;
   const sides = ["left", "right"].map((sideName) => {
     const side = source[sideName];
     if (side === undefined) fail(`rails.${sideName} is missing`);
@@ -951,7 +979,9 @@ function resolveBossRails(source, modules, owner) {
     });
     if (positions >= guns.length) fail(`rails.positions ${positions}: the ${sideName} rail needs a gun more than its slides`);
     return { sideName, dir, nose, cannon, guns };
-  }).map(({ sideName, dir, nose, cannon, guns }) => {
+  }).map(({ sideName, dir, nose: bumper, cannon, guns }) => {
+    // The window's front: the foot's tip (the bumper without a foot).
+    const nose = bumper + dir * (foot?.length ?? 0);
     // Only the locked-in front gun can be hurt or fire: each gun behind it is
     // covered by the gun in front (authored) and by the core - the lock, which
     // src/hybrid/boss.s rail_lock clears when the gun locks into the front-gun
@@ -980,15 +1010,23 @@ function resolveBossRails(source, modules, owner) {
     if (dir * (frontAt(positions) - cannonLast) < 0) {
       fail(`the ${sideName} rail's last slide leaves part of its cannon uncovered (front ${frontAt(positions)})`);
     }
+    if (foot !== null) {
+      const bumperLast = bumper + dir * positions * pitch;
+      if (dir * (bumperLast - cannonFirst) >= 0) fail(`the ${sideName} rail's bumper reaches its cannon (${bumperLast}): the foot covers it`);
+      if (foot.row !== cannon.row + cannon.height - 1) fail(`the ${sideName} rail's foot is not in its cannon's armour row`);
+      for (let k = 0; k <= foot.length; k += 1) {
+        if (owner.has(foot.row * BOSS_BAND_COLUMNS + bumper + dir * k)) fail(`the ${sideName} rail's foot meets a module`);
+      }
+    }
     // The cells a slide shifts: every gun at every position, and at the last
     // the screen's edge (the rail runs off the screen).
     const outer = dir > 0 ? Math.min(...guns.map((g) => g.x)) : Math.max(...guns.map((g) => g.x + g.width - 1));
     const edge = dir > 0 ? BOSS_RAIL_SCREEN.left : BOSS_RAIL_SCREEN.right;
     const window = Math.max(dir * (nose - outer) + 1, dir * (frontAt(positions) - edge) + 1);
     for (let r = rowFirst; r <= rowLast; r += 1) {
-      if (owner.has(r * BOSS_BAND_COLUMNS + nose)) fail(`the ${sideName} rail's front (${nose}, ${r}) is a module's cell`);
+      if (owner.has(r * BOSS_BAND_COLUMNS + bumper)) fail(`the ${sideName} rail's front (${bumper}, ${r}) is a module's cell`);
     }
-    return { name: sideName, dir, nose, cannon, guns, window, firstModule: indices[0], frontAt };
+    return { name: sideName, dir, nose, bumper, cannon, guns, window, firstModule: indices[0], frontAt };
   });
   if (sides[0].guns.length !== sides[1].guns.length) fail("the two rails carry the same number of guns");
   // One window for both sides (the block's code shifts one count of
@@ -1003,7 +1041,7 @@ function resolveBossRails(source, modules, owner) {
       Math.max(side.frontAt(positions), windowOuter + side.dir * positions * pitch)];
     for (const module of modules) {
       if (side.guns.includes(module) || module === side.cannon) continue;
-      const rowsMeet = module.row <= rowLast && module.row + module.height - 1 >= rowFirst;
+      const rowsMeet = module.row <= rowsMoved && module.row + module.height - 1 >= rowFirst;
       const columnsMeet = module.x <= reach[1] && module.x + module.width - 1 >= reach[0];
       if (rowsMeet && columnsMeet) fail(`the ${side.name} rail's slides reach module ${module.name}`);
     }
@@ -1013,7 +1051,7 @@ function resolveBossRails(source, modules, owner) {
     const outer = side.nose - side.dir * (side.window - 1);
     if (outer < 0 || outer > BOSS_BAND_COLUMNS - 1) fail(`the ${side.name} rail's window leaves the band`);
   }
-  return { framesPerStep, delayFrames, pulseFrames, pitch, positions, rowFirst, sides };
+  return { framesPerStep, delayFrames, pulseFrames, pitch, positions, rowFirst, foot, sides };
 }
 // The hangar: its doors (armour) launch the escort - their flash cueFrames
 // before each escort is armed - and stop it when they fall; the core.
@@ -1452,6 +1490,29 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     }
     openOffsets[index] = lookOffsets.get(key);
   }
+  // feat/boss-order-scale (decision AX 5): a rail with a foot covers its
+  // cannon with the foot alone - the cannon's covered look, drawn when the
+  // last slide covers it (boss.s rail_cover): its closed cells above, in its
+  // armour row the foot cells the last slide brings there.
+  const coveredOffsets = [];
+  if (rails !== null && rails.foot !== null) {
+    for (const side of rails.sides) {
+      const { cannon } = side;
+      const shift = side.dir * rails.positions * rails.pitch;
+      const bytes = [];
+      for (let r = cannon.row; r < cannon.row + cannon.height; r += 1) {
+        for (let c = cannon.x; c < cannon.x + cannon.width; c += 1) {
+          bytes.push(r === rails.foot.row ? bandRows[r][c - shift] : bandRows[r][c]);
+        }
+      }
+      // One look for both cannons when their bytes agree (region 2's: one
+      // symmetric foot glyph) - the block's bytes.
+      const same = coveredOffsets.findIndex((offset) => tail.slice(offset, offset + bytes.length).join() === bytes.join());
+      if (same >= 0) { coveredOffsets.push(coveredOffsets[same]); continue; }
+      coveredOffsets.push(tail.length);
+      tail.push(...bytes);
+    }
+  }
   let nozzleTailOffset = tail.length;
   if (nozzlePhasesInTail) for (const phases of nozzlePhases) for (const phase of phases) tail.push(...phase.bytes);
   // Decisions M and O: per column the row a shot stops on when no module
@@ -1487,13 +1548,28 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   // behind it lock in there); the controller's rebuild of its columns then
   // reads this stop - under the rail's last row: the dead gun's socket stays
   // solid, as its cavity glyphs show it (src/hybrid/boss.s BOSS_RAIL).
+  // feat/boss-order-scale (the owner's look of 2026-10-17): under the wreck's
+  // last row - its cavityRows; the rows under it are background, so a shot
+  // stops where the wreck is drawn (a full-height cavity: the rail's last row,
+  // as before).
   if (rails !== null) {
     for (const side of rails.sides) {
       const gun = side.guns[0];
       for (let c = gun.x; c < gun.x + gun.width; c += 1) {
         if (hullStop[c] === null) fail(`rail gun ${gun.name}'s column ${c} has no hull above it (the girder)`);
-        hullStop[c] = rails.rowFirst + BOSS_RAIL_ROWS - 1;
+        hullStop[c] = rails.rowFirst + BOSS_RAIL_ROWS - 1 - (gun.height - gun.cavityRows);
       }
+    }
+  }
+  // The same for a bay's cannon whose wreck is shorter than the cannon (its
+  // wreckRows): once it falls, a shot in its columns stops under the wreck,
+  // not on the hull above it.
+  for (const module of modules.filter((m) => m.wreckRows < m.cavityRows)) {
+    for (let c = module.x; c < module.x + module.width; c += 1) {
+      if (hullStop[c] === null || hullStop[c] >= module.row) {
+        fail(`module ${module.name}'s column ${c} has no hull above its wreck`);
+      }
+      hullStop[c] = module.row + module.wreckRows - 1;
     }
   }
   const hullStopTailOffset = tail.length;
@@ -1570,7 +1646,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     record[BOSS_MODULE.x] = module.x;
     record[BOSS_MODULE.row] = module.row;
     record[BOSS_MODULE.width] = module.width;
-    record[BOSS_MODULE.height] = module.height | (module.cavityRows << 4);
+    record[BOSS_MODULE.height] = module.height | (module.wreckRows << 4);
     record[BOSS_MODULE.hp] = module.hp;
     record[BOSS_MODULE.hpCracked] = hpCracked;
     record[BOSS_MODULE.hpBroken] = hpBroken;
@@ -1660,7 +1736,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     modules: modules.map((module) => ({ name: module.name, kind: module.kindName, x: module.x,
       row: module.row, width: module.width, height: module.height, hp: module.hp,
       thresholds: bossThresholds(module.hp), slot: module.slot, reload: module.reload,
-      cavityRows: module.cavityRows, stages: module.stages, bay: module.bay,
+      cavityRows: module.cavityRows, wreckRows: module.wreckRows, stages: module.stages, bay: module.bay,
       cover: module.coverMask, open: openLooks.has(module.index) })),
     themeBytes: themeImage === null ? 0 : themeImage.length,
     // S5-3: the force field (null without one): its row, the field code, both
@@ -1676,7 +1752,9 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       framesPerStep: rails.framesPerStep, delayFrames: rails.delayFrames, pulseFrames: rails.pulseFrames,
       pitch: rails.pitch, positions: rails.positions, rowFirst: rails.rowFirst,
       gunWidth: rails.sides[0].guns[0].width,
-      sides: rails.sides.map((side) => ({ name: side.name, dir: side.dir, nose: side.nose, window: side.window,
+      footRow: rails.foot?.row ?? null, footLength: rails.foot?.length ?? 0,
+      sides: rails.sides.map((side, i) => ({ name: side.name, dir: side.dir, nose: side.nose, bumper: side.bumper,
+        window: side.window, coveredLook: coveredOffsets[i] ?? null,
         cannon: side.cannon.index, guns: side.guns.map((gun) => gun.index), firstModule: side.firstModule,
         frontSlot: [side.guns[0].x, side.guns[0].x + side.guns[0].width - 1] })),
     },

@@ -15,7 +15,7 @@ import test from "node:test";
 
 import { guardFold } from "../scripts/disk-guard.mjs";
 import {
-  atrRun, atrSector, bossGateMemory, call, label, mainAddress, manifest, readBuild, root, runBossEntry,
+  atrRun, atrSector, bossGateMemory, bossOrder, call, label, mainAddress, manifest, readBuild, root, runBossEntry,
 } from "./boss-harness.mjs";
 
 const SLOT_F = [0x5200, 0x5400];
@@ -47,8 +47,11 @@ test("Q9: slot F is $5200-$53FF in the manifest, and no segment of any link reac
         continue;
       }
       if (file === "boss.map" && name === "BOSS_R_DATA") {
-        assert.ok(from >= SLOT_F[0] + manifest.boss.slotF.blocks[1].lookTailBytes && to <= SLOT_F[0] + 110,
-          `${name} $${start}-$${end} is not between region 2's look tail and BOSS_F_HOOK`);
+        // RE-POINTED feat/boss-order-scale (decision AX 1): the rails' block
+        // is the Bastion's region's (region 4 in the order), not region 2's.
+        const rails = manifest.boss.slotF.blocks[bossOrder.indexOf(2)];
+        assert.ok(from >= SLOT_F[0] + rails.lookTailBytes && to <= SLOT_F[0] + 110,
+          `${name} $${start}-$${end} is not between the Bastion's look tail and BOSS_F_HOOK`);
         continue;
       }
       assert.ok(!(from < SLOT_F[1] && SLOT_F[0] < to), `${file}: ${name} $${start}-$${end} reaches slot F`);

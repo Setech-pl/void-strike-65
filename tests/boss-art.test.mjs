@@ -5,7 +5,9 @@
 // bulk) after WSYNC - COLPF0 and COLPF2 are the in-band shots' colours and
 // never change; the last switch hands VDSLST back to boss_dli for the band's
 // end. The owner's choices: region 1 two switches, region 2 three, region 3
-// none (exactly as before), region 4 one.
+// none (exactly as before), region 4 one - per boss, which feat/boss-order-scale
+// moved (decision AX 1): the Breaker two, the Bastion three, the Spine none,
+// the Citadel one, each entered at its own region's first level.
 //
 //   1. the converter: each region's row palette, its switches and the bytes
 //      it lays in the charset run's divider area (the install reads them
@@ -35,13 +37,16 @@ import {
   bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import { ALLY_MIN_DEGREES, FLASH_MIN_DISTANCE, regionRules } from "../scripts/boss-art-rules.mjs";
-import { bandDliSwitches, label, nmi, root, runBossEntry, word } from "./boss-harness.mjs";
+import { bandDliSwitches, bossLevel, label, nmi, regionOf, root, runBossEntry, word } from "./boss-harness.mjs";
 
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
+// Indexed by the boss's directory (region-1 .. region-4); each is entered at
+// its region's first level on the built disk.
 const regions = [1, 2, 3, 4].map((n) => compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, n))));
-const ROUTE_LEVEL = [1, 4, 7, 10];
-// The owner's choices (decision AV): the rows each region switches on.
+const ROUTE_LEVEL = [1, 2, 3, 4].map((n) => bossLevel(n));
+const boss = (r) => `${regions[r].name.trim()} (region ${regionOf(r + 1)})`;
+// The owner's choices (decision AV): the rows each boss switches on.
 const SWITCHES = [[1, 3], [1, 3, 4], [], [3]];
 const COLPF0 = 0xd016;
 const COLPF1 = 0xd017;
@@ -105,7 +110,7 @@ function entered(r) {
 }
 
 for (let r = 0; r < 4; r += 1) {
-  test(`region ${r + 1}'s route: the install arms ${SWITCHES[r].length} row switch(es); the band keeps its shown rows`, () => {
+  test(`${boss(r)}'s route: the install arms ${SWITCHES[r].length} row switch(es); the band keeps its shown rows`, () => {
     const m = entered(r);
     const region = regions[r];
     const shown = bossBandShownRows(region.bandRows);
@@ -154,7 +159,7 @@ function frameWrites(m) {
 }
 
 for (let r = 0; r < 4; r += 1) {
-  test(`region ${r + 1}: each switch writes WSYNC, COLPF1, COLPF3 - its row's colours - and nothing else; the last hands the band back`, () => {
+  test(`${boss(r)}: each switch writes WSYNC, COLPF1, COLPF3 - its row's colours - and nothing else; the last hands the band back`, () => {
     const m = entered(r);
     const region = regions[r];
     for (let frame = 0; frame < 2; frame += 1) {
@@ -221,7 +226,7 @@ test("B's native cost a frame: the hook and the switches (region 3: none)", () =
 
 test("the rules per row: the b3 flash pair >= 80 apart (Atari800), every colour >= 45 degrees from the ally steel", () => {
   regions.forEach((region, r) => {
-    const rules = regionRules(r + 1, region);
+    const rules = regionRules(regionOf(r + 1), region);
     for (const row of rules.rows) {
       assert.ok(row.flash >= FLASH_MIN_DISTANCE, `region ${r + 1} row ${row.row}: the flash pair ${row.colours[2]} / ${row.colours[3]} is ${row.flash} apart`);
       assert.ok(row.worstAlly >= ALLY_MIN_DEGREES, `region ${r + 1} row ${row.row}: a colour ${row.worstAlly} degrees from the ally steel`);

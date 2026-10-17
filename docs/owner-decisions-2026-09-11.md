@@ -2675,6 +2675,183 @@ zestawu znaków), na otwartym dziale bursztynowy pierścień na lufie (każda
 komórka odróżnia się od zamkniętej — reguła czytelności z 2026-10-15); faza B
 z testami, klauzulami śladu i bramką 300. `OWNER-SMOKE CANDIDATE`.
 
+## AW. MARTWA STREFA INTERCEPTORA I TRAFIENIA W STATEK TAKI, JAKI WIDAĆ — decyzja właściciela (2026-10-16, `feat/boss-order-scale`, krok 1)
+
+1. **Martwa strefa (po audycie `gfx-regression-2026-10-16`):** Interceptor w
+   zawisie nie przesuwa się w bok, póki środek statku gracza jest w odległości
+   do 4 HPOS od jego kolumny; poza nią śledzenie bez zmian (decyzja **AS**).
+   Zatwierdzone +14 B okna kodu; więcej = STOP z opcjami. **Wykonanie:**
+   strefa = dokładnie te pozycje, w których strzał statku (`player_x + 8`)
+   przecina `[x, x + 8)` Interceptora — strona, z której strzał przeszedłby
+   obok, jest wyłączona (reguła złapania z **AS**); w strefie jego kolumna jest
+   kolumną gracza: stoi i strzela. +14 B spłacone przycięciami w tym samym
+   ticku i ostatnim bajtem wypełnienia okna: **0 B netto**, jądro Light zostaje
+   na `$B478`.
+2. **Trafienia w statek (wariant 2, doprecyzowany):** strefa ujawniła wadę
+   sprzed **AS**: wrogie strzały trafiały tylko w lewe 8 HPOS statku (stare
+   `PLAYER_COLLISION_WIDTH`), a statek jest rysowany na 16 HPOS (P0 podwójnej
+   szerokości) — statek na x ≡ 2 (mod 4) nie dostawał żadnego lasera
+   Interceptora (MEASURED na `main`). Od teraz **każdy wrogi strzał** (impulsy
+   Raiderów i Bomberów, impulsy i promienie bossów, lasery Light) trafia w
+   statek **taki, jaki widzi gracz**: kadłub zajmuje pełne 16 HPOS (rzędy 5-8
+   `player_shape` mają wszystkie 8 bitów), więc pudło to `x .. x + 15` w
+   rzędach 0-14 — to samo, co już miały pociski kapitałów. Stała, **0 B**.
+3. Ponieważ to utrudnia każdą walkę: **pomiar przed krzywą** — trafienia w
+   boty według źródła i trudności przed/po na poziomie 1 i na każdym bossie;
+   każda reguła uczciwości sprawdzona na nowo (≥ 10 klatek na zejście z
+   ostrzeżonego promienia, brak schronienia i brak miejsca bez wyjścia w R2 i
+   R4, straż lewej krawędzi, brak taranowania); jeśli któraś pęka — STOP z
+   opcjami. Klauzule kontaktu nigdy nie są osłabiane; nieaktualne scenariusze
+   przepisuje się uczciwie. Potem faza A kolejności bossów i krzywej, z nowym
+   pudłem wszędzie; zmiana pudła pokazana w raporcie osobno.
+
+## AX. KOLEJNOŚĆ BOSSÓW, KRZYWA TRUDNOŚCI, WYGLĄD ZASŁONIĘTEGO DZIAŁA BASTIONU — decyzja właściciela (2026-10-16, po fazie A `feat/boss-order-scale`)
+
+1. **Kolejność:** region 1 Blockade Breaker, region 2 Void Citadel, region 3
+   Siege Spine, region 4 Bastion (propozycja z planu `boss-order-scale` §6).
+2. **Krzywa:** MEDIUM ok. **92 / 102 / 112 / 122 s** (zastępuje płaskie
+   pasmo 90–120 dla późniejszych bossów), EASY ok. **0,8×**, HARD ok.
+   **1,25×** MEDIUM; długość rośnie na każdym kroku na każdym poziomie
+   trudności.
+3. **Kształt na poziom trudności:** najpierw 3 powtórzenia na komórkę, potem
+   strojenie wyłącznie danymi (ćwiartki `hpScale`). Bez nowego kodu dla
+   drobniejszej skali per boss; jeśli dane nie naprawią EASY Siege Spine na
+   poziomach 7–8 — raport i pytanie.
+4. **Kolejność zagrożenia:** przeładowania danymi — działa Citadel ok. 20 %
+   wolniej, Spine ok. 15 % szybciej; zmierzyć ponownie, aż zagrożenie rośnie
+   w kolejności bossów.
+5. **Bastion — mechanika bez zmian, zmienia się tylko PREZENTACJA:** gdy szyna
+   zasłania żywe działo, wewnętrzny koniec szyny jest „L": pionowo zderzak jak
+   dziś, poziomo stopa w rzędzie pancerza (pod działami); w ostatniej pozycji
+   stopa wjeżdża PRZED działo i je osłania; działo zostaje w pełni widoczne
+   nad stopą (w wyglądzie zamkniętej stali), promień startuje pod stopą,
+   ostrzeżenie widoczne; strzały w stopę odbijają się jak od krat zamkniętej
+   zatoki. Przed ostatnim przesunięciem stopa jedzie z szyną po rzędzie
+   pancerza, nie nachodzi wcześniej na zatokę ani drzwi, nigdy nie zasłania
+   drzwi ani rdzenia. Pulsujące ostrzeżenie na działku, którego zestrzelenie
+   zasłoni działo, zostaje. Testy zatok i promieni oraz klauzule śladu dla
+   nowego wyglądu (zasłonięte = działo widoczne + stopa w rzędzie pancerza +
+   promień pod stopą). Zestaw znaków regionu 2 może rosnąć (**AU**); blok ma
+   mało miejsca — najpierw przycięcia w nim; jeśli dalej się nie mieści — STOP
+   z opcjami.
+6. **Trudność Bastionu:** zostaje najtrudniejszy, ale nie ściana — ok.
+   **18–20 trafień/min na MEDIUM** (bot celujący; indeks ok. 1,2), walka
+   blisko 122 s, wszystkie reguły uczciwości; strojenie danymi (najpierw
+   przeładowania dział szyn i działek, potem salwy, potem punkty życia).
+   Raport przed/po.
+7. **Punkty życia Interceptora na region:** nie teraz.
+8. **Dryfujące promienie R1 i R3:** zostają.
+9. **Punkty życia Blockade Breaker:** ok. **73 %**, żeby MEDIUM wypadało
+   blisko 92 s.
+10. **Decyzja AW** (pudło 16 HPOS dla każdego wrogiego strzału) i martwa
+    strefa — zostają jak zbudowane.
+
+Najpierw pokaz zmiany Bastionu (podgląd jednej strony w każdej pozycji szyny,
+z promieniem i bez, oraz ATR trasy bossa regionu 4), potem STOP na przegląd
+właściciela; po akceptacji faza B.
+
+11. **Wybory dla „L" (2026-10-16):** geometria — działa szyny co 3 kolumny,
+    przesunięcie 3 (jedyne trafialne działo zostaje w dzisiejszym gnieździe
+    17–19 na każdym etapie, szyna jedzie 6 kolumn; czekające działa mogą się
+    stykać; przyjęty skutek: strzały w 2 kolumnach między zderzakiem a zatoką
+    zatrzymują się na stopie). Zasłonięte działo w wyglądzie zamkniętej stali;
+    glify stopy zatwierdzone (**AU**).
+12. **Bajty — slot E odrzucony, sloty C i D przyjęte (2026-10-16):** wybrana
+    najpierw opcja A (procedura zatoki i nowy test promienia w slocie E,
+    5 sektorów) jest **niewykonalna**: czytnik zapisuje całe sektory po 128 B,
+    obszar slotu E ma 576 B (4,5 sektora), a piąty sektor zapisał
+    `$4E40-$4E7F` — stan rezydentny (`BROAD_STATE` … `DIFFICULTY_SETTING`);
+    gra psuła się przy wejściu bossa (MEASURED: „production frontend selected
+    difficulty 83"). Sprawdzenie w buildzie porównywało tylko liczbę sektorów
+    z `ceil(bajty / 128)`. **Przyjęte:** `rail_frame` w slocie C (15 sektorów
+    w obszarze 2 048 B), jego początek i zapis rzędu pancerza w slocie D
+    (14 sektorów = cały obszar), slot E bez zmian (4 sektory); +2 sektory przy
+    każdym wejściu bossa (najgorsze wejście 272 z 300). **Nowe sprawdzenie w
+    buildzie zostaje:** build odrzuca każdy slot, którego sektory wychodzą
+    poza jego obszar RAM.
+13. **„L" Bastionu zatwierdzone jak zbudowane** (przegląd `rail-l.png`,
+    `rail-r.png` i ATR trasy bossa regionu 4 `92047d67…`, 2026-10-16). Faza B
+    ze wszystkimi decyzjami z **AX** i **AW**.
+
+**Faza B — wykonanie (2026-10-17, `OWNER-SMOKE CANDIDATE`, do smoke'a
+właściciela).** Zapisane tu, bo rozstrzygają szczegóły, których decyzja nie
+przesądzała:
+
+14. **Kolejność jako dane:** `assets/graphics/boss-regions/order.json`
+    `[1, 4, 3, 2]`; katalogi bossów zachowują nazwy, pod którymi zostały
+    narysowane (Bastion w `region-2/`, Void Citadel w `region-4/`). Flagi
+    przeglądowe fazy A (`--boss-order`, `--boss-proposal`) i pliki propozycji
+    usunięte.
+15. **Tier laserów idzie za poziomem (AC), więc Cytadela na poziomach 4-6 ma
+    mniej dział:** soczewka rdzenia (oś studni) przeszła do slotu 1, żeby
+    promień osi strzelał już na poziomie 4 z jednym slotem — inaczej studnia
+    ciągnęłaby statek pod kolumnę bez promienia (wbrew odpowiedzi 4 z
+    2026-10-14: studnia ciągnie w niebezpieczeństwo). Działo lewe to slot 2
+    (od poziomu 5), prawe slot 3; na poziomie 4 oba stoją jako zaślepione
+    płyty (żaluzjowy pancerz), na 5-6 prawe. `emitterArt: "cannon-l"`
+    zostawia `emitter.png` przy dziale. Bez luki obok rdzenia na poziomach 4
+    i 5 (test).
+16. **Krzywa — tylko danymi (HP i przeładowania bossów; skala trudności
+    poziomu bez zmian), zmierzona od zera na danych końcowych, trzy powtórki
+    na komórkę (`docs/boss-curve.json`):** EASY / MEDIUM / HARD na pierwszym
+    poziomie regionu — Breaker 70 / 89 / 114 s, Cytadela 84 / 99 / 126 s,
+    Spine 94 / 113 / 134 s, Bastion 96 / 122 / 160 s; trafienia na minutę
+    (bot celujący, MEDIUM) 5,5 / 14,5 / 16,1 / 20,4. Dane: Breaker **x 0,70**
+    HP (nie 0,73: przy 0,73 walka trwała 95 s i Cytadela na poziomie 4 nie
+    była od niej dłuższa); Cytadela ok. x 1,25 puli poziomu 4 i działa x 1,2
+    przeładowania; Spine x 0,90 HP i działa **x 0,75** przeładowania (nie
+    0,85: przy 0,85 jej 13,2 trafienia na minutę były poniżej 14,3 Cytadeli);
+    Bastion działka szyn 15 -> 16, rdzeń 74 -> 79, brama 22 -> 24, przeładowanie
+    działek szyn 70 -> 125, rdzenia 90 -> 130 (presja 28 -> 20,4 na minutę).
+    EASY Spine'a na poziomach 7-8 rozwiązany danymi: 94 s, 0,83 MEDIUM.
+17. **Presja Cytadeli na poziomie 4 to w połowie laser eskorty** (7,5 z 14,5
+    na minutę): studnia ściąga statek do środkowej kolumny, gdzie eskorta
+    wchodzi i wisi (martwa strefa). Eskorta jest wspólnym Interceptorem
+    (bez HP per region, punkt 7), więc zostaje — do oceny w smoke'u.
+18. **Klauzula śladu „zatoki zakratowane na starcie"** sprawdza pierwsze 16
+    klatek walki, nie pierwszą: strzał w zamkniętą zatokę w klatce 0 rysuje
+    tam na chwilę glif odbicia (MEASURED na trasie Bastionu w regionie 4).
+
+**Przegląd właściciela „L" i dwie poprawki wyglądu Bastionu (2026-10-17,
+tylko prezentacja, bez zmian mechaniki):**
+
+19. **Paleta Bastionu: wariant O (pomarańcz + czerwień)**, wybrany z V
+    (fiolet Spine'a i Cytadeli) i O, pokazanych obok siebie z działającego
+    buildu. Wykończenie pomarańczowe `$1A / $18 / $16` (jaśniejsze u góry),
+    masa ciemnopomarańczowa `$12` (tor, za kratą bramy), czerwone pasy,
+    lampki i dolne dwie trzecie rdzenia `$34 / $32` bez zmian (78-81 od
+    pomarańczu). Akcent trafialny przeszedł z `$28` na żółty **`$EC`**: w
+    palecie PAL Atari800 `$28` to łososiowy pomarańcz, tylko 38 od
+    wykończenia `$18`. Pary błysku b3 181-220 (próg 80), 143° od stali
+    sojusznika `$88/$84` (narzędzie reguł). Zablokowana stal, szara krata
+    i szary rząd pancerza bez zmian. Sprawdzone w grze: strzały bossa w
+    pasie to wykończenie (PF1) i blada stal (PF0), nie żółty — żółte są tylko
+    błysk wylotu i iskra trafienia, jak wcześniej bursztyn.
+20. **„Mniej złomu": wrak to jedna płyta.** Zniszczone działko szyny i
+    działo zniszczone w otwartej zatoce zostawiają jeden płaski, wypalony
+    rząd pod torem (pełny, w ciemnym wykończeniu rzędu, z jednym czerwonym
+    żarem), pod nim tło. Działka szyn: `cavityRows` 2 -> 1. Działa w
+    zatokach: nowe pole `"wreckRows": 1` (tylko w konwerterze: bity 4-7
+    bajtu wysokości rekordu modułu i tabela zatrzymań; 0 bajtów 6502, 0
+    sektorów). Skutek przyjęty przez właściciela: strzał w miejsce martwego
+    działka lub działa zatrzymuje się na płycie, nie leci do toru.
+21. **Dane krzywej według briefu właściciela (zastępują dane z punktu 16):**
+    Spine — przeładowanie dział **x 0,85** (51 / 60 / 64 / 51; „15 %
+    szybciej", opcja 2 z `docs/diagnostics/boss-order-scale-m6-headroom-2026-10-17.md`:
+    zapas M6 poziomu 9 wraca do 475); Breaker **73 %** HP (działa 8 -> 9,
+    działa laserowe 14, płyty 6 / 7 / 4: 130 ze 178). Zmierzone od zera
+    (108 sesji, `docs/boss-curve.json`): EASY / MEDIUM / HARD — Breaker
+    78 / 93 / 125 s, Cytadela 84 / 99 / 126 s, Spine 97 / 106 / 139 s,
+    Bastion 96 / 122 / 161 s; MEDIUM i HARD rosną na każdym kroku. Skutki
+    opcji 2, zapisane w teście krzywej: niebezpieczeństwo rośnie według
+    własnego ognia bossa (5,8 / 7,1 / 10,1 / 14,9 na minutę), nie według
+    wszystkich trafień (Spine 13,2 pod Cytadelą 14,5 — połowa to laser
+    eskorty); EASY Spine'a 97,2 s o 0,8 s nad Bastionem 96,4 s (powtórki
+    Spine'a 89-112 s) — test dopuszcza na EASY spadek w rozrzucie 5 %.
+    Danymi nie da się tego odwrócić bez złamania innego celu (mniej HP
+    Spine'a: MEDIUM poniżej 105 s; więcej HP Bastionu: HARD ponad 162,5 s).
+    Do oceny w smoke'u właściciela.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

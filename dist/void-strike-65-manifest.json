@@ -62,7 +62,7 @@
       "endExclusive": 40952,
       "reservedEndExclusive": 40954,
       "rawBytes": 4465,
-      "packedBytes": 3578,
+      "packedBytes": 3575,
       "codeAddress": 34561,
       "codeBytes": 1551,
       "rodataAddress": 40309,
@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 32142,
+      "crc16": 15586,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 32142,
+        "crc16": 15586,
         "records": [
           {
             "startSector": 108,
@@ -372,7 +372,7 @@
             "packedLength": 740,
             "rawLength": 818,
             "finalDestination": 31696,
-            "crc16": 28173,
+            "crc16": 58479,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -380,10 +380,10 @@
           {
             "startSector": 179,
             "sectorCount": 11,
-            "packedLength": 1322,
+            "packedLength": 1319,
             "rawLength": 1656,
             "finalDestination": 44544,
-            "crc16": 65341,
+            "crc16": 26525,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -394,7 +394,7 @@
             "packedLength": 847,
             "rawLength": 957,
             "finalDestination": 46200,
-            "crc16": 62557,
+            "crc16": 30898,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -656,7 +656,7 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$237C"
+        "expected": "$62C9"
       },
       {
         "index": 2,
@@ -666,7 +666,7 @@
       {
         "index": 3,
         "name": "boss region 2 (M5b)",
-        "expected": "$8203"
+        "expected": "$B93A"
       },
       {
         "index": 4,
@@ -676,7 +676,7 @@
       {
         "index": 5,
         "name": "boss region 4 (M5b)",
-        "expected": "$B93A"
+        "expected": "$8203"
       },
       {
         "index": 6,
@@ -700,10 +700,10 @@
       }
     ],
     "bossHeadSums": [
-      "$238D",
-      "$6216",
-      "$B64A",
-      "$E07F"
+      "$7F12",
+      "$7518",
+      "$2FBA",
+      "$DFCF"
     ],
     "summaryArtSums": [
       "$2223",
@@ -856,11 +856,11 @@
     },
     "slotC": {
       "address": 4096,
-      "bytes": 2002,
-      "codeBytes": 1779,
+      "bytes": 2044,
+      "codeBytes": 1821,
       "capacityBytes": 2048,
-      "freeBytes": 46,
-      "sectors": 14
+      "freeBytes": 4,
+      "sectors": 15
     },
     "scratch": {
       "address": 6144,
@@ -871,11 +871,11 @@
     },
     "slotD": {
       "address": 6400,
-      "bytes": 1767,
-      "codeBytes": 1663,
+      "bytes": 1788,
+      "codeBytes": 1684,
       "capacityBytes": 1792,
-      "freeBytes": 25,
-      "sectors": 13
+      "freeBytes": 4,
+      "sectors": 14
     },
     "slotF": {
       "address": 20992,
@@ -896,12 +896,12 @@
         },
         {
           "region": 2,
-          "bytes": 511,
-          "lookTailBytes": 43,
-          "codeBytes": 401,
+          "bytes": 406,
+          "lookTailBytes": 80,
+          "codeBytes": 296,
           "sectors": 4,
           "startSector": 700,
-          "freeBytes": 1
+          "freeBytes": 106
         },
         {
           "region": 3,
@@ -914,12 +914,12 @@
         },
         {
           "region": 4,
-          "bytes": 406,
-          "lookTailBytes": 80,
-          "codeBytes": 296,
+          "bytes": 508,
+          "lookTailBytes": 51,
+          "codeBytes": 398,
           "sectors": 4,
           "startSector": 708,
-          "freeBytes": 106
+          "freeBytes": 4
         }
       ]
     },
@@ -932,6 +932,12 @@
       "sectors": 4
     },
     "laserFixtureTier": null,
+    "order": [
+      1,
+      4,
+      3,
+      2
+    ],
     "charset": {
       "address": 3072,
       "capacityBytes": 1024
@@ -957,7 +963,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "4ff4ee3b8b0f244404a3155f55070bc024869749769255905557fe5fcda28637",
+        "sha256": "d325060ca4d5d034543798bea8f50327839a2d036579a18965096ce6e30d1a6f",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -972,19 +978,19 @@
       {
         "name": "boss-slot-c",
         "startSector": 547,
-        "sectors": 14,
+        "sectors": 15,
         "destination": 4096,
-        "bytes": 1792,
-        "sha256": "a6bb660730216d5a05730e04f5c42361eb53d1499d62c3fbc4b8257f9c8bb524",
+        "bytes": 1920,
+        "sha256": "c7afbbadf69f4b1b44c6fc66d48360ac8c3477785dd7bae33960a0325ebd9fd8",
         "file": "overlay-boss-slot-c.bin"
       },
       {
         "name": "boss-slot-d",
         "startSector": 563,
-        "sectors": 13,
+        "sectors": 14,
         "destination": 6400,
-        "bytes": 1664,
-        "sha256": "4edc569195da8b7b5073d7080175bf75f771f101bd27aa6b5e2056b3f4f5c323",
+        "bytes": 1792,
+        "sha256": "105fd794ca73273328e928de4021d9f6253885d51abc09aefe25a1e1df3fd714",
         "file": "overlay-boss-slot-d.bin"
       },
       {
@@ -993,7 +999,7 @@
         "sectors": 4,
         "destination": 19456,
         "bytes": 512,
-        "sha256": "6f82b90ad876be1567b153cf1a8694e35bb5309247456571944788e3eca3b975",
+        "sha256": "b59ce1d16a22e8908880b4efc3ec72634e56fda109c8e5295fcbaae627d7b841",
         "file": "overlay-boss-slot-e.bin"
       },
       {
@@ -1020,7 +1026,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "14ffdb95168db8343d065906b7671f852ceb6fdf916ae60f5a98301acce4b1ff",
+        "sha256": "6e3cc55f49045e68e63da11184b169dd85d921743ccaa333b38e0b6f6f66fc06",
         "file": "boss-region-1-band-b.bin"
       },
       {
@@ -1047,7 +1053,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "eb4b74cdecef145fa1ef52a0e6814b7e2f8280ef87d596b6208a277adccebaba",
+        "sha256": "7bdf21abffbca745d1fcb025b5268f4916f9249d8781af99768721a4782d1fb8",
         "file": "boss-region-2-theme.bin"
       },
       {
@@ -1056,7 +1062,7 @@
         "sectors": 3,
         "destination": 43136,
         "bytes": 384,
-        "sha256": "55302951abf4e95009431624f1bd4fcf93bc16a12313f674e6e56b5b4f45cf32",
+        "sha256": "7f962808fd6b996d7615d867d9aebf78e286b300fdafa97d7432bc2ca0998821",
         "file": "boss-region-2-band-a.bin"
       },
       {
@@ -1065,7 +1071,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "2e983c77714399b0bc88c27758943f1a713f3deddec0fc297e2c0326da0059f0",
+        "sha256": "f403e050e0721411452b4125bd89b3eee5b331d6a8852676e129151865a35515",
         "file": "boss-region-2-band-b.bin"
       },
       {
@@ -1074,7 +1080,7 @@
         "sectors": 7,
         "destination": 3072,
         "bytes": 896,
-        "sha256": "93f68964ac3aac724ddf06841a90b2baf7c36191ce66d469b63da9f2da295988",
+        "sha256": "482dc4d2039f4f3bab60e0cb15eba37a7bfcf4c1e076dd1ea08772541d66f8ed",
         "file": "boss-region-2-charset.bin"
       },
       {
@@ -1083,7 +1089,7 @@
         "sectors": 4,
         "destination": 20992,
         "bytes": 512,
-        "sha256": "9c468a8f040d1f34e83c9eeac6b438466c093f4499b2db7b79d3c75fac5f5d7b",
+        "sha256": "7ea6a6f963d80cb8b81095eaee0badff16c2633e350b2884c879c18ab696dd10",
         "file": "boss-region-2-block.bin"
       },
       {
@@ -1110,7 +1116,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "1b9b041d99495d82665bb5d0a6c7831a80dc54d132882f43ebdd2dbaa93580fb",
+        "sha256": "7a84f52900652292c652351005349d6bea11fe0d00dea76420b0f6b5f3e07d86",
         "file": "boss-region-3-band-b.bin"
       },
       {
@@ -1128,7 +1134,7 @@
         "sectors": 3,
         "destination": 20992,
         "bytes": 384,
-        "sha256": "0eabee567468e74ee32437e8f9f757ca75aa14fd3c3d531edf4f067fd5613904",
+        "sha256": "e34af9f764582be81fdd599ab22072b55d38db482dab0f6b13a6100d699af9a6",
         "file": "boss-region-3-block.bin"
       },
       {
@@ -1137,7 +1143,7 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "7bdf21abffbca745d1fcb025b5268f4916f9249d8781af99768721a4782d1fb8",
+        "sha256": "eb4b74cdecef145fa1ef52a0e6814b7e2f8280ef87d596b6208a277adccebaba",
         "file": "boss-region-4-theme.bin"
       },
       {
@@ -1146,7 +1152,7 @@
         "sectors": 3,
         "destination": 43136,
         "bytes": 384,
-        "sha256": "7f962808fd6b996d7615d867d9aebf78e286b300fdafa97d7432bc2ca0998821",
+        "sha256": "92951ccf8bf531e23010ed489900ee69648e9c7ad67bcd2af3d508acffee26a4",
         "file": "boss-region-4-band-a.bin"
       },
       {
@@ -1155,7 +1161,7 @@
         "sectors": 3,
         "destination": 44160,
         "bytes": 384,
-        "sha256": "5ba3320488d01bb634f6b60be79f76043762a20d32de51a0726162a82d7c65fd",
+        "sha256": "7bb332c205786299b92262fd906c7be4d25bca77703192df60c0c79919c8a5cf",
         "file": "boss-region-4-band-b.bin"
       },
       {
@@ -1164,7 +1170,7 @@
         "sectors": 7,
         "destination": 3072,
         "bytes": 896,
-        "sha256": "482dc4d2039f4f3bab60e0cb15eba37a7bfcf4c1e076dd1ea08772541d66f8ed",
+        "sha256": "8f0b3042d8d569b59cd1e35439f55c1e5f0caf624c1a0d0dd90279935c981021",
         "file": "boss-region-4-charset.bin"
       },
       {
@@ -1173,7 +1179,7 @@
         "sectors": 4,
         "destination": 20992,
         "bytes": 512,
-        "sha256": "fbfe2c6da558be5ede2069409a863ca98c0cb55e6b9b0313dcdb5275361f1fb3",
+        "sha256": "7dae79fb4d6bf83ab1434e550353a0c7ef7986a57f3d3ff1b0c7bcc7f764962b",
         "file": "boss-region-4-block.bin"
       }
     ],
@@ -1200,102 +1206,39 @@
           1,
           3
         ],
-        "entrySectors": 65
+        "entrySectors": 67
       },
       {
         "region": 2,
-        "name": "Bastion",
-        "style": 2,
-        "codes": 99,
-        "stageStep": 13,
-        "charsetBytes": 792,
+        "name": "Void Citadel",
+        "style": 1,
+        "codes": 108,
+        "stageStep": 19,
+        "charsetBytes": 864,
         "charsetSectors": 7,
-        "modules": 10,
+        "modules": 16,
         "finaleCooldown": 12,
-        "twin": [
-          "cannon-l",
-          "cannon-r"
-        ],
+        "twin": null,
         "bandShownRows": 5,
         "stillAt": 32,
         "field": null,
-        "gravity": null,
-        "rails": {
+        "gravity": {
           "framesPerStep": 4,
-          "delayFrames": 12,
           "pulseFrames": 16,
-          "pitch": 4,
-          "positions": 2,
-          "rowFirst": 1,
-          "sides": [
-            {
-              "name": "left",
-              "dir": 1,
-              "nose": 20,
-              "window": 18,
-              "cannon": "cannon-l",
-              "cannonIndex": 0,
-              "guns": [
-                "rail-l-1",
-                "rail-l-2",
-                "rail-l-3"
-              ],
-              "gunIndices": [
-                5,
-                4,
-                3
-              ],
-              "bay": {
-                "x": 27,
-                "width": 2,
-                "lensRow": 3,
-                "armourRow": 4
-              }
-            },
-            {
-              "name": "right",
-              "dir": -1,
-              "nose": 42,
-              "window": 18,
-              "cannon": "cannon-r",
-              "cannonIndex": 2,
-              "guns": [
-                "rail-r-1",
-                "rail-r-2",
-                "rail-r-3"
-              ],
-              "gunIndices": [
-                7,
-                8,
-                9
-              ],
-              "bay": {
-                "x": 34,
-                "width": 2,
-                "lensRow": 3,
-                "armourRow": 4
-              }
-            }
+          "waveStep": 2,
+          "spires": [
+            "spire-l",
+            "spire-r"
           ],
-          "codeBytes": 401
-        },
-        "hangar": {
-          "doors": "doors",
           "core": "core",
-          "cueFrames": 6,
-          "unlockFrames": 16,
-          "doorsIndex": 1,
-          "coreIndex": 6,
-          "jamb": 30,
-          "doorsX": 30,
-          "doorsRow": 4
+          "axis": "core-lens",
+          "axisSlot": 1,
+          "codeBytes": 296
         },
         "rowSwitches": [
-          1,
-          3,
-          4
+          3
         ],
-        "entrySectors": 69
+        "entrySectors": 71
       },
       {
         "region": 3,
@@ -1335,39 +1278,108 @@
         },
         "gravity": null,
         "rowSwitches": [],
-        "entrySectors": 68
+        "entrySectors": 70
       },
       {
         "region": 4,
-        "name": "Void Citadel",
-        "style": 1,
-        "codes": 108,
-        "stageStep": 19,
-        "charsetBytes": 864,
+        "name": "Bastion",
+        "style": 2,
+        "codes": 100,
+        "stageStep": 13,
+        "charsetBytes": 800,
         "charsetSectors": 7,
-        "modules": 16,
+        "modules": 10,
         "finaleCooldown": 12,
-        "twin": null,
+        "twin": [
+          "cannon-l",
+          "cannon-r"
+        ],
         "bandShownRows": 5,
         "stillAt": 32,
         "field": null,
-        "gravity": {
+        "gravity": null,
+        "rails": {
           "framesPerStep": 4,
+          "delayFrames": 12,
           "pulseFrames": 16,
-          "waveStep": 2,
-          "spires": [
-            "spire-l",
-            "spire-r"
+          "pitch": 3,
+          "positions": 2,
+          "rowFirst": 1,
+          "foot": {
+            "row": 4,
+            "length": 2
+          },
+          "sides": [
+            {
+              "name": "left",
+              "dir": 1,
+              "nose": 22,
+              "bumper": 20,
+              "window": 18,
+              "cannon": "cannon-l",
+              "cannonIndex": 0,
+              "guns": [
+                "rail-l-1",
+                "rail-l-2",
+                "rail-l-3"
+              ],
+              "gunIndices": [
+                5,
+                4,
+                3
+              ],
+              "bay": {
+                "x": 27,
+                "width": 2,
+                "lensRow": 3,
+                "armourRow": 4
+              }
+            },
+            {
+              "name": "right",
+              "dir": -1,
+              "nose": 40,
+              "bumper": 42,
+              "window": 18,
+              "cannon": "cannon-r",
+              "cannonIndex": 2,
+              "guns": [
+                "rail-r-1",
+                "rail-r-2",
+                "rail-r-3"
+              ],
+              "gunIndices": [
+                7,
+                8,
+                9
+              ],
+              "bay": {
+                "x": 34,
+                "width": 2,
+                "lensRow": 3,
+                "armourRow": 4
+              }
+            }
           ],
+          "codeBytes": 398
+        },
+        "hangar": {
+          "doors": "doors",
           "core": "core",
-          "axis": "core-lens",
-          "axisSlot": 2,
-          "codeBytes": 296
+          "cueFrames": 6,
+          "unlockFrames": 16,
+          "doorsIndex": 1,
+          "coreIndex": 6,
+          "jamb": 30,
+          "doorsX": 30,
+          "doorsRow": 4
         },
         "rowSwitches": [
-          3
+          1,
+          3,
+          4
         ],
-        "entrySectors": 69
+        "entrySectors": 71
       }
     ]
   },
@@ -1474,8 +1486,8 @@
         "startSector": 179,
         "sectors": 11,
         "rawBytes": 1656,
-        "packedBytes": 1322,
-        "paddingBytes": 65,
+        "packedBytes": 1319,
+        "paddingBytes": 68,
         "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
       }
     },
@@ -1568,7 +1580,7 @@
         "startSector": 173,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 28173
+        "crc16": 58479
       }
     },
     {
@@ -1578,12 +1590,12 @@
       "transportAddress": 44544,
       "endExclusive": 46200,
       "bytes": 1656,
-      "packedBytes": 1322,
+      "packedBytes": 1319,
       "externalChunk": {
         "startSector": 179,
         "sectors": 11,
         "transportBytes": 1408,
-        "crc16": 65341
+        "crc16": 26525
       }
     }
   ],
@@ -24212,11 +24224,11 @@
     "estimated_additive_cycles": 27916,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "17334a5c8728814ff89283caf100bcfa06c981920b082a986901e14714b6e6a0",
+      "reportSha256": "911538a16fdafbca6b3daab581c7212f1412567ef1162abe4b5a9c2013328c89",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "33b1acb35212777df3530bb7e40c07a143c3d88ee5ff8b7b5aea5619d672e889"
+        "sha256": "eb77e4c2b550e2e068de29e7ccb439e0d2d8bdbe2c88c3e8c8a0108b3061a7e2"
       },
       "emulator": {
         "name": "Atari800",
@@ -24328,28 +24340,28 @@
           "no_active_player_fighter_projectile_path_delta_cpu_cycles": 0,
           "no_active_player_fighter_projectile_path_limit_cpu_cycles": 48,
           "debris_shot_path": {
-            "trace_kind": "memory-integrity-160s",
-            "session": "memory-integrity-atr-2-hunt-fire5",
-            "frame": 2994,
-            "gameplay_frame": 178,
+            "trace_kind": "baseline-9040",
+            "session": "2-evasive-fire7",
+            "frame": 419,
+            "gameplay_frame": 163,
             "difficulty": 2,
-            "wall_cycles": 30334,
-            "physical_headroom": 5234,
+            "wall_cycles": 30237,
+            "physical_headroom": 5331,
             "start": {
-              "clock": 135373903,
-              "host_frame": 3806,
+              "clock": 42754831,
+              "host_frame": 1202,
               "scanline": 18,
               "cycle": 43
             },
             "end": {
-              "clock": 135404237,
-              "host_frame": 3806,
-              "scanline": 284,
-              "cycle": 53
+              "clock": 42785068,
+              "host_frame": 1202,
+              "scanline": 283,
+              "cycle": 70
             },
             "next_start": {
-              "clock": 135409471,
-              "host_frame": 3807
+              "clock": 42790399,
+              "host_frame": 1203
             },
             "host_vbi_boundaries": 0,
             "extra_vbi_boundaries": 0,
@@ -24362,46 +24374,46 @@
               "broadside": 0,
               "far_rendered": 4,
               "active_muzzles": 0,
-              "entity_active": 2,
-              "entity_x": 96,
-              "entity_y": 144,
-              "entity_vx_signed": -4,
+              "entity_active": 1,
+              "entity_x": 120,
+              "entity_y": 40,
+              "entity_vx_signed": 0,
               "entity_move_accumulator": 0,
-              "entity_vertical_accumulator": 4,
-              "entity_render_id": 114,
-              "entity_active_mask": 3,
+              "entity_vertical_accumulator": 3,
+              "entity_render_id": 110,
+              "entity_active_mask": 1,
               "weapon_pickup": {
-                "state": 2,
+                "state": 0,
                 "booster_state": 0,
-                "qualified_kill_counter": 0,
-                "x": 95,
-                "y": 36,
+                "qualified_kill_counter": 2,
+                "x": 102,
+                "y": 142,
                 "timer": 0,
                 "timer_low": 0,
                 "timer_high": 0,
-                "plane_rows": 16,
-                "plane_union": 255
+                "plane_rows": 0,
+                "plane_union": 0
               },
               "player_fighter_projectiles": 3,
               "rapid_player_fighter_projectiles": 0,
               "score_bcd": [
-                3,
-                85
+                1,
+                0
               ],
-              "effect_active_mask": 0,
-              "effect_active_count": 0,
-              "effect_rendered_mask": 0,
+              "effect_active_mask": 30,
+              "effect_active_count": 4,
+              "effect_rendered_mask": 30,
               "live_heavy_formation": true,
               "raider_formation": {
-                "guide_y": 46,
+                "guide_y": 48,
                 "member_state": [
-                  0,
                   1,
-                  0
+                  0,
+                  1
                 ],
                 "member_hp": [
+                  1,
                   0,
-                  4,
                   0
                 ],
                 "live_count": 1,
@@ -24414,18 +24426,24 @@
               "hit_sfx": false,
               "capital_sfx": false,
               "sound_enabled": true,
-              "player_lifecycle": 0,
+              "player_lifecycle": 2,
               "sector_state": 7
             },
             "events": [
+              "world-copy",
               "far-erase",
+              "hull-copy",
               "broadside-update",
               "fighter-explosion-render",
               "capital-explosion-render",
               "music-tick",
+              "near-copy",
               "far-step",
               "debris-shot",
-              "effect-update"
+              "effect-erase",
+              "effect-update",
+              "effect-render",
+              "director-world-row"
             ],
             "cpu_dma_off_reference": null
           },
@@ -24464,22 +24482,23 @@
           "remaining_hard_cycles": 169,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "qualified_kill_events": 5,
-          "pending_frames": 390,
+          "qualified_kill_events": 10,
+          "pending_frames": 698,
           "pending_partial_kill_frame_included": true,
           "pending_complete_frame_runs": [
-            78
+            78,
+            30
           ],
           "pending_lifecycle_interrupted_frame_runs": [],
-          "active_frames": 69,
+          "active_frames": 182,
           "maximum_simultaneous_plane_blocks": 1,
           "layer_fences_per_active_frame": 1,
           "maximum_stationary_active_frames": 0,
           "logical_step_scanlines": 2,
-          "physical_address_changes_during_native_motion": 68,
-          "release_frames": 1,
-          "booster_overlap_frames_all_replays": 1835,
-          "booster_overlap_frames_pickup_lifecycle_union": 395,
+          "physical_address_changes_during_native_motion": 179,
+          "release_frames": 3,
+          "booster_overlap_frames_all_replays": 1972,
+          "booster_overlap_frames_pickup_lifecycle_union": 415,
           "booster_overlap_sessions": [
             "2-sweep-fire0",
             "2-sweep-fire2",
@@ -24511,10 +24530,26 @@
               "erase_calls": 2,
               "draw_calls": 1,
               "plane_rows": 0
+            },
+            {
+              "session": "weapon-pickup-2-hunt-fire4",
+              "frame": 2913,
+              "booster_state": 5,
+              "erase_calls": 2,
+              "draw_calls": 1,
+              "plane_rows": 0
+            },
+            {
+              "session": "weapon-pickup-2-hunt-fire4",
+              "frame": 3893,
+              "booster_state": 3,
+              "erase_calls": 2,
+              "draw_calls": 1,
+              "plane_rows": 0
             }
           ],
-          "rapid_frames": 3362,
-          "pickup_events": 22,
+          "rapid_frames": 3208,
+          "pickup_events": 25,
           "passed": true
         },
         "weapon_pickup_spread_shot": {
@@ -24532,17 +24567,11 @@
           "remaining_hard_cycles": 468,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "rapid_frames": 3362,
-          "spread_frames": 3427,
-          "pickup_events": 22,
+          "rapid_frames": 3208,
+          "spread_frames": 2893,
+          "pickup_events": 25,
           "granted_booster_modes": [
             3,
-            3,
-            4,
-            5,
-            3,
-            3,
-            4,
             5,
             3,
             3,
@@ -24557,12 +24586,23 @@
             4,
             5,
             3,
-            4
+            4,
+            5,
+            3,
+            4,
+            3,
+            4,
+            5,
+            3,
+            4,
+            5
           ],
           "granted_booster_modes_by_replay": [
             {
               "session": "weapon-pickup-2-hunt-fire4",
               "modes": [
+                3,
+                5,
                 3
               ]
             },
@@ -24571,8 +24611,7 @@
               "modes": [
                 3,
                 4,
-                5,
-                3
+                5
               ]
             },
             {
@@ -24581,7 +24620,8 @@
                 3,
                 4,
                 5,
-                3
+                3,
+                4
               ]
             },
             {
@@ -24609,18 +24649,13 @@
                 4,
                 5,
                 3,
-                4
+                4,
+                5
               ]
             }
           ],
           "collected_states": [
             3,
-            3,
-            4,
-            5,
-            3,
-            3,
-            4,
             5,
             3,
             3,
@@ -24635,33 +24670,42 @@
             4,
             5,
             3,
-            4
+            4,
+            5,
+            3,
+            4,
+            3,
+            4,
+            5,
+            3,
+            4,
+            5
           ],
-          "spread_volley_frames": 1507,
-          "active_capsule_three_projectile_frames": 68,
-          "active_capsule_during_booster_frames": 1835,
+          "spread_volley_frames": 1276,
+          "active_capsule_three_projectile_frames": 144,
+          "active_capsule_during_booster_frames": 1972,
           "worst_legal_capsule_three_projectiles": {
             "trace_kind": "weapon-pickup-coverage",
             "session": "weapon-pickup-2-hunt-fire4",
             "frame": 249,
             "gameplay_frame": 249,
             "difficulty": 2,
-            "wall_cycles": 30265,
-            "physical_headroom": 5303,
+            "wall_cycles": 30252,
+            "physical_headroom": 5316,
             "start": {
-              "clock": 36708271,
+              "clock": 36708287,
               "host_frame": 1032,
               "scanline": 18,
-              "cycle": 43
+              "cycle": 59
             },
             "end": {
-              "clock": 36738536,
+              "clock": 36738539,
               "host_frame": 1032,
               "scanline": 283,
-              "cycle": 98
+              "cycle": 101
             },
             "next_start": {
-              "clock": 36743855,
+              "clock": 36743827,
               "host_frame": 1033
             },
             "host_vbi_boundaries": 0,
@@ -24764,8 +24808,8 @@
           "remaining_hard_cycles": 1509,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
-          "shield_frames": 1250,
-          "pickup_events": 22,
+          "shield_frames": 1750,
+          "pickup_events": 25,
           "passed": true
         },
         "shield_preimplementation_baseline": {
@@ -25727,12 +25771,12 @@
         "baseline_9040_missed_frames": 0,
         "targeted_deadline_overrun_frames": 0,
         "targeted_missed_frames": 0,
-        "baseline_9040_active_frames_crossing_host_vbi": 1001,
-        "baseline_9040_host_vbi_boundary_crossings": 1001,
+        "baseline_9040_active_frames_crossing_host_vbi": 953,
+        "baseline_9040_host_vbi_boundary_crossings": 953,
         "targeted_active_frames_crossing_host_vbi": 108,
         "targeted_host_vbi_boundary_crossings": 108,
-        "active_frames_crossing_host_vbi": 16604,
-        "host_vbi_boundary_crossings": 16604,
+        "active_frames_crossing_host_vbi": 17223,
+        "host_vbi_boundary_crossings": 17223,
         "extra_vbi_boundaries": 0,
         "behavioural_clause_failure_count": 0,
         "behavioural_clause_failures": [],
@@ -25780,25 +25824,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "46ce0c9b3122cf3fddc2bfd769ff751f3fd0514627870f37bf8dc33f493f5f87"
+        "sha256": "a72b9ed88e7f7c93f1dbd687460074afddfa3ac7e8d1c70f4c67a88eacd8945c"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "33b1acb35212777df3530bb7e40c07a143c3d88ee5ff8b7b5aea5619d672e889"
+        "sha256": "eb77e4c2b550e2e068de29e7ccb439e0d2d8bdbe2c88c3e8c8a0108b3061a7e2"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "17334a5c8728814ff89283caf100bcfa06c981920b082a986901e14714b6e6a0"
+    "reportSha256": "911538a16fdafbca6b3daab581c7212f1412567ef1162abe4b5a9c2013328c89"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "46ce0c9b3122cf3fddc2bfd769ff751f3fd0514627870f37bf8dc33f493f5f87"
+      "sha256": "a72b9ed88e7f7c93f1dbd687460074afddfa3ac7e8d1c70f4c67a88eacd8945c"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "33b1acb35212777df3530bb7e40c07a143c3d88ee5ff8b7b5aea5619d672e889"
+      "sha256": "eb77e4c2b550e2e068de29e7ccb439e0d2d8bdbe2c88c3e8c8a0108b3061a7e2"
     }
   }
 }

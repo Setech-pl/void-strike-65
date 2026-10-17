@@ -827,6 +827,14 @@ const engineRestartSessions = ["ATR"].map((medium) => ({
  * the session's one boss entry under 250 host frames, and on MEDIUM the fight
  * reaching the chain (boss_state >= 3). Debug route only: a default run skips
  * them, so the default evidence is unchanged. */
+/* feat/boss-order-scale (decision AX 1): the sessions follow the boss, not
+ * the region number - the Bastion's (boss directory region-2) aiming orders
+ * and edge guard go with the region order.json gives it (region 4); every
+ * other route region plays its boss with the aiming bot. */
+const bastionRegion = (() => {
+  const file = path.join(rootDirectory, "assets", "graphics", "boss-regions", "order.json");
+  return (fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")).order : [1, 2, 3, 4]).indexOf(2) + 1;
+})();
 const regionRouteSessions = [2, 3, 4].flatMap((region) => [
   ...[0, 1, 2].map((difficulty) => ({
     id: `region-${region}-diag-${difficulty}`,
@@ -846,7 +854,7 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
      * bot that takes the laser cannons first (careful), its finale sessions
      * with the one that takes the rail guns first (careless: the rails cover
      * the cannons), so both orders are on the route. */
-    policy: region === 2 ? "boss-aim-careful" : region >= 3 ? "boss-aim" : "sweep",
+    policy: region === bastionRegion ? "boss-aim-careful" : "boss-aim",
     fireDelay: 2,
     /* MEASURED (region-2-diag-1, 2026-10-09): the sweep bot firing every
      * other frame scores 316 of the fight's points in 5,000 frames - it
@@ -884,7 +892,11 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
     difficulty,
     // S5-3: region 3's wide sweep broke the generators but did not finish the
     // fight in 12,000 frames (MEASURED, Phase A): the aiming bot, as above.
-    policy: region === 2 ? "boss-aim-careless" : region >= 3 ? "boss-aim" : "sweep-wide",
+    /* feat/boss-order-scale: the finale begins when the last armour falls
+     * with a weapon standing; on the Citadel's level 4 its capped cannons are
+     * armour that guards nothing, which the aiming bot leaves standing - so
+     * every finale session but the Bastion's clears the armour first. */
+    policy: region === bastionRegion ? "boss-aim-careless" : "boss-aim-plates",
     fireDelay: 2,
     frames: 12_000,
     endAtSummary: true,
@@ -899,8 +911,8 @@ const regionRouteSessions = [2, 3, 4].flatMap((region) => [
    * escort's start, decision AI), then parked at HPOS 48, firing, MEDIUM. The
    * left-edge guard's clause (bossEdgeGuardClause): in the fight's first
    * 4,000 frames at least one Interceptor escort and one hit on the player. */
-  ...(region === 2 ? [{
-    id: "region-2-edge-left-1",
+  ...(region === bastionRegion ? [{
+    id: `region-${region}-edge-left-1`,
     difficulty: 1,
     policy: "boss-aim-park-48",
     fireDelay: 2,
@@ -4331,6 +4343,12 @@ function main() {
       // S5-4: the level id (which region's code is in slot F) and region 4's
       // gravity well's state, when the disk carries it.
       addressEnvironment.DFTRACE_BOSS_LEVEL_ID = `0x${(bossLabels.get("_boss_level") + 3).toString(16)}`;
+      // feat/boss-order-scale: the observers follow the boss order (the
+      // manifest's regions), not the level ranges of today's order.
+      for (const [name, feature] of [["RAIL", "rails"], ["FIELD", "field"], ["GRAVITY", "gravity"]]) {
+        const slot = (manifest.boss?.regions ?? []).findIndex((region) => region[feature]);
+        if (slot >= 0) addressEnvironment[`DFTRACE_${name}_REGION`] = `0x${(slot + 1).toString(16)}`;
+      }
       // fix/r4-immobile: the region's motion byte, so the boss-aim policy
       // leads its aim only for a drifting band (region 4 is still).
       addressEnvironment.DFTRACE_BOSS_MOTION_STEP = `0x${(BOSS_TABLES_ADDRESS + BOSS_TABLE.framesPerStep).toString(16)}`;
@@ -4815,7 +4833,7 @@ function main() {
         entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };
       console.log(`${session.id}: region ${session.bossRegion} entered in ${session.bossEntry.host_frames} ` +
         `host frames at frame ${session.bossEntry.frame}; chain ${chain === undefined ? "not reached" : `at frame ${chain.frame}`}`);
-      // S5-5: not the edge-parking player's (region-2-edge-left-1): a
+      // S5-5: not the edge-parking player's (region-N-edge-left-1): a
       // stalemate by design, its subject the escort.
       if (session.difficulty === 1 && session.edgeGuard === undefined) {
         invariant(chain !== undefined, `${session.id}: the fight never reached the chain in ${session.frames} frames`);
@@ -4959,7 +4977,7 @@ function main() {
       // never falls (invulnerable) and its laser fires again if the fight runs
       // on for 700 frames (it keeps firing). The doors fall before the core;
       // no escort is admitted once they have fallen; never two Lights at once
-      // (decision AI). The careless sessions (region-2-finale-*) must cover a
+      // (decision AI). The careless sessions (region-N-finale-*) must cover a
       // cannon (subject).
       const railRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.rails ?? null;
       const hangarRegion = manifest.boss?.regions?.[session.bossRegion - 1]?.hangar ?? null;
@@ -5028,8 +5046,15 @@ function main() {
           const first = fight[0];
           invariant(railRegion.sides.every((side) => !exposedOf(first, side.cannonIndex)),
             `${session.id}: a bay is open at the start (exposed ${first.boss_exposed})`);
-          invariant(byte(first.bay_cells, 2) !== 0 && byte(first.bay_cells, 0) === byte(first.bay_cells, 2) &&
-            byte(first.bay_cells, 1) === byte(first.bay_cells, 2),
+          // feat/boss-order-scale: "at the start" is the fight's first 16
+          // frames, not its first frame - a shot that meets a locked bay's
+          // armour on that frame draws the deflection glyph there for its
+          // ring's few frames (MEASURED: boss-aim-2 on the Bastion's region-4
+          // route, s3: cells $B4 $B4 $40, the left bay deflecting); the bars
+          // must show in both bays on one of them.
+          const barred = (row) => byte(row.bay_cells, 2) !== 0 && byte(row.bay_cells, 0) === byte(row.bay_cells, 2) &&
+            byte(row.bay_cells, 1) === byte(row.bay_cells, 2);
+          invariant(fight.slice(0, 16).some(barred),
             `${session.id}: the bays' armour rows are not the doors' bars at the start (cells ${first.bay_cells})`);
           bays.forEach((bay, side) => invariant(byte(first.bay_stops, side) === stopUnder(bay.armourRow),
             `${session.id}: bay ${side}'s shots stop on line ${byte(first.bay_stops, side)} at the start, not under its armour`));
@@ -5070,9 +5095,15 @@ function main() {
                 const bit = [0, 0x08, 0x20][(row.laser_missiles >> (4 * laser)) & 15] ?? 0;
                 invariant(bit !== 0, `${session.id}: laser ${laser}'s beam with no missile on frame ${row.frame}`);
                 const locked = !exposedOf(before, cannon);
-                const want = locked ? 0 : bit;
+                // feat/boss-order-scale (the L, decision AX 5 and 13): a covered
+                // cannon's beam starts under the rail's foot - off on the armour
+                // row, as a locked bay's - once its rail stands at its last
+                // position as the frame begins (rail_veil reads rail_k).
+                const underFoot = railRegion.foot !== undefined && nibble(before.rail_k, s) >= railRegion.positions;
+                const want = locked || underFoot ? 0 : bit;
                 invariant((row.beam_armour & bit) === want && ((row.beam_armour >> 8) & bit) === want,
-                  `${session.id}: laser ${laser}'s beam ${locked ? "crosses its locked bay's armour" : "leaves a gap under its muzzle"} ` +
+                  `${session.id}: laser ${laser}'s beam ${locked ? "crosses its locked bay's armour"
+                    : underFoot ? "crosses the rail's foot over its covered cannon" : "leaves a gap under its muzzle"} ` +
                   `on frame ${row.frame} (armour row ${row.beam_armour})`);
                 invariant((row.beam_below & bit) === bit, `${session.id}: laser ${laser}'s beam is off under the band on frame ${row.frame}`);
                 beamFrames += 1;

@@ -211,18 +211,19 @@ w buildach przeglądowych (`node scripts/build.mjs --level=1:sector=6
 
 - **Blockade Breaker** (poziomy 1-3): uszkodzony okręt pod opancerzonym
   grzbietem; dwa działa laserowe strzelają na zmianę za pasem płyt pancernych.
-- **Bastion** (poziomy 4-6): okrągły hangar z rdzeniem reaktora w środku,
-  działo laserowe w opancerzonej zatoce z każdej jego strony i szyna działek
-  na każdym skrzydle, wychodząca poza ekran. Każde zniszczone działko szyny
-  przesuwa ją o krok do środka; pierwsze przesunięcie otwiera pancerz działa
-  po tej stronie, drugie zakrywa działo — tego działa nie da się już
-  uszkodzić, a ono strzela dalej. Brama hangaru jest zamknięta, dopóki każde
-  działo i każde działko szyny nie zostanie zniszczone albo zakryte. Otwórz
-  pancerz działa i zniszcz je, zanim szyna się zamknie.
+- **Void Citadel** (poziomy 4-6): nieruchoma forteca ze studnią
+  grawitacyjną, która ściąga Twój statek pod laser jej rdzenia.
 - **Siege Spine** (poziomy 7-9): segmentowy kręgosłup za polem siłowym
   z dwóch połówek, każdą zasila kula generatora na jej końcu.
-- **Void Citadel** (poziomy 10-12): nieruchoma forteca ze studnią
-  grawitacyjną, która ściąga Twój statek pod laser jej rdzenia.
+- **Bastion** (poziomy 10-12), ostatni: okrągły hangar z rdzeniem reaktora
+  w środku, działo laserowe w opancerzonej zatoce z każdej jego strony i szyna
+  działek na każdym skrzydle, wychodząca poza ekran. Każde zniszczone działko
+  szyny przesuwa ją o krok do środka; pierwsze przesunięcie otwiera pancerz
+  działa po tej stronie, drugie wsuwa przed działo opancerzoną stopę szyny —
+  tego działa nie da się już uszkodzić, a ono strzela dalej. Brama hangaru
+  jest zamknięta, dopóki każde działo i każde działko szyny nie zostanie
+  zniszczone albo zakryte. Otwórz pancerz działa i zniszcz je, zanim szyna się
+  zamknie.
 
 Oryginalne grafiki koncepcyjne są w [boss-concepts.md](docs/boss-concepts.md):
 [Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),

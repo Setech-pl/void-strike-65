@@ -25,7 +25,8 @@
 // doors (band.png); open, the armour is gone, the cannon an amber tower and
 // the doors amber hazard chevrons (open.png). The first rail-gun kill on a side slides that rail one
 // gun pitch inward and opens that side's bay (the window); the second slides
-// it over the cannon, for good (src/hybrid/boss.s BOSS_RAIL).
+// it in front of the cannon, for good - its L's foot in the armour row
+// (feat/boss-order-scale; src/hybrid/boss.s BOSS_RAIL).
 //
 //   . background   W COLPF0   g COLPF1   a colour 3, pf2 bank   r colour 3, pf3 bank
 //
@@ -64,15 +65,25 @@ const pic = (text) => text.trim().split("\n").map((line) => line.trim().replace(
 // wide, in their bays right beside it (27-28, 34-35). The rails start one gun
 // pitch (4 columns) further out than W2's, so the second rail-gun kill still
 // covers the cannon: front 20 -> 24 (the bay open beside it) -> 28 (over the
-// cannon); then the rail stops, short of the hangar's wall. Three 3-cell guns
+// cannon); then the rail stops, short of the hangar's wall.
+// feat/boss-order-scale (the owner's decision AX 5 and his choices of
+// 2026-10-16 - "the L"): the rail's inner end is an L - the bumper as before,
+// a foot along the armour row (row 4: a corner under the bumper, two cells
+// inward). The guns stand 3 columns apart and a slide is 3, so the front gun
+// - the only one that can be hit - stands in the same slot (17-19) at every
+// stage; the bumper goes 20 -> 23 -> 26, short of the cannon, and the foot
+// 21-22 -> 24-25 -> 27-28: in front of the cannon, between it and the
+// player. A covered cannon stays in view (locked steel, boss.s rail_cover).
+// Three 3-cell guns
 // a side - two that slide the rail, one left on the stopped rail (a fourth
 // would wait behind it for ever) - the third beyond the screen's edge until
 // the first slide brings it in.
 export const R2 = Object.freeze({
-  nose: 20,                            // the left rail's front column at the start
+  nose: 20,                            // the left rail's bumper column at the start
   rows: [1, 3],                        // the rails' rows: the girder, then the guns
+  foot: 2,                             // the L's foot: cells inward of the bumper, in the armour row
   gunWidth: 3,
-  pitch: 4,
+  pitch: 3,                            // feat/boss-order-scale (decision AX 5): 3 (was 4)
   guns: 3,
   positions: 2,
   cannon: { width: 2, xLeft: 27 },     // the laser cannons, rows 1-3, their bays' armour row 4 under them
@@ -173,6 +184,22 @@ gWWg
 `);
 const flip = (picture) => picture.map((line) => [...line].reverse().join(""));
 const BUMPER_RIGHT = flip(BUMPER_LEFT);
+// The L's foot (feat/boss-order-scale, decision AX 5), the armour row: a
+// plate - the trim its edges, the bumper's red and white hazard stripes
+// between (the pf3 bank: it cannot be hurt) - two lines clear above it, so
+// the cannon it shields reads; one symmetric glyph for every cell of both
+// feet, so the two cannons' covered looks are one look (the block's bytes).
+// Shots there deflect (its columns' hull stop: the converter).
+const FOOT_PLATE = pic(`
+....
+....
+gggg
+rWWr
+WrrW
+rWWr
+gggg
+....
+`);
 
 // A rail gun, 3 x 2 cells (the owner's look at Phase A: "plain grey cones
 // with a red dot" - give them detail that reads at play size): an inverted
@@ -390,18 +417,23 @@ aWWa
 gggg
 ....
 `);
-// A destroyed module's socket (extras' cavity cell): dark - a few dim
-// fragments and a broken edge, nothing like the bars (a dead rail gun's
-// socket stays solid: a shot deflects there).
+// A destroyed module's socket (extras' cavity cell). feat/boss-order-scale
+// (the owner's look of 2026-10-17: the sparse dashes read as "pine needles
+// fallen off a Christmas tree"): a low, flat burnt stump - one row, hung from
+// the girder, solid in the row's dark trim with one ember (the pf3 bank's
+// red), a ragged lower edge; nothing like a gun or the bars. A rail gun's
+// wreck is one row (its cavityRows 1: the row under it background, a shot
+// stops under the stump); a cannon's socket, until the rail covers it, is
+// its rows of it.
 const SOCKET = pic(`
-g...
-..g.
+gggg
+gggg
+grgg
+gggg
+g.gg
+.g.g
 ....
-.g..
-...g
 ....
-g.g.
-.g..
 `);
 
 // --- drawing -----------------------------------------------------------------
@@ -539,6 +571,9 @@ export function drawRegion2() {
       for (const c of columns) canvas.cell(GIRDER, c, 1);
       for (const g of guns) canvas.draw(gunPicture(stage), g.x * CELL_W, 2 * CELL_H);
       canvas.draw(side === "l" ? BUMPER_LEFT : BUMPER_RIGHT, nose * CELL_W, CELL_H);
+      // The foot: the corner under the bumper, then inward the plate and the tip.
+      const inward = side === "l" ? 1 : -1;
+      for (let k = 0; k <= R2.foot; k += 1) canvas.draw(FOOT_PLATE, (nose + inward * k) * CELL_W, 4 * CELL_H);
       const gap = side === "l" ? [nose + 1, cannonEdge.l - 1] : [cannonEdge.r + 1, nose - 1];
       for (let c = gap[0]; c <= gap[1]; c += 1) canvas.cell(GUIDE, c, 1);
     }

@@ -1394,12 +1394,14 @@ at MEDIUM:
 - [ ] **R1 Blockade Breaker:** light steel slabs with a rust trim, the dark
       red only in the recesses; the guns dark behind their plates, amber when
       exposed.
-- [ ] **R2 Bastion:** a military olive-green trim on every outline; the pods
-      with an amber visor and a red lamp you can read at play size; the
+- [ ] **R2 Bastion** (since feat/boss-order-scale levels 10-12, orange and
+      red - the owner's choice O): an orange trim on every outline; the pods
+      with a yellow visor and a red lamp you can read at play size; the
       cannons pointed finned spires with a long barrel and a squared muzzle -
-      light steel while locked (over grey bars), amber plate, barrel ring and
+      light steel while locked (over grey bars), yellow plate, barrel ring and
       muzzle once open; a hit cannon's damage on the whole cannon (cracked,
-      broken); the core orange on top, red below; the striped rail ends.
+      broken); the core yellow on top, red below; the striped rail ends; a
+      destroyed rail gun or cannon one flat burnt slab under the girder.
 - [ ] **R3 Siege Spine:** exactly as before (no row palette).
 - [ ] **R4 Void Citadel:** the gold trim; the hull lit on its top and left
       edges.
@@ -1415,6 +1417,62 @@ new file name:
 
 - [ ] **The row colours on the real GTIA:** no shimmer or wrong colour at a
       row's first line; each boss entry loads (65 / 69 / 68 / 69 sectors).
+
+## 38. The boss order, the difficulty curve, the drawn hit box, the dead zone and the Bastion's L (`feat/boss-order-scale`)
+
+Plan [plans/boss-order-scale.md](plans/boss-order-scale.md); journal §AW,
+§AX. In Atari800 (`-xl -pal -nobasic`), on the whole game
+(`build/play/boss-order-scale-full-game-*.atr`) and the four boss routes
+(`build/play/boss-order-scale-r1-breaker-*`, `-r2-citadel-*`, `-r3-spine-*`,
+`-r4-bastion-*`), on each difficulty where it says so:
+
+- [ ] **The order:** the loading screens read `BLOCKADE BREAKER` (route 1),
+      `VOID CITADEL` (route 2), `SIEGE SPINE` (route 3), `BASTION` (route 4);
+      each boss in its region's palette rules (no colour near the ally steel,
+      every module's hit flash visible).
+- [ ] **The curve:** each fight feels a step harder than the one before - the
+      Breaker the shortest and gentlest, the Bastion the longest and fiercest
+      (MEDIUM about 92 / 102 / 112 / 122 s by the bot); EASY clearly shorter,
+      HARD clearly longer on every boss.
+- [ ] **The Void Citadel on route 2 (level 4, one laser slot):** the two
+      cannons beside the core stand capped - slatted armour, no beam - and the
+      core's lens fires down the gravity column; the pull still drags you into
+      that beam; no gap beside the core to shoot it from.
+- [ ] **The Bastion's L on route 4:** both cannons fire, each on its own;
+      each rail's pods three columns apart, a two-cell armoured foot reaching
+      inward along the armour row from its buffer; the first kill on a side
+      opens that bay (yellow), the second slides the foot in front of the
+      cannon - the cannon back in locked steel, your shots stop on the foot,
+      its beam starts under the foot; the rails never reach the hangar. The
+      Bastion's pressure is hard but fair: about 18-20 hits a minute on a
+      player who aims and does not dodge (MEDIUM), down from 28.
+- [ ] **The Bastion's palette O and its wrecks (the owner's choice of
+      2026-10-17):** an orange trim and a dark orange track over the red
+      stripes, lamps and core; what you can hurt is yellow (an open cannon,
+      the pods' visors, the core's top third, the opened gate) and reads apart
+      from the orange; the boss's shots inside the band read as shots (trim
+      and steel), not as yellow parts; every hit flash visible. A destroyed
+      rail gun, and a cannon destroyed in its open bay, leave one flat burnt
+      slab under the track with a red ember - nothing below it - and your
+      shot at that spot stops on the slab.
+- [ ] **The drawn hit box (decision AW):** a boss shot, a beam or an
+      Interceptor's laser that touches any part of your ship hits it - left
+      half or right half alike; a shot that passes beside the drawn ship
+      misses.
+- [ ] **The Interceptor's dead zone:** while your ship sits under a
+      hovering Interceptor (its centre within about 4 colour clocks of its
+      own), it holds still and fires, instead of stepping sideways; your
+      shots from directly under it hit it. Outside the zone it tracks you as
+      before.
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **The boss entries** load cleanly on every route (67 / 71 / 70 / 71
+      sectors), no red halt, no wrong difficulty after the entry (the
+      Bastion's rail code now loads into slots C and D, not slot E).
+- [ ] **The L and the capped cannons** on the real GTIA as in Atari800, with
+      no flicker on the foot or the covered cannon while its beam runs.
 
 ## Recording the result
 

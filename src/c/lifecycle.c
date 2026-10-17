@@ -104,6 +104,7 @@
 #define INTERCEPTOR_CLIMB        3u
 #define INTERCEPTOR_BACKOFF      2u
 #define INTERCEPTOR_TRACK_DIVE   1u     /* FRAME_COUNTER mask: one cell every 2nd frame */
+#define INTERCEPTOR_DEAD_ZONE    8u     /* holds while x - player_x - 1 < 8: the shot's line on it */
 /* The top-hold loop (the owner's smoke of 2026-10-11, plan
  * interceptor-standoff §12): an Interceptor whose wave authors loops does not
  * leave after its hover. It climbs at the same 3 lines a frame to the
@@ -1194,9 +1195,10 @@ static uint8_t light_tick_body(void)
             light_target_x = 0u;
             light_fire_work = light_burst_left[light_slot];
             if (light_fire_work >= INTERCEPTOR_LIFE_FRAMES) {
-                /* The body's result byte is free until it returns. */
-                light_tick_result = (uint8_t)(light_loops[light_slot] & INTERCEPTOR_LOOP_MASK);
-                if (light_tick_result == 0u) {
+                /* The body's result byte is free until it returns. Tested
+                 * without it: a store and a reload less (feat/boss-order-scale,
+                 * the dead zone's bytes). */
+                if ((uint8_t)(light_loops[light_slot] & INTERCEPTOR_LOOP_MASK) == 0u) {
                     light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
                 } else {
                     /* Each slot holds 2 rows lower, as its standoff holds 2
@@ -1227,8 +1229,7 @@ static uint8_t light_tick_body(void)
                  * the player's speed (half speed while holding is 13 packed
                  * bytes, a twelfth window sector). */
                 light_target_x = (uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT);
-                light_scratch = (uint8_t)(PLAYER_Y - light_work);
-                light_scratch = (uint8_t)(light_scratch - light_target_x);
+                light_scratch = (uint8_t)((uint8_t)(PLAYER_Y - light_work) - light_target_x);
                 if (light_scratch >= INTERCEPTOR_STANDOFF_FAR) {
                     light_work = (uint8_t)(light_work + INTERCEPTOR_DIVE);
                 } else if (light_scratch < INTERCEPTOR_STANDOFF_NEAR &&
@@ -1245,15 +1246,27 @@ static uint8_t light_tick_body(void)
                 if (light_target_x > LIGHT_X_LAST) {
                     light_target_x = LIGHT_X_LAST;
                 }
+                /* The dead zone (feat/boss-order-scale, the owner's decision
+                 * of 2026-10-16 on the gfx-regression audit): it holds its
+                 * column while the ship's centre is within 4 HPOS of its own -
+                 * exactly while the ship's shot, player_x + 8, crosses its [x, x + 8)
+                 * (the side where the shot would pass beside it is left out:
+                 * the catch rule, plan interceptor-speed §2.2). There its
+                 * column is the player's: it holds and fires. Outside it the
+                 * tracking is unchanged. */
+                light_fire_work = light_x[light_slot];
+                if ((uint8_t)(light_fire_work - PLAYER_X - 1u) < INTERCEPTOR_DEAD_ZONE) {
+                    light_target_x = light_fire_work;
+                }
+                /* One store for both steps - holding, it stores the byte it
+                 * read: 5 B under the two stores it replaces. */
                 if ((FRAME_COUNTER & INTERCEPTOR_TRACK_DIVE) == 0u) {
-                    light_fire_work = light_x[light_slot];
                     if (light_fire_work < light_target_x) {
                         light_fire_work = (uint8_t)(light_fire_work + LIGHT_X_STEP);
-                        light_x[light_slot] = light_fire_work;
-                    } else if (light_fire_work > light_target_x) {
+                    } else if (light_fire_work != light_target_x) {
                         light_fire_work = (uint8_t)(light_fire_work - LIGHT_X_STEP);
-                        light_x[light_slot] = light_fire_work;
                     }
+                    light_x[light_slot] = light_fire_work;
                 }
             }
         }
@@ -1265,8 +1278,7 @@ static uint8_t light_tick_body(void)
     } else {
         /* The escort's column in one 8-bit add: cc65 promotes
          * ENEMY_X_0 + 4 + 2 to int and emits two; the byte is the same. */
-        light_work = (uint8_t)(ENEMY_X_0 + (uint8_t)(LIGHT_CENTRE_OFFSET + LIGHT_ROUND));
-        light_work = (uint8_t)(light_work & 0xFCu);
+        light_work = (uint8_t)((uint8_t)(ENEMY_X_0 + (uint8_t)(LIGHT_CENTRE_OFFSET + LIGHT_ROUND)) & 0xFCu);
         if (light_work > LIGHT_X_LAST) {
             light_work = LIGHT_X_LAST;
         }
@@ -1278,8 +1290,9 @@ static uint8_t light_tick_body(void)
         }
         light_y[light_slot] = light_work;
     }
-    light_fire_work = light_fire_timer[light_slot];
-    if (light_fire_work != 0u) {
+    /* The assignment in the test: cc65 keeps the loaded byte (a reload less,
+     * feat/boss-order-scale - the dead zone's last byte). */
+    if ((light_fire_work = light_fire_timer[light_slot]) != 0u) {
         --light_fire_work;
         light_fire_timer[light_slot] = light_fire_work;
         return 0u;

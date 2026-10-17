@@ -186,7 +186,11 @@ test("it fires only when it is in the player's column, and does fire there (1 / 
     for (const pathName of Object.keys(PATHS)) {
       for (const { f, px, after, result } of fly(difficulty, pathName)) {
         if (result !== LASER) continue;
-        assert.equal(after.x, column(px),
+        // RE-POINTED feat/boss-order-scale (the owner's dead zone of
+        // 2026-10-16): inside the zone - the ship's shot, px + 8, crossing
+        // [x, x + 8) - its own column is the player's, so it fires there too.
+        const inZone = ((after.x - px - 1) & 0xff) < 8;
+        assert.ok(after.x === column(px) || inZone,
           `${pathName}, difficulty ${difficulty}, frame ${f}: fired at x ${after.x}, the player's column ${column(px)}`);
       }
     }

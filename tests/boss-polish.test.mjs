@@ -23,7 +23,7 @@ import {
   loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import {
-  Drive, bossGateMemory, call, cpuOver, label, mainAddress, root, runUntil,
+  Drive, bossGateMemory, bossLevel, call, cpuOver, label, mainAddress, regionOf, root, runUntil,
 } from "./boss-harness.mjs";
 
 const main = (name) => label("main", name);
@@ -86,10 +86,12 @@ function encodedRow(memory, text) {
 }
 const screenRow = (memory, row) => [...memory.subarray(HUD + row * 40, HUD + row * 40 + 40)];
 
-for (const [region, level, name] of [[1, 1, "BLOCKADE BREAKER"], [2, 4, "BASTION"], [3, 7, "SIEGE SPINE"],
-  [4, 10, "VOID CITADEL"]]) {
-  test(`the boss loading screen, region ${region}: WARNING / ${name} / INCOMING`, () => {
-    const memory = loadingScreen(level);
+// RE-POINTED feat/boss-order-scale (decision AX 1): each boss's title on the
+// first level of the region the order gives it (the Breaker 1, the Citadel 4,
+// the Spine 7, the Bastion 10).
+for (const [directory, name] of [[1, "BLOCKADE BREAKER"], [2, "BASTION"], [3, "SIEGE SPINE"], [4, "VOID CITADEL"]]) {
+  test(`the boss loading screen, region ${regionOf(directory)}: WARNING / ${name} / INCOMING`, () => {
+    const memory = loadingScreen(bossLevel(directory));
     assert.deepEqual(screenRow(memory, 5), encodedRow(memory, "WARNING"), "row 5");
     assert.deepEqual(screenRow(memory, 6), new Array(40).fill(0), "row 6 is blank");
     assert.deepEqual(screenRow(memory, 7), encodedRow(memory, name), "row 7: the region's name");

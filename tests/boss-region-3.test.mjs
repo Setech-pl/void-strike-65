@@ -43,10 +43,14 @@ test("region 3 is Siege Spine from its own draft: the layout, the hit points, th
   // the siege cannon 24 -> 20, aiming for about 105 s on MEDIUM), then one more
   // step toward that aim (plan s5-boss-regions §6.3.7): generators 14, plates
   // 8, the siege cannon 18, emitters 2-3 16; guns 10.
+  // RE-PINNED feat/boss-order-scale (the owner's decision AX 2-4: the curve,
+  // MEDIUM about 112 s for region 3): every module x 0.90, rounded -
+  // generators 14 -> 13, guns 10 -> 9, emitters 18 / 16 -> 16 / 14, plates
+  // 8 -> 7 (docs/boss-curve.json).
   assert.deepEqual(hp, {
-    "gen-l": 14, "gen-r": 14, "gun-1": 10, "gun-2": 10, "gun-3": 10, "gun-4": 10,
-    "emitter-1": 18, "emitter-2": 16, "emitter-3": 16,
-    "plate-a": 8, "plate-b": 8, "plate-c": 8, "plate-d": 8,
+    "gen-l": 13, "gen-r": 13, "gun-1": 9, "gun-2": 9, "gun-3": 9, "gun-4": 9,
+    "emitter-1": 16, "emitter-2": 14, "emitter-3": 14,
+    "plate-a": 7, "plate-b": 7, "plate-c": 7, "plate-d": 7,
   });
   assert.equal(region3.modules.find((m) => m.name === "emitter-1").slot, 1, "the siege cannon is emitter slot 1");
   assert.ok(region3.field !== null, "the region carries a field");

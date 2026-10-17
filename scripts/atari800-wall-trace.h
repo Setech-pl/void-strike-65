@@ -1019,11 +1019,24 @@ static unsigned dftrace_field_half;
  * field's and the well's code share BOSS_F_HOOK ($526E): each is watched only
  * in its own region (optional: 0 disables). */
 static unsigned dftrace_boss_level_id;
+/* The region a level's boss stands in: min(3, (id - 1) / 3) + 1, as boss_head
+ * picks it (src/hybrid/boss.s). */
+static unsigned dftrace_level_region(void)
+{
+	unsigned id = MEMORY_mem[dftrace_boss_level_id];
+	unsigned region = id == 0u ? 0u : (id - 1u) / 3u;
+	return (region > 3u ? 3u : region) + 1u;
+}
 /* fix/r4-immobile: the region's motion table byte (frames per colour clock;
  * 0 = a still band) - the boss-aim policy leads its aim only for a drifting
  * band (optional: 0 keeps the lead, the drifting regions' path). */
 static unsigned dftrace_boss_motion_step;
 static unsigned dftrace_gravity_on;
+/* feat/boss-order-scale: which region (1-4) holds the rails, the field and
+ * the well - the boss order is data (assets/graphics/boss-regions/order.json),
+ * so the observers follow the manifest (DFTRACE_*_REGION) instead of the
+ * level ranges 4-6 / 7-9 / 10-12; the defaults are today's order. */
+static unsigned dftrace_rail_region = 2u, dftrace_field_region = 3u, dftrace_gravity_region = 4u;
 /* S5-5: region 2's rails' state (rail_k, rail_front: two bytes each) and
  * scratch (rail_step, rail_timer, rail_dead: two bytes each), boss link
  * labels; optional. */
@@ -3454,6 +3467,51 @@ static int dftrace_contact_preamble(unsigned frame, unsigned x, unsigned y,
 	return 1;
 }
 
+/* feat/boss-order-scale (decision AW): the beam escape on the drawn ship,
+ * x .. x + 15 - shared by the damaged contact bot and the "-dodge" aiming
+ * bots. A warned or running beam is near when its centre is within 20 HPOS of
+ * the ship's centre (dx = hpos - x - 6; over the ship at -9..9). Beams on both
+ * sides and none over the ship: hold in the gap. Otherwise the nearest beam
+ * decides: away from it, if that way leaves the ship clear inside its limits
+ * (48 / 200) with 12 HPOS to spare for the band's drift - regions 1 and 3
+ * carry a beam 1 HPOS every 2 frames, onto a ship parked at the limit
+ * (MEASURED: R1, warned at 71, at 63 three frames into the beam); if not, it
+ * crosses the beam while the beam only warns (or is already over the ship),
+ * else holds. Returns the stick, or 0 when no beam is near. */
+#define DFTRACE_BEAM_DRIFT_SPARE 12
+static unsigned dftrace_beam_escape(unsigned x)
+{
+	int left = 0, right = 0, near_dx = 0, near_hpos = 0, near_state = 0, near_abs = 99, dir, over;
+	unsigned beam;
+	for (beam = 0u; beam < 4u; ++beam) {
+		unsigned state = MEMORY_mem[dftrace_laser_state + beam];
+		unsigned hpos = MEMORY_mem[dftrace_laser_hpos + beam];
+		int dx = (int) hpos - 6 - (int) x;
+		int size = dx < 0 ? -dx : dx;
+		if ((state != 1u && state != 2u) || hpos == 0u || size >= 20)
+			continue;
+		if (dx >= 0) left = 1; else right = 1;
+		if (size < near_abs) {
+			near_abs = size;
+			near_dx = dx;
+			near_hpos = (int) hpos;
+			near_state = (int) state;
+		}
+	}
+	if (!left && !right)
+		return 0u;
+	over = near_dx >= -9 && near_dx <= 9;
+	if (left && right && !over)
+		return 0x0fu;
+	dir = near_dx >= 0 ? -1 : 1;
+	if ((dir < 0 && near_hpos - 16 - DFTRACE_BEAM_DRIFT_SPARE < 48) ||
+		(dir > 0 && near_hpos + 4 + DFTRACE_BEAM_DRIFT_SPARE > 200))
+		dir = near_state == 1 || over ? -dir : 0;
+	if ((dir < 0 && x <= 48u) || (dir > 0 && x >= 200u))
+		dir = 0;
+	return dir < 0 ? 0x0bu : dir > 0 ? 0x07u : 0x0fu;
+}
+
 static void dftrace_set_gameplay_input(unsigned frame)
 {
 	unsigned stick = 0x0f;
@@ -3708,7 +3766,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			for (laser = 0u; laser < 4u && dftrace_laser_state != 0u; ++laser) {
 				unsigned hpos = MEMORY_mem[dftrace_laser_hpos + laser];
 				if (MEMORY_mem[dftrace_laser_state + laser] != 0u && hpos != 0u) {
-					int distance = (int) candidate + 4 - (int) hpos - 2;
+					int distance = (int) candidate + 8 - (int) hpos - 2;
 					if (distance < 0) distance = -distance;
 					if (distance < nearest) nearest = distance;
 				}
@@ -3774,20 +3832,29 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			 * band in that column: until a laser warns, the bot steps away
 			 * from a boss shot coming down on it, so it meets the beam whole
 			 * (the clause's ten units from full health). Slots 5-9. */
+			/* feat/boss-order-scale (the owner's decision AW, 2026-10-16:
+			 * hostile shots and beams meet the ship as drawn, x .. x + 15):
+			 * every bot here measures a threat from the drawn ship's centre,
+			 * x + 8 - a shot (2 wide) is dx = shot_x - x - 7, hitting at
+			 * -8..8; a beam (4 wide) dx = hpos - x - 6, hitting at -9..9 - and
+			 * keeps its windows' old margins past the hit (16 / 28 for a
+			 * shot, 20 for a beam; they were 12 / 24 and 16 round x + 4,
+			 * when the hit box was the ship's left 8 HPOS). Honest: a player
+			 * sees the whole ship. */
 			if (dftrace_boss_active() && dftrace_projectile_x != 0u &&
 				dftrace_projectile_y != 0u && dftrace_projectile_active != 0u) {
 				unsigned slot;
 				int block_right = 0, block_left = 0;
 				for (slot = 5u; slot < 10u; ++slot) {
 					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 					if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
-						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 						continue;
 					/* Never towards a falling shot within 24 HPOS; away from
 					 * one within 12. */
 					if (dx >= 0) block_right = 1; else block_left = 1;
-					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+					if (dx > -16 && dx < 16) threat = dx >= 0 ? -1 : 1;
 				}
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
@@ -3810,12 +3877,12 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				for (slot = 0u; slot < 10u; ++slot) {
 					unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
 					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 					if ((active != 0x16u && (active & 0x38u) != 0x18u) ||
-						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 						continue;
 					if (dx >= 0) block_right = 1; else block_left = 1;
-					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+					if (dx > -16 && dx < 16) threat = dx >= 0 ? -1 : 1;
 				}
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
@@ -3850,7 +3917,8 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			else if (threat > 0)
 				stick = x < 196u ? 0x07u : 0x0bu;
 			/* Damaged: out from under any warning or running beam (its span
-			 * is hpos - 2 .. hpos + 1 against the 8-HPOS envelope).
+			 * against the drawn ship, x .. x + 15, since decision AW; the
+			 * 8-HPOS envelope before).
 			 * fix/interceptor-speed (class (a), Q6b): or shielded (`whole`
 			 * above); and the escape runs to the ship's own limits (48 / 200,
 			 * PLAYER_X_MIN / MAX) - at x 60 with the beam's span at 67 the old
@@ -3858,13 +3926,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			 * (MEASURED at 3,952). */
 			if (!whole && dftrace_boss_active() && dftrace_laser_state != 0u &&
 				dftrace_laser_hpos != 0u) {
-				for (laser = 0u; laser < 4u; ++laser) {
-					unsigned state = MEMORY_mem[dftrace_laser_state + laser];
-					int dx = (int) MEMORY_mem[dftrace_laser_hpos + laser] - 2 - (int) x;
-					if ((state == 1u || state == 2u) &&
-						MEMORY_mem[dftrace_laser_hpos + laser] != 0u && dx > -16 && dx < 16)
-						stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
-				}
+				unsigned escape = dftrace_beam_escape(x);
+				if (escape != 0u)
+					stick = escape;
 			}
 		}
 		else {
@@ -3882,12 +3946,12 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				int threat = 0, block_right = 0, block_left = 0;
 				for (slot = 5u; slot < 10u; ++slot) {
 					unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+					int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 					if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
-						sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+						sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 						continue;
 					if (dx >= 0) block_right = 1; else block_left = 1;
-					if (dx > -12 && dx < 12) threat = dx >= 0 ? -1 : 1;
+					if (dx > -16 && dx < 16) threat = dx >= 0 ? -1 : 1;
 				}
 				if (block_right && (stick & 0x08u) == 0u) stick |= 0x08u;
 				if (block_left && (stick & 0x04u) == 0u) stick |= 0x04u;
@@ -3941,8 +4005,13 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * emitters) first, "boss-aim-careless" the rail guns (the pulse guns)
 		 * first; each is the plain aiming bot within its preference. */
 		/* S5-5 Phase B: either one with "-dodge" (below) too. */
+		/* feat/boss-order-scale: "boss-aim-plates" clears the armour first -
+		 * every live, exposed plate, also one that guards nothing (a capped
+		 * cannon on a lower laser tier) - the player the finale is for (it
+		 * begins when the last armour falls with a weapon standing). */
 		int prefer = strncmp(dftrace_policy, "boss-aim-careful", 16) == 0 ? 2
-			: strncmp(dftrace_policy, "boss-aim-careless", 17) == 0 ? 1 : -1;
+			: strncmp(dftrace_policy, "boss-aim-careless", 17) == 0 ? 1
+			: strncmp(dftrace_policy, "boss-aim-plates", 15) == 0 ? 0 : -1;
 		unsigned best_x = x;
 		/* S5-5 Phase B (the owner's answer of 2026-10-15): "boss-aim-park-X"
 		 * aims as the plain bot until a boss module has fallen (the escort's
@@ -3979,7 +4048,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			if (dftrace_boss_column_map != 0u &&
 				MEMORY_mem[dftrace_boss_column_map + (column & 63u)] == 0xfeu)
 				continue;
-			if (MEMORY_mem[dftrace_boss_kind + i] == 0u && ((guards >> i) & 1u) == 0u &&
+			if (MEMORY_mem[dftrace_boss_kind + i] == 0u && ((guards >> i) & 1u) == 0u && prefer != 0 &&
 				!(field_blocked && MEMORY_mem[dftrace_boss_column_map + (column & 63u)] == i))
 				continue;
 			target &= ~1;
@@ -4012,17 +4081,13 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		 * difficulty is the hits on a bot that leaves a warned beam): the
 		 * "-dodge" aiming bots leave every laser in its warning or beam with
 		 * the laser-contact bot's escape (lower-contact-laser's damaged step
-		 * above: out from under a beam whose span is within 16 HPOS, to the
+		 * above: out from under a beam whose centre is within 20 HPOS of the
+		 * drawn ship's centre - decision AW; 16 of x + 4 before - to the
 		 * ship's limits 48 / 200), and aim again once it is off. */
 		if (strstr(dftrace_policy, "-dodge") != NULL && dftrace_laser_state != 0u && dftrace_laser_hpos != 0u) {
-			unsigned beam;
-			for (beam = 0u; beam < 4u; ++beam) {
-				unsigned state = MEMORY_mem[dftrace_laser_state + beam];
-				int dx = (int) MEMORY_mem[dftrace_laser_hpos + beam] - 2 - (int) x;
-				if ((state == 1u || state == 2u) &&
-					MEMORY_mem[dftrace_laser_hpos + beam] != 0u && dx > -16 && dx < 16)
-					stick = dx >= 0 ? (x > 48u ? 0x0bu : 0x07u) : (x < 200u ? 0x07u : 0x0bu);
-			}
+			unsigned escape = dftrace_beam_escape(x);
+			if (escape != 0u)
+				stick = escape;
 		}
 	}
 	else if ((strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
@@ -4138,12 +4203,12 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			unsigned slot;
 			for (slot = 5u; slot < 10u; ++slot) {
 				unsigned sy = MEMORY_mem[dftrace_projectile_y + slot];
-				int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 4;
+				int dx = (int) MEMORY_mem[dftrace_projectile_x + slot] - (int) x - 7;
 				if (MEMORY_mem[dftrace_projectile_active + slot] != 0x16u ||
-					sy >= y || sy + 120u <= y || dx <= -24 || dx >= 24)
+					sy >= y || sy + 120u <= y || dx <= -28 || dx >= 28)
 					continue;
 				stick |= dx >= 0 ? 0x08u : 0x04u;
-				if (dx > -12 && dx < 12)
+				if (dx > -16 && dx < 16)
 					stick = dx >= 0 ? (x > 60u ? 0x0bu : 0x07u) : (x < 196u ? 0x07u : 0x0bu);
 			}
 		}
@@ -6269,8 +6334,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->boss_exposed = frame->bay_cells = frame->bay_stops = frame->bay_maps = 0u;
 	frame->laser_missiles = frame->beam_rows = frame->beam_armour = frame->beam_below = frame->jamb_map = 0u;
 	if (dftrace_boss_active() && dftrace_rail_state != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
-		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 4u &&
-		MEMORY_mem[dftrace_boss_level_id] <= 6u) {
+		dftrace_boss_level_id != 0u && dftrace_level_region() == dftrace_rail_region) {
 		frame->rail_k = MEMORY_mem[dftrace_rail_state] | (MEMORY_mem[dftrace_rail_state + 1u] << 4);
 		frame->rail_dead = MEMORY_mem[dftrace_rail_scratch + 4u] | (MEMORY_mem[dftrace_rail_scratch + 5u] << 4);
 		frame->rail_sliding = (MEMORY_mem[dftrace_rail_scratch] != 0u ? 1u : 0u) |
@@ -6292,15 +6356,14 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		}
 	}
 	if (dftrace_boss_active() && dftrace_gravity_on != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
-		dftrace_boss_level_id != 0u && MEMORY_mem[dftrace_boss_level_id] >= 10u) {
+		dftrace_boss_level_id != 0u && dftrace_level_region() == dftrace_gravity_region) {
 		frame->gravity_on = MEMORY_mem[dftrace_gravity_on];
 		frame->gravity_steps = MEMORY_mem[dftrace_gravity_on + 3u] | (MEMORY_mem[dftrace_gravity_on + 4u] << 8);
 		if (dftrace_gravity_column != 0u)
 			frame->gravity_column = MEMORY_mem[dftrace_gravity_column];
 	}
 	if (dftrace_boss_active() && dftrace_field_half != 0u && MEMORY_mem[0x526eu] == 0x4cu &&
-		(dftrace_boss_level_id == 0u || (MEMORY_mem[dftrace_boss_level_id] >= 7u &&
-			MEMORY_mem[dftrace_boss_level_id] <= 9u)) &&
+		(dftrace_boss_level_id == 0u || dftrace_level_region() == dftrace_field_region) &&
 		dftrace_boss_hp != 0u && dftrace_boss_count != 0u) {
 		unsigned half, column, module, count = MEMORY_mem[dftrace_boss_count];
 		unsigned deflect = MEMORY_mem[0xad00u + 250u];
@@ -7581,6 +7644,9 @@ static void dftrace_init(void)
 	dftrace_boss_level_id = dftrace_env_optional("DFTRACE_BOSS_LEVEL_ID");
 	dftrace_boss_motion_step = dftrace_env_optional("DFTRACE_BOSS_MOTION_STEP");
 	dftrace_gravity_on = dftrace_env_optional("DFTRACE_GRAVITY_ON");
+	if (dftrace_env_optional("DFTRACE_RAIL_REGION") != 0u) dftrace_rail_region = dftrace_env_optional("DFTRACE_RAIL_REGION");
+	if (dftrace_env_optional("DFTRACE_FIELD_REGION") != 0u) dftrace_field_region = dftrace_env_optional("DFTRACE_FIELD_REGION");
+	if (dftrace_env_optional("DFTRACE_GRAVITY_REGION") != 0u) dftrace_gravity_region = dftrace_env_optional("DFTRACE_GRAVITY_REGION");
 	dftrace_gravity_column = dftrace_env_optional("DFTRACE_GRAVITY_COLUMN");
 	dftrace_rail_state = dftrace_env_optional("DFTRACE_RAIL_STATE");
 	dftrace_rail_scratch = dftrace_env_optional("DFTRACE_RAIL_SCRATCH");

@@ -111,7 +111,7 @@ export function looks(region) {
     const rows = opened();
     region.modules.forEach((module) => {
       if (!which(module)) return;
-      eachCell(rows, module, (code, i) => (Math.floor(i / module.width) < module.cavityRows ? region.cavity : 0));
+      eachCell(rows, module, (code, i) => (Math.floor(i / module.width) < (module.wreckRows ?? module.cavityRows) ? region.cavity : 0));
     });
     return rows;
   };

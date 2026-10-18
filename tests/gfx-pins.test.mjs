@@ -149,6 +149,18 @@ test("the boss link's colour, charset and DLI-vector stores: only the pinned rou
   }
   assert.deepEqual(Object.fromEntries([...stores].sort()), {
     "b2_prepare COLPM1": 1, "b2_prepare COLPM2": 1, "b2_restore COLPM1": 1, "b2_restore COLPM2": 1,
+    // RE-PINNED feat/boss-banners (decision AY): the banner's white (COLPF0
+    // for its ANTIC 6 / 7 title, COLPF1 for its mode F lines), on the loading
+    // screen only - the install sets COLPF1-3 and COLBK, and the boss DLI's
+    // phase 0 sets COLPF0-3 every frame before the divider row (the route
+    // test below runs the entry with the banner).
+    "boss_banner COLPF0": 1, "boss_banner COLPF1": 1,
+    // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18, §AY 8):
+    // the old WARNING screen set the banner's CHBASE (the frontend charset)
+    // and COLPF2 (black); without it the cold tail sets them with the display
+    // off, on the loading screen only - the install sets CHBASE and COLPF2
+    // again and the boss DLI's phase 0 every frame.
+    "boss_entry_cold CHBASE": 1, "boss_entry_cold COLPF2": 1,
     "boss_dli CHBASE": 2, "boss_dli COLPF0": 2, "boss_dli COLPF1": 2, "boss_dli COLPF2": 2, "boss_dli COLPF3": 2,
     "boss_install CHBASE": 1, "boss_install COLBK": 1, "boss_install COLPF1": 1, "boss_install COLPF2": 1,
     "boss_install COLPF3": 1, "boss_install VDSLST": 1,

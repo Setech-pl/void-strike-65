@@ -228,30 +228,25 @@ export const BOSS_SHOT_CODES = 4;
 // from the gun's muzzle to the band's edge, with two codes right after the
 // player shot's four: the pool's PULSE glyph, left and right phase.
 export const BOSS_HOSTILE_SHOT_CODES = 2;
-// fix/boss-polish (owner decision AL 1): the boss loading screen's title,
-// variant A - WARNING (the resident record, src/hybrid/light-kernel.s) over
-// the boss's name and INCOMING, read from the region's theme run, which the
-// boss entry reads first: the reader's records ({dst lo, dst hi, text, 0}...,
-// $FF) at a fixed offset in the run's slack, drawn under WARNING once the run
-// has landed. Text rows of the reader's 40-column screen at $4000; the
-// summary's dash row is row 10.
-// feat/interceptor-armour (owner answer of 2026-10-12, placement C): the boss
-// entry's once-per-entry tail - the theme's start, the title, the boss code's
-// read - is not resident either: it is the boss link's BOSS_ENTRY_COLD
-// (src/hybrid/boss.s boss_entry_cold), copied by scripts/build.mjs into every
-// region's theme run at BOSS_ENTRY_COLD_OFFSET, where the theme's limit was;
-// the title's records follow it, so a boss name may be at most
-// BOSS_THEME_CAPACITY - BOSS_TITLE_OFFSET - 15 = 25 characters (checked; the
-// laser fixture's is 22). The theme's limit falls $C0 -> $B8 (it uses 177 B).
+// fix/boss-polish (owner decision AL 1): the boss loading screen's title -
+// WARNING (the resident record, src/hybrid/light-kernel.s), the boss's name and
+// INCOMING. feat/interceptor-armour (owner answer of 2026-10-12, placement C):
+// the boss entry's once-per-entry tail is not resident: it is the boss link's
+// BOSS_ENTRY_COLD (src/hybrid/boss.s boss_entry_cold), copied by
+// scripts/build.mjs into every region's theme run at BOSS_ENTRY_COLD_OFFSET,
+// where the theme's limit was (the theme uses 177 B of its 184).
+// feat/boss-banners (owner decisions AL 2 and AY): the name and INCOMING are
+// the banner's (scripts/boss-banner.mjs), drawn with WARNING under the
+// boss's picture; the cold tail takes the 40 B their records had and reads the
+// region's banner run, named by the spec in the theme run's last 5 bytes
+// (the run's first sector, its count, its expected fold), which the build
+// writes per region.
 export const BOSS_ENTRY_COLD_OFFSET = 0xb8;
-export const BOSS_ENTRY_COLD_BYTES = 0x20;
+export const BOSS_ENTRY_COLD_BYTES = 0x43;
 export const BOSS_ENTRY_COLD_ADDRESS = BOSS_STAGING_ADDRESS + BOSS_ENTRY_COLD_OFFSET;
-export const BOSS_TITLE_OFFSET = BOSS_ENTRY_COLD_OFFSET + BOSS_ENTRY_COLD_BYTES;
-export const BOSS_TITLE_ADDRESS = BOSS_STAGING_ADDRESS + BOSS_TITLE_OFFSET;
-export const BOSS_TITLE_SCREEN = 0x4000;
-export const BOSS_TITLE_NAME_ROW = 7;
-export const BOSS_TITLE_INCOMING_ROW = 8;
-export const BOSS_TITLE_INCOMING = "INCOMING";
+export const BOSS_BANNER_SPEC_OFFSET = BOSS_ENTRY_COLD_OFFSET + BOSS_ENTRY_COLD_BYTES;
+export const BOSS_BANNER_SPEC_ADDRESS = BOSS_STAGING_ADDRESS + BOSS_BANNER_SPEC_OFFSET;
+export const BOSS_BANNER_SPEC_BYTES = 5;
 
 // The four shot glyphs from the gameplay's PlayerFighter phase glyphs
 // (scripts/fighter-weapons.mjs: phaseStride glyphs a horizontal phase, the
@@ -598,7 +593,9 @@ export function bossLaserFixtureDraft(draft, tier = 4) {
   // A see-through girder stub in a cut recess is gone with it.
   const cut = (c, r) => added.some((m) => c >= m.x && c < m.x + m.width && r >= m.row + m.height);
   const seeThrough = (draft.layout.seeThrough ?? []).filter(([c, r]) => !cut(c, r));
-  return { ...draft, images, layout: { ...draft.layout, name: `Laser fixture - tier ${tier}`, modules, seeThrough } };
+  // feat/boss-banners: the name fits the banner's 16-glyph row (was "Laser
+  // fixture - tier N", 22, on the old 40-column title row).
+  return { ...draft, images, layout: { ...draft.layout, name: `Fixture tier ${tier}`, modules, seeThrough } };
 }
 
 // One 4 x 8 cell of a draft image: its eight glyph bytes, its colour bank
@@ -1085,20 +1082,6 @@ function resolveBossHangar(source, modules, escortAfter) {
 // ---------------------------------------------------------------------------
 // The conversion
 // ---------------------------------------------------------------------------
-
-// The title's records: each line centred on the 40 columns (the reader's
-// frontend glyphs: A-Z 0-9 space - . / :).
-export function bossTitleRecords(name) {
-  if (typeof name !== "string" || !/^[A-Z0-9 ./:-]{1,40}$/.test(name)) {
-    fail(`the boss's title name ${JSON.stringify(name)} must be 1-40 of A-Z 0-9 space - . / :`);
-  }
-  const record = (row, text) => {
-    const dst = BOSS_TITLE_SCREEN + row * 40 + Math.floor((40 - text.length) / 2);
-    return [dst & 0xff, dst >> 8, ...Buffer.from(text, "ascii"), 0];
-  };
-  return Uint8Array.from([...record(BOSS_TITLE_NAME_ROW, name),
-    ...record(BOSS_TITLE_INCOMING_ROW, BOSS_TITLE_INCOMING), 0xff]);
-}
 
 export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft.shotGlyphs ?? null,
   hostileShotGlyphs = draft.hostileShotGlyphs ?? null } = {}) {
@@ -1673,16 +1656,11 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     }
     theme.set(themeImage, 0);
   }
-  {
-    const records = bossTitleRecords(String(layout.name ?? "").toUpperCase());
-    if ((themeImage?.length ?? 0) > BOSS_ENTRY_COLD_OFFSET) {
-      fail(`the boss theme is ${themeImage.length} B; the entry's cold code starts at ${BOSS_ENTRY_COLD_OFFSET}`);
-    }
-    if (BOSS_TITLE_OFFSET + records.length > BOSS_THEME_CAPACITY) {
-      fail(`the title's records are ${records.length} B; the theme run has ` +
-        `${BOSS_THEME_CAPACITY - BOSS_TITLE_OFFSET} after ${BOSS_TITLE_OFFSET}`);
-    }
-    theme.set(records, BOSS_TITLE_OFFSET);
+  if ((themeImage?.length ?? 0) > BOSS_ENTRY_COLD_OFFSET) {
+    fail(`the boss theme is ${themeImage.length} B; the entry's cold code starts at ${BOSS_ENTRY_COLD_OFFSET}`);
+  }
+  if (BOSS_BANNER_SPEC_OFFSET + BOSS_BANNER_SPEC_BYTES !== BOSS_THEME_CAPACITY) {
+    fail("the banner run's spec must end the theme run");
   }
   const bandA = new Uint8Array(BOSS_BAND_A_SECTORS * 128);
   bandRows.slice(0, BOSS_BAND_A_ROWS).forEach((row, index) => bandA.set(row, index * BOSS_BAND_COLUMNS));
@@ -1865,7 +1843,7 @@ export function renderBossLayoutInclude() {
     `BOSS_STAGING_THEME       = ${hex(BOSS_STAGING_ADDRESS)}`,
     `BOSS_ENTRY_COLD          = ${hex(BOSS_ENTRY_COLD_ADDRESS)}`,
     `BOSS_ENTRY_COLD_BYTES    = ${BOSS_ENTRY_COLD_BYTES}`,
-    `BOSS_TITLE_RECORDS       = ${hex(BOSS_TITLE_ADDRESS)}`,
+    `BOSS_BANNER_SPEC         = ${hex(BOSS_BANNER_SPEC_ADDRESS)}`,
     `BOSS_BAND_A              = ${hex(BOSS_BAND_A_ADDRESS)}`,
     `BOSS_BAND_B              = ${hex(BOSS_BAND_B_ADDRESS)}`,
     `BOSS_TABLES              = ${hex(BOSS_TABLES_ADDRESS)}`,

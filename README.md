@@ -116,8 +116,8 @@ The game is playable and unfinished. This list is the build in `dist/`.
 - **Destructible debris**, scored whether you shoot it or ram it.
 - **The boss.** Level 1 ends on Blockade Breaker, a boss built from modules —
   armour plates, guns and two laser cannons whose beams warm up visibly and
-  audibly first — loaded from the disk behind a WARNING screen with its name,
-  followed by the level-summary screen.
+  audibly first — loaded from the disk behind its banner (the boss's picture,
+  WARNING, its name and a loading bar), followed by the level-summary screen.
 - **A deterministic Encounter Director** for level 1, driven by travelled world
   rows rather than wall-clock time, with bounded object pools.
 - **Three timed boosters**, one at a time, from pickup capsules: Rapid Fire,

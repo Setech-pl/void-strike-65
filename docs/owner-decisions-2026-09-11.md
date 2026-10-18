@@ -2650,7 +2650,8 @@ zniszcz je, zanim szyna się zamknie"), hardware-testing §35-§36, README
    się później. Bramka w teście i w śladzie (`tests/runtime-wall-trace.test.mjs`,
    `scripts/runtime-wall-trace.mjs`, `tests/slot-f.test.mjs`) zmienia się z tym
    powodem w fazie B `feat/boss-art` — **zatwierdzona zmiana bramki, nie pin**
-   (reguła **AJ** pkt 2).
+   (reguła **AJ** pkt 2). *(Zastąpione 2026-10-18 przez §AY pkt 1: 350 klatek
+   hosta, każde wejście z banerem.)*
 
 6. **Przegląd poprawek (2026-10-16, `6299c7d`):** zielone obszycie R2, gondole,
    kopuła i rdzeń przyjęte. **R4: 1 przełączenie rzędu** (zostaje ok. 352
@@ -2860,6 +2861,60 @@ tylko prezentacja, bez zmian mechaniki):**
     „Last update" w STATUS zatwierdzone. §AX (1-21) potwierdzone; gałąź
     scalona z `main` (`05346cc`). Bez tagu: `v0.3.0` po banerach regionów i
     audycie M5.
+
+---
+
+## AY. BANERY BOSSÓW: LIMIT WEJŚCIA 350, OBRAZY, TYTUŁ, PASEK — decyzja właściciela (2026-10-18, po fazie A `feat/boss-banners`)
+
+Faza A przyjęta, wszystkie makiety zaakceptowane (`docs/plans/boss-banners.md`).
+
+1. **Limit wejścia bossa: 350 klatek hosta (7,0 s PAL) dla każdego wejścia
+   bossa** (każde wejście pokazuje baner) — **zastępuje 300 z §AV pkt 5**.
+   Dłuższe ładowanie bossa właścicielowi nie przeszkadza. Bramki w testach i
+   w śladzie (`tests/runtime-wall-trace.test.mjs`, `scripts/runtime-wall-trace.mjs`,
+   `tests/boss-order-scale.test.mjs`) zmieniają się z 300 na 350 i tylko ta
+   wartość — **zatwierdzona zmiana bramki, nie pin** (reguła **AJ** pkt 2).
+   Skutki:
+   * **cały kod banera w przebiegu regionu (B0);** luki obrazu poziomu
+     `$A817-$A87F` i `$A998-$A9FF` (opcja L) **zostają nietknięte** jako
+     miejsce na wzrost odtwarzacza muzyki — muzyka per region i motyw bossa
+     to MUST-HAVE właściciela;
+   * **P (pakowanie przebiegów pasa i zestawu znaków regionu) — nie teraz;**
+   * raport podaje wejście każdego regionu z torpedą M6 (+2 sektory) — musi
+     zmieścić się pod 350.
+2. **Siege Spine: widok z boku** (symetryczny, lustrzany).
+3. **Bastion: szyny wychodzące poza krawędzie** (jak w grze).
+4. **Void Citadel: z kolumną grawitacyjną.**
+5. **Tytuł: duże `WARNING`, nazwa bossa i `INCOMING` szerokimi literami**, jak
+   w makietach.
+6. **Pasek ładowania zastępuje kropkowany wiersz decyzji O tylko na ekranie
+   ładowania bossa**; ekrany ładowania poziomu zostają przy wierszu z
+   kropkami. **Trzy linie tytułu z AL 1 zostają.**
+7. **Faza B:** piksele dopracowane z zachowaniem kształtów i części
+   zatwierdzonych szkiców; kilka bajtów więcej za jakość dopuszczalne w
+   limicie 350 (§AU). Zero nowych bajtów rezydentnych.
+8. **Smoke właściciela fazy B (2026-10-18, HEAD `713fc95`): banery, obrazy,
+   tytuły i pasek przyjęte; jeden defekt — przy każdym bossie najpierw stary
+   tekstowy ekran z małym `WARNING` (~0,9 s), potem czarne cięcie, potem
+   baner. Starego ekranu ma nie być wcale.** Od pierwszej klatki po końcu
+   części poziomu gracz widzi tylko układ nowego ekranu banera. Preferowane:
+   nowy ekran od razu (duże `WARNING`, nazwa i `INCOMING` na swoich
+   miejscach, obraz, gdy się zdekoduje, pasek od danych bossa); dopuszczalne:
+   sama czerń (bez tekstu, starego ekranu i śmieci) do gotowego banera,
+   najwyżej ~0,5 s, z pomiarem. Ścieżka tekstowego ekranu `WARNING` usunięta
+   z wejść bossa (zostaje tylko tam, gdzie używa jej inne ładowanie). Nadal
+   0 nowych bajtów rezydentnych; bramki bez zmian.
+   **Zrobione (plan `boss-banners` §9.6):** wariant zapasowy — czerń.
+   Głowa wejścia nie rysuje ekranu tekstowego (wyświetlanie wyłączone, tło
+   czarne); pierwsze **2 sektory** przebiegu banera to sam ekran (czyszczenie,
+   lista, tytuł, pusty pasek, nagłówek regionu), sprawdzane przez ogon
+   motywu, a ekran sam czyta i sprawdza resztę (kod obrazu, odczyty, obraz).
+   **Zmierzone (Atari800, trasy bossów): 16 klatek hosta (0,32 s) czerni**
+   od głowy do pierwszej klatki banera w każdym regionie; obraz dorysowuje
+   się pod tytułem ~0,6 s później. Rezydentnie **−15 B** (rekord `WARNING`
+   w jądrze Light −11 B, wywołanie ekranu w głowie −4 B). Tekstowy ekran
+   czytnika (`sector_reader_show_records`) zostaje dla pierwszego START GAME
+   sesji (ENGAGING ENEMY SECTOR) i ekranu błędu.
 
 ---
 

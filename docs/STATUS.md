@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-18 (feat/boss-order-scale merged into main at 05346cc after the owner smoke PASS of 2026-10-17 on all five ATRs, OWNER-ACCEPTED; Phase B - the owner's decisions AW and AX 1-21: the bosses in the order Blockade Breaker, Void Citadel, Siege Spine, Bastion by data (order.json); the curve by data, MEDIUM 93.2 / 99.4 / 106.1 / 121.8 s, EASY 78.3 / 84.3 / 97.2 / 96.4, HARD 125.0 / 126.4 / 138.8 / 160.5 (the Breaker 73 %, the Spine's reload x 0.85); the drawn hit box; the Light laser fighter's dead zone; the Bastion's L, palette O and one-slab wrecks (0 B); entry 257 / 272 / 268 / 272 host frames (43 / 28 / 32 / 28 left under 300); M6 headroom 1,350 / 471 / 475 / 440 against the reticle's ~300 (EST); worst fence margin 1,470, DMA-on 31,059, the trace 58 replays with 0 misses and 0 clause failures, npm test 1,450 of 1,451 twice (the recorded preview failure; reconciled, 0 NEW, 0 MOVED), 0 resident bytes, ATR eb77e4c2; before it fix/gfx-regression (owner review: no accidental graphics change outside the boss band, docs/diagnostics/gfx-regression-2026-10-16.md, tests/gfx-pins.test.mjs; game bytes unchanged, ATR 33b1acb3), feat/boss-art and the earlier candidates - their sections below)
+Last update: 2026-10-18 (feat/boss-banners Phase B with the owner's smoke fix, OWNER-SMOKE CANDIDATE, not merged: the owner's smoke accepted the banners, pictures, titles and bar and found one defect - the old WARNING text screen for ~0.9 s before every banner; it is gone (journal §AY 8): the screen is black from the level's end until the banner's screen comes up 16 host frames (0.32 s) later, measured in every region, the picture drawing in under the title ~0.6 s later; the banner run's first 2 sectors are the screen, checked by the theme run, the rest read and checked under it; entry 295 / 310 / 306 / 310 host frames (76 / 80 / 79 / 80 sectors); resident -15 B (the kernel's WARNING record, the head's screen call); worst fence margin 1,470, DMA-on 31,059, stress unchanged, 0 misses, 0 clause failures; disk 280-319 claimed by nothing planned, the 12 levels fit (budget-1.0 note of 2026-10-18). Before it: feat/boss-order-scale merged into main at 05346cc after the owner smoke PASS of 2026-10-17, OWNER-ACCEPTED.)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -392,6 +392,46 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## The boss loading-screen banners (feat/boss-banners) — `OWNER-SMOKE CANDIDATE` (2026-10-18, with the smoke fix)
+
+Plan [plans/boss-banners.md](plans/boss-banners.md) (§9 Phase B, §9.6 the smoke fix); journal §AL 1-2, **§AY** (the owner's choices of 2026-10-18 after Phase A; supersedes §AV 5; **§AY 8** the owner's smoke of Phase B). Smoke checklist [hardware-testing.md](hardware-testing.md) §39. Not merged; awaiting the owner's smoke.
+
+**The owner's smoke of Phase B (2026-10-18, HEAD `713fc95`):** the banners, pictures, titles and bar accepted; one defect on every boss - the old text screen with the small WARNING for ~0.9 s, a black cut, then the banner. Fixed below (§AY 8, plan §9.6), the fallback the owner allowed: black, then the banner.
+
+**What the game does now.** When the level part ends the screen goes **black** (no text, no old screen; the boss theme starts) and **16 host frames (0.32 s) later**, in every region, the banner's screen comes up: `WARNING` in ANTIC 7, the boss's name and `INCOMING` in ANTIC 6 (centred; the odd lengths by HSCROL 4) and the empty 160-pixel loading bar; the boss's 160 × 64 picture (mode F, white on black) draws in above them ~0.6 s later, top to bottom, and the bar fills 2-3 pixels after every sector of the boss's data (65-69 sectors), full on the last; then the fight as before. Pictures (`assets/graphics/boss-banners/`, `banners.json`): the Blockade Breaker, the Void Citadel with its gravity column, the Siege Spine side-on, the Bastion with its rails off the edges. The bar replaces decision O's dotted row on the boss loading screen only. The reader's text screen (`sector_reader_show_records`) is no longer used by any boss entry; it stays for the session's first START GAME (ENGAGING ENEMY SECTOR) and the failure screen.
+
+**How.** The head (resident) leaves the display off and COLBK black - no text screen; the kernel's WARNING record and two pins are gone. The theme run (2 sectors, its place and resident path unchanged) ends in the cold tail (66 of 67 B: the theme's start, CHBASE / HSCROL / COLPF2, the read) and a 5-B spec naming the region's banner run's **first 2 sectors** - the screen (188 B) and the region's head (48 B: the title's records, the bar's step, the rest's sector count and fold) - which land in slot C's area and are checked against the spec's disk-guard fold. The screen draws the list, the title and the empty bar with the display off (~13,000 cycles), switches on at a frame edge, then reads the run's other **7 sectors** under it and checks them against the head's fold before any of their code runs; that code copies the reads to `$7A90`, sets the bar's state and unpacks and mirrors the picture into its lines (~141,000 cycles, the display on). The reads read the boss code and slot A's head's eight runs one sector a call - the same runs, order, folds and checks; SKCTL `$03` after every call - then hand over to `boss_head_check` with the PMG area and the frontend screen cleared. Banner runs **9 sectors** in every region (the code 664 B; the Bastion's 1,147 B, 5 under a 10th), a reservation of 10 a region at **280-319**. **Slot A, the install, slots C-E and every band, charset and block run are byte-identical to `713fc95` and to main**; only the theme runs' tails and the banner runs changed.
+
+**Resident bytes: -15** (the head -4 B in `PICKUP_CODE`'s filled tail, the Light kernel 957 -> 946 B, the window's free tail 971 -> 982 B); the reader 1,498 B, the initial block 13,623 B and 107 boot sectors unchanged.
+
+**Per region (M; entry: Atari800, the boss routes and the trace; black: the routes, `DFTITLE_FROM` the head, `DFTITLE_TO` the banner's DMACTL store; M6: +2 sectors at 3.75-4.0 host frames a sector, EST; stress: the 6502 core, native cycles, unchanged to the cycle).**
+| region | boss | black until the banner | entry, host frames (sectors) | Phase B | main | under 350 | with M6 (EST) | worst reachable | M6 headroom |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | Blockade Breaker | 16 (0.32 s) | 295 (76) | 296 | 257 (67) | 55 | ~303 | 7,150 | 1,350 |
+| 2 | Void Citadel | 16 (0.32 s) | 310 (80) | 311 | 272 (71) | 40 | ~318 | 7,694 (L4) / 8,029 (L5) | 471 |
+| 3 | Siege Spine | 16 (0.32 s) | 306 (79) | 307 | 268 (70) | 44 | ~314 | 7,771 (L7) / 8,025 (L9) | 475 |
+| 4 | Bastion | 16 (0.32 s) | 310 (80) | 310 | 272 (71) | 40 | ~318 | 8,060 (L10) | 440 |
+
+The screenshots of region 1's route (host frames 772-823, `build/banner-black/`, not committed): the head's frame cut part-drawn, 15 frames with no pixel lit, then the banner's screen with the title and the empty bar first.
+
+**Gates (M; before = main `f8557e3`, ATR `eb77e4c2`; Phase B `713fc95`, ATR `e6463baa`).**
+| gate | before | after | source |
+| --- | ---: | ---: | --- |
+| worst fence margin | 1,470 (2-sweep-fire6) | 1,470 (2-sweep-fire6) | PAL audit, the trace |
+| DMA-on maximum | 31,059 | 31,059 | the trace |
+| PAL audit / clause failures | 0 misses, 58 replays / 0 | 0 misses, 58 replays / 0 | the trace |
+| boss entry in the trace | 257 | 295 (<= 350; Phase B 296) | the trace |
+| boss routes (s41-diag-1, region-2..4-diag-1), worst margin / DMA-on | – | 9,829 / 29,144, 6,529 / 29,574, 8,996 / 30,237, 8,324 / 29,633; 0 misses | the routes |
+| boss-frame stress (limit 8,500) | worst 8,060 | 8,060 (the fight's code and data byte-identical) | the 6502 tools |
+| resident bytes | – | -15 | the manifest |
+| ATR / boot BIN | `eb77e4c2` / `a72b9ed8` | `13c950e0` / `1085256a` | `dist/` |
+
+One trace fix came with Phase B: the trace finds the boss entry by `banner_reads` (slot A's head no longer runs); unchanged here.
+
+**Tests.** `tests/boss-banners.test.mjs` (27): each region's picture by hash, its packed size, its run's and the entry's sectors; the run on the disk, the theme run's spec naming its 2 screen sectors and their fold, the head's region, the rest's count and fold, the packed picture; the title's centring; on the 6502 core for every region **no old WARNING screen** (no text-screen list ever set, every DMACTL write 0 until the banner's `$21` with the banner's list after the theme's and the screen's 4 sectors, COLBK black from the head, COLPF2 black, the title and the empty bar drawn and the picture's lines blank when it switches on), the read order, the banner on screen with its picture before the boss code's first sector, the bar, the hand-over's clears; a damaged screen sector WRONG DISK on the black screen, a damaged later sector WRONG DISK under the title before its code runs, both before any boss data; the screen's and the picture's cycles. AUD-02 splits the banner run's case into its two checked stages. Re-pins for layout values only (the window's free tail 971 -> 982, the kernel 957 -> 946, the pickup record's fill 9 -> 13, the pins 9 -> 8; the two new segments registered in slot C's area for `boss-claim`, the cold tail's CHBASE / COLPF2 stores for `gfx-pins`); four tests re-pointed from the old WARNING screen to the black screen (`boss-overlay`, `boss-polish`, `boss-runtime`). Full `npm test` on the default build after the evidence's regeneration, twice: each **1,477 of 1,478** - the recorded `tests/preview.test.mjs:164` only, matched by name and first assertion; `failures:reconcile` PASS after each (0 NEW, 0 MOVED, 0 disappeared; the trace's clause failures 0). The evidence chain: build:candidate -> runtime:wall-trace -> menu raster -> build -> memory-map -> showcase:gif (the GIF unchanged) -> showcase.
+
+**ATRs for the owner's smoke** (`build/play/`, not committed; `atari800 -xl -pal -nobasic <absolute path>`): the whole game `boss-banners-black-full-game-13c950e0.atr` (= `dist/`, SHA-256 `13c950e0b6f915af…`; region 1's boss at the end of level 1), and the boss routes (`--level=1:sector=6 [--boss-region=N]`, entered at sector 6, each region's first level's tier): `boss-banners-black-r1-breaker-f17bef23.atr` (`f17bef2344af06ae…`), `boss-banners-black-r2-citadel-a788147b.atr` (`a788147be83258fe…`), `boss-banners-black-r3-spine-595e834d.atr` (`595e834d18cab12c…`), `boss-banners-black-r4-bastion-96956183.atr` (`969561830fe39430…`). The Phase B ATRs (`boss-banners-*-e6463baa` etc.) show the old WARNING screen; do not smoke them again.
 
 ## The boss order and the difficulty curve; the drawn hit box; the Bastion's L, palette O and its wrecks (feat/boss-order-scale)
 

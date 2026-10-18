@@ -438,7 +438,10 @@ test("PAL replay ends the level in its boss: drained entry, fight, chain, hold, 
     // RE-GATED feat/boss-art (owner decision AV, 2026-10-16): 300 host
     // frames, the standing limit in every task from now (was 280), so the
     // loading banner fits later. A gate change the owner approved, not a pin.
-    assert.ok(entry.boss_entry_host_frames > 0 && entry.boss_entry_host_frames <= 300,
+    // RE-GATED feat/boss-banners (owner decision AY, 2026-10-18): 350 host
+    // frames (7.0 s PAL) for every boss entry, which shows the banner (was
+    // 300). A gate change the owner approved, not a pin.
+    assert.ok(entry.boss_entry_host_frames > 0 && entry.boss_entry_host_frames <= 350,
       `${where}: the boss entry took ${entry.boss_entry_host_frames} host frames`);
   }
 });

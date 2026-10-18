@@ -9,6 +9,10 @@
 // 2. The title, variant A (decision AL 1): WARNING on row 5, the region's boss
 //    name on row 7, INCOMING on row 8 of the reader's text screen, for regions
 //    1-4, from the region's own theme run (never the initial block or slot F).
+//    RE-POINTED feat/boss-banners (decisions AL 2, AY): WARNING alone on row 5
+//    while the banner run loads, then the three lines on the banner - WARNING
+//    in ANTIC 7, the name and INCOMING in ANTIC 6 - from the region's banner
+//    run (never the initial block or slot F).
 // 3. The art rule (plan §10.3): every damage stage of every destructible module
 //    - intact, cracked, broken; in the look it is hit in; a capped emitter
 //    plate's three - has colour-3 pixels, the pixels the flash's bit-7 toggle
@@ -19,9 +23,12 @@ import path from "node:path";
 import test from "node:test";
 
 import {
-  BOSS_TITLE_ADDRESS, bossPlaceholderDraft, bossRegionDirectory, compileBossRegion, loadBossPlaceholders,
+  bossPlaceholderDraft, bossRegionDirectory, compileBossRegion, loadBossPlaceholders,
   loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
+import {
+  BANNER_INCOMING_ROW, BANNER_NAME_ROW, BANNER_RUN_ADDRESS, BANNER_WARNING_ROW, bannerTextPlacement,
+} from "../scripts/boss-banner.mjs";
 import {
   Drive, bossGateMemory, bossLevel, call, cpuOver, label, mainAddress, regionOf, root, runUntil,
 } from "./boss-harness.mjs";
@@ -65,17 +72,26 @@ test("HULL: the boss sector's HUD, rebuilt by the install, blanks the spent quar
   }
 });
 
-// The reader's text screen at the moment the boss code takes over: the title
-// is drawn, nothing has cleared it yet.
-function loadingScreen(level) {
+// RE-POINTED feat/boss-banners: the reader's text screen while the banner run
+// loads (its first sector asked for: WARNING drawn, the region's run read),
+// and the banner at the moment the boss code's first sector is asked for.
+function loadingScreens(level) {
   const memory = bossGateMemory();
   memory[0xa603] = level;
-  const cpu = cpuOver(new Drive(), memory);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
+  const region = Math.min(3, Math.floor((level - 1) / 3)) + 1;
+  const banner = manifest.boss.runs.find((run) => run.name === `boss-region-${region}-banner`);
+  const code = manifest.boss.runs.find((run) => run.name === "boss-code");
+  const screens = {};
+  const cpu = cpuOver(new Drive({ onCommand: (sector, c) => {
+    if (sector === banner.startSector) screens.warning = Uint8Array.from(c.memory);
+    if (sector === code.startSector && screens.banner === undefined) screens.banner = Uint8Array.from(c.memory);
+  } }), memory);
   cpu.sp = 0xf0;
   cpu.pc = label("director", "_asm_boss_enter");
-  assert.equal(runUntil(cpu, { slotA: main("capital_slot_a"),
-    failure: label("reader", "sector_reader_failure_screen") }), "slotA", `level ${level}: the entry failed`);
-  return memory;
+  assert.equal(runUntil(cpu, { main_loop: main("main_loop"),
+    failure: label("reader", "sector_reader_failure_screen") }), "main_loop", `level ${level}: the entry failed`);
+  return { ...screens, memory };
 }
 // A text row as the frontend encoder draws `text` centred on 40 columns.
 function encodedRow(memory, text) {
@@ -90,20 +106,32 @@ const screenRow = (memory, row) => [...memory.subarray(HUD + row * 40, HUD + row
 // first level of the region the order gives it (the Breaker 1, the Citadel 4,
 // the Spine 7, the Bastion 10).
 for (const [directory, name] of [[1, "BLOCKADE BREAKER"], [2, "BASTION"], [3, "SIEGE SPINE"], [4, "VOID CITADEL"]]) {
-  test(`the boss loading screen, region ${regionOf(directory)}: WARNING / ${name} / INCOMING`, () => {
-    const memory = loadingScreen(bossLevel(directory));
-    assert.deepEqual(screenRow(memory, 5), encodedRow(memory, "WARNING"), "row 5");
-    assert.deepEqual(screenRow(memory, 6), new Array(40).fill(0), "row 6 is blank");
-    assert.deepEqual(screenRow(memory, 7), encodedRow(memory, name), "row 7: the region's name");
-    assert.deepEqual(screenRow(memory, 8), encodedRow(memory, "INCOMING"), "row 8");
+  test(`the boss loading screen, region ${regionOf(directory)}: black, then the banner's WARNING / ${name} / INCOMING`, () => {
+    const { warning, banner, memory } = loadingScreens(bossLevel(directory));
+    // RE-POINTED feat/boss-banners (the owner's smoke of 2026-10-18): no
+    // WARNING text screen before the banner any more - as the banner run's
+    // first sector is asked for, the display is off (black), nothing drawn.
+    assert.equal(warning[0xd400], 0, "the display is on before the banner's screen");
+    assert.notDeepEqual(screenRow(warning, 5), encodedRow(memory, "WARNING"), "the old WARNING row is drawn");
+    for (const [at, text] of [[BANNER_WARNING_ROW, "WARNING"], [BANNER_NAME_ROW, name], [BANNER_INCOMING_ROW, "INCOMING"]]) {
+      const { offset } = bannerTextPlacement(text);
+      const expected = encodedRow(memory, text).filter((code, i, row) => i >= Math.floor((40 - text.length) / 2) &&
+        i < Math.floor((40 - text.length) / 2) + text.length);
+      assert.deepEqual([...banner.subarray(at + offset, at + offset + text.length)], expected, `the banner's ${text}`);
+    }
   });
 }
 
-test("the title's text lives in the regions' theme runs, not in the initial block or slot F", () => {
+// RE-POINTED feat/boss-banners: the records are in the region's banner run.
+test("the title's text lives in the regions' banner runs, not in the initial block or slot F", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
-  const theme = manifest.boss.runs.find((run) => run.name === "boss-region-1-theme");
-  assert.ok(BOSS_TITLE_ADDRESS >= theme.destination && BOSS_TITLE_ADDRESS < theme.destination + theme.bytes,
-    "the records sit inside the theme run");
+  manifest.boss.regions.forEach((region, index) => {
+    const run = manifest.boss.runs.find((entry) => entry.name === `boss-region-${index + 1}-banner`);
+    assert.equal(run.destination, BANNER_RUN_ADDRESS);
+    const bytes = fs.readFileSync(path.join(root, "build", run.file));
+    assert.notEqual(bytes.indexOf(Buffer.from(region.name.toUpperCase())), -1, `${region.name}: not in its banner run`);
+    assert.notEqual(bytes.indexOf(Buffer.from("INCOMING")), -1);
+  });
   const kernel = fs.readFileSync(path.join(root, "src", "hybrid", "light-kernel.s"), "utf8");
   for (const name of ["BLOCKADE", "BASTION", "SIEGE", "CITADEL", "INCOMING", "APPROACHING"]) {
     assert.doesNotMatch(kernel, new RegExp(`\\.byte "[^"]*${name}`), `${name} is resident text`);

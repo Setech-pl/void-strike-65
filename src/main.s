@@ -13236,9 +13236,11 @@ boss_enter_head:
     jsr pin_sector_reader_blank
     lda #$00
     sta BOSS_ENTRY_LEVEL_BUFFER_MAGIC
-    lda #<pin_boss_warning_records
-    ldx #>pin_boss_warning_records
-    jsr pin_sector_reader_show_records
+    ; feat/boss-banners (the owner's smoke of 2026-10-18): no text screen any
+    ; more - the screen stays black (the display off, the background black
+    ; over whatever the band's DLIs left in it) until the region's banner
+    ; screen comes up (src/hybrid/boss.s boss_banner).
+    sta COLBK
     ; The region from the level id, three levels a region (decision AC, as
     ; the summary's art has it): min(3, (id - 1) / 3).
     ldx #BOSS_ENTRY_REGION_ENTRY

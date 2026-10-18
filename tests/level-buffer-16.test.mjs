@@ -101,14 +101,19 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // (+18 B), the boss entry's title, theme start and code read (once per
   // entry) out to every region's theme run (BOSS_ENTRY_COLD), the HUD booster
   // backup inlined into the head in PICKUP_CODE; the free tail 946 -> 971.
-  assert.equal(window.lightKernelBytes, 957);
+  // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18: no WARNING
+  // text screen at the boss entry): the screen's 11-B record (WARNING) out of
+  // the kernel's last segment; the kernel link 957 -> 946 B, the tail 971 -> 982.
+  assert.equal(window.lightKernelBytes, 946);
   // RE-PINNED fix/boss-polish (the other side of the kernel's 987 -> 982):
   // used 2,643 -> 2,638, the tail 941 -> 946.
   // RE-PINNED feat/interceptor-armour (the other side of the kernel's 982 ->
   // 957): used 2,638 -> 2,613, the tail 946 -> 971.
-  assert.equal(window.usedBytes, 2613);
-  assert.equal(window.freeBytes, 3584 - 2613);
-  assert.equal(window.freeBytes, 971, "the tail the hit flash and the cold boss entry leave");
+  // RE-PINNED feat/boss-banners (the other side of the kernel's 957 -> 946):
+  // used 2,613 -> 2,602, the tail 971 -> 982.
+  assert.equal(window.usedBytes, 2602);
+  assert.equal(window.freeBytes, 3584 - 2602);
+  assert.equal(window.freeBytes, 982, "the tail the hit flash, the cold boss entry and the banner's black entry leave");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);

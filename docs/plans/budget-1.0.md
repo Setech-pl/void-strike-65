@@ -38,6 +38,41 @@ the window ledger with those items in both milestone orders, and its §4.1
 lever table reads lever 4 (the `STARFIELD` tail) as **299 B** from the
 generated memory map, not 309. Nothing else here is rewritten.
 
+**Note, 2026-10-18 (feat/boss-banners; the disk).** The **ATR disk** row of
+§1.2 and the disk lines of §1.4 and §3 ("512 free; levels may use 320–719",
+"the 400 sectors from 320") predate M5a: the levels' reservation is
+**320–511** (12 × 16, `LEVEL_BUFFER`'s cap; `scripts/build.mjs`
+`levelBaseSector`, `levelBufferSectors`) and the overlays start at 512. The
+disk as built (MAN, `dist/` of feat/boss-banners), 720 sectors:
+
+| Sectors | Owner | Used / reserved |
+| --- | --- | ---: |
+| 1–213 | boot transport (107 boot + 106 extension) | 213 |
+| 214–279 | **free** (the transport's growth; the build refuses a transport reaching 280) | 0 / 66 |
+| **280–319** | **boss banner runs**, 10 a region (`scripts/boss-banner.mjs` `BANNER_BASE_SECTOR`, `BANNER_REGION_SECTORS`): 280–288, 290–298, 300–308, 310–318 | **36 / 40** |
+| 320–511 | levels, 12 × 16 (level 1: 320–332) | 13 / 192 |
+| 512–527 | capital slot-A restore | 16 |
+| 528–583 | boss code, install, slots C–E (free 562, 581–583) | 52 / 56 |
+| 584–597 | level-summary code | 14 |
+| 598 / 599 | disk identity / save record | 2 |
+| 600–627 | summary art, 4 × 7 | 28 |
+| 628–631 | **free** | 0 / 4 |
+| 632–695 | boss regions, 4 × 16 (theme, bands, charset) | 59 / 64 |
+| 696–711 | region blocks, 4 × 4 | 12 / 16 |
+| 712–720 | **free** | 0 / 9 |
+
+445 used, **275 free** (179 of them inside the levels' reservation). Nothing
+planned claims 280–319: no plan places a run there and none lets the
+transport pass 279 (the road's transport growth, +8 to +11 extension
+sectors and M4's +2, ends near 222–226; the boot-deadline baseline caps it
+near +13). **After all 12 levels:** 275 − 11 × 13 = **132 free** at today's
+13 sectors a level, **99** at the 16-sector cap; the planned items that also
+take disk (the transport's growth ~13, the M6 torpedo's +2 entry sectors in
+the boss reservations, the attract-mode overlay ~4–6) leave **~78–111**
+(ESTIMATE). The 12-level plan fits; music v2 (inside the level image and the
+theme runs), the fast loader (reader bytes only) and the high-score table
+(the save record at 599) take no new sectors.
+
 It answers four questions: does everything left until 1.0 fit in the machine,
 which resource does each milestone spend, where are the shortfalls, and which
 levers pay for them.
@@ -196,6 +231,7 @@ One Light 257 mean standing (STATUS Light multiplicity). Two Bombers
 | ATR menu frame | 546 (BASIC on: 537) | baseline 596 + 7 = 603 | **57 frames** ≈ 28 sectors | TRACE `boot_smoke.sessions`; `docs/boot-deadline-baseline.json` |
 | DFMC records | 11 | 11 | **0** | `src/main.s:12122`; MAN |
 | ATR disk | 208 transport + 13 level 1 at sector 320 | 720 sectors | 512 free; levels may use 320–719 | MAN; `scripts/build.mjs:345` |
+| Boss banner runs (2026-10-18) | 4 × 9 sectors at 280–318 | 10 a region, 280–319 (the build refuses a transport reaching 280) | 4 sectors in the area; 275 free on the disk, ~78–111 after 12 levels and the planned items (note of 2026-10-18) | MAN `boss.banner`, `boss.reservedSectors.banners`; `scripts/boss-banner.mjs` |
 | Level load at START GAME | 49 frames for 13 sectors | — | — | TRACE `boot_smoke.sector_reader` (emulator; hardware rate unmeasured, debt items 2 and 5) |
 
 **Capacity of each extension record** (`sectors × 128 − 21`; MAN manifest records):

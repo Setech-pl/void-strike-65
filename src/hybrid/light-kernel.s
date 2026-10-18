@@ -714,7 +714,6 @@ capital_vector_image_end:
 ; window's Director half so the window's boot-loaded record keeps 11 sectors.
 ; The head jumps here by its pin with X = the region's directory entry.
 .include "boss-entry-pins.inc"
-BOSS_SCREEN              = $4000
 BOSS_READ_RUN            = $A006
 
 boss_enter_read:
@@ -735,15 +734,7 @@ boss_enter_read:
 @failed:
     jmp pin_sector_reader_failure_screen
 
-; The reader's record format: {dst_lo, dst_hi, text, $00}..., $FF. Inside the
-; frontend glyph contract (A-Z 0-9 space - . / :); centred on the 40-column
-; rows 5, 7 and 8 of the text screen, above the summary's dotted row (row 10),
-; which the reader steps once per sector under it.
-boss_warning_records:
-    ; fix/boss-polish (owner decision AL 1, variant A): WARNING alone first,
-    ; on row 5; the region's run brings the name (row 7) and INCOMING (row 8).
-    .byte <(BOSS_SCREEN + 5 * 40 + 16), >(BOSS_SCREEN + 5 * 40 + 16)
-    .byte "WARNING", $00
-    .byte $FF
-
-.export boss_enter_read, boss_warning_records
+.export boss_enter_read
+; feat/boss-banners (the owner's smoke of 2026-10-18): the WARNING text
+; screen's records that ended this segment are gone - the boss entry shows no
+; text screen any more; it stays black until the region's banner screen.

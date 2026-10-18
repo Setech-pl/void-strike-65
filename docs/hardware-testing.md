@@ -1478,16 +1478,21 @@ new file name:
 
 ## 39. The boss banners: the picture, the title and the loading bar at every boss entry (`feat/boss-banners`)
 
-Plan [plans/boss-banners.md](plans/boss-banners.md) §9; journal §AL 1-2,
-§AY. In Atari800 (`-xl -pal -nobasic`), on the whole game
-(`build/play/boss-banners-full-game-*.atr`, region 1's boss at the end of
-level 1) and the four boss routes (`build/play/boss-banners-r1-breaker-*`,
+Plan [plans/boss-banners.md](plans/boss-banners.md) §9 (§9.6: no old WARNING
+screen); journal §AL 1-2, §AY (8: the owner's smoke of 2026-10-18). In Atari800 (`-xl -pal -nobasic`), on the whole game
+(`build/play/boss-banners-black-full-game-*.atr`, region 1's boss at the end of
+level 1) and the four boss routes (`build/play/boss-banners-black-r1-breaker-*`,
 `-r2-citadel-*`, `-r3-spine-*`, `-r4-bastion-*`), at each boss entry:
 
-- [ ] **The order of the screens:** WARNING alone on the black text screen
-      with the dotted row stepping (about 0.9 s, the theme and the banner
-      being read), a short black cut, then the banner; the boss theme starts
-      at the WARNING as before.
+- [ ] **No old WARNING screen before the banner** (the owner's smoke of
+      2026-10-18, §AY 8): when the level part ends the screen goes black -
+      no small WARNING text, no dotted row, no old screen, no garbage - for
+      about a third of a second (16 host frames measured), and the first
+      thing that appears is the banner's screen: the large `WARNING`, the
+      boss's name and `INCOMING` in their places and the empty bar; the
+      picture draws in above them a little later (about 0.6 s), top to
+      bottom, then the bar starts filling. The boss theme starts during the
+      black.
 - [ ] **The banner:** the boss's picture at the top, centred, white on black
       - route 1 the Blockade Breaker (the deck, the engine blocks, the two
       projector towers, the saucer turrets, the belt), route 2 the Void
@@ -1509,14 +1514,15 @@ level 1) and the four boss routes (`build/play/boss-banners-r1-breaker-*`,
       before - the HUD (score, lives, HULL, an active booster's label and
       energy as they were), the band, the ship; no banner pixels left
       anywhere (not in the ship's sprite, not in the HUD).
-- [ ] **The wait:** each entry from the WARNING to the fight about 6 s (296
-      / 311 / 307 / 310 host frames measured, under the owner's 7.0 s).
+- [ ] **The wait:** each entry from the level's end to the fight about 6 s
+      (295 / 310 / 306 / 310 host frames measured, under the owner's 7.0 s).
 
 **On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
 new file name:
 
 - [ ] **The boss entries** load cleanly on every route (76 / 80 / 79 / 80
-      sectors), no red halt; the banner centred on the real GTIA as in
+      sectors), no red halt; black, never the old WARNING text screen, until
+      the banner's screen comes up; the banner centred on the real GTIA as in
       Atari800 (HSCROL on the odd lines), no flicker while the bar fills, the
       sound silent until the fight as before.
 

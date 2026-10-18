@@ -68,7 +68,7 @@ const PHASES = [
   ["overlay", "an overlay slot's current run, restored by the sector reader"],
   ["pause", "while the pause menu is up"],
   ["summary", "while the level-summary screen is up"],
-  ["boss-entry", "the boss entry's transition (the WARNING screen, the banner and its reads), M5b-S3, feat/boss-banners"],
+  ["boss-entry", "the boss entry's transition (black, then the banner and its reads; the WARNING text screen until feat/boss-banners), M5b-S3, feat/boss-banners"],
 ];
 
 // Every linked segment of the default build: owner and phases. A segment
@@ -116,7 +116,7 @@ const SEGMENTS = {
   HYBRID_C_WINDOW: ["Director link's half of the BASIC window", "resident"],
   HYBRID_ASM_WINDOW: ["the boss entry's resident half (M5b-S3), last in the Director link's window half", "resident"],
   HYBRID_C_WINDOW_FLOW: ["the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses", "resident"],
-  HUD_BOOSTER_BACKUP: ["the boss entry's region read and WARNING records, the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour)", "resident"],
+  HUD_BOOSTER_BACKUP: ["the boss entry's region read (its WARNING records gone with the text screen, feat/boss-banners), the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour)", "resident"],
   LIGHT_KERNEL: ["Light ASM kernel; carries the capital vector table", "resident"],
   DISK_GUARD: ["the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record", "resident"],
   CAPITAL_VECTOR_IMAGE: ["the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening)", "resident"],
@@ -141,9 +141,11 @@ const SEGMENTS = {
   BOSS_HUD_BACKUP: ["the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes", "overlay"],
   BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers)", "boss-entry"],
-  BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the region's banner run read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry", "boss-entry"],
+  BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the banner screen's registers and the region's banner run's 2 screen sectors read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry", "boss-entry"],
   // feat/boss-banners (decisions AL 2, AY): the banner run's code.
-  BOSS_BANNER: ["boss banner set-up (feat/boss-banners): the screen, the picture unpacked and mirrored, the title, the bar; first in each region's banner run, landed in slot C's area before slot C is read", "boss-entry"],
+  BOSS_BANNER: ["boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read", "boss-entry"],
+  BOSS_BANNER_HEAD: ["boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors", "boss-entry"],
+  BOSS_BANNER_LATE: ["boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the picture unpacked and mirrored into its lines under the shown screen", "boss-entry"],
   BOSS_BANNER_KEEP: ["boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list", "boss-entry"],
   BOSS_BANNER_KEEP_BSS: ["boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk", "boss-entry"],
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.

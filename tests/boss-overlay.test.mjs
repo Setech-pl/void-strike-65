@@ -19,7 +19,7 @@ import {
 } from "../scripts/boss-assets.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 import {
-  atrRun, exists, includeConstants, label, labelsOf, manifest, readBuild, root,
+  atrRun, bossGateMemory, exists, includeConstants, label, labelsOf, manifest, readBuild, root,
 } from "./boss-harness.mjs";
 
 const SLOT_A_BYTES = 2048;
@@ -178,7 +178,9 @@ test("Q-S3: the window's pins are the addresses their links gave those labels", 
   // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12): 8 -> 9, pin_boss_enter_head (main) - the entry's head moved
   // from the window to PICKUP_CODE's tail.
-  assert.equal(pins.length, 9);
+  // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18): 9 -> 8,
+  // pin_sector_reader_show_records (reader) - the entry shows no text screen.
+  assert.equal(pins.length, 8);
   for (const [, name, value, link] of pins) {
     assert.equal(Number.parseInt(value, 16), label(link, name),
       `pin_${name} is not ${link}'s ${name}`);
@@ -217,29 +219,25 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
     "no byte of the boss lands in the initial block");
 });
 
-test("decision 32: the screen's resident record reads WARNING, centred, in the glyph contract", () => {
-  // RE-POINTED feat/interceptor-standoff Phase B (owner answer Q2 of
-  // 2026-10-12): the records live in the Light kernel link (plan
-  // interceptor-standoff §12.1), as transported from the kernel's address.
+// RE-POINTED feat/boss-banners (the owner's smoke of 2026-10-18): decision 32's
+// WARNING text screen is gone from the boss entry - the owner saw it for ~0.9 s
+// before the banner. The kernel carries no WARNING record any more and the
+// head calls no screen of the reader's; the black screen up to the banner's
+// is tests/boss-banners.test.mjs's. The reader's text screen stays for the
+// session's first START GAME (ENGAGING ENEMY SECTOR) and the failure screen.
+test("the boss entry's resident half draws no text screen: no WARNING record, no reader screen call", () => {
   const kernelImage = readBuild("light-kernel.bin");
-  let offset = label("kernel", "boss_warning_records") - label("kernel", "__LIGHT_KERNEL_LOAD__");
-  const lines = [];
-  while (kernelImage[offset] !== 0xff) {
-    const address = kernelImage.readUInt16LE(offset);
-    offset += 2;
-    let text = "";
-    while (kernelImage[offset] !== 0) text += String.fromCharCode(kernelImage[offset++]);
-    offset += 1;
-    lines.push({ row: Math.floor((address - 0x4000) / 40), column: (address - 0x4000) % 40, text });
-  }
-  // RE-POINTED fix/boss-polish (owner decision AL 1, title variant A): the
-  // kernel keeps WARNING alone (row 5); the boss's name (row 7) and INCOMING
-  // (row 8) come from the region's theme run (tests/boss-polish.test.mjs).
-  assert.deepEqual(lines.map(({ text }) => text), ["WARNING"]);
-  assert.deepEqual(lines.map(({ row }) => row), [5]);
-  for (const { column, text } of lines) {
-    assert.ok(Math.abs(column - Math.floor((40 - text.length) / 2)) <= 1, `${text} is not centred`);
-    assert.match(text, /^[A-Z0-9 \-./:]*$/);
+  assert.equal(kernelImage.indexOf(Buffer.from("WARNING", "latin1")), -1, "the kernel still carries WARNING");
+  assert.throws(() => label("kernel", "boss_warning_records"));
+  const head = label("main", "boss_enter_head");
+  const memory = bossGateMemory();
+  const show = label("reader", "sector_reader_show_records");
+  const publish = label("reader", "sector_reader_publish_screen");
+  for (let at = head; at < head + 96; at += 1) {
+    if (memory[at] === 0x20 || memory[at] === 0x4c) {
+      const target = memory[at + 1] | (memory[at + 2] << 8);
+      assert.ok(target !== show && target !== publish, `the head calls the reader's text screen at $${at.toString(16)}`);
+    }
   }
 });
 

@@ -3480,11 +3480,13 @@ boss_dl_header:
 ; and the disk guard checked it with that run. It was resident in the Light
 ; kernel's record, which the hit flash needed.
 ; feat/boss-banners (owner decisions AL 2 and AY, docs/plans/boss-banners.md):
-; the theme starts, then the region's banner run - named by the spec the build
-; wrote behind this code, the theme run's last 5 bytes: its first sector, its
-; count, its expected fold - lands in slot C's area (the run it starts reads
-; slot C later) and is checked against that fold as a directory run is (the
-; theme run's check left the fold at zero). The banner's set-up runs there.
+; the theme starts, then the first sectors of the region's banner run - named
+; by the spec the build wrote behind this code, the theme run's last 5 bytes:
+; its first sector, the count of its screen's sectors (BANNER_SCREEN_SECTORS),
+; their expected fold - land in slot C's area (the run they start reads slot C
+; later) and are checked against that fold as a directory run is (the theme
+; run's check left the fold at zero). The banner's screen comes up from there
+; and reads the run's other sectors itself (the owner's smoke of 2026-10-18).
 ; ---------------------------------------------------------------------------
 BOSS_ENTRY_MUSIC_START = $A608      ; the level image's player: start the track
 BOSS_ENTRY_CODE_RUN    = 1          ; the overlay directory's boss code entry
@@ -3492,6 +3494,15 @@ BOSS_ENTRY_CODE_RUN    = 1          ; the overlay directory's boss code entry
 .segment "BOSS_ENTRY_COLD"
 boss_entry_cold:
     jsr BOSS_ENTRY_MUSIC_START
+    ; The banner's screen's registers that hold with the display off (the
+    ; screen sets the rest): the frontend charset's glyphs, HSCROL for the
+    ; odd-count lines, the mode F lines' background black.
+    lda #BANNER_CHBASE
+    sta CHBASE
+    lda #BANNER_HSCROL
+    sta HSCROL
+    lda #$00
+    sta COLPF2
     lda BOSS_BANNER_SPEC+0
     sta sr_sector_lo
     lda BOSS_BANNER_SPEC+1
@@ -3518,16 +3529,25 @@ boss_entry_cold_end:
 
 ; ===========================================================================
 ; feat/boss-banners: the banner's set-up, first in the region's banner run at
-; BANNER_RUN (slot C's area), once per entry. The WARNING screen goes dark;
-; the part that reads the boss's data goes to its home behind the display
-; list (BANNER_KEEP: slot C's read will overwrite this code); the screen is
-; drawn - the picture's 64 mode F lines (each with its LMS, 26 B apart:
-; BANNER_PICTURE_HIGH for lines 0-48, BANNER_PICTURE_LOW for 49-63), WARNING,
-; the name, INCOMING and the bar - then shown on a frame edge: white on
-; black, the narrow playfield, no DLI, no PMG. The region's data block
-; follows the linked code (boss_banner_data; scripts/boss-banner.mjs
-; BANNER_DATA_*). With the display off, before the boss data's first sector;
-; its cycles are measured in tests/boss-banners.test.mjs.
+; BANNER_RUN (slot C's area), once per entry, in two stages (the owner's smoke
+; of 2026-10-18: no WARNING text screen first; the screen black until the
+; banner's own comes up, and that as early as it can).
+;   The screen (BOSS_BANNER and the region's head behind it, the run's first
+;   sectors, BANNER_SCREEN_SECTORS, which the cold tail reads and checks): the
+;   frontend screen cleared, the display list - the picture's 64 mode F lines
+;   (each with its LMS, 26 B apart: BANNER_PICTURE_HIGH for lines 0-48,
+;   BANNER_PICTURE_LOW for 49-63), blank until the picture lands - WARNING,
+;   the name, INCOMING and the empty bar, shown on a frame edge: white on
+;   black, the narrow playfield, no DLI, no PMG. Then the run's other sectors
+;   under it, checked against the fold the head carries.
+;   The rest (BOSS_BANNER_LATE): the part that reads the boss's data to its
+;   home behind the display list (BANNER_KEEP: slot C's read will overwrite
+;   this code), the bar's state, and the picture, unpacked and mirrored into
+;   its lines on the screen; then the reads.
+; The region's head (BOSS_BANNER_HEAD, BANNER_HEAD_*) and its packed picture
+; (boss_banner_data, behind the linked code) are the build's, per region
+; (scripts/boss-banner.mjs). The cycles are measured in
+; tests/boss-banners.test.mjs.
 ; ===========================================================================
 .import __BOSS_BANNER_KEEP_LOAD__, __BOSS_BANNER_KEEP_RUN__, __BOSS_BANNER_KEEP_SIZE__
 BANNER_KEEP_HALF = (__BOSS_BANNER_KEEP_SIZE__ + 1) / 2
@@ -3538,21 +3558,12 @@ BANNER_DL_TAIL   = BANNER_DL_LINES + BANNER_LINES * 3
 
 .segment "BOSS_BANNER"
 boss_banner:
-    lda #$00
-    sta DMACTL
-    ; 1. The reads' part to BANNER_KEEP, in two halves (an odd size copies
-    ;    one byte more: the data block's first, into the reads' variables).
-    ldx #<BANNER_KEEP_HALF
-@keep:
-    lda __BOSS_BANNER_KEEP_LOAD__ - 1,x
-    sta __BOSS_BANNER_KEEP_RUN__ - 1,x
-    lda __BOSS_BANNER_KEEP_LOAD__ - 1 + BANNER_KEEP_HALF,x
-    sta __BOSS_BANNER_KEEP_RUN__ - 1 + BANNER_KEEP_HALF,x
-    dex
-    bne @keep
-    ; 2. The text screen's rows 0-13 cleared (the head cleared the PMG area).
-    jsr banner_clear
-    ; 3. The display list: 40 blank lines, the picture's 64 lines, the tail
+    ; 1. The frontend screen cleared, $4000-$43FF, as the WARNING screen's
+    ;    render cleared it (the head's blank cleared the PMG area, the
+    ;    picture's lines 0-48): lines 49-63, the text and the bar rows blank.
+    ;    The display is off since the head.
+    jsr clear_screen
+    ; 2. The display list: 40 blank lines, the picture's 64 lines, the tail
     ;    (the text, the bar, the jump), the name's line for its length.
     lda #$70
     ldx #(BANNER_DL_BLANKS - 1)
@@ -3566,7 +3577,7 @@ boss_banner:
     sta BANNER_DL_TAIL,x
     dex
     bpl @tail
-    lda boss_banner_data + BANNER_DATA_NAME_MODE
+    lda boss_banner_head + BANNER_HEAD_NAME_MODE
     sta BANNER_DL_TAIL + (banner_dl_name - banner_dl_tail)
     ldx #$00
     lda #<BANNER_PICTURE_HIGH
@@ -3594,12 +3605,114 @@ boss_banner:
     inx
     cpx #(BANNER_LINES * 3)
     bne @line
-    ; 4. The picture: its stored half unpacked by the resident decoder into
+    ; 3. WARNING, the name, INCOMING; the bar's 20 empty cells.
+    lda #<(boss_banner_head + BANNER_HEAD_RECORDS)
+    sta frontend_data_ptr
+    lda #>(boss_banner_head + BANNER_HEAD_RECORDS)
+    sta frontend_data_ptr+1
+    jsr render_frontend_records
+    lda #BANNER_BAR_DASH
+    ldx #(BANNER_PICTURE_BYTES - 1)
+@dash:
+    sta BANNER_BAR_B + BANNER_MARGIN,x
+    dex
+    bpl @dash
+    ; 4. Shown on a frame edge, white on black (COLBK black since the head;
+    ;    CHBASE, HSCROL and COLPF2 the cold tail's).
+    lda #BANNER_WHITE
+    sta COLPF0
+    sta COLPF1
+banner_show:
+    jsr wait_frame_start
+    lda #<BANNER_DL
+    sta DLISTL
+    lda #>BANNER_DL
+    sta DLISTH
+    lda #BANNER_DMACTL
+    sta DMACTL
+    ; 5. The run's other sectors under it (the reader's sector and destination
+    ;    go on from the cold tail's call), checked against the head's fold as
+    ;    the cold tail checked the screen's.
+    lda boss_banner_head + BANNER_HEAD_LATE_SECTORS
+    sta sr_sectors_left
+    jsr sector_reader_read_sectors
+    bcs @failed
+    lda boss_banner_head + BANNER_HEAD_LATE_FOLD
+    ldy boss_banner_head + BANNER_HEAD_LATE_FOLD + 1
+    jsr guard_compare
+    bcs @failed                 ; A = GUARD_SR_BAD_IMAGE, the reader's SR_BAD_IMAGE
+    jmp banner_late
+@failed:
+    jmp sector_reader_failure_screen
+
+; The list after the picture: 10 blank lines, WARNING (ANTIC 7, HSCROL: 7
+; glyphs), 4 blank, the name (ANTIC 6; the set-up puts the HSCROL bit in for
+; an odd count), 3 blank, INCOMING, 12 blank, the bar's 8 mode F lines (the
+; dash glyph's line 3 is row B), the jump.
+banner_dl_tail:
+    .byte $70, $10
+    .byte $57, <BANNER_WARNING_ROW, >BANNER_WARNING_ROW
+    .byte $30
+banner_dl_name:
+    .byte $46, <BANNER_NAME_ROW, >BANNER_NAME_ROW
+    .byte $20
+    .byte $46, <BANNER_INCOMING_ROW, >BANNER_INCOMING_ROW
+    .byte $70, $30
+    .repeat 3
+    .byte $4F, <BANNER_BAR_A, >BANNER_BAR_A
+    .endrepeat
+    .byte $4F, <BANNER_BAR_B, >BANNER_BAR_B
+    .repeat 4
+    .byte $4F, <BANNER_BAR_A, >BANNER_BAR_A
+    .endrepeat
+    .byte $41, <BANNER_DL, >BANNER_DL
+banner_dl_tail_end:
+.assert banner_dl_tail_end - banner_dl_tail <= 128, error, "the list's tail is copied by an 8-bit DEX loop"
+.assert BANNER_DL_TAIL + (banner_dl_tail_end - banner_dl_tail) <= BANNER_KEEP, error, "the banner's list runs into its reads"
+.assert (BANNER_DL & $FC00) = ((BANNER_DL_TAIL + banner_dl_tail_end - banner_dl_tail - 1) & $FC00), error, "the banner's list crosses a 1 KB edge"
+
+; The region's head: the build writes it (scripts/boss-banner.mjs
+; BANNER_HEAD_*): the region, the bar's step, the name's line, the run's other
+; sectors and their fold, the title's records.
+.segment "BOSS_BANNER_HEAD"
+boss_banner_head:
+    .res BANNER_HEAD_BYTES
+boss_banner_head_end:
+.assert boss_banner_head_end - boss_banner <= BANNER_SCREEN_SECTORS * 128, lderror, "the banner's screen outgrew the sectors the cold tail reads"
+
+; ---------------------------------------------------------------------------
+; The rest of the set-up, under the banner (the display on).
+; ---------------------------------------------------------------------------
+.segment "BOSS_BANNER_LATE"
+banner_late:
+    ; 6. The reads' part to BANNER_KEEP, in two halves (an odd size copies
+    ;    one byte more: the picture's first, into the reads' variables).
+    ldx #<BANNER_KEEP_HALF
+@keep:
+    lda __BOSS_BANNER_KEEP_LOAD__ - 1,x
+    sta __BOSS_BANNER_KEEP_RUN__ - 1,x
+    lda __BOSS_BANNER_KEEP_LOAD__ - 1 + BANNER_KEEP_HALF,x
+    sta __BOSS_BANNER_KEEP_RUN__ - 1 + BANNER_KEEP_HALF,x
+    dex
+    bne @keep
+    ; 7. The bar's state; the region for slot A's head check.
+    lda boss_banner_head + BANNER_HEAD_STEP
+    sta banner_step
+    lda boss_banner_head + BANNER_HEAD_STEP + 1
+    sta banner_step+1
+    lda boss_banner_head + BANNER_HEAD_REGION
+    sta banner_region
+    lda #$00
+    sta banner_fraction
+    sta banner_target
+    sta banner_pixel
+    ; 8. The picture: its stored half unpacked by the resident decoder into
     ;    the buffer, then a line at a time from the line's LMS + 6: the 12
-    ;    stored bytes, and bytes 7-0 bit-reversed into 12-19.
-    lda boss_banner_data + BANNER_DATA_PICTURE
+    ;    stored bytes, and bytes 7-0 bit-reversed into 12-19. It shows as it
+    ;    lands, top to bottom.
+    lda #<boss_banner_data
     sta broadside_read_source+1
-    lda boss_banner_data + BANNER_DATA_PICTURE + 1
+    lda #>boss_banner_data
     sta broadside_read_source+2
     lda #<BANNER_BUFFER
     sta broadside_destination+1
@@ -3661,74 +3774,10 @@ boss_banner:
     inx
     cpx #(BANNER_LINES * 3)
     bne @picture
-    ; 5. WARNING, the name, INCOMING; the bar's 20 empty cells.
-    lda #<(boss_banner_data + BANNER_DATA_RECORDS)
-    sta frontend_data_ptr
-    lda #>(boss_banner_data + BANNER_DATA_RECORDS)
-    sta frontend_data_ptr+1
-    jsr render_frontend_records
-    lda #BANNER_BAR_DASH
-    ldx #(BANNER_PICTURE_BYTES - 1)
-@dash:
-    sta BANNER_BAR_B + BANNER_MARGIN,x
-    dex
-    bpl @dash
-    ; 6. The bar's state; the region for slot A's head check.
-    lda boss_banner_data + BANNER_DATA_STEP
-    sta banner_step
-    lda boss_banner_data + BANNER_DATA_STEP + 1
-    sta banner_step+1
-    lda boss_banner_data + BANNER_DATA_REGION
-    sta banner_region
-    lda #$00
-    sta banner_fraction
-    sta banner_target
-    sta banner_pixel
-    ; 7. Shown on a frame edge; slot A is the boss's from the next read on.
-    ;    (COLPF2 and COLBK are black and CHBASE the frontend charset's since
-    ;    the WARNING screen, sector_reader_show_records.)
-    lda #BANNER_HSCROL
-    sta HSCROL
-    lda #BANNER_WHITE
-    sta COLPF0
-    sta COLPF1
-banner_show:
-    jsr wait_frame_start
-    lda #<BANNER_DL
-    sta DLISTL
-    lda #>BANNER_DL
-    sta DLISTH
-    lda #BANNER_DMACTL
-    sta DMACTL
+    ; 9. Slot A is the boss's from the next read on.
     lda #$01
     sta sr_slot_a_overlaid
     jmp banner_reads
-
-; The list after the picture: 10 blank lines, WARNING (ANTIC 7, HSCROL: 7
-; glyphs), 4 blank, the name (ANTIC 6; the set-up puts the HSCROL bit in for
-; an odd count), 3 blank, INCOMING, 12 blank, the bar's 8 mode F lines (the
-; dash glyph's line 3 is row B), the jump.
-banner_dl_tail:
-    .byte $70, $10
-    .byte $57, <BANNER_WARNING_ROW, >BANNER_WARNING_ROW
-    .byte $30
-banner_dl_name:
-    .byte $46, <BANNER_NAME_ROW, >BANNER_NAME_ROW
-    .byte $20
-    .byte $46, <BANNER_INCOMING_ROW, >BANNER_INCOMING_ROW
-    .byte $70, $30
-    .repeat 3
-    .byte $4F, <BANNER_BAR_A, >BANNER_BAR_A
-    .endrepeat
-    .byte $4F, <BANNER_BAR_B, >BANNER_BAR_B
-    .repeat 4
-    .byte $4F, <BANNER_BAR_A, >BANNER_BAR_A
-    .endrepeat
-    .byte $41, <BANNER_DL, >BANNER_DL
-banner_dl_tail_end:
-.assert banner_dl_tail_end - banner_dl_tail <= 128, error, "the list's tail is copied by an 8-bit DEX loop"
-.assert BANNER_DL_TAIL + (banner_dl_tail_end - banner_dl_tail) <= BANNER_KEEP, error, "the banner's list runs into its reads"
-.assert (BANNER_DL & $FC00) = ((BANNER_DL_TAIL + banner_dl_tail_end - banner_dl_tail - 1) & $FC00), error, "the banner's list crosses a 1 KB edge"
 
 ; ===========================================================================
 ; feat/boss-banners: the reads under the banner, at BANNER_KEEP ($7A90, the
@@ -3738,8 +3787,8 @@ banner_dl_tail_end:
 ; slot A's head's eight (the install, slots C-E, the region's band A, band B,
 ; charset and block, folded on and checked by boss_head_check against the
 ; region's sum) - one sector a call, the bar a step after each; then the
-; hand-over: the display off, the PMG area and the text rows cleared as the
-; WARNING screen leaves them for the install, and the head's check. Slot A's
+; hand-over: the display off, the PMG area and the frontend screen cleared as
+; the entry before the banners left them for the install, and the head's check. Slot A's
 ; head itself is not run. A failed read or check is the reader's failure
 ; screen, as in the head.
 ; ===========================================================================
@@ -3773,7 +3822,7 @@ banner_hand_over:
     lda #$00
     sta DMACTL
     jsr clear_pmg
-    jsr banner_clear
+    jsr clear_screen
     jmp boss_head_check
 
 ; A/X = the first of four runs in boss_runs' format.
@@ -3870,23 +3919,6 @@ banner_bar_step:
 @done:
     rts
 
-; The banner's screen rows, $4000 up to BANNER_SCREEN_END.
-banner_clear:
-    lda #$00
-    tax
-@page:
-    sta BANNER_PICTURE_LOW,x
-    sta BANNER_PICTURE_LOW + $100,x
-    inx
-    bne @page
-    ldx #(BANNER_SCREEN_END - BANNER_PICTURE_LOW - $200 - 1)
-@rest:
-    sta BANNER_PICTURE_LOW + $200,x
-    dex
-    bpl @rest
-    rts
-.assert BANNER_SCREEN_END - BANNER_PICTURE_LOW - $200 <= 128, error, "the banner's rows outgrew their clear"
-
 banner_bit:
     .byte $80, $40, $20, $10, $08, $04, $02, $01
 
@@ -3907,12 +3939,12 @@ banner_keep_end:
 .assert __BOSS_BANNER_KEEP_SIZE__ > 0 && __BOSS_BANNER_KEEP_SIZE__ <= 510, lderror, "the banner's reads are copied in two 8-bit halves"
 .assert __BOSS_BANNER_KEEP_RUN__ + 2 * BANNER_KEEP_HALF <= banner_spec + 1, lderror, "the copy's odd byte must land in the reads' state"
 
-; The region's data block: the build appends it here, behind the linked code,
-; in each region's banner run (scripts/boss-banner.mjs BANNER_DATA_*).
+; The region's packed picture: the build appends it here, behind the linked
+; code, in each region's banner run (scripts/boss-banner.mjs).
 .segment "BOSS_BANNER_DATA"
 boss_banner_data:
-.export boss_banner, boss_banner_data, banner_reads, banner_bar_step, banner_pixel, banner_target
-.export banner_show, banner_hand_over, banner_step, banner_region
+.export boss_banner, boss_banner_head, banner_late, boss_banner_data, banner_reads, banner_bar_step
+.export banner_pixel, banner_target, banner_show, banner_hand_over, banner_step, banner_region
 
 ; ===========================================================================
 ; S5-3 (feat/boss-region-3, docs/plans/s5-boss-regions.md §4.4, §6.3; the

@@ -2893,6 +2893,28 @@ Faza A przyjęta, wszystkie makiety zaakceptowane (`docs/plans/boss-banners.md`)
 7. **Faza B:** piksele dopracowane z zachowaniem kształtów i części
    zatwierdzonych szkiców; kilka bajtów więcej za jakość dopuszczalne w
    limicie 350 (§AU). Zero nowych bajtów rezydentnych.
+8. **Smoke właściciela fazy B (2026-10-18, HEAD `713fc95`): banery, obrazy,
+   tytuły i pasek przyjęte; jeden defekt — przy każdym bossie najpierw stary
+   tekstowy ekran z małym `WARNING` (~0,9 s), potem czarne cięcie, potem
+   baner. Starego ekranu ma nie być wcale.** Od pierwszej klatki po końcu
+   części poziomu gracz widzi tylko układ nowego ekranu banera. Preferowane:
+   nowy ekran od razu (duże `WARNING`, nazwa i `INCOMING` na swoich
+   miejscach, obraz, gdy się zdekoduje, pasek od danych bossa); dopuszczalne:
+   sama czerń (bez tekstu, starego ekranu i śmieci) do gotowego banera,
+   najwyżej ~0,5 s, z pomiarem. Ścieżka tekstowego ekranu `WARNING` usunięta
+   z wejść bossa (zostaje tylko tam, gdzie używa jej inne ładowanie). Nadal
+   0 nowych bajtów rezydentnych; bramki bez zmian.
+   **Zrobione (plan `boss-banners` §9.6):** wariant zapasowy — czerń.
+   Głowa wejścia nie rysuje ekranu tekstowego (wyświetlanie wyłączone, tło
+   czarne); pierwsze **2 sektory** przebiegu banera to sam ekran (czyszczenie,
+   lista, tytuł, pusty pasek, nagłówek regionu), sprawdzane przez ogon
+   motywu, a ekran sam czyta i sprawdza resztę (kod obrazu, odczyty, obraz).
+   **Zmierzone (Atari800, trasy bossów): 16 klatek hosta (0,32 s) czerni**
+   od głowy do pierwszej klatki banera w każdym regionie; obraz dorysowuje
+   się pod tytułem ~0,6 s później. Rezydentnie **−15 B** (rekord `WARNING`
+   w jądrze Light −11 B, wywołanie ekranu w głowie −4 B). Tekstowy ekran
+   czytnika (`sector_reader_show_records`) zostaje dla pierwszego START GAME
+   sesji (ENGAGING ENEMY SECTOR) i ekranu błędu.
 
 ---
 

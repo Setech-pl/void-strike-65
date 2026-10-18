@@ -41,6 +41,10 @@ const BOSS_HOMES = Object.freeze({
   // C's area at the entry before slot C is read over it.
   BOSS_BANNER: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_BANNER_DATA: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
+  // The owner's smoke of 2026-10-18: the run's screen is followed by the
+  // region's head and the rest of the set-up, in the same run.
+  BOSS_BANNER_HEAD: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
+  BOSS_BANNER_LATE: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   // (M5b-S4b.4's BOSS_D_LOOKS, the look tail first in slot D, left for slot F in S5-1.)
   BOSS_D_CODE: SLOT_D,
   BOSS_D_BSS: SLOT_D,

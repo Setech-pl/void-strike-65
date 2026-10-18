@@ -573,7 +573,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   // C): 20 -> 9. The boss entry's HUD booster backup (11 B more than its
   // call), inlined into the head from the Light kernel link; the pickup
   // record packs 1,191 of 1,259.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 9);
+  // Re-recorded feat/boss-banners (the owner's smoke of 2026-10-18, §AY 8):
+  // 9 -> 13. The head no longer calls the reader's WARNING text screen (7 B)
+  // and stores COLBK black instead (3 B).
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 13);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the

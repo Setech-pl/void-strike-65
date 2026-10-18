@@ -125,7 +125,10 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // (+18 B), the boss entry's title, theme start and code read (once per
   // entry) out to every region's theme run (BOSS_ENTRY_COLD), the HUD booster
   // backup inlined into the head in PICKUP_CODE; the free tail 946 -> 971.
-  assert.equal(basicWindow.freeBytes, 971,
+  // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18: no WARNING
+  // text screen at the boss entry): the screen's 11-B record (WARNING) out of
+  // the kernel's last segment; the kernel link 957 -> 946 B, the tail 971 -> 982.
+  assert.equal(basicWindow.freeBytes, 982,
     "the delivered interceptor-standoff figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);

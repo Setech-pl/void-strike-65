@@ -319,12 +319,13 @@ resident RAM.
 
 | step | where | what |
 | --- | --- | --- |
-| head | main `PICKUP_CODE`, resident (unchanged) | WARNING on the text screen; the region |
+| head | main `PICKUP_CODE`, resident | ~~WARNING on the text screen~~ (§9.6: the display off, COLBK black); the region |
 | region read | Light kernel, resident (unchanged) | the theme run (2 sectors) to `$7990`, its 256 B over the track, `jmp $7A48` |
-| cold tail | theme run, `$7A48` | the theme starts; the banner run (9 sectors) to `$1000`, checked against the spec's fold; `jmp $1000` |
-| set-up | banner run, `$1000` | display off; the reads to `$7A90`; rows `$4000-$422F` cleared; the list at `$7990` (40 blank, 64 LMS lines, the text, the bar); the picture unpacked to `$1500` by the resident decoder and mirrored into its lines; the title; the bar's dashes; HSCROL 4, COLPF0 = COLPF1 = `$0E`; on a frame edge DMACTL `$21` |
+| cold tail | theme run, `$7A48` | the theme starts; CHBASE, HSCROL 4, COLPF2 black (§9.6); the banner run's **screen** (its first 2 sectors, §9.6) to `$1000`, checked against the spec's fold; `jmp $1000` |
+| screen | banner run, `$1000` | (§9.6) the frontend screen cleared; the list at `$7990` (40 blank, 64 LMS lines, the text, the bar); the title; the bar's dashes; COLPF0 = COLPF1 = `$0E`; on a frame edge DMACTL `$21`; then the run's other sectors under it, checked against the region head's fold |
+| the rest | banner run, behind the head | the reads to `$7A90`; the bar's state; the picture unpacked to `$1500` by the resident decoder and mirrored into its lines on the screen |
 | reads | `$7A90` | the boss code (entry 1, checked) and the eight runs, a sector a call, the bar a step after each |
-| hand-over | `$7A90` | DMACTL 0; `clear_pmg`; rows `$4000-$422F` cleared; `jmp boss_head_check` → the install |
+| hand-over | `$7A90` | DMACTL 0; `clear_pmg`; the frontend screen cleared (§9.6: `clear_screen`, was rows `$4000-$422F`); `jmp boss_head_check` → the install |
 
 RAM (all `boss-entry`, `docs/memory-map.md`): the run `$1000-$1475`, the
 buffer `$1500-$17FF` (slot C's area, read over later), the picture
@@ -399,4 +400,76 @@ modelled); the bar filling from the left.
   chosen screens from the build (`build/boss-banners/`, `banners.json`); the
   Phase A cost model (§3) is retired - §9.4 is measured.
 * **Smoke:** `docs/hardware-testing.md` §39; the ATRs in STATUS.
+
+### 9.6 No old WARNING screen (the owner's smoke of 2026-10-18; journal §AY 8)
+
+**The defect.** At every boss entry the owner saw the old text screen with
+the small WARNING for ~0.9 s (the theme's 2 sectors and the banner run's 9 read
+under it), then a black cut (the set-up with the display off), then the banner.
+The old screen must not appear at all.
+
+**What was built (the fallback of §AY 8: black, then the banner).**
+
+* **The head** (`src/main.s` `boss_enter_head`) no longer shows the reader's
+  text screen: after `sector_reader_blank` (the display, the DLIs and the PMG
+  off) it only stores COLBK black, so the screen is black from the level's
+  last frame on. The kernel's WARNING record (11 B) and the two pins
+  (`pin_boss_warning_records`, `pin_sector_reader_show_records`) are gone.
+  The reader's text screen (`sector_reader_show_records`) stays where other
+  loads use it: the session's first START GAME (ENGAGING ENEMY SECTOR, while
+  the summary module lands) and the failure screen.
+* **The banner run in two checked stages.** Its first **2 sectors**
+  (`BANNER_SCREEN_SECTORS`) are the screen: `boss_banner` (188 B: the frontend
+  screen cleared by the resident `clear_screen`, the list, the title, the
+  empty bar, the colours, the switch on a frame edge, the rest's read) and the
+  region's head (48 B, `boss_banner_head`: the region, the bar's step, the
+  name's line, the rest's sector count and fold, the title's records). The
+  theme run's spec now names those 2 sectors and their fold; the cold tail
+  (unchanged code, +15 B of register set-up: CHBASE, HSCROL, COLPF2) checks
+  them and jumps in. The screen comes up, then reads the run's other 7
+  sectors under it (the reader's sector and destination carry on) and checks
+  them against the head's fold before any of their code runs; then
+  `banner_late` copies the reads to `$7A90`, sets the bar's state and unpacks
+  and mirrors the picture into its lines on the screen, and jumps to the
+  reads. Nothing runs before the disk guard has checked it; a damaged screen
+  sector is WRONG DISK on a black screen, a damaged later sector WRONG DISK
+  under the title, both before any boss data is read.
+* **The hand-over** clears the frontend screen with `clear_screen` (as the old
+  WARNING screen's render left it for the install) instead of the run's own
+  21-B clear.
+* **Sizes (M).** Banner runs **9 sectors in every region** (1,062 / 1,032 /
+  1,093 / 1,147 B: the Bastion 5 B under the 10th sector), the code 664 B
+  (the screen 188, the head 48, the rest 180, the reads 248 + 16 B state),
+  the cold tail 66 of 67 B. Entry sectors 76 / 80 / 79 / 80 - unchanged.
+  Resident **−15 B** (the head −4 B in `PICKUP_CODE`'s filled tail, the Light
+  kernel 957 → 946 B, the window's free tail 971 → 982); the initial block
+  13,623 B and 107 boot sectors unchanged.
+
+**Measured (Atari800, the boss routes, `DFTITLE_FROM` = the head,
+`DFTITLE_TO` = the instruction after the banner's DMACTL store).**
+
+| region | boss | black: head → banner screen | picture complete (head → `banner_reads`) | entry, host frames (Phase B) |
+| --- | --- | ---: | ---: | ---: |
+| 1 | Blockade Breaker | **16 host frames (0.32 s)** | 47 (0.94 s) | 295 (296) |
+| 2 | Void Citadel | **16 (0.32 s)** | – | 310 (311) |
+| 3 | Siege Spine | **16 (0.32 s)** | – | 306 (307) |
+| 4 | Bastion | **16 (0.32 s)** | – | 310 (310) |
+
+The 16 frames are the theme's 2 and the screen's 2 sectors (~3.75 host
+frames a sector at the reader's SIO speed) and the screen's ~13,000 cycles
+with the display off (12,639-13,384, the 6502 core) up to a frame edge. The
+screenshots of region 1's route (`DFTRACE_SHOT_*`, host frames 772-823 and
+1060-1069, `build/banner-black/`, not committed): the head's frame 775 cut
+part-drawn (its top row), 776-790 black (no pixel lit), 791 the banner's
+screen - WARNING, the name, INCOMING, the empty bar, the picture's place
+black - the picture drawing in top to bottom on 817-822 under it, the bar full
+at 1060, black at the hand-over (1069). The picture's code and its 7 sectors
+under the screen take ~141,000 cycles (139,844-142,728) with the narrow
+playfield's DMA on.
+
+**Not taken: the banner at once.** The screen's code and the region's title
+must be in RAM when the level part ends; in 0 resident bytes the only home
+is the level image's padding (Phase A's option L), which §AY 1 keeps for
+the music player's growth. The black wait is the theme's and the screen's 4
+sectors; a resident screen would cost ~230 B.
 

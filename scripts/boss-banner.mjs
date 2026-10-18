@@ -60,6 +60,9 @@ export const BANNER_BAR_LINES = Object.freeze(["A", "A", "A", "B", "A", "A", "A"
 export const BANNER_HSCROL = 4;
 export const BANNER_WHITE = 0x0e;
 export const BANNER_DMACTL = 0x21;                              // narrow playfield, list DMA, no PMG
+// The frontend charset (src/main.s FRONTEND_CHARSET, $4800): the glyph
+// contract's codes 0-63 are its first 512 B.
+export const BANNER_CHBASE = 0x48;
 
 // RAM during the entry (docs/memory-map.md, phase boss-entry):
 //   the banner run lands in slot C's area (read later by the run it starts);
@@ -80,21 +83,33 @@ export const BANNER_BASE_SECTOR = 280;
 export const BANNER_REGION_SECTORS = 10;
 
 // The theme run's tail (2 sectors at $7990, read first as today): the cold
-// code, then the banner run's spec - its first sector, its count and its
-// expected fold (the disk guard's), which the cold code checks it against.
+// code, then the banner run's spec - its first sector, the count of the
+// screen's sectors and their expected fold (the disk guard's), which the cold
+// code checks them against.
 export const BANNER_SPEC_BYTES = 5;
+// The owner's smoke of 2026-10-18 (no WARNING text screen; black until the
+// banner's screen): the run's first two sectors are the screen - the code
+// that clears, lists and titles it and shows it, and the region's head - so
+// the screen is up after the theme's 2 and these 2; the rest (the picture's
+// code, the reads, the picture) follows under it.
+export const BANNER_SCREEN_SECTORS = 2;
 
-// The per-region data block, behind the linked banner code in the banner run:
+// The region's head, BANNER_HEAD_BYTES at boss_banner_head (in the screen's
+// sectors, behind the screen's code; the build writes it):
 //   +0  the region's index (0-3), slot A's head check's
 //   +1  the bar's step, 8.8 pixels a sector, lo / hi
 //   +3  the name line's ANTIC instruction ($46, or $56 with HSCROL)
-//   +4  the packed picture's address, lo / hi
-//   +6  the title's records, $FF-terminated; then the packed picture
-export const BANNER_DATA_REGION = 0;
-export const BANNER_DATA_STEP = 1;
-export const BANNER_DATA_NAME_MODE = 3;
-export const BANNER_DATA_PICTURE = 4;
-export const BANNER_DATA_RECORDS = 6;
+//   +4  the run's other sectors (after the screen's), the screen reads them
+//   +5  their fold, lo / hi, the screen checks them against
+//   +7  the title's records, $FF-terminated (41 B with a 16-glyph name)
+// The packed picture follows the linked code (boss_banner_data).
+export const BANNER_HEAD_REGION = 0;
+export const BANNER_HEAD_STEP = 1;
+export const BANNER_HEAD_NAME_MODE = 3;
+export const BANNER_HEAD_LATE_SECTORS = 4;
+export const BANNER_HEAD_LATE_FOLD = 5;
+export const BANNER_HEAD_RECORDS = 7;
+export const BANNER_HEAD_BYTES = BANNER_HEAD_RECORDS + 41;
 
 export const BANNER_TEXT_WARNING = "WARNING";
 export const BANNER_TEXT_INCOMING = "INCOMING";
@@ -219,9 +234,10 @@ export function loadBannerChoices(rootDirectory) {
   return { directory, choices };
 }
 
-// One region's banner: the picture, the records, the data block behind the
-// code at `dataAddress`, the bar's step for `bossDataSectors`.
-export function compileBossBanner({ rootDirectory, bossDirectory, name, regionIndex, dataAddress, bossDataSectors }) {
+// One region's banner: the picture, the records, the region's head (its
+// other sectors and their fold still zero: the build writes them once the run
+// is laid out), the bar's step for `bossDataSectors`.
+export function compileBossBanner({ rootDirectory, bossDirectory, name, regionIndex, bossDataSectors }) {
   const { directory, choices } = loadBannerChoices(rootDirectory);
   const id = choices[bossDirectory];
   if (typeof id !== "string") throw new Error(`boss-banners/banners.json names no picture for ${bossDirectory}`);
@@ -230,13 +246,30 @@ export function compileBossBanner({ rootDirectory, bossDirectory, name, regionIn
   const { payload, packed } = encodeBannerPicture(bytes, `boss-banners/${id}.png`);
   const title = bannerTitleRecords(name);
   const step = bannerBarStep(bossDataSectors);
-  const pictureAddress = dataAddress + BANNER_DATA_RECORDS + title.bytes.length;
-  const data = Uint8Array.from([
-    regionIndex, step & 0xff, step >> 8, title.nameMode, pictureAddress & 0xff, pictureAddress >> 8,
-    ...title.bytes, ...packed,
-  ]);
-  return { id, file: path.relative(rootDirectory, file), bytes, payload, packed, title, step, data,
-    pictureAddress };
+  if (BANNER_HEAD_RECORDS + title.bytes.length > BANNER_HEAD_BYTES) throw new Error(`the banner's title for ${name} outgrew the head`);
+  const head = new Uint8Array(BANNER_HEAD_BYTES);
+  head.set([regionIndex, step & 0xff, step >> 8, title.nameMode], 0);
+  head.set(title.bytes, BANNER_HEAD_RECORDS);
+  return { id, file: path.relative(rootDirectory, file), bytes, payload, packed, title, step, head };
+}
+
+// The run as the disk carries it: the linked code (`code`, from BANNER_RUN),
+// the head at `headOffset`, the packed picture behind the code; the screen's
+// sectors and the rest, the rest's count and fold in the head.
+export function layoutBossBannerRun({ code, headOffset, head, packed, fold }) {
+  const bytes = code.length + packed.length;
+  const sectors = Math.ceil(bytes / 128);
+  if (headOffset + head.length > BANNER_SCREEN_SECTORS * 128) throw new Error("the banner's screen outgrew its sectors");
+  const lateSectors = sectors - BANNER_SCREEN_SECTORS;
+  if (lateSectors < 1 || lateSectors > 255) throw new Error(`the banner run's ${sectors} sectors leave ${lateSectors} after the screen`);
+  const data = Buffer.alloc(sectors * 128);
+  data.set(code, 0);
+  data.set(head, headOffset);
+  data.set(packed, code.length);
+  const late = fold(data.subarray(BANNER_SCREEN_SECTORS * 128));
+  data.set([lateSectors, late.lo, late.hi], headOffset + BANNER_HEAD_LATE_SECTORS);
+  const screen = fold(data.subarray(0, BANNER_SCREEN_SECTORS * 128));
+  return { data, bytes, sectors, lateSectors, lateFold: late, screenFold: screen };
 }
 
 // The constants src/hybrid/boss.s reads (appended to build/boss-layout.inc).
@@ -269,11 +302,15 @@ export function renderBossBannerInclude() {
     `BANNER_HSCROL            = ${BANNER_HSCROL}`,
     `BANNER_WHITE             = ${hex(BANNER_WHITE)}`,
     `BANNER_DMACTL            = ${hex(BANNER_DMACTL)}`,
-    `BANNER_DATA_REGION       = ${BANNER_DATA_REGION}`,
-    `BANNER_DATA_STEP         = ${BANNER_DATA_STEP}`,
-    `BANNER_DATA_NAME_MODE    = ${BANNER_DATA_NAME_MODE}`,
-    `BANNER_DATA_PICTURE      = ${BANNER_DATA_PICTURE}`,
-    `BANNER_DATA_RECORDS      = ${BANNER_DATA_RECORDS}`,
+    `BANNER_CHBASE            = ${hex(BANNER_CHBASE)}`,
+    `BANNER_SCREEN_SECTORS    = ${BANNER_SCREEN_SECTORS}`,
+    `BANNER_HEAD_REGION       = ${BANNER_HEAD_REGION}`,
+    `BANNER_HEAD_STEP         = ${BANNER_HEAD_STEP}`,
+    `BANNER_HEAD_NAME_MODE    = ${BANNER_HEAD_NAME_MODE}`,
+    `BANNER_HEAD_LATE_SECTORS = ${BANNER_HEAD_LATE_SECTORS}`,
+    `BANNER_HEAD_LATE_FOLD    = ${BANNER_HEAD_LATE_FOLD}`,
+    `BANNER_HEAD_RECORDS      = ${BANNER_HEAD_RECORDS}`,
+    `BANNER_HEAD_BYTES        = ${BANNER_HEAD_BYTES}`,
     "",
   ].join("\n");
 }

@@ -156,9 +156,12 @@ import {
   BANNER_RUN_ADDRESS,
   BANNER_RUN_MAX_SECTORS,
   BANNER_SCREEN_END,
+  BANNER_SCREEN_SECTORS,
+  BANNER_HEAD_BYTES,
   BANNER_WARNING_ROW,
   bannerLineAddress,
   compileBossBanner,
+  layoutBossBannerRun,
   renderBossBannerInclude,
 } from "./boss-banner.mjs";
 import {
@@ -2924,7 +2927,9 @@ async function build() {
   // entry's region read and its records in the kernel link, its head in main.
   // feat/interceptor-armour (owner answer of 2026-10-12): - the HUD booster
   // backup, inlined into the head (main), whose only caller it was.
-  const expectedBossEntryPins = 11;
+  // feat/boss-banners (the owner's smoke of 2026-10-18): - the WARNING
+  // records and the reader's show_records, the text screen gone from the entry.
+  const expectedBossEntryPins = 9;
   if (bossEntryPins.length !== expectedBossEntryPins) {
     throw new Error(`M5b-S3 / S5-1: expected ${expectedBossEntryPins} boss-entry pins, found ${bossEntryPins.length}`);
   }
@@ -2958,8 +2963,10 @@ async function build() {
       // feat/interceptor-armour: the entry's cold tail (BOSS_ENTRY_COLD).
       "frontend_data_ptr", "render_frontend_records",
       // feat/boss-banners: the banner's picture through the resident decoder;
-      // the hand-over clears the PMG area as the head did.
-      "broadside_unpack_command", "broadside_read_source", "broadside_destination", "clear_pmg"],
+      // the hand-over clears the PMG area as the head did; the screen clears
+      // the frontend screen as the WARNING screen's render did.
+      "broadside_unpack_command", "broadside_read_source", "broadside_destination", "clear_pmg",
+      "clear_screen"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end",
       "sr_slot_a_overlaid",
@@ -3553,16 +3560,20 @@ async function build() {
   // (S5-3: a field build's slot F code follows it in the image.)
   const bossEntryCold = bossImage.subarray(bossFixedImageBytes - BOSS_ENTRY_COLD_BYTES, bossFixedImageBytes);
   // feat/boss-banners (owner decisions AL 2 and AY): each region's banner run -
-  // the boss link's banner area as linked (the set-up, then the reads' load
-  // image) and the region's data block behind it (the title's records and the
-  // packed picture, scripts/boss-banner.mjs) - 8 sectors a region from 288;
-  // the region's theme run names it (its spec: the first sector, the count,
-  // the run's fold), and the bar's step is the region's sectors after it.
+  // the boss link's banner area as linked (the screen, its head, the rest of
+  // the set-up, then the reads' load image), the region's head written into it
+  // (the title, the bar's step, the run's other sectors and their fold) and its
+  // packed picture behind it (scripts/boss-banner.mjs) - 10 sectors a region
+  // from 280; the region's theme run names its screen's sectors (its spec: the
+  // first sector, BANNER_SCREEN_SECTORS, their fold; the owner's smoke of
+  // 2026-10-18), and the bar's step is the region's sectors after it.
   const bannerAreaOffset = bossFixedImageBytes - BOSS_ENTRY_COLD_BYTES - BANNER_RUN_MAX_SECTORS * 128;
   const bannerCodeBytes = bossLabels.get("boss_banner_data") - BANNER_RUN_ADDRESS;
+  const bannerHeadOffset = bossLabels.get("boss_banner_head") - BANNER_RUN_ADDRESS;
   if (bossLabels.get("boss_banner") !== BANNER_RUN_ADDRESS || !(bannerCodeBytes > 0) ||
-    bossLabels.get("__BOSS_BANNER_RAM_LAST__") > BANNER_RUN_ADDRESS + bannerCodeBytes) {
-    throw new Error("boss-banners: the banner's set-up must start the banner area and its data block end it");
+    bossLabels.get("__BOSS_BANNER_RAM_LAST__") > BANNER_RUN_ADDRESS + bannerCodeBytes ||
+    !(bannerHeadOffset > 0) || bossLabels.get("__BOSS_BANNER_HEAD_SIZE__") !== BANNER_HEAD_BYTES) {
+    throw new Error("boss-banners: the banner's screen must start the banner area, its head follow it and the picture end it");
   }
   const bannerCode = bossImage.subarray(bannerAreaOffset, bannerAreaOffset + bannerCodeBytes);
   const bossDataSectorsOf = (region) => bossCodeSectors + bossInstallSectors + bossSlotCSectors +
@@ -3570,19 +3581,16 @@ async function build() {
     region.runs.charset.sectors + region.runs.block.sectors;
   const bossBanners = bossRegions.map((region, index) => {
     const banner = compileBossBanner({ rootDirectory, bossDirectory: `region-${bossOrder[index]}`,
-      name: region.name, regionIndex: index, dataAddress: BANNER_RUN_ADDRESS + bannerCodeBytes,
-      bossDataSectors: bossDataSectorsOf(region) });
-    const bytes = bannerCodeBytes + banner.data.length;
-    const sectors = Math.ceil(bytes / 128);
-    if (sectors > BANNER_RUN_MAX_SECTORS) {
-      throw new Error(`boss-banners: region ${index + 1}'s banner run is ${bytes} B; it lands in ` +
+      name: region.name, regionIndex: index, bossDataSectors: bossDataSectorsOf(region) });
+    const run = layoutBossBannerRun({ code: bannerCode, headOffset: bannerHeadOffset, head: banner.head,
+      packed: banner.packed, fold: guardFold });
+    if (run.sectors > BANNER_RUN_MAX_SECTORS) {
+      throw new Error(`boss-banners: region ${index + 1}'s banner run is ${run.bytes} B; it lands in ` +
         `${BANNER_RUN_MAX_SECTORS * 128} (${BANNER_RUN_MAX_SECTORS} sectors)`);
     }
-    const data = Buffer.alloc(sectors * 128);
-    data.set(bannerCode, 0);
-    data.set(banner.data, bannerCodeBytes);
-    return { ...banner, pictureBytes: banner.bytes, blockBytes: banner.data.length, bytes, sectors, data,
-      bossDataSectors: bossDataSectorsOf(region),
+    return { ...banner, pictureBytes: banner.bytes, blockBytes: banner.packed.length, bytes: run.bytes,
+      sectors: run.sectors, data: run.data, screenSectors: BANNER_SCREEN_SECTORS, lateSectors: run.lateSectors,
+      screenFold: run.screenFold, bossDataSectors: bossDataSectorsOf(region),
       startSector: BANNER_BASE_SECTOR + index * BANNER_REGION_SECTORS };
   });
   const regionRunData = (region, run, index) => {
@@ -3594,9 +3602,8 @@ async function build() {
       }
       data.set(bossEntryCold, BOSS_ENTRY_COLD_OFFSET);
       const banner = bossBanners[index];
-      const fold = guardFold(banner.data);
-      data.set([banner.startSector & 0xff, banner.startSector >> 8, banner.sectors, fold.lo, fold.hi],
-        BOSS_BANNER_SPEC_OFFSET);
+      data.set([banner.startSector & 0xff, banner.startSector >> 8, banner.screenSectors,
+        banner.screenFold.lo, banner.screenFold.hi], BOSS_BANNER_SPEC_OFFSET);
     }
     return data;
   };
@@ -4131,7 +4138,7 @@ async function build() {
   const { initialBoot, manifest: chunkManifest, transportPayload,
     totalOccupiedSectors: totalTransportSectors } = transport;
   // feat/boss-banners: the boot transport must end before the banner runs'
-  // reservation (sector 288), as before the levels' (320).
+  // reservation (sector 280), as before the levels' (320).
   if (totalTransportSectors >= BANNER_BASE_SECTOR) {
     throw new Error(`boss-banners: the boot transport's ${totalTransportSectors} sectors reach the banner runs at ${BANNER_BASE_SECTOR}`);
   }
@@ -4869,7 +4876,7 @@ async function build() {
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1],
         blocks: [BOSS_BLOCK_BASE_SECTOR, BOSS_BLOCK_BASE_SECTOR + bossRegionCount * BOSS_BLOCK_SECTORS - 1],
-        // feat/boss-banners: 8 sectors a region from 288.
+        // feat/boss-banners: 10 sectors a region from 280.
         banners: [BANNER_BASE_SECTOR, BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS - 1] },
       runs: bossDiskRuns.map(({ name, startSector, sectors, destination, data, file }) =>
         ({ name, startSector, sectors, destination, bytes: data.length, sha256: sha256(data), file })),
@@ -4945,7 +4952,11 @@ async function build() {
           runBytes: bossBanners[index].bytes, runSectors: bossBanners[index].sectors,
           startSector: bossBanners[index].startSector, bossDataSectors: bossBanners[index].bossDataSectors,
           barStep: bossBanners[index].step, nameScrolled: bossBanners[index].title.nameScrolled,
-          codeBytes: bannerCodeBytes },
+          codeBytes: bannerCodeBytes,
+          // The owner's smoke of 2026-10-18: the screen's sectors (read by the
+          // cold tail, the screen up after them) and the rest (read under it).
+          screenSectors: bossBanners[index].screenSectors, lateSectors: bossBanners[index].lateSectors,
+          headOffset: bannerHeadOffset, headBytes: BANNER_HEAD_BYTES },
       })),
     },
     lightWingman: lightPlacement,

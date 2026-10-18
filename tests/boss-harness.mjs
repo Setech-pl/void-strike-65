@@ -75,7 +75,7 @@ export const reg = {
   SKRES: 0xd20a, SERIN: 0xd20d, SEROUT: 0xd20d, IRQEN: 0xd20e, IRQST: 0xd20e,
   SKCTL: 0xd20f, SKSTAT: 0xd20f, PBCTL: 0xd303, DMACTL: 0xd400, DLISTL: 0xd402,
   DLISTH: 0xd403, HSCROL: 0xd404, CHBASE: 0xd409, WSYNC: 0xd40a, VCOUNT: 0xd40b,
-  NMIEN: 0xd40e,
+  NMIEN: 0xd40e, COLPF0: 0xd016, COLPF1: 0xd017, COLPF2: 0xd018,
 };
 const IRQ_SERIN = 0x20;
 const IRQ_SEROUT_RDY = 0x10;
@@ -110,7 +110,8 @@ export class Drive {
     this.txOutstanding = 0;
     this.rxQueue = [];
     this.serin = 0;
-    this.writes = [];               // { register, value } for the display registers
+    this.writes = [];               // { register, value, sectors } for the display registers
+    this.colourWrites = [];         // { register, value, sectors } for COLBK, COLPF0-2
     this.cpu = null;
   }
 
@@ -177,7 +178,12 @@ export class Drive {
         return false;
       case reg.DMACTL: case reg.DLISTL: case reg.DLISTH: case reg.NMIEN:
       case reg.HSCROL: case reg.CHBASE:
-        this.writes.push({ register: address, value });
+        this.writes.push({ register: address, value, sectors: this.readSectors.length });
+        return undefined;
+      // feat/boss-banners (the owner's smoke of 2026-10-18): the colours too,
+      // and how many sectors had been asked for, for the black screen's check.
+      case reg.COLBK: case reg.COLPF0: case reg.COLPF1: case reg.COLPF2:
+        this.colourWrites.push({ register: address, value, sectors: this.readSectors.length });
         return undefined;
       default:
         return undefined;

@@ -106,10 +106,13 @@ const screenRow = (memory, row) => [...memory.subarray(HUD + row * 40, HUD + row
 // first level of the region the order gives it (the Breaker 1, the Citadel 4,
 // the Spine 7, the Bastion 10).
 for (const [directory, name] of [[1, "BLOCKADE BREAKER"], [2, "BASTION"], [3, "SIEGE SPINE"], [4, "VOID CITADEL"]]) {
-  test(`the boss loading screen, region ${regionOf(directory)}: WARNING / ${name} / INCOMING`, () => {
+  test(`the boss loading screen, region ${regionOf(directory)}: black, then the banner's WARNING / ${name} / INCOMING`, () => {
     const { warning, banner, memory } = loadingScreens(bossLevel(directory));
-    assert.deepEqual(screenRow(warning, 5), encodedRow(memory, "WARNING"), "row 5");
-    for (const row of [6, 7, 8]) assert.deepEqual(screenRow(warning, row), new Array(40).fill(0), `row ${row} is blank`);
+    // RE-POINTED feat/boss-banners (the owner's smoke of 2026-10-18): no
+    // WARNING text screen before the banner any more - as the banner run's
+    // first sector is asked for, the display is off (black), nothing drawn.
+    assert.equal(warning[0xd400], 0, "the display is on before the banner's screen");
+    assert.notDeepEqual(screenRow(warning, 5), encodedRow(memory, "WARNING"), "the old WARNING row is drawn");
     for (const [at, text] of [[BANNER_WARNING_ROW, "WARNING"], [BANNER_NAME_ROW, name], [BANNER_INCOMING_ROW, "INCOMING"]]) {
       const { offset } = bannerTextPlacement(text);
       const expected = encodedRow(memory, text).filter((code, i, row) => i >= Math.floor((40 - text.length) / 2) &&

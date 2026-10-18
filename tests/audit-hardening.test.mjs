@@ -61,7 +61,7 @@ const withFlip = (sector, offset, mask = 0x10) => (n) => {
 // a PC at the controller's entry means the controller only after the banner's
 // hand-over; the banner's own code is a use of the banner run.
 function usage() {
-  const seen = { slotA: false, music: false, install: false, init: false, banner: false };
+  const seen = { slotA: false, music: false, install: false, init: false, banner: false, bannerLate: false };
   let handedOver = false;
   const watch = (pc) => {
     if (pc >= SLOT_A && pc < SLOT_A + 2048) seen.slotA = true;
@@ -70,6 +70,7 @@ function usage() {
     if (pc === label("boss", "banner_hand_over")) handedOver = true;
     if (pc === label("boss", "_boss_c_init") && handedOver) seen.init = true;
     if (pc === label("boss", "boss_banner")) seen.banner = true;
+    if (pc === label("boss", "banner_late")) seen.bannerLate = true;
   };
   return { seen, watch };
 }
@@ -149,8 +150,13 @@ test("AUD-02: another disk at the boss entry is refused before a byte of it is p
 test("AUD-02: one changed byte in an executable run or a data run of the boss is refused before the run is used", () => {
   const cases = [
     ["boss-region-1-theme", 0, 9, "music"],
-    // feat/boss-banners: the banner run, checked by the theme run's spec.
-    ["boss-region-1-banner", 2, 40, "banner"],
+    // feat/boss-banners: the banner run's screen sectors, checked by the theme
+    // run's spec; (the owner's smoke of 2026-10-18) the rest, checked by the
+    // screen against its head's fold before the rest's code runs.
+    ["boss-region-1-banner", 0, 40, "banner"],
+    ["boss-region-1-banner", 1, 40, "banner"],
+    ["boss-region-1-banner", 2, 40, "bannerLate"],
+    ["boss-region-1-banner", 8, 40, "bannerLate"],
     ["boss-code", 5, 33, "slotA"],
     ["boss-install", 1, 17, "install"],
     ["boss-slot-c", 3, 50, "install"],

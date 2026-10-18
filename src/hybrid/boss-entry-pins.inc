@@ -21,9 +21,8 @@ pin_boss_enter_head              = $8B26   ; main
 pin_capital_slot_a               = $6DE8   ; main
 pin_game_music_data_start        = $A717   ; music
 pin_sector_reader_blank          = $A03D   ; reader
-pin_sector_reader_show_records   = $A0A7   ; reader
 pin_sector_reader_failure_screen = $A0D6   ; reader
 pin_sr_slot_a_overlaid           = $A576   ; reader
-; feat/interceptor-standoff: the boss entry's region read and its records, behind it.
+; feat/interceptor-standoff: the boss entry's region read (its WARNING records
+; behind it went with the text screen, feat/boss-banners).
 pin_boss_enter_read              = $B814   ; kernel
-pin_boss_warning_records         = $B82A   ; kernel

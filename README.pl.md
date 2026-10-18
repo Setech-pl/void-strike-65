@@ -121,8 +121,8 @@ W grę da się grać i gra nie jest skończona. Ta lista opisuje wersję z `dist
 - **Boss.** Poziom 1 kończy się na Blockade Breaker — bossie zbudowanym
   z modułów: płyt pancernych, działek i dwóch dział laserowych, których
   promień najpierw widocznie i słyszalnie się nagrzewa — wczytywanym
-  z dyskietki za ekranem WARNING z jego nazwą; po nim ekran podsumowania
-  poziomu.
+  z dyskietki za jego banerem (obraz bossa, WARNING, jego nazwa i pasek
+  ładowania); po nim ekran podsumowania poziomu.
 - **Deterministyczny Encounter Director** dla poziomu 1, prowadzony przez
   przebyte rzędy świata, a nie przez zegar, z ograniczonymi pulami obiektów.
 - **Trzy czasowe boostery**, po jednym naraz, z kapsuł: Rapid Fire, Spread Shot

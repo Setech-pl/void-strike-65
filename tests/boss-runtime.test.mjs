@@ -142,7 +142,7 @@ test("the Director raises BOSS_DUE entering the boss sector, and the gate enters
 // C sized to its code, then the region's band A, band B and charset - every
 // run sized to its contents. S3 read 28 sectors (the 4-sector staging run
 // with the glyphs, a full 16-sector slot A, a 2-sector band B).
-test("decision 32: WARNING, then the boss's title, the theme started, then every run in the planned order", () => {
+test("decision 32 (re-pointed): black, then the banner's title, the theme started, then every run in the planned order", () => {
   const { end, drive } = bossEntered();
   assert.equal(end, "main_loop", "the entry did not reach the main loop");
   const run = (first, count) => Array.from({ length: count }, (_, i) => first + i);
@@ -189,10 +189,12 @@ test("decision 32: WARNING, then the boss's title, the theme started, then every
   assert.equal(at[label("reader", "sr_slot_a_overlaid")], 1);
   assert.notEqual(at[0xa600], "V".charCodeAt(0), "the level's magic must be cleared at the entry");
   const dlistWrites = drive.writes.filter(({ register }) => register === 0xd402 || register === 0xd403);
-  assert.equal(dlistWrites[0].value | (dlistWrites[1].value << 8),
-    label("main", "frontend_text_display_list"), "the screen is the reader's text screen");
-  // RE-POINTED feat/boss-banners: then the banner's list.
-  assert.equal(dlistWrites[2].value | (dlistWrites[3].value << 8), BANNER_DL, "the banner follows the WARNING screen");
+  // RE-POINTED feat/boss-banners (the owner's smoke of 2026-10-18): the
+  // reader's WARNING text screen is gone; the first list the entry sets is
+  // the banner's, after the display was black from the head on.
+  assert.equal(dlistWrites[0].value | (dlistWrites[1].value << 8), BANNER_DL, "the first screen is not the banner's");
+  assert.ok(!dlistWrites.some(({ value }, k) => k % 2 === 1 &&
+    (dlistWrites[k - 1].value | (value << 8)) === label("main", "frontend_text_display_list")), "the reader's text screen was shown");
 });
 
 // RE-POINTED M5b-S4a-i: slot A is read sized to its code (its state is in

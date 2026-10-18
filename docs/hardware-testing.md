@@ -1476,6 +1476,50 @@ new file name:
 
 **Result (2026-10-17): owner smoke PASS** on all five ATRs in Atari800 - `boss-order-scale-full-game-eb77e4c2.atr` (SHA-256 `eb77e4c2b550e2e0…`, = `dist/`), `-r1-breaker-6fb343e6` (`6fb343e64bece448…`), `-r2-citadel-c823c589` (`c823c589d9021077…`), `-r3-spine-c224162b` (`c224162b04daff0e…`), `-r4-bastion-d51b032e` (`d51b032e7cf3a00f…`). Accepted as measured: the danger judged by the boss's own fire (by every hit the Spine sits under the Citadel) and the Spine's EASY 97.2 s against the Bastion's 96.4 s (within the replays' spread). The real-hardware items above were not part of this report.
 
+## 39. The boss banners: the picture, the title and the loading bar at every boss entry (`feat/boss-banners`)
+
+Plan [plans/boss-banners.md](plans/boss-banners.md) §9; journal §AL 1-2,
+§AY. In Atari800 (`-xl -pal -nobasic`), on the whole game
+(`build/play/boss-banners-full-game-*.atr`, region 1's boss at the end of
+level 1) and the four boss routes (`build/play/boss-banners-r1-breaker-*`,
+`-r2-citadel-*`, `-r3-spine-*`, `-r4-bastion-*`), at each boss entry:
+
+- [ ] **The order of the screens:** WARNING alone on the black text screen
+      with the dotted row stepping (about 0.9 s, the theme and the banner
+      being read), a short black cut, then the banner; the boss theme starts
+      at the WARNING as before.
+- [ ] **The banner:** the boss's picture at the top, centred, white on black
+      - route 1 the Blockade Breaker (the deck, the engine blocks, the two
+      projector towers, the saucer turrets, the belt), route 2 the Void
+      Citadel with its gravity column under the lens, route 3 the Siege Spine
+      side-on (the segments with spikes and masts, the dome and cone, the
+      field's zigzag), route 4 the Bastion with its rails running off both
+      edges (the dome with the sphere core, the cannons, the barred gate).
+      Each picture is the boss you then fight; nothing torn, no stray pixels
+      at the edges.
+- [ ] **The title:** `WARNING` large, under it the boss's name and
+      `INCOMING` in wide letters, each line centred under the picture
+      (`BASTION` and `SIEGE SPINE`, odd lengths, centred too); all three
+      lines on every route.
+- [ ] **The loading bar:** under the title, 20 dashes the picture's width;
+      it fills from the left, a little after every sector (it moves steadily,
+      pausing only when the drive does) and is full just before the fight
+      starts.
+- [ ] **The hand-over:** the banner goes dark and the fight starts as
+      before - the HUD (score, lives, HULL, an active booster's label and
+      energy as they were), the band, the ship; no banner pixels left
+      anywhere (not in the ship's sprite, not in the HUD).
+- [ ] **The wait:** each entry from the WARNING to the fight about 6 s (296
+      / 311 / 307 / 310 host frames measured, under the owner's 7.0 s).
+
+**On the real 65XE PAL with the SIO2SD**, on a copy of the final ATR under a
+new file name:
+
+- [ ] **The boss entries** load cleanly on every route (76 / 80 / 79 / 80
+      sectors), no red halt; the banner centred on the real GTIA as in
+      Atari800 (HSCROL on the odd lines), no flicker while the bar fills, the
+      sound silent until the fight as before.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

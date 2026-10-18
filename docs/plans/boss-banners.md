@@ -2,9 +2,12 @@
 
 **Branch:** `feat/boss-banners` from `main` `f8557e3` (feat/boss-order-scale
 merged at `05346cc`; ATR `eb77e4c2…`).
-**Status:** Phase A — **OWNER DECISION PENDING** (§7). Nothing in the game
-changed: the pictures, the review tools and this plan only. No artifact byte
-moved.
+**Status:** Phase B — **OWNER-SMOKE CANDIDATE** (§9). Phase A (§0-§8, kept
+as written) was approved by the owner on 2026-10-18 with the choices of
+decision **AY** (`docs/owner-decisions-2026-09-11.md`): the entry's limit
+350 host frames, the code in the region's run (B0, not L, not P), the Spine
+side-on, the Bastion's rails off the edges, the Citadel with its gravity
+column, the large WARNING with the name and INCOMING wide.
 
 Labels: **M** measured (the tree, the 6502 core, the trace figures in
 `docs/STATUS.md`); **EST** an estimate with its basis; **IC** an instruction
@@ -13,9 +16,10 @@ count, not assembled.
 Owner decisions in force: §AL 2 (one banner per boss, mode F, 64 lines, a
 160 × 64 picture centred; under it the title and the loader bar; white on
 black; the banner loads first), §AL 1 (the title WARNING / name / INCOMING),
-§AU 6 (bosses do not save resources; no resident byte without asking), §AV 5
-(the entry's limit is 300 host frames), §AX 1 (region 1 Blockade Breaker, 2
-Void Citadel, 3 Siege Spine, 4 Bastion), §AX 19 (the Bastion's palette O).
+§AU 6 (bosses do not save resources; no resident byte without asking), **§AY
+(this task: the entry's limit 350 host frames, superseding §AV 5)**, §AX 1
+(region 1 Blockade Breaker, 2 Void Citadel, 3 Siege Spine, 4 Bastion), §AX 19
+(the Bastion's palette O).
 
 ---
 
@@ -265,3 +269,113 @@ resident RAM.
   (+41.8 for the head-on Spine).
 * Decision O ("not a progress bar") stands for the dotted row; the brief's bar
   supersedes it on the boss loading screen only (question 6).
+
+---
+
+## 9. Phase B — what was built (M unless marked)
+
+### 9.1 Where the plan changed, and why
+
+* **Two runs, not one.** Phase A grew the region's run (directory entry
+  2 + region) from 2 sectors to 8-9; Phase A did not check the disk, and the
+  region area 632-711 is full (4 × 16 + the blocks; 17 sectors free, in
+  pieces). The theme run stays as it was — 2 sectors at 632 + 16 × region,
+  read by the resident `boss_enter_read` into `$7990`, so the resident
+  directory, the resident code and the reads before the banner are
+  byte-identical — and its tail (`BOSS_ENTRY_COLD`, `$7A48`, 67 B: the 40 B
+  the old title records had are its now) reads the region's **banner run**,
+  named by a 5-B spec in the theme run's last bytes (its first sector, its
+  count, its expected disk-guard fold, written by the build), and checks it as
+  the reader checks a directory run. The banner runs have their own
+  reservation, **10 sectors a region from 280** (280-319, between the boot
+  transport's 213 and the levels' 320; the build refuses a transport that
+  reaches 280).
+* **The code is 621 B, not 350 (IC was −44 %).** The set-up 352 B (with the
+  display list's tail), the reads 269 B (copied to `$7A90`); the banner runs
+  are **9 sectors in every region** (R4 1,142 of 1,152 B: 10 B to the next
+  sector). The set-up costs **151,491-153,950 cycles** on the 6502 core with
+  the display off (EST in Phase A: ~3.2 frames; M ~5 frames).
+* **The bar is mode F, a pixel at a time.** Phase A drew 20 ANTIC 2 cells (a
+  cell every ~3.4 sectors); the same look (the frontend charset's dash in the
+  empty part, solid where filled) is now 8 mode F lines over two 32-B rows
+  (the dash glyph's line 3 is row B), filled 2-3 pixels a sector — 8.8 steps
+  of `ceil(160 × 256 / sectors)`, the last sector of the boss data reaching
+  pixel 160 and no earlier one.
+* **The reads under the banner** are as Phase A proposed: the boss code
+  (directory entry 1, `guard_begin` / `guard_check` as `sector_reader_read_run`
+  does) and slot A's head's eight runs (from slot A's own `boss_runs` table,
+  folded on, `boss_head_check` against the region's sum), one sector a call to
+  `sector_reader_read_sectors` (its fold, the destination and the sector carry
+  across calls; it quiesces, SKCTL `$03`, after every call). Slot A's head
+  (`boss_head`) is no longer run; slot A, the install, slots C-E and every
+  band, charset and block run are **byte-identical to main** (the manifest's
+  hashes).
+* **The pictures** were polished in Phase B (§9.3) and must keep their outer
+  64 pixels a side mirror-symmetric (the build refuses one that does not).
+* **The laser fixture's** debug name became `Fixture tier N` (the banner row
+  shows 16 glyphs; it was 22).
+
+### 9.2 The entry, step by step
+
+| step | where | what |
+| --- | --- | --- |
+| head | main `PICKUP_CODE`, resident (unchanged) | WARNING on the text screen; the region |
+| region read | Light kernel, resident (unchanged) | the theme run (2 sectors) to `$7990`, its 256 B over the track, `jmp $7A48` |
+| cold tail | theme run, `$7A48` | the theme starts; the banner run (9 sectors) to `$1000`, checked against the spec's fold; `jmp $1000` |
+| set-up | banner run, `$1000` | display off; the reads to `$7A90`; rows `$4000-$422F` cleared; the list at `$7990` (40 blank, 64 LMS lines, the text, the bar); the picture unpacked to `$1500` by the resident decoder and mirrored into its lines; the title; the bar's dashes; HSCROL 4, COLPF0 = COLPF1 = `$0E`; on a frame edge DMACTL `$21` |
+| reads | `$7A90` | the boss code (entry 1, checked) and the eight runs, a sector a call, the bar a step after each |
+| hand-over | `$7A90` | DMACTL 0; `clear_pmg`; rows `$4000-$422F` cleared; `jmp boss_head_check` → the install |
+
+RAM (all `boss-entry`, `docs/memory-map.md`): the run `$1000-$1475`, the
+buffer `$1500-$17FF` (slot C's area, read over later), the picture
+`$3B00-$418B` (the PMG area and the text screen's rows 0-9, lines 26 B apart,
+the 4 KB edge at line 49), the text and bar rows `$41B8-$422F`, the list
+`$7990-$7A7E`, the reads and their state `$7A90-$7BAC`. **0 resident bytes**:
+the reader (1,498 B) and the Light kernel (957 B) keep their sizes; the
+guard's sums change value.
+
+### 9.3 The pictures (decision AY)
+
+| region | boss | picture | packed (draft) | run B / sectors | entry sectors (main) |
+| --- | --- | --- | ---: | ---: | ---: |
+| 1 | Blockade Breaker | `blockade-breaker` | 398 (391) | 1,066 / 9 | 76 (67) |
+| 2 | Void Citadel | `void-citadel-column` | 368 (361) | 1,032 / 9 | 80 (71) |
+| 3 | Siege Spine | `siege-spine-side` | 429 (426) | 1,092 / 9 | 79 (70) |
+| 4 | Bastion | `bastion-rails` | 483 (487) | 1,142 / 9 | 80 (71) |
+
+The polish keeps every shape and part of the drafts: the lit-from-above
+shading on the Breaker's deck plates and saucer turrets, the Citadel's deck
+underside and the Spine's segment bellies; glints in the projector lenses, the
+Citadel's lens and the void's rim; the Spine's dome crown; a black gap between
+the Bastion's dome and its cannons' fins (they ran together). The unchosen
+variants (`void-citadel`, `siege-spine-front`, `bastion-framed`) stay in
+`assets/graphics/boss-banners/` as drawn alternatives; they are not on the
+disk.
+
+### 9.4 Measured per region
+
+Entry: Atari800, the boss routes (`--level=1:sector=6 [--boss-region=N]`,
+sessions `s41-diag-1` / `region-N-diag-1`, the CSV's entry row). M6: the
+torpedo's +2 entry sectors at the measured 3.75-4.0 host frames a sector
+(EST). Stress: the 6502 core's worst reachable boss frame (native cycles; the
+tools of STATUS), M6 headroom = 8,500 − it.
+
+| region | boss | entry, host frames (sectors) | main | under 350 | with M6 (EST) | worst reachable | M6 headroom |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | Blockade Breaker | **296** (76) | 257 (67) | 54 | ~304 | 7,150 | 1,350 |
+| 2 | Void Citadel | **311** (80) | 272 (71) | 39 | ~319 | 7,694 (L4) / 8,029 (L5) | 471 |
+| 3 | Siege Spine | **307** (79) | 268 (70) | 43 | ~315 | 7,771 (L7) / 8,025 (L9) | 475 |
+| 4 | Bastion | **310** (80) | 272 (71) | 40 | ~318 | 8,060 (L10) | 440 |
+
+The banner costs each entry **+38-39 host frames**: its 9 sectors (~34) and the
+set-up (~5). The stress figures and the M6 headroom are main's to the cycle
+(the fight's code and data are byte-identical). The routes' boss frames:
+worst fence margin 9,829 / 6,545 / 8,993 / 8,324, DMA-on 29,320 / 29,654 /
+30,118 / 29,590, 0 misses (`measure-boss-fight.mjs`).
+
+The banner in Atari800 (`DFTRACE_SHOT_PREFIX` / `DFTRACE_SHOT_HOSTS` on the
+routes, host frames 800-1075; `build/boss-banners/shots/`, not committed):
+the picture at hires x 48-207; every text line's glyph cells centred on the
+window's centre (WARNING and the odd names half a glyph right by HSCROL 4, as
+modelled); the bar filling from the left.
+

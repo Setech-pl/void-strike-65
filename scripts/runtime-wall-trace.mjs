@@ -4317,7 +4317,11 @@ function main() {
       addressEnvironment.DFTRACE_LASER_STATE = hex(bossLabels, "boss_laser_state");
       addressEnvironment.DFTRACE_LASER_HPOS = hex(bossLabels, "boss_laser_hpos");
       addressEnvironment.DFTRACE_PC_LASER_DAMAGE = hex(bossLabels, "boss_laser_damage");
-      addressEnvironment.DFTRACE_PC_BOSS_HEAD = hex(bossLabels, "boss_head");
+      // feat/boss-banners (decision AY): the entry's reads of the boss data
+      // start at the banner's (banner_reads, before the boss code and slot E
+      // are read); slot A's head is no longer run. The boss-path driver and
+      // slot E's hull-map clause open there, where they opened at boss_head.
+      addressEnvironment.DFTRACE_PC_BOSS_HEAD = hex(bossLabels, "banner_reads");
       addressEnvironment.DFTRACE_BOSS_SHOWN_POS = hex(bossLabels, "boss_shown_pos");
       // S5-2: the finale's byte (the boss_finale / boss_spawns columns).
       addressEnvironment.DFTRACE_BOSS_FINALE = hex(bossLabels, "_boss_finale");

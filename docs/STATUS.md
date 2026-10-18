@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-18 (feat/boss-order-scale merged into main at 05346cc after the owner smoke PASS of 2026-10-17 on all five ATRs, OWNER-ACCEPTED; Phase B - the owner's decisions AW and AX 1-21: the bosses in the order Blockade Breaker, Void Citadel, Siege Spine, Bastion by data (order.json); the curve by data, MEDIUM 93.2 / 99.4 / 106.1 / 121.8 s, EASY 78.3 / 84.3 / 97.2 / 96.4, HARD 125.0 / 126.4 / 138.8 / 160.5 (the Breaker 73 %, the Spine's reload x 0.85); the drawn hit box; the Light laser fighter's dead zone; the Bastion's L, palette O and one-slab wrecks (0 B); entry 257 / 272 / 268 / 272 host frames (43 / 28 / 32 / 28 left under 300); M6 headroom 1,350 / 471 / 475 / 440 against the reticle's ~300 (EST); worst fence margin 1,470, DMA-on 31,059, the trace 58 replays with 0 misses and 0 clause failures, npm test 1,450 of 1,451 twice (the recorded preview failure; reconciled, 0 NEW, 0 MOVED), 0 resident bytes, ATR eb77e4c2; before it fix/gfx-regression (owner review: no accidental graphics change outside the boss band, docs/diagnostics/gfx-regression-2026-10-16.md, tests/gfx-pins.test.mjs; game bytes unchanged, ATR 33b1acb3), feat/boss-art and the earlier candidates - their sections below)
+Last update: 2026-10-18 (feat/boss-banners Phase B, OWNER-SMOKE CANDIDATE, not merged: every boss entry shows the boss's banner - its 160 x 64 picture, WARNING / the name / INCOMING and a loading bar that fills once per sector of the boss's data - by the owner's decision AY (the entry's limit 350 host frames, superseding AV 5; the Spine side-on, the Bastion's rails off the edges, the Citadel with its column); entry 296 / 311 / 307 / 310 host frames (76 / 80 / 79 / 80 sectors), ~304-319 with the M6 torpedo; 0 resident bytes; slot A and every boss data run byte-identical to main; worst fence margin 1,470, DMA-on 31,059, stress and M6 headroom unchanged; npm test 1,472 of 1,473 twice, reconciled 0 NEW, 0 MOVED. Before it: feat/boss-order-scale merged into main at 05346cc after the owner smoke PASS of 2026-10-17, OWNER-ACCEPTED.)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -392,6 +392,40 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## The boss loading-screen banners (feat/boss-banners) — `OWNER-SMOKE CANDIDATE` (2026-10-18)
+
+Plan [plans/boss-banners.md](plans/boss-banners.md) (§9 Phase B); journal §AL 1-2, **§AY** (the owner's choices of 2026-10-18 after Phase A; supersedes §AV 5). Smoke checklist [hardware-testing.md](hardware-testing.md) §39. Not merged; awaiting the owner's smoke.
+
+**What the game does now.** Every boss entry shows the boss's banner: WARNING on the text screen while the region's theme run and its **banner run** load (~0.9 s, the dotted row stepping), then the narrow-playfield banner - the boss's 160 × 64 picture (mode F, white on black), `WARNING` in ANTIC 7, the name and `INCOMING` in ANTIC 6 (centred; the odd lengths by HSCROL 4), and a 160-pixel loading bar that fills 2-3 pixels after every sector of the boss's data (65-69 sectors) and is full on the last - then the fight as before. Pictures (`assets/graphics/boss-banners/`, `banners.json`): the Blockade Breaker, the Void Citadel with its gravity column, the Siege Spine side-on, the Bastion with its rails off the edges, polished from the approved drafts. The bar replaces decision O's dotted row on the boss loading screen only.
+
+**How.** The theme run (2 sectors, unchanged place and resident path) ends in the cold tail (67 B) and a 5-B spec naming the region's banner run (**9 sectors**, a reservation of 10 a region at **280-319**, between the boot transport and the levels), which lands in slot C's area and is checked against the spec's disk-guard fold. Its set-up (352 B, ~152,000 cycles with the display off) draws the screen; its reads (269 B, copied to `$7A90`) read the boss code and slot A's head's eight runs one sector a call - the same runs, order, folds and checks; SKCTL `$03` after every call - then hand over to `boss_head_check` with the PMG area and the text rows cleared. **Slot A, the install, slots C-E and every band, charset and block run are byte-identical to main; 0 resident bytes** (the reader 1,498 B, the Light kernel 957 B, the initial block 13,623 B, 107 boot sectors - all unchanged; the guard's sums change value).
+
+**Per region (M; entry: Atari800, the boss routes and the trace; M6: +2 sectors at 3.75-4.0 host frames a sector, EST; stress: the 6502 core, native cycles, unchanged to the cycle).** This replaces the entry column of the boss-order-scale table below.
+| region | boss | entry, host frames (sectors) | main | under 350 | with M6 (EST) | worst reachable | M6 headroom |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | Blockade Breaker | 296 (76) | 257 (67) | 54 | ~304 | 7,150 | 1,350 |
+| 2 | Void Citadel | 311 (80) | 272 (71) | 39 | ~319 | 7,694 (L4) / 8,029 (L5) | 471 |
+| 3 | Siege Spine | 307 (79) | 268 (70) | 43 | ~315 | 7,771 (L7) / 8,025 (L9) | 475 |
+| 4 | Bastion | 310 (80) | 272 (71) | 40 | ~318 | 8,060 (L10) | 440 |
+
+**Gates (M; before = main `f8557e3`, ATR `eb77e4c2`).**
+| gate | before | after | source |
+| --- | ---: | ---: | --- |
+| worst fence margin | 1,470 (2-sweep-fire6) | 1,470 (2-sweep-fire6) | PAL audit, the trace |
+| DMA-on maximum | 31,059 | 31,059 | the trace |
+| PAL audit / clause failures | 0 misses, 58 replays / 0 | 0 misses, 58 replays / 0 | the trace |
+| boss entry in the trace (4 replays) | 257 | 296 (<= 350) | the trace |
+| boss routes (s41-diag-1, region-2..4-diag-1), worst margin / DMA-on | – | 9,829 / 29,320, 6,545 / 29,654, 8,993 / 30,118, 8,324 / 29,590; 0 misses | the routes |
+| boss-frame stress (limit 8,500) | worst 8,060 | 8,060 | the 6502 tools |
+| resident bytes | – | 0 | the manifest |
+| ATR / boot BIN | `eb77e4c2` / `a72b9ed8` | `e6463baa` / `686a7884` | `dist/` |
+
+One trace fix came with it: the trace found the boss entry by slot A's head (`DFTRACE_PC_BOSS_HEAD`), which the banner path no longer runs - the slot E path sessions failed (their driver never armed) and slot E's hull-map clause would have watched nothing; it is `banner_reads` now, before the boss code and slot E are read, and the three slot-E sessions and the routes pass with the clause armed.
+
+**Tests.** `tests/boss-banners.test.mjs` (22): each region's picture by hash, its packed size, its run's and the entry's sectors; the run on the disk, named and checked by the theme run; the title's centring; on the 6502 core for every region the read order, the banner on screen (the list, the picture as stored, the title, the empty bar) before the boss code's first sector is asked for, the bar a step after every data sector and full after the last, the hand-over's clears; a damaged banner run is WRONG DISK before any boss data; the set-up's cycles. Re-pins for layout values only (the reservations, the Bastion's entry sectors, the read order, the title's rows, the banner's two colour stores, slot C's homes); the entry gates 300 -> 350 (§AY). Full `npm test` on the default build after the evidence's regeneration, twice: each **1,472 of 1,473** - the recorded `tests/preview.test.mjs:164` only, matched by name and first assertion; `failures:reconcile` PASS after each (0 NEW, 0 MOVED, 0 disappeared; the trace's clause failures 0).
+
+**ATRs for the owner's smoke** (`build/play/`, not committed; `atari800 -xl -pal -nobasic <absolute path>`): the whole game `boss-banners-full-game-e6463baa.atr` (= `dist/`, SHA-256 `e6463baa39e9f30e…`; region 1's boss at the end of level 1), and the boss routes (`--level=1:sector=6 [--boss-region=N]`, entered at sector 6, each region's first level's tier): `boss-banners-r1-breaker-c43081dd.atr` (`c43081dd1da664b5…`), `boss-banners-r2-citadel-d910952e.atr` (`d910952e438bc51d…`), `boss-banners-r3-spine-a90e514f.atr` (`a90e514f80feca69…`), `boss-banners-r4-bastion-641ca118.atr` (`641ca118be36c9eb…`).
 
 ## The boss order and the difficulty curve; the drawn hit box; the Bastion's L, palette O and its wrecks (feat/boss-order-scale)
 

@@ -379,3 +379,24 @@ the picture at hires x 48-207; every text line's glyph cells centred on the
 window's centre (WARNING and the odd names half a glyph right by HSCROL 4, as
 modelled); the bar filling from the left.
 
+### 9.5 Gates, tests, the evidence, the smoke
+
+* **Gates (M):** worst fence margin 1,470 (≥ 500), DMA-on maximum 31,059
+  (≤ 32,568), boss-frame stress worst 8,060 (≤ 8,500), 0 missed frames, every
+  entry ≤ 350 (296-311), 0 new resident bytes, every run checked by the disk
+  guard and SKCTL `$03` after every read call; no contact clause changed.
+* **A trace fix:** the trace found the boss entry by `boss_head`'s PC, which
+  the banner path no longer runs: the slot-E path sessions failed (their
+  driver never armed) and slot E's hull-map clause watched nothing. It is
+  `banner_reads` now (before the boss code and slot E are read); the three
+  slot-E sessions and the routes pass with the clause armed.
+* **Tests:** `tests/boss-banners.test.mjs` (22); re-pins for layout values
+  only; the entry gates 300 → 350 (§AY). The evidence chain (build:candidate →
+  runtime:wall-trace → menu raster → build → memory-map → showcase:gif →
+  showcase) on the candidate; `npm test` 1,472 of 1,473 twice (the recorded
+  `tests/preview.test.mjs:164`), reconciled 0 NEW, 0 MOVED.
+* **The preview:** `node scripts/boss-banner-preview.mjs` now draws the four
+  chosen screens from the build (`build/boss-banners/`, `banners.json`); the
+  Phase A cost model (§3) is retired - §9.4 is measured.
+* **Smoke:** `docs/hardware-testing.md` §39; the ATRs in STATUS.
+

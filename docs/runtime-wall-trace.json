@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "958086406e4c4c77fb45e7d7142de1c7b8c8675e16308f3501dc9492ed8b7c91",
+    "replay_fingerprint_sha256": "1aa538a2754cc5d76cd5d8e95f36c5d3ebb1f97affffa1c49a7098bfe69bcdf7",
     "ordered_frames": 130699,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -17,23 +17,23 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 27264,
-      "sha256": "686a7884877e3fa48b1f39c407d57545a2da36f7def358deb90b76c55b19a3d0"
+      "sha256": "1085256a59cea6c5077a7690e65e763bedf5f720bf8f8ce16dd146068b8fdc0a"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+      "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 882080,
-      "sha256": "4087835baae553cef14e17100d2b42ef430f61c9fbbf6bb795d7963715b916e3"
+      "bytes": 882526,
+      "sha256": "659ddfa21930aaab11f66f4a63e105004171dc2207e91921246d400c99b55579"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+    "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
   },
   "emulator": {
     "name": "Atari800",
@@ -178,8 +178,8 @@
       "guard_address": 48154,
       "end_exclusive": 48128,
       "capacity_bytes": 3584,
-      "used_bytes": 2613,
-      "free_bytes": 971,
+      "used_bytes": 2602,
+      "free_bytes": 982,
       "probe_bytes": 1656,
       "probe_hex": "acfc86b97f9d8dfd86adf880cdfd86b0",
       "window_read_back_at_frames": [
@@ -235,7 +235,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -579,7 +579,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -923,7 +923,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1267,7 +1267,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1613,7 +1613,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1968,7 +1968,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -2358,7 +2358,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2367,7 +2367,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2376,7 +2376,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2385,7 +2385,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
+          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }
@@ -4632,13 +4632,13 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 4366,
-              "display": 4367,
-              "loaded": 4506,
-              "ready": 4518,
+              "entry": 4365,
+              "display": 4366,
+              "loaded": 4505,
+              "ready": 4517,
               "accept": 4524,
               "reads": 37,
-              "shown_frames": 157,
+              "shown_frames": 158,
               "best": "BEST                  --"
             }
           ]
@@ -4763,11 +4763,11 @@
             }
           ],
           "level_end_summary": {
-            "entry": 6714,
-            "display": 6716,
-            "ready": 6867,
+            "entry": 6713,
+            "display": 6715,
+            "ready": 6866,
             "accept": 6868,
-            "shown_frames": 152,
+            "shown_frames": 153,
             "reads": 10,
             "writes": 1,
             "write_sector": 599,
@@ -4785,8 +4785,8 @@
             "time": "0:41",
             "grade": "A",
             "best": "BEST             A 03315",
-            "music_ticks": 152,
-            "music_tick_frames": 152,
+            "music_ticks": 153,
+            "music_tick_frames": 153,
             "first_screen": [
               "03315",
               "57",
@@ -4828,11 +4828,11 @@
             }
           ],
           "level_end_summary": {
-            "entry": 6531,
-            "display": 6533,
-            "ready": 6684,
-            "accept": 6692,
-            "shown_frames": 159,
+            "entry": 6530,
+            "display": 6532,
+            "ready": 6683,
+            "accept": 6684,
+            "shown_frames": 152,
             "reads": 10,
             "writes": 1,
             "write_sector": 599,
@@ -4850,8 +4850,8 @@
             "time": "0:44",
             "grade": "A",
             "best": "BEST             A 03325",
-            "music_ticks": 159,
-            "music_tick_frames": 159,
+            "music_ticks": 152,
+            "music_tick_frames": 152,
             "first_screen": [
               "03325",
               "55",
@@ -4893,11 +4893,11 @@
             }
           ],
           "level_end_summary": {
-            "entry": 7190,
-            "display": 7192,
-            "ready": 7343,
+            "entry": 7189,
+            "display": 7191,
+            "ready": 7342,
             "accept": 7348,
-            "shown_frames": 156,
+            "shown_frames": 157,
             "reads": 10,
             "writes": 1,
             "write_sector": 599,
@@ -4915,8 +4915,8 @@
             "time": "0:58",
             "grade": "A",
             "best": "BEST             A 03265",
-            "music_ticks": 156,
-            "music_tick_frames": 156,
+            "music_ticks": 157,
+            "music_tick_frames": 157,
             "first_screen": [
               "03265",
               "57",
@@ -4993,11 +4993,11 @@
             }
           ],
           "level_end_summary": {
-            "entry": 7190,
-            "display": 7192,
-            "ready": 7343,
+            "entry": 7189,
+            "display": 7191,
+            "ready": 7342,
             "accept": 7348,
-            "shown_frames": 156,
+            "shown_frames": 157,
             "reads": 9,
             "writes": 1,
             "write_sector": 599,
@@ -5015,8 +5015,8 @@
             "time": "0:58",
             "grade": "A",
             "best": "BEST             A 03265",
-            "music_ticks": 156,
-            "music_tick_frames": 156,
+            "music_ticks": 157,
+            "music_tick_frames": 157,
             "first_screen": [
               "03265",
               "57",
@@ -5157,13 +5157,13 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 4366,
-              "display": 4367,
-              "loaded": 4506,
-              "ready": 4518,
+              "entry": 4365,
+              "display": 4366,
+              "loaded": 4505,
+              "ready": 4517,
               "accept": 4524,
               "reads": 37,
-              "shown_frames": 157,
+              "shown_frames": 158,
               "best": "BEST                  --"
             },
             {
@@ -5407,13 +5407,13 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 4941,
-              "display": 4942,
-              "loaded": 5081,
-              "ready": 5093,
+              "entry": 4940,
+              "display": 4941,
+              "loaded": 5080,
+              "ready": 5092,
               "accept": 5100,
               "reads": 37,
-              "shown_frames": 158,
+              "shown_frames": 159,
               "best": "BEST                  --"
             }
           ]
@@ -5447,13 +5447,13 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 5974,
-              "display": 5975,
-              "loaded": 6114,
-              "ready": 6126,
+              "entry": 5973,
+              "display": 5974,
+              "loaded": 6113,
+              "ready": 6125,
               "accept": 6132,
               "reads": 37,
-              "shown_frames": 157,
+              "shown_frames": 158,
               "best": "BEST                  --"
             }
           ]
@@ -5687,13 +5687,13 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 4346,
-              "display": 4347,
-              "loaded": 4486,
-              "ready": 4498,
+              "entry": 4345,
+              "display": 4346,
+              "loaded": 4485,
+              "ready": 4497,
               "accept": 4500,
               "reads": 37,
-              "shown_frames": 153,
+              "shown_frames": 154,
               "best": "BEST                  --"
             }
           ]
@@ -5721,7 +5721,7 @@
         "capital_rows_after_rebuild": 488,
         "reset_transition": {
           "frame": 3261,
-          "host_frames": 780
+          "host_frames": 781
         },
         "level_summary": {
           "start_summaries": [
@@ -5736,13 +5736,13 @@
               "best": "BEST                  --"
             },
             {
-              "entry": 4957,
-              "display": 4959,
-              "loaded": 5038,
-              "ready": 5110,
+              "entry": 4956,
+              "display": 4958,
+              "loaded": 5037,
+              "ready": 5109,
               "accept": 5116,
               "reads": 21,
-              "shown_frames": 157,
+              "shown_frames": 158,
               "best": "BEST                  --"
             }
           ]
@@ -7074,7 +7074,7 @@
       "session": "director-complete-2-natural-sweep-fire0",
       "boss_sector": 6,
       "boss_entry_frame": 2962,
-      "boss_entry_host_frames": 296,
+      "boss_entry_host_frames": 295,
       "boss_engaged_frame": 2963,
       "boss_defeated_frame": 5950,
       "boss_hold_frame": 6062,
@@ -7089,7 +7089,7 @@
           "boss_sector": 6,
           "boss_sector_entered_frame": 3344,
           "boss_entry_frame": 3405,
-          "boss_entry_host_frames": 296,
+          "boss_entry_host_frames": 295,
           "boss_engaged_frame": 3406,
           "boss_defeated_frame": 5474,
           "boss_hold_frame": 5586,
@@ -7118,7 +7118,7 @@
           "boss_sector": 6,
           "boss_sector_entered_frame": 2982,
           "boss_entry_frame": 3040,
-          "boss_entry_host_frames": 296,
+          "boss_entry_host_frames": 295,
           "boss_engaged_frame": 3041,
           "boss_defeated_frame": 5307,
           "boss_hold_frame": 5419,
@@ -7147,7 +7147,7 @@
           "boss_sector": 6,
           "boss_sector_entered_frame": 2899,
           "boss_entry_frame": 2962,
-          "boss_entry_host_frames": 296,
+          "boss_entry_host_frames": 295,
           "boss_engaged_frame": 2963,
           "boss_defeated_frame": 5950,
           "boss_hold_frame": 6062,
@@ -7618,7 +7618,7 @@
             "$2938"
           ],
           "sessions": 58,
-          "count": 18760
+          "count": 19440
         },
         {
           "routine": "OS ROM",
@@ -7681,14 +7681,6 @@
           "count": 1416
         },
         {
-          "routine": "boss:banner_clear+3",
-          "pcs": [
-            "$7b83"
-          ],
-          "sessions": 17,
-          "count": 1360
-        },
-        {
           "routine": "main:update_score_display+2",
           "pcs": [
             "$560a"
@@ -7745,9 +7737,9 @@
           "count": 619
         },
         {
-          "routine": "boss:boss_banner+185",
+          "routine": "boss:_boss_c_init+78",
           "pcs": [
-            "$10b9"
+            "$1174"
           ],
           "sessions": 17,
           "count": 476
@@ -11124,20 +11116,20 @@
           "wall_cycles": 27375,
           "physical_headroom": 8193,
           "start": {
-            "clock": 176810981,
-            "host_frame": 4971,
+            "clock": 176775413,
+            "host_frame": 4970,
             "scanline": 21,
             "cycle": 59
           },
           "end": {
-            "clock": 176838356,
-            "host_frame": 4971,
+            "clock": 176802788,
+            "host_frame": 4970,
             "scanline": 261,
             "cycle": 74
           },
           "next_start": {
-            "clock": 176846549,
-            "host_frame": 4972
+            "clock": 176810981,
+            "host_frame": 4971
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11853,20 +11845,20 @@
           "wall_cycles": 28034,
           "physical_headroom": 7534,
           "start": {
-            "clock": 180296578,
-            "host_frame": 5069,
+            "clock": 180261010,
+            "host_frame": 5068,
             "scanline": 20,
             "cycle": 106
           },
           "end": {
-            "clock": 180324612,
-            "host_frame": 5069,
+            "clock": 180289044,
+            "host_frame": 5068,
             "scanline": 266,
             "cycle": 96
           },
           "next_start": {
-            "clock": 180332141,
-            "host_frame": 5070
+            "clock": 180296573,
+            "host_frame": 5069
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11954,20 +11946,20 @@
           "wall_cycles": 28017,
           "physical_headroom": 7551,
           "start": {
-            "clock": 197369207,
-            "host_frame": 5549,
+            "clock": 197333639,
+            "host_frame": 5548,
             "scanline": 20,
             "cycle": 95
           },
           "end": {
-            "clock": 197397224,
-            "host_frame": 5549,
+            "clock": 197361656,
+            "host_frame": 5548,
             "scanline": 266,
             "cycle": 68
           },
           "next_start": {
-            "clock": 197404786,
-            "host_frame": 5550
+            "clock": 197369218,
+            "host_frame": 5549
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -12685,23 +12677,23 @@
           "frame": 4031,
           "gameplay_frame": 191,
           "difficulty": 0,
-          "wall_cycles": 27557,
-          "physical_headroom": 8011,
+          "wall_cycles": 27569,
+          "physical_headroom": 7999,
           "start": {
-            "clock": 181719349,
-            "host_frame": 5109,
+            "clock": 181683769,
+            "host_frame": 5108,
             "scanline": 21,
-            "cycle": 43
+            "cycle": 31
           },
           "end": {
-            "clock": 181746906,
-            "host_frame": 5109,
+            "clock": 181711338,
+            "host_frame": 5108,
             "scanline": 263,
             "cycle": 12
           },
           "next_start": {
-            "clock": 181754905,
-            "host_frame": 5110
+            "clock": 181719337,
+            "host_frame": 5109
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -12789,20 +12781,20 @@
           "wall_cycles": 27383,
           "physical_headroom": 8185,
           "start": {
-            "clock": 191322658,
-            "host_frame": 5379,
+            "clock": 191287090,
+            "host_frame": 5378,
             "scanline": 20,
             "cycle": 106
           },
           "end": {
-            "clock": 191350041,
-            "host_frame": 5379,
+            "clock": 191314473,
+            "host_frame": 5378,
             "scanline": 261,
             "cycle": 15
           },
           "next_start": {
-            "clock": 191358221,
-            "host_frame": 5380
+            "clock": 191322653,
+            "host_frame": 5379
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -13208,20 +13200,20 @@
           "wall_cycles": 27124,
           "physical_headroom": 8444,
           "start": {
-            "clock": 182644117,
-            "host_frame": 5135,
+            "clock": 182608549,
+            "host_frame": 5134,
             "scanline": 21,
             "cycle": 43
           },
           "end": {
-            "clock": 182671241,
-            "host_frame": 5135,
+            "clock": 182635673,
+            "host_frame": 5134,
             "scanline": 259,
             "cycle": 35
           },
           "next_start": {
-            "clock": 182679697,
-            "host_frame": 5136
+            "clock": 182644129,
+            "host_frame": 5135
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -13306,23 +13298,23 @@
           "frame": 4324,
           "gameplay_frame": 228,
           "difficulty": 0,
-          "wall_cycles": 28043,
-          "physical_headroom": 7525,
+          "wall_cycles": 27918,
+          "physical_headroom": 7650,
           "start": {
-            "clock": 192140722,
-            "host_frame": 5402,
+            "clock": 192105154,
+            "host_frame": 5401,
             "scanline": 20,
             "cycle": 106
           },
           "end": {
-            "clock": 192168765,
-            "host_frame": 5402,
-            "scanline": 266,
-            "cycle": 105
+            "clock": 192133072,
+            "host_frame": 5401,
+            "scanline": 265,
+            "cycle": 94
           },
           "next_start": {
-            "clock": 192176279,
-            "host_frame": 5403
+            "clock": 192140722,
+            "host_frame": 5402
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -13410,20 +13402,20 @@
           "wall_cycles": 27570,
           "physical_headroom": 7998,
           "start": {
-            "clock": 214904237,
-            "host_frame": 6042,
+            "clock": 214868669,
+            "host_frame": 6041,
             "scanline": 20,
             "cycle": 101
           },
           "end": {
-            "clock": 214931807,
-            "host_frame": 6042,
+            "clock": 214896239,
+            "host_frame": 6041,
             "scanline": 262,
             "cycle": 83
           },
           "next_start": {
-            "clock": 214939809,
-            "host_frame": 6043
+            "clock": 214904241,
+            "host_frame": 6042
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,

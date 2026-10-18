@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 15586,
+      "crc16": 51902,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 213,
         "manifestBytes": 190,
-        "crc16": 15586,
+        "crc16": 51902,
         "records": [
           {
             "startSector": 108,
@@ -394,7 +394,7 @@
             "packedLength": 847,
             "rawLength": 957,
             "finalDestination": 46200,
-            "crc16": 30898,
+            "crc16": 48336,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -624,9 +624,9 @@
     "identity": {
       "sector": 598,
       "directoryEntry": 9,
-      "block": "565336357b37",
+      "block": "5653363588d5",
       "magic": "VS65",
-      "layoutId": 14203,
+      "layoutId": 54664,
       "layout": {
         "levelBaseSector": 320,
         "levelBufferSectors": 16,
@@ -643,7 +643,9 @@
         "bossRegionSectors": 16,
         "bossRegionCount": 4,
         "bossBlockBaseSector": 696,
-        "bossBlockSectors": 4
+        "bossBlockSectors": 4,
+        "bossBannerBaseSector": 280,
+        "bossBannerSectors": 10
       }
     },
     "fold": "per accepted sector: a += its SIO carry-wrap sum; b += a + carry (16-bit)",
@@ -661,22 +663,22 @@
       {
         "index": 2,
         "name": "boss region 1 (M5b)",
-        "expected": "$C142"
+        "expected": "$DB5C"
       },
       {
         "index": 3,
         "name": "boss region 2 (M5b)",
-        "expected": "$B93A"
+        "expected": "$A122"
       },
       {
         "index": 4,
         "name": "boss region 3 (M5b)",
-        "expected": "$7CFE"
+        "expected": "$44C6"
       },
       {
         "index": 5,
         "name": "boss region 4 (M5b)",
-        "expected": "$8203"
+        "expected": "$CB4C"
       },
       {
         "index": 6,
@@ -696,7 +698,7 @@
       {
         "index": 9,
         "name": "disk identity (audit-hardening)",
-        "expected": "$C7C7"
+        "expected": "$7373"
       }
     ],
     "bossHeadSums": [
@@ -938,6 +940,28 @@
       3,
       2
     ],
+    "banner": {
+      "runAddress": 4096,
+      "runMaxSectors": 10,
+      "largestRunBytes": 1142,
+      "codeBytes": 621,
+      "keepAddress": 31376,
+      "keepBytes": 285,
+      "buffer": 5376,
+      "bufferBytes": 768,
+      "picture": [
+        15104,
+        16779
+      ],
+      "rows": [
+        16824,
+        16943
+      ],
+      "displayList": 31120,
+      "displayListBytes": 239,
+      "baseSector": 280,
+      "regionSectors": 10
+    },
     "charset": {
       "address": 3072,
       "capacityBytes": 1024
@@ -954,6 +978,10 @@
       "blocks": [
         696,
         711
+      ],
+      "banners": [
+        280,
+        319
       ]
     },
     "runs": [
@@ -1008,8 +1036,17 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "437e73e58846676789ae06729a1de40bed4a03a9bdbec1d9a609b815ca5ea165",
+        "sha256": "bef88b24f52cb5398f23c5bf3809f28d1eb2e34d1cbf8fb1f5249af9c8abbea5",
         "file": "boss-region-1-theme.bin"
+      },
+      {
+        "name": "boss-region-1-banner",
+        "startSector": 280,
+        "sectors": 9,
+        "destination": 4096,
+        "bytes": 1152,
+        "sha256": "b9a0304e3f73c8fb0791833c2e05d5a1f77de82c87f0d3beba6095d19c52b457",
+        "file": "boss-region-1-banner.bin"
       },
       {
         "name": "boss-region-1-band-a",
@@ -1053,8 +1090,17 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "7bdf21abffbca745d1fcb025b5268f4916f9249d8781af99768721a4782d1fb8",
+        "sha256": "0306cceb04c641e335d6c5589ec5154e0cd4c860a7f48cf387d0945c67949f6f",
         "file": "boss-region-2-theme.bin"
+      },
+      {
+        "name": "boss-region-2-banner",
+        "startSector": 290,
+        "sectors": 9,
+        "destination": 4096,
+        "bytes": 1152,
+        "sha256": "f0c89fd276a6fbd9e51d10499a0180e2432878418a582081dda5f7dbb85ca459",
+        "file": "boss-region-2-banner.bin"
       },
       {
         "name": "boss-region-2-band-a",
@@ -1098,8 +1144,17 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "d0705a3bace931c2c27a46feadaad266032ae7f47659914d548629ddac96b6af",
+        "sha256": "ad08872d4097b16cb8c402317d65c12ca5bdfd9d2c196d3c2fd2d452ea08dceb",
         "file": "boss-region-3-theme.bin"
+      },
+      {
+        "name": "boss-region-3-banner",
+        "startSector": 300,
+        "sectors": 9,
+        "destination": 4096,
+        "bytes": 1152,
+        "sha256": "0c9bda53a648ee5a45b36a60b76f0bc2bc1afbfd135d6390c78c9ebe18444697",
+        "file": "boss-region-3-banner.bin"
       },
       {
         "name": "boss-region-3-band-a",
@@ -1143,8 +1198,17 @@
         "sectors": 2,
         "destination": 31120,
         "bytes": 256,
-        "sha256": "eb4b74cdecef145fa1ef52a0e6814b7e2f8280ef87d596b6208a277adccebaba",
+        "sha256": "77efff6c9ba4f6c881bb3cc7e0deaa01df7a26bf4cbe027a8ac1b1c1680775cf",
         "file": "boss-region-4-theme.bin"
+      },
+      {
+        "name": "boss-region-4-banner",
+        "startSector": 310,
+        "sectors": 9,
+        "destination": 4096,
+        "bytes": 1152,
+        "sha256": "c09c99f33cda1c675be7a73205da9a01bb0a3e1782aa03939220dd54c2479f53",
+        "file": "boss-region-4-banner.bin"
       },
       {
         "name": "boss-region-4-band-a",
@@ -1206,7 +1270,22 @@
           1,
           3
         ],
-        "entrySectors": 67
+        "entrySectors": 76,
+        "banner": {
+          "picture": "blockade-breaker",
+          "file": "assets/graphics/boss-banners/blockade-breaker.png",
+          "packedBytes": 398,
+          "payloadBytes": 768,
+          "pictureSha256": "e806393d49fadf0d46e31d95d8f840b888904d9c42dafda85877399cfae5e0fd",
+          "dataBytes": 445,
+          "runBytes": 1066,
+          "runSectors": 9,
+          "startSector": 280,
+          "bossDataSectors": 65,
+          "barStep": 631,
+          "nameScrolled": false,
+          "codeBytes": 621
+        }
       },
       {
         "region": 2,
@@ -1238,7 +1317,22 @@
         "rowSwitches": [
           3
         ],
-        "entrySectors": 71
+        "entrySectors": 80,
+        "banner": {
+          "picture": "void-citadel-column",
+          "file": "assets/graphics/boss-banners/void-citadel-column.png",
+          "packedBytes": 368,
+          "payloadBytes": 768,
+          "pictureSha256": "f4c4b36cfabf1f47d3aeec838781c388eec0dbdad244ca898bafc550845e07e2",
+          "dataBytes": 411,
+          "runBytes": 1032,
+          "runSectors": 9,
+          "startSector": 290,
+          "bossDataSectors": 69,
+          "barStep": 594,
+          "nameScrolled": false,
+          "codeBytes": 621
+        }
       },
       {
         "region": 3,
@@ -1278,7 +1372,22 @@
         },
         "gravity": null,
         "rowSwitches": [],
-        "entrySectors": 70
+        "entrySectors": 79,
+        "banner": {
+          "picture": "siege-spine-side",
+          "file": "assets/graphics/boss-banners/siege-spine-side.png",
+          "packedBytes": 429,
+          "payloadBytes": 768,
+          "pictureSha256": "59497bd0e673a39442eee7135caaec809d66210a0db9b2390f22367cb703d0e7",
+          "dataBytes": 471,
+          "runBytes": 1092,
+          "runSectors": 9,
+          "startSector": 300,
+          "bossDataSectors": 68,
+          "barStep": 603,
+          "nameScrolled": true,
+          "codeBytes": 621
+        }
       },
       {
         "region": 4,
@@ -1379,7 +1488,22 @@
           3,
           4
         ],
-        "entrySectors": 71
+        "entrySectors": 80,
+        "banner": {
+          "picture": "bastion-rails",
+          "file": "assets/graphics/boss-banners/bastion-rails.png",
+          "packedBytes": 483,
+          "payloadBytes": 768,
+          "pictureSha256": "59c45fef7d99c62c776fbc9b885ad897ae2783ac4651fee20b3e4db70057b32f",
+          "dataBytes": 521,
+          "runBytes": 1142,
+          "runSectors": 9,
+          "startSector": 310,
+          "bossDataSectors": 69,
+          "barStep": 594,
+          "nameScrolled": true,
+          "codeBytes": 621
+        }
       }
     ]
   },
@@ -24224,11 +24348,11 @@
     "estimated_additive_cycles": 27916,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "911538a16fdafbca6b3daab581c7212f1412567ef1162abe4b5a9c2013328c89",
+      "reportSha256": "85fcea40ead06d440ebb74c7f2668418c8fdff57768ae74666a74978f4a20ebf",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "eb77e4c2b550e2e068de29e7ccb439e0d2d8bdbe2c88c3e8c8a0108b3061a7e2"
+        "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
       },
       "emulator": {
         "name": "Atari800",
@@ -25824,25 +25948,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27264,
-        "sha256": "a72b9ed88e7f7c93f1dbd687460074afddfa3ac7e8d1c70f4c67a88eacd8945c"
+        "sha256": "686a7884877e3fa48b1f39c407d57545a2da36f7def358deb90b76c55b19a3d0"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "eb77e4c2b550e2e068de29e7ccb439e0d2d8bdbe2c88c3e8c8a0108b3061a7e2"
+        "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "911538a16fdafbca6b3daab581c7212f1412567ef1162abe4b5a9c2013328c89"
+    "reportSha256": "85fcea40ead06d440ebb74c7f2668418c8fdff57768ae74666a74978f4a20ebf"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27264,
-      "sha256": "a72b9ed88e7f7c93f1dbd687460074afddfa3ac7e8d1c70f4c67a88eacd8945c"
+      "sha256": "686a7884877e3fa48b1f39c407d57545a2da36f7def358deb90b76c55b19a3d0"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "eb77e4c2b550e2e068de29e7ccb439e0d2d8bdbe2c88c3e8c8a0108b3061a7e2"
+      "sha256": "e6463baa39e9f30ed8d0e32402afe33ac4307af02b6dd310843672922d1e474e"
     }
   }
 }

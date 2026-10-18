@@ -56,13 +56,20 @@ const withFlip = (sector, offset, mask = 0x10) => (n) => {
 
 // The PCs that mean a run was used: slot A's code, the theme played, the
 // install (which runs slots C, D and E and reads the region's tables).
+// RE-POINTED feat/boss-banners (decision AY): slot C's area runs the
+// banner's set-up first (the banner run lands there before slot C is read), so
+// a PC at the controller's entry means the controller only after the banner's
+// hand-over; the banner's own code is a use of the banner run.
 function usage() {
-  const seen = { slotA: false, music: false, install: false, init: false };
+  const seen = { slotA: false, music: false, install: false, init: false, banner: false };
+  let handedOver = false;
   const watch = (pc) => {
     if (pc >= SLOT_A && pc < SLOT_A + 2048) seen.slotA = true;
     if (pc === MUSIC_START) seen.music = true;
     if (pc === label("boss", "boss_install")) seen.install = true;
-    if (pc === label("boss", "_boss_c_init")) seen.init = true;
+    if (pc === label("boss", "banner_hand_over")) handedOver = true;
+    if (pc === label("boss", "_boss_c_init") && handedOver) seen.init = true;
+    if (pc === label("boss", "boss_banner")) seen.banner = true;
   };
   return { seen, watch };
 }
@@ -142,6 +149,8 @@ test("AUD-02: another disk at the boss entry is refused before a byte of it is p
 test("AUD-02: one changed byte in an executable run or a data run of the boss is refused before the run is used", () => {
   const cases = [
     ["boss-region-1-theme", 0, 9, "music"],
+    // feat/boss-banners: the banner run, checked by the theme run's spec.
+    ["boss-region-1-banner", 2, 40, "banner"],
     ["boss-code", 5, 33, "slotA"],
     ["boss-install", 1, 17, "install"],
     ["boss-slot-c", 3, 50, "install"],

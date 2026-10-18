@@ -123,6 +123,8 @@ import {
   BOSS_ENTRY_COLD_ADDRESS,
   BOSS_ENTRY_COLD_BYTES,
   BOSS_ENTRY_COLD_OFFSET,
+  BOSS_BANNER_SPEC_OFFSET,
+  BOSS_BANNER_SPEC_BYTES,
   BOSS_SLOT_F_ADDRESS,
   BOSS_SLOT_F_BYTES,
   BOSS_LOOK_TAIL_MAX_BYTES,
@@ -143,6 +145,22 @@ import {
   renderBossLayoutHeader,
   renderBossLayoutInclude,
 } from "./boss-assets.mjs";
+import {
+  BANNER_BASE_SECTOR,
+  BANNER_BUFFER,
+  BANNER_DL,
+  BANNER_HEIGHT,
+  BANNER_PAYLOAD_BYTES,
+  BANNER_PICTURE_HIGH,
+  BANNER_REGION_SECTORS,
+  BANNER_RUN_ADDRESS,
+  BANNER_RUN_MAX_SECTORS,
+  BANNER_SCREEN_END,
+  BANNER_WARNING_ROW,
+  bannerLineAddress,
+  compileBossBanner,
+  renderBossBannerInclude,
+} from "./boss-banner.mjs";
 import {
   evaluateReleaseGate,
   loadRecordedGateFailures,
@@ -626,6 +644,8 @@ const diskLayout = Object.freeze({
   bossRegionBaseSector, bossRegionSectors: BOSS_REGION_SECTORS, bossRegionCount,
   // S5-1: the region blocks' reservation (slot F's runs).
   bossBlockBaseSector: BOSS_BLOCK_BASE_SECTOR, bossBlockSectors: BOSS_BLOCK_SECTORS,
+  // feat/boss-banners: the regions' banner runs' reservation.
+  bossBannerBaseSector: BANNER_BASE_SECTOR, bossBannerSectors: BANNER_REGION_SECTORS,
 });
 const diskIdentity = identityBlock(diskLayout);
 // The window copies this many bytes of the region's staging run over the
@@ -1964,7 +1984,7 @@ async function build() {
   // twin cannons' turn-taking when a region on the disk has them (region 1;
   // S5-5: region 2's cannons, independent from tier 2 - BOSS_RAIL).
   const bossTwin = bossRegions.some((region) => region.twin !== null);
-  const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
+  const bossLayoutInclude = Buffer.from(renderBossLayoutInclude() + renderBossBannerInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
   writeFile(path.join(buildDirectory, "boss-layout.inc"), bossLayoutInclude);
   writeFile(path.join(buildDirectory, "boss-layout.h"), bossLayoutHeader);
@@ -2936,16 +2956,23 @@ async function build() {
       "ENTITY_STATE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
       "integration_pickup_reveal_body",
       // feat/interceptor-armour: the entry's cold tail (BOSS_ENTRY_COLD).
-      "frontend_data_ptr", "render_frontend_records"],
+      "frontend_data_ptr", "render_frontend_records",
+      // feat/boss-banners: the banner's picture through the resident decoder;
+      // the hand-over clears the PMG area as the head did.
+      "broadside_unpack_command", "broadside_read_source", "broadside_destination", "clear_pmg"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end",
-      "sr_slot_a_overlaid"],
+      "sr_slot_a_overlaid",
+      // feat/boss-banners: the boss code's run, read under the banner.
+      "overlay_directory"],
     // B2 (owner decision 2026-10-06): the boss restores COLPM1 / COLPM2 to
     // the Heavy's hull colour on leaving the boss sector.
     // feat/boss-escort-flow: slot C reports weapon kills and quiet frames.
     director: ["_heavy_hull_colour", "_director_c_boss_weapon_down", "_director_c_boss_escort_frame"],
     // audit-hardening (AUD-02): the head checks its runs with the disk guard.
-    kernel: ["guard_reset", "guard_compare"],
+    kernel: ["guard_reset", "guard_compare",
+      // feat/boss-banners: the boss code's run checked as the reader checks it.
+      "guard_begin", "guard_check"],
   };
   const importLinks = { main: labels, reader: sectorReaderLabels, director: directorLabels,
     kernel: lightKernelLabels };
@@ -3312,8 +3339,9 @@ async function build() {
   let bossLink = await linkBoss(bossRunsInclude);
   // S5-3: the image's fixed homes, then (a field build) the slot F code; the
   // field's code joins region 3's block after its look tail's 110 B.
+  // feat/boss-banners: + the banner's area ($1000-$13FF), before the cold tail.
   const bossFixedImageBytes = capitalSlotImage.length + bossInstallSectors * 128 + BOSS_SLOT_C_BYTES +
-    BOSS_SLOT_D_BYTES + BOSS_SLOT_E_BYTES + BOSS_ENTRY_COLD_BYTES;
+    BOSS_SLOT_D_BYTES + BOSS_SLOT_E_BYTES + BANNER_RUN_MAX_SECTORS * 128 + BOSS_ENTRY_COLD_BYTES;
   let bossFieldCode = null;
   if (bossField !== null) {
     // S5-4: the field's own bytes (a gravity build's code follows them).
@@ -3524,21 +3552,62 @@ async function build() {
   // region's theme run at BOSS_ENTRY_COLD_OFFSET (zero there until now).
   // (S5-3: a field build's slot F code follows it in the image.)
   const bossEntryCold = bossImage.subarray(bossFixedImageBytes - BOSS_ENTRY_COLD_BYTES, bossFixedImageBytes);
-  const regionRunData = (region, run) => {
+  // feat/boss-banners (owner decisions AL 2 and AY): each region's banner run -
+  // the boss link's banner area as linked (the set-up, then the reads' load
+  // image) and the region's data block behind it (the title's records and the
+  // packed picture, scripts/boss-banner.mjs) - 8 sectors a region from 288;
+  // the region's theme run names it (its spec: the first sector, the count,
+  // the run's fold), and the bar's step is the region's sectors after it.
+  const bannerAreaOffset = bossFixedImageBytes - BOSS_ENTRY_COLD_BYTES - BANNER_RUN_MAX_SECTORS * 128;
+  const bannerCodeBytes = bossLabels.get("boss_banner_data") - BANNER_RUN_ADDRESS;
+  if (bossLabels.get("boss_banner") !== BANNER_RUN_ADDRESS || !(bannerCodeBytes > 0) ||
+    bossLabels.get("__BOSS_BANNER_RAM_LAST__") > BANNER_RUN_ADDRESS + bannerCodeBytes) {
+    throw new Error("boss-banners: the banner's set-up must start the banner area and its data block end it");
+  }
+  const bannerCode = bossImage.subarray(bannerAreaOffset, bannerAreaOffset + bannerCodeBytes);
+  const bossDataSectorsOf = (region) => bossCodeSectors + bossInstallSectors + bossSlotCSectors +
+    bossSlotDSectors + bossSlotESectors + BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS +
+    region.runs.charset.sectors + region.runs.block.sectors;
+  const bossBanners = bossRegions.map((region, index) => {
+    const banner = compileBossBanner({ rootDirectory, bossDirectory: `region-${bossOrder[index]}`,
+      name: region.name, regionIndex: index, dataAddress: BANNER_RUN_ADDRESS + bannerCodeBytes,
+      bossDataSectors: bossDataSectorsOf(region) });
+    const bytes = bannerCodeBytes + banner.data.length;
+    const sectors = Math.ceil(bytes / 128);
+    if (sectors > BANNER_RUN_MAX_SECTORS) {
+      throw new Error(`boss-banners: region ${index + 1}'s banner run is ${bytes} B; it lands in ` +
+        `${BANNER_RUN_MAX_SECTORS * 128} (${BANNER_RUN_MAX_SECTORS} sectors)`);
+    }
+    const data = Buffer.alloc(sectors * 128);
+    data.set(bannerCode, 0);
+    data.set(banner.data, bannerCodeBytes);
+    return { ...banner, pictureBytes: banner.bytes, blockBytes: banner.data.length, bytes, sectors, data,
+      bossDataSectors: bossDataSectorsOf(region),
+      startSector: BANNER_BASE_SECTOR + index * BANNER_REGION_SECTORS };
+  });
+  const regionRunData = (region, run, index) => {
+    if (run === "banner") return bossBanners[index].data;
     const data = Buffer.from(region.runs[run].data);
     if (run === "theme") {
-      if (data.subarray(BOSS_ENTRY_COLD_OFFSET, BOSS_ENTRY_COLD_OFFSET + BOSS_ENTRY_COLD_BYTES).some((byte) => byte !== 0)) {
+      if (data.subarray(BOSS_ENTRY_COLD_OFFSET, BOSS_BANNER_SPEC_OFFSET + BOSS_BANNER_SPEC_BYTES).some((byte) => byte !== 0)) {
         throw new Error(`interceptor-armour: region ${region.name}'s theme run is not empty at the entry's cold tail`);
       }
       data.set(bossEntryCold, BOSS_ENTRY_COLD_OFFSET);
+      const banner = bossBanners[index];
+      const fold = guardFold(banner.data);
+      data.set([banner.startSector & 0xff, banner.startSector >> 8, banner.sectors, fold.lo, fold.hi],
+        BOSS_BANNER_SPEC_OFFSET);
     }
     return data;
   };
-  const bossRegionRuns = bossRegions.flatMap((region, index) => ["theme", "bandA", "bandB", "charset", "block"]
+  const regionRunSectors = (region, run, index) => (run === "banner" ? bossBanners[index].sectors : region.runs[run].sectors);
+  const regionRunStart = (index, run) => (run === "banner" ? bossBanners[index].startSector : bossRegionRunSector(index, run));
+  const regionRunAddress = (region, run) => (run === "banner" ? BANNER_RUN_ADDRESS : region.runs[run].address);
+  const bossRegionRuns = bossRegions.flatMap((region, index) => ["theme", "banner", "bandA", "bandB", "charset", "block"]
     .map((run) => ({
       name: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`,
-      startSector: bossRegionRunSector(index, run), sectors: region.runs[run].sectors,
-      destination: region.runs[run].address, data: regionRunData(region, run),
+      startSector: regionRunStart(index, run), sectors: regionRunSectors(region, run, index),
+      destination: regionRunAddress(region, run), data: regionRunData(region, run, index),
       file: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}.bin`,
       region: index + 1,
     })));
@@ -3560,6 +3629,10 @@ async function build() {
     const inRegion = run.region !== undefined && (run.name.endsWith("-block")
       ? run.startSector >= BOSS_BLOCK_BASE_SECTOR + (run.region - 1) * BOSS_BLOCK_SECTORS &&
         run.startSector + run.sectors <= BOSS_BLOCK_BASE_SECTOR + run.region * BOSS_BLOCK_SECTORS
+      : run.name.endsWith("-banner")
+      ? run.startSector >= BANNER_BASE_SECTOR + (run.region - 1) * BANNER_REGION_SECTORS &&
+        run.startSector + run.sectors <= BANNER_BASE_SECTOR + run.region * BANNER_REGION_SECTORS &&
+        BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS <= levelBaseSector
       : run.startSector >= bossRegionBaseSector + (run.region - 1) * BOSS_REGION_SECTORS &&
         run.startSector + run.sectors <= bossRegionBaseSector + run.region * BOSS_REGION_SECTORS);
     if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode : inRegion) ||
@@ -4057,6 +4130,11 @@ async function build() {
   });
   const { initialBoot, manifest: chunkManifest, transportPayload,
     totalOccupiedSectors: totalTransportSectors } = transport;
+  // feat/boss-banners: the boot transport must end before the banner runs'
+  // reservation (sector 288), as before the levels' (320).
+  if (totalTransportSectors >= BANNER_BASE_SECTOR) {
+    throw new Error(`boss-banners: the boot transport's ${totalTransportSectors} sectors reach the banner runs at ${BANNER_BASE_SECTOR}`);
+  }
   const [broadsideChunk, pickupPhaseChunk] = transport.chunkImages;
   const [broadsideRecord, pickupPhaseRecord] = transport.records;
   const directorCodeChunks = directorModule.codeSegments.map((segment, index) => ({
@@ -4777,10 +4855,22 @@ async function build() {
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       order: bossOrder,
+      // feat/boss-banners (decisions AL 2, AY): the banner's RAM at the entry.
+      banner: { runAddress: BANNER_RUN_ADDRESS, runMaxSectors: BANNER_RUN_MAX_SECTORS,
+        largestRunBytes: Math.max(...bossBanners.map((banner) => banner.bytes)), codeBytes: bannerCodeBytes,
+        keepAddress: bossLabels.get("__BOSS_BANNER_KEEP_RUN__"), keepBytes: bossLabels.get("__BOSS_BANNER_KEEP_SIZE__") +
+          bossLabels.get("__BOSS_BANNER_KEEP_BSS_SIZE__"),
+        buffer: BANNER_BUFFER, bufferBytes: BANNER_PAYLOAD_BYTES,
+        picture: [BANNER_PICTURE_HIGH, bannerLineAddress(BANNER_HEIGHT - 1) + 31],
+        rows: [BANNER_WARNING_ROW, BANNER_SCREEN_END - 1],
+        displayList: BANNER_DL, displayListBytes: bossLabels.get("banner_dl_tail_end") - bossLabels.get("banner_dl_tail") + 5 + BANNER_HEIGHT * 3,
+        baseSector: BANNER_BASE_SECTOR, regionSectors: BANNER_REGION_SECTORS },
       charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
       reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1],
-        blocks: [BOSS_BLOCK_BASE_SECTOR, BOSS_BLOCK_BASE_SECTOR + bossRegionCount * BOSS_BLOCK_SECTORS - 1] },
+        blocks: [BOSS_BLOCK_BASE_SECTOR, BOSS_BLOCK_BASE_SECTOR + bossRegionCount * BOSS_BLOCK_SECTORS - 1],
+        // feat/boss-banners: 8 sectors a region from 288.
+        banners: [BANNER_BASE_SECTOR, BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS - 1] },
       runs: bossDiskRuns.map(({ name, startSector, sectors, destination, data, file }) =>
         ({ name, startSector, sectors, destination, bytes: data.length, sha256: sha256(data), file })),
       regions: bossRegions.map((region, index) => ({
@@ -4841,10 +4931,21 @@ async function build() {
         // whose palette switches (a DLI on the row before each; the trace's
         // row-switch clauses).
         rowSwitches: region.rowPalette.switches,
-        entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
+        // feat/boss-banners: + the banner run (read after the theme run).
+        entrySectors: BOSS_THEME_SECTORS + bossBanners[index].sectors + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
           bossSlotDSectors + bossSlotESectors +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +
           region.runs.block.sectors,
+        // feat/boss-banners (owner decisions AL 2 and AY): the loading screen's
+        // banner - its picture, the stored half's packed bytes, the run, the
+        // bar's 8.8 step over the boss data's sectors after the banner shows.
+        banner: { picture: bossBanners[index].id, file: bossBanners[index].file,
+          packedBytes: bossBanners[index].packed.length, payloadBytes: bossBanners[index].payload.length,
+          pictureSha256: sha256(bossBanners[index].pictureBytes), dataBytes: bossBanners[index].blockBytes,
+          runBytes: bossBanners[index].bytes, runSectors: bossBanners[index].sectors,
+          startSector: bossBanners[index].startSector, bossDataSectors: bossBanners[index].bossDataSectors,
+          barStep: bossBanners[index].step, nameScrolled: bossBanners[index].title.nameScrolled,
+          codeBytes: bannerCodeBytes },
       })),
     },
     lightWingman: lightPlacement,

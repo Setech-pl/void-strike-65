@@ -4822,12 +4822,13 @@ function main() {
     if (session.edgeGuard !== undefined) bossEdgeGuardClause(session, rows);
     if (session.bossEntry !== undefined) rowSwitchClause(session, rows, manifest);
     // S5-1 (plan s5-boss-regions §5): a region route enters its boss once,
-    // in at most 300 host frames (owner decision AV, 2026-10-16; was 280 by
-    // decision AM, < 250 before); on MEDIUM the fight reaches the chain.
+    // in at most 350 host frames (owner decision AY, 2026-10-18, the banner;
+    // was 300 by decision AV, 280 by decision AM, < 250 before); on MEDIUM the
+    // fight reaches the chain.
     if (session.bossRegion !== undefined) {
       invariant(session.bossEntry !== undefined, `${session.id} never entered the boss (subject empty)`);
-      invariant(session.bossEntry.host_frames <= 300,
-        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 300)`);
+      invariant(session.bossEntry.host_frames <= 350,
+        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 350)`);
       const chain = rows.find((row) => row.boss_state >= 3);
       session.regionRoute = { region: session.bossRegion, entry_host_frames: session.bossEntry.host_frames,
         entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };

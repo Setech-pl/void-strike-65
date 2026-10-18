@@ -36,6 +36,11 @@ const BOSS_HOMES = Object.freeze({
   BOSS_BSS: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
   // S5-1 (owner decision Q8): the HUD booster cells' backup, the scratch page's last ten bytes.
   BOSS_HUD_BACKUP: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
+  // feat/boss-banners (decision AY): the banner's set-up, the reads' load
+  // image and the region's data block - the banner run, which lands in slot
+  // C's area at the entry before slot C is read over it.
+  BOSS_BANNER: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
+  BOSS_BANNER_DATA: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   // (M5b-S4b.4's BOSS_D_LOOKS, the look tail first in slot D, left for slot F in S5-1.)
   BOSS_D_CODE: SLOT_D,
   BOSS_D_BSS: SLOT_D,
@@ -44,6 +49,8 @@ const CFG_HOMES = Object.freeze({
   BOSS_SLOT_C_RAM: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_SCRATCH_RAM: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
   BOSS_SLOT_D_RAM: SLOT_D,
+  // feat/boss-banners: the banner run's area, inside slot C's.
+  BOSS_BANNER_RAM: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
 });
 const overlaps = (start, endExclusive, [from, to]) => start < to && from < endExclusive;
 const inside = (start, endExclusive, [from, to]) => start >= from && endExclusive <= to;
@@ -101,7 +108,7 @@ test("no cfg memory area reaches the claim except boss.cfg's slot C, scratch and
       found.push(name);
     }
   }
-  assert.deepEqual(found.sort(), ["BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM"]);
+  assert.deepEqual(found.sort(), ["BOSS_BANNER_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM"]);
 });
 
 test("the boot path and the runtime ranges stay out of $0C00-$1FFF", () => {

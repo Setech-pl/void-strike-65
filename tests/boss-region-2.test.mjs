@@ -155,7 +155,9 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
   // RE-PINNED feat/boss-order-scale (decision AX 12): 69 -> 71 - the L's
   // rail_frame in slot C (its 15th sector) and its head and armour-row write
   // in slot D (its 14th): slot E's fifth sector overran resident state.
-  assert.equal(built.entrySectors, 71, "the Bastion's boss entry is 71 sectors");
+  // RE-PINNED feat/boss-banners (decision AY: the entry's limit 350 host
+  // frames): 71 -> 80 - the banner run's 9 sectors after the theme run.
+  assert.equal(built.entrySectors, 80, "the Bastion's boss entry is 80 sectors");
   // The nozzles are never drawn: their two codes outside the charset's run.
   assert.deepEqual(region2.nozzle.codes, [126, 127], "the nozzle codes are in the run");
 });

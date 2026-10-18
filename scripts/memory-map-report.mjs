@@ -68,7 +68,7 @@ const PHASES = [
   ["overlay", "an overlay slot's current run, restored by the sector reader"],
   ["pause", "while the pause menu is up"],
   ["summary", "while the level-summary screen is up"],
-  ["boss-entry", "the boss entry's transition (the WARNING screen and its reads), M5b-S3"],
+  ["boss-entry", "the boss entry's transition (the WARNING screen, the banner and its reads), M5b-S3, feat/boss-banners"],
 ];
 
 // Every linked segment of the default build: owner and phases. A segment
@@ -141,7 +141,11 @@ const SEGMENTS = {
   BOSS_HUD_BACKUP: ["the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes", "overlay"],
   BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers)", "boss-entry"],
-  BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry", "boss-entry"],
+  BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the region's banner run read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry", "boss-entry"],
+  // feat/boss-banners (decisions AL 2, AY): the banner run's code.
+  BOSS_BANNER: ["boss banner set-up (feat/boss-banners): the screen, the picture unpacked and mirrored, the title, the bar; first in each region's banner run, landed in slot C's area before slot C is read", "boss-entry"],
+  BOSS_BANNER_KEEP: ["boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list", "boss-entry"],
+  BOSS_BANNER_KEEP_BSS: ["boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk", "boss-entry"],
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.
   BOSS_D_CODE: ["boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers; the publish's tail jump to the gravity column's M0, S5-4, a build with the well), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install", "overlay"],
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
@@ -470,6 +474,16 @@ function collectRows(build) {
   add(m.boss.slotF.lookTail.address, m.boss.slotF.lookTail.address + m.boss.slotF.lookTail.bytes - 1, "slot", "boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then)", "overlay", "manifest `boss.slotF.lookTail`");
   // M5b-S4b.5 (owner decision 2026-10-07): slot E over the expanded hull maps.
   add(m.boss.slotE.address, m.boss.slotE.address + m.boss.slotE.capacityBytes - 1, "slot", `boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run \`boss-slot-e\` (${m.boss.slotE.sectors} sectors)`, "overlay", "manifest `boss.slotE`, cfg/boss.cfg");
+  // feat/boss-banners (decisions AL 2, AY): the banner screen and its RAM
+  // during the boss entry.
+  if (m.boss.banner !== undefined) {
+    const b = m.boss.banner;
+    add(b.runAddress, b.runAddress + b.largestRunBytes - 1, "transient", "boss banner run (the largest region's), landed in slot C's area before slot C is read", "boss-entry", "manifest `boss.banner`");
+    add(b.buffer, b.buffer + b.bufferBytes - 1, "transient", "boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen", "boss-entry", "manifest `boss.banner`");
+    add(b.picture[0], b.picture[1], "transient", "boss banner picture: 64 mode F lines 26 B apart (0-48 in the PMG area, 49-63 over the text screen's rows 0-9)", "boss-entry", "manifest `boss.banner`");
+    add(b.rows[0], b.rows[1], "transient", "boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows", "boss-entry", "manifest `boss.banner`");
+    add(b.displayList, b.displayList + b.displayListBytes - 1, "transient", "boss banner display list (40 blank lines, 64 LMS lines, the text, the bar)", "boss-entry", "manifest `boss.banner`");
+  }
   add(m.pause.screenBackupAddress, m.pause.screenBackupAddress + m.pause.screenBackupBytes - 1, "transient", "pause-screen backup (`PAUSE_SCREEN_BACKUP`)", "pause", "manifest `pause`");
   add(m.levelSummary.art.staging, m.levelSummary.art.staging + Math.max(...m.levelSummary.art.runs.map((run) => run.bytes)) - 1, "transient", "summary art run (largest region run) read for the summary screen", "summary", "manifest `levelSummary.art`");
   add(m.levelSummary.saveRecord.buffer, m.levelSummary.saveRecord.buffer + m.levelSummary.saveRecord.bytes - 1, "transient", "save-record sector buffer", "summary", "manifest `levelSummary.saveRecord`");
@@ -594,6 +608,8 @@ export const DECLARED_CFG_OVERLAPS = Object.freeze([
     reason: "the same six guard bytes at $BC1A are declared by both links that share the window" },
   { areas: ["BOSS_SLOT_E_RAM", "CAPITAL_HULL_MAPS_RAM"], name: "boss slot E over the hull maps",
     reason: "M5b-S4b.5 (owner decision 2026-10-07): slot E is read over the expanded hull maps at the boss entry and lives in the boss sector only; only the capital's draw_hull_row reads the maps, and every gameplay start rebuilds them (start_gameplay -> publish_level_hull_style) before any capital row; the trace checks it at every draw" },
+  { areas: ["BOSS_BANNER_RAM", "BOSS_SLOT_C_RAM"], name: "boss banner run in slot C's area",
+    reason: "feat/boss-banners (decision AY): each region's banner run lands in slot C's area at the boss entry and its set-up runs there; the reads it starts put slot C over it, after the part that outlives them is copied behind the banner's display list" },
   { areas: ["BOSS_SLOT_RAM", "BROADSIDE_RAM"], name: "boss in overlay slot A",
     reason: "M5b-S3: the boss overlay is read over slot A, the capital group's 2,048 B inside BROADSIDE; START GAME's restore run puts the capital code back" },
 ]);

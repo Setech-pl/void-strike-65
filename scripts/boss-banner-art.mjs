@@ -222,6 +222,8 @@ function projector(c, cx, top, bottom, half, { lens = true } = {}) {
     c.ellipse(cx, bottom - 3, 3.6, 2.6, 1);
     c.ellipse(cx, bottom - 3, 1.8, 1.2, 0);
     c.set(cx - 2, bottom - 5, 0);
+    // Phase B polish: the lens's glint.
+    c.set(cx, bottom - 3, 1);
   }
 }
 
@@ -232,6 +234,8 @@ function pulseTurret(c, cx, top, strutTop) {
   c.ellipse(cx + 0.5, top + 3.5, 7.5, 3.5, 1);
   c.ellipse(cx + 0.5, top + 3.5, 5.5, 1.6, 0);
   c.hline(cx - 3, cx + 4, top + 3, 1);
+  // Phase B polish: lit from above - the saucer's underside in shadow.
+  c.hline(cx - 5, cx + 6, top + 6, tone.checker);
   c.rect(cx - 2, top + 7, 6, 2, 1).rect(cx - 1, top + 9, 4, 2, 1).rect(cx, top + 11, 2, 2, 1);
 }
 
@@ -273,6 +277,8 @@ function drawBlockadeBreaker() {
     c.rect(x, 9, 11, 9, 1);
     if (k % 2 === 0) hollowRect(c, x + 3, 11, 6, 4, 0);
     else for (let v = x + 3; v < x + 9; v += 2) c.vline(v, 11, 15, 0);
+    // Phase B polish: each plate's lower edge in shadow.
+    c.hline(x, x + 10, 17, tone.checker);
   }
   c.rect(19, 19, 61, 3, tone.hatch);
   c.hline(19, 79, 22, 1);
@@ -285,6 +291,7 @@ function drawBlockadeBreaker() {
   c.ellipse(79.5, 31, 9, 4, 1);
   c.ellipse(79.5, 31, 7, 2, 0);
   c.hline(74, 85, 31, 1);
+  c.hline(72, 87, 34, tone.checker);
   c.rect(76, 35, 8, 2, 1).rect(77, 37, 6, 2, 1).rect(78, 39, 4, 2, 1);
   // The belt: one row of plates, lit edge on top, a rivet line, a shadow.
   for (const [x0, x1] of [[20, 37], [39, 54], [56, 80]]) {
@@ -310,6 +317,8 @@ function drawVoidCitadel({ column = false } = {}) {
   c.poly([[32, 10], [37, 5], [80, 5], [80, 10], [38, 10], [38, 44], [32, 39]], tone.hatch);
   for (let x = 40; x < 80; x += 4) c.set(x, 7, 0).set(x + 1, 7, 0);
   c.hline(36, 79, 12, 1);
+  // Phase B polish: the deck's underside in shadow.
+  c.hline(38, 79, 13, tone.checker);
   // The salvo spire against the hull's end: twin needles on a pod.
   for (const x of [20, 25]) {
     c.poly([[x, 2], [x + 2, 2], [x + 3, 34], [x - 1, 34]], 1);
@@ -336,11 +345,15 @@ function drawVoidCitadel({ column = false } = {}) {
   c.line(74, 31, 77, 33, 1);
   c.ellipse(79.5, 43, 5, 2.5, 1);
   c.hline(76, 83, 43, 0);
+  c.set(79, 43, 1).set(80, 43, 1);
   // The belt.
   c.rect(37, 48, 43, 4, 1);
   for (let x = 40; x < 80; x += 6) c.rect(x, 49, 3, 2, 0);
   c.hline(37, 79, 52, tone.checker);
   c.mirror();
+  // Phase B polish: a glint on the void's rim, upper left (the centre's 32
+  // pixels need not mirror).
+  c.set(75, 20, 0).set(76, 19, 0);
   if (column) {
     // The gravity column: a faint S-wave down from the lens.
     for (let y = 47; y < 64; y += 1) {
@@ -372,6 +385,8 @@ function drawSiegeSpineSide({ width = BANNER_WIDTH } = {}) {
     c.poly([[x, 16], [x + 2, 13], [x + 7, 13], [x + 9, 16], [x + 9, 28], [x + 7, 31], [x + 2, 31], [x, 28]], 1);
     c.rect(x + 2, 16, 6, 12, tone.hatch);
     c.rect(x + 3, 20, 4, 4, 0);
+    // Phase B polish: the segment's belly in shadow.
+    c.hline(x + 1, x + 8, 29, tone.checker);
     c.poly([[x + 1, 13], [x + 4, 7], [x + 5, 7], [x + 8, 13]], 1);
     c.vline(x + 4, 1, 7, 1);
   }
@@ -395,6 +410,8 @@ function drawSiegeSpineSide({ width = BANNER_WIDTH } = {}) {
   c.ellipse(axis - 0.5, 9, 7, 4, 0);
   c.hline(cx - 6, cx + 7, 9, 1);
   c.ellipse(axis - 0.5, 9, 3, 1, 1);
+  // Phase B polish: the dome's lit crown.
+  c.hline(cx - 3, cx + 4, 4, 0);
   c.rect(cx - 9, 14, 20, 40, 0);
   c.rect(cx - 7, 14, 16, 3, 1);
   projector(c, cx, 17, 50, 10);
@@ -491,6 +508,14 @@ function drawBastion({ framed = false } = {}) {
   c.rect(cx - 8, 48, 18, 7, 1);
   for (let x = cx - 7; x < cx + 9; x += 3) c.rect(x, 49, 1, 5, 0);
   // The dome hangar: a riveted steel rim, the sphere core inside it.
+  // Phase B polish: a black gap around the dome below the track, so the
+  // cannons' fins and the rim read as separate parts.
+  for (let y = 11; y < 46; y += 1) {
+    for (let x = 56; x < 80; x += 1) {
+      const d = Math.hypot(x - 79.5, y - 25);
+      if (d > 19 && d <= 20.4) c.set(x, y, 0);
+    }
+  }
   c.ellipse(79.5, 25, 19, 19, 1, 2);
   c.ellipse(79.5, 25, 15.5, 15.5, 1, 1);
   for (let k = 0; k < 10; k += 1) {

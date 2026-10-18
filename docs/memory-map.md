@@ -58,7 +58,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `overlay` | an overlay slot's current run, restored by the sector reader |
 | `pause` | while the pause menu is up |
 | `summary` | while the level-summary screen is up |
-| `boss-entry` | the boss entry's transition (the WARNING screen and its reads), M5b-S3 |
+| `boss-entry` | the boss entry's transition (the WARNING screen, the banner and its reads), M5b-S3, feat/boss-banners |
 
 ### Address map `$0000-$FFFF`
 
@@ -81,6 +81,9 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) | `overlay` | manifest `boss.charset` |
 | `$1000-$17FF` | 2,048 B | slot | boss slot C: the C controller, run `boss-slot-c` (15 sectors) | `overlay` | manifest `boss.slotC` |
 | `$1000-$154D` | 1,358 B | segment | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) | `overlay` | build/boss.map |
+| `$1000-$1475` | 1,142 B | transient | boss banner run (the largest region's), landed in slot C's area before slot C is read | `boss-entry` | manifest `boss.banner` |
+| `$1000-$115F` | 352 B | segment | `BOSS_BANNER` — boss banner set-up (feat/boss-banners): the screen, the picture unpacked and mirrored, the title, the bar; first in each region's banner run, landed in slot C's area before slot C is read | `boss-entry` | build/boss.map |
+| `$1500-$17FF` | 768 B | transient | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen | `boss-entry` | manifest `boss.banner` |
 | `$154E-$1557` | 10 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
 | `$1558-$171C` | 453 B | segment | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) | `overlay` | build/boss.map |
 | `$171D-$17FB` | 223 B | segment | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) | `overlay` | build/boss.map |
@@ -96,11 +99,13 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$21C1-$26F4` | 1,332 B | segment | `BOOT_STAGE2` — stage-2 loader; the resident suffix is unpacked over it | `boot` | build/void-strike-65.map |
 | `$3170-$3FF1` | 3,714 B | segment | `RODATA` — main: resident read-only data (its tail is boot-only, see reuse) | `resident` | build/void-strike-65.map |
 | `$3825-$3FD3` | 1,967 B | transient | packed loader bitmap (in `RODATA`) | `boot` | build/void-strike-65.lbl |
+| `$3B00-$418B` | 1,676 B | transient | boss banner picture: 64 mode F lines 26 B apart (0-48 in the PMG area, 49-63 over the text screen's rows 0-9) | `boss-entry` | manifest `boss.banner` |
 | `$3B00-$3FFF` | 1,280 B | state | PMG DMA: missiles `MISSILES` and players `PLAYER0`-`PLAYER3` (single-line, `PMG_BASE` + `$300`) | `resident` | src/main.s `PMG_BASE` |
 | `$3C00-$3CC9` | 202 B | transient | expanded loader display list (202 B) | `loader` | src/main.s `LOADER_DISPLAY_LIST_ADDRESS` |
 | `$4000-$43FF` | 1,024 B | state | screen: HUD prefix, divider, frontend screen RAM | `resident` | src/main.s `SCREEN` |
 | `$4010-$4FFF` | 4,080 B | transient | loader bitmap lines 0-101 | `loader` | manifest `loaderScreen` |
 | `$4089-$4438` | 944 B | transient | packed STARFIELD stream A | `boot` | manifest `starfieldRuntime.streams` |
+| `$41B8-$422F` | 120 B | transient | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows | `boss-entry` | manifest `boss.banner` |
 | `$4400-$47FF` | 1,024 B | state | gameplay charset | `resident` | src/main.s `CHARSET` |
 | `$4439-$475E` | 806 B | transient | packed STARFIELD stream B | `boot` | manifest `starfieldRuntime.streams` |
 | `$475F-$484B` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
@@ -148,7 +153,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7810-$7AF9` | 746 B | transient | packed C extension record landing (`HYBRID_C_EXT_STAGING`) | `boot` | manifest `directorCodeRuntimes` |
 | `$7810-$798C` | 381 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers) | `boss-entry` | build/boss.map |
 | `$7810-$788F` | 128 B | transient | save-record sector buffer | `summary` | manifest `levelSummary.saveRecord` |
-| `$7A48-$7A67` | 32 B | segment | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry | `boss-entry` | build/boss.map |
+| `$7990-$7A7E` | 239 B | transient | boss banner display list (40 blank lines, 64 LMS lines, the text, the bar) | `boss-entry` | manifest `boss.banner` |
+| `$7A48-$7A7A` | 51 B | segment | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the region's banner run read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry | `boss-entry` | build/boss.map |
+| `$7A90-$7B9C` | 269 B | segment | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list | `boss-entry` | build/boss.map |
+| `$7B9D-$7BAC` | 16 B | segment | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk | `boss-entry` | build/boss.map |
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
 | `$7C72-$7EDA` | 617 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
 | `$7EDB-$7F01` | 39 B | segment | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data | `resident` | build/encounter-director.map |
@@ -328,6 +336,9 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) |
 | `$1000-$17FF` | `overlay` | boss slot C: the C controller, run `boss-slot-c` (15 sectors) |
 | `$1000-$154D` | `overlay` | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) |
+| `$1000-$1475` | `boss-entry` | boss banner run (the largest region's), landed in slot C's area before slot C is read |
+| `$1000-$115F` | `boss-entry` | `BOSS_BANNER` — boss banner set-up (feat/boss-banners): the screen, the picture unpacked and mirrored, the title, the bar; first in each region's banner run, landed in slot C's area before slot C is read |
+| `$1500-$17FF` | `boss-entry` | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen |
 | `$154E-$1557` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |
 | `$1558-$171C` | `overlay` | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) |
 | `$171D-$17FB` | `overlay` | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) |
@@ -355,6 +366,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$3800-$3FFF` | `boot` | initial boot block image, 107 sectors (code, data and packed sources) |
 | `$3800-$3FF1` | `resident` | `RODATA` — main: resident read-only data (its tail is boot-only, see reuse) |
 | `$3825-$3FD3` | `boot` | packed loader bitmap (in `RODATA`) |
+| `$3B00-$3FFF` | `boss-entry` | boss banner picture: 64 mode F lines 26 B apart (0-48 in the PMG area, 49-63 over the text screen's rows 0-9) |
 | `$3B00-$3FFF` | `resident` | PMG DMA: missiles `MISSILES` and players `PLAYER0`-`PLAYER3` (single-line, `PMG_BASE` + `$300`) |
 | `$3C00-$3CC9` | `loader` | expanded loader display list (202 B) |
 
@@ -363,9 +375,11 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | Range | Phases | Occupant |
 | --- | --- | --- |
 | `$4010-$5536` | `boot` | initial boot block image, 107 sectors (code, data and packed sources) |
+| `$4010-$418B` | `boss-entry` | boss banner picture: 64 mode F lines 26 B apart (0-48 in the PMG area, 49-63 over the text screen's rows 0-9) |
 | `$4010-$43FF` | `resident` | screen: HUD prefix, divider, frontend screen RAM |
 | `$4010-$4FFF` | `loader` | loader bitmap lines 0-101 |
 | `$4089-$4438` | `boot` | packed STARFIELD stream A |
+| `$41B8-$422F` | `boss-entry` | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows |
 | `$4400-$47FF` | `resident` | gameplay charset |
 | `$4439-$475E` | `boot` | packed STARFIELD stream B |
 | `$475F-$484B` | `boot` | A2 kernel image in the initial block |
@@ -412,7 +426,10 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7810-$7AF9` | `boot` | packed C extension record landing (`HYBRID_C_EXT_STAGING`) |
 | `$7810-$798C` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers) |
 | `$7810-$788F` | `summary` | save-record sector buffer |
-| `$7A48-$7A67` | `boss-entry` | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, the title, the boss code's read; copied into every region's theme run at $7A48, run once per entry |
+| `$7990-$7A7E` | `boss-entry` | boss banner display list (40 blank lines, 64 LMS lines, the text, the bar) |
+| `$7A48-$7A7A` | `boss-entry` | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the region's banner run read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry |
+| `$7A90-$7B9C` | `boss-entry` | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list |
+| `$7B9D-$7BAC` | `boss-entry` | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk |
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
 | `$7C72-$7EDA` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
 | `$7EDB-$7F01` | `resident` | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data |

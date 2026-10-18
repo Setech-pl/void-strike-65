@@ -142,6 +142,8 @@ test("Q10: every region's boss entry reads its own block, in the sectors the man
     // scripts/runtime-wall-trace.mjs); the count is still checked exactly.
     // RE-GATED feat/boss-art (owner decision AV, 2026-10-16): the limit is 300
     // host frames now (was 280).
+    // RE-GATED feat/boss-banners (owner decision AY, 2026-10-18): 350 host
+    // frames, every entry showing the banner (was 300).
     assert.equal(sectors.length, manifest.boss.regions[region - 1].entrySectors);
   }
 });

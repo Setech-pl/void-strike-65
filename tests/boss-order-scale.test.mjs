@@ -13,7 +13,8 @@
 //     the aiming bot, MEDIUM (the escort's laser - the shared Interceptor, no
 //     per-region Interceptor, decision AX 7 - reported apart in the
 //     evidence); the Bastion's every hit about 18-20 a minute (was 28);
-//   - every boss entry within the 300-host-frame limit (decision AV);
+//   - every boss entry within the 350-host-frame limit (decision AY, which
+//     superseded AV's 300 with the banner);
 //   - each boss's colours keep the rules in its new region (the ally steel's
 //     hue, the b3 flash pair), and the laser tier is the level's (AC).
 // The curve is the emulator's (scripts/measure-boss-curve.mjs: three replays
@@ -72,8 +73,9 @@ test("the curve evidence was measured on this data, three replays a cell, every 
   for (const c of evidence.cells) {
     assert.equal(c.replays, 3, `region ${c.region} L${c.levels} difficulty ${c.difficulty}: ${c.replays} replays`);
     assert.ok(c.finished, `region ${c.region} L${c.levels} difficulty ${c.difficulty}: a fight did not finish`);
-    assert.ok(c.entryHostFrames > 0 && c.entryHostFrames <= 300,
-      `region ${c.region} L${c.levels}: the boss entry took ${c.entryHostFrames} host frames (limit 300)`);
+    // RE-GATED feat/boss-banners (owner decision AY): 350 (was 300, AV).
+    assert.ok(c.entryHostFrames > 0 && c.entryHostFrames <= 350,
+      `region ${c.region} L${c.levels}: the boss entry took ${c.entryHostFrames} host frames (limit 350)`);
   }
 });
 

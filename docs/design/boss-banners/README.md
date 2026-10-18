@@ -1,5 +1,18 @@
 # Boss loading-screen banners and the Bastion shape — owner design input
 
+> **Status (2026-10-18, `feat/boss-banners`, owner decision AY): superseded as the look of the bosses.** The pictures
+> and screens in this folder (`bitmaps/`, `screens/`, `mockups/`) show the bosses as they were drawn on 2026-10-11 —
+> the castle-era Breaker, the Citadel's sixteen square modules, the oval Spine, the four-spar Bastion — and the
+> region numbers before decision AX 1 (here R2 is the Bastion and R4 the Citadel; on the disk region 2 is the Citadel
+> and region 4 the Bastion). **They are not the banners the game shows.** The shipped banners are redrawn from the
+> bosses as they are now: the 160 × 64 pictures in `assets/graphics/boss-banners/` (`banners.json` names each boss's,
+> `scripts/boss-banner-art.mjs` draws them), the screens from `node scripts/boss-banner-preview.mjs`
+> (`build/boss-banners/`), the design and the measurements in `docs/plans/boss-banners.md`. What still holds from
+> here: the decisions (variant A title, one mode F banner per boss, white on black, the banner loading first). The
+> notes `r1-twin-lasers-note.md`, `r2-bastion-note.md` and `r4-void-citadel-note.md` describe how the bands changed
+> since, which the new pictures follow. The entry limit is 350 host frames (decision AY; this README's 280 / 300 are
+> history).
+
 Made with the owner on 2026-10-11 outside the repo. This is **design input**, not built code. Where this folder and the repo
 disagree on a technical fact (display list, band size, colours, font, loader), the repo wins and the session reports the
 difference.
@@ -35,7 +48,7 @@ difference.
      hub centred, guns on two heights, empty columns between the spars.
    - The banner and the in-game band must read as the same ship.
 
-## Files
+## Files (2026-10-11; superseded looks, kept as the design history)
 
 - `bitmaps/rN-<name>-160x64.png`: native 1-bit pictures, the exact pixels.
 - `bitmaps/rN-<name>-160x64.bin`: the same pictures, 1,280 B each, mode F bytes, row-major, 20 bytes per line, MSB = leftmost

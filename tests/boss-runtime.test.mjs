@@ -37,6 +37,9 @@ import {
   bossGateMemory, atrRun, installRegion,
 } from "./boss-harness.mjs";
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
+import {
+  BANNER_DL, BANNER_INCOMING_ROW, BANNER_NAME_ROW, BANNER_WARNING_ROW, bannerTextPlacement,
+} from "../scripts/boss-banner.mjs";
 
 const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
 const SLOT = manifest.overlays.slotA;
@@ -146,6 +149,9 @@ test("decision 32: WARNING, then the boss's title, the theme started, then every
   const charsetSectors = region1.runs.charset.sectors;
   assert.deepEqual(drive.readSectors, [
     ...run(632, 2),                                       // region 1's theme
+    // RE-POINTED feat/boss-banners (decision AY): region 1's banner run, from
+    // 280 (the banners' reservation), named by the theme run.
+    ...run(280, BOSS.regions[0].banner.runSectors),
     ...run(528, BOSS.slotA.sectors),                      // the boss code into slot A
     ...run(544, 3),                                       // the shared install run
     ...run(547, BOSS.slotC.sectors),                      // slot C, the controller
@@ -170,9 +176,12 @@ test("decision 32: WARNING, then the boss's title, the theme started, then every
   // RE-POINTED fix/boss-polish (owner decision AL 1, title variant A): WARNING
   // on row 5, region 1's boss name on row 7, INCOMING on row 8 (was WARNING row
   // 6, BOSS APPROACHING row 8).
-  assert.equal(decode(at, 0x4000 + 5 * 40 + 16, 7), "WARNING");
-  assert.equal(decode(at, 0x4000 + 7 * 40 + 12, 16), "BLOCKADE BREAKER");
-  assert.equal(decode(at, 0x4000 + 8 * 40 + 16, 8), "INCOMING");
+  // RE-POINTED feat/boss-banners (decisions AL 2, AY): the three lines on the
+  // banner, its rows (tests/boss-banners.test.mjs checks the rest of it).
+  for (const [row, text] of [[BANNER_WARNING_ROW, "WARNING"], [BANNER_NAME_ROW, "BLOCKADE BREAKER"],
+    [BANNER_INCOMING_ROW, "INCOMING"]]) {
+    assert.equal(decode(at, row + bannerTextPlacement(text).offset, text.length), text);
+  }
   assert.equal(at[label("main", "MUSIC_ACTIVE")], 1, "the boss theme is not playing under the screen");
   const theme = atrRun(632, 2).subarray(0, 256);
   const data = label("music", "game_music_data_start");
@@ -182,6 +191,8 @@ test("decision 32: WARNING, then the boss's title, the theme started, then every
   const dlistWrites = drive.writes.filter(({ register }) => register === 0xd402 || register === 0xd403);
   assert.equal(dlistWrites[0].value | (dlistWrites[1].value << 8),
     label("main", "frontend_text_display_list"), "the screen is the reader's text screen");
+  // RE-POINTED feat/boss-banners: then the banner's list.
+  assert.equal(dlistWrites[2].value | (dlistWrites[3].value << 8), BANNER_DL, "the banner follows the WARNING screen");
 });
 
 // RE-POINTED M5b-S4a-i: slot A is read sized to its code (its state is in

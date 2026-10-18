@@ -144,7 +144,10 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
     assert.deepEqual(atrRun(696 + region * 4, region1.runs.block.sectors), Buffer.from(region1.runs.block.data),
       `region ${region + 1} block`);
   }
-  assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695], blocks: [696, 711] });
+  // RE-PINNED feat/boss-banners (decision AY): + the regions' banner runs,
+  // 10 sectors a region from 280 (each read after its theme run).
+  assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695], blocks: [696, 711],
+    banners: [280, 319] });
 });
 
 // RE-POINTED M5b-S4a-i: entry 1's count is the boss code's linked sectors;

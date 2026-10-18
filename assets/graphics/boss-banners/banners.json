@@ -1,0 +1,9 @@
+{
+  "_": "feat/boss-banners (owner decision AY, 2026-10-18): the banner picture each boss shows on its loading screen, by its boss directory (assets/graphics/boss-regions/region-<n>/; order.json puts the boss in its region). The pictures are 160 x 64 black-and-white PNGs in this directory; the outer 64 pixels a side must mirror each other (the game stores the left 12 bytes of a line). scripts/boss-banner.mjs reads this file; scripts/boss-banner-art.mjs draws the pictures.",
+  "banners": {
+    "region-1": "blockade-breaker",
+    "region-4": "void-citadel-column",
+    "region-3": "siege-spine-side",
+    "region-2": "bastion-rails"
+  }
+}

@@ -2918,6 +2918,21 @@ Faza A przyjęta, wszystkie makiety zaakceptowane (`docs/plans/boss-banners.md`)
 
 ---
 
+## AZ. BANERY BOSSÓW SCALONE BEZ SMOKE'A SPRZĘTOWEGO — decyzja właściciela (2026-10-18)
+
+1. **`feat/boss-banners` (HEAD `89197b8`) scalone z `main` bez smoke'a na
+   sprzęcie.** Właściciel przyjmuje dowody z emulatora (zrzuty klatek, 16
+   klatek hosta czerni w każdym regionie, pięć ATR-ów
+   `build/play/boss-banners-black-*.atr`: cała gra `13c950e0`, trasy bossów
+   R1 `f17bef23`, R2 `a788147b`, R3 `595e834d`, R4 `96956183`).
+2. **Sprawdzenie na prawdziwym 65XE PAL (SIO2SD) odłożone do testu
+   sprzętowego `v0.3.0`.** Lista `hardware-testing.md` §39 oznaczona „NOT RUN
+   on hardware"; musi przejść przed `v0.3.0`.
+3. **Dług techniczny, nie PASS smoke'a: §AY NIE jest potwierdzona
+   smoke'iem.**
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

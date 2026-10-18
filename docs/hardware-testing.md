@@ -1478,6 +1478,14 @@ new file name:
 
 ## 39. The boss banners: the picture, the title and the loading bar at every boss entry (`feat/boss-banners`)
 
+**Status: NOT RUN on hardware — merged on emulator evidence 2026-10-18, owner
+decision (journal §AZ); must be run before `v0.3.0`.** Technical debt, not a
+smoke PASS: the owner accepted the emulator evidence (the frame screenshots,
+16 black host frames in every region) and deferred the real-65XE check to the
+`v0.3.0` hardware test. The checklist below stays unticked. ATRs (SHA-256
+prefixes): the whole game `13c950e0`, the boss routes R1 Breaker `f17bef23`,
+R2 Citadel `a788147b`, R3 Spine `595e834d`, R4 Bastion `96956183`.
+
 Plan [plans/boss-banners.md](plans/boss-banners.md) §9 (§9.6: no old WARNING
 screen); journal §AL 1-2, §AY (8: the owner's smoke of 2026-10-18). In Atari800 (`-xl -pal -nobasic`), on the whole game
 (`build/play/boss-banners-black-full-game-*.atr`, region 1's boss at the end of

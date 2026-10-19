@@ -11,6 +11,8 @@
 // scanline, Atari800's PAL palette; SDL's cocoa driver on macOS, because the
 // harness's default dummy driver saves only the 256 x 192 centre). The trace
 // CSV the frames are picked from stays in build/<variant>/runtime-wall-trace/.
+// A capture with `hosts: [first, last]` also saves those host frames as
+// h-host<n>.png (the boss banner and load; limit 0 skips the per-frame shots).
 // An Atari800 window opens while a capture runs. Captures run in parallel.
 
 import { spawn, spawnSync } from "node:child_process";
@@ -21,6 +23,7 @@ import { CAPTURE_ROOT } from "./stills.mjs";
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split("=")[1] ?? fallback;
 const spec = JSON.parse(fs.readFileSync(arg("spec", "scripts/pages/stills.json"), "utf8"));
 const ids = arg("ids", "").split(",").filter(Boolean);
+const hostList = ([first, last]) => Array.from({ length: last - first + 1 }, (_, i) => first + i).join(",");
 const captures = spec.captures.filter((c) => ids.length === 0 || ids.includes(c.id));
 
 for (const capture of captures) {
@@ -43,8 +46,17 @@ const runs = captures.map((capture) => new Promise((resolve, reject) => {
     env: {
       ...process.env,
       SDL_VIDEODRIVER: process.platform === "darwin" ? "cocoa" : (process.env.SDL_VIDEODRIVER ?? "x11"),
-      DFTRACE_ENGINE_SCREENSHOT_PREFIX: path.join(directory, "f"),
-      DFTRACE_ENGINE_SCREENSHOT_LIMIT: String(capture.limit),
+      ...(capture.limit > 0 ? {
+        DFTRACE_ENGINE_SCREENSHOT_PREFIX: path.join(directory, "f"),
+        DFTRACE_ENGINE_SCREENSHOT_LIMIT: String(capture.limit),
+      } : {}),
+      // Host frames (the loading screen between gameplay frames, which the
+      // per-frame capture never sees): scripts/atari800-wall-trace.h
+      // dfshot_observe saves <dir>/h-host<n>.png at line 248 of each listed one.
+      ...(capture.hosts ? {
+        DFTRACE_SHOT_PREFIX: path.join(directory, "h"),
+        DFTRACE_SHOT_HOSTS: hostList(capture.hosts),
+      } : {}),
     },
   });
   child.on("exit", (code) => {

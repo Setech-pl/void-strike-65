@@ -15,20 +15,26 @@ import fs from "node:fs";
 import path from "node:path";
 import { encodeGif } from "../showcase-gif.mjs";
 import { readIndexedPng } from "../github-showcase.mjs";
-import { frameFile } from "./stills.mjs";
+import { CAPTURE_ROOT, frameFile } from "./stills.mjs";
 
-export function cutGif({ capture, start, frames, step = 1, crop = [8, 0, 320, 240] }) {
+// `hosts`: start and frames count host frames (h-host<n>.png of a capture
+// with a hosts range) instead of gameplay frames.
+export function cutGif({ capture, start, frames, step = 1, crop = [8, 0, 320, 240], hosts = false, mask = [] }) {
   const [cx, cy, width, height] = crop;
   const colourIndex = new Map();
   const colours = [];
   const out = [];
   for (let frame = start; frame < start + frames; frame += step) {
-    const image = readIndexedPng(fs.readFileSync(frameFile(capture, frame)));
+    const file = hosts ? path.join(CAPTURE_ROOT, capture, `h-host${frame}.png`) : frameFile(capture, frame);
+    const image = readIndexedPng(fs.readFileSync(file));
     if (image.width !== 336 || image.height !== 240) throw new Error(`${capture} f${frame}: not a 336x240 capture`);
     const pixels = new Uint8Array(width * height);
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
-        const source = image.indices[(y + cy) * image.width + x + cx] * 3;
+        // `mask`: [x, y, width, height] rectangles (crop coordinates) painted
+        // with the frame's top-left pixel - the emulator's disk LED, if shown.
+        const masked = mask.some(([mx, my, mw, mh]) => x >= mx && x < mx + mw && y >= my && y < my + mh);
+        const source = image.indices[masked ? 0 : (y + cy) * image.width + x + cx] * 3;
         const key = (image.palette[source] << 16) | (image.palette[source + 1] << 8) | image.palette[source + 2];
         let index = colourIndex.get(key);
         if (index === undefined) {
@@ -53,6 +59,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     frames: Number(arg("frames")),
     step: Number(arg("step", "1")),
     crop: arg("crop", "8,0,320,240").split(",").map(Number),
+    hosts: process.argv.includes("--hosts"),
   };
   const out = arg("out", "build/pages/gif/sample.gif");
   const { bytes, frames } = cutGif(options);

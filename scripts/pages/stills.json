@@ -1,0 +1,54 @@
+{
+  "_": "Subjects of the Enemies and Bosses pages (docs/plans/enemies-bosses-pages.md §2). captures: how scripts/pages/capture.mjs makes each frame directory (build arguments, artifacts, trace session, frame limit). subjects: scripts/pages/stills.mjs crops one frame each; crop is [x, y, width, height] in screenshot pixels (x = 2 x HPOS - 88, y = scanline - 8). Frames were picked from the capture's trace CSV (build/<artifacts>/runtime-wall-trace/<session>.csv: colpm1, light_archetype*, boss_state, laser_states, gravity_on, field_state, rail_k) and checked by eye. All captures are PILOT (MEDIUM). Built from main 6e76e4d = v0.3.0; the route ATRs are byte-identical to the owner-smoked audit-m5 ATRs.",
+  "captures": [
+    { "id": "l1-complete-1", "build": ["--level=1:sector=0"], "artifacts": "level-1-s0", "session": "director-complete-1-natural-sweep-fire0", "limit": 10000,
+      "_": "level 1 from its first sector to the summary: every enemy of v0.3.0, the capital run and the Blockade Breaker (entry frame 3040, chain 5307)" },
+    { "id": "l2-complete-1", "build": ["--level=2"], "artifacts": "level-2-s0", "session": "director-complete-1-natural-sweep-fire0", "limit": 12000,
+      "_": "level 2 (review build only): the hunter, escort and lancer skins" },
+    { "id": "r2-diag-1", "build": ["--level=1:sector=6", "--boss-region=2"], "artifacts": "boss-region-2-level-1-s6", "session": "region-2-diag-1", "limit": 12000,
+      "_": "the Void Citadel (levels 4-6), aiming bot; gravity on to 1358, chain 2496" },
+    { "id": "r3-diag-1", "build": ["--level=1:sector=6", "--boss-region=3"], "artifacts": "boss-region-3-level-1-s6", "session": "region-3-diag-1", "limit": 12000,
+      "_": "the Siege Spine (levels 7-9), aiming bot; finale 2006, chain 3212" },
+    { "id": "r4-diag-1", "build": ["--level=1:sector=6", "--boss-region=4"], "artifacts": "boss-region-4-level-1-s6", "session": "region-4-diag-1", "limit": 12000,
+      "_": "the Bastion (levels 10-12), careful aiming bot; finale 2184, chain 2956" }
+  ],
+  "subjects": [
+    { "id": "raider", "name": "Raider", "label": "HEAVY", "capture": "l1-complete-1", "frame": 133, "crop": [80, 26, 40, 22] },
+    { "id": "bomber", "name": "Bomber", "label": "HEAVY", "capture": "l1-complete-1", "frame": 500, "crop": [220, 31, 74, 21] },
+    { "id": "wingman", "name": "Wingman", "label": "LIGHT", "capture": "l1-complete-1", "frame": 2350, "crop": [84, 44, 24, 15] },
+    { "id": "wingman-flight-lead", "name": "Wingman", "label": "FLIGHT-LEAD", "capture": "l1-complete-1", "frame": 2040, "crop": [228, 52, 24, 15] },
+    { "id": "interceptor", "name": "Interceptor", "label": "LIGHT", "capture": "l1-complete-1", "frame": 2150, "crop": [100, 36, 24, 15] },
+    { "id": "wingman-escort", "name": "Wingman", "label": "ESCORT", "capture": "l2-complete-1", "frame": 1000, "crop": [84, 148, 24, 15], "comingSoon": true },
+    { "id": "interceptor-hunter", "name": "Interceptor", "label": "HUNTER", "capture": "l2-complete-1", "frame": 620, "crop": [148, 44, 24, 15], "comingSoon": true },
+    { "id": "interceptor-lancer", "name": "Interceptor", "label": "LANCER", "capture": "l2-complete-1", "frame": 4000, "crop": [108, 36, 24, 15], "comingSoon": true },
+    { "id": "boss-escort", "name": "Boss escort", "label": "INTERCEPTOR", "capture": "l1-complete-1", "frame": 3360, "crop": [168, 16, 80, 64] },
+    { "id": "capital", "name": "Capital ships", "label": "ALLIED / HOSTILE", "capture": "l1-complete-1", "frame": 1000, "crop": [8, 16, 320, 216] },
+
+    { "id": "breaker", "name": "Blockade Breaker", "label": "REGION 1 BOSS", "capture": "l1-complete-1", "frame": 3060, "crop": [8, 16, 320, 40] },
+    { "id": "breaker-stage-2", "name": "Blockade Breaker", "label": "ARMOUR 4 LEFT", "capture": "l1-complete-1", "frame": 3700, "crop": [8, 16, 320, 40] },
+    { "id": "breaker-stage-3", "name": "Blockade Breaker", "label": "ARMOUR 2 LEFT", "capture": "l1-complete-1", "frame": 4210, "crop": [8, 16, 320, 40] },
+    { "id": "breaker-stage-4", "name": "Blockade Breaker", "label": "ARMOUR GONE", "capture": "l1-complete-1", "frame": 5200, "crop": [8, 16, 320, 40] },
+    { "id": "breaker-stage-5", "name": "Blockade Breaker", "label": "DESTROYED", "capture": "l1-complete-1", "frame": 5330, "crop": [8, 16, 320, 40] },
+    { "id": "breaker-laser", "name": "Blockade Breaker", "label": "TWIN LASERS", "capture": "l1-complete-1", "frame": 4090, "crop": [8, 16, 320, 216] },
+
+    { "id": "citadel", "name": "Void Citadel", "label": "REGION 2 BOSS", "capture": "r2-diag-1", "frame": 150, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "citadel-stage-2", "name": "Void Citadel", "label": "SPIRES DOWN", "capture": "r2-diag-1", "frame": 1465, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "citadel-stage-3", "name": "Void Citadel", "label": "LATE FIGHT", "capture": "r2-diag-1", "frame": 2300, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "citadel-stage-4", "name": "Void Citadel", "label": "DESTROYED", "capture": "r2-diag-1", "frame": 2520, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "citadel-gravity", "name": "Void Citadel", "label": "GRAVITY WELL", "capture": "r2-diag-1", "frame": 150, "crop": [8, 16, 320, 216], "comingSoon": true },
+
+    { "id": "spine", "name": "Siege Spine", "label": "REGION 3 BOSS", "capture": "r3-diag-1", "frame": 150, "crop": [8, 16, 320, 64], "comingSoon": true },
+    { "id": "spine-stage-2", "name": "Siege Spine", "label": "ONE HALF DOWN", "capture": "r3-diag-1", "frame": 700, "crop": [8, 16, 320, 64], "comingSoon": true },
+    { "id": "spine-stage-3", "name": "Siege Spine", "label": "FIELD DOWN", "capture": "r3-diag-1", "frame": 1760, "crop": [8, 16, 320, 64], "comingSoon": true },
+    { "id": "spine-stage-4", "name": "Siege Spine", "label": "FINALE", "capture": "r3-diag-1", "frame": 2100, "crop": [8, 16, 320, 64], "comingSoon": true },
+    { "id": "spine-stage-5", "name": "Siege Spine", "label": "DESTROYED", "capture": "r3-diag-1", "frame": 3235, "crop": [8, 16, 320, 64], "comingSoon": true },
+    { "id": "spine-field", "name": "Siege Spine", "label": "FORCE FIELD", "capture": "r3-diag-1", "frame": 270, "crop": [8, 16, 320, 216], "comingSoon": true },
+
+    { "id": "bastion", "name": "Bastion", "label": "REGION 4 BOSS", "capture": "r4-diag-1", "frame": 150, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "bastion-stage-2", "name": "Bastion", "label": "BAY OPEN", "capture": "r4-diag-1", "frame": 700, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "bastion-stage-3", "name": "Bastion", "label": "RAILS IN", "capture": "r4-diag-1", "frame": 1400, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "bastion-stage-4", "name": "Bastion", "label": "GATE DOWN", "capture": "r4-diag-1", "frame": 2300, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "bastion-stage-5", "name": "Bastion", "label": "DESTROYED", "capture": "r4-diag-1", "frame": 2975, "crop": [8, 16, 320, 40], "comingSoon": true },
+    { "id": "bastion-beams", "name": "Bastion", "label": "BOTH CANNONS", "capture": "r4-diag-1", "frame": 258, "crop": [8, 16, 320, 216], "comingSoon": true }
+  ]
+}

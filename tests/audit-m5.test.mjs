@@ -254,3 +254,112 @@ test("M5-02: every admitted slot through both loops - the standoff never closes 
     });
   }
 });
+
+// --- M5-03 -----------------------------------------------------------------
+
+const BOSS_DUE = 0x20;
+const DIRECTOR_STATE_FLAGS = 0x80fe;
+
+// The game a frame before the boss entry: level 1's boss sector armed, the
+// playfield drained but for one hostile PULSE (slot 5) about to meet the
+// fighter, which survives it. Music on. The reader, the summary module and
+// the level image resident, as tests/boss-harness.mjs's gate has them.
+function gameAtTheBossGate({ due = true } = {}) {
+  const m = boot({ difficulty: 1 });
+  const memory = m.memory;
+  memory.set(readBuild("sector-reader.bin"), 0xa000);
+  memory.set(readBuild("level-summary.bin"), 0x0500);
+  memory.set(readBuild("level-1.bin"), 0xa600);
+  memory[label("reader", "sr_summary_resident")] = 1;
+  memory[L("GAME_MUSIC_ENABLED")] = 1;
+  const level = JSON.parse(fs.readFileSync(path.join(root, "assets", "levels", "level-01.json"), "utf8"));
+  const bossSector = level.sectors.findIndex(({ kind }) => kind === "boss");
+  memory[0x80f6] = bossSector;
+  memory[0x80f7] = memory[label("director", "_sector_wave_first") + bossSector];
+  memory[0x80fc] = 0;
+  memory[0x80fd] = 0;
+  if (due) memory[DIRECTOR_STATE_FLAGS] |= BOSS_DUE;
+  memory[L("player_x")] = 124;
+  memory[L("player_y")] = 190;
+  memory[mainAddress("BROAD_PLAYER_HEALTH")] = 10;
+  const slot = 5;
+  memory[L("FIGHTER_PROJECTILE_ACTIVE") + slot] = (1 << 3) | 2 | 4;   // a Light's PULSE
+  memory[mainAddress("FIGHTER_PROJECTILE_X") + slot] = 130;
+  memory[mainAddress("FIGHTER_PROJECTILE_Y") + slot] = 188;
+  memory[mainAddress("FIGHTER_PROJECTILE_PREV_Y") + slot] = 188;
+  memory[mainAddress("FIGHTER_PROJECTILE_LIFETIME") + slot] = 100;
+  return m;
+}
+
+test("M5-03: a hit one frame before the boss entry does not mute the theme's lead through the banner and the load", () => {
+  const m = gameAtTheBossGate();
+  const memory = m.memory;
+  const drive = new Drive();
+  let entered = false;
+  const writes = [];
+  const write = drive.write.bind(drive);
+  drive.write = (address, value) => {
+    if (entered && (address === AUDC1 || address === AUDC2)) writes.push([address, value]);
+    return write(address, value);
+  };
+  const cpu = cpuOver(drive, memory);
+  cpu.sp = m.cpu.sp;
+  cpu.p = m.cpu.p;
+  const enter = label("director", "_asm_boss_enter");
+  const mainLoop = L("main_loop");
+  const health = mainAddress("BROAD_PLAYER_HEALTH");
+  const run = () => {
+    cpu.pc = FRAME_ACTIVE();
+    for (let steps = 0; steps < 80_000_000 && cpu.pc !== mainLoop; steps += 1) {
+      if (cpu.pc === enter) entered = true;
+      cpu.step();
+    }
+    assert.equal(cpu.pc, mainLoop, "the frame never returned to the main loop");
+  };
+  // The hit's frame: the shot is consumed, the fighter survives, the hit SFX
+  // has 13 of its 14 frames left. No entry yet - the shot was live.
+  run();
+  assert.equal(entered, false, "the entry came before the hit");
+  assert.equal(memory[health], 9, "the hit did not land, or did not leave the fighter alive");
+  assert.equal(memory[L("hit_timer")], 13);
+  assert.equal(memory[L("FIGHTER_PROJECTILE_ACTIVE") + 5], 0, "the shot outlived its hit");
+  // The next frame: the drained playfield lets the boss in; the run returns
+  // to the main loop after the banner and the whole load.
+  run();
+  assert.equal(entered, true, "the boss entry was not taken on the next frame");
+  assert.ok(drive.readSectors.length >= 40, `the entry read ${drive.readSectors.length} sectors`);
+  const bass = writes.filter(([address, value]) => address === AUDC1 && value !== 0).length;
+  const lead = writes.filter(([address, value]) => address === AUDC2 && value !== 0).length;
+  assert.ok(bass > 100, `the theme's bass published ${bass} times`);
+  assert.ok(lead > 100, `the theme's lead published ${lead} times during the banner and the load (bass ${bass})`);
+  assert.equal(memory[L("hit_timer")], 0, "the entry left the hit SFX owning channel 2");
+});
+
+test("M5-03: with no transition after it, the same hit plays out on channel 2 and hands it back to the music", () => {
+  const m = gameAtTheBossGate({ due: false });
+  const memory = m.memory;
+  // Who wrote it: the SFX code (play_hit_sound .. update_sound's end, CODE)
+  // or anything else (the gameplay music's gm_publish).
+  const sfx = (pc) => pc >= L("play_hit_sound") && pc < L("silence_audio");
+  const hit = [];
+  const music = [];
+  m.cpu.hooks.write = (address, value, cpu) => {
+    if (address !== AUDF2 && address !== AUDC2) return;
+    if (sfx(cpu.pc)) hit.push([address, value]);
+    else music.push([address, value, memory[L("hit_timer")]]);
+  };
+  productionFrame(m);
+  assert.equal(memory[mainAddress("BROAD_PLAYER_HEALTH")], 9);
+  assert.equal(memory[L("hit_timer")], 13);
+  const musicBefore = music.length;
+  for (let frame = 0; frame < 13; frame += 1) productionFrame(m);
+  assert.equal(memory[L("hit_timer")], 0);
+  assert.deepEqual(dividers(hit), ENVELOPE, "the hit's divider envelope across the frames");
+  assert.deepEqual(hit.filter(([address]) => address === AUDC2).map(([, value]) => value), [0x88, 0x00],
+    "channel 2's control while the hit owned it");
+  assert.ok(music.every(([, , owner]) => owner === 0), "the music wrote channel 2 while the hit owned it");
+  for (let frame = 0; frame < 8; frame += 1) productionFrame(m);
+  assert.ok(music.slice(musicBefore).some(([address, value]) => address === AUDC2 && value !== 0),
+    "the music did not take channel 2 back after the hit");
+  m.cpu.hooks.write = undefined;
+});

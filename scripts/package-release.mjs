@@ -6,7 +6,12 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
 const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "package.json"), "utf8"));
 const releaseName = `void-strike-65-${packageDefinition.version}`;
-const outputPath = path.join(rootDirectory, "dist", `${releaseName}.zip`);
+// --output=<path> writes the archive elsewhere (tests/package-release.test.mjs);
+// the release itself goes to dist/.
+const outputOption = process.argv.find((argument) => argument.startsWith("--output="));
+const outputPath = outputOption
+  ? path.resolve(outputOption.slice("--output=".length))
+  : path.join(rootDirectory, "dist", `${releaseName}.zip`);
 
 const topLevelFiles = [
   ".editorconfig",
@@ -139,4 +144,4 @@ const archive = Buffer.concat([
 ]);
 
 fs.writeFileSync(outputPath, archive);
-console.log(`Release package written: dist/${releaseName}.zip (${archive.length} bytes, ${relativeFiles.length} files)`);
+console.log(`Release package written: ${path.relative(rootDirectory, outputPath)} (${archive.length} bytes, ${relativeFiles.length} files)`);

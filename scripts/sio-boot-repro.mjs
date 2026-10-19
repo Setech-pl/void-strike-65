@@ -61,13 +61,27 @@ function run(command, args, options = {}) {
   return result;
 }
 
+const sha256 = (data) => crypto.createHash("sha256").update(data).digest("hex");
+
 // The diagnostic emulator: a copy, so the wall-trace build is never touched.
+//
+// fix/audit-m5 (M5-04): the copy carries the wall trace's objects and
+// executable, and on a host where they and the header written below share a
+// second, make saw nothing to do - the wall-trace executable was stamped as the
+// diagnostic build and trusted from then on. The copy is now always cleaned
+// before make, the result must differ from the wall-trace executable, and the
+// stamp binds the executable's own hash as well as the header's, so a cached
+// call reuses only the executable this function built.
 export function prepareSioDiagEmulator(sourceDirectory, diagDirectory) {
   const binary = path.join(diagDirectory, "src", "atari800");
   const header = fs.readFileSync(headerPath);
-  const stamp = path.join(diagDirectory, ".sio-diag-header.sha256");
-  const digest = crypto.createHash("sha256").update(header).digest("hex");
-  if (fs.existsSync(binary) && fs.existsSync(stamp) && fs.readFileSync(stamp, "utf8") === digest) return binary;
+  const stampPath = path.join(diagDirectory, ".sio-diag-build.json");
+  const digest = sha256(header);
+  if (fs.existsSync(binary) && fs.existsSync(stampPath)) {
+    let stamp = null;
+    try { stamp = JSON.parse(fs.readFileSync(stampPath, "utf8")); } catch { stamp = null; }
+    if (stamp?.header === digest && stamp?.executable === sha256(fs.readFileSync(binary))) return binary;
+  }
   if (!fs.existsSync(diagDirectory)) {
     invariant(fs.existsSync(path.join(sourceDirectory, "src", "sio.c")),
       `Atari800 source is missing: ${sourceDirectory} (pass --atari800-source=build/atari800-trace)`);
@@ -96,8 +110,16 @@ export function prepareSioDiagEmulator(sourceDirectory, diagDirectory) {
     sio = `${sio.slice(0, getByteReturn)}\tvoidstrike65_sio_event('I', byte);\n${sio.slice(getByteReturn)}`;
     fs.writeFileSync(sioPath, sio);
   }
+  fs.rmSync(stampPath, { force: true });
+  fs.rmSync(path.join(diagDirectory, ".sio-diag-header.sha256"), { force: true });   // the old header-only stamp
+  run("make", ["clean"], { cwd: diagDirectory });
   run("make", ["-j8"], { cwd: diagDirectory });
-  fs.writeFileSync(stamp, digest);
+  invariant(fs.existsSync(binary), `make left no executable at ${binary}`);
+  const executable = sha256(fs.readFileSync(binary));
+  const wallTrace = path.join(sourceDirectory, "src", "atari800");
+  invariant(!fs.existsSync(wallTrace) || sha256(fs.readFileSync(wallTrace)) !== executable,
+    `The SIO-diagnostic build in ${diagDirectory} is byte-identical to the wall-trace executable: make did not recompile it`);
+  fs.writeFileSync(stampPath, `${JSON.stringify({ header: digest, executable }, null, 2)}\n`);
   return binary;
 }
 

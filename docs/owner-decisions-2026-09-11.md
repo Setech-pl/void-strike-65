@@ -3014,6 +3014,31 @@ STATUS zaktualizowane.
 
 ---
 
+## BB. AUDYT M5 — SMOKE WŁAŚCICIELA I DECYZJE PO NIM (2026-10-19, `fix/audit-m5`)
+
+**Smoke właściciela: PASS (2026-10-19)** na pięciu ATR-ach — cała gra
+`c977efe0` (= `dist/`), trasy R1 `714a3d9b`, R2 `962f1b0d`, R3 `17786d4d`,
+R4 `5e2888eb`. Dźwięk trafienia, drugi przelot Interceptora nad statkiem
+stojącym blisko góry oraz lead muzyki przez ekran banera po trafieniu tuż
+przed bossem — w porządku. Gałąź do scalenia (`--ff-only`) i wypchnięcia;
+bez taga i wydania.
+
+1. **Rzędy zawisu — bez zmian.** Gracz zaparkowany na y ≤ 64 spotykający
+   zawis z **AK** to zamierzona presja przeciw kampowaniu; przyjęte
+   (§BA 2).
+2. **Klauzula czerni wejścia bossa (addendum M2) — nie teraz.** Zostaje
+   `tests/boss-banners.test.mjs` (kolejność: czerń od końca poziomu, bez
+   starego ekranu WARNING, pierwszy ekran to baner; długości czerni nie
+   liczy — 16 klatek hosta to jednorazowy pomiar natywny, plan
+   `boss-banners` §9.6). Praca na harnessie (~2–3 h, SZACUNEK: obserwator
+   DFTITLE w sesji, etykieta włączenia DMA banera, logowanie rejestrów,
+   negatywne fikstury, ponowny ślad) trafia do zaległości **M8** w STATUS.
+3. **`chore/preview-29-rows` — porzucone.** `tests/preview.test.mjs:164`
+   zostaje zapisaną porażką: defekt narzędzia (`scripts/preview.mjs` rysuje
+   24 z 29 wierszy), nie w ATR, przyjęty.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

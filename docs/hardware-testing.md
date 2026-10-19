@@ -1534,6 +1534,32 @@ new file name:
       Atari800 (HSCROL on the odd lines), no flicker while the bar fills, the
       sound silent until the fight as before.
 
+## 40. The m5 audit's fixes: the hit sound, the looping laser fighter's pass, the lead through the boss entry (`fix/audit-m5`)
+
+Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md); journal §BA, §BB.
+In Atari800 (`-xl -pal -nobasic`), on the whole game
+(`build/play/audit-m5-full-game-*.atr`) and the four boss routes
+(`build/play/audit-m5-r1-breaker-*`, `-r2-citadel-*`, `-r3-spine-*`,
+`-r4-bastion-*`):
+
+- [x] **The hit sound (M5-01):** every projectile hit plays the same rising
+      sweep; nothing depends on the paddle port (the sweep no longer reads
+      `$D202`).
+- [x] **The second pass (M5-02):** an Interceptor coming back from its hold
+      over a ship held still near the top backs off instead of diving into it.
+      A ship parked on the hold rows themselves (y ≤ 64) is still met by the
+      hold - intended (§BB 1).
+- [x] **The lead through the boss entry (M5-03):** a hit just before the boss
+      does not mute the theme's lead through the black screen, the banner and
+      the load.
+
+**Result (2026-10-19): owner smoke PASS** on all five ATRs in Atari800 -
+`audit-m5-full-game-c977efe0.atr` (SHA-256 `c977efe068d33356…`, = `dist/`),
+`-r1-breaker-714a3d9b` (`714a3d9bdd526883…`), `-r2-citadel-962f1b0d`
+(`962f1b0d8da3de66…`), `-r3-spine-17786d4d` (`17786d4d26716d02…`),
+`-r4-bastion-5e2888eb` (`5e2888eb40b085b0…`). The real-hardware run is part
+of the `v0.3.0` hardware test.
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

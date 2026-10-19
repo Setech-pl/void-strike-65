@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-19 (fix/audit-m5 built, the m5 audit's fixes, not merged, owner smoke pending - section "The m5 audit's fixes". M5-01 the hit sound no longer reads POT2; M5-02 a looping laser fighter backs off a still player near the top; M5-03 a hit before the boss entry no longer mutes the lead; M5-04 the SIO-diagnostic emulator is rebuilt and stamped by its executable; M5-05 the release zip carries the three notice files; addendum M3 comment, M6 closed, M12 note; M2 and the preview item STOPPED with estimates. Resident 0 B; worst fence margin 1,470 -> 1,465, DMA-on 31,059, 58 replays, 0 misses, 0 clause failures; boss stress worst 8,060 unchanged; npm test 1,485 of 1,486 twice (the recorded preview failure; reconciled, 0 NEW, 0 MOVED); ATR c977efe0. Before it: feat/boss-banners merged at b0afa27 WITHOUT the hardware smoke, owner decision §AZ.)
+Last update: 2026-10-19 (fix/audit-m5 merged into main by fast-forward, OWNER-ACCEPTED - owner smoke PASS 2026-10-19 on ATR c977efe0 and the routes R1 714a3d9b, R2 962f1b0d, R3 17786d4d, R4 5e2888eb; journal §BA, §BB; section "The m5 audit's fixes". M5-01 the hit sound no longer reads POT2; M5-02 a looping laser fighter backs off a still player near the top (the top-hold rows unchanged, accepted as anti-camping); M5-03 a hit before the boss entry no longer mutes the lead; M5-04 the SIO-diagnostic emulator is rebuilt and stamped by its executable; M5-05 the release zip carries the three notice files; addendum M3 comment, M6 closed, M12 note; M2's black-frames clause deferred to M8; chore/preview-29-rows dropped, tests/preview.test.mjs:164 accepted as a tool defect. Resident 0 B; worst fence margin 1,470 -> 1,465, DMA-on 31,059, 58 replays, 0 misses, 0 clause failures; boss stress worst 8,060 unchanged; npm test 1,485 of 1,486 twice (the recorded preview failure; reconciled, 0 NEW, 0 MOVED). Before it: feat/boss-banners merged at b0afa27 WITHOUT the hardware smoke, owner decision §AZ.)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -125,6 +125,28 @@ the sixteen candidates below plus seventeen later checkpoints - **33
 regenerated since each; it accepted none and revoked nothing (the standoff,
 journal §AK, is already `OWNER-ACCEPTED`). **The owner decides at `v0.3.0`
 which of them need the run on hardware** (journal §BA 9).
+
+**Backlog for M8 (owner decision 2026-10-19, journal §BB 2): the boss entry's
+black-frames trace clause** (the m5 audit's addendum M2), about 2-3 h
+(ESTIMATE):
+- the title-timing observer (DFTITLE) armed per session and parsed by
+  `scripts/runtime-wall-trace.mjs`;
+- a stable label at the banner's display-on (DMACTL) store;
+- register logging in the trace header (`--prepare`);
+- negative fixtures that fail on empty input;
+- a trace rerun.
+
+Until then `tests/boss-banners.test.mjs` guards the order on the 6502 core:
+black from the level's end, no old WARNING screen, the banner's screen first.
+The length of the black (16 host frames) is a one-off native measurement
+(plan `boss-banners` §9.6), not a gate.
+
+**Recorded test failure accepted (owner decision 2026-10-19, journal §BB 3):**
+`tests/preview.test.mjs:164` stays recorded
+([recorded-test-failures.json](recorded-test-failures.json)). It is a
+development-tool defect: `scripts/preview.mjs` draws 24 of the 29 playfield
+rows. It is not player-visible and not in the ATR, and the owner accepts it.
+`chore/preview-29-rows` is dropped.
 
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: plasma FX** (section
 "Plasma FX" below; the player side mint `$AE`, small enemy break-ups in the
@@ -400,15 +422,15 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## The m5 audit's fixes (fix/audit-m5) — `OWNER-SMOKE CANDIDATE` (2026-10-19)
+## The m5 audit's fixes (fix/audit-m5) — **OWNER-ACCEPTED** (owner smoke PASS 2026-10-19, merged into main by fast-forward)
 
-Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173`, addendum M1-M12); ledger [audits/README.md](audits/README.md); the owner's triage journal **§BA**. Every finding was checked against the repository and confirmed; none rejected. Each fix landed as a RED test commit, then the GREEN fix.
+Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173`, addendum M1-M12); ledger [audits/README.md](audits/README.md); the owner's triage journal **§BA**. Every finding was checked against the repository and confirmed; none rejected. Each fix landed as a RED test commit, then the GREEN fix. **Owner smoke PASS (2026-10-19, journal §BB; [hardware-testing.md](hardware-testing.md) §40)** on all five ATRs below: the hit sound, the laser fighter's second pass over a ship held still near the top, and the lead through the banner screen after a hit just before the boss.
 
 **What changes for the player.**
 - **The hit sound** (M5-01, S1): the projectile-hit sweep is the same 32 → 60 divider climb on every machine. It no longer reads `$D202` (POKEY's POT2 there, not AUDF2), so it no longer depends on the paddle port. RED `2af93e4`, GREEN `021e45d`.
 - **The looping laser fighter** (M5-02, S2): a fighter returning from its hold over a player who sits still near the top backs off instead of diving into the ship. The distance could wrap below zero while the Light was still above the player. The exit, speeds, hold rows and the catch rule of journal §AK are unchanged. RED `7aa34ea`, GREEN `a60105d`.
 - **The boss music** (M5-03, S2): a hit landed in the last frames before the boss entry no longer mutes the theme's lead through the black screen, the banner and the load. `sector_reader_blank` (START GAME, the level's end, the boss entry) clears `hit_timer`. RED `c05e4b2`, GREEN `647cac8`.
-- **Owner item (§BA 2), not changed:** a player parked on the top-hold rows (y ≤ 64) is still met by the hold step itself. That is §AK's hold rows, on main and here alike.
+- **Owner decision (§BB 1), not changed:** a player parked on the top-hold rows (y ≤ 64) is still met by the hold step itself. That is §AK's hold rows, on main and here alike, and the owner accepts it as intended anti-camping pressure.
 
 **Tools.**
 - **M5-04 (S3):** the SIO-diagnostic emulator copy runs `make clean` before `make`. It is stamped by the header's and the executable's hashes, so it can no longer keep the wall-trace binary. RED `2140219`, GREEN `6c34ebe`. After the fix, `tests/hardware-boot.test.mjs` and `tests/hardware-audio.test.mjs` pass 7 of 7, 0 skipped.
@@ -418,14 +440,14 @@ Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173
 - **M3:** the 5,000 / 4,999 comment in `tests/runtime-wall-trace.test.mjs` now says what it counts: CSV rows minus the one boss-entry row (entry at frame 2,808, MEASURED).
 - **M6:** closed (the "until M5" line above corrected).
 - **M12:** the inventory note above.
-- **M2 (a boss-entry black-frames clause in the trace): STOP, not built.** It needs:
+- **M2 (a boss-entry black-frames clause in the trace): STOP, not built; deferred to the M8 backlog (§BB 2, above).** It needs:
   - the opt-in DFTITLE observer armed per session, plus parsing in `scripts/runtime-wall-trace.mjs`;
   - a stable label at the banner's DMACTL store;
   - header-side register logging (`--prepare`);
   - negative fixtures;
   - a trace rerun.
-  That is about 2-3 h (ESTIMATE), over the 1-h limit. The 16-frame black stays covered by `tests/boss-banners.test.mjs` on the 6502 core.
-- **Optional `chore/preview-29-rows`: not started.** `SOURCE_HEIGHT` (24) is shared by every preview: PMG and shot clipping, plus the panel, comparison and grid layouts across ~10 functions. Drawing 29 rows also needs regenerated preview media: ~100-200 lines (ESTIMATE), over the ~50-line limit.
+  That is about 2-3 h (ESTIMATE), over the 1-h limit. `tests/boss-banners.test.mjs` covers the black-then-banner order on the 6502 core, not the 16-frame length.
+- **Optional `chore/preview-29-rows`: not started, then dropped (§BB 3; the recorded failure accepted, above).** `SOURCE_HEIGHT` (24) is shared by every preview: PMG and shot clipping, plus the panel, comparison and grid layouts across ~10 functions. Drawing 29 rows also needs regenerated preview media: ~100-200 lines (ESTIMATE), over the ~50-line limit.
 
 **Resident bytes: 0.**
 | Item | Before | After |
@@ -469,10 +491,7 @@ Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173
 - the whole game `audit-m5-full-game-c977efe0.atr` (= `dist/`, `c977efe068d33356…`);
 - the boss routes (`--level=1:sector=6 [--boss-region=N]`): `audit-m5-r1-breaker-714a3d9b.atr` (`714a3d9bdd526883…`), `audit-m5-r2-citadel-962f1b0d.atr` (`962f1b0d8da3de66…`), `audit-m5-r3-spine-17786d4d.atr` (`17786d4d26716d02…`), `audit-m5-r4-bastion-5e2888eb.atr` (`5e2888eb40b085b0…`).
 
-What to smoke:
-- the hit sound;
-- a laser fighter's second pass over a ship held still near the top;
-- a hit just before the boss and the theme's lead through the banner.
+All five passed the owner's smoke on 2026-10-19.
 
 ## The boss loading-screen banners (feat/boss-banners) — merged on emulator evidence, hardware smoke NOT RUN (2026-10-18, owner decision §AZ)
 

@@ -101,3 +101,149 @@ test("M5-01: a pause at every phase of the hit resumes on its envelope and plays
     }
   }
 });
+
+// --- M5-02 -----------------------------------------------------------------
+
+const OFFSET_INTERCEPTOR = 24;
+const ENTITY_GAMEPLAY_TOP = 24;    // a Light below it is the only one that can touch
+const LIGHT_HEIGHT = 8;            // src/hybrid/light-kernel.s LIGHT_HEIGHT_SCANLINES, drawn from y & $F8
+const PLAYER_ROWS = 15;            // PLAYER_COLLISION_LAST_ROW + 1
+const SLOT_ROWS = 16;
+const STANDOFF_FAR = 56;
+const LIFE_FRAMES = 64;
+
+// The drawn boxes, independently of the tick: does a Light at `y` share a
+// scanline with the fighter at `playerY`?
+function overlaps(y, playerY) {
+  const top = y & 0xf8;
+  if (top < ENTITY_GAMEPLAY_TOP) return false;
+  return top < playerY + PLAYER_ROWS && playerY < top + LIGHT_HEIGHT;
+}
+
+test("M5-02: the audit's fixture - slot 2 re-enters from its hold at y 64 over a stationary player at y 80 - backs off and never touches", () => {
+  const m = boot({ difficulty: 1 });
+  const memory = m.memory;
+  const slot = 2;
+  memory[L("light_state") + slot] = 2;                 // free flight
+  memory[L("light_archetype_offset") + slot] = OFFSET_INTERCEPTOR;
+  memory[L("light_hp") + slot] = 3;
+  memory[L("light_x") + slot] = 128;
+  memory[L("light_y") + slot] = 64;                    // its hold row, 32 + 2 x 16
+  memory[L("_light_burst_left") + slot] = 0;           // the standoff's first frame again
+  memory[L("_light_loops") + slot] = 1 << 6;           // one loop left
+  memory[L("_light_slot_limit")] = Math.max(3, memory[L("_light_slot_limit")]);
+  const health = mainAddress("BROAD_PLAYER_HEALTH");
+  memory[health] = 10;
+  const ys = [];
+  for (let frame = 0; frame < 48 && memory[L("light_state") + slot] !== 0; frame += 1) {
+    memory[L("player_x")] = 124;
+    memory[L("player_y")] = 80;
+    const before = memory[L("light_y") + slot];
+    productionFrame(m);
+    const after = memory[L("light_y") + slot];
+    ys.push(after);
+    // 80 - 64 - 32 = -16: nearer than the slot's standoff, so never down.
+    if (80 - before - slot * SLOT_ROWS < STANDOFF_FAR) {
+      assert.ok(after <= before, `frame ${frame}: ${before} -> ${after}, toward the player (ys ${ys.join(" ")})`);
+    }
+    assert.ok(!overlaps(after, 80), `frame ${frame}: the Interceptor at y ${after} touches the fighter at y 80`);
+    assert.equal(memory[L("light_hp") + slot], 3, `frame ${frame}: the Interceptor took contact damage`);
+    assert.equal(memory[health], 10, `frame ${frame}: the fighter's hull ${memory[health]} (ys ${ys.join(" ")})`);
+  }
+  assert.ok(ys.length >= 20, "the Interceptor left too early to be a test");
+});
+
+// --- the C tick alone, as tests/interceptor-loops.test.mjs flies it ---------
+
+const labelsOf = new Map();
+for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
+  "build/integration-glue.lbl", "build/light-kernel.lbl"]) {
+  for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
+    const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
+    if (match && !labelsOf.has(match[2])) labelsOf.set(match[2], Number.parseInt(match[1], 16));
+  }
+}
+function tickGame() {
+  const memory = new Uint8Array(0x10000);
+  installRuntimeSegments(memory, root);
+  for (let row = 0; row < 27; row += 1) {
+    const address = 0x8140 + row * 40;
+    memory[L("PLAYFIELD_ROW_LO") + row] = address & 0xff;
+    memory[L("PLAYFIELD_ROW_HI") + row] = address >> 8;
+  }
+  memory[L("DIFFICULTY_SETTING")] = 1;
+  const cpu = new Nmos6502(memory);
+  cpu.a = 0x6d;
+  const stop = 0x7fff;
+  cpu.push((stop - 1) >> 8);
+  cpu.push((stop - 1) & 0xff);
+  cpu.pc = L("director_init");
+  for (let steps = 0; steps < 200_000 && cpu.pc !== stop; steps += 1) cpu.step();
+  return memory;
+}
+
+// Three looping Interceptors admitted together under the wave's flags, as
+// tests/interceptor-loops.test.mjs admits them; the player on `path`.
+function flyLoops(path) {
+  const memory = tickGame();
+  memory[L("_heavy_wave_flags")] = 2 << 6;
+  memory[L("_heavy_escort_offset")] = OFFSET_INTERCEPTOR;
+  memory[L("frame_counter")] = (memory[L("frame_counter")] + 1) & 0xff;
+  call(memory, "enemy_spawn_raiders");
+  assert.equal(memory[L("light_state")], 2);
+  for (let slot = 1; slot < 3; slot += 1) {
+    for (const array of ["light_state", "light_hp", "light_x", "light_y", "light_fire_timer",
+      "_light_burst_left", "light_archetype_offset", "_light_loops"]) {
+      memory[L(array) + slot] = memory[L(array)];
+    }
+  }
+  memory[L("_light_slot_limit")] = Math.max(memory[L("_light_slot_limit")], 3);
+  const lives = [[], [], []];
+  for (let frame = 0; frame < 900; frame += 1) {
+    const { x: playerX, y: playerY } = path(frame);
+    memory[L("player_x")] = playerX;
+    memory[L("player_y")] = playerY;
+    memory[L("frame_counter")] = (memory[L("frame_counter")] + 1) & 0xff;
+    let live = 0;
+    for (let slot = 0; slot < 3; slot += 1) {
+      if (memory[L("light_state") + slot] === 0) continue;
+      const before = memory[L("light_y") + slot];
+      const age = memory[L("_light_burst_left") + slot];
+      memory[L("_light_slot")] = slot;
+      call(memory, "enemy_light_tick");
+      if (memory[L("light_state") + slot] === 0) continue;
+      live += 1;
+      lives[slot].push({ frame, playerY, before, after: memory[L("light_y") + slot], standoff: age < LIFE_FRAMES });
+    }
+    if (live === 0) return lives;
+  }
+  assert.fail("an Interceptor was still live after 900 frames");
+}
+
+const PATHS = {
+  "parked high (y 80)": () => ({ x: 124, y: 80 }),
+  "parked mid-screen (y 128)": () => ({ x: 124, y: 128 }),
+  "parked low (y 190)": () => ({ x: 124, y: 190 }),
+  // Up to y 80 at 2 lines a frame while the swarm climbs to its holds.
+  "climbing during the hold": (frame) => ({ x: 124, y: Math.max(80, 190 - 2 * Math.max(0, frame - LIFE_FRAMES)) }),
+};
+
+test("M5-02: every admitted slot through both loops - the standoff never closes on the player and no slot ever touches it", () => {
+  for (const [name, path] of Object.entries(PATHS)) {
+    const lives = flyLoops(path);
+    lives.forEach((life, slot) => {
+      assert.ok(life.length > LIFE_FRAMES * 2, `${name}, slot ${slot}: a life of ${life.length} frames`);
+      for (const { frame, playerY, before, after, standoff } of life) {
+        // Signed, in JavaScript: the rows between the Light's top and the
+        // fighter's, less the slot's own rows. Negative is nearer than that.
+        const separation = playerY - before - slot * SLOT_ROWS;
+        if (standoff && before < playerY && separation < STANDOFF_FAR) {
+          assert.ok(after <= before,
+            `${name}, slot ${slot}, frame ${frame}: ${separation} lines from its standoff it moved ${before} -> ${after}, toward the player`);
+        }
+        assert.ok(!overlaps(after, playerY),
+          `${name}, slot ${slot}, frame ${frame}: the Interceptor at y ${after} touches the fighter at y ${playerY}`);
+      }
+    });
+  }
+});

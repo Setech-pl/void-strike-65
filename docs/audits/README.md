@@ -24,6 +24,7 @@ when the repo refutes it.
 | Audit | Audited commit | Auditor |
 | --- | --- | --- |
 | [2026-10-06-pre-m5.md](2026-10-06-pre-m5.md) | `main` `1a3c8bf` | Codex (OpenAI) |
+| [2026-10-19-m5.md](2026-10-19-m5.md) | `main` `2e93173` | Codex (OpenAI) |
 
 ## Thematic audits
 
@@ -70,3 +71,8 @@ Raider pair with its escort and one Bomber pair after the capital, so §1's
 | AUD-05 | S3 | Stale palette pin hides the preview's behavioural checks | fixed (owner review pending) | `chore/evidence-integrity`: `a037d93` | COLPF2 re-pinned `$1E` → `$AE` (`src/main.s:566`, plasma FX B2); the recorded test now fails at its real cause, `tests/preview.test.mjs:164` (the `player_shape` variant, class C, `chore/preview-29-rows`); the allied-steel and hull-source checks are their own passing test. Records carry the first assertion and message; `scripts/reconcile-failures.mjs` (`9bc72c7`) matches by both. |
 | AUD-06 | S3 | Audit PASS permits insufficient margin and zero replays | fixed (owner review pending) | `chore/evidence-integrity`: `4693600` (RED), `02aaf4d` (GREEN) | PASS = no miss event, worst fence margin ≥ 500, DMA-on ≤ 32,568, ≥ 1 row; `fence_caught` keeps detection apart; the CLI fails on zero replays and on an input it cannot audit, and sets the boss-entry row aside as the harness does; the harness binds the audits' PASS into `gate.timing_and_dli_passed`. Tests: `tests/pal-timing-audit.test.mjs` "AUD-06: …" (10). |
 | AUD-07 | S4 | Unqualified runtime descriptions contradict the current ATR | fixed (owner review pending) | `chore/evidence-integrity`: `03eb693` | All five named passages rewritten to what the code runs, with `file:line`; also fixed: TOP SCORES vs the save record, the M1 Wingman paragraph, the frame-600 capital paragraph, the campaign block's "none implemented", two stale `src/main.s:3892` pointers (→ `:4105`). No code changed. |
+| M5-01 | S1 | Hit sound increments a write-only POKEY frequency register | open | — | |
+| M5-02 | S2 | A looping Interceptor can dive into a stationary player near the top | open | — | |
+| M5-03 | S2 | A last projectile hit can mute the lead throughout the boss banner/load | open | — | |
+| M5-04 | S3 | SIO diagnostic preparation can stamp an unrecompiled wall-trace binary as current | open | — | |
+| M5-05 | S4 | Release zip omits LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md | open | — | The audit's addendum M9 (its ID M5-A01). |

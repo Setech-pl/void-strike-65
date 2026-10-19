@@ -7217,10 +7217,15 @@ update_sound:
 @hit:
     lda hit_timer
     beq @capital
+    ; AUDF2 is write-only too: two INC AUDF2 read POT2 on a real POKEY
+    ; (fix/audit-m5, M5-01). The divider comes from the phase in RAM, as
+    ; resume_gameplay_audio rebuilds it: $3C - 2 * (hit_timer - 1) before the
+    ; decrement, so $22 on the frame after the hit's $20 and $3C on the last.
+    asl                         ; C=0: hit_timer <= 14
+    eor #$FF
+    adc #$3F                    ; 255 - 2 * t + $3F = $3E - 2 * t (mod 256)
+    sta AUDF2
     dec hit_timer
-    inc AUDF2
-    inc AUDF2
-    lda hit_timer
     bne @capital
     lda #$00
     sta AUDC2

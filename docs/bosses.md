@@ -20,9 +20,9 @@ their own.
 | Boss | Region | Levels | Signature | Fight on PILOT |
 | --- | ---: | ---: | --- | ---: |
 | [Blockade Breaker](#blockade-breaker) | 1 | 1-3 | twin laser cannons that take turns | 93 s |
-| [Void Citadel](#void-citadel) <img src="media/badges/coming-soon.svg" height="14" alt="COMING SOON"> | 2 | 4-6 | a gravity well | 99 s |
-| [Siege Spine](#siege-spine) <img src="media/badges/coming-soon.svg" height="14" alt="COMING SOON"> | 3 | 7-9 | a force field | 106 s |
-| [Bastion](#bastion) <img src="media/badges/coming-soon.svg" height="14" alt="COMING SOON"> | 4 | 10-12 | sliding gun rails and armoured bays | 122 s |
+| [Void Citadel](#void-citadel-) <img src="media/badges/coming-soon.svg" height="14" alt="COMING SOON"> | 2 | 4-6 | a gravity well | 99 s |
+| [Siege Spine](#siege-spine-) <img src="media/badges/coming-soon.svg" height="14" alt="COMING SOON"> | 3 | 7-9 | a force field | 106 s |
+| [Bastion](#bastion-) <img src="media/badges/coming-soon.svg" height="14" alt="COMING SOON"> | 4 | 10-12 | sliding gun rails and armoured bays | 122 s |
 
 ---
 

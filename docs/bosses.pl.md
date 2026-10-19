@@ -21,9 +21,9 @@ celuje w bossa, na pierwszym poziomie regionu danego bossa.
 | Boss | Region | Poziomy | Znak rozpoznawczy | Walka na PILOT |
 | --- | ---: | ---: | --- | ---: |
 | [Blockade Breaker](#blockade-breaker) | 1 | 1-3 | dwa działa laserowe strzelające na zmianę | 93 s |
-| [Void Citadel](#void-citadel) <img src="media/badges/wkrotce.svg" height="14" alt="WKRÓTCE"> | 2 | 4-6 | studnia grawitacyjna | 99 s |
-| [Siege Spine](#siege-spine) <img src="media/badges/wkrotce.svg" height="14" alt="WKRÓTCE"> | 3 | 7-9 | pole siłowe | 106 s |
-| [Bastion](#bastion) <img src="media/badges/wkrotce.svg" height="14" alt="WKRÓTCE"> | 4 | 10-12 | przesuwane szyny z działkami i opancerzone zatoki | 122 s |
+| [Void Citadel](#void-citadel-) <img src="media/badges/wkrotce.svg" height="14" alt="WKRÓTCE"> | 2 | 4-6 | studnia grawitacyjna | 99 s |
+| [Siege Spine](#siege-spine-) <img src="media/badges/wkrotce.svg" height="14" alt="WKRÓTCE"> | 3 | 7-9 | pole siłowe | 106 s |
+| [Bastion](#bastion-) <img src="media/badges/wkrotce.svg" height="14" alt="WKRÓTCE"> | 4 | 10-12 | przesuwane szyny z działkami i opancerzone zatoki | 122 s |
 
 ---
 

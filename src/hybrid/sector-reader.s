@@ -275,6 +275,13 @@ sector_reader_blank:
         lda #$00
         sta DMACTL
         sta GRACTL
+        ; Every caller hands the machine over - START GAME, the level's end,
+        ; the boss entry - so the hit SFX gives channel 2 back here: nothing
+        ; advances its timer until gameplay runs again, and gm_publish leaves
+        ; channel 2 to a live hit (fix/audit-m5, M5-03: a hit a frame before
+        ; the boss entry muted the theme's lead through the banner and the
+        ; load). The level's end cleared it itself until now.
+        sta hit_timer
         jsr clear_pmg_graphics_latches  ; also stores NMIEN = 0
         jmp clear_pmg
 
@@ -293,8 +300,7 @@ sector_reader_level_end:
         lda #$00
         sta AUDC3
         sta AUDC4
-        sta AUDCTL
-        sta hit_timer                   ; channel 2 is the music's, not the hit's
+        sta AUDCTL                      ; channel 2 is the music's: blank took the hit's
         jsr sector_reader_ensure_summary
         bcs @failed
         jsr SUMMARY_LEVEL_END

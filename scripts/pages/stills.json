@@ -469,7 +469,7 @@
       "id": "bastion-stage-2",
       "name": "Bastion",
       "capture": "r4-diag-1",
-      "frame": 700,
+      "frame": 450,
       "crop": [
         8,
         16,

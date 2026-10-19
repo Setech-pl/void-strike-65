@@ -2,6 +2,8 @@
 
 # VOID STRIKE 65
 
+[Jak grać](docs/how-to-play.pl.md) · [Przeciwnicy](docs/enemies.pl.md) · [Bossowie](docs/bosses.pl.md) · [Wydania](https://github.com/Setech-pl/void-strike-65/releases) · [Dokumentacja](docs/README.md)
+
 **[▶ Zagraj w przeglądarce](https://setech-pl.github.io/setech-arcade/play/void-strike-65/)**
 
 *Uruchamia wydanie v0.3.0, przypięte w Setech Arcade, na wbudowanym w emulator
@@ -21,8 +23,6 @@ zabija także ciebie. Ciemna, zużyta, militarna fantastyka naukowa na fabryczne
 maszynie z 64 KB pamięci.
 
 Projekt hobbystyczny, niekomercyjny. Bezpłatny.
-
-[Jak grać](docs/how-to-play.pl.md) · [Wydania](https://github.com/Setech-pl/void-strike-65/releases) · [Dokumentacja](docs/README.md)
 
 <img src="docs/media/showcase/void-strike-65-level-1.gif" width="640" alt="Czternaście sekund poziomu 1 nagranych z ATR: myśliwiec zbiera kapsułę Spread Shot, strzela wachlarzami po trzy pociski i wlatuje w korytarz między sojuszniczym a wrogim okrętem liniowym">
 

@@ -2,6 +2,8 @@
 
 # VOID STRIKE 65
 
+[How to play](docs/how-to-play.md) · [Enemies](docs/enemies.md) · [Bosses](docs/bosses.md) · [Releases](https://github.com/Setech-pl/void-strike-65/releases) · [Documentation](docs/README.md)
+
 **[▶ Play in your browser](https://setech-pl.github.io/setech-arcade/play/void-strike-65/)**
 
 *Plays release v0.3.0, the version pinned on Setech Arcade, on the emulator's
@@ -20,8 +22,6 @@ fighting each other — the one on your left is yours, and its fire kills you
 too. Dark, worn, military science fiction on a stock 64 KB machine.
 
 A non-commercial hobby project. Free.
-
-[How to play](docs/how-to-play.md) · [Releases](https://github.com/Setech-pl/void-strike-65/releases) · [Documentation](docs/README.md)
 
 <img src="docs/media/showcase/void-strike-65-level-1.gif" width="640" alt="Fourteen seconds of level 1 recorded from the ATR: the fighter picks up the Spread Shot capsule, fires three-shot fans, and flies into the corridor between the allied and the hostile capital ship">
 

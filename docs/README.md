@@ -66,6 +66,7 @@ cost of keeping them true. The line follows the audience, not the directory.
 | What we do next | [plan-realizacji.md](plan-realizacji.md) |
 | Task workflows for agents | [agent-workflows/](agent-workflows/) |
 | How the game plays, for a player | [how-to-play.md](how-to-play.md) — also [po polsku](how-to-play.pl.md) |
+| Every enemy and boss, for a player: pictures, hits, points, behaviour | [enemies.md](enemies.md) and [bosses.md](bosses.md) — also po polsku: [enemies.pl.md](enemies.pl.md), [bosses.pl.md](bosses.pl.md) |
 | Player-visible rules | [game-design.md](game-design.md) |
 | Runtime layers, flows, pools and contracts | [architecture.md](architecture.md) |
 | C/ASM boundary, ABI and placement | [hybrid-c-architecture.md](hybrid-c-architecture.md) |

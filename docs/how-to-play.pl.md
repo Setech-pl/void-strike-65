@@ -10,29 +10,36 @@ Ta strona jest dla graczy. Opisuje zasady gry, a nie kod.
 
 ## Stan gry
 
-Gra nie jest skończona. Ta strona opisuje całą grę tak, jak została
-zaprojektowana, więc części tego, co niżej, nie ma w wersji, w którą można dziś
-zagrać.
+Gra nie jest skończona. Aktualne wydanie to **v0.3.0**, wydanie
+przedpremierowe przetestowane na prawdziwym Atari 65XE. To poziom 1 zakończony
+bossem, potem podsumowanie poziomu i powrót do menu. Ta strona opisuje całą grę
+tak, jak została zaprojektowana, więc części tego, co niżej, nie ma w v0.3.0.
 
-**Działa dziś**
+**W v0.3.0**
 
 - Lot w otwartej przestrzeni.
 - Przelot korytarzem.
-- Cztery typy przeciwników: Raider, Bomber, Wingman, Interceptor.
+- Cztery typy przeciwników: Raider, Bomber, Wingman, Interceptor
+  ([Przeciwnicy](enemies.pl.md)).
+- Rój lekkich myśliwców po przelocie korytarzem.
 - Niszczalne szczątki.
 - Kapsuły z ulepszeniami.
+- Boss poziomu 1, Blockade Breaker, z banerem ładowania
+  ([Bossowie](bosses.pl.md)).
+- Podsumowanie poziomu. Twój najlepszy wynik na poziomie zapisuje się na dysku
+  gry.
 - Trzy poziomy trudności.
 
-**Wciąż powstaje**
+**Przyjdzie z kampanią**
 
-- Kampania na dwanaście poziomów.
-- Bossowie.
-- Roje lekkich myśliwców.
+- Poziomy od 2 do 12: kampania na dwanaście poziomów.
+- Pozostali trzej bossowie: Void Citadel, Siege Spine i Bastion. Są już
+  zbudowani i pojawią się, gdy dojdą prowadzące do nich poziomy.
 - Stałe ulepszenie broni.
-- Pamięć postępu.
+- Start od najdalszego osiągniętego poziomu.
 
-Wszystko poniżej, co dotyczy kampanii, bossa albo ulepszenia broni, jest
-projektem gry, a nie tym, co robi dzisiejsza wersja.
+Wszystko poniżej, co dotyczy poziomów po pierwszym, pozostałych trzech bossów,
+ulepszenia broni albo postępu, jest projektem gry, a nie tym, co robi v0.3.0.
 
 ## Co to za gra
 
@@ -74,8 +81,10 @@ tylko w otwartej przestrzeni, nigdy podczas przelotu korytarzem.
 Twój myśliwiec ma 100 punktów kadłuba. Wskaźnik HULL pokazuje 100%, 75%, 50% i
 25%.
 
-Kadłub jest taki sam na każdym poziomie trudności. Zmienia się to, ile zabierają
-trafienia przeciwnika — a nie to, ile zniesiesz.
+Kadłub jest taki sam na każdym poziomie trudności, tak samo jak większość tego,
+co w niego trafia: wrogi strzał zabiera jedną dziesiątą kadłuba na każdym
+poziomie trudności. Zmienia się to, ile kosztują szczątki i laser bossa — a nie
+to, ile zniesiesz.
 
 Zaczynasz z trzema życiami i dostajesz po jednym za ukończenie poziomów 3, 5, 7,
 9 i 11 — pięć dodatkowych, **razem osiem** na całą kampanię.
@@ -91,8 +100,12 @@ wytrzymałości.
 | PILOT | Ustawienie domyślne |
 | ACE | Dla tych, którzy znają schematy |
 
-Trudność skaluje cztery rzeczy: obrażenia zadawane przez przeciwników, obrażenia
-zadawane przez Ciebie, obrażenia od zderzeń i szybkostrzelność przeciwników.
+Trudność zmienia to, jak często strzelają przeciwnicy, jak szybko przewija się
+świat, ile kosztuje zderzenie ze szczątkami (dwie, pięć albo siedem dziesiątych
+kadłuba) oraz bossów: ile trafień wytrzymują ich moduły (0,75×, 1×, 1,25×) i jak
+mocno bije ich laser. Nie zmienia obrażeń zadawanych przez Ciebie: każde Twoje
+trafienie liczy się tak samo, a wrogi myśliwiec wytrzymuje tyle samo trafień na
+każdym poziomie trudności.
 
 Zmiana poziomu trudności kasuje zapamiętany postęp.
 
@@ -110,8 +123,8 @@ z tabelą wyników.
 | Raider | Ciężki | Szybki myśliwiec, strzela seriami | 10 |
 | Bomber | Ciężki | Sylwetka katamaranu; przeczesuje swój pas, zatrzymuje się, celuje, wypuszcza torpedy | 50 |
 | Wingman | Lekki | Lata w formacji | 5 |
-| Interceptor | Lekki | Nurkuje na pozycję strzelecką nad tobą, trzyma się twojej kolumny, strzela laserem prosto w dół, gdy jest nad tobą, cofa się, gdy podlecisz. W niektórych falach wznosi się potem pod górną krawędź ekranu, zawisa tam i nurkuje z powrotem na kolejne przejście (na poziomie 1 dwa razy), zanim odleci w górę. Wytrzymuje dwa trafienia, ginie od trzeciego | 21 |
-| Boss | — | Koniec każdego poziomu | 100 |
+| Interceptor | Lekki | Nurkuje na pozycję strzelecką nad tobą, trzyma się twojej kolumny, strzela laserem prosto w dół, gdy jest nad tobą, cofa się, gdy podlecisz. W niektórych falach wznosi się potem pod górną krawędź ekranu, zawisa tam i nurkuje z powrotem na kolejne przejście (na poziomie 1 dwa razy), zanim odleci w górę. Wytrzymuje dwa trafienia, ginie od trzeciego | 15 |
+| Boss | — | Koniec każdego poziomu | każdy moduł 20-99; 2000 za pokonanie |
 
 Kadłub Bombera ciemnieje w miarę obrywania, więc po kolorze poznasz, ile mu
 zostało. Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a
@@ -150,9 +163,9 @@ Boss to konstrukcja z powtarzalnych modułów. Działa ma pożyczone od zwykłyc
 przeciwników. Ma też laser.
 
 Lasera nie da się uniknąć, kiedy już padnie strzał — ale sam się zapowiada.
-Działo nagrzewa się przez jakieś dwie sekundy, z narastającym dźwiękiem. To jest
-czas na zejście z linii. Potem promień zapala się na sekundę i niszczy wszystko
-na swojej drodze.
+Działo nagrzewa się z narastającym dźwiękiem przez 0,8 s na ROOKIE, 0,64 s na
+PILOT i 0,5 s na ACE. To jest czas na zejście z linii. Potem promień zapala się
+na sekundę: zabiera połowę kadłuba na ROOKIE, a cały na PILOT i ACE.
 
 Boss poziomów 1-3 ma dwa działa laserowe, jedno na lewo, drugie na
 prawo od środka. Strzelają na zmianę — nigdy oba naraz — a gdy jedno zostanie
@@ -224,10 +237,11 @@ pocisku.
 | --- | ---: |
 | Wingman | 5 |
 | Raider | 10 |
-| Interceptor | 21 |
+| Interceptor | 15 |
 | Szczątki | 25 |
 | Bomber | 50 |
-| Boss | 100 |
+| Moduł bossa | 20-99 |
+| Pokonanie bossa | 2000, doliczane na podsumowaniu poziomu |
 
 Szczątki dają punkty niezależnie od tego, czy je zestrzelisz, czy w nie
 wlecisz.

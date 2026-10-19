@@ -40,8 +40,10 @@ function resolve(href, base) {
   return anchor ? `${url}#${anchor}` : url;
 }
 
-const slug = (text) => text.replace(/<[^>]+>/g, "").trim().toLowerCase()
-  .replace(/[^\p{L}\p{N}\s-]/gu, "").replace(/\s+/g, "-");
+// GitHub's heading anchor: no trim and one hyphen per space, so a heading that
+// ends in " <img …>" (a badge) keeps a trailing hyphen.
+const slug = (text) => text.replace(/<[^>]+>/g, "").toLowerCase()
+  .replace(/[^\p{L}\p{M}\p{N}_ -]/gu, "").replace(/ /g, "-");
 
 export function renderMarkdown(markdown, base) {
   const lines = markdown.split("\n");

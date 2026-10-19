@@ -10,29 +10,36 @@ Ta strona jest dla graczy. Opisuje zasady gry, a nie kod.
 
 ## Stan gry
 
-Gra nie jest skończona. Ta strona opisuje całą grę tak, jak została
-zaprojektowana, więc części tego, co niżej, nie ma w wersji, w którą można dziś
-zagrać.
+Gra nie jest skończona. Aktualne wydanie to **v0.3.0**, wydanie
+przedpremierowe przetestowane na prawdziwym Atari 65XE. To poziom 1 zakończony
+bossem, potem podsumowanie poziomu i powrót do menu. Ta strona opisuje całą grę
+tak, jak została zaprojektowana, więc części tego, co niżej, nie ma w v0.3.0.
 
-**Działa dziś**
+**W v0.3.0**
 
 - Lot w otwartej przestrzeni.
 - Przelot korytarzem.
-- Cztery typy przeciwników: Raider, Bomber, Wingman, Interceptor.
+- Cztery typy przeciwników: Raider, Bomber, Wingman, Interceptor
+  ([Przeciwnicy](enemies.pl.md)).
+- Rój lekkich myśliwców po przelocie korytarzem.
 - Niszczalne szczątki.
 - Kapsuły z ulepszeniami.
+- Boss poziomu 1, Blockade Breaker, z banerem ładowania
+  ([Bossowie](bosses.pl.md)).
+- Podsumowanie poziomu. Twój najlepszy wynik na poziomie zapisuje się na dysku
+  gry.
 - Trzy poziomy trudności.
 
-**Wciąż powstaje**
+**Przyjdzie z kampanią**
 
-- Kampania na dwanaście poziomów.
-- Bossowie.
-- Roje lekkich myśliwców.
+- Poziomy od 2 do 12: kampania na dwanaście poziomów.
+- Pozostali trzej bossowie: Void Citadel, Siege Spine i Bastion. Są już
+  zbudowani i pojawią się, gdy dojdą prowadzące do nich poziomy.
 - Stałe ulepszenie broni.
-- Pamięć postępu.
+- Start od najdalszego osiągniętego poziomu.
 
-Wszystko poniżej, co dotyczy kampanii, bossa albo ulepszenia broni, jest
-projektem gry, a nie tym, co robi dzisiejsza wersja.
+Wszystko poniżej, co dotyczy poziomów po pierwszym, pozostałych trzech bossów,
+ulepszenia broni albo postępu, jest projektem gry, a nie tym, co robi v0.3.0.
 
 ## Co to za gra
 

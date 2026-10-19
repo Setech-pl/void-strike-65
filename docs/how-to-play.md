@@ -10,28 +10,35 @@ This page is for players. It describes the rules of the game, not the code.
 
 ## Status
 
-The game is not finished. This page describes the whole design, so some of what
-follows is not in the build you can play today.
+The game is not finished. The current release is **v0.3.0**, a pre-release
+tested on a real Atari 65XE. It is level 1, ending on its boss, then the level
+summary and back to the menu. This page describes the whole design, so some of
+what follows is not in v0.3.0.
 
-**Working today**
+**In v0.3.0**
 
 - Open-space flight.
 - The capital run.
-- Four enemy types: Raider, Bomber, Wingman, Interceptor.
+- Four enemy types: Raider, Bomber, Wingman, Interceptor
+  ([Enemies](enemies.md)).
+- The light-fighter swarm after the capital run.
 - Destructible debris.
 - Pickup capsules.
+- The boss of level 1, the Blockade Breaker, with its loading banner
+  ([Bosses](bosses.md)).
+- The level summary. Your best score on the level is saved to the game's disk.
 - Three difficulties.
 
-**Still being built**
+**Coming with the campaign**
 
-- The twelve-level campaign.
-- Bosses.
-- Light-fighter swarms.
+- Levels 2 to 12: the twelve-level campaign.
+- The other three bosses: the Void Citadel, the Siege Spine and the Bastion.
+  They are built and arrive when the levels that reach them are added.
 - The permanent weapon upgrade.
-- Progress memory.
+- Starting from the furthest level you reached.
 
-Everything below marked as part of the campaign, the boss or the weapon upgrade
-is the design, not the current build.
+Everything below about levels after the first, the other three bosses, the
+weapon upgrade or progress is the design, not v0.3.0.
 
 ## What it is
 

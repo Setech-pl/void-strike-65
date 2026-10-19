@@ -1,8 +1,10 @@
 # Enemies and Bosses pages — plan
 
 **Branch:** `docs/enemies-bosses-pages` from `main` `6e76e4d` (= tag `v0.3.0`).
-**Status:** Phase A — inventory, visual candidates and page skeletons; STOP for
-the owner's visual choices. No game code, cfg, asset or test changes.
+**Status:** Phase B built 2026-10-19 on the owner's Phase A answers (§5);
+`OWNER REVIEW CANDIDATE`. The pages, their media, the README link bar and the
+documentation fixes are committed; §3.5 records them as built. No game code,
+cfg, asset or test change; `dist/` is the `v0.3.0` ATR byte for byte.
 
 The pages describe release **`v0.3.0`** — the latest tag, and the commit this
 branch starts from. Everything below is read from code and data at that commit
@@ -261,7 +263,7 @@ bar adds none, and the badge never goes into the README.
 
 ---
 
-## 3. Stills, art, badge (Phase A material, `build/pages/`, not committed)
+## 3. Stills, art, badge, GIFs (Phase A in `build/pages/`; Phase B as built in §3.5)
 
 ### 3.1 Captures
 
@@ -337,6 +339,123 @@ PNG previews at 2 and 3 pixels per font pixel beside a name in the game
 lettering; `preview.html` with GitHub-like headings (light and dark) showing
 the SVG at heights 16 and 20.
 
+### 3.5 As built (Phase B, the owner's answers of 2026-10-19)
+
+The answers to §5:
+
+* **1:** style b everywhere;
+* **2:** B1-B4, E2, E3 and B5 (the Breaker only), 320 × 240 at 50 fps;
+* **3:** full sections for R2-R4;
+* **4:** full Polish translations, names in English;
+* **5:** the badge scope confirmed;
+* **6:** fix the documentation errors here;
+* **7:** one link bar at the top;
+* **8:** the media stay unbound, with a STATUS backlog line.
+
+**Pictures.** `node scripts/pages/media.mjs` renders every subject of
+`scripts/pages/stills.json` in style b at ×8 into `docs/media/enemies/` (10)
+and `docs/media/bosses/` (23).
+
+* They are quantised to a 256-colour palette by `scripts/pages/png.mjs`, a
+  median cut without dither. `pngquant`, `oxipng` and `optipng` are not
+  installed, and `sharp` would be a new dependency (AGENTS rule 13).
+* With that, ×8 met the 300 KB budget for every file: the largest is
+  `spine-field.png` at 242,838 B. ×6 was not needed, and the scanlines,
+  bloom and tint survive the palette (checked by eye on the Breaker header and
+  the full-screen scenes).
+* A **card** (the four enemies, four skins, four boss headers) carries only
+  the name, and for a skin the skin's name, in the game's lettering.
+* The scenes and the boss stages are the shot alone.
+* No descriptive text is drawn, so one picture serves both languages, and the
+  badge is never drawn into a picture.
+* Re-rendering is deterministic (byte-identical PNGs).
+
+**Stage frame fix.** The Bastion's second stage moved from frame 700 to frame
+450. `rail_k` holds one nibble per side; at 700 the right rail had already
+slid twice. The caption says "after the right rail's first slide".
+
+**Cuts.** `scripts/pages/media.mjs` cuts the `gifs` list of `stills.json`
+through the repository's `encodeGif`:
+
+| Cut | File | Frames | Bytes |
+| --- | --- | --- | ---: |
+| E2 | `enemies/bomber-attack-run.gif` | l1 420 +300 | 176,895 |
+| E3 | `enemies/swarm.gif` | l1 1935 +365 | 137,844 |
+| B1 | `bosses/breaker-twin-lasers.gif` | l1 3990 +450 | 556,671 |
+| B5 | `bosses/breaker-banner.gif` | host 3765 +445 | 158,091 |
+| B2 | `bosses/citadel-gravity-well.gif` | r2 100 +400 | 182,492 |
+| B3 | `bosses/spine-force-field.gif` | r3 200 +400 | 587,536 |
+| B4 | `bosses/bastion-rails.gif` | r4 150 +500 | 179,898 |
+
+All are under 600 KB, 6-10 s each.
+
+**B5.** The capture `l1-banner-1` saves host frames 3765-4209
+(`DFTRACE_SHOT_PREFIX`/`DFTRACE_SHOT_HOSTS`; `hosts` in `capture.mjs`,
+`hosts: true` in `gif.mjs`, about 20 lines). Gameplay frame 3039 ends at host
+3814 and the fight starts at host 4110. **The disk-activity light does not
+show:** a scan of the four corners of every host frame of the load (3816-4108)
+finds no lit pixel, so nothing is masked or cropped.
+
+**Badges.** `docs/media/badges/coming-soon.svg` (4,666 B) and `wkrotce.svg`
+(3,272 B) sit in the headings of the three level-2 skins and bosses R2-R4,
+and beside their names in the summary tables. The Breaker has none, and no
+enemy type has one.
+
+**Size.** `docs/media` grows by 42 files and 5,553,123 B:
+
+| Group | Bytes |
+| --- | ---: |
+| 33 PNGs | 3,565,758 |
+| 7 GIFs | 1,979,427 |
+| 2 SVGs | 7,938 |
+
+None of it is in `docs/media/manifest.json`. A STATUS backlog line covers
+binding it; `tests/github-showcase.test.mjs` pins one animation.
+
+**Pages.** `docs/enemies.md`, `docs/bosses.md` and their `.pl.md`
+translations are written from §1. Both boss pages say above the list that
+v0.3.0 ships level 1 and the Blockade Breaker, and that the other three come
+with the campaign. No never-built roster archetype and no concept picture
+appears. `docs/README.md` links the pages.
+
+**README.** One link bar under the title in `README.md` / `README.pl.md`;
+the mid-page line is removed. Image count unchanged at nine.
+
+**Documentation fixes** (§1.5 items 2-3):
+
+* `how-to-play.md` and `how-to-play.pl.md`:
+  * Interceptor 15;
+  * boss modules 20-99 plus 2,000;
+  * laser warning 0.8 / 0.64 / 0.5 s and beam damage;
+  * what difficulty changes.
+* `game-design.md`:
+  * debris 25;
+  * the Bomber's attack run;
+  * the as-built laser warning beside decision I's "about two seconds" (the
+    same stale fact; reported).
+
+**Preview without GitHub:**
+`node scripts/pages/preview-html.mjs docs/enemies.md docs/bosses.md` writes
+`build/pages/html/*.html` (a GitHub-like style, images by absolute file URL).
+
+**Gates (2026-10-19, on this branch):**
+
+* **The evidence chain** (build:candidate → runtime:wall-trace → menu raster
+  → build → memory-map → showcase:gif → showcase) reproduced the committed
+  evidence byte for byte: no tracked file changed.
+  * `dist/void-strike-65.atr` is `c977efe0…`, the `v0.3.0` ATR.
+  * Wall trace: 0 distinct miss events across 58 replays, 0 clause failures.
+* **`npm test`** on the default build: **1,485 of 1,486**. The one failure is
+  the recorded `tests/preview.test.mjs:164`, matched by name and first
+  assertion. `failures:reconcile` PASS: 0 NEW, 0 MOVED, 0 disappeared.
+
+**Regenerating everything:**
+
+```text
+node scripts/pages/capture.mjs     # the six captures, ~10 min, Atari800 windows open
+node scripts/pages/media.mjs       # pictures, cuts, badges into docs/media
+```
+
 ---
 
 ## 4. GIF candidates
@@ -395,7 +514,7 @@ Binding them is a separate task with a test change.
 
 ---
 
-## 5. Owner questions (Phase A STOP)
+## 5. Owner questions (Phase A STOP; answered 2026-10-19, §3.5)
 
 1. **Art style:** a, b, c or a mix? Recommended: **a on the pages** (light,
    the pixels as the game draws them), with **c for the four boss headers**.

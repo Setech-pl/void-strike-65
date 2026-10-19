@@ -1205,7 +1205,9 @@ static uint8_t light_tick_body(void)
                      * rows higher: a swarm at the top does not merge. */
                     light_tick_result = (uint8_t)((uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT) +
                         INTERCEPTOR_TOP_HOLD);
-                    if (light_work >= (uint8_t)(light_tick_result + INTERCEPTOR_CLIMB)) {
+                    /* y >= row + 3 as row + 2 < y: one branch, not two
+                     * (fix/audit-m5, a byte toward M5-02's below). */
+                    if ((uint8_t)(light_tick_result + (INTERCEPTOR_CLIMB - 1u)) < light_work) {
                         light_work = (uint8_t)(light_work - INTERCEPTOR_CLIMB);
                     } else {
                         light_work = light_tick_result;
@@ -1222,17 +1224,24 @@ static uint8_t light_tick_body(void)
             } else {
                 ++light_fire_work;
                 light_burst_left[light_slot] = light_fire_work;
-                /* The player's distance below, top to top, less the
-                 * slot's own rows (a swarm stacks instead of merging; the
-                 * Director's ceilings keep the slot under 3, so with the
-                 * player at Y 32 or lower down nothing wraps). It tracks at
-                 * the player's speed (half speed while holding is 13 packed
-                 * bytes, a twelfth window sector). */
-                light_target_x = (uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT);
-                light_scratch = (uint8_t)((uint8_t)(PLAYER_Y - light_work) - light_target_x);
-                if (light_scratch >= INTERCEPTOR_STANDOFF_FAR) {
+                /* The player's distance below, top to top, against the
+                 * standoff plus the slot's own rows (a swarm stacks instead
+                 * of merging). It tracks at the player's speed (half speed
+                 * while holding is 13 packed bytes, a twelfth window sector).
+                 *
+                 * fix/audit-m5 (M5-02): the distance less the slot's rows
+                 * used to wrap when the player was nearer than those rows -
+                 * slot 2 back from its hold at y 64 over a player at y 80 is
+                 * -16, read as 240, a dive into the fighter. The slot's rows
+                 * now go into the thresholds, so the distance itself never
+                 * goes negative while the Light is above the player's top:
+                 * nearer than the standoff, rows included, is a back-off.
+                 * Above the Light's top (the byte wraps, as before) the
+                 * player has passed it, and the dive takes it away. */
+                light_target_x = (uint8_t)((uint8_t)(light_slot << INTERCEPTOR_SLOT_SHIFT) + INTERCEPTOR_STANDOFF_FAR);
+                if ((light_tick_result = (uint8_t)(PLAYER_Y - light_work)) >= light_target_x) {
                     light_work = (uint8_t)(light_work + INTERCEPTOR_DIVE);
-                } else if (light_scratch < INTERCEPTOR_STANDOFF_NEAR &&
+                } else if ((uint8_t)(light_tick_result + (INTERCEPTOR_STANDOFF_FAR - INTERCEPTOR_STANDOFF_NEAR)) < light_target_x &&
                            light_work >= INTERCEPTOR_BACKOFF) {
                     light_work = (uint8_t)(light_work - INTERCEPTOR_BACKOFF);
                 }
@@ -1283,10 +1292,12 @@ static uint8_t light_tick_body(void)
             light_work = LIGHT_X_LAST;
         }
         light_x[light_slot] = light_work;
-        if (ENEMY_Y_0 < LIGHT_LAG_Y) {
+        /* 0 above the lag: a leader under LIGHT_LAG_Y wraps the byte to
+         * 244 or more, and nothing else reaches it (fix/audit-m5, 3 B
+         * toward M5-02's standoff: one read and one branch fewer). */
+        light_work = (uint8_t)(ENEMY_Y_0 - LIGHT_LAG_Y);
+        if (light_work >= (uint8_t)(0u - LIGHT_LAG_Y)) {
             light_work = 0u;
-        } else {
-            light_work = (uint8_t)(ENEMY_Y_0 - LIGHT_LAG_Y);
         }
         light_y[light_slot] = light_work;
     }

@@ -617,11 +617,14 @@ hostile_weapon_visual_glyphs:
 ; boot-loaded record keeps 11 sectors. C calls the head by its pin.
 _asm_boss_enter = pin_boss_enter_head
 
-; No pad any more. The Light kernel link starts where the Director link's
-; window half ends and must stay where none of its taken branches crosses a
-; page: $B473-$B479 (MEASURED from the listings and maps; at $B47A
-; light_shot's two "beq @alive" cross, from $B485 light_update's slot loop
-; too). It is at $B478. A pad here held it there - four bytes until
-; fix/interceptor-speed, whose centred column took three; the last went to
-; the Interceptor's dead zone (feat/boss-order-scale, the tick +1 B after
-; trims), so the segment is empty.
+; Never executed: the C before this segment ends in an RTS, and nothing jumps
+; here. The Light kernel link starts where the Director link's window half
+; ends and must stay where none of its taken branches crosses a page:
+; $B473-$B479 (MEASURED from the listings and maps; at $B47A light_shot's
+; two "beq @alive" cross, from $B485 light_update's slot loop too). It is at
+; $B478. A pad here holds it there - four bytes until fix/interceptor-speed,
+; whose centred column took three; the last went to the Interceptor's dead
+; zone (feat/boss-order-scale). fix/audit-m5 (M5-02) left the tick 1 B
+; shorter, and the byte comes back here, so the kernel and every pin into it
+; stay put byte for byte.
+    .res 1, $00

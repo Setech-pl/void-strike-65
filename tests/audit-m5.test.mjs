@@ -134,6 +134,7 @@ test("M5-02: the audit's fixture - slot 2 re-enters from its hold at y 64 over a
   memory[L("_light_slot_limit")] = Math.max(3, memory[L("_light_slot_limit")]);
   const health = mainAddress("BROAD_PLAYER_HEALTH");
   memory[health] = 10;
+  let hull = 10;
   const ys = [];
   for (let frame = 0; frame < 48 && memory[L("light_state") + slot] !== 0; frame += 1) {
     memory[L("player_x")] = 124;
@@ -147,8 +148,14 @@ test("M5-02: the audit's fixture - slot 2 re-enters from its hold at y 64 over a
       assert.ok(after <= before, `frame ${frame}: ${before} -> ${after}, toward the player (ys ${ys.join(" ")})`);
     }
     assert.ok(!overlaps(after, 80), `frame ${frame}: the Interceptor at y ${after} touches the fighter at y 80`);
+    // A contact is the hull's 10 units and one off the Interceptor's HP
+    // (light-kernel.s @touch); its laser in the player's column (1 unit) is
+    // its fire, not a ram.
     assert.equal(memory[L("light_hp") + slot], 3, `frame ${frame}: the Interceptor took contact damage`);
-    assert.equal(memory[health], 10, `frame ${frame}: the fighter's hull ${memory[health]} (ys ${ys.join(" ")})`);
+    assert.ok(hull - memory[health] < 10 && memory[health] > 0,
+      `frame ${frame}: the fighter's hull ${hull} -> ${memory[health]} (ys ${ys.join(" ")})`);
+    assert.equal(memory[mainAddress("PLAYER_LIFECYCLE")], 0, `frame ${frame}: the fighter is not alive`);
+    hull = memory[health];
   }
   assert.ok(ys.length >= 20, "the Interceptor left too early to be a test");
 });

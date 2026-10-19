@@ -228,6 +228,12 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   // Interceptors a shot can catch, the HARD fire-4 sweep bot shoots them down
   // and reaches the boss again (debris-effects-2-sweep-fire4, boss entry at
   // frame 3,169, MEASURED); its boss-entry frame is set aside: 4,999.
+  // RE-COUNTED (fix/audit-m5, audit addendum M3): the figure counts measured
+  // gameplay rows, not debris events or host frames - the replay's 5,000 CSV
+  // rows minus its one boss_entry row (scripts/runtime-wall-trace.mjs sets
+  // entry rows aside however many host frames they span). The entry row moves
+  // with the bot's run (frame 2,808 at fix/audit-m5, MEASURED; the 3,169 above
+  // is historical); the count does not.
   assert.equal(report.replay.debris_effects_measured_frames, 4_999);
   // RE-POINTED 2026-10-03 (M5a-S2): the director-complete replays end at the
   // level-end summary inside their 10,500-frame budgets (they used to fly on

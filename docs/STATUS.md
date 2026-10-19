@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-18 (feat/boss-banners merged into main at b0afa27 WITHOUT the hardware smoke - owner decision §AZ: merged on the emulator evidence, the real-65XE check of hardware-testing.md §39 deferred to the v0.3.0 hardware test; technical debt, not a smoke PASS, §AY not smoke-confirmed. What it brings: the boss banners - each region's picture, WARNING / the boss's name / INCOMING and the loading bar on the boss loading screen; no old WARNING text screen, black for 16 host frames (0.32 s) then the banner; entry 295 / 310 / 306 / 310 host frames; resident -15 B; disk 280-319 claimed by nothing planned, the 12 levels fit. On merged main the evidence chain reproduced the committed evidence byte for byte (ATR 13c950e0, worst fence margin 1,470, DMA-on 31,059, 58 replays, 0 misses, 0 clause failures) and npm test ran 1,477 of 1,478 twice (the recorded preview failure; reconciled, 0 NEW, 0 MOVED). Before it: feat/boss-order-scale merged at 05346cc, OWNER-ACCEPTED.)
+Last update: 2026-10-19 (fix/audit-m5 built, the m5 audit's fixes, not merged, owner smoke pending - section "The m5 audit's fixes". M5-01 the hit sound no longer reads POT2; M5-02 a looping laser fighter backs off a still player near the top; M5-03 a hit before the boss entry no longer mutes the lead; M5-04 the SIO-diagnostic emulator is rebuilt and stamped by its executable; M5-05 the release zip carries the three notice files; addendum M3 comment, M6 closed, M12 note; M2 and the preview item STOPPED with estimates. Resident 0 B; worst fence margin 1,470 -> 1,465, DMA-on 31,059, 58 replays, 0 misses, 0 clause failures; boss stress worst 8,060 unchanged; npm test 1,485 of 1,486 twice (the recorded preview failure; reconciled, 0 NEW, 0 MOVED); ATR c977efe0. Before it: feat/boss-banners merged at b0afa27 WITHOUT the hardware smoke, owner decision §AZ.)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -85,7 +85,7 @@ torpedo (candidates with free bytes: plan `boss-polish` §10.4).
 
 **Showcase from the ATR — done (2026-10-02, `docs/showcase-atr`, media and scripts only, `OWNER REVIEW CANDIDATE`):** [plans/showcase-atr.md](plans/showcase-atr.md). The README opens with a 14-s gameplay GIF of level 1 recorded from the ATR (`npm run showcase:gif`, 384,732 B) and a PAL timing chart of the worst fence margin and the DMA-on maximum at 14 cited milestones (`npm run showcase:chart`); all nine gallery frames are recaptured from the ATR (`npm run showcase -- --capture`), so `chore/showcase-recapture` is done and the recorded `github-showcase` failure is cleared ([recorded-test-failures.json](recorded-test-failures.json)). The Blockade Breaker concept art is a README link now (owner decision 2026-10-02, the 4 MB README image budget). ATR and boot image byte-identical to `main` `c0d13c9`.
 
-**Contact scenario redesign — done (2026-10-02, `chore/contact-scenario-redesign`, harness and evidence only, `OWNER REVIEW CANDIDATE`):** [plans/contact-scenario-redesign.md](plans/contact-scenario-redesign.md). The recorded contact failures hid four stacked faults — scenarios ending before level 1's capital sector (a), a capture oracle still requiring the P0/P3 pair retired in `800322b`, a 32-frame capture window leaking into a 16-frame clause, and a hitbox clause in the coordinates production left in `4753399` (all b). Recorded clause failures 3 → **1**: both `capital-contact-*` sessions pass; new session `lower-playfield-allied-contact-atr-hard` gates the lower-row contact raster; `lower-playfield-hostile-contact-atr-hard` stays recorded (a) until M5 (owner decision Q1). Worst fence margin 1,439 and DMA-on maximum 31,133 unmoved; `npm test` 910 tests (+2); ATR and boot image byte-identical to `main` `c59e28a`.
+**Contact scenario redesign — done (2026-10-02, `chore/contact-scenario-redesign`, harness and evidence only, `OWNER REVIEW CANDIDATE`):** [plans/contact-scenario-redesign.md](plans/contact-scenario-redesign.md). The recorded contact failures hid four stacked faults — scenarios ending before level 1's capital sector (a), a capture oracle still requiring the P0/P3 pair retired in `800322b`, a 32-frame capture window leaking into a 16-frame clause, and a hitbox clause in the coordinates production left in `4753399` (all b). Recorded clause failures 3 → **1**: both `capital-contact-*` sessions pass; new session `lower-playfield-allied-contact-atr-hard` gates the lower-row contact raster; `lower-playfield-hostile-contact-atr-hard` stayed recorded (a) until M5 (owner decision Q1) - **closed** in M5b-S4b by retirement and replacement (`lower-playfield-laser-contact-atr-hard`, `removed_2026_10_06` in [recorded-gate-failures.json](recorded-gate-failures.json), whose active list is empty; the m5 audit's addendum M6, 2026-10-19). Worst fence margin 1,439 and DMA-on maximum 31,133 unmoved; `npm test` 910 tests (+2); ATR and boot image byte-identical to `main` `c59e28a`.
 
 **M5 — the loading platform (M5a) and the boss (M5b) — plan (2026-10-03, `docs/plan-m5`, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m5-loading-boss.md](plans/m5-loading-boss.md). Owner decisions of 2026-10-02 recorded: M5 = M5a (code overlays loaded from disk at transitions, a fast SIO loader with automatic fallback) then M5b (the boss on it); `v0.2.1` is the checkpoint before the loading rework, `v0.3.0` ships after the whole of M5. The boss becomes an **overlay** in the capital-phase code's range (3,795 B of `BROADSIDE` run only while a hull is on screen) and costs the window ~170 B of hooks instead of 1,368: re-priced in the new order the window ends M6 at −38 B budgeted before any lever (was −1,238). Three probe measurements on the binding replay: one HSCROL band row above the fence −90 of margin (the budget's 72 was an instruction count), a third DLI −174, the one-Light boss frame clears GO only with the world scroll stopped in the boss sector (owner question Q1). Six sessions, the wish list (items 14–25) priced with nine recommended, owner questions Q1–Q17. **Amended 2026-10-03 with the owner's decisions on the level-summary screen** (plan §1.3, §4.8): the transition becomes a stats screen in the region's look with the region's music, loading behind it at standard speed (post-boss transition 37 sectors ≈ 2.8 s emulator MEASURED rate, ~5.6 s on a 1050-class drive ESTIMATE, against a recommended 3-s minimum display); its code lives in the splash RAM `$0500` read once per session, its art is read first; the stat counters cost the window 44 B and the initial block 0 B by design (the shots-fired hook is Q13); the letter grade and the per-level best (one save record with the high-score table, direct-SIO write) are priced with it; the fast loader becomes an optional later session. **Every owner question is answered (plan §1.4, 2026-10-03):** the boss sector stops the world scroll, 8-row band, restore variant (b), the frontend overlay deferred, speech dropped, the shots counter as a per-frame window scan (+60 cycles on every frame; the initial block keeps its room for M6's hooks), the personal best with the summary session under disk-write safety rules, the wish list accepted as recommended. End of the road (M5 → M4 → M3 → M6 with the accepted items): window −610 B budgeted / −364 expected before levers; the four remaining levers (`STARFIELD` tail 309, arena 95, pins 15, `LEVEL_BUFFER` 16 → 15 at 128) give 547, so −63 budgeted / +183 expected; the attract mode (240) gives way first if the measured figures are short at M6. Initial block after M6: 1 … 19 B to STOP. ATR and boot image byte-identical to `main` `7ccd57e`.
 
@@ -118,6 +118,13 @@ torpedo (candidates with free bytes: plan `boss-polish` §10.4).
 **Hardware audio — channels 3 and 4 play on a real machine — built (2026-10-10, `fix/hardware-audio`, `OWNER-SMOKE CANDIDATE`, part of the v0.2.3 gate)** (section "Hardware audio" below; diagnosis [diagnostics/hardware-audio.md](diagnostics/hardware-audio.md)): `SKCTL = $13` left by the OS's SIO and the sector reader held POKEY's timers 3 and 4 on hardware, silencing the menu's melody and arpeggio and every channel-3/4 effect; the reader's rest value `$03` (F1, 0 B) and `$03` once before the first menu (F2, +5 B `ENTITY_CODE`, initial block **13,623 B**, 29 B to the STOP); confirmed by the owner's probe test; gameplay frame-identical to `main`; ATR `75cf839c…`.
 
 **Hardware boot — the first ATR that boots on a real machine — built (2026-10-09, `fix/hardware-boot`, `OWNER-SMOKE CANDIDATE`, release blocker)** (section "Hardware boot" below; diagnosis [diagnostics/hardware-boot.md](diagnostics/hardware-boot.md)): stage 2 re-arms `DSTATS` before every `SIOV` call (F1, 0 B; every ATR from `e1614e7` to `v0.2.2` stopped on the red halt on hardware), the reader's settle outlasts a data frame (R7, 0 B); the boot smoke runs real SIO, every other launch pins Atari800's SIO patch on; ATR menu **1,351 / 1,342** frames under real SIO (553 / 544 with the patch); gameplay frame-identical to `main` (the replay fingerprint unchanged); ATR `b99fb418…`.
+
+**The m5 audit's inventory (addendum M12, 2026-10-19):** the audit listed
+the sixteen candidates below plus seventeen later checkpoints - **33
+`OWNER-SMOKE CANDIDATE` items** - and found the shared trace evidence
+regenerated since each; it accepted none and revoked nothing (the standoff,
+journal §AK, is already `OWNER-ACCEPTED`). **The owner decides at `v0.3.0`
+which of them need the run on hardware** (journal §BA 9).
 
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: plasma FX** (section
 "Plasma FX" below; the player side mint `$AE`, small enemy break-ups in the
@@ -392,6 +399,80 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## The m5 audit's fixes (fix/audit-m5) — `OWNER-SMOKE CANDIDATE` (2026-10-19)
+
+Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173`, addendum M1-M12); ledger [audits/README.md](audits/README.md); the owner's triage journal **§BA**. Every finding was checked against the repository and confirmed; none rejected. Each fix landed as a RED test commit, then the GREEN fix.
+
+**What changes for the player.**
+- **The hit sound** (M5-01, S1): the projectile-hit sweep is the same 32 → 60 divider climb on every machine. It no longer reads `$D202` (POKEY's POT2 there, not AUDF2), so it no longer depends on the paddle port. RED `2af93e4`, GREEN `021e45d`.
+- **The looping laser fighter** (M5-02, S2): a fighter returning from its hold over a player who sits still near the top backs off instead of diving into the ship. The distance could wrap below zero while the Light was still above the player. The exit, speeds, hold rows and the catch rule of journal §AK are unchanged. RED `7aa34ea`, GREEN `a60105d`.
+- **The boss music** (M5-03, S2): a hit landed in the last frames before the boss entry no longer mutes the theme's lead through the black screen, the banner and the load. `sector_reader_blank` (START GAME, the level's end, the boss entry) clears `hit_timer`. RED `c05e4b2`, GREEN `647cac8`.
+- **Owner item (§BA 2), not changed:** a player parked on the top-hold rows (y ≤ 64) is still met by the hold step itself. That is §AK's hold rows, on main and here alike.
+
+**Tools.**
+- **M5-04 (S3):** the SIO-diagnostic emulator copy runs `make clean` before `make`. It is stamped by the header's and the executable's hashes, so it can no longer keep the wall-trace binary. RED `2140219`, GREEN `6c34ebe`. After the fix, `tests/hardware-boot.test.mjs` and `tests/hardware-audio.test.mjs` pass 7 of 7, 0 skipped.
+- **M5-05 (S4):** the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md. RED `83e49dd`, GREEN `34e8c37`.
+
+**Addendum items.**
+- **M3:** the 5,000 / 4,999 comment in `tests/runtime-wall-trace.test.mjs` now says what it counts: CSV rows minus the one boss-entry row (entry at frame 2,808, MEASURED).
+- **M6:** closed (the "until M5" line above corrected).
+- **M12:** the inventory note above.
+- **M2 (a boss-entry black-frames clause in the trace): STOP, not built.** It needs:
+  - the opt-in DFTITLE observer armed per session, plus parsing in `scripts/runtime-wall-trace.mjs`;
+  - a stable label at the banner's DMACTL store;
+  - header-side register logging (`--prepare`);
+  - negative fixtures;
+  - a trace rerun.
+  That is about 2-3 h (ESTIMATE), over the 1-h limit. The 16-frame black stays covered by `tests/boss-banners.test.mjs` on the 6502 core.
+- **Optional `chore/preview-29-rows`: not started.** `SOURCE_HEIGHT` (24) is shared by every preview: PMG and shot clipping, plus the panel, comparison and grid layouts across ~10 functions. Drawing 29 rows also needs regenerated preview media: ~100-200 lines (ESTIMATE), over the ~50-line limit.
+
+**Resident bytes: 0.**
+| Item | Before | After |
+| --- | ---: | ---: |
+| `_light_tick_body` | 574 B | 573 B |
+| `HYBRID_ASM_WINDOW` pad | 0 B | 1 B |
+| Window record (packed) | 1,319 B | 1,315 B (of 1,387) |
+
+- The pad keeps `HYBRID_C_WINDOW_FLOW` at `$B3FE` and the Light kernel at `$B478`. Every pin is byte for byte.
+- CODE is byte-neutral. The initial block stays 13,623 B, 107 boot sectors.
+- The reader record stays 1,498 B. BROADSIDE and `PICKUP_CODE` are untouched.
+- No allowance used (the M5-01 allowance was +8 B).
+
+**CPU cost.**
+- The hit sound costs −7 cycles on a hit frame.
+- The Light tick costs +4…+5 cycles a slot tick. With three live slots the worst frame is +0…+15 cycles (6502 core, native).
+
+**Gates (M; before = main `74bedb4`, ATR `13c950e0`).**
+| gate | before | after | source |
+| --- | ---: | ---: | --- |
+| worst fence margin | 1,470 (2-sweep-fire6) | 1,465 (2-sweep-fire6) | PAL audit, the trace |
+| DMA-on maximum | 31,059 | 31,059 | the trace |
+| PAL audit / clause failures | 0 misses, 58 replays / 0 | 0 misses, 58 replays / 0 | the trace |
+| menu raster | 4 sessions pass | 4 sessions pass | the trace |
+| boss-frame stress (limit 8,500) | worst 8,060 | worst 8,060 (R1 7,150, Citadel 8,029, Spine 8,025, Bastion 8,060; unchanged) | the 6502 tools |
+| resident bytes | – | 0 | the manifest |
+| ATR / boot BIN | `13c950e0` / `1085256a` | `c977efe0` / `86e76d6a` | `dist/` |
+
+**Tests.**
+- `tests/audit-m5.test.mjs` (6):
+  - M5-01: the envelope under POT2 = RAM / 0 / 64 / 228; pause and resume at all 14 phases.
+  - M5-02: the audit's fixture on production frames; three slots through both loops with the player high, mid, low and climbing. Checked by drawn boxes and a signed distance.
+  - M5-03: the end-to-end hit → entry → banner and load with the lead published; a control with no transition.
+- `tests/sio-diag-prepare.test.mjs` (1): equal-second and future timestamps, the cached call, a replaced binary.
+- `tests/package-release.test.mjs` (1): the zip's central directory, the three files byte for byte.
+- No re-pin. The memory map was regenerated: the window's 1-B segment split.
+- Full `npm test` ran on the default build after the evidence's regeneration, twice: each **1,485 of 1,486** (+8 tests). The one failure is the recorded `tests/preview.test.mjs:164`, matched by name and first assertion. `failures:reconcile` PASS after each run (0 NEW, 0 MOVED, 0 disappeared; the trace's clause failures 0).
+- The evidence chain: build:candidate -> runtime:wall-trace -> menu raster -> build -> memory-map -> showcase:gif (the GIF moved: the Light behaviour) -> showcase.
+
+**ATRs for the owner's smoke** (`build/play/`, not committed; `atari800 -xl -pal -nobasic <absolute path>`):
+- the whole game `audit-m5-full-game-c977efe0.atr` (= `dist/`, `c977efe068d33356…`);
+- the boss routes (`--level=1:sector=6 [--boss-region=N]`): `audit-m5-r1-breaker-714a3d9b.atr` (`714a3d9bdd526883…`), `audit-m5-r2-citadel-962f1b0d.atr` (`962f1b0d8da3de66…`), `audit-m5-r3-spine-17786d4d.atr` (`17786d4d26716d02…`), `audit-m5-r4-bastion-5e2888eb.atr` (`5e2888eb40b085b0…`).
+
+What to smoke:
+- the hit sound;
+- a laser fighter's second pass over a ship held still near the top;
+- a hit just before the boss and the theme's lead through the banner.
 
 ## The boss loading-screen banners (feat/boss-banners) — merged on emulator evidence, hardware smoke NOT RUN (2026-10-18, owner decision §AZ)
 

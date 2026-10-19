@@ -2933,6 +2933,87 @@ Faza A przyjęta, wszystkie makiety zaakceptowane (`docs/plans/boss-banners.md`)
 
 ---
 
+## BA. AUDYT M5 — TRIAŻ WŁAŚCICIELA (2026-10-19, `fix/audit-m5`)
+
+Źródło: `docs/audits/2026-10-19-m5.md` (Codex, `main` `2e93173`, z
+addendum M1–M12), rejestr w `docs/audits/README.md`. Każde ustalenie
+sprawdzone na repo przed poprawką; żadne nie zostało odrzucone.
+
+1. **M5-01 (S1) — naprawić.** Dźwięk trafienia nie może czytać AUDF2
+   (`inc AUDF2` czyta POT2 na prawdziwym POKEY-u). Dzielnik liczony z
+   `hit_timer` w RAM (`$3C − 2·hit_timer`, jak odtwarza go pauza); najpierw
+   wersja bez wzrostu bajtów, najwyżej **+8 B** rezydentnych, z dokładną
+   deltą w raporcie. Test RED: cała obwiednia z haczykiem odczytu `$D202`
+   (różne wartości potencjometru) daje 34, 36, 38, … niezależnie od haczyka;
+   pauza/wznowienie w każdej fazie.
+   **Wynik:** `021e45d`, **0 B** (CODE i blok startowy 13 623 B bez zmian);
+   zapisy z `update_sound` 34 … 60 (z 32 z `play_hit_sound`) przy każdym
+   odczycie POT2.
+2. **M5-02 (S2) — naprawić.** Porównanie dystansu standoffu
+   (`src/c/lifecycle.c`) ma jawnie obsłużyć ujemną separację w ramach
+   dzisiejszej polityki ruchu; bez zmian wyjścia w górę z decyzji **AK**,
+   prędkości, rzędów zawisu i łapalności. Test RED: wszystkie sloty przez
+   pełne pętle przy graczu wysoko / w środku / nisko, w tym dokładne
+   ustawienie audytu (slot 2 na Y=64, jedna pętla, gracz nieruchomo
+   X=124/Y=80) — bez obrażeń kontaktowych, oceniane geometrią niezależną od
+   arytmetyki bajtowej. Zmierzyć koszt ticku Lighta; margines płotu poniżej
+   **1 400** albo ruch dowolnej bramki — STOP.
+   **Wynik:** `a60105d`, **0 B** (tick −1 B, 1 B wypełnienia wraca, jądro
+   Lighta zostaje na `$B478`); tick +4…+5 cykli na slot; margines płotu
+   1 470 → **1 465**, DMA-on 31 059 bez zmian, 0 chybień — bez STOP.
+   **Do decyzji właściciela:** gracz zaparkowany na rzędach zawisu (y ≤ 64)
+   nadal spotyka myśliwiec w samym kroku zawisu (tak samo na `main`) — to
+   rzędy zawisu z **AK**, niezmienione.
+3. **M5-03 (S2) — naprawić.** Przy wejściu bossa (tam, gdzie
+   `pause_silence_audio`) wyczyścić `hit_timer` i każdy inny stan własności
+   SFX, który blokowałby publikację muzyki w czasie ładowania; to samo na
+   granicach podsumowania i menu, jeśli własność tam przecieka (sprawdzić,
+   nie zakładać). Test RED: trafienie ostatnim pociskiem klatkę przed
+   wejściem, muzyka włączona, `hit_timer` 13 — niezerowe zapisy AUDC2 (lead)
+   w czasie banera i ładowania; oraz przypadek, w którym dźwięk trafienia
+   gra normalnie, gdy nie ma przejścia.
+   **Wynik:** `647cac8`, 0 B — `sector_reader_blank` (START GAME, koniec
+   poziomu, wejście bossa) zeruje `hit_timer`; podsumowanie i menu już go
+   zwalniały; stan kanału 4 nie blokuje muzyki, nieruszony.
+4. **M5-04 (S3) — naprawić.** `scripts/sio-boot-repro.mjs`: `make clean`
+   przed `make` w kopii emulatora (albo świeży katalog), znacznik cache
+   związany z hashem pliku wykonywalnego i nagłówka. Test: przygotowanie z
+   już zbudowanego drzewa przy znacznikach czasu w tej samej sekundzie, potem
+   drugie wywołanie z cache; binarka diagnostyczna różna od wall-trace;
+   jednorazowo oba testy sprzętowe po poprawce.
+   **Wynik:** `6c34ebe`; testy sprzętowe 7 z 7, 0 pominiętych.
+5. **M5-05 / M9 (S4) — naprawić.** `scripts/package-release.mjs` dołącza
+   `LICENSE`, `LICENSE-ASSETS` i `THIRD_PARTY_NOTICES.md`; test, że zip je
+   zawiera. **Wynik:** `34e8c37`.
+6. **Addendum M3 — poprawić komentarz** w
+   `tests/runtime-wall-trace.test.mjs` (co liczy: 5 000 wierszy minus jeden
+   wiersz wejścia = 4 999); logika bez zmian, chyba że addendum pokazuje
+   błędną liczbę (nie pokazuje). **Wynik:** zrobione (wejście w klatce
+   2 808, MEASURED).
+7. **Addendum M2 — dodać klauzulę śladu** czerni wejścia bossa (koniec
+   poziomu → ≤ 20 klatek hosta czerni → własny ekran banera) na domyślnej
+   trasie, nieprzechodzącą na pustym wejściu. Jeśli kosztuje więcej niż
+   godzinę albo wymaga zmian harnessu poza klauzulą — STOP i raport kosztu.
+   **Wynik: STOP** — obserwator DFTITLE nie jest uzbrojony w żadnej sesji
+   domyślnej; klauzula wymaga zmian harnessu (koszt w raporcie i w STATUS).
+8. **Addendum M6 — zamknięte.** `lower-playfield-hostile-contact-atr-hard`
+   wycofana przez zastąpienie (`removed_2026_10_06`); poprawić wiersz STATUS
+   i rekord (usunąć rekord tylko przy 0 NEW / 0 MOVED / 0 zniknięć bez
+   wyjaśnienia). Rekord był już pusty; poprawiony tylko STATUS.
+9. **Addendum M12 — bez zmian listy.** Standoff Interceptora jest już
+   `OWNER-ACCEPTED`; w STATUS notka, że audyt zinwentaryzował 33 pozycje
+   `OWNER-SMOKE CANDIDATE`, a właściciel zdecyduje przy `v0.3.0`, które
+   wymagają przebiegu na sprzęcie.
+10. **Opcjonalnie, na końcu: `chore/preview-29-rows`** — tylko jeśli mała
+    (samo narzędzie, bez kodu gry, poniżej ~50 linii); inaczej STOP przed
+    startem z szacunkiem. **Wynik: nie rozpoczęte** — szacunek większy
+    (raport, STATUS).
+
+**Wynik:** gałąź `fix/audit-m5`, `OWNER-SMOKE CANDIDATE`; rejestr ustaleń i
+STATUS zaktualizowane.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

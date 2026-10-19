@@ -231,7 +231,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AB00-$ABFF` | 256 B | slot | LevelDef payload page | `level` | manifest `levelDef.payload` |
 | `$AC00-$AC7F` | 128 B | slot | HullGeometry page (after its linked 8-B header) | `level` | manifest `levelDef.geometry`, `sectorReader.levels` |
 | `$AC00-$AC07` | 8 B | segment | `LEVEL_GEOMETRY` — HullGeometry header (bss inside the level buffer) | `level` | build/encounter-director.map |
-| `$AE00-$B3FD` | 1,534 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
+| `$AE00-$B3FC` | 1,533 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
+| `$B3FD` | 1 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
 | `$B3FE-$B477` | 122 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
 | `$B478-$B790` | 793 B | segment | `LIGHT_KERNEL` — Light ASM kernel; carries the capital vector table | `resident` | build/light-kernel.map |
 | `$B487-$B4AA` | 36 B | slot | capital vector table, 12 entries (inside `LIGHT_KERNEL`) | `resident` | manifest `overlays.capitalVectors` |
@@ -643,11 +644,11 @@ By topic: Light enemies 57%, Director, sectors and waves 23%, Heavy, Raider and 
 
 By topic: Director, sectors and waves 84%, Heavy, Raider and Interceptor 12%, player, input and weapons 5%.
 
-#### `HYBRID_C_WINDOW` `$AE00-$B3FD`, 1,534 B (build/encounter-director.map)
+#### `HYBRID_C_WINDOW` `$AE00-$B3FC`, 1,533 B (build/encounter-director.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `_light_tick_body` | `$B198` | 574 B | 37.4% | Light enemies |
+| `_light_tick_body` | `$B198` | 573 B | 37.4% | Light enemies |
 | `_director_c_try_event` | `$AE21` | 180 B | 11.7% | Director, sectors and waves |
 | `_enter_sector` | `$AF88` | 111 B | 7.2% | Director, sectors and waves |
 | `_enemy_c_light_tick` | `$B02E` | 85 B | 5.5% | Light enemies |
@@ -658,7 +659,7 @@ By topic: Director, sectors and waves 84%, Heavy, Raider and Interceptor 12%, pl
 | `_heavy_ceiling` | `$AF37` | 46 B | 3.0% | Heavy, Raider and Interceptor |
 | `_director_c_light_ceiling` | `$AED5` | 44 B | 2.9% | Light enemies |
 | `_enemy_c_light_wave` | `$B0EE` | 44 B | 2.9% | Light enemies |
-| `_encounter_light_admit` | `$B3D6` | 40 B | 2.6% | Light enemies |
+| `_encounter_light_admit` | `$B3D5` | 40 B | 2.6% | Light enemies |
 | (after _compute_wave_end) | `$AF65` | 35 B | 2.3% | Director, sectors and waves |
 | `_light_live_count` | `$B0CC` | 34 B | 2.2% | Light enemies |
 | `_director_c_release` | `$AE00` | 33 B | 2.2% | Director, sectors and waves |
@@ -737,9 +738,9 @@ By topic: Light enemies 95%, capital ship 5%.
 | `stats_scan` | `$A38D` | 39 B | 2.6% | level summary |
 | `sector_reader_build_frame` | `$A462` | 39 B | 2.6% | boot, loader and transport |
 | `sector_reader_settle` | `$A429` | 38 B | 2.5% | boot, loader and transport |
-| (after sector_reader_level_end) | `$A04B` | 36 B | 2.4% | boot, loader and transport |
 | `stats_capital_frame` | `$A369` | 36 B | 2.4% | level summary |
 | `sector_reader_pokey_setup` | `$A3F3` | 35 B | 2.3% | boot, loader and transport |
+| (after sector_reader_level_end) | `$A04D` | 34 B | 2.3% | boot, loader and transport |
 | `sector_reader_resident_hit` | `$A4BA` | 33 B | 2.2% | boot, loader and transport |
 | `sector_reader_start_gameplay` | `$A01E` | 31 B | 2.1% | boot, loader and transport |
 | `sector_reader_vectors` | `$A000` | 30 B | 2.0% | boot, loader and transport |
@@ -758,7 +759,8 @@ By topic: Light enemies 95%, capital ship 5%.
 | `sector_reader_quiesce` | `$A44F` | 18 B | 1.2% | boot, loader and transport |
 | `title_record` | `$A523` | 18 B | 1.2% | frontend and HUD |
 | `sector_reader_wait_for_fire` | `$A10E` | 17 B | 1.1% | player, input and weapons |
-| 27 smaller items | — | 179 B | 11.9% | — |
+| `sector_reader_blank` | `$A03D` | 16 B | 1.1% | boot, loader and transport |
+| 26 smaller items | — | 165 B | 11.0% | — |
 
 By topic: boot, loader and transport 84%, level summary 10%, unclassified 2%, capital ship 2%, frontend and HUD 1%, player, input and weapons 1%.
 
@@ -1000,7 +1002,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `DIRECTOR_C_CODE` | 623 B | placement name | — | Director, sectors and waves (84%) | not judged |
-| `HYBRID_C_WINDOW` | 1,534 B | placement name | — | Light enemies (66%) | not judged |
+| `HYBRID_C_WINDOW` | 1,533 B | placement name | — | Light enemies (66%) | not judged |
 | `LEVEL_SUMMARY` | 1,760 B | level summary | 97% | level summary (97%) | fits |
 | `LIGHT_KERNEL` | 793 B | Light enemies | 95% | Light enemies (95%) | fits |
 | `SECTOR_READER` | 1,498 B | boot, loader and transport, Director, sectors and waves | 84% | boot, loader and transport (84%) | fits |

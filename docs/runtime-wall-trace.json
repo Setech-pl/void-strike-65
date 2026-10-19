@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "1aa538a2754cc5d76cd5d8e95f36c5d3ebb1f97affffa1c49a7098bfe69bcdf7",
+    "replay_fingerprint_sha256": "afaac7f31e9fe7ed0e350bafa641f4bb9f93664691d5b0292edd6978cf0f6aec",
     "ordered_frames": 130699,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -17,23 +17,23 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 27264,
-      "sha256": "1085256a59cea6c5077a7690e65e763bedf5f720bf8f8ce16dd146068b8fdc0a"
+      "sha256": "86e76d6aa87d7899af5d3b29225fce8b1ba119f4d6f56a4c78ff2353f9ff0c34"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+      "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
       "bytes": 882526,
-      "sha256": "659ddfa21930aaab11f66f4a63e105004171dc2207e91921246d400c99b55579"
+      "sha256": "2e303f07ae3e70c6c59bdb4cab10a9af644fee74ab240cfb589b5e6dafbd80a0"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+    "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
   },
   "emulator": {
     "name": "Atari800",
@@ -235,7 +235,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -579,7 +579,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -923,7 +923,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1267,7 +1267,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1613,7 +1613,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1968,7 +1968,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -2358,7 +2358,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2367,7 +2367,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2376,7 +2376,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       },
@@ -2385,7 +2385,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "13c950e0b6f915af46704593b31a15f537ce306e6306f6aedcefa8b93859c74b"
+          "sha256": "c977efe068d33356096b0d4c36ecba69b775d5507fe6a81eb8336b0200b40b87"
         },
         "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
       }
@@ -2680,13 +2680,13 @@
         "frame": 419,
         "gameplay_frame": 163,
         "difficulty": 2,
-        "wall_cycles": 30237,
-        "physical_headroom": 5331,
+        "wall_cycles": 30221,
+        "physical_headroom": 5347,
         "start": {
-          "clock": 42754831,
+          "clock": 42754847,
           "host_frame": 1202,
           "scanline": 18,
-          "cycle": 43
+          "cycle": 59
         },
         "end": {
           "clock": 42785068,
@@ -4110,8 +4110,8 @@
     "baseline_9040_host_vbi_boundary_crossings": 953,
     "targeted_active_frames_crossing_host_vbi": 108,
     "targeted_host_vbi_boundary_crossings": 108,
-    "active_frames_crossing_host_vbi": 17223,
-    "host_vbi_boundary_crossings": 17223,
+    "active_frames_crossing_host_vbi": 17221,
+    "host_vbi_boundary_crossings": 17221,
     "extra_vbi_boundaries": 0,
     "behavioural_clause_failure_count": 0,
     "behavioural_clause_failures": [],
@@ -4212,7 +4212,7 @@
         "policy": "evasive",
         "fire_delay": 1,
         "measured_frames": 920,
-        "maximum_wall_cycles": 30333,
+        "maximum_wall_cycles": 30328,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 131,
@@ -4422,7 +4422,7 @@
         "policy": "evasive",
         "fire_delay": 3,
         "measured_frames": 920,
-        "maximum_wall_cycles": 30992,
+        "maximum_wall_cycles": 30989,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 83,
@@ -4482,7 +4482,7 @@
         "policy": "sweep",
         "fire_delay": 4000,
         "measured_frames": 400,
-        "maximum_wall_cycles": 29671,
+        "maximum_wall_cycles": 29674,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -4542,7 +4542,7 @@
         "policy": "sweep",
         "fire_delay": 4000,
         "measured_frames": 400,
-        "maximum_wall_cycles": 29625,
+        "maximum_wall_cycles": 29628,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -4682,7 +4682,7 @@
         "policy": "hunt",
         "fire_delay": 4,
         "measured_frames": 5999,
-        "maximum_wall_cycles": 30603,
+        "maximum_wall_cycles": 30619,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 616,
@@ -4712,7 +4712,7 @@
         "policy": "hunt",
         "fire_delay": 3,
         "measured_frames": 600,
-        "maximum_wall_cycles": 30444,
+        "maximum_wall_cycles": 30447,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -4807,7 +4807,7 @@
         "policy": "boss-aim",
         "fire_delay": 0,
         "measured_frames": 5468,
-        "maximum_wall_cycles": 30787,
+        "maximum_wall_cycles": 30790,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 545,
@@ -4937,7 +4937,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 8,
-        "maximum_wall_cycles": 27198,
+        "maximum_wall_cycles": 27226,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -5037,7 +5037,7 @@
         "policy": "pickup-observe",
         "fire_delay": 8,
         "measured_frames": 1800,
-        "maximum_wall_cycles": 30330,
+        "maximum_wall_cycles": 30341,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 438,
@@ -5077,7 +5077,7 @@
         "policy": "pickup-contact",
         "fire_delay": 4,
         "measured_frames": 1300,
-        "maximum_wall_cycles": 30457,
+        "maximum_wall_cycles": 30448,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 204,
@@ -5107,7 +5107,7 @@
         "policy": "pickup-overlap",
         "fire_delay": 5,
         "measured_frames": 1300,
-        "maximum_wall_cycles": 30458,
+        "maximum_wall_cycles": 30462,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 202,
@@ -5187,7 +5187,7 @@
         "policy": "early-hunt",
         "fire_delay": 4,
         "measured_frames": 1500,
-        "maximum_wall_cycles": 30603,
+        "maximum_wall_cycles": 30619,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 194,
@@ -5217,7 +5217,7 @@
         "policy": "early-hunt",
         "fire_delay": 4,
         "measured_frames": 1500,
-        "maximum_wall_cycles": 30599,
+        "maximum_wall_cycles": 30615,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 317,
@@ -5247,7 +5247,7 @@
         "policy": "early-hunt",
         "fire_delay": 4,
         "measured_frames": 1500,
-        "maximum_wall_cycles": 30457,
+        "maximum_wall_cycles": 30448,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 316,
@@ -5277,7 +5277,7 @@
         "policy": "capital-contact-allied",
         "fire_delay": 4000,
         "measured_frames": 840,
-        "maximum_wall_cycles": 29692,
+        "maximum_wall_cycles": 29667,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 79,
@@ -5307,7 +5307,7 @@
         "policy": "capital-contact-hostile",
         "fire_delay": 4000,
         "measured_frames": 1080,
-        "maximum_wall_cycles": 29692,
+        "maximum_wall_cycles": 29667,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 87,
@@ -5497,7 +5497,7 @@
         "policy": "hunt",
         "fire_delay": 5,
         "measured_frames": 5099,
-        "maximum_wall_cycles": 30597,
+        "maximum_wall_cycles": 30600,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 616,
@@ -5527,7 +5527,7 @@
         "policy": "vertical-boundary",
         "fire_delay": 4000,
         "measured_frames": 1400,
-        "maximum_wall_cycles": 29531,
+        "maximum_wall_cycles": 29533,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 364,
@@ -5557,7 +5557,7 @@
         "policy": "lower-contact-laser",
         "fire_delay": 0,
         "measured_frames": 9499,
-        "maximum_wall_cycles": 30980,
+        "maximum_wall_cycles": 30983,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 976,
@@ -5597,7 +5597,7 @@
         "policy": "lower-contact-allied",
         "fire_delay": 4000,
         "measured_frames": 1000,
-        "maximum_wall_cycles": 29639,
+        "maximum_wall_cycles": 29670,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 167,
@@ -5846,7 +5846,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29654,
+        "maximum_wall_cycles": 29657,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -5876,7 +5876,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29654,
+        "maximum_wall_cycles": 29657,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -5906,7 +5906,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29511,
+        "maximum_wall_cycles": 29503,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -5936,7 +5936,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29511,
+        "maximum_wall_cycles": 29503,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -6026,7 +6026,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29654,
+        "maximum_wall_cycles": 29657,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -6056,7 +6056,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29654,
+        "maximum_wall_cycles": 29657,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -6086,7 +6086,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29511,
+        "maximum_wall_cycles": 29503,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -6116,7 +6116,7 @@
         "policy": "neutral",
         "fire_delay": 4000,
         "measured_frames": 150,
-        "maximum_wall_cycles": 29511,
+        "maximum_wall_cycles": 29503,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "hull_map_draws": 0,
@@ -8616,7 +8616,7 @@
     },
     "music_with_sfx_preemption": {
       "observed": true,
-      "matching_frames": 77775,
+      "matching_frames": 77770,
       "heaviest": {
         "trace_kind": "weapon-pickup-coverage",
         "session": "weapon-pickup-2-hunt-fire4",
@@ -8948,13 +8948,13 @@
         "frame": 263,
         "gameplay_frame": 7,
         "difficulty": 1,
-        "wall_cycles": 30025,
-        "physical_headroom": 5543,
+        "wall_cycles": 30009,
+        "physical_headroom": 5559,
         "start": {
-          "clock": 36637135,
+          "clock": 36637151,
           "host_frame": 1030,
           "scanline": 18,
-          "cycle": 43
+          "cycle": 59
         },
         "end": {
           "clock": 36667160,
@@ -9055,8 +9055,8 @@
         "frame": 124,
         "gameplay_frame": 124,
         "difficulty": 2,
-        "wall_cycles": 30231,
-        "physical_headroom": 5337,
+        "wall_cycles": 30226,
+        "physical_headroom": 5342,
         "start": {
           "clock": 32262287,
           "host_frame": 907,
@@ -9064,13 +9064,13 @@
           "cycle": 59
         },
         "end": {
-          "clock": 32292518,
+          "clock": 32292513,
           "host_frame": 907,
           "scanline": 283,
-          "cycle": 80
+          "cycle": 75
         },
         "next_start": {
-          "clock": 32297827,
+          "clock": 32297855,
           "host_frame": 908
         },
         "host_vbi_boundaries": 0,
@@ -9164,8 +9164,8 @@
         "frame": 124,
         "gameplay_frame": 124,
         "difficulty": 2,
-        "wall_cycles": 30231,
-        "physical_headroom": 5337,
+        "wall_cycles": 30226,
+        "physical_headroom": 5342,
         "start": {
           "clock": 32262287,
           "host_frame": 907,
@@ -9173,13 +9173,13 @@
           "cycle": 59
         },
         "end": {
-          "clock": 32292518,
+          "clock": 32292513,
           "host_frame": 907,
           "scanline": 283,
-          "cycle": 80
+          "cycle": 75
         },
         "next_start": {
-          "clock": 32297827,
+          "clock": 32297855,
           "host_frame": 908
         },
         "host_vbi_boundaries": 0,
@@ -9273,13 +9273,13 @@
         "frame": 419,
         "gameplay_frame": 163,
         "difficulty": 2,
-        "wall_cycles": 30237,
-        "physical_headroom": 5331,
+        "wall_cycles": 30221,
+        "physical_headroom": 5347,
         "start": {
-          "clock": 42754831,
+          "clock": 42754847,
           "host_frame": 1202,
           "scanline": 18,
-          "cycle": 43
+          "cycle": 59
         },
         "end": {
           "clock": 42785068,
@@ -9380,28 +9380,28 @@
       "observed": true,
       "matching_frames": 4365,
       "heaviest": {
-        "trace_kind": "lower-playfield-laser-contact",
-        "session": "lower-playfield-laser-contact-atr-hard",
-        "frame": 277,
-        "gameplay_frame": 21,
+        "trace_kind": "memory-integrity-160s",
+        "session": "memory-integrity-atr-2-hunt-fire6",
+        "frame": 115,
+        "gameplay_frame": 115,
         "difficulty": 2,
-        "wall_cycles": 30442,
-        "physical_headroom": 5126,
+        "wall_cycles": 30432,
+        "physical_headroom": 5136,
         "start": {
-          "clock": 37704175,
-          "host_frame": 1060,
+          "clock": 31942147,
+          "host_frame": 898,
           "scanline": 18,
-          "cycle": 43
+          "cycle": 31
         },
         "end": {
-          "clock": 37734617,
-          "host_frame": 1060,
+          "clock": 31972579,
+          "host_frame": 898,
           "scanline": 285,
-          "cycle": 47
+          "cycle": 25
         },
         "next_start": {
-          "clock": 37739743,
-          "host_frame": 1061
+          "clock": 31977727,
+          "host_frame": 899
         },
         "host_vbi_boundaries": 0,
         "extra_vbi_boundaries": 0,
@@ -9415,30 +9415,30 @@
           "far_rendered": 4,
           "active_muzzles": 0,
           "entity_active": 1,
-          "entity_x": 128,
-          "entity_y": 72,
-          "entity_vx_signed": 0,
-          "entity_move_accumulator": 0,
-          "entity_vertical_accumulator": 4,
+          "entity_x": 164,
+          "entity_y": 216,
+          "entity_vx_signed": 4,
+          "entity_move_accumulator": 2,
+          "entity_vertical_accumulator": 1,
           "entity_render_id": 114,
           "entity_active_mask": 1,
           "weapon_pickup": {
-            "state": 3,
-            "booster_state": 3,
-            "qualified_kill_counter": 1,
-            "x": 154,
-            "y": 210,
-            "timer": 438,
-            "timer_low": 182,
-            "timer_high": 1,
+            "state": 0,
+            "booster_state": 0,
+            "qualified_kill_counter": 2,
+            "x": 0,
+            "y": 0,
+            "timer": 0,
+            "timer_low": 0,
+            "timer_high": 0,
             "plane_rows": 0,
             "plane_union": 0
           },
-          "player_fighter_projectiles": 4,
-          "rapid_player_fighter_projectiles": 4,
+          "player_fighter_projectiles": 3,
+          "rapid_player_fighter_projectiles": 0,
           "score_bcd": [
             0,
-            144
+            32
           ],
           "effect_active_mask": 31,
           "effect_active_count": 5,
@@ -9503,8 +9503,8 @@
         "frame": 275,
         "gameplay_frame": 19,
         "difficulty": 2,
-        "wall_cycles": 30488,
-        "physical_headroom": 5080,
+        "wall_cycles": 30483,
+        "physical_headroom": 5085,
         "start": {
           "clock": 37633055,
           "host_frame": 1058,
@@ -9512,13 +9512,13 @@
           "cycle": 59
         },
         "end": {
-          "clock": 37663543,
+          "clock": 37663538,
           "host_frame": 1058,
           "scanline": 285,
-          "cycle": 109
+          "cycle": 104
         },
         "next_start": {
-          "clock": 37668623,
+          "clock": 37668607,
           "host_frame": 1059
         },
         "host_vbi_boundaries": 0,
@@ -9622,22 +9622,22 @@
           "frame": 91,
           "gameplay_frame": 91,
           "difficulty": 2,
-          "wall_cycles": 29980,
-          "physical_headroom": 5588,
+          "wall_cycles": 29991,
+          "physical_headroom": 5577,
           "start": {
-            "clock": 31088543,
+            "clock": 31088527,
             "host_frame": 874,
             "scanline": 18,
-            "cycle": 59
+            "cycle": 43
           },
           "end": {
-            "clock": 31118523,
+            "clock": 31118518,
             "host_frame": 874,
             "scanline": 281,
-            "cycle": 57
+            "cycle": 52
           },
           "next_start": {
-            "clock": 31124111,
+            "clock": 31124095,
             "host_frame": 875
           },
           "host_vbi_boundaries": 0,
@@ -9728,22 +9728,22 @@
           "frame": 110,
           "gameplay_frame": 110,
           "difficulty": 2,
-          "wall_cycles": 29890,
-          "physical_headroom": 5678,
+          "wall_cycles": 29913,
+          "physical_headroom": 5655,
           "start": {
-            "clock": 31764335,
+            "clock": 31764307,
             "host_frame": 893,
             "scanline": 18,
-            "cycle": 59
+            "cycle": 31
           },
           "end": {
-            "clock": 31794225,
+            "clock": 31794220,
             "host_frame": 893,
             "scanline": 280,
-            "cycle": 81
+            "cycle": 76
           },
           "next_start": {
-            "clock": 31799903,
+            "clock": 31799875,
             "host_frame": 894
           },
           "host_vbi_boundaries": 0,
@@ -9832,8 +9832,8 @@
           "frame": 163,
           "gameplay_frame": 163,
           "difficulty": 2,
-          "wall_cycles": 28148,
-          "physical_headroom": 7420,
+          "wall_cycles": 28143,
+          "physical_headroom": 7425,
           "start": {
             "clock": 33649439,
             "host_frame": 946,
@@ -9841,13 +9841,13 @@
             "cycle": 59
           },
           "end": {
-            "clock": 33677587,
+            "clock": 33677582,
             "host_frame": 946,
             "scanline": 265,
-            "cycle": 49
+            "cycle": 44
           },
           "next_start": {
-            "clock": 33684991,
+            "clock": 33684979,
             "host_frame": 947
           },
           "host_vbi_boundaries": 0,
@@ -9938,19 +9938,19 @@
           "frame": 323,
           "gameplay_frame": 67,
           "difficulty": 2,
-          "wall_cycles": 28641,
-          "physical_headroom": 6927,
+          "wall_cycles": 28645,
+          "physical_headroom": 6923,
           "start": {
-            "clock": 39340303,
+            "clock": 39340291,
             "host_frame": 1106,
             "scanline": 18,
-            "cycle": 43
+            "cycle": 31
           },
           "end": {
-            "clock": 39368944,
+            "clock": 39368936,
             "host_frame": 1106,
             "scanline": 269,
-            "cycle": 70
+            "cycle": 62
           },
           "next_start": {
             "clock": 39375887,
@@ -10046,8 +10046,8 @@
           "frame": 420,
           "gameplay_frame": 164,
           "difficulty": 2,
-          "wall_cycles": 28326,
-          "physical_headroom": 7242,
+          "wall_cycles": 28321,
+          "physical_headroom": 7247,
           "start": {
             "clock": 42790415,
             "host_frame": 1203,
@@ -10055,13 +10055,13 @@
             "cycle": 59
           },
           "end": {
-            "clock": 42818741,
+            "clock": 42818736,
             "host_frame": 1203,
             "scanline": 266,
-            "cycle": 113
+            "cycle": 108
           },
           "next_start": {
-            "clock": 42825983,
+            "clock": 42825967,
             "host_frame": 1204
           },
           "host_vbi_boundaries": 0,
@@ -10149,8 +10149,8 @@
           "frame": 2652,
           "gameplay_frame": 92,
           "difficulty": 2,
-          "wall_cycles": 28683,
-          "physical_headroom": 6885,
+          "wall_cycles": 28678,
+          "physical_headroom": 6890,
           "start": {
             "clock": 122178175,
             "host_frame": 3435,
@@ -10158,13 +10158,13 @@
             "cycle": 43
           },
           "end": {
-            "clock": 122206858,
+            "clock": 122206853,
             "host_frame": 3435,
             "scanline": 269,
-            "cycle": 112
+            "cycle": 107
           },
           "next_start": {
-            "clock": 122213743,
+            "clock": 122213759,
             "host_frame": 3436
           },
           "host_vbi_boundaries": 0,
@@ -10252,8 +10252,8 @@
           "frame": 2725,
           "gameplay_frame": 165,
           "difficulty": 2,
-          "wall_cycles": 29424,
-          "physical_headroom": 6144,
+          "wall_cycles": 29419,
+          "physical_headroom": 6149,
           "start": {
             "clock": 124774627,
             "host_frame": 3508,
@@ -10261,13 +10261,13 @@
             "cycle": 31
           },
           "end": {
-            "clock": 124804051,
+            "clock": 124804046,
             "host_frame": 3508,
             "scanline": 276,
-            "cycle": 43
+            "cycle": 38
           },
           "next_start": {
-            "clock": 124810223,
+            "clock": 124810207,
             "host_frame": 3509
           },
           "host_vbi_boundaries": 0,
@@ -10360,8 +10360,8 @@
           "frame": 2813,
           "gameplay_frame": 253,
           "difficulty": 2,
-          "wall_cycles": 27610,
-          "physical_headroom": 7958,
+          "wall_cycles": 27605,
+          "physical_headroom": 7963,
           "start": {
             "clock": 127904623,
             "host_frame": 3596,
@@ -10369,13 +10369,13 @@
             "cycle": 43
           },
           "end": {
-            "clock": 127932233,
+            "clock": 127932228,
             "host_frame": 3596,
             "scanline": 260,
-            "cycle": 65
+            "cycle": 60
           },
           "next_start": {
-            "clock": 127940191,
+            "clock": 127940207,
             "host_frame": 3597
           },
           "host_vbi_boundaries": 0,
@@ -10466,8 +10466,8 @@
           "frame": 3447,
           "gameplay_frame": 119,
           "difficulty": 2,
-          "wall_cycles": 27882,
-          "physical_headroom": 7686,
+          "wall_cycles": 27868,
+          "physical_headroom": 7700,
           "start": {
             "clock": 150454751,
             "host_frame": 4230,
@@ -10475,13 +10475,13 @@
             "cycle": 59
           },
           "end": {
-            "clock": 150482633,
+            "clock": 150482619,
             "host_frame": 4230,
-            "scanline": 263,
-            "cycle": 11
+            "scanline": 262,
+            "cycle": 111
           },
           "next_start": {
-            "clock": 150490319,
+            "clock": 150490303,
             "host_frame": 4231
           },
           "host_vbi_boundaries": 0,
@@ -10572,8 +10572,8 @@
           "frame": 3470,
           "gameplay_frame": 142,
           "difficulty": 2,
-          "wall_cycles": 27997,
-          "physical_headroom": 7571,
+          "wall_cycles": 27983,
+          "physical_headroom": 7585,
           "start": {
             "clock": 151272815,
             "host_frame": 4253,
@@ -10581,13 +10581,13 @@
             "cycle": 59
           },
           "end": {
-            "clock": 151300812,
+            "clock": 151300798,
             "host_frame": 4253,
-            "scanline": 264,
-            "cycle": 12
+            "scanline": 263,
+            "cycle": 112
           },
           "next_start": {
-            "clock": 151308383,
+            "clock": 151308355,
             "host_frame": 4254
           },
           "host_vbi_boundaries": 0,
@@ -10899,22 +10899,22 @@
           "frame": 311,
           "gameplay_frame": 55,
           "difficulty": 2,
-          "wall_cycles": 28471,
-          "physical_headroom": 7097,
+          "wall_cycles": 28479,
+          "physical_headroom": 7089,
           "start": {
-            "clock": 38913503,
+            "clock": 38913487,
             "host_frame": 1094,
             "scanline": 18,
-            "cycle": 59
+            "cycle": 43
           },
           "end": {
-            "clock": 38941974,
+            "clock": 38941966,
             "host_frame": 1094,
             "scanline": 268,
-            "cycle": 30
+            "cycle": 22
           },
           "next_start": {
-            "clock": 38949055,
+            "clock": 38949071,
             "host_frame": 1095
           },
           "host_vbi_boundaries": 0,
@@ -11113,19 +11113,19 @@
           "frame": 3893,
           "gameplay_frame": 53,
           "difficulty": 2,
-          "wall_cycles": 27375,
-          "physical_headroom": 8193,
+          "wall_cycles": 27371,
+          "physical_headroom": 8197,
           "start": {
-            "clock": 176775413,
+            "clock": 176775409,
             "host_frame": 4970,
             "scanline": 21,
-            "cycle": 59
+            "cycle": 55
           },
           "end": {
-            "clock": 176802788,
+            "clock": 176802780,
             "host_frame": 4970,
             "scanline": 261,
-            "cycle": 74
+            "cycle": 66
           },
           "next_start": {
             "clock": 176810981,
@@ -11214,8 +11214,8 @@
           "frame": 311,
           "gameplay_frame": 55,
           "difficulty": 2,
-          "wall_cycles": 28459,
-          "physical_headroom": 7109,
+          "wall_cycles": 28454,
+          "physical_headroom": 7114,
           "start": {
             "clock": 38913503,
             "host_frame": 1094,
@@ -11223,13 +11223,13 @@
             "cycle": 59
           },
           "end": {
-            "clock": 38941962,
+            "clock": 38941957,
             "host_frame": 1094,
             "scanline": 268,
-            "cycle": 18
+            "cycle": 13
           },
           "next_start": {
-            "clock": 38949055,
+            "clock": 38949071,
             "host_frame": 1095
           },
           "host_vbi_boundaries": 0,
@@ -11530,22 +11530,22 @@
           "frame": 312,
           "gameplay_frame": 56,
           "difficulty": 2,
-          "wall_cycles": 28614,
-          "physical_headroom": 6954,
+          "wall_cycles": 28581,
+          "physical_headroom": 6987,
           "start": {
-            "clock": 38949043,
+            "clock": 38949071,
             "host_frame": 1095,
             "scanline": 18,
-            "cycle": 31
+            "cycle": 59
           },
           "end": {
-            "clock": 38977657,
+            "clock": 38977652,
             "host_frame": 1095,
             "scanline": 269,
-            "cycle": 31
+            "cycle": 26
           },
           "next_start": {
-            "clock": 38984611,
+            "clock": 38984639,
             "host_frame": 1096
           },
           "host_vbi_boundaries": 0,
@@ -12044,22 +12044,22 @@
           "frame": 237,
           "gameplay_frame": 237,
           "difficulty": 2,
-          "wall_cycles": 28520,
-          "physical_headroom": 7048,
+          "wall_cycles": 28543,
+          "physical_headroom": 7025,
           "start": {
-            "clock": 36281471,
+            "clock": 36281443,
             "host_frame": 1020,
             "scanline": 18,
-            "cycle": 59
+            "cycle": 31
           },
           "end": {
-            "clock": 36309991,
+            "clock": 36309986,
             "host_frame": 1020,
             "scanline": 268,
-            "cycle": 79
+            "cycle": 74
           },
           "next_start": {
-            "clock": 36317039,
+            "clock": 36317023,
             "host_frame": 1021
           },
           "host_vbi_boundaries": 0,
@@ -12152,8 +12152,8 @@
           "frame": 421,
           "gameplay_frame": 165,
           "difficulty": 2,
-          "wall_cycles": 27835,
-          "physical_headroom": 7733,
+          "wall_cycles": 27830,
+          "physical_headroom": 7738,
           "start": {
             "clock": 42825983,
             "host_frame": 1204,
@@ -12161,13 +12161,13 @@
             "cycle": 59
           },
           "end": {
-            "clock": 42853818,
+            "clock": 42853813,
             "host_frame": 1204,
             "scanline": 262,
-            "cycle": 78
+            "cycle": 73
           },
           "next_start": {
-            "clock": 42861535,
+            "clock": 42861523,
             "host_frame": 1205
           },
           "host_vbi_boundaries": 0,
@@ -12258,22 +12258,22 @@
           "frame": 2976,
           "gameplay_frame": 160,
           "difficulty": 2,
-          "wall_cycles": 27823,
-          "physical_headroom": 7745,
+          "wall_cycles": 27799,
+          "physical_headroom": 7769,
           "start": {
-            "clock": 133702207,
+            "clock": 133702223,
             "host_frame": 3759,
             "scanline": 18,
-            "cycle": 43
+            "cycle": 59
           },
           "end": {
-            "clock": 133730030,
+            "clock": 133730022,
             "host_frame": 3759,
             "scanline": 262,
-            "cycle": 50
+            "cycle": 42
           },
           "next_start": {
-            "clock": 133737791,
+            "clock": 133737775,
             "host_frame": 3760
           },
           "host_vbi_boundaries": 0,
@@ -12361,22 +12361,22 @@
           "frame": 274,
           "gameplay_frame": 18,
           "difficulty": 0,
-          "wall_cycles": 27735,
-          "physical_headroom": 7833,
+          "wall_cycles": 27749,
+          "physical_headroom": 7819,
           "start": {
-            "clock": 37597487,
+            "clock": 37597471,
             "host_frame": 1057,
             "scanline": 18,
-            "cycle": 59
+            "cycle": 43
           },
           "end": {
-            "clock": 37625222,
+            "clock": 37625220,
             "host_frame": 1057,
             "scanline": 261,
-            "cycle": 92
+            "cycle": 90
           },
           "next_start": {
-            "clock": 37633039,
+            "clock": 37633027,
             "host_frame": 1058
           },
           "host_vbi_boundaries": 0,
@@ -12781,19 +12781,19 @@
           "wall_cycles": 27383,
           "physical_headroom": 8185,
           "start": {
-            "clock": 191287090,
+            "clock": 191287085,
             "host_frame": 5378,
             "scanline": 20,
-            "cycle": 106
+            "cycle": 101
           },
           "end": {
-            "clock": 191314473,
+            "clock": 191314468,
             "host_frame": 5378,
             "scanline": 261,
-            "cycle": 15
+            "cycle": 10
           },
           "next_start": {
-            "clock": 191322653,
+            "clock": 191322658,
             "host_frame": 5379
           },
           "host_vbi_boundaries": 0,
@@ -13616,8 +13616,8 @@
           "frame": 302,
           "gameplay_frame": 46,
           "difficulty": 2,
-          "wall_cycles": 28826,
-          "physical_headroom": 6742,
+          "wall_cycles": 28829,
+          "physical_headroom": 6739,
           "start": {
             "clock": 38593363,
             "host_frame": 1085,
@@ -13625,10 +13625,10 @@
             "cycle": 31
           },
           "end": {
-            "clock": 38622189,
+            "clock": 38622192,
             "host_frame": 1085,
             "scanline": 271,
-            "cycle": 15
+            "cycle": 18
           },
           "next_start": {
             "clock": 38628959,
@@ -14738,13 +14738,13 @@
         "frame": 419,
         "gameplay_frame": 163,
         "difficulty": 2,
-        "wall_cycles": 30237,
-        "physical_headroom": 5331,
+        "wall_cycles": 30221,
+        "physical_headroom": 5347,
         "start": {
-          "clock": 42754831,
+          "clock": 42754847,
           "host_frame": 1202,
           "scanline": 18,
-          "cycle": 43
+          "cycle": 59
         },
         "end": {
           "clock": 42785068,
@@ -15358,8 +15358,8 @@
       "frame": 297,
       "gameplay_frame": 41,
       "difficulty": 1,
-      "wall_cycles": 30992,
-      "physical_headroom": 4576,
+      "wall_cycles": 30989,
+      "physical_headroom": 4579,
       "start": {
         "clock": 37846463,
         "host_frame": 1064,
@@ -15367,13 +15367,13 @@
         "cycle": 59
       },
       "end": {
-        "clock": 37877455,
+        "clock": 37877452,
         "host_frame": 1064,
         "scanline": 290,
-        "cycle": 43
+        "cycle": 40
       },
       "next_start": {
-        "clock": 37882031,
+        "clock": 37882015,
         "host_frame": 1065
       },
       "host_vbi_boundaries": 0,

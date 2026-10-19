@@ -18,10 +18,15 @@ const topLevelFiles = [
   ".gitignore",
   "AGENTS.md",
   "CLAUDE.md",
+  // fix/audit-m5 (M5-05): the licences and notices that cover what the
+  // archive ships (README.md "License", docs/STATUS.md "Licensing").
+  "LICENSE",
+  "LICENSE-ASSETS",
   "Makefile",
   "README.md",
   "package.json",
   "package-lock.json",
+  "THIRD_PARTY_NOTICES.md",
 ];
 const sourceDirectories = ["assets", "cfg", "docs", "levels", "scripts", "src", "tests"];
 const distributionFiles = [

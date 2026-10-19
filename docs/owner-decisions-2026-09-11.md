@@ -3039,6 +3039,52 @@ bez taga i wydania.
 
 ---
 
+## BC. TEST NA SPRZĘCIE I WYDANIE `v0.3.0` — decyzja właściciela (2026-10-19, `chore/release-v0.3.0`)
+
+**Test właściciela na prawdziwym Atari 65XE przez SIO2SD: PASS
+(2026-10-19).**
+- **Cała gra `c977efe0…`:** start do menu z muzyką, poziom 1, wejście bossa z
+  banerem R1 (bez starego ekranu WARNING, pasek się dopełnia), walka z
+  Breakerem z dźwiękiem, laserami i eskortą, potem podsumowanie poziomu.
+- **Trasa regionu 4 `5e2888eb…`:** baner i walka Bastionu.
+
+1. **`hardware-testing.md` §36 (smoke wydania) i §39 (banery na sprzęcie):
+   PASS 2026-10-19.** Dług techniczny z **§AZ** spłacony. Punkt M8 audytu
+   (start i loader bieżącego ATR na sprzęcie) pokryty tym przebiegiem.
+2. **Rejestr:**
+   - AUD-01, 02, 03 oraz LA-1, 2, 5: smoke właściciela zrobiony → zamknięte.
+   - AUD-05, 06, 07: przegląd właściciela przyjęty (narzędzia działają przy
+     każdym scaleniu od tamtej pory) → zamknięte.
+   - LA-8 i LA-9 bez zmian.
+3. **Punkty audytu „nie sprawdzono”:**
+   - M4 (regiony 2–4 poza domyślnym śladem): odłożone do M4 / kampanii, bo
+     regiony 2–4 są nieosiągalne w wydanej grze.
+   - M10 (fioletowy artefakt po Raiderze i dwie osobliwości gruzu): odłożone
+     do M8.
+
+   Oba jako wiersze rejestru.
+4. **33 pozycje `OWNER-SMOKE CANDIDATE`:** dla `v0.3.0` prawdziwy sprzęt
+   pokrywa tylko to, co osiąga wydana gra (poziom 1 i boss R1); reszta
+   przyjęta na smoke'u w emulatorze.
+5. **STATUS, „Known open defects”:** skreślić wpis o licencjach w zipie
+   wydania (naprawione w M5-05).
+
+**Wydanie (odpowiedzi właściciela z 2026-10-19 na pytania przed publikacją):**
+- **Wydana gra to poziom 1.** Na dysku jest tylko obraz poziomu 1, a po
+  bossie i podsumowaniu FIRE wraca do menu (`sector-reader.s`, „Until M4
+  there is no next level”). Notatki mówią „poziom 1 z bossem Blockade
+  Breaker”, nie „poziomy 1–2”; poziom 2 istnieje jako dane, osiągalny tylko
+  w buildach przeglądowych. Zapis testu na sprzęcie kończy się
+  podsumowaniem.
+- **README:** linia „Plays release” → `v0.3.0`; Setech Arcade do
+  przepięcia później (jego skrypt testu zapisu działa na tym ATR bez zmian;
+  lista wyświetlania podsumowania nadal `$0B58`, zmierzone w emulatorze).
+- **Zasób wydania: sam ATR** (`void-strike-65.atr`), jak każde wcześniejsze
+  wydanie; licencje podlinkowane w notatkach.
+- `v0.3.0` jako pre-release, notatki EN + PL w `docs/releases/v0.3.0.md`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

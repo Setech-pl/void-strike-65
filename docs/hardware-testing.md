@@ -1380,6 +1380,21 @@ boot and sound checks first:
 - [ ] **Record** the ATR's SHA-256, the emulator and hardware versions and
       each section's result (below).
 
+**Result (2026-10-19): PASS on real hardware** - the owner's run on a real
+Atari 65XE (PAL) through the SIO2SD (journal §BC):
+- the whole game `audit-m5-full-game-c977efe0.atr` (SHA-256
+  `c977efe068d33356…`, = `dist/` at `v0.3.0`): boot to the menu with its
+  music, level 1, the boss entry with region 1's banner (no old WARNING
+  screen, the bar completes), the Blockade Breaker's fight with sound, lasers
+  and escort, then the level summary;
+- the region-4 route `audit-m5-r4-bastion-5e2888eb.atr`
+  (`5e2888eb40b085b0…`): the Bastion's banner and fight.
+
+Real hardware covers what the shipped game reaches - level 1 and region 1's
+boss - plus the region-4 route above. The other regions' items above are
+accepted on the owner's emulator smoke (2026-10-19, §40; journal §BC 4). The
+boxes stay unticked; this paragraph is the record.
+
 ## 37. The boss art pass: a palette per band row, the redrawn bosses (`feat/boss-art`)
 
 Plan [plans/boss-art.md](plans/boss-art.md); journal §AV. In Atari800
@@ -1478,13 +1493,15 @@ new file name:
 
 ## 39. The boss banners: the picture, the title and the loading bar at every boss entry (`feat/boss-banners`)
 
-**Status: NOT RUN on hardware — merged on emulator evidence 2026-10-18, owner
-decision (journal §AZ); must be run before `v0.3.0`.** Technical debt, not a
-smoke PASS: the owner accepted the emulator evidence (the frame screenshots,
-16 black host frames in every region) and deferred the real-65XE check to the
-`v0.3.0` hardware test. The checklist below stays unticked. ATRs (SHA-256
-prefixes): the whole game `13c950e0`, the boss routes R1 Breaker `f17bef23`,
-R2 Citadel `a788147b`, R3 Spine `595e834d`, R4 Bastion `96956183`.
+**Status: PASS on real hardware 2026-10-19 (journal §BC 1); the technical
+debt of journal §AZ is cleared.** Merged on emulator evidence 2026-10-18
+(§AZ), then run on a real 65XE PAL through the SIO2SD in the `v0.3.0`
+hardware test on newer builds of the same banners: the whole game
+`c977efe0` (region 1's banner: black, no old WARNING screen, the bar
+completes) and the region-4 route `5e2888eb` (the Bastion's banner). Regions
+2 and 3's banners are accepted on emulator smoke (§BC 4). The ATRs this
+section first named (`13c950e0`; R1 `f17bef23`, R2 `a788147b`, R3
+`595e834d`, R4 `96956183`) were not the ones run.
 
 Plan [plans/boss-banners.md](plans/boss-banners.md) §9 (§9.6: no old WARNING
 screen); journal §AL 1-2, §AY (8: the owner's smoke of 2026-10-18). In Atari800 (`-xl -pal -nobasic`), on the whole game

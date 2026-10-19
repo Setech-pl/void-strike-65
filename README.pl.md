@@ -4,7 +4,7 @@
 
 **[▶ Zagraj w przeglądarce](https://setech-pl.github.io/setech-arcade/play/void-strike-65/)**
 
-*Uruchamia wydanie v0.2.3, przypięte w Setech Arcade, na wbudowanym w emulator
+*Uruchamia wydanie v0.3.0, przypięte w Setech Arcade, na wbudowanym w emulator
 AltirraOS; najlepiej grać na klawiaturze albo gamepadzie. ATR na prawdziwy
 sprzęt i emulatory jest na
 [stronie wydań](https://github.com/Setech-pl/void-strike-65/releases).*
@@ -52,7 +52,7 @@ trzeba nic trzymać przy włączaniu zasilania.
 1. **Pobierz obraz dyskietki.** Wydane wersje są na
    [stronie wydań na GitHubie](https://github.com/Setech-pl/void-strike-65/releases)
    (na razie jako wydania wstępne; najnowsze to
-   [v0.2.0](https://github.com/Setech-pl/void-strike-65/releases/tag/v0.2.0)).
+   [v0.3.0](https://github.com/Setech-pl/void-strike-65/releases/tag/v0.3.0)).
    Wersja z czubka tego repozytorium, razem ze zmianami, które są jeszcze
    testowane w grze, to [`dist/void-strike-65.atr`](dist/void-strike-65.atr) —
    użyj przycisku **Download raw file** na GitHubie.

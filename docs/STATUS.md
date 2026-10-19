@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-19 (fix/audit-m5 merged into main by fast-forward, OWNER-ACCEPTED - owner smoke PASS 2026-10-19 on ATR c977efe0 and the routes R1 714a3d9b, R2 962f1b0d, R3 17786d4d, R4 5e2888eb; journal §BA, §BB; section "The m5 audit's fixes". M5-01 the hit sound no longer reads POT2; M5-02 a looping laser fighter backs off a still player near the top (the top-hold rows unchanged, accepted as anti-camping); M5-03 a hit before the boss entry no longer mutes the lead; M5-04 the SIO-diagnostic emulator is rebuilt and stamped by its executable; M5-05 the release zip carries the three notice files; addendum M3 comment, M6 closed, M12 note; M2's black-frames clause deferred to M8; chore/preview-29-rows dropped, tests/preview.test.mjs:164 accepted as a tool defect. Resident 0 B; worst fence margin 1,470 -> 1,465, DMA-on 31,059, 58 replays, 0 misses, 0 clause failures; boss stress worst 8,060 unchanged; npm test 1,485 of 1,486 twice (the recorded preview failure; reconciled, 0 NEW, 0 MOVED). Before it: feat/boss-banners merged at b0afa27 WITHOUT the hardware smoke, owner decision §AZ.)
+Last update: 2026-10-19 (v0.3.0 released as a pre-release from main - chore/release-v0.3.0, journal §BC. The owner's hardware test on a real 65XE via SIO2SD PASSED on ATR c977efe0 (level 1, region 1's banner and the Blockade Breaker, the summary) and the region-4 route 5e2888eb (the Bastion's banner and fight): hardware-testing.md §36 and §39 PASS, the §AZ technical debt cleared, the audit's M8 item covered. Real hardware covers what the shipped game reaches (level 1 and region 1's boss); the other OWNER-SMOKE CANDIDATE items accepted on emulator smoke. Ledger: AUD-01..07 and LA-1, 2, 5 closed; the audit's M4 deferred to M4 / the campaign, M10 to M8. The shipped game is level 1 ending on the Blockade Breaker; the three other bosses are built and arrive with the campaign. Notes EN + PL in docs/releases/v0.3.0.md; README plays v0.3.0 (Setech Arcade to be repinned; the summary's display list still $0B58, measured). Before it: fix/audit-m5 merged at f7d7f4d, OWNER-ACCEPTED.)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -124,7 +124,11 @@ the sixteen candidates below plus seventeen later checkpoints - **33
 `OWNER-SMOKE CANDIDATE` items** - and found the shared trace evidence
 regenerated since each; it accepted none and revoked nothing (the standoff,
 journal §AK, is already `OWNER-ACCEPTED`). **The owner decides at `v0.3.0`
-which of them need the run on hardware** (journal §BA 9).
+which of them need the run on hardware** (journal §BA 9). **Decided
+2026-10-19 (journal §BC 4):** for `v0.3.0` real hardware covers only what
+the shipped game reaches - level 1 and region 1's boss (the owner's run,
+[hardware-testing.md](hardware-testing.md) §36) - and the rest are accepted
+on emulator smoke.
 
 **Backlog for M8 (owner decision 2026-10-19, journal §BB 2): the boss entry's
 black-frames trace clause** (the m5 audit's addendum M2), about 2-3 h
@@ -493,11 +497,11 @@ Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173
 
 All five passed the owner's smoke on 2026-10-19.
 
-## The boss loading-screen banners (feat/boss-banners) — merged on emulator evidence, hardware smoke NOT RUN (2026-10-18, owner decision §AZ)
+## The boss loading-screen banners (feat/boss-banners) — merged on emulator evidence (2026-10-18, owner decision §AZ); hardware PASS 2026-10-19 (journal §BC)
 
 Plan [plans/boss-banners.md](plans/boss-banners.md) (§9 Phase B, §9.6 the smoke fix); journal §AL 1-2, **§AY** (the owner's choices of 2026-10-18 after Phase A; supersedes §AV 5; **§AY 8** the owner's smoke of Phase B). Smoke checklist [hardware-testing.md](hardware-testing.md) §39.
 
-**Status: merged into main at `b0afa27` WITHOUT the hardware smoke (owner decision 2026-10-18, journal §AZ).** The owner accepted the emulator evidence (the frame screenshots, 16 black host frames in every region, the five `build/play/boss-banners-black-*.atr` builds) and deferred the real-65XE check to the `v0.3.0` hardware test. **Technical debt, not a smoke PASS; not `OWNER-ACCEPTED` by smoke; §AY is NOT smoke-confirmed.** §39: NOT RUN on hardware - must be run before `v0.3.0` on the whole game `13c950e0` and the routes R1 `f17bef23`, R2 `a788147b`, R3 `595e834d`, R4 `96956183`. On merged main the evidence chain (build:candidate -> runtime:wall-trace -> menu raster -> build -> memory-map -> showcase:gif -> showcase) reproduced the committed evidence byte for byte (`dist/void-strike-65.atr` = `13c950e0…`, the full-game ATR of the report), and npm test ran 1,477 of 1,478 twice (the recorded preview failure; `failures:reconcile` PASS, 0 NEW, 0 MOVED).
+**Hardware: PASS 2026-10-19 (journal §BC 1); the §AZ technical debt is cleared.** The owner ran a real 65XE PAL through the SIO2SD on newer builds of the same banners: the whole game `c977efe0` (region 1's banner: black, no old WARNING screen, the bar completes) and the region-4 route `5e2888eb` (the Bastion's banner). Regions 2 and 3's banners are accepted on emulator smoke (§BC 4); [hardware-testing.md](hardware-testing.md) §39. The record of 2026-10-18 follows. **Status then: merged into main at `b0afa27` WITHOUT the hardware smoke (owner decision 2026-10-18, journal §AZ).** The owner accepted the emulator evidence (the frame screenshots, 16 black host frames in every region, the five `build/play/boss-banners-black-*.atr` builds) and deferred the real-65XE check to the `v0.3.0` hardware test. **Technical debt, not a smoke PASS; not `OWNER-ACCEPTED` by smoke; §AY is NOT smoke-confirmed.** §39: NOT RUN on hardware - must be run before `v0.3.0` on the whole game `13c950e0` and the routes R1 `f17bef23`, R2 `a788147b`, R3 `595e834d`, R4 `96956183`. On merged main the evidence chain (build:candidate -> runtime:wall-trace -> menu raster -> build -> memory-map -> showcase:gif -> showcase) reproduced the committed evidence byte for byte (`dist/void-strike-65.atr` = `13c950e0…`, the full-game ATR of the report), and npm test ran 1,477 of 1,478 twice (the recorded preview failure; `failures:reconcile` PASS, 0 NEW, 0 MOVED).
 
 **The owner's smoke of Phase B (2026-10-18, HEAD `713fc95`):** the banners, pictures, titles and bar accepted; one defect on every boss - the old text screen with the small WARNING for ~0.9 s, a black cut, then the banner. Fixed below (§AY 8, plan §9.6), the fallback the owner allowed: black, then the banner.
 
@@ -5939,9 +5943,9 @@ section's "what to look for" in the implementation report.
 
 ## Known open defects and open decisions
 
-- **Technical debt (2026-10-18, owner decision §AZ): the boss banners' hardware smoke - NOT RUN on hardware - merged on emulator evidence 2026-10-18, owner decision; must be run before `v0.3.0`.** [hardware-testing.md](hardware-testing.md) §39 on a real 65XE PAL with the SIO2SD, ATRs (SHA-256 prefixes) the whole game `13c950e0`, the boss routes R1 `f17bef23`, R2 `a788147b`, R3 `595e834d`, R4 `96956183`. §AY is not smoke-confirmed until it passes.
+- ~~**Technical debt (2026-10-18, owner decision §AZ): the boss banners' hardware smoke - NOT RUN on hardware - merged on emulator evidence 2026-10-18, owner decision; must be run before `v0.3.0`.**~~ — **CLEARED 2026-10-19 (journal §BC 1):** PASS on a real 65XE on `c977efe0` and the region-4 route `5e2888eb`. The original entry: [hardware-testing.md](hardware-testing.md) §39 on a real 65XE PAL with the SIO2SD, ATRs (SHA-256 prefixes) the whole game `13c950e0`, the boss routes R1 `f17bef23`, R2 `a788147b`, R3 `595e834d`, R4 `96956183`. §AY is not smoke-confirmed until it passes.
 
-- **Follow-up (licensing, 2026-10-01):** `scripts/package-release.mjs` builds the release zip without `LICENSE`, `LICENSE-ASSETS` and `THIRD_PARTY_NOTICES.md`; the zip should include all three. GitHub releases ship the ATR alone, with both licences linked from the release notes.
+- ~~**Follow-up (licensing, 2026-10-01):** `scripts/package-release.mjs` builds the release zip without `LICENSE`, `LICENSE-ASSETS` and `THIRD_PARTY_NOTICES.md`; the zip should include all three.~~ — **FIXED** by M5-05 (`34e8c37`, journal §BC 5). GitHub releases ship the ATR alone, with both licences linked from the release notes.
 
 - ~~BLOCKED: the runtime evidence cannot be regenerated, so the default build
   cannot link~~ — **CLOSED.** `docs/runtime-wall-trace.json` was regenerated on

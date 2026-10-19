@@ -116,9 +116,9 @@ damage on Easy/Medium/Hard contact.
 
 Destroying something awards its score regardless of whether the player survives
 doing it: a suicide or contact kill is worth exactly what a shot kill is worth.
-Debris follows the same rule and is worth 5 points when the player's own shot or
-the player's own contact destroys it — an obstacle value an order below an
-enemy kill, so clearing debris cannot compete with killing enemies. No other
+Debris follows the same rule and is worth **25 points** when the player's own
+shot or the player's own contact destroys it (`DEBRIS_SCORE = $25`,
+`src/main.s:507`, asserted at `:950`; corrected 2026-10-19 - this said 5). No other
 release awards anything: not a non-lethal hit, not the despawn path, not falling
 past the bottom of the gameplay area, and not a sector drain or completion.
 
@@ -485,7 +485,12 @@ section "Decyzje literowe 2026-09-20".
 - **Boss laser (I).** Drawn at once from the gun to the bottom of the screen —
   not an unfolding beam. Lasts one second. Telegraphed by the gun visibly
   heating, with sound, for about two seconds, so the player must move out of
-  the column. Destroys everything in its path. **One per level on 1-4, two on
+  the column. Destroys everything in its path. *As built (corrected
+  2026-10-19): the warning is 40 / 32 / 25 frames (0.8 / 0.64 / 0.5 s) on
+  EASY / MEDIUM / HARD, the beam 50 frames, and a beam costs 5 / 10 / 10 HULL
+  units (`BOSS_LASER_WARNING_DEFAULTS`, `BOSS_LASER_DAMAGE_DEFAULTS`,
+  `scripts/level-compiler.mjs:528-530`; `beamFrames` in each region's
+  `modules.json`).* **One per level on 1-4, two on
   5-8, four on 9-12**, to be tuned during balancing — rescaled to the
   twelve-level campaign by decision **AC** (2026-09-22) from 1-4 / 5-9 / 10-16.
 - **The boss finale (decision B's second phase; S5-2, owner answers Q3 and
@@ -904,11 +909,18 @@ flight paths, sector subtypes and boosters.
   0 enters at 1 line per frame to depth 40, slot 1 to depth 16; then each
   descends 1 line every other frame on opposite frame parity, so slot 1 trails
   and the pair is not phase-locked.
-- **Fire.** Each Bomber has its own timer (first shot after 48 / 72 frames) and
-  fires one `BOMBER` shell (1 line per frame on average), then waits 80/64/48
-  frames on EASY/MEDIUM/HARD. It fires only between Y 24 and 200, not while
-  the player is dying and not when the capital sector is due. Shells are
-  emitter-independent like every hostile shot.
+- **Fire: the attack run (roadmap 4.5d).** Each Bomber has its own reload
+  timer (the first run after 48 / 72 frames for slot 0 / 1). When it runs out
+  inside the fire band, the Bomber brakes (X and Y freeze) and charges for
+  **20 frames** with its hull brightened, then fires **two** `BOMBER` shells
+  **8 frames apart** from the same column (1 line per frame on average), and
+  sweeps on in a fresh direction while it reloads **64 / 52 / 40 frames** on
+  EASY / MEDIUM / HARD (`BOMBER_AIM_FRAMES`, `src/c/lifecycle.c:230`; the
+  attack, `enemy_c_heavy_tick`, `:1610-1657`; burst 2 x 8 and reload in the
+  record, `:302-312`).
+  It fires only between Y 24 and 200, not while the player is dying and not
+  when the capital sector is due. Shells are emitter-independent like every
+  hostile shot. (Corrected 2026-10-19: this said one shell, then 80/64/48.)
 - **HP and score.** 4 HP; a kill scores 50 points.
 - **Escort.** A Bomber formation brings no Light escort in the smoke schedule.
   That is wave data, not a Bomber rule; roadmap 4.6 may give it one.

@@ -71,8 +71,9 @@ space, never during the capital run.
 
 Your fighter has 100 hull points. The HULL bar shows 100%, 75%, 50% and 25%.
 
-Hull is the same on every difficulty. What changes is how much damage enemies
-do — not how much you can take.
+Hull is the same on every difficulty, and so is most of what hits it: an
+enemy shot costs a tenth of your hull on every difficulty. What changes is what
+debris and a boss's laser cost — not how much you can take.
 
 You start with three lives, and earn one more after completing levels 3, 5, 7,
 9 and 11 — five extra, **eight in all** across the campaign.
@@ -87,8 +88,12 @@ Colliding with an enemy kills you. Survival is about not being hit.
 | PILOT | The default |
 | ACE | People who know the patterns |
 
-Difficulty scales four things: the damage enemies do, the damage you do,
-collision damage, and enemy rate of fire.
+Difficulty changes how often enemies fire, how fast the world scrolls, what a
+collision with debris costs (two, five or seven tenths of your hull), and the
+bosses: how many hits their modules take (0.75×, 1×, 1.25×) and how hard
+their lasers hit. It does not change the damage you do: every hit of yours
+counts the same, and an enemy fighter takes the same number of hits on every
+difficulty.
 
 Changing difficulty clears remembered progress.
 
@@ -106,8 +111,8 @@ disk. The same is true of the score table.
 | Raider | Heavy | Fast fighter, fires in bursts | 10 |
 | Bomber | Heavy | Catamaran silhouette; sweeps its lane, stops, aims, looses torpedoes | 50 |
 | Wingman | Light | Flies in formation | 5 |
-| Interceptor | Light | Dives to a firing position above you, follows your column, fires its laser straight down when it is over you, backs off if you close in. In some waves it then climbs to the top of the screen, holds there and dives back for another pass (in level 1, twice) before it climbs away. Takes three hits | 21 |
-| Boss | — | End of every level | 100 |
+| Interceptor | Light | Dives to a firing position above you, follows your column, fires its laser straight down when it is over you, backs off if you close in. In some waves it then climbs to the top of the screen, holds there and dives back for another pass (in level 1, twice) before it climbs away. Takes three hits | 15 |
+| Boss | — | End of every level | each module 20-99; 2,000 for defeating it |
 
 The Bomber's hull darkens as it takes damage, so the colour tells you how much
 of it is left. An Interceptor takes three hits: when one of your shots hits it
@@ -145,8 +150,9 @@ A boss is a structure of repeating modules. Its guns are borrowed from ordinary
 enemies. It also has a laser.
 
 The laser cannot be dodged once fired — but it announces itself. The gun heats
-for about two seconds, with a rising tone. That is the time to leave the line.
-Then the beam lights for one second and destroys everything in its path.
+with a rising tone for 0.8 s on ROOKIE, 0.64 s on PILOT and 0.5 s on ACE. That
+is the time to leave the line. Then the beam lights for one second: it costs
+half your hull on ROOKIE and all of it on PILOT and ACE.
 
 The boss of levels 1-3 carries two laser cannons, one left and one
 right of its centre. They take turns — never both at once — and when one is
@@ -218,10 +224,11 @@ Remember which side you are on. And remember that the shell does not care.
 | --- | ---: |
 | Wingman | 5 |
 | Raider | 10 |
-| Interceptor | 21 |
+| Interceptor | 15 |
 | Debris | 25 |
 | Bomber | 50 |
-| Boss | 100 |
+| Boss module | 20-99 |
+| Boss defeated | 2,000, added on the level summary |
 
 Debris scores whether you shoot it or ram it.
 

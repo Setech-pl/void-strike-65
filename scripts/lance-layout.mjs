@@ -6,6 +6,15 @@
 // the build fails when the two meet.
 export const LANCE_RAM_END = 0xbc00;
 
+// The charge (decisions BD 2, BF; tuned at the owner's smoke): FIRE + stick UP
+// held this many frames over a target fires the lance (75: 1.5 s at 50 Hz),
+// and while it builds the ship moves at 1 / LANCE_CHARGE_SPEED_DIVISOR of its
+// speed in every direction (a power of two; 1: full speed). scripts/build.mjs
+// passes both to src/c/lance.c and src/hybrid/lance.s and records them in the
+// manifest (boss.lance).
+export const LANCE_CHARGE_FRAMES = 75;
+export const LANCE_CHARGE_SPEED_DIVISOR = 2;
+
 // windowEnd: the address after the window's last byte (the Light kernel
 // link's __LIGHT_KERNEL_RAM_LAST__); address / bytes: the lance's RAM; used:
 // the bytes its segments take; sector / sectors: its run; reservationEnd: the

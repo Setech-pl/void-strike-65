@@ -997,6 +997,22 @@ const bossTuningSessions = [
     holdPlayerLives: 3,
     endAtSummary: true,
   })),
+  /* M6 stage 1 (the owner's brief of 2026-10-20, §BF): boss-aim-lance-1 -
+   * MEDIUM's aiming replay with one VOID LANCE gesture (FIRE + stick UP under
+   * its aim, held until the lance fires, then back down to its line), so the
+   * charge, the beam and the kill are in every lance route's native evidence
+   * (the lance clause below; on a route with a stock). On a boss-region route
+   * it is that region's, as the other boss-aim sessions. */
+  {
+    id: "boss-aim-lance-1",
+    difficulty: 1,
+    policy: "boss-aim-lance",
+    fireDelay: 0,
+    frames: DIRECTOR_COMPLETION_FRAMES,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    endAtSummary: true,
+  },
   /* S5-5 (feat/boss-region-2): the Bastion's order puzzle measured - the
    * same replay with the aiming bot that takes the laser cannons first
    * (careful) or the rail guns first (careless). */
@@ -1235,6 +1251,8 @@ const traceLabels = {
   DFTRACE_CAPITAL_SOUND_TIMER: "CAPITAL_EXPLOSION_SOUND_TIMER",
   DFTRACE_SOUND_ENABLED: "sound_enabled",
   DFTRACE_PLAYER_LIFECYCLE: "PLAYER_LIFECYCLE",
+  // M6: the ordinary fire's gate, which the boss-aim bots open.
+  DFTRACE_FIRE_GATE: "gameplay_fire_gate",
   DFTRACE_SECTOR_STATE: "CAPITAL_SECTOR_STATE",
   DFTRACE_GAME_STATE: "game_state",
   DFTRACE_FRONTEND_SELECTION: "frontend_selection",
@@ -1529,7 +1547,7 @@ for (const name of [
   "row_switch_frames", "row_switch_min", "row_switch_max", "row_switch_rows", "row_switch_line_bits",
   "row_switch_max_cycle", "row_switch_cut_frames",
   // M6 stage 1: the VOID LANCE's reticle on screen (P1's crosshair, a visible HPOS).
-  "lance_reticle",
+  "lance_reticle", "lance_charge", "lance_beam", "lance_stock",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4334,6 +4352,12 @@ function main() {
       if (bossLabels.has("lance_y")) {
         addressEnvironment.DFTRACE_LANCE_Y = hex(bossLabels, "lance_y");
         addressEnvironment.DFTRACE_LANCE_SHAPE = hex(bossLabels, "lance_shape");
+        // The owner's brief of 2026-10-20 (§BF): the charge, beam and stock
+        // columns, and the "-lance" bots' view of them.
+        addressEnvironment.DFTRACE_LANCE_CHARGE = hex(bossLabels, "_lance_charge");
+        addressEnvironment.DFTRACE_LANCE_BEAM = hex(bossLabels, "lance_beam");
+        addressEnvironment.DFTRACE_LANCE_STOCK = hex(bossLabels, "_lance_stock");
+        addressEnvironment.DFTRACE_LANCE_MODULE = hex(bossLabels, "_lance_module");
       }
       if (manifest.boss?.lance !== undefined) {
         addressEnvironment.DFWATCH_TAIL_START = `0x${manifest.boss.lance.windowEnd.toString(16)}`;
@@ -4862,6 +4886,26 @@ function main() {
       } else if (session.bossRegion !== undefined) {
         invariant(session.lanceReticleFrames > 0, `${session.id}: the lance's reticle never showed in the boss ` +
           `sector (stock ${manifest.boss.lance.stockGrant} at the entry)`);
+      }
+      // M6 (§BF): a "-lance" bot on a route with a stock charges, fires, and
+      // its beam reaches a module (the frame the beam turns from growing to
+      // held: the kill, or a module a shot took on its way).
+      if ((manifest.boss?.lance?.stockGrant ?? 0) > 0 && session.policy.includes("-lance") && "lance_beam" in rows[0]) {
+        const charge = (row) => Number(row.lance_charge), beam = (row) => Number(row.lance_beam);
+        const chargeStart = rows.findIndex((row) => charge(row) === 1);
+        const fire = rows.findIndex((row, i) => i > 0 && beam(row) === 1 && beam(rows[i - 1]) === 0);
+        const arrive = rows.findIndex((row, i) => i > 0 && beam(row) === 2 && beam(rows[i - 1]) === 1);
+        invariant(chargeStart >= 0 && fire > chargeStart && arrive > fire, `${session.id}: the lance bot's charge ` +
+          `${chargeStart}, fire ${fire}, arrival ${arrive} (each must follow the one before)`);
+        const lastStart = rows.slice(0, fire).map(charge).lastIndexOf(1);
+        const health = (i) => rows[i].player_health;
+        session.lanceRun = { charge_frame: rows[lastStart].frame, fire_frame: rows[fire].frame,
+          arrive_frame: rows[arrive].frame, charge_starts: rows.slice(0, fire).filter((row) => charge(row) === 1).length,
+          health_at_charge: health(lastStart), health_at_fire: health(fire),
+          lance_frames: rows.filter((row) => charge(row) !== 0 || beam(row) !== 0).length };
+        console.log(`${session.id}: the lance - charge from frame ${session.lanceRun.charge_frame} ` +
+          `(${session.lanceRun.charge_starts} start(s)), fired at ${session.lanceRun.fire_frame}, beam arrived at ` +
+          `${session.lanceRun.arrive_frame}; health ${session.lanceRun.health_at_charge} -> ${session.lanceRun.health_at_fire}`);
       }
     }
     if (session.bossRegion !== undefined) {

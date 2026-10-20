@@ -1,19 +1,16 @@
 // M6 stage 1 (docs/plans/m6-void-lance.md §6, §7; owner decisions BD 1-6,
-// 2026-10-20; the owner's smoke of 2026-10-20: rule BD 2 (c) withdrawn - the
-// lance never changes the ordinary fire): the VOID LANCE on the 6502 harness,
-// through the real boss entry from the built disk. The lance run's layout and
-// the build's assertion over the window's tail; the charge under the build's
-// rule (scripts/build.mjs --lance-rule: a-down / a-up, FIRE held with the
-// stick held down / up - variant A; b, FIRE alone - variant B), cancelled by a
-// release, none without a target, and the ordinary fire exactly as without a
-// lance; the kill (exactly one module - the one under the ship - through the
-// shot's path, one of AUD-04's two meetings, never the core, never what a
-// player shot could not hurt; a module a shot took on the beam's way is not
-// hit again); the stock (one a shot, none: no charge); the reticle (P1 only,
-// its line and centre, no colour register written).
-//
-// Run a rule's build with VS65_HARNESS_BUILD=lance-<rule> (node
-// scripts/build.mjs --lance-rule=<rule>).
+// 2026-10-20; the owner's smoke and choice, journal §BE-§BF): the VOID LANCE
+// on the 6502 harness, through the real boss entry from the built disk. The
+// lance run's layout and the build's assertion over the window's tail; the
+// charge (FIRE + stick UP held LANCE_CHARGE_FRAMES frames over a target),
+// cancelled by releasing either, never by FIRE alone, the stick alone or
+// another direction, none without a target; the ship at 1 / divisor of its
+// speed while it builds and the ordinary fire exactly as without a lance; the
+// kill (exactly one module - the one under the ship - through the shot's path,
+// the frame's only meeting, never the core, never what a player shot could not
+// hurt; a module a shot took on the beam's way is not hit again); the stock
+// (one a shot, none: no charge); the reticle (P1 only, its line and centre, no
+// colour register written).
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -24,19 +21,18 @@ const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
 const TRIG0 = 0xd010, STICK0 = 0xd300, HPOSP1 = 0xd001, HPOSP2 = 0xd002;
 const P0 = 0x3c00, P1 = 0x3d00, P2 = 0x3e00;
-const CHARGE = 75;
+const lance = manifest.boss.lance;
+const CHARGE = lance.chargeFrames;
+const DIVISOR = lance.chargeSpeedDivisor;
 const KIND_CORE = 4;
 const SHIP_Y = 200;
-const lance = manifest.boss.lance;
 const GATE = main("gameplay_fire_gate");
-// The build's rule: the stick bits held with FIRE (variant A), none (B).
-const RULE = lance?.rule ?? "a-down";
-const MASK = { "a-up": 0x01, "a-down": 0x02, b: 0x00 }[RULE];
 const ADMIT = label("boss", "laser_admit_operand");
-// The gesture held (FIRE and the rule's stick bits) or released (nothing).
+const UP = 0x01, DOWN = 0x02, LEFT = 0x04, RIGHT = 0x08;      // PORTA, active low
+// The gesture held (FIRE and the stick up) or released (nothing).
 function hold(memory, held = true) {
   memory[TRIG0] = held ? 0 : 1;
-  memory[STICK0] = held ? 0x0f & ~MASK : 0x0f;
+  memory[STICK0] = held ? 0x0f & ~UP : 0x0f;
 }
 
 // The fight as the entry leaves it: region `directory`'s boss (its first
@@ -97,7 +93,8 @@ test("M6: the lance run - the window's tail from $BBFF down, the boss reservatio
   assert.ok(lance.bytes <= lance.capacityBytes, `${lance.bytes} B in ${lance.capacityBytes}`);
   assert.ok(lance.windowEnd <= lance.address, `the window's record ends at $${lance.windowEnd.toString(16)}`);
   assert.equal(lance.stockGrant, 0, "stage 1: the game's stock is 0 until the boss capsules give lances");
-  assert.ok(["a-down", "a-up", "b"].includes(lance.rule), `the rule ${lance.rule}`);
+  assert.equal(lance.rule, undefined, "one rule since the owner's choice (§BF): no --lance-rule");
+  assert.deepEqual([lance.chargeFrames, lance.chargeSpeedDivisor], [75, 2], "the charge's two constants (scripts/lance-layout.mjs)");
   const run = manifest.boss.runs.find((r) => r.name === "boss-lance");
   assert.deepEqual([run.startSector, run.sectors, run.destination], [lance.startSector, lance.sectors, lance.address]);
   const [first, last] = manifest.boss.reservedSectors.code;
@@ -132,7 +129,7 @@ function writesOf(memory) {
   return writes;
 }
 
-test(`M6 (rule ${RULE}): the gesture held over a target charges 75 frames - the reticle blinks - and fires once`, () => {
+test("M6 (decision BF): FIRE + stick UP held over a target charges 75 frames - the reticle blinks - and fires once", () => {
   const { memory } = fight();
   const c = targetColumn(memory);
   assert.notEqual(c, undefined, "no column under a target");
@@ -154,9 +151,8 @@ test(`M6 (rule ${RULE}): the gesture held over a target charges 75 frames - the 
   assert.equal(shown(memory), false, "the reticle is off from the fire");
 });
 
-test(`M6 (rule ${RULE}): a release before the 75th frame cancels the charge; the next hold starts again`, () => {
-  const releases = MASK === 0 ? [{ trig: 1 }] : [{ trig: 1 }, { stick: 0x0f }];
-  for (const release of releases) {
+test("M6 (decision BF): releasing FIRE or the stick's up before the 75th frame cancels the charge; the next hold starts again", () => {
+  for (const release of [{ trig: 1 }, { stick: 0x0f }]) {
     const { memory } = fight();
     standUnder(memory, targetColumn(memory));
     hold(memory);
@@ -175,34 +171,30 @@ test(`M6 (rule ${RULE}): a release before the 75th frame cancels the charge; the
   }
 });
 
-if (MASK !== 0) {
-  test(`M6 (rule ${RULE}, variant A): FIRE alone, the stick alone or FIRE with another direction never charge`, () => {
-    const { memory } = fight();
-    standUnder(memory, targetColumn(memory));
-    const others = [0x01, 0x02, 0x04, 0x08].filter((bit) => bit !== MASK);
-    const cases = [
-      { name: "FIRE alone", trig: 0, stick: 0x0f },
-      { name: "the stick alone", trig: 1, stick: 0x0f & ~MASK },
-      ...others.map((bit) => ({ name: `FIRE with stick bit ${bit}`, trig: 0, stick: 0x0f & ~bit })),
-    ];
-    for (const { name, trig, stick } of cases) {
-      const m = Uint8Array.from(memory);
-      m[TRIG0] = trig;
-      m[STICK0] = stick;
-      for (let f = 0; f < 2 * CHARGE; f += 1) tick(m);
-      assert.equal(m[lbl("_lance_charge")], 0, name);
-      assert.equal(m[lbl("lance_beam")], 0, name);
-      assert.equal(m[lbl("_lance_stock")], 3, name);
-      assert.ok(shown(m), `${name}: the reticle stays shown over the target`);
-    }
-    // A diagonal that includes the rule's direction is the gesture.
+test("M6 (decision BF): FIRE alone, the stick alone or FIRE with another direction never charge; a diagonal with UP does", () => {
+  const { memory } = fight();
+  standUnder(memory, targetColumn(memory));
+  const cases = [
+    { name: "FIRE alone", trig: 0, stick: 0x0f },
+    { name: "the stick up alone", trig: 1, stick: 0x0f & ~UP },
+    ...[DOWN, LEFT, RIGHT].map((bit) => ({ name: `FIRE with stick bit ${bit}`, trig: 0, stick: 0x0f & ~bit })),
+  ];
+  for (const { name, trig, stick } of cases) {
     const m = Uint8Array.from(memory);
-    m[TRIG0] = 0;
-    m[STICK0] = 0x0f & ~MASK & ~0x04;
-    for (let f = 0; f < CHARGE; f += 1) tick(m);
-    assert.equal(m[lbl("lance_beam")], 1, "the gesture with the stick held diagonally");
-  });
-}
+    m[TRIG0] = trig;
+    m[STICK0] = stick;
+    for (let f = 0; f < 2 * CHARGE; f += 1) tick(m);
+    assert.equal(m[lbl("_lance_charge")], 0, name);
+    assert.equal(m[lbl("lance_beam")], 0, name);
+    assert.equal(m[lbl("_lance_stock")], 3, name);
+    assert.ok(shown(m), `${name}: the reticle stays shown over the target`);
+  }
+  const m = Uint8Array.from(memory);
+  m[TRIG0] = 0;
+  m[STICK0] = 0x0f & ~UP & ~LEFT;
+  for (let f = 0; f < CHARGE; f += 1) tick(m);
+  assert.equal(m[lbl("lance_beam")], 1, "the gesture with the stick held diagonally");
+});
 
 test("M6 (decision BD 2 (b)): no module under the ship - the gesture does nothing", () => {
   const { memory } = fight();
@@ -219,12 +211,141 @@ test("M6 (decision BD 2 (b)): no module under the ship - the gesture does nothin
   }
 });
 
+// One frame of the ship: the tick, then read_input, with `stick` (the
+// directions held) and FIRE; returns the ship's move [dx, dy].
+function step(memory, stick, fire = true) {
+  memory[STICK0] = 0x0f & ~stick;
+  memory[TRIG0] = fire ? 0 : 1;
+  const [x, y] = [memory[main("player_x")], memory[main("player_y")]];
+  tick(memory);
+  call(memory, main("read_input"));
+  return [memory[main("player_x")] - x, memory[main("player_y")] - y];
+}
+// read_input's boss Y floor operand (the install's; the forward comparison
+// build moves it on a slow frame).
+const FLOOR = Number.parseInt(/read_input_y_min_operand\s*=\s*\$([0-9A-F]+)/
+  .exec(readBuild("boss-imports.inc").toString("utf8"))[1], 16);
+let floorValue = null;
+// The same frame with no lance (stock 0, read_input's operands as the install
+// left them: PORTA, the boss floor).
+function controlStep(memory, stick, fire = true) {
+  floorValue ??= fight().memory[FLOOR];
+  const m = Uint8Array.from(memory);
+  m[lbl("_lance_stock")] = 0;
+  m[main("read_input") + 1] = 0x00;
+  m[main("read_input") + 2] = 0xd3;
+  m[FLOOR] = floorValue;
+  return step(m, stick, fire);
+}
+const slowFrame = (memory) => memory[lbl("_lance_charge")] % DIVISOR !== 0;
+
+// Decision BF 2 (the owner's addition of 2026-10-20): while the charge builds
+// the ship moves at 1 / LANCE_CHARGE_SPEED_DIVISOR of its speed in every
+// direction (read_input sees no direction on the slow frames, so its edge
+// tests are the ones it always makes); full speed the moment the charge is
+// released or the lance fires, and outside the charge. The comparison build
+// (--lance-slow=forward) slows the advance only.
+test(`M6 (decision BF 2): the ship moves at 1 / ${DIVISOR} of its speed while the charge builds (${lance.slow}), full speed outside it`, () => {
+  const forward = lance.slow === "forward";
+  // During the charge: up, up-left, up-right - DOWN cannot be held with UP.
+  for (const extra of [0, LEFT, RIGHT]) {
+    const { memory } = fight();
+    const c = targetColumn(memory);
+    standUnder(memory, c);
+    memory[main("player_x")] = (memory[main("player_x")] & ~1) || 2;
+    let slow = 0, moved = [0, 0], full = [0, 0], frames = 0;
+    for (let f = 0; f < 12; f += 1) {
+      const expected = controlStep(memory, UP | extra);
+      const got = step(memory, UP | extra);
+      frames += 1;
+      if (memory[lbl("_lance_charge")] === 0) {
+        assert.deepEqual(got, expected, `frame ${f} (${extra}): no charge, the full step`);
+        continue;
+      }
+      const isSlow = slowFrame(memory);
+      slow += isSlow ? 1 : 0;
+      const want = isSlow ? [forward ? expected[0] : 0, 0] : expected;
+      assert.deepEqual(got, want, `frame ${f} (stick ${UP | extra}, charge ${memory[lbl("_lance_charge")]})`);
+      moved = [moved[0] + Math.abs(got[0]), moved[1] + Math.abs(got[1])];
+      full = [full[0] + Math.abs(expected[0]), full[1] + Math.abs(expected[1])];
+    }
+    assert.ok(slow >= 4, `${slow} slow frames in the charge (stick extra ${extra})`);
+    assert.equal(moved[1] * DIVISOR, full[1], `vertical: ${moved[1]} of ${full[1]} lines`);
+    if (extra !== 0) assert.equal(moved[0] * (forward ? 1 : DIVISOR), full[0], `horizontal: ${moved[0]} of ${full[0]} clocks`);
+  }
+  // Outside the charge: every direction with FIRE (no charge: no UP), every
+  // direction without FIRE - the full step, frame for frame.
+  for (const fire of [true, false]) {
+    for (const stick of [UP, DOWN, LEFT, RIGHT]) {
+      if (fire && stick === UP) continue;
+      const { memory } = fight();
+      standUnder(memory, targetColumn(memory));
+      memory[main("player_y")] = 160;
+      for (let f = 0; f < 8; f += 1) {
+        const expected = controlStep(memory, stick, fire);
+        assert.deepEqual(step(memory, stick, fire), expected, `stick ${stick}, FIRE ${fire}, frame ${f}`);
+        assert.equal(memory[lbl("_lance_charge")], 0);
+      }
+    }
+  }
+  // Released mid-charge (UP let go, LEFT still held) and the fire frame: the
+  // full step that very frame.
+  {
+    const { memory } = fight();
+    standUnder(memory, targetColumn(memory));
+    for (let f = 0; f < 9; f += 1) step(memory, UP);
+    assert.ok(memory[lbl("_lance_charge")] > 0);
+    const expected = controlStep(memory, LEFT);
+    assert.deepEqual(step(memory, LEFT), expected, "the release frame");
+    assert.notDeepEqual(expected, [0, 0]);
+  }
+  {
+    const { memory } = fight();
+    standUnder(memory, targetColumn(memory));
+    memory[lbl("_lance_charge")] = CHARGE - 1;
+    const expected = controlStep(memory, UP);
+    assert.deepEqual(step(memory, UP), expected, "the fire frame");
+    assert.equal(memory[lbl("lance_beam")], 1);
+    assert.notDeepEqual(expected, [0, 0]);
+    // The beam's frames: read_input reads PORTA.
+    for (let f = 0; f < 4; f += 1) {
+      const e = controlStep(memory, LEFT);
+      assert.deepEqual(step(memory, LEFT), e, `beam frame ${f}`);
+    }
+  }
+});
+
+test("M6 (decision BF 2): read_input's stick operand - the tick's $FF on a slow frame, PORTA otherwise, and restored at START GAME", () => {
+  const { memory } = fight();
+  standUnder(memory, targetColumn(memory));
+  const operand = () => memory[main("read_input") + 1] | (memory[main("read_input") + 2] << 8);
+  hold(memory);
+  tick(memory);
+  if (lance.slow === "forward") {
+    assert.equal(operand(), 0xd300, "the forward comparison never moves the stick operand");
+    return;
+  }
+  assert.equal(memory[lbl("_lance_charge")], 1);
+  assert.notEqual(operand(), 0xd300);
+  assert.ok(operand() >= lance.address && operand() < LANCE_RAM_END, "inside the lance run");
+  assert.equal(memory[operand()] & 0x0f, 0x0f, "no direction held");
+  tick(memory);
+  assert.equal(operand(), 0xd300, "the moving frame");
+  hold(memory, false);
+  tick(memory);
+  assert.equal(operand(), 0xd300);
+  // The boss restore table START GAME writes back (build/boss-restore.inc).
+  const restore = readBuild("boss-restore.inc").toString("utf8");
+  assert.match(restore, /read_input's stick operand \(lo\)/);
+  assert.match(restore, /read_input's stick operand \(hi\)/);
+});
+
 // The owner's smoke of 2026-10-20: rule (c) withdrawn. The ordinary fire is
 // frame for frame the fire without a lance: the gesture held over a target
 // through the charge, the beam and its end (read_input, the fighter's weapon
 // and the tick every frame) - the PairShots allocated against the same run
 // with no lance in stock.
-test(`M6 (rule ${RULE}): the ordinary fire is unchanged - every PairShot as with no lance, through the charge and the beam`, () => {
+test("M6 (journal §BE): the ordinary fire is unchanged - every PairShot as with no lance, through the charge and the beam", () => {
   const ACTIVE = main("FIGHTER_PROJECTILE_ACTIVE");
   const run = (stock) => {
     const { memory } = fight(1, { stock });
@@ -273,11 +394,10 @@ function arriving(memory, c) {
   assert.equal(memory[lbl("lance_beam")], 1, "the beam is still growing");
 }
 
-// The player shots AUD-04 admits on the kill's frame (src/hybrid/lance.s
-// LANCE_KILL_ADMIT): variant A none (the kill the frame's only meeting).
-const KILL_ADMIT = RULE === "b" ? 1 : 0;
-
-test(`M6 (rule ${RULE}): the kill's frame admits ${KILL_ADMIT} player shot meeting(s), the next frame AUD-04's two`, () => {
+// The kill is the frame's only meeting: a player shot that would meet the boss
+// on that frame waits one frame (AUD-04's hold), then meets.
+const KILL_ADMIT = 0;
+test("M6: the kill's frame admits no player shot meeting - they wait a frame - the next frame AUD-04's two", () => {
   const { memory } = fight();
   const c = targetColumn(memory);
   const module = front(memory, c);
@@ -442,9 +562,11 @@ test("M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the
   assert.equal(memory[HPOSP1], centre);
   assert.equal(memory[0xd009], 0, "SIZEP1 single width");
   const allowed = (a) => (a >= lance.address && a < LANCE_RAM_END) || (a >= P1 && a < P1 + 256) ||
-    a === HPOSP1 || a === 0xd009 || (a >= 0x0100 && a < 0x0200);
+    a === HPOSP1 || a === 0xd009 || (a >= 0x0100 && a < 0x0200) ||
+    a === main("read_input") + 1 || a === main("read_input") + 2 ||
+    (lance.slow === "forward" && a === FLOOR);   // the comparison build's floor operand
   assert.deepEqual([...writes].filter((a) => !allowed(a)).map((a) => `$${a.toString(16)}`), [],
-    "the tick wrote outside the lance, P1 and HPOSP1 / SIZEP1 (no fire gate, no shot mailbox)");
+    "the tick wrote outside the lance, P1, HPOSP1 / SIZEP1 and read_input's stick operand (no fire gate, no shot mailbox)");
   assert.ok(![...writes].some((a) => a >= 0xd012 && a <= 0xd015), "a colour register written");
   assert.ok(![...writes].some((a) => a === HPOSP2 || (a >= P2 && a < P2 + 256)), "P2 stays free");
   // Drawn once a fight: the next frame writes HPOSP1 only.

@@ -3166,6 +3166,44 @@ Smoke właściciela na `6d7cdb4`.
 5. **Bez łańcucha dowodów na tym etapie:** tylko narzędzia stresu bossa,
    testy lancy i cztery trasy bossów.
 
+## BF. M6 VOID LANCE — WYBÓR WARIANTU I DOMKNIĘCIE ETAPU 1 (2026-10-20, `feat/m6-void-lance`)
+
+Właściciel zagrał w ATR-y porównawcze z §BE.
+
+1. **Wybór: wariant A, gest A-up** — FIRE + drążek w GÓRĘ przez 75 klatek.
+   Uzasadnienie właściciela: **konwencja lotnicza** (drążek „od siebie”, do
+   przodu): najpierw wycofanie, potem ładowanie z naporem do przodu; ładowanie
+   **kosztuje gracza 1,5 s zbliżania się do pasa bossa** — to cena lancy.
+   Wariant B, gest A-down i flaga `--lance-rule` znikają; A-up to jedyna
+   reguła. Zostaje: strzał gracza, który w klatce zabicia lancą trafiłby bossa,
+   czeka jedną klatkę (zabicie jest jedynym spotkaniem tej klatki), oraz test
+   zwykłego ognia klatka po klatce wobec przebiegu bez lancy. Długość
+   ładowania to jedna nazwana stała (`LANCE_CHARGE_FRAMES` = 75), do strojenia
+   po smoke'u.
+2. **Dodatek właściciela: podczas ładowania statek porusza się z POŁOWĄ
+   prędkości, w każdym kierunku.** Czyta się to jak statek obciążony
+   ładowaniem i zmniejsza ryzyko kontaktu z bossem podczas naporu. Jedna
+   nazwana stała (`LANCE_CHARGE_SPEED_DIVISOR` = 2, dzielnik prędkości w
+   czasie ładowania) obok stałej długości ładowania — obie do strojenia po
+   smoke'u. Normalna prędkość wraca w chwili puszczenia gestu albo odpalenia
+   lancy. Test: przesunięcie statku na klatkę w czasie ładowania to połowa
+   przesunięcia z przebiegu bez lancy, a poza ładowaniem bez zmian; koszt
+   sprawdzenia w tiku gracza zmierzony i w tabeli najgorszych klatek.
+   **Jedna dodatkowa trasa porównawcza R4 (Bastion)**, w której zwolniony jest
+   tylko kierunek do przodu (GÓRA), żeby właściciel poczuł różnicę;
+   zatwierdzona reguła to „każdy kierunek”, chyba że właściciel po grze
+   zdecyduje inaczej.
+3. **Boty testowe, nie gra:** bot `boss-aim` ma puszczać i wciskać FIRE, żeby
+   bramka ognia z `main` się otworzyła (6 porażek „walka musi postępować” to
+   wada bota; potwierdzić na buildzie bez lancy). Na co najmniej jednej trasie
+   bossa w każdym regionie bot wykonuje gest A-up raz i odpala lancę, żeby
+   promień i zabicie były w natywnych dowodach trasy, nie tylko w narzędziach
+   stresu 6502.
+4. **Pełny łańcuch dowodów** i bramki etapu 1 (§BD); potem STOP na smoke
+   właściciela. Do backlogu: etap 2 potrzebuje 4. sektora lancy albo innego
+   miejsca na procedurę „daj jedną lancę” — w sektorach 581–583 zostaje
+   tylko 1 B (po domknięciu z połową prędkości: 2 B, ZMIERZONE).
+
 ---
 
 ## Backlog — dopisane 2026-09-20

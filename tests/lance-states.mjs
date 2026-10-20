@@ -8,16 +8,17 @@
 // figure is the composition's frame plus the tick (its JSR and RTS; the
 // entry's TICK_FLASHES jmp cost boss_rts the same before the lance). Since the
 // owner's smoke of 2026-10-20 the lance never changes the ordinary fire: every
-// state keeps the case's own player shots, and the kill takes one of AUD-04's
-// two meetings (the tick patches laser_frame's admit operand), so a case's
-// second meeting waits a frame as AUD-04 holds any.
+// state keeps the case's own player shots, and the kill is the frame's only
+// meeting (the tick patches laser_frame's admit operand to 0), so the case's
+// meetings wait a frame as AUD-04 holds any. The charge's states include its
+// slow-frame check (decision BF 2: read_input's stick operand).
 //
 //   stock0  the game in stage 1: no lance in stock (the tick's early exit)
 //   draw    a lance in stock, FIRE released, the ship under a front module
 //           on the fight's first such frame: the reticle drawn (boss_band_
 //           measure and its 8 rows) and placed
 //   idle    as draw, the reticle already drawn: placed (its HPOS)
-//   charge  the build's gesture held over the target, a shown frame of the charge
+//   charge  FIRE + stick UP held over the target, a shown slow frame of the charge
 //   fire    the gesture held, the charge completing on this frame (the beam armed)
 //   grow    the beam's first LANCE_BEAM_STEP lines, the case's shots flying
 //   arrive  the beam's last lines reach a front module the case's own
@@ -26,7 +27,7 @@
 //           one meeting left admits
 //   erase   the erasure's first frame: LANCE_BEAM_STEP lines up from the
 //           ship, the case's shots flying
-import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
+import { call, label, labelsOf } from "./boss-harness.mjs";
 
 export const LANCE_MODES = ["stock0", "draw", "idle", "charge", "fire", "grow", "arrive", "erase"];
 const has = () => labelsOf.boss.has("lance_tick");
@@ -41,10 +42,8 @@ const SHIP_Y = 200;                                     // the ship's top line i
 const BEAM_STEP = 20;                                   // src/hybrid/lance.s LANCE_BEAM_STEP
 const HOLD = 3;                                         // LANCE_HOLD
 const TRIG0 = 0xd010;
-const STICK0 = 0xd300;                                  // PORTA: bit 0 up, bit 1 down, active low
-// The build's gesture (scripts/build.mjs --lance-rule): the stick bits held
-// with FIRE (0: FIRE alone).
-export const LANCE_GESTURE_MASK = { "a-up": 0x01, "a-down": 0x02, b: 0x00 }[manifest.boss.lance?.rule ?? "a-down"];
+const STICK0 = 0xd300;                                  // PORTA: bit 0 up, active low
+const STICK_UP = 0x01;
 
 // A case the mode leaves out (its frames cost 0 in the composition).
 export const lanceSkip = (memory) => skipped.has(memory);
@@ -72,10 +71,10 @@ function targetColumn(memory, avoid) {
   return fallback;
 }
 const skip = (memory) => { lanceStats.skipped += 1; skipped.add(memory); };
-// The gesture held (FIRE and the build's stick bits) or released.
+// The gesture held (FIRE and the stick up) or released.
 function gesture(memory, held) {
   memory[TRIG0] = held ? 0 : 1;
-  memory[STICK0] = held ? 0x0f & ~LANCE_GESTURE_MASK : 0x0f;
+  memory[STICK0] = held ? 0x0f & ~STICK_UP : 0x0f;
 }
 
 // Arms `memory` (one case's run image) for `mode`. hit / kind / columnOf:
@@ -110,7 +109,7 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
     memory[main("player_x")] = target.x;
     if (mode === "charge") {
       gesture(memory, true);
-      memory[lbl("_lance_charge")] = 11;                // 12: a shown frame
+      memory[lbl("_lance_charge")] = 12;                // 13: a shown, slow frame
     } else if (mode === "fire") {
       gesture(memory, true);
       memory[lbl("_lance_charge")] = 74;                // completes on this frame
@@ -120,8 +119,8 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
   lanceStats.armed += 1;
 }
 
-// HULL_CONTACT: boss_rts again since the owner's smoke of 2026-10-20 (the
-// stage-1 build's lance_after, when the build has one).
+// HULL_CONTACT: boss_rts since the owner's smoke of 2026-10-20 (the first
+// stage-1 build's lance_after, when a build has one).
 export function lanceAfter(memory) {
   return armed.has(memory) && labelsOf.boss.has("lance_after") ? call(memory, lbl("lance_after")).cycles : 0;
 }

@@ -2429,9 +2429,11 @@ laser_first_shot:
     rts
 
 ; X = a laser -> A (Z) its emitter's bit in the controller's exposed mask:
-; nonzero when exposed. Keeps X.
+; nonzero when exposed. Keeps X. laser_exposed_module: Y = a module (M6: the
+; VOID LANCE's target pick, src/hybrid/lance.s).
 laser_exposed:
     ldy boss_laser_module,x
+laser_exposed_module:
     cpy #8
     bcs @high
     lda _boss_exposed_lo

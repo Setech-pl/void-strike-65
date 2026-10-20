@@ -145,7 +145,7 @@ import {
   renderBossLayoutHeader,
   renderBossLayoutInclude,
 } from "./boss-assets.mjs";
-import { checkLanceLayout, LANCE_RAM_END } from "./lance-layout.mjs";
+import { checkLanceLayout, LANCE_CHARGE_FRAMES, LANCE_CHARGE_SPEED_DIVISOR, LANCE_RAM_END } from "./lance-layout.mjs";
 import {
   BANNER_BASE_SECTOR,
   BANNER_BUFFER,
@@ -368,20 +368,17 @@ if (lanceStockSlug !== undefined && !["1", "2", "3"].includes(lanceStockSlug)) {
   throw new Error(`Unknown lance stock ${lanceStockSlug}; the stock is 1, 2 or 3`);
 }
 const lanceStockValue = lanceStockSlug === undefined ? null : Number(lanceStockSlug);
-// M6 stage 1, the owner's smoke of 2026-10-20 (rule BD 2 (c) withdrawn: the
-// lance never changes the ordinary fire): --lance-rule=R picks the charge's
-// gesture for the owner's comparison - a-down / a-up (variant A: FIRE held
-// with the stick held down / up) or b (variant B: FIRE alone, the ordinary
-// fire going on), the default a-down. The losing rule goes after the owner's
-// choice. Review variant: build/lance-R[-stock-N-...]/.
-const LANCE_RULES = { b: 0, "a-up": 1, "a-down": 2 };
-const lanceRuleArgument = process.argv.find((argument) => argument.startsWith("--lance-rule="));
-const lanceRuleSlug = lanceRuleArgument?.slice("--lance-rule=".length);
-if (lanceRuleSlug !== undefined && !(lanceRuleSlug in LANCE_RULES)) {
-  throw new Error(`Unknown lance rule ${lanceRuleSlug}; the rules are ${Object.keys(LANCE_RULES).join(", ")}`);
+// M6 stage 1, the owner's choice after the comparison (journal §BF): the
+// charge is FIRE + stick UP and slows the ship in every direction. The owner's
+// comparison build --lance-slow=forward slows only the advance (UP); the
+// default "every" is the committed rule. Review variant:
+// build/lance-slow-forward-[stock-N-...]/; it goes when the owner has played it.
+const lanceSlowArgument = process.argv.find((argument) => argument.startsWith("--lance-slow="));
+const lanceSlowSlug = lanceSlowArgument?.slice("--lance-slow=".length);
+if (lanceSlowSlug !== undefined && lanceSlowSlug !== "forward") {
+  throw new Error(`Unknown lance slow rule ${lanceSlowSlug}; the comparison is forward`);
 }
-const lanceRule = lanceRuleSlug ?? "a-down";
-const lancePrefix = lanceRuleSlug === undefined ? "lance-" : `lance-${lanceRuleSlug}-`;
+const lancePrefix = lanceSlowSlug === undefined ? "lance-" : `lance-slow-${lanceSlowSlug}-`;
 if (laserTierValue !== null && laserFixtureTier !== null) {
   throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
 }
@@ -463,7 +460,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
   laserTierValue !== null || bossVariantSlug !== undefined || lanceStockValue !== null ||
-  lanceRuleSlug !== undefined;
+  lanceSlowSlug !== undefined;
 if (lanceStockValue !== null && levelDebugId === null) {
   throw new Error("--lance-stock=N rides a debug route: pass --level=1:sector=M with it");
 }
@@ -492,8 +489,8 @@ const variantDirectoryNameInner = (escortVariantId !== null
   ? `laser-tier-${laserTierValue}${levelDebugSuffix}`
   : lanceStockValue !== null
   ? `${lancePrefix}stock-${lanceStockValue}${levelDebugSuffix}`
-  : lanceRuleSlug !== undefined
-  ? `lance-${lanceRuleSlug}${levelDebugSuffix}`
+  : lanceSlowSlug !== undefined
+  ? `lance-slow-${lanceSlowSlug}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -2876,12 +2873,24 @@ async function build() {
     }
     return loadAddress + hits[0] + 3;
   })();
+  // M6 (decision BF 2): read_input's first instruction, `lda STICK0`: the
+  // VOID LANCE's charge points its operand at a byte with no direction held
+  // on the charge's slow frames (src/hybrid/lance.s).
+  const readInputStickOperand = (() => {
+    const start = labels.get("read_input") - loadAddress;
+    if (![0xad, 0x00, 0xd3].every((byte, index) => linkedPayload[start + index] === byte)) {
+      throw new Error("M6: read_input does not begin with lda STICK0 ($D300)");
+    }
+    return labels.get("read_input") + 1;
+  })();
   const bossRestoreEntries = [
     ...[0, 1, 2, 3, 4, 5].map((offset) => ["world/hull scroll rates",
       labels.get("world_scroll_rates") + offset]),
     ["resume_gameplay's DLI operand (lo)", labels.get("resume_gameplay_dli_lo_operand")],
     ["resume_gameplay's DLI operand (hi)", labels.get("resume_gameplay_dli_hi_operand")],
     ["read_input's player Y floor", readInputYMinOperand],
+    ["read_input's stick operand (lo)", readInputStickOperand],
+    ["read_input's stick operand (hi)", readInputStickOperand + 1],
   ].map(([what, address]) => {
     if (!Number.isInteger(address)) throw new Error(`M5b-S3: main has no ${what}`);
     return { what, address, value: residentByte(address) };
@@ -3005,8 +3014,6 @@ async function build() {
       "HUD_COLPF1", "HUD_COLPF2", "STATE_GAMEPLAY", "game_state", "wait_frame_start",
       "main_loop", "sound_enabled", "GAMEPLAY_DIVIDER_SCREEN", "capital_slot_a",
       "DIFFICULTY_SETTING", "PLAYER_LIFECYCLE", "player_x", "apply_player_damage",
-      // M6: the lance holds the ordinary fire.
-      "gameplay_fire_gate",
       // S4b.5 (owner decision F3): a destroyed module counts for the capsule rule.
       "ENTITY_STATE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
       "integration_pickup_reveal_body",
@@ -3050,6 +3057,8 @@ async function build() {
   }
   bossImportLines.push(`read_input_y_min_operand${" ".repeat(12)} = $${
     readInputYMinOperand.toString(16).toUpperCase()}   ; main (found by its bytes)`);
+  bossImportLines.push(`read_input_stick_operand${" ".repeat(12)} = $${
+    readInputStickOperand.toString(16).toUpperCase()}   ; main (read_input + 1)`);
   // main.s's gameplay_dli_phase is an alias of the zero-page loader_dli_phase.
   bossImportLines.push(`gameplay_dli_phase${" ".repeat(18)} = $${
     labels.get("loader_dli_phase").toString(16).toUpperCase()}   ; main (loader_dli_phase)`);
@@ -3356,7 +3365,7 @@ async function build() {
   };
   const bossCAssembled = await compileBossC("boss.c", `${bossBase}-c`);
   const lanceCAssembled = await compileBossC("lance.c", `${bossBase}-lance-c`,
-    [`LANCE_STOCK_GRANT=${lanceStockValue ?? 0}u`]);
+    [`LANCE_STOCK_GRANT=${lanceStockValue ?? 0}u`, `LANCE_CHARGE_FRAMES=${LANCE_CHARGE_FRAMES}u`]);
   // audit-hardening (AUD-02): slot A's head checks the eight runs it reads
   // (install, slots C-E, the region's band A, band B, charset and - S5-1 -
   // block), folded in that order, against its region's value. Zeros until the
@@ -3391,7 +3400,8 @@ async function build() {
         ...(bossGravityInclude === null ? [] : ["-D", "BOSS_GRAVITY=1"]),
         ...(bossRailInclude === null ? [] : ["-D", "BOSS_RAIL=1"]),
         ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
-        "-D", `LANCE_GESTURE=${LANCE_RULES[lanceRule]}`,
+        "-D", `LANCE_CHARGE_SPEED_DIVISOR=${LANCE_CHARGE_SPEED_DIVISOR}`,
+        ...(lanceSlowSlug === "forward" ? ["-D", "LANCE_SLOW_FORWARD=1"] : []),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -4566,7 +4576,7 @@ async function build() {
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null || lanceStockValue !== null ||
-      lanceRuleSlug !== undefined
+      lanceSlowSlug !== undefined
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4951,7 +4961,9 @@ async function build() {
         bytes: lanceUsed,
         codeBytes: bossLabels.get("__LANCE_CODE_SIZE__"), dataBytes: bossLabels.get("__LANCE_DATA_SIZE__") ?? 0,
         bssBytes: bossLabels.get("__LANCE_BSS_SIZE__"),
-        windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), stockGrant: lanceStockValue ?? 0, rule: lanceRule },
+        windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), stockGrant: lanceStockValue ?? 0,
+        chargeFrames: LANCE_CHARGE_FRAMES, chargeSpeedDivisor: LANCE_CHARGE_SPEED_DIVISOR,
+        slow: lanceSlowSlug ?? "every" },
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       order: bossOrder,

@@ -247,8 +247,13 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   assert.ok(atrSectors(slotDEnd, slotEStart - slotDEnd).every((byte) => byte === 0),
     "the room between slot D's run and slot E's must stay empty");
   assert.ok(atrSectors(slotEStart, manifest.boss.slotE.sectors).some((byte) => byte !== 0), "slot E is on the disk");
-  assert.ok(atrSectors(slotEEnd, 584 - slotEEnd).every((byte) => byte === 0),
-    "528-583 past slot E must stay empty");
+  // RE-POINTED feat/m6-void-lance (journal §BD 6): the lance run sits at the
+  // reservation's end (581-583); the room between slot E's run and it is empty.
+  const lance = manifest.boss.runs.find((run) => run.name === "boss-lance");
+  assert.equal(lance.startSector + lance.sectors, 584, "the lance run ends the reservation");
+  assert.ok(atrSectors(slotEEnd, lance.startSector - slotEEnd).every((byte) => byte === 0),
+    "528-583 between slot E and the lance run must stay empty");
+  assert.ok(atrSectors(lance.startSector, lance.sectors).some((byte) => byte !== 0), "the lance run is on the disk");
   assert.ok(atrSectors(632, 16).some((byte) => byte !== 0), "region 1 is on the disk");
   // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk as
   // copies of region 1, and every region's block at 696 + 4 x region.

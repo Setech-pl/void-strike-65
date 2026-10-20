@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-19 (docs/enemies-bosses-pages, OWNER REVIEW CANDIDATE: the player pages docs/enemies.md and docs/bosses.md, EN + PL, with CRT-style pictures and seven cuts captured from the build (scripts/pages/, docs/media/{enemies,bosses,badges}, not in the media manifest - backlog), the README link bar at the top, how-to-play and game-design corrected to the code; docs, media and tools only, dist/ = the v0.3.0 ATR byte for byte; plan docs/plans/enemies-bosses-pages.md. Before it: v0.3.0 released as a pre-release from main - chore/release-v0.3.0, journal §BC. The owner's hardware test on a real 65XE via SIO2SD PASSED on ATR c977efe0 (level 1, region 1's banner and the Blockade Breaker, the summary) and the region-4 route 5e2888eb (the Bastion's banner and fight): hardware-testing.md §36 and §39 PASS, the §AZ technical debt cleared, the audit's M8 item covered. Real hardware covers what the shipped game reaches (level 1 and region 1's boss); the other OWNER-SMOKE CANDIDATE items accepted on emulator smoke. Ledger: AUD-01..07 and LA-1, 2, 5 closed; the audit's M4 deferred to M4 / the campaign, M10 to M8. The shipped game is level 1 ending on the Blockade Breaker; the three other bosses are built and arrive with the campaign. Notes EN + PL in docs/releases/v0.3.0.md; README plays v0.3.0 (Setech Arcade to be repinned; the summary's display list still $0B58, measured). Before it: fix/audit-m5 merged at f7d7f4d, OWNER-ACCEPTED.)
+Last update: 2026-10-20 (feat/m6-void-lance, OWNER-SMOKE CANDIDATE: M6 stage 1 - the VOID LANCE in the boss sector (the V2 reticle, hold-to-charge 75 frames, the P0 beam, the one-module kill through boss_hit, stock up to 3), journal §BD, plan docs/plans/m6-void-lance.md §6.1; the shipped game's stock is 0 until stage 2's capsules, debug routes grant it with --lance-stock=N; resident 0 B (slot A +5, banner keep +2), the lance run 381 of 384 B at $BA80-$BBFF; boss-sector worst 8,437 (the Bastion), the entry +3 sectors / +11 host frames; worst fence margin 1,465 and DMA-on 31,059 unchanged. Before it: 2026-10-19 docs/enemies-bosses-pages, OWNER REVIEW CANDIDATE: the player pages docs/enemies.md and docs/bosses.md, EN + PL, with CRT-style pictures and seven cuts captured from the build (scripts/pages/, docs/media/{enemies,bosses,badges}, not in the media manifest - backlog), the README link bar at the top, how-to-play and game-design corrected to the code; docs, media and tools only, dist/ = the v0.3.0 ATR byte for byte; plan docs/plans/enemies-bosses-pages.md. Before it: v0.3.0 released as a pre-release from main - chore/release-v0.3.0, journal §BC. The owner's hardware test on a real 65XE via SIO2SD PASSED on ATR c977efe0 (level 1, region 1's banner and the Blockade Breaker, the summary) and the region-4 route 5e2888eb (the Bastion's banner and fight): hardware-testing.md §36 and §39 PASS, the §AZ technical debt cleared, the audit's M8 item covered. Real hardware covers what the shipped game reaches (level 1 and region 1's boss); the other OWNER-SMOKE CANDIDATE items accepted on emulator smoke. Ledger: AUD-01..07 and LA-1, 2, 5 closed; the audit's M4 deferred to M4 / the campaign, M10 to M8. The shipped game is level 1 ending on the Blockade Breaker; the three other bosses are built and arrive with the campaign. Notes EN + PL in docs/releases/v0.3.0.md; README plays v0.3.0 (Setech Arcade to be repinned; the summary's display list still $0B58, measured). Before it: fix/audit-m5 merged at f7d7f4d, OWNER-ACCEPTED.)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -426,6 +426,82 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## M6 stage 1 — the VOID LANCE in the boss sector (feat/m6-void-lance) — `OWNER-SMOKE CANDIDATE`
+
+Plan [plans/m6-void-lance.md](plans/m6-void-lance.md) §4 (the owner's Phase A decisions, confirmed) and §6.1 (stage 1 as built); journal **§BD**. Branch `feat/m6-void-lance`, cut from `main` `3d59ded` and fast-forwarded onto the Phase A plan commit `837cf04`, so that commit is part of the branch's history.
+
+**What changes for the player** (only with lances in stock; **the shipped game's stock is 0 until stage 2's capsules**, so the game plays as on `main`):
+- **The reticle (V2):** one crosshair in P1, under the band's last row, over the front module above the ship's centre. It blinks on 2-frame steps while charging. It is P1 only (P2 stays free) and keeps the lasers' colour (no colour register written).
+- **The charge:** hold FIRE for 75 frames (1.5 s) over a target. Ordinary fire is suspended while charging and while the beam is up. Releasing before 75 frames cancels. With no target under the ship, FIRE shoots as usual.
+- **The shot:** a beam in P0 grows 20 lines a frame up to the module and kills exactly that module through `boss_hit` (score, kill and capsule path as a shot's), then erases itself in the same steps. One lance per shot, a stock of up to 3; the reticle is the only indicator (no HUD cell).
+- **What it can hit:** only what an ordinary shot could hurt. Never the core, a closed bay or door, a shielded cannon or a powered field. No special case for the gravity well or the force field.
+- **Debug routes:** `--lance-stock=N` (1-3, with `--level`) grants N lances at every boss entry. This is stage 1's only source of lances.
+
+**Resident bytes: 0.**
+| Item | Before | After |
+| --- | ---: | ---: |
+| lance run `BOSS_LANCE_RAM` `$BA80-$BBFF` (sectors 581-583) | – | 381 of 384 B (373 code, 1 data, 7 BSS) |
+| window record end | `$B82A` | `$B82A` (598 B to the lance's RAM; build assertion `scripts/lance-layout.mjs`) |
+| slot A | 2,034 B | 2,039 B (+5, allowed; 9 free) |
+| banner keep | 264 B | 266 B (+2, allowed) |
+| initial block, window, reader, Light kernel, `$0500` | – | unchanged |
+
+**CPU cost (M, native, the boss-stress accounting).** The tick costs 20 cycles with stock 0, plus 15 for `lance_after`. With a lance in stock: the first draw 360, idle 202, charging 220, firing and the beam 347-362, the kill 2,428-2,735.
+
+**Boss-sector worst frame per region (M; limit 8,500).**
+| region | before | stock 0 | idle | charging | firing | beam | kill | worst state | headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 Breaker | 7,150 | 7,185 | 7,390 | 7,408 | 7,412 | 3,970 | 5,891 | 7,548 (first draw) | 952 |
+| 2 Citadel L5 | 8,029 | 8,064 | 8,228 | 8,246 | 8,250 | 6,616 | 7,719 | 8,386 (first draw) | 114 |
+| 3 Spine L9 | 8,025 | 8,060 | 8,240 | 8,258 | 8,262 | 5,346 | 7,570 | 8,398 (first draw) | 102 |
+| 4 Bastion L10 | 8,060 | 8,095 | 8,277 | 8,295 | 8,299 | 8,437 | 7,226 | 8,437 (beam erase) | 63 |
+
+The fixture that fires the lance on the Bastion's worst frame measures 8,060 → 8,299. Rule (B) clashes (a kill and a spawn on one frame): 0.
+
+**Boss routes (M, Atari800, `build/lance-stock-3-*`, stock 3).**
+| route | worst margin | DMA-on max | entry host frames (sectors) | main |
+| --- | ---: | ---: | ---: | ---: |
+| R1 Breaker | 8,326 | 29,665 | 306 (79) | 295 (76) |
+| R2 Citadel | 6,645 | 30,334 | 321 (83) | 310 (80) |
+| R3 Spine | 6,125 | 30,476 | 317 (82) | 306 (79) |
+| R4 Bastion | 7,738 | 29,640 | 321 (83) | 310 (80) |
+
+30 focused sessions: 0 misses, 0 clause failures. The reticle showed in the fight on every session and on no frame outside it.
+
+**Gates (M; before = main `3d59ded`, ATR `c977efe0`).**
+| gate | before | after | source |
+| --- | ---: | ---: | --- |
+| worst fence margin | 1,465 (2-sweep-fire6) | 1,465 (2-sweep-fire6) | PAL audit, the trace |
+| DMA-on maximum | 31,059 | 31,059 | the trace |
+| PAL audit / clause failures | 0 misses, 58 replays / 0 | 0 misses, 58 replays / 0 | the trace |
+| boss entries in the trace | 295 host frames (the R1 route; level 1) | 17 entries, all 306 (limit 350) | the trace CSVs |
+| window tail writes | – | 17 lance-run reads, 0 foreign writers | the trace |
+| menu raster | 4 sessions pass | 4 sessions pass | the trace |
+| boss-frame stress (limit 8,500) | worst 8,060 | worst 8,437 (the Bastion's beam erase) | the 6502 tools |
+| resident bytes | – | 0 | the manifest |
+
+**Tests.**
+- `tests/lance.test.mjs` (16 tests) was RED on `main` (0 of 16) and is GREEN here.
+- New lance cases in `tests/boss-stress.test.mjs` and `tests/boss-region-{2,3,4}.test.mjs`.
+- New trace clauses: boss entry ≤ 350; the reticle only in the boss sector; the window-tail writers.
+- Re-pinned layout values only: entry sectors 79/83/82/83 (also the Bastion's own pin, 80 → 83), the lance run in the read lists, the two hooked vector entries, and the disk-reservation check (581-583 now hold the lance run; the room between slot E and it stays empty).
+- Full `npm test`, two runs on the default build: 1,506 tests, 1,505 pass. The only failure is the recorded `tests/preview.test.mjs:164`. `failures:reconcile`: 0 NEW, 0 MOVED, both runs.
+
+**Deviations from the plan (§6.1, all M).**
+- The reticle's line is the one the install measured; it is not re-measured on the first frame.
+- The beam moves 20 lines a frame and grows and erases upward.
+- The kill counts as one of AUD-04's meetings.
+- The beam's end reopens ordinary fire.
+- The cfg area is named `BOSS_LANCE_RAM` (Phase A's "slot G" is the Citadel's gravity area's name).
+
+**Known risks.**
+- The beam's erase can remove rows of a death explosion drawn above the ship. Cosmetic and untested.
+- The lance run has 3 B free. Stage 2's capsule code needs a 4th sector or goes elsewhere.
+
+**Owner smoke ATRs** (`build/play/`): the four routes with stock 3 at every boss entry, R1 `989c955d…`, R2 `9810917d…`, R3 `dd490e2e…`, R4 `a4fe4982…`; the full game with stock 0, ATR `25ad407e…`. Not merged, not pushed.
+
+---
+
 ## The m5 audit's fixes (fix/audit-m5) — **OWNER-ACCEPTED** (owner smoke PASS 2026-10-19, merged into main by fast-forward)
 
 Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173`, addendum M1-M12); ledger [audits/README.md](audits/README.md); the owner's triage journal **§BA**. Every finding was checked against the repository and confirmed; none rejected. Each fix landed as a RED test commit, then the GREEN fix. **Owner smoke PASS (2026-10-19, journal §BB; [hardware-testing.md](hardware-testing.md) §40)** on all five ATRs below: the hit sound, the laser fighter's second pass over a ship held still near the top, and the lead through the banner screen after a hit just before the boss.
@@ -574,7 +650,7 @@ Two points for the owner (the diagnostics note's option 2, `docs/diagnostics/bos
 | 3 | Siege Spine | 268 (70) | 32 | 7,771 (L7) / 8,025 (L9) | 475 | `measure-boss-stress-field.mjs` |
 | 4 | Bastion | 272 (71) | 28 | 8,060 (L10) | 440 | `measure-boss-stress-r2.mjs` |
 
-The M6 VOID LANCE reticle (EST, instruction counts): ~300 native cycles on its worst frame (the target pick ~80, HPOS ~15, the redraw ~160, its DLI colour ~20), ~120 without a redraw; every region's headroom is above it (the least 440, the Bastion).
+The M6 VOID LANCE (the estimate that stood here, ~300 / ~120, is replaced by measurement): M6 Phase A measured the reticle (plan `m6-void-lance` §2), and stage 1 measures the built lance in every state - the worst 7,548 / 8,386 / 8,398 / 8,437 (section *M6 stage 1* above).
 
 **Gates (`docs/runtime-wall-trace.json`; before = main `4767691`, ATR `33b1acb3`; M).**
 | gate | before | after | source |
@@ -618,7 +694,7 @@ Plan [plans/boss-art.md](plans/boss-art.md) (audit §1, the R3 study §2, varian
 | boss-route frames (HARD dodge, 3,000 frames), worst margin R1 / R2 / R3 / R4 | 15,370 / 11,965 / 13,095 / 9,407 | 14,935 / 11,337 / 13,095 / 9,209 | the routes (M; DMA-on 27,580 / 27,993 / 27,897 / 28,503, 0 misses) |
 | boss entry R1 / R2 / R3 / R4, host frames (sectors) | 249 (65) / 256 (67) / 256 (67) / 261 (68) | 249 (65) / 264 (69) / 260 (68) / 264 (69) | the routes (M); limit **300**: 51 / 36 / 40 / 36 left |
 | stress, worst reachable R1 / R2 / R3 L7 (L9) / R4 | 6,996 / 7,723 / 7,771 (8,025) / 8,044 | 7,154 / 7,935 / 7,775 (8,029) / 8,148 | `tests/boss-stress`, `measure-boss-stress-*` incl. the switches (M-N; limit 8,500) |
-| M6 headroom (8,500 − worst) | 1,504 / 777 / 475 / 456 | **1,346 / 565 / 471 / 352** | the same |
+| M6 headroom (8,500 − worst) | 1,504 / 777 / 475 / 456 | **1,346 / 565 / 471 / 352** — stale: **corrected 2026-10-20** to the values measured on `main` `3d59ded` with the boss order (§AX), **1,350 / 471 / 475 / 440** (R1 Breaker / R2 Citadel L5 / R3 Spine L9 / R4 Bastion; plan `m6-void-lance` §1.2) | the same |
 | charset R1 / R2 (codes / sectors) | 105 / 7, 88 / 6 | 93 / 6, 99 / 7 | the manifest |
 | slot C (sectors, code), slot D | 13, 1,662 B; 1,751 B | 14, 1,779 B (46 free); 1,767 B (25 free; BSS +16) | the manifest |
 | slot A, window record, Light kernel, initial block, resident bytes | unchanged | unchanged, 0 B | the manifest |

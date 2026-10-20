@@ -410,6 +410,21 @@ the player's death explosion: the beam's erase stops at the ship's top line,
 but an explosion drawn above it in P0 can lose rows to the erase. That is
 cosmetic, rare (a death within the beam's ~12 frames) and untested.
 
+**The evidence chain (M, the default build).** `build:candidate`, then the
+full `runtime:wall-trace`: 58 replays, 0 misses, 0 clause failures. The
+worst fence margin is 1,465 (`2-sweep-fire6`) and the DMA-on maximum 31,059,
+both unchanged from `main`. The trace's 17 boss entries all took 306 host
+frames (the limit is 350). The window-tail clause saw 17 lance-run reads and
+0 foreign writers. Then the menu raster (4 sessions pass), `build`,
+`memory-map`, `showcase:gif` and `showcase`.
+
+Two full `npm test` runs: 1,506 tests, 1,505 pass. The only failure is the
+recorded `tests/preview.test.mjs:164`; reconcile found 0 NEW and 0 MOVED.
+The first pair of runs found two layout pins this stage had missed, both
+re-pinned:
+* the Bastion's own entry pin, 80 → 83 sectors;
+* the disk-reservation check, which had expected 581-583 to be empty.
+
 ## 7. The tests and trace clauses that prove it
 
 * **`tests/boss-stress.test.mjs` and the three `measure-boss-stress-*`

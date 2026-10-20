@@ -227,7 +227,7 @@ boss_vector_image:
     jmp boss_rts                        ; TICK_EXPLOSIONS
     jmp lance_tick                      ; TICK_FLASHES (M6: the VOID LANCE, slot G - src/hybrid/lance.s)
     jmp boss_rts                        ; ENGINE
-    jmp lance_after                     ; HULL_CONTACT (M6: the lance's kill counts as a meeting)
+    jmp boss_rts                        ; HULL_CONTACT
     jmp boss_rts                        ; RENDER_FLASHES
     jmp boss_rts                        ; RENDER_EXPLOSIONS
     jmp boss_shots_late                 ; SECTOR_COMPLETION (P1: the shots, then boss_completion)
@@ -2531,6 +2531,10 @@ laser_frame:
     jsr BOSS_F_HOOK
 :
     jsr boss_capsule_fall               ; S4b.5 (F3): a capsule falls (slot E)
+    ; M6: the operand is patched - the VOID LANCE's kill frame (src/hybrid/
+    ; lance.s, its tick before UPDATE) leaves one meeting to the shots, the
+    ; kill being the frame's other; every other frame of the beam puts two back.
+laser_admit_operand := * + 1
     lda #BOSS_SHOT_ADMIT                ; AUD-04: this frame's meetings
     sta boss_shots_admit_left
     jsr laser_hostile_shots

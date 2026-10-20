@@ -14,7 +14,7 @@ import path from "node:path";
 // feat/boss-r1-tuning: and the boss comparison variants' routes.
 // feat/boss-escort-flow: and the escort variants' routes.
 // M6 stage 1: and the VOID LANCE's routes (a stock granted at the boss entry).
-const DEBUG_ROUTE_VARIANT = /^(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-|field-variant-[ab]-)?(?:laser-fixture-[24]-|laser-tier-[124]-|lance-stock-[1-3]-)?(?:boss-region-[2-4]-)?level-\d+-s\d+$/;
+const DEBUG_ROUTE_VARIANT = /^(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-|field-variant-[ab]-)?(?:laser-fixture-[24]-|laser-tier-[124]-|lance-(?:(?:a-down|a-up|b)-)?stock-[1-3]-)?(?:boss-region-[2-4]-)?level-\d+-s\d+$/;
 // The flags a diagnostic run may carry. Every other mode either writes docs/
 // (boot smoke, menu raster, capital/player collision, the full run) or reuses
 // a default-build trace.

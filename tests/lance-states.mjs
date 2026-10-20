@@ -6,25 +6,27 @@
 // tick where the game runs it (the boss vector table's TICK_FLASHES, after
 // the band DLI's phase 0 and the row switches, before UPDATE), and the case's
 // figure is the composition's frame plus the tick (its JSR and RTS; the
-// entry's TICK_FLASHES jmp cost boss_rts the same before the lance) and
-// lance_after (HULL_CONTACT, after UPDATE: the kill counted as a meeting).
+// entry's TICK_FLASHES jmp cost boss_rts the same before the lance). Since the
+// owner's smoke of 2026-10-20 the lance never changes the ordinary fire: every
+// state keeps the case's own player shots, and the kill takes one of AUD-04's
+// two meetings (the tick patches laser_frame's admit operand), so a case's
+// second meeting waits a frame as AUD-04 holds any.
 //
 //   stock0  the game in stage 1: no lance in stock (the tick's early exit)
 //   draw    a lance in stock, FIRE released, the ship under a front module
 //           on the fight's first such frame: the reticle drawn (boss_band_
 //           measure and its 8 rows) and placed
 //   idle    as draw, the reticle already drawn: placed (its HPOS)
-//   charge  FIRE held over the target, a shown frame of the charge
-//   fire    FIRE held, the charge completing on this frame (the beam armed)
-//   grow    the beam's first LANCE_BEAM_STEP lines; no player shot (none
-//           flies while the beam is up: the fire gate)
-//   arrive  the beam's last lines reach the module and kill it through
-//           boss_hit: one-meeting kill cases, the meeting's shot removed (the
-//           lance's kill is the frame's only one), and the cases with no
-//           meeting (the Bastion's rail step frames), a front module the kill
+//   charge  the build's gesture held over the target, a shown frame of the charge
+//   fire    the gesture held, the charge completing on this frame (the beam armed)
+//   grow    the beam's first LANCE_BEAM_STEP lines, the case's shots flying
+//   arrive  the beam's last lines reach a front module the case's own
+//           meetings do not (another kill on the frame: the worst) and kill
+//           it through boss_hit, before UPDATE; the case's shots meet as the
+//           one meeting left admits
 //   erase   the erasure's first frame: LANCE_BEAM_STEP lines up from the
-//           ship; no player shot
-import { call, label, labelsOf } from "./boss-harness.mjs";
+//           ship, the case's shots flying
+import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
 export const LANCE_MODES = ["stock0", "draw", "idle", "charge", "fire", "grow", "arrive", "erase"];
 const has = () => labelsOf.boss.has("lance_tick");
@@ -39,6 +41,10 @@ const SHIP_Y = 200;                                     // the ship's top line i
 const BEAM_STEP = 20;                                   // src/hybrid/lance.s LANCE_BEAM_STEP
 const HOLD = 3;                                         // LANCE_HOLD
 const TRIG0 = 0xd010;
+const STICK0 = 0xd300;                                  // PORTA: bit 0 up, bit 1 down, active low
+// The build's gesture (scripts/build.mjs --lance-rule): the stick bits held
+// with FIRE (0: FIRE alone).
+export const LANCE_GESTURE_MASK = { "a-up": 0x01, "a-down": 0x02, b: 0x00 }[manifest.boss.lance?.rule ?? "a-down"];
 
 // A case the mode leaves out (its frames cost 0 in the composition).
 export const lanceSkip = (memory) => skipped.has(memory);
@@ -66,72 +72,58 @@ function targetColumn(memory, avoid) {
   return fallback;
 }
 const skip = (memory) => { lanceStats.skipped += 1; skipped.add(memory); };
-const noShots = (memory) => { for (let s = 0; s < 5; s += 1) memory[main("FIGHTER_PROJECTILE_ACTIVE") + s] = 0; };
+// The gesture held (FIRE and the build's stick bits) or released.
+function gesture(memory, held) {
+  memory[TRIG0] = held ? 0 : 1;
+  memory[STICK0] = held ? 0x0f & ~LANCE_GESTURE_MASK : 0x0f;
+}
 
 // Arms `memory` (one case's run image) for `mode`. hit / kind / columnOf:
 // the case's own meetings (modules, or "hull"), "kill" / "stage" / ..., and
 // the column a module's meeting shot is in.
-export function lanceArm(memory, mode, { hit = [], kind = "kill", columnOf = () => undefined } = {}) {
+export function lanceArm(memory, mode, { hit = [] } = {}) {
   if (!has() || mode === "off") return;
-  memory[main("player_y")] = SHIP_Y;
   memory[lbl("_lance_stock")] = mode === "stock0" ? 0 : 1;
   memory[lbl("lance_beam")] = 0;
   memory[lbl("_lance_charge")] = 0;
-  memory[TRIG0] = 1;                                    // FIRE released
+  gesture(memory, false);
   if (mode === "stock0") { armed.add(memory); lanceStats.armed += 1; return; }
   // The reticle's line, as the first shown frame draws it (not counted).
   if (memory[lbl("lance_y")] === 0 && mode !== "draw") memory[lbl("lance_y")] = call(memory, lbl("boss_band_measure")).a;
   if (mode === "draw") memory[lbl("lance_y")] = 0;
-  if (mode === "arrive") {
-    const real = hit.filter((h) => h !== "hull");
-    let module, column;
-    if (hit.length === 0) {
-      const target = targetColumn(memory, []);
-      if (target === null) { skip(memory); return; }
-      ({ module, c: column } = target);
-      memory[main("player_x")] = target.x;
-    } else {
-      if (kind !== "kill" || real.length !== 1 || real.length !== hit.length) { skip(memory); return; }
-      module = real[0];
-      column = columnOf(module);
-    }
-    if (column === undefined) { skip(memory); return; }
-    noShots(memory);
-    const top = memory[lbl("boss_mbottom_y") + module];
-    memory[lbl("_boss_hit_module")] = module;
-    memory[lbl("_boss_hit_cell")] = column;
-    memory[lbl("lance_beam")] = 1;
-    memory[lbl("lance_top")] = top;
-    memory[lbl("lance_head")] = Math.min(255, top + BEAM_STEP);
-    armed.add(memory);
-    lanceStats.armed += 1;
-    return;
-  }
-  const target = targetColumn(memory, hit);
+  const target = targetColumn(memory, hit.filter((h) => h !== "hull"));
   if (target === null) { skip(memory); return; }
-  memory[main("player_x")] = target.x;
-  if (mode === "grow" || mode === "erase") {
-    noShots(memory);
+  if (mode === "grow" || mode === "erase" || mode === "arrive") {
+    // The beam: the ship stays where the case has it (the beam is drawn in
+    // its plane, at no column); its target the fire frame's.
+    memory[main("player_y")] = SHIP_Y;
     const top = memory[lbl("boss_mbottom_y") + target.module];
-    memory[lbl("_boss_hit_module")] = target.module;
-    memory[lbl("_boss_hit_cell")] = target.c;
+    memory[lbl("_lance_module")] = target.module;
+    memory[lbl("lance_cell")] = target.c;
     memory[lbl("lance_top")] = top;
-    memory[lbl("lance_beam")] = mode === "grow" ? 1 : 2 + HOLD;
-    memory[lbl("lance_head")] = mode === "grow" ? SHIP_Y : top;   // erase: the first frame sets it to the ship's top
-  } else if (mode === "charge") {
-    memory[TRIG0] = 0;                                  // FIRE held
-    memory[lbl("_lance_charge")] = 11;                  // 12: a shown frame
-  } else if (mode === "fire") {
-    memory[TRIG0] = 0;
-    memory[lbl("_lance_charge")] = 74;                  // completes on this frame
+    memory[lbl("lance_beam")] = mode === "erase" ? 2 + HOLD : 1;
+    // grow: from the ship's top; arrive: its last step reaches the module;
+    // erase: the first frame sets it to the ship's top.
+    memory[lbl("lance_head")] = mode === "grow" ? SHIP_Y : mode === "arrive" ? Math.min(255, top + BEAM_STEP) : top;
+  } else {
+    memory[main("player_y")] = SHIP_Y;
+    memory[main("player_x")] = target.x;
+    if (mode === "charge") {
+      gesture(memory, true);
+      memory[lbl("_lance_charge")] = 11;                // 12: a shown frame
+    } else if (mode === "fire") {
+      gesture(memory, true);
+      memory[lbl("_lance_charge")] = 74;                // completes on this frame
+    }
   }
   armed.add(memory);
   lanceStats.armed += 1;
 }
 
-// HULL_CONTACT's lance_after, after UPDATE, on armed images only.
+// HULL_CONTACT: boss_rts again since the owner's smoke of 2026-10-20 (the
+// stage-1 build's lance_after, when the build has one).
 export function lanceAfter(memory) {
-  return armed.has(memory) ? call(memory, lbl("lance_after")).cycles : 0;
+  return armed.has(memory) && labelsOf.boss.has("lance_after") ? call(memory, lbl("lance_after")).cycles : 0;
 }
 
 // The tick, on armed images only (a case's set-up frames run without it).

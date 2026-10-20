@@ -3135,6 +3135,39 @@ Odpowiedzi na pytania planu [`plans/m6-void-lance.md`](plans/m6-void-lance.md)
 
 ---
 
+## BE. M6 VOID LANCE — SMOKE ETAPU 1 I DWA WARIANTY DO PORÓWNANIA (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `6d7cdb4`.
+
+1. **Celownik: OK.**
+2. **Reguła ładowania: NIE przyjęta; reguła (c) z §BD 2 wycofana.** Gdy
+   lance są w zapasie, przytrzymanie FIRE nad modułem wstrzymywało zwykły
+   ogień, więc w sektorze bossa gracz strzelał anemicznie. Lanca nie może
+   w ogóle zmieniać zwykłego ognia.
+3. **Dwa warianty do porównania**, każdy w osobnym commicie, oba zestawy ATR
+   w `build/play/`; potem STOP i gra właściciela:
+   - **Wariant A — osobny gest.** Zwykły FIRE zawsze działa dokładnie jak na
+     `main`, bez względu na to, co jest pod statkiem. Lanca ładuje się tylko
+     wtedy, gdy FIRE jest trzymany razem z drążkiem wychylonym w jedną stronę
+     przez 75 klatek. Dwie wersje: A-down (FIRE + dół) i A-up (FIRE + góra).
+     Statek porusza się tak, jak każe drążek. Puszczenie któregokolwiek
+     przerywa ładowanie. Przy zapasie 0 albo bez modułu pod statkiem gest nie
+     robi nic szczególnego (zwykły ogień trwa).
+   - **Wariant B — ładowanie przytrzymaniem, zwykły ogień NIE wstrzymany.**
+     Trzymany FIRE strzela normalnie, a po 75 klatkach nad modułem przy
+     zapasie > 0 lanca odpala. Zabicie lancą wchodzi w istniejący limit
+     „najwyżej 2 spotkania z bossem na klatkę”; jeśli limit jest już zużyty
+     w klatce zabicia, zabicie przechodzi na następną klatkę. Zmierzyć
+     najgorsze klatki w każdym regionie, zwłaszcza Cytadelę L5 ze strzałem
+     gracza trafiającym bossa w klatce zabicia; zgłosić, czy zostaje
+     ≤ 8 500 z zapasem ≥ 100.
+4. **Obie reguły za flagą builda**, dopóki właściciel nie wybierze; wariant
+   przegrany zostanie usunięty. `tests/lance.test.mjs` wyraża regułę wariantu.
+5. **Bez łańcucha dowodów na tym etapie:** tylko narzędzia stresu bossa,
+   testy lancy i cztery trasy bossów.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

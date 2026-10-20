@@ -4,8 +4,10 @@
 `c977efe0…`); Phase B on `feat/m6-void-lance`, which carries the plan's
 commit `837cf04` (fast-forwarded onto it from `main` `3d59ded`).
 **Status:** Phase A done; the owner's answers are journal **§BD**
-(2026-10-20; §4 below, confirmed). **Phase B stage 1 built — STOP for the
-owner's smoke** (§6.1). Phase A's probe is under `build/m6-probe/` (not
+(2026-10-20; §4 below, confirmed). Phase B stage 1 built (§6.1). **The owner's
+smoke (journal §BE): the reticle OK, the charge rule not accepted - rule (c)
+withdrawn; two comparison variants built behind `--lance-rule`, STOP for the
+owner to play them** (§6.2). Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -424,6 +426,112 @@ The first pair of runs found two layout pins this stage had missed, both
 re-pinned:
 * the Bastion's own entry pin, 80 → 83 sectors;
 * the disk-reservation check, which had expected 581-583 to be empty.
+
+### 6.2 The owner's smoke and the comparison variants (2026-10-20, journal §BE)
+
+The smoke on `6d7cdb4`: the reticle is OK. The charge rule is not accepted:
+with lances in stock, holding FIRE over a module suspended the ordinary fire,
+so the player shot anaemically in the boss sector. **Rule (c) is withdrawn:
+the lance never changes the ordinary fire.** Both variants below:
+* never write `gameplay_fire_gate` (it is `read_input`'s alone again);
+* keep the target in the lance's own bytes (`lance_module`, `lance_cell`),
+  since the shots fly while the beam is up. The tick writes the shot's
+  mailboxes on the kill frame only;
+* skip the kill when a player shot destroyed the module on the beam's way.
+  That lance is spent; no other module is touched;
+* make the kill in the tick before UPDATE, as stage 1 did. Rule (B) and the
+  heavy-frame skip therefore hold as on a shot's kill frame. The kill's frame
+  admits `LANCE_KILL_ADMIT` player-shot meetings: the tick patches
+  `laser_frame`'s `lda #BOSS_SHOT_ADMIT` operand (`laser_admit_operand`, a
+  label, 0 B), and the next beam frame puts 2 back;
+* send HULL_CONTACT back to `boss_rts`; `lance_after` is gone;
+* drop `lance_c_give` for bytes. It was stage 2's entry point, unused in
+  stage 1.
+
+The run is 383 of 384 B (variant A), 9 B of BSS. Slots A, C, D and E and
+the banner are byte for byte stage 1's; the only other change is the vector
+image's HULL_CONTACT entry, which is `main`'s again.
+
+`--lance-rule=a-down | a-up` builds `build/lance-<rule>[-stock-N-…]/`. The
+default is a-down (the game's stock is 0, so the default's rule is never
+seen).
+
+**Variant A — a separate gesture (`a-down`, `a-up`).** FIRE is exactly
+`main`'s, always. The lance charges only while FIRE is held together with the
+stick held down (A-down) or up (A-up), for 75 frames over a target. A
+diagonal that includes that direction counts. The ship moves as the stick
+says, and releasing either cancels. With stock 0 or no target the gesture
+does nothing special.
+
+**Its kill's frame admits no player-shot meeting (`LANCE_KILL_ADMIT = 0`).**
+With one meeting admitted beside the kill (B's rule), the kill frame was
+measured with one shot's kill on it: Citadel L5 **8,711**, Spine L9
+**8,560**, both over 8,500 (M, a-down, the stress below). With none
+admitted, a shot that would meet on that one frame waits a frame, as AUD-04
+holds a third shot today. The PairShots themselves are untouched (the test
+below compares them frame for frame).
+
+**Measured — boss stress, a-down** (native cycles, worst reachable, the §6.1
+accounting; the beam states now keep the case's own player shots, which
+stage 1 removed). a-up differs only in one immediate, so its figures are
+the same cases.
+
+| region | before | stock 0 | first draw | idle | charging | firing | grow / erase | kill | worst | headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 Breaker | 7,150 | 7,170 | 7,520 | 7,364 | 7,382 | 7,384 | 7,496 / 7,516 | 7,114 | 7,520 | **980** |
+| 2 Citadel L4 / L5 | 7,694 / 8,029 | 7,714 / 8,049 | 7,995 / 8,358 | 7,839 / 8,202 | 7,857 / 8,220 | 7,859 / 8,222 | 8,040 / 8,060; 8,375 / 8,395 | 7,851 / 8,210 | 8,395 | **105** |
+| 3 Spine L7 / L9 | 7,771 / 8,025 | 7,791 / 8,045 | 8,118 / 8,370 | 7,962 / 8,214 | 7,980 / 8,232 | 7,982 / 8,234 | 8,117 / 8,137; 8,371 / 8,391 | 7,758 / 8,012 | 8,391 | **109** |
+| 4 Bastion L10 | 8,060 | 8,080 | 8,407 | 8,251 | 8,269 | 8,271 | 8,406 / 8,426 | 7,545 | 8,426 | **74** |
+
+* **Tick cost (worst):** stock 0: 20 (no `lance_after`); idle 191; charging
+  209; firing / the beam 346-366; the kill 2,473-2,780.
+* **The kill frame:** stage 1 put no shot on it, and neither does A, so A's
+  kill frames sit under stage 1's worst. The grow and erase frames are
+  heavier: the case's shots fly, where stage 1's gate kept them off the beam.
+  That is the price of "the fire unchanged".
+* **Rule (B) clashes:** 0 in every state, in all four regions' lance tests.
+* **The Bastion fixture (fired on its worst frame):** 8,060 → 8,271.
+* **Worst frames: not unchanged.** The owner expected A not to change the
+  table. The beam's frames now carry ordinary shots, so the worst state per
+  region moved (stage 1 → A): R1 7,548 → 7,520; Citadel 8,386 → 8,395; Spine
+  8,398 → 8,391; Bastion 8,437 → 8,426. Every state stays ≤ 8,500.
+
+**Measured — the routes** (Atari800, `build/lance-a-down-stock-3-*` and
+`…a-up…`, stock 3, the same 30 focused sessions as §6.1). The two rules'
+runs are frame for frame the same: no bot makes either gesture.
+
+| route | worst margin | DMA-on max | entry, host frames | misses |
+| --- | ---: | ---: | ---: | ---: |
+| R1 | 9,692 | 29,183 | 306 | 0 |
+| R2 | 6,138 | 30,115 | 321 | 0 |
+| R3 | 7,345 | 30,433 | 317 | 0 |
+| R4 | 6,895 | 29,738 | 321 | 0 |
+
+**Clause failures: the 6 `boss-aim` sessions (R1 boss-aim-0/1/2, R2-R4
+boss-aim-1), the same as on `main`.** A debug route starts at sector 6 with
+the bot holding FIRE from START GAME. `main`'s fire gate opens only after a
+release, so that bot never fires. It fires 0 shots in 15,000 boss frames
+on a lance-free build of the same route (`build/boss-region-2-level-1-s6`,
+2026-10-17), with the same clause failure. Stage 1's tick wrote the gate
+open on every frame with a lance in stock, so on its routes the bot fired
+(2,240 of 2,530 boss frames). That was a second change to the ordinary fire,
+gone with rule (c). The other 24 sessions pass every clause, including the
+chain and finale ones, the reticle (shown in the fight, never outside it)
+and the window tail (0 foreign writers).
+
+**Tests (M):**
+* `tests/lance.test.mjs`: 19 of 19 on `lance-a-down` and on `lance-a-up`.
+  The new file fails to load on the stage-1 build (no
+  `laser_admit_operand`).
+* Its rule tests: the gesture's 75 frames and blink; the release of either
+  part cancelling; FIRE alone, the stick alone and FIRE with another
+  direction never charging, while a diagonal does.
+* The ordinary fire, frame for frame: every PairShot through the charge, the
+  beam and its end, against the same run with stock 0.
+* The kill frame's meetings: none admitted, both shots meet the next frame.
+* The module a shot took on the beam's way: not hit again.
+* `tests/boss-overlay`, `boss-banners`, `boss-runtime` and `slot-f`: 54 of
+  54.
 
 ## 7. The tests and trace clauses that prove it
 

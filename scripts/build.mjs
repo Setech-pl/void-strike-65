@@ -368,6 +368,19 @@ if (lanceStockSlug !== undefined && !["1", "2", "3"].includes(lanceStockSlug)) {
   throw new Error(`Unknown lance stock ${lanceStockSlug}; the stock is 1, 2 or 3`);
 }
 const lanceStockValue = lanceStockSlug === undefined ? null : Number(lanceStockSlug);
+// M6 stage 1, the owner's smoke of 2026-10-20 (rule BD 2 (c) withdrawn: the
+// lance never changes the ordinary fire): --lance-rule=R picks the charge's
+// gesture for the owner's comparison - a-down / a-up (variant A: FIRE held
+// with the stick held down / up), the default a-down. The losing rule goes
+// after the owner's choice. Review variant: build/lance-R[-stock-N-...]/.
+const LANCE_RULES = { "a-up": 1, "a-down": 2 };
+const lanceRuleArgument = process.argv.find((argument) => argument.startsWith("--lance-rule="));
+const lanceRuleSlug = lanceRuleArgument?.slice("--lance-rule=".length);
+if (lanceRuleSlug !== undefined && !(lanceRuleSlug in LANCE_RULES)) {
+  throw new Error(`Unknown lance rule ${lanceRuleSlug}; the rules are ${Object.keys(LANCE_RULES).join(", ")}`);
+}
+const lanceRule = lanceRuleSlug ?? "a-down";
+const lancePrefix = lanceRuleSlug === undefined ? "lance-" : `lance-${lanceRuleSlug}-`;
 if (laserTierValue !== null && laserFixtureTier !== null) {
   throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
 }
@@ -448,7 +461,8 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  laserTierValue !== null || bossVariantSlug !== undefined || lanceStockValue !== null;
+  laserTierValue !== null || bossVariantSlug !== undefined || lanceStockValue !== null ||
+  lanceRuleSlug !== undefined;
 if (lanceStockValue !== null && levelDebugId === null) {
   throw new Error("--lance-stock=N rides a debug route: pass --level=1:sector=M with it");
 }
@@ -476,7 +490,9 @@ const variantDirectoryNameInner = (escortVariantId !== null
   : laserTierValue !== null
   ? `laser-tier-${laserTierValue}${levelDebugSuffix}`
   : lanceStockValue !== null
-  ? `lance-stock-${lanceStockValue}${levelDebugSuffix}`
+  ? `${lancePrefix}stock-${lanceStockValue}${levelDebugSuffix}`
+  : lanceRuleSlug !== undefined
+  ? `lance-${lanceRuleSlug}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -3374,6 +3390,7 @@ async function build() {
         ...(bossGravityInclude === null ? [] : ["-D", "BOSS_GRAVITY=1"]),
         ...(bossRailInclude === null ? [] : ["-D", "BOSS_RAIL=1"]),
         ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
+        "-D", `LANCE_GESTURE=${LANCE_RULES[lanceRule]}`,
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -4547,7 +4564,8 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null || lanceStockValue !== null
+      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null || lanceStockValue !== null ||
+      lanceRuleSlug !== undefined
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4932,7 +4950,7 @@ async function build() {
         bytes: lanceUsed,
         codeBytes: bossLabels.get("__LANCE_CODE_SIZE__"), dataBytes: bossLabels.get("__LANCE_DATA_SIZE__") ?? 0,
         bssBytes: bossLabels.get("__LANCE_BSS_SIZE__"),
-        windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), stockGrant: lanceStockValue ?? 0 },
+        windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), stockGrant: lanceStockValue ?? 0, rule: lanceRule },
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       order: bossOrder,

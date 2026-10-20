@@ -3257,6 +3257,39 @@ gotowa.
 
 ---
 
+## BH. M6 VOID LANCE — ŁADOWANIE NIEZALEŻNE OD CELU (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `97e1e6f` (wariant C): statek zmienia kolor na zielony
+(gotowość działa), właściciel trzyma FIRE i dopycha drążek w górę — i nic się
+nie dzieje: bez spowolnienia, bez celownika, bez wiązki. Diagnoza (emulator,
+skryptowe wejście na trasie C R1): gest jest poziomowy (FIRE trzymany długo
+przed GÓRĄ działa od pierwszej klatki), czyta surowe TRIG0 / PORTA (nie bramkę
+zwykłego ognia), a górna granica i skosy go nie przerywają; winna była reguła
+celu — każda klatka bez modułu pod środkiem statku zerowała ładowanie i
+chowała celownik, a dryf pasma daje taką lukę co 20–40 klatek, więc 75 klatek
+prawie nigdy się nie domykało.
+
+1. **Ładowanie startuje zawsze, gdy lanca jest gotowa i FIRE + GÓRA są
+   trzymane — niezależnie od tego, co jest pod statkiem.** Puszczenie gestu
+   przerywa ładowanie; brak celu już nie.
+2. **Gdy lanca jest gotowa, celownik jest zawsze widoczny:** pełny krzyż V2
+   nad modułem (jak dotąd, na środku modułu), przygaszony / pusty znak nad
+   pustą kolumną (na kolumnie statku). Mruganie w trakcie ładowania bez zmian.
+3. **Strzał bez celu:** jeżeli w klatce strzału pod statkiem nie ma modułu,
+   wiązka i tak leci (widoczna informacja zwrotna), ale lanca **NIE** jest
+   zużyta — wskaźnik zostaje pełny, statek zostaje zielony.
+4. Połowa prędkości w trakcie ładowania i brak rampy — bez zmian na razie
+   (poprawki informacji zwrotnej przyjdą w następnym kroku).
+5. Testy najpierw na czerwono: gest poziomowy z FIRE trzymanym długo przed
+   GÓRĄ; ładowanie nad pustą kolumną dochodzi do klatki strzału; strzał bez
+   celu nie zużywa lancy; przypadek górnej granicy; wszystkie dotychczasowe
+   testy lancy. Zmierzyć najgorszą klatkę Bastionu (bramka ≤ 8 500, podać
+   zapas). ATR pełnej gry C i ATR trasy R1 z prefiksem SHA-256, 5-sekundowy
+   GIF na R1 (pusta kolumna: przygaszony znak, wiązka, statek dalej zielony;
+   potem nad modułem z zabiciem). STOP.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

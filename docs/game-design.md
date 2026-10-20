@@ -763,7 +763,7 @@ code, no HUD cell and no score hook (journal §AE 1, §BD). It is the boss
 sector's own weapon and never an ordinary drop. Plan:
 [`plans/m6-void-lance.md`](plans/m6-void-lance.md).
 
-**As built (journal §BF-§BG; `OWNER-SMOKE CANDIDATE`, the readiness
+**As built (journal §BF-§BH; `OWNER-SMOKE CANDIDATE`, the readiness
 indicator awaiting the owner's choice):**
 - **The meter:** the lance charges with time on the boss screen. A meter
   fills over 1,250 boss frames (25 s) on MEDIUM, 938 (18.76 s) on EASY and
@@ -775,15 +775,22 @@ indicator awaiting the owner's choice):**
   owner chooses - plan §6.3): **C** the ship turns green while a lance is
   ready, or **T** a torpedo shows on the ship's nose; either way a short tone
   on channel 3 when it becomes ready. A HUD text has no room (plan §6.3).
-- **The reticle:** only while a lance is ready, when the ship stands under a
-  module a player shot would hurt. One crosshair on P1, in the lasers'
-  colour, on the line under the band, at the module's centre.
-- **The charge:** FIRE held with the stick UP for 75 frames (1.5 s) over that
-  module. The crosshair blinks two frames in four and the ship moves at half
-  speed. The ordinary fire never changes. Releasing either cancels; the
-  gesture does nothing while the meter fills or with no target.
-- **No target:** under armour, open sky, a covered module, the core, a
-  closed door or a powered field there is no charge.
+- **The reticle:** only while a lance is ready, and then always (journal
+  §BH 2), on P1 in the lasers' colour on the line under the band: the
+  crosshair at the module's centre when the ship stands under a module a
+  player shot would hurt, a hollow mark (half the crosshair's pixels) at the
+  ship's column when it does not.
+- **The charge:** FIRE held with the stick UP for 75 frames (1.5 s), whatever
+  is under the ship (journal §BH 1). The gesture is level-triggered: FIRE
+  held for seconds and UP added starts it at once. The mark blinks two frames
+  in four and the ship moves at half speed. The ordinary fire never changes.
+  Only releasing either cancels it; the column under the ship changing, or
+  the ship reaching its limits, does not. The gesture does nothing while the
+  meter fills.
+- **No target on the fire frame** (armour, open sky, a covered module, the
+  core, a closed door, a powered field): the beam still fires, up through
+  the hollow mark to the band's foot, and the lance is **not** spent - the
+  meter stays full and the ship stays green (journal §BH 3).
 - **The beam:** on the 75th frame the beam leaves the ship's nose in the
   ship's own plane (P0) and grows 20 lines a frame. When it reaches the
   module, the module is destroyed through the shot's own kill path: the

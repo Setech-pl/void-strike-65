@@ -9,8 +9,9 @@ smoke (journal §BE) withdrew rule (c) and compared two variants (§6.2); **the
 owner chose variant A, gesture A-up, with the ship at half speed while
 charging (journal §BF) - stage 1 final as built in §6.1. Its smoke (journal
 §BG) replaced the stock with a time meter and asked for a readiness
-indicator: §6.3, `OWNER-SMOKE CANDIDATE`, STOP for the owner's choice of
-indicator.** Phase A's probe is under `build/m6-probe/` (not
+indicator: §6.3. The owner's smoke of C (journal §BH) found the gesture
+dead over gaps: the charge now builds whatever is under the ship - §6.4,
+`OWNER-SMOKE CANDIDATE`, STOP.** Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -952,6 +953,102 @@ PNGs; the GIFs 150 frames at 50 fps): `c-r1`, `c-r4`, `t-r1`, `t-r4` (`.gif`,
 `-still.png`, `-before.png`, `-ready.png`, `-firing.png`). The R1 GIFs are 3 s
 in one take; the R4 GIFs are a cut (45 frames around the ready frame, 105
 around the fire: the bot took 146 frames from ready to fire there).
+
+### 6.4 The charge whatever is under the ship (2026-10-20, journal §BH) — `OWNER-SMOKE CANDIDATE`, STOP
+
+**The owner's smoke of `97e1e6f` (C):** the ship turns green, FIRE held, UP
+added - nothing: no slowdown, no reticle, no beam.
+
+**Diagnosis (M, Atari800, scripted input on the C R1 route).** A diagnostic
+bot (`lance-script-X-MODE` in `scripts/atari800-wall-trace.h`, never in the
+evidence; `--only-session=lance-script-...` builds the session on demand)
+holds FIRE from the boss entry (the ordinary gate shut all along), parks the
+ship at HPOS X and adds UP as MODE says; `DFTRACE_LANCE_JOURNAL` writes the
+meter, the inputs, `lance_trig`, `lance_module`, the charge, the beam, the
+ship, HPOSP1, the fire gate and COLPM0 per frame. On `97e1e6f`:
+
+| Case | What the journal shows |
+| --- | --- |
+| x 124, FIRE held 100 frames past readiness, then UP | `lance_trig` 0 on UP's first frame and the charge starts at once (level-triggered, the raw TRIG0 / PORTA, the fire gate 0 throughout - not coupled). The charge reaches 11, 39, 24, 13 and is reset to 0 each time `lance_module` turns $FF: the band drifts one colour clock every 2 frames and a gap between modules passes under a still ship every 20-40 frames. Never 75. |
+| x 48 (the band's edge), same | modules 1, 0, then $FF for good: charge 40 at most, then nothing - full speed, HPOSP1 0 (no reticle), no beam: the owner's report exactly. |
+| x 124, FIRE + UP held from the entry (the ship at its top limit, 88) | charge 1 the frame after readiness; 74, then fired - the top limit never cancels. |
+| UP + LEFT / UP + RIGHT | the diagonal charges (bit 0 of PORTA); UP+LEFT drifted into gaps and was reset, UP+RIGHT stayed over modules 4-6 and reached 74. |
+
+So the gesture, its level trigger, its raw inputs and the limits were sound;
+the target rule (`lance_c_aim`: no target -> charge 0, `LANCE_NONE` -> HPOSP1
+0) made the charge nearly unreachable against a drifting band and hid every
+sign of it over a gap.
+
+**The design (journal §BH).**
+- `lance_c_aim` (C) decides the charge without the target: FIRE + UP held
+  -> `lance_charge` + 1, released -> 0. Its answer carries three bits: lit
+  (the blink), a target (front module exposed, not the core), FIRE. On the
+  75th frame a target empties the meter; none leaves it full.
+- The mark (ASM): the crosshair at the module's centre over a target; the
+  hollow mark `$00,$18,$00,$42,$42,$00,$18,$00` (8 of the crosshair's 16
+  pixels) at HPOS `player_x + 4` (the ship's centre) over none.
+  `lance_hollow` holds which is drawn; a change rewrites rows 0, 3, 4, 7
+  (`(mask & $18) ^ $18`, `(mask & $81) ^ $C3`).
+- The dry shot: the beam grows to `lance_y - 1`, the band's foot. That line
+  is above the ship's top limit in every region; the Spine's mark line *is*
+  that limit (88), and `lance_y` itself would leave a zero-length beam that
+  the step loop wraps through all 256 rows of P0 (caught by arithmetic
+  before it shipped; the limit test covers all four bosses). `lance_ready`
+  stays $FF through the beam, so the beam's frames do not advance the meter,
+  the arrival kills nothing and the indicator stays on (C: the beam is drawn
+  in the ship's green).
+- Readiness off (dying, the fight over) has its own path: HPOSP1 0, charge 0,
+  read_input's stick operand back on PORTA (the forward comparison build: its
+  floor operand). Before, it fell through the aim's no-target path, which
+  under §BH would show the hollow mark - the route clause "reticle with no
+  lance ready" caught it (161 / 548 frames on five R1 sessions), and a test
+  now pins it.
+- The `-lance` route bots start a charge only with a target under the ship
+  (`lance_module` < count, not the core), so the routes still measure kills;
+  the harness's P1 checks know both marks (`DFTRACE_LANCE_HOLLOW`).
+
+**After (M, the same scripted cases on the new C route build):** every case
+fires on the 75th frame of UP - x 124: 16 of its 74 charge frames with no
+target, fired over module 9, spent; x 48: 23 frames with none, fired over
+none, the lance kept (meter 1,250); top: fired at y 88, spent; UP+LEFT: fired
+over none, kept.
+
+**Cost (M).**
+
+| | 97e1e6f C | §BH C | §BH T |
+| --- | --- | --- | --- |
+| lance run | 505 of 512 B, 4 sectors 712-715 | **597 of 640 B**, 5 sectors **712-716**, `$B980-$BBFF` | 630 of 640 B, 5 sectors |
+| code / BSS | 494 / 11 B | 584 / 13 B | 617 / 13 B |
+| window room (from `$B82A`) | 470 B | 342 B | 342 B |
+| resident bytes | 0 | 0 | 0 |
+| worst frame R1 / Citadel / Spine / Bastion (limit 8,500) | 7,525 / 8,404 / 8,400 / 8,435 | **7,546 / 8,406 / 8,402 / 8,437** | 7,546 / 8,437 / 8,452 / **8,486** |
+| Bastion fixture (the lance fired on its worst frame) | 8,405 | **8,433** | 8,486 |
+| idle / charge / swap / fire / dry tick (Bastion) | 280 / 302 / - / 355 / - | 315 / 333 / 368 / 374 / 352 | 374 / 392 / 427 / 427 / 364 |
+| R1 route (6 sessions): fence margin / DMA-on / entry | 8,583 / 29,934 / 310 | **8,545 / 29,813 / 313-314** | not run |
+
+The C worst is the erasure's first frame (8,437, unchanged in kind); the new
+frame kinds - `swap` (the mark rewritten on a slow charge frame over a
+target) and `dry` - stay under it. Headroom to the gate: **63** (C);
+T 14, over the plan's 8,450 reserve.
+
+**Tests:** `tests/lance.test.mjs` 31 on both variants (RED first on the
+`97e1e6f` builds: 10 failing on C, 9 on T, each for the target rule):
+level-triggered (FIRE 200 frames before UP, its gate shut, over a target and
+none); the column under the ship changing (target, empty, target) never
+cancels; the dry shot in all four regions (beam to the band's foot, the lance
+kept, no HP, no score, no cue, then the kept lance kills); the hollow mark
+over every empty column; the top limit and both sides in all four regions
+(the beam never touches the ship's rows); readiness off with the gesture held
+or not; the previous 25 unchanged in substance (the core, covers and fields
+now show the hollow mark and fire dry). Stress: `boss-stress` +
+`boss-region-2` 34 pass; `tests/lance-states.mjs` adds `swap` and `dry`.
+
+**Delivered (C):** the full-game ATR and the R1 route ATR (names carry the
+SHA-256 prefix, under `build/play/`), a 5-s GIF on R1 and six stills
+(`build/m6-probe/gesture/out/`). **Owed before a merge:** the evidence chain
+(`build:candidate` -> `runtime:wall-trace` -> `build`, the menu raster,
+`npm test` twice, `failures:reconcile`), the other three routes, and
+`how-to-play` EN / PL once the owner accepts the indicator and the rule.
 
 ## 7. The tests and trace clauses that prove it
 

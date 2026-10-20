@@ -1,9 +1,9 @@
 ; ===========================================================================
 ; The VOID LANCE's execution (M6, docs/plans/m6-void-lance.md; owner
 ; decisions BD 1-6, 2026-10-20; the owner's smokes of 2026-10-20, journal
-; §BE-§BG: the lance never changes the ordinary fire, the charge is FIRE +
-; stick UP, the lance charges with time and the player is told it is
-; ready). Included by boss.s: the boss link's lance run - this and
+; §BE-§BH: the lance never changes the ordinary fire, the charge is FIRE +
+; stick UP whatever is under the ship, the lance charges with time and the
+; player is told it is ready). Included by boss.s: the boss link's lance run - this and
 ; src/c/lance.c's policy - read at every boss entry after slot E into the
 ; window's unclaimed tail, allocated from $BBFF down (scripts/build.mjs fails
 ; the build when the window's record reaches it). Reached only through the
@@ -36,19 +36,27 @@
 ;                given back to the engine bed by boss_frame_timers through
 ;                boss_tick_timer as the rail unlock's tone is; a hit's tick and
 ;                a laser's warning write channel 3 after it and win.
-;   the reticle  variant 2 (decision BD 1): one 8 x 8 crosshair on P1 (P2
-;                stays free), in the lasers' colour - COLPM1 is never written
-;                here, no band palette row changes (decision BD 3) - on one
-;                line a fight, right under the band's last shown row (the
-;                install's boss_band_measure, drawn once), at the target
-;                module's centre, following the band's drift; dark on two
-;                frames of four while charging; only while a lance is ready
-;                (decision BG 2: from the meter full until the shot).
+;   the reticle  variant 2 (decision BD 1): one 8 x 8 mark on P1 (P2 stays
+;                free), in the lasers' colour - COLPM1 is never written here,
+;                no band palette row changes (decision BD 3) - on one line a
+;                fight, right under the band's last shown row (the install's
+;                boss_band_measure, drawn once); only while a lance is ready
+;                (decision BG 2: from the meter full until the shot) and then
+;                always (journal §BH 2): over a target the crosshair at the
+;                module's centre, following the band's drift; over none the
+;                hollow mark (half its pixels) at the ship's column. A change
+;                of mark rewrites the four rows they differ in (lance_hollow
+;                holds which is drawn). Dark on two frames of four while
+;                charging.
 ;   the target   the column map's front module under the ship's centre with
 ;                its exposed bit (slot D's laser_exposed, the test boss_c_hit
 ;                applies): what a player shot there would hurt (src/c/lance.c
-;                refuses the core, the defeat and the chain).
-;   the gesture  FIRE held with the stick held up (decision BF). The ordinary
+;                refuses the core, the defeat and the chain). It decides the
+;                mark and, on the fire frame, the shot - never the charge.
+;   the gesture  FIRE held with the stick held up (decision BF), level-
+;                triggered: the raw TRIG0 and PORTA every frame, whatever is
+;                under the ship (§BH 1; the ship's limits clamp its move, not
+;                the stick, and never cancel it). The ordinary
 ;                fire is never touched: gameplay_fire_gate is read_input's
 ;                alone, and the ship moves as the stick says - at
 ;                1 / LANCE_CHARGE_SPEED_DIVISOR of its speed while the charge
@@ -76,6 +84,11 @@
 ;                own bytes (the shot's mailboxes are UPDATE's; the tick writes
 ;                them on the kill frame only), and a module a shot destroyed
 ;                on the beam's way is not hit again: that lance is spent.
+;                With no target on the fire frame (journal §BH 3) the beam
+;                flies up through the mark to the band's foot (lance_y - 1,
+;                above the ship's top limit everywhere) and does nothing there;
+;                the lance is kept - lance_ready stays $FF through the beam
+;                (the indicator on, the meter not advanced, no kill).
 ; ===========================================================================
 LANCE_BEAM_STEP = 20
 LANCE_HOLD      = 3
@@ -113,9 +126,11 @@ lance_tick:
     beq lance_meter
     ; The beam's frames: the meter fills on (the shot emptied it, src/c/lance.c;
     ; it cannot fill again in a beam's frames: no full test), the indicator off
-    ; since the fire frame.
+    ; since the fire frame - but a shot with no target kept its lance (still
+    ; ready: the meter stays full).
+    ldx lance_ready
+    bne lance_beam_frame
     inc _lance_meter_lo                 ; 1 .. the beam's frames: never 0
-    lda lance_beam
     ; (falls into the beam's frame)
 
 ; A = lance_beam: 1 growing, 2 .. 1 + LANCE_HOLD held, then erased (2 +
@@ -160,6 +175,8 @@ lance_beam_frame:
     bne @rts
     txa
     beq @off                            ; erased up to the module: the beam is down
+    lda lance_ready
+    bne @more                           ; no target (the lance kept): the band's foot, nothing there
     ; It reached the module: the kill, through the shot's own path.
     lda lance_cell                      ; the shot's mailboxes, boss_hit's inputs
     sta _boss_hit_cell
@@ -200,11 +217,23 @@ lance_meter:
     jsr lance_indicate
     lda lance_ready
     bne @rts                            ; on: the indicator's frame only - the aim from the next
-    ; Off (the ship dying, the fight over): the aim's no-target path, once.
+    ; Off (the ship dying, the fight over), once: no mark, no charge, the
+    ; stick PORTA's (a slow frame's operand put back).
+    sta _lance_charge                   ; A = 0
+    sta LANCE_HPOSP1
+.ifdef LANCE_SLOW_FORWARD
+    lda #BOSS_PLAYER_Y_MIN              ; the comparison build's floor operand
+    sta read_input_y_min_operand
+.else
+    sta read_input_stick_operand        ; PORTA's low byte
+    ldy #>LANCE_STICK0
+    sty read_input_stick_operand + 1
+.endif
+    rts
+
+; A lance ready: the target, the mark, the gesture (journal §BH: whatever is
+; under the ship).
 lance_aim:
-    lda lance_ready
-    beq @none                           ; not ready (or dying, or the fight over): no target -
-                                        ; the reticle off, no charge, the stick PORTA's
 .ifdef LANCE_INDICATOR_T
     jsr lance_torpedo                   ; the ship moves: the torpedo with it
 .endif
@@ -227,7 +256,6 @@ lance_aim:
     tay
     jsr laser_exposed_module            ; A: its exposed bit, X kept (past the table for the
     bne @aim                            ; others: src/c/lance.c refuses them)
-@none:
 :                                       ; its $FF: read_input's stick on a slow frame (no direction)
     ldx #$FF                            ; covered: no target
 @aim:
@@ -237,7 +265,7 @@ lance_aim:
     and #LANCE_STICK_UP
     ora LANCE_TRIG0
     sta _lance_trig
-    jsr _lance_c_aim                    ; A: bit 0 shown, bit 2 FIRE; X = 0 (cc65's high byte)
+    jsr _lance_c_aim                    ; A: bit 0 lit, bit 1 a target, bit 2 FIRE; X = 0 (cc65's high byte)
     ; The charge's slow frames (decision BF 2): the ship at 1 / divisor of its
     ; speed, every direction - read_input reads no direction held - until the
     ; charge is released or the lance fires (lance_charge 0: PORTA again).
@@ -266,18 +294,26 @@ lance_aim:
     sty read_input_stick_operand + 1
 .endif
     pla
-    lsr
+    lsr                                 ; C: lit
     bcs @show
-    lsr
-    lsr
-    bcc @dark                           ; NONE, BLINK
-    ; FIRE: the beam from the next frame (the fire frame draws none of it).
+    lsr                                 ; C: a target; A: FIRE
+    beq @dark                           ; the blink's dark frame
+    ; FIRE: the beam from the next frame (the fire frame draws none of it) -
+    ; up to the target's bottom line, or with none to the band's foot, the line
+    ; over the mark (the lance kept): above the ship's top limit in every region
+    ; (the Spine's mark line is that limit, 88), so the beam is never empty.
+    ldy lance_y
+    dey
+    tya
+    bcc @top
     ldy _lance_module
     lda boss_mbottom_y,y
+@top:
     sta lance_top
     lda player_y
     sta lance_head
-    inc lance_beam                      ; 1: growing
+    inc lance_beam                      ; 1: growing (C kept)
+    bcc @dark                           ; no target: still ready, the indicator on
     lda #$00                            ; the lance spent: the indicator off on the fire frame
     sta lance_ready                     ; (T: the beam covers the torpedo's rows from the next)
     jsr lance_indicate
@@ -286,6 +322,29 @@ lance_aim:
 @rts:
     rts
 @show:
+    ; The mark (journal §BH 2): the crosshair over a target, the hollow mark
+    ; over none - a change rewrites the four rows they differ in.
+    lsr                                 ; C: a target
+    lda #$00
+    sbc #$00                            ; 0 the crosshair, $FF the hollow mark
+    cmp lance_hollow
+    beq @mark
+    sta lance_hollow
+    ldy lance_y
+    tax
+    and #$18                            ; rows 0 and 7: $18 / $00
+    eor #$18
+    sta LANCE_P1,y
+    sta LANCE_P1 + 7,y
+    txa
+    and #$81                            ; rows 3 and 4: $C3 / $42
+    eor #$C3
+    sta LANCE_P1 + 3,y
+    sta LANCE_P1 + 4,y
+    txa
+@mark:
+    tay
+    bne @hollow
     ldx _lance_module                   ; its centre: (mx + mxe) * 2 clocks, less 4
     lda boss_mx,x
     clc
@@ -294,6 +353,12 @@ lance_aim:
     adc #(BAND_ORIGIN_HPOS - 4)
     sec
     sbc boss_shown_pos
+    sta LANCE_HPOSP1
+    rts
+@hollow:
+    lda player_x                        ; the ship's centre (x + 8), less 4
+    clc
+    adc #$04
     sta LANCE_HPOSP1
     rts
 
@@ -377,3 +442,4 @@ lance_y:        .res 1                  ; the reticle's first line, 0 not drawn 
 _lance_module:  .res 1                  ; the target's module and band column; the beam's once fired
 lance_cell:     .res 1
 lance_ready:    .res 1                  ; what the indicator shows: $FF a lance ready, 0 not
+lance_hollow:   .res 1                  ; the mark drawn: 0 the crosshair (lance_indicate's), $FF the hollow one

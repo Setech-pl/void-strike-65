@@ -6,15 +6,18 @@
 // stacking, emptied by the shot, reset at the entry, the gesture nothing
 // while it fills); the readiness indicator (the build's variant: C the ship's
 // colour, T the torpedo; the cue on channel 3) following readiness exactly;
-// the charge (FIRE + stick UP held LANCE_CHARGE_FRAMES frames over a target),
-// cancelled by releasing either, never by FIRE alone, the stick alone or
-// another direction, none without a target; the ship at 1 / divisor of its
+// the charge (FIRE + stick UP held LANCE_CHARGE_FRAMES frames - journal §BH:
+// whatever is under the ship, level-triggered), cancelled by releasing either,
+// never by FIRE alone, the stick alone or another direction, never by the
+// column under the ship changing nor by the ship's limits; a shot with no
+// target fires its beam and keeps the lance; the ship at 1 / divisor of its
 // speed while it builds and the ordinary fire exactly as without a lance; the
 // kill (exactly one module - the one under the ship - through the shot's path,
 // the frame's only meeting, never the core, never what a player shot could not
 // hurt; a module a shot took on the beam's way is not hit again); the reticle
-// (P1 only, only while a lance is ready, its line and centre, no colour
-// register written).
+// (P1 only, only while a lance is ready and then always: the crosshair at a
+// target's centre, the hollow mark at the ship's column over none - its line,
+// no colour register written).
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -106,15 +109,37 @@ function targetColumn(memory) {
   return reach(memory).find((c) => shotHurts(memory, c) && memory[lbl("_boss_kind") + front(memory, c)] !== KIND_CORE);
 }
 function standUnder(memory, c) { memory[main("player_x")] = shipX(memory, c); }
+// Columns with no target under the ship's centre (armour, open, covered, the
+// core): journal §BH - the charge builds there too, the mark hollow.
+const emptyColumns = (memory) =>
+  reach(memory).filter((c) => !(shotHurts(memory, c) && memory[lbl("_boss_kind") + front(memory, c)] !== KIND_CORE));
+// The reticle's two marks (journal §BH 2): the crosshair (V2) at a target's
+// centre, the hollow mark at the ship's column (its centre, player_x + 8).
+const CROSSHAIR = [0x18, 0x18, 0x00, 0xc3, 0xc3, 0x00, 0x18, 0x18];
+const HOLLOW = [0x00, 0x18, 0x00, 0x42, 0x42, 0x00, 0x18, 0x00];
+const markRows = (memory) => [...memory.subarray(P1 + memory[lbl("lance_y")], P1 + memory[lbl("lance_y")] + 8)];
+function assertMark(memory, target, label) {
+  assert.ok(shown(memory), `${label}: the mark shown`);
+  if (target) {
+    const module = memory[lbl("_lance_module")];
+    const centre = ((memory[lbl("boss_mx") + module] + memory[lbl("boss_mxe") + module]) * 2 + 28 -
+      memory[lbl("boss_shown_pos")]) & 0xff;
+    assert.deepEqual(markRows(memory), CROSSHAIR, `${label}: the crosshair`);
+    assert.equal(memory[HPOSP1], centre, `${label}: at the target's centre`);
+  } else {
+    assert.deepEqual(markRows(memory), HOLLOW, `${label}: the hollow mark`);
+    assert.equal(memory[HPOSP1], (memory[main("player_x")] + 4) & 0xff, `${label}: at the ship's column`);
+  }
+}
+const hpOf = (memory) => [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)];
 
 test("M6: the lance run - the window's tail from $BBFF down, the boss reservation's last sectors, read at every entry", () => {
   assert.ok(lance, "the manifest has no boss.lance");
   assert.equal(lance.address + lance.capacityBytes, LANCE_RAM_END);
   // Journal §BG's meter and indicator took the run past the boss code
-  // reservation's three free sectors (581-583): its own four at the disk's
-  // free tail (plan §6.3).
-  assert.equal(lance.sectors, lance.indicator === "t" ? 5 : 4,
-    "the lance run: four sectors, five with the torpedo (the probe took 5, stage 1 three)");
+  // reservation's three free sectors (581-583): its own at the disk's free
+  // tail (plan §6.3) - five since journal §BH's hollow mark and dry shot.
+  assert.equal(lance.sectors, 5, "the lance run: five sectors (stage 1 three, §BG C four)");
   assert.equal(lance.capacityBytes, lance.sectors * 128);
   assert.ok(lance.bytes <= lance.capacityBytes, `${lance.bytes} B in ${lance.capacityBytes}`);
   assert.ok(lance.windowEnd <= lance.address, `the window's record ends at $${lance.windowEnd.toString(16)}`);
@@ -226,18 +251,148 @@ test("M6 (decision BF): FIRE alone, the stick alone or FIRE with another directi
   assert.equal(m[lbl("lance_beam")], 1, "the gesture with the stick held diagonally");
 });
 
-test("M6 (decision BD 2 (b)): no module under the ship - the gesture does nothing", () => {
-  const { memory } = fight();
-  const columns = reach(memory).filter((c) => front(memory, c) >= 16);
-  assert.ok(columns.length > 0, "no armour or open column in reach");
-  for (const c of columns.slice(0, 6)) {
+// Journal §BH (the owner's smoke of 97e1e6f: green, FIRE held, UP added -
+// nothing): the gesture is level-triggered - FIRE held for seconds, its
+// ordinary gate shut all along, then UP - and the charge starts on UP's
+// first frame whatever is under the ship.
+test("M6 (decision BH 1): level-triggered - FIRE held 200 frames (its gate shut), then UP: the charge from UP's first frame, the shot 75 frames on", () => {
+  for (const where of ["target", "empty"]) {
+    const { memory } = fight();
+    const c = where === "target" ? targetColumn(memory) : emptyColumns(memory)[0];
+    assert.notEqual(c, undefined, `no ${where} column in reach`);
     standUnder(memory, c);
+    memory[TRIG0] = 0;
+    memory[STICK0] = 0x0f;
+    memory[GATE] = 0;                                    // read_input shuts it while FIRE stays held
+    for (let f = 0; f < 200; f += 1) {
+      tick(memory);
+      assert.equal(memory[lbl("_lance_charge")], 0, `${where}: FIRE alone, frame ${f}`);
+    }
+    memory[STICK0] = 0x0f & ~UP;
+    for (let f = 1; f < CHARGE; f += 1) {
+      tick(memory);
+      assert.equal(memory[lbl("_lance_charge")], f, `${where}: UP's frame ${f}`);
+      assert.equal(memory[lbl("lance_beam")], 0);
+    }
+    tick(memory);
+    assert.equal(memory[lbl("lance_beam")], 1, `${where}: the 75th frame fires`);
+  }
+});
+
+test("M6 (decision BH 1): the column under the ship changing - target, empty, another target - never cancels the charge", () => {
+  for (const end of ["target", "empty"]) {
+    const { memory } = fight();
+    const targets = reach(memory).filter((c) => !emptyColumns(memory).includes(c));
+    const empty = emptyColumns(memory);
+    assert.ok(targets.length >= 2 && empty.length > 0, "targets and an empty column in reach");
+    const path = [targets[0], empty[0], targets[targets.length - 1], end === "target" ? targets[0] : empty[0]];
     hold(memory);
-    for (let f = 0; f < 2 * CHARGE; f += 1) tick(memory);
-    assert.equal(memory[lbl("_lance_charge")], 0, `column ${c}`);
-    assert.equal(memory[lbl("lance_beam")], 0);
-    assert.equal(meterOf(memory), METER[1]);
-    assert.equal(shown(memory), false);
+    for (let f = 1; f <= CHARGE; f += 1) {
+      standUnder(memory, path[Math.min(3, Math.floor((f - 1) / 20))]);
+      tick(memory);
+      if (f < CHARGE) assert.equal(memory[lbl("_lance_charge")], f, `${end}: frame ${f}, column ${columnOfShip(memory, memory[main("player_x")] + 8)}`);
+    }
+    assert.equal(memory[lbl("lance_beam")], 1, `${end}: fired on the 75th frame`);
+    assert.equal(memory[READY], end === "target" ? 0 : 0xff, `${end}: spent only over a target`);
+  }
+});
+
+// Journal §BH 3: with no module under the ship on the fire frame the beam
+// still fires (up to the mark's line) - but the lance is not spent: the meter
+// stays full, the indicator on, nothing of the boss touched.
+test("M6 (decision BH 3): a shot with no target - the beam fires through the mark to the band's foot and ends; the lance kept (the meter full, the indicator on), the boss untouched", () => {
+  for (const directory of [1, 4, 3, 2]) {
+    const { memory } = fight(directory);
+    const c = emptyColumns(memory)[0];
+    assert.notEqual(c, undefined, `directory ${directory}: no empty column in reach`);
+    standUnder(memory, c);
+    memory[main("sound_enabled")] = 1;
+    const before = hpOf(memory);
+    const score = [memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]];
+    hold(memory);
+    for (let f = 0; f < CHARGE; f += 1) tick(memory);
+    assert.equal(memory[lbl("lance_beam")], 1, `directory ${directory}: the beam fires`);
+    assert.equal(memory[lbl("lance_top")], memory[lbl("lance_y")] - 1, "up through the mark to the band's foot");
+    assert.equal(memory[READY], 0xff, "the lance kept");
+    assert.equal(meterOf(memory), METER[1], "the meter full");
+    if (lance.indicator === "c") assert.equal(memory[COLPM0], 0xca, "the ship green");
+    hold(memory, false);
+    let frames = 0, reached = false;
+    while (memory[lbl("lance_beam")] !== 0) {
+      const writes = new Map();
+      tick(memory, { write: (address, value) => { writes.set(address, value); } });
+      reached ||= memory[lbl("lance_head")] === memory[lbl("lance_top")];
+      assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), "no kill's tick, no cue");
+      assert.equal(meterOf(memory), METER[1], `beam frame ${frames}: the meter stays full`);
+      assert.equal(memory[READY], 0xff, `beam frame ${frames}: still ready`);
+      frames += 1;
+      assert.ok(frames < 20, "the beam never ended");
+    }
+    assert.ok(reached, "the beam reached the band's foot");
+    assert.deepEqual(hpOf(memory), before, "a module's HP changed");
+    assert.deepEqual([memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]], score, "scored");
+    // The beam erased (T: the torpedo's rows over the nose are its own).
+    for (let y = 0; y < (lance.indicator === "t" ? SHIP_Y - 6 : SHIP_Y); y += 1) assert.equal(memory[P0 + y], 0, `P0 row ${y} left`);
+    // Still one lance: the next frame aims again (the hollow mark) and a
+    // charge over a target spends it.
+    tick(memory);
+    assertMark(memory, false, `directory ${directory} after the dry shot`);
+    const t = targetColumn(memory);
+    const module = front(memory, t);
+    const { after } = shoot(memory, t);
+    assert.equal(after[module], 0, "the kept lance kills");
+    assert.equal(memory[READY], 0, "and is spent");
+  }
+});
+
+test("M6 (decision BH 1): no module under the ship - the gesture charges (the ship slowed), the mark hollow at the ship's column", () => {
+  const { memory } = fight();
+  const columns = emptyColumns(memory);
+  assert.ok(columns.length > 0, "no empty column in reach");
+  for (const c of columns.slice(0, 6)) {
+    const m = Uint8Array.from(memory);
+    standUnder(m, c);
+    tick(m);
+    assertMark(m, false, `column ${c}, released`);
+    hold(m);
+    tick(m);
+    assert.equal(m[lbl("_lance_charge")], 1, `column ${c}: the charge`);
+    tick(m);
+    assert.equal(m[lbl("_lance_charge")], 2);
+    assert.equal(shown(m), false, "the blink's dark frames");
+    tick(m);
+    tick(m);
+    assertMark(m, false, `column ${c}, charging`);
+  }
+});
+
+// The ship at its limits through the charge: its top line (the boss floor
+// read_input clamps it to) with UP held, and a side with the diagonal into
+// it - the charge completes; the beam from there (a target or none: the
+// Spine's mark line is that very limit) grows, holds and is erased without
+// touching the ship's rows.
+test("M6 (decision BH 1): the ship's upper limit (and a side) reached with the gesture held never cancels the charge", () => {
+  for (const directory of [1, 4, 3, 2]) {
+    for (const extra of [0, LEFT, RIGHT]) {
+      const { memory } = fight(directory);
+      floorValue ??= fight().memory[FLOOR];
+      memory[main("player_y")] = floorValue + 3;
+      if (extra === LEFT) memory[main("player_x")] = 50;
+      if (extra === RIGHT) memory[main("player_x")] = 188;
+      const name = `directory ${directory}, stick ${UP | extra}`;
+      for (let f = 1; f <= CHARGE; f += 1) {
+        step(memory, UP | extra);
+        if (f < CHARGE) assert.equal(memory[lbl("_lance_charge")], f, `${name}: frame ${f} (y ${memory[main("player_y")]})`);
+      }
+      assert.equal(memory[main("player_y")], floorValue, `${name}: the ship at its upper limit`);
+      assert.equal(memory[lbl("lance_beam")], 1, `${name}: fired at the limit`);
+      assert.ok(memory[lbl("lance_top")] < floorValue, `${name}: the beam's top ${memory[lbl("lance_top")]} above the ship`);
+      const ship = [...memory.subarray(P0 + floorValue, P0 + floorValue + 16)];
+      let frames = 0;
+      while (memory[lbl("lance_beam")] !== 0) { step(memory, 0, false); frames += 1; assert.ok(frames < 20, `${name}: the beam never ended`); }
+      assert.deepEqual([...memory.subarray(P0 + floorValue, P0 + floorValue + 16)], ship, `${name}: the ship's rows`);
+      for (let y = 0; y < floorValue - (lance.indicator === "t" ? 6 : 0); y += 1) assert.equal(memory[P0 + y], 0, `${name}: P0 row ${y} left`);
+    }
   }
 });
 
@@ -505,7 +660,7 @@ for (const directory of [1, 4, 3, 2]) {
       tick(m);
       const module = front(m, c);
       const expected = shotHurts(m, c) && m[lbl("_boss_kind") + module] !== KIND_CORE;
-      assert.equal(shown(m), expected, `column ${c} (front ${module})`);
+      assertMark(m, expected, `column ${c} (front ${module})`);
       if (expected) { targets += 1; assert.equal(m[lbl("_lance_module")], module); } else refused += 1;
     }
     assert.ok(targets > 0 && refused > 0, `${targets} targets, ${refused} refused`);
@@ -519,10 +674,16 @@ for (const directory of [1, 4, 3, 2]) {
       const c = reach(m)[0];
       m[lbl("boss_column_map") + c] = i;
       standUnder(m, c);
+      tick(m);
+      assertMark(m, false, "the exposed core");
+      const before = hpOf(m);
       hold(m);
-      for (let f = 0; f < 2 * CHARGE; f += 1) tick(m);
-      assert.equal(m[lbl("lance_beam")], 0, "the lance fired at the core");
-      assert.equal(shown(m), false);
+      for (let f = 0; f < CHARGE; f += 1) tick(m);
+      assert.equal(m[lbl("lance_beam")], 1, "the beam fires (decision BH 3)");
+      hold(m, false);
+      while (m[lbl("lance_beam")] !== 0) tick(m);
+      assert.deepEqual(hpOf(m), before, "the lance hurt the core");
+      assert.equal(m[READY], 0xff, "the lance kept");
     }
     // The named covers (decision BD: closed bays, doors, shielded cannons,
     // powered fields): every column whose front module is one of them, while
@@ -539,7 +700,7 @@ for (const directory of [1, 4, 3, 2]) {
       const m = Uint8Array.from(memory);
       standUnder(m, c);
       tick(m);
-      assert.equal(shown(m), false, `a covered ${module === region.hangar?.doorsIndex ? "door" : "cannon"} in column ${c}`);
+      assertMark(m, false, `a covered ${module === region.hangar?.doorsIndex ? "door" : "cannon"} in column ${c}`);
       coverColumns += 1;
     }
     if (covers.length > 0) assert.ok(coverColumns > 0, "no covered cannon or closed door in reach (subject empty)");
@@ -551,7 +712,7 @@ for (const directory of [1, 4, 3, 2]) {
         const m = Uint8Array.from(memory);
         standUnder(m, c);
         tick(m);
-        assert.equal(shown(m), false, `the powered field's column ${c}`);
+        assertMark(m, false, `the powered field's column ${c}`);
       }
     }
   });
@@ -714,6 +875,36 @@ test(`M6 (decision BG 4): the readiness indicator (${lance.indicator}) and its c
   check(frame("ready again"), { on: true, change: true, label: "ready again" });
   memory[lbl("_boss_phase")] = 1;
   check(frame("defeat"), { on: false, change: true, label: "the fight over" });
+});
+
+// Readiness off (the ship dying, the fight over - journal §BG 4): the mark
+// gone and no charge that very frame, with the gesture held or not, over a
+// target or none, read_input's stick PORTA's again (a slow frame's operand
+// put back) - journal §BH's "always shown" is while a lance is ready only.
+test("M6 (decisions BG 4, BH 2): readiness off - dying or the fight over: no mark, no charge, the stick PORTA's, the gesture held or not", () => {
+  const operand = (m) => m[main("read_input") + 1] | (m[main("read_input") + 2] << 8);
+  for (const off of ["dying", "defeat"]) {
+    for (const where of ["target", "empty"]) {
+      for (const held of [false, true]) {
+        const { memory } = fight();
+        standUnder(memory, where === "target" ? targetColumn(memory) : emptyColumns(memory)[0]);
+        hold(memory);
+        for (let f = 0; f < 5; f += 1) tick(memory);         // charging: 5, a slow frame's operand
+        assert.equal(memory[lbl("_lance_charge")], 5);
+        hold(memory, held);
+        if (off === "dying") memory[main("PLAYER_LIFECYCLE")] = 1; else memory[lbl("_boss_phase")] = 1;
+        const name = `${off}, ${where}, gesture ${held ? "held" : "released"}`;
+        for (let f = 0; f < 3; f += 1) {
+          tick(memory);
+          assert.equal(memory[READY], 0, `${name}, frame ${f}: off`);
+          assert.equal(memory[HPOSP1], 0, `${name}, frame ${f}: the mark shown`);
+          assert.equal(memory[lbl("_lance_charge")], 0, `${name}, frame ${f}: a charge`);
+          assert.equal(memory[lbl("lance_beam")], 0, `${name}, frame ${f}: a beam`);
+          assert.equal(operand(memory), 0xd300, `${name}, frame ${f}: read_input's stick`);
+        }
+      }
+    }
+  }
 });
 
 test("M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the target's centre, no colour register written", () => {

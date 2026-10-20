@@ -163,8 +163,9 @@ test("decision 32 (re-pointed): black, then the banner's title, the theme starte
     ...run(577, BOSS.slotE.sectors),
     // RE-POINTED M6 stage 1 (owner decision BD 6): the VOID LANCE run, after
     // slot E. RE-POINTED journal §BG: its own four sectors at the disk's free
-    // tail (712-715; the meter and the readiness indicator, plan §6.3).
-    ...run(712, 4),
+    // tail (712-715; the meter and the readiness indicator, plan §6.3);
+    // journal §BH: five (712-716; the hollow mark, the dry shot).
+    ...run(712, 5),
     ...run(634, 3), ...run(637, 3),                       // the band: rows 0-5, rows 6-7 + tables
     ...run(640, charsetSectors),                          // the region's charset at $0C00
     // RE-POINTED S5-1 (owner decision Q9, plan s5-boss-regions §4.1): the

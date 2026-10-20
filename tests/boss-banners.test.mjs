@@ -55,15 +55,17 @@ const HSCROL = 0xd404;
 // RE-POINTED M6 stage 1 (docs/plans/m6-void-lance.md §6.1): every entry reads
 // the lance run's 3 sectors after slot E - 76 / 80 / 79 / 80 -> 79 / 83 / 82 / 83.
 // RE-POINTED journal §BG (plan §6.3): the lance run is 4 sectors - 80 / 84 / 83 / 84.
+// RE-POINTED journal §BH: the lance run is 5 sectors (the hollow mark, the dry
+// shot) - 81 / 85 / 84 / 85.
 const PINS = [
   { picture: "blockade-breaker", sha256: "e806393d49fadf0d46e31d95d8f840b888904d9c42dafda85877399cfae5e0fd",
-    packed: 398, runSectors: 9, entrySectors: 80 },
+    packed: 398, runSectors: 9, entrySectors: 81 },
   { picture: "void-citadel-column", sha256: "f4c4b36cfabf1f47d3aeec838781c388eec0dbdad244ca898bafc550845e07e2",
-    packed: 368, runSectors: 9, entrySectors: 84 },
+    packed: 368, runSectors: 9, entrySectors: 85 },
   { picture: "siege-spine-side", sha256: "59497bd0e673a39442eee7135caaec809d66210a0db9b2390f22367cb703d0e7",
-    packed: 429, runSectors: 9, entrySectors: 83 },
+    packed: 429, runSectors: 9, entrySectors: 84 },
   { picture: "bastion-rails", sha256: "59c45fef7d99c62c776fbc9b885ad897ae2783ac4651fee20b3e4db70057b32f",
-    packed: 483, runSectors: 9, entrySectors: 84 },
+    packed: 483, runSectors: 9, entrySectors: 85 },
 ];
 
 const picture = (id) => readBannerPicture(path.join(root, "assets", "graphics", "boss-banners", `${id}.png`));

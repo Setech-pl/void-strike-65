@@ -5,17 +5,19 @@
  * The boss-only weapon, charged by TIME (journal §BG): a meter fills over
  * LANCE_METER_FRAMES boss frames (1,250: 25 s on MEDIUM, scaled by the
  * difficulty as the boss's hit points are - x 3/4 on EASY, x 5/4 on HARD);
- * full, ONE lance is ready (no stacking). Then the ship under a module a
- * player shot would hurt, FIRE held with the stick held up for
- * LANCE_CHARGE_FRAMES (75: 1.5 s) - and one beam destroys that one module;
- * the shot empties the meter and it fills again. The ordinary fire is never
+ * full, ONE lance is ready (no stacking). Then FIRE held with the stick held
+ * up for LANCE_CHARGE_FRAMES (75: 1.5 s), whatever is under the ship (journal
+ * §BH 1) - and the beam fires: over a module a player shot would hurt it
+ * destroys that one module and the shot empties the meter; over none it
+ * flies to the reticle's line and the lance is kept (§BH 3). The ordinary fire is never
  * changed (journal §BE; the gesture, §BF); while the charge builds the ship
  * moves at 1 / LANCE_CHARGE_SPEED_DIVISOR of its speed (§BF 2:
  * src/hybrid/lance.s reads lance_charge). The constants are
  * scripts/lance-layout.mjs's, side by side, passed by scripts/build.mjs. This
  * file decides; src/hybrid/lance.s executes (the readiness indicator, the
  * target pick under the ship with its exposed bit, the reticle on P1 while a
- * lance is ready, its HPOS, the slow frames, the beam in P0, the kill through
+ * lance is ready - the crosshair or the hollow mark - its HPOS, the slow
+ * frames, the beam in P0, the kill through
  * boss_hit) - C/ASM ownership, AGENTS.md.
  *
  * It lives in the lance's own boss run (the window's unclaimed tail,
@@ -59,12 +61,13 @@ extern uint8_t lance_module;
 #endif
 
 /* What the frame does (src/hybrid/lance.s acts on it): bit 0 the reticle
- * shown, bit 2 the beam fires. */
-#define LANCE_NONE      0u   /* no target: the reticle off (decision BD 2 (b)) */
-#define LANCE_SHOWN     1u   /* a target, the gesture released */
-#define LANCE_BLINK     2u   /* a target, the gesture held: the blink's dark frame (two frames of four) */
-#define LANCE_CHARGING  3u   /* a target, the gesture held */
-#define LANCE_FIRE      4u   /* the charge complete: the beam, at lance_module */
+ * lit (not the charge's blink's dark frames, two of four), bit 1 a target
+ * under the ship (the crosshair at its centre; without, the hollow mark at
+ * the ship's column - journal §BH 2), bit 2 the beam fires (with bit 1: at
+ * lance_module, the lance spent; without: to the mark, the lance kept). */
+#define LANCE_LIT       1u
+#define LANCE_TARGET    2u
+#define LANCE_FIRE      4u
 
 /* The meter's length, per difficulty (two byte tables: cc65 indexes a
  * uint16_t table through a helper). */
@@ -83,6 +86,9 @@ uint8_t lance_charge;
 /* In: 0 while FIRE and the stick's up are both held this frame
  * (src/hybrid/lance.s). */
 uint8_t lance_trig;
+/* This frame's LANCE_TARGET or 0 (no locals: the boss link's C uses no
+ * software stack). */
+static uint8_t lance_target;
 
 /* Every boss frame, the beam's too (decision BG 1): 1 - the meter is full,
  * a lance is ready; 0 - one frame more on the meter. */
@@ -98,34 +104,38 @@ uint8_t lance_c_fill(void)
     return 0u;
 }
 
-/* Every boss frame with no beam up. A target is what a player shot there
- * would hurt - the column map's front module, exposed (the tick's pick: a
- * kill rebuilds its columns at once; the map already refuses armour, open
+/* Every boss frame with no beam up while a lance is ready (the tick runs
+ * none while the meter fills, the ship dies or the fight is over - so the
+ * gesture does nothing then, decision BG 2). A target is what a player shot
+ * there would hurt - the column map's front module, exposed (the tick's pick:
+ * a kill rebuilds its columns at once; the map already refuses armour, open
  * columns, the Bastion's covered cannons, its closed doors and the Spine's
  * powered field), and never the core (decision BD, §AE 1); the tick passes
- * none ($FF) unless a lance is ready, the ship alive and the fight on - so
- * the gesture does nothing while the meter fills (decision BG 2). The charge follows the ship's column (§4 (a)): it keeps building
- * while any target stays under the ship; without one, or with the gesture
- * released before the last frame, it is cancelled. The fire empties the
- * meter. */
+ * $FF for none. The charge builds whatever is under the ship and however
+ * that changes (journal §BH 1: FIRE + UP held, level-triggered); only
+ * releasing the gesture before the last frame cancels it. On the last frame
+ * the target decides: one - the shot empties the meter; none - the beam flies
+ * and the lance is kept (§BH 3). */
 uint8_t lance_c_aim(void)
 {
+    lance_target = 0u;
     if (lance_module < BOSS_MAX_MODULES && boss_kind[lance_module] != BOSS_KIND_CORE) {
-        if (lance_trig != 0u) {
-            lance_charge = 0u;
-            return LANCE_SHOWN;
-        }
-        ++lance_charge;
-        if (lance_charge == LANCE_CHARGE_FRAMES) {
-            lance_charge = 0u;
+        lance_target = LANCE_TARGET;
+    }
+    if (lance_trig != 0u) {
+        lance_charge = 0u;
+        return lance_target | LANCE_LIT;
+    }
+    ++lance_charge;
+    if (lance_charge == LANCE_CHARGE_FRAMES) {
+        lance_charge = 0u;
+        if (lance_target != 0u) {
             lance_meter_lo = 0u;             /* the shot empties the meter (BG 1) */
             lance_meter_hi = 0u;
-            return LANCE_FIRE;
         }
-        return (uint8_t)(((lance_charge >> 1) & 1u) ^ LANCE_CHARGING);
+        return lance_target | LANCE_FIRE;
     }
-    lance_charge = 0u;
-    return LANCE_NONE;
+    return lance_target | (((lance_charge >> 1) & 1u) ^ LANCE_LIT);
 }
 
 /* The beam reached its module (lance_module): 1 - the kill goes through

@@ -676,12 +676,13 @@ const bossSlotEMaxSectors = Math.floor(BOSS_SLOT_E_BYTES / 128);
 // record may grow (the build fails when it reaches them). Its BSS is inside
 // the run, read as zeros. Journal §BG's meter and readiness indicator took it
 // past the boss code reservation's three free sectors (581-583, 384 B: plan
-// §6.3), so it has its own reservation of four at the disk's free tail
-// (712-715; the Phase A probe's place, plan §3), and 581-583 are free again.
+// §6.3), so it has its own reservation at the disk's free tail (712 on; the
+// Phase A probe's place, plan §3), and 581-583 are free again: five sectors
+// (712-716) since journal §BH's hollow mark and dry shot (C had 7 B left in
+// four; T took five from §BG).
 const BOSS_LANCE_BASE_SECTOR = 712;
 const bossLanceSector = BOSS_LANCE_BASE_SECTOR;
-// Indicator T (the torpedo, journal §BG 4) takes a fifth sector (plan §6.3).
-const BOSS_LANCE_SECTORS = lanceIndicator === "t" ? 5 : 4;
+const BOSS_LANCE_SECTORS = 5;
 const BOSS_LANCE_BYTES = BOSS_LANCE_SECTORS * 128;
 const BOSS_LANCE_ADDRESS = LANCE_RAM_END - BOSS_LANCE_BYTES;
 const bossRegionBaseSector = 632;

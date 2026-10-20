@@ -23,8 +23,13 @@
 //           8 rows) and placed
 //   idle    a lance ready, the reticle already drawn: placed (its HPOS)
 //   charge  FIRE + stick UP held over the target, a shown slow frame of the charge
+//   swap    the charge's frame with the mark changing (journal §BH 2): the
+//           hollow mark drawn, a target under the ship - its four rows
+//           rewritten to the crosshair, placed at the target's centre
 //   fire    the gesture held, the charge completing on this frame (the beam
 //           armed, the indicator off)
+//   dry     the same over a column with no target (journal §BH 3): the beam
+//           armed to the band's foot, the lance kept
 //   grow    the beam's first LANCE_BEAM_STEP lines, the case's shots flying
 //           (the indicator went off on the fire frame)
 //   arrive  the beam's last lines reach a front module the case's own
@@ -35,7 +40,7 @@
 //           ship, the case's shots flying
 import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
-export const LANCE_MODES = ["filling", "draw", "idle", "charge", "fire", "grow", "arrive", "erase"];
+export const LANCE_MODES = ["filling", "draw", "idle", "charge", "swap", "fire", "dry", "grow", "arrive", "erase"];
 const has = () => labelsOf.boss.has("lance_tick");
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -76,6 +81,21 @@ function targetColumn(memory, avoid) {
   }
   return fallback;
 }
+// A column the ship can stand under with no target (journal §BH: the charge
+// builds there too).
+function emptyColumn(memory) {
+  const p = memory[lbl("boss_shown_pos")];
+  const left = Math.ceil((16 + p) / 4), right = Math.floor((175 + p) / 4);
+  const map = lbl("boss_column_map");
+  for (let c = Math.max(left, 14); c <= right; c += 1) {
+    const module = memory[map + c];
+    if (module < memory[lbl("_boss_count")] && memory[lbl("_boss_hp") + module] !== 0 && exposed(memory, module) &&
+      memory[lbl("_boss_kind") + module] !== 4) continue;
+    const x = c * 4 + BAND_ORIGIN_HPOS - p - 8 + 1;
+    if (x >= 48 && x <= 191) return { c, module, x };
+  }
+  return null;
+}
 const skip = (memory) => { lanceStats.skipped += 1; skipped.add(memory); };
 // The gesture held (FIRE and the stick up) or released.
 function gesture(memory, held) {
@@ -110,7 +130,7 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
   // The reticle's line, as the first shown frame draws it (not counted).
   if (memory[lbl("lance_y")] === 0 && mode !== "draw") memory[lbl("lance_y")] = call(memory, lbl("boss_band_measure")).a;
   if (mode === "draw") memory[lbl("lance_y")] = 0;
-  const target = targetColumn(memory, hit.filter((h) => h !== "hull"));
+  const target = mode === "dry" ? emptyColumn(memory) : targetColumn(memory, hit.filter((h) => h !== "hull"));
   if (target === null) { skip(memory); return; }
   if (mode === "grow" || mode === "erase" || mode === "arrive") {
     // The beam: the ship stays where the case has it (the beam is drawn in
@@ -127,10 +147,11 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
   } else {
     memory[main("player_y")] = SHIP_Y;
     memory[main("player_x")] = target.x;
-    if (mode === "charge") {
+    if (mode === "charge" || mode === "swap") {
       gesture(memory, true);
       memory[lbl("_lance_charge")] = 12;                // 13: a shown, slow frame
-    } else if (mode === "fire") {
+      if (mode === "swap") memory[lbl("lance_hollow")] = 0xff;
+    } else if (mode === "fire" || mode === "dry") {
       gesture(memory, true);
       memory[lbl("_lance_charge")] = 74;                // completes on this frame
     }

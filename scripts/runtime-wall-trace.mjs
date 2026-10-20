@@ -4358,6 +4358,14 @@ function main() {
         addressEnvironment.DFTRACE_LANCE_BEAM = hex(bossLabels, "lance_beam");
         addressEnvironment.DFTRACE_LANCE_READY = hex(bossLabels, "lance_ready");
         addressEnvironment.DFTRACE_LANCE_MODULE = hex(bossLabels, "_lance_module");
+        // Journal §BH 2: which mark P1 holds (the reticle and enemy-PMG clauses).
+        if (bossLabels.has("lance_hollow")) addressEnvironment.DFTRACE_LANCE_HOLLOW = hex(bossLabels, "lance_hollow");
+        // The lance-script diagnostic bots' journal (DFTRACE_LANCE_JOURNAL).
+        if (bossLabels.has("_lance_meter_lo")) {
+          addressEnvironment.DFTRACE_LANCE_METER_LO = hex(bossLabels, "_lance_meter_lo");
+          addressEnvironment.DFTRACE_LANCE_METER_HI = hex(bossLabels, "_lance_meter_hi");
+          addressEnvironment.DFTRACE_LANCE_TRIG = hex(bossLabels, "_lance_trig");
+        }
       }
       if (manifest.boss?.lance !== undefined) {
         addressEnvironment.DFWATCH_TAIL_START = `0x${manifest.boss.lance.windowEnd.toString(16)}`;
@@ -4589,6 +4597,16 @@ function main() {
       id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
+  // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,
+  // never in the evidence: the lance replay's settings with the scripted
+  // gesture of scripts/atari800-wall-trace.h (FIRE held, the ship at HPOS X,
+  // UP added as MODE says), on the route's region; it ends at its frame cap.
+  if (onlySession?.startsWith("lance-script-")) {
+    const route = layout.variant === null ? null : /boss-region-(\d)-/.exec(layout.variant);
+    sessionsToRun = [{ id: onlySession, difficulty: 1, policy: onlySession, fireDelay: 0,
+      frames: Number(process.env.VS65_LANCE_SCRIPT_FRAMES ?? 2400), kind: "lance-script", holdPlayerLives: 3,
+      ...(route === null ? {} : { bossRegion: Number(route[1]) }) }];
+  }
   if (onlySession !== undefined) {
     sessionsToRun = sessionsToRun.filter(({ id }) => id === onlySession);
     invariant(sessionsToRun.length === 1, `Unknown trace session: ${onlySession}`);

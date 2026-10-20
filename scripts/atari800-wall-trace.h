@@ -1032,6 +1032,24 @@ static int dftrace_lance_shape_known;
 /* 1 from a boss entry's arrival in the main loop (the lance run read) until
  * the next entry starts: lance_y is the current fight's. */
 static int dftrace_lance_live;
+/* M6 (the owner's smoke of 97e1e6f, 2026-10-20): the "lance-script-X-MODE"
+ * diagnostic bots and the per-frame lance journal (DFTRACE_LANCE_JOURNAL:
+ * the meter, the gesture's input and byte, the target, the charge). */
+static unsigned dftrace_lance_meter_lo;
+static unsigned dftrace_lance_meter_hi;
+static unsigned dftrace_lance_trig;
+/* Journal §BH 2: the mark drawn (lance_hollow: 0 the crosshair, the run's
+ * lance_shape; else the hollow mark below), optional. */
+static unsigned dftrace_lance_hollow;
+static const unsigned char dftrace_lance_hollow_bytes[8] = { 0x00, 0x18, 0x00, 0x42, 0x42, 0x00, 0x18, 0x00 };
+static unsigned dftrace_lance_script_ready;
+static unsigned dftrace_lance_script_up;
+static unsigned dftrace_lance_script_last;
+static unsigned dftrace_lance_script_lock = 0xffu;
+static unsigned dftrace_lance_script_phase;
+static unsigned dftrace_input_stick = 0x0fu;
+static unsigned dftrace_input_trigger = 1u;
+static FILE *dftrace_lance_journal;
 /* feat/boss-r1-tuning: the boss-aim policy's view of the controller. */
 static unsigned dftrace_boss_hp;
 static unsigned dftrace_boss_kind;
@@ -3267,6 +3285,8 @@ static void dftrace_pairshot_rotate_end(DFTraceFrame *frame)
 
 static void dftrace_set_input(unsigned stick, unsigned trigger)
 {
+	dftrace_input_stick = stick & 0x0fu;
+	dftrace_input_trigger = trigger != 0u;
 	PIA_PORT_input[0] = (PIA_PORT_input[0] & 0xf0u) | (stick & 0x0fu);
 	GTIA_TRIG[0] = (UBYTE) (trigger != 0);
 }
@@ -3998,6 +4018,85 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				stick &= 0x0du;
 		}
 	}
+	else if (strncmp(dftrace_policy, "lance-script-", 13) == 0 && dftrace_boss_active() &&
+		dftrace_lance_live && dftrace_lance_ready != 0u) {
+		/* M6 (the owner's smoke of 97e1e6f): scripted input for the lance's
+		 * gesture, as the owner played it. FIRE held through the whole fight
+		 * (the ordinary fire's gate shut from the first frame: the lance must
+		 * not care); the ship held at HPOS X. MODE:
+		 *   late    UP added 100 frames after the lance is ready, held 120
+		 *   top     UP held from the entry (the ship at its upper limit when
+		 *           the lance becomes ready)
+		 *   upleft / upright  UP+LEFT / UP+RIGHT added as late, no hold at X
+		 *   tour-X2 late at X, then to HPOS X2 and UP again 300 frames later
+		 *   gif-X2  UP for 90 frames from the first frame 100+ after readiness
+		 *           with no module under the ship at X (a charge started and
+		 *           fired over an empty column); 60 frames after it, to HPOS
+		 *           X2 until a target is under the ship, then following that
+		 *           module as the band drifts, UP for 90 frames 30 later */
+		const char *mode = strchr(dftrace_policy + 13, '-');
+		unsigned target_x = (unsigned) atoi(dftrace_policy + 13);
+		unsigned since;
+		mode = mode == NULL ? "" : mode + 1;
+		if (MEMORY_mem[dftrace_lance_ready] != 0u && dftrace_lance_script_ready == 0u)
+			dftrace_lance_script_ready = frame;
+		since = dftrace_lance_script_ready == 0u ? 0u : frame - dftrace_lance_script_ready;
+		if (strncmp(mode, "tour-", 5) == 0 && since >= 250u)
+			target_x = (unsigned) atoi(mode + 5);
+		if (strncmp(mode, "gif-", 4) == 0) {
+			unsigned under = MEMORY_mem[dftrace_lance_module];
+			unsigned count = MEMORY_mem[dftrace_boss_count];
+			int up = 0;
+			if (dftrace_lance_script_phase == 0u && since >= 100u && under == 0xffu &&
+				dftrace_lance_script_last != 0xffu) {
+				dftrace_lance_script_phase = 1u;
+				dftrace_lance_script_up = frame;
+			}
+			if (dftrace_lance_script_phase == 1u) {
+				up = frame - dftrace_lance_script_up < 90u;
+				if (frame - dftrace_lance_script_up >= 150u)
+					dftrace_lance_script_phase = 2u;
+			}
+			if (dftrace_lance_script_phase >= 2u) {
+				target_x = (unsigned) atoi(mode + 4);
+				if (dftrace_lance_script_phase == 2u && x + 4u >= target_x && x <= target_x + 4u &&
+					under < count && MEMORY_mem[dftrace_boss_kind + under] != 4u &&
+					MEMORY_mem[dftrace_lance_beam] == 0u) {
+					dftrace_lance_script_lock = under;
+					dftrace_lance_script_phase = 3u;
+					dftrace_lance_script_up = frame + 30u;
+				}
+				if (dftrace_lance_script_phase == 3u && dftrace_lance_script_lock < count) {
+					unsigned record = dftrace_boss_module_table + 12u * dftrace_lance_script_lock;
+					unsigned column = MEMORY_mem[record] + (MEMORY_mem[record + 2u] >> 1);
+					int tx = ((int) (4u * column) + 26 - (int) MEMORY_mem[dftrace_boss_shown_pos]) & ~1;
+					target_x = tx < 48 ? 48u : tx > 191 ? 191u : (unsigned) tx;
+					up = frame >= dftrace_lance_script_up && frame - dftrace_lance_script_up < 90u;
+				}
+			}
+			dftrace_lance_script_last = under;
+			stick = x < target_x ? 0x07u : x > target_x ? 0x0bu : 0x0fu;
+			if (up)
+				stick &= 0x0eu;
+			trigger = 0u;
+			dftrace_set_input(stick, trigger);
+			return;
+		}
+		stick = x < target_x ? 0x07u : x > target_x ? 0x0bu : 0x0fu;
+		trigger = 0u;
+		if (strcmp(mode, "top") == 0)
+			stick &= 0x0eu;
+		else if (dftrace_lance_script_ready != 0u &&
+			((since >= 100u && since < 220u) ||
+			(strncmp(mode, "tour-", 5) == 0 && since >= 400u && since < 520u))) {
+			if (strcmp(mode, "upleft") == 0)
+				stick = 0x0au;
+			else if (strcmp(mode, "upright") == 0)
+				stick = 0x06u;
+			else
+				stick &= 0x0eu;
+		}
+	}
 	else if ((strncmp(dftrace_policy, "boss-aim", 8) == 0 ||
 		(strcmp(dftrace_policy, "lower-contact-laser") == 0 && dftrace_laser_after_contact(frame))) &&
 		dftrace_boss_active() &&
@@ -4125,11 +4224,13 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		}
 		/* M6 (the owner's briefs of 2026-10-20, §BF-§BG): the "-lance" aiming
 		 * bots make the VOID LANCE's gesture with every lance the meter gives.
-		 * As the plain bot aims, the first frame the reticle shows (a target
-		 * under the ship, a lance ready) it holds FIRE and the stick up -
+		 * As the plain bot aims, the first frame a target is under the ship
+		 * with a lance ready (the crosshair: journal §BH shows the hollow mark
+		 * over none, and a charge there would be a dry shot) it holds FIRE and the stick up -
 		 * nothing else - until the lance fires (the beam starts; the charge
-		 * advances the ship at the charge's speed); a cancelled charge (the
-		 * target drifted away) aims again. Fired, it flies back down to the
+		 * advances the ship at the charge's speed, following the target; the
+		 * charge carries on over no target since §BH, and a shot there keeps
+		 * the lance). Fired, it flies back down to the
 		 * line it charged from and plays on as the plain bot until the next
 		 * lance is ready. No dodging meanwhile: the hits it takes during the
 		 * charge are the measure. */
@@ -4137,8 +4238,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			dftrace_lance_ready != 0u && dftrace_lance_charge != 0u && dftrace_lance_beam != 0u &&
 			dftrace_lance_module != 0u) {
 			unsigned ready = MEMORY_mem[dftrace_lance_ready];
+			unsigned under = MEMORY_mem[dftrace_lance_module];
 			if (dftrace_lance_bot_state == 0u && ready != 0u && MEMORY_mem[dftrace_lance_beam] == 0u &&
-				GTIA_HPOSP1 != 0u) {
+				GTIA_HPOSP1 != 0u && under < count && MEMORY_mem[dftrace_boss_kind + under] != 4u) {
 				dftrace_lance_bot_state = 1u;
 				dftrace_lance_bot_frames = 0u;
 				if (dftrace_lance_bot_y == 0u)
@@ -5200,15 +5302,19 @@ static void dftrace_measure_pickup_plane(unsigned *rows, unsigned *row_union,
  * P1 is on screen (HPOS 40-215) - wherever the game is, boss sector or not. */
 static unsigned dftrace_lance_reticle_shown(void)
 {
-	unsigned row, k;
+	unsigned row, k, mark;
 	if (!dftrace_lance_shape_known || GTIA_HPOSP1 < 40u || GTIA_HPOSP1 > 215u)
 		return 0u;
-	for (row = DFTRACE_ENEMY_PMG_TOP; row + 8u <= DFTRACE_ENEMY_PMG_BOTTOM; ++row) {
-		for (k = 0u; k < 8u; ++k)
-			if (MEMORY_mem[0x3d00u + row + k] != dftrace_lance_shape_bytes[k])
-				break;
-		if (k == 8u)
-			return 1u;
+	/* Either mark (journal §BH 2): the crosshair or the hollow one. */
+	for (mark = 0u; mark < 2u; ++mark) {
+		const unsigned char *bytes = mark == 0u ? dftrace_lance_shape_bytes : dftrace_lance_hollow_bytes;
+		for (row = DFTRACE_ENEMY_PMG_TOP; row + 8u <= DFTRACE_ENEMY_PMG_BOTTOM; ++row) {
+			for (k = 0u; k < 8u; ++k)
+				if (MEMORY_mem[0x3d00u + row + k] != bytes[k])
+					break;
+			if (k == 8u)
+				return 1u;
+		}
 	}
 	return 0u;
 }
@@ -5234,7 +5340,9 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 			if (live && row >= y && row < y + height)
 				expected = MEMORY_mem[(body + (row - y)) & 0xffffu];
 			if (slot == 0u && reticle != 0u && row >= reticle && row < reticle + 8u)
-				expected = MEMORY_mem[(dftrace_lance_shape + (row - reticle)) & 0xffffu];
+				expected = dftrace_lance_hollow != 0u && MEMORY_mem[dftrace_lance_hollow] != 0u
+					? dftrace_lance_hollow_bytes[row - reticle]
+					: MEMORY_mem[(dftrace_lance_shape + (row - reticle)) & 0xffffu];
 			if (MEMORY_mem[(plane + row) & 0xffffu] == expected)
 				continue;
 			++mismatch;
@@ -6441,6 +6549,19 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		frame->lance_charge = live && dftrace_lance_charge != 0u ? MEMORY_mem[dftrace_lance_charge] : 0u;
 		frame->lance_beam = live && dftrace_lance_beam != 0u ? MEMORY_mem[dftrace_lance_beam] : 0u;
 		frame->lance_ready = live && dftrace_lance_ready != 0u && MEMORY_mem[dftrace_lance_ready] != 0u ? 1u : 0u;
+		if (live && dftrace_lance_journal != NULL)
+			fprintf(dftrace_lance_journal,
+				"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,0x%02x\n",
+				dftrace_count,
+				dftrace_lance_meter_lo != 0u ? MEMORY_mem[dftrace_lance_meter_lo] |
+					(MEMORY_mem[dftrace_lance_meter_hi] << 8) : 0u,
+				frame->lance_ready, (dftrace_input_stick & 1u) == 0u, dftrace_input_trigger == 0u,
+				dftrace_lance_trig != 0u ? MEMORY_mem[dftrace_lance_trig] : 0u,
+				dftrace_lance_module != 0u ? MEMORY_mem[dftrace_lance_module] : 0u,
+				frame->lance_charge, frame->lance_beam,
+				MEMORY_mem[dftrace_player_x], MEMORY_mem[dftrace_player_y],
+				GTIA_HPOSP1, dftrace_fire_gate != 0u ? MEMORY_mem[dftrace_fire_gate] : 0u,
+				GTIA_COLPM0);
 	}
 	frame->boss_state = dftrace_boss_active() && dftrace_boss_phase != 0u
 		? 1u + MEMORY_mem[dftrace_boss_phase] : 0u;
@@ -7765,6 +7886,19 @@ static void dftrace_init(void)
 	dftrace_lance_beam = dftrace_env_optional("DFTRACE_LANCE_BEAM");
 	dftrace_lance_ready = dftrace_env_optional("DFTRACE_LANCE_READY");
 	dftrace_lance_module = dftrace_env_optional("DFTRACE_LANCE_MODULE");
+	dftrace_lance_meter_lo = dftrace_env_optional("DFTRACE_LANCE_METER_LO");
+	dftrace_lance_meter_hi = dftrace_env_optional("DFTRACE_LANCE_METER_HI");
+	dftrace_lance_trig = dftrace_env_optional("DFTRACE_LANCE_TRIG");
+	dftrace_lance_hollow = dftrace_env_optional("DFTRACE_LANCE_HOLLOW");
+	if (getenv("DFTRACE_LANCE_JOURNAL") != NULL && *getenv("DFTRACE_LANCE_JOURNAL") != '\0') {
+		dftrace_lance_journal = fopen(getenv("DFTRACE_LANCE_JOURNAL"), "w");
+		if (dftrace_lance_journal == NULL) {
+			fprintf(stderr, "voidstrike65 trace: cannot write the lance journal\n");
+			exit(2);
+		}
+		fprintf(dftrace_lance_journal, "frame,meter,ready,in_up,in_fire,lance_trig,lance_module,"
+			"charge,beam,x,y,hposp1,fire_gate,colpm0\n");
+	}
 	dftrace_fire_gate = dftrace_env_optional("DFTRACE_FIRE_GATE");
 	dftrace_boss_armour_left = dftrace_env_optional("DFTRACE_BOSS_ARMOUR_LEFT");
 	dftrace_boss_hp = dftrace_env_optional("DFTRACE_BOSS_HP");

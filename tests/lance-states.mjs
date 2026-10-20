@@ -11,25 +11,31 @@
 // state keeps the case's own player shots, and the kill is the frame's only
 // meeting (the tick patches laser_frame's admit operand to 0), so the case's
 // meetings wait a frame as AUD-04 holds any. The charge's states include its
-// slow-frame check (decision BF 2: read_input's stick operand).
+// slow-frame check (decision BF 2: read_input's stick operand). Since journal
+// §BG every state runs the meter (src/c/lance.c's lance_c_fill) and the
+// build's readiness indicator.
 //
-//   stock0  the game in stage 1: no lance in stock (the tick's early exit)
-//   draw    a lance in stock, FIRE released, the ship under a front module
-//           on the fight's first such frame: the reticle drawn (boss_band_
-//           measure and its 8 rows) and placed
-//   idle    as draw, the reticle already drawn: placed (its HPOS)
+//   filling the meter not yet full: no lance (the gesture does nothing - the
+//           tick's no-target path)
+//   draw    the frame the meter fills - the indicator on and its cue - with
+//           FIRE released and the ship under a front module on the fight's
+//           first such frame: the reticle drawn (boss_band_measure and its
+//           8 rows) and placed
+//   idle    a lance ready, the reticle already drawn: placed (its HPOS)
 //   charge  FIRE + stick UP held over the target, a shown slow frame of the charge
-//   fire    the gesture held, the charge completing on this frame (the beam armed)
+//   fire    the gesture held, the charge completing on this frame (the beam
+//           armed, the indicator off)
 //   grow    the beam's first LANCE_BEAM_STEP lines, the case's shots flying
+//           (the indicator went off on the fire frame)
 //   arrive  the beam's last lines reach a front module the case's own
 //           meetings do not (another kill on the frame: the worst) and kill
 //           it through boss_hit, before UPDATE; the case's shots meet as the
 //           one meeting left admits
 //   erase   the erasure's first frame: LANCE_BEAM_STEP lines up from the
 //           ship, the case's shots flying
-import { call, label, labelsOf } from "./boss-harness.mjs";
+import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
-export const LANCE_MODES = ["stock0", "draw", "idle", "charge", "fire", "grow", "arrive", "erase"];
+export const LANCE_MODES = ["filling", "draw", "idle", "charge", "fire", "grow", "arrive", "erase"];
 const has = () => labelsOf.boss.has("lance_tick");
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -80,13 +86,27 @@ function gesture(memory, held) {
 // Arms `memory` (one case's run image) for `mode`. hit / kind / columnOf:
 // the case's own meetings (modules, or "hull"), "kill" / "stage" / ..., and
 // the column a module's meeting shot is in.
+// The meter at `frames` (full: the difficulty's frames, the build's manifest).
+function meter(memory, frames) {
+  memory[lbl("_lance_meter_lo")] = frames & 0xff;
+  memory[lbl("_lance_meter_hi")] = frames >> 8;
+}
+const fullMeter = (memory) => manifest.boss.lance.meterFrames[memory[main("DIFFICULTY_SETTING")]];
+
 export function lanceArm(memory, mode, { hit = [] } = {}) {
   if (!has() || mode === "off") return;
-  memory[lbl("_lance_stock")] = mode === "stock0" ? 0 : 1;
+  // The meter and the indicator: settled on (a lance ready) in the ready
+  // states; draw is the frame it fills (the indicator's change and its cue,
+  // the sound on); the beam's frames (grow, arrive, erase) off, the meter
+  // filling again.
+  const ready = !["filling", "grow", "arrive", "erase"].includes(mode);
+  meter(memory, mode === "filling" ? 7 : ready ? fullMeter(memory) : 9);
+  memory[lbl("lance_ready")] = ready && mode !== "draw" ? 0xff : 0;
+  if (mode === "draw") memory[main("sound_enabled")] = 1;
   memory[lbl("lance_beam")] = 0;
   memory[lbl("_lance_charge")] = 0;
   gesture(memory, false);
-  if (mode === "stock0") { armed.add(memory); lanceStats.armed += 1; return; }
+  if (mode === "filling") { armed.add(memory); lanceStats.armed += 1; return; }
   // The reticle's line, as the first shown frame draws it (not counted).
   if (memory[lbl("lance_y")] === 0 && mode !== "draw") memory[lbl("lance_y")] = call(memory, lbl("boss_band_measure")).a;
   if (mode === "draw") memory[lbl("lance_y")] = 0;
@@ -135,8 +155,8 @@ export function lanceTick(memory) {
 }
 
 // Every mode's worst reachable frame of a composition: run(mode) returns its
-// { cases }. Returns { mode: { worst, clashes, cases } } (stock0 first: the
-// game in stage 1).
+// { cases }. Returns { mode: { worst, clashes, cases } } (filling first: most
+// of a fight's frames).
 export function lanceStress(run, modes = LANCE_MODES) {
   const out = {};
   for (const mode of modes) {

@@ -14,6 +14,17 @@ export const LANCE_RAM_END = 0xbc00;
 // manifest (boss.lance).
 export const LANCE_CHARGE_FRAMES = 75;
 export const LANCE_CHARGE_SPEED_DIVISOR = 2;
+// The meter (decision BG 1, the owner's smoke of 2026-10-20): the lance
+// charges with time on the boss screen - LANCE_METER_FRAMES boss frames on
+// MEDIUM (1,250: 25 s), then one lance is ready (no stacking); the shot empties
+// it. The other difficulties scale it as the boss's hit points are scaled
+// (scripts/level-compiler.mjs BOSS_HP_SCALE_DEFAULTS: x 3/4 EASY, x 5/4 HARD),
+// the quarter taken by shift as src/c/boss.c's boss_scale takes it.
+export const LANCE_METER_FRAMES = 1250;
+export const lanceMeterFrames = (frames = LANCE_METER_FRAMES) => {
+  const quarter = frames >> 2;
+  return [frames - quarter, frames, frames + quarter];      // EASY, MEDIUM, HARD
+};
 
 // windowEnd: the address after the window's last byte (the Light kernel
 // link's __LIGHT_KERNEL_RAM_LAST__); address / bytes: the lance's RAM; used:

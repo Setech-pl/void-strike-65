@@ -7,8 +7,10 @@ commit `837cf04` (fast-forwarded onto it from `main` `3d59ded`).
 (2026-10-20; §4 below, confirmed). Phase B stage 1 built (§6.1); the owner's
 smoke (journal §BE) withdrew rule (c) and compared two variants (§6.2); **the
 owner chose variant A, gesture A-up, with the ship at half speed while
-charging (journal §BF) - stage 1 final as built in §6.1, `OWNER-SMOKE
-CANDIDATE`, STOP for the owner's smoke.** Phase A's probe is under `build/m6-probe/` (not
+charging (journal §BF) - stage 1 final as built in §6.1. Its smoke (journal
+§BG) replaced the stock with a time meter and asked for a readiness
+indicator: §6.3, `OWNER-SMOKE CANDIDATE`, STOP for the owner's choice of
+indicator.** Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -721,6 +723,235 @@ code's only rule), and the owner added the half speed while charging. The
 final build is §6.1. The tables above stay as the comparison's record; the
 comparison ATRs in `build/play/` (`…-lance-a-down-…`, `…-a-up-…`, `…-b-…`)
 are superseded.
+
+### 6.3 The meter and the readiness indicator (2026-10-20, journal §BG) — STOP: the owner chooses the indicator
+
+The owner's smoke of `89297a5` did not accept stage 1 as a design: the stock
+must not depend on boss capsules, and the reticle was on all the time. Journal
+**§BG** replaces the stock with a **meter**, keeps the gesture, the beam, the
+kill and the reticle V2, shows the reticle only while a lance is ready, asks
+for a clearer readiness indicator in three variants, and withdraws the boss
+capsules as lances (stage 2 keeps only the +1 life capsule).
+
+**The meter (as built, every variant).**
+* `LANCE_METER_FRAMES` = 1,250 (25 s) beside the two charge constants in
+  `scripts/lance-layout.mjs`, scaled by the difficulty as the boss's hit
+  points are (`hpScale` 3/4 and 5/4, the quarter by shift as `boss_scale`
+  takes it): **EASY 938 frames (18.76 s), MEDIUM 1,250 (25 s), HARD 1,562
+  (31.24 s)** - `lanceMeterFrames()`, passed to the C, recorded in the
+  manifest (`boss.lance.meterFrames`).
+* `src/c/lance.c` `lance_c_fill` (every boss frame with no beam up): 1 when
+  the meter is full, otherwise one frame more. The meter is the run's BSS, so
+  it is empty at every boss entry (the run is read anew) and runs in the boss
+  sector only. After the meter's frames a lance is ready on the next frame:
+  **one, no stacking** (full, the meter stops counting). `lance_c_aim`'s fire
+  empties it; through the beam's frames the tick advances it with one `inc`
+  (exact: a beam ends long before the meter could fill, so no full test).
+* The stock, `--lance-stock`, `lance_stock` / `LANCE_STOCK_GRANT` and the
+  stock's trace column are gone; the full game has the lance in every boss
+  fight. The aim's `boss_phase` test moved to the tick's readiness.
+
+**Readiness and the reticle.** `lance_ready` ($FF / 0) is what the indicator
+shows: a lance ready, the ship alive (`PLAYER_LIFECYCLE` 0) and the fight on
+(`boss_phase` 0). Only a change acts:
+* **on** (the frame after the meter fills, or the ship alive again): the
+  indicator, the reticle's 8 rows drawn once a fight under the band (HPOS 0),
+  the cue - and nothing else that frame; the aim (the reticle placed at the
+  target, the charge) from the next frame;
+* **off** on the fire frame (the lance spent), when the ship dies (the aim's
+  no-target path runs once: the reticle off, the charge cancelled, `read_input`'s
+  stick operand back on PORTA) and when the fight ends;
+* while it is off the tick returns after the meter: **the gesture does
+  nothing and no reticle shows** until the next lance.
+
+**The cue (every variant):** on every change to on, a pure tone on channel 3
+(`AUDF3` `$0C`, `AUDC3` `$A8`, 16 frames) - 19 B - given back to the engine
+bed by `boss_frame_timers` through `boss_tick_timer`, as the Bastion's rail
+unlock tone is. The boss theme is channels 1-2 (`gameplay-music.s` never
+writes 3 or 4, pinned by `tests/gameplay-music.test.mjs`); a hit's tick and a
+laser's warning write channel 3 later in the frame and win, as they win over
+the bed. `$0C` is above every warning pitch (`$18` + timer); pure distortion
+needs no poly-4 check. Gated on `sound_enabled`. By ear: owner smoke (the
+emulator cannot record audio headlessly).
+
+**The three indicators.**
+
+* **(C) the ship's colour.** `COLPM0` `$CA` (green) while on, the hull's
+  white `$0E` when off. **Colour (M, `scripts/boss-art-rules.mjs`
+  `hueDegrees`, Atari800's PAL palette):** hue 136°, **90° from the ally
+  steel** (`$88` / `$84`, 226°), **54° from the nearest boss colour** (the
+  Bastion's and the Citadel's `$EC` / `$EA`, 82-83°), 47° from the player's
+  shots and the escort's hit pods (`$AE`, 183°); every other boss-sector
+  colour is further (the lasers and pods `$46` 354°, the Citadel `$58` 326°
+  and `$64` 294°, the Spine `$66` 294°, the Breaker `$2A` / `$34` 34° / 16°,
+  the Bastion `$1A` / `$12` 52°, the capsule `$1C` 52°). No other hue clears
+  45° from all of them (`$BA` 19° from `$AE`, `$DA` 25° from `$EC`, `$7A` 32°
+  from `$84`). **Cost:** one register write on each change - **and one on every
+  ready frame with no beam up (6 cycles):** the resident booster code writes
+  the white at a pickup or a release (`restore_player_fighter_normal_colors`)
+  and a Shield pulses `COLPM0` `$84` / `$0E`; without the rewrite a booster's
+  end during readiness left a white ship with a lance ready (test). While a
+  Shield runs its pulse shows; the green comes back the frame after. **Known
+  side effect:** the Citadel's gravity column is missile M0, which shares
+  `COLPM0` - it turns green with the ship while a lance is ready (region 2
+  only). START GAME's boss restore writes `$0E` back (one entry, 3 B of the
+  level summary's 4 B padding: the summary stays 1,770 B and
+  `summary_display_list` stays at `$0B58`).
+* **(T) the torpedo.** **Where the ship's shape lives (M):** `player_shape`,
+  16 B in `RODATA` (`$31F5-$3204`, resident, the initial block), drawn by
+  resident `draw_player` (`$2A76`, `lda player_shape,x` at `$2A7A`, its operand
+  `$2A7B`) only when the ship moves vertically, and by the boss install. Its
+  16 rows are the hull's (row 15 the only blank), so an alternate 16-row
+  shape cannot put a torpedo **in front of** the nose without moving the
+  hull and its hit box. Switching it would cost 0 resident bytes (an operand
+  patch to a shape in the lance run, +2 boss-restore entries, a redraw on
+  each change), but the torpedo would replace hull rows. **Built instead (0
+  resident bytes):** the tick draws five rows in P0 **over** the nose - fins
+  `$6C`, body `$38` x 3, tip `$10` - and clears the row above them, every
+  frame it is on (the ship moves; the hull's own draw does not know them),
+  cleared on the change to off; on the shot the beam grows over the same
+  rows from the nose (the beam starts where the torpedo sits). 33 B, ~60
+  cycles a ready frame (unrolled; the first loop cost ~130 and put the
+  Bastion at 8,532). Known look: the torpedo is the ship's colour (P0), so it
+  reads as a finned warhead on the nose; while moving down a one-line gap
+  shows between it and the nose (the tick runs before `read_input`).
+* **(H) a HUD text "VOID LANCE READY": no room - skipped.** Evidence (M):
+  the HUD is one ANTIC 2 line of 40 cells (`$4000-$4027`; the boss install
+  keeps the same header, `boss_dl_header`) - SCORE 0-10, LIFE 13-18, HULL
+  20-28, BOOST 30-39 with asserted blanks at 19, 24, 29, 35
+  (`src/main.s:618-653`); the longest free run is 11 cells (29-39) and only
+  while no booster is active (boss capsules give boosters in the fight),
+  2 cells with one. Neither the gameplay nor the boss display list has a
+  blank or spare mode line: HUD + divider + 27 ring rows fill scanlines
+  8-239 (asserted, `src/main.s:920-923`); the entry banner's screen and code
+  are gone before the fight. A 16-character line needs one of: cells taken
+  from LIFE / HULL / BOOST, the divider row turned into a text line (the
+  boss DLI's phase 0 then fires 8 lines later - raster work), the bottom ring
+  row given up, or a new line at scanlines 240-247 (~360 DMA cycles a frame,
+  an assert change). Not built.
+
+**Measured — the lance run** (manifest `boss.lance`; resident 0 B for every
+variant: the initial block 107 sectors, slots A / C / D / E, the banner keep
+and the level summary byte for byte stage 1's sizes):
+
+| variant | run | sectors (disk) | RAM | bytes used | free |
+| --- | --- | --- | --- | ---: | ---: |
+| stage 1 (stock) | `boss-lance` | 3 (581-583) | `$BA80-$BBFF` | 382 | 2 |
+| **C** | `boss-lance` | **4 (712-715)** | `$BA00-$BBFF` | **505** | **7** |
+| **T** | `boss-lance` | **5 (712-716)** | `$B980-$BBFF` | **538** | **102** |
+
+**The meter does not fit sectors 581-583** (M: the C meter is +46 B of C over
+the stock, the readiness and cue +~45 B of ASM, against stage 1's 2 B free).
+The run therefore has its own reservation at the disk's free tail (712-720
+were free; the Phase A probe's place, §3) - 4 sectors with C, 5 with T - and
+581-583 are free again. The disk identity names the new reservation
+(`diskLayout.bossLanceBaseSector`). The window keeps `$B82A-$B9FF` (470 B, C)
+or `$B82A-$B97F` (342 B, T) to grow (the life capsule's 125-160 B fit).
+
+**Measured — boss stress** (the four compositions with `tests/lance-states.mjs`,
+native cycles, worst reachable; `filling` the meter not full, `draw` the frame
+a lance becomes ready - indicator, reticle rows and cue -, the beam states
+after the fire frame's off):
+
+| region | before | stage 1 worst | C: filling / draw / idle / charge / fire / grow / erase | **C worst** | T: draw / idle / charge / fire | **T worst** |
+| --- | ---: | ---: | --- | ---: | --- | ---: |
+| 1 Breaker | 7,150 | 7,550 | 7,216 / 7,492 / 7,452 / 7,474 / 7,518 / 7,505 / 7,525 | **7,525** | 7,550 / 7,510 / 7,532 / 7,571 | **7,571** |
+| 2 Citadel L4 / L5 | 7,694 / 8,029 | 8,395 | L5: 8,095 / 8,348 / 8,290 / 8,312 / 8,356 / 8,384 / 8,404 | **8,404** | L5: 8,406 / 8,348 / 8,370 / 8,409 | **8,409** |
+| 3 Spine L7 / L9 | 7,771 / 8,025 | 8,403 | L9: 8,091 / 8,344 / 8,305 / 8,327 / 8,371 / 8,380 / 8,400 | **8,400** | L9: 8,402 / 8,363 / 8,385 / 8,424 | **8,424** |
+| 4 Bastion L10 | 8,060 | 8,437 | 8,126 / 8,411 / 8,339 / 8,361 / 8,405 / 8,415 / 8,435 | **8,435** | 8,469 / 8,397 / 8,419 / 8,458 | **8,469** |
+
+* **Tick (C, worst):** filling 66 (stage 1's stock 0: 20), the ready frame
+  311, idle 280, charging 302, fire 355, the beam 355-375, the kill
+  2,473-2,780. The kill frames (arrive) are unchanged from stage 1 (one
+  meeting, the shots wait a frame).
+* **The Bastion fixture** (the lance fired on its worst frame): C 8,405, T
+  8,458 (stage 1 8,271).
+* **Rule (B) clashes:** 0 in every state, every region, both variants.
+* Every C state is under §6's 50-cycle reserve (8,450); T's ready frame on
+  the Bastion is 8,469 and its fire frame 8,458 - over the reserve, under the 8,500 gate (the torpedo's ~60 cycles on every ready frame); T's filling, beam and kill states are C's.
+* **The first restructure (M, not kept):** the reticle's first draw on the
+  aim's first frame and the indicator's change on the beam's first frame put
+  C's Citadel L5 at **8,521** and the Bastion's grow at 8,497; the tick now
+  draws the rows on the ready frame (with no aim), turns the indicator off on
+  the fire frame, returns early while the meter fills (filling 163 -> 66
+  cycles) and advances the meter through the beam with one `inc`.
+
+**Measured — the routes** (Atari800, the four debug routes per variant,
+`build/lance-indicator-<c|t>-[boss-region-N-]level-1-s6`; the same 34 focused
+sessions as §6.1 - `boss-aim-lance-1` now makes the gesture with every lance
+the meter gives - `scripts/pal-timing-audit.mjs`'s model):
+
+| route | C: worst margin / DMA-on max / entry | T: worst margin / DMA-on max / entry | misses / clause failures |
+| --- | --- | --- | --- |
+| R1 Breaker | 8,583 / 29,934 / 310 | 8,483 / 29,813 / 313-314 | 0 / 0 (both) |
+| R2 Citadel | 6,421 / 30,132 / 325 | 6,413 / 30,279 / 329 | 0 / 0 (both) |
+| R3 Spine | 7,045 / 30,469 / 321 | 6,936 / 30,375 / 325 | 0 / 0 (both) |
+| R4 Bastion | 6,734 / 29,753 / 325 | 6,618 / 29,800 / 328 | 0 / 0 (both) |
+
+* **Entry:** +4 host frames for C's fourth sector (stage 1 306 / 321 / 317 /
+  321), +7-8 for T's fifth; all under 350.
+* **Clauses:** the reticle never shows outside the fight, and never on a frame
+  with no lance ready (new clause); the window tail's watch from the window's
+  end sees only the lance run's reads and the lance's own writes (0 foreign
+  writers).
+* All 6 `boss-aim` sessions pass (the bots' fire-gate fix of §6.1).
+
+**Balance probe (journal §BG 5; the period not changed).**
+
+| region / boss | modules (non-core) | weapons to destroy | HP (MEDIUM, all modules) | aim bot fight, s6 entry, MEDIUM (M) | lances it fired (M) | MEDIUM fight by the curve's rule (`docs/boss-curve.json`) | lances at 25 s (EST) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 Breaker | 16 (16) | 8 | 130 | 49.6 s (`boss-aim-lance-1`); `boss-aim-1` 47.6 s | 1 (ready f1,326, fired f1,403) | 93 s | 3 |
+| 2 Citadel | 16 (15) | 11 | 222 | 48.4 s; 49.7 s | 1 (ready f1,251, fired f1,439) | 99 s (L4) / 120 s (L5-6) | 3 / 4 |
+| 3 Spine | 13 (13) | 7 | 134 | 53.7 s; 68.3 s | 1 (ready f1,251, fired f1,634) | 106 s (L7-8) / 112 s (L9) | 3-4 |
+| 4 Bastion | 10 (10) | 9 | 215 | 56.4 s; 58.5 s | 1 (ready f1,251, fired f1,397) | 122 s | 4 |
+
+* **Measured:** on the debug routes the aiming bot (MEDIUM, entering at the
+  boss sector) ends every fight in 48-68 s, so it gets **one lance a fight**:
+  ready at 25 s (f1,251 from the entry; R1's route enters 75 frames later),
+  fired 3-8 s after, and the fight is over before the second (due at 50-58 s).
+* **Estimate:** the fights the owner tunes to (the curve's rule: frames x
+  main's plain sweep / the aiming bot, §AH) are 93-122 s on MEDIUM; one lance
+  every 25 s plus the time to stand under a target and charge (1.5 s + the
+  aim, 3-8 s measured) gives **3 lances (Breaker, Citadel L4) to 4
+  (Citadel L5-6, Spine L9, Bastion)** - each one module of 10-16.
+* "Weapons" (pulse guns, emitters, salvos) are what the defeat waits for; the
+  laser tier caps emitter slots per level, so the live weapons are fewer on a
+  region's first level. A lance takes any one non-core module.
+
+**Tests (M):** `tests/lance.test.mjs` 26 of 26 on `lance-indicator-c` and on
+`lance-indicator-t`: written first and RED on the stage-1 build (the file does
+not load: no `lance_ready`). New: the meter fills in exactly 938 / 1,250 /
+1,562 frames with the gesture held over a target all along doing nothing and
+no reticle, the ready frame (indicator, rows, no aim), the charge on the next;
+no stacking (three meters' frames full: still one lance; after the shot the
+gesture does nothing); the reset at the boss entry (a full meter left in RAM
+read anew as empty); the indicator and the cue frame by frame (filling, the
+change to on with the cue, ready frames, the ship moving, dying, alive again,
+the sound off, the charge, the fire frame's off, the beam, the fight over; C:
+a booster's release turns the ship green again). Kept: the frame-by-frame
+ordinary fire (with a lance ready against none), the Bastion worst-frame
+fixture, the kill, the targets, the half speed. Re-pinned for the layout only:
+`boss-banners` (entry sectors 79 / 83 / 82 / 83 -> 80 / 84 / 83 / 84),
+`boss-runtime` (the read order: 712-715), `boss-overlay` (the reservations
++ `lance`), `level-summary-build` (the disk runs).
+
+**Not run (the owner's brief: no full evidence chain yet):** the default
+build refuses to link (the committed runtime evidence no longer binds to the
+artifacts - `tests/runtime-evidence-binding.test.mjs` red, as expected); the
+measurements above are on `build:candidate` and the variant builds. Owed
+before a merge: the regeneration pass (`build:candidate` ->
+`runtime:wall-trace` -> `build`), the menu raster, `npm test` twice,
+`failures:reconcile`. The default build's indicator is C (the
+recommendation); `--lance-indicator=t` builds T. `how-to-play` EN / PL waits
+for the owner's choice of indicator.
+
+**The stills and GIFs** (`build/m6-probe/indicator/out/`, not committed;
+320 x 240 crops of Atari800 PAL captures of `boss-aim-lance-1`; each still a
+sheet of three panels - before, a lance ready, the beam -, also as single
+PNGs; the GIFs 150 frames at 50 fps): `c-r1`, `c-r4`, `t-r1`, `t-r4` (`.gif`,
+`-still.png`, `-before.png`, `-ready.png`, `-firing.png`). The R1 GIFs are 3 s
+in one take; the R4 GIFs are a cut (45 frames around the ready frame, 105
+around the fire: the bot took 146 frames from ready to fire there).
 
 ## 7. The tests and trace clauses that prove it
 

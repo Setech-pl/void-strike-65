@@ -432,7 +432,7 @@ typedef struct {
 	unsigned lance_reticle;
 	unsigned lance_charge;
 	unsigned lance_beam;
-	unsigned lance_stock;
+	unsigned lance_ready;
 	unsigned hull_map_draws;
 	unsigned hull_map_stale_draws;
 	unsigned hull_map_dirty_reads;
@@ -1010,19 +1010,19 @@ static unsigned dftrace_boss_armour_left;
 static unsigned dftrace_lance_y;
 static unsigned dftrace_lance_shape;
 /* M6 stage 1 (the owner's brief of 2026-10-20, §BF): the lance's charge, beam
- * and stock (the lance_charge / lance_beam / lance_stock columns; 0 outside a
+ * and readiness (the lance_charge / lance_beam / lance_ready columns - journal
+ * §BG: the meter's lance, 1 while the indicator shows it; 0 outside a
  * live fight) - the lance frames of a route's evidence - and the ordinary
  * fire's gate, which the boss-aim bots open (main's gameplay_fire_gate).
  * Optional: 0 disables each. */
 static unsigned dftrace_lance_charge;
 static unsigned dftrace_lance_beam;
-static unsigned dftrace_lance_stock;
+static unsigned dftrace_lance_ready;
 static unsigned dftrace_fire_gate;
 /* The "-lance" boss-aim bots: the one gesture's state - 0 not yet, 1 charging
  * (from the line dftrace_lance_bot_y), 2 fired (back down to that line). */
 static unsigned dftrace_lance_bot_state;
 static unsigned dftrace_lance_bot_y;
-static unsigned dftrace_lance_bot_stock;
 static unsigned dftrace_lance_bot_frames;
 static unsigned dftrace_lance_module;
 /* The shape as the build linked it (read once, at the first boss frame, from
@@ -4123,31 +4123,31 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			if (escape != 0u)
 				stick = escape;
 		}
-		/* M6 stage 1 (the owner's brief of 2026-10-20, §BF): the "-lance"
-		 * aiming bots make the VOID LANCE's gesture once. As the plain bot
-		 * aims, the first frame the reticle shows (a target under the ship, a
-		 * lance in stock) it holds FIRE and the stick up - nothing else - until the
-		 * lance fires (the stock drops; the charge advances the ship at the
-		 * charge's speed); a cancelled charge (the target drifted away) aims
-		 * again. Fired, it flies back down to the line it charged from and
-		 * plays on as the plain bot. No dodging meanwhile: the hits it takes
-		 * during the charge are the measure. */
+		/* M6 (the owner's briefs of 2026-10-20, §BF-§BG): the "-lance" aiming
+		 * bots make the VOID LANCE's gesture with every lance the meter gives.
+		 * As the plain bot aims, the first frame the reticle shows (a target
+		 * under the ship, a lance ready) it holds FIRE and the stick up -
+		 * nothing else - until the lance fires (the beam starts; the charge
+		 * advances the ship at the charge's speed); a cancelled charge (the
+		 * target drifted away) aims again. Fired, it flies back down to the
+		 * line it charged from and plays on as the plain bot until the next
+		 * lance is ready. No dodging meanwhile: the hits it takes during the
+		 * charge are the measure. */
 		if (strstr(dftrace_policy, "-lance") != NULL && dftrace_lance_live &&
-			dftrace_lance_stock != 0u && dftrace_lance_charge != 0u && dftrace_lance_beam != 0u &&
+			dftrace_lance_ready != 0u && dftrace_lance_charge != 0u && dftrace_lance_beam != 0u &&
 			dftrace_lance_module != 0u) {
-			unsigned stock = MEMORY_mem[dftrace_lance_stock];
-			if (dftrace_lance_bot_state == 0u && stock != 0u && MEMORY_mem[dftrace_lance_beam] == 0u &&
+			unsigned ready = MEMORY_mem[dftrace_lance_ready];
+			if (dftrace_lance_bot_state == 0u && ready != 0u && MEMORY_mem[dftrace_lance_beam] == 0u &&
 				GTIA_HPOSP1 != 0u) {
 				dftrace_lance_bot_state = 1u;
 				dftrace_lance_bot_frames = 0u;
 				if (dftrace_lance_bot_y == 0u)
 					dftrace_lance_bot_y = y;	/* the first aim's line */
-				dftrace_lance_bot_stock = stock;
 			}
 			if (dftrace_lance_bot_state == 1u) {
-				if (stock < dftrace_lance_bot_stock)
+				if (MEMORY_mem[dftrace_lance_beam] != 0u)
 					dftrace_lance_bot_state = 2u;
-				else if (MEMORY_mem[dftrace_lance_charge] == 0u && dftrace_lance_bot_frames >= 2u)
+				else if (ready == 0u || (MEMORY_mem[dftrace_lance_charge] == 0u && dftrace_lance_bot_frames >= 2u))
 					dftrace_lance_bot_state = 0u;	/* cancelled: aim again */
 				else {
 					/* Under the reticle's module as the band shows it now
@@ -4169,7 +4169,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				if (y < dftrace_lance_bot_y)
 					stick = (stick & 0x0cu) | 0x01u;	/* down, the aim's horizontal kept */
 				else
-					dftrace_lance_bot_state = 3u;
+					dftrace_lance_bot_state = 0u;	/* back on its line: the next lance */
 			}
 		}
 	}
@@ -6440,7 +6440,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		int live = dftrace_lance_live && dftrace_boss_active();
 		frame->lance_charge = live && dftrace_lance_charge != 0u ? MEMORY_mem[dftrace_lance_charge] : 0u;
 		frame->lance_beam = live && dftrace_lance_beam != 0u ? MEMORY_mem[dftrace_lance_beam] : 0u;
-		frame->lance_stock = live && dftrace_lance_stock != 0u ? MEMORY_mem[dftrace_lance_stock] : 0u;
+		frame->lance_ready = live && dftrace_lance_ready != 0u && MEMORY_mem[dftrace_lance_ready] != 0u ? 1u : 0u;
 	}
 	frame->boss_state = dftrace_boss_active() && dftrace_boss_phase != 0u
 		? 1u + MEMORY_mem[dftrace_boss_phase] : 0u;
@@ -6683,7 +6683,7 @@ static void dftrace_write(void)
 		",rail_k,rail_dead,rail_sliding,boss_alive"
 		",boss_exposed,bay_cells,bay_stops,bay_maps,laser_missiles,beam_rows,beam_armour,beam_below,jamb_map"
 		",row_switch_frames,row_switch_min,row_switch_max,row_switch_rows,row_switch_line_bits,row_switch_max_cycle,row_switch_cut_frames"
-		",lance_reticle,lance_charge,lance_beam,lance_stock\n");
+		",lance_reticle,lance_charge,lance_beam,lance_ready\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -6976,7 +6976,7 @@ static void dftrace_write(void)
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->row_switch_frames, frame->row_switch_min, frame->row_switch_max,
 			frame->row_switch_rows, frame->row_switch_line_bits, frame->row_switch_max_cycle, frame->row_switch_cut_frames);
 		fprintf(file, ",%u,%u,%u,%u\n", frame->lance_reticle, frame->lance_charge, frame->lance_beam,
-			frame->lance_stock);
+			frame->lance_ready);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -7763,7 +7763,7 @@ static void dftrace_init(void)
 	dftrace_lance_shape = dftrace_env_optional("DFTRACE_LANCE_SHAPE");
 	dftrace_lance_charge = dftrace_env_optional("DFTRACE_LANCE_CHARGE");
 	dftrace_lance_beam = dftrace_env_optional("DFTRACE_LANCE_BEAM");
-	dftrace_lance_stock = dftrace_env_optional("DFTRACE_LANCE_STOCK");
+	dftrace_lance_ready = dftrace_env_optional("DFTRACE_LANCE_READY");
 	dftrace_lance_module = dftrace_env_optional("DFTRACE_LANCE_MODULE");
 	dftrace_fire_gate = dftrace_env_optional("DFTRACE_FIRE_GATE");
 	dftrace_boss_armour_left = dftrace_env_optional("DFTRACE_BOSS_ARMOUR_LEFT");

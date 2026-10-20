@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-20 (feat/m6-void-lance, OWNER-SMOKE CANDIDATE: M6 stage 1 final - the VOID LANCE in the boss sector after the owner's choice (journal §BF): FIRE + stick UP held 75 frames over a target, the ordinary fire never changed, the ship at half speed while charging, the P0 beam, the one-module kill through boss_hit as the frame's only meeting, stock up to 3; plan docs/plans/m6-void-lance.md §6.1; the shipped game's stock is 0 until stage 2's capsules, debug routes grant it with --lance-stock=N; resident 0 B (slot A +5, banner keep +2, the level summary +10 with its display list kept at $0B58), the lance run 382 of 384 B at $BA80-$BBFF; boss-sector worst 8,437 (the Bastion), the lance in every boss route's native evidence (boss-aim-lance-1, no health lost in any charge), the boss-aim bots' fire-gate defect fixed; worst fence margin 1,465 and DMA-on 31,059 unchanged. Before it: 2026-10-19 docs/enemies-bosses-pages, OWNER REVIEW CANDIDATE: the player pages docs/enemies.md and docs/bosses.md, EN + PL, with CRT-style pictures and seven cuts captured from the build (scripts/pages/, docs/media/{enemies,bosses,badges}, not in the media manifest - backlog), the README link bar at the top, how-to-play and game-design corrected to the code; docs, media and tools only, dist/ = the v0.3.0 ATR byte for byte; plan docs/plans/enemies-bosses-pages.md. Before it: v0.3.0 released as a pre-release from main - chore/release-v0.3.0, journal §BC. The owner's hardware test on a real 65XE via SIO2SD PASSED on ATR c977efe0 (level 1, region 1's banner and the Blockade Breaker, the summary) and the region-4 route 5e2888eb (the Bastion's banner and fight): hardware-testing.md §36 and §39 PASS, the §AZ technical debt cleared, the audit's M8 item covered. Real hardware covers what the shipped game reaches (level 1 and region 1's boss); the other OWNER-SMOKE CANDIDATE items accepted on emulator smoke. Ledger: AUD-01..07 and LA-1, 2, 5 closed; the audit's M4 deferred to M4 / the campaign, M10 to M8. The shipped game is level 1 ending on the Blockade Breaker; the three other bosses are built and arrive with the campaign. Notes EN + PL in docs/releases/v0.3.0.md; README plays v0.3.0 (Setech Arcade to be repinned; the summary's display list still $0B58, measured). Before it: fix/audit-m5 merged at f7d7f4d, OWNER-ACCEPTED.)
+Last update: 2026-10-20 (feat/m6-void-lance, OWNER-SMOKE CANDIDATE, STOP for the owner's choice of indicator: journal §BG - the VOID LANCE charges with time, a meter of 1,250 frames (25 s) on MEDIUM, 938 EASY, 1,562 HARD, one lance, no stacking, reset at every boss entry; the reticle only while a lance is ready; the stock, --lance-stock and the boss-capsule lances gone; readiness indicator C (the ship green $CA) by default, T (a finned torpedo on the nose) behind --lance-indicator=t, H (HUD text) no room; a channel-3 cue; the lance run 505 of 512 B (C, 4 sectors) / 538 of 640 B (T, 5 sectors) at the disk's free tail 712+, resident 0 B; boss-sector worst C 8,435 / T 8,469 (the Bastion), 68 route sessions clean, entry <= 329; evidence chain owed (runtime binding red); plan docs/plans/m6-void-lance.md §6.3. Before it: M6 stage 1 final (journal §BF, the stock of up to 3), not accepted as a design at its smoke (§BG). Before it: 2026-10-19 docs/enemies-bosses-pages, OWNER REVIEW CANDIDATE: the player pages docs/enemies.md and docs/bosses.md, EN + PL, with CRT-style pictures and seven cuts captured from the build (scripts/pages/, docs/media/{enemies,bosses,badges}, not in the media manifest - backlog), the README link bar at the top, how-to-play and game-design corrected to the code; docs, media and tools only, dist/ = the v0.3.0 ATR byte for byte; plan docs/plans/enemies-bosses-pages.md. Before it: v0.3.0 released as a pre-release from main - chore/release-v0.3.0, journal §BC. The owner's hardware test on a real 65XE via SIO2SD PASSED on ATR c977efe0 (level 1, region 1's banner and the Blockade Breaker, the summary) and the region-4 route 5e2888eb (the Bastion's banner and fight): hardware-testing.md §36 and §39 PASS, the §AZ technical debt cleared, the audit's M8 item covered. Real hardware covers what the shipped game reaches (level 1 and region 1's boss); the other OWNER-SMOKE CANDIDATE items accepted on emulator smoke. Ledger: AUD-01..07 and LA-1, 2, 5 closed; the audit's M4 deferred to M4 / the campaign, M10 to M8. The shipped game is level 1 ending on the Blockade Breaker; the three other bosses are built and arrive with the campaign. Notes EN + PL in docs/releases/v0.3.0.md; README plays v0.3.0 (Setech Arcade to be repinned; the summary's display list still $0B58, measured). Before it: fix/audit-m5 merged at f7d7f4d, OWNER-ACCEPTED.)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -426,75 +426,39 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## M6 stage 1 — the VOID LANCE in the boss sector (feat/m6-void-lance) — `OWNER-SMOKE CANDIDATE`
+## M6 — the VOID LANCE charged by time; the readiness indicator, C or T (feat/m6-void-lance) — `OWNER-SMOKE CANDIDATE`, STOP for the owner's choice of indicator
 
-Plan [plans/m6-void-lance.md](plans/m6-void-lance.md) §6.1 (stage 1 as built, final) and §6.2 (the comparison); journal **§BD** (the Phase A decisions), **§BE** (the smoke: rule (c) withdrawn) and **§BF** (the owner's choice: variant A, FIRE + stick UP; the half speed while charging). Branch `feat/m6-void-lance`, cut from `main` `3d59ded` and fast-forwarded onto the Phase A plan commit `837cf04`.
+Plan [plans/m6-void-lance.md](plans/m6-void-lance.md) §6.3 (this state), §6.1-§6.2 (stage 1 and its comparison); journal **§BD**-**§BF** (stage 1's decisions) and **§BG** (the smoke of `89297a5`: stage 1 not accepted as a design - the stock must not depend on boss capsules, the reticle was always on; the meter, the reticle only while ready, the indicator variants, the boss capsules as lances withdrawn).
 
-**What changes for the player** (only with lances in stock; **the shipped game's stock is 0 until stage 2's capsules**, so the game plays as on `main`):
-- **The reticle (V2):** one crosshair in P1, under the band's last row, over the front module above the ship's centre. It blinks on 2-frame steps while charging. P1 only (P2 stays free), the lasers' colour (no colour register written).
-- **The charge (§BF):** hold **FIRE + stick UP** for 75 frames (1.5 s) over a target (a diagonal with UP counts). Releasing either cancels. FIRE alone, the stick alone or FIRE with another direction never charge. **The ordinary fire is never changed** (journal §BE): held FIRE shoots exactly as on `main` through the charge and the beam.
-- **The half speed (§BF 2):** while the charge builds, the ship moves at half speed in every direction (one frame in two). Full speed the moment the charge is released or the lance fires.
-- **The shot:** a beam in P0 grows 20 lines a frame up to the module and kills exactly that module through `boss_hit` (score, kill and capsule path as a shot's), then erases itself in the same steps. The kill is the frame's only meeting: a shot that would meet the boss on that frame waits one frame. One lance per shot, a stock of up to 3; the reticle is the only indicator.
-- **What it can hit:** only what an ordinary shot could hurt; never the core, a closed bay or door, a shielded cannon or a powered field.
-- **Debug routes:** `--lance-stock=N` (1-3, with `--level`) grants N lances at every boss entry; `--lance-slow=forward` is the owner's one comparison build (only UP slowed), removed after the owner plays it.
-- **Tuning:** `LANCE_CHARGE_FRAMES` (75) and `LANCE_CHARGE_SPEED_DIVISOR` (2), side by side in `scripts/lance-layout.mjs`.
+**What changes for the player** (every boss fight of the full game):
+- **The meter:** a lance charges with time in the boss sector: 1,250 frames (25 s) on MEDIUM, 938 (18.76 s) on EASY, 1,562 (31.24 s) on HARD (the boss's hit-point ratios). Full: **one** lance ready, no stacking; the shot empties the meter. Empty at every boss entry. No capsule, no stock, no HUD cell, no keyboard.
+- **Readiness:** the indicator - **C** the ship green (`$CA`) or **T** a finned torpedo on the nose - and a 0.32 s tone on channel 3 when a lance becomes ready (again after a death). Off on the fire frame, while the ship is dying and when the fight ends. **H** (a HUD text) has no room: skipped (plan §6.3).
+- **The reticle (V2)** shows only while a lance is ready, over a target; the gesture (FIRE + stick UP, 75 frames, half speed), the beam, the one-module kill and the shot-hold on the kill frame are stage 1's. The gesture does nothing while the meter fills.
+- **Build:** the default build is C (the recommendation); `--lance-indicator=t` builds T (`build/lance-indicator-<x>[-...]/`, the comparison only). `--lance-stock` is gone. Tuning: `LANCE_METER_FRAMES`, `LANCE_CHARGE_FRAMES`, `LANCE_CHARGE_SPEED_DIVISOR` side by side in `scripts/lance-layout.mjs`.
 
-**Resident bytes: 0** for the weapon.
-| Item | Before (`main`) | After |
-| --- | ---: | ---: |
-| lance run `BOSS_LANCE_RAM` `$BA80-$BBFF` (sectors 581-583) | – | 382 of 384 B (373 code, 1 data, 8 BSS; 2 B free) |
-| window record end | `$B82A` | `$B82A` (598 B to the lance's RAM; build assertion `scripts/lance-layout.mjs`) |
-| slot A | 2,034 B | 2,039 B (+5, allowed) |
-| banner keep | 264 B | 266 B (+2, allowed) |
-| level summary (`$0500`, 14 sectors) | 1,760 B | 1,770 B (+6 the two boss-restore entries for `read_input`'s stick operand, +4 padding that keeps `summary_display_list` at `$0B58`, now asserted - journal §BC) |
-| initial block, window, reader, Light kernel, slots C / D / E | – | unchanged |
+**Resident bytes: 0** for both variants (initial block 107 sectors, slots A / C / D / E, banner keep, level summary 1,770 B with `summary_display_list` at `$0B58` - all stage 1's sizes; C's `COLPM0` restore entry takes 3 B of the summary's padding).
 
-**CPU cost (M, native).** The tick: 20 cycles with stock 0; with a lance in stock idle 222, charging 244, first draw 378, firing and the beam 346-366, the kill 2,471-2,778. **The half speed's check: 26 cycles on a full-speed aim frame, 30 on a slow one** (in the figures above). `read_input` with UP held: 449 on a moving frame, 65 on a slow one (each slow frame saves 384 there; the stress table does not count `read_input`).
+| Item | stage 1 | C | T |
+| --- | ---: | ---: | ---: |
+| lance run | 382 of 384 B, 3 sectors 581-583, `$BA80-$BBFF` | **505 of 512 B**, 4 sectors **712-715**, `$BA00-$BBFF` | **538 of 640 B**, 5 sectors **712-716**, `$B980-$BBFF` |
+| window room to grow (from `$B82A`) | 598 B | 470 B | 342 B |
+| boss entry, host frames (R1 / R2 / R3 / R4) | 306 / 321 / 317 / 321 | 310 / 325 / 321 / 325 | 313-314 / 329 / 325 / 328 |
 
-**Boss-sector worst frame per region (M, the 6502 stress tools; limit 8,500).**
-| region | before | stock 0 | idle | charging (slow) | firing | beam grow / erase | kill | worst state | headroom |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 Breaker | 7,150 | 7,170 | 7,394 | 7,416 | 7,414 | 7,496 / 7,516 | 7,114 | 7,550 (first draw) | 950 |
-| 2 Citadel L5 | 8,029 | 8,049 | 8,232 | 8,254 | 8,252 | 8,375 / 8,395 | 8,208 | 8,395 (beam erase) | 105 |
-| 3 Spine L9 | 8,025 | 8,045 | 8,247 | 8,269 | 8,267 | 8,371 / 8,391 | 8,010 | 8,403 (first draw) | 97 |
-| 4 Bastion L10 | 8,060 | 8,080 | 8,281 | 8,303 | 8,301 | 8,406 / 8,426 | 7,545 | 8,437 (first draw) | 63 |
+Sectors 581-583 are free again; the lance run has its own reservation at the disk's free tail (the meter does not fit 581-583, plan §6.3).
 
-Rule (B) clashes (a kill and a spawn on one frame): 0.
+**Boss-sector worst frame per region (M, the 6502 stress tools; limit 8,500; stage 1's worst in brackets).** C: R1 **7,525** (7,550), Citadel L5 **8,404** (8,395), Spine L9 **8,400** (8,403), Bastion **8,435** (8,437) - every state under the 8,450 reserve. T: R1 7,571, Citadel 8,409, Spine 8,424, Bastion **8,469** (the ready frame; its fire frame 8,458) - under 8,500, over the reserve. The Bastion fixture (the lance fired on its worst frame): C 8,405, T 8,458. Rule (B) clashes 0. Tick (C): filling 66 cycles, ready frame 311, idle 280, charging 302, fire 355, the beam 355-375.
 
-**Boss routes (M, Atari800, `build/lance-stock-3-*`, stock 3; 34 focused sessions on the final ATRs).**
-| route | sessions | worst margin | DMA-on max | entry host frames | misses / clause failures |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| R1 Breaker | 6 | 8,695 | 29,899 | 306 | 0 / 0 |
-| R2 Citadel | 9 | 6,032 | 30,109 | 321 | 0 / 0 |
-| R3 Spine | 9 | 7,175 | 30,430 | 317 | 0 / 0 |
-| R4 Bastion | 10 | 6,846 | 29,741 | 321 | 0 / 0 |
+**Boss routes (M, Atari800; 34 focused sessions per variant, the four debug routes).** 68 sessions, 0 misses, 0 clause failures (all 6 `boss-aim` included). Worst fence margin C 6,421 / T 6,413 (R2), DMA-on maximum C 30,469 / T 30,375 (R3). New clause: the reticle never shows on a frame with no lance ready. `boss-aim-lance-1` makes the gesture with every lance; on every route it got one (ready 25 s after the entry, fired 3-8 s later; the aim bot's fights end at 48-68 s).
 
-**The lance in the native evidence** (new session `boss-aim-lance-1` on every route: the aiming bot makes the FIRE + UP gesture once; the trace's new `lance_charge` / `lance_beam` / `lance_stock` columns). Worst DMA-on / fence margin of the lance frames: R1 27,988 / 8,695; R2 Citadel 28,377 / 8,279; R3 Spine 28,165 / 8,637; R4 Bastion 28,470 / 7,744. Every charge ran to its end in one go and every arrival was a kill. **No health lost in the charge on any route, the Citadel and the Bastion included.** The ship rose 37 lines in the 74 charge frames, half the full-speed figure. The comparison build (`--lance-slow=forward`, R4) gives the same figures (worst margin 7,485, 0 misses).
+**Balance probe (period not changed):** the aim bot (MEDIUM, from the boss sector) gets **1 lance a fight** in every region (fights 48-68 s). At the curve's rule (93 / 99-120 / 106-112 / 122 s on MEDIUM, `docs/boss-curve.json`) 25 s gives an estimated **3 / 3-4 / 3-4 / 4** lances; the bosses have 16 / 16 (15 non-core) / 13 / 10 modules, 8 / 11 / 7 / 9 weapons.
 
-**The bots (a bot defect, not the game's).** The 6 "the fight must progress" failures (R1 boss-aim-0/1/2, R2-R4 boss-aim-1) were the boss-aim bot holding FIRE from START GAME, so `main`'s fire gate never opened. The boss-aim bots now release FIRE for a frame while `gameplay_fire_gate` is 0. On the lance-free route builds (stock 0) all 6 pass: R1's reach the summary, R2-R4 the chain at frames 2,483 / 3,416 / 2,924. The default evidence has no boss-aim session.
+**Tests.** `tests/lance.test.mjs` 26 of 26 on C and on T (written first, RED on the stage-1 build: no `lance_ready`): the meter's exact frames on EASY / MEDIUM / HARD with the gesture doing nothing meanwhile, no stacking, the reset at the entry, the indicator and cue frame by frame, plus stage 1's rules, the frame-by-frame ordinary fire and the Bastion fixture. Layout re-pins only: `boss-banners`, `boss-runtime`, `boss-overlay`, `level-summary-build`. Focused layout and audio tests green on `build:candidate`.
 
-**Gates (M; before = main `3d59ded`, ATR `c977efe0`).**
-| gate | before | after | source |
-| --- | ---: | ---: | --- |
-| worst fence margin | 1,465 (2-sweep-fire6) | 1,465 (2-sweep-fire6) | PAL audit, the trace |
-| DMA-on maximum | 31,059 | 31,059 (2-evasive-fire7) | the trace |
-| PAL audit / clause failures | 0 misses, 58 replays / 0 | 0 misses, 58 replays / 0 | the trace |
-| boss entries in the trace | 295 host frames | 17 entries, all 306 (limit 350) | the trace CSVs |
-| window tail writes | – | 17 lance-run reads, 0 foreign writers | the trace |
-| menu raster | 4 sessions pass | 4 sessions pass | the trace |
-| boss-frame stress (limit 8,500) | worst 8,060 | worst 8,437 (the Bastion's first draw) | the 6502 tools |
-| resident bytes | – | 0 | the manifest |
+**Not done at this STOP (the owner's brief):** the evidence chain - the default build refuses to link against the stale runtime evidence (`tests/runtime-evidence-binding.test.mjs` red, expected); `npm test`, the trace, the menu raster, `failures:reconcile` owed before a merge. `how-to-play` EN / PL waits for the chosen indicator. Real hardware: the cue's channel 3 needs SKCTL bit 4 clear in the boss sector (pinned by `tests/hardware-audio.test.mjs`, green) - by ear on the owner's smoke.
 
-**Tests.**
-- `tests/lance.test.mjs`: 21 tests, one rule (no skips), green on the default build and on the `--lance-slow=forward` comparison build. The half-speed test checks the ship's move frame by frame against a lance-free run: halved with UP, UP + LEFT and UP + RIGHT during the charge; unchanged with DOWN / LEFT / RIGHT with FIRE (no charge), every direction without FIRE, the release frame, the fire frame and the beam's frames. Also tested: the stick operand's swap, its restore entries, and the ordinary fire frame for frame.
-- New trace clause: a `-lance` bot on a route with a stock charges, fires and its beam arrives.
-- Full `npm test`, two runs on the default build: 1,511 tests, 1,510 pass, 0 skipped. The only failure is the recorded `tests/preview.test.mjs:164`. `failures:reconcile`: 0 NEW, 0 MOVED, both runs. No layout value needed re-pinning.
+**Known risks.** C turns the Citadel's gravity column (missile M0, `COLPM0`) green with the ship while a lance is ready; a Shield booster's pulse overrides the green while it runs. T: the torpedo is the ship's colour; a one-line gap shows above the nose while moving down; it shows during the respawn blink. Stage 1's: the beam's erase can cut a death explosion's rows.
 
-**Known risks.**
-- The beam's erase can remove rows of a death explosion drawn above the ship. Cosmetic and untested.
-- Stage 2: see the backlog (the lance run has 2 B free).
-
-**Owner smoke ATRs** (`build/play/`, stock 3 at every boss entry): R1 `void-strike-65-m6-lance-final-r1-breaker-stock3-84df503d.atr`, R2 `…-r2-citadel-stock3-d51f8a10.atr`, R3 `…-r3-spine-stock3-90cc01ec.atr`, R4 `…-r4-bastion-stock3-61eac0e1.atr`; the comparison R4 with only UP slowed `…-slow-forward-r4-bastion-stock3-f8dbf3a5.atr`; the full game with stock 0 (= `dist/`), `…-full-stock0-15b045a7.atr`. Not merged, not pushed.
+**Owner smoke ATRs** (`build/play/`, meter 25 s): C (recommended) - full game `void-strike-65-m6-meter25-c-colour-full-86dd836e.atr`, R1 `…-c-colour-r1-breaker-7fa39b88.atr`, R2 `…-c-colour-r2-citadel-9422e363.atr`, R3 `…-c-colour-r3-spine-d771b218.atr`, R4 `…-c-colour-r4-bastion-8398b803.atr`; T - full game `void-strike-65-m6-meter25-t-torpedo-full-bca609b6.atr`. Stills and GIFs: `build/m6-probe/indicator/out/` (not committed).
 
 ---
 

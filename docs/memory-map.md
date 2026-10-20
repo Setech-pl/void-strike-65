@@ -239,11 +239,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$B791-$B7EF` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
 | `$B7F0-$B813` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
 | `$B814-$B829` | 22 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's region read (its WARNING records gone with the text screen, feat/boss-banners), the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour) | `resident` | build/light-kernel.map |
-| `$B82A-$BA7F` | 598 B | unclaimed | **unclaimed — not measured** | — | — |
-| `$BA80-$BBFF` | 384 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (3 sectors, 581-583); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
-| `$BA80-$BBF4` | 373 B | segment | `LANCE_CODE` — the VOID LANCE (M6 stage 1): the tick (the target under the ship, the reticle on P1, the charge's fire gate, the beam in P0, the kill through boss_hit) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
-| `$BBF5` | 1 B | segment | `LANCE_DATA` — the VOID LANCE's stock, the build's grant (0 in the game until stage 2), read with the run at every boss entry | `overlay` | build/boss.map |
-| `$BBF6-$BBFD` | 8 B | segment | `LANCE_BSS` — the VOID LANCE's state (the charge, the beam, the reticle's line), inside the run: read as zeros at every boss entry | `overlay` | build/boss.map |
+| `$B82A-$B9FF` | 470 B | unclaimed | **unclaimed — not measured** | — | — |
+| `$BA00-$BBFF` | 512 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (4 sectors, 712-715); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
+| `$BA00-$BBED` | 494 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator and its cue, the target under the ship, the reticle on P1 while a lance is ready, the beam in P0, the kill through boss_hit) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
+| `$BBEE-$BBF8` | 11 B | segment | `LANCE_BSS` — the VOID LANCE's state (the meter, the readiness shown, the charge, the beam, the reticle's line), inside the run: read as zeros at every boss entry - the meter resets | `overlay` | build/boss.map |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -265,9 +264,9 @@ No linked segment, cfg reservation, equate block, manifest range or machine area
 | --- | ---: | --- | --- |
 | `$00B6-$00FF` | 74 B | not measured | none in the repository |
 | `$0400-$04FF` | 256 B | not measured | none in the repository |
-| `$B82A-$BA7F` | 598 B | not measured | none in the repository |
+| `$B82A-$B9FF` | 470 B | not measured | none in the repository |
 
-Total: 928 B unclaimed, of which 0 B measured-free.
+Total: 800 B unclaimed, of which 0 B measured-free.
 
 ### Free after boot
 
@@ -683,27 +682,27 @@ By topic: Light enemies 66%, Director, sectors and waves 23%, Heavy, Raider and 
 | `summary_draw_stats` | `$0649` | 116 B | 6.6% | level summary |
 | `summary_update_record` | `$084B` | 116 B | 6.6% | level summary |
 | `summary_accuracy` | `$0981` | 109 B | 6.2% | level summary |
-| `summary_time` | `$0A3B` | 83 B | 4.7% | level summary |
+| `summary_time` | `$0A3E` | 83 B | 4.7% | level summary |
 | `summary_print` | `$0714` | 76 B | 4.3% | level summary |
-| `summary_grade` | `$0A8E` | 71 B | 4.0% | level summary |
+| `summary_grade` | `$0A91` | 71 B | 4.0% | level summary |
 | `summary_read_record` | `$080D` | 62 B | 3.5% | level summary |
 | (after summary_level_end) | `$058D` | 61 B | 3.4% | level summary |
-| `summary_bonus` | `$0AD5` | 60 B | 3.4% | level summary |
+| `summary_bonus` | `$0AD8` | 60 B | 3.4% | level summary |
 | `summary_publish` | `$0615` | 52 B | 2.9% | level summary |
 | `summary_draw_best` | `$06BD` | 45 B | 2.5% | level summary |
 | `summary_start_display_list` | `$0B7C` | 39 B | 2.2% | level summary |
 | `summary_own_disk` | `$093C` | 37 B | 2.1% | level summary |
 | `summary_display_list` | `$0B58` | 36 B | 2.0% | level summary |
-| `summary_animate` | `$0B37` | 33 B | 1.9% | level summary |
+| `summary_animate` | `$0B3A` | 30 B | 1.7% | level summary |
 | `summary_wait` | `$05CA` | 29 B | 1.6% | level summary |
 | `summary_row` | `$06FA` | 26 B | 1.5% | level summary |
 | `summary_two_digits` | `$0760` | 24 B | 1.4% | level summary |
 | `summary_prepare` | `$05FE` | 23 B | 1.3% | level summary |
 | `summary_boss_restore` | `$09EE` | 23 B | 1.3% | level summary |
+| `boss_restore_lo` | `$0A05` | 19 B | 1.1% | unclassified |
+| `boss_restore_hi` | `$0A18` | 19 B | 1.1% | unclassified |
+| `boss_restore_value` | `$0A2B` | 19 B | 1.1% | unclassified |
 | `summary_record_slot` | `$0961` | 18 B | 1.0% | level summary |
-| `boss_restore_lo` | `$0A05` | 18 B | 1.0% | unclassified |
-| `boss_restore_hi` | `$0A17` | 18 B | 1.0% | unclassified |
-| `boss_restore_value` | `$0A29` | 18 B | 1.0% | unclassified |
 | 40 smaller items | — | 205 B | 11.6% | — |
 
 By topic: level summary 97%, unclassified 3%.
@@ -1076,22 +1075,26 @@ Design notes; the generated block above has every range. Plan §5.12.
   segment of the Director link's half (109 B); the window is 1,316 B free.
 - **Disk**: boss code 528-543, install 544-546, region 1 547-555; regions 2-4
   556-582 (S5).
-- **M6 stage 1 — the VOID LANCE run (owner decision BD 6, 2026-10-20):**
-  `$BA80-$BBFF`, the top 384 B of the window's unclaimed tail, allocated from
+- **M6 — the VOID LANCE run (owner decision BD 6, 2026-10-20; journal §BG):**
+  `$BA00-$BBFF`, the top 512 B of the window's unclaimed tail, allocated from
   `$BBFF` down. It is read at every boss entry after slot E (the banner's
-  reads, five shared runs), is the boss sector's only, and holds 373 B of
-  code, the stock's 1-B grant and 7 B of BSS read as zeros (manifest
-  `boss.lance`).
-  - **Disk:** sectors 581-583, the boss code reservation's last three. Slot
-    E's maximum is now 4 sectors (577-580), the whole sectors its 576 B
-    allow: a fifth could never be read.
-  - **The window's room to grow:** `$B82A-$BA7F`, 598 B (the life capsule's
+  reads, five shared runs), is the boss sector's only, and holds the code
+  (the tick, the meter's and the charge's C policy, the readiness indicator:
+  470 B with indicator C, 490 B with T) and 11 B of BSS read as zeros - the
+  meter resets at every entry (manifest `boss.lance`). Stage 1's run was
+  `$BA80-$BBFF`, 384 B (373 B of code, the stock's 1-B grant, 8 B of BSS).
+  - **Disk:** sectors 712-715, the lance's own reservation at the disk's free
+    tail (manifest `boss.reservedSectors.lance`). Stage 1 used 581-583, the
+    boss code reservation's last three: the meter and the indicator do not
+    fit them (plan `m6-void-lance` §6.3), and they are free again. Slot E's
+    maximum stays 4 sectors (577-580), the whole sectors its 576 B allow.
+  - **The window's room to grow:** `$B82A-$B9FF`, 470 B (the life capsule's
     125-160 B fit). `scripts/lance-layout.mjs` fails the build when the
-    window's record (the Light kernel link's end) passes `$BA80`.
+    window's record (the Light kernel link's end) passes `$BA00`.
   - **Runtime evidence:** the trace watches the tail from the window's end
     (the `window_tail` range, `windowTailWriteClause`). The only writers are
     the start-up writers, the sector reader's read of the run and the
-    lance's own code, and both write only into `$BA80-$BBFF`.
+    lance's own code, and both write only into the run (`$BA00-$BBFF`).
   - **The hooks:** the boss vector image's TICK_FLASHES and HULL_CONTACT
     entries (`jmp boss_rts` before), byte-neutral in slot A. Slot A grows by
     the run table's 5 B (2,039 of 2,048 B), the banner reads by 2 B (250 B).

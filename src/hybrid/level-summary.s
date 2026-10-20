@@ -1046,8 +1046,9 @@ summary_animate:
 ; M6 (journal §BF): the boss restore table grew by 6 B (read_input's stick
 ; operand); the powers tables (10 B) moved past the display lists and these
 ; 4 B keep summary_display_list where the release's level-end checks find it
-; (journal §BC: Setech Arcade's record test reads $0B58).
-        .res 4, $00
+; (journal §BC: Setech Arcade's record test reads $0B58). Journal §BG's
+; indicator C restores COLPM0 too: one entry, 3 B of the 4.
+        .res 4 - 3 * (BOSS_RESTORE_COUNT - 18), $00
 summary_display_list:
         .byte $70, $70
         .byte $42, <SUMMARY_SCREEN, >SUMMARY_SCREEN

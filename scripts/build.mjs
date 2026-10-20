@@ -145,7 +145,7 @@ import {
   renderBossLayoutHeader,
   renderBossLayoutInclude,
 } from "./boss-assets.mjs";
-import { checkLanceLayout, LANCE_CHARGE_FRAMES, LANCE_CHARGE_SPEED_DIVISOR, LANCE_RAM_END } from "./lance-layout.mjs";
+import { checkLanceLayout, LANCE_CHARGE_FRAMES, LANCE_CHARGE_SPEED_DIVISOR, LANCE_RAM_END, lanceMeterFrames } from "./lance-layout.mjs";
 import {
   BANNER_BASE_SECTOR,
   BANNER_BUFFER,
@@ -356,29 +356,32 @@ if (laserTierSlug !== undefined && !["1", "2", "4"].includes(laserTierSlug)) {
   throw new Error(`Unknown laser tier ${laserTierSlug}; the tiers are 1, 2 and 4`);
 }
 const laserTierValue = laserTierSlug === undefined ? null : Number(laserTierSlug);
-// M6 stage 1 (docs/plans/m6-void-lance.md §6; the owner's brief of
-// 2026-10-20): --lance-stock=N (1-3) grants N VOID LANCE shots at every boss
-// entry (src/c/lance.c's lance_stock), until stage 2's boss capsules give
-// them; the game's stock is 0. Composes with --level=1:sector=M
-// [--boss-region=N]. Debug only: build/lance-stock-N-[boss-region-N-]level-1-sM/,
-// never dist/.
-const lanceStockArgument = process.argv.find((argument) => argument.startsWith("--lance-stock="));
-const lanceStockSlug = lanceStockArgument?.slice("--lance-stock=".length);
-if (lanceStockSlug !== undefined && !["1", "2", "3"].includes(lanceStockSlug)) {
-  throw new Error(`Unknown lance stock ${lanceStockSlug}; the stock is 1, 2 or 3`);
+// M6 (journal §BG, the owner's smoke of 2026-10-20): the VOID LANCE charges
+// with time (scripts/lance-layout.mjs's meter) in every boss fight, and the
+// player is told it is ready by an indicator. The owner compares the
+// indicators: --lance-indicator=t (the torpedo on the ship's nose) or c (the
+// ship's colour) builds that one (H, a HUD text, has no room: plan §6.3);
+// the default is LANCE_INDICATOR_DEFAULT. Composes with --level=1:sector=M
+// [--boss-region=N]. Review variant: build/lance-indicator-<x>[-...]/, never
+// dist/; the losers go when the owner has chosen.
+const LANCE_INDICATORS = ["t", "c"];
+const LANCE_INDICATOR_DEFAULT = "c";
+const lanceIndicatorArgument = process.argv.find((argument) => argument.startsWith("--lance-indicator="));
+const lanceIndicatorSlug = lanceIndicatorArgument?.slice("--lance-indicator=".length);
+if (lanceIndicatorSlug !== undefined && !LANCE_INDICATORS.includes(lanceIndicatorSlug)) {
+  throw new Error(`Unknown lance indicator ${lanceIndicatorSlug}; the indicators are ${LANCE_INDICATORS.join(", ")}`);
 }
-const lanceStockValue = lanceStockSlug === undefined ? null : Number(lanceStockSlug);
+const lanceIndicator = lanceIndicatorSlug ?? LANCE_INDICATOR_DEFAULT;
 // M6 stage 1, the owner's choice after the comparison (journal §BF): the
 // charge is FIRE + stick UP and slows the ship in every direction. The owner's
 // comparison build --lance-slow=forward slows only the advance (UP); the
 // default "every" is the committed rule. Review variant:
-// build/lance-slow-forward-[stock-N-...]/; it goes when the owner has played it.
+// build/lance-slow-forward[-...]/; it goes when the owner has played it.
 const lanceSlowArgument = process.argv.find((argument) => argument.startsWith("--lance-slow="));
 const lanceSlowSlug = lanceSlowArgument?.slice("--lance-slow=".length);
 if (lanceSlowSlug !== undefined && lanceSlowSlug !== "forward") {
   throw new Error(`Unknown lance slow rule ${lanceSlowSlug}; the comparison is forward`);
 }
-const lancePrefix = lanceSlowSlug === undefined ? "lance-" : `lance-slow-${lanceSlowSlug}-`;
 if (laserTierValue !== null && laserFixtureTier !== null) {
   throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
 }
@@ -459,11 +462,8 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  laserTierValue !== null || bossVariantSlug !== undefined || lanceStockValue !== null ||
+  laserTierValue !== null || bossVariantSlug !== undefined || lanceIndicatorSlug !== undefined ||
   lanceSlowSlug !== undefined;
-if (lanceStockValue !== null && levelDebugId === null) {
-  throw new Error("--lance-stock=N rides a debug route: pass --level=1:sector=M with it");
-}
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -487,8 +487,8 @@ const variantDirectoryNameInner = (escortVariantId !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : laserTierValue !== null
   ? `laser-tier-${laserTierValue}${levelDebugSuffix}`
-  : lanceStockValue !== null
-  ? `${lancePrefix}stock-${lanceStockValue}${levelDebugSuffix}`
+  : lanceIndicatorSlug !== undefined
+  ? `lance-indicator-${lanceIndicatorSlug}${levelDebugSuffix}`
   : lanceSlowSlug !== undefined
   ? `lance-slow-${lanceSlowSlug}${levelDebugSuffix}`
   : playerColourValue !== null
@@ -669,15 +669,19 @@ const bossSlotESector = bossSlotDSector + bossSlotDMaxSectors;
 // M6: whole sectors only - a fifth sector of slot E's 576 B could never be
 // read (the overrun check below), so 581 is not slot E's.
 const bossSlotEMaxSectors = Math.floor(BOSS_SLOT_E_BYTES / 128);
-// M6 stage 1 (docs/plans/m6-void-lance.md §3, §6; owner decision BD 6): the
-// lance run - the VOID LANCE (src/hybrid/lance.s, src/c/lance.c), read at
-// every boss entry after slot E - in the reservation's last three sectors
-// (581-583), landing in the window's unclaimed tail from $BBFF down: its
-// RAM is the top LANCE_SECTORS x 128 B, below which the window's record may
-// grow (the build fails when it reaches them). Its BSS is inside the run,
-// read as zeros.
-const bossLanceSector = bossSlotESector + bossSlotEMaxSectors;
-const BOSS_LANCE_SECTORS = 3;
+// M6 (docs/plans/m6-void-lance.md §3, §6; owner decision BD 6): the lance run
+// - the VOID LANCE (src/hybrid/lance.s, src/c/lance.c), read at every boss
+// entry after slot E - landing in the window's unclaimed tail from $BBFF
+// down: its RAM is the top LANCE_SECTORS x 128 B, below which the window's
+// record may grow (the build fails when it reaches them). Its BSS is inside
+// the run, read as zeros. Journal §BG's meter and readiness indicator took it
+// past the boss code reservation's three free sectors (581-583, 384 B: plan
+// §6.3), so it has its own reservation of four at the disk's free tail
+// (712-715; the Phase A probe's place, plan §3), and 581-583 are free again.
+const BOSS_LANCE_BASE_SECTOR = 712;
+const bossLanceSector = BOSS_LANCE_BASE_SECTOR;
+// Indicator T (the torpedo, journal §BG 4) takes a fifth sector (plan §6.3).
+const BOSS_LANCE_SECTORS = lanceIndicator === "t" ? 5 : 4;
 const BOSS_LANCE_BYTES = BOSS_LANCE_SECTORS * 128;
 const BOSS_LANCE_ADDRESS = LANCE_RAM_END - BOSS_LANCE_BYTES;
 const bossRegionBaseSector = 632;
@@ -694,6 +698,8 @@ const diskLayout = Object.freeze({
   bossBlockBaseSector: BOSS_BLOCK_BASE_SECTOR, bossBlockSectors: BOSS_BLOCK_SECTORS,
   // feat/boss-banners: the regions' banner runs' reservation.
   bossBannerBaseSector: BANNER_BASE_SECTOR, bossBannerSectors: BANNER_REGION_SECTORS,
+  // M6 (journal §BG): the lance run's reservation.
+  bossLanceBaseSector: BOSS_LANCE_BASE_SECTOR, bossLanceSectors: BOSS_LANCE_SECTORS,
 });
 const diskIdentity = identityBlock(diskLayout);
 // The window copies this many bytes of the region's staging run over the
@@ -2906,6 +2912,11 @@ async function build() {
     ["HPOSM0", 0xd004], ["HPOSM1", 0xd005], ["HPOSM2", 0xd006], ["HPOSM3", 0xd007]]) {
     bossRestoreEntries.push({ what, address, value: 0 });
   }
+  // M6 (journal §BG, indicator C): the ship's colour, should a game leave
+  // while the lance's ready colour is on (src/hybrid/lance.s).
+  if (lanceIndicator === "c") {
+    bossRestoreEntries.push({ what: "COLPM0 (the hull's white)", address: 0xd012, value: 0x0e });
+  }
   const hexByte = (value) => `$${(value & 0xff).toString(16).toUpperCase().padStart(2, "0")}`;
   const bossRestoreInclude = [
     "; Generated by scripts/build.mjs for M5b-S3 - do not edit.",
@@ -3365,7 +3376,8 @@ async function build() {
   };
   const bossCAssembled = await compileBossC("boss.c", `${bossBase}-c`);
   const lanceCAssembled = await compileBossC("lance.c", `${bossBase}-lance-c`,
-    [`LANCE_STOCK_GRANT=${lanceStockValue ?? 0}u`, `LANCE_CHARGE_FRAMES=${LANCE_CHARGE_FRAMES}u`]);
+    [`LANCE_CHARGE_FRAMES=${LANCE_CHARGE_FRAMES}u`,
+      ...["EASY", "FRAMES", "HARD"].map((name, index) => `LANCE_METER_${name}=${lanceMeterFrames()[index]}u`)]);
   // audit-hardening (AUD-02): slot A's head checks the eight runs it reads
   // (install, slots C-E, the region's band A, band B, charset and - S5-1 -
   // block), folded in that order, against its region's value. Zeros until the
@@ -3402,6 +3414,7 @@ async function build() {
         ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
         "-D", `LANCE_CHARGE_SPEED_DIVISOR=${LANCE_CHARGE_SPEED_DIVISOR}`,
         ...(lanceSlowSlug === "forward" ? ["-D", "LANCE_SLOW_FORWARD=1"] : []),
+        "-D", `LANCE_INDICATOR_${lanceIndicator.toUpperCase()}=1`,
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -3578,7 +3591,7 @@ async function build() {
       throw new Error(`boss slot ${name}: ${sectors} sectors (${sectors * 128} B) overrun its ${bytes}-B area`);
     }
   }
-  // M6 (owner decision BD 6): the lance run ends at $BBFF, inside its three
+  // M6 (owner decision BD 6): the lance run ends at $BBFF, inside its
   // sectors, and the window's record - the Light kernel link, its last part -
   // ends below it. When the window grows into the lance's RAM the build fails.
   const lanceUsed = bossLabels.get("__LANCE_BSS_RUN__") + bossLabels.get("__LANCE_BSS_SIZE__") - BOSS_LANCE_ADDRESS;
@@ -3587,7 +3600,7 @@ async function build() {
   }
   checkLanceLayout({ windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), address: BOSS_LANCE_ADDRESS,
     bytes: BOSS_LANCE_BYTES, used: lanceUsed, sector: bossLanceSector, sectors: BOSS_LANCE_SECTORS,
-    reservationEnd: bossReservationSector + bossReservationSectors });
+    reservationEnd: BOSS_LANCE_BASE_SECTOR + BOSS_LANCE_SECTORS });
   if (bossImage.length !== bossFixedImageBytes + BOSS_LANCE_BYTES + (bossFieldCode?.length ?? 0) +
     (bossGravitySlot === null ? 0 : bossRegions[bossGravitySlot].gravityCodeBytes ?? 0) +
     (bossRailSlot === null ? 0 : (bossRegions[bossRailSlot].railCodeBytes ?? 0) +
@@ -3735,7 +3748,10 @@ async function build() {
         BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS <= levelBaseSector
       : run.startSector >= bossRegionBaseSector + (run.region - 1) * BOSS_REGION_SECTORS &&
         run.startSector + run.sectors <= bossRegionBaseSector + run.region * BOSS_REGION_SECTORS);
-    if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode : inRegion) ||
+    // M6 (journal §BG): the lance run has its own reservation.
+    const inLance = run.name === "boss-lance" && run.startSector === BOSS_LANCE_BASE_SECTOR &&
+      run.sectors === BOSS_LANCE_SECTORS;
+    if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode || inLance : inRegion) ||
       run.startSector + run.sectors - 1 > chunkLoaderConstants.atrSectors) {
       throw new Error(`M5b-S4a-i: the boss run ${run.name} leaves its reservation`);
     }
@@ -4575,7 +4591,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null || lanceStockValue !== null ||
+      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null || lanceIndicatorSlug !== undefined ||
       lanceSlowSlug !== undefined
       ? variantDirectoryName
       : enemyReviewHarness
@@ -4954,15 +4970,15 @@ async function build() {
       slotE: { address: BOSS_SLOT_E_ADDRESS, bytes: bossSlotEUsed, codeBytes: bossSlotECodeBytes,
         capacityBytes: BOSS_SLOT_E_BYTES, freeBytes: BOSS_SLOT_E_BYTES - bossSlotEUsed,
         sectors: bossSlotESectors },
-      // M6 stage 1: the lance run (the window's tail from $BBFF down) and
-      // the stock every boss entry grants (0 in the game until stage 2).
+      // M6: the lance run (the window's tail from $BBFF down), the meter's
+      // length per difficulty (journal §BG) and the readiness indicator.
       lance: { address: BOSS_LANCE_ADDRESS, capacityBytes: BOSS_LANCE_BYTES, sectors: BOSS_LANCE_SECTORS,
         startSector: bossLanceSector,
         bytes: lanceUsed,
         codeBytes: bossLabels.get("__LANCE_CODE_SIZE__"), dataBytes: bossLabels.get("__LANCE_DATA_SIZE__") ?? 0,
         bssBytes: bossLabels.get("__LANCE_BSS_SIZE__"),
-        windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), stockGrant: lanceStockValue ?? 0,
-        chargeFrames: LANCE_CHARGE_FRAMES, chargeSpeedDivisor: LANCE_CHARGE_SPEED_DIVISOR,
+        windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), meterFrames: lanceMeterFrames(),
+        indicator: lanceIndicator, chargeFrames: LANCE_CHARGE_FRAMES, chargeSpeedDivisor: LANCE_CHARGE_SPEED_DIVISOR,
         slow: lanceSlowSlug ?? "every" },
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
@@ -4982,7 +4998,9 @@ async function build() {
         regions: [bossRegionBaseSector, bossRegionAreaEnd - 1],
         blocks: [BOSS_BLOCK_BASE_SECTOR, BOSS_BLOCK_BASE_SECTOR + bossRegionCount * BOSS_BLOCK_SECTORS - 1],
         // feat/boss-banners: 10 sectors a region from 280.
-        banners: [BANNER_BASE_SECTOR, BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS - 1] },
+        banners: [BANNER_BASE_SECTOR, BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS - 1],
+        // M6 (journal §BG): the lance run's own four sectors.
+        lance: [BOSS_LANCE_BASE_SECTOR, BOSS_LANCE_BASE_SECTOR + BOSS_LANCE_SECTORS - 1] },
       runs: bossDiskRuns.map(({ name, startSector, sectors, destination, data, file }) =>
         ({ name, startSector, sectors, destination, bytes: data.length, sha256: sha256(data), file })),
       regions: bossRegions.map((region, index) => ({

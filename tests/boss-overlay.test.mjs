@@ -151,8 +151,10 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
   }
   // RE-PINNED feat/boss-banners (decision AY): + the regions' banner runs,
   // 10 sectors a region from 280 (each read after its theme run).
+  // RE-PINNED journal §BG (plan §6.3): + the VOID LANCE run's own four
+  // sectors at the disk's free tail.
   assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695], blocks: [696, 711],
-    banners: [280, 319] });
+    banners: [280, 319], lance: [712, 715] });
 });
 
 // RE-POINTED M5b-S4a-i: entry 1's count is the boss code's linked sectors;

@@ -763,28 +763,37 @@ code, no HUD cell and no score hook (journal §AE 1, §BD). It is the boss
 sector's own weapon and never an ordinary drop. Plan:
 [`plans/m6-void-lance.md`](plans/m6-void-lance.md).
 
-**Stage 1, built (`OWNER-SMOKE CANDIDATE`):**
-- **The stock:** a lance in stock (at most 3) is shown by the reticle. There
-  is no HUD cell.
-- **The reticle:** when the ship stands under a module a player shot would
-  hurt, the reticle appears. It is one crosshair on P1, in the lasers'
+**As built (journal §BF-§BG; `OWNER-SMOKE CANDIDATE`, the readiness
+indicator awaiting the owner's choice):**
+- **The meter:** the lance charges with time on the boss screen. A meter
+  fills over 1,250 boss frames (25 s) on MEDIUM, 938 (18.76 s) on EASY and
+  1,562 (31.24 s) on HARD - the boss's own hit-point ratios, x 3/4 and
+  x 5/4. Full, **one** lance is ready; lances do not stack. The shot empties
+  the meter and it fills again. It runs in the boss sector only and is empty
+  at every boss entry. There is no capsule, no stock counter and no HUD cell.
+- **Readiness:** the player is told by an indicator (comparison variants, the
+  owner chooses - plan §6.3): **C** the ship turns green while a lance is
+  ready, or **T** a torpedo shows on the ship's nose; either way a short tone
+  on channel 3 when it becomes ready. A HUD text has no room (plan §6.3).
+- **The reticle:** only while a lance is ready, when the ship stands under a
+  module a player shot would hurt. One crosshair on P1, in the lasers'
   colour, on the line under the band, at the module's centre.
-- **The charge:** holding FIRE there for 75 frames (1.5 s) charges the lance.
-  The crosshair blinks two frames in four. Ordinary fire waits while it
-  charges and while the beam is up.
-- **Cancelled:** a release before the 75th frame cancels the charge.
+- **The charge:** FIRE held with the stick UP for 75 frames (1.5 s) over that
+  module. The crosshair blinks two frames in four and the ship moves at half
+  speed. The ordinary fire never changes. Releasing either cancels; the
+  gesture does nothing while the meter fills or with no target.
 - **No target:** under armour, open sky, a covered module, the core, a
-  closed door or a powered field there is no charge, and FIRE fires
-  normally.
+  closed door or a powered field there is no charge.
 - **The beam:** on the 75th frame the beam leaves the ship's nose in the
   ship's own plane (P0) and grows 20 lines a frame. When it reaches the
   module, the module is destroyed through the shot's own kill path: the
   spark, the score, the kill stat, the capsule rule and the exposure of what
   stood behind it. Exactly one module dies, the one under the ship, and
-  never the core.
+  never the core. A player shot that would meet the boss on that frame waits
+  one frame.
 
-Stage 1 grants the stock only on the debug routes (`--lance-stock=N`). The
-game's stock is 0 until stage 2, where every boss capsule is a lance.
+Stage 2 keeps only the +1 life capsule; the plan for boss capsules as lances
+is withdrawn (journal §BG 3).
 
 ### Interceptor — **OWNER-ACCEPTED** (roadmap 4.4)
 

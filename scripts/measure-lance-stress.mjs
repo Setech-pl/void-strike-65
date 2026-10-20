@@ -5,7 +5,7 @@
 // MEASURED, native cycles, the STATUS accounting; "reachable" is at most two
 // meetings a frame (AUD-04).
 //
-//   node scripts/measure-lance-stress.mjs [--modes=stock0,idle,...]
+//   node scripts/measure-lance-stress.mjs [--modes=filling,idle,...]
 import { bossLevel } from "../tests/boss-harness.mjs";
 import { LANCE_MODES, lanceStats } from "../tests/lance-states.mjs";
 import { regionTwoStress } from "./measure-boss-stress-r2.mjs";

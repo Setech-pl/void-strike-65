@@ -3204,6 +3204,57 @@ Właściciel zagrał w ATR-y porównawcze z §BE.
    miejsca na procedurę „daj jedną lancę” — w sektorach 581–583 zostaje
    tylko 1 B (po domknięciu z połową prędkości: 2 B, ZMIERZONE).
 
+## BG. M6 VOID LANCE — LANCA ŁADOWANA CZASEM, WSKAŹNIK GOTOWOŚCI (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `89297a5`: etap 1 **NIE przyjęty jako projekt**, z dwóch
+powodów. (1) Zapas lanc nie może zależeć od kapsuł zrzucanych przez bossa.
+(2) Celownik widać cały czas; ma się pojawiać tylko wtedy, gdy lanca jest
+gotowa.
+
+1. **Lanca ładuje się CZASEM na ekranie bossa.** Wskaźnik napełnia się przez
+   `LANCE_METER_FRAMES` = 1 250 klatek (25 s) na MEDIUM, skalowane poziomem
+   trudności jak reszta gry — tymi samymi proporcjami co punkty życia bossa
+   (`hpScale`: ×3/4 na EASY, ×5/4 na HARD, ćwiartka przez przesunięcie jak
+   w `boss_scale`): **EASY 938 klatek (18,76 s), MEDIUM 1 250 (25 s), HARD
+   1 562 (31,24 s)**. Pełny wskaźnik to **JEDNA** gotowa lanca; lanc się nie
+   kumuluje; użycie opróżnia wskaźnik i napełnianie zaczyna się od nowa.
+   Wskaźnik działa tylko w sektorze bossa i zeruje się przy wejściu do bossa.
+2. **Aktywacja bez zmian:** gest A-up (FIRE + drążek w GÓRĘ, 75 klatek,
+   połowa prędkości). Bez zmian także wiązka, zniszczenie jednego modułu,
+   wstrzymanie strzału gracza w klatce zabicia i celownik V2 pod pasmem — ale
+   **celownik jest widoczny WYŁĄCZNIE, gdy lanca jest gotowa** (od pełnego
+   wskaźnika do strzału).
+3. **Bez kapsuły, bez licznika zapasu, bez klawiatury.** Plan zrzutu kapsuł
+   lancy przez bossa jest wycofany; etap 2 zachowuje tylko kapsułę +1 życia.
+   Pełna gra ma lancę w każdej walce z bossem.
+4. **Gracz musi dostać wyraźniejszy sygnał gotowości niż sam celownik.** Trzy
+   warianty wskaźnika, za flagą builda wyłącznie do porównania; potem STOP
+   i wybór właściciela na podstawie kadrów i ATR-ów:
+   - **(T) doczepiona torpeda:** inny kształt statku z torpedą wystającą
+     z dziobu, dopóki lanca jest gotowa; wiązka startuje z pozycji torpedy;
+     po strzale wraca zwykły kształt. Zmierzyć, gdzie mieszka kształt statku
+     i ile kosztuje przełączanie (bajty w przebiegu lancy, bajty rezydentne —
+     zgłosić, nie wydawać bajtów rezydentnych bez pytania).
+   - **(C) zmiana koloru statku na czas gotowości:** kolor ≥ 45° od stali
+     sojuszniczej i od każdego koloru wroga we wszystkich czterech regionach;
+     koszt: jeden zapis rejestru na zmianę stanu.
+   - **(H) napis HUD „VOID LANCE READY”**, jeśli jakaś komórka HUD albo wolna
+     linia listy wyświetlania może go unieść bez ruszania wyniku; jeśli nie ma
+     miejsca — powiedzieć to z dowodem i pominąć H.
+   - Każdy wariant ma dźwięk gotowości na kanale 3 (≤ 20 B, bez kolizji
+     z motywem bossa). Kadry i 3-sekundowe GIF-y (320 × 240, 50 kl./s) na
+     R1 i R4: statek przed, w chwili gotowości i przy strzale; w
+     `build/m6-probe/indicator/`.
+5. **Pomiary i dostawa:** najgorsze klatki w każdym regionie, rozmiar
+   przebiegu lancy (sektory 581–583, wolne bajty) i klatki wejścia — na
+   wariant; bramki jak dotąd (≤ 8 500 na region, fence ≥ 1 400, DMA-on
+   ≤ 31 200, wejście ≤ 350, 0 B rezydentnych dla broni bez zgody
+   właściciela). Sonda balansu: ile lanc daje walka w każdym regionie przy
+   25 s (istniejące boty walki z bossem, MEDIUM) i ile modułów ma każdy boss;
+   okresu nie zmieniać samodzielnie. Cztery ATR-y tras i ATR pełnej gry dla
+   rekomendowanego wariantu, ATR pełnej gry dla każdego innego wariantu, który
+   mieści się w budżecie. Bez pełnego łańcucha dowodów na tym etapie. STOP.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

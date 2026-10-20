@@ -448,12 +448,12 @@ the lance never changes the ordinary fire.** Both variants below:
 * drop `lance_c_give` for bytes. It was stage 2's entry point, unused in
   stage 1.
 
-The run is 383 of 384 B (variant A), 9 B of BSS. Slots A, C, D and E and
+The run is 383 of 384 B (variant A), 8 B of it BSS. Slots A, C, D and E and
 the banner are byte for byte stage 1's; the only other change is the vector
 image's HULL_CONTACT entry, which is `main`'s again.
 
-`--lance-rule=a-down | a-up` builds `build/lance-<rule>[-stock-N-…]/`. The
-default is a-down (the game's stock is 0, so the default's rule is never
+`--lance-rule=a-down | a-up | b` builds `build/lance-<rule>[-stock-N-…]/`.
+The default is a-down (the game's stock is 0, so the default's rule is never
 seen).
 
 **Variant A — a separate gesture (`a-down`, `a-up`).** FIRE is exactly
@@ -532,6 +532,74 @@ and the window tail (0 foreign writers).
 * The module a shot took on the beam's way: not hit again.
 * `tests/boss-overlay`, `boss-banners`, `boss-runtime` and `slot-f`: 54 of
   54.
+
+**Variant B — hold-to-charge, the ordinary fire going on (`b`).** Held FIRE
+keeps shooting as on `main`. After 75 frames over a target with stock > 0,
+the lance fires. The run is 377 of 384 B. The kill joins AUD-04's
+two-meetings cap as the owner put it: its frame admits **one** player shot
+beside the kill (`LANCE_KILL_ADMIT = 1`).
+
+The owner's wording defers the kill when the cap is already spent. Here the
+kill comes first (the tick, before UPDATE) and a second shot waits a frame
+instead. Either way a frame has at most two meetings and the worst frame is
+the same composition: the kill plus one shot's meeting. The kill stays
+before UPDATE because after UPDATE the frame's spawn and queued draw have
+already run, which rule (B) and the heavy-frame skip exist to prevent.
+
+**Measured — boss stress, b** (as for A):
+
+| region | before | stock 0 | first draw | idle | charging | firing | grow / erase | kill | worst | headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 Breaker | 7,150 | 7,170 | 7,514 | 7,358 | 7,376 | 7,378 | 7,496 / 7,516 | 7,718 | 7,718 | 782 |
+| 2 Citadel L4 / L5 | 7,694 / 8,029 | 7,714 / 8,049 | 7,989 / 8,352 | 7,833 / 8,196 | 7,851 / 8,214 | 7,853 / 8,216 | 8,040 / 8,060; 8,375 / 8,395 | 8,350 / **8,709** | **8,709** | **−209** |
+| 3 Spine L7 / L9 | 7,771 / 8,025 | 7,791 / 8,045 | 8,112 / 8,364 | 7,956 / 8,208 | 7,974 / 8,226 | 7,976 / 8,228 | 8,117 / 8,137; 8,371 / 8,391 | 8,341 / **8,558** | **8,558** | **−58** |
+| 4 Bastion L10 | 8,060 | 8,080 | 8,401 | 8,245 | 8,263 | 8,265 | 8,406 / 8,426 | 8,064 | 8,426 | 74 |
+
+* **Citadel L5 with a player shot meeting the boss on the kill frame (the
+  owner's question): no, it does not stay ≤ 8,500.**
+  * The worst reachable kill frame is **8,709**: a stage hit admitted beside
+    the kill, `gun-2` / `cannon-l`, with the lasers warning, the gravity
+    well's step and pulse, and `spire-l` and `plate-b` destroyed.
+  * The cases with exactly one shot meeting peak at **8,476**, under the
+    limit but with 24 of headroom, not 100.
+  * 160 of the 9,856 reachable kill-frame cases are over 8,500 (M,
+    `regionFourStress` arrive, a scratch split by the case's meetings).
+* **Spine L9:** 8,558, over.
+* **Everything else** stays ≤ 8,500: the Bastion 8,426 (its rail-step kill
+  frames have no meeting), R1 7,718.
+* **`tests/boss-region-3` and `boss-region-4`** fail on the `lance-b` build
+  for these two figures (`level 9, lance arrive: 8558`; `level 5, lance
+  arrive: 8709`). The default build (a-down) passes both.
+* **The fix if B is chosen:** A's kill-frame rule (`LANCE_KILL_ADMIT = 0`)
+  brings B's kill frame to A's figures (Citadel L5 8,210, Spine L9 8,012).
+  The two rules' ticks differ by 6 cycles, so this is ESTIMATE until built.
+* **Rule (B) clashes:** 0 on the Bastion and region 1. The Spine's and
+  Citadel's tests stop at the over-limit assertion before their clash
+  check.
+* **The Bastion fixture:** 8,060 → 8,265.
+
+**Measured — the routes, b** (the same 30 sessions; the bots hold FIRE, so
+in B they fire lances on their own, as on stage 1's routes):
+
+| route | worst margin | DMA-on max | entry, host frames | misses |
+| --- | ---: | ---: | ---: | ---: |
+| R1 | 9,711 | 29,119 | 306 | 0 |
+| R2 | 4,259 | 30,132 | 321 | 0 |
+| R3 | 7,375 | 30,487 | 317 | 0 |
+| R4 | 3,431 | 29,633 | 321 | 0 |
+
+The clause failures are the same 6 `boss-aim` sessions as A's and `main`'s
+(a bot that never opens the fire gate). The other 24 sessions pass every
+clause.
+
+**Tests:** `tests/lance.test.mjs` passes 18 of 18 on `lance-b`; variant A's
+gesture-only test is skipped. A-down's route ATR is byte for byte the same
+after B's commit.
+
+**The ATRs (`build/play/`, stock 3 at every boss entry):**
+`void-strike-65-m6-lance-<rule>-<route>-stock3-<sha8>.atr` for `a-down`,
+`a-up` and `b`, and the routes `r1-breaker`, `r2-citadel`, `r3-spine` and
+`r4-bastion`.
 
 ## 7. The tests and trace clauses that prove it
 

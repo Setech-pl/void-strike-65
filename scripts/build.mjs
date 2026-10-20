@@ -371,9 +371,10 @@ const lanceStockValue = lanceStockSlug === undefined ? null : Number(lanceStockS
 // M6 stage 1, the owner's smoke of 2026-10-20 (rule BD 2 (c) withdrawn: the
 // lance never changes the ordinary fire): --lance-rule=R picks the charge's
 // gesture for the owner's comparison - a-down / a-up (variant A: FIRE held
-// with the stick held down / up), the default a-down. The losing rule goes
-// after the owner's choice. Review variant: build/lance-R[-stock-N-...]/.
-const LANCE_RULES = { "a-up": 1, "a-down": 2 };
+// with the stick held down / up) or b (variant B: FIRE alone, the ordinary
+// fire going on), the default a-down. The losing rule goes after the owner's
+// choice. Review variant: build/lance-R[-stock-N-...]/.
+const LANCE_RULES = { b: 0, "a-up": 1, "a-down": 2 };
 const lanceRuleArgument = process.argv.find((argument) => argument.startsWith("--lance-rule="));
 const lanceRuleSlug = lanceRuleArgument?.slice("--lance-rule=".length);
 if (lanceRuleSlug !== undefined && !(lanceRuleSlug in LANCE_RULES)) {

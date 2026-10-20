@@ -17,7 +17,8 @@
 ;                frames of four while charging.
 ;   the gesture  LANCE_GESTURE (scripts/build.mjs --lance-rule, the owner's
 ;                comparison): 1 FIRE held with the stick held up, 2 with it
-;                held down (variant A). The ordinary fire is never touched:
+;                held down (variant A); 0 FIRE alone (variant B: holding
+;                FIRE keeps shooting). The ordinary fire is never touched:
 ;                gameplay_fire_gate is read_input's alone, and the ship moves
 ;                as the stick says.
 ;   the beam     in the ship's own plane (P0, double width: 4 colour clocks at
@@ -50,14 +51,19 @@ LANCE_P1        = $3D00                 ; src/main.s: PLAYER1 = PMG_BASE + $0500
 .ifndef LANCE_GESTURE
 LANCE_GESTURE   = 2
 .endif
-.assert LANCE_GESTURE = 1 || LANCE_GESTURE = 2, error, "LANCE_GESTURE: 1 (FIRE + up) or 2 (FIRE + down)"
+.assert LANCE_GESTURE <= 2, error, "LANCE_GESTURE: 0 (FIRE), 1 (FIRE + up) or 2 (FIRE + down)"
 ; The player shots AUD-04 admits on the kill's frame. Variant A: none - the
 ; kill is the frame's only meeting, so the frame is no heavier than a lance
 ; kill without shots (MEASURED: a kill and one shot's kill on one frame put
 ; Citadel L5 at 8,711 and Spine L9 at 8,560, over 8,500); a shot that would
 ; meet then waits that one frame, as AUD-04 holds any (the fire itself is
-; untouched).
+; untouched). Variant B, the owner's rule (journal §BE 3): the kill is one
+; of the frame's two meetings, so one player shot more meets beside it.
+.if LANCE_GESTURE = 0
+LANCE_KILL_ADMIT = 1
+.else
 LANCE_KILL_ADMIT = 0
+.endif
 
 .import _lance_c_aim, _lance_c_arrive, _lance_stock, _lance_trig
 .export lance_tick, lance_shape, lance_y, lance_beam, lance_head, lance_top, _lance_module, lance_cell
@@ -149,9 +155,13 @@ lance_tick:
 @aim:
     stx _lance_module                   ; the target (src/c/lance.c); the beam's once fired (no
                                         ; aim while the beam is up)
+.if LANCE_GESTURE = 0
+    lda LANCE_TRIG0                     ; the gesture: FIRE held (0)
+.else
     lda LANCE_STICK0                    ; the gesture: FIRE and the stick's direction, both held (0)
     and #LANCE_GESTURE
     ora LANCE_TRIG0
+.endif
     sta _lance_trig
     jsr _lance_c_aim                    ; A: bit 0 shown, bit 2 FIRE; X = 0 (cc65's high byte)
     lsr

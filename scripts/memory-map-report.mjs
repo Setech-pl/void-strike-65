@@ -153,6 +153,10 @@ const SEGMENTS = {
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
   BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
   BOSS_E_BSS: ["boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk", "overlay"],
+  // M6 stage 1 (docs/plans/m6-void-lance.md, decision BD 6): the VOID LANCE run.
+  LANCE_CODE: ["the VOID LANCE (M6 stage 1): the tick (the target under the ship, the reticle on P1, the charge's fire gate, the beam in P0, the kill through boss_hit) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only", "overlay"],
+  LANCE_DATA: ["the VOID LANCE's stock, the build's grant (0 in the game until stage 2), read with the run at every boss entry", "overlay"],
+  LANCE_BSS: ["the VOID LANCE's state (the charge, the beam, the reticle's line), inside the run: read as zeros at every boss entry", "overlay"],
   // S5-3 (feat/boss-region-3): region 3's field code, in slot F after the look tail's 110 B.
   BOSS_F_CODE: ["region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only", "overlay"],
   BOSS_G_CODE: ["region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M0), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only", "overlay"],
@@ -476,6 +480,10 @@ function collectRows(build) {
   add(m.boss.slotF.lookTail.address, m.boss.slotF.lookTail.address + m.boss.slotF.lookTail.bytes - 1, "slot", "boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then)", "overlay", "manifest `boss.slotF.lookTail`");
   // M5b-S4b.5 (owner decision 2026-10-07): slot E over the expanded hull maps.
   add(m.boss.slotE.address, m.boss.slotE.address + m.boss.slotE.capacityBytes - 1, "slot", `boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run \`boss-slot-e\` (${m.boss.slotE.sectors} sectors)`, "overlay", "manifest `boss.slotE`, cfg/boss.cfg");
+  // M6 stage 1 (decision BD 6): the VOID LANCE run, the window tail's top.
+  if (m.boss.lance !== undefined) {
+    add(m.boss.lance.address, m.boss.lance.address + m.boss.lance.capacityBytes - 1, "slot", `the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run \`boss-lance\` (${m.boss.lance.sectors} sectors, ${m.boss.lance.startSector}-${m.boss.lance.startSector + m.boss.lance.sectors - 1}); the build fails when the window's record reaches it`, "overlay", "manifest `boss.lance`, scripts/lance-layout.mjs");
+  }
   // feat/boss-banners (decisions AL 2, AY): the banner screen and its RAM
   // during the boss entry.
   if (m.boss.banner !== undefined) {

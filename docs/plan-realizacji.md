@@ -140,7 +140,8 @@ Poza listą: **M2** (Director krok 5, payload) jest **DONE i wydany** — owner
 smoke PASS, scalony, wydany jako **v0.2.0** 2026-10-02 (tag `v0.2.0` na
 `4da20fd`, ATR `04943660…`; STATUS, sekcja „Roadmap 4.6 step 5"). Pozycje zdecydowane lub
 zaplanowane poza M2–M9 (wybór poziomu L, linie loadera O, ekran końcowy P,
-booster N/U, Nova Missile, geometria capital 4.8a) wymienia
+booster N/U, Nova Missile — zastąpiony przez VOID LANCE w M6, §BD —
+geometria capital 4.8a) wymienia
 [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „Not in the M2–M9 list".
 
 ---
@@ -532,8 +533,9 @@ punkty słabe jako dane, tak aby kolejni bossowie byli rekordami, a nie
 implementacjami. To decyzja do podjęcia **przy planowaniu 4.7**, nie po nim.
 Boss jako kompozycja modułów poznanych w capital traversal, z własnym
 schedulerem i budżetem (decyzja 7). Najpierw jeden boss foundation (moduły,
-jedno działo, warunek zwycięstwa). Nova Missile projektować razem z lifecycle i
-HULL bossa, nigdy jako zwykły drop.
+jedno działo, warunek zwycięstwa). Broń specjalna sektora bossa to VOID
+LANCE (M6, dziennik §BD), która zastąpiła planowany Nova Missile; nigdy nie
+jest zwykłym dropem.
 
 #### 6. 4.8a Geometria capital
 

@@ -35,6 +35,7 @@ import {
   pickupTraversalFrameIntact,
   raiderKillAccounting,
   slotFWriteClause,
+  windowTailWriteClause,
 } from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { compileLevelFile, levelSourcePath } from "./level-compiler.mjs";
@@ -1527,6 +1528,8 @@ for (const name of [
   // did not: the pause's entry turns DMA off mid-frame). Additive.
   "row_switch_frames", "row_switch_min", "row_switch_max", "row_switch_rows", "row_switch_line_bits",
   "row_switch_max_cycle", "row_switch_cut_frames",
+  // M6 stage 1: the VOID LANCE's reticle on screen (P1's crosshair, a visible HPOS).
+  "lance_reticle",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4326,6 +4329,15 @@ function main() {
       // S5-2: the finale's byte (the boss_finale / boss_spawns columns).
       addressEnvironment.DFTRACE_BOSS_FINALE = hex(bossLabels, "_boss_finale");
       addressEnvironment.DFTRACE_BOSS_ARMOUR_LEFT = hex(bossLabels, "_boss_armour_left");
+      // M6 stage 1: the VOID LANCE's reticle (the Heavy body model, the
+      // lance_reticle column) and the window tail's watch from the window's end.
+      if (bossLabels.has("lance_y")) {
+        addressEnvironment.DFTRACE_LANCE_Y = hex(bossLabels, "lance_y");
+        addressEnvironment.DFTRACE_LANCE_SHAPE = hex(bossLabels, "lance_shape");
+      }
+      if (manifest.boss?.lance !== undefined) {
+        addressEnvironment.DFWATCH_TAIL_START = `0x${manifest.boss.lance.windowEnd.toString(16)}`;
+      }
       // feat/boss-r1-tuning: the boss-aim policy reads the controller's state.
       addressEnvironment.DFTRACE_BOSS_HP = hex(bossLabels, "_boss_hp");
       addressEnvironment.DFTRACE_BOSS_KIND = hex(bossLabels, "_boss_kind");
@@ -4829,13 +4841,37 @@ function main() {
     // in at most 350 host frames (owner decision AY, 2026-10-18, the banner;
     // was 300 by decision AV, 280 by decision AM, < 250 before); on MEDIUM the
     // fight reaches the chain.
+    // M6 stage 1 (the owner's brief of 2026-10-20): every boss entry of every
+    // replay, not only the region routes', in at most 350 host frames
+    // (decision AY) - the lance run is read at every entry.
+    if (session.bossEntry !== undefined) {
+      invariant(session.bossEntry.host_frames <= 350,
+        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 350, decision AY)`);
+    }
+    // M6 stage 1 (docs/plans/m6-void-lance.md §7): the VOID LANCE's reticle
+    // (P1's crosshair at a visible HPOS) is never shown outside the boss
+    // fight; on a route with a lance stock it shows in it.
+    {
+      const outside = rows.filter((row) => (row.lance_reticle ?? 0) !== 0 && !(row.boss_state >= 1));
+      invariant(outside.length === 0, `${session.id}: the lance's reticle on ${outside.length} frame(s) outside ` +
+        `the boss sector (first ${outside[0]?.frame})`);
+      session.lanceReticleFrames = rows.filter((row) => (row.lance_reticle ?? 0) !== 0).length;
+      if ((manifest.boss?.lance?.stockGrant ?? 0) === 0) {
+        invariant(session.lanceReticleFrames === 0, `${session.id}: the lance's reticle showed with no stock ` +
+          `(${session.lanceReticleFrames} frames)`);
+      } else if (session.bossRegion !== undefined) {
+        invariant(session.lanceReticleFrames > 0, `${session.id}: the lance's reticle never showed in the boss ` +
+          `sector (stock ${manifest.boss.lance.stockGrant} at the entry)`);
+      }
+    }
     if (session.bossRegion !== undefined) {
       invariant(session.bossEntry !== undefined, `${session.id} never entered the boss (subject empty)`);
       invariant(session.bossEntry.host_frames <= 350,
         `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 350)`);
       const chain = rows.find((row) => row.boss_state >= 3);
       session.regionRoute = { region: session.bossRegion, entry_host_frames: session.bossEntry.host_frames,
-        entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };
+        entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null,
+        lance_reticle_frames: session.lanceReticleFrames };
       console.log(`${session.id}: region ${session.bossRegion} entered in ${session.bossEntry.host_frames} ` +
         `host frames at frame ${session.bossEntry.frame}; chain ${chain === undefined ? "not reached" : `at frame ${chain.frame}`}`);
       // S5-5: not the edge-parking player's (region-N-edge-left-1): a
@@ -6083,6 +6119,27 @@ function main() {
   });
   for (const violation of slotFWrites.violations) {
     recordClauseFailure(violation.session, false, `${violation.session}: ${violation.message}`);
+  }
+  // M6 stage 1 (decision BD 6): the window's unclaimed tail, the lance's run at its top.
+  const windowTailWrites = manifest.boss?.lance === undefined ? null : (() => {
+    const bossLabelPath = path.join(layout.inputDirectory, "boss.lbl");
+    const boss = fs.existsSync(bossLabelPath) ? parseViceLabels(fs.readFileSync(bossLabelPath, "utf8")) : new Map();
+    return windowTailWriteClause(sessionWatches, {
+      labels, readerAddress: manifest.sectorReader.address,
+      readerEnd: manifest.sectorReader.address + manifest.sectorReader.bytes,
+      lanceAddress: manifest.boss.lance.address,
+      lanceCodeEnd: boss.get("__LANCE_CODE_RUN__") + boss.get("__LANCE_CODE_SIZE__"),
+      runBytes: manifest.boss.lance.capacityBytes,
+    });
+  })();
+  if (windowTailWrites !== null) {
+    for (const violation of windowTailWrites.violations) {
+      recordClauseFailure(violation.session, false, `${violation.session}: ${violation.message}`);
+    }
+    windowTailWrites.held = windowTailWrites.violations.length === 0;
+    console.log(`Window tail write clause: ${windowTailWrites.sessions} replays watched, subject ` +
+      `${windowTailWrites.subject} lance run reads, ${windowTailWrites.lanceWrites} lance-state writes, ` +
+      `${windowTailWrites.violations.length} foreign writers`);
   }
   if (sessionsToRun.some((session) => session.kind === "director-level-complete")) {
     recordClauseFailure("slot-f-writes", slotFWrites.subject > 0,
@@ -9417,6 +9474,7 @@ function main() {
       boss_entry_debris: bossEntryDebris,
       boss_entry_hud: bossEntryHud,
       slot_f_writes: slotFWrites,
+      ...(windowTailWrites === null ? {} : { window_tail_writes: windowTailWrites }),
       hud_row_writers: hudRowWriters,
       light_archetypes: {
         clause: "L1 a live Interceptor Light; L2 two or more Lights live at once; L3 no Heavy live in a " +

@@ -3085,6 +3085,56 @@ bez taga i wydania.
 
 ---
 
+## BD. M6 VOID LANCE — DECYZJE WŁAŚCICIELA PO FAZIE A (2026-10-20, `feat/m6-void-lance`)
+
+Odpowiedzi na pytania planu [`plans/m6-void-lance.md`](plans/m6-void-lance.md)
+(Faza A, commit `837cf04`); §4 planu oznacza je jako potwierdzone.
+
+1. **Celownik: wariant V2.** Jeden krzyżyk, który podczas ładowania mruga co
+   dwie klatki. Tylko P1; P2 zostaje wolne.
+2. **Reguła ładowania potwierdzona; zastępuje regułę Nova z §AE 3.**
+   Przytrzymanie FIRE przez ~1,5 s (75 klatek) ładuje lancę. (b) Bez modułu
+   pod statkiem nie ma ładowania, a przycisk strzela zwyczajnie. (c) Podczas
+   ładowania zwykły ogień jest wstrzymany.
+3. **Celownik pod pasmem i w kolorze laserów: przyjęte, na podstawie
+   pomiaru.** Własny kolor w paśmie zabarwiał kolumny laserów.
+4. **Wiązka w płaszczyźnie statku (P0): przyjęte.**
+5. **Kapsuła +1 życia: przyjęte.** Pojawia się od razu, gdy zaczyna się
+   ostatni sektor przestrzeni, a nie jako „następna kapsuła w tym sektorze”.
+   To etap 2 Fazy B, nie teraz.
+6. **RAM lancy: niezajęty ogon okna `$B82A–$BBFF`, przydzielany od góry
+   (od `$BBFF` w dół).** Dolna część ogona zostaje na wzrost rekordu okna
+   (125–160 B na kapsułę życia). Asercja w buildzie pilnuje, by RAM lancy
+   i rekord okna nigdy się nie nakładały; gdy rekord do niej dorośnie, build
+   się nie udaje.
+
+**Potwierdzone także z A3:**
+- Jeden strzał na kapsułę i zapas najwyżej 3. Wskaźnikiem jest celownik;
+  komórki HUD nie ma.
+- Lanca nie celuje w rdzeń.
+- Trafia tylko to, co trafiłby zwykły strzał. Zamknięte zatoki, drzwi,
+  osłonięte działa i zasilone pole są wykluczone.
+- Studnia grawitacyjna i pole siłowe nie mają wyjątku.
+- Nova Missile istnieje tylko w dokumentach; dokumenty mają mówić, że
+  zastąpiła ją lanca.
+
+**Faza B, etap 1 (brief właściciela z 2026-10-20):**
+- **Zakres:** celownik V2, ładowanie przytrzymaniem, wiązka i zniszczenie
+  jednego modułu przez `boss_hit`, własny przebieg lancy (cel: najwyżej
+  3 dodatkowe sektory) oraz licznik zapasu (najwyżej 3). Na tym etapie zapas
+  daje opcja trasy debugowej albo stały zapas przy wejściu do bossa.
+- **Poza zakresem:** kapsuła, HUD, README.
+- **Bramki:**
+  - najgorsza klatka bossa ≤ 8 500 w każdym regionie;
+  - margines fence ≥ 1 400 na wszystkich trasach;
+  - DMA-on ≤ 31 200;
+  - wejście do bossa ≤ 350 klatek hosta;
+  - 0 bajtów rezydentnych dla broni (dozwolone tylko slot A +5 B i loader
+    banera +2 B z Fazy A; wszystko inne wymaga właściciela — STOP);
+  - klauzule kontaktu nietknięte.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

@@ -60,6 +60,11 @@ test("slot A holds the boss: at most 2,048 B, a JMP to the head, then the 12-ent
     // player's shots in the band once the band has been shown (slot E), then
     // jumps to boss_completion (asserted after the table).
     update_sector_completion: label("boss", "boss_shots_late"),
+    // RE-POINTED M6 stage 1 (docs/plans/m6-void-lance.md §6.1): the VOID
+    // LANCE's tick (TICK_FLASHES, before read_input and UPDATE) and its kill
+    // counted as a meeting (HULL_CONTACT, after UPDATE) - boss_rts before.
+    tick_launch_flashes: label("boss", "lance_tick"),
+    handle_player_hull_contact: label("boss", "lance_after"),
   };
   const image = label("boss", "boss_vector_image") - slot.address;
   vectors.forEach((target, index) => {

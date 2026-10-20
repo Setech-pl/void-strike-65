@@ -843,3 +843,27 @@ test("the stress composition: the Bastion's reachable worst under 8,500 on its l
       assert.equal(cases.reduce((sum, c) => sum + c.clashes, 0), 0, "rule (B): a kill frame with a gun's spawn");
     }
   });
+
+// M6 stage 1 (docs/plans/m6-void-lance.md §7): the VOID LANCE in each of its
+// states (tests/lance-states.mjs) on the Bastion's compositions, the limit
+// 8,500 on each; and the stress fixture that fires the lance on the Bastion's
+// worst frame (the rail step frame, no meeting, a gun spawning).
+test("M6: the Bastion with the VOID LANCE - every state under 8,500, the lance fired on its worst frame", { timeout: 900_000 }, async () => {
+  assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
+  const { regionTwoStress } = await import("../scripts/measure-boss-stress-r2.mjs");
+  const { lanceStress } = await import("./lance-states.mjs");
+  for (const level of LEVELS) {
+    const base = regionTwoStress({ level, maxMeetings: 2 });
+    const worstIndex = base.cases.indexOf(base.worstOf(base.cases.filter((c) => c.reach === "reachable")));
+    const table = lanceStress((lance) => regionTwoStress({ level, maxMeetings: 2, lance }));
+    console.log(`# the Bastion, level ${level}, the lance: ${Object.entries(table).map(([mode, { worst }]) => `${mode} ${worst.cycles}`).join(", ")}`);
+    for (const [mode, { worst, clashes }] of Object.entries(table)) {
+      assert.ok(worst.cycles <= 8500, `level ${level}, lance ${mode}: ${base.describe(worst)}`);
+      assert.equal(clashes, 0, `lance ${mode}: rule (B), a kill frame with a gun's spawn`);
+    }
+    const fired = table.fire.cases[worstIndex];
+    console.log(`# the Bastion's worst frame ${base.cases[worstIndex].cycles}, the lance fired on it ${fired.cycles}: ${base.describe(fired)}`);
+    assert.ok(fired.cycles > base.cases[worstIndex].cycles, "the lance did not fire on the Bastion's worst frame (no target?)");
+    assert.ok(fired.cycles <= 8500, `the lance fired on the worst frame: ${fired.cycles}`);
+  }
+});

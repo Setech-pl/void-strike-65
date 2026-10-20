@@ -756,29 +756,35 @@ section "Decyzje literowe 2026-09-20".
 - **End screen (P).** Eventually an animation in the top third at full width
   with a text scroll below. A simple message suffices for now.
 
-### Nova Missile — planned
+### VOID LANCE — M6 (replaced the planned Nova Missile)
 
-Nova Missile is a future boss-only special-weapon pickup, not a member of the
-planned Rapid Fire / Spread Shot / Shield drop rotation. It may appear only
-during a boss encounter, never in standard sectors or through the qualifying
-Raider-kill counter. Its mark is planned as a large, readable PMG shape,
-consistent with the accepted single-register pickup representation and not a
-revival of the retired character-capsule compositor.
+The VOID LANCE replaced the Nova Missile, which was never built: there was no
+code, no HUD cell and no score hook (journal §AE 1, §BD). It is the boss
+sector's own weapon and never an ordinary drop. Plan:
+[`plans/m6-void-lance.md`](plans/m6-void-lance.md).
 
-Collecting it arms exactly one missile independently of the current weapon
-booster and Shield. A held FIRE input at collection must not launch it: the
-player must release FIRE and press it again. That next new press launches Nova
-Missile instead of the normal shot, after which the Player Fighter returns to its
-preserved normal, Rapid Fire, or Spread Shot weapon state.
+**Stage 1, built (`OWNER-SMOKE CANDIDATE`):**
+- **The stock:** a lance in stock (at most 3) is shown by the reticle. There
+  is no HUD cell.
+- **The reticle:** when the ship stands under a module a player shot would
+  hurt, the reticle appears. It is one crosshair on P1, in the lasers'
+  colour, on the line under the band, at the module's centre.
+- **The charge:** holding FIRE there for 75 frames (1.5 s) charges the lance.
+  The crosshair blinks two frames in four. Ordinary fire waits while it
+  charges and while the beam is up.
+- **Cancelled:** a release before the 75th frame cancels the charge.
+- **No target:** under armour, open sky, a covered module, the core, a
+  closed door or a powered field there is no charge, and FIRE fires
+  normally.
+- **The beam:** on the 75th frame the beam leaves the ship's nose in the
+  ship's own plane (P0) and grows 20 lines a frame. When it reaches the
+  module, the module is destroyed through the shot's own kill path: the
+  spark, the score, the kill stat, the capsule rule and the exposure of what
+  stood behind it. Exactly one module dies, the one under the ship, and
+  never the core.
 
-A boss hit is planned to trigger a large multi-phase space-detonation: a bright
-central flash, yellow-red core, and expanding energy wave. Boss damage is
-applied exactly once at detonation; later animation phases cannot deal damage
-again. The weapon is intended to cause very high boss damage, but its exact
-damage, guidance, speed, spawn condition, and pickup count remain deliberately
-unspecified until boss lifecycle, boss HULL, and the large-explosion runtime
-budget are designed together. Nova Missile is not present in the current
-runtime.
+Stage 1 grants the stock only on the debug routes (`--lance-stock=N`). The
+game's stock is 0 until stage 2, where every boss capsule is a lance.
 
 ### Interceptor — **OWNER-ACCEPTED** (roadmap 4.4)
 

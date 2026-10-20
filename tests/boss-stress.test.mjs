@@ -55,6 +55,7 @@ import {
   bandDliSwitches, call, installRegion, label, labelsOf, manifest, nmi, placeBand, root, runBossEntry, shootAt,
   visibleCells,
 } from "./boss-harness.mjs";
+import { lanceAfter, lanceArm, lanceSkip, lanceStress, lanceTick } from "./lance-states.mjs";
 
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -171,12 +172,16 @@ function entryPool(memory) {
   }
 }
 function frame(memory, laserMode) {
+  if (lanceSkip(memory)) return 0;
   hold(memory, laserMode);
   memory[main("loader_dli_phase")] = 0;
   let cycles = nmi(memory, lbl("boss_dli"));
   // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
   cycles += bandDliSwitches(memory).cycles;
+  // M6: the VOID LANCE's tick (TICK_FLASHES, before UPDATE; tests/lance-states.mjs).
+  cycles += lanceTick(memory);
   cycles += call(memory, lbl("boss_update")).cycles;
+  cycles += lanceAfter(memory);   // M6: HULL_CONTACT
   // RE-POINTED (fix/smoke-2026-10-07 P1): the band's shot cells are written at
   // SECTOR_COMPLETION now (boss_shots_late); counted with the boss's work (the
   // harness's VCOUNT reads 0, so the raster wait, which is idle, is not).
@@ -216,7 +221,7 @@ const reach = (k) => (k <= 2 ? "reachable" : "unproven");
 
 // Every case of a layout: band positions x destroyed-plate sets x subsets of
 // up to five front modules x kill / stage; each case's frame and the worst.
-function sweep(region, { setup, deadSets, laserMode, volleys = false }) {
+function sweep(region, { setup, deadSets, laserMode, volleys = false, lance = "off" }) {
   const cases = [];
   for (const p of [0, 16, 32, 48, 63]) {
     for (const dead of deadSets) {
@@ -252,6 +257,7 @@ function sweep(region, { setup, deadSets, laserMode, volleys = false }) {
               if (gun === null && runs.length > 0) break;
               const run = Uint8Array.from(memory);
               if (gun !== null) arm(run, gun);
+              lanceArm(run, lance, { hit, kind: mode, columnOf: (i) => front.get(i) });
               if (step === "burst 2" || step === "burst 3") {
                 lead(run, laserMode, step === "burst 2" ? 1 : 2);
                 if (burstLeft(run) === 0 || run[lbl("_boss_phase")] !== 0) continue;   // no volley
@@ -377,6 +383,23 @@ test("AUD-04: region 1 - every distinct-module kill and stage-change combination
   // AUD-04 cap; the three-to-five-meeting figures are printed as information
   // (docs/diagnostics/s5-1-stress-spawn-blocked.md), no longer a gate.
   assert.ok(reachable.cycles <= LIMIT, `the worst reachable case is ${describe(reachable)}`);
+});
+
+// M6 stage 1 (docs/plans/m6-void-lance.md §7): region 1's layouts with the
+// VOID LANCE in each of its states (tests/lance-states.mjs).
+test("M6: region 1 with the VOID LANCE - every state of the lance stays under the boss limit", () => {
+  const plates = region1.modules.map((m, i) => [m, i]).filter(([m]) => m.kind === "armour").map(([, i]) => i);
+  const table = lanceStress((lance) => ({ cases: sweep(region1, {
+    setup: (p) => { const memory = entered(); placeBand(memory, p); return memory; },
+    deadSets: [[], ...plates.map((i) => [i]), plates],
+    laserMode: null,
+    lance,
+  }) }));
+  console.log(`# region 1, the lance: ${Object.entries(table).map(([mode, { worst }]) => `${mode} ${worst.cycles}`).join(", ")}`);
+  for (const [mode, { worst, clashes }] of Object.entries(table)) {
+    assert.ok(worst.cycles <= LIMIT, `lance ${mode}: ${describe(worst)}`);
+    assert.equal(clashes, 0, `lance ${mode}: rule (B)`);
+  }
 });
 
 test("AUD-04: the tier-4 fixture with four lasers - every combination stays under the boss limit", { skip: !lasers }, () => {

@@ -161,6 +161,9 @@ test("decision 32 (re-pointed): black, then the banner's title, the theme starte
     // RE-POINTED 2026-10-07 (M5b-S4b.5, owner decision of 2026-10-07): slot E,
     // over the expanded hull maps, from 577 (after slot D's 14 reserved).
     ...run(577, BOSS.slotE.sectors),
+    // RE-POINTED M6 stage 1 (owner decision BD 6): the VOID LANCE run, the
+    // reservation's last three sectors, after slot E.
+    ...run(581, 3),
     ...run(634, 3), ...run(637, 3),                       // the band: rows 0-5, rows 6-7 + tables
     ...run(640, charsetSectors),                          // the region's charset at $0C00
     // RE-POINTED S5-1 (owner decision Q9, plan s5-boss-regions §4.1): the

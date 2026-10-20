@@ -266,6 +266,66 @@ export function lightCoverage(rows, sectors) {
   return { held: failures.length === 0, failures, clauses: c, maximumLiveLights };
 }
 
+// M6 stage 1 (docs/plans/m6-void-lance.md §3, §7; owner decision BD 6): the
+// window's unclaimed tail - from the window's end to $BC00, the VOID LANCE's
+// run at its top - per replay. Allowed: the start-up writers (those that
+// wrote before the first copy_hud_charset, as slot F's clause counts them),
+// the sector reader writing the lance run (only into the lance's RAM), and
+// the lance's own code writing its own state (only into the lance's RAM).
+// Anything else - any write into the window's room to grow, below the lance -
+// is foreign. Subject: the boss entries that read the whole run.
+export function windowTailWriteClause(watches, { labels, readerAddress, readerEnd, lanceAddress, lanceCodeEnd, runBytes }) {
+  const copyStart = labels.get("copy_hud_charset");
+  const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
+  const violations = [];
+  const writers = new Map();
+  let subject = 0;
+  let lanceWrites = 0;
+  for (const watch of watches) {
+    const tail = watch.window_tail;
+    if (tail === undefined) continue;
+    const copy = (watch.slot_f?.writers ?? []).filter(({ pc }) => pc >= copyStart && pc < copyEnd);
+    const copyFirst = copy.reduce((frame, writer) => Math.min(frame, writer.first_frame), Infinity);
+    let readerWrites = 0;
+    for (const writer of tail.writers) {
+      const inLance = (writer.min_address ?? writer.first_address) >= lanceAddress;
+      const kind = writer.pc >= readerAddress && writer.pc < readerEnd && inLance && writer.first_frame > copyFirst
+        ? "lance run read"
+        : writer.pc >= lanceAddress && writer.pc < lanceCodeEnd && inLance ? "the lance's state"
+          : writer.first_frame <= copyFirst ? "start-up" : null;
+      const key = `$${writer.pc.toString(16)}`;
+      const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
+      entry.sessions += 1;
+      entry.count += writer.count;
+      writers.set(key, entry);
+      if (kind === null) {
+        violations.push({ session: watch.session, message: `$${writer.pc.toString(16)} wrote the window's tail ` +
+          `${writer.count} times (frames ${writer.first_frame}-${writer.last_frame}, ` +
+          `$${(writer.min_address ?? writer.first_address).toString(16)}-$${(writer.max_address ?? writer.last_address).toString(16)}), ` +
+          "not a start-up writer, the lance run's read or the lance's own state" });
+      }
+      if (kind === "lance run read") readerWrites += writer.count;
+      if (kind === "the lance's state") lanceWrites += writer.count;
+    }
+    if (watch.bossEntry && readerWrites > 0) {
+      if (readerWrites < runBytes) {
+        violations.push({ session: watch.session, message: `the boss entry wrote ${readerWrites} B of the lance run ` +
+          `(expected >= ${runBytes})` });
+      }
+      subject += 1;
+    }
+    if ((tail.overflow ?? 0) > 0) {
+      violations.push({ session: watch.session, message: `the window tail watch overflowed (${tail.overflow} writes untracked)` });
+    }
+  }
+  return {
+    clause: "the window's unclaimed tail (the window's end to $BBFF) is written only by the start-up writers, the " +
+      "sector reader's read of the lance run into the lance's RAM at a boss entry, and the lance's own code into " +
+      "its own RAM, in every replay (decision BD 6)",
+    sessions: watches.length, subject, lanceWrites, writers: [...writers.values()], violations,
+  };
+}
+
 // S5-1 (owner decision Q9): slot F's writers, per replay. Allowed: the
 // start-up writers that finished by copy_hud_charset's last write (the boot
 // loader's staging, the charset copy), and after it the sector reader - the

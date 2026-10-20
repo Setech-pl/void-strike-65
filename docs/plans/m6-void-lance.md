@@ -1,11 +1,12 @@
 # M6 — the VOID LANCE and the +1 life capsule
 
 **Branch:** `plan/m6-void-lance` from `main` `3d59ded` (v0.3.0; ATR
-`c977efe0…`).
-**Status:** Phase A — **STOP for the owner** (reticle variant, §5; the
-answers marked *proposed*, §4). Planning only: no tracked source or build
-output changed. The probe is under `build/m6-probe/` (not committed); its
-patch against `main` is kept as evidence in
+`c977efe0…`); Phase B on `feat/m6-void-lance`, which carries the plan's
+commit `837cf04` (fast-forwarded onto it from `main` `3d59ded`).
+**Status:** Phase A done; the owner's answers are journal **§BD**
+(2026-10-20; §4 below, confirmed). **Phase B stage 1 built — STOP for the
+owner's smoke** (§6.1). Phase A's probe is under `build/m6-probe/` (not
+committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
 Labels: **M** measured (the 6502 core with the boss stress tools, or the
@@ -229,7 +230,22 @@ reticle (§7).
 
 ---
 
-## 4. Answers to the open questions (A3) — *proposed, owner to confirm*
+## 4. Answers to the open questions (A3) — **confirmed by the owner (journal §BD, 2026-10-20)**
+
+The owner confirmed every proposal below, with the reticle V2 (§5), the
+hold-to-charge rule (replacing §AE 3's Nova rule), the reticle under the band
+in the lasers' colour, the beam in P0, the life capsule spawned outright, and
+the lance's RAM from `$BBFF` down (§BD 1-6). What stage 1 built where the
+table's wording differs (§6.1, measured):
+* **(c):** ordinary fire waits while charging *and while the beam is up*. The
+  beam's end opens the gate again, so FIRE still held fires at once. The
+  table's "until FIRE is released" left a player (and the trace's bots) who
+  keeps FIRE held without ordinary fire after a shot. The MEDIUM route
+  never reached the chain until it changed.
+* **The kill frame:** the lance's kill counts as one of the frame's band
+  meetings (AUD-04). So the Bastion's rail step, which waits for a frame with
+  no meeting, waits on it as on a shot's kill frame. Without that, an
+  arrival on a rail-step frame measured 9,383.
 
 | | proposal | alternative | cost (proposal / alternative) | reason |
 | --- | --- | --- | --- | --- |
@@ -285,6 +301,114 @@ points are where a measured figure decides.
 | 6 trace clauses, tests, smoke | §7; the four route ATRs and the whole game for the owner's smoke; STATUS, memory map, how-to-play EN / PL | — | — | any clause or gate red |
 
 ---
+
+### 6.1 Stage 1 as built (`feat/m6-void-lance`, 2026-10-20) — `OWNER-SMOKE CANDIDATE`
+
+The owner's brief for stage 1 covers phases 1 and 2 above: the reticle,
+hold-to-charge, the beam and the kill, the lance run, and the stock (granted
+by `--lance-stock=N`). There is no capsule, no HUD and no README; the game's
+stock is 0.
+
+**The code.**
+* **`src/c/lance.c`, the policy** (in the boss link's lance run; no software
+  stack, the controller's rule):
+  * `lance_c_aim` decides the target and the charge. A target is the column
+    map's front module, in the fight, exposed, and not the core. The charge
+    lasts 75 frames, is cancelled on release, and its fire decrements the
+    stock.
+  * `lance_c_arrive` sets the target's HP to 1 for the kill.
+  * `lance_c_give` adds one lance, at most 3. It is stage 2's entry point,
+    built and tested now.
+* **`src/hybrid/lance.s`, the execution** (included by `boss.s`):
+  * `lance_tick` (TICK_FLASHES): the column under the ship's centre, the
+    reticle (P1, drawn once at the install's measured line, HPOS at the
+    module's centre), the gate, and the beam (P0, `$18`, 20 lines a frame).
+    The kill goes through `boss_hit`.
+  * `lance_after` (HULL_CONTACT): on the arrival frame it counts the kill as
+    one of AUD-04's meetings.
+* **The shot's mailboxes:** the tick writes `boss_hit_module` and
+  `boss_hit_cell`, the shot's own inputs. Only UPDATE's shot loop writes them
+  otherwise, and no shot flies from the fire to the kill.
+* **The lance run:** `BOSS_LANCE_RAM` `$BA80-$BBFF` (Phase A's "slot G"; that
+  cfg name is the Citadel's gravity area). It is 3 sectors, 581-583, read
+  after slot E (`ldy #5` shared runs) and folded into the head's sums. It
+  holds 373 B of code, 1 B of data (the stock's grant) and 7 B of BSS read
+  as zeros: 381 of 384 B.
+* **The build:** `scripts/lance-layout.mjs` fails the build when the window's
+  record passes `$BA80`, and when the run overflows its sectors or
+  reservation.
+* **Slot E:** its maximum is now 4 whole sectors (577-580), so 581 is free.
+
+**What changed from §2 / §4 on the way (all M):**
+1. **No `boss_band_measure` on the first frame.** That scan cost 2,960 on
+   the first shown frame (Citadel L5 10,971). The reticle reads the line the
+   install measured and patched into `boss_capsule_y_operand`.
+2. **The beam is bounded on every frame.** The Bastion's worst frame, 8,060,
+   is a rail step with no player meeting, so beam work adds to it directly.
+   The 40-line grow measured 8,741 and the one-frame erase 10,281.
+   * The beam grows, then erases, 20 lines a frame, both upward (the erase
+     leaves the ship and closes on the module).
+   * Grow and erase share one 20-line step.
+3. **The kill counts as a meeting.** An arrival on a Bastion rail-step frame
+   measured 9,383: the step waits for a frame with no meeting, and the
+   lance's kill (before UPDATE, which resets AUD-04's count) was not one.
+   `lance_after` decrements `boss_shots_admit_left` after UPDATE, and the
+   arrival then measured 7,226. The firing rule (B) already holds on the
+   kill: `boss_expose_pending`.
+4. **The beam's end opens the gate.** (c) as built: ordinary fire waits
+   while charging and while the beam is up. With FIRE held through a shot,
+   the gate stayed shut until a release. The MEDIUM route (a bot holding
+   FIRE) never reached the chain in 12,000 frames, and at 2,658 frames once
+   fixed.
+5. **The C/ASM split's bytes.** The policy in C and the execution in ASM,
+   first linked, were 501 B against 384. Trimmed to 381 B, with no stage 1
+   function dropped: the target held in `boss_hit_module`, a bit-coded
+   action, one beam routine for grow and erase.
+
+**Measured — boss stress** (the four stress compositions with
+`tests/lance-states.mjs`; native cycles, worst reachable, the §1.2
+accounting plus the tick and `lance_after`):
+
+| region | before | stock 0 (the game) | first draw | idle | charging | firing | beam grow / erase | kill (arrival) | worst | headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 Breaker | 7,150 | 7,185 | 7,548 | 7,390 | 7,408 | 7,412 | 3,955 / 3,970 | 5,891 | 7,548 | **952** |
+| 2 Citadel L4 / L5 | 7,694 / 8,029 | 7,729 / 8,064 | 8,023 / 8,386 | 7,865 / 8,228 | 7,883 / 8,246 | 7,887 / 8,250 | 6,242 / 6,257; 6,601 / 6,616 | 7,360 / 7,719 | 8,386 | **114** |
+| 3 Spine L7 / L9 | 7,771 / 8,025 | 7,806 / 8,060 | 8,146 / 8,398 | 7,988 / 8,240 | 8,006 / 8,258 | 8,010 / 8,262 | 5,023 / 5,038; 5,331 / 5,346 | 7,199 / 7,570 | 8,398 | **102** |
+| 4 Bastion L10 | 8,060 | 8,095 | 8,435 | 8,277 | 8,295 | 8,299 | 8,422 / 8,437 | 7,226 | 8,437 | **63** |
+
+* **Tick cost (worst):** stock 0: 20 + `lance_after` 15; first draw 360;
+  idle 202; charging 220; firing / beam 347-362; the kill 2,428-2,735 (the
+  kill path itself). Every state's worst frame is under §6's 50-cycle
+  reserve (8,450).
+* **Rule (B):** 0 frames with a kill and a spawn in every mode.
+* **The fixture that fires the lance on the Bastion's worst frame:** 8,060 →
+  8,299 (`tests/boss-region-2.test.mjs`).
+
+**Measured — the routes** (Atari800, `build/lance-stock-3-*`, stock 3 at
+every entry; each session focused):
+
+| route | sessions | worst margin | DMA-on max | entry, host frames (main) | misses / clause failures |
+| --- | --- | ---: | ---: | ---: | ---: |
+| R1 `lance-stock-3-level-1-s6` | boss-aim-0/1/2, boss-park-left/right-1 | 8,326 | 29,665 | **306** (295) | 0 / 0 |
+| R2 `…-boss-region-2-…` | diag-0/1/2, dodge-2, finale-0/1/2, boss-aim-1 | 6,645 | 30,334 | **321** (310) | 0 / 0 |
+| R3 `…-boss-region-3-…` | the same | 6,125 | 30,476 | **317** (306) | 0 / 0 |
+| R4 `…-boss-region-4-…` | the same + edge-left-1 | 7,738 | 29,640 | **321** (310) | 0 / 0 |
+
+* **Entry:** the 3 sectors cost +11 host frames on every region (EST §3:
+  +11).
+* **The chain:** every MEDIUM session with a chain clause reaches it, as
+  does every finale.
+* **The reticle:** it shows in the fight on every route session (24-271
+  frames) and on no frame outside it, counted from each session's CSV.
+* **The window tail:** 0 foreign writers on every session.
+
+Not like for like with main: the routes' bots hold FIRE, so the lances fire
+on their own.
+
+**Not measured here:** real hardware (the owner's smoke). The beam during
+the player's death explosion: the beam's erase stops at the ship's top line,
+but an explosion drawn above it in P0 can lose rows to the erase. That is
+cosmetic, rare (a death within the beam's ~12 frames) and untested.
 
 ## 7. The tests and trace clauses that prove it
 

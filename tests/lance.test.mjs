@@ -1,11 +1,13 @@
 // M6 (docs/plans/m6-void-lance.md §6, §7; owner decisions BD 1-6, 2026-10-20;
-// the owner's smokes and choices, journal §BE-§BG): the VOID LANCE on the 6502
+// the owner's smokes and choices, journal §BE-§BI): the VOID LANCE on the 6502
 // harness, through the real boss entry from the built disk. The lance run's
 // layout and the build's assertion over the window's tail; the meter (journal
 // §BG: LANCE_METER_FRAMES on MEDIUM, scaled on EASY / HARD, one lance, no
 // stacking, emptied by the shot, reset at the entry, the gesture nothing
-// while it fills); the readiness indicator (the build's variant: C the ship's
-// colour, T the torpedo; the cue on channel 3) following readiness exactly;
+// while it fills); the readiness indicator (C, the ship green - the only one
+// since journal §BI 3; the cue on channel 3) following readiness exactly; the
+// charge's ramp (journal §BI 2: the ship's luminance, steel's to near-white,
+// back to the green on a release) and the discharge on channel 3;
 // the charge (FIRE + stick UP held LANCE_CHARGE_FRAMES frames - journal §BH:
 // whatever is under the ship, level-triggered), cancelled by releasing either,
 // never by FIRE alone, the stick alone or another direction, never by the
@@ -40,6 +42,12 @@ const DIFFICULTY = main("DIFFICULTY_SETTING");
 const METER = lance.meterFrames;                                // EASY, MEDIUM, HARD
 const COLPM0 = 0xd012, AUDF3 = 0xd204, AUDC3 = 0xd205;
 const READY = lbl("lance_ready");
+// Journal §BI 2: the ship's colour for a charge frame - the ready green at 0,
+// then src/hybrid/lance.s's lance_ramp by (charge + 7) / 8.
+const RAMP = [0xca, 0xc4, 0xc4, 0xc6, 0xc6, 0xc8, 0xc8, 0xca, 0xcc, 0xce, 0xce];
+const rampColour = (charge) => RAMP[(charge + 7) >> 3];
+const SHOT_AUDF = 0x10, SHOT_AUDC = 0x8a;                          // the discharge (journal §BI 2)
+const BED_AUDF = 0x68, BED_AUDC = 0x22;                             // the boss's engine bed on channel 3
 const meterOf = (memory) => memory[lbl("_lance_meter_lo")] | (memory[lbl("_lance_meter_hi")] << 8);
 function setMeter(memory, frames) {
   memory[lbl("_lance_meter_lo")] = frames & 0xff;
@@ -146,7 +154,7 @@ test("M6: the lance run - the window's tail from $BBFF down, the boss reservatio
   assert.equal(lance.stockGrant, undefined, "journal §BG: no stock - the meter");
   assert.equal(LANCE_METER_FRAMES, 1250, "decision BG 1: 25 s on MEDIUM");
   assert.deepEqual(METER, [938, 1250, 1562], "the boss's hit-point ratios: x 3/4 EASY, x 5/4 HARD (quarter by shift)");
-  assert.ok(["c", "t"].includes(lance.indicator), `the indicator ${lance.indicator}`);
+  assert.equal(lance.indicator, undefined, "journal §BI 3: C is the only indicator - no --lance-indicator");
   assert.equal(lance.rule, undefined, "one rule since the owner's choice (§BF): no --lance-rule");
   assert.deepEqual([lance.chargeFrames, lance.chargeSpeedDivisor], [75, 2], "the charge's two constants (scripts/lance-layout.mjs)");
   const run = manifest.boss.runs.find((r) => r.name === "boss-lance");
@@ -315,14 +323,17 @@ test("M6 (decision BH 3): a shot with no target - the beam fires through the mar
     assert.equal(memory[lbl("lance_top")], memory[lbl("lance_y")] - 1, "up through the mark to the band's foot");
     assert.equal(memory[READY], 0xff, "the lance kept");
     assert.equal(meterOf(memory), METER[1], "the meter full");
-    if (lance.indicator === "c") assert.equal(memory[COLPM0], 0xca, "the ship green");
+    assert.equal(memory[COLPM0], 0xca, "the ship green");
     hold(memory, false);
     let frames = 0, reached = false;
     while (memory[lbl("lance_beam")] !== 0) {
       const writes = new Map();
       tick(memory, { write: (address, value) => { writes.set(address, value); } });
       reached ||= memory[lbl("lance_head")] === memory[lbl("lance_top")];
-      assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), "no kill's tick, no cue");
+      // No kill's tick, no cue; the beam's last frame gives the discharge's
+      // channel back to the engine bed (journal §BI 2).
+      if (memory[lbl("lance_beam")] === 0) assert.deepEqual([writes.get(AUDF3), writes.get(AUDC3)], [BED_AUDF, BED_AUDC], "the bed back");
+      else assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), "no kill's tick, no cue");
       assert.equal(meterOf(memory), METER[1], `beam frame ${frames}: the meter stays full`);
       assert.equal(memory[READY], 0xff, `beam frame ${frames}: still ready`);
       frames += 1;
@@ -331,8 +342,8 @@ test("M6 (decision BH 3): a shot with no target - the beam fires through the mar
     assert.ok(reached, "the beam reached the band's foot");
     assert.deepEqual(hpOf(memory), before, "a module's HP changed");
     assert.deepEqual([memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]], score, "scored");
-    // The beam erased (T: the torpedo's rows over the nose are its own).
-    for (let y = 0; y < (lance.indicator === "t" ? SHIP_Y - 6 : SHIP_Y); y += 1) assert.equal(memory[P0 + y], 0, `P0 row ${y} left`);
+    // The beam erased.
+    for (let y = 0; y < SHIP_Y; y += 1) assert.equal(memory[P0 + y], 0, `P0 row ${y} left`);
     // Still one lance: the next frame aims again (the hollow mark) and a
     // charge over a target spends it.
     tick(memory);
@@ -391,7 +402,7 @@ test("M6 (decision BH 1): the ship's upper limit (and a side) reached with the g
       let frames = 0;
       while (memory[lbl("lance_beam")] !== 0) { step(memory, 0, false); frames += 1; assert.ok(frames < 20, `${name}: the beam never ended`); }
       assert.deepEqual([...memory.subarray(P0 + floorValue, P0 + floorValue + 16)], ship, `${name}: the ship's rows`);
-      for (let y = 0; y < floorValue - (lance.indicator === "t" ? 6 : 0); y += 1) assert.equal(memory[P0 + y], 0, `${name}: P0 row ${y} left`);
+      for (let y = 0; y < floorValue; y += 1) assert.equal(memory[P0 + y], 0, `${name}: P0 row ${y} left`);
     }
   }
 });
@@ -795,15 +806,13 @@ test("M6 (decision BG 1): the meter resets at the boss entry - a full meter left
 // lance is ready, off the frame it is spent (the beam's first), off while
 // the ship is dying and after the fight; the cue on channel 3 on every change
 // to on (none with the sound off).
-test(`M6 (decision BG 4): the readiness indicator (${lance.indicator}) and its cue follow readiness exactly`, () => {
+test("M6 (decisions BG 4, BI 2): the readiness indicator (the ship green; its charge ramp) and its cue follow readiness exactly", () => {
   const { memory } = fight(1, { ready: false });
   const sound = main("sound_enabled");
   memory[sound] = 1;
   const c = targetColumn(memory);
   standUnder(memory, c);
   setMeter(memory, METER[1] - 3);
-  const rows = [0x00, 0x10, 0x38, 0x38, 0x38, 0x6c];   // T: the row above (cleared), the tip, the body, the fins
-  const torpedo = (m) => [...m.subarray(P0 + m[main("player_y")] - 6, P0 + m[main("player_y")])];
   const log = [];
   let beamBefore = 0;
   const frame = (label) => {
@@ -815,15 +824,12 @@ test(`M6 (decision BG 4): the readiness indicator (${lance.indicator}) and its c
   };
   const check = (writes, { on, change, label }) => {
     assert.equal(memory[READY], on ? 0xff : 0, `${label}: readiness`);
-    if (lance.indicator === "c") {
-      // The change, and every ready frame with no beam up (a booster writes
-      // the white at a pickup or a release): never otherwise.
-      const expected = change || (on && beamBefore === 0);
-      assert.equal(writes.has(COLPM0), expected, `${label}: COLPM0 written`);
-      if (expected) assert.equal(writes.get(COLPM0), on ? 0xca : 0x0e, `${label}: the colour`);
-    } else if (memory[lbl("lance_beam")] === 0) {
-      assert.deepEqual(torpedo(memory), on ? rows : [0, 0, 0, 0, 0, 0], `${label}: the torpedo's rows`);
-    }
+    // The change, and every ready frame with no beam up (a booster writes
+    // the white at a pickup or a release): never otherwise; while charging,
+    // the ramp's colour (journal §BI 2).
+    const expected = change || (on && beamBefore === 0);
+    assert.equal(writes.has(COLPM0), expected, `${label}: COLPM0 written`);
+    if (expected) assert.equal(writes.get(COLPM0), on ? rampColour(memory[lbl("_lance_charge")]) : 0x0e, `${label}: the colour`);
     // The cue's tone (the kill's own tick on the beam's arrival is boss_hit's).
     const cue = writes.get(AUDF3) === 0x0c || writes.get(AUDC3) === 0xa8;
     assert.equal(cue, change && on, `${label}: the cue`);
@@ -835,17 +841,15 @@ test(`M6 (decision BG 4): the readiness indicator (${lance.indicator}) and its c
   for (let f = 0; f < 3; f += 1) check(frame(`filling ${f}`), { on: false, change: false, label: `filling ${f}` });
   check(frame("full"), { on: true, change: true, label: "the meter full" });
   for (let f = 0; f < 5; f += 1) check(frame(`ready ${f}`), { on: true, change: false, label: `ready ${f}` });
-  // The ship moves: the torpedo with it.
+  // The ship moves.
   memory[main("player_y")] -= 3;
   check(frame("moved"), { on: true, change: false, label: "the ship moved" });
-  // C: a booster's release writes the white (src/main.s's
+  // A booster's release writes the white (src/main.s's
   // restore_player_fighter_normal_colors) - the next ready frame is green.
-  if (lance.indicator === "c") {
-    call(memory, main("restore_player_fighter_normal_colors"));
-    assert.equal(memory[COLPM0], 0x0e);
-    check(frame("released"), { on: true, change: false, label: "after a booster's release" });
-    assert.equal(memory[COLPM0], 0xca);
-  }
+  call(memory, main("restore_player_fighter_normal_colors"));
+  assert.equal(memory[COLPM0], 0x0e);
+  check(frame("released"), { on: true, change: false, label: "after a booster's release" });
+  assert.equal(memory[COLPM0], 0xca);
   // Dying: off; alive again: on, with the cue.
   memory[main("PLAYER_LIFECYCLE")] = 1;
   check(frame("dying"), { on: false, change: true, label: "dying" });
@@ -861,8 +865,8 @@ test(`M6 (decision BG 4): the readiness indicator (${lance.indicator}) and its c
   assert.equal(memory[READY], 0xff);
   assert.ok(!silent.has(AUDF3) && !silent.has(AUDC3), "a cue with the sound off");
   memory[sound] = 1;
-  // The shot: on through the charge, off on the fire frame (the lance spent,
-  // the meter emptied); T: the beam grows over the torpedo's rows.
+  // The shot: on through the charge (the ramp), off on the fire frame (the
+  // lance spent, the meter emptied: the white).
   hold(memory);
   for (let f = 0; f < CHARGE - 1; f += 1) check(frame(`charge ${f}`), { on: true, change: false, label: `charge ${f}` });
   check(frame("fire"), { on: false, change: true, label: "the fire frame" });
@@ -875,6 +879,99 @@ test(`M6 (decision BG 4): the readiness indicator (${lance.indicator}) and its c
   check(frame("ready again"), { on: true, change: true, label: "ready again" });
   memory[lbl("_boss_phase")] = 1;
   check(frame("defeat"), { on: false, change: true, label: "the fight over" });
+});
+
+// Journal §BI 2: while FIRE + UP is held the ship's luminance ramps, in the
+// ready green, from the steel's (4) to near-white over the 75 frames - one
+// COLPM0 write a frame, the table's - and snaps back to the green the frame
+// the gesture is released; a dry shot leaves it green, a kill white.
+test("M6 (decision BI 2): the charge's ramp - the green from luminance 4 to near-white, never down, one write a frame; the green again on a release; the shot's colour", () => {
+  for (const where of ["target", "empty"]) {
+    const { memory } = fight();
+    standUnder(memory, where === "target" ? targetColumn(memory) : emptyColumns(memory)[0]);
+    tick(memory);
+    assert.equal(memory[COLPM0], 0xca, `${where}: ready, not charging: the green`);
+    // Released part-way (frame 40): the green that very frame; held again:
+    // the ramp from its start.
+    hold(memory);
+    for (let f = 1; f <= 40; f += 1) tick(memory);
+    assert.equal(memory[COLPM0], rampColour(40));
+    hold(memory, false);
+    tick(memory);
+    assert.equal(memory[COLPM0], 0xca, `${where}: the snap back on the release frame`);
+    hold(memory);
+    const seen = [];
+    for (let f = 1; f <= CHARGE; f += 1) {
+      let colourWrites = 0;
+      tick(memory, { write: (address) => { if (address === COLPM0) colourWrites += 1; } });
+      if (f === CHARGE) break;
+      assert.equal(memory[lbl("_lance_charge")], f);
+      assert.equal(colourWrites, 1, `${where}, frame ${f}: one colour write`);
+      assert.equal(memory[COLPM0], rampColour(f), `${where}, frame ${f}`);
+      seen.push(memory[COLPM0]);
+    }
+    // The bounds: the green's hue throughout, from the steel's luminance to
+    // near-white, never darker frame to frame.
+    assert.equal(seen[0], 0xc4, "the first charge frame: luminance 4 (the steel's, $84)");
+    assert.equal(seen.at(-1), 0xce, "the last: near-white");
+    assert.ok(seen.every((c) => (c & 0xf0) === 0xc0 && (c & 0x0f) >= 4 && (c & 0x0f) <= 0x0e), "outside the green's 4..E");
+    assert.ok(seen.every((c, k) => k === 0 || c >= seen[k - 1]), "the ramp went down");
+    assert.equal(new Set(seen).size, 6, "six luminances: 4, 6, 8, A, C, E");
+    // The fire frame: a kill spends the lance (the white), a dry shot keeps it (the green).
+    assert.equal(memory[lbl("lance_beam")], 1);
+    assert.equal(memory[COLPM0], where === "target" ? 0x0e : 0xca, `${where}: the fire frame's colour`);
+  }
+});
+
+// Journal §BI 2: a short discharge on channel 3 on the fire frame, over a
+// target or none, never with the sound off - noise held while the beam is up
+// and given back to the engine bed by the beam's last frame (no timer: a
+// running boss_tick_timer costs every boss_frame_timers call, four on a rail's
+// slide); the kill's tick on the beam's arrival takes the channel first, and
+// boss_frame_timers gives it back as it always has (M5-03: no owner left).
+test("M6 (decision BI 2): the discharge - noise on channel 3 from the fire frame, the bed back on the beam's last frame (or after the kill's tick), never with the sound off", () => {
+  for (const where of ["target", "empty"]) {
+    for (const sound of [1, 0]) {
+      const { memory } = fight();
+      standUnder(memory, where === "target" ? targetColumn(memory) : emptyColumns(memory)[0]);
+      memory[main("sound_enabled")] = sound;
+      memory[AUDF3] = sound ? BED_AUDF : 0;                // the sound off: channel 3 silent
+      memory[AUDC3] = sound ? BED_AUDC : 0;
+      memory[lbl("boss_tick_timer")] = 0;
+      hold(memory);
+      const name = `${where}, sound ${sound}`;
+      for (let f = 1; f <= CHARGE; f += 1) {
+        const writes = new Map();
+        tick(memory, { write: (address, value) => { writes.set(address, value); } });
+        if (f === CHARGE && sound) {
+          assert.deepEqual([writes.get(AUDF3), writes.get(AUDC3)], [SHOT_AUDF, SHOT_AUDC], `${name}: the discharge`);
+        } else {
+          assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), `${name}, frame ${f}: channel 3 written`);
+        }
+      }
+      assert.equal(memory[lbl("lance_beam")], 1);
+      assert.equal(memory[lbl("boss_tick_timer")], 0, `${name}: the discharge holds no timer`);
+      hold(memory, false);
+      // The beam's frames, each followed by the frame's timers (boss_update's).
+      let frames = 0;
+      while (memory[lbl("lance_beam")] !== 0) {
+        const writes = new Map();
+        tick(memory, { write: (address, value) => { writes.set(address, value); } });
+        call(memory, lbl("boss_frame_timers"));
+        frames += 1;
+        assert.ok(frames < 25, `${name}: the beam never ended`);
+        if (memory[lbl("lance_beam")] !== 0 && where === "empty") {
+          assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), `${name}, beam frame ${frames}: channel 3 written`);
+          if (sound) assert.equal(memory[AUDC3], SHOT_AUDC, `${name}, beam frame ${frames}: the noise held`);
+        }
+      }
+      // Released: the engine bed, or silence with the sound off.
+      assert.deepEqual([memory[AUDF3], memory[AUDC3]], sound ? [BED_AUDF, BED_AUDC] : [0, 0],
+        `${name}: channel 3 after the beam`);
+      for (let f = 0; f < 4; f += 1) call(memory, lbl("boss_frame_timers"));
+      assert.equal(memory[lbl("boss_tick_timer")], 0, `${name}: no owner left on channel 3`);
+    }
+  }
 });
 
 // Readiness off (the ship dying, the fight over - journal §BG 4): the mark
@@ -926,8 +1023,7 @@ test("M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the
   const allowed = (a) => (a >= lance.address && a < LANCE_RAM_END) || (a >= P1 && a < P1 + 256) ||
     a === HPOSP1 || a === 0xd009 || (a >= 0x0100 && a < 0x0200) ||
     a === main("read_input") + 1 || a === main("read_input") + 2 ||
-    (lance.indicator === "t" && a >= P0 && a < P0 + 256) ||   // the torpedo, redrawn with the ship
-    (lance.indicator === "c" && a === COLPM0) ||              // the ready colour, again every ready frame
+    a === COLPM0 ||                                           // the ready colour, again every ready frame
     (lance.slow === "forward" && a === FLOOR);   // the comparison build's floor operand
   assert.deepEqual([...writes].filter((a) => !allowed(a)).map((a) => `$${a.toString(16)}`), [],
     "the tick wrote outside the lance, P1, HPOSP1 / SIZEP1 and read_input's stick operand (no fire gate, no shot mailbox)");

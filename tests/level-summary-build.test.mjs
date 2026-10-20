@@ -256,7 +256,7 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   // empty past slot E again.
   const lance = manifest.boss.runs.find((run) => run.name === "boss-lance");
   assert.deepEqual([lance.startSector, lance.sectors], [712, manifest.boss.lance.sectors], "the lance run: the disk's free tail");
-  assert.ok([4, 5].includes(lance.sectors), "four sectors (five with the torpedo, indicator T)");
+  assert.ok([4, 5].includes(lance.sectors), "five sectors since journal §BH (four at §BG)");
   assert.ok(atrSectors(slotEEnd, 584 - slotEEnd).every((byte) => byte === 0),
     "528-583 past slot E must stay empty");
   assert.ok(atrSectors(lance.startSector, lance.sectors).some((byte) => byte !== 0), "the lance run is on the disk");

@@ -32,7 +32,8 @@ import {
   BANNER_DMACTL, BANNER_HEIGHT, BANNER_HSCROL, BANNER_INCOMING_ROW, BANNER_MARGIN_BYTES, BANNER_NAME_ROW,
   BANNER_REGION_SECTORS, BANNER_RUN_ADDRESS, BANNER_SCREEN_END, BANNER_WARNING_ROW, bannerBarPixels,
   BANNER_CHBASE, BANNER_HEAD_LATE_FOLD, BANNER_HEAD_LATE_SECTORS, BANNER_HEAD_REGION, BANNER_SCREEN_SECTORS,
-  BANNER_WHITE,
+  BANNER_WHITE, BANNER_LANCE_ROW, BANNER_TEXT_LANCE, BANNER_PLUS_CODE, BANNER_PLUS_ROWS, bannerLanceCodes,
+  bannerLancePlacement,
   bannerLineAddress, bannerTextPlacement, encodeBannerPicture, expandBannerPayload, readBannerPicture,
 } from "../scripts/boss-banner.mjs";
 import { BOSS_BANNER_SPEC_ADDRESS, BOSS_ENTRY_COLD_ADDRESS } from "../scripts/boss-assets.mjs";
@@ -57,15 +58,18 @@ const HSCROL = 0xd404;
 // RE-POINTED journal §BG (plan §6.3): the lance run is 4 sectors - 80 / 84 / 83 / 84.
 // RE-POINTED journal §BH: the lance run is 5 sectors (the hollow mark, the dry
 // shot) - 81 / 85 / 84 / 85.
+// RE-POINTED journal §BI 1: the VOID LANCE's line (+59 B of banner code) takes
+// the Spine's run (1,154 B) and the Bastion's (1,208 B) to 10 sectors - entries
+// 81 / 85 / 85 / 86.
 const PINS = [
   { picture: "blockade-breaker", sha256: "e806393d49fadf0d46e31d95d8f840b888904d9c42dafda85877399cfae5e0fd",
     packed: 398, runSectors: 9, entrySectors: 81 },
   { picture: "void-citadel-column", sha256: "f4c4b36cfabf1f47d3aeec838781c388eec0dbdad244ca898bafc550845e07e2",
     packed: 368, runSectors: 9, entrySectors: 85 },
   { picture: "siege-spine-side", sha256: "59497bd0e673a39442eee7135caaec809d66210a0db9b2390f22367cb703d0e7",
-    packed: 429, runSectors: 9, entrySectors: 84 },
+    packed: 429, runSectors: 10, entrySectors: 85 },
   { picture: "bastion-rails", sha256: "59c45fef7d99c62c776fbc9b885ad897ae2783ac4651fee20b3e4db70057b32f",
-    packed: 483, runSectors: 9, entrySectors: 85 },
+    packed: 483, runSectors: 10, entrySectors: 86 },
 ];
 
 const picture = (id) => readBannerPicture(path.join(root, "assets", "graphics", "boss-banners", `${id}.png`));
@@ -289,6 +293,58 @@ for (const [index, region] of REGIONS.entries()) {
     assert.deepEqual([...memory.subarray(BANNER_BAR_A, BANNER_BAR_A + 32)], new Array(32).fill(0));
     assert.deepEqual([...memory.subarray(BANNER_BAR_B, BANNER_BAR_B + 32)],
       [...new Array(6).fill(0), ...new Array(20).fill(BANNER_BAR_DASH), ...new Array(6).fill(0)]);
+  });
+
+  // M6 journal §BI 1: one line under INCOMING - "VOID LANCE: HOLD
+  // FIRE+FORWARD" in the frontend's lettering (ANTIC 2, the narrow
+  // playfield's 32 glyphs), in the 12 blank lines INCOMING had to the bar, so
+  // the picture, the title and the bar keep their lines; drawn with the
+  // picture under the shown screen, its '+' in the frontend charset's blank
+  // code 45.
+  test(`${where}: the VOID LANCE line under INCOMING - its text, its '+', its row in the list; the picture, the title and the bar where they were`, () => {
+    const { commands, atShow } = entry(index);
+    const memory = commands[2 + region.banner.runSectors].memory;
+    // The list: INCOMING, 2 blank, the line (ANTIC 2, LMS), 2 blank, the bar
+    // - 12 lines between, as before; the bar's first line where it was.
+    const tail = BANNER_DL + 5 + BANNER_HEIGHT * 3;
+    const incoming = [...memory.subarray(tail, tail + 40)].findIndex((b, k) =>
+      b === 0x46 && memory[tail + k + 1] === (BANNER_INCOMING_ROW & 0xff) && memory[tail + k + 2] === BANNER_INCOMING_ROW >> 8);
+    assert.ok(incoming > 0, "INCOMING's line not in the list");
+    assert.deepEqual([...memory.subarray(tail + incoming + 3, tail + incoming + 11)],
+      [0x10, 0x42, BANNER_LANCE_ROW & 0xff, BANNER_LANCE_ROW >> 8, 0x10, 0x4f, BANNER_BAR_A & 0xff, BANNER_BAR_A >> 8]);
+    // Scan lines from the list's top to the bar: 40 + 64 + 10 + 16 + 4 + 8 + 3 + 8 + 12.
+    let lines = 0;
+    for (let at = BANNER_DL; ; ) {
+      const op = memory[at];
+      if (op === 0x4f && memory[at + 1] === (BANNER_BAR_A & 0xff) && memory[at + 2] === BANNER_BAR_A >> 8) break;
+      const mode = op & 0x0f;
+      lines += mode === 0 ? ((op >> 4) & 7) + 1 : { 2: 8, 6: 8, 7: 16, 15: 1 }[mode];
+      at += (op & 0x40) && mode !== 0 ? 3 : 1;
+    }
+    assert.equal(lines, 40 + 64 + 10 + 16 + 4 + 8 + 3 + 8 + 12, "the bar moved");
+    // The row: the line's codes at its column, blank around them.
+    const column = bannerLancePlacement();
+    const codes = bannerLanceCodes();
+    assert.equal(codes.length, BANNER_TEXT_LANCE.length);
+    assert.equal(BANNER_TEXT_LANCE, "VOID LANCE: HOLD FIRE+FORWARD");
+    assert.deepEqual([...memory.subarray(BANNER_LANCE_ROW, BANNER_LANCE_ROW + 32)],
+      [...new Array(column).fill(0), ...codes, ...new Array(32 - column - codes.length).fill(0)], "the line's row");
+    assert.deepEqual(codes.filter((c) => c === BANNER_PLUS_CODE).length, 1);
+    // Centred within half a glyph (2 colour clocks: an odd count of ANTIC 2
+    // glyphs on a 32-glyph row).
+    assert.ok(Math.abs(64 + 4 * column + 2 * codes.length - 128) <= 2, "not centred");
+    // The '+': code 45 of the frontend charset (CHBASE $48), its rows 1-5,
+    // 0, 6 and 7 blank; codes 44 and 46-47 blank as the frontend leaves them;
+    // its neighbours (the dash, the H3.1 glyphs) untouched.
+    const glyph = (code) => [...memory.subarray(0x4800 + code * 8, 0x4800 + code * 8 + 8)];
+    assert.deepEqual(glyph(BANNER_PLUS_CODE), [0, ...BANNER_PLUS_ROWS, 0, 0], "the '+' glyph");
+    for (const code of [44, 46, 47]) assert.deepEqual(glyph(code), new Array(8).fill(0), `code ${code}`);
+    assert.deepEqual(glyph(37), glyph(37).map((_, k) => atShow.memory[0x4800 + 37 * 8 + k]), "the dash's glyph changed");
+    // Its letters are the contract's (the title's own GLYPH map).
+    assert.deepEqual(codes.filter((c) => c !== BANNER_PLUS_CODE && c !== 40),
+      [...BANNER_TEXT_LANCE].filter((ch) => ch !== "+" && ch !== ":").map(GLYPH));
+    // As the screen comes on: the row blank (it lands with the picture).
+    assert.ok(atShow.memory.subarray(BANNER_LANCE_ROW, BANNER_LANCE_ROW + 32).every((b) => b === 0));
   });
 
   test(`${where}: the bar fills once per sector of the boss's data, full on the last`, () => {

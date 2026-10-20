@@ -159,8 +159,9 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
   // frames): 71 -> 80 - the banner run's 9 sectors after the theme run.
   // RE-PINNED feat/m6-void-lance (journal §BD 6): 80 -> 83 - the lance run's
   // 3 sectors (581-583), read after slot E; journal §BH: 85 - its 5 sectors
-  // (712-716).
-  assert.equal(built.entrySectors, 85, "the Bastion's boss entry is 85 sectors");
+  // (712-716); journal §BI 1: 86 - the banner run's 10th sector (the VOID
+  // LANCE's line under INCOMING).
+  assert.equal(built.entrySectors, 86, "the Bastion's boss entry is 86 sectors");
   // The nozzles are never drawn: their two codes outside the charset's run.
   assert.deepEqual(region2.nozzle.codes, [126, 127], "the nozzle codes are in the run");
 });

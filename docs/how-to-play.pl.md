@@ -30,6 +30,10 @@ tak, jak została zaprojektowana, więc części tego, co niżej, nie ma w v0.3.
   gry.
 - Trzy poziomy trudności.
 
+**Po v0.3.0, w następnym wydaniu**
+
+- VOID LANCE, ciężki strzał na walki z bossami ([niżej](#void-lance)).
+
 **Przyjdzie z kampanią**
 
 - Poziomy od 2 do 12: kampania na dwanaście poziomów.
@@ -40,6 +44,7 @@ tak, jak została zaprojektowana, więc części tego, co niżej, nie ma w v0.3.
 
 Wszystko poniżej, co dotyczy poziomów po pierwszym, pozostałych trzech bossów,
 ulepszenia broni albo postępu, jest projektem gry, a nie tym, co robi v0.3.0.
+VOID LANCE jest zbudowana, ale doszła po v0.3.0.
 
 ## Co to za gra
 
@@ -73,6 +78,7 @@ tylko w otwartej przestrzeni, nigdy podczas przelotu korytarzem.
 | --- | --- |
 | Joystick, port 1 | Ruch |
 | Fire | Strzał |
+| Fire + joystick do przodu, trzymane 1,5 s, w walce z bossem | VOID LANCE, gdy jest gotowa |
 | Spacja | Pauza |
 | Spacja lub Fire, na ekranie startowym | Pominięcie ekranu tytułowego |
 
@@ -211,6 +217,31 @@ niej odbijają — dopóki każde działo i każde działko szyny nie zostanie
 zniszczone albo zakryte. Wtedy otwiera się z błyskiem i dźwiękiem i robi się
 żółta: rozbij ją, zatrzymasz eskortę, a rdzeń za nią jest Twój. Szyny
 nigdy nie zakrywają hangaru.
+
+### VOID LANCE
+
+Każda walka z bossem daje Ci jeden ciężki strzał: VOID LANCE. Baner ładowania
+każdego bossa przypomina, jak go oddać: `VOID LANCE: HOLD FIRE+FORWARD`
+(trzymaj Fire i joystick do przodu).
+
+- **Gotowa.** Po 25 s walki (ok. 19 s na ROOKIE, 31 s na ACE) Twój myśliwiec
+  robi się zielony i rozlega się dźwięk. Znacznik pod bossem pokazuje, gdzie
+  uderzy lanca: pełny celownik nad modułem, który może zniszczyć, pusty
+  znacznik nad czymkolwiek innym.
+- **Ładowanie.** Trzymaj Fire i pchnij joystick do przodu przez 1,5 s. Myśliwiec
+  zwalnia o połowę i w miarę ładowania rozjaśnia się aż do bieli. Puść któreś
+  z nich, a ładowanie przepada; nic innego go nie przerywa. Zwykłe strzały
+  lecą dalej, kiedy ładujesz.
+- **Strzał.** Promień niszczy jeden moduł nad Twoim myśliwcem, niezależnie od
+  tego, ile trafień mu zostało. Nigdy nie trafia rdzenia ani niczego, czego
+  Twoje zwykłe strzały nie mogłyby w tej chwili uszkodzić: pancerza, osłony,
+  zasilanego pola.
+- **Pudło nic nie kosztuje.** Oddany nad pustym miejscem promień leci, ale
+  lanca zostaje: myśliwiec dalej jest zielony. Ustaw się i spróbuj jeszcze raz.
+- **Jedna naraz.** Po trafieniu następna lanca jest gotowa po 25 s.
+  Niewykorzystana nie przechodzi na następnego bossa.
+
+VOID LANCE zastąpiła planowany wcześniej Nova Missile.
 
 ## Okręty liniowe
 

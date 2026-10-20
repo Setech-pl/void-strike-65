@@ -3290,6 +3290,81 @@ prawie nigdy się nie domykało.
 
 ---
 
+## BI. M6 VOID LANCE — AKCEPTACJA REGUŁ §BH I DOMKNIĘCIE ETAPU 1 (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `abaab35` (wariant C, reguły §BH): **ZAAKCEPTOWANE.**
+Strzał bez celu, który zostawia lancę, jest potwierdzony jako reguła. Etap 1
+domykamy na `feat/m6-void-lance` dwoma tanimi sygnałami, potem pełny łańcuch
+dowodowy i STOP na ostatni smoke.
+
+1. **Linia instruktażowa na każdym banerze bossa** (ładowana z dysku, 0 bajtów
+   rezydentnych): jedna linia pod INCOMING, krojem gry:
+   `VOID LANCE: HOLD FIRE+FORWARD`. Umieszczona tak, żeby obraz banera się nie
+   zmienił; podać koszt w sektorach i klatki wejścia (limit 350).
+2. **Informacja zwrotna ładowania, tylko jeśli się zmieści:** przy trzymanym
+   FIRE + GÓRA jasność statku rośnie od jasności stali do prawie bieli przez
+   75 klatek (mała tabela w przebiegu lancy, jeden zapis rejestru koloru na
+   klatkę), po puszczeniu wraca od razu; zieleń gotowości zostaje. Bramka:
+   ≤ 8 500 na Bastionie z zapasem ≥ 30 cykli; jeśli się nie zmieści — krok
+   rampy co 4 klatki; jeśli dalej nie — pominąć i to powiedzieć. Do tego
+   krótki, wyraźny dźwięk wyładowania na kanale 3 w klatce strzału (≤ 20 B,
+   ta sama zasada własności kanału co M5-03).
+3. **Wariant T i przełącznik wskaźnika w buildzie znikają;** C jest jedynym
+   wskaźnikiem. Testy lancy przechodzą bez pominięć; dochodzą testy linii
+   banera (wszystkie cztery banery) oraz granic rampy i jej powrotu.
+4. **Dokumenty:** `how-to-play.md` i `.pl.md` (VOID LANCE: gotowa po 25 s
+   walki z bossem, statek robi się zielony i rozlega się dźwięk; FIRE + do
+   przodu przez 1,5 s przy połowie prędkości; wiązka niszczy moduł pod
+   statkiem, nigdy rdzenia ani niczego, czego nie trafi zwykły strzał; strzał
+   w pustkę zostawia lancę; zastępuje Nova Missile), `game-design.md`, strony
+   Bossów (po jednej linii, EN + PL), STATUS (końcowe liczby etapu 1 M6;
+   przebieg lancy w sektorach 712–716; 581–583 wolne; backlog: wskaźnik
+   rakiety pod skrzydłem, jeśli budżet Bastionu kiedyś pozwoli, i stała
+   „pudło zużywa lancę" jako trudniejsza opcja), plan §6.3 jak zbudowano,
+   dziennik (ta sekcja).
+5. **Pełny łańcuch dowodowy** (build:candidate → runtime:wall-trace → build →
+   narzędzia związane z hashami, w tym showcase:gif → dwa pełne `npm test`
+   z `failures:reconcile`) plus cztery trasy bossów. Bramki: najgorsza klatka
+   sektora bossa ≤ 8 500 w każdym regionie, najgorszy margines płotu ≥ 1 400,
+   DMA-on ≤ 31 200, wejście do bossa ≤ 350, 0 zgubionych klatek, 0 błędów
+   klauzul, 0 bajtów rezydentnych dla broni (slot A +5, loader banera +2,
+   podsumowanie poziomu +10 — jak zaakceptowano). Oczekiwane: tylko
+   zapisany `tests/preview.test.mjs:164`; 0 NEW, 0 MOVED; przypinać na nowo
+   tylko dokładne wartości układu.
+6. **Dostarczyć** ATR pełnej gry i cztery ATR tras z prefiksem SHA-256
+   (ścieżki bezwzględne), zrzut banera Breakera z nową linią i tabelę per
+   region (najgorsza klatka na stan, klatki wejścia). STOP na smoke
+   właściciela. Bez merge, bez push.
+
+**Jak zbudowano (sesja, 2026-10-20):**
+- (1) Linia to wiersz ANTIC 2 (32 znaki wąskiego pola) w 12 pustych liniach
+  między INCOMING a paskiem (2 puste, wiersz, 2 puste), więc obraz, tytuł
+  i pasek zostają na swoich liniach. Znaku „+" nie ma w kontrakcie glifów:
+  przebieg banera wpisuje go przy każdym wejściu w kod 45 zestawu znaków
+  frontendu (kody 45–47 są czyszczone przy starcie i nikt ich nie rysuje).
+  Rysuje go późna część banera, razem z obrazem (sektory ekranu nie mają
+  miejsca). Koszt: wspólny kod banera 666 → 725 B; przebiegi Spine'a
+  (1 154 B) i Bastionu (1 208 B) dostają 10. sektor swojej rezerwacji —
+  wejścia 81 / 85 / 85 / 86 sektorów; 0 bajtów rezydentnych.
+- (2) Rampa: tabela 11 B w przebiegu lancy wg (ładowanie + 7) / 8 — zieleń
+  `$CA` bez ładowania, potem jasność 4 (stal `$84`) → `$CE`, w odcieniu zieleni
+  (zieleń gotowości zostaje), jeden zapis COLPM0 na klatkę (ten, który już
+  był); puszczenie = `$CA` w tej samej klatce. Mieści się bez kroku co 4.
+  Dźwięk wyładowania: szum (poly17, AUDF `$10`, AUDC `$8A`) w klatce
+  strzału. **Odstępstwo od wzoru sygnału gotowości:** nie trzyma
+  `boss_tick_timer` — działający licznik kosztuje przy każdym wywołaniu
+  `boss_frame_timers`, a przesunięcie szyny Bastionu robi ich cztery
+  w klatce (ZMIERZONE: +40 cykli, klatka strzału 8 513 > 8 500). Kanał wraca
+  do warkotu silnika w ostatniej klatce wiązki (wiązka jest ograniczona, więc
+  kanał zawsze zostaje zwolniony — zasada M5-03); zabicie na końcu wiązki,
+  trafienie albo ostrzeżenie lasera biorą kanał wcześniej, jak dotąd.
+  Dźwięk: 15 B w klatce strzału; powrót kanału i sygnał gotowości dzielą
+  procedurę `lance_sound`.
+- (3) T, `--lance-indicator` i `LANCE_INDICATOR_*` usunięte; przebieg lancy
+  639 z 640 B (5 sektorów 712–716).
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

@@ -29,6 +29,10 @@ what follows is not in v0.3.0.
 - The level summary. Your best score on the level is saved to the game's disk.
 - Three difficulties.
 
+**After v0.3.0, in the next release**
+
+- The VOID LANCE, a heavy shot for boss fights ([below](#the-void-lance)).
+
 **Coming with the campaign**
 
 - Levels 2 to 12: the twelve-level campaign.
@@ -38,7 +42,8 @@ what follows is not in v0.3.0.
 - Starting from the furthest level you reached.
 
 Everything below about levels after the first, the other three bosses, the
-weapon upgrade or progress is the design, not v0.3.0.
+weapon upgrade or progress is the design, not v0.3.0. The VOID LANCE is built
+but came after v0.3.0.
 
 ## What it is
 
@@ -71,6 +76,7 @@ space, never during the capital run.
 | --- | --- |
 | Joystick, port 1 | Move |
 | Fire | Shoot |
+| Fire + joystick forward, held 1.5 s, in a boss fight | VOID LANCE, once it is ready |
 | Space | Pause |
 | Space or Fire, during the boot splash | Skip the title screen |
 
@@ -205,6 +211,29 @@ it before the rail closes in.** The gate stays locked — barred grey, your shot
 bounce off — until every cannon and every rail gun is destroyed or covered.
 Then it opens with a flash and a chime and turns yellow: break it, stop the
 escort, and the core behind it is yours. The rails never cover the hangar.
+
+### The VOID LANCE
+
+Every boss fight gives you one heavy shot: the VOID LANCE. Every boss's loading
+banner reminds you how to fire it: `VOID LANCE: HOLD FIRE+FORWARD`.
+
+- **Ready.** 25 s into the fight (about 19 s on ROOKIE, 31 s on ACE) your ship
+  turns green and a tone sounds. A mark under the boss shows where the lance
+  will strike: a full crosshair over a module it can destroy, a hollow mark
+  over anything else.
+- **Charge.** Hold Fire and push the joystick forward for 1.5 s. Your ship
+  slows to half speed and brightens towards white as the charge builds. Let go
+  of either and the charge is lost; nothing else breaks it. Your ordinary
+  shots keep firing while you charge.
+- **The shot.** The beam destroys the one module above your ship, whatever
+  hits it has left. It never hits the core, or anything your ordinary shots
+  could not hurt at that moment: armour, a shield, a powered field.
+- **A miss is free.** Fired over empty space, the beam flies but you keep the
+  lance: the ship stays green. Line up and try again.
+- **One at a time.** After a kill the next lance is ready 25 s later. An unused
+  lance does not carry over to the next boss.
+
+The VOID LANCE replaced the Nova Missile planned earlier.
 
 ## Capital ships
 

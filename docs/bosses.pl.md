@@ -59,6 +59,11 @@ celuje w bossa, na pierwszym poziomie regionu danego bossa.
   ROOKIE i 1,25 raza tyle na ACE. Liczby niżej dotyczą poziomu PILOT.
 - **Punkty.** Każdy moduł daje punkty, gdy zostanie zniszczony. Pokonanie
   bossa dodaje **2000 punktów** premii, wypłacanej na podsumowaniu poziomu.
+- **VOID LANCE.** Po 25 s każdej walki Twój myśliwiec robi się zielony: trzymaj
+  Fire i joystick do przodu przez 1,5 s, a jej promień zniszczy moduł nad Tobą
+  (nigdy rdzeń ani to, czego nie ranią Twoje strzały); pudło zostawia lancę.
+  Ostatnia linia banera mówi, jak: `VOID LANCE: HOLD FIRE+FORWARD`
+  ([jak grać](how-to-play.pl.md#void-lance)).
 
 ---
 

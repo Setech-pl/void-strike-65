@@ -3656,8 +3656,10 @@ banner_show:
 
 ; The list after the picture: 10 blank lines, WARNING (ANTIC 7, HSCROL: 7
 ; glyphs), 4 blank, the name (ANTIC 6; the set-up puts the HSCROL bit in for
-; an odd count), 3 blank, INCOMING, 12 blank, the bar's 8 mode F lines (the
-; dash glyph's line 3 is row B), the jump.
+; an odd count), 3 blank, INCOMING, 2 blank, the VOID LANCE's line (ANTIC 2,
+; M6 journal §BI 1: in INCOMING's 12 blank lines to the bar, so nothing
+; moves), 2 blank, the bar's 8 mode F lines (the dash glyph's line 3 is row
+; B), the jump.
 banner_dl_tail:
     .byte $70, $10
     .byte $57, <BANNER_WARNING_ROW, >BANNER_WARNING_ROW
@@ -3666,7 +3668,9 @@ banner_dl_name:
     .byte $46, <BANNER_NAME_ROW, >BANNER_NAME_ROW
     .byte $20
     .byte $46, <BANNER_INCOMING_ROW, >BANNER_INCOMING_ROW
-    .byte $70, $30
+    .byte $10
+    .byte $42, <BANNER_LANCE_ROW, >BANNER_LANCE_ROW
+    .byte $10
     .repeat 3
     .byte $4F, <BANNER_BAR_A, >BANNER_BAR_A
     .endrepeat
@@ -3715,6 +3719,20 @@ banner_late:
     sta banner_fraction
     sta banner_target
     sta banner_pixel
+    ; 7a. The VOID LANCE's line (M6 journal §BI 1), with its '+' glyph in the
+    ;     frontend charset's blank code BANNER_PLUS_CODE (scripts/boss-banner.mjs).
+    ldx #(BANNER_LANCE_LENGTH - 1)
+@lance:
+    lda banner_lance_codes,x
+    sta BANNER_LANCE_ROW + BANNER_LANCE_COLUMN,x
+    dex
+    bpl @lance
+    ldx #(BANNER_PLUS_LENGTH - 1)
+@plus:
+    lda banner_plus_glyph,x
+    sta BANNER_FRONTEND_CHARSET + BANNER_PLUS_CODE * 8 + BANNER_PLUS_FIRST_ROW,x
+    dex
+    bpl @plus
     ; 8. The picture: its stored half unpacked by the resident decoder into
     ;    the buffer, then a line at a time from the line's LMS + 6: the 12
     ;    stored bytes, and bytes 7-0 bit-reversed into 12-19. It shows as it
@@ -3787,6 +3805,14 @@ banner_late:
     lda #$01
     sta sr_slot_a_overlaid
     jmp banner_reads
+
+banner_lance_codes:
+    .byte BANNER_LANCE_CODES
+.assert * - banner_lance_codes = BANNER_LANCE_LENGTH, error, "the lance line's codes"
+banner_plus_glyph:
+    .byte BANNER_PLUS_GLYPH
+.assert * - banner_plus_glyph = BANNER_PLUS_LENGTH, error, "the '+' glyph's rows"
+BANNER_FRONTEND_CHARSET = BANNER_CHBASE * $100
 
 ; ===========================================================================
 ; feat/boss-banners: the reads under the banner, at BANNER_KEEP ($7A90, the

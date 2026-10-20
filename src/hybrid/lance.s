@@ -1,9 +1,10 @@
 ; ===========================================================================
 ; The VOID LANCE's execution (M6, docs/plans/m6-void-lance.md; owner
 ; decisions BD 1-6, 2026-10-20; the owner's smokes of 2026-10-20, journal
-; §BE-§BH: the lance never changes the ordinary fire, the charge is FIRE +
-; stick UP whatever is under the ship, the lance charges with time and the
-; player is told it is ready). Included by boss.s: the boss link's lance run - this and
+; §BE-§BI: the lance never changes the ordinary fire, the charge is FIRE +
+; stick UP whatever is under the ship, the lance charges with time, the
+; player is told it is ready, the charge and the shot are seen and heard).
+; Included by boss.s: the boss link's lance run - this and
 ; src/c/lance.c's policy - read at every boss entry after slot E into the
 ; window's unclaimed tail, allocated from $BBFF down (scripts/build.mjs fails
 ; the build when the window's record reaches it). Reached only through the
@@ -14,24 +15,22 @@
 ;                up (decision BG 1; through the beam's frames the tick's own
 ;                inc): a lance is ready when it is full - one, no stacking -
 ;                and the shot empties it.
-;   readiness    the indicator (decision BG 4) is on while a lance is ready,
-;                the ship alive (PLAYER_LIFECYCLE 0) and the fight on
-;                (boss_phase 0), off otherwise - lance_ready ($FF / 0) holds
-;                what it shows, and only a change acts: the build's variant
-;                (--lance-indicator) -
-;                  C  the ship's colour: COLPM0 LANCE_READY_COLOUR while on,
-;                     the hull's white back when off (START GAME's boss
-;                     restore puts the white back should a game leave while
-;                     it is on). Written on the change and again on every
-;                     ready frame with no beam up: the resident booster code
-;                     writes the white at a pickup or a release and a Shield
-;                     pulses COLPM0 ($84 / $0E) - the Shield's pulse shows
-;                     while it lasts, the green comes back the frame after;
-;                  T  the torpedo: five rows in P0 over the ship's nose
-;                     (and the row above them cleared), redrawn every
-;                     frame it is on (the ship moves), cleared when it goes
-;                     off - but on the shot the beam grows over its rows;
-;                and on every change to on, the readiness cue on channel 3
+;   readiness    the indicator (decision BG 4; C, the owner's choice of
+;                journal §BI 3) is on while a lance is ready, the ship alive
+;                (PLAYER_LIFECYCLE 0) and the fight on (boss_phase 0), off
+;                otherwise - lance_ready ($FF / 0) holds what it shows, and
+;                only a change acts: the ship's colour, COLPM0
+;                LANCE_READY_COLOUR while on, the hull's white back when off
+;                (START GAME's boss restore puts the white back should a game
+;                leave while it is on). Written on the change and again on
+;                every ready frame with no beam up: the resident booster code
+;                writes the white at a pickup or a release and a Shield pulses
+;                COLPM0 ($84 / $0E) - the Shield's pulse shows while it lasts,
+;                the green comes back the frame after. While the charge builds
+;                that frame's colour is lance_ramp's (journal §BI 2): the
+;                green's luminance from the steel's (4) up to near-white ($CE)
+;                over the charge, back to the green the frame it is released
+;                or fires. On every change to on, the readiness cue on channel 3
 ;                (pure tone LANCE_CUE_AUDF / AUDC, LANCE_CUE_FRAMES frames),
 ;                given back to the engine bed by boss_frame_timers through
 ;                boss_tick_timer as the rail unlock's tone is; a hit's tick and
@@ -88,7 +87,17 @@
 ;                flies up through the mark to the band's foot (lance_y - 1,
 ;                above the ship's top limit everywhere) and does nothing there;
 ;                the lance is kept - lance_ready stays $FF through the beam
-;                (the indicator on, the meter not advanced, no kill).
+;                (the indicator on, the meter not advanced, no kill). Either
+;                way the fire frame sounds the discharge on channel 3 (journal
+;                §BI 2: noise, held while the beam is up and given back to the
+;                engine bed by the beam's last frame - not through
+;                boss_tick_timer: a running timer costs every
+;                boss_frame_timers call, and a rail's slide makes four on a
+;                frame, MEASURED +40 cycles on the Bastion's fire frame; the
+;                beam is bounded, so the channel is always released (M5-03).
+;                The kill's tick on the beam's arrival, a hit's or a laser's
+;                warning take the channel before that and keep the rule they
+;                have).
 ; ===========================================================================
 LANCE_BEAM_STEP = 20
 LANCE_HOLD      = 3
@@ -110,6 +119,9 @@ LANCE_READY_COLOUR = $CA
 LANCE_CUE_AUDF  = $0C                   ; above every laser warning's pitch ($18 + timer)
 LANCE_CUE_AUDC  = $A8                   ; pure tone, volume 8
 LANCE_CUE_FRAMES = 16
+LANCE_SHOT_AUDF = $10                   ; the discharge (journal §BI 2): poly17 noise, volume 10 -
+LANCE_SHOT_AUDC = $8A                   ; no other boss sound is noise (the tick's and the cue's
+                                        ; tones, the hull's poly4 clank)
 ; LANCE_CHARGE_SPEED_DIVISOR: scripts/lance-layout.mjs, beside the charge's
 ; length (-D from scripts/build.mjs). A power of two: the slow frames are the
 ; charge's frames not a multiple of it.
@@ -193,7 +205,9 @@ lance_beam_frame:
     rts
 @off:
     stx lance_beam                      ; X = 0: the beam is down
-    rts
+    ldx #BOSS_BED_AUDF                  ; the discharge's channel back to the engine bed
+    ldy #BOSS_BED_AUDC
+    jmp lance_sound
 
 lance_meter:
     ; The meter, and what the indicator shows: ready, the ship alive, the fight on.
@@ -234,13 +248,6 @@ lance_meter:
 ; A lance ready: the target, the mark, the gesture (journal §BH: whatever is
 ; under the ship).
 lance_aim:
-.ifdef LANCE_INDICATOR_T
-    jsr lance_torpedo                   ; the ship moves: the torpedo with it
-.endif
-.ifdef LANCE_INDICATOR_C
-    lda #LANCE_READY_COLOUR             ; again every ready frame: a booster's pickup or release
-    sta LANCE_COLPM0                    ; writes the hull's white (src/main.s), a Shield pulses it
-.endif
     ; The band column under the ship's centre (player_x + 8), as
     ; boss_shot_meet finds a shot's: (x - BAND_ORIGIN_HPOS + p) / 4.
     lda player_x
@@ -266,10 +273,24 @@ lance_aim:
     ora LANCE_TRIG0
     sta _lance_trig
     jsr _lance_c_aim                    ; A: bit 0 lit, bit 1 a target, bit 2 FIRE; X = 0 (cc65's high byte)
+    pha
+    ; The ship's colour, again every ready frame (a booster's pickup or
+    ; release writes the hull's white, src/main.s; a Shield pulses it): the
+    ; ready green, or the charge's ramp (journal §BI 2) - lance_ramp by
+    ; (lance_charge + 7) / 8, so the first charge frame already shows it and
+    ; a release or the fire frame (lance_charge 0) is the green again.
+    lda _lance_charge
+    clc
+    adc #$07
+    lsr
+    lsr
+    lsr
+    tay
+    lda lance_ramp,y
+    sta LANCE_COLPM0
     ; The charge's slow frames (decision BF 2): the ship at 1 / divisor of its
     ; speed, every direction - read_input reads no direction held - until the
     ; charge is released or the lance fires (lance_charge 0: PORTA again).
-    pha
     lda _lance_charge
     and #(LANCE_CHARGE_SPEED_DIVISOR - 1)
 .ifdef LANCE_SLOW_FORWARD
@@ -298,6 +319,14 @@ lance_aim:
     bcs @show
     lsr                                 ; C: a target; A: FIRE
     beq @dark                           ; the blink's dark frame
+    ; The discharge (journal §BI 2; C and X kept).
+    lda sound_enabled
+    beq @quiet
+    lda #LANCE_SHOT_AUDF
+    sta AUDF3
+    lda #LANCE_SHOT_AUDC                ; until the beam's last frame (no timer: see the header)
+    sta AUDC3
+@quiet:
     ; FIRE: the beam from the next frame (the fire frame draws none of it) -
     ; up to the target's bottom line, or with none to the band's foot, the line
     ; over the mark (the lance kept): above the ship's top limit in every region
@@ -315,7 +344,7 @@ lance_aim:
     inc lance_beam                      ; 1: growing (C kept)
     bcc @dark                           ; no target: still ready, the indicator on
     lda #$00                            ; the lance spent: the indicator off on the fire frame
-    sta lance_ready                     ; (T: the beam covers the torpedo's rows from the next)
+    sta lance_ready
     jsr lance_indicate
 @dark:
     stx LANCE_HPOSP1                    ; X = 0
@@ -362,24 +391,12 @@ lance_aim:
     sta LANCE_HPOSP1
     rts
 
-; lance_ready changed: the build's indicator; on its way on, the reticle's
-; rows and the cue.
+; lance_ready changed: the indicator; on its way on, the reticle's rows and
+; the cue.
 lance_indicate:
-.ifdef LANCE_INDICATOR_C
-    tay                                 ; $FF on, 0 off
-    lda #LANCE_HULL_COLOUR
-    iny
-    bne @white
-    lda #LANCE_READY_COLOUR
-@white:
+    and #(LANCE_READY_COLOUR ^ LANCE_HULL_COLOUR)  ; A = lance_ready: $FF on, 0 off
+    eor #LANCE_HULL_COLOUR
     sta LANCE_COLPM0
-.endif
-.ifdef LANCE_INDICATOR_T
-    lda lance_beam
-    bne :+                              ; off on the beam's first frame: the beam covers its rows
-    jsr lance_torpedo                   ; on: drawn; off: cleared
-:
-.endif
     lda lance_ready
     beq @rts
     ; On: the reticle's rows (HPOS 0 until the aim places it), drawn once a
@@ -390,7 +407,7 @@ lance_indicate:
     lda boss_capsule_y_operand
     sta lance_y
     tay
-    inx                                 ; X = $FF on the way on (the tick's, or the torpedo's loop): 0
+    inx                                 ; X = $FF on the way on (the tick's): 0
     stx LANCE_SIZEP1
 :
     lda lance_shape,x
@@ -400,39 +417,29 @@ lance_indicate:
     cpx #LANCE_ROWS
     bne :-
 @cue:
-    lda sound_enabled
-    beq @rts
-    lda #LANCE_CUE_AUDF
-    sta AUDF3
-    lda #LANCE_CUE_AUDC
-    sta AUDC3
+    ldx #LANCE_CUE_AUDF
+    ldy #LANCE_CUE_AUDC
+    jsr lance_sound
     lda #LANCE_CUE_FRAMES               ; boss_frame_timers gives the bed back after it
-    sta boss_tick_timer
+    sta boss_tick_timer                 ; (and with the sound off writes nothing)
 @rts:
     rts
 
-.ifdef LANCE_INDICATOR_T
-; The torpedo over the ship's nose, masked by lance_ready: drawn while on,
-; cleared when off (and its tip's row above, which a move down leaves).
-lance_torpedo:
-    ldy player_y                        ; the nose's top line
-    lda #$6C                            ; the fins, over the nose
-    and lance_ready
-    sta LANCE_P0 - 1,y
-    lda #$38                            ; the body
-    and lance_ready
-    sta LANCE_P0 - 2,y
-    sta LANCE_P0 - 3,y
-    sta LANCE_P0 - 4,y
-    lda #$10                            ; the tip
-    and lance_ready
-    sta LANCE_P0 - 5,y
-    lda #$00                            ; the row above (a move down leaves it)
-    sta LANCE_P0 - 6,y
+; X = AUDF3, Y = AUDC3, written when the sound is on.
+lance_sound:
+    lda sound_enabled
+    beq :+
+    stx AUDF3
+    sty AUDC3
+:
     rts
-.endif
 
 lance_shape:    .byte $18, $18, $00, $C3, $C3, $00, $18, $18
+; The charge's ramp (journal §BI 2), by (lance_charge + 7) / 8: 0 not
+; charging - the ready green; then the green's luminance from the steel's
+; (4, frames 1-16) to near-white ($CE, frames 65-74), quickening at the end.
+lance_ramp:     .byte LANCE_READY_COLOUR, $C4, $C4, $C6, $C6, $C8, $C8, $CA, $CC, $CE, $CE
+.assert (LANCE_CHARGE_FRAMES - 1 + 7) / 8 < 11, error, "lance_ramp: an entry for every charge frame"
 
 .segment "LANCE_BSS"
 lance_beam:     .res 1                  ; 0 none, 1 growing, 2 .. 1 + LANCE_HOLD held, then erased

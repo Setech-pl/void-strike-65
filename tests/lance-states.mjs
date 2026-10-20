@@ -38,9 +38,12 @@
 //           one meeting left admits
 //   erase   the erasure's first frame: LANCE_BEAM_STEP lines up from the
 //           ship, the case's shots flying
+//   end     the erasure's last frame: its last LANCE_BEAM_STEP lines up to the
+//           module, the beam down and channel 3 back to the engine bed (journal
+//           §BI 2: the discharge's release; the sound on)
 import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
-export const LANCE_MODES = ["filling", "draw", "idle", "charge", "swap", "fire", "dry", "grow", "arrive", "erase"];
+export const LANCE_MODES = ["filling", "draw", "idle", "charge", "swap", "fire", "dry", "grow", "arrive", "erase", "end"];
 const has = () => labelsOf.boss.has("lance_tick");
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -119,10 +122,10 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
   // states; draw is the frame it fills (the indicator's change and its cue,
   // the sound on); the beam's frames (grow, arrive, erase) off, the meter
   // filling again.
-  const ready = !["filling", "grow", "arrive", "erase"].includes(mode);
+  const ready = !["filling", "grow", "arrive", "erase", "end"].includes(mode);
   meter(memory, mode === "filling" ? 7 : ready ? fullMeter(memory) : 9);
   memory[lbl("lance_ready")] = ready && mode !== "draw" ? 0xff : 0;
-  if (mode === "draw") memory[main("sound_enabled")] = 1;
+  if (mode === "draw" || mode === "end") memory[main("sound_enabled")] = 1;
   memory[lbl("lance_beam")] = 0;
   memory[lbl("_lance_charge")] = 0;
   gesture(memory, false);
@@ -132,7 +135,7 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
   if (mode === "draw") memory[lbl("lance_y")] = 0;
   const target = mode === "dry" ? emptyColumn(memory) : targetColumn(memory, hit.filter((h) => h !== "hull"));
   if (target === null) { skip(memory); return; }
-  if (mode === "grow" || mode === "erase" || mode === "arrive") {
+  if (mode === "grow" || mode === "erase" || mode === "arrive" || mode === "end") {
     // The beam: the ship stays where the case has it (the beam is drawn in
     // its plane, at no column); its target the fire frame's.
     memory[main("player_y")] = SHIP_Y;
@@ -140,10 +143,10 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
     memory[lbl("_lance_module")] = target.module;
     memory[lbl("lance_cell")] = target.c;
     memory[lbl("lance_top")] = top;
-    memory[lbl("lance_beam")] = mode === "erase" ? 2 + HOLD : 1;
-    // grow: from the ship's top; arrive: its last step reaches the module;
-    // erase: the first frame sets it to the ship's top.
-    memory[lbl("lance_head")] = mode === "grow" ? SHIP_Y : mode === "arrive" ? Math.min(255, top + BEAM_STEP) : top;
+    memory[lbl("lance_beam")] = mode === "erase" ? 2 + HOLD : mode === "end" ? 3 + HOLD : 1;
+    // grow: from the ship's top; arrive and end: the last step reaches the
+    // module; erase: the first frame sets it to the ship's top.
+    memory[lbl("lance_head")] = mode === "grow" ? SHIP_Y : mode === "arrive" || mode === "end" ? Math.min(255, top + BEAM_STEP) : top;
   } else {
     memory[main("player_y")] = SHIP_Y;
     memory[main("player_x")] = target.x;

@@ -4,10 +4,11 @@
 `c977efe0…`); Phase B on `feat/m6-void-lance`, which carries the plan's
 commit `837cf04` (fast-forwarded onto it from `main` `3d59ded`).
 **Status:** Phase A done; the owner's answers are journal **§BD**
-(2026-10-20; §4 below, confirmed). Phase B stage 1 built (§6.1). **The owner's
-smoke (journal §BE): the reticle OK, the charge rule not accepted - rule (c)
-withdrawn; two comparison variants built behind `--lance-rule`, STOP for the
-owner to play them** (§6.2). Phase A's probe is under `build/m6-probe/` (not
+(2026-10-20; §4 below, confirmed). Phase B stage 1 built (§6.1); the owner's
+smoke (journal §BE) withdrew rule (c) and compared two variants (§6.2); **the
+owner chose variant A, gesture A-up, with the ship at half speed while
+charging (journal §BF) - stage 1 final as built in §6.1, `OWNER-SMOKE
+CANDIDATE`, STOP for the owner's smoke.** Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -307,39 +308,149 @@ points are where a measured figure decides.
 ### 6.1 Stage 1 as built (`feat/m6-void-lance`, 2026-10-20) — `OWNER-SMOKE CANDIDATE`
 
 The owner's brief for stage 1 covers phases 1 and 2 above: the reticle,
-hold-to-charge, the beam and the kill, the lance run, and the stock (granted
-by `--lance-stock=N`). There is no capsule, no HUD and no README; the game's
-stock is 0.
+the charge, the beam and the kill, the lance run, and the stock (granted by
+`--lance-stock=N`). There is no capsule, no HUD and no README; the game's
+stock is 0. **Final rule (journal §BF, commit `44fd28b`):** FIRE + stick UP
+held 75 frames over a target; the ordinary fire never changes; the ship at
+half speed while the charge builds. The first build's rule (c) and its
+figures are kept below the final ones as history (§6.1.1).
 
-**The code.**
+**The code (final).**
 * **`src/c/lance.c`, the policy** (in the boss link's lance run; no software
   stack, the controller's rule):
-  * `lance_c_aim` decides the target and the charge. A target is the column
-    map's front module, in the fight, exposed, and not the core. The charge
-    lasts 75 frames, is cancelled on release, and its fire decrements the
-    stock.
-  * `lance_c_arrive` sets the target's HP to 1 for the kill.
-  * `lance_c_give` adds one lance, at most 3. It is stage 2's entry point,
-    built and tested now.
+  * `lance_c_aim` decides the charge: a target in the fight and not the core
+    (the tick's pick already holds the exposed bit); `LANCE_CHARGE_FRAMES`
+    frames of the gesture fire, a release or no target cancels, the fire
+    decrements the stock.
+  * `lance_c_arrive` sets the target's HP to 1 for the kill (0: a shot took
+    it on the beam's way; the lance is spent).
 * **`src/hybrid/lance.s`, the execution** (included by `boss.s`):
-  * `lance_tick` (TICK_FLASHES): the column under the ship's centre, the
-    reticle (P1, drawn once at the install's measured line, HPOS at the
-    module's centre), the gate, and the beam (P0, `$18`, 20 lines a frame).
-    The kill goes through `boss_hit`.
-  * `lance_after` (HULL_CONTACT): on the arrival frame it counts the kill as
-    one of AUD-04's meetings.
-* **The shot's mailboxes:** the tick writes `boss_hit_module` and
-  `boss_hit_cell`, the shot's own inputs. Only UPDATE's shot loop writes them
-  otherwise, and no shot flies from the fire to the kill.
-* **The lance run:** `BOSS_LANCE_RAM` `$BA80-$BBFF` (Phase A's "slot G"; that
-  cfg name is the Citadel's gravity area). It is 3 sectors, 581-583, read
-  after slot E (`ldy #5` shared runs) and folded into the head's sums. It
-  holds 373 B of code, 1 B of data (the stock's grant) and 7 B of BSS read
-  as zeros: 381 of 384 B.
+  * `lance_tick` (TICK_FLASHES, before `read_input` and UPDATE): the column
+    under the ship's centre; the target's exposed bit through slot D's
+    `laser_exposed_module` (a new entry into `laser_exposed`, 0 B); the
+    gesture (`PORTA` bit 0 and `TRIG0`); the reticle (P1, drawn once at the
+    install's measured line, HPOS at the module's centre); the slow frames;
+    the beam (P0, `$18`, 20 lines a frame) and the kill through `boss_hit`.
+  * **The kill is the frame's only meeting:** the tick patches
+    `laser_frame`'s admit operand (`laser_admit_operand`) to 0 on the kill
+    frame and 2 back on the next beam frame; a player shot that would meet
+    the boss on that frame waits one frame (AUD-04's hold).
+  * **The half speed (§BF 2):** on a charge frame not a multiple of
+    `LANCE_CHARGE_SPEED_DIVISOR` (2) the tick points `read_input`'s first
+    instruction, `lda STICK0`, at an `$FF` operand of its own (no direction
+    held); on every other aim frame back at `$D300`. `read_input`'s edge
+    tests are therefore the ones it always makes (no clamp can be skipped,
+    whatever the stick does between the two reads). A pause's quit between
+    the two frames is covered by START GAME's boss restore
+    (`build/boss-restore.inc`, two new entries: `read_input`'s stick operand
+    lo / hi). The gravity well's pull (UPDATE) is not the ship's speed and is
+    unchanged.
+* **The constants:** `LANCE_CHARGE_FRAMES` = 75 and
+  `LANCE_CHARGE_SPEED_DIVISOR` = 2 (a power of two; 1 = full speed) side by
+  side in `scripts/lance-layout.mjs`; `scripts/build.mjs` passes them to the
+  C and the ASM and records them in the manifest (`boss.lance`).
+* **The comparison build** `--lance-slow=forward`
+  (`build/lance-slow-forward-…`): only the advance is slowed, through the
+  boss floor operand (`read_input_y_min_operand` at the ship's line on a slow
+  frame). Removed after the owner plays it.
+* **The lance run:** `BOSS_LANCE_RAM` `$BA80-$BBFF`, 3 sectors 581-583, read
+  after slot E and folded into the head's sums: 373 B of code (268 ASM, 105
+  C), 1 B of data (the stock's grant) and 8 B of BSS: **382 of 384 B (2 B
+  free)**. Slots A (+5), C, D, E and the banner (+2) as the first build;
+  the level summary +10 B (the restore entries' 6, and 4 B of padding with
+  the powers tables moved past the display lists, which keep
+  `summary_display_list` at `$0B58`, now asserted - journal §BC's outside
+  record test reads it; 1,770 of 1,792 B, 14 sectors unchanged).
 * **The build:** `scripts/lance-layout.mjs` fails the build when the window's
   record passes `$BA80`, and when the run overflows its sectors or
   reservation.
-* **Slot E:** its maximum is now 4 whole sectors (577-580), so 581 is free.
+
+**Measured — boss stress, final** (the four stress compositions with
+`tests/lance-states.mjs`, `scripts/measure-lance-stress.mjs` and
+`tests/boss-stress.test.mjs`; native cycles, worst reachable; the charging
+state is a shown slow frame):
+
+| region | before | stock 0 | first draw | idle | charging | firing | grow / erase | kill | worst | headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 Breaker | 7,150 | 7,170 | 7,550 | 7,394 | 7,416 | 7,414 | 7,496 / 7,516 | 7,114 | 7,550 | **950** |
+| 2 Citadel L4 / L5 | 7,694 / 8,029 | 7,714 / 8,049 | 8,025 / 8,388 | 7,869 / 8,232 | 7,891 / 8,254 | 7,889 / 8,252 | 8,040 / 8,060; 8,375 / 8,395 | 7,849 / 8,208 | 8,395 | **105** |
+| 3 Spine L7 / L9 | 7,771 / 8,025 | 7,791 / 8,045 | 8,148 / 8,403 | 7,992 / 8,247 | 8,014 / 8,269 | 8,012 / 8,267 | 8,117 / 8,137; 8,371 / 8,391 | 7,758 / 8,010 | 8,403 | **97** |
+| 4 Bastion L10 | 8,060 | 8,080 | 8,437 | 8,281 | 8,303 | 8,301 | 8,406 / 8,426 | 7,545 | 8,437 | **63** |
+
+* **Tick cost (worst):** stock 0: 20; first draw 378; idle 222; charging
+  244; firing / the beam 346-366; the kill 2,471-2,778.
+* **The half speed's check** (M, the 6502 core): 26 cycles on a full-speed
+  aim frame, 30 on a slow one (in the idle / charging figures above; with
+  the ASM exposure test, idle +31 over §6.2's 191). `read_input` on the
+  charge's frames (stick up held, the ship moving): **449** on a moving
+  frame, **65** on a slow one - each slow frame saves 384 there. The
+  stress compositions do not include `read_input`, so the table carries
+  the check's cost and none of the saving.
+* **Rule (B) clashes:** 0 in every state.
+
+**Measured — the routes, final** (Atari800, `build/lance-stock-3-*`, stock 3;
+34 focused sessions - §6.1.1's 30 plus `boss-aim-lance-1` on each route):
+
+| route | sessions | worst margin | DMA-on max | entry, host frames | misses / clause failures |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| R1 Breaker | 6 | 8,695 | 29,899 | 306 | 0 / 0 |
+| R2 Citadel | 9 | 6,032 | 30,109 | 321 | 0 / 0 |
+| R3 Spine | 9 | 7,175 | 30,430 | 317 | 0 / 0 |
+| R4 Bastion | 10 | 6,846 | 29,741 | 321 | 0 / 0 |
+
+**The lance in the native evidence** (`boss-aim-lance-1`, MEDIUM: the aiming
+bot; the first frame the reticle shows it holds FIRE + UP, tracking the
+reticle's module at the band's shown position, until the lance fires, then
+flies back to its line; the trace's new `lance_charge`, `lance_beam` and
+`lance_stock` columns; DMA-on wall cycles and the fence margin of those
+frames, `scripts/pal-timing-audit.mjs`'s model):
+
+| route | charge (74 frames) DMA-on / margin | fire | beam (15-16 frames) | arrival (the kill) | charge from → fired → arrived | health in the charge | ship's line |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| R1 Breaker | 27,988 / 12,752 | 27,393 / 14,471 | 27,761 / 11,553 | 27,408 / 8,695 | f2 → f76 → f83 | 10 → 10 | 225 → 188 |
+| R2 Citadel | 28,377 / 10,594 | 27,793 / 12,657 | 28,366 / 10,364 | 27,951 / 8,279 | f2 → f76 → f83 | 10 → 10 | 225 → 188 |
+| R3 Spine | 28,165 / 11,737 | 27,417 / 16,095 | 28,013 / 13,269 | 27,769 / 8,637 | f48 → f122 → f129 | 10 → 10 | 225 → 188 |
+| R4 Bastion | 27,882 / 11,147 | 27,578 / 13,813 | 28,470 / 8,035 | 27,882 / 7,744 | f22 → f96 → f103 | 10 → 10 | 225 → 188 |
+
+* Every arrival was a kill (the boss's alive mask lost the module's bit).
+* **The charge reached its end without boss contact on every route,
+  the Citadel and the Bastion included:** no health lost from the charge's
+  first frame to the fire (one charge each, no restart).
+* The ship rose 37 lines in the 74 charge frames - half the 74 a held UP
+  gives at full speed.
+* The new clause (`boss-aim-lance-1` on a route with a stock): a charge, a
+  fire after it and a beam's arrival after that.
+
+**The bots (a defect of the bots, not the game).** The 6 `boss-aim` failures
+of §6.2 ("the fight never progressed") were the bot holding FIRE from START
+GAME on a debug route, so `main`'s fire gate never opened. The boss-aim bots
+now release FIRE for a frame whenever `gameplay_fire_gate` is 0 (the trace's
+new `DFTRACE_FIRE_GATE`). Confirmed on the lance-free route builds
+(`build/level-1-s6`, `build/boss-region-{2,3,4}-level-1-s6`, stock 0): all 6
+pass - R1's three reach the level's summary, R2-R4's chain at frames 2,483 /
+3,416 / 2,924 - 0 misses, 0 clause failures. The default evidence has no
+boss-aim session, so it is not moved by the fix.
+
+**The evidence chain, final (M, the default build, `21cccd7`).**
+`build:candidate`, then the full `runtime:wall-trace`: 58 replays, 0 misses,
+0 clause failures. The worst fence margin is 1,465 (`2-sweep-fire6`) and the
+DMA-on maximum 31,059 (`2-evasive-fire7`), both unchanged from `main`. The
+trace's 17 boss entries all took 306 host frames (limit 350). The
+window-tail clause saw 17 lance-run reads and 0 foreign writers. Then the
+menu raster (4 sessions pass), `build`, `memory-map`, `showcase:gif` and
+`showcase`. Two full `npm test` runs: 1,511 tests, 1,510 pass (the
+recorded `tests/preview.test.mjs:164` only); `failures:reconcile` 0 NEW, 0
+MOVED, both runs; no re-pins.
+
+#### 6.1.1 The first build (`ae95996` / `6d7cdb4`; rule (c), withdrawn at the smoke)
+
+**The code (first build).**
+* `lance_c_give` (one lance, at most 3; stage 2's entry point) - dropped
+  for bytes in §6.2.
+* `lance_after` (HULL_CONTACT): on the arrival frame it counted the kill as
+  one of AUD-04's meetings - gone in §6.2.
+* The tick wrote `gameplay_fire_gate` (rule (c)) and the shot's mailboxes;
+  the run was 381 of 384 B.
 
 **What changed from §2 / §4 on the way (all M):**
 1. **No `boss_band_measure` on the first frame.** That scan cost 2,960 on
@@ -600,6 +711,16 @@ after B's commit.
 `void-strike-65-m6-lance-<rule>-<route>-stock3-<sha8>.atr` for `a-down`,
 `a-up` and `b`, and the routes `r1-breaker`, `r2-citadel`, `r3-spine` and
 `r4-bastion`.
+
+**The owner's choice (journal §BF, 2026-10-20): variant A, gesture A-up**
+(FIRE + stick UP: the stick forward in the aviation sense - retreat first,
+then charge while advancing; the charge costs the player a 1.5 s advance
+toward the band). Variant B, A-down and `--lance-rule` are removed
+(`44fd28b`); the kill frame's rule stays A's (`LANCE_KILL_ADMIT = 0`, now the
+code's only rule), and the owner added the half speed while charging. The
+final build is §6.1. The tables above stay as the comparison's record; the
+comparison ATRs in `build/play/` (`…-lance-a-down-…`, `…-a-up-…`, `…-b-…`)
+are superseded.
 
 ## 7. The tests and trace clauses that prove it
 

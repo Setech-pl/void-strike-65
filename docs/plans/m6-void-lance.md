@@ -10,8 +10,10 @@ owner chose variant A, gesture A-up, with the ship at half speed while
 charging (journal §BF) - stage 1 final as built in §6.1. Its smoke (journal
 §BG) replaced the stock with a time meter and asked for a readiness
 indicator: §6.3. The owner's smoke of C (journal §BH) found the gesture
-dead over gaps: the charge now builds whatever is under the ship - §6.4,
-`OWNER-SMOKE CANDIDATE`, STOP.** Phase A's probe is under `build/m6-probe/` (not
+dead over gaps: the charge now builds whatever is under the ship - §6.4.
+The owner accepted §BH (journal §BI) and asked for the stage's finish: the
+banner's onboarding line, the charge ramp, the discharge, indicator C only -
+§6.5, `OWNER-SMOKE CANDIDATE`, STOP.** Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -725,7 +727,37 @@ final build is §6.1. The tables above stay as the comparison's record; the
 comparison ATRs in `build/play/` (`…-lance-a-down-…`, `…-a-up-…`, `…-b-…`)
 are superseded.
 
-### 6.3 The meter and the readiness indicator (2026-10-20, journal §BG) — STOP: the owner chooses the indicator
+### 6.3 The meter and the readiness indicator (2026-10-20, journal §BG; as built, journal §BI) — indicator C
+
+**As built (journal §BI, the owner's acceptance of §BH on the smoke of
+`abaab35`).** The meter below is unchanged. The owner chose **C**: the ship
+turns green (`$CA`) while a lance is ready. T (the torpedo), the
+`--lance-indicator` build and `LANCE_INDICATOR_*` are gone, and so are their
+`build/lance-indicator-<x>` variants and the trace's `lance-indicator-[ct]-`
+route prefix. START GAME's boss restore puts the hull's white back
+unconditionally (C's entry, no longer a build condition). Two signals were
+added, both in the lance run (§6.5 has the measurements):
+* **The charge ramp.** While the gesture is held, the green's luminance climbs
+  from the steel's (4, as in `$84`) to near-white (`$CE`). The colour comes
+  from `lance_ramp`, 11 B, indexed by (charge + 7) / 8: `$CA` when not
+  charging, then `$C4 $C4 $C6 $C6 $C8 $C8 $CA $CC $CE $CE`, quickening at the
+  end. It is the same one COLPM0 write every ready frame (the write moved
+  after the C policy, so it sees this frame's charge). A release, or the fire
+  frame, is `$CA` again that very frame. The ramp fits as a frame-by-frame
+  ramp; the brief's "every 4 frames" fallback was not needed.
+* **The discharge.** Poly17 noise (AUDF `$10`, AUDC `$8A`) on channel 3 on
+  the fire frame, over a target or none. It is not held through
+  `boss_tick_timer` as the cue is: a running timer makes every
+  `boss_frame_timers` call take its `dec`, and a Bastion rail's slide
+  (`rail_column`) calls it four times on a frame. MEASURED: +40 cycles, a
+  fire frame of 8,513. Instead the beam's last frame gives the channel back
+  to the engine bed (`lance_sound`, shared with the cue). The beam is
+  bounded, so the channel is always released (M5-03's rule). The kill's tick
+  on the beam's arrival, a hit or a laser warning take it first and keep
+  their own rule. 15 B on the fire frame.
+
+The section below is the record of §BG's build and the comparison.
+
 
 The owner's smoke of `89297a5` did not accept stage 1 as a design: the stock
 must not depend on boss capsules, and the reticle was on all the time. Journal
@@ -1049,6 +1081,51 @@ SHA-256 prefix, under `build/play/`), a 5-s GIF on R1 and six stills
 (`build:candidate` -> `runtime:wall-trace` -> `build`, the menu raster,
 `npm test` twice, `failures:reconcile`), the other three routes, and
 `how-to-play` EN / PL once the owner accepts the indicator and the rule.
+
+### 6.5 Stage 1 final: the banner line, the ramp, the discharge, C only (2026-10-21, journal §BI) — `OWNER-SMOKE CANDIDATE`, STOP
+
+**The banner's line (§BI 1).** `VOID LANCE: HOLD FIRE+FORWARD`, 29 glyphs, is one
+ANTIC 2 row (32 glyphs on the narrow playfield) at `$4230`, inside the
+`$4000-$43FF` the screen and the hand-over already clear. Its list entry is
+`$10, $42 row, $10`: 2 blank lines, the row, 2 blank, in place of INCOMING's 12
+blank lines to the bar, so the bar's first scan line, the picture and the
+title do not move (test-checked per region). It starts at column 2: an odd count
+cannot be centred, because HSCROL 4 is a whole ANTIC 2 glyph, so it is 1.75 colour
+clocks right of centre. The frontend charset has no '+'. The banner run writes
+one into code 45 (rows 1-5: the colon's stem, the dash's bar). Codes 45-47 are
+cleared at boot and drawn by nothing. The late part (`BOSS_BANNER_LATE`) draws
+the line with the picture, about 0.5 s after the screen comes on, because the
+screen's 2 sectors have 17 B left. Cost: the shared banner code 666 -> 725 B (the 29 codes, 5 glyph
+rows, two copy loops, 3 B of list). The Spine's run (1,154 B, 2 B over 9
+sectors) and the Bastion's (1,208 B) take a 10th sector. Entries: 81 / 85 /
+85 / 86 sectors, **314 / 329 / 329 / 332 host frames** (M, the routes; the
+Spine and the Bastion +4 for that sector).
+
+**The ramp and the discharge (§BI 2)** - §6.3's as-built note. MEASURED on
+the Bastion's stress compositions (worst reachable per state, limit 8,500):
+
+| state | `abaab35` | the ramp only | the ramp + the discharge on `boss_tick_timer` | **as built** (bed back at the beam's end) |
+| --- | ---: | ---: | ---: | ---: |
+| charge / swap | 8,386 / 8,427 | - | - | 8,404 / 8,445 |
+| fire | 8,433 | 8,453 | **8,513** (over) | **8,462** (38 headroom) |
+| dry | 8,364 | - | - | 8,399 |
+| erase / end (new) | 8,437 / - | - | - | 8,437 / 8,453 |
+
+The +40 of the timer variant is `rail_column`'s four `boss_frame_timers`
+calls, each taking the `dec` while the timer runs; the stress case is a player
+shot killing a rail's front gun on the fire frame. Bytes: the indicator's
+colour as `and #($CA ^ $0E)` / `eor #$0E` (-4 B), the cue and the bed's return
+sharing `lance_sound`. The run is **639 of 640 B**.
+
+**C only (§BI 3).** See §6.3.
+
+**Evidence (M).** The full chain on this tree: 58 replays, 0 misses, 0 clause
+failures, worst fence margin 1,465, DMA-on 31,059 (both unchanged), boss
+entries 314 host frames; menu raster 4 pass; the default build's ATR equals the
+candidate's (`30b94e65…`). The four routes: 34 sessions pass. Margins R1
+8,507, R2 6,166, R3 6,959, R4 6,459; DMA-on at most 30,392; 0 misses, 0 clause
+failures. The aiming bot fires on every route and the ramp's six colours
+show. STATUS carries the per-region table.
 
 ## 7. The tests and trace clauses that prove it
 

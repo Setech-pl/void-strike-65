@@ -335,7 +335,7 @@ test("M6 (decision BH 1): the column under the ship changing - target, empty, an
     }
     assert.equal(memory[lbl("lance_beam")], 1, `${end}: fired on the 75th frame`);
     hold(memory, false);
-    for (let f = 0; f < 80 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
+    for (let f = 0; f < 400 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
     assert.equal(memory[READY], end === "target" ? 0 : 0xff, `${end}: spent only by a kill`);
   }
 });
@@ -373,7 +373,7 @@ test("M6 (decision BH 3): a shot with no target - the beam fires through the mar
       assert.equal(meterOf(memory), METER[1], `beam frame ${frames}: the meter stays full`);
       assert.equal(memory[READY], 0xff, `beam frame ${frames}: still ready`);
       frames += 1;
-      assert.ok(frames < 80, "the torpedo never ended");
+      assert.ok(frames < 400, "the torpedo never ended");
     }
     assert.ok(last - STEP <= memory[lbl("lance_top")], `the torpedo reached the band's foot (its last line ${last})`);
     assert.deepEqual(hpOf(memory), before, "a module's HP changed");
@@ -438,7 +438,7 @@ test("M6 (decision BH 1): the ship's upper limit (and a side) reached with the g
       assert.ok(memory[lbl("lance_top")] < floorValue, `${name}: the beam's top ${memory[lbl("lance_top")]} above the ship`);
       const ship = [...memory.subarray(P0 + floorValue, P0 + floorValue + 16)];
       let frames = 0;
-      while (memory[lbl("lance_beam")] !== 0) { step(memory, 0, false); frames += 1; assert.ok(frames < 80, `${name}: the torpedo never ended`); }
+      while (memory[lbl("lance_beam")] !== 0) { step(memory, 0, false); frames += 1; assert.ok(frames < 400, `${name}: the torpedo never ended`); }
       assert.deepEqual([...memory.subarray(P0 + floorValue, P0 + floorValue + 16)], ship, `${name}: the ship's rows`);
       for (let y = 0; y < floorValue; y += 1) assert.equal(memory[P0 + y], 0, `${name}: P0 row ${y} left`);
     }
@@ -558,7 +558,7 @@ test("M6 (journal §BL 4): read_input's stick operand - PORTA with UP released o
     call(m, lbl("lance_tick"));
     assert.equal(m[lbl("_lance_charge")], 1);
     const at = m[main("read_input") + 1] | (m[main("read_input") + 2] << 8);
-    assert.ok(at >= lance.address && at < LANCE_RAM_END, "inside the lance run");
+    assert.equal(at, lbl("lance_stick"), "the lance's byte (the zero page's since the owner's smoke of e76ddee)");
     assert.equal(m[at] & 0x0f, (0x0f & ~extra) | UP, `stick ${extra}: UP released, the rest as held`);
     call(m, lbl("lance_tick"));
     assert.equal(m[main("read_input") + 1] | (m[main("read_input") + 2] << 8), 0xd300, "the moving frame");
@@ -571,10 +571,11 @@ test("M6 (journal §BL 4): read_input's stick operand - PORTA with UP released o
 
 // The owner's smoke of 2026-10-20: rule (c) withdrawn. The ordinary fire is
 // frame for frame the fire without a lance: the gesture held over a target
-// through the charge, the beam and its end (read_input, the fighter's weapon
-// and the tick every frame) - the PairShots allocated against the same run
-// with no lance ready.
-test("M6 (journal §BE): the ordinary fire is unchanged - every PairShot as with no lance, through the charge and the beam", () => {
+// through the charge (read_input, the fighter's weapon and the tick every
+// frame) - the PairShots allocated against the same run with no lance ready.
+// Journal §BL (the owner's decision after the smoke of e76ddee): from the
+// launch it is off for 50 frames, then back while the torpedo flies.
+test("M6 (journal §BE, §BL): the ordinary fire is unchanged through the charge, off 50 frames from the launch, then back", () => {
   const ACTIVE = main("FIGHTER_PROJECTILE_ACTIVE");
   const run = (ready) => {
     const { memory } = fight(1, { ready });
@@ -582,8 +583,10 @@ test("M6 (journal §BE): the ordinary fire is unchanged - every PairShot as with
     hold(memory);
     const shots = [];
     let fired = false;
-    for (let f = 0; f < CHARGE + 20; f += 1) {
+    let launch = null;
+    for (let f = 0; f < CHARGE + 80; f += 1) {
       tick(memory);
+      if (!fired && memory[lbl("lance_beam")] !== 0) launch = f;
       fired ||= memory[lbl("lance_beam")] !== 0;
       call(memory, main("read_input"));
       call(memory, main("update_player_fighter_weapon"));
@@ -591,13 +594,16 @@ test("M6 (journal §BE): the ordinary fire is unchanged - every PairShot as with
       memory.fill(0, ACTIVE, ACTIVE + 5);
       hold(memory);
     }
-    return { shots, memory, fired };
+    return { shots, memory, fired, launch };
   };
   const without = run(false);
   const withLance = run(true);
   assert.ok(withLance.fired && !without.fired, "the lance fired (and only with one ready)");
   assert.ok(without.shots.some((frame) => frame !== "00000"), "the control fired nothing");
-  assert.deepEqual(withLance.shots, without.shots, "a PairShot changed with a lance");
+  const launch = withLance.launch;
+  assert.deepEqual(withLance.shots.slice(0, launch + 1), without.shots.slice(0, launch + 1), "a PairShot changed with a lance before the launch");
+  assert.deepEqual(withLance.shots.slice(launch + 1, launch + 50), Array(49).fill("00000"), "a PairShot in the hold's 49 frames after the launch");
+  assert.ok(withLance.shots.slice(launch + 50).some((frame) => frame !== "00000"), "the ordinary fire never came back");
 });
 
 // Runs the lance from the fire to the torpedo's end (journal §BL 5: its
@@ -617,7 +623,7 @@ function shoot(memory, c) {
     tick(memory);
     frames += 1;
     if (spent) sinceKill += 1;                           // the frames after the kill's
-    assert.ok(frames < 80, "the torpedo never ended");
+    assert.ok(frames < 400, "the torpedo never ended");
   }
   const after = [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)];
   return { before, after, frames, sinceKill };
@@ -630,7 +636,7 @@ function arriving(memory, c) {
   for (let f = 0; f < CHARGE; f += 1) tick(memory);
   hold(memory, false);
   let frames = 0;
-  while (memory[lbl("lance_head")] - memory[lbl("lance_top")] > STEP) { tick(memory); frames += 1; assert.ok(frames < 80); }
+  while (memory[lbl("lance_head")] - memory[lbl("lance_top")] > STEP) { tick(memory); frames += 1; assert.ok(frames < 400); }
   assert.equal(memory[lbl("lance_beam")], 1, "the torpedo is still flying");
 }
 
@@ -685,7 +691,7 @@ test("M6 (journal §BL 5): a module a player shot destroys on the torpedo's way 
   assert.equal(memory[ADMIT], 2, "no meeting taken");
   assert.equal(memory[lbl("lance_beam")], 0, "the torpedo ended at its line: no explosion");
   let frames = 0;
-  while (memory[lbl("lance_beam")] !== 0) { tick(memory); frames += 1; assert.ok(frames < 80); }
+  while (memory[lbl("lance_beam")] !== 0) { tick(memory); frames += 1; assert.ok(frames < 400); }
   assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], before, "an HP changed on the way on");
   assert.equal(memory[READY], 0xff, "the lance is kept");
 });
@@ -741,7 +747,7 @@ for (const directory of [1, 4, 3, 2]) {
       for (let f = 0; f < CHARGE; f += 1) tick(m);
       assert.equal(m[lbl("lance_beam")], 1, "the beam fires (decision BH 3)");
       hold(m, false);
-      for (let f = 0; f < 80 && m[lbl("lance_beam")] !== 0; f += 1) tick(m);
+      for (let f = 0; f < 400 && m[lbl("lance_beam")] !== 0; f += 1) tick(m);
       assert.equal(m[lbl("lance_beam")], 0, "the torpedo ended");
       assert.deepEqual(hpOf(m), before, "the lance hurt the core");
       assert.equal(m[READY], 0xff, "the lance kept");
@@ -979,7 +985,7 @@ test("M6 (decision BI 2): the charge's ramp - the green from luminance 4 to near
     assert.equal(memory[lbl("lance_beam")], 1);
     assert.equal(memory[COLPM0], 0xca, `${where}: the fire frame's colour`);
     hold(memory, false);
-    for (let f = 0; f < 80 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
+    for (let f = 0; f < 400 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
     assert.equal(memory[COLPM0], where === "target" ? 0x0e : 0xca, `${where}: the colour after the torpedo`);
   }
 });
@@ -1020,7 +1026,7 @@ test("M6 (decision BI 2): the discharge - noise on channel 3 from the fire frame
         tick(memory, { write: (address, value) => { writes.set(address, value); } });
         call(memory, lbl("boss_frame_timers"));
         frames += 1;
-        assert.ok(frames < 80, `${name}: the torpedo never ended`);
+        assert.ok(frames < 400, `${name}: the torpedo never ended`);
         if (memory[lbl("lance_beam")] !== 0 && where === "empty") {
           assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), `${name}, beam frame ${frames}: channel 3 written`);
           if (sound) assert.equal(memory[AUDC3], SHOT_AUDC, `${name}, beam frame ${frames}: the noise held`);
@@ -1082,6 +1088,7 @@ test("M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the
   assert.equal(memory[HPOSP1], centre);
   assert.equal(memory[0xd009], 0, "SIZEP1 single width");
   const allowed = (a) => (a >= lance.address && a < LANCE_RAM_END) || (a >= P1 && a < P1 + 256) ||
+    (a >= lance.zeroPage.address && a < lance.zeroPage.address + lance.zeroPage.capacityBytes) ||
     a === HPOSP1 || a === 0xd009 || (a >= 0x0100 && a < 0x0200) ||
     a === main("read_input") + 1 || a === main("read_input") + 2 ||
     a === COLPM0;                                             // the ready colour, again every ready frame

@@ -17,7 +17,7 @@ const SCREEN = 0x4000, HUD_CHARSET = 0x5000;
 const TRIG0 = 0xd010, STICK0 = 0xd300, UP = 0x01;
 const CH_A = 33, CH_ZERO = 16, CH_HULL = 5, CH_BOOST = 7;
 const letter = (c) => CH_A + c.charCodeAt(0) - 65;
-const METER_CELLS = [15, 16, 17, 18];
+const METER_CELLS = [16, 17, 18, 19];
 const meter = manifest.boss.lance.hudMeter;
 const METER = manifest.boss.lance.meterFrames;
 const thresholds = (full) => [1, 2, 3, 4].map((k) => Math.ceil(k * full / 4));
@@ -70,6 +70,7 @@ test("§BL 1: the HUD's first line is blank - no HUD glyph has a pixel on its fi
   // The HUD's line follows the ring: scanline 240 (the list's ANTIC 2 line,
   // tests/boss-runtime.test.mjs), its first scanline the blank row.
   assert.equal(manifest.boss.lance.hudMeter.cells.join(), METER_CELLS.join());
+  assert.equal(manifest.boss.lance.hudMeter.label, 15);
 });
 
 test("§BL 2: the cells - L lives, H hull, the booster field, the meter's four, SCORE at the right end", () => {
@@ -82,7 +83,10 @@ test("§BL 2: the cells - L lives, H hull, the booster field, the meter's four, 
   assert.ok(row.slice(4, 8).every((v) => v === CH_HULL || v === 0), `the hull's quarters (${row.slice(4, 8)})`);
   assert.equal(row[8], 0);
   assert.deepEqual(row.slice(9, 14), [0, 0, 0, 0, 0], "no booster: the field blank");
-  assert.deepEqual(row.slice(19, 29), Array(10).fill(0), "cells 19-28 free");
+  // The owner's smoke of e76ddee: the meter's label T (cell 15, the boss sector's), its cells 16-19.
+  assert.equal(row[14], 0);
+  assert.equal(row[15], letter("T"), "the lance meter's T");
+  assert.deepEqual(row.slice(20, 29), Array(9).fill(0), "cells 20-28 free");
   assert.deepEqual(row.slice(29, 34), [..."SCORE"].map(letter));
   assert.equal(row[34], 0);
   assert.ok(row.slice(35, 40).every((v) => v >= CH_ZERO && v < CH_ZERO + 10), "the score's five digits");

@@ -479,3 +479,101 @@ page 4 (`$0450`). Kills, explosions and misses happened in all four regions.
 (R1, the lasers armed by a poke so a beam fires during the kill's flight):
 the torpedo is a separate shape beside the beam in all four looks, in the
 beam's own colour.
+
+## 9. After the owner's smoke of `e76ddee` (journal §BL, the same day)
+
+No pick yet (the torpedo was not visible enough). Four changes:
+
+**1. The flight: one line a frame, the lock kept.** Both looks fly
+`TORPEDO_STEP` 1 line a frame (the looks differ in shape only). The ship
+advances 1 line a frame, half that while charging (§BL 4), so a charge started
+on the ship's lowest line (225) launches from ~188: ~120-130 lines to a module,
+**~2.5 s** - MEASURED with the lance bot (`boss-aim-lance-1`, the meter filled
+early): R1 129-131 frames (2.6 s), the 50-frame charge 144 (2.9 s), R4 113
+(2.3 s). The extremes, per region (frames from the launch to the kill; the
+module bottoms 48-72): from the lowest line the longest 144-168 (2.9-3.4 s),
+from the boss floor (line 88, right under the band) the shortest 7-31
+(0.1-0.6 s) - Breaker 15-168, Bastion 15-160, Spine 7-160, Citadel 15-168. The
+lock is the module under the reticle at the fire frame; the torpedo homes on
+it as the band drifts. **Retargeting** (the lock destroyed on the way -> the
+column's next eligible module) **did not fit** the lance run (~50 B with its C
+rule, the run 9 B free after everything else): the current rule stays - the
+torpedo flies on to its line and hits nothing, the lance kept (§BH). **The
+reticle is off for the whole flight**: the fire frame clears the six rows
+either mark draws (unrolled, ~36 cycles); it comes back as before (a miss: at
+once; a kill: at the next readiness).
+
+**2. The ordinary fire after the launch (the owner's decision).** A
+countdown of 50 frames from the launch, in the tick (before `read_input`):
+`gameplay_fire_gate` shut on each frame, open on the last - a held FIRE fires
+again from the 50th frame, while the torpedo flies. Nothing else of the
+ordinary fire changes (`tests/lance.test.mjs`, `tests/torpedo.test.mjs`).
+
+**3. The bar over the HUD - the cause (MEASURED).** The trace logged every
+colour/CHBASE/WSYNC store on lines 236-244 (`DFTRACE_HUD_STORES`) and every
+instruction of lines 238-240 on chosen frames: the boss DLI enters through the
+OS's NMI dispatch at line 239 cycle ~60 (line 239's DMA halves the CPU), and
+its old phase order put the HUD phase's WSYNC write just at the line's WSYNC
+point - on **57% of frames** (R1 1,424 of 2,500, R4 874 of 1,500) it missed,
+the CPU waited to line 240's end, and line 240 - the HUD's blank first row -
+was drawn with the ring's COLPF2 (mint, `(159,240,195)`): the bar, frame by
+frame matching the late WSYNCs. **Fix:** `boss_dli` tests the HUD phase before
+phase 1's code, and its first store after the WSYNC is COLPF2 (preloaded):
+the background lands in the horizontal blank, before line 240's character
+fetches stall the CPU (measured: the store after a jump landed at line 240
+cycle 103). Bar frames after: **0 of 2,500 (R1) and 0 of 1,500 (R4)**. Cost: 0
+DMA, +0 frame cycles (the DLI's work only reordered); slot A 2,038 of 2,048
+(`boss_cell_at` moved to the lance run for the bytes). Not the bar: the boss's
+falling capsule (P3) still crosses the HUD's lines (9-10 frames a fall) - an
+option, not built: PRIOR's playfield-over-players on the HUD line (~10 B of
+slot A in the boss sector, the same again in main for the space sectors'
+pickups).
+
+**4. The meter's T.** The boss install writes `T` at cell 15; the meter is
+cells 16-19 (`HUD_LANCE_LABEL_OFFSET`, `HUD_LANCE_METER_OFFSET`); cells 20-28
+free.
+
+**Room.** The lance's state moved to the zero page's unclaimed tail
+(`$B6-$C2`, `LANCE_ZP`: every access a byte shorter; MEASURED written by
+nothing but the OS's RAM clear at boot and RESET - the `zero_page_b6` watch,
+all routes and the default trace; the boss install clears it at every entry).
+Lance run 756 of 768 B (window room 214 B), page 4 239 of 256 B, slot A 2,038
+of 2,048, the boss install 380 of 384.
+
+**Boss stress** (look aa; native cycles, worst reachable; the torpedo states
+with the case's own shots meeting the boss - the ordinary fire back - and the
+lasers' modes; the fire's hold running):
+
+| state | R1 | Citadel L4 | Citadel L5 | Spine L7 | Spine L9 | Bastion L10 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| filling | 7,268 | 7,812 | 8,147 | 7,889 | 8,143 | 8,176 |
+| install | 7,456 | 8,000 | 8,335 | 8,077 | 8,331 | 8,364 |
+| quarter | 7,371 | 7,915 | 8,250 | 7,992 | 8,246 | 8,279 |
+| draw | 7,493 | 8,014 | 8,349 | 8,091 | 8,345 | 8,410 |
+| idle | 7,506 | 8,024 | 8,359 | 8,104 | 8,359 | 8,391 |
+| charge | 7,537 | 8,055 | 8,390 | 8,135 | 8,390 | 8,422 |
+| swap | 7,575 | 8,050 | 8,413 | 8,173 | 8,428 | 8,460 |
+| **fire** | 7,580 | 8,097 | 8,432 | 8,178 | 8,433 | **8,465** |
+| dry | 7,579 | 8,097 | 8,432 | 8,174 | 8,428 | 8,461 |
+| **fly** | 7,483 | 8,027 | 8,362 | 8,104 | 8,358 | **8,391** |
+| kill | 7,316 | 7,838 | 8,187 | 7,960 | 8,113 | 7,747 |
+| miss | 7,514 | 8,058 | 8,393 | 8,135 | 8,389 | 8,422 |
+| lost | 7,552 | 8,096 | 8,431 | 8,173 | 8,427 | 8,460 |
+| blast | 7,389 | 7,933 | 8,268 | 8,010 | 8,264 | 8,297 |
+| blastEnd | 7,323 | 7,867 | 8,202 | 7,944 | 8,198 | 8,231 |
+
+Look b (its flight states differ): fly 8,055 / 8,390 / 8,132 / 8,386 /
+**8,419**; lost 8,116 / 8,451 / 8,193 / 8,447 / **8,480** (Citadel L4 / L5,
+Spine L7 / L9, Bastion). Every state <= 8,500; the Bastion's headroom **35**
+(look a; look b's lost frame **20**). The Bastion fixture (the lance fired on
+its worst frame) 8,465.
+
+**Routes** (35 focused sessions plus the scripted ones): 0 misses; the only
+clause failures the three scripted sessions on R2-R4 that never shoot (they
+never reach the chain). Entry host frames R1 **325**, Citadel **340**, Spine
+**340**, Bastion **344** (limit 350).
+
+**The default trace** (58 replays, the candidate, look aa): 0 misses, 0
+clause failures, 0 foreign writers in the window tail, page 4 and the zero
+page; worst fence margin **1,497** (`2-sweep-fire6`); DMA-on maximum
+**31,476** (`2-evasive-fire7`), 0 replays over the 31,500 target.

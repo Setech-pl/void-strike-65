@@ -91,8 +91,7 @@ for (const directory of [1, 2, 3, 4]) {
     assert.equal(memory[lbl("_lance_module")], module, "the module under the ship is locked on the fire frame");
     assert.deepEqual(rowsOf(memory, P2), [], "the fire frame draws no exhaust");
     assert.equal(memory[HPOSP1], 0, "the fire frame: the reticle off, nothing in P1's place");
-    const y = memory[lbl("lance_y")];
-    const mark = (r) => r >= y && r < y + 8;                // the reticle's rows: they stay until the torpedo passes or kills
+    assert.deepEqual(rowsOf(memory, P1), [], "the fire frame: the reticle's rows cleared (off for the whole flight)");
     let frames = 0;
     let p = memory[lbl("boss_shown_pos")];
     while (memory[lbl("lance_beam")] === 1) {
@@ -100,10 +99,10 @@ for (const directory of [1, 2, 3, 4]) {
       if (frames % 2 === 1 && (region.travel ?? 0) > 0) { p = (p + 1) % Math.max(region.travel, 1); placeBand(memory, p); }
       tick(memory);
       frames += 1;
-      assert.ok(frames < 80, "the torpedo never arrived");
+      assert.ok(frames < 400, "the torpedo never arrived");
       if (memory[lbl("lance_beam")] !== 1) break;
       const head = memory[lbl("lance_head")];
-      const hull = rowsOf(memory, P1).filter((r) => !mark(r));
+      const hull = rowsOf(memory, P1);
       for (let y = head; y < head + torpedo.hullRows; y += 1) assert.notEqual(memory[P1 + y], 0, `frame ${frames}: the hull's row ${y}`);
       const exhaust = rowsOf(memory, P2);
       assert.ok(hull.every((y) => y >= head && y < head + torpedo.hullRows), `frame ${frames}: P1's rows ${hull} at ${head} (the hull's and the reticle's only)`);
@@ -150,7 +149,7 @@ test("§BL 5 (§BH): a miss - no target under the ship - the torpedo flies to th
   while (memory[lbl("lance_beam")] !== 0) {
     tick(memory);
     frames += 1;
-    assert.ok(frames < 80);
+    assert.ok(frames < 400);
     if (memory[lbl("lance_beam")] === 1) {
       assert.equal(memory[HPOSP1], x, "the ship's column");
       assert.equal(memory[HPOSP2], x);
@@ -178,7 +177,7 @@ test("§BL 5 (§BH): the locked module destroyed on the way - the torpedo flies 
   memory[lbl("_boss_hp") + module] = 0;                    // a player shot took it
   const hp = [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)];
   let frames = 0;
-  while (memory[lbl("lance_beam")] !== 0) { tick(memory); frames += 1; assert.ok(frames < 80); }
+  while (memory[lbl("lance_beam")] !== 0) { tick(memory); frames += 1; assert.ok(frames < 400); }
   assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], hp, "no other module touched");
   assert.equal(memory[lbl("lance_ready")], 0xff, "the lance kept");
   assert.deepEqual(rowsOf(memory, P2), [], "no explosion");
@@ -189,11 +188,33 @@ test("§BL 5: the kill frame is the frame's only meeting (the shots wait a frame
   fire(memory, targetColumn(memory));
   const admit = lbl("laser_admit_operand");
   let killFrame = null;
-  for (let f = 0; f < 80 && memory[lbl("lance_beam")] !== 0; f += 1) {
+  for (let f = 0; f < 400 && memory[lbl("lance_beam")] !== 0; f += 1) {
     const before = memory[lbl("lance_beam")];
     tick(memory);
     if (before === 1 && memory[lbl("lance_beam")] === 2) { killFrame = f; assert.equal(memory[admit], 0, "the kill frame admits none"); }
     else if (killFrame !== null && f === killFrame + 1) assert.equal(memory[admit], 2, "the next frame two");
   }
   assert.notEqual(killFrame, null, "a kill");
+});
+
+// Journal §BL (the owner's decision after the smoke of e76ddee): the ordinary
+// fire is off for 50 frames from the launch - read_input's gate held shut,
+// FIRE held or not - and on again from the 50th, while the torpedo flies.
+test("§BL: the ordinary fire held 50 frames after the launch, then back while the torpedo flies", () => {
+  const { memory } = fight(1);
+  const GATE = main("gameplay_fire_gate");
+  fire(memory, targetColumn(memory));
+  memory[GATE] = 1;
+  for (let f = 1; f < 50; f += 1) {
+    memory[TRIG0] = f % 2;                                // held and released alike
+    tick(memory);
+    assert.equal(memory[GATE], 0, `frame ${f} after the launch: the gate shut`);
+  }
+  memory[TRIG0] = 0;
+  tick(memory);
+  assert.equal(memory[GATE], 1, "the 50th frame: the gate open (a held FIRE fires)");
+  assert.equal(memory[lbl("lance_beam")], 1, "the torpedo still flying");
+  memory[GATE] = 0;
+  tick(memory);
+  assert.equal(memory[GATE], 0, "after the hold: the gate is read_input's again");
 });

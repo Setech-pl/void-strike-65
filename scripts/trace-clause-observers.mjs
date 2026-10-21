@@ -286,7 +286,7 @@ export function lightCoverage(rows, sectors) {
 // patched store operands); and the OS ROM's RAM clear, which every RESET runs
 // again (RESET is a cold start).
 export function windowTailWriteClause(watches, { labels, readerAddress, readerEnd, lanceAddress, lanceCodeEnd, runBytes,
-  page = null }) {
+  page = null, zeroPage = null }) {
   const copyStart = labels.get("copy_hud_charset");
   const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
   const violations = [];
@@ -356,6 +356,34 @@ export function windowTailWriteClause(watches, { labels, readerAddress, readerEn
     }
     if ((four.overflow ?? 0) > 0) {
       violations.push({ session: watch.session, message: `the page 4 watch overflowed (${four.overflow} writes untracked)` });
+    }
+    // The owner's smoke of e76ddee: the lance's state in the zero page
+    // (`zeroPage`: { address, end, installStart, installEnd }) - written only
+    // by the OS's RAM clear (boot, RESET), the boss install's clear and the
+    // lance's own code; the watch covers $B6-$FF.
+    const zp = watch.zero_page_b6;
+    if (zeroPage === null || zp === undefined) continue;
+    for (const writer of zp.writers) {
+      const lanceCode = writer.pc >= lanceAddress && writer.pc < lanceCodeEnd ||
+        page !== null && writer.pc >= page.address && writer.pc < page.end;
+      const inState = writer.min_address >= zeroPage.address && writer.max_address < zeroPage.end;
+      const kind = writer.pc >= 0xc000 ? "the OS's RAM clear"
+        : lanceCode && inState ? "the lance's state"
+          : writer.pc >= zeroPage.installStart && writer.pc < zeroPage.installEnd && inState ? "the boss install's clear" : null;
+      const key = `$${writer.pc.toString(16)} (zero page)`;
+      const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
+      entry.sessions += 1;
+      entry.count += writer.count;
+      writers.set(key, entry);
+      if (kind === null) {
+        violations.push({ session: watch.session, message: `$${writer.pc.toString(16)} wrote the zero page's $B6-$FF ` +
+          `${writer.count} times (frames ${writer.first_frame}-${writer.last_frame}, ` +
+          `$${writer.min_address.toString(16)}-$${writer.max_address.toString(16)}), ` +
+          "not the OS's RAM clear, the boss install or the lance's own code into its state" });
+      }
+    }
+    if ((zp.overflow ?? 0) > 0) {
+      violations.push({ session: watch.session, message: `the zero page watch overflowed (${zp.overflow} writes untracked)` });
     }
   }
   return {

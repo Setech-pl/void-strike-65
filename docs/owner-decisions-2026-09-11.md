@@ -3505,6 +3505,32 @@ Void Citadel (grafika `region-4`), grana jako drugi region (poziomy 4-6,
 trasa `--boss-region=2`). Nowa reguła pracy z tego dnia trafi do dziennika
 jako §BM przy finalizacji etapu.
 
+**Dopisane tego samego dnia — smoke `e76ddee` (wyboru wyglądu i czasu
+ładowania jeszcze nie ma: torpedy nie było dobrze widać).**
+
+1. **Lot torpedy 2-3 s, cel zablokowany.** Przy strzale cel blokuje się na
+   ostatniej pozycji celownika (moduł pod celownikiem w chwili strzału),
+   a torpeda leci do niego ze stałą, wolną prędkością, naprowadzając się,
+   gdy pas dryfuje; typowy dystans strzału ma trwać ok. 2,5 s. Cel
+   zniszczony w locie: przekierowanie na najbliższy żywy moduł tej samej
+   kolumny, który lanca może wziąć; bez takiego - obecna reguła (nic nie
+   trafione, lanca zachowana, §BH); jeśli przekierowanie nie mieści się
+   w bramkach, zostaje obecna reguła i raport to mówi. Celownik (P1) jest
+   wyłączony przez cały lot i wraca jak dotąd.
+2. **Zwykły ogień (decyzja właściciela).** Ogień wstrzymany podczas
+   celowania - przyjęty tak, jak jest. Po wystrzeleniu torpedy zwykły ogień
+   jest wyłączony przez 50 klatek (1 s) i wraca, gdy torpeda jeszcze leci:
+   prosty licznik startujący przy wystrzale, bez innych zmian zwykłego
+   ognia. Stres bossa mierzony z powrotem ognia, torpedą w locie i laserami
+   we wszystkich czterech regionach; powyżej 8 500 - STOP z opcjami przed
+   jakimkolwiek cięciem.
+3. **Separator.** Biały pasek nad HUD-em nadal ma artefakty: najpierw
+   przyczyna (wycinki linii, kolejne klatki, R1 i R4, spokojna gra i obiekty
+   przy HUD-zie), potem poprawka z wycinkami przed/po; jeśli kosztuje DMA
+   lub cykle ponad bramki - STOP z opcjami.
+4. **Etykieta miernika.** Przed czterema komórkami miernika lancy litera T;
+   kolejność LIFE, HULL, BOOST po lewej i SCORE po prawej bez zmian.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

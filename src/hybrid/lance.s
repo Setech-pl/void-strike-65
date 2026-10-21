@@ -117,15 +117,18 @@ LANCE_SHOT_AUDC = $8A                   ; no other boss sound is noise (the tick
 ; written here).
 ; ---------------------------------------------------------------------------
 ; The exhaust's frames are windows into one table, TORPEDO_EXHAUST_SHIFT rows
-; apart (a: its frames side by side; b: a strip the flame runs down).
+; apart (a: its frames side by side; b: a strip the flame runs down). The
+; flight (the owner's smoke of e76ddee): one line a frame in both looks - a
+; typical shot (the ship low, a module of the band's lower half, ~110-150
+; lines) takes 2.2-3 s, the torpedo seen all the way.
 .if TORPEDO_FLIGHT = 1
-TORPEDO_STEP    = 8                     ; a: fast, a short hull, a 3-frame exhaust
+TORPEDO_STEP    = 1                     ; a: a short hull, a 3-frame exhaust
 TORPEDO_HULL    = 5
 TORPEDO_EXHAUST = 4
 TORPEDO_EXHAUST_FRAMES = 3
 TORPEDO_EXHAUST_SHIFT = TORPEDO_EXHAUST
 .else
-TORPEDO_STEP    = 4                     ; b: slower, a longer hull, a 4-frame exhaust, a longer tail
+TORPEDO_STEP    = 1                     ; b: a longer hull, a 4-frame exhaust, a longer tail
 TORPEDO_HULL    = 6                     ; (6 + 5 rows: the Bastion's flight frame within its 20-cycle
 TORPEDO_EXHAUST = 5                     ; headroom - 8 + 7 rows MEASURED 8,496 on the Citadel L5)
 TORPEDO_EXHAUST_FRAMES = 4
@@ -155,6 +158,10 @@ TORPEDO_P2_FROM = TORPEDO_HULL + TORPEDO_EXHAUST
 
 ; The VOID LANCE's HUD meter (journal §BL 3): cells HUD_LANCE_METER_OFFSET +
 ; 0-3, two HUD codes the run writes at the fight's first frame.
+; The ordinary fire after the launch (journal §BL, the owner's decision of
+; 2026-10-21): off for LANCE_FIRE_HOLD_FRAMES frames (1 s), then on again while
+; the torpedo still flies.
+LANCE_FIRE_HOLD_FRAMES = 50
 LANCE_METER_FULL   = 59
 LANCE_METER_HOLLOW = 60
 LANCE_HUD_CHARSET  = $5000              ; src/main.s HUD_CHARSET
@@ -164,9 +171,45 @@ LANCE_METER_SCREEN = SCREEN + HUD_LANCE_METER_OFFSET
 .export lance_tick, lance_shape, lance_y, lance_beam, lance_head, lance_top, _lance_module, lance_cell, lance_ready
 .export lance_meter_shown, lance_stick, LANCE_METER_HOLLOW, LANCE_METER_FULL
 
+; The lance's state (the owner's smoke of e76ddee: in the zero page's
+; unclaimed tail, $B6 on - MEASURED written only by the OS's RAM clear at boot
+; - so every access is a byte shorter); boss_install clears it at every entry,
+; so a fight starts with no torpedo, no reticle and the meter's HUD cells not
+; drawn. (src/c/lance.c's own - the meter, the charge - stays in LANCE_BSS,
+; read as zeros with the run.)
+.segment "LANCE_ZP": zeropage
+lance_zp:
+lance_beam:     .res 1                  ; 0 none, 1 the torpedo in flight, 2 its explosion
+lance_head:     .res 1                  ; the torpedo's top line
+lance_top:      .res 1                  ; its line: the module's bottom one, or the band's foot
+lance_y:        .res 1                  ; the reticle's first line, 0 not drawn yet
+_lance_module:  .res 1                  ; the target's module and band column; the torpedo's locked one
+lance_cell:     .res 1
+lance_ready:    .res 1                  ; what the indicator shows: $FF a lance ready, 0 not
+lance_hollow:   .res 1                  ; the mark drawn: 0 the crosshair (lance_reticle's), $FF the hollow one
+lance_stick:    .res 1                  ; a slow frame's stick: PORTA with UP released (the axis rule)
+lance_meter_shown: .res 1               ; 1 + the HUD meter's full cells; 0 the glyphs not written yet, $FF the cells
+torpedo_x:      .res 1                  ; its HPOS (a miss: the ship's column at the fire)
+torpedo_count:  .res 1                  ; the explosion's frames left; the exhaust's row count; the meter's quarters
+lance_fire_hold: .res 1                 ; the ordinary fire's frames off after the launch (journal §BL)
+lance_zp_end:
+
 .segment "LANCE_CODE"
 
 lance_tick:
+    ; The ordinary fire's hold after a launch: read_input's gate shut on every
+    ; held frame (it opens on a FIRE release only), and open on the hold's
+    ; last frame - a held FIRE fires again from there.
+    ldx lance_fire_hold
+    beq @fire
+    dex
+    stx lance_fire_hold
+    ldy #$00
+    txa
+    bne :+
+    iny
+:   sty gameplay_fire_gate
+@fire:
     lda lance_beam
     beq lance_meter
     jmp lance_torpedo
@@ -255,8 +298,9 @@ lance_aim:
     ora #LANCE_STICK_UP
     sta lance_stick
     lda #<lance_stick
-    ldy #>lance_stick
-    bne @stick                          ; always
+    ldy #>lance_stick                   ; 0: the zero page
+    beq @stick                          ; always
+.assert >lance_stick = 0, error, "lance_stick: the zero page's (the branch above)"
 @full:
     ldy #>LANCE_STICK0
 @stick:
@@ -272,12 +316,13 @@ lance_aim:
     ldx #LANCE_SHOT_AUDF
     ldy #LANCE_SHOT_AUDC
     jsr lance_sound
-    ; FIRE: the torpedo from the next frame (the fire frame draws none of it;
-    ; the reticle's rows stay - from the next frame at the torpedo's HPOS,
-    ; the lock's point - until it flies through them or kills),
-    ; locked on the target's module - up to its bottom line - or with none at
-    ; the ship's column up to the band's foot, the line over the mark. The
-    ; lance is spent only by a kill (journal §BL 5).
+    ; FIRE: the torpedo from the next frame (the fire frame draws none of it),
+    ; locked on the target's module - the one under the reticle, up to its
+    ; bottom line - or with none at the ship's column up to the band's foot,
+    ; the line over the mark. The lance is spent only by a kill (journal
+    ; §BL 5). The reticle is off for the whole flight (the owner's smoke of
+    ; e76ddee): its rows cleared here - the six either mark draws (rows 2 and
+    ; 5 are empty in both) - and the ordinary fire held (lance_fire_hold).
     ldy lance_y
     dey
     tya
@@ -300,9 +345,18 @@ lance_aim:
     sec
     sbc #TORPEDO_ROWS
     sta lance_head
-    lda #$01
-    sta lance_beam
-    ldx #$00                            ; (the discharge's X)
+    lda #LANCE_FIRE_HOLD_FRAMES
+    sta lance_fire_hold
+    ldy lance_y
+    lda #$00
+    sta LANCE_P1,y
+    sta LANCE_P1 + 1,y
+    sta LANCE_P1 + 3,y
+    sta LANCE_P1 + 4,y
+    sta LANCE_P1 + 6,y
+    sta LANCE_P1 + 7,y
+    tax                                 ; X = 0 (the discharge's X)
+    inc lance_beam                      ; 1: the torpedo
 @dark:
     stx LANCE_HPOSP1                    ; X = 0
 @rts:
@@ -362,8 +416,11 @@ torpedo_flight:
     sta lance_head
     sta @hull + 1
     ; Homing: the locked module's current centre (the band drifts), as the
-    ; reticle's - destroyed on the way too: the torpedo flies on to its line
-    ; and hits nothing (journal §BL 5, §BH: the lance kept).
+    ; reticle's - destroyed on the way too (the ordinary fire is back a
+    ; second after the launch): the torpedo flies on to its line and hits
+    ; nothing (journal §BL 5, §BH: the lance kept). (Retargeting the lock to
+    ; the column's next module did not fit the lance run: the owner's
+    ; fallback, plan m6-gauges §9.)
     ldx _lance_module
     cpx #BOSS_MAX_MODULES
     bcs @placed                         ; a miss: the ship's column, kept since the fire frame
@@ -511,6 +568,18 @@ lance_centre:
     sbc boss_shown_pos
     rts
 
+; X = a band row, boss_column a column -> dst_ptr = that cell. Keeps X.
+; (Slot A's - boss_hit, the heat, the flash - here since the owner's smoke of
+; e76ddee: slot A's bytes went to boss_dli's HUD phase; the lance run is
+; resident through the boss sector.)
+boss_cell_at:
+    lda boss_band_lo,x
+    ora boss_column                     ; each row is 64 B on a 64-B boundary
+    sta dst_ptr
+    lda boss_band_hi,x
+    sta dst_ptr+1
+    rts
+
 ; X = AUDF3, Y = AUDC3, written when the sound is on.
 lance_sound:
     lda sound_enabled
@@ -521,6 +590,8 @@ lance_sound:
     rts
 
 lance_shape:    .byte $18, $18, $00, $C3, $C3, $00, $18, $18
+; (The hollow mark is the crosshair with rows 0 and 7 cleared and 3, 4 at
+; $42: rows 2 and 5 are empty in both - the fire frame clears the other six.)
 ; The charge's ramp (journal §BI 2), by (lance_charge + 7) / 8: 0 not
 ; charging - the ready green; then the green's luminance from the steel's
 ; (4, frames 1-16) to near-white ($CE, frames 65-74), quickening at the end.
@@ -693,16 +764,3 @@ torpedo_blast_shapes:                   ; b: a burst of sparks (the last frame f
 .endif
 .assert * - torpedo_blast_shapes = TORPEDO_BLAST_FRAMES * TORPEDO_BLAST_ROWS, error, "the explosion's frames"
 
-.segment "LANCE_BSS"
-lance_beam:     .res 1                  ; 0 none, 1 the torpedo in flight, 2 its explosion
-lance_head:     .res 1                  ; the torpedo's top line
-lance_top:      .res 1                  ; its line: the module's bottom one, or the band's foot
-lance_y:        .res 1                  ; the reticle's first line, 0 not drawn yet
-_lance_module:  .res 1                  ; the target's module and band column; the torpedo's locked one
-lance_cell:     .res 1
-lance_ready:    .res 1                  ; what the indicator shows: $FF a lance ready, 0 not
-lance_hollow:   .res 1                  ; the mark drawn: 0 the crosshair (lance_reticle's), $FF the hollow one
-lance_stick:    .res 1                  ; a slow frame's stick: PORTA with UP released (the axis rule)
-lance_meter_shown: .res 1               ; 1 + the HUD meter's full cells; 0 the glyphs not written yet, $FF the cells
-torpedo_x:      .res 1                  ; its HPOS (a miss: the ship's column at the fire)
-torpedo_count:  .res 1                  ; the explosion's frames left; the exhaust's row count; the meter's quarters

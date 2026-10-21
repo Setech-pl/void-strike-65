@@ -693,6 +693,9 @@ const BOSS_LANCE_PAGE_SECTORS = 2;
 const BOSS_LANCE_PAGE_BYTES = BOSS_LANCE_PAGE_SECTORS * 128;
 const BOSS_LANCE_PAGE_ADDRESS = 0x0400;
 const BOSS_LANCE_RUNS_SECTORS = BOSS_LANCE_SECTORS + BOSS_LANCE_PAGE_SECTORS;
+// The lance's state in the zero page (not on the disk): $B6-$C5 at most.
+const BOSS_LANCE_ZP_ADDRESS = 0xb6;
+const BOSS_LANCE_ZP_BYTES = 16;
 const bossRegionBaseSector = 632;
 const bossRegionCount = 4;
 // audit-hardening (AUD-01): what the disk's identity names - the layout's
@@ -3019,7 +3022,7 @@ async function build() {
   const bossImportNames = {
     main: ["init_broadside", "PHYSICAL_PAL_FRAME_ID", "GAMEPLAY_PAL_FRAME_CONSUMED", "CHARSET",
       "GAMEPLAY_COLPF0", "GAMEPLAY_COLPF2", "GAMEPLAY_COLPF3", "gameplay_dli_allied_colpf1_load",
-      "gameplay_dli_sync_hud", "PLAYFIELD_DLIST_A", "PLAYFIELD_DLIST_ENTRY", "PLAYFIELD_ROW_LO", "PLAYFIELD_ROW_HI",
+      "gameplay_dli_sync_hud", "gameplay_dli_hud", "PLAYFIELD_DLIST_A", "PLAYFIELD_DLIST_ENTRY", "PLAYFIELD_ROW_LO", "PLAYFIELD_ROW_HI",
       "PLAYFIELD_ACTIVE_DLIST_LO", "PLAYFIELD_NEXT_DLIST_LO", "PLAYFIELD_PREBUILD_PENDING",
       "frame_counter", "FIGHTER_PROJECTILE_ACTIVE", "FIGHTER_PROJECTILE_X",
       "FIGHTER_PROJECTILE_Y", "FIGHTER_PROJECTILE_FREE", "FIGHTER_EXPLOSION_TIMER",
@@ -3033,8 +3036,8 @@ async function build() {
       "HUD_COLPF1", "HUD_COLPF2", "STATE_GAMEPLAY", "game_state", "wait_frame_start",
       "main_loop", "sound_enabled", "GAMEPLAY_DIVIDER_SCREEN", "capital_slot_a",
       "DIFFICULTY_SETTING", "PLAYER_LIFECYCLE", "player_x", "apply_player_damage",
-      // M6 stage 1b (journal §BL 3): the VOID LANCE's meter cells in the HUD.
-      "HUD_LANCE_METER_OFFSET",
+      // M6 stage 1b (journal §BL 3): the VOID LANCE's T and meter cells in the HUD.
+      "HUD_LANCE_METER_OFFSET", "HUD_LANCE_LABEL_OFFSET", "gameplay_fire_gate",
       // S4b.5 (owner decision F3): a destroyed module counts for the capsule rule.
       "ENTITY_STATE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
       "integration_pickup_reveal_body",
@@ -3183,12 +3186,19 @@ async function build() {
   const bossConfigLance = bossConfigRail
     .replace(/\n}\s*\nSEGMENTS/, `\n    BOSS_LANCE_RAM:   start = $${BOSS_LANCE_ADDRESS.toString(16).toUpperCase()}, ` +
       `size = $${BOSS_LANCE_BYTES.toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, fill = yes, fillval = $00, define = yes;\n` +
+      // M6 stage 1b (the owner's smoke of e76ddee): the lance's state in the
+      // zero page's unclaimed tail ($B6 on; MEASURED written only by the OS's
+      // RAM clear at boot, the trace's zero_page_b6 watch), cleared by the
+      // boss install at every entry.
+      `    BOSS_LANCE_ZP: start = $${BOSS_LANCE_ZP_ADDRESS.toString(16).toUpperCase().padStart(4, "0")}, ` +
+      `size = $${BOSS_LANCE_ZP_BYTES.toString(16).toUpperCase().padStart(4, "0")}, type = rw, define = yes;\n` +
       `    BOSS_LANCE_PAGE_RAM: start = $${BOSS_LANCE_PAGE_ADDRESS.toString(16).toUpperCase().padStart(4, "0")}, ` +
       `size = $${BOSS_LANCE_PAGE_BYTES.toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, fill = yes, fillval = $00, define = yes;\n}\n\nSEGMENTS`)
     .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    LANCE_CODE:    load = BOSS_LANCE_RAM,   type = ro, define = yes;\n` +
       `    LANCE_DATA:    load = BOSS_LANCE_RAM,   type = rw, define = yes;\n` +
       `    LANCE_BSS:     load = BOSS_LANCE_RAM,   type = bss, define = yes;\n` +
-      `    LANCE_PAGE:    load = BOSS_LANCE_PAGE_RAM, type = ro, define = yes;\n`);
+      `    LANCE_PAGE:    load = BOSS_LANCE_PAGE_RAM, type = ro, define = yes;\n` +
+      `    LANCE_ZP:      load = BOSS_LANCE_ZP, type = zp, define = yes;\n`);
   // S5-5: the rails' constants for the boss link (region 2's rail block):
   // the cadences, the rows, each side's front and window, the hangar's doors
   // and core, the Director's escort clock (src/c/director.c STATE_SPACING,
@@ -5008,15 +5018,18 @@ async function build() {
         bytes: lanceUsed,
         codeBytes: bossLabels.get("__LANCE_CODE_SIZE__"), dataBytes: bossLabels.get("__LANCE_DATA_SIZE__") ?? 0,
         bssBytes: bossLabels.get("__LANCE_BSS_SIZE__"),
+        // The owner's smoke of e76ddee: the lance's state in the zero page.
+        zeroPage: { address: BOSS_LANCE_ZP_ADDRESS, bytes: bossLabels.get("__LANCE_ZP_SIZE__"),
+          capacityBytes: BOSS_LANCE_ZP_BYTES },
         windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), meterFrames: lanceMeterFrames(),
         chargeFrames: lanceChargeFrames, chargeUpDivisor: LANCE_CHARGE_UP_DIVISOR,
         // Journal §BL: the second run, page 4 (slot H).
         page: { address: BOSS_LANCE_PAGE_ADDRESS, capacityBytes: BOSS_LANCE_PAGE_BYTES,
           sectors: BOSS_LANCE_PAGE_SECTORS, startSector: BOSS_LANCE_PAGE_SECTOR, bytes: lancePageUsed },
         // M6 stage 1b (journal §BL 3, 5, 7): the HUD meter and the torpedo's look.
-        hudMeter: { cells: [15, 16, 17, 18], hollow: bossLabels.get("LANCE_METER_HOLLOW") ?? 59,
+        hudMeter: { label: 15, cells: [16, 17, 18, 19], hollow: bossLabels.get("LANCE_METER_HOLLOW") ?? 59,
           full: bossLabels.get("LANCE_METER_FULL") ?? 60 },
-        torpedo: { look: torpedoLook, step: torpedoLook[0] === "a" ? 8 : 4,
+        torpedo: { look: torpedoLook, step: 1, fireHoldFrames: 50,
           hullRows: torpedoLook[0] === "a" ? 5 : 6, exhaustRows: torpedoLook[0] === "a" ? 4 : 5,
           exhaustFrames: torpedoLook[0] === "a" ? 3 : 4, blastRows: 8, blastFrames: 5 } },
       laserFixtureTier,

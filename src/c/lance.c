@@ -49,6 +49,7 @@ extern volatile uint8_t boss_difficulty[];     /* [0] DIFFICULTY_SETTING: 0 EASY
  * flies). The tick copies it into boss_hit_module for boss_hit on the torpedo's
  * arrival frame. */
 extern uint8_t lance_module;
+#pragma zpsym ("lance_module")             /* the zero page's (src/hybrid/lance.s) */
 
 /* LANCE_CHARGE_FRAMES: 75, 1.5 s at 50 Hz (decision BD 2) - from
  * scripts/lance-layout.mjs with the charge's speed divisor. */

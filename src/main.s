@@ -642,7 +642,8 @@ PLAYER_DEATH_EXPLOSION_LINES = 16
 PLAYER_FIGHTER_SHOT_AUDC = $A8
 ; M6 stage 1b (journal §BL 2, docs/plans/m6-gauges.md §7.1): the HUD's 40
 ; cells - L lives (0-1), H hull (3-7), B booster (9-13), the VOID LANCE's
-; meter (15-18, the boss sector's), cells 19-28 free, SCORE (29-39).
+; T and its meter (15, 16-19, the boss sector's - the T since the owner's
+; smoke of e76ddee), cells 20-28 free, SCORE (29-39).
 HUD_LIFE_DIGIT_OFFSET = 1
 HUD_HULL_LABEL_OFFSET = 3
 HUD_HULL_LABEL_CELLS = 1
@@ -654,7 +655,8 @@ HUD_BOOSTER_OFFSET = 9
 HUD_BOOSTER_TEXT_CELLS = 1
 HUD_BOOSTER_LABEL_CELLS = HUD_BOOSTER_TEXT_CELLS
 HUD_BOOSTER_SEGMENTS_OFFSET = HUD_BOOSTER_OFFSET+HUD_BOOSTER_LABEL_CELLS
-HUD_LANCE_METER_OFFSET = 15
+HUD_LANCE_LABEL_OFFSET = 15
+HUD_LANCE_METER_OFFSET = HUD_LANCE_LABEL_OFFSET+1
 HUD_LANCE_METER_CELLS = 4
 HUD_SCORE_LABEL_OFFSET = 29
 HUD_BOOSTER_SEGMENTS = 4
@@ -677,7 +679,7 @@ HUD_SHIELD_FOUR_SEGMENT_MIN = 188
 .assert HUD_HULL_SEGMENTS_OFFSET-HUD_HULL_LABEL_OFFSET = 1, error, "the H label is one cell"
 .assert HUD_LIFE_DIGIT_OFFSET+2 = HUD_HULL_LABEL_OFFSET, error, "LIFE and HULL require one blank separator"
 .assert HUD_BOOSTER_OFFSET-HUD_HULL_BOOST_GAP_OFFSET = 1, error, "HULL and BOOST require one blank separator"
-.assert HUD_BOOSTER_SEGMENTS_OFFSET+HUD_BOOSTER_SEGMENTS+1 = HUD_LANCE_METER_OFFSET, error, "BOOST and the lance's meter require one blank separator"
+.assert HUD_BOOSTER_SEGMENTS_OFFSET+HUD_BOOSTER_SEGMENTS+1 = HUD_LANCE_LABEL_OFFSET, error, "BOOST and the lance's T require one blank separator"
 .assert HUD_LANCE_METER_OFFSET+HUD_LANCE_METER_CELLS < HUD_SCORE_LABEL_OFFSET, error, "the lance's meter runs into SCORE"
 .assert HUD_SCORE_LABEL_OFFSET+11 = GAMEPLAY_SCREEN_COLUMNS, error, "SCORE 00000 must end at HUD column 39"
 .assert HUD_BOOSTER_BACKING+HUD_BOOSTER_CELLS = __BROADSIDE_RUN__, error, "BOOST HUD backing must occupy the final STARFIELD-reservation bytes"
@@ -688,7 +690,7 @@ HUD_SHIELD_FOUR_SEGMENT_MIN = 188
 .assert CH_HUD_BOOSTER_SHIELD+1 = CH_SEPARATOR, error, "Shield HUD glyph must not overlap structural screen codes"
 .export HUD_HULL_LABEL_OFFSET, HUD_HULL_SEGMENTS_OFFSET
 .export HUD_HULL_SEGMENTS, HUD_HULL_BOOST_GAP_OFFSET, CH_HUD_HULL_FULL, CH_HUD_HULL_DAMAGED
-.export HUD_BOOSTER_OFFSET, HUD_BOOSTER_CELLS, HUD_BOOSTER_SEGMENTS_OFFSET, HUD_LANCE_METER_OFFSET
+.export HUD_BOOSTER_OFFSET, HUD_BOOSTER_CELLS, HUD_BOOSTER_SEGMENTS_OFFSET, HUD_LANCE_METER_OFFSET, HUD_LANCE_LABEL_OFFSET
 .export HUD_BOOSTER_SEGMENTS, CH_HUD_BOOSTER_FULL, CH_HUD_BOOSTER_SHIELD
 .export hud_booster_backing
 
@@ -1050,6 +1052,7 @@ frontend_selection: .res 1
 frontend_input_armed:.res 1
 sound_enabled:      .res 1
 gameplay_fire_gate: .res 1
+.export gameplay_fire_gate             ; M6 stage 1b: the lance holds the ordinary fire after a launch
 pause_option_latched:.res 1
 
 ; Loader, frontend and gameplay never run concurrently, so their DLI phase
@@ -3713,8 +3716,9 @@ profile_gameplay_dli_hud_end = *
 
 .export profile_gameplay_dli_end, profile_gameplay_dli_hud_end
 .export gameplay_dli_allied_colpf1_load
-; M5b-S3: the boss DLI's third phase continues into the HUD restore.
-.export gameplay_dli_sync_hud
+; M5b-S3: the boss DLI's third phase continues into the HUD restore (M6
+; stage 1b: after its own WSYNC, at gameplay_dli_hud).
+.export gameplay_dli_sync_hud, gameplay_dli_hud
 .export resume_gameplay_dli_lo_operand, resume_gameplay_dli_hi_operand
 ; M5b-S3: pure constants the boss overlay link reads from the label file.
 .export SCREEN, GAMEPLAY_DIVIDER_SCREEN, HUD_CHARSET, HUD_COLPF1, HUD_COLPF2

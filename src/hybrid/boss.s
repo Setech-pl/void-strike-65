@@ -372,7 +372,23 @@ boss_dli:
     pha
     cld                                 ; AUD-03: the NMI keeps the interrupted D (the scoring's SED); the RTI restores it
     lda gameplay_dli_phase
-    bne @below_hud
+    beq @top
+    lsr                                 ; phase 1 -> C=1; phase 2 -> C=0
+    bcs @below_band
+    ; Phase 2, the HUD, ahead of phase 1's code (the owner's smoke of e76ddee,
+    ; M6 stage 1b - MEASURED, plan m6-gauges §9): the OS's NMI dispatch and
+    ; line 239's DMA bring this DLI in at cycle ~60 of the line, and through
+    ; the old order its WSYNC was written past the line's WSYNC point on ~57%
+    ; of frames - the HUD's charset and colours then waited for line 241, and
+    ; line 240 (the HUD's blank first row) showed the ring's COLPF2: the bar
+    ; over the HUD. Here the WSYNC is written in time, and the HUD's
+    ; background goes in the store right after it, before line 240's fetches
+    ; stall the CPU (its charset and COLPF1 follow, in time for its text).
+    lda #HUD_COLPF2
+    sta WSYNC
+    sta COLPF2
+    jmp gameplay_dli_hud
+@top:
     inc PHYSICAL_PAL_FRAME_ID
     sta WSYNC
     lda #>BOSS_CHARSET
@@ -390,9 +406,7 @@ boss_dli:
     inc gameplay_dli_phase
     pla
     rti
-@below_hud:
-    lsr                                 ; phase 1 -> C=1; phase 2 -> C=0
-    bcc @hud
+@below_band:
     sta WSYNC
     ; QA2's COLPF3-first order is superseded by B2 (no laser pixel is COLPF3):
     ; the charset first. S5-4 (owner decision of 2026-10-14, the scanline
@@ -422,8 +436,6 @@ boss_dli:
 @same:
     pla
     rti
-@hud:
-    jmp gameplay_dli_sync_hud
 ; feat/boss-art: boss_pal_prepare points phase 0's publish at boss_pal_frame.
 boss_dli_publish = @publish + 1
 
@@ -664,14 +676,9 @@ boss_feedback:
     ldy #BOSS_SPARK_FRAMES
     jmp boss_ring_set
 
-; X = a band row, boss_column a column -> dst_ptr = that cell. Keeps X.
-boss_cell_at:
-    lda boss_band_lo,x
-    ora boss_column                     ; each row is 64 B on a 64-B boundary
-    sta dst_ptr
-    lda boss_band_hi,x
-    sta dst_ptr+1
-    rts
+; boss_cell_at (X = a band row, boss_column a column -> dst_ptr): in the
+; lance run since the owner's smoke of e76ddee (slot A's bytes for boss_dli's
+; HUD phase; src/hybrid/lance.s).
 
 ; A module took damage: the accuracy stat, then what the controller asked
 ; for - a damage stage (+K to every cell, §5.13.2 item 4), or the kill. Both
@@ -3319,6 +3326,16 @@ boss_install:
     inx
     bne @hud
 @hud_done:
+    ; M6 stage 1b (the owner's smoke of e76ddee): the lance meter's T (the
+    ; boss sector's only, before its four cells - src/hybrid/lance.s), and
+    ; the lance's zero-page state cleared: a fight starts with none of it.
+    lda #('T' - $20)                   ; as hud_ascii's text (its install loop's SBC #$20)
+    sta SCREEN + HUD_LANCE_LABEL_OFFSET
+    lda #$00
+    ldx #(lance_zp_end - lance_zp - 1)
+:   sta lance_zp,x
+    dex
+    bpl :-
     jsr update_score_display
     jsr update_hud_status
     ; S5-1 (owner decision Q8): the booster's ten cells as they were before the

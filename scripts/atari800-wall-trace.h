@@ -885,6 +885,9 @@ static unsigned dftrace_near_host_frame = 0xffffffffu;
 static unsigned dftrace_near_fetch_logged[DFTRACE_NEAR_COUNT];
 static unsigned dftrace_near_force_address;
 static unsigned dftrace_near_mode;
+#ifdef SUPPORTS_CHANGE_VIDEOMODE
+#include "videomode.h"
+#endif
 static const char *dftrace_engine_screenshot_prefix;
 static unsigned dftrace_engine_screenshot_count;
 static unsigned dftrace_engine_screenshot_generation;
@@ -5561,6 +5564,32 @@ static int dftrace_first_writer_effective_address(unsigned pc,
 		base = operand | ((unsigned) MEMORY_mem[(pc + 2u) & 0xffffu] << 8);
 		*address = (base + y_register) & 0xffffu;
 		return 1;
+	/* M6 stage 1b: the zero page's stores (the lance's state at $B6 on, the
+	 * zero_page_b6 watch). */
+	case 0x85u: /* STA zp */
+	case 0x86u: /* STX zp */
+	case 0x84u: /* STY zp */
+	case 0xe6u: /* INC zp */
+	case 0xc6u: /* DEC zp */
+	case 0x06u: /* ASL zp */
+	case 0x46u: /* LSR zp */
+	case 0x26u: /* ROL zp */
+	case 0x66u: /* ROR zp */
+		*address = operand;
+		return 1;
+	case 0x95u: /* STA zp,X */
+	case 0x94u: /* STY zp,X */
+	case 0xf6u: /* INC zp,X */
+	case 0xd6u: /* DEC zp,X */
+	case 0x16u: /* ASL zp,X */
+	case 0x56u: /* LSR zp,X */
+	case 0x36u: /* ROL zp,X */
+	case 0x76u: /* ROR zp,X */
+		*address = (operand + x_register) & 0xffu;
+		return 1;
+	case 0x96u: /* STX zp,Y */
+		*address = (operand + y_register) & 0xffu;
+		return 1;
 	default:
 		return 0;
 	}
@@ -5574,7 +5603,7 @@ static int dftrace_first_writer_effective_address(unsigned pc,
  * address (the hook runs before the next opcode), as the first-writer journal
  * above; zero-page stores cannot reach either range. Written at exit to
  * DFWATCH_OUTPUT (JSON); off when it is unset. Observes, never writes. */
-#define DFWATCH_RANGES 4u
+#define DFWATCH_RANGES 5u
 #define DFWATCH_WRITERS 128u
 typedef struct {
 	unsigned pc, count, first_frame, last_frame, first_address, last_address;
@@ -5585,9 +5614,9 @@ typedef struct {
  * at its top (decision BD 6); empty when unset. */
 /* M6 stage 1b (journal §BL, the owner's answer): page 4, $0400-$04FF - the
  * lance's second run (slot H) since the torpedo; the OS's cassette buffer. */
-static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u, 0x0400u };
-static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u, 0x0500u };
-static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail", "page_4" };
+static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u, 0x0400u, 0x00b6u };
+static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u, 0x0500u, 0x0100u };
+static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail", "page_4", "zero_page_b6" };
 static DFWatchWriter dfwatch_writers[DFWATCH_RANGES][DFWATCH_WRITERS];
 static unsigned dfwatch_counts[DFWATCH_RANGES];
 static unsigned dfwatch_overflow[DFWATCH_RANGES];
@@ -5941,6 +5970,51 @@ static void dftrace_first_writer_emit(const char *kind, unsigned address,
 		MEMORY_mem[dftrace_gameplay_frame], dftrace_first_writer_frame[address],
 		(unsigned long long) dftrace_first_writer_clock[address],
 		dftrace_first_writer_scanline[address], dftrace_first_writer_cycle[address]);
+}
+
+/* M6 stage 1b (the owner's smoke of e76ddee, the HUD's top line): every
+ * store to the colour registers, CHBASE, WSYNC or HSCROL on scanlines
+ * 236-244, with the frame, the scanline and the cycle it completed on, to
+ * DFTRACE_HUD_STORES (CSV); off when it is unset. Observes, never writes. */
+static int dftrace_hud_stores_state = -1;
+static FILE *dftrace_hud_stores_file;
+
+static void dftrace_hud_stores_track(unsigned x_register, unsigned y_register)
+{
+	unsigned address;
+	if (dftrace_hud_stores_state < 0) {
+		const char *path = getenv("DFTRACE_HUD_STORES");
+		dftrace_hud_stores_file = path != NULL && *path != '\0' ? fopen(path, "w") : NULL;
+		dftrace_hud_stores_state = dftrace_hud_stores_file != NULL;
+		if (dftrace_hud_stores_state)
+			fputs("host_frame,frame,scanline,cycle,address,value,pc\n", dftrace_hud_stores_file);
+	}
+	if (dftrace_hud_stores_state && ANTIC_ypos >= 238 && ANTIC_ypos <= 240) {
+		/* DFTRACE_HUD_TRACE_FRAMES "a,b": every instruction on lines 238-240 of
+		 * those frames (kind "pc"). */
+		const char *frames = getenv("DFTRACE_HUD_TRACE_FRAMES");
+		if (frames != NULL) {
+			char key[16];
+			char list[256];
+			snprintf(key, sizeof(key), ",%u,", dftrace_count);
+			snprintf(list, sizeof(list), ",%s,", frames);
+			if (strstr(list, key) != NULL) {
+				fprintf(dftrace_hud_stores_file, "%u,%u,%d,%d,pc,0,%u\n", (unsigned) Atari800_nframes,
+					dftrace_count, ANTIC_ypos, ANTIC_XPOS, dftrace_previous_pc);
+				fflush(dftrace_hud_stores_file);
+			}
+		}
+	}
+	if (!dftrace_hud_stores_state || dftrace_previous_pc == 0u || ANTIC_ypos < 236 || ANTIC_ypos > 244 ||
+		!dftrace_first_writer_effective_address(dftrace_previous_pc, x_register, y_register, &address))
+		return;
+	if ((address >= 0xd016u && address <= 0xd01au) || address == 0xd409u || address == 0xd40au ||
+		address == 0xd404u)
+	{
+		fprintf(dftrace_hud_stores_file, "%u,%u,%d,%d,%u,%u,%u\n", (unsigned) Atari800_nframes, dftrace_count,
+			ANTIC_ypos, ANTIC_XPOS, address, MEMORY_mem[address], dftrace_previous_pc);
+		fflush(dftrace_hud_stores_file);
+	}
 }
 
 static void dftrace_first_writer_track(unsigned x_register, unsigned y_register)
@@ -8443,6 +8517,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	dfsummary_observe(pc);
 	dftrace_track_character_screen_write(x_register, y_register);
 	dftrace_first_writer_track(x_register, y_register);
+	dftrace_hud_stores_track(x_register, y_register);
 	dftrace_player_pairshot_track(pc, x_register, y_register);
 	dftrace_near_observe(pc, x_register);
 	dftrace_watch_interceptor_projectiles();
@@ -8876,9 +8951,38 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_gameplay_generation == dftrace_engine_screenshot_generation &&
 			dftrace_engine_screenshot_count < dftrace_engine_screenshot_limit) {
 			char path[1024];
+			/* DFTRACE_FULL_SCREENSHOT: the whole 384 x 240 buffer (scanlines
+			 * 8-247) whatever the video driver shows (the dummy driver's
+			 * visible area is 256 x 192). */
+			int full = getenv("DFTRACE_FULL_SCREENSHOT") != NULL;
+			int vx1 = Screen_visible_x1, vx2 = Screen_visible_x2;
+			int vy1 = Screen_visible_y1, vy2 = Screen_visible_y2;
+			int saved;
+#ifdef SUPPORTS_CHANGE_VIDEOMODE
+			unsigned int sl = VIDEOMODE_src_offset_left, sw = VIDEOMODE_src_width;
+#endif
+			if (full) {
+				Screen_visible_x1 = 0;
+				Screen_visible_x2 = Screen_WIDTH;
+				Screen_visible_y1 = 0;
+				Screen_visible_y2 = Screen_HEIGHT;
+#ifdef SUPPORTS_CHANGE_VIDEOMODE
+				VIDEOMODE_src_offset_left = 0;
+				VIDEOMODE_src_width = Screen_WIDTH;
+#endif
+			}
 			snprintf(path, sizeof(path), "%s-%03u.png",
 				dftrace_engine_screenshot_prefix, dftrace_engine_screenshot_count);
-			if (!Screen_SaveScreenshot(path, 0)) {
+			saved = Screen_SaveScreenshot(path, 0);
+			Screen_visible_x1 = vx1;
+			Screen_visible_x2 = vx2;
+			Screen_visible_y1 = vy1;
+			Screen_visible_y2 = vy2;
+#ifdef SUPPORTS_CHANGE_VIDEOMODE
+			VIDEOMODE_src_offset_left = sl;
+			VIDEOMODE_src_width = sw;
+#endif
+			if (!saved) {
 				fprintf(stderr, "voidstrike65 trace: engine screenshot failed: %s\n", path);
 				exit(2);
 			}

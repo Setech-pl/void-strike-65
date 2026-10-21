@@ -6134,7 +6134,7 @@ function main() {
   // included (the owner's smoke finding). Subject: every boss entry of the run.
   const bossEntryHud = {
     clause: "the HUD row (40 cells) when the install first reaches the main loop equals the row as the " +
-      "boss entry began, over every boss entry of the run",
+      "boss entry began (but the lance meter's T on its blank cell), over every boss entry of the run",
     subject: bossEntrySessions.length,
     sessions: bossEntrySessions.map((session) => session.id),
     violations: bossEntrySessions.flatMap((session) => {
@@ -6142,8 +6142,13 @@ function main() {
       if (before.length !== 80 || after.length !== 80) {
         return [{ session: session.id, frame: session.bossEntry.frame, cells: "no HUD snapshot" }];
       }
+      // M6 stage 1b (the owner's smoke of e76ddee): the install writes the
+      // lance meter's T (the boss sector's own cell, blank before); every
+      // other cell as it was.
+      const label = manifest.boss?.lance?.hudMeter?.label;
       const cells = [...Array(40).keys()].filter((cell) => before.slice(cell * 2, cell * 2 + 2) !==
-        after.slice(cell * 2, cell * 2 + 2));
+        after.slice(cell * 2, cell * 2 + 2) &&
+        !(cell === label && before.slice(cell * 2, cell * 2 + 2) === "00"));
       return cells.length === 0 ? [] : [{ session: session.id, frame: session.bossEntry.frame, cells,
         before, after }];
     }),
@@ -6207,6 +6212,10 @@ function main() {
       page: manifest.boss.lance.page === undefined ? null : { address: manifest.boss.lance.page.address,
         end: manifest.boss.lance.page.address + manifest.boss.lance.page.capacityBytes,
         bytes: manifest.boss.lance.page.capacityBytes },
+      zeroPage: manifest.boss.lance.zeroPage === undefined ? null : { address: manifest.boss.lance.zeroPage.address,
+        end: manifest.boss.lance.zeroPage.address + manifest.boss.lance.zeroPage.bytes,
+        installStart: boss.get("__BOSS_INSTALL_RUN__") ?? boss.get("__BOSS_INSTALL_LOAD__"),
+        installEnd: (boss.get("__BOSS_INSTALL_RUN__") ?? boss.get("__BOSS_INSTALL_LOAD__")) + (boss.get("__BOSS_INSTALL_SIZE__") ?? 0) },
     });
   })();
   if (windowTailWrites !== null) {

@@ -31,14 +31,16 @@
 //           hollow mark drawn, a target under the ship - its 8 rows
 //           rewritten to the crosshair, placed at the target's centre
 //   fire    the gesture held, the charge completing on this frame: the
-//           discharge, the torpedo armed on the target, the reticle's rows
-//           cleared
+//           discharge, the torpedo armed on the target, the reticle's six
+//           drawn rows cleared, the ordinary fire's hold started
 //   dry     the same over a column with no target (journal §BH 3)
 // Journal §BL 5 (the torpedo; the owner's answer of 2026-10-21: the hull in
 // P1, the exhaust in P2, both homing):
 //   fly     a flight frame: homing (the locked module's centre), HPOSP1 and
 //           HPOSP2, the hull's rows, the exhaust's frame, the rows under it
-//           cleared; the case's shots flying
+//           cleared; the case's shots flying (the ordinary fire back a second
+//           after the launch, journal §BL) - in every torpedo state the
+//           fire's hold also runs (its gate write)
 //   kill    the flight's last frame reaching a module the case's own
 //           meetings do not (another kill on the frame: the worst): its rows
 //           cleared, the kill through boss_hit before UPDATE, the indicator
@@ -179,6 +181,10 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
     // lost: the next step reaches the line.
     memory[lbl("lance_head")] = mode === "fly" ? SHIP_Y - t.hullRows - t.exhaustRows : Math.min(255, top + t.step);
     if (mode === "blast") memory[lbl("torpedo_count")] = 3;       // a middle frame
+    // Journal §BL: the ordinary fire's hold after the launch running (its
+    // longest path, the gate's write); the case's shots - already flying -
+    // still meet the boss as the frame admits.
+    memory[lbl("lance_fire_hold")] = 2;
     if (mode === "blastEnd") memory[lbl("torpedo_count")] = 1;
   } else {
     memory[main("player_y")] = SHIP_Y;

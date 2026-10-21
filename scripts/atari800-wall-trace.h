@@ -1041,12 +1041,6 @@ static unsigned dftrace_lance_trig;
 /* Journal §BH 2: the mark drawn (lance_hollow: 0 the crosshair, the run's
  * lance_shape; else the hollow mark below), optional. */
 static unsigned dftrace_lance_hollow;
-/* M6 stage 1b (docs/plans/m6-gauges.md §3): gauge_level, whose second byte is
- * non-zero once the fight's first frame drew the PMG gauges in P2's rows
- * DFTRACE_GAUGE_TOP-DFTRACE_GAUGE_BOTTOM (their content: tests/gauges.test.mjs). */
-static unsigned dftrace_gauge_level;
-#define DFTRACE_GAUGE_TOP 196u
-#define DFTRACE_GAUGE_BOTTOM 237u
 static const unsigned char dftrace_lance_hollow_bytes[8] = { 0x00, 0x18, 0x00, 0x42, 0x42, 0x00, 0x18, 0x00 };
 static unsigned dftrace_lance_script_ready;
 static unsigned dftrace_lance_script_up;
@@ -5337,9 +5331,12 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 	/* M6: in the boss sector, once drawn, P1 holds the lance's reticle. */
 	unsigned reticle = dftrace_lance_y != 0u && dftrace_lance_live && dftrace_boss_active()
 		? MEMORY_mem[dftrace_lance_y] : 0u;
-	/* M6 stage 1b: in the boss sector, once drawn, P2's gauge rows are the gauges'. */
-	unsigned gauges = dftrace_gauge_level != 0u && dftrace_lance_live && dftrace_boss_active() &&
-		MEMORY_mem[(dftrace_gauge_level + 1u) & 0xffffu] != 0u;
+	/* M6 stage 1b (journal §BL 5): in the boss sector the torpedo's flight
+	 * holds P1 (the hull) and P2 (the exhaust), its explosion P2; a spent
+	 * lance (a kill) leaves the reticle's rows empty until the next one. */
+	unsigned torpedo = dftrace_lance_beam != 0u && dftrace_lance_live && dftrace_boss_active() &&
+		MEMORY_mem[dftrace_lance_beam] != 0u;
+	unsigned spent = reticle != 0u && dftrace_lance_ready != 0u && MEMORY_mem[dftrace_lance_ready] == 0u;
 	for (slot = 0u; slot < 2u; ++slot) {
 		unsigned plane = 0x3d00u + slot * 0x100u;
 		unsigned live = MEMORY_mem[dftrace_enemy_member_state + slot] != 0u;
@@ -5355,7 +5352,10 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 				expected = dftrace_lance_hollow != 0u && MEMORY_mem[dftrace_lance_hollow] != 0u
 					? dftrace_lance_hollow_bytes[row - reticle]
 					: MEMORY_mem[(dftrace_lance_shape + (row - reticle)) & 0xffffu];
-			if (slot == 1u && gauges && row >= DFTRACE_GAUGE_TOP && row <= DFTRACE_GAUGE_BOTTOM)
+			if (torpedo)
+				continue;
+			if (slot == 0u && spent && row >= reticle && row < reticle + 8u &&
+				MEMORY_mem[(plane + row) & 0xffffu] == 0u)
 				continue;
 			if (MEMORY_mem[(plane + row) & 0xffffu] == expected)
 				continue;
@@ -5574,7 +5574,7 @@ static int dftrace_first_writer_effective_address(unsigned pc,
  * address (the hook runs before the next opcode), as the first-writer journal
  * above; zero-page stores cannot reach either range. Written at exit to
  * DFWATCH_OUTPUT (JSON); off when it is unset. Observes, never writes. */
-#define DFWATCH_RANGES 3u
+#define DFWATCH_RANGES 4u
 #define DFWATCH_WRITERS 128u
 typedef struct {
 	unsigned pc, count, first_frame, last_frame, first_address, last_address;
@@ -5583,9 +5583,11 @@ typedef struct {
 /* M6 stage 1: the window's unclaimed tail, from DFWATCH_TAIL_START (the
  * window's end, from the build's manifest) to $BC00 - the VOID LANCE's run
  * at its top (decision BD 6); empty when unset. */
-static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u };
-static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u };
-static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail" };
+/* M6 stage 1b (journal §BL, the owner's answer): page 4, $0400-$04FF - the
+ * lance's second run (slot H) since the torpedo; the OS's cassette buffer. */
+static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u, 0x0400u };
+static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u, 0x0500u };
+static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail", "page_4" };
 static DFWatchWriter dfwatch_writers[DFWATCH_RANGES][DFWATCH_WRITERS];
 static unsigned dfwatch_counts[DFWATCH_RANGES];
 static unsigned dfwatch_overflow[DFWATCH_RANGES];
@@ -7904,7 +7906,6 @@ static void dftrace_init(void)
 	dftrace_lance_meter_hi = dftrace_env_optional("DFTRACE_LANCE_METER_HI");
 	dftrace_lance_trig = dftrace_env_optional("DFTRACE_LANCE_TRIG");
 	dftrace_lance_hollow = dftrace_env_optional("DFTRACE_LANCE_HOLLOW");
-	dftrace_gauge_level = dftrace_env_optional("DFTRACE_GAUGE_LEVEL");
 	if (getenv("DFTRACE_LANCE_JOURNAL") != NULL && *getenv("DFTRACE_LANCE_JOURNAL") != '\0') {
 		dftrace_lance_journal = fopen(getenv("DFTRACE_LANCE_JOURNAL"), "w");
 		if (dftrace_lance_journal == NULL) {

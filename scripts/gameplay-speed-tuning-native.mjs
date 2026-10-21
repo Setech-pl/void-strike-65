@@ -146,7 +146,7 @@ for (let difficulty = 0; difficulty < 3; difficulty += 1) {
       maximum_active_work_cycles: activeWork(peak),
       maximum_capital_active_work_cycles: activeWork(capitalPeak),
       maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
-      target_overruns: rows.filter((row) => activeWork(row) > 31_200).length,
+      target_overruns: rows.filter((row) => activeWork(row) > 31_500 /* the DMA-on target since M6 stage 1b (scripts/pal-timing-audit.mjs TARGET_CYCLES) */).length,
       hard_overruns: rows.filter((row) => activeWork(row) > 32_568).length,
       missed_frames: 0,
       extra_vbi: 0,

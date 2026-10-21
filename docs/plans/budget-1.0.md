@@ -145,7 +145,10 @@ The repo wins in each case.
    (manifest `directorCodeRuntimes`, "extension"). Record 2 has 3 B (as the
    brief says), the window's C half 6 B.
 5. **Free ATR sectors: 512**, not 511 (manifest `remainingAtrSectors`).
-6. **The 31,200 target has 79 cycles left** (DMA-on maximum 31,121). The brief
+6. **The 31,200 target has 79 cycles left** (DMA-on maximum 31,121). **Since M6
+   stage 1b the target is 31,500** (owner decision §BL 1, 2026-10-21: the HUD at
+   the bottom puts its ANTIC DMA inside the measured main-loop window - an
+   accounting change; the 32,568 hard gate is unchanged). The brief
    names only GO ≥ 500 and the 32,568 hard gate; the target is the third figure
    `AGENTS.md` tells sessions not to confuse with them.
 7. **"The Heavy limit, today 2 formations"** — the repo's limit is two Heavy

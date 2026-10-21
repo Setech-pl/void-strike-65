@@ -44,7 +44,7 @@ import { BOSS_BAND_A_ADDRESS, BOSS_BAND_COLUMNS, BOSS_TABLE, BOSS_TABLES_ADDRESS
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSamples as palTimingSamples, auditSession as auditPalTiming,
   reportAudits as reportPalTimingAudits, auditsPassed as palTimingAuditsPassed,
-  reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
+  reportAudit as reportPalTimingAudit, TARGET_CYCLES } from "./pal-timing-audit.mjs";
 import { COMPATIBILITY_MACHINE, COMPATIBILITY_MACHINE_NAME, PINNED_CONFIG, SIO_MODE_PATCHED, SIO_MODE_REAL,
   TARGET_MACHINE, TARGET_MACHINE_NAME, atari800SioArguments } from "./atari800-machine.mjs";
 
@@ -125,7 +125,9 @@ const SHIELD_BOOSTER_TARGET_DELTA_CYCLES = 350;
 const SHIELD_BOOSTER_HARD_DELTA_CYCLES = 496;
 const SHIELD_BOOSTER_TARGET_GATE_CYCLES = 32_422;
 const SHIELD_BOOSTER_HARD_GATE_CYCLES = 32_568;
-const CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES = 31_200;
+// The DMA-on target (scripts/pal-timing-audit.mjs TARGET_CYCLES, 31,500 since
+// M6 stage 1b: the HUD's DMA inside the measured window; 31,200 before).
+const CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES = TARGET_CYCLES;
 const SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES = 3_000;
 const EXPECTED_ATARI800_VERSION = "7.1.2";
 const OFFICIAL_SOURCE_ARCHIVE_SHA256 =
@@ -4365,8 +4367,6 @@ function main() {
         addressEnvironment.DFTRACE_LANCE_MODULE = hex(bossLabels, "_lance_module");
         // Journal §BH 2: which mark P1 holds (the reticle and enemy-PMG clauses).
         if (bossLabels.has("lance_hollow")) addressEnvironment.DFTRACE_LANCE_HOLLOW = hex(bossLabels, "lance_hollow");
-        // M6 stage 1b: the PMG gauges' state (P2's rows 196-237 in the boss sector).
-        if (bossLabels.has("gauge_level")) addressEnvironment.DFTRACE_GAUGE_LEVEL = hex(bossLabels, "gauge_level");
         // The lance-script diagnostic bots' journal (DFTRACE_LANCE_JOURNAL).
         if (bossLabels.has("_lance_meter_lo")) {
           addressEnvironment.DFTRACE_LANCE_METER_LO = hex(bossLabels, "_lance_meter_lo");
@@ -6204,6 +6204,9 @@ function main() {
       lanceAddress: manifest.boss.lance.address,
       lanceCodeEnd: boss.get("__LANCE_CODE_RUN__") + boss.get("__LANCE_CODE_SIZE__"),
       runBytes: manifest.boss.lance.capacityBytes,
+      page: manifest.boss.lance.page === undefined ? null : { address: manifest.boss.lance.page.address,
+        end: manifest.boss.lance.page.address + manifest.boss.lance.page.capacityBytes,
+        bytes: manifest.boss.lance.page.capacityBytes },
     });
   })();
   if (windowTailWrites !== null) {
@@ -6461,7 +6464,7 @@ function main() {
         missed_frames: missedFrames,
         extra_vbi_boundaries: extraVbi,
         dli_sequence_anomalies: dliAnomalies,
-        target_overruns: completed.filter((row) => activeWorkCycles(row) > 31_200).length,
+        target_overruns: completed.filter((row) => activeWorkCycles(row) > TARGET_CYCLES).length,
         hard_gate_overruns: completed.filter((row) => activeWorkCycles(row) > 32_568).length,
         player_projectile_stale_maximum:
           maximum(rows, (row) => row.player_projectile_stale_cells),
@@ -6525,7 +6528,7 @@ function main() {
       orphan_cells: rows.reduce((sum, row) => sum + row.player_projectile_orphan_cells, 0),
       maximum_orphan_cells: Math.max(...rows.map((row) => row.player_projectile_orphan_cells)),
       missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
-      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > TARGET_CYCLES).length,
       hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
       extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
       dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
@@ -6546,7 +6549,7 @@ function main() {
       timing: {
         maximum_active_work_cycles: activeWorkCycles(heaviest),
         maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
-        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        target_headroom_cycles: TARGET_CYCLES - activeWorkCycles(heaviest),
         hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
         ...anomalies,
       },
@@ -6686,7 +6689,7 @@ function main() {
         (raiderEffectCodes.has(row.transient_effect_first_code)
           ? row.transient_effect_orphan_cells : 0), 0),
       missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
-      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > TARGET_CYCLES).length,
       hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
       extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
       dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
@@ -6755,7 +6758,7 @@ function main() {
       timing: {
         maximum_active_work_cycles: activeWorkCycles(heaviest),
         maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
-        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        target_headroom_cycles: TARGET_CYCLES - activeWorkCycles(heaviest),
         hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
         ...anomalies,
       },
@@ -6880,7 +6883,7 @@ function main() {
           return sum + (row.missed_frames > 0 && next?.session === row.session &&
             next.frame !== row.frame + 1 ? row.missed_frames : 0);
         }, 0),
-      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > TARGET_CYCLES).length,
       hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
       extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
       dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
@@ -6916,7 +6919,7 @@ function main() {
       timing: {
         maximum_active_work_cycles: activeWorkCycles(fullPeak),
         maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
-        target_headroom_cycles: 31_200 - activeWorkCycles(fullPeak),
+        target_headroom_cycles: TARGET_CYCLES - activeWorkCycles(fullPeak),
         hard_gate_headroom_cycles: 32_568 - activeWorkCycles(fullPeak),
         ...anomalies,
       },
@@ -7009,7 +7012,7 @@ function main() {
     const heaviest = maximumRow(completeRows, activeWorkCycles);
     const anomalies = {
       missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
-      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > TARGET_CYCLES).length,
       hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
       extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
       dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
@@ -7031,7 +7034,7 @@ function main() {
       timing: {
         maximum_active_work_cycles: activeWorkCycles(heaviest),
         maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
-        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        target_headroom_cycles: TARGET_CYCLES - activeWorkCycles(heaviest),
         hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
         ...anomalies,
       },

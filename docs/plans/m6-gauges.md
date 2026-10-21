@@ -330,11 +330,12 @@ torpedo's look and the charge time.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | | `L` | lives | | `H` | hull | | `B` (a booster running) | booster | | lance meter (boss sector) | free (10) | `SCORE` | | score |
 
-* **The meter:** cells 15-18, a hollow and a full glyph (two HUD codes the
-  lance run writes into the HUD charset at the fight's first frame: 0 resident
-  bytes), lit by the meter's quarters, all four full while a lance is ready;
-  one cell a frame toward the wanted count, nothing when it shows it. Blank
-  outside the boss sector.
+* **The meter:** cells 15-18, a hollow and a full glyph (codes 59 / 60, which
+  the lance's page 4 run writes into the HUD charset at the fight's first
+  frame: 0 resident bytes), lit by the meter's quarters (the k-th at
+  ceil(k x frames / 4)), all four full while a lance is ready. The four cells
+  are written on the fight's second frame and on a frame whose quarter count
+  changes - never otherwise. Blank outside the boss sector.
 * **Bytes:** byte-neutral resident code - `hud_ascii` grows to its
   `SCORE` at 29 and moves into CODE's 58-B inert pad (its old place padded);
   the booster field is 5 cells (`B` + 4), its backing and the boss entry's
@@ -353,24 +354,121 @@ picks).
 
 ### 7.3 The torpedo (§BL 5, 7; the owner's answer: P1 hull + P2 exhaust)
 
-* **Fire frame:** the module under the ship is locked (or none: a miss); no
-  drawing (the fire frame stays the worst frame's cost).
-* **Flight:** the hull in **P1** (the reticle's rows cleared on the first
-  flight frame), the exhaust in **P2** right below it, both in the lasers'
-  colour, `HPOSP1` and `HPOSP2` set every flight frame to the locked module's
-  current centre (the band drifts) - the ship's centre on a miss. The hull
-  climbs `TORPEDO_STEP` lines a frame from the ship's top line; the exhaust
-  cycles its frames.
-* **Arrival:** the locked module alive - the kill through `boss_hit` (the
-  frame's only meeting, as the beam's), the meter emptied, the lance spent.
-  Destroyed on the way, or a miss - the torpedo flies on to the band's foot
-  and vanishes; **the lance is kept** (§BH).
-* **The explosion:** from the frame after the kill, `TORPEDO_BLAST_FRAMES`
-  frames in P2 over the module, then P2 cleared and `HPOSP2` 0.
-* **P1 after it:** cleared with the hull; the reticle's rows drawn again when
-  the lance is still ready (a miss), and at the next readiness.
+* **Fire frame:** the module under the ship is locked (or none: a miss), the
+  discharge sounds, `HPOSP1` 0; no drawing.
+* **Flight:** the hull in **P1**, the exhaust in **P2** right below it, both
+  in the lasers' colour, `HPOSP1` and `HPOSP2` set every flight frame (and
+  only then) to the locked module's current centre (the band drifts) - the
+  ship's column at the fire on a miss. The hull climbs `TORPEDO_STEP` lines
+  a frame from above the ship's top line; the exhaust shows the next window of
+  its table. A step clears only the rows the last frame drew that this one
+  does not (min(step, height) rows a plane). The reticle's rows stay in P1,
+  now at the torpedo's HPOS - the lock's point - until the hull flies through
+  them or the kill clears them.
+* **Arrival:** its rows cleared. The locked module alive - the kill through
+  `boss_hit` (the frame's only meeting, as the beam's), the meter emptied, the
+  lance spent, the reticle's rows cleared. A miss - the torpedo flies to the
+  band's foot; the locked module destroyed on the way - it flies on to that
+  module's line: nothing is hit, **the lance is kept** (§BH), the reticle's
+  rows come back (its HPOS the aim's from the next frame).
+* **The explosion:** from the frame after the kill, `TORPEDO_BLAST_FRAMES` (5)
+  frames in P2 over the module (its last 8 lines), then its rows cleared and
+  `HPOSP2` 0; P1 empty (the lance spent) until the next readiness draws the
+  reticle.
 * **The looks:** `--torpedo=<flight><blast>`, `aa` the default: flight a 8
-  lines a frame, a 5-row hull, a 3-frame exhaust; b 4 lines a frame, an 8-row
-  hull, a 4-frame exhaust with a longer tail; blast a an expanding ring, b a
-  burst of sparks, 5 frames each.
+  lines a frame, a 5-row hull, a 4-row exhaust over 3 frames; b 4 lines a
+  frame, a 6-row hull, a 5-row tail over 4 frames (a strip the flame runs
+  down); blast a an expanding ring, b a burst of sparks, 5 frames each.
 * **Room:** the lance run back to <= 6 sectors (the window >= 160 B again).
+
+### 7.4 Room: a second run, page 4 (the owner's answer of 2026-10-21)
+
+The torpedo and the HUD meter came to ~1,069 B against the six sectors'
+768 (`BLOCKED_LANCE_RUN_BYTES`). The owner chose a **second boss run, slot H:
+two sectors (718-719) at page 4, `$0400-$04FF`** - the OS's cassette buffer
+and user RAM, which no path of the game uses (no cassette I/O; SIOV's disk
+path uses the DCB at `$0300` and its own buffer). It holds the HUD meter,
+the reticle's rows, the explosion and the torpedo's shapes. It is read after
+the lance run by the banner's reads (six shared runs) and folded into the
+head's check like slots C-G: a damaged sector is WRONG DISK before the install
+runs (`tests/lance.test.mjs`). Slot A's run table grows 5 B (4 B free). The
+trace's `page_4` watch lists the range's writers in every replay and the
+window-tail clause refuses any but the start-up writers and the run's read.
+
+Each loop over a plane's rows patches its line into its store (the rows
+indexed by X), and the exhaust's window lives in its load's patched low
+byte - the flight frame's cost (§8).
+
+## 8. As built and measured (2026-10-21, after §BL)
+
+**Bytes.** The lance run (slot G, `$B900-$BBFF`, 712-717): 742 B of code
+(the tick, the aim, the axis rule, the torpedo's flight and arrival, and the
+C policy's 153 B) and 17 B of BSS - **759 of 768**, look-independent. Page 4
+(slot H, `$0400-$04FF`, 718-719): the HUD meter (its glyphs and quarter
+tables), the reticle's rows, the explosion and the shapes - **251 B of 256** (every
+look). The window keeps **214 B**. Slot A: 2,044 of
+2,048. Resident 0 B, window record 0 B. Entry: 84 / 88 / 88 / 89 sectors (the
+lance's 8 with page 4; stage 1b's gauge build 7).
+
+**Boss stress** (`scripts/measure-lance-stress.mjs` and
+`tests/boss-stress.test.mjs`, native cycles, worst reachable per state, look
+aa, limit 8,500; the tick's own worst in brackets):
+
+| state | R1 Breaker | Citadel L4 | Citadel L5 | Spine L7 | Spine L9 | Bastion L10 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| off | — | 7,694 | 8,029 | 7,775 | 8,028 | 8,060 |
+| filling (116) | 7,267 | 7,810 | 8,145 | 7,891 | 8,144 | 8,176 |
+| install - the glyphs (304) | 7,455 | 7,998 | 8,333 | 8,079 | 8,332 | 8,364 |
+| quarter - the four cells (225) | 7,376 | 7,919 | 8,254 | 8,000 | 8,253 | 8,285 |
+| draw (335) | 7,499 | 8,017 | 8,352 | 8,098 | 8,351 | 8,415 |
+| idle (335) | 7,510 | 8,026 | 8,361 | 8,109 | 8,363 | 8,394 |
+| charge (367) | 7,542 | 8,058 | 8,393 | 8,141 | 8,395 | 8,426 |
+| swap (408) | 7,583 | 8,055 | 8,419 | 8,182 | 8,436 | **8,467** |
+| fire (394) | 7,548 | 8,062 | 8,397 | 8,147 | 8,401 | 8,432 |
+| dry (393) | 7,547 | 8,062 | 8,397 | 8,143 | 8,396 | 8,428 |
+| **fly - the torpedo in flight** (394) | 7,544 | 8,087 | 8,422 | 8,168 | 8,421 | **8,453** |
+| kill (2,445-2,753) | 7,300 | 7,822 | 8,181 | 7,947 | 8,099 | 7,732 |
+| miss (353) | 7,504 | 8,047 | 8,382 | 8,128 | 8,381 | 8,413 |
+| lost (393) | 7,544 | 8,087 | 8,422 | 8,168 | 8,421 | 8,453 |
+| blast (223) | 7,374 | 7,917 | 8,252 | 7,998 | 8,251 | 8,283 |
+| blastEnd (157) | 7,308 | 7,851 | 8,186 | 7,932 | 8,185 | 8,217 |
+
+Every state <= 8,500 in every region; the Bastion's headroom **33** (>= 20);
+its torpedo in flight **8,453** - 47 under the gate, **3 over the 8,450 plan
+reserve** (§6 of `m6-void-lance.md`). The Bastion fixture (the lance fired on
+its worst frame) 8,432. What bought it: each row loop patches its line into its
+store (X-indexed rows, 14 cycles a row against 18-22), a step clears only the
+rows the last frame drew and this one does not, the arrival frame skips the
+homing, the meter's glyph copy and its cells are two frames.
+
+**Look b** (flight b: 4 lines a frame, a 6-row hull, a 5-row tail over 4
+frames - its first draft's 8 + 7 rows MEASURED 8,496 on the Citadel L5 and
+would have put the Bastion over 8,500), `VS65_HARNESS_BUILD=torpedo-bb`:
+
+| state | Citadel L4 | Citadel L5 | Spine L7 | Spine L9 | Bastion L10 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| fly (412) | 8,105 | 8,440 | 8,186 | 8,439 | **8,471** |
+| kill | 7,842 | 8,201 | 7,947 | 8,099 | 7,732 |
+| miss (373) | 8,067 | 8,402 | 8,148 | 8,401 | 8,433 |
+| lost (413) | 8,107 | 8,442 | 8,188 | 8,441 | **8,473** |
+| blast / blastEnd | 7,917 / 7,851 | 8,252 / 8,186 | 7,998 / 7,932 | 8,251 / 8,185 | 8,283 / 8,217 |
+
+The explosions a and b are the same size (8 rows, 5 frames): the same cost.
+The Bastion's headroom with flight b is **27**; every other state is the
+look-independent code of the table above.
+
+**Routes** (Atari800, the candidate, look aa, charge 75; 35 focused sessions
+plus the scripted miss-and-kill sessions): 0 misses, 0 clause failures. Entry
+host frames R1 **325**, Citadel **340**, Spine **340**, Bastion **344** (the
+owner's limit 350). Worst fence margin / DMA-on max per route: R1 8,485 /
+30,084; Citadel 6,167 / 30,556; Spine 6,865 / 30,729; Bastion 5,691 / 30,211.
+
+**Page 4 watch:** every replay of the four routes (and the look captures)
+lists the same writers - the OS's RAM clear at boot (`$C2E6`, `$C2F0`), the
+sector reader's read of the run (`$A262`) and the reticle's patched store in
+page 4 (`$0450`). Kills, explosions and misses happened in all four regions.
+
+**Readability next to the Breaker's beam:** `media/sheet-beside-beam-*.png`
+(R1, the lasers armed by a poke so a beam fires during the kill's flight):
+the torpedo is a separate shape beside the beam in all four looks, in the
+beam's own colour.

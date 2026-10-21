@@ -159,15 +159,17 @@ BOSS_SHOT_ACTIVE   = (1 << 3) | 2 | 4
 .assert (BOSS_RING_RECORDS & (BOSS_RING_RECORDS - 1)) = 0, error, "the ring's steal walks a power of two"
 .assert (BOSS_QUEUE_ENTRIES & (BOSS_QUEUE_ENTRIES - 1)) = 0, error, "the queue wraps on a power of two"
 
-; The head's run table (boss-runs.inc): the install, slots C, D, E and (M6)
-; G, then per region its band A, band B, charset and block runs, 5 bytes a run.
+; The head's run table (boss-runs.inc): the install, slots C, D, E, (M6) G
+; and (journal §BL) H, then per region its band A, band B, charset and block
+; runs, 5 bytes a run.
 BOSS_RUN_INSTALL = 0
 BOSS_RUN_SLOT_C  = 5
 BOSS_RUN_SLOT_D  = 10
 BOSS_RUN_SLOT_E  = 15
 BOSS_RUN_SLOT_G  = 20
-BOSS_RUN_REGIONS = 25
-BOSS_SHARED_RUNS = 5                    ; the install, slots C, D, E, G
+BOSS_RUN_SLOT_H  = 25
+BOSS_RUN_REGIONS = 30
+BOSS_SHARED_RUNS = 6                    ; the install, slots C, D, E, G, H
 BOSS_REGION_RUNS = 4
 
 .assert BOSS_BAND_ROWS = 8, error, "the band is 8 rows (owner answer Q2)"
@@ -3846,7 +3848,7 @@ banner_reads:
     lda #<(boss_runs + BOSS_RUN_INSTALL)
     ldx #>(boss_runs + BOSS_RUN_INSTALL)
     ldy #BOSS_SHARED_RUNS
-    jsr banner_read_four                ; the install, slots C, D, E, G
+    jsr banner_read_four                ; the install, slots C, D, E, G, H
     ldx banner_region
     lda boss_region_runs,x
     clc
@@ -3866,7 +3868,7 @@ banner_hand_over:
     jmp boss_head_check
 
 ; A/X = the first of Y runs in boss_runs' format (M6: the shared runs are
-; five with slot G, a region's four).
+; six with slots G and H, a region's four).
 banner_read_four:
     sta banner_run
     stx banner_run+1

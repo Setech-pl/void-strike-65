@@ -13,7 +13,11 @@ export const LANCE_RAM_END = 0xbc00;
 // passes both to src/c/lance.c and src/hybrid/lance.s and records them in the
 // manifest (boss.lance).
 export const LANCE_CHARGE_FRAMES = 75;
-export const LANCE_CHARGE_SPEED_DIVISOR = 2;
+// Journal §BL 4 (the owner's smoke of stage 1b; it replaces decision BF 2's
+// every-direction slowdown, LANCE_CHARGE_SPEED_DIVISOR): the axis rule - while
+// the charge builds the ship moves sideways at full speed and advances (UP) at
+// 1 / LANCE_CHARGE_UP_DIVISOR (a power of two).
+export const LANCE_CHARGE_UP_DIVISOR = 2;
 // The meter (decision BG 1, the owner's smoke of 2026-10-20): the lance
 // charges with time on the boss screen - LANCE_METER_FRAMES boss frames on
 // MEDIUM (1,250: 25 s), then one lance is ready (no stacking); the shot empties

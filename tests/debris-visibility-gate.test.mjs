@@ -169,6 +169,7 @@ test("committed native evidence: every debris life in both phases is exact", () 
     assert.deepEqual(session.publication_inside_playfield, { erase: 0, render: 0 },
       `${session.session} publishes only outside the scanned playfield`);
   }
-  assert.ok(evidence.pal_replay_2_evasive_fire3.maximum_wall_cycles <= 31_200);
+  // RE-PINNED M6 stage 1b (journal §BL 1): the DMA-on target 31,200 -> 31,500.
+  assert.ok(evidence.pal_replay_2_evasive_fire3.maximum_wall_cycles <= 31_500);
   assert.equal(evidence.pal_replay_2_evasive_fire3.missed_frames, 0);
 });

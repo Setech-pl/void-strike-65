@@ -15,47 +15,45 @@
 // §BG every state runs the meter (src/c/lance.c's lance_c_fill) and the
 // build's readiness indicator.
 //
-//   filling the meter not yet full: no lance (the gesture does nothing - the
-//           tick's no-target path)
+//   filling the meter not yet full: no lance (the gesture does nothing), the
+//           HUD meter's cells settled (journal §BL 3: no write)
+//   install the fight's first frame: the HUD meter's two glyphs and its four
+//           hollow cells written
+//   quarter a filling frame the meter reaches its first quarter: one cell
 //   draw    the frame the meter fills - the indicator on and its cue - with
-//           FIRE released and the ship under a front module on the fight's
-//           first such frame: the reticle drawn (boss_band_measure and its
-//           8 rows) and placed
+//           FIRE released and the ship under a front module: the reticle's
+//           8 rows drawn
 //   idle    a lance ready, the reticle already drawn: placed (its HPOS)
-//   charge  FIRE + stick UP held over the target, a shown slow frame of the charge
+//   charge  FIRE + stick UP held over the target, a shown slow frame of the
+//           charge (journal §BL 4: the stick operand pointed at the lance's
+//           byte)
 //   swap    the charge's frame with the mark changing (journal §BH 2): the
-//           hollow mark drawn, a target under the ship - its four rows
+//           hollow mark drawn, a target under the ship - its 8 rows
 //           rewritten to the crosshair, placed at the target's centre
-//   fire    the gesture held, the charge completing on this frame (the beam
-//           armed, the indicator off)
-//   dry     the same over a column with no target (journal §BH 3): the beam
-//           armed to the band's foot, the lance kept
-//   grow    the beam's first LANCE_BEAM_STEP lines, the case's shots flying
-//           (the indicator went off on the fire frame)
-//   arrive  the beam's last lines reach a front module the case's own
-//           meetings do not (another kill on the frame: the worst) and kill
-//           it through boss_hit, before UPDATE; the case's shots meet as the
-//           one meeting left admits
-//   erase   the erasure's first frame: LANCE_BEAM_STEP lines up from the
-//           ship, the case's shots flying
-//   end     the erasure's last frame: its last LANCE_BEAM_STEP lines up to the
-//           module, the beam down and channel 3 back to the engine bed (journal
-//           §BI 2: the discharge's release; the sound on)
-//
-// M6 stage 1b (journal §BK; docs/plans/m6-gauges.md §3): the PMG gauges. In
-// every state above they show what they should (settled - no P2 write), the
-// booster's at 2 of 4 (its no-change test's longest path); the gauges' own
-// states write one dot:
-//   install the fight's first frame (the meter filling): both gauges drawn
-//           whole, HPOSP2 and SIZEP2
-//   quarter a filling frame the meter reaches its first quarter: a lance dot
-//   step    the charge's frame its gauge loses a dot (17: a shown slow frame)
-//   refill  a ready frame after a release: a lance dot back
-//   booster a ready frame a booster cell lit: a booster dot (the lance settled)
+//   fire    the gesture held, the charge completing on this frame: the
+//           discharge, the torpedo armed on the target, the reticle's rows
+//           cleared
+//   dry     the same over a column with no target (journal §BH 3)
+// Journal §BL 5 (the torpedo; the owner's answer of 2026-10-21: the hull in
+// P1, the exhaust in P2, both homing):
+//   fly     a flight frame: homing (the locked module's centre), HPOSP1 and
+//           HPOSP2, the hull's rows, the exhaust's frame, the rows under it
+//           cleared; the case's shots flying
+//   kill    the flight's last frame reaching a module the case's own
+//           meetings do not (another kill on the frame: the worst): its rows
+//           cleared, the kill through boss_hit before UPDATE, the indicator
+//           off; the case's shots meet as the one meeting left admits
+//   miss    the last frame with no target (the band's foot): the rows
+//           cleared, the reticle's rows back, channel 3 back to the bed
+//   lost    the last frame on a locked module a shot destroyed on the way
+//           (one of the case's dead modules; a case with none is left out):
+//           the controller asked, nothing hit, the reticle back
+//   blast   an explosion frame (8 rows in P2 over the module)
+//   blastEnd the explosion's end: its rows cleared, HPOSP2 0
 import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
-export const LANCE_MODES = ["filling", "draw", "idle", "charge", "swap", "fire", "dry", "grow", "arrive", "erase", "end"];
-export const GAUGE_MODES = ["install", "quarter", "step", "refill", "booster"];
+export const LANCE_MODES = ["filling", "install", "quarter", "draw", "idle", "charge", "swap", "fire", "dry",
+  "fly", "kill", "miss", "lost", "blast", "blastEnd"];
 const has = () => labelsOf.boss.has("lance_tick");
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -65,8 +63,7 @@ export const lanceStats = { armed: 0, skipped: 0, ticks: 0, worstTick: 0 };
 
 const BAND_ORIGIN_HPOS = 32;
 const SHIP_Y = 200;                                     // the ship's top line in the fight (PMG Y 32-225)
-const BEAM_STEP = 20;                                   // src/hybrid/lance.s LANCE_BEAM_STEP
-const HOLD = 3;                                         // LANCE_HOLD
+const torpedo = () => manifest.boss.lance.torpedo;     // the build's look (scripts/build.mjs --torpedo)
 const TRIG0 = 0xd010;
 const STICK0 = 0xd300;                                  // PORTA: bit 0 up, active low
 const STICK_UP = 0x01;
@@ -111,6 +108,16 @@ function emptyColumn(memory) {
   }
   return null;
 }
+// A module the case has already destroyed (a shot took the torpedo's lock on
+// its way: the lost torpedo's last frame), none in a case with no dead module.
+function deadModule(memory) {
+  for (let module = 0; module < memory[lbl("_boss_count")]; module += 1) {
+    if (memory[lbl("_boss_hp") + module] === 0 && memory[lbl("_boss_kind") + module] !== 4) {
+      return { c: 0, module, x: 120 };
+    }
+  }
+  return null;
+}
 const skip = (memory) => { lanceStats.skipped += 1; skipped.add(memory); };
 // The gesture held (FIRE and the stick up) or released.
 function gesture(memory, held) {
@@ -128,68 +135,51 @@ function meter(memory, frames) {
 }
 const fullMeter = (memory) => manifest.boss.lance.meterFrames[memory[main("DIFFICULTY_SETTING")]];
 
-// The gauges (M6 stage 1b) for `mode`, after the lance's own arming.
-const gauges = () => labelsOf.boss.has("gauge_level");
-const HUD_CELLS = () => main("SCREEN") + main("HUD_BOOSTER_SEGMENTS_OFFSET");
-function gaugeArm(memory, mode) {
-  if (!gauges()) return;
-  const level = lbl("gauge_level");
-  const cells = HUD_CELLS();
-  const boost = 2;
-  for (let k = 0; k < 4; k += 1) memory[cells + k] = k < boost ? 7 : 0;
-  memory[level + 1] = 4 + boost;                        // drawn: settled
-  // The lance gauge as the state shows it: the meter's quarters while it
-  // fills, 4 when a lance is ready and not charging.
-  const ready = memory[lbl("lance_ready")] === 0xff;
-  memory[level] = ready ? 4 : 0;
-  if (mode === "install") memory[level + 1] = 0;
-  if (mode === "quarter") {
-    const full = fullMeter(memory);
-    meter(memory, Math.ceil(full / 4) - 1);             // the fill reaches the first quarter
-    memory[level] = 0;
-  }
-  if (mode === "step") memory[lbl("_lance_charge")] = 16;    // 17 on this frame: 4 -> 3 lit
-  if (mode === "refill") memory[level] = 0;             // released: 0 -> 1 lit
-  if (mode === "booster") { memory[level + 1] = 4 + boost - 1; }
-}
+// The HUD meter's cells as the meter's quarters show them (settled: no write).
+const quarters = (memory, frames) => {
+  const full = fullMeter(memory);
+  return [1, 2, 3, 4].filter((k) => frames >= Math.ceil(k * full / 4)).length;
+};
 
 export function lanceArm(memory, mode, { hit = [] } = {}) {
   if (!has() || mode === "off") return;
-  if (GAUGE_MODES.includes(mode)) {
-    const base = { install: "filling", quarter: "filling", step: "charge", refill: "idle", booster: "idle" }[mode];
-    lanceArm(memory, base, { hit });
-    if (!skipped.has(memory)) gaugeArm(memory, mode);
-    return;
-  }
   // The meter and the indicator: settled on (a lance ready) in the ready
-  // states; draw is the frame it fills (the indicator's change and its cue,
-  // the sound on); the beam's frames (grow, arrive, erase) off, the meter
-  // filling again.
-  const ready = !["filling", "grow", "arrive", "erase", "end"].includes(mode);
-  meter(memory, mode === "filling" ? 7 : ready ? fullMeter(memory) : 9);
-  memory[lbl("lance_ready")] = ready && mode !== "draw" ? 0xff : 0;
-  if (mode === "draw" || mode === "end") memory[main("sound_enabled")] = 1;
+  // states and the flight (only a kill spends it); draw is the frame it
+  // fills (the indicator's change and its cue, the sound on); the
+  // explosion's frames off, the meter filling again.
+  const filling = ["filling", "install", "quarter"].includes(mode);
+  const spent = ["blast", "blastEnd"].includes(mode);
+  const frames = mode === "quarter" ? Math.ceil(fullMeter(memory) / 4) - 1 : filling ? 7 : spent ? 3 : fullMeter(memory);
+  meter(memory, frames);
+  memory[lbl("lance_ready")] = !filling && !spent && mode !== "draw" ? 0xff : 0;
+  memory[lbl("lance_meter_shown")] = mode === "install" ? 0 : 1 + quarters(memory, frames);
+  if (["draw", "miss", "lost"].includes(mode)) memory[main("sound_enabled")] = 1;
   memory[lbl("lance_beam")] = 0;
   memory[lbl("_lance_charge")] = 0;
   gesture(memory, false);
-  if (mode === "filling") { gaugeArm(memory, mode); armed.add(memory); lanceStats.armed += 1; return; }
+  if (filling) { armed.add(memory); lanceStats.armed += 1; return; }
   // The reticle's line, as the first shown frame draws it (not counted).
   if (memory[lbl("lance_y")] === 0 && mode !== "draw") memory[lbl("lance_y")] = call(memory, lbl("boss_band_measure")).a;
   if (mode === "draw") memory[lbl("lance_y")] = 0;
-  const target = mode === "dry" ? emptyColumn(memory) : targetColumn(memory, hit.filter((h) => h !== "hull"));
+  const target = mode === "dry" || mode === "miss" ? emptyColumn(memory)
+    : mode === "lost" ? deadModule(memory) : targetColumn(memory, hit.filter((h) => h !== "hull"));
   if (target === null) { skip(memory); return; }
-  if (mode === "grow" || mode === "erase" || mode === "arrive" || mode === "end") {
-    // The beam: the ship stays where the case has it (the beam is drawn in
-    // its plane, at no column); its target the fire frame's.
+  const t = torpedo();
+  if (["fly", "kill", "miss", "lost", "blast", "blastEnd"].includes(mode)) {
+    // The torpedo: the ship stays where the case has it; its target the
+    // fire frame's (a miss: none, the band's foot at the ship's column).
     memory[main("player_y")] = SHIP_Y;
-    const top = memory[lbl("boss_mbottom_y") + target.module];
-    memory[lbl("_lance_module")] = target.module;
+    const top = mode === "miss" ? memory[lbl("lance_y")] - 1 : memory[lbl("boss_mbottom_y") + target.module];
+    memory[lbl("_lance_module")] = mode === "miss" ? 0xff : target.module;
     memory[lbl("lance_cell")] = target.c;
     memory[lbl("lance_top")] = top;
-    memory[lbl("lance_beam")] = mode === "erase" ? 2 + HOLD : mode === "end" ? 3 + HOLD : 1;
-    // grow: from the ship's top; arrive and end: the last step reaches the
-    // module; erase: the first frame sets it to the ship's top.
-    memory[lbl("lance_head")] = mode === "grow" ? SHIP_Y : mode === "arrive" || mode === "end" ? Math.min(255, top + BEAM_STEP) : top;
+    memory[lbl("torpedo_x")] = target.x + 4;
+    memory[lbl("lance_beam")] = spent ? 2 : 1;
+    // fly: the flight's first drawn frame from above the ship; kill, miss,
+    // lost: the next step reaches the line.
+    memory[lbl("lance_head")] = mode === "fly" ? SHIP_Y - t.hullRows - t.exhaustRows : Math.min(255, top + t.step);
+    if (mode === "blast") memory[lbl("torpedo_count")] = 3;       // a middle frame
+    if (mode === "blastEnd") memory[lbl("torpedo_count")] = 1;
   } else {
     memory[main("player_y")] = SHIP_Y;
     memory[main("player_x")] = target.x;
@@ -199,10 +189,9 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
       if (mode === "swap") memory[lbl("lance_hollow")] = 0xff;
     } else if (mode === "fire" || mode === "dry") {
       gesture(memory, true);
-      memory[lbl("_lance_charge")] = 74;                // completes on this frame
+      memory[lbl("_lance_charge")] = manifest.boss.lance.chargeFrames - 1;   // completes on this frame
     }
   }
-  gaugeArm(memory, mode);
   armed.add(memory);
   lanceStats.armed += 1;
 }
@@ -225,7 +214,7 @@ export function lanceTick(memory) {
 // Every mode's worst reachable frame of a composition: run(mode) returns its
 // { cases }. Returns { mode: { worst, clashes, cases } } (filling first: most
 // of a fight's frames).
-export function lanceStress(run, modes = [...LANCE_MODES, ...GAUGE_MODES]) {
+export function lanceStress(run, modes = LANCE_MODES) {
   const out = {};
   for (const mode of modes) {
     const { cases } = run(mode);

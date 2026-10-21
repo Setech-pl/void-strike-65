@@ -138,7 +138,7 @@ const SEGMENTS = {
   BOSS_C_ASM: ["boss slot C: the overlay's once-per-entry ASM (boss_prepare)", "overlay"],
   BOSS_C_BSS: ["boss slot C: the controller's state (after its code, never read from disk)", "overlay"],
   BOSS_SCRATCH: ["boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates", "overlay"],
-  BOSS_HUD_BACKUP: ["the HUD's ten booster cells across the boss entry (S5-1), the scratch page's last ten bytes", "overlay"],
+  BOSS_HUD_BACKUP: ["the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes", "overlay"],
   BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers)", "boss-entry"],
   BOSS_ENTRY_COLD: ["the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the banner screen's registers and the region's banner run's 2 screen sectors read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry", "boss-entry"],
@@ -154,9 +154,11 @@ const SEGMENTS = {
   BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
   BOSS_E_BSS: ["boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk", "overlay"],
   // M6 (docs/plans/m6-void-lance.md, decision BD 6, journal §BG): the VOID LANCE run.
-  LANCE_CODE: ["the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the beam in P0 and its discharge on channel 3, the kill through boss_hit or the dry shot that keeps the lance) and its C policy (src/c/lance.c); since M6 stage 1b the PMG gauges on P2 (the lance meter's and the booster's dots, a dot written only on a change); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only", "overlay"],
+  LANCE_CODE: ["the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the charge's axis rule (journal §BL 4), the torpedo's flight - the hull on P1, the exhaust on P2, both homing - and its discharge on channel 3, the kill through boss_hit or the miss that keeps the lance, journal §BL 5) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only", "overlay"],
+  // Journal §BL (the owner's answer of 2026-10-21): the lance's second run, slot H.
+  LANCE_PAGE: ["the VOID LANCE's page 4 run (slot H, journal §BL): the HUD meter (its two glyphs, the four cells by the meter's quarters), the reticle's rows, the explosion on P2 and the torpedo's shapes; read at every boss entry after the lance run, the boss sector only", "overlay"],
   LANCE_DATA: ["the VOID LANCE's initialised data (none since journal §BG's meter), read with the run at every boss entry", "overlay"],
-  LANCE_BSS: ["the VOID LANCE's state (the meter, the readiness shown, the charge, the beam, the reticle's line and mark; the gauges' shown dots and the frame's charge step), inside the run: read as zeros at every boss entry - the meter resets", "overlay"],
+  LANCE_BSS: ["the VOID LANCE's state (the meter, the readiness shown, the charge, the torpedo - its lines, its HPOS, the exhaust's frame, the explosion's count -, the reticle's line and mark, the slow frame's stick, the HUD meter's cells shown), inside the run: read as zeros at every boss entry - the meter resets", "overlay"],
   // S5-3 (feat/boss-region-3): region 3's field code, in slot F after the look tail's 110 B.
   BOSS_F_CODE: ["region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only", "overlay"],
   BOSS_G_CODE: ["region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M0), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only", "overlay"],
@@ -487,6 +489,11 @@ function collectRows(build) {
   // M6 stage 1 (decision BD 6): the VOID LANCE run, the window tail's top.
   if (m.boss.lance !== undefined) {
     add(m.boss.lance.address, m.boss.lance.address + m.boss.lance.capacityBytes - 1, "slot", `the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run \`boss-lance\` (${m.boss.lance.sectors} sectors, ${m.boss.lance.startSector}-${m.boss.lance.startSector + m.boss.lance.sectors - 1}); the build fails when the window's record reaches it`, "overlay", "manifest `boss.lance`, scripts/lance-layout.mjs");
+    // Journal §BL (the owner's answer of 2026-10-21): its second run, page 4.
+    if (m.boss.lance.page !== undefined) {
+      const page = m.boss.lance.page;
+      add(page.address, page.address + page.capacityBytes - 1, "slot", `the VOID LANCE's page 4 run (slot H, journal §BL): the OS's cassette buffer, which no path of the game uses; read at every boss entry after the lance run, the boss sector only; run \`boss-lance-page\` (${page.sectors} sectors, ${page.startSector}-${page.startSector + page.sectors - 1}); the trace's \`page_4\` watch lists its writers`, "overlay", "manifest `boss.lance.page`");
+    }
   }
   // feat/boss-banners (decisions AL 2, AY): the banner screen and its RAM
   // during the boss entry.

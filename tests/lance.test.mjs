@@ -24,7 +24,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { checkLanceLayout, LANCE_METER_FRAMES, LANCE_RAM_END } from "../scripts/lance-layout.mjs";
-import { atrRun, bossLevel, call, label, labelsOf, manifest, placeBand, readBuild, regionOf, runBossEntry, shootAt } from "./boss-harness.mjs";
+import { atrRun, atrSector, bossLevel, call, label, labelsOf, manifest, placeBand, readBuild, regionOf, runBossEntry, shootAt } from "./boss-harness.mjs";
 
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -32,7 +32,9 @@ const TRIG0 = 0xd010, STICK0 = 0xd300, HPOSP1 = 0xd001, HPOSP2 = 0xd002;
 const P0 = 0x3c00, P1 = 0x3d00, P2 = 0x3e00;
 const lance = manifest.boss.lance;
 const CHARGE = lance.chargeFrames;
-const DIVISOR = lance.chargeSpeedDivisor;
+// §BL 4: the axis rule - the advance (UP) at 1 / LANCE_CHARGE_UP_DIVISOR while
+// charging, the horizontal at full speed (was every direction at 1 / divisor).
+const DIVISOR = lance.chargeUpDivisor;
 const KIND_CORE = 4;
 const SHIP_Y = 200;
 const GATE = main("gameplay_fire_gate");
@@ -147,9 +149,12 @@ test("M6: the lance run - the window's tail from $BBFF down, the boss reservatio
   // Journal §BG's meter and indicator took the run past the boss code
   // reservation's three free sectors (581-583): its own at the disk's free
   // tail (plan §6.3) - five since journal §BH's hollow mark and dry shot.
-  // RE-PINNED M6 stage 1b (journal §BK, docs/plans/m6-gauges.md §3.3): seven
-  // with the PMG gauges (the brief's sixth sector was 96 B short).
-  assert.equal(lance.sectors, 7, "the lance run: seven sectors (stage 1 three, §BG C four, §BH-§BI five)");
+  // RE-PINNED M6 stage 1b after the smoke (journal §BL, the owner's answer of
+  // 2026-10-21): six - the owner's limit - with the HUD meter, the explosion
+  // and the torpedo's shapes in a second run, page 4 (slot H, two sectors).
+  assert.equal(lance.sectors, 6, "the lance run: six sectors (stage 1 three, §BG C four, §BH-§BI five, §BL six)");
+  assert.deepEqual([lance.page.address, lance.page.sectors, lance.page.startSector], [0x0400, 2, 718], "slot H: page 4, after the run");
+  assert.ok(lance.page.bytes <= lance.page.capacityBytes, `page 4: ${lance.page.bytes} B`);
   assert.equal(lance.capacityBytes, lance.sectors * 128);
   assert.ok(lance.bytes <= lance.capacityBytes, `${lance.bytes} B in ${lance.capacityBytes}`);
   assert.ok(lance.windowEnd <= lance.address, `the window's record ends at $${lance.windowEnd.toString(16)}`);
@@ -158,16 +163,22 @@ test("M6: the lance run - the window's tail from $BBFF down, the boss reservatio
   assert.deepEqual(METER, [938, 1250, 1562], "the boss's hit-point ratios: x 3/4 EASY, x 5/4 HARD (quarter by shift)");
   assert.equal(lance.indicator, undefined, "journal §BI 3: C is the only indicator - no --lance-indicator");
   assert.equal(lance.rule, undefined, "one rule since the owner's choice (§BF): no --lance-rule");
-  assert.deepEqual([lance.chargeFrames, lance.chargeSpeedDivisor], [75, 2], "the charge's two constants (scripts/lance-layout.mjs)");
+  assert.deepEqual([lance.chargeFrames, lance.chargeUpDivisor], [75, 2], "the charge's two constants (scripts/lance-layout.mjs)");
   const run = manifest.boss.runs.find((r) => r.name === "boss-lance");
   assert.deepEqual([run.startSector, run.sectors, run.destination], [lance.startSector, lance.sectors, lance.address]);
-  assert.deepEqual(manifest.boss.reservedSectors.lance, [712, 711 + lance.sectors], "the lance's own reservation, the disk's free tail");
-  assert.deepEqual([run.startSector, run.startSector + run.sectors - 1], manifest.boss.reservedSectors.lance);
+  assert.deepEqual(manifest.boss.reservedSectors.lance, [712, 711 + lance.sectors + lance.page.sectors],
+    "the lance's own reservation (its two runs), the disk's free tail");
+  const pageRun = manifest.boss.runs.find((r) => r.name === "boss-lance-page");
+  assert.deepEqual([pageRun.startSector, pageRun.sectors, pageRun.destination], [lance.page.startSector, 2, 0x0400]);
+  assert.deepEqual([run.startSector, pageRun.startSector + pageRun.sectors - 1], manifest.boss.reservedSectors.lance);
   const disk = atrRun(run.startSector, run.sectors);
   assert.deepEqual(Buffer.from(disk), readBuild("overlay-boss-lance.bin"));
-  // Read after slot E by the entry: the RAM is the run, its BSS zeros.
+  const pageDisk = atrRun(pageRun.startSector, pageRun.sectors);
+  assert.deepEqual(Buffer.from(pageDisk), readBuild("overlay-boss-lance-page.bin"));
+  // Read after slot E by the entry: the RAM is the runs, the BSS zeros.
   const { memory } = runBossEntry();
   assert.deepEqual(Buffer.from(memory.subarray(lance.address, LANCE_RAM_END)), Buffer.from(disk));
+  assert.deepEqual(Buffer.from(memory.subarray(0x0400, 0x0500)), Buffer.from(pageDisk), "page 4 is the second run");
   assert.equal(meterOf(memory), 0, "the meter empty at the entry");
   assert.equal(memory[READY], 0, "no lance ready at the entry");
   assert.equal(memory[lbl("lance_beam")], 0);
@@ -177,9 +188,30 @@ test("M6: the lance run - the window's tail from $BBFF down, the boss reservatio
   assert.deepEqual([...memory.subarray(table + 9, table + 12)], [0x4c, lbl("lance_tick") & 0xff, lbl("lance_tick") >> 8]);
 });
 
+// Journal §BL (the owner's answer of 2026-10-21): page 4's run is checked as
+// every boss run is - folded into the head's sum: a damaged sector of it is
+// WRONG DISK before the install or any lance code runs.
+test("journal §BL: a damaged page 4 sector is WRONG DISK before the install runs", () => {
+  for (const offset of [0, 1]) {
+    const damaged = lance.page.startSector + offset;
+    let installed = false;
+    const { end, cpu } = runBossEntry({
+      sectorOf: (sector) => {
+        const bytes = Buffer.from(atrSector(sector));
+        if (sector === damaged) bytes[40] ^= 0x01;
+        return bytes;
+      },
+      watch: (pc) => { if (pc === label("boss", "boss_install")) installed = true; },
+    });
+    assert.equal(end, "failure", `sector ${damaged}`);
+    assert.equal(cpu.a, 4, `sector ${damaged}: not WRONG DISK`);
+    assert.ok(!installed, `sector ${damaged}: the install ran`);
+  }
+});
+
 test("M6 (decision BD 6): the build fails when the window's record grows into the lance's RAM", () => {
   const layout = { windowEnd: lance.windowEnd, address: lance.address, bytes: lance.capacityBytes, used: lance.bytes,
-    sector: lance.startSector, sectors: lance.sectors, reservationEnd: manifest.boss.reservedSectors.lance[1] + 1 };
+    sector: lance.startSector, sectors: lance.sectors, reservationEnd: lance.startSector + lance.sectors };
   const { windowSlack } = checkLanceLayout(layout);
   assert.ok(windowSlack >= 160, `the window keeps ${windowSlack} B to grow (the life capsule's 125-160 B)`);
   assert.doesNotThrow(() => checkLanceLayout({ ...layout, windowEnd: lance.address }));
@@ -210,10 +242,10 @@ test("M6 (decision BF): FIRE + stick UP held over a target charges 75 frames - t
   }
   tick(memory);
   assert.equal(memory[lbl("lance_beam")], 1, "the 75th frame fires");
-  assert.equal(meterOf(memory), 0, "the shot empties the meter");
+  assert.equal(meterOf(memory), METER[1], "the fire keeps the meter full: the kill spends it (journal §BL 5)");
   assert.equal(memory[lbl("_lance_module")], module);
   assert.equal(memory[lbl("lance_cell")], c);
-  assert.equal(shown(memory), false, "the reticle is off from the fire");
+  assert.equal(shown(memory), false, "the reticle is off on the fire frame (from the next, at the torpedo's HPOS)");
 });
 
 test("M6 (decision BF): releasing FIRE or the stick's up before the 75th frame cancels the charge; the next hold starts again", () => {
@@ -231,8 +263,7 @@ test("M6 (decision BF): releasing FIRE or the stick's up before the 75th frame c
     for (let f = 0; f < CHARGE - 1; f += 1) tick(memory);
     assert.equal(memory[lbl("lance_beam")], 0, "74 frames after the new hold: no shot yet");
     tick(memory);
-    assert.equal(memory[lbl("lance_beam")], 1);
-    assert.equal(meterOf(memory), 0, "one shot only");
+    assert.equal(memory[lbl("lance_beam")], 1, "one shot");
   }
 });
 
@@ -303,7 +334,9 @@ test("M6 (decision BH 1): the column under the ship changing - target, empty, an
       if (f < CHARGE) assert.equal(memory[lbl("_lance_charge")], f, `${end}: frame ${f}, column ${columnOfShip(memory, memory[main("player_x")] + 8)}`);
     }
     assert.equal(memory[lbl("lance_beam")], 1, `${end}: fired on the 75th frame`);
-    assert.equal(memory[READY], end === "target" ? 0 : 0xff, `${end}: spent only over a target`);
+    hold(memory, false);
+    for (let f = 0; f < 80 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
+    assert.equal(memory[READY], end === "target" ? 0 : 0xff, `${end}: spent only by a kill`);
   }
 });
 
@@ -327,11 +360,12 @@ test("M6 (decision BH 3): a shot with no target - the beam fires through the mar
     assert.equal(meterOf(memory), METER[1], "the meter full");
     assert.equal(memory[COLPM0], 0xca, "the ship green");
     hold(memory, false);
-    let frames = 0, reached = false;
+    const p0 = [...memory.subarray(P0, P0 + SHIP_Y)];
+    let frames = 0, last = null;
     while (memory[lbl("lance_beam")] !== 0) {
       const writes = new Map();
+      last = memory[lbl("lance_head")];
       tick(memory, { write: (address, value) => { writes.set(address, value); } });
-      reached ||= memory[lbl("lance_head")] === memory[lbl("lance_top")];
       // No kill's tick, no cue; the beam's last frame gives the discharge's
       // channel back to the engine bed (journal §BI 2).
       if (memory[lbl("lance_beam")] === 0) assert.deepEqual([writes.get(AUDF3), writes.get(AUDC3)], [BED_AUDF, BED_AUDC], "the bed back");
@@ -339,13 +373,15 @@ test("M6 (decision BH 3): a shot with no target - the beam fires through the mar
       assert.equal(meterOf(memory), METER[1], `beam frame ${frames}: the meter stays full`);
       assert.equal(memory[READY], 0xff, `beam frame ${frames}: still ready`);
       frames += 1;
-      assert.ok(frames < 20, "the beam never ended");
+      assert.ok(frames < 80, "the torpedo never ended");
     }
-    assert.ok(reached, "the beam reached the band's foot");
+    assert.ok(last - STEP <= memory[lbl("lance_top")], `the torpedo reached the band's foot (its last line ${last})`);
     assert.deepEqual(hpOf(memory), before, "a module's HP changed");
     assert.deepEqual([memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]], score, "scored");
-    // The beam erased.
-    for (let y = 0; y < SHIP_Y; y += 1) assert.equal(memory[P0 + y], 0, `P0 row ${y} left`);
+    // P0 untouched; the torpedo gone from P2 (P1: the reticle's rows only,
+    // back on the next frame).
+    assert.deepEqual([...memory.subarray(P0, P0 + SHIP_Y)], p0, "P0 above the ship untouched");
+    for (let y = 0; y < 256; y += 1) assert.equal(memory[P2 + y], 0, `P2 row ${y} left`);
     // Still one lance: the next frame aims again (the hollow mark) and a
     // charge over a target spends it.
     tick(memory);
@@ -402,7 +438,7 @@ test("M6 (decision BH 1): the ship's upper limit (and a side) reached with the g
       assert.ok(memory[lbl("lance_top")] < floorValue, `${name}: the beam's top ${memory[lbl("lance_top")]} above the ship`);
       const ship = [...memory.subarray(P0 + floorValue, P0 + floorValue + 16)];
       let frames = 0;
-      while (memory[lbl("lance_beam")] !== 0) { step(memory, 0, false); frames += 1; assert.ok(frames < 20, `${name}: the beam never ended`); }
+      while (memory[lbl("lance_beam")] !== 0) { step(memory, 0, false); frames += 1; assert.ok(frames < 80, `${name}: the torpedo never ended`); }
       assert.deepEqual([...memory.subarray(P0 + floorValue, P0 + floorValue + 16)], ship, `${name}: the ship's rows`);
       for (let y = 0; y < floorValue; y += 1) assert.equal(memory[P0 + y], 0, `${name}: P0 row ${y} left`);
     }
@@ -438,39 +474,38 @@ function controlStep(memory, stick, fire = true) {
 }
 const slowFrame = (memory) => memory[lbl("_lance_charge")] % DIVISOR !== 0;
 
-// Decision BF 2 (the owner's addition of 2026-10-20): while the charge builds
-// the ship moves at 1 / LANCE_CHARGE_SPEED_DIVISOR of its speed in every
-// direction (read_input sees no direction on the slow frames, so its edge
-// tests are the ones it always makes); full speed the moment the charge is
-// released or the lance fires, and outside the charge. The comparison build
-// (--lance-slow=forward) slows the advance only.
-test(`M6 (decision BF 2): the ship moves at 1 / ${DIVISOR} of its speed while the charge builds (${lance.slow}), full speed outside it`, () => {
-  const forward = lance.slow === "forward";
-  // During the charge: up, up-left, up-right - DOWN cannot be held with UP.
+// Journal §BL 4 (the owner's smoke of stage 1b; it replaces decision BF 2's
+// every-direction rule, which the owner calls a wrong design decision): while
+// the charge builds the ship moves sideways at full speed and advances (UP -
+// DOWN cannot be held with UP) at 1 / LANCE_CHARGE_UP_DIVISOR: on the slow
+// frames read_input reads PORTA with UP released, so its edge tests are the
+// ones it always makes; full speed the moment the charge is released or the
+// torpedo fires, and outside the charge.
+test(`M6 (journal §BL 4): the axis rule - sideways at full speed, the advance at 1 / ${DIVISOR} while the charge builds; full speed outside it`, () => {
+  // During the charge: up, up-left, up-right.
   for (const extra of [0, LEFT, RIGHT]) {
     const { memory } = fight();
     const c = targetColumn(memory);
     standUnder(memory, c);
     memory[main("player_x")] = (memory[main("player_x")] & ~1) || 2;
-    let slow = 0, moved = [0, 0], full = [0, 0], frames = 0;
+    let slow = 0, moved = [0, 0], full = [0, 0];
     for (let f = 0; f < 12; f += 1) {
       const expected = controlStep(memory, UP | extra);
       const got = step(memory, UP | extra);
-      frames += 1;
       if (memory[lbl("_lance_charge")] === 0) {
         assert.deepEqual(got, expected, `frame ${f} (${extra}): no charge, the full step`);
         continue;
       }
       const isSlow = slowFrame(memory);
       slow += isSlow ? 1 : 0;
-      const want = isSlow ? [forward ? expected[0] : 0, 0] : expected;
+      const want = isSlow ? [expected[0], 0] : expected;
       assert.deepEqual(got, want, `frame ${f} (stick ${UP | extra}, charge ${memory[lbl("_lance_charge")]})`);
       moved = [moved[0] + Math.abs(got[0]), moved[1] + Math.abs(got[1])];
       full = [full[0] + Math.abs(expected[0]), full[1] + Math.abs(expected[1])];
     }
     assert.ok(slow >= 4, `${slow} slow frames in the charge (stick extra ${extra})`);
-    assert.equal(moved[1] * DIVISOR, full[1], `vertical: ${moved[1]} of ${full[1]} lines`);
-    if (extra !== 0) assert.equal(moved[0] * (forward ? 1 : DIVISOR), full[0], `horizontal: ${moved[0]} of ${full[0]} clocks`);
+    assert.equal(moved[1] * DIVISOR, full[1], `the advance: ${moved[1]} of ${full[1]} lines`);
+    assert.equal(moved[0], full[0], `sideways: ${moved[0]} of ${full[0]} clocks - full speed`);
   }
   // Outside the charge: every direction with FIRE (no charge: no UP), every
   // direction without FIRE - the full step, frame for frame.
@@ -488,7 +523,7 @@ test(`M6 (decision BF 2): the ship moves at 1 / ${DIVISOR} of its speed while th
     }
   }
   // Released mid-charge (UP let go, LEFT still held) and the fire frame: the
-  // full step that very frame.
+  // full step that very frame; the torpedo's flight: PORTA.
   {
     const { memory } = fight();
     standUnder(memory, targetColumn(memory));
@@ -506,33 +541,28 @@ test(`M6 (decision BF 2): the ship moves at 1 / ${DIVISOR} of its speed while th
     assert.deepEqual(step(memory, UP), expected, "the fire frame");
     assert.equal(memory[lbl("lance_beam")], 1);
     assert.notDeepEqual(expected, [0, 0]);
-    // The beam's frames: read_input reads PORTA.
     for (let f = 0; f < 4; f += 1) {
       const e = controlStep(memory, LEFT);
-      assert.deepEqual(step(memory, LEFT), e, `beam frame ${f}`);
+      assert.deepEqual(step(memory, LEFT), e, `flight frame ${f}`);
     }
   }
 });
 
-test("M6 (decision BF 2): read_input's stick operand - the tick's $FF on a slow frame, PORTA otherwise, and restored at START GAME", () => {
+test("M6 (journal §BL 4): read_input's stick operand - PORTA with UP released on a slow frame (the lance's byte), PORTA otherwise, restored at START GAME", () => {
   const { memory } = fight();
   standUnder(memory, targetColumn(memory));
-  const operand = () => memory[main("read_input") + 1] | (memory[main("read_input") + 2] << 8);
-  hold(memory);
-  tick(memory);
-  if (lance.slow === "forward") {
-    assert.equal(operand(), 0xd300, "the forward comparison never moves the stick operand");
-    return;
+  for (const extra of [0, LEFT, RIGHT]) {
+    const m = Uint8Array.from(memory);
+    m[TRIG0] = 0;
+    m[STICK0] = 0x0f & ~(UP | extra);
+    call(m, lbl("lance_tick"));
+    assert.equal(m[lbl("_lance_charge")], 1);
+    const at = m[main("read_input") + 1] | (m[main("read_input") + 2] << 8);
+    assert.ok(at >= lance.address && at < LANCE_RAM_END, "inside the lance run");
+    assert.equal(m[at] & 0x0f, (0x0f & ~extra) | UP, `stick ${extra}: UP released, the rest as held`);
+    call(m, lbl("lance_tick"));
+    assert.equal(m[main("read_input") + 1] | (m[main("read_input") + 2] << 8), 0xd300, "the moving frame");
   }
-  assert.equal(memory[lbl("_lance_charge")], 1);
-  assert.notEqual(operand(), 0xd300);
-  assert.ok(operand() >= lance.address && operand() < LANCE_RAM_END, "inside the lance run");
-  assert.equal(memory[operand()] & 0x0f, 0x0f, "no direction held");
-  tick(memory);
-  assert.equal(operand(), 0xd300, "the moving frame");
-  hold(memory, false);
-  tick(memory);
-  assert.equal(operand(), 0xd300);
   // The boss restore table START GAME writes back (build/boss-restore.inc).
   const restore = readBuild("boss-restore.inc").toString("utf8");
   assert.match(restore, /read_input's stick operand \(lo\)/);
@@ -570,7 +600,10 @@ test("M6 (journal §BE): the ordinary fire is unchanged - every PairShot as with
   assert.deepEqual(withLance.shots, without.shots, "a PairShot changed with a lance");
 });
 
-// Runs the lance from the fire to the beam's end; returns the HP before / after.
+// Runs the lance from the fire to the torpedo's end (journal §BL 5: its
+// flight, then on a kill the explosion); returns the HP before / after and the
+// frames since the kill (the meter's, the lance spent there).
+const STEP = lance.torpedo.step;
 function shoot(memory, c) {
   standUnder(memory, c);
   hold(memory);
@@ -578,21 +611,27 @@ function shoot(memory, c) {
   assert.equal(memory[lbl("lance_beam")], 1, "the charge did not fire");
   hold(memory, false);
   const before = [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)];
-  let frames = 0;
-  while (memory[lbl("lance_beam")] !== 0) { tick(memory); frames += 1; assert.ok(frames < 20, "the beam never ended"); }
+  let frames = 0, sinceKill = 0;
+  while (memory[lbl("lance_beam")] !== 0) {
+    const spent = memory[READY] === 0;
+    tick(memory);
+    frames += 1;
+    if (spent) sinceKill += 1;                           // the frames after the kill's
+    assert.ok(frames < 80, "the torpedo never ended");
+  }
   const after = [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)];
-  return { before, after, frames };
+  return { before, after, frames, sinceKill };
 }
 
-// Up to the kill frame: the beam's next step reaches its module.
+// Up to the kill frame: the torpedo's next step reaches its module.
 function arriving(memory, c) {
   standUnder(memory, c);
   hold(memory);
   for (let f = 0; f < CHARGE; f += 1) tick(memory);
   hold(memory, false);
   let frames = 0;
-  while (memory[lbl("lance_head")] - memory[lbl("lance_top")] > 20) { tick(memory); frames += 1; assert.ok(frames < 20); }
-  assert.equal(memory[lbl("lance_beam")], 1, "the beam is still growing");
+  while (memory[lbl("lance_head")] - memory[lbl("lance_top")] > STEP) { tick(memory); frames += 1; assert.ok(frames < 80); }
+  assert.equal(memory[lbl("lance_beam")], 1, "the torpedo is still flying");
 }
 
 // The kill is the frame's only meeting: a player shot that would meet the boss
@@ -629,7 +668,10 @@ test("M6: the kill's frame admits no player shot meeting - they wait a frame - t
   assert.deepEqual([memory[ACTIVE], memory[ACTIVE + 1]], [0, 0], "the waiting shots met on the next frame");
 });
 
-test("M6: a module a player shot destroys on the beam's way is not hit again - the lance is spent, no other module touched", () => {
+// Journal §BL 5 (§BH's rule): the locked module destroyed on the way - the
+// torpedo flies on to its line and hits nothing, and the lance is KEPT (only
+// a kill spends it).
+test("M6 (journal §BL 5): a module a player shot destroys on the torpedo's way is not hit again - the lance is kept, no other module touched", () => {
   const { memory } = fight();
   const c = targetColumn(memory);
   const module = front(memory, c);
@@ -641,8 +683,11 @@ test("M6: a module a player shot destroys on the beam's way is not hit again - t
   assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], before, "an HP changed");
   assert.deepEqual([memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]], score, "scored");
   assert.equal(memory[ADMIT], 2, "no meeting taken");
-  assert.equal(memory[lbl("lance_beam")], 2, "the beam holds, then erases, as after a kill");
-  assert.equal(memory[READY], 0, "the lance is spent");
+  assert.equal(memory[lbl("lance_beam")], 0, "the torpedo ended at its line: no explosion");
+  let frames = 0;
+  while (memory[lbl("lance_beam")] !== 0) { tick(memory); frames += 1; assert.ok(frames < 80); }
+  assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], before, "an HP changed on the way on");
+  assert.equal(memory[READY], 0xff, "the lance is kept");
 });
 
 for (const directory of [1, 4, 3, 2]) {
@@ -652,6 +697,7 @@ for (const directory of [1, 4, 3, 2]) {
     assert.notEqual(c, undefined, "no target in reach");
     const module = front(memory, c);
     const score = [memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]];
+    const p0 = [...memory.subarray(P0, P0 + SHIP_Y)];
     const { before, after } = shoot(memory, c);
     const changed = before.map((hp, i) => (hp !== after[i] ? i : -1)).filter((i) => i >= 0);
     assert.deepEqual(changed, [module], "exactly the targeted module");
@@ -659,8 +705,9 @@ for (const directory of [1, 4, 3, 2]) {
     assert.notEqual(memory[lbl("_boss_kind") + module], KIND_CORE);
     assert.notDeepEqual([memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]], score, "scored as a shot's kill");
     assert.ok(front(memory, c) !== module, "its columns rebuilt");
-    // The beam erased: nothing of it above the ship in P0.
-    for (let y = 0; y < SHIP_Y; y += 1) assert.equal(memory[P0 + y], 0, `P0 row ${y} left`);
+    // P0 untouched; the torpedo and its explosion gone from P1 and P2.
+    assert.deepEqual([...memory.subarray(P0, P0 + SHIP_Y)], p0, "P0 above the ship untouched");
+    for (let y = 0; y < 256; y += 1) assert.equal(memory[P1 + y] | memory[P2 + y], 0, `P1 / P2 row ${y} left`);
     assert.equal(memory[READY], 0, "spent: none ready");
   });
 
@@ -694,7 +741,8 @@ for (const directory of [1, 4, 3, 2]) {
       for (let f = 0; f < CHARGE; f += 1) tick(m);
       assert.equal(m[lbl("lance_beam")], 1, "the beam fires (decision BH 3)");
       hold(m, false);
-      while (m[lbl("lance_beam")] !== 0) tick(m);
+      for (let f = 0; f < 80 && m[lbl("lance_beam")] !== 0; f += 1) tick(m);
+      assert.equal(m[lbl("lance_beam")], 0, "the torpedo ended");
       assert.deepEqual(hpOf(m), before, "the lance hurt the core");
       assert.equal(m[READY], 0xff, "the lance kept");
     }
@@ -774,9 +822,9 @@ test("M6 (decision BG 1-2): no stacking - full, the meter stays full; the shot e
   assert.equal(meterOf(memory), METER[1], "the meter never counts past full");
   assert.equal(memory[READY], 0xff);
   assert.ok(shown(memory));
-  const { frames } = shoot(memory, c);
-  assert.equal(memory[READY], 0, "the shot spends the one lance");
-  assert.equal(meterOf(memory), frames, "the meter fills again from the shot (the beam's frames)");
+  const { sinceKill } = shoot(memory, c);
+  assert.equal(memory[READY], 0, "the kill spends the one lance");
+  assert.equal(meterOf(memory), sinceKill, "the meter fills again from the kill (journal §BL 5: the lance spent there)");
   // A second gesture at once: nothing - there is no second lance.
   const next = targetColumn(memory);
   standUnder(memory, next);
@@ -871,11 +919,18 @@ test("M6 (decisions BG 4, BI 2): the readiness indicator (the ship green; its ch
   // lance spent, the meter emptied: the white).
   hold(memory);
   for (let f = 0; f < CHARGE - 1; f += 1) check(frame(`charge ${f}`), { on: true, change: false, label: `charge ${f}` });
-  check(frame("fire"), { on: false, change: true, label: "the fire frame" });
+  // Journal §BL 5: the lance is spent at the torpedo's kill, not on the fire
+  // frame - on through the fire and the flight, off on the kill frame.
+  check(frame("fire"), { on: true, change: false, label: "the fire frame" });
   assert.equal(memory[lbl("lance_beam")], 1);
   hold(memory, false);
-  while (memory[lbl("lance_beam")] !== 0) check(frame("beam"), { on: false, change: false, label: "the beam" });
-  check(frame("after"), { on: false, change: false, label: "after the beam" });
+  while (memory[lbl("lance_beam")] === 1) {
+    const writes = frame("flight");
+    const killed = memory[lbl("lance_beam")] !== 1;
+    check(writes, { on: !killed, change: killed, label: killed ? "the kill frame" : "the flight" });
+  }
+  while (memory[lbl("lance_beam")] !== 0) check(frame("explosion"), { on: false, change: false, label: "the explosion" });
+  check(frame("after"), { on: false, change: false, label: "after the torpedo" });
   // The fight over (boss_phase past the fight): off.
   setMeter(memory, METER[1]);
   check(frame("ready again"), { on: true, change: true, label: "ready again" });
@@ -919,9 +974,13 @@ test("M6 (decision BI 2): the charge's ramp - the green from luminance 4 to near
     assert.ok(seen.every((c) => (c & 0xf0) === 0xc0 && (c & 0x0f) >= 4 && (c & 0x0f) <= 0x0e), "outside the green's 4..E");
     assert.ok(seen.every((c, k) => k === 0 || c >= seen[k - 1]), "the ramp went down");
     assert.equal(new Set(seen).size, 6, "six luminances: 4, 6, 8, A, C, E");
-    // The fire frame: a kill spends the lance (the white), a dry shot keeps it (the green).
+    // The fire frame: the green (journal §BL 5: the lance is spent at the
+    // kill); after the torpedo: a kill the white, a miss the green.
     assert.equal(memory[lbl("lance_beam")], 1);
-    assert.equal(memory[COLPM0], where === "target" ? 0x0e : 0xca, `${where}: the fire frame's colour`);
+    assert.equal(memory[COLPM0], 0xca, `${where}: the fire frame's colour`);
+    hold(memory, false);
+    for (let f = 0; f < 80 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
+    assert.equal(memory[COLPM0], where === "target" ? 0x0e : 0xca, `${where}: the colour after the torpedo`);
   }
 });
 
@@ -961,7 +1020,7 @@ test("M6 (decision BI 2): the discharge - noise on channel 3 from the fire frame
         tick(memory, { write: (address, value) => { writes.set(address, value); } });
         call(memory, lbl("boss_frame_timers"));
         frames += 1;
-        assert.ok(frames < 25, `${name}: the beam never ended`);
+        assert.ok(frames < 80, `${name}: the torpedo never ended`);
         if (memory[lbl("lance_beam")] !== 0 && where === "empty") {
           assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), `${name}, beam frame ${frames}: channel 3 written`);
           if (sound) assert.equal(memory[AUDC3], SHOT_AUDC, `${name}, beam frame ${frames}: the noise held`);
@@ -1025,17 +1084,13 @@ test("M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the
   const allowed = (a) => (a >= lance.address && a < LANCE_RAM_END) || (a >= P1 && a < P1 + 256) ||
     a === HPOSP1 || a === 0xd009 || (a >= 0x0100 && a < 0x0200) ||
     a === main("read_input") + 1 || a === main("read_input") + 2 ||
-    a === COLPM0 ||                                           // the ready colour, again every ready frame
-    (a >= P2 + 196 && a <= P2 + 237) ||                       // M6 stage 1b: the gauges' rows (a step)
-    (lance.slow === "forward" && a === FLOOR);   // the comparison build's floor operand
+    a === COLPM0;                                             // the ready colour, again every ready frame
   assert.deepEqual([...writes].filter((a) => !allowed(a)).map((a) => `$${a.toString(16)}`), [],
     "the tick wrote outside the lance, P1, HPOSP1 / SIZEP1 and read_input's stick operand (no fire gate, no shot mailbox)");
   assert.ok(![...writes].some((a) => a >= 0xd013 && a <= 0xd015), "a colour register of the reticle written");
-  // RE-PINNED M6 stage 1b (journal §BK): P2 is the gauges' - the tick writes
-  // only their rows (196-237), never HPOSP2 on a ready frame (the fight's
-  // first frame placed it).
-  assert.ok(![...writes].some((a) => a === HPOSP2 || (a >= P2 && a < P2 + 256 && (a - P2 < 196 || a - P2 > 237))),
-    "P2 outside the gauges");
+  // M6 stage 1b (journal §BL 3, 5): no PMG gauges; P2 is the torpedo's exhaust
+  // and explosion only - a ready frame writes neither it nor HPOSP2.
+  assert.ok(![...writes].some((a) => a === HPOSP2 || (a >= P2 && a < P2 + 256)), "P2 stays free on a ready frame");
   // Drawn once a fight: the next frame writes HPOSP1 only.
   writes.clear();
   call(memory, lbl("lance_tick"), { hooks: { write: (address) => { writes.add(address); } } });

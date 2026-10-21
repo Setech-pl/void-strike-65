@@ -57,8 +57,10 @@ export const BOSS_SCRATCH_BYTES = 0x0100;
 // cells (columns 30-39: the BOOST label, a space, four energy cells), backed
 // up by the boss entry's resident half before the WARNING screen and put back
 // by the install after its HUD rewrite - the scratch page's last ten bytes.
-export const BOSS_HUD_BOOSTER_SCREEN = 0x4000 + 30;
-export const BOSS_HUD_BOOSTER_CELLS = 10;
+// M6 stage 1b (journal §BL 2): the HUD's booster field is "B" + 4 cells at 9-13
+// (it was "BOOST " + 4 at 30-39).
+export const BOSS_HUD_BOOSTER_SCREEN = 0x4000 + 9;
+export const BOSS_HUD_BOOSTER_CELLS = 5;
 export const BOSS_HUD_BOOSTER_BACKUP = BOSS_SCRATCH_ADDRESS + BOSS_SCRATCH_BYTES - BOSS_HUD_BOOSTER_CELLS;
 // M5b-S4b (owner decision Q7, 2026-10-06): slot D, the lasers and the boss
 // shots inside the band, read at every boss entry, sized to use.

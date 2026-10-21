@@ -640,23 +640,27 @@ PLAYER_DEATH_EXPLOSION_LINES = 16
 ; re-asserted every frame of the shot because that explosion writes its own
 ; control byte to the same register.
 PLAYER_FIGHTER_SHOT_AUDC = $A8
-HUD_LIFE_DIGIT_OFFSET = 18
-HUD_HULL_LABEL_OFFSET = 20
-HUD_HULL_LABEL_CELLS = 4
-HUD_HULL_LABEL_GAP_OFFSET = HUD_HULL_LABEL_OFFSET+HUD_HULL_LABEL_CELLS
-HUD_HULL_SEGMENTS_OFFSET = HUD_HULL_LABEL_GAP_OFFSET+1
+; M6 stage 1b (journal §BL 2, docs/plans/m6-gauges.md §7.1): the HUD's 40
+; cells - L lives (0-1), H hull (3-7), B booster (9-13), the VOID LANCE's
+; meter (15-18, the boss sector's), cells 19-28 free, SCORE (29-39).
+HUD_LIFE_DIGIT_OFFSET = 1
+HUD_HULL_LABEL_OFFSET = 3
+HUD_HULL_LABEL_CELLS = 1
+HUD_HULL_SEGMENTS_OFFSET = HUD_HULL_LABEL_OFFSET+HUD_HULL_LABEL_CELLS
 HUD_HULL_SEGMENTS = 4
 HUD_HULL_BOOST_GAP_OFFSET = HUD_HULL_SEGMENTS_OFFSET+HUD_HULL_SEGMENTS
 CH_HUD_HULL_DAMAGED = 12
-HUD_BOOSTER_OFFSET = 30
-HUD_BOOSTER_TEXT_CELLS = 5
-HUD_BOOSTER_LABEL_CELLS = HUD_BOOSTER_TEXT_CELLS+1
-HUD_BOOSTER_LABEL_GAP_OFFSET = HUD_BOOSTER_OFFSET+HUD_BOOSTER_TEXT_CELLS
+HUD_BOOSTER_OFFSET = 9
+HUD_BOOSTER_TEXT_CELLS = 1
+HUD_BOOSTER_LABEL_CELLS = HUD_BOOSTER_TEXT_CELLS
 HUD_BOOSTER_SEGMENTS_OFFSET = HUD_BOOSTER_OFFSET+HUD_BOOSTER_LABEL_CELLS
+HUD_LANCE_METER_OFFSET = 15
+HUD_LANCE_METER_CELLS = 4
+HUD_SCORE_LABEL_OFFSET = 29
 HUD_BOOSTER_SEGMENTS = 4
 HUD_BOOSTER_CELLS = HUD_BOOSTER_LABEL_CELLS+HUD_BOOSTER_SEGMENTS
 CH_HUD_BOOSTER_FULL = CH_PANEL_STRIPE
-HUD_BOOSTER_BACKING = $5E06
+HUD_BOOSTER_BACKING = $5E0B           ; M6 stage 1b: 5 cells (10 at $5E06 before)
 hud_booster_backing = HUD_BOOSTER_BACKING
 HUD_BOOSTER_BLINK_HALF_PERIOD = 8
 HUD_BOOSTER_QUARTER = PLAYER_FIGHTER_RAPID_FIRE_DURATION/4
@@ -670,22 +674,22 @@ HUD_SHIELD_FOUR_SEGMENT_MIN = 188
 .assert PLAYER_FIGHTER_SPREAD_LATERAL_STEP = 1, error, "Spread side step must be one HPOS unit"
 .assert PLAYER_FIGHTER_SPREAD_LATERAL_PERIOD = 2, error, "Spread side step must occur every two active frames"
 .assert HUD_BOOSTER_QUARTER*4 = PLAYER_FIGHTER_RAPID_FIRE_DURATION, error, "weapon-booster duration must divide into four exact HUD quarters"
-.assert HUD_HULL_LABEL_GAP_OFFSET-HUD_HULL_LABEL_OFFSET = HUD_HULL_LABEL_CELLS, error, "HULL label width changed"
-.assert HUD_HULL_SEGMENTS_OFFSET-HUD_HULL_LABEL_GAP_OFFSET = 1, error, "HULL label requires one blank separator"
+.assert HUD_HULL_SEGMENTS_OFFSET-HUD_HULL_LABEL_OFFSET = 1, error, "the H label is one cell"
+.assert HUD_LIFE_DIGIT_OFFSET+2 = HUD_HULL_LABEL_OFFSET, error, "LIFE and HULL require one blank separator"
 .assert HUD_BOOSTER_OFFSET-HUD_HULL_BOOST_GAP_OFFSET = 1, error, "HULL and BOOST require one blank separator"
-.assert HUD_BOOSTER_SEGMENTS_OFFSET-HUD_BOOSTER_LABEL_GAP_OFFSET = 1, error, "BOOST label requires one blank separator"
-.assert HUD_BOOSTER_OFFSET+HUD_BOOSTER_CELLS <= GAMEPLAY_SCREEN_COLUMNS, error, "weapon-booster HUD exceeds 40 columns"
-.assert HUD_BOOSTER_SEGMENTS_OFFSET+HUD_BOOSTER_SEGMENTS = GAMEPLAY_SCREEN_COLUMNS, error, "BOOST energy segments must end at HUD column 39"
-.assert HUD_BOOSTER_BACKING+HUD_BOOSTER_CELLS = __BROADSIDE_RUN__, error, "BOOST HUD backing must occupy the final ten STARFIELD-reservation bytes"
+.assert HUD_BOOSTER_SEGMENTS_OFFSET+HUD_BOOSTER_SEGMENTS+1 = HUD_LANCE_METER_OFFSET, error, "BOOST and the lance's meter require one blank separator"
+.assert HUD_LANCE_METER_OFFSET+HUD_LANCE_METER_CELLS < HUD_SCORE_LABEL_OFFSET, error, "the lance's meter runs into SCORE"
+.assert HUD_SCORE_LABEL_OFFSET+11 = GAMEPLAY_SCREEN_COLUMNS, error, "SCORE 00000 must end at HUD column 39"
+.assert HUD_BOOSTER_BACKING+HUD_BOOSTER_CELLS = __BROADSIDE_RUN__, error, "BOOST HUD backing must occupy the final STARFIELD-reservation bytes"
 .assert HUD_BOOSTER_BLINK_HALF_PERIOD = 8, error, "weapon-booster warning must use an 8+8 PAL-frame phase"
 .assert PLAYER_FIGHTER_SHIELD_DURATION = 250, error, "Shield must last exactly 250 active PAL frames"
 .assert HUD_SHIELD_FOUR_SEGMENT_MIN = PLAYER_FIGHTER_SHIELD_DURATION-HUD_SHIELD_TWO_SEGMENT_MIN+1, error, "Shield four-segment threshold changed"
 .assert CH_HUD_BOOSTER_SHIELD = CH_HUD_BOOSTER_FULL+1, error, "Shield HUD glyph must own the formally reserved code 8"
 .assert CH_HUD_BOOSTER_SHIELD+1 = CH_SEPARATOR, error, "Shield HUD glyph must not overlap structural screen codes"
-.export HUD_HULL_LABEL_OFFSET, HUD_HULL_LABEL_GAP_OFFSET, HUD_HULL_SEGMENTS_OFFSET
+.export HUD_HULL_LABEL_OFFSET, HUD_HULL_SEGMENTS_OFFSET
 .export HUD_HULL_SEGMENTS, HUD_HULL_BOOST_GAP_OFFSET, CH_HUD_HULL_FULL, CH_HUD_HULL_DAMAGED
-.export HUD_BOOSTER_OFFSET, HUD_BOOSTER_CELLS, HUD_BOOSTER_SEGMENTS_OFFSET
-.export HUD_BOOSTER_LABEL_GAP_OFFSET, HUD_BOOSTER_SEGMENTS, CH_HUD_BOOSTER_FULL, CH_HUD_BOOSTER_SHIELD
+.export HUD_BOOSTER_OFFSET, HUD_BOOSTER_CELLS, HUD_BOOSTER_SEGMENTS_OFFSET, HUD_LANCE_METER_OFFSET
+.export HUD_BOOSTER_SEGMENTS, CH_HUD_BOOSTER_FULL, CH_HUD_BOOSTER_SHIELD
 .export hud_booster_backing
 
 .include "capital-hulls.inc"
@@ -3553,9 +3557,11 @@ copy_frontend_charset:
 ; Builds a dedicated ANTIC 2 HUD charset at $5000 after the loader releases
 ; that RAM. Digits and letters use the compact 6x7 source shared with the
 ; frontend, but are expanded into Atari screen-code positions 16-25 and
-; 33-58. M6 stage 1b (docs/plans/m6-gauges.md §2.3): the HUD is the display's
-; last line, so its separator is every glyph's FIRST scanline, over the
-; glyph's seven rows.
+; 33-58. M6 stage 1b (journal §BL 1, docs/plans/m6-gauges.md §7.1): the HUD is
+; the display's last line (240-247) and has no separator: every glyph's first
+; scanline is blank, the seven glyph rows below it (241-247). A separator on
+; that row touched the glyphs' tops (the owner's smoke saw it notched) and is
+; where the last ring row's DLI hands COLPF1 / COLPF2 to the HUD.
 copy_hud_charset:
     lda #$00
     ldx #$00
@@ -3595,7 +3601,7 @@ copy_hud_charset:
     sta HUD_CHARSET+CH_HUD_HULL_FULL*8,x
     dex
     bpl @status_glyphs
-    lda #$FF
+    lda #$00                    ; the first row blank (no separator)
     sta HUD_CHARSET+CH_SPACE*8
     sta HUD_CHARSET+CH_HUD_BOOSTER_FULL*8
 
@@ -3609,9 +3615,9 @@ copy_hud_charset:
 copy_hud_glyphs:
 @glyph:
     ldy #$00
-    lda #$FF                    ; shared top scanline forms the separator
+    lda #$00                    ; the blank first scanline (no separator, §BL 1)
 @row:
-    sta (dst_ptr),y             ; row y: the separator, then source row y-1
+    sta (dst_ptr),y             ; row y: the blank row, then source row y-1
     lda (src_ptr),y
     iny
     cpy #$08
@@ -3635,9 +3641,8 @@ copy_hud_glyphs:
     rts
     .res 2,$EA                  ; M6 stage 1b's size pad (the top separator's loop is 2 B shorter): never executed
 
-; Every used HUD glyph has a full-width white first scanline (M6 stage 1b: the
-; HUD follows the ring, 240-247), so the compact HUD itself supplies the
-; separator without a second character row. The first DLI, on the last of the
+; The HUD follows the ring (240-247); its first scanline is blank (M6 stage
+; 1b, journal §BL 1: no separator). The first DLI, on the last of the
 ; 8 blank lines above the divider, installs the ANTIC 4 charset/palette before
 ; the first gameplay scanline. The final-row DLI installs the HUD state for
 ; the HUD's line right after it.
@@ -5633,9 +5638,10 @@ player_contacts_enemy:
 
 .segment "STARFIELD"
 
+; M6 stage 1b (journal §BL 2): the score's five digits at the HUD's right end.
 update_score_display:
     lda #CH_ZERO
-    sta SCREEN+6
+    sta SCREEN+35
 
     lda score_bcd_hi
     lsr
@@ -5643,12 +5649,12 @@ update_score_display:
     lsr
     lsr
     ora #CH_ZERO
-    sta SCREEN+7
+    sta SCREEN+36
 
     lda score_bcd_hi
     and #$0F
     ora #CH_ZERO
-    sta SCREEN+8
+    sta SCREEN+37
 
     lda score_bcd_lo
     lsr
@@ -5656,12 +5662,12 @@ update_score_display:
     lsr
     lsr
     ora #CH_ZERO
-    sta SCREEN+9
+    sta SCREEN+38
 
     lda score_bcd_lo
     and #$0F
     ora #CH_ZERO
-    sta SCREEN+10
+    sta SCREEN+39
     rts
 
 ; -----------------------------------------------------------------------------
@@ -6720,7 +6726,17 @@ clear_top_hull_row:
 
 update_sector_state:
     jmp HYBRID_SECTOR_UPDATE_CAPITAL_PHASE
-    .res 58,$EA                  ; preserve reviewed following CODE addresses
+; M6 stage 1b (journal §BL 2, docs/plans/m6-gauges.md §7.1): the HUD's text,
+; data in the inert tail after the jmp (it was RODATA's, which keeps its
+; addresses with a pad): L lives . H hull . the booster field . the VOID
+; LANCE's meter . SCORE at the right end. init_screen and the boss install
+; copy it to cells 0-33; the digits, the hull, the booster and the meter are
+; their writers'.
+hud_ascii:
+    .byte "L  H                         SCORE"
+    .byte $00
+    .assert * - hud_ascii = 35, error, "hud_ascii: SCORE at cells 29-33"
+    .res 58-35,$EA               ; preserve reviewed following CODE addresses
 
 .segment "BROADSIDE"
 
@@ -7345,12 +7361,11 @@ silence_audio:
 
 .segment "RODATA"
 
-hud_ascii:
-    .byte "SCORE 00000  LIFE 3 HULL "
-    .byte $00
+hud_ascii_former_place:
+    .res 26                      ; M6 stage 1b: hud_ascii moved into CODE's inert tail; RODATA keeps its addresses
 
 hud_shield_booster_glyph:
-    .byte $FF,$C3,$DB,$FF,$DB,$DB,$FF,$C3     ; M6 stage 1b: the separator on top
+    .byte $00,$C3,$DB,$FF,$DB,$DB,$FF,$C3     ; M6 stage 1b: the HUD's first row blank
 hud_shield_booster_glyph_end:
 
 frontend_screen_data:
@@ -7701,18 +7716,18 @@ charset_data:
     .byte $A0,$80,$80,$80,$80,$80,$80,$A0
     .byte $AA,$82,$92,$82,$82,$92,$82,$AA
     .byte $82,$28,$28,$82,$82,$28,$28,$82
-    .byte $FF,$00,$00,$00,$3C,$7E,$FF,$7E   ; M6 stage 1b: the HUD's separator on top
+    .byte $00,$00,$00,$00,$3C,$7E,$FF,$7E   ; M6 stage 1b: the HUD's first row blank
     ; 6-8: structural tiles; glyph 7 becomes the tall narrow BOOST cell in HUD
     .byte $AA,$82,$82,$82,$82,$82,$82,$AA
     .byte $30,$30,$30,$30,$30,$30,$30,$30
     .byte $AA,$A8,$A8,$AA,$AA,$8A,$8A,$AA
-    ; 9: HUD separator (M6 stage 1b: the HUD's top line)
-    .byte $AA,$00,$00,$00,$00,$00,$00,$00
+    ; 9: HUD separator
+    .byte $00,$00,$00,$00,$00,$00,$00,$AA
     ; 10: bright star
     .byte $00,$00,$10,$54,$10,$00,$00,$00
     ; 11: menu selection marker; 12: low cracked HULL plate
     .byte $C0,$F0,$FC,$FF,$FC,$F0,$C0,$00
-    .byte $FF,$00,$00,$00,$3C,$42,$5A,$24   ; M6 stage 1b: the separator on top
+    .byte $00,$00,$00,$3C,$42,$5A,$24,$FF
     ; 13: dash, 14: dim star, 15: slash
     .byte $00,$00,$00,$55,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$10,$00,$00
@@ -8307,8 +8322,8 @@ update_hud_status:
     bpl @hull_segment
     rts
 
-; HUD cells 30-39 are the only presentation bytes owned by an active weapon
-; booster: full BOOST label, one space, and four tall energy cells. The 16-bit
+; HUD cells 9-13 are the only presentation bytes owned by an active weapon
+; booster (journal §BL 2): the B label and four tall energy cells. The 16-bit
 ; 500-frame gameplay timer remains authoritative. Most frames take the short
 ; no-change path; only the energy cells change after activation.
 update_weapon_booster_hud:
@@ -11617,8 +11632,8 @@ fighter_pickup_pmg_shape:
     .assert * - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT*WEAPON_PICKUP_HEIGHT_SCANLINES, error, "one sixteen-row silhouette per booster type"
 
 hud_booster_label:
-    .byte CH_HUD_A+1,CH_HUD_A+14,CH_HUD_A+14
-    .byte CH_HUD_A+18,CH_HUD_A+19,CH_SPACE
+    .byte CH_HUD_A+1                     ; M6 stage 1b: "B" (it was "BOOST ")
+    .res 5                               ; unused since then; the following addresses kept
 hud_hull_segment_thresholds:
     .byte 3,5,8,10
 layout_d_publish_glue:

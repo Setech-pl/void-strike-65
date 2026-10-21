@@ -11,10 +11,14 @@
 ; boss vector image's TICK_FLASHES entry: the boss sector only, every frame,
 ; before read_input and UPDATE.
 ;
-;   the meter    src/c/lance.c's lance_c_fill, every boss frame with no beam
-;                up (decision BG 1; through the beam's frames the tick's own
-;                inc): a lance is ready when it is full - one, no stacking -
-;                and the shot empties it.
+;   the meter    src/c/lance.c's lance_c_fill, every boss frame with no
+;                torpedo (decision BG 1; through the explosion's frames
+;                torpedo_blast's own inc): a lance is ready when it is full -
+;                one, no stacking - and only a kill empties it (journal §BL 5).
+;                Its HUD cells (journal §BL 3): page 4's lance_hud_meter on
+;                the filling frames - the glyphs on the fight's first frame,
+;                the four cells by the meter's quarters, written only when the
+;                count changes; a ready lance's four stay full.
 ;   readiness    the indicator (decision BG 4; C, the owner's choice of
 ;                journal §BI 3) is on while a lance is ready, the ship alive
 ;                (PLAYER_LIFECYCLE 0) and the fight on (boss_phase 0), off
@@ -23,93 +27,69 @@
 ;                LANCE_READY_COLOUR while on, the hull's white back when off
 ;                (START GAME's boss restore puts the white back should a game
 ;                leave while it is on). Written on the change and again on
-;                every ready frame with no beam up: the resident booster code
+;                every ready frame with no torpedo: the resident booster code
 ;                writes the white at a pickup or a release and a Shield pulses
-;                COLPM0 ($84 / $0E) - the Shield's pulse shows while it lasts,
-;                the green comes back the frame after. While the charge builds
-;                that frame's colour is lance_ramp's (journal §BI 2): the
-;                green's luminance from the steel's (4) up to near-white ($CE)
-;                over the charge, back to the green the frame it is released
-;                or fires. On every change to on, the readiness cue on channel 3
-;                (pure tone LANCE_CUE_AUDF / AUDC, LANCE_CUE_FRAMES frames),
-;                given back to the engine bed by boss_frame_timers through
-;                boss_tick_timer as the rail unlock's tone is; a hit's tick and
-;                a laser's warning write channel 3 after it and win.
-;   the reticle  variant 2 (decision BD 1): one 8 x 8 mark on P1 (P2 stays
-;                free), in the lasers' colour - COLPM1 is never written here,
-;                no band palette row changes (decision BD 3) - on one line a
-;                fight, right under the band's last shown row (the install's
-;                boss_band_measure, drawn once); only while a lance is ready
-;                (decision BG 2: from the meter full until the shot) and then
-;                always (journal §BH 2): over a target the crosshair at the
-;                module's centre, following the band's drift; over none the
-;                hollow mark (half its pixels) at the ship's column. A change
-;                of mark rewrites the four rows they differ in (lance_hollow
-;                holds which is drawn). Dark on two frames of four while
-;                charging.
+;                COLPM0 - the green comes back the frame after. While the
+;                charge builds that frame's colour is lance_ramp's (journal
+;                §BI 2). On every change to on, the readiness cue on channel 3,
+;                given back to the engine bed by boss_frame_timers.
+;   the reticle  one 8 x 8 mark on P1 in the lasers' colour (decision BD 1;
+;                COLPM1 is never written here), on one line a fight, right
+;                under the band's last shown row, drawn at every readiness
+;                (P1 single width; P2 too, the torpedo's): over a target the
+;                crosshair at the module's centre, following the band's
+;                drift; over none the hollow mark at the ship's column. A
+;                change of mark rewrites the four rows they differ in. Dark on
+;                two frames of four while charging.
 ;   the target   the column map's front module under the ship's centre with
-;                its exposed bit (slot D's laser_exposed, the test boss_c_hit
-;                applies): what a player shot there would hurt (src/c/lance.c
-;                refuses the core, the defeat and the chain). It decides the
-;                mark and, on the fire frame, the shot - never the charge.
+;                its exposed bit (slot D's laser_exposed): what a player shot
+;                there would hurt (src/c/lance.c refuses the core, the defeat
+;                and the chain). It decides the mark and, on the fire frame,
+;                the torpedo's lock - never the charge.
 ;   the gesture  FIRE held with the stick held up (decision BF), level-
-;                triggered: the raw TRIG0 and PORTA every frame, whatever is
-;                under the ship (§BH 1; the ship's limits clamp its move, not
-;                the stick, and never cancel it). The ordinary
-;                fire is never touched: gameplay_fire_gate is read_input's
-;                alone, and the ship moves as the stick says - at
-;                1 / LANCE_CHARGE_SPEED_DIVISOR of its speed while the charge
-;                builds (decision BF 2): on the charge's slow frames read_input
-;                reads its stick from an $FF operand of the tick's (no direction) instead
-;                of PORTA, so it moves on one frame in the divisor and its
-;                edge tests see the input they always see. The operand goes
-;                back on the next aim frame, and at START GAME with the other
-;                boss patches (build/boss-restore.inc) should a game leave
-;                between the two (a pause's quit).
-;   the beam     in the ship's own plane (P0, double width: 4 colour clocks at
-;                its centre, its colour - decision BD 4), up from the ship's
-;                top LANCE_BEAM_STEP lines a frame from the frame after the
-;                charge completes; on the frame it reaches the module's
-;                bottom line, the kill through boss_hit (the shot's own path:
-;                spark, score, kill stat, rebuild, exposure, chain, capsule),
-;                in this tick, before UPDATE - so rule (B) holds as on a
-;                shot's kill frame - and as the frame's only meeting: the tick
-;                patches laser_frame's admit operand to 0, and a player shot
-;                that would meet the boss on that frame waits one frame, as
-;                AUD-04 holds any (MEASURED: a kill and a shot's kill on one
-;                frame put Citadel L5 at 8,711, over 8,500); held LANCE_HOLD
-;                frames, then erased up from the ship's top line as it grew.
-;                The shots fly meanwhile, so the target is kept in the lance's
-;                own bytes (the shot's mailboxes are UPDATE's; the tick writes
-;                them on the kill frame only), and a module a shot destroyed
-;                on the beam's way is not hit again: that lance is spent.
-;                With no target on the fire frame (journal §BH 3) the beam
-;                flies up through the mark to the band's foot (lance_y - 1,
-;                above the ship's top limit everywhere) and does nothing there;
-;                the lance is kept - lance_ready stays $FF through the beam
-;                (the indicator on, the meter not advanced, no kill). Either
-;                way the fire frame sounds the discharge on channel 3 (journal
-;                §BI 2: noise, held while the beam is up and given back to the
-;                engine bed by the beam's last frame - not through
-;                boss_tick_timer: a running timer costs every
-;                boss_frame_timers call, and a rail's slide makes four on a
-;                frame, MEASURED +40 cycles on the Bastion's fire frame; the
-;                beam is bounded, so the channel is always released (M5-03).
-;                The kill's tick on the beam's arrival, a hit's or a laser's
-;                warning take the channel before that and keep the rule they
-;                have).
+;                triggered, whatever is under the ship (§BH 1). The ordinary
+;                fire is never touched. The axis rule (journal §BL 4): on the
+;                charge's slow frames read_input reads its stick from the
+;                lance's own byte, PORTA with UP released - the advance at
+;                1 / LANCE_CHARGE_UP_DIVISOR, the horizontal at full speed; the
+;                operand goes back to PORTA on the next full frame, and at
+;                START GAME with the other boss patches (build/boss-restore.inc).
+;   the torpedo  (journal §BL 5, the owner's answer of 2026-10-21) from the
+;                frame after the charge completes: the hull in P1, the exhaust
+;                in P2 right below it, both in the lasers' colour, both homing
+;                (HPOSP1 / HPOSP2 written only in flight) on the module locked
+;                on the fire frame - its current centre as the band drifts -
+;                or, with none locked, at the ship's column; TORPEDO_STEP
+;                lines a frame up from above the ship. The reticle's rows stay
+;                (at the torpedo's HPOS, the lock's point) until the hull flies
+;                through them or the kill clears them. On the frame it reaches
+;                its line - the locked module's bottom line, or the band's foot
+;                - its rows are cleared and, the module standing, the kill goes
+;                through boss_hit (the shot's own path) in this tick, before
+;                UPDATE, as the frame's only meeting (laser_frame's admit
+;                operand patched to 0; a shot that would meet the boss waits a
+;                frame, as AUD-04 holds any); the lance is spent, the meter
+;                emptied, the explosion (page 4, P2) follows for
+;                TORPEDO_BLAST_FRAMES frames at the impact, then P2 is
+;                released. With no target, or the locked module destroyed on
+;                the way, nothing is hit: the lance is kept and the reticle's
+;                rows come back. The fire frame sounds the discharge on
+;                channel 3 (journal §BI 2), held until the torpedo's end (not
+;                through boss_tick_timer: a running timer costs every
+;                boss_frame_timers call); a kill's tick takes the channel.
+;   page 4       slot H, the lance's second run ($0400-$04FF): the HUD meter,
+;                the reticle's rows, the explosion and the shapes.
 ; ===========================================================================
-LANCE_BEAM_STEP = 20
-LANCE_HOLD      = 3
-LANCE_BEAM_BITS = $18                   ; P0 is double width: 4 colour clocks at the ship's centre
 LANCE_ROWS      = 8
 LANCE_HPOSP1    = $D001
+LANCE_HPOSP2    = $D002
 LANCE_SIZEP1    = $D009
+LANCE_SIZEP2    = $D00A
 LANCE_TRIG0     = $D010
 LANCE_STICK0    = $D300                 ; PORTA: bit 0 up, active low
 LANCE_STICK_UP  = $01
-LANCE_P0        = $3C00                 ; src/main.s: PLAYER0 = PMG_BASE + $0400 (the ship's plane)
 LANCE_P1        = $3D00                 ; src/main.s: PLAYER1 = PMG_BASE + $0500
+LANCE_P2        = $3E00                 ; src/main.s: PLAYER2 = PMG_BASE + $0600
 LANCE_COLPM0    = $D012
 LANCE_HULL_COLOUR = $0E                 ; src/main.s PLAYER_NORMAL_HULL_COLOR
 ; Decision BG 4 (C): green, hue $C - two PAL hue steps (48 degrees) from the
@@ -122,93 +102,74 @@ LANCE_CUE_FRAMES = 16
 LANCE_SHOT_AUDF = $10                   ; the discharge (journal §BI 2): poly17 noise, volume 10 -
 LANCE_SHOT_AUDC = $8A                   ; no other boss sound is noise (the tick's and the cue's
                                         ; tones, the hull's poly4 clank)
-; LANCE_CHARGE_SPEED_DIVISOR: scripts/lance-layout.mjs, beside the charge's
-; length (-D from scripts/build.mjs). A power of two: the slow frames are the
-; charge's frames not a multiple of it.
-.assert LANCE_CHARGE_SPEED_DIVISOR > 0 && (LANCE_CHARGE_SPEED_DIVISOR & (LANCE_CHARGE_SPEED_DIVISOR - 1)) = 0, error, "LANCE_CHARGE_SPEED_DIVISOR: a power of two"
-.assert <LANCE_STICK0 = 0, error, "the slow frame's operand swap keeps A = 0 for PORTA's low byte"
+; LANCE_CHARGE_UP_DIVISOR (journal §BL 4, the axis rule): scripts/lance-layout.mjs,
+; beside the charge's length (-D from scripts/build.mjs). A power of two: the
+; slow frames are the charge's frames not a multiple of it; on them the advance
+; (UP) is released, the horizontal is the stick's.
+.assert LANCE_CHARGE_UP_DIVISOR > 0 && (LANCE_CHARGE_UP_DIVISOR & (LANCE_CHARGE_UP_DIVISOR - 1)) = 0, error, "LANCE_CHARGE_UP_DIVISOR: a power of two"
+.assert <LANCE_STICK0 = 0, error, "the moving frame's operand keeps A = 0 for PORTA's low byte"
+
+; ---------------------------------------------------------------------------
+; The torpedo's looks (journal §BL 7, the owner's choice pending): the flight
+; (TORPEDO_FLIGHT a / b - scripts/build.mjs --torpedo) and the explosion
+; (TORPEDO_BLAST a / b). The hull is P1's, the exhaust P2's right below it,
+; the explosion P2's; all in the lasers' colour (COLPM1 / COLPM2, never
+; written here).
+; ---------------------------------------------------------------------------
+; The exhaust's frames are windows into one table, TORPEDO_EXHAUST_SHIFT rows
+; apart (a: its frames side by side; b: a strip the flame runs down).
+.if TORPEDO_FLIGHT = 1
+TORPEDO_STEP    = 8                     ; a: fast, a short hull, a 3-frame exhaust
+TORPEDO_HULL    = 5
+TORPEDO_EXHAUST = 4
+TORPEDO_EXHAUST_FRAMES = 3
+TORPEDO_EXHAUST_SHIFT = TORPEDO_EXHAUST
+.else
+TORPEDO_STEP    = 4                     ; b: slower, a longer hull, a 4-frame exhaust, a longer tail
+TORPEDO_HULL    = 6                     ; (6 + 5 rows: the Bastion's flight frame within its 20-cycle
+TORPEDO_EXHAUST = 5                     ; headroom - 8 + 7 rows MEASURED 8,496 on the Citadel L5)
+TORPEDO_EXHAUST_FRAMES = 4
+TORPEDO_EXHAUST_SHIFT = 2
+.endif
+TORPEDO_ROWS    = TORPEDO_HULL + TORPEDO_EXHAUST
+TORPEDO_BLAST_ROWS = 8
+TORPEDO_BLAST_FRAMES = 5
+TORPEDO_BLAST_INTO = 2                  ; the explosion's rows inside the module, the rest under it (the impact)
+; A step up leaves min(step, height) rows of the last frame's hull (P1) and
+; exhaust (P2) under the new ones: only those are cleared.
+; From line head + max(height, step).
+.if TORPEDO_STEP > TORPEDO_HULL
+TORPEDO_P1_LEFT = TORPEDO_HULL
+TORPEDO_P1_FROM = TORPEDO_STEP
+.else
+TORPEDO_P1_LEFT = TORPEDO_STEP
+TORPEDO_P1_FROM = TORPEDO_HULL
+.endif
+.if TORPEDO_STEP > TORPEDO_EXHAUST
+TORPEDO_P2_LEFT = TORPEDO_EXHAUST
+TORPEDO_P2_FROM = TORPEDO_HULL + TORPEDO_STEP
+.else
+TORPEDO_P2_LEFT = TORPEDO_STEP
+TORPEDO_P2_FROM = TORPEDO_HULL + TORPEDO_EXHAUST
+.endif
+
+; The VOID LANCE's HUD meter (journal §BL 3): cells HUD_LANCE_METER_OFFSET +
+; 0-3, two HUD codes the run writes at the fight's first frame.
+LANCE_METER_FULL   = 59
+LANCE_METER_HOLLOW = 60
+LANCE_HUD_CHARSET  = $5000              ; src/main.s HUD_CHARSET
+LANCE_METER_SCREEN = SCREEN + HUD_LANCE_METER_OFFSET
 
 .import _lance_c_fill, _lance_c_aim, _lance_c_arrive, _lance_trig, _lance_charge, _lance_meter_lo, _lance_meter_hi, _boss_phase
 .export lance_tick, lance_shape, lance_y, lance_beam, lance_head, lance_top, _lance_module, lance_cell, lance_ready
-.export gauge_level, gauge_rows
+.export lance_meter_shown, lance_stick, LANCE_METER_HOLLOW, LANCE_METER_FULL
 
 .segment "LANCE_CODE"
 
 lance_tick:
     lda lance_beam
     beq lance_meter
-    ; The beam's frames: the meter fills on (the shot emptied it, src/c/lance.c;
-    ; it cannot fill again in a beam's frames: no full test), the indicator off
-    ; since the fire frame - but a shot with no target kept its lance (still
-    ; ready: the meter stays full).
-    ldx lance_ready
-    bne lance_beam_frame
-    inc _lance_meter_lo                 ; 1 .. the beam's frames: never 0
-    ; (falls into the beam's frame)
-
-; A = lance_beam: 1 growing, 2 .. 1 + LANCE_HOLD held, then erased (2 +
-; LANCE_HOLD its first frame). Both the growth and the erasure move
-; LANCE_BEAM_STEP lines up a frame, from the ship's top line to the module's
-; bottom one: the beam reaches up, then leaves the ship and closes on the
-; module.
-lance_beam_frame:
-    ldx #BOSS_SHOT_ADMIT
-    stx laser_admit_operand             ; AUD-04's two meetings (the kill's frame below: none)
-    ldx #LANCE_BEAM_BITS                ; X: the byte the step writes (0 erasing)
-    cmp #$01
-    beq @step                           ; growing
-    ldx #$00
-    cmp #(2 + LANCE_HOLD)
-    bcc @more                           ; held
-    bne @step                           ; erasing
-    lda player_y                        ; the erasure's first frame: up from the ship's top line
-    sta lance_head                      ; (the rows under it are the ship's)
-    inc lance_beam
-@step:
-    lda lance_head                      ; up LANCE_BEAM_STEP lines, never past the module
-    sec
-    sbc #LANCE_BEAM_STEP
-    bcc @top
-    cmp lance_top
-    bcs @rows
-@top:
-    lda lance_top
-@rows:
-    ldy lance_head                      ; from the old head down to the new one
-    sta lance_head
-    cmp lance_top
-    php                                 ; Z: it reached the module
-    txa
-:
-    dey
-    sta LANCE_P0,y
-    cpy lance_head
-    bne :-
-    plp
-    bne @rts
-    txa
-    beq @off                            ; erased up to the module: the beam is down
-    lda lance_ready
-    bne @more                           ; no target (the lance kept): the band's foot, nothing there
-    ; It reached the module: the kill, through the shot's own path.
-    lda lance_cell                      ; the shot's mailboxes, boss_hit's inputs
-    sta _boss_hit_cell
-    lda _lance_module
-    sta _boss_hit_module
-    jsr _lance_c_arrive                 ; A: its HP, now 1; 0: it fell on the beam's way; X = 0
-    tay
-    beq @more
-    stx laser_admit_operand             ; the kill is the frame's only meeting: the shots wait a frame
-    jsr boss_hit
-@more:
-    inc lance_beam
-@rts:
-    rts
-@off:
-    stx lance_beam                      ; X = 0: the beam is down
-    ldx #BOSS_BED_AUDF                  ; the discharge's channel back to the engine bed
-    ldy #BOSS_BED_AUDC
-    jmp lance_sound
+    jmp lance_torpedo
 
 lance_meter:
     ; The meter, and what the indicator shows: ready, the ship alive, the fight on.
@@ -225,7 +186,7 @@ lance_meter:
     bne @change
     tay                                 ; A = lance_ready
     bne lance_aim                       ; ready: the aim
-    jmp gauge_filling                   ; the meter filling: the gauges only (M6 stage 1b)
+    jmp lance_hud_meter                 ; the meter filling: its HUD cells only
 @rts:
     rts
 @change:
@@ -237,14 +198,9 @@ lance_meter:
     ; stick PORTA's (a slow frame's operand put back).
     sta _lance_charge                   ; A = 0
     sta LANCE_HPOSP1
-.ifdef LANCE_SLOW_FORWARD
-    lda #BOSS_PLAYER_Y_MIN              ; the comparison build's floor operand
-    sta read_input_y_min_operand
-.else
     sta read_input_stick_operand        ; PORTA's low byte
     ldy #>LANCE_STICK0
     sty read_input_stick_operand + 1
-.endif
     rts
 
 ; A lance ready: the target, the mark, the gesture (journal §BH: whatever is
@@ -265,11 +221,9 @@ lance_aim:
     tay
     jsr laser_exposed_module            ; A: its exposed bit, X kept (past the table for the
     bne @aim                            ; others: src/c/lance.c refuses them)
-:                                       ; its $FF: read_input's stick on a slow frame (no direction)
     ldx #$FF                            ; covered: no target
 @aim:
-    stx _lance_module                   ; the target (src/c/lance.c); the beam's once fired (no
-                                        ; aim while the beam is up)
+    stx _lance_module                   ; the target (src/c/lance.c); the torpedo's once fired
     lda LANCE_STICK0                    ; the gesture: FIRE and the stick up, both held (0)
     and #LANCE_STICK_UP
     ora LANCE_TRIG0
@@ -288,74 +242,71 @@ lance_aim:
     lsr
     lsr
     tay
-    sty gauge_ramp                      ; the gauge's charge step (M6 stage 1b)
     lda lance_ramp,y
     sta LANCE_COLPM0
-    ; The charge's slow frames (decision BF 2): the ship at 1 / divisor of its
-    ; speed, every direction - read_input reads no direction held - until the
-    ; charge is released or the lance fires (lance_charge 0: PORTA again).
+    ; The axis rule (journal §BL 4): on the charge's slow frames read_input
+    ; reads PORTA with UP released - the advance at 1 / divisor, the
+    ; horizontal at full speed - until the charge is released or the lance
+    ; fires (lance_charge 0: PORTA again).
     lda _lance_charge
-    and #(LANCE_CHARGE_SPEED_DIVISOR - 1)
-.ifdef LANCE_SLOW_FORWARD
-    ; The owner's comparison build (--lance-slow=forward): only the advance
-    ; is slowed - the boss floor's operand at the ship's line on a slow frame.
-    beq @floor
-    lda player_y
-    bne @slow                           ; player_y > 0
-@floor:
-    lda #BOSS_PLAYER_Y_MIN
-@slow:
-    sta read_input_y_min_operand
-.else
+    and #(LANCE_CHARGE_UP_DIVISOR - 1)
     beq @full                           ; A = 0: PORTA's low byte
-    lda #<(:- + 1)                      ; the covered target's $FF above
-    ldy #>(:- + 1)
+    lda LANCE_STICK0
+    ora #LANCE_STICK_UP
+    sta lance_stick
+    lda #<lance_stick
+    ldy #>lance_stick
     bne @stick                          ; always
 @full:
     ldy #>LANCE_STICK0
 @stick:
     sta read_input_stick_operand
     sty read_input_stick_operand + 1
-.endif
     pla
     lsr                                 ; C: lit
     bcs @show
     lsr                                 ; C: a target; A: FIRE
-    beq @dark_gauge                     ; the blink's dark frame
-    ; The discharge (journal §BI 2; C and X kept).
-    lda sound_enabled
-    beq @quiet
-    lda #LANCE_SHOT_AUDF
-    sta AUDF3
-    lda #LANCE_SHOT_AUDC                ; until the beam's last frame (no timer: see the header)
-    sta AUDC3
-@quiet:
-    ; FIRE: the beam from the next frame (the fire frame draws none of it) -
-    ; up to the target's bottom line, or with none to the band's foot, the line
-    ; over the mark (the lance kept): above the ship's top limit in every region
-    ; (the Spine's mark line is that limit, 88), so the beam is never empty.
+    beq @dark                           ; the blink's dark frame
+    ; The discharge (journal §BI 2), until the torpedo's end (no timer: see
+    ; the header); C kept.
+    ldx #LANCE_SHOT_AUDF
+    ldy #LANCE_SHOT_AUDC
+    jsr lance_sound
+    ; FIRE: the torpedo from the next frame (the fire frame draws none of it;
+    ; the reticle's rows stay - from the next frame at the torpedo's HPOS,
+    ; the lock's point - until it flies through them or kills),
+    ; locked on the target's module - up to its bottom line - or with none at
+    ; the ship's column up to the band's foot, the line over the mark. The
+    ; lance is spent only by a kill (journal §BL 5).
     ldy lance_y
     dey
     tya
-    bcc @top
+    bcc @miss
     ldy _lance_module
     lda boss_mbottom_y,y
+    bcs @top                            ; always
+@miss:
+    ldy #$FF
+    sty _lance_module                   ; nothing locked (the core, a cover: refused)
+    ldy player_x                        ; the ship's centre (x + 8), less 4
+    iny
+    iny
+    iny
+    iny
+    sty torpedo_x
 @top:
     sta lance_top
-    lda player_y
+    lda player_y                        ; the torpedo's rows above the ship's
+    sec
+    sbc #TORPEDO_ROWS
     sta lance_head
-    inc lance_beam                      ; 1: growing (C kept)
-    bcc @dark                           ; no target: still ready, the indicator on
-    lda #$00                            ; the lance spent: the indicator off on the fire frame
-    sta lance_ready
-    jsr lance_indicate
+    lda #$01
+    sta lance_beam
+    ldx #$00                            ; (the discharge's X)
 @dark:
     stx LANCE_HPOSP1                    ; X = 0
 @rts:
     rts
-@dark_gauge:
-    stx LANCE_HPOSP1                    ; X = 0
-    jmp gauge_ready
 @show:
     ; The mark (journal §BH 2): the crosshair over a target, the hollow mark
     ; over none - a change rewrites the four rows they differ in.
@@ -364,8 +315,6 @@ lance_aim:
     sbc #$00                            ; 0 the crosshair, $FF the hollow mark
     cmp lance_hollow
     beq @mark
-    ldy #GAUGE_SKIP                     ; the mark's swap: no gauge write on its frame
-    sty gauge_ramp
     sta lance_hollow
     ldy lance_y
     tax
@@ -382,22 +331,145 @@ lance_aim:
 @mark:
     tay
     bne @hollow
-    ldx _lance_module                   ; its centre: (mx + mxe) * 2 clocks, less 4
-    lda boss_mx,x
-    clc
-    adc boss_mxe,x
-    asl                                 ; mx + mxe < 128: C=0
-    adc #(BAND_ORIGIN_HPOS - 4)
-    sec
-    sbc boss_shown_pos
+    ldx _lance_module
+    jsr lance_centre
     sta LANCE_HPOSP1
-    jmp gauge_ready
+    rts
 @hollow:
     lda player_x                        ; the ship's centre (x + 8), less 4
     clc
     adc #$04
     sta LANCE_HPOSP1
-    jmp gauge_ready
+    rts
+
+; The torpedo's frames. A = lance_beam: 1 the torpedo in flight (the lance
+; still ready: only a kill spends it), 2 its explosion (the meter filling on
+; from the kill: torpedo_blast).
+lance_torpedo:
+    lsr                                 ; C: the flight (1), clear: the explosion (2)
+    bcs torpedo_flight
+    jmp torpedo_blast                   ; slot H
+torpedo_flight:
+    ; TORPEDO_STEP lines up; arrived when it reaches its line (that frame
+    ; places nothing: its rows are cleared).
+    lda lance_head
+    sec
+    sbc #TORPEDO_STEP
+    bcc torpedo_arrive
+    cmp lance_top
+    bcc torpedo_arrive
+    beq torpedo_arrive
+    sta lance_head
+    sta @hull + 1
+    ; Homing: the locked module's current centre (the band drifts), as the
+    ; reticle's - destroyed on the way too: the torpedo flies on to its line
+    ; and hits nothing (journal §BL 5, §BH: the lance kept).
+    ldx _lance_module
+    cpx #BOSS_MAX_MODULES
+    bcs @placed                         ; a miss: the ship's column, kept since the fire frame
+    jsr lance_centre
+    sta torpedo_x
+@placed:
+    lda torpedo_x
+    sta LANCE_HPOSP1
+    sta LANCE_HPOSP2
+    ; The hull's rows (P1) - each loop's line patched into its store, the
+    ; rows indexed by X - then the last frame's hull rows under them.
+    ldx #(TORPEDO_HULL - 1)
+:   lda torpedo_hull,x
+@hull:
+    sta LANCE_P1,x
+    dex
+    bpl :-
+    lda lance_head
+    clc
+    adc #TORPEDO_P1_FROM
+    ldx #(TORPEDO_P1_LEFT - 1)
+    jsr torpedo_clear_p1
+    ; The exhaust's next window (P2) under the hull - the window kept in its
+    ; load's patched low byte - then the last frame's exhaust rows under it.
+    lda @window + 1
+    clc
+    adc #TORPEDO_EXHAUST_SHIFT
+    cmp #<(torpedo_exhaust + TORPEDO_EXHAUST_SHIFT * TORPEDO_EXHAUST_FRAMES)
+    bcc :+
+    lda #<torpedo_exhaust
+:   sta @window + 1
+    lda lance_head
+    clc
+    adc #TORPEDO_HULL
+    sta @exhaust + 1
+    ldx #(TORPEDO_EXHAUST - 1)
+@window:
+    lda torpedo_exhaust,x
+@exhaust:
+    sta LANCE_P2,x
+    dex
+    bpl @window
+    lda lance_head
+    clc
+    adc #TORPEDO_P2_FROM
+    ldx #(TORPEDO_P2_LEFT - 1)
+    ; (falls into torpedo_clear_p2)
+
+; A = a line, X = a row count less one: P2's (P1's) rows from the line
+; cleared, the line patched into the store. A = 0 after; X = 0 (P2), $FF (P1).
+torpedo_clear_p2:
+    sta @row + 1
+    lda #$00
+@row:
+    sta LANCE_P2,x
+    dex
+    bpl @row
+    inx
+    rts
+torpedo_clear_p1:
+    sta @row + 1
+    lda #$00
+@row:
+    sta LANCE_P1,x
+    dex
+    bpl @row
+    rts
+
+; The torpedo reached its line: its rows cleared (the hull's, the
+; exhaust's); the kill when its locked module stands (the frame's only
+; meeting), the explosion from the next frame; else nothing hit, the lance
+; kept, the reticle's rows back (its HPOS: the aim's, from the next frame).
+torpedo_arrive:
+    lda lance_head
+    ldx #(TORPEDO_HULL - 1)
+    jsr torpedo_clear_p1
+    lda lance_head
+    clc
+    adc #TORPEDO_HULL
+    ldx #(TORPEDO_EXHAUST - 1)
+    jsr torpedo_clear_p2                ; X = 0
+    ldy _lance_module
+    cpy #BOSS_MAX_MODULES
+    bcs @missed
+    lda lance_cell                      ; the shot's mailboxes, boss_hit's inputs
+    sta _boss_hit_cell
+    sty _boss_hit_module
+    jsr _lance_c_arrive                 ; A: 1 the kill (its HP 1, the meter emptied); X = 0
+    tay
+    beq @missed
+    stx laser_admit_operand             ; the kill is the frame's only meeting: the shots wait a frame
+    stx lance_ready                     ; the lance spent: the reticle's rows cleared
+    lda lance_y
+    ldx #(LANCE_ROWS - 1)
+    jsr torpedo_clear_p1                ; A = 0
+    jsr lance_indicate
+    lda #TORPEDO_BLAST_FRAMES + 1
+    sta torpedo_count
+    inc lance_beam                      ; 2: the explosion, from the next frame
+    jmp boss_hit
+@missed:
+    stx lance_beam                      ; X = 0: no torpedo
+    jsr lance_reticle                   ; still ready: the reticle's rows (slot H)
+    ldx #BOSS_BED_AUDF                  ; the discharge's channel back to the engine bed
+    ldy #BOSS_BED_AUDC
+    jmp lance_sound
 
 ; lance_ready changed: the indicator; on its way on, the reticle's rows and
 ; the cue.
@@ -407,30 +479,36 @@ lance_indicate:
     sta LANCE_COLPM0
     lda lance_ready
     beq @rts
-    ; On: the reticle's rows (HPOS 0 until the aim places it), drawn once a
-    ; fight at the line under the band's last shown row (the install's
-    ; boss_band_measure).
+    ; On: the reticle's rows (HPOS 0 until the aim places it) at the line
+    ; under the band's last shown row (the install's boss_band_measure) -
+    ; at every readiness: the torpedo's flight took P1.
     lda lance_y
-    bne @cue
+    bne @draw
     lda boss_capsule_y_operand
     sta lance_y
-    tay
-    inx                                 ; X = $FF on the way on (the tick's): 0
-    stx LANCE_SIZEP1
-:
-    lda lance_shape,x
-    sta LANCE_P1,y
-    iny
-    inx
-    cpx #LANCE_ROWS
-    bne :-
-@cue:
+@draw:
+    lda #$00
+    sta LANCE_SIZEP1                    ; the reticle's and the torpedo's planes single width
+    sta LANCE_SIZEP2                    ; (gameplay's players are double, src/main.s)
+    jsr lance_reticle
     ldx #LANCE_CUE_AUDF
     ldy #LANCE_CUE_AUDC
     jsr lance_sound
     lda #LANCE_CUE_FRAMES               ; boss_frame_timers gives the bed back after it
     sta boss_tick_timer                 ; (and with the sound off writes nothing)
 @rts:
+    rts
+
+; X = a module -> A = its centre's HPOS as the band shows it now:
+; (mx + mxe) * 2 clocks, less 4 (the 8-clock mark's half).
+lance_centre:
+    lda boss_mx,x
+    clc
+    adc boss_mxe,x
+    asl                                 ; mx + mxe < 128: C=0
+    adc #(BAND_ORIGIN_HPOS - 4)
+    sec
+    sbc boss_shown_pos
     rts
 
 ; X = AUDF3, Y = AUDC3, written when the sound is on.
@@ -448,155 +526,124 @@ lance_shape:    .byte $18, $18, $00, $C3, $C3, $00, $18, $18
 ; (4, frames 1-16) to near-white ($CE, frames 65-74), quickening at the end.
 lance_ramp:     .byte LANCE_READY_COLOUR, $C4, $C4, $C6, $C6, $C8, $C8, $CA, $CC, $CE, $CE
 .assert (LANCE_CHARGE_FRAMES - 1 + 7) / 8 < 11, error, "lance_ramp: an entry for every charge frame"
+; ---------------------------------------------------------------------------
+; Slot H (journal §BL, the owner's answer of 2026-10-21): the lance's second
+; run, page 4 ($0400-$04FF, the OS's cassette buffer - no path of the game
+; uses it), read from disk at every boss entry after slot G and folded into
+; the head's check with it: the HUD meter, the explosion and the torpedo's
+; shapes - the lance run (slot G) holds six sectors.
+; ---------------------------------------------------------------------------
+.segment "LANCE_PAGE"
 
-; ===========================================================================
-; The gauges (M6 stage 1b, journal §BK; docs/plans/m6-gauges.md §3): P2, the
-; boss sector only (P1 / P2 are the Heavy class's in space sectors - the owner's
-; answer, §BK 4), in the lasers' colour (COLPM2 is laser M2's, never written
-; here - §BK 5). Bottom-left, from the bottom up: the lance icon, the meter's
-; four dots (25 / 50 / 75 / 100 %), the booster icon, the booster's four dots
-; (the HUD's lit BOOST cells, which the resident HUD code writes). The fight's
-; first frame (a filling frame: the meter is empty at the entry) draws both
-; whole - icons, eight sockets - and sets HPOSP2 (GAUGE_HPOS: the variant's,
-; scripts/build.mjs --gauge) and SIZEP2 once. Afterwards a frame writes at most
-; ONE dot (two bytes) toward the level a gauge should show, and nothing when
-; both show it: the lance gauge first, then the booster's. Where it runs: the
-; meter's filling frames, and the ready frames but the fire frame, the
-; readiness change, the mark's swap and the beam's - the Bastion's headroom; a
-; step a skipped frame owed is taken on the next one that runs.
-;   the lance gauge  filling: the meter's quarters reached (gauge_quarter_*,
-;                    from scripts/lance-layout.mjs's meter frames, 4 = full);
-;                    ready: 4, and the charge empties it from the top by the
-;                    ramp's own index, (charge + 7) / 8 - 4 to frame 16, none
-;                    from 65 (gauge_charge_lit); a release refills it.
-;   the booster's    the HUD's lit cells are a prefix (activation fills all four,
-;                    the drain empties them from the top, the last one blinks):
-;                    the next cell lit is one more, the top drawn one blank one
-;                    less.
-; gauge_level holds what a gauge shows as its dots' first row index: the lance
-; 0 + lit, the booster 4 + lit (0 until the first frame drew the gauges).
-; ===========================================================================
-GAUGE_P2        = $3E00                 ; src/main.s: PLAYER2 = PMG_BASE + $0600
-GAUGE_HPOSP2    = $D002
-GAUGE_SIZEP2    = $D00A
-GAUGE_LIT       = $3C
-GAUGE_SOCKET    = $24
-GAUGE_ICON_ROWS = 6
-GAUGE_LANCE_ICON_Y = 232                ; above the HUD's line (240-247)
-GAUGE_BOOST_ICON_Y = 209
-GAUGE_SKIP      = 11                    ; gauge_ramp: the mark's swap took the frame
-GAUGE_HUD_CELLS = SCREEN + HUD_BOOSTER_SEGMENTS_OFFSET
-.assert GAUGE_HPOS = 48 || GAUGE_HPOS = 40, error, "GAUGE_HPOS: variant A (48) or B (40), scripts/build.mjs --gauge"
-
-; Filling frames: the first draws the gauges; then the meter's quarters.
-gauge_filling:
-    lda gauge_level + 1
-    beq gauge_install
-    lda _boss_difficulty                ; its four thresholds
+; The meter's HUD cells (journal §BL 3; filling frames only - a ready lance's
+; four stay full): the fight's first frame writes the two glyphs into the HUD
+; charset; a frame whose meter shows another quarter count (lance_quarter_*:
+; the k-th at ceil(k * frames / 4), the 4th the full meter) writes the four
+; cells - the second frame's too; nothing otherwise.
+lance_hud_meter:
+    lda lance_meter_shown
+    bne @quarters
+    ldx #15
+:   lda lance_meter_glyphs,x
+    sta LANCE_HUD_CHARSET + LANCE_METER_FULL * 8,x
+    dex
+    bpl :-
+    stx lance_meter_shown               ; $FF: the cells from the next frame
+    rts
+@quarters:
+    lda _boss_difficulty
     asl
     asl
     tax
-    ldy #$00
+    ldy #$01
 @quarter:
     lda _lance_meter_lo
-    cmp gauge_quarter_lo,x
+    cmp lance_quarter_lo,x
     lda _lance_meter_hi
-    sbc gauge_quarter_hi,x
+    sbc lance_quarter_hi,x
     bcc @level
     inx
     iny
-    cpy #4
+    cpy #5
     bne @quarter
 @level:
-    tya
-    jmp gauge_lance
+    tya                                 ; 1 + the quarters reached ($FF: not drawn yet)
+    cmp lance_meter_shown
+    beq @rts
+    sta lance_meter_shown
+    dey
+    sty torpedo_count                   ; the quarters (no torpedo while the meter fills)
+    ldx #3
+@cell:
+    cpx torpedo_count                   ; C: at or past the quarters - hollow
+    lda #LANCE_METER_FULL
+    adc #$00
+    sta LANCE_METER_SCREEN,x
+    dex
+    bpl @cell
+@rts:
+    rts
 
-; Ready frames (the aim's, but the fire frame and the swap's): the charge's step.
-gauge_ready:
-    ldy gauge_ramp
-    lda gauge_charge_lit,y
-    bmi gauge_rts                       ; the mark's swap took this frame
-; A = the lance gauge's dots: a step toward them, else the booster's.
-gauge_lance:
-    ldx #0
-    cmp gauge_level
-    bne gauge_step
-    ldy gauge_level + 1                 ; 4 + the booster's lit dots
-    cpy #8
-    beq @top                            ; all four: only fewer
-    lda GAUGE_HUD_CELLS - 4,y           ; the next cell lit: one more
-    bne @more
-@top:
-    cpy #4
-    beq gauge_rts                       ; none drawn, none lit
-    lda GAUGE_HUD_CELLS - 5,y           ; the top drawn cell blank: one less
-    bne gauge_rts
-    dey
-    dey
-@more:
+; The reticle's 8 rows at lance_y: the crosshair (the aim rewrites four of
+; them for the hollow mark).
+lance_reticle:
+    lda lance_y
+    sta @row + 1
+    ldx #(LANCE_ROWS - 1)
+:   lda lance_shape,x
+@row:
+    sta LANCE_P1,x
+    dex
+    bpl :-
+    inx
+    stx lance_hollow
+    rts
+
+; The meter's glyphs (codes 59 full, 60 hollow; the first row blank, as every
+; HUD glyph's since journal §BL 1).
+lance_meter_glyphs:
+    .byte $00, $18, $3C, $7E, $7E, $3C, $18, $00
+    .byte $00, $18, $24, $42, $42, $24, $18, $00
+.assert LANCE_METER_HOLLOW = LANCE_METER_FULL + 1, error, "the meter's glyphs are one pair"
+; The explosion: TORPEDO_BLAST_FRAMES frames at the impact - its first
+; TORPEDO_BLAST_INTO rows the module's last lines (lance_top), the rest under
+; it, where the band's playfield does not cover P2 - from the frame after the
+; kill; then its rows cleared and P2 released (HPOSP2 0).
+torpedo_blast:
+    inc _lance_meter_lo                 ; the meter fills on from the kill (1 .. the explosion's frames: no full test)
+    ldx #BOSS_SHOT_ADMIT                ; AUD-04's two meetings again (the kill's frame had none)
+    stx laser_admit_operand
+    lda lance_top
+    sec
+    sbc #(TORPEDO_BLAST_INTO - 1)
+    tay                                 ; the explosion's first row
+    dec torpedo_count
+    beq @end
+    lda torpedo_count                   ; TORPEDO_BLAST_FRAMES .. 1 (the table: the last frame first)
+    asl
+    asl
+    asl
+    tax
+:   lda torpedo_blast_shapes - TORPEDO_BLAST_ROWS,x
+    sta LANCE_P2,y
     iny
+    inx
+    txa
+    and #(TORPEDO_BLAST_ROWS - 1)
+    bne :-
+    rts
+@end:
+    lda #$00
+    sta lance_beam                      ; done
+    sta LANCE_HPOSP2
     tya
-    inx                                 ; X = 1: the booster
-; X = the gauge (0 the lance, 1 the booster), A = the row index it should show:
-; ONE dot toward it.
-gauge_step:
-    cmp gauge_level,x
-    beq gauge_rts
-    bcs @up
-    dec gauge_level,x                   ; fewer: the top lit dot back to its socket
-    ldy gauge_level,x
-    lda #GAUGE_SOCKET
-    bne @dot
-@up:
-    ldy gauge_level,x                   ; more: the next dot lit
-    inc gauge_level,x
-    lda #GAUGE_LIT
-@dot:
-    ldx gauge_rows,y
-    sta GAUGE_P2,x
-    sta GAUGE_P2 + 1,x
-gauge_rts:
-    rts
+    ldx #(TORPEDO_BLAST_ROWS - 1)
+    jmp torpedo_clear_p2
+.assert TORPEDO_BLAST_ROWS = 8, error, "the explosion's row loop ends on a multiple of 8"
 
-; The fight's first frame: the position and width once, both icons and the
-; eight sockets (P2 is clear: the entry's hand-over cleared PMG).
-gauge_install:
-    lda #GAUGE_HPOS
-    sta GAUGE_HPOSP2
-    ldx #(GAUGE_ICON_ROWS - 1)
-@icon:
-    lda gauge_lance_icon,x
-    sta GAUGE_P2 + GAUGE_LANCE_ICON_Y,x
-    lda gauge_boost_icon,x
-    sta GAUGE_P2 + GAUGE_BOOST_ICON_Y,x
-    dex
-    bpl @icon
-    ldx #7
-@socket:
-    ldy gauge_rows,x
-    lda #GAUGE_SOCKET
-    sta GAUGE_P2,y
-    sta GAUGE_P2 + 1,y
-    dex
-    bpl @socket
-    inx                                 ; X = 0
-    stx GAUGE_SIZEP2
-    lda #4                              ; the booster's: 4 + none lit (and drawn)
-    sta gauge_level + 1
-    rts
-
-; The dots' first rows: the lance's (0-3, 25 % at the bottom) and the booster's
-; (4-7), two lines a dot, three apart.
-gauge_rows:     .byte 228, 225, 222, 219, 205, 202, 199, 196
-gauge_lance_icon: .byte $18, $3C, $18, $18, $18, $24
-gauge_boost_icon: .byte $18, $24, $42, $18, $24, $42
-; The lance gauge's dots while charging, by the ramp's index (charge + 7) / 8;
-; GAUGE_SKIP's entry is the swap's (no gauge work).
-gauge_charge_lit: .byte 4, 4, 4, 3, 3, 2, 2, 1, 1, 0, 0, $80
-.assert (LANCE_CHARGE_FRAMES - 1 + 7) / 8 < GAUGE_SKIP, error, "gauge_charge_lit: an entry for every charge frame"
-; The meter's quarters per difficulty (EASY, MEDIUM, HARD): the k-th dot at
+; The meter's quarters per difficulty (EASY, MEDIUM, HARD): the k-th at
 ; ceil(k * frames / 4); the 4th is the full meter - a lance ready.
-gauge_quarter_lo:
+lance_quarter_lo:
     .repeat 4, K
         .byte <(((K + 1) * LANCE_METER_EASY + 3) / 4)
     .endrepeat
@@ -606,7 +653,7 @@ gauge_quarter_lo:
     .repeat 4, K
         .byte <(((K + 1) * LANCE_METER_HARD + 3) / 4)
     .endrepeat
-gauge_quarter_hi:
+lance_quarter_hi:
     .repeat 4, K
         .byte >(((K + 1) * LANCE_METER_EASY + 3) / 4)
     .endrepeat
@@ -617,14 +664,45 @@ gauge_quarter_hi:
         .byte >(((K + 1) * LANCE_METER_HARD + 3) / 4)
     .endrepeat
 
+; The torpedo's shapes (the looks above).
+.if TORPEDO_FLIGHT = 1
+torpedo_hull:    .byte $18, $3C, $3C, $3C, $7E
+torpedo_exhaust: .byte $3C, $18, $18, $00
+                 .byte $18, $3C, $08, $10
+                 .byte $3C, $24, $18, $08
+.else
+torpedo_hull:    .byte $18, $3C, $3C, $3C, $7E, $66
+torpedo_exhaust: .byte $3C, $18, $3C, $18, $18, $08, $10, $08, $00, $10, $00   ; the strip
+.endif
+.assert * - torpedo_exhaust = TORPEDO_EXHAUST + TORPEDO_EXHAUST_SHIFT * (TORPEDO_EXHAUST_FRAMES - 1), error, "the exhaust's windows"
+.assert >(* - 1) = >torpedo_exhaust && <torpedo_exhaust + TORPEDO_EXHAUST_SHIFT * TORPEDO_EXHAUST_FRAMES <= $FF, error, "the exhaust's windows: one page (the patched low byte)"
+.if TORPEDO_BLAST = 1
+torpedo_blast_shapes:                   ; a: an expanding ring (the last frame first)
+    .byte $42, $81, $00, $00, $00, $00, $81, $42
+    .byte $3C, $42, $81, $81, $81, $81, $42, $3C
+    .byte $00, $3C, $42, $42, $42, $42, $3C, $00
+    .byte $00, $00, $18, $24, $24, $18, $00, $00
+    .byte $00, $00, $00, $18, $18, $00, $00, $00
+.else
+torpedo_blast_shapes:                   ; b: a burst of sparks (the last frame first)
+    .byte $00, $81, $00, $00, $00, $00, $81, $00
+    .byte $81, $00, $24, $00, $00, $24, $00, $81
+    .byte $82, $44, $00, $28, $00, $44, $82, $00
+    .byte $00, $44, $28, $10, $28, $44, $00, $00
+    .byte $00, $00, $10, $38, $10, $00, $00, $00
+.endif
+.assert * - torpedo_blast_shapes = TORPEDO_BLAST_FRAMES * TORPEDO_BLAST_ROWS, error, "the explosion's frames"
+
 .segment "LANCE_BSS"
-lance_beam:     .res 1                  ; 0 none, 1 growing, 2 .. 1 + LANCE_HOLD held, then erased
-lance_head:     .res 1                  ; the beam's top line
-lance_top:      .res 1                  ; the module's bottom line
+lance_beam:     .res 1                  ; 0 none, 1 the torpedo in flight, 2 its explosion
+lance_head:     .res 1                  ; the torpedo's top line
+lance_top:      .res 1                  ; its line: the module's bottom one, or the band's foot
 lance_y:        .res 1                  ; the reticle's first line, 0 not drawn yet
-_lance_module:  .res 1                  ; the target's module and band column; the beam's once fired
+_lance_module:  .res 1                  ; the target's module and band column; the torpedo's locked one
 lance_cell:     .res 1
 lance_ready:    .res 1                  ; what the indicator shows: $FF a lance ready, 0 not
-lance_hollow:   .res 1                  ; the mark drawn: 0 the crosshair (lance_indicate's), $FF the hollow one
-gauge_level:    .res 2                  ; the gauges' shown dots: the lance 0 + lit, the booster 4 + lit (0: not drawn)
-gauge_ramp:     .res 1                  ; this ready frame's ramp index, GAUGE_SKIP on the mark's swap
+lance_hollow:   .res 1                  ; the mark drawn: 0 the crosshair (lance_reticle's), $FF the hollow one
+lance_stick:    .res 1                  ; a slow frame's stick: PORTA with UP released (the axis rule)
+lance_meter_shown: .res 1               ; 1 + the HUD meter's full cells; 0 the glyphs not written yet, $FF the cells
+torpedo_x:      .res 1                  ; its HPOS (a miss: the ship's column at the fire)
+torpedo_count:  .res 1                  ; the explosion's frames left; the exhaust's row count; the meter's quarters

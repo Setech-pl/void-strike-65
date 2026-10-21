@@ -16,7 +16,7 @@ const durablePath = path.join(root, "docs/diagnostics",
 const buildPath = path.join(root, "build/runtime-wall-trace",
   "booster-admission-final-diagnostic.json");
 const PAL_FRAME_CYCLES = 35_568;
-const TARGET_CYCLES = 31_200;
+const TARGET_CYCLES = 31_500 /* the DMA-on target since M6 stage 1b (scripts/pal-timing-audit.mjs TARGET_CYCLES) */;
 const HARD_CYCLES = 32_568;
 const HAZARD_PICKUP_BIT = 0x08;
 const phaseHazards = [0x00, 0x09, 0x0b, 0x0f, 0x09, 0x0f, 0x09, 0x0f];

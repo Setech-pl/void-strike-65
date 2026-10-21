@@ -178,7 +178,7 @@ const report = {
     maximum_frame_body_wall_cycles: Math.max(...summaries.map((row) => row.maximum_wall_cycles)),
     minimum_raw_cadence_cycles: Math.min(...summaries.map((row) => row.minimum_raw_cadence_cycles)),
     maximum_raw_cadence_cycles: Math.max(...summaries.map((row) => row.maximum_raw_cadence_cycles)),
-    target_overruns: allRows.filter((row) => activeWork(row) > 31_200).length,
+    target_overruns: allRows.filter((row) => activeWork(row) > 31_500 /* the DMA-on target since M6 stage 1b (scripts/pal-timing-audit.mjs TARGET_CYCLES) */).length,
     hard_overruns: allRows.filter((row) => activeWork(row) > 32_568).length,
     missed_frames: 0,
     extra_vbi_boundaries: 0,

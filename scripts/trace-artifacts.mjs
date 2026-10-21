@@ -14,9 +14,9 @@ import path from "node:path";
 // feat/boss-r1-tuning: and the boss comparison variants' routes.
 // feat/boss-escort-flow: and the escort variants' routes.
 // M6: and the VOID LANCE's comparison routes (journal §BG: the readiness
-// indicator; §BF: the forward-only slow charge). M6 stage 1b: the PMG
-// gauges' two variants (docs/plans/m6-gauges.md §3.4).
-const DEBUG_ROUTE_VARIANT = /^(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-|field-variant-[ab]-|gauge-[ab]-)?(?:laser-fixture-[24]-|laser-tier-[124]-|lance-slow-forward-)?(?:boss-region-[2-4]-)?level-\d+-s\d+$/;
+// indicator). M6 stage 1b after the smoke (journal §BL 6-7): the torpedo's
+// looks and the charge's two lengths.
+const DEBUG_ROUTE_VARIANT = /^(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-|field-variant-[ab]-)?(?:laser-fixture-[24]-|laser-tier-[124]-)?(?:torpedo-[ab]{2}-)?(?:lance-charge-(?:50|75)-)?(?:boss-region-[2-4]-)?level-\d+-s\d+$/;
 // The flags a diagnostic run may carry. Every other mode either writes docs/
 // (boot smoke, menu raster, capital/player collision, the full run) or reuses
 // a default-build trace.

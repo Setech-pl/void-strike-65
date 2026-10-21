@@ -30,7 +30,11 @@ import path from "node:path";
 export const PAL_FRAME_CYCLES = 35_568;
 export const LINE_CYCLES = 114;
 export const HARD_GATE_CYCLES = 32_568;
-export const TARGET_CYCLES = 31_200;
+// The DMA-on target: 31,500 since M6 stage 1b (journal §BL 1) - an accounting
+// change: the HUD's ANTIC DMA, on lines 240-247 since the HUD moved to the
+// bottom, falls inside the measured main-loop window (on lines 8-15 it was
+// before the frame token). It was 31,200; the hard gate is unchanged.
+export const TARGET_CYCLES = 31_500;
 // GO: the worst line-238 fence margin a replay must keep (docs/STATUS.md,
 // "worst fence margin (GO >= 500)").
 export const GO_FENCE_MARGIN_CYCLES = 500;

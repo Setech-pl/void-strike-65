@@ -6,19 +6,20 @@
  * LANCE_METER_FRAMES boss frames (1,250: 25 s on MEDIUM, scaled by the
  * difficulty as the boss's hit points are - x 3/4 on EASY, x 5/4 on HARD);
  * full, ONE lance is ready (no stacking). Then FIRE held with the stick held
- * up for LANCE_CHARGE_FRAMES (75: 1.5 s), whatever is under the ship (journal
- * §BH 1) - and the beam fires: over a module a player shot would hurt it
- * destroys that one module and the shot empties the meter; over none it
- * flies to the reticle's line and the lance is kept (§BH 3). The ordinary fire is never
- * changed (journal §BE; the gesture, §BF); while the charge builds the ship
- * moves at 1 / LANCE_CHARGE_SPEED_DIVISOR of its speed (§BF 2:
- * src/hybrid/lance.s reads lance_charge). The constants are
- * scripts/lance-layout.mjs's, side by side, passed by scripts/build.mjs. This
- * file decides; src/hybrid/lance.s executes (the readiness indicator, the
- * target pick under the ship with its exposed bit, the reticle on P1 while a
- * lance is ready - the crosshair or the hollow mark - its HPOS, the slow
- * frames, the beam in P0, the kill through
- * boss_hit) - C/ASM ownership, AGENTS.md.
+ * up for LANCE_CHARGE_FRAMES, whatever is under the ship (journal §BH 1) -
+ * and a torpedo fires (journal §BL 5), locked on the module under the ship:
+ * over a module a player shot would hurt it destroys that one module, and
+ * only that kill empties the meter; over none, or with the module destroyed
+ * on the torpedo's way, nothing is hit and the lance is kept (§BH 3). The
+ * ordinary fire is never changed (journal §BE; the gesture, §BF); while the
+ * charge builds the ship advances at 1 / LANCE_CHARGE_UP_DIVISOR of its speed
+ * and moves sideways at full speed (journal §BL 4: src/hybrid/lance.s reads
+ * lance_charge). The constants are scripts/lance-layout.mjs's, passed by
+ * scripts/build.mjs. This file decides; src/hybrid/lance.s executes (the
+ * readiness indicator, the target pick under the ship with its exposed bit,
+ * the reticle on P1 while a lance is ready, the slow frames, the torpedo on
+ * P1 / P2 and its explosion, the kill through boss_hit) - C/ASM ownership,
+ * AGENTS.md.
  *
  * It lives in the lance's own boss run (the window's unclaimed tail,
  * allocated from $BBFF down), read from disk at every boss entry; its BSS is
@@ -41,11 +42,11 @@
 extern uint8_t boss_hp[];
 extern uint8_t boss_kind[];
 extern volatile uint8_t boss_difficulty[];     /* [0] DIFFICULTY_SETTING: 0 EASY .. 2 HARD */
-/* In: the target (src/hybrid/lance.s fills it every frame with no beam up):
+/* In: the target (src/hybrid/lance.s fills it every frame with no torpedo):
  * the column map's front module under the ship's centre when it is exposed
  * (BOSS_COLUMN_ARMOUR / OPEN, $FF for none or covered, are >=
- * BOSS_MAX_MODULES); the beam's module once fired (no aim while the beam is
- * up). The tick copies it into boss_hit_module for boss_hit on the beam's
+ * BOSS_MAX_MODULES); the torpedo's locked module once fired (no aim while it
+ * flies). The tick copies it into boss_hit_module for boss_hit on the torpedo's
  * arrival frame. */
 extern uint8_t lance_module;
 
@@ -63,8 +64,9 @@ extern uint8_t lance_module;
 /* What the frame does (src/hybrid/lance.s acts on it): bit 0 the reticle
  * lit (not the charge's blink's dark frames, two of four), bit 1 a target
  * under the ship (the crosshair at its centre; without, the hollow mark at
- * the ship's column - journal §BH 2), bit 2 the beam fires (with bit 1: at
- * lance_module, the lance spent; without: to the mark, the lance kept). */
+ * the ship's column - journal §BH 2), bit 2 the torpedo fires (with bit 1:
+ * locked on lance_module, the lance spent by its kill; without: to the band's
+ * foot, the lance kept). */
 #define LANCE_LIT       1u
 #define LANCE_TARGET    2u
 #define LANCE_FIRE      4u
@@ -90,7 +92,7 @@ uint8_t lance_trig;
  * software stack). */
 static uint8_t lance_target;
 
-/* Every boss frame, the beam's too (decision BG 1): 1 - the meter is full,
+/* Every boss frame with no torpedo (decision BG 1): 1 - the meter is full,
  * a lance is ready; 0 - one frame more on the meter. */
 uint8_t lance_c_fill(void)
 {
@@ -104,7 +106,7 @@ uint8_t lance_c_fill(void)
     return 0u;
 }
 
-/* Every boss frame with no beam up while a lance is ready (the tick runs
+/* Every boss frame with no torpedo while a lance is ready (the tick runs
  * none while the meter fills, the ship dies or the fight is over - so the
  * gesture does nothing then, decision BG 2). A target is what a player shot
  * there would hurt - the column map's front module, exposed (the tick's pick:
@@ -114,8 +116,8 @@ uint8_t lance_c_fill(void)
  * $FF for none. The charge builds whatever is under the ship and however
  * that changes (journal §BH 1: FIRE + UP held, level-triggered); only
  * releasing the gesture before the last frame cancels it. On the last frame
- * the target decides: one - the shot empties the meter; none - the beam flies
- * and the lance is kept (§BH 3). */
+ * the target decides: one - the torpedo locks it (its kill empties the
+ * meter); none - the torpedo flies and the lance is kept (§BH 3). */
 uint8_t lance_c_aim(void)
 {
     lance_target = 0u;
@@ -128,27 +130,25 @@ uint8_t lance_c_aim(void)
     }
     ++lance_charge;
     if (lance_charge == LANCE_CHARGE_FRAMES) {
-        lance_charge = 0u;
-        if (lance_target != 0u) {
-            lance_meter_lo = 0u;             /* the shot empties the meter (BG 1) */
-            lance_meter_hi = 0u;
-        }
+        lance_charge = 0u;                   /* the torpedo fires: the kill spends the lance (§BL 5) */
         return lance_target | LANCE_FIRE;
     }
     return lance_target | (((lance_charge >> 1) & 1u) ^ LANCE_LIT);
 }
 
-/* The beam reached its module (lance_module): 1 - the kill goes through
- * the shot's own path (boss_hit, boss_c_hit) with the module's HP at 1,
- * exactly one module; 0 - nothing to kill: the player's shots fly while the
- * beam is up, and one destroyed the module on the beam's way. The lance is
- * spent either way. (After the defeat boss_hit spends it as it spends a
- * shot.) */
+/* The torpedo reached its locked module (lance_module): 1 - the kill goes
+ * through the shot's own path (boss_hit, boss_c_hit) with the module's HP at
+ * 1, exactly one module, and spends the lance - the meter emptied (journal
+ * §BL 5: only a kill spends it); 0 - nothing to kill: a player shot destroyed
+ * the module on the torpedo's way, and the lance is kept (§BH's rule). (After
+ * the defeat boss_hit spends it as it spends a shot.) */
 uint8_t lance_c_arrive(void)
 {
     if (boss_hp[lance_module] == 0u) {
         return 0u;
     }
     boss_hp[lance_module] = 1u;
+    lance_meter_lo = 0u;
+    lance_meter_hi = 0u;
     return 1u;
 }

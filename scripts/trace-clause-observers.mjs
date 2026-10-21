@@ -279,7 +279,13 @@ export function lightCoverage(rows, sectors) {
 // the lance's own code writing its own state (only into the lance's RAM).
 // Anything else - any write into the window's room to grow, below the lance -
 // is foreign. Subject: the boss entries that read the whole run.
-export function windowTailWriteClause(watches, { labels, readerAddress, readerEnd, lanceAddress, lanceCodeEnd, runBytes }) {
+// Journal §BL (the owner's answer of 2026-10-21): the lance's second run, page
+// 4 ($0400-$04FF, `page`: { address, end, bytes }) - its code is the lance's
+// own too; page 4 itself is written only by the start-up writers, the sector
+// reader's read of the run at a boss entry and the page's own code (its
+// patched store operands).
+export function windowTailWriteClause(watches, { labels, readerAddress, readerEnd, lanceAddress, lanceCodeEnd, runBytes,
+  page = null }) {
   const copyStart = labels.get("copy_hud_charset");
   const copyEnd = [...labels.values()].filter((address) => address > copyStart).reduce((a, b) => Math.min(a, b), 0x10000);
   const violations = [];
@@ -296,7 +302,8 @@ export function windowTailWriteClause(watches, { labels, readerAddress, readerEn
       const inLance = (writer.min_address ?? writer.first_address) >= lanceAddress;
       const kind = writer.pc >= readerAddress && writer.pc < readerEnd && inLance && writer.first_frame > copyFirst
         ? "lance run read"
-        : writer.pc >= lanceAddress && writer.pc < lanceCodeEnd && inLance ? "the lance's state"
+        : (writer.pc >= lanceAddress && writer.pc < lanceCodeEnd ||
+          page !== null && writer.pc >= page.address && writer.pc < page.end) && inLance ? "the lance's state"
           : writer.first_frame <= copyFirst ? "start-up" : null;
       const key = `$${writer.pc.toString(16)}`;
       const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
@@ -322,11 +329,38 @@ export function windowTailWriteClause(watches, { labels, readerAddress, readerEn
     if ((tail.overflow ?? 0) > 0) {
       violations.push({ session: watch.session, message: `the window tail watch overflowed (${tail.overflow} writes untracked)` });
     }
+    const four = watch.page_4;
+    if (page === null || four === undefined) continue;
+    let pageReads = 0;
+    for (const writer of four.writers) {
+      const kind = writer.pc >= readerAddress && writer.pc < readerEnd && writer.first_frame > copyFirst ? "page 4 read"
+        : writer.pc >= page.address && writer.pc < page.end ? "the page's own operands"
+          : writer.last_frame <= copyFirst ? "start-up" : null;
+      const key = `$${writer.pc.toString(16)} (page 4)`;
+      const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
+      entry.sessions += 1;
+      entry.count += writer.count;
+      writers.set(key, entry);
+      if (kind === null) {
+        violations.push({ session: watch.session, message: `$${writer.pc.toString(16)} wrote page 4 ` +
+          `${writer.count} times (frames ${writer.first_frame}-${writer.last_frame}, ` +
+          `$${writer.min_address.toString(16)}-$${writer.max_address.toString(16)}), ` +
+          "not a start-up writer, the lance page run's read or its own code" });
+      }
+      if (kind === "page 4 read") pageReads += writer.count;
+    }
+    if (watch.bossEntry && readerWrites > 0 && pageReads < page.bytes) {
+      violations.push({ session: watch.session, message: `the boss entry wrote ${pageReads} B of page 4 (expected >= ${page.bytes})` });
+    }
+    if ((four.overflow ?? 0) > 0) {
+      violations.push({ session: watch.session, message: `the page 4 watch overflowed (${four.overflow} writes untracked)` });
+    }
   }
   return {
     clause: "the window's unclaimed tail (the window's end to $BBFF) is written only by the start-up writers, the " +
-      "sector reader's read of the lance run into the lance's RAM at a boss entry, and the lance's own code into " +
-      "its own RAM, in every replay (decision BD 6)",
+      "sector reader's read of the lance run into the lance's RAM at a boss entry, and the lance's own code (its " +
+      "page 4 run's too) into its own RAM; page 4 only by the start-up writers, the read of its run and its own " +
+      "code, in every replay (decision BD 6, journal §BL)",
     sessions: watches.length, subject, lanceWrites, writers: [...writers.values()], violations,
   };
 }

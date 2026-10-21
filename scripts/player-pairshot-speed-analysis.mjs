@@ -65,7 +65,7 @@ const sessions = modes.map((mode) => {
     frames: frames.length,
     maximum_active_work_cycles: Math.max(...frames.map((row) => row.wall_cycles)),
     missed_frames: frames.reduce((sum, row) => sum + row.missed_frames, 0),
-    target_overruns: frames.filter((row) => row.wall_cycles > 31_200).length,
+    target_overruns: frames.filter((row) => row.wall_cycles > 31_500 /* the DMA-on target since M6 stage 1b (scripts/pal-timing-audit.mjs TARGET_CYCLES) */).length,
     hard_overruns: frames.filter((row) => row.wall_cycles > 32_568).length,
     pairshot_orphan_cells: frames.reduce((sum, row) =>
       sum + row.player_projectile_orphan_cells, 0),

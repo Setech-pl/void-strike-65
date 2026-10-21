@@ -173,7 +173,7 @@ for (const mode of modes) {
     after_timeline: representative(pairRows, reentries[0], reentries[0] + 120),
     runtime: {
       maximum_wall_cycles: maximum(frameRows, "wall_cycles"),
-      target_overruns: frameRows.filter((row) => row.wall_cycles > 31_200).length,
+      target_overruns: frameRows.filter((row) => row.wall_cycles > 31_500 /* the DMA-on target since M6 stage 1b (scripts/pal-timing-audit.mjs TARGET_CYCLES) */).length,
       hard_overruns: frameRows.filter((row) => row.wall_cycles > 32_568).length,
       missed_frames: sum(frameRows, "missed_frames"),
       extra_vbi_boundaries: sum(frameRows, "extra_vbi_boundaries"),

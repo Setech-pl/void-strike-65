@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-21 (feat/m6-gauges: M6 stage 1b - the HUD at the bottom and the boss sector's PMG gauges in two variants, A over column 0 and B in the left border, built and measured, OWNER-SMOKE CANDIDATE awaiting the owner's choice, journal §BK; main stays at M6 stage 1 final, OWNER-ACCEPTED, journal §BJ)
+Last update: 2026-10-21 (feat/m6-gauges: M6 stage 1b after the owner's smoke - the HUD at the bottom with the VOID LANCE meter, the axis rule, the torpedo in a second boss run at page 4; the torpedo's four looks and the 50 / 75-frame charge built for the owner's choice, OWNER-SMOKE CANDIDATE, journal §BL; main stays at M6 stage 1 final, OWNER-ACCEPTED, journal §BJ)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -426,36 +426,39 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## M6 stage 1b — the HUD at the bottom, the boss sector's PMG gauges, two variants (feat/m6-gauges) — `OWNER-SMOKE CANDIDATE` (2026-10-21, awaiting the owner's choice of A or B)
+## M6 stage 1b — the HUD at the bottom, the lance meter in the HUD, the axis rule, the torpedo (feat/m6-gauges) — `OWNER-SMOKE CANDIDATE` (2026-10-21, awaiting the owner's choice of the torpedo's look and the charge's length)
 
-Plan [plans/m6-gauges.md](plans/m6-gauges.md) (§5 as built and measured); journal **§BK** (the brief and the session's two answers: the PMG gauges in the boss sector only - P1 / P2 are the Heavy class's in space sectors - and in the lasers' colour, COLPM2 as it is).
+Plan [plans/m6-gauges.md](plans/m6-gauges.md) §7 (design) and §8 (as built and measured); journal **§BL** (the owner's decisions after the smoke of `5bc8d51`, and the same day's answers: the hull in P1 and the exhaust in P2, both homing; the second run at page 4). §BK's PMG gauges are gone.
+
+**Hardware checklist for this stage, first item: the HUD fully visible on the CRT** (scanlines 240-247). Then: the list's JMP resuming at line 8 (stage 1b's layout); the torpedo's look next to the Breaker's beam.
 
 **What the player gets.**
-- **The HUD's line at the bottom** (scanlines 240-247, after the ring), its separator line on top; the playfield, the ship and every PMG / character coordinate keep their lines; every DLI keeps its scanline.
-- **In the boss sector, bottom-left in P2:** the lance icon, the lance meter's 4 dots (25 / 50 / 75 / 100 %; the charge empties them from the top over the 75 frames, a release fills them again), the booster icon and the booster's 4 dots (the HUD's lit BOOST cells, its blink included). Drawn whole on the fight's first frame; afterwards one dot (2 bytes) on a frame where a gauge changes, nothing otherwise; `HPOSP2` once a sector. **A:** HPOS 48 (over playfield column 0). **B:** HPOS 40 (the left border; a CRT's overscan may cut it - the owner's TV check). In space sectors the booster stays the HUD's BOOST bar.
+- **The HUD's line at the bottom** (scanlines 240-247): its first line blank (no separator - it was notched by the glyph tops and flickered), the text on 241-247. Cells: `L` lives, `H` the hull's four plates, `B` and the booster's four cells (while one runs), the VOID LANCE meter (cells 15-18, the boss sector only), `SCORE` at the right end. Every DLI keeps its scanline.
+- **The meter in the HUD:** four cells, hollow -> full by the meter's quarters, all four full while a lance is ready; written only when the quarter count changes.
+- **The axis rule:** while the charge builds the ship moves sideways at full speed and advances (UP) at half speed.
+- **The torpedo:** the charge fires a torpedo, not a beam - the hull in P1, the exhaust in P2, both in the lasers' colour, both homing on the module locked on the fire frame (identical in all four regions; `HPOSP1` / `HPOSP2` written only in flight). A kill: the module destroyed through the shot's path, a 5-frame explosion at the impact (P2), then P2 released; the lance spent. A miss, or the locked module destroyed on the way: the torpedo flies on to its line and hits nothing; the lance kept, the reticle back. **P1 after a kill:** empty (the frame the explosion ends shows nothing in P1 until the next readiness draws the reticle); **after a miss:** the reticle's 8 rows, from the next frame at the aim's HPOS.
+- **For the owner's choice** (build flags, both built): `--torpedo=<flight><blast>` - flight **a** (8 lines a frame, a 5-row hull, a 4-row exhaust over 3 frames) or **b** (4 lines a frame, a 6-row hull, a 5-row tail over 4 frames); explosion **a** (an expanding ring) or **b** (a burst of sparks); and `--lance-charge=50|75`. Default until the owner picks: **aa, 75**.
 
-**Layout (Part 1).** A list is the divider, the 27 ring rows, the HUD and a **JMP** (a JVB after line 247 would only run at line 8 of the next frame and blank it: MEASURED, every frame missed); the lists share one 7-blank-line header with the first DLI at **`$7F10`**, before list A (`$7F11`, B `$7F6B-$7FC4`); `HYBRID_LIGHT_SLOTS` one byte up (`$7FC5-$7FFF`, its one free byte; exactly full). The arena is untouched (the owner's 14-B floor, decision AK). Display installs enter at list A's JMP (line 8). Resident code byte-neutral; initial block content 13,623 -> 13,622 B, **107 sectors**; STARFIELD packed 1,750 -> 1,751 B (raw unchanged), its packed hard-gate margin **75 -> 74 B** (reported, re-pinned). **Hardware check for the smoke:** the list's JMP relies on ANTIC resuming an unfinished list at line 8 after vertical blank (documented; Atari800 emulates it).
+**Room.** The torpedo and the meter came to ~1,069 B against the lance run's six sectors (`BLOCKED_LANCE_RUN_BYTES`); the owner chose a **second boss run, slot H: page 4 (`$0400-$04FF`), sectors 718-719** - the HUD meter, the reticle's rows, the explosion and the torpedo's shapes. The lance run is **six sectors (712-717), 759 of 768 B**; page 4 **251 B of 256** (every look). **The window keeps 214 B** (`tests/lance.test.mjs`' >= 160 B guard green again). Slot A **4 B free** (2,044 of 2,048: the run table's 5 B). **Resident 0 B, window record 0 B.** Page 4 is folded into the head's check like slots C-G (a damaged sector: WRONG DISK before the install). **Page 4's writers (MEASURED, the trace's `page_4` watch, every replay of the four routes - full fights, kills, explosions and misses in all four regions):** the OS's RAM clear at boot, the sector reader's read of the run, and the page's own code (its patched store operand); nothing else. The window-tail clause refuses any other writer, at no cost per frame.
 
-**The gauges (Part 2).** 241 B in the lance run, which takes **7 sectors (712-718)**, not the brief's 6 (96 B short): 880 of 896 B at `$B880-$BBFF`. **Resident 0 B, window record 0 B.** **Trade-off:** the window keeps **86 B** to grow (342 before) - stage 2's life capsule (EST 125-160 B) no longer fits there; `tests/lance.test.mjs`' guard (>= 160 B) is red on this branch, deliberately. Alternative (not built): the gauges as their own 2-sector run at the unclaimed `$0400-$04FF` (needs a write watch) - the same entry, the window room back.
+**DMA-on target 31,200 -> 31,500** (journal §BL 1; the HUD's DMA now inside the measured window; the hard gate 32,568 unchanged): `scripts/pal-timing-audit.mjs`, `scripts/runtime-wall-trace.mjs`, the analysis scripts, AGENTS.md and `docs/plans/budget-1.0.md`.
 
-**Per region (M; A = B to the cycle - their lance runs differ in one byte, the HPOS).**
+**Per region (M, look aa, charge 75).**
 
-| region | worst boss frame (headroom), state | `main` | entry, host frames (`main`) | routes: worst margin / DMA-on max |
+| region | worst boss frame (headroom), state | torpedo in flight | entry, host frames (stage 1b gauges) | routes: worst margin / DMA-on max |
 | --- | ---: | ---: | ---: | --- |
-| 1 Breaker | 7,582 (918), swap | 7,575 | **321** (314) | 8,426 / 30,128 |
-| 2 Citadel L5 | 8,438 (62), the first frame's draw | 8,422 | **336** (329) | 6,142 / 30,417 |
-| 3 Spine L9 | 8,435 (65), swap | 8,428 | **336** (329) | 4,658 / 30,775 |
-| 4 Bastion L10 | **8,469 (31)**, swap / first frame | 8,462 | **340** (332) | 6,459 / 30,109 |
+| 1 Breaker | 7,583 (917), swap | 7,544 | **325** (321) | 8,485 / 30,084 |
+| 2 Citadel L5 | 8,422 (78), flight / lost | 8,422 | **340** (336) | 6,167 / 30,556 |
+| 3 Spine L9 | 8,436 (64), swap | 8,421 | **340** (336) | 6,865 / 30,729 |
+| 4 Bastion L10 | **8,467 (33)**, swap | **8,453** (the 8,450 plan reserve: 3 over); flight b 8,471 | **344** (340) | 5,691 / 30,211 |
 
-Every state in plan §5.2's table; gauge write frames (quarter, step, refill, booster) all under each region's worst. The routes: 34 focused sessions per variant, **68 pass, 0 misses, 0 clause failures**; DMA-on +250-450 on every session (the HUD's DMA now inside the measured wall).
+Every state of `tests/lance-states.mjs` (the meter's install and quarter frames, draw, idle, charge, swap, fire, dry, the flight, the kill, the miss, the lost torpedo, the explosion and its end) on every composition: plan §8. The Bastion fixture (the lance fired on its worst frame) **8,432** (stage 1b 8,466). The routes: 35 focused sessions, **0 misses, 0 clause failures** (the three scripted diagnostic sessions on R2-R4 never shoot, so they never reach the chain - by design).
 
-**Part 1, the default trace (M, 58 replays, the candidate = A):** 0 misses, 0 clause failures; worst fence margin **1,465 -> 1,497** (`2-sweep-fire6`); **DMA-on maximum 31,059 -> 31,476** (`2-evasive-fire7`) - **17 of 58 replays over the 31,200 target** (all under 32,568): the HUD's DMA now inside the measured wall (any placement below line 15). **Gate failed by 276 cycles**; options in plan §5.1. Boss entries 314 -> 321.
+**Part 1, the default trace:** see plan §8 (the candidate, look aa).
 
-**Known side effect:** PMG rows 240-247 are now the HUD's lines - the boss's falling capsule (P3) passes over `LIFE` as it leaves (MEASURED, R1). Fix options in plan §5.1.
+**Tests (focused, the owner's rule of 2026-10-21):** `tests/hud-bottom.test.mjs` 6 of 6, `tests/torpedo.test.mjs` 7 of 7, `tests/lance.test.mjs` 34 of 34, the lance stress in `boss-stress` (region 1) and `boss-region-2` (the Bastion) pass. **No full evidence chain**: the default build refuses to link until the regeneration pass.
 
-**Tests:** `tests/gauges.test.mjs` 9 of 9 (RED first: 9 of 9 on the pre-gauge build); `tests/lance.test.mjs` 32 of 33 (the window-room guard); the lance stress in `boss-stress` / `boss-region-2/3/4` 4 of 4 with the five gauge states added (`tests/lance-states.mjs`). Layout re-pins (values only): the lists' bytes and offsets, the Light slots' base, the HUD's lines and glyph rows, the lance run's 7 sectors and the entries 83 / 87 / 87 / 88 sectors, the A2 kernel's hash, the initial block 13,622 B, STARFIELD 1,751 B. **No full evidence chain** (the brief): the default build refuses to link until the regeneration pass.
-
-**The ATRs** (`build/play/`, not committed): `void-strike-65-m6-gauges-a-full-7882e2f2.atr`, `-a-r1-breaker-b589933c`, `-a-r4-bastion-33bc3977`, `-b-full-c274458c`, `-b-r1-breaker-4797ceb7`, `-b-r4-bastion-37ca814d`; stills and GIFs in `build/play/gauges/`.
+**The ATRs** (`build/play/m6-torpedo/`, not committed): charge 50 - `void-strike-65-m6-charge50-torpedo-aa-full-a5741872.atr`, `-r1-breaker-e8ea9b35`, `-r4-bastion-e98543c9`; charge 75 - `void-strike-65-m6-charge75-torpedo-aa-full-41bd341d.atr`, `-r1-breaker-988f1cc4`, `-r4-bastion-45c69796`; the four looks on R1 / R4 in `looks/`; stills, GIFs and the x4 HUD in `media/`.
 
 ---
 

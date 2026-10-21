@@ -3485,6 +3485,26 @@ polecenia domknięcia tego etapu. Plan: `docs/plans/m6-gauges.md` §7.
    wiązki Breakera (ryzyko czytelności koloru laserów). Do wyboru wszystkie
    cztery za flagą buildu.
 
+**Dopisane tego samego dnia — druga sesja (`BLOCKED_LANCE_RUN_BYTES`).**
+Torpeda z miernikiem w HUD nie zmieściła się w sześciu sektorach przebiegu
+lancy (ok. 1 069 B na 768). Właściciel wybrał **drugi przebieg bossa, slot H:
+dwa sektory (718-719) na stronie 4, `$0400-$04FF`**, z miernikiem HUD,
+kształtami torpedy i eksplozją; przebieg lancy zostaje przy sześciu
+sektorach, okno zachowuje 214 B. Warunki: wejście w Bastion zmierzone z oboma
+przebiegami, 350 klatek to twardy limit (powyżej - STOP i raport przed
+jakimkolwiek cięciem); strona 4 to bufor kasety OS-u, więc jednorazowy watch
+zapisów w czasie działania na pełnej walce w każdym z czterech regionów
+(z eksplozją i pudłem) potwierdza, że nic innego tam nie pisze - jako tani
+strażnik tylko wtedy, gdy nie kosztuje nic na klatkę, bez nowego zestawu
+testów; drugi przebieg ma własną sumę kontrolną jak każdy blok dysku; slot A
+schodzi do 4 B wolnych. Właściciel doprecyzował też: kadłub torpedy w P1,
+płomień w P2, oba naprowadzane (HPOSP1 + HPOSP2 tylko w locie), oba w kolorze
+laserów; naprowadzanie jednakowe we wszystkich czterech regionach; po
+trafieniu lub pudle P1 czyste, celownik wraca. Kolumnę grawitacji na M0 ma
+Void Citadel (grafika `region-4`), grana jako drugi region (poziomy 4-6,
+trasa `--boss-region=2`). Nowa reguła pracy z tego dnia trafi do dziennika
+jako §BM przy finalizacji etapu.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

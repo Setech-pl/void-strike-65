@@ -18,8 +18,10 @@ a playable game.
 ## Hard platform constraints
 
 * Atari 65XE PAL, 64 KB RAM, NMOS 6502C, documented instructions only.
-* 50 frames per second. Target `31,200` cycles; hard gate `32,568`; physical
-  PAL frame `35,568`. Do not confuse these three.
+* 50 frames per second. Target `31,500` cycles; hard gate `32,568`; physical
+  PAL frame `35,568`. Do not confuse these three. (The target was `31,200`
+  until the HUD moved to the bottom, owner decision §BL 1: its ANTIC DMA now
+  falls inside the measured main-loop window.)
 * Input: joystick port 1, single fire button.
 * Distribution: the bootable `void-strike-65.atr` only. The XEX is not released
   (owner decision, 2026-09-30).

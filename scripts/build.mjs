@@ -145,7 +145,7 @@ import {
   renderBossLayoutHeader,
   renderBossLayoutInclude,
 } from "./boss-assets.mjs";
-import { checkLanceLayout, LANCE_CHARGE_FRAMES, LANCE_CHARGE_SPEED_DIVISOR, LANCE_RAM_END, lanceMeterFrames } from "./lance-layout.mjs";
+import { checkLanceLayout, LANCE_CHARGE_FRAMES, LANCE_CHARGE_UP_DIVISOR, LANCE_RAM_END, lanceMeterFrames } from "./lance-layout.mjs";
 import {
   BANNER_BASE_SECTOR,
   BANNER_BUFFER,
@@ -360,28 +360,26 @@ const laserTierValue = laserTierSlug === undefined ? null : Number(laserTierSlug
 // (scripts/lance-layout.mjs's meter) in every boss fight, and the ship turns
 // green when it is ready - indicator C, the only one since the owner's choice
 // (the torpedo, T, and its --lance-indicator build are gone).
-// M6 stage 1, the owner's choice after the comparison (journal §BF): the
-// charge is FIRE + stick UP and slows the ship in every direction. The owner's
-// comparison build --lance-slow=forward slows only the advance (UP); the
-// default "every" is the committed rule. Review variant:
-// build/lance-slow-forward[-...]/; it goes when the owner has played it.
-// M6 stage 1b (journal §BK, docs/plans/m6-gauges.md §3.4): the PMG gauges of
-// the boss sector in two variants for the owner's comparison - A over the
-// playfield's column 0 (HPOS 48), B in the left border (HPOS 40); the only
-// difference. The default is A until the owner chooses. Review variant:
-// build/gauge-<a|b>[-...]/.
-const GAUGE_HPOS = Object.freeze({ a: 48, b: 40 });
-const gaugeArgument = process.argv.find((argument) => argument.startsWith("--gauge="));
-const gaugeSlug = gaugeArgument?.slice("--gauge=".length);
-if (gaugeSlug !== undefined && !Object.hasOwn(GAUGE_HPOS, gaugeSlug)) {
-  throw new Error(`Unknown gauge variant ${gaugeSlug}; the variants are a and b`);
+// M6 stage 1b after the owner's smoke (journal §BL 4-7, docs/plans/m6-gauges.md
+// §7): the charge's axis rule (LANCE_CHARGE_UP_DIVISOR, scripts/lance-layout.mjs)
+// replaces --lance-slow; the PMG gauges and --gauge are gone (the meter is in
+// the HUD). Two comparisons for the owner, review variants:
+//   --torpedo=<flight><blast>  the torpedo's look, a / b each (aa the default
+//                              until the owner picks): build/torpedo-<xy>[-...]/
+//   --lance-charge=50|75       the charge's frames (75 the default until the
+//                              owner picks): build/lance-charge-<n>[-...]/
+const torpedoArgument = process.argv.find((argument) => argument.startsWith("--torpedo="));
+const torpedoSlug = torpedoArgument?.slice("--torpedo=".length);
+if (torpedoSlug !== undefined && !/^[ab][ab]$/.test(torpedoSlug)) {
+  throw new Error(`Unknown torpedo look ${torpedoSlug}; the looks are aa, ab, ba and bb`);
 }
-const gaugeVariant = gaugeSlug ?? "a";
-const lanceSlowArgument = process.argv.find((argument) => argument.startsWith("--lance-slow="));
-const lanceSlowSlug = lanceSlowArgument?.slice("--lance-slow=".length);
-if (lanceSlowSlug !== undefined && lanceSlowSlug !== "forward") {
-  throw new Error(`Unknown lance slow rule ${lanceSlowSlug}; the comparison is forward`);
+const torpedoLook = torpedoSlug ?? "aa";
+const lanceChargeArgument = process.argv.find((argument) => argument.startsWith("--lance-charge="));
+const lanceChargeSlug = lanceChargeArgument?.slice("--lance-charge=".length);
+if (lanceChargeSlug !== undefined && !["50", "75"].includes(lanceChargeSlug)) {
+  throw new Error(`Unknown lance charge ${lanceChargeSlug}; the comparison is 50 or 75 frames`);
 }
+const lanceChargeFrames = lanceChargeSlug === undefined ? LANCE_CHARGE_FRAMES : Number(lanceChargeSlug);
 if (laserTierValue !== null && laserFixtureTier !== null) {
   throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
 }
@@ -462,8 +460,8 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  laserTierValue !== null || bossVariantSlug !== undefined || lanceSlowSlug !== undefined ||
-  gaugeSlug !== undefined;
+  laserTierValue !== null || bossVariantSlug !== undefined || torpedoSlug !== undefined ||
+  lanceChargeSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -487,10 +485,9 @@ const variantDirectoryNameInner = (escortVariantId !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : laserTierValue !== null
   ? `laser-tier-${laserTierValue}${levelDebugSuffix}`
-  : lanceSlowSlug !== undefined
-  ? `lance-slow-${lanceSlowSlug}${levelDebugSuffix}`
-  : gaugeSlug !== undefined
-  ? `gauge-${gaugeSlug}${levelDebugSuffix}`
+  : torpedoSlug !== undefined || lanceChargeSlug !== undefined
+  ? [torpedoSlug === undefined ? null : `torpedo-${torpedoSlug}`,
+    lanceChargeSlug === undefined ? null : `lance-charge-${lanceChargeSlug}`].filter(Boolean).join("-") + levelDebugSuffix
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -679,14 +676,23 @@ const bossSlotEMaxSectors = Math.floor(BOSS_SLOT_E_BYTES / 128);
 // §6.3), so it has its own reservation at the disk's free tail (712 on; the
 // Phase A probe's place, plan §3), and 581-583 are free again: five sectors
 // (712-716) since journal §BH's hollow mark and dry shot (C had 7 B left in
-// four), with journal §BI's charge ramp and discharge; seven (712-718) since
-// M6 stage 1b's PMG gauges (journal §BK, docs/plans/m6-gauges.md §3.3: the
-// brief's sixth sector was 96 B short).
+// four), with journal §BI's charge ramp and discharge; six (712-717) since
+// journal §BL's torpedo and HUD meter (the owner's limit; the PMG gauges'
+// seventh is gone).
 const BOSS_LANCE_BASE_SECTOR = 712;
 const bossLanceSector = BOSS_LANCE_BASE_SECTOR;
-const BOSS_LANCE_SECTORS = 7;
+const BOSS_LANCE_SECTORS = 6;
 const BOSS_LANCE_BYTES = BOSS_LANCE_SECTORS * 128;
 const BOSS_LANCE_ADDRESS = LANCE_RAM_END - BOSS_LANCE_BYTES;
+// Journal §BL (the owner's answer of 2026-10-21): the lance's second run,
+// slot H - page 4 ($0400-$04FF, the OS's cassette buffer), two sectors right
+// after the lance run's (718-719): the HUD meter, the explosion and the
+// torpedo's shapes.
+const BOSS_LANCE_PAGE_SECTOR = BOSS_LANCE_BASE_SECTOR + BOSS_LANCE_SECTORS;
+const BOSS_LANCE_PAGE_SECTORS = 2;
+const BOSS_LANCE_PAGE_BYTES = BOSS_LANCE_PAGE_SECTORS * 128;
+const BOSS_LANCE_PAGE_ADDRESS = 0x0400;
+const BOSS_LANCE_RUNS_SECTORS = BOSS_LANCE_SECTORS + BOSS_LANCE_PAGE_SECTORS;
 const bossRegionBaseSector = 632;
 const bossRegionCount = 4;
 // audit-hardening (AUD-01): what the disk's identity names - the layout's
@@ -702,7 +708,7 @@ const diskLayout = Object.freeze({
   // feat/boss-banners: the regions' banner runs' reservation.
   bossBannerBaseSector: BANNER_BASE_SECTOR, bossBannerSectors: BANNER_REGION_SECTORS,
   // M6 (journal §BG): the lance run's reservation.
-  bossLanceBaseSector: BOSS_LANCE_BASE_SECTOR, bossLanceSectors: BOSS_LANCE_SECTORS,
+  bossLanceBaseSector: BOSS_LANCE_BASE_SECTOR, bossLanceSectors: BOSS_LANCE_RUNS_SECTORS,
 });
 const diskIdentity = identityBlock(diskLayout);
 // The window copies this many bytes of the region's staging run over the
@@ -3027,8 +3033,8 @@ async function build() {
       "HUD_COLPF1", "HUD_COLPF2", "STATE_GAMEPLAY", "game_state", "wait_frame_start",
       "main_loop", "sound_enabled", "GAMEPLAY_DIVIDER_SCREEN", "capital_slot_a",
       "DIFFICULTY_SETTING", "PLAYER_LIFECYCLE", "player_x", "apply_player_damage",
-      // M6 stage 1b (docs/plans/m6-gauges.md §3): the booster gauge reads the HUD's BOOST cells.
-      "HUD_BOOSTER_SEGMENTS_OFFSET",
+      // M6 stage 1b (journal §BL 3): the VOID LANCE's meter cells in the HUD.
+      "HUD_LANCE_METER_OFFSET",
       // S4b.5 (owner decision F3): a destroyed module counts for the capsule rule.
       "ENTITY_STATE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
       "integration_pickup_reveal_body",
@@ -3124,6 +3130,7 @@ async function build() {
     bossRunEntry(bossSlotDSector, slotDSectors, BOSS_SLOT_D_ADDRESS) + "\t; slot D",
     bossRunEntry(bossSlotESector, slotESectors, BOSS_SLOT_E_ADDRESS) + "\t; slot E (M5b-S4b.5)",
     bossRunEntry(bossLanceSector, BOSS_LANCE_SECTORS, BOSS_LANCE_ADDRESS) + "\t; the lance (M6)",
+    bossRunEntry(BOSS_LANCE_PAGE_SECTOR, BOSS_LANCE_PAGE_SECTORS, BOSS_LANCE_PAGE_ADDRESS) + "\t; the lance's page 4 (slot H)",
     ...Array.from({ length: bossRegionCount }, (_, index) => {
       const region = bossRegions[index];
       return region === undefined
@@ -3175,10 +3182,13 @@ async function build() {
   // moves): its code, its stock's grant, its BSS - all read from disk.
   const bossConfigLance = bossConfigRail
     .replace(/\n}\s*\nSEGMENTS/, `\n    BOSS_LANCE_RAM:   start = $${BOSS_LANCE_ADDRESS.toString(16).toUpperCase()}, ` +
-      `size = $${BOSS_LANCE_BYTES.toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, fill = yes, fillval = $00, define = yes;\n}\n\nSEGMENTS`)
+      `size = $${BOSS_LANCE_BYTES.toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, fill = yes, fillval = $00, define = yes;\n` +
+      `    BOSS_LANCE_PAGE_RAM: start = $${BOSS_LANCE_PAGE_ADDRESS.toString(16).toUpperCase().padStart(4, "0")}, ` +
+      `size = $${BOSS_LANCE_PAGE_BYTES.toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, fill = yes, fillval = $00, define = yes;\n}\n\nSEGMENTS`)
     .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    LANCE_CODE:    load = BOSS_LANCE_RAM,   type = ro, define = yes;\n` +
       `    LANCE_DATA:    load = BOSS_LANCE_RAM,   type = rw, define = yes;\n` +
-      `    LANCE_BSS:     load = BOSS_LANCE_RAM,   type = bss, define = yes;\n`);
+      `    LANCE_BSS:     load = BOSS_LANCE_RAM,   type = bss, define = yes;\n` +
+      `    LANCE_PAGE:    load = BOSS_LANCE_PAGE_RAM, type = ro, define = yes;\n`);
   // S5-5: the rails' constants for the boss link (region 2's rail block):
   // the cadences, the rows, each side's front and window, the hangar's doors
   // and core, the Director's escort clock (src/c/director.c STATE_SPACING,
@@ -3380,7 +3390,7 @@ async function build() {
   };
   const bossCAssembled = await compileBossC("boss.c", `${bossBase}-c`);
   const lanceCAssembled = await compileBossC("lance.c", `${bossBase}-lance-c`,
-    [`LANCE_CHARGE_FRAMES=${LANCE_CHARGE_FRAMES}u`,
+    [`LANCE_CHARGE_FRAMES=${lanceChargeFrames}u`,
       ...["EASY", "FRAMES", "HARD"].map((name, index) => `LANCE_METER_${name}=${lanceMeterFrames()[index]}u`)]);
   // audit-hardening (AUD-02): slot A's head checks the eight runs it reads
   // (install, slots C-E, the region's band A, band B, charset and - S5-1 -
@@ -3416,12 +3426,12 @@ async function build() {
         ...(bossGravityInclude === null ? [] : ["-D", "BOSS_GRAVITY=1"]),
         ...(bossRailInclude === null ? [] : ["-D", "BOSS_RAIL=1"]),
         ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
-        "-D", `LANCE_CHARGE_SPEED_DIVISOR=${LANCE_CHARGE_SPEED_DIVISOR}`,
-        "-D", `LANCE_CHARGE_FRAMES=${LANCE_CHARGE_FRAMES}`,
-        // M6 stage 1b (docs/plans/m6-gauges.md §3): the gauge's quarters and its variant's position.
+        "-D", `LANCE_CHARGE_UP_DIVISOR=${LANCE_CHARGE_UP_DIVISOR}`,
+        "-D", `LANCE_CHARGE_FRAMES=${lanceChargeFrames}`,
+        // M6 stage 1b (journal §BL 3, 7): the HUD meter's quarters, the torpedo's look.
         ...["EASY", "FRAMES", "HARD"].flatMap((name, index) => ["-D", `LANCE_METER_${name}=${lanceMeterFrames()[index]}`]),
-        "-D", `GAUGE_HPOS=${GAUGE_HPOS[gaugeVariant]}`,
-        ...(lanceSlowSlug === "forward" ? ["-D", "LANCE_SLOW_FORWARD=1"] : []),
+        "-D", `TORPEDO_FLIGHT=${torpedoLook[0] === "a" ? 1 : 2}`,
+        "-D", `TORPEDO_BLAST=${torpedoLook[1] === "a" ? 1 : 2}`,
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -3542,7 +3552,9 @@ async function build() {
       image.subarray(slotCAt, slotCAt + bossSlotCSectors * 128),
       image.subarray(slotDAt, slotDAt + bossSlotDSectors * 128),
       image.subarray(slotEAt, slotEAt + bossSlotESectors * 128),
-      image.subarray(image.length - BOSS_LANCE_BYTES),          // M6: the lance run, after slot E
+      image.subarray(image.length - BOSS_LANCE_PAGE_BYTES - BOSS_LANCE_BYTES,
+        image.length - BOSS_LANCE_PAGE_BYTES),                  // M6: the lance run, after slot E
+      image.subarray(image.length - BOSS_LANCE_PAGE_BYTES),     // §BL: its page 4 (slot H)
     ]);
     return Array.from({ length: bossRegionCount }, (_, index) => {
       const region = bossRegions[index];
@@ -3608,7 +3620,12 @@ async function build() {
   checkLanceLayout({ windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), address: BOSS_LANCE_ADDRESS,
     bytes: BOSS_LANCE_BYTES, used: lanceUsed, sector: bossLanceSector, sectors: BOSS_LANCE_SECTORS,
     reservationEnd: BOSS_LANCE_BASE_SECTOR + BOSS_LANCE_SECTORS });
-  if (bossImage.length !== bossFixedImageBytes + BOSS_LANCE_BYTES + (bossFieldCode?.length ?? 0) +
+  const lancePageUsed = bossLabels.get("__LANCE_PAGE_SIZE__");
+  if (bossLabels.get("__BOSS_LANCE_PAGE_RAM_START__") !== BOSS_LANCE_PAGE_ADDRESS ||
+    !(lancePageUsed > 0 && lancePageUsed <= BOSS_LANCE_PAGE_BYTES)) {
+    throw new Error(`journal §BL: the lance's page 4 run is ${lancePageUsed} B; it lands in ${BOSS_LANCE_PAGE_BYTES}`);
+  }
+  if (bossImage.length !== bossFixedImageBytes + BOSS_LANCE_BYTES + BOSS_LANCE_PAGE_BYTES + (bossFieldCode?.length ?? 0) +
     (bossGravitySlot === null ? 0 : bossRegions[bossGravitySlot].gravityCodeBytes ?? 0) +
     (bossRailSlot === null ? 0 : (bossRegions[bossRailSlot].railCodeBytes ?? 0) +
       (bossRegions[bossRailSlot].railDataBytes ?? 0)) ||
@@ -3686,7 +3703,7 @@ async function build() {
   }
   const bannerCode = bossImage.subarray(bannerAreaOffset, bannerAreaOffset + bannerCodeBytes);
   const bossDataSectorsOf = (region) => bossCodeSectors + bossInstallSectors + bossSlotCSectors +
-    bossSlotDSectors + bossSlotESectors + BOSS_LANCE_SECTORS + BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS +
+    bossSlotDSectors + bossSlotESectors + BOSS_LANCE_RUNS_SECTORS + BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS +
     region.runs.charset.sectors + region.runs.block.sectors;
   const bossBanners = bossRegions.map((region, index) => {
     const banner = compileBossBanner({ rootDirectory, bossDirectory: `region-${bossOrder[index]}`,
@@ -3738,9 +3755,15 @@ async function build() {
     data: bossImage.subarray(slotEOffset, slotEOffset + bossSlotESectors * 128),
     file: "overlay-boss-slot-e.bin" };
   const bossLanceRun = { name: "boss-lance", startSector: bossLanceSector, sectors: BOSS_LANCE_SECTORS,
-    destination: BOSS_LANCE_ADDRESS, data: bossImage.subarray(bossImage.length - BOSS_LANCE_BYTES),
+    destination: BOSS_LANCE_ADDRESS,
+    data: bossImage.subarray(bossImage.length - BOSS_LANCE_PAGE_BYTES - BOSS_LANCE_BYTES,
+      bossImage.length - BOSS_LANCE_PAGE_BYTES),
     file: "overlay-boss-lance.bin" };
+  const bossLancePageRun = { name: "boss-lance-page", startSector: BOSS_LANCE_PAGE_SECTOR,
+    sectors: BOSS_LANCE_PAGE_SECTORS, destination: BOSS_LANCE_PAGE_ADDRESS,
+    data: bossImage.subarray(bossImage.length - BOSS_LANCE_PAGE_BYTES), file: "overlay-boss-lance-page.bin" };
   const bossDiskRuns = [bossCodeRun, bossInstallRun, bossSlotCRun, bossSlotDRun, bossSlotERun, bossLanceRun,
+    bossLancePageRun,
     ...bossRegionRuns];
   const bossRegionAreaEnd = bossRegionBaseSector + bossRegionCount * BOSS_REGION_SECTORS;
   for (const run of bossDiskRuns) {
@@ -3756,8 +3779,9 @@ async function build() {
       : run.startSector >= bossRegionBaseSector + (run.region - 1) * BOSS_REGION_SECTORS &&
         run.startSector + run.sectors <= bossRegionBaseSector + run.region * BOSS_REGION_SECTORS);
     // M6 (journal §BG): the lance run has its own reservation.
-    const inLance = run.name === "boss-lance" && run.startSector === BOSS_LANCE_BASE_SECTOR &&
-      run.sectors === BOSS_LANCE_SECTORS;
+    const inLance = (run.name === "boss-lance" && run.startSector === BOSS_LANCE_BASE_SECTOR &&
+      run.sectors === BOSS_LANCE_SECTORS) || (run.name === "boss-lance-page" &&
+      run.startSector === BOSS_LANCE_PAGE_SECTOR && run.sectors === BOSS_LANCE_PAGE_SECTORS);
     if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode || inLance : inRegion) ||
       run.startSector + run.sectors - 1 > chunkLoaderConstants.atrSectors) {
       throw new Error(`M5b-S4a-i: the boss run ${run.name} leaves its reservation`);
@@ -4599,7 +4623,7 @@ async function build() {
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null ||
-      lanceSlowSlug !== undefined || gaugeSlug !== undefined
+      torpedoSlug !== undefined || lanceChargeSlug !== undefined
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4985,10 +5009,16 @@ async function build() {
         codeBytes: bossLabels.get("__LANCE_CODE_SIZE__"), dataBytes: bossLabels.get("__LANCE_DATA_SIZE__") ?? 0,
         bssBytes: bossLabels.get("__LANCE_BSS_SIZE__"),
         windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), meterFrames: lanceMeterFrames(),
-        chargeFrames: LANCE_CHARGE_FRAMES, chargeSpeedDivisor: LANCE_CHARGE_SPEED_DIVISOR,
-        slow: lanceSlowSlug ?? "every",
-        // M6 stage 1b (docs/plans/m6-gauges.md §3): the PMG gauges' variant and position.
-        gauge: { variant: gaugeVariant, hpos: GAUGE_HPOS[gaugeVariant] } },
+        chargeFrames: lanceChargeFrames, chargeUpDivisor: LANCE_CHARGE_UP_DIVISOR,
+        // Journal §BL: the second run, page 4 (slot H).
+        page: { address: BOSS_LANCE_PAGE_ADDRESS, capacityBytes: BOSS_LANCE_PAGE_BYTES,
+          sectors: BOSS_LANCE_PAGE_SECTORS, startSector: BOSS_LANCE_PAGE_SECTOR, bytes: lancePageUsed },
+        // M6 stage 1b (journal §BL 3, 5, 7): the HUD meter and the torpedo's look.
+        hudMeter: { cells: [15, 16, 17, 18], hollow: bossLabels.get("LANCE_METER_HOLLOW") ?? 59,
+          full: bossLabels.get("LANCE_METER_FULL") ?? 60 },
+        torpedo: { look: torpedoLook, step: torpedoLook[0] === "a" ? 8 : 4,
+          hullRows: torpedoLook[0] === "a" ? 5 : 6, exhaustRows: torpedoLook[0] === "a" ? 4 : 5,
+          exhaustFrames: torpedoLook[0] === "a" ? 3 : 4, blastRows: 8, blastFrames: 5 } },
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       order: bossOrder,
@@ -5008,8 +5038,8 @@ async function build() {
         blocks: [BOSS_BLOCK_BASE_SECTOR, BOSS_BLOCK_BASE_SECTOR + bossRegionCount * BOSS_BLOCK_SECTORS - 1],
         // feat/boss-banners: 10 sectors a region from 280.
         banners: [BANNER_BASE_SECTOR, BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS - 1],
-        // M6 (journal §BG): the lance run's own four sectors.
-        lance: [BOSS_LANCE_BASE_SECTOR, BOSS_LANCE_BASE_SECTOR + BOSS_LANCE_SECTORS - 1] },
+        // M6 (journal §BG): the lance runs' own sectors (§BL: + page 4's two).
+        lance: [BOSS_LANCE_BASE_SECTOR, BOSS_LANCE_BASE_SECTOR + BOSS_LANCE_RUNS_SECTORS - 1] },
       runs: bossDiskRuns.map(({ name, startSector, sectors, destination, data, file }) =>
         ({ name, startSector, sectors, destination, bytes: data.length, sha256: sha256(data), file })),
       regions: bossRegions.map((region, index) => ({
@@ -5072,7 +5102,7 @@ async function build() {
         rowSwitches: region.rowPalette.switches,
         // feat/boss-banners: + the banner run (read after the theme run).
         entrySectors: BOSS_THEME_SECTORS + bossBanners[index].sectors + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
-          bossSlotDSectors + bossSlotESectors + BOSS_LANCE_SECTORS +
+          bossSlotDSectors + bossSlotESectors + BOSS_LANCE_RUNS_SECTORS +
           BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors +
           region.runs.block.sectors,
         // feat/boss-banners (owner decisions AL 2 and AY): the loading screen's

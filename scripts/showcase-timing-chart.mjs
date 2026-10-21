@@ -208,7 +208,7 @@ export function generateChart({ verify = true } = {}) {
   const entry = {
     path: CHART_PATH,
     description: "Worst line-238 fence margin and DMA-on maximum at releases and key merges, " +
-      "against GO 500, the 31,200 target and the 32,568 hard gate",
+      "against GO 500, the 31,500 target (31,200 until M6 stage 1b) and the 32,568 hard gate",
     generatedBy: "scripts/showcase-timing-chart.mjs",
     data: { path: CHART_DATA_PATH, sha256: sha256(dataBytes) },
     points: data.points.length,

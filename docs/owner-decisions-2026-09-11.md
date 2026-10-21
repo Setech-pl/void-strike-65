@@ -3433,6 +3433,60 @@ warianty zbudowane i zmierzone w buildzie, ATR-y, STOP na wybór właściciela.
 
 ---
 
+## BL. M6 ETAP 1b — DECYZJE PO SMOKE'U `5bc8d51`: HUD NA DOLE, MIERNIK W HUD, TORPEDA ZAMIAST WIĄZKI (2026-10-21, `feat/m6-gauges`)
+
+Smoke właściciela etapu 1b (`5bc8d51`). Ta sekcja zastępuje wcześniejsze
+polecenia domknięcia tego etapu. Plan: `docs/plans/m6-gauges.md` §7.
+
+1. **HUD na dole zostaje.** Linia separatora rysowana na pierwszym wierszu
+   pikseli tekstu HUD dostaje wcięcia od górnych krawędzi glifów, a jej kolor
+   skacze szary/miętowy (nagranie właściciela, klatka po klatce): albo własna
+   pusta linia nad tekstem, albo bez separatora — co zachowa wszystkie DLI
+   i margines płotu; podać dokładne linie ekranu HUD. Pierwszy punkt listy
+   sprzętowej tego etapu: „HUD w całości widoczny na kineskopie”. Cel DMA-on
+   podniesiony z 31 200 do **31 500** dla HUD na dole (zmiana księgowania: DMA
+   ANTIC dla HUD wpada teraz w mierzone okno pętli głównej; twarda bramka
+   32 568 bez zmian) — harness, audyt PAL, AGENTS.md, STATUS, dokument budżetu
+   i każdy test przypinający 31 200, z uzasadnieniem.
+2. **Kolejność HUD:** LIFE · HULL · BOOST po lewej, SCORE na prawym końcu.
+   Tylko przepięcia układu; `$0B58` zostaje.
+3. **Miernik lancy w tekście HUD, nie w PMG:** krótsze etykiety zwalniają
+   komórki; miernik to cztery komórki 25/50/75/100 % (pusta → pełna),
+   zapisywane tylko przy zmianie ćwiartki; gdy lanca gotowa — cztery pełne
+   i statek zielony jak dziś. Wskaźniki PMG (oba warianty), ich flaga
+   i przebieg znikają; P2 w sektorze bossa wolne. Przebieg lancy ≤ 6 sektorów,
+   miejsce okna dla etapu 2 ≥ 160 B (czerwony test lancy staje się zielony).
+4. **Ruch przy ładowaniu:** pełna prędkość w poziomie, w pionie (do przodu)
+   połowa — reguła osi zamiast spowolnienia we wszystkich kierunkach (stała
+   z nazwą). Właściciel uznaje dawne spowolnienie wszystkich kierunków za
+   błędną decyzję projektową.
+5. **Lanca jest TORPEDĄ, nie wiązką.** Pocisk z naprowadzaniem: moduł pod
+   statkiem w klatce strzału zostaje zablokowany, torpeda w locie poprawia
+   HPOS do jego bieżącej kolumny; zniszczony po drodze cel — leci dalej i nic
+   nie trafia (lanca zostaje, reguła §BH); na trafieniu zabicie przez
+   `boss_hit`, potem 4–6 klatek eksplozji na P2 nad modułem (nie w klatce
+   zabicia), potem P2 zwolnione; pudło też wystrzeliwuje torpedę i zostawia
+   lancę. **Odpowiedź właściciela (sesja):** kadłub na **P1** (celownik i tak
+   gaśnie w locie), wydech na **P2**, oba naprowadzane (HPOSP1 + HPOSP2 co
+   klatkę tylko w locie), oba w kolorze laserów; to samo we wszystkich
+   czterech regionach, bez ścieżki zastępczej. P1 czyszczone, a celownik
+   przywracany czysto po trafieniu i po pudle. 6. sektor lancy dozwolony
+   (wejście ≤ 350; jeśli przekroczy — STOP przed dalszą budową); każdy nowy
+   stan zmierzony we wszystkich regionach, ≤ 8 500, zapas ≥ 20 na Bastionie.
+6. **Porównanie czasu ładowania:** dwa zestawy ATR (pełna gra, R1, R4) — 50
+   klatek (1 s) i 75 klatek (1,5 s), poza tym identyczne; właściciel wybiera
+   po grze.
+7. **Wybór wyglądu (STOP dla właściciela):** dwa wyglądy torpedy (a: szybka,
+   8 linii/klatkę, krótki kadłub, wydech 3 klatki; b: wolniejsza, 4
+   linie/klatkę, dłuższy kadłub, wydech 4 klatki z dłuższym ogonem) × dwie
+   eksplozje (a: rozszerzający się pierścień; b: wybuch iskier) — cztery
+   kombinacje jako zdjęcia i GIF-y z działającego buildu na R1 i R4, w tym
+   co najmniej jedna klatka każdej kombinacji z torpedą lecącą obok aktywnej
+   wiązki Breakera (ryzyko czytelności koloru laserów). Do wyboru wszystkie
+   cztery za flagą buildu.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

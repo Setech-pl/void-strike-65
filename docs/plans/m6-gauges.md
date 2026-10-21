@@ -308,3 +308,69 @@ above); `tests/boss-stress.test.mjs` region 1 with all 16 states.
 Per variant: the full-game ATR and the R1 + R4 route ATRs (SHA-256 prefix in
 the name, `build/play/`), a still on R1 and R4 at 100 % meter with the booster
 at 2, a 5-s GIF on R1 (the meter 75 % -> ready, then the charge). STOP.
+
+## 7. After the owner's smoke of `5bc8d51` (journal §BL) — design
+
+§BL supersedes §2.3 (the separator), §3 (the PMG gauges) and the beam of
+plan `m6-void-lance.md` §6. Built on this branch; STOP for the owner at the
+torpedo's look and the charge time.
+
+### 7.1 The HUD (§BL 1-3)
+
+* **The separator goes.** The 6x7 glyphs use all seven rows, so eight lines
+  cannot hold a separator, a blank line and the text: every HUD glyph's first
+  row is blank instead. The HUD's line: **scanline 240 blank, the text
+  241-247**. The flicker is the same line: the last ring row's DLI rewrites
+  `COLPF1` / `COLPF2` - the ring's palette and the HUD's share them - right
+  at the HUD's first line, and its stores can land after that line has begun;
+  with the line blank nothing shows the race. No DLI moves, nothing is added.
+* **The 40 cells:**
+
+| cells | 0 | 1 | 2 | 3 | 4-7 | 8 | 9 | 10-13 | 14 | 15-18 | 19-28 | 29-33 | 34 | 35-39 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| | `L` | lives | | `H` | hull | | `B` (a booster running) | booster | | lance meter (boss sector) | free (10) | `SCORE` | | score |
+
+* **The meter:** cells 15-18, a hollow and a full glyph (two HUD codes the
+  lance run writes into the HUD charset at the fight's first frame: 0 resident
+  bytes), lit by the meter's quarters, all four full while a lance is ready;
+  one cell a frame toward the wanted count, nothing when it shows it. Blank
+  outside the boss sector.
+* **Bytes:** byte-neutral resident code - `hud_ascii` grows to its
+  `SCORE` at 29 and moves into CODE's 58-B inert pad (its old place padded);
+  the booster field is 5 cells (`B` + 4), its backing and the boss entry's
+  backup with it.
+* **DMA-on target 31,200 -> 31,500** (accounting: the HUD's DMA now inside the
+  measured window; the hard gate 32,568 unchanged).
+* **Hardware checklist, first item:** the HUD fully visible on the CRT.
+
+### 7.2 The charge (§BL 4, 6)
+
+The axis rule: on the charge's slow frames `read_input` reads the stick from
+the lance's own byte, PORTA with UP released - the horizontal at full speed,
+the advance at 1 / `LANCE_CHARGE_UP_DIVISOR` (2). The charge's length is
+`--lance-charge=50|75` for the comparison (75 the default until the owner
+picks).
+
+### 7.3 The torpedo (§BL 5, 7; the owner's answer: P1 hull + P2 exhaust)
+
+* **Fire frame:** the module under the ship is locked (or none: a miss); no
+  drawing (the fire frame stays the worst frame's cost).
+* **Flight:** the hull in **P1** (the reticle's rows cleared on the first
+  flight frame), the exhaust in **P2** right below it, both in the lasers'
+  colour, `HPOSP1` and `HPOSP2` set every flight frame to the locked module's
+  current centre (the band drifts) - the ship's centre on a miss. The hull
+  climbs `TORPEDO_STEP` lines a frame from the ship's top line; the exhaust
+  cycles its frames.
+* **Arrival:** the locked module alive - the kill through `boss_hit` (the
+  frame's only meeting, as the beam's), the meter emptied, the lance spent.
+  Destroyed on the way, or a miss - the torpedo flies on to the band's foot
+  and vanishes; **the lance is kept** (§BH).
+* **The explosion:** from the frame after the kill, `TORPEDO_BLAST_FRAMES`
+  frames in P2 over the module, then P2 cleared and `HPOSP2` 0.
+* **P1 after it:** cleared with the hull; the reticle's rows drawn again when
+  the lance is still ready (a miss), and at the next readiness.
+* **The looks:** `--torpedo=<flight><blast>`, `aa` the default: flight a 8
+  lines a frame, a 5-row hull, a 3-frame exhaust; b 4 lines a frame, an 8-row
+  hull, a 4-frame exhaust with a longer tail; blast a an expanding ring, b a
+  burst of sparks, 5 frames each.
+* **Room:** the lance run back to <= 6 sectors (the window >= 160 B again).

@@ -3365,6 +3365,32 @@ dowodowy i STOP na ostatni smoke.
 
 ---
 
+## BJ. M6 VOID LANCE — SMOKE NA SPRZĘCIE: PASS, MERGE DO `main` (2026-10-21)
+
+Smoke właściciela etapu 1 M6 w wersji końcowej (`feat/m6-void-lance`, HEAD
+`b3b8e46`): **PASS na prawdziwym Atari 65XE PAL przez SIO2SD** — ATR pełnej
+gry (`30b94e65…`) i cztery ATR tras (R1 `f755fac7`, R2 `59a41d36`, R3
+`7b1c3eb1`, R4 `79c93e48`; `hardware-testing.md` §41).
+
+1. **Zaakceptowane:** oddanie kanału 3 warkotowi silnika w ostatniej klatce
+   wiązki (odstępstwo od wzoru licznika z §BI), linia na banerze, rampa
+   ładowania oraz kolumna grawitacyjna Citadel dzieląca zieleń ze statkiem.
+   Plan §6.1–§6.5 potwierdzony smoke'iem.
+2. **Zapis o testach:** testy rampy, wyładowania i linii banera powstały
+   razem z kodem, a nie najpierw na czerwono (odnotowane w STATUS).
+3. Merge `feat/m6-void-lance` do `main` commitem scalającym; na scalonym
+   `main` jeden łańcuch dowodowy (oczekiwane: tylko zapisany
+   `tests/preview.test.mjs:164`, 0 NEW, 0 MOVED, `dist/void-strike-65.atr`
+   bajt w bajt równy smoke'owanemu `30b94e65…`); push `main`; usunięcie
+   `feat/m6-void-lance` i `plan/m6-void-lance` lokalnie i zdalnie; usunięcie
+   zastąpionych ATR M6 z `build/play/`. Bez tagu, bez wydania.
+4. Dalej etap 2: kapsuła +1 życia (1 na 4, wymuszona na początku ostatniego
+   sektora kosmicznego, raz na poziom, maks. 8 żyć; rekord okna +125–160 B
+   szacunkowo; wyświetlanie żyć w HUD; sektory 581–583 wolne; zapas Bastionu
+   38 cykli, przebieg lancy 1 B wolny). Nie zaczynamy bez polecenia.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

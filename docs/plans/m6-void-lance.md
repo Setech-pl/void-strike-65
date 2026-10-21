@@ -13,7 +13,9 @@ indicator: §6.3. The owner's smoke of C (journal §BH) found the gesture
 dead over gaps: the charge now builds whatever is under the ship - §6.4.
 The owner accepted §BH (journal §BI) and asked for the stage's finish: the
 banner's onboarding line, the charge ramp, the discharge, indicator C only -
-§6.5, `OWNER-SMOKE CANDIDATE`, STOP.** Phase A's probe is under `build/m6-probe/` (not
+§6.5. §6.1-§6.5 are smoke-confirmed: owner smoke PASS on a real 65XE PAL
+through the SIO2SD (2026-10-21, journal §BJ, hardware-testing §41); merged
+into `main`. Stage 2 (the +1 life capsule) is not started.** Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -310,7 +312,7 @@ points are where a measured figure decides.
 
 ---
 
-### 6.1 Stage 1 as built (`feat/m6-void-lance`, 2026-10-20) — `OWNER-SMOKE CANDIDATE`
+### 6.1 Stage 1 as built (`feat/m6-void-lance`, 2026-10-20) — smoke-confirmed (2026-10-21, journal §BJ)
 
 The owner's brief for stage 1 covers phases 1 and 2 above: the reticle,
 the charge, the beam and the kill, the lance run, and the stock (granted by
@@ -543,7 +545,7 @@ re-pinned:
 * the Bastion's own entry pin, 80 → 83 sectors;
 * the disk-reservation check, which had expected 581-583 to be empty.
 
-### 6.2 The owner's smoke and the comparison variants (2026-10-20, journal §BE)
+### 6.2 The owner's smoke and the comparison variants (2026-10-20, journal §BE) — smoke-confirmed (2026-10-21, journal §BJ)
 
 The smoke on `6d7cdb4`: the reticle is OK. The charge rule is not accepted:
 with lances in stock, holding FIRE over a module suspended the ordinary fire,
@@ -727,7 +729,7 @@ final build is §6.1. The tables above stay as the comparison's record; the
 comparison ATRs in `build/play/` (`…-lance-a-down-…`, `…-a-up-…`, `…-b-…`)
 are superseded.
 
-### 6.3 The meter and the readiness indicator (2026-10-20, journal §BG; as built, journal §BI) — indicator C
+### 6.3 The meter and the readiness indicator (2026-10-20, journal §BG; as built, journal §BI) — indicator C — smoke-confirmed (2026-10-21, journal §BJ)
 
 **As built (journal §BI, the owner's acceptance of §BH on the smoke of
 `abaab35`).** The meter below is unchanged. The owner chose **C**: the ship
@@ -986,7 +988,7 @@ PNGs; the GIFs 150 frames at 50 fps): `c-r1`, `c-r4`, `t-r1`, `t-r4` (`.gif`,
 in one take; the R4 GIFs are a cut (45 frames around the ready frame, 105
 around the fire: the bot took 146 frames from ready to fire there).
 
-### 6.4 The charge whatever is under the ship (2026-10-20, journal §BH) — `OWNER-SMOKE CANDIDATE`, STOP
+### 6.4 The charge whatever is under the ship (2026-10-20, journal §BH) — smoke-confirmed (2026-10-21, journal §BJ)
 
 **The owner's smoke of `97e1e6f` (C):** the ship turns green, FIRE held, UP
 added - nothing: no slowdown, no reticle, no beam.
@@ -1082,7 +1084,7 @@ SHA-256 prefix, under `build/play/`), a 5-s GIF on R1 and six stills
 `npm test` twice, `failures:reconcile`), the other three routes, and
 `how-to-play` EN / PL once the owner accepts the indicator and the rule.
 
-### 6.5 Stage 1 final: the banner line, the ramp, the discharge, C only (2026-10-21, journal §BI) — `OWNER-SMOKE CANDIDATE`, STOP
+### 6.5 Stage 1 final: the banner line, the ramp, the discharge, C only (2026-10-21, journal §BI) — smoke-confirmed (2026-10-21, journal §BJ)
 
 **The banner's line (§BI 1).** `VOID LANCE: HOLD FIRE+FORWARD`, 29 glyphs, is one
 ANTIC 2 row (32 glyphs on the narrow playfield) at `$4230`, inside the

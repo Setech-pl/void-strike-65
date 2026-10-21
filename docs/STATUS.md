@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-21 (feat/m6-void-lance, OWNER-SMOKE CANDIDATE, STOP: journal §BI - M6 stage 1 final: §BH's rules accepted; every boss banner carries VOID LANCE: HOLD FIRE+FORWARD under INCOMING; the ship's green ramps to near-white while charging; a noise discharge on the fire frame; indicator C only; lance run 639 of 640 B, 5 sectors 712-716, resident 0; Bastion worst 8,462; evidence regenerated)
+Last update: 2026-10-21 (main, merge of feat/m6-void-lance: M6 VOID LANCE stage 1 final OWNER-ACCEPTED - hardware smoke PASS on a 65XE PAL via SIO2SD, journal §BJ, hardware-testing §41; the banner line, the charge ramp, the discharge's channel-3 hand-back and the green gravity column accepted; next: stage 2, the +1 life capsule, not started)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -426,7 +426,11 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## M6 — the VOID LANCE, stage 1 final: the banner's onboarding line, the charge ramp, the discharge, indicator C only (feat/m6-void-lance) — `OWNER-SMOKE CANDIDATE`, STOP
+## M6 — the VOID LANCE, stage 1 final: the banner's onboarding line, the charge ramp, the discharge, indicator C only (feat/m6-void-lance) — **OWNER-ACCEPTED** (hardware smoke PASS 2026-10-21, merged into main)
+
+**Owner smoke PASS on real hardware (2026-10-21, journal §BJ; [hardware-testing.md](hardware-testing.md) §41):** a 65XE PAL through the SIO2SD, on all five ATRs - the whole game `30b94e65` (= `dist/`) and the routes R1 `f755fac7`, R2 `59a41d36`, R3 `7b1c3eb1`, R4 `79c93e48`. Accepted as built: the channel-3 hand-back on the beam's last frame, the banner line, the charge ramp, and the Citadel's gravity column sharing the green. Plan §6.1-§6.5 smoke-confirmed. Merged into `main` with a merge commit (`8eecc89`). Evidence chain re-run once on merged `main` (build:candidate → runtime:wall-trace → menu raster → build → memory-map → showcase:gif → showcase → `npm test` ×2 + `failures:reconcile`): 58 replays, 0 misses, 0 clause failures; `npm test` 1,526/1,527 twice, the only failure the recorded `tests/preview.test.mjs:164`, 0 NEW, 0 MOVED; `dist/void-strike-65.atr` byte-identical to the smoked ATR (`30b94e65`), and every regenerated evidence file came back unchanged.
+
+**Test discipline, recorded (owner, 2026-10-21):** the charge-ramp, discharge and banner-line tests were written alongside the code, not RED first (the earlier §BH tests were RED first).
 
 Plan [plans/m6-void-lance.md](plans/m6-void-lance.md) §6.5 (this state), §6.3 (the meter and the indicator, as built), §6.4 (the charge whatever is under the ship), §6.1-§6.2 (stage 1); journal **§BD**-**§BH**, and **§BI**: the owner accepted §BH's rules on the smoke of `abaab35` (the no-target shot keeping the lance is the rule) and asked for the stage's finish.
 
@@ -479,7 +483,9 @@ On every route the charge shows all six ramp colours (`$C4`-`$CE`) and the fire 
 
 **Known risks.** Both reticle marks are in the lasers' colour (shape only tells them apart). The Citadel's gravity column (M0, `COLPM0`) turns green with the ship and ramps with the charge. A Shield's pulse overrides the green while it runs. The lance run is full (1 B free): any further lance feature needs a sixth sector (+1 sector at every entry, about +4 host frames). The Bastion's fire frame has 38 cycles of headroom.
 
-**Owner smoke ATRs** (`build/play/`, not committed): see the report; the banner still `build/m6-probe/bi/banner/breaker-banner-lance-line.png`.
+**The smoked ATRs** (`build/play/`, not committed): `void-strike-65-m6-bi-full-30b94e65.atr`, `-r1-breaker-f755fac7`, `-r2-citadel-59a41d36`, `-r3-spine-7b1c3eb1`, `-r4-bastion-79c93e48`.
+
+**Stage 2 (not started; journal §BJ 4):** the +1 life capsule - 1 in 4, forced at the start of the last space sector, at most once a level, at most 8 lives; the window record +125-160 B (EST); the lives shown in the HUD. Room: sectors 581-583 free; the Bastion's headroom 38 cycles; the lance run 1 B free.
 
 ---
 

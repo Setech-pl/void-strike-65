@@ -1577,6 +1577,35 @@ In Atari800 (`-xl -pal -nobasic`), on the whole game
 `-r4-bastion-5e2888eb` (`5e2888eb40b085b0…`). The real-hardware run is part
 of the `v0.3.0` hardware test.
 
+## 41. The VOID LANCE, stage 1 final: the meter, the green ship, the charge and its ramp, the beam, the discharge, the banner line (`feat/m6-void-lance`)
+
+Plan [plans/m6-void-lance.md](plans/m6-void-lance.md) §6.1-§6.5; journal
+§BD-§BJ. On a **real Atari 65XE PAL through the SIO2SD**, on the whole game
+(`build/play/void-strike-65-m6-bi-full-*.atr`) and the four boss routes
+(`void-strike-65-m6-bi-r1-breaker-*`, `-r2-citadel-*`, `-r3-spine-*`,
+`-r4-bastion-*`):
+
+- [x] **The banner line:** every boss's loading banner shows
+      `VOID LANCE: HOLD FIRE+FORWARD` under INCOMING; the picture, the title
+      and the bar are where they were.
+- [x] **Readiness:** 25 s into the fight the ship turns green and the tone
+      sounds; the Citadel's gravity column shares the green (accepted).
+- [x] **The charge:** FIRE + forward, held, whatever is under the ship; half
+      speed; the ship's green brightens to near-white and snaps back on a
+      release; the reticle - the crosshair over a target, the hollow mark over
+      none.
+- [x] **The shot:** over a module the beam destroys it and the ship turns
+      white; over empty space the beam flies and the lance is kept.
+- [x] **The discharge:** a noise burst on channel 3 from the fire frame; the
+      engine bed back on the beam's last frame (accepted as built, journal §BI).
+
+**Result (2026-10-21): owner smoke PASS on real hardware** (65XE PAL,
+SIO2SD) on all five ATRs - `void-strike-65-m6-bi-full-30b94e65.atr`
+(SHA-256 `30b94e6565f979ff…`, = `dist/`), `-r1-breaker-f755fac7`
+(`f755fac750fc21b8…`), `-r2-citadel-59a41d36` (`59a41d36b5c01212…`),
+`-r3-spine-7b1c3eb1` (`7b1c3eb1eb08ed3f…`), `-r4-bastion-79c93e48`
+(`79c93e4892cd6998…`).
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

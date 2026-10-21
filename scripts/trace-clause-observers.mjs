@@ -283,7 +283,8 @@ export function lightCoverage(rows, sectors) {
 // 4 ($0400-$04FF, `page`: { address, end, bytes }) - its code is the lance's
 // own too; page 4 itself is written only by the start-up writers, the sector
 // reader's read of the run at a boss entry and the page's own code (its
-// patched store operands).
+// patched store operands); and the OS ROM's RAM clear, which every RESET runs
+// again (RESET is a cold start).
 export function windowTailWriteClause(watches, { labels, readerAddress, readerEnd, lanceAddress, lanceCodeEnd, runBytes,
   page = null }) {
   const copyStart = labels.get("copy_hud_charset");
@@ -335,7 +336,8 @@ export function windowTailWriteClause(watches, { labels, readerAddress, readerEn
     for (const writer of four.writers) {
       const kind = writer.pc >= readerAddress && writer.pc < readerEnd && writer.first_frame > copyFirst ? "page 4 read"
         : writer.pc >= page.address && writer.pc < page.end ? "the page's own operands"
-          : writer.last_frame <= copyFirst ? "start-up" : null;
+          : writer.last_frame <= copyFirst ? "start-up"
+            : writer.pc >= 0xc000 ? "the OS's cold start (RESET)" : null;
       const key = `$${writer.pc.toString(16)} (page 4)`;
       const entry = writers.get(key) ?? { pc: key, kind, sessions: 0, count: 0 };
       entry.sessions += 1;

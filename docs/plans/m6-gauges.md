@@ -463,6 +463,13 @@ host frames R1 **325**, Citadel **340**, Spine **340**, Bastion **344** (the
 owner's limit 350). Worst fence margin / DMA-on max per route: R1 8,485 /
 30,084; Citadel 6,167 / 30,556; Spine 6,865 / 30,729; Bastion 5,691 / 30,211.
 
+**The default trace** (58 replays, the candidate, look aa): 0 misses, 0
+clause failures; worst fence margin **1,497** (`2-sweep-fire6`); DMA-on
+maximum **31,476** (`2-evasive-fire7`), 0 replays over the 31,500 target;
+physical headroom 4,092. Its one RESET replay (`slot-e-reset-2-sweep-fire0`)
+shows the OS's RAM clear writing page 4 again after RESET (a cold start): the
+page 4 clause counts OS-ROM writers as start-up.
+
 **Page 4 watch:** every replay of the four routes (and the look captures)
 lists the same writers - the OS's RAM clear at boot (`$C2E6`, `$C2F0`), the
 sector reader's read of the run (`$A262`) and the reticle's patched store in

@@ -454,7 +454,7 @@ Plan [plans/m6-gauges.md](plans/m6-gauges.md) §7 (design) and §8 (as built and
 
 Every state of `tests/lance-states.mjs` (the meter's install and quarter frames, draw, idle, charge, swap, fire, dry, the flight, the kill, the miss, the lost torpedo, the explosion and its end) on every composition: plan §8. The Bastion fixture (the lance fired on its worst frame) **8,432** (stage 1b 8,466). The routes: 35 focused sessions, **0 misses, 0 clause failures** (the three scripted diagnostic sessions on R2-R4 never shoot, so they never reach the chain - by design).
 
-**Part 1, the default trace:** see plan §8 (the candidate, look aa).
+**The default trace (M, 58 replays, the candidate, look aa):** 0 misses, 0 clause failures (the page 4 clause takes the OS's RAM clear at every RESET - a cold start - as start-up); worst fence margin **1,497** (`2-sweep-fire6`, unchanged from stage 1b); **DMA-on maximum 31,476** (`2-evasive-fire7`) - **0 replays over the 31,500 target**, under 32,568; physical headroom 4,092.
 
 **Tests (focused, the owner's rule of 2026-10-21):** `tests/hud-bottom.test.mjs` 6 of 6, `tests/torpedo.test.mjs` 7 of 7, `tests/lance.test.mjs` 34 of 34, the lance stress in `boss-stress` (region 1) and `boss-region-2` (the Bastion) pass. **No full evidence chain**: the default build refuses to link until the regeneration pass.
 

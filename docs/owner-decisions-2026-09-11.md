@@ -3391,6 +3391,48 @@ gry (`30b94e65…`) i cztery ATR tras (R1 `f755fac7`, R2 `59a41d36`, R3
 
 ---
 
+## BK. M6 ETAP 1b — HUD NA DOLE I WSKAŹNIKI PMG, DWA WARIANTY DO PORÓWNANIA (2026-10-21, `feat/m6-gauges`)
+
+Decyzja właściciela (brief z 2026-10-21; plan
+`docs/plans/m6-gauges.md`): bez papierowego studium wykonalności — dwa
+warianty zbudowane i zmierzone w buildzie, ATR-y, STOP na wybór właściciela.
+
+1. **HUD na dole.** Linia HUD przechodzi z góry listy wyświetlania na dół,
+   tuż nad najniższym rzędem statku albo pod nim — umieszczenie, które
+   zostawia nietknięte wszystkie sekwencje DLI i margines płotu; oczekiwany
+   koszt na klatkę: zero. Wszystko, co przypina pozycję HUD (testy,
+   obserwatory śladu, narzędzie podglądu), przypiąć na nowo tylko jako
+   wartość układu; adres listy podsumowania Arcade `$0B58` zostaje.
+2. **Wskaźniki PMG.** Pionowy stos 4 kropek = 25 / 50 / 75 / 100 % miernika
+   lancy z małą ikoną lancy pod spodem; taki sam kształt dla boostera (ikona
+   + 4 kropki = pozostały ładunek boostera), ustawiony nad wskaźnikiem lancy.
+   Bajty kształtu zapisywane TYLKO przy zmianie stanu (ćwiartka miernika,
+   licznik boostera, początek / koniec ładowania), nigdy co klatkę; pozycja
+   pozioma ustawiana raz na sektor. W czasie ładowania kropki wskaźnika lancy
+   gasną od góry przez 75 klatek — jeden zapis na krok stanu.
+3. **Dwa warianty do porównania:** A — nad lewą krawędzią pola gry (HPOS
+   48–55, nad kolumną 0); B — w lewej ramce (HPOS 40–47, poza polem gry,
+   może go obciąć overscan kineskopu; właściciel sprawdzi na swoim
+   telewizorze). Bramki: najgorsza klatka sektora bossa ≤ 8 500 w każdym
+   regionie (zapas ≥ 20 na Bastionie), płot ≥ 1 400, DMA-on ≤ 31 200,
+   wejście ≤ 350; wariant, który nie przejdzie bramki, dostarczyć mimo to
+   z liczbą i z tym, co by go zmieściło.
+4. **Odpowiedź właściciela na sprzeczność (sesja, 2026-10-21):** P1 i P2 nie
+   są wolne w sektorach kosmicznych — to ciała przeciwników klasy Heavy
+   (Raider / Bomber, wiersze 16–239, HPOS co klatkę). **Wskaźniki PMG są
+   tylko w sektorze bossa** (P2); w sektorach kosmicznych booster zostaje
+   paskiem BOOST w HUD (przeniesionym na dół razem z HUD). Wariant B nie ma
+   więc dwóch kolorów w kosmosie: A i B to jeden gracz (P2) w sektorze
+   bossa, różnią się tylko pozycją poziomą.
+5. **Odpowiedź właściciela na kolor (sesja, 2026-10-21):** kolor P2 (`COLPM2`)
+   dzieli pocisk lasera M2 (`$46`) od rdzenia soczewki do linii 239; zieleń
+   `$CA` wymagałaby czwartej fazy DLI bossa w każdej klatce (szacunkowo
+   55–65 cykli: klatka strzału Bastionu ~8 520 > 8 500) i zazieleniłaby dół
+   lasera M2. **Wskaźniki mają kolor laserów (`COLPM2` bez zmian) — 0 cykli,
+   DLI bez zmian**, jak celownik na P1.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

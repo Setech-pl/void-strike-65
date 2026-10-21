@@ -1,0 +1,210 @@
+# M6 stage 1b — the HUD at the bottom and the PMG gauges
+
+**Branch:** `feat/m6-gauges` from `main` `52e5998` (M6 stage 1 final,
+owner hardware smoke PASS, journal §BJ; ATR `30b94e65…`).
+**Status:** plan, committed before code (the owner's brief, 2026-10-21;
+journal **§BK**). Two variants are built and measured, then STOP for the
+owner's choice. No full evidence chain on this branch until the owner chooses.
+
+Labels: **M** measured (the 6502 core with the boss stress tools, or the
+Atari800 trace); **EST** an estimate, with its basis; **IC** an instruction
+count, not assembled.
+
+---
+
+## 1. The brief and the owner's answers (2026-10-21)
+
+The brief: the HUD line moves from the top of the display to the bottom; two
+small vertical gauges on PMG - the lance meter (4 dots = 25 / 50 / 75 / 100 %,
+a lance icon below) and the booster (icon + 4 dots = the remaining charge,
+stacked above the lance gauge) - in two variants, both built and measured:
+**A** over the playfield's left edge (HPOS 48-55, over column 0), **B** in the
+left border (HPOS 40-47, outside the playfield; may be cut by a CRT's
+overscan, the owner checks on his TV).
+
+Two premises of the brief do not hold in the code. The owner answered both
+before any code (the session's questions, journal §BK 4-5):
+
+1. **P1 and P2 are not free in space sectors.** They are the Heavy class's
+   bodies (`draw_enemy_member`, `src/main.s`: Raider / Bomber slot 0 in P1,
+   slot 1 in P2, rows 16-239, HPOS rewritten every frame; the Bomber column
+   sits at about HPOS 48). AGENTS.md's invariant gives P1 / P2 to the Heavy
+   class. **Answer: the PMG gauges live in the boss sector only.** In space
+   sectors the booster stays the HUD's BOOST bar (moved to the bottom with the
+   HUD). Variant B's "two players, two colours in space" therefore does not
+   exist: **A and B are both one player (P2) in the boss sector, and differ
+   only in their horizontal position.**
+2. **P2's colour is the lasers'.** `COLPM2` is laser missile M2's colour
+   (`$46`, `B2_COLOUR`), written once at the boss install; M2's column runs
+   from the lens core to line 239. A green `$CA` gauge needs a fourth phase of
+   the boss DLI at the gauge's first line every boss frame (EST 55-65 native
+   cycles: the Bastion's fire frame 8,462 -> ~8,520, over 8,500) and would turn
+   an M2 laser's bottom lines green. **Answer: the gauges wear the lasers'
+   colour, `COLPM2` as it is - 0 cycles, no DLI change** (the P1 reticle's
+   rule, plan `m6-void-lance.md` §2.3).
+
+## 2. Part 1 — the HUD at the bottom (both variants)
+
+### 2.1 Placement: below the ship's lowest row, scanlines 240-247
+
+The playfield keeps every scanline: the divider row 16-23, the 27 ring rows
+24-239, `GAMEPLAY_TOP` 16, `GAMEPLAY_BOTTOM` 240, the ship's lowest opaque row
+239 (`PLAYER_RESPAWN_Y` 225). The HUD's ANTIC 2 line follows the last ring
+row, scanlines 240-247 (ANTIC's last displayable line is 247); the 8 lines it
+leaves at the top (8-15) are blank.
+
+Why this one and not "above the ship's lowest row":
+* **Every DLI keeps its scanline.** The first DLI (gameplay's phase 0, the
+  boss's phase 0: the PAL-frame token, the gameplay or region charset and
+  palette) fires on line 15 today as the HUD's last line; it fires on line 15
+  as the last line of the 8 blank lines. The last ring row's DLI (line 239:
+  gameplay's HUD restore, the boss's phase 2) installs the HUD's charset and
+  colours as today - now for the HUD line that follows it directly instead of
+  the next frame's first. The boss band's DLIs and row switches are on the
+  same lines. No DLI is added, none moves, none changes its code path.
+* **No PMG or character coordinate moves.** Every collision test, the PMG
+  rows, the trace's PMG and screen observers keep their lines. Putting the
+  HUD above the ship's lowest row takes a ring row (the playfield's height,
+  the ship's limits and respawn line, every gameplay assert) or moves every
+  row down 8 lines (every PMG / character coordinate) - neither is zero cost.
+* **DMA is unchanged in total.** The same ANTIC 2 line, the same fetches;
+  +1 display-list byte a frame (the blank instruction). The HUD's DMA moves
+  from lines 8-15 (before the frame token) to 240-247 (after the line-238
+  fence), so the pre-fence work's window (token -> line 238) loses nothing;
+  the post-fence tail loses the HUD's ~360 DMA cycles. MEASURED in §5.
+
+### 2.2 The display lists (the one layout change)
+
+Today each list is 90 B: `$C2 HUD` (3) + `$44 divider` (3) + 27 LMS rows (81)
++ JVB (3), list A `$7F10`, B `$7F6A`, and `HYBRID_LIGHT_SLOTS` starts right
+after B at `$7FC4` (exactly full but 1 B). The new list:
+
+| bytes | instruction | lines |
+| ---: | --- | --- |
+| 1 | `$F0` 8 blank lines + DLI | 8-15 |
+| 3 | `$44` divider, LMS `$4028` | 16-23 |
+| 81 | 27 x `$44` ring row, LMS (the last `$C4`, + DLI) | 24-239 |
+| 3 | `$42` the HUD, LMS `$4000` | 240-247 |
+| 3 | `$41` JVB, the list's own base | - |
+
+**91 B a list**, one more than today. The two lists must stay on one page
+(DLISTL publication) and end before the Light slots, so **list A moves down 2
+bytes to `$7F0E`** (B `$7F69-$7FC3`): the two bytes come from
+`HYBRID_C_ARENA`'s free tail (14 B unused, `$7F02-$7F0F`), its capacity
+832 -> **830 B** (`$7BD0-$7F0D`). The arena's image does not move or change.
+Re-pinned as layout values: the arena's capacity and end (`src/main.s`,
+`cfg/encounter-director.cfg`, `scripts/build.mjs`, `scripts/chunk-loader.mjs`,
+the arena and layout tests), the lists' size and base. `docs/memory-map.md`
+updated (rule 4).
+
+Code (byte-neutral where it is resident):
+* `build_playfield_display_list` (A2 kernel): the new order.
+* `gameplay_dli`: the publication continues at the divider, `active + 1`
+  (`adc #$03` -> `adc #$01`).
+* The boss install's list: the same order; `boss_dl_lms_offsets` and the band
+  rows' DLI offsets are 2 lower (`7 + 3r` -> `5 + 3r`, `ldy #6` -> `ldy #4`).
+* `start_gameplay`, `resume_gameplay` and the boss install still point
+  DLISTL at the list's base: unchanged.
+* `HUD_TOP` = 240 (`scripts/fighter-weapons.mjs`' viewport, generated);
+  `BROADSIDE_SCREEN_TOP` keeps 8 (the display's first line - it was
+  `HUD_TOP`, the broadside's clip is not the HUD's).
+
+### 2.3 The HUD's separator line
+
+Every HUD glyph carries a full-width white line as its 8th row: the HUD's own
+separator from the playfield (`copy_hud_glyphs`). At the bottom it would
+underline the screen's edge and leave the playfield and the HUD unseparated,
+so the separator moves to the glyphs' **first** row: the build of the HUD
+charset writes row 0 and copies the glyph rows to 1-7 (byte-neutral); the
+three glyphs drawn whole (the hull plate, the BOOST cell, the Shield cell)
+have their rows rotated in their source data.
+
+### 2.4 Pins re-pinned (layout values only)
+
+Every test, trace observer and tool that pins the HUD's lines (8-15 -> 240-247)
+or the lists' bytes: found by the RED run of the focused set, listed in §5 as
+built. `summary_display_list` stays at `$0B58` (the level summary's own list;
+asserted, journal §BC's outside record test).
+
+## 3. Part 2 — the gauges (boss sector only, P2)
+
+### 3.1 What the player sees
+
+Bottom-left, from the bottom up: the lance icon, the lance's 4 dots (25 % at
+the bottom, 100 % at the top), the booster icon, the booster's 4 dots. Both
+icons and all eight sockets are drawn once at the fight's first frame; a dot
+is either lit or an empty socket. One colour: `COLPM2` (§1.2). Lines about
+196-237 (above the HUD, inside the playfield's last six rows).
+
+* **The lance gauge:** lit dots = the meter's quarters reached (0-3 while it
+  fills; 4 = a lance ready). **The charge empties it top-down** over the 75
+  frames (lit 4 / 3 / 2 / 1 / 0 from charge frames 1 / 17 / 33 / 49 / 65 - the
+  ramp's own index, (charge + 7) / 8: 4 lit to frame 16, none from 65 to the
+  fire on the 75th); released, it refills; a shot over a
+  target leaves it empty (the meter empty); a dry shot gives the 4 back after
+  the beam.
+* **The booster gauge:** lit dots = the HUD's lit BOOST cells (the resident
+  HUD code's segment count, its blink of the last cell included), 0 with no
+  booster.
+
+### 3.2 Writes only on a change
+
+* **Once a fight** (the first boss frame the lance run ticks, a filling
+  frame): `HPOSP2` (A 48, B 40), `SIZEP2` 0, both icons, the eight sockets.
+  The horizontal position is never written again in the sector.
+* **Per frame:** a compare of the drawn level with the wanted level; a
+  difference steps **one dot one frame** (2 bytes of P2). No other PMG write.
+* **Where the compare runs** (the Bastion's 38 cycles of headroom, the gate
+  >= 20): the meter's filling frames, and the ready frames that are not the
+  fire frame, the readiness change, the mark's swap or a beam frame. A step
+  due on a skipped frame is taken on the next frame that runs it (the compare
+  is "differs", not "equals").
+* **One gauge write a frame:** the lance gauge first; the booster poll only on
+  a frame where the lance gauge had no step.
+
+### 3.3 Where the code lives
+
+All of it is boss-sector code: **the lance run** (`src/hybrid/lance.s`; the
+quarter thresholds per difficulty from `scripts/lance-layout.mjs`), which
+takes its **6th sector, 717** (`$B900-$BBFF`, the window's room from
+`$B82A` 214 B). Resident bytes: **0** (the booster's level is read from the
+HUD's cells, which the resident HUD code already writes). Window record: 0.
+The levels are presentation (the HUD's own segment thresholds are ASM today);
+the meter and the charge stay C's.
+
+### 3.4 The variants
+
+`--gauge=a|b` builds `build/gauge-<a|b>[-…]/`; the default build is A (to be
+replaced by the owner's choice). The only difference is `GAUGE_HPOS` (48 / 40).
+
+## 4. Tests (RED first)
+
+* `tests/gauges.test.mjs` (new): the lance gauge's shape for each meter
+  quarter (0-4, every difficulty's thresholds), through the charge (the
+  top-down steps) and its release, the fire over a target (empty) and the dry
+  shot (back to 4); the booster gauge for each lit-cell count 0-4 and the
+  blink; **write-only-on-change**: a frame-by-frame run of the lance tick with
+  a write watch over P2's page - no write while nothing changes, exactly one
+  dot's two bytes on a change, `HPOSP2` / `SIZEP2` written on the first frame
+  only.
+* The HUD's position pins: the list's bytes (both lists and the boss's), the
+  HUD's lines in the trace's screen observers, the preview.
+* Unchanged and passing: `tests/lance.test.mjs`, `tests/boss-stress.test.mjs`,
+  `tests/boss-region-2/3/4.test.mjs`, `tests/lance-states.mjs`' states, plus
+  new states `quarter` (a filling frame with a quarter's step) and `booster`
+  (a ready frame with a booster step).
+
+## 5. Measurements (as built) — to fill
+
+* The HUD before / after: fence margin and DMA-on on the default trace's
+  replays and the four routes.
+* Per variant, per region: the boss stress worst by state (filling, quarter
+  change, idle, charge, swap, fire, beam, booster change), entry frames with
+  the 6th sector, resident bytes, window-record bytes, fence margin and DMA-on
+  on the four routes.
+
+## 6. Deliverables
+
+Per variant: the full-game ATR and the R1 + R4 route ATRs (SHA-256 prefix in
+the name, `build/play/`), a still on R1 and R4 at 100 % meter with the booster
+at 2, a 5-s GIF on R1 (the meter 75 % -> ready, then the charge). STOP.

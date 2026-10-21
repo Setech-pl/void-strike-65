@@ -157,7 +157,11 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
   // in slot D (its 14th): slot E's fifth sector overran resident state.
   // RE-PINNED feat/boss-banners (decision AY: the entry's limit 350 host
   // frames): 71 -> 80 - the banner run's 9 sectors after the theme run.
-  assert.equal(built.entrySectors, 80, "the Bastion's boss entry is 80 sectors");
+  // RE-PINNED feat/m6-void-lance (journal §BD 6): 80 -> 83 - the lance run's
+  // 3 sectors (581-583), read after slot E; journal §BH: 85 - its 5 sectors
+  // (712-716); journal §BI 1: 86 - the banner run's 10th sector (the VOID
+  // LANCE's line under INCOMING).
+  assert.equal(built.entrySectors, 86, "the Bastion's boss entry is 86 sectors");
   // The nozzles are never drawn: their two codes outside the charset's run.
   assert.deepEqual(region2.nozzle.codes, [126, 127], "the nozzle codes are in the run");
 });
@@ -843,3 +847,27 @@ test("the stress composition: the Bastion's reachable worst under 8,500 on its l
       assert.equal(cases.reduce((sum, c) => sum + c.clashes, 0), 0, "rule (B): a kill frame with a gun's spawn");
     }
   });
+
+// M6 stage 1 (docs/plans/m6-void-lance.md §7): the VOID LANCE in each of its
+// states (tests/lance-states.mjs) on the Bastion's compositions, the limit
+// 8,500 on each; and the stress fixture that fires the lance on the Bastion's
+// worst frame (the rail step frame, no meeting, a gun spawning).
+test("M6: the Bastion with the VOID LANCE - every state under 8,500, the lance fired on its worst frame", { timeout: 900_000 }, async () => {
+  assert.ok(hasRails, "the boss link has no rails (region 2's block code)");
+  const { regionTwoStress } = await import("../scripts/measure-boss-stress-r2.mjs");
+  const { lanceStress } = await import("./lance-states.mjs");
+  for (const level of LEVELS) {
+    const base = regionTwoStress({ level, maxMeetings: 2 });
+    const worstIndex = base.cases.indexOf(base.worstOf(base.cases.filter((c) => c.reach === "reachable")));
+    const table = lanceStress((lance) => regionTwoStress({ level, maxMeetings: 2, lance }));
+    console.log(`# the Bastion, level ${level}, the lance: ${Object.entries(table).map(([mode, { worst }]) => `${mode} ${worst.cycles}`).join(", ")}`);
+    for (const [mode, { worst, clashes }] of Object.entries(table)) {
+      assert.ok(worst.cycles <= 8500, `level ${level}, lance ${mode}: ${base.describe(worst)}`);
+      assert.equal(clashes, 0, `lance ${mode}: rule (B), a kill frame with a gun's spawn`);
+    }
+    const fired = table.fire.cases[worstIndex];
+    console.log(`# the Bastion's worst frame ${base.cases[worstIndex].cycles}, the lance fired on it ${fired.cycles}: ${base.describe(fired)}`);
+    assert.ok(fired.cycles > base.cases[worstIndex].cycles, "the lance did not fire on the Bastion's worst frame (no target?)");
+    assert.ok(fired.cycles <= 8500, `the lance fired on the worst frame: ${fired.cycles}`);
+  }
+});

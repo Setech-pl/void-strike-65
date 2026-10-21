@@ -25,8 +25,9 @@ import { fileURLToPath } from "node:url";
 
 import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
 import { bandDliSwitches, bossLevel, call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
+import { lanceAfter, lanceArm, lanceSkip, lanceTick } from "../tests/lance-states.mjs";
 
-export function regionFourStress({ level = bossLevel(4), maxMeetings = 3 } = {}) {
+export function regionFourStress({ level = bossLevel(4), maxMeetings = 3, lance = "off" } = {}) {
   const lbl = (name) => label("boss", name);
   const has = (name) => { try { lbl(name); return true; } catch { return false; } };
   const main = (name) => label("main", name);
@@ -102,13 +103,17 @@ export function regionFourStress({ level = bossLevel(4), maxMeetings = 3 } = {})
     m[PLAYER_X] = 48;
   }
   function frame(m, laserMode, wellDue = false) {
+    if (lanceSkip(m)) return 0;
     hold(m, laserMode);
     if (wellDue) well(m);
     m[main("loader_dli_phase")] = 0;
     let cycles = nmi(m, lbl("boss_dli"));
     // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
     cycles += bandDliSwitches(m).cycles;
+    // M6: the VOID LANCE's tick (TICK_FLASHES, before UPDATE; tests/lance-states.mjs).
+    cycles += lanceTick(m);
     cycles += call(m, lbl("boss_update")).cycles;
+    cycles += lanceAfter(m);   // M6: HULL_CONTACT
     cycles += call(m, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
     cycles += call(m, lbl("boss_motion")).cycles;
     return cycles + nmi(m, lbl("boss_dli")) + nmi(m, lbl("boss_dli"));
@@ -195,6 +200,7 @@ export function regionFourStress({ level = bossLevel(4), maxMeetings = 3 } = {})
                 if (gun === null && runs.length > 0) break;
                 const run = Uint8Array.from(m);
                 if (gun !== null) arm(run, gun);
+                lanceArm(run, lance, { hit, kind: mode, columnOf: (i) => front.get(i) });
                 if (step === "burst 2" || step === "burst 3") {
                   const kept = [0, 1, 2, 3, 4].map((slot) => run[ACTIVE + slot]);
                   kept.forEach((_, slot) => { run[ACTIVE + slot] = 0; });

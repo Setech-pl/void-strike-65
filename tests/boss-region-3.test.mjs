@@ -231,3 +231,20 @@ test("the stress composition with the field: level 7 and level 9 under 8,500 rea
       assert.equal(cases.reduce((sum, c) => sum + c.clashes, 0), 0, "a frame with a module kill and a gun's spawn (rule B)");
     }
   });
+
+// M6 stage 1 (docs/plans/m6-void-lance.md §7): the VOID LANCE in each of its
+// states (tests/lance-states.mjs) on the Spine's compositions.
+test("M6: the Spine with the VOID LANCE - every state under 8,500 reachable on levels 7 and 9, rule (B)", { timeout: 900_000 },
+  async () => {
+    assert.ok(hasDraft);
+    const { fieldStress } = await import("../scripts/measure-boss-stress-field.mjs");
+    const { lanceStress } = await import("./lance-states.mjs");
+    for (const level of [7, 9]) {
+      const table = lanceStress((lance) => fieldStress({ level, lance }));
+      console.log(`# region 3, level ${level}, the lance: ${Object.entries(table).map(([mode, { worst }]) => `${mode} ${worst.cycles}`).join(", ")}`);
+      for (const [mode, { worst, clashes }] of Object.entries(table)) {
+        assert.ok(worst.cycles <= 8500, `level ${level}, lance ${mode}: ${worst.cycles}`);
+        assert.equal(clashes, 0, `lance ${mode}: rule (B)`);
+      }
+    }
+  });

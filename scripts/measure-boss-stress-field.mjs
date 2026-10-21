@@ -22,8 +22,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { bandDliSwitches, call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
+import { lanceAfter, lanceArm, lanceSkip, lanceTick } from "../tests/lance-states.mjs";
 
-export function fieldStress({ level = 7 } = {}) {
+export function fieldStress({ level = 7, lance = "off" } = {}) {
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
 const LIMIT = 8500;
@@ -77,12 +78,16 @@ function hold(m, laserMode) {
   }
 }
 function frame(m, laserMode) {
+  if (lanceSkip(m)) return 0;
   hold(m, laserMode);
   m[main("loader_dli_phase")] = 0;
   let cycles = nmi(m, lbl("boss_dli"));
   // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
   cycles += bandDliSwitches(m).cycles;
+  // M6: the VOID LANCE's tick (TICK_FLASHES, before UPDATE; tests/lance-states.mjs).
+  cycles += lanceTick(m);
   cycles += call(m, lbl("boss_update")).cycles;
+  cycles += lanceAfter(m);   // M6: HULL_CONTACT
   cycles += call(m, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
   cycles += call(m, lbl("boss_motion")).cycles;
   return cycles + nmi(m, lbl("boss_dli")) + nmi(m, lbl("boss_dli"));
@@ -201,6 +206,7 @@ for (const laserMode of ["warn", "beam"]) {
             if (gun === null && runs.length > 0) break;
             const run = Uint8Array.from(m);
             if (gun !== null) arm(run, gun);
+            lanceArm(run, lance, { hit: [...hit, ...absorb.map(() => "hull")], kind: mode, columnOf: (i) => front.get(i) });
             let cycles = 0, worstFrame = 0, spawned = false, clashes = 0;
             for (let f = 0; f < 4; f += 1) {
               const pending = gun !== null && !spawned && run[lbl("_boss_countdown")] === 1;

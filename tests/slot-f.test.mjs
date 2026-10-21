@@ -99,7 +99,8 @@ test("Q9: each region's block is its fourth run - on the disk at 696 + 4 x regio
     assert.ok(block.sectors >= 1 && block.sectors <= 4);
     assert.deepEqual(atrRun(block.startSector, block.sectors), readBuild(`boss-region-${block.region}-block.bin`));
     // The head's fold: install, slots C-E, then the region's band A, band B, charset and block.
-    const shared = ["boss-install", "boss-slot-c", "boss-slot-d", "boss-slot-e"].map((name) => runs.get(name));
+    // RE-POINTED M6 stage 1: and the lance run after slot E.
+    const shared = ["boss-install", "boss-slot-c", "boss-slot-d", "boss-slot-e", "boss-lance"].map((name) => runs.get(name));
     const own = ["band-a", "band-b", "charset", "block"].map((what) => runs.get(`boss-region-${block.region}-${what}`));
     const fold = guardFold(Buffer.concat([...shared, ...own].map((run) => atrRun(run.startSector, run.sectors))));
     const lo = label("boss", "boss_head_sums_lo"), hi = label("boss", "boss_head_sums_hi");

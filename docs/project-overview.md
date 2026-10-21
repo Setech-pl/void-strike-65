@@ -679,8 +679,9 @@ signal to the player.
 Designed **data-driven** — phases, movement pattern, fire pattern, HP and weak
 points as data — so that later bosses are records, not implementations. This is
 a decision to make when *planning* 4.7, not after it. One boss foundation
-first: modules, one gun, a victory condition. Nova Missile is designed together
-with boss lifecycle and boss HULL, never as an ordinary drop.
+first: modules, one gun, a victory condition. The boss sector's special
+weapon is the VOID LANCE (M6, journal §BD), which replaced the planned Nova
+Missile; it is never an ordinary drop.
 
 **Owner decision H (2026-09-20): one mechanic, many appearances.** A single
 boss controller; each boss is a record describing module layout, weapon

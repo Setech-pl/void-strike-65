@@ -3085,6 +3085,286 @@ bez taga i wydania.
 
 ---
 
+## BD. M6 VOID LANCE — DECYZJE WŁAŚCICIELA PO FAZIE A (2026-10-20, `feat/m6-void-lance`)
+
+Odpowiedzi na pytania planu [`plans/m6-void-lance.md`](plans/m6-void-lance.md)
+(Faza A, commit `837cf04`); §4 planu oznacza je jako potwierdzone.
+
+1. **Celownik: wariant V2.** Jeden krzyżyk, który podczas ładowania mruga co
+   dwie klatki. Tylko P1; P2 zostaje wolne.
+2. **Reguła ładowania potwierdzona; zastępuje regułę Nova z §AE 3.**
+   Przytrzymanie FIRE przez ~1,5 s (75 klatek) ładuje lancę. (b) Bez modułu
+   pod statkiem nie ma ładowania, a przycisk strzela zwyczajnie. (c) Podczas
+   ładowania zwykły ogień jest wstrzymany.
+3. **Celownik pod pasmem i w kolorze laserów: przyjęte, na podstawie
+   pomiaru.** Własny kolor w paśmie zabarwiał kolumny laserów.
+4. **Wiązka w płaszczyźnie statku (P0): przyjęte.**
+5. **Kapsuła +1 życia: przyjęte.** Pojawia się od razu, gdy zaczyna się
+   ostatni sektor przestrzeni, a nie jako „następna kapsuła w tym sektorze”.
+   To etap 2 Fazy B, nie teraz.
+6. **RAM lancy: niezajęty ogon okna `$B82A–$BBFF`, przydzielany od góry
+   (od `$BBFF` w dół).** Dolna część ogona zostaje na wzrost rekordu okna
+   (125–160 B na kapsułę życia). Asercja w buildzie pilnuje, by RAM lancy
+   i rekord okna nigdy się nie nakładały; gdy rekord do niej dorośnie, build
+   się nie udaje.
+
+**Potwierdzone także z A3:**
+- Jeden strzał na kapsułę i zapas najwyżej 3. Wskaźnikiem jest celownik;
+  komórki HUD nie ma.
+- Lanca nie celuje w rdzeń.
+- Trafia tylko to, co trafiłby zwykły strzał. Zamknięte zatoki, drzwi,
+  osłonięte działa i zasilone pole są wykluczone.
+- Studnia grawitacyjna i pole siłowe nie mają wyjątku.
+- Nova Missile istnieje tylko w dokumentach; dokumenty mają mówić, że
+  zastąpiła ją lanca.
+
+**Faza B, etap 1 (brief właściciela z 2026-10-20):**
+- **Zakres:** celownik V2, ładowanie przytrzymaniem, wiązka i zniszczenie
+  jednego modułu przez `boss_hit`, własny przebieg lancy (cel: najwyżej
+  3 dodatkowe sektory) oraz licznik zapasu (najwyżej 3). Na tym etapie zapas
+  daje opcja trasy debugowej albo stały zapas przy wejściu do bossa.
+- **Poza zakresem:** kapsuła, HUD, README.
+- **Bramki:**
+  - najgorsza klatka bossa ≤ 8 500 w każdym regionie;
+  - margines fence ≥ 1 400 na wszystkich trasach;
+  - DMA-on ≤ 31 200;
+  - wejście do bossa ≤ 350 klatek hosta;
+  - 0 bajtów rezydentnych dla broni (dozwolone tylko slot A +5 B i loader
+    banera +2 B z Fazy A; wszystko inne wymaga właściciela — STOP);
+  - klauzule kontaktu nietknięte.
+
+---
+
+## BE. M6 VOID LANCE — SMOKE ETAPU 1 I DWA WARIANTY DO PORÓWNANIA (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `6d7cdb4`.
+
+1. **Celownik: OK.**
+2. **Reguła ładowania: NIE przyjęta; reguła (c) z §BD 2 wycofana.** Gdy
+   lance są w zapasie, przytrzymanie FIRE nad modułem wstrzymywało zwykły
+   ogień, więc w sektorze bossa gracz strzelał anemicznie. Lanca nie może
+   w ogóle zmieniać zwykłego ognia.
+3. **Dwa warianty do porównania**, każdy w osobnym commicie, oba zestawy ATR
+   w `build/play/`; potem STOP i gra właściciela:
+   - **Wariant A — osobny gest.** Zwykły FIRE zawsze działa dokładnie jak na
+     `main`, bez względu na to, co jest pod statkiem. Lanca ładuje się tylko
+     wtedy, gdy FIRE jest trzymany razem z drążkiem wychylonym w jedną stronę
+     przez 75 klatek. Dwie wersje: A-down (FIRE + dół) i A-up (FIRE + góra).
+     Statek porusza się tak, jak każe drążek. Puszczenie któregokolwiek
+     przerywa ładowanie. Przy zapasie 0 albo bez modułu pod statkiem gest nie
+     robi nic szczególnego (zwykły ogień trwa).
+   - **Wariant B — ładowanie przytrzymaniem, zwykły ogień NIE wstrzymany.**
+     Trzymany FIRE strzela normalnie, a po 75 klatkach nad modułem przy
+     zapasie > 0 lanca odpala. Zabicie lancą wchodzi w istniejący limit
+     „najwyżej 2 spotkania z bossem na klatkę”; jeśli limit jest już zużyty
+     w klatce zabicia, zabicie przechodzi na następną klatkę. Zmierzyć
+     najgorsze klatki w każdym regionie, zwłaszcza Cytadelę L5 ze strzałem
+     gracza trafiającym bossa w klatce zabicia; zgłosić, czy zostaje
+     ≤ 8 500 z zapasem ≥ 100.
+4. **Obie reguły za flagą builda**, dopóki właściciel nie wybierze; wariant
+   przegrany zostanie usunięty. `tests/lance.test.mjs` wyraża regułę wariantu.
+5. **Bez łańcucha dowodów na tym etapie:** tylko narzędzia stresu bossa,
+   testy lancy i cztery trasy bossów.
+
+## BF. M6 VOID LANCE — WYBÓR WARIANTU I DOMKNIĘCIE ETAPU 1 (2026-10-20, `feat/m6-void-lance`)
+
+Właściciel zagrał w ATR-y porównawcze z §BE.
+
+1. **Wybór: wariant A, gest A-up** — FIRE + drążek w GÓRĘ przez 75 klatek.
+   Uzasadnienie właściciela: **konwencja lotnicza** (drążek „od siebie”, do
+   przodu): najpierw wycofanie, potem ładowanie z naporem do przodu; ładowanie
+   **kosztuje gracza 1,5 s zbliżania się do pasa bossa** — to cena lancy.
+   Wariant B, gest A-down i flaga `--lance-rule` znikają; A-up to jedyna
+   reguła. Zostaje: strzał gracza, który w klatce zabicia lancą trafiłby bossa,
+   czeka jedną klatkę (zabicie jest jedynym spotkaniem tej klatki), oraz test
+   zwykłego ognia klatka po klatce wobec przebiegu bez lancy. Długość
+   ładowania to jedna nazwana stała (`LANCE_CHARGE_FRAMES` = 75), do strojenia
+   po smoke'u.
+2. **Dodatek właściciela: podczas ładowania statek porusza się z POŁOWĄ
+   prędkości, w każdym kierunku.** Czyta się to jak statek obciążony
+   ładowaniem i zmniejsza ryzyko kontaktu z bossem podczas naporu. Jedna
+   nazwana stała (`LANCE_CHARGE_SPEED_DIVISOR` = 2, dzielnik prędkości w
+   czasie ładowania) obok stałej długości ładowania — obie do strojenia po
+   smoke'u. Normalna prędkość wraca w chwili puszczenia gestu albo odpalenia
+   lancy. Test: przesunięcie statku na klatkę w czasie ładowania to połowa
+   przesunięcia z przebiegu bez lancy, a poza ładowaniem bez zmian; koszt
+   sprawdzenia w tiku gracza zmierzony i w tabeli najgorszych klatek.
+   **Jedna dodatkowa trasa porównawcza R4 (Bastion)**, w której zwolniony jest
+   tylko kierunek do przodu (GÓRA), żeby właściciel poczuł różnicę;
+   zatwierdzona reguła to „każdy kierunek”, chyba że właściciel po grze
+   zdecyduje inaczej.
+3. **Boty testowe, nie gra:** bot `boss-aim` ma puszczać i wciskać FIRE, żeby
+   bramka ognia z `main` się otworzyła (6 porażek „walka musi postępować” to
+   wada bota; potwierdzić na buildzie bez lancy). Na co najmniej jednej trasie
+   bossa w każdym regionie bot wykonuje gest A-up raz i odpala lancę, żeby
+   promień i zabicie były w natywnych dowodach trasy, nie tylko w narzędziach
+   stresu 6502.
+4. **Pełny łańcuch dowodów** i bramki etapu 1 (§BD); potem STOP na smoke
+   właściciela. Do backlogu: etap 2 potrzebuje 4. sektora lancy albo innego
+   miejsca na procedurę „daj jedną lancę” — w sektorach 581–583 zostaje
+   tylko 1 B (po domknięciu z połową prędkości: 2 B, ZMIERZONE).
+
+## BG. M6 VOID LANCE — LANCA ŁADOWANA CZASEM, WSKAŹNIK GOTOWOŚCI (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `89297a5`: etap 1 **NIE przyjęty jako projekt**, z dwóch
+powodów. (1) Zapas lanc nie może zależeć od kapsuł zrzucanych przez bossa.
+(2) Celownik widać cały czas; ma się pojawiać tylko wtedy, gdy lanca jest
+gotowa.
+
+1. **Lanca ładuje się CZASEM na ekranie bossa.** Wskaźnik napełnia się przez
+   `LANCE_METER_FRAMES` = 1 250 klatek (25 s) na MEDIUM, skalowane poziomem
+   trudności jak reszta gry — tymi samymi proporcjami co punkty życia bossa
+   (`hpScale`: ×3/4 na EASY, ×5/4 na HARD, ćwiartka przez przesunięcie jak
+   w `boss_scale`): **EASY 938 klatek (18,76 s), MEDIUM 1 250 (25 s), HARD
+   1 562 (31,24 s)**. Pełny wskaźnik to **JEDNA** gotowa lanca; lanc się nie
+   kumuluje; użycie opróżnia wskaźnik i napełnianie zaczyna się od nowa.
+   Wskaźnik działa tylko w sektorze bossa i zeruje się przy wejściu do bossa.
+2. **Aktywacja bez zmian:** gest A-up (FIRE + drążek w GÓRĘ, 75 klatek,
+   połowa prędkości). Bez zmian także wiązka, zniszczenie jednego modułu,
+   wstrzymanie strzału gracza w klatce zabicia i celownik V2 pod pasmem — ale
+   **celownik jest widoczny WYŁĄCZNIE, gdy lanca jest gotowa** (od pełnego
+   wskaźnika do strzału).
+3. **Bez kapsuły, bez licznika zapasu, bez klawiatury.** Plan zrzutu kapsuł
+   lancy przez bossa jest wycofany; etap 2 zachowuje tylko kapsułę +1 życia.
+   Pełna gra ma lancę w każdej walce z bossem.
+4. **Gracz musi dostać wyraźniejszy sygnał gotowości niż sam celownik.** Trzy
+   warianty wskaźnika, za flagą builda wyłącznie do porównania; potem STOP
+   i wybór właściciela na podstawie kadrów i ATR-ów:
+   - **(T) doczepiona torpeda:** inny kształt statku z torpedą wystającą
+     z dziobu, dopóki lanca jest gotowa; wiązka startuje z pozycji torpedy;
+     po strzale wraca zwykły kształt. Zmierzyć, gdzie mieszka kształt statku
+     i ile kosztuje przełączanie (bajty w przebiegu lancy, bajty rezydentne —
+     zgłosić, nie wydawać bajtów rezydentnych bez pytania).
+   - **(C) zmiana koloru statku na czas gotowości:** kolor ≥ 45° od stali
+     sojuszniczej i od każdego koloru wroga we wszystkich czterech regionach;
+     koszt: jeden zapis rejestru na zmianę stanu.
+   - **(H) napis HUD „VOID LANCE READY”**, jeśli jakaś komórka HUD albo wolna
+     linia listy wyświetlania może go unieść bez ruszania wyniku; jeśli nie ma
+     miejsca — powiedzieć to z dowodem i pominąć H.
+   - Każdy wariant ma dźwięk gotowości na kanale 3 (≤ 20 B, bez kolizji
+     z motywem bossa). Kadry i 3-sekundowe GIF-y (320 × 240, 50 kl./s) na
+     R1 i R4: statek przed, w chwili gotowości i przy strzale; w
+     `build/m6-probe/indicator/`.
+5. **Pomiary i dostawa:** najgorsze klatki w każdym regionie, rozmiar
+   przebiegu lancy (sektory 581–583, wolne bajty) i klatki wejścia — na
+   wariant; bramki jak dotąd (≤ 8 500 na region, fence ≥ 1 400, DMA-on
+   ≤ 31 200, wejście ≤ 350, 0 B rezydentnych dla broni bez zgody
+   właściciela). Sonda balansu: ile lanc daje walka w każdym regionie przy
+   25 s (istniejące boty walki z bossem, MEDIUM) i ile modułów ma każdy boss;
+   okresu nie zmieniać samodzielnie. Cztery ATR-y tras i ATR pełnej gry dla
+   rekomendowanego wariantu, ATR pełnej gry dla każdego innego wariantu, który
+   mieści się w budżecie. Bez pełnego łańcucha dowodów na tym etapie. STOP.
+
+---
+
+## BH. M6 VOID LANCE — ŁADOWANIE NIEZALEŻNE OD CELU (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `97e1e6f` (wariant C): statek zmienia kolor na zielony
+(gotowość działa), właściciel trzyma FIRE i dopycha drążek w górę — i nic się
+nie dzieje: bez spowolnienia, bez celownika, bez wiązki. Diagnoza (emulator,
+skryptowe wejście na trasie C R1): gest jest poziomowy (FIRE trzymany długo
+przed GÓRĄ działa od pierwszej klatki), czyta surowe TRIG0 / PORTA (nie bramkę
+zwykłego ognia), a górna granica i skosy go nie przerywają; winna była reguła
+celu — każda klatka bez modułu pod środkiem statku zerowała ładowanie i
+chowała celownik, a dryf pasma daje taką lukę co 20–40 klatek, więc 75 klatek
+prawie nigdy się nie domykało.
+
+1. **Ładowanie startuje zawsze, gdy lanca jest gotowa i FIRE + GÓRA są
+   trzymane — niezależnie od tego, co jest pod statkiem.** Puszczenie gestu
+   przerywa ładowanie; brak celu już nie.
+2. **Gdy lanca jest gotowa, celownik jest zawsze widoczny:** pełny krzyż V2
+   nad modułem (jak dotąd, na środku modułu), przygaszony / pusty znak nad
+   pustą kolumną (na kolumnie statku). Mruganie w trakcie ładowania bez zmian.
+3. **Strzał bez celu:** jeżeli w klatce strzału pod statkiem nie ma modułu,
+   wiązka i tak leci (widoczna informacja zwrotna), ale lanca **NIE** jest
+   zużyta — wskaźnik zostaje pełny, statek zostaje zielony.
+4. Połowa prędkości w trakcie ładowania i brak rampy — bez zmian na razie
+   (poprawki informacji zwrotnej przyjdą w następnym kroku).
+5. Testy najpierw na czerwono: gest poziomowy z FIRE trzymanym długo przed
+   GÓRĄ; ładowanie nad pustą kolumną dochodzi do klatki strzału; strzał bez
+   celu nie zużywa lancy; przypadek górnej granicy; wszystkie dotychczasowe
+   testy lancy. Zmierzyć najgorszą klatkę Bastionu (bramka ≤ 8 500, podać
+   zapas). ATR pełnej gry C i ATR trasy R1 z prefiksem SHA-256, 5-sekundowy
+   GIF na R1 (pusta kolumna: przygaszony znak, wiązka, statek dalej zielony;
+   potem nad modułem z zabiciem). STOP.
+
+---
+
+## BI. M6 VOID LANCE — AKCEPTACJA REGUŁ §BH I DOMKNIĘCIE ETAPU 1 (2026-10-20, `feat/m6-void-lance`)
+
+Smoke właściciela na `abaab35` (wariant C, reguły §BH): **ZAAKCEPTOWANE.**
+Strzał bez celu, który zostawia lancę, jest potwierdzony jako reguła. Etap 1
+domykamy na `feat/m6-void-lance` dwoma tanimi sygnałami, potem pełny łańcuch
+dowodowy i STOP na ostatni smoke.
+
+1. **Linia instruktażowa na każdym banerze bossa** (ładowana z dysku, 0 bajtów
+   rezydentnych): jedna linia pod INCOMING, krojem gry:
+   `VOID LANCE: HOLD FIRE+FORWARD`. Umieszczona tak, żeby obraz banera się nie
+   zmienił; podać koszt w sektorach i klatki wejścia (limit 350).
+2. **Informacja zwrotna ładowania, tylko jeśli się zmieści:** przy trzymanym
+   FIRE + GÓRA jasność statku rośnie od jasności stali do prawie bieli przez
+   75 klatek (mała tabela w przebiegu lancy, jeden zapis rejestru koloru na
+   klatkę), po puszczeniu wraca od razu; zieleń gotowości zostaje. Bramka:
+   ≤ 8 500 na Bastionie z zapasem ≥ 30 cykli; jeśli się nie zmieści — krok
+   rampy co 4 klatki; jeśli dalej nie — pominąć i to powiedzieć. Do tego
+   krótki, wyraźny dźwięk wyładowania na kanale 3 w klatce strzału (≤ 20 B,
+   ta sama zasada własności kanału co M5-03).
+3. **Wariant T i przełącznik wskaźnika w buildzie znikają;** C jest jedynym
+   wskaźnikiem. Testy lancy przechodzą bez pominięć; dochodzą testy linii
+   banera (wszystkie cztery banery) oraz granic rampy i jej powrotu.
+4. **Dokumenty:** `how-to-play.md` i `.pl.md` (VOID LANCE: gotowa po 25 s
+   walki z bossem, statek robi się zielony i rozlega się dźwięk; FIRE + do
+   przodu przez 1,5 s przy połowie prędkości; wiązka niszczy moduł pod
+   statkiem, nigdy rdzenia ani niczego, czego nie trafi zwykły strzał; strzał
+   w pustkę zostawia lancę; zastępuje Nova Missile), `game-design.md`, strony
+   Bossów (po jednej linii, EN + PL), STATUS (końcowe liczby etapu 1 M6;
+   przebieg lancy w sektorach 712–716; 581–583 wolne; backlog: wskaźnik
+   rakiety pod skrzydłem, jeśli budżet Bastionu kiedyś pozwoli, i stała
+   „pudło zużywa lancę" jako trudniejsza opcja), plan §6.3 jak zbudowano,
+   dziennik (ta sekcja).
+5. **Pełny łańcuch dowodowy** (build:candidate → runtime:wall-trace → build →
+   narzędzia związane z hashami, w tym showcase:gif → dwa pełne `npm test`
+   z `failures:reconcile`) plus cztery trasy bossów. Bramki: najgorsza klatka
+   sektora bossa ≤ 8 500 w każdym regionie, najgorszy margines płotu ≥ 1 400,
+   DMA-on ≤ 31 200, wejście do bossa ≤ 350, 0 zgubionych klatek, 0 błędów
+   klauzul, 0 bajtów rezydentnych dla broni (slot A +5, loader banera +2,
+   podsumowanie poziomu +10 — jak zaakceptowano). Oczekiwane: tylko
+   zapisany `tests/preview.test.mjs:164`; 0 NEW, 0 MOVED; przypinać na nowo
+   tylko dokładne wartości układu.
+6. **Dostarczyć** ATR pełnej gry i cztery ATR tras z prefiksem SHA-256
+   (ścieżki bezwzględne), zrzut banera Breakera z nową linią i tabelę per
+   region (najgorsza klatka na stan, klatki wejścia). STOP na smoke
+   właściciela. Bez merge, bez push.
+
+**Jak zbudowano (sesja, 2026-10-20):**
+- (1) Linia to wiersz ANTIC 2 (32 znaki wąskiego pola) w 12 pustych liniach
+  między INCOMING a paskiem (2 puste, wiersz, 2 puste), więc obraz, tytuł
+  i pasek zostają na swoich liniach. Znaku „+" nie ma w kontrakcie glifów:
+  przebieg banera wpisuje go przy każdym wejściu w kod 45 zestawu znaków
+  frontendu (kody 45–47 są czyszczone przy starcie i nikt ich nie rysuje).
+  Rysuje go późna część banera, razem z obrazem (sektory ekranu nie mają
+  miejsca). Koszt: wspólny kod banera 666 → 725 B; przebiegi Spine'a
+  (1 154 B) i Bastionu (1 208 B) dostają 10. sektor swojej rezerwacji —
+  wejścia 81 / 85 / 85 / 86 sektorów; 0 bajtów rezydentnych.
+- (2) Rampa: tabela 11 B w przebiegu lancy wg (ładowanie + 7) / 8 — zieleń
+  `$CA` bez ładowania, potem jasność 4 (stal `$84`) → `$CE`, w odcieniu zieleni
+  (zieleń gotowości zostaje), jeden zapis COLPM0 na klatkę (ten, który już
+  był); puszczenie = `$CA` w tej samej klatce. Mieści się bez kroku co 4.
+  Dźwięk wyładowania: szum (poly17, AUDF `$10`, AUDC `$8A`) w klatce
+  strzału. **Odstępstwo od wzoru sygnału gotowości:** nie trzyma
+  `boss_tick_timer` — działający licznik kosztuje przy każdym wywołaniu
+  `boss_frame_timers`, a przesunięcie szyny Bastionu robi ich cztery
+  w klatce (ZMIERZONE: +40 cykli, klatka strzału 8 513 > 8 500). Kanał wraca
+  do warkotu silnika w ostatniej klatce wiązki (wiązka jest ograniczona, więc
+  kanał zawsze zostaje zwolniony — zasada M5-03); zabicie na końcu wiązki,
+  trafienie albo ostrzeżenie lasera biorą kanał wcześniej, jak dotąd.
+  Dźwięk: 15 B w klatce strzału; powrót kanału i sygnał gotowości dzielą
+  procedurę `lance_sound`.
+- (3) T, `--lance-indicator` i `LANCE_INDICATOR_*` usunięte; przebieg lancy
+  639 z 640 B (5 sektorów 712–716).
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

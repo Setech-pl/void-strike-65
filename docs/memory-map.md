@@ -74,17 +74,17 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$0200-$03FF` | 512 B | machine | OS page 2-3 workspace, shadows and vectors (`VDSLST`, `SDMCTL`, `MEMLO`, SIO `DDEVIC`-`DAUX2`, `BASICF`) | `boot` `resident` | src/main.s equates |
 | `$0400-$04FF` | 256 B | unclaimed | **unclaimed — not measured** | — | — |
 | `$0500-$0BFF` | 1,792 B | slot | level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it | `session` | manifest `levelSummary.code`, tests/level-summary-build.test.mjs |
-| `$0500-$0BDF` | 1,760 B | segment | `LEVEL_SUMMARY` — level-summary module (read at the first START GAME) | `session` | build/level-summary.map |
+| `$0500-$0BE9` | 1,770 B | segment | `LEVEL_SUMMARY` — level-summary module (read at the first START GAME) | `session` | build/level-summary.map |
 | `$0500-$06FF` | 512 B | segment | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) | `splash` | build/void-strike-65.map |
-| `$0BE0-$0BFF` | 32 B | reserved | free tail of `LEVEL_SUMMARY_RAM` | `session` | cfg/level-summary.cfg |
+| `$0BEA-$0BFF` | 22 B | reserved | free tail of `LEVEL_SUMMARY_RAM` | `session` | cfg/level-summary.cfg |
 | `$0C00-$1FFF` | 5,120 B | slot | boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it | `overlay` | manifest `boss.claim`, tests/boss-claim.test.mjs |
 | `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) | `overlay` | manifest `boss.charset` |
 | `$1000-$17FF` | 2,048 B | slot | boss slot C: the C controller, run `boss-slot-c` (15 sectors) | `overlay` | manifest `boss.slotC` |
 | `$1000-$154D` | 1,358 B | segment | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) | `overlay` | build/boss.map |
-| `$1000-$147A` | 1,147 B | transient | boss banner run (the largest region's), landed in slot C's area before slot C is read | `boss-entry` | manifest `boss.banner` |
-| `$1000-$10BB` | 188 B | segment | `BOSS_BANNER` — boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read | `boss-entry` | build/boss.map |
-| `$10BC-$10EB` | 48 B | segment | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors | `boss-entry` | build/boss.map |
-| `$10EC-$119F` | 180 B | segment | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the picture unpacked and mirrored into its lines under the shown screen | `boss-entry` | build/boss.map |
+| `$1000-$14B7` | 1,208 B | transient | boss banner run (the largest region's), landed in slot C's area before slot C is read | `boss-entry` | manifest `boss.banner` |
+| `$1000-$10BE` | 191 B | segment | `BOSS_BANNER` — boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read | `boss-entry` | build/boss.map |
+| `$10BF-$10EE` | 48 B | segment | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors | `boss-entry` | build/boss.map |
+| `$10EF-$11DA` | 236 B | segment | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen | `boss-entry` | build/boss.map |
 | `$1500-$17FF` | 768 B | transient | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen | `boss-entry` | manifest `boss.banner` |
 | `$154E-$1557` | 10 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
 | `$1558-$171C` | 453 B | segment | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) | `overlay` | build/boss.map |
@@ -107,7 +107,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4000-$43FF` | 1,024 B | state | screen: HUD prefix, divider, frontend screen RAM | `resident` | src/main.s `SCREEN` |
 | `$4010-$4FFF` | 4,080 B | transient | loader bitmap lines 0-101 | `loader` | manifest `loaderScreen` |
 | `$4089-$4438` | 944 B | transient | packed STARFIELD stream A | `boot` | manifest `starfieldRuntime.streams` |
-| `$41B8-$422F` | 120 B | transient | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows | `boss-entry` | manifest `boss.banner` |
+| `$41B8-$424F` | 152 B | transient | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows, the VOID LANCE's line (ANTIC 2, M6 journal §BI 1) | `boss-entry` | manifest `boss.banner` |
 | `$4400-$47FF` | 1,024 B | state | gameplay charset | `resident` | src/main.s `CHARSET` |
 | `$4439-$475E` | 806 B | transient | packed STARFIELD stream B | `boot` | manifest `starfieldRuntime.streams` |
 | `$475F-$484B` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
@@ -146,8 +146,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$5E10-$780C` | 6,653 B | segment | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A | `resident` | build/void-strike-65.map |
 | `$6DE8-$75E7` | 2,048 B | slot | overlay slot A (`update_broadside` onward; run `capital-slot-a`) | `overlay` | manifest `overlays.slotA` |
 | `$6DE8-$6E0E` | 39 B | segment | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image | `overlay` | build/boss.map |
-| `$6E0F-$75B5` | 1,959 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
-| `$75B6-$75D9` | 36 B | segment | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A | `overlay` | build/boss.map |
+| `$6E0F-$75BA` | 1,964 B | segment | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off | `overlay` | build/boss.map |
+| `$75BB-$75DE` | 36 B | segment | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A | `overlay` | build/boss.map |
 | `$780D-$780F` | 3 B | reserved | free tail of `BROADSIDE_RAM` | `resident` | cfg/atari-boot.cfg |
 | `$7810-$7BCF` | 960 B | transient | pause-screen backup (`PAUSE_SCREEN_BACKUP`) | `pause` | manifest `pause` |
 | `$7810-$7BBF` | 944 B | transient | STARFIELD stream A staging | `boot` | manifest `starfieldRuntime.streams` |
@@ -155,10 +155,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7810-$7AF9` | 746 B | transient | packed C extension record landing (`HYBRID_C_EXT_STAGING`) | `boot` | manifest `directorCodeRuntimes` |
 | `$7810-$798C` | 381 B | segment | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers) | `boss-entry` | build/boss.map |
 | `$7810-$788F` | 128 B | transient | save-record sector buffer | `summary` | manifest `levelSummary.saveRecord` |
-| `$7990-$7A7E` | 239 B | transient | boss banner display list (40 blank lines, 64 LMS lines, the text, the bar) | `boss-entry` | manifest `boss.banner` |
+| `$7990-$7A81` | 242 B | transient | boss banner display list (40 blank lines, 64 LMS lines, the text, the VOID LANCE's line, the bar) | `boss-entry` | manifest `boss.banner` |
 | `$7A48-$7A89` | 66 B | segment | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the banner screen's registers and the region's banner run's 2 screen sectors read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry | `boss-entry` | build/boss.map |
-| `$7A90-$7B87` | 248 B | segment | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list | `boss-entry` | build/boss.map |
-| `$7B88-$7B97` | 16 B | segment | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk | `boss-entry` | build/boss.map |
+| `$7A90-$7B89` | 250 B | segment | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list | `boss-entry` | build/boss.map |
+| `$7B8A-$7B99` | 16 B | segment | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk | `boss-entry` | build/boss.map |
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
 | `$7C72-$7EDA` | 617 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
 | `$7EDB-$7F01` | 39 B | segment | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data | `resident` | build/encounter-director.map |
@@ -239,7 +239,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$B791-$B7EF` | 95 B | segment | `DISK_GUARD` — the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record | `resident` | build/light-kernel.map |
 | `$B7F0-$B813` | 36 B | segment | `CAPITAL_VECTOR_IMAGE` — the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening) | `resident` | build/light-kernel.map |
 | `$B814-$B829` | 22 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's region read (its WARNING records gone with the text screen, feat/boss-banners), the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour) | `resident` | build/light-kernel.map |
-| `$B82A-$BBFF` | 982 B | unclaimed | **unclaimed — not measured** | — | — |
+| `$B82A-$B97F` | 342 B | unclaimed | **unclaimed — not measured** | — | — |
+| `$B980-$BBFF` | 640 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (5 sectors, 712-716); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
+| `$B980-$BBF1` | 626 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the beam in P0 and its discharge on channel 3, the kill through boss_hit or the dry shot that keeps the lance) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
+| `$BBF2-$BBFE` | 13 B | segment | `LANCE_BSS` — the VOID LANCE's state (the meter, the readiness shown, the charge, the beam, the reticle's line and mark), inside the run: read as zeros at every boss entry - the meter resets | `overlay` | build/boss.map |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -261,9 +264,9 @@ No linked segment, cfg reservation, equate block, manifest range or machine area
 | --- | ---: | --- | --- |
 | `$00B6-$00FF` | 74 B | not measured | none in the repository |
 | `$0400-$04FF` | 256 B | not measured | none in the repository |
-| `$B82A-$BBFF` | 982 B | not measured | none in the repository |
+| `$B82A-$B97F` | 342 B | not measured | none in the repository |
 
-Total: 1,312 B unclaimed, of which 0 B measured-free.
+Total: 672 B unclaimed, of which 0 B measured-free.
 
 ### Free after boot
 
@@ -283,7 +286,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 
 | Range | Size | Area | Segments in it |
 | --- | ---: | --- | --- |
-| `$0BE0-$0BFF` | 32 B | `LEVEL_SUMMARY_RAM` (level-summary.cfg) | `LEVEL_SUMMARY` |
+| `$0BEA-$0BFF` | 22 B | `LEVEL_SUMMARY_RAM` (level-summary.cfg) | `LEVEL_SUMMARY` |
 | `$549E-$54E3` | 70 B | `PROJECTILE_RAM` (atari-boot.cfg) | `PROJECTILES` |
 | `$5CDB-$5E05` | 299 B | `STARFIELD_RAM` (atari-boot.cfg) | `STARFIELD` |
 | `$780D-$780F` | 3 B | `BROADSIDE_RAM` (atari-boot.cfg) | `BROADSIDE` |
@@ -327,9 +330,9 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | Range | Phases | Occupant |
 | --- | --- | --- |
 | `$0500-$0BFF` | `session` | level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it |
-| `$0500-$0BDF` | `session` | `LEVEL_SUMMARY` — level-summary module (read at the first START GAME) |
+| `$0500-$0BE9` | `session` | `LEVEL_SUMMARY` — level-summary module (read at the first START GAME) |
 | `$0500-$06FF` | `splash` | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) |
-| `$0BE0-$0BFF` | `session` | free tail of `LEVEL_SUMMARY_RAM` |
+| `$0BEA-$0BFF` | `session` | free tail of `LEVEL_SUMMARY_RAM` |
 
 **`$0C00-$1FFF` — the boss's low-RAM claim (charset, slot C, scratch, slot D)**
 
@@ -339,10 +342,10 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) |
 | `$1000-$17FF` | `overlay` | boss slot C: the C controller, run `boss-slot-c` (15 sectors) |
 | `$1000-$154D` | `overlay` | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) |
-| `$1000-$147A` | `boss-entry` | boss banner run (the largest region's), landed in slot C's area before slot C is read |
-| `$1000-$10BB` | `boss-entry` | `BOSS_BANNER` — boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read |
-| `$10BC-$10EB` | `boss-entry` | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors |
-| `$10EC-$119F` | `boss-entry` | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the picture unpacked and mirrored into its lines under the shown screen |
+| `$1000-$14B7` | `boss-entry` | boss banner run (the largest region's), landed in slot C's area before slot C is read |
+| `$1000-$10BE` | `boss-entry` | `BOSS_BANNER` — boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read |
+| `$10BF-$10EE` | `boss-entry` | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors |
+| `$10EF-$11DA` | `boss-entry` | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen |
 | `$1500-$17FF` | `boss-entry` | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen |
 | `$154E-$1557` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |
 | `$1558-$171C` | `overlay` | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) |
@@ -384,7 +387,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4010-$43FF` | `resident` | screen: HUD prefix, divider, frontend screen RAM |
 | `$4010-$4FFF` | `loader` | loader bitmap lines 0-101 |
 | `$4089-$4438` | `boot` | packed STARFIELD stream A |
-| `$41B8-$422F` | `boss-entry` | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows |
+| `$41B8-$424F` | `boss-entry` | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows, the VOID LANCE's line (ANTIC 2, M6 journal §BI 1) |
 | `$4400-$47FF` | `resident` | gameplay charset |
 | `$4439-$475E` | `boot` | packed STARFIELD stream B |
 | `$475F-$484B` | `boot` | A2 kernel image in the initial block |
@@ -431,10 +434,10 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7810-$7AF9` | `boot` | packed C extension record landing (`HYBRID_C_EXT_STAGING`) |
 | `$7810-$798C` | `boss-entry` | `BOSS_INSTALL` — boss install run at $7810, run once in place per boss entry; builds the band's list down to its last row with a cell (feat/boss-r1-twin-lasers) |
 | `$7810-$788F` | `summary` | save-record sector buffer |
-| `$7990-$7A7E` | `boss-entry` | boss banner display list (40 blank lines, 64 LMS lines, the text, the bar) |
+| `$7990-$7A81` | `boss-entry` | boss banner display list (40 blank lines, 64 LMS lines, the text, the VOID LANCE's line, the bar) |
 | `$7A48-$7A89` | `boss-entry` | `BOSS_ENTRY_COLD` — the boss entry's cold tail (feat/interceptor-armour): the theme's start, then (feat/boss-banners) the banner screen's registers and the region's banner run's 2 screen sectors read and checked against the theme run's spec; copied into every region's theme run at $7A48, run once per entry |
-| `$7A90-$7B87` | `boss-entry` | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list |
-| `$7B88-$7B97` | `boss-entry` | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk |
+| `$7A90-$7B89` | `boss-entry` | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list |
+| `$7B8A-$7B99` | `boss-entry` | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk |
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
 | `$7C72-$7EDA` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
 | `$7EDB-$7F01` | `resident` | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data |
@@ -501,8 +504,8 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$6DE8-$75E7` | `resident` | `BROADSIDE` — relocated BROADSIDE segment (see contents); holds overlay slot A |
 | `$6DE8-$75E7` | `overlay` | overlay slot A (`update_broadside` onward; run `capital-slot-a`) |
 | `$6DE8-$6E0E` | `overlay` | `BOSS_HEAD` — boss overlay: head JMP and the capital vector table's boss image |
-| `$6E0F-$75B5` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
-| `$75B6-$75D9` | `overlay` | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A |
+| `$6E0F-$75BA` | `overlay` | `BOSS_CODE` — boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off |
+| `$75BB-$75DE` | `overlay` | `BOSS_HEAD_CHECK` — boss overlay: the head's run check and module-count bound (audit-hardening), last in slot A |
 
 **`$A600-$ADFF` — the level buffer**
 
@@ -563,43 +566,59 @@ By topic: unclassified 90%, player, input and weapons 10%.
 | `boss_shot_admit` | `$1DA0` | 25 B | 1.5% | player, input and weapons |
 | `laser_tier` | `$1900` | 22 B | 1.3% | unclassified |
 | `boss_nozzle_operand` | `$1CB3` | 22 B | 1.3% | unclassified |
-| `laser_exposed` | `$1AF0` | 21 B | 1.2% | unclassified |
 | `b2_free` | `$1B6F` | 19 B | 1.1% | unclassified |
+| `laser_exposed_module` | `$1AF3` | 18 B | 1.1% | unclassified |
 | `laser_killed` | `$1CC9` | 17 B | 1.0% | unclassified |
-| 7 smaller items | — | 50 B | 3.0% | — |
+| 8 smaller items | — | 53 B | 3.1% | — |
 
 By topic: unclassified 83%, Heavy, Raider and Interceptor 9%, player, input and weapons 5%, frontend and HUD 3%.
 
-#### `BOSS_CODE` `$6E0F-$75B5`, 1,959 B (build/boss.map)
+#### `BOSS_CODE` `$6E0F-$75BA`, 1,964 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `boss_draw_module` | `$73FB` | 161 B | 8.2% | unclassified |
-| `boss_enqueue` | `$72BC` | 140 B | 7.1% | unclassified |
-| `boss_update` | `$6FD7` | 130 B | 6.6% | unclassified |
-| `boss_fire` | `$712C` | 126 B | 6.4% | player, input and weapons |
-| `boss_rebuild_module` | `$7503` | 126 B | 6.4% | unclassified |
-| `boss_ring_set` | `$71F2` | 120 B | 6.1% | display, PMG and raster |
-| `boss_dli` | `$6EE5` | 102 B | 5.2% | display, PMG and raster |
-| `boss_runs` | `$6E81` | 100 B | 5.1% | unclassified |
-| `boss_hit` | `$7059` | 98 B | 5.0% | unclassified |
-| `boss_motion` | `$6F88` | 79 B | 4.0% | unclassified |
+| `boss_draw_module` | `$7400` | 161 B | 8.2% | unclassified |
+| `boss_enqueue` | `$72C1` | 140 B | 7.1% | unclassified |
+| `boss_update` | `$6FDC` | 130 B | 6.6% | unclassified |
+| `boss_fire` | `$7131` | 126 B | 6.4% | player, input and weapons |
+| `boss_rebuild_module` | `$7508` | 126 B | 6.4% | unclassified |
+| `boss_ring_set` | `$71F7` | 120 B | 6.1% | display, PMG and raster |
+| `boss_runs` | `$6E81` | 105 B | 5.3% | unclassified |
+| `boss_dli` | `$6EEA` | 102 B | 5.2% | display, PMG and raster |
+| `boss_hit` | `$705E` | 98 B | 5.0% | unclassified |
+| `boss_motion` | `$6F8D` | 79 B | 4.0% | unclassified |
 | `boss_head` | `$6E0F` | 68 B | 3.5% | unclassified |
-| `boss_ring_rebase` | `$727D` | 63 B | 3.2% | display, PMG and raster |
-| `boss_column_base` | `$74C5` | 62 B | 3.2% | unclassified |
-| `boss_apply_pos` | `$6F4B` | 61 B | 3.1% | unclassified |
-| `boss_open_looks` | `$70F2` | 58 B | 3.0% | unclassified |
-| `boss_queue_draw` | `$7348` | 56 B | 2.9% | unclassified |
-| `boss_nozzles` | `$7380` | 48 B | 2.5% | unclassified |
-| `boss_frame_timers` | `$71AA` | 43 B | 2.2% | unclassified |
-| `boss_nozzle_darken` | `$73C3` | 38 B | 1.9% | unclassified |
+| `boss_ring_rebase` | `$7282` | 63 B | 3.2% | display, PMG and raster |
+| `boss_column_base` | `$74CA` | 62 B | 3.2% | unclassified |
+| `boss_apply_pos` | `$6F50` | 61 B | 3.1% | unclassified |
+| `boss_open_looks` | `$70F7` | 58 B | 3.0% | unclassified |
+| `boss_queue_draw` | `$734D` | 56 B | 2.9% | unclassified |
+| `boss_nozzles` | `$7385` | 48 B | 2.4% | unclassified |
+| `boss_frame_timers` | `$71AF` | 43 B | 2.2% | unclassified |
+| `boss_nozzle_darken` | `$73C8` | 38 B | 1.9% | unclassified |
 | `boss_read_run` | `$6E53` | 36 B | 1.8% | unclassified |
-| `boss_column_from` | `$74A2` | 35 B | 1.8% | unclassified |
-| `boss_tick_sound` | `$71D5` | 29 B | 1.5% | music and audio |
-| `boss_completion` | `$7581` | 21 B | 1.1% | unclassified |
+| `boss_column_from` | `$74A7` | 35 B | 1.8% | unclassified |
+| `boss_tick_sound` | `$71DA` | 29 B | 1.5% | music and audio |
+| `boss_completion` | `$7586` | 21 B | 1.1% | unclassified |
 | 25 smaller items | — | 159 B | 8.1% | — |
 
-By topic: unclassified 76%, display, PMG and raster 16%, player, input and weapons 6%, music and audio 2%, boot, loader and transport 0%.
+By topic: unclassified 76%, display, PMG and raster 15%, player, input and weapons 6%, music and audio 2%, boot, loader and transport 0%.
+
+#### `LANCE_CODE` `$B980-$BBF1`, 626 B (build/boss.map)
+
+| Item | Address | Size | Share | Topic |
+| --- | --- | ---: | ---: | --- |
+| `lance_aim` | `$BA2F` | 212 B | 33.9% | unclassified |
+| (unlabelled head of boss-lance-c.o) | `$BB56` | 156 B | 24.9% | unclassified |
+| `lance_beam_frame` | `$B98D` | 112 B | 17.9% | unclassified |
+| `lance_indicate` | `$BB03` | 53 B | 8.5% | unclassified |
+| `lance_meter` | `$B9FD` | 50 B | 8.0% | unclassified |
+| `lance_tick` | `$B980` | 13 B | 2.1% | unclassified |
+| `lance_sound` | `$BB38` | 11 B | 1.8% | music and audio |
+| `lance_ramp` | `$BB4B` | 11 B | 1.8% | unclassified |
+| `lance_shape` | `$BB43` | 8 B | 1.3% | unclassified |
+
+By topic: unclassified 98%, music and audio 2%.
 
 #### `HYBRID_C_ARENA` `$7C72-$7EDA`, 617 B (build/encounter-director.map)
 
@@ -669,7 +688,7 @@ By topic: Director, sectors and waves 84%, Heavy, Raider and Interceptor 12%, pl
 
 By topic: Light enemies 66%, Director, sectors and waves 23%, Heavy, Raider and Interceptor 7%, unclassified 4%.
 
-#### `LEVEL_SUMMARY` `$0500-$0BDF`, 1,760 B (build/level-summary.map)
+#### `LEVEL_SUMMARY` `$0500-$0BE9`, 1,770 B (build/level-summary.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
@@ -679,25 +698,28 @@ By topic: Light enemies 66%, Director, sectors and waves 23%, Heavy, Raider and 
 | `summary_draw_stats` | `$0649` | 116 B | 6.6% | level summary |
 | `summary_update_record` | `$084B` | 116 B | 6.6% | level summary |
 | `summary_accuracy` | `$0981` | 109 B | 6.2% | level summary |
-| `summary_time` | `$0A35` | 83 B | 4.7% | level summary |
+| `summary_time` | `$0A3E` | 83 B | 4.7% | level summary |
 | `summary_print` | `$0714` | 76 B | 4.3% | level summary |
-| `summary_grade` | `$0A88` | 71 B | 4.0% | level summary |
+| `summary_grade` | `$0A91` | 71 B | 4.0% | level summary |
 | `summary_read_record` | `$080D` | 62 B | 3.5% | level summary |
-| (after summary_level_end) | `$058D` | 61 B | 3.5% | level summary |
-| `summary_bonus` | `$0ACF` | 60 B | 3.4% | level summary |
-| `summary_publish` | `$0615` | 52 B | 3.0% | level summary |
-| `summary_draw_best` | `$06BD` | 45 B | 2.6% | level summary |
+| (after summary_level_end) | `$058D` | 61 B | 3.4% | level summary |
+| `summary_bonus` | `$0AD8` | 60 B | 3.4% | level summary |
+| `summary_publish` | `$0615` | 52 B | 2.9% | level summary |
+| `summary_draw_best` | `$06BD` | 45 B | 2.5% | level summary |
 | `summary_start_display_list` | `$0B7C` | 39 B | 2.2% | level summary |
 | `summary_own_disk` | `$093C` | 37 B | 2.1% | level summary |
 | `summary_display_list` | `$0B58` | 36 B | 2.0% | level summary |
+| `summary_animate` | `$0B3A` | 30 B | 1.7% | level summary |
 | `summary_wait` | `$05CA` | 29 B | 1.6% | level summary |
-| `summary_animate` | `$0B3B` | 29 B | 1.6% | level summary |
 | `summary_row` | `$06FA` | 26 B | 1.5% | level summary |
 | `summary_two_digits` | `$0760` | 24 B | 1.4% | level summary |
 | `summary_prepare` | `$05FE` | 23 B | 1.3% | level summary |
 | `summary_boss_restore` | `$09EE` | 23 B | 1.3% | level summary |
+| `boss_restore_lo` | `$0A05` | 19 B | 1.1% | unclassified |
+| `boss_restore_hi` | `$0A18` | 19 B | 1.1% | unclassified |
+| `boss_restore_value` | `$0A2B` | 19 B | 1.1% | unclassified |
 | `summary_record_slot` | `$0961` | 18 B | 1.0% | level summary |
-| 43 smaller items | — | 253 B | 14.4% | — |
+| 40 smaller items | — | 205 B | 11.6% | — |
 
 By topic: level summary 97%, unclassified 3%.
 
@@ -998,12 +1020,13 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | --- | ---: | --- | ---: | --- | --- |
 | `BOSS_C_CODE` | 1,358 B | placement name | — | unclassified (90%) | not judged |
 | `BOSS_D_CODE` | 1,684 B | placement name | — | unclassified (83%) | not judged |
-| `BOSS_CODE` | 1,959 B | placement name | — | unclassified (76%) | not judged |
+| `BOSS_CODE` | 1,964 B | placement name | — | unclassified (76%) | not judged |
+| `LANCE_CODE` | 626 B | placement name | — | unclassified (98%) | not judged |
 | `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `DIRECTOR_C_CODE` | 623 B | placement name | — | Director, sectors and waves (84%) | not judged |
 | `HYBRID_C_WINDOW` | 1,533 B | placement name | — | Light enemies (66%) | not judged |
-| `LEVEL_SUMMARY` | 1,760 B | level summary | 97% | level summary (97%) | fits |
+| `LEVEL_SUMMARY` | 1,770 B | level summary | 97% | level summary (97%) | fits |
 | `LIGHT_KERNEL` | 793 B | Light enemies | 95% | Light enemies (95%) | fits |
 | `SECTOR_READER` | 1,498 B | boot, loader and transport, Director, sectors and waves | 84% | boot, loader and transport (84%) | fits |
 | `CODE` | 4,464 B | placement name | — | frontend and HUD (24%) | not judged |
@@ -1056,6 +1079,16 @@ Design notes; the generated block above has every range. Plan §5.12.
   with `clear_screen`. The Light kernel's WARNING record (`$B82A-$B834`,
   11 B) is gone: the kernel link ends at `$B829`, the window's free tail
   971 -> 982 B. Plan `boss-banners` §9.2, §9.6.
+  **M6 (journal §BI 1):** the VOID LANCE's onboarding line under INCOMING -
+  an ANTIC 2 row at `$4230-$424F` (inside the cleared `$4000-$43FF`; the
+  rows now `$41B8-$424F`), in INCOMING's 12 blank lines to the bar, so the
+  picture, the title and the bar keep their lines; the list grows 239 -> 242 B
+  (`$7990-$7A81`). The banner run's late part draws it and writes its '+'
+  into the frontend charset's code 45 (`$4969-$496D`; codes 45-47 are cleared
+  at boot and drawn by no one; the charset is rebuilt from source after the
+  boss). The shared banner code grows 666 -> 725 B: the Spine's run (1,154 B)
+  and the Bastion's (1,208 B, `$1000-$14B7`) take a 10th sector of their
+  reservations; 0 resident bytes.
 - **Slot B**: band rows 0-5 at `$A880-$A9FF` (over the level's hull block,
   dead after the capital sector; the entry clears the level's magic so the
   next START GAME re-reads it), rows 6-7 at `$AC80-$ACFF`, the region tables
@@ -1069,6 +1102,31 @@ Design notes; the generated block above has every range. Plan §5.12.
   segment of the Director link's half (109 B); the window is 1,316 B free.
 - **Disk**: boss code 528-543, install 544-546, region 1 547-555; regions 2-4
   556-582 (S5).
+- **M6 — the VOID LANCE run (owner decision BD 6, 2026-10-20; journal §BG, §BH, §BI):**
+  `$B980-$BBFF`, the top 640 B of the window's unclaimed tail, allocated from
+  `$BBFF` down. It is read at every boss entry after slot E (the banner's
+  reads, five shared runs), is the boss sector's only, and holds the code
+  (the tick, the meter's and the charge's C policy, the readiness indicator -
+  C, the only one since journal §BI 3 - journal §BH's hollow mark and dry
+  shot, §BI 2's charge ramp and discharge: 626 B) and 13 B of BSS read as
+  zeros - 639 of 640 B; the meter resets at every entry (manifest
+  `boss.lance`). §BH's C was 584 B of code (T's 617 B, now gone). Stage 1's run was `$BA80-$BBFF`, 384 B (373 B of
+  code, the stock's 1-B grant, 8 B of BSS); §BG's `$BA00-$BBFF`, 512 B.
+  - **Disk:** sectors 712-716, the lance's own reservation at the disk's free
+    tail (manifest `boss.reservedSectors.lance`). Stage 1 used 581-583, the
+    boss code reservation's last three: the meter and the indicator do not
+    fit them (plan `m6-void-lance` §6.3), and they are free again. Slot E's
+    maximum stays 4 sectors (577-580), the whole sectors its 576 B allow.
+  - **The window's room to grow:** `$B82A-$B97F`, 342 B (the life capsule's
+    125-160 B fit). `scripts/lance-layout.mjs` fails the build when the
+    window's record (the Light kernel link's end) passes `$B980`.
+  - **Runtime evidence:** the trace watches the tail from the window's end
+    (the `window_tail` range, `windowTailWriteClause`). The only writers are
+    the start-up writers, the sector reader's read of the run and the
+    lance's own code, and both write only into the run (`$B980-$BBFF`).
+  - **The hooks:** the boss vector image's TICK_FLASHES and HULL_CONTACT
+    entries (`jmp boss_rts` before), byte-neutral in slot A. Slot A grows by
+    the run table's 5 B (2,039 of 2,048 B), the banner reads by 2 B (250 B).
 
 ## Superseded rows — the measured values, in one place (2026-09-20)
 

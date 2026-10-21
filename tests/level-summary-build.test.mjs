@@ -206,6 +206,8 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
     ["M5b regions", 632, 64],
     // S5-1 (owner decision Q9): the regions' blocks, 4 sectors each from 696.
     ["S5 region blocks", 696, 16],
+    // M6 (journal §BG): the VOID LANCE run's own four sectors.
+    ["M6 lance run", 712, 4],
     ["summary code", levelSummary.code.startSector, levelSummary.code.sectors],
     ["save record", SAVE_SECTOR, 1],
     ...levelSummary.art.runs.map((run) => [`art ${run.region}`, run.startSector, 7]),
@@ -247,8 +249,17 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   assert.ok(atrSectors(slotDEnd, slotEStart - slotDEnd).every((byte) => byte === 0),
     "the room between slot D's run and slot E's must stay empty");
   assert.ok(atrSectors(slotEStart, manifest.boss.slotE.sectors).some((byte) => byte !== 0), "slot E is on the disk");
+  // RE-POINTED feat/m6-void-lance (journal §BD 6): the lance run sits at the
+  // reservation's end (581-583); the room between slot E's run and it is empty.
+  // RE-POINTED journal §BG (plan §6.3): the lance run left the reservation for
+  // its own four sectors at the disk's free tail (712-715); the reservation is
+  // empty past slot E again.
+  const lance = manifest.boss.runs.find((run) => run.name === "boss-lance");
+  assert.deepEqual([lance.startSector, lance.sectors], [712, manifest.boss.lance.sectors], "the lance run: the disk's free tail");
+  assert.ok([4, 5].includes(lance.sectors), "five sectors since journal §BH (four at §BG)");
   assert.ok(atrSectors(slotEEnd, 584 - slotEEnd).every((byte) => byte === 0),
     "528-583 past slot E must stay empty");
+  assert.ok(atrSectors(lance.startSector, lance.sectors).some((byte) => byte !== 0), "the lance run is on the disk");
   assert.ok(atrSectors(632, 16).some((byte) => byte !== 0), "region 1 is on the disk");
   // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk as
   // copies of region 1, and every region's block at 696 + 4 x region.

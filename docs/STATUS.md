@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-19 (docs/enemies-bosses-pages, OWNER REVIEW CANDIDATE: the player pages docs/enemies.md and docs/bosses.md, EN + PL, with CRT-style pictures and seven cuts captured from the build (scripts/pages/, docs/media/{enemies,bosses,badges}, not in the media manifest - backlog), the README link bar at the top, how-to-play and game-design corrected to the code; docs, media and tools only, dist/ = the v0.3.0 ATR byte for byte; plan docs/plans/enemies-bosses-pages.md. Before it: v0.3.0 released as a pre-release from main - chore/release-v0.3.0, journal §BC. The owner's hardware test on a real 65XE via SIO2SD PASSED on ATR c977efe0 (level 1, region 1's banner and the Blockade Breaker, the summary) and the region-4 route 5e2888eb (the Bastion's banner and fight): hardware-testing.md §36 and §39 PASS, the §AZ technical debt cleared, the audit's M8 item covered. Real hardware covers what the shipped game reaches (level 1 and region 1's boss); the other OWNER-SMOKE CANDIDATE items accepted on emulator smoke. Ledger: AUD-01..07 and LA-1, 2, 5 closed; the audit's M4 deferred to M4 / the campaign, M10 to M8. The shipped game is level 1 ending on the Blockade Breaker; the three other bosses are built and arrive with the campaign. Notes EN + PL in docs/releases/v0.3.0.md; README plays v0.3.0 (Setech Arcade to be repinned; the summary's display list still $0B58, measured). Before it: fix/audit-m5 merged at f7d7f4d, OWNER-ACCEPTED.)
+Last update: 2026-10-21 (feat/m6-void-lance, OWNER-SMOKE CANDIDATE, STOP: journal §BI - M6 stage 1 final: §BH's rules accepted; every boss banner carries VOID LANCE: HOLD FIRE+FORWARD under INCOMING; the ship's green ramps to near-white while charging; a noise discharge on the fire frame; indicator C only; lance run 639 of 640 B, 5 sectors 712-716, resident 0; Bastion worst 8,462; evidence regenerated)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -426,6 +426,63 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## M6 — the VOID LANCE, stage 1 final: the banner's onboarding line, the charge ramp, the discharge, indicator C only (feat/m6-void-lance) — `OWNER-SMOKE CANDIDATE`, STOP
+
+Plan [plans/m6-void-lance.md](plans/m6-void-lance.md) §6.5 (this state), §6.3 (the meter and the indicator, as built), §6.4 (the charge whatever is under the ship), §6.1-§6.2 (stage 1); journal **§BD**-**§BH**, and **§BI**: the owner accepted §BH's rules on the smoke of `abaab35` (the no-target shot keeping the lance is the rule) and asked for the stage's finish.
+
+**What the player gets** (every boss fight of the full game; how-to-play EN / PL "The VOID LANCE"):
+- **The meter:** a lance is ready 25 s into the fight (1,250 frames on MEDIUM; 938 on EASY, 1,562 on HARD - the boss's hit-point ratios), one at a time, empty at every boss entry.
+- **Readiness:** the ship turns green (`$CA`) and a 0.32 s tone sounds on channel 3 (again after a death). Indicator **C** is the only one: T, `--lance-indicator` and `LANCE_INDICATOR_*` are gone (§BI 3).
+- **The reticle (§BH 2):** while ready, the crosshair at a target's centre, the hollow mark at the ship's column over none.
+- **The charge (§BH 1):** FIRE + stick UP held 75 frames at half speed, whatever is under the ship; only a release cancels it. **New (§BI 2):** the ship's green brightens from luminance 4 (the steel's) to near-white `$CE` over the charge - an 11-B table, the same one COLPM0 write a frame - and is the green again the frame the gesture is released.
+- **The shot:** over a target the beam kills that module and spends the lance; over none it flies to the band's foot and the lance is kept. **New (§BI 2):** a noise discharge on channel 3 from the fire frame, given back to the engine bed by the beam's last frame (or earlier by the kill's tick, a hit or a laser warning).
+- **New (§BI 1):** every boss's loading banner has one line under INCOMING, `VOID LANCE: HOLD FIRE+FORWARD`, in the game's lettering (ANTIC 2, in INCOMING's 12 blank lines to the bar, so the picture, the title and the bar keep their lines; its '+' written into the frontend charset's blank code 45 by the banner run).
+
+**Deviation from the brief's sound rule, recorded (§BI "as built"):** the discharge does not hold `boss_tick_timer` as the cue does. A running timer costs every `boss_frame_timers` call, and a Bastion rail's slide calls it four times on a frame (MEASURED +40 cycles: a fire frame of 8,513, over 8,500). The beam is bounded, so the channel is always released (M5-03's rule). The sound is 15 B on the fire frame.
+
+**Resident bytes: 0** for the weapon and the banner line (initial block, slots A / C / D / E, banner keep and level summary unchanged; the accepted slot A +5, banner loader +2, level summary +10 stand).
+
+| Item | `abaab35` | **this state** |
+| --- | ---: | ---: |
+| lance run | 597 of 640 B (C) | **639 of 640 B** (626 code + 13 BSS), 5 sectors **712-716**, `$B980-$BBFF` |
+| boss code reservation | 581-583 free | 581-583 free |
+| banner runs (shared code) | 9 / 9 / 9 / 9 sectors (666 B) | **9 / 9 / 10 / 10** (725 B: the line, its '+', 3 B of list) |
+| boss entry, sectors | 81 / 85 / 84 / 85 | **81 / 85 / 85 / 86** |
+
+**Per region (M; worst frame per state: the 6502 stress tools, native cycles, limit 8,500; entry: Atari800, the routes and the trace, limit 350).**
+
+| region | level | filling | draw | idle | charge | swap | fire | dry | grow | arrive | erase | end | worst (headroom) | entry, host frames |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 Breaker | L1 | 7,216 | 7,498 | 7,495 | 7,517 | 7,558 | 7,575 | 7,515 | 7,507 | 7,125 | 7,527 | 7,543 | 7,575 (925) | 314 |
+| 2 Citadel | L5 | 8,095 | 8,354 | 8,361 | 8,383 | 8,396 | 8,413 | 8,413 | 8,386 | 8,218 | 8,406 | 8,422 | 8,422 (78) | 329 |
+| 3 Spine | L9 | 8,091 | 8,350 | 8,348 | 8,370 | 8,411 | 8,428 | 8,364 | 8,382 | 8,020 | 8,402 | 8,418 | 8,428 (72) | 329 |
+| 4 Bastion | L10 | 8,126 | 8,417 | 8,382 | 8,404 | 8,445 | 8,462 | 8,399 | 8,417 | 7,556 | 8,437 | 8,453 | **8,462 (38)** | 332 |
+
+`end` is new: the beam's last frame, where the channel goes back to the bed. The Bastion fixture (the lance fired on its worst frame): 8,462. Without the discharge's timer rule the Bastion's fire frame was 8,513; the ramp alone costs about 20 cycles there.
+
+**Evidence chain (M, the default build, this tree):** `build:candidate` -> `runtime:wall-trace` (58 replays, **0 misses, 0 clause failures**; worst fence margin **1,465** `2-sweep-fire6`, DMA-on maximum **31,059**, both unchanged; 17 boss entries, all **314** host frames; the window-tail clause 17 lance-run reads, 0 foreign writers) -> menu raster (4 pass) -> `build` (ATR `30b94e65…`, the same bytes as the candidate's) -> `memory-map` -> `showcase:gif` (the GIF unchanged) -> `showcase`. Two full `npm test` runs on the default build: each **1,526 of 1,527** - the recorded `tests/preview.test.mjs:164` only, matched by name and first assertion; `failures:reconcile` PASS after each (0 NEW, 0 MOVED, 0 disappeared). `tests/source-contracts.test.mjs` 14 of 14.
+
+**The four routes (M, Atari800, `--level=1:sector=6 [--boss-region=N]`, 34 focused sessions, all pass):**
+
+| route | sessions | worst margin | DMA-on max | entry, host frames | misses / clause failures | `boss-aim-lance-1` fires |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| R1 Breaker | 6 | 8,507 | 29,813 | 314 | 0 / 0 | 1 (f1,402) |
+| R2 Citadel | 9 | 6,166 | 30,293 | 329 | 0 / 0 | 1 (f1,327) |
+| R3 Spine | 9 | 6,959 | 30,392 | 329 | 0 / 0 | 4 (dry shots kept the lance: the column drifted empty) |
+| R4 Bastion | 10 | 6,459 | 29,811 | 332 | 0 / 0 | 2 (f1,327, f2,654) |
+
+On every route the charge shows all six ramp colours (`$C4`-`$CE`) and the fire frame writes the noise.
+
+**Tests.** `tests/lance.test.mjs` **33 of 33, no skips**: the T branches gone; new - the charge ramp (luminance 4 to near-white, never down, six steps, one write a frame, the green on a release, white after a kill, green after a dry shot) and the discharge (the fire frame only, target or none, no timer held, the noise through a dry beam, the bed back after the beam or the kill's tick, silent with the sound off). `tests/boss-banners.test.mjs` 31 of 31: new per region (all four) - the line's text and column, its '+' glyph in code 45 (rows 1-5, the neighbours untouched), its row in the list, the bar's scan line unchanged, the row blank as the screen comes on. `tests/lance-states.mjs`: the `end` state. Layout re-pins, values only: `boss-banners` (runs 9 / 9 / 10 / 10, entries 81 / 85 / 85 / 86), `boss-region-2` (entry 86).
+
+**Backlog (§BI 4):** a rocket indicator under the wing, if the Bastion's budget ever allows it; a "miss spends the lance" constant as a harder option. Stage 2: the +1 life capsule only.
+
+**Known risks.** Both reticle marks are in the lasers' colour (shape only tells them apart). The Citadel's gravity column (M0, `COLPM0`) turns green with the ship and ramps with the charge. A Shield's pulse overrides the green while it runs. The lance run is full (1 B free): any further lance feature needs a sixth sector (+1 sector at every entry, about +4 host frames). The Bastion's fire frame has 38 cycles of headroom.
+
+**Owner smoke ATRs** (`build/play/`, not committed): see the report; the banner still `build/m6-probe/bi/banner/breaker-banner-lance-line.png`.
+
+---
+
 ## The m5 audit's fixes (fix/audit-m5) — **OWNER-ACCEPTED** (owner smoke PASS 2026-10-19, merged into main by fast-forward)
 
 Audit [audits/2026-10-19-m5.md](audits/2026-10-19-m5.md) (Codex, `main` `2e93173`, addendum M1-M12); ledger [audits/README.md](audits/README.md); the owner's triage journal **§BA**. Every finding was checked against the repository and confirmed; none rejected. Each fix landed as a RED test commit, then the GREEN fix. **Owner smoke PASS (2026-10-19, journal §BB; [hardware-testing.md](hardware-testing.md) §40)** on all five ATRs below: the hit sound, the laser fighter's second pass over a ship held still near the top, and the lead through the banner screen after a hit just before the boss.
@@ -574,7 +631,7 @@ Two points for the owner (the diagnostics note's option 2, `docs/diagnostics/bos
 | 3 | Siege Spine | 268 (70) | 32 | 7,771 (L7) / 8,025 (L9) | 475 | `measure-boss-stress-field.mjs` |
 | 4 | Bastion | 272 (71) | 28 | 8,060 (L10) | 440 | `measure-boss-stress-r2.mjs` |
 
-The M6 VOID LANCE reticle (EST, instruction counts): ~300 native cycles on its worst frame (the target pick ~80, HPOS ~15, the redraw ~160, its DLI colour ~20), ~120 without a redraw; every region's headroom is above it (the least 440, the Bastion).
+The M6 VOID LANCE (the estimate that stood here, ~300 / ~120, is replaced by measurement): M6 Phase A measured the reticle (plan `m6-void-lance` §2), and stage 1 measures the built lance in every state - the worst 7,548 / 8,386 / 8,398 / 8,437 (section *M6 stage 1* above).
 
 **Gates (`docs/runtime-wall-trace.json`; before = main `4767691`, ATR `33b1acb3`; M).**
 | gate | before | after | source |
@@ -618,7 +675,7 @@ Plan [plans/boss-art.md](plans/boss-art.md) (audit §1, the R3 study §2, varian
 | boss-route frames (HARD dodge, 3,000 frames), worst margin R1 / R2 / R3 / R4 | 15,370 / 11,965 / 13,095 / 9,407 | 14,935 / 11,337 / 13,095 / 9,209 | the routes (M; DMA-on 27,580 / 27,993 / 27,897 / 28,503, 0 misses) |
 | boss entry R1 / R2 / R3 / R4, host frames (sectors) | 249 (65) / 256 (67) / 256 (67) / 261 (68) | 249 (65) / 264 (69) / 260 (68) / 264 (69) | the routes (M); limit **300**: 51 / 36 / 40 / 36 left |
 | stress, worst reachable R1 / R2 / R3 L7 (L9) / R4 | 6,996 / 7,723 / 7,771 (8,025) / 8,044 | 7,154 / 7,935 / 7,775 (8,029) / 8,148 | `tests/boss-stress`, `measure-boss-stress-*` incl. the switches (M-N; limit 8,500) |
-| M6 headroom (8,500 − worst) | 1,504 / 777 / 475 / 456 | **1,346 / 565 / 471 / 352** | the same |
+| M6 headroom (8,500 − worst) | 1,504 / 777 / 475 / 456 | **1,346 / 565 / 471 / 352** — stale: **corrected 2026-10-20** to the values measured on `main` `3d59ded` with the boss order (§AX), **1,350 / 471 / 475 / 440** (R1 Breaker / R2 Citadel L5 / R3 Spine L9 / R4 Bastion; plan `m6-void-lance` §1.2) | the same |
 | charset R1 / R2 (codes / sectors) | 105 / 7, 88 / 6 | 93 / 6, 99 / 7 | the manifest |
 | slot C (sectors, code), slot D | 13, 1,662 B; 1,751 B | 14, 1,779 B (46 free); 1,767 B (25 free; BSS +16) | the manifest |
 | slot A, window record, Light kernel, initial block, resident bytes | unchanged | unchanged, 0 B | the manifest |
@@ -8276,6 +8333,13 @@ it to size a budget, never to predict a frame. The committed baselines
 
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
+
+- **M6 stage 2 needs a 4th lance sector or another home for the
+  give-one-lance routine** (journal §BF 4): the lance run `$BA80-$BBFF`
+  (sectors 581-583) has only 1 B free in the owner's figure - 2 B as finally
+  built (382 of 384 B, MEASURED) - and `lance_c_give` left it for bytes;
+  the sector after them, 584, is the summary module, so a 4th sector means the
+  reservation grown or the disk's free tail 712-720 (plan `m6-void-lance` §3).
 
 - **Bind docs/media/{enemies,bosses} into the media manifest — needs the
   one-animation pin in tests changed (separate task)** (docs/enemies-bosses-pages,

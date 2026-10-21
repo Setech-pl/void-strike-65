@@ -756,29 +756,57 @@ section "Decyzje literowe 2026-09-20".
 - **End screen (P).** Eventually an animation in the top third at full width
   with a text scroll below. A simple message suffices for now.
 
-### Nova Missile — planned
+### VOID LANCE — M6 (replaced the planned Nova Missile)
 
-Nova Missile is a future boss-only special-weapon pickup, not a member of the
-planned Rapid Fire / Spread Shot / Shield drop rotation. It may appear only
-during a boss encounter, never in standard sectors or through the qualifying
-Raider-kill counter. Its mark is planned as a large, readable PMG shape,
-consistent with the accepted single-register pickup representation and not a
-revival of the retired character-capsule compositor.
+The VOID LANCE replaced the Nova Missile, which was never built: there was no
+code, no HUD cell and no score hook (journal §AE 1, §BD). It is the boss
+sector's own weapon and never an ordinary drop. Plan:
+[`plans/m6-void-lance.md`](plans/m6-void-lance.md).
 
-Collecting it arms exactly one missile independently of the current weapon
-booster and Shield. A held FIRE input at collection must not launch it: the
-player must release FIRE and press it again. That next new press launches Nova
-Missile instead of the normal shot, after which the Player Fighter returns to its
-preserved normal, Rapid Fire, or Spread Shot weapon state.
+**As built (journal §BF-§BI; `OWNER-SMOKE CANDIDATE`; the owner accepted
+§BH's rules on the smoke of `abaab35`, journal §BI):**
+- **The meter:** the lance charges with time on the boss screen. A meter
+  fills over 1,250 boss frames (25 s) on MEDIUM, 938 (18.76 s) on EASY and
+  1,562 (31.24 s) on HARD - the boss's own hit-point ratios, x 3/4 and
+  x 5/4. Full, **one** lance is ready; lances do not stack. The shot empties
+  the meter and it fills again. It runs in the boss sector only and is empty
+  at every boss entry. There is no capsule, no stock counter and no HUD cell.
+- **Readiness:** the ship turns green (`$CA`) while a lance is ready - the
+  owner's choice (indicator C, journal §BI 3; the torpedo variant T is gone) -
+  and a short tone on channel 3 when it becomes ready. A HUD text has no room
+  (plan §6.3).
+- **Onboarding:** every boss's loading banner carries one line under
+  INCOMING, `VOID LANCE: HOLD FIRE+FORWARD`, in the game's lettering (ANTIC 2;
+  journal §BI 1).
+- **The reticle:** only while a lance is ready, and then always (journal
+  §BH 2), on P1 in the lasers' colour on the line under the band: the
+  crosshair at the module's centre when the ship stands under a module a
+  player shot would hurt, a hollow mark (half the crosshair's pixels) at the
+  ship's column when it does not.
+- **The charge:** FIRE held with the stick UP for 75 frames (1.5 s), whatever
+  is under the ship (journal §BH 1). The gesture is level-triggered: FIRE
+  held for seconds and UP added starts it at once. The mark blinks two frames
+  in four and the ship moves at half speed, its green brightening from the
+  steel's luminance to near-white over the 75 frames and snapping back to
+  the ready green on a release (journal §BI 2). The ordinary fire never changes.
+  Only releasing either cancels it; the column under the ship changing, or
+  the ship reaching its limits, does not. The gesture does nothing while the
+  meter fills.
+- **No target on the fire frame** (armour, open sky, a covered module, the
+  core, a closed door, a powered field): the beam still fires, up through
+  the hollow mark to the band's foot, and the lance is **not** spent - the
+  meter stays full and the ship stays green (journal §BH 3).
+- **The beam:** on the 75th frame a discharge sounds on channel 3 (noise,
+  until the beam is down or the kill's tick; journal §BI 2) and the beam
+  leaves the ship's nose in the ship's own plane (P0), growing 20 lines a frame. When it reaches the
+  module, the module is destroyed through the shot's own kill path: the
+  spark, the score, the kill stat, the capsule rule and the exposure of what
+  stood behind it. Exactly one module dies, the one under the ship, and
+  never the core. A player shot that would meet the boss on that frame waits
+  one frame.
 
-A boss hit is planned to trigger a large multi-phase space-detonation: a bright
-central flash, yellow-red core, and expanding energy wave. Boss damage is
-applied exactly once at detonation; later animation phases cannot deal damage
-again. The weapon is intended to cause very high boss damage, but its exact
-damage, guidance, speed, spawn condition, and pickup count remain deliberately
-unspecified until boss lifecycle, boss HULL, and the large-explosion runtime
-budget are designed together. Nova Missile is not present in the current
-runtime.
+Stage 2 keeps only the +1 life capsule; the plan for boss capsules as lances
+is withdrawn (journal §BG 3).
 
 ### Interceptor — **OWNER-ACCEPTED** (roadmap 4.4)
 

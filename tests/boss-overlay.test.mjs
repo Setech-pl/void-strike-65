@@ -60,6 +60,11 @@ test("slot A holds the boss: at most 2,048 B, a JMP to the head, then the 12-ent
     // player's shots in the band once the band has been shown (slot E), then
     // jumps to boss_completion (asserted after the table).
     update_sector_completion: label("boss", "boss_shots_late"),
+    // RE-POINTED M6 stage 1 (docs/plans/m6-void-lance.md §6.1): the VOID
+    // LANCE's tick (TICK_FLASHES, before read_input and UPDATE) - boss_rts
+    // before. HULL_CONTACT is boss_rts again since the owner's smoke of
+    // 2026-10-20 (the kill's meeting is the patched admit operand now).
+    tick_launch_flashes: label("boss", "lance_tick"),
   };
   const image = label("boss", "boss_vector_image") - slot.address;
   vectors.forEach((target, index) => {
@@ -146,8 +151,10 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
   }
   // RE-PINNED feat/boss-banners (decision AY): + the regions' banner runs,
   // 10 sectors a region from 280 (each read after its theme run).
+  // RE-PINNED journal §BG (plan §6.3): + the VOID LANCE run's own four
+  // sectors at the disk's free tail; journal §BH: five (712-716).
   assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695], blocks: [696, 711],
-    banners: [280, 319] });
+    banners: [280, 319], lance: [712, 716] });
 });
 
 // RE-POINTED M5b-S4a-i: entry 1's count is the boss code's linked sectors;

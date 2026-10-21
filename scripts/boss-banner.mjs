@@ -53,7 +53,16 @@ export const BANNER_INCOMING_ROW = BANNER_NAME_ROW + 20;       // 16 B
 // time.
 export const BANNER_BAR_A = BANNER_INCOMING_ROW + 16;
 export const BANNER_BAR_B = BANNER_BAR_A + 32;
-export const BANNER_SCREEN_END = BANNER_BAR_B + 32;            // $4230: cleared $4000 up to here
+// M6 (journal §BI 1): the VOID LANCE's onboarding line under INCOMING, one
+// ANTIC 2 row (32 glyphs on the narrow playfield) in the 12 blank lines
+// between INCOMING and the bar - 2 blank, the row, 2 blank - so the picture,
+// the title and the bar keep their lines. The frontend charset's glyphs at
+// half width, white (COLPF1) on black (COLPF2); its '+' (outside the glyph
+// contract) is BANNER_PLUS_CODE, a code the frontend leaves blank, written by
+// the banner run at every entry. Drawn under the shown screen with the
+// picture (BOSS_BANNER_LATE): the screen's sectors have no room for it.
+export const BANNER_LANCE_ROW = BANNER_BAR_B + 32;
+export const BANNER_SCREEN_END = BANNER_LANCE_ROW + 32;        // $4250: cleared $4000 up to here
 export const BANNER_BAR_PIXELS = BANNER_WIDTH;
 export const BANNER_BAR_DASH = 0xfe;
 export const BANNER_BAR_LINES = Object.freeze(["A", "A", "A", "B", "A", "A", "A", "A"]);
@@ -113,6 +122,16 @@ export const BANNER_HEAD_BYTES = BANNER_HEAD_RECORDS + 41;
 
 export const BANNER_TEXT_WARNING = "WARNING";
 export const BANNER_TEXT_INCOMING = "INCOMING";
+export const BANNER_TEXT_LANCE = "VOID LANCE: HOLD FIRE+FORWARD";
+export const BANNER_LANCE_GLYPHS = 32;                          // an ANTIC 2 row, the narrow playfield
+// The frontend charset's codes 45-47 are cleared at boot and drawn by no one
+// (src/main.s: the contract's 1-43, the gap 44, the H3.1 glyphs 48-63, the
+// menu stars 64-71, the level summary's 72 on). The '+' in the contract's
+// style: the colon's two-pixel stem, the dash's bar; rows 1-5 (0, 6 and 7
+// stay as the boot cleared them).
+export const BANNER_PLUS_CODE = 45;
+export const BANNER_PLUS_FIRST_ROW = 1;
+export const BANNER_PLUS_ROWS = Object.freeze([0x30, 0x30, 0xfe, 0x30, 0x30]);
 // A wide glyph is 8 colour clocks; the narrow window shows 16. A row with the
 // HSCROL bit fetches 20 bytes, byte k at colour clock 52 + 8k (48 + HSCROL 4),
 // an unscrolled one 16, byte k at 64 + 8k: either way the text's centre is the
@@ -124,6 +143,26 @@ export function bannerTextPlacement(text) {
   if (length < 1 || length > BANNER_ROW_GLYPHS) throw new Error(`banner text "${text}" is ${length} glyphs; a row shows ${BANNER_ROW_GLYPHS}`);
   const scrolled = length % 2 === 1;
   return { scrolled, offset: scrolled ? (19 - length) / 2 : (16 - length) / 2 };
+}
+
+// A 32-glyph ANTIC 2 row's start: byte k at colour clock 64 + 4k, the text's
+// centre within 2 colour clocks of the window's (128; an odd count cannot be
+// centred - HSCROL 4 is a whole ANTIC 2 glyph), the nearer side: right (the
+// glyphs' blank eighth column is on the right).
+export function bannerLancePlacement(text = BANNER_TEXT_LANCE) {
+  if (text.length < 1 || text.length > BANNER_LANCE_GLYPHS) throw new Error(`the lance line "${text}" is ${text.length} glyphs; a row shows ${BANNER_LANCE_GLYPHS}`);
+  return Math.ceil((BANNER_LANCE_GLYPHS - text.length) / 2);
+}
+// The frontend's encoding (src/main.s encode_frontend_character), plus '+'.
+export function bannerLanceCodes(text = BANNER_TEXT_LANCE) {
+  return [...text].map((ch) => {
+    if (ch === " ") return 0;
+    if (ch >= "0" && ch <= "9") return 1 + ch.charCodeAt(0) - 48;
+    if (ch >= "A" && ch <= "Z") return 11 + ch.charCodeAt(0) - 65;
+    const code = { "-": 37, ".": 38, "/": 39, ":": 40, "+": BANNER_PLUS_CODE }[ch];
+    if (code === undefined) throw new Error(`the lance line's "${ch}" has no glyph`);
+    return code;
+  });
 }
 
 // The title's records ({dst lo, dst hi, text, $00}..., $FF), drawn by
@@ -296,6 +335,12 @@ export function renderBossBannerInclude() {
     `BANNER_INCOMING_ROW      = ${hex(BANNER_INCOMING_ROW)}`,
     `BANNER_BAR_A             = ${hex(BANNER_BAR_A)}`,
     `BANNER_BAR_B             = ${hex(BANNER_BAR_B)}`,
+    `BANNER_LANCE_ROW         = ${hex(BANNER_LANCE_ROW)}`,
+    `BANNER_LANCE_COLUMN      = ${bannerLancePlacement()}`,
+    `BANNER_LANCE_LENGTH      = ${BANNER_TEXT_LANCE.length}`,
+    `BANNER_PLUS_CODE         = ${BANNER_PLUS_CODE}`,
+    `BANNER_PLUS_FIRST_ROW    = ${BANNER_PLUS_FIRST_ROW}`,
+    `BANNER_PLUS_LENGTH       = ${BANNER_PLUS_ROWS.length}`,
     `BANNER_SCREEN_END        = ${hex(BANNER_SCREEN_END)}`,
     `BANNER_BAR_PIXELS        = ${BANNER_BAR_PIXELS}`,
     `BANNER_BAR_DASH          = ${hex(BANNER_BAR_DASH)}`,
@@ -311,6 +356,9 @@ export function renderBossBannerInclude() {
     `BANNER_HEAD_LATE_FOLD    = ${BANNER_HEAD_LATE_FOLD}`,
     `BANNER_HEAD_RECORDS      = ${BANNER_HEAD_RECORDS}`,
     `BANNER_HEAD_BYTES        = ${BANNER_HEAD_BYTES}`,
+    `; "${BANNER_TEXT_LANCE}" in the frontend's codes; the '+' glyph's rows.`,
+    `.define BANNER_LANCE_CODES ${bannerLanceCodes().map(hex).join(", ")}`,
+    `.define BANNER_PLUS_GLYPH ${BANNER_PLUS_ROWS.map(hex).join(", ")}`,
     "",
   ].join("\n");
 }

@@ -35,6 +35,7 @@ import {
   pickupTraversalFrameIntact,
   raiderKillAccounting,
   slotFWriteClause,
+  windowTailWriteClause,
 } from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { compileLevelFile, levelSourcePath } from "./level-compiler.mjs";
@@ -996,6 +997,22 @@ const bossTuningSessions = [
     holdPlayerLives: 3,
     endAtSummary: true,
   })),
+  /* M6 (the owner's briefs of 2026-10-20, §BF-§BG): boss-aim-lance-1 -
+   * MEDIUM's aiming replay making the VOID LANCE gesture with every lance the
+   * meter gives (FIRE + stick UP under its aim, held until the lance fires,
+   * then back down to its line), so the charge, the beam and the kill are in
+   * every boss route's native evidence (the lance clause below). On a
+   * boss-region route it is that region's, as the other boss-aim sessions. */
+  {
+    id: "boss-aim-lance-1",
+    difficulty: 1,
+    policy: "boss-aim-lance",
+    fireDelay: 0,
+    frames: DIRECTOR_COMPLETION_FRAMES,
+    kind: "baseline-9040",
+    holdPlayerLives: 3,
+    endAtSummary: true,
+  },
   /* S5-5 (feat/boss-region-2): the Bastion's order puzzle measured - the
    * same replay with the aiming bot that takes the laser cannons first
    * (careful) or the rail guns first (careless). */
@@ -1234,6 +1251,8 @@ const traceLabels = {
   DFTRACE_CAPITAL_SOUND_TIMER: "CAPITAL_EXPLOSION_SOUND_TIMER",
   DFTRACE_SOUND_ENABLED: "sound_enabled",
   DFTRACE_PLAYER_LIFECYCLE: "PLAYER_LIFECYCLE",
+  // M6: the ordinary fire's gate, which the boss-aim bots open.
+  DFTRACE_FIRE_GATE: "gameplay_fire_gate",
   DFTRACE_SECTOR_STATE: "CAPITAL_SECTOR_STATE",
   DFTRACE_GAME_STATE: "game_state",
   DFTRACE_FRONTEND_SELECTION: "frontend_selection",
@@ -1527,6 +1546,8 @@ for (const name of [
   // did not: the pause's entry turns DMA off mid-frame). Additive.
   "row_switch_frames", "row_switch_min", "row_switch_max", "row_switch_rows", "row_switch_line_bits",
   "row_switch_max_cycle", "row_switch_cut_frames",
+  // M6 stage 1: the VOID LANCE's reticle on screen (P1's crosshair, a visible HPOS).
+  "lance_reticle", "lance_charge", "lance_beam", "lance_ready",
   // S4b.4 (W1): the Director's sector index and the sector's row clock.
   "director_sector", "sector_row",
   // M5b-S4b.5: draw_hull_row entries, and those that found the hull maps
@@ -4326,6 +4347,29 @@ function main() {
       // S5-2: the finale's byte (the boss_finale / boss_spawns columns).
       addressEnvironment.DFTRACE_BOSS_FINALE = hex(bossLabels, "_boss_finale");
       addressEnvironment.DFTRACE_BOSS_ARMOUR_LEFT = hex(bossLabels, "_boss_armour_left");
+      // M6 stage 1: the VOID LANCE's reticle (the Heavy body model, the
+      // lance_reticle column) and the window tail's watch from the window's end.
+      if (bossLabels.has("lance_y")) {
+        addressEnvironment.DFTRACE_LANCE_Y = hex(bossLabels, "lance_y");
+        addressEnvironment.DFTRACE_LANCE_SHAPE = hex(bossLabels, "lance_shape");
+        // The owner's brief of 2026-10-20 (§BF): the charge, beam and stock
+        // columns, and the "-lance" bots' view of them.
+        addressEnvironment.DFTRACE_LANCE_CHARGE = hex(bossLabels, "_lance_charge");
+        addressEnvironment.DFTRACE_LANCE_BEAM = hex(bossLabels, "lance_beam");
+        addressEnvironment.DFTRACE_LANCE_READY = hex(bossLabels, "lance_ready");
+        addressEnvironment.DFTRACE_LANCE_MODULE = hex(bossLabels, "_lance_module");
+        // Journal §BH 2: which mark P1 holds (the reticle and enemy-PMG clauses).
+        if (bossLabels.has("lance_hollow")) addressEnvironment.DFTRACE_LANCE_HOLLOW = hex(bossLabels, "lance_hollow");
+        // The lance-script diagnostic bots' journal (DFTRACE_LANCE_JOURNAL).
+        if (bossLabels.has("_lance_meter_lo")) {
+          addressEnvironment.DFTRACE_LANCE_METER_LO = hex(bossLabels, "_lance_meter_lo");
+          addressEnvironment.DFTRACE_LANCE_METER_HI = hex(bossLabels, "_lance_meter_hi");
+          addressEnvironment.DFTRACE_LANCE_TRIG = hex(bossLabels, "_lance_trig");
+        }
+      }
+      if (manifest.boss?.lance !== undefined) {
+        addressEnvironment.DFWATCH_TAIL_START = `0x${manifest.boss.lance.windowEnd.toString(16)}`;
+      }
       // feat/boss-r1-tuning: the boss-aim policy reads the controller's state.
       addressEnvironment.DFTRACE_BOSS_HP = hex(bossLabels, "_boss_hp");
       addressEnvironment.DFTRACE_BOSS_KIND = hex(bossLabels, "_boss_kind");
@@ -4553,6 +4597,16 @@ function main() {
       id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
+  // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,
+  // never in the evidence: the lance replay's settings with the scripted
+  // gesture of scripts/atari800-wall-trace.h (FIRE held, the ship at HPOS X,
+  // UP added as MODE says), on the route's region; it ends at its frame cap.
+  if (onlySession?.startsWith("lance-script-")) {
+    const route = layout.variant === null ? null : /boss-region-(\d)-/.exec(layout.variant);
+    sessionsToRun = [{ id: onlySession, difficulty: 1, policy: onlySession, fireDelay: 0,
+      frames: Number(process.env.VS65_LANCE_SCRIPT_FRAMES ?? 2400), kind: "lance-script", holdPlayerLives: 3,
+      ...(route === null ? {} : { bossRegion: Number(route[1]) }) }];
+  }
   if (onlySession !== undefined) {
     sessionsToRun = sessionsToRun.filter(({ id }) => id === onlySession);
     invariant(sessionsToRun.length === 1, `Unknown trace session: ${onlySession}`);
@@ -4829,13 +4883,62 @@ function main() {
     // in at most 350 host frames (owner decision AY, 2026-10-18, the banner;
     // was 300 by decision AV, 280 by decision AM, < 250 before); on MEDIUM the
     // fight reaches the chain.
+    // M6 stage 1 (the owner's brief of 2026-10-20): every boss entry of every
+    // replay, not only the region routes', in at most 350 host frames
+    // (decision AY) - the lance run is read at every entry.
+    if (session.bossEntry !== undefined) {
+      invariant(session.bossEntry.host_frames <= 350,
+        `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 350, decision AY)`);
+    }
+    // M6 (docs/plans/m6-void-lance.md §7; journal §BG 2): the VOID LANCE's
+    // reticle (P1's crosshair at a visible HPOS) is never shown outside the
+    // boss fight, and in it only while a lance is ready (the meter full).
+    {
+      const outside = rows.filter((row) => (row.lance_reticle ?? 0) !== 0 && !(row.boss_state >= 1));
+      invariant(outside.length === 0, `${session.id}: the lance's reticle on ${outside.length} frame(s) outside ` +
+        `the boss sector (first ${outside[0]?.frame})`);
+      session.lanceReticleFrames = rows.filter((row) => (row.lance_reticle ?? 0) !== 0).length;
+      if ("lance_ready" in rows[0]) {
+        const unready = rows.filter((row) => Number(row.lance_reticle) !== 0 && Number(row.lance_ready) === 0);
+        invariant(unready.length === 0, `${session.id}: the lance's reticle on ${unready.length} frame(s) with no ` +
+          `lance ready (first ${unready[0]?.frame})`);
+        session.lanceReadyFrames = rows.filter((row) => Number(row.lance_ready) !== 0).length;
+      }
+      // M6 (§BF-§BG): a "-lance" bot given a lance charges, fires, and its
+      // beam reaches a module (the frame the beam turns from growing to held:
+      // the kill, or a module a shot took on its way) - with every lance.
+      if (session.policy.includes("-lance") && "lance_beam" in rows[0] && session.lanceReadyFrames > 0) {
+        const charge = (row) => Number(row.lance_charge), beam = (row) => Number(row.lance_beam);
+        const chargeStart = rows.findIndex((row) => charge(row) === 1);
+        const fires = rows.flatMap((row, i) => (i > 0 && beam(row) === 1 && beam(rows[i - 1]) === 0 ? [i] : []));
+        const arrivals = rows.flatMap((row, i) => (i > 0 && beam(row) === 2 && beam(rows[i - 1]) === 1 ? [i] : []));
+        const fire = fires[0] ?? -1, arrive = arrivals[0] ?? -1;
+        invariant(chargeStart >= 0 && fire > chargeStart && arrive > fire, `${session.id}: the lance bot's charge ` +
+          `${chargeStart}, fire ${fire}, arrival ${arrive} (each must follow the one before)`);
+        const lastStart = rows.slice(0, fire).map(charge).lastIndexOf(1);
+        const health = (i) => rows[i].player_health;
+        const readyFrom = rows.findIndex((row) => Number(row.lance_ready) !== 0);
+        session.lanceRun = { ready_frame: rows[readyFrom].frame, charge_frame: rows[lastStart].frame,
+          fire_frame: rows[fire].frame, arrive_frame: rows[arrive].frame,
+          charge_starts: rows.slice(0, fire).filter((row) => charge(row) === 1).length,
+          health_at_charge: health(lastStart), health_at_fire: health(fire),
+          lances: fires.length, arrivals: arrivals.length, fire_frames: fires.map((i) => rows[i].frame),
+          lance_frames: rows.filter((row) => charge(row) !== 0 || beam(row) !== 0).length };
+        console.log(`${session.id}: the lance - ready at frame ${session.lanceRun.ready_frame}, charge from frame ` +
+          `${session.lanceRun.charge_frame} (${session.lanceRun.charge_starts} start(s)), fired at ` +
+          `${session.lanceRun.fire_frame}, beam arrived at ${session.lanceRun.arrive_frame}; health ` +
+          `${session.lanceRun.health_at_charge} -> ${session.lanceRun.health_at_fire}; ${fires.length} lance(s) fired ` +
+          `at frames ${session.lanceRun.fire_frames.join(", ")}`);
+      }
+    }
     if (session.bossRegion !== undefined) {
       invariant(session.bossEntry !== undefined, `${session.id} never entered the boss (subject empty)`);
       invariant(session.bossEntry.host_frames <= 350,
         `${session.id}: the boss entry took ${session.bossEntry.host_frames} host frames (bound <= 350)`);
       const chain = rows.find((row) => row.boss_state >= 3);
       session.regionRoute = { region: session.bossRegion, entry_host_frames: session.bossEntry.host_frames,
-        entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null };
+        entry_frame: session.bossEntry.frame, chain_frame: chain?.frame ?? null,
+        lance_reticle_frames: session.lanceReticleFrames };
       console.log(`${session.id}: region ${session.bossRegion} entered in ${session.bossEntry.host_frames} ` +
         `host frames at frame ${session.bossEntry.frame}; chain ${chain === undefined ? "not reached" : `at frame ${chain.frame}`}`);
       // S5-5: not the edge-parking player's (region-N-edge-left-1): a
@@ -6083,6 +6186,27 @@ function main() {
   });
   for (const violation of slotFWrites.violations) {
     recordClauseFailure(violation.session, false, `${violation.session}: ${violation.message}`);
+  }
+  // M6 stage 1 (decision BD 6): the window's unclaimed tail, the lance's run at its top.
+  const windowTailWrites = manifest.boss?.lance === undefined ? null : (() => {
+    const bossLabelPath = path.join(layout.inputDirectory, "boss.lbl");
+    const boss = fs.existsSync(bossLabelPath) ? parseViceLabels(fs.readFileSync(bossLabelPath, "utf8")) : new Map();
+    return windowTailWriteClause(sessionWatches, {
+      labels, readerAddress: manifest.sectorReader.address,
+      readerEnd: manifest.sectorReader.address + manifest.sectorReader.bytes,
+      lanceAddress: manifest.boss.lance.address,
+      lanceCodeEnd: boss.get("__LANCE_CODE_RUN__") + boss.get("__LANCE_CODE_SIZE__"),
+      runBytes: manifest.boss.lance.capacityBytes,
+    });
+  })();
+  if (windowTailWrites !== null) {
+    for (const violation of windowTailWrites.violations) {
+      recordClauseFailure(violation.session, false, `${violation.session}: ${violation.message}`);
+    }
+    windowTailWrites.held = windowTailWrites.violations.length === 0;
+    console.log(`Window tail write clause: ${windowTailWrites.sessions} replays watched, subject ` +
+      `${windowTailWrites.subject} lance run reads, ${windowTailWrites.lanceWrites} lance-state writes, ` +
+      `${windowTailWrites.violations.length} foreign writers`);
   }
   if (sessionsToRun.some((session) => session.kind === "director-level-complete")) {
     recordClauseFailure("slot-f-writes", slotFWrites.subject > 0,
@@ -9417,6 +9541,7 @@ function main() {
       boss_entry_debris: bossEntryDebris,
       boss_entry_hud: bossEntryHud,
       slot_f_writes: slotFWrites,
+      ...(windowTailWrites === null ? {} : { window_tail_writes: windowTailWrites }),
       hud_row_writers: hudRowWriters,
       light_archetypes: {
         clause: "L1 a live Interceptor Light; L2 two or more Lights live at once; L3 no Heavy live in a " +

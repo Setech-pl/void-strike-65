@@ -145,7 +145,7 @@ const SEGMENTS = {
   // feat/boss-banners (decisions AL 2, AY): the banner run's code.
   BOSS_BANNER: ["boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read", "boss-entry"],
   BOSS_BANNER_HEAD: ["boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors", "boss-entry"],
-  BOSS_BANNER_LATE: ["boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the picture unpacked and mirrored into its lines under the shown screen", "boss-entry"],
+  BOSS_BANNER_LATE: ["boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen", "boss-entry"],
   BOSS_BANNER_KEEP: ["boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list", "boss-entry"],
   BOSS_BANNER_KEEP_BSS: ["boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk", "boss-entry"],
   // M5b-S4b (owner decision Q7): slot D in the claim grown to $1FFF.
@@ -153,6 +153,10 @@ const SEGMENTS = {
   BOSS_D_BSS: ["boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk)", "overlay"],
   BOSS_E_CODE: ["boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only", "overlay"],
   BOSS_E_BSS: ["boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk", "overlay"],
+  // M6 (docs/plans/m6-void-lance.md, decision BD 6, journal §BG): the VOID LANCE run.
+  LANCE_CODE: ["the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the beam in P0 and its discharge on channel 3, the kill through boss_hit or the dry shot that keeps the lance) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only", "overlay"],
+  LANCE_DATA: ["the VOID LANCE's initialised data (none since journal §BG's meter), read with the run at every boss entry", "overlay"],
+  LANCE_BSS: ["the VOID LANCE's state (the meter, the readiness shown, the charge, the beam, the reticle's line and mark), inside the run: read as zeros at every boss entry - the meter resets", "overlay"],
   // S5-3 (feat/boss-region-3): region 3's field code, in slot F after the look tail's 110 B.
   BOSS_F_CODE: ["region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only", "overlay"],
   BOSS_G_CODE: ["region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M0), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only", "overlay"],
@@ -476,6 +480,10 @@ function collectRows(build) {
   add(m.boss.slotF.lookTail.address, m.boss.slotF.lookTail.address + m.boss.slotF.lookTail.bytes - 1, "slot", "boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then)", "overlay", "manifest `boss.slotF.lookTail`");
   // M5b-S4b.5 (owner decision 2026-10-07): slot E over the expanded hull maps.
   add(m.boss.slotE.address, m.boss.slotE.address + m.boss.slotE.capacityBytes - 1, "slot", `boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run \`boss-slot-e\` (${m.boss.slotE.sectors} sectors)`, "overlay", "manifest `boss.slotE`, cfg/boss.cfg");
+  // M6 stage 1 (decision BD 6): the VOID LANCE run, the window tail's top.
+  if (m.boss.lance !== undefined) {
+    add(m.boss.lance.address, m.boss.lance.address + m.boss.lance.capacityBytes - 1, "slot", `the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run \`boss-lance\` (${m.boss.lance.sectors} sectors, ${m.boss.lance.startSector}-${m.boss.lance.startSector + m.boss.lance.sectors - 1}); the build fails when the window's record reaches it`, "overlay", "manifest `boss.lance`, scripts/lance-layout.mjs");
+  }
   // feat/boss-banners (decisions AL 2, AY): the banner screen and its RAM
   // during the boss entry.
   if (m.boss.banner !== undefined) {
@@ -483,8 +491,8 @@ function collectRows(build) {
     add(b.runAddress, b.runAddress + b.largestRunBytes - 1, "transient", "boss banner run (the largest region's), landed in slot C's area before slot C is read", "boss-entry", "manifest `boss.banner`");
     add(b.buffer, b.buffer + b.bufferBytes - 1, "transient", "boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen", "boss-entry", "manifest `boss.banner`");
     add(b.picture[0], b.picture[1], "transient", "boss banner picture: 64 mode F lines 26 B apart (0-48 in the PMG area, 49-63 over the text screen's rows 0-9)", "boss-entry", "manifest `boss.banner`");
-    add(b.rows[0], b.rows[1], "transient", "boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows", "boss-entry", "manifest `boss.banner`");
-    add(b.displayList, b.displayList + b.displayListBytes - 1, "transient", "boss banner display list (40 blank lines, 64 LMS lines, the text, the bar)", "boss-entry", "manifest `boss.banner`");
+    add(b.rows[0], b.rows[1], "transient", "boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows, the VOID LANCE's line (ANTIC 2, M6 journal §BI 1)", "boss-entry", "manifest `boss.banner`");
+    add(b.displayList, b.displayList + b.displayListBytes - 1, "transient", "boss banner display list (40 blank lines, 64 LMS lines, the text, the VOID LANCE's line, the bar)", "boss-entry", "manifest `boss.banner`");
   }
   add(m.pause.screenBackupAddress, m.pause.screenBackupAddress + m.pause.screenBackupBytes - 1, "transient", "pause-screen backup (`PAUSE_SCREEN_BACKUP`)", "pause", "manifest `pause`");
   add(m.levelSummary.art.staging, m.levelSummary.art.staging + Math.max(...m.levelSummary.art.runs.map((run) => run.bytes)) - 1, "transient", "summary art run (largest region run) read for the summary screen", "summary", "manifest `levelSummary.art`");

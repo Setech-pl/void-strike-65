@@ -1,0 +1,990 @@
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/scripts/build.mjs probe/scripts/build.mjs
+--- base/scripts/build.mjs	2026-10-19 20:47:19
++++ probe/scripts/build.mjs	2026-10-19 22:48:06
+@@ -1972,6 +1972,16 @@
+     : fs.existsSync(path.join(bossDraftDirectory(source), "modules.json"))
+       ? compileRegion(loadBossRegionDraft(bossDraftDirectory(source)))
+       : compileRegion(bossPlaceholderDraft(regionOneSource, bossPlaceholders[String(source)]))));
++  // build/m6-probe ONLY: the VOID LANCE probe's slot G - its own run read at
++  // the boss entry after slot E, 5 sectors at the disk's free tail (712-716),
++  // landing in the window's unclaimed tail.
++  const LANCE_PROBE_ADDRESS = Number(process.env.LANCE_ADDRESS ?? 0xB880), LANCE_PROBE_BYTES = 0x280;
++  const LANCE_PROBE_SECTOR = 712, LANCE_PROBE_SECTORS = LANCE_PROBE_BYTES / 128;
++  let lanceProbeData = Buffer.alloc(LANCE_PROBE_BYTES);
++  const patchLanceProbe = (link) => {
++    const image = link.linked.outputs[`${bossBase}.bin`];
++    lanceProbeData = Buffer.from(image.subarray(image.length - LANCE_PROBE_BYTES));
++  };
+   const slotOf = (feature) => {
+     const slots = bossRegions.flatMap((region, slot) => (region[feature] ? [slot] : []));
+     if (slots.length > 1) throw new Error(`boss order: ${slots.length} regions carry ${feature}; slot F holds one`);
+@@ -3049,6 +3059,7 @@
+     bossRunEntry(bossSlotCSector, slotCSectors, BOSS_SLOT_C_ADDRESS) + "\t; slot C",
+     bossRunEntry(bossSlotDSector, slotDSectors, BOSS_SLOT_D_ADDRESS) + "\t; slot D",
+     bossRunEntry(bossSlotESector, slotESectors, BOSS_SLOT_E_ADDRESS) + "\t; slot E (M5b-S4b.5)",
++    bossRunEntry(LANCE_PROBE_SECTOR, LANCE_PROBE_SECTORS, LANCE_PROBE_ADDRESS) + "\t; slot G (build/m6-probe: the VOID LANCE)",
+     ...Array.from({ length: bossRegionCount }, (_, index) => {
+       const region = bossRegions[index];
+       return region === undefined
+@@ -3096,6 +3107,12 @@
+       `size = $${(bossFieldOffset - bossRegions[bossRailSlot].lookTail.length).toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, define = yes;\n}\n\nSEGMENTS`)
+     .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    BOSS_R_CODE:   load = BOSS_SLOT_R_RAM,  type = rw, define = yes;\n` +
+       `    BOSS_R_DATA:   load = BOSS_SLOT_RD_RAM, type = rw, define = yes;\n`);
++  // build/m6-probe ONLY: the VOID LANCE probe's area, last in the image.
++  const bossConfigLance = bossConfigRail
++    .replace(/\n}\s*\nSEGMENTS/, `\n    BOSS_LANCE_RAM:   start = $${LANCE_PROBE_ADDRESS.toString(16).toUpperCase()}, ` +
++      `size = $${LANCE_PROBE_BYTES.toString(16).toUpperCase().padStart(4, "0")}, type = rw, file = %O, fill = yes, fillval = $00, define = yes;\n}\n\nSEGMENTS`)
++    .replace(/(BOSS_ENTRY_COLD: load[^\n]*\n)/, (line) => `${line}    LANCE_CODE:    load = BOSS_LANCE_RAM,   type = ro, define = yes;\n` +
++      `    LANCE_BSS:     load = BOSS_LANCE_RAM,   type = rw, define = yes;\n`);
+   // S5-5: the rails' constants for the boss link (region 2's rail block):
+   // the cadences, the rows, each side's front and window, the hangar's doors
+   // and core, the Director's escort clock (src/c/director.c STATE_SPACING,
+@@ -3306,7 +3323,8 @@
+     const assembled = await runWasmTool(
+       "ca65",
+       {
+-        [`${bossBase}.s`]: fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "boss.s")),
++        [`${bossBase}.s`]: Buffer.concat([fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "boss.s")),
++          Buffer.from("\n"), fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "lance.s"))]),
+         "/project/build/boss-layout.inc": bossLayoutInclude,
+         "/project/build/boss-imports.inc": Buffer.from(bossImportsInclude),
+         "/project/build/boss-runs.inc": Buffer.from(runsInclude),
+@@ -3319,6 +3337,7 @@
+         ...(bossRailInclude === null ? {} : { "/project/build/boss-rail.inc": bossRailInclude }),
+       },
+       ["--cpu", "6502", "-g",
++        ...(process.env.LANCE_FLAGS ?? "").split(",").filter(Boolean).flatMap((flag) => ["-D", flag]),
+         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
+         ...(laserTierValue === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserTierValue}`]),
+         ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1"]),
+@@ -3333,7 +3352,7 @@
+       {
+         [`${bossBase}.o`]: assembled.outputs[`${bossBase}.o`],
+         [`${bossBase}-c.o`]: bossCAssembled.outputs[`${bossBase}-c.o`],
+-        [`${bossBase}.cfg`]: Buffer.from(bossConfigRail),
++        [`${bossBase}.cfg`]: Buffer.from(bossConfigLance),
+       },
+       ["-C", `${bossBase}.cfg`, "-o", `${bossBase}.bin`, "-m", `${bossBase}.map`,
+         "-Ln", `${bossBase}.lbl`, `${bossBase}.o`, `${bossBase}-c.o`],
+@@ -3344,6 +3363,7 @@
+   };
+   let bossRunsInclude = renderBossRuns(bossSlotCMaxSectors, bossSlotDMaxSectors, bossSlotEMaxSectors);
+   let bossLink = await linkBoss(bossRunsInclude);
++  patchLanceProbe(bossLink);
+   // S5-3: the image's fixed homes, then (a field build) the slot F code; the
+   // field's code joins region 3's block after its look tail's 110 B.
+   // feat/boss-banners: + the banner's area ($1000-$13FF), before the cold tail.
+@@ -3423,6 +3443,7 @@
+     const firstPass = bossLink.labels;
+     bossRunsInclude = renderBossRuns(bossSlotCSectors, bossSlotDSectors, bossSlotESectors);
+     bossLink = await linkBoss(bossRunsInclude);
++    patchLanceProbe(bossLink);
+     for (const [name, address] of firstPass) {
+       if (bossLink.labels.get(name) !== address) {
+         throw new Error(`M5b-S4a-i: relinking the boss with slot C's sector count moved ${name}`);
+@@ -3444,6 +3465,7 @@
+       image.subarray(slotCAt, slotCAt + bossSlotCSectors * 128),
+       image.subarray(slotDAt, slotDAt + bossSlotDSectors * 128),
+       image.subarray(slotEAt, slotEAt + bossSlotESectors * 128),
++      Buffer.from(lanceProbeData),
+     ]);
+     return Array.from({ length: bossRegionCount }, (_, index) => {
+       const region = bossRegions[index];
+@@ -3457,6 +3479,7 @@
+   {
+     const firstPass = bossLink;
+     bossLink = await linkBoss(bossRunsInclude, bossSumsInclude);
++    patchLanceProbe(bossLink);
+     for (const [name, address] of firstPass.labels) {
+       if (bossLink.labels.get(name) !== address) {
+         throw new Error(`audit-hardening: relinking the boss with its head's sums moved ${name}`);
+@@ -3499,7 +3522,7 @@
+       throw new Error(`boss slot ${name}: ${sectors} sectors (${sectors * 128} B) overrun its ${bytes}-B area`);
+     }
+   }
+-  if (bossImage.length !== bossFixedImageBytes + (bossFieldCode?.length ?? 0) +
++  if (bossImage.length !== bossFixedImageBytes + LANCE_PROBE_BYTES + (bossFieldCode?.length ?? 0) +
+     (bossGravitySlot === null ? 0 : bossRegions[bossGravitySlot].gravityCodeBytes ?? 0) +
+     (bossRailSlot === null ? 0 : (bossRegions[bossRailSlot].railCodeBytes ?? 0) +
+       (bossRegions[bossRailSlot].railDataBytes ?? 0)) ||
+@@ -3628,7 +3651,9 @@
+     destination: BOSS_SLOT_E_ADDRESS,
+     data: bossImage.subarray(slotEOffset, slotEOffset + bossSlotESectors * 128),
+     file: "overlay-boss-slot-e.bin" };
+-  const bossDiskRuns = [bossCodeRun, bossInstallRun, bossSlotCRun, bossSlotDRun, bossSlotERun, ...bossRegionRuns];
++  const bossSlotGRun = { name: "boss-slot-g", startSector: LANCE_PROBE_SECTOR, sectors: LANCE_PROBE_SECTORS,
++    destination: LANCE_PROBE_ADDRESS, data: lanceProbeData, file: "overlay-boss-slot-g.bin" };
++  const bossDiskRuns = [bossCodeRun, bossInstallRun, bossSlotCRun, bossSlotDRun, bossSlotERun, bossSlotGRun, ...bossRegionRuns];
+   const bossRegionAreaEnd = bossRegionBaseSector + bossRegionCount * BOSS_REGION_SECTORS;
+   for (const run of bossDiskRuns) {
+     const inCode = run.startSector >= bossReservationSector &&
+@@ -3642,7 +3667,7 @@
+         BANNER_BASE_SECTOR + bossRegionCount * BANNER_REGION_SECTORS <= levelBaseSector
+       : run.startSector >= bossRegionBaseSector + (run.region - 1) * BOSS_REGION_SECTORS &&
+         run.startSector + run.sectors <= bossRegionBaseSector + run.region * BOSS_REGION_SECTORS);
+-    if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode : inRegion) ||
++    if (run.data.length !== run.sectors * 128 || !(run.name === "boss-slot-g" || (run.region === undefined ? inCode : inRegion)) ||
+       run.startSector + run.sectors - 1 > chunkLoaderConstants.atrSectors) {
+       throw new Error(`M5b-S4a-i: the boss run ${run.name} leaves its reservation`);
+     }
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/scripts/measure-boss-stress-field.mjs probe/scripts/measure-boss-stress-field.mjs
+--- base/scripts/measure-boss-stress-field.mjs	2026-10-19 20:47:19
++++ probe/scripts/measure-boss-stress-field.mjs	2026-10-19 23:01:10
+@@ -22,6 +22,8 @@
+ import { fileURLToPath } from "node:url";
+ 
+ import { bandDliSwitches, call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
++import { lanceArm, lanceTick, lanceStats, lanceMode, lanceSkip } from "../tests/lance-probe.mjs";
++process.on("exit", () => console.log(`# lance probe: mode ${lanceMode}, ${JSON.stringify(lanceStats)}`));
+ 
+ export function fieldStress({ level = 7 } = {}) {
+ const lbl = (name) => label("boss", name);
+@@ -77,11 +79,13 @@
+   }
+ }
+ function frame(m, laserMode) {
++  if (lanceSkip(m)) return 0;
+   hold(m, laserMode);
+   m[main("loader_dli_phase")] = 0;
+   let cycles = nmi(m, lbl("boss_dli"));
+   // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
+   cycles += bandDliSwitches(m).cycles;
++  cycles += lanceTick(m);
+   cycles += call(m, lbl("boss_update")).cycles;
+   cycles += call(m, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
+   cycles += call(m, lbl("boss_motion")).cycles;
+@@ -201,6 +205,7 @@
+             if (gun === null && runs.length > 0) break;
+             const run = Uint8Array.from(m);
+             if (gun !== null) arm(run, gun);
++            lanceArm(run, { hit: [...hit, ...absorb.map(() => "hull")], mode, columnOf: (x) => front.get(x) });
+             let cycles = 0, worstFrame = 0, spawned = false, clashes = 0;
+             for (let f = 0; f < 4; f += 1) {
+               const pending = gun !== null && !spawned && run[lbl("_boss_countdown")] === 1;
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/scripts/measure-boss-stress-r2.mjs probe/scripts/measure-boss-stress-r2.mjs
+--- base/scripts/measure-boss-stress-r2.mjs	2026-10-19 20:47:19
++++ probe/scripts/measure-boss-stress-r2.mjs	2026-10-19 23:01:10
+@@ -29,6 +29,8 @@
+ import { fileURLToPath } from "node:url";
+ 
+ import { bandDliSwitches, bossLevel, call, label, manifest, nmi, placeBand, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
++import { lanceArm, lanceTick, lanceStats, lanceMode, lanceSkip } from "../tests/lance-probe.mjs";
++process.on("exit", () => console.log(`# lance probe: mode ${lanceMode}, ${JSON.stringify(lanceStats)}`));
+ 
+ export function regionTwoStress({ level = bossLevel(2), maxMeetings = 3 } = {}) {
+   const lbl = (name) => label("boss", name);
+@@ -82,11 +84,13 @@
+     }
+   }
+   function frame(m, laserMode) {
++  if (lanceSkip(m)) return 0;
+     hold(m, laserMode);
+     m[main("loader_dli_phase")] = 0;
+     let cycles = nmi(m, lbl("boss_dli"));
+     // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
+     cycles += bandDliSwitches(m).cycles;
++    cycles += lanceTick(m);
+     cycles += call(m, lbl("boss_update")).cycles;
+     cycles += call(m, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
+     cycles += call(m, lbl("boss_motion")).cycles;
+@@ -179,6 +183,7 @@
+           if (gun === null && runs.length > 0) break;
+           const run = Uint8Array.from(m);
+           if (gun !== null) arm(run, gun);
++          lanceArm(run, { hit: extra.hit, mode: extra.mode, columnOf: extra.columnOf });
+           let cycles = 0, worstFrame = 0, spawned = false, clashes = 0, stepped = false;
+           for (let f = 0; f < 4; f += 1) {
+             const pending = gun !== null && !spawned && run[lbl("_boss_countdown")] === 1;
+@@ -209,7 +214,7 @@
+           for (const mode of ["kill", "stage"]) {
+             const m = Uint8Array.from(base);
+             if (!meetings(m, hit, mode)) continue;
+-            runCase(m, "kill frame", { hit, mode, k });
++            runCase(m, "kill frame", { hit, mode, k, columnOf: (x) => front.get(x) });
+           }
+         }
+       }
+@@ -249,7 +254,7 @@
+               });
+               if (!valid) continue;
+               if (hit.includes("hull")) shootAt(m, hullColumn(m), real.length);
+-              runCase(m, "step frame", { hit, mode, k: hit.length, side: s.name, column });
++              runCase(m, "step frame", { hit, mode, k: hit.length, side: s.name, column, columnOf: (x) => stepFront.get(x) });
+             }
+           }
+           frame(slide, null);
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/scripts/measure-boss-stress-r4.mjs probe/scripts/measure-boss-stress-r4.mjs
+--- base/scripts/measure-boss-stress-r4.mjs	2026-10-19 20:47:19
++++ probe/scripts/measure-boss-stress-r4.mjs	2026-10-19 23:01:10
+@@ -25,6 +25,8 @@
+ 
+ import { BOSS_TABLE, bossRegionDirectory, compileBossRegion, loadBossRegionDraft } from "./boss-assets.mjs";
+ import { bandDliSwitches, bossLevel, call, label, manifest, nmi, placeBand, root, runBossEntry, shootAt, visibleCells } from "../tests/boss-harness.mjs";
++import { lanceArm, lanceTick, lanceStats, lanceMode, lanceSkip } from "../tests/lance-probe.mjs";
++process.on("exit", () => console.log(`# lance probe: mode ${lanceMode}, ${JSON.stringify(lanceStats)}`));
+ 
+ export function regionFourStress({ level = bossLevel(4), maxMeetings = 3 } = {}) {
+   const lbl = (name) => label("boss", name);
+@@ -102,12 +104,14 @@
+     m[PLAYER_X] = 48;
+   }
+   function frame(m, laserMode, wellDue = false) {
++  if (lanceSkip(m)) return 0;
+     hold(m, laserMode);
+     if (wellDue) well(m);
+     m[main("loader_dli_phase")] = 0;
+     let cycles = nmi(m, lbl("boss_dli"));
+     // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
+     cycles += bandDliSwitches(m).cycles;
++    cycles += lanceTick(m);
+     cycles += call(m, lbl("boss_update")).cycles;
+     cycles += call(m, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
+     cycles += call(m, lbl("boss_motion")).cycles;
+@@ -195,6 +199,7 @@
+                 if (gun === null && runs.length > 0) break;
+                 const run = Uint8Array.from(m);
+                 if (gun !== null) arm(run, gun);
++                lanceArm(run, { hit, mode, columnOf: (x) => front.get(x) });
+                 if (step === "burst 2" || step === "burst 3") {
+                   const kept = [0, 1, 2, 3, 4].map((slot) => run[ACTIVE + slot]);
+                   kept.forEach((_, slot) => { run[ACTIVE + slot] = 0; });
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/src/hybrid/boss.s probe/src/hybrid/boss.s
+--- base/src/hybrid/boss.s	2026-10-19 20:47:19
++++ probe/src/hybrid/boss.s	2026-10-19 23:06:44
+@@ -165,7 +165,7 @@
+ BOSS_RUN_SLOT_C  = 5
+ BOSS_RUN_SLOT_D  = 10
+ BOSS_RUN_SLOT_E  = 15
+-BOSS_RUN_REGIONS = 20
++BOSS_RUN_REGIONS = 25                   ; build/m6-probe: slot G after slot E
+ BOSS_REGION_RUNS = 4
+ 
+ .assert BOSS_BAND_ROWS = 8, error, "the band is 8 rows (owner answer Q2)"
+@@ -223,7 +223,7 @@
+     jmp init_broadside                  ; INIT: resident, start_gameplay only
+     jmp boss_update                     ; UPDATE
+     jmp boss_rts                        ; TICK_EXPLOSIONS
+-    jmp boss_rts                        ; TICK_FLASHES
++    jmp lance_tick                      ; TICK_FLASHES (build/m6-probe: the VOID LANCE probe)
+     jmp boss_rts                        ; ENGINE
+     jmp boss_rts                        ; HULL_CONTACT
+     jmp boss_rts                        ; RENDER_FLASHES
+@@ -405,6 +405,9 @@
+     sta COLPF1
+     lda #GAMEPLAY_COLPF3
+     sta COLPF3
++.ifdef LANCE_OWN_COLOUR
++    jsr lance_dli_under                 ; build/m6-probe: the lasers' colours under the band (slot G)
++.endif
+     inc gameplay_dli_phase
+     lda boss_dli_pos
+     cmp boss_shown_pos
+@@ -3143,10 +3146,16 @@
+     LASER_PUBLISH 3
+     B2_PUBLISH 0
+     B2_PUBLISH 1
++.ifdef LANCE_OWN_COLOUR
++    lda lance_colour                    ; build/m6-probe: the reticle's colour in the band
++    sta COLPM1
++    sta COLPM2
++.else
+     lda b2_colour                       ; F1: the lines' own colours
+     sta COLPM1
+     lda b2_colour+1
+     sta COLPM2
++.endif
+     lda boss_laser_sizem
+     sta SIZEM
+ .ifdef BOSS_GRAVITY
+@@ -3807,6 +3816,7 @@
+     sta boss_head_region
+     lda #<(boss_runs + BOSS_RUN_INSTALL)
+     ldx #>(boss_runs + BOSS_RUN_INSTALL)
++    ldy #$05                            ; build/m6-probe: + slot G
+     jsr banner_read_four                ; the install, slots C, D, E
+     ldx banner_region
+     lda boss_region_runs,x
+@@ -3817,6 +3827,7 @@
+     adc #$00
+     tax
+     pla
++    ldy #$04
+     jsr banner_read_four                ; band A, band B, the charset, the block
+ banner_hand_over:
+     lda #$00
+@@ -3829,8 +3840,7 @@
+ banner_read_four:
+     sta banner_run
+     stx banner_run+1
+-    lda #$04
+-    sta banner_runs_left
++    sty banner_runs_left
+ @run:
+     lda banner_run
+     ldx banner_run+1
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/src/hybrid/lance.s probe/src/hybrid/lance.s
+--- base/src/hybrid/lance.s	1970-01-01 01:00:00
++++ probe/src/hybrid/lance.s	2026-10-19 23:06:44
+@@ -0,0 +1,483 @@
++
++; ===========================================================================
++; build/m6-probe ONLY (M6 Phase A, docs/plans/m6-void-lance.md): the VOID
++; LANCE probe. Not production code; it lives in the region charset's codes
++; 100-127 ($0F20-$0FFF) only so that the probe build can carry it.
++;
++;   lance_tick       every boss-sector frame from the capital vector table's
++;                    TICK_FLASHES entry (a boss_rts entry in production):
++;                    the target under the ship's centre, the reticle on P1 /
++;                    P2, the charge while FIRE is held (ordinary fire
++;                    suspended through gameplay_fire_gate), the fire.
++;   lance_beam_frame the beam in the ship's own plane (P0, double width, the
++;                    ship's colour): it grows up from the ship's top
++;                    LANCE_BEAM_STEP lines a frame; on the frame it reaches
++;                    the module's bottom line the module is destroyed through
++;                    boss_hit with its HP set to 1 (the existing kill path:
++;                    spark, score, rebuild, capsule, exposure); held, then
++;                    erased LANCE_BEAM_STEP lines a frame.
++;
++;   -D LANCE_VARIANT=1  brackets [ ] (P1 left, P2 right), blink while charging
++;   -D LANCE_VARIANT=2  one crosshair (P1), blink while charging
++;   -D LANCE_VARIANT=3  one column marker (P1) above the module, filling
++;   -D LANCE_DEMO=1     a lance always in stock; FIRE replaced by a fixed
++;                       cycle (60 frames released, 90 held of 160)
++;   -D LANCE_NO_CORE=1  the reticle never takes a module of kind CORE
++;   -D LANCE_BEAM_STEP=n
++; ===========================================================================
++.ifndef LANCE_VARIANT
++LANCE_VARIANT   = 1
++.endif
++.ifndef LANCE_BEAM_STEP
++LANCE_BEAM_STEP = 40
++.endif
++LANCE_P0        = $3C00
++LANCE_P1        = $3D00
++LANCE_P2        = $3E00
++LANCE_HPOSP1    = $D001
++LANCE_HPOSP2    = $D002
++LANCE_SIZEP1    = $D009
++LANCE_SIZEP2    = $D00A
++LANCE_TRIG0     = $D010
++gameplay_fire_gate = $9E               ; main (zero page, build/void-strike-65.lbl at 3d59ded)
++LANCE_CHARGE    = 75                    ; 1.5 s at 50 Hz
++LANCE_HOLD      = 3                     ; frames the whole beam stays
++LANCE_BEAM_BITS = $18                   ; P0 is double width: 4 colour clocks at the ship's centre
++LANCE_COLOUR    = $CA                   ; green, hue C: 4 hue steps from the ally steel $88
++.if LANCE_VARIANT = 3
++LANCE_ROWS      = 16
++.else
++LANCE_ROWS      = 8
++.endif
++
++.segment "LANCE_CODE"
++
++lance_tick:
++    lda lance_beam
++    beq @aim
++    jmp lance_beam_frame
++@aim:
++.ifdef LANCE_DEMO
++    lda #$01
++    sta lance_stock
++    inc lance_demo
++    lda lance_demo
++    cmp #160
++    bcc :+
++    lda #$00
++    sta lance_demo
++:
++    cmp #60                             ; C=1: held
++    lda #$00
++    rol
++    eor #$01                            ; 0 held, 1 released (TRIG0's sense)
++    sta lance_trig
++.else
++    lda LANCE_TRIG0
++    sta lance_trig
++.endif
++    lda lance_stock
++    bne :+
++    rts
++:
++    lda PLAYER_LIFECYCLE
++    beq :+
++    jmp @lose
++:
++    ; The band column under the ship's centre (player_x + 8), as boss_shot_meet
++    ; finds a shot's: (x - BAND_ORIGIN_HPOS + p) / 4.
++    lda player_x
++    clc
++    adc boss_shown_pos
++    sec
++    sbc #(BAND_ORIGIN_HPOS - 8)
++    lsr
++    lsr
++    sta lance_now
++    tay
++    ldx boss_column_map,y
++    cpx #BOSS_MAX_MODULES               ; ARMOUR / OPEN: nothing a shot could hurt
++    bcs @lose
++    lda _boss_hp,x
++    beq @lose
++    txa
++    and #$07
++    tay
++    lda boss_bit,y
++    cpx #$08
++    bcs @hi
++    and _boss_exposed_lo                ; C=0
++    bcc @exposed
++@hi:
++    and _boss_exposed_hi
++@exposed:
++    beq @lose                           ; covered: a shot would be absorbed
++.ifdef LANCE_NO_CORE
++    lda _boss_kind,x
++    cmp #BOSS_KIND_CORE
++    beq @lose
++.endif
++    inx
++    cpx lance_tgt1
++    beq @kept
++    stx lance_tgt1
++    dex
++    jsr lance_place
++    jmp @aimed
++@kept:
++    dex
++@aimed:
++    jsr lance_hpos
++    lda lance_trig
++    bne @released
++    lda #$00
++    sta gameplay_fire_gate              ; the ordinary fire waits (read_input re-arms it on release)
++    inc lance_charge
++    lda lance_charge
++    cmp #LANCE_CHARGE
++    bcc :+
++    jmp @fire
++:
++.if LANCE_VARIANT = 3
++    jmp @show
++.else
++    and #$02                            ; a 2-frame blink
++    beq @show
++    lda #$00
++    sta LANCE_HPOSP1
++    sta LANCE_HPOSP2
++    rts
++.endif
++@released:
++    lda lance_charge
++    beq @show
++    lda #$00
++    sta lance_charge
++@show:
++.if LANCE_VARIANT = 3
++    jsr lance_fill_step                 ; one row a frame toward the charge (empties as well)
++.endif
++    lda lance_h1
++    sta LANCE_HPOSP1
++    lda lance_h2
++    sta LANCE_HPOSP2
++@rts:
++    rts
++@lose:
++    lda lance_tgt1
++    beq @rts
++    lda #$00
++    sta lance_tgt1
++    sta LANCE_HPOSP1
++    sta LANCE_HPOSP2
++    lda lance_charge
++    beq @rts
++    lda #$00
++    sta lance_charge
++    lda lance_trig
++    bne @rts
++    lda #$01
++    sta gameplay_fire_gate              ; still held: the ordinary fire at once
++    rts
++@fire:
++    lda #$00
++    sta lance_charge
++    sta lance_tgt1
++    sta LANCE_HPOSP1
++    sta LANCE_HPOSP2
++.ifndef LANCE_DEMO
++    dec lance_stock
++.endif
++    stx lance_target
++    lda lance_now
++    sta lance_col
++    lda boss_mbottom_y,x
++    sta lance_top
++    lda player_y
++    sta lance_head
++    sta lance_bottom
++    lda #$01
++    sta lance_beam
++    rts                                 ; the beam grows from the next frame: the kill never shares the fire frame
++
++; The beam: 1 growing, 2 held, 3 erased.
++lance_beam_frame:
++    lda lance_beam
++    cmp #$02
++    beq @hold
++    bcs @erase
++.ifdef LANCE_BEAM_ONE
++    lda lance_top
++.else
++    lda lance_head
++    sec
++    sbc #LANCE_BEAM_STEP
++    bcc @clip
++    cmp lance_top
++    bcs @limit
++@clip:
++    lda lance_top
++@limit:
++.endif
++    sta lance_lim
++    ldy lance_head
++    lda #LANCE_BEAM_BITS
++@grow:
++    dey
++    sta LANCE_P0,y
++    cpy lance_lim
++    bne @grow
++    sty lance_head
++    cpy lance_top
++    bne @done
++    ; It reached the module: the kill, through the shot's own path.
++    ldx lance_target
++    lda #$01
++    sta _boss_hp,x
++    stx _boss_hit_module
++    lda lance_col
++    sta _boss_hit_cell
++    jsr boss_hit
++    lda #LANCE_HOLD
++    sta lance_hold
++    lda #$02
++    sta lance_beam
++@done:
++    rts
++@hold:
++    dec lance_hold
++    bne @done
++    lda #$03
++    sta lance_beam
++    rts
++@erase:
++    lda lance_head                      ; erase down from the top
++    clc
++    adc #LANCE_BEAM_STEP
++    bcs @end
++    cmp lance_bottom
++    bcc :+
++@end:
++    lda lance_bottom
++:
++    cmp player_y                        ; never into the ship's own rows
++    bcc :+
++    lda player_y
++:
++    sta lance_lim
++    ldy lance_head
++    cpy lance_lim
++    bcs @off
++    lda #$00
++@wipe:
++    sta LANCE_P0,y
++    iny
++    cpy lance_lim
++    bne @wipe
++    sty lance_head
++    cpy lance_bottom
++    bcc @done
++@off:
++    lda #$00
++    sta lance_beam
++    rts
++
++; X = the new target: the reticle's rows at its bottom line (V1 / V2: over
++; its bottom row; V3: the 16 lines above it), redrawn only when that line
++; changes - the shape is the same for every module. Keeps X.
++lance_place:
++.ifdef LANCE_FIXED_Y
++    ; -D LANCE_FIXED_Y: one line for every module - the lines right under the
++    ; band's last shown row (slot D's boss_band_measure, once) - drawn once;
++    ; only the HPOS follows the target.
++    lda lance_y
++    bne lance_rts
++    stx lance_x
++    jsr boss_band_measure               ; A = the line under the band's last row with a cell
++    sta lance_y
++    jsr lance_draw
++    ldx lance_x
++    rts
++.else
++    lda boss_mbottom_y,x
++    sec
++.if LANCE_VARIANT = 3
++    sbc #(8 + LANCE_ROWS)
++.else
++    sbc #8
++.endif
++.endif
++    cmp lance_y
++    beq lance_rts
++    stx lance_x
++    pha
++    ldy lance_y
++    beq @fresh
++    ldx #LANCE_ROWS                     ; the old rows off
++    lda #$00
++:
++    sta LANCE_P1,y
++.if LANCE_VARIANT = 1
++    sta LANCE_P2,y
++.endif
++    iny
++    dex
++    bne :-
++@fresh:
++    pla
++    sta lance_y
++    jsr lance_draw
++    ldx lance_x
++lance_rts:
++    rts
++
++; The reticle's rows at lance_y (A, X, Y).
++lance_draw:
++    lda #$00
++    sta lance_fill_drawn
++    sta LANCE_SIZEP1
++    sta LANCE_SIZEP2
++    ldy lance_y
++    ldx #$00
++:
++.if LANCE_VARIANT = 1
++    lda lance_shape_l,x
++    sta LANCE_P1,y
++    lda lance_shape_r,x
++    sta LANCE_P2,y
++.else
++    lda lance_shape,x
++    sta LANCE_P1,y
++.endif
++    iny
++    inx
++    cpx #LANCE_ROWS
++    bne :-
++    rts
++
++; X = the target: the HPOS the reticle takes this frame (the band drifts).
++lance_hpos:
++.if LANCE_VARIANT = 1
++    lda boss_mx,x
++    asl
++    asl
++    sec
++    sbc boss_shown_pos
++    clc
++    adc #(BAND_ORIGIN_HPOS - 3)
++    sta lance_h1
++    lda boss_mxe,x
++    asl
++    asl
++    sec
++    sbc boss_shown_pos
++    clc
++    adc #(BAND_ORIGIN_HPOS - 5)
++    sta lance_h2
++.else
++    lda boss_mx,x
++    clc
++    adc boss_mxe,x
++    asl
++    sec
++    sbc boss_shown_pos
++    clc
++    adc #(BAND_ORIGIN_HPOS - 4)
++    sta lance_h1
++    lda #$00
++    sta lance_h2
++.endif
++    rts
++
++.if LANCE_VARIANT = 3
++; The marker follows the charge one row a frame: a row filled every 5 frames
++; of the charge, emptied a row a frame once it ends. Keeps X.
++lance_fill_step:
++    lda lance_charge
++    ldy #$FF
++:
++    iny
++    sec
++    sbc #5
++    bcs :-
++    cpy #(LANCE_ROWS - 2)
++    bcc :+
++    ldy #(LANCE_ROWS - 2)
++:
++    cpy lance_fill_drawn
++    beq @rts
++    lda #$3C
++    bcs @more                           ; C from the CPY: Y > drawn
++    lda lance_fill_drawn
++    dec lance_fill_drawn
++    ldy #$24
++    bne @row
++@more:
++    inc lance_fill_drawn
++    lda lance_fill_drawn
++    ldy #$3C
++@row:
++    eor #$FF
++    sec
++    adc #(LANCE_ROWS - 1)               ; the row from the top: 15 - filled
++    clc
++    adc lance_y
++    sty lance_bits
++    tay
++    lda lance_bits
++    sta LANCE_P1,y
++@rts:
++    rts
++.endif
++
++.if LANCE_VARIANT = 1
++lance_shape_l:  .byte $E0, $80, $80, $00, $00, $80, $80, $E0
++lance_shape_r:  .byte $07, $01, $01, $00, $00, $01, $01, $07
++.elseif LANCE_VARIANT = 2
++lance_shape:    .byte $18, $18, $00, $C3, $C3, $00, $18, $18
++.else
++lance_shape:    .byte $3C, $24, $24, $24, $24, $24, $24, $24
++                .byte $24, $24, $24, $24, $24, $24, $24, $3C
++.endif
++
++; The band DLI's phase 1 (A only): under the band P1 / P2's registers are
++; the lasers' M1 / M2 colours again.
++lance_dli_under:
++    lda b2_colour
++    sta COLPM1
++    lda b2_colour+1
++    sta COLPM2
++    rts
++
++; The DLI's phase 0 publishes this as COLPM1 / COLPM2 for the band's rows
++; (phase 1 gives the lasers their colour back under the band).
++lance_colour:   .byte LANCE_COLOUR
++
++.segment "LANCE_BSS"
++lance_stock:    .res 1
++lance_charge:   .res 1
++lance_tgt1:     .res 1                  ; the target + 1, 0 none
++lance_target:   .res 1
++lance_now:      .res 1
++lance_col:      .res 1
++lance_y:        .res 1                  ; the reticle's first row, 0 none
++lance_h1:       .res 1
++lance_h2:       .res 1
++lance_trig:     .res 1
++lance_beam:     .res 1
++lance_hold:     .res 1
++lance_head:     .res 1
++lance_top:      .res 1
++lance_bottom:   .res 1
++lance_lim:      .res 1
++lance_fill:     .res 1
++lance_fill_drawn: .res 1
++lance_demo:     .res 1
++lance_x:        .res 1
++lance_bits:     .res 1
++.export lance_tick, lance_stock, lance_charge, lance_tgt1, lance_y, lance_beam, lance_head, lance_top
++.export lance_trig, lance_target, lance_demo, lance_fill_drawn, lance_col, lance_bottom
++.ifdef LANCE_FIXED_Y
++lance_fixed_y = 1
++.export lance_fixed_y
++.endif
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/tests/boss-stress.test.mjs probe/tests/boss-stress.test.mjs
+--- base/tests/boss-stress.test.mjs	2026-10-19 20:47:19
++++ probe/tests/boss-stress.test.mjs	2026-10-19 23:01:10
+@@ -55,6 +55,8 @@
+   bandDliSwitches, call, installRegion, label, labelsOf, manifest, nmi, placeBand, root, runBossEntry, shootAt,
+   visibleCells,
+ } from "./boss-harness.mjs";
++import { lanceArm, lanceTick, lanceStats, lanceMode, lanceSkip } from "./lance-probe.mjs";
++process.on("exit", () => console.log(`# lance probe: mode ${lanceMode}, ${JSON.stringify(lanceStats)}`));
+ 
+ const lbl = (name) => label("boss", name);
+ const main = (name) => label("main", name);
+@@ -171,11 +173,13 @@
+   }
+ }
+ function frame(memory, laserMode) {
++  if (lanceSkip(memory)) return 0;
+   hold(memory, laserMode);
+   memory[main("loader_dli_phase")] = 0;
+   let cycles = nmi(memory, lbl("boss_dli"));
+   // feat/boss-art: the row palette's switch DLIs (tests/boss-art.test.mjs).
+   cycles += bandDliSwitches(memory).cycles;
++  cycles += lanceTick(memory);
+   cycles += call(memory, lbl("boss_update")).cycles;
+   // RE-POINTED (fix/smoke-2026-10-07 P1): the band's shot cells are written at
+   // SECTOR_COMPLETION now (boss_shots_late); counted with the boss's work (the
+@@ -252,6 +256,7 @@
+               if (gun === null && runs.length > 0) break;
+               const run = Uint8Array.from(memory);
+               if (gun !== null) arm(run, gun);
++              lanceArm(run, { hit, mode, columnOf: (x) => front.get(x) });
+               if (step === "burst 2" || step === "burst 3") {
+                 lead(run, laserMode, step === "burst 2" ? 1 : 2);
+                 if (burstLeft(run) === 0 || run[lbl("_boss_phase")] !== 0) continue;   // no volley
+diff -ruN --exclude=build --exclude=dist --exclude=node_modules --exclude=logs base/tests/lance-probe.mjs probe/tests/lance-probe.mjs
+--- base/tests/lance-probe.mjs	1970-01-01 01:00:00
++++ probe/tests/lance-probe.mjs	2026-10-19 23:06:44
+@@ -0,0 +1,141 @@
++// build/m6-probe ONLY (M6 Phase A): the VOID LANCE probe's states inside the
++// boss stress compositions (tests/boss-stress.test.mjs and the three
++// scripts/measure-boss-stress-*.mjs tools, patched in the probe tree only).
++//
++// LANCE_MODE (environment):
++//   off     no lance tick (the probe build's DLI changes still count)
++//   idle    a lance in stock, FIRE released, the ship moved under a front
++//           module and the reticle's target changed with its line (a redraw)
++//   charge  FIRE held, the charge under way (shown frame, V3's fill step),
++//           the target changed with its line (a redraw)
++//   fire    FIRE held, the charge completing this frame: the reticle off and
++//           the beam's first LANCE_BEAM_STEP lines
++//   arrive  the beam's last LANCE_BEAM_STEP lines reach the module: the kill
++//           through boss_hit. Applied to one-meeting kill cases only (the
++//           case's one module killed by the lance, its player shot removed:
++//           ordinary fire is suspended for the 75 charge frames); with
++//           LANCE_ARRIVE_SHOTS=1 also to two-meeting kill cases, one module
++//           the lance's and the other a player shot's.
++// Each case's figure is the composition's frame plus the tick's cycles
++// (call(), its RTS included: TICK_FLASHES's jsr / jmp / rts cost the same
++// as boss_rts's in the base build).
++import { call, label, labelsOf } from "./boss-harness.mjs";
++
++export const lanceMode = process.env.LANCE_MODE ?? "off";
++const arriveShots = process.env.LANCE_ARRIVE_SHOTS === "1";
++const has = labelsOf.boss.has("lance_tick");
++const lbl = (name) => label("boss", name);
++const main = (name) => label("main", name);
++const armed = new WeakSet();
++const skipped = new WeakSet();
++// "arrive": a case the lance does not take is left out of the figure (its frames cost 0).
++export const lanceSkip = (memory) => skipped.has(memory);
++export const lanceStats = { armed: 0, skipped: 0, ticks: 0, worstTick: 0 };
++
++const BAND_ORIGIN_HPOS = 32;
++const STEP = Number(process.env.LANCE_BEAM_STEP ?? 40);
++const SHIP_Y = 200;                                     // the ship's top line in the fight (PMG Y 32-225)
++
++function visible(memory) {
++  const p = memory[lbl("boss_shown_pos")];
++  return { p, left: Math.ceil((16 + p) / 4), right: Math.floor((175 + p) / 4) };
++}
++function exposed(memory, module) {
++  const bits = memory[lbl("_boss_exposed_lo")] | (memory[lbl("_boss_exposed_hi")] << 8);
++  return ((bits >> module) & 1) !== 0;
++}
++// A column the ship can stand under whose front module the reticle takes.
++function targetColumn(memory, avoid = []) {
++  const { p, left, right } = visible(memory);
++  const count = memory[lbl("_boss_count")];
++  const map = lbl("boss_column_map");
++  let fallback = null;
++  for (let c = Math.max(left, 14); c <= right; c += 1) {
++    const module = memory[map + c];
++    if (module >= count || memory[lbl("_boss_hp") + module] === 0 || !exposed(memory, module)) continue;
++    const x = c * 4 + BAND_ORIGIN_HPOS - p - 8 + 1;
++    if (x < 48 || x > 191) continue;
++    if (!avoid.includes(module)) return { c, module, x };
++    fallback ??= { c, module, x };
++  }
++  return fallback;
++}
++function shipUnder(memory, x) { memory[main("player_x")] = x; }
++function forceRedraw(memory, module) {
++  memory[lbl("lance_tgt1")] = 0;
++  if (labelsOf.boss.has("lance_fixed_y")) {
++    // One line for every module: drawn once, at the first armed frame; a
++    // target change is an HPOS change only.
++    // the line under the band's last shown row, as boss_band_measure gives it
++    if (memory[lbl("lance_y")] === 0) memory[lbl("lance_y")] = call(memory, lbl("boss_band_measure")).a;
++    return;
++  }
++  const line = memory[lbl("boss_mbottom_y") + module];
++  const variant3 = labelsOf.boss.has("lance_fill_step");
++  const y = line - (variant3 ? 24 : 8);
++  memory[lbl("lance_y")] = y - 8 >= 24 ? y - 8 : y + 8;
++}
++
++// Arms `memory` (one case's run image) for the mode. hit / mode / columnOf:
++// the case's own meetings, for "arrive".
++export function lanceArm(memory, { hit = [], mode = "kill", columnOf = () => undefined } = {}) {
++  if (!has || lanceMode === "off") return;
++  memory[main("player_y")] = SHIP_Y;
++  if (lanceMode === "ship") {
++    // The ship moved as the reticle modes move it, no tick: the composition's
++    // own change from the ship's place, so mode - ship is the lance's alone.
++    const target = targetColumn(memory, hit);
++    if (target !== null) shipUnder(memory, target.x);
++    return;
++  }
++  memory[lbl("lance_stock")] = 1;
++  memory[lbl("lance_beam")] = 0;
++  memory[lbl("lance_charge")] = 0;
++  memory[0xd010] = 1;                                   // TRIG0 released
++  if (lanceMode === "arrive") {
++    const real = hit.filter((h) => h !== "hull");
++    if (mode !== "kill" || real.length < 1 || real.length > (arriveShots ? 2 : 1) || real.length !== hit.length) {
++      lanceStats.skipped += 1;
++      skipped.add(memory);
++      return;
++    }
++    const module = real[0];
++    const column = columnOf(module);
++    if (column === undefined) { lanceStats.skipped += 1; skipped.add(memory); return; }
++    // The lance's module: its player shot (slot 0, the first met) removed.
++    memory[main("FIGHTER_PROJECTILE_ACTIVE")] = 0;
++    const top = memory[lbl("boss_mbottom_y") + module];
++    memory[lbl("lance_beam")] = 1;
++    memory[lbl("lance_target")] = module;
++    memory[lbl("lance_col")] = column;
++    memory[lbl("lance_top")] = top;
++    memory[lbl("lance_head")] = Math.min(255, top + STEP);
++    memory[lbl("lance_bottom")] = memory[main("player_y")];
++    armed.add(memory);
++    lanceStats.armed += 1;
++    return;
++  }
++  const target = targetColumn(memory, hit);
++  if (target === null) { lanceStats.skipped += 1; return; }
++  shipUnder(memory, target.x);
++  forceRedraw(memory, target.module);
++  if (lanceMode === "charge") {
++    memory[0xd010] = 0;                                 // FIRE held
++    memory[lbl("lance_charge")] = 11;                   // shown frame (12 & 2 = 0); V3: the fill's third row due
++    if (labelsOf.boss.has("lance_fill_drawn")) memory[lbl("lance_fill_drawn")] = 1;
++  } else if (lanceMode === "fire") {
++    memory[0xd010] = 0;
++    memory[lbl("lance_charge")] = 74;                   // completes on this frame
++  }
++  armed.add(memory);
++  lanceStats.armed += 1;
++}
++
++// The tick, on armed images only (the setup frames run without it).
++export function lanceTick(memory) {
++  if (!armed.has(memory)) return 0;
++  const cycles = call(memory, lbl("lance_tick")).cycles;
++  lanceStats.ticks += 1;
++  lanceStats.worstTick = Math.max(lanceStats.worstTick, cycles);
++  return cycles;
++}

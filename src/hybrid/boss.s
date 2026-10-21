@@ -159,13 +159,15 @@ BOSS_SHOT_ACTIVE   = (1 << 3) | 2 | 4
 .assert (BOSS_RING_RECORDS & (BOSS_RING_RECORDS - 1)) = 0, error, "the ring's steal walks a power of two"
 .assert (BOSS_QUEUE_ENTRIES & (BOSS_QUEUE_ENTRIES - 1)) = 0, error, "the queue wraps on a power of two"
 
-; The head's run table (boss-runs.inc): the install, slot C, then per region
-; its band A, band B and charset runs, 5 bytes a run.
+; The head's run table (boss-runs.inc): the install, slots C, D, E and (M6)
+; G, then per region its band A, band B, charset and block runs, 5 bytes a run.
 BOSS_RUN_INSTALL = 0
 BOSS_RUN_SLOT_C  = 5
 BOSS_RUN_SLOT_D  = 10
 BOSS_RUN_SLOT_E  = 15
-BOSS_RUN_REGIONS = 20
+BOSS_RUN_SLOT_G  = 20
+BOSS_RUN_REGIONS = 25
+BOSS_SHARED_RUNS = 5                    ; the install, slots C, D, E, G
 BOSS_REGION_RUNS = 4
 
 .assert BOSS_BAND_ROWS = 8, error, "the band is 8 rows (owner answer Q2)"
@@ -223,7 +225,7 @@ boss_vector_image:
     jmp init_broadside                  ; INIT: resident, start_gameplay only
     jmp boss_update                     ; UPDATE
     jmp boss_rts                        ; TICK_EXPLOSIONS
-    jmp boss_rts                        ; TICK_FLASHES
+    jmp lance_tick                      ; TICK_FLASHES (M6: the VOID LANCE, slot G - src/hybrid/lance.s)
     jmp boss_rts                        ; ENGINE
     jmp boss_rts                        ; HULL_CONTACT
     jmp boss_rts                        ; RENDER_FLASHES
@@ -321,8 +323,8 @@ boss_runs:
 ; audit-hardening (AUD-02, docs/plans/audit-hardening.md §3): the head's check,
 ; in a segment of its own at slot A's end, so that the head and every routine
 ; behind it keep their addresses. Nothing the head read is run or used - the
-; install, slots C-E, the band and its tables - unless the eight runs check
-; against the region's value; then the module count is bounded to 1..16
+; install, slots C-E (M6: and G), the band and its tables - unless the nine
+; runs check against the region's value; then the module count is bounded to 1..16
 ; before the controller can index its 16-entry arrays with it. Either refusal
 ; is the reader's failure screen (WRONG DISK), as a missing region is.
 ; S5-1: eight runs - the region's block (slot F) is its fourth - and the
@@ -345,7 +347,8 @@ boss_head_check:
 @refused:
     jmp boss_wrong_disk
 
-; The expected fold of the head's eight runs, per region (scripts/build.mjs).
+; The expected fold of the nine runs banner_reads reads after the boss code
+; (M6: slot G after slot E), per region (scripts/build.mjs).
     .include "boss-sums.inc"
 
 .assert BOSS_RUN_REGIONS + 4 * BOSS_REGION_RUNS * 5 <= 256, error, "the run table outgrows the head's 8-bit offsets"
@@ -2426,9 +2429,11 @@ laser_first_shot:
     rts
 
 ; X = a laser -> A (Z) its emitter's bit in the controller's exposed mask:
-; nonzero when exposed. Keeps X.
+; nonzero when exposed. Keeps X. laser_exposed_module: Y = a module (M6: the
+; VOID LANCE's target pick, src/hybrid/lance.s).
 laser_exposed:
     ldy boss_laser_module,x
+laser_exposed_module:
     cpy #8
     bcs @high
     lda _boss_exposed_lo
@@ -2528,6 +2533,10 @@ laser_frame:
     jsr BOSS_F_HOOK
 :
     jsr boss_capsule_fall               ; S4b.5 (F3): a capsule falls (slot E)
+    ; M6: the operand is patched - the VOID LANCE's kill frame (src/hybrid/
+    ; lance.s, its tick before UPDATE) leaves one meeting to the shots, the
+    ; kill being the frame's other; every other frame of the beam puts two back.
+laser_admit_operand := * + 1
     lda #BOSS_SHOT_ADMIT                ; AUD-04: this frame's meetings
     sta boss_shots_admit_left
     jsr laser_hostile_shots
@@ -3647,8 +3656,10 @@ banner_show:
 
 ; The list after the picture: 10 blank lines, WARNING (ANTIC 7, HSCROL: 7
 ; glyphs), 4 blank, the name (ANTIC 6; the set-up puts the HSCROL bit in for
-; an odd count), 3 blank, INCOMING, 12 blank, the bar's 8 mode F lines (the
-; dash glyph's line 3 is row B), the jump.
+; an odd count), 3 blank, INCOMING, 2 blank, the VOID LANCE's line (ANTIC 2,
+; M6 journal §BI 1: in INCOMING's 12 blank lines to the bar, so nothing
+; moves), 2 blank, the bar's 8 mode F lines (the dash glyph's line 3 is row
+; B), the jump.
 banner_dl_tail:
     .byte $70, $10
     .byte $57, <BANNER_WARNING_ROW, >BANNER_WARNING_ROW
@@ -3657,7 +3668,9 @@ banner_dl_name:
     .byte $46, <BANNER_NAME_ROW, >BANNER_NAME_ROW
     .byte $20
     .byte $46, <BANNER_INCOMING_ROW, >BANNER_INCOMING_ROW
-    .byte $70, $30
+    .byte $10
+    .byte $42, <BANNER_LANCE_ROW, >BANNER_LANCE_ROW
+    .byte $10
     .repeat 3
     .byte $4F, <BANNER_BAR_A, >BANNER_BAR_A
     .endrepeat
@@ -3706,6 +3719,20 @@ banner_late:
     sta banner_fraction
     sta banner_target
     sta banner_pixel
+    ; 7a. The VOID LANCE's line (M6 journal §BI 1), with its '+' glyph in the
+    ;     frontend charset's blank code BANNER_PLUS_CODE (scripts/boss-banner.mjs).
+    ldx #(BANNER_LANCE_LENGTH - 1)
+@lance:
+    lda banner_lance_codes,x
+    sta BANNER_LANCE_ROW + BANNER_LANCE_COLUMN,x
+    dex
+    bpl @lance
+    ldx #(BANNER_PLUS_LENGTH - 1)
+@plus:
+    lda banner_plus_glyph,x
+    sta BANNER_FRONTEND_CHARSET + BANNER_PLUS_CODE * 8 + BANNER_PLUS_FIRST_ROW,x
+    dex
+    bpl @plus
     ; 8. The picture: its stored half unpacked by the resident decoder into
     ;    the buffer, then a line at a time from the line's LMS + 6: the 12
     ;    stored bytes, and bytes 7-0 bit-reversed into 12-19. It shows as it
@@ -3779,13 +3806,21 @@ banner_late:
     sta sr_slot_a_overlaid
     jmp banner_reads
 
+banner_lance_codes:
+    .byte BANNER_LANCE_CODES
+.assert * - banner_lance_codes = BANNER_LANCE_LENGTH, error, "the lance line's codes"
+banner_plus_glyph:
+    .byte BANNER_PLUS_GLYPH
+.assert * - banner_plus_glyph = BANNER_PLUS_LENGTH, error, "the '+' glyph's rows"
+BANNER_FRONTEND_CHARSET = BANNER_CHBASE * $100
+
 ; ===========================================================================
 ; feat/boss-banners: the reads under the banner, at BANNER_KEEP ($7A90, the
 ; staging RAM behind the display list, which no boss run reaches), copied
 ; there by the set-up. Every run of today's entry in today's order - the boss
 ; code (directory entry 1, checked as sector_reader_read_run checks it), then
-; slot A's head's eight (the install, slots C-E, the region's band A, band B,
-; charset and block, folded on and checked by boss_head_check against the
+; slot A's head's eight and (M6) slot G (the install, slots C-E, G, the
+; region's band A, band B, charset and block, folded on and checked by boss_head_check against the
 ; region's sum) - one sector a call, the bar a step after each; then the
 ; hand-over: the display off, the PMG area and the frontend screen cleared as
 ; the entry before the banners left them for the install, and the head's check. Slot A's
@@ -3807,7 +3842,8 @@ banner_reads:
     sta boss_head_region
     lda #<(boss_runs + BOSS_RUN_INSTALL)
     ldx #>(boss_runs + BOSS_RUN_INSTALL)
-    jsr banner_read_four                ; the install, slots C, D, E
+    ldy #BOSS_SHARED_RUNS
+    jsr banner_read_four                ; the install, slots C, D, E, G
     ldx banner_region
     lda boss_region_runs,x
     clc
@@ -3817,6 +3853,7 @@ banner_reads:
     adc #$00
     tax
     pla
+    ldy #BOSS_REGION_RUNS
     jsr banner_read_four                ; band A, band B, the charset, the block
 banner_hand_over:
     lda #$00
@@ -3825,12 +3862,12 @@ banner_hand_over:
     jsr clear_screen
     jmp boss_head_check
 
-; A/X = the first of four runs in boss_runs' format.
+; A/X = the first of Y runs in boss_runs' format (M6: the shared runs are
+; five with slot G, a region's four).
 banner_read_four:
     sta banner_run
     stx banner_run+1
-    lda #$04
-    sta banner_runs_left
+    sty banner_runs_left
 @run:
     lda banner_run
     ldx banner_run+1
@@ -4772,3 +4809,6 @@ rail_row:
     rts
 
 .endif
+
+; M6 (docs/plans/m6-void-lance.md): the VOID LANCE, slot G.
+.include "lance.s"

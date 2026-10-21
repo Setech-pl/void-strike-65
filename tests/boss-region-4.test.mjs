@@ -464,3 +464,19 @@ test("the stress composition: the Citadel's reachable worst under 8,500, no fram
     assert.equal(cases.reduce((sum, c) => sum + c.clashes, 0), 0, "rule (B): a kill frame with a gun's spawn");
   }
 });
+
+// M6 stage 1 (docs/plans/m6-void-lance.md §7): the VOID LANCE in each of its
+// states (tests/lance-states.mjs) on the Citadel's compositions.
+test("M6: the Citadel with the VOID LANCE - every state under 8,500, rule (B)", { timeout: 900_000 }, async () => {
+  assert.ok(hasWell, "the boss link has no gravity well (region 4's block code)");
+  const { regionFourStress } = await import("../scripts/measure-boss-stress-r4.mjs");
+  const { lanceStress } = await import("./lance-states.mjs");
+  for (const level of [LEVEL, LEVEL + 1]) {
+    const table = lanceStress((lance) => regionFourStress({ level, maxMeetings: 2, lance }));
+    console.log(`# the Citadel, level ${level}, the lance: ${Object.entries(table).map(([mode, { worst }]) => `${mode} ${worst.cycles}`).join(", ")}`);
+    for (const [mode, { worst, clashes }] of Object.entries(table)) {
+      assert.ok(worst.cycles <= 8500, `level ${level}, lance ${mode}: ${worst.cycles} (lasers ${worst.laserMode}, ${worst.k} ${worst.mode})`);
+      assert.equal(clashes, 0, `lance ${mode}: rule (B)`);
+    }
+  }
+});

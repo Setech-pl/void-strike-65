@@ -56,6 +56,11 @@ their own.
   ROOKIE and 1.25× as many on ACE. The numbers below are PILOT's.
 - **Points.** Every module scores when destroyed. Defeating the boss adds a
   **2,000-point** bonus, paid on the level summary.
+- **The VOID LANCE.** 25 s into every fight your ship turns green: hold Fire and
+  the joystick forward for 1.5 s and its beam destroys the module above you
+  (never the core, nor what your shots cannot hurt); a miss keeps the lance.
+  The banner's last line says how: `VOID LANCE: HOLD FIRE+FORWARD`
+  ([how to play](how-to-play.md#the-void-lance)).
 
 ---
 

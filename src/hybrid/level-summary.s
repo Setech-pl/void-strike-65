@@ -994,16 +994,13 @@ summary_bonus:
 ; ---------------------------------------------------------------------------
 ; Data.
 ; ---------------------------------------------------------------------------
-summary_powers_lo:
-        .byte <1, <10, <100, <1000, <10000
-summary_powers_hi:
-        .byte >1, >10, >100, >1000, >10000
 summary_letters:
         .byte 0, CH_FRONT_A + 2, CH_FRONT_A + 1, CH_FRONT_A, CH_FRONT_A + 18  ; -, C, B, A, S
 
-summary_title_records:
+summary_title_records:                  ; the title, then LOADING: one list
         .byte <(SUMMARY_SCREEN + 16), >(SUMMARY_SCREEN + 16)
         .byte "LEVEL", $00
+
 summary_loading_records:
         .byte <(SUMMARY_PROMPT_ROW + 16), >(SUMMARY_PROMPT_ROW + 16)
         .byte "LOADING", $00
@@ -1046,6 +1043,12 @@ summary_animate:
         bne @cell
         rts
 
+; M6 (journal §BF): the boss restore table grew by 6 B (read_input's stick
+; operand); the powers tables (10 B) moved past the display lists and these
+; 4 B keep summary_display_list where the release's level-end checks find it
+; (journal §BC: Setech Arcade's record test reads $0B58). Journal §BG's
+; indicator C restores COLPM0 too: one entry, 3 B of the 4.
+        .res 4 - 3 * (BOSS_RESTORE_COUNT - 18), $00
 summary_display_list:
         .byte $70, $70
         .byte $42, <SUMMARY_SCREEN, >SUMMARY_SCREEN
@@ -1091,6 +1094,11 @@ summary_start_display_list:
         .byte $41, <summary_start_display_list, >summary_start_display_list
 summary_display_list_end:
 
+summary_powers_lo:
+        .byte <1, <10, <100, <1000, <10000
+summary_powers_hi:
+        .byte >1, >10, >100, >1000, >10000
+
 ; State. The module is RAM; it is read anew each session.
 summary_level:          .byte 0
 summary_anim:           .byte 0
@@ -1115,6 +1123,7 @@ summary_level_read:     .byte 0     ; audit-hardening: START GAME reads the leve
 .include "summary-sums.inc"
 
 .assert summary_vectors = SUMMARY_MODULE, error, "the summary module must start at $0500"
+.assert summary_display_list = $0B58, error, "the level-end display list moved from $0B58 (journal §BC: an outside record test reads it)"
 .assert summary_vectors + 6 = SUMMARY_ANIMATE, error, "the animation vector must sit at $0506"
 .assert (summary_display_list & $FC00) = ((summary_display_list_end - 1) & $FC00), error, "the summary display list crosses an ANTIC 1 KiB boundary"
 .assert SUMMARY_PICTURE + 400 <= SUMMARY_SCREEN + $400, error, "the picture leaves the frontend screen RAM"

@@ -41,9 +41,21 @@
 //   end     the erasure's last frame: its last LANCE_BEAM_STEP lines up to the
 //           module, the beam down and channel 3 back to the engine bed (journal
 //           §BI 2: the discharge's release; the sound on)
+//
+// M6 stage 1b (journal §BK; docs/plans/m6-gauges.md §3): the PMG gauges. In
+// every state above they show what they should (settled - no P2 write), the
+// booster's at 2 of 4 (its no-change test's longest path); the gauges' own
+// states write one dot:
+//   install the fight's first frame (the meter filling): both gauges drawn
+//           whole, HPOSP2 and SIZEP2
+//   quarter a filling frame the meter reaches its first quarter: a lance dot
+//   step    the charge's frame its gauge loses a dot (17: a shown slow frame)
+//   refill  a ready frame after a release: a lance dot back
+//   booster a ready frame a booster cell lit: a booster dot (the lance settled)
 import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
 export const LANCE_MODES = ["filling", "draw", "idle", "charge", "swap", "fire", "dry", "grow", "arrive", "erase", "end"];
+export const GAUGE_MODES = ["install", "quarter", "step", "refill", "booster"];
 const has = () => labelsOf.boss.has("lance_tick");
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -116,8 +128,39 @@ function meter(memory, frames) {
 }
 const fullMeter = (memory) => manifest.boss.lance.meterFrames[memory[main("DIFFICULTY_SETTING")]];
 
+// The gauges (M6 stage 1b) for `mode`, after the lance's own arming.
+const gauges = () => labelsOf.boss.has("gauge_level");
+const HUD_CELLS = () => main("SCREEN") + main("HUD_BOOSTER_SEGMENTS_OFFSET");
+function gaugeArm(memory, mode) {
+  if (!gauges()) return;
+  const level = lbl("gauge_level");
+  const cells = HUD_CELLS();
+  const boost = 2;
+  for (let k = 0; k < 4; k += 1) memory[cells + k] = k < boost ? 7 : 0;
+  memory[level + 1] = 4 + boost;                        // drawn: settled
+  // The lance gauge as the state shows it: the meter's quarters while it
+  // fills, 4 when a lance is ready and not charging.
+  const ready = memory[lbl("lance_ready")] === 0xff;
+  memory[level] = ready ? 4 : 0;
+  if (mode === "install") memory[level + 1] = 0;
+  if (mode === "quarter") {
+    const full = fullMeter(memory);
+    meter(memory, Math.ceil(full / 4) - 1);             // the fill reaches the first quarter
+    memory[level] = 0;
+  }
+  if (mode === "step") memory[lbl("_lance_charge")] = 16;    // 17 on this frame: 4 -> 3 lit
+  if (mode === "refill") memory[level] = 0;             // released: 0 -> 1 lit
+  if (mode === "booster") { memory[level + 1] = 4 + boost - 1; }
+}
+
 export function lanceArm(memory, mode, { hit = [] } = {}) {
   if (!has() || mode === "off") return;
+  if (GAUGE_MODES.includes(mode)) {
+    const base = { install: "filling", quarter: "filling", step: "charge", refill: "idle", booster: "idle" }[mode];
+    lanceArm(memory, base, { hit });
+    if (!skipped.has(memory)) gaugeArm(memory, mode);
+    return;
+  }
   // The meter and the indicator: settled on (a lance ready) in the ready
   // states; draw is the frame it fills (the indicator's change and its cue,
   // the sound on); the beam's frames (grow, arrive, erase) off, the meter
@@ -129,7 +172,7 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
   memory[lbl("lance_beam")] = 0;
   memory[lbl("_lance_charge")] = 0;
   gesture(memory, false);
-  if (mode === "filling") { armed.add(memory); lanceStats.armed += 1; return; }
+  if (mode === "filling") { gaugeArm(memory, mode); armed.add(memory); lanceStats.armed += 1; return; }
   // The reticle's line, as the first shown frame draws it (not counted).
   if (memory[lbl("lance_y")] === 0 && mode !== "draw") memory[lbl("lance_y")] = call(memory, lbl("boss_band_measure")).a;
   if (mode === "draw") memory[lbl("lance_y")] = 0;
@@ -159,6 +202,7 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
       memory[lbl("_lance_charge")] = 74;                // completes on this frame
     }
   }
+  gaugeArm(memory, mode);
   armed.add(memory);
   lanceStats.armed += 1;
 }
@@ -181,7 +225,7 @@ export function lanceTick(memory) {
 // Every mode's worst reachable frame of a composition: run(mode) returns its
 // { cases }. Returns { mode: { worst, clashes, cases } } (filling first: most
 // of a fight's frames).
-export function lanceStress(run, modes = LANCE_MODES) {
+export function lanceStress(run, modes = [...LANCE_MODES, ...GAUGE_MODES]) {
   const out = {};
   for (const mode of modes) {
     const { cases } = run(mode);

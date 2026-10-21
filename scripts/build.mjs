@@ -365,6 +365,18 @@ const laserTierValue = laserTierSlug === undefined ? null : Number(laserTierSlug
 // comparison build --lance-slow=forward slows only the advance (UP); the
 // default "every" is the committed rule. Review variant:
 // build/lance-slow-forward[-...]/; it goes when the owner has played it.
+// M6 stage 1b (journal §BK, docs/plans/m6-gauges.md §3.4): the PMG gauges of
+// the boss sector in two variants for the owner's comparison - A over the
+// playfield's column 0 (HPOS 48), B in the left border (HPOS 40); the only
+// difference. The default is A until the owner chooses. Review variant:
+// build/gauge-<a|b>[-...]/.
+const GAUGE_HPOS = Object.freeze({ a: 48, b: 40 });
+const gaugeArgument = process.argv.find((argument) => argument.startsWith("--gauge="));
+const gaugeSlug = gaugeArgument?.slice("--gauge=".length);
+if (gaugeSlug !== undefined && !Object.hasOwn(GAUGE_HPOS, gaugeSlug)) {
+  throw new Error(`Unknown gauge variant ${gaugeSlug}; the variants are a and b`);
+}
+const gaugeVariant = gaugeSlug ?? "a";
 const lanceSlowArgument = process.argv.find((argument) => argument.startsWith("--lance-slow="));
 const lanceSlowSlug = lanceSlowArgument?.slice("--lance-slow=".length);
 if (lanceSlowSlug !== undefined && lanceSlowSlug !== "forward") {
@@ -450,7 +462,8 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  laserTierValue !== null || bossVariantSlug !== undefined || lanceSlowSlug !== undefined;
+  laserTierValue !== null || bossVariantSlug !== undefined || lanceSlowSlug !== undefined ||
+  gaugeSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -476,6 +489,8 @@ const variantDirectoryNameInner = (escortVariantId !== null
   ? `laser-tier-${laserTierValue}${levelDebugSuffix}`
   : lanceSlowSlug !== undefined
   ? `lance-slow-${lanceSlowSlug}${levelDebugSuffix}`
+  : gaugeSlug !== undefined
+  ? `gauge-${gaugeSlug}${levelDebugSuffix}`
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -664,10 +679,12 @@ const bossSlotEMaxSectors = Math.floor(BOSS_SLOT_E_BYTES / 128);
 // §6.3), so it has its own reservation at the disk's free tail (712 on; the
 // Phase A probe's place, plan §3), and 581-583 are free again: five sectors
 // (712-716) since journal §BH's hollow mark and dry shot (C had 7 B left in
-// four), with journal §BI's charge ramp and discharge.
+// four), with journal §BI's charge ramp and discharge; seven (712-718) since
+// M6 stage 1b's PMG gauges (journal §BK, docs/plans/m6-gauges.md §3.3: the
+// brief's sixth sector was 96 B short).
 const BOSS_LANCE_BASE_SECTOR = 712;
 const bossLanceSector = BOSS_LANCE_BASE_SECTOR;
-const BOSS_LANCE_SECTORS = 5;
+const BOSS_LANCE_SECTORS = 7;
 const BOSS_LANCE_BYTES = BOSS_LANCE_SECTORS * 128;
 const BOSS_LANCE_ADDRESS = LANCE_RAM_END - BOSS_LANCE_BYTES;
 const bossRegionBaseSector = 632;
@@ -751,7 +768,8 @@ const lowCodeReservationBytes = 0xf8;
 // temporary 243-B HYBRID_C_HEAVY window ($7E12-$7F04) and its 44-B transport
 // tail in the merged cold record. Its linked image (used bytes, at least the
 // ca65 anchor) is its own DFMC record whose final destination is the arena
-// itself: no hold, no publish copy. It ends before the A2 display lists.
+// itself: no hold, no publish copy. It ends before the A2 display lists (M6
+// stage 1b: their shared header at $7F10, docs/plans/m6-gauges.md §2.2).
 const hybridArenaAddress = 0x7bd0;
 const hybridArenaEndExclusive = 0x7f10;
 const hybridArenaCapacityBytes = hybridArenaEndExclusive - hybridArenaAddress;
@@ -2995,7 +3013,7 @@ async function build() {
   const bossImportNames = {
     main: ["init_broadside", "PHYSICAL_PAL_FRAME_ID", "GAMEPLAY_PAL_FRAME_CONSUMED", "CHARSET",
       "GAMEPLAY_COLPF0", "GAMEPLAY_COLPF2", "GAMEPLAY_COLPF3", "gameplay_dli_allied_colpf1_load",
-      "gameplay_dli_sync_hud", "PLAYFIELD_DLIST_A", "PLAYFIELD_ROW_LO", "PLAYFIELD_ROW_HI",
+      "gameplay_dli_sync_hud", "PLAYFIELD_DLIST_A", "PLAYFIELD_DLIST_ENTRY", "PLAYFIELD_ROW_LO", "PLAYFIELD_ROW_HI",
       "PLAYFIELD_ACTIVE_DLIST_LO", "PLAYFIELD_NEXT_DLIST_LO", "PLAYFIELD_PREBUILD_PENDING",
       "frame_counter", "FIGHTER_PROJECTILE_ACTIVE", "FIGHTER_PROJECTILE_X",
       "FIGHTER_PROJECTILE_Y", "FIGHTER_PROJECTILE_FREE", "FIGHTER_EXPLOSION_TIMER",
@@ -3009,6 +3027,8 @@ async function build() {
       "HUD_COLPF1", "HUD_COLPF2", "STATE_GAMEPLAY", "game_state", "wait_frame_start",
       "main_loop", "sound_enabled", "GAMEPLAY_DIVIDER_SCREEN", "capital_slot_a",
       "DIFFICULTY_SETTING", "PLAYER_LIFECYCLE", "player_x", "apply_player_damage",
+      // M6 stage 1b (docs/plans/m6-gauges.md §3): the booster gauge reads the HUD's BOOST cells.
+      "HUD_BOOSTER_SEGMENTS_OFFSET",
       // S4b.5 (owner decision F3): a destroyed module counts for the capsule rule.
       "ENTITY_STATE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
       "integration_pickup_reveal_body",
@@ -3398,6 +3418,9 @@ async function build() {
         ...(bossTwin ? ["-D", "BOSS_TWIN=1"] : []),
         "-D", `LANCE_CHARGE_SPEED_DIVISOR=${LANCE_CHARGE_SPEED_DIVISOR}`,
         "-D", `LANCE_CHARGE_FRAMES=${LANCE_CHARGE_FRAMES}`,
+        // M6 stage 1b (docs/plans/m6-gauges.md §3): the gauge's quarters and its variant's position.
+        ...["EASY", "FRAMES", "HARD"].flatMap((name, index) => ["-D", `LANCE_METER_${name}=${lanceMeterFrames()[index]}`]),
+        "-D", `GAUGE_HPOS=${GAUGE_HPOS[gaugeVariant]}`,
         ...(lanceSlowSlug === "forward" ? ["-D", "LANCE_SLOW_FORWARD=1"] : []),
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
@@ -4576,7 +4599,7 @@ async function build() {
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null ||
-      lanceSlowSlug !== undefined
+      lanceSlowSlug !== undefined || gaugeSlug !== undefined
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -4963,7 +4986,9 @@ async function build() {
         bssBytes: bossLabels.get("__LANCE_BSS_SIZE__"),
         windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), meterFrames: lanceMeterFrames(),
         chargeFrames: LANCE_CHARGE_FRAMES, chargeSpeedDivisor: LANCE_CHARGE_SPEED_DIVISOR,
-        slow: lanceSlowSlug ?? "every" },
+        slow: lanceSlowSlug ?? "every",
+        // M6 stage 1b (docs/plans/m6-gauges.md §3): the PMG gauges' variant and position.
+        gauge: { variant: gaugeVariant, hpos: GAUGE_HPOS[gaugeVariant] } },
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       order: bossOrder,

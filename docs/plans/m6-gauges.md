@@ -194,14 +194,114 @@ replaced by the owner's choice). The only difference is `GAUGE_HPOS` (48 / 40).
   new states `quarter` (a filling frame with a quarter's step) and `booster`
   (a ready frame with a booster step).
 
-## 5. Measurements (as built) — to fill
+## 5. As built and measured (2026-10-21)
 
-* The HUD before / after: fence margin and DMA-on on the default trace's
-  replays and the four routes.
-* Per variant, per region: the boss stress worst by state (filling, quarter
-  change, idle, charge, swap, fire, beam, booster change), entry frames with
-  the 6th sector, resident bytes, window-record bytes, fence margin and DMA-on
-  on the four routes.
+### 5.1 Part 1 as built — and where it differs from §2.2
+
+* **The JVB became a JMP.** The HUD's last line is ANTIC's last (247), so
+  vertical blank begins before ANTIC can fetch the next instruction: a JVB
+  after the HUD ran at line 8 of the NEXT frame and blanked that whole frame
+  (MEASURED on the first route run: every frame a missed frame, the game at
+  25 fps). A list now ends in a **JMP**, which waits through vertical blank and
+  is line 8's single blank line; the header is **7** blank lines (`$E0`), so
+  the first DLI still fires on line 15. Every display install
+  (`start_gameplay`, `resume_gameplay`, the boss install) enters at list A's
+  JMP (`PLAYFIELD_DLIST_ENTRY`) - an immediate, 1 B shorter: a non-executed
+  pad after each routine keeps every later address. **Real hardware relies on
+  ANTIC resuming an unfinished display list at line 8 (documented behaviour,
+  Atari800 emulates it): the owner's smoke on the 65XE is the check.**
+* **The arena is not touched.** §2.2's 2 B from `HYBRID_C_ARENA`'s tail would
+  have broken the owner's floor of 14 free arena bytes (decision AK,
+  `tests/heavy-breakup.test.mjs`). Instead the lists keep **90 B** each - the
+  divider, the 27 rows, the HUD, the JMP - and share **one header byte at
+  `$7F10`**, right before list A (list A `$7F11`, B `$7F6B-$7FC4`): the boss
+  sector's DLI never rewrites DLISTL, so its list (A) must follow the header.
+  The byte is `HYBRID_LIGHT_SLOTS`' one free byte: the Light slots move one up
+  (`$7FC5-$7FFF`, exactly full; 59 B used of 59).
+* **The boss list** writes the divider and its 27 rows only; the HUD and the
+  JMP are list A's own (the gameplay build wrote them; the install run kept
+  its 3 free bytes).
+* **The A2 kernel's list builder** grew 5 B, taken from its own 11-B ABI pad
+  (6 left): every A2 entry point keeps its address.
+* **The separator** is the HUD glyphs' first row (§2.3), byte-neutral.
+* **Bytes:** resident code byte-neutral; the initial block's packed content
+  13,623 -> **13,622 B**, still **107 sectors**; STARFIELD raw 2,039 B
+  unchanged, packed 1,750 -> **1,751 B** (`init_playfield_display_lists`'
+  two immediates `$10 / $6A` -> `$11 / $6B` pack worse): its packed hard-gate
+  margin **75 -> 74 B** (the floor in `tests/gameplay-music-placement`
+  re-pinned with the reason - reported).
+* **The default trace (M, Atari800, the full 58 replays on the candidate
+  build = variant A; nothing committed from it):** 0 misses, 0 clause
+  failures, physical headroom 4,092. **Worst fence margin 1,465 -> 1,497**
+  (`2-sweep-fire6`): the HUD's DMA left the pre-fence window. **DMA-on maximum
+  31,059 -> 31,476** (`2-evasive-fire7`; **17 of 58 replays over the 31,200
+  target**, all under the 32,568 hard gate): the HUD's ~400 DMA cycles moved
+  from lines 8-15, before the frame token, to 240-247, inside the measured
+  main-loop wall - every placement below line 15 does, so only the HUD at the
+  top avoids it. **This gate fails** (by 276 cycles); what brings it under:
+  ~280 native cycles off the worst fighter frames' post-fence work, the owner
+  re-reading the 31,200 target for DMA that is not CPU work, or the HUD at the
+  top. Boss entries 314 -> 321 host frames (the lance run's two sectors).
+* **Known side effect (not fixed):** PMG rows 240-247 were below the display
+  and are now the HUD's lines. Anything a game object draws there shows over
+  the HUD: MEASURED on R1, the boss's falling capsule (P3, gold) passes over
+  `LIFE` as it leaves the screen. Fixes for the owner: clip P3's draw at line
+  239 (resident bytes) or hide P3 in the last ring row's DLI (cycles every
+  frame).
+
+### 5.2 Part 2 as built
+
+The code is §3 as planned except: **the lance run takes 7 sectors
+(712-718), not 6** - the gauges are **241 B** (238 B code and tables, 3 B
+state) and the sixth sector was 96 B short. The run is **880 of 896 B**
+(`$B880-$BBFF`); **the window keeps 86 B to grow** (was 342): stage 2's +1
+life capsule (EST 125-160 B in the window record) no longer fits there -
+`tests/lance.test.mjs`' guard (>= 160 B) is red on this branch, deliberately
+not re-pinned. **Alternative (not built):** the gauge code as its own 2-sector
+boss run at `$0400-$04FF` (unclaimed, not yet measured: it needs a run-time
+write watch) - the same 7 entry sectors in total, the window room back to
+342 B, slot A +5 B of its 9.
+
+Resident bytes **0**; window record **0**. Variant A and B differ in one byte
+of the lance run (`GAUGE_HPOS` 48 / 40; `cmp` of the two runs), so every
+cycle figure below is both variants'.
+
+**Boss stress, worst reachable per state (native cycles, limit 8,500; A = B):**
+
+| region | filling | quarter | install (1st frame) | idle | charge | step | swap | fire | dry | refill | booster | beam (grow / erase / end) | arrive | **worst (headroom)** |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: |
+| 1 Breaker L1 | 7,294 | 7,333 | 7,559 | 7,545 | 7,567 | 7,581 | 7,582 | 7,579 | 7,519 | 7,557 | 7,577 | 7,507 / 7,527 / 7,543 | 7,125 | **7,582 (918)** |
+| 2 Citadel L5 | 8,173 | 8,212 | 8,438 | 8,386 | 8,408 | 8,419 | 8,420 | 8,417 | 8,417 | 8,395 | 8,415 | 8,386 / 8,406 / 8,422 | 8,218 | **8,438 (62)** |
+| 3 Spine L9 | 8,169 | 8,208 | 8,434 | 8,398 | 8,420 | 8,434 | 8,435 | 8,432 | 8,368 | 8,410 | 8,430 | 8,382 / 8,402 / 8,418 | 8,020 | **8,435 (65)** |
+| 4 Bastion L10 | 8,204 | 8,243 | 8,469 | 8,432 | 8,454 | 8,468 | 8,469 | 8,466 | 8,403 | 8,444 | 8,464 | 8,417 / 8,437 / 8,453 | 7,556 | **8,469 (31)** |
+
+(`main`: worst 7,575 / 8,422 / 8,428 / **8,462 (38)**. Citadel L4 8,103,
+Spine L7 8,180. `tests/lance-states.mjs` states; `quarter`, `install`, `step`,
+`refill`, `booster` are the gauges' own write frames, the rest settled with
+the booster at 2 of 4. Tools: `tests/boss-stress.test.mjs`,
+`scripts/measure-lance-stress.mjs`.)
+
+**The routes** (Atari800, 34 focused sessions per variant, `build/gauge-<a|b>-…`,
+`scripts/pal-timing-audit.mjs`' model; A and B identical to the cycle):
+
+| route | sessions | worst margin | DMA-on max | entry, host frames | misses / clause failures | `main` margin / DMA-on / entry |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| R1 Breaker | 6 | 8,426 | 30,128 | **321** | 0 / 0 | 8,507 / 29,813 / 314 |
+| R2 Citadel | 9 | 6,142 | 30,417 | **336** | 0 / 0 | 6,166 / 30,293 / 329 |
+| R3 Spine | 9 | 4,658 | 30,775 | **336** | 0 / 0 | 6,959 / 30,392 / 329 |
+| R4 Bastion | 10 | 6,459 | 30,109 | **340** | 0 / 0 | 6,459 / 29,811 / 332 |
+
+* DMA-on +250-450 on every session: the HUD's DMA now falls inside the
+  measured wall (lines 240-247; on lines 8-15 it was before the frame token) -
+  Part 1, not the gauges.
+* R3's worst margin is `boss-aim-lance-1` (7,539 on `main`): the bot fires its
+  lances on other frames; the other eight R3 sessions moved by under 400.
+* The trace's Heavy-body clause knows the gauges' rows (P2 196-237 in the boss
+  sector once drawn; the rest of P2 still checked).
+
+**Tests:** `tests/gauges.test.mjs` 9 of 9 (RED first on the pre-gauge build:
+9 of 9 failing); `tests/lance.test.mjs` 32 of 33 (the window-room guard
+above); `tests/boss-stress.test.mjs` region 1 with all 16 states.
 
 ## 6. Deliverables
 

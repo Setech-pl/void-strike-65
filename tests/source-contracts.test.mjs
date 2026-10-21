@@ -15,19 +15,22 @@ test("source keeps the documented PAL and PMG hardware contract", () => {
   assert.match(source, /FRONTEND_CHARSET\s*=\s*\$4800/);
   assert.match(source, /HUD_CHARSET\s*=\s*\$5000/);
   assert.match(source, /sta CHBASE/);
-  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
+  // RE-PINNED M6 stage 1b (journal §BK 1, docs/plans/m6-gauges.md §2.2): 7
+  // blank lines with the first DLI, the divider, the ring (its last row's
+  // DLI), the HUD's line, a JMP that waits through vertical blank as line 8.
+  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*PLAYFIELD_DLIST_HUD_OFFSET\+3\+3/);
   assert.match(source,
-    /build_playfield_display_list:[\s\S]+lda #\$C2[\s\S]+lda #<GAMEPLAY_DIVIDER_SCREEN[\s\S]+cpy #\(6\+\(PLAYFIELD_RING_ROWS-1\)\*3\)[\s\S]+lda #\$C4[\s\S]+lda #\$41/);
+    /build_playfield_display_list:[\s\S]+lda #\$E0[\s\S]+lda #<GAMEPLAY_DIVIDER_SCREEN[\s\S]+cpy #\(PLAYFIELD_DLIST_RING_OFFSET\+\(PLAYFIELD_RING_ROWS-1\)\*3\)[\s\S]+lda #\$C4[\s\S]+lda #\$42[\s\S]+lda #<SCREEN[\s\S]+lda #\$01/);
   const rotate = source.slice(source.indexOf("rotate_playfield_rows:"),
     source.indexOf("init_starfield_state:"));
   assert.doesNotMatch(rotate, /sta DLISTL/,
     "visible-frame ring rotation must not publish DLISTL directly");
   assert.match(source,
-    /gameplay_dli:[\s\S]+lda gameplay_dli_phase\s+bne gameplay_dli_sync_hud[\s\S]+lda PLAYFIELD_ACTIVE_DLIST_LO\s+clc\s+adc #\$03\s+sta DLISTL\s+gameplay_dli_sync_gameplay\s*=\s*\*/,
-    "the first gameplay DLI must select byte three of the active A2 list before playfield DMA");
+    /gameplay_dli:[\s\S]+lda gameplay_dli_phase\s+bne gameplay_dli_sync_hud[\s\S]+lda PLAYFIELD_ACTIVE_DLIST_LO\s+clc\s+adc #\$00\s+; the divider's offset[^\n]*\n\s+sta DLISTL\s+gameplay_dli_sync_gameplay\s*=\s*\*/,
+    "the first gameplay DLI must select the active A2 list's divider before playfield DMA");
   assert.match(source,
     /gameplay_dli_hud\s*=\s*\*[\s\S]+sta gameplay_dli_phase[\s\S]+publish_playfield_display_list = gameplay_dli_hud\s+pla[\s\S]+rti/,
-    "the final gameplay DLI must leave next-frame publication to the active list JVB");
+    "the final gameplay DLI must leave next-frame publication to the list's own JMP and the first DLI");
   assert.match(source, /main_menu_display_list:[\s\S]+\.byte \$70,\$70,\$70,\$47,<SCREEN,>SCREEN/);
   assert.match(source, /\.byte \$42,<\(SCREEN\+300\),>\(SCREEN\+300\)/);
   assert.match(source, /lda #\$3E\s+; normal playfield, single-line PMG DMA/);

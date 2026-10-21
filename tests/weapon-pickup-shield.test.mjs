@@ -163,7 +163,8 @@ test("Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyp
   assert.deepEqual(boundary(125).hudSegments, [8, 8, 0, 0]);
   assert.deepEqual(boundary(63).hudSegments, [8, 8, 0, 0]);
   assert.deepEqual(boundary(62).hudSegments, [8, 0, 0, 0]);
-  assert.deepEqual(shield.shieldGlyph, [0xc3, 0xdb, 0xff, 0xdb, 0xdb, 0xff, 0xc3, 0xff]);
+  // RE-PINNED M6 stage 1b (journal §BK 1): the HUD's separator is the glyph's first row.
+  assert.deepEqual(shield.shieldGlyph, [0xff, 0xc3, 0xdb, 0xff, 0xdb, 0xdb, 0xff, 0xc3]);
 });
 
 test("critical Shield segment has both 8-frame blink phases", () => {

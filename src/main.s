@@ -377,13 +377,32 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 ; only the rows below the divider participate in the ring. Both display lists
 ; remain together on page $7F for atomic DLISTL publication. The expanded
 ; physical ring and lookup/state bytes reuse post-loader RAM at $8140.
+; M6 stage 1b (journal §BK 1, docs/plans/m6-gauges.md §2.2): a list is the
+; divider, the 27 ring rows, the HUD's line after them (240-247) and a JMP to
+; the lists' one shared header right before list A: 7 blank lines with the
+; first DLI on line 15 ($E0), which falls into list A's divider (the boss
+; sector's list) unless the DLI continues at the active list's. The HUD's
+; last line is ANTIC's last (247): vertical blank begins at 248 before ANTIC
+; can fetch another instruction, so a JVB there would only run at line 8 of
+; the next frame and blank that whole frame. The JMP waits there instead and
+; is line 8's one blank line (the 7 + 1 of the HUD's old place); every
+; display install therefore enters at a list's JMP (PLAYFIELD_DLIST_ENTRY).
+; The lists keep their 90 B; the header's byte moved list A and B one up and
+; HYBRID_LIGHT_SLOTS with them, into its one free byte.
 PLAYFIELD_RING_ROWS = GAMEPLAY_SCREEN_ROWS-1
-PLAYFIELD_DLIST_BYTES = 3+3+PLAYFIELD_RING_ROWS*3+3
+PLAYFIELD_DLIST_RING_OFFSET = 3
+PLAYFIELD_DLIST_HUD_OFFSET = PLAYFIELD_DLIST_RING_OFFSET+PLAYFIELD_RING_ROWS*3
+PLAYFIELD_DLIST_BYTES = PLAYFIELD_DLIST_HUD_OFFSET+3+3
 ; The cold starfield stream may temporarily cross this address; the display
 ; lists are initialized only after the packed stream has been published.
-PLAYFIELD_DLIST_A = $7F10
+PLAYFIELD_DLIST_HEADER = $7F10
+PLAYFIELD_DLIST_A = PLAYFIELD_DLIST_HEADER+1
 PLAYFIELD_DLIST_B = PLAYFIELD_DLIST_A+PLAYFIELD_DLIST_BYTES
 PLAYFIELD_DLIST_END = PLAYFIELD_DLIST_B+PLAYFIELD_DLIST_BYTES
+; A display install's DLISTL: list A's JMP (line 8), then the header; the
+; first DLI continues at the active list's divider (in the boss sector A is
+; the list, right after the header).
+PLAYFIELD_DLIST_ENTRY = PLAYFIELD_DLIST_A+PLAYFIELD_DLIST_BYTES-3
 PLAYFIELD_ROW_LO = GAMEPLAY_RING_SCREEN_END
 PLAYFIELD_ROW_HI = PLAYFIELD_ROW_LO+PLAYFIELD_RING_ROWS
 PLAYFIELD_ACTIVE_DLIST_LO = PLAYFIELD_ROW_HI+PLAYFIELD_RING_ROWS
@@ -397,11 +416,15 @@ PLAYFIELD_RING_STATE_END = PLAYFIELD_PREBUILD_PENDING+$01
 .assert GAMEPLAY_SCREEN_ROWS = 28, error, "display requires divider plus 27 gameplay rows"
 .assert PLAYFIELD_RING_ROWS = 27, error, "hybrid ring must exclude the fixed divider"
 .assert PLAYFIELD_DLIST_BYTES = 90, error, "expanded per-row LMS display list size changed"
+.assert PLAYFIELD_DLIST_END = $7FC5, error, "the display lists must end where HYBRID_LIGHT_SLOTS begins"
+.assert >PLAYFIELD_DLIST_ENTRY = >PLAYFIELD_DLIST_A, error, "the display install's entry must share the lists' page"
+.assert >PLAYFIELD_DLIST_HEADER = >PLAYFIELD_DLIST_A, error, "the lists' header must share their page"
 .assert >PLAYFIELD_DLIST_A = >PLAYFIELD_DLIST_B, error, "hybrid display lists must share one page"
 .assert PLAYFIELD_DLIST_END <= $8000, error, "expanded display lists overlap entity/effects RAM"
 .assert PLAYFIELD_RING_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "expanded ring overlaps pickup runtime"
 .assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "expanded hull coordinate state overlaps pickup runtime"
-.export PLAYFIELD_DLIST_A, PLAYFIELD_DLIST_B, PLAYFIELD_ROW_LO, PLAYFIELD_ROW_HI
+.export PLAYFIELD_DLIST_A, PLAYFIELD_DLIST_B, PLAYFIELD_ROW_LO, PLAYFIELD_ROW_HI, PLAYFIELD_DLIST_ENTRY
+.export PLAYFIELD_DLIST_HEADER
 .export PLAYFIELD_RING_ROWS
 .export PLAYFIELD_ACTIVE_DLIST_LO, PLAYFIELD_NEXT_DLIST_LO, PLAYFIELD_RING_FLAGS
 .export PLAYFIELD_BROAD_ROW, PLAYFIELD_CAPITAL_EXPLOSION_ROW
@@ -453,7 +476,9 @@ MISSILE_M0_MASK = $03
 MISSILE_M0_CLEAR_MASK = $FC
 BROADSIDE_DOUBLE_SIZES = $54
 BROADSIDE_WARNING_Y_MAX = GAMEPLAY_BOTTOM-9
-BROADSIDE_SCREEN_TOP = HUD_TOP
+; The display's first line (the HUD's until M6 stage 1b; the broadside's clip
+; is the display's, not the HUD's).
+BROADSIDE_SCREEN_TOP = 8
 BROADSIDE_PLAYFIELD_TOP = GAMEPLAY_TOP
 GAMEPLAY_FIRST_SCREEN_ROW = 1
 GAMEPLAY_SCREEN = SCREEN+GAMEPLAY_FIRST_SCREEN_ROW*40
@@ -917,8 +942,9 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT <= CAPITAL_HULL_GLYPH_BASE, error, "slot-owned PlayerFighter composite glyphs overlap capital hulls"
 .assert ENTITY_ACTIVE_LIMIT = 2, error, "debris and the fixed weapon-pickup slot must coexist"
 .assert EFFECT_ACTIVE_LIMIT = 5, error, "debris destruction requires one core and four fragments"
-.assert HUD_TOP = 8, error, "HUD must begin at the first active ANTIC scanline"
-.assert HUD_BOTTOM = GAMEPLAY_TOP, error, "gameplay must begin immediately below the HUD"
+.assert GAMEPLAY_TOP = 16, error, "gameplay must begin after the 8 blank lines of the display's top"
+.assert HUD_TOP = GAMEPLAY_BOTTOM, error, "the HUD must follow the ring's last line (M6 stage 1b)"
+.assert HUD_BOTTOM = 248, error, "the HUD must end at ANTIC's last displayed line, 247"
 .assert GAMEPLAY_BOTTOM-GAMEPLAY_TOP = CAPITAL_HULL_VISIBLE_ROWS*8, error, "gameplay viewport height changed"
 .assert GAMEPLAY_BOTTOM = 240, error, "expanded gameplay must end before PAL overscan/VBI"
 .assert GAMEPLAY_SCREEN_ROWS = 28, error, "PAL HUD must expose 28 gameplay rows"
@@ -2653,7 +2679,7 @@ hull_maps_built := *
     jsr update_hud_status
     sta HITCLR
 
-    lda PLAYFIELD_ACTIVE_DLIST_LO
+    lda #<PLAYFIELD_DLIST_ENTRY ; M6 stage 1b: a list is entered at its JMP
     sta DLISTL
     lda #>PLAYFIELD_DLIST_A
     sta DLISTH
@@ -2700,6 +2726,7 @@ hull_maps_built := *
     jmp main_loop              ; BROADSIDE is non-contiguous: never fall through
 
 start_gameplay_end:
+    .byte $EA                   ; M6 stage 1b's size pad (the entry is an immediate): never executed
 
 .segment "BROADSIDE"
 
@@ -2949,7 +2976,7 @@ resume_gameplay:
     jsr restore_gameplay_screen
     lda #STATE_GAMEPLAY
     sta game_state
-    lda PLAYFIELD_ACTIVE_DLIST_LO
+    lda #<PLAYFIELD_DLIST_ENTRY ; M6 stage 1b: a list is entered at its JMP
     sta DLISTL
     lda #>PLAYFIELD_DLIST_A
     sta DLISTH
@@ -2984,6 +3011,7 @@ resume_gameplay_dli_hi_operand = *+1
     lda #$3E
     sta DMACTL
     jmp main_loop
+    .byte $EA                   ; M6 stage 1b's size pad (the entry is an immediate): never executed
 
 pause_silence_audio:
     lda #$00
@@ -3525,7 +3553,9 @@ copy_frontend_charset:
 ; Builds a dedicated ANTIC 2 HUD charset at $5000 after the loader releases
 ; that RAM. Digits and letters use the compact 6x7 source shared with the
 ; frontend, but are expanded into Atari screen-code positions 16-25 and
-; 33-58. The eighth scanline remains clear for legible row separation.
+; 33-58. M6 stage 1b (docs/plans/m6-gauges.md §2.3): the HUD is the display's
+; last line, so its separator is every glyph's FIRST scanline, over the
+; glyph's seven rows.
 copy_hud_charset:
     lda #$00
     ldx #$00
@@ -3566,8 +3596,8 @@ copy_hud_charset:
     dex
     bpl @status_glyphs
     lda #$FF
-    sta HUD_CHARSET+CH_SPACE*8+7
-    sta HUD_CHARSET+CH_HUD_BOOSTER_FULL*8+7
+    sta HUD_CHARSET+CH_SPACE*8
+    sta HUD_CHARSET+CH_HUD_BOOSTER_FULL*8
 
     ; Screen code 8 is reserved exclusively for the Shield BOOST bar. Two
     ; solid edge rails and repeated cross-braces keep it continuous while
@@ -3579,14 +3609,13 @@ copy_hud_charset:
 copy_hud_glyphs:
 @glyph:
     ldy #$00
+    lda #$FF                    ; shared top scanline forms the separator
 @row:
+    sta (dst_ptr),y             ; row y: the separator, then source row y-1
     lda (src_ptr),y
-    sta (dst_ptr),y
     iny
-    cpy #$07
+    cpy #$08
     bne @row
-    lda #$FF                    ; shared bottom scanline forms the separator
-    sta (dst_ptr),y
     clc
     lda src_ptr
     adc #$07
@@ -3604,11 +3633,14 @@ copy_hud_glyphs:
     dex
     bne @glyph
     rts
+    .res 2,$EA                  ; M6 stage 1b's size pad (the top separator's loop is 2 B shorter): never executed
 
-; Every used HUD glyph has a full-width white eighth scanline, so the compact
-; HUD itself supplies the separator without a second character row. The HUD
-; DLI waits through that line, then installs the ANTIC 4 charset/palette before
-; the first gameplay scanline. The final-row DLI restores the HUD state.
+; Every used HUD glyph has a full-width white first scanline (M6 stage 1b: the
+; HUD follows the ring, 240-247), so the compact HUD itself supplies the
+; separator without a second character row. The first DLI, on the last of the
+; 8 blank lines above the divider, installs the ANTIC 4 charset/palette before
+; the first gameplay scanline. The final-row DLI installs the HUD state for
+; the HUD's line right after it.
 ; A is the only modified register and is preserved; X and Y remain untouched.
 ; AUD-03 (docs/plans/audit-hardening.md §4): the NMI keeps the interrupted D,
 ; and the gameplay score adds run between SED and CLD with this DLI live, so
@@ -3618,10 +3650,11 @@ copy_hud_glyphs:
 gameplay_dli:
     pha
     cld
-    ; Both display-list headers are identical. Before ANTIC reaches the fixed
-    ; divider, continue from byte three of the selector chosen by the latest A2
-    ; rotation. This publishes the row-table/list swap in the same frame without
-    ; restarting the HUD instruction and creating an odd third DLI.
+    ; Both display lists share one header (M6 stage 1b). Before ANTIC reaches
+    ; the fixed divider, continue from the divider - the first byte - of the
+    ; selector chosen by the latest A2 rotation. This publishes the
+    ; row-table/list swap in the same frame without restarting the header and
+    ; creating an odd third DLI.
     lda gameplay_dli_phase
     bne gameplay_dli_sync_hud
     ; Hardware PAL-frame source. The final-row DLI takes the branch above, so
@@ -3629,7 +3662,7 @@ gameplay_dli:
     inc PHYSICAL_PAL_FRAME_ID
     lda PLAYFIELD_ACTIVE_DLIST_LO
     clc
-    adc #$03
+    adc #$00                    ; the divider's offset (it was the HUD's 3 bytes on)
     sta DLISTL
 gameplay_dli_sync_gameplay = *
     sta WSYNC                   ; a strobe: A's value is not read
@@ -5755,7 +5788,8 @@ scroll_world_columns:
 world_boundary_shift_compat_pad:
 
 ; Both runtime display lists keep HUD=$4000 and divider=$4028 immutable. Only
-; the following 22 LMS addresses differ after a rotation. The inactive list is
+; the 27 ring LMS addresses between them differ after a rotation (M6 stage 1b:
+; the HUD's instruction follows the ring). The inactive list is
 ; prepared in the guaranteed light frame following a common event; changing
 ; DLISTL here remains the sole publication point.
 init_playfield_display_lists:
@@ -5781,16 +5815,9 @@ build_playfield_display_list:
     sta dst_ptr
     lda #>PLAYFIELD_DLIST_A
     sta dst_ptr+1
+    lda #$E0                    ; the shared header: 7 blank lines after the JMP's line 8,
+    sta PLAYFIELD_DLIST_HEADER  ; the first DLI on line 15
     ldy #$00
-    lda #$C2
-    sta (dst_ptr),y
-    iny
-    lda #<SCREEN
-    sta (dst_ptr),y
-    iny
-    lda #>SCREEN
-    sta (dst_ptr),y
-    iny
     lda #$44
     sta (dst_ptr),y
     iny
@@ -5802,7 +5829,7 @@ build_playfield_display_list:
     iny
 @lms:
     lda #$44
-    cpy #(6+(PLAYFIELD_RING_ROWS-1)*3)
+    cpy #(PLAYFIELD_DLIST_RING_OFFSET+(PLAYFIELD_RING_ROWS-1)*3)
     bne :+
     lda #$C4
 :
@@ -5819,15 +5846,24 @@ build_playfield_display_list:
     bcc :+
     ldx #$00
 :
-    cpy #(PLAYFIELD_DLIST_BYTES-3)
+    cpy #(PLAYFIELD_DLIST_BYTES-6)
     bne @lms
-    lda #$41
+    lda #$42                    ; the HUD's line, 240-247, after the ring's DLI
     sta (dst_ptr),y
     iny
-    lda dst_ptr
+    lda #<SCREEN
     sta (dst_ptr),y
     iny
-    lda #>PLAYFIELD_DLIST_A
+    lda #>SCREEN
+    sta (dst_ptr),y
+    iny
+    lda #$01                    ; JMP, not JVB: it waits through vertical blank as line 8
+    sta (dst_ptr),y
+    iny
+    lda #<PLAYFIELD_DLIST_HEADER
+    sta (dst_ptr),y
+    iny
+    lda #>PLAYFIELD_DLIST_HEADER
     sta (dst_ptr),y
     rts
 
@@ -5954,9 +5990,11 @@ update_white_starfield_phase:
 .segment "A2_KERNEL"
 ; Capital no longer invalidates the four white-star address caches. Preserve
 ; the reviewed A2 entry-point ABI with inert bytes instead of retaining the
-; obsolete freeze/invalidate routine as callable production code.
+; obsolete freeze/invalidate routine as callable production code. M6 stage 1b
+; took 5 of its 11 bytes: build_playfield_display_list, right before it, now
+; also writes the HUD's instruction after the ring.
 continuous_white_star_a2_layout_pad:
-    .res 11, $EA
+    .res 6, $EA
 
 .segment "STARFIELD"
 ; Reverse the four sparse white overlays before ring reuse. The cached address
@@ -7312,7 +7350,7 @@ hud_ascii:
     .byte $00
 
 hud_shield_booster_glyph:
-    .byte $C3,$DB,$FF,$DB,$DB,$FF,$C3,$FF
+    .byte $FF,$C3,$DB,$FF,$DB,$DB,$FF,$C3     ; M6 stage 1b: the separator on top
 hud_shield_booster_glyph_end:
 
 frontend_screen_data:
@@ -7663,18 +7701,18 @@ charset_data:
     .byte $A0,$80,$80,$80,$80,$80,$80,$A0
     .byte $AA,$82,$92,$82,$82,$92,$82,$AA
     .byte $82,$28,$28,$82,$82,$28,$28,$82
-    .byte $00,$00,$00,$3C,$7E,$FF,$7E,$FF
+    .byte $FF,$00,$00,$00,$3C,$7E,$FF,$7E   ; M6 stage 1b: the HUD's separator on top
     ; 6-8: structural tiles; glyph 7 becomes the tall narrow BOOST cell in HUD
     .byte $AA,$82,$82,$82,$82,$82,$82,$AA
     .byte $30,$30,$30,$30,$30,$30,$30,$30
     .byte $AA,$A8,$A8,$AA,$AA,$8A,$8A,$AA
-    ; 9: HUD separator
-    .byte $00,$00,$00,$00,$00,$00,$00,$AA
+    ; 9: HUD separator (M6 stage 1b: the HUD's top line)
+    .byte $AA,$00,$00,$00,$00,$00,$00,$00
     ; 10: bright star
     .byte $00,$00,$10,$54,$10,$00,$00,$00
     ; 11: menu selection marker; 12: low cracked HULL plate
     .byte $C0,$F0,$FC,$FF,$FC,$F0,$C0,$00
-    .byte $00,$00,$00,$3C,$42,$5A,$24,$FF
+    .byte $FF,$00,$00,$00,$3C,$42,$5A,$24   ; M6 stage 1b: the separator on top
     ; 13: dash, 14: dim star, 15: slash
     .byte $00,$00,$00,$55,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$10,$00,$00
@@ -12398,6 +12436,7 @@ LAYOUT_D_GLUE_BYTES = 250
 .assert HYBRID_C_ARENA_CAPACITY = 832, error, "HYBRID_C_ARENA capacity must be 832 B"
 .assert HYBRID_C_ARENA_END = HYBRID_C_ARENA_RUNTIME+HYBRID_C_ARENA_CAPACITY, error, "HYBRID_C_ARENA end is inconsistent"
 .assert HYBRID_C_ARENA_END <= PLAYFIELD_DLIST_A, error, "HYBRID_C_ARENA overlaps the A2 display lists"
+.assert HYBRID_C_ARENA_END <= PLAYFIELD_DLIST_HEADER, error, "HYBRID_C_ARENA overlaps the A2 display lists' shared header"
 .assert HYBRID_C_ARENA_END <= BOOT_A2_STAGING, error, "HYBRID_C_ARENA overlaps A2 staging"
 .assert HYBRID_C_ARENA_RUNTIME >= STARFIELD_STAGING+STARFIELD_STAGING_BYTES, error, "HYBRID_C_ARENA overlaps starfield stream A staging"
 .assert HYBRID_C_ARENA_RUNTIME >= PAUSE_SCREEN_BACKUP+$3C0, error, "HYBRID_C_ARENA overlaps the pause-screen backup"

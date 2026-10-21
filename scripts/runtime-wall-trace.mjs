@@ -2923,8 +2923,11 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     loader_dlist: LOADER_DISPLAY_LIST_ADDRESS,
     main_menu_dlist: labels.get("main_menu_display_list"),
     playfield_dlist_a: labels.get("PLAYFIELD_DLIST_A"),
+    playfield_dlist_header: labels.get("PLAYFIELD_DLIST_HEADER"),
     playfield_dlist_b: labels.get("PLAYFIELD_DLIST_B"),
-    playfield_dlist_bytes: 75,
+    // M6 stage 1b: a list's 90 B - the DL counter waits at a list's JMP
+    // (its last 3) through vertical blank (was 75, below the old lists' JVB).
+    playfield_dlist_bytes: 90,
     loader_dli: labels.get("loader_dli"),
     frontend_dli: labels.get("frontend_hint_dli"),
     gameplay_dli: labels.get("gameplay_dli"),
@@ -3414,7 +3417,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
       gameplay.pm_base === 0x3800 && gameplay.dma_ctl === 0x3e &&
       gameplay.nmi_en === 0x80 && gameplay.vdslst === expected.gameplay_dli &&
-      gameplay.dlist >= expected.playfield_dlist_a &&
+      // M6 stage 1b: the lists' shared header precedes list A (a list's JMP
+      // lands there on line 8; docs/plans/m6-gauges.md §2.2).
+      gameplay.dlist >= expected.playfield_dlist_header &&
       gameplay.dlist < expected.playfield_dlist_b + expected.playfield_dlist_bytes,
     `${definition.id} did not reach the legal gameplay display/VBI path by frame ` +
       `${BOOT_GAMEPLAY_FRAME}`);
@@ -4360,6 +4365,8 @@ function main() {
         addressEnvironment.DFTRACE_LANCE_MODULE = hex(bossLabels, "_lance_module");
         // Journal §BH 2: which mark P1 holds (the reticle and enemy-PMG clauses).
         if (bossLabels.has("lance_hollow")) addressEnvironment.DFTRACE_LANCE_HOLLOW = hex(bossLabels, "lance_hollow");
+        // M6 stage 1b: the PMG gauges' state (P2's rows 196-237 in the boss sector).
+        if (bossLabels.has("gauge_level")) addressEnvironment.DFTRACE_GAUGE_LEVEL = hex(bossLabels, "gauge_level");
         // The lance-script diagnostic bots' journal (DFTRACE_LANCE_JOURNAL).
         if (bossLabels.has("_lance_meter_lo")) {
           addressEnvironment.DFTRACE_LANCE_METER_LO = hex(bossLabels, "_lance_meter_lo");

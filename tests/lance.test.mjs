@@ -147,7 +147,9 @@ test("M6: the lance run - the window's tail from $BBFF down, the boss reservatio
   // Journal §BG's meter and indicator took the run past the boss code
   // reservation's three free sectors (581-583): its own at the disk's free
   // tail (plan §6.3) - five since journal §BH's hollow mark and dry shot.
-  assert.equal(lance.sectors, 5, "the lance run: five sectors (stage 1 three, §BG C four)");
+  // RE-PINNED M6 stage 1b (journal §BK, docs/plans/m6-gauges.md §3.3): seven
+  // with the PMG gauges (the brief's sixth sector was 96 B short).
+  assert.equal(lance.sectors, 7, "the lance run: seven sectors (stage 1 three, §BG C four, §BH-§BI five)");
   assert.equal(lance.capacityBytes, lance.sectors * 128);
   assert.ok(lance.bytes <= lance.capacityBytes, `${lance.bytes} B in ${lance.capacityBytes}`);
   assert.ok(lance.windowEnd <= lance.address, `the window's record ends at $${lance.windowEnd.toString(16)}`);
@@ -1024,11 +1026,16 @@ test("M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the
     a === HPOSP1 || a === 0xd009 || (a >= 0x0100 && a < 0x0200) ||
     a === main("read_input") + 1 || a === main("read_input") + 2 ||
     a === COLPM0 ||                                           // the ready colour, again every ready frame
+    (a >= P2 + 196 && a <= P2 + 237) ||                       // M6 stage 1b: the gauges' rows (a step)
     (lance.slow === "forward" && a === FLOOR);   // the comparison build's floor operand
   assert.deepEqual([...writes].filter((a) => !allowed(a)).map((a) => `$${a.toString(16)}`), [],
     "the tick wrote outside the lance, P1, HPOSP1 / SIZEP1 and read_input's stick operand (no fire gate, no shot mailbox)");
   assert.ok(![...writes].some((a) => a >= 0xd013 && a <= 0xd015), "a colour register of the reticle written");
-  assert.ok(![...writes].some((a) => a === HPOSP2 || (a >= P2 && a < P2 + 256)), "P2 stays free");
+  // RE-PINNED M6 stage 1b (journal §BK): P2 is the gauges' - the tick writes
+  // only their rows (196-237), never HPOSP2 on a ready frame (the fight's
+  // first frame placed it).
+  assert.ok(![...writes].some((a) => a === HPOSP2 || (a >= P2 && a < P2 + 256 && (a - P2 < 196 || a - P2 > 237))),
+    "P2 outside the gauges");
   // Drawn once a fight: the next frame writes HPOSP1 only.
   writes.clear();
   call(memory, lbl("lance_tick"), { hooks: { write: (address) => { writes.add(address); } } });

@@ -125,7 +125,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.broadsideRuntime.runAddress,
     manifest.entityEffects.sourceToStagingMarginBytes,
     manifest.entityEffects.stagingToBroadsideMarginBytes,
-  ], [0x5333, 0x5318, 0x5dff, 0x5e10, -27, 17]);
+  ], [0x5332, 0x5318, 0x5dff, 0x5e10, -26, 17]);   // RE-PINNED M6 stage 1b: the initial block's packed sources 1 B shorter ($5333 / -27 before)
   // RE-PINNED 2026-10-10, fix/hardware-audio (F2): the cold start's 5-byte
   // SKCTL write - the packed sources end $532E -> $5333, 27 B into the
   // staging; the staging ends $5DFA -> $5DFF; the margin to BROADSIDE 22 -> 17.

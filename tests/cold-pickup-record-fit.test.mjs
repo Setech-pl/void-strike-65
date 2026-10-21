@@ -117,7 +117,8 @@ test("fit preserves the reviewed staging and placement gates", () => {
   // 108-109) lead the ENTITY_CODE glyph bank, so its staging grew toward
   // BROADSIDE, and the initial block's packed sources ended lower, away from
   // the pickup stream.
-  assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 162);
+  // RE-PINNED M6 stage 1b: the initial block's packed content 1 B shorter: 162 -> 163.
+  assert.equal(manifest.starfieldRuntime.packedSourceToPickupMarginBytes, 163);
   // RE-PINNED 2026-10-10, fix/hardware-audio (F2): 22 -> 17, the cold start's
   // 5-byte SKCTL write lengthens the ENTITY_CODE staging; the pickup margin
   // stays 162.
@@ -131,7 +132,7 @@ test("fit preserves the reviewed staging and placement gates", () => {
   // fell 13,621 -> 13,618 B inside the same 107 sectors (13,696 B).
   // RE-PINNED 2026-10-10, fix/hardware-audio (F2): 78 -> 73, the cold start's
   // 5-byte SKCTL write; 13,618 -> 13,623 B in the same 107 sectors.
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 73);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 74 /* RE-PINNED M6 stage 1b: the content 1 B shorter */);
   assert.equal(manifest.transportCapacity.manifest.parsed.records.length, 11);
   assert.equal(manifest.transportCapacity.format, "DFMC-v1 multi-chunk");
 });

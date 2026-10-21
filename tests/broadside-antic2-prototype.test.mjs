@@ -143,9 +143,10 @@ test("prototype previews are deterministic, source-derived, and use exact intege
 });
 
 test("spike is preview-only and leaves the runtime broadside playfield in ANTIC 4", () => {
+  // RE-PINNED M6 stage 1b: the HUD's ANTIC 2 line ($42) follows the ring.
   assert.match(source,
-    /build_playfield_display_list:[\s\S]+lda #\$C2[\s\S]+lda #\$44[\s\S]+lda #\$C4/);
-  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
+    /build_playfield_display_list:[\s\S]+lda #\$E0[\s\S]+lda #\$44[\s\S]+lda #\$C4[\s\S]+lda #\$42/);
+  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*PLAYFIELD_DLIST_HUD_OFFSET\+3\+3/);
   assert.doesNotMatch(source, /broadside_display_list|BROADSID.*CHBASE/i);
   assert.doesNotMatch(buildSource, /capital-hulls-antic2|broadside-antic2/i);
 

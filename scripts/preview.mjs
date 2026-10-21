@@ -780,12 +780,14 @@ function requireLength(name, bytes, expectedLength) {
 
 function buildGameplayHudCharset(frontendGlyphRows, constants, baseCharset) {
   const charset = new Uint8Array(1024);
+  // M6 stage 1b (journal §BK 1): the HUD is the display's last line, so the
+  // separator is every glyph's first row, over its seven (copy_hud_glyphs).
   const copyGlyph = (sourceIndex, destinationIndex) => {
     charset.set(
       frontendGlyphRows.subarray(sourceIndex * 7, sourceIndex * 7 + 7),
-      destinationIndex * CHARACTER_HEIGHT,
+      destinationIndex * CHARACTER_HEIGHT + 1,
     );
-    charset[destinationIndex * CHARACTER_HEIGHT + 7] = 0xff;
+    charset[destinationIndex * CHARACTER_HEIGHT] = 0xff;
   };
   for (let digit = 0; digit < 10; digit += 1) {
     copyGlyph(digit, requireValue(constants, "CH_ZERO") + digit);
@@ -799,8 +801,8 @@ function buildGameplayHudCharset(frontendGlyphRows, constants, baseCharset) {
     baseCharset.subarray(hullFull * CHARACTER_HEIGHT, (hullDamaged + 1) * CHARACTER_HEIGHT),
     hullFull * CHARACTER_HEIGHT,
   );
-  charset[7] = 0xff;
-  charset[requireValue(constants, "CH_HUD_BOOSTER_FULL") * CHARACTER_HEIGHT + 7] = 0xff;
+  charset[0] = 0xff;
+  charset[requireValue(constants, "CH_HUD_BOOSTER_FULL") * CHARACTER_HEIGHT] = 0xff;
   return charset;
 }
 
@@ -937,22 +939,26 @@ export function readGameGraphicsSource(
   }
 
   // Runtime A2 keeps HUD and divider LMS operands fixed, then maps the canonical ring.
-  // ring. Preview uses the exact accepted head-zero address sequence.
+  // ring. Preview uses the exact accepted head-zero address sequence. M6 stage
+  // 1b (journal §BK 1): the HUD's old 8 lines are blank (the list's JMP and the
+  // shared header's 7, the first DLI on the last), the HUD's line follows the
+  // ring (240-247).
   const screenAddress = requireValue(constants, "SCREEN");
   const gameplayDisplayList = Uint8Array.from([
-    0xc2, screenAddress & 0xff, screenAddress >>> 8,
+    0xf0,
     0x44, (screenAddress + 40) & 0xff, (screenAddress + 40) >>> 8,
     ...Array.from({ length: canonicalPlayfield.ringRows }, (_, row) => {
       const address = screenAddress + (row + 2) * 40;
       return [row === canonicalPlayfield.ringRows - 1 ? 0xc4 : 0x44,
         address & 0xff, address >>> 8];
     }).flat(),
+    0x42, screenAddress & 0xff, screenAddress >>> 8,
   ]);
   const gameplayLayout = decodeMainMenuDisplayList(
     gameplayDisplayList,
     requireValue(constants, "SCREEN"),
-    GAMEPLAY_SCREEN_ROWS * CHARACTER_HEIGHT,
-    false,
+    (GAMEPLAY_SCREEN_ROWS + 1) * CHARACTER_HEIGHT,
+    true,
     GAMEPLAY_SCREEN_ROWS * SCREEN_COLUMNS,
   );
 
@@ -1023,8 +1029,8 @@ export function readGameGraphicsSource(
   const gameplayModes = graphics.gameplayLayout.rows.map(({ mode }) => mode);
   if (
     gameplayModes.length !== GAMEPLAY_SCREEN_ROWS ||
-    gameplayModes[0] !== 2 ||
-    gameplayModes.slice(1).some((mode) => mode !== 4)
+    gameplayModes.at(-1) !== 2 ||                       // M6 stage 1b: the HUD's row last
+    gameplayModes.slice(0, -1).some((mode) => mode !== 4)
   ) {
     throw new Error("Preview source does not contain one ANTIC 2 HUD row and 28 ANTIC 4 playfield rows");
   }
@@ -1514,18 +1520,12 @@ function drawAnticScreen(
   return pixels;
 }
 
+// The preview is the display's first 192 lines (8-199). M6 stage 1b (journal
+// §BK 1): their first 8 are blank - the HUD's line is 240-247, below the crop;
+// the divider and the ring keep their lines.
 function drawGameplayMixedScreen(colorRegisters, screen, graphics) {
   const pixels = drawAnticScreen(colorRegisters, screen, graphics);
-  drawAntic2Rows({
-    pixels,
-    pixelHeight: SOURCE_HEIGHT,
-    screen,
-    charset: graphics.hudCharset,
-    registers: graphics.hudHardwareState,
-    firstCharacterRow: 0,
-    characterRows: 1,
-  });
-  pixels.fill(0x0e, 7 * SOURCE_WIDTH, 8 * SOURCE_WIDTH);
+  pixels.fill(requireValue(colorRegisters, "COLBK"), 0, CHARACTER_HEIGHT * SOURCE_WIDTH);
   return pixels;
 }
 

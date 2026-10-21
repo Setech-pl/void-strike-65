@@ -7,12 +7,13 @@
 //
 //   node scripts/measure-lance-stress.mjs [--modes=filling,idle,...]
 import { bossLevel } from "../tests/boss-harness.mjs";
-import { LANCE_MODES, lanceStats } from "../tests/lance-states.mjs";
+import { GAUGE_MODES, LANCE_MODES, lanceStats } from "../tests/lance-states.mjs";
 import { regionTwoStress } from "./measure-boss-stress-r2.mjs";
 import { regionFourStress } from "./measure-boss-stress-r4.mjs";
 import { fieldStress } from "./measure-boss-stress-field.mjs";
 
-const modes = process.argv.find((a) => a.startsWith("--modes="))?.slice(8).split(",") ?? LANCE_MODES;
+// M6 stage 1b: the gauges' own states after the lance's (tests/lance-states.mjs).
+const modes = process.argv.find((a) => a.startsWith("--modes="))?.slice(8).split(",") ?? [...LANCE_MODES, ...GAUGE_MODES];
 const rows = [
   ["Citadel", bossLevel(4), (level, lance) => regionFourStress({ level, maxMeetings: 2, lance })],
   ["Citadel", bossLevel(4, 1), (level, lance) => regionFourStress({ level, maxMeetings: 2, lance })],

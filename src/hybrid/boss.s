@@ -1439,10 +1439,11 @@ boss_band_hi:
             .byte >(BOSS_BAND_B + (R - BOSS_BAND_A_ROWS) * BOSS_BAND_COLUMNS)
         .endif
     .endrepeat
-; Band row r's LMS low byte in the display list: HUD 3 + divider 3, 3 a row.
+; Band row r's LMS low byte in the display list: the divider 3, 3 a row
+; (M6 stage 1b: the header is the lists' shared one; HUD 3 + divider 3 before).
 boss_dl_lms_offsets:
     .repeat BOSS_BAND_ROWS, R
-        .byte 7 + R * 3
+        .byte 4 + R * 3
     .endrepeat
 
 ; ---------------------------------------------------------------------------
@@ -1493,7 +1494,7 @@ boss_pal_prepare:
     sta boss_pal_count,x
     dex
     bpl @copy
-    ldy #6                              ; band row 0's instruction (after the HUD's 3 and the divider's 3)
+    ldy #3                              ; band row 0's instruction (after the divider's 3; M6 stage 1b)
 @row:
     lsr BOSS_ROWS_MASK                  ; the divider's copy overwrites it
     bcc @next
@@ -3337,7 +3338,12 @@ boss_install:
     ;    down to its last row holding a cell, then the ring (feat/boss-r1-
     ;    twin-lasers: a shot under the band is drawn in the ring's charset
     ;    and colours); that row and the shown edge patched into the code
-    ;    that reads them.
+    ;    that reads them. M6 stage 1b (docs/plans/m6-gauges.md §2.2): the
+    ;    lists' shared header precedes A, and A's tail - the HUD's line after
+    ;    the ring and the JMP to the header - is list A's own: start_gameplay
+    ;    builds A (and the header), a rotation rebuilds it whole, and the band
+    ;    and the ring are the ring's 27 rows, so the install writes the
+    ;    divider and the 27 rows only.
     jsr boss_band_measure
     stx boss_band_last_operand
     sta boss_hostile_bottom_operand
@@ -3348,7 +3354,7 @@ boss_install:
     lda boss_dl_header,x
     sta PLAYFIELD_DLIST_A,x
     inx
-    cpx #6
+    cpx #BOSS_DL_HEADER_BYTES
     bne @header
     ldy #$00
 @band:
@@ -3384,14 +3390,9 @@ boss_install:
     iny
     cpy #RING_ROWS
     bne @ring
-    lda #$41
-    sta PLAYFIELD_DLIST_A,x
-    lda #<PLAYFIELD_DLIST_A
-    sta PLAYFIELD_DLIST_A+1,x
+    lda #<PLAYFIELD_DLIST_A             ; the HUD and the JVB: list A's own (above)
     sta PLAYFIELD_ACTIVE_DLIST_LO
     sta PLAYFIELD_NEXT_DLIST_LO
-    lda #>PLAYFIELD_DLIST_A
-    sta PLAYFIELD_DLIST_A+2,x
     lda #$00
     sta PLAYFIELD_PREBUILD_PENDING
     ; 7. The controller FIRST - hit points, the tier, the exposure - then
@@ -3447,7 +3448,7 @@ boss_install:
     lda #BOSS_BED_AUDC
     sta AUDC3
 :
-    lda #<PLAYFIELD_DLIST_A
+    lda #<PLAYFIELD_DLIST_ENTRY         ; M6 stage 1b: list A's JMP, line 8
     sta DLISTL
     lda #>PLAYFIELD_DLIST_A
     sta DLISTH
@@ -3476,9 +3477,11 @@ boss_install:
     sta DMACTL
     jmp main_loop
 
+; M6 stage 1b: the divider (the blank lines and the first DLI - the boss
+; DLI's phase 0 - are the lists' shared header, right before list A).
 boss_dl_header:
-    .byte $C2, <SCREEN, >SCREEN
     .byte $44, <GAMEPLAY_DIVIDER_SCREEN, >GAMEPLAY_DIVIDER_SCREEN
+BOSS_DL_HEADER_BYTES = * - boss_dl_header
 
 ; ---------------------------------------------------------------------------
 ; feat/interceptor-armour (owner answer of 2026-10-12, placement C): the boss

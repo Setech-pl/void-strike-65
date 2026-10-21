@@ -60,16 +60,17 @@ const HSCROL = 0xd404;
 // shot) - 81 / 85 / 84 / 85.
 // RE-POINTED journal §BI 1: the VOID LANCE's line (+59 B of banner code) takes
 // the Spine's run (1,154 B) and the Bastion's (1,208 B) to 10 sectors - entries
-// 81 / 85 / 85 / 86.
+// 81 / 85 / 85 / 86. RE-PINNED M6 stage 1b (journal §BK): the lance run's two
+// more sectors (the PMG gauges, 712-718) - 83 / 87 / 87 / 88.
 const PINS = [
   { picture: "blockade-breaker", sha256: "e806393d49fadf0d46e31d95d8f840b888904d9c42dafda85877399cfae5e0fd",
-    packed: 398, runSectors: 9, entrySectors: 81 },
+    packed: 398, runSectors: 9, entrySectors: 83 },
   { picture: "void-citadel-column", sha256: "f4c4b36cfabf1f47d3aeec838781c388eec0dbdad244ca898bafc550845e07e2",
-    packed: 368, runSectors: 9, entrySectors: 85 },
+    packed: 368, runSectors: 9, entrySectors: 87 },
   { picture: "siege-spine-side", sha256: "59497bd0e673a39442eee7135caaec809d66210a0db9b2390f22367cb703d0e7",
-    packed: 429, runSectors: 10, entrySectors: 85 },
+    packed: 429, runSectors: 10, entrySectors: 87 },
   { picture: "bastion-rails", sha256: "59c45fef7d99c62c776fbc9b885ad897ae2783ac4651fee20b3e4db70057b32f",
-    packed: 483, runSectors: 10, entrySectors: 86 },
+    packed: 483, runSectors: 10, entrySectors: 88 },
 ];
 
 const picture = (id) => readBannerPicture(path.join(root, "assets", "graphics", "boss-banners", `${id}.png`));

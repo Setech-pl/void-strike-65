@@ -28,13 +28,18 @@ export function firstDliSelection(row) {
   };
 }
 
+// RE-PINNED M6 stage 1b (docs/plans/m6-gauges.md §2.2): the divider is a
+// list's first byte (the lists share their header before list A); it was
+// byte three, after the HUD's instruction. The clause's name is kept.
+export const FIRST_DLI_DIVIDER_OFFSET = 0;
+
 export function firstDliSelectsByteThree(rows) {
   const selectedRows = rows.filter((row) => firstDliSelection(row).calls > 0);
   return {
     selectedRows,
     held: selectedRows.length > 0 && selectedRows.every((row) => {
       const selection = firstDliSelection(row);
-      return selection.calls === 1 && selection.dlist === 0x7f00 + selection.activeLo + 3;
+      return selection.calls === 1 && selection.dlist === 0x7f00 + selection.activeLo + FIRST_DLI_DIVIDER_OFFSET;
     }),
   };
 }

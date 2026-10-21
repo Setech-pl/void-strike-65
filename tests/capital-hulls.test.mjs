@@ -194,20 +194,27 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
     source.indexOf("build_playfield_display_list:"),
     source.indexOf("rotate_playfield_rows:"),
   );
+  // RE-PINNED M6 stage 1b (journal §BK 1, docs/plans/m6-gauges.md §2.2): the
+  // lists' shared header ($E0), the divider, the ring, the HUD's line after
+  // it and a JMP; a display install enters at list A's JMP.
   assert.match(builder,
-    /lda #\$C2[\s\S]+lda #<GAMEPLAY_DIVIDER_SCREEN[\s\S]+cpy #\(6\+\(PLAYFIELD_RING_ROWS-1\)\*3\)[\s\S]+lda #\$C4[\s\S]+lda PLAYFIELD_ROW_LO,x[\s\S]+lda PLAYFIELD_ROW_HI,x[\s\S]+lda #\$41/);
+    /lda #\$E0[\s\S]+lda #<GAMEPLAY_DIVIDER_SCREEN[\s\S]+cpy #\(PLAYFIELD_DLIST_RING_OFFSET\+\(PLAYFIELD_RING_ROWS-1\)\*3\)[\s\S]+lda #\$C4[\s\S]+lda PLAYFIELD_ROW_LO,x[\s\S]+lda PLAYFIELD_ROW_HI,x[\s\S]+lda #\$42[\s\S]+lda #\$01/);
   assert.match(source,
-    /lda PLAYFIELD_ACTIVE_DLIST_LO\s+sta DLISTL\s+lda #>PLAYFIELD_DLIST_A\s+sta DLISTH/);
+    /lda #<PLAYFIELD_DLIST_ENTRY[^\n]*\n\s+sta DLISTL\s+lda #>PLAYFIELD_DLIST_A\s+sta DLISTH/);
+  // RE-PINNED M6 stage 1b (journal §BK 1): the 28 gameplay rows from line 16,
+  // then the HUD's row at 240 (was the HUD's row first, at 8).
   assert.deepEqual(
     graphics.gameplayLayout.rows.map(({ mode }) => mode),
     // RE-PINNED 2026-10-01 (recorded failures review, A6): 24 rows -> 29, the HUD row plus
     // GAMEPLAY_SCREEN_ROWS = 28 (build/fighter-weapons.inc, since effe71c).
-    [2, ...Array(28).fill(4)],
+    [...Array(28).fill(4), 2],
   );
   assert.deepEqual(
     graphics.gameplayLayout.rows.map(({ screenOffset }) => screenOffset),
-    Array.from({ length: 29 }, (_, index) => index * 40),
+    [...Array.from({ length: 28 }, (_, index) => (index + 1) * 40), 0],
   );
+  assert.deepEqual(graphics.gameplayLayout.rows.map(({ y }) => y + 8).filter((_, i, all) => i === 0 || i === all.length - 1),
+    [16, 240], "the divider at line 16, the HUD at 240");
 
   assert.equal(graphics.hudCharset.length, 1024);
   assert.notDeepEqual(graphics.hudCharset, graphics.charset);
@@ -222,9 +229,10 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
     );
   }
   for (const [name, expected] of [
-    ["CH_HUD_HULL_FULL", [0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e, 0xff]],
-    ["CH_HUD_HULL_DAMAGED", [0, 0, 0, 0x3c, 0x42, 0x5a, 0x24, 0xff]],
-    ["CH_HUD_BOOSTER_FULL", [0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0xff]],
+    // RE-PINNED M6 stage 1b: the separator is the glyphs' first row.
+    ["CH_HUD_HULL_FULL", [0xff, 0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e]],
+    ["CH_HUD_HULL_DAMAGED", [0xff, 0, 0, 0, 0x3c, 0x42, 0x5a, 0x24]],
+    ["CH_HUD_BOOSTER_FULL", [0xff, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30]],
   ]) {
     const code = graphics.constants.get(name);
     assert.deepEqual(
@@ -235,10 +243,10 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
   }
 
   const state = readGameplayRuntimeState(source, definition);
-  const hudRegisters = new Set(state.registerPixels.subarray(0, 8 * 320));
-  assert.deepEqual(hudRegisters, new Set([0x00, 0x0e]));
-  const separatorRegisters = new Set(state.registerPixels.subarray(7 * 320, 8 * 320));
-  assert.deepEqual(separatorRegisters, new Set([0x0e]));
+  // RE-PINNED M6 stage 1b: the preview's first 8 lines (8-15) are the blank
+  // lines over the divider - the HUD is below the preview's 192 lines.
+  const blankRegisters = new Set(state.registerPixels.subarray(0, 8 * 320));
+  assert.deepEqual(blankRegisters, new Set([0x00]));
   const gameplayRegisters = new Set(state.registerPixels.subarray(8 * 320));
   // RE-PINNED 2026-10-01 (recorded failures review, A6): the allied steel is $88, not $84
   // (GAMEPLAY_COLPF1, owner decision 2, 3caceca).

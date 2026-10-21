@@ -184,7 +184,10 @@ test("transport limits in force: the initial block STOP rule and every record's 
 
 test("the ATR preserves full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
   assert.equal(a2.length, 237);
-  assert.equal(sha256(a2), "e052fb572a082445c7f48301659a4a7a847d05133aabcef9b876949621d69373");
+  // RE-PINNED M6 stage 1b (docs/plans/m6-gauges.md §2.2): the list builder
+  // writes the shared header, the HUD's line after the ring and a JMP (5 of
+  // the A2 pad's bytes).
+  assert.equal(sha256(a2), "49b3dc1aa6adf475ea12218fe27422a155531c269f6f38564cfce4074497ae63");
   for (const artifact of ["atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);

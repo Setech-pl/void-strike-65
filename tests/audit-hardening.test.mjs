@@ -224,8 +224,10 @@ test("AUD-03: the gameplay DLI writes the same with D set as with D clear, both 
             failures.push(`${where}, P $${p.toString(16)}: returned ${JSON.stringify(back)}`);
           }
         }
-        if (phase === 0 && !binary.writes.some(([address, value]) => address === 0xd402 && value === list + 3)) {
-          failures.push(`${where}: DLISTL is not the list's byte three`);
+        // RE-PINNED M6 stage 1b (docs/plans/m6-gauges.md §2.2): the divider is
+        // a list's first byte (the header is the lists' shared one; was byte three).
+        if (phase === 0 && !binary.writes.some(([address, value]) => address === 0xd402 && value === list)) {
+          failures.push(`${where}: DLISTL is not the list's divider`);
         }
       }
     }

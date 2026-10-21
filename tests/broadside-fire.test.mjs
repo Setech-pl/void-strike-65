@@ -1348,6 +1348,10 @@ test("hybrid world ring and hull-only copy preserve every logical row and both h
   }
 });
 
+// RE-PINNED M6 stage 1b (journal §BK 1, docs/plans/m6-gauges.md §2.2): the
+// lists share one header right before list A (7 blank lines, the first DLI);
+// a list is the divider, the ring, the HUD's line and a JMP to the header -
+// it waits through vertical blank as line 8 (was HUD-first with a JVB).
 test("HUD and divider LMS remain fixed for every canonical ring head", () => {
   const memory = createLinkedRuntimeMemory();
   const rowLo = labels.get("PLAYFIELD_ROW_LO");
@@ -1359,14 +1363,14 @@ test("HUD and divider LMS remain fixed for every canonical ring head", () => {
 
   for (let head = 0; head < canonicalPlayfield.ringRows; head += 1) {
     const list = 0x7f00 | memory[activeListLo];
-    assert.deepEqual(Array.from(memory.subarray(list, list + 6)), [
-      0xc2, 0x00, 0x40,
+    assert.equal(memory[labels.get("PLAYFIELD_DLIST_HEADER")], 0xe0, `head ${head}: the shared header`);
+    assert.deepEqual(Array.from(memory.subarray(list, list + 3)), [
       0x44, 0x28, 0x40,
-    ], `head ${head} must keep HUD=$4000 and divider=$4028`);
+    ], `head ${head} must keep divider=$4028`);
 
     const addresses = [];
     for (let row = 0; row < canonicalPlayfield.ringRows; row += 1) {
-      const offset = list + 6 + row * 3;
+      const offset = list + 3 + row * 3;
       assert.equal(memory[offset], row === canonicalPlayfield.ringRows - 1 ? 0xc4 : 0x44,
         `head ${head}, row ${row} mode`);
       const address = memory[offset + 1] | memory[offset + 2] << 8;
@@ -1379,9 +1383,10 @@ test("HUD and divider LMS remain fixed for every canonical ring head", () => {
     assert.deepEqual(addresses, Array.from({ length: canonicalPlayfield.ringRows }, (_, row) =>
       canonicalPlayfield.ringBufferAddress +
         ((row - head + canonicalPlayfield.ringRows) % canonicalPlayfield.ringRows) * 40));
-    const jumpOffset = list + 6 + canonicalPlayfield.ringRows * 3;
-    assert.deepEqual(Array.from(memory.subarray(jumpOffset, jumpOffset + 3)),
-      [0x41, list & 0xff, 0x7f]);
+    const hudOffset = list + 3 + canonicalPlayfield.ringRows * 3;
+    assert.deepEqual(Array.from(memory.subarray(hudOffset, hudOffset + 6)),
+      [0x42, 0x00, 0x40, 0x01, labels.get("PLAYFIELD_DLIST_HEADER") & 0xff, 0x7f],
+      `head ${head} must keep HUD=$4000 after the ring and the JMP to the header`);
 
     const oldDlistl = memory[dlistl];
     const oldActive = memory[activeListLo];

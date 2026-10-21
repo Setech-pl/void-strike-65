@@ -76,7 +76,8 @@ test("one canonical PAL boundary model feeds every gameplay asset compiler", () 
     rows: [canonicalPlayfield.gameplayRows, canonicalPlayfield.ringRows],
     ring: [canonicalPlayfield.ringBufferAddress, canonicalPlayfield.ringBufferEnd - 1],
   }, {
-    hud: [8, 15], gameplay: [16, 239], entities: [24, 239], rows: [28, 27],
+    // RE-PINNED M6 stage 1b (journal §BK 1): the HUD's line follows the ring.
+    hud: [240, 247], gameplay: [16, 239], entities: [24, 239], rows: [28, 27],
     ring: [0x8140, 0x8577],
   });
   assert.deepEqual(weapons.viewport, canonicalPlayfield);

@@ -47,9 +47,14 @@ function imageBytes(address, length) {
   return readRuntimeBytes(root, address, length);
 }
 
+// RE-PINNED M6 stage 1b (journal §BK 1, docs/plans/m6-gauges.md §2.2): the
+// lists' shared blank header with the first DLI, then a list: the divider,
+// the ring, the HUD's line and a JMP (it waits through vertical blank as line 8).
 test("assembled gameplay display keeps HUD, divider and 27 ring rows distinct", () => {
-  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
-  assert.match(source, /lda #\$C2[\s\S]+lda #\$44[\s\S]+lda #\$C4[\s\S]+lda #\$41/);
+  assert.match(source, /PLAYFIELD_DLIST_RING_OFFSET\s*=\s*3\n/);
+  assert.match(source, /PLAYFIELD_DLIST_HUD_OFFSET\s*=\s*PLAYFIELD_DLIST_RING_OFFSET\+PLAYFIELD_RING_ROWS\*3\n/);
+  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*PLAYFIELD_DLIST_HUD_OFFSET\+3\+3/);
+  assert.match(source, /lda #\$E0[\s\S]+lda #\$44[\s\S]+lda #\$C4[\s\S]+lda #\$42[\s\S]+lda #\$01/);
   assert.doesNotMatch(source.slice(
     source.indexOf("build_playfield_display_list:"),
     source.indexOf("rotate_playfield_rows:"),

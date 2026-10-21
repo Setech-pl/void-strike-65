@@ -529,7 +529,9 @@ hostile_weapon_visual_glyphs:
 ; ENTITY_STATE. Bound it against its real neighbour, not against the memory
 ; area's own size, which is the guard shape the arena and the window use.
 .import __HYBRID_LIGHT_SLOTS_RAM_START__, __HYBRID_LIGHT_SLOTS_RAM_LAST__
-.assert __HYBRID_LIGHT_SLOTS_RAM_START__ = $7FC4, lderror, "HYBRID_LIGHT_SLOTS must start at $7FC4, after the A2 display lists"
+; M6 stage 1b (docs/plans/m6-gauges.md §2.2): one byte up, its one free byte -
+; the A2 display lists' shared header took a byte before list A.
+.assert __HYBRID_LIGHT_SLOTS_RAM_START__ = $7FC5, lderror, "HYBRID_LIGHT_SLOTS must start at $7FC5, after the A2 display lists"
 .assert __HYBRID_LIGHT_SLOTS_RAM_LAST__ <= $8000, lderror, "HYBRID_LIGHT_SLOTS reaches ENTITY_STATE at $8000"
 
 ; Fix (a), owner decision 2026-09-21: the published-slot limit. Both Light RAM

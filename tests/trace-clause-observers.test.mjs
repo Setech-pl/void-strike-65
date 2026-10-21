@@ -33,7 +33,7 @@ test("first-DLI selection is counted when it fires after the frame's end hook", 
   // when the first DLI selects the list, so only the idle columns see it.
   const rows = [0, 1, 2].map((frame) => engineRow(frame, {
     engine_playfield_select_idle_calls: 1,
-    engine_playfield_select_idle_dlist: 0x7f00 + 0x40 + 3,
+    engine_playfield_select_idle_dlist: 0x7f00 + 0x40 + 0,   // RE-PINNED M6 stage 1b: the divider is byte 0
     engine_playfield_select_idle_active_lo: 0x40,
   }));
   const result = firstDliSelectsByteThree(rows);
@@ -44,7 +44,7 @@ test("first-DLI selection is counted when it fires after the frame's end hook", 
 test("first-DLI clause still fails on a wrong byte, a double selection, or no selection", () => {
   const wrongByte = [engineRow(0, {
     engine_playfield_select_idle_calls: 1,
-    engine_playfield_select_idle_dlist: 0x7f00 + 0x40 + 2,
+    engine_playfield_select_idle_dlist: 0x7f00 + 0x40 + 3,   // the old byte three is wrong now
     engine_playfield_select_idle_active_lo: 0x40,
   })];
   assert.equal(firstDliSelectsByteThree(wrongByte).held, false);
@@ -61,7 +61,7 @@ test("first-DLI clause still fails on a wrong byte, a double selection, or no se
   // The measured-window path is unchanged.
   const measured = [engineRow(0, {
     engine_playfield_select_calls: 1,
-    engine_playfield_select_dlist: 0x7f43,
+    engine_playfield_select_dlist: 0x7f40,   // RE-PINNED M6 stage 1b: the divider is byte 0 (0x7f43 before)
     engine_playfield_select_active_lo: 0x40,
   })];
   assert.equal(firstDliSelectsByteThree(measured).held, true);

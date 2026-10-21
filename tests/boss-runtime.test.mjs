@@ -164,8 +164,9 @@ test("decision 32 (re-pointed): black, then the banner's title, the theme starte
     // RE-POINTED M6 stage 1 (owner decision BD 6): the VOID LANCE run, after
     // slot E. RE-POINTED journal §BG: its own four sectors at the disk's free
     // tail (712-715; the meter and the readiness indicator, plan §6.3);
-    // journal §BH: five (712-716; the hollow mark, the dry shot).
-    ...run(712, 5),
+    // journal §BH: five (712-716; the hollow mark, the dry shot). RE-PINNED
+    // M6 stage 1b (journal §BK): seven (712-718; the PMG gauges).
+    ...run(712, 7),
     ...run(634, 3), ...run(637, 3),                       // the band: rows 0-5, rows 6-7 + tables
     ...run(640, charsetSectors),                          // the region's charset at $0C00
     // RE-POINTED S5-1 (owner decision Q9, plan s5-boss-regions §4.1): the
@@ -239,8 +240,15 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   // 8 and 19); a shot under the belt is then in the ring's charset and colours.
   const shown = BOSS.regions[0].bandShownRows;
   assert.equal(shown, 5);
+  // RE-PINNED M6 stage 1b (journal §BK 1, docs/plans/m6-gauges.md §2.2): the
+  // lists' shared header right before A - 7 blank lines with the first DLI
+  // ($E0) - then A: the divider, the 27 rows, the HUD's line after them and a
+  // JMP to the header (was HUD, divider, 27 rows, JVB); the HUD and the JMP
+  // are list A's own. The JMP waits through vertical blank and is line 8 (the
+  // HUD's last line is 247).
   const list = memory.subarray(DLIST_A, DLIST_A + 90);
-  assert.deepEqual([...list.subarray(0, 6)], [0xc2, 0x00, 0x40, 0x44, 0x28, 0x40]);
+  assert.equal(memory[DLIST_A - 1], 0xe0, "the shared header, right before list A");
+  assert.deepEqual([...list.subarray(0, 3)], [0x44, 0x28, 0x40]);
   const start = memory[T("start")];
   const lms = (start + 15 & 0xf0) >> 2;
   // RE-POINTED feat/boss-art (variant B, decision AV): region 1's row palette
@@ -249,23 +257,25 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   assert.deepEqual(switches, [1, 3]);
   assert.equal(word(memory, label("boss", "boss_dli_publish")), label("boss", "boss_pal_frame"));
   for (let row = 0; row < shown; row += 1) {
-    assert.equal(list[6 + row * 3], row === shown - 1 || switches.includes(row + 1) ? 0xd4 : 0x54, `band row ${row} mode`);
-    assert.equal(list[7 + row * 3] | (list[8 + row * 3] << 8), BAND_ROW_BASE[row] + lms);
+    assert.equal(list[3 + row * 3], row === shown - 1 || switches.includes(row + 1) ? 0xd4 : 0x54, `band row ${row} mode`);
+    assert.equal(list[4 + row * 3] | (list[5 + row * 3] << 8), BAND_ROW_BASE[row] + lms);
   }
   const rowLo = label("main", "PLAYFIELD_ROW_LO");
   const rowHi = label("main", "PLAYFIELD_ROW_HI");
   for (let ring = shown; ring < 27; ring += 1) {
-    const at = 6 + ring * 3;
+    const at = 3 + ring * 3;
     assert.equal(list[at], ring === 26 ? 0xc4 : 0x44);
     assert.equal(list[at + 1] | (list[at + 2] << 8),
       memory[rowLo + ring] | (memory[rowHi + ring] << 8), `ring row ${ring}`);
   }
-  assert.deepEqual([...list.subarray(87, 90)], [0x41, DLIST_A & 0xff, DLIST_A >> 8]);
-  const dlis = (bytes) => [0, 3, ...Array.from({ length: 27 }, (_, i) => 6 + i * 3)]
+  assert.deepEqual([...list.subarray(84, 90)], [0x42, 0x00, 0x40, 0x01, (DLIST_A - 1) & 0xff, DLIST_A >> 8],
+    "the HUD's line after the ring, then the JMP to the header (M6 stage 1b)");
+  const dlis = (bytes) => [0, ...Array.from({ length: 27 }, (_, i) => 3 + i * 3), 84]
     .filter((offset) => (bytes[offset] & 0x80) !== 0).length;
   // RE-POINTED feat/boss-art: decision 9's three band DLIs, and one a
   // row-palette switch (decision AV; the trace still sees three at boss_dli).
-  assert.equal(dlis(list), 3 + switches.length, "decision 9: three DLIs in the boss sector, and the switches");
+  assert.equal(dlis(list) + (memory[DLIST_A - 1] >> 7), 3 + switches.length,
+    "decision 9: three DLIs in the boss sector (the shared header's first), and the switches");
   assert.equal(memory[label("main", "PLAYFIELD_ACTIVE_DLIST_LO")], DLIST_A & 0xff);
   assert.equal(word(memory, 0x0200), label("boss", "boss_dli"));
   // Pause resumes into the boss DLI; the player stays below the band.
@@ -288,8 +298,8 @@ test("the install: slot A, the charset, the vector table, the band list with thr
 test("the gameplay list outside the boss sector keeps its two DLIs", () => {
   const memory = bossGateMemory();
   const list = memory.subarray(DLIST_A, DLIST_A + 90);
-  const count = [0, 3, ...Array.from({ length: 27 }, (_, i) => 6 + i * 3)]
-    .filter((offset) => (list[offset] & 0x80) !== 0).length;
+  const count = [0, ...Array.from({ length: 27 }, (_, i) => 3 + i * 3), 84]
+    .filter((offset) => (list[offset] & 0x80) !== 0).length + (memory[DLIST_A - 1] >> 7);
   assert.equal(count, 2);
 });
 
@@ -367,7 +377,7 @@ test("the band drifts by HSCROL every step, the LMS moves every 16 colour clocks
     assert.equal(memory[phase], 0, "the third DLI hands back to phase 0");
     for (const [register, value] of writes) if (register === 0xd404) hscrolls.add(value);
     positions.push(memory[shown]);
-    const lms = word(memory, DLIST_A + 7) - BAND_ROW_BASE[0];
+    const lms = word(memory, DLIST_A + 4) - BAND_ROW_BASE[0];   // RE-PINNED M6 stage 1b: the header is shared, before A (HUD 3 before)
     lmsSeen.add(lms);
     // The visible band column at a screen colour clock is (x - 32 + p) / 4:
     // LMS*4 - HSCROL is the position on screen.
@@ -376,7 +386,7 @@ test("the band drifts by HSCROL every step, the LMS moves every 16 colour clocks
     // RE-POINTED feat/boss-r1-twin-lasers: the band's shown rows only - the
     // rows under them are the ring's, whose LMS never moves.
     for (let row = 1; row < BOSS.regions[0].bandShownRows; row += 1) {
-      assert.equal(word(memory, DLIST_A + 7 + row * 3), BAND_ROW_BASE[row] + lms, `row ${row} LMS`);
+      assert.equal(word(memory, DLIST_A + 4 + row * 3), BAND_ROW_BASE[row] + lms, `row ${row} LMS`);
     }
   }
   const travel = memory[T("travel")];

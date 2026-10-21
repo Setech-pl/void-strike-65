@@ -264,17 +264,20 @@ for (const region of [1, 2, 3, 4]) {
     // RE-POINTED feat/boss-art (variant B, decision AV): and a DLI on the row
     // before each row-palette switch (tests/boss-art.test.mjs).
     const switches = regions[region - 1].rowPalette.switches;
+    // RE-PINNED M6 stage 1b (docs/plans/m6-gauges.md §2.2): the rows from
+    // byte 3 (the divider first; the header is shared, before list A).
     for (let row = 0; row < shown; row += 1) {
-      assert.equal(m[list + 6 + row * 3], row === shown - 1 || switches.includes(row + 1) ? 0xd4 : 0x54, `band row ${row}`);
+      assert.equal(m[list + 3 + row * 3], row === shown - 1 || switches.includes(row + 1) ? 0xd4 : 0x54, `band row ${row}`);
     }
     // Every row under it is a ring row (no HSCROL): its LMS the ring's own row.
     for (let row = shown; row < 27; row += 1) {
-      const at = list + 6 + row * 3;
+      const at = list + 3 + row * 3;
       assert.equal(m[at] & 0x7f, 0x44, `display row ${row} under the band is not a ring row`);
       assert.equal(m[at + 1] | (m[at + 2] << 8),
         m[main("PLAYFIELD_ROW_LO") + row] | (m[main("PLAYFIELD_ROW_HI") + row] << 8), `ring row ${row}`);
     }
-    assert.equal(m[list + 6 + 27 * 3], 0x41, "the list's jump");
+    assert.equal(m[list + 3 + 27 * 3], 0x42, "the HUD's line after the ring (M6 stage 1b)");
+    assert.equal(m[list + 6 + 27 * 3], 0x01, "the list's jump to the shared header");
     // The band DLI at its last line hands the ring the gameplay charset and
     // the playfield's four colours.
     const writes = [];

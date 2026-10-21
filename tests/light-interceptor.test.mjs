@@ -660,8 +660,11 @@ test("placement contract: legal composite and packed size, state inside its rese
   // segment is one byte short of its reservation for the first time since step
   // 1a. ONE byte is not room for a design: the placement decision the next
   // Light-class growth needs still stands.
+  // RE-PINNED M6 stage 1b (docs/plans/m6-gauges.md §2.2): the A2 display
+  // lists' shared header took the area's one free byte, so the segment moved
+  // one up and fills its 59 B exactly ($7FC4, 1 B short of 60, before).
   assert.deepEqual([L("__HYBRID_LIGHT_SLOTS_RUN__"), L("__HYBRID_LIGHT_SLOTS_SIZE__")],
-    [0x7fc4, 59], "the Light slot segment fills $7FC4-$7FFE, 1 B short of its 60");
+    [0x7fc5, 59], "the Light slot segment fills $7FC5-$7FFF, its whole 59");
   assert.ok(L("__HYBRID_LIGHT_SLOTS_RAM_LAST__") <= 0x8000,
     "the slot arrays must stop before ENTITY_STATE at $8000");
   // Re-recorded 2026-09-28, roadmap 4.6 step 2: the per-slot arrays start at
@@ -670,8 +673,8 @@ test("placement contract: legal composite and packed size, state inside its rese
   // _archetype, _spacing_frames - which is the schedule's replacement and was
   // declared into this segment. The arrays themselves and their order are
   // unchanged; only the base moved.
-  assert.equal(L("light_state"), 0x7fca);
-  assert.equal(L("_light_wave_lock"), 0x7fc4, "the armed wave heads the segment");
+  assert.equal(L("light_state"), 0x7fcb);   // RE-PINNED M6 stage 1b: one up ($7FCA before)
+  assert.equal(L("_light_wave_lock"), 0x7fc5, "the armed wave heads the segment");
   // Cell-major backing: LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT = 8 B, so the two
   // cells of a slot are adjacent and the erase/render loops index by cell.
   assert.equal(L("light_backing0") - L("light_state"), 4 * 7);

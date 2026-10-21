@@ -256,7 +256,7 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   // empty past slot E again.
   const lance = manifest.boss.runs.find((run) => run.name === "boss-lance");
   assert.deepEqual([lance.startSector, lance.sectors], [712, manifest.boss.lance.sectors], "the lance run: the disk's free tail");
-  assert.ok([4, 5].includes(lance.sectors), "five sectors since journal §BH (four at §BG)");
+  assert.ok([4, 5, 7].includes(lance.sectors), "seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)");
   assert.ok(atrSectors(slotEEnd, 584 - slotEEnd).every((byte) => byte === 0),
     "528-583 past slot E must stay empty");
   assert.ok(atrSectors(lance.startSector, lance.sectors).some((byte) => byte !== 0), "the lance run is on the disk");
@@ -447,5 +447,5 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 982, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13623, "the initial block moved");
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13622 /* RE-PINNED M6 stage 1b: the packed resident runtime, 1 B shorter */, "the initial block moved");
 });

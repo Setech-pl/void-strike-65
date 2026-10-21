@@ -115,12 +115,15 @@ for (let r = 0; r < 4; r += 1) {
     const region = regions[r];
     const shown = bossBandShownRows(region.bandRows);
     assert.equal(shown, [5, 5, 8, 5][r], "the band ends at its last row with a cell, as before");
+    // RE-PINNED M6 stage 1b (docs/plans/m6-gauges.md §2.2): a list is the
+    // divider, the rows, the HUD, the JMP; the first DLI is the lists' shared
+    // header's, right before list A (was HUD 3 + divider 3 before the rows).
     const list = main("PLAYFIELD_DLIST_A");
     for (let row = 0; row < shown; row += 1) {
       const dli = row === shown - 1 || SWITCHES[r].includes(row + 1);
-      assert.equal(m[list + 6 + row * 3], dli ? 0xd4 : 0x54, `band row ${row}: a DLI ${dli ? "" : "not "}expected`);
+      assert.equal(m[list + 3 + row * 3], dli ? 0xd4 : 0x54, `band row ${row}: a DLI ${dli ? "" : "not "}expected`);
     }
-    const dlis = [0, 3, ...Array.from({ length: 27 }, (_, i) => 6 + i * 3)]
+    const dlis = [-1, 0, ...Array.from({ length: 27 }, (_, i) => 3 + i * 3), 84]
       .filter((offset) => (m[list + offset] & 0x80) !== 0).length;
     assert.equal(dlis, 3 + SWITCHES[r].length, "the band's three DLIs and one a switch");
     assert.equal(m[lbl("boss_pal_count")], SWITCHES[r].length);

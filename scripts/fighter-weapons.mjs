@@ -248,11 +248,9 @@ export function compileFighterWeapons(definition, enemyRoster) {
     pairGlyphRows: pulse.pairGlyphRows,
   });
   const player_fighter = definition.player_fighter;
-  const activeImageTop = definition.viewport.activeImageTop;
-  const hudTop = activeImageTop;
-  const hudBottom = hudTop + definition.viewport.hudRows * 8;
-  const gameplayTop = hudBottom;
-  const gameplayBottom = gameplayTop + definition.viewport.gameplayRows * 8;
+  // M6 stage 1b: the canonical model places the HUD (after the ring since
+  // journal §BK 1); the playfield's lines are its, not derived from the HUD.
+  const { hudTop, hudBottom, gameplayTop, gameplayBottom } = definition.viewport;
   const totalSlots = definition.player_fighter.poolSlots + interceptor.poolSlots;
   const explosion = Object.freeze({
     frameCount: definition.sharedFighterExplosion.outerMasks.length,

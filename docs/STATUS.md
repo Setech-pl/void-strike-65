@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-21 (main, merge of feat/m6-void-lance: M6 VOID LANCE stage 1 final OWNER-ACCEPTED - hardware smoke PASS on a 65XE PAL via SIO2SD, journal §BJ, hardware-testing §41; the banner line, the charge ramp, the discharge's channel-3 hand-back and the green gravity column accepted; next: stage 2, the +1 life capsule, not started)
+Last update: 2026-10-21 (feat/m6-gauges: M6 stage 1b - the HUD at the bottom and the boss sector's PMG gauges in two variants, A over column 0 and B in the left border, built and measured, OWNER-SMOKE CANDIDATE awaiting the owner's choice, journal §BK; main stays at M6 stage 1 final, OWNER-ACCEPTED, journal §BJ)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -423,6 +423,39 @@ Previous accepted runtime checkpoint: `0a90c1c` (XEX
 owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 `965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e`,
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
+
+---
+
+## M6 stage 1b — the HUD at the bottom, the boss sector's PMG gauges, two variants (feat/m6-gauges) — `OWNER-SMOKE CANDIDATE` (2026-10-21, awaiting the owner's choice of A or B)
+
+Plan [plans/m6-gauges.md](plans/m6-gauges.md) (§5 as built and measured); journal **§BK** (the brief and the session's two answers: the PMG gauges in the boss sector only - P1 / P2 are the Heavy class's in space sectors - and in the lasers' colour, COLPM2 as it is).
+
+**What the player gets.**
+- **The HUD's line at the bottom** (scanlines 240-247, after the ring), its separator line on top; the playfield, the ship and every PMG / character coordinate keep their lines; every DLI keeps its scanline.
+- **In the boss sector, bottom-left in P2:** the lance icon, the lance meter's 4 dots (25 / 50 / 75 / 100 %; the charge empties them from the top over the 75 frames, a release fills them again), the booster icon and the booster's 4 dots (the HUD's lit BOOST cells, its blink included). Drawn whole on the fight's first frame; afterwards one dot (2 bytes) on a frame where a gauge changes, nothing otherwise; `HPOSP2` once a sector. **A:** HPOS 48 (over playfield column 0). **B:** HPOS 40 (the left border; a CRT's overscan may cut it - the owner's TV check). In space sectors the booster stays the HUD's BOOST bar.
+
+**Layout (Part 1).** A list is the divider, the 27 ring rows, the HUD and a **JMP** (a JVB after line 247 would only run at line 8 of the next frame and blank it: MEASURED, every frame missed); the lists share one 7-blank-line header with the first DLI at **`$7F10`**, before list A (`$7F11`, B `$7F6B-$7FC4`); `HYBRID_LIGHT_SLOTS` one byte up (`$7FC5-$7FFF`, its one free byte; exactly full). The arena is untouched (the owner's 14-B floor, decision AK). Display installs enter at list A's JMP (line 8). Resident code byte-neutral; initial block content 13,623 -> 13,622 B, **107 sectors**; STARFIELD packed 1,750 -> 1,751 B (raw unchanged), its packed hard-gate margin **75 -> 74 B** (reported, re-pinned). **Hardware check for the smoke:** the list's JMP relies on ANTIC resuming an unfinished list at line 8 after vertical blank (documented; Atari800 emulates it).
+
+**The gauges (Part 2).** 241 B in the lance run, which takes **7 sectors (712-718)**, not the brief's 6 (96 B short): 880 of 896 B at `$B880-$BBFF`. **Resident 0 B, window record 0 B.** **Trade-off:** the window keeps **86 B** to grow (342 before) - stage 2's life capsule (EST 125-160 B) no longer fits there; `tests/lance.test.mjs`' guard (>= 160 B) is red on this branch, deliberately. Alternative (not built): the gauges as their own 2-sector run at the unclaimed `$0400-$04FF` (needs a write watch) - the same entry, the window room back.
+
+**Per region (M; A = B to the cycle - their lance runs differ in one byte, the HPOS).**
+
+| region | worst boss frame (headroom), state | `main` | entry, host frames (`main`) | routes: worst margin / DMA-on max |
+| --- | ---: | ---: | ---: | --- |
+| 1 Breaker | 7,582 (918), swap | 7,575 | **321** (314) | 8,426 / 30,128 |
+| 2 Citadel L5 | 8,438 (62), the first frame's draw | 8,422 | **336** (329) | 6,142 / 30,417 |
+| 3 Spine L9 | 8,435 (65), swap | 8,428 | **336** (329) | 4,658 / 30,775 |
+| 4 Bastion L10 | **8,469 (31)**, swap / first frame | 8,462 | **340** (332) | 6,459 / 30,109 |
+
+Every state in plan §5.2's table; gauge write frames (quarter, step, refill, booster) all under each region's worst. The routes: 34 focused sessions per variant, **68 pass, 0 misses, 0 clause failures**; DMA-on +250-450 on every session (the HUD's DMA now inside the measured wall).
+
+**Part 1, the default trace (M, 58 replays, the candidate = A):** 0 misses, 0 clause failures; worst fence margin **1,465 -> 1,497** (`2-sweep-fire6`); **DMA-on maximum 31,059 -> 31,476** (`2-evasive-fire7`) - **17 of 58 replays over the 31,200 target** (all under 32,568): the HUD's DMA now inside the measured wall (any placement below line 15). **Gate failed by 276 cycles**; options in plan §5.1. Boss entries 314 -> 321.
+
+**Known side effect:** PMG rows 240-247 are now the HUD's lines - the boss's falling capsule (P3) passes over `LIFE` as it leaves (MEASURED, R1). Fix options in plan §5.1.
+
+**Tests:** `tests/gauges.test.mjs` 9 of 9 (RED first: 9 of 9 on the pre-gauge build); `tests/lance.test.mjs` 32 of 33 (the window-room guard); the lance stress in `boss-stress` / `boss-region-2/3/4` 4 of 4 with the five gauge states added (`tests/lance-states.mjs`). Layout re-pins (values only): the lists' bytes and offsets, the Light slots' base, the HUD's lines and glyph rows, the lance run's 7 sectors and the entries 83 / 87 / 87 / 88 sectors, the A2 kernel's hash, the initial block 13,622 B, STARFIELD 1,751 B. **No full evidence chain** (the brief): the default build refuses to link until the regeneration pass.
+
+**The ATRs** (`build/play/`, not committed): `void-strike-65-m6-gauges-a-full-7882e2f2.atr`, `-a-r1-breaker-b589933c`, `-a-r4-bastion-33bc3977`, `-b-full-c274458c`, `-b-r1-breaker-4797ceb7`, `-b-r4-bastion-37ca814d`; stills and GIFs in `build/play/gauges/`.
 
 ---
 

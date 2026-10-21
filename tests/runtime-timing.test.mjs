@@ -184,8 +184,12 @@ test("hybrid ring reservation fits after staging and before entity/effects RAM",
   assert.equal(constants.get("STARFIELD_STAGING_B"), 0x81fa);
   assert.equal(constants.get("STARFIELD_STAGING_B_BYTES"), 0x03c0);
   assert.match(source, /PLAYFIELD_RING_ROWS\s*=\s*GAMEPLAY_SCREEN_ROWS-1/);
-  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
-  assert.match(source, /PLAYFIELD_DLIST_A\s*=\s*\$7F10/);
+  // RE-PINNED M6 stage 1b (docs/plans/m6-gauges.md §2.2): the lists' shared
+  // header at $7F10, list A after it; a list is the divider, the ring, the
+  // HUD and the JMP.
+  assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*PLAYFIELD_DLIST_HUD_OFFSET\+3\+3/);
+  assert.match(source, /PLAYFIELD_DLIST_HEADER\s*=\s*\$7F10/);
+  assert.match(source, /PLAYFIELD_DLIST_A\s*=\s*PLAYFIELD_DLIST_HEADER\+1/);
   // RE-PINNED 2026-10-01 (recorded failures review, A21): the ring is 27 rows at $8140 and its
   // state must end before WEAPON_PICKUP_RUNTIME; the display lists stay below
   // $8000 (src/main.s, the asserts after PLAYFIELD_RING_STATE_END). The test

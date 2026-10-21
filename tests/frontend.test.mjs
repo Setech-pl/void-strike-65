@@ -573,7 +573,7 @@ test("menu PlayerFighter is charset-only, frontend PMG stays disabled, and gamep
   assert.match(routine("start_gameplay"), /jsr clear_pmg/);
   assert.match(
     routine("start_gameplay"),
-    /sta NMIEN[\s\S]+jsr init_playfield_display_lists[\s\S]+lda PLAYFIELD_ACTIVE_DLIST_LO[\s\S]+sta DLISTL[\s\S]+lda #<gameplay_dli[\s\S]+lda #>HUD_CHARSET[\s\S]+sta CHBASE/,
+    /sta NMIEN[\s\S]+jsr init_playfield_display_lists[\s\S]+lda #<PLAYFIELD_DLIST_ENTRY[\s\S]+sta DLISTL[\s\S]+lda #<gameplay_dli[\s\S]+lda #>HUD_CHARSET[\s\S]+sta CHBASE/,   // RE-PINNED M6 stage 1b: a list is entered at its JMP
   );
   assert.match(
     routine("gameplay_dli"),

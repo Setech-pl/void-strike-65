@@ -128,8 +128,9 @@ LANCE_SHOT_AUDC = $8A                   ; no other boss sound is noise (the tick
 .assert LANCE_CHARGE_SPEED_DIVISOR > 0 && (LANCE_CHARGE_SPEED_DIVISOR & (LANCE_CHARGE_SPEED_DIVISOR - 1)) = 0, error, "LANCE_CHARGE_SPEED_DIVISOR: a power of two"
 .assert <LANCE_STICK0 = 0, error, "the slow frame's operand swap keeps A = 0 for PORTA's low byte"
 
-.import _lance_c_fill, _lance_c_aim, _lance_c_arrive, _lance_trig, _lance_charge, _lance_meter_lo, _boss_phase
+.import _lance_c_fill, _lance_c_aim, _lance_c_arrive, _lance_trig, _lance_charge, _lance_meter_lo, _lance_meter_hi, _boss_phase
 .export lance_tick, lance_shape, lance_y, lance_beam, lance_head, lance_top, _lance_module, lance_cell, lance_ready
+.export gauge_level, gauge_rows
 
 .segment "LANCE_CODE"
 
@@ -224,8 +225,9 @@ lance_meter:
     bne @change
     tay                                 ; A = lance_ready
     bne lance_aim                       ; ready: the aim
+    jmp gauge_filling                   ; the meter filling: the gauges only (M6 stage 1b)
 @rts:
-    rts                                 ; the meter filling: nothing more
+    rts
 @change:
     sta lance_ready
     jsr lance_indicate
@@ -286,6 +288,7 @@ lance_aim:
     lsr
     lsr
     tay
+    sty gauge_ramp                      ; the gauge's charge step (M6 stage 1b)
     lda lance_ramp,y
     sta LANCE_COLPM0
     ; The charge's slow frames (decision BF 2): the ship at 1 / divisor of its
@@ -318,7 +321,7 @@ lance_aim:
     lsr                                 ; C: lit
     bcs @show
     lsr                                 ; C: a target; A: FIRE
-    beq @dark                           ; the blink's dark frame
+    beq @dark_gauge                     ; the blink's dark frame
     ; The discharge (journal §BI 2; C and X kept).
     lda sound_enabled
     beq @quiet
@@ -350,6 +353,9 @@ lance_aim:
     stx LANCE_HPOSP1                    ; X = 0
 @rts:
     rts
+@dark_gauge:
+    stx LANCE_HPOSP1                    ; X = 0
+    jmp gauge_ready
 @show:
     ; The mark (journal §BH 2): the crosshair over a target, the hollow mark
     ; over none - a change rewrites the four rows they differ in.
@@ -358,6 +364,8 @@ lance_aim:
     sbc #$00                            ; 0 the crosshair, $FF the hollow mark
     cmp lance_hollow
     beq @mark
+    ldy #GAUGE_SKIP                     ; the mark's swap: no gauge write on its frame
+    sty gauge_ramp
     sta lance_hollow
     ldy lance_y
     tax
@@ -383,13 +391,13 @@ lance_aim:
     sec
     sbc boss_shown_pos
     sta LANCE_HPOSP1
-    rts
+    jmp gauge_ready
 @hollow:
     lda player_x                        ; the ship's centre (x + 8), less 4
     clc
     adc #$04
     sta LANCE_HPOSP1
-    rts
+    jmp gauge_ready
 
 ; lance_ready changed: the indicator; on its way on, the reticle's rows and
 ; the cue.
@@ -441,6 +449,174 @@ lance_shape:    .byte $18, $18, $00, $C3, $C3, $00, $18, $18
 lance_ramp:     .byte LANCE_READY_COLOUR, $C4, $C4, $C6, $C6, $C8, $C8, $CA, $CC, $CE, $CE
 .assert (LANCE_CHARGE_FRAMES - 1 + 7) / 8 < 11, error, "lance_ramp: an entry for every charge frame"
 
+; ===========================================================================
+; The gauges (M6 stage 1b, journal §BK; docs/plans/m6-gauges.md §3): P2, the
+; boss sector only (P1 / P2 are the Heavy class's in space sectors - the owner's
+; answer, §BK 4), in the lasers' colour (COLPM2 is laser M2's, never written
+; here - §BK 5). Bottom-left, from the bottom up: the lance icon, the meter's
+; four dots (25 / 50 / 75 / 100 %), the booster icon, the booster's four dots
+; (the HUD's lit BOOST cells, which the resident HUD code writes). The fight's
+; first frame (a filling frame: the meter is empty at the entry) draws both
+; whole - icons, eight sockets - and sets HPOSP2 (GAUGE_HPOS: the variant's,
+; scripts/build.mjs --gauge) and SIZEP2 once. Afterwards a frame writes at most
+; ONE dot (two bytes) toward the level a gauge should show, and nothing when
+; both show it: the lance gauge first, then the booster's. Where it runs: the
+; meter's filling frames, and the ready frames but the fire frame, the
+; readiness change, the mark's swap and the beam's - the Bastion's headroom; a
+; step a skipped frame owed is taken on the next one that runs.
+;   the lance gauge  filling: the meter's quarters reached (gauge_quarter_*,
+;                    from scripts/lance-layout.mjs's meter frames, 4 = full);
+;                    ready: 4, and the charge empties it from the top by the
+;                    ramp's own index, (charge + 7) / 8 - 4 to frame 16, none
+;                    from 65 (gauge_charge_lit); a release refills it.
+;   the booster's    the HUD's lit cells are a prefix (activation fills all four,
+;                    the drain empties them from the top, the last one blinks):
+;                    the next cell lit is one more, the top drawn one blank one
+;                    less.
+; gauge_level holds what a gauge shows as its dots' first row index: the lance
+; 0 + lit, the booster 4 + lit (0 until the first frame drew the gauges).
+; ===========================================================================
+GAUGE_P2        = $3E00                 ; src/main.s: PLAYER2 = PMG_BASE + $0600
+GAUGE_HPOSP2    = $D002
+GAUGE_SIZEP2    = $D00A
+GAUGE_LIT       = $3C
+GAUGE_SOCKET    = $24
+GAUGE_ICON_ROWS = 6
+GAUGE_LANCE_ICON_Y = 232                ; above the HUD's line (240-247)
+GAUGE_BOOST_ICON_Y = 209
+GAUGE_SKIP      = 11                    ; gauge_ramp: the mark's swap took the frame
+GAUGE_HUD_CELLS = SCREEN + HUD_BOOSTER_SEGMENTS_OFFSET
+.assert GAUGE_HPOS = 48 || GAUGE_HPOS = 40, error, "GAUGE_HPOS: variant A (48) or B (40), scripts/build.mjs --gauge"
+
+; Filling frames: the first draws the gauges; then the meter's quarters.
+gauge_filling:
+    lda gauge_level + 1
+    beq gauge_install
+    lda _boss_difficulty                ; its four thresholds
+    asl
+    asl
+    tax
+    ldy #$00
+@quarter:
+    lda _lance_meter_lo
+    cmp gauge_quarter_lo,x
+    lda _lance_meter_hi
+    sbc gauge_quarter_hi,x
+    bcc @level
+    inx
+    iny
+    cpy #4
+    bne @quarter
+@level:
+    tya
+    jmp gauge_lance
+
+; Ready frames (the aim's, but the fire frame and the swap's): the charge's step.
+gauge_ready:
+    ldy gauge_ramp
+    lda gauge_charge_lit,y
+    bmi gauge_rts                       ; the mark's swap took this frame
+; A = the lance gauge's dots: a step toward them, else the booster's.
+gauge_lance:
+    ldx #0
+    cmp gauge_level
+    bne gauge_step
+    ldy gauge_level + 1                 ; 4 + the booster's lit dots
+    cpy #8
+    beq @top                            ; all four: only fewer
+    lda GAUGE_HUD_CELLS - 4,y           ; the next cell lit: one more
+    bne @more
+@top:
+    cpy #4
+    beq gauge_rts                       ; none drawn, none lit
+    lda GAUGE_HUD_CELLS - 5,y           ; the top drawn cell blank: one less
+    bne gauge_rts
+    dey
+    dey
+@more:
+    iny
+    tya
+    inx                                 ; X = 1: the booster
+; X = the gauge (0 the lance, 1 the booster), A = the row index it should show:
+; ONE dot toward it.
+gauge_step:
+    cmp gauge_level,x
+    beq gauge_rts
+    bcs @up
+    dec gauge_level,x                   ; fewer: the top lit dot back to its socket
+    ldy gauge_level,x
+    lda #GAUGE_SOCKET
+    bne @dot
+@up:
+    ldy gauge_level,x                   ; more: the next dot lit
+    inc gauge_level,x
+    lda #GAUGE_LIT
+@dot:
+    ldx gauge_rows,y
+    sta GAUGE_P2,x
+    sta GAUGE_P2 + 1,x
+gauge_rts:
+    rts
+
+; The fight's first frame: the position and width once, both icons and the
+; eight sockets (P2 is clear: the entry's hand-over cleared PMG).
+gauge_install:
+    lda #GAUGE_HPOS
+    sta GAUGE_HPOSP2
+    ldx #(GAUGE_ICON_ROWS - 1)
+@icon:
+    lda gauge_lance_icon,x
+    sta GAUGE_P2 + GAUGE_LANCE_ICON_Y,x
+    lda gauge_boost_icon,x
+    sta GAUGE_P2 + GAUGE_BOOST_ICON_Y,x
+    dex
+    bpl @icon
+    ldx #7
+@socket:
+    ldy gauge_rows,x
+    lda #GAUGE_SOCKET
+    sta GAUGE_P2,y
+    sta GAUGE_P2 + 1,y
+    dex
+    bpl @socket
+    inx                                 ; X = 0
+    stx GAUGE_SIZEP2
+    lda #4                              ; the booster's: 4 + none lit (and drawn)
+    sta gauge_level + 1
+    rts
+
+; The dots' first rows: the lance's (0-3, 25 % at the bottom) and the booster's
+; (4-7), two lines a dot, three apart.
+gauge_rows:     .byte 228, 225, 222, 219, 205, 202, 199, 196
+gauge_lance_icon: .byte $18, $3C, $18, $18, $18, $24
+gauge_boost_icon: .byte $18, $24, $42, $18, $24, $42
+; The lance gauge's dots while charging, by the ramp's index (charge + 7) / 8;
+; GAUGE_SKIP's entry is the swap's (no gauge work).
+gauge_charge_lit: .byte 4, 4, 4, 3, 3, 2, 2, 1, 1, 0, 0, $80
+.assert (LANCE_CHARGE_FRAMES - 1 + 7) / 8 < GAUGE_SKIP, error, "gauge_charge_lit: an entry for every charge frame"
+; The meter's quarters per difficulty (EASY, MEDIUM, HARD): the k-th dot at
+; ceil(k * frames / 4); the 4th is the full meter - a lance ready.
+gauge_quarter_lo:
+    .repeat 4, K
+        .byte <(((K + 1) * LANCE_METER_EASY + 3) / 4)
+    .endrepeat
+    .repeat 4, K
+        .byte <(((K + 1) * LANCE_METER_FRAMES + 3) / 4)
+    .endrepeat
+    .repeat 4, K
+        .byte <(((K + 1) * LANCE_METER_HARD + 3) / 4)
+    .endrepeat
+gauge_quarter_hi:
+    .repeat 4, K
+        .byte >(((K + 1) * LANCE_METER_EASY + 3) / 4)
+    .endrepeat
+    .repeat 4, K
+        .byte >(((K + 1) * LANCE_METER_FRAMES + 3) / 4)
+    .endrepeat
+    .repeat 4, K
+        .byte >(((K + 1) * LANCE_METER_HARD + 3) / 4)
+    .endrepeat
+
 .segment "LANCE_BSS"
 lance_beam:     .res 1                  ; 0 none, 1 growing, 2 .. 1 + LANCE_HOLD held, then erased
 lance_head:     .res 1                  ; the beam's top line
@@ -450,3 +626,5 @@ _lance_module:  .res 1                  ; the target's module and band column; t
 lance_cell:     .res 1
 lance_ready:    .res 1                  ; what the indicator shows: $FF a lance ready, 0 not
 lance_hollow:   .res 1                  ; the mark drawn: 0 the crosshair (lance_indicate's), $FF the hollow one
+gauge_level:    .res 2                  ; the gauges' shown dots: the lance 0 + lit, the booster 4 + lit (0: not drawn)
+gauge_ramp:     .res 1                  ; this ready frame's ramp index, GAUGE_SKIP on the mark's swap

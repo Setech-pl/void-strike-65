@@ -1041,6 +1041,12 @@ static unsigned dftrace_lance_trig;
 /* Journal §BH 2: the mark drawn (lance_hollow: 0 the crosshair, the run's
  * lance_shape; else the hollow mark below), optional. */
 static unsigned dftrace_lance_hollow;
+/* M6 stage 1b (docs/plans/m6-gauges.md §3): gauge_level, whose second byte is
+ * non-zero once the fight's first frame drew the PMG gauges in P2's rows
+ * DFTRACE_GAUGE_TOP-DFTRACE_GAUGE_BOTTOM (their content: tests/gauges.test.mjs). */
+static unsigned dftrace_gauge_level;
+#define DFTRACE_GAUGE_TOP 196u
+#define DFTRACE_GAUGE_BOTTOM 237u
 static const unsigned char dftrace_lance_hollow_bytes[8] = { 0x00, 0x18, 0x00, 0x42, 0x42, 0x00, 0x18, 0x00 };
 static unsigned dftrace_lance_script_ready;
 static unsigned dftrace_lance_script_up;
@@ -2988,8 +2994,8 @@ static int dftrace_near_visible_row(unsigned address)
 		return 0;
 	base = 0x7f00u + dftrace_displayed_dlist_lo;
 	for (index = 0u; index < DFTRACE_RING_ROWS; ++index) {
-		unsigned row = MEMORY_mem[base + 7u + index * 3u] |
-			((unsigned) MEMORY_mem[base + 8u + index * 3u] << 8);
+		unsigned row = MEMORY_mem[base + 4u + index * 3u] |
+			((unsigned) MEMORY_mem[base + 5u + index * 3u] << 8);
 		if (address >= row && address < row + 40u)
 			return (int) index + 1;
 	}
@@ -3008,8 +3014,8 @@ static void dftrace_near_visible_counts(unsigned *visible, unsigned *orphan,
 	for (row = 0u; row <= DFTRACE_RING_ROWS; ++row) {
 		unsigned column;
 		unsigned address = row == 0u ? DFTRACE_DIVIDER_SCREEN :
-			MEMORY_mem[base + 7u + (row - 1u) * 3u] |
-			((unsigned) MEMORY_mem[base + 8u + (row - 1u) * 3u] << 8);
+			MEMORY_mem[base + 4u + (row - 1u) * 3u] |
+			((unsigned) MEMORY_mem[base + 5u + (row - 1u) * 3u] << 8);
 		for (column = 0u; column < 40u; ++column) {
 			unsigned slot;
 			int owned = 0;
@@ -3076,8 +3082,8 @@ static unsigned dftrace_near_row_address(unsigned logical_row)
 	unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
 	if (logical_row == 0u)
 		return DFTRACE_DIVIDER_SCREEN;
-	return MEMORY_mem[base + 7u + (logical_row - 1u) * 3u] |
-		((unsigned) MEMORY_mem[base + 8u + (logical_row - 1u) * 3u] << 8);
+	return MEMORY_mem[base + 4u + (logical_row - 1u) * 3u] |
+		((unsigned) MEMORY_mem[base + 5u + (logical_row - 1u) * 3u] << 8);
 }
 
 static void dftrace_near_observe(unsigned pc, unsigned x_register)
@@ -3338,21 +3344,24 @@ static DFTracePhysicalBounds dftrace_bolt_physical_bounds(unsigned slot,
 		return result;
 	pointer = MEMORY_mem[dftrace_broad_row_lo + slot] |
 		((unsigned) MEMORY_mem[dftrace_broad_row_hi + slot] << 8);
+	/* M6 stage 1b (docs/plans/m6-gauges.md §2.2): a list is the divider (byte
+	 * 0), the 27 ring rows (byte 3 on), the HUD's line (byte 84, 240-247) and
+	 * a JMP; the lists' 7-line header is shared, before list A. */
 	base = 0x7f00u + display_list_lo;
-	if ((MEMORY_mem[base + 1u] | ((unsigned) MEMORY_mem[base + 2u] << 8)) == pointer) {
-		character_top = 0u;
+	if ((MEMORY_mem[base + 85u] | ((unsigned) MEMORY_mem[base + 86u] << 8)) == pointer) {
+		character_top = 232u;
+		instruction = base + 84u;
+	}
+	else if ((MEMORY_mem[base + 1u] | ((unsigned) MEMORY_mem[base + 2u] << 8)) == pointer) {
+		character_top = 8u;
 		instruction = base;
 	}
-	else if ((MEMORY_mem[base + 4u] | ((unsigned) MEMORY_mem[base + 5u] << 8)) == pointer) {
-		character_top = 8u;
-		instruction = base + 3u;
-	}
 	else for (row = 0u; row < DFTRACE_RING_ROWS; ++row) {
-		unsigned address = MEMORY_mem[base + 7u + row * 3u] |
-			((unsigned) MEMORY_mem[base + 8u + row * 3u] << 8);
+		unsigned address = MEMORY_mem[base + 4u + row * 3u] |
+			((unsigned) MEMORY_mem[base + 5u + row * 3u] << 8);
 		if (address == pointer) {
 			character_top = 16u + row * 8u;
-			instruction = base + 6u + row * 3u;
+			instruction = base + 3u + row * 3u;
 			break;
 		}
 	}
@@ -4649,8 +4658,8 @@ static void dftrace_snapshot_engine(DFTraceFrame *frame)
 	 * intentionally include backing; these identify first final-raster hull
 	 * visibility for each character-colour bank instead. */
 	for (index = 0; index < DFTRACE_RING_ROWS; ++index) {
-		unsigned row = MEMORY_mem[display_list_base + 7u + index * 3u] |
-			((unsigned) MEMORY_mem[display_list_base + 8u + index * 3u] << 8);
+		unsigned row = MEMORY_mem[display_list_base + 4u + index * 3u] |
+			((unsigned) MEMORY_mem[display_list_base + 5u + index * 3u] << 8);
 		unsigned column;
 		for (column = 0; column < 40u; ++column) {
 			unsigned code = MEMORY_mem[row + column];
@@ -4672,11 +4681,11 @@ static void dftrace_snapshot_engine(DFTraceFrame *frame)
 	frame->engine_next_dlist_lo = MEMORY_mem[dftrace_next_dlist_lo];
 	frame->engine_row0_address = row_address;
 	frame->engine_displayed_row0_address =
-		MEMORY_mem[0x7f00u + dftrace_displayed_dlist_lo + 7u] |
-		((unsigned) MEMORY_mem[0x7f00u + dftrace_displayed_dlist_lo + 8u] << 8);
+		MEMORY_mem[0x7f00u + dftrace_displayed_dlist_lo + 4u] |
+		((unsigned) MEMORY_mem[0x7f00u + dftrace_displayed_dlist_lo + 5u] << 8);
 	frame->engine_active_row0_address =
-		MEMORY_mem[0x7f00u + frame->engine_active_dlist_lo + 7u] |
-		((unsigned) MEMORY_mem[0x7f00u + frame->engine_active_dlist_lo + 8u] << 8);
+		MEMORY_mem[0x7f00u + frame->engine_active_dlist_lo + 4u] |
+		((unsigned) MEMORY_mem[0x7f00u + frame->engine_active_dlist_lo + 5u] << 8);
 	for (index = 0; index < 8u; ++index) {
 		frame->engine_divider[index] = MEMORY_mem[0x4028u + index];
 		frame->engine_recycled[index] = MEMORY_mem[DFTRACE_RING_END - 40u + index];
@@ -5328,6 +5337,9 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 	/* M6: in the boss sector, once drawn, P1 holds the lance's reticle. */
 	unsigned reticle = dftrace_lance_y != 0u && dftrace_lance_live && dftrace_boss_active()
 		? MEMORY_mem[dftrace_lance_y] : 0u;
+	/* M6 stage 1b: in the boss sector, once drawn, P2's gauge rows are the gauges'. */
+	unsigned gauges = dftrace_gauge_level != 0u && dftrace_lance_live && dftrace_boss_active() &&
+		MEMORY_mem[(dftrace_gauge_level + 1u) & 0xffffu] != 0u;
 	for (slot = 0u; slot < 2u; ++slot) {
 		unsigned plane = 0x3d00u + slot * 0x100u;
 		unsigned live = MEMORY_mem[dftrace_enemy_member_state + slot] != 0u;
@@ -5343,6 +5355,8 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 				expected = dftrace_lance_hollow != 0u && MEMORY_mem[dftrace_lance_hollow] != 0u
 					? dftrace_lance_hollow_bytes[row - reticle]
 					: MEMORY_mem[(dftrace_lance_shape + (row - reticle)) & 0xffffu];
+			if (slot == 1u && gauges && row >= DFTRACE_GAUGE_TOP && row <= DFTRACE_GAUGE_BOTTOM)
+				continue;
 			if (MEMORY_mem[(plane + row) & 0xffffu] == expected)
 				continue;
 			++mismatch;
@@ -5487,8 +5501,8 @@ static int dftrace_interceptor_display_position(unsigned address,
 	}
 	for (row = 0u; row < DFTRACE_RING_ROWS; ++row) {
 		unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
-		unsigned pointer = MEMORY_mem[base + 7u + row * 3u] |
-			((unsigned) MEMORY_mem[base + 8u + row * 3u] << 8);
+		unsigned pointer = MEMORY_mem[base + 4u + row * 3u] |
+			((unsigned) MEMORY_mem[base + 5u + row * 3u] << 8);
 		if (address >= pointer && address < pointer + 40u) {
 			*raster_row = row + 1u;
 			*raster_column = address - pointer;
@@ -6027,8 +6041,8 @@ static void dftrace_first_writer_frame_end(void)
 			base = DFTRACE_DIVIDER_SCREEN;
 		else {
 			unsigned dlist = 0x7f00u + dftrace_displayed_dlist_lo;
-			base = MEMORY_mem[dlist + 7u + (row - 1u) * 3u] |
-				((unsigned) MEMORY_mem[dlist + 8u + (row - 1u) * 3u] << 8);
+			base = MEMORY_mem[dlist + 4u + (row - 1u) * 3u] |
+				((unsigned) MEMORY_mem[dlist + 5u + (row - 1u) * 3u] << 8);
 		}
 		if (base != DFTRACE_DIVIDER_SCREEN &&
 			!(base >= DFTRACE_RING_SCREEN && base + 40u <= DFTRACE_RING_END))
@@ -6418,8 +6432,8 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 			frame->broad_raster_row[slot] = 0u;
 		else for (display_row = 0u; display_row < DFTRACE_RING_ROWS; ++display_row) {
 			unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
-			unsigned displayed_pointer = MEMORY_mem[base + 7u + display_row * 3u] |
-				((unsigned) MEMORY_mem[base + 8u + display_row * 3u] << 8);
+			unsigned displayed_pointer = MEMORY_mem[base + 4u + display_row * 3u] |
+				((unsigned) MEMORY_mem[base + 5u + display_row * 3u] << 8);
 			if (pointer == displayed_pointer) {
 				frame->broad_raster_row[slot] = display_row + 1u;
 				break;
@@ -7890,6 +7904,7 @@ static void dftrace_init(void)
 	dftrace_lance_meter_hi = dftrace_env_optional("DFTRACE_LANCE_METER_HI");
 	dftrace_lance_trig = dftrace_env_optional("DFTRACE_LANCE_TRIG");
 	dftrace_lance_hollow = dftrace_env_optional("DFTRACE_LANCE_HOLLOW");
+	dftrace_gauge_level = dftrace_env_optional("DFTRACE_GAUGE_LEVEL");
 	if (getenv("DFTRACE_LANCE_JOURNAL") != NULL && *getenv("DFTRACE_LANCE_JOURNAL") != '\0') {
 		dftrace_lance_journal = fopen(getenv("DFTRACE_LANCE_JOURNAL"), "w");
 		if (dftrace_lance_journal == NULL) {

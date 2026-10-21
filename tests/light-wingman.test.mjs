@@ -251,7 +251,7 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // escort schedule was declared ahead of them (light_wave_lock at $7FC4).
   // tests/light-interceptor.test.mjs pins the segment itself.
   assert.deepEqual([L("light_state"), L("light_slot"), L("_enemy_profile_movement_id")],
-    [0x7fca, 0x8100, 0x8110]);
+    [0x7fcb, 0x8100, 0x8110]);   // RE-PINNED M6 stage 1b: the Light slots one byte up ($7FCA before)
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });

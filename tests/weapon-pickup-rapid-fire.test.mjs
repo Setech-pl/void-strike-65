@@ -457,7 +457,7 @@ test("weapon boosters use four proportional ANTIC 2 segments with a timer-derive
   assert.deepEqual([
     atr.hudOffset, atr.hudCells, atr.hudSegmentsOffset, atr.hudSegments,
     atr.fullCode, atr.fullGlyph,
-  ], [30, 10, 36, 4, 7, [0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0xff]]);
+  ], [30, 10, 36, 4, 7, [0xff, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30]]);   // RE-PINNED M6 stage 1b: the separator on top
   assert.deepEqual(Object.fromEntries(atr.samples.map(({ name, hudCodes }) =>
     [name, hudCodes])), {
     "100%": [7, 7, 7, 7],
@@ -519,9 +519,11 @@ test("HULL plates and the ten-cell BOOST field remain distinct at native screen 
   assert.deepEqual([
     atr.hullFullGlyph, atr.hullDamagedGlyph, atr.boosterFullGlyph,
   ], [
-    [0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e, 0xff],
-    [0, 0, 0, 0x3c, 0x42, 0x5a, 0x24, 0xff],
-    [0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0xff],
+    // RE-PINNED M6 stage 1b (journal §BK 1): the HUD is the display's last
+    // line, so its separator is the glyphs' first row (it was the eighth).
+    [0xff, 0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e],
+    [0xff, 0, 0, 0, 0x3c, 0x42, 0x5a, 0x24],
+    [0xff, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30],
   ]);
   assert.deepEqual(atr.frames.map(({ name, health, timer, boosterState,
     hullCodes, boosterCodes }) =>

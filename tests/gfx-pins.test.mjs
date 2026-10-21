@@ -42,7 +42,9 @@ const ART = Object.freeze({
   "enemy-roster.inc": "98feca26ed79abc7808423ef9ee555e69772e9d4a674a2dc341379a8da43fa40",
   "capital-hulls.inc": "6322db92f0f239635299d0869edfd1855b93c9c0f073a0a1e9b9506e0c11b175",
   "entity-effects.inc": "252d5050d327afb6df8e84fa9b270f16ffa6c7203d463533d6a91817fc736da7",
-  "fighter-weapons.inc": "461247cdb50628e35bb25659c154f306297fa844534cf9de7eed2c5aef981a94",
+  // RE-PINNED M6 stage 1b with the owner's decision §BK 1 (the HUD at the
+  // bottom): HUD_TOP / HUD_BOTTOM 8 / 16 -> 240 / 248, no art byte changed.
+  "fighter-weapons.inc": "1b01457cd77aede933543419631336993ab60ced6ea23e4c399c8ba6a73ee13c",
   "starfield.inc": "ff5ab447499777a9f54b37bbf27accc6cd2788dea40ff6fe4e79cf1f65adb4e8",
   "frontend-h31.inc": "1d2af4e7c4be78da0e3abcb4ee3c2e26708e28f73d1589c5acf05769fa4d8870",
   "loader-screen.inc": "718cd7bc49b6c21ad66e8d598e7a8d2eee6ba90d385476afd099d7dfc4e27f42",
@@ -113,7 +115,9 @@ test("the gameplay DLI's instructions are the pinned ones (comments aside)", () 
     .filter((line) => line !== "");
   assert.deepEqual(body, [
     "gameplay_dli:", "pha", "cld", "lda gameplay_dli_phase", "bne gameplay_dli_sync_hud",
-    "inc PHYSICAL_PAL_FRAME_ID", "lda PLAYFIELD_ACTIVE_DLIST_LO", "clc", "adc #$03", "sta DLISTL",
+    // RE-PINNED M6 stage 1b with the owner's decision §BK 1: the divider is a
+    // list's first byte (the lists' header is shared; it was byte three).
+    "inc PHYSICAL_PAL_FRAME_ID", "lda PLAYFIELD_ACTIVE_DLIST_LO", "clc", "adc #$00", "sta DLISTL",
     "gameplay_dli_sync_gameplay = *", "sta WSYNC",
     "lda #>CHARSET", "sta CHBASE", "lda #GAMEPLAY_COLPF0", "sta COLPF0",
     "gameplay_dli_allied_colpf1_load = *", "lda #GAMEPLAY_COLPF1", "sta COLPF1",

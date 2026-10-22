@@ -9,6 +9,18 @@ _life_kind = LEVEL_CORE_SECTOR_KIND_ADDRESS
 _life_rng = _director_c_rng_advance
 .export _asm_publish_star_pixel_and_life
 .export _life_spawned, _life_forced, _life_lives, _life_sector, _life_kind, _life_rng
+; Install once, never test phase on a pickup frame. C's LIFE policy rejects
+; BOSS sectors before RNG, including direct starts without a preceding SPACE.
+; Frozen addresses are asserted in main and the final window link. The
+; summary's existing restore table restores both bytes on leaving the boss.
+.segment "DIRECTOR_C_LOW"
+boss_pickup_install:
+    lda #<LIFE_CAPSULE_ORDINARY
+    sta LIFE_CAPSULE_SELECT_OPERAND
+    lda #>LIFE_CAPSULE_ORDINARY
+    sta LIFE_CAPSULE_SELECT_OPERAND+1
+    rts
+.export boss_pickup_install
 ; No cc65 startup or library is linked. All calls are mainline-only.
 .setcpu "6502"
 

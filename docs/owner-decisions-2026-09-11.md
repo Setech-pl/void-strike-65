@@ -3709,6 +3709,70 @@ Owner accepted merging §BO with the pre-existing `b2261c9` boss stress regressi
 
 ---
 
+## BP. boss sectors bypass LIFE selection (2026-10-22)
+
+Session: Codex.
+
+**OWNER-ACCEPTED.** Owner smoke PASS on candidate `421f5b6`, implementation
+`7a61e89`, branch `codex/boss-stress-capsule`. Marcin confirmed the forced LIFE
+capsule in the last SPACE sector, boss play with torpedoes losing their target
+mid-flight, and unchanged boss ordinary pickups.
+
+**Cause.** Stage 2 (`b2261c9`) added LIFE selection to the shared pickup-spawn
+path. On main `36de308`, Citadel L5 lost-target arrival reached **8,563 >
+8,500 cycles**, versus **8,444** at stage 1b (+119, 63 over the cap). The
+cost is paid on a spawn event, when ordinary shots complete the boss's third
+qualified kill, and can coincide with a lost-torpedo arrival. It was present
+before §BO. The isolated stress setup leaves the Director sector at SPACE and
+pays an RNG call; a real BOSS sector rejects before RNG. Eligibility rejects
+all non-SPACE kinds, including direct boss starts, independently of forced
+spawn history, respawn, collection or cap-8 suppression. A boss drop cannot
+legitimately select LIFE.
+
+**Fix.** At the once-only boss installation, retarget the shared spawn's tail
+JMP to its existing ordinary rotation. START GAME restores both operand bytes
+through the existing restore table. C retains LIFE eligibility, RNG, force and
+life-award policy. No new state, per-frame polling or per-spawn phase test;
+ordinary boss spawn is stage 1b +3 cycles, SPACE spawn 192 -> 180 cycles.
+The 11-B ASM installer uses DIRECTOR_C_LOW slack and costs 24 cycles including
+its call, once with DMA off. The summary grade-letter table moves past the
+display lists so its restore entries preserve **$0B58**.
+
+**Full four-region boss stress certification redone after §BO and the capsule
+fix.** Native 6502 cycles, worst reachable; parentheses give lost-target
+arrival. The before/after figures are the owner-smoked report's:
+
+| Scenario | Stage 1b max (lost) | Main max (lost) | Fix max (lost) | Margin to 8,500 |
+| --- | ---: | ---: | ---: | ---: |
+| R1 L1 | 7,592 (7,565) | 7,712 (7,684) | 7,596 (7,568) | 904 |
+| Citadel L4 | 8,109 (8,109) | 8,228 (8,228) | 8,112 (8,112) | 388 |
+| Citadel L5 | 8,444 (8,444) | 8,563 (8,563) | 8,447 (8,447) | 53 |
+| Spine L7 | 8,190 (8,186) | 8,191 (8,186) | 8,191 (8,186) | 309 |
+| Spine L9 | 8,445 (8,440) | 8,446 (8,440) | 8,446 (8,440) | 54 |
+| Bastion L10 | 8,477 (8,473) | 8,478 (8,473) | 8,478 (8,473) | 22 |
+
+Bastion retains **22 cycles headroom**. SPACE maximum CPU (DMA off) is
+**15,116 -> 15,116**. DIRECTOR_C_LOW **203 -> 214/245 B, 31 B free**;
+initial block **13,572 -> 13,569 B, 83 B planning slack**. Window end
+**$B8FB**, all **5 B reserved**; DIRECTOR_RAM **643/645 B**, lance **757/768 B**
+and page 4 **250/256 B** unchanged. Boss install **383/384 B** (1 B free),
+summary **1,775/1,792 B** (17 B free). No reservation change.
+
+Candidate build and 23 focused checks PASS. Fresh native ATR entry checks:
+**325/340/340/344 host frames**, zero misses, extra VBI boundaries or DLI
+errors; maximum DMA-on **28,116**, minimum fence margin **12,363**. No gate,
+contact clause or disk checksum was weakened. Pre-release runtime-evidence
+regeneration remains deferred under §BM; this is **not a release**.
+
+Accepted campaign ATR SHA-256:
+`3100d2fd504025b4fa44fc64815e5e9538f4dce863ce4a8798b441c863a48fcb`.
+[Measurements and smoke record](diagnostics/m6-capsule-stress-fix-2026-10-22/README.md).
+Owner authorized `--no-ff` merge into `main` with title
+`[codex] Merge boss stress fix: no LIFE selection in boss sectors`, and push
+of main and the task branch. No release.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

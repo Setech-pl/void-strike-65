@@ -3284,6 +3284,7 @@ boss_install:
     ; DLI phases run out of step with the lines (as start_gameplay does it).
     lda #$00
     sta DMACTL
+    jsr boss_pickup_install
     ; 1. (feat/boss-art: the divider's copy is step 7's, after boss_prepare
     ;    has read the row palette its bytes carried in the charset run.)
     ; 2. The boss's capital vector table.

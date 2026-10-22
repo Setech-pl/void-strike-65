@@ -1,0 +1,2384 @@
+{
+  "accounting": "native 6502 cycles; unchanged stage-1b stress setup; reachable <=2 meetings",
+  "rows": [
+    {
+      "region": "Citadel",
+      "level": 4,
+      "modes": {
+        "off": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 7813,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 687
+        },
+        "filling": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 7931,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 569
+        },
+        "install": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8119,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 381
+        },
+        "quarter": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8034,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 466
+        },
+        "draw": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8133,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 367
+        },
+        "idle": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8141,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 359
+        },
+        "charge": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8192,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 308
+        },
+        "swap": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8187,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 313
+        },
+        "fire": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8176,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 324
+        },
+        "dry": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8176,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 324
+        },
+        "waitEven": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8171,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 329
+        },
+        "waitOdd": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8182,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 318
+        },
+        "waitLock": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8171,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 329
+        },
+        "flyFirst": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8139,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 361
+        },
+        "fly": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 7999,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 501
+        },
+        "kill": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              12,
+              6
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8094,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 406
+        },
+        "lost": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8228,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 272
+        },
+        "blast": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8049,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 451
+        },
+        "blastEnd": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 7986,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 514
+        }
+      }
+    },
+    {
+      "region": "Citadel",
+      "level": 5,
+      "modes": {
+        "off": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8148,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 352
+        },
+        "filling": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8266,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 234
+        },
+        "install": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8454,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 46
+        },
+        "quarter": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8369,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 131
+        },
+        "draw": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8468,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 32
+        },
+        "idle": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8476,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 24
+        },
+        "charge": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8527,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -27
+        },
+        "swap": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              6,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8550,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -50
+        },
+        "fire": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              6,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8539,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -39
+        },
+        "dry": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              6,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8539,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -39
+        },
+        "waitEven": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              6,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8534,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -34
+        },
+        "waitOdd": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              6,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8534,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -34
+        },
+        "waitLock": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              1
+            ],
+            "hit": [
+              6,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8534,
+            "worstFrame": 1,
+            "gun": 5,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -34
+        },
+        "flyFirst": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8474,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 26
+        },
+        "fly": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8334,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 166
+        },
+        "kill": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              12,
+              6
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8453,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 47
+        },
+        "lost": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8563,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": -63
+        },
+        "blast": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8384,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 116
+        },
+        "blastEnd": {
+          "cases": 9856,
+          "reachable": 9856,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 32,
+            "dead": [
+              5,
+              1
+            ],
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "k": 2,
+            "finale": false,
+            "wellOn": true,
+            "cycles": 8321,
+            "worstFrame": 1,
+            "gun": 9,
+            "step": "countdown",
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 179
+        }
+      }
+    },
+    {
+      "region": "Spine",
+      "level": 7,
+      "modes": {
+        "off": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 7771,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 729
+        },
+        "filling": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 7889,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 611
+        },
+        "install": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8077,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 423
+        },
+        "quarter": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 7992,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 508
+        },
+        "draw": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8091,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 409
+        },
+        "idle": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8102,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 398
+        },
+        "charge": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8153,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 347
+        },
+        "swap": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8191,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 309
+        },
+        "fire": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8180,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 320
+        },
+        "dry": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8132,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 368
+        },
+        "waitEven": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8127,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 373
+        },
+        "waitOdd": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8140,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 360
+        },
+        "waitLock": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8175,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 325
+        },
+        "flyFirst": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8097,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 403
+        },
+        "fly": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 7957,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 543
+        },
+        "kill": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5
+            ],
+            "collapse": null,
+            "hit": [
+              0,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 7999,
+            "worstFrame": 2,
+            "gun": 6,
+            "spawned": true,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 501
+        },
+        "lost": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8186,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 314
+        },
+        "blast": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8007,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 493
+        },
+        "blastEnd": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 16,
+            "dead": [
+              5,
+              12,
+              0,
+              2
+            ],
+            "collapse": null,
+            "hit": [
+              4,
+              3
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 7944,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 556
+        }
+      }
+    },
+    {
+      "region": "Spine",
+      "level": 9,
+      "modes": {
+        "off": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8025,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 475
+        },
+        "filling": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8143,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 357
+        },
+        "install": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8331,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 169
+        },
+        "quarter": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8246,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 254
+        },
+        "draw": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8345,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 155
+        },
+        "idle": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8357,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 143
+        },
+        "charge": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8408,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 92
+        },
+        "swap": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8446,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 54
+        },
+        "fire": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8435,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 65
+        },
+        "dry": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8386,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 114
+        },
+        "waitEven": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8381,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 119
+        },
+        "waitOdd": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8394,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 106
+        },
+        "waitLock": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8430,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 70
+        },
+        "flyFirst": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8351,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 149
+        },
+        "fly": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8211,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 289
+        },
+        "kill": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": 0,
+            "hit": [
+              7,
+              8
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8136,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 364
+        },
+        "lost": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8440,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 60
+        },
+        "blast": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8261,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 239
+        },
+        "blastEnd": {
+          "cases": 48664,
+          "reachable": 18528,
+          "clashes": 0,
+          "worst": {
+            "laserMode": "warn",
+            "p": 0,
+            "dead": [
+              5,
+              12,
+              0,
+              1,
+              2,
+              3
+            ],
+            "collapse": null,
+            "hit": [
+              7,
+              4
+            ],
+            "mode": "kill",
+            "absorb": [],
+            "meetings": 2,
+            "cycles": 8198,
+            "worstFrame": 1,
+            "gun": 6,
+            "spawned": false,
+            "clashes": 0,
+            "reach": "reachable"
+          },
+          "margin": 302
+        }
+      }
+    },
+    {
+      "region": "Bastion",
+      "level": 10,
+      "modes": {
+        "off": {
+          "cases": 856,
+          "reachable": 856,
+          "clashes": 0,
+          "worst": {
+            "family": "step frame",
+            "laserMode": "warn",
+            "state": {
+              "cannonsDead": false,
+              "k": [
+                1,
+                1
+              ]
+            },
+            "hit": [],
+            "mode": "stage",
+            "k": 0,
+            "side": "left",
+            "column": 2,
+            "cycles": 8058,
+            "worstFrame": 1,
+            "gun": 8,
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 442
+        },
+        "filling": {
+          "cases": 856,
+          "reachable": 856,
+          "clashes": 0,
+          "worst": {
+            "family": "step frame",
+            "laserMode": "warn",
+            "state": {
+              "cannonsDead": false,
+              "k": [
+                1,
+                1
+              ]
+            },
+            "hit": [],
+            "mode": "stage",
+            "k": 0,
+            "side": "left",
+            "column": 2,
+            "cycles": 8176,
+            "worstFrame": 1,
+            "gun": 8,
+            "spawned": true,
+            "clashes": 0,
+            "stepped": true,
+            "reach": "reachable"
+          },
+          "margin": 324
+        }
+      }
+    }
+  ]
+}

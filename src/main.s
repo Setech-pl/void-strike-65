@@ -10475,21 +10475,26 @@ weapon_pickup_spawn_capsule_at:
     lda #WEAPON_PICKUP_SPAWN_TOP
     nop                         ; keep the reviewed packed layout stable
     sta ENTITY_Y+WEAPON_PICKUP_SLOT
-    lda #$00
-    sta ENTITY_HP+WEAPON_PICKUP_SLOT
-    jsr LIFE_CAPSULE_PICK
-    jmp @picked
-    .res 15, $00                 ; skipped padding preserves ENTITY_CODE ABI
-@picked:
+    ; Publish the pending fields before tail-dispatching type selection. The
+    ; selector's RTS now returns directly to this spawn's caller. At the boss
+    ; install only, its JMP operand selects the ordinary rotation: LIFE is
+    ; SPACE-only, so a boss spawn pays no C policy/RNG call.
     lda #WEAPON_PICKUP_PENDING_TIMER_LOAD
     sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
     lda #WEAPON_PICKUP_STATE_PENDING
     sta ENTITY_STATE+WEAPON_PICKUP_SLOT
+    lda #$00
+    sta ENTITY_HP+WEAPON_PICKUP_SLOT
+    jmp LIFE_CAPSULE_PICK
+weapon_pickup_select_operand = *-2
+    .assert weapon_pickup_select_operand = LIFE_CAPSULE_SELECT_OPERAND, lderror, "LIFE selector patch operand moved"
+    .res 18, $00                 ; unreachable; preserves ENTITY_CODE ABI
 ; The count is not complete yet, so nothing is spawned. A global label because
 ; weapon_pickup_spawn_capsule_at above it fences the cheap @locals it used to
 ; share with the branch.
 weapon_pickup_count_incomplete:
     rts
+.export weapon_pickup_select_operand
 
 .segment "STARFIELD"
 ; The relocated STARFIELD block is writable RAM. Its ten-byte backing record

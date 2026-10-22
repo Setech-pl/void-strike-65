@@ -1,0 +1,206 @@
+{
+  "scope": "Four focused native ATR entry checks, 120 rows each including the entry; diagnostic only, no release evidence regeneration",
+  "command": "node scripts/runtime-wall-trace.mjs --atari800-source=build/atari800-trace --artifacts=build/<variant> --only-session=observer-smoke --smoke-frames=1000 --active-frames=120 --smoke-difficulty=1",
+  "rows": [
+    {
+      "name": "R1",
+      "variant": "level-1-s6",
+      "artifact": {
+        "path": "build/level-1-s6/void-strike-65.atr",
+        "bytes": 92176,
+        "sha256": "4857269c7ad0df804ce5e4b036964ae18c742ca9140875f6439c840b19ac6640"
+      },
+      "entryHostFrames": 325,
+      "acceptance": {
+        "measured_frames": 119,
+        "maximum_wall_cycles": 27459,
+        "wall_ceiling": 32568,
+        "physical_headroom": 8109,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "audit": {
+        "session": "observer-smoke",
+        "frames": 119,
+        "fence_bound_frames": 119,
+        "normal_start_scanline": {
+          "fighter": 20
+        },
+        "distinct_miss_events": 0,
+        "miss_events": [],
+        "overrun_rows": 0,
+        "fence_model_disagreements": 0,
+        "shifted_phase_rows": 0,
+        "worst_pre_wait_cycles": 9923,
+        "worst_pre_wait_frame": 114,
+        "worst_fence_margin_cycles": 15052,
+        "worst_fence_margin_frame": 114,
+        "maximum_wall_cycles": 27459,
+        "rows_over_target": 0,
+        "rows_over_hard_gate": 0,
+        "unreliable_counters": {
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0
+        },
+        "fence_caught": true,
+        "gate_failures": [],
+        "passed": true
+      }
+    },
+    {
+      "name": "Citadel",
+      "variant": "boss-region-2-level-1-s6",
+      "artifact": {
+        "path": "build/boss-region-2-level-1-s6/void-strike-65.atr",
+        "bytes": 92176,
+        "sha256": "fefb460d63bcb3c10ed65545975cf3a2a26febff9f70d23ccb77ea1ae82ca0ff"
+      },
+      "entryHostFrames": 340,
+      "acceptance": {
+        "measured_frames": 119,
+        "maximum_wall_cycles": 28116,
+        "wall_ceiling": 32568,
+        "physical_headroom": 7452,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "audit": {
+        "session": "observer-smoke",
+        "frames": 119,
+        "fence_bound_frames": 119,
+        "normal_start_scanline": {
+          "fighter": 20
+        },
+        "distinct_miss_events": 0,
+        "miss_events": [],
+        "overrun_rows": 0,
+        "fence_model_disagreements": 0,
+        "shifted_phase_rows": 0,
+        "worst_pre_wait_cycles": 12612,
+        "worst_pre_wait_frame": 96,
+        "worst_fence_margin_cycles": 12363,
+        "worst_fence_margin_frame": 96,
+        "maximum_wall_cycles": 28116,
+        "rows_over_target": 0,
+        "rows_over_hard_gate": 0,
+        "unreliable_counters": {
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0
+        },
+        "fence_caught": true,
+        "gate_failures": [],
+        "passed": true
+      }
+    },
+    {
+      "name": "Spine",
+      "variant": "boss-region-3-level-1-s6",
+      "artifact": {
+        "path": "build/boss-region-3-level-1-s6/void-strike-65.atr",
+        "bytes": 92176,
+        "sha256": "1c56217efa3cb2fe876d60be76ad6a1e8168bd69ad65ef1cb567c41984e49cc4"
+      },
+      "entryHostFrames": 340,
+      "acceptance": {
+        "measured_frames": 119,
+        "maximum_wall_cycles": 27788,
+        "wall_ceiling": 32568,
+        "physical_headroom": 7780,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "audit": {
+        "session": "observer-smoke",
+        "frames": 119,
+        "fence_bound_frames": 119,
+        "normal_start_scanline": {
+          "fighter": 20
+        },
+        "distinct_miss_events": 0,
+        "miss_events": [],
+        "overrun_rows": 0,
+        "fence_model_disagreements": 0,
+        "shifted_phase_rows": 0,
+        "worst_pre_wait_cycles": 10058,
+        "worst_pre_wait_frame": 1,
+        "worst_fence_margin_cycles": 15001,
+        "worst_fence_margin_frame": 1,
+        "maximum_wall_cycles": 27788,
+        "rows_over_target": 0,
+        "rows_over_hard_gate": 0,
+        "unreliable_counters": {
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0
+        },
+        "fence_caught": true,
+        "gate_failures": [],
+        "passed": true
+      }
+    },
+    {
+      "name": "Bastion",
+      "variant": "boss-region-4-level-1-s6",
+      "artifact": {
+        "path": "build/boss-region-4-level-1-s6/void-strike-65.atr",
+        "bytes": 92176,
+        "sha256": "23368da576b6cfa9713906b5f965bb2c10d87e9503f18d47379a0d6847516791"
+      },
+      "entryHostFrames": 344,
+      "acceptance": {
+        "measured_frames": 119,
+        "maximum_wall_cycles": 27595,
+        "wall_ceiling": 32568,
+        "physical_headroom": 7973,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "audit": {
+        "session": "observer-smoke",
+        "frames": 119,
+        "fence_bound_frames": 119,
+        "normal_start_scanline": {
+          "fighter": 20
+        },
+        "distinct_miss_events": 0,
+        "miss_events": [],
+        "overrun_rows": 0,
+        "fence_model_disagreements": 0,
+        "shifted_phase_rows": 0,
+        "worst_pre_wait_cycles": 10566,
+        "worst_pre_wait_frame": 24,
+        "worst_fence_margin_cycles": 14409,
+        "worst_fence_margin_frame": 24,
+        "maximum_wall_cycles": 27595,
+        "rows_over_target": 0,
+        "rows_over_hard_gate": 0,
+        "unreliable_counters": {
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0
+        },
+        "fence_caught": true,
+        "gate_failures": [],
+        "passed": true
+      }
+    }
+  ]
+}

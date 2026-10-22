@@ -1,0 +1,11 @@
+✔ docs/memory-map.md carries exactly one generated block (1.237666ms)
+✔ the generated memory map matches the current build (73.824ms)
+✔ the generated map reports the boss claim with slot D and the misnamed STARFIELD (0.390333ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 167.079375

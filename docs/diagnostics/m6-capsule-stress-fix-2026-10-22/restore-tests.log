@@ -1,0 +1,11 @@
+✔ Q-S4: the START GAME restore names every patched setting with the shipped value (4.666709ms)
+✔ the world scroll stops in the boss sector and runs again after the START GAME restore (69.611417ms)
+✔ Q-S4: START GAME after a game ended inside the boss sector restores slot A and every setting, CHBASE too (42.003666ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 278.163417

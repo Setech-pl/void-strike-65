@@ -49,3 +49,51 @@ test("the shared capsule spawn skips ABI padding and keeps the ordinary rotation
   assert.equal(h.memory[h.label("ENTITY_TYPE") + 2], 0);
   assert.equal(h.memory[h.label("ENTITY_STATE") + 1], 1, "spawn reaches its pending-state publication");
 });
+
+test("SPACE LIFE rolls remain one in four and never consume the ordinary rotation", () => {
+  for (let seed = 0; seed < 4; seed += 1) {
+    const h = harness();
+    h.memory[h.label("_life_spawned")] = 0;
+    h.memory[h.label("_life_lives")] = 3;
+    h.memory[h.label("_life_sector")] = 0;
+    h.memory[h.label("_life_kind")] = 0;
+    h.memory[0x80fb] = seed; // Director's existing RNG state.
+    h.memory[h.label("ENTITY_TYPE") + 2] = 2;
+    h.run("weapon_pickup_spawn_capsule_at");
+    const life = seed === 3;
+    assert.equal(h.memory[0x80fb], seed * 5 + 1, "one RNG draw per eligible spawn");
+    assert.equal(h.memory[h.label("ENTITY_TYPE") + 1], life ? 3 : 2);
+    assert.equal(h.memory[h.label("ENTITY_TYPE") + 2], life ? 2 : 0);
+    assert.equal(h.memory[h.label("_life_spawned")], life ? 1 : 0);
+    assert.equal(h.memory[h.label("ENTITY_STATE") + 1], 1);
+  }
+});
+
+test("forced LIFE, its cap suppression and later SPACE retry preserve the once-per-level rule", () => {
+  const h = harness();
+  const m = h.memory;
+  m[h.label("_life_spawned")] = 0;
+  m[h.label("_life_sector")] = 0;
+  m[h.label("_life_kind")] = 0x40;
+  m[h.label("_life_lives")] = 8;
+  m[0x80fb] = 3;
+  h.run("life_enter");
+  assert.equal(m[h.label("_life_spawned")], 0, "suppression never spends the latch");
+  assert.equal(m[h.label("ENTITY_STATE") + 1], 0, "cap 8 injects no pickup");
+  m[h.label("_life_lives")] = 7;
+  h.run("weapon_pickup_spawn_capsule_at");
+  assert.equal(m[h.label("ENTITY_TYPE") + 1], 3, "a later eligible SPACE roll still works");
+  assert.equal(m[h.label("_life_spawned")], 1);
+  m[h.label("_life_lives")] = 6;
+  h.run("life_enter");
+  assert.equal(m[0x80fb], 16, "an uncollected LIFE's latch prevents another attempt");
+
+  m[h.label("_life_spawned")] = 0;
+  m[h.label("ENTITY_TYPE") + 2] = 2;
+  h.run("life_enter");
+  assert.equal(m[h.label("ENTITY_TYPE") + 1], 3, "last SPACE forces the rescue capsule");
+  assert.equal(m[h.label("ENTITY_TYPE") + 2], 2, "force preserves ordinary rotation");
+  assert.equal(m[0x80fb], 16, "force draws no RNG");
+  h.run("life_collect");
+  assert.equal(m[h.label("_life_lives")], 7, "pickup awards one life");
+});

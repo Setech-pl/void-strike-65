@@ -1316,3 +1316,138 @@ work under §BM; no release is made here.
   sector index 5 is the sixth and last SPACE sector.
 
 Full [build report](../diagnostics/m6-life-capsule-2026-10-22/option-a-candidate.md).
+
+
+## Stage 1c — fire only with lock (§BO)
+
+2026-10-22, Session: Codex. Plan before implementation, branch
+`codex/m6-lance-lock`, baseline `fea4cc8`. Owner approval is required after
+building; this section does not claim acceptance.
+
+At 50 charge frames, a locked reticle launches with the existing homing
+behaviour. An empty reticle (gap, powered Spine field or any other non-target)
+waits while the existing FIRE + UP gesture stays held; the first locked frame
+launches. Releasing cancels through the existing release-to-refire path,
+retaining the lance without penalty. Ordinary fire remains disabled and aiming
+movement stays horizontal full speed, forward half speed. The meter stays full;
+no new graphics or sounds. Flight, explosion, eligible targets, lost-target
+behaviour and the 50-frame post-launch ordinary-fire hold remain unchanged.
+
+**Approved state interpretation:** lance_charge = 50 persists while held and
+unlocked; movement parity uses the frame counter during the wait.
+`lance_charge` is lance BSS (baseline `$BBF8`), not zero page. No new state
+byte; the lance zero-page range is `$B6–$C3`, unchanged.
+
+### Reader/writer audit before code
+
+| Production use | Persistent 50 |
+| --- | --- |
+| `lance_c_aim` increment and launch | Saturate at 50; launch requires charge == 50 AND target lock. |
+| `lance_c_aim` release | Existing zero assignment retained, including release after a long wait. |
+| `lance_c_aim` blink return | Return lit while waiting: the empty reticle remains visible. |
+| `lance_aim` colour ramp | `(50 + 7) / 8 = 7`, valid final ramp entry. |
+| `lance_aim` ordinary-fire gate | Nonzero charge shuts the gate; 50 is safe. |
+| `lance_aim` movement operand | Use existing frame counter at 50, preserving alternating forward movement. |
+| `lance_meter` readiness-off write | Death or boss phase end clears charge and restores PORTA, once readiness turns off. |
+| Boss entry / re-entry | Disk run reloads zero-filled LANCE_BSS; install clears `$B6–$C3`. |
+| START GAME / space / level transition | Existing boss restore restores input patches; no space reader of charge; next boss reload clears BSS. |
+| HUD gauge | Reads the separate meter, not charge; full throughout wait. |
+
+The source search finds no other production reader/writer. Host tests and
+trace readers must understand a persistent 50; trace clauses are not weakened.
+
+### Placement and timing estimate
+
+Policy stays in `src/c/lance.c`, hardware execution in `src/hybrid/lance.s`.
+Remove the straight-launch setup: its only caller is the charge-completion
+trigger. Retain flight/arrival guards for now so post-launch behaviour is
+unchanged. The removed launch setup saves 22 B (including its branch/jump
+and unused band-foot preparation); policy and movement estimated +20–27 B,
+net −2…+5 B in slot G (baseline 763/768). Page 4 stays 250/256;
+window end stays `$B8FB` (5 B reserved below `$B900`); start content stays
+13,572 B (80 B planning slack); DIRECTOR_RAM stays 643/645;
+DIRECTOR_C_LOW stays 203/245. No memory moves or reservation changes.
+
+Cycle impact is an ESTIMATE pending native stress: saturation/lock and
+movement selection add bounded aim-only work, offset on launch by removing
+straight-launch selection. No new work in filling, flight or explosion;
+frame-counter reads only in the fully charged wait. Check all four regions
+with the stage 1b compositions and both wait parities/reticle transitions.
+Bastion must remain <= 8,480 cycles (>= 20 margin to 8,500).
+
+Validation: candidate build with computed gates (§BM), focused lance behaviour
+checks and four-region boss stress. No full test chain or wall-trace. Boss-entry
+transport remains unchanged; distinguish historical emulator frames from new
+measurements. Deliver an ATR with SHA-256 filename for owner smoke, then stop.
+
+
+### Stage 1c implementation checkpoint — BLOCKED_BOSS_STRESS
+
+The approved policy is implemented and the candidate build succeeds, but this
+is **not an OWNER-SMOKE CANDIDATE**. Clean `main` `fea4cc8`, measured in a
+temporary detached worktree, already reaches **8,563 cycles** on Citadel L5's
+lost-target arrival. This implementation measures **8,563** on the same case:
+**63 cycles over the 8,500 cap**, outside the new trigger path. The historical
+stage 1b figure 8,444 is 119 cycles lower than today's baseline. No limit or
+contact clause was changed. The broad stress run was stopped after the narrow
+A/B confirmed this blocker; the complete four-region certification is pending.
+
+Measured lance run **763 -> 757/768 B**, page 4 **250 -> 250/256 B**, BSS
+**5 -> 5 B**, zero page **14 -> 14 B**. Window end **$B8FB** unchanged.
+No start-block, DIRECTOR_RAM, DIRECTOR_C_LOW or reservation change. Straight
+launch setup removed; defensive flight/arrival guards retained, with lost-target
+flight semantics unchanged. Bastion measured fire **8,467**, swap **8,478**
+(22 margin), waits even/odd **8,414 / 8,397**, delayed lock **8,462**.
+R1 complete state sweep **7,711 -> 7,712** (788 margin).
+
+All 34 focused lance tests pass, including persistent-50 cancellation, both
+movement parities, first-lock homing, sound silence, no ordinary fire, and
+readiness-off cleanup. The combined run reports 35 passes and one failure:
+the already stale runtime-evidence binding, deferred by §BM. Two old unlocked
+launch expectations were updated for §BO and the obsolete pre-life-capsule
+160-byte window expectation now pins the owner's reserved 5 bytes.
+
+Evidence: [result and logs](../diagnostics/m6-lance-lock-2026-10-22/result.json).
+Recovery needed: identify and recover at least **63 cycles** in the existing
+Citadel L5 composition, without weakening any gates. No owner acceptance,
+merge, push or new entry-timing claim. Implementation retained on the task
+branch as an experimental checkpoint; STATUS remains the accepted baseline.
+
+
+### Stage 1c as built — OWNER-ACCEPTED (2026-10-22)
+
+Owner smoke **PASS on `aeaf440`**: lock-only firing, waiting while held,
+cancellation on release, Spine field wait and ordinary-fire lockout all behave
+as specified. Owner authorized merge into main with `--no-ff` and push of
+main and `codex/m6-lance-lock`. This acceptance supersedes the earlier blocked
+checkpoint above; no boss-stress fix is part of §BO.
+
+C saturates `lance_charge` at **50**: that value persists while the gesture is
+held without a lock. The first locked frame launches; release resets charge
+through the existing cancellation path. During the wait, ASM uses the existing
+frame counter for movement parity, preserving half-speed forward movement and
+full horizontal speed. The HUD meter stays full. No new state byte; lance
+zero page remains **`$B6–$C3`**. Straight-launch setup removed; flight/arrival
+guards and lost-target behaviour retained. Gameplay implementation is `d165927`.
+
+Measured resources: lance **763 -> 757/768 B**, page 4 **250/256 B**, lance
+BSS **5 B**, zero page **14 B**, window end **$B8FB** (all 5 B reserved),
+initial content **13,572 B** (80 B planning slack), DIRECTOR_RAM **643/645 B**,
+DIRECTOR_C_LOW **203/245 B**. Reservations unchanged. Bastion maximum measured
+**8,478 cycles** (22 margin), waits even/odd **8,414 / 8,397**, delayed lock
+**8,462**; R1 **7,711 -> 7,712**. Build gates pass; all 34 focused lance tests
+pass. No new full four-region certification or wall-trace. Boss-entry transport
+unchanged; historical entry frames **325/340/340/344**, not remeasured here.
+
+**Known debt, owner-authorized merge exception:** regression in `b2261c9`,
+Citadel L5 lost-target **8,444 at `35499ba` -> 8,563**, identical on pre-§BO
+main and §BO. R1 pre-§BO worst **7,592 -> 7,711** remains within cap. Fix in
+a separate task before the window levers; release blocked until fixed.
+[Classification](../diagnostics/m6-lance-lock-2026-10-22/classification.md).
+
+The default candidate and four existing sector-6 debug routes build; ATR paths,
+launch commands and hashes are in the historical
+[candidate manifest](../diagnostics/m6-lance-lock-2026-10-22/candidate.json).
+Accepted campaign ATR SHA-256:
+`ce0167bba2be5c9ff1ab2c6e770aec7e16c0876479e5860497b2efea66700272`.
+Release evidence regeneration remains due under §BM.

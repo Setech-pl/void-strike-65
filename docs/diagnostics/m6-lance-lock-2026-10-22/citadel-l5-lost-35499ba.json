@@ -1,0 +1,53 @@
+{
+  "commit": "35499ba",
+  "matched": [
+    {
+      "laserMode": "warn",
+      "p": 32,
+      "dead": [
+        5,
+        1
+      ],
+      "hit": [
+        0,
+        4
+      ],
+      "mode": "kill",
+      "k": 2,
+      "finale": false,
+      "wellOn": true,
+      "cycles": 8444,
+      "worstFrame": 1,
+      "gun": 9,
+      "step": "countdown",
+      "spawned": true,
+      "clashes": 0,
+      "stepped": true,
+      "reach": "reachable"
+    }
+  ],
+  "worst": {
+    "laserMode": "warn",
+    "p": 32,
+    "dead": [
+      5,
+      1
+    ],
+    "hit": [
+      0,
+      4
+    ],
+    "mode": "kill",
+    "k": 2,
+    "finale": false,
+    "wellOn": true,
+    "cycles": 8444,
+    "worstFrame": 1,
+    "gun": 9,
+    "step": "countdown",
+    "spawned": true,
+    "clashes": 0,
+    "stepped": true,
+    "reach": "reachable"
+  }
+}

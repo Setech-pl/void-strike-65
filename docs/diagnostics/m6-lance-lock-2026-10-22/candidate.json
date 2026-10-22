@@ -1,0 +1,55 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "implementation": "d165927",
+  "classification": "a685a6e",
+  "knownDebt": "Citadel L5 lost-target 8563 cycles; regression in b2261c9; unchanged by \u00a7BO; owner permits smoke and subsequent merge after acceptance; release blocked until separate fix",
+  "artifacts": [
+    {
+      "name": "campaign",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/campaign-ce0167bba2be.atr",
+      "sha256": "ce0167bba2be5c9ff1ab2c6e770aec7e16c0876479e5860497b2efea66700272",
+      "buildOptions": [],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/campaign-ce0167bba2be.atr"
+    },
+    {
+      "name": "r1",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r1-ce510ec3acfc.atr",
+      "sha256": "ce510ec3acfcf2dd2c7dd75c009849fe8bd06641996c251043de727702d179cc",
+      "buildOptions": [
+        "--level=1:sector=6"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r1-ce510ec3acfc.atr"
+    },
+    {
+      "name": "r2",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r2-93caa2f7c108.atr",
+      "sha256": "93caa2f7c108a47d91924c618099f6f094da56724d5fabfd4605f122c8d126e6",
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=2"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r2-93caa2f7c108.atr"
+    },
+    {
+      "name": "r3",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r3-6fededb7f47b.atr",
+      "sha256": "6fededb7f47b53d927ff46f32aaafe1f5e09b291d73d3177b0809a558e941bbd",
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=3"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r3-6fededb7f47b.atr"
+    },
+    {
+      "name": "r4",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r4-675f4f009cec.atr",
+      "sha256": "675f4f009cec15ac8c96eae0afc1b4f549c86f46805e782c1adf03e74faec40f",
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=4"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-lance-lock/r4-675f4f009cec.atr"
+    }
+  ],
+  "validation": "Candidate build passed; no new full certification. Reuses focused tests and stress in result.json. Direct-start variants are smoke conveniences, not independently certified gameplay builds."
+}

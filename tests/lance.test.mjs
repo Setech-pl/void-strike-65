@@ -214,7 +214,7 @@ test("M6 (decision BD 6): the build fails when the window's record grows into th
   const layout = { windowEnd: lance.windowEnd, address: lance.address, bytes: lance.capacityBytes, used: lance.bytes,
     sector: lance.startSector, sectors: lance.sectors, reservationEnd: lance.startSector + lance.sectors };
   const { windowSlack } = checkLanceLayout(layout);
-  assert.ok(windowSlack >= 160, `the window keeps ${windowSlack} B to grow (the life capsule's 125-160 B)`);
+  assert.equal(windowSlack, 5, "§BO reserves all five bytes below the lance");
   assert.doesNotThrow(() => checkLanceLayout({ ...layout, windowEnd: lance.address }));
   assert.throws(() => checkLanceLayout({ ...layout, windowEnd: lance.address + 1 }), /BD 6.*inside the lance's RAM/);
   assert.throws(() => checkLanceLayout({ ...layout, used: lance.capacityBytes + 1 }), /lands in/);
@@ -317,7 +317,7 @@ test("M6 (decision BH 1): level-triggered - FIRE held 200 frames (its gate shut)
       assert.equal(memory[lbl("lance_beam")], 0);
     }
     tick(memory);
-    assert.equal(memory[lbl("lance_beam")], 1, `${where}: the charge's last frame fires`);
+    assert.equal(memory[lbl("lance_beam")], where === "target" ? 1 : 0, `${where}: §BO requires a lock`);
   }
 });
 
@@ -334,7 +334,7 @@ test("M6 (decision BH 1): the column under the ship changing - target, empty, an
       tick(memory);
       if (f < CHARGE) assert.equal(memory[lbl("_lance_charge")], f, `${end}: frame ${f}, column ${columnOfShip(memory, memory[main("player_x")] + 8)}`);
     }
-    assert.equal(memory[lbl("lance_beam")], 1, `${end}: fired on the charge's last frame`);
+    assert.equal(memory[lbl("lance_beam")], end === "target" ? 1 : 0, `${end}: §BO requires a lock`);
     hold(memory, false);
     for (let f = 0; f < 400 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
     tick(memory);                                         // a kept lance: shown again from this frame
@@ -342,61 +342,52 @@ test("M6 (decision BH 1): the column under the ship changing - target, empty, an
   }
 });
 
-// Journal §BH 3: with no module under the ship on the fire frame the beam
-// still fires (up to the mark's line) - but the lance is not spent: the meter
-// stays full, the indicator on, nothing of the boss touched.
-test("M6 (decision BH 3): a shot with no target - the beam fires through the mark to the band's foot and ends; the lance kept (the meter full, the indicator on), the boss untouched", () => {
+// §BO: exercise a long wait beyond byte wrap, both movement parities,
+// cancellation and the first lock, through the actual boss tick in all regions.
+test("M6 §BO: persistent charge waits, cancels or launches on the first lock", () => {
   for (const directory of [1, 4, 3, 2]) {
-    const { memory } = fight(directory);
-    const c = emptyColumns(memory)[0];
-    assert.notEqual(c, undefined, `directory ${directory}: no empty column in reach`);
-    standUnder(memory, c);
-    memory[main("sound_enabled")] = 1;
-    const before = hpOf(memory);
-    const score = [memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]];
-    hold(memory);
-    for (let f = 0; f < CHARGE; f += 1) tick(memory);
-    assert.equal(memory[lbl("lance_beam")], 1, `directory ${directory}: the beam fires`);
-    assert.equal(memory[lbl("lance_top")], memory[lbl("lance_y")] - 1, "up through the mark to the band's foot");
-    assert.equal(memory[READY], 0xff, "the lance kept");
-    assert.equal(meterOf(memory), METER[1], "the meter full");
-    assert.equal(memory[COLPM0], 0xca, "the ship green");
-    hold(memory, false);
-    const p0 = [...memory.subarray(P0, P0 + SHIP_Y)];
-    let frames = 0, last = null;
-    while (memory[lbl("lance_beam")] !== 0) {
-      const writes = new Map();
-      last = memory[lbl("lance_head")];
-      tick(memory, { write: (address, value) => { writes.set(address, value); } });
-      // No kill's tick, no cue; the beam's last frame gives the discharge's
-      // channel back to the engine bed (journal §BI 2).
-      if (memory[lbl("lance_beam")] === 0) assert.deepEqual([writes.get(AUDF3), writes.get(AUDC3)], [BED_AUDF, BED_AUDC], "the bed back");
-      else assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), "no kill's tick, no cue");
-      assert.equal(meterOf(memory), METER[1], `beam frame ${frames}: the meter stays full`);
-      // The torpedo's last frame (a miss): the lance shown again from the next frame (lance_indicate).
-      assert.equal(memory[READY], memory[lbl("lance_beam")] === 0 ? 0 : 0xff, `beam frame ${frames}: still ready`);
-      frames += 1;
-      assert.ok(frames < 400, "the torpedo never ended");
+    for (const cancel of [false, true]) {
+      const { memory } = fight(directory);
+      standUnder(memory, emptyColumns(memory)[0]);
+      const before = hpOf(memory);
+      hold(memory);
+      for (let f = 0; f < CHARGE + 300; f += 1) {
+        memory[main("frame_counter")] = f & 255;
+        const writes = new Set();
+        tick(memory, { write: (a) => writes.add(a) });
+        assert.equal(memory[lbl("_lance_charge")], Math.min(f + 1, CHARGE));
+        assert.equal(memory[lbl("lance_beam")], 0);
+        assert.equal(memory[GATE], 0);
+        assert.equal(meterOf(memory), METER[1]);
+        assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), "no discharge while waiting");
+        if (f >= CHARGE - 1) {
+          assertMark(memory, false, `region ${directory}, wait ${f}`);
+          assert.equal(memory[COLPM0], rampColour(CHARGE));
+          const operand = memory[main("read_input") + 1] | memory[main("read_input") + 2] << 8;
+          assert.equal(operand, f % DIVISOR ? lbl("lance_stick") : STICK0);
+        }
+      }
+      assert.deepEqual(hpOf(memory), before);
+      if (cancel) {
+        hold(memory, false);
+        tick(memory);
+        assert.equal(memory[lbl("_lance_charge")], 0);
+        assert.equal(memory[READY], 255);
+        assert.equal(meterOf(memory), METER[1]);
+        hold(memory);
+        tick(memory);
+        assert.equal(memory[lbl("_lance_charge")], 1, "a fresh charge after cancel");
+        memory[lbl("_lance_charge")] = CHARGE;
+      }
+      standUnder(memory, targetColumn(memory));
+      tick(memory);
+      assert.equal(memory[lbl("lance_beam")], 1, "first locked frame fires");
+      assert.equal(memory[lbl("_lance_charge")], 0);
+      const module = memory[lbl("_lance_module")];
+      hold(memory, false);
+      for (let f = 0; f < 400 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
+      assert.equal(memory[lbl("_boss_hp") + module], 0, "homing shot kills its lock");
     }
-    assert.ok(last - STEP <= memory[lbl("lance_top")], `the torpedo reached the band's foot (its last line ${last})`);
-    assert.deepEqual(hpOf(memory), before, "a module's HP changed");
-    assert.deepEqual([memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]], score, "scored");
-    // P0 untouched; the torpedo gone from P2 (P1: the reticle's rows only,
-    // back on the next frame).
-    assert.deepEqual([...memory.subarray(P0, P0 + SHIP_Y)], p0, "P0 above the ship untouched");
-    for (let y = 0; y < 256; y += 1) assert.equal(memory[P2 + y], 0, `P2 row ${y} left`);
-    // Still one lance: shown again the next frame (the reticle's rows, the
-    // cue), aiming the frame after (the hollow mark); a charge over a target
-    // spends it.
-    tick(memory);
-    assert.equal(memory[READY], 0xff, "the lance shown again");
-    tick(memory);
-    assertMark(memory, false, `directory ${directory} after the dry shot`);
-    const t = targetColumn(memory);
-    const module = front(memory, t);
-    const { after } = shoot(memory, t);
-    assert.equal(after[module], 0, "the kept lance kills");
-    assert.equal(memory[READY], 0, "and is spent");
   }
 });
 
@@ -440,8 +431,9 @@ test("M6 (decision BH 1): the ship's upper limit (and a side) reached with the g
         if (f < CHARGE) assert.equal(memory[lbl("_lance_charge")], f, `${name}: frame ${f} (y ${memory[main("player_y")]})`);
       }
       assert.equal(memory[main("player_y")], floorValue, `${name}: the ship at its upper limit`);
-      assert.equal(memory[lbl("lance_beam")], 1, `${name}: fired at the limit`);
-      assert.ok(memory[lbl("lance_top")] < floorValue, `${name}: the beam's top ${memory[lbl("lance_top")]} above the ship`);
+      const fired = memory[lbl("lance_beam")] !== 0;
+      assert.equal(memory[lbl("_lance_charge")], fired ? 0 : CHARGE, `${name}: fired or fully charged at the limit`);
+      if (fired) assert.ok(memory[lbl("lance_top")] < floorValue, `${name}: torpedo top above the ship`);
       const ship = [...memory.subarray(P0 + floorValue, P0 + floorValue + 16)];
       let frames = 0;
       while (memory[lbl("lance_beam")] !== 0) { step(memory, 0, false); frames += 1; assert.ok(frames < 400, `${name}: the torpedo never ended`); }
@@ -478,7 +470,8 @@ function controlStep(memory, stick, fire = true) {
   m[FLOOR] = floorValue;
   return step(m, stick, fire);
 }
-const slowFrame = (memory) => memory[lbl("_lance_charge")] % DIVISOR !== 0;
+const slowFrame = (memory) => (memory[lbl("_lance_charge")] === CHARGE
+  ? memory[main("frame_counter")] : memory[lbl("_lance_charge")]) % DIVISOR !== 0;
 
 // Journal §BL 4 (the owner's smoke of stage 1b; it replaces decision BF 2's
 // every-direction rule, which the owner calls a wrong design decision): while
@@ -753,7 +746,8 @@ for (const directory of [1, 4, 3, 2]) {
       const before = hpOf(m);
       hold(m);
       for (let f = 0; f < CHARGE; f += 1) tick(m);
-      assert.equal(m[lbl("lance_beam")], 1, "the beam fires (decision BH 3)");
+      assert.equal(m[lbl("lance_beam")], 0, "§BO: exposed core is not a lock");
+      assert.equal(m[lbl("_lance_charge")], CHARGE);
       hold(m, false);
       for (let f = 0; f < 400 && m[lbl("lance_beam")] !== 0; f += 1) tick(m);
       assert.equal(m[lbl("lance_beam")], 0, "the torpedo ended");
@@ -991,9 +985,10 @@ test("M6 (decision BI 2): the charge's ramp - the green from luminance 4 to near
     assert.equal(new Set(seen).size, 6, "six luminances: 4, 6, 8, A, C, E");
     // The fire frame: the green (journal §BL 5: the lance is spent at the
     // kill); after the torpedo: a kill the white, a miss the green.
-    assert.equal(memory[lbl("lance_beam")], 1);
-    assert.equal(memory[COLPM0], 0xca, `${where}: the fire frame's colour`);
+    assert.equal(memory[lbl("lance_beam")], where === "target" ? 1 : 0);
+    assert.equal(memory[COLPM0], where === "target" ? 0xca : rampColour(CHARGE), `${where}: launch or wait colour`);
     hold(memory, false);
+    tick(memory);
     for (let f = 0; f < 400 && memory[lbl("lance_beam")] !== 0; f += 1) tick(memory);
     assert.equal(memory[COLPM0], where === "target" ? 0x0e : 0xca, `${where}: the colour after the torpedo`);
   }
@@ -1019,13 +1014,13 @@ test("M6 (decision BI 2): the discharge - noise on channel 3 from the fire frame
       for (let f = 1; f <= CHARGE; f += 1) {
         const writes = new Map();
         tick(memory, { write: (address, value) => { writes.set(address, value); } });
-        if (f === CHARGE && sound) {
+        if (f === CHARGE && sound && where === "target") {
           assert.deepEqual([writes.get(AUDF3), writes.get(AUDC3)], [SHOT_AUDF, SHOT_AUDC], `${name}: the discharge`);
         } else {
           assert.ok(!writes.has(AUDF3) && !writes.has(AUDC3), `${name}, frame ${f}: channel 3 written`);
         }
       }
-      assert.equal(memory[lbl("lance_beam")], 1);
+      assert.equal(memory[lbl("lance_beam")], where === "target" ? 1 : 0);
       assert.equal(memory[lbl("boss_tick_timer")], 0, `${name}: the discharge holds no timer`);
       hold(memory, false);
       // The beam's frames, each followed by the frame's timers (boss_update's).
@@ -1064,6 +1059,7 @@ test("M6 (decisions BG 4, BH 2): readiness off - dying or the fight over: no mar
         hold(memory);
         for (let f = 0; f < 5; f += 1) tick(memory);         // charging: 5, a slow frame's operand
         assert.equal(memory[lbl("_lance_charge")], 5);
+        memory[lbl("_lance_charge")] = CHARGE; // §BO: cleanup of a persistent full charge
         hold(memory, held);
         if (off === "dying") memory[main("PLAYER_LIFECYCLE")] = 1; else memory[lbl("_boss_phase")] = 1;
         const name = `${off}, ${where}, gesture ${held ? "held" : "released"}`;

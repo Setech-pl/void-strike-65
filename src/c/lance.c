@@ -7,10 +7,10 @@
  * difficulty as the boss's hit points are - x 3/4 on EASY, x 5/4 on HARD);
  * full, ONE lance is ready (no stacking). Then FIRE held with the stick held
  * up for LANCE_CHARGE_FRAMES, whatever is under the ship (journal §BH 1) -
- * and a torpedo fires (journal §BL 5), locked on the module under the ship:
+ * and a torpedo fires only with a lock (§BO), otherwise waiting at full charge:
  * over a module a player shot would hurt it destroys that one module, and
- * only that kill empties the meter; over none, or with the module destroyed
- * on the torpedo's way, nothing is hit and the lance is kept (§BH 3). The
+ * only that kill empties the meter; with the module destroyed on the
+ * torpedo's way, nothing is hit and the lance is kept (§BH 3). The
  * ordinary fire is never changed (journal §BE; the gesture, §BF); while the
  * charge builds the ship advances at 1 / LANCE_CHARGE_UP_DIVISOR of its speed
  * and moves sideways at full speed (journal §BL 4: src/hybrid/lance.s reads
@@ -66,8 +66,8 @@ extern uint8_t lance_module;
  * lit (not the charge's blink's dark frames, two of four), bit 1 a target
  * under the ship (the crosshair at its centre; without, the hollow mark at
  * the ship's column - journal §BH 2), bit 2 the torpedo fires (with bit 1:
- * locked on lance_module, the lance spent by its kill; without: to the band's
- * foot, the lance kept). */
+ * locked on lance_module, the lance spent by its kill; §BO never returns
+ * FIRE without TARGET). */
 #define LANCE_LIT       1u
 #define LANCE_TARGET    2u
 #define LANCE_FIRE      4u
@@ -83,8 +83,8 @@ static const uint8_t lance_full_hi[3] = {
 /* The meter: boss frames filled since the entry or the last shot. */
 uint8_t lance_meter_lo;
 uint8_t lance_meter_hi;
-/* Frames the gesture has been held over a target; 0 when not charging (the
- * ship's full speed, src/hybrid/lance.s). */
+/* Charge frames: 0 idle, 1..49 charging, 50 fully charged while held and
+ * unlocked (§BO). During the wait ASM uses frame_counter for movement parity. */
 uint8_t lance_charge;
 /* In: 0 while FIRE and the stick's up are both held this frame
  * (src/hybrid/lance.s). */
@@ -116,9 +116,9 @@ uint8_t lance_c_fill(void)
  * powered field), and never the core (decision BD, §AE 1); the tick passes
  * $FF for none. The charge builds whatever is under the ship and however
  * that changes (journal §BH 1: FIRE + UP held, level-triggered); only
- * releasing the gesture before the last frame cancels it. On the last frame
- * the target decides: one - the torpedo locks it (its kill empties the
- * meter); none - the torpedo flies and the lance is kept (§BH 3). */
+ * releasing the gesture cancels it, including at full charge. At 50 frames
+ * the target decides: one - launch locked; none - persist at 50 until a lock
+ * or release (§BO). The HUD meter remains full until a successful kill. */
 uint8_t lance_c_aim(void)
 {
     lance_target = 0u;
@@ -129,10 +129,15 @@ uint8_t lance_c_aim(void)
         lance_charge = 0u;
         return lance_target | LANCE_LIT;
     }
-    ++lance_charge;
+    if (lance_charge != LANCE_CHARGE_FRAMES) {
+        ++lance_charge;
+    }
     if (lance_charge == LANCE_CHARGE_FRAMES) {
+        if (lance_target == 0u) {
+            return LANCE_LIT;              /* §BO: charged, waiting for a lock */
+        }
         lance_charge = 0u;                   /* the torpedo fires: the kill spends the lance (§BL 5) */
-        return lance_target | LANCE_FIRE;
+        return LANCE_TARGET | LANCE_FIRE;    /* lock proved above */
     }
     return lance_target | (((lance_charge >> 1) & 1u) ^ LANCE_LIT);
 }

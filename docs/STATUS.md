@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-22 (M6 stage 2 — the +1 life capsule, look A and placement A — **OWNER-ACCEPTED**, owner play test PASS on `b2261c9`; journal §BN)
+Last update: 2026-10-22 (M6 stage 1c — lance fire-only-with-lock — **OWNER-ACCEPTED**, owner smoke PASS on `aeaf440`, merged into main; journal §BO)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,31 @@ the values below.
 ---
 
 ## Checkpoint
+
+
+### M6 stage 1c — lance fire-only-with-lock (§BO), merged
+
+**OWNER-ACCEPTED**, owner smoke PASS on `aeaf440` (2026-10-22), merged from
+`codex/m6-lance-lock` with the owner-authorized `--no-ff` merge. At full charge
+an empty reticle waits while held; first lock fires, release cancels and keeps
+the lance. Spine field wait and ordinary-fire lockout passed owner smoke.
+`lance_charge = 50` persists during the wait; movement parity uses the existing
+frame counter. No new state byte; zero page remains `$B6–$C3`. Straight-launch
+setup removed. Plan: [stage 1c](plans/m6-void-lance.md#stage-1c--fire-only-with-lock-bo).
+
+Resources: lance **757/768 B** (−6 B), page 4 **250/256 B**, window end
+**$B8FB** (5 B reserved), initial content **13,572 B** (80 B planning slack),
+DIRECTOR_RAM **643/645 B**, DIRECTOR_C_LOW **203/245 B**. Bastion measured
+maximum **8,478 cycles** (22 margin); §BO R1 maximum **7,712**. Candidate build
+passed and all 34 focused lance tests passed; no new full certification.
+ATR SHA-256 `ce0167bba2be5c9ff1ab2c6e770aec7e16c0876479e5860497b2efea66700272`.
+
+**KNOWN DEBT:** Boss stress regression +119 cycles from b2261c9 (life-capsule
+selection in the shared pickup-spawn path): Citadel L5 lost-target 8,563 >
+8,500 cap (−63); R1 worst 7,592 → 7,711 (within cap). Not caused by §BO.
+Fix in a separate task before the window levers; release blocked until fixed.
+The R1 figures in this debt compare stage 1b with pre-§BO main; §BO itself
+measures 7,712. [Classification and measurements](diagnostics/m6-lance-lock-2026-10-22/classification.md).
 
 ### Repository HEAD
 
@@ -7403,14 +7428,14 @@ Interceptor (Light, character-rendered).
 
 ## Current task
 
-M6 stage 2 is **OWNER-ACCEPTED** after the owner's play test of `b2261c9`:
-look A, placement A; journal §BN. Finalization records this checkpoint and
-merges it into main with the owner-authorized merge commit and push.
+M6 stage 1c is **OWNER-ACCEPTED**, owner smoke PASS on `aeaf440`:
+lance fire-only-with-lock (§BO), merged into main. Finalization includes the
+owner-authorized merge and push of main and `codex/m6-lance-lock`.
 
-**NEXT TASK:** await the owner's next task. The M3-H resource inventory is
-in the current M6 stage-2 section above. No next roadmap item is started.
-Runtime evidence regeneration and the default full verification remain
-required before the next release (§BM); this checkpoint is not a release.
+**NEXT TASK:** await the owner's next task. The separate `b2261c9` boss stress
+regression must be fixed before the window levers; no next task is started.
+Release is blocked until that debt is fixed. Runtime evidence regeneration and
+the default full verification remain required before release (§BM).
 
 ## Music v2 step 10.2 — the GAMEPLAY theme is GRA-2 — `OWNER-SMOKE CANDIDATE` (2026-09-22)
 

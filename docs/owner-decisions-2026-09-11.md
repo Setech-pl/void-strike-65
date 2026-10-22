@@ -3687,6 +3687,28 @@ Właściciel zlecił finalizację dokumentacji, merge commit
 
 ---
 
+## BO. M6 LANCE — FIRE ONLY WITH LOCK (2026-10-22)
+
+Session: Codex. Owner decision: lance fires only with a lock; a charged lance
+over a gap waits while held; release = cancel, lance retained, no penalty.
+The first locked frame launches with the existing homing and post-launch rules.
+Aiming movement and disabled ordinary fire continue while waiting; no new
+art or sound, meter full, empty/full reticle signals the lock.
+
+Video analysis: two of three launches homed correctly; on the third the reticle
+slid from full at 42.92 s to empty at 42.98 s as charge completed, producing a
+straight miss. To the player this looked like firing where the ship was rather
+than where they aimed. The unlocked launch setup is to be removed.
+
+lance_charge = 50 persists while held and unlocked; movement parity uses the frame counter during the wait.
+
+The owner explicitly approved this persistent interpretation after the state
+audit stop. No new state byte; lance zero page remains `$B6–$C3`.
+
+Owner accepted merging §BO with the pre-existing `b2261c9` boss stress regression recorded as debt (2026-10-22).
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

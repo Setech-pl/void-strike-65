@@ -267,16 +267,13 @@ lance_aim:
     ; e8d9488): read_input's gate shut on every charge frame - it opens again
     ; on a FIRE release, as it always does.
     lda _lance_charge
-    beq :+
-    lda #$00
-    sta gameplay_fire_gate
-:
-    ; The axis rule (journal §BL 4): on the charge's slow frames read_input
-    ; reads PORTA with UP released - the advance at 1 / divisor, the
-    ; horizontal at full speed - until the charge is released or the lance
-    ; fires (lance_charge 0: PORTA again).
-    lda _lance_charge
-    and #(LANCE_CHARGE_UP_DIVISOR - 1)
+    beq @full                           ; no charge: A = PORTA low byte
+    stx gameplay_fire_gate              ; C's uint8_t return leaves X = 0
+    ; The same charge value selects movement; 50 waits on frame parity.
+    cmp #LANCE_CHARGE_FRAMES
+    bne :+
+    lda frame_counter                   ; §BO: half-speed advance during a charged wait
+:   and #(LANCE_CHARGE_UP_DIVISOR - 1)
     beq @full                           ; A = 0: PORTA's low byte
     lda LANCE_STICK0
     ora #LANCE_STICK_UP
@@ -302,28 +299,14 @@ lance_aim:
     jsr lance_sound
     ; FIRE: the torpedo from the next frame (the fire frame draws none of it),
     ; locked on the target's module - the one under the reticle, up to its
-    ; bottom line - or with none at the ship's column up to the band's foot,
-    ; the line over the mark. The lance is spent only by a kill (journal
+    ; bottom line (§BO: no launch without a target).
+    ; The lance is spent only by a kill (journal
     ; §BL 5). The reticle is off for the whole flight (the owner's smoke of
     ; e76ddee): its rows cleared here - the six either mark draws (rows 2 and
     ; 5 are empty in both) - and the ordinary fire held (lance_fire_hold).
-    ldy lance_y
-    dey
-    tya
-    bcc @miss
+    ; §BO: policy only launches with a lock. No straight-launch setup.
     ldy _lance_module
     lda boss_mbottom_y,y
-    bcs @top                            ; always
-@miss:
-    ldy #$FF
-    sty _lance_module                   ; nothing locked (the core, a cover: refused)
-    ldy player_x                        ; the ship's centre (x + 8), less 4
-    iny
-    iny
-    iny
-    iny
-    sty torpedo_x
-@top:
     sta lance_top
     lda player_y                        ; the torpedo's rows above the ship's
     sec

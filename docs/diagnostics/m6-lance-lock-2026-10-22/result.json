@@ -1,0 +1,146 @@
+{
+  "status": "BLOCKED_BOSS_STRESS",
+  "baseline": "fea4cc8",
+  "limit": 8500,
+  "citadelL5Lost": {
+    "before": 8563,
+    "after": 8563,
+    "over": 63,
+    "case": {
+      "laserMode": "warn",
+      "p": 32,
+      "dead": [
+        5,
+        1
+      ],
+      "hit": [
+        0,
+        4
+      ],
+      "mode": "kill",
+      "k": 2,
+      "finale": false,
+      "wellOn": true,
+      "worstFrame": 1,
+      "gun": 9,
+      "step": "countdown",
+      "spawned": true,
+      "clashes": 0,
+      "stepped": true,
+      "reach": "reachable"
+    }
+  },
+  "bastionAfter": {
+    "fire": 8467,
+    "swap": 8478,
+    "waitEven": 8414,
+    "waitOdd": 8397,
+    "waitLock": 8462
+  },
+  "lanceBefore": {
+    "address": 47360,
+    "capacityBytes": 768,
+    "sectors": 6,
+    "startSector": 712,
+    "bytes": 763,
+    "codeBytes": 758,
+    "dataBytes": 0,
+    "bssBytes": 5,
+    "zeroPage": {
+      "address": 182,
+      "bytes": 14,
+      "capacityBytes": 16
+    },
+    "windowEnd": 47355,
+    "meterFrames": [
+      938,
+      1250,
+      1562
+    ],
+    "chargeFrames": 50,
+    "chargeUpDivisor": 2,
+    "page": {
+      "address": 1024,
+      "capacityBytes": 256,
+      "sectors": 2,
+      "startSector": 718,
+      "bytes": 250
+    },
+    "hudMeter": {
+      "label": 15,
+      "cells": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "hollow": 60,
+      "full": 59
+    },
+    "torpedo": {
+      "look": "spindle",
+      "step": 1,
+      "fireHoldFrames": 50,
+      "hullRows": 11,
+      "exhaustRows": 13,
+      "flameShortRows": 9,
+      "flameLongRows": 13,
+      "blastRows": 8,
+      "blastFrames": 5
+    }
+  },
+  "lanceAfter": {
+    "address": 47360,
+    "capacityBytes": 768,
+    "sectors": 6,
+    "startSector": 712,
+    "bytes": 757,
+    "codeBytes": 752,
+    "dataBytes": 0,
+    "bssBytes": 5,
+    "zeroPage": {
+      "address": 182,
+      "bytes": 14,
+      "capacityBytes": 16
+    },
+    "windowEnd": 47355,
+    "meterFrames": [
+      938,
+      1250,
+      1562
+    ],
+    "chargeFrames": 50,
+    "chargeUpDivisor": 2,
+    "page": {
+      "address": 1024,
+      "capacityBytes": 256,
+      "sectors": 2,
+      "startSector": 718,
+      "bytes": 250
+    },
+    "hudMeter": {
+      "label": 15,
+      "cells": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "hollow": 60,
+      "full": 59
+    },
+    "torpedo": {
+      "look": "spindle",
+      "step": 1,
+      "fireHoldFrames": 50,
+      "hullRows": 11,
+      "exhaustRows": 13,
+      "flameShortRows": 9,
+      "flameLongRows": 13,
+      "blastRows": 8,
+      "blastFrames": 5
+    }
+  },
+  "artifactSha256": "ce0167bba2be5c9ff1ab2c6e770aec7e16c0876479e5860497b2efea66700272",
+  "note": "Full four-region sweep stopped after baseline and candidate Citadel L5 lost-target path both exceeded cap; no new wall trace or emulator entry timing."
+}

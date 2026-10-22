@@ -1,0 +1,67 @@
+✔ M6: the lance run - the window's tail from $BBFF down, the boss reservation's last sectors, read at every entry (41.66275ms)
+✔ journal §BL: a damaged page 4 sector is WRONG DISK before the install runs (75.015167ms)
+✔ M6 (decision BD 6): the build fails when the window's record grows into the lance's RAM (0.503458ms)
+✔ M6 (decision BF, journal §BL): FIRE + stick UP held over a target charges 50 frames - the reticle blinks, the ordinary fire shut - and fires once (35.290208ms)
+✔ M6 (decision BF): releasing FIRE or the stick's up before the charge's last frame cancels it; the next hold starts again (56.620417ms)
+✔ M6 (decision BF): FIRE alone, the stick alone or FIRE with another direction never charge; a diagonal with UP does (26.666584ms)
+✔ M6 (decision BH 1): level-triggered - FIRE held 200 frames (its gate shut), then UP: the charge from UP's first frame, the shot a charge later (56.248083ms)
+✔ M6 (decision BH 1): the column under the ship changing - target, empty, another target - never cancels the charge (81.880041ms)
+✔ M6 §BO: persistent charge waits, cancels or launches on the first lock (235.466209ms)
+✔ M6 (decision BH 1): no module under the ship - the gesture charges (the ship slowed), the mark hollow at the ship's column (28.199083ms)
+✔ M6 (decision BH 1): the ship's upper limit (and a side) reached with the gesture held never cancels the charge (355.026584ms)
+✔ M6 (journal §BL 4): the axis rule - sideways at full speed, the advance at 1 / 2 while the charge builds; full speed outside it (312.3025ms)
+✔ M6 (journal §BL 4): read_input's stick operand - PORTA with UP released on a slow frame (the lance's byte), PORTA otherwise, restored at START GAME (26.348625ms)
+✔ M6 (journal §BE, §BL): no ordinary fire while aiming, nor for 50 frames from the launch, then back (51.978958ms)
+✔ M6: the kill's frame admits no player shot meeting - they wait a frame - the next frame AUD-04's two (26.387083ms)
+✔ M6 (journal §BL 5): a module a player shot destroys on the torpedo's way is not hit again - the lance is kept, no other module touched (27.086125ms)
+✔ M6: boss directory 1 - one lance shot destroys exactly the module under the ship, through the kill path (25.702334ms)
+✔ M6: boss directory 1 - the lance takes only what a player shot would hurt, never the core (26.1655ms)
+✔ M6: boss directory 4 - one lance shot destroys exactly the module under the ship, through the kill path (28.562542ms)
+✔ M6: boss directory 4 - the lance takes only what a player shot would hurt, never the core (28.010625ms)
+✔ M6: boss directory 3 - one lance shot destroys exactly the module under the ship, through the kill path (28.036333ms)
+✔ M6: boss directory 3 - the lance takes only what a player shot would hurt, never the core (28.587041ms)
+✔ M6: boss directory 2 - one lance shot destroys exactly the module under the ship, through the kill path (29.472875ms)
+✔ M6: boss directory 2 - the lance takes only what a player shot would hurt, never the core (27.739ms)
+✔ M6 (decision BG 1-2): EASY - the meter fills in exactly 938 frames; the gesture does nothing until then (30.0175ms)
+✔ M6 (decision BG 1-2): MEDIUM - the meter fills in exactly 1250 frames; the gesture does nothing until then (28.125708ms)
+✔ M6 (decision BG 1-2): HARD - the meter fills in exactly 1562 frames; the gesture does nothing until then (27.703833ms)
+✔ M6 (decision BG 1-2): no stacking - full, the meter stays full; the shot empties it, and the reticle is gone until the next (40.047875ms)
+✔ M6 (decision BG 1): the meter resets at the boss entry - a full meter left by the last fight is read anew as empty (25.945625ms)
+✔ M6 (decisions BG 4, BI 2): the readiness indicator (the ship green; its charge ramp) and its cue follow readiness exactly (28.369ms)
+✔ M6 (decision BI 2): the charge's ramp - the green from luminance 4 to near-white, never down, one write a frame; the green again on a release; the shot's colour (55.992792ms)
+✔ M6 (decision BI 2): the discharge - noise on channel 3 from the fire frame, the bed back on the beam's last frame (or after the kill's tick), never with the sound off (113.047125ms)
+✔ M6 (decisions BG 4, BH 2): readiness off - dying or the fight over: no mark, no charge, the stick PORTA's, the gesture held or not (221.787375ms)
+✔ M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the target's centre, no colour register written (28.899ms)
+✖ the committed runtime evidence binds to the artifacts in dist/ (4.364708ms)
+✔ the evidence is complete and has no UNRECORDED gate failure (1.554958ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 35
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2349.093709
+
+✖ failing tests:
+
+test at tests/runtime-evidence-binding.test.mjs:32:1
+✖ the committed runtime evidence binds to the artifacts in dist/ (4.364708ms)
+  AssertionError [ERR_ASSERTION]: docs/runtime-wall-trace.json binds void-strike-65-boot.bin to d53ee686… (27264 B) but this tree builds b75d7f1b… (27648 B). The runtime evidence is stale: regenerate it with npm run build:candidate && npm run runtime:wall-trace && npm run build.
+  + actual - expected
+  
+  + 'd53ee686b14ae45dd36a6f7e8b7f58822474bbfcd8ff6507380cd56ff7911a0a'
+  - 'b75d7f1b605bfebb47d3c5f4109feb0cf4ed336dfe02a0311cf694b06611e0a2'
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-evidence-binding.test.mjs:45:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'd53ee686b14ae45dd36a6f7e8b7f58822474bbfcd8ff6507380cd56ff7911a0a',
+    expected: 'b75d7f1b605bfebb47d3c5f4109feb0cf4ed336dfe02a0311cf694b06611e0a2',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

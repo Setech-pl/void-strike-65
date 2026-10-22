@@ -1,4 +1,8 @@
-# Boss death breakup B — owner-smoke candidate, 2026-10-22
+# Boss death breakup B — rejected candidate, 2026-10-22
+
+**Owner smoke of `e97244c`: NOT OK.** Historical measurements below belong to
+the rejected 74-frame/card version. See [revision prerequisite](revision-preflight.md);
+no revised candidate exists yet.
 
 Branch `codex/boss-death-breakup`, baseline `686d3f5`. This is a focused
 candidate check, not owner acceptance or release certification. The owner

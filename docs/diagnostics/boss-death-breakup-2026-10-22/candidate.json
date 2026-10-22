@@ -1,5 +1,5 @@
 {
-  "status": "OWNER-SMOKE CANDIDATE",
+  "status": "OWNER-REJECTED",
   "branch": "codex/boss-death-breakup",
   "artifacts": [
     {
@@ -47,5 +47,14 @@
       "sha256": "4b590d72168788c907d7ef94bd4dae5778779aeaaefbd033e25f34b75fad0314",
       "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-r4-bastion-4b590d721687.atr"
     }
-  ]
+  ],
+  "ownerSmoke": {
+    "gameCommit": "e97244c",
+    "result": "NOT OK",
+    "reasons": [
+      "HULL BREACH card interrupts death reward",
+      "74-frame breakup too short; owner requests about 175 frames"
+    ],
+    "revision": "Stopped before game code: VBI disabled during current direct-SIO read; see revision-preflight.md"
+  }
 }

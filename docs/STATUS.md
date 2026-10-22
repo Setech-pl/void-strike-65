@@ -7483,15 +7483,17 @@ owner-authorized merge and push of main and `codex/m6-lance-lock`.
 
 The separate `b2261c9` boss stress regression was fixed in main merge
 `686d3f5` (§BP); it no longer blocks the window levers or release.
-Boss death breakup B (crown + two wings) is an **OWNER-SMOKE CANDIDATE** on
-`codex/boss-death-breakup`, all four regions; it is not accepted yet. Post-death
-disk-only overlay, zero new resident/window bytes. Candidate builds and 17
-focused tests pass; measured death peak 28,547 DMA-on cycles, minimum fence
-4,005, loading-card pause 66–67 frames. R1/Citadel L5 lost-target/Bastion fight
-stress unchanged. [Plan](plans/boss-death-breakup.md) and
-[evidence / ATRs](diagnostics/boss-death-breakup-2026-10-22/README.md).
-**NEXT TASK:** owner smoke of breakup B, HUD/ship, pause and summary/normal
-continuation; wait for explicit OK before §BQ acceptance and merge/push.
+Boss death breakup B at `e97244c` is **OWNER-REJECTED** (2026-10-22):
+HULL BREACH breaks continuity and the 74-frame animation is too short.
+Requested revision: held fight frame with a death-throes colour strobe during
+the read, followed by ~175 frames with slower pieces, secondary blasts and
+final flash. Revision stopped at the owner's explicit pre-code prerequisite:
+VBI is disabled (`NMIEN=0`) during the current direct-SIO read; gameplay itself
+uses DLI only. No game-code or artifact change has been made after rejection.
+[Preflight / alternatives / disk accounting](diagnostics/boss-death-breakup-2026-10-22/revision-preflight.md).
+**NEXT TASK:** owner selects the interrupt/clock approach following the required
+stop; then revise B and measure the requested paths. Do not merge or push.
+§BQ acceptance remains pending.
 Runtime evidence regeneration and the default full verification remain
 required before release (§BM).
 

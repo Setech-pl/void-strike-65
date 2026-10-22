@@ -248,3 +248,19 @@ fixture; automatic next-level progression remains deferred M4 scope.
 
 **NEXT TASK: owner plays the campaign and four direct boss ATRs, compares B
 with the GIF and checks pause/HUD/ship/summary. STOP until explicit OK.**
+
+
+## Owner rejection and revision prerequisite (2026-10-22)
+
+**OWNER-REJECTED:** smoke of `e97244c` is NOT OK. The card must be removed and
+replaced by a continuous held fight image/strobe during reads. The requested
+breakup duration is now ~175 PAL frames (3.5 s), superseding the 74-frame
+candidate, with slower crown/wings, secondary blasts and final flash.
+
+Before coding, inspection confirms VBI is disabled during the current
+post-fight read (`boss_death_read` writes NMIEN=0); gameplay enables only DLI.
+The owner's explicit stop condition therefore applies. No revision code or
+new candidate was produced. [Prerequisite report, estimated alternatives and
+whole-disk accounting](../diagnostics/boss-death-breakup-2026-10-22/revision-preflight.md).
+The previous candidate evidence above is historical and is not owner acceptance.
+§BQ remains unwritten until OK on a revised candidate; no merge/push.

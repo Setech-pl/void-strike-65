@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-22 (capsule boss-stress recovery — **OWNER-SMOKE CANDIDATE** on `codex/boss-stress-capsule`; accepted main baseline remains §BO)
+Last update: 2026-10-22 (capsule boss-stress recovery — **OWNER-ACCEPTED**, owner smoke PASS on `421f5b6`; journal §BP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -21,20 +21,23 @@ the values below.
 ## Checkpoint
 
 
-### Capsule boss-stress recovery — OWNER-SMOKE CANDIDATE
+### Capsule boss-stress recovery — OWNER-ACCEPTED
 
-Implementation `7a61e89`, branch `codex/boss-stress-capsule`, from clean main
-`36de308`. No gameplay-policy change: the once-only boss install points the
+**OWNER-ACCEPTED**, owner smoke PASS on `421f5b6` (2026-10-22): forced LIFE
+in the last SPACE sector, torpedoes losing their targets mid-flight and boss
+ordinary pickups all passed. Implementation `7a61e89`, branch
+`codex/boss-stress-capsule`, from main `36de308`; journal [§BP](owner-decisions-2026-09-11.md#bp-boss-sectors-bypass-life-selection-2026-10-22).
+No gameplay-policy change: the once-only boss install points the
 shared pickup spawn's tail JMP at the existing ordinary rotation, bypassing
 LIFE selection; START GAME restores both operands. C retains all LIFE policy.
 No new state or per-frame/per-spawn phase check. Plan committed before code:
 [capsule stress recovery](plans/m6-capsule-stress-fix.md).
 
 **Full four-region boss stress certification redone after §BO and the capsule
-fix**, candidate only; all reachable states pass, rule-(B) clashes zero.
+fix**; all reachable states pass, rule-(B) clashes zero.
 Native 6502 cycles; each cell shows maximum (lost-target arrival):
 
-| Case | Stage 1b | main `36de308` | candidate | Margin to 8,500 |
+| Case | Stage 1b | main `36de308` before fix | Accepted fix | Margin to 8,500 |
 | --- | ---: | ---: | ---: | ---: |
 | R1 L1 | 7,592 (7,565) | 7,712 (7,684) | 7,596 (7,568) | 904 |
 | Citadel L4 | 8,109 (8,109) | 8,228 (8,228) | 8,112 (8,112) | 388 |
@@ -63,8 +66,8 @@ Campaign ATR SHA-256
 `3100d2fd504025b4fa44fc64815e5e9538f4dce863ce4a8798b441c863a48fcb`.
 [Measurements, instruction attribution and smoke checks](diagnostics/m6-capsule-stress-fix-2026-10-22/README.md);
 [campaign and four boss ATRs, hashes and commands](diagnostics/m6-capsule-stress-fix-2026-10-22/candidate.json).
-**The accepted-baseline KNOWN DEBT below stays open until owner smoke OK.**
-NEXT TASK: owner plays this candidate; stop. No merge or push yet.
+The boss-stress debt below is fixed and owner-accepted. Owner authorized the
+`--no-ff` merge into main and push; no release. NEXT TASK: await owner direction.
 
 ### M6 stage 1c — lance fire-only-with-lock (§BO), merged
 
@@ -83,12 +86,13 @@ maximum **8,478 cycles** (22 margin); §BO R1 maximum **7,712**. Candidate build
 passed and all 34 focused lance tests passed; no new full certification.
 ATR SHA-256 `ce0167bba2be5c9ff1ab2c6e770aec7e16c0876479e5860497b2efea66700272`.
 
-**KNOWN DEBT:** Boss stress regression +119 cycles from b2261c9 (life-capsule
-selection in the shared pickup-spawn path): Citadel L5 lost-target 8,563 >
-8,500 cap (−63); R1 worst 7,592 → 7,711 (within cap). Not caused by §BO.
-Fix in a separate task before the window levers; release blocked until fixed.
-The R1 figures in this debt compare stage 1b with pre-§BO main; §BO itself
-measures 7,712. [Classification and measurements](diagnostics/m6-lance-lock-2026-10-22/classification.md).
+**Boss-stress debt fixed in `7a61e89`**, owner smoke PASS on `421f5b6`
+(2026-10-22, §BP). Citadel L5 lost-target **8,563 -> 8,447** (53 margin),
+R1 maximum **7,712 -> 7,596**, Bastion **8,478** (22 margin). Full four-region
+boss stress certification was redone after §BO and this capsule fix; see the
+accepted table above. The `b2261c9` stress regression no longer blocks release;
+pre-release runtime-evidence regeneration remains due under §BM.
+[Cause and measurements](diagnostics/m6-capsule-stress-fix-2026-10-22/README.md).
 
 ### Repository HEAD
 

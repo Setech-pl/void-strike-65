@@ -65,3 +65,11 @@ are unchanged. The helper costs **24 cycles including its JSR**, once at
 install with DMA off. Isolated ordinary spawn: **192 -> 180 cycles in SPACE**,
 **76 cycles in a boss** (stage 1b 73); no new per-frame work. SPACE replay
 maximum remains **15,116**, safe residency margin **1,863 -> 1,852 B**.
+
+## Owner acceptance — §BP
+
+Owner smoke PASS on `421f5b6`, implementation `7a61e89` (2026-10-22): forced
+last-SPACE LIFE, torpedoes losing their targets mid-flight, boss ordinary
+pickups unchanged. Full certification and resources are in
+[the accepted report](../diagnostics/m6-capsule-stress-fix-2026-10-22/README.md).
+Owner authorized merge into main and push; no release.

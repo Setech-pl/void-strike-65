@@ -1,7 +1,8 @@
 # Capsule boss-stress recovery — 2026-10-22
 
-**OWNER-SMOKE CANDIDATE**, implementation `7a61e89`, baseline main `36de308`.
-Confirmed regression in `b2261c9`; no owner acceptance yet.
+**OWNER-ACCEPTED**, owner smoke PASS on `421f5b6`, implementation `7a61e89`,
+baseline main `36de308` (2026-10-22; journal §BP). Confirmed regression in
+`b2261c9`, now fixed.
 
 Full four-region stress certification was redone after §BO and this fix.
 Native 6502 cycles, worst reachable; each cell shows maximum (lost-target
@@ -85,4 +86,7 @@ The debug flag uses campaign region numbers: Citadel 2, Spine 3, Bastion 4
   destroyed in flight.
 * Boss-sector ordinary pickups: timing, position and booster rotation unchanged.
 
-Stop for owner smoke. Keep the STATUS debt open until the owner writes OK.
+Owner smoke PASS: forced last-SPACE LIFE, torpedoes losing their target
+mid-flight, and unchanged ordinary boss pickups. Owner authorized merge and
+push; no release. The candidate JSON and raw measurements retain their
+pre-smoke provenance.

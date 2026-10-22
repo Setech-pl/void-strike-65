@@ -1050,7 +1050,7 @@ Nothing is renamed by this report; a rename is a source change with its own sess
 
 <!-- END GENERATED MEMORY MAP -->
 
-## Capsule boss-stress recovery — candidate (2026-10-22)
+## Capsule boss-stress recovery — OWNER-ACCEPTED (2026-10-22)
 
 Relative to `36de308`: DIRECTOR_C_LOW **203 -> 214/245 B**, free tail
 **42 -> 31 B** (11-B ASM install veneer, no state). Boss install **380 ->

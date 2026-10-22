@@ -577,3 +577,71 @@ never reach the chain). Entry host frames R1 **325**, Citadel **340**, Spine
 clause failures, 0 foreign writers in the window tail, page 4 and the zero
 page; worst fence margin **1,497** (`2-sweep-fire6`); DMA-on maximum
 **31,476** (`2-evasive-fire7`), 0 replays over the 31,500 target.
+
+## 10. As built - the owner's pick, accepted (2026-10-22, `8715fda`)
+
+After the smoke of `e8d9488` the owner picked one configuration and accepted
+it after a quick test (journal §BL, the 2026-10-22 entry). The comparison
+variants (`--torpedo`, `--lance-charge`) are gone from the code and the build.
+
+**The torpedo.** One look. The hull (P1) is an 11-row spindle: 1-clock tips of
+two rows at the nose and the stern, a 3-clock body (a 2-clock row cannot be
+centred on a 1-clock tip: the first try read as a flag on a pole). The flame
+(P2) is 1 clock wide, right behind the stern, pulsing 9 / 13 rows (0.82 / 1.18
+of the hull) two frames each. Hull and flame in one colour, the lasers' (the
+owner's decision: a DLI split costs 55-65 cycles a frame, a COLPM2 swap would
+recolour the M2 lasers). One line a frame, drawn incrementally: per frame only
+the rows that change (the tips, the body's top, the old stern line, the
+flame's top and end); the whole torpedo on its first flight frame (page 4's
+`torpedo_whole`). The explosion is the ring (look a), its table mirrored (the
+frames are vertically symmetric: 20 B, not 40).
+
+**The charge.** 50 frames, the only setting; the colour ramp rescaled (8
+steps to near-white). No ordinary fire while aiming: the gate is shut on every
+charge frame (a cancelled charge with FIRE still held needs a release, as
+ever); the 1 s hold after the launch as before. The trace's aiming bots keep
+FIRE held while a lance charges (their gate-release would cancel it).
+
+**A miss.** The lance is shown again from the next frame (`lance_indicate`:
+the reticle's rows, the ready cue): the spindle's 24 rows and the reticle's 8
+on one frame went over 8,500 (Bastion lost 8,607).
+
+**What the torpedo destroys** (MEASURED on the harness, every region): what a
+normal shot hurts - outer armour plates, generators, guns and emitters once
+uncovered - never the core (kind core: the Void Citadel's) nor a covered
+module; over the Spine's powered field (hull to a shot) the hollow mark, a dry
+shot.
+
+**Bytes.** Lance run 763 of 768 B, page 4 250 of 256, zero page 14 of 16 B
+(`$B6-$C3`), slot A 2,038 of 2,048, install 380 of 384; the window 214 B.
+
+**Boss stress** (normal fire back, torpedo in flight, lasers; native cycles):
+
+| state | R1 | Citadel L4 | Citadel L5 | Spine L7 | Spine L9 | Bastion L10 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| filling | 7,268 | 7,812 | 8,147 | 7,889 | 8,143 | 8,176 |
+| install | 7,456 | 8,000 | 8,335 | 8,077 | 8,331 | 8,364 |
+| quarter | 7,371 | 7,915 | 8,250 | 7,992 | 8,246 | 8,279 |
+| draw | 7,493 | 8,014 | 8,349 | 8,091 | 8,345 | 8,410 |
+| idle | 7,512 | 8,031 | 8,366 | 8,110 | 8,365 | 8,397 |
+| charge | 7,547 | 8,066 | 8,401 | 8,145 | 8,400 | 8,432 |
+| swap | 7,586 | 8,061 | 8,424 | 8,184 | 8,439 | 8,471 |
+| **fire** | 7,592 | 8,109 | 8,444 | 8,190 | 8,445 | **8,477** |
+| dry | 7,591 | 8,109 | 8,444 | 8,186 | 8,440 | 8,473 |
+| flyFirst | 7,476 | 8,020 | 8,355 | 8,097 | 8,351 | 8,384 |
+| fly | 7,336 | 7,880 | 8,215 | 7,957 | 8,211 | 8,244 |
+| kill | 7,313 | 7,974 | 8,333 | 7,957 | 8,135 | 7,744 |
+| miss | 7,527 | 8,071 | 8,406 | 8,148 | 8,402 | 8,435 |
+| lost | 7,565 | 8,109 | 8,444 | 8,186 | 8,440 | 8,473 |
+| blast | 7,386 | 7,930 | 8,265 | 8,007 | 8,261 | 8,294 |
+| blastEnd | 7,323 | 7,867 | 8,202 | 7,944 | 8,198 | 8,231 |
+
+Every state <= 8,500; the Bastion's headroom 23 (the fire frame). The Bastion
+fixture 8,477. Boss entry R1 325, Citadel 340, Spine 340, Bastion 344 host
+frames (0 misses, 0 clause failures on the four routes' lance sessions). The
+flight from a typical launch 2.4-2.6 s (R1 129 frames, R4 121).
+
+**Owner-accepted debt, due before the next release:** the HUD fully visible
+on lines 240-247 on a real CRT; the boss DLI's HUD-first change on real
+hardware; the falling capsule crossing the HUD lines (cosmetic backlog); the
+runtime evidence's regeneration (the default build refuses to link until it).

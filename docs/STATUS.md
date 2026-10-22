@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-21 (feat/m6-gauges: M6 stage 1b after the owner's smoke of e76ddee - the torpedo flies 2-3 s with the reticle off, the ordinary fire held 1 s after a launch, the bar over the HUD fixed at its cause, the meter's T; the four looks and the 50 / 75-frame charge for the owner's choice, OWNER-SMOKE CANDIDATE, journal §BL; main stays at M6 stage 1 final, OWNER-ACCEPTED, journal §BJ)
+Last update: 2026-10-22 (M6 stage 1b - the HUD at the bottom with the VOID LANCE's T and meter, the spindle torpedo, the 50-frame charge - **OWNER-ACCEPTED** after the owner's quick test of `8715fda`, merged into main; journal §BL, §BM)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -426,40 +426,38 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## M6 stage 1b — the HUD at the bottom, the lance meter in the HUD, the axis rule, the torpedo (feat/m6-gauges) — `OWNER-SMOKE CANDIDATE` (2026-10-21, awaiting the owner's choice of the torpedo's look and the charge's length)
+## M6 stage 1b — the HUD at the bottom, the lance meter in the HUD, the spindle torpedo, the 50-frame charge (feat/m6-gauges) — **OWNER-ACCEPTED** (the owner's quick test of `8715fda`, "OK", 2026-10-22; merged into main)
 
-Plan [plans/m6-gauges.md](plans/m6-gauges.md) §7 (design), §8 (the first torpedo build, `e76ddee`) and **§9 (after the owner's smoke of `e76ddee`: as built and measured)**; journal **§BL** (the decisions after the smoke of `5bc8d51`, the second run at page 4, and the smoke of `e76ddee`).
-
-**Hardware checklist for this stage, first item: the HUD fully visible on the CRT** (scanlines 240-247). Then: no bar over the HUD (§9: its cause fixed); the torpedo's look next to the Breaker's beam; the list's JMP resuming at line 8.
+Plan [plans/m6-gauges.md](plans/m6-gauges.md) §7-§9 (the stage's rounds) and **§10 (as built, the accepted configuration)**; journal **§BL** (every stage 1b decision, its 2026-10-22 entry the final state) and **§BM** (the owner's testing rule, also in AGENTS.md).
 
 **What the player gets.**
-- **The HUD's line at the bottom** (240-247; its first line blank): `L` lives, `H` hull, `B` and the booster's cells, the VOID LANCE's **`T` and its four meter cells** (cells 15, 16-19, the boss sector's), `SCORE` at the right end. The meter: hollow -> full by the meter's quarters, all full while a lance is ready, written only when the count changes.
-- **The axis rule:** while charging, sideways at full speed, the advance at half.
-- **The torpedo:** the hull in P1, the exhaust in P2, the lasers' colour, homing on the module under the reticle at the launch; **one line a frame - ~2.5 s from a typical launch** (MEASURED 2.3-2.9 s with the lance bot; 0.1-3.4 s from the extremes, plan §9). **The reticle is off for the whole flight.** A kill: through the shot's path, a 5-frame explosion at the impact, P2 released, the lance spent. A miss or a lock lost on the way: nothing hit, the lance kept, the reticle back. (Retargeting a lost lock did not fit: the owner's fallback.)
-- **The ordinary fire** is off for 50 frames (1 s) from the launch, then back while the torpedo flies (the owner's decision, journal §BL).
-- **No bar over the HUD:** its cause was the boss DLI's HUD phase writing its WSYNC too late on 57% of frames (plan §9); fixed, 0 bar frames after on R1 and R4.
-- **For the owner's choice:** `--torpedo=<flight><blast>` - flight a (a 5-row hull, a 4-row exhaust over 3 frames) or b (a 6-row hull, a 5-row tail over 4 frames), explosion a (a ring) or b (sparks); `--lance-charge=50|75`. Default until the owner picks: **aa, 75**.
+- **The HUD's line at the bottom** (240-247; its first line blank, no separator): `L` lives, `H` hull, `B` and the booster's cells on the left, the VOID LANCE's **`T` and its four meter cells** (cells 15, 16-19, the boss sector's), `SCORE` on the right. No bar over the HUD: its cause - the boss DLI's HUD phase writing WSYNC too late on 57% of frames - fixed (0 bar frames on R1 and R4).
+- **The charge:** FIRE + stick UP for **50 frames (1 s)**; sideways at full speed, the advance at half; **no ordinary fire while aiming** (a cancelled charge with FIRE held: release to fire again).
+- **The torpedo:** a spindle (11 rows, 1-clock tips, a 3-clock body) with a 1-clock flame pulsing 0.8 / 1.2 of the hull, one colour (the lasers'), locked on the module under the reticle at the launch and homing on it; one line a frame (~2.5 s from a typical launch); the reticle off for the flight; **the ordinary fire off for 1 s after the launch**, then back while it flies. A kill: the module destroyed through the shot's path, the ring's explosion, the lance spent. A miss or a lost lock: nothing hit, the lance kept, the reticle back one frame later (with the ready cue).
+- **What it destroys:** what a normal shot hurts - outer armour, generators, guns and emitters once uncovered - never the core or a covered module; over the Spine's field, a dry shot.
 
-**Room.** The lance run **756 of 768 B** (six sectors), page 4 **239 of 256 B**, the lance's state in the zero page's unclaimed tail **`$B6-$C2`** (13 B; MEASURED written by nothing but the OS's RAM clear at boot and RESET), slot A **2,038 of 2,048 B**, the boss install 380 of 384 B. **The window keeps 214 B.** **Resident 0 B, window record 0 B.** The trace's `page_4` and `zero_page_b6` watches back both claims in every replay (the window-tail clause refuses any other writer).
+**Room.** The lance run 763 of 768 B (six sectors), page 4 (slot H, `$0400-$04FF`, sectors 718-719) 250 of 256 B, the lance's state in the zero page `$B6-$C3` (14 B; MEASURED written only by the OS's RAM clear), slot A 2,038 of 2,048 B, the install 380 of 384 B; **the window keeps 214 B**. Resident 0 B, window record 0 B.
 
-**DMA-on target 31,200 -> 31,500** (journal §BL 1).
+**DMA-on target 31,500** (journal §BL 1).
 
-**Per region (M, look aa, charge 75).**
+**Per region (M).**
 
-| region | worst boss frame (headroom), state | torpedo in flight | entry, host frames | routes: worst margin / DMA-on max |
-| --- | ---: | ---: | ---: | --- |
-| 1 Breaker | 7,580 (920), fire | 7,483 | **325** | 8,495 / 30,148 |
-| 2 Citadel L5 | 8,432 (68), fire | 8,362 | **340** | 6,239 / 30,585 |
-| 3 Spine L9 | 8,436 (64), fire | 8,358 | **340** | 6,251 / 30,719 |
-| 4 Bastion L10 | **8,465 (35)**, fire | **8,391**; flight b 8,419 | **344** | 6,639 / 30,197 |
+| region | worst boss frame (headroom), state | torpedo in flight | entry, host frames |
+| --- | ---: | ---: | ---: |
+| 1 Breaker | 7,592 (908), fire | 7,336 | **325** |
+| 2 Citadel L5 | 8,444 (56), fire / lost | 8,215 | **340** |
+| 3 Spine L9 | 8,445 (55), fire | 8,211 | **340** |
+| 4 Bastion L10 | **8,477 (23)**, fire | 8,244 | **344** |
 
-The torpedo states with the ordinary fire back (the case's own shots meeting the boss), the lasers' modes and the fire's hold running; every state <= 8,500 (plan §9's table; look b's lost frame 8,480, headroom 20). The Bastion fixture 8,465.
+The stress with the ordinary fire back, the torpedo in flight and the lasers' modes (plan §10's table). The default trace at `e8d9488` (the last full run): 0 misses, worst fence margin 1,497, DMA-on maximum 31,476, 0 replays over 31,500; the 8715fda changes are boss-sector only (the lance's tick, P1 / P2), measured on the four routes' lance sessions (0 misses, 0 clause failures).
 
-**The default trace (M, 58 replays, the candidate, look aa):** 0 misses, 0 clause failures (the window-tail, page 4 and zero-page clauses: 0 foreign writers); worst fence margin **1,497** (`2-sweep-fire6`); **DMA-on maximum 31,476** (`2-evasive-fire7`) - **0 replays over the 31,500 target**; physical headroom 4,092.
+**Open items - owner-accepted debt, due before the next release:**
+1. The HUD fully visible on lines 240-247 on a real CRT.
+2. The boss DLI's HUD-first change on real hardware.
+3. The falling capsule crossing the HUD lines (cosmetic backlog; an option costed in plan §9: PRIOR on the HUD line, ~10 B).
+4. The runtime evidence's regeneration before a release (journal §BM): the default build refuses to link until `build:candidate` -> `runtime:wall-trace` -> `build`.
 
-**Tests (focused, the owner's rule of 2026-10-21):** `tests/hud-bottom.test.mjs` 6 of 6, `tests/torpedo.test.mjs` 8 of 8 (the fire's hold added), `tests/lance.test.mjs` 34 of 34; the lance stress in `boss-stress` (region 1) and `boss-region-2` (the Bastion) pass. **No full evidence chain**.
-
-**The ATRs** (`build/play/m6-torpedo2/`, not committed): R1 Breaker, charge 75 - `void-strike-65-m6-torpedo-aa-charge75-r1-breaker-28da3ce4.atr`, `-ab-…-7e323c05`, `-ba-…-b9d983a7`, `-bb-…-3f1329f8`; R1, look aa, charge 50 - `…-aa-charge50-r1-breaker-251a0f61`; R4 Bastion, look bb (the heaviest), charge 75 - `…-bb-charge75-r4-bastion-9bf0e905`. Stills and GIFs in `media/`, the separator's before/after in `separator/`.
+**The ATRs** (`build/play/m6-spindle/`, not committed): R1 Breaker `void-strike-65-m6-spindle-charge50-r1-breaker-5576e8bc.atr`, R4 Bastion `…-r4-bastion-a40a2fb6.atr`; the GIF and stills beside them.
 
 ---
 

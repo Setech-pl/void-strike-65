@@ -3531,6 +3531,79 @@ jako §BM przy finalizacji etapu.
 4. **Etykieta miernika.** Przed czterema komórkami miernika lancy litera T;
    kolejność LIFE, HULL, BOOST po lewej i SCORE po prawej bez zmian.
 
+**Dopisane 2026-10-22 — wybór właściciela po smoke'u `e8d9488` i akceptacja
+(`8715fda`, „OK").**
+
+1. **Kształt torpedy: wrzeciono, nie beczka.** Jeden wygląd zamiast czterech:
+   kadłub w P1 długi i smukły, najszerszy w środku, zwężony do 1 piksela na
+   dziobie i rufie; płomień w P2 o szerokości 1 piksela tuż za rufą, bez
+   przerwy, pulsujący między 0,8 a 1,2 długości kadłuba. Eksplozja - wariant
+   a (pierścień). Wykonanie: 11 wierszy, czubki 1-pikselowe po dwa wiersze,
+   korpus 3-pikselowy (2-pikselowy wiersz nie da się wyśrodkować na
+   1-pikselowym czubku - wyglądał jak flaga na maszcie); płomień 9 / 13
+   wierszy, po dwie klatki.
+2. **Jeden kolor (decyzja właściciela).** Kadłub i płomień zostają w jednym
+   kolorze, kolorach `8715fda` (kolor laserów, COLPM1 / COLPM2 bez zapisów):
+   rozdzielenie DLI kosztuje 55-65 cykli na klatkę, a zamiana COLPM2
+   przebarwiłaby lasery M2.
+3. **Ładowanie o jedną trzecią krótsze.** 50 klatek (1 s) to jedyna
+   konfiguracja; wariant 75 klatek usunięty. Ładowanie nie było skalowane
+   trudnością (skalowany jest miernik) - nic więcej się nie zmienia.
+4. **Bez zwykłego ognia podczas celowania (reguła właściciela).** Przez całe
+   ładowanie zwykłe strzały nie lecą; po wystrzale torpedy zwykły ogień
+   wyłączony 50 klatek (1 s), potem wraca, gdy torpeda jeszcze leci. Po
+   przerwanym ładowaniu z wciąż trzymanym FIRE zwykły ogień wraca dopiero po
+   puszczeniu FIRE (zasada „puść, by strzelić znów" - jak zawsze). Zwykły
+   ogień poza sekwencją lancy bez zmian.
+5. **Celownik po pudle.** Po pudle (lub utraconym celu) celownik wraca jedną
+   klatkę później, przez zwykłą drogę gotowości lancy (z sygnałem gotowości):
+   czyszczenie 24 wierszy wrzeciona i rysowanie celownika na jednej klatce
+   przekraczało 8 500 cykli.
+6. **Co niszczy torpeda (potwierdzone).** Dokładnie to, co rani zwykły
+   strzał: zewnętrzne płyty pancerza, generatory, działa i emitery laserów,
+   gdy ich osłona już padła - z wyjątkiem rdzenia (jedyny rdzeń, rodzaju
+   „core", ma Void Citadel) i modułów wciąż osłoniętych. Na polu siłowym
+   Siege Spine celownik pokazuje pusty znak; wystrzał nic nie trafia, lanca
+   zostaje.
+
+**Etap 1b w całości (stan zaakceptowany).**
+
+- **HUD na dole** (linie 240-247), separator usunięty; jego artefakt miał
+  przyczynę w DLI bossa: faza HUD-u zapisywała WSYNC za późno w 57% klatek,
+  więc linia 240 (pusty pierwszy wiersz HUD-u) dostawała COLPF2 pierścienia
+  (miętowy pasek). Poprawka: faza HUD-u przed kodem fazy 1, COLPF2 zaraz po
+  WSYNC - 0 klatek z paskiem na R1 i R4.
+- **Cel DMA-on 31 500** (z 31 200; DMA HUD-u w mierzonym oknie).
+- **Kolejność HUD-u:** LIFE, HULL, BOOST po lewej, SCORE po prawej; litera T
+  i tekstowy miernik lancy (4 komórki, pusta -> pełna co ćwiartkę, pisane
+  tylko przy zmianie).
+- **Ruch podczas ładowania:** w poziomie pełna prędkość, do przodu (w górę)
+  połowa.
+- **Torpeda zamiast wiązki:** kadłub w P1, płomień w P2, oba naprowadzane
+  (HPOS tylko w locie); cel zablokowany w chwili strzału (moduł pod
+  celownikiem), lot jedną linię na klatkę - typowo 2,3-2,9 s; bez
+  przekierowania (nie zmieściło się - zostaje reguła §BH: nic nie trafione,
+  lanca zachowana); celownik wyłączony przez cały lot.
+- **Bez zwykłego ognia podczas celowania i przez 1 s po wystrzale.**
+- **Wygląd:** wrzeciono z pulsującym płomieniem, eksplozja a, jeden kolor.
+- **Ładowanie 50 klatek.**
+- **Co niszczy torpeda:** jak wyżej (pkt 6).
+- **Pamięć:** drugi przebieg bossa na stronie 4 (`$0400-$04FF`, slot H,
+  sektory 718-719); stan lancy w niezajętej strefie strony zerowej
+  `$B6-$C3` (zmierzone: nic innego tam nie pisze poza czyszczeniem RAM-u
+  przez OS); przebieg lancy 6 sektorów, okno zachowuje 214 B.
+
+---
+
+## BM. REGUŁA TESTOWANIA WŁAŚCICIELA (2026-10-21, zapisane przy finalizacji etapu 1b)
+
+Domyślny cykl: **build -> właściciel gra -> merge**. Tylko bramki liczone
+przez build (ramka, DMA, rozmiary bloków, okno, wejście w bossa <= 350).
+Pełne testy tylko przy rzeczywistym problemie albo przed wydaniem. Bez
+RED-first, bez podwójnego `npm test`, bez GIF-ów powiązanych hashami
+z każdym wariantem, bez wpisów odstępstw w rejestrze. Regresje szuka się
+`git bisect`.
+
 ---
 
 ## Backlog — dopisane 2026-09-20

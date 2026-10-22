@@ -67,7 +67,7 @@ export const lanceStats = { armed: 0, skipped: 0, ticks: 0, worstTick: 0 };
 
 const BAND_ORIGIN_HPOS = 32;
 const SHIP_Y = 200;                                     // the ship's top line in the fight (PMG Y 32-225)
-const torpedo = () => manifest.boss.lance.torpedo;     // the build's look (scripts/build.mjs --torpedo)
+const torpedo = () => manifest.boss.lance.torpedo;     // the torpedo's rows and step (the build's manifest)
 const TRIG0 = 0xd010;
 const STICK0 = 0xd300;                                  // PORTA: bit 0 up, active low
 const STICK_UP = 0x01;

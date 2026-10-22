@@ -183,6 +183,21 @@ improves materially.
 backing/restore, placement/transport, hot collision paths — may require proof
 and measurement before production integration.
 
+### The owner's testing rule (journal §BM, 2026-10-21)
+
+The default cycle is **build -> owner plays -> merge**.
+
+* Keep only the gates the build computes: frame timing, DMA, block sizes, the
+  window, boss entry <= 350 host frames.
+* Run focused tests for the changed behaviour. Run the full tests only for a
+  real problem or before a release.
+* No RED-first, no double `npm test`, no hash-bound GIFs per variant, no
+  ledger deviation entries.
+* Find regressions with `git bisect`.
+
+Where anything below asks for more, this rule wins; the runtime-evidence
+regeneration and full `npm test` belong to the release pass.
+
 ### Proportional validation
 
 Validate in proportion to the change. Use focused tests for the changed
@@ -202,9 +217,10 @@ ever ran `--candidate` and focused test files cannot see that gate at all —
 that is how the committed evidence went stale across 175 commits
 (`d72dd6a..4d12d6e`). So:
 
-* a session that changed anything the runtime evidence covers runs `npm test`
-  on the **default** build before reporting its gates, not `--candidate`
-  alone;
+* before a release (journal §BM), a session that changed anything the
+  runtime evidence covers regenerates it and runs `npm test` on the
+  **default** build, not `--candidate` alone; between releases the candidate
+  build and its gates are what the owner plays;
 * `tests/runtime-evidence-binding.test.mjs` is the cheap standalone check —
   it compares `docs/runtime-wall-trace.json` against `dist/` in milliseconds.
   Include it in any focused set. When it goes red the evidence owes a
@@ -259,8 +275,9 @@ readiness.
 
 ## Definition of done
 
-* compiles, assembles and links cleanly **on the default target**, not only
-  under `--candidate`;
+* compiles, assembles and links cleanly (the candidate build between
+  releases; **the default target**, its evidence regenerated, before a
+  release - journal §BM);
 * relevant focused tests pass;
 * no illegal memory overlap; startup path still valid;
 * PAL timing within the required gates, with no missed frames, unexpected VBI

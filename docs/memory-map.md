@@ -69,12 +69,12 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$00A0-$00A1` | 2 B | segment | `READER_ZP` — sector reader (zp),y pointer | `resident` | build/sector-reader.map |
 | `$00A2-$00AB` | 10 B | state | menu music v2 column pointers and publication scratch (equates) | `resident` | src/main.s `MUSIC_VOICE_COLUMN` |
 | `$00AC-$00B5` | 10 B | state | level-summary stat block (`STATS_SHOTS` … `STATS_BONUS`), cleared at every START GAME | `session` | manifest `levelSummary.statBlock` |
-| `$00B6-$00C2` | 13 B | segment | `LANCE_ZP` — the VOID LANCE's state in the zero page (the torpedo - its lines, its HPOS, the exhaust's and the explosion's counts -, the reticle's line and mark, the readiness shown, the slow frame's stick, the HUD meter's cells shown, the ordinary fire's hold after a launch): the boss sector only, cleared by the boss install at every entry; MEASURED written by nothing else but the OS's RAM clear at boot and RESET (the trace's zero_page_b6 watch) | `overlay` | build/boss.map |
-| `$00C3-$00FF` | 61 B | unclaimed | **unclaimed — not measured** | — | — |
+| `$00B6-$00C3` | 14 B | segment | `LANCE_ZP` — the VOID LANCE's state in the zero page (the torpedo - its lines, its HPOS, the exhaust's and the explosion's counts -, the reticle's line and mark, the readiness shown, the slow frame's stick, the HUD meter's cells shown, the ordinary fire's hold after a launch): the boss sector only, cleared by the boss install at every entry; MEASURED written by nothing else but the OS's RAM clear at boot and RESET (the trace's zero_page_b6 watch) | `overlay` | build/boss.map |
+| `$00C4-$00FF` | 60 B | unclaimed | **unclaimed — not measured** | — | — |
 | `$0100-$01FF` | 256 B | machine | 6502 stack | `boot` `resident` | 6502 |
 | `$0200-$03FF` | 512 B | machine | OS page 2-3 workspace, shadows and vectors (`VDSLST`, `SDMCTL`, `MEMLO`, SIO `DDEVIC`-`DAUX2`, `BASICF`) | `boot` `resident` | src/main.s equates |
 | `$0400-$04FF` | 256 B | slot | the VOID LANCE's page 4 run (slot H, journal §BL): the OS's cassette buffer, which no path of the game uses; read at every boss entry after the lance run, the boss sector only; run `boss-lance-page` (2 sectors, 718-719); the trace's `page_4` watch lists its writers | `overlay` | manifest `boss.lance.page` |
-| `$0400-$04EE` | 239 B | segment | `LANCE_PAGE` — the VOID LANCE's page 4 run (slot H, journal §BL): the HUD meter (its two glyphs, the four cells by the meter's quarters), the reticle's rows, the explosion on P2 and the torpedo's shapes; read at every boss entry after the lance run, the boss sector only | `overlay` | build/boss.map |
+| `$0400-$04F9` | 250 B | segment | `LANCE_PAGE` — the VOID LANCE's page 4 run (slot H, journal §BL): the HUD meter (its two glyphs, the four cells by the meter's quarters), the reticle's rows, the explosion on P2 and the torpedo's shapes; read at every boss entry after the lance run, the boss sector only | `overlay` | build/boss.map |
 | `$0500-$0BFF` | 1,792 B | slot | level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it | `session` | manifest `levelSummary.code`, tests/level-summary-build.test.mjs |
 | `$0500-$0BE9` | 1,770 B | segment | `LEVEL_SUMMARY` — level-summary module (read at the first START GAME) | `session` | build/level-summary.map |
 | `$0500-$06FF` | 512 B | segment | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) | `splash` | build/void-strike-65.map |
@@ -243,8 +243,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$B814-$B829` | 22 B | segment | `HUD_BOOSTER_BACKUP` — the boss entry's region read (its WARNING records gone with the text screen, feat/boss-banners), the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour) | `resident` | build/light-kernel.map |
 | `$B82A-$B8FF` | 214 B | unclaimed | **unclaimed — not measured** | — | — |
 | `$B900-$BBFF` | 768 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (6 sectors, 712-717); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
-| `$B900-$BBEE` | 751 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the charge's axis rule (journal §BL 4), the torpedo's flight - the hull on P1, the exhaust on P2, both homing - and its discharge on channel 3, the kill through boss_hit or the miss that keeps the lance, journal §BL 5) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
-| `$BBEF-$BBF3` | 5 B | segment | `LANCE_BSS` — the VOID LANCE's C state (the meter, the charge, the gesture, the target bit), inside the run: read as zeros at every boss entry - the meter resets (the rest of its state: LANCE_ZP) | `overlay` | build/boss.map |
+| `$B900-$BBF5` | 758 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the charge's axis rule (journal §BL 4), the torpedo's flight - the hull on P1, the exhaust on P2, both homing - and its discharge on channel 3, the kill through boss_hit or the miss that keeps the lance, journal §BL 5) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
+| `$BBF6-$BBFA` | 5 B | segment | `LANCE_BSS` — the VOID LANCE's C state (the meter, the charge, the gesture, the target bit), inside the run: read as zeros at every boss entry - the meter resets (the rest of its state: LANCE_ZP) | `overlay` | build/boss.map |
 | `$BC00-$BC14` | 21 B | segment | `READER_BSS` — sector reader state | `resident` | build/sector-reader.map |
 | `$BC15-$BC19` | 5 B | reserved | free tail of `READER_BSS_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$BC1A-$BC1F` | 6 B | guard | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg, cfg/sector-reader.cfg |
@@ -264,10 +264,10 @@ No linked segment, cfg reservation, equate block, manifest range or machine area
 
 | Range | Size | Status | Evidence |
 | --- | ---: | --- | --- |
-| `$00C3-$00FF` | 61 B | not measured | none in the repository |
+| `$00C4-$00FF` | 60 B | not measured | none in the repository |
 | `$B82A-$B8FF` | 214 B | not measured | none in the repository |
 
-Total: 275 B unclaimed, of which 0 B measured-free.
+Total: 274 B unclaimed, of which 0 B measured-free.
 
 ### Free after boot
 
@@ -604,27 +604,27 @@ By topic: unclassified 83%, Heavy, Raider and Interceptor 9%, player, input and 
 
 By topic: unclassified 76%, display, PMG and raster 16%, player, input and weapons 6%, music and audio 2%, boot, loader and transport 0%.
 
-#### `LANCE_CODE` `$B900-$BBEE`, 751 B (build/boss.map)
+#### `LANCE_CODE` `$B900-$BBF5`, 758 B (build/boss.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `lance_aim` | `$B948` | 224 B | 29.8% | unclassified |
-| (unlabelled head of boss-lance-c.o) | `$BB5A` | 149 B | 19.8% | unclassified |
-| `torpedo_flight` | `$BA2E` | 99 B | 13.2% | Light enemies |
-| `torpedo_arrive` | `$BAAA` | 73 B | 9.7% | unclassified |
-| `lance_meter` | `$B916` | 50 B | 6.7% | unclassified |
-| `lance_indicate` | `$BAF3` | 44 B | 5.9% | unclassified |
+| `lance_aim` | `$B948` | 237 B | 31.3% | unclassified |
+| (unlabelled head of boss-lance-c.o) | `$BB61` | 149 B | 19.7% | unclassified |
+| `torpedo_flight` | `$BA3B` | 97 B | 12.8% | Light enemies |
+| `torpedo_arrive` | `$BAB5` | 72 B | 9.5% | unclassified |
+| `lance_meter` | `$B916` | 50 B | 6.6% | unclassified |
+| `lance_indicate` | `$BAFD` | 44 B | 5.8% | unclassified |
 | `lance_tick` | `$B900` | 22 B | 2.9% | unclassified |
-| `lance_centre` | `$BB1F` | 15 B | 2.0% | unclassified |
-| `boss_cell_at` | `$BB2E` | 14 B | 1.9% | unclassified |
-| `torpedo_clear_p2` | `$BA91` | 13 B | 1.7% | unclassified |
-| `torpedo_clear_p1` | `$BA9E` | 12 B | 1.6% | unclassified |
-| `lance_sound` | `$BB3C` | 11 B | 1.5% | music and audio |
-| `lance_ramp` | `$BB4F` | 11 B | 1.5% | unclassified |
-| `lance_shape` | `$BB47` | 8 B | 1.1% | unclassified |
+| `lance_centre` | `$BB29` | 15 B | 2.0% | unclassified |
+| `boss_cell_at` | `$BB38` | 14 B | 1.8% | unclassified |
+| `torpedo_clear_p2` | `$BA9C` | 13 B | 1.7% | unclassified |
+| `torpedo_clear_p1` | `$BAA9` | 12 B | 1.6% | unclassified |
+| `lance_sound` | `$BB46` | 11 B | 1.5% | music and audio |
+| `lance_shape` | `$BB51` | 8 B | 1.1% | unclassified |
+| `lance_ramp` | `$BB59` | 8 B | 1.1% | unclassified |
 | 1 smaller item | — | 6 B | 0.8% | — |
 
-By topic: unclassified 85%, Light enemies 13%, music and audio 1%.
+By topic: unclassified 86%, Light enemies 13%, music and audio 1%.
 
 #### `HYBRID_C_ARENA` `$7C72-$7EDA`, 617 B (build/encounter-director.map)
 
@@ -1027,7 +1027,7 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 | `BOSS_C_CODE` | 1,358 B | placement name | — | unclassified (90%) | not judged |
 | `BOSS_D_CODE` | 1,684 B | placement name | — | unclassified (83%) | not judged |
 | `BOSS_CODE` | 1,963 B | placement name | — | unclassified (76%) | not judged |
-| `LANCE_CODE` | 751 B | placement name | — | unclassified (85%) | not judged |
+| `LANCE_CODE` | 758 B | placement name | — | unclassified (86%) | not judged |
 | `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `DIRECTOR_C_CODE` | 623 B | placement name | — | Director, sectors and waves (84%) | not judged |
@@ -1118,19 +1118,20 @@ Design notes; the generated block above has every range. Plan §5.12.
     down: the tick, the meter's and the charge's C policy, the readiness
     indicator, the aim and the marks, the axis rule, the torpedo's flight,
     arrival and kill, the ordinary fire's hold after a launch and (since the
-    owner's smoke of `e76ddee`) slot A's `boss_cell_at`: 751 B (every look),
+    owner's smoke of `e76ddee`) slot A's `boss_cell_at`: 758 B,
     and the C policy's 5 B of BSS read as zeros - the meter resets at every
     entry (manifest `boss.lance`). Stage
     1's run was `$BA80-$BBFF` (384 B), §BG's `$BA00-$BBFF`, §BH's
     `$B980-$BBFF` (640 B), stage 1b's PMG gauges `$B880-$BBFF` (896 B).
   - **Slot H, page 4:** `$0400-$04FF`, 256 B (two sectors): the HUD meter (its
-    glyphs, the four cells), the reticle's rows, the explosion and the
-    torpedo's shapes, 239 B (every look). The OS's cassette buffer
+    glyphs, the four cells), the reticle's rows, the explosion (its table
+    mirrored) and the torpedo's first-frame draw (the spindle's body, the
+    short flame), 250 B. The OS's cassette buffer
     (`CASBUF` `$03FD-$047F`) and user RAM: no path of the game uses them -
     no cassette I/O, and SIOV's disk path uses the DCB at `$0300` and the
     buffer it names (MEASURED: the trace's `page_4` watch, see the plan
     `m6-gauges` §8).
-  - **The lance's state in the zero page:** `$00B6-$00C2` (13 B; the
+  - **The lance's state in the zero page:** `$00B6-$00C3` (14 B; the
     reservation 16 B) since the owner's smoke of `e76ddee` - the zero page's
     unclaimed tail, MEASURED written by nothing but the OS's RAM clear at
     boot and at RESET (the trace's `zero_page_b6` watch over `$B6-$FF`); the

@@ -1316,3 +1316,66 @@ work under §BM; no release is made here.
   sector index 5 is the sixth and last SPACE sector.
 
 Full [build report](../diagnostics/m6-life-capsule-2026-10-22/option-a-candidate.md).
+
+
+## Stage 1c — fire only with lock (§BO)
+
+2026-10-22, Session: Codex. Plan before implementation, branch
+`codex/m6-lance-lock`, baseline `fea4cc8`. Owner approval is required after
+building; this section does not claim acceptance.
+
+At 50 charge frames, a locked reticle launches with the existing homing
+behaviour. An empty reticle (gap, powered Spine field or any other non-target)
+waits while the existing FIRE + UP gesture stays held; the first locked frame
+launches. Releasing cancels through the existing release-to-refire path,
+retaining the lance without penalty. Ordinary fire remains disabled and aiming
+movement stays horizontal full speed, forward half speed. The meter stays full;
+no new graphics or sounds. Flight, explosion, eligible targets, lost-target
+behaviour and the 50-frame post-launch ordinary-fire hold remain unchanged.
+
+**Approved state interpretation:** lance_charge = 50 persists while held and
+unlocked; movement parity uses the frame counter during the wait.
+`lance_charge` is lance BSS (baseline `$BBF8`), not zero page. No new state
+byte; the lance zero-page range is `$B6–$C3`, unchanged.
+
+### Reader/writer audit before code
+
+| Production use | Persistent 50 |
+| --- | --- |
+| `lance_c_aim` increment and launch | Saturate at 50; launch requires charge == 50 AND target lock. |
+| `lance_c_aim` release | Existing zero assignment retained, including release after a long wait. |
+| `lance_c_aim` blink return | Return lit while waiting: the empty reticle remains visible. |
+| `lance_aim` colour ramp | `(50 + 7) / 8 = 7`, valid final ramp entry. |
+| `lance_aim` ordinary-fire gate | Nonzero charge shuts the gate; 50 is safe. |
+| `lance_aim` movement operand | Use existing frame counter at 50, preserving alternating forward movement. |
+| `lance_meter` readiness-off write | Death or boss phase end clears charge and restores PORTA, once readiness turns off. |
+| Boss entry / re-entry | Disk run reloads zero-filled LANCE_BSS; install clears `$B6–$C3`. |
+| START GAME / space / level transition | Existing boss restore restores input patches; no space reader of charge; next boss reload clears BSS. |
+| HUD gauge | Reads the separate meter, not charge; full throughout wait. |
+
+The source search finds no other production reader/writer. Host tests and
+trace readers must understand a persistent 50; trace clauses are not weakened.
+
+### Placement and timing estimate
+
+Policy stays in `src/c/lance.c`, hardware execution in `src/hybrid/lance.s`.
+Remove the straight-launch setup: its only caller is the charge-completion
+trigger. Retain flight/arrival guards for now so post-launch behaviour is
+unchanged. The removed launch setup saves 22 B (including its branch/jump
+and unused band-foot preparation); policy and movement estimated +20–27 B,
+net −2…+5 B in slot G (baseline 763/768). Page 4 stays 250/256;
+window end stays `$B8FB` (5 B reserved below `$B900`); start content stays
+13,572 B (80 B planning slack); DIRECTOR_RAM stays 643/645;
+DIRECTOR_C_LOW stays 203/245. No memory moves or reservation changes.
+
+Cycle impact is an ESTIMATE pending native stress: saturation/lock and
+movement selection add bounded aim-only work, offset on launch by removing
+straight-launch selection. No new work in filling, flight or explosion;
+frame-counter reads only in the fully charged wait. Check all four regions
+with the stage 1b compositions and both wait parities/reticle transitions.
+Bastion must remain <= 8,480 cycles (>= 20 margin to 8,500).
+
+Validation: candidate build with computed gates (§BM), focused lance behaviour
+checks and four-region boss stress. No full test chain or wall-trace. Boss-entry
+transport remains unchanged; distinguish historical emulator frames from new
+measurements. Deliver an ATR with SHA-256 filename for owner smoke, then stop.

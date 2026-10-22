@@ -4504,8 +4504,11 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	 * gate is shut - START GAME shuts it and read_input opens it on a
 	 * released FIRE, so a debug route entered with FIRE held never fired
 	 * (MEASURED: 0 shots, the fight never progressed). */
+	/* M6 stage 1b (the owner's rule after the smoke of e8d9488): the lance
+	 * shuts the gate while it charges - the release would cancel the charge. */
 	if (strncmp(dftrace_policy, "boss-aim", 8) == 0 && dftrace_fire_gate != 0u &&
-		MEMORY_mem[dftrace_fire_gate] == 0u)
+		MEMORY_mem[dftrace_fire_gate] == 0u &&
+		!(dftrace_lance_charge != 0u && MEMORY_mem[dftrace_lance_charge] != 0u))
 		trigger = 1u;
 	dftrace_set_input(stick, trigger);
 }

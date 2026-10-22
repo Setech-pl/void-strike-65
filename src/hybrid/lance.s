@@ -59,8 +59,8 @@
 ;                in P2 right below it, both in the lasers' colour, both homing
 ;                (HPOSP1 / HPOSP2 written only in flight) on the module locked
 ;                on the fire frame - its current centre as the band drifts -
-;                or, with none locked, at the ship's column; TORPEDO_STEP
-;                lines a frame up from above the ship. The reticle's rows stay
+;                or, with none locked, at the ship's column; one line a frame
+;                up from above the ship. The reticle's rows stay
 ;                (at the torpedo's HPOS, the lock's point) until the hull flies
 ;                through them or the kill clears them. On the frame it reaches
 ;                its line - the locked module's bottom line, or the band's foot
@@ -110,51 +110,26 @@ LANCE_SHOT_AUDC = $8A                   ; no other boss sound is noise (the tick
 .assert <LANCE_STICK0 = 0, error, "the moving frame's operand keeps A = 0 for PORTA's low byte"
 
 ; ---------------------------------------------------------------------------
-; The torpedo's looks (journal §BL 7, the owner's choice pending): the flight
-; (TORPEDO_FLIGHT a / b - scripts/build.mjs --torpedo) and the explosion
-; (TORPEDO_BLAST a / b). The hull is P1's, the exhaust P2's right below it,
-; the explosion P2's; all in the lasers' colour (COLPM1 / COLPM2, never
-; written here).
+; The torpedo (journal §BL, the owner's pick after the smoke of e8d9488): one
+; look. The hull in P1 a spindle, TORPEDO_HULL rows: two-row tips one colour
+; clock wide (the nose, the stern) and a three-clock body; right behind its
+; stern, with no gap, the flame in P2, one clock wide, its length pulsing between TORPEDO_FLAME_SHORT and _LONG rows (0.8 / 1.2
+; of the hull) two frames each; the explosion a ring. All in the lasers' colour
+; (COLPM1 / COLPM2, never written here). One line a frame, so each frame only
+; the rows that change are written: the hull's ends and slopes, the flame's top
+; and its end (torpedo_flight); the whole torpedo on its first frame.
 ; ---------------------------------------------------------------------------
-; The exhaust's frames are windows into one table, TORPEDO_EXHAUST_SHIFT rows
-; apart (a: its frames side by side; b: a strip the flame runs down). The
-; flight (the owner's smoke of e76ddee): one line a frame in both looks - a
-; typical shot (the ship low, a module of the band's lower half, ~110-150
-; lines) takes 2.2-3 s, the torpedo seen all the way.
-.if TORPEDO_FLIGHT = 1
-TORPEDO_STEP    = 1                     ; a: a short hull, a 3-frame exhaust
-TORPEDO_HULL    = 5
-TORPEDO_EXHAUST = 4
-TORPEDO_EXHAUST_FRAMES = 3
-TORPEDO_EXHAUST_SHIFT = TORPEDO_EXHAUST
-.else
-TORPEDO_STEP    = 1                     ; b: a longer hull, a 4-frame exhaust, a longer tail
-TORPEDO_HULL    = 6                     ; (6 + 5 rows: the Bastion's flight frame within its 20-cycle
-TORPEDO_EXHAUST = 5                     ; headroom - 8 + 7 rows MEASURED 8,496 on the Citadel L5)
-TORPEDO_EXHAUST_FRAMES = 4
-TORPEDO_EXHAUST_SHIFT = 2
-.endif
-TORPEDO_ROWS    = TORPEDO_HULL + TORPEDO_EXHAUST
+TORPEDO_HULL    = 11
+TORPEDO_FLAME_SHORT = 9
+TORPEDO_FLAME_LONG  = 13
+TORPEDO_ROWS    = TORPEDO_HULL + TORPEDO_FLAME_LONG
+TORPEDO_POINT   = $10                   ; 1 clock: the tips, the flame
+TORPEDO_BODY    = $38                   ; 3 clocks, centred on the tips' one (a 2-clock row cannot be)
+TORPEDO_FRESH   = $80                   ; torpedo_anim: the first flight frame draws it whole
 TORPEDO_BLAST_ROWS = 8
 TORPEDO_BLAST_FRAMES = 5
 TORPEDO_BLAST_INTO = 2                  ; the explosion's rows inside the module, the rest under it (the impact)
-; A step up leaves min(step, height) rows of the last frame's hull (P1) and
-; exhaust (P2) under the new ones: only those are cleared.
-; From line head + max(height, step).
-.if TORPEDO_STEP > TORPEDO_HULL
-TORPEDO_P1_LEFT = TORPEDO_HULL
-TORPEDO_P1_FROM = TORPEDO_STEP
-.else
-TORPEDO_P1_LEFT = TORPEDO_STEP
-TORPEDO_P1_FROM = TORPEDO_HULL
-.endif
-.if TORPEDO_STEP > TORPEDO_EXHAUST
-TORPEDO_P2_LEFT = TORPEDO_EXHAUST
-TORPEDO_P2_FROM = TORPEDO_HULL + TORPEDO_STEP
-.else
-TORPEDO_P2_LEFT = TORPEDO_STEP
-TORPEDO_P2_FROM = TORPEDO_HULL + TORPEDO_EXHAUST
-.endif
+.assert TORPEDO_FLAME_SHORT * 10 >= TORPEDO_HULL * 7 && TORPEDO_FLAME_LONG * 10 <= TORPEDO_HULL * 13, error, "the flame: 0.8 / 1.2 of the hull"
 
 ; The VOID LANCE's HUD meter (journal §BL 3): cells HUD_LANCE_METER_OFFSET +
 ; 0-3, two HUD codes the run writes at the fight's first frame.
@@ -192,6 +167,7 @@ lance_meter_shown: .res 1               ; 1 + the HUD meter's full cells; 0 the 
 torpedo_x:      .res 1                  ; its HPOS (a miss: the ship's column at the fire)
 torpedo_count:  .res 1                  ; the explosion's frames left; the exhaust's row count; the meter's quarters
 lance_fire_hold: .res 1                 ; the ordinary fire's frames off after the launch (journal §BL)
+torpedo_anim:   .res 1                  ; the flame's pulse (low 2 bits); bit 7: the first flight frame
 lance_zp_end:
 
 .segment "LANCE_CODE"
@@ -287,6 +263,14 @@ lance_aim:
     tay
     lda lance_ramp,y
     sta LANCE_COLPM0
+    ; No ordinary fire while aiming (the owner's rule after the smoke of
+    ; e8d9488): read_input's gate shut on every charge frame - it opens again
+    ; on a FIRE release, as it always does.
+    lda _lance_charge
+    beq :+
+    lda #$00
+    sta gameplay_fire_gate
+:
     ; The axis rule (journal §BL 4): on the charge's slow frames read_input
     ; reads PORTA with UP released - the advance at 1 / divisor, the
     ; horizontal at full speed - until the charge is released or the lance
@@ -347,6 +331,8 @@ lance_aim:
     sta lance_head
     lda #LANCE_FIRE_HOLD_FRAMES
     sta lance_fire_hold
+    lda #TORPEDO_FRESH
+    sta torpedo_anim                    ; its first flight frame draws it whole
     ldy lance_y
     lda #$00
     sta LANCE_P1,y
@@ -404,17 +390,16 @@ lance_torpedo:
     bcs torpedo_flight
     jmp torpedo_blast                   ; slot H
 torpedo_flight:
-    ; TORPEDO_STEP lines up; arrived when it reaches its line (that frame
-    ; places nothing: its rows are cleared).
-    lda lance_head
-    sec
-    sbc #TORPEDO_STEP
-    bcc torpedo_arrive
-    cmp lance_top
-    bcc torpedo_arrive
-    beq torpedo_arrive
-    sta lance_head
-    sta @hull + 1
+    ; One line up; arrived when it reaches its line (that frame places
+    ; nothing: its rows are cleared).
+    ldy lance_head
+    dey
+    cpy lance_top
+    beq :+
+    bcs @fly
+:   jmp torpedo_arrive
+@fly:
+    sty lance_head
     ; Homing: the locked module's current centre (the band drifts), as the
     ; reticle's - destroyed on the way too (the ordinary fire is back a
     ; second after the launch): the torpedo flies on to its line and hits
@@ -430,44 +415,37 @@ torpedo_flight:
     lda torpedo_x
     sta LANCE_HPOSP1
     sta LANCE_HPOSP2
-    ; The hull's rows (P1) - each loop's line patched into its store, the
-    ; rows indexed by X - then the last frame's hull rows under them.
-    ldx #(TORPEDO_HULL - 1)
-:   lda torpedo_hull,x
-@hull:
-    sta LANCE_P1,x
-    dex
-    bpl :-
-    lda lance_head
-    clc
-    adc #TORPEDO_P1_FROM
-    ldx #(TORPEDO_P1_LEFT - 1)
-    jsr torpedo_clear_p1
-    ; The exhaust's next window (P2) under the hull - the window kept in its
-    ; load's patched low byte - then the last frame's exhaust rows under it.
-    lda @window + 1
-    clc
-    adc #TORPEDO_EXHAUST_SHIFT
-    cmp #<(torpedo_exhaust + TORPEDO_EXHAUST_SHIFT * TORPEDO_EXHAUST_FRAMES)
-    bcc :+
-    lda #<torpedo_exhaust
-:   sta @window + 1
-    lda lance_head
-    clc
-    adc #TORPEDO_HULL
-    sta @exhaust + 1
-    ldx #(TORPEDO_EXHAUST - 1)
-@window:
-    lda torpedo_exhaust,x
-@exhaust:
-    sta LANCE_P2,x
-    dex
-    bpl @window
-    lda lance_head
-    clc
-    adc #TORPEDO_P2_FROM
-    ldx #(TORPEDO_P2_LEFT - 1)
-    ; (falls into torpedo_clear_p2)
+    ; The hull a line up (Y = its top line): the rows that change - the
+    ; nose's tip, the body's top, the stern's tip, the last frame's stern
+    ; line cleared - and the flame's new top right under the stern.
+    lda #TORPEDO_POINT
+    sta LANCE_P1,y
+    sta LANCE_P1 + TORPEDO_HULL - 2,y
+    sta LANCE_P2 + TORPEDO_HULL,y
+    lda #TORPEDO_BODY
+    sta LANCE_P1 + 2,y
+    lda #$00
+    sta LANCE_P1 + TORPEDO_HULL,y
+    ; The flame's end: two frames short, two long (torpedo_anim's bit 1;
+    ; its first frame whole, page 4) - long: its rows down to the long end
+    ; and the line under it cleared; short: the rows past the short end.
+    lda torpedo_anim
+    bpl :+
+    lda #TORPEDO_POINT                  ; the first frame: the tips' second rows,
+    sta LANCE_P1 + 1,y
+    sta LANCE_P1 + TORPEDO_HULL - 1,y
+    jmp torpedo_whole                   ; the rest in page 4
+:   inc torpedo_anim
+    lda torpedo_anim
+    and #$02
+    beq :+                              ; short: A = 0, the rows past its end cleared
+    lda #TORPEDO_POINT                  ; long: its rows down to its end
+:   .repeat TORPEDO_FLAME_LONG - TORPEDO_FLAME_SHORT, R
+        sta LANCE_P2 + TORPEDO_HULL + TORPEDO_FLAME_SHORT + R,y
+    .endrepeat
+    lda #$00                            ; and the line under the long end
+    sta LANCE_P2 + TORPEDO_HULL + TORPEDO_FLAME_LONG,y
+    rts
 
 ; A = a line, X = a row count less one: P2's (P1's) rows from the line
 ; cleared, the line patched into the store. A = 0 after; X = 0 (P2), $FF (P1).
@@ -490,9 +468,11 @@ torpedo_clear_p1:
     rts
 
 ; The torpedo reached its line: its rows cleared (the hull's, the
-; exhaust's); the kill when its locked module stands (the frame's only
-; meeting), the explosion from the next frame; else nothing hit, the lance
-; kept, the reticle's rows back (its HPOS: the aim's, from the next frame).
+; flame's); the kill when its locked module stands (the frame's only
+; meeting), the explosion from the next frame; else nothing hit and the lance
+; kept - shown again from the next frame, as at any readiness (the reticle's
+; rows, the ready cue; the owner's pick after the smoke of e8d9488: the
+; spindle's 24 rows and the reticle's 8 on one frame went over 8,500).
 torpedo_arrive:
     lda lance_head
     ldx #(TORPEDO_HULL - 1)
@@ -500,7 +480,7 @@ torpedo_arrive:
     lda lance_head
     clc
     adc #TORPEDO_HULL
-    ldx #(TORPEDO_EXHAUST - 1)
+    ldx #(TORPEDO_FLAME_LONG - 1)
     jsr torpedo_clear_p2                ; X = 0
     ldy _lance_module
     cpy #BOSS_MAX_MODULES
@@ -523,7 +503,8 @@ torpedo_arrive:
     jmp boss_hit
 @missed:
     stx lance_beam                      ; X = 0: no torpedo
-    jsr lance_reticle                   ; still ready: the reticle's rows (slot H)
+    stx lance_ready                     ; still a lance: shown again from the next frame (lance_indicate -
+                                        ; the reticle's rows, the cue), not on this costly frame
     ldx #BOSS_BED_AUDF                  ; the discharge's channel back to the engine bed
     ldy #BOSS_BED_AUDC
     jmp lance_sound
@@ -594,9 +575,10 @@ lance_shape:    .byte $18, $18, $00, $C3, $C3, $00, $18, $18
 ; $42: rows 2 and 5 are empty in both - the fire frame clears the other six.)
 ; The charge's ramp (journal §BI 2), by (lance_charge + 7) / 8: 0 not
 ; charging - the ready green; then the green's luminance from the steel's
-; (4, frames 1-16) to near-white ($CE, frames 65-74), quickening at the end.
-lance_ramp:     .byte LANCE_READY_COLOUR, $C4, $C4, $C6, $C6, $C8, $C8, $CA, $CC, $CE, $CE
-.assert (LANCE_CHARGE_FRAMES - 1 + 7) / 8 < 11, error, "lance_ramp: an entry for every charge frame"
+; (4, frames 1-8) to near-white ($CE, frames 49-50: the 50-frame charge,
+; journal §BL), quickening at the end.
+lance_ramp:     .byte LANCE_READY_COLOUR, $C4, $C6, $C6, $C8, $CA, $CC, $CE
+.assert (LANCE_CHARGE_FRAMES - 1 + 7) / 8 < 8, error, "lance_ramp: an entry for every charge frame"
 ; ---------------------------------------------------------------------------
 ; Slot H (journal §BL, the owner's answer of 2026-10-21): the lance's second
 ; run, page 4 ($0400-$04FF, the OS's cassette buffer - no path of the game
@@ -693,14 +675,20 @@ torpedo_blast:
     lda torpedo_count                   ; TORPEDO_BLAST_FRAMES .. 1 (the table: the last frame first)
     asl
     asl
-    asl
-    tax
-:   lda torpedo_blast_shapes - TORPEDO_BLAST_ROWS,x
+    tax                                 ; its top half's 4 rows, then the same mirrored
+:   lda torpedo_blast_shapes - TORPEDO_BLAST_ROWS / 2,x
     sta LANCE_P2,y
     iny
     inx
     txa
-    and #(TORPEDO_BLAST_ROWS - 1)
+    and #(TORPEDO_BLAST_ROWS / 2 - 1)
+    bne :-
+:   dex
+    lda torpedo_blast_shapes - TORPEDO_BLAST_ROWS / 2,x
+    sta LANCE_P2,y
+    iny
+    txa
+    and #(TORPEDO_BLAST_ROWS / 2 - 1)
     bne :-
     rts
 @end:
@@ -735,32 +723,38 @@ lance_quarter_hi:
         .byte >(((K + 1) * LANCE_METER_HARD + 3) / 4)
     .endrepeat
 
-; The torpedo's shapes (the looks above).
-.if TORPEDO_FLIGHT = 1
-torpedo_hull:    .byte $18, $3C, $3C, $3C, $7E
-torpedo_exhaust: .byte $3C, $18, $18, $00
-                 .byte $18, $3C, $08, $10
-                 .byte $3C, $24, $18, $08
-.else
-torpedo_hull:    .byte $18, $3C, $3C, $3C, $7E, $66
-torpedo_exhaust: .byte $3C, $18, $3C, $18, $18, $08, $10, $08, $00, $10, $00   ; the strip
-.endif
-.assert * - torpedo_exhaust = TORPEDO_EXHAUST + TORPEDO_EXHAUST_SHIFT * (TORPEDO_EXHAUST_FRAMES - 1), error, "the exhaust's windows"
-.assert >(* - 1) = >torpedo_exhaust && <torpedo_exhaust + TORPEDO_EXHAUST_SHIFT * TORPEDO_EXHAUST_FRAMES <= $FF, error, "the exhaust's windows: one page (the patched low byte)"
-.if TORPEDO_BLAST = 1
-torpedo_blast_shapes:                   ; a: an expanding ring (the last frame first)
-    .byte $42, $81, $00, $00, $00, $00, $81, $42
-    .byte $3C, $42, $81, $81, $81, $81, $42, $3C
-    .byte $00, $3C, $42, $42, $42, $42, $3C, $00
-    .byte $00, $00, $18, $24, $24, $18, $00, $00
-    .byte $00, $00, $00, $18, $18, $00, $00, $00
-.else
-torpedo_blast_shapes:                   ; b: a burst of sparks (the last frame first)
-    .byte $00, $81, $00, $00, $00, $00, $81, $00
-    .byte $81, $00, $24, $00, $00, $24, $00, $81
-    .byte $82, $44, $00, $28, $00, $44, $82, $00
-    .byte $00, $44, $28, $10, $28, $44, $00, $00
-    .byte $00, $00, $10, $38, $10, $00, $00, $00
-.endif
-.assert * - torpedo_blast_shapes = TORPEDO_BLAST_FRAMES * TORPEDO_BLAST_ROWS, error, "the explosion's frames"
+; The torpedo's first flight frame (Y = its top line; torpedo_flight has
+; written the tips, the body's top and the flame's top): the body's rows and
+; the short flame's - the whole torpedo;
+; the flame's pulse from there (torpedo_anim 0: short again next frame).
+torpedo_whole:
+    tya
+    clc
+    adc #3
+    sta @body + 1                       ; the body's rows 3 .. hull - 3
+    adc #(TORPEDO_HULL - 2)
+    sta @flame + 1                      ; the short flame's rows hull + 1 .. (C = 0)
+    lda #TORPEDO_BODY
+    ldx #(TORPEDO_HULL - 6)
+@body:
+    sta LANCE_P1,x
+    dex
+    bpl @body
+    lda #TORPEDO_POINT
+    ldx #(TORPEDO_FLAME_SHORT - 2)
+@flame:
+    sta LANCE_P2,x
+    dex
+    bpl @flame
+    inx
+    stx torpedo_anim                    ; 0: short again next frame
+    rts
+
+torpedo_blast_shapes:                   ; an expanding ring (the owner's pick: a): each frame's top
+    .byte $42, $81, $00, $00            ; half, mirrored to the bottom (the last frame first)
+    .byte $3C, $42, $81, $81
+    .byte $00, $3C, $42, $42
+    .byte $00, $00, $18, $24
+    .byte $00, $00, $00, $18
+.assert * - torpedo_blast_shapes = TORPEDO_BLAST_FRAMES * TORPEDO_BLAST_ROWS / 2, error, "the explosion's frames"
 

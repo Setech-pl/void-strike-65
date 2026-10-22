@@ -156,9 +156,9 @@ test("§BL 5 (§BH): a miss - no target under the ship - the torpedo flies to th
     }
   }
   assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], hp, "nothing hit");
-  assert.equal(memory[lbl("lance_ready")], 0xff, "the lance kept");
   assert.deepEqual(rowsOf(memory, P2), [], "P2 released");
-  tick(memory);
+  tick(memory);                                           // the lance shown again: the reticle's rows, the cue
+  assert.equal(memory[lbl("lance_ready")], 0xff, "the lance kept");
   const y = memory[lbl("lance_y")];
   const mark = [...memory.subarray(P1 + y, P1 + y + 8)];
   assert.ok(JSON.stringify(mark) === JSON.stringify(HOLLOW) || JSON.stringify(mark) === JSON.stringify(CROSSHAIR),
@@ -179,6 +179,7 @@ test("§BL 5 (§BH): the locked module destroyed on the way - the torpedo flies 
   let frames = 0;
   while (memory[lbl("lance_beam")] !== 0) { tick(memory); frames += 1; assert.ok(frames < 400); }
   assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], hp, "no other module touched");
+  tick(memory);
   assert.equal(memory[lbl("lance_ready")], 0xff, "the lance kept");
   assert.deepEqual(rowsOf(memory, P2), [], "no explosion");
 });

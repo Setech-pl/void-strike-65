@@ -36,7 +36,9 @@
 //   dry     the same over a column with no target (journal §BH 3)
 // Journal §BL 5 (the torpedo; the owner's answer of 2026-10-21: the hull in
 // P1, the exhaust in P2, both homing):
-//   fly     a flight frame: homing (the locked module's centre), HPOSP1 and
+//   flyFirst the flight's first frame: the whole torpedo drawn (the spindle,
+//           the short flame), homing, HPOS
+//   fly     a flight frame (a long flame's): homing (the locked module's centre), HPOSP1 and
 //           HPOSP2, the hull's rows, the exhaust's frame, the rows under it
 //           cleared; the case's shots flying (the ordinary fire back a second
 //           after the launch, journal §BL) - in every torpedo state the
@@ -55,7 +57,7 @@
 import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
 export const LANCE_MODES = ["filling", "install", "quarter", "draw", "idle", "charge", "swap", "fire", "dry",
-  "fly", "kill", "miss", "lost", "blast", "blastEnd"];
+  "flyFirst", "fly", "kill", "miss", "lost", "blast", "blastEnd"];
 const has = () => labelsOf.boss.has("lance_tick");
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -167,7 +169,7 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
     : mode === "lost" ? deadModule(memory) : targetColumn(memory, hit.filter((h) => h !== "hull"));
   if (target === null) { skip(memory); return; }
   const t = torpedo();
-  if (["fly", "kill", "miss", "lost", "blast", "blastEnd"].includes(mode)) {
+  if (["flyFirst", "fly", "kill", "miss", "lost", "blast", "blastEnd"].includes(mode)) {
     // The torpedo: the ship stays where the case has it; its target the
     // fire frame's (a miss: none, the band's foot at the ship's column).
     memory[main("player_y")] = SHIP_Y;
@@ -179,7 +181,8 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
     memory[lbl("lance_beam")] = spent ? 2 : 1;
     // fly: the flight's first drawn frame from above the ship; kill, miss,
     // lost: the next step reaches the line.
-    memory[lbl("lance_head")] = mode === "fly" ? SHIP_Y - t.hullRows - t.exhaustRows : Math.min(255, top + t.step);
+    memory[lbl("lance_head")] = mode === "fly" || mode === "flyFirst" ? SHIP_Y - t.hullRows - t.exhaustRows : Math.min(255, top + t.step);
+    memory[lbl("torpedo_anim")] = mode === "flyFirst" ? 0x80 : 1;           // 1: the next frame a long flame's
     if (mode === "blast") memory[lbl("torpedo_count")] = 3;       // a middle frame
     // Journal §BL: the ordinary fire's hold after the launch running (its
     // longest path, the gate's write); the case's shots - already flying -

@@ -360,26 +360,11 @@ const laserTierValue = laserTierSlug === undefined ? null : Number(laserTierSlug
 // (scripts/lance-layout.mjs's meter) in every boss fight, and the ship turns
 // green when it is ready - indicator C, the only one since the owner's choice
 // (the torpedo, T, and its --lance-indicator build are gone).
-// M6 stage 1b after the owner's smoke (journal §BL 4-7, docs/plans/m6-gauges.md
-// §7): the charge's axis rule (LANCE_CHARGE_UP_DIVISOR, scripts/lance-layout.mjs)
-// replaces --lance-slow; the PMG gauges and --gauge are gone (the meter is in
-// the HUD). Two comparisons for the owner, review variants:
-//   --torpedo=<flight><blast>  the torpedo's look, a / b each (aa the default
-//                              until the owner picks): build/torpedo-<xy>[-...]/
-//   --lance-charge=50|75       the charge's frames (75 the default until the
-//                              owner picks): build/lance-charge-<n>[-...]/
-const torpedoArgument = process.argv.find((argument) => argument.startsWith("--torpedo="));
-const torpedoSlug = torpedoArgument?.slice("--torpedo=".length);
-if (torpedoSlug !== undefined && !/^[ab][ab]$/.test(torpedoSlug)) {
-  throw new Error(`Unknown torpedo look ${torpedoSlug}; the looks are aa, ab, ba and bb`);
-}
-const torpedoLook = torpedoSlug ?? "aa";
-const lanceChargeArgument = process.argv.find((argument) => argument.startsWith("--lance-charge="));
-const lanceChargeSlug = lanceChargeArgument?.slice("--lance-charge=".length);
-if (lanceChargeSlug !== undefined && !["50", "75"].includes(lanceChargeSlug)) {
-  throw new Error(`Unknown lance charge ${lanceChargeSlug}; the comparison is 50 or 75 frames`);
-}
-const lanceChargeFrames = lanceChargeSlug === undefined ? LANCE_CHARGE_FRAMES : Number(lanceChargeSlug);
+// M6 stage 1b (journal §BL, the owner's pick after the smoke of e8d9488): one
+// torpedo - the spindle with the pulsing flame, the ring's explosion - and the
+// 50-frame charge (scripts/lance-layout.mjs): the --torpedo and --lance-charge
+// comparisons are gone.
+const lanceChargeFrames = LANCE_CHARGE_FRAMES;
 if (laserTierValue !== null && laserFixtureTier !== null) {
   throw new Error("--laser-tier and --laser-fixture both fix the tier: pass one");
 }
@@ -460,8 +445,7 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
-  laserTierValue !== null || bossVariantSlug !== undefined || torpedoSlug !== undefined ||
-  lanceChargeSlug !== undefined;
+  laserTierValue !== null || bossVariantSlug !== undefined;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -485,9 +469,6 @@ const variantDirectoryNameInner = (escortVariantId !== null
   ? `laser-fixture-${laserFixtureTier}${levelDebugSuffix}`
   : laserTierValue !== null
   ? `laser-tier-${laserTierValue}${levelDebugSuffix}`
-  : torpedoSlug !== undefined || lanceChargeSlug !== undefined
-  ? [torpedoSlug === undefined ? null : `torpedo-${torpedoSlug}`,
-    lanceChargeSlug === undefined ? null : `lance-charge-${lanceChargeSlug}`].filter(Boolean).join("-") + levelDebugSuffix
   : playerColourValue !== null
   ? `player-colour-${playerColourSlug.toUpperCase()}${bomberColourSuffix}${levelDebugSuffix}`
   : bomberColourValue !== null
@@ -3440,8 +3421,6 @@ async function build() {
         "-D", `LANCE_CHARGE_FRAMES=${lanceChargeFrames}`,
         // M6 stage 1b (journal §BL 3, 7): the HUD meter's quarters, the torpedo's look.
         ...["EASY", "FRAMES", "HARD"].flatMap((name, index) => ["-D", `LANCE_METER_${name}=${lanceMeterFrames()[index]}`]),
-        "-D", `TORPEDO_FLIGHT=${torpedoLook[0] === "a" ? 1 : 2}`,
-        "-D", `TORPEDO_BLAST=${torpedoLook[1] === "a" ? 1 : 2}`,
         "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
       [`${bossBase}.o`, `${bossBase}.lst`],
     );
@@ -4632,8 +4611,7 @@ async function build() {
     },
     lightForcePopulation: forceLightPopulation,
     buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
-      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null ||
-      torpedoSlug !== undefined || lanceChargeSlug !== undefined
+      laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
       ? "enemy-review"
@@ -5029,9 +5007,8 @@ async function build() {
         // M6 stage 1b (journal §BL 3, 5, 7): the HUD meter and the torpedo's look.
         hudMeter: { label: 15, cells: [16, 17, 18, 19], hollow: bossLabels.get("LANCE_METER_HOLLOW") ?? 59,
           full: bossLabels.get("LANCE_METER_FULL") ?? 60 },
-        torpedo: { look: torpedoLook, step: 1, fireHoldFrames: 50,
-          hullRows: torpedoLook[0] === "a" ? 5 : 6, exhaustRows: torpedoLook[0] === "a" ? 4 : 5,
-          exhaustFrames: torpedoLook[0] === "a" ? 3 : 4, blastRows: 8, blastFrames: 5 } },
+        torpedo: { look: "spindle", step: 1, fireHoldFrames: 50, hullRows: 11, exhaustRows: 13,
+          flameShortRows: 9, flameLongRows: 13, blastRows: 8, blastFrames: 5 } },
       laserFixtureTier,
       ...(laserTierValue === null ? {} : { laserTier: laserTierValue }),
       order: bossOrder,

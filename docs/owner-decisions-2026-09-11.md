@@ -3705,6 +3705,8 @@ lance_charge = 50 persists while held and unlocked; movement parity uses the fra
 The owner explicitly approved this persistent interpretation after the state
 audit stop. No new state byte; lance zero page remains `$B6–$C3`.
 
+Owner accepted merging §BO with the pre-existing `b2261c9` boss stress regression recorded as debt (2026-10-22).
+
 ---
 
 ## Backlog — dopisane 2026-09-20

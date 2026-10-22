@@ -1414,16 +1414,40 @@ merge, push or new entry-timing claim. Implementation retained on the task
 branch as an experimental checkpoint; STATUS remains the accepted baseline.
 
 
-### Stage 1c owner-smoke handoff (2026-10-22)
+### Stage 1c as built — OWNER-ACCEPTED (2026-10-22)
 
-**OWNER-SMOKE CANDIDATE**, pending owner play test. The owner explicitly
-superseded the blocker disposition above for this task: the unchanged Citadel
-L5 overrun does not block §BO; do not fix it on this branch. Historical
-measurement confirms **regression in `b2261c9`**, 8,444 at `35499ba` -> 8,563,
-merged into main by `fea4cc8`. See
-[classification](../diagnostics/m6-lance-lock-2026-10-22/classification.md).
-No new full four-region certification. The default candidate and four existing
-sector-6 debug routes build successfully; paths, launch commands and SHA-256s:
+Owner smoke **PASS on `aeaf440`**: lock-only firing, waiting while held,
+cancellation on release, Spine field wait and ordinary-fire lockout all behave
+as specified. Owner authorized merge into main with `--no-ff` and push of
+main and `codex/m6-lance-lock`. This acceptance supersedes the earlier blocked
+checkpoint above; no boss-stress fix is part of §BO.
+
+C saturates `lance_charge` at **50**: that value persists while the gesture is
+held without a lock. The first locked frame launches; release resets charge
+through the existing cancellation path. During the wait, ASM uses the existing
+frame counter for movement parity, preserving half-speed forward movement and
+full horizontal speed. The HUD meter stays full. No new state byte; lance
+zero page remains **`$B6–$C3`**. Straight-launch setup removed; flight/arrival
+guards and lost-target behaviour retained. Gameplay implementation is `d165927`.
+
+Measured resources: lance **763 -> 757/768 B**, page 4 **250/256 B**, lance
+BSS **5 B**, zero page **14 B**, window end **$B8FB** (all 5 B reserved),
+initial content **13,572 B** (80 B planning slack), DIRECTOR_RAM **643/645 B**,
+DIRECTOR_C_LOW **203/245 B**. Reservations unchanged. Bastion maximum measured
+**8,478 cycles** (22 margin), waits even/odd **8,414 / 8,397**, delayed lock
+**8,462**; R1 **7,711 -> 7,712**. Build gates pass; all 34 focused lance tests
+pass. No new full four-region certification or wall-trace. Boss-entry transport
+unchanged; historical entry frames **325/340/340/344**, not remeasured here.
+
+**Known debt, owner-authorized merge exception:** regression in `b2261c9`,
+Citadel L5 lost-target **8,444 at `35499ba` -> 8,563**, identical on pre-§BO
+main and §BO. R1 pre-§BO worst **7,592 -> 7,711** remains within cap. Fix in
+a separate task before the window levers; release blocked until fixed.
+[Classification](../diagnostics/m6-lance-lock-2026-10-22/classification.md).
+
+The default candidate and four existing sector-6 debug routes build; ATR paths,
+launch commands and hashes are in the historical
 [candidate manifest](../diagnostics/m6-lance-lock-2026-10-22/candidate.json).
-Gameplay implementation remains exactly `d165927`. Release remains blocked by
-the separate Citadel debt; owner smoke/merge acceptance has not yet occurred.
+Accepted campaign ATR SHA-256:
+`ce0167bba2be5c9ff1ab2c6e770aec7e16c0876479e5860497b2efea66700272`.
+Release evidence regeneration remains due under §BM.

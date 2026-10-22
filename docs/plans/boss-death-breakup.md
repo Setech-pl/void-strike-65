@@ -130,3 +130,73 @@ Validation is offline rendering and GIF timing/PNG inspection only. No game
 tests, build or runtime-evidence regeneration applies to this mockup-only
 change (§BM); no implementation or acceptance claim. **NEXT TASK: owner
 chooses A/B/C or requests a visual adjustment. STOP before Phase B.**
+
+## Phase B — pre-code answers (owner pick B, 2026-10-22)
+
+Step 0 PASS: clean `codex/boss-death-breakup` at `9500224`, containing
+`686d3f5`, also the local `origin/main` tip. No rebase. Stale Current task
+debt corrected in `458423e`. Journal **§BQ** is reserved for the acceptance
+record after the owner writes OK; this is authorization, not smoke acceptance.
+
+1. **Budget.** The 8,500-cycle proxy continues to apply to the fight only.
+   Breakup takes exclusive control after defeat: boss/controller/region fire,
+   lasers, escorts, hostile/player shots, torpedo, pickups, input and collision
+   updates stop. The ship and HUD hold their final state. The private animation
+   loop retains display/PMG publication and a bounded audio cue, not a second
+   normal gameplay tick. Gates remain DMA-on target **31,500**, hard **32,568**,
+   physical PAL **35,568**, no frame skips, and fence margin **>=500**.
+   For a line-20 start, the line-240 fence allows `(240-20)*114-500 = 24,580`
+   clocks of pre-fence wall work, including DMA/interrupts. Use the actual
+   start clock for measurement, never 8,500 or 35,568 as the death budget.
+   Best conservative ESTIMATE, to be replaced by measured results:
+
+   | Region | Engine CPU peak | Pre-fence DMA-on work | Fence margin | Whole DMA-on iteration |
+   | --- | ---: | ---: | ---: | ---: |
+   | R1 Breaker, 5 rows | <=14,000 | <=22,000 | >=3,080 | <=28,500 |
+   | R2 Citadel, 5 rows | <=14,000 | <=22,000 | >=3,080 | <=28,500 |
+   | R3 Spine, 8 rows | <=16,000 | <=24,000 | >=1,080 | <=30,500 |
+   | R4 Bastion, 5 rows | <=14,000 | <=22,000 | >=3,080 | <=28,500 |
+
+   These include worst-row palette/DLI and fixed PMG work; no combat allowance
+   is borrowed. Render into an offscreen wing buffer, then publish the next
+   list/LMS after the fence: no writes racing visible boss rows.
+
+2. **Placement.** Post-defeat disk reads, not extra boss-entry reads. Replace
+   the old chain/hold implementation with takeover; keep its fight path and
+   existing 15-sector C run. A small disk bootstrap goes into dead region slot
+   F `$5200-$53FF` (512 B). It loads the shared engine into dead C/scratch/D
+   `$1000-$1FFF` (4,096 B reclaimed after combat, **not** their 4/6/4-B fight
+   tails). Reserve up to **3,584 B** code/data there, leaving **512 B** for the
+   second wing buffer. Reuse the original band as the other buffer and retain
+   its first two rows as the crown. Dead E `$4C00-$4E3F` supplies **576 B** for
+   the private list, source-row colours and state. Bootstrap + engine code
+   budget **4,096 B**, 2.7 times Phase A's 1,536-B upper estimate; RAM budget
+   is **5,184 B** across these already phase-exclusive homes. No persistent
+   allocation. No use of the reserved `$B8FB-$B8FF` 5 B, initial-block slack,
+   DIRECTOR_RAM, DIRECTOR_C_LOW, lance run or page 4. Existing band writes are
+   screen data already allocated in the window, not added window bytes.
+   Disk specs/guard folds and takeover live in disk boss overlays. If the
+   existing A/C run sizes or install gate cannot be preserved, stop with costs.
+
+3. **Read pause.** Before any read, prepare a stable DLI-free **HULL BREACH**
+   status card using the existing HUD font, retain the bottom HUD and player
+   PMG, and silence POKEY. This card replaces the battlefield deliberately;
+   no black screen or old graphics under the wrong charset. After loading,
+   restore the real spent hull and play B, then normal summary handoff.
+   ESTIMATE: bootstrap 4 sectors + engine about 16–28 = **20–32 sectors**;
+   emulator approximately **80–130 host frames (1.6–2.6 s)**. Standard 19,040
+   baud on SIO2SD: payload/command wire time plus drive gaps, approximately
+   **1.6–3.2 s** without retries. Not measured yet. Report actual sector count
+   and emulator frames; hardware time remains an estimate until owner smoke.
+
+4. **Coverage and entry.** All four campaign regions, using current band data
+   and source-row colours; crown two rows, wings one character/frame, crown
+   one row/3 frames, common brief shake, P1/P2 + two missile sparks. No new
+   install call or byte: boss install stays **383/384 B**, one byte free.
+   Keep boss-entry read counts unchanged (**84/88/88/89 sectors**), <=350 host
+   frames. Existing overlay slots may replace removed death code; no added
+   entry run. Fresh build and focused native checks must confirm these claims.
+
+No pre-code estimate breaks the stated limits. Proceed with implementation;
+stop if linked sizes or focused measurements contradict these bounds. Step 3
+is OWNER-SMOKE CANDIDATE only; merge/push waits for the owner's explicit OK.

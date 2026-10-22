@@ -1,4 +1,10 @@
-# M6 stage 2 — BLOCKED_WINDOW_BYTES (2026-10-22)
+# M6 stage 2 — placement diagnostics (2026-10-22)
+
+**Recovery A built: OWNER-SMOKE CANDIDATE.** The owner selected A; see
+[the option-A build report](option-a-candidate.md). The failed attempt below
+is preserved historical evidence; the blocker is resolved, owner smoke pending.
+
+## Original BLOCKED_WINDOW_BYTES attempt
 
 Session: Codex. Branch `codex/m6-life-capsule`, Phase A commit `83f6ec2`.
 The owner picked rescue cross A and authorized Phase B. This is a failed

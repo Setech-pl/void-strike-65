@@ -734,6 +734,8 @@ boss_enter_read:
 @failed:
     jmp pin_sector_reader_failure_screen
 
+.include "life-capsule.s"
+
 .export boss_enter_read
 ; feat/boss-banners (the owner's smoke of 2026-10-18): the WARNING text
 ; screen's records that ended this segment are gone - the boss entry shows no

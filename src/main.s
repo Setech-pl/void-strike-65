@@ -18,6 +18,8 @@
 .include "loader-display-list.inc"
 .include "frontend-h31.inc"
 .include "director-abi.inc"
+.include "life-capsule-layout.inc"
+fighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES
 
 DIRECTOR_STATE_REACTION = $80F9
 DIRECTOR_STATE_RECOVERY = $80FA
@@ -3222,8 +3224,9 @@ publish_fighter_projectile_overlays:
     jsr publish_dynamic_near_star_phase
     jmp fighter_projectile_publication_capital_render
 @fighter_window:
-    lda #PICKUP_BOOST_COLOUR
-    sta COLPM3
+    jsr LIFE_CAPSULE_COLOUR
+    nop
+    nop
     ldx #$77
     jsr wait_frame_at_line
 fighter_projectile_publication_begin = *
@@ -3244,11 +3247,11 @@ fighter_projectile_publication_capital_render:
     ; projectile/effect/debris foreground always wins without backing hooks.
     jmp render_dynamic_near_star_overlays
 .export fighter_projectile_publication_begin
-; Plasma FX: the two COLPM3 immediates above, which the player's death fire
-; cycle patches (render_shared_fighter_explosions). Named from the equate after
-; them because a label inside the routine would end its @fighter_window scope;
+; Plasma FX: death fire patches the window LIFE colour immediate in OPEN
+; and the original capital immediate. The window selector gives death priority.
+; These equates preserve the surrounding @fighter_window scope;
 ; tests/plasma-fx.test.mjs reads both bytes at rest ($1C, $28) and mid-death.
-publish_colpm3_open_operand = fighter_projectile_publication_begin-9
+publish_colpm3_open_operand = LIFE_CAPSULE_COLOUR_OPERAND
 publish_colpm3_capital_operand = fighter_projectile_publication_begin-23
 .export publish_colpm3_open_operand, publish_colpm3_capital_operand
 
@@ -10354,7 +10357,8 @@ weapon_pickup_collide_player:
     cmp #(256-(PLAYER_COLLISION_WIDTH-1))
     bcc weapon_pickup_collision_done
 weapon_pickup_collect:
-    jsr weapon_pickup_release_active_mask
+    jmp LIFE_CAPSULE_COLLECT
+weapon_pickup_collect_booster:
     lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
     bne @hud_backed_up
     jsr backup_weapon_booster_hud
@@ -10473,15 +10477,10 @@ weapon_pickup_spawn_capsule_at:
     sta ENTITY_Y+WEAPON_PICKUP_SLOT
     lda #$00
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
-    lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
-    sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
-    inc ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
-    lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
-    cmp #WEAPON_PICKUP_TYPE_COUNT
-    bcc :+
-    lda #WEAPON_PICKUP_TYPE_RAPID
-    sta ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
-:
+    jsr LIFE_CAPSULE_PICK
+    jmp @picked
+    .res 15, $00                 ; skipped padding preserves ENTITY_CODE ABI
+@picked:
     lda #WEAPON_PICKUP_PENDING_TIMER_LOAD
     sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
     lda #WEAPON_PICKUP_STATE_PENDING
@@ -11583,57 +11582,9 @@ effect_fragment_glyph_end:
 ; so the verbatim boot prefix stays small and stable.
 .segment "STARFIELD"
 
-; Per-type capsule silhouettes, one sixteen-row table per booster, indexed by
-; ENTITY_TYPE+WEAPON_PICKUP_SLOT. The shapes are the original capsule artwork
-; recovered from assets/graphics/entity-effects.json, reduced to one bit per
-; colour clock because the mark carries a single colour (COLPM3); the old
-; multi-register casing/fill/symbol palette cannot survive that.
-;
-; Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 item 2): the
-; capsule is one PLAYER3 image, not the GTIA fifth player, so the rows are in
-; PLAIN PLAYER BIT ORDER - bit 7 is the LEFT pixel, one colour clock per bit at
-; SIZEP3 = 0. The old fifth-player encoding interleaved two bits per missile
-; (colour clocks 1,0,3,2,5,4,7,6) and is gone with PRIOR $10. Every row below
-; is the picture beside it read left to right; do not hand-edit these bytes
-; without re-deriving them from the pictures.
-fighter_pickup_pmg_shape:
-    ; RAPID - capsule with the vertical slot left by the old "RF" letterform
-    ;   .######.   $7E
-    ;   ########   $FF
-    ;   ########   $FF
-    ;   ########   $FF
-    ;   ###..###   $E7   (x8)
-    ;   ########   $FF
-    ;   ########   $FF
-    ;   ########   $FF
-    ;   .######.   $7E
-    .byte $7E,$FF,$FF,$FF,$E7,$E7,$E7,$E7
-    .byte $E7,$E7,$E7,$E7,$FF,$FF,$FF,$7E
-    ; SPREAD - boxier casing carrying the three-shot fan across its top
-    ;   ########   $FF
-    ;   ########   $FF
-    ;   #.#..#.#   $A5
-    ;   #.#..#.#   $A5
-    ;   ##....##   $C3
-    ;   ##.##.##   $DB
-    ;   ###..###   $E7   (x7)
-    ;   ########   $FF   (x3)
-    .byte $FF,$FF,$A5,$A5,$C3,$DB,$E7,$E7
-    .byte $E7,$E7,$E7,$E7,$E7,$FF,$FF,$FF
-    ; SHIELD - crest tapering to a point, unmistakable at this size
-    ;   .######.   $7E
-    ;   ########   $FF
-    ;   ##....##   $C3
-    ;   ##.##.##   $DB   (x7)
-    ;   ##....##   $C3
-    ;   ###..###   $E7
-    ;   ###..###   $E7
-    ;   .######.   $7E
-    ;   ..####..   $3C
-    ;   ...##...   $18
-    .byte $7E,$FF,$C3,$DB,$DB,$DB,$DB,$DB
-    .byte $DB,$DB,$C3,$E7,$E7,$7E,$3C,$18
-    .assert * - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT*WEAPON_PICKUP_HEIGHT_SCANLINES, error, "one sixteen-row silhouette per booster type"
+; M6 stage 2: the four masks now live in the appended window tail.
+; Editable source: assets/graphics/life-capsule.json; scripts/build.mjs emits
+; the include for the last window link. The original 48 raw bytes are freed.
 
 hud_booster_label:
     .byte CH_HUD_A+1                     ; M6 stage 1b: "B" (it was "BOOST ")
@@ -13325,6 +13276,13 @@ boss_enter_head:
 @read_region:
     jmp pin_boss_enter_read
 
+; M6 stage 2 option A: retain the window's byte layout by extending the
+; existing star-publication call through this six-byte PICKUP_CODE tail.
+life_capsule_star_continuation:
+    jsr DIRECTOR_STAR_PIXEL
+    jmp LIFE_CAPSULE_ENTER
+.assert life_capsule_star_continuation = LIFE_CAPSULE_STAR_CONTINUATION, lderror, "LIFE sector-entry continuation moved"
+
 ; -----------------------------------------------------------------------------
 ; ADR-003 boot splash (2026-09-22)
 ;
@@ -13344,3 +13302,7 @@ SPLASH_SPACE_KEY = $21          ; POKEY key code for SPACE, KBCODE bits 0-5
 .assert __BOOT_SPLASH_RUN__ = $0500, error, "the boot splash blob must run at $0500"
 .assert __BOOT_SPLASH_SIZE__ = SPLASH_BLOB_BYTES, error, "the boot splash blob must fill its $0200 window"
 .assert __BOOT_STAGE2_SIZE__ + __BOOT_SPLASH_SIZE__ <= $0800, error, "stage-2 plus the splash blob exceed the BOOT2FILE area they share"
+
+.export weapon_pickup_release_active_mask, weapon_pickup_collect_booster
+.export integration_pickup_reveal_body, EFFECT_GROWTH_GLYPH_BASE, PICKUP_BOOST_COLOUR
+.export FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT

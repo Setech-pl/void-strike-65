@@ -888,10 +888,12 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   core[10] = debrisDensity;
   core[11] = spacingScale;
   core[12] = debugStartSector;
+  const lastSpaceSector = sectors.findLastIndex((sector) => sector.kind === 0);
   for (const sector of sectors) {
     const last = sector.index === sectors.length - 1 ? 0x80 : 0;
     core[SECTOR_ARRAY_OFFSET.kind + sector.index] =
-      sector.kind | (sector.subtype << 4) | last;
+      sector.kind | (sector.subtype << 4) | last |
+      (sector.index === lastSpaceSector ? 0x40 : 0);
     core[SECTOR_ARRAY_OFFSET.len + sector.index] = sector.lenModules;
     core[SECTOR_ARRAY_OFFSET.caps + sector.index] = sector.lights | (sector.heavies << 4);
     core[SECTOR_ARRAY_OFFSET.archetypes + sector.index] = sector.mask;

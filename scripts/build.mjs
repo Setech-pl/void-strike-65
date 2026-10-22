@@ -1026,6 +1026,11 @@ const SUMMARY_READER_SYMBOLS = Object.freeze([
 // and they are generated from the linked main image, so a moved routine is a
 // build error rather than a jump into whatever now lives at the old address.
 const LIGHT_KERNEL_MAIN_SYMBOLS = Object.freeze([
+  ...["ENTITY_TYPE", "ENTITY_X", "ENTITY_Y", "FIGHTER_EXPLOSION_TIMER",
+    "FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT", "EFFECT_ACTIVE_MASK", "EFFECT_RENDER_ID",
+    "EFFECT_GROWTH_GLYPH_BASE", "PICKUP_BOOST_COLOUR", "weapon_pickup_spawn_capsule_at",
+    "weapon_pickup_release", "weapon_pickup_release_active_mask", "weapon_pickup_collect_booster",
+    "integration_pickup_reveal_body", "update_hud_status"].map(name => [name, "M6 LIFE capsule hardware veneer"]),
   ["entity_effects_update", "the effects tick the Light update runs first"],
   ["entity_debris_publish", "debris, published below the Light in the late window"],
   ["erase_fighter_projectile_overlays", "PairShot erase; the Light erase follows it"],
@@ -1403,6 +1408,25 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const longBranchMacros = fs.readFileSync(path.join(shareDir, "asminc", "longbranch.mac"));
   const abiSource = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"));
   const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"));
+  const lifeCompiled = await runWasmTool("cc65", {
+    "/project/life-capsule.c": fs.readFileSync(path.join(rootDirectory, "src/c/life-capsule.c")),
+    "/cc65/include/stdint.h": fs.readFileSync(path.join(shareDir, "include/stdint.h")),
+  }, ["--cpu", "6502", "-Oirs", "-I", "/cc65/include", "-o", "/project/life-capsule-generated.s",
+    "/project/life-capsule.c"], ["/project/life-capsule-generated.s"]);
+  const lifeAssembly = lifeCompiled.outputs["/project/life-capsule-generated.s"];
+  writeFile(path.join(buildDirectory, "life-capsule-generated.s"), lifeAssembly);
+  const lifeExecutable = lifeAssembly.toString("utf8").replace(/^\s*\.importzp.*$/gmi, "");
+  if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(lifeExecutable)) {
+    throw new Error("M6 LIFE policy needs cc65 software-stack/helper state");
+  }
+  const lifeAssembled = await runWasmTool("ca65", {
+    "/project/life-capsule-generated.s": lifeAssembly,
+    "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir, "asminc/longbranch.mac")),
+  }, ["--cpu", "6502", "-g", "-I", "/cc65/asminc", "-l", "/project/life-capsule-c.lst",
+    "-o", "/project/life-capsule-c.o", "/project/life-capsule-generated.s"],
+  ["/project/life-capsule-c.o", "/project/life-capsule-c.lst"]);
+  writeFile(path.join(buildDirectory, "life-capsule-c.lst"), lifeAssembled.outputs["/project/life-capsule-c.lst"]);
+  writeFile(path.join(buildDirectory, "life-capsule-c.o"), lifeAssembled.outputs["/project/life-capsule-c.o"]);
   const compiled = await runWasmTool(
     "cc65",
     {
@@ -1474,6 +1498,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const abiAssembled = await runWasmTool(
     "ca65",
     { [`${base}-abi.s`]: abiSource,
+      "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
       "/project/build/level-def.inc": levelDefInclude,
       // M5b-S3: the boss entry's resident half and the addresses it pins.
@@ -1497,13 +1522,14 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const linked = await runWasmTool(
     "ld65",
     {
+      "/project/life-capsule-c.o": lifeAssembled.outputs["/project/life-capsule-c.o"],
       [`${base}-c.o`]: cAssembled.outputs[`${base}-c.o`],
       [`${base}-lifecycle.o`]: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
       [`${base}-abi.o`]: abiAssembled.outputs[`${base}-abi.o`],
       [`${base}.cfg`]: config,
     },
     ["-C", `${base}.cfg`, "-o", `${base}-combined.bin`, "-m", `${base}.map`,
-      "-Ln", `${base}.lbl`, `${base}-abi.o`, `${base}-c.o`, `${base}-lifecycle.o`],
+      "-Ln", `${base}.lbl`, `${base}-abi.o`, `${base}-c.o`, `${base}-lifecycle.o`, "/project/life-capsule-c.o"],
     [`${base}-combined.bin`, `${base}.map`, `${base}.lbl`],
   );
   const combinedRaw = Buffer.from(linked.outputs[`${base}-combined.bin`]);
@@ -1713,6 +1739,10 @@ function attachGlueToLowRecord(directorModule, glueRaw) {
 function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
   const labels = parseViceLabels(labelBytes.toString("utf8"));
   const symbols = [
+    ["LIFE_C_PICK", "_life_c_pick"],
+    ["LIFE_C_COLLECT", "_life_c_collect"],
+    ["LIFE_C_ENTER", "_life_c_enter"],
+    ["DIRECTOR_STAR_PIXEL", "_asm_publish_star_pixel"],
     ["DIRECTOR_INIT", "director_init"],
     ["DIRECTOR_WORLD_ROW_TICK", "director_world_row_tick"],
     ["DIRECTOR_REQUEST", "director_request"],
@@ -2128,6 +2158,7 @@ async function build() {
     "ca65",
     {
       "/project/src/main.s": source,
+      "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/loader-screen.inc": loaderInclude,
       "/project/build/loader-display-list.inc": loaderDisplayListInclude,
       "/project/build/capital-hulls.inc": capitalHullsInclude,
@@ -2609,12 +2640,22 @@ async function build() {
   const renderDiskGuardInclude = (sums = null) => renderGuardInclude({
     names: OVERLAY_DIRECTORY, recordEntry: OVERLAY_SAVE_RECORD, sums, identity: diskIdentity,
   });
+  const lifeShapes = JSON.parse(fs.readFileSync(path.join(rootDirectory, "assets/graphics/life-capsule.json")));
+  if (lifeShapes.masks.length !== 4 || lifeShapes.masks.some(mask => mask.length !== 16 ||
+      mask.some(byte => !Number.isInteger(byte) || byte < 0 || byte > 255))) {
+    throw new Error("M6 LIFE needs four 16-byte PMG masks");
+  }
+  const lifeShapesInclude = Buffer.from(lifeShapes.masks.map(mask =>
+    `    .byte ${mask.map(byte => `$${byte.toString(16).padStart(2, "0")}`).join(",")}`).join("\n") + "\n");
   const linkLightKernel = (diskGuardInclude) => buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "hybrid", "light-kernel.s"),
     configPath: path.join(rootDirectory, "cfg", "light-kernel.cfg"),
     configText: lightKernelConfig,
     stem: "light-kernel",
     extraInputs: {
+      "/project/build/life-capsule.s": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule.s")),
+      "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
+      "/project/build/life-capsule-shapes.inc": lifeShapesInclude,
       "/project/build/disk-guard.s": fs.readFileSync(
         path.join(rootDirectory, "src", "hybrid", "disk-guard.s")),
       "/project/build/disk-guard-sums.inc": Buffer.from(diskGuardInclude),

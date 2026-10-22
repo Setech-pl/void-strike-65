@@ -1,0 +1,560 @@
+diff --git a/cfg/light-kernel.cfg b/cfg/light-kernel.cfg
+index 065329d..9ec6ad2 100644
+--- a/cfg/light-kernel.cfg
++++ b/cfg/light-kernel.cfg
+@@ -27,4 +27,6 @@ SEGMENTS {
+     # S5-1 (owner decision Q8): the boss entry's HUD booster backup, last, so
+     # nothing in the window moves (src/hybrid/light-kernel.s).
+     HUD_BOOSTER_BACKUP: load = LIGHT_KERNEL_RAM, type = ro, define = yes;
++    LIFE_CAPSULE: load = LIGHT_KERNEL_RAM, type = ro, define = yes;
++    LIFE_CAPSULE_CODE: load = LIGHT_KERNEL_RAM, type = ro, define = yes;
+ }
+diff --git a/scripts/build.mjs b/scripts/build.mjs
+index 1fe7779..14ec04f 100644
+--- a/scripts/build.mjs
++++ b/scripts/build.mjs
+@@ -1026,6 +1026,10 @@ const SUMMARY_READER_SYMBOLS = Object.freeze([
+ // and they are generated from the linked main image, so a moved routine is a
+ // build error rather than a jump into whatever now lives at the old address.
+ const LIGHT_KERNEL_MAIN_SYMBOLS = Object.freeze([
++  ...["ENTITY_TYPE", "ENTITY_X", "ENTITY_Y", "EFFECT_ACTIVE_MASK", "EFFECT_RENDER_ID",
++    "EFFECT_GROWTH_GLYPH_BASE", "PICKUP_BOOST_COLOUR", "weapon_pickup_spawn_capsule_at",
++    "weapon_pickup_release", "weapon_pickup_release_active_mask", "weapon_pickup_collect_booster",
++    "integration_pickup_reveal_body", "update_hud_status"].map(name => [name, "M6 LIFE capsule hardware veneer"]),
+   ["entity_effects_update", "the effects tick the Light update runs first"],
+   ["entity_debris_publish", "debris, published below the Light in the late window"],
+   ["erase_fighter_projectile_overlays", "PairShot erase; the Light erase follows it"],
+@@ -1356,7 +1360,7 @@ function renderLevelDirectoryInclude(levels) {
+ }
+ 
+ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs = {},
+-  configText = null, defines = [] }) {
++  configText = null, defines = [], extraObjects = {} }) {
+   const source = fs.readFileSync(sourcePath);
+   const config = configText === null ? fs.readFileSync(configPath) : Buffer.from(configText);
+   const base = `/project/build/${stem}`;
+@@ -1369,9 +1373,9 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
+   );
+   const linked = await runWasmTool(
+     "ld65",
+-    { [`${base}.o`]: assembled.outputs[`${base}.o`], [`${base}.cfg`]: config },
++    { [`${base}.o`]: assembled.outputs[`${base}.o`], [`${base}.cfg`]: config, ...extraObjects },
+     ["-C", `${base}.cfg`, "-o", `${base}.bin`, "-m", `${base}.map`,
+-      "-Ln", `${base}.lbl`, `${base}.o`],
++      "-Ln", `${base}.lbl`, `${base}.o`, ...Object.keys(extraObjects)],
+     [`${base}.bin`, `${base}.map`, `${base}.lbl`],
+   );
+   const raw = Buffer.from(linked.outputs[`${base}.bin`]);
+@@ -1474,6 +1478,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
+   const abiAssembled = await runWasmTool(
+     "ca65",
+     { [`${base}-abi.s`]: abiSource,
++      "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
+       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
+       "/project/build/level-def.inc": levelDefInclude,
+       // M5b-S3: the boss entry's resident half and the addresses it pins.
+@@ -2128,6 +2133,7 @@ async function build() {
+     "ca65",
+     {
+       "/project/src/main.s": source,
++      "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
+       "/project/build/loader-screen.inc": loaderInclude,
+       "/project/build/loader-display-list.inc": loaderDisplayListInclude,
+       "/project/build/capital-hulls.inc": capitalHullsInclude,
+@@ -2609,12 +2615,41 @@ async function build() {
+   const renderDiskGuardInclude = (sums = null) => renderGuardInclude({
+     names: OVERLAY_DIRECTORY, recordEntry: OVERLAY_SAVE_RECORD, sums, identity: diskIdentity,
+   });
++  const lifeCompiled = await runWasmTool("cc65", {
++    "/project/life-capsule.c": fs.readFileSync(path.join(rootDirectory, "src/c/life-capsule.c")),
++    "/cc65/include/stdint.h": fs.readFileSync(path.join(shareDir, "include/stdint.h")),
++  }, ["--cpu", "6502", "-Oirs", "-I", "/cc65/include", "-o", "/project/life-capsule-generated.s",
++    "/project/life-capsule.c"], ["/project/life-capsule-generated.s"]);
++  const lifeAssembly = lifeCompiled.outputs["/project/life-capsule-generated.s"];
++  writeFile(path.join(buildDirectory, "life-capsule-generated.s"), lifeAssembly);
++  const lifeExecutable = lifeAssembly.toString("utf8").replace(/^\s*\.importzp.*$/gmi, "");
++  if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(lifeExecutable)) {
++    throw new Error("M6 LIFE policy needs cc65 software-stack/helper state");
++  }
++  const lifeAssembled = await runWasmTool("ca65", {
++    "/project/life-capsule-generated.s": lifeAssembly,
++    "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir, "asminc/longbranch.mac")),
++  }, ["--cpu", "6502", "-g", "-I", "/cc65/asminc", "-l", "/project/life-capsule-c.lst",
++    "-o", "/project/life-capsule-c.o", "/project/life-capsule-generated.s"],
++  ["/project/life-capsule-c.o", "/project/life-capsule-c.lst"]);
++  writeFile(path.join(buildDirectory, "life-capsule-c.lst"), lifeAssembled.outputs["/project/life-capsule-c.lst"]);
++  const lifeShapes = JSON.parse(fs.readFileSync(path.join(rootDirectory, "assets/graphics/life-capsule.json")));
++  if (lifeShapes.masks.length !== 4 || lifeShapes.masks.some(mask => mask.length !== 16 ||
++      mask.some(byte => !Number.isInteger(byte) || byte < 0 || byte > 255))) {
++    throw new Error("M6 LIFE needs four 16-byte PMG masks");
++  }
++  const lifeShapesInclude = Buffer.from(lifeShapes.masks.map(mask =>
++    `    .byte ${mask.map(byte => `$${byte.toString(16).padStart(2, "0")}`).join(",")}`).join("\n") + "\n");
+   const linkLightKernel = (diskGuardInclude) => buildResidentModule({
+     sourcePath: path.join(rootDirectory, "src", "hybrid", "light-kernel.s"),
+     configPath: path.join(rootDirectory, "cfg", "light-kernel.cfg"),
+     configText: lightKernelConfig,
+     stem: "light-kernel",
++    extraObjects: { "/project/life-capsule-c.o": lifeAssembled.outputs["/project/life-capsule-c.o"] },
+     extraInputs: {
++      "/project/build/life-capsule.s": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule.s")),
++      "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
++      "/project/build/life-capsule-shapes.inc": lifeShapesInclude,
+       "/project/build/disk-guard.s": fs.readFileSync(
+         path.join(rootDirectory, "src", "hybrid", "disk-guard.s")),
+       "/project/build/disk-guard-sums.inc": Buffer.from(diskGuardInclude),
+diff --git a/scripts/entity-effects.mjs b/scripts/entity-effects.mjs
+index 3448ef7..3a52c27 100644
+--- a/scripts/entity-effects.mjs
++++ b/scripts/entity-effects.mjs
+@@ -482,6 +482,8 @@ export function renderEntityEffectsCa65Include(asset) {
+     "WEAPON_PICKUP_TYPE_SPREAD = 1",
+     "WEAPON_PICKUP_TYPE_SHIELD = 2",
+     "WEAPON_PICKUP_TYPE_COUNT = 3",
++    "WEAPON_PICKUP_TYPE_LIFE = 3",
++    "WEAPON_PICKUP_DRAW_TYPE_COUNT = 4",
+     "ENTITY_FLAG_WORLD_ATTACHED = $01",
+     "ENTITY_FLAG_MULTICELL = $02",
+     "ENTITY_FLAG_COLLIDE_PLAYER = $04",
+diff --git a/scripts/level-compiler.mjs b/scripts/level-compiler.mjs
+index 7095254..2f5e17a 100644
+--- a/scripts/level-compiler.mjs
++++ b/scripts/level-compiler.mjs
+@@ -888,10 +888,12 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
+   core[10] = debrisDensity;
+   core[11] = spacingScale;
+   core[12] = debugStartSector;
++  const lastSpaceSector = sectors.findLastIndex((sector) => sector.kind === 0);
+   for (const sector of sectors) {
+     const last = sector.index === sectors.length - 1 ? 0x80 : 0;
+     core[SECTOR_ARRAY_OFFSET.kind + sector.index] =
+-      sector.kind | (sector.subtype << 4) | last;
++      sector.kind | (sector.subtype << 4) | last |
++      (sector.index === lastSpaceSector ? 0x40 : 0);
+     core[SECTOR_ARRAY_OFFSET.len + sector.index] = sector.lenModules;
+     core[SECTOR_ARRAY_OFFSET.caps + sector.index] = sector.lights | (sector.heavies << 4);
+     core[SECTOR_ARRAY_OFFSET.archetypes + sector.index] = sector.mask;
+diff --git a/src/c/director.c b/src/c/director.c
+index 145763d..e839216 100644
+--- a/src/c/director.c
++++ b/src/c/director.c
+@@ -50,6 +50,9 @@
+ #pragma rodata-name ("DIRECTOR_C_RODATA")
+ 
+ #define U8_AT(address) (*(volatile uint8_t*)(address))
++/* Fixed tail ABI; the last window link asserts LIFE_CAPSULE_BASE = $B82A. */
++#define LIFE_CAPSULE_SPAWNED U8_AT(0xB82Au)
++void asm_life_enter(void);
+ 
+ #define DIFFICULTY_SETTING       U8_AT(0x4E70u)
+ #define FRAME_COUNTER            U8_AT(0x0086u)
+@@ -377,6 +380,7 @@ static void enter_sector(void)
+     /* Roadmap 4.6 step 5: the sky changes here and nowhere else. The look's
+      * low nibble is the sector's star pixel, resolved by the compiler. */
+     asm_publish_star_pixel(sector_look[director_scratch3]);
++    asm_life_enter();
+     director_scratch0 = sector_kind[director_scratch3] & SECTOR_KIND_MASK;
+     if (director_scratch0 == SECTOR_KIND_CAPITAL) {
+         STATE_FLAGS |= FLAG_CAPITAL_DUE;
+@@ -403,6 +407,7 @@ static void enter_sector(void)
+ #pragma code-name ("DIRECTOR_C_LOW")
+ void director_c_init(void)
+ {
++    LIFE_CAPSULE_SPAWNED = 0u;
+     STATE_ROW_LO = 0u;
+     STATE_ROW_HI = 0u;
+     STATE_SECTOR = 0u;
+diff --git a/src/hybrid/c-asm-abi.s b/src/hybrid/c-asm-abi.s
+index 97fd585..46b621d 100644
+--- a/src/hybrid/c-asm-abi.s
++++ b/src/hybrid/c-asm-abi.s
+@@ -1,4 +1,7 @@
+ ; Stable boundary between the existing ca65 runtime and the cc65 Director.
++.include "life-capsule-layout.inc"
++_asm_life_enter = LIFE_CAPSULE_ENTER
++.export _asm_life_enter
+ ; No cc65 startup or library is linked. All calls are mainline-only.
+ .setcpu "6502"
+ 
+diff --git a/src/hybrid/light-kernel.s b/src/hybrid/light-kernel.s
+index c64a66f..30f47e3 100644
+--- a/src/hybrid/light-kernel.s
++++ b/src/hybrid/light-kernel.s
+@@ -734,6 +734,8 @@ boss_enter_read:
+ @failed:
+     jmp pin_sector_reader_failure_screen
+ 
++.include "life-capsule.s"
++
+ .export boss_enter_read
+ ; feat/boss-banners (the owner's smoke of 2026-10-18): the WARNING text
+ ; screen's records that ended this segment are gone - the boss entry shows no
+diff --git a/src/main.s b/src/main.s
+index 9c7253e..7b7d9ac 100644
+--- a/src/main.s
++++ b/src/main.s
+@@ -18,6 +18,8 @@
+ .include "loader-display-list.inc"
+ .include "frontend-h31.inc"
+ .include "director-abi.inc"
++.include "life-capsule-layout.inc"
++fighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES
+ 
+ DIRECTOR_STATE_REACTION = $80F9
+ DIRECTOR_STATE_RECOVERY = $80FA
+@@ -3222,8 +3224,9 @@ publish_fighter_projectile_overlays:
+     jsr publish_dynamic_near_star_phase
+     jmp fighter_projectile_publication_capital_render
+ @fighter_window:
+-    lda #PICKUP_BOOST_COLOUR
+-    sta COLPM3
++    jsr LIFE_CAPSULE_COLOUR
++    nop
++    nop
+     ldx #$77
+     jsr wait_frame_at_line
+ fighter_projectile_publication_begin = *
+@@ -10354,7 +10357,8 @@ weapon_pickup_collide_player:
+     cmp #(256-(PLAYER_COLLISION_WIDTH-1))
+     bcc weapon_pickup_collision_done
+ weapon_pickup_collect:
+-    jsr weapon_pickup_release_active_mask
++    jmp LIFE_CAPSULE_COLLECT
++weapon_pickup_collect_booster:
+     lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
+     bne @hud_backed_up
+     jsr backup_weapon_booster_hud
+@@ -10473,15 +10477,8 @@ weapon_pickup_spawn_capsule_at:
+     sta ENTITY_Y+WEAPON_PICKUP_SLOT
+     lda #$00
+     sta ENTITY_HP+WEAPON_PICKUP_SLOT
+-    lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
+-    sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
+-    inc ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
+-    lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
+-    cmp #WEAPON_PICKUP_TYPE_COUNT
+-    bcc :+
+-    lda #WEAPON_PICKUP_TYPE_RAPID
+-    sta ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
+-:
++    jsr LIFE_CAPSULE_PICK
++    .res 18, $00                 ; preserve the following ENTITY_CODE ABI
+     lda #WEAPON_PICKUP_PENDING_TIMER_LOAD
+     sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
+     lda #WEAPON_PICKUP_STATE_PENDING
+@@ -11583,57 +11580,9 @@ effect_fragment_glyph_end:
+ ; so the verbatim boot prefix stays small and stable.
+ .segment "STARFIELD"
+ 
+-; Per-type capsule silhouettes, one sixteen-row table per booster, indexed by
+-; ENTITY_TYPE+WEAPON_PICKUP_SLOT. The shapes are the original capsule artwork
+-; recovered from assets/graphics/entity-effects.json, reduced to one bit per
+-; colour clock because the mark carries a single colour (COLPM3); the old
+-; multi-register casing/fill/symbol palette cannot survive that.
+-;
+-; Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 item 2): the
+-; capsule is one PLAYER3 image, not the GTIA fifth player, so the rows are in
+-; PLAIN PLAYER BIT ORDER - bit 7 is the LEFT pixel, one colour clock per bit at
+-; SIZEP3 = 0. The old fifth-player encoding interleaved two bits per missile
+-; (colour clocks 1,0,3,2,5,4,7,6) and is gone with PRIOR $10. Every row below
+-; is the picture beside it read left to right; do not hand-edit these bytes
+-; without re-deriving them from the pictures.
+-fighter_pickup_pmg_shape:
+-    ; RAPID - capsule with the vertical slot left by the old "RF" letterform
+-    ;   .######.   $7E
+-    ;   ########   $FF
+-    ;   ########   $FF
+-    ;   ########   $FF
+-    ;   ###..###   $E7   (x8)
+-    ;   ########   $FF
+-    ;   ########   $FF
+-    ;   ########   $FF
+-    ;   .######.   $7E
+-    .byte $7E,$FF,$FF,$FF,$E7,$E7,$E7,$E7
+-    .byte $E7,$E7,$E7,$E7,$FF,$FF,$FF,$7E
+-    ; SPREAD - boxier casing carrying the three-shot fan across its top
+-    ;   ########   $FF
+-    ;   ########   $FF
+-    ;   #.#..#.#   $A5
+-    ;   #.#..#.#   $A5
+-    ;   ##....##   $C3
+-    ;   ##.##.##   $DB
+-    ;   ###..###   $E7   (x7)
+-    ;   ########   $FF   (x3)
+-    .byte $FF,$FF,$A5,$A5,$C3,$DB,$E7,$E7
+-    .byte $E7,$E7,$E7,$E7,$E7,$FF,$FF,$FF
+-    ; SHIELD - crest tapering to a point, unmistakable at this size
+-    ;   .######.   $7E
+-    ;   ########   $FF
+-    ;   ##....##   $C3
+-    ;   ##.##.##   $DB   (x7)
+-    ;   ##....##   $C3
+-    ;   ###..###   $E7
+-    ;   ###..###   $E7
+-    ;   .######.   $7E
+-    ;   ..####..   $3C
+-    ;   ...##...   $18
+-    .byte $7E,$FF,$C3,$DB,$DB,$DB,$DB,$DB
+-    .byte $DB,$DB,$C3,$E7,$E7,$7E,$3C,$18
+-    .assert * - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT*WEAPON_PICKUP_HEIGHT_SCANLINES, error, "one sixteen-row silhouette per booster type"
++; M6 stage 2: the four masks now live in the appended window tail.
++; Editable source: assets/graphics/life-capsule.json; scripts/build.mjs emits
++; the include for the last window link. The original 48 raw bytes are freed.
+ 
+ hud_booster_label:
+     .byte CH_HUD_A+1                     ; M6 stage 1b: "B" (it was "BOOST ")
+@@ -13344,3 +13293,6 @@ SPLASH_SPACE_KEY = $21          ; POKEY key code for SPACE, KBCODE bits 0-5
+ .assert __BOOT_SPLASH_RUN__ = $0500, error, "the boot splash blob must run at $0500"
+ .assert __BOOT_SPLASH_SIZE__ = SPLASH_BLOB_BYTES, error, "the boot splash blob must fill its $0200 window"
+ .assert __BOOT_STAGE2_SIZE__ + __BOOT_SPLASH_SIZE__ <= $0800, error, "stage-2 plus the splash blob exceed the BOOT2FILE area they share"
++
++.export weapon_pickup_release_active_mask, weapon_pickup_collect_booster
++.export integration_pickup_reveal_body, EFFECT_GROWTH_GLYPH_BASE, PICKUP_BOOST_COLOUR
+diff --git a/assets/graphics/life-capsule.json b/assets/graphics/life-capsule.json
+new file mode 100644
+index 0000000..02c296f
+--- /dev/null
++++ b/assets/graphics/life-capsule.json
+@@ -0,0 +1,77 @@
++{
++  "description": "PMG P3 at SIZEP3=0; RAPID, SPREAD, SHIELD, owner-picked LIFE rescue cross A",
++  "masks": [
++    [
++      126,
++      255,
++      255,
++      255,
++      231,
++      231,
++      231,
++      231,
++      231,
++      231,
++      231,
++      231,
++      255,
++      255,
++      255,
++      126
++    ],
++    [
++      255,
++      255,
++      165,
++      165,
++      195,
++      219,
++      231,
++      231,
++      231,
++      231,
++      231,
++      231,
++      231,
++      255,
++      255,
++      255
++    ],
++    [
++      126,
++      255,
++      195,
++      219,
++      219,
++      219,
++      219,
++      219,
++      219,
++      219,
++      195,
++      231,
++      231,
++      126,
++      60,
++      24
++    ],
++    [
++      24,
++      24,
++      24,
++      24,
++      24,
++      126,
++      255,
++      255,
++      255,
++      255,
++      126,
++      24,
++      24,
++      24,
++      24,
++      24
++    ]
++  ]
++}
+diff --git a/src/c/life-capsule.c b/src/c/life-capsule.c
+new file mode 100644
+index 0000000..9c85b2c
+--- /dev/null
++++ b/src/c/life-capsule.c
+@@ -0,0 +1,38 @@
++/* M6 stage 2. C owns drop eligibility, the once-per-level latch and life award.
++ * Mainline only; no software stack, locals, helpers or interrupt work. */
++#include <stdint.h>
++#pragma code-name ("LIFE_CAPSULE_CODE")
++
++extern uint8_t life_spawned;
++extern uint8_t life_forced;
++extern volatile uint8_t life_lives;
++extern volatile uint8_t life_sector;
++extern volatile uint8_t life_kind[];
++uint8_t life_rng(void);
++
++uint8_t life_c_pick(void)
++{
++    if (life_spawned || life_lives >= 8u) return 0u;
++    if (!life_forced) {
++        if (life_kind[life_sector] & 3u) return 0u;
++        if (life_rng() & 3u) return 0u;
++    }
++    life_spawned = 1u;
++    return 3u;
++}
++
++uint8_t life_c_collect(void)
++{
++    if (life_lives >= 8u) return 0u;
++    ++life_lives;
++    return 1u;
++}
++
++/* Called once at sector entry, not per frame. Returning the decision keeps
++ * force policy in C, even though ASM executes the shared clean replacement. */
++uint8_t life_c_enter(void)
++{
++    if (!(life_kind[life_sector] & 0x40u)) return 0u;
++    life_forced = 1u;
++    return life_c_pick();
++}
+diff --git a/src/hybrid/life-capsule-layout.inc b/src/hybrid/life-capsule-layout.inc
+new file mode 100644
+index 0000000..fa82416
+--- /dev/null
++++ b/src/hybrid/life-capsule-layout.inc
+@@ -0,0 +1,8 @@
++; Frozen tail entries, shared by the Director, main and the last window link.
++LIFE_CAPSULE_BASE = $B82A
++LIFE_CAPSULE_SPAWNED = LIFE_CAPSULE_BASE
++LIFE_CAPSULE_PICK = LIFE_CAPSULE_BASE+1
++LIFE_CAPSULE_COLLECT = LIFE_CAPSULE_BASE+4
++LIFE_CAPSULE_ENTER = LIFE_CAPSULE_BASE+7
++LIFE_CAPSULE_COLOUR = LIFE_CAPSULE_BASE+10
++LIFE_CAPSULE_SHAPES = LIFE_CAPSULE_BASE+13
+diff --git a/src/hybrid/life-capsule.s b/src/hybrid/life-capsule.s
+new file mode 100644
+index 0000000..3536669
+--- /dev/null
++++ b/src/hybrid/life-capsule.s
+@@ -0,0 +1,101 @@
++; M6 stage 2: append to the bottom of the window tail; the lance stays at $B900.
++.include "life-capsule-layout.inc"
++.import _life_c_pick, _life_c_collect, _life_c_enter
++.segment "LIFE_CAPSULE"
++life_capsule_start:
++_life_spawned: .byte 0
++    jmp life_pick
++    jmp life_collect
++    jmp life_enter
++    jmp life_colour
++fighter_pickup_pmg_shape:
++.include "life-capsule-shapes.inc"
++_life_forced: .byte 0
++
++_life_lives = PLAYER_LIFECYCLE+1
++_life_sector = $80F6
++_life_kind = LEVEL_CORE_SECTOR_KIND_ADDRESS
++_life_rng = DIRECTOR_RNG_ADVANCE
++.export _life_spawned, _life_forced, _life_lives, _life_sector, _life_kind, _life_rng
++
++; A is zero at the original spawn's type-pick site. Keep the existing rotation
++; only for ordinary boosters. A LIFE never consumes its next booster.
++life_pick:
++    sta _life_forced
++    jsr _life_c_pick
++    beq @ordinary
++    sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
++    rts
++@ordinary:
++    lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
++    sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
++    inc ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
++    lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
++    cmp #WEAPON_PICKUP_TYPE_COUNT
++    bcc @done
++    lda #WEAPON_PICKUP_TYPE_RAPID
++    sta ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
++@done:
++    rts
++
++life_enter:
++    jsr _life_c_enter
++    beq @done
++    ; The C decision has set the once-per-level latch. Preserve the ordinary
++    ; rotation across the shared spawn, then replace its selected type.
++    lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
++    pha
++    jsr weapon_pickup_release
++    lda #124
++    jsr weapon_pickup_spawn_capsule_at
++    pla
++    sta ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
++    lda #WEAPON_PICKUP_TYPE_LIFE
++    sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
++    jmp integration_pickup_reveal_body
++@done:
++    rts
++
++life_collect:
++    lda ENTITY_TYPE+WEAPON_PICKUP_SLOT
++    cmp #WEAPON_PICKUP_TYPE_LIFE
++    beq @life
++    jsr weapon_pickup_release_active_mask
++    jmp weapon_pickup_collect_booster
++@life:
++    jsr _life_c_collect
++    beq :+
++    jsr update_hud_status
++:
++    jsr weapon_pickup_release
++    jsr play_hit_sound
++    ; The existing effect renderer assumes all four fragments are allocated
++    ; together. Reuse that whole pool only when empty; do not make a partial
++    ; allocation or erase somebody else's effects.
++    lda EFFECT_ACTIVE_MASK
++    bne @done
++    lda ENTITY_X+WEAPON_PICKUP_SLOT
++    ldy ENTITY_Y+WEAPON_PICKUP_SLOT
++    jsr spawn_breakup_effects_at
++    lda #EFFECT_GROWTH_GLYPH_BASE
++    sta EFFECT_RENDER_ID
++@done:
++    rts
++
++; Replaces the existing immediate COLPM3 publication byte-neutrally. The
++; player-death publication later in the frame still owns its own colour.
++life_colour:
++    lda #PICKUP_BOOST_COLOUR
++    ldx ENTITY_TYPE+WEAPON_PICKUP_SLOT
++    cpx #WEAPON_PICKUP_TYPE_LIFE
++    bne :+
++    lda #$AC
++:
++    sta $D015
++    rts
++
++.assert life_capsule_start = LIFE_CAPSULE_BASE, lderror, "LIFE tail does not start at $B82A"
++.assert fighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES, lderror, "LIFE mask ABI moved"
++; scripts/build.mjs checkLanceLayout checks __LIGHT_KERNEL_RAM_LAST__ after
++; BOTH this segment and the C policy have linked, before producing the ATR.
++.export life_capsule_start, fighter_pickup_pmg_shape

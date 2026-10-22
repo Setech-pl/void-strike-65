@@ -1,0 +1,17 @@
+000000r 2               HYBRID_ASM_WINDOW_BASE = $B47B
+000319r 1               light_kernel_end:
+000000r 2               life_capsule_start:
+00004Er 2               life_pick:
+000070r 2               life_enter:
+00008Er 2               life_collect:
+0000BDr 2               life_colour:
+0000CCr 2               .assert life_capsule_start = LIFE_CAPSULE_BASE, lderror, "LIFE tail does not start at $B82A"
+0000CCr 2               .assert fighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES, lderror, "LIFE mask ABI moved"
+
+C policy listing:
+000000r 1               .proc	_life_c_pick: near
+000038r 1               .endproc
+000038r 1               .proc	_life_c_collect: near
+00004Br 1               .endproc
+00004Br 1               .proc	_life_c_enter: near
+00005Fr 1               .endproc

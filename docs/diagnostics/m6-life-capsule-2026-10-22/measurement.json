@@ -1,0 +1,41 @@
+{
+  "status": "BLOCKED_WINDOW_BYTES",
+  "branch": "codex/m6-life-capsule",
+  "baselineHead": "83f6ec223a6a8dc8995c654dbd9a794a01832128",
+  "firstFailure": "LIFE tail does not start at $B82A",
+  "expectedTailStart": "$B82A",
+  "actualTailStart": "$B82D",
+  "baselineWindowFreeBytes": 214,
+  "sectorEntryHookWindowBytes": 3,
+  "capsuleAsmAndDataBytes": 204,
+  "capsuleCBytes": 95,
+  "totalNewWindowBytes": 302,
+  "windowShortfallBytes": 88,
+  "projectedEndExclusive": "$B958",
+  "lanceStart": "$B900",
+  "cFunctions": {
+    "pick": 56,
+    "collect": 19,
+    "enter": 20
+  },
+  "asmAndData": {
+    "flagVectorsMasksForceByte": 78,
+    "pick": 34,
+    "enter": 30,
+    "collectAndCue": 47,
+    "colour": 15
+  },
+  "saveTestAddress": "$0B58",
+  "productionChangesReverted": true,
+  "newAtrProduced": false,
+  "testsRun": [],
+  "wallTraceRun": false,
+  "bossStressRun": false,
+  "nativeCpuDelta": "unmeasured; no running capsule build",
+  "colourPublicationDeltaInstructionCount": {
+    "ordinary": 25,
+    "life": 26,
+    "scope": "each fighter publication; prototype only"
+  },
+  "diagnosticRun": "same failing build with listing capture; no assertions removed and no ATR generated"
+}

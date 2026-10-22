@@ -50,6 +50,8 @@
 #pragma rodata-name ("DIRECTOR_C_RODATA")
 
 #define U8_AT(address) (*(volatile uint8_t*)(address))
+/* Fixed tail ABI; the last window link asserts LIFE_CAPSULE_BASE = $B82A. */
+#define LIFE_CAPSULE_SPAWNED U8_AT(0xB82Au)
 
 #define DIFFICULTY_SETTING       U8_AT(0x4E70u)
 #define FRAME_COUNTER            U8_AT(0x0086u)
@@ -114,7 +116,7 @@ extern uint8_t asm_director_can_allocate(void);
  * the write - it patches the immediate operand the star publish draws with,
  * in HYBRID_ASM_ARENA - and C only decides when: at sector entry, and only
  * there. fastcall: the byte travels in A, no C stack. */
-extern void __fastcall__ asm_publish_star_pixel(uint8_t look);
+extern void __fastcall__ asm_publish_star_pixel_and_life(uint8_t look);
 /* The LevelDef core page: a link-time symbol at the level buffer, declared in
  * src/hybrid/c-asm-abi.s from the compiler's own generated address. Nothing is
  * linked into it - the sector reader fills it from the level image. */
@@ -376,7 +378,7 @@ static void enter_sector(void)
     light_wave_remaining = 0u;
     /* Roadmap 4.6 step 5: the sky changes here and nowhere else. The look's
      * low nibble is the sector's star pixel, resolved by the compiler. */
-    asm_publish_star_pixel(sector_look[director_scratch3]);
+    asm_publish_star_pixel_and_life(sector_look[director_scratch3]);
     director_scratch0 = sector_kind[director_scratch3] & SECTOR_KIND_MASK;
     if (director_scratch0 == SECTOR_KIND_CAPITAL) {
         STATE_FLAGS |= FLAG_CAPITAL_DUE;
@@ -403,6 +405,7 @@ static void enter_sector(void)
 #pragma code-name ("DIRECTOR_C_LOW")
 void director_c_init(void)
 {
+    LIFE_CAPSULE_SPAWNED = 0u;
     STATE_ROW_LO = 0u;
     STATE_ROW_HI = 0u;
     STATE_SECTOR = 0u;

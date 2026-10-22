@@ -1,4 +1,14 @@
 ; Stable boundary between the existing ca65 runtime and the cc65 Director.
+.include "life-capsule-layout.inc"
+_asm_publish_star_pixel_and_life = LIFE_CAPSULE_STAR_CONTINUATION
+_life_spawned = LIFE_CAPSULE_SPAWNED
+_life_forced = LIFE_CAPSULE_FORCED
+_life_lives = $4EAB
+_life_sector = $80F6
+_life_kind = LEVEL_CORE_SECTOR_KIND_ADDRESS
+_life_rng = _director_c_rng_advance
+.export _asm_publish_star_pixel_and_life
+.export _life_spawned, _life_forced, _life_lives, _life_sector, _life_kind, _life_rng
 ; No cc65 startup or library is linked. All calls are mainline-only.
 .setcpu "6502"
 

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-22 (M6 stage 1b - the HUD at the bottom with the VOID LANCE's T and meter, the spindle torpedo, the 50-frame charge - **OWNER-ACCEPTED** after the owner's quick test of `8715fda`, merged into main; journal §BL, §BM)
+Last update: 2026-10-22 (M6 stage 2 — the +1 life capsule, look A and placement A — **OWNER-ACCEPTED**, owner play test PASS on `b2261c9`; journal §BN)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -426,6 +426,67 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## M6 stage 2 — the +1 life capsule — **OWNER-ACCEPTED** (owner play test PASS on `b2261c9`, 2026-10-22; look A, placement A)
+
+Session: Codex. Plan [m6-void-lance.md §8](plans/m6-void-lance.md#8-stage-2--the-1-life-capsule-as-built-2026-10-22), journal **§BN**, and the
+[build report](diagnostics/m6-life-capsule-2026-10-22/option-a-candidate.md).
+
+**Accepted behaviour.** A mint rescue cross gives +1 life, capped at 8,
+without changing the active booster or consuming the ordinary capsule
+rotation. In SPACE, each ordinary spawn has a 1-in-4 chance until LIFE has
+appeared once that level. The flag records appearance, survives death and
+resets at level start. If it has not appeared, it spawns immediately at the
+start of the last SPACE sector, replacing any existing capsule cleanly in
+the same slot. At 8 lives, LIFE is suppressed and ordinary capsule logic
+continues. The existing bottom HUD keeps LIFE, HULL, BOOST, T meter | SCORE;
+the life digit updates only on a change. Existing sound and an opportunistic
+free effect pool provide collection feedback.
+
+**Placement.** Option A puts **95 B of C policy in DIRECTOR_C_LOW** and all
+four masks in the appended window tail **$B82A-$B8FA (209 B)**. A 3-B init
+clear and a 6-B PICKUP_CODE continuation preserve the existing window layout;
+48 B of masks leave STARFIELD. The lance stays **$B900-$BBFF**, guarded
+against overlap. The failed prototype's **302 B actual versus 125-160 B
+estimate** prompted the owner placement decision; final net runtime content
+is **+265 B**. Death-colour priority adds 5 B, leaving **5 B** below the lance.
+
+| Resource | Used / limit | Free bytes |
+| --- | ---: | ---: |
+| Initial content, project planning STOP | **13,572 / 13,652 B** | **80** |
+| Initial content, physical transport capacity | **13,572 / 13,684 B** | **112** |
+| Window below lance | end **$B8FB / $B900** | **5** |
+| DIRECTOR_C_LOW | **203 / 245 B** | **42** |
+| DIRECTOR_RAM | **643 / 645 B** | **2** |
+| Overlay A (boss) | **2,038 / 2,048 B** | **10** |
+| Overlay B (band and tables, fixed data ranges) | **768 / 768 B** | **0** |
+| Overlay C | **2,044 / 2,048 B** | **4** |
+| Overlay D | **1,788 / 1,792 B** | **4** |
+| Overlay E | **527 / 576 B** | **49** |
+| Overlay F, regions 1 / 2 / 3 / 4 | **110 / 406 / 323 / 508 of 512 B** | **402 / 106 / 189 / 4** |
+| Overlay G (lance) | **763 / 768 B** | **5** |
+| Overlay H (page 4) | **250 / 256 B** | **6** |
+| Boss install | **380 / 384 B** | **4** |
+| Summary overlay | **1,770 / 1,792 B** | **22** |
+
+PICKUP_CODE: **7 B** free. The initial-block physical content limit is
+13,684 B; the 13,652-B planning STOP keeps a further 32 B. Both are unchanged.
+
+**Verification.** Candidate build gates and 3 focused regression cases PASS;
+owner play test PASS. Build CPU replay maximum **15,116 cycles (+100)**,
+DMA accounting **12,531**, DLI **369**; additive **28,016, ESTIMATE**, not a
+new native PAL measurement. All boss disk runs unchanged byte-for-byte;
+entry reads **84/88/88/89 sectors**, prior timings **325/340/340/344 of 350
+host frames**, not remeasured. **The save-test address $0B58 has not moved.**
+Runtime evidence regeneration remains due before the next release (§BM).
+The accepted stage-1b real-hardware debt below remains open.
+
+**ATR:** `dist/void-strike-65.atr`, SHA-256
+`3f8f8e229a3189342136754fcf4cc311d68d5970bed8c729b7796ec4e1e1db10`.
+The normal and forced-sector-6 copies remain under `build/play/m6-life-capsule/`.
+Owner authorized the merge commit and push of main; no release.
+
+---
+
 ## M6 stage 1b — the HUD at the bottom, the lance meter in the HUD, the spindle torpedo, the 50-frame charge (feat/m6-gauges) — **OWNER-ACCEPTED** (the owner's quick test of `8715fda`, "OK", 2026-10-22; merged into main)
 
 Plan [plans/m6-gauges.md](plans/m6-gauges.md) §7-§9 (the stage's rounds) and **§10 (as built, the accepted configuration)**; journal **§BL** (every stage 1b decision, its 2026-10-22 entry the final state) and **§BM** (the owner's testing rule, also in AGENTS.md).
@@ -520,7 +581,7 @@ On every route the charge shows all six ramp colours (`$C4`-`$CE`) and the fire 
 
 **The smoked ATRs** (`build/play/`, not committed): `void-strike-65-m6-bi-full-30b94e65.atr`, `-r1-breaker-f755fac7`, `-r2-citadel-59a41d36`, `-r3-spine-7b1c3eb1`, `-r4-bastion-79c93e48`.
 
-**Stage 2 (not started; journal §BJ 4):** the +1 life capsule - 1 in 4, forced at the start of the last space sector, at most once a level, at most 8 lives; the window record +125-160 B (EST); the lives shown in the HUD. Room: sectors 581-583 free; the Bastion's headroom 38 cycles; the lance run 1 B free.
+**Stage 2:** completed and owner-accepted on `b2261c9`; journal §BN and the current stage-2 section above supersede the earlier estimate and placement.
 
 ---
 
@@ -7342,97 +7403,14 @@ Interceptor (Light, character-rendered).
 
 ## Current task
 
-**The pickup boost colour is implemented, gated and awaiting the owner's smoke of
-the DEFAULT build** (section "Pickup boost colour — the capsule is one `PLAYER3`
-image in gold `$1C`" above; branch `feat/pickup-boost-colour`, not merged and not
-pushed). The capsule owns `COLPM3` in `OPEN`, the colour is the owner's gold
-`$1C` from the 2026-09-29 hardware smoke of three review builds, and every gate
-moved the right way or not at all. What it still owes is the owner's smoke
-checklist in `hardware-testing.md` §6-§7.
+M6 stage 2 is **OWNER-ACCEPTED** after the owner's play test of `b2261c9`:
+look A, placement A; journal §BN. Finalization records this checkpoint and
+merges it into main with the owner-authorized merge commit and push.
 
-**Owner decision A — the ATR must boot without OPTION — is implemented and is
-an `OWNER-SMOKE CANDIDATE`; see the section below.** It is not the only
-outstanding candidate: owner decision B (the open BASIC window) and the
-main-menu title colour run are also awaiting smoke. `0002d84` is still the accepted runtime checkpoint: **Option D, the
-Bomber standing cost (roadmap item 1 below), is OWNER-ACCEPTED** (owner smoke
-PASS 2026-09-18 on XEX `ecc9ceda…`). `draw_enemy_member` skips the 16-row
-`P1`/`P2` body copy on frames where a member's Y is unchanged; X still goes out
-through `HPOSP1,x` every live frame. Measured result in the section above: the
-worst fence margin rises from **450/466 to 1,464 cycles** and the native
-stale-body gate reads 0. **Three `OWNER-SMOKE CANDIDATE`s are outstanding: owner decision A (the ATR
-boot fix), owner decision B (the open BASIC window) and the main-menu title
-colour run** (sections below). The sentence that previously stood here, "No
-`OWNER-SMOKE CANDIDATE` is outstanding", was a leftover from before decision A
-and contradicted both the paragraph above it and the Checkpoint section;
-corrected 2026-09-20, and corrected again the same day as candidates B and the
-title fix landed.
-
-**Light multiplicity (roadmap 4.6 prerequisite) is an `OWNER-SMOKE CANDIDATE`
-through step 5**, on branch `experiment/light-multiplicity` — see its section
-above for what it is, what it measured and the three owner decisions of
-2026-09-21 (the margin threshold, effect scheduling, and the rotate-frame gate
-recorded as a costed follow-up).
-
-**Tooling, 2026-09-21 (this session, no production code):** the two owner
-decisions on the release gate and the five stale pins are implemented. `npm test`
-runs to completion on the **default** build — 744 tests, 631 pass, **110 fail,
-0 new** against the 118 of `d4f085c` — and that default-build list is now the
-reference baseline for every "is this a regression?" question. The recorded gate
-failures live in `docs/recorded-gate-failures.json`, the one file the build gate
-and the tripwire share. The XEX, ATR and boot BIN are byte-identical to
-`d4f085c`; nothing about the runtime changed, so no owner smoke is owed for it.
-
-**Music v2 — step 2a (the placement move) is implemented and is an
-`OWNER-SMOKE CANDIDATE`; see its section below. The rest is still planned.**
-[plan-music-v2.md](plan-music-v2.md) costs the owner-approved menu "sketch B"
-and gameplay "GRA-2" drafts (`assets/music/v2-drafts/`): prototype-measured
-players (gameplay tick worst 322 cycles against the 1,985 binding margin), the
-placement that fits — the gameplay player and data in the level image at
-`$A608`, the menu in `STARFIELD` — the SFX channel decision it needs (Q-S1),
-the summed-volume question (Q-V1) and the tests that must go red first. Two
-implementation sessions, menu then gameplay; five owner questions in its §9.
-Three of the five are **answered** (2026-09-22, `owner-decisions-2026-09-11.md`
-§AB): Q-P1 ACCEPTED (the gameplay player in the level image), Q-S1 = **S3**
-(the shot SFX moves to channel 4, with the AUDCTL condition session 2b must
-verify), Q-V1 = no rescale. Q-Z1 and Q-A1 belong to the menu session.
-
-**OPTIONS difficulty names (2026-09-22).** The menu now reads ROOKIE /
-PILOT / ACE, easiest first, as `how-to-play.md` has said since decision V; the
-internal `DIFFICULTY_EASY/MEDIUM/HARD` symbols and their order are unchanged.
-Eighteen table bytes in `ENTITY_CODE`, size-neutral, boot layout identical
-(13,201 B initial content, 104 boot sectors, 205 transport sectors); the
-runtime evidence was regenerated for the new artifacts with the recorded-
-failure list unchanged. `tests/difficulty-labels.test.mjs` decodes the shipped
-bytes. `OWNER-SMOKE CANDIDATE` (look at the OPTIONS row).
-
-**NEXT TASK.** Music v2 is complete and both themes are awaiting owner smoke.
-Nothing in the music plan is outstanding except the owner's ear. The queue
-below is what it was before the music work started:
-
-1. Owner smoke of the Light multiplicity candidate.
-2. **The rotate-frame token gate** — costed, GO recommended, ~1,000 cycles of
-   margin on the binding frames, with the two-frame bound already designed
-   (`plan-light-multiplicity.md` §4.6). It is the cheapest margin left.
-3. **Roadmap 4.6**, which must open by setting an explicit per-frame cycle
-   budget in its own plan, against the measured worst margin at the
-   checkpoint it branches from — not against the historical margins in this
-   file. See §4.4 of the same plan.
-
-Also still open and now costable: **Q-1** (`LEVEL_BUFFER` 16 vs 24 sectors,
-`plan-4.6-placement.md`). The per-level payload's music is now measured at
-**512 B** in 5 sectors, not the ~534 B the plan estimated; the owner leans to
-24 sectors.
-
-Unchanged and still owed: owner smoke of the Light multiplicity candidate,
-then the first of these two, in this order:
-
-1. **The rotate-frame token gate** — costed, GO recommended, ~1,000 cycles of
-   margin on the binding frames, with the two-frame bound already designed
-   (`plan-light-multiplicity.md` §4.6). It is the cheapest margin left.
-2. **Roadmap 4.6 itself**, which must open by setting an explicit per-frame
-   cycle budget in its own plan, against the measured worst margin at the
-   checkpoint it branches from — not against the historical margins in this
-   file. See §4.4 of the same plan.
+**NEXT TASK:** await the owner's next task. The M3-H resource inventory is
+in the current M6 stage-2 section above. No next roadmap item is started.
+Runtime evidence regeneration and the default full verification remain
+required before the next release (§BM); this checkpoint is not a release.
 
 ## Music v2 step 10.2 — the GAMEPLAY theme is GRA-2 — `OWNER-SMOKE CANDIDATE` (2026-09-22)
 
@@ -8374,13 +8352,6 @@ it to size a budget, never to predict a frame. The committed baselines
 
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
-
-- **M6 stage 2 needs a 4th lance sector or another home for the
-  give-one-lance routine** (journal §BF 4): the lance run `$BA80-$BBFF`
-  (sectors 581-583) has only 1 B free in the owner's figure - 2 B as finally
-  built (382 of 384 B, MEASURED) - and `lance_c_give` left it for bytes;
-  the sector after them, 584, is the summary module, so a 4th sector means the
-  reservation grown or the disk's free tail 712-720 (plan `m6-void-lance` §3).
 
 - **Bind docs/media/{enemies,bosses} into the media manifest — needs the
   one-animation pin in tests changed (separate task)** (docs/enemies-bosses-pages,

@@ -15,7 +15,9 @@ The owner accepted §BH (journal §BI) and asked for the stage's finish: the
 banner's onboarding line, the charge ramp, the discharge, indicator C only -
 §6.5. §6.1-§6.5 are smoke-confirmed: owner smoke PASS on a real 65XE PAL
 through the SIO2SD (2026-10-21, journal §BJ, hardware-testing §41); merged
-into `main`. Stage 2 (the +1 life capsule) is not started.** Phase A's probe is under `build/m6-probe/` (not
+into `main`. Stage 1b is also owner-accepted on `main` `35499ba`
+(journal §BL, §BM). Stage 2 is **OWNER-ACCEPTED**, owner play test PASS on `b2261c9`
+(2026-10-22, journal §BN); look A and placement A, as built in §8.** Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -1159,3 +1161,158 @@ show. STATUS carries the per-region table.
   per-row checks unchanged).
 * **Memory:** slot G's range claimed in the memory map and the linker
   (`docs/memory-map.md`, the claim test), its run inside its reservation.
+
+---
+
+## 8. Stage 2 — the +1 life capsule (as built, 2026-10-22)
+
+**OWNER-ACCEPTED**, owner play test PASS on `b2261c9`: look A, placement A.
+Session: Codex. Journal **§BN**. Branch `codex/m6-life-capsule`, from accepted
+`main` `35499ba`; Phase A plan `83f6ec2`, preserved failure `ffad1e0`, working
+implementation `b2261c9`. The owner authorized the final documentation, merge
+commit `[codex] Merge M6 stage 2: life capsule` and push of main. No release.
+
+This section supersedes the stage-2 parts of §3, §4(i), §6 and §7 wherever
+they describe lance capsules, the older window layout or heavier validation.
+The boss and lance are unchanged; §BM governs validation.
+
+### 8.1 Player-visible rules
+
+* Only SPACE sectors may spawn LIFE. On each ordinary capsule spawn, while
+  lives are below 8 and no LIFE has appeared this level, one deterministic
+  Director RNG draw gives LIFE with probability 1/4. This includes the first
+  eligible spawn. Ordinary booster selection otherwise follows its current
+  rotation; a LIFE substitution does not consume a booster in that rotation.
+* Set `life_spawned_this_level` when LIFE spawns, not when collected: missing
+  it does not grant a second chance. Reset the flag at each level start,
+  including a new game or restart; a death within the level does not reset it.
+* At entry to the last SPACE sector, if eligible and the flag is still clear,
+  spawn LIFE immediately through the shared capsule path, without requiring a
+  kill or another ordinary drop. The compiler marks that sector with a free
+  `sector_kind` bit, separate from the last-sector bit (which may mark a boss).
+  The existing capsule is normally drained at sector boundaries; if a pending
+  or active ordinary capsule remains, the forced LIFE replaces it using the
+  shared clean erase/release path. Never allocate a second capsule slot.
+* **Cap rule:** at 8 lives, suppress LIFE and keep normal
+  capsule logic. Do not mark LIFE as spawned for a suppressed attempt. At
+  forced entry, 8 lives means no extra capsule is injected. A later ordinary
+  spawn can still roll LIFE after a life is lost. A LIFE already in flight
+  when the count reaches 8 is collected and removed, with the count clamped
+  to 8; no booster is awarded for it.
+* Collection adds one life, clamped to 8, without replacing or extending an
+  active booster. Keep the accepted bottom HUD: LIFE, HULL, BOOST, T meter
+  on the left, SCORE on the right. Use its existing life digit; publish only
+  when the life count changes. No per-frame HUD redraw.
+* Collection plays a short sound using the existing hit-SFX channel/timer
+  path (`play_hit_sound` is the reuse baseline). A brief collisionless
+  spark uses the existing transient-effect machinery only when its whole
+  shared pool is free; never clear another effect or defer the life
+  award. The changed HUD digit remains immediate feedback in a busy frame.
+
+### 8.2 Implementation boundary and placement — option A
+
+C owns eligibility, the RNG choice, the per-level flag, forced-sector policy
+and capped life award in `src/c/life-capsule.c`: **95 B** of DIRECTOR_C_LOW.
+The init clear adds **3 B** there, so low C is **203/245 B**, 42 B free.
+ASM veneers in `src/hybrid/life-capsule.s` execute spawn, clean replacement,
+collection, colour, PMG and sound through the existing single capsule path.
+The compiler marks the last SPACE with sector-kind bit **$40**.
+
+The appended window tail is **$B82A-$B8FA, 209 B**. Its latch is $B82A,
+four 16-B masks $B837-$B876, forced-call scratch $B877. The original 48-B
+STARFIELD table is removed; all four masks are emitted from editable
+`assets/graphics/life-capsule.json` by `scripts/build.mjs`. The ordinary
+rotation count remains three; the drawable count is four. P3 stays SIZEP3=0,
+8 colour clocks by 16 scanlines. P1/P2 remain Heavy-owned in SPACE.
+
+The existing sector-entry star-publication call is repointed byte-neutrally
+to a **6-B PICKUP_CODE continuation**, $8B5A-$8B5F; the Light kernel still
+starts at $B478. The window grows upward from $B82A while the lance stays
+at **$B900-$BBFF**; **5 B remain** between them. Link assertions pin the
+state, masks, continuation and death-colour operand; the tail bound and
+unchanged `checkLanceLayout` enforce no overlap.
+
+The preserved prototype's old death-colour patch target had become part of
+a JSR address. Publication now patches the LIFE colour immediate **$B8E8**
+and gives player-death colour priority (5 B beyond the prototype). A jump
+also skips the spawn site's zero-filled ABI padding within its existing
+21-B footprint. The short sound reuses `play_hit_sound`; the spark reuses
+the whole existing effect pool only when empty, without erasing another effect.
+
+### 8.3 Assembled cost and final resources
+
+The Phase A **125-160 B estimate** was too small: the first assembled attempt
+needed **302 B**, against 214 B free, **88 B short**. The owner chose A to
+place the 95-B C object in existing low-C space, keep all masks in the window
+and preserve the behaviour, chosen art and C/ASM boundary without changing a
+gate. Historical failure and original patch:
+[diagnostics](../diagnostics/m6-life-capsule-2026-10-22/README.md).
+
+The final placed pieces total **313 B** before subtracting the former 48-B
+mask table: 209 B window + 95 B C + 3 B init + 6 B continuation.
+Net occupied runtime content grows **265 B**. No new capsule, PMG, effect,
+software-stack or zero-page slot; no interrupt work.
+
+| Resource | Used / limit | Free bytes |
+| --- | ---: | ---: |
+| Initial content, project planning STOP | **13,572 / 13,652 B** | **80** |
+| Initial content, physical transport capacity | **13,572 / 13,684 B** | **112** |
+| Window below lance | end **$B8FB / $B900** | **5** |
+| DIRECTOR_C_LOW | **203 / 245 B** | **42** |
+| DIRECTOR_RAM | **643 / 645 B** | **2** |
+| Overlay A (boss) | **2,038 / 2,048 B** | **10** |
+| Overlay B (band and tables, fixed data ranges) | **768 / 768 B** | **0** |
+| Overlay C | **2,044 / 2,048 B** | **4** |
+| Overlay D | **1,788 / 1,792 B** | **4** |
+| Overlay E | **527 / 576 B** | **49** |
+| Overlay F, regions 1 / 2 / 3 / 4 | **110 / 406 / 323 / 508 of 512 B** | **402 / 106 / 189 / 4** |
+| Overlay G (lance) | **763 / 768 B** | **5** |
+| Overlay H (page 4) | **250 / 256 B** | **6** |
+| Boss install | **380 / 384 B** | **4** |
+| Summary overlay | **1,770 / 1,792 B** | **22** |
+
+PICKUP_CODE has **7 B** free. The physical initial-content capacity is
+107*128 minus the 12-B minimum envelope; the planning STOP retains another
+32 B. Boot stays 107 sectors; total transport is 216 sectors. The generated
+memory map records the linked placement.
+
+### 8.4 Accepted look — A, rescue cross
+
+The owner selected and smoke-confirmed **A**, a freestanding rescue cross
+with a broad middle bar and narrow stem, mint **COLPM3 $AC**. Ordinary
+RAPID/SPREAD/SHIELD masks retain gold $1C; the player-death cycle takes priority.
+Editable runtime masks: `assets/graphics/life-capsule.json`.
+The Phase A alternatives remain in `docs/design/m6-life-capsule/looks.json`
+and `render.mjs`; rebuild the comparison with
+`node docs/design/m6-life-capsule/render.mjs` (layout mockups, not captures).
+
+### 8.5 Validation and accepted artifacts
+
+The candidate build and its CPU/DMA, block, transport, decode and placement
+checks pass. Two focused prototype-regression cases in
+`tests/life-capsule.test.mjs` and the existing player's-death case in
+`tests/plasma-fx.test.mjs` pass. Owner play test **PASS**, 2026-10-22.
+
+Build replay CPU maximum without DMA: **15,116 cycles**, +100 versus the
+committed baseline manifest; DMA accounting **12,531**, conservative DLI
+**369**; additive total **28,016, ESTIMATE**, not a new native PAL measurement.
+Colour selection adds about 31/32 cycles IC for ordinary/LIFE publication,
+23 during death. No VBI/DLI change. Target **31,500**, hard gate **32,568**,
+physical PAL frame **35,568** are unchanged.
+
+All boss disk runs are byte-identical to accepted spindle ATR `5576e8bc`.
+Entry reads stay **84/88/88/89 sectors**; prior measurements
+**325/340/340/344 host frames** remain below **350**, not remeasured.
+The save-test address **$0B58 has not moved**, source assertion and linked label.
+No full test chain, wall-trace, boss stress, hash-bound GIF or ledger deviation.
+Runtime evidence regeneration and the default full build remain pre-release
+work under §BM; no release is made here.
+
+* Level 1 ATR: `build/play/m6-life-capsule/void-strike-65-life-level-1-3f8f8e22.atr`,
+  SHA-256 `3f8f8e229a3189342136754fcf4cc311d68d5970bed8c729b7796ec4e1e1db10` (also `dist/void-strike-65.atr`).
+* Forced route: `build/play/m6-life-capsule/void-strike-65-life-forced-sector-6-62716b3f.atr`,
+  SHA-256 `62716b3fa729459807f19d4708d430b045b2f7c212130bea2825e6826716b1bc`.
+  Rebuild with `node scripts/build.mjs --candidate --level=1:sector=5`;
+  sector index 5 is the sixth and last SPACE sector.
+
+Full [build report](../diagnostics/m6-life-capsule-2026-10-22/option-a-candidate.md).

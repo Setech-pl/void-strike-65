@@ -1412,3 +1412,18 @@ Recovery needed: identify and recover at least **63 cycles** in the existing
 Citadel L5 composition, without weakening any gates. No owner acceptance,
 merge, push or new entry-timing claim. Implementation retained on the task
 branch as an experimental checkpoint; STATUS remains the accepted baseline.
+
+
+### Stage 1c owner-smoke handoff (2026-10-22)
+
+**OWNER-SMOKE CANDIDATE**, pending owner play test. The owner explicitly
+superseded the blocker disposition above for this task: the unchanged Citadel
+L5 overrun does not block §BO; do not fix it on this branch. Historical
+measurement confirms **regression in `b2261c9`**, 8,444 at `35499ba` -> 8,563,
+merged into main by `fea4cc8`. See
+[classification](../diagnostics/m6-lance-lock-2026-10-22/classification.md).
+No new full four-region certification. The default candidate and four existing
+sector-6 debug routes build successfully; paths, launch commands and SHA-256s:
+[candidate manifest](../diagnostics/m6-lance-lock-2026-10-22/candidate.json).
+Gameplay implementation remains exactly `d165927`. Release remains blocked by
+the separate Citadel debt; owner smoke/merge acceptance has not yet occurred.

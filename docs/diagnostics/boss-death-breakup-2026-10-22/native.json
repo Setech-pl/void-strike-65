@@ -1,0 +1,469 @@
+{
+  "scope": "Focused native Atari800 PAL ATR checks; spent-band observer fixture after real cold entry; no guest opcode patch; authored position plus p=0/left weapon and p=63/right weapon. Not release evidence.",
+  "limits": {
+    "preFence": 24300,
+    "target": 31500,
+    "hard": 32568,
+    "fence": 500,
+    "entry": 350
+  },
+  "regions": [
+    {
+      "region": 1,
+      "name": "Blockade Breaker",
+      "peakPreFence": 13455,
+      "peakDmaOn": 28547,
+      "minimumFence": 11383,
+      "pauseHostFrames": 66,
+      "readClockFrames": 64.067,
+      "entryHostFrames": 325,
+      "cases": [
+        {
+          "scene": "authored start",
+          "file": "build/play/boss-death-breakup/native/r1.jsonl",
+          "records": [
+            {
+              "entryFrames": 324.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.243
+            },
+            {
+              "peakPreFence": 13091,
+              "peakDmaOn": 28547,
+              "minimumFence": 11747,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 1,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "left",
+          "file": "build/play/boss-death-breakup/native/r1-left.jsonl",
+          "records": [
+            {
+              "entryFrames": 324.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.244
+            },
+            {
+              "peakPreFence": 13455,
+              "peakDmaOn": 28547,
+              "minimumFence": 11383,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 1,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "right",
+          "file": "build/play/boss-death-breakup/native/r1-right.jsonl",
+          "records": [
+            {
+              "entryFrames": 324.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.244
+            },
+            {
+              "peakPreFence": 13416,
+              "peakDmaOn": 28547,
+              "minimumFence": 11421,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 1,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": 2,
+      "name": "Void Citadel",
+      "peakPreFence": 13468,
+      "peakDmaOn": 28547,
+      "minimumFence": 11369,
+      "pauseHostFrames": 66,
+      "readClockFrames": 64.067,
+      "entryHostFrames": 340,
+      "cases": [
+        {
+          "scene": "authored start",
+          "file": "build/play/boss-death-breakup/native/r2.jsonl",
+          "records": [
+            {
+              "entryFrames": 339.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.244
+            },
+            {
+              "peakPreFence": 13442,
+              "peakDmaOn": 28544,
+              "minimumFence": 11395,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 4,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "left",
+          "file": "build/play/boss-death-breakup/native/r2-left.jsonl",
+          "records": [
+            {
+              "entryFrames": 339.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.244
+            },
+            {
+              "peakPreFence": 13468,
+              "peakDmaOn": 28547,
+              "minimumFence": 11369,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 4,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "right",
+          "file": "build/play/boss-death-breakup/native/r2-right.jsonl",
+          "records": [
+            {
+              "entryFrames": 339.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.244
+            },
+            {
+              "peakPreFence": 13416,
+              "peakDmaOn": 28544,
+              "minimumFence": 11421,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 4,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": 3,
+      "name": "Siege Spine",
+      "peakPreFence": 20832,
+      "peakDmaOn": 28547,
+      "minimumFence": 4005,
+      "pauseHostFrames": 67,
+      "readClockFrames": 64.067,
+      "entryHostFrames": 340,
+      "cases": [
+        {
+          "scene": "authored start",
+          "file": "build/play/boss-death-breakup/native/r3.jsonl",
+          "records": [
+            {
+              "entryFrames": 339.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 67,
+              "pauseClockFrames": 66.243
+            },
+            {
+              "peakPreFence": 20409,
+              "peakDmaOn": 28546,
+              "minimumFence": 4428,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 7,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "left",
+          "file": "build/play/boss-death-breakup/native/r3-left.jsonl",
+          "records": [
+            {
+              "entryFrames": 339.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 67,
+              "pauseClockFrames": 66.243
+            },
+            {
+              "peakPreFence": 20832,
+              "peakDmaOn": 28544,
+              "minimumFence": 4005,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 7,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "right",
+          "file": "build/play/boss-death-breakup/native/r3-right.jsonl",
+          "records": [
+            {
+              "entryFrames": 339.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 67,
+              "pauseClockFrames": 66.243
+            },
+            {
+              "peakPreFence": 20749,
+              "peakDmaOn": 28547,
+              "minimumFence": 4089,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 7,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": 4,
+      "name": "Bastion",
+      "peakPreFence": 13516,
+      "peakDmaOn": 28547,
+      "minimumFence": 11321,
+      "pauseHostFrames": 66,
+      "readClockFrames": 64.067,
+      "entryHostFrames": 344,
+      "cases": [
+        {
+          "scene": "authored start",
+          "file": "build/play/boss-death-breakup/native/r4.jsonl",
+          "records": [
+            {
+              "entryFrames": 343.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.243
+            },
+            {
+              "peakPreFence": 13461,
+              "peakDmaOn": 28547,
+              "minimumFence": 11377,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 10,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "left",
+          "file": "build/play/boss-death-breakup/native/r4-left.jsonl",
+          "records": [
+            {
+              "entryFrames": 343.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.243
+            },
+            {
+              "peakPreFence": 13516,
+              "peakDmaOn": 28547,
+              "minimumFence": 11321,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 10,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        },
+        {
+          "scene": "right",
+          "file": "build/play/boss-death-breakup/native/r4-right.jsonl",
+          "records": [
+            {
+              "entryFrames": 343.916
+            },
+            {
+              "readPauseFrames": 64.067
+            },
+            {
+              "pauseHostFrames": 66,
+              "pauseClockFrames": 65.243
+            },
+            {
+              "peakPreFence": 13431,
+              "peakDmaOn": 28547,
+              "minimumFence": 11407,
+              "dliCount": 814
+            },
+            {
+              "restartedLevel": 10,
+              "summary": true,
+              "frames": 74,
+              "misses": 0,
+              "hudErrors": 0,
+              "shipErrors": 0,
+              "dliErrors": 0,
+              "returnedToMenu": 1,
+              "cardChecks": 63,
+              "cardErrors": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cardFrameChecks": 756
+}

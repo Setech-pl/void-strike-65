@@ -7483,8 +7483,15 @@ owner-authorized merge and push of main and `codex/m6-lance-lock`.
 
 The separate `b2261c9` boss stress regression was fixed in main merge
 `686d3f5` (§BP); it no longer blocks the window levers or release.
-**NEXT TASK:** boss death breakup, variant B (crown + two wings), Phase B on
-`codex/boss-death-breakup`; plan: [boss-death-breakup](plans/boss-death-breakup.md).
+Boss death breakup B (crown + two wings) is an **OWNER-SMOKE CANDIDATE** on
+`codex/boss-death-breakup`, all four regions; it is not accepted yet. Post-death
+disk-only overlay, zero new resident/window bytes. Candidate builds and 17
+focused tests pass; measured death peak 28,547 DMA-on cycles, minimum fence
+4,005, loading-card pause 66–67 frames. R1/Citadel L5 lost-target/Bastion fight
+stress unchanged. [Plan](plans/boss-death-breakup.md) and
+[evidence / ATRs](diagnostics/boss-death-breakup-2026-10-22/README.md).
+**NEXT TASK:** owner smoke of breakup B, HUD/ship, pause and summary/normal
+continuation; wait for explicit OK before §BQ acceptance and merge/push.
 Runtime evidence regeneration and the default full verification remain
 required before release (§BM).
 

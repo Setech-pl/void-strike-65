@@ -1,8 +1,8 @@
-# Boss death breakup — Phase A
+# Boss death breakup — Phase A and B
 
-**OWNER REVIEW CANDIDATE, 2026-10-22.** Branch `codex/boss-death-breakup`,
+**Phase A historical review, 2026-10-22.** Branch `codex/boss-death-breakup`,
 from clean `main` `686d3f5`. Offline mockups only; no game code, build,
-runtime measurements or new ATR. The owner picks a direction before Phase B.
+runtime measurements or new ATR. The owner subsequently selected B; the candidate implementation is recorded below.
 The accepted game, resident allocation and window allocation are unchanged.
 
 ## Rendering facts used
@@ -200,3 +200,51 @@ record after the owner writes OK; this is authorization, not smoke acceptance.
 No pre-code estimate breaks the stated limits. Proceed with implementation;
 stop if linked sizes or focused measurements contradict these bounds. Step 3
 is OWNER-SMOKE CANDIDATE only; merge/push waits for the owner's explicit OK.
+
+
+## Phase B — implemented candidate (awaiting owner smoke)
+
+**OWNER-SMOKE CANDIDATE, 2026-10-22.** B runs on all four bosses. This section
+records the candidate implementation, not accepted as-built status. §BQ is
+reserved for the owner's OK. The pre-code estimates above remain historical;
+[focused evidence and resource tables](../diagnostics/boss-death-breakup-2026-10-22/README.md)
+contain the measured replacement values and exact reproduction commands.
+
+C owns the 74-tick (1.48 s) policy. ASM uses the surviving real band, backs up
+and restores the lead-in blast cells, retains the two crown source rows, and
+shifts only lower rows between the original band and a separate 512-B buffer.
+LMS/palette changes publish after the fence; displayed rows are not shifted
+in place. The crown rises one row every three frames; wings move one character
+per frame at the last weapon's centre, clamped to the visible span. P1/P2 and
+two missiles provide bounded debris; P0 and HUD are retained. Source-row
+colours follow each piece. The top blank header is preserved, so the cap
+clips one character row earlier than in the offline canvas. No new resident
+or window bytes are used.
+
+The post-defeat load uses 17 sectors / 2,176 B: 512-B bootstrap into dead F
+$5200, then 1,664-B padded engine into dead C/D $1000. Useful code is
+157 + 1,607 B; engine capacity is 3,584 B with 1,977 B free. The wing buffer
+uses $1E00–$1FFF, private scratch dead E $4C00–$4E3F (279 B above high-water).
+The five window bytes, start block, DIRECTOR_RAM/C_LOW, lance and page 4 stay
+untouched. Both reads carry disk guards. The ATR is standard 1,040 sectors;
+existing sectors and boss-entry reads do not move. Install remains 383/384 B.
+
+The DLI-free **HULL BREACH** card, bottom HUD and player cover the complete
+66–67-frame emulator pause. The read calls themselves take 64.067 frames.
+Hardware standard-SIO estimate is 1.3–1.8 s; owner hardware smoke remains due.
+Combat and normal gameplay ticks stop before load. Queued COPY draws drain
+before F reuse; flash/ring/shot backings are restored before E/C/D reuse.
+
+Measured DMA-on peak is **28,547** in every region, below target 31,500 and
+hard 32,568. The actual loop starts near line 22, tightening the illustrative
+pre-code line-20 ceiling to **24,300**; observed peaks R1/R2/R3/R4 are
+13,455 / 13,468 / 20,832 / 13,516. Minimum fence margin is **4,005**, above
+500. Twelve authored/end-position fixtures show 74 frames each, no missed
+frames, HUD/P0 changes or DLI ordering errors. Entry is 325/340/340/344 host
+frames, below 350. Required fight probes are unchanged at 7,596 / 8,447 /
+8,478. Build gates and 17 focused tests pass; release evidence remains stale
+as already documented. Summary -> menu -> START GAME works in every native
+fixture; automatic next-level progression remains deferred M4 scope.
+
+**NEXT TASK: owner plays the campaign and four direct boss ATRs, compares B
+with the GIF and checks pause/HUD/ship/summary. STOP until explicit OK.**

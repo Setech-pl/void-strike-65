@@ -246,49 +246,35 @@ boss_vector_image_end:
 ; reader's own sector loop at sector numbers the build baked into boss_runs;
 ; then the install.
 boss_head:
-    ; audit-hardening (AUD-02): slot A itself was checked by the reader's run
-    ; read before it ran, which leaves the disk guard's fold at zero; the
-    ; eight runs the head reads (S5-1: the region block too) are folded on.
-    ldy #BOSS_RUN_INSTALL
-    jsr boss_read_run
-    ldy #BOSS_RUN_SLOT_C
-    jsr boss_read_run
-    ldy #BOSS_RUN_SLOT_D
-    jsr boss_read_run
-    ldy #BOSS_RUN_SLOT_E                ; S4b.5: slot E, over the hull maps
-    jsr boss_read_run
-    ldx #$00
-    lda LEVEL_ID
-    sec
-    sbc #$01
-@region:
-    ; S5-1: the last region's test first, so the SBC's carry is the CMP's
-    ; (the window's entry half had and fixed the same order, c-asm-abi.s).
-    cpx #$03
-    beq @have_region
-    cmp #$03
-    bcc @have_region
-    sbc #$03                            ; C=1 from the CMP
-    inx
-    bne @region
-@have_region:
-    stx boss_head_region                ; S5-1: the check's index (20-B stride)
-    lda boss_region_runs,x
-    ldx #BOSS_REGION_RUNS
-@run:
-    pha
-    tay
-    txa
-    pha
-    jsr boss_read_run
-    pla
-    tax
-    pla
-    clc
-    adc #$05
+    ; The production banner reads all runs and jumps to boss_head_check.
+    ; Reclaim the obsolete 68-byte pre-banner head for death-card constants;
+    ; preserve boss_read_run and all fight addresses exactly.
+    jmp boss_wrong_disk
+boss_death_text:
+    .byte 'H'-$20,'U'-$20,'L'-$20,'L'-$20,0,'B'-$20,'R'-$20,'E'-$20,'A'-$20,'C'-$20,'H'-$20
+boss_death_card:
+    .repeat 14
+        .byte $70
+    .endrepeat
+    .byte $42, <(SCREEN+40), >(SCREEN+40)
+    .repeat 13
+        .byte $70
+    .endrepeat
+    .byte $42, <SCREEN, >SCREEN
+    ; Like the gameplay list, the HUD ends at ANTIC's last line: JMP is
+    ; fetched next frame at line 8, followed by the seven-line header.
+    .byte $01, <(PLAYFIELD_DLIST_A-1), >(PLAYFIELD_DLIST_A-1)
+boss_death_card_end:
+boss_death_spec:
+    ldx #4
+:   lda boss_death_boot_spec,x
+    sta boss_runs,x
     dex
-    bne @run
-    jmp boss_head_check
+    bpl :-
+    rts
+boss_death_boot_spec:
+    .byte $D0,$02,4,$00,$52
+    .res 68 - (* - boss_head), $EA
 
 ; Y = a run's offset in boss_runs: {sector lo, sector hi, count, dst lo, dst hi}.
 boss_read_run:
@@ -573,27 +559,25 @@ boss_update:
     jsr boss_open_looks
     jsr boss_fire
     lda _boss_blast
-    bmi @queue
-    jsr boss_mflash_guard_m             ; slot E: the blast's module, its flash off first
-    ; One link of the chain (plan §5.6, §5.11.4 item 4): blast glyphs over
-    ; the module, the shared enemy-explosion slot's COLBK flash, the band's
-    ; shake and the capital explosion's sound.
-    tax
-    and #$01
-    tay
-    lda BOSS_T_BLAST_A,y
-    sta boss_fill
-    lda #BOSS_MODE_FILL
-    sta boss_mode
-    txa
-    jsr boss_draw_module
-    lda #SHARED_FIGHTER_EXPLOSION_TOTAL
-    sta FIGHTER_EXPLOSION_TIMER + FIGHTER_EXPLOSION_ENEMY_SLOT
-    lda BOSS_T_SHAKE_FRAMES
-    sta boss_shake_timer
-    lda #CAPITAL_EXPLOSION_DURATION
-    sta CAPITAL_EXPLOSION_SOUND_TIMER
-@queue:
+    bmi boss_update_queue
+; Reuse the old 38-byte chain executor, preserving every fight-path address.
+boss_death_read:
+    ldx #$77
+    jsr wait_frame_at_line
+    lda #0
+    sta NMIEN
+    jsr boss_death_prepare
+    jsr boss_death_spec
+    ldy #0                              ; reuse the dead install spec
+    jsr boss_read_run
+    lda #<DEATH_BOOT_FOLD
+    ldy #>DEATH_BOOT_FOLD
+    jsr guard_compare
+    bcc :+
+    jmp boss_wrong_disk
+:   jmp $5200
+    .res 38 - (* - boss_death_read), $EA
+boss_update_queue:
     ; A kill frame (the rebuild) and the exposure check's frame leave their
     ; queued draw to the next frame (plan §5.15.7: the worst frame's budget).
     lda boss_frame_heavy
@@ -1423,7 +1407,7 @@ boss_completion:
     sta ACTIVE_GAMEPLAY_FRAME_LO
     lda _boss_clock_hi
     sta ACTIVE_GAMEPLAY_FRAME_LO+1
-    jmp sector_reader_level_end
+    jmp boss_death_read
 
 ; ---------------------------------------------------------------------------
 ; Tables.
@@ -1850,6 +1834,56 @@ boss_mbottom_y:     .res BOSS_MAX_MODULES   ; the line under each module's botto
 ; (BOSS_SLOT_F, the HUD charset's unused upper half); the region's tables
 ; point at it (BOSS_T_LOOK_TAIL). Until S5-1 it led slot D, which every region
 ; shares, so a disk could carry one region only.
+
+; Death takeover: cold code replaces the C chain/hold; no install change.
+.segment "BOSS_DEATH_PREP"
+boss_death_prepare:
+    jsr guard_reset
+    jsr music_stop
+    ; Released PMG objects must not remain frozen over the loading card.
+    ; Hide P1/P2/P3 and all missiles immediately; preserve the player's P0.
+    ldx #6
+    ; music_stop tail-calls silence_audio, which returns A=0.
+@hide:
+    sta $D001,x
+    dex
+    bpl @hide
+    ldx #(boss_death_card_end - boss_death_card - 1)
+@list:
+    lda boss_death_card,x
+    sta PLAYFIELD_DLIST_A,x
+    dex
+    bpl @list
+    ldx #39
+    lda #0
+@clear_card:
+    sta SCREEN+40,x
+    dex
+    bpl @clear_card
+    ldx #10
+@text:
+    lda boss_death_text,x
+    sta SCREEN+54,x
+    dex
+    bpl @text
+    lda #$60
+    sta PLAYFIELD_DLIST_A-1
+    lda #>HUD_CHARSET
+    sta CHBASE
+    lda #HUD_COLPF2
+    sta COLPF2
+    lda #HUD_COLPF1
+    sta COLPF1
+    ; At most seven queued draws. COPY modes still need slot F's look tail,
+    ; so finish them under the stable card BEFORE its bootstrap replaces F.
+@drain:
+    lda boss_queue_head
+    cmp boss_queue_tail
+    beq @done
+    jsr boss_queue_draw
+    jmp @drain
+@done:
+    rts
 
 .segment "BOSS_D_CODE"
 

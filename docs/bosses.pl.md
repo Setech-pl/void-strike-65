@@ -29,6 +29,11 @@ celuje w bossa, na pierwszym poziomie regionu danego bossa.
 
 ## Jak działa każdy boss
 
+W aktualnej wersji kandydackiej po zniszczeniu ostatniej broni na chwilę
+pojawia się napis `HULL BREACH`. Potem górna część bossa odlatuje w górę,
+a reszta kadłuba rozrywa się na lewo i prawo, z iskrami na krawędziach,
+przed podsumowaniem.
+
 <img src="media/bosses/breaker-banner.gif" width="640" alt="Dziewięć sekund z poziomu 1: pole gry pustoszeje, ekran czernieje, pojawia się baner Blockade Breakera z napisami WARNING, nazwą, INCOMING i paskiem ładowania, potem nadlatuje boss">
 
 - **Nadejście.** Gdy ostatni sektor poziomu jest czysty, ekran na jedną

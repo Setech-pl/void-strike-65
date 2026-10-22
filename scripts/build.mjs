@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { buildBossDeath } from "./boss-death-build.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -693,6 +694,7 @@ const diskLayout = Object.freeze({
   bossBannerBaseSector: BANNER_BASE_SECTOR, bossBannerSectors: BANNER_REGION_SECTORS,
   // M6 (journal §BG): the lance run's reservation.
   bossLanceBaseSector: BOSS_LANCE_BASE_SECTOR, bossLanceSectors: BOSS_LANCE_RUNS_SECTORS,
+  bossDeathBaseSector: 720, bossDeathSectors: 32, atrSectors: 1040,
 });
 const diskIdentity = identityBlock(diskLayout);
 // The window copies this many bytes of the region's staging run over the
@@ -3074,7 +3076,7 @@ async function build() {
       // the hand-over clears the PMG area as the head did; the screen clears
       // the frontend screen as the WARNING screen's render did.
       "broadside_unpack_command", "broadside_read_source", "broadside_destination", "clear_pmg",
-      "clear_screen"],
+      "clear_screen", "wait_frame_at_line", "music_stop", "GAME_MUSIC_ENABLED", "erase_fighter_projectile_overlays_with_light"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end",
       "sr_slot_a_overlaid",
@@ -3439,6 +3441,7 @@ async function build() {
     renderSumTable("boss_head_sums", Array.from({ length: bossRegionCount }, (_, index) => ({
       sum: sums[index] ?? null, note: `region ${index + 1}` }))),
   ].join("\n");
+  let deathBootFold = 0;
   const linkBoss = async (runsInclude, sumsInclude = renderBossSums()) => {
     const assembled = await runWasmTool(
       "ca65",
@@ -3456,7 +3459,7 @@ async function build() {
         ...(bossGravityInclude === null ? {} : { "/project/build/boss-gravity.inc": bossGravityInclude }),
         ...(bossRailInclude === null ? {} : { "/project/build/boss-rail.inc": bossRailInclude }),
       },
-      ["--cpu", "6502", "-g",
+      ["--cpu", "6502", "-g", "-D", `DEATH_BOOT_FOLD=${deathBootFold}`,
         ...(laserFixtureTier === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserFixtureTier}`]),
         ...(laserTierValue === null ? [] : ["-D", `BOSS_LASER_TIER_OVERRIDE=${laserTierValue}`]),
         ...(bossField === null ? [] : ["-D", "BOSS_FIELD=1"]),
@@ -3487,6 +3490,11 @@ async function build() {
   };
   let bossRunsInclude = renderBossRuns(bossSlotCMaxSectors, bossSlotDMaxSectors, bossSlotEMaxSectors);
   let bossLink = await linkBoss(bossRunsInclude);
+  const bossDeath = await buildBossDeath({ root: rootDirectory, build: buildDirectory,
+    runTool: runWasmTool, compileC: compileBossC, imports: bossImportsInclude,
+    labels: bossLink.labels, regions: bossRegions, lightState: directorAbiConstants.get("LIGHT_STATE") });
+  deathBootFold = (bossDeath.bootFold.hi << 8) | bossDeath.bootFold.lo;
+  bossLink = await linkBoss(bossRunsInclude);
   // S5-3: the image's fixed homes, then (a field build) the slot F code; the
   // field's code joins region 3's block after its look tail's 110 B.
   // feat/boss-banners: + the banner's area ($1000-$13FF), before the cold tail.
@@ -3797,7 +3805,13 @@ async function build() {
   const bossLancePageRun = { name: "boss-lance-page", startSector: BOSS_LANCE_PAGE_SECTOR,
     sectors: BOSS_LANCE_PAGE_SECTORS, destination: BOSS_LANCE_PAGE_ADDRESS,
     data: bossImage.subarray(bossImage.length - BOSS_LANCE_PAGE_BYTES), file: "overlay-boss-lance-page.bin" };
-  const bossDiskRuns = [bossCodeRun, bossInstallRun, bossSlotCRun, bossSlotDRun, bossSlotERun, bossLanceRun,
+  const bossDeathRuns = [
+    { name: "boss-death-bootstrap", startSector: 720, sectors: 4, destination: 0x5200,
+      data: bossDeath.bootData, file: "boss-death-boot.bin" },
+    { name: "boss-death-engine", startSector: 724, sectors: bossDeath.sectors, destination: 0x1000,
+      data: bossDeath.data, file: "boss-death-engine.bin" },
+  ];
+  const bossDiskRuns = [...bossDeathRuns, bossCodeRun, bossInstallRun, bossSlotCRun, bossSlotDRun, bossSlotERun, bossLanceRun,
     bossLancePageRun,
     ...bossRegionRuns];
   const bossRegionAreaEnd = bossRegionBaseSector + bossRegionCount * BOSS_REGION_SECTORS;
@@ -3817,8 +3831,10 @@ async function build() {
     const inLance = (run.name === "boss-lance" && run.startSector === BOSS_LANCE_BASE_SECTOR &&
       run.sectors === BOSS_LANCE_SECTORS) || (run.name === "boss-lance-page" &&
       run.startSector === BOSS_LANCE_PAGE_SECTOR && run.sectors === BOSS_LANCE_PAGE_SECTORS);
-    if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode || inLance : inRegion) ||
-      run.startSector + run.sectors - 1 > chunkLoaderConstants.atrSectors) {
+    const inDeath = run.name.startsWith("boss-death-") && run.startSector >= 720 &&
+      run.startSector + run.sectors <= 752;
+    if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode || inLance || inDeath : inRegion) ||
+      run.startSector + run.sectors - 1 > (inDeath ? 1040 : chunkLoaderConstants.atrSectors)) {
       throw new Error(`M5b-S4a-i: the boss run ${run.name} leaves its reservation`);
     }
     for (const other of [...levelRuns.map((level) => ({ startSector: level.startSector,
@@ -4431,7 +4447,7 @@ async function build() {
     ...summaryDiskRuns.map((run) => ({ startSector: run.startSector, data: run.data })),
     ...bossDiskRuns.map((run) => ({ startSector: run.startSector, data: run.data })),
     { startSector: identitySectorNumber, data: identitySectorData },
-  ]);
+  ], { sectorCount: 1040 });
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, atr });
   const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
     ? null : measureRuntimeCycles({
@@ -5002,6 +5018,10 @@ async function build() {
     // M5b-S4a-i (docs/plans/m5-loading-boss.md §5.13.4; owner answers Q-B5,
     // Q-B8): the boss's homes, its runs and the entry they make.
     boss: {
+      death: { codeBytes: bossDeath.rawBytes, codeCapacity: 3584,
+        codeFree: 3584 - bossDeath.rawBytes, buffer: { address: 0x1e00, bytes: 512 },
+        scratch: { address: 0x4c00, bytes: 576 }, diskSectors: bossDeath.sectors + 4,
+        bootstrapAddress: 0x5200, runAddress: 0x1000, atrSectors: 1040 },
       claim: { start: BOSS_CLAIM.start, endExclusive: BOSS_CLAIM.endExclusive,
         bytes: BOSS_CLAIM.endExclusive - BOSS_CLAIM.start,
         owner: "owner answers Q-B5 and Q7: the region charset, slot C, the scratch page, slot D; the boss sector only" },

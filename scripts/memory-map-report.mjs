@@ -138,6 +138,12 @@ const SEGMENTS = {
   BOSS_C_RODATA: ["boss slot C: C read-only data", "overlay"],
   // The fortress session (plan §5.15.7): the once-per-entry ASM moved from slot A.
   BOSS_C_ASM: ["boss slot C: the overlay's once-per-entry ASM (boss_prepare)", "overlay"],
+  BOSS_DEATH_PREP: ["post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes", "overlay"],
+  DEATH_HEAD: ["boss breakup: post-load setup and private animation loop", "boss death"],
+  DEATH_CODE: ["boss breakup: C decisions, character copies and PMG/DLI publication", "boss death"],
+  DEATH_DATA: ["boss breakup: all four regions' source-row palettes and glyph codes", "boss death"],
+  DEATH_BUFFER: ["boss breakup: offscreen wing buffer over dead slot D", "boss death"],
+  DEATH_STATE: ["boss breakup: C policy state over dead slot E", "boss death"],
   BOSS_C_BSS: ["boss slot C: the controller's state (after its code, never read from disk)", "overlay"],
   BOSS_SCRATCH: ["boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates", "overlay"],
   BOSS_HUD_BACKUP: ["the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes", "overlay"],
@@ -483,6 +489,13 @@ function collectRows(build) {
       `R${region.region} ${region.codes} codes / ${region.charsetSectors} sectors`).join(", ")}` +
       " (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen)"), "overlay", "manifest `boss.charset`");
   add(m.boss.slotC.address, m.boss.slotC.address + m.boss.slotC.capacityBytes - 1, "slot", `boss slot C: the C controller, run \`boss-slot-c\` (${m.boss.slotC.sectors} sectors)`, "overlay", "manifest `boss.slotC`");
+  if (m.boss.death) {
+    const d = m.boss.death;
+    add(0x1000, 0x1000 + d.codeBytes - 1, "slot", "boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage", "boss death", "manifest `boss.death`, cfg/boss-death.cfg");
+    add(0x1e00, 0x1fff, "slot", "boss breakup: second wing buffer, published after the fence; reuses dead boss claim", "boss death", "cfg/boss-death.cfg");
+    add(0x4c00, 0x4e3f, "slot", "boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved", "boss death", "src/hybrid/boss-death.s");
+    add(0x5200, 0x53ff, "slot", "boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the HULL BREACH card is visible", "boss death", "cfg/boss-death-boot.cfg");
+  }
   add(m.boss.scratch.address, m.boss.scratch.address + m.boss.scratch.capacityBytes - 1, "slot", "boss scratch page: the column map, the ring, slot A's state; set by the install", "overlay", "manifest `boss.scratch`");
   add(m.boss.slotD.address, m.boss.slotD.address + m.boss.slotD.capacityBytes - 1, "slot", `boss slot D: the lasers and the boss's shots in the band, run \`boss-slot-d\` (${m.boss.slotD.sectors} sectors)`, "overlay", "manifest `boss.slotD`");
   // S5-1 (owner decision Q9): slot F, the HUD charset's unused upper half.
@@ -609,6 +622,14 @@ function reservationTails(build, rows, reservations) {
 // lands on it. tests/cfg-overlaps.test.mjs fails on any overlap not named here
 // and on any entry here that no longer matches one.
 export const DECLARED_CFG_OVERLAPS = Object.freeze([
+  ...["BOSS_SLOT_C_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_D_RAM", "BOSS_BANNER_RAM"].map(area => ({
+    areas: ["CODE", area], name: "post-defeat engine over dead boss storage",
+    reason: "boss-death.cfg CODE is read only after combat stops and the DLI-free HULL BREACH card is installed; fight and banner code are no longer called" })),
+  { areas: ["BUFFER", "BOSS_SLOT_D_RAM"], name: "post-defeat wing buffer",
+    reason: "boss-death.cfg BUFFER replaces dead laser state after defeat; the death engine publishes from the second character buffer after the fence" },
+  ...["BOSS_SLOT_E_RAM", "CAPITAL_HULL_MAPS_RAM"].map(area => ({
+    areas: ["STATE", area], name: "post-defeat C state over dead slot E",
+    reason: "boss-death.cfg STATE holds only post-fight C decisions; pickups and capital hull rendering are stopped, and START GAME rebuilds the hull maps" })),
   { areas: ["LEVEL_SUMMARY_RAM", "SPLASH_RAM"], name: "summary over the splash",
     reason: "the level-summary module is read into the boot splash's RAM after the splash hold ends (owner decision 2026-10-03)" },
   { areas: ["MAIN", "BOOT2_RAM"], name: "stage 2 inside MAIN",
@@ -646,7 +667,7 @@ export function cfgAreaOverlaps() {
   const reservations = [];
   // M5b-S3: boss.cfg too - its areas lie over slot A and the staging RAM by
   // design, which is exactly what must be declared, by name, to pass.
-  for (const name of [...RESERVATION_CFGS, "gameplay-music.cfg", "boss.cfg"]) {
+  for (const name of [...RESERVATION_CFGS, "gameplay-music.cfg", "boss.cfg", "boss-death.cfg", "boss-death-boot.cfg"]) {
     for (const area of parseCfgAreas(name).areas) {
       if (!NON_RESERVATION_AREAS.has(area.name)) reservations.push(area);
     }

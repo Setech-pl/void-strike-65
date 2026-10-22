@@ -49,14 +49,15 @@ export function readWord(buffer, offset) {
   return buffer.readUInt16LE(offset);
 }
 
-export function makeAtr(bootPayload, dataRuns = []) {
+export function makeAtr(bootPayload, dataRuns = [], { sectorCount = ATR_SECTOR_COUNT } = {}) {
+  invariant(sectorCount === 720 || sectorCount === 1040, "ATR requires standard 720 or 1040 sectors");
   invariant(bootPayload.length > 0, "ATR boot payload is empty");
-  invariant(bootPayload.length <= ATR_SECTOR_COUNT * ATR_SECTOR_SIZE,
-    "ATR transport exceeds the 720-sector image");
+  invariant(bootPayload.length <= sectorCount * ATR_SECTOR_SIZE,
+    "ATR transport exceeds the selected standard image");
   invariant(bootPayload.length % ATR_SECTOR_SIZE === 0,
     "ATR boot payload must occupy complete source-owned sectors; formatter padding is forbidden");
 
-  const bodySize = ATR_SECTOR_SIZE * ATR_SECTOR_COUNT;
+  const bodySize = ATR_SECTOR_SIZE * sectorCount;
   const body = Buffer.alloc(bodySize);
   bootPayload.copy(body, 0);
 
@@ -68,14 +69,14 @@ export function makeAtr(bootPayload, dataRuns = []) {
   const placed = [];
   for (const { startSector, data } of dataRuns) {
     invariant(Number.isInteger(startSector) && startSector >= 1 &&
-      startSector <= ATR_SECTOR_COUNT, "ATR data run starts outside the image");
+      startSector <= sectorCount, "ATR data run starts outside the image");
     invariant(data.length > 0 && data.length % ATR_SECTOR_SIZE === 0,
       "ATR data run must occupy complete sectors");
     const sectors = data.length / ATR_SECTOR_SIZE;
     invariant(startSector > bootSectors,
       `ATR data run at sector ${startSector} collides with the ${bootSectors}-sector transport`);
-    invariant(startSector + sectors - 1 <= ATR_SECTOR_COUNT,
-      "ATR data run runs past the 720-sector image");
+    invariant(startSector + sectors - 1 <= sectorCount,
+      "ATR data run runs past the selected standard image");
     for (const other of placed) {
       invariant(startSector >= other.startSector + other.sectors ||
         other.startSector >= startSector + sectors, "ATR data runs overlap");
@@ -361,7 +362,7 @@ export function validateBuildDirectory(rootDirectory) {
   }
 
   const parsedAtr = parseAtr(atr);
-  invariant(atr.length === 92176, "ATR is not a standard 90 KB single-density image");
+  invariant(atr.length === 92176 || atr.length === 133136, "ATR is not a standard 720/1040-sector image");
   invariant(parsedAtr.boot.flags === 0, "ATR boot flag must be zero");
   invariant(parsedAtr.boot.sectorCount === manifest.bootSectors, "ATR boot sector count is wrong");
   invariant(parsedAtr.boot.loadAddress === manifest.loadAddress, "ATR boot load address is wrong");

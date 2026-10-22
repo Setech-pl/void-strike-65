@@ -31,6 +31,7 @@ const BOSS_HOMES = Object.freeze({
   // The fortress session (plan §5.15.7): the overlay's once-per-entry ASM
   // (boss_prepare) moved from slot A into slot C, read with the controller.
   BOSS_C_ASM: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
+  BOSS_DEATH_PREP: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_C_BSS: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_SCRATCH: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
   BOSS_BSS: [BOSS_SCRATCH_ADDRESS, BOSS_SLOT_D_ADDRESS],
@@ -85,10 +86,13 @@ test("no segment of any link reaches $0C00-$1FFF except the boss's own homes; on
       if (Number.parseInt(size, 16) === 0) continue;
       const from = Number.parseInt(start, 16);
       const to = Number.parseInt(end, 16) + 1;
-      assert.ok(!overlaps(from, to, SLOT_D) || (file === "boss.map" && BOSS_HOMES[name] === SLOT_D),
+      const deathHomes = { DEATH_HEAD: [0x1000,0x1e00], DEATH_CODE: [0x1000,0x1e00],
+        DEATH_DATA: [0x1000,0x1e00], DEATH_BUFFER: [0x1e00,0x2000] };
+      const deathHome = file === "boss-death.map" && deathHomes[name] && inside(from,to,deathHomes[name]);
+      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || (file === "boss.map" && BOSS_HOMES[name] === SLOT_D),
         `${file}: ${name} $${start}-$${end} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
-      assert.ok(file === "boss.map" && BOSS_HOMES[name] && inside(from, to, BOSS_HOMES[name]),
+      assert.ok(deathHome || (file === "boss.map" && BOSS_HOMES[name] && inside(from, to, BOSS_HOMES[name])),
         `${file}: ${name} $${start}-$${end} reaches the boss's $0C00-$1FFF`);
       bossSegments += 1;
     }
@@ -104,15 +108,17 @@ test("no cfg memory area reaches the claim except boss.cfg's slot C, scratch and
       const [, name, start, size] = match;
       const from = Number.parseInt(start, 16);
       const to = from + Number.parseInt(size, 16);
-      assert.ok(!overlaps(from, to, SLOT_D) || (file === "boss.cfg" && name === "BOSS_SLOT_D_RAM"),
+      const deathHomes = { CODE: [0x1000,0x1e00], BUFFER: [0x1e00,0x2000] };
+      const deathHome = file === "boss-death.cfg" && deathHomes[name] && inside(from,to,deathHomes[name]);
+      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || (file === "boss.cfg" && name === "BOSS_SLOT_D_RAM"),
         `cfg/${file}: ${name} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
-      assert.ok(file === "boss.cfg" && CFG_HOMES[name] && inside(from, to, CFG_HOMES[name]),
+      assert.ok(deathHome || (file === "boss.cfg" && CFG_HOMES[name] && inside(from, to, CFG_HOMES[name])),
         `cfg/${file}: ${name} reaches the boss's $0C00-$1FFF`);
       found.push(name);
     }
   }
-  assert.deepEqual(found.sort(), ["BOSS_BANNER_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM"]);
+  assert.deepEqual(found.sort(), ["BOSS_BANNER_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM", "BUFFER", "CODE"]);
 });
 
 test("the boot path and the runtime ranges stay out of $0C00-$1FFF", () => {

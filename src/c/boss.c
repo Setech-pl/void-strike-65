@@ -8,8 +8,8 @@
  * enables, the rest turned into capped armour (decision B); the defeat when
  * the last weapon module falls, armour left standing (decision A); the single
  * fire countdown that names the module whose turn it is and, for a salvo
- * launcher, the three-shot burst; the chain, the bonus, the hold and the
- * boss-fight clock the summary's time grade reads.
+ * launcher, the three-shot burst; the bonus and the boss-fight clock the
+ * summary's time grade reads. The post-defeat disk overlay owns breakup.
  *
  * The fortress session (plan §5.15, owner decisions H-K and the answers of
  * §5.15.6): the exposure check runs on the tick of the frame after a kill, so
@@ -144,6 +144,7 @@ uint8_t boss_burst_module;
  * finale. */
 uint8_t boss_armour_left;
 uint8_t boss_finale;
+/* Keep the established fight-state layout; the ending no longer reads these. */
 static uint8_t boss_timer;
 static uint8_t boss_chain_left;
 static uint8_t boss_chain_next;
@@ -448,9 +449,8 @@ static void boss_fire_next(void)
     boss_countdown = boss_value;
 }
 
-/* Every frame: in the fight, the one countdown to the next firing module;
- * after the defeat, the chain's cadence - one blast every chainFrames frames,
- * walking the modules - then the hold, then the hand-off. */
+/* Every fight frame: the countdown to the next firing module. On defeat,
+ * hand over to the disk-only ending; its loop calls no fight tick. */
 void boss_c_tick(void)
 {
     boss_blast = NONE;
@@ -506,30 +506,7 @@ void boss_c_tick(void)
         }
         return;
     }
-    if (boss_phase == PHASE_CHAIN) {
-        if (boss_timer != 0u) {
-            --boss_timer;
-            return;
-        }
-        if (boss_chain_left == 0u) {
-            boss_phase = PHASE_HOLD;
-            boss_timer = BOSS_HOLD_FRAMES;
-            return;
-        }
-        --boss_chain_left;
-        boss_blast = boss_chain_next;
-        ++boss_chain_next;
-        if (boss_chain_next == boss_count) {
-            boss_chain_next = 0u;
-        }
-        boss_timer = TABLE[BOSS_T_CHAIN_FRAMES];
-        return;
-    }
-    if (boss_phase == PHASE_HOLD) {
-        --boss_timer;
-        if (boss_timer == 0u) {
-            boss_phase = PHASE_DONE;
-            boss_handoff = 1u;
-        }
-    }
+    /* Post-fight disk overlay owns the complete ending. No chain renderer
+     * or gameplay tick runs after this handoff. */
+    boss_handoff = 1u;
 }

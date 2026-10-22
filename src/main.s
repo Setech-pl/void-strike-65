@@ -13128,6 +13128,7 @@ player_dying_tick:
 ; bound to it. (No address literal above: the ENTITY_CODE reservation tests
 ; read this file textually to its end and refuse window addresses.)
 erase_fighter_projectile_overlays_with_light = LIGHT_KERNEL_PUBLISH
+.export erase_fighter_projectile_overlays_with_light
 entity_effects_update_with_light = LIGHT_KERNEL_UPDATE
 entity_player_fighter_projectile_target_with_light = LIGHT_KERNEL_SHOT
 resolve_effect_backing_below_interactive_debris_and_light = LIGHT_KERNEL_BACKING

@@ -15,7 +15,9 @@ The owner accepted §BH (journal §BI) and asked for the stage's finish: the
 banner's onboarding line, the charge ramp, the discharge, indicator C only -
 §6.5. §6.1-§6.5 are smoke-confirmed: owner smoke PASS on a real 65XE PAL
 through the SIO2SD (2026-10-21, journal §BJ, hardware-testing §41); merged
-into `main`. Stage 2 (the +1 life capsule) is not started.** Phase A's probe is under `build/m6-probe/` (not
+into `main`. Stage 1b is also owner-accepted on `main` `35499ba`
+(journal §BL, §BM). Stage 2 has a Phase A draft and look comparisons in §8;
+implementation awaits the owner's look choice and the plan commit.** Phase A's probe is under `build/m6-probe/` (not
 committed); its patch against `main` is kept as evidence in
 [`docs/diagnostics/m6-void-lance-probe-2026-10-19.patch`](../diagnostics/m6-void-lance-probe-2026-10-19.patch).
 
@@ -1159,3 +1161,150 @@ show. STATUS carries the per-region table.
   per-row checks unchanged).
 * **Memory:** slot G's range claimed in the memory map and the linker
   (`docs/memory-map.md`, the claim test), its run inside its reservation.
+
+---
+
+## 8. Stage 2 — the +1 life capsule (Phase A, 2026-10-22)
+
+**DRAFT, awaiting look choice; no game code changed.** Session: Codex.
+Baseline: clean `main` `35499ba`, containing `feat/m6-gauges` through the
+accepted `8715fda` configuration and journal §BL / §BM. `CLAUDE.md` imports
+`AGENTS.md`; §BM is already in AGENTS.md, so no rules-copy commit is needed.
+Requested branch: `codex/m6-life-capsule`; every commit title starts `[codex]`.
+The sandbox currently denies writes to `.git`: branch creation and the required
+plan commit are blocked. Commit this plan on the requested branch before any
+game implementation. This is not an accepted gameplay checkpoint.
+
+This section supersedes the stage-2 parts of §3, §4(i), §6 and §7 wherever
+they describe lance capsules, the older window layout or heavier validation.
+The current task and §BM govern this stage; the boss and lance are unchanged.
+
+### 8.1 Player-visible rules
+
+* Only SPACE sectors may spawn LIFE. On each ordinary capsule spawn, while
+  lives are below 8 and no LIFE has appeared this level, one deterministic
+  Director RNG draw gives LIFE with probability 1/4. This includes the first
+  eligible spawn. Ordinary booster selection otherwise follows its current
+  rotation; a LIFE substitution does not consume a booster in that rotation.
+* Set `life_spawned_this_level` when LIFE spawns, not when collected: missing
+  it does not grant a second chance. Reset the flag at each level start,
+  including a new game or restart; a death within the level does not reset it.
+* At entry to the last SPACE sector, if eligible and the flag is still clear,
+  spawn LIFE immediately through the shared capsule path, without requiring a
+  kill or another ordinary drop. The compiler marks that sector with a free
+  `sector_kind` bit, separate from the last-sector bit (which may mark a boss).
+  The existing capsule is normally drained at sector boundaries; if a pending
+  or active ordinary capsule remains, the forced LIFE replaces it using the
+  shared clean erase/release path. Never allocate a second capsule slot.
+* **Cap choice for this task:** at 8 lives, suppress LIFE and keep normal
+  capsule logic. Do not mark LIFE as spawned for a suppressed attempt. At
+  forced entry, 8 lives means no extra capsule is injected. A later ordinary
+  spawn can still roll LIFE after a life is lost. A LIFE already in flight
+  when the count reaches 8 is collected and removed, with the count clamped
+  to 8; no booster is awarded for it.
+* Collection adds one life, clamped to 8, without replacing or extending an
+  active booster. Keep the accepted bottom HUD: LIFE, HULL, BOOST, T meter
+  on the left, SCORE on the right. Use its existing life digit; publish only
+  when the life count changes. No per-frame HUD redraw.
+* Collection plays a short sound using the existing hit-SFX channel/timer
+  path (`play_hit_sound` is the reuse baseline). Add a brief collisionless
+  spark at the pickup using the existing transient-effect machinery, only
+  if a visual slot is free; never clear another effect or defer the life
+  award. The changed HUD digit remains immediate feedback in a busy frame.
+
+### 8.2 Implementation boundary and placement
+
+C owns eligibility, RNG selection, the per-level flag, forced-sector policy
+and capped life award. ASM veneers call those decisions from the existing
+`weapon_pickup_spawn_capsule_at` / `weapon_pickup_collect` paths and perform
+PMG, palette, screen and sound writes. The ordinary collection body remains
+available unchanged for RAPID / SPREAD / SHIELD. There is no boss-sector tick
+or new interrupt work.
+
+Move the existing 48-B silhouette table out of STARFIELD into the window,
+append one 16-B LIFE mask, and keep the PMG P3 renderer at 8 colour clocks by
+16 scanlines, SIZEP3=0. Add per-type COLPM3 selection and restore the ordinary
+gold for subsequent capsules. P1 / P2 allocations remain Heavy-owned in space.
+Keep the ordinary rotation's count separate from the four drawable types.
+
+Allocate new window content upward from its current end **$B82A**, the bottom
+of its free tail; retain the lance at the top, **$B900-$BBFF**. Preserve the
+existing `checkLanceLayout` check against the final linked window end and add
+link/build bounds for the LIFE data/state. Update `docs/memory-map.md` with
+the actual linked ranges in Phase B. Do not move existing code merely to hide
+an overrun; a failed gate means STOP with alternatives.
+
+### 8.3 Resource estimate (EST, not a compiled result)
+
+Basis: §4(i), `gameplay-variety.md` §3.6, current source and the existing
+`build/manifest.json` (window end $B82A; lance start $B900).
+
+| Resource | Stage-2 estimate / budget | Consequence |
+| --- | ---: | --- |
+| Window code, table and state | **+125-160 B** total | Includes 64 B of masks and 1 B per-level flag; 60-95 B left for policy, veneers and cue setup; compiled fit still to prove |
+| Window tail remaining | **89-54 B** of today's 214 B | Final window end $B8A7-$B8CA, below $B900 |
+| Resident hooks outside the window | **0-12 B added**, 48 B table removed | Repoint existing operands where possible; net **-48 to -36 B** raw outside the window; packed gain unmeasured |
+| Net permanent RAM across both homes | **+77-124 B** | Window growth plus hooks minus the moved 48-B table |
+| Boss slots A/C/D/E/G/H, install | **0 B / 0 sectors added** | Lance G stays 763/768 B; H 250/256 B; A 2038/2048 B; install 380/384 B (baseline) |
+| Capsule / PMG / effect slots | **0 new slots** | Existing one capsule/P3; spark opportunistically reuses a free effect slot |
+| Boot transport | **EST +1 sector** | Existing record packing must decide this; no new DFMC record; boss entry runs unchanged |
+
+Cycle estimates (IC/source analogy, pending the build's accounting): C type
+selection and RNG **up to ~300 cycles per spawn**, forced entry **up to ~500**
+plus the shared spawn; LIFE award/HUD/sound/spark setup **up to ~600** on
+collection. Per-type PMG colour selection **~15-25 cycles per active capsule
+publication**. No new VBI/DLI work or unconditional gameplay-frame poll.
+The 125-160 B budget is provisional, especially the forced-spawn veneer and
+spark setup; if assembled output does not fit, STOP with priced alternatives.
+
+### 8.4 Look comparisons (owner picks before Phase B)
+
+Three static **layout mockups**, not emulator captures of implemented LIFE.
+All use a single 16-B mask and COLPM3 **$AC** (mint), compared with the exact
+existing gold ($1C) RAPID / SPREAD / SHIELD masks on a SPACE-sector background.
+The presentation shows four capsules together solely for comparison; runtime
+capacity stays one. P3 bits are two horizontal display pixels per scanline;
+stills enlarge the native image **6x with nearest-neighbour sampling**.
+
+* **A — rescue cross:** a freestanding cross, a wide middle bar and narrow
+  stem; strongest silhouette difference from all three filled capsules.
+* **B — reserve fighter:** a compact ship silhouette with forked exhaust;
+  directly suggests another ship, but could read as another moving entity.
+* **C — hollow diamond:** an open beacon outline enclosing a small plus;
+  most capsule-like while keeping a distinct outer profile and open centre.
+
+Editable preview source: `docs/design/m6-life-capsule/render.mjs` and
+`looks.json`. Rebuild: `node docs/design/m6-life-capsule/render.mjs`.
+Outputs (untracked):
+
+* `build/play/m6-life-capsule/a-rescue-cross-x6.png`
+* `build/play/m6-life-capsule/b-reserve-fighter-x6.png`
+* `build/play/m6-life-capsule/c-hollow-diamond-x6.png`
+
+Recommendation: **A**, its cross remains distinct even without the colour.
+
+### 8.5 Phase B and stop points
+
+After the owner chooses a look and the Phase A plan is committed: implement,
+build the candidate and inspect only the computed frame/DMA/block/window/
+boss-entry gates. Keep target **31,500**, hard gate **32,568**, physical PAL
+frame **35,568**, boss entry **<=350 host frames**. Boss code stays untouched;
+no boss stress replay, full test chain, wall trace, hash-bound GIF or ledger
+deviation. A targeted test is warranted only if something breaks.
+
+Cheap address check: `summary_display_list` must stay **$0B58**, including its
+existing source assertion and the linked label (Setech Arcade's save test).
+Report that separately and report build gates in a short table, distinguishing
+computed checks from historical native timing. No new runtime evidence claim.
+
+Provide a level-1 ATR and, if cheap with the existing `--level=N:sector=M`
+route, a last-SPACE-sector ATR. Put variants under `build/`, append each ATR's
+first eight SHA-256 hex characters to its filename, and give an absolute
+`atari800 -xl -pal -nobasic ...` command per line. Commit only task files with
+`[codex]` titles. Mark **OWNER-SMOKE CANDIDATE** and STOP for the owner's play.
+
+After the owner's explicit OK: record §BN with `Session: Codex`, update this
+section as built and STATUS; update affected player docs in English and Polish.
+The task explicitly authorizes the later merge commit
+`[codex] Merge M6 stage 2: life capsule` and push of main after that OK,
+overriding the usual owner-only merge procedure. No release or tag.

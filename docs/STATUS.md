@@ -7481,10 +7481,12 @@ M6 stage 1c is **OWNER-ACCEPTED**, owner smoke PASS on `aeaf440`:
 lance fire-only-with-lock (§BO), merged into main. Finalization includes the
 owner-authorized merge and push of main and `codex/m6-lance-lock`.
 
-**NEXT TASK:** await the owner's next task. The separate `b2261c9` boss stress
-regression must be fixed before the window levers; no next task is started.
-Release is blocked until that debt is fixed. Runtime evidence regeneration and
-the default full verification remain required before release (§BM).
+The separate `b2261c9` boss stress regression was fixed in main merge
+`686d3f5` (§BP); it no longer blocks the window levers or release.
+**NEXT TASK:** boss death breakup, variant B (crown + two wings), Phase B on
+`codex/boss-death-breakup`; plan: [boss-death-breakup](plans/boss-death-breakup.md).
+Runtime evidence regeneration and the default full verification remain
+required before release (§BM).
 
 ## Music v2 step 10.2 — the GAMEPLAY theme is GRA-2 — `OWNER-SMOKE CANDIDATE` (2026-09-22)
 

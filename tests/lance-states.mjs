@@ -57,7 +57,7 @@
 import { call, label, labelsOf, manifest } from "./boss-harness.mjs";
 
 export const LANCE_MODES = ["filling", "install", "quarter", "draw", "idle", "charge", "swap", "fire", "dry",
-  "flyFirst", "fly", "kill", "miss", "lost", "blast", "blastEnd"];
+  "waitEven", "waitOdd", "waitLock", "flyFirst", "fly", "kill", "lost", "blast", "blastEnd"];
 const has = () => labelsOf.boss.has("lance_tick");
 const lbl = (name) => label("boss", name);
 const main = (name) => label("main", name);
@@ -165,7 +165,7 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
   // The reticle's line, as the first shown frame draws it (not counted).
   if (memory[lbl("lance_y")] === 0 && mode !== "draw") memory[lbl("lance_y")] = call(memory, lbl("boss_band_measure")).a;
   if (mode === "draw") memory[lbl("lance_y")] = 0;
-  const target = mode === "dry" || mode === "miss" ? emptyColumn(memory)
+  const target = ["dry", "miss", "waitEven", "waitOdd"].includes(mode) ? emptyColumn(memory)
     : mode === "lost" ? deadModule(memory) : targetColumn(memory, hit.filter((h) => h !== "hull"));
   if (target === null) { skip(memory); return; }
   const t = torpedo();
@@ -196,6 +196,10 @@ export function lanceArm(memory, mode, { hit = [] } = {}) {
       gesture(memory, true);
       memory[lbl("_lance_charge")] = 12;                // 13: a shown, slow frame
       if (mode === "swap") memory[lbl("lance_hollow")] = 0xff;
+    } else if (mode.startsWith("wait")) {
+      gesture(memory, true);
+      memory[lbl("_lance_charge")] = manifest.boss.lance.chargeFrames;
+      memory[main("frame_counter")] = mode === "waitOdd" ? 1 : 0;
     } else if (mode === "fire" || mode === "dry") {
       gesture(memory, true);
       memory[lbl("_lance_charge")] = manifest.boss.lance.chargeFrames - 1;   // completes on this frame

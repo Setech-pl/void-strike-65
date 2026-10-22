@@ -1379,3 +1379,36 @@ Validation: candidate build with computed gates (§BM), focused lance behaviour
 checks and four-region boss stress. No full test chain or wall-trace. Boss-entry
 transport remains unchanged; distinguish historical emulator frames from new
 measurements. Deliver an ATR with SHA-256 filename for owner smoke, then stop.
+
+
+### Stage 1c implementation checkpoint — BLOCKED_BOSS_STRESS
+
+The approved policy is implemented and the candidate build succeeds, but this
+is **not an OWNER-SMOKE CANDIDATE**. Clean `main` `fea4cc8`, measured in a
+temporary detached worktree, already reaches **8,563 cycles** on Citadel L5's
+lost-target arrival. This implementation measures **8,563** on the same case:
+**63 cycles over the 8,500 cap**, outside the new trigger path. The historical
+stage 1b figure 8,444 is 119 cycles lower than today's baseline. No limit or
+contact clause was changed. The broad stress run was stopped after the narrow
+A/B confirmed this blocker; the complete four-region certification is pending.
+
+Measured lance run **763 -> 757/768 B**, page 4 **250 -> 250/256 B**, BSS
+**5 -> 5 B**, zero page **14 -> 14 B**. Window end **$B8FB** unchanged.
+No start-block, DIRECTOR_RAM, DIRECTOR_C_LOW or reservation change. Straight
+launch setup removed; defensive flight/arrival guards retained, with lost-target
+flight semantics unchanged. Bastion measured fire **8,467**, swap **8,478**
+(22 margin), waits even/odd **8,414 / 8,397**, delayed lock **8,462**.
+R1 complete state sweep **7,711 -> 7,712** (788 margin).
+
+All 34 focused lance tests pass, including persistent-50 cancellation, both
+movement parities, first-lock homing, sound silence, no ordinary fire, and
+readiness-off cleanup. The combined run reports 35 passes and one failure:
+the already stale runtime-evidence binding, deferred by §BM. Two old unlocked
+launch expectations were updated for §BO and the obsolete pre-life-capsule
+160-byte window expectation now pins the owner's reserved 5 bytes.
+
+Evidence: [result and logs](../diagnostics/m6-lance-lock-2026-10-22/result.json).
+Recovery needed: identify and recover at least **63 cycles** in the existing
+Citadel L5 composition, without weakening any gates. No owner acceptance,
+merge, push or new entry-timing claim. Implementation retained on the task
+branch as an experimental checkpoint; STATUS remains the accepted baseline.

@@ -293,12 +293,12 @@
     "manifest": {
       "address": 9783,
       "bytes": 190,
-      "crc16": 56579,
+      "crc16": 10636,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 216,
         "manifestBytes": 190,
-        "crc16": 56579,
+        "crc16": 10636,
         "records": [
           {
             "startSector": 108,
@@ -394,7 +394,7 @@
             "packedLength": 1019,
             "rawLength": 1155,
             "finalDestination": 46200,
-            "crc16": 30655,
+            "crc16": 30094,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -663,7 +663,7 @@
       {
         "index": 1,
         "name": "boss code (M5b)",
-        "expected": "$D9EB"
+        "expected": "$145E"
       },
       {
         "index": 2,
@@ -707,10 +707,10 @@
       }
     ],
     "bossHeadSums": [
-      "$C5C7",
-      "$8FCD",
-      "$9D73",
-      "$2E9C"
+      "$CDED",
+      "$2FF3",
+      "$1799",
+      "$CEC2"
     ],
     "summaryArtSums": [
       "$2223",
@@ -842,9 +842,9 @@
   },
   "boss": {
     "death": {
-      "codeBytes": 1607,
+      "codeBytes": 1948,
       "codeCapacity": 3584,
-      "codeFree": 1977,
+      "codeFree": 1636,
       "buffer": {
         "address": 7680,
         "bytes": 512
@@ -853,7 +853,7 @@
         "address": 19456,
         "bytes": 576
       },
-      "diskSectors": 17,
+      "diskSectors": 20,
       "bootstrapAddress": 20992,
       "runAddress": 4096,
       "atrSectors": 1040
@@ -1069,16 +1069,16 @@
         "sectors": 4,
         "destination": 20992,
         "bytes": 512,
-        "sha256": "c0287a3d7d21f8d2b972a81a3ca3b07b22f89cfdb2383d5248548b420d68aa18",
+        "sha256": "d5f039204cb9fd6f350ee5a4e42f8f7f9b286bba432911555e38a58bc92efd0b",
         "file": "boss-death-boot.bin"
       },
       {
         "name": "boss-death-engine",
         "startSector": 724,
-        "sectors": 13,
+        "sectors": 16,
         "destination": 4096,
-        "bytes": 1664,
-        "sha256": "f0347094e2ea85deea0b6b74daa84379de4cbefbb5e23f68df66415e811437c0",
+        "bytes": 2048,
+        "sha256": "748dff331f4f74db5e31e8927bee6aa23f4a5af5a68ccffb65b9e05573b30706",
         "file": "boss-death-engine.bin"
       },
       {
@@ -1087,7 +1087,7 @@
         "sectors": 16,
         "destination": 28136,
         "bytes": 2048,
-        "sha256": "e6a3a95ae6c17f142626927c0aea42ecf49817f7d4af7b08c4a4f0826247ed77",
+        "sha256": "6b5431db5ae9f1e4382b95b6427c0eb2c2af9274b8a8dae4bafff3974646609c",
         "file": "overlay-boss-code.bin"
       },
       {
@@ -1105,7 +1105,7 @@
         "sectors": 15,
         "destination": 4096,
         "bytes": 1920,
-        "sha256": "49c01b40cd2b8ba07b98486a6142294411d9b62665d86df654b57e6844f8e15d",
+        "sha256": "1404b136ba1ba3ebd32cddb8b89bbda141bda15eb17975a61cc373b7ddd75401",
         "file": "overlay-boss-slot-c.bin"
       },
       {
@@ -24493,12 +24493,12 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 27648,
-        "sha256": "3bcd95d8b5eba6dc2da97736a4cd374d5beece9f33d9928a71df86073fc9c6a7"
+        "sha256": "6d1a578aef8da15656af6b03b5485a6a81e572163763999d3a73d5776e203844"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 133136,
-        "sha256": "36803d3ba1e61f54d5b792754517f690acdfa3a0a222ae316bc74a9fab9b9400"
+        "sha256": "a51b9b937483bd3b3764a250d85a61cb89874bda0678eaeccb1340390ac45538"
       }
     },
     "reportPath": null,
@@ -24507,11 +24507,11 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 27648,
-      "sha256": "3bcd95d8b5eba6dc2da97736a4cd374d5beece9f33d9928a71df86073fc9c6a7"
+      "sha256": "6d1a578aef8da15656af6b03b5485a6a81e572163763999d3a73d5776e203844"
     },
     "void-strike-65.atr": {
       "bytes": 133136,
-      "sha256": "36803d3ba1e61f54d5b792754517f690acdfa3a0a222ae316bc74a9fab9b9400"
+      "sha256": "a51b9b937483bd3b3764a250d85a61cb89874bda0678eaeccb1340390ac45538"
     }
   }
 }

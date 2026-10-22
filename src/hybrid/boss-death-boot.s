@@ -7,7 +7,7 @@
 death_boot:
     ldx #$FF
     txs
-    ; The card is already visible and DLI-free. Clean the spent hull while
+    ; The safe A-only strobe DLI retains the fight image. Clean the hull while
     ; its old backing/flash helpers are still present. The queue was drained
     ; before this bootstrap replaced its source look tail in slot F.
     lda boss_mflash_timer

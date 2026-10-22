@@ -6,7 +6,7 @@
 .include "gameplay-music-abi.inc"
 .import _death_init, _death_tick, _death_frame, _death_shift, _death_up
 .import _death_fx, _death_flash, _death_done
-.import _death_shake, _death_blast_phase
+.import _death_shake, _death_blast_phase, _death_burst, _death_vanish
 .export _death_light_state
 _death_light_state = DEATH_LIGHT_STATE
 .export death_entry, death_frame_begin, death_pre_fence, death_publish_end
@@ -24,6 +24,7 @@ SLOT = $4D08
 SOURCE_ROW = $4D09
 PAL0 = $4D0A
 PAL2 = $4D0B
+BACKDROP = $4D1C
 BASE_PAL0 = $4D0C
 BASE_PAL2 = $4D0D
 SCROLL = $4D0E
@@ -210,14 +211,16 @@ death_entry:
     sta NEXT_LIST+88
     lda #>(PLAYFIELD_DLIST_A-1)
     sta NEXT_LIST+89
-    ; Region charset over the HULL BREACH card only switches at the frame
-    ; edge. First prepare and publish a complete real spent-hull image.
+    ; Keep the held fight/DLI live until the complete first breakup list is
+    ; ready. Switch vectors only after the HUD has reached the fence.
     jsr death_layout
     ldx #$77
     jsr wait_frame_at_line
+    lda #0
+    sta NMIEN
     jsr death_publish
-    ; The loading card has a shorter list: its ANTIC cursor still points to
-    ; that card's tail. Re-prime the full list at its own frame-entry JMP.
+    ; Re-prime the list at its frame-entry JMP; its cursor may still be
+    ; waiting in the previous fight list's tail.
     lda #0
     sta DMACTL
     lda #<PLAYFIELD_DLIST_ENTRY
@@ -249,6 +252,12 @@ death_loop:
     jsr wait_frame_at_line
 death_frame_begin:
     jsr _death_tick
+    lda _death_done
+    beq :+
+    ; The last tick has no wing work. Restore the canonical gameplay font
+    ; before the normal summary/new-game path; init_state republishes looks.
+    jsr death_restore_font
+:
     jsr death_blast
     lda _death_shift
     beq :+
@@ -305,6 +314,122 @@ death_blast:
     iny
     sta $A8C0,y
     sta $A900,y
+    rts
+
+; Undo only the guarded first scanlines, not a full 1-KB font publication.
+; Keep live star glyph 1 and its fine-Y phase untouched. Normal START GAME
+; republishes the level-specific hull, shots and Light looks as before.
+death_restore_font:
+    ldx #0
+@row:
+    lda charset_data+$100,x
+    sta CHARSET+$100,x
+    cpx #8
+    beq :+
+    lda charset_data,x
+    sta CHARSET,x
+:   txa
+    clc
+    adc #8
+    tax
+    bne @row
+    rts
+
+; Secondary tile bursts are written only below the fence, onto nonempty
+; material. They become burning fragments carried by subsequent wing copies.
+; Five candidates per side: bounded and never paint an empty sky cell.
+death_secondary:
+    lda _death_burst
+    bne :+
+    rts
+:
+    tax
+    lda burst_rows-1,x
+    sta ROW
+    tax
+    lda band_lo,x
+    sta DEST_LO
+    lda band_hi,x
+    sta DEST_HI
+    lda #0
+    sta EDGE_LEFT
+    cpx #2
+    bcc @point
+    lda STEP
+    sta EDGE_LEFT
+    lda death_front
+    beq @point
+    lda buffer_lo,x
+    sta DEST_LO
+    txa
+    lsr
+    lsr
+    clc
+    adc #>BUFFER
+    sta DEST_HI
+@point:
+    lda _death_frame
+    lsr
+    lsr
+    lsr
+    and #3
+    clc
+    adc #4
+    sta EDGE_RIGHT
+    lda DEST_LO
+    sta @read+1
+    sta @write+1
+    lda DEST_HI
+    sta @read+2
+    sta @write+2
+    lda REGION
+    asl
+    ora _death_blast_phase
+    tax
+    lda blasts,x
+    sta FRAME_FX
+    lda SPLIT
+    sec
+    sbc EDGE_LEFT
+    bcc @right
+    sbc EDGE_RIGHT
+    bcc @right
+    tay
+    ldx #5
+@left:
+    jsr @ember
+    bne @right
+    dey
+    bmi @right
+    dex
+    bne @left
+@right:
+    lda SPLIT
+    clc
+    adc EDGE_LEFT
+    adc EDGE_RIGHT
+    cmp #64
+    bcs @exit
+    tay
+    ldx #5
+@right_loop:
+    jsr @ember
+    bne @exit
+    iny
+    cpy #64
+    bcs @exit
+    dex
+    bne @right_loop
+@exit:
+    rts
+@ember:
+@read:
+    lda $FFFF,y
+    beq @empty
+    lda FRAME_FX
+@write:
+    sta $FFFF,y
+@empty:
     rts
 
 ; One bounded character shift per side, from the FRONT buffer into the
@@ -407,6 +532,8 @@ death_layout:
     ldx #0
 @slot:
     stx ROW
+    lda _death_vanish
+    bne @blank
     lda SLOT
     clc
     adc _death_up
@@ -482,9 +609,12 @@ death_layout:
     sta PAL0
     lda BASE_PAL2
     sta PAL2
+    lda #0
+    sta BACKDROP
     lda _death_flash
     beq @done
     lda #$0E
+    sta BACKDROP
     sta PAL0
     sta PAL2
     ldx #8
@@ -525,15 +655,22 @@ death_publish:
     lda SCROLL
 :   sta HSCROL
     jsr death_sparks
+    jsr death_secondary
     lda sound_enabled
     beq :+
     lda _death_frame
     asl
     adc #$30
     sta $D204
+    lda _death_burst
+    beq @fade
+    lda #$86
+    sta $D205
+    bne :+
+@fade:
     lda _death_frame
-    cmp #28
-    bcc :+
+    and #7
+    bne :+
     lda #0
     sta $D205
 :   rts
@@ -655,6 +792,8 @@ death_dli_top:
     sta COLPF2
     lda PALETTE3
     sta COLPF3
+    lda BACKDROP
+    sta $D01A
     inc DLI_INDEX
     pla
     rti
@@ -670,6 +809,8 @@ death_dli_ring:
     sta COLPF1
     lda #GAMEPLAY_COLPF3
     sta COLPF3
+    lda #0
+    sta $D01A
     lda #$80
     sta DLI_INDEX
     pla
@@ -681,6 +822,8 @@ death_dli_hud:
     jmp gameplay_dli_hud
 
 .segment "DEATH_DATA"
+burst_rows:
+    .byte 0,2,4
 band_lo:
     .byte $80,$C0,$00,$40,$80,$C0,$80,$C0
 band_hi:

@@ -7483,17 +7483,20 @@ owner-authorized merge and push of main and `codex/m6-lance-lock`.
 
 The separate `b2261c9` boss stress regression was fixed in main merge
 `686d3f5` (§BP); it no longer blocks the window levers or release.
-Boss death breakup B at `e97244c` is **OWNER-REJECTED** (2026-10-22):
-HULL BREACH breaks continuity and the 74-frame animation is too short.
-Requested revision: held fight frame with a death-throes colour strobe during
-the read, followed by ~175 frames with slower pieces, secondary blasts and
-final flash. Revision stopped at the owner's explicit pre-code prerequisite:
-VBI is disabled (`NMIEN=0`) during the current direct-SIO read; gameplay itself
-uses DLI only. No game-code or artifact change has been made after rejection.
-[Preflight / alternatives / disk accounting](diagnostics/boss-death-breakup-2026-10-22/revision-preflight.md).
-**NEXT TASK:** owner selects the interrupt/clock approach following the required
-stop; then revise B and measure the requested paths. Do not merge or push.
-§BQ acceptance remains pending.
+Boss death breakup B revision is an **OWNER-SMOKE CANDIDATE** on
+`codex/boss-death-breakup` (2026-10-23), replacing rejected `e97244c`.
+Approach 2: A-only DLI strobe over the held fight image, NMIEN=$80 and VBI off;
+no HULL BREACH card. Then 175 frames (3.5 s), half-speed crown/wings,
+secondary explosions and final flash. Zero new resident/window allocation;
+install remains 383 B; entry 325/340/340/344 frames. All 80 repeated reads
+(20/boss, 1600 sectors) have no errors, retries or timeouts. Death DMA-on peak
+29101, minimum fence 3507. Strobe/read pause 79 host frames. Campaign disk:
+562 total unplaced sectors; 12 unused in the breakup's own reservation.
+Fight code is unchanged; stress was not repeated. Six focused death checks
+and candidate build gates pass. [Plan](plans/boss-death-breakup.md),
+[evidence and ATRs](diagnostics/boss-death-breakup-2026-10-22/README.md).
+**NEXT TASK:** owner smoke: continuous kill/strobe/slow breakup, clean HUD/ship,
+normal summary. STOP for explicit OK; §BQ acceptance, merge and push pending.
 Runtime evidence regeneration and the default full verification remain
 required before release (§BM).
 

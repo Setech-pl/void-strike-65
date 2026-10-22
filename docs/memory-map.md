@@ -82,19 +82,19 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$0C00-$1FFF` | 5,120 B | slot | boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it | `overlay` | manifest `boss.claim`, tests/boss-claim.test.mjs |
 | `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) | `overlay` | manifest `boss.charset` |
 | `$1000-$17FF` | 2,048 B | slot | boss slot C: the C controller, run `boss-slot-c` (15 sectors) | `overlay` | manifest `boss.slotC` |
-| `$1000-$1646` | 1,607 B | slot | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage | `boss` `death` | manifest `boss.death`, cfg/boss-death.cfg |
+| `$1000-$179B` | 1,948 B | slot | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage | `boss` `death` | manifest `boss.death`, cfg/boss-death.cfg |
 | `$1000-$14FB` | 1,276 B | segment | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) | `overlay` | build/boss.map |
 | `$1000-$14B7` | 1,208 B | transient | boss banner run (the largest region's), landed in slot C's area before slot C is read | `boss-entry` | manifest `boss.banner` |
-| `$1000-$11AE` | 431 B | segment | `DEATH_HEAD` — boss breakup: post-load setup and private animation loop | `boss` `death` | build/boss-death.map |
+| `$1000-$11BB` | 444 B | segment | `DEATH_HEAD` — boss breakup: post-load setup and private animation loop | `boss` `death` | build/boss-death.map |
 | `$1000-$10BE` | 191 B | segment | `BOSS_BANNER` — boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read | `boss-entry` | build/boss.map |
 | `$10BF-$10EE` | 48 B | segment | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors | `boss-entry` | build/boss.map |
 | `$10EF-$11DA` | 236 B | segment | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen | `boss-entry` | build/boss.map |
-| `$11AF-$159A` | 1,004 B | segment | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication | `boss` `death` | build/boss-death.map |
+| `$11BC-$16EC` | 1,329 B | segment | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication | `boss` `death` | build/boss-death.map |
 | `$14FC-$154C` | 81 B | segment | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes | `overlay` | build/boss.map |
 | `$1500-$17FF` | 768 B | transient | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen | `boss-entry` | manifest `boss.banner` |
 | `$154E-$1557` | 10 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
 | `$1558-$171C` | 453 B | segment | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) | `overlay` | build/boss.map |
-| `$159B-$1646` | 172 B | segment | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes | `boss` `death` | build/boss-death.map |
+| `$16ED-$179B` | 175 B | segment | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes | `boss` `death` | build/boss-death.map |
 | `$171D-$17FB` | 223 B | segment | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) | `overlay` | build/boss.map |
 | `$1800-$18FF` | 256 B | slot | boss scratch page: the column map, the ring, slot A's state; set by the install | `overlay` | manifest `boss.scratch` |
 | `$1800-$1897` | 152 B | segment | `BOSS_SCRATCH` — boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates | `overlay` | build/boss.map |
@@ -128,7 +128,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4C00-$4DFE` | 511 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
 | `$4C00-$4D1F` | 288 B | state | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector | `resident` | src/main.s `CAPITAL_HULL_RUNTIME_ALLIED` |
 | `$4D20-$4E3F` | 288 B | state | expanded Hostile hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector | `resident` | src/main.s `CAPITAL_HULL_RUNTIME_ENEMY` |
-| `$4D20-$4D28` | 9 B | segment | `DEATH_STATE` — boss breakup: C policy state over dead slot E | `boss` `death` | build/boss-death.map |
+| `$4D20-$4D2C` | 13 B | segment | `DEATH_STATE` — boss breakup: C policy state over dead slot E | `boss` `death` | build/boss-death.map |
 | `$4DFF-$4E0E` | 16 B | segment | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk | `overlay` | build/boss.map |
 | `$4E40-$4E6F` | 48 B | state | broadside slot state | `resident` | src/main.s `BROAD_STATE_BASE` |
 | `$4E70-$4ED0` | 97 B | state | difficulty, hull scroll, final-raster bolt tops, flash backing, sector, player lifecycle, capital explosion, engine and Raider state | `resident` | src/main.s `DIFFICULTY_SETTING` |
@@ -140,7 +140,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4FF8-$4FF9` | 2 B | state | 16-bit active-gameplay frame counter | `resident` | src/main.s `ACTIVE_GAMEPLAY_FRAME_LO` |
 | `$5000-$5E0F` | 3,600 B | transient | loader bitmap lines 102-191 (second LMS) | `loader` | manifest `loaderScreen` |
 | `$5000-$53FF` | 1,024 B | state | gameplay HUD charset | `resident` | src/main.s `HUD_CHARSET` |
-| `$5200-$53FF` | 512 B | slot | boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the HULL BREACH card is visible | `boss` `death` | cfg/boss-death-boot.cfg |
+| `$5200-$53FF` | 512 B | slot | boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the A-only DLI retains boss, player and HUD | `boss` `death` | cfg/boss-death-boot.cfg |
 | `$5200-$53FF` | 512 B | slot | boss slot F (S5-1, owner decision Q9): the HUD charset's unused upper half (codes 64-127, never shown); the region's block, read at every boss entry as the region's fourth run; no restore | `overlay` | manifest `boss.slotF`, tests/slot-f.test.mjs |
 | `$5200-$526D` | 110 B | slot | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) | `overlay` | manifest `boss.slotF.lookTail` |
 | `$5233-$526C` | 58 B | segment | `BOSS_R_DATA` — region 2's cannons' lens cells, the rails' scratch and the frame hook (S5-5, "B - the window"; the owner's look at 110c274): the locked bays' laser countdown, the warning's heat on each lens, the missile plane's armour row - no beam behind a locked bay's armour; in region 2's block between its look tail and BOSS_F_HOOK; read with that block at region 2's boss entry only | `overlay` | build/boss.map |
@@ -352,19 +352,19 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$0C00-$1FFF` | `overlay` | boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it |
 | `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) |
 | `$1000-$17FF` | `overlay` | boss slot C: the C controller, run `boss-slot-c` (15 sectors) |
-| `$1000-$1646` | `boss` `death` | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage |
+| `$1000-$179B` | `boss` `death` | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage |
 | `$1000-$14FB` | `overlay` | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) |
 | `$1000-$14B7` | `boss-entry` | boss banner run (the largest region's), landed in slot C's area before slot C is read |
-| `$1000-$11AE` | `boss` `death` | `DEATH_HEAD` — boss breakup: post-load setup and private animation loop |
+| `$1000-$11BB` | `boss` `death` | `DEATH_HEAD` — boss breakup: post-load setup and private animation loop |
 | `$1000-$10BE` | `boss-entry` | `BOSS_BANNER` — boss banner screen (feat/boss-banners): the frontend screen cleared, the list, the title, the empty bar, shown on a frame edge, then the run's other sectors read and checked; first in each region's banner run (its first 2 sectors with the head), landed in slot C's area before slot C is read |
 | `$10BF-$10EE` | `boss-entry` | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors |
 | `$10EF-$11DA` | `boss-entry` | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen |
-| `$11AF-$159A` | `boss` `death` | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication |
+| `$11BC-$16EC` | `boss` `death` | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication |
 | `$14FC-$154C` | `overlay` | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes |
 | `$1500-$17FF` | `boss-entry` | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen |
 | `$154E-$1557` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |
 | `$1558-$171C` | `overlay` | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) |
-| `$159B-$1646` | `boss` `death` | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes |
+| `$16ED-$179B` | `boss` `death` | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes |
 | `$171D-$17FB` | `overlay` | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) |
 | `$1800-$18FF` | `overlay` | boss scratch page: the column map, the ring, slot A's state; set by the install |
 | `$1800-$1897` | `overlay` | `BOSS_SCRATCH` — boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates |
@@ -417,7 +417,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4C00-$4DFE` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only |
 | `$4C00-$4D1F` | `resident` | expanded Allied hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector |
 | `$4D20-$4E3F` | `resident` | expanded Hostile hull map: built at every gameplay start, read by the capital's draw_hull_row; the boss's slot E holds this RAM in the boss sector |
-| `$4D20-$4D28` | `boss` `death` | `DEATH_STATE` — boss breakup: C policy state over dead slot E |
+| `$4D20-$4D2C` | `boss` `death` | `DEATH_STATE` — boss breakup: C policy state over dead slot E |
 | `$4DFF-$4E0E` | `overlay` | `BOSS_E_BSS` — boss slot E: its state - the boss shots' band cells, the hit flash's timer, module and request (fix/boss-polish), the twin flag (feat/boss-r1-twin-lasers) - after its code, never read from disk |
 | `$4E40-$4E6F` | `resident` | broadside slot state |
 | `$4E70-$4ED0` | `resident` | difficulty, hull scroll, final-raster bolt tops, flash backing, sector, player lifecycle, capital explosion, engine and Raider state |
@@ -429,7 +429,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4FF8-$4FF9` | `resident` | 16-bit active-gameplay frame counter |
 | `$5000-$5E0F` | `loader` | loader bitmap lines 102-191 (second LMS) |
 | `$5000-$53FF` | `resident` | gameplay HUD charset |
-| `$5200-$53FF` | `boss` `death` | boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the HULL BREACH card is visible |
+| `$5200-$53FF` | `boss` `death` | boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the A-only DLI retains boss, player and HUD |
 | `$5200-$53FF` | `overlay` | boss slot F (S5-1, owner decision Q9): the HUD charset's unused upper half (codes 64-127, never shown); the region's block, read at every boss entry as the region's fourth run; no restore |
 | `$5200-$526D` | `overlay` | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) |
 | `$5233-$526C` | `overlay` | `BOSS_R_DATA` — region 2's cannons' lens cells, the rails' scratch and the frame hook (S5-5, "B - the window"; the owner's look at 110c274): the locked bays' laser countdown, the warning's heat on each lens, the missile plane's armour row - no beam behind a locked bay's armour; in region 2's block between its look tail and BOSS_F_HOOK; read with that block at region 2's boss entry only |
@@ -546,14 +546,14 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 
 Items are label spans from the listings, placed with the link map's per-module offsets (ca65 global labels checked against the link's `.lbl`; cc65 `.proc` names, so static C functions count). Every item of 1% of the segment or more is listed; the rest are summed. Topics are a keyword heuristic over the label names, first match wins.
 
-#### `DEATH_CODE` `$11AF-$159A`, 1,004 B (build/boss-death.map)
+#### `DEATH_CODE` `$11BC-$16EC`, 1,329 B (build/boss-death.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| (unlabelled head of boss-death-engine.o) | `$11AF` | 836 B | 83.3% | capital ship |
-| (unlabelled head of boss-death-c.o) | `$14F3` | 168 B | 16.7% | unclassified |
+| (unlabelled head of boss-death-engine.o) | `$11BC` | 1,079 B | 81.2% | capital ship |
+| (unlabelled head of boss-death-c.o) | `$15F3` | 250 B | 18.8% | unclassified |
 
-By topic: capital ship 83%, unclassified 17%.
+By topic: capital ship 81%, unclassified 19%.
 
 #### `BOSS_C_CODE` `$1000-$14FB`, 1,276 B (build/boss.map)
 
@@ -626,14 +626,13 @@ By topic: unclassified 83%, Heavy, Raider and Interceptor 9%, player, input and 
 | `boss_frame_timers` | `$71AE` | 43 B | 2.2% | unclassified |
 | `boss_death_read` | `$7037` | 38 B | 1.9% | unclassified |
 | `boss_nozzle_darken` | `$73C7` | 38 B | 1.9% | unclassified |
-| `boss_death_card` | `$6E1D` | 36 B | 1.8% | unclassified |
 | `boss_read_run` | `$6E53` | 36 B | 1.8% | unclassified |
 | `boss_column_from` | `$74A6` | 35 B | 1.8% | unclassified |
 | `boss_tick_sound` | `$71D9` | 29 B | 1.5% | music and audio |
 | `boss_completion` | `$7585` | 21 B | 1.1% | unclassified |
-| 29 smaller items | — | 191 B | 9.7% | — |
+| 32 smaller items | — | 227 B | 11.6% | — |
 
-By topic: unclassified 75%, display, PMG and raster 16%, player, input and weapons 6%, music and audio 2%, boot, loader and transport 1%.
+By topic: unclassified 74%, display, PMG and raster 16%, player, input and weapons 6%, music and audio 2%, frontend and HUD 1%, boot, loader and transport 1%.
 
 #### `LANCE_CODE` `$B900-$BBEF`, 752 B (build/boss.map)
 
@@ -1057,10 +1056,10 @@ By topic: frontend and HUD 26%, player, input and weapons 25%, debris and effect
 
 | Segment | Size | Name promises | Share of those topics | Dominant topic | Verdict |
 | --- | ---: | --- | ---: | --- | --- |
-| `DEATH_CODE` | 1,004 B | placement name | — | capital ship (83%) | not judged |
+| `DEATH_CODE` | 1,329 B | placement name | — | capital ship (81%) | not judged |
 | `BOSS_C_CODE` | 1,276 B | placement name | — | unclassified (89%) | not judged |
 | `BOSS_D_CODE` | 1,684 B | placement name | — | unclassified (83%) | not judged |
-| `BOSS_CODE` | 1,963 B | placement name | — | unclassified (75%) | not judged |
+| `BOSS_CODE` | 1,963 B | placement name | — | unclassified (74%) | not judged |
 | `LANCE_CODE` | 752 B | placement name | — | unclassified (86%) | not judged |
 | `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
@@ -3081,19 +3080,25 @@ Build-time range assertions, linker overlap checks, payload parity tests, and
 cold-RAM tests are the enforcement mechanism for this snapshot.
 
 
-## Boss death breakup B — candidate phase reuse (2026-10-22)
+## Boss death breakup B — revised candidate phase reuse (2026-10-23)
 
-After combat only: guarded disk bootstrap overwrites dead F $5200–$53FF
-(157 useful / 512 padded B, 355 B free), then loads 1,607 useful / 1,664
-padded B into the 3,584-B $1000–$1DFF code area (1,977 B free). The second
-wing buffer occupies $1E00–$1FFF (512 B), private death scratch reuses dead E
-$4C00–$4E3F (high-water $4D29, 279 B above it). Existing band is the other
-buffer; no additional screen-memory reservation. These aliases are mutually
-exclusive with combat; no code returns to a replaced fight overlay. Pending
-COPY draws finish before F is overwritten; backing/flash cleanup precedes E
-reuse. The summary uses its existing restore path.
+After combat: checked bootstrap over dead F $5200–$53FF (157 useful / 512 disk
+B), engine over dead C/D $1000–$1DFF (1948 useful / 2048 disk B, 1636 B code
+capacity left), second wing buffer $1E00–$1FFF (512 B), E scratch
+$4C00–$4E3F (576-B limit, high-water $4D2D, 275 B above the 301-B used span).
+These homes are phase-exclusive with combat. The 46-B safe-DLI entries/strobe
+use the former 47-B card slot in A and share existing A/resident continuations.
+The whole cold C takeover stays 81 B; no resident or window allocation grows.
 
-Disk sectors 720–736 add 2,176 B in a standard 1,040-sector ATR. No added
-boss-entry run or install byte. Resident/start/DIRECTOR_RAM/DIRECTOR_C_LOW,
-lance/page-4 and window reservations are unchanged, including reserved
-$B8FB–$B8FF. See [candidate evidence](diagnostics/boss-death-breakup-2026-10-22/README.md).
+Read-time glyph guard clears only first scanlines of the existing gameplay
+font's released-shot/helper bank, preserving star glyph 1; the last animation
+tick restores those scanlines from the existing resident charset source.
+No extra glyph/screen storage. The band is retained across the read; P0 and
+HUD are preserved. Queued COPY draws finish before F reuse; backing/flash
+cleanup precedes E reuse. The normal summary/START GAME restores its overlays.
+
+Disk sectors 720–739 now occupy 20 of 32 reserved breakup sectors; 740–751
+are the 12 remaining there. Total campaign unplaced space is 562 of 1040
+sectors. No added entry run or install byte; reserved $B8FB–$B8FF, start,
+DIRECTOR_RAM/C_LOW, lance and page 4 are untouched. See
+[candidate proof](diagnostics/boss-death-breakup-2026-10-22/README.md).

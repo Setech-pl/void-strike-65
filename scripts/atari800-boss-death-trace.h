@@ -1,5 +1,6 @@
 /* Focused observer only. Appended by measure-boss-death.mjs; no guest opcode
  * patching. Uses the existing trace header's clock/input helpers. */
+static const int cycles[256]; /* cpu.c defines the documented opcode base costs. */
 static void db_picture(unsigned frame)
 {
     if (getenv("DFDB_PHOTOS") && strcmp(getenv("DFDB_PHOTOS"),"0")==0) return;
@@ -20,11 +21,16 @@ static void db_picture(unsigned frame)
 }
 static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, unsigned s)
 {
-    static int init, ready, forced, entered, finished, summary, starts, menu, card_photo;
+    static unsigned v_READ_RING,v_FAST_HUD,v_BOSS_DLI,v_CLOCK,v_DEVICE,v_DIR,v_DLI,v_DLI_POS,v_END,v_ENGINE,v_ENTER,v_FAILURE,v_FENCE,v_FRAME,v_HANDOFF,v_LAST,v_MAIN,v_MENU,v_N,v_NO_DEVICE,v_PHASE,v_POSITION,v_POSSTATE,v_PRESS,v_READ,v_READ_SECTOR,v_RELEASE,v_RESUME,v_BAND_END,v_START,v_STEP_TIMER,v_STROBE,v_SUMMARY,v_WIRE;
+    static int init, ready, forced, entered, finished, summary, starts, menu, read_photo;
     static unsigned host, last_host, dli_count, frame_count, read_host, misses, hud_errors, ship_errors, dli_errors;
     static unsigned ship_x, ship_size, ship_colour;
-    static unsigned card_host, card_checks, card_errors;
-    static unsigned char card_bottom[32 * Screen_WIDTH];
+    static unsigned read_sample_host, read_checks, read_errors;
+    static unsigned attempts, sio_failures, read_dlis, read_dli_errors, strobe_frames;
+    static unsigned char separator[8 * Screen_WIDTH];
+    static unsigned dli_return_pc, dli_prev_pc, dli_prev_op, dli_phase_now, dli_cpu, dli_cpu_peak[3];
+    static unsigned long long dli_begin_clock, dli_wall_peak, nmi_dispatch_clock, dli_block_begin, dli_block_peak;
+    static unsigned char read_bottom[32 * Screen_WIDTH];
     static unsigned pc_main, pc_resume, boss_dli_pc, pc_enter, pc_read, pc_engine;
     static unsigned pc_frame, pc_fence, pc_end, pc_handoff, pc_summary, pc_start;
     static unsigned pc_failure, phase, n, last_module, death_dli_pc, score_clock;
@@ -33,37 +39,78 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
     static FILE *out;
     unsigned long long clock;
     if (!init) {
+        v_READ_RING=dftrace_env_u("DFDB_READ_RING");
+        v_FAST_HUD=dftrace_env_u("DFDB_FAST_HUD");
+        v_BOSS_DLI=dftrace_env_u("DFDB_BOSS_DLI");
+        v_CLOCK=dftrace_env_u("DFDB_CLOCK");
+        v_DEVICE=dftrace_env_u("DFDB_DEVICE");
+        v_DIR=dftrace_env_u("DFDB_DIR");
+        v_DLI=dftrace_env_u("DFDB_DLI");
+        v_DLI_POS=dftrace_env_u("DFDB_DLI_POS");
+        v_END=dftrace_env_u("DFDB_END");
+        v_ENGINE=dftrace_env_u("DFDB_ENGINE");
+        v_ENTER=dftrace_env_u("DFDB_ENTER");
+        v_FAILURE=dftrace_env_u("DFDB_FAILURE");
+        v_FENCE=dftrace_env_u("DFDB_FENCE");
+        v_FRAME=dftrace_env_u("DFDB_FRAME");
+        v_HANDOFF=dftrace_env_u("DFDB_HANDOFF");
+        v_LAST=dftrace_env_u("DFDB_LAST");
+        v_MAIN=dftrace_env_u("DFDB_MAIN");
+        v_MENU=dftrace_env_u("DFDB_MENU");
+        v_N=dftrace_env_u("DFDB_N");
+        v_NO_DEVICE=dftrace_env_u("DFDB_NO_DEVICE");
+        v_PHASE=dftrace_env_u("DFDB_PHASE");
+        v_POSITION=dftrace_env_u("DFDB_POSITION");
+        v_POSSTATE=dftrace_env_u("DFDB_POSSTATE");
+        v_PRESS=dftrace_env_u("DFDB_PRESS");
+        v_READ=dftrace_env_u("DFDB_READ");
+        v_READ_SECTOR=dftrace_env_u("DFDB_READ_SECTOR");
+        v_RELEASE=dftrace_env_u("DFDB_RELEASE");
+        v_RESUME=dftrace_env_u("DFDB_RESUME");
+        v_BAND_END=dftrace_env_u("DFDB_BAND_END");
+        v_START=dftrace_env_u("DFDB_START");
+        v_STEP_TIMER=dftrace_env_u("DFDB_STEP_TIMER");
+        v_STROBE=dftrace_env_u("DFDB_STROBE");
+        v_SUMMARY=dftrace_env_u("DFDB_SUMMARY");
+        v_WIRE=dftrace_env_u("DFDB_WIRE");
+
         dftrace_game_state=dftrace_env_u("DFTRACE_GAME_STATE");
         dftrace_pc_frontend_poll=dftrace_env_u("DFTRACE_PC_FRONTEND_POLL");
         dftrace_frontend_selection=dftrace_env_u("DFTRACE_FRONTEND_SELECTION");
         dftrace_frontend_input_armed=dftrace_env_u("DFTRACE_FRONTEND_INPUT_ARMED");
         dftrace_difficulty_setting=dftrace_env_u("DFTRACE_DIFFICULTY_SETTING");
         dftrace_difficulty=1; dftrace_frontend_delay=300;
-#define DB(n) dftrace_env_u("DFDB_" n)
-        pc_main=DB("MAIN"); pc_resume=DB("RESUME"); boss_dli_pc=DB("BOSS_DLI");
-        pc_enter=DB("ENTER"); pc_read=DB("READ"); pc_engine=DB("ENGINE");
-        pc_frame=DB("FRAME"); pc_fence=DB("FENCE"); pc_end=DB("END");
-        pc_handoff=DB("HANDOFF"); pc_summary=DB("SUMMARY"); pc_start=DB("START");
-        pc_failure=DB("FAILURE"); phase=DB("PHASE"); n=DB("N");
-        last_module=DB("LAST"); death_dli_pc=DB("DLI"); score_clock=DB("CLOCK");
+        pc_main=v_MAIN; pc_resume=v_RESUME; boss_dli_pc=v_BOSS_DLI;
+        pc_enter=v_ENTER; pc_read=v_READ; pc_engine=v_ENGINE;
+        pc_frame=v_FRAME; pc_fence=v_FENCE; pc_end=v_END;
+        pc_handoff=v_HANDOFF; pc_summary=v_SUMMARY; pc_start=v_START;
+        pc_failure=v_FAILURE; phase=v_PHASE; n=v_N;
+        last_module=v_LAST; death_dli_pc=v_DLI; score_clock=v_CLOCK;
         out=fopen(getenv("DFDB_OUTPUT"),"w"); if (!out) exit(2);
         min_margin=999999u; init=1;
     }
     host=(unsigned)Atari800_nframes;
     clock=dftrace_clock();
+    if(dli_begin_clock) {
+        dli_cpu+=cycles[dli_prev_op];
+        if((dli_prev_op&31u)==16u && pc!=((dli_prev_pc+2u)&65535u)) {
+            dli_cpu++;
+            if(((dli_prev_pc+2u)&0xFF00u)!=(pc&0xFF00u)) dli_cpu++;
+        }
+    }
     if (host>3000u) { fprintf(out,"{\"failure\":\"host timeout\",\"pc\":%u}\n",pc); fclose(out); exit(2); }
     if (pc==dftrace_pc_frontend_poll) dftrace_set_frontend_input();
-    if (pc==DB("RELEASE")) dftrace_set_input(15u,1u);
-    if (pc==DB("PRESS")) dftrace_set_input(15u,0u);
+    if (pc==v_RELEASE) dftrace_set_input(15u,1u);
+    if (pc==v_PRESS) dftrace_set_input(15u,0u);
     if (pc==pc_enter && !forced) entry_clock=clock;
-    if (pc==pc_failure && MEMORY_mem[0xA600u]=='D') {
+    if (forced && pc==pc_failure) {
         fprintf(out,"{\"failure\":\"disk failure\",\"status\":%u}\n",a); fclose(out); exit(2);
     }
     if (pc==pc_start) {
         starts++;
         if (summary) {
-            fprintf(out,"{\"restartedLevel\":%u,\"summary\":true,\"frames\":%u,\"misses\":%u,\"hudErrors\":%u,\"shipErrors\":%u,\"dliErrors\":%u,\"returnedToMenu\":%u,\"cardChecks\":%u,\"cardErrors\":%u}\n",
-                MEMORY_mem[0xA603u],frame_count,misses,hud_errors,ship_errors,dli_errors,menu,card_checks,card_errors);
+            fprintf(out,"{\"restartedLevel\":%u,\"summary\":true,\"frames\":%u,\"misses\":%u,\"hudErrors\":%u,\"shipErrors\":%u,\"dliErrors\":%u,\"returnedToMenu\":%u,\"readImageChecks\":%u,\"readImageErrors\":%u,\"readAttempts\":%u,\"sioFailures\":%u,\"readDlis\":%u,\"readDliErrors\":%u,\"strobeFrames\":%u,\"strobeDliWallPeak\":%llu,\"strobeCpuTop\":%u,\"strobeCpuRing\":%u,\"strobeCpuHud\":%u,\"strobeBlockPeak\":%llu}\n",
+                MEMORY_mem[0xA603u],frame_count,misses,hud_errors,ship_errors,dli_errors,menu,read_checks,read_errors,attempts,sio_failures,read_dlis,read_dli_errors,strobe_frames,dli_wall_peak,dli_cpu_peak[0],dli_cpu_peak[1],dli_cpu_peak[2],dli_block_peak);
             fclose(out); exit(0);
         }
     }
@@ -78,40 +125,70 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
             for(r=0;r<8;r++) memcpy(&MEMORY_mem[r<6 ? 0xA880u+r*64u : 0xAC80u+(r-6u)*64u],cells+r*64u,64u);
             if (dftrace_env_u("DFDB_POSITION_VALUE")<64u) {
                 unsigned p=dftrace_env_u("DFDB_POSITION_VALUE");
-                MEMORY_mem[DB("POSITION")]=(UBYTE)p;
-                MEMORY_mem[DB("POSSTATE")]=(UBYTE)p;
-                MEMORY_mem[DB("DLI_POS")]=(UBYTE)p;
-                MEMORY_mem[DB("DIR")]=0;MEMORY_mem[DB("STEP_TIMER")]=255;
+                /* Leave shown_pos intact: the real below-band DLI must
+                 * publish this requested pose into LMS/HSCROL first. */
+                MEMORY_mem[v_POSSTATE]=(UBYTE)p;
+                MEMORY_mem[v_DLI_POS]=(UBYTE)p;
+                MEMORY_mem[v_DIR]=0;MEMORY_mem[v_STEP_TIMER]=255;
             }
             MEMORY_mem[phase]=2; MEMORY_mem[n]=(UBYTE)last_module;
             MEMORY_mem[score_clock]=100; MEMORY_mem[score_clock+1]=0;
+            memcpy(separator,(const UBYTE *)Screen_atari+8u*Screen_WIDTH,sizeof(separator));
             memcpy(ship,&MEMORY_mem[0x3C00],256); memcpy(hud,&MEMORY_mem[0x4000],40);
             ship_x=GTIA_HPOSP0;ship_size=GTIA_SIZEP0;ship_colour=GTIA_COLPM0;
             forced=1;
         }
     }
-    if (forced && !entered && pc==pc_read && !read_clock) {read_clock=clock;read_host=host;}
-    if (read_clock && !entered && host>=read_host+2u && host!=card_host && ANTIC_ypos>=248) {
+    if (forced && !entered && pc==pc_read && !read_clock) {
+        read_clock=clock;read_host=host;
+    }
+    if(read_clock && !entered) {
+        if(pc==(MEMORY_mem[0xFFFAu]|(MEMORY_mem[0xFFFBu]<<8))) nmi_dispatch_clock=clock;
+        if(pc==v_READ_SECTOR) attempts++;
+        if(pc==v_WIRE || pc==v_NO_DEVICE || pc==v_DEVICE) sio_failures++;
+        if(v_STROBE && ((pc==v_STROBE && MEMORY_mem[0x92u]==0u) || pc==v_READ_RING || pc==v_FAST_HUD)) {
+            unsigned phase_now=MEMORY_mem[0x92u];
+            unsigned expected=phase_now==0u ? 15u : phase_now==2u ? 239u : v_BAND_END;
+            dli_return_pc=MEMORY_mem[0x100u+((s+2u)&255u)] | (MEMORY_mem[0x100u+((s+3u)&255u)]<<8);
+            dli_block_begin=nmi_dispatch_clock;
+            dli_begin_clock=clock; dli_phase_now=phase_now; dli_cpu=0;
+            read_dlis++;
+            if(phase_now==0u) strobe_frames++;
+            if((unsigned)ANTIC_ypos<expected || (unsigned)ANTIC_ypos>expected+1u) read_dli_errors++;
+            if(ANTIC_NMIEN!=0x80u) { read_dli_errors++; fprintf(out,"{\"badNMIEN\":%u}\n",ANTIC_NMIEN); }
+        }
+    }
+    if(dli_begin_clock && pc==dli_return_pc) {
+        if(clock-dli_begin_clock>dli_wall_peak) dli_wall_peak=clock-dli_begin_clock;
+        if(dli_phase_now<3u && dli_cpu>dli_cpu_peak[dli_phase_now]) dli_cpu_peak[dli_phase_now]=dli_cpu;
+        if(dli_block_begin && clock-dli_block_begin+7u>dli_block_peak) dli_block_peak=clock-dli_block_begin+7u;
+        dli_begin_clock=0;
+    }
+    if(dli_begin_clock && pc!=dli_return_pc && ((pc>=0x1000u && pc<0x2000u) || (pc>=0x4C00u && pc<0x4E40u) || (pc>=0x5200u && pc<0x5400u))) read_dli_errors++;
+    if (read_clock && !entered && host>=read_host+2u && host!=read_sample_host && ANTIC_ypos>=248) {
         const UBYTE *bottom=(const UBYTE *)Screen_atari+208u*Screen_WIDTH;
         unsigned i, hud_pixels=0, ship_pixels=0;
-        card_host=host;
+        read_sample_host=host;
         for(i=24u*Screen_WIDTH;i<32u*Screen_WIDTH;i++) if(bottom[i]) hud_pixels++;
         for(i=0;i<24u*Screen_WIDTH;i++) if(bottom[i]) ship_pixels++;
-        if(!card_checks) memcpy(card_bottom,bottom,sizeof(card_bottom));
-        if(!hud_pixels || !ship_pixels || memcmp(card_bottom,bottom,sizeof(card_bottom)) ||
+        unsigned hud_guard=0;
+        for(i=32u;i<352u;i++) if(((const UBYTE *)Screen_atari)[232u*Screen_WIDTH+i]) hud_guard++;
+        if(!read_checks) memcpy(read_bottom,bottom,sizeof(read_bottom));
+        if(hud_guard || !hud_pixels || !ship_pixels || memcmp(read_bottom,bottom,sizeof(read_bottom)) ||
+            (v_STROBE && memcmp(separator,(const UBYTE *)Screen_atari+8u*Screen_WIDTH,sizeof(separator))) ||
             memcmp(ship,&MEMORY_mem[0x3C00],256) || memcmp(hud,&MEMORY_mem[0x4000],40) ||
-            GTIA_HPOSP0!=ship_x || GTIA_SIZEP0!=ship_size || GTIA_COLPM0!=ship_colour) card_errors++;
-        card_checks++;
+            GTIA_HPOSP0!=ship_x || GTIA_SIZEP0!=ship_size || GTIA_COLPM0!=ship_colour) { read_errors++; if(read_errors<=2u) db_picture(200u+read_errors); for(unsigned yy=0;yy<32u;yy++){ unsigned changed=0; for(unsigned xx=0;xx<Screen_WIDTH;xx++) if(bottom[yy*Screen_WIDTH+xx]!=read_bottom[yy*Screen_WIDTH+xx])changed++; if(changed)fprintf(out,"{\"row\":%u,\"changed\":%u}\n",208u+yy,changed); } fprintf(out,"{\"readPixelsBad\":%u,\"sep\":%u,\"bottom\":%u}\n",host,memcmp(separator,(const UBYTE *)Screen_atari+8u*Screen_WIDTH,sizeof(separator))!=0,memcmp(read_bottom,bottom,sizeof(read_bottom))!=0); }
+        read_checks++;
     }
-    if (read_clock && !entered && !card_photo && host>=read_host+2u && ANTIC_ypos>=248) {
-        db_picture(100); card_photo=1;
+    if (read_clock && !entered && !read_photo && host>=read_host+2u && ANTIC_ypos>=248) {
+        db_picture(100); read_photo=1;
     }
     if (forced && !entered && pc==pc_engine) {
         fprintf(out,"{\"readPauseFrames\":%.3f}\n",(clock-read_clock)/35568.0);
         db_picture(0);
         entered=1;
     }
-    if (finished && pc==DB("MENU")) menu=1;
+    if (finished && pc==v_MENU) menu=1;
     if (entered && pc==death_dli_pc) {
         unsigned index=MEMORY_mem[0x4D05u];
         unsigned expected=index==128u ? 239u : 15u+index*8u;
@@ -138,7 +215,8 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
         if (memcmp(ship,&MEMORY_mem[0x3C00],256) || GTIA_HPOSP0!=ship_x ||
             GTIA_SIZEP0!=ship_size || GTIA_COLPM0!=ship_colour) ship_errors++;
         if (memcmp(hud,&MEMORY_mem[0x4000],40)) hud_errors++;
-        if (frame_count==1 || frame_count==12 || frame_count==18 || frame_count==26 || frame_count==40) {
+        for(unsigned i=32u;i<352u;i++) if(((const UBYTE *)Screen_atari)[232u*Screen_WIDTH+i]) {hud_errors++;break;}
+        if (frame_count==1 || frame_count==12 || frame_count==40 || frame_count==80 || frame_count==120 || frame_count==160) {
             db_picture(frame_count);
         }
     }
@@ -147,5 +225,6 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
         finished=1;
     }
     if (finished && pc==pc_summary) summary=1;
+    if(dli_begin_clock) {dli_prev_pc=pc; dli_prev_op=MEMORY_mem[pc];}
     (void)x;(void)y;(void)s;(void)menu;
 }

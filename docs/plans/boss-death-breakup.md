@@ -264,3 +264,47 @@ new candidate was produced. [Prerequisite report, estimated alternatives and
 whole-disk accounting](../diagnostics/boss-death-breakup-2026-10-22/revision-preflight.md).
 The previous candidate evidence above is historical and is not owner acceptance.
 §BQ remains unwritten until OK on a revised candidate; no merge/push.
+
+
+## Revision 2 — DLI strobe and 175 ticks (candidate, 2026-10-23)
+
+Owner explicitly selected approach 2 after the 83bc955 preflight stop. The
+VBI remains off: safe A/resident-only DLI paths keep the held boss, P0 and HUD
+visible during the two checked reads, with PF3 strobing from a counter advanced
+by the top DLI. No text card or blank interval. The intermediate row palette
+DLIs and old C/D publish/motion execution are disconnected before loading.
+A fast HUD entry plus a blank first-scanline guard handles a DLI deferred into
+line 240 by the reader's WSYNC. Star glyph 1 is preserved; guarded glyph lines
+are restored before summary/new-game. No permanent allocation is added.
+
+The 47-B former card slot contains 46 B of new entries/strobe plus a pad and
+shares existing safe A/resident code. The C takeover remains exactly 81 B:
+55 B of new setup minus the redundant 3-B guard_reset is a net 52-B replacement.
+The boss-entry guard compare already zeroed its fold; no combat disk reads
+intervene. The 383-B install and boss-entry reads do not grow.
+
+The 175-tick timeline uses the first timing option proposed while work
+continued: ticks 0–79 contain the secondary-explosion build-up, 80–159 the
+flight, then 15 ticks of finish. Wings shift one character every two ticks;
+crown rises one row every six ticks, both exactly half the old flight speed.
+Secondary bursts are bounded, vary their location and phase, apply only to
+material, and continue during flight. Final flash is 156–159; vanish at 160; handoff at 175. Existing
+one-row-early crown clipping is unchanged and still awaits smoke acceptance.
+
+The engine is 1948 useful B / 2048 disk B, 1636 B below its 3584-B cap.
+Bootstrap stays 157 useful / 512 disk B. Total 20 sectors, three more than
+e97244c; 12 remain in its 32-sector reservation. Campaign has 562 total
+unplaced sectors; conservative M3/M3-H/M4 plus twelve capped levels still fit.
+Wing buffer remains 512 B; private E limit remains 576 B (301-B span used,
+high-water $4D2D). Reserved window/start/Director/lance/page-4 space is untouched.
+
+All 80 native read trials pass with 1600 accepted sector checksums and no
+retry/timeout/error. NMI block peak is 382 clocks; DLI instruction counts
+109 / 94 / 57, including shared code but excluding hardware/ROM dispatch.
+Death peaks R1/Citadel/Spine/Bastion are 29101 / 29000 / 29101 / 29101 DMA-on;
+minimum fence 3507 against 500. Pre-fence max 21330 against 24300. Read/strobe
+interval is 79 host frames; actual read calls 76.396–76.481. Fight bytes are
+unchanged; no stress rerun. Six focused checks and all five build gates pass.
+[Full tables, proof and launches](../diagnostics/boss-death-breakup-2026-10-22/README.md).
+
+**NEXT TASK: owner smoke. No §BQ acceptance, merge or push before OK.**

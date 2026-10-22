@@ -119,11 +119,11 @@ test("wings shift exactly one cell into a separate buffer, leaving visible sourc
   }
 });
 
-test("crown LMS follows original rows and colours; all 74 ticks finish with no ship/HUD writes", () => {
+test("crown LMS follows original rows and colours; all 175 ticks finish with no ship/HUD writes", () => {
   for(const region of [1,2,3,4]) {
     const {m,ship,hud}=deathFixture(region);
     const writes=[];
-    for(let t=1;t<=74;t++) {
+    for(let t=1;t<=175;t++) {
       call(m,D("_death_tick"));
       if(m[D("_death_shift")]) call(m,D("death_copy"));
       call(m,D("death_layout"));
@@ -135,7 +135,7 @@ test("crown LMS follows original rows and colours; all 74 ticks finish with no s
     assert(!writes.some(a=>a>=0xB8FB && a<0xB900));
     assert(!writes.some(a=>a>=0x400 && a<0x500));
     assert(!writes.some(a=>a>=0xB900 && a<0xBC00));
-    m[D("_death_up")]=1; call(m,D("death_layout"));
+    m[D("_death_vanish")]=0; m[D("_death_up")]=1; call(m,D("death_layout"));
     assert.equal(m[0x4C41] | m[0x4C42]<<8, band(0)+m[0x4D0F]);
     m[D("_death_up")]=2; call(m,D("death_layout"));
     assert.equal(m[0x4C41] | m[0x4C42]<<8, band(1)+m[0x4D0F]);

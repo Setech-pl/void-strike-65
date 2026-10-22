@@ -494,7 +494,7 @@ function collectRows(build) {
     add(0x1000, 0x1000 + d.codeBytes - 1, "slot", "boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage", "boss death", "manifest `boss.death`, cfg/boss-death.cfg");
     add(0x1e00, 0x1fff, "slot", "boss breakup: second wing buffer, published after the fence; reuses dead boss claim", "boss death", "cfg/boss-death.cfg");
     add(0x4c00, 0x4e3f, "slot", "boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved", "boss death", "src/hybrid/boss-death.s");
-    add(0x5200, 0x53ff, "slot", "boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the HULL BREACH card is visible", "boss death", "cfg/boss-death-boot.cfg");
+    add(0x5200, 0x53ff, "slot", "boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the A-only DLI retains boss, player and HUD", "boss death", "cfg/boss-death-boot.cfg");
   }
   add(m.boss.scratch.address, m.boss.scratch.address + m.boss.scratch.capacityBytes - 1, "slot", "boss scratch page: the column map, the ring, slot A's state; set by the install", "overlay", "manifest `boss.scratch`");
   add(m.boss.slotD.address, m.boss.slotD.address + m.boss.slotD.capacityBytes - 1, "slot", `boss slot D: the lasers and the boss's shots in the band, run \`boss-slot-d\` (${m.boss.slotD.sectors} sectors)`, "overlay", "manifest `boss.slotD`");
@@ -624,7 +624,7 @@ function reservationTails(build, rows, reservations) {
 export const DECLARED_CFG_OVERLAPS = Object.freeze([
   ...["BOSS_SLOT_C_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_D_RAM", "BOSS_BANNER_RAM"].map(area => ({
     areas: ["CODE", area], name: "post-defeat engine over dead boss storage",
-    reason: "boss-death.cfg CODE is read only after combat stops and the DLI-free HULL BREACH card is installed; fight and banner code are no longer called" })),
+    reason: "boss-death.cfg CODE is read only after combat stops and the safe A-only DLI is detached from overwritten C/D; fight and banner code are no longer called" })),
   { areas: ["BUFFER", "BOSS_SLOT_D_RAM"], name: "post-defeat wing buffer",
     reason: "boss-death.cfg BUFFER replaces dead laser state after defeat; the death engine publishes from the second character buffer after the fence" },
   ...["BOSS_SLOT_E_RAM", "CAPITAL_HULL_MAPS_RAM"].map(area => ({

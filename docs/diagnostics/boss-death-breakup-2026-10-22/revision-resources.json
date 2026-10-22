@@ -1,0 +1,70 @@
+{
+  "scope": "e97244c -> revised candidate; phase reuse, no new permanent allocation",
+  "before": {
+    "aCardBytes": 47,
+    "cTakeoverBytes": 81,
+    "engineCode": 1607,
+    "engineDisk": 1664,
+    "bootstrapCode": 157,
+    "bootstrapDisk": 512,
+    "deathSectors": 17,
+    "privateScratchSpan": 297,
+    "scratchCapacity": 576,
+    "wingBuffer": 512
+  },
+  "after": {
+    "aUsefulCode": 46,
+    "aSlotBytes": 47,
+    "cTakeoverBytes": 81,
+    "cReplacementNewInstructions": 55,
+    "redundantGuardResetRemoved": 3,
+    "cReplacementNet": 52,
+    "engineCode": 1948,
+    "engineDisk": 2048,
+    "engineCodeCapacity": 3584,
+    "engineCodeFree": 1636,
+    "bootstrapCode": 157,
+    "bootstrapDisk": 512,
+    "deathSectors": 20,
+    "privateScratchSpan": 301,
+    "privateScratchHighWater": "$4D2D",
+    "scratchCapacity": 576,
+    "scratchAboveHighWater": 275,
+    "wingBuffer": 512
+  },
+  "permanentDelta": {
+    "resident": 0,
+    "window": 0,
+    "startBlock": 0,
+    "DIRECTOR_RAM": 0,
+    "DIRECTOR_C_LOW": 0,
+    "lanceRun": 0,
+    "page4": 0
+  },
+  "unchanged": {
+    "install": {
+      "address": 30736,
+      "bytes": 383,
+      "capacityBytes": 384,
+      "freeBytes": 1,
+      "sectors": 3
+    },
+    "slotA": {
+      "address": 28136,
+      "bytes": 2038,
+      "capacityBytes": 2048,
+      "freeBytes": 10,
+      "sectors": 16
+    },
+    "slotC": {
+      "address": 4096,
+      "bytes": 2044,
+      "codeBytes": 1821,
+      "capacityBytes": 2048,
+      "freeBytes": 4,
+      "sectors": 15
+    },
+    "initialContent": 13569,
+    "remainingSafeResidency": 1852
+  }
+}

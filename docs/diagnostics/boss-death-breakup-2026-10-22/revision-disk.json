@@ -1,0 +1,25 @@
+{
+  "before": {
+    "total": 1040,
+    "used": 475,
+    "free": 565,
+    "deathUsed": 17,
+    "deathReserved": 32,
+    "deathFree": 15
+  },
+  "after": {
+    "total": 1040,
+    "used": 478,
+    "free": 562,
+    "deathUsed": 20,
+    "deathReserved": 32,
+    "deathFree": 12
+  },
+  "onePointZeroConservative": {
+    "M3": 3,
+    "M3H": 1,
+    "M4": 2,
+    "twelveLevelsAdditionalAt16Cap": 179,
+    "remaining": 377
+  }
+}

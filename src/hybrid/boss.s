@@ -246,25 +246,41 @@ boss_vector_image_end:
 ; reader's own sector loop at sector numbers the build baked into boss_runs;
 ; then the install.
 boss_head:
-    ; The production banner reads all runs and jumps to boss_head_check.
-    ; Reclaim the obsolete 68-byte pre-banner head for death-card constants;
-    ; preserve boss_read_run and all fight addresses exactly.
+    ; The banner bypasses this obsolete entry. Keep all fight addresses fixed.
     jmp boss_wrong_disk
-boss_death_text:
-    .byte 'H'-$20,'U'-$20,'L'-$20,'L'-$20,0,'B'-$20,'R'-$20,'E'-$20,'A'-$20,'C'-$20,'H'-$20
-boss_death_card:
-    .repeat 14
-        .byte $70
-    .endrepeat
-    .byte $42, <(SCREEN+40), >(SCREEN+40)
-    .repeat 13
-        .byte $70
-    .endrepeat
-    .byte $42, <SCREEN, >SCREEN
-    ; Like the gameplay list, the HUD ends at ANTIC's last line: JMP is
-    ; fetched next frame at line 8, followed by the seven-line header.
-    .byte $01, <(PLAYFIELD_DLIST_A-1), >(PLAYFIELD_DLIST_A-1)
-boss_death_card_end:
+; Only the former card's 47 surviving bytes. Reuse the existing A-only
+; boss palette/ring paths after disconnecting their C/D publish and motion
+; dependencies. The serial WSYNC can defer HUD entry to line 240: its fast
+; entry writes black first; the prepared blank line also covers a glyph
+; fetch that preceded the delayed font selection.
+boss_death_dli:
+    pha
+    lda #<boss_death_hud
+    sta VDSLST
+    pla
+    jmp boss_dli
+boss_death_hud:
+    pha
+    lda #HUD_COLPF2
+    sta COLPF2
+    lda #>HUD_CHARSET
+    sta CHBASE
+    lda #<boss_dli
+    sta VDSLST
+    jmp gameplay_dli_hud
+boss_death_strobe:
+@counter:
+    lda #0
+    inc @counter+1
+    eor BOSS_T_PALETTE+3
+    sta COLPF3
+    lda #<boss_death_dli
+    sta VDSLST
+    rts
+boss_death_dli_end:
+    .assert boss_death_dli_end - boss_death_dli <= 47, error, "death strobe exceeds the card's 47 surviving bytes"
+    .assert >boss_death_hud = >boss_dli && >boss_death_dli = >boss_dli, error, "atomic DLI low-byte publication needs one page"
+    .res 47 - (* - boss_death_dli), $EA
 boss_death_spec:
     ldx #4
 :   lda boss_death_boot_spec,x
@@ -411,6 +427,8 @@ boss_dli:
     lda #GAMEPLAY_COLPF3
     sta COLPF3
     inc gameplay_dli_phase
+boss_dli_publish = @publish + 1
+boss_dli_motion = *
     lda boss_dli_pos
     cmp boss_shown_pos
     beq @same
@@ -420,10 +438,10 @@ boss_dli:
     pla
     tax
 @same:
+boss_dli_return = *
     pla
     rti
 ; feat/boss-art: boss_pal_prepare points phase 0's publish at boss_pal_frame.
-boss_dli_publish = @publish + 1
 
 ; Publish band position p = boss_dli_pos (colour clocks, 0..travel): with the
 ; LMS L cells in and HSCROL h, L*4 - h = p and h is 0..15, so the coarse LMS
@@ -564,8 +582,11 @@ boss_update:
 boss_death_read:
     ldx #$77
     jsr wait_frame_at_line
-    lda #0
-    sta NMIEN
+    ; DLIs remain enabled. At this post-HUD fence the short atomic setup
+    ; completes well before the next header DLI. Keep all fight PCs fixed.
+    .repeat 5
+        nop
+    .endrepeat
     jsr boss_death_prepare
     jsr boss_death_spec
     ldy #0                              ; reuse the dead install spec
@@ -1838,9 +1859,10 @@ boss_mbottom_y:     .res BOSS_MAX_MODULES   ; the line under each module's botto
 ; Death takeover: cold code replaces the C chain/hold; no install change.
 .segment "BOSS_DEATH_PREP"
 boss_death_prepare:
-    jsr guard_reset
+    ; The boss-entry guard_compare left the fold at zero; there are no disk
+    ; reads in combat. Its former redundant reset pays for three setup bytes.
     jsr music_stop
-    ; Released PMG objects must not remain frozen over the loading card.
+    ; Released PMG objects must not remain frozen during the read.
     ; Hide P1/P2/P3 and all missiles immediately; preserve the player's P0.
     ldx #6
     ; music_stop tail-calls silence_audio, which returns A=0.
@@ -1848,34 +1870,46 @@ boss_death_prepare:
     sta $D001,x
     dex
     bpl @hide
-    ldx #(boss_death_card_end - boss_death_card - 1)
-@list:
-    lda boss_death_card,x
-    sta PLAYFIELD_DLIST_A,x
-    dex
-    bpl @list
-    ldx #39
+    ; A serial WSYNC can defer HUD NMI into line 240, after its first glyph
+    ; fetch. Make the first line blank in BOTH fonts. This changes only
+    ; released-shot/helper glyph scanlines, not the boss, P0 or live stars.
+    ; Star glyph 1 is skipped, including its current fine-Y point phase.
+    ldx #0
+@hud_guard:
     lda #0
-@clear_card:
-    sta SCREEN+40,x
+    sta CHARSET+$100,x
+    cpx #8
+    beq :+
+    sta CHARSET,x
+:   txa
+    clc
+    adc #8
+    tax
+    bne @hud_guard
+    ; Only the intermediate row-palette DLIs need C/D. Keep the band's
+    ; last DLI, the header and the final HUD DLI exactly where they were.
+    ldx boss_band_last_operand
+    ldy #3
+@rows:
+    lda PLAYFIELD_DLIST_A,y
+    and #$7F
+    sta PLAYFIELD_DLIST_A,y
+    iny
+    iny
+    iny
     dex
-    bpl @clear_card
-    ldx #10
-@text:
-    lda boss_death_text,x
-    sta SCREEN+54,x
-    dex
-    bpl @text
-    lda #$60
-    sta PLAYFIELD_DLIST_A-1
-    lda #>HUD_CHARSET
-    sta CHBASE
-    lda #HUD_COLPF2
-    sta COLPF2
-    lda #HUD_COLPF1
-    sta COLPF1
+    bne @rows
+    lda #<boss_death_strobe
+    sta boss_dli_publish
+    lda #>boss_death_strobe
+    sta boss_dli_publish+1
+    ; Compare the motion value with itself. Both operands share a page;
+    ; the CPU is suspended in NMI, so even while C/D is being replaced the
+    ; two reads are equal and motion cannot be called. No C/D execution.
+    lda #<boss_dli_pos
+    sta boss_dli_motion+4
     ; At most seven queued draws. COPY modes still need slot F's look tail,
-    ; so finish them under the stable card BEFORE its bootstrap replaces F.
+    ; so finish them with the safe DLI BEFORE its bootstrap replaces F.
 @drain:
     lda boss_queue_head
     cmp boss_queue_tail
@@ -1884,6 +1918,9 @@ boss_death_prepare:
     jmp @drain
 @done:
     rts
+    .assert >boss_dli_pos = >boss_shown_pos, error, "motion guard requires one-page operands"
+    .assert * - boss_death_prepare <= 81, error, "death setup exceeds reclaimed card preparation"
+    .res 81 - (* - boss_death_prepare), $EA
 
 .segment "BOSS_D_CODE"
 

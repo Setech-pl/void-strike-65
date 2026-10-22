@@ -30,9 +30,10 @@ their own.
 
 <img src="media/bosses/breaker-banner.gif" width="640" alt="Nine seconds from level 1: the playfield clears, the screen goes black, the Blockade Breaker's banner appears with WARNING, its name, INCOMING and a loading bar, then the boss arrives">
 
-In the current candidate build, destroying the last weapon brings up
-`HULL BREACH` briefly. The boss's crown then flies upward and the remaining
-hull splits left and right, with sparks at the tear, before the summary.
+In the current candidate build, destroying the last weapon makes the boss
+strobe in the fight view. Secondary explosions build up, then its crown flies
+up and its wings drift apart at half the earlier speed. The destruction lasts
+about 3.5 seconds, with a final flash before the summary.
 
 - **Arrival.** When the level's last sector is clear, the screen goes black
   for a third of a second. The boss's banner follows: its picture, WARNING,

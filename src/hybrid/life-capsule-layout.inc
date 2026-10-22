@@ -10,3 +10,6 @@ LIFE_CAPSULE_FORCED = LIFE_CAPSULE_SHAPES+64
 ; Existing PICKUP_CODE tail, a byte-neutral sector-entry call replacement.
 LIFE_CAPSULE_STAR_CONTINUATION = $8B5A
 LIFE_CAPSULE_COLOUR_OPERAND = $B8E8
+; Checked at both independently linked ends of the boss-only spawn shortcut.
+LIFE_CAPSULE_ORDINARY = $B884
+LIFE_CAPSULE_SELECT_OPERAND = $984F

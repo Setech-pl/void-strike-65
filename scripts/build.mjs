@@ -2897,6 +2897,9 @@ async function build() {
       return broadsideRuntime[address - broadsideRunAddress];
     }
     if (address >= loadAddress && address < 0x4000) return linkedPayload[address - loadAddress];
+    if (address >= entityCodeRunAddress && address < entityCodeRunAddress + entityCodeRuntime.length) {
+      return entityCodeRuntime[address - entityCodeRunAddress];
+    }
     throw new Error(`M5b-S3: no resident image holds $${address.toString(16)}`);
   };
   // read_input's `lda player_y / cmp #PLAYER_Y_MIN`: its operand is the boss's
@@ -2932,6 +2935,8 @@ async function build() {
     ["read_input's player Y floor", readInputYMinOperand],
     ["read_input's stick operand (lo)", readInputStickOperand],
     ["read_input's stick operand (hi)", readInputStickOperand + 1],
+    ["pickup type selector (lo)", labels.get("weapon_pickup_select_operand")],
+    ["pickup type selector (hi)", labels.get("weapon_pickup_select_operand") + 1],
   ].map(([what, address]) => {
     if (!Number.isInteger(address)) throw new Error(`M5b-S3: main has no ${what}`);
     return { what, address, value: residentByte(address) };
@@ -3078,7 +3083,7 @@ async function build() {
     // B2 (owner decision 2026-10-06): the boss restores COLPM1 / COLPM2 to
     // the Heavy's hull colour on leaving the boss sector.
     // feat/boss-escort-flow: slot C reports weapon kills and quiet frames.
-    director: ["_heavy_hull_colour", "_director_c_boss_weapon_down", "_director_c_boss_escort_frame"],
+    director: ["_heavy_hull_colour", "_director_c_boss_weapon_down", "_director_c_boss_escort_frame", "boss_pickup_install"],
     // audit-hardening (AUD-02): the head checks its runs with the disk guard.
     kernel: ["guard_reset", "guard_compare",
       // feat/boss-banners: the boss code's run checked as the reader checks it.

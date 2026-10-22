@@ -23,7 +23,7 @@ complete that count. Instruction trace of the current shared spawn attributes
 88, zero branch 3, veneer RTS 6, main JMP 3. The ordinary rotation is unchanged.
 The 88 includes 40 RNG-call cycles: the isolated stress harness installs the
 boss without running Director sector entry and leaves sector=0 (SPACE).
-A real BOSS sector rejects earlier (C body 48, overhead 79). Keep the historical
+A real BOSS sector rejects earlier (C body 43, overhead 74). Keep the historical
 stress setup unchanged for like-for-like certification; the production fix
 must cover direct installation as well as campaign entry.
 
@@ -51,3 +51,17 @@ compare historical stage 1b, fresh main and fix. SPACE CPU max must not exceed
 No full tests, wall trace, GIF or failure reconciliation unless a problem
 requires them. Deliver campaign and four existing sector-6 debug ATRs with
 SHA-256 filenames, then stop for owner smoke. Keep the STATUS debt until OK.
+
+## Placement as built
+
+The slot-E estimate above counted BSS free space: its code is already
+511/512 loadable bytes, so the 11-B helper would require an illegal fifth
+sector. It instead uses DIRECTOR_C_LOW, **203 -> 214/245 B, 31 B free**.
+The install is **383/384 B**, summary **1,775/1,792 B**; the 5-B grade-letter
+table moves after the display lists, preserving $0B58 and consuming one
+padding byte. Initial content shrinks **13,572 -> 13,569 B** (83 B slack).
+Window end $B8FB, Director RAM 643/645, lance 757/768 and page 4 250/256
+are unchanged. The helper costs **24 cycles including its JSR**, once at
+install with DMA off. Isolated ordinary spawn: **192 -> 180 cycles in SPACE**,
+**76 cycles in a boss** (stage 1b 73); no new per-frame work. SPACE replay
+maximum remains **15,116**, safe residency margin **1,863 -> 1,852 B**.

@@ -25,10 +25,10 @@ _life_rng = DIRECTOR_RNG_ADVANCE
 life_pick:
     sta _life_forced
     jsr _life_c_pick
-    beq @ordinary
+    beq life_pick_ordinary
     sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
     rts
-@ordinary:
+life_pick_ordinary:
     lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
     sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
     inc ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
@@ -106,5 +106,7 @@ life_colour_operand = *-1
 .assert _life_forced = LIFE_CAPSULE_FORCED, lderror, "LIFE forced-state ABI moved"
 .assert * <= $B900, lderror, "LIFE tail overlaps VOID LANCE"
 .export life_capsule_start, fighter_pickup_pmg_shape
+.export life_pick_ordinary
+.assert life_pick_ordinary = LIFE_CAPSULE_ORDINARY, lderror, "LIFE ordinary rotation entry moved"
 
 .assert life_colour_operand = LIFE_CAPSULE_COLOUR_OPERAND, lderror, "LIFE colour patch operand moved"

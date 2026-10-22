@@ -994,9 +994,6 @@ summary_bonus:
 ; ---------------------------------------------------------------------------
 ; Data.
 ; ---------------------------------------------------------------------------
-summary_letters:
-        .byte 0, CH_FRONT_A + 2, CH_FRONT_A + 1, CH_FRONT_A, CH_FRONT_A + 18  ; -, C, B, A, S
-
 summary_title_records:                  ; the title, then LOADING: one list
         .byte <(SUMMARY_SCREEN + 16), >(SUMMARY_SCREEN + 16)
         .byte "LEVEL", $00
@@ -1047,8 +1044,10 @@ summary_animate:
 ; operand); the powers tables (10 B) moved past the display lists and these
 ; 4 B keep summary_display_list where the release's level-end checks find it
 ; (journal §BC: Setech Arcade's record test reads $0B58). Journal §BG's
-; indicator C restores COLPM0 too: one entry, 3 B of the 4.
-        .res 4 - 3 * (BOSS_RESTORE_COUNT - 18), $00
+; indicator C restores COLPM0 too: one entry, 3 B of the 4. The capsule
+; selector restores two more operands; move summary_letters (5 B) past the
+; lists, using the last padding byte while preserving the $0B58 contract.
+        .res 9 - 3 * (BOSS_RESTORE_COUNT - 18), $00
 summary_display_list:
         .byte $70, $70
         .byte $42, <SUMMARY_SCREEN, >SUMMARY_SCREEN
@@ -1093,6 +1092,9 @@ summary_start_display_list:
         .byte $02
         .byte $41, <summary_start_display_list, >summary_start_display_list
 summary_display_list_end:
+
+summary_letters:
+        .byte 0, CH_FRONT_A + 2, CH_FRONT_A + 1, CH_FRONT_A, CH_FRONT_A + 18  ; -, C, B, A, S
 
 summary_powers_lo:
         .byte <1, <10, <100, <1000, <10000

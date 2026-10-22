@@ -238,10 +238,10 @@ the capsule at the first fully visible position, Y=24; it then crosses every
 scanline phase through the last visible scanline Y=239 and releases its slot at
 the exclusive boundary Y=240. Thus
 PENDING cannot consume any collectible screen travel. The three-kill cadence is
-deterministic (no random drop roll); changing it requires an explicit owner
-decision.
+deterministic; the LIFE substitution below rolls the type, not this cadence.
+Changing the three-kill cadence requires an explicit owner decision.
 
-Each type is one logical slot and one fighter-sector capsule drawn as a
+Each ordinary booster type is one logical slot and one fighter-sector capsule drawn as a
 16-scanline `PLAYER3` PMG object in `COLPM3` — the **boost colour, gold
 `$1C`**, a hue no enemy wears (owner decision, 2026-09-28, the colour itself
 2026-09-29 after the hardware smoke, `plans/pickup-colour.md` §7 item 1) — not
@@ -251,8 +251,34 @@ is removed before the capital sector; a PENDING capsule is frozen and resumes
 afterwards. Picking up the same active type refreshes it. Picking up another
 type replaces it, so Rapid Fire, Spread Shot, and Shield are mutually exclusive.
 
-The capsule mask is solid (all eight colour clocks used across the silhouette)
+The ordinary booster capsule mask is solid (all eight colour clocks used across the silhouette)
 so it stays readable at native resolution.
+
+### +1 life capsule — OWNER-ACCEPTED (M6 stage 2, journal §BN)
+
+The owner accepted look A (mint `$AC` rescue cross) and placement A on
+`b2261c9`, 2026-10-22. Only SPACE spawns LIFE. Until one has appeared this
+level, with fewer than eight lives, each ordinary capsule spawn draws the
+Director RNG once: 1 in 4 substitutes LIFE without consuming the ordinary
+RAPID/SPREAD/SHIELD rotation. Set the per-level latch on appearance, reset it
+at level start, preserve it through death. Missing LIFE earns no second spawn.
+At entry to the last SPACE sector (compiler kind bit $40), inject LIFE
+immediately if eligible and not yet spawned, without a kill. Cleanly replace
+any pending or active ordinary capsule through the same shared slot.
+
+At eight lives, suppress LIFE and continue ordinary capsule logic; do not set
+the latch for a suppressed attempt. An in-flight LIFE collected at the cap is
+removed without awarding a booster. Collection otherwise adds one life,
+clamped at eight, without replacing or extending an active booster. The HUD
+order remains LIFE, HULL, BOOST, T meter | SCORE, with the life digit written
+only when the count changes. Reuse the hit-SFX path; a collisionless spark
+uses the existing whole effect pool only when empty, never erasing another
+effect or delaying the award. Player-death colours take priority over LIFE.
+
+C owns these decisions in DIRECTOR_C_LOW (95 B); ASM owns execution and
+publication. The masks and veneers occupy the appended window tail below the
+unchanged lance. See [the as-built plan §8](plans/m6-void-lance.md) and the
+generated [memory map](memory-map.md) for placement and resource accounting.
 
 ## Canonical gameplay raster
 
@@ -805,7 +831,7 @@ sector's own weapon and never an ordinary drop. Plan:
   never the core. A player shot that would meet the boss on that frame waits
   one frame.
 
-Stage 2 keeps only the +1 life capsule; the plan for boss capsules as lances
+Stage 2's +1 life capsule is owner-accepted (journal §BN; section above); the plan for boss capsules as lances
 is withdrawn (journal §BG 3).
 
 ### Interceptor — **OWNER-ACCEPTED** (roadmap 4.4)

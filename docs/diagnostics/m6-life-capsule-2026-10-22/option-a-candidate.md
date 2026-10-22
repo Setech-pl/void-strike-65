@@ -1,10 +1,11 @@
-# M6 stage 2 — option A, OWNER-SMOKE CANDIDATE
+# M6 stage 2 — option A build report (OWNER-ACCEPTED)
 
 2026-10-22. Session: Codex. Branch `codex/m6-life-capsule`.
 The owner selected rescue cross A and recovery placement A. This report
 supersedes the placement blocker in README.md; its failed attempt and patch
-remain historical evidence. Owner acceptance is pending. The stage-2 plan,
-STATUS and decision journal are deliberately left for the owner's explicit OK.
+remain historical evidence. **Owner play test PASS on `b2261c9`,
+2026-10-22: look A, placement A.** Journal §BN and plan §8 record the accepted
+checkpoint. Measurements below are from the tested candidate build.
 
 ## Implementation and placement
 
@@ -119,6 +120,6 @@ memory-map block matches this build. No loader/startup source changed.
 The forced route starts directly at sector 6, with a fresh once-per-level
 latch, so it exercises the forced capsule without waiting for earlier sectors.
 Use the normal level-1 artifact for random drops, ordinary rotation and the
-once-per-level rule. Known remaining work is the owner's play test, followed
-only on OK by §BN, as-built plan/STATUS/player-doc updates and the authorized
-merge/push. No release.
+once-per-level rule. Owner play test has passed; §BN, the as-built plan,
+STATUS and both player guides record acceptance. The owner authorized the
+merge commit and push of main. No release.

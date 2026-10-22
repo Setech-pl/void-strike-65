@@ -32,6 +32,7 @@ what follows is not in v0.3.0.
 **After v0.3.0, in the next release**
 
 - The VOID LANCE, a heavy shot for boss fights ([below](#the-void-lance)).
+- The mint rescue-cross capsule, giving one extra life ([below](#upgrades)).
 
 **Coming with the campaign**
 
@@ -147,15 +148,23 @@ One exception: light fighters escorting a heavy stay with it.
 
 ## Upgrades
 
-Pickup capsules appear as you fly. Every capsule is **gold**, whatever it
-carries: one colour that means "upgrade", and one no enemy wears. What a capsule
+Pickup capsules appear as you fly. Ordinary weapon capsules are **gold**,
+whatever they carry: one colour that means "upgrade", and one no enemy wears. What a capsule
 carries is in its shape, not its colour.
 
-The weapon upgrade is permanent. Each capsule raises your weapon one level, up
+The weapon upgrade is permanent. Each weapon capsule raises your weapon one level, up
 to five. You can see the level in the shape of your shots and hear it in the
 firing sound.
 
 Dying costs one level. Not all of them.
+
+A **mint rescue cross** gives one extra life, up to **eight**, without changing
+an active booster. It appears only in open space: each ordinary capsule spawn
+has a one-in-four chance of becoming LIFE until one has appeared that level.
+If none has appeared, one arrives at the start of the last space sector.
+There is at most one per level, even if you miss it or die. At eight lives,
+LIFE is suppressed and ordinary capsules continue. The life count changes
+immediately in the bottom HUD when you collect it.
 
 ## The boss
 

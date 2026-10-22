@@ -3606,6 +3606,87 @@ z każdym wariantem, bez wpisów odstępstw w rejestrze. Regresje szuka się
 
 ---
 
+## BN. M6 ETAP 2 — KAPSUŁA +1 ŻYCIE, WYGLĄD A, ROZMIESZCZENIE A (2026-10-22)
+
+Session: Codex.
+
+**OWNER-ACCEPTED.** Właściciel potwierdził test gry: „OK. Owner play test
+passed: life capsule look A, placement A.” Zaakceptowany kod: `b2261c9`
+na `codex/m6-life-capsule`; ATR poziomu 1: `3f8f8e229a3189342136754fcf4cc311d68d5970bed8c729b7796ec4e1e1db10`.
+
+1. **Wygląd A — krzyż ratunkowy.** Miętowy `$AC`, własna maska 8 × 16
+   w PLAYER3. Zwykłe kapsuły zachowują złoto `$1C`; kolor śmierci gracza ma
+   pierwszeństwo. Bez nowego slotu kapsuły, PMG ani efektu.
+2. **Reguły.** W sektorach SPACE losowanie 1 na 4 przy każdym zwykłym
+   pojawieniu się kapsuły, najwyżej raz na poziom. Flaga ustawia się przy
+   pojawieniu, nie zebraniu; zgubiona kapsuła nie daje drugiej próby, śmierć
+   jej nie zeruje. Jeśli nie pojawiła się wcześniej, kapsuła powstaje od
+   razu na początku ostatniego sektora SPACE, bez wymagania zestrzelenia.
+   Wspólny slot zastępuje ewentualną zwykłą kapsułę. Przy 8 życiach LIFE
+   jest pomijane, zwykłe kapsuły działają dalej; pominięcie nie ustawia flagi.
+   Zebranie daje +1, maksymalnie 8, bez zmiany aktywnego boostera i bez
+   przesuwania zwykłej rotacji RAPID / SPREAD / SHIELD.
+3. **HUD i informacja zwrotna.** Kolejność LIFE, HULL, BOOST, T meter |
+   SCORE zachowana; cyfra żyć pisana tylko przy zmianie. Krótki dźwięk
+   istniejącą ścieżką SFX; efekt tylko wtedy, gdy cały istniejący wspólny
+   pool jest wolny, bez kasowania cudzego efektu i bez opóźnienia nagrody.
+4. **Rozmieszczenie — opcja A.** Nowa polityka C, **95 B**, trafia w wolny
+   DIRECTOR_C_LOW. Cztery maski zostają w dopisanym od dołu ogonie okna;
+   lanca zostaje u góry, `$B900-$BBFF`. Powód: prototyp wymagał **302 B
+   faktycznie, wobec szacunku 125-160 B**; dostępne 214 B okna nie mieściło
+   go (brak 88 B). Przeniesienie polityki C do istniejącego wolnego obszaru
+   zachowuje reguły, wybrany wygląd i granicę C/ASM. Kontynuacja publikacji
+   gwiazdy zajmuje 6 B PICKUP_CODE, bez przesuwania dotychczasowego okna;
+   clear przy inicjalizacji dodaje 3 B w low C. Przeniesienie starych masek
+   oddaje 48 B STARFIELD. Bez cięcia gry i bez poluzowania bramek.
+5. **Wynik końcowy.** Ogon LIFE **209 B**, `$B82A-$B8FA`, pozostawia **5 B**
+   do lancy. Dodatkowe 5 B względem prototypu to strażnik koloru śmierci:
+   stary zapis do immediate trafiał w operand nowego JSR; zapis przeniesiony
+   do `$B8E8`, z asercją. W prototypie poprawiono też przejście przez zerowy
+   padding (skok w tym samym miejscu ABI). Końcowe części zajmują **313 B**
+   przed odjęciem 48 B przeniesionych masek; wzrost zajętej zawartości RAM
+   **+265 B**. Low C: 203/245 B, z tego 95 B nowej polityki i 3 B clear.
+6. **Sprawdzenie zgodnie z §BM.** Build kandydata i 3 celowane przypadki
+   regresji PASS. Maksimum replaya CPU bez DMA **15 116 cykli**, +100 wobec
+   zapisanego manifestu bazowego; DMA **12 531**, DLI **369**, suma addytywna
+   **28 016 — ESTIMATE**, nie nowy pomiar PAL. Bez zmian VBI/DLI. Wszystkie
+   przebiegi dyskowe bossa identyczne bajtowo z zaakceptowanym ATR `5576e8bc`;
+   wejście 84/88/88/89 sektorów, wcześniejsze pomiary 325/340/340/344 klatki
+   przy limicie 350, bez nowego replaya bossa. Cel 31 500, twarda bramka
+   32 568, fizyczna ramka 35 568 bez zmian. Adres testu zapisu **$0B58 bez
+   zmiany**. Bez pełnych testów, wall-trace, GIF-ów i wydania. Dowody runtime
+   do regeneracji przed następnym wydaniem, jak w §BM.
+
+**Końcowy budżet do planowania M3-H** (ten sam build co w raporcie):
+
+| Resource | Used / limit | Free bytes |
+| --- | ---: | ---: |
+| Initial content, project planning STOP | **13,572 / 13,652 B** | **80** |
+| Initial content, physical transport capacity | **13,572 / 13,684 B** | **112** |
+| Window below lance | end **$B8FB / $B900** | **5** |
+| DIRECTOR_C_LOW | **203 / 245 B** | **42** |
+| DIRECTOR_RAM | **643 / 645 B** | **2** |
+| Overlay A (boss) | **2,038 / 2,048 B** | **10** |
+| Overlay B (band and tables, fixed data ranges) | **768 / 768 B** | **0** |
+| Overlay C | **2,044 / 2,048 B** | **4** |
+| Overlay D | **1,788 / 1,792 B** | **4** |
+| Overlay E | **527 / 576 B** | **49** |
+| Overlay F, regions 1 / 2 / 3 / 4 | **110 / 406 / 323 / 508 of 512 B** | **402 / 106 / 189 / 4** |
+| Overlay G (lance) | **763 / 768 B** | **5** |
+| Overlay H (page 4) | **250 / 256 B** | **6** |
+| Boss install | **380 / 384 B** | **4** |
+| Summary overlay | **1,770 / 1,792 B** | **22** |
+
+Limit fizyczny zawartości bloku początkowego to 107 × 128 B minus 12 B
+minimalnej koperty; planistyczny STOP 13 652 B zachowuje dodatkowe 32 B.
+PICKUP_CODE: **7 B wolnych**. Raport:
+[option-a-candidate.md](diagnostics/m6-life-capsule-2026-10-22/option-a-candidate.md).
+
+Właściciel zlecił finalizację dokumentacji, merge commit
+`[codex] Merge M6 stage 2: life capsule` do main i push main. **Bez wydania.**
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

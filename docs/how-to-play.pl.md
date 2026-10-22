@@ -33,6 +33,7 @@ tak, jak została zaprojektowana, więc części tego, co niżej, nie ma w v0.3.
 **Po v0.3.0, w następnym wydaniu**
 
 - VOID LANCE, ciężki strzał na walki z bossami ([niżej](#void-lance)).
+- Miętowy krzyż ratunkowy dający dodatkowe życie ([niżej](#ulepszenia)).
 
 **Przyjdzie z kampanią**
 
@@ -152,16 +153,25 @@ Jeden wyjątek: lekkie myśliwce eskortujące ciężkiego zostają razem z nim.
 
 ## Ulepszenia
 
-Kapsuły z ulepszeniami pojawiają się w trakcie lotu. Każda kapsuła jest
-**złota**, niezależnie od tego, co niesie: jeden kolor, który znaczy
+Kapsuły z ulepszeniami pojawiają się w trakcie lotu. Zwykłe kapsuły broni są
+**złote**, niezależnie od tego, co niosą: jeden kolor, który znaczy
 „ulepszenie”, i którego nie nosi żaden przeciwnik. To, co kapsuła niesie, poznasz
 po jej kształcie, nie po kolorze.
 
-Ulepszenie broni jest stałe. Każda kapsuła podnosi broń o jeden poziom,
+Ulepszenie broni jest stałe. Każda kapsuła broni podnosi broń o jeden poziom,
 maksymalnie do pięciu. Poziom widać po kształcie pocisków i słychać w dźwięku
 strzału.
 
 Śmierć kosztuje jeden poziom. Nie wszystkie.
+
+**Miętowy krzyż ratunkowy** daje dodatkowe życie, maksymalnie do **ośmiu**,
+bez zmiany aktywnego boostera. Pojawia się tylko w otwartej przestrzeni:
+każda zwykła kapsuła ma jedną szansę na cztery, że będzie LIFE, dopóki jedna
+nie pojawi się na tym poziomie. Jeśli wcześniej jej nie było, pojawia się
+na początku ostatniego sektora przestrzeni. Najwyżej jedna na poziom, nawet
+jeśli ją miniesz albo zginiesz. Przy ośmiu życiach LIFE jest pomijane, a zwykłe
+kapsuły pojawiają się dalej. Po zebraniu liczba żyć od razu zmienia się
+w dolnym HUD-zie.
 
 ## Boss
 

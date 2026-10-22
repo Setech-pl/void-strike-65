@@ -1,8 +1,9 @@
 # M6 stage 2 — placement diagnostics (2026-10-22)
 
-**Recovery A built: OWNER-SMOKE CANDIDATE.** The owner selected A; see
+**Recovery A: OWNER-ACCEPTED**, owner play test PASS on `b2261c9`,
+2026-10-22 (look A, placement A; journal §BN). See
 [the option-A build report](option-a-candidate.md). The failed attempt below
-is preserved historical evidence; the blocker is resolved, owner smoke pending.
+is preserved historical evidence; the blocker is resolved and owner smoke passed.
 
 ## Original BLOCKED_WINDOW_BYTES attempt
 

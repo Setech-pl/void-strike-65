@@ -1,0 +1,38 @@
+✔ every direct boss install keeps ordinary drops cheap, with no LIFE policy or RNG, and restores SPACE selection (185.02575ms)
+✔ LIFE colour selection preserves the publication call and player death colours (45.804ms)
+✔ the shared capsule spawn skips ABI padding and keeps the ordinary rotation (23.669208ms)
+✔ SPACE LIFE rolls remain one in four and never consume the ordinary rotation (83.741958ms)
+✔ forced LIFE, its cap suppression and later SPACE retry preserve the once-per-level rule (19.993375ms)
+✖ the committed runtime evidence binds to the artifacts in dist/ (4.700375ms)
+✔ the evidence is complete and has no UNRECORDED gate failure (1.56625ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 283.429375
+
+✖ failing tests:
+
+test at tests/runtime-evidence-binding.test.mjs:32:1
+✖ the committed runtime evidence binds to the artifacts in dist/ (4.700375ms)
+  AssertionError [ERR_ASSERTION]: docs/runtime-wall-trace.json binds void-strike-65-boot.bin to d53ee686… (27264 B) but this tree builds b68dd579… (27648 B). The runtime evidence is stale: regenerate it with npm run build:candidate && npm run runtime:wall-trace && npm run build.
+  + actual - expected
+  
+  + 'd53ee686b14ae45dd36a6f7e8b7f58822474bbfcd8ff6507380cd56ff7911a0a'
+  - 'b68dd57910927ffc76a3ea937df78c32a1f6d9c4cab9530d80f69136e869c5b5'
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-evidence-binding.test.mjs:45:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'd53ee686b14ae45dd36a6f7e8b7f58822474bbfcd8ff6507380cd56ff7911a0a',
+    expected: 'b68dd57910927ffc76a3ea937df78c32a1f6d9c4cab9530d80f69136e869c5b5',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

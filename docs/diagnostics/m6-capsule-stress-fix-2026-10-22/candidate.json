@@ -1,0 +1,54 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "baseline": "36de308",
+  "artifacts": [
+    {
+      "name": "campaign",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/campaign-3100d2fd5040.atr",
+      "sha256": "3100d2fd504025b4fa44fc64815e5e9538f4dce863ce4a8798b441c863a48fcb",
+      "buildOptions": [],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/campaign-3100d2fd5040.atr"
+    },
+    {
+      "name": "r1",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/r1-4857269c7ad0.atr",
+      "sha256": "4857269c7ad0df804ce5e4b036964ae18c742ca9140875f6439c840b19ac6640",
+      "buildOptions": [
+        "--level=1:sector=6"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/r1-4857269c7ad0.atr"
+    },
+    {
+      "name": "citadel",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/citadel-fefb460d63bc.atr",
+      "sha256": "fefb460d63bcb3c10ed65545975cf3a2a26febff9f70d23ccb77ea1ae82ca0ff",
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=2"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/citadel-fefb460d63bc.atr"
+    },
+    {
+      "name": "spine",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/spine-1c56217efa3c.atr",
+      "sha256": "1c56217efa3cb2fe876d60be76ad6a1e8168bd69ad65ef1cb567c41984e49cc4",
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=3"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/spine-1c56217efa3c.atr"
+    },
+    {
+      "name": "bastion",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/bastion-23368da576b6.atr",
+      "sha256": "23368da576b6cfa9713906b5f965bb2c10d87e9503f18d47379a0d6847516791",
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=4"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/m6-boss-stress-capsule/bastion-23368da576b6.atr"
+    }
+  ],
+  "implementation": "7a61e89",
+  "certification": "Full four-region stress certification redone after BO and this fix; see result.json. Owner smoke pending."
+}

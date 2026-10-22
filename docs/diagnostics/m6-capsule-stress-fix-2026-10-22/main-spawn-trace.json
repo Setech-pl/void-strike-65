@@ -1,0 +1,528 @@
+[
+  {
+    "sectorKind": 0,
+    "cycles": 192,
+    "cBodyCycles": 88,
+    "deltaToStage1b73": 119,
+    "trace": [
+      {
+        "pc": "9827",
+        "cycle": 0,
+        "opcode": "18"
+      },
+      {
+        "pc": "9828",
+        "cycle": 2,
+        "opcode": "69"
+      },
+      {
+        "pc": "982a",
+        "cycle": 4,
+        "opcode": "c9"
+      },
+      {
+        "pc": "982c",
+        "cycle": 6,
+        "opcode": "b0"
+      },
+      {
+        "pc": "9830",
+        "cycle": 9,
+        "opcode": "c9"
+      },
+      {
+        "pc": "9832",
+        "cycle": 11,
+        "opcode": "90"
+      },
+      {
+        "pc": "9836",
+        "cycle": 14,
+        "opcode": "8d"
+      },
+      {
+        "pc": "9839",
+        "cycle": 18,
+        "opcode": "a9"
+      },
+      {
+        "pc": "983b",
+        "cycle": 20,
+        "opcode": "ea"
+      },
+      {
+        "pc": "983c",
+        "cycle": 22,
+        "opcode": "8d"
+      },
+      {
+        "pc": "983f",
+        "cycle": 26,
+        "opcode": "a9"
+      },
+      {
+        "pc": "9841",
+        "cycle": 28,
+        "opcode": "8d"
+      },
+      {
+        "pc": "9844",
+        "cycle": 32,
+        "opcode": "20"
+      },
+      {
+        "pc": "b82b",
+        "cycle": 38,
+        "opcode": "4c"
+      },
+      {
+        "pc": "b878",
+        "cycle": 41,
+        "opcode": "8d"
+      },
+      {
+        "pc": "b87b",
+        "cycle": 45,
+        "opcode": "20"
+      },
+      {
+        "pc": "8bf4",
+        "cycle": 51,
+        "opcode": "ad"
+      },
+      {
+        "pc": "8bf7",
+        "cycle": 55,
+        "opcode": "d0"
+      },
+      {
+        "pc": "8bf9",
+        "cycle": 57,
+        "opcode": "ad"
+      },
+      {
+        "pc": "8bfc",
+        "cycle": 61,
+        "opcode": "c9"
+      },
+      {
+        "pc": "8bfe",
+        "cycle": 63,
+        "opcode": "90"
+      },
+      {
+        "pc": "8c04",
+        "cycle": 66,
+        "opcode": "ad"
+      },
+      {
+        "pc": "8c07",
+        "cycle": 70,
+        "opcode": "d0"
+      },
+      {
+        "pc": "8c09",
+        "cycle": 72,
+        "opcode": "ac"
+      },
+      {
+        "pc": "8c0c",
+        "cycle": 76,
+        "opcode": "b9"
+      },
+      {
+        "pc": "8c0f",
+        "cycle": 80,
+        "opcode": "29"
+      },
+      {
+        "pc": "8c11",
+        "cycle": 82,
+        "opcode": "f0"
+      },
+      {
+        "pc": "8c17",
+        "cycle": 85,
+        "opcode": "20"
+      },
+      {
+        "pc": "9d5e",
+        "cycle": 91,
+        "opcode": "ad"
+      },
+      {
+        "pc": "9d61",
+        "cycle": 95,
+        "opcode": "a"
+      },
+      {
+        "pc": "9d62",
+        "cycle": 97,
+        "opcode": "a"
+      },
+      {
+        "pc": "9d63",
+        "cycle": 99,
+        "opcode": "18"
+      },
+      {
+        "pc": "9d64",
+        "cycle": 101,
+        "opcode": "6d"
+      },
+      {
+        "pc": "9d67",
+        "cycle": 105,
+        "opcode": "18"
+      },
+      {
+        "pc": "9d68",
+        "cycle": 107,
+        "opcode": "69"
+      },
+      {
+        "pc": "9d6a",
+        "cycle": 109,
+        "opcode": "8d"
+      },
+      {
+        "pc": "9d6d",
+        "cycle": 113,
+        "opcode": "a2"
+      },
+      {
+        "pc": "9d6f",
+        "cycle": 115,
+        "opcode": "ad"
+      },
+      {
+        "pc": "9d72",
+        "cycle": 119,
+        "opcode": "60"
+      },
+      {
+        "pc": "8c1a",
+        "cycle": 125,
+        "opcode": "29"
+      },
+      {
+        "pc": "8c1c",
+        "cycle": 127,
+        "opcode": "f0"
+      },
+      {
+        "pc": "8c1e",
+        "cycle": 129,
+        "opcode": "a2"
+      },
+      {
+        "pc": "8c20",
+        "cycle": 131,
+        "opcode": "8a"
+      },
+      {
+        "pc": "8c21",
+        "cycle": 133,
+        "opcode": "60"
+      },
+      {
+        "pc": "b87e",
+        "cycle": 139,
+        "opcode": "f0"
+      },
+      {
+        "pc": "b884",
+        "cycle": 142,
+        "opcode": "ad"
+      },
+      {
+        "pc": "b887",
+        "cycle": 146,
+        "opcode": "8d"
+      },
+      {
+        "pc": "b88a",
+        "cycle": 150,
+        "opcode": "ee"
+      },
+      {
+        "pc": "b88d",
+        "cycle": 156,
+        "opcode": "ad"
+      },
+      {
+        "pc": "b890",
+        "cycle": 160,
+        "opcode": "c9"
+      },
+      {
+        "pc": "b892",
+        "cycle": 162,
+        "opcode": "90"
+      },
+      {
+        "pc": "b899",
+        "cycle": 165,
+        "opcode": "60"
+      },
+      {
+        "pc": "9847",
+        "cycle": 171,
+        "opcode": "4c"
+      },
+      {
+        "pc": "9859",
+        "cycle": 174,
+        "opcode": "a9"
+      },
+      {
+        "pc": "985b",
+        "cycle": 176,
+        "opcode": "8d"
+      },
+      {
+        "pc": "985e",
+        "cycle": 180,
+        "opcode": "a9"
+      },
+      {
+        "pc": "9860",
+        "cycle": 182,
+        "opcode": "8d"
+      },
+      {
+        "pc": "9863",
+        "cycle": 186,
+        "opcode": "60"
+      }
+    ]
+  },
+  {
+    "sectorKind": 2,
+    "cycles": 147,
+    "cBodyCycles": 43,
+    "deltaToStage1b73": 74,
+    "trace": [
+      {
+        "pc": "9827",
+        "cycle": 0,
+        "opcode": "18"
+      },
+      {
+        "pc": "9828",
+        "cycle": 2,
+        "opcode": "69"
+      },
+      {
+        "pc": "982a",
+        "cycle": 4,
+        "opcode": "c9"
+      },
+      {
+        "pc": "982c",
+        "cycle": 6,
+        "opcode": "b0"
+      },
+      {
+        "pc": "9830",
+        "cycle": 9,
+        "opcode": "c9"
+      },
+      {
+        "pc": "9832",
+        "cycle": 11,
+        "opcode": "90"
+      },
+      {
+        "pc": "9836",
+        "cycle": 14,
+        "opcode": "8d"
+      },
+      {
+        "pc": "9839",
+        "cycle": 18,
+        "opcode": "a9"
+      },
+      {
+        "pc": "983b",
+        "cycle": 20,
+        "opcode": "ea"
+      },
+      {
+        "pc": "983c",
+        "cycle": 22,
+        "opcode": "8d"
+      },
+      {
+        "pc": "983f",
+        "cycle": 26,
+        "opcode": "a9"
+      },
+      {
+        "pc": "9841",
+        "cycle": 28,
+        "opcode": "8d"
+      },
+      {
+        "pc": "9844",
+        "cycle": 32,
+        "opcode": "20"
+      },
+      {
+        "pc": "b82b",
+        "cycle": 38,
+        "opcode": "4c"
+      },
+      {
+        "pc": "b878",
+        "cycle": 41,
+        "opcode": "8d"
+      },
+      {
+        "pc": "b87b",
+        "cycle": 45,
+        "opcode": "20"
+      },
+      {
+        "pc": "8bf4",
+        "cycle": 51,
+        "opcode": "ad"
+      },
+      {
+        "pc": "8bf7",
+        "cycle": 55,
+        "opcode": "d0"
+      },
+      {
+        "pc": "8bf9",
+        "cycle": 57,
+        "opcode": "ad"
+      },
+      {
+        "pc": "8bfc",
+        "cycle": 61,
+        "opcode": "c9"
+      },
+      {
+        "pc": "8bfe",
+        "cycle": 63,
+        "opcode": "90"
+      },
+      {
+        "pc": "8c04",
+        "cycle": 66,
+        "opcode": "ad"
+      },
+      {
+        "pc": "8c07",
+        "cycle": 70,
+        "opcode": "d0"
+      },
+      {
+        "pc": "8c09",
+        "cycle": 72,
+        "opcode": "ac"
+      },
+      {
+        "pc": "8c0c",
+        "cycle": 76,
+        "opcode": "b9"
+      },
+      {
+        "pc": "8c0f",
+        "cycle": 80,
+        "opcode": "29"
+      },
+      {
+        "pc": "8c11",
+        "cycle": 82,
+        "opcode": "f0"
+      },
+      {
+        "pc": "8c13",
+        "cycle": 84,
+        "opcode": "a2"
+      },
+      {
+        "pc": "8c15",
+        "cycle": 86,
+        "opcode": "8a"
+      },
+      {
+        "pc": "8c16",
+        "cycle": 88,
+        "opcode": "60"
+      },
+      {
+        "pc": "b87e",
+        "cycle": 94,
+        "opcode": "f0"
+      },
+      {
+        "pc": "b884",
+        "cycle": 97,
+        "opcode": "ad"
+      },
+      {
+        "pc": "b887",
+        "cycle": 101,
+        "opcode": "8d"
+      },
+      {
+        "pc": "b88a",
+        "cycle": 105,
+        "opcode": "ee"
+      },
+      {
+        "pc": "b88d",
+        "cycle": 111,
+        "opcode": "ad"
+      },
+      {
+        "pc": "b890",
+        "cycle": 115,
+        "opcode": "c9"
+      },
+      {
+        "pc": "b892",
+        "cycle": 117,
+        "opcode": "90"
+      },
+      {
+        "pc": "b899",
+        "cycle": 120,
+        "opcode": "60"
+      },
+      {
+        "pc": "9847",
+        "cycle": 126,
+        "opcode": "4c"
+      },
+      {
+        "pc": "9859",
+        "cycle": 129,
+        "opcode": "a9"
+      },
+      {
+        "pc": "985b",
+        "cycle": 131,
+        "opcode": "8d"
+      },
+      {
+        "pc": "985e",
+        "cycle": 135,
+        "opcode": "a9"
+      },
+      {
+        "pc": "9860",
+        "cycle": 137,
+        "opcode": "8d"
+      },
+      {
+        "pc": "9863",
+        "cycle": 141,
+        "opcode": "60"
+      }
+    ]
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "baseline": "36de308",
+  "implementation": "7a61e89",
+  "before": {
+    "initialContent": 13572,
+    "planningSlack": 80,
+    "directorLow": 203,
+    "directorLowCapacity": 245,
+    "directorRam": 643,
+    "directorRamCapacity": 645,
+    "windowEnd": 47355,
+    "windowSlack": 5,
+    "lance": 757,
+    "page4": 250,
+    "bossInstall": 380,
+    "summary": 1770,
+    "spaceMaxCpu": 15116,
+    "additiveEstimate": 28016,
+    "safeResidencyMargin": 1863,
+    "entrySectors": [
+      {
+        "name": "Blockade Breaker",
+        "sectors": 84
+      },
+      {
+        "name": "Void Citadel",
+        "sectors": 88
+      },
+      {
+        "name": "Siege Spine",
+        "sectors": 88
+      },
+      {
+        "name": "Bastion",
+        "sectors": 89
+      }
+    ]
+  },
+  "after": {
+    "initialContent": 13569,
+    "planningSlack": 83,
+    "directorLow": 214,
+    "directorLowCapacity": 245,
+    "directorRam": 643,
+    "directorRamCapacity": 645,
+    "windowEnd": 47355,
+    "windowSlack": 5,
+    "lance": 757,
+    "page4": 250,
+    "bossInstall": 383,
+    "summary": 1775,
+    "spaceMaxCpu": 15116,
+    "additiveEstimate": 28016,
+    "safeResidencyMargin": 1852,
+    "entrySectors": [
+      {
+        "name": "Blockade Breaker",
+        "sectors": 84
+      },
+      {
+        "name": "Void Citadel",
+        "sectors": 88
+      },
+      {
+        "name": "Siege Spine",
+        "sectors": 88
+      },
+      {
+        "name": "Bastion",
+        "sectors": 89
+      }
+    ]
+  }
+}

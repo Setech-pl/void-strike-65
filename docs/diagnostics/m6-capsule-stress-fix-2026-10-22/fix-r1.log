@@ -1,0 +1,75 @@
+# audit columns 30/43/50: 6020 native cycles
+# audit columns 12/30/43: 6235 native cycles
+# audit columns 12/17/21/26/30: 6662 native cycles
+# region 1, 1 meeting: 5322 native cycles (f2): 1 kill [plate-f] at columns [41], p 0, destroyed [], gun-2 spawning (reachable)
+# region 1, 2 meetings: 7153 native cycles (f1): 2 kills [plate-a,emitter-l] at columns [11,21], p 0, destroyed [plate-c], gun-2 spawning (reachable)
+# region 1, 3 meetings: 7303 native cycles (f1): 3 kills [gun-2,plate-d,emitter-r] at columns [26,30,41], p 63, destroyed [plate-f], gun-2 spawning (unproven)
+# region 1, 4 meetings: 7540 native cycles (f1): 4 kills [emitter-l,gun-2,plate-d,plate-e] at columns [21,26,30,36], p 0, destroyed [plate-c], gun-2 spawning (unproven)
+# region 1, 5 meetings: 9089 native cycles (f4): 5 kills [plate-a,plate-d,plate-e,plate-g,plate-h] at columns [14,30,36,44,50], p 16, destroyed [plate-c], gun-2 spawning (unproven)
+# region 1: 16870 cases; worst reachable 7153, worst 9089 (limit 8500)
+# region 1, the lance: filling 7271, install 7459, quarter 7374, draw 7496, idle 7507, charge 7558, swap 7596, fire 7585, dry 7540, waitEven 7535, waitOdd 7548, waitLock 7580, flyFirst 7479, fly 7339, kill 7316, lost 7568, blast 7389, blastEnd 7326
+# fixture, lasers warn, 1 meeting: 5845 native cycles (f1): 1 stage [emitter] at columns [21], p 0, destroyed [plate-a], gun-2 spawning (reachable)
+# fixture, lasers warn, 2 meetings: 7942 native cycles (f1): 2 kills [emitter,plate-g] at columns [21,44], p 16, destroyed [plate-a], gun-2 spawning (reachable)
+# fixture, lasers warn, 3 meetings: 8176 native cycles (f1): 3 kills [gun-5,emitter,plate-g] at columns [14,21,44], p 16, destroyed [plate-a], gun-2 spawning (unproven)
+# fixture, lasers warn, 4 meetings: 8340 native cycles (f1): 4 kills [gun-5,emitter,emitter-2,plate-g] at columns [12,21,34,44], p 0, destroyed [plate-a], gun-2 spawning (unproven)
+# fixture, lasers warn, 5 meetings: 8574 native cycles (f1): 5 kills [gun-5,emitter,gun-2,emitter-2,plate-g] at columns [12,21,26,34,44], p 0, destroyed [plate-a], gun-2 spawning (unproven)
+# fixture, lasers warn: 64374 cases; worst reachable 7942, worst 8574 (limit 8500)
+# fixture, lasers beam, 1 meeting: 4968 native cycles (f1): 1 stage [emitter] at columns [21], p 0, destroyed [plate-a], gun-2 spawning (reachable)
+# fixture, lasers beam, 2 meetings: 6987 native cycles (f1): 2 kills [plate-a,plate-g] at columns [11,44], p 0, destroyed [plate-b], gun-2 spawning (reachable)
+# fixture, lasers beam, 3 meetings: 7198 native cycles (f1): 3 kills [gun-5,emitter,plate-g] at columns [14,21,44], p 16, destroyed [plate-a], gun-2 spawning (unproven)
+# fixture, lasers beam, 4 meetings: 7468 native cycles (f2): 4 kills [plate-a,emitter,plate-f,plate-g] at columns [13,21,41,44], p 16, destroyed [], gun-2 spawning (unproven)
+# fixture, lasers beam, 5 meetings: 7769 native cycles (f2): 5 kills [emitter-3,plate-a,emitter,plate-f,plate-g] at columns [9,11,21,41,44], p 0, destroyed [], gun-2 spawning (unproven)
+# fixture, lasers beam: 64374 cases; worst reachable 6987, worst 7769 (limit 8500)
+# region 1: 7704 kill cases with a spawn of 16870 cases
+# fixture, lasers warn: 30339 kill cases with a spawn of 64374 cases
+# fixture, lasers beam: 30337 kill cases with a spawn of 64374 cases
+# the finale fixture (region 1, finaleCooldown 12): 1475 kill cases with a spawn of 3376 cases
+# fixture with the finale, lasers warn: 2076 kill cases with a spawn of 4616 cases
+# fixture with the finale, lasers beam: 2076 kill cases with a spawn of 4616 cases
+# region 1: 0 frames with a kill and a spawn over 8435 kill cases with a gun due
+# fixture, lasers warn: 0 frames with a kill and a spawn over 32187 kill cases with a gun due
+# fixture, lasers beam: 0 frames with a kill and a spawn over 32187 kill cases with a gun due
+# the finale fixture (region 1, finaleCooldown 12): 0 frames with a kill and a spawn over 1688 kill cases with a gun due
+# fixture with the finale, lasers warn: 0 frames with a kill and a spawn over 2308 kill cases with a gun due
+# fixture with the finale, lasers beam: 0 frames with a kill and a spawn over 2308 kill cases with a gun due
+# the finale fixture (region 1, finaleCooldown 12), 1 meeting: 5074 native cycles (f1): 1 stage [emitter-l] at columns [21], p 0, destroyed [plate-a,plate-b,plate-c,plate-d,plate-e,plate-f,plate-g], gun-2 spawning (reachable)
+# the finale fixture (region 1, finaleCooldown 12), 2 meetings: 6818 native cycles (f1): 2 kills [emitter-l,emitter-r] at columns [21,41], p 32, destroyed [plate-a,plate-b,plate-c,plate-d,plate-e,plate-f,plate-g,plate-h], gun-2 spawning (its volley's third shot) (reachable)
+# the finale fixture (region 1, finaleCooldown 12), 3 meetings: 7032 native cycles (f1): 3 kills [emitter-l,emitter-r,plate-g] at columns [21,41,44], p 32, destroyed [plate-a,plate-b,plate-c,plate-d,plate-e,plate-f,plate-h], gun-2 spawning (unproven)
+# the finale fixture (region 1, finaleCooldown 12), 4 meetings: 7280 native cycles (f1): 4 kills [emitter-l,gun-2,emitter-r,plate-g] at columns [21,26,41,44], p 32, destroyed [plate-a,plate-b,plate-c,plate-d,plate-e,plate-f,plate-h], gun-2 spawning (unproven)
+# the finale fixture (region 1, finaleCooldown 12), 5 meetings: 7528 native cycles (f1): 5 kills [emitter-l,gun-2,gun-1,emitter-r,plate-g] at columns [21,26,31,41,44], p 32, destroyed [plate-a,plate-b,plate-c,plate-d,plate-e,plate-f,plate-h], gun-2 spawning (unproven)
+# the finale fixture (region 1, finaleCooldown 12): 3376 cases; worst reachable 6818, worst 7528 (limit 8500)
+# fixture with the finale, lasers warn, 1 meeting: 5630 native cycles (f1): 1 stage [gun-2] at columns [26], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-2 spawning (its volley's third shot) (reachable)
+# fixture with the finale, lasers warn, 2 meetings: 7678 native cycles (f1): 2 kills [emitter,emitter-2] at columns [21,34], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-2 spawning (its volley's third shot) (reachable)
+# fixture with the finale, lasers warn, 3 meetings: 7635 native cycles (f1): 3 kills [emitter,emitter-2,emitter-4] at columns [21,34,53], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-2 spawning (its volley's third shot) (unproven)
+# fixture with the finale, lasers warn, 4 meetings: 7869 native cycles (f1): 4 kills [emitter,gun-2,emitter-2,emitter-4] at columns [21,26,34,53], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-4 spawning (its volley's third shot) (unproven)
+# fixture with the finale, lasers warn, 5 meetings: 8103 native cycles (f1): 5 kills [emitter,gun-2,gun-1,emitter-2,emitter-4] at columns [21,26,31,34,53], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-4 spawning (its volley's third shot) (unproven)
+# fixture with the finale, lasers warn: 4616 cases; worst reachable 7678, worst 8103 (limit 8500)
+# fixture with the finale, lasers beam, 1 meeting: 5249 native cycles (f1): 1 stage [gun-2] at columns [26], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-2 spawning (its volley's third shot) (reachable)
+# fixture with the finale, lasers beam, 2 meetings: 6982 native cycles (f1): 2 kills [emitter,emitter-2] at columns [21,34], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-2 spawning (its volley's third shot) (reachable)
+# fixture with the finale, lasers beam, 3 meetings: 7135 native cycles (f1): 3 kills [emitter,emitter-2,emitter-4] at columns [21,34,53], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-2 spawning (its volley's third shot) (unproven)
+# fixture with the finale, lasers beam, 4 meetings: 7397 native cycles (f1): 4 kills [emitter,gun-2,emitter-2,emitter-4] at columns [21,26,34,53], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-4 spawning (its volley's third shot) (unproven)
+# fixture with the finale, lasers beam, 5 meetings: 7659 native cycles (f1): 5 kills [emitter,gun-2,gun-1,emitter-2,emitter-4] at columns [21,26,31,34,53], p 32, destroyed [plate-a,plate-b,plate-f,plate-g,plate-h], gun-4 spawning (its volley's third shot) (unproven)
+# fixture with the finale, lasers beam: 4616 cases; worst reachable 6982, worst 7659 (limit 8500)
+# the finale fixture (region 1, finaleCooldown 12): 118 kill cases with a burst step's spawn; 220 cases whose worst run is a burst step
+# fixture with the finale, lasers warn: 217 kill cases with a burst step's spawn; 435 cases whose worst run is a burst step
+# fixture with the finale, lasers beam: 217 kill cases with a burst step's spawn; 435 cases whose worst run is a burst step
+✔ AUD-04: the audit's three cases on region 1 - distinct modules killed in one frame, the boss limit (54.876ms)
+✔ AUD-04: region 1 - every distinct-module kill and stage-change combination stays under the boss limit (4187.877875ms)
+✔ M6: region 1 with the VOID LANCE - every state of the lance stays under the boss limit (99251.090583ms)
+✔ AUD-04: the tier-4 fixture with four lasers - every combination stays under the boss limit (89057.921833ms)
+✔ S5-1 (Q4): every layout's sweep reaches kill frames with a weapon's firing due, and its worst case includes the spawn (16449.346666ms)
+✔ S5-1 (B): no stress frame has both a module kill and a gun's spawn (12.552083ms)
+✔ S5-2: the finale's layouts - every combination, volleys' burst steps composed, stays under the boss limit (1.9265ms)
+✔ S5-2: the burst step reaches the worst frames - kill cases with a volley's later shot, and each finale layout's worst reachable case spawns (1.212833ms)
+✔ AUD-04 cap: a SPREAD volley meeting three distinct modules lands over two frames, each hit counted once (1.225417ms)
+✔ AUD-04 cap: three kills in one volley - score and kills counted once each, over two frames (1.729625ms)
+✔ AUD-04 cap: a kept shot whose target died meanwhile meets what its column then holds, as a fresh shot would (0.569958ms)
+✔ AUD-04 cap: a beam that covers a kept shot's column while it waits absorbs it (Q6) (1.042083ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 209227.68

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-22 (M6 stage 1c — lance fire-only-with-lock — **OWNER-ACCEPTED**, owner smoke PASS on `aeaf440`, merged into main; journal §BO)
+Last update: 2026-10-22 (capsule boss-stress recovery — **OWNER-SMOKE CANDIDATE** on `codex/boss-stress-capsule`; accepted main baseline remains §BO)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,6 +20,51 @@ the values below.
 
 ## Checkpoint
 
+
+### Capsule boss-stress recovery — OWNER-SMOKE CANDIDATE
+
+Implementation `7a61e89`, branch `codex/boss-stress-capsule`, from clean main
+`36de308`. No gameplay-policy change: the once-only boss install points the
+shared pickup spawn's tail JMP at the existing ordinary rotation, bypassing
+LIFE selection; START GAME restores both operands. C retains all LIFE policy.
+No new state or per-frame/per-spawn phase check. Plan committed before code:
+[capsule stress recovery](plans/m6-capsule-stress-fix.md).
+
+**Full four-region boss stress certification redone after §BO and the capsule
+fix**, candidate only; all reachable states pass, rule-(B) clashes zero.
+Native 6502 cycles; each cell shows maximum (lost-target arrival):
+
+| Case | Stage 1b | main `36de308` | candidate | Margin to 8,500 |
+| --- | ---: | ---: | ---: | ---: |
+| R1 L1 | 7,592 (7,565) | 7,712 (7,684) | 7,596 (7,568) | 904 |
+| Citadel L4 | 8,109 (8,109) | 8,228 (8,228) | 8,112 (8,112) | 388 |
+| Citadel L5 | 8,444 (8,444) | 8,563 (8,563) | 8,447 (8,447) | 53 |
+| Spine L7 | 8,190 (8,186) | 8,191 (8,186) | 8,191 (8,186) | 309 |
+| Spine L9 | 8,445 (8,440) | 8,446 (8,440) | 8,446 (8,440) | 54 |
+| Bastion L10 | 8,477 (8,473) | 8,478 (8,473) | 8,478 (8,473) | 22 |
+
+SPACE maximum CPU **15,116 -> 15,116** (DMA off); ordinary SPACE spawn
+**192 -> 180**, boss spawn **76 cycles**, stage 1b +3. Install adds 24 cycles
+once with DMA off. DIRECTOR_C_LOW **203 -> 214/245 B**, **31 B free**;
+window end **$B8FB**, all **5 B reserved**; initial content **13,572 ->
+13,569 B**, **83 B planning slack**; DIRECTOR_RAM **643/645 B** unchanged.
+Lance **757/768 B**, page 4 **250/256 B** unchanged. Boss install **383/384 B**
+(1 B free); summary **1,775/1,792 B** (17 B free), display list still **$0B58**.
+Safe residency margin **1,863 -> 1,852 B**; no reservation changes.
+
+Candidate build passes; 23 focused capsule/restore/map/R1 stress checks pass.
+Four short native ATR entry checks: **325/340/340/344 host frames**, maximum
+DMA-on **28,116**, minimum fence margin **12,363**, zero misses, extra VBI
+boundaries or DLI errors. These entry checks do not regenerate release evidence;
+the pre-existing stale runtime-evidence binding remains deferred under §BM.
+No full npm test, broad trace suite or ledger changes.
+
+Campaign ATR SHA-256
+`3100d2fd504025b4fa44fc64815e5e9538f4dce863ce4a8798b441c863a48fcb`.
+[Measurements, instruction attribution and smoke checks](diagnostics/m6-capsule-stress-fix-2026-10-22/README.md);
+[campaign and four boss ATRs, hashes and commands](diagnostics/m6-capsule-stress-fix-2026-10-22/candidate.json).
+**The accepted-baseline KNOWN DEBT below stays open until owner smoke OK.**
+NEXT TASK: owner plays this candidate; stop. No merge or push yet.
 
 ### M6 stage 1c — lance fire-only-with-lock (§BO), merged
 

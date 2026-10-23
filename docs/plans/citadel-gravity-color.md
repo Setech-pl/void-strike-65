@@ -146,3 +146,96 @@ Only the specified normal build, affected boss stresses/entries and (if shared
 capsule code changes) requested SPACE stresses are authorized measurements.
 After a candidate, await OK before §BT, STATUS issue removal, commit, authorized
 no-ff merge, one normal main build and push of both refs.
+
+
+## Owner approval — state-change palette, 2026-10-23, Session: Codex
+
+Approved palette: Rapid `$1C` (gold), Spread `$2C` (orange), Shield `$0E`
+(white), LIFE `$AC` (unchanged). The data-only restriction is relaxed for an
+indexed palette load ONLY when creating a capsule, never per frame or ordinary
+enemy spawn. Prefer the capsule-spawn overlay. If residency is unavoidable,
+up to 12 B is allowed, excluding the window below the lance and DIRECTOR_RAM.
+More than 12 B or touching either excluded area is a STOP. The accepted M3
+coupling, state-change white restore, unchanged breakup/HUD/lance code and all
+remaining timing/build/measurement requirements continue to apply.
+
+## Implementation layout check — STOP at resident budget
+
+**BLOCKED_RESIDENT_COLOUR_BUDGET.** The straightforward implementation needs
+**22 B of resident code/data before the white-restore and initialization hooks**,
+against the authorized 12 B. This is an instruction-size accounting for the
+concrete implementation below, not a claim that every possible redesign has
+that lower bound. No production patch was applied beyond this gate.
+
+The common state-change site is `integration_pickup_reveal_body` in resident
+ENTITY_CODE, called by SPACE admission, boss module rewards and forced LIFE.
+Putting the selection exclusively in the Citadel overlay would leave SPACE
+capsules gold. The existing selection/publication routine is in the forbidden
+LIFE window, and cannot be edited under the current instruction. Its shared
+call from `publish_fighter_projectile_overlays` overwrites COLPM3 each frame.
+An event-only colour write therefore also requires bypassing that ordinary
+publication, while preserving its player-death publication. Directly patching
+the explosion routine's gold immediate would modify the excluded breakup path.
+
+Concrete out-of-window implementation (not integrated):
+
+```asm
+; Insert at capsule activation. 9 bytes, 12 cycles (table kept within a page).
+    ldx ENTITY_TYPE+WEAPON_PICKUP_SLOT
+    lda capsule_colours,x
+    sta COLPM3
+; Resident table: 4 bytes; ordinary capsules and forced LIFE share activation.
+capsule_colours:
+    .byte $1C,$2C,$0E,$AC
+
+; Retarget the existing 3-byte JSR at OPEN publication to this wrapper.
+; 9 bytes. Ordinary frames preserve the event-written register (12 cycles
+; including RTS, excluding the caller's unchanged JSR); death delegates to
+; the existing routine, so breakup source and the LIFE window stay untouched.
+capsule_colour_publication:
+    ldx FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
+    bne @death
+    rts
+@death:
+    jmp LIFE_CAPSULE_COLOUR
+```
+
+```markdown
+| Part | Resident bytes used | CPU instruction cost |
+| --- | ---: | --- |
+| Activation indexed selection/store | 9 | +12 cycles per capsule activation |
+| Four-kind palette | 4 | Included in indexed load |
+| Preserve state-change colour, delegate death | 9 | 12 cycles on ordinary publication, excluding JSR; replaces old publication cost |
+| Subtotal before restore/init | 22 | Not yet a measured stress result |
+| Authorized budget | 12 | — |
+| Shortfall at this gate | 10 | Restore/init still to be integrated |
+```
+
+The capsule activation code is resident because SPACE runs without a boss
+overlay. ENTITY_CODE contains an 18-byte unreachable pad after
+`weapon_pickup_select_operand`; it cannot fit the 22-byte design alone, and
+using existing padding still uses more than the explicitly authorized 12 B.
+No padding, reserve, window or DIRECTOR_RAM byte has been consumed.
+
+The state-change return-to-white store itself is `LDA #$0E; STA COLPM3`:
+5 B / 6 cycles, before any dispatch overhead. It must also cover collection
+through `weapon_pickup_release_active_mask`, departure through
+`weapon_pickup_release`, Citadel entry, and the post-death lifetime. These
+hooks have not been installed or claimed to fit. In particular the wrapper
+above delegates death correctly but still requires colour initialization on
+return to a living ship; that is not a completed design.
+
+Options, not implemented:
+
+```markdown
+| Option | Effect | Resource / timing consequence |
+| --- | --- | --- |
+| Allow byte-neutral edits inside life_colour, preserving the reserved 5 B | Reuse the existing death-priority publisher; cache the chosen colour at activation, retain M3 coupling | Avoids the separate 9 B wrapper; palette/cache/restore still need a bounded layout and stress check; no reserved-window growth proposed |
+| Increase the outside-window resident allowance | Keep window and breakup source untouched | Reviewed selection/publication needs 22 B (10 above limit) BEFORE restore/init; complete total and lifecycle solution still require costing; no timing guarantee yet |
+| Drop distinct booster colours and authorize a Citadel-only fix | Ordinary capsules keep existing gold; well white without capsule, gold with capsule | No four-kind table or SPACE selection change; overlay restore/publication design still needs costing under the original gates |
+```
+
+No normal build, stress or entry measurement was run because the resident
+budget STOP precedes integration. No candidate ATR or owner acceptance is
+claimed. The existing known issue remains in STATUS. Next task: owner selects
+whether to relax one of these constraints; do not treat this report as consent.

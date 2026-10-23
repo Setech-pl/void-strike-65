@@ -105,9 +105,11 @@ on top of the probe. Added-clock estimates scale the measured component and
 are not combined-frame guarantees. No forbidden RAM, larger wing buffer or
 boss-install growth is proposed. STOP for owner selection before more work.
 
-## Reproduce / evidence
+## Historical reproduction / evidence
 
-`node scripts/probe-boss-death-wobble.mjs` builds only the diagnostic Spine
+The archived [probe source](probe-boss-death-wobble.mjs.txt) was removed from
+active scripts after the owner rejected per-piece wobble. Historically,
+`node scripts/probe-boss-death-wobble.mjs` built only the diagnostic Spine
 variant, restores production source and the previous debug build in `finally`,
 and retains `build/boss-death-motion-probe/`. It requires the current candidate
 build and normal toolchain; it does not alter dist. Then:
@@ -119,8 +121,8 @@ node scripts/measure-boss-death.mjs --restore
 ```
 
 [Raw native output](spine-probe.jsonl), [pair fixture and exclusions](probe.json),
-[build result](build.txt). The probe source is generated under build by the
-tracked script. Generated ATR/media are not a smoke handoff.
+[build result](build.txt). The full probe generator is retained here as a text snapshot; its old
+relative imports require the original scripts/ location to reproduce. Generated ATR/media are not a smoke handoff.
 
 The existing hash-suffixed Bastion smoke file was written by gameplay in sector
 599 (record persistence); it is intentionally not overwritten here. Its pristine

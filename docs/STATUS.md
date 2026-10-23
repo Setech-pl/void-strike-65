@@ -7486,15 +7486,13 @@ The separate `b2261c9` boss stress regression was fixed in main merge
 Boss death breakup B at `77c3104`: owner smoke accepted the safe-DLI read
 strobe/continuity, 175-frame duration and slower drift (2026-10-23). Full §BQ
 acceptance and merge remain pending independent random motion.
-The first requested Spine pixel-wobble preflight is **BLOCKED_CPU for that
-kernel**: pre-fence 31143 / 24300, DMA-on window 64669 / 31500, fence 0 / 500.
-No remaining boss measurements or production motion integration after STOP.
-Game code and campaign ATR are unchanged from 77c3104: zero new resident/window
-bytes, install 383 B, 562 free disk sectors, 12 in the breakup reservation.
-Fight/read paths unchanged; stress and repeated SIO were not rerun.
-[Preflight proof and estimated recovery choices](diagnostics/boss-death-motion-2026-10-23/README.md).
-**NEXT TASK:** owner selects scheduled two-pixel wobble, wings-only wobble,
-or horizontal randomisation only. Do not merge/push; §BQ remains pending.
+Owner rejected per-piece vertical wobble as too costly (03fe9ee) and selected
+independent horizontal speeds plus boss-playfield shake with the HUD fixed.
+The rejected probe is archived under diagnostics; no active trial code remains.
+Game code and campaign ATR are byte-identical to 77c3104: engine 1948 B,
+breakup 20 sectors, 562 total free sectors. Full §BQ acceptance is pending.
+**NEXT TASK:** assess VSCROL/DLI alignment, then implement the owner-selected
+revision if safe. No merge or push before the revised owner smoke.
 Runtime evidence regeneration and the default full verification remain
 required before release (§BM).
 

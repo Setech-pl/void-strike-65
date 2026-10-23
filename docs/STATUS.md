@@ -7483,20 +7483,18 @@ owner-authorized merge and push of main and `codex/m6-lance-lock`.
 
 The separate `b2261c9` boss stress regression was fixed in main merge
 `686d3f5` (§BP); it no longer blocks the window levers or release.
-Boss death breakup B revision is an **OWNER-SMOKE CANDIDATE** on
-`codex/boss-death-breakup` (2026-10-23), replacing rejected `e97244c`.
-Approach 2: A-only DLI strobe over the held fight image, NMIEN=$80 and VBI off;
-no HULL BREACH card. Then 175 frames (3.5 s), half-speed crown/wings,
-secondary explosions and final flash. Zero new resident/window allocation;
-install remains 383 B; entry 325/340/340/344 frames. All 80 repeated reads
-(20/boss, 1600 sectors) have no errors, retries or timeouts. Death DMA-on peak
-29101, minimum fence 3507. Strobe/read pause 79 host frames. Campaign disk:
-562 total unplaced sectors; 12 unused in the breakup's own reservation.
-Fight code is unchanged; stress was not repeated. Six focused death checks
-and candidate build gates pass. [Plan](plans/boss-death-breakup.md),
-[evidence and ATRs](diagnostics/boss-death-breakup-2026-10-22/README.md).
-**NEXT TASK:** owner smoke: continuous kill/strobe/slow breakup, clean HUD/ship,
-normal summary. STOP for explicit OK; §BQ acceptance, merge and push pending.
+Boss death breakup B at `77c3104`: owner smoke accepted the safe-DLI read
+strobe/continuity, 175-frame duration and slower drift (2026-10-23). Full §BQ
+acceptance and merge remain pending independent random motion.
+The first requested Spine pixel-wobble preflight is **BLOCKED_CPU for that
+kernel**: pre-fence 31143 / 24300, DMA-on window 64669 / 31500, fence 0 / 500.
+No remaining boss measurements or production motion integration after STOP.
+Game code and campaign ATR are unchanged from 77c3104: zero new resident/window
+bytes, install 383 B, 562 free disk sectors, 12 in the breakup reservation.
+Fight/read paths unchanged; stress and repeated SIO were not rerun.
+[Preflight proof and estimated recovery choices](diagnostics/boss-death-motion-2026-10-23/README.md).
+**NEXT TASK:** owner selects scheduled two-pixel wobble, wings-only wobble,
+or horizontal randomisation only. Do not merge/push; §BQ remains pending.
 Runtime evidence regeneration and the default full verification remain
 required before release (§BM).
 

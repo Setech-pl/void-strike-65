@@ -308,3 +308,22 @@ unchanged; no stress rerun. Six focused checks and all five build gates pass.
 [Full tables, proof and launches](../diagnostics/boss-death-breakup-2026-10-22/README.md).
 
 **NEXT TASK: owner smoke. No §BQ acceptance, merge or push before OK.**
+
+
+## Revision 3 — independent motion preflight STOP (2026-10-23)
+
+Owner smoke on 77c3104 accepted the read strobe/continuity, 3.5-second duration
+and slower drift. Merge remains blocked pending independent random motion.
+Before integrating policy, the first native Spine pixel-splice kernel probe
+failed: pre-fence 31143 / 24300, DMA-on window 64669 / 31500, fence 0 / 500.
+It adds 34 glyph-pair updates at maximum +3-pixel offset, overlapping the
+existing horizontal copy tick. This component probe is not a completed motion
+renderer or proof that every cheaper implementation is impossible.
+
+Production game code, ATRs and 562 free sectors remain 77c3104. No new smoke
+candidate; no other bosses measured after the explicit STOP threshold.
+Seeded entity RNG is available; no POKEY randomness or new resident allocation
+is needed. Options: schedule all three pieces' two-pixel wobble steps on
+copy-free ticks; wobble wings only; or horizontal randomisation alone.
+[Numbers, limits, raw proof and estimated options](../diagnostics/boss-death-motion-2026-10-23/README.md).
+**NEXT TASK: owner selects a recovery option; do not merge or push.**

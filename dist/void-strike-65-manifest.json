@@ -144,7 +144,7 @@
     }
   },
   "lightForcePopulation": false,
-  "buildVariant": "candidate",
+  "buildVariant": "release",
   "loadAddress": 8192,
   "startAddress": 8222,
   "bootInitAddress": 8634,
@@ -24488,7 +24488,14 @@
     "quitConfirmationDefault": "NO"
   },
   "runtimeEvidence": {
-    "status": "candidate-awaiting-trace",
+    "status": "normal-awaiting-trace",
+    "phase": "normal",
+    "evidenceCommit": "b3b8e466",
+    "staleFiles": [
+      "void-strike-65-boot.bin",
+      "void-strike-65.atr"
+    ],
+    "warning": "WARNING: Runtime wall-trace evidence pending: stale binding for void-strike-65-boot.bin, void-strike-65.atr (evidence commit b3b8e466); release build will fail.",
     "artifacts": {
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",

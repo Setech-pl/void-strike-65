@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-23 (Citadel gold gravity well owner-accepted, §BT)
+Last update: 2026-10-23 (planning direction §BU; runtime checkpoint §BT)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,30 @@ the values below.
 ---
 
 ## Checkpoint
+
+### Planning direction — §BU, documentation review pending
+
+Owner planning decisions are recorded in
+[§BU](owner-decisions-2026-09-11.md#bu-planning-direction-after-the-memorycycles-audit-2026-10-23),
+triaging the unchanged [memory/cycles audit](audits/2026-10-23-memory-cycles.md)
+of main `6dae5a6` (static, trace **0 min**). No gameplay is implemented here.
+
+Order: **L1 → nacelle spike (GIFs + trace) → L2 → M3-H → M3 → M4 (12 levels,
+4×3) → rest of M6 (dock, weapon roles, demo) → systems freeze → M7 (asteroid
+sector from data, boss scalar variants, 12 levels) → M8 → M9**.
+L1 is the menu-data overlay and complete 1 155-B Light move into MAIN holes;
+L2 is the 1 792-B fighter/capital module at $1900–$1FFF, loaded at level start,
+overwritten by boss install and reloaded by M4. The 5 B at $B8FB remain reserved.
+Capital Lights are optional M7 work after a one-Light proof, outside the base
+plan. Citadel's region-2 versus final-R4 placement stays open before M4.
+
+NEXT TASK: owner review of this documentation branch; then L1 per §BU.8.
+No implementation task starts in this session.
+
+Documentation-branch verification: normal build **PASS**, computed gates pass;
+expected stale wall-trace binding warning, release evidence pending (§BR).
+Campaign ATR matches the §BT SHA-256 below. **CPU / RAM / residency delta: 0**;
+no tests, traces, release build or hardware smoke run in this session.
 
 ### Citadel gravity colour — OWNER-ACCEPTED
 
@@ -40,8 +64,7 @@ gold while the ship is lance-ready green, and unchanged pull/collision and
 capsules. Gold reads as a small sun. Distinct capsule colours remain backlogged
 below. Campaign ATR SHA-256:
 `05b9e5b7a96115b8eed303b8df38b5090c76bb6b25e11500b53af1ec49ab48a7`.
-NEXT TASK: await owner direction after the authorized closure; no next roadmap
-item is started.
+NEXT TASK: documentation review, then L1 per §BU.8 above.
 
 
 
@@ -147,21 +170,11 @@ pre-release runtime-evidence regeneration remains due under §BM.
 
 ### Repository HEAD
 
-`wip/4.5d-gate-fail` (branched from `experiment/hybrid-c-director` at
-`2a8ff26`; adds the 4.5d Enemy Identity Freeze WIP `7b50bd6`, the PAL timing
-audit tooling, the death-frame deferral and its respawn double-image fix, and
-Option D — the Heavy body-copy skip, now the accepted runtime checkpoint;
-sections below).
-`experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor,
-its 4.4b visual identity (X/quad art since `3838c00`),
-the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
-increment (superseded by the M3 arena), the 4.5b `BOMBER` weapon class, the
-4.5M-M1 starfield staging swap and the 4.5M-M2 cold-record relocation (both
-owner smoke PASS 2026-09-17), the 4.5M-M3 `HYBRID_C_ARENA`, the
-emitter-independent hostile shots fix and the roadmap 4.5c Bomber (sections
-below) on top of `f4cb18b`, the documentation-only reconciliation of
-the owner acceptance recorded here. All of it runs in the accepted runtime
-below and all of it is owner-accepted under that checkpoint.
+Documentation branch `codex/planning-direction-bu`, based on accepted main
+`530de22` (also `origin/main` at preflight). The report-only audit branch is
+merged unchanged; §BU records the owner's planning direction. The accepted
+gameplay and campaign ATR remain the §BT checkpoint above. Verify local HEAD
+with Git; the older checkpoints below retain their historical measurements.
 
 **The roadmap 4.6 step-2 data-driven Director is `OWNER-ACCEPTED`** (owner
 smoke PASS **2026-09-29**, on XEX `3c0aaea1…` / ATR `0d0d9ba9…`; section
@@ -204,7 +217,11 @@ torpedo (candidates with free bytes: plan `boss-polish` §10.4).
 
 **Licensing (2026-10-01):** code and engineering docs MIT ([LICENSE](../LICENSE)); game content and the ATR as a whole CC BY-NC-SA 4.0 ([LICENSE-ASSETS](../LICENSE-ASSETS)); the names and logos are reserved; tools, AI-generated and unknown-origin images in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md); `package.json` `(MIT AND CC-BY-NC-SA-4.0)`.
 
+**Current budget direction:** the [2026-10-23 audit](audits/2026-10-23-memory-cycles.md) §A5/§A6 and owner §BU supersede the cumulative forecast below.
+
 **Resource budget to 1.0 (2026-10-01, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/budget-1.0.md](plans/budget-1.0.md) — the inventory, what M2–M9 each spend, the first shortfall (the `$AE00` window at M5, the boss), the priced levers and the owner decisions with their latest milestone.
+
+**Current next steps:** follow §BU.8 above; the 2026-10-02 order below is historical and superseded.
 
 **Road to 1.0 — order synced (2026-10-02, `docs/plan-realizacji-sync`, docs only, `OWNER REVIEW CANDIDATE`):** [plan-realizacji.md](plan-realizacji.md) §0 records the owner's order of 2026-10-02 — showcase (next task, not yet done, includes recapturing the screenshots from the ATR) → Heavy break-up rotate gate (built) → M5 boss → M4 campaign loop → M3 + M3-H → M6 → M7 → M8 → M9; M5 before M4 supersedes the order in [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) §6.3.
 
@@ -575,12 +592,16 @@ against overlap. The failed prototype's **302 B actual versus 125-160 B
 estimate** prompted the owner placement decision; final net runtime content
 is **+265 B**. Death-colour priority adds 5 B, leaving **5 B** below the lance.
 
+Six stale resource rows reconciled to the current values in the
+[2026-10-23 audit §A3](audits/2026-10-23-memory-cycles.md#a3-status-reconciliation);
+other rows retain their checkpoint context.
+
 | Resource | Used / limit | Free bytes |
 | --- | ---: | ---: |
-| Initial content, project planning STOP | **13,572 / 13,652 B** | **80** |
-| Initial content, physical transport capacity | **13,572 / 13,684 B** | **112** |
+| Initial content, project planning STOP | **13,569 / 13,652 B** | **83** |
+| Initial content, physical transport capacity | **13,569 / 13,684 B** | **115** |
 | Window below lance | end **$B8FB / $B900** | **5** |
-| DIRECTOR_C_LOW | **203 / 245 B** | **42** |
+| DIRECTOR_C_LOW | **214 / 245 B** | **31** |
 | DIRECTOR_RAM | **643 / 645 B** | **2** |
 | Overlay A (boss) | **2,038 / 2,048 B** | **10** |
 | Overlay B (band and tables, fixed data ranges) | **768 / 768 B** | **0** |
@@ -588,10 +609,10 @@ is **+265 B**. Death-colour priority adds 5 B, leaving **5 B** below the lance.
 | Overlay D | **1,788 / 1,792 B** | **4** |
 | Overlay E | **527 / 576 B** | **49** |
 | Overlay F, regions 1 / 2 / 3 / 4 | **110 / 406 / 323 / 508 of 512 B** | **402 / 106 / 189 / 4** |
-| Overlay G (lance) | **763 / 768 B** | **5** |
+| Overlay G (lance) | **757 / 768 B** | **11** |
 | Overlay H (page 4) | **250 / 256 B** | **6** |
-| Boss install | **380 / 384 B** | **4** |
-| Summary overlay | **1,770 / 1,792 B** | **22** |
+| Boss install | **383 / 384 B** | **1** |
+| Summary overlay | **1,775 / 1,792 B** | **17** |
 
 PICKUP_CODE: **7 B** free. The initial-block physical content limit is
 13,684 B; the 13,652-B planning STOP keeps a further 32 B. Both are unchanged.
@@ -6226,6 +6247,13 @@ section's "what to look for" in the implementation report.
 ---
 
 ## Known open defects and open decisions
+
+- **KNOWN DEBT — hull-style/steel region mapping (§BU.7):** hull style/steel
+  use quarters of LEVEL_MAX_ID=16 (1–4 / 5–8 / 9–12 / 13–16), while boss
+  regions, summary art and escort validation use three-level groups. With 12
+  levels hull style 4 is absent and hull/boss regions disagree. Fix in **M4**:
+  one levels-per-region constant drives boss region, enemy hull style, summary
+  art region and steel; **3 for 1.0**, LEVEL_MAX_ID stays **16**.
 
 - **KNOWN DEBT — stale end-of-fight validator, unchanged (§BT):** the
   combined pull test in `tests/boss-region-4.test.mjs` fails at its obsolete

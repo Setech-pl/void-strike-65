@@ -1,5 +1,9 @@
 # Plan — budget-1.0: the resource budget from today's `main` to release 1.0
 
+**Note, 2026-10-23.** This plan's cumulative table is superseded by the
+[memory/cycles audit](../audits/2026-10-23-memory-cycles.md) §A5/§A6 and the
+owner's [§BU planning direction](../owner-decisions-2026-09-11.md#bu-planning-direction-after-the-memorycycles-audit-2026-10-23).
+
 **PLANNING session, 2026-10-01. `OWNER REVIEW CANDIDATE`.** Branch
 `docs/budget-1.0` from `main` `cf99af3`. **Nothing here is implemented; this
 document is the deliverable.** No source, cfg, build script, harness, evidence,

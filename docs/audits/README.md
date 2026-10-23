@@ -28,6 +28,7 @@ there.
 | --- | --- | --- |
 | [2026-10-06-pre-m5.md](2026-10-06-pre-m5.md) | `main` `1a3c8bf` | Codex (OpenAI) |
 | [2026-10-19-m5.md](2026-10-19-m5.md) | `main` `2e93173` | Codex (OpenAI) |
+| [2026-10-23-memory-cycles.md](2026-10-23-memory-cycles.md) — memory/RAM placement, CPU/DMA frame families, capital sector, 16-level feasibility; static, trace 0 min; triaged by owner in [§BU](../owner-decisions-2026-09-11.md#bu-planning-direction-after-the-memorycycles-audit-2026-10-23) | `main` `6dae5a6` | Codex |
 
 ## Thematic audits
 

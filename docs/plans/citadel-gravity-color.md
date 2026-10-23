@@ -3,7 +3,7 @@
 2026-10-23. Session: Codex. Branch: `codex/citadel-gravity-color`.
 Baseline: main/origin/main `6dae5a6`. Decision §BS committed first in `4413a91`.
 
-## Result
+## Initial feasibility result (superseded by the owner below)
 
 **BLOCKED_P3_CAPSULE_COEXISTENCE.** The owner's explicit STOP applies: the
 well and a capsule can coexist in a frame. No production changes, build,
@@ -97,3 +97,52 @@ already exists only in the Citadel fight, and ordinary capsules occur there.
 No alternative above is approved or implemented. The next task is the owner's
 choice of which constraint, if any, to relax. The requested stress and entry
 measurements remain applicable only after an authorized implementation.
+
+
+## Owner follow-up decision — 2026-10-23, Session: Codex
+
+The owner accepts M0 -> M3 and the well sharing a falling ordinary booster's
+colour through COLPM3. Without a visible capsule the well must be its original
+white `$0E`, independently of the ship's green lance-ready signal. Collection
+or departure must restore white. Prefer an overlay state-change implementation;
+a minimal capsule restore hook is authorized if unavoidable, limited to about
+10 cycles in any frame. Breakup, HUD and lance code remain out of scope.
+
+Capsule kinds must have distinct colours, including white; LIFE stays green.
+The requested colour changes are data-only. The code inventory is:
+
+```markdown
+| Kind | Type | Current colour | Source |
+| --- | ---: | --- | --- |
+| Rapid | 0 | Gold $1C | PICKUP_BOOST_COLOUR, life_colour default |
+| Spread | 1 | Gold $1C | Same shared immediate |
+| Shield | 2 | Gold $1C | Same shared immediate |
+| LIFE | 3 | Green $AC | life_colour LIFE branch |
+| Other | — | No other capsule kind | entity-effects.mjs type definitions |
+```
+
+All ordinary types are tied in colour; there is no ordinary type closer to
+green than another. The suggested choice is Shield white `$0E`, Rapid gold
+`$1C`, Spread orange `$2C`, LIFE unchanged `$AC`, pending the owner's response.
+There is no per-kind colour table to edit. Distinct ordinary colours require
+changing the colour-selection code, beyond a data-only edit or restore hook.
+The owner has been asked whether to authorize that minimal selection change
+under the existing resource/timing gates, or retain the common booster gold.
+No dependent production edit has been made while this question is pending.
+
+The repeated publication must also be accounted for: `life_colour` is called
+from the shared post-playfield path each frame. Moreover,
+`render_shared_fighter_explosions` restores its default immediate every living
+frame (`src/main.s:4833`). Patching that immediate once at Citadel entry or on
+collection would therefore not persist. The explosion routine is not to be
+changed. Any implementation must route around this overwrite without modifying
+breakup/lance/HUD code or adding resident bytes/per-spawn SPACE work.
+
+Updated STOP gates: no added resident bytes; no boot-block/window/DIRECTOR_RAM
+change; Citadel <=8500 and no boss regression >5 cycles; no additional work in
+the shared SPACE spawn path; restore hook <=approximately 10 cycles per frame.
+Accepted capsule/well coexistence supersedes the initial coexistence STOP.
+Only the specified normal build, affected boss stresses/entries and (if shared
+capsule code changes) requested SPACE stresses are authorized measurements.
+After a candidate, await OK before §BT, STATUS issue removal, commit, authorized
+no-ff merge, one normal main build and push of both refs.

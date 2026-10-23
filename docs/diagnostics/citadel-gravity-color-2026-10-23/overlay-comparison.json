@@ -1,0 +1,161 @@
+{
+  "identical": [
+    {
+      "file": "boss-region-1-band-a.bin",
+      "bytes": 384,
+      "sha256": "d3d5c1756ba71ee6ec7a5a4c89b94a90ba20bb70cde2b4b4be82376a070f4c9c",
+      "identical": true
+    },
+    {
+      "file": "boss-region-1-band-b.bin",
+      "bytes": 384,
+      "sha256": "6e3cc55f49045e68e63da11184b169dd85d921743ccaa333b38e0b6f6f66fc06",
+      "identical": true
+    },
+    {
+      "file": "boss-region-1-banner.bin",
+      "bytes": 1152,
+      "sha256": "fab4a51d74c8763d9ce48013c89315a9560b61c8387d05b4636ffb3a55e91d0b",
+      "identical": true
+    },
+    {
+      "file": "boss-region-1-block.bin",
+      "bytes": 128,
+      "sha256": "0015ece28d9c9fc444fcd56537f819e5eb05c92cc221d431f91d92edd8bb7852",
+      "identical": true
+    },
+    {
+      "file": "boss-region-1-charset.bin",
+      "bytes": 768,
+      "sha256": "b156b27c0d08439d72db3f9de0bda21b51201f702cf379f265f45088379284dd",
+      "identical": true
+    },
+    {
+      "file": "boss-region-1-staging.bin",
+      "bytes": 512,
+      "sha256": "84acb639eab5a856a27176542046f7f76af358198c65049f891266e4bf2f36b3",
+      "identical": true
+    },
+    {
+      "file": "boss-region-1-theme.bin",
+      "bytes": 256,
+      "sha256": "2e3e2049db85938b06ccb66c4dec9a9e69bf6547fba141fc17018a6750952462",
+      "identical": true
+    },
+    {
+      "file": "boss-region-3-band-a.bin",
+      "bytes": 384,
+      "sha256": "ce9da830fde7b6701df2e17f633624d4734f41fbc79d5cfb2d1900a5ccce0f8d",
+      "identical": true
+    },
+    {
+      "file": "boss-region-3-band-b.bin",
+      "bytes": 384,
+      "sha256": "7a84f52900652292c652351005349d6bea11fe0d00dea76420b0f6b5f3e07d86",
+      "identical": true
+    },
+    {
+      "file": "boss-region-3-banner.bin",
+      "bytes": 1280,
+      "sha256": "69aa7641cb3773ad1e7126d6d3f0ba7d4d2fe7f38d1b05fb121122f2ff8885b4",
+      "identical": true
+    },
+    {
+      "file": "boss-region-3-block.bin",
+      "bytes": 384,
+      "sha256": "9a969c1f22ad430106f480f3efacaafbbd2769dc831bbe72e029e76925158e42",
+      "identical": true
+    },
+    {
+      "file": "boss-region-3-charset.bin",
+      "bytes": 896,
+      "sha256": "8fbd7f0df413b288fd3c93afd9a41677ea223b0f6d4f9563c2dfb58cf06d1c66",
+      "identical": true
+    },
+    {
+      "file": "boss-region-3-theme.bin",
+      "bytes": 256,
+      "sha256": "072af24b309f84fe01a77ebb8f1b3c174b99e1ad7052a38f97bc79d646a2e06a",
+      "identical": true
+    },
+    {
+      "file": "boss-region-4-band-a.bin",
+      "bytes": 384,
+      "sha256": "92951ccf8bf531e23010ed489900ee69648e9c7ad67bcd2af3d508acffee26a4",
+      "identical": true
+    },
+    {
+      "file": "boss-region-4-band-b.bin",
+      "bytes": 384,
+      "sha256": "7bb332c205786299b92262fd906c7be4d25bca77703192df60c0c79919c8a5cf",
+      "identical": true
+    },
+    {
+      "file": "boss-region-4-banner.bin",
+      "bytes": 1280,
+      "sha256": "7a25993d8c38e09b175e9634295bf07ad6f74adb486bcb8804274a8179a2e2bf",
+      "identical": true
+    },
+    {
+      "file": "boss-region-4-block.bin",
+      "bytes": 512,
+      "sha256": "38e945bcd5570eefcd8143d5282759102ee9c90009420b820faef9da5275c181",
+      "identical": true
+    },
+    {
+      "file": "boss-region-4-charset.bin",
+      "bytes": 896,
+      "sha256": "8f0b3042d8d569b59cd1e35439f55c1e5f0caf624c1a0d0dd90279935c981021",
+      "identical": true
+    },
+    {
+      "file": "boss-region-4-theme.bin",
+      "bytes": 256,
+      "sha256": "aaa2a37075abecb84a3b5aa076a95223c5b73294bf1e23f66d8a6cc29ac8c1da",
+      "identical": true
+    },
+    {
+      "file": "overlay-boss-install.bin",
+      "bytes": 384,
+      "sha256": "a9a8c6f51e3577eedfd0ed8873705359252317194674ea1c042725e58f91724a",
+      "identical": true
+    },
+    {
+      "file": "overlay-boss-slot-c.bin",
+      "bytes": 1920,
+      "sha256": "1404b136ba1ba3ebd32cddb8b89bbda141bda15eb17975a61cc373b7ddd75401",
+      "identical": true
+    },
+    {
+      "file": "overlay-boss-slot-d.bin",
+      "bytes": 1792,
+      "sha256": "8f0bd84b0ff9ded40578950c226a89fedb2758f7c6b5696da95006ccc35ddbf3",
+      "identical": true
+    },
+    {
+      "file": "overlay-boss-slot-e.bin",
+      "bytes": 512,
+      "sha256": "6fc6f92cf1ad0c4cac18790778b89c5faf46c8b486bd5da4be55baea6a86aa58",
+      "identical": true
+    },
+    {
+      "file": "overlay-boss-lance.bin",
+      "bytes": 768,
+      "sha256": "ceee87f059d5a2c7afe22d8d8826221cc9a3728a7e3459ac7b9736c5fb62fca5",
+      "identical": true
+    },
+    {
+      "file": "overlay-boss-lance-page.bin",
+      "bytes": 256,
+      "sha256": "fb5a16776fda23b71f652551a8297a371f417cd2d615214e55500b1053de6172",
+      "identical": true
+    }
+  ],
+  "sharedHeadChanges": {
+    "offsets": [
+      2031,
+      2035
+    ],
+    "reason": "Only Citadel entry of boss_head_sums_lo/hi; all instructions identical"
+  }
+}

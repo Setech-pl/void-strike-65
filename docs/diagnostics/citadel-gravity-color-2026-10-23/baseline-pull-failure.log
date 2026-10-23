@@ -1,0 +1,29 @@
+✖ the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive (114.963ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 201.986125
+
+✖ failing tests:
+
+test at tests/boss-region-4.test.mjs:212:1
+✖ the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive (114.963ms)
+  AssertionError [ERR_ASSERTION]: routine $b49f did not return
+      at call (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-harness.mjs:249:10)
+      at frame (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-4.test.mjs:202:3)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-4.test.mjs:236:35)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 4000000,
+    expected: 4000000,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

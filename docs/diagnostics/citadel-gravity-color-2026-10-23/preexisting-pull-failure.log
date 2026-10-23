@@ -1,0 +1,38 @@
+# difficulty 0: warning 40 frames, worst escape 8, 32 left
+# difficulty 1: warning 32 frames, worst escape 8, 24 left
+# difficulty 2: warning 25 frames, worst escape 8, 17 left
+✖ the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive (110.528917ms)
+✔ the second spire's fall switches the pull, the pulse and the column off on that frame, for good (2.534125ms)
+✔ the signals: the core pulses every 16 frames and the column shows exactly while the pull is on (3.640875ms)
+✔ owner answer 4: the axis is danger - the pull's rest x is inside the axis beam's hit window (6.146667ms)
+✔ the axis beam fires while the well is on, and the core's lens takes no damage while a spire stands (6.485792ms)
+✔ fairness: leaving the axis beam's window against the pull leaves >= 10 warning frames on every difficulty (6.551542ms)
+✔ everything on screen and in reach: the ship centred, every module shootable, the lasers and the column shown (1.704542ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 224.97175
+
+✖ failing tests:
+
+test at tests/boss-region-4.test.mjs:212:1
+✖ the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive (110.528917ms)
+  AssertionError [ERR_ASSERTION]: routine $b49f did not return
+      at call (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-harness.mjs:249:10)
+      at frame (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-4.test.mjs:202:3)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-4.test.mjs:236:35)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 4000000,
+    expected: 4000000,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

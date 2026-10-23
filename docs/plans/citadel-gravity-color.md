@@ -328,3 +328,56 @@ publication. It clears stale LIFE before the first visible column can be
 published by the following DLI. Capsule clearing at install precedes it.
 No subsequent install code can overwrite the normalized type. The first hook
 must be tested explicitly; the requested entry check covers its frame too.
+
+
+## As built — OWNER-SMOKE CANDIDATE
+
+Variant E implemented in `codex/citadel-gravity-color`, baseline `6dae5a6`.
+First Citadel UPDATE executes the 23-byte slot-F trampoline, resets stale LIFE
+to Rapid and redirects the shared E HPOS store to M3 **in RAM only**. It changes
+its own hook to gravity_frame; measured overhead is 27 cycles exactly once,
+zero recurring overhead. Wave and SIZEM masks now use bits 6–7. The well has no
+M0PF/M0PL collision-register reader to replace; pull and axis hit logic are
+unchanged, as are PRIOR, capsule, breakup, HUD and lance code.
+
+```markdown
+| Check | Result |
+| --- | --- |
+| Normal build | PASS; expected §BR stale-evidence warning |
+| Citadel L4, all 19 lance modes | 8112 maximum / lost; delta 0 |
+| Citadel L5, all 19 lance modes | 8447 maximum / lost; delta 0; margin 53 |
+| Citadel ATR entry | 340 host frames, limit 350 |
+| Short entry continuation, 119 frames | max wall 28118; no missed frames, extra VBI or DLI errors |
+| Citadel F use / free | 406 ->429 B / 106 ->83 B; still four sectors |
+| Resident / window / DIRECTOR_RAM / shared install size | delta 0 |
+| R1 / Spine / Bastion region payloads | All byte-identical; no stress run for these |
+| Shared install, C/D/E, lance and page-4 overlays | Byte-identical |
+```
+
+The shared slot-A header changes **only** Citadel's two checksum bytes at
+file offsets `$7EF`/`$7F3`; its instructions and the three other boss checksum
+entries are unchanged. Loader transport checksums consequently change too;
+no resident instruction/segment growth or other boss code/data change. It
+would be incorrect to claim the entire common slot-A file is byte-identical.
+
+Focused checks: 6 existing in-fight gravity cases PASS; new stale-LIFE,
+one-shot cost, HPOSM3/SIZEM and green-ship independence test PASS; 5 slot-F
+observer tests PASS. The older combined pull test fails only when it simulates
+the obsolete post-defeat chain (`routine $b49f did not return`, line 236);
+the baseline fails identically at that assertion. It is not a new regression.
+No death-sequence measurements or deferred validator repair was attempted.
+
+The short entry observer initially flagged the two deliberate JMP operand
+writes as foreign. Its metadata now admits only the two exact STA PCs and
+one-byte targets; the existing state range excludes the initializer. The raw
+watch was re-evaluated and passes; each write occurred once on the first
+post-entry frame. No new emulator run or full wall-trace report regeneration.
+The original log is retained rather than rewritten as a clean run.
+
+Evidence and five ATR commands/hashes:
+[diagnostic report](../diagnostics/citadel-gravity-color-2026-10-23/README.md),
+[candidate manifest](../diagnostics/citadel-gravity-color-2026-10-23/candidate.json).
+Owner smoke: campaign after collecting LIFE in the last SPACE, gold well from
+its first visible frame and while the ship is lance-ready green; unchanged
+pull/collision and capsules. §BT and removal of the KNOWN ISSUE await OK.
+Distinct capsule colours remain deferred. No merge/push before OK.

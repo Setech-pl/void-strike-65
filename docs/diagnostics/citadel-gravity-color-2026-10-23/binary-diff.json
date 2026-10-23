@@ -1,0 +1,42 @@
+[
+  {
+    "file": "boss.bin",
+    "before": 10184,
+    "after": 10207
+  },
+  {
+    "file": "boss-region-2-block.bin",
+    "before": 512,
+    "after": 512
+  },
+  {
+    "file": "void-strike-65.bin",
+    "before": 27648,
+    "after": 27648
+  },
+  {
+    "file": "chunk-manifest.bin",
+    "before": 190,
+    "after": 190
+  },
+  {
+    "file": "light-kernel.bin",
+    "before": 1155,
+    "after": 1155
+  },
+  {
+    "file": "boot-stage2.bin",
+    "before": 1332,
+    "after": 1332
+  },
+  {
+    "file": "overlay-boss-code.bin",
+    "before": 2048,
+    "after": 2048
+  },
+  {
+    "file": "initial-boot.bin",
+    "before": 13696,
+    "after": 13696
+  }
+]

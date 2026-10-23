@@ -3246,9 +3246,10 @@ laser_publish:
 .endif
 .ifdef BOSS_GRAVITY
 .segment "BOSS_E_CODE"
+; Variant E: shared disk bytes stay unchanged; only Citadel patches in RAM.
 ; S5-4 Phase A-2 (the owner's smoke of 2026-10-14): region 4's gravity column,
-; missile M0 (COLPM0, the ship's white - no laser's register), at the HPOS the
-; well set this frame (0: off screen); from laser_publish, A only. The byte is
+; missile M3 (COLPM3, capsule gold): Citadel init patches the HPOS store.
+; The well sets its HPOS each frame (0: hidden); laser_publish uses A only. It is
 ; data in slot E, read from the disk at every entry (0 in every other region).
 boss_m0_publish:
     lda boss_m0_hpos
@@ -4259,15 +4260,15 @@ field_state_end:
 ; * the pulse: every GRAVITY_PULSE_FRAMES frames the hit flash (b3) is asked
 ;   for the core - the frame's one module draw, bit 7 of the core's cells for
 ;   its 3 frames - unless a hit's flash is waiting or showing;
-; * the gravity column (owner answers 1-2 of 2026-10-14): missile M0 (COLPM0,
-;   the ship's white; no laser's register - P1 / P2 stay free for the M6 VOID
+; * the gravity column (owner answers 1-2 of 2026-10-14): missile M3 (COLPM3,
+;   the capsule gold; no laser's register - P1 / P2 stay free for the M6 VOID
 ;   LANCE reticle) from the first line under the band to the ring's last, 8
 ;   colour clocks centred on the axis, its HPOS published by the band DLI
-;   (slot E's boss_m0_publish); an S-wave of M0's left / both / right halves
+;   (slot E's boss_m0_publish); an S-wave of M3's left / both / right halves
 ;   over 16 lines, one line in eight rewritten a quiet frame (never on a kill
 ;   or exposure-check frame), the bend moving GRAVITY_WAVE_STEP lines down
 ;   every 8 frames. In the axis's warning the column flares (shown by 2-frame
-;   groups); in its beam the beam is the column (M0 off screen).
+;   groups); in its beam the beam is the column (M3 off screen).
 ; Both spires fallen: the pull, the pulse and the column stop at once.
 ; No resident byte; of the shared slots only slot D's laser_publish tail jump
 ; (+2 B) and slot E's boss_m0_publish (+8 B).
@@ -4282,7 +4283,7 @@ GRAVITY_COLUMN_TOP  = BAND_TOP_Y + GRAVITY_BAND_ROWS * 8
 
 .segment "BOSS_G_CODE"
 gravity_hooks:
-    jmp gravity_frame                   ; BOSS_F_HOOK: every frame, from laser_frame (slot D)
+    jmp gravity_init                    ; first call normalizes LIFE, then patches to gravity_frame
     jmp gravity_late                    ; BOSS_F_HOOK + 3: SECTOR_COMPLETION (slot E): the column
 
 gravity_off:
@@ -4336,7 +4337,7 @@ gravity_frame:
     and #$02
     beq @pulse
 @column:
-    lda #(GRAVITY_AXIS - 4)             ; quad M0 (8 clocks) centred on the axis
+    lda #(GRAVITY_AXIS - 4)             ; quad M3 (8 clocks) centred on the axis
     sec
     sbc boss_shown_pos
     sta boss_m0_hpos
@@ -4382,8 +4383,8 @@ gravity_frame:
 gravity_rts:
     rts
 
-; SECTOR_COMPLETION, after laser_frame set this frame's SIZEM bits: M0's
-; (quad, SIZEM bits 0-1), published by the next band DLI; then, never on a
+; SECTOR_COMPLETION, after laser_frame set this frame's SIZEM bits: M3's
+; (quad, SIZEM bits 6-7), published by the next band DLI; then, never on a
 ; kill or exposure-check frame (the draw queue's rule; the stress frame is a
 ; kill frame), one line in eight of the column rewritten - the column draws
 ; itself so in its first eight quiet frames - and on every eighth slice the
@@ -4392,7 +4393,7 @@ gravity_late:
     lda gravity_on
     beq @rts
     lda boss_laser_sizem
-    ora #$03
+    ora #$C0
     sta boss_laser_sizem
     lda boss_frame_heavy
     ora _boss_heavy
@@ -4418,7 +4419,7 @@ gravity_late:
     tax
 @line:
     lda LASER_MISSILES,y
-    and #$FC
+    and #$3F
     ora gravity_wave,x
     sta LASER_MISSILES,y
     txa
@@ -4433,9 +4434,9 @@ gravity_late:
 @rts:
     rts
 
-; M0's two bits a line (quad: each four colour clocks): left, both, right -
+; M3's two bits a line (quad: each four colour clocks): left, both, right -
 ; an S-bend over sixteen lines.
-gravity_wave:   .byte $02, $02, $02, $02, $03, $03, $01, $01, $01, $01, $01, $01, $03, $03, $02, $02
+gravity_wave:   .byte $80, $80, $80, $80, $C0, $C0, $40, $40, $40, $40, $40, $40, $C0, $C0, $80, $80
 
 ; The state - data, not BSS: the block is read from the disk at every entry,
 ; so every fight starts from these values. The trace's slot F write clause
@@ -4447,6 +4448,20 @@ gravity_timer:  .byte GRAVITY_FRAMES
 gravity_steps:  .word 0                 ; the steps taken (the trace counts them)
 gravity_slice:  .byte 0                 ; the column's next slice (one line in eight)
 gravity_phase:  .byte 0                 ; the wave's offset
+; Citadel only, first UPDATE before the first visible column. The loaded
+; hook resets itself to the ordinary jump: no flag, polling or recurring cost.
+; Keep this after existing code/state so their addresses and branch costs stay.
+gravity_init:
+    lda #$00
+    sta ENTITY_TYPE + WEAPON_PICKUP_SLOT ; stale SPACE LIFE -> ordinary gold
+    lda #<gravity_frame
+    sta gravity_hooks+1
+    lda #>gravity_frame
+    sta gravity_hooks+2
+    lda #<HPOSM3
+    sta boss_m0_publish+4                ; STA absolute low byte; disk E unchanged
+    jmp gravity_frame
+.assert >HPOSM0 = >HPOSM3, error, "gravity HPOS patch requires one register page"
 gravity_state_end:
 .endif
 

@@ -20,6 +20,23 @@ the values below.
 
 ## Checkpoint
 
+### Citadel gravity colour — OWNER-SMOKE CANDIDATE
+
+2026-10-23, branch `codex/citadel-gravity-color`, baseline `6dae5a6`.
+The well uses M3 / capsule gold COLPM3; a Citadel-only first-frame initializer
+clears remembered SPACE LIFE before the first visible column. Capsule,
+breakup, HUD and lance code are unchanged. Slot F +23 B, 83 B free; +27 cycles
+once, no recurring overhead or resident/window/DIRECTOR_RAM growth.
+Citadel stress L4/L5 **8112/8447**, unchanged; native entry **340/350 frames**.
+Normal build PASS with expected pending release evidence. Other boss regional
+payloads are byte-identical. Shared header changes only Citadel's checksum.
+[Plan](plans/citadel-gravity-color.md),
+[evidence and known pre-existing test failure](diagnostics/citadel-gravity-color-2026-10-23/README.md),
+[five candidate ATRs](diagnostics/citadel-gravity-color-2026-10-23/candidate.json).
+Owner smoke pending; retain the KNOWN ISSUE until OK. NEXT TASK: owner smoke,
+then the authorized §BT/acceptance, no-ff merge, normal main build and push.
+
+
 
 ### Normal build / release evidence policy — §BR
 

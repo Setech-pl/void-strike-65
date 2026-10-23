@@ -7538,8 +7538,20 @@ is summary -> menu -> START GAME; M4 direct progression is not implemented here.
 **KNOWN DEBT — before release:** verify the active-DLI post-fight strobe/read
 (~1.9 s on emulator) and full breakup on a real 65XE PAL with SIO2SD. Regenerate
 stale release evidence (binding / stage-2) in the full pre-release chain.
-Owner acceptance does not clear either debt. Closure authorizes a docs-only
-merge and one normal build; no evidence regeneration is part of this task.
+Owner acceptance does not clear either debt.
+
+- **Normal build red since `b2261c9` (2026-10-22):**
+  `Runtime wall trace binding mismatch for void-strike-65-boot.bin`.
+  Last valid evidence is `b3b8e466` (2026-10-21). Clean pre-breakup main
+  `686d3f5` fails the same check. Merges since then were validated with
+  `build:candidate` gates only; this is pre-existing release-evidence debt.
+- **Runtime wall-trace functional failure on main `d73f3a82`:**
+  `Director completion trace measured 16184 frames and 0/3 level-end summaries`;
+  four `core never fell` clauses, a row-switch count error and 92 DLI observer
+  deviations. All 58 timing audits PASS: DMA-on 31479/31500, minimum fence
+  1497, zero skipped frames. Under investigation; no game or validator change
+  is authorised by this debt entry. The owner explicitly accepted pushing the
+  smoked breakup with these red checks recorded (2026-10-23).
 
 **NEXT TASK:** the pre-existing Citadel gravity-well/lance colour collision
 below, as a separate task. Do not implement it as part of breakup closure.

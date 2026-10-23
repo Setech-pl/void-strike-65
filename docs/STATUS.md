@@ -8538,6 +8538,12 @@ it to size a budget, never to predict a frame. The committed baselines
 
 ## Backlog — deferred, not forgotten
 
+- **Distinct capsule colours — after the window levers** (owner 2026-10-23):
+  Rapid `$1C`, Spread `$2C`, Shield white `$0E`, LIFE `$AC` unchanged.
+  Deferred, not implemented: **~22+ B incl. publication bypass**, before the
+  remaining restore/init work. Costing: commit `a64229b`,
+  [Citadel gravity colour plan](plans/citadel-gravity-color.md).
+
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
 

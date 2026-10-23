@@ -1,0 +1,49 @@
+{
+  "scope": "Baseline 6dae5a6 game bytes; real Citadel entry, isolated per-frame colour publication; not a PAL stress measurement",
+  "rows": [
+    {
+      "typeBefore": 0,
+      "typeAfter": 0,
+      "capsuleState": 0,
+      "capitalState": 7,
+      "colpm3": [
+        28,
+        28,
+        28
+      ]
+    },
+    {
+      "typeBefore": 1,
+      "typeAfter": 1,
+      "capsuleState": 0,
+      "capitalState": 7,
+      "colpm3": [
+        28,
+        28,
+        28
+      ]
+    },
+    {
+      "typeBefore": 2,
+      "typeAfter": 2,
+      "capsuleState": 0,
+      "capitalState": 7,
+      "colpm3": [
+        28,
+        28,
+        28
+      ]
+    },
+    {
+      "typeBefore": 3,
+      "typeAfter": 3,
+      "capsuleState": 0,
+      "capitalState": 7,
+      "colpm3": [
+        172,
+        172,
+        172
+      ]
+    }
+  ]
+}

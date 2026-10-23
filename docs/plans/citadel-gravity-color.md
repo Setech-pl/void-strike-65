@@ -239,3 +239,66 @@ No normal build, stress or entry measurement was run because the resident
 budget STOP precedes integration. No candidate ATR or owner acceptance is
 claimed. The existing known issue remains in STATUS. Next task: owner selects
 whether to relax one of these constraints; do not treat this report as consent.
+
+
+## Variant E chosen — owner 2026-10-23, Session: Codex
+
+Supersedes the distinct-colour implementation approvals. Move the well M0 to
+M3 with the mechanical zero-size/zero-cycle swap only. Ordinary capsules stay
+gold `$1C`, LIFE stays `$AC`; no table, restore hook or publisher change.
+The well shares COLPM3, including accepted brief death/flash tinting. Ship
+lance-ready colour remains unchanged. Distinct colours are now in STATUS
+backlog: after the window levers, ~22+ B incl. publication bypass, with a
+pointer to `a64229b`. No new bytes anywhere or cycles to make COLPM3 gold are
+authorized; check the no-capsule publication before proceeding.
+
+### Required initial check: STOP — stale LIFE type makes COLPM3 green
+
+**BLOCKED_NO_CAPSULE_COLOUR.** Normal baseline build PASS (expected stale
+runtime-evidence warning). The existing 6502 harness ran the real Citadel
+entry at L4, then three repetitions of the existing living-frame colour
+publication. No capsule was present in any case. Results:
+
+```markdown
+| Last capsule type | State after entry | COLPM3 on each publication |
+| --- | ---: | --- |
+| Rapid (0) | 0, absent | $1C, $1C, $1C |
+| Spread (1) | 0, absent | $1C, $1C, $1C |
+| Shield (2) | 0, absent | $1C, $1C, $1C |
+| LIFE (3) | 0, absent | $AC, $AC, $AC |
+```
+
+Source reason: `life_colour` checks ENTITY_TYPE, not ENTITY_STATE.
+`weapon_pickup_release` and the collection paths clear state but preserve type.
+`boss_pickup_install` bypasses future LIFE selection only. Boss install clears
+an active capsule but leaves the last type intact; the real entry preserves
+all four input types. Thus a collected/expired LIFE in the preceding SPACE can
+leave green COLPM3 until the first ordinary boss capsule. This is not the
+accepted brief death/flash tint, and does not follow COLPM0, but fails the
+owner's required stable non-green no-capsule precondition.
+
+[Reproducible harness probe](../diagnostics/citadel-gravity-color-2026-10-23/no-capsule-colour.mjs)
+and [results](../diagnostics/citadel-gravity-color-2026-10-23/no-capsule-colour.json).
+Command: `node docs/diagnostics/citadel-gravity-color-2026-10-23/no-capsule-colour.mjs`.
+This is a focused register check, not a runtime wall trace or stress claim.
+
+Exact straightforward correction: insert `STA ENTITY_TYPE+WEAPON_PICKUP_SLOT`
+where boss install already has A=0. It costs **3 B and 4 cycles once at boss
+entry**, zero recurring cycles. It is not implemented: ANY added byte/cycle
+for gold is a STOP under variant E. The current boss install is measured
+**383/384 B** (`build/boss.map` BOSS_INSTALL size `$017F`); a simple insertion
+would make it **386/384 B**, requiring 2 B recovery as well. This count is
+instruction-exact; no recovery or changed install was built.
+
+Options requiring an owner decision:
+
+```markdown
+| Option | Effect | Cost / limitation |
+| --- | --- | --- |
+| Accept stale LIFE tint too | Well can be green after preceding SPACE LIFE, until the first ordinary boss capsule; still independent of lance | Mechanical swap only, 0 B / 0 cycles |
+| Normalize stale type at boss entry | Gold from the start, including after LIFE | Straight insertion +3 B / +4 entry cycles; install needs 2 B recovery; no per-frame work |
+```
+
+Stopped before the production swap, stress and boss-entry measurements. No new
+candidate ATR is claimed. The baseline build is not an implementation candidate.
+The KNOWN ISSUE remains in STATUS; only the requested backlog item was added.

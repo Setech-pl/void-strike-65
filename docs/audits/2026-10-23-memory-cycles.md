@@ -2,24 +2,25 @@
 | Check | What / how checked | Result | Status |
 | --- | --- | --- | --- |
 | M1 | Clone, remote, fetched baseline; pwd, git remote -v, fetch, detached checkout and status | Clean origin/main 6dae5a6f0af31869f8d9255716544bfe98b9bc75; only void-strike-audit used | PASS |
-| M2 | Report isolation; branch/status/diff | audit/memory-cycles-2026-10-23; existing report checkpoint a8fcfe9; only this report changes | PASS |
+| M2 | Report isolation; branch/status/diff | audit/memory-cycles-2026-10-23; ff0e202 retained intact; one reconciliation commit above it; only this report changes | PASS |
 | M3 | Normal build, previous turn; npm --cache=build/audit/npm-cache run build | Exit 0; computed gates pass; unchanged game sources on resumption | PASS |
 | M4 | Evidence freshness; manifest runtimeEvidence | normal-awaiting-trace; boot/ATR stale against b3b8e466; expected §BR warning, not release certification | INFO |
 | M5 | Existing emulator preparation, authorised on resumption | --prepare failed at missing build/atari800-trace/src/cpu.c, before any emulator write | FAIL |
-| M6 | Native trace budget | No native trace launched; 0 of 90 minutes used; static-estimate fallback explicitly authorised | INFO |
+| M6 | Native trace budget | No native trace launched in either audit; 0 of 90 minutes used; static-estimate fallback explicitly authorised | INFO |
 | M7 | Memory verification | Fresh build maps/labels/manifest, cfg and source equates; memory-map renderer imported read-only, output under build/audit | PASS |
 | M8 | Disk accounting | Unique sector union from manifest runs: 482 used / 1040; 558 unplaced | PASS |
 | M9 | Hull format and colour ownership | Existing compiler evaluated read-only; source paths, glyph pixels, codebooks and collision readers inspected | PASS |
 | M10 | Capital enemy limits | Compiler, Director ceiling, lifecycle and publication branches independently checked | PASS |
 | M11 | Nacelle collision | Existing SW contact confirmed; no hull-exclusive P0PF mask in current art; per-frame HITCLR conflicts with proposed read location | INFO |
 | M12 | Forecast and cost precision | Exact current capacities; explicit estimates for unimplemented work; old budget rebased, no prototype or native proof claimed | INFO |
-| M13 | Restricted actions | No game/config/script/test/asset/evidence edits; no full test/trace, release build, showcase, reconciliation, merge or push | PASS |
+| M13 | Restricted actions | No game/config/script/test/asset/evidence edits; no full test/trace, release build, showcase, failures:reconcile, merge or push | PASS |
 | M14 | Cleanup | Preparation changed no tracked files; audit scratch moved to the designated leftovers folder; generated normal-build products remain ignored | PASS |
+| M15 | Reconciliation control | ff0e202 report compared with preserved audit-review/report-this-session.md; no new build/trace; HEAD checked before editing and commit | PASS |
 ```
 
 # Void Strike 65 — memory, cycles and capital-sector audit
 
-Baseline **`6dae5a6f0af31869f8d9255716544bfe98b9bc75`**, 2026-10-23. Report only. This replaces the initial blocked report: the owner authorised emulator preparation and a static fallback. No gameplay acceptance or release certification is implied.
+Baseline **`6dae5a6f0af31869f8d9255716544bfe98b9bc75`**, 2026-10-23. Report only. This reconciles the report committed in **ff0e202** (F) with the preserved **`../void-strike-audit-leftovers/audit-review/report-this-session.md`** draft (R), keeping ff0e202 intact. Only this report is changed; no build or trace was run for reconciliation. The original audits replaced the initial blocked report: the owner authorised emulator preparation and a static fallback. No gameplay acceptance or release certification is implied.
 
 **Main findings:** the window is effectively full; the old milestone budget has lost its placement assumptions; disk capacity is adequate; capital traffic needs publication/lifecycle work; nacelles should extend the existing software collision rather than depend on a colour mask. The promising capital timing evidence is historical, not a current measurement.
 
@@ -44,6 +45,39 @@ node scripts/runtime-wall-trace.mjs --prepare \
 
 It failed in `prepareAtari800` at line 2146: missing local `src/cpu.c`. It did not reach route validation or a trace. No source download, system installation, protected-checkout access or external build was attempted. Per owner clarification, the rest of the audit proceeds. **Native trace execution: 0 minutes**, preparation failure less than one second. All new cycle projections below are E.
 
+## Disagreements and reconciliation
+
+F and R below identify the two report snapshots, not independent measurements. Source-supported observations from both are retained; an estimate is not strengthened merely because both reports repeat it. Part D is the single merged ranking. Disk estimates there include code transport; small descriptor-only prices remain visible below.
+
+```markdown
+| Subject | F value / verdict and source | R value / verdict and source | Trusted conclusion / reason |
+| --- | --- | --- | --- |
+| Boss scratch $1800–$18FF | 0 safely allocatable, A1 cfg/manifest | 250 used / 6 physical tail, A2 boss.map | Both: 6 physical bytes, 0 certified new allocation; phase/ownership proof required |
+| MAIN hole after kernel move | 58 B net, A4 labels | Table 104 B before live tables; later A6 corrects to 58 | 1259−1155−46=58; retain 31-B publisher and 15-B live tables |
+| MAIN transport | Compressed suffix 7743→6536, A4 manifest | Filled 8192-B image means deletion alone does not shrink raw transport, A1 cfg | Raw span stays fixed; compressed transport can change. F's compression qualification controls boot forecast |
+| A2/splash packing | A2 alone 14 B gross, A4 read-only packer | A2+splash 43 B gross, A5 same packer | 14 + (512−483)=43 before decoder/setup; no contradiction once scope is explicit |
+| STATUS mismatch count | Six displayed rows, A3 resource table | Five resources, six displayed rows, A4 | Six comparisons: initial content appears under two limits |
+| Capital timing model | 16000 CPU +12900 DMA/DLI=28900, B3 | 9000–16000 CPU; 18000–30000 wall reserve, B1 | Use explicit 28900 additive model and retain 30000 sensitivity. Neither bounds current native maximum; no timing PASS |
+| Capital attribution | Partitioned 16000 allowance, B3 | Overlapping ranges 3000–5000 world, 2000–5000 shots, 800–2500 broadside, 1000–3500 FX, 800–2500 other, B2 | F shares are shares of an assumption only; R ranges cannot be summed as independent maxima |
+| L2 capital-sector evidence | 29540 wall, boundary-inclusive, B1 | Same latest maximum; older fence values also cited in prior analysis | Trust final 2026-10-02 section at 2777e8f, not superseded 2026-10-01 rows; pure capital has no fighter fence |
+| Window levers / forecast | 1720 conditional B; 1632–3598 demand excluding nacelles, A5 | 1155+352+96=1603 gross; 1728–2300 code demand including nacelles, A6 | Different scopes, not alternate measurements. Preserve both ledgers; neither proves 1.0 fits. Do not add overlapping capital-table/duplicate or MAIN levers |
+| Menu/boot relocation | 600–1200 packed B E, A4 | 650–1000 packed B E, A5 | Use broader 600–1200 until packed output is measured; same move, not additive |
+| Demo hooks / overlay | 12–48 / 450–1200 B E, A5 | 40–80 / 500–1000 B E, A6 | Reserve up to 80 resident / 1200 overlay; lower figures assume integration already supplied by menu lever |
+| SW nacelles | R60–160, O180–420+128–256, disk384–896; +300–1800 CPU, D7 | R32–80, O128–280+64–192, disk64–256 descriptors; +900–2000 CPU, D7 | Use F's full strip/transport bytes and R's +900–2000 peak. R's compact extents remain an alternative, not equivalent full map/transport cost |
+| Chained FX | R16–48 / O80–200 / disk128–384; +300–1200, D4 | R24–64 / O96–224 / disk0–128 data; +500–1500, D4a | Merged R16–64 / O80–224, +300–1500; full new-run disk128–384, zero possible only within existing padding |
+| Turret station | R16–32 / O120–240 / disk128–384; +300–900, D2 | R48–112 / O144–320+16–32 state / disk32–128 data; +500–1400, D2 | Reserve upper integration/state/CPU envelope, retain two-shot cap |
+| Hit marks | R8–24 / O140–320+32–96 / disk256–512; +150–800, D5 | R32–96 / O160–360+32–96 / disk16–96 data; +300–1000, D5 | Reserve R8–96 / O140–360+32–96; +150–1000; full transport256–640 |
+| One / two Lights | R80–160 / 100–200; O240–480 / 300–600; +700–2800 / 1400–4800, D1 | R160–320 / 192–384; O160–320 / 192–384; +1500–3500 / 2500–5500, D1 | Conservative union, including kill/publication peak; no safe capital publisher exists yet |
+| One Heavy | R100–240 / O350–700; +1200–4500, D1 | R224–448 / O224–448+8–24; +2000–4500, D1c | Union R100–448 / O224–700+up to 24; reserve peak4500; PMG colour/lifecycle cost remains |
+| Row palette | R16–48 / O160–360+56–112; +2200–8500 wall, D6 | R64–160 / O224–480+32–96; +1200–3500 including stalls, D6b | Use 1200–8500 wall for 8–28 splits. F includes up to 28×114 WSYNC separately; R's upper end is not a safe 28-split allowance |
+| Shake | Increment beyond chain R16–48 / O200–500+64–128, D4 | Total with chain R48–112 / O320–640+96–192, D4b | Different scopes: total reserve R32–112 / O280–724+64–192; +800–2200 main CPU and up to 800 extra DLI/wall; DMA0–360 |
+| Reactor/lance | Ordinary target R60–160/O350–800+32–96, plus lance R40–120/O400–1000, D3 | Combined R192–448/O768–1536+32–96, D3 | Keep ordinary target separately; combined reserve R100–448/O750–1800+32–96. Lance is a distinct scope/weapon-rule change |
+| Sector stars | R80–200/O0–64; +100–600, D8 | R96–224/O0–64; +150–700, D8 | Union R80–224; +100–700; layers beyond bounded existing kernel separately priced |
+| HW full redesign | R64–160/O250–700+128–320, D7 | R96–224/O256–640 plus unpriced global art, D7 | R64–224/O250–700+128–320 is exploratory only; global exclusive-colour feasibility not established |
+| EASY passability | Suggested20 cells, compares logical8-HPOS collision width, D7 | Suggested16 cells, visible ship about 16 HPOS, D7 | Prefer generous20-cell proposal; use visible16 HPOS for clearance, not legacy8 collision width. Neither threshold is owner acceptance |
+| Trace preparation command | level-1-s0/director-complete-2 route, completion | level-1-s1/2-evasive-fire1 route, completion | Two failed preparation attempts; both stopped at missing src/cpu.c before trace. Total native time remains0 min |
+```
+
 ## A — Memory
 
 ### A1. Current usable capacities
@@ -65,7 +99,7 @@ Derived from B, not copied from the documentation map. Appendix A gives the deta
 | Lance page 4, H | $0400–$04FF | 256 | 250 | 6 | boss LANCE_PAGE |
 | Boss region charset | $0C00–$0FFF | 1024 | 744 / 864 / 864 / 800 | 280 / 160 / 160 / 224 | B campaign R1 Breaker / R2 Citadel / R3 Spine / R4 Bastion; unused codes not uniformly free |
 | Overlay C, fight | $1000–$17FF | 2048 | 2044 | 4 | boss map: code/data + BSS/alignment; disk code run 1920 B |
-| Boss scratch | $1800–$18FF | 256 | reserved scratch | 0 safely allocatable here | boss cfg/manifest; not interchangeable with C tail |
+| Boss scratch | $1800–$18FF | 256 | 250 linked | 6 physical; 0 certified | boss cfg/manifest; not interchangeable with C tail |
 | Overlay D, fight | $1900–$1FFF | 1792 | 1788 | 4 | boss map; 1684 code + 104 state |
 | Breakup engine, death only | $1000–$1DFF | 3584 | 2559 | 1025 | boss-death.map: head 492 + code 1892 + data 175 |
 | Breakup wing/crown buffer | $1E00–$1FFF | 512 | 512 | 0 | boss-death.map; replaces dead fight D |
@@ -119,6 +153,24 @@ Derived from B, not copied from the documentation map. Appendix A gives the deta
 The build's `residentCapacity.basicWindow.freeBytes = 773` is **3584 − 2811**, before charging the **768-B lance reservation**. Practical unreserved growth is **zero**: the remaining **5 B are explicitly held**. Likewise `remainingSafeResidencyBytes = 1852` is a build accounting result, not one 1852-B allocation. Fragmented, phase-specific space cannot pay a different region's overflow without relocation.
 
 ### A2. Disk and transport
+
+B: **11/11 DFMC records**, 190-B manifest, 107 initial + 109 extension = **216 transport sectors / 27,648 B**. Each extension sector is 128 B; packed records include framing, so sector padding is not simply `sectors*128-packedLength` of new code.
+
+```markdown
+| Record | Sector range | Final destination | Packed / raw B | Interpretation |
+| --- | --- | --- | ---: | --- |
+| 1 | 108–151 | $5E10 | 5,529 / 6,653 | BROADSIDE |
+| 2 | 152–161 | $8C80 staging | 1,193 / 1,193 | Two packed streams, pickup and sector C; not 1,193 B resident here |
+| 3 | 162 | $8018 staging | 105 / 106 | ABI |
+| 4 | 163–166 | $9B40 staging | 441 / 498 | Low C + glue composite |
+| 5 | 167–172 | $7810 staging | 746 / 746 | Packed extension container; resident composite 875 B |
+| 6 | 173 | $9D5E | 23 / 21 | Director pre |
+| 7 | 174–179 | $7BD0 | 740 / 818 | Arena |
+| 8 | 180–190 | $AE00 | 1,315 / 1,656 | Window C |
+| 9 | 191–199 | $B478 | 1,019 / 1,155 | Kernel/guard/LIFE composite |
+| 10 | 200–211 | $A000 | 1,498 / 1,498 | Sector reader |
+| 11 | 212–216 | $9D75 | 535 / 643 | Director |
+```
 
 B: union of `transportCapacity`, `sectorReader.levels`, `overlays.runs`, `boss.runs`, `levelSummary.code/art/saveRecord`, identity sector. Runs counted once, not by counting nonzero bytes.
 
@@ -187,6 +239,21 @@ Effort E: small = roughly one focused session; medium = several bounded changes;
 
 No additional dead gameplay routine is proven removable. Large opportunities are **phase separation**, not indiscriminate instruction deletion. `MAIN` is compressed (`residentRuntime.suffixRawBytes 7743 → 6536 packed`); replacing a zero pin with code is not necessarily transport-neutral. The initial 83-B budget and STARFIELD's **106 packed B to its hard staging gate** must both be watched (B `starfieldRuntime.packedTotalGate`).
 
+
+Additional source-supported reclaim observations from R A5:
+
+```markdown
+| Candidate | Bytes / region | Source, risk and effort |
+| --- | --- | --- |
+| Share identical allied/enemy module-source tables | 96 gross BROADSIDE B | B labels $6917/$6977 and read-only comparison of all 96 bytes; repoint readers, small–medium effort. LZ may already compress the duplicate; packed saving unmeasured |
+| CODE loader pin slack | 57 raw B | S MAIN pinned loader slack; preserve entry addresses, medium effort; not57 guaranteed packed boot bytes |
+| Splash packing in addition to A2 | 29 gross B; combined 43 | B current 512-byte splash→483 with existing packer; decoder/copy changes can consume savings, high boot risk |
+| Simpler loader bitmap | Unquantified packed saving | B loaderScreen already7680→1967; art edit/preview and compression check needed, medium effort |
+| Twelfth DFMC record | About16 initial bytes COST, not RAM gain | S manifest record/framing; 11/11 current. E83→67 initial planning margin if expansion uses 16; new transport destination still needs a phase-safe home |
+```
+
+The **662-B** capital-table inventory overlaps the **96-B** duplicate: after crediting that duplicate, at most **566 B** of that inventory remains, before veneers. The identical mutable mass/engine glyphs and the 36-B pristine vector image above are not safe duplicate eliminations. Stage2's **716-B runtime tail** also differs from its **204-B file slack** after the 512-byte splash occupies the shared2048-byte file area (B maps). These distinctions prevent double counting.
+
 ### A5. Rebased path to 1.0
 
 Do not charge completed M5, sector-flow, LIFE or lance work again. Keep repair, weapon roles/K1 and demo before M7 as instructed. The old `budget-1.0` cumulative table predates overlays; use its amended `gameplay-variety` cost lines and the current measured baseline.
@@ -217,6 +284,60 @@ This ledger still excludes D's optional capital enhancements. Its first negative
 
 The hull style/steel mapping still divides by **LEVEL_MAX_ID=16**: R1 levels 1–4, R2 5–8, R3 9–12, R4 13–16; steel changes at 9. It must be reconciled with the **twelve-level, four-region** campaign before M7. Boss campaign region numbers already mean Breaker/Citadel/Spine/Bastion; old asset R2/Bastion labels must not be mistaken for campaign R2.
 
+
+**Minimal cover for the first break:** moving the complete1155-B Light composite after the menu-data lever covers M3-H's472–516 B and leaves **639–683 B window**. The MAIN target remains1259 B, with 46 B retained live data/code, leaving58 B placement tolerance. For the separate32-B body buffer, the **70-B PROJECTILES tail** is a candidate home (32 allocated →38 left), subject to writer/lifetime proof; the existing 7-B pickup tail cannot provide it. Alternatively dedicate32 B of the 352-B STARFIELD tail. These are separate allocations: do not subtract the 25-B shortage from the window and call the body buffer placed. The119-B internal pins have104 B already promised, so only 15 B is additional; they cannot by themselves cover the deficit.
+
+R's narrower, non-buffer-shrink scenario remains useful: M3-H472–516 + M3 paths496–524 leave **115–187 B** after the 1155-B move; M4's300–360 then creates **113–245 B** deficit. Its total **1728–2300 B** (M3-H, M3, M4, repair capsule80–160, K1/roles180–300, demo hooks40–80, nacelle code160–360; excludes new state/art) is **573–1145 B short** against1155. Adding352 STARFIELD and 96 duplicate yields1603 gross, still **125–697 B short** before veneers. This preserves R's supported forecast without pretending that its compact nacelles or capsule equal the fuller dock/strip implementation below. F's1720-B optimistic ledger includes128 buffer shrink and conditional70 arena/15 pins instead; it must not be added to R's1603.
+
+### A6. Required 1.0 planning lines — incremental, static estimate (no trace)
+
+R/O/disk below use Part D's meanings. Geometry shared with D7 is charged once. These are planning options, not implemented features or additional accepted scope. Sources: existing MAIN hull contact/3-HP debris, C lifecycle/pickup policy, LV payload layouts and `compileBossDef`; size anchors are the 209-B LIFE ASM,214-B low-C allocation and current 33-B collision veneer. No new packed result is claimed.
+
+```markdown
+| Planning line / player result | Resident / overlay / disk B | Existing data support versus work needed | Peak cost / 1.0 implication |
+| --- | --- | --- | --- |
+| Repair booster: fly-through dock in ALLIED hull, using SW edge collision | Increment after D7:48–96 / 160–320 code +16–32 state / 256–512 transport; standalone80–160 / 240–560 +32–96 / 384–896 | New dock descriptor, entry/once-only heal policy, visible bay and safe collision aperture. Reuse D7 contiguous outer edge; make an open recessed bay, not an enclosed tunnel that one edge cannot represent. Existing hull.length/turrets cannot author a dock | E +300–1000 CPU on trigger above shared D7, DMA0; reserve contact peak together. Replaces capsule-style repair estimate, does not add another copy of LIFE. Before M7 per owner |
+| One asteroid/mine sector using playfield characters | Existing sparse asteroid/debris authoring:0 / 0 / 0 extra within existing level blocks. True bounded minefield:128–320 / 256–640 code +64–192 state / 512–1280 transport, of which32–128 descriptors | LV hazards.debris0–2 and debrisStep0–15 exist; current actor is one destructible debris object, not a multi-mine layout. Suppress ordinary waves to author an asteroid-themed existing sector. Multiple persistent mines need placement/trigger records, bounded publisher and collision/restore code; a new sector enum is unnecessary | E sparse variant existing cost; true minefield+800–2500 CPU, DMA0 with current mode. Larger option competes with M3/capital overlay homes; cannot call it data-only |
+| Boss variants per level from data only | Existing scalar variants:0 / 0 / 0 incremental sectors,17 used bytes within 62-B bossDef. New arbitrary region/art selector: E0–32 resident /40–120 entry overlay /1–4 descriptor bytes per level plus selected asset runs | Today: bonus, HP scale by difficulty, laser damage/warning/reload by difficulty (LV:515–575). Existing region module/art data varies a shared region, not independently each level. Arbitrary per-level geometry/art/region, emitter topology or new behaviour needs a new field and consumer; bossId alone is not an arbitrary asset-directory selector | Scalars use existing entry/runtime paths, no structural steady cost; altered HP/cadence can change fight load. Four reused region asset sets cost 0 extra for A-16. New art variants require measured payload sizes and near-full F/C checks; not included in data-only claim |
+```
+
+The old optimistic ledger excluded chosen nacelles. Using the merged full D7 code split adds **240–580 B** (R60–160+O180–420), with **128–256 B** separate state/data. Replacing repair80–180 by the dock's shared incremental resident+code **208–416** adds **128–236 B** in matched low/high scenarios. Raising demo's upper integration reserve 48→80 adds 32 B at the high end. Thus the old ledger's final **12–288-B deficit** becomes approximately **380–1136 B code deficit** including nacelles/dock/demo, before state, new minefield or veneers (E scenario arithmetic, not a contiguous-placement solution). The sparse asteroid and scalar boss lines can stay data-only; the larger minefield adds 384–960 code B plus64–192 state. Phase placement can reduce resident demand, but does not make overlay destinations appear. M7 content is disk-affordable; the complete pre-M7 plan is **not demonstrated to fit RAM**.
+
+### A-16. Sixteen levels with existing mechanisms plus new data
+
+**Verdict: capacity is sufficient, but strictly JSON-only is not supported at this HEAD.** The first blocker is LV's level-number validator rejecting13–16; the normal build also emits only one level, and 4×4 boss/summary grouping and save eligibility need policy/constant changes. This is a small-format/assembly extension after M4, not a new renderer or additional resident level buffer. No such changes are made by this audit.
+
+The following are the executable assumptions and associated coverage references found by searching `src/`, `scripts/`, `cfg/`, level assets and tests for campaign bounds, region arithmetic and twelve-level labels. Historical roadmap prose is not an executable constraint.
+
+```markdown
+| Assumption / source at 6dae5a6 (file:line) | Current effect | A-16 action / byte implication |
+| --- | --- | --- |
+| scripts/level-compiler.mjs:60,842 | MAX_LEVEL_NUMBER=12; rejects13–16 | Raise validation bound; host tooling only,0 target RAM |
+| scripts/build.mjs:582,585; overlap guards3845,3888,3905 | Twelve16-sector slots320–511 before overlays512 | Put levels13–16 in noncontiguous directory runs, e.g.752–815; do not let naive level13 start512 |
+| scripts/build.mjs:2536 | levelRuns contains one default/debug run | M4/M7 assembly must enumerate campaign files; merely adding JSON does not ship them |
+| src/main.s:13265–13285; scripts/build.mjs:405 | Boss region min(3,(id−1)/3); debug first-level mapping1+3*(region−1) | Use divisor4 / debug multiplier4 for 4×4; constant replacements can be byte-neutral |
+| scripts/build.mjs:2577–2579 | Escort-pairing validator chooses region with (id−1)/3 | Change to divisor4 with boss runtime grouping; otherwise validates against wrong region |
+| src/hybrid/level-summary.s:72,477–491 | Four art regions, divisor3; last region catches10–16 | Divisor4 for 4×4; byte-neutral, reuse four art runs |
+| src/hybrid/level-summary.s:90,96,766–779 | Save records only through 12, at 64+4*(level−1) | Raise RECORD_LAST_LEVEL16; additional 16 bytes use existing save bytes112–127, exactly fits128-byte record. No extra RAM/disk sector; document version/old-padding compatibility |
+| scripts/measure-boss-curve.mjs:40–45; tests/boss-order-scale.test.mjs:45 | Curve cells1–3/4/5–6/7–8/9/10–12 | Re-author coverage for 4×4; not a runtime cap |
+| scripts/boss-coverage.mjs:264; scripts/atari800-wall-trace.h:1093; scripts/pages/stills.json:55 | Region/coverage labels include 10–12 or3-level regions | Update diagnostics/captions when implementing; no target bytes |
+| scripts/boss-art-rules.mjs:7,34; tests/heavy-bomber.test.mjs:591 | Comment/assert message says steel1–6/7–12; rule uses region halves | Actual four-region half mapping already suits1–8/9–16; correct stale labels and verify palette contrast |
+| src/c/boss.c:255; tests/boss-region-2.test.mjs:11,42,427,735; tests/boss-region-4.test.mjs:431 | Comments/fixtures describe final tier as9–12 or10–12 | laser_tier in src/hybrid/boss.s:1960–1978 already handles9–16; retain threshold5/9 unless owner changes curve |
+| tests/level-summary.test.mjs:766 | Read assertion expects level sectors320≤sector<512 | Extend for noncontiguous higher-level runs |
+| scripts/boss-death-handoff.mjs:68 | Forecast assumes179 extra sectors for 12 capped levels | A-16 requires 243 extra at cap; bookkeeping only |
+```
+
+Already 16-aware: `scripts/build.mjs:560,567,573,1358,2553,2881` (directory, quarter-of 16 hull style, half-campaign steel,16 summary sums); reader's generated directory and `src/hybrid/level-summary.s:1133` assert16 sums. `scripts/hull-set-import.mjs:97` labels R3 as9–12 as part of the existing 4×4 art scheme; that is compatible, not a 12-level cap. Retain LEVEL_MAX_ID=16: the A4 16→12 saving would be inapplicable. Per-level13-sector image remains1664 B, cap2048; the same LEVEL_BUFFER is reused, not multiplied by 16.
+
+```markdown
+| Disk scenario (B current 482 occupied /558 free) | Added sectors relative to current one-level ATR | Free sectors after campaign | Extra for 16 versus 12 |
+| --- | ---: | ---: | ---: |
+| 16 images at current 13 sectors | 15×13=195 | 363 | 4×13=52 (6656 B) |
+| 16 images at 16-sector cap, replacing current 13 | 16×16−13=243 | 315 | 4×16=64 (8192 B) |
+```
+
+These are raw occupied-sector counts, not a promise that all free holes are contiguous. Existing absolute-sector directory entries accommodate the noncontiguous placement without widening the format. **RAM/overlay impact for data-only content:0 extra working RAM,0 additional overlay capacity;** existing 16-entry reader/summary tables already paid. Save use grows16 B inside its existing 128-byte buffer. Constant changes can be byte-neutral; M4 loop/reload implementation is separately budgeted and not free. Boss F Bastion still has only 4 B; repeating it four levels does not enlarge it. First constraints are compiler/build/save/grouping policy, then existing residency/M4 reload—not the 315–363 free disk sectors. Reusing four boss looks with per-level scalar tuning fits this mechanism; sixteen independent boss engines do not follow from it.
+
 ## B — CPU, DMA and frame families
 
 ### B1. What is actually measured
@@ -239,7 +360,18 @@ The table deliberately keeps unavailable current measurements visible. E maxima 
 | Post-fight disk read | H strobe handlers 109 / 94 / 57 CPU; old observed block peak 382 | H final read/strobe interval 94–95 host frames (~1.9 s), 24 sectors | read protocol/DLI scheduling, not ordinary frame fence | final breakup plan; strobe timings from revision-native.json, reader unchanged; hardware verification still debt |
 ```
 
-**Capital headroom answer:** current measured L1/L2 headroom is **unavailable without trace**. For scheduling proposals, use **E 2600 cycles to target / 3668 to hard** from the intentionally conservative 28900 allowance, and separately retain H L1 **13126 / 14194** from **18374**. Do not call the latter current. Old L2's **29540** sector-level figure gives **1960 / 3028** arithmetically, but it is not a pure capital-frame maximum. Whole-session `capital-muzzle-ring` maximum **31007** in the stale trace has the same classification problem. A future focused run must group by actual publication path/sector state, not replay name.
+**CAPITAL FRAME HEADROOM — per level.** The 2026-10-23 normal build reports global/space15116 CPU and additive28016, not a separate maximum for capital L1/L2. Current capital-only CPU maxima and measured fence margins are **unavailable**. Capital begins at VCOUNT$70 and bypasses the fighter$77/line238 publish wait (`MAIN:3209`): fence is **N/A**, not zero or automatic≥500 PASS. CPU additions and elapsed wall additions are not universally1:1.
+
+```markdown
+| Level / evidence and date | Worst observed or assumed capital work | Headroom to 31500 /32568 before nacelles | +900–2000 CPU SW-nacelle verdict |
+| --- | --- | --- | --- |
+| L1 H gameplay-variety §2.2,2026-10-08 | Pure-capital18374 wall (COMBAT17213); CPU-only unavailable; no fighter fence | 13126 /14194 historical wall | Historically ample: even an illustrative2.2× wall exposure on2000 gives22774,8726 below target. This factor is a sensitivity, not measured capital amplification. Current PASS not established |
+| L2 H level-2-timing-2026-09-30.md final2026-10-02 section,2777e8f | Capital-sector E/M/H wall29540/29440/29193 includes fighter boundary rows; pure-capital CPU/wall max unavailable. Boundary fence10327/8411/11535, not actual-capital margins | Sector arithmetic1960/2060/2307 to target;3028/3128/3375 to hard | Cannot certify. Even naive+2000 to sector maxima gives31540/31440/31193; EASY exceeds target40. These maxima may be boundary frames on which nacelles do not run, so this is a conservative sensitivity, not a demonstrated failure |
+| L1 E current code planning model,2026-10-23 | CPU16000 + DMA12531 + DLI369=28900 | 2600 /3668 | Add900–2000 CPU, unchanged full-frame DMA/DLI:29800–30900,1700–600 target slack. CONDITIONAL FIT under assumed CPU allowance; no measured fence. With R's30000 wall reserve instead,30900–32000 leaves 600 to−500 |
+| L2 E current code planning model,2026-10-23 | Same16000 CPU allowance /28900 additive; shorter hull changes duration, not peak | 2600 /3668 | Same CONDITIONAL FIT and 30000-envelope risk. No L2 pure-capital trace, so not a verified≥500-fence/≤31500 verdict |
+```
+
+The **600-cycle target slack** in the additive upper case is not a 600-cycle fence margin. Neither level can be marked as satisfying both requested predicates from this evidence: current capital skips the relevant fence, and the CPU allowance is static. SW nacelles remain the recommended architecture; timing acceptance remains **unproven**, not “impossible.” Keep the current publication schedule; any newly introduced fence must be measured separately. Whole-session stale `capital-muzzle-ring` maximum31007 likewise cannot be relabelled a pure-capital peak. Historical L2 capital row counts were1035/921/829; fence samples belong to its fighter rows.
 
 **Boss stress, including lost target:** H `docs/STATUS.md:67–76`, capsule recovery diagnostics:
 
@@ -271,6 +403,8 @@ B current CPU frame 531, **exclusive** routine counts (do not add inclusive pare
 | player_fighter_projectile_hits_enemy | 615 | 4.1% |
 | render_transient_effect_overlays | 589 | 3.9% |
 | update_fighter_projectiles, exclusive | 532 | 3.5% |
+| update_starfield, exclusive | 474 | 3.1% |
+| scroll_world_columns, exclusive | 434 | 2.9% |
 ```
 
 The stale native worst frame gives a different ranking because it includes DMA and waiting: player-projectile render/backing **14249/31059 = 45.9%**; enemy update **3708 = 11.9%**; world/ring **3332 = 10.7%**; projectile update/collision **3182 = 10.2%**; entity/effect update **1346 = 4.3%** (H `heaviest_frame_cost_breakdown`, sequential stages and projectile detail). The native projectile total **17492** includes its weapon/update work; it must not be added again to those components. This is why optimising “enemy AI” alone misses a major cost.
@@ -299,6 +433,7 @@ No current capital trace attribution exists in this audit. A conservative **E 16
 | Reduce PairShot pool by one | H 574–729 per active object from budget/STATUS, E on current layout | Visible weaker fire; owner choice, not an audit recommendation to change now |
 | Fast-path unchanged backing / avoid repeated address resolution | E 100–500 CPU on dense projectile frame | High correctness risk: painter order, stale restores and Light backing; measurement first |
 | Suppress unused capital-only calls outside capital via existing vectors | E tens of CPU, not thousands | Already partly done; do not expect to solve residency with this |
+| Cache nacelle edge verdict until relevant row/ship position changes | E150–700 CPU on repeated edge frames | Must invalidate scroll, source-row, respawn and side-offset changes; not implemented |
 | Lower average fire cadence only | No guaranteed worst-case saving | A full pool can still occur; cannot fund a hard gate |
 ```
 
@@ -345,21 +480,25 @@ All numeric costs in this section are **E: static estimate (no trace)** unless �
 **Ranking is effect/cost, with chosen nacelles still the principal gameplay recommendation.** CPU is worst event/frame delta, not average; DMA is incremental bus steals, not CPU.
 
 ```markdown
-| Rank / idea | Player effect | R / O / disk bytes | Worst capital CPU delta; DMA delta | Data vs code; risk; milestone |
+| Rank / idea | Player effect | R / O / disk bytes, E | Worst capital delta; DMA delta | Data vs code; risk; milestone |
 | --- | --- | --- | --- | --- |
-| 1 — D9 existing art/layout/length/colour variety | Hulls feel less repetitive without new mechanics | 0 / 0 / 0 incremental if replacing current tables | ~0 same-size paths; DMA 0 | Existing data; low, bounds unchanged; M7 |
-| 2 — D8 global sparse-sky tuning, then per-sector density/speed | Clear sector identity and motion contrast | global: 0 code + 0–16 state / 0 / 0–64; sector control: 80–200 / 0–64 / 128–384 | +100–600; DMA 0 at same display list | Global asset today; per-sector code; low–medium; M7 |
-| 3 — D7 SW nacelles, chosen | A navigable narrowing corridor, meaningful steering | 60–160 / 180–420 code + 128–256 data/state / 384–896 | +300–1800 at edge/row event; DMA 0 | Format, C policy, ASM strips/contact; medium–high; M7 |
-| 4 — D4 bounded chained impact bursts, without shake | Destruction feels larger and travels along the hull | 16–48 / 80–200 / 128–384 | +300–1200 on a burst; DMA 0 | Reuse capital FX, C cadence; medium; M7 |
-| 5 — D2 second turret station per side | Overlapping warnings and changing crossfire origins | 16–32 state/hooks / 120–240 / 128–384 | +300–900; DMA 0 with existing 2-shell cap | Data plus tracking/admission ASM/C; medium–high; M7 |
-| 6 — D5 hit-point scorch marks, 17a | Ship keeps visible battle scars | 8–24 / 140–320 code + 32–96 state / 256–512 | +150–800 on hit/recycle; DMA 0 | Bounded per-world-row mark cache, code + art; medium–high; M7 |
-| 7 — D1 one Light, then two | Active enemies in the corridor | one: 80–160 / 240–480 / 384–768; two: 100–200 / 300–600 / 512–896 | one +700–2800; two +1400–4800 incl. bounded kill work; DMA 0 | C admission/motion + ASM publisher; high raster risk; M7 proof after M3 |
-| 8 — D6 per-row palette, 17c | More depth and material variation | 16–48 / 160–360 code + 56–112 row data / 256–512 | +2200–8500 wall incl. DLI/WSYNC for up to 28 switches; DMA 0 if only setting DLI bits | New capital DLI schedule, not copying boss slot code; high; M7 |
-| 9 — D4 add compensated VSCROL shake | Strong impact with fixed HUD/player | 16–48 / 200–500 + 64–128 scratch/list / 384–768 | +150–700 main CPU; DLI/wall +100–800; DMA 0–300 depending exit-row/list | New scrolling-playfield adaptation; high; M7 |
-| 10 — D1 one Heavy separately | Large threat crossing the capital corridor | 100–240 / 350–700 / 512–1024 | +1200–4500 incl. movement/kill; DMA 0 with existing PMG DMA enabled | Single-member admission, missile colour conflict; high; M7 after M3-H |
-| 11 — D3 destructible reactor/bridge, ordinary shots | A visible mini-objective instead of passive scenery | 60–160 / 350–800 code + 32–96 data/state / 512–1024 | +250–1400 targeting/hit/kill; DMA 0 | C HP/objective + ASM hit/publication; high; M7 |
-| 12 — D3 also reuse lance lock/flight | A deliberate charged strike on the target | additional 40–120 / 400–1000 / 512–1280, plus existing G/H must be loaded and adapted | additional +500–2200; DMA 0, but P1/P2 conflict with Heavy | Boss-specific target API cannot be called unchanged; very high; M7, separate scope decision |
+| 1 — D9 existing art/layout/length variety | Distinct hull passages and approaches | 0 /0 /0 incremental for replacement tables | No structural increase; authored load still matters; DMA0 | Existing data; low; M3 authoring/M7 |
+| 2 — D7 SW nacelles, CHOSEN | Navigable narrowing corridor | 60–160 /180–420 code +128–256 data/state /384–896 | +900–2000 CPU contact/rotate peak; DMA0 | New format/C policy/ASM strips and edges; medium–high; M3 proof/M7 sets |
+| 3 — D4 chained capital bursts, no shake | Destruction travels along hull | 16–64 /80–224 /128–384; data-only part0–128 | +300–1500 CPU, one new scheduled burst; DMA0 | Existing two FX slots plus C cadence; medium; M3/M7 |
+| 4 — D6 coarse colour every four levels | Visible campaign variation | 0–32 /0–32 /0–16 data within existing blocks | 0 steady CPU, entry-only; DMA0 | Allied field exists, hostile policy/field needed; low–medium; M7 |
+| 5 — D8 sky tuning / sector parameters | Sector identity and motion contrast | Global0 code +0–16 state /0 /0–64; sector80–224 /0–64 /128–384, data4–24 per level | +100–700 CPU with bounded points; DMA0 | Global asset today; per-sector speed/density requires code; medium; M3/M7 |
+| 6 — D5 hull hit marks | Persistent battle scars | 8–96 /140–360 code +32–96 state /256–640, data16–96 | +150–1000 CPU hit/redraw; DMA0 | Bounded world-row cache + art/code; medium–high; M7 |
+| 7 — D2 second turret station per side | Varied crossfire origins | 16–112 /120–320 code +16–32 state /256–512, data32–128 | +300–1400 CPU, retain two active shells; DMA0 | Compiler/C policy/tracked-muzzle ASM; high; M3-H proof/M7 |
+| 8 — D1 one Light | Moving corridor threat | 80–320 /160–480 /384–896 including 8–32 wave data | +700–3500 CPU incl. kill/publication; DMA0 | C lifecycle and ASM publisher integration; high; M3 proof/M7 |
+| 9 — D1 two Lights, total | Sustained corridor pressure | 100–384 /192–600 /512–1152 including 16–48 wave data | +1400–5500 CPU incl. bounded kills; DMA0 | Same infrastructure, two-slot stress; high; M7 after one-Light proof |
+| 10 — D6 per-row palette | Moving illuminated deck bands | 16–160 /160–480 code +32–112 schedule /256–768 | +1200–8500 wall incl. DLI/WSYNC,8–28 splits; DMA0 for existing DL instruction bits | New raster schedule; potential0–28 DL bytes if list format expands (then reprice DMA); high; M7 |
+| 11 — D1 one Heavy separately | Large corridor patrol | 100–448 /224–700 code +0–24 state /512–1280 | +1200–4500 CPU; DMA0 with current PMG enabled | Single-member admission, P1/P2–M1/M2 colour sharing; high; M3-H proof/M7 |
+| 12 — D4 chain plus compensated shake, total | Scene jolts on destruction | 32–112 /280–724 code +64–192 scratch/list /512–1152 | +800–2200 main CPU, plus up to 800 DLI/wall; DMA0–360 | Live-scroll adaptation, coordinate/exit compensation; high; M7 |
+| 13 — D3 ordinary-shot reactor/bridge | A destructible mini-objective | 60–160 /350–800 code +32–96 data/state /512–1152 | +250–1400 CPU; DMA0 | C HP/reward, ASM hit/publication; high; M7 |
+| 14 — D3 reactor with lance, total | Charged, aimed optional strike | 100–448 /750–1800 code +32–96 data/state /1024–2560, plus existing G/H loading | +750–3600 CPU; DMA0, P1/P2 conflicts with Heavy | New target API and boss-only weapon-rule change; very high; M7 separate scope |
 ```
+
+Merged envelopes use the source-based alternatives in Disagreements; upper byte estimates are integration reserves, not a linked design. Disk totals allow code transport and differ from R's descriptor-only figures. A new run can use current level padding only with an explicit placement/loader contract. The compact descriptor-based D7 alternative remains below; no second ranking is implied. DMA0 means unchanged fetch structure, not zero elapsed impact.
 
 **Bases / limits on each price:**
 
@@ -390,7 +529,7 @@ Sources: MAIN palette constants/comments and dynamic star publisher; `assets/gra
 
 S search of `src/`: no `P0PF` symbol/read; no `lda HPOSM0`/literal `$D004` collision read found. `$D004` writes position M0 and must not be mistaken for reads. `HITCLR` writes occur in MAIN gameplay init **2689**, pause resume **3013**, gameplay teardown **3135**, `handle_collisions` **5403**, enemy-death feedback **5460**, player latch reset **8235**, and boss entry **3557** in `src/hybrid/boss.s`. The main-loop order is **handle_collisions → update_starfield → hull contact**. Thus a new P0PF read inserted at today's hull-contact call would follow the regular clear and miss earlier overlap. A robust HW version must sample once before any clear, cache the result, then clear consistently; resets/death/respawn must not erase an unsampled event. Snapshot X/Y if collision refers to the previous displayed frame. An extra DLI does not solve object identity.
 
-**HW verdict:** there is **no valid current hull-only mask**. A pure `LDA P0PF / AND mask / branch` is approximately **7–9 bytes, 8–9 CPU**, and `LDA #0 / STA HITCLR` another **5 bytes / 6 CPU**, but those are not a correct feature cost. Allow **20–40 B / 20–50 CPU** for a small sample/cache stub only. A full HW redesign needs an exclusive material palette, changes to every competing glyph/effect, and a consistent latch schedule; **E 64–160 resident + 250–700 capital overlay + 128–320 data/state**, **+80–500 CPU normally and +300–1200 on contact**, DMA **0** before any new DLI. These are exploratory prices, not a feasible mask solution. Adding a software position/map filter to reject stars and shots largely recreates the cheaper SW test. No art-direction change is assumed authorised.
+**HW verdict:** there is **no valid current hull-only mask**. A pure `LDA P0PF / AND mask / branch` is approximately **7–9 bytes, 8–9 CPU**, and `LDA #0 / STA HITCLR` another **5 bytes / 6 CPU**, but those are not a correct feature cost. Allow **20–40 B / 20–50 CPU** for a small sample/cache stub only. A full HW redesign needs an exclusive material palette, changes to every competing glyph/effect, and a consistent latch schedule; **E 64–224 resident + 250–700 capital overlay + 128–320 data/state**, **+80–500 CPU normally and +300–1200 on contact**, DMA **0** before any new DLI. These are exploratory prices, not a feasible mask solution. Adding a software position/map filter to reject stars and shots largely recreates the cheaper SW test. No art-direction change is assumed authorised.
 
 #### Existing software path and format changes
 
@@ -407,20 +546,23 @@ Recommended minimal design: maintain a contiguous outer-hull-to-inner-edge silho
 ```markdown
 | Variant | R / capital overlay / disk | Worst incremental capital cost | Correctness / player contact |
 | --- | --- | --- | --- |
-| SW, bounded two-column strips | 60–160 / 180–420 code + 128–256 data/state / 384–896 B | E +300–1800 CPU on edge/row event; DMA 0 | Extends existing source-row boundaries, cache and fast reject; palette-independent; recommended |
+| SW, bounded two-column strips | 60–160 / 180–420 code + 128–256 data/state / 384–896 B | E +900–2000 CPU on edge/row/contact event; DMA 0 | Extends existing source-row boundaries, cache and fast reject; palette-independent; recommended |
+| HW sampler + SW confirmation | 64–144 /160–360 code plus same geometry and 2–8 latch B /384–896 estimated transport | E +950–2100 CPU total; sampler20–60; DMA0 | Can reject false positives with geometry, but usually retains SW work and adds latch timing risk; no advantage established |
 | HW, tiny mask stub only | 20–40 / 0 / fits existing payload if relocated | E 20–50 CPU; DMA 0 | Incorrect with current colour sharing and clear timing; not a shippable option |
-| HW with palette/latch redesign | 64–160 / 250–700 + 128–320 data/state / 512–1152 B | E +80–500 CPU, contact +300–1200; DMA 0 before any added raster split | Art and lifecycle changes; pixel-shaped contact; feasibility unproven |
+| HW with palette/latch redesign | 64–224 / 250–700 + 128–320 data/state / 512–1280 B | E +80–500 CPU, contact +300–1200; DMA 0 before any added raster split | Art and lifecycle changes; pixel-shaped contact; feasibility unproven |
 ```
 
-SW estimate basis: four extra visible side cells cost roughly **64–80 CPU per newly drawn row** using existing indirect load/store loops; decoding/choosing extents adds a bounded **100–300**; up to three previously skipped row resolutions dominate the larger **300–1800** event allowance (S instruction/path estimate). These deltas are **incremental**: the current worst edge path already does much of the work. They do not justify adding 1800 to every ordinary frame.
+SW estimate basis: four extra visible side cells cost roughly **64–80 CPU per newly drawn row** using existing indirect load/store loops; decoding/choosing extents adds a bounded **100–300**; up to three previously skipped row resolutions dominate the larger **900–2000** event allowance (S instruction/path estimate). These deltas are **incremental**: the current worst edge path already does much of the work. They do not justify adding2000 to every ordinary frame. R anchors the upper reserve in at most six side resolvers at roughly 120 CPU each, row bookkeeping, clamp/damage/HUD and drawing; the existing centre fast path is 55 CPU (B/S). These are instruction/path estimates, not traced nacelle costs. Part B gives per-level conditional headroom and explicitly withholds a timing PASS.
 
-**Passability:** easiest difficulty should retain a generous central safe channel and symmetric/telegraphed taper. Suggested design budget, not an owner decision: constrain visible rows to at least **20 free character cells** when both sides protrude two cells beyond the eight-column base; that is **80 HPOS units** versus the ship's **8**. Validate the intersection over all three collision rows, both sides' eight-row phase offset, all module joins and entry/exit; per-row width alone cannot prove a moving diagonal passage safe. Keep debris/spawn lanes inside the narrowest allowed channel and provide enough travel time at the selected scroll rate. “Passable for everyone” requires owner play on EASY, not just geometry arithmetic.
+**Compact descriptor alternative (R, static estimate):** keep the 9-column base maps and add per-module side/extent/row-span/glyph/difficulty descriptors, rather than storing two complete wider maps. R priced 32–80 resident +128–280 capital code +64–192 state/data, with 64–256 descriptor/art disk B (code transport additional). This may be cheaper but is less concrete than the full strip reserve in the ranking. Both need new schema/compiler/runtime fields and updates to row cache, clear/restore and the universal-corridor check. If needed,2–4 new shapes cost 16–32 raw glyph B; replace existing surface slots or prove allocation, since free codebook entries do not create charset space. Keep marks independent of collision unless destructible geometry is deliberately implemented.
 
-**Contact:** retain HULL damage plus immediate push-back/clamp; it is already implemented and cheapest. Instant death also reaches an existing damage path cheaply, but would be a material gameplay change and disproportionately punish the new geometry. No instant-death recommendation. Keep the real-hardware path: no emulator-only collision assumptions, no new mid-sector disk reads.
+**Passability:** easiest difficulty should retain a generous central safe channel and symmetric/telegraphed taper. Suggested design budget, not an owner decision: constrain visible rows to at least **20 free character cells** when both sides protrude two cells beyond the eight-column base; that is **80 HPOS units** versus the visible double-width ship's approximately **16**. The existing logical hull-collision footprint is only 8 HPOS; do not use that smaller rectangle as visual clearance. R's alternative16-cell/64-HPOS minimum would leave48 HPOS beyond the visible footprint; the more generous20-cell proposal leaves 64. Validate the intersection over all three collision rows, both sides' eight-row phase offset, all module joins and entry/exit; per-row width alone cannot prove a moving diagonal passage safe. Keep debris/spawn lanes inside the narrowest allowed channel and provide enough travel time at the selected scroll rate. “Passable for everyone” requires owner play on EASY, not just geometry arithmetic.
+
+**Contact:** retain two of ten HULL units of damage, the existing 25-frame cooldown, and immediate push-back/clamp; it is already implemented and cheapest. Instant death also reaches an existing damage path cheaply, but would be a material gameplay change and disproportionately punish the new geometry. No instant-death recommendation. Keep the real-hardware path: no emulator-only collision assumptions, no new mid-sector disk reads.
 
 ## Completion and next action
 
-Static Parts A/C/D/D7 are complete to the explicit estimates and source limits above; Part B combines current build CPU accounting, clearly dated existing evidence, and the authorised no-trace fallback. No capital addition is PAL-certified here. Production CPU/RAM delta **0**; no game bytes changed. Only the report is committed locally. The next implementation decision is placement recovery before M3-H, followed by a focused nacelle SW prototype and real capital-row timing when the emulator source is available. No roadmap work was started.
+Static Parts A/C/D/D7 are complete to the explicit estimates and source limits above; Part B combines current build CPU accounting, clearly dated existing evidence, and the authorised no-trace fallback. No capital addition is PAL-certified here. Production CPU/RAM delta **0**; no game bytes changed. Only the report is committed locally, in one reconciliation commit above ff0e202. That predecessor is preserved; no new build or trace was run during reconciliation. The next implementation decision is placement recovery before M3-H, followed by a focused nacelle SW prototype and real capital-row timing when the emulator source is available. No roadmap work was started. **STOP — await owner direction.**
 
 ## Appendix A — complete build-derived address inventory
 
@@ -484,7 +626,7 @@ This is generated read-only from the current build via `renderBlock()` in `scrip
 | `$41B8-$424F` | 152 B | transient | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows, the VOID LANCE's line (ANTIC 2, M6 journal §BI 1) | `boss-entry` | manifest `boss.banner` |
 | `$4400-$47FF` | 1,024 B | state | gameplay charset | `resident` | src/main.s `CHARSET` |
 | `$442D-$4733` | 775 B | transient | packed STARFIELD stream B | `boot` | manifest `starfieldRuntime.streams` |
-| `$4734-$4820` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
+| `$4734-$4820` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a 2Kernel` |
 | `$4800-$4BFF` | 1,024 B | state | frontend charset | `resident` | src/main.s `FRONTEND_CHARSET` |
 | `$4801-$4CA9` | 1,193 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
 | `$4821-$52FC` | 2,780 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
@@ -542,7 +684,7 @@ This is generated read-only from the current build via `renderBlock()` in `scrip
 | `$7F02-$7F0F` | 14 B | reserved | free tail of `HYBRID_C_ARENA_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$7F10` | 1 B | state | the gameplay display lists' shared header ($E0: 7 blank lines after a list's JMP, the first DLI on line 15) | `resident` | src/main.s `PLAYFIELD_DLIST_HEADER` |
 | `$7F11-$7F6A` | 90 B | state | gameplay display list A (the divider, 27 ring rows, the HUD's line, the JMP to the header) | `resident` | src/main.s `PLAYFIELD_DLIST_A` |
-| `$7F2B-$8017` | 237 B | transient | A2 kernel staging (`BOOT_A2_STAGING`) | `boot` | manifest `a2Kernel` |
+| `$7F2B-$8017` | 237 B | transient | A2 kernel staging (`BOOT_A2_STAGING`) | `boot` | manifest `a 2Kernel` |
 | `$7F6B-$7FC4` | 90 B | state | gameplay display list B | `resident` | src/main.s `PLAYFIELD_DLIST_B` |
 | `$7FC5-$7FFF` | 59 B | segment | `HYBRID_LIGHT_SLOTS` — Light per-slot SoA state | `resident` | build/encounter-director.map |
 | `$8000-$80FF` | 256 B | segment | `ENTITY_STATE` — entity/effect slots and Encounter Director state | `resident` | build/void-strike-65.map |

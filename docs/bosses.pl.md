@@ -29,6 +29,12 @@ celuje w bossa, na pierwszym poziomie regionu danego bossa.
 
 ## Jak działa każdy boss
 
+W aktualnej wersji kandydackiej po zniszczeniu ostatniej broni boss miga
+kolorami w widoku walki. Narastają wtórne eksplozje, potem górna część odlatuje
+w górę, a skrzydła rozlatują się z różnymi, losowanymi prędkościami. Pole gry
+mocno drży, po czym się uspokaja; HUD i statek gracza pozostają stabilne.
+Zniszczenie trwa około 3,5 sekundy, z końcowym błyskiem przed podsumowaniem.
+
 <img src="media/bosses/breaker-banner.gif" width="640" alt="Dziewięć sekund z poziomu 1: pole gry pustoszeje, ekran czernieje, pojawia się baner Blockade Breakera z napisami WARNING, nazwą, INCOMING i paskiem ładowania, potem nadlatuje boss">
 
 - **Nadejście.** Gdy ostatni sektor poziomu jest czysty, ekran na jedną

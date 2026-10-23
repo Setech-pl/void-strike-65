@@ -246,49 +246,51 @@ boss_vector_image_end:
 ; reader's own sector loop at sector numbers the build baked into boss_runs;
 ; then the install.
 boss_head:
-    ; audit-hardening (AUD-02): slot A itself was checked by the reader's run
-    ; read before it ran, which leaves the disk guard's fold at zero; the
-    ; eight runs the head reads (S5-1: the region block too) are folded on.
-    ldy #BOSS_RUN_INSTALL
-    jsr boss_read_run
-    ldy #BOSS_RUN_SLOT_C
-    jsr boss_read_run
-    ldy #BOSS_RUN_SLOT_D
-    jsr boss_read_run
-    ldy #BOSS_RUN_SLOT_E                ; S4b.5: slot E, over the hull maps
-    jsr boss_read_run
-    ldx #$00
-    lda LEVEL_ID
-    sec
-    sbc #$01
-@region:
-    ; S5-1: the last region's test first, so the SBC's carry is the CMP's
-    ; (the window's entry half had and fixed the same order, c-asm-abi.s).
-    cpx #$03
-    beq @have_region
-    cmp #$03
-    bcc @have_region
-    sbc #$03                            ; C=1 from the CMP
-    inx
-    bne @region
-@have_region:
-    stx boss_head_region                ; S5-1: the check's index (20-B stride)
-    lda boss_region_runs,x
-    ldx #BOSS_REGION_RUNS
-@run:
+    ; The banner bypasses this obsolete entry. Keep all fight addresses fixed.
+    jmp boss_wrong_disk
+; Only the former card's 47 surviving bytes. Reuse the existing A-only
+; boss palette/ring paths after disconnecting their C/D publish and motion
+; dependencies. The serial WSYNC can defer HUD entry to line 240: its fast
+; entry writes black first; the prepared blank line also covers a glyph
+; fetch that preceded the delayed font selection.
+boss_death_dli:
     pha
-    tay
-    txa
+    lda #<boss_death_hud
+    sta VDSLST
+    pla
+    jmp boss_dli
+boss_death_hud:
     pha
-    jsr boss_read_run
-    pla
-    tax
-    pla
-    clc
-    adc #$05
+    lda #HUD_COLPF2
+    sta COLPF2
+    lda #>HUD_CHARSET
+    sta CHBASE
+    lda #<boss_dli
+    sta VDSLST
+    jmp gameplay_dli_hud
+boss_death_strobe:
+@counter:
+    lda #0
+    inc @counter+1
+    eor BOSS_T_PALETTE+3
+    sta COLPF3
+    lda #<boss_death_dli
+    sta VDSLST
+    rts
+boss_death_dli_end:
+    .assert boss_death_dli_end - boss_death_dli <= 47, error, "death strobe exceeds the card's 47 surviving bytes"
+    .assert >boss_death_hud = >boss_dli && >boss_death_dli = >boss_dli, error, "atomic DLI low-byte publication needs one page"
+    .res 47 - (* - boss_death_dli), $EA
+boss_death_spec:
+    ldx #4
+:   lda boss_death_boot_spec,x
+    sta boss_runs,x
     dex
-    bne @run
-    jmp boss_head_check
+    bpl :-
+    rts
+boss_death_boot_spec:
+    .byte $D0,$02,4,$00,$52
+    .res 68 - (* - boss_head), $EA
 
 ; Y = a run's offset in boss_runs: {sector lo, sector hi, count, dst lo, dst hi}.
 boss_read_run:
@@ -425,6 +427,8 @@ boss_dli:
     lda #GAMEPLAY_COLPF3
     sta COLPF3
     inc gameplay_dli_phase
+boss_dli_publish = @publish + 1
+boss_dli_motion = *
     lda boss_dli_pos
     cmp boss_shown_pos
     beq @same
@@ -434,10 +438,10 @@ boss_dli:
     pla
     tax
 @same:
+boss_dli_return = *
     pla
     rti
 ; feat/boss-art: boss_pal_prepare points phase 0's publish at boss_pal_frame.
-boss_dli_publish = @publish + 1
 
 ; Publish band position p = boss_dli_pos (colour clocks, 0..travel): with the
 ; LMS L cells in and HSCROL h, L*4 - h = p and h is 0..15, so the coarse LMS
@@ -573,27 +577,28 @@ boss_update:
     jsr boss_open_looks
     jsr boss_fire
     lda _boss_blast
-    bmi @queue
-    jsr boss_mflash_guard_m             ; slot E: the blast's module, its flash off first
-    ; One link of the chain (plan §5.6, §5.11.4 item 4): blast glyphs over
-    ; the module, the shared enemy-explosion slot's COLBK flash, the band's
-    ; shake and the capital explosion's sound.
-    tax
-    and #$01
-    tay
-    lda BOSS_T_BLAST_A,y
-    sta boss_fill
-    lda #BOSS_MODE_FILL
-    sta boss_mode
-    txa
-    jsr boss_draw_module
-    lda #SHARED_FIGHTER_EXPLOSION_TOTAL
-    sta FIGHTER_EXPLOSION_TIMER + FIGHTER_EXPLOSION_ENEMY_SLOT
-    lda BOSS_T_SHAKE_FRAMES
-    sta boss_shake_timer
-    lda #CAPITAL_EXPLOSION_DURATION
-    sta CAPITAL_EXPLOSION_SOUND_TIMER
-@queue:
+    bmi boss_update_queue
+; Reuse the old 38-byte chain executor, preserving every fight-path address.
+boss_death_read:
+    ldx #$77
+    jsr wait_frame_at_line
+    ; DLIs remain enabled. At this post-HUD fence the short atomic setup
+    ; completes well before the next header DLI. Keep all fight PCs fixed.
+    .repeat 5
+        nop
+    .endrepeat
+    jsr boss_death_prepare
+    jsr boss_death_spec
+    ldy #0                              ; reuse the dead install spec
+    jsr boss_read_run
+    lda #<DEATH_BOOT_FOLD
+    ldy #>DEATH_BOOT_FOLD
+    jsr guard_compare
+    bcc :+
+    jmp boss_wrong_disk
+:   jmp $5200
+    .res 38 - (* - boss_death_read), $EA
+boss_update_queue:
     ; A kill frame (the rebuild) and the exposure check's frame leave their
     ; queued draw to the next frame (plan §5.15.7: the worst frame's budget).
     lda boss_frame_heavy
@@ -1423,7 +1428,7 @@ boss_completion:
     sta ACTIVE_GAMEPLAY_FRAME_LO
     lda _boss_clock_hi
     sta ACTIVE_GAMEPLAY_FRAME_LO+1
-    jmp sector_reader_level_end
+    jmp boss_death_read
 
 ; ---------------------------------------------------------------------------
 ; Tables.
@@ -1850,6 +1855,72 @@ boss_mbottom_y:     .res BOSS_MAX_MODULES   ; the line under each module's botto
 ; (BOSS_SLOT_F, the HUD charset's unused upper half); the region's tables
 ; point at it (BOSS_T_LOOK_TAIL). Until S5-1 it led slot D, which every region
 ; shares, so a disk could carry one region only.
+
+; Death takeover: cold code replaces the C chain/hold; no install change.
+.segment "BOSS_DEATH_PREP"
+boss_death_prepare:
+    ; The boss-entry guard_compare left the fold at zero; there are no disk
+    ; reads in combat. Its former redundant reset pays for three setup bytes.
+    jsr music_stop
+    ; Released PMG objects must not remain frozen during the read.
+    ; Hide P1/P2/P3 and all missiles immediately; preserve the player's P0.
+    ldx #6
+    ; music_stop tail-calls silence_audio, which returns A=0.
+@hide:
+    sta $D001,x
+    dex
+    bpl @hide
+    ; A serial WSYNC can defer HUD NMI into line 240, after its first glyph
+    ; fetch. Make the first line blank in BOTH fonts. This changes only
+    ; released-shot/helper glyph scanlines, not the boss, P0 or live stars.
+    ; Star glyph 1 is skipped, including its current fine-Y point phase.
+    ldx #0
+@hud_guard:
+    lda #0
+    sta CHARSET+$100,x
+    cpx #8
+    beq :+
+    sta CHARSET,x
+:   txa
+    clc
+    adc #8
+    tax
+    bne @hud_guard
+    ; Only the intermediate row-palette DLIs need C/D. Keep the band's
+    ; last DLI, the header and the final HUD DLI exactly where they were.
+    ldx boss_band_last_operand
+    ldy #3
+@rows:
+    lda PLAYFIELD_DLIST_A,y
+    and #$7F
+    sta PLAYFIELD_DLIST_A,y
+    iny
+    iny
+    iny
+    dex
+    bne @rows
+    lda #<boss_death_strobe
+    sta boss_dli_publish
+    lda #>boss_death_strobe
+    sta boss_dli_publish+1
+    ; Compare the motion value with itself. Both operands share a page;
+    ; the CPU is suspended in NMI, so even while C/D is being replaced the
+    ; two reads are equal and motion cannot be called. No C/D execution.
+    lda #<boss_dli_pos
+    sta boss_dli_motion+4
+    ; At most seven queued draws. COPY modes still need slot F's look tail,
+    ; so finish them with the safe DLI BEFORE its bootstrap replaces F.
+@drain:
+    lda boss_queue_head
+    cmp boss_queue_tail
+    beq @done
+    jsr boss_queue_draw
+    jmp @drain
+@done:
+    rts
+    .assert >boss_dli_pos = >boss_shown_pos, error, "motion guard requires one-page operands"
+    .assert * - boss_death_prepare <= 81, error, "death setup exceeds reclaimed card preparation"
+    .res 81 - (* - boss_death_prepare), $EA
 
 .segment "BOSS_D_CODE"
 

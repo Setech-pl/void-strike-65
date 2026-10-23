@@ -1,0 +1,5 @@
+{"entryFrames":339.916}
+{"readPauseFrames":114.399}
+{"pauseHostFrames":118,"pauseClockFrames":117.246}
+{"peakPreFence":31143,"peakDmaOn":64669,"minimumFence":0,"dliCount":2365}
+{"restartedLevel":7,"summary":true,"frames":175,"misses":80,"hudErrors":0,"shipErrors":0,"dliErrors":400,"returnedToMenu":1,"readImageChecks":113,"readImageErrors":0,"readAttempts":30,"sioFailures":0,"readDlis":343,"readDliErrors":0,"strobeFrames":115,"strobeDliWallPeak":356,"strobeCpuTop":109,"strobeCpuRing":94,"strobeCpuHud":57,"strobeBlockPeak":382}

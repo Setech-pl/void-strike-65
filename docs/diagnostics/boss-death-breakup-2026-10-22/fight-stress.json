@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Citadel L5 lost-target",
+    "level": 5,
+    "lance": "lost",
+    "peak": 8447,
+    "margin": 53,
+    "cases": 9856
+  },
+  {
+    "name": "Bastion L10 peak",
+    "level": 10,
+    "lance": "swap",
+    "peak": 8478,
+    "margin": 22,
+    "cases": 856
+  }
+]

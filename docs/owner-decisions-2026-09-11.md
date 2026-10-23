@@ -3852,7 +3852,18 @@ checks. The owner authorizes commit, `--no-ff` merge and push of main and
 needed for this tooling/docs change. Runtime evidence, stage-2, showcase:gif,
 full npm test and failures:reconcile remain due in the full release chain.
 
-**Next free decision section: §BS.**
+## BS. Remaining M6 order and capital-sector direction (2026-10-23)
+
+Session: Codex.
+
+**Owner decision.** The rest of M6 — repair booster, weapon roles, demo mode,
+then systems freeze — stays BEFORE M7. These items are not dropped.
+
+The next capital-sector improvement is protruding hull nacelles to dodge,
+River Raid style (idea 17b). Costing is in progress in a separate read-only
+audit; milestone placement will be decided after that audit.
+
+**Next free decision section: §BT.**
 
 ---
 

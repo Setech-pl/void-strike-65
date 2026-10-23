@@ -1,0 +1,169 @@
+{
+  "source": "build/boss-region-2-level-1-s6/runtime-wall-trace/",
+  "entryHostFrames": 340,
+  "acceptance": {
+    "measured_frames": 119,
+    "maximum_wall_cycles": 28118,
+    "wall_ceiling": 32568,
+    "physical_headroom": 7450,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "artifact": {
+    "void-strike-65-boot.bin": {
+      "path": "build/boss-region-2-level-1-s6/void-strike-65-boot.bin",
+      "bytes": 27648,
+      "sha256": "16dfb4a3dc6522a6a0dfc37da31ecda34a93b111decc8daf5a6a89ae57944c1e"
+    },
+    "void-strike-65.atr": {
+      "path": "build/boss-region-2-level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "8746b29d6b332106440adabce8b6b5ab47f4f12500e5b45802d8cd9d28c56144"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/boss-region-2-level-1-s6/void-strike-65-manifest.json",
+      "bytes": 79416,
+      "sha256": "5f69db3a6b71074ed3ee8a74e975f638af4b07ba0361d4ed722d71c1cf8e3dbf"
+    }
+  },
+  "slotF": {
+    "clause": "slot F ($5200-$53FF) is written only by the start-up writers (those that wrote it before the first copy_hud_charset - a RESET runs them again), the charset copy, the sector reader's region block read at a boss entry, and the field's code into its own state bytes, in every replay and boot-smoke session",
+    "sessions": 1,
+    "subject": 1,
+    "fieldWrites": 648,
+    "writers": [
+      {
+        "pc": "$c4b6",
+        "kind": "start-up",
+        "sessions": 1,
+        "count": 2
+      },
+      {
+        "pc": "$c4be",
+        "kind": "start-up",
+        "sessions": 1,
+        "count": 2
+      },
+      {
+        "pc": "$c2e6",
+        "kind": "start-up",
+        "sessions": 1,
+        "count": 512
+      },
+      {
+        "pc": "$c2f0",
+        "kind": "start-up",
+        "sessions": 1,
+        "count": 512
+      },
+      {
+        "pc": "$c5ed",
+        "kind": "start-up",
+        "sessions": 1,
+        "count": 512
+      },
+      {
+        "pc": "$21f5",
+        "kind": "start-up",
+        "sessions": 1,
+        "count": 232
+      },
+      {
+        "pc": "$21a0",
+        "kind": "start-up",
+        "sessions": 1,
+        "count": 512
+      },
+      {
+        "pc": "$61a6",
+        "kind": "copy_hud_charset",
+        "sessions": 1,
+        "count": 256
+      },
+      {
+        "pc": "$61a9",
+        "kind": "copy_hud_charset",
+        "sessions": 1,
+        "count": 256
+      },
+      {
+        "pc": "$a262",
+        "kind": "region block read",
+        "sessions": 1,
+        "count": 512
+      },
+      {
+        "pc": "$539d",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 1
+      },
+      {
+        "pc": "$53a2",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 1
+      },
+      {
+        "pc": "$5277",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 119
+      },
+      {
+        "pc": "$528f",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 119
+      },
+      {
+        "pc": "$52dd",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 119
+      },
+      {
+        "pc": "$52f6",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 119
+      },
+      {
+        "pc": "$534a",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 119
+      },
+      {
+        "pc": "$52fd",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 29
+      },
+      {
+        "pc": "$5324",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 1
+      },
+      {
+        "pc": "$5355",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 14
+      },
+      {
+        "pc": "$52e4",
+        "kind": "the field's state",
+        "sessions": 1,
+        "count": 7
+      }
+    ],
+    "violations": []
+  },
+  "note": "Original observer rejected the two new one-shot hook writes. Re-evaluated the same raw watch with the exact-PC/target descriptors; both occurred once. No fresh trace or release evidence generated."
+}

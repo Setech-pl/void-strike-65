@@ -1,0 +1,14 @@
+✔ Citadel normalizes stale LIFE once before its first visible M3 column (31.584583ms)
+✔ the field's code writing its own state is admitted (0.611833ms)
+✔ a foreign PC writing into the field's state still fails (0.376917ms)
+✔ the field's code writing slot F outside its state still fails (the look tail, its own code) (0.15875ms)
+✔ a field-code writer whose first and last writes are in its state but which strayed between still fails (0.067708ms)
+✔ on a disk without field code every such writer is foreign (0.0695ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.114708

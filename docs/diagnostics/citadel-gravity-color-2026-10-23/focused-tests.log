@@ -1,0 +1,17 @@
+# difficulty 0: warning 40 frames, worst escape 8, 32 left
+# difficulty 1: warning 32 frames, worst escape 8, 24 left
+# difficulty 2: warning 25 frames, worst escape 8, 17 left
+✔ the second spire's fall switches the pull, the pulse and the column off on that frame, for good (32.696875ms)
+✔ the signals: the core pulses every 16 frames and the column shows exactly while the pull is on (4.340959ms)
+✔ owner answer 4: the axis is danger - the pull's rest x is inside the axis beam's hit window (6.272125ms)
+✔ the axis beam fires while the well is on, and the core's lens takes no damage while a spire stands (6.769417ms)
+✔ fairness: leaving the axis beam's window against the pull leaves >= 10 warning frames on every difficulty (6.751542ms)
+✔ everything on screen and in reach: the ship centred, every module shootable, the lasers and the column shown (1.642833ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 148.544

@@ -1,0 +1,14 @@
+observer-smoke: 119 frames, max 28118 wall cycles
+  PAL timing audit  observer-smoke                                frames  119  misses   0  preWait  12608  margin  12367  maxWall  28118  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 1 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 1 boss entries, 0 with a HUD cell changed
+CLAUSE FAILURE observer-smoke: observer-smoke: $539d wrote slot F 1 times (frames 1115-1115, $526f-$526f), not a start-up writer, the charset copy, the region block's read or the field's own state
+CLAUSE FAILURE observer-smoke: observer-smoke: $53a2 wrote slot F 1 times (frames 1115-1115, $5270-$5270), not a start-up writer, the charset copy, the region block's read or the field's own state
+Window tail write clause: 1 replays watched, subject 1 lance run reads, 119 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 1 block reads, 646 field-state writes, 2 foreign writers
+Behavioural clauses: 2 of 1 session(s) accumulated a failure
+  observer-smoke: observer-smoke: $539d wrote slot F 1 times (frames 1115-1115, $526f-$526f), not a start-up writer, the charset copy, the region block's read or the field's own state
+  observer-smoke: observer-smoke: $53a2 wrote slot F 1 times (frames 1115-1115, $5270-$5270), not a start-up writer, the charset copy, the region block's read or the field's own state
+Focused report: build/boss-region-2-level-1-s6/runtime-wall-trace/observer-smoke-focused-run.json

@@ -19,8 +19,8 @@
 //      the ship alive; 2 colour clocks every 8 frames, never faster than the
 //      player; x stays even and on screen; it stops on the frame the second
 //      spire falls;
-//   6. the signals: the core's pulse and the gravity column (M0) exactly
-//      while the pull is on; the column on M0's bits only, the beams' kept;
+//   6. the signals: the core's pulse and the gravity column (M3) exactly
+//      while the pull is on; the column on M3's bits only, the beams' kept;
 //   7. the axis is danger, not a refuge (owner answer 4): the pull's rest x is
 //      inside the axis beam's hit window;
 //   8. fairness: from anywhere inside the axis beam's window, holding away
@@ -261,7 +261,7 @@ test("the second spire's fall switches the pull, the pulse and the column off on
   const x = memory[X()];
   for (let f = 0; f < 40; f += 1) frame(memory, { regs });
   assert.equal(memory[X()], x, "the ship no longer drifts");
-  assert.equal(regs[0xd004], 0, "the column (HPOSM0) off screen");
+  assert.equal(regs[0xd007], 0, "the column (HPOSM3) off screen");
   assert.equal(memory[lbl("boss_m0_hpos")], 0);
 });
 
@@ -279,13 +279,13 @@ test("the signals: the core pulses every 16 frames and the column shows exactly 
   }
   assert.ok(asks >= 5 && asks <= 6, `${asks} pulses in 96 frames`);
   assert.ok(shown >= 90, `the column shown on ${shown} of 96 frames`);
-  // The column is M0's bits only, from the first line under the band to 239;
+  // The column is M3's bits only, from the first line under the band to 239;
   // the beams' (M1 / M2) bits are kept.
   const missiles = 0x3b00;
   const top = 24 + 5 * 8;
   for (let y = 0; y < 256; y += 1) {
-    const m0 = memory[missiles + y] & 3;
-    if (y < top || y > 239) assert.equal(m0, 0, `M0 at line ${y}`);
+    const m0 = memory[missiles + y] & 0xc0;
+    if (y < top || y > 239) assert.equal(m0, 0, `M3 at line ${y}`);
     else assert.ok(m0 !== 0, `no column at line ${y}`);
   }
   // Respawning: no column.

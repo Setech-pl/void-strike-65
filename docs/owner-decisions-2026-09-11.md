@@ -3852,7 +3852,46 @@ checks. The owner authorizes commit, `--no-ff` merge and push of main and
 needed for this tooling/docs change. Runtime evidence, stage-2, showcase:gif,
 full npm test and failures:reconcile remain due in the full release chain.
 
-**Next free decision section: §BS.**
+## BS. Remaining M6 order and capital-sector direction (2026-10-23)
+
+Session: Codex.
+
+**Owner decision.** The rest of M6 — repair booster, weapon roles, demo mode,
+then systems freeze — stays BEFORE M7. These items are not dropped.
+
+The next capital-sector improvement is protruding hull nacelles to dodge,
+River Raid style (idea 17b). Costing is in progress in a separate read-only
+audit; milestone placement will be decided after that audit.
+
+## BT. Citadel gravity well on M3 — gold capsule colour (2026-10-23)
+
+Session: Codex.
+
+**OWNER-ACCEPTED.** Owner smoke PASS on `0989f17`, branch
+`codex/citadel-gravity-color`. The gravity well moves from M0 to M3 and shares
+COLPM3 with the gold booster capsules (`$1C`). The owner says gold reads as a
+small sun. The ship keeps turning green when the lance is ready, independently
+of the well. Brief death/flash tinting from the existing publisher is accepted.
+
+The remembered capsule type is reset once at Citadel fight start in Citadel's
+slot F, so collecting LIFE in the last SPACE sector cannot leave a green well.
+The one-shot initializer uses +23 B (83 B free) and +27 cycles once, with no
+recurring overhead. No resident/window/DIRECTOR_RAM or shared-install growth.
+Owner confirms gold from fight start after LIFE, gold while the ship is green,
+and unchanged pull/collision and capsule behaviour.
+
+Distinct capsule colours — Rapid `$1C`, Spread `$2C`, Shield `$0E`, LIFE `$AC`
+unchanged — are deferred to the backlog after the window levers, ~22+ B
+including publication bypass, with further restore/init costing still due;
+see `a64229b` and [the completed plan](plans/citadel-gravity-color.md).
+
+Citadel stress L4/L5 remains 8112/8447 cycles; entry 340/350 host frames.
+The pre-existing end-of-fight test failure is identical on the baseline and
+remains stale-validator debt. Owner authorizes the acceptance commit, no-ff
+merge, one normal build on main with an ATR identical to the smoked candidate,
+then push of main and the task branch. No release or additional measurements.
+
+**Next free decision section: §BU.**
 
 ---
 

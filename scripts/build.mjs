@@ -3072,7 +3072,7 @@ async function build() {
       // M6 stage 1b (journal §BL 3): the VOID LANCE's T and meter cells in the HUD.
       "HUD_LANCE_METER_OFFSET", "HUD_LANCE_LABEL_OFFSET", "gameplay_fire_gate",
       // S4b.5 (owner decision F3): a destroyed module counts for the capsule rule.
-      "ENTITY_STATE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
+      "ENTITY_STATE", "ENTITY_TYPE", "ENTITY_HP", "ENTITY_Y", "ENTITY_TIMER", "weapon_pickup_spawn_capsule_at",
       "integration_pickup_reveal_body",
       // feat/interceptor-armour: the entry's cold tail (BOSS_ENTRY_COLD).
       "frontend_data_ptr", "render_frontend_records",

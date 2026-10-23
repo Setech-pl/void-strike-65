@@ -6182,12 +6182,22 @@ function main() {
     // rail_code_end)) writing its state and scratch (in the block's room
     // before BOSS_F_HOOK; "B - the window" moved the scratch there).
     const watches = [["field_hooks", "field_state", "field_state", "field_state_end"],
-      ["gravity_hooks", "gravity_state", "gravity_state", "gravity_state_end"],
+      ["gravity_hooks", "gravity_state", "gravity_state", boss.has("gravity_init") ? "gravity_init" : "gravity_state_end"],
       ["rail_hooks", "rail_code_end", "rail_scratch", "rail_scratch_end"],
       ["rail_hooks", "rail_code_end", "rail_state", "rail_state_end"]]
       .filter(([hooks]) => boss.has(hooks))
       .map(([hooks, codeEnd, state, end]) => ({ codeStart: boss.get(hooks), codeEnd: boss.get(codeEnd),
         stateStart: boss.get(state), stateEnd: boss.get(end) }));
+    // Citadel's one-shot entry trampoline rewrites only its two JMP operand
+    // bytes. Admit the two exact STA PCs/targets, never general code writes.
+    if (boss.has("gravity_init")) {
+      for (const [offset, operand] of [[7, 1], [12, 2]]) {
+        watches.push({ codeStart: boss.get("gravity_init") + offset,
+          codeEnd: boss.get("gravity_init") + offset + 1,
+          stateStart: boss.get("gravity_hooks") + operand,
+          stateEnd: boss.get("gravity_hooks") + operand + 1 });
+      }
+    }
     return watches.length === 0 ? null : watches;
   })();
   const slotFWrites = slotFWriteClause(sessionWatches, {

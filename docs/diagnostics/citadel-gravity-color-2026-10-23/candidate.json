@@ -1,0 +1,57 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "baseline": "6dae5a6",
+  "artifacts": [
+    {
+      "name": "campaign",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/campaign-05b9e5b7a961.atr",
+      "sha256": "05b9e5b7a96115b8eed303b8df38b5090c76bb6b25e11500b53af1ec49ab48a7",
+      "bytes": 133136,
+      "buildOptions": [],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/campaign-05b9e5b7a961.atr"
+    },
+    {
+      "name": "r1",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/r1-0cc88b250bfd.atr",
+      "sha256": "0cc88b250bfde31463e37da8a5c8470b6af074a09e92068642cac8e16b1736eb",
+      "bytes": 133136,
+      "buildOptions": [
+        "--level=1:sector=6"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/r1-0cc88b250bfd.atr"
+    },
+    {
+      "name": "citadel-r2",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/citadel-r2-8746b29d6b33.atr",
+      "sha256": "8746b29d6b332106440adabce8b6b5ab47f4f12500e5b45802d8cd9d28c56144",
+      "bytes": 133136,
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=2"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/citadel-r2-8746b29d6b33.atr"
+    },
+    {
+      "name": "spine-r3",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/spine-r3-756f23cdd799.atr",
+      "sha256": "756f23cdd799a559d8115b393fb6ec1903426ecc1c7399124c37ca7a84d9e07e",
+      "bytes": 133136,
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=3"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/spine-r3-756f23cdd799.atr"
+    },
+    {
+      "name": "bastion-r4",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/bastion-r4-b8330cac695e.atr",
+      "sha256": "b8330cac695e0b865ceebb8fcce397e4e716c1424e93fb4fd1be182a3270df51",
+      "bytes": 133136,
+      "buildOptions": [
+        "--level=1:sector=6",
+        "--boss-region=4"
+      ],
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/citadel-gravity-color/bastion-r4-b8330cac695e.atr"
+    }
+  ]
+}

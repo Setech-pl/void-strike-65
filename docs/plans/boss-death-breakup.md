@@ -327,3 +327,79 @@ is needed. Options: schedule all three pieces' two-pixel wobble steps on
 copy-free ticks; wobble wings only; or horizontal randomisation alone.
 [Numbers, limits, raw proof and estimated options](../diagnostics/boss-death-motion-2026-10-23/README.md).
 **NEXT TASK: owner selects a recovery option; do not merge or push.**
+
+## Revision 4 — feasibility before code (2026-10-23)
+
+Owner chose option 3 plus playfield shake; per-piece pixel wobble is rejected.
+Cleanup archived the trial generator, kept its diagnostic evidence, and verified
+all src/cfg/dist bytes against 77c3104. Baseline: engine 1948 B, 20 breakup
+sectors. No game code from the trial was present in 03fe9ee.
+
+### Fine-scroll and DLI decision
+
+**Feasible with a compensated private display list.** The boss uses ANTIC 4
+with HSCROL (bit $10) and per-row LMS; it does not use VSCROL. Bit $20 and
+VSCROL can coexist with that horizontal setup. Set vertical scrolling only on
+boss slots 1–8; leave the header/top separator and HUD outside it. Write VSCROL
+at the post-HUD fence, before the next top row, never from the moving row DLI.
+
+A naive bit change is unsafe. For offset v=0..3 the first scrolling row has
+8-v lines and the first non-scrolling mode row has v+1. Eight boss rows plus
+that exit row therefore occupy 65 lines regardless of v. Add seven blank
+scanlines after the exit row to recover the original 72-line span. The exit
+uses the existing first below-band field row as its fine-scroll buffer: only
+its first v+1 lines are shown during shake, followed by the seven blank lines.
+No boss row, HUD row or PMG storage is removed. This small strip below the
+boss may clip a star during shake; it returns with the unscrolled list.
+
+Top DLI stays at 15, separator-row DLI at 23, boss-row splits at 31-v through
+87-v, below-band restore at 87-v, and HUD restore at 239. The row colour
+splits move with their own glyph boundaries; the compensator fixes all later
+row positions. No additional DLI is needed. HSCROL/LMS drift is retained.
+The existing top separator scanlines 8–15 remain unchanged. Native checking
+must use the v-adjusted expected boss DLI positions and fixed HUD/header image
+strips on every frame, rather than demanding the old unscrolled boss positions.
+
+Use a 92-B private header/list in dead E ($4CA0–$4CFB); shadow list remains
+$4C40–$4C99. This avoids enlarging the resident 90-B A/B display-list slots.
+Only post-fence publication writes the active list. At the final tick set
+VSCROL exactly zero, publish the original unshaken 90-B death-list layout to
+A, and select its original entry before the normal summary path. No return
+to overwritten fight code or reactivation of its DLI is permitted.
+
+Hardware rule checked against Atari's [De Re Atari, chapter 6](https://www.atarimania.com/documents/De-Re-Atari.pdf)
+and the in-repo Atari800 ANTIC implementation (`antic.c`, vscrol_flag/off and
+lastline handling). The shortened first row and the exit row require explicit
+height compensation. The exact landing and image checks remain to be measured.
+
+### Placement / estimated cost
+
+Shake executor estimate: 110–180 disk-engine B, +150–350 clocks in publication,
+92 B in already permitted E scratch. Combined motion/shake reserve: **1000 B**
+of the 1636 available code bytes, allowing for the project's previous low
+estimates. No resident/start/Director/lance/page-4/window/install allocation.
+The 512-B wing buffer also holds the crown's two rows with its own front flag;
+a separate 64-B zero row fits in E ($4DA0–$4DDF), within the unchanged 576-B cap.
+
+Draw a permutation of .25/.5/.75 horizontal cells/tick for left/right/crown.
+Wings use distinct one-cell cadences; reserve one tick in four for a 1/2/3-cell
+crown move. Crown keeps its accepted upward cadence and gets a random horizontal
+direction. Crown and wing copies never run on the same tick, preserving the
+old worst six-row Spine copy bound. No glyph regeneration. Estimated added
+pre-fence work 300–1050 clocks; estimated peak about 22400 vs 24300, DMA-on
+about 30500 vs 31500, minimum fence about 2450 vs 500. These are estimates,
+not measured gates. Allow up to eight additional sectors in the planning
+reserve; actual linked bytes/sectors will replace it after build.
+
+Use the existing seeded entity_next_rng ($990E / state $8006 in this baseline),
+resolved from build labels through a disk-only veneer. Save its state in E at
+entry and restore it before summary; this prevents consumption changing any
+later summary/menu/game behaviour. Mix the frozen kill-frame byte into the
+returned random values, so different kill timing varies direct-start smoke
+runs while identical seed/input traces reproduce. No POKEY RANDOM.
+
+Shake offsets: random 0..3 in buildup, reduce to 0..2 then 0..1 during flight,
+zero near the end, one 3-line hit at the start of the final flash, exactly zero
+on finish. Keep 175 ticks, 80/80/15 phases, secondary explosions and final flash.
+Implementation and the four-region worst-case/native image checks follow only
+after this committed feasibility decision. No merge before owner smoke.

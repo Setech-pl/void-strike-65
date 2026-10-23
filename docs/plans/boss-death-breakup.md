@@ -1,9 +1,15 @@
-# Boss death breakup — Phase A and B
+# Boss death breakup — DONE (§BQ)
+
+**DONE / OWNER-ACCEPTED**, owner smoke 2026-10-23 on `acd9590`: campaign plus
+R1/Citadel/Spine/Bastion direct-start ATRs. See §BQ for the accepted design and
+rejected iterations. This closure is docs + merge only; no implementation or
+measurement change. Hardware/release-evidence debt and M4 reload constraints
+remain recorded in STATUS.
 
 **Phase A historical review, 2026-10-22.** Branch `codex/boss-death-breakup`,
 from clean `main` `686d3f5`. Offline mockups only; no game code, build,
-runtime measurements or new ATR. The owner subsequently selected B; the candidate implementation is recorded below.
-The accepted game, resident allocation and window allocation are unchanged.
+runtime measurements or new ATR. The owner subsequently selected B; the final accepted implementation is recorded below.
+At this Phase A checkpoint, game code, resident and window allocation were unchanged.
 
 ## Rendering facts used
 
@@ -405,7 +411,7 @@ Implementation and the four-region worst-case/native image checks follow only
 after this committed feasibility decision. No merge before owner smoke.
 
 
-## Revision 4 — as-built OWNER-SMOKE CANDIDATE (2026-10-23)
+## Revision 4 — as-built DONE / OWNER-ACCEPTED (2026-10-23)
 
 The committed feasibility above was implemented: compensated VSCROL private
 list in E, random 0..3 -> 0..2 -> 0..1 -> 0 shake and final-flash hit; distinct
@@ -439,8 +445,15 @@ DMA-on 29535/29537/29534/29537 vs 31500; minimum fences
 The one scroll-exit field row may clip a star during shake; HUD and separator
 are outside VSCROL. Crown's existing one-row-early top clipping is retained.
 
-**NEXT TASK: owner smoke.** On OK, record §BQ with whole-screen fine-scroll
-shake/HUD fixed and rejection of per-piece wobble (03fe9ee); update STATUS M4
-reload constraint and release hardware/evidence debt; record the deferred
-Bastion hit-feedback backlog; then perform the explicitly authorised merge
-and push. No acceptance/merge/push before that OK.
+**DONE.** Owner smoke accepted `acd9590` on campaign and all four direct-start
+ATRs: random horizontal speeds, strong VSCROL shake decaying over flight,
+fixed clean HUD/player and normal summary. The scroll-buffer row's possible
+brief star clipping is accepted. §BQ records the final design and rejected
+card/short animation and pixel-wobble trials. No game-code changes in closure.
+
+M4 must reload C/D/E/F after breakup and reinitialise reused state before a
+direct next-level transition. Before release: real 65XE + SIO2SD check of the
+active-DLI read (~1.9 s on emulator) and full sequence, plus regeneration of
+stale binding/stage-2 evidence in the full chain. Citadel M0 turning green with
+lance-ready P0 is a pre-existing separate next task, not a breakup regression.
+Bastion ineffective-hit feedback remains deferred backlog.

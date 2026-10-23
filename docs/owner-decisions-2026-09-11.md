@@ -3773,6 +3773,54 @@ of main and the task branch. No release.
 
 ---
 
+## BQ. Boss death breakup (2026-10-22/23)
+
+Session: Codex.
+
+**OWNER-ACCEPTED.** Owner smoke PASS on `acd9590`, branch
+`codex/boss-death-breakup`, campaign ATR and all four direct-start ATRs:
+R1 Blockade Breaker, Void Citadel, Siege Spine and Bastion. Different fragment
+speeds, strong shake decaying during flight, stable HUD/player and normal
+summary are accepted.
+
+- **Phase A:** variant B, crown + two wings, chosen from the GIFs. Variant C
+  rejected on CPU cost.
+- **`e97244c` rejected:** the HULL BREACH card before the breakup spoils the
+  reward; the 74-frame / 1.48-second breakup is too short and too fast.
+- **`77c3104` accepted except motion:** the card is replaced by boss-colour
+  strobing from a safe DLI during the post-fight disk read. VBI stays off.
+  Breakup lasts 175 PAL frames / 3.5 s, at about half the earlier flight speed,
+  with secondary explosions and final flash. Equal-speed sliding still needs
+  replacement.
+- **`03fe9ee` rejected:** per-fragment vertical sway using glyph redraw is too
+  costly. The first Spine component probe reaches pre-fence 31143 > 24300;
+  its evidence remains archived. Options 1 and 2 with pixel wobble are rejected.
+- **`acd9590` accepted:** random per-fragment horizontal speeds of
+  0.25 / 0.5 / 0.75 character cells per frame, using `entity_next_rng` with its
+  state restored before summary. Whole-screen shake uses fine vertical scroll
+  on boss lines only: strong during explosions, decaying during flight, with
+  a short final-flash hit. HUD and PMG player ship remain untouched. Per-piece
+  vertical wobble is dropped. The 175-frame timing, secondary explosions and
+  final flash remain. Strobe/read is now about 1.9 s on the emulator because
+  of four extra engine sectors.
+
+The owner accepts that one row under the boss is a scroll buffer and may
+briefly clip a star. The crown's existing one-row-early disappearance remains
+accepted. No resident/window bytes or boss-install growth; engine 2559 B,
+24 breakup sectors, campaign 558 free sectors. This is feature acceptance,
+not release certification: real 65XE/SIO2SD verification and stale release
+evidence regeneration remain before-release debt.
+
+[As-built plan](plans/boss-death-breakup.md),
+[measurements and accepted ATR hashes](diagnostics/boss-death-shake-2026-10-23/README.md).
+Owner authorizes the docs commit, `--no-ff` merge titled
+`[codex] Merge codex/boss-death-breakup (§BQ)`, one normal build on main,
+then push of main and the task branch, subject to the stated STOP conditions.
+
+**Next free decision section: §BR.**
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

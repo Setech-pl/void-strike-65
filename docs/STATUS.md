@@ -6176,6 +6176,16 @@ section's "what to look for" in the implementation report.
 
 ## Known open defects and open decisions
 
+- **KNOWN ISSUE — owner smoke 2026-10-23, pre-existing; not caused by the
+  breakup:** Citadel's gravity well (missile M0) turns green while the lance is
+  ready. Missiles share COLPM0 with player P0, whose colour changes to green
+  on lance-ready. Fix is the separate next task; no fix in boss-breakup closure.
+
+- **KNOWN DEBT — before release (§BQ):** real 65XE PAL + SIO2SD verification
+  of the post-fight read with active DLI strobe (~1.9 s on emulator) and the
+  full breakup; regenerate stale binding/stage-2 release evidence in the full
+  pre-release chain. Emulator owner smoke is accepted; these checks remain open.
+
 - ~~**Technical debt (2026-10-18, owner decision §AZ): the boss banners' hardware smoke - NOT RUN on hardware - merged on emulator evidence 2026-10-18, owner decision; must be run before `v0.3.0`.**~~ — **CLEARED 2026-10-19 (journal §BC 1):** PASS on a real 65XE on `c977efe0` and the region-4 route `5e2888eb`. The original entry: [hardware-testing.md](hardware-testing.md) §39 on a real 65XE PAL with the SIO2SD, ATRs (SHA-256 prefixes) the whole game `13c950e0`, the boss routes R1 `f17bef23`, R2 `a788147b`, R3 `595e834d`, R4 `96956183`. §AY is not smoke-confirmed until it passes.
 
 - ~~**Follow-up (licensing, 2026-10-01):** `scripts/package-release.mjs` builds the release zip without `LICENSE`, `LICENSE-ASSETS` and `THIRD_PARTY_NOTICES.md`; the zip should include all three.~~ — **FIXED** by M5-05 (`34e8c37`, journal §BC 5). GitHub releases ship the ATR alone, with both licences linked from the release notes.
@@ -7483,27 +7493,56 @@ owner-authorized merge and push of main and `codex/m6-lance-lock`.
 
 The separate `b2261c9` boss stress regression was fixed in main merge
 `686d3f5` (§BP); it no longer blocks the window levers or release.
-Boss death breakup B at `77c3104`: owner smoke accepted the safe-DLI read
-strobe/continuity, 175-frame duration and slower drift (2026-10-23). Full §BQ
-acceptance and merge remain pending the revised owner smoke.
-Owner rejected per-piece vertical wobble as too costly (03fe9ee), selected
-independent horizontal speeds plus VSCROL playfield shake with HUD fixed.
-The revised **OWNER-SMOKE CANDIDATE** draws distinct .25/.5/.75 cell/tick
-speeds for crown/left/right; seeded entity RNG is saved/restored. Compensated
-private E display list keeps HUD/separator fixed; 175 ticks and read strobe
-are retained. Engine 2559 B (1025 free); 24 breakup sectors (+4), 558 free on
-the whole disk and 8 in the breakup reservation. Install 383 B, entry gates
-325/340/340/344. Max death DMA-on 29537, min. fence 2828. All 16800 paired
-maximum-envelope frame comparisons pass; RNG/VSCROL/list restoration pass.
-Fight/reader code is identical; only generated cold count/fold values change.
-Seven focused death checks and three map checks pass. Read/strobe now about
-1.9 s on emulator because the overlay is four sectors longer.
-[As-built plan](plans/boss-death-breakup.md),
-[proof, resource tables and ATRs](diagnostics/boss-death-shake-2026-10-23/README.md).
-**NEXT TASK:** owner smoke: different piece speeds, strong shake calming down,
-steady clean HUD/ship, normal summary. §BQ acceptance/merge/push wait for OK.
-Runtime evidence regeneration and the default full verification remain
-required before release (§BM).
+Boss death breakup is **OWNER-ACCEPTED** on `acd9590` (§BQ, 2026-10-23),
+branch `codex/boss-death-breakup`. Owner smoke passed campaign and direct-start
+R1/Citadel/Spine/Bastion ATRs: different horizontal fragment speeds, strong
+VSCROL shake decaying over flight, steady clean HUD/ship and normal summary.
+Variant B (crown + two wings), 175 frames / 3.5 s, secondary blasts and final
+flash are complete. Per-piece vertical wobble was rejected as too costly
+(03fe9ee). The scroll-buffer row's possible brief star clipping is accepted.
+Seeded entity RNG is saved/restored before summary. Read strobe remains safe
+DLI-only, VBI off; four extra engine sectors make it about 1.9 s on emulator.
+
+Accepted resources, measured against 77c3104; this closure changes docs only:
+
+```markdown
+| Area | Before -> accepted acd9590 | Free / invariant |
+| --- | --- | --- |
+| Engine $1000–$1DFF | 1948 -> 2559 useful B | 1025 B |
+| Engine disk bytes | 2048 -> 2560 B | +4 sectors |
+| Bootstrap F $5200–$53FF | 157 useful / 512 disk B, unchanged | 355 B |
+| Wing/crown buffer $1E00–$1FFF | 512 -> 512 B | no growth |
+| E scratch $4C00–$4E3F, used span | 301 -> 480 / 576 B | 96 B above high-water |
+| Boss install | 383 -> 383 B | 1 B |
+| New resident / window / forbidden bytes | 0 | window end $B8FB unchanged |
+| Breakup disk sectors | 20 -> 24 | 8 of its 32-sector reservation free |
+| Campaign disk sectors | 478 -> 482 placed / 1040 | 558 total free |
+```
+
+Accepted native pre-fence R1/Citadel/Spine/Bastion:
+14247/14245/22011/14248 against 24300; DMA-on
+29535/29537/29534/29537 against 31500; minimum fences
+10592/10594/2828/10591 against 500. Entry 325/340/340/344 frames, install
+383 B unchanged. All 16800 paired frame checks pass; RNG/VSCROL/list restoration
+passes. Seven focused death checks and three map checks passed on acd9590.
+Fight/reader code is unchanged; only generated cold count/fold values differ.
+[Done as-built plan](plans/boss-death-breakup.md),
+[accepted proof and ATRs](diagnostics/boss-death-shake-2026-10-23/README.md).
+
+**M4 limitation:** after the breakup, overlays C/D ($1000–$1DFF), E
+($4C00–$4E3F) and F ($5200–$53FF) have been overwritten; the wing/crown buffer
+also owns $1E00–$1FFF. A direct transition to the next level must reload C/D/E/F
+and reinitialise any reused state before gameplay resumes. Current continuation
+is summary -> menu -> START GAME; M4 direct progression is not implemented here.
+
+**KNOWN DEBT — before release:** verify the active-DLI post-fight strobe/read
+(~1.9 s on emulator) and full breakup on a real 65XE PAL with SIO2SD. Regenerate
+stale release evidence (binding / stage-2) in the full pre-release chain.
+Owner acceptance does not clear either debt. Closure authorizes a docs-only
+merge and one normal build; no evidence regeneration is part of this task.
+
+**NEXT TASK:** the pre-existing Citadel gravity-well/lance colour collision
+below, as a separate task. Do not implement it as part of breakup closure.
 
 ## Music v2 step 10.2 — the GAMEPLAY theme is GRA-2 — `OWNER-SMOKE CANDIDATE` (2026-09-22)
 
@@ -8445,6 +8484,13 @@ it to size a budget, never to predict a frame. The committed baselines
 
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
+
+- **Bastion indestructible-part hit feedback** (owner request 2026-10-23,
+  later task): players cannot distinguish indestructible shields or guns
+  locked behind sequential shields from destructible elements. Signal an
+  ineffective hit with a lower, duller sound than segment destruction and/or
+  a different-colour flash. Graphic changes are the costlier option. Deferred;
+  not implemented by the boss-breakup task.
 
 - **Bind docs/media/{enemies,bosses} into the media manifest — needs the
   one-animation pin in tests changed (separate task)** (docs/enemies-bosses-pages,

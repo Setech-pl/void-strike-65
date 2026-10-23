@@ -1,0 +1,98 @@
+[
+  {
+    "variant": "level-1-s6",
+    "byteIdentical": [
+      "resident-runtime.bin",
+      "entity-code-runtime.bin",
+      "pickup-code-runtime.bin",
+      "starfield-runtime.bin",
+      "a2-kernel-runtime.bin",
+      "sector-reader.bin",
+      "overlay-boss-slot-c.bin",
+      "overlay-boss-slot-d.bin",
+      "overlay-boss-slot-e.bin",
+      "overlay-boss-install.bin"
+    ],
+    "bossAColdBootstrapFoldOffsets": [
+      613,
+      615
+    ],
+    "bootstrapSectorCountAndFoldOperandOffsets": [
+      125,
+      143,
+      145
+    ]
+  },
+  {
+    "variant": "boss-region-2-level-1-s6",
+    "byteIdentical": [
+      "resident-runtime.bin",
+      "entity-code-runtime.bin",
+      "pickup-code-runtime.bin",
+      "starfield-runtime.bin",
+      "a2-kernel-runtime.bin",
+      "sector-reader.bin",
+      "overlay-boss-slot-c.bin",
+      "overlay-boss-slot-d.bin",
+      "overlay-boss-slot-e.bin",
+      "overlay-boss-install.bin"
+    ],
+    "bossAColdBootstrapFoldOffsets": [
+      613,
+      615
+    ],
+    "bootstrapSectorCountAndFoldOperandOffsets": [
+      125,
+      143,
+      145
+    ]
+  },
+  {
+    "variant": "boss-region-3-level-1-s6",
+    "byteIdentical": [
+      "resident-runtime.bin",
+      "entity-code-runtime.bin",
+      "pickup-code-runtime.bin",
+      "starfield-runtime.bin",
+      "a2-kernel-runtime.bin",
+      "sector-reader.bin",
+      "overlay-boss-slot-c.bin",
+      "overlay-boss-slot-d.bin",
+      "overlay-boss-slot-e.bin",
+      "overlay-boss-install.bin"
+    ],
+    "bossAColdBootstrapFoldOffsets": [
+      613,
+      615
+    ],
+    "bootstrapSectorCountAndFoldOperandOffsets": [
+      125,
+      143,
+      145
+    ]
+  },
+  {
+    "variant": "boss-region-4-level-1-s6",
+    "byteIdentical": [
+      "resident-runtime.bin",
+      "entity-code-runtime.bin",
+      "pickup-code-runtime.bin",
+      "starfield-runtime.bin",
+      "a2-kernel-runtime.bin",
+      "sector-reader.bin",
+      "overlay-boss-slot-c.bin",
+      "overlay-boss-slot-d.bin",
+      "overlay-boss-slot-e.bin",
+      "overlay-boss-install.bin"
+    ],
+    "bossAColdBootstrapFoldOffsets": [
+      613,
+      615
+    ],
+    "bootstrapSectorCountAndFoldOperandOffsets": [
+      125,
+      143,
+      145
+    ]
+  }
+]

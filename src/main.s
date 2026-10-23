@@ -3722,7 +3722,7 @@ profile_gameplay_dli_hud_end = *
 ; M5b-S3: the boss DLI's third phase continues into the HUD restore (M6
 ; stage 1b: after its own WSYNC, at gameplay_dli_hud).
 .export gameplay_dli_sync_hud, gameplay_dli_hud
-.export charset_data
+.export charset_data, entity_next_rng
 .export resume_gameplay_dli_lo_operand, resume_gameplay_dli_hi_operand
 ; M5b-S3: pure constants the boss overlay link reads from the label file.
 .export SCREEN, GAMEPLAY_DIVIDER_SCREEN, HUD_CHARSET, HUD_COLPF1, HUD_COLPF2

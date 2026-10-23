@@ -403,3 +403,44 @@ zero near the end, one 3-line hit at the start of the final flash, exactly zero
 on finish. Keep 175 ticks, 80/80/15 phases, secondary explosions and final flash.
 Implementation and the four-region worst-case/native image checks follow only
 after this committed feasibility decision. No merge before owner smoke.
+
+
+## Revision 4 — as-built OWNER-SMOKE CANDIDATE (2026-10-23)
+
+The committed feasibility above was implemented: compensated VSCROL private
+list in E, random 0..3 -> 0..2 -> 0..1 -> 0 shake and final-flash hit; distinct
+.25/.5/.75-cell/tick horizontal speed assignment to all three fragments, crown
+horizontal direction, unchanged upward cadence. Crown copies are on the fourth
+no-wing tick, so Spine never copies eight rows in one frame. Two buffer rows
+formerly used for blanks now hold crown data; the zero row is in E. No glyph
+regeneration or per-piece vertical wobble. Entity RNG output is mixed with the
+frozen kill-frame byte and the original RNG state is restored before summary.
+
+An exact paired frame comparison found a two-pixel late PF3 landing when the
+crown enters the separator. A direct top-DLI vector reaches WSYNC in 11 rather
+than 22 cycles and writes PF3 first. The full final matrix then has zero pixel
+differences in separator/player/HUD strips: 4200 paired frames per boss, 16800
+total, all speed permutations, crown directions and extreme poses. All 175
+animation ticks run without misses; VSCROL=0, normal A-list and RNG restoration
+are checked. Seven focused death checks and three map checks pass.
+
+Actual engine 2559 useful / 2560 disk B, 1025 B below the 3584 cap (611 B added,
+inside the 1000-B planning reserve). Bootstrap remains 157 / 512 B; total 24
+sectors, eight left in its reservation. Campaign has 558 free sectors. E used
+span 480 B inside 576 (high-water $4DE0, 96 B above); 512-B buffer unchanged.
+No resident/window/forbidden allocation, no install/entry change. Reader and
+fight instructions stay unchanged; generated bootstrap count/fold operands
+necessarily change. No fight stress or separate SIO certification repeated.
+Read/strobe interval is now 94..95 host frames (~1.9 s), reflecting +4 sectors.
+
+Measured pre-fence R1/Citadel/Spine/Bastion: 14247/14245/22011/14248 vs 24300;
+DMA-on 29535/29537/29534/29537 vs 31500; minimum fences
+10592/10594/2828/10591 vs 500. [Full evidence and ATRs](../diagnostics/boss-death-shake-2026-10-23/README.md).
+The one scroll-exit field row may clip a star during shake; HUD and separator
+are outside VSCROL. Crown's existing one-row-early top clipping is retained.
+
+**NEXT TASK: owner smoke.** On OK, record §BQ with whole-screen fine-scroll
+shake/HUD fixed and rejection of per-piece wobble (03fe9ee); update STATUS M4
+reload constraint and release hardware/evidence debt; record the deferred
+Bastion hit-feedback backlog; then perform the explicitly authorised merge
+and push. No acceptance/merge/push before that OK.

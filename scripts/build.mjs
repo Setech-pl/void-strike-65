@@ -3076,7 +3076,7 @@ async function build() {
       // the hand-over clears the PMG area as the head did; the screen clears
       // the frontend screen as the WARNING screen's render did.
       "broadside_unpack_command", "broadside_read_source", "broadside_destination", "clear_pmg",
-      "clear_screen", "charset_data", "wait_frame_at_line", "music_stop", "GAME_MUSIC_ENABLED", "erase_fighter_projectile_overlays_with_light"],
+      "clear_screen", "charset_data", "entity_next_rng", "ENTITY_RNG_STATE", "wait_frame_at_line", "music_stop", "GAME_MUSIC_ENABLED", "erase_fighter_projectile_overlays_with_light"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end",
       "sr_slot_a_overlaid",

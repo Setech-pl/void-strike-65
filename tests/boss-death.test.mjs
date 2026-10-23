@@ -106,6 +106,7 @@ test("wings shift exactly one cell into a separate buffer, leaving visible sourc
     const {m}=deathFixture(region);
     const split=m[0x4D03], rows=m[0x4D02];
     for (let r=2;r<rows;r++) for(let c=0;c<64;c++) m[band(r)+c]=c+1;
+    m[D("_death_left_shift")]=1; m[D("_death_right_shift")]=1;
     const before=Uint8Array.from(m);
     call(m,D("death_copy"));
     for(let r=2;r<rows;r++) {
@@ -119,13 +120,14 @@ test("wings shift exactly one cell into a separate buffer, leaving visible sourc
   }
 });
 
-test("crown LMS follows original rows and colours; all 175 ticks finish with no ship/HUD writes", () => {
+test("crown LMS follows its two buffers and colours; all 175 ticks finish with no ship/HUD writes", () => {
   for(const region of [1,2,3,4]) {
     const {m,ship,hud}=deathFixture(region);
     const writes=[];
     for(let t=1;t<=175;t++) {
       call(m,D("_death_tick"));
       if(m[D("_death_shift")]) call(m,D("death_copy"));
+      if(m[D("_death_crown_shift")]) call(m,D("death_copy_crown"));
       call(m,D("death_layout"));
       call(m,D("death_publish"), {hooks:{write:(a,v)=>{writes.push(a); return false;}}});
     }
@@ -136,8 +138,24 @@ test("crown LMS follows original rows and colours; all 175 ticks finish with no 
     assert(!writes.some(a=>a>=0x400 && a<0x500));
     assert(!writes.some(a=>a>=0xB900 && a<0xBC00));
     m[D("_death_vanish")]=0; m[D("_death_up")]=1; call(m,D("death_layout"));
-    assert.equal(m[0x4C41] | m[0x4C42]<<8, band(0)+m[0x4D0F]);
+    assert.equal(m[0x4C41] | m[0x4C42]<<8, (m[0x4D60]?0x1E00:band(0))+m[0x4D0F]);
     m[D("_death_up")]=2; call(m,D("death_layout"));
-    assert.equal(m[0x4C41] | m[0x4C42]<<8, band(1)+m[0x4D0F]);
+    assert.equal(m[0x4C41] | m[0x4C42]<<8, (m[0x4D60]?0x1E40:band(1))+m[0x4D0F]);
   }
+});
+
+
+test("seeded motion reproduces a kill frame and varies with different kill timing", () => {
+  const {m}=deathFixture(1);
+  const profiles=[];
+  for (const frame of [100,101,102,103,100]) {
+    m[0x8006]=0x5a;
+    m[M("ACTIVE_GAMEPLAY_FRAME_LO")]=frame;
+    call(m,D("_death_init"));
+    const rates=["_death_left_rate","_death_right_rate","_death_crown_rate"].map(n=>m[D(n)]);
+    assert.deepEqual([...rates].sort(),[1,2,3]);
+    profiles.push([...rates,m[D("_death_crown_dir")]]);
+  }
+  assert.deepEqual(profiles[0],profiles[4]);
+  assert(new Set(profiles.slice(0,4).map(p=>p.join(","))).size>1);
 });

@@ -36,7 +36,11 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
     static unsigned pc_failure, phase, n, last_module, death_dli_pc, score_clock;
     static unsigned long long entry_clock, read_clock, start_clock, max_pre, max_wall, min_margin;
     static unsigned char ship[256], hud[40];
-    static FILE *out;
+    static FILE *out, *strips;
+    static unsigned rates[3], rate_addr[3], crown_dir_addr, crown_dir_value, shake_addr;
+    static int shake_force;
+    static unsigned rng_saved, rng_errors, strip_count, strip_host, restore_errors, active_list, top_dli;
+    static unsigned wanted_strip;
     unsigned long long clock;
     if (!init) {
         v_READ_RING=dftrace_env_u("DFDB_READ_RING");
@@ -87,7 +91,17 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
         pc_failure=v_FAILURE; phase=v_PHASE; n=v_N;
         last_module=v_LAST; death_dli_pc=v_DLI; score_clock=v_CLOCK;
         out=fopen(getenv("DFDB_OUTPUT"),"w"); if (!out) exit(2);
-        min_margin=999999u; init=1;
+        min_margin=999999u;
+        top_dli=dftrace_env_u("DFDB_TOP_DLI");
+        active_list=dftrace_env_u("DFDB_ACTIVE_LIST");
+        rate_addr[0]=dftrace_env_u("DFDB_RATE_L");rate_addr[1]=dftrace_env_u("DFDB_RATE_R");rate_addr[2]=dftrace_env_u("DFDB_RATE_C");
+        crown_dir_addr=dftrace_env_u("DFDB_CROWN_DIR_ADDR");crown_dir_value=dftrace_env_u("DFDB_CROWN_DIR");
+        shake_addr=dftrace_env_u("DFDB_SHAKE_ADDR");
+        shake_force=getenv("DFDB_SHAKE_FORCE")?atoi(getenv("DFDB_SHAKE_FORCE")):-1;
+        const char *rr=getenv("DFDB_RATES");
+        if(rr && strlen(rr)==3u)for(unsigned i=0;i<3u;i++)rates[i]=(unsigned)(rr[i]-'0');
+        if(getenv("DFDB_STRIPS"))strips=fopen(getenv("DFDB_STRIPS"),"wb");
+        init=1;
     }
     host=(unsigned)Atari800_nframes;
     clock=dftrace_clock();
@@ -109,6 +123,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
     if (pc==pc_start) {
         starts++;
         if (summary) {
+            if(shake_addr)fprintf(out,"{\"stripFrames\":%u,\"rngErrors\":%u,\"restoredVscrol\":%u,\"restoreErrors\":%u}\n",strip_count,rng_errors,(unsigned)ANTIC_VSCROL,restore_errors);
             fprintf(out,"{\"restartedLevel\":%u,\"summary\":true,\"frames\":%u,\"misses\":%u,\"hudErrors\":%u,\"shipErrors\":%u,\"dliErrors\":%u,\"returnedToMenu\":%u,\"readImageChecks\":%u,\"readImageErrors\":%u,\"readAttempts\":%u,\"sioFailures\":%u,\"readDlis\":%u,\"readDliErrors\":%u,\"strobeFrames\":%u,\"strobeDliWallPeak\":%llu,\"strobeCpuTop\":%u,\"strobeCpuRing\":%u,\"strobeCpuHud\":%u,\"strobeBlockPeak\":%llu}\n",
                 MEMORY_mem[0xA603u],frame_count,misses,hud_errors,ship_errors,dli_errors,menu,read_checks,read_errors,attempts,sio_failures,read_dlis,read_dli_errors,strobe_frames,dli_wall_peak,dli_cpu_peak[0],dli_cpu_peak[1],dli_cpu_peak[2],dli_block_peak);
             fclose(out); exit(0);
@@ -186,12 +201,14 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
     if (forced && !entered && pc==pc_engine) {
         fprintf(out,"{\"readPauseFrames\":%.3f}\n",(clock-read_clock)/35568.0);
         db_picture(0);
+        rng_saved=MEMORY_mem[0x8006u];
         entered=1;
     }
     if (finished && pc==v_MENU) menu=1;
-    if (entered && pc==death_dli_pc) {
+    if (entered && (pc==death_dli_pc || pc==top_dli)) {
         unsigned index=MEMORY_mem[0x4D05u];
         unsigned expected=index==128u ? 239u : 15u+index*8u;
+        if(shake_addr && index>=2u && index<=9u)expected-=ANTIC_VSCROL;
         dli_count++;
         if ((unsigned)ANTIC_ypos!=expected) dli_errors++;
     }
@@ -199,8 +216,16 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
         if (!frame_count) fprintf(out,"{\"pauseHostFrames\":%u,\"pauseClockFrames\":%.3f}\n",host-read_host,(clock-read_clock)/35568.0);
         if (last_host && host-last_host!=1) misses++;
         last_host=host; start_clock=clock;
+        if(!frame_count && rates[0]) {
+            for(unsigned i=0;i<3u;i++)MEMORY_mem[rate_addr[i]]=(UBYTE)rates[i];
+            MEMORY_mem[crown_dir_addr]=(UBYTE)crown_dir_value;
+        }
     }
     if (entered && pc==pc_fence) {
+        if(shake_addr && shake_force>=0) {
+            unsigned f=frame_count+1u;
+            MEMORY_mem[shake_addr]=(UBYTE)(shake_force==0?0u:f<80u?3u:f<112u?2u:f<144u?1u:f==156u?3u:0u);
+        }
         unsigned long long pre=clock-start_clock;
         unsigned long long margin=ANTIC_ypos<240 ?
             (240u-(unsigned)ANTIC_ypos)*114u-(unsigned)ANTIC_XPOS : 0u;
@@ -212,6 +237,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
         unsigned long long wall=clock-start_clock;
         if (wall>max_wall) max_wall=wall;
         frame_count++;
+        wanted_strip=frame_count;
         if (memcmp(ship,&MEMORY_mem[0x3C00],256) || GTIA_HPOSP0!=ship_x ||
             GTIA_SIZEP0!=ship_size || GTIA_COLPM0!=ship_colour) ship_errors++;
         if (memcmp(hud,&MEMORY_mem[0x4000],40)) hud_errors++;
@@ -221,10 +247,23 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
         }
     }
     if (entered && pc==pc_handoff && !finished) {
+        if(shake_addr) {
+            if(ANTIC_VSCROL)restore_errors++;
+            for(unsigned i=0;i<84u;i+=3u)if(MEMORY_mem[active_list+i]&32u)restore_errors++;
+        }
         fprintf(out,"{\"peakPreFence\":%llu,\"peakDmaOn\":%llu,\"minimumFence\":%llu,\"dliCount\":%u}\n",max_pre,max_wall,min_margin,dli_count);
         finished=1;
     }
-    if (finished && pc==pc_summary) summary=1;
+    if (finished && pc==pc_summary) {
+        summary=1;
+        if(shake_addr && MEMORY_mem[0x8006u]!=rng_saved)rng_errors++;
+    }
+    if(strips && wanted_strip>strip_count && (unsigned)ANTIC_ypos>=248u && host!=strip_host) {
+        const UBYTE *pixels=(const UBYTE *)Screen_atari;
+        fwrite(pixels+8u*Screen_WIDTH,1,8u*Screen_WIDTH,strips);
+        fwrite(pixels+208u*Screen_WIDTH,1,32u*Screen_WIDTH,strips);
+        fflush(strips);strip_count++;strip_host=host;
+    }
     if(dli_begin_clock) {dli_prev_pc=pc; dli_prev_op=MEMORY_mem[pc];}
     (void)x;(void)y;(void)s;(void)menu;
 }

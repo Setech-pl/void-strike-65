@@ -1,0 +1,31 @@
+{
+  "before": {
+    "engine": 1948,
+    "engineDisk": 2048,
+    "bootstrap": 157,
+    "bootstrapDisk": 512,
+    "state": 13,
+    "scratchSpan": 301
+  },
+  "after": {
+    "engine": 2559,
+    "engineDisk": 2560,
+    "engineFree": 1025,
+    "bootstrap": 157,
+    "bootstrapDisk": 512,
+    "state": 23,
+    "scratchSpan": 480,
+    "scratchHighWater": "$4DE0",
+    "scratchAboveHighWater": 96,
+    "activeList": 92,
+    "blankRow": 64
+  },
+  "unchanged": {
+    "wingBuffer": 512,
+    "scratchCapacity": 576,
+    "install": 383,
+    "installFree": 1,
+    "residentDelta": 0,
+    "windowDelta": 0
+  }
+}

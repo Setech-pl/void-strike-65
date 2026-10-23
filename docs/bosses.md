@@ -32,8 +32,9 @@ their own.
 
 In the current candidate build, destroying the last weapon makes the boss
 strobe in the fight view. Secondary explosions build up, then its crown flies
-up and its wings drift apart at half the earlier speed. The destruction lasts
-about 3.5 seconds, with a final flash before the summary.
+up and its wings fly apart at different, randomly chosen speeds. The playfield
+shakes hard and then settles while the HUD and player ship stay steady. The
+destruction lasts about 3.5 seconds, with a final flash before the summary.
 
 - **Arrival.** When the level's last sector is clear, the screen goes black
   for a third of a second. The boss's banner follows: its picture, WARNING,

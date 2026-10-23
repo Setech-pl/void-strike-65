@@ -54,18 +54,25 @@ const labels=f=>new Map([...fs.readFileSync(path.join(dir,f),"utf8").matchAll(/^
 const main=labels("void-strike-65.lbl"), boss=labels("boss.lbl"), death=labels("boss-death.lbl"),
   reader=labels("sector-reader.lbl"), summary=labels("level-summary.lbl");
 const all=new Map([...main,...labels("integration-glue.lbl"),...reader,...boss]);
-const out=path.join(root,"build/play/boss-death-breakup/native");fs.mkdirSync(out,{recursive:true});
+const out=path.resolve(arg("output-dir","build/play/boss-death-breakup/native"));fs.mkdirSync(out,{recursive:true});
 const scene=arg("case","");
 const log=path.join(out,`r${region}${scene ? `-${scene}` : ""}.jsonl`);
 const m=JSON.parse(fs.readFileSync(path.join(dir,"manifest.json")));
 const r=compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root,m.boss.order[region-1])));
 const fixture=path.join(out,`r${region}-spent.bin`);
 fs.writeFileSync(fixture,Buffer.from(looks(r).allGone.flat().map(code=>r.nozzle.codes.includes(code&127) || code===r.field?.code ? 0:code)));
-const last=r.modules.reduce((best,x,i)=>x.kind!=="armour" && Math.abs(x.x+x.width/2-(scene==="left"?0:scene==="right"?63:32))<best.d ?
-  {i,d:Math.abs(x.x+x.width/2-(scene==="left"?0:scene==="right"?63:32))}:best,{i:0,d:999}).i;
+const weapon=arg("weapon",scene);
+const last=r.modules.reduce((best,x,i)=>x.kind!=="armour" && Math.abs(x.x+x.width/2-(weapon==="left"?0:weapon==="right"?63:32))<best.d ?
+  {i,d:Math.abs(x.x+x.width/2-(weapon==="left"?0:weapon==="right"?63:32))}:best,{i:0,d:999}).i;
 const env={...process.env,SDL_VIDEODRIVER:"dummy",DFTRACE_FRAMES:"10000",DFTRACE_ACTIVE_FRAMES:"0",
   DFTRACE_FIRE_DELAY:"60000",DFTRACE_DIFFICULTY:"1",DFTRACE_POLICY:"neutral",DFTRACE_SESSION:"boss-death",
-  DFTRACE_OUTPUT:path.join(out,"unused.csv"),DFTRACE_FRONTEND_DELAY:"300",DFDB_OUTPUT:log,DFDB_FIXTURE:fixture,DFDB_POSITION_VALUE:arg("position","65535"),DFDB_PHOTOS:scene?"0":"1",DFDB_FRAMES:String(frames)};
+  DFTRACE_OUTPUT:path.join(out,"unused.csv"),DFTRACE_FRONTEND_DELAY:"300",DFDB_OUTPUT:log,DFDB_FIXTURE:fixture,DFDB_POSITION_VALUE:arg("position","65535"),DFDB_PHOTOS:scene?"0":"1",DFDB_FRAMES:String(frames),DFDB_RATES:arg("rates",""),DFDB_CROWN_DIR:arg("crown-dir","0"),DFDB_SHAKE_FORCE:arg("shake","-1")};
+if(!baseline) {
+  for(const [key,name]of Object.entries({RATE_L:"_death_left_rate",RATE_R:"_death_right_rate",RATE_C:"_death_crown_rate",CROWN_DIR_ADDR:"_death_crown_dir",SHAKE_ADDR:"_death_shake"})) {
+    if(death.has(name))env[`DFDB_${key}`]=`0x${death.get(name).toString(16)}`;
+  }
+  if(process.argv.includes("--strips"))env.DFDB_STRIPS=log+".strips";
+}
 const text=fs.readFileSync("scripts/runtime-wall-trace.mjs","utf8").split("const traceLabels = {")[1].split("\n};")[0];
 for(const [,key,name] of text.matchAll(/(DFTRACE_\w+): "([^"]+)"/g)) if(all.has(name)) env[key]=`0x${all.get(name).toString(16)}`;
 const pcs={MAIN:main.get("main_loop"),RESUME:main.get("resume_gameplay_dli_lo_operand"),
@@ -76,7 +83,7 @@ const pcs={MAIN:main.get("main_loop"),RESUME:main.get("resume_gameplay_dli_lo_op
   PHASE:boss.get("_boss_phase"),N:boss.get("_boss_n"),POSITION:boss.get("boss_shown_pos"),POSSTATE:boss.get("boss_pos"),DLI_POS:boss.get("boss_dli_pos"),
   DIR:boss.get("boss_dir"),STEP_TIMER:boss.get("boss_step_timer"),LAST:last,DLI:death.get("death_dli"),CLOCK:boss.get("_boss_clock_lo"),
   STROBE:baseline?0:boss.get("boss_dli"),READ_RING:baseline?0:boss.get("boss_death_dli"),FAST_HUD:baseline?0:boss.get("boss_death_hud"),
-  READ_SECTOR:reader.get("sector_reader_read_sector"),WIRE:reader.get("sector_reader_rs_wire"),NO_DEVICE:reader.get("sector_reader_rs_no_device"),DEVICE:reader.get("sector_reader_rs_device"),
+  TOP_DLI:death.get("death_dli_top_entry")??death.get("death_dli"),ACTIVE_LIST:main.get("PLAYFIELD_DLIST_A"),READ_SECTOR:reader.get("sector_reader_read_sector"),WIRE:reader.get("sector_reader_rs_wire"),NO_DEVICE:reader.get("sector_reader_rs_no_device"),DEVICE:reader.get("sector_reader_rs_device"),
   BAND_END:23+8*r.bandShownRows,SEPARATOR:main.get("GAMEPLAY_DIVIDER_SCREEN"),
   RELEASE:summary.get("summary_fire_release"),PRESS:summary.get("summary_fire_press")};
 for(const [k,v]of Object.entries(pcs)) {if(!Number.isInteger(v))throw new Error(`Missing ${k}`);env[`DFDB_${k}`]=`0x${v.toString(16)}`;}

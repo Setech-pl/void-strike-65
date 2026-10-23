@@ -1,0 +1,16 @@
+{
+  "before": {
+    "total": 1040,
+    "placed": 478,
+    "free": 562,
+    "breakup": 20,
+    "reservationFree": 12
+  },
+  "after": {
+    "total": 1040,
+    "placed": 482,
+    "free": 558,
+    "breakup": 24,
+    "reservationFree": 8
+  }
+}

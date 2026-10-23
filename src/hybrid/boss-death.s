@@ -7,10 +7,13 @@
 .import _death_init, _death_tick, _death_frame, _death_shift, _death_up
 .import _death_fx, _death_flash, _death_done
 .import _death_shake, _death_blast_phase, _death_burst, _death_vanish
+.import _death_left_shift, _death_right_shift, _death_crown_shift, _death_crown_dir
+.import _death_left_step, _death_right_step
+.export _death_random
 .export _death_light_state
 _death_light_state = DEATH_LIGHT_STATE
 .export death_entry, death_frame_begin, death_pre_fence, death_publish_end
-.export death_dli, death_handoff, death_copy, death_front
+.export death_dli, death_dli_top_entry, death_handoff, death_copy, death_front
 .export death_layout, death_publish
 REGION = $4D00
 POSITION = $4D01
@@ -43,6 +46,14 @@ PALETTE3 = $4C10
 NEXT1 = $4C20
 NEXT3 = $4C30
 NEXT_LIST = $4C40
+RNG_SAVE = $4D1D
+COPY_END = $4D1E
+COPY_FRONT = $4D1F
+CROWN_FRONT = $4D60
+BLANK_ROW = $4DA0
+PRIVATE_LIST = $4CA0
+PRIVATE_ENTRY = PRIVATE_LIST+89
+VSCROL = $D405
 BUFFER = $1E00
 VCOUNT = $D40B
 WSYNC = $D40A
@@ -62,6 +73,11 @@ death_entry:
     sta death_front
     sta FRAME_FX
     sta STEP
+    sta CROWN_FRONT
+    ldx #63
+:   sta BLANK_ROW,x
+    dex
+    bpl :-
     ldx #0
 @blank:
     sta BUFFER,x
@@ -153,6 +169,8 @@ death_entry:
     lsr
     lsr
     sta COARSE
+    lda ENTITY_RNG_STATE
+    sta RNG_SAVE
     jsr _death_init
     jsr erase_fighter_projectile_overlays_with_light
     ldy SPLIT
@@ -211,6 +229,16 @@ death_entry:
     sta NEXT_LIST+88
     lda #>(PLAYFIELD_DLIST_A-1)
     sta NEXT_LIST+89
+    ; Eight scrolling boss slots; header/separator and tail stay outside.
+    ldx #3
+:   lda NEXT_LIST,x
+    ora #$20
+    sta NEXT_LIST,x
+    inx
+    inx
+    inx
+    cpx #27
+    bne :-
     ; Keep the held fight/DLI live until the complete first breakup list is
     ; ready. Switch vectors only after the HUD has reached the fence.
     jsr death_layout
@@ -223,16 +251,16 @@ death_entry:
     ; waiting in the previous fight list's tail.
     lda #0
     sta DMACTL
-    lda #<PLAYFIELD_DLIST_ENTRY
+    lda #<PRIVATE_ENTRY
     sta $D402
-    lda #>PLAYFIELD_DLIST_ENTRY
+    lda #>PRIVATE_ENTRY
     sta $D403
-    lda #<death_dli
+    lda #<death_dli_top_entry
     sta VDSLST
-    lda #>death_dli
+    lda #>death_dli_top_entry
     sta VDSLST+1
     lda #$E0
-    sta PLAYFIELD_DLIST_A-1
+    sta PRIVATE_LIST
     jsr wait_frame_start
     lda #$80
     sta NMIEN
@@ -263,6 +291,9 @@ death_frame_begin:
     beq :+
     jsr death_copy
     inc STEP
+:   lda _death_crown_shift
+    beq :+
+    jsr death_copy_crown
 :   jsr death_layout
 death_pre_fence:
     ldx #$77
@@ -272,6 +303,8 @@ death_publish_end:
     lda _death_done
     beq death_loop
 death_handoff:
+    lda RNG_SAVE
+    sta ENTITY_RNG_STATE
     lda #0
     sta $D205
     lda GAME_MUSIC_ENABLED
@@ -282,6 +315,12 @@ death_handoff:
     jmp sector_reader_level_end
 
 .segment "DEATH_CODE"
+_death_random:
+    jsr entity_next_rng
+    eor ACTIVE_GAMEPLAY_FRAME_LO
+    ldx #0
+    rts
+
 death_blast:
     lda _death_frame
     cmp #12
@@ -354,11 +393,15 @@ death_secondary:
     lda #0
     sta EDGE_LEFT
     cpx #2
-    bcc @point
-    lda STEP
+    bcs :+
+    lda CROWN_FRONT
+    bne @secondary_buffer
+    beq @point
+:   lda _death_left_step
     sta EDGE_LEFT
     lda death_front
     beq @point
+@secondary_buffer:
     lda buffer_lo,x
     sta DEST_LO
     txa
@@ -406,7 +449,7 @@ death_secondary:
 @right:
     lda SPLIT
     clc
-    adc EDGE_LEFT
+    adc _death_right_step
     adc EDGE_RIGHT
     cmp #64
     bcs @exit
@@ -432,11 +475,35 @@ death_secondary:
 @empty:
     rts
 
-; One bounded character shift per side, from the FRONT buffer into the
-; other buffer. ANTIC may read FRONT throughout; no visible-cell writes.
+; Bounded front-to-back copies: wing steps 0/1, crown steps 1..3.
+; Crown copies use the reserved no-wing tick; ANTIC reads only the old front.
 death_copy:
     lda #2
     sta ROW
+    lda ROWS
+    sta COPY_END
+    lda death_front
+    sta COPY_FRONT
+    jsr death_copy_rows
+    lda death_front
+    eor #1
+    sta death_front
+    rts
+
+death_copy_crown:
+    lda #0
+    sta ROW
+    lda #2
+    sta COPY_END
+    lda CROWN_FRONT
+    sta COPY_FRONT
+    jsr death_copy_rows
+    lda CROWN_FRONT
+    eor #1
+    sta CROWN_FRONT
+    rts
+
+death_copy_rows:
 @row:
     ldx ROW
     lda band_lo,x
@@ -450,7 +517,7 @@ death_copy:
     lsr
     clc
     adc #>BUFFER
-    ldy death_front
+    ldy COPY_FRONT
     beq @dest_buffer
     sta SRC_HI
     lda buffer_lo,x
@@ -461,35 +528,64 @@ death_copy:
     lda buffer_lo,x
     sta DEST_LO
 @addresses:
+    lda _death_left_shift
+    sta EDGE_LEFT
+    lda _death_right_shift
+    sta EDGE_RIGHT
+    lda SPLIT
+    sta FRAME_FX
+    lda ROW
+    cmp #2
+    bcs @wing
+    lda #0
+    sta EDGE_LEFT
+    sta EDGE_RIGHT
+    lda _death_crown_dir
+    beq @crown_left
+    lda _death_crown_shift
+    sta EDGE_RIGHT
+    lda #0
+    beq @split
+@crown_left:
+    lda _death_crown_shift
+    sta EDGE_LEFT
+    lda #64
+@split:
+    sta FRAME_FX
+@wing:
+    lda FRAME_FX
+    sec
+    sbc EDGE_LEFT
+    sta @left_end+1
+    lda FRAME_FX
+    clc
+    adc EDGE_RIGHT
+    sta @gap_end+1
     lda SRC_LO
     clc
-    adc #1
+    adc EDGE_LEFT
     sta @left_read+1
+    lda SRC_HI
+    adc #0
+    sta @left_read+2
+    lda SRC_LO
     sec
-    sbc #2
+    sbc EDGE_RIGHT
     sta @right_read+1
     lda SRC_HI
-    sta @left_read+2
+    sbc #0
     sta @right_read+2
-    ; row bases are 64-byte aligned. src-1 borrows at row offsets 0:
-    lda SRC_LO
-    bne :+
-    dec @right_read+2
-:   lda DEST_LO
+    lda DEST_LO
     sta @left_write+1
     sta @right_write+1
-    sta @zero_write2+1
     sta @zero_write+1
     lda DEST_HI
     sta @left_write+2
     sta @right_write+2
-    sta @zero_write2+2
     sta @zero_write+2
-    lda SPLIT
-    sec
-    sbc #1
-    sta @left_end+1
     ldy #0
+    cpy @left_end+1
+    beq @gap
 @left_read:
     lda $FFFF,y
 @left_write:
@@ -498,13 +594,18 @@ death_copy:
 @left_end:
     cpy #0
     bne @left_read
+@gap:
     lda #0
+@gap_end:
+    cpy #0
+    beq @right
 @zero_write:
     sta $FFFF,y
     iny
-@zero_write2:
-    sta $FFFF,y
-    iny
+    bne @gap_end
+@right:
+    cpy #64
+    beq @next
 @right_read:
     lda $FFFF,y
 @right_write:
@@ -512,19 +613,16 @@ death_copy:
     iny
     cpy #64
     bne @right_read
+@next:
     inc ROW
     lda ROW
-    cmp ROWS
+    cmp COPY_END
     bcs :+
     jmp @row
-:
-    lda death_front
-    eor #1
-    sta death_front
-    rts
+:   rts
 
 ; Build shadow row pointers and shadow palette pairs. The crown's two
-; immutable original rows move into the divider and off the visible top;
+; buffered character rows move into the divider and off the visible top;
 ; lower fragments retain their own source-row colours throughout.
 death_layout:
     lda #0
@@ -564,6 +662,13 @@ death_layout:
 @crown:
     sta SOURCE_ROW
     tax
+    lda CROWN_FRONT
+    beq @original
+    lda buffer_lo,x
+    sta DEST_LO
+    lda #>BUFFER
+    sta DEST_HI
+    jmp @point
 @original:
     lda band_lo,x
     sta DEST_LO
@@ -573,9 +678,9 @@ death_layout:
 @blank:
     lda #0
     sta SOURCE_ROW
-    lda #<BUFFER
+    lda #<BLANK_ROW
     sta DEST_LO
-    lda #>BUFFER
+    lda #>BLANK_ROW
     sta DEST_HI
 @point:
     ldx ROW
@@ -628,12 +733,57 @@ death_layout:
     rts
 
 death_publish:
+    lda _death_done
+    bne @restore_list
+    lda _death_shake
+    sta VSCROL
+    ldx #29
+@head:
+    lda NEXT_LIST,x
+    sta PRIVATE_LIST+1,x
+    dex
+    bpl @head
+    lda #$60                    ; seven scanlines after the scroll-exit row
+    sta PRIVATE_LIST+31
+    ldx #59
+@tail:
+    lda NEXT_LIST+30,x
+    sta PRIVATE_LIST+32,x
+    dex
+    bpl @tail
+    lda #<PRIVATE_LIST
+    sta PRIVATE_ENTRY+1
+    lda #>PRIVATE_LIST
+    sta PRIVATE_ENTRY+2
+    jmp @palettes
+@restore_list:
+    lda #0
+    sta VSCROL
+    ldx #3
+@unscroll:
+    lda NEXT_LIST,x
+    and #$DF
+    sta NEXT_LIST,x
+    inx
+    inx
+    inx
+    cpx #27
+    bne @unscroll
     ldx #89
 @list:
     lda NEXT_LIST,x
     sta PLAYFIELD_DLIST_A,x
     dex
     bpl @list
+    lda #$E0
+    sta PLAYFIELD_DLIST_A-1
+    lda #<PLAYFIELD_DLIST_ENTRY
+    sta $D402
+    lda #>PLAYFIELD_DLIST_ENTRY
+    sta $D403
+@palettes:
+    lda #<death_dli_top_entry
+    sta VDSLST
     ldx #8
 :   lda NEXT1,x
     sta PALETTE1,x
@@ -648,12 +798,7 @@ death_publish:
     lda #<(PALETTE3+1)
     sta death_pal3+1
     lda SCROLL
-    clc
-    adc _death_shake
-    cmp #16
-    bcc :+
-    lda SCROLL
-:   sta HSCROL
+    sta HSCROL
     jsr death_sparks
     jsr death_secondary
     lda sound_enabled
@@ -706,20 +851,26 @@ death_sparks:
     sbc POSITION
     sta EDGE_LEFT
     sta EDGE_RIGHT
-    lda STEP
+    lda _death_left_step
     asl
     asl
     sta FRAME_FX
     lda EDGE_LEFT
     sec
     sbc FRAME_FX
+    bcc @right
     cmp #44
     bcc @right
     sta $D001
 @right:
+    lda _death_right_step
+    asl
+    asl
+    sta FRAME_FX
     lda EDGE_RIGHT
     clc
     adc FRAME_FX
+    bcs @shape
     cmp #212
     bcs @shape
     sta $D002
@@ -735,22 +886,34 @@ death_sparks:
     ; Two missile sparks, fixed HPOS each frame. Erase previous 48-line
     ; trail range before drawing the new pair.
 @done:
-    ldx #63
+    ldx #95
     lda #0
 :   sta $3B10,x
     dex
     bpl :-
     lda _death_fx
     beq @exit
+    lda _death_left_step
+    asl
+    asl
+    sta FRAME_FX
     lda EDGE_LEFT
     sec
     sbc FRAME_FX
-    sta $D005
+    bcs :+
+    lda #0
+:   sta $D005
+    lda _death_right_step
+    asl
+    asl
+    sta FRAME_FX
     lda EDGE_RIGHT
     clc
     adc FRAME_FX
-    sta $D006
-    lda STEP
+    bcc :+
+    lda #0
+:   sta $D006
+    lda _death_left_step
     clc
     adc #32
     tay
@@ -780,8 +943,14 @@ death_pal3 = *
     inc DLI_INDEX
     pla
     rti
+death_dli_top_entry:
+    pha
+; The direct vector avoids a late WSYNC when the crown enters the divider.
 death_dli_top:
+    lda PALETTE3
     sta WSYNC
+    sta COLPF3
+    cld
     lda #$0C
     sta CHBASE
     lda PAL0
@@ -790,10 +959,10 @@ death_dli_top:
     sta COLPF1
     lda PAL2
     sta COLPF2
-    lda PALETTE3
-    sta COLPF3
     lda BACKDROP
     sta $D01A
+    lda #<death_dli
+    sta VDSLST
     inc DLI_INDEX
     pla
     rti
@@ -820,6 +989,8 @@ death_dli_hud:
     sta WSYNC
     sta COLPF2
     jmp gameplay_dli_hud
+
+.assert >death_dli_top_entry = >death_dli, error, "death DLI atomic vectors need one page"
 
 .segment "DEATH_DATA"
 burst_rows:

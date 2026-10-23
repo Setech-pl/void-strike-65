@@ -7485,14 +7485,23 @@ The separate `b2261c9` boss stress regression was fixed in main merge
 `686d3f5` (§BP); it no longer blocks the window levers or release.
 Boss death breakup B at `77c3104`: owner smoke accepted the safe-DLI read
 strobe/continuity, 175-frame duration and slower drift (2026-10-23). Full §BQ
-acceptance and merge remain pending independent random motion.
-Owner rejected per-piece vertical wobble as too costly (03fe9ee) and selected
-independent horizontal speeds plus boss-playfield shake with the HUD fixed.
-The rejected probe is archived under diagnostics; no active trial code remains.
-Game code and campaign ATR are byte-identical to 77c3104: engine 1948 B,
-breakup 20 sectors, 562 total free sectors. Full §BQ acceptance is pending.
-**NEXT TASK:** assess VSCROL/DLI alignment, then implement the owner-selected
-revision if safe. No merge or push before the revised owner smoke.
+acceptance and merge remain pending the revised owner smoke.
+Owner rejected per-piece vertical wobble as too costly (03fe9ee), selected
+independent horizontal speeds plus VSCROL playfield shake with HUD fixed.
+The revised **OWNER-SMOKE CANDIDATE** draws distinct .25/.5/.75 cell/tick
+speeds for crown/left/right; seeded entity RNG is saved/restored. Compensated
+private E display list keeps HUD/separator fixed; 175 ticks and read strobe
+are retained. Engine 2559 B (1025 free); 24 breakup sectors (+4), 558 free on
+the whole disk and 8 in the breakup reservation. Install 383 B, entry gates
+325/340/340/344. Max death DMA-on 29537, min. fence 2828. All 16800 paired
+maximum-envelope frame comparisons pass; RNG/VSCROL/list restoration pass.
+Fight/reader code is identical; only generated cold count/fold values change.
+Seven focused death checks and three map checks pass. Read/strobe now about
+1.9 s on emulator because the overlay is four sectors longer.
+[As-built plan](plans/boss-death-breakup.md),
+[proof, resource tables and ATRs](diagnostics/boss-death-shake-2026-10-23/README.md).
+**NEXT TASK:** owner smoke: different piece speeds, strong shake calming down,
+steady clean HUD/ship, normal summary. §BQ acceptance/merge/push wait for OK.
 Runtime evidence regeneration and the default full verification remain
 required before release (§BM).
 

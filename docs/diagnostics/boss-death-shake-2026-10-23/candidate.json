@@ -1,0 +1,47 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "date": "2026-10-23",
+  "branch": "codex/boss-death-breakup",
+  "artifacts": [
+    {
+      "name": "campaign",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-campaign-b282f1a86ec2.atr",
+      "source": "dist/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "b282f1a86ec2b103f5ba5d0b2c07f3c927a3514be6f3bfbd721bd1ca61042034",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-campaign-b282f1a86ec2.atr"
+    },
+    {
+      "name": "r1-breaker",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r1-breaker-93e37af062c7.atr",
+      "source": "build/level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "93e37af062c7cbd684d42c4204dcdd197f6b2c0c05895a1aba377213c394817b",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r1-breaker-93e37af062c7.atr"
+    },
+    {
+      "name": "r2-citadel",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r2-citadel-02693e48a669.atr",
+      "source": "build/boss-region-2-level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "02693e48a6698507688dfaa4bc7b4530bbbd222c392b79bd66a56ff9d404acaf",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r2-citadel-02693e48a669.atr"
+    },
+    {
+      "name": "r3-spine",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r3-spine-3b07e5b18c4f.atr",
+      "source": "build/boss-region-3-level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "3b07e5b18c4fe296220b400db5073bd161f13a9a6fb32ef68de7b04623037a4e",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r3-spine-3b07e5b18c4f.atr"
+    },
+    {
+      "name": "r4-bastion",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r4-bastion-147bf0da33ab.atr",
+      "source": "build/boss-region-4-level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "147bf0da33abd2aaedbdca8bd46aa023bc97891af6af8783f16d532eeb6d5d2a",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter/build/play/boss-death-breakup/boss-death-b-shake-r4-bastion-147bf0da33ab.atr"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-23 (normal/release build evidence policy, owner decision §BR; computed gates unchanged)
+Last update: 2026-10-23 (Citadel gold gravity well owner-accepted, §BT)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,12 +20,14 @@ the values below.
 
 ## Checkpoint
 
-### Citadel gravity colour — OWNER-SMOKE CANDIDATE
+### Citadel gravity colour — OWNER-ACCEPTED
 
-2026-10-23, branch `codex/citadel-gravity-color`, baseline `6dae5a6`.
+Owner smoke PASS on `0989f17`, 2026-10-23, §BT; branch
+`codex/citadel-gravity-color`, baseline `6dae5a6`.
 The well uses M3 / capsule gold COLPM3; a Citadel-only first-frame initializer
 clears remembered SPACE LIFE before the first visible column. Capsule,
-breakup, HUD and lance code are unchanged. Slot F +23 B, 83 B free; +27 cycles
+breakup, HUD and lance code are unchanged. Slot F region 2 (Citadel) uses
+429/512 B: +23 B, **83 B free**; +27 cycles
 once, no recurring overhead or resident/window/DIRECTOR_RAM growth.
 Citadel stress L4/L5 **8112/8447**, unchanged; native entry **340/350 frames**.
 Normal build PASS with expected pending release evidence. Other boss regional
@@ -33,8 +35,13 @@ payloads are byte-identical. Shared header changes only Citadel's checksum.
 [Plan](plans/citadel-gravity-color.md),
 [evidence and known pre-existing test failure](diagnostics/citadel-gravity-color-2026-10-23/README.md),
 [five candidate ATRs](diagnostics/citadel-gravity-color-2026-10-23/candidate.json).
-Owner smoke pending; retain the KNOWN ISSUE until OK. NEXT TASK: owner smoke,
-then the authorized §BT/acceptance, no-ff merge, normal main build and push.
+Owner confirms gold from fight start after collecting LIFE in the last SPACE,
+gold while the ship is lance-ready green, and unchanged pull/collision and
+capsules. Gold reads as a small sun. Distinct capsule colours remain backlogged
+below. Campaign ATR SHA-256:
+`05b9e5b7a96115b8eed303b8df38b5090c76bb6b25e11500b53af1ec49ab48a7`.
+NEXT TASK: await owner direction after the authorized closure; no next roadmap
+item is started.
 
 
 
@@ -6220,10 +6227,12 @@ section's "what to look for" in the implementation report.
 
 ## Known open defects and open decisions
 
-- **KNOWN ISSUE — owner smoke 2026-10-23, pre-existing; not caused by the
-  breakup:** Citadel's gravity well (missile M0) turns green while the lance is
-  ready. Missiles share COLPM0 with player P0, whose colour changes to green
-  on lance-ready. Fix is the separate next task; no fix in boss-breakup closure.
+- **KNOWN DEBT — stale end-of-fight validator, unchanged (§BT):** the
+  combined pull test in `tests/boss-region-4.test.mjs` fails at its obsolete
+  post-defeat chain, line 236: `routine $b49f did not return`. The same test
+  fails at the identical assertion on baseline `6dae5a6`; the gravity colour
+  fix does not change this debt. Evidence:
+  [baseline/candidate comparison](diagnostics/citadel-gravity-color-2026-10-23/README.md).
 
 - **KNOWN DEBT — before release (§BQ):** real 65XE PAL + SIO2SD verification
   of the post-fight read with active DLI strobe (~1.9 s on emulator) and the

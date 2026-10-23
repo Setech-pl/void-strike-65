@@ -1,7 +1,20 @@
-# Citadel gravity colour — feasibility STOP
+# Citadel gravity colour — DONE / OWNER-ACCEPTED
 
 2026-10-23. Session: Codex. Branch: `codex/citadel-gravity-color`.
 Baseline: main/origin/main `6dae5a6`. Decision §BS committed first in `4413a91`.
+
+## Completion — 2026-10-23, §BT
+
+Owner smoke PASS on `0989f17`: gold from the start of Citadel after collecting
+LIFE in the last SPACE sector, gold while the ship is lance-ready green,
+unchanged pull/collision and capsules. Variant E with the Citadel-only slot-F
+reset is accepted: +23 B (83 B free), +27 cycles once, no recurring overhead.
+Distinct capsule colours stay in STATUS backlog after the window levers.
+The pre-existing end-of-fight validator failure remains unchanged.
+Owner authorizes the acceptance commit, no-ff merge, one normal main build
+with the smoked ATR hash, then push of both refs. No additional measurements.
+The sections below preserve the feasibility history and candidate evidence;
+their STOP/pending labels are superseded by this acceptance.
 
 ## Initial feasibility result (superseded by the owner below)
 

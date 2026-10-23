@@ -302,3 +302,29 @@ Options requiring an owner decision:
 Stopped before the production swap, stress and boss-entry measurements. No new
 candidate ATR is claimed. The baseline build is not an implementation candidate.
 The KNOWN ISSUE remains in STATUS; only the requested backlog item was added.
+
+
+## Owner decision — Citadel-only normalization, 2026-10-23
+
+Normalize the remembered LIFE type at Citadel start, in its own region code;
+no shared install/resident/window/DIRECTOR_RAM bytes, capsule/breakup/HUD/lance
+changes, or changes to any other boss overlay. Variant E otherwise stands.
+Citadel stress <=8500 and regression <=5 cycles; entry <=350 host frames.
+
+Implementation plan: slot F has frame/late hooks, not an install hook. Its
+first hook initially jumps to a one-shot initializer appended after the
+existing gravity state. It resets the pickup type to Rapid with A=0, patches
+both bytes of its own hook to the normal gravity_frame target, and patches
+only the low address byte of the existing HPOS store from HPOSM0 to HPOSM3.
+Then it tail-jumps to gravity_frame. Appending preserves existing hot code and
+state addresses. ESTIMATE: 23 B in Citadel F (106 ->83 B free), +27 cycles only
+on the first hook, zero recurring cycles. The shared E file remains identical;
+its HPOS operand changes only in RAM during Citadel. Every boss entry reloads
+E from disk, so other fights restore its original bytes. No init flag/poll.
+
+Timing/order: the well HPOS starts at zero from the disk. First gravity hook
+runs before that frame's late wave drawing and post-playfield COLPM3
+publication. It clears stale LIFE before the first visible column can be
+published by the following DLI. Capsule clearing at install precedes it.
+No subsequent install code can overwrite the normalized type. The first hook
+must be tested explicitly; the requested entry check covers its frame too.

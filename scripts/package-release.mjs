@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -12,6 +13,15 @@ const outputOption = process.argv.find((argument) => argument.startsWith("--outp
 const outputPath = outputOption
   ? path.resolve(outputOption.slice("--output=".length))
   : path.join(rootDirectory, "dist", `${releaseName}.zip`);
+
+// Direct invocation must be as strict as npm run package (§BR). Build before
+// reading archive inputs; a failed release check must never produce a ZIP.
+const releaseBuild = spawnSync(process.execPath,
+  [path.join(scriptDirectory, "build.mjs"), "--release"], {
+    cwd: rootDirectory, stdio: "inherit",
+  });
+if (releaseBuild.error) throw releaseBuild.error;
+if (releaseBuild.status !== 0) process.exit(releaseBuild.status ?? 1);
 
 const topLevelFiles = [
   ".editorconfig",

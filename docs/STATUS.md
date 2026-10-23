@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-22 (capsule boss-stress recovery — **OWNER-ACCEPTED**, owner smoke PASS on `421f5b6`; journal §BP)
+Last update: 2026-10-23 (normal/release build evidence policy, owner decision §BR; computed gates unchanged)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,33 @@ the values below.
 ---
 
 ## Checkpoint
+
+
+### Normal build / release evidence policy — §BR
+
+Owner decision 2026-10-23, Session: Codex; branch
+`codex/build-release-evidence-mode`, based on main `8e1f6bf3`.
+`npm run build` passes computed gates and warns about stale runtime evidence;
+`npm run build:release` (`--release`) keeps binding and external release gates
+fatal. The packager invokes the strict build even when called directly.
+Pending evidence is explicit in the manifest; stale report timing is never
+attached as current measurements. All computed CPU/frame, DMA-on, fence,
+block-size, window, boss-entry and disk gates remain unchanged and fatal.
+
+Branch verification: normal build PASS with a warning naming both boot.bin
+and ATR, evidence commit `b3b8e466` and "release build will fail". Release
+build FAIL as required at `Runtime wall trace binding mismatch for
+void-strike-65-boot.bin`. Ten focused evidence-policy tests PASS, including
+strict release rejection and packager failure before ZIP creation. Every
+manifest field outside build/evidence metadata matches the `8e1f6bf3`
+baseline. No game, ASM, data, linker or wall-trace-validator change.
+
+Campaign ATR remains byte-identical:
+`b282f1a86ec2b103f5ba5d0b2c07f3c927a3514be6f3bfbd721bd1ca61042034`.
+No owner smoke is needed for this tooling/docs change; the owner authorizes
+merge/push after these checks and one passing normal build on main. The four
+validator repairs and full release-evidence chain remain deferred in KNOWN
+DEBT below; no long trace or full tests run in this task.
 
 
 ### Capsule boss-stress recovery — OWNER-ACCEPTED
@@ -7540,18 +7567,35 @@ is summary -> menu -> START GAME; M4 direct progression is not implemented here.
 stale release evidence (binding / stage-2) in the full pre-release chain.
 Owner acceptance does not clear either debt.
 
-- **Normal build red since `b2261c9` (2026-10-22):**
+- **Historical normal-build failure since `b2261c9` (2026-10-22):**
   `Runtime wall trace binding mismatch for void-strike-65-boot.bin`.
-  Last valid evidence is `b3b8e466` (2026-10-21). Clean pre-breakup main
-  `686d3f5` fails the same check. Merges since then were validated with
-  `build:candidate` gates only; this is pre-existing release-evidence debt.
-- **Runtime wall-trace functional failure on main `d73f3a82`:**
-  `Director completion trace measured 16184 frames and 0/3 level-end summaries`;
-  four `core never fell` clauses, a row-switch count error and 92 DLI observer
-  deviations. All 58 timing audits PASS: DMA-on 31479/31500, minimum fence
-  1497, zero skipped frames. Under investigation; no game or validator change
-  is authorised by this debt entry. The owner explicitly accepted pushing the
-  smoked breakup with these red checks recorded (2026-10-23).
+  Last valid committed evidence is `b3b8e466` (2026-10-21); clean pre-breakup
+  main `686d3f5` failed the same binding check. Merges used candidate gates.
+  Under §BR this stale binding is a normal-build WARNING with pending evidence;
+  the explicit release build still rejects it.
+- **Deferred runtime wall-trace repairs — all category (a), before release.**
+  No game or scripted-input change is indicated:
+  1. **Four "core never fell" / 0/3 summaries:** record defeat before the
+     overlay overwrite; replace CHAIN/HOLD samples with read -> breakup ->
+     summary events (`scripts/atari800-wall-trace.h`,
+     `scripts/runtime-wall-trace.mjs`). Actual summaries and boss bonuses exist.
+  2. **Row-switch count / mask 80 -> 82:** scope hooks by overlay phase. The
+     old $16DC hook aliases the new top DLI's STA WSYNC; validate breakup
+     separately from fight palette switches.
+  3. **92 DLI observer deviations:** recognise safe-read and breakup paths
+     with their own expectations, including the safe-read HUD entry and its
+     three DLIs. Do not apply the old fight entry/phase oracle to these modes.
+  4. **Pickup oracle, since `b2261c9`:** capture collected kind and validate
+     LIFE separately from Rapid/Spread/Shield rotation. LIFE keeps booster
+     state, including 0. All 33 collection records match on `686d3f5` and main.
+  The clean `686d3f5` runtime trace took 69 min 42.14 s: all 58 timing audits
+  PASS (DMA-on 31479/31500, minimum fence 1497, zero skipped frames and DLI
+  deviations), then the old pickup oracle failed. Main's earlier failure at
+  0/3 summaries hides that later assertion. The same-failure bisect condition
+  was not met. Do not repair or rerun now; M3-H/M3/M4 will change boot/flow.
+- **Full release chain still required:** after those repairs regenerate
+  runtime evidence and stage-2 evidence, showcase:gif, full npm test and
+  failures:reconcile. Normal computed-gate PASS does not clear this debt.
 
 **NEXT TASK:** the pre-existing Citadel gravity-well/lance colour collision
 below, as a separate task. Do not implement it as part of breakup closure.

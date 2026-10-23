@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
+    "build:release": "node scripts/build.mjs --release",
     "build:candidate": "node scripts/build.mjs --candidate",
     "build:two-pmg": "node scripts/build.mjs --candidate --two-pmg-raiders",
     "enemy:review": "node scripts/build.mjs --enemy-review",
@@ -34,7 +35,7 @@
     "boss:coverage": "node scripts/boss-coverage.mjs",
     "level:play": "node scripts/build.mjs",
     "clean": "node scripts/clean.mjs",
-    "package": "npm run build && node scripts/package-release.mjs",
+    "package": "node scripts/package-release.mjs",
     "preview": "node scripts/preview.mjs && node scripts/starfield-preview.mjs",
     "showcase": "node scripts/github-showcase.mjs",
     "showcase:gif": "node scripts/showcase-gif.mjs",

@@ -167,12 +167,11 @@ import {
   renderBossBannerInclude,
 } from "./boss-banner.mjs";
 import {
-  evaluateReleaseGate,
   loadRecordedGateFailures,
-  releaseGateFailureMessage,
+  resolveRuntimeEvidence,
   runtimeArtifactSet,
+  runtimeEvidenceCommit,
   runtimeEvidencePhase,
-  validateRuntimeEvidenceBinding,
 } from "./runtime-evidence.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -182,7 +181,9 @@ const distDirectory = path.join(rootDirectory, "dist");
 const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "package.json"), "utf8"));
 const gameVersion = packageDefinition.version;
 const quiet = process.argv.includes("--quiet");
-const candidateBuild = runtimeEvidencePhase(process.argv) === "candidate";
+const evidencePhase = runtimeEvidencePhase(process.argv);
+const candidateBuild = evidencePhase === "candidate";
+const releaseBuild = evidencePhase === "release";
 const asmDirectorBaseline = process.argv.includes("--asm-director");
 const skipRuntimeMeasurement = process.argv.includes("--skip-runtime-measurement");
 const twoPmgRaiderPrototype = process.argv.includes("--two-pmg-raiders");
@@ -447,6 +448,9 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
   laserTierValue !== null || bossVariantSlug !== undefined;
+if (releaseBuild && (isReviewVariant || twoPmgRaiderPrototype)) {
+  throw new Error("--release requires the campaign build with all computed gates");
+}
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -4519,19 +4523,17 @@ async function build() {
   });
   const wallTracePath = path.join(rootDirectory, "docs", "runtime-wall-trace.json");
   let wallTrace = null;
-  if (!isReviewVariant && !candidateBuild) {
-    if (!fs.existsSync(wallTracePath)) {
-      throw new Error("Final build requires a complete runtime wall trace; run the candidate and trace phases first");
-    }
-    wallTrace = JSON.parse(fs.readFileSync(wallTracePath, "utf8"));
-    validateRuntimeEvidenceBinding(wallTrace, runtimeArtifacts);
-    // Owner decision 2026-09-21 — release gate semantics. `gate.passed` is
-    // false while any behavioural clause failure is recorded, so it cannot be
-    // the release gate. The gate is "no UNRECORDED gate failure, and
-    // gate.timing_and_dli_passed", evaluated against the one recorded list in
-    // docs/recorded-gate-failures.json that the tripwire test reads too.
-    const releaseGate = evaluateReleaseGate(wallTrace, loadRecordedGateFailures(rootDirectory));
-    if (!releaseGate.passed) throw new Error(releaseGateFailureMessage(releaseGate));
+  let evidence = { status: "pending", report: null, warning: null, staleFiles: [] };
+  const evidenceCommit = runtimeEvidenceCommit(rootDirectory);
+  if (!isReviewVariant) {
+    evidence = resolveRuntimeEvidence({
+      phase: evidencePhase, evidenceCommit, artifacts: runtimeArtifacts,
+      report: candidateBuild || !fs.existsSync(wallTracePath) ? null
+        : JSON.parse(fs.readFileSync(wallTracePath, "utf8")),
+      recordedFailures: releaseBuild ? loadRecordedGateFailures(rootDirectory) : [],
+    });
+    wallTrace = evidence.report;
+    if (evidence.warning !== null) console.warn(evidence.warning);
   }
   const runtimeTiming = cpuRuntimeTiming === null ? null : {
     ...cpuRuntimeTiming,
@@ -6080,10 +6082,15 @@ async function build() {
       quitConfirmationDefault: "NO",
     },
     runtimeEvidence: isReviewVariant ? null : {
-      status: candidateBuild ? "candidate-awaiting-trace" : "final-bound",
+      status: evidence.status === "pending" ? `${evidencePhase}-awaiting-trace`
+        : releaseBuild ? "final-bound" : "normal-bound",
+      phase: evidencePhase,
+      evidenceCommit,
+      staleFiles: evidence.staleFiles,
+      warning: evidence.warning,
       artifacts: runtimeArtifacts,
-      reportPath: candidateBuild ? null : "docs/runtime-wall-trace.json",
-      reportSha256: candidateBuild ? null : sha256(fs.readFileSync(wallTracePath)),
+      reportPath: wallTrace === null ? null : "docs/runtime-wall-trace.json",
+      reportSha256: wallTrace === null ? null : sha256(fs.readFileSync(wallTracePath)),
     },
     artifacts: {
       "void-strike-65-boot.bin": { bytes: transportPayload.length, sha256: sha256(transportPayload) },
@@ -6203,9 +6210,8 @@ async function build() {
   escortVariant?.assertConsumed();
 
   if (!quiet) {
-    console.log(candidateBuild
-      ? `Void Strike 65 ${gameVersion} candidate artifacts built; runtime evidence pending`
-      : `Void Strike 65 ${gameVersion} built successfully`);
+    console.log(`Void Strike 65 ${gameVersion} ${evidencePhase} build successful` +
+      (evidence.status === "pending" ? "; runtime evidence pending" : ""));
     console.log(`  boot    : ${initialBoot.bytes.length} bytes / ${bootSectors} sectors @ $${loadAddress.toString(16)}`);
     console.log(`  chunks  : ${transportPayload.length - initialBoot.bytes.length} bytes / ${extensionSectors} sectors`);
     console.log(`  total   : ${transportPayload.length} bytes / ${totalTransportSectors} occupied sectors`);

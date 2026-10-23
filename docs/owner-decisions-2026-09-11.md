@@ -3817,7 +3817,42 @@ Owner authorizes the docs commit, `--no-ff` merge titled
 `[codex] Merge codex/boss-death-breakup (§BQ)`, one normal build on main,
 then push of main and the task branch, subject to the stated STOP conditions.
 
-**Next free decision section: §BR.**
+---
+
+## BR. Normal build vs release build evidence policy (2026-10-23)
+
+Session: Codex.
+
+**Owner decision.** §BM reserves the full evidence chain for real problems or
+before release. Requiring a fresh approximately 70-minute runtime wall trace
+for every boot.bin change made normal main red since `b2261c9`, without that
+being noticed while merges used candidate gates. Last valid committed evidence
+is `b3b8e466`. Separate development validation from release certification.
+
+- `npm run build` / `scripts/build.mjs`: computed gates remain mandatory and
+  fatal. Stale runtime wall-trace binding emits a clear WARNING naming every
+  stale file, the evidence commit and "release build will fail"; the manifest
+  marks evidence pending and uses no stale measurements as current evidence.
+- `npm run build:release` / `scripts/build.mjs --release`: binding mismatch
+  remains a hard error. Complete bound evidence and the existing external
+  release gate are required. `scripts/package-release.mjs` invokes this strict
+  build before creating an archive, including direct calls to the packager.
+- CPU/frame, DMA-on, fence, block sizes, window, boss entry and disk-sector
+  gates are unchanged in both modes. No game, assembly, data or linker changes.
+- Defer all four category-(a) wall-trace repairs to the pre-release chain:
+  defeat/summary events replacing CHAIN/HOLD, overlay-scoped row hooks,
+  safe-read/breakup DLI observation, and LIFE-aware pickup validation. No game
+  or scripted-input change is indicated. M3-H/M3/M4 will change boot and flow
+  again; do not spend another trace run on these repairs now.
+
+Focused policy tests, normal PASS with warning, release FAIL on stale binding,
+unchanged computed gates and byte-identical campaign ATR are the acceptance
+checks. The owner authorizes commit, `--no-ff` merge and push of main and
+`codex/build-release-evidence-mode` when these checks hold. No owner smoke is
+needed for this tooling/docs change. Runtime evidence, stage-2, showcase:gif,
+full npm test and failures:reconcile remain due in the full release chain.
+
+**Next free decision section: §BS.**
 
 ---
 

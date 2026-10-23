@@ -188,7 +188,8 @@ and measurement before production integration.
 The default cycle is **build -> owner plays -> merge**.
 
 * Keep only the gates the build computes: frame timing, DMA, block sizes, the
-  window, boss entry <= 350 host frames.
+  window, boss entry <= 350 host frames and disk-sector limits. They remain
+  mandatory and fatal in both normal and release builds.
 * Run focused tests for the changed behaviour. Run the full tests only for a
   real problem or before a release.
 * No RED-first, no double `npm test`, no hash-bound GIFs per variant, no
@@ -209,23 +210,26 @@ validation automatically after every small C gameplay change.
 Inspect the current `package.json` scripts and repository scripts before
 invoking build or test helpers. Do not invent commands from memory.
 
-**The default target is the one that counts.** `npm run build:candidate`
-defers the runtime-evidence binding and reports "runtime evidence pending";
-`npm test` builds the default target, which refuses to link against evidence
-that no longer binds to the artifacts the tree produces. A session that only
-ever ran `--candidate` and focused test files cannot see that gate at all —
-that is how the committed evidence went stale across 175 commits
-(`d72dd6a..4d12d6e`). So:
+**Normal build = computed gates; release build = full evidence** (owner §BR,
+2026-10-23). `npm run build` computes the normal CPU/frame, DMA, fence,
+block-size, window, boss-entry and disk gates. A stale runtime wall-trace
+binding prints a WARNING naming the stale files and evidence commit, states
+"release build will fail", and marks evidence pending. Stale measurements are
+never presented as current. `build:candidate` remains an explicit pending
+phase for existing diagnostic workflows.
 
-* before a release (journal §BM), a session that changed anything the
-  runtime evidence covers regenerates it and runs `npm test` on the
-  **default** build, not `--candidate` alone; between releases the candidate
-  build and its gates are what the owner plays;
-* `tests/runtime-evidence-binding.test.mjs` is the cheap standalone check —
-  it compares `docs/runtime-wall-trace.json` against `dist/` in milliseconds.
-  Include it in any focused set. When it goes red the evidence owes a
-  regeneration pass (`build:candidate` -> `runtime:wall-trace` -> `build`);
-  never hand-edit the SHAs in `docs/runtime-wall-trace.json`.
+* `npm run build:release` (`scripts/build.mjs --release`) requires complete,
+  freshly bound runtime evidence and the external release gate. Packaging
+  invokes this strict build even when called directly. It never packages a
+  pending normal build.
+* Before release, repair deferred validators and regenerate runtime/stage-2
+  evidence and showcase media, run the full `npm test` and reconciliation,
+  then pass `npm run build:release`. The normal build does not certify release
+  readiness. Between releases use normal build -> focused checks -> owner
+  plays -> merge; no 70-minute trace after every boot.bin change.
+* `tests/runtime-evidence-binding.test.mjs` checks normal pending metadata and
+  strict release rejection against the actual artifacts. Include it when the
+  evidence policy changes. Never hand-edit report SHAs to clear a warning.
 * reconcile every full `npm test` and every trace against the records by
   **name and first failing assertion**, not by name alone: save the run
   (`npm test 2>&1 | tee build/npm-test.log`) and run
@@ -275,9 +279,9 @@ readiness.
 
 ## Definition of done
 
-* compiles, assembles and links cleanly (the candidate build between
-  releases; **the default target**, its evidence regenerated, before a
-  release - journal §BM);
+* compiles, assembles and links cleanly (normal build and computed gates
+  between releases; explicit release build with full refreshed evidence
+  before release — journals §BM/§BR);
 * relevant focused tests pass;
 * no illegal memory overlap; startup path still valid;
 * PAL timing within the required gates, with no missed frames, unexpected VBI

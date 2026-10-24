@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-24 (L1 audit fixes; fixed candidate pending owner smoke, §BV.6)
+Last update: 2026-10-25 (fixed L1 owner smoke PASS, OWNER-ACCEPTED, §BV.6)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,11 +20,13 @@ the values below.
 
 ## Checkpoint
 
-### L1 window levers — OWNER-SMOKE CANDIDATE
+### L1 window levers — OWNER-ACCEPTED
 
-The pre-audit campaign candidate `63bf14c0…`, built from `382b91a`, passed
-owner smoke on 2026-10-24. The independent audit required fixture, timing and
-assertion fixes; the **fixed candidate still requires owner smoke**. See
+Owner smoke **PASS**, 2026-10-25, on the fixed L1 candidate built from
+`b6a412a` (`b6a412aba3aaa578b07d14a497f5bac0f0ca460a`), campaign ATR SHA-256
+`410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
+L1 is **OWNER-ACCEPTED**. The owner authorizes the normal branch build,
+merge into main, normal main build and push; no release. See
 [§BV.6](owner-decisions-2026-09-11.md#bv6-audit-fixes-and-owner-smoke) and
 [the fix evidence](diagnostics/l1-audit-fixes-2026-10-24/).
 
@@ -78,8 +80,7 @@ overwritten by boss install and reloaded by M4. The 5 B at $B8FB remain reserved
 Capital Lights are optional M7 work after a one-Light proof, outside the base
 plan. Citadel's region-2 versus final-R4 placement stays open before M4.
 
-NEXT TASK: owner real-65XE/SIO2SD smoke of the five fixed candidate ATRs; record
-the owner's result before merge. No L2 or M3-H implementation starts here.
+NEXT TASK: await owner direction. No next roadmap item starts automatically.
 
 | Current L1 resource | Linked use / limit | Free |
 | --- | ---: | ---: |
@@ -213,12 +214,12 @@ pre-release runtime-evidence regeneration remains due under §BM.
 
 ### Repository HEAD
 
-Candidate branch `codex/l1-window-levers`; audit report merged unchanged in
-`f84b1fd`; runtime/fixture fixes `80b2f94`, follow-up fixture/assertion repairs
-and complete evidence `9cf46ef`. Main/origin-main remain `a3c8e47`. The final
-candidate build HEAD is recorded in `build/l1-owner-smoke/candidate.json`;
-verify Git before relying on a historical checkpoint. The pre-audit owner
-smoke passed, while the fixed candidate awaits a new owner result.
+Owner-accepted L1 checkpoint: fixed candidate `b6a412a`, owner smoke PASS
+2026-10-25 (§BV.6). Audit report merged unchanged in `f84b1fd`; runtime/fixture
+fixes `80b2f94`, follow-up fixture/assertion repairs and complete evidence
+`9cf46ef`. Owner-authorized merge into main and push follow passing normal
+builds on the branch and main. Verify current Git for the resulting HEAD.
+The candidate provenance remains in `build/l1-owner-smoke/candidate.json`.
 
 **The roadmap 4.6 step-2 data-driven Director is `OWNER-ACCEPTED`** (owner
 smoke PASS **2026-09-29**, on XEX `3c0aaea1…` / ATR `0d0d9ba9…`; section
@@ -6291,6 +6292,8 @@ section's "what to look for" in the implementation report.
 ---
 
 ## Known open defects and open decisions
+
+- **KNOWN DEBT — pre-release (owner, 2026-10-25):** full npm test on a3c8e47 has 81 pre-existing failures (list in docs/diagnostics/l1-audit-fixes-2026-10-24/test-results.json) — triage before v0.4.0 (stale validator vs real defect).
 
 - **KNOWN DEBT — hull-style/steel region mapping (§BU.7):** hull style/steel
   use quarters of LEVEL_MAX_ID=16 (1–4 / 5–8 / 9–12 / 13–16), while boss

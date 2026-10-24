@@ -4087,7 +4087,11 @@ post-1.0 reserve. No L1 byte claims that space.
 Owner smoke **PASS**, 2026-10-24, for the **pre-audit** campaign candidate
 built from `382b91a`, ATR SHA-256
 `63bf14c0858d934f98ef99957cf9c083bfe3503ebd27c4640413acb6af1d5935`.
-This does not accept the fixed candidate; that candidate awaits a new smoke.
+Owner smoke **PASS**, 2026-10-25, for the **fixed L1 candidate** built from
+`b6a412a` (`b6a412aba3aaa578b07d14a497f5bac0f0ca460a`), campaign ATR SHA-256
+`410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
+The owner marks L1 **OWNER-ACCEPTED** and authorizes the normal branch build,
+merge into main, normal main build and push. No release is authorized.
 
 The independent [L1 audit](audits/2026-10-24-l1-window-levers.md) is preserved
 unchanged. L1-01 now models the CRC-checked packed hold at `$0C00` in the
@@ -4146,8 +4150,10 @@ was its 15-file subset, not the full suite. No second full run or release
 evidence regeneration is claimed. Every edited test file and remaining
 first assertion is recorded in the audit-fix evidence. `boss-runtime`'s actual
 8-sector read passes; its separate pre-existing final-summary failure remains.
-The fixed five-image candidate awaits new owner smoke; no merge/push occurs
-before that result.
+The fixed candidate passed owner smoke on 2026-10-25 as recorded above.
+Merge/push is authorized after passing normal builds on the branch and main.
+Before v0.4.0, triage the remaining pre-existing test failures as stale
+validators versus real defects; STATUS records the owner's pre-release debt.
 
 **Next free decision section: §BW.**
 

@@ -88,7 +88,13 @@ function frame(m, laserMode) {
   cycles += lanceTick(m);
   cycles += call(m, lbl("boss_update")).cycles;
   cycles += lanceAfter(m);   // M6: HULL_CONTACT
-  cycles += call(m, manifest.overlays.capitalVectors.address + 8 * 3).cycles;
+  // A synthetic kill can finish the last boss module. Completion then jumps
+  // into the disk-loaded death transition instead of returning to the caller;
+  // count the fight-side work up to that handoff and stop this boss frame.
+  const completion = call(m, manifest.overlays.capitalVectors.address + 8 * 3,
+    { stopAt: [lbl("boss_death_read")] });
+  cycles += completion.cycles;
+  if (completion.pc === lbl("boss_death_read")) return cycles;
   cycles += call(m, lbl("boss_motion")).cycles;
   return cycles + nmi(m, lbl("boss_dli")) + nmi(m, lbl("boss_dli"));
 }

@@ -235,7 +235,7 @@ export function runUntil(cpu, ends, { maxSteps = 80_000_000, watch = null } = {}
 }
 
 // Call a routine to its RTS; returns the CPU (cycles counted from 0).
-export function call(memory, address, { a = 0, x = 0, y = 0, hooks = {}, watch = null } = {}) {
+export function call(memory, address, { a = 0, x = 0, y = 0, hooks = {}, watch = null, stopAt = [] } = {}) {
   const cpu = new Nmos6502(memory, hooks);
   const stop = 0x0000;
   cpu.push((stop - 1) >> 8 & 0xff);
@@ -245,7 +245,10 @@ export function call(memory, address, { a = 0, x = 0, y = 0, hooks = {}, watch =
   cpu.x = x;
   cpu.y = y;
   let steps = 0;
-  while (steps < 4_000_000 && cpu.pc !== stop) { watch?.(cpu.pc, cpu); cpu.step(); steps += 1; }
+  const stops = new Set(stopAt);
+  while (steps < 4_000_000 && cpu.pc !== stop && !stops.has(cpu.pc)) {
+    watch?.(cpu.pc, cpu); cpu.step(); steps += 1;
+  }
   assert.notEqual(steps, 4_000_000, `routine $${address.toString(16)} did not return`);
   return cpu;
 }

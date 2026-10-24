@@ -39,6 +39,7 @@ import { fileURLToPath } from "node:url";
 
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { installBootArtifact } from "../scripts/runtime-image.mjs";
+import { runBossEntry } from "./boss-harness.mjs";
 import {
   compileMenuStars,
   loadFrontendH31Definition,
@@ -107,11 +108,15 @@ function bootedFrontend() {
   if (labels.has("publish_director_abi")) run(memory, "publish_director_abi");
   run(memory, "stage_a2_kernel");
   run(memory, "unpack_weapon_pickup_phase_runtime");
+  // This scene fixture starts after stage 2 has decoded the checked Light
+  // record. The boot smoke covers the actual unpack and publish order.
+  memory.set(fs.readFileSync(path.join(root, "build/light-kernel.bin")), 0x3643);
   run(memory, "unpack_starfield_runtime");
   // The game reads this checked disk run on every menu entry. The CPU-only
   // scene harness begins after that read rather than emulating the SIO wire.
   memory.set(fs.readFileSync(path.join(root, "build/menu-overlay.bin")), 0x0c00);
   run(memory, "copy_frontend_charset");
+  run(memory, "copy_frontend_extended_glyphs");
   return memory;
 }
 
@@ -595,7 +600,7 @@ test("only the MAIN MENU gets stars", () => {
   }
 });
 
-test("boss RAM reuse leaves pause intact and the checked menu run restores every frontend", () => {
+test("each boss RAM claim leaves pause intact and the checked run restores every frontend", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
   const runInfo = manifest.overlays.runs.find(({ name }) => name === "menu-data");
   assert.equal(runInfo.startSector, 240);
@@ -606,29 +611,38 @@ test("boss RAM reuse leaves pause intact and the checked menu run restores every
   assert.equal(crypto.createHash("sha256").update(diskBytes).digest("hex"), runInfo.sha256);
   assert.deepEqual(diskBytes, fs.readFileSync(path.join(root, "build/menu-overlay.bin")));
 
-  const reference = bootedFrontend();
-  const afterBoss = bootedFrontend();
-  afterBoss.fill(0xa5, 0x0c00, 0x1900);
-  // Pause and its quit confirmation are available during the boss fight, so
-  // they must render before the menu run has been read again.
-  for (const state of [8, 9]) {
-    enterState(reference, state);
-    enterState(afterBoss, state);
-    const changed = afterBoss.subarray(0x4000, 0x4400)
-      .findIndex((value, index) => value !== reference[0x4000 + index]);
-    assert.equal(changed, -1, `pause state ${state} first changed cell ${changed.toString(16)}`);
-    assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
-      reference.subarray(0x4000, 0x4400), `pause state ${state}`);
-  }
+  for (const [region, level] of [[1, 1], [2, 4], [3, 7], [4, 10]]) {
+    const entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = level; } });
+    assert.equal(entry.end, "main_loop", `region ${region} entry`);
+    const reference = bootedFrontend();
+    const afterBoss = bootedFrontend();
+    afterBoss.set(entry.memory.subarray(0x0c00, 0x2000), 0x0c00);
+    // Pause and its quit confirmation are available during the boss fight,
+    // before the checked menu run has been read again.
+    for (const state of [8, 9]) {
+      enterState(reference, state);
+      enterState(afterBoss, state);
+      assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
+        reference.subarray(0x4000, 0x4400), `region ${region} pause state ${state}`);
+      run(reference, "select_frontend_display");
+      run(afterBoss, "select_frontend_display");
+      assert.deepEqual(afterBoss.subarray(0xd402, 0xd404),
+        reference.subarray(0xd402, 0xd404), `region ${region} pause display list ${state}`);
+    }
 
-  // Model the already-tested checked whole-sector reader's successful run;
-  // then verify all frontend screens reproduce their pre-boss screen bytes.
-  afterBoss.set(diskBytes, runInfo.destination);
-  run(afterBoss, "copy_frontend_extended_glyphs");
-  for (const state of [1, 2, 3, 4, 5, 7]) {
-    enterState(reference, state);
-    enterState(afterBoss, state);
-    assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
-      reference.subarray(0x4000, 0x4400), `frontend state ${state}`);
+    // Model the checked whole-sector reader's successful run, then compare
+    // every screen and its ANTIC list with the pre-boss reference.
+    afterBoss.set(diskBytes, runInfo.destination);
+    run(afterBoss, "copy_frontend_extended_glyphs");
+    for (const state of [1, 2, 3, 4, 5, 7]) {
+      enterState(reference, state);
+      enterState(afterBoss, state);
+      assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
+        reference.subarray(0x4000, 0x4400), `region ${region} frontend state ${state}`);
+      run(reference, "select_frontend_display");
+      run(afterBoss, "select_frontend_display");
+      assert.deepEqual(afterBoss.subarray(0xd402, 0xd404),
+        reference.subarray(0xd402, 0xd404), `region ${region} display list ${state}`);
+    }
   }
 });

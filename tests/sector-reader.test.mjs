@@ -898,6 +898,30 @@ test("the run read at $A006 lands the capital restore run in slot A byte for byt
     .equals(residentSlotA), "slot A does not hold the resident capital image");
 });
 
+test("L1 menu run reads eleven whole checked sectors and rejects changed data", () => {
+  const run = manifest.overlays.runs.find(({ name }) => name === "menu-data");
+  assert.equal(run.index, 10);
+  assert.equal(run.sectors, 11);
+  const expected = builtAtr.subarray(ATR_HEADER_BYTES + (run.startSector - 1) * SECTOR_BYTES,
+    ATR_HEADER_BYTES + (run.startSector - 1 + run.sectors) * SECTOR_BYTES);
+  const goodWire = new PokeyStub({ respond: atrDevice() });
+  const good = runReadRun(goodWire, run.index);
+  assert.equal(good.failed, false);
+  assert.equal(good.status, status.OK);
+  assert.equal(goodWire.commandFrames.length, 11);
+  assert.deepEqual(Buffer.from(good.memory.subarray(run.destination, run.destination + run.bytes)), expected);
+
+  const changedSector = run.startSector + 4;
+  const changed = Buffer.from(atrSector(changedSector));
+  changed[17] ^= 1;
+  const response = [{ byte: 0x41 }, { byte: 0x43 },
+    ...Array.from(changed, (byte) => ({ byte })), { byte: carryWrapChecksum(changed) }];
+  const badWire = new PokeyStub({ respond: atrDevice({ fail: { sector: changedSector, response } }) });
+  const bad = runReadRun(badWire, run.index);
+  assert.equal(bad.failed, true);
+  assert.equal(bad.status, status.BAD_IMAGE);
+});
+
 test("a directory entry the build left empty is rejected without touching SIO", () => {
   // RE-POINTED 2026-10-03 (M5a-S2): entries 6-8 are the summary's now; 1-5
   // (M5b) are still empty, and 9 is past the directory's end.

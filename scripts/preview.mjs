@@ -1178,11 +1178,18 @@ export function readFrontendGraphicsSource(source) {
     "frontend_marker_positions",
     graphics.constants,
   );
-  requireLength("frontend_marker_positions", markerBytes, 26);
+  requireLength("frontend_marker_positions", markerBytes, 16);
+  const pauseMarkerBytes = extractLabeledData(
+    fs.readFileSync(path.join(rootDirectory, "src/hybrid/light-kernel.s"), "utf8"),
+    "pause_frontend_marker_positions", graphics.constants,
+  );
+  requireLength("pause_frontend_marker_positions", pauseMarkerBytes, 10);
 
   const markerAddresses = [];
-  for (let offset = 0; offset < markerBytes.length; offset += 2) {
-    markerAddresses.push(markerBytes[offset] | (markerBytes[offset + 1] << 8));
+  for (const bytes of [markerBytes, pauseMarkerBytes]) {
+    for (let offset = 0; offset < bytes.length; offset += 2) {
+      markerAddresses.push(bytes[offset] | (bytes[offset + 1] << 8));
+    }
   }
 
   return {

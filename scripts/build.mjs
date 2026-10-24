@@ -1745,7 +1745,7 @@ function attachGlueToLowRecord(directorModule, glueRaw) {
   return lowSegment;
 }
 
-function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
+function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendMarkersAddress) {
   const labels = parseViceLabels(labelBytes.toString("utf8"));
   const symbols = [
     ["LIFE_C_PICK", "_life_c_pick"],
@@ -1847,6 +1847,7 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     // own link, main.s's five hook constants, the transport record and the
     // write-watch) takes it from this one line.
     `HYBRID_ASM_WINDOW_BASE = $${lightKernelAddress.toString(16).toUpperCase()}\n` +
+    `PAUSE_FRONTEND_MARKERS = $${pauseFrontendMarkersAddress.toString(16).toUpperCase()}\n` +
     `HYBRID_C_WINDOW_LIMIT = $${hybridWindowEndExclusive.toString(16).toUpperCase()}\n` +
     LIGHT_KERNEL_VECTORS.map(([name], index) =>
       `${name} = HYBRID_ASM_WINDOW_BASE+${index * 3}\n`).join("") +
@@ -2150,8 +2151,9 @@ async function build() {
       `$${(hybridWindowEndExclusive - 1).toString(16)}`);
   }
   const lightKernelAddress = 0x3643;
+  const pauseFrontendMarkersAddress = 0x3ae5;
   const directorAbiInclude =
-    renderDirectorAbiInclude(directorModule.labels, lightKernelAddress);
+    renderDirectorAbiInclude(directorModule.labels, lightKernelAddress, pauseFrontendMarkersAddress);
   writeFile(path.join(buildDirectory, "director-abi.inc"), directorAbiInclude);
   // Music v2 §1.4: main.s reaches the gameplay music player only through the
   // three frozen vectors at the head of the level image's music block. They
@@ -2271,10 +2273,10 @@ async function build() {
   const menuOverlayAddress = labels.get("__MENU_OVERLAY_RUN__");
   const menuOverlayBytes = labels.get("__MENU_OVERLAY_SIZE__");
   const menuOverlayFileOffset = labels.get("__MENU_OVERLAY_RAM_FILEOFFS__");
-  if (menuOverlayAddress !== 0x0c00 || menuOverlayBytes !== 1314 ||
+  if (menuOverlayAddress !== 0x0c00 || menuOverlayBytes !== 1304 ||
       !Number.isInteger(menuOverlayFileOffset) ||
       menuOverlayFileOffset + menuOverlayBytes > linkedPayload.length) {
-    throw new Error("L1 menu data must link as 1314 bytes at $0C00");
+    throw new Error("L1 menu data must link as 1304 bytes at $0C00");
   }
   const menuOverlayRuntime = Buffer.from(linkedPayload.subarray(
     menuOverlayFileOffset, menuOverlayFileOffset + menuOverlayBytes));
@@ -2282,7 +2284,9 @@ async function build() {
       labels.get("missile_masks") !== 0x3634 ||
       labels.get("debris_contact_damage_by_difficulty") !== 0x3640 ||
       labels.get("loader_bitmap_lzss") !== 0x3643) {
-    throw new Error("L1 MAIN landing moved: the 46 resident bytes must end at $3642");
+    throw new Error("L1 MAIN landing moved: " +
+      ["publish_level_hull_style", "missile_masks", "debris_contact_damage_by_difficulty", "loader_bitmap_lzss"]
+        .map((name) => `${name}=$${labels.get(name)?.toString(16)}`).join(", "));
   }
   const startAddress = labels.get("start");
   const bootInitAddress = labels.get("boot_return");
@@ -2704,6 +2708,12 @@ async function build() {
     },
   });
   let lightKernelModule = await linkLightKernel(renderDiskGuardInclude());
+  if (lightKernelModule.packed.length > 0x500) {
+    throw new Error("L1 packed Light record exceeds its $0C00-$10FF checked hold");
+  }
+  if (parseViceLabels(lightKernelModule.labels.toString("utf8")).get("pause_frontend_marker_positions") !== pauseFrontendMarkersAddress) {
+    throw new Error("L1 pause frontend markers no longer start in the MAIN tail");
+  }
   if (lightKernelModule.raw.length > lightKernelCapacityBytes) {
     throw new Error(`L1 Light composite exceeds the MAIN hole: ` +
       `${lightKernelModule.raw.length} of ${lightKernelCapacityBytes} B above ` +
@@ -5310,7 +5320,7 @@ async function build() {
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
           "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
+          : "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,

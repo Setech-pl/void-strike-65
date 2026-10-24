@@ -527,8 +527,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   // segment and no segment start changed; the free tail grew 5 -> 26 B.
   // 3,156 / 10 since 2026-10-05 (plasma FX): the break-up's two growth glyphs (16 B of source, codes 108-109, plasma FX decisions 2-3, docs/plans/plasma-fx.md) lead the ENTITY_CODE glyph bank; the free tail 26 -> 10 B.
   // 3,161 / 5 since 2026-10-10 (fix/hardware-audio, F2): the cold start's SKCTL write, 5 B; the free tail 10 -> 5 B.
-  assert.equal(manifest.entityEffects.codeBytes, 3161);
-  assert.equal(manifest.residentCapacity.tails.entityCode, 5);
+  // L1 moves cold frontend display lists, difficulty data and glyphs into
+  // the checked menu run, leaving the ENTITY_CODE gameplay tail free.
+  assert.equal(manifest.entityEffects.codeBytes, 2756);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 410);
   // Step 1b: LIGHT_RESIDENT's 229 B left the pickup stream with the kernel.
   // Re-recorded 2026-09-22: the Heavy break-up (plan-4.6-placement.md §7.4
   // variant 2) spends 122 B of that fill and the debris reward's
@@ -576,7 +578,7 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Re-recorded feat/boss-banners (the owner's smoke of 2026-10-18, §AY 8):
   // 9 -> 13. The head no longer calls the reader's WARNING text screen (7 B)
   // and stores COLBK black instead (3 B).
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 13);
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 7);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
@@ -630,8 +632,8 @@ test("placement contract: legal composite and packed size, state inside its rese
   // RE-PINNED 2026-10-10, fix/hardware-audio (F2): $9D22 -> $9D27 and $9D32 ->
   // $9D37, the cold start's 5-byte SKCTL write sits ahead of both in
   // ENTITY_CODE; the tables are byte-identical.
-  assert.equal(L("light_glyph"), 0x9d27);
-  assert.equal(L("light_interceptor_glyph"), 0x9d37);
+  assert.equal(L("light_glyph"), 0x9b92);
+  assert.equal(L("light_interceptor_glyph"), L("light_glyph") + 16);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
   // SHARED scalars; the per-slot state is 48 B of SoA arrays at $7FC4-$7FF3,
   // in the 60 unassigned bytes above the A2 display lists.

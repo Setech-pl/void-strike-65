@@ -436,7 +436,17 @@ export function nativeRoutineHarness({ root = defaultRoot, artifact = "atr" } = 
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
+  // This isolated fixture skips the loader bitmap and its later publication
+  // step. Install the linked composite before calling its LIFE routines.
+  const lightManifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json")));
+  memory.set(fs.readFileSync(path.join(root, "build", "light-kernel.bin")),
+    lightManifest.lightKernel.address);
   runRoutine(memory, labels, "unpack_starfield_runtime");
+  // The abbreviated fixture omits the cold menu read and its scratch reuse;
+  // install the final linked STARFIELD bytes for isolated gameplay calls.
+  const starManifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json")));
+  memory.set(fs.readFileSync(path.join(root, "build", "starfield-runtime.bin")),
+    starManifest.starfieldRuntime.runAddress);
   runRoutine(memory, labels, "copy_charset");
   runRoutine(memory, labels, "install_entity_effects_glyph");
   initialiseRows(memory, labels, 0);

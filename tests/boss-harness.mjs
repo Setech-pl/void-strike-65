@@ -315,11 +315,18 @@ export function bossGateMemory() {
 // Run the boss entry from the window's resident half to the main loop.
 // S5-1: `prepare(memory)` adjusts the gate's machine first (a level id, a
 // booster); `sectorOf` is the disk in the drive (the built ATR by default).
-export function runBossEntry({ onCommand = null, watch = null, prepare = null, sectorOf = undefined } = {}) {
+export function runBossEntry({ onCommand = null, onWrite = null, watch = null, prepare = null, sectorOf = undefined } = {}) {
   const memory = bossGateMemory();
   prepare?.(memory);
   const drive = new Drive({ onCommand, ...(sectorOf === undefined ? {} : { sectorOf }) });
   const cpu = cpuOver(drive, memory);
+  if (onWrite !== null) {
+    const originalWrite = cpu.hooks.write;
+    cpu.hooks.write = (address, value, executingCpu) => {
+      onWrite(address, value, executingCpu);
+      return originalWrite(address, value, executingCpu);
+    };
+  }
   cpu.sp = 0xf0;
   cpu.pc = label("director", "_asm_boss_enter");
   const end = runUntil(cpu, {

@@ -2427,10 +2427,23 @@ draw_frontend_marker:
     txa
     asl
     tay
+    cpy #16                     ; entries 8-12: pause/quit, live during boss
+    bcc @menu_marker
+    tya
+    sec
+    sbc #16
+    tay
+    lda PAUSE_FRONTEND_MARKERS,y
+    sta dst_ptr
+    iny
+    lda PAUSE_FRONTEND_MARKERS,y
+    bne @marker_hi_ready         ; pause/quit markers are in screen RAM
+@menu_marker:
     lda frontend_marker_positions,y
     sta dst_ptr
     iny
     lda frontend_marker_positions,y
+@marker_hi_ready:
     sta dst_ptr+1
     ldy #$00
     lda row_counter
@@ -3367,10 +3380,10 @@ publish_light_record:
     sta broadside_destination+2
     jsr broadside_unpack_command
     lda broadside_destination+1
-    cmp #<$3AE5
+    cmp #<$3AEF
     bne @bad
     lda broadside_destination+2
-    cmp #>$3AE5
+    cmp #>$3AEF
     bne @bad
     rts
 @bad:
@@ -3379,7 +3392,7 @@ publish_light_record:
 publish_light_record_end:
 
 .segment "CODE"
-LOADER_SPLASH_CODE_SLACK = 30
+LOADER_SPLASH_CODE_SLACK = 9
     .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the
@@ -3598,6 +3611,7 @@ copy_frontend_charset:
 :
     dex
     bne @glyph
+    rts                         ; extended glyph source arrives with menu run
 
 copy_frontend_extended_glyphs:
     ldx #$00
@@ -7928,8 +7942,6 @@ frontend_marker_positions:
     .word SCREEN+MAIN_MENU_OPTION_3_OFFSET+7
     .word SCREEN+OPTIONS_SOUND_OFFSET+1, SCREEN+OPTIONS_MUSIC_OFFSET+1
     .word SCREEN+OPTIONS_DIFFICULTY_OFFSET+1, SCREEN+OPTIONS_BACK_OFFSET+1
-    .word SCREEN+13*40+12, SCREEN+13*40+21
-    .word SCREEN+9*40+14, SCREEN+12*40+10, SCREEN+15*40+12
 
 frontend_screen_records_end:
     .assert frontend_screen_records_end - frontend_screen_records < $0200, error, "frontend screen data exceeds compact budget"
@@ -12419,6 +12431,7 @@ CHUNK_FINAL_ADDRESS   = $5E10
 CHUNK_STAGING_SECTORS_MAX = 50
 L1_LIGHT_RECORD_REMAINING = 3
 L1_LIGHT_PACKED_HOLD = $0C00
+.assert L1_LIGHT_PACKED_HOLD+$0500 <= $1900, error, "L1 Light packed hold reaches future L2"
 ; Roadmap 4.5M-M2: the low-C image (its full $F8 reservation) and the GLUE
 ; image travel as one LZ record that lands at COLD_LOW_GLUE_RECORD, above the
 ; packed resident staging (build enforced) and below the direct-landing
@@ -13004,11 +13017,11 @@ boot_stage2_validate_record:
     STAGE2_FAIL_NE
     ldy #$06
     lda (frontend_data_ptr),y
-    cmp #<$04A2
+    cmp #<$04AC
     STAGE2_FAIL_NE
     iny
     lda (frontend_data_ptr),y
-    cmp #>$04A2
+    cmp #>$04AC
     STAGE2_FAIL_NE
     ldy #$0C
     lda (frontend_data_ptr),y
@@ -13016,7 +13029,7 @@ boot_stage2_validate_record:
     STAGE2_FAIL_NE
     ldy #$05
     lda (frontend_data_ptr),y
-    cmp #$04
+    cmp #$05                    ; packed Light record may use $0C00-$10FF
     STAGE2_FAIL_CS
     jmp stage2_validate_record_staging
 stage2_validate_record_extension:

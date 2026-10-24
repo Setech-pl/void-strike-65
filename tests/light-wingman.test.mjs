@@ -159,20 +159,17 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   const kernel = manifest.lightKernel;
   assert.equal(L("__LIGHT_KERNEL_RUN__"), kernel.address);
   assert.equal(L("__LIGHT_KERNEL_RAM_LAST__"), kernel.endExclusive);
-  // The two links meet exactly: no byte of the window is lost to a boundary,
-  // and the ASM half stops below the sector reader's BSS at $BC00.
-  assert.equal(kernel.address, kernel.cHalfEndExclusive,
-    "the kernel must start where the Director link's window half ends");
-  // basicWindow.usedBytes counts BOTH window links since 2026-09-21 (finding
-  // F6); the Director link's half alone is directorHalfBytes, which is what
-  // this boundary is made of.
-  assert.equal(kernel.address,
+  // L1 moves the complete Light record to the MAIN holes after the bitmap
+  // unpack; the Director alone owns the BASIC window.
+  assert.equal(kernel.address, 0x3643);
+  assert.equal(kernel.cHalfEndExclusive,
     manifest.residentCapacity.basicWindow.address +
       manifest.residentCapacity.basicWindow.directorHalfBytes);
+  assert.equal(manifest.residentCapacity.basicWindow.lightKernelBytes, 0);
   assert.equal(manifest.residentCapacity.basicWindow.address +
-    manifest.residentCapacity.basicWindow.usedBytes, kernel.endExclusive);
-  assert.ok(kernel.endExclusive <= 0xbc00, "the kernel must stop before the reader BSS");
-  assert.ok(kernel.freeBytes >= 0, `code window tail ${kernel.freeBytes} B`);
+    manifest.residentCapacity.basicWindow.usedBytes, kernel.cHalfEndExclusive);
+  assert.ok(kernel.endExclusive <= 0x3b00, "Light must stop before PMG RAM");
+  assert.ok(kernel.freeBytes >= 16, `MAIN holes tail ${kernel.freeBytes} B`);
   // The frozen five-entry vector table is main.s's only binding to the kernel.
   assert.deepEqual(Object.values(kernel.vectors),
     [0, 1, 2, 3, 4].map((index) => kernel.address + index * 3));
@@ -239,7 +236,7 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // ENTITY_CODE glyph bank.
   // Re-recorded 2026-10-10, fix/hardware-audio (F2): 22 -> 17, the cold
   // start's 5-byte SKCTL write lengthens the ENTITY_CODE staging.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 17,
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 310,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

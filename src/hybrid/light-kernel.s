@@ -739,6 +739,16 @@ boss_enter_read:
 
 .include "life-capsule.s"
 
+; Pause and pause-quit can appear while a boss owns $0C00-$1FFF. Keep only
+; their five marker positions in the MAIN tail after the Light composite.
+.segment "PAUSE_FRONTEND"
+pause_frontend_marker_positions:
+    .word $4000+13*40+12, $4000+13*40+21
+    .word $4000+9*40+14, $4000+12*40+10, $4000+15*40+12
+pause_frontend_marker_positions_end:
+.assert pause_frontend_marker_positions = PAUSE_FRONTEND_MARKERS, lderror, "L1 pause marker ABI moved"
+.assert pause_frontend_marker_positions_end-pause_frontend_marker_positions = 10, error, "pause markers must be exactly ten bytes"
+
 .export boss_enter_read
 ; feat/boss-banners (the owner's smoke of 2026-10-18): the WARNING text
 ; screen's records that ended this segment are gone - the boss entry shows no

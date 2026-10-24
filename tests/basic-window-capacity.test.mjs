@@ -28,17 +28,17 @@ test("the BASIC window's free figure counts both of its links", () => {
   assert.equal(basicWindow.freeBytes, basicWindow.capacityBytes - basicWindow.usedBytes);
   // The Light kernel link is the window's upper half; its own byte count must
   // be the one the window row consumes, not an independent number.
-  assert.equal(basicWindow.lightKernelBytes, lightKernel.bytes);
-  assert.equal(basicWindow.directorHalfBytes, lightKernel.address - basicWindow.address);
+  assert.equal(basicWindow.lightKernelBytes, 0);
+  assert.equal(basicWindow.directorHalfBytes, lightKernel.cHalfEndExclusive - basicWindow.address);
 });
 
 test("the window's free tail agrees with the linker map's Light kernel tail", () => {
   // The kernel link ends the window, so the two free figures are the same
   // bytes. This is the assertion that fails on the pre-fix manifest: the
   // window claimed 735 free while the map's own tail was 27.
-  assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
-  assert.equal(lightKernel.windowLimit, basicWindow.endExclusive);
-  assert.equal(lightKernel.endExclusive + basicWindow.freeBytes, basicWindow.endExclusive);
+  assert.equal(basicWindow.freeBytes, 1928);
+  assert.equal(lightKernel.windowLimit, 0x3b00);
+  assert.equal(lightKernel.endExclusive + lightKernel.freeBytes, lightKernel.windowLimit);
 });
 
 // Q-1 (owner, 2026-09-23). Before the step this test read "the window is
@@ -128,8 +128,7 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18: no WARNING
   // text screen at the boss entry): the screen's 11-B record (WARNING) out of
   // the kernel's last segment; the kernel link 957 -> 946 B, the tail 971 -> 982.
-  assert.equal(basicWindow.freeBytes, 982,
-    "the delivered interceptor-standoff figure, re-recorded so a silent change is visible");
-  // The tail is still the kernel link's tail, not an independent figure.
-  assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
+  assert.equal(basicWindow.freeBytes, 1928,
+    "L1 moves Light out of the BASIC window");
+  assert.ok(lightKernel.freeBytes >= 16);
 });

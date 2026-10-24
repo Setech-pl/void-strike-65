@@ -620,7 +620,8 @@ export function executeInterceptorBreakupTrace({
   runRoutine(memory, labels, "init_fighter_projectiles");
   runRoutine(memory, labels, "install_entity_effects_glyph");
   initialiseRows(memory, labels, ringHead);
-  memory.fill(0, 0x3800, 0x4000);
+  // Single-line PMG DMA starts at $3B00; MAIN Light owns $3800-$3AFF.
+  runRoutine(memory, labels, "clear_pmg");
   memory.fill(0, 0x4000, 0x4400);
   // Keep this Interceptor-only visual trace independent from the normal neutral
   // entity scheduler, whose first legal spawn occurs after the same 32-frame

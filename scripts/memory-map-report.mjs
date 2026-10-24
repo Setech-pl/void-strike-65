@@ -627,6 +627,9 @@ function reservationTails(build, rows, reservations) {
 // lands on it. tests/cfg-overlaps.test.mjs fails on any overlap not named here
 // and on any entry here that no longer matches one.
 export const DECLARED_CFG_OVERLAPS = Object.freeze([
+  ...["BOSS_BANNER_RAM", "BOSS_SLOT_C_RAM", "CODE"].map(area => ({
+    areas: ["MENU_OVERLAY_RAM", area], name: "L1 checked menu over dead boss storage",
+    reason: "MENU_OVERLAY_RAM is read only at MAIN MENU/GAME OVER entry after boss work stops; boss/banner/death overwrite it in their own phases and every later menu entry reloads the checked run" })),
   ...["BOSS_SLOT_C_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_D_RAM", "BOSS_BANNER_RAM"].map(area => ({
     areas: ["CODE", area], name: "post-defeat engine over dead boss storage",
     reason: "boss-death.cfg CODE is read only after combat stops and the safe A-only DLI is detached from overwritten C/D; fight and banner code are no longer called" })),

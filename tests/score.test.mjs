@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { installRuntimeSegments, publishEnemyProfileScore } from "../scripts/runtime-image.mjs";
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
+import { Drive } from "./boss-harness.mjs";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(directory, "..");
@@ -125,12 +126,16 @@ function renderedTopScores(memory) {
 }
 
 function frontendHooks() {
-  let vcountRead = 0;
+  // L1 menu entry performs a real checked disk read. Drive answers from the
+  // built ATR and models VCOUNT as well; no reader or CRC bypass is needed.
+  const drive = new Drive();
   return {
-    read(address) {
-      if (address !== 0xd40b) return undefined;
-      return vcountRead++ === 0 ? 0 : 1;
+    read(address, cpu) {
+      drive.cpu = cpu;
+      if (address === 0xd20d) { drive.advance(); return drive.serin; }
+      return drive.read(address);
     },
+    write(address, value, cpu) { drive.cpu = cpu; return drive.write(address, value); },
   };
 }
 

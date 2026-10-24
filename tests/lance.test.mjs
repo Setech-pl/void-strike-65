@@ -214,7 +214,9 @@ test("M6 (decision BD 6): the build fails when the window's record grows into th
   const layout = { windowEnd: lance.windowEnd, address: lance.address, bytes: lance.capacityBytes, used: lance.bytes,
     sector: lance.startSector, sectors: lance.sectors, reservationEnd: lance.startSector + lance.sectors };
   const { windowSlack } = checkLanceLayout(layout);
-  assert.equal(windowSlack, 5, "§BO reserves all five bytes below the lance");
+  // L1 frees 1,155 B; the five-byte §BO reserve remains below the lance.
+  assert.equal(windowSlack, 1160);
+  assert.equal(windowSlack - 1155, 5, "§BO reserves all five bytes below the lance");
   assert.doesNotThrow(() => checkLanceLayout({ ...layout, windowEnd: lance.address }));
   assert.throws(() => checkLanceLayout({ ...layout, windowEnd: lance.address + 1 }), /BD 6.*inside the lance's RAM/);
   assert.throws(() => checkLanceLayout({ ...layout, used: lance.capacityBytes + 1 }), /lands in/);

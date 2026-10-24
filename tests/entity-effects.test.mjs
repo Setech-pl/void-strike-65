@@ -1423,7 +1423,8 @@ function armPublishedPlayerFighter(x, y) {
   const memory = createRuntimeMemory();
   initialiseRows(memory);
   runRoutine(memory, "init_entity_effects");
-  memory.fill(0, 0x3800, 0x4000);
+  // Clear the actual single-line PMG planes, preserving resident MAIN Light.
+  runRoutine(memory, "clear_pmg");
   memory[addresses.playerX] = x;
   memory[addresses.playerY] = y;
   memory[HPOSP0] = x;

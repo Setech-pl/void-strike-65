@@ -1,0 +1,11 @@
+✔ M6 (decision BD 6): the build fails when the window's record grows into the lance's RAM (0.658542ms)
+✔ Q-1: the sources carry the same two constants the manifest reports (0.747458ms)
+✔ layout and transport gates remain legal after blue-far removal (0.555542ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60.886583

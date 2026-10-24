@@ -1,0 +1,19 @@
+✔ Q-B5 and Q7: the boss claims $0C00-$1FFF - charset, slot C, scratch, slot D (0.964875ms)
+✔ no segment of any link reaches $0C00-$1FFF except the boss's own homes; only slot D's reach $1900-$1FFF (1.276125ms)
+✔ no cfg memory area reaches the claim except boss.cfg's slot C, scratch and slot D (1.34075ms)
+✔ the boot path and the runtime ranges stay out of $0C00-$1FFF (0.24275ms)
+✔ slot C: the controller at $1000, at most 2,048 B, read from disk sized to its code (0.31675ms)
+✔ Q-S3 for slot C: every address the controller reads is a symbol of the same build, none a literal (0.476459ms)
+✔ every overlap between two cfg memory areas is declared on purpose and named (9.037042ms)
+✔ every declared cfg overlap still exists and carries a name and a reason (1.578834ms)
+✔ docs/memory-map.md carries exactly one generated block (1.067792ms)
+✔ the generated memory map matches the current build (63.296709ms)
+✔ the generated map reports the boss claim with slot D and the misnamed STARFIELD (0.273917ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 141.12125

@@ -192,7 +192,12 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   memory[0x80fa] = 0;
   memory[0x80ff] = 0xff;
   initialiseRows(memory, labels);
-  memory.fill(0, 0x3800, 0x4400);
+  // L1 Light is resident below the single-line PMG DMA planes.
+  runRoutine(memory, labels, "clear_pmg");
+  memory.fill(0, 0x4000, 0x4400);
+  // START GAME clears the reused ring after GLUE publication. These direct
+  // fixtures also need an empty scene, not bytes left by cold staging.
+  memory.fill(0, ringBase, ringEnd);
   memory[requiredLabel(labels, "ENTITY_SPAWN_TIMER_LO")] = 0xff;
   memory[requiredLabel(labels, "DIFFICULTY_SETTING")] = 2;
   memory[requiredLabel(labels, "player_x")] = 196;
@@ -847,7 +852,9 @@ export function executePlayerFighterEmissionVisibilityTrace({
         for (const ringHead of ringHeads) {
           const { memory, labels } = initialiseRuntime(root, artifact, coldFill);
           initialiseRows(memory, labels, ringHead);
-          memory.fill(0, 0x3800, 0x4400);
+          // Preserve resident MAIN Light while clearing the PMG planes.
+          runRoutine(memory, labels, "clear_pmg");
+          memory.fill(0, 0x4000, 0x4400);
           memory[requiredLabel(labels, "player_x")] = playerX;
           memory[requiredLabel(labels, "player_y")] = playerY;
           memory[requiredLabel(labels, "PLAYER_LIFECYCLE")] = 0;

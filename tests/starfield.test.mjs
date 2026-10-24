@@ -327,7 +327,8 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   // MEASURED by the boot smoke 8/8: XEX unmoved at 135/392, ATR 344/601 ->
   // 346/603, +7/+7 against the committed baseline and inside the +-10 warn
   // band, so boot-deadline-baseline.json is still NOT re-recorded.
-  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
+  // L1 moves menu sources out of the initial block into a checked disk run.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 101);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });

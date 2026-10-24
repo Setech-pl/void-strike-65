@@ -1,0 +1,1697 @@
+✔ the BASIC window's free figure counts both of its links (0.52ms)
+✔ the window's free tail agrees with the linker map's Light kernel tail (0.197625ms)
+✔ the window has room for the Director: the free tail stays at 900 B or more (0.121625ms)
+✔ the tone switches per bit, not per frame, at full volume through frame 175 (273.108792ms)
+✔ sound and every splash colour fade without ever brightening, and land on frame 250 (2.297917ms)
+✔ the deck is cut before the display is blanked, on both exits (78.176209ms)
+✔ SPACE or FIRE ends the hold, and a button held from frame 1 does not (398.912417ms)
+✔ a skip cannot leak into the menu as a START GAME press (1.632083ms)
+✔ the splash ship zone is allied blue for the whole bright part of the hold (0.576292ms)
+✔ the segment script is data the generator validates, and it fills the hold (3.886125ms)
+✔ the second data record is one octave below the first and the third (1.224ms)
+✔ the segment table admits DATA_LOW everywhere it admits DATA (0.6575ms)
+✔ boot_stage2_xex_entry is gone from the source, its exports and the link (1.226417ms)
+✔ the initial block returns the entry's 14 bytes (0.149834ms)
+✔ the ATR entry is the one stage-2 entry and the $02 token has one writer (1.436042ms)
+✔ the fixed bootstrap prefix does not move (0.089125ms)
+✔ Q-B5 and Q7: the boss claims $0C00-$1FFF - charset, slot C, scratch, slot D (4.928959ms)
+✔ no segment of any link reaches $0C00-$1FFF except the boss's own homes; only slot D's reach $1900-$1FFF (4.378792ms)
+✔ no cfg memory area reaches the claim except boss.cfg's slot C, scratch and slot D (3.226541ms)
+✔ the boot path and the runtime ranges stay out of $0C00-$1FFF (0.151333ms)
+✔ slot C: the controller at $1000, at most 2,048 B, read from disk sized to its code (1.033875ms)
+✔ Q-S3 for slot C: every address the controller reads is a symbol of the same build, none a literal (3.041833ms)
+✔ slot A holds the boss: at most 2,048 B, a JMP to the head, then the 12-entry table image (2.148416ms)
+✔ the once-only install is one 3-sector run at $7810, below the region's theme run (0.566875ms)
+✔ the disk: boss code from 528, the install 544-546, slot C from 547, region 1 at 632-647, its block at 696 (2.798459ms)
+✔ the overlay directory names the boss code and the four regions' theme runs (0.565334ms)
+✔ Q-S3: the window's pins are the addresses their links gave those labels (0.724292ms)
+✔ the window pays the entry's resident half inside the plan's S3 figure, and last (0.089583ms)
+✔ the boss entry's resident half draws no text screen: no WARNING record, no reader screen call (41.859042ms)
+✔ Q-S4: the START GAME restore names every patched setting with the shipped value (4.901ms)
+✔ the controller is C in slot C and uses no cc65 stack, helper or runtime zero page (1.072625ms)
+# boss per-frame work, worst: 5211 native cycles (Q-B6 limit 7,000)
+✔ the Director raises BOSS_DUE entering the boss sector, and the gate enters only once drained (6.490167ms)
+✔ decision 32 (re-pointed): black, then the banner's title, the theme started, then every run in the planned order (56.291ms)
+✔ the install: slot A, the charset, the vector table, the band list with three DLIs, the handshake (0.902375ms)
+✔ the gameplay list outside the boss sector keeps its two DLIs (3.065666ms)
+✔ the world scroll stops in the boss sector and runs again after the START GAME restore (24.196875ms)
+✔ the band drifts by HSCROL every step, the LMS moves every 16 colour clocks, three DLIs a frame (9.370041ms)
+✔ the column map: the guns and plates in front, the core in its own column, armour, open sky (1.224083ms)
+✔ shots against the band: a gun takes damage, armour and the guarded core absorb, open sky lets it fly (2.1165ms)
+✔ the cover group: every gun down exposes the core; its death, the last weapon's, starts the chain with the bonus (6.40625ms)
+✖ the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time (296.902792ms)
+✔ Q-S4: START GAME after a game ended inside the boss sector restores slot A and every setting, CHBASE too (62.046583ms)
+✔ Q-B6: the worst boss frame's own work stays under 7,000 native cycles (4.208375ms)
+✔ the cavity code is the blank code or a glyph of the region's charset (0.079333ms)
+✔ public package and generated artifacts use the Void Strike 65 identity (30.513041ms)
+✔ decoded loader and frontend records expose the new title without the old marking (3461.042667ms)
+✔ assembled Atari screen streams decode to the complete rebranded frontend (4.522917ms)
+✔ tracked names and player-facing tracked content contain no retired vocabulary (87.859166ms)
+✔ the lethal player shot awards DEBRIS_SCORE through the existing mechanism (130.554625ms)
+✔ a non-lethal player shot on debris does not score (62.692042ms)
+✔ player contact destroying the debris awards the same DEBRIS_SCORE (18.741125ms)
+✔ the despawn path does not score (23.667959ms)
+✔ only the two player-caused destruction paths call add_debris_score (3.154583ms)
+✔ a debris shot kill adds 25 points (54.403208ms)
+✔ a debris ram kill adds the same 25 points (34.546542ms)
+✔ a debris SHOT kill counts toward the capsule and a RAM kill does not (36.607542ms)
+✔ a debris kill that completes the count spawns the capsule at the debris X (24.486667ms)
+✔ the capsule is clamped into the entity corridor at both edges (42.396291ms)
+✔ nothing else about debris changed: HP, contact damage and the one-capsule rule (69.060292ms)
+✔ entity descriptor and glyph generation are deterministic and bounded (3.998ms)
+✔ entity memory and code reservations are exact and do not use BASIC ROM (0.587666ms)
+✔ $A5 and $5A cold RAM are fully initialised for the ATR (146.867583ms)
+✔ all four 2x1 debris phases map both cells through every logical row and A2 ring head (5367.57725ms)
+✔ divider and HUD coordinates cannot render or collide (8.698583ms)
+✔ spawn deterministically selects two variants, two phases and three trajectories (678.176292ms)
+✔ integration debris ABI is derived from and jumps to the linked spawn symbol (2.340417ms)
+✔ integration debris admission is equivalent to Director request plus direct spawn (4.12725ms)
+✔ capital debris retries rejected admissions without overwriting its occupied slot (4.242792ms)
+✔ capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and HARD (4.186083ms)
+✔ X, Y and tumbling phase change only on WORLD_ROW_ADVANCED (1.446167ms)
+✔ all deterministic trajectories remain inside the inner corridor through despawn (334.497ms)
+✔ debris advances exactly three vertical rows in five world events (1.482667ms)
+✔ EASY, MEDIUM and HARD keep world/debris rates while white stars drift at 50 Hz (1.351459ms)
+✔ entity selection and movement do not mutate other RNG or gameplay cadence state (1.491167ms)
+✔ pause, new game, life loss, full sector transition and Game Over preserve entity semantics (6.607042ms)
+✔ phase and position changes preserve backing across A2 ring wrap without ghosts (1.898917ms)
+✔ player-debris collision uses one explicit 16-HPOS visible-width operand (0.442666ms)
+✔ player-debris damage uses fixed EASY/MEDIUM/HARD HULL units atomically (53.45175ms)
+✖ debris damage updates HULL plates in the contact frame and enters canonical death flow (2.173916ms)
+✔ Interceptor pulse and capital damage retain their one- and two-unit contracts (9.13625ms)
+✔ accepted direct Interceptor contact is lethal at every HULL and difficulty (43.254833ms)
+✔ Interceptor contact geometry covers centre, edges, corners, and exact outside misses (18.174542ms)
+✔ Interceptor contact preserves Shield, cooldown, respawn, and prior-latch gates (9.338791ms)
+✔ lethal Interceptor contact updates HUD, uses one death event, and reaches Game Over (1.594833ms)
+✔ player death defers the PMG explosion to the first DYING tick and still erases it before the respawn (1.494ms)
+✔ the deferred death sequence publishes exactly one PlayerFighter image from the respawn frame on (1.847791ms)
+✔ the deferred begin still fires when the player dies at the respawn row (1.899916ms)
+✔ Raider lifecycle and score remain canonical without scheduling a character effect (1.457542ms)
+✔ Interceptor contact result is exact after an ATR cold boot (29.028833ms)
+✔ all four debris forms detect every visible PlayerFighter HPOS from 0 through 15 (85.358917ms)
+✔ player-debris half-open boundaries cover every edge and corner (20.967833ms)
+✔ nose, wings and engines use the same full visible PlayerFighter envelope (26.188125ms)
+✔ debris movement samples collision after horizontal +/-4 HPOS and vertical +8 scanlines (16.495083ms)
+✔ debris contact reports damage gates without changing their semantics (9.601917ms)
+✔ three PlayerFighter hits destroy every debris form, awarding DEBRIS_SCORE once while enemy paths remain unchanged (16.30625ms)
+✔ PlayerFighter collision covers the half-open 2x1 footprint and swept upper boundary (27.605041ms)
+✔ lowest matching PlayerFighter slot is consumed once and every higher slot remains active (1.486875ms)
+✔ debris and Interceptor arbitration follows upward first-contact order with debris ties (4.262458ms)
+✔ shot resolution precedes player contact while unshot debris uses difficulty damage (3.092833ms)
+✔ Interceptor and broadside projectiles cannot enter the debris target path (1.814791ms)
+✔ shot destruction after reverse erase leaves no glyph at any A2 ring head (148.463667ms)
+✔ executed ATR traces preserve the five-slot generic debris split (16.649125ms)
+✔ every canonical Raider death avoids character effects without changing score policy (7.28775ms)
+✔ executed Raider destruction is character-free and ATR exact (16.499041ms)
+✔ Raider death preserves an unrelated generic debris effect (62.905333ms)
+✔ backed overlay stack restores base, shell/projectile, entity and effect in reverse (2.934125ms)
+✔ linked character-free Raider trace stays below the former five-slot path (15.035334ms)
+✔ generated artifact set is internally consistent (9.458083ms)
+✖ ATR uses standard single-density geometry (13.054709ms)
+✖ resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes (4.434417ms)
+✔ the code window is declared, guarded and addressable by the build (4.291667ms)
+✔ boot enters an explicit ten-state frontend/game state machine (7.8455ms)
+✔ main menu labels are exact, ordered, and default to START GAME (3476.585584ms)
+✔ frontend uses distinct clean 6x7 glyphs within ANTIC 6/7 indices (2523.851166ms)
+✔ UP and DOWN move once per neutral release and wrap at both bounds (1.38975ms)
+✔ an idle main menu has no path to gameplay without a gated FIRE event (1.436333ms)
+✔ frontend text records explicitly test the byte returned by the reader (0.831041ms)
+✔ FIRE is release-gated across screens and into gameplay (1.266916ms)
+✔ menu actions use explicit transitions and one gameplay reset path (1.24875ms)
+✔ SOUND defaults ON, toggles in RAM, and OFF silences all POKEY channels (2.955958ms)
+✔ OPTIONS persists GAME MUSIC and a MEDIUM-default difficulty (2274.73725ms)
+✔ TOP SCORES renders all ten RAM records and returns only on FIRE (3.198625ms)
+✔ ANTIC 6 attributes route the selected marker and full label to $D8 (4266.664833ms)
+✔ main-menu studio credit is removed while loader copyright source remains (2175.607375ms)
+✔ EXIT defaults to NO and reaches a stable, silent reset-only state (2138.295584ms)
+✔ frontend charset and transient loader tail stay in their bounded ranges (2127.91525ms)
+✔ OPTIONS tables stay in the checked menu run outside the loader display list (0.110833ms)
+✔ the runtime highlights the whole main-menu title, however long the title is (2162.043584ms)
+✔ mixed display list, screen offsets, title, menu, and hint are bounded (2228.6835ms)
+✔ menu PlayerFighter is charset-only, frontend PMG stays disabled, and gameplay setup is restored (2235.758542ms)
+✔ frontend entry clears stale player and missile graphics latches before DMA resumes (3.149458ms)
+✔ last-life death enters GAME OVER once after the deferred 24-frame explosion (1.704208ms)
+✔ LIFE saturates at zero and dead-state damage cannot consume it again (0.299375ms)
+✔ GAME OVER leaves the gameplay loop before control, combat, spawn, and scoring (0.600333ms)
+✔ GAME OVER renders final SCORE and TOP from packed BCD without changing them (4.879583ms)
+✔ held FIRE cannot skip GAME OVER; release then a fresh press returns to menu (0.346625ms)
+✔ assembled gameplay entry always transfers into the relocated main loop (4.652ms)
+✔ 600-frame ON/OFF watchdog advances frame, world, stars, and spawn scheduling (3459.549875ms)
+✔ GAME MUSIC ON starts from row zero while OFF performs no tick or POKEY write (0.192459ms)
+✔ gameplay tempo advances on exact six-frame PAL boundaries without drift (0.21575ms)
+✔ death mutes both voices without stopping the score or the envelopes (0.177334ms)
+✔ only the hit SFX preempts, it takes channel 2 alone, and the lead resumes (0.107708ms)
+✔ stop clears the voices without changing the persistent GAME MUSIC option (0.072709ms)
+✔ assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence (2.068959ms)
+✔ gameplay timing values come from the executable runtime report (0.0875ms)
+✔ the art outside the boss band: build/enemy-roster.inc is the pinned bytes (1.874875ms)
+✔ the art outside the boss band: build/capital-hulls.inc is the pinned bytes (0.994292ms)
+✖ the art outside the boss band: build/entity-effects.inc is the pinned bytes (1.295833ms)
+✔ the art outside the boss band: build/fighter-weapons.inc is the pinned bytes (0.601833ms)
+✔ the art outside the boss band: build/starfield.inc is the pinned bytes (0.533375ms)
+✔ the art outside the boss band: build/frontend-h31.inc is the pinned bytes (0.288708ms)
+✔ the art outside the boss band: build/loader-screen.inc is the pinned bytes (0.328459ms)
+✔ the art outside the boss band: build/loader-display-list.inc is the pinned bytes (0.454708ms)
+✔ the art outside the boss band: build/menu-stars.inc is the pinned bytes (1.138ms)
+✔ the art outside the boss band: build/hull-style-R1.bin is the pinned bytes (0.803916ms)
+✔ the art outside the boss band: build/hull-style-R2.bin is the pinned bytes (1.010667ms)
+✔ the art outside the boss band: build/hull-style-R3.bin is the pinned bytes (0.451458ms)
+✔ the art outside the boss band: build/hull-style-R4.bin is the pinned bytes (0.240375ms)
+✔ the art outside the boss band: build/level-hull-block.bin is the pinned bytes (0.075459ms)
+✔ the art outside the boss band: build/level-payload.bin is the pinned bytes (0.057083ms)
+✔ the art outside the boss band: build/level-summary-art-1.bin is the pinned bytes (0.644291ms)
+✔ the art outside the boss band: build/boot-splash.bin is the pinned bytes (0.296667ms)
+✔ the Light glyphs: the Wingman's and the Interceptor's two cells, byte for byte (0.307666ms)
+✔ the Light hit flash clears bit 7 of the slot's own codes for 3 frames and touches no colour register (decision AN 1) (1.413ms)
+✔ the gameplay DLI's charsets and palette: CHARSET $4400 / HUD $5000, PF0 $0E, PF2 $AE, PF3 $46, HUD $0E / $00 (0.092917ms)
+✔ the gameplay DLI's instructions are the pinned ones (comments aside) (0.632625ms)
+✔ the HUD's HULL: a whole quarter is the plate, a spent one the blank (fix/boss-polish, owner request 2026-10-12) (0.648958ms)
+✖ the boss link's colour, charset and DLI-vector stores: only the pinned routines (3.103291ms)
+✔ region 1's route: the band's end puts back the gameplay charset and palette, and hands VDSLST back to boss_dli (127.898541ms)
+✔ region 2's route: the band's end puts back the gameplay charset and palette, and hands VDSLST back to boss_dli (49.434417ms)
+✔ region 3's route: the band's end puts back the gameplay charset and palette, and hands VDSLST back to boss_dli (82.778417ms)
+✔ region 4's route: the band's end puts back the gameplay charset and palette, and hands VDSLST back to boss_dli (35.457125ms)
+✔ HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F (1.180125ms)
+✔ the arena lands directly as its own DFMC record and is the only owner of its range (5.570875ms)
+✔ the temporary Heavy window transport is retired without moving any address (1.410167ms)
+✔ the PROJECTILES damaged-body reservation survives lifecycle clears (101.504125ms)
+✔ menu music initializes and ticks without writing the damaged-body tail (47.80525ms)
+✔ all four boss entries leave the gameplay reservation untouched (234.313917ms)
+✔ M6: the lance run - the window's tail from $BBFF down, the boss reservation's last sectors, read at every entry (99.830458ms)
+✔ journal §BL: a damaged page 4 sector is WRONG DISK before the install runs (195.61675ms)
+✔ M6 (decision BD 6): the build fails when the window's record grows into the lance's RAM (0.58675ms)
+✔ M6 (decision BF, journal §BL): FIRE + stick UP held over a target charges 50 frames - the reticle blinks, the ordinary fire shut - and fires once (40.639667ms)
+✔ M6 (decision BF): releasing FIRE or the stick's up before the charge's last frame cancels it; the next hold starts again (90.019583ms)
+✔ M6 (decision BF): FIRE alone, the stick alone or FIRE with another direction never charge; a diagonal with UP does (88.39825ms)
+✔ M6 (decision BH 1): level-triggered - FIRE held 200 frames (its gate shut), then UP: the charge from UP's first frame, the shot a charge later (120.705791ms)
+✔ M6 (decision BH 1): the column under the ship changing - target, empty, another target - never cancels the charge (174.563458ms)
+✔ M6 §BO: persistent charge waits, cancels or launches on the first lock (434.991667ms)
+✔ M6 (decision BH 1): no module under the ship - the gesture charges (the ship slowed), the mark hollow at the ship's column (40.335125ms)
+✔ M6 (decision BH 1): the ship's upper limit (and a side) reached with the gesture held never cancels the charge (421.032708ms)
+✔ M6 (journal §BL 4): the axis rule - sideways at full speed, the advance at 1 / 2 while the charge builds; full speed outside it (347.387291ms)
+✔ M6 (journal §BL 4): read_input's stick operand - PORTA with UP released on a slow frame (the lance's byte), PORTA otherwise, restored at START GAME (32.046125ms)
+✔ M6 (journal §BE, §BL): no ordinary fire while aiming, nor for 50 frames from the launch, then back (60.66325ms)
+✔ M6: the kill's frame admits no player shot meeting - they wait a frame - the next frame AUD-04's two (30.542125ms)
+✔ M6 (journal §BL 5): a module a player shot destroys on the torpedo's way is not hit again - the lance is kept, no other module touched (29.256333ms)
+✔ M6: boss directory 1 - one lance shot destroys exactly the module under the ship, through the kill path (30.564583ms)
+✔ M6: boss directory 1 - the lance takes only what a player shot would hurt, never the core (30.535ms)
+✔ M6: boss directory 4 - one lance shot destroys exactly the module under the ship, through the kill path (32.239459ms)
+✔ M6: boss directory 4 - the lance takes only what a player shot would hurt, never the core (31.273417ms)
+✔ M6: boss directory 3 - one lance shot destroys exactly the module under the ship, through the kill path (29.986417ms)
+✔ M6: boss directory 3 - the lance takes only what a player shot would hurt, never the core (31.373083ms)
+✔ M6: boss directory 2 - one lance shot destroys exactly the module under the ship, through the kill path (31.252458ms)
+✔ M6: boss directory 2 - the lance takes only what a player shot would hurt, never the core (32.301209ms)
+✔ M6 (decision BG 1-2): EASY - the meter fills in exactly 938 frames; the gesture does nothing until then (33.03125ms)
+✔ M6 (decision BG 1-2): MEDIUM - the meter fills in exactly 1250 frames; the gesture does nothing until then (31.384667ms)
+✔ M6 (decision BG 1-2): HARD - the meter fills in exactly 1562 frames; the gesture does nothing until then (33.1285ms)
+✔ M6 (decision BG 1-2): no stacking - full, the meter stays full; the shot empties it, and the reticle is gone until the next (40.578042ms)
+✔ M6 (decision BG 1): the meter resets at the boss entry - a full meter left by the last fight is read anew as empty (29.391208ms)
+✔ M6 (decisions BG 4, BI 2): the readiness indicator (the ship green; its charge ramp) and its cue follow readiness exactly (29.38325ms)
+✔ M6 (decision BI 2): the charge's ramp - the green from luminance 4 to near-white, never down, one write a frame; the green again on a release; the shot's colour (60.883125ms)
+✔ M6 (decision BI 2): the discharge - noise on channel 3 from the fire frame, the bed back on the beam's last frame (or after the kill's tick), never with the sound off (119.939416ms)
+✔ M6 (decisions BG 4, BH 2): readiness off - dying or the fight over: no mark, no charge, the stick PORTA's, the gesture held or not (232.515958ms)
+✔ M6 (decisions BD 1, 3): the reticle - P1's crosshair under the band at the target's centre, no colour register written (29.370583ms)
+✔ Layout D.2 startup order and call bytes are frozen (4.460125ms)
+✔ transport limits in force: the initial block STOP rule and every record's sector capacity (0.208792ms)
+✔ the ATR preserves full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard (163.145458ms)
+✔ current A2 entry points and relocated release glue retain their frozen opcodes (0.123709ms)
+✔ relocated pickup hook decrements 2 to 1 and returns (47.364416ms)
+✔ startup writes never intersect a source before its last read (0.591042ms)
+✔ Q-1: the level buffer is 16 sectors at $A600-$ADFF (0.74975ms)
+✔ Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reader BSS (0.584625ms)
+✔ Q-1: the window record lands at $AE00 and costs no extra transport (0.122291ms)
+✔ Q-1: level 1 still loads the same image the same way (0.969458ms)
+✔ Q-1: the sources carry the same two constants the manifest reports (1.8995ms)
+✔ the level-1 image carries its region's hull block behind the music, and byte 7 says 9 (0.664709ms)
+✔ the region mapping divides the campaign into four equal quarters (0.498375ms)
+✔ the allied steel is one level byte: $88 in the first half, $84 in the second (0.114666ms)
+✔ each region's block carries exactly the seven enemy glyphs of hull-set-v2.json (0.559625ms)
+✔ every region still fits the 14 surface codes of one level hull set (35.887166ms)
+✔ start_gameplay publishes the level's style into the charset, the boundaries and the DLI (22.469875ms)
+✔ a different region publishes different glyphs, boundaries and steel (22.991667ms)
+✔ the ATR reads thirteen sectors at START GAME, and the reader still fits (0.104209ms)
+✔ --hull-style=Rn is a review variant that bakes one region and never writes dist/ (0.151333ms)
+✔ T13: the sky is resolved per sector into sector_look bits 0-3 and the level default into header byte 5 (20.075417ms)
+✔ T13: a wave's appearance is wave_flags bits 0-1 and the looks fill the payload page (0.508292ms)
+✔ T13: a weapon look is eight glyph rows and its target class, 9 B per record (0.277666ms)
+✔ T13: the compiler refuses every out-of-range payload value (0.921333ms)
+✔ T13: level 1 shows a sky per sector and one re-skinned Light wave; level 2 the full payload (1.599125ms)
+✔ T13: a Light wave's appearance installs its payload look into the admitted slot's pair (13.915417ms)
+✔ T13: a Heavy wave's appearance re-skins its Light escort (5.519583ms)
+✔ T13: a plain and a variant Wingman never share an appearance pair (3.154ms)
+✔ T13: the level's weapon looks are laid over the defaults at level start (9.661791ms)
+✔ T13: the star pixel changes at sector entry and only there (3.33675ms)
+✖ T13: only the Director's sector entry writes the star operand (2.160542ms)
+✔ T13: the byte rules - light_pair_for_record size-neutral, record 5 not grown, initial block under the STOP line (3.1005ms)
+✔ the save record has one fixed sector, named once and placed by the directory (1.412458ms)
+✔ the overlay directory has eleven entries; the summary code is entry 8 at $0500 (0.385167ms)
+✔ the summary module fits its claimed home $0500-$0BFF and is on the disk byte for byte (0.407916ms)
+✔ $0700-$0BFF is claimed: no link, cfg area or boot-path range but the summary's reaches it (2.312334ms)
+✔ four regions of art, seven sectors each from sector 600, generated from assets (1.695208ms)
+✔ an art run carries the palette, the glyphs, the picture and the labels, and no AI line (0.957334ms)
+✖ disk runs never overlap: levels, the capital restore, M5b's reservation, the summary (0.723542ms)
+✔ the stat hooks are operand-only in every full segment (2.300334ms)
+✔ the grade thresholds are level data in the payload page (3332.315708ms)
+✔ a level whose thresholds cannot grade is refused by the compiler (2.867833ms)
+✔ the stat block in zero page is the summary ABI's and no link claims it (1.388917ms)
+✖ ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either (0.513208ms)
+✔ selection contract: the schedule names the archetype, and the reusable admission only reads it (9.323084ms)
+✔ a second admission while the slot is active changes neither the archetype nor the wave's byte (3.176ms)
+✔ source contract: the Light admission and tick hold no ordering or toggle logic (0.871291ms)
+✔ the armed wave names the escort: Wingman escorts, Interceptor flies free, NO_ESCORT admits none (4.1715ms)
+✔ admission per difficulty: entry x 124, leaderless, and the record's own post-burst pause (9.260375ms)
+✔ descent is 4 lines per frame down to the standoff; after its 64-frame hover it climbs out and retires past the top (7.737125ms)
+✔ pursuit closes on the player one 4-HPOS cell every other frame, clamped to 48-200 (10.8525ms)
+✔ pursuit ignores Heavy slot 0 entirely: an alive P1 formation does not switch it to follow mode (2.975625ms)
+✔ single laser bolt cadence: burst 1, post 40/31/20, 1/2/3 shots per pass, tick returns LASER (11.03875ms)
+✔ fire is gated by visibility and by the player dying, exactly like the Wingman (9.409208ms)
+✔ three player PairShots kill the Interceptor, the third scores 0x15 BCD, and only the fighter lifecycle retires it (6.047166ms)
+✖ placement contract: legal composite and packed size, state inside its reserved windows, no C stack (0.754625ms)
+✔ no PMG: no P1/P2 or PMG register touched by the ASM files this task changed (0.585459ms)
+✔ weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASER bolt $E5, and the resolver restores both (3.80925ms)
+✔ Light Wingman and Interceptor are the second and third 12-byte C records; Raider is unchanged (10.087875ms)
+✔ Light kernel placement is legal, resident and inside every reviewed gate (0.350042ms)
+✔ formation admission yields 2 Heavy + 1 Light with independent lifecycles (9.91525ms)
+✔ C formation holds the Light centred behind Heavy slot 0 without side switching (5.085834ms)
+✔ leader loss continues straight down, then recycles below the playfield (3.078166ms)
+✔ single-shot fire policy is slower than the Heavy burst and gated by visibility (5.113125ms)
+✔ ASM emits one PULSE PairShot tagged with the leader's P1 emitter bit (2.916083ms)
+✔ light_update installs the selected archetype's art into glyphs 120/121 (5.390375ms)
+✔ a player PairShot kills only the Light, scores its record and frees the shot (2.626584ms)
+✔ player contact follows the Raider contract and destroys the Light (3.082375ms)
+✔ late publication erases PairShots first, then unwinds and republishes the Light (3.044875ms)
+✔ fighter->capital waits for the Light and capital->fighter re-admits a fresh one (10.809834ms)
+✔ the resolver answers by screen address, so two slots sharing a code stay apart (3.490875ms)
+✔ the appearance install runs on the admission frame only, not every frame (3.710125ms)
+✔ a slot above the lowered limit is still erased (9.857208ms)
+✔ a published slot above the state limit is still resolved (5.22375ms)
+✔ hooks are operand-only redirections and the Light publishes only in the late window (2.22625ms)
+✔ loader reference PNG is present and unchanged (3.216959ms)
+✔ mixed-mode source is exactly 320x192 with 40 MSB-first bytes per row (0.16975ms)
+✔ bounded LZSS round-trip is exact and ends at the bitmap boundary (0.460542ms)
+✔ both LMS ranges preserve 40-byte rows across 4 KB boundaries (0.408708ms)
+✔ bitmap has fitted title, detailed unmarked hull, three engines, and studio (0.527625ms)
+✔ copyright footer has two bold centered ANTIC E lines with safe spacing (50.777209ms)
+✔ packed loader footer uses distinct bold glyphs made of full ANTIC E pixels (50.240083ms)
+✔ title and ship remain ANTIC F while the $D8 studio uses ANTIC E (0.856792ms)
+✔ studio ANTIC E pixels use COLBK=$00 and a $D8 colour the DLI loads from the splash blob (4.396375ms)
+✔ generated include is canonical and contains no ANTIC 4 loader assets (1.428125ms)
+✔ assembled display list contains 157 ANTIC F and 35 ANTIC E lines (38.313542ms)
+✔ the ATR uses the current packed bitmap source (8.066125ms)
+✔ loader still owns exactly 250 full PAL frames and enters the main menu (1.6855ms)
+✔ loader-only tail may use PMG bytes but stays below screen memory (18.310834ms)
+✔ capital-hull integration preserves gameplay preview dimensions (3217.6155ms)
+✔ loader preview follows ANTIC F title/ship and ANTIC E studio semantics (173.330042ms)
+✔ the star table is sixteen dots, 60/40 white/steel, a third twinkling (1.220917ms)
+✔ the steel-twinkle review variant twinkles steel stars through the OFF step (0.342375ms)
+✔ the menu draws every star as its own one-dot glyph and nothing else moves (43.735458ms)
+✔ no star touches text, a bar or the fighter, and each keeps an empty cell of clearance (24.455958ms)
+✔ over one 48-frame cycle every twinkling star goes bright, dim and off and steady stars never change (24.251959ms)
+✔ a cycle step lasts four menu frames, so the whole twinkle takes 48 (28.964875ms)
+✔ the per-frame tick writes only star cells and never touches POKEY or music state (23.641375ms)
+✔ entering OPTIONS and returning to the menu restores the sky byte for byte (35.998708ms)
+✔ the star glyphs are eight single dots in the free frontend charset codes (56.346125ms)
+✔ seven blank display-list lines became ANTIC 4 star rows and the menu keeps 216 scanlines (27.930417ms)
+✔ only the MAIN MENU gets stars (34.458958ms)
+✔ each boss RAM claim leaves pause intact and the checked run restores every frontend (543.379292ms)
+✔ L1 menu-read failure abandons exactly one frontend return address (20.867166ms)
+✔ the shipped menu player emits the reference renderer's register stream (1.654125ms)
+✔ the menu tick writes only AUDF1-4 and AUDC1-4 (0.399042ms)
+✔ a silent channel keeps its divider: the player writes AUDC only (0.302833ms)
+✔ the menu tick's per-frame cost stays a frontend cost, not a raster one (0.055417ms)
+✔ music_stop silences every channel and disarms the transport (0.057166ms)
+✔ the menu theme starts only in the main menu and stops before gameplay (1.591125ms)
+✔ the shipped gameplay player emits the renderer's stream with no SFX running (43.397708ms)
+✔ the bass is never preempted, the lead stops only for the hit and resumes (29.887625ms)
+✔ the shot SFX register sequence is the same with music on and music off (77.9845ms)
+✔ the capital-hull explosion's AUDCTL leaves the shot's sound unchanged (43.366333ms)
+✔ the capital-phase entry points are reached only through the vector table (19.645375ms)
+✔ nothing outside the capital group names a label inside slot A (8.761292ms)
+✔ slot A is 16 whole sectors of BROADSIDE starting at update_broadside (0.122959ms)
+✔ the capital restore run on the disk is the resident image of slot A (0.317791ms)
+✔ the reader's overlay directory and table image match the disk and the window (0.215416ms)
+✔ the AI pool holds exactly four lines in the assets source, and no build output carries them (0.435708ms)
+✔ PairShot uses one logical record and one character cell for two pulses (516.074417ms)
+✔ Normal, Rapid and Spread retain 8/10/8 visible pulses as 4/5/4 PairShots (198.013042ms)
+✔ PairShot keeps one collision event per logical player or enemy record (296.79175ms)
+✔ physical OPTION enters PAUSED before any gameplay frame mutation (1.20325ms)
+✔ PAUSED runs no world, combat, animation, score, death, or respawn tick (0.531875ms)
+✔ held OPTION and FIRE are release-gated to one action (0.300583ms)
+✔ pause preserves music transport and resume continues only when enabled (0.58175ms)
+✔ pause GAME MUSIC toggles shared state immediately without modifying SFX (0.438333ms)
+✔ QUIT TO MENU requires confirmation and defaults to NO (1.936208ms)
+✔ NO returns to pause while YES clears gameplay and starts menu music (0.766ms)
+✔ pause overlay reuses the frontend renderer and released staging RAM (0.635667ms)
+✔ quit preserves TOP and a new game remains the sole SCORE reset path (0.311833ms)
+✔ the capsule's colour is a hue no enemy and no allied object wears (1.405959ms)
+✔ the capsule is one PLAYER3 image and touches no missile register (0.509709ms)
+✔ PRIOR is $00 for the whole of gameplay: only cold init and the loader write it (1.622959ms)
+✔ no shield path writes COLPM3 (0.32225ms)
+✔ only the capsule and the player explosion write PLAYER3 (0.906042ms)
+✖ COLPM3 follows the sector state, once per frame, off the latch that exists (0.775916ms)
+✔ P3 carries the capsule's one-clock size, and the explosion's double width only (0.439125ms)
+✔ a Light or debris break-up lasts 30 frames, its core main's 5 (58.141875ms)
+✔ a Heavy break-up lasts 45 frames, its core main's 5 (23.404708ms)
+✔ main's break-up, no growth: every cell from the first frames, main's shapes, sparks at the end (70.41375ms)
+✔ enemy break-ups draw no COLPF2 pixel: every code they publish is inverse (79.799417ms)
+✔ the background flash of a Heavy kill and of the player's death: 6 frames, two strong, a dark-blue fade, black (59.6005ms)
+✔ the player's death stays 24 frames, 16 lines tall, with the fire cycle on COLPM3 (28.765041ms)
+✔ the growth glyph codes were displayed by nothing on the gameplay screen (807.119ms)
+✔ score is written by new-game and the three BCD award paths, and no award inserts a TOP score (15.692875ms)
+✖ assembled decimal score code carries without inserting partial-game scores (6.126667ms)
+✔ TOP SCORES owns exactly ten two-byte packed-BCD records (0.173542ms)
+✔ assembled ranking covers empty, regression, middle and new-record insertion (15.701833ms)
+✔ ranking fills every empty slot and remains descending (3.604042ms)
+✔ equal scores insert after existing equals and move both BCD fields together (3.292333ms)
+✔ zero and a full-table loser do not alter visible records (5.968083ms)
+✔ a full-table winner displaces the last record (3.264792ms)
+✔ ordinary awards update only current BCD score until Game Over (2.937792ms)
+✔ assembled death and respawn preserve whole-game SCORE before the next award (5.470208ms)
+✔ assembled Game Over transition inserts the final score exactly once (3.671042ms)
+✔ assembled TOP formatter renders every RAM record (5.198208ms)
+✔ three consecutive games survive SCORE resets and render immediately (44.386125ms)
+✔ a healthy drive delivers the level image byte-exactly (20.436916ms)
+✔ the command frame is D1:, read sector, with a carry wrap-around checksum (8.679792ms)
+✔ a buffer that already holds the image sends no command frame at all (0.197792ms)
+✔ a buffer holding a DIFFERENT level is not mistaken for a hit (5.995792ms)
+✔ wire: ACK then silence exhausts at exactly 3 attempts (2.2645ms)
+✔ wire: NAK three times is WIRE_EXHAUSTED, not NO_DEVICE (0.392ms)
+✔ wire: a framing error on a data byte retries, and the retry succeeds (8.860833ms)
+✔ wire: a failed attempt waits out a whole data frame before the retry's command (R7) (13.192ms)
+✔ wire: a serial overrun on a data byte retries (7.037042ms)
+✔ wire: a bad data checksum retries, and the retry succeeds (8.165792ms)
+✔ device: $45 ERROR fails immediately with no retry (owner decision 3) (0.20925ms)
+✔ no device: silence ends in NO_DEVICE after exactly 2 probes (0.128083ms)
+✔ image: a clean read of the wrong level id is BAD_IMAGE (4.000208ms)
+✔ image: a clean read with the wrong magic is BAD_IMAGE (4.235709ms)
+✔ image: a clean read with the wrong format version is BAD_IMAGE (4.347625ms)
+✔ image: a header sector count disagreeing with the directory is BAD_IMAGE (4.584084ms)
+✔ directory: a level the build never placed is rejected without touching SIO (0.251459ms)
+✔ directory: a level claiming more than 16 sectors is rejected before SIO (0.146083ms)
+✔ directory: a level of exactly 16 sectors still reaches the wire (0.091833ms)
+✔ directory: level id 0 and 17 are rejected (0.076458ms)
+✔ wait_serial counts frames on the VCOUNT wrap, not on VCOUNT falling (1.031708ms)
+✔ [C1] SKCTL is $23 while transmitting and $33 while receiving, never $13 (8.272791ms)
+✔ [C2] a keyboard overrun is not a wire error (5.699792ms)
+✔ [C3] both command-line hold windows are spent in WSYNC (4.46175ms)
+✔ every received byte re-arms the serial input latch (4.777125ms)
+✔ the reader hands POKEY back quiesced (4.741625ms)
+✔ the entry vectors sit at $A000 in a frozen order (0.287917ms)
+✔ main.s enters the reader by constant, and START GAME costs MAIN nothing (2.81875ms)
+✔ the AI text pool is four lines of 38 characters (0.846959ms)
+✔ the failure screen names every status and offers a way out (0.757083ms)
+✔ the level loading screen reads ENGAGING ENEMY SECTOR, centred and in charset (6.230084ms)
+✔ the run read at $A006 lands the capital restore run in slot A byte for byte (8.17175ms)
+✔ L1 menu run reads eleven whole checked sectors and rejects changed data (10.006916ms)
+✔ a directory entry the build left empty is rejected without touching SIO (0.300166ms)
+✔ START GAME after an overlay restores slot A and the vector table before the level (29.000333ms)
+✔ START GAME without an overlay sends no restore frame (16.602958ms)
+✔ a failed restore read reports through the status path and never starts gameplay (12.544459ms)
+✔ two independent streams fit their exact staging windows and keep the reviewed total gate (1.113875ms)
+✔ the packed streams are independent and decode to the identical runtime image (8.115958ms)
+✔ boot stages both streams with exact 960-byte copies and decodes them byte-exactly (117.43575ms)
+✔ the boot table carries two deferred starfield records and no pause-screen spill remains (2.384584ms)
+✔ asset and generated include define one four-point white-only layer (1.805041ms)
+✔ host model advances white stars exactly one scanline per PAL frame (3.571042ms)
+✔ background reconstruction and ring recycling contain no blue or orphan star bytes (14.034708ms)
+✔ all four coarse/ring combinations preserve exact physical addresses (13.467416ms)
+✔ 1000-frame mixed cadence has no stale, clone, or lost white cells (68.504583ms)
+✔ capital keeps white-star time continuous and CH_SPACE-only publication occludes hull (3.22675ms)
+✔ white publication retains the proven post-playfield ANTIC contract (2.406417ms)
+✔ instruction-exact white-only starfield peak remains within the 850-cycle gate (12.211583ms)
+✔ blue-far production code, data, glyphs and state are absent (0.953375ms)
+✔ layout and transport gates remain legal after blue-far removal (0.158417ms)
+✔ accepted 1 px/frame stars stay independent of restored capital hull cadence (0.437333ms)
+✔ pause cannot advance the white-star phase or logical rows (0.262292ms)
+✔ geometry remains the canonical 40 by 28 PAL playfield (0.059083ms)
+✔ Rapid Fire owns fixed slot one without extending BSS or physical pools (5.053625ms)
+✖ three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette (5.347ms)
+✖ the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills (55.023791ms)
+✔ non-projectile causes and repeated resolution never advance the drop counter (150.137375ms)
+✖ pickup pending remains hidden and non-colliding for thirty full frames (23.361708ms)
+✔ every booster type enters at the top, crosses the full playfield once and releases below it (90.438667ms)
+✖ active capsule is one logical PMG object, writes no character cell and cannot be shot (29.231459ms)
+✖ pickup movement resolves half world speed into smooth scanline phases (24.276708ms)
+✖ debris and the reserved pickup coexist without allocator overwrite for every A2 head (24.023667ms)
+✔ the main frame has one guarded late pickup publication (1.393667ms)
+✔ player PMG transparency preserves every pickup phase at nose side and rear overlap (2.122042ms)
+✔ EASY MEDIUM and HARD preserve their rates without full-row raster jumps (87.329125ms)
+✔ release collision covers the complete half-open 8-HPOS by 16-scanline capsule (1322.282083ms)
+✖ pickup collection is single-shot and changes neither score, HULL nor LIFE (19.883041ms)
+✖ weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink (19.910125ms)
+✖ HULL plates and the ten-cell BOOST field remain distinct at native screen codes (20.162292ms)
+✖ Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst (20.862959ms)
+✔ packed runtime distinguishes accepted Normal, Rapid and Spread cadence (111.601375ms)
+✔ released FIRE emits a visible centred first frame across X, Y and ring phases (3570.294291ms)
+✔ sector pickup clear republishes still-live PlayerFighter projectiles in the same frame (15.412875ms)
+✔ both Raider shots leave the centred first frame visible across ring rotation (825.719209ms)
+✔ Normal and Rapid projectiles render through the PlayerFighter COLPF2 bank (16.131542ms)
+✔ the packed ATR keeps every implemented PlayerFighter lifecycle path in COLPF2 mint under cold RAM (30.746917ms)
+✔ new game, life loss and Game Over clear RF while a live sector transition preserves it (206.732959ms)
+✖ release trace CSV exposes the authoritative counter, state, timing and score (15.703375ms)
+✔ Shield is generated as controller state 5, pickup type 2 and a 250-frame booster (1.86825ms)
+✔ Shield capsule uses only steel $84, white $0E and black selectors (0.756ms)
+✖ pickup rotation is exactly Rapid Spread Shield Rapid without RNG (35.679584ms)
+✔ Shield lasts exactly 250 active ticks and restores HUD and PlayerFighter colours on expiry (0.118583ms)
+✔ pause freezes timer, HUD and Shield pulse phase (0.109833ms)
+✔ sector transition preserves Shield while lifecycle teardown clears it (305.965875ms)
+✔ replacement and reload use the correct duration and restore colours (0.215917ms)
+✔ Shield damage gate preserves HULL LIFE SCORE cooldown flash and SFX path (0.111292ms)
+✔ only one Shield absorption is accepted per frame (0.0725ms)
+✔ respawn invulnerability remains a separate lifecycle gate (1.473583ms)
+✔ same-frame Shield collection protects later debris and consumes it (0.213583ms)
+✔ frame ordering keeps earlier collisions before pickup activation (0.858458ms)
+✔ collision callers retain their consume and impact contracts (1.600541ms)
+✖ Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyph (0.275458ms)
+✔ critical Shield segment has both 8-frame blink phases (0.046375ms)
+✔ HUD code 8 is formally isolated from generated screens and other HUD symbols (24.976333ms)
+✔ Shield keeps the normal burst cadence while Rapid and Spread remain unchanged (116.810583ms)
+✔ Shield pulse is solid at all positions and never aliases respawn disappearance (0.482666ms)
+✖ Spread Shot owns one phased red fan in the shared six-glyph bank (5.894417ms)
+✖ the release ATR executes the deterministic Rapid Spread Shield drop cycle (53.913ms)
+✖ Spread collection lasts exactly 500 active PAL frames and pause freezes it (29.941667ms)
+✔ Rapid and Spread replace or refresh one another without combining cadence (26.651667ms)
+✔ one Spread emission is an unambiguous three-projectile fan (24.576459ms)
+✔ all three yellow projectiles preserve both capital hulls at sections, A2 heads and wrap (3544.389583ms)
+✔ overlapping Spread shots compose without erasing the remaining shot or Hostile hull (18.064042ms)
+✖ all three projectiles leave the screen cleanly without HUD or charset corruption (20.834917ms)
+✔ Spread respects the five-projectile active budget and admits its volley whole or not at all (275.19025ms)
+✔ the configured 28-frame Spread cooldown avoids catch-up at the active limit (48.706833ms)
+✔ Spread fixed phase is symmetric after 100 updates and both side bounds despawn (50.397333ms)
+✔ all three directions collide with debris and Interceptor scoring resolves only once (67.897209ms)
+✔ Spread follows Rapid lifecycle semantics for life, New Game, Game Over and sector (232.312041ms)
+✔ Spread stays inside the fixed BSS, payload, glyph and runtime-code budgets (0.244667ms)
+ℹ tests 482
+ℹ suites 0
+ℹ pass 453
+ℹ fail 29
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25850.331667
+
+✖ failing tests:
+
+test at tests/boss-runtime.test.mjs:585:1
+✖ the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time (296.902792ms)
+  AssertionError [ERR_ASSERTION]: the boss never handed off to the level summary
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-runtime.test.mjs:623:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/entity-effects.test.mjs:1179:1
+✖ debris damage updates HULL plates in the contact frame and enters canonical death flow (2.173916ms)
+  AssertionError [ERR_ASSERTION]: MEDIUM 10->5 must be visible in the HUD before the collision routine returns
+  + actual - expected
+  
+    [
+  -   5,
+  -   5,
+      0,
+      0,
+  +   0,
+  +   0
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/entity-effects.test.mjs:1182:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 0, 0, 0 ],
+    expected: [ 5, 5, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/formats.test.mjs:29:1
+✖ ATR uses standard single-density geometry (13.054709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  133120 !== 92160
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/formats.test.mjs:35:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 133120,
+    expected: 92160,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/formats.test.mjs:47:1
+✖ resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes (4.434417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== -767
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/formats.test.mjs:112:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: -767,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/gfx-pins.test.mjs:64:3
+✖ the art outside the boss band: build/entity-effects.inc is the pinned bytes (1.295833ms)
+  AssertionError [ERR_ASSERTION]: build/entity-effects.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)
+  + actual - expected
+  
+  + '4b67a8524d304e93e92523a74b66e9f6493ed6dff16c94e762fc6fed5082b008'
+  - '252d5050d327afb6df8e84fa9b270f16ffa6c7203d463533d6a91817fc736da7'
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/gfx-pins.test.mjs:73:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '4b67a8524d304e93e92523a74b66e9f6493ed6dff16c94e762fc6fed5082b008',
+    expected: '252d5050d327afb6df8e84fa9b270f16ffa6c7203d463533d6a91817fc736da7',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/gfx-pins.test.mjs:150:1
+✖ the boss link's colour, charset and DLI-vector stores: only the pinned routines (3.103291ms)
+  AssertionError [ERR_ASSERTION]: a new colour, charset or DLI-vector store in the boss link: show it stays in the band, then re-pin
+  + actual - expected
+  
+    {
+      'b2_prepare COLPM1': 1,
+      'b2_prepare COLPM2': 1,
+      'b2_restore COLPM1': 1,
+      'b2_restore COLPM2': 1,
+      'boss_banner COLPF0': 1,
+      'boss_banner COLPF1': 1,
+  +   'boss_death_dli VDSLST': 1,
+  +   'boss_death_hud CHBASE': 1,
+  +   'boss_death_hud COLPF2': 1,
+  +   'boss_death_hud VDSLST': 1,
+  +   'boss_death_strobe COLPF3': 1,
+  +   'boss_death_strobe VDSLST': 1,
+      'boss_dli CHBASE': 2,
+      'boss_dli COLPF0': 2,
+      'boss_dli COLPF1': 2,
+  +   'boss_dli COLPF2': 3,
+  -   'boss_dli COLPF2': 2,
+      'boss_dli COLPF3': 2,
+      'boss_entry_cold CHBASE': 1,
+      'boss_entry_cold COLPF2': 1,
+      'boss_install CHBASE': 1,
+      'boss_install COLBK': 1,
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/gfx-pins.test.mjs:162:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { 'b2_prepare COLPM1': 1, 'b2_prepare COLPM2': 1, 'b2_restore COLPM1': 1, 'b2_restore COLPM2': 1, 'boss_banner COLPF0': 1, 'boss_banner COLPF1': 1, 'boss_death_dli VDSLST': 1, 'boss_death_hud CHBASE': 1, 'boss_death_hud COLPF2': 1, 'boss_death_hud VDSLST': 1, 'boss_death_strobe COLPF3': 1, 'boss_death_strobe VDSLST': 1, 'boss_dli CHBASE': 2, 'boss_dli COLPF0': 2, 'boss_dli COLPF1': 2, 'boss_dli COLPF2': 3, 'boss_dli COLPF3': 2, 'boss_entry_cold CHBASE': 1, 'boss_entry_cold COLPF2': 1, 'boss_install CHBASE': 1, 'boss_install COLBK': 1, 'boss_install COLPF1': 1, 'boss_install COLPF2': 1, 'boss_install COLPF3': 1, 'boss_install VDSLST': 1, 'boss_pal_dli COLPF1': 1, 'boss_pal_dli COLPF3': 1, 'boss_pal_frame VDSLST': 1, 'boss_pal_landed VDSLST': 1, 'laser_publish COLPM1': 1, 'laser_publish COLPM2': 1 },
+    expected: { 'b2_prepare COLPM1': 1, 'b2_prepare COLPM2': 1, 'b2_restore COLPM1': 1, 'b2_restore COLPM2': 1, 'boss_banner COLPF0': 1, 'boss_banner COLPF1': 1, 'boss_entry_cold CHBASE': 1, 'boss_entry_cold COLPF2': 1, 'boss_dli CHBASE': 2, 'boss_dli COLPF0': 2, 'boss_dli COLPF1': 2, 'boss_dli COLPF2': 2, 'boss_dli COLPF3': 2, 'boss_install CHBASE': 1, 'boss_install COLBK': 1, 'boss_install COLPF1': 1, 'boss_install COLPF2': 1, 'boss_install COLPF3': 1, 'boss_install VDSLST': 1, 'boss_pal_dli COLPF1': 1, 'boss_pal_dli COLPF3': 1, 'boss_pal_frame VDSLST': 1, 'boss_pal_landed VDSLST': 1, 'laser_publish COLPM1': 1, 'laser_publish COLPM2': 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-payload.test.mjs:409:1
+✖ T13: only the Director's sector entry writes the star operand (2.160542ms)
+  AssertionError [ERR_ASSERTION]: declared once, called once - from enter_sector
+  
+  0 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-payload.test.mjs:416:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-summary-build.test.mjs:203:1
+✖ disk runs never overlap: levels, the capital restore, M5b's reservation, the summary (0.723542ms)
+  AssertionError [ERR_ASSERTION]: seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-summary-build.test.mjs:261:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/level-summary-build.test.mjs:399:1
+✖ ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either (0.513208ms)
+  AssertionError [ERR_ASSERTION]: the window moved
+  
+  1928 !== 982
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-summary-build.test.mjs:450:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1928,
+    expected: 982,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/light-interceptor.test.mjs:498:1
+✖ placement contract: legal composite and packed size, state inside its reserved windows, no C stack (0.754625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  3161 !== 2756
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/light-interceptor.test.mjs:532:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3161,
+    expected: 2756,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/pickup-boost-colour.test.mjs:120:1
+✖ COLPM3 follows the sector state, once per frame, off the latch that exists (0.775916ms)
+  AssertionError [ERR_ASSERTION]: an OPEN frame gives COLPM3 to the capsule
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/pickup-boost-colour.test.mjs:126:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'publish_fighter_projectile_overlays:\n    lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\n    beq @fighter_window\n    ; COLPM3 belongs to whichever object owns P3/M3 in this sector state: the\n    ; broadside missile M3 and the player explosion here, the pickup capsule in\n    ; OPEN. Publishing it off the latch that is already read costs one immediate\n    ; store per frame and needs no per-frame switching inside a frame; owner\n    ; decision, 2026-09-28 (docs/plans/pickup-colour.md §7 items 2 and 7).\n    lda #PLAYER_NORMAL_ENGINE_COLOR\n    sta COLPM3\n    ; Capital starts its frame at $70, but sparse white publication still runs\n    ; here after active work, beyond the gameplay playfield. Commit OLD/phase\n    ; before the shared render path; omitting this pair would clone every prior\n    ; white point into the scrolling ring.\n    jsr erase_dynamic_near_star_overlays\n    jsr publish_dynamic_near_star_phase\n    jmp fighter_projectile_publication_capital_render\n@fighter_window:\n    jsr LIFE_CAPSULE_COLOUR\n    nop\n    nop\n    ldx #$77\n    jsr wait_frame_at_line\nfighter_projectile_publication_begin = *\n    ; The previous sparse near image has now survived one complete ANTIC pass.\n    ; Retire it inside the same safe post-playfield window as character shots.\n    jsr erase_dynamic_near_star_overlays\n    jsr publish_dynamic_near_star_phase\n    ; Light Wingman: PairShot erase, then the Light unwinds and republishes\n    ; inside this post-playfield window, below the PairShots rendered next.\n    jsr erase_fighter_projectile_overlays_with_light\n    ; The fighter pickup shares this window: its missile rows are republished\n    ; after the playfield has been scanned, never mid-frame.\n    jsr publish_fighter_pickup_pmg\n',
+    expected: /@fighter_window:\s*\n\s*lda #PICKUP_BOOST_COLOUR\s*\n\s*sta COLPM3/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/score.test.mjs:402:1
+✖ assembled decimal score code carries without inserting partial-game scores (6.126667ms)
+  AssertionError [ERR_ASSERTION]: 0009 + 1 HUD screen codes
+  + actual - expected
+  
+    [
+  +   0,
+  +   0,
+  +   0,
+  +   0,
+  +   0
+  -   16,
+  -   16,
+  -   16,
+  -   17,
+  -   16
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/score.test.mjs:433:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 0, 0, 0, 0 ],
+    expected: [ 16, 16, 16, 17, 16 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:120:1
+✖ three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette (5.347ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\s\S]+\.assert \* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\*WEAPON_PICKUP_HEIGHT_SCANLINES/. Input:
+  
+  '.setcpu "6502"\n' +
+    '\n' +
+    '; Void Strike 65 0.1 vertical slice\n' +
+    '; Target: stock Atari 65XE PAL, 64 KB\n' +
+    '\n' +
+    '.export start\n' +
+    '.export boot_return\n' +
+    '.import __BROADSIDE_LOAD__, __BROADSIDE_RUN__\n' +
+    '.import __STARFIELD_RUN__\n' +
+    '.import __ENTITY_CODE_RUN__, __ENTITY_CODE_SIZE__\n' +
+    '.import __ENTITY_STATE_RUN__, __ENTITY_STATE_SIZE__\n' +
+    '\n' +
+    '.include "starfield.inc"\n' +
+    '.include "menu-music.inc"\n' +
+    '.include "gameplay-music-abi.inc"\n' +
+    '.include "level-hull-block.inc"\n' +
+    '.include "entity-effects.inc"\n' +
+    '.include "loader-display-list.inc"\n' +
+    '.include "frontend-h31.inc"\n' +
+    '.include "director-abi.inc"\n' +
+    '.include "life-capsule-layout.inc"\n' +
+    'fighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES\n' +
+    '\n' +
+    'DIRECTOR_STATE_REACTION = $80F9\n' +
+    'DIRECTOR_STATE_RECOVERY = $80FA\n' +
+    'DIRECTOR_STATE_INTENSITY = $80F8\n' +
+    "; Roadmap 4.6 step 2: $80F6 is the Director's SECTOR INDEX now. No ASM reads\n" +
+    '; it - the retired provisional request wrapper was its last reader - so the name is\n' +
+    '; gone with it and the address is documented in src/c/director.c.\n' +
+    'DIRECTOR_STATE_FLAGS = $80FE\n' +
+    'DIRECTOR_STATE_ADMISSION_FRAME = $80FF\n' +
+    'DIRECTOR_FLAG_COMPLETE = $01\n' +
+    'DIRECTOR_FLAG_FIRST_CAPITAL_ADMITTED = $40\n' +
+    'DIRECTOR_FLAG_FIRST_CAPITAL_DUE = $80\n' +
+    'DIRECTOR_HAZARD_INTERCEPTOR = 0\n' +
+    'DIRECTOR_HAZARD_DEBRIS = 1\n' +
+    'DIRECTOR_HAZARD_BROADSIDE = 2\n' +
+    'DIRECTOR_HAZARD_PICKUP = 3\n' +
+    'DIRECTOR_RETRY_FRAMES = 8\n' +
+    'ACTIVE_GAMEPLAY_FRAME_LO = $4FF8\n' +
+    'ACTIVE_GAMEPLAY_FRAME_HI = $4FF9\n' +
+    'PROVISIONAL_CAPITAL_BROADSIDE_REACTION_ROWS = 12\n' +
+    'integration_director_world_row = $4EFE\n' +
+    'integration_active_gameplay_tick = $4FE9\n' +
+    'integration_debris_spawn = $4F0D\n' +
+    'integration_apply_allied_prow = $4F26\n' +
+    'integration_apply_enemy_prow = $4F29\n' +
+    'CAPITAL_SHELL_GLYPH_SOURCE = $4F98\n' +
+    'render_capital_shell_overlay = $4FA0\n' +
+    'integration_broadside_release = $4FDD\n' +
+    'CAPITAL_PLAYER_COLLISION = $8B67\n' +
+    '\n' +
+    '.import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__\n' +
+    '.import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__\n' +
+    '.import __BOOT_SPLASH_RUN__, __BOOT_SPLASH_SIZE__\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; OS workspace and vectors\n' +
+    '\n' +
+    'DOSVEC      = $000A\n' +
+    'APPMHI      = $0014\n' +
+    'BASICF      = $03F8         ; OS BASIC flag: 0 = enabled, non-zero = disabled\n' +
+    'SDMCTL      = $022F         ; OS shadow of DMACTL, copied by the OS VBI\n' +
+    'COLOR2      = $02C6         ; OS shadow of COLPF2\n' +
+    'COLOR4      = $02C8         ; OS shadow of COLBK\n' +
+    'VDSLST      = $0200\n' +
+    'MEMLO       = $02E7\n' +
+    'SIOV        = $E459\n' +
+    'DDEVIC      = $0300\n' +
+    'DUNIT       = $0301\n' +
+    'DCOMND      = $0302\n' +
+    'DSTATS      = $0303\n' +
+    'DBUFLO      = $0304\n' +
+    'DBUFHI      = $0305\n' +
+    'DTIMLO      = $0306\n' +
+    'DBYTLO      = $0308\n' +
+    'DBYTHI      = $0309\n' +
+    'DAUX1       = $030A\n' +
+    'DAUX2       = $030B\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; GTIA (write/read aliases share addresses)\n' +
+    '\n' +
+    'HPOSP0      = $D000\n' +
+    'HPOSP1      = $D001\n' +
+    'HPOSP2      = $D002\n' +
+    'HPOSP3      = $D003\n' +
+    'HPOSM0      = $D004\n' +
+    'HPOSM1      = $D005\n' +
+    'HPOSM2      = $D006\n' +
+    'HPOSM3      = $D007\n' +
+    'SIZEP0      = $D008\n' +
+    'SIZEP1      = $D009\n' +
+    'SIZEP2      = $D00A\n' +
+    'SIZEP3      = $D00B\n' +
+    'SIZEM       = $D00C\n' +
+    'GRAFP0      = $D00D\n' +
+    'M0PL        = $D008\n' +
+    'M1PL        = $D009\n' +
+    'M2PL        = $D00A\n' +
+    'M3PL        = $D00B\n' +
+    'P0PL        = $D00C\n' +
+    'TRIG0       = $D010\n' +
+    'COLPM0      = $D012\n' +
+    'COLPM1      = $D013\n' +
+    'COLPM2      = $D014\n' +
+    'COLPM3      = $D015\n' +
+    'COLPF0      = $D016\n' +
+    'COLPF1      = $D017\n' +
+    'COLPF2      = $D018\n' +
+    'COLPF3      = $D019\n' +
+    'COLBK       = $D01A\n' +
+    'PRIOR       = $D01B\n' +
+    'GRACTL      = $D01D\n' +
+    'HITCLR      = $D01E\n' +
+    'CONSOL      = $D01F\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; POKEY\n' +
+    '\n' +
+    'AUDF1       = $D200\n' +
+    'AUDC1       = $D201\n' +
+    'AUDF2       = $D202\n' +
+    'AUDC2       = $D203\n' +
+    'AUDF3       = $D204\n' +
+    'AUDC3       = $D205\n' +
+    'AUDF4       = $D206\n' +
+    'AUDC4       = $D207\n' +
+    'AUDCTL      = $D208\n' +
+    "KBCODE      = $D209         ; last key code POKEY's own scan latched\n" +
+    'RANDOM      = $D20A\n' +
+    'SKSTAT      = $D20F         ; bit 2: 0 = a key is down\n' +
+    'SKCTL       = $D20F         ; write; bit 4 (async receive) stops channels 3+4\n' +
+    "; fix/hardware-audio (docs/diagnostics/hardware-audio.md): the OS's SIO and the\n" +
+    '; sector reader once left SKCTL = $13. Bit 4 is asynchronous receive mode, which\n' +
+    '; on a real POKEY holds timers 3 and 4 in reset while no start bit arrives, so\n' +
+    '; channels 3 and 4 were silent on hardware (Atari800 does not model the hold).\n' +
+    "; $03 is the OS's power-on value: keyboard scan and debounce, serial mode %000.\n" +
+    'SKCTL_AUDIO = $03\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; PIA and ANTIC\n' +
+    '\n' +
+    'STICK0      = $D300\n' +
+    'PORTB       = $D301         ; bit 1: 0 = BASIC ROM mapped at $A000-$BFFF\n' +
+    'DMACTL      = $D400\n' +
+    'DLISTL      = $D402\n' +
+    'DLISTH      = $D403\n' +
+    'PMBASE      = $D407\n' +
+    'CHBASE      = $D409\n' +
+    'WSYNC       = $D40A\n' +
+    'VCOUNT      = $D40B\n' +
+    'NMIEN       = $D40E\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; Reserved RAM\n' +
+    '\n' +
+    'PMG_BASE    = $3800\n' +
+    '; Roadmap 4.5M-M1: the packed starfield is staged as two independent LZ\n' +
+    '; streams. Stream A reuses the consumed extension cold source below\n' +
+    '; HYBRID_C_ARENA ($7BD0, 4.5M-M3); stream B uses idle boot-time RAM after the GLUE hold, inside the\n' +
+    '; resident staging interval that unpack_resident_runtime has consumed and that\n' +
+    '; nothing writes before gameplay init. Neither stream touches $7BD0-$7F2A.\n' +
+    'STARFIELD_STAGING = $7810\n' +
+    'STARFIELD_STAGING_BYTES = $03C0\n' +
+    'STARFIELD_STAGING_B = $81FA\n' +
+    'STARFIELD_STAGING_B_BYTES = $03C0\n' +
+    'BOOT_A2_STAGING = $7F2B\n' +
+    'PACKED_RESIDENT_STAGING = $8100\n' +
+    'PAUSE_SCREEN_BACKUP = STARFIELD_STAGING\n' +
+    'PAUSE_SCREEN_BYTES = $03C0\n' +
+    'MISSILES    = PMG_BASE + $0300\n' +
+    'PLAYER0     = PMG_BASE + $0400\n' +
+    'PLAYER1     = PMG_BASE + $0500\n' +
+    'PLAYER2     = PMG_BASE + $0600\n' +
+    'PLAYER3     = PMG_BASE + $0700\n' +
+    'SCREEN      = $4000\n' +
+    'CHARSET     = $4400\n' +
+    'FRONTEND_CHARSET = $4800\n' +
+    '\n' +
+    "; Roadmap 4.3: the sector reader's fixed entry vectors at the base of the\n" +
+    '; window. The reader is its own link (plan 4 [C5]), so main.s reaches it\n' +
+    '; through these addresses rather than through a symbol; the reader asserts\n' +
+    '; that its vector table really sits at $A000. Hooking START GAME here costs\n' +
+    '; MAIN nothing: `jmp start_gameplay` and `jmp SECTOR_READER_ENTRY` are both\n' +
+    '; three bytes.\n' +
+    'SECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay\n' +
+    'SECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)\n' +
+    'SECTOR_READER_READ_RUN = $A006  ; X = overlay run (M5a-S1, owner Q11)\n' +
+    'SECTOR_READER_FAILURE_SCREEN = $A0D6\n' +
+    'OVERLAY_MENU_DATA = 10\n' +
+    'SECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9\n' +
+    '; M5a-S2 (docs/plans/m5-loading-boss.md §4.8.2): the level-summary stat hooks,\n' +
+    "; behind the reader's fixed vectors. Every site below is an operand-only\n" +
+    '; re-point, so no byte moves in a full segment and none lands in the initial\n' +
+    '; block (owner decision 27, answer Q13).\n' +
+    "SECTOR_READER_STATS_FIGHTER        = $A00C  ; the Light kernel's publish vector\n" +
+    "SECTOR_READER_STATS_CAPITAL        = $A00F  ; capital frames; the level's end\n" +
+    "SECTOR_READER_STATS_KILL           = $A012  ; a kill's HUD refresh\n" +
+    'SECTOR_READER_STATS_DEBRIS_SHOT    = $A015  ; a debris destroyed by a shot (Q14)\n' +
+    'SECTOR_READER_STATS_DEBRIS_CONTACT = $A018  ; a debris destroyed by contact\n' +
+    'SECTOR_READER_STATS_LIGHT_HIT      = $A01B  ; a Light hit by a PairShot\n' +
+    '.export ACTIVE_GAMEPLAY_FRAME_LO\n' +
+    'HUD_CHARSET = $5000\n' +
+    'CAPITAL_HULL_RUNTIME_ALLIED = $4C00\n' +
+    'CAPITAL_HULL_RUNTIME_ENEMY  = $4D20\n' +
+    'CAPITAL_HULL_RUNTIME_END    = $4E40\n' +
+    'BROAD_STATE_BASE            = $4E40\n' +
+    'BROAD_STATE                 = BROAD_STATE_BASE       ; 3 B\n' +
+    'BROAD_OWNER                 = BROAD_STATE+$03        ; 3 B\n' +
+    'BROAD_TURRET                = BROAD_OWNER+$03        ; 3 B\n' +
+    'BROAD_X                     = BROAD_TURRET+$03       ; 3 B\n' +
+    'BROAD_Y                     = BROAD_X+$03            ; 3 B\n' +
+    'BROAD_TIMER                 = BROAD_Y+$03            ; 3 B\n' +
+    'BROAD_PREV_Y                = BROAD_TIMER+$03        ; 3 B\n' +
+    'BROAD_PREV_H                = BROAD_PREV_Y+$03       ; 3 B\n' +
+    'BROAD_COLLISION             = BROAD_PREV_H+$03       ; 3 B\n' +
+    'BROAD_SCHEDULE_TIMER        = BROAD_COLLISION+$03\n' +
+    'BROAD_SCHEDULE_INDEX        = BROAD_SCHEDULE_TIMER+$01\n' +
+    'BROAD_PLAYER_HEALTH         = BROAD_SCHEDULE_INDEX+$01\n' +
+    'BROAD_DAMAGE_COOLDOWN       = BROAD_PLAYER_HEALTH+$01\n' +
+    'BROAD_DEATH_TIMER           = BROAD_DAMAGE_COOLDOWN+$01\n' +
+    'BROAD_ALLIED_HITS           = BROAD_DEATH_TIMER+$01\n' +
+    'BROAD_ENEMY_HITS            = BROAD_ALLIED_HITS+$01\n' +
+    'BROAD_WORK_SLOT             = BROAD_ENEMY_HITS+$01\n' +
+    'BROAD_WORK_COUNT            = BROAD_WORK_SLOT+$01\n' +
+    'BROAD_WORK_VALUE            = BROAD_WORK_COUNT+$01\n' +
+    'BROAD_DAMAGE_APPLIED        = BROAD_WORK_VALUE+$01\n' +
+    'BROAD_LAUNCH_USED           = BROAD_DAMAGE_APPLIED+$01\n' +
+    'BROAD_M0_COLLISION          = BROAD_LAUNCH_USED+$01\n' +
+    'BROAD_P0_COLLISION          = BROAD_M0_COLLISION+$01\n' +
+    'BROAD_ROW_LO                = BROAD_P0_COLLISION+$01  ; 3 B\n' +
+    'BROAD_ROW_HI                = BROAD_ROW_LO+$03        ; 3 B\n' +
+    'BROAD_VISIBLE_SCROLLS       = BROAD_ROW_HI+$03\n' +
+    'BROAD_STATE_END             = BROAD_VISIBLE_SCROLLS+$01\n' +
+    'DIFFICULTY_SETTING          = BROAD_STATE_END        ; 1 B, persists across frontend states\n' +
+    'FRONTEND_PERSISTENT_END     = DIFFICULTY_SETTING+$01\n' +
+    'HULL_SCROLL_ACCUMULATOR     = FRONTEND_PERSISTENT_END\n' +
+    'BROAD_RASTER_TOP            = HULL_SCROLL_ACCUMULATOR+$01 ; 3 B, final capture rows\n' +
+    '; The launch flash overlays one turret-muzzle cell for four frames. Like the\n' +
+    "; tracked-muzzle overlay it must return that cell's own prior content, not a\n" +
+    '; per-turret constant, so each slot carries its own one-byte backing.\n' +
+    'BROAD_FLASH_BACKING         = BROAD_RASTER_TOP+$03    ; 3 B, pre-flash cell content\n' +
+    'CORRIDOR_BOUNDARY_ROWS      = CAPITAL_HULL_VISIBLE_ROWS\n' +
+    '; The original 23+23 bytes remain a compatibility hole so every following\n' +
+    '; resident-state address stays fixed. Expanded boundary backing lives beside\n' +
+    '; the high-RAM ring tables after cold staging.\n' +
+    'CORRIDOR_BOUNDARY_LEFT      = PLAYFIELD_RING_STATE_END\n' +
+    'CORRIDOR_BOUNDARY_RIGHT     = CORRIDOR_BOUNDARY_LEFT+CORRIDOR_BOUNDARY_ROWS\n' +
+    '; Rows one and two of the old boundary cache are no longer shifted in the hot\n' +
+    '; path.  They retain two per-muzzle backing bytes while row zero remains the\n' +
+    '; authoritative freshly generated boundary value for a newly tracked muzzle.\n' +
+    'MUZZLE_BACKING              = CORRIDOR_BOUNDARY_LEFT+$01 ; 2 B, allied/enemy\n' +
+    '; Reu'... 420426 more characters
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:161:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '.setcpu "6502"\n\n; Void Strike 65 0.1 vertical slice\n; Target: stock Atari 65XE PAL, 64 KB\n\n.export start\n.export boot_return\n.import __BROADSIDE_LOAD__, __BROADSIDE_RUN__\n.import __STARFIELD_RUN__\n.import __ENTITY_CODE_RUN__, __ENTITY_CODE_SIZE__\n.import __ENTITY_STATE_RUN__, __ENTITY_STATE_SIZE__\n\n.include "starfield.inc"\n.include "menu-music.inc"\n.include "gameplay-music-abi.inc"\n.include "level-hull-block.inc"\n.include "entity-effects.inc"\n.include "loader-display-list.inc"\n.include "frontend-h31.inc"\n.include "director-abi.inc"\n.include "life-capsule-layout.inc"\nfighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES\n\nDIRECTOR_STATE_REACTION = $80F9\nDIRECTOR_STATE_RECOVERY = $80FA\nDIRECTOR_STATE_INTENSITY = $80F8\n; Roadmap 4.6 step 2: $80F6 is the Director\'s SECTOR INDEX now. No ASM reads\n; it - the retired provisional request wrapper was its last reader - so the name is\n; gone with it and the address is documented in src/c/director.c.\nDIRECTOR_STATE_FLAGS = $80FE\nDIRECTOR_STATE_ADMISSION_FRAME = $80FF\nDIRECTOR_FLAG_COMPLETE = $01\nDIRECTOR_FLAG_FIRST_CAPITAL_ADMITTED = $40\nDIRECTOR_FLAG_FIRST_CAPITAL_DUE = $80\nDIRECTOR_HAZARD_INTERCEPTOR = 0\nDIRECTOR_HAZARD_DEBRIS = 1\nDIRECTOR_HAZARD_BROADSIDE = 2\nDIRECTOR_HAZARD_PICKUP = 3\nDIRECTOR_RETRY_FRAMES = 8\nACTIVE_GAMEPLAY_FRAME_LO = $4FF8\nACTIVE_GAMEPLAY_FRAME_HI = $4FF9\nPROVISIONAL_CAPITAL_BROADSIDE_REACTION_ROWS = 12\nintegration_director_world_row = $4EFE\nintegration_active_gameplay_tick = $4FE9\nintegration_debris_spawn = $4F0D\nintegration_apply_allied_prow = $4F26\nintegration_apply_enemy_prow = $4F29\nCAPITAL_SHELL_GLYPH_SOURCE = $4F98\nrender_capital_shell_overlay = $4FA0\nintegration_broadside_release = $4FDD\nCAPITAL_PLAYER_COLLISION = $8B67\n\n.import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__\n.import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__\n.import __BOOT_SPLASH_RUN__, __BOOT_SPLASH_SIZE__\n\n; -----------------------------------------------------------------------------\n; OS workspace and vectors\n\nDOSVEC      = $000A\nAPPMHI      = $0014\nBASICF      = $03F8         ; OS BASIC flag: 0 = enabled, non-zero = disabled\nSDMCTL      = $022F         ; OS shadow of DMACTL, copied by the OS VBI\nCOLOR2      = $02C6         ; OS shadow of COLPF2\nCOLOR4      = $02C8         ; OS shadow of COLBK\nVDSLST      = $0200\nMEMLO       = $02E7\nSIOV        = $E459\nDDEVIC      = $0300\nDUNIT       = $0301\nDCOMND      = $0302\nDSTATS      = $0303\nDBUFLO      = $0304\nDBUFHI      = $0305\nDTIMLO      = $0306\nDBYTLO      = $0308\nDBYTHI      = $0309\nDAUX1       = $030A\nDAUX2       = $030B\n\n; -----------------------------------------------------------------------------\n; GTIA (write/read aliases share addresses)\n\nHPOSP0      = $D000\nHPOSP1      = $D001\nHPOSP2      = $D002\nHPOSP3      = $D003\nHPOSM0      = $D004\nHPOSM1      = $D005\nHPOSM2      = $D006\nHPOSM3      = $D007\nSIZEP0      = $D008\nSIZEP1      = $D009\nSIZEP2      = $D00A\nSIZEP3      = $D00B\nSIZEM       = $D00C\nGRAFP0      = $D00D\nM0PL        = $D008\nM1PL        = $D009\nM2PL        = $D00A\nM3PL        = $D00B\nP0PL        = $D00C\nTRIG0       = $D010\nCOLPM0      = $D012\nCOLPM1      = $D013\nCOLPM2      = $D014\nCOLPM3      = $D015\nCOLPF0      = $D016\nCOLPF1      = $D017\nCOLPF2      = $D018\nCOLPF3      = $D019\nCOLBK       = $D01A\nPRIOR       = $D01B\nGRACTL      = $D01D\nHITCLR      = $D01E\nCONSOL      = $D01F\n\n; -----------------------------------------------------------------------------\n; POKEY\n\nAUDF1       = $D200\nAUDC1       = $D201\nAUDF2       = $D202\nAUDC2       = $D203\nAUDF3       = $D204\nAUDC3       = $D205\nAUDF4       = $D206\nAUDC4       = $D207\nAUDCTL      = $D208\nKBCODE      = $D209         ; last key code POKEY\'s own scan latched\nRANDOM      = $D20A\nSKSTAT      = $D20F         ; bit 2: 0 = a key is down\nSKCTL       = $D20F         ; write; bit 4 (async receive) stops channels 3+4\n; fix/hardware-audio (docs/diagnostics/hardware-audio.md): the OS\'s SIO and the\n; sector reader once left SKCTL = $13. Bit 4 is asynchronous receive mode, which\n; on a real POKEY holds timers 3 and 4 in reset while no start bit arrives, so\n; channels 3 and 4 were silent on hardware (Atari800 does not model the hold).\n; $03 is the OS\'s power-on value: keyboard scan and debounce, serial mode %000.\nSKCTL_AUDIO = $03\n\n; -----------------------------------------------------------------------------\n; PIA and ANTIC\n\nSTICK0      = $D300\nPORTB       = $D301         ; bit 1: 0 = BASIC ROM mapped at $A000-$BFFF\nDMACTL      = $D400\nDLISTL      = $D402\nDLISTH      = $D403\nPMBASE      = $D407\nCHBASE      = $D409\nWSYNC       = $D40A\nVCOUNT      = $D40B\nNMIEN       = $D40E\n\n; -----------------------------------------------------------------------------\n; Reserved RAM\n\nPMG_BASE    = $3800\n; Roadmap 4.5M-M1: the packed starfield is staged as two independent LZ\n; streams. Stream A reuses the consumed extension cold source below\n; HYBRID_C_ARENA ($7BD0, 4.5M-M3); stream B uses idle boot-time RAM after the GLUE hold, inside the\n; resident staging interval that unpack_resident_runtime has consumed and that\n; nothing writes before gameplay init. Neither stream touches $7BD0-$7F2A.\nSTARFIELD_STAGING = $7810\nSTARFIELD_STAGING_BYTES = $03C0\nSTARFIELD_STAGING_B = $81FA\nSTARFIELD_STAGING_B_BYTES = $03C0\nBOOT_A2_STAGING = $7F2B\nPACKED_RESIDENT_STAGING = $8100\nPAUSE_SCREEN_BACKUP = STARFIELD_STAGING\nPAUSE_SCREEN_BYTES = $03C0\nMISSILES    = PMG_BASE + $0300\nPLAYER0     = PMG_BASE + $0400\nPLAYER1     = PMG_BASE + $0500\nPLAYER2     = PMG_BASE + $0600\nPLAYER3     = PMG_BASE + $0700\nSCREEN      = $4000\nCHARSET     = $4400\nFRONTEND_CHARSET = $4800\n\n; Roadmap 4.3: the sector reader\'s fixed entry vectors at the base of the\n; window. The reader is its own link (plan 4 [C5]), so main.s reaches it\n; through these addresses rather than through a symbol; the reader asserts\n; that its vector table really sits at $A000. Hooking START GAME here costs\n; MAIN nothing: `jmp start_gameplay` and `jmp SECTOR_READER_ENTRY` are both\n; three bytes.\nSECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay\nSECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)\nSECTOR_READER_READ_RUN = $A006  ; X = overlay run (M5a-S1, owner Q11)\nSECTOR_READER_FAILURE_SCREEN = $A0D6\nOVERLAY_MENU_DATA = 10\nSECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9\n; M5a-S2 (docs/plans/m5-loading-boss.md §4.8.2): the level-summary stat hooks,\n; behind the reader\'s fixed vectors. Every site below is an operand-only\n; re-point, so no byte moves in a full segment and none lands in the initial\n; block (owner decision 27, answer Q13).\nSECTOR_READER_STATS_FIGHTER        = $A00C  ; the Light kernel\'s publish vector\nSECTOR_READER_STATS_CAPITAL        = $A00F  ; capital frames; the level\'s end\nSECTOR_READER_STATS_KILL           = $A012  ; a kill\'s HUD refresh\nSECTOR_READER_STATS_DEBRIS_SHOT    = $A015  ; a debris destroyed by a shot (Q14)\nSECTOR_READER_STATS_DEBRIS_CONTACT = $A018  ; a debris destroyed by contact\nSECTOR_READER_STATS_LIGHT_HIT      = $A01B  ; a Light hit by a PairShot\n.export ACTIVE_GAMEPLAY_FRAME_LO\nHUD_CHARSET = $5000\nCAPITAL_HULL_RUNTIME_ALLIED = $4C00\nCAPITAL_HULL_RUNTIME_ENEMY  = $4D20\nCAPITAL_HULL_RUNTIME_END    = $4E40\nBROAD_STATE_BASE            = $4E40\nBROAD_STATE                 = BROAD_STATE_BASE       ; 3 B\nBROAD_OWNER                 = BROAD_STATE+$03        ; 3 B\nBROAD_TURRET                = BROAD_OWNER+$03        ; 3 B\nBROAD_X                     = BROAD_TURRET+$03       ; 3 B\nBROAD_Y                     = BROAD_X+$03            ; 3 B\nBROAD_TIMER                 = BROAD_Y+$03            ; 3 B\nBROAD_PREV_Y                = BROAD_TIMER+$03        ; 3 B\nBROAD_PREV_H                = BROAD_PREV_Y+$03       ; 3 B\nBROAD_COLLISION             = BROAD_PREV_H+$03       ; 3 B\nBROAD_SCHEDULE_TIMER        = BROAD_COLLISION+$03\nBROAD_SCHEDULE_INDEX        = BROAD_SCHEDULE_TIMER+$01\nBROAD_PLAYER_HEALTH         = BROAD_SCHEDULE_INDEX+$01\nBROAD_DAMAGE_COOLDOWN       = BROAD_PLAYER_HEALTH+$01\nBROAD_DEATH_TIMER           = BROAD_DAMAGE_COOLDOWN+$01\nBROAD_ALLIED_HITS           = BROAD_DEATH_TIMER+$01\nBROAD_ENEMY_HITS            = BROAD_ALLIED_HITS+$01\nBROAD_WORK_SLOT             = BROAD_ENEMY_HITS+$01\nBROAD_WORK_COUNT            = BROAD_WORK_SLOT+$01\nBROAD_WORK_VALUE            = BROAD_WORK_COUNT+$01\nBROAD_DAMAGE_APPLIED        = BROAD_WORK_VALUE+$01\nBROAD_LAUNCH_USED           = BROAD_DAMAGE_APPLIED+$01\nBROAD_M0_COLLISION          = BROAD_LAUNCH_USED+$01\nBROAD_P0_COLLISION          = BROAD_M0_COLLISION+$01\nBROAD_ROW_LO                = BROAD_P0_COLLISION+$01  ; 3 B\nBROAD_ROW_HI                = BROAD_ROW_LO+$03        ; 3 B\nBROAD_VISIBLE_SCROLLS       = BROAD_ROW_HI+$03\nBROAD_STATE_END             = BROAD_VISIBLE_SCROLLS+$01\nDIFFICULTY_SETTING          = BROAD_STATE_END        ; 1 B, persists across frontend states\nFRONTEND_PERSISTENT_END     = DIFFICULTY_SETTING+$01\nHULL_SCROLL_ACCUMULATOR     = FRONTEND_PERSISTENT_END\nBROAD_RASTER_TOP            = HULL_SCROLL_ACCUMULATOR+$01 ; 3 B, final capture rows\n; The launch flash overlays one turret-muzzle cell for four frames. Like the\n; tracked-muzzle overlay it must return that cell\'s own prior content, not a\n; per-turret constant, so each slot carries its own one-byte backing.\nBROAD_FLASH_BACKING         = BROAD_RASTER_TOP+$03    ; 3 B, pre-flash cell content\nCORRIDOR_BOUNDARY_ROWS      = CAPITAL_HULL_VISIBLE_ROWS\n; The original 23+23 bytes remain a compatibility hole so every following\n; resident-state address stays fixed. Expanded boundary backing lives beside\n; the high-RAM ring tables after cold staging.\nCORRIDOR_BOUNDARY_LEFT      = PLAYFIELD_RING_STATE_END\nCORRIDOR_BOUNDARY_RIGHT     = CORRIDOR_BOUNDARY_LEFT+CORRIDOR_BOUNDARY_ROWS\n; Rows one and two of the old boundary cache are no longer shifted in the hot\n; path.  They retain two per-muzzle backing bytes while row zero remains the\n; authoritative freshly generated boundary value for a newly tracked muzzle.\nMUZZLE_BACKING              = CORRIDOR_BOUNDARY_LEFT+$01 ; 2 B, allied/enemy\n; Reu'... 420426 more characters,
+    expected: /fighter_pickup_pmg_shape:[\s\S]+\.assert \* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\*WEAPON_PICKUP_HEIGHT_SCANLINES/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:179:1
+✖ the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills (55.023791ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:180:15)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:206:1
+✖ pickup pending remains hidden and non-colliding for thirty full frames (23.361708ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:207:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:269:1
+✖ active capsule is one logical PMG object, writes no character cell and cannot be shot (29.231459ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:270:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:299:1
+✖ pickup movement resolves half world speed into smooth scanline phases (24.276708ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:309:18)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:320:1
+✖ debris and the reserved pickup coexist without allocator overwrite for every A2 head (24.023667ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:322:19)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:437:1
+✖ pickup collection is single-shot and changes neither score, HULL nor LIFE (19.883041ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:438:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:455:1
+✖ weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink (19.910125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   9,
+  +   5,
+  -   30,
+      10,
+  -   36,
+      4,
+      7,
+      [
+  +     0,
+  -     255,
+        48,
+        48,
+        48,
+        48,
+        48,
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:457:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+      9,
+      5,
+      10,
+      4,
+      7,
+      [
+         0, 48, 48, 48,
+        48, 48, 48, 48
+      ]
+    ],
+    expected: [
+      30,
+      10,
+      36,
+      4,
+      7,
+      [
+        255, 48, 48, 48,
+         48, 48, 48, 48
+      ]
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:498:1
+✖ HULL plates and the ten-cell BOOST field remain distinct at native screen codes (20.162292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   25,
+      4,
+  +   4,
+  +   9,
+  +   5,
+  -   30,
+      10,
+  -   36,
+      4
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:500:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 4, 4, 9, 5, 10, 4 ],
+    expected: [ 25, 4, 30, 10, 36, 4 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:544:1
+✖ Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst (20.862959ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:545:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-rapid-fire.test.mjs:759:1
+✖ release trace CSV exposes the authoritative counter, state, timing and score (15.703375ms)
+  Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)
+      at runBurst (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:394:11)
+      at executeWeaponPickupTrace (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/weapon-pickup-runtime.mjs:495:28)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:760:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/weapon-pickup-shield.test.mjs:61:1
+✖ pickup rotation is exactly Rapid Spread Shield Rapid without RNG (35.679584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      [
+  +     3,
+        0,
+  -     1,
+        0
+      ],
+      [
+  +     0,
+        1,
+  -     2,
+        0
+      ],
+      [
+  +     1,
+        2,
+        0,
+  -     0
+      ]
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-shield.test.mjs:63:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ 3, 0, 0 ], [ 0, 1, 0 ], [ 1, 2, 0 ] ],
+    expected: [ [ 0, 1, 0 ], [ 1, 2, 0 ], [ 2, 0, 0 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-shield.test.mjs:159:1
+✖ Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyph (0.275458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   0,
+  -   255,
+      195,
+      219,
+      255,
+      219,
+      219,
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-shield.test.mjs:167:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+        0, 195, 219, 255,
+      219, 219, 255, 195
+    ],
+    expected: [
+      255, 195, 219,
+      255, 219, 219,
+      255, 195
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-spread-shot.test.mjs:47:1
+✖ Spread Shot owns one phased red fan in the shared six-glyph bank (5.894417ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\s\S]+; SPREAD[\s\S]+\.byte \$FF,\$FF,\$A5,\$A5,\$C3,\$DB,\$E7,\$E7/. Input:
+  
+  '.setcpu "6502"\n' +
+    '\n' +
+    '; Void Strike 65 0.1 vertical slice\n' +
+    '; Target: stock Atari 65XE PAL, 64 KB\n' +
+    '\n' +
+    '.export start\n' +
+    '.export boot_return\n' +
+    '.import __BROADSIDE_LOAD__, __BROADSIDE_RUN__\n' +
+    '.import __STARFIELD_RUN__\n' +
+    '.import __ENTITY_CODE_RUN__, __ENTITY_CODE_SIZE__\n' +
+    '.import __ENTITY_STATE_RUN__, __ENTITY_STATE_SIZE__\n' +
+    '\n' +
+    '.include "starfield.inc"\n' +
+    '.include "menu-music.inc"\n' +
+    '.include "gameplay-music-abi.inc"\n' +
+    '.include "level-hull-block.inc"\n' +
+    '.include "entity-effects.inc"\n' +
+    '.include "loader-display-list.inc"\n' +
+    '.include "frontend-h31.inc"\n' +
+    '.include "director-abi.inc"\n' +
+    '.include "life-capsule-layout.inc"\n' +
+    'fighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES\n' +
+    '\n' +
+    'DIRECTOR_STATE_REACTION = $80F9\n' +
+    'DIRECTOR_STATE_RECOVERY = $80FA\n' +
+    'DIRECTOR_STATE_INTENSITY = $80F8\n' +
+    "; Roadmap 4.6 step 2: $80F6 is the Director's SECTOR INDEX now. No ASM reads\n" +
+    '; it - the retired provisional request wrapper was its last reader - so the name is\n' +
+    '; gone with it and the address is documented in src/c/director.c.\n' +
+    'DIRECTOR_STATE_FLAGS = $80FE\n' +
+    'DIRECTOR_STATE_ADMISSION_FRAME = $80FF\n' +
+    'DIRECTOR_FLAG_COMPLETE = $01\n' +
+    'DIRECTOR_FLAG_FIRST_CAPITAL_ADMITTED = $40\n' +
+    'DIRECTOR_FLAG_FIRST_CAPITAL_DUE = $80\n' +
+    'DIRECTOR_HAZARD_INTERCEPTOR = 0\n' +
+    'DIRECTOR_HAZARD_DEBRIS = 1\n' +
+    'DIRECTOR_HAZARD_BROADSIDE = 2\n' +
+    'DIRECTOR_HAZARD_PICKUP = 3\n' +
+    'DIRECTOR_RETRY_FRAMES = 8\n' +
+    'ACTIVE_GAMEPLAY_FRAME_LO = $4FF8\n' +
+    'ACTIVE_GAMEPLAY_FRAME_HI = $4FF9\n' +
+    'PROVISIONAL_CAPITAL_BROADSIDE_REACTION_ROWS = 12\n' +
+    'integration_director_world_row = $4EFE\n' +
+    'integration_active_gameplay_tick = $4FE9\n' +
+    'integration_debris_spawn = $4F0D\n' +
+    'integration_apply_allied_prow = $4F26\n' +
+    'integration_apply_enemy_prow = $4F29\n' +
+    'CAPITAL_SHELL_GLYPH_SOURCE = $4F98\n' +
+    'render_capital_shell_overlay = $4FA0\n' +
+    'integration_broadside_release = $4FDD\n' +
+    'CAPITAL_PLAYER_COLLISION = $8B67\n' +
+    '\n' +
+    '.import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__\n' +
+    '.import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__\n' +
+    '.import __BOOT_SPLASH_RUN__, __BOOT_SPLASH_SIZE__\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; OS workspace and vectors\n' +
+    '\n' +
+    'DOSVEC      = $000A\n' +
+    'APPMHI      = $0014\n' +
+    'BASICF      = $03F8         ; OS BASIC flag: 0 = enabled, non-zero = disabled\n' +
+    'SDMCTL      = $022F         ; OS shadow of DMACTL, copied by the OS VBI\n' +
+    'COLOR2      = $02C6         ; OS shadow of COLPF2\n' +
+    'COLOR4      = $02C8         ; OS shadow of COLBK\n' +
+    'VDSLST      = $0200\n' +
+    'MEMLO       = $02E7\n' +
+    'SIOV        = $E459\n' +
+    'DDEVIC      = $0300\n' +
+    'DUNIT       = $0301\n' +
+    'DCOMND      = $0302\n' +
+    'DSTATS      = $0303\n' +
+    'DBUFLO      = $0304\n' +
+    'DBUFHI      = $0305\n' +
+    'DTIMLO      = $0306\n' +
+    'DBYTLO      = $0308\n' +
+    'DBYTHI      = $0309\n' +
+    'DAUX1       = $030A\n' +
+    'DAUX2       = $030B\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; GTIA (write/read aliases share addresses)\n' +
+    '\n' +
+    'HPOSP0      = $D000\n' +
+    'HPOSP1      = $D001\n' +
+    'HPOSP2      = $D002\n' +
+    'HPOSP3      = $D003\n' +
+    'HPOSM0      = $D004\n' +
+    'HPOSM1      = $D005\n' +
+    'HPOSM2      = $D006\n' +
+    'HPOSM3      = $D007\n' +
+    'SIZEP0      = $D008\n' +
+    'SIZEP1      = $D009\n' +
+    'SIZEP2      = $D00A\n' +
+    'SIZEP3      = $D00B\n' +
+    'SIZEM       = $D00C\n' +
+    'GRAFP0      = $D00D\n' +
+    'M0PL        = $D008\n' +
+    'M1PL        = $D009\n' +
+    'M2PL        = $D00A\n' +
+    'M3PL        = $D00B\n' +
+    'P0PL        = $D00C\n' +
+    'TRIG0       = $D010\n' +
+    'COLPM0      = $D012\n' +
+    'COLPM1      = $D013\n' +
+    'COLPM2      = $D014\n' +
+    'COLPM3      = $D015\n' +
+    'COLPF0      = $D016\n' +
+    'COLPF1      = $D017\n' +
+    'COLPF2      = $D018\n' +
+    'COLPF3      = $D019\n' +
+    'COLBK       = $D01A\n' +
+    'PRIOR       = $D01B\n' +
+    'GRACTL      = $D01D\n' +
+    'HITCLR      = $D01E\n' +
+    'CONSOL      = $D01F\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; POKEY\n' +
+    '\n' +
+    'AUDF1       = $D200\n' +
+    'AUDC1       = $D201\n' +
+    'AUDF2       = $D202\n' +
+    'AUDC2       = $D203\n' +
+    'AUDF3       = $D204\n' +
+    'AUDC3       = $D205\n' +
+    'AUDF4       = $D206\n' +
+    'AUDC4       = $D207\n' +
+    'AUDCTL      = $D208\n' +
+    "KBCODE      = $D209         ; last key code POKEY's own scan latched\n" +
+    'RANDOM      = $D20A\n' +
+    'SKSTAT      = $D20F         ; bit 2: 0 = a key is down\n' +
+    'SKCTL       = $D20F         ; write; bit 4 (async receive) stops channels 3+4\n' +
+    "; fix/hardware-audio (docs/diagnostics/hardware-audio.md): the OS's SIO and the\n" +
+    '; sector reader once left SKCTL = $13. Bit 4 is asynchronous receive mode, which\n' +
+    '; on a real POKEY holds timers 3 and 4 in reset while no start bit arrives, so\n' +
+    '; channels 3 and 4 were silent on hardware (Atari800 does not model the hold).\n' +
+    "; $03 is the OS's power-on value: keyboard scan and debounce, serial mode %000.\n" +
+    'SKCTL_AUDIO = $03\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; PIA and ANTIC\n' +
+    '\n' +
+    'STICK0      = $D300\n' +
+    'PORTB       = $D301         ; bit 1: 0 = BASIC ROM mapped at $A000-$BFFF\n' +
+    'DMACTL      = $D400\n' +
+    'DLISTL      = $D402\n' +
+    'DLISTH      = $D403\n' +
+    'PMBASE      = $D407\n' +
+    'CHBASE      = $D409\n' +
+    'WSYNC       = $D40A\n' +
+    'VCOUNT      = $D40B\n' +
+    'NMIEN       = $D40E\n' +
+    '\n' +
+    '; -----------------------------------------------------------------------------\n' +
+    '; Reserved RAM\n' +
+    '\n' +
+    'PMG_BASE    = $3800\n' +
+    '; Roadmap 4.5M-M1: the packed starfield is staged as two independent LZ\n' +
+    '; streams. Stream A reuses the consumed extension cold source below\n' +
+    '; HYBRID_C_ARENA ($7BD0, 4.5M-M3); stream B uses idle boot-time RAM after the GLUE hold, inside the\n' +
+    '; resident staging interval that unpack_resident_runtime has consumed and that\n' +
+    '; nothing writes before gameplay init. Neither stream touches $7BD0-$7F2A.\n' +
+    'STARFIELD_STAGING = $7810\n' +
+    'STARFIELD_STAGING_BYTES = $03C0\n' +
+    'STARFIELD_STAGING_B = $81FA\n' +
+    'STARFIELD_STAGING_B_BYTES = $03C0\n' +
+    'BOOT_A2_STAGING = $7F2B\n' +
+    'PACKED_RESIDENT_STAGING = $8100\n' +
+    'PAUSE_SCREEN_BACKUP = STARFIELD_STAGING\n' +
+    'PAUSE_SCREEN_BYTES = $03C0\n' +
+    'MISSILES    = PMG_BASE + $0300\n' +
+    'PLAYER0     = PMG_BASE + $0400\n' +
+    'PLAYER1     = PMG_BASE + $0500\n' +
+    'PLAYER2     = PMG_BASE + $0600\n' +
+    'PLAYER3     = PMG_BASE + $0700\n' +
+    'SCREEN      = $4000\n' +
+    'CHARSET     = $4400\n' +
+    'FRONTEND_CHARSET = $4800\n' +
+    '\n' +
+    "; Roadmap 4.3: the sector reader's fixed entry vectors at the base of the\n" +
+    '; window. The reader is its own link (plan 4 [C5]), so main.s reaches it\n' +
+    '; through these addresses rather than through a symbol; the reader asserts\n' +
+    '; that its vector table really sits at $A000. Hooking START GAME here costs\n' +
+    '; MAIN nothing: `jmp start_gameplay` and `jmp SECTOR_READER_ENTRY` are both\n' +
+    '; three bytes.\n' +
+    'SECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay\n' +
+    'SECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)\n' +
+    'SECTOR_READER_READ_RUN = $A006  ; X = overlay run (M5a-S1, owner Q11)\n' +
+    'SECTOR_READER_FAILURE_SCREEN = $A0D6\n' +
+    'OVERLAY_MENU_DATA = 10\n' +
+    'SECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9\n' +
+    '; M5a-S2 (docs/plans/m5-loading-boss.md §4.8.2): the level-summary stat hooks,\n' +
+    "; behind the reader's fixed vectors. Every site below is an operand-only\n" +
+    '; re-point, so no byte moves in a full segment and none lands in the initial\n' +
+    '; block (owner decision 27, answer Q13).\n' +
+    "SECTOR_READER_STATS_FIGHTER        = $A00C  ; the Light kernel's publish vector\n" +
+    "SECTOR_READER_STATS_CAPITAL        = $A00F  ; capital frames; the level's end\n" +
+    "SECTOR_READER_STATS_KILL           = $A012  ; a kill's HUD refresh\n" +
+    'SECTOR_READER_STATS_DEBRIS_SHOT    = $A015  ; a debris destroyed by a shot (Q14)\n' +
+    'SECTOR_READER_STATS_DEBRIS_CONTACT = $A018  ; a debris destroyed by contact\n' +
+    'SECTOR_READER_STATS_LIGHT_HIT      = $A01B  ; a Light hit by a PairShot\n' +
+    '.export ACTIVE_GAMEPLAY_FRAME_LO\n' +
+    'HUD_CHARSET = $5000\n' +
+    'CAPITAL_HULL_RUNTIME_ALLIED = $4C00\n' +
+    'CAPITAL_HULL_RUNTIME_ENEMY  = $4D20\n' +
+    'CAPITAL_HULL_RUNTIME_END    = $4E40\n' +
+    'BROAD_STATE_BASE            = $4E40\n' +
+    'BROAD_STATE                 = BROAD_STATE_BASE       ; 3 B\n' +
+    'BROAD_OWNER                 = BROAD_STATE+$03        ; 3 B\n' +
+    'BROAD_TURRET                = BROAD_OWNER+$03        ; 3 B\n' +
+    'BROAD_X                     = BROAD_TURRET+$03       ; 3 B\n' +
+    'BROAD_Y                     = BROAD_X+$03            ; 3 B\n' +
+    'BROAD_TIMER                 = BROAD_Y+$03            ; 3 B\n' +
+    'BROAD_PREV_Y                = BROAD_TIMER+$03        ; 3 B\n' +
+    'BROAD_PREV_H                = BROAD_PREV_Y+$03       ; 3 B\n' +
+    'BROAD_COLLISION             = BROAD_PREV_H+$03       ; 3 B\n' +
+    'BROAD_SCHEDULE_TIMER        = BROAD_COLLISION+$03\n' +
+    'BROAD_SCHEDULE_INDEX        = BROAD_SCHEDULE_TIMER+$01\n' +
+    'BROAD_PLAYER_HEALTH         = BROAD_SCHEDULE_INDEX+$01\n' +
+    'BROAD_DAMAGE_COOLDOWN       = BROAD_PLAYER_HEALTH+$01\n' +
+    'BROAD_DEATH_TIMER           = BROAD_DAMAGE_COOLDOWN+$01\n' +
+    'BROAD_ALLIED_HITS           = BROAD_DEATH_TIMER+$01\n' +
+    'BROAD_ENEMY_HITS            = BROAD_ALLIED_HITS+$01\n' +
+    'BROAD_WORK_SLOT             = BROAD_ENEMY_HITS+$01\n' +
+    'BROAD_WORK_COUNT            = BROAD_WORK_SLOT+$01\n' +
+    'BROAD_WORK_VALUE            = BROAD_WORK_COUNT+$01\n' +
+    'BROAD_DAMAGE_APPLIED        = BROAD_WORK_VALUE+$01\n' +
+    'BROAD_LAUNCH_USED           = BROAD_DAMAGE_APPLIED+$01\n' +
+    'BROAD_M0_COLLISION          = BROAD_LAUNCH_USED+$01\n' +
+    'BROAD_P0_COLLISION          = BROAD_M0_COLLISION+$01\n' +
+    'BROAD_ROW_LO                = BROAD_P0_COLLISION+$01  ; 3 B\n' +
+    'BROAD_ROW_HI                = BROAD_ROW_LO+$03        ; 3 B\n' +
+    'BROAD_VISIBLE_SCROLLS       = BROAD_ROW_HI+$03\n' +
+    'BROAD_STATE_END             = BROAD_VISIBLE_SCROLLS+$01\n' +
+    'DIFFICULTY_SETTING          = BROAD_STATE_END        ; 1 B, persists across frontend states\n' +
+    'FRONTEND_PERSISTENT_END     = DIFFICULTY_SETTING+$01\n' +
+    'HULL_SCROLL_ACCUMULATOR     = FRONTEND_PERSISTENT_END\n' +
+    'BROAD_RASTER_TOP            = HULL_SCROLL_ACCUMULATOR+$01 ; 3 B, final capture rows\n' +
+    '; The launch flash overlays one turret-muzzle cell for four frames. Like the\n' +
+    "; tracked-muzzle overlay it must return that cell's own prior content, not a\n" +
+    '; per-turret constant, so each slot carries its own one-byte backing.\n' +
+    'BROAD_FLASH_BACKING         = BROAD_RASTER_TOP+$03    ; 3 B, pre-flash cell content\n' +
+    'CORRIDOR_BOUNDARY_ROWS      = CAPITAL_HULL_VISIBLE_ROWS\n' +
+    '; The original 23+23 bytes remain a compatibility hole so every following\n' +
+    '; resident-state address stays fixed. Expanded boundary backing lives beside\n' +
+    '; the high-RAM ring tables after cold staging.\n' +
+    'CORRIDOR_BOUNDARY_LEFT      = PLAYFIELD_RING_STATE_END\n' +
+    'CORRIDOR_BOUNDARY_RIGHT     = CORRIDOR_BOUNDARY_LEFT+CORRIDOR_BOUNDARY_ROWS\n' +
+    '; Rows one and two of the old boundary cache are no longer shifted in the hot\n' +
+    '; path.  They retain two per-muzzle backing bytes while row zero remains the\n' +
+    '; authoritative freshly generated boundary value for a newly tracked muzzle.\n' +
+    'MUZZLE_BACKING              = CORRIDOR_BOUNDARY_LEFT+$01 ; 2 B, allied/enemy\n' +
+    '; Reu'... 420426 more characters
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:84:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '.setcpu "6502"\n\n; Void Strike 65 0.1 vertical slice\n; Target: stock Atari 65XE PAL, 64 KB\n\n.export start\n.export boot_return\n.import __BROADSIDE_LOAD__, __BROADSIDE_RUN__\n.import __STARFIELD_RUN__\n.import __ENTITY_CODE_RUN__, __ENTITY_CODE_SIZE__\n.import __ENTITY_STATE_RUN__, __ENTITY_STATE_SIZE__\n\n.include "starfield.inc"\n.include "menu-music.inc"\n.include "gameplay-music-abi.inc"\n.include "level-hull-block.inc"\n.include "entity-effects.inc"\n.include "loader-display-list.inc"\n.include "frontend-h31.inc"\n.include "director-abi.inc"\n.include "life-capsule-layout.inc"\nfighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES\n\nDIRECTOR_STATE_REACTION = $80F9\nDIRECTOR_STATE_RECOVERY = $80FA\nDIRECTOR_STATE_INTENSITY = $80F8\n; Roadmap 4.6 step 2: $80F6 is the Director\'s SECTOR INDEX now. No ASM reads\n; it - the retired provisional request wrapper was its last reader - so the name is\n; gone with it and the address is documented in src/c/director.c.\nDIRECTOR_STATE_FLAGS = $80FE\nDIRECTOR_STATE_ADMISSION_FRAME = $80FF\nDIRECTOR_FLAG_COMPLETE = $01\nDIRECTOR_FLAG_FIRST_CAPITAL_ADMITTED = $40\nDIRECTOR_FLAG_FIRST_CAPITAL_DUE = $80\nDIRECTOR_HAZARD_INTERCEPTOR = 0\nDIRECTOR_HAZARD_DEBRIS = 1\nDIRECTOR_HAZARD_BROADSIDE = 2\nDIRECTOR_HAZARD_PICKUP = 3\nDIRECTOR_RETRY_FRAMES = 8\nACTIVE_GAMEPLAY_FRAME_LO = $4FF8\nACTIVE_GAMEPLAY_FRAME_HI = $4FF9\nPROVISIONAL_CAPITAL_BROADSIDE_REACTION_ROWS = 12\nintegration_director_world_row = $4EFE\nintegration_active_gameplay_tick = $4FE9\nintegration_debris_spawn = $4F0D\nintegration_apply_allied_prow = $4F26\nintegration_apply_enemy_prow = $4F29\nCAPITAL_SHELL_GLYPH_SOURCE = $4F98\nrender_capital_shell_overlay = $4FA0\nintegration_broadside_release = $4FDD\nCAPITAL_PLAYER_COLLISION = $8B67\n\n.import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__\n.import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__\n.import __BOOT_SPLASH_RUN__, __BOOT_SPLASH_SIZE__\n\n; -----------------------------------------------------------------------------\n; OS workspace and vectors\n\nDOSVEC      = $000A\nAPPMHI      = $0014\nBASICF      = $03F8         ; OS BASIC flag: 0 = enabled, non-zero = disabled\nSDMCTL      = $022F         ; OS shadow of DMACTL, copied by the OS VBI\nCOLOR2      = $02C6         ; OS shadow of COLPF2\nCOLOR4      = $02C8         ; OS shadow of COLBK\nVDSLST      = $0200\nMEMLO       = $02E7\nSIOV        = $E459\nDDEVIC      = $0300\nDUNIT       = $0301\nDCOMND      = $0302\nDSTATS      = $0303\nDBUFLO      = $0304\nDBUFHI      = $0305\nDTIMLO      = $0306\nDBYTLO      = $0308\nDBYTHI      = $0309\nDAUX1       = $030A\nDAUX2       = $030B\n\n; -----------------------------------------------------------------------------\n; GTIA (write/read aliases share addresses)\n\nHPOSP0      = $D000\nHPOSP1      = $D001\nHPOSP2      = $D002\nHPOSP3      = $D003\nHPOSM0      = $D004\nHPOSM1      = $D005\nHPOSM2      = $D006\nHPOSM3      = $D007\nSIZEP0      = $D008\nSIZEP1      = $D009\nSIZEP2      = $D00A\nSIZEP3      = $D00B\nSIZEM       = $D00C\nGRAFP0      = $D00D\nM0PL        = $D008\nM1PL        = $D009\nM2PL        = $D00A\nM3PL        = $D00B\nP0PL        = $D00C\nTRIG0       = $D010\nCOLPM0      = $D012\nCOLPM1      = $D013\nCOLPM2      = $D014\nCOLPM3      = $D015\nCOLPF0      = $D016\nCOLPF1      = $D017\nCOLPF2      = $D018\nCOLPF3      = $D019\nCOLBK       = $D01A\nPRIOR       = $D01B\nGRACTL      = $D01D\nHITCLR      = $D01E\nCONSOL      = $D01F\n\n; -----------------------------------------------------------------------------\n; POKEY\n\nAUDF1       = $D200\nAUDC1       = $D201\nAUDF2       = $D202\nAUDC2       = $D203\nAUDF3       = $D204\nAUDC3       = $D205\nAUDF4       = $D206\nAUDC4       = $D207\nAUDCTL      = $D208\nKBCODE      = $D209         ; last key code POKEY\'s own scan latched\nRANDOM      = $D20A\nSKSTAT      = $D20F         ; bit 2: 0 = a key is down\nSKCTL       = $D20F         ; write; bit 4 (async receive) stops channels 3+4\n; fix/hardware-audio (docs/diagnostics/hardware-audio.md): the OS\'s SIO and the\n; sector reader once left SKCTL = $13. Bit 4 is asynchronous receive mode, which\n; on a real POKEY holds timers 3 and 4 in reset while no start bit arrives, so\n; channels 3 and 4 were silent on hardware (Atari800 does not model the hold).\n; $03 is the OS\'s power-on value: keyboard scan and debounce, serial mode %000.\nSKCTL_AUDIO = $03\n\n; -----------------------------------------------------------------------------\n; PIA and ANTIC\n\nSTICK0      = $D300\nPORTB       = $D301         ; bit 1: 0 = BASIC ROM mapped at $A000-$BFFF\nDMACTL      = $D400\nDLISTL      = $D402\nDLISTH      = $D403\nPMBASE      = $D407\nCHBASE      = $D409\nWSYNC       = $D40A\nVCOUNT      = $D40B\nNMIEN       = $D40E\n\n; -----------------------------------------------------------------------------\n; Reserved RAM\n\nPMG_BASE    = $3800\n; Roadmap 4.5M-M1: the packed starfield is staged as two independent LZ\n; streams. Stream A reuses the consumed extension cold source below\n; HYBRID_C_ARENA ($7BD0, 4.5M-M3); stream B uses idle boot-time RAM after the GLUE hold, inside the\n; resident staging interval that unpack_resident_runtime has consumed and that\n; nothing writes before gameplay init. Neither stream touches $7BD0-$7F2A.\nSTARFIELD_STAGING = $7810\nSTARFIELD_STAGING_BYTES = $03C0\nSTARFIELD_STAGING_B = $81FA\nSTARFIELD_STAGING_B_BYTES = $03C0\nBOOT_A2_STAGING = $7F2B\nPACKED_RESIDENT_STAGING = $8100\nPAUSE_SCREEN_BACKUP = STARFIELD_STAGING\nPAUSE_SCREEN_BYTES = $03C0\nMISSILES    = PMG_BASE + $0300\nPLAYER0     = PMG_BASE + $0400\nPLAYER1     = PMG_BASE + $0500\nPLAYER2     = PMG_BASE + $0600\nPLAYER3     = PMG_BASE + $0700\nSCREEN      = $4000\nCHARSET     = $4400\nFRONTEND_CHARSET = $4800\n\n; Roadmap 4.3: the sector reader\'s fixed entry vectors at the base of the\n; window. The reader is its own link (plan 4 [C5]), so main.s reaches it\n; through these addresses rather than through a symbol; the reader asserts\n; that its vector table really sits at $A000. Hooking START GAME here costs\n; MAIN nothing: `jmp start_gameplay` and `jmp SECTOR_READER_ENTRY` are both\n; three bytes.\nSECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay\nSECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)\nSECTOR_READER_READ_RUN = $A006  ; X = overlay run (M5a-S1, owner Q11)\nSECTOR_READER_FAILURE_SCREEN = $A0D6\nOVERLAY_MENU_DATA = 10\nSECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9\n; M5a-S2 (docs/plans/m5-loading-boss.md §4.8.2): the level-summary stat hooks,\n; behind the reader\'s fixed vectors. Every site below is an operand-only\n; re-point, so no byte moves in a full segment and none lands in the initial\n; block (owner decision 27, answer Q13).\nSECTOR_READER_STATS_FIGHTER        = $A00C  ; the Light kernel\'s publish vector\nSECTOR_READER_STATS_CAPITAL        = $A00F  ; capital frames; the level\'s end\nSECTOR_READER_STATS_KILL           = $A012  ; a kill\'s HUD refresh\nSECTOR_READER_STATS_DEBRIS_SHOT    = $A015  ; a debris destroyed by a shot (Q14)\nSECTOR_READER_STATS_DEBRIS_CONTACT = $A018  ; a debris destroyed by contact\nSECTOR_READER_STATS_LIGHT_HIT      = $A01B  ; a Light hit by a PairShot\n.export ACTIVE_GAMEPLAY_FRAME_LO\nHUD_CHARSET = $5000\nCAPITAL_HULL_RUNTIME_ALLIED = $4C00\nCAPITAL_HULL_RUNTIME_ENEMY  = $4D20\nCAPITAL_HULL_RUNTIME_END    = $4E40\nBROAD_STATE_BASE            = $4E40\nBROAD_STATE                 = BROAD_STATE_BASE       ; 3 B\nBROAD_OWNER                 = BROAD_STATE+$03        ; 3 B\nBROAD_TURRET                = BROAD_OWNER+$03        ; 3 B\nBROAD_X                     = BROAD_TURRET+$03       ; 3 B\nBROAD_Y                     = BROAD_X+$03            ; 3 B\nBROAD_TIMER                 = BROAD_Y+$03            ; 3 B\nBROAD_PREV_Y                = BROAD_TIMER+$03        ; 3 B\nBROAD_PREV_H                = BROAD_PREV_Y+$03       ; 3 B\nBROAD_COLLISION             = BROAD_PREV_H+$03       ; 3 B\nBROAD_SCHEDULE_TIMER        = BROAD_COLLISION+$03\nBROAD_SCHEDULE_INDEX        = BROAD_SCHEDULE_TIMER+$01\nBROAD_PLAYER_HEALTH         = BROAD_SCHEDULE_INDEX+$01\nBROAD_DAMAGE_COOLDOWN       = BROAD_PLAYER_HEALTH+$01\nBROAD_DEATH_TIMER           = BROAD_DAMAGE_COOLDOWN+$01\nBROAD_ALLIED_HITS           = BROAD_DEATH_TIMER+$01\nBROAD_ENEMY_HITS            = BROAD_ALLIED_HITS+$01\nBROAD_WORK_SLOT             = BROAD_ENEMY_HITS+$01\nBROAD_WORK_COUNT            = BROAD_WORK_SLOT+$01\nBROAD_WORK_VALUE            = BROAD_WORK_COUNT+$01\nBROAD_DAMAGE_APPLIED        = BROAD_WORK_VALUE+$01\nBROAD_LAUNCH_USED           = BROAD_DAMAGE_APPLIED+$01\nBROAD_M0_COLLISION          = BROAD_LAUNCH_USED+$01\nBROAD_P0_COLLISION          = BROAD_M0_COLLISION+$01\nBROAD_ROW_LO                = BROAD_P0_COLLISION+$01  ; 3 B\nBROAD_ROW_HI                = BROAD_ROW_LO+$03        ; 3 B\nBROAD_VISIBLE_SCROLLS       = BROAD_ROW_HI+$03\nBROAD_STATE_END             = BROAD_VISIBLE_SCROLLS+$01\nDIFFICULTY_SETTING          = BROAD_STATE_END        ; 1 B, persists across frontend states\nFRONTEND_PERSISTENT_END     = DIFFICULTY_SETTING+$01\nHULL_SCROLL_ACCUMULATOR     = FRONTEND_PERSISTENT_END\nBROAD_RASTER_TOP            = HULL_SCROLL_ACCUMULATOR+$01 ; 3 B, final capture rows\n; The launch flash overlays one turret-muzzle cell for four frames. Like the\n; tracked-muzzle overlay it must return that cell\'s own prior content, not a\n; per-turret constant, so each slot carries its own one-byte backing.\nBROAD_FLASH_BACKING         = BROAD_RASTER_TOP+$03    ; 3 B, pre-flash cell content\nCORRIDOR_BOUNDARY_ROWS      = CAPITAL_HULL_VISIBLE_ROWS\n; The original 23+23 bytes remain a compatibility hole so every following\n; resident-state address stays fixed. Expanded boundary backing lives beside\n; the high-RAM ring tables after cold staging.\nCORRIDOR_BOUNDARY_LEFT      = PLAYFIELD_RING_STATE_END\nCORRIDOR_BOUNDARY_RIGHT     = CORRIDOR_BOUNDARY_LEFT+CORRIDOR_BOUNDARY_ROWS\n; Rows one and two of the old boundary cache are no longer shifted in the hot\n; path.  They retain two per-muzzle backing bytes while row zero remains the\n; authoritative freshly generated boundary value for a newly tracked muzzle.\nMUZZLE_BACKING              = CORRIDOR_BOUNDARY_LEFT+$01 ; 2 B, allied/enemy\n; Reu'... 420426 more characters,
+    expected: /fighter_pickup_pmg_shape:[\s\S]+; SPREAD[\s\S]+\.byte \$FF,\$FF,\$A5,\$A5,\$C3,\$DB,\$E7,\$E7/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-spread-shot.test.mjs:88:1
+✖ the release ATR executes the deterministic Rapid Spread Shield drop cycle (53.913ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      [
+  +     3,
+        0,
+  -     1,
+        0,
+        1
+      ],
+      [
+  +     0,
+        1,
+  -     2,
+        0,
+        1
+      ],
+      [
+  +     1,
+        2,
+        0,
+  -     0,
+        1
+      ]
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:95:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ 3, 0, 0, 1 ], [ 0, 1, 0, 1 ], [ 1, 2, 0, 1 ] ],
+    expected: [ [ 0, 1, 0, 1 ], [ 1, 2, 0, 1 ], [ 2, 0, 0, 1 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-spread-shot.test.mjs:122:1
+✖ Spread collection lasts exactly 500 active PAL frames and pause freezes it (29.941667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   3,
+  -   4,
+      500,
+      [
+        7,
+        7,
+        7,
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:124:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 3, 500, [ 7, 7, 7, 7 ] ],
+    expected: [ 4, 500, [ 7, 7, 7, 7 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/weapon-pickup-spread-shot.test.mjs:276:1
+✖ all three projectiles leave the screen cleanly without HUD or charset corruption (20.834917ms)
+  AssertionError [ERR_ASSERTION]: the volley is the full left/centre/right fan
+  + actual - expected
+  
+    [
+  +   0
+  -   16,
+  -   32,
+  -   64
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:279:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0 ],
+    expected: [ 16, 32, 64 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

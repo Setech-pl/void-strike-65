@@ -1,0 +1,222 @@
+✔ every overlap between two cfg memory areas is declared on purpose and named (8.656416ms)
+✔ every declared cfg overlap still exists and carries a name and a reason (1.350958ms)
+✔ generated artifact set is internally consistent (4.479041ms)
+✖ ATR uses standard single-density geometry (3.214375ms)
+✖ resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes (3.319667ms)
+✔ the code window is declared, guarded and addressable by the build (2.867125ms)
+✔ last-life death enters GAME OVER once after the deferred 24-frame explosion (1.877542ms)
+✔ LIFE saturates at zero and dead-state damage cannot consume it again (0.343959ms)
+✔ GAME OVER leaves the gameplay loop before control, combat, spawn, and scoring (0.529709ms)
+✔ GAME OVER renders final SCORE and TOP from packed BCD without changing them (5.724042ms)
+✔ held FIRE cannot skip GAME OVER; release then a fresh press returns to menu (0.392ms)
+✔ assembled gameplay entry always transfers into the relocated main loop (3.706542ms)
+✔ 600-frame ON/OFF watchdog advances frame, world, stars, and spawn scheduling (2921.444792ms)
+✔ GAME MUSIC ON starts from row zero while OFF performs no tick or POKEY write (0.2335ms)
+✔ gameplay tempo advances on exact six-frame PAL boundaries without drift (0.24225ms)
+✔ death mutes both voices without stopping the score or the envelopes (0.207084ms)
+✔ only the hit SFX preempts, it takes channel 2 alone, and the lead resumes (0.105584ms)
+✔ stop clears the voices without changing the persistent GAME MUSIC option (0.146541ms)
+✔ assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence (2.228584ms)
+✔ gameplay timing values come from the executable runtime report (0.122625ms)
+✔ T13: the sky is resolved per sector into sector_look bits 0-3 and the level default into header byte 5 (20.936416ms)
+✔ T13: a wave's appearance is wave_flags bits 0-1 and the looks fill the payload page (0.590917ms)
+✔ T13: a weapon look is eight glyph rows and its target class, 9 B per record (0.344625ms)
+✔ T13: the compiler refuses every out-of-range payload value (1.065667ms)
+✔ T13: level 1 shows a sky per sector and one re-skinned Light wave; level 2 the full payload (1.628667ms)
+✔ T13: a Light wave's appearance installs its payload look into the admitted slot's pair (11.92225ms)
+✔ T13: a Heavy wave's appearance re-skins its Light escort (5.431708ms)
+✔ T13: a plain and a variant Wingman never share an appearance pair (2.835834ms)
+✔ T13: the level's weapon looks are laid over the defaults at level start (9.268042ms)
+✔ T13: the star pixel changes at sector entry and only there (3.207916ms)
+✖ T13: only the Director's sector entry writes the star operand (1.815125ms)
+✔ T13: the byte rules - light_pair_for_record size-neutral, record 5 not grown, initial block under the STOP line (1.899917ms)
+✔ the save record has one fixed sector, named once and placed by the directory (0.682208ms)
+✔ the overlay directory has eleven entries; the summary code is entry 8 at $0500 (0.1325ms)
+✔ the summary module fits its claimed home $0500-$0BFF and is on the disk byte for byte (0.192709ms)
+✔ $0700-$0BFF is claimed: no link, cfg area or boot-path range but the summary's reaches it (2.535667ms)
+✔ four regions of art, seven sectors each from sector 600, generated from assets (0.604292ms)
+✔ an art run carries the palette, the glyphs, the picture and the labels, and no AI line (0.565958ms)
+✖ disk runs never overlap: levels, the capital restore, M5b's reservation, the summary (0.527833ms)
+✔ the stat hooks are operand-only in every full segment (1.752875ms)
+✔ the grade thresholds are level data in the payload page (2912.574625ms)
+✔ a level whose thresholds cannot grade is refused by the compiler (2.97075ms)
+✔ the stat block in zero page is the summary ABI's and no link claims it (1.15225ms)
+✖ ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either (0.511667ms)
+✔ the shipped menu player emits the reference renderer's register stream (2.078292ms)
+✔ the menu tick writes only AUDF1-4 and AUDC1-4 (0.472583ms)
+✔ a silent channel keeps its divider: the player writes AUDC only (0.339166ms)
+✔ the menu tick's per-frame cost stays a frontend cost, not a raster one (0.087ms)
+✔ music_stop silences every channel and disarms the transport (0.079625ms)
+✔ the menu theme starts only in the main menu and stops before gameplay (1.509875ms)
+✔ the shipped gameplay player emits the renderer's stream with no SFX running (30.608334ms)
+✔ the bass is never preempted, the lead stops only for the hit and resumes (27.567291ms)
+✔ the shot SFX register sequence is the same with music on and music off (48.318917ms)
+✔ the capital-hull explosion's AUDCTL leaves the shot's sound unchanged (23.27525ms)
+✖ PairShot uses one logical record and one character cell for two pulses (302.757625ms)
+✔ Normal, Rapid and Spread retain 8/10/8 visible pulses as 4/5/4 PairShots (133.005167ms)
+✔ PairShot keeps one collision event per logical player or enemy record (271.104458ms)
+✔ physical OPTION enters PAUSED before any gameplay frame mutation (1.096666ms)
+✔ PAUSED runs no world, combat, animation, score, death, or respawn tick (0.692625ms)
+✔ held OPTION and FIRE are release-gated to one action (0.2835ms)
+✔ pause preserves music transport and resume continues only when enabled (0.359208ms)
+✔ pause GAME MUSIC toggles shared state immediately without modifying SFX (0.258709ms)
+✔ QUIT TO MENU requires confirmation and defaults to NO (1.393917ms)
+✔ NO returns to pause while YES clears gameplay and starts menu music (0.34425ms)
+✔ pause overlay reuses the frontend renderer and released staging RAM (0.441333ms)
+✔ quit preserves TOP and a new game remains the sole SCORE reset path (0.209834ms)
+✔ the capsule's colour is a hue no enemy and no allied object wears (0.831833ms)
+✔ the capsule is one PLAYER3 image and touches no missile register (0.279875ms)
+✔ PRIOR is $00 for the whole of gameplay: only cold init and the loader write it (0.83675ms)
+✔ no shield path writes COLPM3 (0.172417ms)
+✔ only the capsule and the player explosion write PLAYER3 (0.59775ms)
+✖ COLPM3 follows the sector state, once per frame, off the latch that exists (0.700125ms)
+✔ P3 carries the capsule's one-clock size, and the explosion's double width only (0.310083ms)
+ℹ tests 73
+ℹ suites 0
+ℹ pass 66
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3078.922958
+
+✖ failing tests:
+
+test at tests/formats.test.mjs:29:1
+✖ ATR uses standard single-density geometry (3.214375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  133120 !== 92160
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/formats.test.mjs:35:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 133120,
+    expected: 92160,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/formats.test.mjs:47:1
+✖ resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes (3.319667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== -767
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/formats.test.mjs:112:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: -767,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-payload.test.mjs:409:1
+✖ T13: only the Director's sector entry writes the star operand (1.815125ms)
+  AssertionError [ERR_ASSERTION]: declared once, called once - from enter_sector
+  
+  0 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-payload.test.mjs:416:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-summary-build.test.mjs:203:1
+✖ disk runs never overlap: levels, the capital restore, M5b's reservation, the summary (0.527833ms)
+  AssertionError [ERR_ASSERTION]: seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-summary-build.test.mjs:261:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/level-summary-build.test.mjs:399:1
+✖ ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either (0.511667ms)
+  AssertionError [ERR_ASSERTION]: the window moved
+  
+  1928 !== 982
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-summary-build.test.mjs:450:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1928,
+    expected: 982,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/pairshot-foundation.test.mjs:12:1
+✖ PairShot uses one logical record and one character cell for two pulses (302.757625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  4 !== 5
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/pairshot-foundation.test.mjs:25:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 4,
+    expected: 5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/pickup-boost-colour.test.mjs:120:1
+✖ COLPM3 follows the sector state, once per frame, off the latch that exists (0.700125ms)
+  AssertionError [ERR_ASSERTION]: an OPEN frame gives COLPM3 to the capsule
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/pickup-boost-colour.test.mjs:126:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'publish_fighter_projectile_overlays:\n    lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\n    beq @fighter_window\n    ; COLPM3 belongs to whichever object owns P3/M3 in this sector state: the\n    ; broadside missile M3 and the player explosion here, the pickup capsule in\n    ; OPEN. Publishing it off the latch that is already read costs one immediate\n    ; store per frame and needs no per-frame switching inside a frame; owner\n    ; decision, 2026-09-28 (docs/plans/pickup-colour.md §7 items 2 and 7).\n    lda #PLAYER_NORMAL_ENGINE_COLOR\n    sta COLPM3\n    ; Capital starts its frame at $70, but sparse white publication still runs\n    ; here after active work, beyond the gameplay playfield. Commit OLD/phase\n    ; before the shared render path; omitting this pair would clone every prior\n    ; white point into the scrolling ring.\n    jsr erase_dynamic_near_star_overlays\n    jsr publish_dynamic_near_star_phase\n    jmp fighter_projectile_publication_capital_render\n@fighter_window:\n    jsr LIFE_CAPSULE_COLOUR\n    nop\n    nop\n    ldx #$77\n    jsr wait_frame_at_line\nfighter_projectile_publication_begin = *\n    ; The previous sparse near image has now survived one complete ANTIC pass.\n    ; Retire it inside the same safe post-playfield window as character shots.\n    jsr erase_dynamic_near_star_overlays\n    jsr publish_dynamic_near_star_phase\n    ; Light Wingman: PairShot erase, then the Light unwinds and republishes\n    ; inside this post-playfield window, below the PairShots rendered next.\n    jsr erase_fighter_projectile_overlays_with_light\n    ; The fighter pickup shares this window: its missile rows are republished\n    ; after the playfield has been scanned, never mid-frame.\n    jsr publish_fighter_pickup_pmg\n',
+    expected: /@fighter_window:\s*\n\s*lda #PICKUP_BOOST_COLOUR\s*\n\s*sta COLPM3/,
+    operator: 'match',
+    diff: 'simple'
+  }

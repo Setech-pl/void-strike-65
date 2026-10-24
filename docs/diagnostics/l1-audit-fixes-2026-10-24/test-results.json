@@ -1,0 +1,859 @@
+{
+  "base_head": "a3c8e474bfc4a2b82972428935573807e5b4a033",
+  "full_run": {
+    "tests": 1566,
+    "pass": 1459,
+    "fail": 107,
+    "runs": 1
+  },
+  "baseline_focused_comparison": {
+    "selected_names": 107,
+    "pass": 24,
+    "fail": 83
+  },
+  "after_focused_repairs": {
+    "cleared_full_run_failures": 26,
+    "remaining": 81,
+    "new_failures": 0,
+    "baseline_failures_also_cleared": [
+      "Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reader BSS",
+      "Q-1: the window record lands at $AE00 and costs no extra transport"
+    ]
+  },
+  "remaining_failures": {
+    "every third idle-slot qualifying kill creates one deterministic pending capsule": {
+      "test_location": "tests/booster-admission-diagnostic.test.mjs:56:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/booster-admission-diagnostic.test.mjs:75:10)"
+    },
+    "the blanking costs 9 bytes of the initial block and no sector": {
+      "test_location": "tests/boot-loading-blank-screen.test.mjs:62:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boot-loading-blank-screen.test.mjs:63:10)"
+    },
+    "decision AY: each region's banner picture, its packed size and its sectors are the pinned ones": {
+      "test_location": "tests/boss-banners.test.mjs:78:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: region 1 (Blockade Breaker): the entry's sectors",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-banners.test.mjs:79:11)"
+    },
+    "region 1 (Blockade Breaker): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-banners.test.mjs:188:12)"
+    },
+    "region 2 (Void Citadel): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-banners.test.mjs:188:12)"
+    },
+    "region 3 (Siege Spine): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-banners.test.mjs:188:12)"
+    },
+    "region 4 (Bastion): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-banners.test.mjs:188:12)"
+    },
+    "leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 restored, PRIOR never written": {
+      "test_location": "tests/boss-lasers.test.mjs:487:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the win: COLPM1 not restored",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-lasers.test.mjs:515:3)"
+    },
+    "HULL: a spent quarter is the HUD's blank, as a spent BOOST cell - full, partial and empty hull": {
+      "test_location": "tests/boss-polish.test.mjs:45:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: hull 3 of 10",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-polish.test.mjs:50:12)"
+    },
+    "HULL: the respawn's full hull shows four plates again": {
+      "test_location": "tests/boss-polish.test.mjs:54:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the respawn's HUD",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-polish.test.mjs:60:10)"
+    },
+    "HULL: the boss sector's HUD, rebuilt by the install, blanks the spent quarters too": {
+      "test_location": "tests/boss-polish.test.mjs:63:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: boss HUD at hull 10",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-polish.test.mjs:71:12)"
+    },
+    "region 2 is the Bastion from its own draft: the wide hangar, the bays, the rails, on the built disk": {
+      "test_location": "tests/boss-region-2.test.mjs:86:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the Bastion's boss entry is 88 sectors (RE-PINNED M6 stage 1b: the lance run's two more)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-2.test.mjs:164:10)"
+    },
+    "the doors: locked until every cannon and rail gun is destroyed or covered; then open, flashing, sounding; the core behind them, last": {
+      "test_location": "tests/boss-region-2.test.mjs:648:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: routine $366a did not return",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-2.test.mjs:706:3)"
+    },
+    "the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive": {
+      "test_location": "tests/boss-region-4.test.mjs:212:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: routine $366a did not return",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-4.test.mjs:236:35)"
+    },
+    "the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time": {
+      "test_location": "tests/boss-runtime.test.mjs:585:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the boss never handed off to the level summary",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-runtime.test.mjs:623:10)"
+    },
+    "slot E's contract, by the source: only draw_hull_row reads the hull maps; only start_gameplay rebuilds them": {
+      "test_location": "tests/boss-s4b5.test.mjs:114:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: who names $4C00-$4E3F",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-s4b5.test.mjs:130:10)"
+    },
+    "capital/player collision agrees with independently reconstructed final raster Y": {
+      "test_location": "tests/broadside-fire.test.mjs:435:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: top edge: independent raster premise; PMG 118..132, screen $8320 glyph 105..110",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/broadside-fire.test.mjs:453:14)"
+    },
+    "assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD": {
+      "test_location": "tests/capital-hulls.test.mjs:191:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: CH_HUD_HULL_FULL must use its shape-distinct dedicated HUD glyph",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/capital-hulls.test.mjs:238:12)"
+    },
+    "assembled ANTIC 2 HUD keeps independent live score, life, and hull fields": {
+      "test_location": "tests/capital-hulls.test.mjs:273:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: score digit at screen offset 6 must remain live",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/capital-hulls.test.mjs:281:12)"
+    },
+    "fit preserves the reviewed staging and placement gates": {
+      "test_location": "tests/cold-pickup-record-fit.test.mjs:106:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/cold-pickup-record-fit.test.mjs:121:10)"
+    },
+    "debris damage updates HULL plates in the contact frame and enters canonical death flow": {
+      "test_location": "tests/entity-effects.test.mjs:1179:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: MEDIUM 10->5 must be visible in the HUD before the collision routine returns",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/entity-effects.test.mjs:1182:10)"
+    },
+    "ATR uses standard single-density geometry": {
+      "test_location": "tests/formats.test.mjs:29:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/formats.test.mjs:35:10)"
+    },
+    "resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes": {
+      "test_location": "tests/formats.test.mjs:47:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/formats.test.mjs:112:10)"
+    },
+    "STARFIELD is smaller than before the move, and the room is still reserved": {
+      "test_location": "tests/gameplay-music-placement.test.mjs:124:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: only owner decision A' may grow STARFIELD",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/gameplay-music-placement.test.mjs:147:10)"
+    },
+    "the art outside the boss band: build/entity-effects.inc is the pinned bytes": {
+      "test_location": "tests/gfx-pins.test.mjs:64:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: build/entity-effects.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/gfx-pins.test.mjs:73:12)"
+    },
+    "the boss link's colour, charset and DLI-vector stores: only the pinned routines": {
+      "test_location": "tests/gfx-pins.test.mjs:150:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: a new colour, charset or DLI-vector store in the boss link: show it stays in the band, then re-pin",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/gfx-pins.test.mjs:162:10)"
+    },
+    "showcase manifest binds every image to the current packed release": {
+      "test_location": "tests/github-showcase.test.mjs:34:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/github-showcase.test.mjs:37:10)"
+    },
+    "showcase and asset sheets regenerate without ignored capture files": {
+      "test_location": "tests/github-showcase.test.mjs:74:1",
+      "first_message": "Error: Runtime wall trace does not match the current release ATR",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/github-showcase.test.mjs:76:17)"
+    },
+    "gameplay GIF is bound to the current ATR and stays within budget": {
+      "test_location": "tests/github-showcase.test.mjs:189:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the GIF predates the current ATR; rerun npm run showcase:gif",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/github-showcase.test.mjs:194:10)"
+    },
+    "the rotate gate adds no byte to the initial block and no sector to any record": {
+      "test_location": "tests/heavy-breakup.test.mjs:478:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/heavy-breakup.test.mjs:482:10)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: rapid)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/hud-audit.test.mjs:76:12)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: spread)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/hud-audit.test.mjs:76:12)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: shield)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/hud-audit.test.mjs:76:12)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: none)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/hud-audit.test.mjs:76:12)"
+    },
+    "the gameplay start after the summary (START GAME): the HUD drawn whole from the state, the booster idle": {
+      "test_location": "tests/hud-audit.test.mjs:103:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the score cells show 00000",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/hud-audit.test.mjs:128:10)"
+    },
+    "\u00a7BL 3: a lance ready keeps the four cells full - through the charge, a miss and the torpedo's flight - and a kill empties them": {
+      "test_location": "tests/hud-bottom.test.mjs:127:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the torpedo fired",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/hud-bottom.test.mjs:147:10)"
+    },
+    "HUD template keeps full LIFE/HULL labels and four fixed hull plates": {
+      "test_location": "tests/hud-status.test.mjs:49:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /hud_ascii:\\s*\\.byte \"SCORE 00000  LIFE 3 HULL \"/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/hud-status.test.mjs:50:10)"
+    },
+    "T13: only the Director's sector entry writes the star operand": {
+      "test_location": "tests/level-payload.test.mjs:409:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: declared once, called once - from enter_sector",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-payload.test.mjs:416:10)"
+    },
+    "disk runs never overlap: levels, the capital restore, M5b's reservation, the summary": {
+      "test_location": "tests/level-summary-build.test.mjs:203:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: seven sectors since M6 stage 1b's gauges (five at \u00a7BH, four at \u00a7BG)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-summary-build.test.mjs:261:10)"
+    },
+    "ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either": {
+      "test_location": "tests/level-summary-build.test.mjs:399:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the window moved",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/level-summary-build.test.mjs:450:10)"
+    },
+    "placement contract: legal composite and packed size, state inside its reserved windows, no C stack": {
+      "test_location": "tests/light-interceptor.test.mjs:498:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/light-interceptor.test.mjs:532:10)"
+    },
+    "native menu raster is exact for the ATR and four cold RAM fills": {
+      "test_location": "tests/menu-raster.test.mjs:24:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: atr-00 evidence must describe the current artifact",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/menu-raster.test.mjs:41:12)"
+    },
+    "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md": {
+      "test_location": "tests/package-release.test.mjs:38:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/package-release.test.mjs:44:12)"
+    },
+    "COLPM3 follows the sector state, once per frame, off the latch that exists": {
+      "test_location": "tests/pickup-boost-colour.test.mjs:120:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: an OPEN frame gives COLPM3 to the capsule",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/pickup-boost-colour.test.mjs:126:10)"
+    },
+    "each booster type carries its own recovered capsule silhouette": {
+      "test_location": "tests/pickup-pmg-raster-visibility.test.mjs:98:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: missing fighter_pickup_pmg_shape:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/pickup-pmg-raster-visibility.test.mjs:99:16)"
+    },
+    "the three silhouettes are visually distinguishable": {
+      "test_location": "tests/pickup-pmg-raster-visibility.test.mjs:111:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: missing fighter_pickup_pmg_shape:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/pickup-pmg-raster-visibility.test.mjs:112:16)"
+    },
+    "the shape table is in plain player bit order, with no fifth-player residue": {
+      "test_location": "tests/pickup-pmg-raster-visibility.test.mjs:133:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: missing ; Per-type capsule silhouettes",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/pickup-pmg-raster-visibility.test.mjs:134:17)"
+    },
+    "master PAL gate makes transition-only fire/audio catch-up obsolete": {
+      "test_location": "tests/player-fire-audio.test.mjs:48:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\\s+beq @fighter_window[\\s\\S]+jsr erase_dynamic_near_star_overlays\\s+jsr publish_dynamic_near_star_phase\\s+jmp fighter_projectile_publication_capital_render\\s+@fighter_window:\\s+lda #PICKUP_BOOST_COLOUR\\s+sta COLPM3\\s+ldx #\\$77\\s+jsr wait_frame_at_line\\s+fighter_projectile_publication_begin/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/player-fire-audio.test.mjs:59:10)"
+    },
+    "preview consumes the canonical charset, screen, PMG, and palette source": {
+      "test_location": "tests/preview.test.mjs:121:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the gameplay preview must change when player_shape changes",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/preview.test.mjs:164:10)"
+    },
+    "Rapid Fire owner preview executes the packed ATR pickup lifecycle": {
+      "test_location": "tests/preview.test.mjs:334:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/preview.test.mjs:335:17)"
+    },
+    "Spread Shot owner preview is deterministic executed ATR gameplay": {
+      "test_location": "tests/preview.test.mjs:413:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/preview.test.mjs:423:10)"
+    },
+    "the recorded-failure list is one data file, and every entry carries a class and a measurement": {
+      "test_location": "tests/release-gate-semantics.test.mjs:34:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /evaluateReleaseGate\\(wallTrace, loadRecordedGateFailures\\(rootDirectory\\)\\)/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/release-gate-semantics.test.mjs:52:10)"
+    },
+    "measured DMA-on fields come only from an artifact-matched Atari800 trace": {
+      "test_location": "tests/runtime-timing.test.mjs:65:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: runtime wall trace is missing",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-timing.test.mjs:67:10)"
+    },
+    "wall trace is artifact-bound and adds no guest timing work": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:70:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-wall-trace.test.mjs:75:12)"
+    },
+    "Spread Shot passes PAL wall budget with a legal capsule and projectile-heavy frame": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:606:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-wall-trace.test.mjs:668:10)"
+    },
+    "debris visual polish preserves foundation history and passes its +256 PAL gate": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:790:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-wall-trace.test.mjs:843:10)"
+    },
+    "explosion colour flash passes its +64 PAL gate with exact GTIA traces": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:847:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-wall-trace.test.mjs:895:10)"
+    },
+    "destructible debris passes PAL, inactive-path and linked-code budgets": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:910:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-wall-trace.test.mjs:938:10)"
+    },
+    "enemy breakup passes the hard PAL gate and draws no character effect": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:970:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/runtime-wall-trace.test.mjs:1009:10)"
+    },
+    "assembled decimal score code carries without inserting partial-game scores": {
+      "test_location": "tests/score.test.mjs:402:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: 0009 + 1 HUD screen codes",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/score.test.mjs:433:12)"
+    },
+    "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster": {
+      "test_location": "tests/sio-patch-policy.test.mjs:79:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: atr-a5 stage-2 SIOV reads",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/sio-patch-policy.test.mjs:98:12)"
+    },
+    "Q9: the HUD draws codes 0-63 only, so the block in codes 64-127 is never shown": {
+      "test_location": "tests/slot-f.test.mjs:63:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: only 18 codes seen",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/slot-f.test.mjs:88:10)"
+    },
+    "Q9: each region's block is its fourth run - on the disk at 696 + 4 x region, folded into the head's check": {
+      "test_location": "tests/slot-f.test.mjs:92:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: region 1's head sum does not cover its block",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/slot-f.test.mjs:109:12)"
+    },
+    "\u00a7BL 5 (\u00a7BH): a miss - no target under the ship - the torpedo flies to the band's foot at the ship's column; the lance kept, the reticle back": {
+      "test_location": "tests/torpedo.test.mjs:140:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the torpedo fired",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/torpedo.test.mjs:145:3)"
+    },
+    "three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:120:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+\\.assert \\* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\\*WEAPON_PICKUP_HEIGHT_SCANLINES/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:161:10)"
+    },
+    "the release ATR executes 0\u21921\u21922\u2192pending only for consumed PlayerFighter kills": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:179:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:180:15)"
+    },
+    "pickup pending remains hidden and non-colliding for thirty full frames": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:206:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:207:17)"
+    },
+    "active capsule is one logical PMG object, writes no character cell and cannot be shot": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:269:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:270:17)"
+    },
+    "pickup movement resolves half world speed into smooth scanline phases": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:299:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:309:18)"
+    },
+    "debris and the reserved pickup coexist without allocator overwrite for every A2 head": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:320:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:322:19)"
+    },
+    "pickup collection is single-shot and changes neither score, HULL nor LIFE": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:437:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:438:17)"
+    },
+    "weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:455:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:457:10)"
+    },
+    "HULL plates and the ten-cell BOOST field remain distinct at native screen codes": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:498:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:500:10)"
+    },
+    "Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:544:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:545:17)"
+    },
+    "release trace CSV exposes the authoritative counter, state, timing and score": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:759:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:760:17)"
+    },
+    "pickup rotation is exactly Rapid Spread Shield Rapid without RNG": {
+      "test_location": "tests/weapon-pickup-shield.test.mjs:61:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-shield.test.mjs:63:10)"
+    },
+    "Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyph": {
+      "test_location": "tests/weapon-pickup-shield.test.mjs:159:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-shield.test.mjs:167:10)"
+    },
+    "Spread Shot owns one phased red fan in the shared six-glyph bank": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:47:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+; SPREAD[\\s\\S]+\\.byte \\$FF,\\$FF,\\$A5,\\$A5,\\$C3,\\$DB,\\$E7,\\$E7/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:84:10)"
+    },
+    "the release ATR executes the deterministic Rapid Spread Shield drop cycle": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:88:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:95:10)"
+    },
+    "Spread collection lasts exactly 500 active PAL frames and pause freezes it": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:122:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:124:10)"
+    },
+    "all three projectiles leave the screen cleanly without HUD or charset corruption": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:276:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the volley is the full left/centre/right fan",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-spread-shot.test.mjs:279:10)"
+    }
+  },
+  "baseline_failures": {
+    "every third idle-slot qualifying kill creates one deterministic pending capsule": {
+      "test_location": "tests/booster-admission-diagnostic.test.mjs:56:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/booster-admission-diagnostic.test.mjs:75:10)"
+    },
+    "the blanking costs 9 bytes of the initial block and no sector": {
+      "test_location": "tests/boot-loading-blank-screen.test.mjs:62:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boot-loading-blank-screen.test.mjs:72:10)"
+    },
+    "decision AY: each region's banner picture, its packed size and its sectors are the pinned ones": {
+      "test_location": "tests/boss-banners.test.mjs:78:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: region 1 (Blockade Breaker): the entry's sectors",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-banners.test.mjs:79:11)"
+    },
+    "region 1 (Blockade Breaker): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-banners.test.mjs:188:12)"
+    },
+    "region 2 (Void Citadel): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-banners.test.mjs:188:12)"
+    },
+    "region 3 (Siege Spine): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-banners.test.mjs:188:12)"
+    },
+    "region 4 (Bastion): the reads - theme, banner, then the boss's data in today's order - and the main loop": {
+      "test_location": "tests/boss-banners.test.mjs:182:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-banners.test.mjs:188:12)"
+    },
+    "leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 restored, PRIOR never written": {
+      "test_location": "tests/boss-lasers.test.mjs:487:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the win: COLPM1 not restored",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-lasers.test.mjs:515:3)"
+    },
+    "HULL: a spent quarter is the HUD's blank, as a spent BOOST cell - full, partial and empty hull": {
+      "test_location": "tests/boss-polish.test.mjs:45:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: hull 3 of 10",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-polish.test.mjs:50:12)"
+    },
+    "HULL: the respawn's full hull shows four plates again": {
+      "test_location": "tests/boss-polish.test.mjs:54:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the respawn's HUD",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-polish.test.mjs:60:10)"
+    },
+    "HULL: the boss sector's HUD, rebuilt by the install, blanks the spent quarters too": {
+      "test_location": "tests/boss-polish.test.mjs:63:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: boss HUD at hull 10",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-polish.test.mjs:71:12)"
+    },
+    "region 2 is the Bastion from its own draft: the wide hangar, the bays, the rails, on the built disk": {
+      "test_location": "tests/boss-region-2.test.mjs:86:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the Bastion's boss entry is 88 sectors (RE-PINNED M6 stage 1b: the lance run's two more)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-region-2.test.mjs:164:10)"
+    },
+    "the doors: locked until every cannon and rail gun is destroyed or covered; then open, flashing, sounding; the core behind them, last": {
+      "test_location": "tests/boss-region-2.test.mjs:648:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: routine $b49f did not return",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-region-2.test.mjs:706:3)"
+    },
+    "the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive": {
+      "test_location": "tests/boss-region-4.test.mjs:212:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: routine $b49f did not return",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-region-4.test.mjs:236:35)"
+    },
+    "the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time": {
+      "test_location": "tests/boss-runtime.test.mjs:584:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the boss never handed off to the level summary",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-runtime.test.mjs:622:10)"
+    },
+    "slot E's contract, by the source: only draw_hull_row reads the hull maps; only start_gameplay rebuilds them": {
+      "test_location": "tests/boss-s4b5.test.mjs:114:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: who names $4C00-$4E3F",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/boss-s4b5.test.mjs:130:10)"
+    },
+    "capital/player collision agrees with independently reconstructed final raster Y": {
+      "test_location": "tests/broadside-fire.test.mjs:435:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: top edge: independent raster premise; PMG 118..132, screen $8320 glyph 105..110",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/broadside-fire.test.mjs:453:14)"
+    },
+    "assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD": {
+      "test_location": "tests/capital-hulls.test.mjs:191:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: CH_HUD_HULL_FULL must use its shape-distinct dedicated HUD glyph",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/capital-hulls.test.mjs:238:12)"
+    },
+    "assembled ANTIC 2 HUD keeps independent live score, life, and hull fields": {
+      "test_location": "tests/capital-hulls.test.mjs:273:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: score digit at screen offset 6 must remain live",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/capital-hulls.test.mjs:281:12)"
+    },
+    "fit preserves the reviewed staging and placement gates": {
+      "test_location": "tests/cold-pickup-record-fit.test.mjs:106:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/cold-pickup-record-fit.test.mjs:121:10)"
+    },
+    "debris damage updates HULL plates in the contact frame and enters canonical death flow": {
+      "test_location": "tests/entity-effects.test.mjs:1178:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: MEDIUM 10->5 must be visible in the HUD before the collision routine returns",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/entity-effects.test.mjs:1181:10)"
+    },
+    "ATR uses standard single-density geometry": {
+      "test_location": "tests/formats.test.mjs:29:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/formats.test.mjs:35:10)"
+    },
+    "resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes": {
+      "test_location": "tests/formats.test.mjs:47:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/formats.test.mjs:112:10)"
+    },
+    "STARFIELD is smaller than before the move, and the room is still reserved": {
+      "test_location": "tests/gameplay-music-placement.test.mjs:124:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: only owner decision A' may grow STARFIELD",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/gameplay-music-placement.test.mjs:147:10)"
+    },
+    "the art outside the boss band: build/entity-effects.inc is the pinned bytes": {
+      "test_location": "tests/gfx-pins.test.mjs:64:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: build/entity-effects.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/gfx-pins.test.mjs:65:12)"
+    },
+    "the boss link's colour, charset and DLI-vector stores: only the pinned routines": {
+      "test_location": "tests/gfx-pins.test.mjs:142:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: a new colour, charset or DLI-vector store in the boss link: show it stays in the band, then re-pin",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/gfx-pins.test.mjs:154:10)"
+    },
+    "showcase manifest binds every image to the current packed release": {
+      "test_location": "tests/github-showcase.test.mjs:34:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/github-showcase.test.mjs:37:10)"
+    },
+    "showcase and asset sheets regenerate without ignored capture files": {
+      "test_location": "tests/github-showcase.test.mjs:74:1",
+      "first_message": "Error: Runtime wall trace does not match the current release ATR",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/github-showcase.test.mjs:76:17)"
+    },
+    "gameplay GIF is bound to the current ATR and stays within budget": {
+      "test_location": "tests/github-showcase.test.mjs:189:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the GIF predates the current ATR; rerun npm run showcase:gif",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/github-showcase.test.mjs:194:10)"
+    },
+    "the rotate gate adds no byte to the initial block and no sector to any record": {
+      "test_location": "tests/heavy-breakup.test.mjs:478:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/heavy-breakup.test.mjs:482:10)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: rapid)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/hud-audit.test.mjs:76:12)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: spread)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/hud-audit.test.mjs:76:12)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: shield)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/hud-audit.test.mjs:76:12)"
+    },
+    "boss entry: every HUD cell as it was before the WARNING screen (booster: none)": {
+      "test_location": "tests/hud-audit.test.mjs:65:3",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/hud-audit.test.mjs:76:12)"
+    },
+    "the gameplay start after the summary (START GAME): the HUD drawn whole from the state, the booster idle": {
+      "test_location": "tests/hud-audit.test.mjs:103:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the score cells show 00000",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/hud-audit.test.mjs:128:10)"
+    },
+    "\u00a7BL 3: a lance ready keeps the four cells full - through the charge, a miss and the torpedo's flight - and a kill empties them": {
+      "test_location": "tests/hud-bottom.test.mjs:127:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the torpedo fired",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/hud-bottom.test.mjs:147:10)"
+    },
+    "HUD template keeps full LIFE/HULL labels and four fixed hull plates": {
+      "test_location": "tests/hud-status.test.mjs:49:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /hud_ascii:\\s*\\.byte \"SCORE 00000  LIFE 3 HULL \"/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/hud-status.test.mjs:50:10)"
+    },
+    "Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reader BSS": {
+      "test_location": "tests/level-buffer-16.test.mjs:41:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/level-buffer-16.test.mjs:107:10)"
+    },
+    "Q-1: the window record lands at $AE00 and costs no extra transport": {
+      "test_location": "tests/level-buffer-16.test.mjs:123:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: total transport is 216 sectors; 213 is sector flow's figure",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/level-buffer-16.test.mjs:158:10)"
+    },
+    "T13: only the Director's sector entry writes the star operand": {
+      "test_location": "tests/level-payload.test.mjs:409:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: declared once, called once - from enter_sector",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/level-payload.test.mjs:416:10)"
+    },
+    "disk runs never overlap: levels, the capital restore, M5b's reservation, the summary": {
+      "test_location": "tests/level-summary-build.test.mjs:201:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: seven sectors since M6 stage 1b's gauges (five at \u00a7BH, four at \u00a7BG)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/level-summary-build.test.mjs:259:10)"
+    },
+    "ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either": {
+      "test_location": "tests/level-summary-build.test.mjs:396:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the window moved",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/level-summary-build.test.mjs:447:10)"
+    },
+    "placement contract: legal composite and packed size, state inside its reserved windows, no C stack": {
+      "test_location": "tests/light-interceptor.test.mjs:498:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/light-interceptor.test.mjs:579:10)"
+    },
+    "native menu raster is exact for the ATR and four cold RAM fills": {
+      "test_location": "tests/menu-raster.test.mjs:24:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: atr-00 evidence must describe the current artifact",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/menu-raster.test.mjs:41:12)"
+    },
+    "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md": {
+      "test_location": "tests/package-release.test.mjs:38:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/package-release.test.mjs:44:12)"
+    },
+    "COLPM3 follows the sector state, once per frame, off the latch that exists": {
+      "test_location": "tests/pickup-boost-colour.test.mjs:120:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: an OPEN frame gives COLPM3 to the capsule",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/pickup-boost-colour.test.mjs:126:10)"
+    },
+    "each booster type carries its own recovered capsule silhouette": {
+      "test_location": "tests/pickup-pmg-raster-visibility.test.mjs:98:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: missing fighter_pickup_pmg_shape:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/pickup-pmg-raster-visibility.test.mjs:99:16)"
+    },
+    "the three silhouettes are visually distinguishable": {
+      "test_location": "tests/pickup-pmg-raster-visibility.test.mjs:111:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: missing fighter_pickup_pmg_shape:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/pickup-pmg-raster-visibility.test.mjs:112:16)"
+    },
+    "the shape table is in plain player bit order, with no fifth-player residue": {
+      "test_location": "tests/pickup-pmg-raster-visibility.test.mjs:133:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: missing ; Per-type capsule silhouettes",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/pickup-pmg-raster-visibility.test.mjs:134:17)"
+    },
+    "master PAL gate makes transition-only fire/audio catch-up obsolete": {
+      "test_location": "tests/player-fire-audio.test.mjs:48:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\\s+beq @fighter_window[\\s\\S]+jsr erase_dynamic_near_star_overlays\\s+jsr publish_dynamic_near_star_phase\\s+jmp fighter_projectile_publication_capital_render\\s+@fighter_window:\\s+lda #PICKUP_BOOST_COLOUR\\s+sta COLPM3\\s+ldx #\\$77\\s+jsr wait_frame_at_line\\s+fighter_projectile_publication_begin/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/player-fire-audio.test.mjs:59:10)"
+    },
+    "preview consumes the canonical charset, screen, PMG, and palette source": {
+      "test_location": "tests/preview.test.mjs:121:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the gameplay preview must change when player_shape changes",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/preview.test.mjs:164:10)"
+    },
+    "Rapid Fire owner preview executes the packed ATR pickup lifecycle": {
+      "test_location": "tests/preview.test.mjs:334:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/preview.test.mjs:335:17)"
+    },
+    "Spread Shot owner preview is deterministic executed ATR gameplay": {
+      "test_location": "tests/preview.test.mjs:413:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/preview.test.mjs:423:10)"
+    },
+    "the recorded-failure list is one data file, and every entry carries a class and a measurement": {
+      "test_location": "tests/release-gate-semantics.test.mjs:34:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /evaluateReleaseGate\\(wallTrace, loadRecordedGateFailures\\(rootDirectory\\)\\)/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/release-gate-semantics.test.mjs:52:10)"
+    },
+    "measured DMA-on fields come only from an artifact-matched Atari800 trace": {
+      "test_location": "tests/runtime-timing.test.mjs:65:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: runtime wall trace is missing",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/runtime-timing.test.mjs:67:10)"
+    },
+    "wall trace is artifact-bound and adds no guest timing work": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:70:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/runtime-wall-trace.test.mjs:75:12)"
+    },
+    "Spread Shot passes PAL wall budget with a legal capsule and projectile-heavy frame": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:606:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/runtime-wall-trace.test.mjs:668:10)"
+    },
+    "debris visual polish preserves foundation history and passes its +256 PAL gate": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:790:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/runtime-wall-trace.test.mjs:843:10)"
+    },
+    "explosion colour flash passes its +64 PAL gate with exact GTIA traces": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:847:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/runtime-wall-trace.test.mjs:895:10)"
+    },
+    "destructible debris passes PAL, inactive-path and linked-code budgets": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:910:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/runtime-wall-trace.test.mjs:938:10)"
+    },
+    "enemy breakup passes the hard PAL gate and draws no character effect": {
+      "test_location": "tests/runtime-wall-trace.test.mjs:970:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/runtime-wall-trace.test.mjs:1009:10)"
+    },
+    "assembled decimal score code carries without inserting partial-game scores": {
+      "test_location": "tests/score.test.mjs:397:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: 0009 + 1 HUD screen codes",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/score.test.mjs:428:12)"
+    },
+    "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster": {
+      "test_location": "tests/sio-patch-policy.test.mjs:79:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: atr-a5 stage-2 SIOV reads",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/sio-patch-policy.test.mjs:98:12)"
+    },
+    "Q9: the HUD draws codes 0-63 only, so the block in codes 64-127 is never shown": {
+      "test_location": "tests/slot-f.test.mjs:63:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: only 18 codes seen",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/slot-f.test.mjs:88:10)"
+    },
+    "Q9: each region's block is its fourth run - on the disk at 696 + 4 x region, folded into the head's check": {
+      "test_location": "tests/slot-f.test.mjs:92:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: region 1's head sum does not cover its block",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/slot-f.test.mjs:109:12)"
+    },
+    "\u00a7BL 5 (\u00a7BH): a miss - no target under the ship - the torpedo flies to the band's foot at the ship's column; the lance kept, the reticle back": {
+      "test_location": "tests/torpedo.test.mjs:140:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the torpedo fired",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/torpedo.test.mjs:145:3)"
+    },
+    "three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:120:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+\\.assert \\* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\\*WEAPON_PICKUP_HEIGHT_SCANLINES/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:161:10)"
+    },
+    "the release ATR executes 0\u21921\u21922\u2192pending only for consumed PlayerFighter kills": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:179:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:180:15)"
+    },
+    "pickup pending remains hidden and non-colliding for thirty full frames": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:206:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:207:17)"
+    },
+    "active capsule is one logical PMG object, writes no character cell and cannot be shot": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:269:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:270:17)"
+    },
+    "pickup movement resolves half world speed into smooth scanline phases": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:299:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:309:18)"
+    },
+    "debris and the reserved pickup coexist without allocator overwrite for every A2 head": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:320:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:322:19)"
+    },
+    "pickup collection is single-shot and changes neither score, HULL nor LIFE": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:437:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:438:17)"
+    },
+    "weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:455:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:457:10)"
+    },
+    "HULL plates and the ten-cell BOOST field remain distinct at native screen codes": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:498:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:500:10)"
+    },
+    "Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:544:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:545:17)"
+    },
+    "release trace CSV exposes the authoritative counter, state, timing and score": {
+      "test_location": "tests/weapon-pickup-rapid-fire.test.mjs:759:1",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-rapid-fire.test.mjs:760:17)"
+    },
+    "pickup rotation is exactly Rapid Spread Shield Rapid without RNG": {
+      "test_location": "tests/weapon-pickup-shield.test.mjs:61:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-shield.test.mjs:63:10)"
+    },
+    "Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyph": {
+      "test_location": "tests/weapon-pickup-shield.test.mjs:159:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-shield.test.mjs:167:10)"
+    },
+    "Spread Shot owns one phased red fan in the shared six-glyph bank": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:47:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+; SPREAD[\\s\\S]+\\.byte \\$FF,\\$FF,\\$A5,\\$A5,\\$C3,\\$DB,\\$E7,\\$E7/. Input:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-spread-shot.test.mjs:84:10)"
+    },
+    "the release ATR executes the deterministic Rapid Spread Shield drop cycle": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:88:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-spread-shot.test.mjs:95:10)"
+    },
+    "Spread collection lasts exactly 500 active PAL frames and pause freezes it": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:122:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-spread-shot.test.mjs:124:10)"
+    },
+    "all three projectiles leave the screen cleanly without HUD or charset corruption": {
+      "test_location": "tests/weapon-pickup-spread-shot.test.mjs:276:1",
+      "first_message": "AssertionError [ERR_ASSERTION]: the volley is the full left/centre/right fan",
+      "first_assertion_stack": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base/tests/weapon-pickup-spread-shot.test.mjs:279:10)"
+    }
+  },
+  "notes": [
+    "The four pre-existing failures in the independent audit belong to its 15-file fixture subset, not to the entire suite.",
+    "The original read-order failure in boss-runtime is fixed to the real eight-sector read. Its separate final-win/summary failure remains pre-existing.",
+    "Two pre-existing completion-handoff failures print relocated vector $366a instead of $b49f; same assertion and missing return, no gameplay regression.",
+    "No broad acceptance or release certification of remaining test debt is implied. No second full npm test or failures:reconcile was run."
+  ],
+  "edited_and_affected_file_check": {
+    "tests": 482,
+    "pass": 453,
+    "fail": 29,
+    "new_vs_main": 0
+  }
+}

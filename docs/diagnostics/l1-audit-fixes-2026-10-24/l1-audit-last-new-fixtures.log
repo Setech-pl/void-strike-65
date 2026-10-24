@@ -1,0 +1,11 @@
+✔ the art outside the boss band: build/boot-splash.bin is the pinned bytes (1.600875ms)
+✔ PairShot uses one logical record and one character cell for two pulses (246.847208ms)
+✔ three consecutive games survive SCORE resets and render immediately (41.943292ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 323.160625

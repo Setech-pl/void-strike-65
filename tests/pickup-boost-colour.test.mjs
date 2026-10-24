@@ -95,7 +95,7 @@ test("no shield path writes COLPM3", () => {
   const restore = section("restore_player_fighter_normal_colors:",
     "; The authoritative Shield timer");
   const pulse = section("update_shield_player_fighter_colors:",
-    "; Boot-time source only.");
+    "; Checked menu-run source.");
   for (const [name, text] of [["restore", restore], ["pulse", pulse]]) {
     assert.match(text, /sta COLPM0/, `${name} still owns the hull colour`);
     assert.doesNotMatch(text, /COLPM3/,

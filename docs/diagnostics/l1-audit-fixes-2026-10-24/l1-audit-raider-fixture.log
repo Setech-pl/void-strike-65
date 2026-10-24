@@ -1,0 +1,17 @@
+✔ both Heavy slots materialise no character destruction effect (154.621583ms)
+✔ Raider kills never activate any transient-effect slot (387.467333ms)
+✔ alternating Heavy kills retain score and never schedule delayed materialisation (30.447375ms)
+✔ Raider death preserves an active generic debris breakup (35.911291ms)
+✔ Raider death preserves existing gameplay debris without allocating an effect (37.108166ms)
+✔ P1/P2 lethal hits keep release, score, explosion timing and later recycle (33.895666ms)
+✔ previous 745-remnant reproducer remains clean (11079.728917ms)
+✔ Raider death cannot publish an effect through the legacy enemy PairShot resolver (40.37475ms)
+✔ more than 5000 Raider kills leave no dead-generation character cells (85378.800416ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96577.879625

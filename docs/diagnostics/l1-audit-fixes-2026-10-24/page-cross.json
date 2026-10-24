@@ -1,0 +1,1550 @@
+{
+  "baseRoot": "/Users/marcinkrzetowski/Projects/dark-fighter-l1-audit-base",
+  "currentRoot": "/Users/marcinkrzetowski/Projects/dark-fighter",
+  "method": "ca65 instruction records + linked operands; branch taken-page penalty",
+  "rows": [
+    {
+      "key": "CODE:enter_exited_state",
+      "base": {
+        "segment": "CODE",
+        "name": "enter_exited_state",
+        "address": 9037,
+        "instructions": 14,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "enter_exited_state",
+        "address": 9063,
+        "instructions": 14,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:select_frontend_display",
+      "base": {
+        "segment": "CODE",
+        "name": "select_frontend_display",
+        "address": 9075,
+        "instructions": 53,
+        "branches": 4,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "select_frontend_display",
+        "address": 9101,
+        "instructions": 53,
+        "branches": 4,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:set_frontend_standard_palette",
+      "base": {
+        "segment": "CODE",
+        "name": "set_frontend_standard_palette",
+        "address": 9203,
+        "instructions": 11,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "set_frontend_standard_palette",
+        "address": 9229,
+        "instructions": 11,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:frontend_hint_dli",
+      "base": {
+        "segment": "CODE",
+        "name": "frontend_hint_dli",
+        "address": 9229,
+        "instructions": 9,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "frontend_hint_dli",
+        "address": 9255,
+        "instructions": 9,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:render_frontend_state",
+      "base": {
+        "segment": "CODE",
+        "name": "render_frontend_state",
+        "address": 9247,
+        "instructions": 36,
+        "branches": 6,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "render_frontend_state",
+        "address": 9273,
+        "instructions": 36,
+        "branches": 6,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:render_frontend_data",
+      "base": {
+        "segment": "CODE",
+        "name": "render_frontend_data",
+        "address": 9330,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "render_frontend_data",
+        "address": 9356,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:render_frontend_records",
+      "base": {
+        "segment": "CODE",
+        "name": "render_frontend_records",
+        "address": 9333,
+        "instructions": 17,
+        "branches": 3,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "render_frontend_records",
+        "address": 9359,
+        "instructions": 17,
+        "branches": 3,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:encode_frontend_character",
+      "base": {
+        "segment": "CODE",
+        "name": "encode_frontend_character",
+        "address": 9371,
+        "instructions": 36,
+        "branches": 9,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "encode_frontend_character",
+        "address": 9397,
+        "instructions": 36,
+        "branches": 9,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:read_frontend_data",
+      "base": {
+        "segment": "CODE",
+        "name": "read_frontend_data",
+        "address": 9433,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "read_frontend_data",
+        "address": 9459,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:update_frontend_marker",
+      "base": {
+        "segment": "CODE",
+        "name": "update_frontend_marker",
+        "address": 9444,
+        "instructions": 38,
+        "branches": 8,
+        "crossings": [
+          {
+            "pc": 9459,
+            "target": 9481
+          },
+          {
+            "pc": 9467,
+            "target": 9481
+          }
+        ]
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "update_frontend_marker",
+        "address": 9470,
+        "instructions": 38,
+        "branches": 8,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:draw_frontend_marker",
+      "base": {
+        "segment": "CODE",
+        "name": "draw_frontend_marker",
+        "address": 9520,
+        "instructions": 13,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "draw_frontend_marker",
+        "address": 9546,
+        "instructions": 24,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:toggle_main_menu_highlight",
+      "base": {
+        "segment": "CODE",
+        "name": "toggle_main_menu_highlight",
+        "address": 9543,
+        "instructions": 8,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "toggle_main_menu_highlight",
+        "address": 9589,
+        "instructions": 8,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:draw_sound_value",
+      "base": {
+        "segment": "CODE",
+        "name": "draw_sound_value",
+        "address": 9557,
+        "instructions": 17,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "draw_sound_value",
+        "address": 9603,
+        "instructions": 17,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:draw_game_music_value",
+      "base": {
+        "segment": "CODE",
+        "name": "draw_game_music_value",
+        "address": 9597,
+        "instructions": 31,
+        "branches": 3,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "draw_game_music_value",
+        "address": 9643,
+        "instructions": 31,
+        "branches": 3,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:draw_top_score_rows",
+      "base": {
+        "segment": "CODE",
+        "name": "draw_top_score_rows",
+        "address": 9669,
+        "instructions": 58,
+        "branches": 10,
+        "crossings": [
+          {
+            "pc": 9725,
+            "target": 9731
+          },
+          {
+            "pc": 9779,
+            "target": 9679
+          }
+        ]
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "draw_top_score_rows",
+        "address": 9715,
+        "instructions": 58,
+        "branches": 10,
+        "crossings": [
+          {
+            "pc": 9733,
+            "target": 9727
+          },
+          {
+            "pc": 9825,
+            "target": 9725
+          }
+        ]
+      }
+    },
+    {
+      "key": "CODE:start_gameplay",
+      "base": {
+        "segment": "CODE",
+        "name": "start_gameplay",
+        "address": 9782,
+        "instructions": 71,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "start_gameplay",
+        "address": 9828,
+        "instructions": 71,
+        "branches": 1,
+        "crossings": [
+          {
+            "pc": 9977,
+            "target": 9989
+          }
+        ]
+      }
+    },
+    {
+      "key": "CODE:wait_frame",
+      "base": {
+        "segment": "CODE",
+        "name": "wait_frame",
+        "address": 9968,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "wait_frame",
+        "address": 10014,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:wait_frame_at_line",
+      "base": {
+        "segment": "CODE",
+        "name": "wait_frame_at_line",
+        "address": 9970,
+        "instructions": 5,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "wait_frame_at_line",
+        "address": 10016,
+        "instructions": 5,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:publish_fighter_projectile_overlays",
+      "base": {
+        "segment": "CODE",
+        "name": "publish_fighter_projectile_overlays",
+        "address": 9981,
+        "instructions": 16,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "publish_fighter_projectile_overlays",
+        "address": 10027,
+        "instructions": 16,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:fighter_projectile_publication_capital_render",
+      "base": {
+        "segment": "CODE",
+        "name": "fighter_projectile_publication_capital_render",
+        "address": 10022,
+        "instructions": 2,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "fighter_projectile_publication_capital_render",
+        "address": 10068,
+        "instructions": 2,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:fighter_projectile_option_debounce_wait",
+      "base": {
+        "segment": "CODE",
+        "name": "fighter_projectile_option_debounce_wait",
+        "address": 10028,
+        "instructions": 3,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "fighter_projectile_option_debounce_wait",
+        "address": 10074,
+        "instructions": 3,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:wait_frame_start",
+      "base": {
+        "segment": "CODE",
+        "name": "wait_frame_start",
+        "address": 10036,
+        "instructions": 5,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "wait_frame_start",
+        "address": 10082,
+        "instructions": 5,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:show_loader",
+      "base": {
+        "segment": "CODE",
+        "name": "show_loader",
+        "address": 10047,
+        "instructions": 21,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "show_loader",
+        "address": 10093,
+        "instructions": 21,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:set_loader_title_palette",
+      "base": {
+        "segment": "CODE",
+        "name": "set_loader_title_palette",
+        "address": 10099,
+        "instructions": 7,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "set_loader_title_palette",
+        "address": 10145,
+        "instructions": 7,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:unpack_loader_bitmap",
+      "base": {
+        "segment": "CODE",
+        "name": "unpack_loader_bitmap",
+        "address": 10172,
+        "instructions": 18,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "unpack_loader_bitmap",
+        "address": 10168,
+        "instructions": 19,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:init_state",
+      "base": {
+        "segment": "CODE",
+        "name": "init_state",
+        "address": 10218,
+        "instructions": 33,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "init_state",
+        "address": 10217,
+        "instructions": 33,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:clear_pmg",
+      "base": {
+        "segment": "CODE",
+        "name": "clear_pmg",
+        "address": 10293,
+        "instructions": 10,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "clear_pmg",
+        "address": 10292,
+        "instructions": 10,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:copy_charset",
+      "base": {
+        "segment": "CODE",
+        "name": "copy_charset",
+        "address": 10316,
+        "instructions": 12,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "copy_charset",
+        "address": 10315,
+        "instructions": 12,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:unpack_capital_hull_maps",
+      "base": {
+        "segment": "CODE",
+        "name": "unpack_capital_hull_maps",
+        "address": 10346,
+        "instructions": 25,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "unpack_capital_hull_maps",
+        "address": 10345,
+        "instructions": 25,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:unpack_capital_hull_map",
+      "base": {
+        "segment": "CODE",
+        "name": "unpack_capital_hull_map",
+        "address": 10397,
+        "instructions": 36,
+        "branches": 6,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "unpack_capital_hull_map",
+        "address": 10396,
+        "instructions": 36,
+        "branches": 6,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CODE:copy_frontend_charset",
+      "base": {
+        "segment": "CODE",
+        "name": "copy_frontend_charset",
+        "address": 10461,
+        "instructions": 44,
+        "branches": 6,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CODE",
+        "name": "copy_frontend_charset",
+        "address": 10460,
+        "instructions": 38,
+        "branches": 5,
+        "crossings": []
+      }
+    },
+    {
+      "key": "RODATA:publish_level_hull_style",
+      "base": {
+        "segment": "RODATA",
+        "name": "publish_level_hull_style",
+        "address": 14178,
+        "instructions": 13,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "RODATA",
+        "name": "publish_level_hull_style",
+        "address": 13845,
+        "instructions": 13,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "STARFIELD:backup_weapon_booster_hud",
+      "base": {
+        "segment": "STARFIELD",
+        "name": "backup_weapon_booster_hud",
+        "address": 23653,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "STARFIELD",
+        "name": "backup_weapon_booster_hud",
+        "address": 23090,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "STARFIELD:restore_weapon_booster_hud",
+      "base": {
+        "segment": "STARFIELD",
+        "name": "restore_weapon_booster_hud",
+        "address": 23665,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "STARFIELD",
+        "name": "restore_weapon_booster_hud",
+        "address": 23102,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "STARFIELD:weapon_pickup_release_active_mask",
+      "base": {
+        "segment": "STARFIELD",
+        "name": "weapon_pickup_release_active_mask",
+        "address": 23677,
+        "instructions": 8,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "STARFIELD",
+        "name": "weapon_pickup_release_active_mask",
+        "address": 23114,
+        "instructions": 8,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "STARFIELD:layout_d_publish_glue",
+      "base": {
+        "segment": "STARFIELD",
+        "name": "layout_d_publish_glue",
+        "address": 23707,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "STARFIELD",
+        "name": "layout_d_publish_glue",
+        "address": 23144,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "STARFIELD:layout_d_glue_publish_complete",
+      "base": {
+        "segment": "STARFIELD",
+        "name": "layout_d_glue_publish_complete",
+        "address": 23720,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "STARFIELD",
+        "name": "layout_d_glue_publish_complete",
+        "address": 23157,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:stage2_read_sector",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_read_sector",
+        "address": 8798,
+        "instructions": 46,
+        "branches": 4,
+        "crossings": [
+          {
+            "pc": 8914,
+            "target": 8964
+          }
+        ]
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_read_sector",
+        "address": 8798,
+        "instructions": 33,
+        "branches": 3,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:layout_d_expected_end_path",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "layout_d_expected_end_path",
+        "address": 8916,
+        "instructions": 9,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "layout_d_expected_end_path",
+        "address": 8956,
+        "instructions": 9,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:layout_d_expected_end_path_end",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "layout_d_expected_end_path_end",
+        "address": 8936,
+        "instructions": 6,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "layout_d_expected_end_path_end",
+        "address": 8976,
+        "instructions": 6,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:stage2_publish_raw",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_publish_raw",
+        "address": 8964,
+        "instructions": 15,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_publish_raw",
+        "address": 9004,
+        "instructions": 15,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:stage2_chunk_published",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_chunk_published",
+        "address": 8996,
+        "instructions": 14,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_chunk_published",
+        "address": 9036,
+        "instructions": 14,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:copy_boot_splash_blob",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "copy_boot_splash_blob",
+        "address": 9025,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "copy_boot_splash_blob",
+        "address": 9065,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:boot_splash_source",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_splash_source",
+        "address": 9027,
+        "instructions": 2,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_splash_source",
+        "address": 9067,
+        "instructions": 2,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:boot_splash_source_high",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_splash_source_high",
+        "address": 9033,
+        "instructions": 5,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_splash_source_high",
+        "address": 9073,
+        "instructions": 5,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:boot_stage2_validate_manifest",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_validate_manifest",
+        "address": 9043,
+        "instructions": 82,
+        "branches": 3,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_validate_manifest",
+        "address": 9083,
+        "instructions": 82,
+        "branches": 3,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:boot_stage2_validate_record",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_validate_record",
+        "address": 9313,
+        "instructions": 96,
+        "branches": 8,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_validate_record",
+        "address": 9353,
+        "instructions": 81,
+        "branches": 4,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:stage2_validate_record_overlap",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_validate_record_overlap",
+        "address": 9599,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_validate_record_overlap",
+        "address": 9713,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:stage2_validate_record_broad",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_validate_record_broad",
+        "address": 9602,
+        "instructions": 14,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_validate_record_broad",
+        "address": 9716,
+        "instructions": 14,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:stage2_validate_record_staging",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_validate_record_staging",
+        "address": 9656,
+        "instructions": 7,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "stage2_validate_record_staging",
+        "address": 9770,
+        "instructions": 7,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:boot_stage2_crc16",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_crc16",
+        "address": 9678,
+        "instructions": 30,
+        "branches": 5,
+        "crossings": [
+          {
+            "pc": 9748,
+            "target": 9686
+          }
+        ]
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_crc16",
+        "address": 9792,
+        "instructions": 30,
+        "branches": 5,
+        "crossings": []
+      }
+    },
+    {
+      "key": "BOOT_STAGE2:boot_stage2_error",
+      "base": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_error",
+        "address": 9751,
+        "instructions": 7,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "BOOT_STAGE2",
+        "name": "boot_stage2_error",
+        "address": 9865,
+        "instructions": 7,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_kernel_vectors",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_kernel_vectors",
+        "address": 46200,
+        "instructions": 5,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_kernel_vectors",
+        "address": 13891,
+        "instructions": 5,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:capital_vector_table",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "capital_vector_table",
+        "address": 46215,
+        "instructions": 12,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "capital_vector_table",
+        "address": 13906,
+        "instructions": 12,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_shot",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_shot",
+        "address": 46749,
+        "instructions": 42,
+        "branches": 8,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_shot",
+        "address": 13942,
+        "instructions": 42,
+        "branches": 8,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_publish",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_publish",
+        "address": 46251,
+        "instructions": 105,
+        "branches": 13,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_publish",
+        "address": 14072,
+        "instructions": 105,
+        "branches": 13,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_update",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_update",
+        "address": 46488,
+        "instructions": 119,
+        "branches": 21,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_update",
+        "address": 14299,
+        "instructions": 119,
+        "branches": 21,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_top",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_top",
+        "address": 46478,
+        "instructions": 5,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_top",
+        "address": 14560,
+        "instructions": 5,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_hit_landed",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_hit_landed",
+        "address": 46850,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_hit_landed",
+        "address": 14570,
+        "instructions": 6,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_destroyed",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_destroyed",
+        "address": 46862,
+        "instructions": 9,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_destroyed",
+        "address": 14582,
+        "instructions": 9,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_spawn_breakup",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_spawn_breakup",
+        "address": 46885,
+        "instructions": 6,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_spawn_breakup",
+        "address": 14605,
+        "instructions": 6,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_backing",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_backing",
+        "address": 46901,
+        "instructions": 2,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_backing",
+        "address": 14621,
+        "instructions": 2,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_cell_resolve_sanitized",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_cell_resolve_sanitized",
+        "address": 46907,
+        "instructions": 4,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_cell_resolve_sanitized",
+        "address": 14627,
+        "instructions": 4,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIGHT_KERNEL:light_cell_resolve",
+      "base": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_cell_resolve",
+        "address": 46914,
+        "instructions": 48,
+        "branches": 8,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIGHT_KERNEL",
+        "name": "light_cell_resolve",
+        "address": 14634,
+        "instructions": 48,
+        "branches": 8,
+        "crossings": []
+      }
+    },
+    {
+      "key": "DISK_GUARD:guard_begin",
+      "base": {
+        "segment": "DISK_GUARD",
+        "name": "guard_begin",
+        "address": 46993,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "DISK_GUARD",
+        "name": "guard_begin",
+        "address": 14713,
+        "instructions": 1,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "DISK_GUARD:guard_reset",
+      "base": {
+        "segment": "DISK_GUARD",
+        "name": "guard_reset",
+        "address": 46996,
+        "instructions": 4,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "DISK_GUARD",
+        "name": "guard_reset",
+        "address": 14716,
+        "instructions": 4,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "DISK_GUARD:guard_fold",
+      "base": {
+        "segment": "DISK_GUARD",
+        "name": "guard_fold",
+        "address": 47005,
+        "instructions": 6,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "DISK_GUARD",
+        "name": "guard_fold",
+        "address": 14725,
+        "instructions": 6,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "DISK_GUARD:guard_check",
+      "base": {
+        "segment": "DISK_GUARD",
+        "name": "guard_check",
+        "address": 47019,
+        "instructions": 8,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "DISK_GUARD",
+        "name": "guard_check",
+        "address": 14739,
+        "instructions": 8,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "DISK_GUARD:guard_compare",
+      "base": {
+        "segment": "DISK_GUARD",
+        "name": "guard_compare",
+        "address": 47035,
+        "instructions": 4,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "DISK_GUARD",
+        "name": "guard_compare",
+        "address": 14755,
+        "instructions": 4,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "DISK_GUARD:guard_ok",
+      "base": {
+        "segment": "DISK_GUARD",
+        "name": "guard_ok",
+        "address": 47045,
+        "instructions": 5,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "DISK_GUARD",
+        "name": "guard_ok",
+        "address": 14765,
+        "instructions": 5,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "DISK_GUARD:guard_bad",
+      "base": {
+        "segment": "DISK_GUARD",
+        "name": "guard_bad",
+        "address": 47055,
+        "instructions": 3,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "DISK_GUARD",
+        "name": "guard_bad",
+        "address": 14775,
+        "instructions": 3,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "CAPITAL_VECTOR_IMAGE:capital_vector_image",
+      "base": {
+        "segment": "CAPITAL_VECTOR_IMAGE",
+        "name": "capital_vector_image",
+        "address": 47088,
+        "instructions": 12,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "CAPITAL_VECTOR_IMAGE",
+        "name": "capital_vector_image",
+        "address": 14810,
+        "instructions": 12,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "HUD_BOOSTER_BACKUP:boss_enter_read",
+      "base": {
+        "segment": "HUD_BOOSTER_BACKUP",
+        "name": "boss_enter_read",
+        "address": 47124,
+        "instructions": 9,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "HUD_BOOSTER_BACKUP",
+        "name": "boss_enter_read",
+        "address": 14846,
+        "instructions": 9,
+        "branches": 2,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIFE_CAPSULE:_life_spawned",
+      "base": {
+        "segment": "LIFE_CAPSULE",
+        "name": "_life_spawned",
+        "address": 47147,
+        "instructions": 4,
+        "branches": 0,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIFE_CAPSULE",
+        "name": "_life_spawned",
+        "address": 14869,
+        "instructions": 4,
+        "branches": 0,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIFE_CAPSULE:life_pick",
+      "base": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_pick",
+        "address": 47224,
+        "instructions": 5,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_pick",
+        "address": 14946,
+        "instructions": 5,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIFE_CAPSULE:life_pick_ordinary",
+      "base": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_pick_ordinary",
+        "address": 47236,
+        "instructions": 9,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_pick_ordinary",
+        "address": 14958,
+        "instructions": 9,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIFE_CAPSULE:life_enter",
+      "base": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_enter",
+        "address": 47258,
+        "instructions": 13,
+        "branches": 1,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_enter",
+        "address": 14980,
+        "instructions": 13,
+        "branches": 1,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIFE_CAPSULE:life_collect",
+      "base": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_collect",
+        "address": 47288,
+        "instructions": 18,
+        "branches": 3,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_collect",
+        "address": 15010,
+        "instructions": 18,
+        "branches": 3,
+        "crossings": []
+      }
+    },
+    {
+      "key": "LIFE_CAPSULE:life_colour",
+      "base": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_colour",
+        "address": 47335,
+        "instructions": 9,
+        "branches": 2,
+        "crossings": []
+      },
+      "current": {
+        "segment": "LIFE_CAPSULE",
+        "name": "life_colour",
+        "address": 15057,
+        "instructions": 9,
+        "branches": 2,
+        "crossings": []
+      }
+    }
+  ]
+}

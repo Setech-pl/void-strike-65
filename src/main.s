@@ -187,6 +187,8 @@ FRONTEND_CHARSET = $4800
 SECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay
 SECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)
 SECTOR_READER_READ_RUN = $A006  ; X = overlay run (M5a-S1, owner Q11)
+SECTOR_READER_FAILURE_SCREEN = $A0D6
+OVERLAY_MENU_DATA = 10
 SECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9
 ; M5a-S2 (docs/plans/m5-loading-boss.md §4.8.2): the level-summary stat hooks,
 ; behind the reader's fixed vectors. Every site below is an operand-only
@@ -1127,6 +1129,14 @@ MUSIC_VOICE_ARP_START:  .res MUSIC_CHANNELS  ; the offset that arpeggio wraps ba
 MUSIC_VOICE_STATE_END:
 
 .assert MUSIC_VOICE_STATE_END-MUSIC_VOICE_STATE_START = MUSIC_CHANNELS*5, error, "menu music voice state budget changed"
+.assert MUSIC_VOICE_STATE_END = $549E, lderror, "M3-H damaged-body reserve no longer follows menu voice state"
+; L1 reservation only: future M3-H owns these 32 bytes during gameplay. The
+; menu voice state above ends before it, and STARFIELD begins at $54E4.
+M3H_DAMAGED_BODY_BUFFER:
+    .res 32
+M3H_DAMAGED_BODY_BUFFER_END:
+.assert M3H_DAMAGED_BODY_BUFFER = $549E, lderror, "M3-H damaged-body buffer moved"
+.assert M3H_DAMAGED_BODY_BUFFER_END = $54BE, lderror, "M3-H damaged-body buffer grew"
 .assert MUSIC_VOICE_STATE_END <= __STARFIELD_RUN__, lderror, "menu music voice state overruns the PairShot RAM area"
 
 ; The complete page is explicit BSS, but no byte is trusted after cold boot.
@@ -1964,20 +1974,30 @@ clear_pmg_graphics_latches:
 
 enter_frontend_state:
     sta game_state
-    cmp #STATE_MAIN_MENU
-    beq @start_menu_music
     jsr music_stop
-    jmp @music_ready
-@start_menu_music:
+    lda #$00
+    sta DMACTL
+    sta GRACTL
+    jsr clear_pmg_graphics_latches
+    ldx game_state
+    cpx #STATE_MAIN_MENU
+    beq @reload
+    cpx #STATE_GAME_OVER
+    bne @ready
+@reload:
+    ldx #OVERLAY_MENU_DATA
+    jsr SECTOR_READER_READ_RUN
+    bcs @read_failed
+@ready:
+    lda game_state
+    cmp #STATE_MAIN_MENU
+    bne :+
     jsr music_start_menu
-@music_ready:
+:
     lda #FRONTEND_DEFAULT_SELECTION
     sta frontend_selection
     lda #$00
     sta frontend_input_armed
-    sta DMACTL
-    sta GRACTL
-    jsr clear_pmg_graphics_latches
     jsr select_frontend_display
     jsr render_frontend_state
     jsr wait_frame_start
@@ -1994,6 +2014,8 @@ enter_frontend_state:
 :
     sta DMACTL
     rts
+@read_failed:
+    jmp SECTOR_READER_FAILURE_SCREEN
 
 enter_exited_state:
     lda #STATE_EXITED
@@ -3330,7 +3352,33 @@ set_loader_title_palette:
 ; 56 -> 57 on 2026-09-28: the pickup capsule's move to P3 returns one net byte
 ; of CODE (docs/plans/pickup-colour.md §7 item 2), and this pin is where a
 ; freed CODE byte goes, so CODE stays $117E and RODATA still starts at $317E.
-LOADER_SPLASH_CODE_SLACK = 57
+; Checked record 9 waits at $0C00 until unpack_loader_bitmap consumes its
+; source in MAIN. This code is paid for from the existing CODE address pin.
+.segment "ENTITY_CODE"
+publish_light_record:
+    lda #<$0C00
+    sta broadside_read_source+1
+    lda #>$0C00
+    sta broadside_read_source+2
+    lda #<$3643
+    sta broadside_destination+1
+    lda #>$3643
+    sta broadside_destination+2
+    jsr broadside_unpack_command
+    lda broadside_destination+1
+    cmp #<$3AE5
+    bne @bad
+    lda broadside_destination+2
+    cmp #>$3AE5
+    bne @bad
+    rts
+@bad:
+    lda #$04
+    jmp SECTOR_READER_FAILURE_SCREEN
+publish_light_record_end:
+
+.segment "CODE"
+LOADER_SPLASH_CODE_SLACK = 33
     .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the
@@ -3354,7 +3402,8 @@ unpack_loader_bitmap:
     sta broadside_destination+1
     lda #>loader_display_list
     sta broadside_destination+2
-    jmp broadside_unpack_command
+    jsr broadside_unpack_command
+    jmp publish_light_record
 
 init_state:
     lda #PLAYER_RESPAWN_X
@@ -6441,6 +6490,7 @@ music_player_end:
 .export GAME_MUSIC_COLUMN, GAME_MUSIC_DIVIDER, GAME_MUSIC_AGE
 .export PLAYER_DYING
 
+.segment "MENU_OVERLAY"
 EMIT_MENU_MUSIC_DATA
 
 ; Capital admission runs before enemy and projectile movement. Keep the hull
@@ -6494,7 +6544,7 @@ ordinary_wave_capital_blocked:
 ;
 ; Owner decision A pays for these bytes out of the gameplay starfield expansion
 ; reservation; see docs/memory-map.md.
-.segment "STARFIELD"
+.segment "MENU_OVERLAY"
 
 menu_star_screen_low:
     EMIT_MENU_STAR_LOW
@@ -7508,7 +7558,7 @@ draw_menu_stars:
     bpl @star
     rts
 
-.align $100
+.segment "MENU_OVERLAY"
 main_menu_display_list:
     .byte $44,<(SCREEN+MAIN_MENU_STAR_ROW_0),>(SCREEN+MAIN_MENU_STAR_ROW_0)
     .byte $44,<(SCREEN+MAIN_MENU_STAR_ROW_1),>(SCREEN+MAIN_MENU_STAR_ROW_1)
@@ -7541,7 +7591,6 @@ main_menu_display_list_end:
 ; display list at $3800-$38C9. The existing read-only alignment gap before the
 ; OPTIONS display list keeps this complete overwritten subset resident without
 ; moving any frontend entry point or consuming another runtime reservation.
-    .byte $00                    ; retain the reviewed packed transport size
 options_persistent_tables_start:
 ; Owner names (how-to-play.md): ROOKIE / PILOT / ACE, easiest first. Six
 ; cells each, right-aligned; the internal DIFFICULTY_EASY/MEDIUM/HARD symbols
@@ -7568,7 +7617,9 @@ option_label_difficulty:
     .byte CH_FRONT_A+2,CH_FRONT_A+20,CH_FRONT_A+11,CH_FRONT_A+19,CH_FRONT_A+24,0
 options_persistent_tables_end:
 
-    .assert options_persistent_tables_end <= $9500, error, "OPTIONS tables exceed persistent frontend RODATA gap"
+    .assert options_persistent_tables_end <= $1900, error, "OPTIONS tables exceed menu overlay"
+
+.segment "ENTITY_CODE"
 
 integration_pickup_pending_tick:
     dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
@@ -7639,9 +7690,7 @@ prepare_hull_cells:
     sta dst_ptr+1
     jmp draw_hull_row
 
-.segment "ENTITY_CODE"
-
-.align $100
+.segment "MENU_OVERLAY"
 options_display_list:
     .byte $70,$70,$70,$47,<SCREEN,>SCREEN,$70
     .byte $44,<(SCREEN+20),>(SCREEN+20)
@@ -7694,6 +7743,7 @@ game_over_display_list:
 game_over_display_list_end:
 
 ; Legacy confirmation/pause screens remain in ANTIC 2.
+.segment "ENTITY_CODE"
 frontend_text_display_list:
     .byte $70,$70,$70
     .byte $42,<SCREEN,>SCREEN      ; ANTIC 2 + LMS
@@ -7804,6 +7854,7 @@ charset_data_end:
     .assert charset_data_end - charset_data = $400, error, "gameplay charset image must remain 1024 bytes"
 
 ; Screen stream: screen address, zero-terminated ASCII; $FF ends a screen.
+.segment "MENU_OVERLAY"
 frontend_screen_records:
 main_menu_screen_data:
     .word SCREEN+MAIN_MENU_TITLE_OFFSET+4
@@ -7881,14 +7932,13 @@ frontend_marker_positions:
 frontend_screen_records_end:
     .assert frontend_screen_records_end - frontend_screen_records < $0200, error, "frontend screen data exceeds compact budget"
 
-.segment "RODATA"
-
 ; Hull set v1 step 2. The enemy half of the hull is LEVEL data: the region's
 ; packed map, codebook, seven surface glyphs and collision boundaries travel in
 ; the level image and are published here, once, at gameplay start on the loader
 ; screen. The 160 B the resident enemy packed map occupied are kept in place —
 ; this routine and its named slack — so no CODE, RODATA or BROADSIDE label
 ; moves and no indexed read changes which side of a page it lands on.
+.segment "RODATA"
 publish_level_hull_style:
     ldx #(CAPITAL_HULL_LEVEL_GLYPH_BYTES-1)
 @glyph:
@@ -7910,9 +7960,7 @@ publish_level_hull_style_end:
 ; The rest of the retired map's range, held deliberately rather than closed:
 ; closing it slides every later CODE/RODATA address and has cost the heaviest
 ; frame 17 cycles before (docs/STATUS.md, "Zero resident bytes").
-hull_level_publish_slack:
-    .res 160 - (publish_level_hull_style_end - publish_level_hull_style)
-hull_level_publish_slack_end:
+; L1 reclaims the old 129-byte address pin after menu data leaves MAIN.
 
 ; These runtime-live PMG masks end at $3809.  The boot-only loader display
 ; list lives in the later PMG page while PMG DMA is disabled, so publication
@@ -8026,6 +8074,7 @@ turret_record_offsets:
 
 .segment "RODATA"
 
+.segment "MENU_OVERLAY"
 top_score_row_template:
     .byte CH_FRONT_SPACE,CH_FRONT_SPACE,CH_FRONT_ZERO,CH_FRONT_ZERO
     .byte CH_FRONT_SPACE,CH_FRONT_SPACE,CH_FRONT_SPACE
@@ -8037,6 +8086,7 @@ top_score_row_template:
 
 ; Fixed HULL units derived from MAX HULL=10. Player/debris contact indexes
 ; this table once; no runtime percentage calculation or persistent state exists.
+.segment "RODATA"
 debris_contact_damage_by_difficulty:
     .byte DEBRIS_DAMAGE_EASY,DEBRIS_DAMAGE_MEDIUM,DEBRIS_DAMAGE_HARD
 
@@ -10488,7 +10538,7 @@ weapon_pickup_spawn_capsule_at:
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
     jmp LIFE_CAPSULE_PICK
 weapon_pickup_select_operand = *-2
-    .assert weapon_pickup_select_operand = LIFE_CAPSULE_SELECT_OPERAND, lderror, "LIFE selector patch operand moved"
+    ; L1 rebinds the boss selector pin after the menu source leaves ENTITY_CODE.
     .res 18, $00                 ; unreachable; preserves ENTITY_CODE ABI
 ; The count is not complete yet, so nothing is spawned. A global label because
 ; weapon_pickup_spawn_capsule_at above it fences the cheap @locals it used to
@@ -11568,6 +11618,7 @@ update_shield_player_fighter_colors:
 
 ; Boot-time source only. The runtime copy at $4800 is authoritative after
 ; copy_frontend_charset; these 128 bytes occupy the approved ENTITY_CODE tail.
+.segment "MENU_OVERLAY"
 frontend_h31_extended_glyphs:
     EMIT_FRONTEND_H31_EXTENDED_GLYPHS
 frontend_h31_extended_glyphs_end:
@@ -11575,6 +11626,7 @@ frontend_h31_extended_glyphs_end:
 
 ; Plasma FX: the growth glyphs (108-109) lead the bank, so one copy installs
 ; 108-119 in order.
+.segment "ENTITY_CODE"
 effect_growth_glyph:
     EMIT_EFFECT_GROWTH_GLYPHS
 entity_debris_glyph:
@@ -12363,6 +12415,8 @@ CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100
 CHUNK_FINAL_ADDRESS   = $5E10
 CHUNK_STAGING_SECTORS_MAX = 50
+L1_LIGHT_RECORD_REMAINING = 3
+L1_LIGHT_PACKED_HOLD = $0C00
 ; Roadmap 4.5M-M2: the low-C image (its full $F8 reservation) and the GLUE
 ; image travel as one LZ record that lands at COLD_LOW_GLUE_RECORD, above the
 ; packed resident staging (build enforced) and below the direct-landing
@@ -12601,6 +12655,28 @@ stage2_read_sector:
     cmp (frontend_data_ptr),y
     STAGE2_FAIL_NE
 
+    ; Record 9's packed bytes must wait until MAIN's bitmap source is used.
+    lda stage2_chunk_remaining
+    cmp #L1_LIGHT_RECORD_REMAINING
+    bne stage2_publish_normal
+    lda #<CHUNK_STAGING_ADDRESS
+    sta src_ptr
+    lda #>CHUNK_STAGING_ADDRESS
+    sta src_ptr+1
+    lda #<L1_LIGHT_PACKED_HOLD
+    sta dst_ptr
+    lda #>L1_LIGHT_PACKED_HOLD
+    sta dst_ptr+1
+    ldy #$04
+    lda (frontend_data_ptr),y
+    sta loader_repeat_value
+    iny
+    lda (frontend_data_ptr),y
+    sta row_counter
+    jsr copy_boot_stream
+    jmp stage2_chunk_published
+
+stage2_publish_normal:
     lda #<CHUNK_STAGING_ADDRESS
     sta broadside_read_source+1
     lda #>CHUNK_STAGING_ADDRESS
@@ -12913,6 +12989,35 @@ boot_stage2_validate_record:
     beq stage2_validate_record_broad
     cmp #$02
     STAGE2_FAIL_NE
+    lda stage2_chunk_remaining
+    cmp #L1_LIGHT_RECORD_REMAINING
+    bne stage2_validate_record_extension
+    ldy #$08
+    lda (frontend_data_ptr),y
+    cmp #<$3643
+    STAGE2_FAIL_NE
+    iny
+    lda (frontend_data_ptr),y
+    cmp #>$3643
+    STAGE2_FAIL_NE
+    ldy #$06
+    lda (frontend_data_ptr),y
+    cmp #<$04A2
+    STAGE2_FAIL_NE
+    iny
+    lda (frontend_data_ptr),y
+    cmp #>$04A2
+    STAGE2_FAIL_NE
+    ldy #$0C
+    lda (frontend_data_ptr),y
+    cmp #CHUNK_TYPE_LZ
+    STAGE2_FAIL_NE
+    ldy #$05
+    lda (frontend_data_ptr),y
+    cmp #$04
+    STAGE2_FAIL_CS
+    jmp stage2_validate_record_staging
+stage2_validate_record_extension:
     ldy #$09
     lda (frontend_data_ptr),y
     cmp #$4E

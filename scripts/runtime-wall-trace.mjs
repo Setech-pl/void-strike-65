@@ -3001,9 +3001,12 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   // capital restore run and the reader's table image after START GAME, so the
   // restore path cannot silently diverge from what boot landed.
   const overlays = manifest.overlays ?? null;
-  invariant(overlays !== null && overlays.runs?.length === 1,
+  invariant(overlays !== null && overlays.runs?.some((run) => run.index === 0),
     "Boot smoke needs the manifest's overlay accounting");
-  const [capitalRun] = overlays.runs;
+  const capitalRun = overlays.runs.find((run) => run.index === 0);
+  const menuRun = overlays.runs.find((run) => run.index === 10);
+  invariant(menuRun?.sectors === 11 && menuRun.destination === 0x0c00,
+    "L1 boot smoke needs the checked 11-sector menu run");
   const capitalRunImage = fs.readFileSync(path.join(rootDirectory, "build", capitalRun.file));
   invariant(capitalRunImage.length === overlays.slotA.bytes &&
     capitalRun.destination === overlays.slotA.address,
@@ -3377,7 +3380,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors,
+      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors,
       summary: {
         entry_frame: startSummary.entry,
         first_display_frame: startSummary.display,
@@ -3459,9 +3462,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors,
+    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors,
       `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors} - one per ` +
+      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors} - one per ` +
       "sector, no retries");
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);

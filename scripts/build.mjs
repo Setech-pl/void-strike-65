@@ -597,6 +597,7 @@ const OVERLAY_DIRECTORY = Object.freeze([
   "scores / save record (M5a-S2)",
   "level summary code (M5a-S2)",
   "disk identity (audit-hardening)",
+  "menu data (L1)",
 ]);
 // M5a-S2 (§4.8, §6.3): the summary's runs. The code reads once per session at
 // $0500; the art, one run per region at a fixed stride, is read first at every
@@ -611,6 +612,7 @@ const OVERLAY_SUMMARY_CODE = 8;
 // summary code may take 584-597). The build writes it; the game only reads
 // it, through the directory, before every PUT.
 const OVERLAY_IDENTITY = 9;
+const OVERLAY_MENU = 10;
 const identitySectorNumber = 598;
 const summaryCodeSector = 584;
 // Owner decision 2026-10-03: the module's home is $0500-$0BFF (1,792 B), so its
@@ -1325,6 +1327,7 @@ function renderOverlayDirectoryInclude({ runs, slotAddress, slotBytes, vectorIma
     `OVERLAY_SAVE_RECORD = ${OVERLAY_SAVE_RECORD}`,
     `OVERLAY_SUMMARY_CODE = ${OVERLAY_SUMMARY_CODE}`,
     `OVERLAY_IDENTITY = ${OVERLAY_IDENTITY}`,
+    `OVERLAY_MENU = ${OVERLAY_MENU}`,
     `CAPITAL_SLOT_A = $${slotAddress.toString(16).toUpperCase()}`,
     `CAPITAL_SLOT_A_BYTES = ${slotBytes}`,
     "overlay_directory:",
@@ -2146,7 +2149,7 @@ async function build() {
       `$${(windowCEnd ?? 0).toString(16)}, outside $${hybridWindowAddress.toString(16)}-` +
       `$${(hybridWindowEndExclusive - 1).toString(16)}`);
   }
-  const lightKernelAddress = windowCEnd;
+  const lightKernelAddress = 0x3643;
   const directorAbiInclude =
     renderDirectorAbiInclude(directorModule.labels, lightKernelAddress);
   writeFile(path.join(buildDirectory, "director-abi.inc"), directorAbiInclude);
@@ -2265,6 +2268,22 @@ async function build() {
   const mapFile = linked.outputs["/project/build/void-strike-65.map"];
   const labelFile = linked.outputs["/project/build/void-strike-65.lbl"];
   const labels = parseViceLabels(labelFile.toString("utf8"));
+  const menuOverlayAddress = labels.get("__MENU_OVERLAY_RUN__");
+  const menuOverlayBytes = labels.get("__MENU_OVERLAY_SIZE__");
+  const menuOverlayFileOffset = labels.get("__MENU_OVERLAY_RAM_FILEOFFS__");
+  if (menuOverlayAddress !== 0x0c00 || menuOverlayBytes !== 1314 ||
+      !Number.isInteger(menuOverlayFileOffset) ||
+      menuOverlayFileOffset + menuOverlayBytes > linkedPayload.length) {
+    throw new Error("L1 menu data must link as 1314 bytes at $0C00");
+  }
+  const menuOverlayRuntime = Buffer.from(linkedPayload.subarray(
+    menuOverlayFileOffset, menuOverlayFileOffset + menuOverlayBytes));
+  if (labels.get("publish_level_hull_style") !== 0x3615 ||
+      labels.get("missile_masks") !== 0x3634 ||
+      labels.get("debris_contact_damage_by_difficulty") !== 0x3640 ||
+      labels.get("loader_bitmap_lzss") !== 0x3643) {
+    throw new Error("L1 MAIN landing moved: the 46 resident bytes must end at $3642");
+  }
   const startAddress = labels.get("start");
   const bootInitAddress = labels.get("boot_return");
   const broadsideLoadAddress = labels.get("__BROADSIDE_LOAD__");
@@ -2633,7 +2652,7 @@ async function build() {
   writeFile(path.join(buildDirectory, "light-kernel-abi.inc"), lightKernelMainAbiInclude);
   const capitalVectorsInclude = renderCapitalVectorsInclude(labels);
   writeFile(path.join(buildDirectory, "capital-vectors.inc"), capitalVectorsInclude);
-  const lightKernelCapacityBytes = hybridWindowEndExclusive - lightKernelAddress;
+  const lightKernelCapacityBytes = 0x3b00 - lightKernelAddress;
   const lightKernelConfig =
     fs.readFileSync(path.join(rootDirectory, "cfg", "light-kernel.cfg"), "utf8").replace(
       /LIGHT_KERNEL_RAM:(\s*)start = \$[0-9A-Fa-f]+, size = \$[0-9A-Fa-f]+/,
@@ -2686,7 +2705,7 @@ async function build() {
   });
   let lightKernelModule = await linkLightKernel(renderDiskGuardInclude());
   if (lightKernelModule.raw.length > lightKernelCapacityBytes) {
-    throw new Error(`4.6 Light kernel exceeds the code window: ` +
+    throw new Error(`L1 Light composite exceeds the MAIN hole: ` +
       `${lightKernelModule.raw.length} of ${lightKernelCapacityBytes} B above ` +
       `$${lightKernelAddress.toString(16)}`);
   }
@@ -2710,6 +2729,14 @@ async function build() {
     destination: slotAddress,
     data: capitalSlotImage,
     file: "overlay-capital-slot-a.bin",
+  }, {
+    index: OVERLAY_MENU,
+    name: "menu-data",
+    startSector: 240,
+    sectors: 11,
+    destination: menuOverlayAddress,
+    data: Buffer.concat([menuOverlayRuntime, Buffer.alloc(11 * 128 - menuOverlayRuntime.length)]),
+    file: "menu-overlay.bin",
   }];
   for (const run of overlayRuns) {
     writeFile(path.join(buildDirectory, run.file), run.data);
@@ -3664,7 +3691,7 @@ async function build() {
   if (bossLabels.get("__BOSS_LANCE_RAM_START__") !== BOSS_LANCE_ADDRESS) {
     throw new Error("M6: the lance's memory area is not at its address");
   }
-  checkLanceLayout({ windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), address: BOSS_LANCE_ADDRESS,
+  checkLanceLayout({ windowEnd: windowCEnd, address: BOSS_LANCE_ADDRESS,
     bytes: BOSS_LANCE_BYTES, used: lanceUsed, sector: bossLanceSector, sectors: BOSS_LANCE_SECTORS,
     reservationEnd: BOSS_LANCE_BASE_SECTOR + BOSS_LANCE_SECTORS });
   const lancePageUsed = bossLabels.get("__LANCE_PAGE_SIZE__");
@@ -3920,6 +3947,7 @@ async function build() {
     if (index === OVERLAY_SAVE_RECORD) return null;
     if (index === OVERLAY_SUMMARY_CODE) return summaryCodeRun.data;
     if (index === OVERLAY_IDENTITY) return identitySectorData;
+    if (index === OVERLAY_MENU) return overlayRuns.find((run) => run.index === OVERLAY_MENU).data;
     throw new Error(`audit-hardening: no run for directory entry ${index}`);
   });
   const diskGuardSums = diskGuardRuns.map((data) => (data === null ? null : guardFold(data)));
@@ -4100,7 +4128,12 @@ async function build() {
 
   const residentPackedSourceAddress = loadAddress + residentPrefixBytes + bootStage2Runtime.length;
   const broadsidePackedSourceAddress = packedResidentStagingAddress;
-  const packedStarfieldAddress = residentPackedSourceAddress + packedResidentRuntime.length;
+  // L1 removes frontend data from the initial block. Keep stream A above
+  // $3FFF: it is copied only after resident expansion rewrites MAIN.
+  const starfieldSourcePad = Buffer.alloc(Math.max(0, 0x4000 -
+    (residentPackedSourceAddress + packedResidentRuntime.length)));
+  const packedStarfieldAddress = residentPackedSourceAddress +
+    packedResidentRuntime.length + starfieldSourcePad.length;
   const a2KernelSourceAddress = packedStarfieldAddress + packedStarfieldRuntime.length;
   const entityPackedSourceAddress = a2KernelSourceAddress + a2KernelRuntime.length;
   const entityStagedSourceAddress = entityPackedStagingAddress;
@@ -4245,7 +4278,8 @@ async function build() {
   // packed-starfield margin below the pickup cold staging - exactly as they
   // were; the stage-2 entry copies it from here to $0500 before start.
   const initialContentParts = (stage2Bytes) => [
-    residentPrefix, stage2Bytes, packedResidentRuntime, packedStarfieldRuntime,
+    residentPrefix, stage2Bytes, packedResidentRuntime, starfieldSourcePad,
+    packedStarfieldRuntime,
     a2KernelRuntime, packedEntityCodeRuntime, bootSplashRuntime, bootPayloadTrailer,
   ];
   const placeholderInitial = Buffer.concat(initialContentParts(bootStage2Runtime));
@@ -4478,6 +4512,7 @@ async function build() {
     // The Light ASM kernel is its own link (step 1b), so the CPU harness needs
     // it placed like any other resident image or every Light hook runs into $00.
     directorAdditionalSegments: [
+      { runAddress: menuOverlayAddress, data: menuOverlayRuntime },
       ...(directorModule.windowSegment === undefined
         ? directorModule.codeSegments
         : [...directorModule.codeSegments, directorModule.windowSegment]),
@@ -5067,7 +5102,7 @@ async function build() {
         // The owner's smoke of e76ddee: the lance's state in the zero page.
         zeroPage: { address: BOSS_LANCE_ZP_ADDRESS, bytes: bossLabels.get("__LANCE_ZP_SIZE__"),
           capacityBytes: BOSS_LANCE_ZP_BYTES },
-        windowEnd: lightKernelLabels.get("__LIGHT_KERNEL_RAM_LAST__"), meterFrames: lanceMeterFrames(),
+        windowEnd: windowCEnd, meterFrames: lanceMeterFrames(),
         chargeFrames: lanceChargeFrames, chargeUpDivisor: LANCE_CHARGE_UP_DIVISOR,
         // Journal §BL: the second run, page 4 (slot H).
         page: { address: BOSS_LANCE_PAGE_ADDRESS, capacityBytes: BOSS_LANCE_PAGE_BYTES,
@@ -5190,11 +5225,11 @@ async function build() {
       capacityBytes: lightKernelCapacityBytes,
       freeBytes: lightKernelCapacityBytes - lightKernelModule.raw.length,
       endExclusive: lightKernelAddress + lightKernelModule.raw.length,
-      windowLimit: hybridWindowEndExclusive,
-      cHalfEndExclusive: lightKernelAddress,
+      windowLimit: 0x3b00,
+      cHalfEndExclusive: windowCEnd,
       vectors: Object.fromEntries(LIGHT_KERNEL_VECTORS.map(([name], index) =>
         [name, lightKernelAddress + index * 3])),
-      transport: "own DFMC record, LZ, direct landing above the Director window half",
+      transport: "own checked DFMC record, LZ, held until loader bitmap unpack",
     },
     residentCapacity: residentWindowSegment === null ? null : {
       window: {
@@ -5261,10 +5296,10 @@ async function build() {
         // (735 B against a real 27 B). The free figure below is the window's,
         // and equals lightKernel.freeBytes because the kernel link closes it.
         directorHalfBytes: directorModule.basicWindowBytes,
-        lightKernelBytes: lightKernelModule.raw.length,
-        usedBytes: directorModule.basicWindowBytes + lightKernelModule.raw.length,
-        freeBytes: hybridWindowCapacityBytes -
-          (directorModule.basicWindowBytes + lightKernelModule.raw.length),
+        lightKernelBytes: 0,
+        usedBytes: directorModule.basicWindowBytes,
+        freeBytes: hybridWindowCapacityBytes - directorModule.basicWindowBytes,
+        beforeLanceFreeBytes: BOSS_LANCE_ADDRESS - windowCEnd,
         availability: "unconditional: disable_basic_rom forces PORTB bit 1 and writes " +
           "BASICF at every stage-2 entry",
         boundedBy: { below: `${levelBufferSectors}-sector level buffer ` +

@@ -22,6 +22,9 @@ const CHUNK_TYPE_LZ = 1;
 const STAGING_BROADSIDE = 1;
 const STAGING_EXTENSION = 2;
 const SAFE_EXTENSION_RANGES = Object.freeze([
+  // L1 record 9 is checked into $8100, held at $0C00 and decoded here only
+  // after unpack_loader_bitmap has finished reading MAIN's boot-only source.
+  [0x3643, 0x3b00],
   [0x4efe, 0x5000], [0x52a3, 0x535a],
   [0x548a, 0x54e4],
   [0x5de2, 0x5e06], [0x77b9, 0x7810],

@@ -99,12 +99,12 @@ life_colour_operand = *-1
     sta $D015
     rts
 
-.assert life_capsule_start = LIFE_CAPSULE_BASE, lderror, "LIFE tail does not start at $B82A"
+.assert life_capsule_start = LIFE_CAPSULE_BASE, lderror, "LIFE tail does not start at its MAIN pin"
 .assert fighter_pickup_pmg_shape = LIFE_CAPSULE_SHAPES, lderror, "LIFE mask ABI moved"
 ; scripts/build.mjs checkLanceLayout checks __LIGHT_KERNEL_RAM_LAST__ after
 ; the final tail has linked, before producing the ATR.
 .assert _life_forced = LIFE_CAPSULE_FORCED, lderror, "LIFE forced-state ABI moved"
-.assert * <= $B900, lderror, "LIFE tail overlaps VOID LANCE"
+.assert * <= $3B00, lderror, "LIFE tail overlaps PMG RAM"
 .export life_capsule_start, fighter_pickup_pmg_shape
 .export life_pick_ordinary
 .assert life_pick_ordinary = LIFE_CAPSULE_ORDINARY, lderror, "LIFE ordinary rotation entry moved"

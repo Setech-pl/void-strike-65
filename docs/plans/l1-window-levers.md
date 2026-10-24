@@ -1,7 +1,8 @@
 # L1 window levers — Phase A placement plan
 
 **Status:** Phase A plan accepted; Phase B implementation is an OWNER-SMOKE
-CANDIDATE pending the owner's real-65XE play. Baseline is main `a3c8e47` on
+CANDIDATE after audit fixes, pending a new owner smoke. The pre-audit
+candidate passed owner smoke on 2026-10-24 (§BV.6). Baseline is main `a3c8e47` on
 2026-10-24. The following Phase A inventory changed no runtime source, asset,
 script, test, linker configuration or gameplay byte. Its `npm run build` passed
 its computed gates and printed
@@ -482,7 +483,17 @@ owner chose the raw 11-sector read after reviewing the latency and complexity
 above. The historical 596-frame policy and then-current real-SIO baseline are
 retained here as Phase A comparison data.
 
-## 7. Phase B linked result (2026-10-24)
+## 7. Phase B linked result (2026-10-24; audit-fixed candidate)
+
+The independent [audit](../audits/2026-10-24-l1-window-levers.md) is preserved
+unchanged. Its fixes and exact measurements are in
+[§BV.6](../owner-decisions-2026-09-11.md#bv6-audit-fixes-and-owner-smoke) and
+[the audit-fix evidence](../diagnostics/l1-audit-fixes-2026-10-24/). The pre-audit
+campaign `63bf14c0…` passed owner smoke; the five fixed images below await
+owner smoke. The shared fixture now runs the real packed-hold / bitmap-unpack /
+Light publication sequence, without linked Light or STARFIELD injections.
+The failure/retry, comment, menu-bound and exact-pin findings are fixed.
+
 
 The owner chose V1: eleven raw, checked whole sectors on **every** menu entry.
 The linked overlay has **MEASURED 1,304 B** at `$0C00-$1117`; its disk run
@@ -539,7 +550,7 @@ OVER byte-for-byte (`tests/menu-stars.test.mjs`, `tests/sector-reader.test.mjs`)
 | Light record 9 | `$B478-$B8FA`, 1,155 raw / 1,019 packed B | `$3643-$3AEE`, 1,196 raw / 1,032 packed B; 17 B MAIN free | `build/light-kernel.map`, manifest |
 | Window `$AE00-$B8FA` | 1,155 B Light | free 1,155 B; M3-H 472-516 B fits with 683-639 B left | manifest `residentCapacity.basicWindow` |
 | Whole `$AE00-$BBFF` window | 2,811 B used; 773 B free | 1,656 B used; 1,928 B free (includes 768-B boss lance zone and reserved 5 B) | same manifest |
-| Initial content | 13,569 B, 107 sectors | 12,795 B, 101 sectors; 857 B to 13,652-B planning STOP | manifest `transportCapacity` |
+| Initial content | 13,569 B, 107 sectors | 12,829 B, 101 sectors; 823 B to 13,652-B planning STOP | manifest `transportCapacity` |
 | DFMC / disk | 11/11 records, 216 occupied sectors | 11/11, 210 occupied sectors; menu run 240-250 | manifest directory and `overlays.runs` |
 | Damaged-body buffer | unclaimed candidate | guarded `$549E-$54BD`, 32 B; no M3-H consumer | `src/main.s:1132-1140`, `tests/l1-reservation.test.mjs` |
 
@@ -568,7 +579,7 @@ menu re-entry. The STARFIELD tail remains the fallback.
 
 | Timing, PAL 50 Hz | Baseline | Phase B | Gate |
 | --- | ---: | ---: | ---: |
-| Patched-SIO cold boot to input poll | 596 frames, 11.92 s | **597 frames, 11.94 s** | ≤650 |
+| Patched-SIO cold boot to input poll | 596 frames, 11.92 s | **598 frames, 11.96 s** | ≤650 |
 | Standard-SIO cold boot to input poll | — | **1,384 frames, 27.68 s** | report |
 | Standard-SIO menu entry | 1 frame before L1 | **42 frames, 0.84 s; +41 frames** | added ≤50 |
 
@@ -598,6 +609,19 @@ relative operand, and indexed table operands and legal indices were compared.
 The `light_shot` ordering places the shot loop in `$3676-$36F7`; the page
 mitigation adds no indirect JMP/trampoline in a per-frame path. Pause marker
 dispatch runs only on frontend rendering, outside gameplay frames.
+
+The original table above covers only the Light link. The audit found that
+ENTITY_CODE's removed menu bytes also moved hot projectile/entity routines.
+The fix retains that segment's original addresses with compressed pads and
+uses the former 128-B extended-glyph slot for boot-only publication. This
+restores every original ENTITY_CODE per-frame branch and table address,
+including LIFE's selector operand `$984F`. **405 raw resident B** are used
+against pre-audit L1; ENTITY_CODE returns to clean main's **3,161 B / 5-B tail**
+(pre-audit tail 410 B). The packed initial-block increase is only **34 B**
+(12,795 -> 12,829); planning slack **823 B**. MAIN/window/state reservations
+are unchanged. The complete [all-segment page-cross table](../diagnostics/l1-audit-fixes-2026-10-24/page-cross.md)
+includes CODE, RODATA and STARFIELD as well as Light/LIFE; **zero new per-frame
+crossings**. Frontend/boot/event-only rows are distinguished explicitly.
 
 ### Boss native stress, including the lost-target cases
 
@@ -642,39 +666,48 @@ and the corresponding CSV/log files). These short native routes use the normal
 PAL Atari800 monitor instrumentation, not the release wall-trace evidence.
 The campaign's level-2 observer route spans space sectors 0/1 and 107 frames
 of capital sector 2, with three simultaneous Lights and 30 hull-map draw
-frames. Its one 31,538-cycle frame exceeds the 31,500-cycle *target* by 38,
-but stays 1,030 below the 32,568 hard gate; there are no missed frames.
+frames. Its one 31,517-cycle frame exceeds the 31,500-cycle *target* by 17,
+but stays 1,051 below the 32,568 hard gate; there are no missed frames.
+The identical route on `a3c8e47` also peaks at 31,517: fixed L1 delta **0**.
 
 | PAL route | Frames | Max wall cycles | Minimum fence margin | Misses / extra VBI / DLI errors | Escort Lights | Boss entry |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Level 2 space through capital | 3,000 | 31,538 | 4,379 | 0 / 0 / 0 | 3 | — |
-| R1 boss, lance script | 2,399 | 29,141 | 10,159 | 0 / 0 / 0 | 1 | 325 / 350 frames |
-| R2 Citadel, aim/lance | 2,513 | 30,066 | 6,687 | 0 / 0 / 0 | 1 | 340 / 350 frames |
-| R3 Spine, aim/lance | 2,695 | 30,634 | 6,249 | 0 / 0 / 0 | 1 | 340 / 350 frames |
-| R4 Bastion, aim/lance | 2,715 | 29,823 | 7,964 | 0 / 0 / 0 | 1 | 344 / 350 frames |
+| Level 2 space through capital | 3,000 | 31,517 | 4,379 | 0 / 0 / 0 | 3 | — |
+| R1 boss, short entry | 649 | 27,703 | 14,802 | 0 / 0 / 0 | 0 (entry check) | 325 / 350 frames |
+| R2 Citadel, short entry | 649 | 28,388 | 10,707 | 0 / 0 / 0 | 0 (entry check) | 340 / 350 frames |
+| R3 Spine, short entry | 649 | 28,224 | 12,771 | 0 / 0 / 0 | 0 (entry check) | 340 / 350 frames |
+| R4 Bastion, short entry | 649 | 27,988 | 11,722 | 0 / 0 / 0 | 0 (entry check) | 344 / 350 frames |
 
-The R2-R4 aim/lance diagnostic marks its optional chain-reached clause
-unsatisfied in this short route. Clean main reproduces that clause failure in
-the identical R2 route (`dark-fighter-l1-baseline/baseline-r2-aim.log`); the
-route's focused PAL acceptance, boss entry, DMA/fence checks and escort
-observation pass. The owner smoke below exercises the complete fights.
+These are entry-focused neutral diagnostic routes, not chain/full-fight
+certification. The pre-audit aim/lance route figures above are superseded for
+the fixed candidate. The R1 scripted smoke additionally runs 2,399 frames with one escort Light
+and lance charge/flight, peaking at 29,144 wall cycles with zero anomalies.
+Complete fights and escort gameplay remain in the owner smoke list. The level-2 route covers space/capital with three Lights.
 
-The normal `npm run build` passed frame, DMA, fence, window, block and disk
-gates (`build/l1-final-build.log`); its stale wall-trace binding warning is
-the expected §BR normal-build warning, not current release evidence. The
-startup-changing path passed `npm run boot:smoke` on four campaign ATR cold
-sessions, RESET, 130XE compatibility and forced capital restore
-(`build/l1-final-boot-smoke.log`). Focused changed-behaviour tests passed
-**107/107** (`build/l1-focused-tests.log`): Light/LIFE/vector paths, menu
-screens and readers, checked sector CRC, resident pause words, and the M3-H
-reservation's writer watch. Broader old fixtures were not used as L1 gates:
-the two `capital-hulls` HUD assertions and one `boss-runtime` summary
-assertion reproduce on clean main. The full suite, long wall-trace, stage-2
-evidence, media and release build remain for the release pass under §BM/§BR.
+Normal build passes all computed gates (`build/l1-audit-final-build.log`) and
+prints the expected stale release-evidence WARNING. Boot smoke passes four
+cold sessions, RESET, 130XE compatibility and forced capital restore. The
+observer now rejects a transient stage-2 PC alias at `start_gameplay`; the
+strict handoff assertion is unchanged.
+
+Exactly one full `npm test` ran: **1,566 tests, 1,459 pass, 107 fail**. Focused
+comparison of those failed names on `a3c8e47` gives **24 pass / 83 fail**.
+Focused repairs clear all 24 L1 failures and two older window-ledger failures:
+**81 pre-existing failures remain, zero new**. The audit's four-failure figure
+was its 15-file fixture subset. Its Interceptor contact and arena pins now
+pass; its older debris HUD and slot-E source assertions remain pre-existing.
+The old **107/107** focused claim omitted `boss-runtime`, which had two
+pre-existing failures. Its actual eight-sector read now passes; its separate
+final-summary failure remains on main and fixed L1. Every edited test file,
+first assertion and baseline comparison is in
+[the evidence](../diagnostics/l1-audit-fixes-2026-10-24/README.md). No second
+full run, release build, long wall trace, stage-2 evidence or showcase ran.
 
 ### Owner smoke candidate
 
-The following are the committed-source candidate ATRs copied from the normal
+All five are rebuilt after the final source commit; their exact build HEAD
+is recorded in `build/l1-owner-smoke/candidate.json`. The old R4 file with
+unknown provenance is replaced. The following are candidate ATRs from the normal
 campaign build and four direct boss variant builds. They are diagnostic smoke
 artifacts, not a release package. Invoke each with
 `atari800 -xl -pal -nobasic <absolute-path>` and use SIO2SD on the real
@@ -682,11 +715,11 @@ artifacts, not a release package. Invoke each with
 
 | ATR under `build/l1-owner-smoke/` | SHA-256 |
 | --- | --- |
-| `campaign.atr` | `63bf14c0858d934f98ef99957cf9c083bfe3503ebd27c4640413acb6af1d5935` |
-| `r1-boss.atr` | `9ab0f2d1ab29c67eb615efe2f2159a13347f06ef823c002eb9177c9116213025` |
-| `r2-citadel.atr` | `038c37302ed874ac97818c4b0bca83d1c73dca2b513bf2b500069ce6542d5813` |
-| `r3-spine.atr` | `23af6e46d3314c5bc1835f684786f02f857bbd30e4c32521fb8d05a887057109` |
-| `r4-bastion.atr` | `8e786b0c7efbb5ea7d7fd5645a0e9641eb5024a313ea2855d28ce49ee35aeb6f` |
+| `campaign.atr` | `410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7` |
+| `r1-boss.atr` | `c00fc5b86dffa54c8a99ffaf0d03be244d48144214d1756c44189fee1739fbae` |
+| `r2-citadel.atr` | `304eea1e0557ba4666c63b22c1c77a74c01795ced02f1612db26554dd2e9cab8` |
+| `r3-spine.atr` | `88a12e989bf3497454141eda6a9c944781c387967d191be13a83717ad297f90c` |
+| `r4-bastion.atr` | `4e3c5bd25d4d142e4dcdf0dd71fccfc3ae2eb24a24a64fea9c642c7db516777e` |
 
 Owner smoke: time cold boot to menu; inspect menu, options, top scores, exit,
 game over, ended path if reachable, and pause/pause-quit in level 1 and

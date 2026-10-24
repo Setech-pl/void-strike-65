@@ -29,6 +29,7 @@ there.
 | [2026-10-06-pre-m5.md](2026-10-06-pre-m5.md) | `main` `1a3c8bf` | Codex (OpenAI) |
 | [2026-10-19-m5.md](2026-10-19-m5.md) | `main` `2e93173` | Codex (OpenAI) |
 | [2026-10-23-memory-cycles.md](2026-10-23-memory-cycles.md) — memory/RAM placement, CPU/DMA frame families, capital sector, 16-level feasibility; static, trace 0 min; triaged by owner in [§BU](../owner-decisions-2026-09-11.md#bu-planning-direction-after-the-memorycycles-audit-2026-10-23) | `main` `6dae5a6` | Codex |
+| [2026-10-24-l1-window-levers.md](2026-10-24-l1-window-levers.md) — L1 relocation, boot fixtures and page crossings; report preserved unchanged | `codex/l1-window-levers` `382b91a` | Claude Opus 5.5 |
 
 ## Thematic audits
 
@@ -67,6 +68,15 @@ Raider pair with its escort and one Bomber pair after the capital, so §1's
 
 | ID | Severity | Title | Status | Where | Note |
 | --- | --- | --- | --- | --- | --- |
+| L1-01 | S3 | Shared boot fixture publishes Light over live boot sources | fixed — owner-smoke candidate | `80b2f94`, `9cf46ef` | Packed checked hold, real bitmap/publish sequence, actual PMG clear and empty reused ring; no Light/STARFIELD injections. Native fixture/score/PairShot/5,000-kill Raider checks pass; [evidence](../diagnostics/l1-audit-fixes-2026-10-24/README.md). |
+| L1-02 | S3 | ENTITY_CODE shift adds per-frame page crossings | fixed — owner-smoke candidate | `80b2f94` | Original ENTITY_CODE addresses restored; +34 packed initial B / +405 raw resident B versus pre-audit. Every moved per-frame routine: zero new crossings; level-2 main/fixed 31,517/31,517, all boss stress deltas 0. |
+| L1-03 | S3 | Tautological or relaxed pins and wrong lance read | fixed — owner-smoke candidate | `80b2f94`, `9cf46ef` | Exact initial 12,829 B, MAIN 17 B, glyph addresses and 712-719 read; preserve boundary/error assertions and original reclaimed-entry contract. |
+| L1-04 | S4 | Edited test files omitted from reporting | fixed — owner-smoke candidate | `9cf46ef` | One full run plus focused main comparison; every edited file and remaining first assertion recorded, including the separate pre-existing boss-runtime summary failure. 81 old failures remain, zero new. |
+| L1-05 | S4 | Boot publish failure enters uninitialised frontend | fixed — owner-smoke candidate | `80b2f94` | Local red halt, +2 B inside existing slot; CRC-checked RAM corruption only; documented in code and BV.6. |
+| L1-06 | S4 | Menu retry leaks a return address; disk-entry dependency undocumented | fixed — owner-smoke candidate | `80b2f94` | Drop exactly two stack bytes (+2 B); 20 retry test passes. BV.6/STATUS record disk required at every entry and two reads for GAME OVER then MAIN MENU; README EN/PL follow-up line recorded. |
+| L1-07 | S4 | Stale placement and warm-start comments | fixed — owner-smoke candidate | `80b2f94`, `9cf46ef` | Listed CFG/ASM/PMG/glyph/DOSVEC comments describe actual residency and cold RESET; no unsupported warm re-publication claim. |
+| L1-08 | S4 | Weak menu bound and latent phase-overlap notes | fixed — owner-smoke candidate | `80b2f94`, `9cf46ef` | Menu CFG/asserts end at $1180; phase-exclusive overlaps named; memory map records boss slot D/death over L2 and boot-only writes to the gameplay buffer. |
+| L1-09 | S4 | Tracked dist ATR predates L1 | fixed — owner-smoke candidate | `80b2f94` | Tracked campaign is the fixed normal build, SHA-256 `41065297…`; all five smoke images rebuilt from the final HEAD. No release/merge acceptance implied. |
 | AUD-01 | S2 | Save guard does not identify the mounted disk | **closed** — fixed, owner smoke done (journal §BC 2) | `fix/audit-hardening`: `63ef6d4` (RED), `22614b8` (GREEN) | Sector 598 carries the disk's identity (`VS65` + layout id); it is read immediately before every PUT and compared with the resident block; a mismatch or a failed read skips silently. Tests: `tests/level-summary.test.mjs` "AUD-01: …" (4). |
 | AUD-02 | S2 | Corrupt runtime overlay data reaches unchecked module arrays | **closed** — fixed, owner smoke done (journal §BC 2) | `fix/audit-hardening`: `63ef6d4` (RED), `22614b8`, `0de0485` (GREEN) | Every run a transition runs or uses is checked against a boot-validated 16-bit fold before use (the load-time identity, owner Q1), the level image included (Q3); the module count is bounded to 1..16 before the controller starts; refusal is WRONG DISK. +1 extension sector (Q2). Tests: `tests/audit-hardening.test.mjs` (4 AUD-02), `tests/level-summary.test.mjs` (4 AUD-02). |
 | AUD-03 | S2 | Decimal mode changes boss DLI scroll arithmetic — boss DLI | fixed | S4b: `4dc8161` (RED), `a9a7336` (GREEN) | `CLD` at `boss_dli`'s entry; [plans/boss-lasers.md](../plans/boss-lasers.md) §13.1, §13.4. |

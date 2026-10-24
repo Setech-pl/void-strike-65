@@ -4082,6 +4082,73 @@ systems freeze and may arrive after 1.0.
 At L2 / systems freeze, decide whether the L2 module holds a **256-512 B**
 post-1.0 reserve. No L1 byte claims that space.
 
+### BV.6 Audit fixes and owner smoke
+
+Owner smoke **PASS**, 2026-10-24, for the **pre-audit** campaign candidate
+built from `382b91a`, ATR SHA-256
+`63bf14c0858d934f98ef99957cf9c083bfe3503ebd27c4640413acb6af1d5935`.
+This does not accept the fixed candidate; that candidate awaits a new smoke.
+
+The independent [L1 audit](audits/2026-10-24-l1-window-levers.md) is preserved
+unchanged. L1-01 now models the CRC-checked packed hold at `$0C00` in the
+shared native fixture. Gameplay fixtures run the real bitmap-unpack / Light
+publication path; direct Light/STARFIELD injections are removed. L1-02 keeps
+the original ENTITY_CODE addresses with compressed pads, including the LIFE
+selector operand at `$984F`; the boot publisher uses the former extended-glyph
+slot. L1-03 restores exact content, MAIN-slack, glyph-address and sector pins;
+the boss entry reads exactly sectors **712-719**, six lance sectors plus its
+two-sector page-2 tail. Tests also retain the 14-B XEX-entry reclamation check
+separately from L1's labelled **114-B** stage-2 hold/validation addition.
+
+The publish-length failure can occur only after RAM corruption of an already
+CRC-checked record. The frontend is uninitialised and stage 2 has been
+replaced, so the failure now halts with red COLBK locally (**+2 B**, inside
+the existing slot), instead of entering the reader's retry UI. Menu-read
+failure drops the abandoned frontend return address (**+2 B**, no recurring
+frame cost); twenty consecutive failed reads preserve SP. The game disk must
+remain in the drive at **every menu entry**. GAME OVER followed by MAIN MENU
+still performs two checked reads; each has its own ≤50-frame added-delay gate.
+
+Menu CFG/assert bounds now stop at `$1180`. L2's `$1900-$1FFF` is overwritten
+by slot D / boss-death in boss phases and must be re-read at level start.
+The M3-H damaged-body buffer is gameplay-only and must be initialised after
+boot. Listed stale comments are corrected; the fixed campaign ATR is tracked
+in `dist/`. The boot observer now excludes transient stage-2 PC matches from
+the gameplay milestone; the loader-to-gameplay handoff assertion is unchanged.
+
+Linked resource result: **12,829 B** initial content (**+34 B** against the
+pre-audit L1 build), **823 B** to the planning STOP; **101** initial and **210**
+occupied boot/chunk sectors, DFMC **11/11**. MAIN slack **17 B**, window use
+**1,656 B**, M3-H's freed window **1,155 B**, and damaged-body reserve **32 B**
+are unchanged. No gameplay state allocation grows. ENTITY_CODE gains **405 raw B**
+against pre-audit L1, restoring clean main's **3,161 B** and **5-B** free tail
+(pre-audit: 410 B). The deterministic level-2
+route peaks at **31,517 cycles** on both `a3c8e47` and fixed L1 (**delta 0**),
+17 above the 31,500 target and 1,051 below the 32,568 hard gate, with no
+missed frames, extra VBI or DLI errors. All moved per-frame routines have
+zero new taken-branch page crossings; the complete listing-based comparison
+is kept with [the audit-fix evidence](diagnostics/l1-audit-fixes-2026-10-24/).
+
+Measured after the fixes: all reachable all-state maxima and off/firing cases
+in BV.3 are unchanged (**delta 0**); tightest is Bastion **8,478/8,500**.
+Boss entry R1/Citadel/Spine/Bastion is **325/340/340/344 host frames**, each
+≤350. Patched-SIO cold menu **598/650**, standard-SIO cold **1,384**, added
+menu-entry delay **41/50**. Cold/RESET/130XE/capital-restore boot smoke and all
+four after-boss frontend fixtures pass. An additional R1 scripted smoke
+runs 2,399 frames with one escort Light and lance charge/flight, max **29,144**
+wall cycles with no anomalies.
+
+One full `npm test`: **1,566 tests, 1,459 pass, 107 fail**. Focused comparison
+of those failed names on `a3c8e47`: **24 pass / 83 fail**. Focused repairs
+clear all **24 L1 failures** and two older window-ledger failures: **81
+pre-existing failures remain; zero new**. The audit's four-failure reference
+was its 15-file subset, not the full suite. No second full run or release
+evidence regeneration is claimed. Every edited test file and remaining
+first assertion is recorded in the audit-fix evidence. `boss-runtime`'s actual
+8-sector read passes; its separate pre-existing final-summary failure remains.
+The fixed five-image candidate awaits new owner smoke; no merge/push occurs
+before that result.
+
 **Next free decision section: §BW.**
 
 ---

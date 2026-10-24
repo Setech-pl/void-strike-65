@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-24 (L1 owner-smoke candidate, §BV; runtime checkpoint §BT)
+Last update: 2026-10-24 (L1 audit fixes; fixed candidate pending owner smoke, §BV.6)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -22,27 +22,53 @@ the values below.
 
 ### L1 window levers — OWNER-SMOKE CANDIDATE
 
-On `codex/l1-window-levers`, the complete Light record 9 and its 10-byte
-resident pause markers link at `$3643-$3AEE`; **17 B** remain in MAIN. The
-46-B hull/missile/damage data remains at `$3615-$3642`. The checked raw
-11-sector menu run loads to `$0C00-$117F` at every MAIN MENU and GAME OVER
-entry, before any overlay reader; the boss can overwrite it. The menu's
-pause/quit markers remain resident, and `$1900-$1FFF` stays open for L2.
-`$B478-$B8FA` frees **1,155 B** for M3-H; `$B8FB-$B8FF` remains reserved.
-M3-H's 32-B damaged-body buffer is reserved at `$549E-$54BD` with no consumer.
-[Phase A and B plan/evidence](plans/l1-window-levers.md); [owner decisions
-§BV](owner-decisions-2026-09-11.md#bv-l1-decisions-and-special-sectors-2026-10-24).
+The pre-audit campaign candidate `63bf14c0…`, built from `382b91a`, passed
+owner smoke on 2026-10-24. The independent audit required fixture, timing and
+assertion fixes; the **fixed candidate still requires owner smoke**. See
+[§BV.6](owner-decisions-2026-09-11.md#bv6-audit-fixes-and-owner-smoke) and
+[the fix evidence](diagnostics/l1-audit-fixes-2026-10-24/).
 
-The normal build and computed gates pass with the expected stale wall-trace
-binding warning. The final candidate uses **12,795 B** of initial content
-(101 sectors), **210** occupied boot/chunk sectors and 11/11 DFMC records.
-Patched-SIO cold menu is **597/650** frames; standard-SIO cold is **1,384**
-frames and menu-entry added delay **41/50** frames. Boot smoke (cold, RESET,
-130XE, capital restore), checked menu CRC and all four after-boss frontend
-fixtures pass. Clean-main and L1 Citadel L5 lance stress are both **8,423**
-cycles; the lost-target off/fire set is unchanged. All-state native boss
-stress is unchanged, with Bastion tightest at **8,478/8,500**. Focused route and boss
-measurements are in the plan. This is not owner-accepted or release evidence.
+The complete Light composite (including resident pause markers) remains at
+`$3643-$3AEE`, with **17 B** MAIN slack and the retained 46 B at `$3615-$3642`.
+The checked menu run is exactly `$0C00-$117F`, re-read on every MAIN MENU and
+GAME OVER entry. **The game disk must remain in the drive at every menu entry.**
+GAME OVER followed by MAIN MENU performs two checked reads. README/how-to-play
+follow-up line (EN + PL): “Keep the game disk mounted when returning to menus” /
+“Pozostaw dysk gry w napędzie podczas powrotu do menu”.
+
+The shared native fixture now preserves the checked packed Light hold and
+runs the real bitmap-unpack/publication path; per-harness Light/STARFIELD
+injections are removed. Compressed ENTITY_CODE pads restore its pre-L1
+per-frame addresses. Exact assertions cover **12,829 B** initial content,
+**17 B** MAIN slack and the actual **712-719** lance/page-2 read. Failure paths
+halt red at boot or drop the abandoned menu return address before retry.
+The boot observer phase guard rejects transient stage-2 PC matches; the
+loader-to-gameplay handoff assertion remains strict.
+
+Normal build and computed gates pass, with expected pending release evidence.
+Initial content is **12,829 B** (+34 B against pre-audit L1; **823 B** planning
+slack), **101** initial sectors, **210** occupied boot/chunk sectors and DFMC
+**11/11**. The complete moved per-frame routine audit adds **zero** branch
+page crossings. The identical level-2 route on `a3c8e47` and fixed L1 is
+**31,517 cycles**, delta **0**: 17 above the 31,500 target, 1,051 below the
+32,568 hard gate; zero misses, extra VBI or DLI anomalies. Patched-SIO cold
+menu is **598/650 frames**; standard-SIO cold **1,384**, menu-entry added
+**41/50**. Boot smoke passes cold, RESET, 130XE and forced capital restore.
+
+Restoring ENTITY_CODE uses **405 raw B** against pre-audit L1, returning its
+resident use to clean main's **3,161 B**; its free tail is **5 B** (was 410 B).
+No state/reservation grows. The single full run was **1,459/1,566 pass, 107 fail**. Targeted clean-main
+comparison and focused repairs leave **81 pre-existing failures, zero new**;
+26 full-run failures are cleared. The audit's four pre-existing failures were
+only its fixture subset. All edited test files, including `boss-runtime`, are
+reported in the evidence; its real 8-sector read passes, separate old summary
+failure remains. All reachable boss stress deltas are **0**, maximum **8,478**;
+entry **325/340/340/344**. These checks do not certify release readiness.
+
+Window use stays **1,656 B**, with **1,155 B** at `$B478-$B8FA` freed for M3-H
+and `$B8FB-$B8FF` reserved. M3-H's **32-B** buffer stays `$549E-$54BD` with no
+consumer; initialise it after boot. L2's `$1900-$1FFF` belongs to slot D /
+boss-death during boss phases and must be re-read at level start.
 
 Order: **L1 → nacelle spike (GIFs + trace) → L2 → M3-H → M3 → M4 (12 levels,
 4×3) → rest of M6 (dock, weapon roles, demo) → systems freeze → M7 (asteroid
@@ -52,13 +78,13 @@ overwritten by boss install and reloaded by M4. The 5 B at $B8FB remain reserved
 Capital Lights are optional M7 work after a one-Light proof, outside the base
 plan. Citadel's region-2 versus final-R4 placement stays open before M4.
 
-NEXT TASK: owner real-65XE/SIO2SD smoke of the five candidate ATRs; record
+NEXT TASK: owner real-65XE/SIO2SD smoke of the five fixed candidate ATRs; record
 the owner's result before merge. No L2 or M3-H implementation starts here.
 
 | Current L1 resource | Linked use / limit | Free |
 | --- | ---: | ---: |
-| Initial content, planning STOP | 12,795 / 13,652 B | 857 B |
-| Initial content, physical | 12,795 / 13,684 B | 889 B |
+| Initial content, planning STOP | 12,829 / 13,652 B | 823 B |
+| Initial content, physical | 12,829 / 13,684 B | 855 B |
 | MAIN holes, including 46 retained B | 1,242 / 1,259 B | 17 B |
 | Light record 9 (including pause markers) | 1,196 / 1,213 B | 17 B |
 | BASIC window `$AE00-$BBFF` | 1,656 / 3,584 B | 1,928 B total; 1,155 B unreserved below the lance |
@@ -187,11 +213,12 @@ pre-release runtime-evidence regeneration remains due under §BM.
 
 ### Repository HEAD
 
-Documentation branch `codex/planning-direction-bu`, based on accepted main
-`530de22` (also `origin/main` at preflight). The report-only audit branch is
-merged unchanged; §BU records the owner's planning direction. The accepted
-gameplay and campaign ATR remain the §BT checkpoint above. Verify local HEAD
-with Git; the older checkpoints below retain their historical measurements.
+Candidate branch `codex/l1-window-levers`; audit report merged unchanged in
+`f84b1fd`; runtime/fixture fixes `80b2f94`, follow-up fixture/assertion repairs
+and complete evidence `9cf46ef`. Main/origin-main remain `a3c8e47`. The final
+candidate build HEAD is recorded in `build/l1-owner-smoke/candidate.json`;
+verify Git before relying on a historical checkpoint. The pre-audit owner
+smoke passed, while the fixed candidate awaits a new owner result.
 
 **The roadmap 4.6 step-2 data-driven Director is `OWNER-ACCEPTED`** (owner
 smoke PASS **2026-09-29**, on XEX `3c0aaea1…` / ATR `0d0d9ba9…`; section

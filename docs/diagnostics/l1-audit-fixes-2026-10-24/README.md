@@ -21,6 +21,7 @@ Baseline `a3c8e47`; audited L1 `382b91a`; report merge `f84b1fd`; runtime/fixtur
 | Boot smoke | four cold starts, RESET, 130XE, forced capital restore PASS |
 | After-boss frontend | all four boss claims: pause before reload and all frontend states after checked reload PASS |
 | Retry stack | 20 failed menu reads preserve SP |
+| R1 scripted fight smoke | 2,399 frames, one escort Light, lance charge/flight observed; max 29,144 wall cycles, zero anomalies |
 
 Source game artifacts remain byte-identical across the later host-fixture repairs. The campaign hash is `410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`. Every final candidate is rebuilt after the final commit; `build/l1-owner-smoke/candidate.json` records its actual build HEAD and complete hashes.
 

@@ -10538,7 +10538,7 @@ weapon_pickup_spawn_capsule_at:
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
     jmp LIFE_CAPSULE_PICK
 weapon_pickup_select_operand = *-2
-    ; L1 rebinds the boss selector pin after the menu source leaves ENTITY_CODE.
+    .assert weapon_pickup_select_operand = LIFE_CAPSULE_SELECT_OPERAND, lderror, "LIFE selector patch operand moved"
     .res 18, $00                 ; unreachable; preserves ENTITY_CODE ABI
 ; The count is not complete yet, so nothing is spawned. A global label because
 ; weapon_pickup_spawn_capsule_at above it fences the cheap @locals it used to

@@ -22,6 +22,9 @@ const CHUNK_TYPE_LZ = 1;
 const STAGING_BROADSIDE = 1;
 const STAGING_EXTENSION = 2;
 const SAFE_EXTENSION_RANGES = Object.freeze([
+  // L1 record 9 is checked into $8100, held at $0C00 and decoded here only
+  // after unpack_loader_bitmap has finished reading MAIN's boot-only source.
+  [0x3643, 0x3b00],
   [0x4efe, 0x5000], [0x52a3, 0x535a],
   [0x548a, 0x54e4],
   [0x5de2, 0x5e06], [0x77b9, 0x7810],
@@ -419,12 +422,22 @@ export function verifyChunkTransport({ atrBody, manifest, unpackLz, onChunk }) {
   return parsed;
 }
 
-export function loadChunkFixture({ atrBody, manifest, memory, unpackLz, onPublish }) {
+export function loadChunkFixture({ atrBody, manifest, memory, unpackLz, onPublish, heldRecords = [] }) {
   invariant(memory instanceof Uint8Array && memory.length >= 0x10000,
     "fixture memory must cover 64 KiB");
   return verifyChunkTransport({ atrBody, manifest, unpackLz, onChunk(record, raw) {
-    memory.set(raw, record.finalDestination);
-    onPublish?.(record, raw);
+    const hold = heldRecords.find(({ finalDestination }) => finalDestination === record.finalDestination);
+    if (hold) {
+      // Stage 2 has checked the complete sector run. Preserve its packed bytes
+      // without publishing over MAIN's still-live bitmap/resident sources.
+      invariant(record.type === CHUNK_TYPE_LZ && record.packedLength <= hold.capacity,
+        "held boot record exceeds its reviewed packed reservation");
+      const offset = (record.startSector - 1) * ATR_SECTOR_BYTES;
+      memory.set(atrBody.subarray(offset, offset + record.packedLength), hold.address);
+    } else {
+      memory.set(raw, record.finalDestination);
+      onPublish?.(record, raw);
+    }
   } });
 }
 

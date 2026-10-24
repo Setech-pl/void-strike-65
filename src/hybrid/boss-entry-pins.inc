@@ -25,4 +25,4 @@ pin_sector_reader_failure_screen = $A0D6   ; reader
 pin_sr_slot_a_overlaid           = $A576   ; reader
 ; feat/interceptor-standoff: the boss entry's region read (its WARNING records
 ; behind it went with the text screen, feat/boss-banners).
-pin_boss_enter_read              = $B814   ; kernel
+pin_boss_enter_read              = $39FE   ; kernel

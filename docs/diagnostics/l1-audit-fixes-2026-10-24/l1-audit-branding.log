@@ -1,0 +1,12 @@
+✔ public package and generated artifacts use the Void Strike 65 identity (4.9295ms)
+✔ decoded loader and frontend records expose the new title without the old marking (2866.0135ms)
+✔ assembled Atari screen streams decode to the complete rebranded frontend (4.998458ms)
+✔ tracked names and player-facing tracked content contain no retired vocabulary (83.62375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3070.302666

@@ -322,8 +322,10 @@ test("a skip cannot leak into the menu as a START GAME press", () => {
   assert.match(exitBody, /lda SKSTAT[\s\S]*?and #\$04[\s\S]*?beq @release/);
   // 2. The frontend arms only on a frame with the stick centred and FIRE up, and
   //    enter_frontend_state clears that latch, so a still-held press is ignored.
-  const enter = source.slice(source.indexOf("enter_frontend_state:"));
-  assert.match(enter.slice(0, 400), /sta frontend_input_armed/);
+  // L1 adds a checked menu read before the latch reset. Bound the actual
+  // routine instead of a character count that truncates its new entry path.
+  const enter = source.slice(source.indexOf("enter_frontend_state:"), source.indexOf("enter_exited_state:"));
+  assert.match(enter, /sta frontend_input_armed[\s\S]+jsr select_frontend_display/);
   const poll = source.slice(source.indexOf("frontend_input_poll:"));
   assert.match(poll.slice(0, 900), /frontend_input_armed/);
   // 3. The frontend reads STICK0 and TRIG0 only, so SPACE cannot reach the menu

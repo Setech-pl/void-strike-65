@@ -104,20 +104,22 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18: no WARNING
   // text screen at the boss entry): the screen's 11-B record (WARNING) out of
   // the kernel's last segment; the kernel link 957 -> 946 B, the tail 971 -> 982.
-  assert.equal(window.lightKernelBytes, 946);
+  // L1 moves the entire Light composite out of the BASIC window.
+  assert.equal(window.lightKernelBytes, 0);
   // RE-PINNED fix/boss-polish (the other side of the kernel's 987 -> 982):
   // used 2,643 -> 2,638, the tail 941 -> 946.
   // RE-PINNED feat/interceptor-armour (the other side of the kernel's 982 ->
   // 957): used 2,638 -> 2,613, the tail 946 -> 971.
   // RE-PINNED feat/boss-banners (the other side of the kernel's 957 -> 946):
   // used 2,613 -> 2,602, the tail 971 -> 982.
-  assert.equal(window.usedBytes, 2602);
-  assert.equal(window.freeBytes, 3584 - 2602);
-  assert.equal(window.freeBytes, 982, "the tail the hit flash, the cold boss entry and the banner's black entry leave");
-  // Both links moved down as one block; the kernel still closes the window.
-  assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
-  assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
-  assert.equal(manifest.lightKernel.endExclusive + window.freeBytes, READER_BSS);
+  assert.equal(window.usedBytes, 1656);
+  assert.equal(window.freeBytes, 3584 - 1656);
+  assert.equal(window.freeBytes, 1928, "L1 frees 1,155 B without changing the C half");
+  // Light now closes the MAIN reservation; the C link still closes its window.
+  assert.equal(manifest.lightKernel.address, 0x3643);
+  assert.equal(manifest.lightKernel.windowLimit, 0x3b00);
+  assert.equal(manifest.lightKernel.endExclusive + manifest.lightKernel.freeBytes, 0x3b00);
+  assert.equal(WINDOW + window.usedBytes + window.freeBytes, READER_BSS);
 });
 
 test("Q-1: the window record lands at $AE00 and costs no extra transport", () => {
@@ -140,7 +142,8 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that
   // replaced them - so the total falls and the initial block falls with it.
-  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
+  // L1 removes menu sources from the initial block; no window code is added.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 101);
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13652,
     `initial block content is ${manifest.transportCapacity.initialBootContentBytes} B; ` +
     "the ceiling for the whole of 4.6 is 13,652");
@@ -196,8 +199,8 @@ test("Q-1: the sources carry the same two constants the manifest reports", () =>
     /HYBRID_C_WINDOW_RAM: start = \$AE00, size = \$0E00, type = ro, file = %O, define = yes;/);
   const buildSource = fs.readFileSync(path.join(root, "scripts/build.mjs"), "utf8");
   assert.match(buildSource, /^const levelBufferSectors = 16;$/m);
-  // The Light kernel's own link must be allowed to start inside the new window.
+  // L1 pins the separate Light link to MAIN, leaving the C window intact.
   const kernelSource = fs.readFileSync(path.join(root, "src/hybrid/light-kernel.s"), "utf8");
   assert.match(kernelSource,
-    /\.assert __LIGHT_KERNEL_RUN__ >= \$AE00, lderror, "the Light kernel must start inside the code window"/);
+    /\.assert __LIGHT_KERNEL_RUN__ = \$3643, lderror, "L1 Light kernel must follow the 46 resident MAIN bytes"/);
 });

@@ -1,0 +1,10 @@
+✔ Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reader BSS (0.755042ms)
+✔ Q-1: the window record lands at $AE00 and costs no extra transport (0.121375ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 80.325125

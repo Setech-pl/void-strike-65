@@ -235,7 +235,7 @@ export function runUntil(cpu, ends, { maxSteps = 80_000_000, watch = null } = {}
 }
 
 // Call a routine to its RTS; returns the CPU (cycles counted from 0).
-export function call(memory, address, { a = 0, x = 0, y = 0, hooks = {}, watch = null } = {}) {
+export function call(memory, address, { a = 0, x = 0, y = 0, hooks = {}, watch = null, stopAt = [] } = {}) {
   const cpu = new Nmos6502(memory, hooks);
   const stop = 0x0000;
   cpu.push((stop - 1) >> 8 & 0xff);
@@ -245,7 +245,10 @@ export function call(memory, address, { a = 0, x = 0, y = 0, hooks = {}, watch =
   cpu.x = x;
   cpu.y = y;
   let steps = 0;
-  while (steps < 4_000_000 && cpu.pc !== stop) { watch?.(cpu.pc, cpu); cpu.step(); steps += 1; }
+  const stops = new Set(stopAt);
+  while (steps < 4_000_000 && cpu.pc !== stop && !stops.has(cpu.pc)) {
+    watch?.(cpu.pc, cpu); cpu.step(); steps += 1;
+  }
   assert.notEqual(steps, 4_000_000, `routine $${address.toString(16)} did not return`);
   return cpu;
 }
@@ -315,11 +318,18 @@ export function bossGateMemory() {
 // Run the boss entry from the window's resident half to the main loop.
 // S5-1: `prepare(memory)` adjusts the gate's machine first (a level id, a
 // booster); `sectorOf` is the disk in the drive (the built ATR by default).
-export function runBossEntry({ onCommand = null, watch = null, prepare = null, sectorOf = undefined } = {}) {
+export function runBossEntry({ onCommand = null, onWrite = null, watch = null, prepare = null, sectorOf = undefined } = {}) {
   const memory = bossGateMemory();
   prepare?.(memory);
   const drive = new Drive({ onCommand, ...(sectorOf === undefined ? {} : { sectorOf }) });
   const cpu = cpuOver(drive, memory);
+  if (onWrite !== null) {
+    const originalWrite = cpu.hooks.write;
+    cpu.hooks.write = (address, value, executingCpu) => {
+      onWrite(address, value, executingCpu);
+      return originalWrite(address, value, executingCpu);
+    };
+  }
   cpu.sp = 0xf0;
   cpu.pc = label("director", "_asm_boss_enter");
   const end = runUntil(cpu, {

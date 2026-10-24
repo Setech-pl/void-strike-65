@@ -17,7 +17,7 @@ import {
   renderLoaderCa65Include,
 } from "../scripts/loader-assets.mjs";
 import { unpackBroadsideLzss } from "../scripts/broadside-lzss.mjs";
-import { installRuntimeSegments, readRuntimeBytes } from "../scripts/runtime-image.mjs";
+import { installBootArtifact, readRuntimeBytes } from "../scripts/runtime-image.mjs";
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import {
   PREVIEW_HEIGHT,
@@ -82,7 +82,18 @@ function readImageBytes(address, length) {
 
 function executeLoaderUnpack(labels) {
   const memory = new Uint8Array(0x10000);
-  installRuntimeSegments(memory, rootDirectory);
+  installBootArtifact(memory, rootDirectory);
+  // Follow the actual boot order; bitmap unpack also publishes the held Light.
+  for (const routine of ["stage_boot_streams", "unpack_resident_runtime",
+    "publish_director_abi", "unpack_entity_runtime", "stage_a2_kernel",
+    "init_entity_effects", "unpack_weapon_pickup_phase_runtime"]) {
+    const cpu = new Nmos6502(memory);
+    const stop = 0x7fff;
+    cpu.push((stop - 1) >> 8); cpu.push((stop - 1) & 0xff);
+    cpu.pc = labels.get(routine);
+    for (let steps = 0; steps < 2_000_000 && cpu.pc !== stop; steps += 1) cpu.step();
+    assert.equal(cpu.pc, stop, `${routine} did not return`);
+  }
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
@@ -500,7 +511,8 @@ test("assembled display list contains 157 ANTIC F and 35 ANTIC E lines", () => {
   // -> $3802. Plasma FX's stage-first break-up renderer in CODE, which RODATA
   // follows, is 14 B shorter than main's with B1.2's short stage lists; the
   // display list is unchanged and still clears the tables.
-  assert.equal(missileMasks, 0x3802);
+  // L1 retains the runtime masks at $3634 before the resident Light record.
+  assert.equal(missileMasks, 0x3634);
   assert.ok(displayListAddress >= missileMasks + missileTables.length,
     "loader display-list publication must not overlap runtime PMG tables");
   assert.deepEqual(Buffer.from(memory.subarray(

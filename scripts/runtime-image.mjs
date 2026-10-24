@@ -26,6 +26,14 @@ export function loadRuntimeSegments(rootDirectory,
   const definitions = [
     ["resident", "resident-runtime.bin", manifest.residentRuntime.runAddress,
       manifest.residentRuntime.rawBytes],
+    // L1: frontend tables are present only after the checked menu run. These
+    // isolated readers model the menu phase; gameplay fixtures may overwrite
+    // this same RAM when they install a boss image.
+    ...(manifest.overlays?.runs?.find(({ name }) => name === "menu-data") == null ? [] : [
+      ["menuData", "menu-overlay.bin",
+        manifest.overlays.runs.find(({ name }) => name === "menu-data").destination,
+        manifest.overlays.runs.find(({ name }) => name === "menu-data").bytes],
+    ]),
     // The ADR-003 splash blob: boot-only code at $0500-$06FF that both stage-2
     // entries copy there before start, so every runtime harness must place it
     // or the loader hold and its DLI run into $00.
@@ -98,8 +106,7 @@ export function loadRuntimeSegments(rootDirectory,
       ["capitalPlayerCollision", "capital-player-collision.bin",
         manifest.capitalPlayerCollisionRuntime.runAddress,
         manifest.capitalPlayerCollisionRuntime.bytes],
-      // Light multiplicity step 1b: the Light ASM kernel's own link, landing in
-      // the code window directly above the Director link's C half.
+      // The separately linked Light composite is resident in MAIN after L1.
       ...(manifest.lightKernel == null ? [] : [
         ["lightKernel", "light-kernel.bin",
           manifest.lightKernel.address, manifest.lightKernel.bytes],
@@ -156,6 +163,10 @@ export function installBootArtifact(memory, rootDirectory, artifact = "atr") {
       manifest: manifest.transportCapacity.manifest.parsed,
       memory,
       unpackLz: unpackBroadsideLzss,
+      // L1: the real stage 2 holds record 9 until unpack_loader_bitmap tails
+      // into publish_light_record. Do not decode over MAIN's packed source.
+      heldRecords: manifest.lightKernel?.address === 0x3643
+        ? [{ finalDestination: 0x3643, address: 0x0c00, capacity: 0x0500 }] : [],
     });
     return { manifest, requiresBroadsideUnpack: false };
   }

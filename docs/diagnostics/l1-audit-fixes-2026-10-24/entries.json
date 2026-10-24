@@ -1,0 +1,286 @@
+{
+  "1": {
+    "host_frames": 325,
+    "report": {
+      "emulator": "Atari800 7.1.2 PAL/XL",
+      "guest_instrumentation_bytes": 0,
+      "artifact_sha256": {
+        "void-strike-65-boot.bin": {
+          "path": "build/level-1-s6/void-strike-65-boot.bin",
+          "bytes": 26880,
+          "sha256": "ef7c79094f996c39ca7413900740c72b7c21a6138f0bcbcc50a0581ccb109659"
+        },
+        "void-strike-65.atr": {
+          "path": "build/level-1-s6/void-strike-65.atr",
+          "bytes": 133136,
+          "sha256": "c00fc5b86dffa54c8a99ffaf0d03be244d48144214d1756c44189fee1739fbae"
+        },
+        "void-strike-65-manifest.json": {
+          "path": "build/level-1-s6/void-strike-65-manifest.json",
+          "bytes": 79837,
+          "sha256": "51542add2a1eb098a28e32840c69ceb0f2ec76c4b0085a82589daeaf5da266d5"
+        }
+      },
+      "variant": "level-1-s6",
+      "diagnostic_only": true,
+      "sessions": [
+        {
+          "id": "observer-smoke",
+          "kind": "observer-smoke",
+          "medium": "ATR",
+          "difficulty": 2,
+          "policy": "neutral",
+          "fire_delay": 0,
+          "measured_frames": 649,
+          "maximum_wall_cycles": 27703,
+          "deadline_overrun_frames": 0,
+          "missed_frames": 0,
+          "hull_map_draws": 0,
+          "hull_map_stale_draws": 0,
+          "hull_map_dirty_reads": 0,
+          "hull_map_rebuilds_after_boss": 0,
+          "level_summary": {
+            "start_summaries": [
+              {
+                "entry": 710,
+                "display": 712,
+                "loaded": 791,
+                "ready": 863,
+                "accept": 868,
+                "reads": 21,
+                "shown_frames": 156,
+                "best": "BEST                  --"
+              }
+            ]
+          }
+        }
+      ],
+      "acceptance": {
+        "measured_frames": 649,
+        "maximum_wall_cycles": 27703,
+        "wall_ceiling": 32568,
+        "physical_headroom": 7865,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "passed": true
+    }
+  },
+  "2": {
+    "host_frames": 340,
+    "report": {
+      "emulator": "Atari800 7.1.2 PAL/XL",
+      "guest_instrumentation_bytes": 0,
+      "artifact_sha256": {
+        "void-strike-65-boot.bin": {
+          "path": "build/boss-region-2-level-1-s6/void-strike-65-boot.bin",
+          "bytes": 26880,
+          "sha256": "b20d2d2887c3e0dd2bfecb7101541255ac7569e2958233c526c1eaf83ce74175"
+        },
+        "void-strike-65.atr": {
+          "path": "build/boss-region-2-level-1-s6/void-strike-65.atr",
+          "bytes": 133136,
+          "sha256": "304eea1e0557ba4666c63b22c1c77a74c01795ced02f1612db26554dd2e9cab8"
+        },
+        "void-strike-65-manifest.json": {
+          "path": "build/boss-region-2-level-1-s6/void-strike-65-manifest.json",
+          "bytes": 79851,
+          "sha256": "4173e6b657715c8c3720027a4a9af316006c7ed295357f1c9dfe034aa1de81d4"
+        }
+      },
+      "variant": "boss-region-2-level-1-s6",
+      "diagnostic_only": true,
+      "sessions": [
+        {
+          "id": "observer-smoke",
+          "kind": "observer-smoke",
+          "medium": "ATR",
+          "difficulty": 2,
+          "policy": "neutral",
+          "fire_delay": 0,
+          "measured_frames": 649,
+          "maximum_wall_cycles": 28388,
+          "deadline_overrun_frames": 0,
+          "missed_frames": 0,
+          "hull_map_draws": 0,
+          "hull_map_stale_draws": 0,
+          "hull_map_dirty_reads": 0,
+          "hull_map_rebuilds_after_boss": 0,
+          "level_summary": {
+            "start_summaries": [
+              {
+                "entry": 710,
+                "display": 712,
+                "loaded": 791,
+                "ready": 863,
+                "accept": 868,
+                "reads": 21,
+                "shown_frames": 156,
+                "best": "BEST                  --"
+              }
+            ]
+          }
+        }
+      ],
+      "acceptance": {
+        "measured_frames": 649,
+        "maximum_wall_cycles": 28388,
+        "wall_ceiling": 32568,
+        "physical_headroom": 7180,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "passed": true
+    }
+  },
+  "3": {
+    "host_frames": 340,
+    "report": {
+      "emulator": "Atari800 7.1.2 PAL/XL",
+      "guest_instrumentation_bytes": 0,
+      "artifact_sha256": {
+        "void-strike-65-boot.bin": {
+          "path": "build/boss-region-3-level-1-s6/void-strike-65-boot.bin",
+          "bytes": 26880,
+          "sha256": "19f7c9d91b525ae7e891ce54cfe68ec4803b4be6986c14998f99061345bcdb8e"
+        },
+        "void-strike-65.atr": {
+          "path": "build/boss-region-3-level-1-s6/void-strike-65.atr",
+          "bytes": 133136,
+          "sha256": "88a12e989bf3497454141eda6a9c944781c387967d191be13a83717ad297f90c"
+        },
+        "void-strike-65-manifest.json": {
+          "path": "build/boss-region-3-level-1-s6/void-strike-65-manifest.json",
+          "bytes": 79850,
+          "sha256": "ba4f52dd098a69a1998a60db985502a760484b6f3f5bda005d6c01ab5921ef58"
+        }
+      },
+      "variant": "boss-region-3-level-1-s6",
+      "diagnostic_only": true,
+      "sessions": [
+        {
+          "id": "observer-smoke",
+          "kind": "observer-smoke",
+          "medium": "ATR",
+          "difficulty": 2,
+          "policy": "neutral",
+          "fire_delay": 0,
+          "measured_frames": 649,
+          "maximum_wall_cycles": 28224,
+          "deadline_overrun_frames": 0,
+          "missed_frames": 0,
+          "hull_map_draws": 0,
+          "hull_map_stale_draws": 0,
+          "hull_map_dirty_reads": 0,
+          "hull_map_rebuilds_after_boss": 0,
+          "level_summary": {
+            "start_summaries": [
+              {
+                "entry": 710,
+                "display": 712,
+                "loaded": 791,
+                "ready": 863,
+                "accept": 868,
+                "reads": 21,
+                "shown_frames": 156,
+                "best": "BEST                  --"
+              }
+            ]
+          }
+        }
+      ],
+      "acceptance": {
+        "measured_frames": 649,
+        "maximum_wall_cycles": 28224,
+        "wall_ceiling": 32568,
+        "physical_headroom": 7344,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "passed": true
+    }
+  },
+  "4": {
+    "host_frames": 344,
+    "report": {
+      "emulator": "Atari800 7.1.2 PAL/XL",
+      "guest_instrumentation_bytes": 0,
+      "artifact_sha256": {
+        "void-strike-65-boot.bin": {
+          "path": "build/boss-region-4-level-1-s6/void-strike-65-boot.bin",
+          "bytes": 26880,
+          "sha256": "a475df3b12e5e625eb7f1e8884599b641efd3dfa7557b155c795fd5ea0053577"
+        },
+        "void-strike-65.atr": {
+          "path": "build/boss-region-4-level-1-s6/void-strike-65.atr",
+          "bytes": 133136,
+          "sha256": "4e3c5bd25d4d142e4dcdf0dd71fccfc3ae2eb24a24a64fea9c642c7db516777e"
+        },
+        "void-strike-65-manifest.json": {
+          "path": "build/boss-region-4-level-1-s6/void-strike-65-manifest.json",
+          "bytes": 79854,
+          "sha256": "60f149378fec330794e5ab553946b5966b5d8f911b4756e0b3b5d62e4da10632"
+        }
+      },
+      "variant": "boss-region-4-level-1-s6",
+      "diagnostic_only": true,
+      "sessions": [
+        {
+          "id": "observer-smoke",
+          "kind": "observer-smoke",
+          "medium": "ATR",
+          "difficulty": 2,
+          "policy": "neutral",
+          "fire_delay": 0,
+          "measured_frames": 649,
+          "maximum_wall_cycles": 27988,
+          "deadline_overrun_frames": 0,
+          "missed_frames": 0,
+          "hull_map_draws": 0,
+          "hull_map_stale_draws": 0,
+          "hull_map_dirty_reads": 0,
+          "hull_map_rebuilds_after_boss": 0,
+          "level_summary": {
+            "start_summaries": [
+              {
+                "entry": 710,
+                "display": 712,
+                "loaded": 791,
+                "ready": 863,
+                "accept": 868,
+                "reads": 21,
+                "shown_frames": 156,
+                "best": "BEST                  --"
+              }
+            ]
+          }
+        }
+      ],
+      "acceptance": {
+        "measured_frames": 649,
+        "maximum_wall_cycles": 27988,
+        "wall_ceiling": 32568,
+        "physical_headroom": 7580,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "passed": true
+    }
+  }
+}

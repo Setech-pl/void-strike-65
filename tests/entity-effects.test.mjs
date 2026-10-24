@@ -177,7 +177,7 @@ function createBootedArtifactRuntimeMemory(artifact, fill = 0) {
     "unpack_entity_runtime",
     "stage_a2_kernel",
     "init_entity_effects", "unpack_weapon_pickup_phase_runtime",
-    "unpack_starfield_runtime",
+    "unpack_loader_bitmap", "unpack_starfield_runtime",
     "init_fighter_projectiles",
     "init_broadside",
   ]) runRoutine(memory, name);
@@ -555,6 +555,7 @@ test("$A5 and $5A cold RAM are fully initialised for the ATR", () => {
         [...a2KernelRuntime],
       );
       runRoutine(memory, "unpack_weapon_pickup_phase_runtime");
+      runRoutine(memory, "unpack_loader_bitmap");
       runRoutine(memory, "unpack_starfield_runtime");
       assert.deepEqual(
         [...memory.slice(manifest.starfieldRuntime.runAddress,
@@ -1422,7 +1423,8 @@ function armPublishedPlayerFighter(x, y) {
   const memory = createRuntimeMemory();
   initialiseRows(memory);
   runRoutine(memory, "init_entity_effects");
-  memory.fill(0, 0x3800, 0x4000);
+  // Clear the actual single-line PMG planes, preserving resident MAIN Light.
+  runRoutine(memory, "clear_pmg");
   memory[addresses.playerX] = x;
   memory[addresses.playerY] = y;
   memory[HPOSP0] = x;

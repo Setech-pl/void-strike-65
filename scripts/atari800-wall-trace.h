@@ -2121,7 +2121,11 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 		 * the deck must already be silent on the first frontend frame. */
 		dfboot_first_frontend_audc1 = POKEY_AUDC[0];
 	}
-	if (pc == dfboot_pc_gameplay && dfboot_seen_gameplay == 0xffffffffu)
+	/* L1 moved start_gameplay into stage 2's transient address range. A PC
+	 * match while that overlay is live is not a gameplay entry. Keep the
+	 * handoff assertion strict and admit milestones only in their phase. */
+	if (pc == dfboot_pc_gameplay && dfboot_seen_gameplay == 0xffffffffu &&
+		!dfboot_stage2_live && dfboot_seen_frontend != 0xffffffffu)
 		dfboot_seen_gameplay = frame;
 	/* M5a-S2: the level read closes when its last sector has landed and the
 	 * summary resumes - not at gameplay, which now waits for the 3-second
@@ -2131,7 +2135,8 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 	if (pc == dfboot_pc_level_loaded && dfboot_level_load_end == 0xffffffffu &&
 		dfboot_level_load_begin != 0xffffffffu)
 		dfboot_level_load_end = frame;
-	if (pc == dfboot_pc_main && dfboot_seen_main == 0xffffffffu)
+	if (pc == dfboot_pc_main && dfboot_seen_main == 0xffffffffu &&
+		dfboot_seen_gameplay != 0xffffffffu)
 		dfboot_seen_main = frame;
 
 	/* Drive the production menu input path: neutral through the loader/menu,

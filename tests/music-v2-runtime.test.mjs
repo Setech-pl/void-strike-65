@@ -164,7 +164,8 @@ test("the menu theme starts only in the main menu and stops before gameplay", ()
   assert.match(routine("frontend_loop", "dispatch_frontend_input"),
     /cmp #STATE_MAIN_MENU\s+beq @restore_palette[\s\S]+@restore_palette:[\s\S]+jsr music_tick[\s\S]+lda STICK0[\s\S]+lda TRIG0/);
   assert.match(routine("enter_frontend_state", "enter_exited_state"),
-    /cmp #STATE_MAIN_MENU[\s\S]+jsr music_stop[\s\S]+jsr music_start_menu/);
+    // L1 stops music before the checked read, then starts it only for MAIN MENU.
+    /jsr music_stop[\s\S]+lda game_state\s+cmp #STATE_MAIN_MENU\s+bne :\+[\s\S]+jsr music_start_menu/);
   const gameplay = routine("start_gameplay", "main_loop");
   assert.match(gameplay,
     /sta gameplay_fire_gate\s+sta pause_option_latched\s+jsr music_stop[\s\S]+lda sound_enabled/);

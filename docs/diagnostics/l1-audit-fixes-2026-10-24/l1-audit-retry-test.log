@@ -1,0 +1,21 @@
+✔ the star table is sixteen dots, 60/40 white/steel, a third twinkling (0.7025ms)
+✔ the steel-twinkle review variant twinkles steel stars through the OFF step (0.261375ms)
+✔ the menu draws every star as its own one-dot glyph and nothing else moves (31.61125ms)
+✔ no star touches text, a bar or the fighter, and each keeps an empty cell of clearance (19.55975ms)
+✔ over one 48-frame cycle every twinkling star goes bright, dim and off and steady stars never change (15.164208ms)
+✔ a cycle step lasts four menu frames, so the whole twinkle takes 48 (15.493417ms)
+✔ the per-frame tick writes only star cells and never touches POKEY or music state (16.329ms)
+✔ entering OPTIONS and returning to the menu restores the sky byte for byte (18.519167ms)
+✔ the star glyphs are eight single dots in the free frontend charset codes (15.747917ms)
+✔ seven blank display-list lines became ANTIC 4 star rows and the menu keeps 216 scanlines (18.296875ms)
+✔ only the MAIN MENU gets stars (16.279416ms)
+✔ each boss RAM claim leaves pause intact and the checked run restores every frontend (279.799958ms)
+✔ L1 menu-read failure abandons exactly one frontend return address (17.032916ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 534.141916

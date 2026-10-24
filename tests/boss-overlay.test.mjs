@@ -154,7 +154,8 @@ test("the disk: boss code from 528, the install 544-546, slot C from 547, region
   // RE-PINNED journal §BG (plan §6.3): + the VOID LANCE run's own four
   // sectors at the disk's free tail; journal §BH: five (712-716).
   assert.deepEqual(manifest.boss.reservedSectors, { code: [528, 583], regions: [632, 695], blocks: [696, 711],
-    banners: [280, 319], lance: [712, 718] });   // RE-PINNED M6 stage 1b: the lance run seven sectors (the gauges)
+    // L1-03: six lance sectors plus the two-sector page-2 tail, 712-719.
+    banners: [280, 319], lance: [712, 719] });
 });
 
 // RE-POINTED M5b-S4a-i: entry 1's count is the boss code's linked sectors;
@@ -222,8 +223,10 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
     "the entry's head is in PICKUP_CODE");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. No byte of the boss is in it.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623. Still no byte of the boss.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13622 /* RE-PINNED M6 stage 1b: the packed resident runtime, 1 B shorter */,
-    "no byte of the boss lands in the initial block");
+  // L1: menu data leaves boot; compressed padding restores gameplay addresses.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12829);
+  assert.ok(manifest.boss.reservedSectors.code[0] > manifest.transportCapacity.initialBootSectors,
+    "boss code starts after the initial block");
 });
 
 // RE-POINTED feat/boss-banners (the owner's smoke of 2026-10-18): decision 32's

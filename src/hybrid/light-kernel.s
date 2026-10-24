@@ -2,19 +2,11 @@
 ; and the hot PairShot/contact tests. C owns lifecycle, HP, formation motion,
 ; fire policy and the archetype record; this file only executes and publishes.
 ;
-; ITS OWN LINK (plan-light-multiplicity.md §3.1 [C1], owner decision
-; 2026-09-21). It used to be `.include`d into main.s. It now links on its own
-; with cfg/light-kernel.cfg, built by buildResidentModule the way
-; src/hybrid/sector-reader.s is, and lands in owner decision X's code window
-; directly above the Director link's C half. It reaches main.s through the
-; generated build/light-kernel-abi.inc, and main.s reaches IT through the
-; frozen five-entry vector table below - the same shape as the reader's
-; $A000 vectors. No main-link symbol binds to this file.
-;
-; Two links share the 1,536-B window and the boundary between them is NOT a
-; chosen constant: HYBRID_ASM_WINDOW_BASE in build/director-abi.inc is
-; wherever the Director link's C half ended in this very build, so neither
-; half can be sized wrong by an estimate.
+; Its own link, built like the sector reader with buildResidentModule.
+; L1 places the composite in MAIN at $3643, following 46 retained bytes,
+; instead of above the Director C half in the BASIC window. Record 9 waits
+; packed at $0C00 until bitmap unpack, then publishes the resident composite.
+; Generated build/light-kernel-abi.inc binds main through the vector table.
 ;
 ; Late publication (owner smoke 2026-09-15: the frame-start erase left the
 ; Light blank while ANTIC scanned the upper playfield, so it flickered). The
@@ -42,11 +34,9 @@
 .include "level-summary-abi.inc"
 
 .import __LIGHT_KERNEL_RUN__, __LIGHT_KERNEL_RAM_LAST__
-; The two halves cannot overlap and the ASM half cannot reach the sector
-; reader's BSS. Both are link errors, not runtime surprises.
-.assert __LIGHT_KERNEL_RUN__ = HYBRID_ASM_WINDOW_BASE, lderror, "the Light kernel must start where the Director link's window half ends"
-.assert __LIGHT_KERNEL_RUN__ >= $AE00, lderror, "the Light kernel must start inside the code window"
-.assert __LIGHT_KERNEL_RAM_LAST__ <= HYBRID_C_WINDOW_LIMIT, lderror, "the Light kernel reaches the sector reader BSS at $BC00"
+; The MAIN landing cannot overlap the retained data or the PMG DMA pages.
+.assert __LIGHT_KERNEL_RUN__ = $3643, lderror, "L1 Light kernel must follow the 46 resident MAIN bytes"
+.assert __LIGHT_KERNEL_RAM_LAST__ <= $3B00, lderror, "L1 Light composite reaches PMG RAM"
 
 LIGHT_WIDTH_HPOS = 8
 LIGHT_HEIGHT_SCANLINES = 8
@@ -95,7 +85,7 @@ LIGHT_BACKING1 = LIGHT_BACKING0+1
 .assert FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3 && LIGHT_PROJECTILE_OWNER < 8, error, "Light emit shifts weapon_class above the owner bits"
 
 ; Residency: the whole kernel is one contiguous LIGHT_KERNEL segment in the
-; code window, resident for the whole game, no runtime I/O. What stays behind
+; MAIN holes, resident for the whole game, no runtime I/O. What stays behind
 ; in the main link is what was never Light-only: entity_debris_publish and its
 ; two debris helpers (LIGHT_CODE), the 32-byte Wingman + Interceptor art
 ; tables (ENTITY_CODE tail) and light_add_score (BROADSIDE pad).
@@ -132,6 +122,73 @@ capital_vector_table:
 ; address resolver; erasing B first restores it and A's erase then skips,
 ; erasing A first skips and B's erase restores it. Two live slots never both
 ; believe they own one cell.
+; Player PairShot scan, X = projectile slot. Carry clear consumes the slot as
+; the debris path does; otherwise defer to the existing debris/Raider target.
+; A shot hits at most one Light: the first slot that owns the cell wins.
+light_shot:
+    stx LIGHT_SLOT_SAVE          ; the caller's projectile slot
+    ; MEASURED: this is the frame's dominant Light cost on a shot-heavy
+    ; session - ~70 cycles per projectile in flight, because it runs once per
+    ; player PairShot and used to walk all four slots. The limit is safe here
+    ; for the same reason as the other two gated loops: it keys on STATE, and
+    ; a slot above the limit has none. light_admit raises the limit as it
+    ; fills a slot, so a Light admitted earlier in this very frame is inside
+    ; it even though the limit was last derived on the previous one.
+    lda LIGHT_SLOT_LIMIT
+    bne :+
+    jmp @target                  ; no slot occupied: straight to the old path
+:
+    sec
+    sbc #$01
+    sta LIGHT_SLOT
+@slot:
+    ldx LIGHT_SLOT
+    lda LIGHT_STATE,x
+    beq @next
+    cmp #LIGHT_BREAKUP_PENDING   ; already dead and erased: not a target
+    bcs @next
+    jsr light_top
+    cmp #ENTITY_GAMEPLAY_TOP
+    bcc @next
+    sta LIGHT_SCRATCH
+    ldx LIGHT_SLOT_SAVE
+    lda FIGHTER_PROJECTILE_Y,x
+    sbc LIGHT_SCRATCH            ; C=1
+    cmp #LIGHT_HEIGHT_SCANLINES
+    bcc @vertical
+    cmp #(256-(PLAYER_FIGHTER_PROJECTILE_SPEED+PLAYER_FIGHTER_PROJECTILE_HEIGHT-1))
+    bcc @next
+@vertical:
+    ldy LIGHT_SLOT
+    lda FIGHTER_PROJECTILE_X,x
+    sec
+    sbc LIGHT_X,y
+    cmp #LIGHT_WIDTH_HPOS
+    bcs @next
+    lda #FIGHTER_PROJECTILE_FREE
+    sta FIGHTER_PROJECTILE_ACTIVE,x
+    jsr SECTOR_READER_STATS_LIGHT_HIT ; M5a-S2: one hit, then ENEMY_LIGHT_HIT
+    jsr light_hit_landed
+    ldx LIGHT_SLOT_SAVE
+    clc
+    rts
+@next:
+    dec LIGHT_SLOT
+    bpl @slot
+@target:
+    ldx LIGHT_SLOT_SAVE          ; no slot owns the cell: the old target path
+    ; A call, not a tail jump (interceptor-standoff Q4): its lethal debris
+    ; branch loads X, and the PairShot loop goes on from X - a garbage slot
+    ; skipped a higher shot's move and the summary counted it twice. LDX
+    ; keeps the carry the target path returns.
+    jsr entity_player_fighter_projectile_target
+    ldx LIGHT_SLOT_SAVE
+    rts
+
+; L1 page-cross placement: 29 bytes put the publish and update hot loops
+; on the same branch-cross profile as the $B478 baseline.
+    .res 29, $EA
+
 light_publish:
     jsr erase_fighter_projectile_overlays
     lda #(LIGHT_SLOT_COUNT-1)
@@ -271,16 +328,6 @@ light_publish:
     bmi @render_done
     jmp @render_slot
 @render_done:
-    rts
-
-; C=0 on return; A is the character-aligned top scanline of the slot in
-; LIGHT_SLOT. Uses Y, never X: light_shot and the emit path hold the
-; projectile slot in X across this call.
-light_top:
-    ldy LIGHT_SLOT
-    lda LIGHT_Y,y
-    and #$F8
-    clc
     rts
 
 ; After entity/effect simulation, once per SLOT: C decides motion and fire,
@@ -468,67 +515,14 @@ light_update:
     bne @level_glyph
     jmp @alive
 
-; Player PairShot scan, X = projectile slot. Carry clear consumes the slot as
-; the debris path does; otherwise defer to the existing debris/Raider target.
-; A shot hits at most one Light: the first slot that owns the cell wins.
-light_shot:
-    stx LIGHT_SLOT_SAVE          ; the caller's projectile slot
-    ; MEASURED: this is the frame's dominant Light cost on a shot-heavy
-    ; session - ~70 cycles per projectile in flight, because it runs once per
-    ; player PairShot and used to walk all four slots. The limit is safe here
-    ; for the same reason as the other two gated loops: it keys on STATE, and
-    ; a slot above the limit has none. light_admit raises the limit as it
-    ; fills a slot, so a Light admitted earlier in this very frame is inside
-    ; it even though the limit was last derived on the previous one.
-    lda LIGHT_SLOT_LIMIT
-    bne :+
-    jmp @target                  ; no slot occupied: straight to the old path
-:
-    sec
-    sbc #$01
-    sta LIGHT_SLOT
-@slot:
-    ldx LIGHT_SLOT
-    lda LIGHT_STATE,x
-    beq @next
-    cmp #LIGHT_BREAKUP_PENDING   ; already dead and erased: not a target
-    bcs @next
-    jsr light_top
-    cmp #ENTITY_GAMEPLAY_TOP
-    bcc @next
-    sta LIGHT_SCRATCH
-    ldx LIGHT_SLOT_SAVE
-    lda FIGHTER_PROJECTILE_Y,x
-    sbc LIGHT_SCRATCH            ; C=1
-    cmp #LIGHT_HEIGHT_SCANLINES
-    bcc @vertical
-    cmp #(256-(PLAYER_FIGHTER_PROJECTILE_SPEED+PLAYER_FIGHTER_PROJECTILE_HEIGHT-1))
-    bcc @next
-@vertical:
+; C=0 on return; A is the character-aligned top scanline of the slot in
+; LIGHT_SLOT. Uses Y, never X: light_shot and the emit path hold the
+; projectile slot in X across this call.
+light_top:
     ldy LIGHT_SLOT
-    lda FIGHTER_PROJECTILE_X,x
-    sec
-    sbc LIGHT_X,y
-    cmp #LIGHT_WIDTH_HPOS
-    bcs @next
-    lda #FIGHTER_PROJECTILE_FREE
-    sta FIGHTER_PROJECTILE_ACTIVE,x
-    jsr SECTOR_READER_STATS_LIGHT_HIT ; M5a-S2: one hit, then ENEMY_LIGHT_HIT
-    jsr light_hit_landed
-    ldx LIGHT_SLOT_SAVE
+    lda LIGHT_Y,y
+    and #$F8
     clc
-    rts
-@next:
-    dec LIGHT_SLOT
-    bpl @slot
-@target:
-    ldx LIGHT_SLOT_SAVE          ; no slot owns the cell: the old target path
-    ; A call, not a tail jump (interceptor-standoff Q4): its lethal debris
-    ; branch loads X, and the PairShot loop goes on from X - a garbage slot
-    ; skipped a higher shot's move and the summary counted it twice. LDX
-    ; keeps the carry the target path returns.
-    jsr entity_player_fighter_projectile_target
-    ldx LIGHT_SLOT_SAVE
     rts
 
 ; feat/interceptor-armour: A = enemy_light_hit's return, for the slot in
@@ -604,9 +598,9 @@ light_cell_resolve_sanitized:
 ; now changes nothing and cannot be forgotten later.
 ;
 ; Roadmap 4.6 step 5: the below-range exit returns in place rather than
-; branching to @keep. The kernel's address is wherever the window's C half
-; ends, so a far exit crosses a page or not by accident of layout - and when
-; step 5 moved the kernel up 112 B, it did, +1 cycle on every captured cell
+; branching to @keep. Before L1 the kernel followed the window's C half;
+; a far exit could cross by accident of layout. When step 5 moved the kernel
+; up 112 B it did, +1 cycle on every captured cell
 ; (MEASURED natively). The local rts is layout-proof and one cycle under both.
 light_cell_resolve:
     ; feat/interceptor-armour: a flashing Light's cells carry bit 7 clear,
@@ -735,6 +729,16 @@ boss_enter_read:
     jmp pin_sector_reader_failure_screen
 
 .include "life-capsule.s"
+
+; Pause and pause-quit can appear while a boss owns $0C00-$1FFF. Keep only
+; their five marker positions in the MAIN tail after the Light composite.
+.segment "PAUSE_FRONTEND"
+pause_frontend_marker_positions:
+    .word $4000+13*40+12, $4000+13*40+21
+    .word $4000+9*40+14, $4000+12*40+10, $4000+15*40+12
+pause_frontend_marker_positions_end:
+.assert pause_frontend_marker_positions = PAUSE_FRONTEND_MARKERS, lderror, "L1 pause marker ABI moved"
+.assert pause_frontend_marker_positions_end-pause_frontend_marker_positions = 10, error, "pause markers must be exactly ten bytes"
 
 .export boss_enter_read
 ; feat/boss-banners (the owner's smoke of 2026-10-18): the WARNING text

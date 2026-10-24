@@ -316,7 +316,8 @@ test("assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence", 
   assert.match(routine("handle_game_over_input", "handle_exit_input"),
     /jmp enter_main_menu/);
   assert.match(routine("enter_frontend_state", "enter_exited_state"),
-    /cmp #STATE_MAIN_MENU[\s\S]+jsr music_stop[\s\S]+jsr music_start_menu/);
+    // L1 stops music before the checked read, then starts it only for MAIN MENU.
+    /jsr music_stop[\s\S]+lda game_state\s+cmp #STATE_MAIN_MENU\s+bne :\+[\s\S]+jsr music_start_menu/);
 });
 
 test("gameplay timing values come from the executable runtime report", () => {

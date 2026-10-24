@@ -3996,7 +3996,166 @@ a session cannot identify its own PID as its shell's parent. The preflight
 session check is satisfied by owner confirmation of the session's own CLI PID
 via `ps -o pid,ppid,lstart,command -p <pid>`.
 
-**Next free decision section: §BV.**
+## BV. L1 decisions and special sectors (2026-10-24)
+
+Session: Codex. Owner decisions of 2026-10-24, implemented on
+`codex/l1-window-levers` as an **OWNER-SMOKE CANDIDATE**. The linked result and
+checks are in [the L1 plan](plans/l1-window-levers.md#7-phase-b-linked-result-2026-10-24).
+
+### BV.1 Menu overlay and resident frontend readers
+
+Choose **V1**: eleven raw, checked whole sectors, read at every menu entry
+into `$0C00-$18FF` (linked data `$0C00-$1117`, sectors 240-250). Reject
+boot-once retention because every boss entry overwrites `$0C00-$1FFF`.
+`$1900-$1FFF` remains untouched for L2. The full cross-link reader audit
+found only the pause and pause-quit marker positions read outside the checked
+menu phase; their five words (**10 B**) stay resident at `$3AE5-$3AEE`.
+GAME OVER and MAIN MENU complete the checked read before the first overlay
+reader; options, top scores, exit and the dormant ended record are reachable
+only after that entry. Summary, boss banner/WARNING, loader failure, fighter,
+capital and boss paths do not read the menu run. Cold font setup returns
+before the H3.1 overlay source copy; that copy follows the checked read.
+
+### BV.2 Menu timing gate
+
+Replace the historical 596-frame menu reference with the value measured
+after L1. Gates: patched-SIO cold boot to menu **≤650 PAL frames** and
+standard-SIO added return-to-menu delay **≤50 frames**. Measured on the linked
+campaign ATR: patched-SIO cold **597 frames (11.94 s)**, standard-SIO cold
+**1,384 frames (27.68 s)**, checked menu entry **42 frames (0.84 s)**
+against the previous 1-frame entry, hence **+41 frames (0.82 s)**.
+All eleven sectors were read without retry. These are emulator timings; the
+owner still tests the SIO2SD path on a real 65XE.
+
+### BV.3 Light page crossings and permanent stress set
+
+The relocated Light hot loops and indexed tables must cross no page they did
+not cross on `a3c8e47`. Linked before/after branch-cross counts are **zero**
+for all ten hot routines; indexed penalties are unchanged. Direct five-entry
+Light and twelve-entry capital vectors reach the MAIN addresses; there is no
+new per-frame trampoline. The target is **≤+2 cycles** in boss stress against
+clean main, with **8,500** the hard limit for every boss/case. The first
+Citadel L5 lance-firing attempt was **8,527** because the LIFE selector still
+reached its old address; rebinding it produced **8,423**, exactly clean main's
+**8,423**. Lance-firing lost-target cases are now permanently in the stress
+set, alongside the no-lance cases.
+
+| Reachable lost-target case | Clean main off / firing | L1 off / firing | Delta |
+| --- | ---: | ---: | ---: |
+| Citadel L4 | 7,697 / 8,060 | 7,697 / 8,060 | 0 / 0 |
+| Citadel L5 | 8,032 / 8,423 | 8,032 / 8,423 | 0 / 0 |
+| Spine L7 | 7,771 / 8,180 | 7,771 / 8,180 | 0 / 0 |
+| Spine L9 | 8,025 / 8,435 | 8,025 / 8,435 | 0 / 0 |
+| Bastion L10 | 8,058 / 8,467 | 8,058 / 8,467 | 0 / 0 |
+
+The exhaustive reachable all-state maxima are also unchanged: R1 L1
+**7,596**, Citadel L4/L5 **8,112/8,447**, Spine L7/L9
+**8,191/8,446**, Bastion L10 **8,478**; the tightest margin is Bastion's
+**22 cycles**. The permanent focused set includes off and firing cases for
+Citadel L5 and Spine L7/L9.
+Spine's synthetic last-module kill reaches `boss_death_read` rather than
+returning to the host harness; the harness now counts through that handoff
+and stops before disk I/O. The clean-main and L1 L7/L9 tables match, with
+zero rule-(B) clashes and all cases below 8,500.
+
+### BV.4 Special sectors
+
+**A. Longer higher levels:** allow 2-3 consecutive space sectors with
+different enemies, then capital, another space sector, an asteroid sector and
+the boss. This is data-only M7 authoring.
+
+**B. Asteroid bonus run:** the run follows a boss in the player's sequence
+but is implemented as the **first sector of the next level**. Several bonus
+pickups must be placed by data; today's lifecycle offers only one capsule at
+a time. P3/M3 supplies the pickup mechanism. Estimate **tens to a few
+hundred bytes** in the L2 module, then complete it in the rest of M6.
+
+**C. Minigame interludes:** after levels **3, 6 and 9**, between the level
+summary and the next level load, a disk-loaded minigame may run. Its type is
+undecided. The M4 plan must include a data-driven hook: per-level run ID,
+`0 = none`; load, `JSR`, return with score/lives result. The minigame owns its
+display list, charset, sound and input. Its implementation is outside the
+systems freeze and may arrive after 1.0.
+
+### BV.5 Post-1.0 reserve
+
+At L2 / systems freeze, decide whether the L2 module holds a **256-512 B**
+post-1.0 reserve. No L1 byte claims that space.
+
+### BV.6 Audit fixes and owner smoke
+
+Owner smoke **PASS**, 2026-10-24, for the **pre-audit** campaign candidate
+built from `382b91a`, ATR SHA-256
+`63bf14c0858d934f98ef99957cf9c083bfe3503ebd27c4640413acb6af1d5935`.
+Owner smoke **PASS**, 2026-10-25, for the **fixed L1 candidate** built from
+`b6a412a` (`b6a412aba3aaa578b07d14a497f5bac0f0ca460a`), campaign ATR SHA-256
+`410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
+The owner marks L1 **OWNER-ACCEPTED** and authorizes the normal branch build,
+merge into main, normal main build and push. No release is authorized.
+
+The independent [L1 audit](audits/2026-10-24-l1-window-levers.md) is preserved
+unchanged. L1-01 now models the CRC-checked packed hold at `$0C00` in the
+shared native fixture. Gameplay fixtures run the real bitmap-unpack / Light
+publication path; direct Light/STARFIELD injections are removed. L1-02 keeps
+the original ENTITY_CODE addresses with compressed pads, including the LIFE
+selector operand at `$984F`; the boot publisher uses the former extended-glyph
+slot. L1-03 restores exact content, MAIN-slack, glyph-address and sector pins;
+the boss entry reads exactly sectors **712-719**, six lance sectors plus its
+two-sector page-2 tail. Tests also retain the 14-B XEX-entry reclamation check
+separately from L1's labelled **114-B** stage-2 hold/validation addition.
+
+The publish-length failure can occur only after RAM corruption of an already
+CRC-checked record. The frontend is uninitialised and stage 2 has been
+replaced, so the failure now halts with red COLBK locally (**+2 B**, inside
+the existing slot), instead of entering the reader's retry UI. Menu-read
+failure drops the abandoned frontend return address (**+2 B**, no recurring
+frame cost); twenty consecutive failed reads preserve SP. The game disk must
+remain in the drive at **every menu entry**. GAME OVER followed by MAIN MENU
+still performs two checked reads; each has its own ≤50-frame added-delay gate.
+
+Menu CFG/assert bounds now stop at `$1180`. L2's `$1900-$1FFF` is overwritten
+by slot D / boss-death in boss phases and must be re-read at level start.
+The M3-H damaged-body buffer is gameplay-only and must be initialised after
+boot. Listed stale comments are corrected; the fixed campaign ATR is tracked
+in `dist/`. The boot observer now excludes transient stage-2 PC matches from
+the gameplay milestone; the loader-to-gameplay handoff assertion is unchanged.
+
+Linked resource result: **12,829 B** initial content (**+34 B** against the
+pre-audit L1 build), **823 B** to the planning STOP; **101** initial and **210**
+occupied boot/chunk sectors, DFMC **11/11**. MAIN slack **17 B**, window use
+**1,656 B**, M3-H's freed window **1,155 B**, and damaged-body reserve **32 B**
+are unchanged. No gameplay state allocation grows. ENTITY_CODE gains **405 raw B**
+against pre-audit L1, restoring clean main's **3,161 B** and **5-B** free tail
+(pre-audit: 410 B). The deterministic level-2
+route peaks at **31,517 cycles** on both `a3c8e47` and fixed L1 (**delta 0**),
+17 above the 31,500 target and 1,051 below the 32,568 hard gate, with no
+missed frames, extra VBI or DLI errors. All moved per-frame routines have
+zero new taken-branch page crossings; the complete listing-based comparison
+is kept with [the audit-fix evidence](diagnostics/l1-audit-fixes-2026-10-24/).
+
+Measured after the fixes: all reachable all-state maxima and off/firing cases
+in BV.3 are unchanged (**delta 0**); tightest is Bastion **8,478/8,500**.
+Boss entry R1/Citadel/Spine/Bastion is **325/340/340/344 host frames**, each
+≤350. Patched-SIO cold menu **598/650**, standard-SIO cold **1,384**, added
+menu-entry delay **41/50**. Cold/RESET/130XE/capital-restore boot smoke and all
+four after-boss frontend fixtures pass. An additional R1 scripted smoke
+runs 2,399 frames with one escort Light and lance charge/flight, max **29,144**
+wall cycles with no anomalies.
+
+One full `npm test`: **1,566 tests, 1,459 pass, 107 fail**. Focused comparison
+of those failed names on `a3c8e47`: **24 pass / 83 fail**. Focused repairs
+clear all **24 L1 failures** and two older window-ledger failures: **81
+pre-existing failures remain; zero new**. The audit's four-failure reference
+was its 15-file subset, not the full suite. No second full run or release
+evidence regeneration is claimed. Every edited test file and remaining
+first assertion is recorded in the audit-fix evidence. `boss-runtime`'s actual
+8-sector read passes; its separate pre-existing final-summary failure remains.
+The fixed candidate passed owner smoke on 2026-10-25 as recorded above.
+Merge/push is authorized after passing normal builds on the branch and main.
+Before v0.4.0, triage the remaining pre-existing test failures as stale
+validators versus real defects; STATUS records the owner's pre-release debt.
+
+**Next free decision section: §BW.**
 
 ---
 

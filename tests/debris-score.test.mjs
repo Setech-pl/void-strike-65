@@ -66,11 +66,12 @@ function bootedMemory() {
   installBootArtifact(memory, root, "atr");
   run(memory, "stage_boot_streams");
   run(memory, "unpack_resident_runtime");
-  run(memory, "unpack_entity_runtime");
   if (labels.has("publish_director_abi")) run(memory, "publish_director_abi");
+  run(memory, "unpack_entity_runtime");
   run(memory, "stage_a2_kernel");
   run(memory, "init_entity_effects");
   run(memory, "unpack_weapon_pickup_phase_runtime");
+  run(memory, "unpack_loader_bitmap");
   run(memory, "unpack_starfield_runtime");
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
   memory.fill(0, 0x80f4, 0x8110);

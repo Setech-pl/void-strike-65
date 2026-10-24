@@ -49,9 +49,11 @@ test("the save record has one fixed sector, named once and placed by the directo
 // RE-POINTED 2026-10-07 (audit-hardening, owner decision 1): a tenth entry,
 // the disk's identity sector (598, one sector, to the record's read-back
 // buffer), which the summary reads before every PUT.
-test("the overlay directory has ten entries; the summary code is entry 8 at $0500", () => {
+test("the overlay directory has eleven entries; the summary code is entry 8 at $0500", () => {
   const names = manifest.sectorReader.overlayDirectory.names;
-  assert.equal(names.length, 10);
+  // L1 adds the checked menu run as entry 10; existing entries keep their indices.
+  assert.equal(names.length, 11);
+  assert.equal(names[10], "menu data (L1)");
   assert.equal(names[8], "level summary code (M5a-S2)");
   assert.equal(names[9], "disk identity (audit-hardening)");
   const directory = readerLabels.get("overlay_directory") - 0xa000;
@@ -333,7 +335,8 @@ test("the stat hooks are operand-only in every full segment", () => {
   // RE-PINNED feat/interceptor-armour (owner answer F1 of 2026-10-12): 775 ->
   // 793 B, the survived hit's flash (start, shift, render, erase, resolver).
   // Not a stat hook.
-  assert.equal(Number.parseInt(kernelSegment[1], 16), 793, "the Light kernel grew");
+  // L1 adds a 29-B placement pad; executable Light instructions stay the same.
+  assert.equal(Number.parseInt(kernelSegment[1], 16), 822, "the Light kernel grew");
   assert.equal(manifest.broadsideRuntime.bytes, 6653, "BROADSIDE grew");
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: the bound 13,621 -> 13,626; the stat hooks still add none.
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13621 + 5,

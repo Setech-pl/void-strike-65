@@ -178,22 +178,12 @@ test("the code window is declared, guarded and addressable by the build", () => 
   assert.ok(window.address >= manifest.sectorReader.levelBuffer.address +
     manifest.sectorReader.levelBuffer.capacityBytes,
   "the window must start at or above the end of the level buffer the reader fills");
-  // Light multiplicity step 1b: the Light ASM kernel is its own link above
-  // the Director link's window half. Its start is not a chosen constant - it
-  // is where that half ended in this build - so the assertion is that the two
-  // halves MEET, not that the kernel sits at some address.
-  if (manifest.lightKernel != null) {
-    const kernel = manifest.lightKernel;
-    // directorHalfBytes, not usedBytes: since 2026-09-21 (finding F6)
-    // usedBytes counts both window links, so window.address + usedBytes is the
-    // kernel's END, not its start.
-    assert.equal(kernel.address, window.address + window.directorHalfBytes,
-      "the kernel block must start where the Director link's window half ends");
-    assert.equal(window.address + window.usedBytes, kernel.endExclusive,
-      "the two window links must close the used span exactly");
-    assert.ok(kernel.endExclusive <= 0xbc00,
-      "the kernel block must stop before the sector reader BSS at $BC00");
-  }
+  // L1 separates the MAIN Light link from the Director's window record.
+  const kernel = manifest.lightKernel;
+  assert.deepEqual([kernel.address, kernel.endExclusive, kernel.freeBytes], [0x3643, 0x3aef, 17]);
+  assert.equal(window.address + window.directorHalfBytes, 0xb478);
+  assert.equal(window.address + window.usedBytes, 0xb478);
+  assert.ok(kernel.endExclusive <= 0x3b00, "Light must stop before PMG DMA RAM");
   const reader = manifest.sectorReader;
   assert.equal(reader.address, 0xa000);
   assert.equal(reader.levelBuffer.address, 0xa600);

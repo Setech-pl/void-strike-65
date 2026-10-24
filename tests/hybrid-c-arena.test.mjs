@@ -157,11 +157,12 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // envelope absorbs it (13 -> 12 B) and every sector count holds.
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623, the envelope 78 -> 73 B; the sector count holds.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13622 /* RE-PINNED M6 stage 1b: the packed resident runtime, 1 B shorter */);
+  // L1 menu run removes boot content; compressed pads restore the ENTITY address profile.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12829);
   // The envelope 75 -> 78 B with the same 3 B, then 78 -> 73 with F2's 5 B;
   // the sector count holds.
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 74 /* RE-PINNED M6 stage 1b: the content 1 B shorter */);
-  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 99);
+  assert.equal(manifest.transportCapacity.initialBootSectors, 101);
   // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 208 -> 209. The
   // code window's C half took the one extension sector budget-1.0 M2 granted
   // the payload (record 8, 8 -> 9 sectors); this record did not move, and the
@@ -174,8 +175,8 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // guard's sector in the Light kernel's record.
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted +163 B of window):
   // 212 -> 213, the window record 10 -> 11 sectors; this record did not move.
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 213);
-  assert.equal(parsed.totalOccupiedSectors, 213);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 210);
+  assert.equal(parsed.totalOccupiedSectors, 210);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

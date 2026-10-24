@@ -31,6 +31,7 @@
 //   * The eight star glyphs are frontend charset codes 64-71, which ANTIC 4
 //     reaches and ANTIC 6/7 cannot - so the stars live in ANTIC 4 rows only.
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -38,6 +39,7 @@ import { fileURLToPath } from "node:url";
 
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { installBootArtifact } from "../scripts/runtime-image.mjs";
+import { runBossEntry } from "./boss-harness.mjs";
 import {
   compileMenuStars,
   loadFrontendH31Definition,
@@ -102,12 +104,23 @@ function bootedFrontend() {
   installBootArtifact(memory, root, "atr");
   run(memory, "stage_boot_streams");
   run(memory, "unpack_resident_runtime");
-  run(memory, "unpack_entity_runtime");
   if (labels.has("publish_director_abi")) run(memory, "publish_director_abi");
+  run(memory, "unpack_entity_runtime");
   run(memory, "stage_a2_kernel");
   run(memory, "unpack_weapon_pickup_phase_runtime");
+  run(memory, "unpack_loader_bitmap");
   run(memory, "unpack_starfield_runtime");
+  // The game reads this checked disk run on every menu entry. The CPU-only
+  // scene harness begins after that read rather than emulating the SIO wire.
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json")));
+  const menu = manifest.overlays.runs.find(({ name }) => name === "menu-data");
+  const atr = fs.readFileSync(path.join(root, "dist/void-strike-65.atr"));
+  const bytes = atr.subarray(16 + (menu.startSector - 1) * 128,
+    16 + (menu.startSector - 1 + menu.sectors) * 128);
+  assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), menu.sha256);
+  memory.set(bytes, menu.destination);
   run(memory, "copy_frontend_charset");
+  run(memory, "copy_frontend_extended_glyphs");
   return memory;
 }
 
@@ -588,5 +601,67 @@ test("only the MAIN MENU gets stars", () => {
           `state ${state} shows a star glyph at $${cell.address.toString(16)}`);
       }
     }
+  }
+});
+
+test("each boss RAM claim leaves pause intact and the checked run restores every frontend", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
+  const runInfo = manifest.overlays.runs.find(({ name }) => name === "menu-data");
+  assert.equal(runInfo.startSector, 240);
+  assert.equal(runInfo.sectors, 11);
+  const atr = fs.readFileSync(path.join(root, "dist/void-strike-65.atr"));
+  const diskBytes = atr.subarray(16 + (runInfo.startSector - 1) * 128,
+    16 + (runInfo.startSector - 1 + runInfo.sectors) * 128);
+  assert.equal(crypto.createHash("sha256").update(diskBytes).digest("hex"), runInfo.sha256);
+  assert.deepEqual(diskBytes, fs.readFileSync(path.join(root, "build/menu-overlay.bin")));
+
+  for (const [region, level] of [[1, 1], [2, 4], [3, 7], [4, 10]]) {
+    const entry = runBossEntry({ prepare: (memory) => { memory[0xa603] = level; } });
+    assert.equal(entry.end, "main_loop", `region ${region} entry`);
+    const reference = bootedFrontend();
+    const afterBoss = bootedFrontend();
+    afterBoss.set(entry.memory.subarray(0x0c00, 0x2000), 0x0c00);
+    // Pause and its quit confirmation are available during the boss fight,
+    // before the checked menu run has been read again.
+    for (const state of [8, 9]) {
+      enterState(reference, state);
+      enterState(afterBoss, state);
+      assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
+        reference.subarray(0x4000, 0x4400), `region ${region} pause state ${state}`);
+      run(reference, "select_frontend_display");
+      run(afterBoss, "select_frontend_display");
+      assert.deepEqual(afterBoss.subarray(0xd402, 0xd404),
+        reference.subarray(0xd402, 0xd404), `region ${region} pause display list ${state}`);
+    }
+
+    // Model the checked whole-sector reader's successful run, then compare
+    // every screen and its ANTIC list with the pre-boss reference.
+    afterBoss.set(diskBytes, runInfo.destination);
+    run(afterBoss, "copy_frontend_extended_glyphs");
+    for (const state of [1, 2, 3, 4, 5, 7]) {
+      enterState(reference, state);
+      enterState(afterBoss, state);
+      assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
+        reference.subarray(0x4000, 0x4400), `region ${region} frontend state ${state}`);
+      run(reference, "select_frontend_display");
+      run(afterBoss, "select_frontend_display");
+      assert.deepEqual(afterBoss.subarray(0xd402, 0xd404),
+        reference.subarray(0xd402, 0xd404), `region ${region} display list ${state}`);
+    }
+  }
+});
+
+test("L1 menu-read failure abandons exactly one frontend return address", () => {
+  const memory = bootedFrontend();
+  // Isolate a failed checked read; the failure screen itself never returns.
+  memory.set([0xa9, 4, 0x38, 0x60], 0xa006);
+  const cpu = new Nmos6502(memory);
+  const stack = cpu.sp;
+  for (let retry = 0; retry < 20; retry += 1) {
+    cpu.push(0x7f); cpu.push(0xfe);
+    cpu.pc = at("enter_main_menu");
+    for (let step = 0; step < 10_000 && cpu.pc !== 0xa0d6; step += 1) cpu.step();
+    assert.equal(cpu.pc, 0xa0d6);
+    assert.equal(cpu.sp, stack, `retry ${retry} leaked a return address`);
   }
 });

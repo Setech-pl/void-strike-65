@@ -50,8 +50,8 @@
 #pragma rodata-name ("DIRECTOR_C_RODATA")
 
 #define U8_AT(address) (*(volatile uint8_t*)(address))
-/* Fixed tail ABI; the last window link asserts LIFE_CAPSULE_BASE = $B82A. */
-#define LIFE_CAPSULE_SPAWNED U8_AT(0xB82Au)
+/* Fixed tail ABI; the last MAIN link asserts LIFE_CAPSULE_BASE = $3A14. */
+#define LIFE_CAPSULE_SPAWNED U8_AT(0x3A14u)
 
 #define DIFFICULTY_SETTING       U8_AT(0x4E70u)
 #define FRAME_COUNTER            U8_AT(0x0086u)

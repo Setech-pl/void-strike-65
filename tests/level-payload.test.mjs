@@ -433,5 +433,6 @@ test("T13: the byte rules - light_pair_for_record size-neutral, record 5 not gro
   assert.ok(extension.packedBytes <= 747, `record 5 is ${extension.packedBytes} B packed`);
   assert.equal(extension.externalChunk.sectors, 6);
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13652);
-  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
+  // L1 moves menu sources out of the initial block into a checked disk run.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 101);
 });

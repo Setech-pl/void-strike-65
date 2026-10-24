@@ -160,8 +160,8 @@ test("slot A is 16 whole sectors of BROADSIDE starting at update_broadside", () 
 });
 
 test("the capital restore run on the disk is the resident image of slot A", () => {
-  const [run] = manifest.overlays.runs;
-  assert.equal(manifest.overlays.runs.length, 1);
+  const run = manifest.overlays.runs.find(({ name }) => name === "capital-slot-a");
+  assert.equal(manifest.overlays.runs.length, 2);
   assert.equal(run.name, "capital-slot-a");
   assert.equal(run.startSector, OVERLAY_BASE_SECTOR);
   assert.equal(run.sectors, SLOT_A_BYTES / SECTOR_BYTES);

@@ -334,14 +334,13 @@ export function validateBuildDirectory(rootDirectory) {
     "Packed pickup stream does not publish the capital/player collision module");
   }
   if (manifest.lightKernel != null) {
-    // The two halves of the code window must meet exactly: the kernel starts
-    // where the Director link's C half ended, and ends below the reader BSS.
-    invariant(manifest.lightKernel.address === manifest.lightKernel.cHalfEndExclusive,
-      "the Light kernel must start where the Director link's window half ends");
+    // L1: the complete Light record follows the 46 live MAIN bytes.
+    invariant(manifest.lightKernel.address === 0x3643,
+      "the Light kernel must start after the retained MAIN bytes");
     invariant(manifest.lightKernel.endExclusive <= manifest.lightKernel.windowLimit,
-      "the Light kernel reaches the sector reader BSS at $BC00");
-    invariant(manifest.lightKernel.address >= 0xa000,
-      "the Light kernel must land in the window under the BASIC ROM");
+      "the Light kernel reaches PMG RAM at $3B00");
+    invariant(manifest.lightKernel.freeBytes >= 16,
+      "the Light composite leaves fewer than 16 MAIN bytes");
   }
   if (manifest.sectorReader != null) {
     const sectorReader = manifest.sectorReader;

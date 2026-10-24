@@ -37,6 +37,30 @@ Sections marked *earlier `2df89da`* were not regenerated.
 > file disagrees with it, the generated block is right. The hand-written
 > sections stay as design notes and history.
 
+## Throwaway nacelle spike allocation — 2026-10-25
+
+Applies only to `--spike-nacelles=1|2|3` on `codex/spike-nacelles`.
+The generated map below remains the unchanged flag-off campaign map. This
+spike is never merged; its runtime is not the accepted project baseline.
+
+| Spike-only range | Bytes | Owner / lifetime |
+| --- | ---: | --- |
+| `$B478-$B6A3` | 556 | capital publication/contact code, including a 191-B copy of the ordinary row renderer |
+| `$B6A4-$B6DF` | 60 | immutable per-eight-row extent descriptors, one selected pattern |
+| `$B6E0-$B6E4` | 5 | capital geometry scratch, written before use |
+| `$B6E5-$B724` | 64 | left two-cell strip backing, 32 rows |
+| `$B725-$B764` | 64 | right two-cell strip backing, 32 rows |
+| `$B765-$B8FA` | 406 | remainder of the permitted L1-free range |
+
+Total spike allocation **749 B**, no growth in any existing resident segment.
+The separate main-link `SPIKE_NACELLES` segment is appended to the existing
+window DFMC record by the spike build; no new loader or disk-read path.
+Existing routine hook sites preserve their addresses and segment sizes.
+`$B8FB-$B8FF` remains reserved; `$549E-$54BD` remains untouched. Both live
+nine-column maps retain their original extents through `$4E3F`; broadside
+state still starts at `$4E40`. No glyph slots are added. Production placement
+is deferred to L2 at `$1900-$1FFF`; this spike adds no L2 loading mechanism.
+
 <!-- BEGIN GENERATED MEMORY MAP: npm run memory-map -->
 
 ## Generated map — from the build

@@ -4603,7 +4603,7 @@ function main() {
         }) : [],
         layout.variant !== null ? regionRouteSessions.filter(({ bossRegion }) =>
           layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
-    : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
+    : [{ ...baselineSessions[0], policy: process.env.VS65_SPIKE_POLICY ?? baselineSessions[0].policy, difficulty: smokeDifficulty,
       id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
@@ -4724,6 +4724,11 @@ function main() {
       DFTRACE_FIRE_DELAY: String(session.fireDelay),
       DFTRACE_DIFFICULTY: String(session.difficulty),
       DFTRACE_POLICY: session.policy,
+      // Spike-only claimed allocation: the remaining free-tail watch begins
+      // after it. The native spike checker separately audits its code/state.
+      ...(labels.has("spike_nacelles_end") ? {
+        DFWATCH_TAIL_START: `0x${labels.get("spike_nacelles_end").toString(16)}`,
+      } : {}),
       DFTRACE_SESSION: session.id,
       DFTRACE_OUTPUT: outputPath,
       ...(firstWriterOutput === undefined ? {} : {

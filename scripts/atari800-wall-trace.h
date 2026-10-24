@@ -4302,6 +4302,19 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				(x > 58u ? 0x0bu : 0x0fu);
 		}
 	}
+	else if (strcmp(dftrace_policy, "nacelle-contact") == 0) {
+        /* Throwaway spike: ordinary joystick only, identical row-driven route
+         * on clean main and each pattern. Two short deliberate edge visits. */
+        unsigned phase = MEMORY_mem[dftrace_corridor_phase] |
+            ((unsigned) MEMORY_mem[dftrace_corridor_phase_hi] << 8);
+        unsigned capital = MEMORY_mem[dftrace_sector_state] < 6u;
+        unsigned target_x = 124u, target_y = capital ? 96u : 225u;
+        if (capital && phase >= 100u && phase < 136u) target_x = 87u;
+        if (capital && phase >= 250u && phase < 278u) target_x = 161u;
+        stick = x < target_x ? 0x07u : x > target_x ? 0x0bu : 0x0fu;
+        if (y > target_y) stick &= 0x0eu;
+        if (y < target_y) stick &= 0x0du;
+    }
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
 		strcmp(dftrace_policy, "broadside-proof") == 0 ||
 		strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
@@ -8956,7 +8969,8 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dftrace_current.gameplay_generation = dftrace_gameplay_generation;
 		if (dftrace_engine_screenshot_prefix != NULL &&
 			*dftrace_engine_screenshot_prefix != '\0' &&
-			dftrace_gameplay_generation == dftrace_engine_screenshot_generation &&
+			(dftrace_engine_screenshot_generation == 0u ||
+             dftrace_gameplay_generation == dftrace_engine_screenshot_generation) &&
 			dftrace_engine_screenshot_count < dftrace_engine_screenshot_limit) {
 			char path[1024];
 			/* DFTRACE_FULL_SCREENSHOT: the whole 384 x 240 buffer (scanlines

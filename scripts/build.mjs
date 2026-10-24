@@ -181,6 +181,9 @@ const distDirectory = path.join(rootDirectory, "dist");
 const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "package.json"), "utf8"));
 const gameVersion = packageDefinition.version;
 const quiet = process.argv.includes("--quiet");
+const nacellePattern = Number(process.argv.find(a => a.startsWith("--spike-nacelles="))?.split("=")[1] ?? 0);
+if (![0,1,2,3].includes(nacellePattern)) throw new Error("spike-nacelles must be 1, 2 or 3");
+
 const evidencePhase = runtimeEvidencePhase(process.argv);
 const candidateBuild = evidencePhase === "candidate";
 const releaseBuild = evidencePhase === "release";
@@ -448,7 +451,10 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
   laserTierValue !== null || bossVariantSlug !== undefined;
-if (releaseBuild && (isReviewVariant || twoPmgRaiderPrototype)) {
+if (nacellePattern && (isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement)) {
+  throw new Error("The nacelle spike requires a normal build without other variants or skipped gates");
+}
+if (releaseBuild && (nacellePattern || isReviewVariant || twoPmgRaiderPrototype)) {
   throw new Error("--release requires the campaign build with all computed gates");
 }
 
@@ -497,7 +503,7 @@ const variantDirectoryNameInner = (escortVariantId !== null
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
-const variantDirectoryName = variantDirectoryNameInner;
+const variantDirectoryName = nacellePattern ? `spike-nacelles-p${nacellePattern}${levelDebugSuffix}` : variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1895,6 +1901,24 @@ function splitStarfieldStreams(raw, stagingStreams) {
   };
 }
 
+function nacelleData(pattern) {
+  const entries = Array.from({length:60}, (_, module) => {
+    const row = module * 8;
+    if (row < 64 || row >= 352) return 0;
+    const phase = (module - 8) % 16;
+    let left = 0, right = 0;
+    if (pattern === 1) left = right = phase < 2 || phase >= 14 ? 0 : phase < 5 || phase >= 11 ? 1 : 2;
+    if (pattern === 2) {
+      const bulge = phase % 8;
+      const width = bulge === 0 || bulge === 7 ? 0 : bulge === 1 || bulge === 6 ? 1 : 2;
+      if (phase < 8) left = width; else right = width;
+    }
+    if (pattern === 3) left = right = phase < 5 || phase >= 11 ? 0 : phase < 7 || phase >= 9 ? 1 : 2;
+    return left | (right << 2);
+  });
+  return "spike_pattern_data:\n.byte " + entries.join(",") + "\n";
+}
+
 async function build() {
   fs.mkdirSync(buildDirectory, { recursive: true });
   fs.mkdirSync(distDirectory, { recursive: true });
@@ -2169,6 +2193,8 @@ async function build() {
     "ca65",
     {
       "/project/src/main.s": source,
+      "/project/build/spike-nacelles.s": fs.readFileSync(path.join(rootDirectory, "src", "spike-nacelles.s")),
+      "/project/build/spike-nacelles-data.inc": Buffer.from(nacelleData(nacellePattern)),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/loader-screen.inc": loaderInclude,
       "/project/build/loader-display-list.inc": loaderDisplayListInclude,
@@ -2200,6 +2226,7 @@ async function build() {
       "--cpu",
       "6502",
       "-g",
+      ...(nacellePattern ? ["-D", `SPIKE_NACELLES=${nacellePattern}`] : []),
       ...(enemyReviewHarness ? ["-D", "ENEMY_REVIEW_HARNESS=1"] : []),
       ...(enemyCombatReviewHarness || paletteCandidate
         ? ["-D", "ENEMY_COMBAT_REVIEW_HARNESS=1"] : []),
@@ -2245,7 +2272,7 @@ async function build() {
     "ld65",
     {
       "/project/build/main.o": objectFile,
-      "/project/cfg/atari-boot.cfg": bootConfig,
+      "/project/cfg/atari-boot.cfg": nacellePattern ? Buffer.from(bootConfig.toString().replace("SEGMENTS {", "MEMORY { NACELLE_RAM: start = $B478, size = $0483, type = ro, file = %O, define = yes; }\nSEGMENTS { SPIKE_NACELLES: load = NACELLE_RAM, type = ro, define = yes;")) : bootConfig,
     },
     [
       "--large-alignment",
@@ -2270,6 +2297,19 @@ async function build() {
   const mapFile = linked.outputs["/project/build/void-strike-65.map"];
   const labelFile = linked.outputs["/project/build/void-strike-65.lbl"];
   const labels = parseViceLabels(labelFile.toString("utf8"));
+  if (nacellePattern) {
+    const bytes = labels.get("__SPIKE_NACELLES_SIZE__");
+    const offset = labels.get("__NACELLE_RAM_FILEOFFS__");
+    const segment = directorModule.codeSegments.find(s => s.name === "hybrid-window");
+    if (segment.runAddress + segment.data.length !== 0xb478 || bytes > 1155)
+      throw new Error("Nacelle spike exceeds the L1-free window");
+    segment.data = Buffer.concat([segment.data, linkedPayload.subarray(offset, offset + bytes)]);
+    segment.packed = packBroadsideLzss(segment.data);
+    directorModule.basicWindowBytes += bytes;
+    directorModule.codeRaw = Buffer.concat(directorModule.codeSegments.map(s => s.data));
+    directorModule.codePacked = Buffer.concat(directorModule.codeSegments.map(s => s.packed));
+    writeFile(path.join(buildDirectory, "spike-nacelles.json"), Buffer.from(JSON.stringify({pattern:nacellePattern, address:0xb478, bytes}, null, 2)));
+  }
   const menuOverlayAddress = labels.get("__MENU_OVERLAY_RUN__");
   const menuOverlayBytes = labels.get("__MENU_OVERLAY_SIZE__");
   const menuOverlayFileOffset = labels.get("__MENU_OVERLAY_RAM_FILEOFFS__");
@@ -4719,7 +4759,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
+    buildVariant: nacellePattern ? variantDirectoryName : playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
@@ -5309,7 +5349,7 @@ async function build() {
         lightKernelBytes: 0,
         usedBytes: directorModule.basicWindowBytes,
         freeBytes: hybridWindowCapacityBytes - directorModule.basicWindowBytes,
-        beforeLanceFreeBytes: BOSS_LANCE_ADDRESS - windowCEnd,
+        beforeLanceFreeBytes: BOSS_LANCE_ADDRESS - (nacellePattern ? hybridWindowAddress + directorModule.basicWindowBytes : windowCEnd),
         availability: "unconditional: disable_basic_rom forces PORTB bit 1 and writes " +
           "BASICF at every stage-2 entry",
         boundedBy: { below: `${levelBufferSectors}-sector level buffer ` +

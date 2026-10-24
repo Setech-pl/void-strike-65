@@ -7144,6 +7144,11 @@ set_enemy_hull_source:
 
 ; Draws the next finite sector row without advancing its shared longitudinal
 ; coordinate. The right ship uses a fixed eight-row content offset only.
+.if .defined(SPIKE_NACELLES)
+draw_hull_row:
+    jmp spike_draw_hull_row
+    .res $BF-3, $00
+.else
 draw_hull_row:
     lda corridor_phase
     sta HULL_DRAW_ROW_LO
@@ -7249,6 +7254,8 @@ draw_hull_row:
     bne @clear_enemy
 @done:
     rts
+
+.endif
 
 .segment "BROADSIDE"
 
@@ -7499,8 +7506,15 @@ commit_prepared_hull_row:
     ; The sole caller has resolved the fixed divider. The two static sides can
     ; share one index, with their last cells outside the loop. An unrotated
     ; hull-only path fails the physical-row key above, without a second flag.
+.if .defined(SPIKE_NACELLES)
+    jsr spike_commit_strips
+    nop
+    nop
+    nop
+.else
     lda PREPARED_HULL_ROW+8
     sta GAMEPLAY_DIVIDER_SCREEN+8
+.endif
     lda PREPARED_HULL_ROW+39
     sta GAMEPLAY_DIVIDER_SCREEN+39
     ldy #7
@@ -7651,6 +7665,10 @@ integration_pickup_pending_tick:
 ; therefore a complete proof that the player cannot contact either capital
 ; hull; carry clear asks the exact source-row resolver to handle an edge case.
 player_inside_universal_hull_corridor:
+.if .defined(SPIKE_NACELLES)
+    jmp spike_safe_corridor
+    .res 13, 0
+.else
     lda player_x
     cmp #$54
     bcc @edge
@@ -7662,6 +7680,8 @@ player_inside_universal_hull_corridor:
 @edge:
     clc
     rts
+
+.endif
 
 ; Only immutable source cells are prepared. Difficulty is immutable throughout
 ; gameplay (including pause); restart invalidates after init_screen. The key
@@ -9816,7 +9836,11 @@ handle_player_hull_contact:
     jsr resolve_allied_sector_row
     bcs @enemy_row
     tay
+.if .defined(SPIKE_NACELLES)
+    jsr spike_allied_boundary
+.else
     lda allied_collision_boundaries,y
+.endif
 @allied_boundary:
     cmp PLAYER_CONTACT_LEFT
     bcc :+
@@ -9854,7 +9878,11 @@ handle_player_hull_contact:
     jsr resolve_enemy_sector_row
     bcs @next_row
     tay
+.if .defined(SPIKE_NACELLES)
+    jsr spike_enemy_boundary
+.else
     lda enemy_collision_boundaries,y
+.endif
 @enemy_boundary:
     cmp PLAYER_CONTACT_RIGHT
     bcs :+
@@ -13456,3 +13484,7 @@ SPLASH_SPACE_KEY = $21          ; POKEY key code for SPACE, KBCODE bits 0-5
 .export weapon_pickup_release_active_mask, weapon_pickup_collect_booster
 .export integration_pickup_reveal_body, EFFECT_GROWTH_GLYPH_BASE, PICKUP_BOOST_COLOUR
 .export FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
+
+.if .defined(SPIKE_NACELLES)
+.include "spike-nacelles.s"
+.endif

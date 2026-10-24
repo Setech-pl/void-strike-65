@@ -3891,7 +3891,112 @@ remains stale-validator debt. Owner authorizes the acceptance commit, no-ff
 merge, one normal build on main with an ATR identical to the smoked candidate,
 then push of main and the task branch. No release or additional measurements.
 
-**Next free decision section: §BU.**
+## BU. Planning direction after the memory/cycles audit (2026-10-23)
+
+Session: Codex.
+
+Source: [docs/audits/2026-10-23-memory-cycles.md](audits/2026-10-23-memory-cycles.md),
+audited main `6dae5a6`; static audit, trace **0 min**. **E** marks the audit's
+static planning estimates, not measured runtime or linked placement proof.
+
+### BU.1 Lever plan
+
+**Finding:** the full pre-M7 plan does not fit RAM even with optimistic levers:
+**E 1 720 B** conditional relief versus **E 1 632–3 598 B** contingency demand;
+nacelles + dock + demo add approximately **E 380–1 136 B** code.
+
+**Decision:**
+
+- **L1, first, before M3-H:** menu-data overlay, then move the complete Light
+  composite (**1 155 B**) into MAIN holes (**$3615–$3AFF**, **1 259 B** gross
+  target). Covers M3-H's **E 472–516 B** window need, leaving **E 639–683 B**.
+  M3-H's **32-B** damaged-body buffer: candidate home is the **70-B PROJECTILES
+  tail**, subject to writer/lifetime proof; fallback is **32 B of the STARFIELD
+  tail**.
+- **L2, after the nacelle spike, before M3-H production growth beyond L1:** a
+  fighter/capital-phase module in boss low RAM (**$1900–$1FFF, 1 792 B**), loaded
+  with the level at level start, with **no mid-sector disk reads**. Boss install
+  overwrites it; the M4 next-level loop reloads it. Home for nacelles, the
+  repair dock and any later capital Lights.
+- **Not taken now:** LEVEL_BUFFER **16→15/14** shrink (boss band relocation
+  risk), A2_KERNEL packing (**E ~0 net**). The **352-B STARFIELD tail** stays
+  reserve. The **5 B at $B8FB** stay reserved for the lever work.
+
+### BU.2 Capital nacelles
+
+Use software collision extending the existing hull boundaries: audit D7's
+recommended SW variant, bounded side strips, contiguous edge and an updated
+universal-corridor fast reject. Hardware P0PF is rejected: there is no
+hull-only colour register, and HITCLR runs before contact.
+
+Contact keeps existing behaviour: **2 HULL damage units**, push-back/clamp,
+**25-frame cooldown**. No instant death.
+
+After L1, use a throwaway spike branch in `~/Projects/dark-fighter`, where
+emulator sources are available, with a real capital-row trace measurement and
+**2–3 taper patterns recorded as GIFs** for owner choice. Production mechanism
+belongs with **M3**; pattern sets are authored in **M7**. EASY must retain a
+generous, telegraphed central channel; owner play decides.
+
+### BU.3 Lights in capital sectors
+
+Deferred to **M7**, only if budget remains after a **one-Light proof**
+(**E +700–3 500 CPU cycles**, **E 80–320 B resident**). Not in the base plan.
+The backlog **4.8c** entry stays.
+
+### BU.4 Repair — rest of M6
+
+A fly-through dock in the allied capital hull, as an **open recessed bay**,
+not an enclosed tunnel, on the same SW edge as nacelles. Increment after the
+shared mechanism: **E 48–96 B resident / 160–320 B overlay code**. This replaces
+the capsule-style repair estimate.
+
+### BU.5 New sector type
+
+For **1.0**, one asteroid-themed sector built from existing debris support,
+with ordinary waves suppressed: **data only, 0 B**, authored in **M7** and
+judged by owner play. A true bounded minefield (**E 384–960 B code + 64–192 B
+state**) is **after 1.0**.
+
+### BU.6 Boss variants
+
+Scalar data only: HP scale, bonus, laser damage/warning/reload through existing
+fields, **0 B**. Optionally a hull colour per region (audit D6,
+**E 0–32 B**). No per-level boss art or topology: Bastion overlay F has **4 B
+free**.
+
+### BU.7 Campaign shape
+
+**1.0 = 12 levels, 4 regions × 3 levels**, confirming §AC.
+
+**Finding:** enemy hull style/steel currently map by quarters of
+**LEVEL_MAX_ID=16** (**1–4 / 5–8 / 9–12 / 13–16**), while boss regions,
+summary art and escort validation use groups of **3**. With 12 levels, hull
+style 4 would never appear and hull regions would not match boss regions.
+
+**Decision:** in **M4**, a single **levels-per-region constant** drives boss
+region, enemy hull style, summary art region and steel; for 1.0 it is **3**.
+This supersedes the four-levels-per-hull-style mapping for 1.0.
+**LEVEL_MAX_ID stays 16.** Sixteen levels (**4×4**) are a post-1.0 option:
+constant change + data; disk has **315–363 free sectors** after that campaign,
+and the save record fits **16 entries**.
+
+### BU.8 Order
+
+**L1 → nacelle spike (GIFs + trace) → L2 → M3-H → M3 → M4 (12 levels, 4×3)
+→ rest of M6 (dock, weapon roles, demo) → systems freeze → M7 (asteroid sector
+from data, boss scalar variants, 12 levels) → M8 → M9.**
+
+Still open before M4: region order — **Citadel as region 2 versus final R4**.
+
+### BU.9 Process — session identity
+
+Codex CLI **0.164** runs shell commands under the Codex app-server daemon, so
+a session cannot identify its own PID as its shell's parent. The preflight
+session check is satisfied by owner confirmation of the session's own CLI PID
+via `ps -o pid,ppid,lstart,command -p <pid>`.
+
+**Next free decision section: §BV.**
 
 ---
 

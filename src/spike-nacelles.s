@@ -126,14 +126,6 @@ spike_draw_hull_row:
     sta spike_left_strips+1,x
     sta spike_right_strips,x
     sta spike_right_strips+1,x
-    ldy #9
-    sta (dst_ptr),y
-    iny
-    sta (dst_ptr),y
-    ldy #29
-    sta (dst_ptr),y
-    iny
-    sta (dst_ptr),y
     lda #0
     sta spike_side
     lda corridor_phase
@@ -149,12 +141,7 @@ spike_draw_hull_row:
     bne :+
     sta spike_left_strips+1,x
 :
-    ldy #10
-    ldx spike_width
-    cpx #2
-    beq :+
-    dey
-:
+    ldy #8
 @left:
     sta (dst_ptr),y
     dey
@@ -182,18 +169,28 @@ spike_draw_hull_row:
     bne :+
     sta spike_right_strips+1,x
 :
-    ldy #29
-    ldx spike_width
-    cpx #2
-    beq :+
-    iny
-:
+    ldy #31
 @right:
     sta (dst_ptr),y
     iny
     cpy #35
     bne @right
 @done:
+    ; The separately reserved strip records are the authoritative source of
+    ; the extra cells, including blank cells on entry/exit and zero widths.
+    ldx spike_strip_index
+    ldy #9
+    lda spike_left_strips,x
+    sta (dst_ptr),y
+    iny
+    lda spike_left_strips+1,x
+    sta (dst_ptr),y
+    ldy #30
+    lda spike_right_strips,x
+    sta (dst_ptr),y
+    dey
+    lda spike_right_strips+1,x
+    sta (dst_ptr),y
     rts
 
 ; Same cache key: coordinate/phase/physical row plus immutable difficulty

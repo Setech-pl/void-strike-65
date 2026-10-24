@@ -45,14 +45,14 @@ spike is never merged; its runtime is not the accepted project baseline.
 
 | Spike-only range | Bytes | Owner / lifetime |
 | --- | ---: | --- |
-| `$B478-$B6A3` | 556 | capital publication/contact code, including a 191-B copy of the ordinary row renderer |
-| `$B6A4-$B6DF` | 60 | immutable per-eight-row extent descriptors, one selected pattern |
-| `$B6E0-$B6E4` | 5 | capital geometry scratch, written before use |
-| `$B6E5-$B724` | 64 | left two-cell strip backing, 32 rows |
-| `$B725-$B764` | 64 | right two-cell strip backing, 32 rows |
-| `$B765-$B8FA` | 406 | remainder of the permitted L1-free range |
+| `$B478-$B6A2` | 555 | capital publication/contact code, including a 191-B copy of the ordinary row renderer |
+| `$B6A3-$B6DE` | 60 | immutable per-eight-row extent descriptors, one selected pattern |
+| `$B6DF-$B6E3` | 5 | capital geometry scratch, written before use |
+| `$B6E4-$B723` | 64 | left two-cell strip backing, 32 rows |
+| `$B724-$B763` | 64 | right two-cell strip backing, 32 rows |
+| `$B764-$B8FA` | 407 | remainder of the permitted L1-free range |
 
-Total spike allocation **749 B**, no growth in any existing resident segment.
+Total spike allocation **748 B**, no growth in any existing resident segment.
 The separate main-link `SPIKE_NACELLES` segment is appended to the existing
 window DFMC record by the spike build; no new loader or disk-read path.
 Existing routine hook sites preserve their addresses and segment sizes.

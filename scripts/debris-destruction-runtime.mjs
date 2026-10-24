@@ -431,22 +431,13 @@ export function nativeRoutineHarness({ root = defaultRoot, artifact = "atr" } = 
   if (requiresBroadsideUnpack) runRoutine(memory, labels, "unpack_boot_broadside_runtime");
   runRoutine(memory, labels, "stage_boot_streams");
   runRoutine(memory, labels, "unpack_resident_runtime");
-  runRoutine(memory, labels, "unpack_entity_runtime");
   publishDirectorAbiIfPresent(memory, labels);
+  runRoutine(memory, labels, "unpack_entity_runtime");
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
-  // This isolated fixture skips the loader bitmap and its later publication
-  // step. Install the linked composite before calling its LIFE routines.
-  const lightManifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json")));
-  memory.set(fs.readFileSync(path.join(root, "build", "light-kernel.bin")),
-    lightManifest.lightKernel.address);
+  runRoutine(memory, labels, "unpack_loader_bitmap");
   runRoutine(memory, labels, "unpack_starfield_runtime");
-  // The abbreviated fixture omits the cold menu read and its scratch reuse;
-  // install the final linked STARFIELD bytes for isolated gameplay calls.
-  const starManifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json")));
-  memory.set(fs.readFileSync(path.join(root, "build", "starfield-runtime.bin")),
-    starManifest.starfieldRuntime.runAddress);
   runRoutine(memory, labels, "copy_charset");
   runRoutine(memory, labels, "install_entity_effects_glyph");
   initialiseRows(memory, labels, 0);
@@ -469,11 +460,12 @@ export function executeDebrisDestructionTrace({
   if (requiresBroadsideUnpack) runRoutine(memory, labels, "unpack_boot_broadside_runtime");
   runRoutine(memory, labels, "stage_boot_streams");
   runRoutine(memory, labels, "unpack_resident_runtime");
-  runRoutine(memory, labels, "unpack_entity_runtime");
   publishDirectorAbiIfPresent(memory, labels);
+  runRoutine(memory, labels, "unpack_entity_runtime");
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
+  runRoutine(memory, labels, "unpack_loader_bitmap");
   runRoutine(memory, labels, "unpack_starfield_runtime");
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
   // Boot staging leaves residue in $8100-$810F; lifecycle_c_init clears the
@@ -584,11 +576,12 @@ export function executeInterceptorBreakupTrace({
   if (requiresBroadsideUnpack) runRoutine(memory, labels, "unpack_boot_broadside_runtime");
   runRoutine(memory, labels, "stage_boot_streams");
   runRoutine(memory, labels, "unpack_resident_runtime");
-  runRoutine(memory, labels, "unpack_entity_runtime");
   publishDirectorAbiIfPresent(memory, labels);
+  runRoutine(memory, labels, "unpack_entity_runtime");
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
+  runRoutine(memory, labels, "unpack_loader_bitmap");
   runRoutine(memory, labels, "unpack_starfield_runtime");
   if (legacyEffectOverlapResolver) {
     memory[requiredLabel(labels,
@@ -862,11 +855,12 @@ export function executeProjectileDebrisBackingTrace({
   if (requiresBroadsideUnpack) runRoutine(memory, labels, "unpack_boot_broadside_runtime");
   runRoutine(memory, labels, "stage_boot_streams");
   runRoutine(memory, labels, "unpack_resident_runtime");
-  runRoutine(memory, labels, "unpack_entity_runtime");
   publishDirectorAbiIfPresent(memory, labels);
+  runRoutine(memory, labels, "unpack_entity_runtime");
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
+  runRoutine(memory, labels, "unpack_loader_bitmap");
   runRoutine(memory, labels, "unpack_starfield_runtime");
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
   runRoutine(memory, labels, "copy_charset");

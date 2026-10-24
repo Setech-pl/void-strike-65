@@ -166,7 +166,8 @@ test("decision 32 (re-pointed): black, then the banner's title, the theme starte
     // tail (712-715; the meter and the readiness indicator, plan §6.3);
     // journal §BH: five (712-716; the hollow mark, the dry shot). RE-PINNED
     // M6 stage 1b (journal §BK): seven (712-718; the PMG gauges).
-    ...run(BOSS.lance.startSector, BOSS.lance.sectors),
+    // L1-03: the real entry reads the six-sector lance AND its page-2 tail.
+    ...run(712, 8),
     ...run(634, 3), ...run(637, 3),                       // the band: rows 0-5, rows 6-7 + tables
     ...run(640, charsetSectors),                          // the region's charset at $0C00
     // RE-POINTED S5-1 (owner decision Q9, plan s5-boss-regions §4.1): the

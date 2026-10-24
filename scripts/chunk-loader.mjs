@@ -422,12 +422,22 @@ export function verifyChunkTransport({ atrBody, manifest, unpackLz, onChunk }) {
   return parsed;
 }
 
-export function loadChunkFixture({ atrBody, manifest, memory, unpackLz, onPublish }) {
+export function loadChunkFixture({ atrBody, manifest, memory, unpackLz, onPublish, heldRecords = [] }) {
   invariant(memory instanceof Uint8Array && memory.length >= 0x10000,
     "fixture memory must cover 64 KiB");
   return verifyChunkTransport({ atrBody, manifest, unpackLz, onChunk(record, raw) {
-    memory.set(raw, record.finalDestination);
-    onPublish?.(record, raw);
+    const hold = heldRecords.find(({ finalDestination }) => finalDestination === record.finalDestination);
+    if (hold) {
+      // Stage 2 has checked the complete sector run. Preserve its packed bytes
+      // without publishing over MAIN's still-live bitmap/resident sources.
+      invariant(record.type === CHUNK_TYPE_LZ && record.packedLength <= hold.capacity,
+        "held boot record exceeds its reviewed packed reservation");
+      const offset = (record.startSector - 1) * ATR_SECTOR_BYTES;
+      memory.set(atrBody.subarray(offset, offset + record.packedLength), hold.address);
+    } else {
+      memory.set(raw, record.finalDestination);
+      onPublish?.(record, raw);
+    }
   } });
 }
 

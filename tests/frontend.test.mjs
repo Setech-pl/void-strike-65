@@ -384,7 +384,7 @@ test("frontend charset and transient loader tail stay in their bounded ranges", 
   assert.ok(labels.get("draw_main_menu_scene") >= labels.get("__ENTITY_CODE_RUN__"));
   assert.ok(labels.get("frontend_glyph_rows") >= frontendStart);
   assert.ok(labels.get("main_menu_display_list") >= 0x0c00 &&
-    labels.get("game_over_display_list_end") <= 0x1900,
+    labels.get("game_over_display_list_end") <= 0x1180,
   "menu and game-over lists must stay in the checked L1 menu run");
   assert.ok(labels.get("loader_display_list_lzss") < labels.get("loader_bitmap_lzss"));
   assert.ok(labels.get("loader_bitmap_lzss") < 0x4000);

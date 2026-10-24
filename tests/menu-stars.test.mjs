@@ -104,17 +104,21 @@ function bootedFrontend() {
   installBootArtifact(memory, root, "atr");
   run(memory, "stage_boot_streams");
   run(memory, "unpack_resident_runtime");
-  run(memory, "unpack_entity_runtime");
   if (labels.has("publish_director_abi")) run(memory, "publish_director_abi");
+  run(memory, "unpack_entity_runtime");
   run(memory, "stage_a2_kernel");
   run(memory, "unpack_weapon_pickup_phase_runtime");
-  // This scene fixture starts after stage 2 has decoded the checked Light
-  // record. The boot smoke covers the actual unpack and publish order.
-  memory.set(fs.readFileSync(path.join(root, "build/light-kernel.bin")), 0x3643);
+  run(memory, "unpack_loader_bitmap");
   run(memory, "unpack_starfield_runtime");
   // The game reads this checked disk run on every menu entry. The CPU-only
   // scene harness begins after that read rather than emulating the SIO wire.
-  memory.set(fs.readFileSync(path.join(root, "build/menu-overlay.bin")), 0x0c00);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json")));
+  const menu = manifest.overlays.runs.find(({ name }) => name === "menu-data");
+  const atr = fs.readFileSync(path.join(root, "dist/void-strike-65.atr"));
+  const bytes = atr.subarray(16 + (menu.startSector - 1) * 128,
+    16 + (menu.startSector - 1 + menu.sectors) * 128);
+  assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), menu.sha256);
+  memory.set(bytes, menu.destination);
   run(memory, "copy_frontend_charset");
   run(memory, "copy_frontend_extended_glyphs");
   return memory;
@@ -644,5 +648,20 @@ test("each boss RAM claim leaves pause intact and the checked run restores every
       assert.deepEqual(afterBoss.subarray(0xd402, 0xd404),
         reference.subarray(0xd402, 0xd404), `region ${region} display list ${state}`);
     }
+  }
+});
+
+test("L1 menu-read failure abandons exactly one frontend return address", () => {
+  const memory = bootedFrontend();
+  // Isolate a failed checked read; the failure screen itself never returns.
+  memory.set([0xa9, 4, 0x38, 0x60], 0xa006);
+  const cpu = new Nmos6502(memory);
+  const stack = cpu.sp;
+  for (let retry = 0; retry < 20; retry += 1) {
+    cpu.push(0x7f); cpu.push(0xfe);
+    cpu.pc = at("enter_main_menu");
+    for (let step = 0; step < 10_000 && cpu.pc !== 0xa0d6; step += 1) cpu.step();
+    assert.equal(cpu.pc, 0xa0d6);
+    assert.equal(cpu.sp, stack, `retry ${retry} leaked a return address`);
   }
 });

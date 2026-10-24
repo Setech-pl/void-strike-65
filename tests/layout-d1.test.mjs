@@ -82,6 +82,10 @@ function stageArtifact(artifact, fill) {
   "the pickup record's second stream publishes the resident window");
   assert.deepEqual(Buffer.from(memory.subarray(glueHolding, glueHolding + glue.length)), glue,
     "the window expansion leaves the GLUE hold intact");
+  run(memory, "unpack_loader_bitmap");
+  const light = fs.readFileSync(path.join(root, "build/light-kernel.bin"));
+  assert.deepEqual(Buffer.from(memory.subarray(0x3643, 0x3643 + light.length)), light,
+    "the real bitmap-unpack path publishes the held Light record byte-exactly");
   run(memory, "unpack_starfield_runtime");
   const finish = labels.get("finish_startup_after_loader");
   const savedFinish = memory[finish];
@@ -148,7 +152,8 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
 //     more sectors than that needs (scripts/chunk-loader.mjs
 //     CHUNK_FOOTER_BYTES; the build's sectorsFor).
 // The second had no test on the built image before this one.
-const BOOT_SECTORS_IN_FORCE = 107;
+// L1 moves menu data to its own run; compressed address pads keep 101 boot sectors.
+const BOOT_SECTORS_IN_FORCE = 101;
 const INITIAL_BLOCK_STOP_BYTES = 13652;
 const SECTOR_BYTES = 128;
 const CHUNK_FOOTER_BYTES = 21;

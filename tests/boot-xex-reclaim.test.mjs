@@ -51,7 +51,13 @@ test("boot_stage2_xex_entry is gone from the source, its exports and the link", 
 
 test("the initial block returns the entry's 14 bytes", () => {
   assert.equal(labels.get("__BOOT_STAGE2_RUN__"), 0x21c1);
-  assert.ok(labels.get("__BOOT_STAGE2_SIZE__") <=
+  // L1 adds exactly 114 B of checked hold/validation. Subtract only that
+  // labelled feature to retain the original 14-B entry-reclamation contract.
+  const holdBytes = labels.get("l1_stage2_hold_copy_end") - labels.get("l1_stage2_hold_copy_start") +
+    labels.get("l1_stage2_hold_validate_end") - labels.get("l1_stage2_hold_validate_start");
+  assert.equal(holdBytes, 114);
+  assert.equal(labels.get("__BOOT_STAGE2_SIZE__"), 1446);
+  assert.ok(labels.get("__BOOT_STAGE2_SIZE__") - holdBytes <=
     MAIN_BOOT_STAGE2_BYTES - RECLAIMED_BYTES + BLANKING_BYTES,
     `BOOT_STAGE2 is ${labels.get("__BOOT_STAGE2_SIZE__")} B`);
   const content = manifest.transportCapacity.initialBootContentBytes;
@@ -60,8 +66,9 @@ test("the initial block returns the entry's 14 bytes", () => {
    assert.ok(content <= MAIN_INITIAL_CONTENT_BYTES - RECLAIMED_BYTES + BLANKING_BYTES + HARDWARE_AUDIO_BYTES,
     `initial block content is ${content} B`);
   // The transport STOP rule (no new boot sector) holds with room to spare.
-  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
-  assert.equal(manifest.bootSectors, 107);
+  // L1 removes menu sources from boot; the checked run is read at menu entry.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 101);
+  assert.equal(manifest.bootSectors, 101);
 });
 
 test("the ATR entry is the one stage-2 entry and the $02 token has one writer", () => {

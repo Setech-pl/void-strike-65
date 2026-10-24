@@ -169,7 +169,8 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   assert.equal(manifest.residentCapacity.basicWindow.address +
     manifest.residentCapacity.basicWindow.usedBytes, kernel.cHalfEndExclusive);
   assert.ok(kernel.endExclusive <= 0x3b00, "Light must stop before PMG RAM");
-  assert.ok(kernel.freeBytes >= 16, `MAIN holes tail ${kernel.freeBytes} B`);
+  // L1-03: the complete composite leaves exactly 17 B before PMG RAM.
+  assert.equal(kernel.freeBytes, 17);
   // The frozen five-entry vector table is main.s's only binding to the kernel.
   assert.deepEqual(Object.values(kernel.vectors),
     [0, 1, 2, 3, 4].map((index) => kernel.address + index * 3));
@@ -236,7 +237,8 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // ENTITY_CODE glyph bank.
   // Re-recorded 2026-10-10, fix/hardware-audio (F2): 22 -> 17, the cold
   // start's 5-byte SKCTL write lengthens the ENTITY_CODE staging.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 310,
+  // L1-02 compressed address pads spend 32 B of ENTITY staging headroom.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 278,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.
@@ -404,6 +406,8 @@ test("light_update installs the selected archetype's art into glyphs 120/121", (
   }
   // Both 16-byte tables sit contiguously at the ENTITY_CODE tail, one page.
   const wingman = L("light_glyph");
+  // L1-02 restores the original ENTITY_CODE table addresses.
+  assert.equal(L("light_interceptor_glyph"), 0x9d37);
   assert.equal(L("light_interceptor_glyph"), wingman + 16);
   assert.equal(L("light_glyph_end"), wingman + 32);
   assert.equal(wingman >> 8, (wingman + 31) >> 8, "no page crossing");

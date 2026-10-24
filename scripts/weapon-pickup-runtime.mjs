@@ -139,13 +139,13 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   for (const routine of [
     "stage_boot_streams", "unpack_resident_runtime",
     "unpack_entity_runtime", "stage_a2_kernel", "init_entity_effects",
-    "unpack_weapon_pickup_phase_runtime", "unpack_starfield_runtime",
+    "unpack_weapon_pickup_phase_runtime", "unpack_loader_bitmap", "unpack_starfield_runtime",
     "copy_charset", "copy_hud_charset", "init_fighter_projectiles",
     "install_entity_effects_glyph",
   ]) {
     try {
       runRoutine(memory, labels, routine);
-      if (routine === "unpack_entity_runtime" && labels.has("publish_director_abi")) {
+      if (routine === "unpack_resident_runtime" && labels.has("publish_director_abi")) {
         runRoutine(memory, labels, "publish_director_abi");
       }
     } catch (error) {

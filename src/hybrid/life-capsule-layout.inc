@@ -12,4 +12,5 @@ LIFE_CAPSULE_STAR_CONTINUATION = $8B5A
 LIFE_CAPSULE_COLOUR_OPERAND = $3AD2
 ; Checked at both independently linked ends of the boss-only spawn shortcut.
 LIFE_CAPSULE_ORDINARY = $3A6E
-LIFE_CAPSULE_SELECT_OPERAND = $973A
+; L1-02 restores the original ENTITY_CODE address profile, including this JMP.
+LIFE_CAPSULE_SELECT_OPERAND = $984F

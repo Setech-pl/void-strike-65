@@ -1275,7 +1275,7 @@ boot_entry:
     ; which it only does when no cartridge is enabled. With BASIC enabled the
     ; OS started BASIC instead (measured: PC $A8AA at frame 223, menu never
     ; reached), so the disk required the player to hold OPTION. Enter the game
-    ; directly; DOSVEC stays published for the warm-start path and for the
+    ; directly; DOSVEC stays published for the
     ; boot-smoke entry-identity invariant. The OS boot routine's return
     ; addresses are abandoned on the stack.
     jmp start
@@ -1290,7 +1290,9 @@ boot_entry:
 ; link map.
 
 ; The disk boot is the only entry: boot_entry runs boot_stage2_atr_entry and
-; then enters start directly. The warm start enters it through DOSVEC.
+; then enters start directly. RESET performs an OS cold start and repeats
+; stage 2. DOSVEC identifies the entry; jumping through it without reloading
+; stage 2 is unsupported (the packed $0C00 hold may contain menu/boss data).
 start:
     sei
 
@@ -2016,6 +2018,10 @@ enter_frontend_state:
     sta DMACTL
     rts
 @read_failed:
+    ; The failure screen abandons this frontend call and retries via quit.
+    ; Drop our caller's return address so each FIRE retry keeps the same SP.
+    pla
+    pla
     jmp SECTOR_READER_FAILURE_SCREEN
 
 enter_exited_state:
@@ -3367,32 +3373,9 @@ set_loader_title_palette:
 ; of CODE (docs/plans/pickup-colour.md §7 item 2), and this pin is where a
 ; freed CODE byte goes, so CODE stays $117E and RODATA still starts at $317E.
 ; Checked record 9 waits at $0C00 until unpack_loader_bitmap consumes its
-; source in MAIN. This code is paid for from the existing CODE address pin.
-.segment "ENTITY_CODE"
-publish_light_record:
-    lda #<$0C00
-    sta broadside_read_source+1
-    lda #>$0C00
-    sta broadside_read_source+2
-    lda #<$3643
-    sta broadside_destination+1
-    lda #>$3643
-    sta broadside_destination+2
-    jsr broadside_unpack_command
-    lda broadside_destination+1
-    cmp #<$3AEF
-    bne @bad
-    lda broadside_destination+2
-    cmp #>$3AEF
-    bne @bad
-    rts
-@bad:
-    lda #$04
-    jmp SECTOR_READER_FAILURE_SCREEN
-publish_light_record_end:
-
+; source in MAIN. Publication lives in the former extended-glyph slot below.
 .segment "CODE"
-LOADER_SPLASH_CODE_SLACK = 9
+LOADER_SPLASH_CODE_SLACK = 7
     .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the
@@ -3462,8 +3445,8 @@ clear_pmg:
     ldx #$00
 @loop:
     ; In single-line mode ANTIC fetches missiles from $3B00 and players from
-    ; $3C00-$3FFF.  $3800-$3AFF is not PMG DMA storage; it also contains the
-    ; loader/frontend display lists, so it must survive this clear.
+    ; $3C00-$3FFF. $3800-$3AFF contains the resident Light composite after
+    ; boot consumes the loader source, so it must survive this clear.
     sta PMG_BASE+$300,x
     sta PMG_BASE+$400,x
     sta PMG_BASE+$500,x
@@ -7574,6 +7557,10 @@ draw_menu_stars:
     bpl @star
     rts
 
+; L1-02: retain the original per-frame ENTITY_CODE addresses. Empty menu
+; slots compress cheaply; no CPU executes these reserved bytes.
+.align $100
+    .res 120, $00                ; 65-B main list + gap + 54-B options tables
 .segment "MENU_OVERLAY"
 main_menu_display_list:
     .byte $44,<(SCREEN+MAIN_MENU_STAR_ROW_0),>(SCREEN+MAIN_MENU_STAR_ROW_0)
@@ -7603,10 +7590,8 @@ main_menu_display_list_jvb:
     .word main_menu_display_list
 main_menu_display_list_end:
 
-; OPTIONS reads these sources after the loader has permanently expanded its
-; display list at $3800-$38C9. The existing read-only alignment gap before the
-; OPTIONS display list keeps this complete overwritten subset resident without
-; moving any frontend entry point or consuming another runtime reservation.
+; OPTIONS tables are part of the checked menu run at $0C00-$117F.
+; They are read only after MAIN MENU has reloaded that run.
 options_persistent_tables_start:
 ; Owner names (how-to-play.md): ROOKIE / PILOT / ACE, easiest first. Six
 ; cells each, right-aligned; the internal DIFFICULTY_EASY/MEDIUM/HARD symbols
@@ -7633,7 +7618,7 @@ option_label_difficulty:
     .byte CH_FRONT_A+2,CH_FRONT_A+20,CH_FRONT_A+11,CH_FRONT_A+19,CH_FRONT_A+24,0
 options_persistent_tables_end:
 
-    .assert options_persistent_tables_end <= $1900, error, "OPTIONS tables exceed menu overlay"
+    .assert options_persistent_tables_end <= $1180, error, "OPTIONS tables exceed menu overlay"
 
 .segment "ENTITY_CODE"
 
@@ -7706,6 +7691,9 @@ prepare_hull_cells:
     sta dst_ptr+1
     jmp draw_hull_row
 
+.segment "ENTITY_CODE"
+.align $100
+    .res 151, $00                ; options/scores/GAME OVER lists moved to menu
 .segment "MENU_OVERLAY"
 options_display_list:
     .byte $70,$70,$70,$47,<SCREEN,>SCREEN,$70
@@ -7976,7 +7964,7 @@ publish_level_hull_style_end:
 ; frame 17 cycles before (docs/STATUS.md, "Zero resident bytes").
 ; L1 reclaims the old 129-byte address pin after menu data leaves MAIN.
 
-; These runtime-live PMG masks end at $3809.  The boot-only loader display
+; These runtime-live PMG masks end at $363F.  The boot-only loader display
 ; list lives in the later PMG page while PMG DMA is disabled, so publication
 ; cannot corrupt the renderer tables.
 missile_masks:
@@ -11630,13 +11618,44 @@ update_shield_player_fighter_colors:
     sta COLPM0
     rts
 
-; Boot-time source only. The runtime copy at $4800 is authoritative after
-; copy_frontend_charset; these 128 bytes occupy the approved ENTITY_CODE tail.
+; Checked menu-run source. Each MAIN MENU/GAME OVER entry copies these
+; 128 bytes from MENU_OVERLAY to the frontend charset at $4800 before use.
 .segment "MENU_OVERLAY"
 frontend_h31_extended_glyphs:
     EMIT_FRONTEND_H31_EXTENDED_GLYPHS
 frontend_h31_extended_glyphs_end:
     .assert frontend_h31_extended_glyphs_end-frontend_h31_extended_glyphs = 16*8, error, "H3.1 extended glyph source changed"
+
+; The former 128-B extended-glyph slot holds boot-only publication plus pad.
+; Keeping the slot restores every subsequent per-frame code/table address.
+.segment "ENTITY_CODE"
+publish_light_record:
+    lda #<$0C00
+    sta broadside_read_source+1
+    lda #>$0C00
+    sta broadside_read_source+2
+    lda #<$3643
+    sta broadside_destination+1
+    lda #>$3643
+    sta broadside_destination+2
+    jsr broadside_unpack_command
+    lda broadside_destination+1
+    cmp #<$3AEF
+    bne @bad
+    lda broadside_destination+2
+    cmp #>$3AEF
+    bne @bad
+    rts
+@bad:
+    ; Only RAM corruption after the CRC-checked read can reach this path.
+    ; The frontend is not initialised and stage 2 has already been overwritten.
+    ; Halt red here; a menu retry would enter an uninitialised machine (+2 B).
+    lda #$34
+    sta COLBK
+    bne @bad
+publish_light_record_end:
+
+    .res 128 - (publish_light_record_end - publish_light_record), $00
 
 ; Plasma FX: the growth glyphs (108-109) lead the bank, so one copy installs
 ; 108-119 in order.
@@ -12671,6 +12690,7 @@ stage2_read_sector:
     STAGE2_FAIL_NE
 
     ; Record 9's packed bytes must wait until MAIN's bitmap source is used.
+l1_stage2_hold_copy_start:
     lda stage2_chunk_remaining
     cmp #L1_LIGHT_RECORD_REMAINING
     bne stage2_publish_normal
@@ -12691,6 +12711,7 @@ stage2_read_sector:
     jsr copy_boot_stream
     jmp stage2_chunk_published
 
+l1_stage2_hold_copy_end:
 stage2_publish_normal:
     lda #<CHUNK_STAGING_ADDRESS
     sta broadside_read_source+1
@@ -13004,6 +13025,7 @@ boot_stage2_validate_record:
     beq stage2_validate_record_broad
     cmp #$02
     STAGE2_FAIL_NE
+l1_stage2_hold_validate_start:
     lda stage2_chunk_remaining
     cmp #L1_LIGHT_RECORD_REMAINING
     bne stage2_validate_record_extension
@@ -13032,6 +13054,7 @@ boot_stage2_validate_record:
     cmp #$05                    ; packed Light record may use $0C00-$10FF
     STAGE2_FAIL_CS
     jmp stage2_validate_record_staging
+l1_stage2_hold_validate_end:
 stage2_validate_record_extension:
     ldy #$09
     lda (frontend_data_ptr),y

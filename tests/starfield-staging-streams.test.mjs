@@ -133,6 +133,7 @@ test("boot stages both streams with exact 960-byte copies and decodes them byte-
       "starfield staging leaves HYBRID_C_ARENA untouched");
     run(memory, "init_entity_effects");
     run(memory, "unpack_weapon_pickup_phase_runtime");
+    run(memory, "unpack_loader_bitmap");
     memory.fill(fill, starfield.runAddress, starfield.runAddress + starfield.bytes);
     // The byte after the image still belongs to the consumed packed ENTITY
     // staging ($5318-$5DB5); it must simply stay as it was.

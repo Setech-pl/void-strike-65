@@ -6,6 +6,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { loadLoaderBitmapDefinition } from "../scripts/loader-assets.mjs";
 import { readStartMenuRuntimeState } from "../scripts/preview.mjs";
+import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const brandSlug = ["void", "strike", "65"].join("-");
@@ -31,9 +32,9 @@ function labelsFromBuild() {
   return labels;
 }
 
-function decodeScreenRecords(image, address) {
+function decodeScreenRecords(image, address, imageBase = 0x2000) {
   const records = [];
-  let offset = address - 0x2000;
+  let offset = address - imageBase;
   while (image[offset] !== 0xff) {
     offset += 2;
     const start = offset;
@@ -77,7 +78,9 @@ test("decoded loader and frontend records expose the new title without the old m
 
 test("assembled Atari screen streams decode to the complete rebranded frontend", () => {
   const labels = labelsFromBuild();
-  const image = fs.readFileSync(path.join(root, "build", "resident-runtime.bin"));
+  // L1 frontend records live in the checked menu overlay, not resident MAIN.
+  const image = Buffer.alloc(0x10000);
+  installRuntimeSegments(image, root);
   const expected = new Map([
     ["main_menu_screen_data", ["VOID STRIKE 65", "START GAME", "OPTIONS", "TOP SCORES",
       "EXIT", "UP/DOWN MOVE FIRE SELECT"]],
@@ -89,7 +92,7 @@ test("assembled Atari screen streams decode to the complete rebranded frontend",
       "FIRE TO CONTINUE"]],
   ]);
   for (const [label, records] of expected) {
-    assert.deepEqual(decodeScreenRecords(image, labels.get(label)), records, label);
+    assert.deepEqual(decodeScreenRecords(image, labels.get(label), 0), records, label);
     assert.doesNotMatch(records.join(" "), new RegExp(forbidden, "i"), label);
   }
 });

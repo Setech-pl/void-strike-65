@@ -2,19 +2,11 @@
 ; and the hot PairShot/contact tests. C owns lifecycle, HP, formation motion,
 ; fire policy and the archetype record; this file only executes and publishes.
 ;
-; ITS OWN LINK (plan-light-multiplicity.md §3.1 [C1], owner decision
-; 2026-09-21). It used to be `.include`d into main.s. It now links on its own
-; with cfg/light-kernel.cfg, built by buildResidentModule the way
-; src/hybrid/sector-reader.s is, and lands in owner decision X's code window
-; directly above the Director link's C half. It reaches main.s through the
-; generated build/light-kernel-abi.inc, and main.s reaches IT through the
-; frozen five-entry vector table below - the same shape as the reader's
-; $A000 vectors. No main-link symbol binds to this file.
-;
-; Two links share the 1,536-B window and the boundary between them is NOT a
-; chosen constant: HYBRID_ASM_WINDOW_BASE in build/director-abi.inc is
-; wherever the Director link's C half ended in this very build, so neither
-; half can be sized wrong by an estimate.
+; Its own link, built like the sector reader with buildResidentModule.
+; L1 places the composite in MAIN at $3643, following 46 retained bytes,
+; instead of above the Director C half in the BASIC window. Record 9 waits
+; packed at $0C00 until bitmap unpack, then publishes the resident composite.
+; Generated build/light-kernel-abi.inc binds main through the vector table.
 ;
 ; Late publication (owner smoke 2026-09-15: the frame-start erase left the
 ; Light blank while ANTIC scanned the upper playfield, so it flickered). The
@@ -42,8 +34,7 @@
 .include "level-summary-abi.inc"
 
 .import __LIGHT_KERNEL_RUN__, __LIGHT_KERNEL_RAM_LAST__
-; The two halves cannot overlap and the ASM half cannot reach the sector
-; reader's BSS. Both are link errors, not runtime surprises.
+; The MAIN landing cannot overlap the retained data or the PMG DMA pages.
 .assert __LIGHT_KERNEL_RUN__ = $3643, lderror, "L1 Light kernel must follow the 46 resident MAIN bytes"
 .assert __LIGHT_KERNEL_RAM_LAST__ <= $3B00, lderror, "L1 Light composite reaches PMG RAM"
 
@@ -94,7 +85,7 @@ LIGHT_BACKING1 = LIGHT_BACKING0+1
 .assert FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3 && LIGHT_PROJECTILE_OWNER < 8, error, "Light emit shifts weapon_class above the owner bits"
 
 ; Residency: the whole kernel is one contiguous LIGHT_KERNEL segment in the
-; code window, resident for the whole game, no runtime I/O. What stays behind
+; MAIN holes, resident for the whole game, no runtime I/O. What stays behind
 ; in the main link is what was never Light-only: entity_debris_publish and its
 ; two debris helpers (LIGHT_CODE), the 32-byte Wingman + Interceptor art
 ; tables (ENTITY_CODE tail) and light_add_score (BROADSIDE pad).
@@ -607,9 +598,9 @@ light_cell_resolve_sanitized:
 ; now changes nothing and cannot be forgotten later.
 ;
 ; Roadmap 4.6 step 5: the below-range exit returns in place rather than
-; branching to @keep. The kernel's address is wherever the window's C half
-; ends, so a far exit crosses a page or not by accident of layout - and when
-; step 5 moved the kernel up 112 B, it did, +1 cycle on every captured cell
+; branching to @keep. Before L1 the kernel followed the window's C half;
+; a far exit could cross by accident of layout. When step 5 moved the kernel
+; up 112 B it did, +1 cycle on every captured cell
 ; (MEASURED natively). The local rts is layout-proof and one cycle under both.
 light_cell_resolve:
     ; feat/interceptor-armour: a flashing Light's cells carry bit 7 clear,

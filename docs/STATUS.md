@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-23 (planning direction §BU; runtime checkpoint §BT)
+Last update: 2026-10-24 (L1 owner-smoke candidate, §BV; runtime checkpoint §BT)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,29 +20,49 @@ the values below.
 
 ## Checkpoint
 
-### Planning direction — §BU, documentation review pending
+### L1 window levers — OWNER-SMOKE CANDIDATE
 
-Owner planning decisions are recorded in
-[§BU](owner-decisions-2026-09-11.md#bu-planning-direction-after-the-memorycycles-audit-2026-10-23),
-triaging the unchanged [memory/cycles audit](audits/2026-10-23-memory-cycles.md)
-of main `6dae5a6` (static, trace **0 min**). No gameplay is implemented here.
+On `codex/l1-window-levers`, the complete Light record 9 and its 10-byte
+resident pause markers link at `$3643-$3AEE`; **17 B** remain in MAIN. The
+46-B hull/missile/damage data remains at `$3615-$3642`. The checked raw
+11-sector menu run loads to `$0C00-$117F` at every MAIN MENU and GAME OVER
+entry, before any overlay reader; the boss can overwrite it. The menu's
+pause/quit markers remain resident, and `$1900-$1FFF` stays open for L2.
+`$B478-$B8FA` frees **1,155 B** for M3-H; `$B8FB-$B8FF` remains reserved.
+M3-H's 32-B damaged-body buffer is reserved at `$549E-$54BD` with no consumer.
+[Phase A and B plan/evidence](plans/l1-window-levers.md); [owner decisions
+§BV](owner-decisions-2026-09-11.md#bv-l1-decisions-and-special-sectors-2026-10-24).
+
+The normal build and computed gates pass with the expected stale wall-trace
+binding warning. The final candidate uses **12,795 B** of initial content
+(101 sectors), **210** occupied boot/chunk sectors and 11/11 DFMC records.
+Patched-SIO cold menu is **597/650** frames; standard-SIO cold is **1,384**
+frames and menu-entry added delay **41/50** frames. Boot smoke (cold, RESET,
+130XE, capital restore), checked menu CRC and all four after-boss frontend
+fixtures pass. Clean-main and L1 Citadel L5 lance stress are both **8,423**
+cycles; the lost-target off/fire set is unchanged. All-state native boss
+stress is unchanged, with Bastion tightest at **8,478/8,500**. Focused route and boss
+measurements are in the plan. This is not owner-accepted or release evidence.
 
 Order: **L1 → nacelle spike (GIFs + trace) → L2 → M3-H → M3 → M4 (12 levels,
 4×3) → rest of M6 (dock, weapon roles, demo) → systems freeze → M7 (asteroid
 sector from data, boss scalar variants, 12 levels) → M8 → M9**.
-L1 is the menu-data overlay and complete 1 155-B Light move into MAIN holes;
 L2 is the 1 792-B fighter/capital module at $1900–$1FFF, loaded at level start,
 overwritten by boss install and reloaded by M4. The 5 B at $B8FB remain reserved.
 Capital Lights are optional M7 work after a one-Light proof, outside the base
 plan. Citadel's region-2 versus final-R4 placement stays open before M4.
 
-NEXT TASK: owner review of this documentation branch; then L1 per §BU.8.
-No implementation task starts in this session.
+NEXT TASK: owner real-65XE/SIO2SD smoke of the five candidate ATRs; record
+the owner's result before merge. No L2 or M3-H implementation starts here.
 
-Documentation-branch verification: normal build **PASS**, computed gates pass;
-expected stale wall-trace binding warning, release evidence pending (§BR).
-Campaign ATR matches the §BT SHA-256 below. **CPU / RAM / residency delta: 0**;
-no tests, traces, release build or hardware smoke run in this session.
+| Current L1 resource | Linked use / limit | Free |
+| --- | ---: | ---: |
+| Initial content, planning STOP | 12,795 / 13,652 B | 857 B |
+| Initial content, physical | 12,795 / 13,684 B | 889 B |
+| MAIN holes, including 46 retained B | 1,242 / 1,259 B | 17 B |
+| Light record 9 (including pause markers) | 1,196 / 1,213 B | 17 B |
+| BASIC window `$AE00-$BBFF` | 1,656 / 3,584 B | 1,928 B total; 1,155 B unreserved below the lance |
+| `PROJECTILES` damaged-body reservation | 32 B at `$549E-$54BD` | 38 B tail |
 
 ### Citadel gravity colour — OWNER-ACCEPTED
 
@@ -64,9 +84,6 @@ gold while the ship is lance-ready green, and unchanged pull/collision and
 capsules. Gold reads as a small sun. Distinct capsule colours remain backlogged
 below. Campaign ATR SHA-256:
 `05b9e5b7a96115b8eed303b8df38b5090c76bb6b25e11500b53af1ec49ab48a7`.
-NEXT TASK: documentation review, then L1 per §BU.8 above.
-
-
 
 ### Normal build / release evidence policy — §BR
 

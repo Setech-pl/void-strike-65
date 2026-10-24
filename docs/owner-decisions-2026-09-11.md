@@ -3996,7 +3996,93 @@ a session cannot identify its own PID as its shell's parent. The preflight
 session check is satisfied by owner confirmation of the session's own CLI PID
 via `ps -o pid,ppid,lstart,command -p <pid>`.
 
-**Next free decision section: §BV.**
+## BV. L1 decisions and special sectors (2026-10-24)
+
+Session: Codex. Owner decisions of 2026-10-24, implemented on
+`codex/l1-window-levers` as an **OWNER-SMOKE CANDIDATE**. The linked result and
+checks are in [the L1 plan](plans/l1-window-levers.md#7-phase-b-linked-result-2026-10-24).
+
+### BV.1 Menu overlay and resident frontend readers
+
+Choose **V1**: eleven raw, checked whole sectors, read at every menu entry
+into `$0C00-$18FF` (linked data `$0C00-$1117`, sectors 240-250). Reject
+boot-once retention because every boss entry overwrites `$0C00-$1FFF`.
+`$1900-$1FFF` remains untouched for L2. The full cross-link reader audit
+found only the pause and pause-quit marker positions read outside the checked
+menu phase; their five words (**10 B**) stay resident at `$3AE5-$3AEE`.
+GAME OVER and MAIN MENU complete the checked read before the first overlay
+reader; options, top scores, exit and the dormant ended record are reachable
+only after that entry. Summary, boss banner/WARNING, loader failure, fighter,
+capital and boss paths do not read the menu run. Cold font setup returns
+before the H3.1 overlay source copy; that copy follows the checked read.
+
+### BV.2 Menu timing gate
+
+Replace the historical 596-frame menu reference with the value measured
+after L1. Gates: patched-SIO cold boot to menu **≤650 PAL frames** and
+standard-SIO added return-to-menu delay **≤50 frames**. Measured on the linked
+campaign ATR: patched-SIO cold **597 frames (11.94 s)**, standard-SIO cold
+**1,384 frames (27.68 s)**, checked menu entry **42 frames (0.84 s)**
+against the previous 1-frame entry, hence **+41 frames (0.82 s)**.
+All eleven sectors were read without retry. These are emulator timings; the
+owner still tests the SIO2SD path on a real 65XE.
+
+### BV.3 Light page crossings and permanent stress set
+
+The relocated Light hot loops and indexed tables must cross no page they did
+not cross on `a3c8e47`. Linked before/after branch-cross counts are **zero**
+for all ten hot routines; indexed penalties are unchanged. Direct five-entry
+Light and twelve-entry capital vectors reach the MAIN addresses; there is no
+new per-frame trampoline. The target is **≤+2 cycles** in boss stress against
+clean main, with **8,500** the hard limit for every boss/case. The first
+Citadel L5 lance-firing attempt was **8,527** because the LIFE selector still
+reached its old address; rebinding it produced **8,423**, exactly clean main's
+**8,423**. Lance-firing lost-target cases are now permanently in the stress
+set, alongside the no-lance cases.
+
+| Reachable lost-target case | Clean main off / firing | L1 off / firing | Delta |
+| --- | ---: | ---: | ---: |
+| Citadel L4 | 7,697 / 8,060 | 7,697 / 8,060 | 0 / 0 |
+| Citadel L5 | 8,032 / 8,423 | 8,032 / 8,423 | 0 / 0 |
+| Spine L7 | 7,771 / 8,180 | 7,771 / 8,180 | 0 / 0 |
+| Spine L9 | 8,025 / 8,435 | 8,025 / 8,435 | 0 / 0 |
+| Bastion L10 | 8,058 / 8,467 | 8,058 / 8,467 | 0 / 0 |
+
+The exhaustive reachable all-state maxima are also unchanged: R1 L1
+**7,596**, Citadel L4/L5 **8,112/8,447**, Spine L7/L9
+**8,191/8,446**, Bastion L10 **8,478**; the tightest margin is Bastion's
+**22 cycles**. The permanent focused set includes off and firing cases for
+Citadel L5 and Spine L7/L9.
+Spine's synthetic last-module kill reaches `boss_death_read` rather than
+returning to the host harness; the harness now counts through that handoff
+and stops before disk I/O. The clean-main and L1 L7/L9 tables match, with
+zero rule-(B) clashes and all cases below 8,500.
+
+### BV.4 Special sectors
+
+**A. Longer higher levels:** allow 2-3 consecutive space sectors with
+different enemies, then capital, another space sector, an asteroid sector and
+the boss. This is data-only M7 authoring.
+
+**B. Asteroid bonus run:** the run follows a boss in the player's sequence
+but is implemented as the **first sector of the next level**. Several bonus
+pickups must be placed by data; today's lifecycle offers only one capsule at
+a time. P3/M3 supplies the pickup mechanism. Estimate **tens to a few
+hundred bytes** in the L2 module, then complete it in the rest of M6.
+
+**C. Minigame interludes:** after levels **3, 6 and 9**, between the level
+summary and the next level load, a disk-loaded minigame may run. Its type is
+undecided. The M4 plan must include a data-driven hook: per-level run ID,
+`0 = none`; load, `JSR`, return with score/lives result. The minigame owns its
+display list, charset, sound and input. Its implementation is outside the
+systems freeze and may arrive after 1.0.
+
+### BV.5 Post-1.0 reserve
+
+At L2 / systems freeze, decide whether the L2 module holds a **256-512 B**
+post-1.0 reserve. No L1 byte claims that space.
+
+**Next free decision section: §BW.**
 
 ---
 

@@ -268,12 +268,12 @@ export function buildDstatsProbe(atrBytes, labels) {
   return { bytes, store_from: `$${hex(storeAddress)}`, loop_from: `$${hex(loop)}`, loop_to: `$${hex(loop - 5)}` };
 }
 
-const MILESTONES = ["start", "show_loader", "enter_main_menu", "start_gameplay",
+const MILESTONES = ["start", "show_loader", "enter_main_menu", "frontend_input_poll", "start_gameplay",
   "sector_reader_load", "sector_reader_settle", "sector_reader_failure_screen", "main_loop",
   "sector_reader_quiesce_done"];
 
 export function runScenario({ emulator, atr, patch, basic, frames, labels, startGame, outputDirectory, id,
-  frameStop = false }) {
+  frameStop = false, menuReady = false }) {
   const media = path.join(outputDirectory, `${id}.atr`);
   fs.copyFileSync(atr, media);
   const logPath = path.join(outputDirectory, `${id}.log`);
@@ -282,7 +282,7 @@ export function runScenario({ emulator, atr, patch, basic, frames, labels, start
   // overlay is replaced. The header's red-halt detector catches its halt.
   // frameStop (--stop=frames): run the whole frame budget, for a screenshot of
   // the screen that is up then (the menu, the game) and the POKEY state there.
-  const stops = [frameStop ? null : startGame ? pc("main_loop") : pc("enter_main_menu"),
+  const stops = [frameStop ? null : startGame ? pc("main_loop") : pc(menuReady ? "frontend_input_poll" : "enter_main_menu"),
     pc("sector_reader_failure_screen")].filter(Boolean);
   const marks = MILESTONES.map(pc).filter(Boolean);
   const env = {
@@ -312,6 +312,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const frames = Number(option("frames", "6000"));
   const only = option("only", "");
   const startGame = process.argv.includes("--start-game");
+  const menuReady = process.argv.includes("--menu-ready");
   const frameStop = option("stop", "") === "frames";
   const labels = loadLabels(option("labels", "build"));
   const outputDirectory = path.resolve(rootDirectory, option("out", "build/sio-boot-repro"));
@@ -332,7 +333,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     for (const basic of [false, true]) {
       const id = `${patch ? "patch" : "nopatch"}-${basic ? "basic" : "nobasic"}`;
       const result = runScenario({ emulator, atr, patch, basic, frames, labels, startGame, outputDirectory, id,
-        frameStop });
+        frameStop, menuReady });
       results.push(result);
       const m = result.milestones;
       console.log(`${id.padEnd(16)} stop=${result.stop?.reason}@${result.stop?.label ?? result.stop?.pc} f${result.stop?.frame}` +
@@ -348,7 +349,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     machine: TARGET_MACHINE, results };
   const jsonPath = option("json", path.join(outputDirectory, "report.json"));
   fs.writeFileSync(path.resolve(rootDirectory, jsonPath), `${JSON.stringify(report, null, 2)}\n`);
-  const target = startGame ? "main_loop" : "enter_main_menu";
+  const target = startGame ? "main_loop" : menuReady ? "frontend_input_poll" : "enter_main_menu";
   const failed = frameStop
     ? results.filter(({ patch, stop }) => !patch && stop?.reason === "pc")
     : results.filter(({ patch, stop }) => !patch && stop?.label !== target);

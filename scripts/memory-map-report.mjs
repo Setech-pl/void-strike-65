@@ -80,7 +80,8 @@ const SEGMENTS = {
   CODE: ["main: resident code", "resident"],
   BOOT_STAGE2: ["stage-2 loader; the resident suffix is unpacked over it", "boot"],
   RODATA: ["main: resident read-only data (its tail is boot-only, see reuse)", "resident"],
-  PROJECTILES: ["PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state", "resident"],
+  PROJECTILES: ["PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state, M3-H damaged-body reservation", "resident"],
+  MENU_OVERLAY: ["checked L1 menu data run; refilled on every menu entry", "menu"],
   STARFIELD: ["relocated STARFIELD segment (see contents)", "resident"],
   BROADSIDE: ["relocated BROADSIDE segment (see contents); holds overlay slot A", "resident"],
   ENTITY_STATE: ["entity/effect slots and Encounter Director state", "resident"],
@@ -119,7 +120,7 @@ const SEGMENTS = {
   HYBRID_C_WINDOW_FLOW: ["the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses", "resident"],
   HUD_BOOSTER_BACKUP: ["the boss entry's region read (its WARNING records gone with the text screen, feat/boss-banners), the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour)", "resident"],
   LIFE_CAPSULE: ["M6 stage 2 LIFE vectors, four PMG masks, state and hardware veneers; policy lives in DIRECTOR_C_LOW", "resident"],
-  LIGHT_KERNEL: ["Light ASM kernel; carries the capital vector table", "resident"],
+  LIGHT_KERNEL: ["Light composite in MAIN; carries the capital vector table", "resident"],
   DISK_GUARD: ["the disk guard (audit-hardening): the run fold and check, every directory run's expected value, the disk's identity block; behind the Light kernel in its record", "resident"],
   CAPITAL_VECTOR_IMAGE: ["the capital vector table's boot image, which the reader's capital restore copies back (moved from the reader by audit-hardening)", "resident"],
   READER_ZP: ["sector reader (zp),y pointer", "resident"],
@@ -433,6 +434,9 @@ function collectRows(build) {
 
   // Zero-page equates outside any segment.
   add(sym("MUSIC_VOICE_COLUMN"), sym("MUSIC_VOICE_SCRATCH") + 1, "state", "menu music v2 column pointers and publication scratch (equates)", "resident", "src/main.s `MUSIC_VOICE_COLUMN`");
+  add(sym("M3H_DAMAGED_BODY_BUFFER"), sym("M3H_DAMAGED_BODY_BUFFER_END") - 1,
+    "reserved", "M3-H damaged-body buffer; no writer before M3-H", "resident",
+    "src/main.s `M3H_DAMAGED_BODY_BUFFER`");
   add(m.levelSummary.statBlock.address, m.levelSummary.statBlock.address + m.levelSummary.statBlock.bytes - 1, "state", "level-summary stat block (`STATS_SHOTS` … `STATS_BONUS`), cleared at every START GAME", "session", "manifest `levelSummary.statBlock`");
 
   // Display memory and hand-placed resident state.

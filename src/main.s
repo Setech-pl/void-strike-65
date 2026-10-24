@@ -1988,6 +1988,7 @@ enter_frontend_state:
     ldx #OVERLAY_MENU_DATA
     jsr SECTOR_READER_READ_RUN
     bcs @read_failed
+    jsr copy_frontend_extended_glyphs
 @ready:
     lda game_state
     cmp #STATE_MAIN_MENU
@@ -3378,7 +3379,7 @@ publish_light_record:
 publish_light_record_end:
 
 .segment "CODE"
-LOADER_SPLASH_CODE_SLACK = 33
+LOADER_SPLASH_CODE_SLACK = 30
     .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the
@@ -3598,6 +3599,7 @@ copy_frontend_charset:
     dex
     bne @glyph
 
+copy_frontend_extended_glyphs:
     ldx #$00
 @graphics:
     lda frontend_h31_extended_glyphs,x

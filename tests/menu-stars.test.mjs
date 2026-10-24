@@ -31,6 +31,7 @@
 //   * The eight star glyphs are frontend charset codes 64-71, which ANTIC 4
 //     reaches and ANTIC 6/7 cannot - so the stars live in ANTIC 4 rows only.
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -107,6 +108,9 @@ function bootedFrontend() {
   run(memory, "stage_a2_kernel");
   run(memory, "unpack_weapon_pickup_phase_runtime");
   run(memory, "unpack_starfield_runtime");
+  // The game reads this checked disk run on every menu entry. The CPU-only
+  // scene harness begins after that read rather than emulating the SIO wire.
+  memory.set(fs.readFileSync(path.join(root, "build/menu-overlay.bin")), 0x0c00);
   run(memory, "copy_frontend_charset");
   return memory;
 }
@@ -588,5 +592,43 @@ test("only the MAIN MENU gets stars", () => {
           `state ${state} shows a star glyph at $${cell.address.toString(16)}`);
       }
     }
+  }
+});
+
+test("boss RAM reuse leaves pause intact and the checked menu run restores every frontend", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
+  const runInfo = manifest.overlays.runs.find(({ name }) => name === "menu-data");
+  assert.equal(runInfo.startSector, 240);
+  assert.equal(runInfo.sectors, 11);
+  const atr = fs.readFileSync(path.join(root, "dist/void-strike-65.atr"));
+  const diskBytes = atr.subarray(16 + (runInfo.startSector - 1) * 128,
+    16 + (runInfo.startSector - 1 + runInfo.sectors) * 128);
+  assert.equal(crypto.createHash("sha256").update(diskBytes).digest("hex"), runInfo.sha256);
+  assert.deepEqual(diskBytes, fs.readFileSync(path.join(root, "build/menu-overlay.bin")));
+
+  const reference = bootedFrontend();
+  const afterBoss = bootedFrontend();
+  afterBoss.fill(0xa5, 0x0c00, 0x1900);
+  // Pause and its quit confirmation are available during the boss fight, so
+  // they must render before the menu run has been read again.
+  for (const state of [8, 9]) {
+    enterState(reference, state);
+    enterState(afterBoss, state);
+    const changed = afterBoss.subarray(0x4000, 0x4400)
+      .findIndex((value, index) => value !== reference[0x4000 + index]);
+    assert.equal(changed, -1, `pause state ${state} first changed cell ${changed.toString(16)}`);
+    assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
+      reference.subarray(0x4000, 0x4400), `pause state ${state}`);
+  }
+
+  // Model the already-tested checked whole-sector reader's successful run;
+  // then verify all frontend screens reproduce their pre-boss screen bytes.
+  afterBoss.set(diskBytes, runInfo.destination);
+  run(afterBoss, "copy_frontend_extended_glyphs");
+  for (const state of [1, 2, 3, 4, 5, 7]) {
+    enterState(reference, state);
+    enterState(afterBoss, state);
+    assert.deepEqual(afterBoss.subarray(0x4000, 0x4400),
+      reference.subarray(0x4000, 0x4400), `frontend state ${state}`);
   }
 });

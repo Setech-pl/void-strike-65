@@ -909,7 +909,7 @@ test("a directory entry the build left empty is rejected without touching SIO", 
   // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk, so no
   // entry the build makes is empty; entries 3 and 5 are emptied in memory (a
   // count of 0, the build's "not on this disk") to keep the path exercised.
-  for (const index of [3, 5, 10, 0xff]) {
+  for (const index of [3, 5, 11, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
     const result = runReadRun(stub, index, { emptyEntry: index <= 9 ? index : null });
     assert.equal(result.failed, true, `entry ${index}`);

@@ -16,6 +16,7 @@ const rootDirectory = path.resolve(testDirectory, "..");
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
 const residentSource = source.slice(0, source.indexOf('.segment "BOOT_STAGE2"'));
 const map = fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.map"), "utf8");
+const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json"), "utf8"));
 const labels = new Map(
   fs
     .readFileSync(path.join(rootDirectory, "build", "void-strike-65.lbl"), "utf8")
@@ -382,12 +383,14 @@ test("frontend charset and transient loader tail stay in their bounded ranges", 
   assert.ok(Number.parseInt(zeroPage[2], 16) < 0x0100);
   assert.ok(labels.get("draw_main_menu_scene") >= labels.get("__ENTITY_CODE_RUN__"));
   assert.ok(labels.get("frontend_glyph_rows") >= frontendStart);
-  assert.ok(labels.get("main_menu_display_list") >= labels.get("__ENTITY_CODE_RUN__"));
+  assert.ok(labels.get("main_menu_display_list") >= 0x0c00 &&
+    labels.get("game_over_display_list_end") <= 0x1900,
+  "menu and game-over lists must stay in the checked L1 menu run");
   assert.ok(labels.get("loader_display_list_lzss") < labels.get("loader_bitmap_lzss"));
   assert.ok(labels.get("loader_bitmap_lzss") < 0x4000);
   assert.equal(
     labels.get("main_menu_display_list") & 0xfc00,
-    (labels.get("frontend_display_lists_end") - 1) & 0xfc00,
+    (labels.get("game_over_display_list_end") - 1) & 0xfc00,
     "frontend display lists must not cross ANTIC's 1 KiB counter boundary",
   );
   assert.ok(labels.get("frontend_display_lists_end") <= 0xa000);
@@ -408,7 +411,7 @@ test("frontend charset and transient loader tail stay in their bounded ranges", 
   assert.match(source, /jsr show_loader[\s\S]+jsr clear_pmg[\s\S]+jsr copy_frontend_charset/);
 });
 
-test("OPTIONS persistent tables stay outside the loader display-list destination", () => {
+test("OPTIONS tables stay in the checked menu run outside the loader display list", () => {
   const optionsStart = labels.get("options_persistent_tables_start");
   const optionsEnd = labels.get("options_persistent_tables_end");
   const difficultyStart = labels.get("difficulty_value_table");
@@ -416,13 +419,10 @@ test("OPTIONS persistent tables stay outside the loader display-list destination
   const labelSources = labels.get("options_label_sources");
   const loaderStart = LOADER_DISPLAY_LIST_ADDRESS;
   const loaderEnd = loaderStart + 202;
-  const entityCode = /ENTITY_CODE\s+([0-9A-F]+)\s+([0-9A-F]+)\s+([0-9A-F]+)/i.exec(map);
-
-  assert.ok(entityCode, "missing persistent ENTITY_CODE linker range");
-  const entityCodeStart = Number.parseInt(entityCode[1], 16);
-  const entityCodeEnd = Number.parseInt(entityCode[2], 16) + 1;
-  assert.ok(optionsStart >= entityCodeStart && optionsEnd <= entityCodeEnd,
-    "OPTIONS tables must remain in resident read-only memory");
+  const menuRun = manifest.overlays.runs.find(({ name }) => name === "menu-data");
+  assert.ok(optionsStart >= menuRun.destination &&
+    optionsEnd <= menuRun.destination + menuRun.bytes,
+  "OPTIONS tables must remain in the checked L1 menu run");
   assert.equal(difficultyStart, optionsStart);
   assert.equal(difficultyEnd - difficultyStart, 18);
   assert.ok(labelSources >= difficultyEnd && labelSources < optionsEnd);

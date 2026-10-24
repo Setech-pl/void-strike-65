@@ -26,6 +26,14 @@ export function loadRuntimeSegments(rootDirectory,
   const definitions = [
     ["resident", "resident-runtime.bin", manifest.residentRuntime.runAddress,
       manifest.residentRuntime.rawBytes],
+    // L1: frontend tables are present only after the checked menu run. These
+    // isolated readers model the menu phase; gameplay fixtures may overwrite
+    // this same RAM when they install a boss image.
+    ...(manifest.overlays?.runs?.find(({ name }) => name === "menu-data") == null ? [] : [
+      ["menuData", "menu-overlay.bin",
+        manifest.overlays.runs.find(({ name }) => name === "menu-data").destination,
+        manifest.overlays.runs.find(({ name }) => name === "menu-data").bytes],
+    ]),
     // The ADR-003 splash blob: boot-only code at $0500-$06FF that both stage-2
     // entries copy there before start, so every runtime harness must place it
     // or the loader hold and its DLI run into $00.

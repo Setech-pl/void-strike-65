@@ -1,0 +1,53 @@
+[
+  {
+    "file": "p1-flight-medium.gif",
+    "pattern": 1,
+    "kind": "flight",
+    "difficulty": "MEDIUM",
+    "frames": [
+      850,
+      1549
+    ],
+    "seconds": 14,
+    "encodedFrames": 700,
+    "bytes": 567651,
+    "sha256": "efab5999735a69edba2795d07193888ca2d718b682f2e4588081236102911ae4",
+    "atrSha256": "e68cf6a455b876208fd30a7eb0e8fcf5339081433b9d0b2d5a52d2faa08fd492",
+    "source": "native Atari800 PAL ATR; full indexed capture, crop x=32; ordinary joystick",
+    "colours": 17
+  },
+  {
+    "file": "p2-flight-medium.gif",
+    "pattern": 2,
+    "kind": "flight",
+    "difficulty": "MEDIUM",
+    "frames": [
+      850,
+      1549
+    ],
+    "seconds": 14,
+    "encodedFrames": 700,
+    "bytes": 652892,
+    "sha256": "cf875003e913deff07deaebc41db4c37949d8326ccc037d97e1fcbd04f076a39",
+    "atrSha256": "0b416633be0729e4422a6048f4ae8e29b16b566d2d2aa3c8dae28c448ef6c282",
+    "source": "native Atari800 PAL ATR; full indexed capture, crop x=32; ordinary joystick",
+    "colours": 18
+  },
+  {
+    "file": "p3-flight-medium.gif",
+    "pattern": 3,
+    "kind": "flight",
+    "difficulty": "MEDIUM",
+    "frames": [
+      850,
+      1549
+    ],
+    "seconds": 14,
+    "encodedFrames": 700,
+    "bytes": 666163,
+    "sha256": "38151c9b4e58ad786efdcfb00cc9174b6483fae1d18b1ffa1aec0411c3e25dad",
+    "atrSha256": "27580e3f2a4e3d54b7a23b3254201845ecbbe622685e9f11b28f38c411772f94",
+    "source": "native Atari800 PAL ATR; full indexed capture, crop x=32; ordinary joystick",
+    "colours": 19
+  }
+]

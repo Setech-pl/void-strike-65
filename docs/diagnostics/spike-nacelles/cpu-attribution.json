@@ -1,0 +1,194 @@
+[
+  {
+    "pattern": 1,
+    "worstContactIncrement": {
+      "state": {
+        "difficulty": 1,
+        "row": 299,
+        "fine": 2,
+        "x": 161
+      },
+      "delta": 2447,
+      "main": 49,
+      "spike": 2496,
+      "mainProfile": {
+        "cycles": 49,
+        "inclusiveCpu": {
+          "player_inside_universal_hull_corridor": 21,
+          "handle_player_hull_contact": 49
+        }
+      },
+      "spikeProfile": {
+        "cycles": 2496,
+        "inclusiveCpu": {
+          "player_inside_universal_hull_corridor": 42,
+          "visible_hull_sector_row": 198,
+          "select_sector_module": 288,
+          "resolve_allied_sector_row": 414,
+          "spike_extent": 345,
+          "spike_allied_boundary": 300,
+          "resolve_enemy_sector_row": 414,
+          "spike_enemy_boundary": 384,
+          "update_hud_status": 115,
+          "apply_broadside_player_damage": 214,
+          "handle_player_hull_contact": 2496
+        }
+      }
+    },
+    "worstDrawIncrement": {
+      "row": 112,
+      "delta": 447,
+      "main": 836,
+      "spike": 1283,
+      "mainProfile": {
+        "cycles": 836,
+        "inclusiveCpu": {
+          "select_sector_module": 72,
+          "resolve_allied_sector_row": 133,
+          "resolve_enemy_sector_row": 109,
+          "draw_hull_row": 836
+        }
+      },
+      "spikeProfile": {
+        "cycles": 1283,
+        "inclusiveCpu": {
+          "select_sector_module": 72,
+          "resolve_allied_sector_row": 133,
+          "resolve_enemy_sector_row": 109,
+          "spike_base_draw_hull_row": 844,
+          "spike_extent": 115,
+          "spike_draw_hull_row": 1280,
+          "draw_hull_row": 1283
+        }
+      }
+    }
+  },
+  {
+    "pattern": 2,
+    "worstContactIncrement": {
+      "state": {
+        "difficulty": 1,
+        "row": 299,
+        "fine": 2,
+        "x": 157
+      },
+      "delta": 2420,
+      "main": 49,
+      "spike": 2469,
+      "mainProfile": {
+        "cycles": 49,
+        "inclusiveCpu": {
+          "player_inside_universal_hull_corridor": 21,
+          "handle_player_hull_contact": 49
+        }
+      },
+      "spikeProfile": {
+        "cycles": 2469,
+        "inclusiveCpu": {
+          "player_inside_universal_hull_corridor": 42,
+          "visible_hull_sector_row": 198,
+          "select_sector_module": 288,
+          "resolve_allied_sector_row": 414,
+          "spike_extent": 327,
+          "spike_allied_boundary": 273,
+          "resolve_enemy_sector_row": 414,
+          "spike_enemy_boundary": 384,
+          "update_hud_status": 115,
+          "apply_broadside_player_damage": 214,
+          "handle_player_hull_contact": 2469
+        }
+      }
+    },
+    "worstDrawIncrement": {
+      "row": 80,
+      "delta": 361,
+      "main": 835,
+      "spike": 1196,
+      "mainProfile": {
+        "cycles": 835,
+        "inclusiveCpu": {
+          "select_sector_module": 72,
+          "resolve_allied_sector_row": 133,
+          "resolve_enemy_sector_row": 109,
+          "draw_hull_row": 835
+        }
+      },
+      "spikeProfile": {
+        "cycles": 1196,
+        "inclusiveCpu": {
+          "select_sector_module": 72,
+          "resolve_allied_sector_row": 133,
+          "resolve_enemy_sector_row": 109,
+          "spike_base_draw_hull_row": 843,
+          "spike_extent": 109,
+          "spike_draw_hull_row": 1193,
+          "draw_hull_row": 1196
+        }
+      }
+    }
+  },
+  {
+    "pattern": 3,
+    "worstContactIncrement": {
+      "state": {
+        "difficulty": 0,
+        "row": 243,
+        "fine": 2,
+        "x": 161
+      },
+      "delta": 2381,
+      "main": 49,
+      "spike": 2430,
+      "mainProfile": {
+        "cycles": 49,
+        "inclusiveCpu": {
+          "player_inside_universal_hull_corridor": 21,
+          "handle_player_hull_contact": 49
+        }
+      },
+      "spikeProfile": {
+        "cycles": 2430,
+        "inclusiveCpu": {
+          "player_inside_universal_hull_corridor": 42,
+          "visible_hull_sector_row": 198,
+          "select_sector_module": 282,
+          "resolve_allied_sector_row": 393,
+          "spike_extent": 351,
+          "spike_allied_boundary": 303,
+          "resolve_enemy_sector_row": 399,
+          "spike_enemy_boundary": 387,
+          "update_hud_status": 115,
+          "apply_broadside_player_damage": 214,
+          "handle_player_hull_contact": 2430
+        }
+      }
+    },
+    "worstDrawIncrement": {
+      "row": 128,
+      "delta": 445,
+      "main": 835,
+      "spike": 1280,
+      "mainProfile": {
+        "cycles": 835,
+        "inclusiveCpu": {
+          "select_sector_module": 72,
+          "resolve_allied_sector_row": 109,
+          "resolve_enemy_sector_row": 133,
+          "draw_hull_row": 835
+        }
+      },
+      "spikeProfile": {
+        "cycles": 1280,
+        "inclusiveCpu": {
+          "select_sector_module": 72,
+          "resolve_allied_sector_row": 109,
+          "resolve_enemy_sector_row": 133,
+          "spike_base_draw_hull_row": 843,
+          "spike_extent": 115,
+          "spike_draw_hull_row": 1277,
+          "draw_hull_row": 1280
+        }
+      }
+    }
+  }
+]

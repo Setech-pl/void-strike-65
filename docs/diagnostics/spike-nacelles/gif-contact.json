@@ -1,0 +1,24 @@
+[
+  {
+    "file": "p1-contact-medium.gif",
+    "pattern": 1,
+    "kind": "contact",
+    "difficulty": "MEDIUM",
+    "frames": [
+      1077,
+      1276
+    ],
+    "seconds": 4,
+    "encodedFrames": 200,
+    "bytes": 142206,
+    "sha256": "5d4a5f85e47c70cca43a72f778a0220ef5b9b32cde6fba6a0194e564ac59c18e",
+    "atrSha256": "e68cf6a455b876208fd30a7eb0e8fcf5339081433b9d0b2d5a52d2faa08fd492",
+    "source": "native Atari800 PAL ATR; full indexed capture, crop x=32; ordinary joystick",
+    "colours": 7,
+    "contactFrame": 1107,
+    "health": [
+      8,
+      6
+    ]
+  }
+]

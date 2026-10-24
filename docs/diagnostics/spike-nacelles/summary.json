@@ -1,0 +1,4926 @@
+{
+  "baseline": "19b146437ba10ecc64716d3d58b52355fdf29fa3",
+  "baselineAtr": "410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7",
+  "routes": {
+    "flight": {
+      "policy": "sweep",
+      "baseline": {
+        "session": "main-flight",
+        "frames": 2100,
+        "fence_bound_frames": 895,
+        "normal_start_scanline": {
+          "fighter": 17,
+          "capital": 230
+        },
+        "distinct_miss_events": 0,
+        "miss_events": [],
+        "overrun_rows": 0,
+        "fence_model_disagreements": 0,
+        "shifted_phase_rows": 0,
+        "worst_pre_wait_cycles": 21153,
+        "worst_pre_wait_frame": 591,
+        "worst_fence_margin_cycles": 4147,
+        "worst_fence_margin_frame": 591,
+        "maximum_wall_cycles": 31217,
+        "rows_over_target": 0,
+        "rows_over_hard_gate": 0,
+        "unreliable_counters": {
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0
+        },
+        "fence_caught": true,
+        "gate_failures": [],
+        "passed": true
+      }
+    },
+    "contact": {
+      "policy": "nacelle-contact",
+      "baseline": {
+        "session": "main-contact",
+        "frames": 2100,
+        "fence_bound_frames": 895,
+        "normal_start_scanline": {
+          "fighter": 17,
+          "capital": 229
+        },
+        "distinct_miss_events": 0,
+        "miss_events": [],
+        "overrun_rows": 0,
+        "fence_model_disagreements": 0,
+        "shifted_phase_rows": 0,
+        "worst_pre_wait_cycles": 21202,
+        "worst_pre_wait_frame": 95,
+        "worst_fence_margin_cycles": 4098,
+        "worst_fence_margin_frame": 95,
+        "maximum_wall_cycles": 30880,
+        "rows_over_target": 0,
+        "rows_over_hard_gate": 0,
+        "unreliable_counters": {
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0
+        },
+        "fence_caught": true,
+        "gate_failures": [],
+        "passed": true
+      }
+    }
+  },
+  "patterns": [
+    {
+      "pattern": 1,
+      "channel": [
+        {
+          "difficulty": 0,
+          "minChannelHPOS": 80,
+          "minChannelCells": 20,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2490,
+          "worstGapCpu": 2261
+        },
+        {
+          "difficulty": 1,
+          "minChannelHPOS": 72,
+          "minChannelCells": 18,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2496,
+          "worstGapCpu": 2267
+        },
+        {
+          "difficulty": 2,
+          "minChannelHPOS": 72,
+          "minChannelCells": 18,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2496,
+          "worstGapCpu": 2267
+        }
+      ],
+      "routes": {
+        "flight": {
+          "audit": {
+            "session": "p1-flight",
+            "frames": 2100,
+            "fence_bound_frames": 895,
+            "normal_start_scanline": {
+              "fighter": 17,
+              "capital": 230
+            },
+            "distinct_miss_events": 0,
+            "miss_events": [],
+            "overrun_rows": 0,
+            "fence_model_disagreements": 0,
+            "shifted_phase_rows": 0,
+            "worst_pre_wait_cycles": 21177,
+            "worst_pre_wait_frame": 591,
+            "worst_fence_margin_cycles": 4123,
+            "worst_fence_margin_frame": 591,
+            "maximum_wall_cycles": 31226,
+            "rows_over_target": 0,
+            "rows_over_hard_gate": 0,
+            "unreliable_counters": {
+              "missed_frames": 0,
+              "extra_vbi_boundaries": 0,
+              "dli_sequence_violations": 0
+            },
+            "fence_caught": true,
+            "gate_failures": [],
+            "passed": true
+          },
+          "capitalSector": {
+            "frame": 727,
+            "wall": 29772,
+            "state": 7,
+            "phaseLow": 0,
+            "x": 108,
+            "xAfter": 110,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 3343,
+            "contactWall": 124,
+            "mainSameFrame": 29769,
+            "deltaSameFrame": 3,
+            "mainRoutePeak": 29771,
+            "deltaPeaks": 1,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 39,
+                "main": 39,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 606,
+                "main": 606,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 47,
+                "main": 47,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 867,
+                "main": 867,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 520,
+                "main": 520,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 118,
+                "main": 118,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1714,
+                "main": 1714,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 62,
+                "main": 62,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 373,
+                "main": 373,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 155,
+                "main": 155,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 24,
+                "main": 24,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 499,
+                "main": 499,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 73,
+                "main": 73,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3343,
+                "main": 3343,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 124,
+                "main": 112,
+                "delta": 12
+              },
+              {
+                "stage": 15,
+                "spike": 1477,
+                "main": 1477,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 284,
+                "main": 258,
+                "delta": 26
+              },
+              {
+                "stage": 17,
+                "spike": 116,
+                "main": 118,
+                "delta": -2
+              },
+              {
+                "stage": 18,
+                "spike": 856,
+                "main": 880,
+                "delta": -24
+              },
+              {
+                "stage": 19,
+                "spike": 118,
+                "main": 118,
+                "delta": 0
+              },
+              {
+                "stage": 20,
+                "spike": 18043,
+                "main": 18052,
+                "delta": -9
+              },
+              {
+                "stage": 21,
+                "spike": 281,
+                "main": 281,
+                "delta": 0
+              }
+            ]
+          },
+          "activeHull": {
+            "frame": 904,
+            "wall": 17866,
+            "state": 1,
+            "phaseLow": 76,
+            "x": 154,
+            "xAfter": 154,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 4644,
+            "contactWall": 104,
+            "mainSameFrame": 17194,
+            "deltaSameFrame": 672,
+            "mainRoutePeak": 17194,
+            "deltaPeaks": 672,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 54,
+                "main": 42,
+                "delta": 12
+              },
+              {
+                "stage": 1,
+                "spike": 154,
+                "main": 162,
+                "delta": -8
+              },
+              {
+                "stage": 2,
+                "spike": 76,
+                "main": 67,
+                "delta": 9
+              },
+              {
+                "stage": 3,
+                "spike": 1709,
+                "main": 1706,
+                "delta": 3
+              },
+              {
+                "stage": 4,
+                "spike": 185,
+                "main": 185,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1077,
+                "main": 1077,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1163,
+                "main": 1163,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 40,
+                "main": 40,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 4644,
+                "main": 4353,
+                "delta": 291
+              },
+              {
+                "stage": 14,
+                "spike": 104,
+                "main": 58,
+                "delta": 46
+              },
+              {
+                "stage": 15,
+                "spike": 421,
+                "main": 421,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 3468,
+                "main": 3140,
+                "delta": 328
+              },
+              {
+                "stage": 17,
+                "spike": 120,
+                "main": 115,
+                "delta": 5
+              },
+              {
+                "stage": 18,
+                "spike": 20,
+                "main": 56,
+                "delta": -36
+              },
+              {
+                "stage": 19,
+                "spike": 128,
+                "main": 170,
+                "delta": -42
+              },
+              {
+                "stage": 20,
+                "spike": 3690,
+                "main": 3694,
+                "delta": -4
+              },
+              {
+                "stage": 21,
+                "spike": 578,
+                "main": 508,
+                "delta": 70
+              }
+            ]
+          },
+          "edge": null,
+          "damage": null,
+          "rowSwitch": {
+            "frame": 903,
+            "wall": 13641,
+            "state": 1,
+            "phaseLow": 75,
+            "x": 154,
+            "xAfter": 154,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 1765,
+            "contactWall": 104,
+            "mainSameFrame": 13582,
+            "deltaSameFrame": 59,
+            "mainRoutePeak": 17194,
+            "deltaPeaks": -3553,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 48,
+                "main": 56,
+                "delta": -8
+              },
+              {
+                "stage": 1,
+                "spike": 298,
+                "main": 290,
+                "delta": 8
+              },
+              {
+                "stage": 2,
+                "spike": 52,
+                "main": 64,
+                "delta": -12
+              },
+              {
+                "stage": 3,
+                "spike": 1562,
+                "main": 1560,
+                "delta": 2
+              },
+              {
+                "stage": 4,
+                "spike": 185,
+                "main": 185,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1077,
+                "main": 1077,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1936,
+                "main": 1936,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 41,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 68,
+                "main": 68,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 31,
+                "main": 31,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 1765,
+                "main": 1765,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 104,
+                "main": 58,
+                "delta": 46
+              },
+              {
+                "stage": 15,
+                "spike": 321,
+                "main": 330,
+                "delta": -9
+              },
+              {
+                "stage": 16,
+                "spike": 2200,
+                "main": 2191,
+                "delta": 9
+              },
+              {
+                "stage": 17,
+                "spike": 61,
+                "main": 70,
+                "delta": -9
+              },
+              {
+                "stage": 18,
+                "spike": 19,
+                "main": 19,
+                "delta": 0
+              },
+              {
+                "stage": 19,
+                "spike": 73,
+                "main": 73,
+                "delta": 0
+              },
+              {
+                "stage": 20,
+                "spike": 3147,
+                "main": 3126,
+                "delta": 21
+              },
+              {
+                "stage": 21,
+                "spike": 532,
+                "main": 505,
+                "delta": 27
+              }
+            ]
+          },
+          "hullDamageEvents": [],
+          "activePeakStageDelta": [
+            {
+              "stage": 0,
+              "spike": 54,
+              "main": 42,
+              "delta": 12
+            },
+            {
+              "stage": 1,
+              "spike": 154,
+              "main": 162,
+              "delta": -8
+            },
+            {
+              "stage": 2,
+              "spike": 76,
+              "main": 67,
+              "delta": 9
+            },
+            {
+              "stage": 3,
+              "spike": 1709,
+              "main": 1706,
+              "delta": 3
+            },
+            {
+              "stage": 4,
+              "spike": 185,
+              "main": 185,
+              "delta": 0
+            },
+            {
+              "stage": 5,
+              "spike": 51,
+              "main": 51,
+              "delta": 0
+            },
+            {
+              "stage": 6,
+              "spike": 1077,
+              "main": 1077,
+              "delta": 0
+            },
+            {
+              "stage": 7,
+              "spike": 27,
+              "main": 27,
+              "delta": 0
+            },
+            {
+              "stage": 8,
+              "spike": 1163,
+              "main": 1163,
+              "delta": 0
+            },
+            {
+              "stage": 9,
+              "spike": 50,
+              "main": 50,
+              "delta": 0
+            },
+            {
+              "stage": 10,
+              "spike": 12,
+              "main": 12,
+              "delta": 0
+            },
+            {
+              "stage": 11,
+              "spike": 59,
+              "main": 59,
+              "delta": 0
+            },
+            {
+              "stage": 12,
+              "spike": 40,
+              "main": 40,
+              "delta": 0
+            },
+            {
+              "stage": 13,
+              "spike": 4644,
+              "main": 4353,
+              "delta": 291
+            },
+            {
+              "stage": 14,
+              "spike": 104,
+              "main": 58,
+              "delta": 46
+            },
+            {
+              "stage": 15,
+              "spike": 421,
+              "main": 421,
+              "delta": 0
+            },
+            {
+              "stage": 16,
+              "spike": 3468,
+              "main": 3140,
+              "delta": 328
+            },
+            {
+              "stage": 17,
+              "spike": 120,
+              "main": 115,
+              "delta": 5
+            },
+            {
+              "stage": 18,
+              "spike": 20,
+              "main": 56,
+              "delta": -36
+            },
+            {
+              "stage": 19,
+              "spike": 128,
+              "main": 170,
+              "delta": -42
+            },
+            {
+              "stage": 20,
+              "spike": 3690,
+              "main": 3694,
+              "delta": -4
+            },
+            {
+              "stage": 21,
+              "spike": 578,
+              "main": 508,
+              "delta": 70
+            }
+          ]
+        },
+        "contact": {
+          "audit": {
+            "session": "p1-contact",
+            "frames": 2100,
+            "fence_bound_frames": 895,
+            "normal_start_scanline": {
+              "fighter": 17,
+              "capital": 229
+            },
+            "distinct_miss_events": 0,
+            "miss_events": [],
+            "overrun_rows": 0,
+            "fence_model_disagreements": 0,
+            "shifted_phase_rows": 0,
+            "worst_pre_wait_cycles": 21214,
+            "worst_pre_wait_frame": 95,
+            "worst_fence_margin_cycles": 4086,
+            "worst_fence_margin_frame": 95,
+            "maximum_wall_cycles": 30883,
+            "rows_over_target": 0,
+            "rows_over_hard_gate": 0,
+            "unreliable_counters": {
+              "missed_frames": 0,
+              "extra_vbi_boundaries": 0,
+              "dli_sequence_violations": 0
+            },
+            "fence_caught": true,
+            "gate_failures": [],
+            "passed": true
+          },
+          "capitalSector": {
+            "frame": 635,
+            "wall": 30011,
+            "state": 7,
+            "phaseLow": 0,
+            "x": 124,
+            "xAfter": 124,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 5053,
+            "contactWall": 205,
+            "mainSameFrame": 30011,
+            "deltaSameFrame": 0,
+            "mainRoutePeak": 30015,
+            "deltaPeaks": -4,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 32,
+                "main": 32,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 106,
+                "main": 106,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 76,
+                "main": 76,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 308,
+                "main": 308,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 514,
+                "main": 514,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 2517,
+                "main": 2517,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 3759,
+                "main": 3759,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 366,
+                "main": 366,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 444,
+                "main": 444,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 93,
+                "main": 93,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 113,
+                "main": 113,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 74,
+                "main": 74,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 5053,
+                "main": 5053,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 205,
+                "main": 183,
+                "delta": 22
+              },
+              {
+                "stage": 15,
+                "spike": 442,
+                "main": 440,
+                "delta": 2
+              },
+              {
+                "stage": 16,
+                "spike": 264,
+                "main": 268,
+                "delta": -4
+              },
+              {
+                "stage": 17,
+                "spike": 188,
+                "main": 184,
+                "delta": 4
+              },
+              {
+                "stage": 18,
+                "spike": 32,
+                "main": 38,
+                "delta": -6
+              },
+              {
+                "stage": 19,
+                "spike": 118,
+                "main": 119,
+                "delta": -1
+              },
+              {
+                "stage": 20,
+                "spike": 14967,
+                "main": 14984,
+                "delta": -17
+              },
+              {
+                "stage": 21,
+                "spike": 281,
+                "main": 281,
+                "delta": 0
+              }
+            ]
+          },
+          "activeHull": {
+            "frame": 966,
+            "wall": 15256,
+            "state": 1,
+            "phaseLow": 45,
+            "x": 124,
+            "xAfter": 124,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 5568,
+            "contactWall": 87,
+            "mainSameFrame": 14651,
+            "deltaSameFrame": 605,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": -96,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 52,
+                "main": 52,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 483,
+                "main": 483,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 65,
+                "main": 65,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 290,
+                "main": 290,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 1208,
+                "main": 1208,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 60,
+                "main": 60,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 615,
+                "main": 615,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1090,
+                "main": 1090,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 41,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 21,
+                "main": 21,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 31,
+                "main": 31,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 5568,
+                "main": 5277,
+                "delta": 291
+              },
+              {
+                "stage": 14,
+                "spike": 87,
+                "main": 58,
+                "delta": 29
+              },
+              {
+                "stage": 15,
+                "spike": 495,
+                "main": 504,
+                "delta": -9
+              },
+              {
+                "stage": 16,
+                "spike": 342,
+                "main": 314,
+                "delta": 28
+              },
+              {
+                "stage": 17,
+                "spike": 72,
+                "main": 77,
+                "delta": -5
+              },
+              {
+                "stage": 18,
+                "spike": 810,
+                "main": 503,
+                "delta": 307
+              },
+              {
+                "stage": 19,
+                "spike": 122,
+                "main": 78,
+                "delta": 44
+              },
+              {
+                "stage": 20,
+                "spike": 2900,
+                "main": 2967,
+                "delta": -67
+              },
+              {
+                "stage": 21,
+                "spike": 787,
+                "main": 784,
+                "delta": 3
+              }
+            ]
+          },
+          "edge": {
+            "frame": 1111,
+            "wall": 14696,
+            "state": 1,
+            "phaseLow": 110,
+            "x": 88,
+            "xAfter": 88,
+            "health": 6,
+            "healthAfter": 6,
+            "worldWall": 4469,
+            "contactWall": 1638,
+            "mainSameFrame": 12400,
+            "deltaSameFrame": 2296,
+            "deltaPeaks": null,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 60,
+                "main": 60,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 236,
+                "main": 236,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 120,
+                "main": 120,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 1612,
+                "main": 1612,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 250,
+                "main": 250,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 355,
+                "main": 355,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 36,
+                "main": 36,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 763,
+                "main": 869,
+                "delta": -106
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 249,
+                "main": 249,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 85,
+                "main": 31,
+                "delta": 54
+              },
+              {
+                "stage": 13,
+                "spike": 4469,
+                "main": 4757,
+                "delta": -288
+              },
+              {
+                "stage": 14,
+                "spike": 1638,
+                "main": 58,
+                "delta": 1580
+              },
+              {
+                "stage": 15,
+                "spike": 168,
+                "main": 168,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 1364,
+                "main": 1035,
+                "delta": 329
+              },
+              {
+                "stage": 17,
+                "spike": 118,
+                "main": 70,
+                "delta": 48
+              },
+              {
+                "stage": 18,
+                "spike": 50,
+                "main": 19,
+                "delta": 31
+              },
+              {
+                "stage": 19,
+                "spike": 122,
+                "main": 64,
+                "delta": 58
+              },
+              {
+                "stage": 20,
+                "spike": 2305,
+                "main": 1630,
+                "delta": 675
+              },
+              {
+                "stage": 21,
+                "spike": 554,
+                "main": 626,
+                "delta": -72
+              }
+            ]
+          },
+          "damage": {
+            "frame": 1132,
+            "wall": 9916,
+            "state": 2,
+            "phaseLow": 119,
+            "x": 92,
+            "xAfter": 92,
+            "health": 6,
+            "healthAfter": 4,
+            "worldWall": 3200,
+            "contactWall": 1855,
+            "mainSameFrame": 8377,
+            "deltaSameFrame": 1539,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": -5436,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 111,
+                "main": 111,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 66,
+                "main": 70,
+                "delta": -4
+              },
+              {
+                "stage": 3,
+                "spike": 372,
+                "main": 368,
+                "delta": 4
+              },
+              {
+                "stage": 4,
+                "spike": 345,
+                "main": 350,
+                "delta": -5
+              },
+              {
+                "stage": 5,
+                "spike": 105,
+                "main": 100,
+                "delta": 5
+              },
+              {
+                "stage": 6,
+                "spike": 1055,
+                "main": 1058,
+                "delta": -3
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 431,
+                "main": 1201,
+                "delta": -770
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 50,
+                "delta": -9
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 65,
+                "main": 65,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 76,
+                "main": 31,
+                "delta": 45
+              },
+              {
+                "stage": 13,
+                "spike": 3200,
+                "main": 2717,
+                "delta": 483
+              },
+              {
+                "stage": 14,
+                "spike": 1855,
+                "main": 58,
+                "delta": 1797
+              },
+              {
+                "stage": 15,
+                "spike": 159,
+                "main": 168,
+                "delta": -9
+              },
+              {
+                "stage": 16,
+                "spike": 323,
+                "main": 314,
+                "delta": 9
+              },
+              {
+                "stage": 17,
+                "spike": 61,
+                "main": 70,
+                "delta": -9
+              },
+              {
+                "stage": 18,
+                "spike": 28,
+                "main": 19,
+                "delta": 9
+              },
+              {
+                "stage": 19,
+                "spike": 64,
+                "main": 73,
+                "delta": -9
+              },
+              {
+                "stage": 20,
+                "spike": 1146,
+                "main": 1145,
+                "delta": 1
+              },
+              {
+                "stage": 21,
+                "spike": 323,
+                "main": 319,
+                "delta": 4
+              }
+            ]
+          },
+          "rowSwitch": {
+            "frame": 1447,
+            "wall": 13493,
+            "state": 2,
+            "phaseLow": 5,
+            "x": 156,
+            "xAfter": 156,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 3202,
+            "contactWall": 2344,
+            "mainSameFrame": 9643,
+            "deltaSameFrame": 3850,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": -1859,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 27,
+                "main": 61,
+                "delta": -34
+              },
+              {
+                "stage": 1,
+                "spike": 316,
+                "main": 236,
+                "delta": 80
+              },
+              {
+                "stage": 2,
+                "spike": 36,
+                "main": 43,
+                "delta": -7
+              },
+              {
+                "stage": 3,
+                "spike": 995,
+                "main": 1685,
+                "delta": -690
+              },
+              {
+                "stage": 4,
+                "spike": 1129,
+                "main": 255,
+                "delta": 874
+              },
+              {
+                "stage": 5,
+                "spike": 60,
+                "main": 51,
+                "delta": 9
+              },
+              {
+                "stage": 6,
+                "spike": 564,
+                "main": 355,
+                "delta": 209
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 426,
+                "main": 987,
+                "delta": -561
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 50,
+                "delta": -9
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 65,
+                "main": 56,
+                "delta": 9
+              },
+              {
+                "stage": 12,
+                "spike": 85,
+                "main": 85,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3202,
+                "main": 2721,
+                "delta": 481
+              },
+              {
+                "stage": 14,
+                "spike": 2344,
+                "main": 58,
+                "delta": 2286
+              },
+              {
+                "stage": 15,
+                "spike": 210,
+                "main": 168,
+                "delta": 42
+              },
+              {
+                "stage": 16,
+                "spike": 806,
+                "main": 1049,
+                "delta": -243
+              },
+              {
+                "stage": 17,
+                "spike": 68,
+                "main": 182,
+                "delta": -114
+              },
+              {
+                "stage": 18,
+                "spike": 25,
+                "main": 19,
+                "delta": 6
+              },
+              {
+                "stage": 19,
+                "spike": 71,
+                "main": 64,
+                "delta": 7
+              },
+              {
+                "stage": 20,
+                "spike": 2390,
+                "main": 1135,
+                "delta": 1255
+              },
+              {
+                "stage": 21,
+                "spike": 540,
+                "main": 320,
+                "delta": 220
+              }
+            ]
+          },
+          "hullDamageEvents": [
+            {
+              "frame": 1107,
+              "wall": 9482,
+              "state": 1,
+              "phaseLow": 108,
+              "x": 88,
+              "xAfter": 88,
+              "health": 8,
+              "healthAfter": 6,
+              "worldWall": 1765,
+              "contactWall": 1865
+            },
+            {
+              "frame": 1132,
+              "wall": 9916,
+              "state": 2,
+              "phaseLow": 119,
+              "x": 92,
+              "xAfter": 92,
+              "health": 6,
+              "healthAfter": 4,
+              "worldWall": 3200,
+              "contactWall": 1855
+            },
+            {
+              "frame": 1157,
+              "wall": 9768,
+              "state": 2,
+              "phaseLow": 131,
+              "x": 92,
+              "xAfter": 92,
+              "health": 4,
+              "healthAfter": 2,
+              "worldWall": 3244,
+              "contactWall": 1819
+            }
+          ],
+          "activePeakStageDelta": [
+            {
+              "stage": 0,
+              "spike": 52,
+              "main": 52,
+              "delta": 0
+            },
+            {
+              "stage": 1,
+              "spike": 483,
+              "main": 483,
+              "delta": 0
+            },
+            {
+              "stage": 2,
+              "spike": 65,
+              "main": 65,
+              "delta": 0
+            },
+            {
+              "stage": 3,
+              "spike": 290,
+              "main": 290,
+              "delta": 0
+            },
+            {
+              "stage": 4,
+              "spike": 1208,
+              "main": 1208,
+              "delta": 0
+            },
+            {
+              "stage": 5,
+              "spike": 60,
+              "main": 60,
+              "delta": 0
+            },
+            {
+              "stage": 6,
+              "spike": 615,
+              "main": 615,
+              "delta": 0
+            },
+            {
+              "stage": 7,
+              "spike": 27,
+              "main": 27,
+              "delta": 0
+            },
+            {
+              "stage": 8,
+              "spike": 1090,
+              "main": 1090,
+              "delta": 0
+            },
+            {
+              "stage": 9,
+              "spike": 41,
+              "main": 41,
+              "delta": 0
+            },
+            {
+              "stage": 10,
+              "spike": 21,
+              "main": 21,
+              "delta": 0
+            },
+            {
+              "stage": 11,
+              "spike": 59,
+              "main": 59,
+              "delta": 0
+            },
+            {
+              "stage": 12,
+              "spike": 31,
+              "main": 31,
+              "delta": 0
+            },
+            {
+              "stage": 13,
+              "spike": 5568,
+              "main": 5277,
+              "delta": 291
+            },
+            {
+              "stage": 14,
+              "spike": 87,
+              "main": 58,
+              "delta": 29
+            },
+            {
+              "stage": 15,
+              "spike": 495,
+              "main": 504,
+              "delta": -9
+            },
+            {
+              "stage": 16,
+              "spike": 342,
+              "main": 314,
+              "delta": 28
+            },
+            {
+              "stage": 17,
+              "spike": 72,
+              "main": 77,
+              "delta": -5
+            },
+            {
+              "stage": 18,
+              "spike": 810,
+              "main": 503,
+              "delta": 307
+            },
+            {
+              "stage": 19,
+              "spike": 122,
+              "main": 78,
+              "delta": 44
+            },
+            {
+              "stage": 20,
+              "spike": 2900,
+              "main": 2967,
+              "delta": -67
+            },
+            {
+              "stage": 21,
+              "spike": 787,
+              "main": 784,
+              "delta": 3
+            }
+          ]
+        }
+      },
+      "bytes": {
+        "residentSegmentDelta": 0,
+        "physicalResidentDelta": 748,
+        "capitalCode": 555,
+        "descriptors": 60,
+        "scratch": 5,
+        "strips": 128,
+        "total": 748,
+        "freePermitted": 407,
+        "windowPackedDelta": 507,
+        "transportBytesDelta": 384,
+        "transportSectorsDelta": 3
+      },
+      "computedCpu": {
+        "main": 15116,
+        "spike": 15745
+      },
+      "atr": {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/spike-nacelles-p1/void-strike-65.atr",
+        "sha256": "e68cf6a455b876208fd30a7eb0e8fcf5339081433b9d0b2d5a52d2faa08fd492"
+      }
+    },
+    {
+      "pattern": 2,
+      "channel": [
+        {
+          "difficulty": 0,
+          "minChannelHPOS": 84,
+          "minChannelCells": 21,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2460,
+          "worstGapCpu": 2231
+        },
+        {
+          "difficulty": 1,
+          "minChannelHPOS": 80,
+          "minChannelCells": 20,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2469,
+          "worstGapCpu": 2234
+        },
+        {
+          "difficulty": 2,
+          "minChannelHPOS": 80,
+          "minChannelCells": 20,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2469,
+          "worstGapCpu": 2234
+        }
+      ],
+      "routes": {
+        "flight": {
+          "audit": {
+            "session": "p2-flight",
+            "frames": 2100,
+            "fence_bound_frames": 895,
+            "normal_start_scanline": {
+              "fighter": 17,
+              "capital": 230
+            },
+            "distinct_miss_events": 0,
+            "miss_events": [],
+            "overrun_rows": 0,
+            "fence_model_disagreements": 0,
+            "shifted_phase_rows": 0,
+            "worst_pre_wait_cycles": 21177,
+            "worst_pre_wait_frame": 591,
+            "worst_fence_margin_cycles": 4123,
+            "worst_fence_margin_frame": 591,
+            "maximum_wall_cycles": 31226,
+            "rows_over_target": 0,
+            "rows_over_hard_gate": 0,
+            "unreliable_counters": {
+              "missed_frames": 0,
+              "extra_vbi_boundaries": 0,
+              "dli_sequence_violations": 0
+            },
+            "fence_caught": true,
+            "gate_failures": [],
+            "passed": true
+          },
+          "capitalSector": {
+            "frame": 727,
+            "wall": 29772,
+            "state": 7,
+            "phaseLow": 0,
+            "x": 108,
+            "xAfter": 110,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 3343,
+            "contactWall": 124,
+            "mainSameFrame": 29769,
+            "deltaSameFrame": 3,
+            "mainRoutePeak": 29771,
+            "deltaPeaks": 1,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 39,
+                "main": 39,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 606,
+                "main": 606,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 47,
+                "main": 47,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 867,
+                "main": 867,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 520,
+                "main": 520,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 118,
+                "main": 118,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1714,
+                "main": 1714,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 62,
+                "main": 62,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 373,
+                "main": 373,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 155,
+                "main": 155,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 24,
+                "main": 24,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 499,
+                "main": 499,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 73,
+                "main": 73,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3343,
+                "main": 3343,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 124,
+                "main": 112,
+                "delta": 12
+              },
+              {
+                "stage": 15,
+                "spike": 1477,
+                "main": 1477,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 284,
+                "main": 258,
+                "delta": 26
+              },
+              {
+                "stage": 17,
+                "spike": 116,
+                "main": 118,
+                "delta": -2
+              },
+              {
+                "stage": 18,
+                "spike": 856,
+                "main": 880,
+                "delta": -24
+              },
+              {
+                "stage": 19,
+                "spike": 118,
+                "main": 118,
+                "delta": 0
+              },
+              {
+                "stage": 20,
+                "spike": 18043,
+                "main": 18052,
+                "delta": -9
+              },
+              {
+                "stage": 21,
+                "spike": 281,
+                "main": 281,
+                "delta": 0
+              }
+            ]
+          },
+          "activeHull": {
+            "frame": 904,
+            "wall": 18016,
+            "state": 1,
+            "phaseLow": 76,
+            "x": 154,
+            "xAfter": 154,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 4735,
+            "contactWall": 104,
+            "mainSameFrame": 17194,
+            "deltaSameFrame": 822,
+            "mainRoutePeak": 17194,
+            "deltaPeaks": 822,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 50,
+                "main": 42,
+                "delta": 8
+              },
+              {
+                "stage": 1,
+                "spike": 154,
+                "main": 162,
+                "delta": -8
+              },
+              {
+                "stage": 2,
+                "spike": 76,
+                "main": 67,
+                "delta": 9
+              },
+              {
+                "stage": 3,
+                "spike": 1705,
+                "main": 1706,
+                "delta": -1
+              },
+              {
+                "stage": 4,
+                "spike": 185,
+                "main": 185,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1077,
+                "main": 1077,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1163,
+                "main": 1163,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 40,
+                "main": 40,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 4735,
+                "main": 4353,
+                "delta": 382
+              },
+              {
+                "stage": 14,
+                "spike": 104,
+                "main": 58,
+                "delta": 46
+              },
+              {
+                "stage": 15,
+                "spike": 421,
+                "main": 421,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 3519,
+                "main": 3140,
+                "delta": 379
+              },
+              {
+                "stage": 17,
+                "spike": 118,
+                "main": 115,
+                "delta": 3
+              },
+              {
+                "stage": 18,
+                "spike": 54,
+                "main": 56,
+                "delta": -2
+              },
+              {
+                "stage": 19,
+                "spike": 122,
+                "main": 170,
+                "delta": -48
+              },
+              {
+                "stage": 20,
+                "spike": 3668,
+                "main": 3694,
+                "delta": -26
+              },
+              {
+                "stage": 21,
+                "spike": 579,
+                "main": 508,
+                "delta": 71
+              }
+            ]
+          },
+          "edge": null,
+          "damage": null,
+          "rowSwitch": {
+            "frame": 903,
+            "wall": 13635,
+            "state": 1,
+            "phaseLow": 75,
+            "x": 154,
+            "xAfter": 154,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 1765,
+            "contactWall": 104,
+            "mainSameFrame": 13582,
+            "deltaSameFrame": 53,
+            "mainRoutePeak": 17194,
+            "deltaPeaks": -3559,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 42,
+                "main": 56,
+                "delta": -14
+              },
+              {
+                "stage": 1,
+                "spike": 302,
+                "main": 290,
+                "delta": 12
+              },
+              {
+                "stage": 2,
+                "spike": 48,
+                "main": 64,
+                "delta": -16
+              },
+              {
+                "stage": 3,
+                "spike": 1562,
+                "main": 1560,
+                "delta": 2
+              },
+              {
+                "stage": 4,
+                "spike": 185,
+                "main": 185,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1077,
+                "main": 1077,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1936,
+                "main": 1936,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 41,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 68,
+                "main": 68,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 31,
+                "main": 31,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 1765,
+                "main": 1765,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 104,
+                "main": 58,
+                "delta": 46
+              },
+              {
+                "stage": 15,
+                "spike": 321,
+                "main": 330,
+                "delta": -9
+              },
+              {
+                "stage": 16,
+                "spike": 2200,
+                "main": 2191,
+                "delta": 9
+              },
+              {
+                "stage": 17,
+                "spike": 61,
+                "main": 70,
+                "delta": -9
+              },
+              {
+                "stage": 18,
+                "spike": 19,
+                "main": 19,
+                "delta": 0
+              },
+              {
+                "stage": 19,
+                "spike": 73,
+                "main": 73,
+                "delta": 0
+              },
+              {
+                "stage": 20,
+                "spike": 3149,
+                "main": 3126,
+                "delta": 23
+              },
+              {
+                "stage": 21,
+                "spike": 532,
+                "main": 505,
+                "delta": 27
+              }
+            ]
+          },
+          "hullDamageEvents": [],
+          "activePeakStageDelta": [
+            {
+              "stage": 0,
+              "spike": 50,
+              "main": 42,
+              "delta": 8
+            },
+            {
+              "stage": 1,
+              "spike": 154,
+              "main": 162,
+              "delta": -8
+            },
+            {
+              "stage": 2,
+              "spike": 76,
+              "main": 67,
+              "delta": 9
+            },
+            {
+              "stage": 3,
+              "spike": 1705,
+              "main": 1706,
+              "delta": -1
+            },
+            {
+              "stage": 4,
+              "spike": 185,
+              "main": 185,
+              "delta": 0
+            },
+            {
+              "stage": 5,
+              "spike": 51,
+              "main": 51,
+              "delta": 0
+            },
+            {
+              "stage": 6,
+              "spike": 1077,
+              "main": 1077,
+              "delta": 0
+            },
+            {
+              "stage": 7,
+              "spike": 27,
+              "main": 27,
+              "delta": 0
+            },
+            {
+              "stage": 8,
+              "spike": 1163,
+              "main": 1163,
+              "delta": 0
+            },
+            {
+              "stage": 9,
+              "spike": 50,
+              "main": 50,
+              "delta": 0
+            },
+            {
+              "stage": 10,
+              "spike": 12,
+              "main": 12,
+              "delta": 0
+            },
+            {
+              "stage": 11,
+              "spike": 59,
+              "main": 59,
+              "delta": 0
+            },
+            {
+              "stage": 12,
+              "spike": 40,
+              "main": 40,
+              "delta": 0
+            },
+            {
+              "stage": 13,
+              "spike": 4735,
+              "main": 4353,
+              "delta": 382
+            },
+            {
+              "stage": 14,
+              "spike": 104,
+              "main": 58,
+              "delta": 46
+            },
+            {
+              "stage": 15,
+              "spike": 421,
+              "main": 421,
+              "delta": 0
+            },
+            {
+              "stage": 16,
+              "spike": 3519,
+              "main": 3140,
+              "delta": 379
+            },
+            {
+              "stage": 17,
+              "spike": 118,
+              "main": 115,
+              "delta": 3
+            },
+            {
+              "stage": 18,
+              "spike": 54,
+              "main": 56,
+              "delta": -2
+            },
+            {
+              "stage": 19,
+              "spike": 122,
+              "main": 170,
+              "delta": -48
+            },
+            {
+              "stage": 20,
+              "spike": 3668,
+              "main": 3694,
+              "delta": -26
+            },
+            {
+              "stage": 21,
+              "spike": 579,
+              "main": 508,
+              "delta": 71
+            }
+          ]
+        },
+        "contact": {
+          "audit": {
+            "session": "p2-contact",
+            "frames": 2100,
+            "fence_bound_frames": 895,
+            "normal_start_scanline": {
+              "fighter": 17,
+              "capital": 229
+            },
+            "distinct_miss_events": 0,
+            "miss_events": [],
+            "overrun_rows": 0,
+            "fence_model_disagreements": 0,
+            "shifted_phase_rows": 0,
+            "worst_pre_wait_cycles": 21214,
+            "worst_pre_wait_frame": 95,
+            "worst_fence_margin_cycles": 4086,
+            "worst_fence_margin_frame": 95,
+            "maximum_wall_cycles": 30883,
+            "rows_over_target": 0,
+            "rows_over_hard_gate": 0,
+            "unreliable_counters": {
+              "missed_frames": 0,
+              "extra_vbi_boundaries": 0,
+              "dli_sequence_violations": 0
+            },
+            "fence_caught": true,
+            "gate_failures": [],
+            "passed": true
+          },
+          "capitalSector": {
+            "frame": 635,
+            "wall": 30011,
+            "state": 7,
+            "phaseLow": 0,
+            "x": 124,
+            "xAfter": 124,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 5053,
+            "contactWall": 205,
+            "mainSameFrame": 30011,
+            "deltaSameFrame": 0,
+            "mainRoutePeak": 30015,
+            "deltaPeaks": -4,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 32,
+                "main": 32,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 106,
+                "main": 106,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 76,
+                "main": 76,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 308,
+                "main": 308,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 514,
+                "main": 514,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 2517,
+                "main": 2517,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 3759,
+                "main": 3759,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 366,
+                "main": 366,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 444,
+                "main": 444,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 93,
+                "main": 93,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 113,
+                "main": 113,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 74,
+                "main": 74,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 5053,
+                "main": 5053,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 205,
+                "main": 183,
+                "delta": 22
+              },
+              {
+                "stage": 15,
+                "spike": 442,
+                "main": 440,
+                "delta": 2
+              },
+              {
+                "stage": 16,
+                "spike": 264,
+                "main": 268,
+                "delta": -4
+              },
+              {
+                "stage": 17,
+                "spike": 188,
+                "main": 184,
+                "delta": 4
+              },
+              {
+                "stage": 18,
+                "spike": 32,
+                "main": 38,
+                "delta": -6
+              },
+              {
+                "stage": 19,
+                "spike": 118,
+                "main": 119,
+                "delta": -1
+              },
+              {
+                "stage": 20,
+                "spike": 14967,
+                "main": 14984,
+                "delta": -17
+              },
+              {
+                "stage": 21,
+                "spike": 281,
+                "main": 281,
+                "delta": 0
+              }
+            ]
+          },
+          "activeHull": {
+            "frame": 1439,
+            "wall": 16613,
+            "state": 2,
+            "phaseLow": 2,
+            "x": 156,
+            "xAfter": 158,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 4117,
+            "contactWall": 2392,
+            "mainSameFrame": 11136,
+            "deltaSameFrame": 5477,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": 1261,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 52,
+                "main": 60,
+                "delta": -8
+              },
+              {
+                "stage": 1,
+                "spike": 310,
+                "main": 243,
+                "delta": 67
+              },
+              {
+                "stage": 2,
+                "spike": 52,
+                "main": 118,
+                "delta": -66
+              },
+              {
+                "stage": 3,
+                "spike": 1000,
+                "main": 1619,
+                "delta": -619
+              },
+              {
+                "stage": 4,
+                "spike": 1089,
+                "main": 250,
+                "delta": 839
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 738,
+                "main": 355,
+                "delta": 383
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 36,
+                "delta": -9
+              },
+              {
+                "stage": 8,
+                "spike": 946,
+                "main": 1419,
+                "delta": -473
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 40,
+                "main": 40,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 4117,
+                "main": 4059,
+                "delta": 58
+              },
+              {
+                "stage": 14,
+                "spike": 2392,
+                "main": 67,
+                "delta": 2325
+              },
+              {
+                "stage": 15,
+                "spike": 654,
+                "main": 159,
+                "delta": 495
+              },
+              {
+                "stage": 16,
+                "spike": 1533,
+                "main": 1039,
+                "delta": 494
+              },
+              {
+                "stage": 17,
+                "spike": 118,
+                "main": 70,
+                "delta": 48
+              },
+              {
+                "stage": 18,
+                "spike": 38,
+                "main": 19,
+                "delta": 19
+              },
+              {
+                "stage": 19,
+                "spike": 119,
+                "main": 73,
+                "delta": 46
+              },
+              {
+                "stage": 20,
+                "spike": 2642,
+                "main": 1014,
+                "delta": 1628
+              },
+              {
+                "stage": 21,
+                "spike": 509,
+                "main": 300,
+                "delta": 209
+              }
+            ]
+          },
+          "edge": {
+            "frame": 1439,
+            "wall": 16613,
+            "state": 2,
+            "phaseLow": 2,
+            "x": 156,
+            "xAfter": 158,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 4117,
+            "contactWall": 2392,
+            "mainSameFrame": 11136,
+            "deltaSameFrame": 5477,
+            "deltaPeaks": null,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 52,
+                "main": 60,
+                "delta": -8
+              },
+              {
+                "stage": 1,
+                "spike": 310,
+                "main": 243,
+                "delta": 67
+              },
+              {
+                "stage": 2,
+                "spike": 52,
+                "main": 118,
+                "delta": -66
+              },
+              {
+                "stage": 3,
+                "spike": 1000,
+                "main": 1619,
+                "delta": -619
+              },
+              {
+                "stage": 4,
+                "spike": 1089,
+                "main": 250,
+                "delta": 839
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 738,
+                "main": 355,
+                "delta": 383
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 36,
+                "delta": -9
+              },
+              {
+                "stage": 8,
+                "spike": 946,
+                "main": 1419,
+                "delta": -473
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 40,
+                "main": 40,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 4117,
+                "main": 4059,
+                "delta": 58
+              },
+              {
+                "stage": 14,
+                "spike": 2392,
+                "main": 67,
+                "delta": 2325
+              },
+              {
+                "stage": 15,
+                "spike": 654,
+                "main": 159,
+                "delta": 495
+              },
+              {
+                "stage": 16,
+                "spike": 1533,
+                "main": 1039,
+                "delta": 494
+              },
+              {
+                "stage": 17,
+                "spike": 118,
+                "main": 70,
+                "delta": 48
+              },
+              {
+                "stage": 18,
+                "spike": 38,
+                "main": 19,
+                "delta": 19
+              },
+              {
+                "stage": 19,
+                "spike": 119,
+                "main": 73,
+                "delta": 46
+              },
+              {
+                "stage": 20,
+                "spike": 2642,
+                "main": 1014,
+                "delta": 1628
+              },
+              {
+                "stage": 21,
+                "spike": 509,
+                "main": 300,
+                "delta": 209
+              }
+            ]
+          },
+          "damage": {
+            "frame": 1155,
+            "wall": 10680,
+            "state": 2,
+            "phaseLow": 130,
+            "x": 88,
+            "xAfter": 88,
+            "health": 4,
+            "healthAfter": 2,
+            "worldWall": 3563,
+            "contactWall": 1810,
+            "mainSameFrame": 9713,
+            "deltaSameFrame": 967,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": -4672,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 111,
+                "main": 111,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 66,
+                "main": 66,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 372,
+                "main": 372,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 345,
+                "main": 345,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 105,
+                "main": 105,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 888,
+                "main": 888,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 44,
+                "main": 44,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 953,
+                "main": 1408,
+                "delta": -455
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 41,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 68,
+                "main": 68,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 85,
+                "main": 85,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3563,
+                "main": 3789,
+                "delta": -226
+              },
+              {
+                "stage": 14,
+                "spike": 1810,
+                "main": 58,
+                "delta": 1752
+              },
+              {
+                "stage": 15,
+                "spike": 159,
+                "main": 168,
+                "delta": -9
+              },
+              {
+                "stage": 16,
+                "spike": 323,
+                "main": 323,
+                "delta": 0
+              },
+              {
+                "stage": 17,
+                "spike": 182,
+                "main": 283,
+                "delta": -101
+              },
+              {
+                "stage": 18,
+                "spike": 19,
+                "main": 19,
+                "delta": 0
+              },
+              {
+                "stage": 19,
+                "spike": 64,
+                "main": 73,
+                "delta": -9
+              },
+              {
+                "stage": 20,
+                "spike": 1096,
+                "main": 1101,
+                "delta": -5
+              },
+              {
+                "stage": 21,
+                "spike": 317,
+                "main": 294,
+                "delta": 23
+              }
+            ]
+          },
+          "rowSwitch": {
+            "frame": 1447,
+            "wall": 14430,
+            "state": 2,
+            "phaseLow": 5,
+            "x": 160,
+            "xAfter": 162,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 3021,
+            "contactWall": 2297,
+            "mainSameFrame": 9643,
+            "deltaSameFrame": 4787,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": -922,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 56,
+                "main": 61,
+                "delta": -5
+              },
+              {
+                "stage": 1,
+                "spike": 290,
+                "main": 236,
+                "delta": 54
+              },
+              {
+                "stage": 2,
+                "spike": 64,
+                "main": 43,
+                "delta": 21
+              },
+              {
+                "stage": 3,
+                "spike": 1002,
+                "main": 1685,
+                "delta": -683
+              },
+              {
+                "stage": 4,
+                "spike": 768,
+                "main": 255,
+                "delta": 513
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 738,
+                "main": 355,
+                "delta": 383
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 934,
+                "main": 987,
+                "delta": -53
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 56,
+                "main": 56,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 85,
+                "main": 85,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3021,
+                "main": 2721,
+                "delta": 300
+              },
+              {
+                "stage": 14,
+                "spike": 2297,
+                "main": 58,
+                "delta": 2239
+              },
+              {
+                "stage": 15,
+                "spike": 210,
+                "main": 168,
+                "delta": 42
+              },
+              {
+                "stage": 16,
+                "spike": 893,
+                "main": 1049,
+                "delta": -156
+              },
+              {
+                "stage": 17,
+                "spike": 192,
+                "main": 182,
+                "delta": 10
+              },
+              {
+                "stage": 18,
+                "spike": 19,
+                "main": 19,
+                "delta": 0
+              },
+              {
+                "stage": 19,
+                "spike": 75,
+                "main": 64,
+                "delta": 11
+              },
+              {
+                "stage": 20,
+                "spike": 2935,
+                "main": 1135,
+                "delta": 1800
+              },
+              {
+                "stage": 21,
+                "spike": 568,
+                "main": 320,
+                "delta": 248
+              }
+            ]
+          },
+          "hullDamageEvents": [
+            {
+              "frame": 1105,
+              "wall": 9720,
+              "state": 1,
+              "phaseLow": 107,
+              "x": 92,
+              "xAfter": 92,
+              "health": 8,
+              "healthAfter": 6,
+              "worldWall": 1756,
+              "contactWall": 1831
+            },
+            {
+              "frame": 1130,
+              "wall": 8622,
+              "state": 2,
+              "phaseLow": 118,
+              "x": 92,
+              "xAfter": 92,
+              "health": 6,
+              "healthAfter": 4,
+              "worldWall": 1465,
+              "contactWall": 1812
+            },
+            {
+              "frame": 1155,
+              "wall": 10680,
+              "state": 2,
+              "phaseLow": 130,
+              "x": 88,
+              "xAfter": 88,
+              "health": 4,
+              "healthAfter": 2,
+              "worldWall": 3563,
+              "contactWall": 1810
+            }
+          ],
+          "activePeakStageDelta": [
+            {
+              "stage": 0,
+              "spike": 52,
+              "main": 60,
+              "delta": -8
+            },
+            {
+              "stage": 1,
+              "spike": 310,
+              "main": 243,
+              "delta": 67
+            },
+            {
+              "stage": 2,
+              "spike": 52,
+              "main": 118,
+              "delta": -66
+            },
+            {
+              "stage": 3,
+              "spike": 1000,
+              "main": 1619,
+              "delta": -619
+            },
+            {
+              "stage": 4,
+              "spike": 1089,
+              "main": 250,
+              "delta": 839
+            },
+            {
+              "stage": 5,
+              "spike": 51,
+              "main": 51,
+              "delta": 0
+            },
+            {
+              "stage": 6,
+              "spike": 738,
+              "main": 355,
+              "delta": 383
+            },
+            {
+              "stage": 7,
+              "spike": 27,
+              "main": 36,
+              "delta": -9
+            },
+            {
+              "stage": 8,
+              "spike": 946,
+              "main": 1419,
+              "delta": -473
+            },
+            {
+              "stage": 9,
+              "spike": 50,
+              "main": 50,
+              "delta": 0
+            },
+            {
+              "stage": 10,
+              "spike": 12,
+              "main": 12,
+              "delta": 0
+            },
+            {
+              "stage": 11,
+              "spike": 59,
+              "main": 59,
+              "delta": 0
+            },
+            {
+              "stage": 12,
+              "spike": 40,
+              "main": 40,
+              "delta": 0
+            },
+            {
+              "stage": 13,
+              "spike": 4117,
+              "main": 4059,
+              "delta": 58
+            },
+            {
+              "stage": 14,
+              "spike": 2392,
+              "main": 67,
+              "delta": 2325
+            },
+            {
+              "stage": 15,
+              "spike": 654,
+              "main": 159,
+              "delta": 495
+            },
+            {
+              "stage": 16,
+              "spike": 1533,
+              "main": 1039,
+              "delta": 494
+            },
+            {
+              "stage": 17,
+              "spike": 118,
+              "main": 70,
+              "delta": 48
+            },
+            {
+              "stage": 18,
+              "spike": 38,
+              "main": 19,
+              "delta": 19
+            },
+            {
+              "stage": 19,
+              "spike": 119,
+              "main": 73,
+              "delta": 46
+            },
+            {
+              "stage": 20,
+              "spike": 2642,
+              "main": 1014,
+              "delta": 1628
+            },
+            {
+              "stage": 21,
+              "spike": 509,
+              "main": 300,
+              "delta": 209
+            }
+          ]
+        }
+      },
+      "bytes": {
+        "residentSegmentDelta": 0,
+        "physicalResidentDelta": 748,
+        "capitalCode": 555,
+        "descriptors": 60,
+        "scratch": 5,
+        "strips": 128,
+        "total": 748,
+        "freePermitted": 407,
+        "windowPackedDelta": 513,
+        "transportBytesDelta": 384,
+        "transportSectorsDelta": 3
+      },
+      "computedCpu": {
+        "main": 15116,
+        "spike": 15491
+      },
+      "atr": {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/spike-nacelles-p2/void-strike-65.atr",
+        "sha256": "0b416633be0729e4422a6048f4ae8e29b16b566d2d2aa3c8dae28c448ef6c282"
+      }
+    },
+    {
+      "pattern": 3,
+      "channel": [
+        {
+          "difficulty": 0,
+          "minChannelHPOS": 80,
+          "minChannelCells": 20,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2430,
+          "worstGapCpu": 2201
+        },
+        {
+          "difficulty": 1,
+          "minChannelHPOS": 72,
+          "minChannelCells": 18,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2424,
+          "worstGapCpu": 2195
+        },
+        {
+          "difficulty": 2,
+          "minChannelHPOS": 72,
+          "minChannelCells": 18,
+          "worstDrawCpu": 1826,
+          "worstContactCpu": 2430,
+          "worstGapCpu": 2201
+        }
+      ],
+      "routes": {
+        "flight": {
+          "audit": {
+            "session": "p3-flight",
+            "frames": 2100,
+            "fence_bound_frames": 895,
+            "normal_start_scanline": {
+              "fighter": 17,
+              "capital": 230
+            },
+            "distinct_miss_events": 0,
+            "miss_events": [],
+            "overrun_rows": 0,
+            "fence_model_disagreements": 0,
+            "shifted_phase_rows": 0,
+            "worst_pre_wait_cycles": 21177,
+            "worst_pre_wait_frame": 591,
+            "worst_fence_margin_cycles": 4123,
+            "worst_fence_margin_frame": 591,
+            "maximum_wall_cycles": 31226,
+            "rows_over_target": 0,
+            "rows_over_hard_gate": 0,
+            "unreliable_counters": {
+              "missed_frames": 0,
+              "extra_vbi_boundaries": 0,
+              "dli_sequence_violations": 0
+            },
+            "fence_caught": true,
+            "gate_failures": [],
+            "passed": true
+          },
+          "capitalSector": {
+            "frame": 727,
+            "wall": 29772,
+            "state": 7,
+            "phaseLow": 0,
+            "x": 108,
+            "xAfter": 110,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 3343,
+            "contactWall": 124,
+            "mainSameFrame": 29769,
+            "deltaSameFrame": 3,
+            "mainRoutePeak": 29771,
+            "deltaPeaks": 1,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 39,
+                "main": 39,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 606,
+                "main": 606,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 47,
+                "main": 47,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 867,
+                "main": 867,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 520,
+                "main": 520,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 118,
+                "main": 118,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1714,
+                "main": 1714,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 62,
+                "main": 62,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 373,
+                "main": 373,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 155,
+                "main": 155,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 24,
+                "main": 24,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 499,
+                "main": 499,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 73,
+                "main": 73,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3343,
+                "main": 3343,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 124,
+                "main": 112,
+                "delta": 12
+              },
+              {
+                "stage": 15,
+                "spike": 1477,
+                "main": 1477,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 284,
+                "main": 258,
+                "delta": 26
+              },
+              {
+                "stage": 17,
+                "spike": 116,
+                "main": 118,
+                "delta": -2
+              },
+              {
+                "stage": 18,
+                "spike": 856,
+                "main": 880,
+                "delta": -24
+              },
+              {
+                "stage": 19,
+                "spike": 118,
+                "main": 118,
+                "delta": 0
+              },
+              {
+                "stage": 20,
+                "spike": 18043,
+                "main": 18052,
+                "delta": -9
+              },
+              {
+                "stage": 21,
+                "spike": 281,
+                "main": 281,
+                "delta": 0
+              }
+            ]
+          },
+          "activeHull": {
+            "frame": 904,
+            "wall": 17866,
+            "state": 1,
+            "phaseLow": 76,
+            "x": 154,
+            "xAfter": 154,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 4644,
+            "contactWall": 104,
+            "mainSameFrame": 17194,
+            "deltaSameFrame": 672,
+            "mainRoutePeak": 17194,
+            "deltaPeaks": 672,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 54,
+                "main": 42,
+                "delta": 12
+              },
+              {
+                "stage": 1,
+                "spike": 154,
+                "main": 162,
+                "delta": -8
+              },
+              {
+                "stage": 2,
+                "spike": 76,
+                "main": 67,
+                "delta": 9
+              },
+              {
+                "stage": 3,
+                "spike": 1709,
+                "main": 1706,
+                "delta": 3
+              },
+              {
+                "stage": 4,
+                "spike": 185,
+                "main": 185,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1077,
+                "main": 1077,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1163,
+                "main": 1163,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 40,
+                "main": 40,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 4644,
+                "main": 4353,
+                "delta": 291
+              },
+              {
+                "stage": 14,
+                "spike": 104,
+                "main": 58,
+                "delta": 46
+              },
+              {
+                "stage": 15,
+                "spike": 421,
+                "main": 421,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 3468,
+                "main": 3140,
+                "delta": 328
+              },
+              {
+                "stage": 17,
+                "spike": 120,
+                "main": 115,
+                "delta": 5
+              },
+              {
+                "stage": 18,
+                "spike": 20,
+                "main": 56,
+                "delta": -36
+              },
+              {
+                "stage": 19,
+                "spike": 128,
+                "main": 170,
+                "delta": -42
+              },
+              {
+                "stage": 20,
+                "spike": 3690,
+                "main": 3694,
+                "delta": -4
+              },
+              {
+                "stage": 21,
+                "spike": 578,
+                "main": 508,
+                "delta": 70
+              }
+            ]
+          },
+          "edge": null,
+          "damage": null,
+          "rowSwitch": {
+            "frame": 903,
+            "wall": 13641,
+            "state": 1,
+            "phaseLow": 75,
+            "x": 154,
+            "xAfter": 154,
+            "health": 1,
+            "healthAfter": 1,
+            "worldWall": 1765,
+            "contactWall": 104,
+            "mainSameFrame": 13582,
+            "deltaSameFrame": 59,
+            "mainRoutePeak": 17194,
+            "deltaPeaks": -3553,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 48,
+                "main": 56,
+                "delta": -8
+              },
+              {
+                "stage": 1,
+                "spike": 298,
+                "main": 290,
+                "delta": 8
+              },
+              {
+                "stage": 2,
+                "spike": 52,
+                "main": 64,
+                "delta": -12
+              },
+              {
+                "stage": 3,
+                "spike": 1562,
+                "main": 1560,
+                "delta": 2
+              },
+              {
+                "stage": 4,
+                "spike": 185,
+                "main": 185,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 1077,
+                "main": 1077,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1936,
+                "main": 1936,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 41,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 68,
+                "main": 68,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 31,
+                "main": 31,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 1765,
+                "main": 1765,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 104,
+                "main": 58,
+                "delta": 46
+              },
+              {
+                "stage": 15,
+                "spike": 321,
+                "main": 330,
+                "delta": -9
+              },
+              {
+                "stage": 16,
+                "spike": 2200,
+                "main": 2191,
+                "delta": 9
+              },
+              {
+                "stage": 17,
+                "spike": 61,
+                "main": 70,
+                "delta": -9
+              },
+              {
+                "stage": 18,
+                "spike": 19,
+                "main": 19,
+                "delta": 0
+              },
+              {
+                "stage": 19,
+                "spike": 73,
+                "main": 73,
+                "delta": 0
+              },
+              {
+                "stage": 20,
+                "spike": 3147,
+                "main": 3126,
+                "delta": 21
+              },
+              {
+                "stage": 21,
+                "spike": 532,
+                "main": 505,
+                "delta": 27
+              }
+            ]
+          },
+          "hullDamageEvents": [],
+          "activePeakStageDelta": [
+            {
+              "stage": 0,
+              "spike": 54,
+              "main": 42,
+              "delta": 12
+            },
+            {
+              "stage": 1,
+              "spike": 154,
+              "main": 162,
+              "delta": -8
+            },
+            {
+              "stage": 2,
+              "spike": 76,
+              "main": 67,
+              "delta": 9
+            },
+            {
+              "stage": 3,
+              "spike": 1709,
+              "main": 1706,
+              "delta": 3
+            },
+            {
+              "stage": 4,
+              "spike": 185,
+              "main": 185,
+              "delta": 0
+            },
+            {
+              "stage": 5,
+              "spike": 51,
+              "main": 51,
+              "delta": 0
+            },
+            {
+              "stage": 6,
+              "spike": 1077,
+              "main": 1077,
+              "delta": 0
+            },
+            {
+              "stage": 7,
+              "spike": 27,
+              "main": 27,
+              "delta": 0
+            },
+            {
+              "stage": 8,
+              "spike": 1163,
+              "main": 1163,
+              "delta": 0
+            },
+            {
+              "stage": 9,
+              "spike": 50,
+              "main": 50,
+              "delta": 0
+            },
+            {
+              "stage": 10,
+              "spike": 12,
+              "main": 12,
+              "delta": 0
+            },
+            {
+              "stage": 11,
+              "spike": 59,
+              "main": 59,
+              "delta": 0
+            },
+            {
+              "stage": 12,
+              "spike": 40,
+              "main": 40,
+              "delta": 0
+            },
+            {
+              "stage": 13,
+              "spike": 4644,
+              "main": 4353,
+              "delta": 291
+            },
+            {
+              "stage": 14,
+              "spike": 104,
+              "main": 58,
+              "delta": 46
+            },
+            {
+              "stage": 15,
+              "spike": 421,
+              "main": 421,
+              "delta": 0
+            },
+            {
+              "stage": 16,
+              "spike": 3468,
+              "main": 3140,
+              "delta": 328
+            },
+            {
+              "stage": 17,
+              "spike": 120,
+              "main": 115,
+              "delta": 5
+            },
+            {
+              "stage": 18,
+              "spike": 20,
+              "main": 56,
+              "delta": -36
+            },
+            {
+              "stage": 19,
+              "spike": 128,
+              "main": 170,
+              "delta": -42
+            },
+            {
+              "stage": 20,
+              "spike": 3690,
+              "main": 3694,
+              "delta": -4
+            },
+            {
+              "stage": 21,
+              "spike": 578,
+              "main": 508,
+              "delta": 70
+            }
+          ]
+        },
+        "contact": {
+          "audit": {
+            "session": "p3-contact",
+            "frames": 2100,
+            "fence_bound_frames": 895,
+            "normal_start_scanline": {
+              "fighter": 17,
+              "capital": 229
+            },
+            "distinct_miss_events": 0,
+            "miss_events": [],
+            "overrun_rows": 0,
+            "fence_model_disagreements": 0,
+            "shifted_phase_rows": 0,
+            "worst_pre_wait_cycles": 21214,
+            "worst_pre_wait_frame": 95,
+            "worst_fence_margin_cycles": 4086,
+            "worst_fence_margin_frame": 95,
+            "maximum_wall_cycles": 30883,
+            "rows_over_target": 0,
+            "rows_over_hard_gate": 0,
+            "unreliable_counters": {
+              "missed_frames": 0,
+              "extra_vbi_boundaries": 0,
+              "dli_sequence_violations": 0
+            },
+            "fence_caught": true,
+            "gate_failures": [],
+            "passed": true
+          },
+          "capitalSector": {
+            "frame": 635,
+            "wall": 30011,
+            "state": 7,
+            "phaseLow": 0,
+            "x": 124,
+            "xAfter": 124,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 5053,
+            "contactWall": 205,
+            "mainSameFrame": 30011,
+            "deltaSameFrame": 0,
+            "mainRoutePeak": 30015,
+            "deltaPeaks": -4,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 32,
+                "main": 32,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 106,
+                "main": 106,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 76,
+                "main": 76,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 308,
+                "main": 308,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 514,
+                "main": 514,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 2517,
+                "main": 2517,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 3759,
+                "main": 3759,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 366,
+                "main": 366,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 444,
+                "main": 444,
+                "delta": 0
+              },
+              {
+                "stage": 9,
+                "spike": 93,
+                "main": 93,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 113,
+                "main": 113,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 74,
+                "main": 74,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 5053,
+                "main": 5053,
+                "delta": 0
+              },
+              {
+                "stage": 14,
+                "spike": 205,
+                "main": 183,
+                "delta": 22
+              },
+              {
+                "stage": 15,
+                "spike": 442,
+                "main": 440,
+                "delta": 2
+              },
+              {
+                "stage": 16,
+                "spike": 264,
+                "main": 268,
+                "delta": -4
+              },
+              {
+                "stage": 17,
+                "spike": 188,
+                "main": 184,
+                "delta": 4
+              },
+              {
+                "stage": 18,
+                "spike": 32,
+                "main": 38,
+                "delta": -6
+              },
+              {
+                "stage": 19,
+                "spike": 118,
+                "main": 119,
+                "delta": -1
+              },
+              {
+                "stage": 20,
+                "spike": 14967,
+                "main": 14984,
+                "delta": -17
+              },
+              {
+                "stage": 21,
+                "spike": 281,
+                "main": 281,
+                "delta": 0
+              }
+            ]
+          },
+          "activeHull": {
+            "frame": 1439,
+            "wall": 16434,
+            "state": 2,
+            "phaseLow": 2,
+            "x": 156,
+            "xAfter": 158,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 3312,
+            "contactWall": 2417,
+            "mainSameFrame": 11136,
+            "deltaSameFrame": 5298,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": 1082,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 27,
+                "main": 60,
+                "delta": -33
+              },
+              {
+                "stage": 1,
+                "spike": 321,
+                "main": 243,
+                "delta": 78
+              },
+              {
+                "stage": 2,
+                "spike": 48,
+                "main": 118,
+                "delta": -70
+              },
+              {
+                "stage": 3,
+                "spike": 1638,
+                "main": 1619,
+                "delta": 19
+              },
+              {
+                "stage": 4,
+                "spike": 850,
+                "main": 250,
+                "delta": 600
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 564,
+                "main": 355,
+                "delta": 209
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 36,
+                "delta": -9
+              },
+              {
+                "stage": 8,
+                "spike": 912,
+                "main": 1419,
+                "delta": -507
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 40,
+                "main": 40,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3312,
+                "main": 4059,
+                "delta": -747
+              },
+              {
+                "stage": 14,
+                "spike": 2417,
+                "main": 67,
+                "delta": 2350
+              },
+              {
+                "stage": 15,
+                "spike": 262,
+                "main": 159,
+                "delta": 103
+              },
+              {
+                "stage": 16,
+                "spike": 2704,
+                "main": 1039,
+                "delta": 1665
+              },
+              {
+                "stage": 17,
+                "spike": 118,
+                "main": 70,
+                "delta": 48
+              },
+              {
+                "stage": 18,
+                "spike": 38,
+                "main": 19,
+                "delta": 19
+              },
+              {
+                "stage": 19,
+                "spike": 119,
+                "main": 73,
+                "delta": 46
+              },
+              {
+                "stage": 20,
+                "spike": 2294,
+                "main": 1014,
+                "delta": 1280
+              },
+              {
+                "stage": 21,
+                "spike": 493,
+                "main": 300,
+                "delta": 193
+              }
+            ]
+          },
+          "edge": {
+            "frame": 1439,
+            "wall": 16434,
+            "state": 2,
+            "phaseLow": 2,
+            "x": 156,
+            "xAfter": 158,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 3312,
+            "contactWall": 2417,
+            "mainSameFrame": 11136,
+            "deltaSameFrame": 5298,
+            "deltaPeaks": null,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 27,
+                "main": 60,
+                "delta": -33
+              },
+              {
+                "stage": 1,
+                "spike": 321,
+                "main": 243,
+                "delta": 78
+              },
+              {
+                "stage": 2,
+                "spike": 48,
+                "main": 118,
+                "delta": -70
+              },
+              {
+                "stage": 3,
+                "spike": 1638,
+                "main": 1619,
+                "delta": 19
+              },
+              {
+                "stage": 4,
+                "spike": 850,
+                "main": 250,
+                "delta": 600
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 564,
+                "main": 355,
+                "delta": 209
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 36,
+                "delta": -9
+              },
+              {
+                "stage": 8,
+                "spike": 912,
+                "main": 1419,
+                "delta": -507
+              },
+              {
+                "stage": 9,
+                "spike": 50,
+                "main": 50,
+                "delta": 0
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 59,
+                "main": 59,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 40,
+                "main": 40,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3312,
+                "main": 4059,
+                "delta": -747
+              },
+              {
+                "stage": 14,
+                "spike": 2417,
+                "main": 67,
+                "delta": 2350
+              },
+              {
+                "stage": 15,
+                "spike": 262,
+                "main": 159,
+                "delta": 103
+              },
+              {
+                "stage": 16,
+                "spike": 2704,
+                "main": 1039,
+                "delta": 1665
+              },
+              {
+                "stage": 17,
+                "spike": 118,
+                "main": 70,
+                "delta": 48
+              },
+              {
+                "stage": 18,
+                "spike": 38,
+                "main": 19,
+                "delta": 19
+              },
+              {
+                "stage": 19,
+                "spike": 119,
+                "main": 73,
+                "delta": 46
+              },
+              {
+                "stage": 20,
+                "spike": 2294,
+                "main": 1014,
+                "delta": 1280
+              },
+              {
+                "stage": 21,
+                "spike": 493,
+                "main": 300,
+                "delta": 193
+              }
+            ]
+          },
+          "damage": {
+            "frame": 1148,
+            "wall": 11892,
+            "state": 2,
+            "phaseLow": 127,
+            "x": 88,
+            "xAfter": 88,
+            "health": 6,
+            "healthAfter": 4,
+            "worldWall": 3649,
+            "contactWall": 1846,
+            "mainSameFrame": 9753,
+            "deltaSameFrame": 2139,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": -3460,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 60,
+                "main": 60,
+                "delta": 0
+              },
+              {
+                "stage": 1,
+                "spike": 108,
+                "main": 108,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 43,
+                "main": 43,
+                "delta": 0
+              },
+              {
+                "stage": 3,
+                "spike": 405,
+                "main": 405,
+                "delta": 0
+              },
+              {
+                "stage": 4,
+                "spike": 348,
+                "main": 348,
+                "delta": 0
+              },
+              {
+                "stage": 5,
+                "spike": 96,
+                "main": 96,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 836,
+                "main": 836,
+                "delta": 0
+              },
+              {
+                "stage": 7,
+                "spike": 32,
+                "main": 32,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 1399,
+                "main": 1432,
+                "delta": -33
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 50,
+                "delta": -9
+              },
+              {
+                "stage": 10,
+                "spike": 12,
+                "main": 12,
+                "delta": 0
+              },
+              {
+                "stage": 11,
+                "spike": 68,
+                "main": 59,
+                "delta": 9
+              },
+              {
+                "stage": 12,
+                "spike": 85,
+                "main": 85,
+                "delta": 0
+              },
+              {
+                "stage": 13,
+                "spike": 3649,
+                "main": 3764,
+                "delta": -115
+              },
+              {
+                "stage": 14,
+                "spike": 1846,
+                "main": 67,
+                "delta": 1779
+              },
+              {
+                "stage": 15,
+                "spike": 159,
+                "main": 159,
+                "delta": 0
+              },
+              {
+                "stage": 16,
+                "spike": 424,
+                "main": 424,
+                "delta": 0
+              },
+              {
+                "stage": 17,
+                "spike": 292,
+                "main": 283,
+                "delta": 9
+              },
+              {
+                "stage": 18,
+                "spike": 19,
+                "main": 19,
+                "delta": 0
+              },
+              {
+                "stage": 19,
+                "spike": 64,
+                "main": 73,
+                "delta": -9
+              },
+              {
+                "stage": 20,
+                "spike": 1149,
+                "main": 1110,
+                "delta": 39
+              },
+              {
+                "stage": 21,
+                "spike": 702,
+                "main": 264,
+                "delta": 438
+              }
+            ]
+          },
+          "rowSwitch": {
+            "frame": 1447,
+            "wall": 15094,
+            "state": 2,
+            "phaseLow": 5,
+            "x": 160,
+            "xAfter": 160,
+            "health": 10,
+            "healthAfter": 10,
+            "worldWall": 3202,
+            "contactWall": 2394,
+            "mainSameFrame": 9643,
+            "deltaSameFrame": 5451,
+            "mainRoutePeak": 15352,
+            "deltaPeaks": -258,
+            "stageAttribution": [
+              {
+                "stage": 0,
+                "spike": 29,
+                "main": 61,
+                "delta": -32
+              },
+              {
+                "stage": 1,
+                "spike": 236,
+                "main": 236,
+                "delta": 0
+              },
+              {
+                "stage": 2,
+                "spike": 114,
+                "main": 43,
+                "delta": 71
+              },
+              {
+                "stage": 3,
+                "spike": 1629,
+                "main": 1685,
+                "delta": -56
+              },
+              {
+                "stage": 4,
+                "spike": 541,
+                "main": 255,
+                "delta": 286
+              },
+              {
+                "stage": 5,
+                "spike": 51,
+                "main": 51,
+                "delta": 0
+              },
+              {
+                "stage": 6,
+                "spike": 564,
+                "main": 355,
+                "delta": 209
+              },
+              {
+                "stage": 7,
+                "spike": 27,
+                "main": 27,
+                "delta": 0
+              },
+              {
+                "stage": 8,
+                "spike": 426,
+                "main": 987,
+                "delta": -561
+              },
+              {
+                "stage": 9,
+                "spike": 41,
+                "main": 50,
+                "delta": -9
+              },
+              {
+                "stage": 10,
+                "spike": 21,
+                "main": 12,
+                "delta": 9
+              },
+              {
+                "stage": 11,
+                "spike": 56,
+                "main": 56,
+                "delta": 0
+              },
+              {
+                "stage": 12,
+                "spike": 31,
+                "main": 85,
+                "delta": -54
+              },
+              {
+                "stage": 13,
+                "spike": 3202,
+                "main": 2721,
+                "delta": 481
+              },
+              {
+                "stage": 14,
+                "spike": 2394,
+                "main": 58,
+                "delta": 2336
+              },
+              {
+                "stage": 15,
+                "spike": 210,
+                "main": 168,
+                "delta": 42
+              },
+              {
+                "stage": 16,
+                "spike": 1852,
+                "main": 1049,
+                "delta": 803
+              },
+              {
+                "stage": 17,
+                "spike": 115,
+                "main": 182,
+                "delta": -67
+              },
+              {
+                "stage": 18,
+                "spike": 33,
+                "main": 19,
+                "delta": 14
+              },
+              {
+                "stage": 19,
+                "spike": 130,
+                "main": 64,
+                "delta": 66
+              },
+              {
+                "stage": 20,
+                "spike": 2697,
+                "main": 1135,
+                "delta": 1562
+              },
+              {
+                "stage": 21,
+                "spike": 641,
+                "main": 320,
+                "delta": 321
+              }
+            ]
+          },
+          "hullDamageEvents": [
+            {
+              "frame": 1123,
+              "wall": 10335,
+              "state": 2,
+              "phaseLow": 115,
+              "x": 88,
+              "xAfter": 88,
+              "health": 8,
+              "healthAfter": 6,
+              "worldWall": 3183,
+              "contactWall": 1792
+            },
+            {
+              "frame": 1148,
+              "wall": 11892,
+              "state": 2,
+              "phaseLow": 127,
+              "x": 88,
+              "xAfter": 88,
+              "health": 6,
+              "healthAfter": 4,
+              "worldWall": 3649,
+              "contactWall": 1846
+            }
+          ],
+          "activePeakStageDelta": [
+            {
+              "stage": 0,
+              "spike": 27,
+              "main": 60,
+              "delta": -33
+            },
+            {
+              "stage": 1,
+              "spike": 321,
+              "main": 243,
+              "delta": 78
+            },
+            {
+              "stage": 2,
+              "spike": 48,
+              "main": 118,
+              "delta": -70
+            },
+            {
+              "stage": 3,
+              "spike": 1638,
+              "main": 1619,
+              "delta": 19
+            },
+            {
+              "stage": 4,
+              "spike": 850,
+              "main": 250,
+              "delta": 600
+            },
+            {
+              "stage": 5,
+              "spike": 51,
+              "main": 51,
+              "delta": 0
+            },
+            {
+              "stage": 6,
+              "spike": 564,
+              "main": 355,
+              "delta": 209
+            },
+            {
+              "stage": 7,
+              "spike": 27,
+              "main": 36,
+              "delta": -9
+            },
+            {
+              "stage": 8,
+              "spike": 912,
+              "main": 1419,
+              "delta": -507
+            },
+            {
+              "stage": 9,
+              "spike": 50,
+              "main": 50,
+              "delta": 0
+            },
+            {
+              "stage": 10,
+              "spike": 12,
+              "main": 12,
+              "delta": 0
+            },
+            {
+              "stage": 11,
+              "spike": 59,
+              "main": 59,
+              "delta": 0
+            },
+            {
+              "stage": 12,
+              "spike": 40,
+              "main": 40,
+              "delta": 0
+            },
+            {
+              "stage": 13,
+              "spike": 3312,
+              "main": 4059,
+              "delta": -747
+            },
+            {
+              "stage": 14,
+              "spike": 2417,
+              "main": 67,
+              "delta": 2350
+            },
+            {
+              "stage": 15,
+              "spike": 262,
+              "main": 159,
+              "delta": 103
+            },
+            {
+              "stage": 16,
+              "spike": 2704,
+              "main": 1039,
+              "delta": 1665
+            },
+            {
+              "stage": 17,
+              "spike": 118,
+              "main": 70,
+              "delta": 48
+            },
+            {
+              "stage": 18,
+              "spike": 38,
+              "main": 19,
+              "delta": 19
+            },
+            {
+              "stage": 19,
+              "spike": 119,
+              "main": 73,
+              "delta": 46
+            },
+            {
+              "stage": 20,
+              "spike": 2294,
+              "main": 1014,
+              "delta": 1280
+            },
+            {
+              "stage": 21,
+              "spike": 493,
+              "main": 300,
+              "delta": 193
+            }
+          ]
+        }
+      },
+      "bytes": {
+        "residentSegmentDelta": 0,
+        "physicalResidentDelta": 748,
+        "capitalCode": 555,
+        "descriptors": 60,
+        "scratch": 5,
+        "strips": 128,
+        "total": 748,
+        "freePermitted": 407,
+        "windowPackedDelta": 503,
+        "transportBytesDelta": 384,
+        "transportSectorsDelta": 3
+      },
+      "computedCpu": {
+        "main": 15116,
+        "spike": 15741
+      },
+      "atr": {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/spike-nacelles-p3/void-strike-65.atr",
+        "sha256": "27580e3f2a4e3d54b7a23b3254201845ecbbe622685e9f11b28f38c411772f94"
+      }
+    }
+  ]
+}

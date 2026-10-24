@@ -45,11 +45,19 @@ for(let difficulty=0;difficulty<3;difficulty++) {
     // New contour is contiguous from the existing five-cell minimum.
     if(l>9) for(let col=4;col<l;col++) assert.ok(hull(chars[col]),`left hole ${row}:${col}`);
     if(r<31) for(let col=r;col<36;col++) assert.ok(hull(chars[col]),`right hole ${row}:${col}`);
-    // Prepared-row extra columns reach the real divider without stale cells.
+    // Exercise the real prepared-row hit, then its coordinate-miss fallback.
     memory.set(chars,at('PREPARED_HULL_ROW'));
-    run('spike_commit_strips');
-    for(const col of [8,9,10,29,30]) assert.equal(memory[0x4028+col],chars[col]);
+    const key=at('PREPARED_HULL_ROW')+40;
+    memory[key]=row&255;memory[key+1]=row>>>8;memory[key+2]=2;memory[key+3]=0x70;
+    memory[at('PLAYFIELD_ROW_LO')]=0x70;
+    word('dst_ptr',0x4028);run('commit_prepared_hull_row');
+    for(const col of [...Array.from({length:11},(_,i)=>i),...Array.from({length:11},(_,i)=>29+i)]) assert.equal(memory[0x4028+col],chars[col]);
     result.cacheCases++;
+    memory[key]^=1;memory.fill(0,0x4028,0x4050);
+    word('dst_ptr',0x4028);run('commit_prepared_hull_row');
+    for(const col of [...Array.from({length:11},(_,i)=>i),...Array.from({length:11},(_,i)=>29+i)]) assert.equal(memory[0x4028+col],chars[col]);
+    result.cacheCases++;
+
   }
   for(let row=0;row<488;row++) for(let fine=0;fine<8;fine++) {
     const count=Math.floor((fine+14)/8)+1;

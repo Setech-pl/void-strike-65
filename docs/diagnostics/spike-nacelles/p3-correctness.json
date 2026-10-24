@@ -1,0 +1,36 @@
+{
+  "pattern": 3,
+  "difficulties": [
+    {
+      "difficulty": 0,
+      "minChannelHPOS": 80,
+      "minChannelCells": 20,
+      "worstDrawCpu": 1826,
+      "worstContactCpu": 2430,
+      "worstGapCpu": 2201
+    },
+    {
+      "difficulty": 1,
+      "minChannelHPOS": 72,
+      "minChannelCells": 18,
+      "worstDrawCpu": 1826,
+      "worstContactCpu": 2424,
+      "worstGapCpu": 2195
+    },
+    {
+      "difficulty": 2,
+      "minChannelHPOS": 72,
+      "minChannelCells": 18,
+      "worstDrawCpu": 1826,
+      "worstContactCpu": 2430,
+      "worstGapCpu": 2201
+    }
+  ],
+  "cases": 39912,
+  "protrudingEdgeCases": 4776,
+  "cooldownCases": 4776,
+  "cacheCases": 2928,
+  "immutableCodeAndDescriptors": true,
+  "reservedFiveBytesIntact": true,
+  "m3hReservationIntact": true
+}

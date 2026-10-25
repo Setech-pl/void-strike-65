@@ -4155,7 +4155,85 @@ Merge/push is authorized after passing normal builds on the branch and main.
 Before v0.4.0, triage the remaining pre-existing test failures as stale
 validators versus real defects; STATUS records the owner's pre-release debt.
 
-**Next free decision section: §BW.**
+## BW. Capital sector: islands, brake, sector length (2026-10-25)
+
+Session: Codex. Owner decisions after the throwaway
+[P1–P5 / brake spike](audits/2026-10-25-spike-nacelles.md), branch
+`codex/spike-nacelles`, report HEAD `cdd08e7`. The report is preserved unchanged;
+its older pending-smoke wording describes the spike checkpoint. These decisions
+record the owner's subsequent smoke, not production acceptance or a merge of
+spike code. Production integration is planned in [L2 Phase A](plans/l2-phase-module.md).
+
+### BW.1 Nacelles as obstacles rejected
+
+P1–P3 (at most two extra columns) leave an 18–21-cell channel; a centred ship
+never has to leave it. P4's deep alternating geometry is also rejected:
+
+| P4 extreme (spike geometry) | HPOS |
+| --- | ---: |
+| Left boundary, nine base cells + six extra | 108 |
+| Right boundary, nine base cells + six extra | 148 |
+| Common safe origins for the 8-HPOS collision footprint | 108–140 |
+| Centred player origin / footprint | 124 / 124–131 |
+
+Reaching the centre requires at least eleven extra columns; retaining both
+base hulls at least five cells deep leaves at most fifteen free cells, below
+the then-required EASY sixteen. The owner rejected those relaxations. The
+software edge-collision machinery remains needed for the open recessed
+repair dock (§BU.4); rejecting nacelle obstacles does not remove that need.
+
+### BW.2 Islands (P5) go to production
+
+Large detached ship fragments in the corridor scroll with the hulls:
+
+| Difficulty | Full island width | Minimum side channel, each side |
+| --- | ---: | ---: |
+| EASY | 6 cells | 8 cells |
+| MEDIUM | 8 cells | 7 cells |
+| HARD | 10 cells | 6 cells |
+
+Use bounded interval collision, at most one island per row. Contact causes
+**2 HULL units + push to the nearer side + 25-frame cooldown**. Projectiles
+pass over with backing restore. Owner smoke: **“plays excellently — real
+obstacles”**. Production art must have more varied fragments built from ship
+elements or other objects, in **allied AND enemy colours**, chosen from
+mockups **before implementation**. Production remains subject to linked
+budgets, gates and owner smoke.
+
+### BW.3 Small falling debris
+
+Remove small falling debris from **capital sectors only**. Debris stays in
+all other sectors; the future asteroid sector depends on it. The Director's
+debris admission obeys the sector's debris flag **unconditionally**.
+
+### BW.4 Brake (River Raid)
+
+Capital sectors only: at the bottom limit with joystick DOWN, scroll ramps
+to half speed; release ramps back. Ramp duration EASY/MEDIUM/HARD is
+**8/9/10 frames**. Hull, islands, turret tracking and Director row clocks
+remain synchronized. Owner smoke: **“excellent”**. SPACE and boss speed are
+unchanged.
+
+### BW.5 Fair warning near the bottom
+
+Turret warning increases **25 → 35 frames** when the player is in the bottom
+zone. Spike root cause: at Y=225 there is no downward escape; an adjacent
+flying shell cannot be escaped. The warning is the only escape window.
+Use the spike's bottom-zone admission threshold (Y≥201); this does not promise
+rescue after late commitment to an already flying shell. Keep existing
+per-difficulty fire rates, damage and launched-shell motion.
+
+### BW.6 Data-driven capital-sector length
+
+Replace the four fixed length steps with data-driven length **up to 960 rows**,
+so later levels can have longer capital sectors. Turret count scales with
+length, retaining more stations on harder difficulties and existing
+per-difficulty fire rates. Today's per-side EASY/MEDIUM/HARD station counts
+are **10/15/20** for level 1 and **7/10/14** for level 2. This needs coordinate,
+compiler/format and runtime work; it is not data-only. The Phase A plan prices
+that work and specifies bounded longer-axis island/station lookup.
+
+**Next free decision section: §BX.**
 
 ---
 

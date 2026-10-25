@@ -30,6 +30,7 @@ there.
 | [2026-10-19-m5.md](2026-10-19-m5.md) | `main` `2e93173` | Codex (OpenAI) |
 | [2026-10-23-memory-cycles.md](2026-10-23-memory-cycles.md) — memory/RAM placement, CPU/DMA frame families, capital sector, 16-level feasibility; static, trace 0 min; triaged by owner in [§BU](../owner-decisions-2026-09-11.md#bu-planning-direction-after-the-memorycycles-audit-2026-10-23) | `main` `6dae5a6` | Codex |
 | [2026-10-24-l1-window-levers.md](2026-10-24-l1-window-levers.md) — L1 relocation, boot fixtures and page crossings; report preserved unchanged | `codex/l1-window-levers` `382b91a` | Claude Opus 5.5 |
+| [2026-10-25-spike-nacelles.md](2026-10-25-spike-nacelles.md) — unchanged throwaway P1–P5, debris, brake, warning and length report; subsequent owner decisions in [§BW](../owner-decisions-2026-09-11.md#bw-capital-sector-islands-brake-sector-length-2026-10-25); no spike code merged | `codex/spike-nacelles` report HEAD `cdd08e7`, baseline `19b1464` | Codex |
 
 ## Thematic audits
 

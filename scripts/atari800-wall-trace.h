@@ -4302,6 +4302,18 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				(x > 58u ? 0x0bu : 0x0fu);
 		}
 	}
+	else if (strncmp(dftrace_policy, "l2-", 3) == 0) {
+        unsigned phase = MEMORY_mem[dftrace_corridor_phase] |
+            ((unsigned)MEMORY_mem[dftrace_corridor_phase_hi] << 8);
+        unsigned capital = MEMORY_mem[dftrace_sector_state] < 7u;
+        unsigned local = phase - (960u - (MEMORY_mem[0xAC00u] | ((unsigned)MEMORY_mem[0xAC01u]<<8)));
+        unsigned target = capital ? (((local / 112u) & 1u) ? 152u : 92u) : 124u;
+        if (strcmp(dftrace_policy, "l2-contact") == 0 && capital) target = 124u;
+        stick = x < target ? 0x07u : x > target ? 0x0bu : 0x0fu;
+        /* Ordinary DOWN/release windows; no guest speed or coordinate writes. */
+        if (strcmp(dftrace_policy, "l2-brake") == 0 && capital &&
+            (local < 256u || (local >= 384u && local < 640u))) stick &= ~2u;
+    }
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
 		strcmp(dftrace_policy, "broadside-proof") == 0 ||
 		strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
@@ -8445,6 +8457,26 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 }
 
 
+/* Phase-B-only observer: reads guest clocks at the frame publication fence. */
+static void dftrace_l2_observe(void)
+{
+    static FILE *file;
+    const char *output=getenv("DFTRACE_L2_OUTPUT");
+    unsigned phase, world, hull, i;
+    if(output==NULL) return;
+    if(file==NULL) { file=fopen(output,"w"); if(file==NULL) {perror("L2 trace");exit(2);}
+        fputs("frame,phase,state,rate,world,hull,x,y,cooldown,health,timer0,timer1,timer2,lookup\n",file); }
+    phase=MEMORY_mem[dftrace_corridor_phase]|((unsigned)MEMORY_mem[dftrace_corridor_phase_hi]<<8);
+    world=MEMORY_mem[strtoul(getenv("DFTRACE_L2_WORLD_ACC"),NULL,0)];
+    hull=MEMORY_mem[strtoul(getenv("DFTRACE_L2_HULL_ACC"),NULL,0)];
+    fprintf(file,"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",dftrace_count,phase,
+        MEMORY_mem[dftrace_sector_state],MEMORY_mem[0x1918u],world,hull,
+        MEMORY_mem[dftrace_player_x],MEMORY_mem[dftrace_player_y],
+        MEMORY_mem[dftrace_broad_state+30u],MEMORY_mem[dftrace_broad_state+29u]);
+    for(i=0;i<3u;++i) fprintf(file,",%u",MEMORY_mem[dftrace_broad_state+15u+i]);
+    fprintf(file,",%u\n",phase<960u?MEMORY_mem[0xAD80u+phase/8u]:0u);fflush(file);
+}
+
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
 {
@@ -9098,6 +9130,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_current.profile_pickup_render_start = 0u;
 			dftrace_current.profile_effect_render_start = 0u;
 		}
+		if(dftrace_current.profile_next == 20u) dftrace_l2_observe();
 		++dftrace_current.profile_next;
 	}
 	if (pc == dftrace_pc_compose_start) {

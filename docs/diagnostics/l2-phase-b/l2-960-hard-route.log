@@ -1,0 +1,30 @@
+CLAUSE FAILURE observer-smoke: observer-smoke: the switches landed on 8-line rows 1000000000000000000000001010100, region 1's are 1010000 (rows 1, 3)
+observer-smoke: 5499 frames, max 39437 wall cycles
+  PAL timing audit  observer-smoke                                frames 5499  misses   0  preWait  20046  margin   4929  maxWall  39437  >target  434  >hard  428  shifted  428  [unreliable: missed 1285 extraVBI 0 DLIerr 3852]  FAIL (DMA-on maximum 39437 > 32568)
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (FAIL)
+PAL timing audit: 1 replay(s) outside the gates (GO >= 500, DMA-on <= 32568): observer-smoke
+Boss-entry debris clause: subject 1 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 1 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 1 lance run reads, 862 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 1 block reads, 0 field-state writes, 0 foreign writers
+Behavioural clauses: 1 of 1 session(s) accumulated a failure
+  observer-smoke: observer-smoke: the switches landed on 8-line rows 1000000000000000000000001010100, region 1's are 1010000 (rows 1, 3)
+Focused report: build/l2-capital-960/runtime-wall-trace/observer-smoke-focused-run.json
+file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/runtime-wall-trace.mjs:1641
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: Focused PAL acceptance failed: {"measured_frames":5499,"maximum_wall_cycles":39437,"wall_ceiling":32568,"physical_headroom":-3869,"missed_frames":1285,"extra_vbi_boundaries":0,"physical_overruns":428,"deadline_overruns":857,"dli_ordering_errors":3852,"passed":false}
+    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/runtime-wall-trace.mjs:1641:25)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/runtime-wall-trace.mjs:7543:5)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/runtime-wall-trace.mjs:9788:1
+    at #evaluateSync (node:internal/modules/esm/module_job:702:24)
+    at ModuleJobSync.runSync (node:internal/modules/esm/module_job:717:43)
+    at node:internal/modules/esm/loader:383:11
+    at TracingChannel.traceSync (node:diagnostics_channel:557:14)
+    at ModuleLoader.importForEntryPoint (node:internal/modules/esm/loader:372:21)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:184:34)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v26.12.0

@@ -1,0 +1,26 @@
+{
+  "build": "build",
+  "records": [
+    {
+      "level": 7,
+      "lance": "off",
+      "cases": 18528,
+      "maximum": 7771,
+      "clashes": 0
+    },
+    {
+      "level": 7,
+      "lance": "fire",
+      "cases": 18528,
+      "maximum": 8180,
+      "clashes": 0
+    },
+    {
+      "level": 7,
+      "lance": "lost",
+      "cases": 18528,
+      "maximum": 8186,
+      "clashes": 0
+    }
+  ]
+}

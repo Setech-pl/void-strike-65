@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-25 (L2 Phase A accepted; Phase B computed MAIN-tail gate STOP)
+Last update: 2026-10-25 (L2 Phase B — native boss-handoff acceptance STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,35 +20,49 @@ the values below.
 
 ## Checkpoint
 
-### L2 — Phase A accepted; Phase B stopped at computed MAIN-tail gate
+### L2 — BLOCKED_FOCUSED_PAL_ACCEPTANCE; no owner-smoke candidate
 
-Owner accepts Phase A at `bac5e79` and records §BW.7: art 01/03/05 in both
-factions, zero new glyphs, 256-B reserve, accepted placement defaults with
-per-level overrides. The [plan](plans/l2-phase-module.md) remains the scope.
+Owner accepted Phase A at `bac5e79`; §BW.7 records art 01/03/05 in both
+factions, zero new glyphs, the 256-B reserve and accepted placement defaults.
+The owner-selected option A resolves the old MAIN-tail gate: cold checksum
+extension **19 code + 2 checksum B** in the reader, no per-frame work; MAIN/LIFE
+addresses remain unchanged. Skeleton, coordinates/compiler, islands/debris/art
+and brake/warning are committed on `codex/l2-phase-module` through `104a94d`.
+They are incomplete Phase B work, not accepted gameplay.
 
-**BLOCKED_MAIN_TAIL_GATE:** the checked-load skeleton added a 2-B run fold to
-the MAIN Light composite: **MEASURED 1,196 → 1,198/1,213 B**, leaving **15 B**
-where `scripts/formats.mjs:342` requires **≥16 B**. Exact deficit **1 B**.
-Phase A's forecast of 15 free bytes missed this existing computed gate.
-The summary's layout-preserving reload helper needs **MEASURED 17 B**, filling
-its tail, rather than the forecast 10 B; display list remains `$0B58`.
-[Evidence, restored scaffold patch and recovery options](diagnostics/l2-phase-b-gate-stop/).
-Recommended recovery is a cold checksum extension in the reader's 28-B tail
-(ESTIMATE 21 B), keeping the original MAIN/LIFE addresses. Not implemented.
+Normal build/computed gates pass. Linked L2 **1,047/1,792 B**, **745 B** free;
+**256 B** post-1.0 reserve intact, **489 B** otherwise free. Reader **1,529/1,536**,
+MAIN Light **1,196 B / 17-B tail**, C sector **241/248**, Director high **634 B**.
+Level image **16 sectors**, L2 run **251-264**, fold **$B8AA**. Initial content
+**12,807 B**, boot/chunk transport **210 sectors**; level/L2 add **17 late sectors**.
+The listing audit finds **zero new per-frame page crossings**; **27 B** of
+non-executed alignment padding fits the owner's placement-recovery rule.
 
-The owner's explicit STOP rule applies. Incomplete production edits were
-restored. Normal build passes with expected pending release evidence; actual
-production CPU/RAM/residency/disk delta is zero. No new candidate ATR exists.
-Campaign ATR remains the accepted L1 artifact:
-`410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
-No gameplay tests, PAL/stress/page-cross certification or boot smoke is claimed.
+**STOP:** focused HARD 960-row brake replay completes the capital, then fails
+native acceptance at the boss handoff. The report (excluding its marked
+install frame) has **39,437 peak wall cycles**, **1,285 misses**, **3,852 DLI
+ordering errors**. Target/hard/physical remain **31,500 / 32,568 / 35,568**.
+Capital-only sample: **3,064 frames**, **17,128 peak**, zero misses/DLI errors;
+full-axis clock observer reaches **968**, world/hull residues match in every
+sample, rates **10-20**, bottom warning **35**. A game lifetime defect versus
+observer address alias is **unresolved**; neither is presented as confirmed.
+[Evidence and reproduction](diagnostics/l2-phase-b/), [plan results](plans/l2-phase-module.md#phase-b-results--native-acceptance-stop).
 
-Owner now chooses option A and authorizes continuation; see the plan's
-standing placement-recovery rule. **Risk for M4:** summary is full,
-**1,792/1,792 B**; the address-preserving helper used **17 B**, not 10.
-M4's next-level loop / grade screen must find room or relocate.
+Focused coordinate/compiler/island/brake tests **14/14**; loader/placement subset
+**10/10**; backing **1,640** cases PASS. Requested off/fire boss stress matches
+main exactly, all-state worst states match too (maximum **8,478**, zero clashes).
+Cold patched/standard SIO added raw read span **64 frames**; visible START GAME
+delay **0** in the fixed summary wait. Post-boss timing, full route matrix,
+boot RESET and remaining ownership checks are not complete.
 
-NEXT TASK: implement option A and resume the accepted Phase B measurements.
+**Risk for M4:** summary overlay is full **1,792/1,792 B** because the
+address-preserving reload helper needed **17 B**, not **10 B**. Next-level loop
+and grade screen must find room there or relocate. Later dock/bonus forecasts
+leave only **9 B** beyond the reserved **256 B**; reprice at systems freeze.
+
+NEXT TASK: owner-authorized focused diagnosis of the native handoff/observer
+failure, then resume the remaining accepted Phase B measurements. No merge,
+main push, owner-smoke candidate set or acceptance is claimed.
 
 ### L1 window levers — OWNER-ACCEPTED
 

@@ -615,3 +615,94 @@ load/menu and first contents **>20%** above the **1,024-B** budget.
 Risk: the address-preserving reload helper measured **17 B**, not the Phase A
 **ESTIMATE 10 B**. Summary is **1,792/1,792 B**; M4's next-level loop and grade
 screen must find room there or relocate. Do not spend its existing contents.
+
+## Phase B results — native acceptance STOP
+
+**BLOCKED_FOCUSED_PAL_ACCEPTANCE**, 2026-10-25. These measured checkpoint
+results supersede Phase A estimates; they do not mark Phase B complete.
+[Evidence/reproduction and recovery choices](../diagnostics/l2-phase-b/).
+
+Option A is implemented: **MEASURED 19 B code + 2 B fold** in the reader tail;
+MAIN's same-size JMP reaches **MEASURED `$A5E4`**, then returns to the pinned
+MAIN guard comparison. Existing MAIN/LIFE labels remain unchanged. Checked
+entry **MEASURED 11**, sectors **MEASURED 251-264**, padded **MEASURED 1,792 B**,
+fold **MEASURED `$B8AA`**. Real read/reload/corruption tests pass. No new
+per-frame callback belongs to interrupts, audio, Light or shared spawn.
+
+| Item | MEASURED checkpoint | Evidence |
+| --- | ---: | --- |
+| L2 ABI/init/wrapper/displaced renderer trampoline | 45 B, `$1900-$192C` | `build/l2.lst` |
+| Bounded interval | 142 B, `$192D-$19BA` | `build/l2.lst` |
+| Contact/nearest-side/canonical damage | 199 B, `$19BB-$1A81` | `build/l2.lst` |
+| Shared-row island publication / full-width commit | 116 B, `$1A82-$1AF5` | `build/l2.lst` |
+| Non-executed table alignment | 10 B | `build/l2.lst` |
+| Indexed tables / approved recipes | 123 B = 15 + 108 | `build/l2.lst`, editable recipe JSON |
+| ASM scratch | 14 B | `build/l2.lst` |
+| C rates/state | 12 B | `build/l2.lbl` |
+| C phase / entry+lookup | 93 / 152 B | `build/l2.lbl` |
+| C brake including warning alignment | 118 B, including 17 B padding | `build/l2.lst` |
+| C bottom warning | 23 B | `build/l2.lbl` |
+| Total first contents | **1,047 B** | `build/l2.map`, +23 vs planning budget; below 1,228 gate |
+| Remaining / reserved / otherwise free | **745 / 256 / 489 B** | linked checkpoint |
+| Later dock / bonus | **ESTIMATE 352 / 128 B** | Phase A estimates; not implemented |
+| Remaining after later estimates | **ESTIMATE 9 B**, reserve intact | 489 − 352 − 128 |
+| Resident reader / summary / Director delta | **MEASURED +26 / +17 / −9 = +34 B** | maps/manifests |
+| Level data / disk delta | **MEASURED +384 B / +17 sectors** | level16 vs13, L2 adds14 |
+| Active linked used-byte delta | **MEASURED +1,465 B** | 1,047 +34 +384, no reservation growth |
+| Initial content / boot+chunk sectors | **MEASURED 12,807 B / 210**, −22 B / zero delta | normal build manifest |
+
+The original row renderer remains single. Hooks retain their byte lengths and
+addresses. The C sector segment stays **MEASURED 241/248 B**, including
+**MEASURED 95 B** reclaimable pinned padding; it is not yet free linked tail.
+MAIN Light **MEASURED 1,196 B**, tail **MEASURED 17 B**. Reader **MEASURED
+1,529/1,536 B**, tail **MEASURED 7 B**. Director high **MEASURED 634 B**, tail
+**MEASURED 11 B**. Summary **MEASURED 1,792/1,792 B**: helper **MEASURED 17 B**
+rather than **ESTIMATE 10 B**. **M4 risk:** next-level loop and grade screen
+must find room or relocate; its current contents are not spare memory.
+
+Placement recovery under the standing rule: **MEASURED 27 B** non-executed
+padding (table **10**, warning **17**) avoids all new indexed/branch page
+penalties. No protected reservation, per-frame cycles or assertion change.
+The complete [page-cross table](../diagnostics/l2-phase-b/l2-page-cross.md)
+reports **MEASURED zero** new per-frame crossings. Guard option A has
+**MEASURED zero** per-frame cost. Detailed row/contact/brake worst CPU costs
+remain pending; no Phase A estimate is promoted to a runtime measurement.
+
+| Measurement | MEASURED result / status | Artifact |
+| --- | --- | --- |
+| Normal computed CPU/DMA/fence/block/window/disk gates | PASS; CPU DMA-off 16,471 incl option poll; additive diagnostic ESTIMATE 29,371; stale release evidence WARNING | linked-checkpoint.json, normal build log |
+| Short HARD campaign flight | 2,300 frames, peak31,424; zero misses/DLI | 480-hard-neutral-focused-run.json |
+| HARD 960 brake capital portion | 3,064 frames, mean10,139.62 / peak17,128; zero misses/DLI; full coordinate0-968 | native-stop.json |
+| Synchronization / warning | 3,064/3,064 residues equal; rates10-20; warning35 | 960-hard-clock.csv.gz |
+| After boss handoff | **FAIL**, gameplay peak39,437, 1,285 misses, 3,852 DLI errors | failed focused acceptance |
+| Limits retained distinctly | target31,500 / hard32,568 / physical35,568 | task/§BM/§BR |
+| Required boss off/fire stress | all five cases match main, delta0; worst8,467, clashes0 | l2-boss JSON files |
+| Prior all-state worst cases | R1 7,596; Citadel8,112/8,447; Spine8,191/8,446; Bastion8,478, unchanged | R1 log and off/fire/lost/swap outputs |
+| Focused coordinate/compiler/island/brake checks | 14/14 PASS | l2-focused-tests.log |
+| Real loader/placement subset | 10/10 PASS | l2-loader-final-tests.log |
+| Backing / fallback / carry | 1,640 PASS; worst carry47 rows before first96 | backing.json |
+| Projectile publication CPU | player987, enemy447, shell158; increments vs blank63 normal /610 Spread /55 enemy | backing.json |
+| Cold raw read span, patched / standard | 49→113 frames, **+64** both; INIT-inclusive/post-boss gate pending | read-timing.json |
+| Cold visible gameplay, patched / standard | 909→909 /1695→1695, **+0**; fixed summary wait absorbs read | SIO current/main JSON |
+| Cold input-ready menu, patched / standard | unchanged598 /1384 | SIO current/main JSON |
+
+The long route's failure starts after capital completion, at boss handoff.
+A game lifetime defect versus host observer PC alias in reused boss memory is
+**unresolved**. No L2-after-overwrite safety claim is made. The byte-placement
+exception does not apply, so implementation and remaining measurements STOP.
+No candidate set is built or promoted. The summary-full risk remains recorded
+in STATUS. The complete author schema is in `docs/level-authoring.md`.
+
+Every edited test file: `tests/boss-claim.test.mjs`,
+`tests/level-compiler.test.mjs`, `tests/sector-reader.test.mjs`, new
+`tests/l2-coordinate.test.mjs`, `tests/l2-islands.test.mjs`,
+`tests/l2-brake.test.mjs`. Assertions remain strict; fixture setup executes the
+real checked level/L2 path. The old “13 sectors” test title is stale despite
+its actual updated 16-sector assertions; documentation/test-name polish is
+pending with the stopped work.
+
+Remaining required matrix: all difficulties/both lengths with complete
+unbraked/braked/contact routes and row/contact costs; protected writer checks;
+all-region entry and no-L2-after-overwrite proof through death/summary;
+post-boss read/init timing/menu/pause; short RESET/boot smoke; final candidate
+build/provenance, owner smoke. **NOT required** items above were not run.

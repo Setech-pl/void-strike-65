@@ -1149,36 +1149,29 @@ Nothing is renamed by this report; a rename is a source change with its own sess
 
 <!-- END GENERATED MEMORY MAP -->
 
-### L2 islands/art checkpoint (2026-10-25)
+### L2 Phase B linked checkpoint — BLOCKED_FOCUSED_PAL_ACCEPTANCE
 
-MEASURED: L2 uses 878/1,792 B, 914 B free (256 B remains reserved).
-The approved 01/03/05 recipes use 108 B of interval/glyph-role data and no new
-glyphs. Shared renderer and current-sector lookup are used by publication and
-contact. Level extension `$AD00-$AD7F` contains bounded descriptors; lookup is
-`$AD80-$ADF7`. Capital debris is off; SPACE flags are retained. Director high
-runtime is 634 B, 11 B free; resident sector remains 241/248 B with pinned
-padding. Normal computed gates, 13 coordinate/compiler/island checks and eight
-checked-loader checks pass; full PAL/stress checks remain pending.
+MEASURED (`build/l2.map`, [linked checkpoint](diagnostics/l2-phase-b/linked-checkpoint.json)):
+L2 `$1900-$1D16` uses **1,047/1,792 B**, leaving **745 B**. The post-1.0
+reservation `$1F00-$1FFF` remains **256 B**, leaving **489 B** before it.
+The original shared hull row renderer stays resident; its hooks retain their
+addresses. Approved art is **108 B**, zero new glyph slots. Level transport
+is **16 sectors / 2,048 B** in `$A600-$ADFF`; geometry `$AC00-$ACFF`, bounded
+descriptors `$AD00-$AD7F`, current-sector lookup `$AD80-$ADF7`.
 
-### L2 longer-coordinate checkpoint (2026-10-25)
+Reader **1,529/1,536 B**, **7 B** tail; cold guard extension **19 code + 2 fold B**
+at `$A5E4`, reached by the unchanged-size MAIN guard hook. MAIN Light stays
+**1,196 B**, **17 B** tail; MAIN/LIFE addresses unchanged. Summary is full,
+**1,792/1,792 B**, display list `$0B58`; address-preserving reload helper
+**17 B**, not the Phase A estimate of **10 B**. M4's next-level/grade work must
+find room or relocate. Director high runtime **634 B**, **11 B** tail.
+C sector remains **241/248 B**, **7 B** tail with **95 B** reclaimable pinned
+padding; it is not free linked tail. No protected reservation is reassigned.
 
-MEASURED: level image is 16 sectors / 2,048 B within `$A600-$ADFF`;
-geometry `$AC00-$ACFF`, sequences 120 B/side, universal endpoint 960 rows.
-L2 C phase and 16-bit entry policy use 144/1,792 B (1,648 B free). Resident
-sector functions retain their old addresses with 95 B of reclaimable phase
-padding; its linked segment stays 241/248 B, 7 B tail. This padding is not
-claimed as already-free contiguous memory. MAIN/LIFE layout remains fixed.
-Normal build and ten coordinate/compiler plus eight checked-loader tests pass.
-
-### L2 checked-load skeleton / option A (2026-10-25)
-
-MEASURED: L2 at `$1900-$1FFF`, checked 14-sector run 251-264, fixed JMP ABI;
-22-B skeleton (not first-content fit proof). Reader 1,529/1,536 B, 7 B free;
-summary 1,792/1,792 B, zero free, display list `$0B58` unchanged. MAIN Light
-stays 1,196 B at its original addresses, 17 B free. Cold-only guard extension
-is 19 code + 2 fold B in the reader, no per-frame work. Normal build and eight
-focused checked-run/reload/failure tests pass. M4 must find room or relocate
-its summary work; no reserve is taken from existing summary contents.
+Normal computed gates pass; native boss-handoff acceptance fails after the
+long-capital route. Lifetime through boss/death/summary remains **unverified**;
+the linked layout is not a runtime ownership certificate. See the
+[STOP evidence](diagnostics/l2-phase-b/). No owner-smoke candidate.
 
 ### L2 Phase A proposal (2026-10-25)
 

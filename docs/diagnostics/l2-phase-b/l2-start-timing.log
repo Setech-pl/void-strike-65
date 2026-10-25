@@ -1,0 +1,5 @@
+patch-nobasic    stop=pc@main_loop f909 reads=63 sectors=63 (max 606) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=300 menu=556 level-read=692 gameplay=909 skctl=$03 audctl=$00 host=0.42s
+patch-basic      stop=pc@main_loop f900 reads=63 sectors=63 (max 606) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=291 menu=547 level-read=683 gameplay=900 skctl=$03 audctl=$00 host=0.39s
+nopatch-nobasic  stop=pc@main_loop f1695 reads=273 sectors=273 (max 606) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=1086 menu=1342 level-read=1478 gameplay=1695 skctl=$03 audctl=$00 host=0.51s
+nopatch-basic    stop=pc@main_loop f1686 reads=273 sectors=273 (max 606) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=1077 menu=1333 level-read=1469 gameplay=1686 skctl=$03 audctl=$00 host=0.5s
+PASS: every -nopatch boot reached main_loop

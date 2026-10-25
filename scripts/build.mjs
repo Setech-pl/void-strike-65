@@ -4783,7 +4783,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
+    buildVariant: longCapital ? variantDirectoryName : playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness

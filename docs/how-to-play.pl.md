@@ -64,14 +64,20 @@ korytarzem między nimi. Po lewej Twój okręt — jego ogień też Cię zabija.
 jest błąd, to pole bitwy. Ten po prawej strzela do Ciebie celowo. Jeden i drugi
 rani tak samo.
 
-Korytarz zwęża się i rozszerza. Z obu kadłubów wystają gondole. Wieżyczki
-pracują z obu stron. Liczy się tu pozycja, a nie szybkostrzelność.
+Duże oderwane fragmenty okrętów blokują korytarz. Mają barwy obu stron. Omijaj
+je; zderzenie zabiera 20% HULL i odpycha na bliższą stronę. Twoje pociski
+przelatują nad fragmentami. Wieżyczki strzelają z obu kadłubów.
+
+Przy dolnej krawędzi przytrzymaj DÓŁ, aby zwolnić przelot korytarzem do połowy
+prędkości. Po puszczeniu płynnie wraca zwykła prędkość. Blisko dołu ekranu
+wieżyczki ostrzegają dłużej.
 
 **Boss.** Na końcu każdego poziomu: konstrukcja z powtarzalnych modułów, z
 działami i punktami słabymi.
 
-Szczątki pojawiają się wszędzie. Kapsuły z ulepszeniami nie: trafiają się
-tylko w otwartej przestrzeni, nigdy podczas przelotu korytarzem.
+Małe spadające szczątki pojawiają się w otwartej przestrzeni. W korytarzach
+zastępują je duże fragmenty okrętów. Kapsuły z ulepszeniami trafiają się tylko
+w otwartej przestrzeni.
 
 ## Sterowanie
 

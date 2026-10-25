@@ -35,7 +35,7 @@ export function traceArtifactLayout(rootDirectory, artifacts) {
   const directory = path.resolve(rootDirectory, artifacts);
   const variant = path.basename(directory);
   if (path.dirname(directory) !== path.join(rootDirectory, "build") ||
-      !DEBUG_ROUTE_VARIANT.test(variant)) {
+      !(DEBUG_ROUTE_VARIANT.test(variant) || variant === 'l2-capital-960')) {
     throw new Error(`--artifacts=${artifacts} is not a debug-route build; ` +
       "it must name build/level-N-sM (node scripts/build.mjs --level=N[:sector=M])");
   }

@@ -62,14 +62,19 @@ corridor between them. The one on the left is yours. Its fire kills you too.
 That is not a bug — it is a battlefield. The one on the right shoots at you on
 purpose. Both hurt the same.
 
-The corridor narrows and widens. Gondolas jut from both hulls. Turrets work
-from either side. Position matters here, not rate of fire.
+Large detached ship fragments block the corridor in both faction colours. Fly
+around them; contact removes 20% HULL and pushes you to the nearer side. Your
+shots pass over the fragments. Turrets work from either hull.
+
+At the bottom edge, hold DOWN to brake the capital scroll to half speed; release
+to return smoothly to normal speed. Turrets give a longer warning while you are
+near the bottom.
 
 **Boss.** At the end of every level: a structure of repeating modules with guns
 and weak points.
 
-Debris appears everywhere. Pickup capsules do not: they come only in open
-space, never during the capital run.
+Small falling debris appears in open space; capital corridors use large ship
+fragments instead. Pickup capsules come only in open space.
 
 ## Controls
 

@@ -4604,7 +4604,8 @@ function main() {
         layout.variant !== null ? regionRouteSessions.filter(({ bossRegion }) =>
           layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
-      id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
+      id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames,
+      policy: process.env.VS65_L2_POLICY ?? baselineSessions[0].policy }];
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
   // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,

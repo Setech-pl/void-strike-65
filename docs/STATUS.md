@@ -43,8 +43,12 @@ Campaign ATR remains the accepted L1 artifact:
 `410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
 No gameplay tests, PAL/stress/page-cross certification or boot smoke is claimed.
 
-NEXT TASK: resolve this computed-gate STOP, then resume the accepted Phase B
-sequence and its focused measurements. No implementation continues automatically.
+Owner now chooses option A and authorizes continuation; see the plan's
+standing placement-recovery rule. **Risk for M4:** summary is full,
+**1,792/1,792 B**; the address-preserving helper used **17 B**, not 10.
+M4's next-level loop / grade screen must find room or relocate.
+
+NEXT TASK: implement option A and resume the accepted Phase B measurements.
 
 ### L1 window levers — OWNER-ACCEPTED
 

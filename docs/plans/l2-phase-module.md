@@ -596,3 +596,22 @@ See [exact evidence, scaffold patch and recovery alternatives](../diagnostics/l2
 Recommended recovery: keep MAIN/LIFE addresses fixed and put the new cold-only
 checksum comparison/constant in the reader's **MEASURED 28-B** tail after its
 new directory entry; **ESTIMATE 21 B**, leaving **ESTIMATE 7 B**. Not implemented.
+
+
+### Phase B continuation — option A and standing placement rule
+
+Owner chooses option A: preserve MAIN/LIFE addresses; cold L2 checksum extension
+in the sector reader, no per-frame work. Resume the accepted Phase B scope.
+
+Standing rule: when a computed gate fails **only because of byte placement**,
+apply a recovery and continue if every gate passes without relaxing assertions,
+no protected reservation is used (menu `$0C00-$117F`, summary-owned contents
+`$0500-$0BEE`, MAIN `$3615-$3AEE` layout, M3-H `$549E-$54BD`, `$B8FB-$B8FF`,
+the L2 post-1.0 reserve **256 B**), no per-frame cycles or new per-frame page
+crossing is added, and the complete fix costs **≤32 B**. Record measurements.
+All other gate failures remain STOP, including timing/correctness/stress/entry/
+load/menu and first contents **>20%** above the **1,024-B** budget.
+
+Risk: the address-preserving reload helper measured **17 B**, not the Phase A
+**ESTIMATE 10 B**. Summary is **1,792/1,792 B**; M4's next-level loop and grade
+screen must find room there or relocate. Do not spend its existing contents.

@@ -75,6 +75,7 @@ const PHASES = [
 // Every linked segment of the default build: owner and phases. A segment
 // without a row here stops the generator - add the row, do not skip it.
 const SEGMENTS = {
+  L2: ["checked fighter/capital phase module; overwritten by boss D/death", "level"],
   ZEROPAGE: ["main: zero-page runtime variables", "resident"],
   BOOT_SPLASH: ["boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli)", "splash"],
   CODE: ["main: resident code", "resident"],

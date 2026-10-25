@@ -853,10 +853,12 @@ function runReadRun(stub, index, { emptyEntry = null } = {}) {
 // resident runtime is installed instead of `rts` stubs, and FIRE is pressed
 // every few frames for the summary to accept once its minimum and the reads
 // are done. It ends at start_gameplay (success) or at the failure screen.
-function runStartGame(stub, { overlaid }) {
+function runStartGame(stub, { overlaid, residentLevel = false }) {
   const memory = new Uint8Array(0x10000);
   installRuntimeSegments(memory, root);
   memory.set(readerImage, READER_BASE);
+  memory.fill(0xd5, 0x1900, 0x2000); // stale slot D/death, never injected L2
+  if (residentLevel) memory.set(fs.readFileSync(path.join(root,"build/level-1.bin")), LEVEL_BUFFER);
   // What a boss overlay would leave behind: other bytes in the slot and the table.
   memory.fill(0x00, slotA.address, slotA.endExclusive);
   memory.fill(0x00, capitalVectors.address, capitalVectors.address + capitalVectors.bytes);
@@ -933,7 +935,7 @@ test("a directory entry the build left empty is rejected without touching SIO", 
   // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk, so no
   // entry the build makes is empty; entries 3 and 5 are emptied in memory (a
   // count of 0, the build's "not on this disk") to keep the path exercised.
-  for (const index of [3, 5, 11, 0xff]) {
+  for (const index of [3, 5, 12, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
     const result = runReadRun(stub, index, { emptyEntry: index <= 9 ? index : null });
     assert.equal(result.failed, true, `entry ${index}`);
@@ -951,7 +953,7 @@ test("START GAME after an overlay restores slot A and the vector table before th
   // order, and before any sector of the level.
   const sectors = stub.commandFrames.map((frame) => frame[2] | (frame[3] << 8));
   assert.equal(sectors.length,
-    slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS + summarySectorCount);
+    slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS + summarySectorCount + 14);
   const restoreAt = sectors.indexOf(512);
   assert.deepEqual(sectors.slice(restoreAt, restoreAt + 16),
     Array.from({ length: 16 }, (_, i) => 512 + i), "the restore run must be read in order");
@@ -970,7 +972,7 @@ test("START GAME without an overlay sends no restore frame", () => {
   const result = runStartGame(stub, { overlaid: false });
   assert.equal(result.end, "start_gameplay");
   assert.deepEqual(overlaySectors(stub), []);
-  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + summarySectorCount);
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + summarySectorCount + 14);
 });
 
 test("a failed restore read reports through the status path and never starts gameplay", () => {
@@ -993,4 +995,38 @@ test("a failed restore read reports through the status path and never starts gam
   assert.ok(result.memory.subarray(capitalVectors.address,
     capitalVectors.address + capitalVectors.bytes).every((byte) => byte === 0),
   "the table must not point into a partial slot");
+});
+
+
+test("L2 option A cross-link preserves MAIN/LIFE and checks fourteen sectors", () => {
+  const run = manifest.overlays.runs.find(r => r.index === 11);
+  assert.deepEqual([run.destination,run.sectors,run.startSector], [0x1900,14,251]);
+  const kl = new Map([...fs.readFileSync(path.join(root,"build/light-kernel.lbl"),"utf8").matchAll(/^al ([0-9A-F]+) \.([^\s]+)/gmi)].map(m=>[m[2],parseInt(m[1],16)]));
+  assert.equal(kl.get("life_capsule_start"), 0x3a14);
+  assert.equal(kl.get("pause_frontend_marker_positions"), 0x3ae5);
+  assert.equal(manifest.lightKernel.bytes,1196);
+  const good = new PokeyStub({respond:atrDevice()});
+  const result = runReadRun(good,11);
+  assert.equal(result.failed,false);
+  assert.equal(good.commandFrames.length,14);
+  assert.deepEqual(Buffer.from(result.memory.subarray(0x1900,0x2000)),fs.readFileSync(path.join(root,"build/l2.bin")));
+  const changed = Buffer.from(atrSector(run.startSector+3)); changed[9]^=1;
+  const response=[{byte:0x41},{byte:0x43},...Array.from(changed,byte=>({byte})),{byte:carryWrapChecksum(changed)}];
+  const bad=new PokeyStub({respond:atrDevice({fail:{sector:run.startSector+3,response}})});
+  const rejected=runReadRun(bad,11);
+  assert.equal(rejected.failed,true);
+  assert.equal(rejected.status,status.BAD_IMAGE);
+});
+
+test("L2 START GAME reloads on a resident level hit and rejects corrupt run before gameplay", () => {
+  const good = new PokeyStub({respond:atrDevice()});
+  const loaded=runStartGame(good,{overlaid:false,residentLevel:true});
+  assert.equal(loaded.end,"start_gameplay");
+  const sectors=good.commandFrames.map(f=>f[2]|f[3]<<8);
+  assert.equal(sectors.filter(s=>s>=320&&s<336).length,0);
+  assert.deepEqual(sectors.filter(s=>s>=251&&s<=264),Array.from({length:14},(_,i)=>251+i));
+  const corrupt=Buffer.from(atrSector(251));corrupt[0]^=1;
+  const response=[{byte:0x41},{byte:0x43},...Array.from(corrupt,byte=>({byte})),{byte:carryWrapChecksum(corrupt)}];
+  const bad=new PokeyStub({respond:atrDevice({fail:{sector:251,response}})});
+  assert.equal(runStartGame(bad,{overlaid:false,residentLevel:true}).end,"failure_screen");
 });

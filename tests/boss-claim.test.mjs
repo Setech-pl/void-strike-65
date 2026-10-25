@@ -91,11 +91,12 @@ test("no segment of any link reaches $0C00-$1FFF except the boss's own homes; on
       // L1's checked menu run is phase-exclusive with every boss image.
       const menuHome = file === "void-strike-65.map" && name === "MENU_OVERLAY";
       if (menuHome) assert.deepEqual([from, to], [0x0c00, 0x1118]);
+      const l2Home = file === "l2.map" && name === "L2" && inside(from,to,SLOT_D);
       const deathHome = file === "boss-death.map" && deathHomes[name] && inside(from,to,deathHomes[name]);
-      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || (file === "boss.map" && BOSS_HOMES[name] === SLOT_D),
+      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || l2Home || (file === "boss.map" && BOSS_HOMES[name] === SLOT_D),
         `${file}: ${name} $${start}-$${end} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
-      assert.ok(menuHome || deathHome || (file === "boss.map" && BOSS_HOMES[name] && inside(from, to, BOSS_HOMES[name])),
+      assert.ok(menuHome || deathHome || l2Home || (file === "boss.map" && BOSS_HOMES[name] && inside(from, to, BOSS_HOMES[name])),
         `${file}: ${name} $${start}-$${end} reaches the boss's $0C00-$1FFF`);
       bossSegments += 1;
     }
@@ -114,16 +115,17 @@ test("no cfg memory area reaches the claim except boss.cfg's slot C, scratch and
       const deathHomes = { CODE: [0x1000,0x1e00], BUFFER: [0x1e00,0x2000] };
       const menuHome = file === "atari-boot.cfg" && name === "MENU_OVERLAY_RAM";
       if (menuHome) assert.deepEqual([from, to], [0x0c00, 0x1180]);
+      const l2Home = file === "l2.cfg" && name === "L2_RAM" && inside(from,to,SLOT_D);
       const deathHome = file === "boss-death.cfg" && deathHomes[name] && inside(from,to,deathHomes[name]);
-      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || (file === "boss.cfg" && name === "BOSS_SLOT_D_RAM"),
+      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || l2Home || (file === "boss.cfg" && name === "BOSS_SLOT_D_RAM"),
         `cfg/${file}: ${name} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
-      assert.ok(menuHome || deathHome || (file === "boss.cfg" && CFG_HOMES[name] && inside(from, to, CFG_HOMES[name])),
+      assert.ok(menuHome || deathHome || l2Home || (file === "boss.cfg" && CFG_HOMES[name] && inside(from, to, CFG_HOMES[name])),
         `cfg/${file}: ${name} reaches the boss's $0C00-$1FFF`);
       found.push(name);
     }
   }
-  assert.deepEqual(found.sort(), ["BOSS_BANNER_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM", "BUFFER", "CODE", "MENU_OVERLAY_RAM"]);
+  assert.deepEqual(found.sort(), ["BOSS_BANNER_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM", "BUFFER", "CODE", "L2_RAM", "MENU_OVERLAY_RAM"]);
 });
 
 test("the boot path and the runtime ranges stay out of $0C00-$1FFF", () => {

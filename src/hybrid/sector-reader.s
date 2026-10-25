@@ -1305,3 +1305,21 @@ sr_summary_resident:
 .export sector_reader_lookup, sector_reader_resident_hit, sector_reader_validate
 .export sector_reader_build_frame, sector_reader_settle, sector_reader_quiesce
 .export sector_reader_pokey_setup, sector_reader_begin_receive
+
+
+; §BW option A: cold-only dispatch, preserving the MAIN/LIFE byte layout.
+; Called only by guard_check after a complete transition run. No frame caller.
+sector_reader_l2_guard:
+        lda guard_entry                 ; displaced guard_check instruction
+        cmp #OVERLAY_L2
+        bne @inline
+        lda sr_l2_fold
+        ldy sr_l2_fold+1
+        jmp guard_compare
+@inline:
+        jmp guard_check_inline
+sr_l2_fold:
+        .word L2_EXPECTED_FOLD
+.assert sector_reader_l2_guard = $A5E4, lderror, "L2 cold guard pin moved"
+.assert OVERLAY_L2 = 11 && OVERLAY_DIRECTORY_ENTRIES = 12, error, "L2 checksum coverage is not 11 inline plus extension"
+.export sector_reader_l2_guard, sr_l2_fold

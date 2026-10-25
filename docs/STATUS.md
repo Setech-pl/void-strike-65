@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-25 (L2 audit fixes — BLOCKED_BYTE_PLACEMENT)
+Last update: 2026-10-25 (L2 audit fixes — in progress)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,34 +20,20 @@ the values below.
 
 ## Checkpoint
 
-### L2 audit fixes — BLOCKED_BYTE_PLACEMENT
+### L2 audit fixes — in progress
 
-Owner smoke of `b2b38ff`: **PASS**, "generally OK", 2026-10-25. Independent
-Claude audit `668f692` merged unchanged in `66f53b9`: MERGE AFTER FIXES, no
-S1/S2. L2-01 fixed in `52ee66b`: real START GAME reader/summary/checked L2
-load + INIT + brake tick, unchanged scroll assertion. All 13 boss-runtime
-tests ran: **12 PASS / 1 FAIL**. Fresh main `19b1464` also **12/13**; "the win"
-fails at the identical first assertion, "the boss never handed off to the
-level summary" (pre-existing).
+Owner smoke of `b2b38ff`: PASS ("generally OK", 2026-10-25). Claude audit
+merged unchanged in66f53b9. L2-01 fixed in52ee66b; all13 boss-runtime tests
+reported, with the one identical main19b1464 "the win" failure pre-existing.
 
-The literal L2-04 death-valid=0 route was priced before integration: **52 B
-(51 code +1 state)** assembled sketch, **20 B over** the complete-fix 32-B
-cap. This is not a minimum-size proof. DYING continues capital simulation
-and respawns without a checked reload; simply clearing validity would leave
-L2 consumers active. The [priced alternatives and limits](diagnostics/l2-audit-fixes-2026-10-25/)
-are preserved; neither was selected. The owner's explicit STOP rule applies.
-L2-02…08 remain open in the [audit ledger](audits/README.md).
+Owner corrects L2-04: losing a life is not an exit. DYING and respawn keep
+L2 valid; real exits invalidate. The real-exit implementation uses **32 B
+of new code/state**, no protected reservation, zero new per-frame crossings.
+Normal build passes; reader+lifetime focused checks **40/40 PASS**. See
+§BW.8 and the memory-map override. Remaining fixes and measurements are in
+progress; no new candidate or main merge yet.
 
-Normal computed gates PASS with the expected stale-evidence warning.
-**No production bytes changed**: CPU/RAM/residency delta vs `b2b38ff` **0**;
-L2 **1,063/1,792 B**, free **729**, including the intact **256-B** reserve.
-The requested fresh native measurements and six final-HEAD candidates were
-not run/generated at this STOP. Earlier measurements below are the pre-audit
-snapshot, not verification of the audit fixes. No new candidate or main merge.
-
-NEXT TASK: resolve the L2-04 byte/scope STOP, then resume remaining findings,
-the specified measurements and candidate generation. Branch remains
-`codex/l2-phase-module`; owner smoke PASS applies to `b2b38ff` only.
+NEXT TASK: finish L2-02…08, requested measurements, final-HEAD candidate set.
 
 ### L2 Phase B — pre-audit candidate snapshot
 

@@ -309,6 +309,7 @@ l2_fill: .byte 0
 .include "l2-c.inc"
 ; Checked load + INIT is the only re-arm point after a phase overwrite.
 l2_rearm:
+    inc L2_VALID                   ; load guard cleared it before the checked run
     lda #<L2_BRAKE
     sta profile_after_player+1
     lda #>L2_BRAKE

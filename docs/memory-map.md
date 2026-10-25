@@ -1149,6 +1149,19 @@ Nothing is renamed by this report; a rename is a source change with its own sess
 
 <!-- END GENERATED MEMORY MAP -->
 
+### L2 audit validity fix — in progress (2026-10-25)
+
+L2-04 adds **32 B total code/state**: resident validity clear3 + load guard17
++ validity byte1, cold MAIN guard8 and L2 INIT3. Existing cold call sites and
+8 B of non-executed MAIN padding are reused. No new reservation. Validity
+`$86B3` and cached rate `$86B4` belong to resident C-sector padding. The new
+resident helper ends at `$867C`; **54 B** of its original 95-B pad remain
+reclaimable (including neither state byte). C sector remains241/248, tail7;
+reader1529/1536, tail7; MAIN Light1196/1213, tail17; summary1792/1792, tail0.
+L2 is1066/1792, free726, including256 reserved. New per-frame crossings0.
+DYING/respawn retain validity; actual exits invalidate, every load passes the
+resident guard, and invalid START GAME re-enters the checked reader.
+
 ### L2 Phase B — OWNER-SMOKE CANDIDATE
 
 MEASURED ([resources](diagnostics/l2-phase-b/recovery/resources.json)):

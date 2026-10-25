@@ -294,7 +294,7 @@ sector_reader_blank:
 sector_reader_level_end:
         ldx #$FF                        ; nothing below the main loop returns
         txs
-        jsr sector_reader_blank
+        jsr $8656                       ; L2_DISARM: actual gameplay exit
         ; The SFX and the engine bed stop; the finished level's music (channels
         ; 1 and 2) keeps playing through the summary, on its own clock again.
         lda #$00
@@ -476,8 +476,9 @@ sector_reader_drain_ready:
 ; except the record (entry 7), which the game writes.
 ; ===========================================================================
 sector_reader_read_run:
-        cpx #OVERLAY_DIRECTORY_ENTRIES
-        bcs @bad
+        jmp $866C                       ; L2_LOAD_GUARD, checks displaced bound
+        nop                             ; retain all subsequent reader addresses
+sector_reader_read_run_inline:
         txa                             ; index x 5
         asl
         asl

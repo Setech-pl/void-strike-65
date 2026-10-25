@@ -4262,22 +4262,21 @@ assertion is unchanged. **All 13 boss-runtime tests ran: 12 PASS / 1 FAIL**;
 freshly built main `19b1464` is also 12/13, with "the win" failing first at
 "the boss never handed off to the level summary". That failure is pre-existing.
 
-The audit-fix task stopped at the literal L2-04 death-invalidates-L2 price:
-**52 assembled fragment B (51 code +1 state)**, **20 over the 32-B cap**.
-DYING continues capital gameplay and respawns without a checked load, so
-invalidating on each lethal hit requires recovery before capital consumers
-resume. The sketch is not a minimum-size proof or an integrated solution.
-An alternative **26-B** cold sketch keeps the image valid during DYING and
-invalidates on actual GAME OVER/teardown; that changes the explicit owner
-requirement and has not been selected. No cap, assertion or gate was relaxed.
-[Size evidence, alternatives, test logs](diagnostics/l2-audit-fixes-2026-10-25/).
+Owner correction, 2026-10-25: **losing a life is not a capital-sector
+exit**. Keep the same checked L2 image valid during DYING and respawn.
+Invalidate/disarm on real exits only: boss install, GAME OVER, pause-quit to
+menu, level end/teardown, RESET/warm start, and at the head of every L2 load.
+Only checked load + INIT sets validity; capital entry may arm the brake only
+while that checked image is valid. START GAME must not arm or execute gameplay
+without valid L2. The owner chooses the cold validity alternative; the
+standing **≤32-B complete-fix placement rule** still applies. There is no
+mid-death disk read and no change to the existing death/respawn policy.
+The earlier 52-B death-reload sketch is superseded diagnostic evidence.
 
-Normal build and computed gates PASS, expected stale release-evidence warning.
-No game bytes changed: CPU/RAM/residency delta **0** against `b2b38ff`; linked
-L2 remains **1,063/1,792 B**, **729 free**, reserve **256 intact**. No fresh
-native matrix, broadened lifetime, stress/entry/boot or candidate-set
-qualification was run at this STOP. L2-02…08 remain open. No new smoke
-candidate or merge to main; the PASS above belongs to `b2b38ff` only.
+Audit fixes and measurements are in progress; the original smoke PASS applies
+to `b2b38ff` only. Final measurements and candidate provenance follow below.
+No gate or assertion is relaxed. No merge to main before the fixed candidate's
+owner OK.
 
 **Next free decision section: §BX.**
 

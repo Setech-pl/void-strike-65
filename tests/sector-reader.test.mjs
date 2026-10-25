@@ -697,6 +697,9 @@ function cpuOver(stub, memory) {
 
 function runReadRun(stub, index, { emptyEntry = null } = {}) {
   const memory = new Uint8Array(0x10000);
+  // Run reads now pass the resident L2 invalidation guard as on hardware.
+  // Install the real resident image rather than injecting that helper alone.
+  installRuntimeSegments(memory, root);
   memory.set(readerImage, READER_BASE);
   memory.set(lightKernelImage, manifest.lightKernel.address);
   // S5-1: every entry is on the disk now; a test empties one in memory.

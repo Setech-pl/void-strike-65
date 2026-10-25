@@ -1981,7 +1981,7 @@ enter_frontend_state:
     lda #$00
     sta DMACTL
     sta GRACTL
-    jsr clear_pmg_graphics_latches
+    jsr L2_DISARM               ; GAME OVER/menu/quit: blank and invalidate L2
     ldx game_state
     cpx #STATE_MAIN_MENU
     beq @reload
@@ -2695,6 +2695,10 @@ draw_top_score_rows:
 
 ; One reset path owns all gameplay state, hardware latches, PMG and audio.
 start_gameplay:
+    lda L2_VALID
+    bne :+
+    jmp SECTOR_READER_ENTRY     ; no unchecked start: checked load + INIT first
+:
     lda #STATE_GAMEPLAY
     sta game_state
     lda #$00
@@ -2778,7 +2782,6 @@ hull_maps_built := *
     jmp main_loop              ; BROADSIDE is non-contiguous: never fall through
 
 start_gameplay_end:
-    .byte $EA                   ; M6 stage 1b's size pad (the entry is an immediate): never executed
 
 .segment "BROADSIDE"
 
@@ -2820,7 +2823,7 @@ main_loop_lifecycle_ready = *
     jsr read_input
 main_loop_simulation = *
 profile_after_player = *
-    jsr L2_BRAKE
+    jsr integration_update_enemy ; cold/RESET default: no L2 until checked INIT
 profile_after_enemy = *
     lda #$00
     sta BROAD_DAMAGE_APPLIED
@@ -3376,7 +3379,7 @@ set_loader_title_palette:
 ; Checked record 9 waits at $0C00 until unpack_loader_bitmap consumes its
 ; source in MAIN. Publication lives in the former extended-glyph slot below.
 .segment "CODE"
-LOADER_SPLASH_CODE_SLACK = 7
+LOADER_SPLASH_CODE_SLACK = 0     ; 8-B cold validity guard uses 7 pad + 1 end pad
     .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the

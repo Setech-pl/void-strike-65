@@ -2789,6 +2789,8 @@ async function build() {
   const lifetimeLabels=parseViceLabels(directorModule.labels.toString());
   if(lifetimeLabels.get("l2_disarm")!==0x8656 || lifetimeLabels.get("l2_cached_rate")!==0x86b4)
     throw new Error("L2 resident lifetime pins moved");
+  if(lifetimeLabels.get("l2_load_guard")!==0x866c || lifetimeLabels.get("l2_valid")!==0x86b3)
+    throw new Error("L2 validity/load guard pins moved");
   if (!Number.isInteger(l2Used) || l2Used > 1228) throw new Error(`L2 first contents ${l2Used} B exceed approved 1024 +20% STOP`);
   const overlayRuns = [{
     index: 0,
@@ -2933,6 +2935,10 @@ async function build() {
   });
   let sectorReaderModule = await linkSectorReader();
   let sectorReaderLabels = parseViceLabels(sectorReaderModule.labels.toString("utf8"));
+  for(const [name,pin] of [["sector_reader_blank",0xa03d], ["sector_reader_read_run_inline",0xa124],
+    ["sector_reader_report_bad_image",0xa21e]]) {
+    if(sectorReaderLabels.get(name)!==pin) throw new Error(`L2 cold cross-link ${name} moved`);
+  }
   if (sectorReaderLabels.get("sector_reader_l2_guard") !== 0xa5e4 ||
       lightKernelModule.raw[lightKernelLabels.get("guard_check")-lightKernelAddress] !== 0x4c ||
       lightKernelModule.raw.readUInt16LE(lightKernelLabels.get("guard_check")-lightKernelAddress+1) !== 0xa5e4) {

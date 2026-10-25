@@ -10,9 +10,9 @@ test('L2 lifetime: checked image is disarmed before first boss read; no stale re
  const image=bossGateMemory();
  const blankCpu=call(Uint8Array.from(image),0xa03d).cycles;
  const disarmCpu=call(Uint8Array.from(image),0x8656).cycles;
- assert.equal(disarmCpu-blankCpu,30,"cold disarm CPU delta");
- assert.equal(call(Uint8Array.from(image),0x1900).cycles,30,"checked INIT/re-arm CPU");
- console.log(JSON.stringify({measurement:"lifetime cold CPU",disarmDelta:disarmCpu-blankCpu,initCpu:30}));
+ assert.equal(disarmCpu-blankCpu,34,"cold disarm CPU delta, including validity clear");
+ assert.equal(call(Uint8Array.from(image),0x1900).cycles,36,"checked INIT/re-arm CPU, including validity set");
+ console.log(JSON.stringify({measurement:"lifetime cold CPU",disarmDelta:disarmCpu-blankCpu,initCpu:36}));
  let reading=false,fetches=0,commands=0;
  const watch=(pc,cpu)=>{
   if(!reading)return;

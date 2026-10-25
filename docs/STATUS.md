@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-25 (fixed L1 owner smoke PASS, OWNER-ACCEPTED, §BV.6)
+Last update: 2026-10-25 (L2 Phase A plan for review; §BW capital decisions recorded)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,36 @@ the values below.
 ---
 
 ## Checkpoint
+
+### L2 Phase A — committed plan for review, no game changes
+
+Owner §BW records rejected P1–P4 nacelle obstacles, P5 islands for production,
+capital-only debris removal, the accepted brake, bottom-zone warning and
+length up to 960 rows. The [unchanged spike report](audits/2026-10-25-spike-nacelles.md)
+was transferred from `origin/codex/spike-nacelles` `cdd08e7`; no spike code was
+merged. Its pending-smoke wording is historical; §BW records subsequent smoke.
+
+The [Phase A plan](plans/l2-phase-module.md) on `codex/l2-phase-module`, from
+main `19b1464`, proposes the checked level-start L2 run at `$1900-$1FFF`,
+overwritten during boss phases and reloaded after them. **ESTIMATE:** first
+contents 1,024/1,792 B; 768 B left for later dock 352, bonus 128, proposed
+post-1.0 reserve 256 and fit margin 32. A 512-B reserve leaves a 224-B deficit
+with those same later budgets. No linked L2 fit or production timing is claimed.
+Added level-start work is **ESTIMATE 68–80 PAL frames** in either SIO mode,
+below the task's 100-frame standard-SIO STOP. **MEASURED:** today's unchanged
+level image reads in 50 frames in both modes; the transition reader uses direct
+POKEY. Source artifacts and five real-charset, allied/enemy EASY/HARD
+[island mockups](diagnostics/l2-island-mockups/) are committed for owner choice.
+
+Normal build and computed gates PASS with expected pending release evidence;
+short existing SIO/start-game observation passes patched/standard, BASIC on/off.
+No full tests, wall trace, stage-2 or release build. Code/assets/config/tests/levels
+unchanged, production CPU/RAM/disk delta zero; accepted campaign ATR remains
+`410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
+No new L2 candidate ATR exists because this session implements no game bytes.
+
+NEXT TASK: owner/reviewer evaluates the Phase A plan, chooses island art and
+post-1.0 reserve before authorizing Phase B. No implementation starts automatically.
 
 ### L1 window levers — OWNER-ACCEPTED
 
@@ -80,7 +110,7 @@ overwritten by boss install and reloaded by M4. The 5 B at $B8FB remain reserved
 Capital Lights are optional M7 work after a one-Light proof, outside the base
 plan. Citadel's region-2 versus final-R4 placement stays open before M4.
 
-NEXT TASK: await owner direction. No next roadmap item starts automatically.
+NEXT TASK: see the current L2 Phase A checkpoint above.
 
 | Current L1 resource | Linked use / limit | Free |
 | --- | ---: | ---: |

@@ -1139,6 +1139,14 @@ Nothing is renamed by this report; a rename is a source change with its own sess
 
 <!-- END GENERATED MEMORY MAP -->
 
+### L2 Phase A proposal (2026-10-25)
+
+No linked range or reservation changes in Phase A. The
+[L2 plan](plans/l2-phase-module.md) proves the proposed fighter/capital lifetime
+at `$1900-$1FFF` against the existing boss/death ownership below and prices
+checked reloads, level-buffer use and resident hooks. Its addresses and byte
+budgets are ESTIMATE until Phase B links; the generated map remains current.
+
 ### L1 audit placement clarification (2026-10-24)
 
 The checked menu run is reserved exactly at `$0C00-$117F` (11 sectors), with

@@ -81,6 +81,9 @@ intact. Option A avoids spending MAIN bytes for the new checksum at all. The
 owner's STOP rule prevents applying it in this run; resume with that narrow
 recovery, then continue the previously accepted Phase B sequence.
 
+Raw command outputs: [failed skeleton](build-failure.txt),
+[restored normal build](restored-build.txt).
+
 ## Verification and remaining work
 
 - Normal build on original baseline: PASS.

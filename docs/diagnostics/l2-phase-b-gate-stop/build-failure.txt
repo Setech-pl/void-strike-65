@@ -1,0 +1,9 @@
+
+> void-strike-65@0.1.1 build
+> node scripts/build.mjs
+
+WARNING: Runtime wall-trace evidence pending: stale binding for void-strike-65-boot.bin, void-strike-65.atr (evidence commit b3b8e466); release build will fail.
+Error: the Light composite leaves fewer than 16 MAIN bytes
+    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/formats.mjs:43:11)
+    at validateBuildDirectory (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/formats.mjs:342:5)
+    at build (file:///Users/marcinkrzetowski/Projects/dark-fighter/scripts/build.mjs:6273:52)

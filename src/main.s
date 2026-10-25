@@ -2820,7 +2820,7 @@ main_loop_lifecycle_ready = *
     jsr read_input
 main_loop_simulation = *
 profile_after_player = *
-    jsr integration_update_enemy
+    jsr L2_BRAKE
 profile_after_enemy = *
     lda #$00
     sta BROAD_DAMAGE_APPLIED
@@ -5749,15 +5749,10 @@ update_starfield:
     ; numerator, so geometry remains phase-aligned without touching the PAL
     ; gameplay token or adding ad-hoc frame skips. The common working
     ; denominator is 40; the pre-tuning 8/9/10 over 20 is doubled exactly.
-    ldx DIFFICULTY_SETTING
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_OPEN
-    bne @capital_rate
-    lda world_scroll_rates,x
-    asl
-    bne @rate_ready
-@capital_rate:
-    lda hull_scroll_rates,x
+l2_rate_selection_start:
+    lda L2_SCROLL_RATE
+    jmp @rate_ready
+    .res 19-(*-l2_rate_selection_start),$EA
 @rate_ready:
     pha
     clc
@@ -8026,9 +8021,8 @@ hull_sequence_reserve:
 ; Gameplay runs with the decimal flag clear (add_archetype_score's sed is
 ; always closed by its cld).
 world_rotate_due:
-    ldx DIFFICULTY_SETTING
-    lda world_scroll_rates,x
-    asl
+    lda L2_SCROLL_RATE
+    .res 4,$EA
     clc
     adc scroll_accumulator
     cmp #HULL_SCROLL_RATE_DENOMINATOR
@@ -8744,8 +8738,9 @@ schedule_broadside:
     adc #$04                    ; allied tip launches beyond column 8
 :
     sta BROAD_X,x
-    lda #BROADSIDE_WARNING_FRAMES
-    sta BROAD_TIMER,x
+    jsr L2_WARNING
+    nop
+    nop
     lda #BROAD_WARNING
     sta BROAD_STATE,x
     ldy BROAD_TURRET,x

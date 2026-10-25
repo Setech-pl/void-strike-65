@@ -41,3 +41,28 @@ void l2_c_enter(void)
         l2_i+=6u; --l2_count;
     }
 }
+
+#pragma rodata-name ("L2")
+const unsigned char l2_normal_rates[3]={16,18,20};
+const unsigned char l2_half_rates[3]={8,9,10};
+extern unsigned char l2_rate;
+#define DIFFICULTY BYTE(0x4E70u)
+void l2_brake_tick(void)
+{
+    if(STATE>=7u || BYTE(0x4EAAu)==1u) {
+        l2_rate=l2_normal_rates[DIFFICULTY];
+        return;
+    }
+    if(l2_rate<l2_half_rates[DIFFICULTY] || l2_rate>l2_normal_rates[DIFFICULTY])
+        l2_rate=l2_normal_rates[DIFFICULTY];
+    if(BYTE(0x0081u)==225u && (BYTE(0x0090u)&2u)==0u) {
+        if(l2_rate>l2_half_rates[DIFFICULTY]) --l2_rate;
+    } else if(l2_rate<l2_normal_rates[DIFFICULTY]) ++l2_rate;
+}
+void l2_warning_set_timer(void)
+{
+    if(BYTE(0x0081u)>=201u)
+        ((volatile unsigned char*)0x4E4Fu)[BYTE(0x4E62u)]=35u;
+    else
+        ((volatile unsigned char*)0x4E4Fu)[BYTE(0x4E62u)]=25u;
+}

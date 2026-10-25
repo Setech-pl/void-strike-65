@@ -6,14 +6,21 @@ l2_start:
     jmp l2_init
     jmp l2_draw_row
     jmp l2_contact
-    jmp l2_stub
-    jmp l2_stub
+    jmp l2_brake_before_enemy
+    jmp _l2_warning_set_timer
     jmp _l2_c_phase
     jmp _l2_c_enter
     jmp l2_commit_row
+_l2_rate: .byte 0
+.export _l2_rate
+.assert _l2_rate = L2_SCROLL_RATE, lderror, "L2 cached rate ABI moved"
 l2_init:
-l2_stub:
+    lda #0
+    sta _l2_rate
     rts
+l2_brake_before_enemy:
+    jsr _l2_brake_tick
+    jmp integration_update_enemy
 
 ; One renderer body stays in MAIN/BROADSIDE. Execute displaced instructions.
 l2_original_row:
@@ -278,6 +285,7 @@ l2_commit_row:
     dey
     bpl @copy
     rts
+    .align $100                 ; all indexed geometry/art tables stay within a page
 l2_part_offsets: .byte 0,6,12,18,24,30
 l2_recipe_offsets: .byte 0,36,72
 l2_left_caps: .byte 116,112,108

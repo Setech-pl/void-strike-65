@@ -2755,12 +2755,13 @@ async function build() {
   const l2Compiled = await runWasmTool("cc65", {
     "/project/l2.c": fs.readFileSync(path.join(rootDirectory,"src/c/l2.c")),
   }, ["--cpu","6502","-Oirs","-o","/project/l2-generated.s","/project/l2.c"], ["/project/l2-generated.s"]);
-  const l2Generated=l2Compiled.outputs["/project/l2-generated.s"].toString().replace(/^\s*\.importzp.*$/gmi, "");
+  let l2Generated=l2Compiled.outputs["/project/l2-generated.s"].toString().replace(/^\s*\.importzp.*$/gmi, "").replace(/^\s*\.import\s+_l2_rate\s*$/gmi, "");
+  l2Generated=l2Generated.replace(/(\.proc\s+_l2_warning_set_timer:)/,(_,proc)=>`.align $100\n${proc}`);
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
   if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
     throw new Error("L2 C requires software-stack/helper state");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
-  const l2MainNames=["corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN"];
+  const l2MainNames=["corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy"];
   const l2MainInclude=l2MainNames.map(name=>{
     const address=labels.get(name);if(!Number.isInteger(address))throw new Error(`L2 main ABI missing ${name}`);
     return `${name} = $${address.toString(16)}`;

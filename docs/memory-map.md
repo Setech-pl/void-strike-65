@@ -102,7 +102,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$18FB-$18FF` | 5 B | segment | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes | `overlay` | build/boss.map |
 | `$1900-$1FFF` | 1,792 B | slot | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) | `overlay` | manifest `boss.slotD` |
 | `$1900-$1F93` | 1,684 B | segment | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers; the publish's tail jump to the gravity column's M0, S5-4, a build with the well), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install | `overlay` | build/boss.map |
-| `$1900-$1915` | 22 B | segment | `L2` — checked fighter/capital phase module; overwritten by boss D/death | `level` | build/l2.map |
+| `$1900-$198F` | 144 B | segment | `L2` — checked fighter/capital phase module; overwritten by boss D/death | `level` | build/l2.map |
 | `$1950-$19FE` | 175 B | segment | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes | `boss` `death` | build/boss-death.map |
 | `$1E00-$1FFF` | 512 B | slot | boss breakup: second wing buffer, published after the fence; reuses dead boss claim | `boss` `death` | cfg/boss-death.cfg |
 | `$1E00-$1FFF` | 512 B | segment | `DEATH_BUFFER` — boss breakup: offscreen wing buffer over dead slot D | `boss` `death` | build/boss-death.map |
@@ -131,7 +131,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$454A-$4636` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
 | `$4637-$5018` | 2,530 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
 | `$4800-$4BFF` | 1,024 B | state | frontend charset | `resident` | src/main.s `FRONTEND_CHARSET` |
-| `$4801-$4CA9` | 1,193 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
+| `$4801-$4C65` | 1,125 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
 | `$4C00-$4E3F` | 576 B | slot | boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved | `boss` `death` | src/hybrid/boss-death.s |
 | `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
 | `$4C00-$4DFE` | 511 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
@@ -224,7 +224,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$8B88-$8C5D` | 214 B | segment | `DIRECTOR_C_LOW` — low cc65 Director code | `resident` | build/encounter-director.map |
 | `$8C5E-$8C7C` | 31 B | reserved | free tail of `DIRECTOR_C_LOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$8C7D-$8CAC` | 48 B | segment | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table | `resident` | build/encounter-director.map |
-| `$8C80-$9128` | 1,193 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
+| `$8C80-$90E4` | 1,125 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
 | `$8CAD-$8F64` | 696 B | segment | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light | `resident` | build/encounter-director.map |
 | `$8F65-$8FA7` | 67 B | segment | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) | `resident` | build/void-strike-65.map |
 | `$8FA8-$8FE7` | 64 B | segment | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) | `resident` | build/void-strike-65.map |
@@ -251,7 +251,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$A880-$A997` | 280 B | slot | level hull block (style, packed map, codebook, glyphs, collision boundaries) | `level` | manifest `capitalHulls.levelBlock` |
 | `$AA00-$AAFF` | 256 B | segment | `LEVEL_CORE` — LevelDef core page (bss inside the level buffer) | `level` | build/encounter-director.map |
 | `$AB00-$ABFF` | 256 B | slot | LevelDef payload page | `level` | manifest `levelDef.payload` |
-| `$AC00-$AC7F` | 128 B | slot | HullGeometry page (after its linked 8-B header) | `level` | manifest `levelDef.geometry`, `sectorReader.levels` |
+| `$AC00-$ADFF` | 512 B | slot | HullGeometry page (after its linked 8-B header) | `level` | manifest `levelDef.geometry`, `sectorReader.levels` |
 | `$AC00-$AC07` | 8 B | segment | `LEVEL_GEOMETRY` — HullGeometry header (bss inside the level buffer) | `level` | build/encounter-director.map |
 | `$AE00-$B3FC` | 1,533 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
 | `$B3FD` | 1 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
@@ -374,7 +374,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$18FB-$18FF` | `overlay` | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes |
 | `$1900-$1FFF` | `overlay` | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) |
 | `$1900-$1F93` | `overlay` | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers; the publish's tail jump to the gravity column's M0, S5-4, a build with the well), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install |
-| `$1900-$1915` | `level` | `L2` — checked fighter/capital phase module; overwritten by boss D/death |
+| `$1900-$198F` | `level` | `L2` — checked fighter/capital phase module; overwritten by boss D/death |
 | `$1950-$19FE` | `boss` `death` | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes |
 | `$1E00-$1FFF` | `boss` `death` | `DEATH_BUFFER` — boss breakup: offscreen wing buffer over dead slot D |
 | `$1E00-$1FFF` | `boss` `death` | boss breakup: second wing buffer, published after the fence; reuses dead boss claim |
@@ -424,7 +424,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$454A-$4636` | `boot` | A2 kernel image in the initial block |
 | `$4637-$5018` | `boot` | packed ENTITY_CODE source |
 | `$4800-$4BFF` | `resident` | frontend charset |
-| `$4801-$4CA9` | `boot` | packed pickup/collision + window streams held in the frontend charset |
+| `$4801-$4C65` | `boot` | packed pickup/collision + window streams held in the frontend charset |
 | `$4C00-$4E3F` | `boss` `death` | boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved |
 | `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) |
 | `$4C00-$4DFE` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only |
@@ -521,7 +521,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$8B88-$8C5D` | `resident` | `DIRECTOR_C_LOW` — low cc65 Director code |
 | `$8C5E-$8C7C` | `resident` | free tail of `DIRECTOR_C_LOW_RAM` |
 | `$8C7D-$8CAC` | `resident` | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table |
-| `$8C80-$9128` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
+| `$8C80-$90E4` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
 | `$8CAD-$8F64` | `resident` | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light |
 | `$8F65-$8FA7` | `resident` | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) |
 | `$8FA8-$8FE7` | `resident` | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) |
@@ -553,7 +553,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$A880-$A997` | `level` | level hull block (style, packed map, codebook, glyphs, collision boundaries) |
 | `$AA00-$AAFF` | `level` | `LEVEL_CORE` — LevelDef core page (bss inside the level buffer) |
 | `$AB00-$ABFF` | `level` | LevelDef payload page |
-| `$AC00-$AC7F` | `level` | HullGeometry page (after its linked 8-B header) |
+| `$AC00-$ADFF` | `level` | HullGeometry page (after its linked 8-B header) |
 | `$AC00-$AC07` | `level` | `LEVEL_GEOMETRY` — HullGeometry header (bss inside the level buffer) |
 
 ### Segment contents (segments over 512 B)
@@ -1138,6 +1138,16 @@ By topic: player, input and weapons 25%, debris and effects 20%, capital ship 17
 Nothing is renamed by this report; a rename is a source change with its own session.
 
 <!-- END GENERATED MEMORY MAP -->
+
+### L2 longer-coordinate checkpoint (2026-10-25)
+
+MEASURED: level image is 16 sectors / 2,048 B within `$A600-$ADFF`;
+geometry `$AC00-$ACFF`, sequences 120 B/side, universal endpoint 960 rows.
+L2 C phase and 16-bit entry policy use 144/1,792 B (1,648 B free). Resident
+sector functions retain their old addresses with 95 B of reclaimable phase
+padding; its linked segment stays 241/248 B, 7 B tail. This padding is not
+claimed as already-free contiguous memory. MAIN/LIFE layout remains fixed.
+Normal build and ten coordinate/compiler plus eight checked-loader tests pass.
 
 ### L2 checked-load skeleton / option A (2026-10-25)
 

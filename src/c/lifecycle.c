@@ -718,6 +718,8 @@ void lifecycle_c_init(void)
 /* Sector-state transitions run from the reusable resident window $8602-$86F9
  * (step 4.3), which frees the contiguous HYBRID_C_EXT tail for Light-class
  * growth. The code itself is unchanged; only its placement moved. */
+extern void l2_c_enter(void);
+extern void l2_c_phase(void);
 #pragma code-name (push, "HYBRID_C_SECTOR")
 uint8_t sector_c_update_first_capital(void)
 {
@@ -757,11 +759,7 @@ uint8_t sector_c_update_first_capital(void)
         asm_boss_enter();
     }
     CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
-    /* Roadmap 4.6 step 4: a short hull is right-aligned on the 480-row
-     * coordinate, so its traversal starts at row 480 - hull_rows. Every length
-     * is $120-$1E0, so the start is 0/64/128/192 and the high byte stays the
-     * 0 init_broadside left it. Level 1's 480 rows start at 0, as always. */
-    CORRIDOR_PHASE_LO = (uint8_t)(0xE0u - level_hull[GEOMETRY_HULL_ROWS_LO]);
+    l2_c_enter();
     DIRECTOR_STATE_FLAGS >>= 1;
     return 1u;
 }
@@ -775,27 +773,7 @@ uint8_t sector_c_update_first_capital(void)
  * outlive this call. */
 void sector_c_update_capital_phase(void)
 {
-    if (CORRIDOR_PHASE_HI > 1u) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
-        return;
-    }
-    heavy_scratch = (uint8_t)(CORRIDOR_PHASE_LO >> 3);
-    if (CORRIDOR_PHASE_HI != 0u) {
-        heavy_scratch |= 0x20u;
-    }
-    if (heavy_scratch < level_hull[GEOMETRY_PHASE_AFT]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
-    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_COMBAT]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_AFT;
-    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_FORWARD]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_COMBAT;
-    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_PROW]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_FORWARD;
-    } else if (heavy_scratch < GEOMETRY_DRAIN_MODULE) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_PROW;
-    } else {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
-    }
+    l2_c_phase();
 }
 
 void sector_c_begin_complete(void)

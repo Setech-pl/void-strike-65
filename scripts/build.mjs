@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import {loadCheckedL2Image} from "./sio-fixture.mjs";
 import { buildBossDeath } from "./boss-death-build.mjs";
 import fs from "node:fs";
 import path from "node:path";
@@ -1373,14 +1374,14 @@ function renderLevelDirectoryInclude(levels) {
 }
 
 async function buildResidentModule({ sourcePath, configPath, stem, extraInputs = {},
-  configText = null, defines = [] }) {
+  configText = null, defines = [], includeDirectories = [] }) {
   const source = fs.readFileSync(sourcePath);
   const config = configText === null ? fs.readFileSync(configPath) : Buffer.from(configText);
   const base = `/project/build/${stem}`;
   const assembled = await runWasmTool(
     "ca65",
     { [`${base}.s`]: source, ...extraInputs },
-    ["--cpu", "6502", "-g", ...defines.flatMap((define) => ["-D", define]),
+    ["--cpu", "6502", "-g", ...includeDirectories.flatMap(dir=>["-I",dir]), ...defines.flatMap((define) => ["-D", define]),
       "-l", `${base}.lst`, "-o", `${base}.o`, `${base}.s`],
     [`${base}.o`, `${base}.lst`],
   );
@@ -1473,8 +1474,18 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
       "-o", `${base}-lifecycle-generated.s`, "/project/src/c/lifecycle.c"],
     [`${base}-lifecycle-generated.s`],
   );
-  const lifecycleGeneratedAssembly =
-    lifecycleCompiled.outputs[`${base}-lifecycle-generated.s`];
+  // Preserve all following C-sector labels when moving its phase body to L2.
+  let lifecycleGeneratedAssembly = lifecycleCompiled.outputs[`${base}-lifecycle-generated.s`];
+  let lifecycleText = lifecycleGeneratedAssembly.toString();
+  for(const [name,bytes] of [["sector_c_update_first_capital",81],["sector_c_update_capital_phase",98]]) {
+    const start=lifecycleText.indexOf(`.proc\t_${name}:`);
+    if(start<0) throw new Error(`L2 C sector pin missing ${name}`);
+    const lineEnd=lifecycleText.indexOf("\n",start)+1;
+    lifecycleText=lifecycleText.slice(0,lineEnd)+"l2_pin_start:\n"+lifecycleText.slice(lineEnd);
+    const end=lifecycleText.indexOf(".endproc",start);
+    lifecycleText=lifecycleText.slice(0,end)+`.res ${bytes}-(*-l2_pin_start), $00\n`+lifecycleText.slice(end);
+  }
+  lifecycleGeneratedAssembly=Buffer.from(lifecycleText);
   if (process.env.VS65_DUMP_GENERATED === "1") {
     writeFile(path.join(buildDirectory, "director-generated.s"), generatedAssembly);
     writeFile(path.join(buildDirectory, "lifecycle-generated.s"), lifecycleGeneratedAssembly);
@@ -2735,10 +2746,20 @@ async function build() {
   }
   const capitalSlotImage = Buffer.from(broadsideRuntime.subarray(
     slotAddress - broadsideRunAddress, slotEnd - broadsideRunAddress));
+  const l2Compiled = await runWasmTool("cc65", {
+    "/project/l2.c": fs.readFileSync(path.join(rootDirectory,"src/c/l2.c")),
+  }, ["--cpu","6502","-Oirs","-o","/project/l2-generated.s","/project/l2.c"], ["/project/l2-generated.s"]);
+  const l2Generated=l2Compiled.outputs["/project/l2-generated.s"].toString().replace(/^\s*\.importzp.*$/gmi, "");
+  writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
+  if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
+    throw new Error("L2 C requires software-stack/helper state");
+  writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
   const l2Module = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src/hybrid/l2.s"),
-    configPath: path.join(rootDirectory, "cfg/l2.cfg"), stem: "l2",
-    extraInputs: { "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")) },
+    configPath: path.join(rootDirectory, "cfg/l2.cfg"), stem: "l2", includeDirectories:["/cc65/asminc"],
+    extraInputs: { "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")),
+      "/project/build/l2-c.inc": Buffer.from(l2Generated),
+      "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir,"asminc/longbranch.mac")) },
   });
   for (const [extension, data] of [["bin",l2Module.raw],["map",l2Module.map],
     ["lbl",l2Module.labels],["lst",l2Module.listing]]) writeFile(path.join(buildDirectory,`l2.${extension}`),data);
@@ -4524,6 +4545,7 @@ async function build() {
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, atr });
   const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
     ? null : measureRuntimeCycles({
+    loadPhaseModules: memory => loadCheckedL2Image(memory,atr,sectorReaderLabels),
     residentMain,
     loadAddress,
     broadsideRuntime,
@@ -4558,7 +4580,7 @@ async function build() {
       // Music v2 §1.4: the gameplay music player executes from the level
       // buffer, so the CPU harness has to place the level image's music block
       // exactly as the loader does.
-      { runAddress: gameplayMusicAddress, data: gameplayMusicModule.raw },
+      { runAddress: 0xa600, data: startLevelImage },
       // Roadmap 4.6 step 2: the Director's schedule is the level image's core
       // page, so the CPU harness has to place it exactly as the sector reader
       // does - otherwise director_c_init reads a zeroed page, refuses its

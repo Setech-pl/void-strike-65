@@ -21,7 +21,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { compileCapitalHulls, loadCapitalHullsDefinition } from "./capital-hulls.mjs";
+import { compileCapitalHulls, loadCapitalHullsDefinition, HULL_MAX_ROWS } from "./capital-hulls.mjs";
 import { hostileWeaponGlyphRows } from "./fighter-weapons.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -33,13 +33,13 @@ const rootDirectory = path.resolve(scriptDirectory, "..");
 // ---------------------------------------------------------------------------
 
 export const LEVEL_BUFFER_ADDRESS = 0xa600;
-export const LEVEL_IMAGE_SECTORS = 13;
+export const LEVEL_IMAGE_SECTORS = 16;
 export const LEVEL_CORE_OFFSET = 0x400;
 export const LEVEL_PAYLOAD_OFFSET = 0x500;
 export const LEVEL_GEOMETRY_OFFSET = 0x600;
 export const LEVEL_CORE_BYTES = 256;
 export const LEVEL_PAYLOAD_BYTES = 256;
-export const LEVEL_GEOMETRY_BYTES = 128;
+export const LEVEL_GEOMETRY_BYTES = 256;
 export const LEVEL_CORE_ADDRESS = LEVEL_BUFFER_ADDRESS + LEVEL_CORE_OFFSET;
 export const LEVEL_PAYLOAD_ADDRESS = LEVEL_BUFFER_ADDRESS + LEVEL_PAYLOAD_OFFSET;
 export const LEVEL_GEOMETRY_ADDRESS = LEVEL_BUFFER_ADDRESS + LEVEL_GEOMETRY_OFFSET;
@@ -49,7 +49,7 @@ export const LEVEL_GEOMETRY_ADDRESS = LEVEL_BUFFER_ADDRESS + LEVEL_GEOMETRY_OFFS
 // so the magic takes the HIGH nibble of $56 ('V') and the format the low one:
 // $51 for format 1. director_c_init refuses a mismatch and completes the level
 // immediately - fail closed, never a jump (step 2).
-export const LEVEL_CORE_FORMAT = 1;
+export const LEVEL_CORE_FORMAT = 2;
 export const LEVEL_CORE_MAGIC = (0x56 & 0xf0) | LEVEL_CORE_FORMAT;
 
 // Core header offsets the build stamps directly (plan §7's debug route).
@@ -119,9 +119,9 @@ export const SKY_PIXEL = Object.freeze({ white: 1, steel: 2, yellow: 3 });
 // HullGeometry page - plan §2.4.
 export const GEOMETRY_OFFSET = Object.freeze({
   hullRowsLo: 0, hullRowsHi: 1, phaseStarts: 2, turretDensityStep: 6,
-  reserved: 7, alliedSequence: 8, enemySequence: 68,
+  reserved: 7, alliedSequence: 8, enemySequence: 128,
 });
-export const HULL_SEQUENCE_BYTES = 60;
+export const HULL_SEQUENCE_BYTES = 120;
 export const HULL_MODULE_ROWS = 8;
 // Owner decision 4 (plan §11 item 4): four hull lengths, 8-row modules, with
 // the fixed 224 rows of engines/aft/forward/prow around 8/16/24/32 combat
@@ -272,8 +272,8 @@ export function validateHullGeometry({ hullRows, phaseStarts }, context = {}) {
   const wrap = (message) => {
     throw new LevelValidationError(message, { file: context.file ?? null, where });
   };
-  if (!HULL_ROW_STEPS.includes(hullRows)) {
-    wrap(`hull rows ${hullRows} is outside the four authored lengths ` +
+  if (!Number.isInteger(hullRows) || hullRows<288 || hullRows>HULL_MAX_ROWS || hullRows%8!==0) {
+    wrap(`hull rows ${hullRows} is outside 288..960 in eight-row modules; legacy aliases ` +
       `${HULL_ROW_STEPS.join(", ")}`);
   }
   if (!Array.isArray(phaseStarts) || phaseStarts.length !== 4) {
@@ -375,11 +375,11 @@ function compileHull(source, context) {
       "(today's stations per row) compiles (docs/plans/director-4.6.md §8.2)");
   }
   if (hull.rows !== undefined) {
-    if (!Number.isInteger(hull.rows) || !HULL_ROW_STEPS.includes(hull.rows)) {
-      fail(context, "hull", `rows is ${JSON.stringify(hull.rows)}; the four authored ` +
-        `hull lengths are ${HULL_ROW_STEPS.join(", ")} rows`);
+    if (!Number.isInteger(hull.rows) || hull.rows<288 || hull.rows>HULL_MAX_ROWS || hull.rows%8!==0) {
+      fail(context, "hull", `rows is ${JSON.stringify(hull.rows)}; allowed hull lengths ` +
+        `are multiples of eight, 288..960 rows`);
     }
-    return { rows: hull.rows, length: HULL_ROW_STEPS.indexOf(hull.rows), turrets };
+    return { rows: hull.rows, length: Math.max(0,HULL_ROW_STEPS.indexOf(hull.rows)), turrets };
   }
   const length = requireInteger(context, "hull", "length", hull.length ?? 3, 0, 3);
   return { rows: HULL_ROW_STEPS[length], length, turrets };

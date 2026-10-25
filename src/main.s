@@ -8045,7 +8045,7 @@ world_rotate_due:
     rts
 world_rotate_due_end:
 .assert world_rotate_due = WORLD_ROTATE_DUE, lderror, "world_rotate_due moved: set WORLD_ROTATE_DUE in src/hybrid/c-asm-abi.s to its new address"
-    .res 2*LEVEL_GEOMETRY_SEQUENCE_BYTES-(world_rotate_due_end-hull_sequence_reserve), $00
+    .res 120-(world_rotate_due_end-hull_sequence_reserve), $00
 .assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 480-row coordinate"
 
 .segment "BROADSIDE"

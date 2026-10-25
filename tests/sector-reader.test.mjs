@@ -8,6 +8,7 @@
 // cannot quietly put them back (see the "corrections" tests at the end, and
 // docs/diagnostics/sio-register-probe-2026-09-20.json).
 import assert from "node:assert/strict";
+import { PokeyStub } from "../scripts/sio-fixture.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -101,142 +102,7 @@ function levelImage({ id = 1, sectors = LEVEL_ONE_SECTORS, version = 1, magic = 
  * returns the wire response: a list of {byte, skstat} entries, or fewer bytes
  * than the reader expects to model silence at that point.
  */
-class PokeyStub {
-  constructor({ respond, vcountPeriod = 3 } = {}) {
-    this.respond = respond;
-    this.vcountPeriod = vcountPeriod;   // VCOUNT reads per simulated PAL frame
-    this.vcountReads = 0;
-    this.vcount = 0;
-
-    this.skctl = 0;
-    this.irqen = 0;
-    this.latched = 0;                   // bits currently asserted (active-low in IRQST)
-    this.commandLine = false;
-    this.frameBytes = [];
-    this.commandFrames = [];            // every frame the reader put on the wire
-    this.skctlDuringTransmit = new Set();
-    this.skctlDuringReceive = new Set();
-    this.txPending = false;
-    this.txOutstanding = 0;
-    this.rxQueue = [];
-    this.serin = 0;
-    this.skstat = SKSTAT_CLEAN;
-    this.skresWrites = 0;
-    this.wsyncBeforeFirstByte = 0;
-    this.wsyncAfterLastByte = 0;
-    this.countingPreHold = false;
-    this.countingPostHold = false;
-  }
-
-  read(address) {
-    switch (address) {
-      case reg.VCOUNT: {
-        this.vcountReads += 1;
-        if (this.vcountReads % this.vcountPeriod === 0) {
-          this.vcount = 0;              // the wrap past line 312: a frame edge
-        } else {
-          this.vcount = (this.vcount + 1) & 0x7f;
-          if (this.vcount === 0) this.vcount = 1;
-        }
-        return this.vcount;
-      }
-      case reg.IRQST: {
-        this.advance();
-        return 0xff & ~this.latched;    // an asserted bit reads 0
-      }
-      case reg.SKSTAT:
-        return this.skstat;
-      default:
-        return undefined;
-    }
-  }
-
-  write(address, value) {
-    switch (address) {
-      case reg.IRQEN: {
-        // Writing a bit low resets that latch; bit 3 is not latched at all.
-        const cleared = (~value) & 0xff;
-        this.latched &= ~(cleared & (IRQ_SERIN | IRQ_SEROUT_RDY));
-        this.irqen = value;
-        return false;
-      }
-      case reg.SKCTL:
-        this.skctl = value;
-        if (value === 0x00) {           // full serial reset
-          this.latched = 0;
-          this.txPending = false;
-          this.txOutstanding = 0;
-          this.rxQueue = [];
-        }
-        return false;
-      case reg.SKRES:
-        this.skresWrites += 1;
-        this.skstat = SKSTAT_CLEAN;
-        return false;
-      case reg.SEROUT:
-        if (this.commandLine) {
-          if (this.frameBytes.length === 0) this.countingPreHold = false;
-          this.frameBytes.push(value);
-          this.skctlDuringTransmit.add(this.skctl);
-        }
-        this.txPending = true;
-        this.txOutstanding += 1;
-        this.latched &= ~IRQ_XMTDONE;
-        return false;
-      case reg.PBCTL:
-        if (value === 0x34) {
-          this.commandLine = true;
-          this.frameBytes = [];
-          this.countingPreHold = true;
-          this.wsyncBeforeFirstByte = 0;
-        } else if (value === 0x3c && this.commandLine) {
-          this.commandLine = false;
-          this.countingPostHold = false;
-          if (this.frameBytes.length === 5) {
-            this.commandFrames.push([...this.frameBytes]);
-            this.rxQueue = this.respond([...this.frameBytes], this.commandFrames.length);
-          }
-        }
-        return false;
-      case reg.WSYNC:
-        if (this.countingPreHold) this.wsyncBeforeFirstByte += 1;
-        if (this.countingPostHold) this.wsyncAfterLastByte += 1;
-        return false;
-      default:
-        return undefined;        // not a register: let the store reach RAM
-    }
-  }
-
-  advance() {
-    if (!this.commandLine && this.skctl !== 0x00) this.skctlDuringReceive.add(this.skctl);
-    // Transmission: the queued byte moves into the shift register, freeing
-    // SEROUT (bit 4). When nothing is outstanding the register is idle (bit 3).
-    if (this.txPending) {
-      this.latched |= IRQ_SEROUT_RDY;
-      this.txPending = false;
-      this.txOutstanding -= 1;
-      if (this.txOutstanding <= 0) {
-        this.txOutstanding = 0;
-        this.latched |= IRQ_XMTDONE;
-        if (this.frameBytes.length === 5) {
-          this.countingPostHold = true;
-          this.wsyncAfterLastByte = 0;
-        }
-      }
-      return;
-    }
-    if (this.txOutstanding === 0) this.latched |= IRQ_XMTDONE;
-    // Reception: only while the input latch is armed and not already asserted.
-    if (this.rxQueue.length > 0 && (this.irqen & IRQ_SERIN) !== 0 &&
-      (this.latched & IRQ_SERIN) === 0) {
-      const next = this.rxQueue.shift();
-      this.serin = next.byte & 0xff;
-      this.skstat = next.skstat ?? SKSTAT_CLEAN;
-      this.latched |= IRQ_SERIN;
-    }
-  }
-}
-
+// POKEY wire model shared with real checked L2 runtime fixtures.
 function runLoad(stub,
   { levelId = 1, buffer = null, maxSteps = 8_000_000, directorySectors = null } = {}) {
   const memory = new Uint8Array(0x10000);

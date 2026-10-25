@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import {loadCheckedL2} from "./sio-fixture.mjs";
 import path from "node:path";
 import { parseAtr } from "./formats.mjs";
 import { loadChunkFixture } from "./chunk-loader.mjs";
@@ -138,6 +139,7 @@ export function installRuntimeSegments(memory, rootDirectory, buildDirectory) {
   invariant(memory.length >= 0x10000, "Runtime memory must cover the 6502 address space");
   const runtime = loadRuntimeSegments(rootDirectory, buildDirectory);
   for (const segment of runtime.segments) memory.set(segment.data, segment.start);
+  loadCheckedL2(memory, rootDirectory, buildDirectory ?? path.join(rootDirectory,"build"), runtime.manifest);
   return runtime;
 }
 

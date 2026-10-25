@@ -25,6 +25,7 @@ function byteHex(value) {
 
 // Match Encounter Director's private full-period byte LCG (5*x+1). Layout
 // generation is host-side, so it does not consume or perturb runtime policy RNG.
+export const HULL_MAX_ROWS = 960;
 export const HULL_COMBAT_ROW_STEPS = Object.freeze([64, 128, 192, 256]);
 
 export function nextDirectorLayoutRng(value) {
@@ -87,6 +88,33 @@ function validTurretSubsets(candidates, required, count, maximumGapModules) {
   };
   visit(0, []);
   return valid;
+}
+
+// Bounded DAG selection: at most 120 candidates x 44 counts x 120 predecessors.
+function selectTurretSubset(candidates, count, maximumGapModules, seed) {
+  const memo = new Map();
+  function feasible(at, left) {
+    const key = at*128+left;
+    if (memo.has(key)) return memo.get(key);
+    if (left === 1) return at === candidates.length-1;
+    let ok = false;
+    for (let next=at+1; next<candidates.length && candidates[next]-candidates[at]<=maximumGapModules; next++) {
+      if (feasible(next,left-1)) { ok=true; break; }
+    }
+    memo.set(key,ok); return ok;
+  }
+  if (!feasible(0,count)) return null;
+  const result=[candidates[0]];let at=0;
+  for(let left=count-1;left>0;left--) {
+    const ideal=candidates[0]+(candidates.at(-1)-candidates[0])*(count-left)/(count-1);
+    const choices=[];
+    for(let next=at+1;next<candidates.length && candidates[next]-candidates[at]<=maximumGapModules;next++)
+      if(feasible(next,left))choices.push(next);
+    seed=nextDirectorLayoutRng(seed);
+    choices.sort((a,b)=>Math.abs(candidates[a]-ideal)-Math.abs(candidates[b]-ideal)||((a+seed)%127)-((b+seed)%127));
+    at=choices[0];result.push(candidates[at]);
+  }
+  return result;
 }
 
 function normalizeGlyphPixels(glyph) {
@@ -285,7 +313,7 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
   // section, 64/128/192/256 rows - the first 8/16/24/32 of the authored combat
   // modules. Engines, aft, forward and prow keep their 224 rows.
   const combatRows = options.combatRows ?? 256;
-  invariant(HULL_COMBAT_ROW_STEPS.includes(combatRows),
+  invariant(Number.isInteger(combatRows) && combatRows>=64 && combatRows<=HULL_MAX_ROWS-224 && combatRows%8===0,
     `Capital hull combat section must be one of ${HULL_COMBAT_ROW_STEPS.join("/")} rows`);
   let sectionStart = 0;
   const sections = source.sections.map((authored, index) => {
@@ -296,7 +324,7 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
       ...authored,
       rows: combatRows,
       modules: Object.fromEntries(Object.entries(authored.modules).map(([side, names]) =>
-        [side, names.slice(0, combatRows / source.moduleRows)])),
+        [side, Array.from({length:combatRows/source.moduleRows},(_,i)=>names[i%names.length])])),
     };
     invariant(section.rows % source.moduleRows === 0,
       `Sector section ${section.id} must contain complete modules`);
@@ -494,6 +522,8 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
       maximumGapModules: turretLayout.maximumGapRows.hard / source.moduleRows,
       seed: ownerSeed,
     });
+    let easyModules, mediumModules;
+    if (HULL_COMBAT_ROW_STEPS.includes(combatRows)) {
     const mediumCandidates = validTurretSubsets(
       hardModules,
       [hardModules[0], hardModules.at(-1)],
@@ -510,7 +540,15 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
     invariant(nestedLayouts.length > 0,
       `${side} has no nested EASY/MEDIUM/HARD turret layout satisfying every gap bound`);
     const selectedLayouts = nestedLayouts[nextDirectorLayoutRng(ownerSeed) % nestedLayouts.length];
-    const { easyModules, mediumModules } = selectedLayouts;
+    ({ easyModules, mediumModules } = selectedLayouts);
+
+    } else {
+      mediumModules=selectTurretSubset(hardModules,expectedTurretCounts.medium,
+        turretLayout.maximumGapRows.medium/source.moduleRows,ownerSeed);
+      easyModules=mediumModules && selectTurretSubset(mediumModules,expectedTurretCounts.easy,
+        turretLayout.maximumGapRows.easy/source.moduleRows,ownerSeed);
+      invariant(easyModules && mediumModules, `${side} has no bounded nested turret layout`);
+    }
     const layouts = new Map([
       ["easy", easyModules], ["medium", mediumModules], ["hard", hardModules],
     ]);
@@ -1456,9 +1494,9 @@ export function renderCapitalHullsCa65Include(asset) {
     `CAPITAL_HULL_CANNON_COUNT_MEDIUM = ${asset.sector.turretCounts.medium}`,
     `CAPITAL_HULL_CANNON_COUNT_HARD = ${asset.sector.turretCounts.hard}`,
     `CAPITAL_HULL_SECTOR_MODULE_ROWS = ${asset.sector.moduleRows}`,
-    `CAPITAL_HULL_SECTOR_MODULE_COUNT = ${asset.sector.moduleSequences.get("allied").length}`,
-    `CAPITAL_HULL_SECTOR_ROWS = ${asset.sector.totalRows}`,
-    `CAPITAL_HULL_STREAM_ROWS = ${asset.sector.streamRows}`,
+    `CAPITAL_HULL_SECTOR_MODULE_COUNT = ${HULL_MAX_ROWS/8}`,
+    `CAPITAL_HULL_SECTOR_ROWS = ${HULL_MAX_ROWS}`,
+    `CAPITAL_HULL_STREAM_ROWS = ${HULL_MAX_ROWS+asset.sector.sidePhaseRows}`,
     `CAPITAL_HULL_SIDE_PHASE_ROWS = ${asset.sector.sidePhaseRows}`,
     `CAPITAL_HULL_VISIBLE_ROWS = ${asset.sector.visibleRows}`,
     `CAPITAL_HULL_SECTOR_PREVIEW_ROW = ${asset.sector.previewSectorRow}`,
@@ -1484,9 +1522,9 @@ export function renderCapitalHullsCa65Include(asset) {
     `CAPITAL_HULL_ENEMY_TURRET_MODULE = ${asset.sector.turretModuleIds.get("enemy")}`,
     `CAPITAL_HULL_SECTION_ENGINES_END = ${sectionById.get("engines").end}`,
     `CAPITAL_HULL_SECTION_AFT_END = ${sectionById.get("aft").end}`,
-    `CAPITAL_HULL_SECTION_COMBAT_END = ${sectionById.get("combat").end}`,
-    `CAPITAL_HULL_SECTION_FORWARD_END = ${sectionById.get("forward").end}`,
-    `CAPITAL_HULL_SECTION_PROW_END = ${sectionById.get("prow").end}`,
+    `CAPITAL_HULL_SECTION_COMBAT_END = ${sectionById.get("combat").end+HULL_MAX_ROWS-asset.sector.totalRows}`,
+    `CAPITAL_HULL_SECTION_FORWARD_END = ${sectionById.get("forward").end+HULL_MAX_ROWS-asset.sector.totalRows}`,
+    `CAPITAL_HULL_SECTION_PROW_END = ${sectionById.get("prow").end+HULL_MAX_ROWS-asset.sector.totalRows}`,
     "CAPITAL_HULL_STATE_ENGINES = 0",
     "CAPITAL_HULL_STATE_AFT = 1",
     "CAPITAL_HULL_STATE_COMBAT = 2",

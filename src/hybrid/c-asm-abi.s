@@ -645,3 +645,8 @@ _asm_boss_enter = pin_boss_enter_head
 ; at $B478; L1's separately linked Light composite now lives in MAIN.
 ; This keeps the Director record and its C addresses unchanged.
     .res 1, $00
+
+; §BW fixed phase-exclusive L2 entries. Never called after boss takeover.
+_l2_c_phase = $190F
+_l2_c_enter = $1912
+.export _l2_c_phase, _l2_c_enter

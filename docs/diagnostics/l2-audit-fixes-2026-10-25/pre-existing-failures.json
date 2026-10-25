@@ -1,0 +1,170 @@
+[
+  {
+    "name": "the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/boss-runtime.test.mjs:601:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: the boss never handed off to the level summary",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-runtime.test.mjs:639:10)"
+    },
+    "main": {
+      "test": "tests/boss-runtime.test.mjs:585:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: the boss never handed off to the level summary",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/boss-runtime.test.mjs:623:10)"
+    }
+  },
+  {
+    "name": "three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:120:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+\\.assert \\* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\\*WEAPON_PICKUP_HEIGHT_SCANLINES/. Input:",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:161:10)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:120:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+\\.assert \\* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\\*WEAPON_PICKUP_HEIGHT_SCANLINES/. Input:",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:161:10)"
+    }
+  },
+  {
+    "name": "the release ATR executes 0\u21921\u21922\u2192pending only for consumed PlayerFighter kills",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:179:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:180:15)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:179:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:180:15)"
+    }
+  },
+  {
+    "name": "pickup pending remains hidden and non-colliding for thirty full frames",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:206:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:207:17)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:206:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:207:17)"
+    }
+  },
+  {
+    "name": "active capsule is one logical PMG object, writes no character cell and cannot be shot",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:269:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:270:17)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:269:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:270:17)"
+    }
+  },
+  {
+    "name": "pickup movement resolves half world speed into smooth scanline phases",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:299:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:309:18)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:299:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:309:18)"
+    }
+  },
+  {
+    "name": "debris and the reserved pickup coexist without allocator overwrite for every A2 head",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:320:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:322:19)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:320:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:322:19)"
+    }
+  },
+  {
+    "name": "pickup collection is single-shot and changes neither score, HULL nor LIFE",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:437:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:438:17)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:437:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:438:17)"
+    }
+  },
+  {
+    "name": "weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:455:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:457:10)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:455:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:457:10)"
+    }
+  },
+  {
+    "name": "HULL plates and the ten-cell BOOST field remain distinct at native screen codes",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:498:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:500:10)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:498:1",
+      "firstError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:500:10)"
+    }
+  },
+  {
+    "name": "Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:544:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:545:17)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:544:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:545:17)"
+    }
+  },
+  {
+    "name": "release trace CSV exposes the authoritative counter, state, timing and score",
+    "classification": "pre-existing on fresh main 19b1464",
+    "fixed": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:759:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/weapon-pickup-rapid-fire.test.mjs:760:17)"
+    },
+    "main": {
+      "test": "tests/weapon-pickup-rapid-fire.test.mjs:759:1",
+      "firstError": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "firstAssertion": "at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-main-l2-audit/tests/weapon-pickup-rapid-fire.test.mjs:760:17)"
+    }
+  }
+]

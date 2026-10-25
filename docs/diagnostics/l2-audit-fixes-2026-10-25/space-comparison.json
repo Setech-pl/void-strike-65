@@ -1,0 +1,17 @@
+{
+  "samples": 720,
+  "fullSpaceCpuDelta": {
+    "-2": 720
+  },
+  "perLightPredictorCpuDelta": {
+    "0": 720
+  },
+  "lightCountsCovered": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "basis": "Complete main-loop bodies, identical route and state; predictor has no writes and its per-call delta is zero."
+}

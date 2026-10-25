@@ -1,0 +1,318 @@
+{
+  "l2": {
+    "address": 6400,
+    "endExclusive": 8192,
+    "capacityBytes": 1792,
+    "usedBytes": 1082,
+    "freeBytes": 710,
+    "postOneReserveBytes": 256,
+    "runIndex": 11,
+    "phase": "fighter/capital; overwritten by boss"
+  },
+  "transportCapacity": {
+    "format": "DFMC-v1 multi-chunk",
+    "initialBootBytes": 12928,
+    "initialBootContentBytes": 12825,
+    "initialBootEnvelopeBytes": 103,
+    "initialBootSectors": 101,
+    "extensionBytes": 14080,
+    "extensionSectors": 110,
+    "totalTransportBytes": 27008,
+    "totalTransportSectors": 211,
+    "remainingAtrSectors": 509,
+    "remainingAtrTransportBytes": 65152,
+    "architecturalAdditionalCapacityBytes": 0,
+    "maximumExtensionChunkBytes": 6400,
+    "maximumChunkCount": 11,
+    "maximumNewSimultaneousResidencyBytes": 7993,
+    "remainingSafeResidencyBytes": 2421,
+    "bootOnlyStaging": {
+      "address": 33024,
+      "bytes": 6484
+    },
+    "loaderResidentBytes": 0,
+    "stage2": {
+      "runAddress": 8641,
+      "loadAddress": 31232,
+      "bytes": 1446,
+      "overwrittenByResidentSuffix": true
+    },
+    "bootSplash": {
+      "runAddress": 1280,
+      "loadAddress": 32678,
+      "transportAddress": 20501,
+      "bytes": 512,
+      "codeBytes": 510,
+      "immutableAddress": 1301,
+      "immutableBytes": 491,
+      "sha256": "720e1bce3596e8628aba589490381e41907c00b8b50c04f39a3965df57436073",
+      "source": "assets/audio/boot-splash.json",
+      "sourceSha256": "a6895ae5251009719ae6cdee6403abb9d83c128e50bc095108e1ebb4dfba11a3",
+      "holdFrames": 250,
+      "fadeStartFrame": 176,
+      "segments": [
+        {
+          "type": "SILENCE",
+          "frames": 5
+        },
+        {
+          "type": "LEADER",
+          "frames": 60
+        },
+        {
+          "type": "DATA",
+          "frames": 55
+        },
+        {
+          "type": "SILENCE",
+          "frames": 10
+        },
+        {
+          "type": "DATA_LOW",
+          "frames": 50
+        },
+        {
+          "type": "SILENCE",
+          "frames": 10
+        },
+        {
+          "type": "DATA",
+          "frames": 60
+        }
+      ]
+    },
+    "manifest": {
+      "address": 9897,
+      "bytes": 190,
+      "crc16": 3869,
+      "parsed": {
+        "version": 1,
+        "totalOccupiedSectors": 211,
+        "manifestBytes": 190,
+        "crc16": 3869,
+        "records": [
+          {
+            "startSector": 102,
+            "sectorCount": 44,
+            "packedLength": 5531,
+            "rawLength": 6653,
+            "finalDestination": 24080,
+            "crc16": 18973,
+            "type": 1,
+            "stagingId": 1,
+            "destination": 33024
+          },
+          {
+            "startSector": 146,
+            "sectorCount": 10,
+            "packedLength": 1165,
+            "rawLength": 1165,
+            "finalDestination": 35968,
+            "crc16": 32384,
+            "type": 0,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 156,
+            "sectorCount": 1,
+            "packedLength": 105,
+            "rawLength": 106,
+            "finalDestination": 32792,
+            "crc16": 60109,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 157,
+            "sectorCount": 4,
+            "packedLength": 441,
+            "rawLength": 498,
+            "finalDestination": 39744,
+            "crc16": 48292,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 161,
+            "sectorCount": 6,
+            "packedLength": 746,
+            "rawLength": 746,
+            "finalDestination": 30736,
+            "crc16": 27495,
+            "type": 0,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 167,
+            "sectorCount": 1,
+            "packedLength": 23,
+            "rawLength": 21,
+            "finalDestination": 40286,
+            "crc16": 65153,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 168,
+            "sectorCount": 6,
+            "packedLength": 740,
+            "rawLength": 818,
+            "finalDestination": 31696,
+            "crc16": 32887,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 174,
+            "sectorCount": 11,
+            "packedLength": 1315,
+            "rawLength": 1656,
+            "finalDestination": 44544,
+            "crc16": 20719,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 185,
+            "sectorCount": 9,
+            "packedLength": 1032,
+            "rawLength": 1196,
+            "finalDestination": 13891,
+            "crc16": 39,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 194,
+            "sectorCount": 13,
+            "packedLength": 1529,
+            "rawLength": 1529,
+            "finalDestination": 40960,
+            "crc16": 59377,
+            "type": 0,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 207,
+            "sectorCount": 5,
+            "packedLength": 527,
+            "rawLength": 634,
+            "finalDestination": 40309,
+            "crc16": 16311,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          }
+        ]
+      }
+    }
+  },
+  "residentCapacity": {
+    "window": {
+      "address": 34306,
+      "endExclusive": 34554,
+      "bytes": 248,
+      "usedBytes": 244,
+      "freeBytes": 4,
+      "owner": "HYBRID_C_SECTOR",
+      "packedBytes": 171,
+      "transport": "second LZ stream of the pickup/collision record",
+      "glueHoldingAddress": 33024
+    },
+    "arena": {
+      "step": "4.5M-M3",
+      "owner": "HYBRID_C_ARENA",
+      "address": 31696,
+      "endExclusive": 32528,
+      "capacityBytes": 832,
+      "usedBytes": 818,
+      "freeBytes": 14,
+      "asmBytes": 162,
+      "codeBytes": 617,
+      "rodataBytes": 39,
+      "segments": [
+        "HYBRID_ASM_ARENA",
+        "HYBRID_C_ARENA",
+        "HYBRID_C_ARENA_RODATA"
+      ],
+      "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+      "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+      "boundedBy": {
+        "below": "starfield stream A staging / pause-screen backup end $7BD0",
+        "above": "A2 display lists $7F10"
+      },
+      "transport": {
+        "record": "own DFMC record, LZ, stagingId extension",
+        "finalDestination": 31696,
+        "startSector": 168,
+        "sectors": 6,
+        "rawBytes": 818,
+        "packedBytes": 740,
+        "paddingBytes": 7,
+        "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
+      },
+      "ownersInArena": [
+        {
+          "owner": "record 7bd0",
+          "start": 31696,
+          "endExclusive": 32514
+        }
+      ],
+      "worstCaseFullArenaPackedBytes": 840,
+      "worstCaseFullArenaSectors": 7
+    },
+    "basicWindow": {
+      "step": "owner decision X",
+      "owner": "HYBRID_C_WINDOW",
+      "address": 44544,
+      "guardAddress": 48154,
+      "endExclusive": 48128,
+      "capacityBytes": 3584,
+      "guardBytes": 6,
+      "directorHalfBytes": 1656,
+      "lightKernelBytes": 0,
+      "usedBytes": 1656,
+      "freeBytes": 1928,
+      "beforeLanceFreeBytes": 1160,
+      "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
+      "boundedBy": {
+        "below": "16-sector level buffer $A600-$ADFF",
+        "above": "sector reader BSS $BC00-$BC19, then the guard and the OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
+      },
+      "guard": "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
+      "contents": "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
+      "transport": {
+        "record": "own DFMC record, LZ, stagingId extension",
+        "finalDestination": 44544,
+        "startSector": 174,
+        "sectors": 11,
+        "rawBytes": 1656,
+        "packedBytes": 1315,
+        "paddingBytes": 72,
+        "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
+      }
+    },
+    "pickupRecordPackedBytes": {
+      "pickupStream": 994,
+      "windowStream": 171,
+      "combined": 1165,
+      "coldCapacity": 1277,
+      "coldMargin": 112
+    },
+    "tails": {
+      "hybridCExtension": 24,
+      "entityCode": 5,
+      "pickupStreamFill": 7,
+      "a2Kernel": 19
+    }
+  }
+}

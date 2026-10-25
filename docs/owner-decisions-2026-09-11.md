@@ -4273,10 +4273,48 @@ standing **≤32-B complete-fix placement rule** still applies. There is no
 mid-death disk read and no change to the existing death/respawn policy.
 The earlier 52-B death-reload sketch is superseded diagnostic evidence.
 
-Audit fixes and measurements are in progress; the original smoke PASS applies
-to `b2b38ff` only. Final measurements and candidate provenance follow below.
-No gate or assertion is relaxed. No merge to main before the fixed candidate's
-owner OK.
+Fixes: L2-04 `c77ebba` uses **32 B**; L2-02 `cba50fd` uses **31 B**,
+arming the brake only inside a capital and gating contact resident in states
+0–4. SPACE CPU is **−2 vs main `19b1464`** in all 720 identical-route full-loop
+fixtures, predictor delta 0 per Light. L2-05 capsule motion follows half the
+braked world speed at every ramp step, **0 new B**. Death and capital completion
+intentionally snap to full speed (the requested documentation option); release
+while alive ramps. EN/PL instructions agree. L2-06 generates ABI constants and
+makes warning X preservation a fatal build check; L2-07 corrects stale text;
+L2-08 labels diagnostic-only variant/reuse/lives allowances. No gate or
+assertion is relaxed.
+
+**12 routes /47,326 frames**, 480/960 ×E/M/H ×flight/contact and
+brake/contact: **10 frames exceed 31,500** (previously 10), peak **31,598**
+(previously 31,598), maximum target excess 98. Hard gate 32,568: **970 cycles
+margin**; physical 35,568: 3,970. Minimum publication fence **4,977**, capital
+peak 17,660; zero missed frames, extra VBI boundaries, DLI errors, shifted
+phase rows, world/hull clock mismatches or stale L2 accesses. Every route
+reaches universal phase 968. Broadened lifetime checks PASS at both lengths,
+through boss install and all real exits (8/8), including capital death and
+respawn with validity retained.
+
+Normal computed gates PASS. L2 **1,082/1,792 B**, **710 free**, **256-B reserve
+intact**, 454 otherwise free; resident physical delta+3 B, L2+19 B vs `b2b38ff`.
+C sector 244/248 (tail 4, pinned pad 54); reader tail 7, summary 0, MAIN Light 17,
+Director high 11, arena 14, ENTITY_CODE 5, HYBRID_C_EXT 24, A2 19. Zero new
+per-frame page crossings. Boss stress 20 comparisons delta 0, max 8478≤8,500;
+entry 325/340/340/344≤350. All four boss→summary→menu→checked START GAME
+reloads and post-boss pause PASS; cold/RESET/130XE/forced-restore smoke 7/7.
+Focused edited gameplay tests 86 PASS/12 pre-existing FAIL out of 98; fresh
+main reproduces all 12 names and first errors. Generated-map 3/3, observer
+tools 4/4, reuse rejection 1/1, regional Q-S4 checks 3/3. Full 13 boss-runtime
+results are reported above and in the linked evidence.
+
+[Audit ledger and evidence](diagnostics/l2-audit-fixes-2026-10-25/) retain
+measured tables, all failures and reproduction. Six normal-build final-HEAD
+ATRs are hash-bound to the measured guest bytes, with absolute paths/SHA-256/
+build HEAD in `build/l2-owner-smoke/candidate.json`. **OWNER-SMOKE CANDIDATE**;
+the original PASS applies only to `b2b38ff`. Next: owner smoke (cold boot,
+SPACE debris, capital islands/brake including death, boss→summary→menu→START
+GAME, capital pause-quit→START GAME), then STOP. After owner OK: record smoke,
+normal branch build, authorized `--no-ff` merge, normal main build, push main
+and report merge SHA. No release build or release-evidence regeneration.
 
 **Next free decision section: §BX.**
 

@@ -70,14 +70,16 @@ przelatują nad fragmentami. Wieżyczki strzelają z obu kadłubów.
 
 Przy dolnej krawędzi przytrzymaj DÓŁ, aby zwolnić przelot korytarzem do połowy
 prędkości. Po puszczeniu płynnie wraca zwykła prędkość. Blisko dołu ekranu
-wieżyczki ostrzegają dłużej.
+wieżyczki ostrzegają dłużej. Utrata życia lub koniec przelotu korytarzem
+natychmiast przywraca pełną prędkość. Puszczenie DOŁU podczas lotu przywraca ją
+płynnie. Kapsuły z ulepszeniami zwalniają razem z przewijaniem.
 
 **Boss.** Na końcu każdego poziomu: konstrukcja z powtarzalnych modułów, z
 działami i punktami słabymi.
 
 Małe spadające szczątki pojawiają się w otwartej przestrzeni. W korytarzach
-zastępują je duże fragmenty okrętów. Kapsuły z ulepszeniami trafiają się tylko
-w otwartej przestrzeni.
+zastępują je duże fragmenty okrętów. Kapsuły z ulepszeniami mogą pojawiać się
+w otwartej przestrzeni i podczas przelotu korytarzem.
 
 ## Sterowanie
 

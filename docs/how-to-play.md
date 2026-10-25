@@ -68,13 +68,15 @@ shots pass over the fragments. Turrets work from either hull.
 
 At the bottom edge, hold DOWN to brake the capital scroll to half speed; release
 to return smoothly to normal speed. Turrets give a longer warning while you are
-near the bottom.
+near the bottom. Losing a life or leaving the capital immediately restores
+full speed; releasing DOWN while alive ramps back smoothly. Pickup capsules
+slow with the braked world.
 
 **Boss.** At the end of every level: a structure of repeating modules with guns
 and weak points.
 
 Small falling debris appears in open space; capital corridors use large ship
-fragments instead. Pickup capsules come only in open space.
+fragments instead. Pickup capsules can appear in open space and capital runs.
 
 ## Controls
 

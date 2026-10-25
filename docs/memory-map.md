@@ -79,7 +79,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$0500-$0BFF` | 1,792 B | slot | level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it | `session` | manifest `levelSummary.code`, tests/level-summary-build.test.mjs |
 | `$0500-$0BFF` | 1,792 B | segment | `LEVEL_SUMMARY` — level-summary module (read at the first START GAME) | `session` | build/level-summary.map |
 | `$0500-$06FF` | 512 B | segment | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) | `splash` | build/void-strike-65.map |
-| `$0C00-$1FFF` | 5,120 B | slot | boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it | `overlay` | manifest `boss.claim`, tests/boss-claim.test.mjs |
+| `$0C00-$1FFF` | 5,120 B | slot | phase-exclusive low RAM: checked menu at $0C00-$117F in menus; checked L2 at $1900-$1FFF during fighter/capital play; boss charset, C/scratch/D and death image in their installed phases; no unrelated link or boot allocation | `overlay` | manifest `boss.claim`, tests/boss-claim.test.mjs |
 | `$0C00-$1117` | 1,304 B | segment | `MENU_OVERLAY` — checked L1 menu data run; refilled on every menu entry | `menu` | build/void-strike-65.map |
 | `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) | `overlay` | manifest `boss.charset` |
 | `$1000-$19FE` | 2,559 B | slot | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage | `boss` `death` | manifest `boss.death`, cfg/boss-death.cfg |
@@ -102,12 +102,12 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$18FB-$18FF` | 5 B | segment | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes | `overlay` | build/boss.map |
 | `$1900-$1FFF` | 1,792 B | slot | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) | `overlay` | manifest `boss.slotD` |
 | `$1900-$1F93` | 1,684 B | segment | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers; the publish's tail jump to the gravity column's M0, S5-4, a build with the well), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install | `overlay` | build/boss.map |
-| `$1900-$1D26` | 1,063 B | segment | `L2` — checked fighter/capital phase module; overwritten by boss D/death | `level` | build/l2.map |
+| `$1900-$1D39` | 1,082 B | segment | `L2` — checked fighter/capital phase module; overwritten by boss D/death | `level` | build/l2.map |
 | `$1950-$19FE` | 175 B | segment | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes | `boss` `death` | build/boss-death.map |
 | `$1E00-$1FFF` | 512 B | slot | boss breakup: second wing buffer, published after the fence; reuses dead boss claim | `boss` `death` | cfg/boss-death.cfg |
 | `$1E00-$1FFF` | 512 B | segment | `DEATH_BUFFER` — boss breakup: offscreen wing buffer over dead slot D | `boss` `death` | build/boss-death.map |
 | `$1F94-$1FFB` | 104 B | segment | `BOSS_D_BSS` — boss slot D: the lasers' state and the boss shots' band cells (after its code, never read from disk) | `overlay` | build/boss.map |
-| `$2000-$5206` | 12,807 B | transient | initial boot block image, 101 sectors (code, data and packed sources) | `boot` | manifest `transportCapacity` |
+| `$2000-$5218` | 12,825 B | transient | initial boot block image, 101 sectors (code, data and packed sources) | `boot` | manifest `transportCapacity` |
 | `$2000-$316F` | 4,464 B | segment | `CODE` — main: resident code | `resident` | build/void-strike-65.map |
 | `$21C1-$2766` | 1,446 B | segment | `BOOT_STAGE2` — stage-2 loader; the resident suffix is unpacked over it | `boot` | build/void-strike-65.map |
 | `$3170-$3E0F` | 3,232 B | segment | `RODATA` — main: resident read-only data (its tail is boot-only, see reuse) | `resident` | build/void-strike-65.map |
@@ -124,14 +124,14 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$3C00-$3CC9` | 202 B | transient | expanded loader display list (202 B) | `loader` | src/main.s `LOADER_DISPLAY_LIST_ADDRESS` |
 | `$4000-$43FF` | 1,024 B | state | screen: HUD prefix, divider, frontend screen RAM | `resident` | src/main.s `SCREEN` |
 | `$4010-$4FFF` | 4,080 B | transient | loader bitmap lines 0-101 | `loader` | manifest `loaderScreen` |
-| `$4016-$43A7` | 914 B | transient | packed STARFIELD stream A | `boot` | manifest `starfieldRuntime.streams` |
+| `$4017-$43A8` | 914 B | transient | packed STARFIELD stream A | `boot` | manifest `starfieldRuntime.streams` |
 | `$41B8-$424F` | 152 B | transient | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows, the VOID LANCE's line (ANTIC 2, M6 journal §BI 1) | `boss-entry` | manifest `boss.banner` |
-| `$43A8-$453F` | 408 B | transient | packed STARFIELD stream B | `boot` | manifest `starfieldRuntime.streams` |
+| `$43A9-$4540` | 408 B | transient | packed STARFIELD stream B | `boot` | manifest `starfieldRuntime.streams` |
 | `$4400-$47FF` | 1,024 B | state | gameplay charset | `resident` | src/main.s `CHARSET` |
-| `$4540-$462C` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
-| `$462D-$5002` | 2,518 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
+| `$4541-$462D` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
+| `$462E-$5014` | 2,535 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
 | `$4800-$4BFF` | 1,024 B | state | frontend charset | `resident` | src/main.s `FRONTEND_CHARSET` |
-| `$4801-$4C78` | 1,144 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
+| `$4801-$4C8D` | 1,165 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
 | `$4C00-$4E3F` | 576 B | slot | boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved | `boss` `death` | src/hybrid/boss-death.s |
 | `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
 | `$4C00-$4DFE` | 511 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
@@ -149,16 +149,16 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4FF8-$4FF9` | 2 B | state | 16-bit active-gameplay frame counter | `resident` | src/main.s `ACTIVE_GAMEPLAY_FRAME_LO` |
 | `$5000-$5E0F` | 3,600 B | transient | loader bitmap lines 102-191 (second LMS) | `loader` | manifest `loaderScreen` |
 | `$5000-$53FF` | 1,024 B | state | gameplay HUD charset | `resident` | src/main.s `HUD_CHARSET` |
-| `$5003-$5202` | 512 B | transient | boot splash blob in the initial block, copied to `$0500` | `boot` | manifest `transportCapacity.bootSplash` |
+| `$5015-$5214` | 512 B | transient | boot splash blob in the initial block, copied to `$0500` | `boot` | manifest `transportCapacity.bootSplash` |
 | `$5200-$53FF` | 512 B | slot | boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the A-only DLI retains boss, player and HUD | `boss` `death` | cfg/boss-death-boot.cfg |
 | `$5200-$53FF` | 512 B | slot | boss slot F (S5-1, owner decision Q9): the HUD charset's unused upper half (codes 64-127, never shown); the region's block, read at every boss entry as the region's fourth run; no restore | `overlay` | manifest `boss.slotF`, tests/slot-f.test.mjs |
 | `$5200-$526D` | 110 B | slot | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) | `overlay` | manifest `boss.slotF.lookTail` |
-| `$5203-$5206` | 4 B | transient | boot payload trailer `DFB1` | `boot` | manifest `bootPayloadTrailer` |
+| `$5215-$5218` | 4 B | transient | boot payload trailer `DFB1` | `boot` | manifest `bootPayloadTrailer` |
 | `$5233-$526C` | 58 B | segment | `BOSS_R_DATA` — region 2's cannons' lens cells, the rails' scratch and the frame hook (S5-5, "B - the window"; the owner's look at 110c274): the locked bays' laser countdown, the warning's heat on each lens, the missile plane's armour row - no beam behind a locked bay's armour; in region 2's block between its look tail and BOSS_F_HOOK; read with that block at region 2's boss entry only | `overlay` | build/boss.map |
 | `$526E-$53FB` | 398 B | segment | `BOSS_R_CODE` — region 2's sliding rails and hangar (S5-5): a front gun's kill slides its rail one pitch inward and opens its bay (the stop lines up to the muzzle row), the cover, the warning pulse, the doors' escort cue, the doors' and the bays' unlock cue, the core's armoured flank; the rails' tables and state after the code; its code in region 2's block (slot F, after the look tail's 110 B, at the field's and the well's address - one region's block is in memory at a time); read with that block at region 2's boss entry only | `overlay` | build/boss.map |
 | `$526E-$53AC` | 319 B | segment | `BOSS_G_CODE` — region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M3, capsule gold; one-shot stale LIFE normalization), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only | `overlay` | build/boss.map |
 | `$526E-$5342` | 213 B | segment | `BOSS_F_CODE` — region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only | `overlay` | build/boss.map |
-| `$5318-$5CED` | 2,518 B | transient | ENTITY_CODE packed source after its backward staging copy | `boot` | manifest `entityEffects` |
+| `$5318-$5CFE` | 2,535 B | transient | ENTITY_CODE packed source after its backward staging copy | `boot` | manifest `entityEffects` |
 | `$5400-$54BD` | 190 B | segment | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state, M3-H damaged-body reservation | `resident` | build/void-strike-65.map |
 | `$549E-$54BD` | 32 B | reserved | M3-H damaged-body buffer; no writer before M3-H | `resident` | src/main.s `M3H_DAMAGED_BODY_BUFFER` |
 | `$54BE-$54E3` | 38 B | reserved | free tail of `PROJECTILE_RAM` | `resident` | cfg/atari-boot.cfg |
@@ -192,7 +192,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7FC5-$7FFF` | 59 B | segment | `HYBRID_LIGHT_SLOTS` — Light per-slot SoA state | `resident` | build/encounter-director.map |
 | `$8000-$80FF` | 256 B | segment | `ENTITY_STATE` — entity/effect slots and Encounter Director state | `resident` | build/void-strike-65.map |
 | `$8018-$8081` | 106 B | transient | ABI record landing (`DIRECTOR_ABI_STAGING`) | `boot` | manifest `coldRecordRelocation.abiRecord` |
-| `$8100-$99AE` | 6,319 B | transient | packed resident-suffix staging (`PACKED_RESIDENT_STAGING`) | `boot` | manifest `residentRuntime`, `coldRecordRelocation.mergedRecord` |
+| `$8100-$99AF` | 6,320 B | transient | packed resident-suffix staging (`PACKED_RESIDENT_STAGING`) | `boot` | manifest `residentRuntime`, `coldRecordRelocation.mergedRecord` |
 | `$8100-$96FF` | 5,632 B | transient | DFMC record sector staging (largest record) | `boot` | manifest `transportCapacity.manifest` |
 | `$8100-$81F9` | 250 B | transient | GLUE hold until `layout_d_publish_glue` | `boot` | manifest `integrationGlue.holdingAddress` |
 | `$8100-$810F` | 16 B | segment | `HYBRID_LIGHT_STATE` — Light record and render cache | `resident` | build/encounter-director.map |
@@ -213,8 +213,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$85E2-$85E5` | 4 B | state | prepared-row key | `resident` | src/main.s `PREPARED_HULL_LO` |
 | `$85EF-$85F1` | 3 B | state | corridor phase, hull draw row | `resident` | src/main.s `CORRIDOR_PHASE_HI` |
 | `$85F2-$8601` | 16 B | state | near-star tables | `resident` | src/main.s `STAR_NEAR_ROW` |
-| `$8602-$86F2` | 241 B | segment | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) | `resident` | build/encounter-director.map |
-| `$86F3-$86F9` | 7 B | reserved | free tail of `HYBRID_C_SECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$8602-$86F5` | 244 B | segment | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) | `resident` | build/encounter-director.map |
+| `$86F6-$86F9` | 4 B | reserved | free tail of `HYBRID_C_SECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$86FA-$8700` | 7 B | segment | `DIRECTOR_C_BSS` — cc65 Director mailbox and scratch | `resident` | build/encounter-director.map |
 | `$8701-$876A` | 106 B | segment | `DIRECTOR_ABI` — C/ASM ABI veneer and startup publishers | `resident` | build/encounter-director.map |
 | `$876B-$8775` | 11 B | reserved | free tail of `DIRECTOR_ABI_RAM` | `resident` | cfg/encounter-director.cfg |
@@ -224,7 +224,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$8B88-$8C5D` | 214 B | segment | `DIRECTOR_C_LOW` — low cc65 Director code | `resident` | build/encounter-director.map |
 | `$8C5E-$8C7C` | 31 B | reserved | free tail of `DIRECTOR_C_LOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$8C7D-$8CAC` | 48 B | segment | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table | `resident` | build/encounter-director.map |
-| `$8C80-$90F7` | 1,144 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
+| `$8C80-$910C` | 1,165 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
 | `$8CAD-$8F64` | 696 B | segment | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light | `resident` | build/encounter-director.map |
 | `$8F65-$8FA7` | 67 B | segment | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) | `resident` | build/void-strike-65.map |
 | `$8FA8-$8FE7` | 64 B | segment | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) | `resident` | build/void-strike-65.map |
@@ -305,7 +305,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$5A78-$5E0A` | 915 B | `STARFIELD_RAM` (atari-boot.cfg) | `STARFIELD` |
 | `$780D-$780F` | 3 B | `BROADSIDE_RAM` (atari-boot.cfg) | `BROADSIDE` |
 | `$7F02-$7F0F` | 14 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA` |
-| `$86F3-$86F9` | 7 B | `HYBRID_C_SECTOR_RAM` (encounter-director.cfg) | `HYBRID_C_SECTOR` |
+| `$86F6-$86F9` | 4 B | `HYBRID_C_SECTOR_RAM` (encounter-director.cfg) | `HYBRID_C_SECTOR` |
 | `$876B-$8775` | 11 B | `DIRECTOR_ABI_RAM` (encounter-director.cfg) | `DIRECTOR_ABI` |
 | `$8B60-$8B66` | 7 B | `PICKUP_CODE_RAM` (atari-boot.cfg) | `PICKUP_CODE` |
 | `$8C5E-$8C7C` | 31 B | `DIRECTOR_C_LOW_RAM` (encounter-director.cfg) | `DIRECTOR_C_LOW` |
@@ -351,7 +351,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 
 | Range | Phases | Occupant |
 | --- | --- | --- |
-| `$0C00-$1FFF` | `overlay` | boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it |
+| `$0C00-$1FFF` | `overlay` | phase-exclusive low RAM: checked menu at $0C00-$117F in menus; checked L2 at $1900-$1FFF during fighter/capital play; boss charset, C/scratch/D and death image in their installed phases; no unrelated link or boot allocation |
 | `$0C00-$1117` | `menu` | `MENU_OVERLAY` — checked L1 menu data run; refilled on every menu entry |
 | `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) |
 | `$1000-$19FE` | `boss` `death` | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage |
@@ -374,7 +374,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$18FB-$18FF` | `overlay` | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes |
 | `$1900-$1FFF` | `overlay` | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) |
 | `$1900-$1F93` | `overlay` | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers; the publish's tail jump to the gravity column's M0, S5-4, a build with the well), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install |
-| `$1900-$1D26` | `level` | `L2` — checked fighter/capital phase module; overwritten by boss D/death |
+| `$1900-$1D39` | `level` | `L2` — checked fighter/capital phase module; overwritten by boss D/death |
 | `$1950-$19FE` | `boss` `death` | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes |
 | `$1E00-$1FFF` | `boss` `death` | `DEATH_BUFFER` — boss breakup: offscreen wing buffer over dead slot D |
 | `$1E00-$1FFF` | `boss` `death` | boss breakup: second wing buffer, published after the fence; reuses dead boss claim |
@@ -413,18 +413,18 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 
 | Range | Phases | Occupant |
 | --- | --- | --- |
-| `$4010-$5206` | `boot` | initial boot block image, 101 sectors (code, data and packed sources) |
+| `$4010-$5218` | `boot` | initial boot block image, 101 sectors (code, data and packed sources) |
 | `$4010-$418B` | `boss-entry` | boss banner picture: 64 mode F lines 26 B apart (0-48 in the PMG area, 49-63 over the text screen's rows 0-9) |
 | `$4010-$43FF` | `resident` | screen: HUD prefix, divider, frontend screen RAM |
 | `$4010-$4FFF` | `loader` | loader bitmap lines 0-101 |
-| `$4016-$43A7` | `boot` | packed STARFIELD stream A |
+| `$4017-$43A8` | `boot` | packed STARFIELD stream A |
 | `$41B8-$424F` | `boss-entry` | boss banner text and bar rows: WARNING (ANTIC 7), the name and INCOMING (ANTIC 6), the bar's two mode F rows, the VOID LANCE's line (ANTIC 2, M6 journal §BI 1) |
-| `$43A8-$453F` | `boot` | packed STARFIELD stream B |
+| `$43A9-$4540` | `boot` | packed STARFIELD stream B |
 | `$4400-$47FF` | `resident` | gameplay charset |
-| `$4540-$462C` | `boot` | A2 kernel image in the initial block |
-| `$462D-$5002` | `boot` | packed ENTITY_CODE source |
+| `$4541-$462D` | `boot` | A2 kernel image in the initial block |
+| `$462E-$5014` | `boot` | packed ENTITY_CODE source |
 | `$4800-$4BFF` | `resident` | frontend charset |
-| `$4801-$4C78` | `boot` | packed pickup/collision + window streams held in the frontend charset |
+| `$4801-$4C8D` | `boot` | packed pickup/collision + window streams held in the frontend charset |
 | `$4C00-$4E3F` | `boss` `death` | boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved |
 | `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) |
 | `$4C00-$4DFE` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only |
@@ -442,16 +442,16 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4FF8-$4FF9` | `resident` | 16-bit active-gameplay frame counter |
 | `$5000-$5E0F` | `loader` | loader bitmap lines 102-191 (second LMS) |
 | `$5000-$53FF` | `resident` | gameplay HUD charset |
-| `$5003-$5202` | `boot` | boot splash blob in the initial block, copied to `$0500` |
+| `$5015-$5214` | `boot` | boot splash blob in the initial block, copied to `$0500` |
 | `$5200-$53FF` | `boss` `death` | boss breakup: checked disk bootstrap over dead region slot F; reads the engine while the A-only DLI retains boss, player and HUD |
 | `$5200-$53FF` | `overlay` | boss slot F (S5-1, owner decision Q9): the HUD charset's unused upper half (codes 64-127, never shown); the region's block, read at every boss entry as the region's fourth run; no restore |
 | `$5200-$526D` | `overlay` | boss region look tail (open looks, nozzle phases, hull stops; owner decision E4 (b)): the region block, first in slot F (S5-1; slot D's head until then) |
-| `$5203-$5206` | `boot` | boot payload trailer `DFB1` |
+| `$5215-$5218` | `boot` | boot payload trailer `DFB1` |
 | `$5233-$526C` | `overlay` | `BOSS_R_DATA` — region 2's cannons' lens cells, the rails' scratch and the frame hook (S5-5, "B - the window"; the owner's look at 110c274): the locked bays' laser countdown, the warning's heat on each lens, the missile plane's armour row - no beam behind a locked bay's armour; in region 2's block between its look tail and BOSS_F_HOOK; read with that block at region 2's boss entry only |
 | `$526E-$53FB` | `overlay` | `BOSS_R_CODE` — region 2's sliding rails and hangar (S5-5): a front gun's kill slides its rail one pitch inward and opens its bay (the stop lines up to the muzzle row), the cover, the warning pulse, the doors' escort cue, the doors' and the bays' unlock cue, the core's armoured flank; the rails' tables and state after the code; its code in region 2's block (slot F, after the look tail's 110 B, at the field's and the well's address - one region's block is in memory at a time); read with that block at region 2's boss entry only |
 | `$526E-$53AC` | `overlay` | `BOSS_G_CODE` — region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M3, capsule gold; one-shot stale LIFE normalization), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only |
 | `$526E-$5342` | `overlay` | `BOSS_F_CODE` — region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only |
-| `$5318-$5CED` | `boot` | ENTITY_CODE packed source after its backward staging copy |
+| `$5318-$5CFE` | `boot` | ENTITY_CODE packed source after its backward staging copy |
 | `$5400-$54BD` | `resident` | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state, M3-H damaged-body reservation |
 | `$549E-$54BD` | `resident` | M3-H damaged-body buffer; no writer before M3-H |
 | `$54BE-$54E3` | `resident` | free tail of `PROJECTILE_RAM` |
@@ -489,7 +489,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 
 | Range | Phases | Occupant |
 | --- | --- | --- |
-| `$8100-$99AE` | `boot` | packed resident-suffix staging (`PACKED_RESIDENT_STAGING`) |
+| `$8100-$99AF` | `boot` | packed resident-suffix staging (`PACKED_RESIDENT_STAGING`) |
 | `$8100-$96FF` | `boot` | DFMC record sector staging (largest record) |
 | `$8100-$81F9` | `boot` | GLUE hold until `layout_d_publish_glue` |
 | `$8100-$810F` | `resident` | `HYBRID_LIGHT_STATE` — Light record and render cache |
@@ -510,8 +510,8 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$85E2-$85E5` | `resident` | prepared-row key |
 | `$85EF-$85F1` | `resident` | corridor phase, hull draw row |
 | `$85F2-$8601` | `resident` | near-star tables |
-| `$8602-$86F2` | `resident` | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) |
-| `$86F3-$86F9` | `resident` | free tail of `HYBRID_C_SECTOR_RAM` |
+| `$8602-$86F5` | `resident` | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) |
+| `$86F6-$86F9` | `resident` | free tail of `HYBRID_C_SECTOR_RAM` |
 | `$86FA-$8700` | `resident` | `DIRECTOR_C_BSS` — cc65 Director mailbox and scratch |
 | `$8701-$876A` | `resident` | `DIRECTOR_ABI` — C/ASM ABI veneer and startup publishers |
 | `$876B-$8775` | `resident` | free tail of `DIRECTOR_ABI_RAM` |
@@ -521,7 +521,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$8B88-$8C5D` | `resident` | `DIRECTOR_C_LOW` — low cc65 Director code |
 | `$8C5E-$8C7C` | `resident` | free tail of `DIRECTOR_C_LOW_RAM` |
 | `$8C7D-$8CAC` | `resident` | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table |
-| `$8C80-$90F7` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
+| `$8C80-$910C` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
 | `$8CAD-$8F64` | `resident` | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light |
 | `$8F65-$8FA7` | `resident` | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) |
 | `$8FA8-$8FE7` | `resident` | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) |
@@ -738,11 +738,11 @@ By topic: Director, sectors and waves 83%, Heavy, Raider and Interceptor 12%, pl
 
 By topic: Light enemies 66%, Director, sectors and waves 23%, Heavy, Raider and Interceptor 7%, unclassified 4%.
 
-#### `L2` `$1900-$1D26`, 1,063 B (build/l2.map)
+#### `L2` `$1900-$1D39`, 1,082 B (build/l2.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| (unlabelled head of l2.o) | `$1900` | 1,063 B | 100.0% | unclassified |
+| (unlabelled head of l2.o) | `$1900` | 1,082 B | 100.0% | unclassified |
 
 By topic: unclassified 100%.
 
@@ -808,9 +808,9 @@ By topic: Light enemies 96%, capital ship 4%.
 | `overlay_directory` | `$A5A8` | 60 B | 3.9% | boot, loader and transport |
 | `sector_reader_failure_screen` | `$A0D6` | 56 B | 3.7% | boot, loader and transport |
 | `sector_reader_receive_byte` | `$A2E7` | 54 B | 3.5% | boot, loader and transport |
-| `sector_reader_read_run` | `$A120` | 52 B | 3.4% | boot, loader and transport |
 | `sector_reader_wait_serial` | `$A31D` | 51 B | 3.3% | boot, loader and transport |
 | `sector_reader_lookup` | `$A489` | 49 B | 3.2% | boot, loader and transport |
+| `sector_reader_read_run_inline` | `$A124` | 48 B | 3.1% | boot, loader and transport |
 | `sector_reader_directory` | `$A578` | 48 B | 3.1% | boot, loader and transport |
 | `sector_reader_publish_screen` | `$A0AB` | 43 B | 2.8% | boot, loader and transport |
 | `sector_reader_read_sector` | `$A225` | 41 B | 2.7% | boot, loader and transport |
@@ -841,7 +841,7 @@ By topic: Light enemies 96%, capital ship 4%.
 | `title_record` | `$A523` | 18 B | 1.2% | frontend and HUD |
 | `sector_reader_wait_for_fire` | `$A10E` | 17 B | 1.1% | player, input and weapons |
 | `sector_reader_blank` | `$A03D` | 16 B | 1.0% | boot, loader and transport |
-| 27 smaller items | — | 167 B | 10.9% | — |
+| 28 smaller items | — | 171 B | 11.2% | — |
 
 By topic: boot, loader and transport 85%, level summary 10%, unclassified 2%, capital ship 2%, frontend and HUD 1%, player, input and weapons 1%.
 
@@ -898,7 +898,7 @@ By topic: frontend and HUD 56%, music and audio 41%, starfield 4%.
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `start_gameplay` | `$2664` | 185 B | 4.1% | unclassified |
+| `start_gameplay` | `$2664` | 193 B | 4.3% | unclassified |
 | `render_transient_effect_overlays` | `$305A` | 174 B | 3.9% | debris and effects |
 | `read_input` | `$29BC` | 172 B | 3.9% | player, input and weapons |
 | `update_sound` | `$2E87` | 152 B | 3.4% | music and audio |
@@ -923,14 +923,14 @@ By topic: frontend and HUD 56%, music and audio 41%, starfield 4%.
 | `hud_ascii` | `$2E3A` | 58 B | 1.3% | frontend and HUD |
 | `handle_main_menu_input` | `$224C` | 56 B | 1.3% | frontend and HUD |
 | `stage_boot_stream_record` | `$210A` | 52 B | 1.2% | boot, loader and transport |
-| `show_loader` | `$276D` | 52 B | 1.2% | boot, loader and transport |
+| `show_loader` | `$2774` | 52 B | 1.2% | boot, loader and transport |
 | `unpack_capital_hull_maps` | `$2869` | 51 B | 1.1% | capital ship |
 | `unpack_loader_bitmap` | `$27B8` | 49 B | 1.1% | boot, loader and transport |
 | `allocate_player_fighter_projectile_at_slot` | `$2D01` | 48 B | 1.1% | player, input and weapons |
 | `init_playfield_row_table` | `$2948` | 45 B | 1.0% | display, PMG and raster |
-| 139 smaller items | — | 1,857 B | 41.6% | — |
+| 138 smaller items | — | 1,849 B | 41.4% | — |
 
-By topic: frontend and HUD 26%, player, input and weapons 18%, unclassified 11%, debris and effects 11%, Heavy, Raider and Interceptor 10%, music and audio 8%, boot, loader and transport 6%, capital ship 6%, display, PMG and raster 2%, starfield 2%, Director, sectors and waves 2%, padding and slack 0%, pickups and boosters 0%.
+By topic: frontend and HUD 25%, player, input and weapons 18%, unclassified 11%, debris and effects 11%, Heavy, Raider and Interceptor 10%, music and audio 8%, boot, loader and transport 6%, capital ship 6%, display, PMG and raster 2%, starfield 2%, Director, sectors and waves 2%, padding and slack 0%, pickups and boosters 0%.
 
 #### `BOOT_STAGE2` `$21C1-$2766`, 1,446 B (build/void-strike-65.map)
 
@@ -1110,12 +1110,11 @@ By topic: Heavy, Raider and Interceptor 44%, padding and slack 13%, player, inpu
 | `enemy_projectile_effect_backing_resolve` | `$92B2` | 40 B | 1.3% | Heavy, Raider and Interceptor |
 | `weapon_pickup_spawn_capsule_at` | `$9827` | 40 B | 1.3% | player, input and weapons |
 | `draw_main_menu_scene` | `$9100` | 36 B | 1.1% | frontend and HUD |
-| `integration_pickup_pending_tick` | `$9478` | 36 B | 1.1% | pickups and boosters |
 | `unpack_weapon_pickup_phase_runtime` | `$95CE` | 36 B | 1.1% | player, input and weapons |
 | `entity_despawn_debris` | `$99CA` | 35 B | 1.1% | debris and effects |
 | `frontend_text_display_list` | `$9597` | 32 B | 1.0% | frontend and HUD |
 | `weapon_pickup_rapid_tick` | `$97CF` | 32 B | 1.0% | player, input and weapons |
-| 74 smaller items | — | 795 B | 25.2% | — |
+| 75 smaller items | — | 831 B | 26.3% | — |
 
 By topic: player, input and weapons 25%, debris and effects 20%, capital ship 16%, frontend and HUD 14%, pickups and boosters 7%, starfield 6%, Light enemies 5%, boot, loader and transport 5%, Heavy, Raider and Interceptor 3%.
 
@@ -1132,37 +1131,45 @@ By topic: player, input and weapons 25%, debris and effects 20%, capital ship 16
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `DIRECTOR_C_CODE` | 614 B | placement name | — | Director, sectors and waves (83%) | not judged |
 | `HYBRID_C_WINDOW` | 1,533 B | placement name | — | Light enemies (66%) | not judged |
-| `L2` | 1,063 B | placement name | — | unclassified (100%) | not judged |
+| `L2` | 1,082 B | placement name | — | unclassified (100%) | not judged |
 | `LEVEL_SUMMARY` | 1,792 B | level summary | 96% | level summary (96%) | fits |
 | `LIGHT_KERNEL` | 822 B | Light enemies | 96% | Light enemies (96%) | fits |
 | `SECTOR_READER` | 1,529 B | boot, loader and transport, Director, sectors and waves | 85% | boot, loader and transport (85%) | fits |
 | `MENU_OVERLAY` | 1,304 B | placement name | — | frontend and HUD (56%) | not judged |
-| `CODE` | 4,464 B | placement name | — | frontend and HUD (26%) | not judged |
+| `CODE` | 4,464 B | placement name | — | frontend and HUD (25%) | not judged |
 | `BOOT_STAGE2` | 1,446 B | boot, loader and transport | 93% | boot, loader and transport (93%) | fits |
 | `RODATA` | 3,232 B | placement name | — | Light enemies (36%) | not judged |
 | `STARFIELD` | 1,428 B | starfield | 32% | starfield (32%) | **misleading name** |
 | `BROADSIDE` | 6,653 B | capital ship | 52% | capital ship (52%) | fits |
 | `PICKUP_CODE` | 1,002 B | pickups and boosters | 8% | Heavy, Raider and Interceptor (44%) | **misleading name** |
-| `ENTITY_CODE` | 3,161 B | debris and effects, pickups and boosters, player, input and weapons | 52% | player, input and weapons (25%) | fits |
+| `ENTITY_CODE` | 3,161 B | debris and effects, pickups and boosters, player, input and weapons | 51% | player, input and weapons (25%) | fits |
 
 Nothing is renamed by this report; a rename is a source change with its own session.
 
 <!-- END GENERATED MEMORY MAP -->
 
-### L2 audit validity fix — in progress (2026-10-25)
+### L2 audit fixes — OWNER-SMOKE CANDIDATE (2026-10-26)
 
-L2-04 adds **32 B total code/state**: resident validity clear3 + load guard17
-+ validity byte1, cold MAIN guard8 and L2 INIT3. Existing cold call sites and
-8 B of non-executed MAIN padding are reused. No new reservation. Validity
-`$86B3` and cached rate `$86B4` belong to resident C-sector padding. The new
-resident helper ends at `$867C`; **54 B** of its original 95-B pad remain
-reclaimable (including neither state byte). C sector remains241/248, tail7;
-reader1529/1536, tail7; MAIN Light1196/1213, tail17; summary1792/1792, tail0.
-L2 is1066/1792, free726, including256 reserved. New per-frame crossings0.
-DYING/respawn retain validity; actual exits invalidate, every load passes the
-resident guard, and invalid START GAME re-enters the checked reader.
+L2-04 adds **32 B total code/state**: resident clear3 + load guard17 +
+validity byte1, cold MAIN guard8 and L2 INIT3. Existing cold call sites and
+8 non-executed MAIN bytes are reused. Validity is `$86B3`, rate `$86B4`;
+**54 B** of the original C-phase pad remain reclaimable. No new reservation.
 
-### L2 Phase B — OWNER-SMOKE CANDIDATE
+L2-02 adds **31 B total**: resident contact gate12 in old padding, cold L2
+capital-entry14 + SPACE publication2, and resident C sector-exit3. Two BIT
+reads replace four NOPs in the predictor at equal size, returning its CPU
+cost to main; the contact BIT has no side effects and its flags are dead.
+L2-05 capsule motion changes **0 B**; generated L2 ABI changes **0 B**.
+
+Linked L2 is **1082/1792 B**, `$1900-$1D39`, **710 free**, including the intact
+**256-B** reserve `$1F00-$1FFF`; **454 B** otherwise free. C sector244/248,
+tail4; reader1529/1536, tail7; MAIN Light1196/1213, tail17; summary1792/1792,
+tail0. All reservations and MAIN/LIFE addresses remain unchanged. The
+per-frame page-cross table has zero new crossings. DYING and respawn retain
+validity; real exits invalidate, every L2 run read passes the resident guard,
+and unchecked START GAME enters the checked reader before gameplay.
+
+### L2 Phase B — pre-audit snapshot (`b2b38ff`)
 
 MEASURED ([resources](diagnostics/l2-phase-b/recovery/resources.json)):
 L2 `$1900-$1D26` uses **1,063/1,792 B**, **729 B** free; reserve

@@ -1,0 +1,51 @@
+{
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/level-1-s6/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "50a2541ffab85244a553879be1286a864e4ee5a31db81d390b88acbc0efdf3d6"
+    },
+    "void-strike-65.atr": {
+      "path": "build/level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "f4384c9b566aee77064b7d8c593da20a26bdaf68d2d4684b2788541c990cce93"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/level-1-s6/void-strike-65-manifest.json",
+      "bytes": 80514,
+      "sha256": "4377844662c48c25c57ee2424b6f4312bda8ee9e8244419eecc309b27c657830"
+    }
+  },
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "acceptance": {
+    "measured_frames": 499,
+    "maximum_wall_cycles": 27703,
+    "wall_ceiling": 32568,
+    "physical_headroom": 7865,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "sessions": [
+    {
+      "id": "l2-audit-boss-pause",
+      "measured_frames": 499,
+      "maximum_wall_cycles": 27703,
+      "missed_frames": 0,
+      "boss_path": "pause",
+      "boss_path_taken_frame": 300,
+      "boss_frames_before_path": 299,
+      "boss_frames_after_path": 200
+    }
+  ]
+}

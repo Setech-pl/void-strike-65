@@ -1,139 +1,212 @@
-# L2 audit fixes — BLOCKED_BYTE_PLACEMENT
+# L2 audit fixes — OWNER-SMOKE CANDIDATE
 
-Owner instruction, 2026-10-25: smoke of `b2b38ff` PASS ("generally OK");
-fix L2-01…08 on `codex/l2-phase-module`, with a complete-fix 32-B cap and
-STOP beyond it. This is a partial task result, **not a new owner-smoke
-candidate**, acceptance, or release evidence. No production source changed.
-
-Report-only merge `66f53b9` brings in audit `668f692`. The report remains
-unchanged, SHA-256
+Owner smoke of `b2b38ff`: PASS ("generally OK", 2026-10-25). The fixed
+candidate awaits a new owner smoke. Report `668f692` merged unchanged in
+`66f53b9`; SHA-256
 `e5cf25b187ed68f67c04971f13491e8722217de8a238dd9359ec36e173ac6458`.
+Code checkpoints: L2-01 `52ee66b`, L2-04 `c77ebba`, remaining fixes `cba50fd`.
+Final measurements completed 2026-10-26. No main merge or release certification.
 
-## Fixed: L2-01 (`52ee66b`)
+## Requirement and implementation
 
-The scroll test now executes the real `$A000` START GAME reader entry through
-the summary's checked L2 read and INIT. It checks the entire L2 image, capital
-slot A and capital vectors, then executes `profile_after_player` through
-`profile_after_enemy` before the original `rotations >= 9` assertion.
-The rate table restore is retained and checked; that table now controls
-pickup motion. No assertion or gate is relaxed.
+The owner corrected L2-04: losing a life in a capital is not an exit. DYING
+and respawn keep the checked image valid. Disarm resets the brake operand to
+resident `$3114`, rate to zero and valid to zero on boss install, GAME OVER,
+pause-quit, level end/teardown, RESET/warm start and at the head of every L2
+load. Only checked load + INIT validates; START GAME with invalid L2 goes
+back through `$A000` before gameplay. The old 52-B death-reload sketch is
+[superseded diagnostic history](superseded-checkpoint.md), not a minimum proof.
 
-Both **complete** boss-runtime runs are retained:
-[branch](boss-runtime-branch.log), [main 19b1464](boss-runtime-main-19b1464.log).
-Main was freshly built in a temporary detached worktree, then removed.
+L2-02 arms the brake at capital entry, returns to the resident hook on capital
+completion and gates contact by capital state 0–4 before any L2 jump. The
+predictor rate selection now costs the same as main for every Light. Equal
+byte timing pads use documented NMOS `BIT zp`, with flags overwritten before use.
+L2-05 intentionally snaps to full speed on death and capital completion;
+releasing the brake while alive retains its ramp. Capsules consume the same
+braked numerator over ten and move at exactly half world speed at every even
+and odd ramp step. EN/PL player instructions and game design describe this.
 
-| Test (all 13 in tests/boss-runtime.test.mjs) | Fixed branch | main 19b1464 |
-| --- | --- | --- |
-| Director BOSS_DUE and drained admission | PASS | PASS |
-| Decision 32: black/banner/theme/run order | PASS | PASS |
-| Install: slot A/charset/vectors/band/handshake | PASS | PASS |
-| Gameplay list keeps two DLIs | PASS | PASS |
-| World stops in boss, runs after START GAME restore | PASS | PASS |
-| Band HSCROL/LMS/three DLIs | PASS | PASS |
-| Column map | PASS | PASS |
-| Shots against band | PASS | PASS |
-| Cover group/core/chain bonus | PASS | PASS |
-| The win: chain/shake/flash/summary time | FAIL, pre-existing | FAIL |
-| Q-S4 complete START GAME restoration | PASS | PASS |
-| Q-B6 boss work <=7,000 | PASS | PASS |
-| Cavity glyph | PASS | PASS |
-| Total | 12 PASS / 1 FAIL | 12 PASS / 1 FAIL |
+L2-06 generates C and ASM ABI addresses/format constants from linked labels and
+the level compiler. A build assertion checks world/hull numerator equality.
+Warning codegen may neither change X nor call unproven routines; JMP targets
+must be local labels. The runtime X preservation assertion remains.
+L2-07 corrects contact closure, STATUS/NEXT TASK, 960-row assertion/test text,
+sequence-page description and the phase-exclusive `$0C00–$1FFF` memory row.
+L2-08 explicitly labels variant aliases, trace reuse and lives top-up diagnostic
+only. Reports distinguish zero guest code bytes from fixture state writes.
+The generic debug-route trace reuse assertion still rejects reuse.
 
-The identical first failing assertion/message is
-`assert.ok(handedOff, "the boss never handed off to the level summary")`:
-fixed branch `tests/boss-runtime.test.mjs:639`, main `:623`. This is recorded
-as a **pre-existing failure**, not a passed test or owner acceptance of a
-new failure. No full test run or failure-ledger change was made.
+| Complete fix | New code/state B | Placement / recurring cost |
+| --- | ---: | --- |
+| L2-04 | 32 | cold paths, existing C padding and CODE slack; no frame guard |
+| L2-02 | 31 | resident contact 12, L2 entry 14, L2 SPACE tail 2, C completion call 3; SPACE −2 cycles |
+| L2-05 | 0 | operand/denominator replacements, same CPU at full speed |
+| L2-06/07/08 | 0 | generated values/checks/docs/host observer |
 
-## STOP: L2-04 literal lethal-hit invalidation
+No protected reservation is used. [Page-cross audit](page-cross.md): every
+changed listing routine and all L2 indexed tables, **zero new per-frame
+crossings**. The audit baseline is the saved `b2b38ff` link in
+`build/l2-audit-before`; SPACE/stress control is freshly built main `19b1464`.
 
-`apply_player_damage` publishes DYING in the lethal tail of `src/main.s`.
-`main_loop` continues the simulation, world, hull contact and publication
-while dying; `player_dying_tick` eventually calls `respawn_player` without
-a START GAME read. This is still capital gameplay, with the L2 image and
-lookup in use. It is not a teardown to the menu.
+## Linked ledger and normal build
 
-The instruction explicitly requires valid=0 on death as well as GAME OVER.
-Clearing valid and the brake/rate at a lethal hit alone leaves the next
-capital consumers executing an invalid image. Calling INIT without a
-checked read would violate the requested invariant. Adding guards on those
-per-frame consumers would violate the no-new-per-frame-cost condition.
+[Normal build](normal-build.log) passes computed timing/DMA, fence, block,
+window, boss-entry and disk gates. Expected stale runtime evidence warning:
+release build will fail. No evidence SHAs were hand-edited.
 
-[death-reload-budget.s](death-reload-budget.s) prices a cold route using the
-existing checked read and pause-display restore. It is a **size sketch**, not
-integrated production code and **not a proof of the minimum possible size**.
-[budget.mjs](budget.mjs) runs the existing ca65/ld65 toolchain; reproduce with
-`node docs/diagnostics/l2-audit-fixes-2026-10-25/budget.mjs` after a normal build.
-[Assembled result](budget-result.json):
-
-| Fragment | Assembled bytes |
-| --- | ---: |
-| Clear validity in existing disarm | 3 |
-| Resident validity byte | 1 |
-| Set validity after checked load + INIT | 3 |
-| START GAME fail-closed guard, including legal BAD_IMAGE status | 10 |
-| Frontend exit call | 3 |
-| Pause-quit exit call | 3 |
-| Head-of-load disarm call | 3 |
-| Cold subtotal | 26 |
-| Lethal-hit checked reload / resume, bypassed for installed boss | 26 |
-| Aggregate | **52 (51 code + 1 state)** |
-| Authorized cap / excess | **32 / 20** |
-
-Boss-entry disarm already exists. Level-end blank can be replaced at equal
-size; cold/RESET transports zero validity. Hook replacements are equal size.
-The existing 17-B summary load helper needs relocation or a different
-integration to make room for its new 3-B call; MAIN and summary placement
-and page crossings have **not** been validated. Further integration can
-increase the price. L2-02 costs are **excluded**, not hidden in this sum.
-No protected address is allocated by the sketch.
-
-Two priced directions, both preserving the platform and C/ASM ownership:
-
-| Direction | Player-visible effect | Bytes | CPU / raster | Limit / risk |
-| --- | --- | ---: | --- | --- |
-| A: invalidate on each lethal hit, checked reload before capital simulation resumes | Blank/read pause at each non-boss death | **52 assembled fragment B**, +20 over cap; final placement not certified | No steady-state guard; synchronous 14-sector read under blanking; added latency not newly measured | Requires a larger byte authorization; scene/PMG/audio restoration and death timing need implementation and native validation |
-| B: keep the installed image valid during DYING/respawn; invalidate on actual GAME OVER/gameplay teardown | Existing uninterrupted death animation/respawn | **26 assembled fragment B**, 6 below cap, excluding any later integration overhead | Cold exit/start checks; no death read, no per-frame guard | Changes the explicit death-valid=0 requirement; not authorized or implemented |
-
-There is no claim that all smaller implementations have been ruled out.
-The priced literal-death route exceeds the owner's cap, so the explicit STOP
-rule applies **before integration**. Smallest recovery for this route: at
-least **20 additional authorized bytes**, followed by real placement and
-timing validation. Direction B needs an explicit scope decision instead.
-No option was silently selected.
-
-## Build and unchanged linked ledger
-
-The [normal build](normal-build.log) passes all computed gates, with the
-expected stale-runtime-evidence WARNING (release build will fail). ATR:
-`bcf3fe86fe874c6aed6c97f7924f06c4a701e8a61797786d7bee5614d8b5ac10`.
-Only the host test and diagnostics/docs changed: production CPU and linked
-RAM/residency delta against `b2b38ff` are **0**. This does not establish the
-requested SPACE ±2 target against main; L2-02 remains open.
-
-| Linked owner | Used / capacity B | Free B |
+| Owner | Used / capacity B | Free B |
 | --- | ---: | ---: |
-| L2 | 1,063 / 1,792 | 729; 256 reserve intact, 473 otherwise free |
-| C sector | 241 / 248 | 7 tail; 75 pinned padding reclaimable |
-| Reader | 1,529 / 1,536 | 7 |
-| Summary | 1,792 / 1,792 | 0 |
-| MAIN Light | 1,196 / 1,213 | 17 |
-| Director high | 634 / 645 | 11 |
-| C arena | 818 / 832 | 14 |
-| ENTITY_CODE | unchanged | 5 |
-| HYBRID_C_EXT | unchanged | 24 |
-| A2 kernel | unchanged | 19 |
-| BASIC window | 1,656 / 3,584 | 1,928 total; protected ranges unchanged |
+| L2 `$1900–$1D39` | 1,082 /1,792 | 710; **256 reserve intact**, 454 otherwise free |
+| C sector | 244 /248 | 4 tail +54 reclaimable pinned padding |
+| Reader | 1,529 /1,536 | 7 |
+| Summary | 1,792 /1,792 | 0 |
+| MAIN Light | 1,196 /1,213 | 17 |
+| Director high | 634 /645 | 11 |
+| C arena | 818 /832 | 14 |
+| ENTITY_CODE | — | 5 |
+| HYBRID_C_EXT | — | 24 |
+| A2 kernel | — | 19 |
+| BASIC window | 1,656 /3,584 | 1,928 total; protected ranges unchanged |
+| Initial content | 12,825 /13,652 planning gate | 827 |
+| Boot/chunk transport | 101 +110 sectors | 211 occupied |
 
-No new per-frame routine address changed; new page crossings **0** because
-no production code changed. Native SPACE A/B, route matrix/over-target counts,
-broadened lifetime observer, stress, boss-entry, post-boss reload/pause,
-boot/RESET and the six final-HEAD ATR rebuilds are **not run** at this STOP.
-Earlier recovery data remains historical and is not presented as verification
-of the requested fixes. L2-02…08 remain open; L2-07's current STATUS handoff
-is updated, but its other corrections remain open.
+Physical linked delta vs `b2b38ff`: **resident +3 B, L2 +19 B**; the other
+new meaningful bytes reclaim existing padding/slack. Disarm is +34 CPU once
+vs reader blank; INIT is 45 CPU. Brake/warning maxima remain 101/30 CPU.
+Future dock 352 +bonus 128 are ESTIMATES, 26 B beyond the 454 nonreserve bytes;
+no future work or reserve borrowing is included.
 
-No fresh candidate manifest is issued. Existing owner-smoke artifacts still
-identify `b2b38ff`; they must not be relabelled as a fixed audit candidate.
-NEXT TASK: resolve the L2-04 price/scope STOP, then resume remaining findings,
-all requested measurements and final-HEAD candidate generation. No main merge.
+## Measurements
+
+[SPACE comparison](space-comparison.json): all **720 full main-loop bodies
+are −2 CPU cycles vs main `19b1464`**, using identical route/input/state
+(3 difficulties ×6 boundary X positions ×40 accumulator values). This counts
+actual NMOS CPU work outside raster busy waits, not estimated DMA. Predictor
+per-call delta is zero in every case, hence 0–4 Light calls add no delta.
+Capital/SPACE trajectory divergence is not presented as a CPU A/B measurement.
+
+**12 routes /47,326 frames**, 480/960 ×E/M/H ×flight/contact and
+brake/contact: **10 frames exceed 31,500** (previously 10), peak **31,598**
+(previously 31,598), maximum target excess 98. Hard gate 32,568: **970 cycles
+margin**; physical 35,568: 3,970. Minimum publication fence **4,977**, capital
+peak 17,660; zero missed frames, extra VBI boundaries, DLI errors, shifted
+phase rows, world/hull clock mismatches or stale L2 accesses. Every route
+reaches universal phase 968. Broadened lifetime checks PASS at both lengths,
+through boss install and all real exits (8/8), including capital death and
+respawn with validity retained.
+
+| Rows | Difficulty | Mode | Peak | Mean | Fence | Target+ | Miss / VBI / DLI |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- |
+| 480 | E | flight/contact | 31189 | 20332.22 | 5829 | 0 | 0/0/0 |
+| 480 | E | brake/contact | 31046 | 17030.08 | 7061 | 0 | 0/0/0 |
+| 480 | M | flight/contact | 31166 | 21404.13 | 6388 | 0 | 0/0/0 |
+| 480 | M | brake/contact | 31198 | 18079.66 | 5922 | 0 | 0/0/0 |
+| 480 | H | flight/contact | 31445 | 22149.71 | 5253 | 0 | 0/0/0 |
+| 480 | H | brake/contact | 31598 | 18882.92 | 5120 | 10 | 0/0/0 |
+| 960 | E | flight/contact | 31164 | 17531.38 | 5855 | 0 | 0/0/0 |
+| 960 | E | brake/contact | 31162 | 15289.91 | 5851 | 0 | 0/0/0 |
+| 960 | M | flight/contact | 31257 | 18764.9 | 6885 | 0 | 0/0/0 |
+| 960 | M | brake/contact | 31256 | 16359.43 | 6927 | 0 | 0/0/0 |
+| 960 | H | flight/contact | 31432 | 19342.05 | 5694 | 0 | 0/0/0 |
+| 960 | H | brake/contact | 31432 | 17120.46 | 4977 | 0 | 0/0/0 |
+
+
+## Lifetime coverage
+
+The observer instruments actual CPU instruction/operand fetches and every
+byte/word data read in `$1900–$1FFF`, from every source address, including
+indirect reads and all resident windows. Full checked L2 bytes are verified
+at INIT; installed boss/death code is matched to image and phase. Exact linked
+palette operand sites, four death wing-buffer copy sites and stack-proven
+RTS/RTI returns model legitimate self-modification/returns without a broad
+resident whitelist. Any stale access aborts the native process.
+The core observer writes no guest code, register or RAM byte.
+
+All nine resident L2 entry sites/hooks plus every resident window and 13
+addressing families have fault fixtures; 20 actual boss main-loop bodies
+exercise every shared hook, with real START GAME reload. Native 480/960
+routes cover boss entry and capital death + respawn. Real exits are driven
+through quit, GAME OVER, level end and RESET at both lengths, followed by
+checked INIT/re-entry. The **diagnostic-only** GAME OVER/level-end fixtures
+seed terminal state; quit and RESET use physical input. All PAL/image gates
+remain fatal. Host lives top-up is disabled for GAME OVER.
+
+[Native exit results](lifetime-exits.json): **8/8 PASS**, stale accesses **0**.
+
+| Rows | Exit | Checked INITs | Disarmed boots | Capital death / respawn | Stale |
+| --- | --- | ---: | ---: | --- | ---: |
+| 480 | game-over | 2 | 1 | 2 /2 | 0 |
+| 480 | level-end | 2 | 1 | 2 /2 | 0 |
+| 480 | quit | 2 | 1 | 2 /2 | 0 |
+| 480 | reset | 2 | 2 | 2 /2 | 0 |
+| 960 | game-over | 2 | 1 | 2 /2 | 0 |
+| 960 | level-end | 2 | 1 | 2 /2 | 0 |
+| 960 | quit | 2 | 1 | 2 /2 | 0 |
+| 960 | reset | 2 | 2 | 2 /2 | 0 |
+
+
+## Boss stress and reload
+
+[Stress](boss-stress.json): main/fixed maxima match in all 20 combinations.
+Each level uses no lance, firing, lost target and target swap. Reachable
+cases: 9,856 each Citadel level, 18,528 each Spine level, 856 Bastion.
+
+| Region / level | No lance | Firing | Lost | Swap | Δ vs main |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Citadel L4 | 7,697 | 8,060 | 8,112 | 8,071 | 0 |
+| Citadel L5 | 8,032 | 8,423 | 8,447 | 8,434 | 0 |
+| Spine L7 | 7,771 | 8,180 | 8,186 | 8,191 | 0 |
+| Spine L9 | 8,025 | 8,435 | 8,440 | 8,446 | 0 |
+| Bastion L10 | 8,058 | 8,467 | 8,473 | 8,478 | 0 |
+
+Maximum **8,478 ≤8,500** (22 cycles margin), all deltas **0 ≤+2**.
+[All four native death/reload captures](postboss.json) pass boss defeat →
+summary → menu → checked START GAME. Entry ceilings **325/340/340/344 ≤350**;
+175 death frames per region, death peaks **29,535/29,360/29,532/29,537**;
+zero misses, image/read/SIO/HUD/ship/DLI errors and stale accesses. Restarted
+levels 1/4/7/10, each with two verified L2 INIT events. Native post-boss pause
+passes (499 frames, peak27,703, no missed frames or VBI/DLI anomalies).
+[Boot smoke](boot-smoke.json): four cold sessions, RESET, 130XE and forced
+capital restore all pass.
+
+## Focused tests (all results reported)
+
+[Every test result](focused-tests.txt): edited gameplay/reader/lifetime/level
+files **98 tests: 86 PASS /12 pre-existing FAIL**. Generated-map file **3/3**.
+Observer freshness/SIO tools **4/4**; ordinary debug-route reuse rejection
+focused check **1/1**. Regional Q-S4 restoration checks **3/3**.
+No full npm test, release build, stage-2 pass, reconciliation or wall-trace
+regeneration was run. Focused captures stay diagnostic and do not replace
+release evidence.
+
+All 13 boss-runtime tests: Director admission PASS; black/banner/theme/read
+order PASS; install PASS; gameplay DLIs PASS; world-stop/restart PASS; band
+scroll PASS; column map PASS; shots PASS; cover/core/chain PASS; **the win
+FAIL (pre-existing)**; Q-S4 restore PASS; Q-B6 ≤7,000 PASS (5,211); cavity PASS.
+Total **12 PASS /1 pre-existing FAIL**. Main `19b1464` is also 12/13.
+
+[Failure comparison](pre-existing-failures.json) records every failing name,
+first error and assertion location against fresh main: the same boss summary
+hand-off assertion and 11 existing pickup/Rapid/HUD failures. No assertion is
+weakened, skipped or changed to accept those failures. The capsule motion
+regression test independently verifies every brake numerator.
+
+## Reproduction and candidate
+
+Use the existing Atari800 tree `build/atari800-trace`. Rebuild normal default
+and the six named variants; generate ownership with
+`node scripts/l2-observer-images.mjs build/<variant>`; then run
+`scripts/l2-native-matrix.mjs`, `scripts/l2-results.mjs`, and
+`scripts/l2-native-exits.mjs`. Matrix's first capture prepares the standard
+observer. `measure-boss-death.mjs --prepare` installs its custom observer;
+finish all four regional captures before restoring the standard observer.
+Never run the destructive debug-route E2E fixture while a capture uses its
+variant directory. The temporary detached main worktree was removed.
+
+The six final-HEAD normal builds are copied to absolute paths recorded in
+`build/l2-owner-smoke/candidate.json`. `candidate-hashes.json` binds these to
+measured guest bytes; the candidate builder refuses any mismatch or dirty
+starting tree. All build logs stay in `build/l2-owner-smoke/`.
+Smoke: cold boot; level1 SPACE with debris; capital islands and brake including
+dying while braking; boss → summary → menu → START GAME; capital pause-quit →
+START GAME. Only the owner can accept this fixed candidate. STOP.

@@ -55,7 +55,8 @@ new gameplay-frame cycles and zero new page crossings** for this repair.
 | --- | --- |
 | Brake, main `$5EEF` | Atomically redirected to resident code after blanking |
 | Cached rate reads, `$564E` / `$69D7` | Always resident `$86B4`; zero through boss/death/menu |
-| Draw `$1903`, commit `$1915`, contact `$1906`, warning `$190C` | Capital-only call paths; state drained to FIGHTER, no frame work during reads, then boss vectors replace publication/contact/update paths |
+| Draw `$1903`, commit `$1915`, warning `$190C` | Capital-only call paths; no frame work during reads, then boss vectors replace publication/update paths |
+| Contact `$1906` | At the measured pre-audit checkpoint it also ran in SPACE; boss vector replacement closed it. L2-02 moves the state gate resident so only capital states 0–4 enter L2. |
 | Phase `$190F`, enter `$1912` | Resident sector policy only; capital admission consumed; boss UPDATE/SCROLL/PREPARE vectors replace capital work |
 | VBI/DLI/audio | No L2 callback or L2 data dependency; installed boss handlers legitimately use slot D |
 | Light/shared Director spawn | No L2 callback; shared debris-mask change has no module dependency |

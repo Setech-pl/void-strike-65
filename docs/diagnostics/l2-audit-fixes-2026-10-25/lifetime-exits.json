@@ -1,0 +1,114 @@
+[
+  {
+    "rows": 480,
+    "path": "game-over",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 1,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 1,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  },
+  {
+    "rows": 480,
+    "path": "level-end",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 1,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 0,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  },
+  {
+    "rows": 480,
+    "path": "quit",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 1,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 0,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  },
+  {
+    "rows": 480,
+    "path": "reset",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 2,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 0,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  },
+  {
+    "rows": 960,
+    "path": "game-over",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 1,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 1,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  },
+  {
+    "rows": 960,
+    "path": "level-end",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 1,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 0,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  },
+  {
+    "rows": 960,
+    "path": "quit",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 1,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 0,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  },
+  {
+    "rows": 960,
+    "path": "reset",
+    "counts": {
+      "checked_l2_init": 2,
+      "boot_ready_disarmed": 2,
+      "capital_death_valid": 2,
+      "respawn": 2,
+      "game_over": 0,
+      "stale_access": 0,
+      "exit_fixture": 1
+    },
+    "diagnostic_only": true
+  }
+]

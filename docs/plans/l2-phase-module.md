@@ -1,6 +1,6 @@
 # L2 fighter/capital phase module — Phase A
 
-Current: **Phase B OWNER-SMOKE CANDIDATE**; see [current measured results](#phase-b-current-results--owner-smoke-candidate). Earlier Phase A estimates and STOP checkpoints are historical.
+Current: **audit-fixed OWNER-SMOKE CANDIDATE**; see [current measured results](#audit-fix-results--owner-smoke-candidate-2026-10-26). Earlier Phase A estimates and STOP checkpoints are historical.
 
 **Phase A accepted by owner at `bac5e79`; Phase B stopped at a computed gate.** No production implementation remains. Code baseline
 `main = origin/main = 19b1464`. Decisions: [§BW](../owner-decisions-2026-09-11.md#bw-capital-sector-islands-brake-sector-length-2026-10-25).
@@ -854,26 +854,57 @@ capital on ROOKIE/ACE with both colours; bottom brake and warning;960 test;
 one boss; boss→summary→menu→START GAME; pause after boss. Only owner promotes
 the result to OWNER-ACCEPTED. The earlier NOT required list remains unrun.
 
-### Audit-fix results — BLOCKED_BYTE_PLACEMENT (2026-10-25)
+### Audit-fix results — OWNER-SMOKE CANDIDATE (2026-10-26)
 
-Owner smoke of `b2b38ff` **PASS**, "generally OK". Claude report `668f692`
-merged unchanged in `66f53b9`; findings are tracked in the [audit ledger](../audits/README.md).
-L2-01 fixed in `52ee66b`: real START GAME reader/summary checked reload,
-INIT and brake tick, with the original scroll assertion. All boss-runtime
-tests ran: **12/13**, and fresh main `19b1464` is also **12/13**; the same
-first failing "the win" assertion is pre-existing.
+These results supersede the pre-audit candidate measurements above. Owner
+smoke of `b2b38ff` passed ("generally OK", 2026-10-25); the fixes await a new
+owner smoke. Audit `668f692` merged unchanged in `66f53b9`; L2-01 `52ee66b`,
+L2-04 `c77ebba`, L2-02/03/05/06/07/08 code `cba50fd`.
+[Full measurements, test failures and reproduction](../diagnostics/l2-audit-fixes-2026-10-25/).
 
-Literal L2-04 lethal-hit invalidation needs recovery before continued capital
-simulation/respawn. The [assembled sketch](../diagnostics/l2-audit-fixes-2026-10-25/)
-prices **52 B (51 code +1 state)**, **20 over the complete-fix 32-B cap**;
-not integrated and not a minimum-size proof. A **26-B** cold-only alternative
-keeps validity during DYING and changes the explicit requirement. The owner
-authorized neither recovery; the requested STOP applies before integration.
+Owner correction: DYING/respawn in a capital keep the checked L2 valid.
+Invalidate/disarm on boss install, GAME OVER, pause-quit, level teardown,
+RESET/warm start and every L2 load head. Only checked load + INIT validates;
+invalid START GAME returns to the checked reader. L2-04 costs32 new B,
+L2-02 costs31; no protected reservation or new per-frame page crossing.
+Brake arms only in a capital; contact is gated resident before jumping L2.
+Death/capital completion intentionally snap to full speed; release retains
+its ramp. Capsules move at half the braked world speed for every ramp step,
+zero new bytes. C/ASM constants are generated and warning X preservation is
+a fatal build check. Harness allowances are diagnostic only.
 
-Normal build/computed gates PASS with the expected stale-runtime-evidence
-warning; production CPU/RAM/residency delta against `b2b38ff` is **0**.
-L2 remains **1,063/1,792 B**, free **729**, with the **256-B** reserve intact.
-L2-02…08, fresh native measurements and the final-HEAD six-ATR candidate set
-remain incomplete. Historical results above do not certify these fixes.
-NEXT TASK: resolve the L2-04 price/scope STOP, resume requested audit work;
-no main merge or new owner-smoke candidate.
+Final ledger: L2 **1,082/1,792 B**, **710 free**, **256 reserve intact**, 454
+otherwise free; C sector 244/248, tail 4 plus54 reclaimable pinned padding;
+reader 1529/1536 tail 7; summary 1792/1792 tail 0; MAIN Light 1196/1213 tail 17;
+Director high tail11, C arena tail14, ENTITY_CODE tail5, HYBRID_C_EXT tail24,
+A2 tail19. Initial content12,825 B, total211 transport sectors. Physical
+linked delta vs `b2b38ff`: resident+3 B and L2+19 B. Future dock 352+bonus 128
+remain ESTIMATES,26 beyond nonreserve space; no reserve borrowing.
+
+**12 routes /47,326 frames**, 480/960 ×E/M/H ×flight/contact and
+brake/contact: **10 frames exceed 31,500** (previously 10), peak **31,598**
+(previously 31,598), maximum target excess 98. Hard gate 32,568: **970 cycles
+margin**; physical 35,568: 3,970. Minimum publication fence **4,977**, capital
+peak 17,660; zero missed frames, extra VBI boundaries, DLI errors, shifted
+phase rows, world/hull clock mismatches or stale L2 accesses. Every route
+reaches universal phase 968. Broadened lifetime checks PASS at both lengths,
+through boss install and all real exits (8/8), including capital death and
+respawn with validity retained.
+
+SPACE CPU **−2 cycles** vs main `19b1464` in all 720 identical full-loop
+fixtures, with predictor delta 0 for every Light. Boss lost-target/no-lance,
+firing and swap stress matches main (all 20 deltas 0), max 8478≤8,500. Entry
+325/340/340/344≤350; all four native death→summary→menu→START GAME reloads
+pass, as does post-boss pause. Cold/RESET/130XE/forced-restore boot smoke
+7/7. Focused edited gameplay files 98 tests:86 PASS/12 pre-existing FAIL,
+all reproduced on fresh main by name and first assertion; generated map 3/3,
+observer tools 4/4, generic debug reuse check1/1, regional Q-S4 checks 3/3.
+All 13 boss-runtime tests reported:12 PASS, pre-existing "the win" FAIL.
+No full tests/release/evidence regeneration. No gate or assertion relaxed.
+
+Six final-HEAD normal-build ATRs: campaign,960-row capital and direct R1,
+Citadel, Spine and Bastion. Absolute paths, SHA-256 and build HEAD are in
+`build/l2-owner-smoke/candidate.json`; expected guest bytes are committed in
+the audit diagnostics. NEXT TASK: owner smoke, then only after owner OK
+record the result, normal branch build, authorized --no-ff merge, normal
+main build and push. **OWNER-SMOKE CANDIDATE — STOP.**

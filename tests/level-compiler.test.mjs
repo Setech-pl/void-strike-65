@@ -322,7 +322,7 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
 // T2 - the image
 // ---------------------------------------------------------------------------
 
-test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where the plan puts them",
+test("T2: build/level-1.bin is 16 sectors with the LevelDef and island pages where the plan puts them",
   () => {
     assert.equal(LEVEL_IMAGE_SECTORS, 16);
     assert.equal(levelOneImage.length, LEVEL_IMAGE_SECTORS * 128, "13 sectors of 128 B");

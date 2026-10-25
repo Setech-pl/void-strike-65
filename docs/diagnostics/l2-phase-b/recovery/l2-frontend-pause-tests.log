@@ -1,0 +1,37 @@
+✔ boot enters an explicit ten-state frontend/game state machine (1.282542ms)
+✔ main menu labels are exact, ordered, and default to START GAME (2311.752792ms)
+✔ frontend uses distinct clean 6x7 glyphs within ANTIC 6/7 indices (2318.417416ms)
+✔ UP and DOWN move once per neutral release and wrap at both bounds (1.872209ms)
+✔ an idle main menu has no path to gameplay without a gated FIRE event (1.233041ms)
+✔ frontend text records explicitly test the byte returned by the reader (0.83425ms)
+✔ FIRE is release-gated across screens and into gameplay (1.23125ms)
+✔ menu actions use explicit transitions and one gameplay reset path (1.152708ms)
+✔ SOUND defaults ON, toggles in RAM, and OFF silences all POKEY channels (2.781125ms)
+✔ OPTIONS persists GAME MUSIC and a MEDIUM-default difficulty (2367.396583ms)
+✔ TOP SCORES renders all ten RAM records and returns only on FIRE (3.287041ms)
+✔ ANTIC 6 attributes route the selected marker and full label to $D8 (4673.289417ms)
+✔ main-menu studio credit is removed while loader copyright source remains (2490.060958ms)
+✔ EXIT defaults to NO and reaches a stable, silent reset-only state (2364.331166ms)
+✔ frontend charset and transient loader tail stay in their bounded ranges (2351.1655ms)
+✔ OPTIONS tables stay in the checked menu run outside the loader display list (0.11675ms)
+✔ the runtime highlights the whole main-menu title, however long the title is (2323.735541ms)
+✔ mixed display list, screen offsets, title, menu, and hint are bounded (2294.20875ms)
+✔ menu PlayerFighter is charset-only, frontend PMG stays disabled, and gameplay setup is restored (2319.755083ms)
+✔ frontend entry clears stale player and missile graphics latches before DMA resumes (3.214209ms)
+✔ physical OPTION enters PAUSED before any gameplay frame mutation (0.729666ms)
+✔ PAUSED runs no world, combat, animation, score, death, or respawn tick (0.386625ms)
+✔ held OPTION and FIRE are release-gated to one action (0.221292ms)
+✔ pause preserves music transport and resume continues only when enabled (0.258292ms)
+✔ pause GAME MUSIC toggles shared state immediately without modifying SFX (0.210708ms)
+✔ QUIT TO MENU requires confirmation and defaults to NO (1.170417ms)
+✔ NO returns to pause while YES clears gameplay and starts menu music (0.238209ms)
+✔ pause overlay reuses the frontend renderer and released staging RAM (0.306708ms)
+✔ quit preserves TOP and a new game remains the sole SCORE reset path (0.123834ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25912.369084

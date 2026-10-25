@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-25 (L2 Phase B — native boss-handoff acceptance STOP)
+Last update: 2026-10-25 (L2 Phase B — OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,49 +20,66 @@ the values below.
 
 ## Checkpoint
 
-### L2 — BLOCKED_FOCUSED_PAL_ACCEPTANCE; no owner-smoke candidate
+### L2 — OWNER-SMOKE CANDIDATE
 
-Owner accepted Phase A at `bac5e79`; §BW.7 records art 01/03/05 in both
-factions, zero new glyphs, the 256-B reserve and accepted placement defaults.
-The owner-selected option A resolves the old MAIN-tail gate: cold checksum
-extension **19 code + 2 checksum B** in the reader, no per-frame work; MAIN/LIFE
-addresses remain unchanged. Skeleton, coordinates/compiler, islands/debris/art
-and brake/warning are committed on `codex/l2-phase-module` through `104a94d`.
-They are incomplete Phase B work, not accepted gameplay.
+Phase B is implemented on `codex/l2-phase-module`; owner acceptance is pending.
+§BW.7 keeps art 01/03/05 in both colours, zero new glyph slots, the 256-B
+reserve and placement defaults. [Plan/results](plans/l2-phase-module.md),
+[recovery evidence and reproduction](diagnostics/l2-phase-b/recovery/).
 
-Normal build/computed gates pass. Linked L2 **1,047/1,792 B**, **745 B** free;
-**256 B** post-1.0 reserve intact, **489 B** otherwise free. Reader **1,529/1,536**,
-MAIN Light **1,196 B / 17-B tail**, C sector **241/248**, Director high **634 B**.
-Level image **16 sectors**, L2 run **251-264**, fold **$B8AA**. Initial content
-**12,807 B**, boot/chunk transport **210 sectors**; level/L2 add **17 late sectors**.
-The listing audit finds **zero new per-frame page crossings**; **27 B** of
-non-executed alignment padding fits the owner's placement-recovery rule.
+The old handoff failure was a **guest lifetime defect**: boss install returns
+to the shared main loop, whose brake call and cached rate still used L2.
+Recovery uses **19 cold code +1 state B** in C-sector padding, before the first
+boss read: blank interrupts, redirect the brake hook to resident code, zero
+resident rate `$86B4`. Only checked reload + INIT re-arms it. **+30 CPU once at
+transition, +15 CPU to INIT, zero new gameplay-frame cycles or page crossings**
+for the repair. Physical slot-D fetches remain legitimate boss/death execution;
+the permanent check rejects stale L2 consumers using image/phase ownership.
 
-**STOP:** focused HARD 960-row brake replay completes the capital, then fails
-native acceptance at the boss handoff. The report (excluding its marked
-install frame) has **39,437 peak wall cycles**, **1,285 misses**, **3,852 DLI
-ordering errors**. Target/hard/physical remain **31,500 / 32,568 / 35,568**.
-Capital-only sample: **3,064 frames**, **17,128 peak**, zero misses/DLI errors;
-full-axis clock observer reaches **968**, world/hull residues match in every
-sample, rates **10-20**, bottom warning **35**. A game lifetime defect versus
-observer address alias is **unresolved**; neither is presented as confirmed.
-[Evidence and reproduction](diagnostics/l2-phase-b/), [plan results](plans/l2-phase-module.md#phase-b-results--native-acceptance-stop).
+Normal computed gates pass with the expected stale release-evidence WARNING.
+**12 capital routes /47,326 gameplay frames**, 480/960 rows and all difficulties,
+unbraked and brake/contact: maximum **31,598**, minimum fence **4,892**, zero
+misses/extra VBI/DLI anomalies. Target/hard/physical: **31,500 /32,568 /35,568**;
+10 frames exceed target, by at most 98. Required boss stress deltas are zero,
+maximum worst state **8,478**; entry **325/340/340/344 ≤350**. Native death,
+summary, menu and checked reload pass all four regions. Native post-boss pause
+passes. Cold/RESET/130XE/forced-restore boot smoke passes.
 
-Focused coordinate/compiler/island/brake tests **14/14**; loader/placement subset
-**10/10**; backing **1,640** cases PASS. Requested off/fire boss stress matches
-main exactly, all-state worst states match too (maximum **8,478**, zero clashes).
-Cold patched/standard SIO added raw read span **64 frames**; visible START GAME
-delay **0** in the fixed summary wait. Post-boss timing, full route matrix,
-boot RESET and remaining ownership checks are not complete.
+Cold added read+INIT **64 frames**, post-boss **65**, both patched and standard
+SIO; standard ceiling 100. Visible level-start increase **0 cold /54 post-boss**.
+Input-ready menu **599 patched /1389 standard**, return entry-to-input **42/50**.
+Focused core checks **17/17**, loader/claim subset **10/10**, lifetime both
+lengths PASS, frontend/pause **29/29**, post-boss reload each region PASS,
+backing **1,640** cases PASS. No protected reservation is allocated.
 
-**Risk for M4:** summary overlay is full **1,792/1,792 B** because the
-address-preserving reload helper needed **17 B**, not **10 B**. Next-level loop
-and grade screen must find room there or relocate. Later dock/bonus forecasts
-leave only **9 B** beyond the reserved **256 B**; reprice at systems freeze.
+| Current resource | MEASURED use / capacity | Remaining |
+| --- | ---: | ---: |
+| L2 `$1900-$1D26` | 1,063 /1,792 B | 729 B; reserve256 intact; 473 otherwise free |
+| Reader | 1,529 /1,536 B | 7 B |
+| Summary | 1,792 /1,792 B | 0 B |
+| MAIN Light, unchanged layout | 1,196 B | 17-B tail |
+| C sector | 241 /248 B | 7-B tail +75 B reclaimable pinned padding |
+| Director high | 634 B | 11 B |
+| Initial content | 12,807 /13,652 B planning gate | 845 B |
+| Boot/chunk transport | 211 sectors | +1 vs main |
+| Late level/L2 transport | +384 B /+14-sector run | +17 late sectors |
 
-NEXT TASK: owner-authorized focused diagnosis of the native handoff/observer
-failure, then resume the remaining accepted Phase B measurements. No merge,
-main push, owner-smoke candidate set or acceptance is claimed.
+L2 run11, sectors251-264, fold **$9876**; full level image16 sectors at
+`$A600-$ADFF`. Resident linked delta **+34 B**; the lifetime fix reuses padding.
+Option A's reader extension is still **19 code +2 checksum B**; MAIN/LIFE pins
+stay fixed. World/hull clocks stay synchronized through row968; SPACE debris
+remains and carried debris clears before the first island.
+
+**Risks:** summary is full because its helper needed **17 B**, not10; M4's
+next-level loop/grade screen must find room or relocate. Future dock352 +
+bonus128 are **ESTIMATES** and exceed the remaining473 by **7 B**; reprice that
+later work at systems freeze. The 256-B reserve is unspent. Normal build is
+not release certification; real65XE/SIO2SD smoke remains required.
+
+NEXT TASK: owner plays the six-ATR candidate set recorded in
+`build/l2-owner-smoke/candidate.json`. After owner OK and any requested audit
+fixes: record smoke, normal branch build, authorised --no-ff merge, normal main
+build and push. No merge to main has occurred.
 
 ### L1 window levers — OWNER-ACCEPTED
 

@@ -8,7 +8,7 @@ export function islandRecipeBytes(){
  return Buffer.from(ISLAND_RECIPES.flatMap(r=>{
   if(r.parts.length!==6)throw Error('L2 recipe needs six bounded parts');
   return r.parts.flatMap(([left,right,...roles])=>{
-   if(left < -5 || right>5 || left>right || roles.length!==4 || roles.some(v=>!Number.isInteger(v)||v<0||v>9))throw Error(`Invalid L2 recipe ${r.id}`);
+   if(!Number.isInteger(left)||!Number.isInteger(right)||left < -5 || right>5 || left>right || roles.length!==4 || roles.some(v=>!Number.isInteger(v)||v<0||v>9))throw Error(`Invalid L2 recipe ${r.id}`);
    return [left&255,right&255,...roles];
   });
  }));

@@ -1,4 +1,7 @@
-# L2 Phase B — BLOCKED_FOCUSED_PAL_ACCEPTANCE
+# L2 Phase B — historical BLOCKED_FOCUSED_PAL_ACCEPTANCE
+
+Resolved by the [recovery and owner-smoke candidate](recovery/). The evidence
+below records the failed checkpoint and is retained unchanged.
 
 Implementation through `104a94d`; measurements use those gameplay bytes.
 The later worktree correction changes only the long diagnostic's manifest name;

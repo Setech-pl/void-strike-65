@@ -1,0 +1,92 @@
+[
+  {
+    "build": "main",
+    "framesBefore": 5500,
+    "framesAfter": 5500,
+    "before": {
+      "measured_frames": 5499,
+      "maximum_wall_cycles": 31417,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4151,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "after": {
+      "measured_frames": 5499,
+      "maximum_wall_cycles": 31417,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4151,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "staleConsumersAfter": 0
+  },
+  {
+    "build": "480",
+    "framesBefore": 5500,
+    "framesAfter": 5500,
+    "before": {
+      "measured_frames": 5499,
+      "maximum_wall_cycles": 39884,
+      "wall_ceiling": 32568,
+      "physical_headroom": -4316,
+      "missed_frames": 2976,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 992,
+      "deadline_overruns": 1984,
+      "dli_ordering_errors": 8924,
+      "passed": false
+    },
+    "after": {
+      "measured_frames": 5499,
+      "maximum_wall_cycles": 31567,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4001,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "staleConsumersAfter": 0
+  },
+  {
+    "build": "960",
+    "framesBefore": 5500,
+    "framesAfter": 5500,
+    "before": {
+      "measured_frames": 5499,
+      "maximum_wall_cycles": 39437,
+      "wall_ceiling": 32568,
+      "physical_headroom": -3869,
+      "missed_frames": 1285,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 428,
+      "deadline_overruns": 857,
+      "dli_ordering_errors": 3852,
+      "passed": false
+    },
+    "after": {
+      "measured_frames": 5499,
+      "maximum_wall_cycles": 31586,
+      "wall_ceiling": 32568,
+      "physical_headroom": 3982,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "staleConsumersAfter": 0
+  }
+]

@@ -743,10 +743,10 @@ function runStartGame(stub, { overlaid, residentLevel = false }) {
   cpu.pc = READER_BASE;
   const ends = new Map([[mainAbi.get("start_gameplay"), "start_gameplay"],
     [labels.get("sector_reader_failure_screen"), "failure_screen"]]);
-  let steps = 0;
-  while (steps < 120_000_000 && !ends.has(cpu.pc)) { cpu.step(); steps += 1; }
+  let steps = 0, l2Fetches = 0;
+  while (steps < 120_000_000 && !ends.has(cpu.pc)) { if(cpu.pc>=0x1900&&cpu.pc<0x2000)l2Fetches++; cpu.step(); steps += 1; }
   assert.notEqual(steps, 120_000_000, "START GAME neither started gameplay nor failed");
-  return { memory, end: ends.get(cpu.pc), status: cpu.a };
+  return { memory, end: ends.get(cpu.pc), status: cpu.a, l2Fetches };
 }
 
 // RE-POINTED 2026-10-03 (M5a-S2): sectors from 512 also hold the summary's
@@ -895,5 +895,7 @@ test("L2 START GAME reloads on a resident level hit and rejects corrupt run befo
   const corrupt=Buffer.from(atrSector(251));corrupt[0]^=1;
   const response=[{byte:0x41},{byte:0x43},...Array.from(corrupt,byte=>({byte})),{byte:carryWrapChecksum(corrupt)}];
   const bad=new PokeyStub({respond:atrDevice({fail:{sector:251,response}})});
-  assert.equal(runStartGame(bad,{overlaid:false,residentLevel:true}).end,"failure_screen");
+  const rejected=runStartGame(bad,{overlaid:false,residentLevel:true});
+  assert.equal(rejected.end,"failure_screen");
+  assert.equal(rejected.l2Fetches,0,"corrupt checked load executed partial L2");
 });

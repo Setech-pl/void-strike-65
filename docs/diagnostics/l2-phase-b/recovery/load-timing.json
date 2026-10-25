@@ -1,0 +1,70 @@
+[
+  {
+    "case": "current",
+    "cold": {
+      "coldLevelReadBegin": 686,
+      "coldLevelReadEnd": 746,
+      "coldL2Init": 799,
+      "coldL2Done": 799,
+      "coldGameStart": 808
+    },
+    "postBoss": {
+      "postLevelReadBegin": 1699,
+      "postLevelReadEnd": 1760,
+      "postL2Init": 1813,
+      "postL2Done": 1813,
+      "restartHost": 1815
+    }
+  },
+  {
+    "case": "main",
+    "cold": {
+      "coldLevelReadBegin": 685,
+      "coldLevelReadEnd": 734,
+      "coldL2Init": 0,
+      "coldL2Done": 0,
+      "coldGameStart": 807
+    },
+    "postBoss": {
+      "postLevelReadBegin": 1698,
+      "postLevelReadEnd": 1747,
+      "postL2Init": 0,
+      "postL2Done": 0,
+      "restartHost": 1760
+    }
+  },
+  {
+    "case": "standard",
+    "cold": {
+      "coldLevelReadBegin": 1476,
+      "coldLevelReadEnd": 1536,
+      "coldL2Init": 1589,
+      "coldL2Done": 1589,
+      "coldGameStart": 1598
+    },
+    "postBoss": {
+      "postLevelReadBegin": 2489,
+      "postLevelReadEnd": 2550,
+      "postL2Init": 2603,
+      "postL2Done": 2603,
+      "restartHost": 2605
+    }
+  },
+  {
+    "case": "main-standard",
+    "cold": {
+      "coldLevelReadBegin": 1471,
+      "coldLevelReadEnd": 1520,
+      "coldL2Init": 0,
+      "coldL2Done": 0,
+      "coldGameStart": 1593
+    },
+    "postBoss": {
+      "postLevelReadBegin": 2484,
+      "postLevelReadEnd": 2533,
+      "postL2Init": 0,
+      "postL2Done": 0,
+      "restartHost": 2546
+    }
+  }
+]

@@ -5629,7 +5629,7 @@ static int dftrace_first_writer_effective_address(unsigned pc,
  * address (the hook runs before the next opcode), as the first-writer journal
  * above; zero-page stores cannot reach either range. Written at exit to
  * DFWATCH_OUTPUT (JSON); off when it is unset. Observes, never writes. */
-#define DFWATCH_RANGES 5u
+#define DFWATCH_RANGES 10u
 #define DFWATCH_WRITERS 128u
 typedef struct {
 	unsigned pc, count, first_frame, last_frame, first_address, last_address;
@@ -5640,9 +5640,9 @@ typedef struct {
  * at its top (decision BD 6); empty when unset. */
 /* M6 stage 1b (journal §BL, the owner's answer): page 4, $0400-$04FF - the
  * lance's second run (slot H) since the torpedo; the OS's cassette buffer. */
-static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u, 0x0400u, 0x00b6u };
-static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u, 0x0500u, 0x0100u };
-static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail", "page_4", "zero_page_b6" };
+static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u, 0x0400u, 0x00b6u, 0x0c00u, 0x0500u, 0x3615u, 0x549eu, 0xb8fbu };
+static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u, 0x0500u, 0x0100u, 0x1180u, 0x0c00u, 0x3aefu, 0x54beu, 0xb900u };
+static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail", "page_4", "zero_page_b6", "menu", "summary", "main_l1", "m3h", "b8fb" };
 static DFWatchWriter dfwatch_writers[DFWATCH_RANGES][DFWATCH_WRITERS];
 static unsigned dfwatch_counts[DFWATCH_RANGES];
 static unsigned dfwatch_overflow[DFWATCH_RANGES];
@@ -8494,11 +8494,21 @@ static void dftrace_l2_lifetime(unsigned pc, unsigned x, unsigned sp)
     if(f==NULL) { f=fopen(output,"w");if(f==NULL){perror("L2 lifetime");exit(2);} }
     if(pc==dftrace_pc_boss_enter && dftrace_pc_boss_enter!=0u) {
         phase=1u;fprintf(f,"{\"event\":\"boss_enter\",\"host\":%u,\"pc\":%u}\n",(unsigned)Atari800_nframes,pc); }
-    if(pc==0xA006u && phase!=0u) {
+    const char *body=getenv("DFTRACE_L2_READ_RUN");
+    unsigned read_body=body?(unsigned)strtoul(body,NULL,0):0u;
+    if((pc==0xA006u || (pc==read_body && prev!=0xA006u)) && phase!=0u) {
         entry=x;
         fprintf(f,"{\"event\":\"read\",\"host\":%u,\"entry\":%u,\"caller\":%u}\n",(unsigned)Atari800_nframes,entry,prev);
-        if(entry==11u) {phase=0u;fprintf(f,"{\"event\":\"l2_reload\"}\n");}
+        if(entry==11u) {phase=3u;fprintf(f,"{\"event\":\"l2_reload_begin\"}\n");}
         else if(phase==1u)phase=2u;
+    }
+    if(phase==3u && pc==0x1900u) {
+        const char *expected=getenv("DFTRACE_L2_IMAGE_SUM");
+        unsigned sum=dfboot_checksum(0x1900u,0x700u);
+        if(expected!=NULL && sum!=(unsigned)strtoul(expected,NULL,0)) {
+            fprintf(f,"{\"event\":\"partial_l2_execution\",\"sum\":%u}\n",sum);fflush(f);exit(2);
+        }
+        fprintf(f,"{\"event\":\"checked_l2_init\",\"host\":%u,\"sum\":%u}\n",(unsigned)Atari800_nframes,sum);phase=0u;
     }
     if(phase>=2u) {
         opcode=MEMORY_mem[pc];operand=MEMORY_mem[(pc+1u)&65535u]|((unsigned)MEMORY_mem[(pc+2u)&65535u]<<8);

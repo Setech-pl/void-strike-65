@@ -1,0 +1,61 @@
+[
+  {
+    "entryFrames": 339.916
+  },
+  {
+    "readPauseFrames": 91.584
+  },
+  {
+    "pauseHostFrames": 95,
+    "pauseClockFrames": 94.246
+  },
+  {
+    "peakPreFence": 21655,
+    "peakDmaOn": 29532,
+    "minimumFence": 3184,
+    "dliCount": 1925
+  },
+  {
+    "stripFrames": 0,
+    "rngErrors": 0,
+    "restoredVscrol": 0,
+    "restoreErrors": 0
+  },
+  {
+    "restartedLevel": 7,
+    "summary": true,
+    "frames": 175,
+    "misses": 0,
+    "hudErrors": 0,
+    "shipErrors": 0,
+    "dliErrors": 0,
+    "returnedToMenu": 1,
+    "readImageChecks": 90,
+    "readImageErrors": 0,
+    "readAttempts": 24,
+    "sioFailures": 0,
+    "readDlis": 275,
+    "readDliErrors": 0,
+    "strobeFrames": 92,
+    "strobeDliWallPeak": 356,
+    "strobeCpuTop": 109,
+    "strobeCpuRing": 94,
+    "strobeCpuHud": 57,
+    "strobeBlockPeak": 382
+  },
+  {
+    "region": 3,
+    "l2Run": {
+      "address": 6400,
+      "endExclusive": 8192,
+      "capacityBytes": 1792,
+      "usedBytes": 1063,
+      "freeBytes": 729,
+      "postOneReserveBytes": 256,
+      "runIndex": 11,
+      "phase": "fighter/capital; overwritten by boss"
+    },
+    "staleL2Events": 0,
+    "protectedWriterOverflow": 0
+  }
+]

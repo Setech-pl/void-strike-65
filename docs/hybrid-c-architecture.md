@@ -418,3 +418,20 @@ Light renderer. Steps 1-5 passed and step 5 stopped it — the linked result did
 not fit the resident placement, so steps 6-8 were not run. Step 4.3 Stage 1
 has since recovered that capacity; the owner-approved implementation is
 roadmap step 4.4.
+
+## L2 fighter/capital lifetime (§BW, owner-smoke candidate)
+
+The separately linked `$1900-$1FFF` image is checked at every level start,
+including resident-level hits. C owns phase/entry/brake/warning decisions; ASM
+owns shared row publication and bounded interval contact. No interrupt, audio,
+Light or shared-spawn callback depends on L2. The hull renderer is not copied.
+
+Boss install returns to the shared main loop. Before its first disk read, cold
+resident `l2_disarm` blanks interrupts, redirects the brake call to resident
+enemy integration and zeros resident scroll state. Capital is drained to
+FIGHTER; install replaces the capital vectors before re-entry. The cached rate
+is `$86B4` in pinned C-sector padding, so the boss/death/summary paths never
+read L2 state. Only successful whole-run validation followed by L2 INIT
+re-arms the call. Failure cannot run partial L2. The permanent lifetime check
+distinguishes installed boss/death code at the same addresses from stale L2
+consumers. [Linked proof and measurements](diagnostics/l2-phase-b/recovery/).

@@ -68,6 +68,7 @@ let atFirstCodeSector = null;
 function bossEntered() {
   if (entry === null) {
     entry = runBossEntry({
+      prepare: memory => { const region=Number(process.env.VS65_POST_BOSS_REGION ?? 1); memory[0xa603]=1+3*(region-1); },
       onCommand: (sector, cpu) => {
         if (sector === 528 && atFirstCodeSector === null) {
           atFirstCodeSector = Uint8Array.from(cpu.memory);
@@ -677,8 +678,10 @@ test("Q-S4: START GAME after a game ended inside the boss sector restores slot A
       `$${register.toString(16)} not zeroed`);
   }
   assert.equal(memory[label("reader", "sr_slot_a_overlaid")], 0);
+  assert.deepEqual(memory.slice(0x1900,0x2000),Uint8Array.from(readBuild("l2.bin")),"checked L2 image not restored");
+  assert.equal(memory[label("main","profile_after_player")+1]|memory[label("main","profile_after_player")+2]<<8,0x1909,"L2 INIT did not re-arm the frame hook");
   // The level is read again in full: the band had overwritten its hull block.
-  assert.deepEqual([...memory.subarray(0xa600, 0xa600 + 13 * 128)], [...readBuild("level-1.bin")]);
+  assert.deepEqual([...memory.subarray(0xa600, 0xa600 + readBuild("level-1.bin").length)], [...readBuild("level-1.bin")]);
   // CHBASE: the summary's own page while START GAME runs, never the boss's.
   const chbase = writes.filter(([address]) => address === 0xd409).map(([, value]) => value);
   assert.ok(chbase.length > 0 && !chbase.includes(0x0c), "the START GAME path wrote the boss's charset page");

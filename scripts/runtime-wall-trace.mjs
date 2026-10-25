@@ -4348,6 +4348,7 @@ function main() {
         return `0x${value.toString(16)}`;
       };
       addressEnvironment.DFTRACE_BOSS_FLAG = hex(readerLabels, "sr_slot_a_overlaid");
+      addressEnvironment.DFTRACE_L2_READ_RUN = hex(readerLabels,"sector_reader_read_run");
       addressEnvironment.DFTRACE_BOSS_PHASE = hex(bossLabels, "_boss_phase");
       addressEnvironment.DFTRACE_PC_BOSS_DLI = hex(bossLabels, "boss_dli");
       // feat/boss-art: the row palette's switch handler and its landing.
@@ -4619,7 +4620,8 @@ function main() {
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
       id: process.env.VS65_L2_SESSION ?? "observer-smoke", kind: "observer-smoke", frames: smokeFrames,
       policy: process.env.VS65_L2_POLICY ?? baselineSessions[0].policy,
-      endAtBossFrames: Number(process.env.DFTRACE_L2_BOSS_FRAMES ?? 0) }];
+      endAtBossFrames: Number(process.env.DFTRACE_L2_BOSS_FRAMES ?? 0),
+      bossPath: process.env.VS65_L2_BOSS_PATH }];
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
   // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,

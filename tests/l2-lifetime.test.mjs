@@ -1,12 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runBossEntry,label,call,word,root,buildPath,manifest} from './boss-harness.mjs';
+import {runBossEntry,bossGateMemory,label,call,word,root,buildPath,manifest} from './boss-harness.mjs';
 import {loadCheckedL2} from '../scripts/sio-fixture.mjs';
 
 const main=n=>label('main',n);
 const resident=pc=>(pc>=0x2000&&pc<0x3b00)||(pc>=0x5400&&pc<0x6de8)||(pc>=0x8000&&pc<0xa000);
 
 test('L2 lifetime: checked image is disarmed before first boss read; no stale resident entry/read until checked reload',()=>{
+ const image=bossGateMemory();
+ const blankCpu=call(Uint8Array.from(image),0xa03d).cycles;
+ const disarmCpu=call(Uint8Array.from(image),0x8656).cycles;
+ assert.equal(disarmCpu-blankCpu,30,"cold disarm CPU delta");
+ assert.equal(call(Uint8Array.from(image),0x1900).cycles,30,"checked INIT/re-arm CPU");
+ console.log(JSON.stringify({measurement:"lifetime cold CPU",disarmDelta:disarmCpu-blankCpu,initCpu:30}));
  let reading=false,fetches=0,commands=0;
  const watch=(pc,cpu)=>{
   if(!reading)return;

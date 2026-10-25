@@ -1,0 +1,73 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/level-1-s6/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "d88155a464bad8c10560f8aba2c4f58a6503f340633663a87e1a4a3b80421648"
+    },
+    "void-strike-65.atr": {
+      "path": "build/level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "013fcab39abb16aa164304372288112edd18716d56ed16f0ae0c79e214710d67"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/level-1-s6/void-strike-65-manifest.json",
+      "bytes": 80512,
+      "sha256": "cf98dfc106f0a17428d377cd358c86d662616d2ce44f5f5d73a58e176c478630"
+    }
+  },
+  "variant": "level-1-s6",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "l2-post-boss-pause",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 2,
+      "policy": "l2-matrix",
+      "fire_delay": 0,
+      "measured_frames": 499,
+      "maximum_wall_cycles": 27703,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 0,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "boss_path": "pause",
+      "boss_path_taken_frame": 300,
+      "boss_frames_before_path": 299,
+      "boss_frames_after_path": 200,
+      "capital_rows_after_rebuild": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 711,
+            "display": 713,
+            "loaded": 803,
+            "ready": 864,
+            "accept": 868,
+            "reads": 38,
+            "shown_frames": 155,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 499,
+    "maximum_wall_cycles": 27703,
+    "wall_ceiling": 32568,
+    "physical_headroom": 7865,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

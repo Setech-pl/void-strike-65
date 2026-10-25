@@ -1,5 +1,7 @@
 # L2 fighter/capital phase module — Phase A
 
+Current: **Phase B OWNER-SMOKE CANDIDATE**; see [current measured results](#phase-b-current-results--owner-smoke-candidate). Earlier Phase A estimates and STOP checkpoints are historical.
+
 **Phase A accepted by owner at `bac5e79`; Phase B stopped at a computed gate.** No production implementation remains. Code baseline
 `main = origin/main = 19b1464`. Decisions: [§BW](../owner-decisions-2026-09-11.md#bw-capital-sector-islands-brake-sector-length-2026-10-25).
 The unchanged spike report is [here](../audits/2026-10-25-spike-nacelles.md).
@@ -706,3 +708,148 @@ unbraked/braked/contact routes and row/contact costs; protected writer checks;
 all-region entry and no-L2-after-overwrite proof through death/summary;
 post-boss read/init timing/menu/pause; short RESET/boot smoke; final candidate
 build/provenance, owner smoke. **NOT required** items above were not run.
+
+## Phase B current results — OWNER-SMOKE CANDIDATE
+
+This section supersedes the earlier STOP checkpoint and Phase A forecasts.
+Owner authorised recovery choice1, then choice2 if needed. The native logs
+prove a **guest lifetime defect** in both lengths, repaired in `2af5b6d`:
+boss install returns to the shared loop, whose brake JSR and rate read still
+used overwritten L2. [Complete recovery evidence](../diagnostics/l2-phase-b/recovery/).
+No timing gate or assertion is relaxed. Owner hardware acceptance is pending.
+
+### MEASURED placement, ownership and budget
+
+| Phase | `$1900-$1FFF` owner / callable contract |
+| --- | --- |
+| Boot / RESET | Uninitialised/OS-cleared; no gameplay call until checked level start |
+| Menu | No active L2; stale fighter/boss/death bytes are not called |
+| Level loading | Whole checked run11, sectors251-264, 1,792 B; fold `$9876`; failure never enters partial L2 |
+| Start summary | Calls INIT only after full validation, including resident level-buffer hits |
+| End summary | L2 inactive; no callback; next START GAME checks and reloads it |
+| Fighter / capital | L2 owns the full slot; one resident hull renderer; all hooks armed |
+| Boss entry | Before first read, resident blank/disarm `$8656` redirects brake JSR and zeros resident rate `$86B4`; state is drained to FIGHTER |
+| Boss fight | Boss D owns slot; install replaces capital vectors before returning to shared loop; no stale L2 consumer |
+| Boss death | Death code/data/buffer own slot; rate stays resident zero, hook stays disarmed |
+| Next level start / future M4 | Checked whole L2 run + INIT after any overwriting interlude; re-arm only after success |
+
+The physical CPU **does fetch from this range** during installed boss/death
+execution. A literal range ban would contradict accepted slot D. The permanent
+check therefore identifies stale L2 caller/read provenance, permits verified
+boss/death code, and verifies the full reloaded L2 image before INIT. Native
+logs cover first boss read through death, summary, menu and checked reload.
+No VBI/DLI/audio/Light/shared-Director callback points into L2.
+
+MEASURED recovery: **19 B cold code +1 B resident cached rate** in the old
+95-B C-phase pad; **75 B** remain reclaimable. No new linked reservation or
+protected tail. **16 B** L2 re-arm code appended after hot routines, preserving
+their addresses. **+30 CPU once on transition**, INIT **30 CPU**, **+15 CPU**
+versus the previous L2 INIT; **zero new gameplay-frame cycles/page crossings**
+for the repair. The remaining standing byte-placement rule still applies;
+the earlier **27-B non-executed alignment** remains valid and no reserve is used.
+
+| Item | MEASURED linked bytes / data / disk | CPU bound / evidence |
+| --- | --- | --- |
+| ABI/init/wrapper/displaced-renderer trampoline | L2 45 B, `$1900-$192C` | cold INIT/re-arm30 CPU; lifetime tests |
+| Indexed interval | L2 142 B, `$192D-$19BA` | included in row/contact bounds |
+| Interval contact / clamp / canonical damage | L2 199 B, `$19BB-$1A81` | max1,267 CPU including resident damage path |
+| Shared row publication / full-width commit | L2 116 B, `$1A82-$1AF5` | max1,939 CPU including original resident renderer |
+| Table alignment / indexed data / recipes | L2 10 +15 +108 B | zero executed padding; no new glyph slots |
+| ASM scratch / C rates-state | L2 14 +12 B | within L2; resident cached rate separately1 B |
+| C phase / coordinate entry + lookup | L2 93 /152 B | phase105 CPU, cold entry3,464 CPU |
+| C brake including warning alignment | L2 118 B, including17 padding | brake101 CPU; half/full rates8/16,9/18,10/20 |
+| C warning | L2 23 B | max30 CPU; Y≥201 selects35, otherwise25 |
+| Cold re-arm | L2 16 B, `$1D17-$1D26` | included in INIT30 CPU |
+| Cold reader/checksum integration | resident +26 B, including19 code +2 fold +5 directory | no per-frame work; reader1,529/1,536 |
+| Summary helper | resident +17 B | summary1,792/1,792, DL `$0B58` retained |
+| Debris admission mask | resident −9 B | shared stress delta0; capital off, SPACE retained |
+| Wider geometry / island page | data +128 /+256 B | full level16 sectors at `$A600-$ADFF` |
+| Transport | L2 14 late sectors +3 extra level sectors; boot+1 | run checks and normal disk gates PASS |
+
+Evidence: `build/l2.map/lst/lbl`, [resource snapshot](../diagnostics/l2-phase-b/recovery/resources.json),
+[focused CPU checks](../diagnostics/l2-phase-b/recovery/l2-final-focused-tests.log),
+[lifetime CPU checks](../diagnostics/l2-phase-b/recovery/l2-final-lifetime-test.log).
+CPU-only numbers above are not DMA-on frame costs. No duplicated renderer.
+
+| Ledger | MEASURED current / ESTIMATE future |
+| --- | ---: |
+| First contents `$1900-$1D26` | M1,063 B, below1,228-B first-content gate |
+| Slot free | M729 B |
+| Post-1.0 reserve `$1F00-$1FFF` | M256 B, intact |
+| Otherwise free | M473 B |
+| Later dock / bonus | E352 /E128 B, not implemented |
+| Future forecast balance | E−7 B; reprice/reduce or move cold work later; never borrow reserve |
+| Resident linked delta vs main | M+34 B; recovery consumes padding rather than enlarging C sector |
+| Active linked used-byte delta | M+1,481 B =1,063 +34 +384 |
+| Initial content / planning slack | M12,807 /845 B (gate13,652) |
+| Initial / boot+chunk transport | M101 /211 sectors; +1 total vs main |
+
+**M4 risk:** summary is full because the address-preserving helper measured17 B
+rather than the Phase A estimate10. Next-level loop/grade screen must find room
+or relocate. C-sector linked241/248 B, tail7; reader tail7; MAIN Light1,196 B,
+tail17; Director high634 B, tail11. MAIN/LIFE pins and all protected reservations
+remain fixed. Re-check the256-B reserve and future consumer forecasts at freeze.
+
+### MEASURED verification
+
+[Full 12-route table](../diagnostics/l2-phase-b/recovery/matrix-results.md):
+**47,326 gameplay frames**, peak **31,598**, minimum fence **4,892**, zero misses,
+extra VBI, DLI anomalies, shifted frames or distinct fence misses. Ten frames
+exceed **31,500 target**, maximum +98; all are below **32,568 hard** and
+**35,568 physical PAL**. Normal computed CPU/DMA/fence/block/window/initial-content/
+disk gates PASS; CPU DMA-off16,471, additive diagnostic **ESTIMATE29,371**.
+Native wall measurements remain separate from that diagnostic estimate.
+
+All difficulties traverse both480 and960, unbraked and brake/contact. All world/
+hull residues match; first axis480 or0 reaches968. Director ticks match their
+16-bit counter; its unchanged DYING/GAME OVER gate still freezes progression
+while the world scrolls, with zero unexplained row loss (`director-clock.json`). Prow928-959 and drain968
+are exercised through high-byte boundaries, completion and return to SPACE.
+No 960-specific admission/predictor path exists. Lookup indices0-119, bounded
+host station selection, nesting and counts7/10/14,10/15/20,22/33/44 pass.
+Warning reaches35; controlled checks cover the exact Y200/201 boundary and
+8/9/10-frame ramps. Native central island pushes occur on every route; 82 capital damage frames
+publish cooldown25.
+SPACE debris remains; worst carry clears47 rows before first island96.
+Backing1,640 cases pass, including cache/fallback/ring reuse, with zero native
+stale projectile cells. Shield and lifecycle retain canonical damage policy.
+
+Required lost-target off/fire stress matches main exactly: Citadel L4
+7697/8060, L5 8032/8423; Spine L7 7771/8180, L9 8025/8435; Bastion L10
+8058/8467, delta0, no clashes. Worst-state bounds remain7596,8112/8447,
+8191/8446,8478. R1 runs all18 modes; other regions run off/fire/lost plus prior
+worst swap where different. Boss entry325/340/340/344 ≤350. Four native death,
+summary, menu and reload checks pass; the full reloaded L2 checksum is verified
+before INIT. Native post-boss pause/resume passes499 frames, peak27,703.
+
+| Load / menu measurement, MEASURED | Patched | Standard |
+| --- | ---: | ---: |
+| Cold read + completed INIT, main→L2 | 49→113, **+64 frames** | 49→113, **+64** |
+| Post-boss read + completed INIT | 49→114, **+65 frames** | 49→114, **+65** |
+| Visible level-start interval increase | cold0 /post-boss54 | cold0 /post-boss54 |
+| Boot-only increase for extra sector | +1 frame | +5 frames |
+| Cold input-ready menu | 599 ≤650 | 1,389 |
+| Menu entry→input | 42 ≤50 | 42 ≤50 |
+
+[Exact timestamp records](../diagnostics/l2-phase-b/recovery/load-timing.json).
+No retries or corrupt/partial L2 execution. Cold, RESET, 130XE compatibility
+and forced-capital-restore boot smoke PASS. Menu run bytes are unchanged.
+[Every changed-routine/page table](../diagnostics/l2-phase-b/recovery/l2-final-page-cross.md):
+zero new per-frame crossings; indexed tables stay in-page.
+Native protected writer inventories retain only the existing phase owners;
+M3-H and `$B8FB-$B8FF` have no runtime consumer. L2 reserve remains unallocated.
+
+Edited tests: `boss-claim`, `boss-runtime`, `sector-reader`, `level-compiler`,
+`l2-coordinate`, `l2-islands`, `l2-brake`, `l2-lifetime` (`.test.mjs`). Core17/17,
+loader/claim subset10/10, lifetime at both lengths PASS, post-boss reload in all
+four regions PASS; unchanged frontend/pause suite29/29 and map checks3/3 PASS.
+The real checked load path is used. Old13-sector fixture bounds become exact
+full16-sector comparisons; post-boss tests add complete-L2 and re-arm assertions.
+Corrupt reads require zero partial-L2 fetches. No assertion is weakened.
+
+The smoke ATRs are built from the final committed branch HEAD and copied to
+`build/l2-owner-smoke/`; its `candidate.json` records absolute paths, SHA-256,
+source HEAD and launch commands. Owner smoke list: cold menu; SPACE debris;
+capital on ROOKIE/ACE with both colours; bottom brake and warning;960 test;
+one boss; boss→summary→menu→START GAME; pause after boss. Only owner promotes
+the result to OWNER-ACCEPTED. The earlier NOT required list remains unrun.

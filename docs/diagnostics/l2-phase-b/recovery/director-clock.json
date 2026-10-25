@@ -1,0 +1,74 @@
+[
+  {
+    "id": "l2-480-0-flight",
+    "checkedFrames": 1218,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 9
+  },
+  {
+    "id": "l2-480-0-brake",
+    "checkedFrames": 2084,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 9
+  },
+  {
+    "id": "l2-480-1-flight",
+    "checkedFrames": 1083,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 11
+  },
+  {
+    "id": "l2-480-1-brake",
+    "checkedFrames": 1847,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 11
+  },
+  {
+    "id": "l2-480-2-flight",
+    "checkedFrames": 974,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 12
+  },
+  {
+    "id": "l2-480-2-brake",
+    "checkedFrames": 1657,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 12
+  },
+  {
+    "id": "l2-960-0-flight",
+    "checkedFrames": 2418,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 9
+  },
+  {
+    "id": "l2-960-0-brake",
+    "checkedFrames": 3666,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 9
+  },
+  {
+    "id": "l2-960-1-flight",
+    "checkedFrames": 2150,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 11
+  },
+  {
+    "id": "l2-960-1-brake",
+    "checkedFrames": 3254,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 11
+  },
+  {
+    "id": "l2-960-2-flight",
+    "checkedFrames": 1934,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 25
+  },
+  {
+    "id": "l2-960-2-brake",
+    "checkedFrames": 2924,
+    "unexplainedClockLoss": 0,
+    "existingDyingFrozenWorldRows": 12
+  }
+]

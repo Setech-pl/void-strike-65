@@ -751,7 +751,8 @@ uint8_t sector_c_update_first_capital(void)
          * now would stay frozen on screen for the whole fight. Wait for it:
          * the world still scrolls until the entry, it falls off the bottom as
          * it always does, and the boss sector admits no new debris. The
-         * capital does not wait - its own debris fills its corridor. */
+         * capital does not wait: carried SPACE debris clears before its first
+         * island; the capital sector itself admits no small debris (§BW). */
         if ((ENTITY_ACTIVE_MASK & ENTITY_DEBRIS_ACTIVE) != 0u) {
             return 0u;
         }
@@ -766,11 +767,9 @@ uint8_t sector_c_update_first_capital(void)
 
 /* Roadmap 4.6 step 4: the phase starts come from the level's HullGeometry
  * page instead of constants. Module = row / 8. Because every hull is
- * right-aligned, the prow ends on module 59 and DRAIN starts on module 61 for
- * every length - the rows the prow profile, the prow collision and the drain
- * mapping in ASM were always built for. heavy_scratch holds the module: the
- * Heavy tick is frozen for the whole capital lifecycle, and the value does not
- * outlive this call. */
+ * right-aligned, the prow ends on module 119 and DRAIN starts on module 121
+ * for every length. L2 reads both bytes of the row clock and owns its module
+ * scratch; the runtime never assumes the high byte is zero. */
 void sector_c_update_capital_phase(void)
 {
     l2_c_phase();

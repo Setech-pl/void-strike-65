@@ -24,6 +24,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
     static unsigned v_READ_RING,v_FAST_HUD,v_BOSS_DLI,v_CLOCK,v_DEVICE,v_DIR,v_DLI,v_DLI_POS,v_END,v_ENGINE,v_ENTER,v_FAILURE,v_FENCE,v_FRAME,v_HANDOFF,v_LAST,v_MAIN,v_MENU,v_N,v_NO_DEVICE,v_PHASE,v_POSITION,v_POSSTATE,v_PRESS,v_READ,v_READ_SECTOR,v_RELEASE,v_RESUME,v_BAND_END,v_START,v_STEP_TIMER,v_STROBE,v_SUMMARY,v_WIRE;
     static int init, ready, forced, entered, finished, summary, starts, menu, read_photo;
     static unsigned host, last_host, dli_count, frame_count, read_host, misses, hud_errors, ship_errors, dli_errors;
+    static unsigned post_load_begin,post_load_end,post_l2_init,post_l2_done;
     static unsigned ship_x, ship_size, ship_colour;
     static unsigned read_sample_host, read_checks, read_errors;
     static unsigned attempts, sio_failures, read_dlis, read_dli_errors, strobe_frames;
@@ -104,6 +105,8 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
         init=1;
     }
     host=(unsigned)Atari800_nframes;
+    dftrace_pc_boss_enter=pc_enter;dftrace_pc_main_loop=pc_main;
+    dfwatch_track(pc,x,y);dftrace_l2_lifetime(pc,x,s);
     clock=dftrace_clock();
     if(dli_begin_clock) {
         dli_cpu+=cycles[dli_prev_op];
@@ -120,9 +123,15 @@ static void DFTrace_Observe(unsigned pc, unsigned a, unsigned x, unsigned y, uns
     if (forced && pc==pc_failure) {
         fprintf(out,"{\"failure\":\"disk failure\",\"status\":%u}\n",a); fclose(out); exit(2);
     }
-    if (pc==pc_start) {
+    if(getenv("DFDB_LEVEL_LOAD") && pc==(unsigned)strtoul(getenv("DFDB_LEVEL_LOAD"),NULL,0)){post_load_begin=host;post_l2_init=0;post_l2_done=0;}
+    if(getenv("DFDB_LEVEL_LOADED") && pc==(unsigned)strtoul(getenv("DFDB_LEVEL_LOADED"),NULL,0))post_load_end=host;
+    if(pc==0x1900u)post_l2_init=host;
+    if(getenv("DFDB_L2_DONE") && (unsigned)strtoul(getenv("DFDB_L2_DONE"),NULL,0)>0u && pc==(unsigned)strtoul(getenv("DFDB_L2_DONE"),NULL,0))post_l2_done=host;
+    if (pc==pc_start && post_load_begin>0u && post_load_end>=post_load_begin && MEMORY_mem[0xA600u]==86u && MEMORY_mem[0xA601u]==83u) {
         starts++;
+        if(starts==1u)fprintf(out,"{\"coldLevelReadBegin\":%u,\"coldLevelReadEnd\":%u,\"coldL2Init\":%u,\"coldL2Done\":%u,\"coldGameStart\":%u}\n",post_load_begin,post_load_end,post_l2_init,post_l2_done,host);
         if (summary) {
+            fprintf(out,"{\"postLevelReadBegin\":%u,\"postLevelReadEnd\":%u,\"postL2Init\":%u,\"postL2Done\":%u,\"restartHost\":%u}\n",post_load_begin,post_load_end,post_l2_init,post_l2_done,host);
             if(shake_addr)fprintf(out,"{\"stripFrames\":%u,\"rngErrors\":%u,\"restoredVscrol\":%u,\"restoreErrors\":%u}\n",strip_count,rng_errors,(unsigned)ANTIC_VSCROL,restore_errors);
             fprintf(out,"{\"restartedLevel\":%u,\"summary\":true,\"frames\":%u,\"misses\":%u,\"hudErrors\":%u,\"shipErrors\":%u,\"dliErrors\":%u,\"returnedToMenu\":%u,\"readImageChecks\":%u,\"readImageErrors\":%u,\"readAttempts\":%u,\"sioFailures\":%u,\"readDlis\":%u,\"readDliErrors\":%u,\"strobeFrames\":%u,\"strobeDliWallPeak\":%llu,\"strobeCpuTop\":%u,\"strobeCpuRing\":%u,\"strobeCpuHud\":%u,\"strobeBlockPeak\":%llu}\n",
                 MEMORY_mem[0xA603u],frame_count,misses,hud_errors,ship_errors,dli_errors,menu,read_checks,read_errors,attempts,sio_failures,read_dlis,read_dli_errors,strobe_frames,dli_wall_peak,dli_cpu_peak[0],dli_cpu_peak[1],dli_cpu_peak[2],dli_block_peak);

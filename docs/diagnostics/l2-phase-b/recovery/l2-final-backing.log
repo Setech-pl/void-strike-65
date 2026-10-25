@@ -1,0 +1,73 @@
+{
+  cases: 1640,
+  hullOnlyFallback: true,
+  worstPossibleCarry: [
+    {
+      difficulty: 0,
+      rate: 16,
+      frames: 118,
+      worldRows: 47,
+      firstIslandRow: 96,
+      overlap: false
+    },
+    {
+      difficulty: 1,
+      rate: 18,
+      frames: 105,
+      worldRows: 47,
+      firstIslandRow: 96,
+      overlap: false
+    },
+    {
+      difficulty: 2,
+      rate: 20,
+      frames: 94,
+      worldRows: 47,
+      firstIslandRow: 96,
+      overlap: false
+    },
+    {
+      difficulty: 0,
+      rate: 8,
+      frames: 235,
+      worldRows: 47,
+      firstIslandRow: 96,
+      overlap: false
+    },
+    {
+      difficulty: 1,
+      rate: 9,
+      frames: 209,
+      worldRows: 47,
+      firstIslandRow: 96,
+      overlap: false
+    },
+    {
+      difficulty: 2,
+      rate: 10,
+      frames: 188,
+      worldRows: 47,
+      firstIslandRow: 96,
+      overlap: false
+    }
+  ],
+  artUnderlayCodes: [
+     59,  60,  61,  62,  63,  64,
+     65,  66,  67,  68, 198, 199,
+    200, 201, 202, 203, 204, 205,
+    206, 207
+  ],
+  categories: [
+    'normal player',
+    'spread/composited player',
+    'enemy P1/P2',
+    'broadside allied/hostile',
+    'ring reuse'
+  ],
+  pass: true,
+  incrementVersusBlank: { normalPlayer: 63, spreadPlayer: 610, enemy: 55 },
+  broadsideIncrementVersusBlank: 0,
+  maxPlayerRenderCpu: 987,
+  maxEnemyRenderCpu: 447,
+  maxShellRenderCpu: 158
+}

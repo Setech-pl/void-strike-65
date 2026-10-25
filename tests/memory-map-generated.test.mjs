@@ -34,12 +34,11 @@ test("the generated memory map matches the current build", () => {
 
 // RE-POINTED M5b-S4a-i (owner answer Q-B5): the boss claims $0C00-$18FF, so
 // the measured-free low RAM that stays unclaimed is $1900-$1FFF (1,792 B).
-// RE-POINTED M5b-S4b (owner decision Q7, 2026-10-06): slot D takes
-// $1900-$1FFF; the claim is $0C00-$1FFF, the boss sector only, and the map
-// says so; no measured-free low RAM is left unclaimed.
-test("the generated map reports the boss claim with slot D and the misnamed STARFIELD", () => {
+// L1/L2 share the boss claim only in their explicitly installed phases.
+// No measured-free low RAM is left unclaimed or available to unrelated code.
+test("the generated map reports phase-exclusive menu/L2/boss/death owners and the misnamed STARFIELD", () => {
   const block = currentBlock(document);
-  assert.match(block, /\| `\$0C00-\$1FFF` \| 5,120 B \| slot \| boss claim \(owner answers Q-B5, Q7\)[^\n]*the boss sector only/);
+  assert.match(block, /\| `\$0C00-\$1FFF` \| 5,120 B \| slot \| phase-exclusive low RAM: checked menu at \$0C00-\$117F in menus; checked L2 at \$1900-\$1FFF during fighter\/capital play; boss charset, C\/scratch\/D and death image in their installed phases; no unrelated link or boot allocation/);
   assert.match(block, /\| `\$1900-\$1FFF` \| 1,792 B \| slot \| boss slot D/);
   assert.match(block, /\| `STARFIELD` \|[^\n]*\*\*misleading name\*\* \|/);
 });

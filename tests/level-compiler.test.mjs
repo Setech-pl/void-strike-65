@@ -5,7 +5,7 @@
 // T1 - the validator rejects every §5 case and warns on a cap above the
 //      subtype table.
 // T2 - build/level-1.bin is 13 sectors; the magic sits at $AA00; header byte 7
-//      is still 9; the geometry page says 480 rows and its sequences equal
+//      is still 9; the geometry page uses a 960-row coordinate and its sequences equal
 //      EMIT_ALLIED_SECTOR_SEQUENCE / EMIT_ENEMY_SECTOR_SEQUENCE.
 // T12 - (step 3) level-02.json compiles and differs from level 1 in sector
 //      count, waves and masks; it is the level the owner approved on
@@ -407,23 +407,21 @@ test("T2: build/level-1.bin is 16 sectors with the LevelDef and island pages whe
     assert.ok(payload.subarray(184, 194).some((byte) => byte !== 0), "level 1 grades");
   });
 
-test("T2: the geometry page says 480 rows and carries today's two module sequences", () => {
+test("T2: the geometry page uses a 960-row coordinate and carries today's two module sequences", () => {
   const geometry = levelOneImage.subarray(LEVEL_GEOMETRY_OFFSET,
     LEVEL_GEOMETRY_OFFSET + LEVEL_GEOMETRY_BYTES);
   assert.equal(geometry.readUInt16LE(GEOMETRY_OFFSET.hullRowsLo), 480,
     "level 1 keeps today's 480-row hull");
   assert.ok(HULL_ROW_STEPS.includes(480));
-  // Phase starts in modules: aft 4, combat 14, forward 46, prow 56; drain 61.
-  // The constants sector_c_update_capital_phase holds today (rows 32 / 112 /
-  // 368 / 448, drain 488) divided by the 8-row module.
+  // Right-aligned phase starts: modules64/74/106/116, drain121.
+  // Universal rows512/592/848/928 and drain968 use the full 16-bit clock.
   assert.deepEqual([...geometry.subarray(GEOMETRY_OFFSET.phaseStarts,
     GEOMETRY_OFFSET.phaseStarts + 4)], [64, 74, 106, 116]);
   assert.equal(geometry[GEOMETRY_OFFSET.turretDensityStep], 3);
   assert.equal(geometry[GEOMETRY_OFFSET.reserved], 0);
 
-  // The reproduction that matters for step 4: the two 60-byte sequences the
-  // page carries are the bytes BROADSIDE assembles today, read straight out of
-  // the generated include's macros.
+  // Each 120-byte page sequence contains sixty leading engine modules and
+  // the original sixty module IDs, read from the generated macros.
   const include = readText("build/capital-hulls.inc");
   const sequenceFromMacro = (name) => {
     const body = include.match(
@@ -443,7 +441,7 @@ test("T2: the geometry page says 480 rows and carries today's two module sequenc
     `the geometry page does not carry ${name} byte for byte`);
   }
   assert.equal(GEOMETRY_OFFSET.enemySequence + HULL_SEQUENCE_BYTES + 8, LEVEL_GEOMETRY_BYTES,
-    "the two sequences end the 128-byte page");
+    "the two 120-byte sequences leave eight reserved bytes at the end of the 256-byte page");
 });
 
 // ---------------------------------------------------------------------------

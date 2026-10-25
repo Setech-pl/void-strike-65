@@ -649,4 +649,5 @@ _asm_boss_enter = pin_boss_enter_head
 ; §BW fixed phase-exclusive L2 entries. Never called after boss takeover.
 _l2_c_phase = $190F
 _l2_c_enter = $1912
-.export _l2_c_phase, _l2_c_enter
+_l2_space = $191C
+.export _l2_c_phase, _l2_c_enter, _l2_space

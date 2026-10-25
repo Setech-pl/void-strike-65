@@ -305,7 +305,7 @@ test("pickup movement resolves half world speed into smooth scanline phases", ()
     entities.debrisMotion.verticalStepDenominator,
   ], [1, 2, 3, 5]);
   assert.match(source,
-    /update_weapon_pickup_active:[\s\S]+@motion:[\s\S]+adc world_scroll_rates,x[\s\S]+cmp #WEAPON_PICKUP_FINE_RATE_DENOMINATOR/);
+    /update_weapon_pickup_active:[\s\S]+@motion:[\s\S]+adc L2_SCROLL_RATE[\s\S]+cmp #\(WEAPON_PICKUP_FINE_RATE_DENOMINATOR\*2\)/);
   const active = executeWeaponPickupTrace({ root, artifact: "atr" }).records
     .filter(({ phase }) => phase === "ACTIVE");
   assert.deepEqual(active.slice(1).map((record, index) => record.y - active[index].y),

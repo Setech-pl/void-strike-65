@@ -720,6 +720,7 @@ void lifecycle_c_init(void)
  * growth. The code itself is unchanged; only its placement moved. */
 extern void l2_c_enter(void);
 extern void l2_c_phase(void);
+extern void l2_space(void);
 #pragma code-name (push, "HYBRID_C_SECTOR")
 uint8_t sector_c_update_first_capital(void)
 {
@@ -790,6 +791,7 @@ void sector_c_complete_scroll_tick(void)
     if (ENTITY_SPAWN_TIMER_HI == 0u) {
         CAPITAL_SECTOR_STATE = SECTOR_FIGHTER;
         ENTITY_SPAWN_TIMER_LO = ENTITY_INITIAL_DELAY;
+        l2_space();                /* capital ends: restore SPACE rate/unhook */
     }
 }
 

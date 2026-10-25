@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
-import {islandRecipeBytes} from "./l2-islands.mjs";
+import {islandRecipeBytes, ISLAND_RECORD_BYTES, ISLAND_DESCRIPTORS_OFFSET,
+  ISLAND_SPANS_OFFSET, ISLAND_LOOKUP_OFFSET} from "./l2-islands.mjs";
 import {loadCheckedL2Image} from "./sio-fixture.mjs";
 import { buildBossDeath } from "./boss-death-build.mjs";
 import fs from "node:fs";
@@ -49,6 +50,7 @@ import {
   LEVEL_CORE_ADDRESS,
   LEVEL_PAYLOAD_ADDRESS,
   LEVEL_GEOMETRY_ADDRESS,
+  GEOMETRY_OFFSET,
   LEVEL_CORE_MAGIC,
   CORE_HEADER_BYTES,
   SECTOR_ARRAY_OFFSET,
@@ -2752,20 +2754,52 @@ async function build() {
   }
   const capitalSlotImage = Buffer.from(broadsideRuntime.subarray(
     slotAddress - broadsideRunAddress, slotEnd - broadsideRunAddress));
+  const l2CLabels = {PHASE_LO:"corridor_phase",PHASE_HI:"CORRIDOR_PHASE_HI",STATE:"CAPITAL_SECTOR_STATE",
+    DIFFICULTY:"DIFFICULTY_SETTING",LIFECYCLE:"PLAYER_LIFECYCLE",PLAYER_Y:"player_y",STICK:"stick_value",
+    TIMERS:"BROAD_TIMER",WORK_SLOT:"BROAD_WORK_SLOT",
+    MODULES:"CAPITAL_HULL_SECTOR_MODULE_COUNT",ROWS:"CAPITAL_HULL_SECTOR_ROWS",BOTTOM:"PLAYER_Y_MAX",
+    DRAIN:"CAPITAL_HULL_STATE_DRAIN",OPEN:"CAPITAL_HULL_STATE_OPEN",DYING:"PLAYER_DYING"};
+  const l2Constants = {L2_GEOMETRY:LEVEL_GEOMETRY_ADDRESS,L2_EXTENSION:LEVEL_GEOMETRY_ADDRESS+256,
+    L2_SPANS:LEVEL_GEOMETRY_ADDRESS+256+ISLAND_SPANS_OFFSET,
+    L2_LOOKUP:LEVEL_GEOMETRY_ADDRESS+256+ISLAND_LOOKUP_OFFSET,
+    L2_DESCRIPTORS:LEVEL_GEOMETRY_ADDRESS+256+ISLAND_DESCRIPTORS_OFFSET,L2_RECORD_BYTES:ISLAND_RECORD_BYTES,
+    L2_PHASE_START:GEOMETRY_OFFSET.phaseStarts,L2_HULL_ROWS:GEOMETRY_OFFSET.hullRowsLo};
+  const sectorAddress=/^#define STATE_SECTOR\s+U8_AT\(0x([0-9a-f]+)u\)/mi.exec(
+    fs.readFileSync(path.join(rootDirectory,"src/c/director.c"),"utf8"));
+  if(!sectorAddress) throw new Error("L2 C ABI cannot derive Director sector index");
+  l2Constants.L2_SECTOR_INDEX=parseInt(sectorAddress[1],16);
+  for(const [name,symbol] of Object.entries(l2CLabels)) {
+    if(!Number.isInteger(labels.get(symbol))) throw new Error(`L2 C ABI missing ${symbol}`);
+    l2Constants[`L2_${name}`]=labels.get(symbol);
+  }
+  const l2CHeader=Object.entries(l2Constants).map(([name,value])=>`#define ${name} 0x${value.toString(16)}u`).join("\n")+"\n"+
+    `#define L2_NORMAL_RATES {${[...capitalHullsAsset.worldScrollRateBytes].map(v=>v*2).join(',')}}\n`+
+    `#define L2_HALF_RATES {${[...capitalHullsAsset.worldScrollRateBytes].join(',')}}\n`;
+  if(!Buffer.from([...capitalHullsAsset.worldScrollRateBytes].map(v=>v*2)).equals(capitalHullsAsset.hullScrollRateBytes))
+    throw new Error("L2 requires the same numerator for world and capital hull clocks");
+  writeFile(path.join(buildDirectory,"l2-abi.h"),Buffer.from(l2CHeader));
   const l2Compiled = await runWasmTool("cc65", {
     "/project/l2.c": fs.readFileSync(path.join(rootDirectory,"src/c/l2.c")),
+    "/project/l2-abi.h": Buffer.from(l2CHeader),
   }, ["--cpu","6502","-Oirs","-o","/project/l2-generated.s","/project/l2.c"], ["/project/l2-generated.s"]);
   let l2Generated=l2Compiled.outputs["/project/l2-generated.s"].toString().replace(/^\s*\.importzp.*$/gmi, "").replace(/^\s*\.import\s+_l2_rate\s*$/gmi, "");
   l2Generated=l2Generated.replace(/(\.proc\s+_l2_warning_set_timer:)/,(_,proc)=>`.align $100\n${proc}`);
+  const warningBody=/\.proc\s+_l2_warning_set_timer:[\s\S]*?\.endproc/.exec(l2Generated)?.[0];
+  const warningJumps=[...(warningBody??'').matchAll(/^\s*jmp[ \t]+([A-Za-z_]\w*)/gmi)].map(m=>m[1]);
+  if(!warningBody || /^\s*(?:ldx|tax|tsx|inx|dex|jsr)\b/mi.test(warningBody) ||
+    warningJumps.some(target=>!new RegExp(`^${target}:`,'m').test(warningBody)))
+    throw new Error("L2 warning codegen must preserve X without callee assumptions");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
   if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
     throw new Error("L2 C requires software-stack/helper state");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
-  const l2MainNames=["profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy"];
+  const l2MainNames=["profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy",
+    "BROADSIDE_SCREEN_TOP","PLAYER_COLLISION_LAST_ROW","PLAYER_COLLISION_WIDTH","CAPITAL_HULL_GLYPH_BASE",
+    "CAPITAL_HULL_ENEMY_SURFACE_BASE","CAPITAL_HULL_SECTOR_MODULE_COUNT","CORRIDOR_LEFT_HPOS","CORRIDOR_RIGHT_HPOS"];
   const l2MainInclude=l2MainNames.map(name=>{
     const address=labels.get(name);if(!Number.isInteger(address))throw new Error(`L2 main ABI missing ${name}`);
     return `${name} = $${address.toString(16)}`;
-  }).join("\n")+"\n";
+  }).join("\n")+"\n"+`L2_LOOKUP = $${l2Constants.L2_LOOKUP.toString(16)}\n`;
   const l2RecipesInclude="    .byte "+[...islandRecipeBytes()].join(",")+"\n";
   writeFile(path.join(buildDirectory,"l2-main.inc"),Buffer.from(l2MainInclude));
   writeFile(path.join(buildDirectory,"l2-recipes.inc"),Buffer.from(l2RecipesInclude));

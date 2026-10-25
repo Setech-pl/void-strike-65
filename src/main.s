@@ -359,6 +359,11 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 .export BROAD_STATE, BROAD_TURRET, BROAD_ROW_LO, BROAD_ROW_HI, BROAD_FLASH_TIMER
 .export BROAD_RASTER_TOP, BROAD_FLASH_BACKING
 .export BROAD_DAMAGE_COOLDOWN, BROAD_DAMAGE_APPLIED
+.export BROAD_TIMER, BROAD_WORK_SLOT, BROADSIDE_SCREEN_TOP, PLAYER_COLLISION_WIDTH
+.export CAPITAL_HULL_GLYPH_BASE, CAPITAL_HULL_ENEMY_SURFACE_BASE
+.export CAPITAL_HULL_SECTOR_MODULE_COUNT, CAPITAL_HULL_SECTOR_ROWS
+.export CORRIDOR_LEFT_HPOS, CORRIDOR_RIGHT_HPOS, PLAYER_Y_MAX
+.export CAPITAL_HULL_STATE_DRAIN, CAPITAL_HULL_STATE_OPEN
 .export DIFFICULTY_SETTING, CAPITAL_SECTOR_STATE, PLAYER_LIFECYCLE
 .export CAPITAL_EXPLOSION_TIMER, CAPITAL_EXPLOSION_SOUND_TIMER, ENEMY_ACTIVE
 .export ENEMY_ARCHETYPE, ENEMY_HP, ENEMY_PENDING_DAMAGE, ENEMY_PENDING_SOURCE
@@ -7644,14 +7649,29 @@ integration_pickup_pending_tick:
 ; 4.5M-M1 (stage_starfield_stream, two exact-window copies). These 15 bytes
 ; held the former three 960-byte screen copies and their pad; they stay
 ; reserved so every following reviewed ENTITY entry point keeps its address.
-    .res $0F
+    .res 3                     ; 12 B reclaimed for the resident contact gate
 
 ; All module and prow boundaries leave this inner corridor open. Carry set is
 ; therefore a complete proof that the player cannot contact either capital
 ; hull; carry clear asks the exact source-row resolver to handle an edge case.
 player_inside_universal_hull_corridor:
-    jmp L2_CONTACT
-    .res 13,0
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_DRAIN
+    bcs @base
+    jmp L2_CONTACT             ; only valid capital states 0..4 reach L2
+@base:
+    bit scroll_accumulator    ; safe timing pad: SPACE cost vs main is -2
+    lda player_x
+    cmp #$54
+    bcc @edge
+    adc #6
+    cmp #$AC
+    bcs @edge
+    sec
+    rts
+@edge:
+    clc
+    rts
 
 ; Only immutable source cells are prepared. Difficulty is immutable throughout
 ; gameplay (including pause); restart invalidates after init_screen. The key
@@ -8003,7 +8023,7 @@ allied_sector_module_sources:
 enemy_sector_module_sources:
     EMIT_ENEMY_SECTOR_MODULE_SOURCES
 ; Roadmap 4.6 step 4 (docs/plans/director-4.6.md §2.4): the two 60-B module
-; sequences moved into each level's HullGeometry page at $AC08/$AC44, where the
+; sequences moved into each level's HullGeometry page at $AC08/$AC80, where the
 ; resolvers above read them. Their 120 resident bytes are held as a zero pin,
 ; as enemy_hull_codebook_reserve is, so that no later BROADSIDE label moves.
 ;
@@ -8025,7 +8045,8 @@ hull_sequence_reserve:
 ; always closed by its cld).
 world_rotate_due:
     lda L2_SCROLL_RATE
-    .res 4,$EA
+    bit scroll_accumulator    ; two 2-B/3-cycle reads retain the exact 7-B pin
+    bit scroll_accumulator    ; flags overwritten below; no per-Light overhead
     clc
     adc scroll_accumulator
     cmp #HULL_SCROLL_RATE_DENOMINATOR
@@ -8035,7 +8056,7 @@ world_rotate_due:
 world_rotate_due_end:
 .assert world_rotate_due = WORLD_ROTATE_DUE, lderror, "world_rotate_due moved: set WORLD_ROTATE_DUE in src/hybrid/c-asm-abi.s to its new address"
     .res 120-(world_rotate_due_end-hull_sequence_reserve), $00
-.assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 480-row coordinate"
+.assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 960-row coordinate"
 
 .segment "BROADSIDE"
 allied_prow_occupancy_masks:
@@ -10357,18 +10378,19 @@ update_weapon_pickup_active:
     jmp integration_pickup_pending_tick
 @motion:
     ; Keep exactly one-half of the selected world speed, expressed directly in
-    ; scanlines. EASY/MEDIUM/HARD add 8/9/10 fifths per PAL frame; the bounded
+    ; scanlines. The L2 numerator over ten gives 8/9/10 fifths at full speed and
+    ; scales every intermediate brake step exactly; the bounded
     ; accumulator therefore advances by one or two scanlines without an
     ; eight-scanline character jump.
     ldx DIFFICULTY_SETTING
     lda ENTITY_TIMER+WEAPON_PICKUP_SLOT
     clc
-    adc world_scroll_rates,x
+    adc L2_SCROLL_RATE          ; numerator doubled; same half-world speed at all brake rates
     ldx #$00
 @consume_scanline:
-    cmp #WEAPON_PICKUP_FINE_RATE_DENOMINATOR
+    cmp #(WEAPON_PICKUP_FINE_RATE_DENOMINATOR*2)
     bcc @store_fraction
-    sbc #WEAPON_PICKUP_FINE_RATE_DENOMINATOR
+    sbc #(WEAPON_PICKUP_FINE_RATE_DENOMINATOR*2)
     inx
     bne @consume_scanline
 @store_fraction:

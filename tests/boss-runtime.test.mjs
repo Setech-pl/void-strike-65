@@ -330,8 +330,8 @@ test("the world scroll stops in the boss sector and runs again after the START G
     assert.equal(prepares, 200, "the band's motion runs every frame");
   }
   // Follow the real reader -> summary -> checked L2 load -> INIT path, as
-  // Q-S4 does. The restored rate table alone now controls pickup motion;
-  // the first gameplay brake tick publishes the world's resident rate.
+  // Q-S4 does. Keep checking the legacy rate-table restore; L2 INIT now
+  // publishes the resident numerator used by the world and pickups.
   const reload = cpuOver(new Drive({ trig: (frame) => Math.floor(frame / 4) % 8 < 4 }), memory);
   reload.sp = 0xff;
   reload.pc = 0xa000;
@@ -694,9 +694,11 @@ test("Q-S4: START GAME after a game ended inside the boss sector restores slot A
   }
   assert.equal(memory[label("reader", "sr_slot_a_overlaid")], 0);
   assert.deepEqual(memory.slice(0x1900,0x2000),Uint8Array.from(readBuild("l2.bin")),"checked L2 image not restored");
-  assert.equal(memory[label("main","profile_after_player")+1]|memory[label("main","profile_after_player")+2]<<8,0x1909,"L2 INIT did not re-arm the frame hook");
+  assert.equal(memory[label("main","profile_after_player")+1]|memory[label("main","profile_after_player")+2]<<8,label("main","integration_update_enemy"),"L2 INIT must leave the SPACE hook resident");
+  assert.equal(memory[0x86b3],1,"only checked load + INIT marks L2 valid");
   // The level is read again in full: the band had overwritten its hull block.
-  assert.deepEqual([...memory.subarray(0xa600, 0xa600 + readBuild("level-1.bin").length)], [...readBuild("level-1.bin")]);
+  const levelImage=readBuild(`level-${manifest.sectorReader.levels[0].id}.bin`);
+  assert.deepEqual([...memory.subarray(0xa600, 0xa600 + levelImage.length)], [...levelImage]);
   // CHBASE: the summary's own page while START GAME runs, never the boss's.
   const chbase = writes.filter(([address]) => address === 0xd409).map(([, value]) => value);
   assert.ok(chbase.length > 0 && !chbase.includes(0x0c), "the START GAME path wrote the boss's charset page");

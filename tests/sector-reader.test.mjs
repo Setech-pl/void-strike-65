@@ -879,6 +879,7 @@ test("L2 option A cross-link preserves MAIN/LIFE and checks fourteen sectors", (
   const result = runReadRun(good,11);
   assert.equal(result.failed,false);
   assert.equal(good.commandFrames.length,14);
+  assert.equal(result.memory[0x86b3],0,"a raw checked run must remain invalid until INIT");
   assert.deepEqual(Buffer.from(result.memory.subarray(0x1900,0x2000)),fs.readFileSync(path.join(root,"build/l2.bin")));
   const changed = Buffer.from(atrSector(run.startSector+3)); changed[9]^=1;
   const response=[{byte:0x41},{byte:0x43},...Array.from(changed,byte=>({byte})),{byte:carryWrapChecksum(changed)}];
@@ -886,6 +887,7 @@ test("L2 option A cross-link preserves MAIN/LIFE and checks fourteen sectors", (
   const rejected=runReadRun(bad,11);
   assert.equal(rejected.failed,true);
   assert.equal(rejected.status,status.BAD_IMAGE);
+  assert.equal(rejected.memory[0x86b3],0,"a rejected L2 run must not preserve old validity");
 });
 
 test("L2 START GAME reloads on a resident level hit and rejects corrupt run before gameplay", () => {

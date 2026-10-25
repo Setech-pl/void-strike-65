@@ -4,7 +4,8 @@ const root=process.cwd(),out=path.join(root,'build/l2-owner-smoke');fs.mkdirSync
 const head=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 const branch=execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim();
 if(branch!=='codex/l2-phase-module'||execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim())throw Error('Candidate requires committed clean L2 branch');
-const expected=JSON.parse(fs.readFileSync('docs/diagnostics/l2-phase-b/recovery/candidate-hashes.json'));
+const expectedPath=process.argv.find(a=>a.startsWith('--expected='))?.slice(11)??'docs/diagnostics/l2-phase-b/recovery/candidate-hashes.json';
+const expected=JSON.parse(fs.readFileSync(expectedPath));
 const jobs=[['campaign',[],'dist'],['capital-960',['--level=1:sector=1','--l2-long-capital'],'build/l2-capital-960'],['r1-breaker',['--level=1:sector=6'],'build/level-1-s6'],...['citadel','spine','bastion'].map((name,i)=>[`r${i+2}-${name}`,['--level=1:sector=6',`--boss-region=${i+2}`],`build/boss-region-${i+2}-level-1-s6`])];
 const artifacts=[];
 for(const[name,args,dir]of jobs){

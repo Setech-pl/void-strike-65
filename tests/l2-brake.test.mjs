@@ -32,3 +32,19 @@ test('L2 brake: exact E/M/H ramps, release, SPACE/death reset and warning slot p
  }
  console.log(JSON.stringify({measurement:"L2 policy CPU",maxBrakeCpu,maxWarningCpu}));
 });
+
+test('L2 pickup: real motion consumes every even and odd brake numerator at exactly half world speed',()=>{
+ for(let rate=8;rate<=20;rate++){
+  const m=machine(),at=n=>main.get(n);
+  m[at('player_x')]=190;m[at('player_y')]=225;m[at('PLAYER_LIFECYCLE')]=0;
+  m[at('ENTITY_X')+1]=112;m[at('ENTITY_Y')+1]=24;m[at('ENTITY_TIMER')+1]=0;
+  m[at('ENTITY_STATE')+1]=2;m[at('ENTITY_ACTIVE_MASK')]=2;m[at('ENTITY_ACTIVE_COUNT')]=1;
+  m[l2.get('_l2_rate')]=rate;
+  for(let frame=0;frame<10;frame++){
+   const old=m[at('ENTITY_Y')+1];call(m,at('update_weapon_pickup_active'),2);
+   assert.ok(m[at('ENTITY_Y')+1]-old>=0&&m[at('ENTITY_Y')+1]-old<=2);
+  }
+  assert.equal(m[at('ENTITY_Y')+1],24+rate,`rate ${rate}: ten frames of half-world motion`);
+  assert.equal(m[at('ENTITY_TIMER')+1],0,'exact fraction after ten frames, including odd rates');
+ }
+});

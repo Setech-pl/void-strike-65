@@ -9,7 +9,7 @@ for(const run of read('build/l2-native-matrix/runs.json')){
  const clocks=csv(`build/l2-native-matrix/${run.id}-clock.csv`).filter(x=>x.state<7);
  const capital=rows.filter(x=>x.sector_state<7),audit=auditSession(run.id,rows);
  const life=fs.readFileSync(`build/l2-native-matrix/${run.id}-lifetime.jsonl`,'utf8').trim().split('\n').map(JSON.parse);
- const stale=life.filter(x=>['resident_entry','rate_read','partial_l2_execution'].includes(x.event));
+ const stale=life.filter(x=>['stale_access','resident_entry','rate_read','partial_l2_execution'].includes(x.event));
  const entry=raw.find(x=>x.boss_entry);
  const record={...run,artifact:report.artifact_sha256['void-strike-65.atr'].sha256,
   frames:rows.length,peak:report.acceptance.maximum_wall_cycles,mean:Math.round(rows.reduce((s,x)=>s+x.wall_cycles,0)/rows.length*100)/100,

@@ -489,7 +489,7 @@ function collectRows(build) {
   add(m.overlays.capitalVectors.address, m.overlays.capitalVectors.address + m.overlays.capitalVectors.bytes - 1, "slot", `capital vector table, ${m.overlays.capitalVectors.entries} entries (inside \`LIGHT_KERNEL\`)`, "resident", "manifest `overlays.capitalVectors`");
   add(m.levelSummary.code.address, m.levelSummary.code.endExclusive - 1, "slot", "level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it", "session", "manifest `levelSummary.code`, tests/level-summary-build.test.mjs");
   // M5b-S4a-i (owner answer Q-B5): the boss's claim and its three homes.
-  add(m.boss.claim.start, m.boss.claim.endExclusive - 1, "slot", "boss claim (owner answers Q-B5, Q7): the region charset, slot C, the scratch page, slot D - the boss sector only; no other link, cfg area or boot range may reach it", "overlay", "manifest `boss.claim`, tests/boss-claim.test.mjs");
+  add(m.boss.claim.start, m.boss.claim.endExclusive - 1, "slot", "phase-exclusive low RAM: checked menu at $0C00-$117F in menus; checked L2 at $1900-$1FFF during fighter/capital play; boss charset, C/scratch/D and death image in their installed phases; no unrelated link or boot allocation", "overlay", "manifest `boss.claim`, tests/boss-claim.test.mjs");
   add(m.boss.charset.address, m.boss.charset.address + m.boss.charset.capacityBytes - 1, "slot", "boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install" +
     ((m.boss.regions ?? []).length === 0 ? "" : `; each region's run: ${m.boss.regions.map((region) =>
       `R${region.region} ${region.codes} codes / ${region.charsetSectors} sectors`).join(", ")}` +

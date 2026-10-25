@@ -3,6 +3,10 @@ import {fileURLToPath} from 'node:url';
 const definitions=JSON.parse(fs.readFileSync(new URL('../assets/graphics/l2-islands.json',import.meta.url)));
 export const ISLAND_RECIPES=definitions.recipes;
 export const ISLAND_RECIPE_BYTES=36;
+export const ISLAND_RECORD_BYTES=6;
+export const ISLAND_DESCRIPTORS_OFFSET=8;
+export const ISLAND_SPANS_OFFSET=28;
+export const ISLAND_LOOKUP_OFFSET=128;
 export function islandRecipeBytes(){
  if(definitions.formatVersion!==1||ISLAND_RECIPES.length!==3)throw Error('L2 recipe format/set changed');
  return Buffer.from(ISLAND_RECIPES.flatMap(r=>{
@@ -44,9 +48,9 @@ export function compileIslandExtension(source,hull,geometry){
   if(firstRecord===undefined){
    if(used+records.length>7)fail('more than seven span records');
    firstRecord=used;sets.set(key,used);
-   for(const record of records){Buffer.from(record).copy(bytes,28+used*6);used++;}
+   for(const record of records){Buffer.from(record).copy(bytes,ISLAND_SPANS_OFFSET+used*ISLAND_RECORD_BYTES);used++;}
   }
-  bytes[8+index*2]=firstRecord*6;bytes[9+index*2]=records.length;
+  bytes[ISLAND_DESCRIPTORS_OFFSET+index*2]=firstRecord*ISLAND_RECORD_BYTES;bytes[ISLAND_DESCRIPTORS_OFFSET+1+index*2]=records.length;
  }
  bytes[2]=used;
  return bytes;

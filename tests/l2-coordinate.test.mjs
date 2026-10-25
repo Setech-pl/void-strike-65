@@ -13,7 +13,7 @@ test('L2 coordinates: 16-bit entry and every phase boundary through maximum drai
  const memory=new Uint8Array(65536);installRuntimeSegments(memory,root);let maxEntryCpu=0,maxPhaseCpu=0;
  for(const rows of [288,352,480,512,720,960]){
   const s=source();s.hull={rows,turrets:3};const level=compileLevel(s,{hullAsset:defaultHullAsset()});
-  memory.set(level.pages.geometry,0xac00);memory.set(level.pages.islands,0xad00);maxEntryCpu=Math.max(maxEntryCpu,call(memory,0x1912).cycles);
+  memory.set(level.pages.geometry,0xac00);memory.set(level.pages.islands,0xad00);memory[0x4ea5]=0;maxEntryCpu=Math.max(maxEntryCpu,call(memory,0x1912).cycles);
   const first=960-rows;assert.equal(memory[0x8c]|memory[0x85ef]<<8,first);
   for(let row=first;row<990;row++){
    memory[0x8c]=row&255;memory[0x85ef]=row>>8;maxPhaseCpu=Math.max(maxPhaseCpu,call(memory,0x190f).cycles);

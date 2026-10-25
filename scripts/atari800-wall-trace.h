@@ -3588,6 +3588,8 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	int pairshot_speed = strncmp(dftrace_policy, "pairshot-speed-", 15u) == 0;
 	int pairshot_reentry = strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0;
 	int booster_reentry = strcmp(dftrace_policy, "booster-reentry") == 0;
+	/* DIAGNOSTIC ONLY: host RAM lives top-up; zero guest code instrumentation
+     * does not mean zero guest state writes. Never release evidence. */
 	if (dftrace_hold_player_lives != 0u &&
         (strncmp(dftrace_policy, "l2-", 3) != 0 ||
          MEMORY_mem[dftrace_player_lifecycle + 1u] < dftrace_hold_player_lives))
@@ -8483,58 +8485,9 @@ static void dftrace_l2_observe(void)
     fprintf(file,",%u\n",phase<960u?MEMORY_mem[0xAD80u+phase/8u]:0u);fflush(file);
 }
 
-/* Host-only L2 ownership log: never changes a guest register or byte. */
-static void dftrace_l2_lifetime(unsigned pc, unsigned x, unsigned sp)
-{
-    static FILE *f;
-    static unsigned phase, prev, emitted, fetches, stale, reads, first_fight;
-    const char *output=getenv("DFTRACE_L2_LIFETIME");
-    unsigned entry, opcode, operand;
-    if(output==NULL) return;
-    if(f==NULL) { f=fopen(output,"w");if(f==NULL){perror("L2 lifetime");exit(2);} }
-    if(pc==dftrace_pc_boss_enter && dftrace_pc_boss_enter!=0u) {
-        phase=1u;fprintf(f,"{\"event\":\"boss_enter\",\"host\":%u,\"pc\":%u}\n",(unsigned)Atari800_nframes,pc); }
-    const char *body=getenv("DFTRACE_L2_READ_RUN");
-    unsigned read_body=body?(unsigned)strtoul(body,NULL,0):0u;
-    if((pc==0xA006u || (pc==read_body && prev!=0xA006u)) && phase!=0u) {
-        entry=x;
-        fprintf(f,"{\"event\":\"read\",\"host\":%u,\"entry\":%u,\"caller\":%u}\n",(unsigned)Atari800_nframes,entry,prev);
-        if(entry==11u) {phase=3u;fprintf(f,"{\"event\":\"l2_reload_begin\"}\n");}
-        else if(phase==1u)phase=2u;
-    }
-    if(phase==3u && pc==0x1900u) {
-        const char *expected=getenv("DFTRACE_L2_IMAGE_SUM");
-        unsigned sum=dfboot_checksum(0x1900u,0x700u);
-        if(expected!=NULL && sum!=(unsigned)strtoul(expected,NULL,0)) {
-            fprintf(f,"{\"event\":\"partial_l2_execution\",\"sum\":%u}\n",sum);fflush(f);exit(2);
-        }
-        fprintf(f,"{\"event\":\"checked_l2_init\",\"host\":%u,\"sum\":%u}\n",(unsigned)Atari800_nframes,sum);phase=0u;
-    }
-    if(phase>=2u) {
-        opcode=MEMORY_mem[pc];operand=MEMORY_mem[(pc+1u)&65535u]|((unsigned)MEMORY_mem[(pc+2u)&65535u]<<8);
-        if(pc>=0x1900u&&pc<0x2000u) {
-            ++fetches;
-            if(emitted<100u) {fprintf(f,"{\"event\":\"fetch\",\"host\":%u,\"pc\":%u,\"previous\":%u,\"opcode\":%u,\"sp\":%u}\n",(unsigned)Atari800_nframes,pc,prev,opcode,sp);++emitted;}
-        }
-        /* The direct resident L2 callsites/rate reads are absent on main.
-         * Distinguish them from installed boss slot-D execution by origin. */
-        if(((pc>=0x2000u&&pc<0x3B00u)||(pc>=0x5400u&&pc<0x6DE8u)||(pc>=0x8000u&&pc<0xA000u)) &&
-            ((opcode==0x20u||opcode==0x4Cu)&&(operand>=0x1900u&&operand<=0x1915u))) {
-            ++stale;if(stale<=20u)fprintf(f,"{\"event\":\"resident_entry\",\"host\":%u,\"pc\":%u,\"target\":%u}\n",(unsigned)Atari800_nframes,pc,operand);
-        }
-        if((opcode==0xADu||opcode==0xBDu||opcode==0xB9u)&&operand==0x1918u&&pc>=0x2000u) {
-            ++reads;if(reads<=20u)fprintf(f,"{\"event\":\"rate_read\",\"host\":%u,\"pc\":%u}\n",(unsigned)Atari800_nframes,pc);
-        }
-        if(pc==dftrace_pc_main_loop) {
-            ++first_fight;
-            if(first_fight==1u && getenv("DFTRACE_L2_BOSS_FRAMES")!=NULL)
-                dftrace_limit=dftrace_count+(unsigned)atoi(getenv("DFTRACE_L2_BOSS_FRAMES"));
-            if(first_fight<=5u||first_fight%100u==0u)
-                fprintf(f,"{\"event\":\"fight_frame\",\"host\":%u,\"number\":%u,\"fetches\":%u,\"stale_entries\":%u,\"rate_reads\":%u}\n",(unsigned)Atari800_nframes,first_fight,fetches,stale,reads);
-        }
-    }
-    prev=pc;fflush(f);
-}
+/* Actual CPU access hooks; image/phase-aware ownership across all resident windows. */
+#include "voidstrike65_l2.h"
+#include "voidstrike65_l2_exits.h"
 
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
@@ -8639,6 +8592,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	dftrace_drive_pause_test();
 	dftrace_drive_boss_path();
+    dfl2_drive_exit(pc);
 
 	if (MEMORY_mem[dftrace_game_state] != 6u) {
 		dftrace_active = 0;

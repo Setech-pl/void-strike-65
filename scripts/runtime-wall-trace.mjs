@@ -2149,6 +2149,8 @@ function prepareAtari800(sourceDirectory) {
     `Expected Atari800 ${EXPECTED_ATARI800_VERSION} source`);
 
   fs.copyFileSync(headerPath, destinationHeader);
+  fs.copyFileSync(path.join(scriptDirectory,"atari800-l2-lifetime.h"),path.join(sourceDirectory,"src/voidstrike65_l2.h"));
+  fs.copyFileSync(path.join(scriptDirectory,"atari800-l2-exits.h"),path.join(sourceDirectory,"src/voidstrike65_l2_exits.h"));
   let cpuText = fs.readFileSync(cpuPath, "utf8");
   cpuText = cpuText.replace(/^#include "darkfighter_trace\.h"\r?\n/gm, "");
   if (!cpuText.includes('#include "voidstrike65_trace.h"')) {
@@ -2156,6 +2158,19 @@ function prepareAtari800(sourceDirectory) {
     invariant(cpuText.includes(includeAnchor), "Atari800 cpu.c include anchor changed");
     cpuText = cpuText.replace(includeAnchor,
       `${includeAnchor}\n#include "voidstrike65_trace.h"\n`);
+  }
+  if (!cpuText.includes("/* L2 actual CPU reads */")) {
+    cpuText=cpuText.replace('#include "voidstrike65_trace.h"', `#include "voidstrike65_trace.h"
+/* L2 actual CPU reads */
+#undef MEMORY_dGetByte
+#undef MEMORY_GetByte
+#undef MEMORY_dGetWord
+#undef MEMORY_dGetWordAligned
+#define MEMORY_dGetByte(a) dfl2_get_direct(a)
+#define MEMORY_GetByte(a) dfl2_get_byte(a)
+#define MEMORY_dGetWord(a) dfl2_get_word(a)
+#define MEMORY_dGetWordAligned(a) dfl2_get_aligned(a)
+`);
   }
   if (cpuText.includes("DFTrace_Observe(GET_PC());"))
     cpuText = cpuText.replace("DFTrace_Observe(GET_PC());",
@@ -2172,6 +2187,15 @@ function prepareAtari800(sourceDirectory) {
     cpuText = cpuText.replace(executeAnchor,
       `${executeAnchor}\t\tDFTrace_Observe(GET_PC(), A, X, Y, S);\n`);
   }
+  // PC_PTR bypasses MEMORY_dGetByte: cover opcode AND operand fetches too.
+  cpuText=cpuText.replace('#define GET_CODE_BYTE()     (*PC++)',
+    '#define GET_CODE_BYTE()     dfl2_get_direct((unsigned)(PC++ - MEMORY_mem))');
+  cpuText=cpuText.replace('#define PEEK_CODE_BYTE()    (*PC)',
+    '#define PEEK_CODE_BYTE()    dfl2_get_direct((unsigned)(PC - MEMORY_mem))');
+  cpuText=cpuText.replace('#define PEEK_CODE_WORD()    (*(const UWORD *) PC)',
+    '#define PEEK_CODE_WORD()    dfl2_get_word((unsigned)(PC - MEMORY_mem))');
+  cpuText=cpuText.replace('#define PEEK_CODE_WORD()    (*PC + (PC[1] << 8))',
+    '#define PEEK_CODE_WORD()    dfl2_get_word((unsigned)(PC - MEMORY_mem))');
   fs.writeFileSync(cpuPath, cpuText);
   // The boot smoke's RESET session: the observer raises a flag, and the frame
   // loop turns it into the emulator's own warm-start key before its key switch.
@@ -4349,6 +4373,7 @@ function main() {
       };
       addressEnvironment.DFTRACE_BOSS_FLAG = hex(readerLabels, "sr_slot_a_overlaid");
       addressEnvironment.DFTRACE_L2_READ_RUN = hex(readerLabels,"sector_reader_read_run");
+      addressEnvironment.DFTRACE_L2_OWNERSHIP=path.join(layout.inputDirectory,"l2-ownership.bin");
       addressEnvironment.DFTRACE_BOSS_PHASE = hex(bossLabels, "_boss_phase");
       addressEnvironment.DFTRACE_PC_BOSS_DLI = hex(bossLabels, "boss_dli");
       // feat/boss-art: the row palette's switch handler and its landing.
@@ -7548,7 +7573,12 @@ function main() {
     const acceptance = focusedPalAcceptance(allRows);
     fs.writeFileSync(focusedReportPath, `${JSON.stringify({
       emulator: "Atari800 7.1.2 PAL/XL",
-      guest_instrumentation_bytes: 0,
+      guest_instrumentation_bytes: 0, // guest CODE bytes only, not host fixture writes
+      diagnostic_allowances: {release_evidence:false, reuse_existing_traces:reuseExistingTraces,
+        host_lives_top_up:process.env.DFTRACE_HOLD_PLAYER_LIVES ?? null,
+        l2_exit_fixture:process.env.DFTRACE_L2_EXIT ?? null,
+        terminal_state_seed:["game-over","level-end"].includes(process.env.DFTRACE_L2_EXIT),
+        l2_variant_alias:["l2-capital-960","l2-main-control"].includes(layout.variant)},
       artifact_sha256: runtimeArtifacts,
       ...(layout.variant === null ? {} : { variant: layout.variant, diagnostic_only: true }),
       sessions: summaries,

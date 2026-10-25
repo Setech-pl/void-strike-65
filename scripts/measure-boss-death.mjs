@@ -26,6 +26,8 @@ if(process.argv.includes("--prepare")) {
   fs.writeFileSync(path.join(source,"src/voidstrike65_trace.h"),
     "#define DFTrace_Observe DFTrace_ObserveUnused\n"+normal+
     "\n#undef DFTrace_Observe\n"+fs.readFileSync("scripts/atari800-boss-death-trace.h","utf8"));
+  fs.copyFileSync("scripts/atari800-l2-lifetime.h",path.join(source,"src/voidstrike65_l2.h"));
+  fs.copyFileSync("scripts/atari800-l2-exits.h",path.join(source,"src/voidstrike65_l2_exits.h"));
   rebuildObserver();
 }
 if(process.argv.includes("--restore")) {
@@ -72,6 +74,7 @@ env.DFDB_LEVEL_LOADED=String(summary.get("summary_level_loaded"));
 env.DFDB_L2_DONE=String(m.l2 ? summary.get("summary_load_l2")+13 : 0);
 if(m.l2){
  env.DFTRACE_L2_LIFETIME=log+".lifetime.jsonl";
+ env.DFTRACE_L2_OWNERSHIP=path.join(dir,"l2-ownership.bin");
  env.DFTRACE_L2_READ_RUN=String(reader.get("sector_reader_read_run"));
  env.DFTRACE_L2_IMAGE_SUM=String(fs.readFileSync(path.join(dir,"l2.bin")).reduce((v,b)=>(Math.imul(v,33)+b)>>>0,0));
  env.DFWATCH_OUTPUT=log+".writers.json";

@@ -1249,6 +1249,7 @@ typedef struct {
 	 * happened from a frame delta. */
 	UBYTE level_header[8];
 	unsigned level_checksum;
+    unsigned l2_checksum;
 	unsigned slot_checksum;
 	unsigned table_checksum;
 	unsigned portb;
@@ -1812,6 +1813,7 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 		snapshot->level_header[index_window] =
 			MEMORY_mem[(dfboot_level_address + index_window) & 0xffffu];
 	snapshot->level_checksum = dfboot_checksum(dfboot_level_address, dfboot_level_bytes);
+    snapshot->l2_checksum = dfboot_checksum(0x1900u,0x700u);
 	snapshot->slot_checksum = dfboot_checksum(dfboot_slot_address, dfboot_slot_bytes);
 	snapshot->table_checksum = dfboot_checksum(dfboot_table_address, dfboot_table_bytes);
 	snapshot->splash_checksum =
@@ -1847,7 +1849,7 @@ static void dfboot_write(void)
 			"%02x%02x%02x%02x%02x%02x%02x%02x\","
 			"\"level_header\":\"%02x%02x%02x%02x%02x%02x%02x%02x\","
 			"\"level_checksum\":%u,\"slot_checksum\":%u,\"table_checksum\":%u,"
-			"\"splash_checksum\":%u}%s\n",
+			"\"splash_checksum\":%u,\"l2_checksum\":%u}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
@@ -1867,7 +1869,7 @@ static void dfboot_write(void)
 			snapshot->level_header[4], snapshot->level_header[5],
 			snapshot->level_header[6], snapshot->level_header[7],
 			snapshot->level_checksum, snapshot->slot_checksum, snapshot->table_checksum,
-			snapshot->splash_checksum,
+			snapshot->splash_checksum, snapshot->l2_checksum,
 			index + 1u == dfboot_snapshots_count ? "" : ",");
 	}
 	fprintf(dfboot_file,
@@ -3586,7 +3588,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	int pairshot_speed = strncmp(dftrace_policy, "pairshot-speed-", 15u) == 0;
 	int pairshot_reentry = strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0;
 	int booster_reentry = strcmp(dftrace_policy, "booster-reentry") == 0;
-	if (dftrace_hold_player_lives != 0u)
+	if (dftrace_hold_player_lives != 0u &&
+        (strncmp(dftrace_policy, "l2-", 3) != 0 ||
+         MEMORY_mem[dftrace_player_lifecycle + 1u] < dftrace_hold_player_lives))
 		MEMORY_mem[dftrace_player_lifecycle + 1u] =
 			(UBYTE) dftrace_hold_player_lives;
 	if (dftrace_pokes != NULL) {
@@ -4306,12 +4310,14 @@ static void dftrace_set_gameplay_input(unsigned frame)
         unsigned phase = MEMORY_mem[dftrace_corridor_phase] |
             ((unsigned)MEMORY_mem[dftrace_corridor_phase_hi] << 8);
         unsigned capital = MEMORY_mem[dftrace_sector_state] < 7u;
-        unsigned local = phase - (960u - (MEMORY_mem[0xAC00u] | ((unsigned)MEMORY_mem[0xAC01u]<<8)));
+        unsigned axis = getenv("DFTRACE_L2_AXIS") != NULL ? (unsigned)atoi(getenv("DFTRACE_L2_AXIS")) : 960u;
+        unsigned local = phase - (axis - (MEMORY_mem[0xAC00u] | ((unsigned)MEMORY_mem[0xAC01u]<<8)));
         unsigned target = capital ? (((local / 112u) & 1u) ? 152u : 92u) : 124u;
         if (strcmp(dftrace_policy, "l2-contact") == 0 && capital) target = 124u;
+        if (strncmp(dftrace_policy,"l2-matrix",9)==0 && capital && local>=112u && local<208u) target=124u;
         stick = x < target ? 0x07u : x > target ? 0x0bu : 0x0fu;
         /* Ordinary DOWN/release windows; no guest speed or coordinate writes. */
-        if (strcmp(dftrace_policy, "l2-brake") == 0 && capital &&
+        if ((strcmp(dftrace_policy, "l2-brake") == 0 || strcmp(dftrace_policy,"l2-matrix-brake")==0) && capital &&
             (local < 256u || (local >= 384u && local < 640u))) stick &= ~2u;
     }
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
@@ -8470,11 +8476,54 @@ static void dftrace_l2_observe(void)
     world=MEMORY_mem[strtoul(getenv("DFTRACE_L2_WORLD_ACC"),NULL,0)];
     hull=MEMORY_mem[strtoul(getenv("DFTRACE_L2_HULL_ACC"),NULL,0)];
     fprintf(file,"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",dftrace_count,phase,
-        MEMORY_mem[dftrace_sector_state],MEMORY_mem[0x1918u],world,hull,
+        MEMORY_mem[dftrace_sector_state],MEMORY_mem[0x86B4u],world,hull,
         MEMORY_mem[dftrace_player_x],MEMORY_mem[dftrace_player_y],
         MEMORY_mem[dftrace_broad_state+30u],MEMORY_mem[dftrace_broad_state+29u]);
     for(i=0;i<3u;++i) fprintf(file,",%u",MEMORY_mem[dftrace_broad_state+15u+i]);
     fprintf(file,",%u\n",phase<960u?MEMORY_mem[0xAD80u+phase/8u]:0u);fflush(file);
+}
+
+/* Host-only L2 ownership log: never changes a guest register or byte. */
+static void dftrace_l2_lifetime(unsigned pc, unsigned x, unsigned sp)
+{
+    static FILE *f;
+    static unsigned phase, prev, emitted, fetches, stale, reads, first_fight;
+    const char *output=getenv("DFTRACE_L2_LIFETIME");
+    unsigned entry, opcode, operand;
+    if(output==NULL) return;
+    if(f==NULL) { f=fopen(output,"w");if(f==NULL){perror("L2 lifetime");exit(2);} }
+    if(pc==dftrace_pc_boss_enter && dftrace_pc_boss_enter!=0u) {
+        phase=1u;fprintf(f,"{\"event\":\"boss_enter\",\"host\":%u,\"pc\":%u}\n",(unsigned)Atari800_nframes,pc); }
+    if(pc==0xA006u && phase!=0u) {
+        entry=x;
+        fprintf(f,"{\"event\":\"read\",\"host\":%u,\"entry\":%u,\"caller\":%u}\n",(unsigned)Atari800_nframes,entry,prev);
+        if(entry==11u) {phase=0u;fprintf(f,"{\"event\":\"l2_reload\"}\n");}
+        else if(phase==1u)phase=2u;
+    }
+    if(phase>=2u) {
+        opcode=MEMORY_mem[pc];operand=MEMORY_mem[(pc+1u)&65535u]|((unsigned)MEMORY_mem[(pc+2u)&65535u]<<8);
+        if(pc>=0x1900u&&pc<0x2000u) {
+            ++fetches;
+            if(emitted<100u) {fprintf(f,"{\"event\":\"fetch\",\"host\":%u,\"pc\":%u,\"previous\":%u,\"opcode\":%u,\"sp\":%u}\n",(unsigned)Atari800_nframes,pc,prev,opcode,sp);++emitted;}
+        }
+        /* The direct resident L2 callsites/rate reads are absent on main.
+         * Distinguish them from installed boss slot-D execution by origin. */
+        if(((pc>=0x2000u&&pc<0x3B00u)||(pc>=0x5400u&&pc<0x6DE8u)||(pc>=0x8000u&&pc<0xA000u)) &&
+            ((opcode==0x20u||opcode==0x4Cu)&&(operand>=0x1900u&&operand<=0x1915u))) {
+            ++stale;if(stale<=20u)fprintf(f,"{\"event\":\"resident_entry\",\"host\":%u,\"pc\":%u,\"target\":%u}\n",(unsigned)Atari800_nframes,pc,operand);
+        }
+        if((opcode==0xADu||opcode==0xBDu||opcode==0xB9u)&&operand==0x1918u&&pc>=0x2000u) {
+            ++reads;if(reads<=20u)fprintf(f,"{\"event\":\"rate_read\",\"host\":%u,\"pc\":%u}\n",(unsigned)Atari800_nframes,pc);
+        }
+        if(pc==dftrace_pc_main_loop) {
+            ++first_fight;
+            if(first_fight==1u && getenv("DFTRACE_L2_BOSS_FRAMES")!=NULL)
+                dftrace_limit=dftrace_count+(unsigned)atoi(getenv("DFTRACE_L2_BOSS_FRAMES"));
+            if(first_fight<=5u||first_fight%100u==0u)
+                fprintf(f,"{\"event\":\"fight_frame\",\"host\":%u,\"number\":%u,\"fetches\":%u,\"stale_entries\":%u,\"rate_reads\":%u}\n",(unsigned)Atari800_nframes,first_fight,fetches,stale,reads);
+        }
+    }
+    prev=pc;fflush(f);
 }
 
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
@@ -8549,6 +8598,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dftrace_l2_lifetime(pc, x_register, s_register);
 	dfoverlay_force_observe("DFTRACE_FORCE_OVERLAY_RESTORE", pc);
 	dfprobe_observe();
 	dfspread_observe();

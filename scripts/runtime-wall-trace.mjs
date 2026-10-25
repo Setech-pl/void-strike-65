@@ -2379,6 +2379,15 @@ function hudRowWriterInventory(watches, nameOf) {
 
 function parseCsv(csvText, sessionDefinition) {
   const lines = csvText.trim().split(/\r?\n/);
+  // A focused handoff capture may end after an exact number of boss frames.
+  // Keep exact record-count validation; its endpoint is the recorded entry.
+  if(sessionDefinition.endAtBossFrames) {
+    const column=lines[0].split(",").indexOf("boss_entry");
+    const entry=lines.slice(1).findIndex(line=>line.split(",")[column]==="1");
+    invariant(entry>=0,"focused boss endpoint has no entry subject");
+    invariant(entry+sessionDefinition.endAtBossFrames<=sessionDefinition.frames,"boss endpoint exceeds capture capacity");
+    sessionDefinition.frames=entry+sessionDefinition.endAtBossFrames;
+  }
   invariant(sessionDefinition.activeFrames > 0
     ? lines.length > 1 && lines.length <= sessionDefinition.activeFrames + 257 &&
       Number(lines.at(-1).split(",")[lines[0].split(",").indexOf("active_gameplay_frame")]) ===
@@ -3005,6 +3014,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     "Boot smoke needs the manifest's overlay accounting");
   const capitalRun = overlays.runs.find((run) => run.index === 0);
   const menuRun = overlays.runs.find((run) => run.index === 10);
+  const l2Run = overlays.runs.find((run) => run.index === 11);
+  const l2Sectors=l2Run?.sectors ?? 0;
+  const l2Checksum=l2Run ? fs.readFileSync(path.join(rootDirectory,"build",l2Run.file)).reduce((v,b)=>(Math.imul(v,33)+b)>>>0,0) : 0;
   invariant(menuRun?.sectors === 11 && menuRun.destination === 0x0c00,
     "L1 boot smoke needs the checked 11-sector menu run");
   const capitalRunImage = fs.readFileSync(path.join(rootDirectory, "build", capitalRun.file));
@@ -3380,7 +3392,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors,
+      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
       summary: {
         entry_frame: startSummary.entry,
         first_display_frame: startSummary.display,
@@ -3457,14 +3469,15 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     `${definition.id} has the wrong level image at ` +
     `$${sectorReader.levelBuffer.address.toString(16)}: header ${gameplay.level_header} ` +
     `checksum ${gameplay.level_checksum}, expected ${levelImageHex} / ${levelImageChecksum}`);
+    invariant(!l2Run || gameplay.l2_checksum===l2Checksum, `${definition.id} checked L2 image differs at gameplay entry`);
     const sio = result.sio;
     invariant(sio !== undefined, `${definition.id} recorded no SIO counters`);
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors,
+    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
       `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors} - one per ` +
+      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors} - one per ` +
       "sector, no retries");
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);
@@ -4604,8 +4617,9 @@ function main() {
         layout.variant !== null ? regionRouteSessions.filter(({ bossRegion }) =>
           layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
-      id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames,
-      policy: process.env.VS65_L2_POLICY ?? baselineSessions[0].policy }];
+      id: process.env.VS65_L2_SESSION ?? "observer-smoke", kind: "observer-smoke", frames: smokeFrames,
+      policy: process.env.VS65_L2_POLICY ?? baselineSessions[0].policy,
+      endAtBossFrames: Number(process.env.DFTRACE_L2_BOSS_FRAMES ?? 0) }];
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
   // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,

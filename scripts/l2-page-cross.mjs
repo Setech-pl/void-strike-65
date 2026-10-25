@@ -55,7 +55,7 @@ for(const [key,r] of now){if(!r.instructions)continue;const b=old.get(key);
  const newCross=r.branches.filter((x,i)=>x.cross&&!b?.branches[i]?.cross);
  rows.push({key,addressBefore:b?.address??null,addressAfter:r.address,
   before:b?.branches.filter(x=>x.cross).length??0,after:crossings.length,newCrossings:newCross,
-  branchCount:r.branches.length,indexedSites:r.indexed,classification:/guard|reader|summary|boot|loader|^copy_|^init_|unpack|frontend|menu|publish_level|l2_init|l2_c_enter/i.test(r.name)?'cold/transition':'per-frame'});
+  branchCount:r.branches.length,indexedSites:r.indexed,classification:/guard|reader|summary|boot|loader|^copy_|^init_|unpack|frontend|menu|publish_level|l2_init|l2_rearm|l2_disarm|l2_c_enter/i.test(r.name)?'cold/transition':'per-frame'});
 }
 const indexedTables=[
  ['l2_part_offsets',5],['l2_recipe_offsets',2],['l2_left_caps',2],['l2_right_caps',2],['l2_recipes',107],['_l2_normal_rates',2],['_l2_half_rates',2],

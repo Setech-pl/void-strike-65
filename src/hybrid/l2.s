@@ -11,13 +11,13 @@ l2_start:
     jmp _l2_c_phase
     jmp _l2_c_enter
     jmp l2_commit_row
-_l2_rate: .byte 0
+_l2_rate = L2_SCROLL_RATE
+    .byte 0 ; retired slot retains every following hot address
 .export _l2_rate
 .assert _l2_rate = L2_SCROLL_RATE, lderror, "L2 cached rate ABI moved"
 l2_init:
-    lda #0
-    sta _l2_rate
-    rts
+    jmp l2_rearm
+    .res 3,$EA
 l2_brake_before_enemy:
     jsr _l2_brake_tick
     jmp integration_update_enemy
@@ -307,6 +307,15 @@ l2_source_hi: .byte 0
 l2_end_column: .byte 0
 l2_fill: .byte 0
 .include "l2-c.inc"
+; Checked load + INIT is the only re-arm point after a phase overwrite.
+l2_rearm:
+    lda #<L2_BRAKE
+    sta profile_after_player+1
+    lda #>L2_BRAKE
+    sta profile_after_player+2
+    lda #0
+    sta _l2_rate
+    rts
 l2_end:
 .export l2_start,l2_end,l2_interval,l2_draw_row,l2_contact,l2_island_contact,l2_commit_row,l2_recipes
 .assert l2_start = L2_INIT, lderror, "L2 ABI moved"

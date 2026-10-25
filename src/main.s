@@ -13384,7 +13384,7 @@ boss_enter_head:
     bpl @hud_cell
     jsr music_stop_gameplay
     jsr pause_silence_audio
-    jsr pin_sector_reader_blank
+    jsr L2_DISARM              ; blanks first, disarms before any boss read
     lda #$00
     sta BOSS_ENTRY_LEVEL_BUFFER_MAGIC
     ; feat/boss-banners (the owner's smoke of 2026-10-18): no text screen any

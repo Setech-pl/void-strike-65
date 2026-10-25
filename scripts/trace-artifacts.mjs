@@ -21,7 +21,7 @@ const DEBUG_ROUTE_VARIANT = /^(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]
 // a default-build trace.
 const DIAGNOSTIC_FLAGS = ["--artifacts=", "--only-session=", "--atari800-source=",
   "--prepare", "--smoke-frames=", "--smoke-difficulty=", "--active-frames=",
-  "--force-overlay-restore", "--hit-trace"];
+  "--force-overlay-restore", "--hit-trace", "--reuse-existing-traces"];
 
 export function traceArtifactLayout(rootDirectory, artifacts) {
   if (artifacts === undefined) {
@@ -35,7 +35,7 @@ export function traceArtifactLayout(rootDirectory, artifacts) {
   const directory = path.resolve(rootDirectory, artifacts);
   const variant = path.basename(directory);
   if (path.dirname(directory) !== path.join(rootDirectory, "build") ||
-      !(DEBUG_ROUTE_VARIANT.test(variant) || variant === 'l2-capital-960')) {
+      !(DEBUG_ROUTE_VARIANT.test(variant) || variant === 'l2-capital-960' || variant === 'l2-main-control')) {
     throw new Error(`--artifacts=${artifacts} is not a debug-route build; ` +
       "it must name build/level-N-sM (node scripts/build.mjs --level=N[:sector=M])");
   }
@@ -49,7 +49,7 @@ export function traceArtifactLayout(rootDirectory, artifacts) {
 
 export function assertDiagnosticRun(layout, manifest, argv) {
   if (layout.variant === null) return;
-  if (manifest.buildVariant !== layout.variant) {
+  if (manifest.buildVariant !== layout.variant && !(layout.variant === 'l2-main-control' && manifest.buildVariant === 'level-1-s1' && !manifest.l2)) {
     throw new Error(`the manifest in build/${layout.variant}/ names ` +
       `${JSON.stringify(manifest.buildVariant)}, not ${layout.variant}`);
   }

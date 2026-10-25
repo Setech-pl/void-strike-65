@@ -1487,7 +1487,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     const lineEnd=lifecycleText.indexOf("\n",start)+1;
     lifecycleText=lifecycleText.slice(0,lineEnd)+"l2_pin_start:\n"+lifecycleText.slice(lineEnd);
     const end=lifecycleText.indexOf(".endproc",start);
-    lifecycleText=lifecycleText.slice(0,end)+`.res ${bytes}-(*-l2_pin_start), $00\n`+lifecycleText.slice(end);
+    lifecycleText=lifecycleText.slice(0,end)+(name==="sector_c_update_capital_phase" ? fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-lifetime.s"),"utf8")+"\n" : "")+`.res ${bytes}-(*-l2_pin_start), $00\n`+lifecycleText.slice(end);
   }
   lifecycleGeneratedAssembly=Buffer.from(lifecycleText);
   if (process.env.VS65_DUMP_GENERATED === "1") {
@@ -2761,7 +2761,7 @@ async function build() {
   if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
     throw new Error("L2 C requires software-stack/helper state");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
-  const l2MainNames=["corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy"];
+  const l2MainNames=["profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy"];
   const l2MainInclude=l2MainNames.map(name=>{
     const address=labels.get(name);if(!Number.isInteger(address))throw new Error(`L2 main ABI missing ${name}`);
     return `${name} = $${address.toString(16)}`;
@@ -2782,6 +2782,13 @@ async function build() {
     ["lbl",l2Module.labels],["lst",l2Module.listing]]) writeFile(path.join(buildDirectory,`l2.${extension}`),data);
   const l2Labels = parseViceLabels(l2Module.labels.toString());
   const l2Used = l2Labels.get("l2_end") - 0x1900;
+  for(const [name,pin] of [["profile_after_player",0x5eef],["integration_update_enemy",0x3114],["pin_sector_reader_blank",0xa03d]]) {
+    const actual=labels.get(name) ?? (name==="pin_sector_reader_blank"?0xa03d:undefined);
+    if(actual!==pin) throw new Error(`L2 lifetime cross-link ${name} moved`);
+  }
+  const lifetimeLabels=parseViceLabels(directorModule.labels.toString());
+  if(lifetimeLabels.get("l2_disarm")!==0x8656 || lifetimeLabels.get("l2_cached_rate")!==0x86b4)
+    throw new Error("L2 resident lifetime pins moved");
   if (!Number.isInteger(l2Used) || l2Used > 1228) throw new Error(`L2 first contents ${l2Used} B exceed approved 1024 +20% STOP`);
   const overlayRuns = [{
     index: 0,

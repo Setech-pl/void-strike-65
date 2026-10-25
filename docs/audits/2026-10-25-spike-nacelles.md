@@ -600,3 +600,272 @@ more detailed plate surface/edge using existing slots. **Deferred:** real
 No full test suite, full wall-trace suite, stage-2, reconciliation, release
 build, boss or lost-target stress was run. No boss code was changed.
 `docs/STATUS.md` remains the accepted L1 baseline. **SPIKE P5 COMPLETE; STOP.**
+
+## Throttle, bottom-shot fairness and sector length
+
+**Owner decisions after P5 smoke:** “plays excellently — real obstacles”. The
+island mechanic is accepted for later production in L2; capital sectors lose
+small falling debris, while SPACE keeps it. Production will have more varied
+fragments built from ship elements/other objects, including enemy colours,
+and a longer capital sector. These are accepted directions, not a claim that
+this throwaway code has entered main. The throttle below remains an
+**OWNER-SMOKE CANDIDATE**. This round changes no boss or shared spawn logic;
+the already-approved spike debris admission rule is retained unchanged.
+
+### Why the bottom shot can become unavoidable
+
+The bottom input limit is `player_y = 225`. The rendered/capital-shell target
+is **16 HPOS wide**, with inclusive raster Y **217–231**. Input moves at
+**2 HPOS horizontally and 1 scanline vertically per frame**. Hull/island
+contact still uses its separate legacy 8-HPOS footprint. Both capital factions'
+bolts can damage the player; allied colour does not grant immunity.
+
+A warning lasts **25 PAL frames / 0.5 seconds**. The attached warning and
+muzzle descend **8 scanlines per hull-row event**. Normal difficulty rates
+are **16/40, 18/40, 20/40 rows/frame**, or **3.2 / 3.6 / 4 scanlines/frame**
+on average. The warning can therefore travel up to **10 / 12 / 13 rows**
+(80 / 96 / 104 scanlines) during its charge. The compiler's last-admission
+rows **17 / 15 / 14** prevent an offscreen launch; they do not prove an escape
+for the player's current position or the island channels.
+
+The bolt moves horizontally at **2 HPOS/frame**, character-aligned in four-HPOS
+steps, with a swept **8-HPOS × 6-scanline** collision envelope. After the
+attached launch flash expires, its Y is screen-fixed. **Pre-existing detail:**
+the four-frame launch flash shares the row pointer, so a world-row event during
+those first frames can still move the bolt down by eight scanlines. The brake
+preserves this behaviour at the reduced world cadence; it does not create a
+second projectile clock. Relative motion is therefore not simply “the world
+slows every projectile”.
+
+Concrete packed-P5 EASY route, zero-based gameplay frame numbers:
+
+| Frame | Next hull source row | Player origin | Slot 0 state / X | Warning or bolt raster |
+| --- | ---: | --- | --- | --- |
+| 1369 | 186 | (92,225) | allied warning / 84, timer 25 | charge starts at logical row 16; `BROAD_Y=148` |
+| 1394 | 196 | (120,225) | launch / 84 | cached top 217; flash 4 |
+| 1397 | 197 | weaving right | flying / 90 | top becomes 225 during the attached flash |
+| 1425 | 208 | (152,225) | flying / 146 | bolt rows 225–230 |
+| 1426 | 208 | (152,225) | impact / 148 | swept X 144–155; HULL 4→2 |
+
+At the decision for frame **1426**, the rightmost next player origin is 154;
+the ship still overlaps swept X 144–155. Left/neutral also overlap. One UP
+step leaves raster 216–230, still intersecting the bolt. DOWN is clamped.
+All **nine legal joystick directions** therefore hit on that frame, confirmed
+with the linked NMOS collision routine. Clearing vertically upward needs
+**7 frames** (origin ≤218); there is only one frame left. MEDIUM frame 1191
+and HARD frame 1614 provide analogous nine-direction traps with bolt raster
+217–222: upward clearance then needs **15 frames**, while downward clearance
+would require origin ≥231, beyond the bottom limit.
+
+More generally, no immediate escape exists when every reachable next origin
+`X±2, Y±1` (clamped to the playfield and constrained by hulls/islands) overlaps
+the swept bolt rectangle. A longer-horizon escape also fails if the first
+clear vertical position takes longer than impact and the horizontal route is
+closed by a hull or fragment. Matching the bolt's speed by running away is
+not a permanent escape from a finite side channel.
+
+This is **late commitment**, not evidence that the entire original warning was
+unavoidable. The counterfactual reachability check finds safe routes from the
+two bottom-overlapping EASY launches captured here, including the initial
+flash's vertical movement. The first example has **57 frames from initial
+warning to damage**. This is one-shell reachability, excluding simultaneous
+damage sources, not a proof of a globally safe path. The brake improves advance
+control and where the warning
+finishes; it cannot rescue every already-launched point-blank bolt. No aiming,
+damage rectangle or friendly-fire rule was changed to hide this limitation.
+
+### Brake implementation and clock ownership
+
+Build with `--spike-nacelles=5 --spike-throttle`. Holding DOWN at origin Y=225
+in capital states ENGINES through COMPLETE asks for half speed. The C policy
+moves the numerator by **one per frame**, retaining both fractional residues:
+
+| Difficulty | Normal → braked rows/frame | Ramp in / out | Fully braked warning travel, maximum |
+| --- | --- | --- | ---: |
+| EASY | 16/40 → 8/40 (0.4 → 0.2) | 8 frames / 160 ms | 5 rows |
+| MEDIUM | 18/40 → 9/40 (0.45 → 0.225) | 9 frames / 180 ms | 6 rows |
+| HARD | 20/40 → 10/40 (0.5 → 0.25) | 10 frames / 200 ms | 7 rows |
+
+Release DOWN or move above the bottom to ramp back. OPEN and DYING reset to
+normal immediately; pauses freeze the policy with gameplay. There is no
+latched input or slow state to clear later. The original eight-scanline coarse
+scroll steps remain; the ramp avoids accumulator resets or an extra position
+jump, rather than adding a new fine-scroll renderer.
+
+C owns input/ramp policy; ASM consumes one cached numerator. Its call executes
+before the unchanged enemy tick, collisions and the early `world_rotate_due`
+predictor. That predictor and `update_starfield` use the same cached value.
+World and hull accumulators remain equal on **every measured frame**. The
+ring, islands, hull contact rows, turret tracking, warnings, attached flashes,
+row-relative debris carry and Director world-row clock all consume their
+existing row events. No renderer, VBI/DLI, boss, breakup or spawn policy changes.
+The coarse starfield follows the world; existing independent near-star motion
+is retained.
+
+**Timers remain deliberately mixed:** sector traversal, Director sector rows,
+reaction/recovery and row-based spacing slow in real time. The provisional
+12-row broadside reaction floor is approximately **30/27/24 frames normally**
+and **60/54/48 while braked**. Broadside schedule delay counts eligible
+candidate attempts; warning countdowns, launched horizontal flight, launch-flash
+lifetimes, weapon bursts, damage cooldown and animation/audio timers retain
+frame semantics. Thus the player gets more real time per hull distance and
+fewer row-budgeted admissions per second. There is no catch-up burst on
+release and no independent Director frame timer that prematurely ends capital.
+
+To enable the same mechanic in SPACE, remove the C capital-state gate and
+validate SPACE debris, Light/Heavy movement, pickups and fire pressure against
+the slower world. The normal rates already equal `world_scroll_rates * 2`,
+and the predictor already reads the shared cache, so no additional clock or
+state is needed. Removing that guard is estimated to save about **7 B**;
+this is not implemented or SPACE-verified. Frame-based enemies/projectiles
+would become faster relative to the world, a gameplay change requiring owner
+smoke. Boss loops remain outside this proposal.
+
+### Measurements and correctness
+
+**EMULATOR-MEASURED, DMA ON:** six focused 2,800-frame packed-ATR routes,
+P5 with throttle OFF and ON on all three difficulties. Both have islands and
+capital debris disabled. DOWN/release windows are fixed gameplay-frame windows;
+horizontal weaving uses the same row-driven policy in both builds. They are
+the same controller, not a claim of identical positions after scroll rates
+diverge. All routes finish the full capital sector including its handoff.
+
+| Difficulty | OFF sector peak / mean | ON sector peak / mean | Peak / mean Δ | ON frames at half speed |
+| --- | ---: | ---: | ---: | ---: |
+| EASY | 30,256 / 12,075.2 | 30,253 / 11,220.3 | −3 / −854.9 | 673 |
+| MEDIUM | 30,011 / 13,295.4 | 30,015 / 12,189.4 | +4 / −1,105.9 | 707 |
+| HARD | 29,105 / 14,215.1 | 29,105 / 12,858.6 | 0 / −1,356.5 | 733 |
+
+| Difficulty | Worst slowed / mean | Worst ramping / mean | Mean at normal speed, active hull | Complete-route maximum / minimum fence |
+| --- | ---: | ---: | ---: | ---: |
+| EASY | 14,076 / 8,172.9 | 12,342 / 9,213.9 | 9,627.9 | 30,841 / 5,063 |
+| MEDIUM | 15,631 / 8,796.2 | 14,044 / 9,486.0 | 10,883.0 | 31,206 / 4,029 |
+| HARD | 15,766 / 9,179.7 | 14,945 / 10,774.0 | 11,311.8 | 31,434 / 3,807 |
+
+Fewer row events make slowed frames cheaper on average despite the input
+policy's overhead. These means include differing warnings, collisions and
+effects, not an isolated instruction saving. Handoffs dominate full-sector
+peaks. The maximum complete route has **66 cycles of target headroom**.
+All computed normal-build gates PASS; all measured frames remain below target
+**31,500** and hard **32,568**, all applicable fences exceed **500**. Distinct
+misses, shifted phases, extra VBI and DLI anomalies: **0** throughout.
+The separate build DMA-off reference peak is **16,207** versus P5's **16,126**;
+it is not a capital DMA-on frame.
+
+**Instruction-model measured CPU:** C policy including its JSR is **33** in
+SPACE, **94** ramping in, **91** holding slow, **95** ramping out and **88**
+holding normal in capital; the conservative invalid-state recovery maximum
+is **107**. The wrapper tail jump adds 3 cycles; cached capital rate selection
+saves 10, giving ordinary capital overhead **+81 to +88 CPU** before reduced
+row work. An early rotate prediction, when called, adds **2 CPU**.
+
+Focused checks pass: **73,728 policy cases**, **1,200 accumulator predictions**,
+all ramp steps, release, death/OPEN resets and **768 alternative-warning cases**.
+The P5 exhaustive collision/cache checks and 82 backing cases also pass against
+the throttle artifact. Native checks cover hull/island publication, exact
+world/hull residues, shell logical pointers and raster caches, with no orphan
+shell cells or unexplained missing cells. Normal player-shot occlusion of a
+shell is classified separately; it is not treated as backing damage. The
+raw `broad*_raster_row` snapshot refers to the earlier ANTIC-list observation
+phase and is not incorrectly compared with a newly published row's cache.
+
+An initial synthetic-build failure was the new rate byte's MEDIUM preset in
+a harness that enters capital directly on HARD. An invalid zero sentinel now
+selects the correct difficulty on the first policy call. No harness assertion
+or computed gate was removed or relaxed. The normal flag-off ATR remains
+exactly `410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
+
+### Independent cheap warning alternative
+
+Implemented only because it is **23 B**, within the 24-B cap, under the
+separate `--spike-fair-warning` flag. It is mutually exclusive with the throttle
+comparison and **OFF in the delivered throttle ATR**. At warning admission,
+player origin Y≥201 selects **35 rather than 25 frames**. C performs the
+policy and timer store without stack helpers, preserving the caller's slot X.
+It adds **zero state** and **30 CPU at admission**, with zero extra policy work
+on ordinary frames. Its normal build and all threshold/slot checks pass; no
+additional native route set was run for this optional comparison.
+
+This adds 0.2 seconds of advance warning without a new player control. It
+keeps the original visibility expiry: a charge which leaves the bottom before
+launch is released, so some near-bottom shots are effectively suppressed.
+The extra warning lifetime changes time spent rendering warnings and the
+shot cadence; it does not slow a launched bolt or guarantee escape after late
+commitment. The brake is more expressive, controls hull/island approach and
+reduces row-work frequency. A precise per-shot minimum-escape-time solver
+would cost materially more than either small policy and is not implemented.
+
+### Sector-length finding and production estimate
+
+**Not data-only; no longer hull was implemented.** `hull.rows` accepts only
+288/352/416/480, and capital-sector `rows` is explicitly rejected. Increasing
+a sector's schedule length is ignored: capital completes on hull traversal.
+Two adjacent capital records cannot form a seamless corridor: the first must
+DRAIN, remove both hulls, reconstruct 28 rows and return OPEN before Director
+advances. Re-entry also only resets the low source-row byte today. Chaining
+would therefore show a break and needs lifecycle/reset work, not merely data.
+
+The current geometry is **128 B: 8 header + 2×60 module IDs**. Runtime resolvers,
+the C phase guard (`HI > 1`), drain module 61, entry alignment, prow/drain row
+mapping, transport/checksum assumptions and P5's ≤511-row lookup all encode
+this finite range. The source-row counter itself is already 16-bit.
+
+| Future length | Module IDs per side | Minimum geometry size / growth | Current padded P5 lookup growth |
+| --- | ---: | ---: | ---: |
+| 720 rows (1.5×) | 90 | 188 B / +60 B | +96 B if padded to 96 entries/difficulty |
+| 960 rows (2×) | 120 | 248 B / +120 B | +192 B if padded to 128 entries/difficulty |
+
+Those geometry byte counts are exact layout arithmetic. **ESTIMATE:** an
+in-place finite-hull extension needs roughly **32–80 B additional target code**
+for widened phase/address/entry/lookup handling, plus the table growth above,
+compiler/format changes and focused verification. Disk rounding/packing is
+not measured because no extended artifact was built. A compact production
+span descriptor can avoid padding every island table; this estimate is not a
+linked L2 fit proof. Seamless chaining is a larger lifecycle change and is
+not the recommended shortcut.
+
+| This round's item | Code | Immutable data | State | Net allocation / disk growth vs P5 |
+| --- | ---: | ---: | ---: | ---: |
+| Throttle | 101 B C + 6 B veneer | 6 B | 1 B | +114 B / +128 B, one occupied sector |
+| Independent warning alternative | 23 B C | 0 | 0 | +23 B / +128 B, one occupied sector |
+| Longer sector | not implemented | not implemented | 0 | estimates above only |
+
+Main-loop/predictor/STARFIELD hooks replace existing bytes without growing
+those reservations. Throttle total window use is **608 B**, at
+`$B478-$B6D7`, with **547 B** free through `$B8FA`. Capital/island/throttle
+code totals **398 B**, immutable data **201 B**, scratch/state **9 B**.
+Retaining the debris admission reduction gives **+599 B physical residency
+versus clean main**, and **+384 B / 3 occupied sectors** of disk payload.
+The five reserved bytes at `$B8FB` and M3-H's reservation remain untouched.
+
+For production, put the **114-B** brake policy/veneer/data/state in the
+fighter/capital L2 module: it must be callable during OPEN as well as capital.
+Adding it to the prior P5 estimate gives **644–704 B**, leaving **1,088–1,148 B**
+of the shared 1,792 B before dock, bonus, longer-hull work, new graphics and
+infrastructure/reserve. Existing call sites need no new resident bytes;
+alternatively keeping the policy resident costs those same 114 B of scarce
+resident space. The optional warning alternative adds 23 B if selected later.
+No production placement or simultaneous-consumer fit is certified here.
+
+### Review artifacts
+
+[EASY brake GIF, 8 seconds](https://github.com/Setech-pl/void-strike-65/blob/codex/spike-nacelles/docs/diagnostics/spike-nacelles/p5-throttle-bottom.gif):
+normal speed at the start; DOWN at relative 1.0 seconds, half speed at 1.14;
+release at 5.0, normal again at 5.14. No artwork or gameplay-state patches.
+
+```text
+/Users/marcinkrzetowski/Projects/dark-fighter/docs/diagnostics/spike-nacelles/p5-throttle.atr
+SHA-256 6298ab3d1f1794d30c369683337a474d02793a31a58f8b84fa4938a209e068a1
+atari800 -xl -pal -nobasic <path>
+
+/Users/marcinkrzetowski/Projects/dark-fighter/docs/diagnostics/spike-nacelles/p5-throttle-bottom.gif
+```
+
+The ATR contains islands + capital debris off + throttle; the optional warning
+alternative is off. OPTIONS → DIFFICULTY: ROOKIE/EASY, PILOT/MEDIUM (default),
+ACE/HARD. Hold DOWN at the bottom to brake; release to restore normal speed.
+The geometric sector remains 480 rows for the data-only constraint above.
+Raw evidence, exact peak frames, reproduction and limitations are in
+`docs/diagnostics/spike-nacelles/throttle/`. No full test suite, full wall-trace
+suite, stage-2, reconciliation, release, boss or lost-target stress was run.
+Owner hardware smoke of this new throttle remains pending. No merge.

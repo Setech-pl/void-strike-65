@@ -4302,6 +4302,18 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				(x > 58u ? 0x0bu : 0x0fu);
 		}
 	}
+	else if (strcmp(dftrace_policy, "throttle-bottom") == 0) {
+        unsigned phase = MEMORY_mem[dftrace_corridor_phase] |
+            ((unsigned) MEMORY_mem[dftrace_corridor_phase_hi] << 8);
+        unsigned capital = MEMORY_mem[dftrace_sector_state] < 7u;
+        unsigned target = capital && (phase < 190u || phase >= 302u) ? 92u :
+            capital ? 152u : 124u;
+        stick = x < target ? 0x07u : x > target ? 0x0bu : 0x0fu;
+        /* Fixed frame windows: identical DOWN/release input in both builds.
+         * No guest state writes, no speed-dependent brake trigger. */
+        if (capital && (frame < 1250u || (frame >= 1400u && frame < 1600u) ||
+            (frame >= 1750u && frame < 1900u))) stick &= ~2u;
+    }
 	else if (strcmp(dftrace_policy, "islands-flight") == 0 ||
              strcmp(dftrace_policy, "islands-contact") == 0) {
         unsigned phase = MEMORY_mem[dftrace_corridor_phase] |
@@ -8473,6 +8485,42 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 }
 
 
+static void dftrace_throttle_observe(void)
+{
+    static FILE *file;
+    const char *output = getenv("DFTRACE_THROTTLE_OUTPUT");
+    const char *rate = getenv("DFTRACE_THROTTLE_RATE");
+    unsigned slot, occluded = 0u, unowned = 0u;
+    if (output == NULL) return;
+    if (file == NULL) {
+        file = fopen(output, "w");
+        if (file == NULL) { perror("throttle trace"); exit(2); }
+        fputs("frame,rate,world_acc,hull_acc",file);
+        for (slot=0u;slot<3u;++slot) fprintf(file,",timer%u",slot);
+        fputs(",shell_occluded,shell_unowned_missing\n",file);
+    }
+    fprintf(file,"%u,%u,%u,%u",dftrace_count,
+        rate != NULL ? MEMORY_mem[strtoul(rate,NULL,0)] :
+            16u+2u*MEMORY_mem[dftrace_difficulty_setting],
+        MEMORY_mem[strtoul(getenv("DFTRACE_WORLD_ACC"),NULL,0)],
+        MEMORY_mem[strtoul(getenv("DFTRACE_HULL_ACC"),NULL,0)]);
+    for(slot=0u;slot<3u;++slot) fprintf(file,",%u",MEMORY_mem[dftrace_broad_state+15u+slot]);
+    for(slot=0u;slot<3u;++slot) if(MEMORY_mem[dftrace_broad_state+slot]==2u) {
+        unsigned token=MEMORY_mem[dftrace_broad_state+21u+slot], cell;
+        unsigned pointer=MEMORY_mem[dftrace_broad_row_lo+slot] |
+            ((unsigned)MEMORY_mem[dftrace_broad_row_hi+slot]<<8);
+        if(token==0u)continue;
+        for(cell=0u;cell<2u;++cell) {
+            unsigned address=pointer+token-1u+cell;
+            if(dftrace_is_capital_shell_code(MEMORY_mem[address]))continue;
+            if(dftrace_first_writer_owner(address)&(2u|4u|8u|16u))++occluded;
+            else ++unowned;
+        }
+    }
+    fprintf(file,",%u,%u\n",occluded,unowned);
+    fflush(file);
+}
+
 static void dftrace_islands_observe(void)
 {
     static FILE *file;
@@ -9176,7 +9224,10 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_current.profile_pickup_render_start = 0u;
 			dftrace_current.profile_effect_render_start = 0u;
 		}
-		if (dftrace_current.profile_next == 20u) dftrace_islands_observe();
+		if (dftrace_current.profile_next == 20u) {
+            dftrace_islands_observe();
+            dftrace_throttle_observe();
+        }
 		++dftrace_current.profile_next;
 	}
 	if (pc == dftrace_pc_compose_start) {

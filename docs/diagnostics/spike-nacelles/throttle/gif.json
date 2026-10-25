@@ -1,0 +1,12 @@
+{
+  "path": "/Users/marcinkrzetowski/Projects/dark-fighter/docs/diagnostics/spike-nacelles/p5-throttle-bottom.gif",
+  "first": 1350,
+  "last": 1749,
+  "seconds": 8,
+  "sha256": "b12c9c3b3285d6314aeb413a7d8a84263d00354220447004c918639d16f075a2",
+  "atrSha256": "6298ab3d1f1794d30c369683337a474d02793a31a58f8b84fa4938a209e068a1",
+  "brakeDown": 1400,
+  "fullySlow": 1407,
+  "release": 1600,
+  "fullyNormal": 1607
+}

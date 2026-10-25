@@ -190,5 +190,11 @@ p5_source_hi: .byte 0
 p5_left: .byte 0
 p5_right: .byte 0
 p5_end_column: .byte 0
+.if SPIKE_THROTTLE
+.include "spike-throttle.s"
+.endif
+.if SPIKE_FAIR_WARNING
+.include "spike-warning.s"
+.endif
 spike_nacelles_end:
 .assert spike_nacelles_end <= $B8FB, lderror, "P5 exceeds permitted window"

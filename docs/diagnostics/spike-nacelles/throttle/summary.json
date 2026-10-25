@@ -1,0 +1,501 @@
+{
+  "baseline": "P5 ad3e108, islands and capital debris off",
+  "flagOffSha256": "410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7",
+  "difficulties": [
+    {
+      "difficulty": 0,
+      "name": "easy",
+      "off": {
+        "audit": {
+          "session": "off-easy",
+          "frames": 2800,
+          "fence_bound_frames": 1443,
+          "normal_start_scanline": {
+            "fighter": 17,
+            "capital": 230
+          },
+          "distinct_miss_events": 0,
+          "miss_events": [],
+          "overrun_rows": 0,
+          "fence_model_disagreements": 0,
+          "shifted_phase_rows": 0,
+          "worst_pre_wait_cycles": 20191,
+          "worst_pre_wait_frame": 359,
+          "worst_fence_margin_cycles": 5109,
+          "worst_fence_margin_frame": 359,
+          "maximum_wall_cycles": 30995,
+          "rows_over_target": 0,
+          "rows_over_hard_gate": 0,
+          "unreliable_counters": {
+            "missed_frames": 0,
+            "extra_vbi_boundaries": 0,
+            "dli_sequence_violations": 0
+          },
+          "fence_caught": true,
+          "gate_failures": [],
+          "passed": true
+        },
+        "capital": {
+          "frames": 1585,
+          "peak": {
+            "frame": 697,
+            "wall": 30256,
+            "phase": 0,
+            "rate": 16
+          },
+          "mean": 12075.203154574132
+        },
+        "slow": {
+          "frames": 0,
+          "peak": null,
+          "mean": null
+        },
+        "ramp": {
+          "frames": 0,
+          "peak": null,
+          "mean": null
+        },
+        "normalHull": {
+          "frames": 1219,
+          "mean": 9479.26825266612
+        },
+        "coverage": {
+          "shellFrames": 510,
+          "occludedShellCells": 7,
+          "checkedCells": 330574
+        },
+        "returnWindow": [
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16
+        ]
+      },
+      "on": {
+        "audit": {
+          "session": "on-easy",
+          "frames": 2800,
+          "fence_bound_frames": 1096,
+          "normal_start_scanline": {
+            "fighter": 17,
+            "capital": 230
+          },
+          "distinct_miss_events": 0,
+          "miss_events": [],
+          "overrun_rows": 0,
+          "fence_model_disagreements": 0,
+          "shifted_phase_rows": 0,
+          "worst_pre_wait_cycles": 20249,
+          "worst_pre_wait_frame": 359,
+          "worst_fence_margin_cycles": 5063,
+          "worst_fence_margin_frame": 359,
+          "maximum_wall_cycles": 30841,
+          "rows_over_target": 0,
+          "rows_over_hard_gate": 0,
+          "unreliable_counters": {
+            "missed_frames": 0,
+            "extra_vbi_boundaries": 0,
+            "dli_sequence_violations": 0
+          },
+          "fence_caught": true,
+          "gate_failures": [],
+          "passed": true
+        },
+        "capital": {
+          "frames": 1932,
+          "peak": {
+            "frame": 697,
+            "wall": 30253,
+            "phase": 0,
+            "rate": 16
+          },
+          "mean": 11220.262939958591
+        },
+        "slow": {
+          "frames": 673,
+          "peak": {
+            "frame": 1150,
+            "wall": 14076,
+            "phase": 50,
+            "rate": 8
+          },
+          "mean": 8172.922734026746
+        },
+        "ramp": {
+          "frames": 42,
+          "peak": {
+            "frame": 1600,
+            "wall": 12342,
+            "phase": 170,
+            "rate": 9
+          },
+          "mean": 9213.880952380952
+        },
+        "normalHull": {
+          "frames": 851,
+          "mean": 9627.86133960047
+        },
+        "coverage": {
+          "shellFrames": 645,
+          "occludedShellCells": 4,
+          "checkedCells": 418828
+        },
+        "returnWindow": [
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ]
+      },
+      "delta": {
+        "capitalPeak": -3,
+        "capitalMean": -854.9402146155408
+      }
+    },
+    {
+      "difficulty": 1,
+      "name": "medium",
+      "off": {
+        "audit": {
+          "session": "off-medium",
+          "frames": 2800,
+          "fence_bound_frames": 1595,
+          "normal_start_scanline": {
+            "fighter": 17,
+            "capital": 230
+          },
+          "distinct_miss_events": 0,
+          "miss_events": [],
+          "overrun_rows": 0,
+          "fence_model_disagreements": 0,
+          "shifted_phase_rows": 0,
+          "worst_pre_wait_cycles": 21214,
+          "worst_pre_wait_frame": 95,
+          "worst_fence_margin_cycles": 4086,
+          "worst_fence_margin_frame": 95,
+          "maximum_wall_cycles": 31164,
+          "rows_over_target": 0,
+          "rows_over_hard_gate": 0,
+          "unreliable_counters": {
+            "missed_frames": 0,
+            "extra_vbi_boundaries": 0,
+            "dli_sequence_violations": 0
+          },
+          "fence_caught": true,
+          "gate_failures": [],
+          "passed": true
+        },
+        "capital": {
+          "frames": 1447,
+          "peak": {
+            "frame": 635,
+            "wall": 30011,
+            "phase": 0,
+            "rate": 18
+          },
+          "mean": 13295.36627505183
+        },
+        "slow": {
+          "frames": 0,
+          "peak": null,
+          "mean": null
+        },
+        "ramp": {
+          "frames": 0,
+          "peak": null,
+          "mean": null
+        },
+        "normalHull": {
+          "frames": 1083,
+          "mean": 10521.921514312096
+        },
+        "coverage": {
+          "shellFrames": 952,
+          "occludedShellCells": 12,
+          "checkedCells": 293731
+        },
+        "returnWindow": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ]
+      },
+      "on": {
+        "audit": {
+          "session": "on-medium",
+          "frames": 2800,
+          "fence_bound_frames": 1230,
+          "normal_start_scanline": {
+            "fighter": 17,
+            "capital": 230
+          },
+          "distinct_miss_events": 0,
+          "miss_events": [],
+          "overrun_rows": 0,
+          "fence_model_disagreements": 0,
+          "shifted_phase_rows": 0,
+          "worst_pre_wait_cycles": 21271,
+          "worst_pre_wait_frame": 95,
+          "worst_fence_margin_cycles": 4029,
+          "worst_fence_margin_frame": 95,
+          "maximum_wall_cycles": 31206,
+          "rows_over_target": 0,
+          "rows_over_hard_gate": 0,
+          "unreliable_counters": {
+            "missed_frames": 0,
+            "extra_vbi_boundaries": 0,
+            "dli_sequence_violations": 0
+          },
+          "fence_caught": true,
+          "gate_failures": [],
+          "passed": true
+        },
+        "capital": {
+          "frames": 1813,
+          "peak": {
+            "frame": 637,
+            "wall": 30015,
+            "phase": 0,
+            "rate": 18
+          },
+          "mean": 12189.418643132929
+        },
+        "slow": {
+          "frames": 707,
+          "peak": {
+            "frame": 1242,
+            "wall": 15631,
+            "phase": 86,
+            "rate": 9
+          },
+          "mean": 8796.152758132956
+        },
+        "ramp": {
+          "frames": 48,
+          "peak": {
+            "frame": 1902,
+            "wall": 14044,
+            "phase": 302,
+            "rate": 12
+          },
+          "mean": 9486.020833333334
+        },
+        "normalHull": {
+          "frames": 693,
+          "mean": 10883.011544011544
+        },
+        "coverage": {
+          "shellFrames": 1160,
+          "occludedShellCells": 17,
+          "checkedCells": 388461
+        },
+        "returnWindow": [
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ]
+      },
+      "delta": {
+        "capitalPeak": 4,
+        "capitalMean": -1105.9476319189016
+      }
+    },
+    {
+      "difficulty": 2,
+      "name": "hard",
+      "off": {
+        "audit": {
+          "session": "off-hard",
+          "frames": 2800,
+          "fence_bound_frames": 1716,
+          "normal_start_scanline": {
+            "fighter": 17,
+            "capital": 230
+          },
+          "distinct_miss_events": 0,
+          "miss_events": [],
+          "overrun_rows": 0,
+          "fence_model_disagreements": 0,
+          "shifted_phase_rows": 0,
+          "worst_pre_wait_cycles": 21439,
+          "worst_pre_wait_frame": 81,
+          "worst_fence_margin_cycles": 3861,
+          "worst_fence_margin_frame": 81,
+          "maximum_wall_cycles": 31427,
+          "rows_over_target": 0,
+          "rows_over_hard_gate": 0,
+          "unreliable_counters": {
+            "missed_frames": 0,
+            "extra_vbi_boundaries": 0,
+            "dli_sequence_violations": 0
+          },
+          "fence_caught": true,
+          "gate_failures": [],
+          "passed": true
+        },
+        "capital": {
+          "frames": 1358,
+          "peak": {
+            "frame": 589,
+            "wall": 29105,
+            "phase": 0,
+            "rate": 20
+          },
+          "mean": 14215.10824742268
+        },
+        "slow": {
+          "frames": 0,
+          "peak": null,
+          "mean": null
+        },
+        "ramp": {
+          "frames": 0,
+          "peak": null,
+          "mean": null
+        },
+        "normalHull": {
+          "frames": 974,
+          "mean": 10975.380903490759
+        },
+        "coverage": {
+          "shellFrames": 914,
+          "occludedShellCells": 15,
+          "checkedCells": 264185
+        },
+        "returnWindow": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ]
+      },
+      "on": {
+        "audit": {
+          "session": "on-hard",
+          "frames": 2800,
+          "fence_bound_frames": 1336,
+          "normal_start_scanline": {
+            "fighter": 17,
+            "capital": 230
+          },
+          "distinct_miss_events": 0,
+          "miss_events": [],
+          "overrun_rows": 0,
+          "fence_model_disagreements": 0,
+          "shifted_phase_rows": 0,
+          "worst_pre_wait_cycles": 21493,
+          "worst_pre_wait_frame": 81,
+          "worst_fence_margin_cycles": 3807,
+          "worst_fence_margin_frame": 81,
+          "maximum_wall_cycles": 31434,
+          "rows_over_target": 0,
+          "rows_over_hard_gate": 0,
+          "unreliable_counters": {
+            "missed_frames": 0,
+            "extra_vbi_boundaries": 0,
+            "dli_sequence_violations": 0
+          },
+          "fence_caught": true,
+          "gate_failures": [],
+          "passed": true
+        },
+        "capital": {
+          "frames": 1738,
+          "peak": {
+            "frame": 589,
+            "wall": 29105,
+            "phase": 0,
+            "rate": 20
+          },
+          "mean": 12858.638089758342
+        },
+        "slow": {
+          "frames": 733,
+          "peak": {
+            "frame": 1895,
+            "wall": 15766,
+            "phase": 341,
+            "rate": 10
+          },
+          "mean": 9179.706684856754
+        },
+        "ramp": {
+          "frames": 54,
+          "peak": {
+            "frame": 1256,
+            "wall": 14945,
+            "phase": 107,
+            "rate": 17
+          },
+          "mean": 10774
+        },
+        "normalHull": {
+          "frames": 567,
+          "mean": 11311.832451499118
+        },
+        "coverage": {
+          "shellFrames": 1174,
+          "occludedShellCells": 14,
+          "checkedCells": 363794
+        },
+        "returnWindow": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ]
+      },
+      "delta": {
+        "capitalPeak": 0,
+        "capitalMean": -1356.4701576643383
+      }
+    }
+  ],
+  "bytes": {
+    "addedWindow": 114,
+    "cPolicy": 101,
+    "wrapper": 6,
+    "tables": 6,
+    "state": 1,
+    "totalWindow": 608,
+    "windowFree": 547,
+    "diskDeltaVsP5": 128,
+    "netResidencyVsMain": 599
+  },
+  "atr": {
+    "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/spike-nacelles-p5-throttle/void-strike-65.atr",
+    "sha256": "6298ab3d1f1794d30c369683337a474d02793a31a58f8b84fa4938a209e068a1"
+  }
+}

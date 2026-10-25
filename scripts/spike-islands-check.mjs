@@ -4,12 +4,12 @@ import assert from 'node:assert/strict';
 import {Nmos6502} from './nmos6502.mjs';
 import {installRuntimeSegments} from './runtime-image.mjs';
 import {parseViceLabels} from './runtime-cycles.mjs';
-const root=path.resolve(import.meta.dirname,'..'),out=path.join(root,'docs/diagnostics/spike-nacelles/p5');
+const root=path.resolve(import.meta.dirname,'..'),out=path.resolve(root,process.argv[3]??'docs/diagnostics/spike-nacelles/p5');
 function image(dir){let m=new Uint8Array(65536);installRuntimeSegments(m,root,dir);let l=parseViceLabels(fs.readFileSync(path.join(dir,'void-strike-65.lbl'),'utf8'));return{m,l};}
 function set(i,n,v){assert.ok(i.l.has(n),n);i.m[i.l.get(n)]=v;}
 function word(i,n,v){set(i,n,v&255);i.m[i.l.get(n)+1]=(v>>>8)&255;}
 function run(i,n,a=0,x=0,y=0){let c=new Nmos6502(i.m);c.a=a;c.x=x;c.y=y;c.push(127);c.push(254);c.pc=i.l.get(n);assert.ok(c.pc,n);for(let s=0;c.pc!==32767&&s<150000;s++)c.step();assert.equal(c.pc,32767,n);return c.cycles;}
-let p=image(path.join(root,'build/spike-nacelles-p5')),b=image(path.join(root,'build'));
+let p=image(path.resolve(root,process.argv[2]??'build/spike-nacelles-p5')),b=image(path.join(root,'build'));
 for(let i of[p,b]){run(i,'copy_charset');run(i,'publish_level_hull_style');}
 function state(i,row,fine,x,d){set(i,'DIFFICULTY_SETTING',d);set(i,'CAPITAL_SECTOR_STATE',2);set(i,'corridor_phase',(row+11)&255);set(i,'CORRIDOR_PHASE_HI',(row+11)>>>8);set(i,'player_y',96+fine);set(i,'player_x',x);set(i,'PLAYER_LIFECYCLE',0);i.m[0x4e6f]=28;i.m[0x4e5d]=10;i.m[0x4e5e]=0;set(i,'BROAD_DAMAGE_APPLIED',0);set(i,'ENTITY_STATE',0);i.m[i.l.get('ENTITY_STATE')+1]=0;set(i,'ENTITY_ACTIVE_MASK',0);}
 const immutable=p.m.slice(p.l.get('spike_nacelles_start'),p.l.get('spike_nacelles_data_end'));

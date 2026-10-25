@@ -81,6 +81,29 @@ changes. The no-island `--spike-debris-off` control uses no new window bytes
 and has the same 9-B resident-code reduction. Flag-off layout and ATR are
 unchanged. Neither build adds a carry-in drain/cleanup guard.
 
+### P5 throttle follow-up — throwaway only
+
+`--spike-nacelles=5 --spike-throttle` retains the P5 allocation through
+`$B665`, then adds:
+
+| Range | Bytes | Owner |
+| --- | ---: | --- |
+| `$B666-$B66B` | 6 | C throttle policy call and original enemy-tick tail call |
+| `$B66C-$B6D0` | 101 | cc65 brake/ramp policy, no software-stack/helper state |
+| `$B6D1-$B6D6` | 6 | normal and half-rate numerators |
+| `$B6D7` | 1 | cached scroll numerator |
+| `$B6D8-$B8FA` | 547 | remaining permitted window |
+
+The follow-up adds **114 B**; total spike allocation **608 B**, net residency
+against main **+599 B**, including the retained −9-B debris admission change.
+The main-loop call, STARFIELD rate selection and early rotate predictor keep
+their exact original footprints; no other reservation grows.
+
+The independent `--spike-fair-warning` comparison adds **23 B** of C code at
+`$B666-$B67C`, with no state; total window use **517 B**. It is mutually
+exclusive with the throttle comparison and is OFF in the playable throttle
+ATR. Normal campaign bytes and all forbidden reservations remain unchanged.
+
 <!-- BEGIN GENERATED MEMORY MAP: npm run memory-map -->
 
 ## Generated map — from the build

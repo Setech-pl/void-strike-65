@@ -184,6 +184,11 @@ const quiet = process.argv.includes("--quiet");
 const nacellePattern = Number(process.argv.find(a => a.startsWith("--spike-nacelles="))?.split("=")[1] ?? 0);
 if (![0,1,2,3,5].includes(nacellePattern)) throw new Error("spike-nacelles must be 1, 2, 3 or 5");
 const spikeDebrisOff = nacellePattern === 5 || process.argv.includes("--spike-debris-off");
+const spikeThrottle = process.argv.includes("--spike-throttle");
+if (spikeThrottle && nacellePattern !== 5) throw new Error("--spike-throttle requires --spike-nacelles=5");
+const spikeFairWarning = process.argv.includes("--spike-fair-warning");
+if (spikeFairWarning && nacellePattern !== 5) throw new Error("--spike-fair-warning requires --spike-nacelles=5");
+if (spikeFairWarning && spikeThrottle) throw new Error("Choose throttle or the independent warning comparison");
 
 const evidencePhase = runtimeEvidencePhase(process.argv);
 const candidateBuild = evidencePhase === "candidate";
@@ -504,7 +509,7 @@ const variantDirectoryNameInner = (escortVariantId !== null
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
-const variantDirectoryName = nacellePattern ? `spike-nacelles-p${nacellePattern}${levelDebugSuffix}` : spikeDebrisOff ? "spike-debris-off" : variantDirectoryNameInner;
+const variantDirectoryName = nacellePattern ? `spike-nacelles-p${nacellePattern}${spikeThrottle ? "-throttle" : ""}${spikeFairWarning ? "-warning" : ""}${levelDebugSuffix}` : spikeDebrisOff ? "spike-debris-off" : variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -2200,12 +2205,48 @@ async function build() {
   const levelHullBlockInclude = renderLevelHullBlockInclude();
   writeFile(path.join(buildDirectory, "level-hull-block.inc"), levelHullBlockInclude);
 
+  // Standalone C input policy; no Director/spawn or software-stack changes.
+  let throttleAssembly = Buffer.alloc(0);
+  if (spikeThrottle) {
+    const compiled = await runWasmTool("cc65", {
+      "/project/spike-throttle.c": fs.readFileSync(path.join(rootDirectory, "src/c/spike-throttle.c")),
+    }, ["--cpu", "6502", "-Oirs", "-o", "/project/spike-throttle-generated.s",
+      "/project/spike-throttle.c"], ["/project/spike-throttle-generated.s"]);
+    // Included in main's object: these externs are exact ASM aliases there.
+    throttleAssembly = Buffer.from(compiled.outputs["/project/spike-throttle-generated.s"].toString()
+      .replace(/^\s*\.import\s+_spike_\w+\s*$/gmi, "")
+      .replace(/^\s*\.debuginfo\s+off\s*$/gmi, ""));
+    const executable = throttleAssembly.toString().replace(/^\s*\.importzp.*$/gmi, "");
+    if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(executable))
+      throw new Error("Spike throttle policy needs cc65 software-stack/helper state");
+    writeFile(path.join(buildDirectory, "spike-throttle-generated.s"), throttleAssembly);
+  }
+  let warningAssembly = Buffer.alloc(0);
+  if (spikeFairWarning) {
+    const compiled = await runWasmTool("cc65", {
+      "/project/spike-warning.c": fs.readFileSync(path.join(rootDirectory, "src/c/spike-warning.c")),
+    }, ["--cpu", "6502", "-Oirs", "-o", "/project/spike-warning-generated.s",
+      "/project/spike-warning.c"], ["/project/spike-warning-generated.s"]);
+    warningAssembly = Buffer.from(compiled.outputs["/project/spike-warning-generated.s"].toString()
+      .replace(/^\s*\.import\s+_spike_\w+\s*$/gmi, "")
+      .replace(/^\s*\.debuginfo\s+off\s*$/gmi, ""));
+    const executable = warningAssembly.toString().replace(/^\s*\.importzp.*$/gmi, "");
+    if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/mi.test(executable))
+      throw new Error("Spike warning policy needs cc65 software-stack/helper state");
+    writeFile(path.join(buildDirectory, "spike-warning-generated.s"), warningAssembly);
+  }
+
   const assembled = await runWasmTool(
     "ca65",
     {
       "/project/src/main.s": source,
       "/project/build/spike-nacelles.s": fs.readFileSync(path.join(rootDirectory, "src", "spike-nacelles.s")),
       "/project/build/spike-islands.s": fs.readFileSync(path.join(rootDirectory, "src", "spike-islands.s")),
+      "/project/build/spike-throttle.s": fs.readFileSync(path.join(rootDirectory, "src", "spike-throttle.s")),
+      "/project/build/spike-throttle-generated.s": throttleAssembly,
+      "/project/build/spike-warning.s": fs.readFileSync(path.join(rootDirectory, "src", "spike-warning.s")),
+      "/project/build/spike-warning-generated.s": warningAssembly,
+      "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir, "asminc/longbranch.mac")),
       "/project/build/spike-nacelles-data.inc": Buffer.from(nacelleData(nacellePattern)),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/loader-screen.inc": loaderInclude,
@@ -2239,6 +2280,8 @@ async function build() {
       "6502",
       "-g",
       ...(nacellePattern ? ["-D", `SPIKE_NACELLES=${nacellePattern}`] : []),
+      ...(spikeThrottle ? ["-D", "SPIKE_THROTTLE=1"] : []),
+      ...(spikeFairWarning ? ["-D", "SPIKE_FAIR_WARNING=1"] : []),
       ...(enemyReviewHarness ? ["-D", "ENEMY_REVIEW_HARNESS=1"] : []),
       ...(enemyCombatReviewHarness || paletteCandidate
         ? ["-D", "ENEMY_COMBAT_REVIEW_HARNESS=1"] : []),
@@ -2252,6 +2295,7 @@ async function build() {
         ? ["-D", `PLAYER_SIDE_COLOUR_OVERRIDE=${playerColourValue}`] : []),
       "-I",
       "/project/build",
+      "-I", "/cc65/asminc",
       "-l",
       "/project/build/main.lst",
       "-o",

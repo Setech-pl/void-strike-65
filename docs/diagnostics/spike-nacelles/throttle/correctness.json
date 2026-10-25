@@ -1,0 +1,127 @@
+{
+  "pass": true,
+  "cases": 73728,
+  "predictions": 1200,
+  "maxPolicyCpuIncludingJsr": 107,
+  "perDifficulty": [
+    {
+      "difficulty": 0,
+      "normalNumerator": 16,
+      "slowNumerator": 8,
+      "denominator": 40,
+      "rampIn": [
+        15,
+        14,
+        13,
+        12,
+        11,
+        10,
+        9,
+        8
+      ],
+      "rampOut": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "costsIncludingJsr": {
+        "space": 33,
+        "rampIn": 94,
+        "holdSlow": 91,
+        "rampOut": 95,
+        "holdNormal": 88
+      }
+    },
+    {
+      "difficulty": 1,
+      "normalNumerator": 18,
+      "slowNumerator": 9,
+      "denominator": 40,
+      "rampIn": [
+        17,
+        16,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10,
+        9
+      ],
+      "rampOut": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "costsIncludingJsr": {
+        "space": 33,
+        "rampIn": 94,
+        "holdSlow": 91,
+        "rampOut": 95,
+        "holdNormal": 88
+      }
+    },
+    {
+      "difficulty": 2,
+      "normalNumerator": 20,
+      "slowNumerator": 10,
+      "denominator": 40,
+      "rampIn": [
+        19,
+        18,
+        17,
+        16,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10
+      ],
+      "rampOut": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "costsIncludingJsr": {
+        "space": 33,
+        "rampIn": 94,
+        "holdSlow": 91,
+        "rampOut": 95,
+        "holdNormal": 88
+      }
+    }
+  ],
+  "bytes": {
+    "addedWindow": 114,
+    "cPolicy": 101,
+    "wrapper": 6,
+    "tables": 6,
+    "state": 1
+  },
+  "alternative": {
+    "bytes": 23,
+    "state": 0,
+    "cases": 768,
+    "maxAdmissionCpuIncludingCallAndNops": 37,
+    "extraCpuVsOriginal": 30
+  }
+}

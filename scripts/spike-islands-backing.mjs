@@ -1,7 +1,7 @@
 // Focused pass-over/restore checks for the three existing projectile layers.
 import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';
 import {Nmos6502}from'./nmos6502.mjs';import{installRuntimeSegments}from'./runtime-image.mjs';import{parseViceLabels}from'./runtime-cycles.mjs';
-const root=path.resolve(import.meta.dirname,'..'),dir=path.join(root,'build/spike-nacelles-p5');
+const root=path.resolve(import.meta.dirname,'..'),dir=path.resolve(root,process.argv[2]??'build/spike-nacelles-p5');
 const m=new Uint8Array(65536);installRuntimeSegments(m,root,dir);const l=parseViceLabels(fs.readFileSync(path.join(dir,'void-strike-65.lbl'),'utf8'));
 function at(n){const fixed={BROAD_OWNER:0x4e43,BROAD_X:0x4e49};const a=l.get(n)??fixed[n];assert.ok(Number.isInteger(a),n);return a;}function set(n,v,k=0){m[at(n)+k]=v;}
 function run(n,x=0){let c=new Nmos6502(m);c.x=x;c.push(127);c.push(254);c.pc=at(n);for(let s=0;c.pc!==32767&&s<200000;s++)c.step();assert.equal(c.pc,32767,n);return c.cycles;}
@@ -59,4 +59,4 @@ for(let row=0;row<28;row++) {
  for(let col=15;col<25;col++)assert.equal(m[addr+col],half&&col>=20-half&&col<20+half?59:0,'hull-only fallback misplaced island');
 }
 const result={cases,hullOnlyFallback:true,worstPossibleCarry:carry,categories:['normal player','spread/composited player','enemy P1/P2','broadside allied/hostile','ring reuse'],pass:true,incrementVersusBlank:increments,broadsideIncrementVersusBlank:0,maxPlayerRenderCpu:maxPlayer,maxEnemyRenderCpu:maxEnemy,maxShellRenderCpu:maxShell};
-fs.writeFileSync(path.join(root,'docs/diagnostics/spike-nacelles/p5/backing.json'),JSON.stringify(result,null,2)+'\n');console.log(result);
+fs.writeFileSync(path.resolve(root,process.argv[3]??'docs/diagnostics/spike-nacelles/p5/backing.json'),JSON.stringify(result,null,2)+'\n');console.log(result);

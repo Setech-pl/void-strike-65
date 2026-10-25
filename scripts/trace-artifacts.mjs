@@ -15,7 +15,7 @@ import path from "node:path";
 // feat/boss-escort-flow: and the escort variants' routes.
 // M6: and the VOID LANCE's comparison routes (journal §BG: the readiness
 // indicator; stage 1b's comparisons are gone since the owner's pick, journal §BL).
-const DEBUG_ROUTE_VARIANT = /^(?:spike-debris-off|spike-nacelles-p[1235](?:-level-1-s0)?|(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-|field-variant-[ab]-)?(?:laser-fixture-[24]-|laser-tier-[124]-)?(?:boss-region-[2-4]-)?level-\d+-s\d+)$/;
+const DEBUG_ROUTE_VARIANT = /^(?:spike-debris-off|spike-nacelles-p[1235](?:-throttle)?(?:-warning)?(?:-level-1-s0)?|(?:boss-variant-[a-z0-9]+-|escort-variant-[a-z0-9]+-|field-variant-[ab]-)?(?:laser-fixture-[24]-|laser-tier-[124]-)?(?:boss-region-[2-4]-)?level-\d+-s\d+)$/;
 // The flags a diagnostic run may carry. Every other mode either writes docs/
 // (boot smoke, menu raster, capital/player collision, the full run) or reuses
 // a default-build trace.

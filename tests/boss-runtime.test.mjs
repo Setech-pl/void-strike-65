@@ -329,8 +329,17 @@ test("the world scroll stops in the boss sector and runs again after the START G
     assert.equal(rotations, 0, `difficulty ${difficulty}: the ring rotated in the boss sector`);
     assert.equal(prepares, 200, "the band's motion runs every frame");
   }
-  // Q-S4: the summary's START GAME step puts every patched setting back.
-  call(memory, label("summary", "summary_boss_restore"));
+  // Follow the real reader -> summary -> checked L2 load -> INIT path, as
+  // Q-S4 does. The restored rate table alone now controls pickup motion;
+  // the first gameplay brake tick publishes the world's resident rate.
+  const reload = cpuOver(new Drive({ trig: (frame) => Math.floor(frame / 4) % 8 < 4 }), memory);
+  reload.sp = 0xff;
+  reload.pc = 0xa000;
+  memory[label("main", "game_state")] = 1;
+  assert.equal(runUntil(reload, {
+    start: label("main", "start_gameplay"),
+    failure: label("reader", "sector_reader_failure_screen"),
+  }, { maxSteps: 200_000_000 }), "start", "START GAME did not reach the game");
   const shipped = bossGateMemory();
   for (let offset = 0; offset < 6; offset += 1) {
     const address = label("main", "world_scroll_rates") + offset;
@@ -340,9 +349,15 @@ test("the world scroll stops in the boss sector and runs again after the START G
     assert.equal(memory[label("main", name)], shipped[label("main", name)], name);
   }
   memory[label("main", "DIFFICULTY_SETTING")] = 1;
-  // ... and the reader's restore puts back the capital code and its table.
-  memory.set(readBuild("overlay-capital-slot-a.bin"), SLOT.address);
-  memory.set(readBuild("light-kernel.bin").subarray(15, 51), vector("INIT"));
+  assert.deepEqual(memory.slice(0x1900, 0x2000), Uint8Array.from(readBuild("l2.bin")),
+    "START GAME did not restore the checked L2 image");
+  assert.deepEqual(memory.slice(SLOT.address, SLOT.endExclusive),
+    Uint8Array.from(readBuild("overlay-capital-slot-a.bin")), "capital code not restored");
+  assert.deepEqual(memory.slice(vector("INIT"), vector("INIT") + 36),
+    Uint8Array.from(readBuild("light-kernel.bin").subarray(15, 51)), "capital vectors not restored");
+  call(memory, label("main", "profile_after_player"), {
+    stopAt: [label("main", "profile_after_enemy")],
+  });
   const { rotations } = runStarfield(memory, 200);
   assert.ok(rotations >= 9, `the world did not scroll again (${rotations} rotations in 200 frames)`);
 });

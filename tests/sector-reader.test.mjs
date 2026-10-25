@@ -724,6 +724,7 @@ function runStartGame(stub, { overlaid, residentLevel = false }) {
   installRuntimeSegments(memory, root);
   memory.set(readerImage, READER_BASE);
   memory.fill(0xd5, 0x1900, 0x2000); // stale slot D/death, never injected L2
+  memory.fill(0, LEVEL_BUFFER, LEVEL_BUFFER+8); // menu before its first level read
   if (residentLevel) memory.set(fs.readFileSync(path.join(root,"build/level-1.bin")), LEVEL_BUFFER);
   // What a boss overlay would leave behind: other bytes in the slot and the table.
   memory.fill(0x00, slotA.address, slotA.endExclusive);

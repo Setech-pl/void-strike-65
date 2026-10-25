@@ -18,6 +18,7 @@
 // warning plus a runtime clamp; nothing in a level file can name code.
 
 import fs from "node:fs";
+import {compileIslandExtension} from "./l2-islands.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -361,6 +362,7 @@ function compileGeometryPage(hull, hullAsset, context) {
 
 function compileHull(source, context) {
   const hull = source.hull ?? {};
+  for(const key of Object.keys(hull))if(!["rows","length","turrets"].includes(key)) fail(context,"hull",`unknown field ${key}`);
   if (typeof hull !== "object" || Array.isArray(hull)) {
     fail(context, "hull", "must be an object with \"length\" (0-3) and \"turrets\" (0-3)");
   }
@@ -874,6 +876,7 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
 
   const { page: geometryPage, geometry } = compileGeometryPage(hull, hullAsset, context);
 
+  const islandPage = compileIslandExtension(source,hull,geometry);
   const core = Buffer.alloc(LEVEL_CORE_BYTES);
   core[0] = LEVEL_CORE_MAGIC;
   core[1] = level;
@@ -923,7 +926,7 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   return {
     level, seed, hull, geometry, sectors, waves, warnings, core, payload,
     looks: payloadPage.looks, weaponClasses: payloadPage.weaponClasses,
-    pages: { core, payload, geometry: geometryPage },
+    pages: { core, payload, geometry: geometryPage, islands: islandPage },
   };
 }
 

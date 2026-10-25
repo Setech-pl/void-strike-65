@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import {islandRecipeBytes} from "./l2-islands.mjs";
 import {loadCheckedL2Image} from "./sio-fixture.mjs";
 import { buildBossDeath } from "./boss-death-build.mjs";
 import fs from "node:fs";
@@ -498,7 +499,9 @@ const variantDirectoryNameInner = (escortVariantId !== null
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
-const variantDirectoryName = variantDirectoryNameInner;
+const longCapital=process.argv.includes("--l2-long-capital");
+if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
+const variantDirectoryName = longCapital?"l2-capital-960":variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1301,6 +1304,7 @@ function buildLevelImage({ id, sectors, musicBytes, hullBlock, alliedColpf1, lev
       [levelPages.core, LEVEL_CORE_OFFSET, LEVEL_CORE_BYTES],
       [levelPages.payload, LEVEL_PAYLOAD_OFFSET, LEVEL_PAYLOAD_BYTES],
       [levelPages.geometry, LEVEL_GEOMETRY_OFFSET, LEVEL_GEOMETRY_BYTES],
+      [levelPages.islands, 0x700, 256],
     ]) {
       if (page.length !== size) {
         throw new Error(`4.6 level ${id}: a LevelDef page is ${page.length} B, not ${size}`);
@@ -2183,6 +2187,7 @@ async function build() {
     "ca65",
     {
       "/project/src/main.s": source,
+      "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/loader-screen.inc": loaderInclude,
       "/project/build/loader-display-list.inc": loaderDisplayListInclude,
@@ -2596,6 +2601,7 @@ async function build() {
   const compiledLevels = new Map(levelRuns.map((run) =>
     [run.id, bossVariantLevel(run.id) !== null
       ? compileLevelFile(bossVariantLevel(run.id), { hullAsset: capitalHullsAsset })
+      : longCapital ? compileLevelFile(path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json"), {hullAsset:capitalHullsAsset})
       : compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
@@ -2754,18 +2760,28 @@ async function build() {
   if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
     throw new Error("L2 C requires software-stack/helper state");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
+  const l2MainNames=["corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN"];
+  const l2MainInclude=l2MainNames.map(name=>{
+    const address=labels.get(name);if(!Number.isInteger(address))throw new Error(`L2 main ABI missing ${name}`);
+    return `${name} = $${address.toString(16)}`;
+  }).join("\n")+"\n";
+  const l2RecipesInclude="    .byte "+[...islandRecipeBytes()].join(",")+"\n";
+  writeFile(path.join(buildDirectory,"l2-main.inc"),Buffer.from(l2MainInclude));
+  writeFile(path.join(buildDirectory,"l2-recipes.inc"),Buffer.from(l2RecipesInclude));
   const l2Module = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src/hybrid/l2.s"),
     configPath: path.join(rootDirectory, "cfg/l2.cfg"), stem: "l2", includeDirectories:["/cc65/asminc"],
     extraInputs: { "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")),
       "/project/build/l2-c.inc": Buffer.from(l2Generated),
+      "/project/build/l2-main.inc": Buffer.from(l2MainInclude),
+      "/project/build/l2-recipes.inc": Buffer.from(l2RecipesInclude),
       "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir,"asminc/longbranch.mac")) },
   });
   for (const [extension, data] of [["bin",l2Module.raw],["map",l2Module.map],
     ["lbl",l2Module.labels],["lst",l2Module.listing]]) writeFile(path.join(buildDirectory,`l2.${extension}`),data);
   const l2Labels = parseViceLabels(l2Module.labels.toString());
   const l2Used = l2Labels.get("l2_end") - 0x1900;
-  if (l2Used > 1228) throw new Error(`L2 first contents ${l2Used} B exceed approved 1024 +20% STOP`);
+  if (!Number.isInteger(l2Used) || l2Used > 1228) throw new Error(`L2 first contents ${l2Used} B exceed approved 1024 +20% STOP`);
   const overlayRuns = [{
     index: 0,
     name: "capital-slot-a",

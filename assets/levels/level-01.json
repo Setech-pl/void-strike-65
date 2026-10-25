@@ -89,9 +89,18 @@
   "pickupPolicy": 3,
   "summary": {
     "_": "M5a-S2 grade thresholds (decision 28), placeholders M8 tunes: accuracy tiers at these per cents, time tiers at or under these seconds, lives tiers at or under these losses; bonusPerTier is score units per tier point, 0 until M8. M5b-S3 (owner decision 2026-10-03, plan §5.6): once the boss exists the time tiers count the boss fight alone, from the boss engaging to the core's destruction.",
-    "accuracyPercent": [40, 70],
-    "timeSeconds": [90, 60],
-    "livesLost": [1, 0],
+    "accuracyPercent": [
+      40,
+      70
+    ],
+    "timeSeconds": [
+      90,
+      60
+    ],
+    "livesLost": [
+      1,
+      0
+    ],
     "bonusPerTier": 0
   },
   "hull": {
@@ -158,12 +167,16 @@
       "kind": "capital",
       "archetypes": [],
       "hazards": {
-        "debris": 1,
+        "debris": 0,
         "pickups": true,
         "broadside": true
       },
       "look": {
         "stars": "steel"
+      },
+      "islands": {
+        "pattern": "salvage",
+        "density": "standard"
       }
     },
     {
@@ -313,10 +326,16 @@
       "look": {
         "stars": "yellow"
       },
-      "archetypes": ["interceptor"],
+      "archetypes": [
+        "interceptor"
+      ],
       "lights": 1,
       "waves": [
-        { "archetype": "interceptor", "count": 1, "row": 0 }
+        {
+          "archetype": "interceptor",
+          "count": 1,
+          "row": 0
+        }
       ]
     }
   ],

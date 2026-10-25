@@ -611,7 +611,7 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // runtime reads the field as a nonzero test (HAZARD_DEBRIS_MASK) and no
     // plan step makes the count live, so 2 would have said something the game
     // does not do.
-    assert.deepEqual(two.sectors.map((sector) => sector.debris), [1, 1, 1, 1, 1, 1]);
+    assert.deepEqual(two.sectors.map((sector) => sector.debris), [1, 1, 0, 1, 1, 1]);
 
     // Owner decision, 2026-09-30: everything else as drafted - the capital on
     // authored row 1,120 (level 1: 272) and sector 6 at 1,152 rows.

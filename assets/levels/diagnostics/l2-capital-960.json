@@ -1,0 +1,291 @@
+{
+  "_": [
+    "L2 owner-smoke diagnostic: level 1 with a 960-row capital. Build --level=1:sector=1 --l2-long-capital."
+  ],
+  "level": 1,
+  "seed": 109,
+  "stars": "white",
+  "nebula": 0,
+  "boss": 1,
+  "pickupPolicy": 3,
+  "summary": {
+    "_": "M5a-S2 grade thresholds (decision 28), placeholders M8 tunes: accuracy tiers at these per cents, time tiers at or under these seconds, lives tiers at or under these losses; bonusPerTier is score units per tier point, 0 until M8. M5b-S3 (owner decision 2026-10-03, plan §5.6): once the boss exists the time tiers count the boss fight alone, from the boss engaging to the core's destruction.",
+    "accuracyPercent": [
+      40,
+      70
+    ],
+    "timeSeconds": [
+      90,
+      60
+    ],
+    "livesLost": [
+      1,
+      0
+    ],
+    "bonusPerTier": 0
+  },
+  "hull": {
+    "rows": 960,
+    "turrets": 3
+  },
+  "payload": {
+    "appearances": [
+      {
+        "name": "flight-lead",
+        "rows": [
+          "WR....RW",
+          "RRR..RRR",
+          ".RRRRRR.",
+          "..RRRR..",
+          "..RRRR..",
+          "...RR...",
+          "...WW...",
+          "........"
+        ]
+      }
+    ]
+  },
+  "sectors": [
+    {
+      "kind": "space",
+      "subtype": "elite",
+      "rows": 272,
+      "archetypes": [
+        "raider",
+        "wingman",
+        "bomber"
+      ],
+      "lights": 1,
+      "heavies": 2,
+      "hazards": {
+        "debris": 1,
+        "pickups": true
+      },
+      "look": {
+        "stars": "white"
+      },
+      "waves": [
+        {
+          "row": 0,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 4,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 88,
+          "archetype": "bomber",
+          "count": 4,
+          "spacing": 24,
+          "entry": 124
+        }
+      ]
+    },
+    {
+      "kind": "capital",
+      "archetypes": [],
+      "hazards": {
+        "debris": 0,
+        "pickups": true,
+        "broadside": true
+      },
+      "look": {
+        "stars": "steel"
+      },
+      "islands": {
+        "pattern": "salvage",
+        "density": "standard"
+      }
+    },
+    {
+      "kind": "space",
+      "subtype": "swarm",
+      "rows": 408,
+      "_w2": "data/w2-lights (owner answers of 2026-10-08, docs/plans/w2-lights.md §4.1, §8.1): the swarm after the capital - a Wingman column of three in the flight-lead look (Q2: the level's one re-skin moves here from P2's Raider escort), then three Interceptors closing on the player; up to three Lights at once (the swarm ceiling), no Heavy. The Interceptors come last because a Light wave holds the cursor until its last Light has gone and they live 116 frames to the column's 232, so the sector ends on its shortest Lights. 280 rows: with no kills its last Light is gone at its frame 461 on every difficulty and HARD's 280 rows last 560, a 21 % reserve (PROBE), so the elite sector after it opens on an empty playfield - the sector end is not a barrier (plan §3, F2). A swarm never follows an elite sector (F1; tests/level-one-waves.test.mjs, until C1).",
+      "_flow": "feat/sector-flow (owner, 2026-10-08; docs/plans/sector-flow.md): the sector ends as soon as its three waves are spent and the field is clear, so its rows are only the no-kill cut, and C1 holds the end while more Lights live than the elite sector after it admits. A third wave chained on (owner answer): a plain Wingman column down the other side (X 88) after the Interceptors. 384 rows: with no kills the last Light leaves at frame 759-760 after entry on every difficulty and HARD's 384 rows last 768 (PROBE, scripts/level-timeline.mjs lightTicksFromSector); the W2 reserve is gone - C1 replaces it.",
+      "_loops_rows": "feat/interceptor-standoff Phase B (owner answer Q1 of 2026-10-12, plan interceptor-standoff §13.11): 384 -> 408 rows. With two loops each swarm Interceptor lives about 400 frames, and the Wingman column waits for the last of them, so with no kills HARD's 384-row cut (+768) cancelled two of its three Wingmen; at 408 rows all 9 Lights arm on every difficulty. A player who kills ends the swarm early as before.",
+      "archetypes": [
+        "wingman",
+        "interceptor"
+      ],
+      "lights": 3,
+      "heavies": 0,
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
+      "look": {
+        "stars": "white"
+      },
+      "waves": [
+        {
+          "row": 0,
+          "archetype": "wingman",
+          "count": 3,
+          "spacing": 32,
+          "entry": 160,
+          "appearance": "flight-lead"
+        },
+        {
+          "row": 0,
+          "archetype": "interceptor",
+          "count": 3,
+          "spacing": 24,
+          "entry": 88,
+          "_loops": "feat/interceptor-standoff (owner answers L1 and E1 of 2026-10-12, decision AK point 10): after its standoff each Interceptor climbs to its top-hold row, holds, dives back and flies it again - twice - then climbs out upward.",
+          "loops": 2
+        },
+        {
+          "row": 0,
+          "archetype": "wingman",
+          "count": 3,
+          "spacing": 32,
+          "entry": 88
+        }
+      ]
+    },
+    {
+      "kind": "space",
+      "subtype": "elite",
+      "rows": 120,
+      "_w2": "Variant (a) (owner decision a/b, 2026-10-08, docs/plans/director-4.6.md §11 item 20): a Raider pair with an Interceptor companion, which flies free from its admission and chases the player. With no kills the pair lives 334 frames, longer than these 240-300, and may cross into the Bomber sector: elite to elite, legal on both sides.",
+      "archetypes": [
+        "raider",
+        "interceptor"
+      ],
+      "lights": 1,
+      "heavies": 2,
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
+      "look": {
+        "stars": "white"
+      },
+      "waves": [
+        {
+          "row": 0,
+          "members": [
+            "raider",
+            "interceptor"
+          ],
+          "count": 1,
+          "spacing": 24,
+          "entry": 124,
+          "_loops": "The companion Interceptor loops twice, as the swarm's (decision AK point 10).",
+          "loops": 2
+        }
+      ]
+    },
+    {
+      "kind": "space",
+      "subtype": "elite",
+      "rows": 224,
+      "archetypes": [
+        "raider",
+        "wingman",
+        "interceptor",
+        "bomber"
+      ],
+      "lights": 1,
+      "heavies": 2,
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
+      "look": {
+        "stars": "white"
+      },
+      "waves": [
+        {
+          "row": 0,
+          "archetype": "bomber",
+          "count": 1,
+          "spacing": 24,
+          "entry": 124,
+          "afterCleared": true
+        }
+      ],
+      "_w2": "P2's Bomber sector, unchanged by data/w2-lights (scope 3) but for its place and its sky: one Bomber pair at row 24, after (a)'s Raiders, between the two Raider variants so the Heavy waves alternate (owner decision 8); white now that (b) is the last space sector.",
+      "_flow": "feat/sector-flow: the Bomber wave moves from row 24 to row 0 with afterCleared - it arms as soon as (a)'s Raider pair and its Interceptor are gone instead of after a fixed 24-row lead-in. 224 rows unchanged: with no kills (a)'s pair is carried in (elite to elite is legal) and the Bombers follow it."
+    },
+    {
+      "kind": "space",
+      "subtype": "elite",
+      "rows": 200,
+      "_w2": "Variant (b): Raiders with no Light; the sector admits none (lights 0). A Raider with a Wingman escort, the third option, is sector 0's. It comes AFTER the Bomber pair so the Heavy waves still alternate (owner decision 8; the owner's answer of 2026-10-08, docs/plans/w2-lights.md §8.1). 240 rows: if the player kills nothing the Bomber pair can live into this sector, and its Raiders then arrive up to frame 394 of HARD's 480 (PROBE), a 22 % reserve. The last space sector, so it flies under yellow (the sky rule).",
+      "_flow": "feat/sector-flow: 240 -> 200 rows, the W2 reserve dropped. The rows are the no-kill cut: with no kills the Bomber pair carried in from the sector before keeps the Raider pair out until frame 392 of HARD's 400 (PROBE); with kills the sector ends as soon as its Raiders are gone.",
+      "archetypes": [
+        "raider"
+      ],
+      "lights": 0,
+      "heavies": 2,
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
+      "look": {
+        "stars": "yellow"
+      },
+      "waves": [
+        {
+          "row": 0,
+          "archetype": "raider",
+          "count": 1,
+          "spacing": 24,
+          "entry": 124
+        }
+      ]
+    },
+    {
+      "_": "M5b-S3: the boss sector (plan §5.1-5.2). The world scroll stops (Q1). No escort here: the core page's 20 waves are all taken by sectors 1-4, and freeing one would change the level before the boss. The runtime admits one Light in a boss sector (decision 5a) and the install arms a row-0 escort wave for a level that authors one. SUPERSEDED for the escort by owner decision 2026-10-10 (feat/boss-r1-tuning, variant B; journal §AH): the boss sector has an escort now.",
+      "_escort": "feat/boss-escort-flow (owner smoke and answers of 2026-10-10, docs/plans/boss-escort-flow.md; replaces variant B's stream of six escorts 100 frames apart from the fight's first frame): the wave names the escort - the Interceptor, one per arming (count 1) - and the boss region's escort block says when: from the first weapon kill, one every 150 + 0..63 frames, only on a frame with no module kill, until the boss falls. The Director publishes the wave at the trigger (src/c/director.c); scripts/build.mjs refuses a boss region and a level that disagree. Variant B's finding stands: a fighter parked at the left edge took 0 hits in 80 s without an escort.",
+      "kind": "boss",
+      "look": {
+        "stars": "yellow"
+      },
+      "archetypes": [
+        "interceptor"
+      ],
+      "lights": 1,
+      "waves": [
+        {
+          "archetype": "interceptor",
+          "count": 1,
+          "row": 0
+        }
+      ]
+    }
+  ],
+  "bossDef": {
+    "_": "M5b-S3 (plan §5.6): the boss bonus in score units, added to STATS_BONUS at the win and shown and scored by the level-end summary. Placeholder; M8 tunes it.",
+    "bonus": 2000,
+    "hpScale": {
+      "_": "M5b-S4a-i (owner answer Q-B3): every module's hit points x 3/4 on EASY, x 1 on MEDIUM, x 5/4 on HARD (quarters: 0.5, 0.75, 1, 1.25 or 1.5). Placeholder; M8 tunes it.",
+      "easy": 0.75,
+      "medium": 1,
+      "hard": 1.25
+    },
+    "laserDamage": {
+      "_": "M5b-S4b (owner decision Q5, 2026-10-06): a laser beam's damage in hull units (the player has 10), at most once per firing. Placeholder; M8 tunes it.",
+      "easy": 5,
+      "medium": 10,
+      "hard": 10
+    },
+    "laserWarning": {
+      "_": "M5b-S4b.1 (owner decision D3, 2026-10-06): an emitter's warning in frames before its beam, per difficulty. Placeholder; M8 tunes it.",
+      "easy": 40,
+      "medium": 32,
+      "hard": 25
+    },
+    "laserReload": {
+      "_": "M5b-S4b.1 (owner decision D3): frames from an emitter's beam ending (or the boss sector starting) to its next warning, per difficulty; at most two lasers warn or fire at once. Placeholder; M8 tunes it.",
+      "easy": 300,
+      "medium": 225,
+      "hard": 150
+    }
+  }
+}

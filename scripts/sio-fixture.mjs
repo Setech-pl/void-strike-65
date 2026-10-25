@@ -169,10 +169,10 @@ export function loadCheckedL2(memory, root, build, manifest) {
   const atr=fs.readFileSync(path.join(artifactDirectory,"void-strike-65.atr"));
   if(crypto.createHash("sha256").update(atr).digest("hex")!==manifest.artifacts["void-strike-65.atr"].sha256)
     throw Error("checked L2 fixture ATR does not match its manifest");
-  return loadCheckedL2Image(memory,atr,labels);
+  return loadCheckedL2Image(memory,atr,labels,manifest.sectorReader.levels[0].id);
 }
 
-export function loadCheckedL2Image(memory, atr, labels) {
+export function loadCheckedL2Image(memory, atr, labels, levelId=1) {
   const stub=new PokeyStub({respond:frame=>{
     const sector=frame[2]|frame[3]<<8;
     const data=atr.subarray(16+(sector-1)*128,16+sector*128);
@@ -189,6 +189,8 @@ export function loadCheckedL2Image(memory, atr, labels) {
       if(steps>=8000000)throw Error("checked L2 fixture did not return");cpu.step();
     }
   };
+  cpu.a=levelId;call(0xa003);
+  if(cpu.p&nmos6502Flags.carry)throw Error("checked L2 fixture rejected level image");
   cpu.x=11;call(0xa006);
   if(cpu.p&nmos6502Flags.carry)throw Error("checked L2 fixture rejected disk run");
   call(0x1900);

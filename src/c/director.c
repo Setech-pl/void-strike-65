@@ -811,13 +811,15 @@ uint8_t director_c_request(void)
     }
     director_scratch0 = STATE_SECTOR;
     sector_field = sector_hazards[director_scratch0];
-    /* The hazard mask is the sector's, not a phase's. Debris keeps the one
-     * exception it always had: it stays admissible through the capital
-     * traversal whatever the sector says, because the capital's own debris is
-     * what fills its corridor. */
+    /* The normal campaign retains its historical capital exception. The
+     * owner-approved throwaway spike obeys the authored mask unconditionally,
+     * removing capital debris while leaving SPACE policy unchanged. */
     if (director_scratch3 == HAZARD_DEBRIS) {
-        if ((sector_field & HAZARD_DEBRIS_MASK) == 0u &&
-            CAPITAL_SECTOR_STATE >= CAPITAL_HULL_STATE_DRAIN) {
+        if ((sector_field & HAZARD_DEBRIS_MASK) == 0u
+#ifndef SPIKE_NO_CAPITAL_DEBRIS
+            && CAPITAL_SECTOR_STATE >= CAPITAL_HULL_STATE_DRAIN
+#endif
+            ) {
             return 0u;
         }
     } else if (director_scratch3 == HAZARD_PICKUP) {

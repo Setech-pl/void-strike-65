@@ -4302,6 +4302,21 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				(x > 58u ? 0x0bu : 0x0fu);
 		}
 	}
+	else if (strcmp(dftrace_policy, "islands-flight") == 0 ||
+             strcmp(dftrace_policy, "islands-contact") == 0) {
+        unsigned phase = MEMORY_mem[dftrace_corridor_phase] |
+            ((unsigned) MEMORY_mem[dftrace_corridor_phase_hi] << 8);
+        unsigned capital = MEMORY_mem[dftrace_sector_state] < 6u;
+        unsigned target = 124u;
+        if (capital) {
+            target = phase < 190u || phase >= 302u ? 92u : 152u;
+            if (strcmp(dftrace_policy, "islands-contact") == 0 &&
+                phase >= 80u && phase < 139u) target = 124u;
+            /* Let carried-in debris leave without shooting it. */
+            if (phase < 80u) trigger = 1u;
+        }
+        stick = x < target ? 0x07u : x > target ? 0x0bu : 0x0fu;
+    }
 	else if (strcmp(dftrace_policy, "nacelle-contact") == 0) {
         /* Throwaway spike: ordinary joystick only, identical row-driven route
          * on clean main and each pattern. Two short deliberate edge visits. */
@@ -8458,6 +8473,55 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 }
 
 
+static void dftrace_islands_observe(void)
+{
+    static FILE *file;
+    const char *output = getenv("DFTRACE_ISLAND_OUTPUT");
+    unsigned phase, state, difficulty, cells = 0u, checked = 0u, bad = 0u;
+    unsigned player = 0u, enemy = 0u, shells = 0u, logical;
+    int enabled = getenv("DFTRACE_ISLANDS_ENABLED") != NULL;
+    if (output == NULL) return;
+    if (file == NULL) {
+        file = fopen(output, "w");
+        if (file == NULL) { perror("island trace"); exit(2); }
+        fputs("frame,phase,state,island_cells,checked_cells,corrupt_cells,player_shots,enemy_shots,shells\n", file);
+    }
+    phase = MEMORY_mem[dftrace_corridor_phase] |
+        ((unsigned)MEMORY_mem[dftrace_corridor_phase_hi] << 8);
+    state = MEMORY_mem[dftrace_sector_state];
+    difficulty = MEMORY_mem[dftrace_difficulty_setting];
+    if (state < 5u) for (logical = 0u; logical < 28u && logical < phase; ++logical) {
+        unsigned source = phase - logical - 1u, half = 0u, start, column;
+        unsigned row = logical == 0u ? DFTRACE_DIVIDER_SCREEN :
+            MEMORY_mem[dftrace_playfield_row_lo + logical - 1u] |
+            ((unsigned)MEMORY_mem[dftrace_playfield_row_hi + logical - 1u] << 8);
+        if (enabled) for (start = 96u; start <= 320u; start += 112u) {
+            if (source >= start && source < start + 48u) {
+                unsigned part = (source-start)/8u;
+                half = part == 0u || part == 5u ? 1u :
+                    part == 1u || part == 4u ? 2u : 3u + difficulty;
+            }
+        }
+        for (column = 15u; column < 25u; ++column) {
+            unsigned address = row + column, value = MEMORY_mem[address];
+            unsigned wanted = half != 0u && column >= 20u-half && column < 20u+half;
+            unsigned owners = dftrace_first_writer_owner(address);
+            if (wanted) {
+                ++cells;
+                if ((owners & 2u) != 0u) ++player;
+                if ((owners & 4u) != 0u) ++enemy;
+                if ((owners & 32u) != 0u) ++shells;
+            }
+            if ((owners & (2u|4u|8u|16u|32u)) != 0u) continue;
+            ++checked;
+            if (wanted ? value != 59u : value == 59u) ++bad;
+        }
+    }
+    fprintf(file, "%u,%u,%u,%u,%u,%u,%u,%u,%u\n", dftrace_count,
+        phase,state,cells,checked,bad,player,enemy,shells);
+    fflush(file);
+}
+
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
 {
@@ -9112,6 +9176,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_current.profile_pickup_render_start = 0u;
 			dftrace_current.profile_effect_render_start = 0u;
 		}
+		if (dftrace_current.profile_next == 20u) dftrace_islands_observe();
 		++dftrace_current.profile_next;
 	}
 	if (pc == dftrace_pc_compose_start) {

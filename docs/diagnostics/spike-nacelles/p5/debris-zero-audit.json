@@ -1,0 +1,10 @@
+[
+  {
+    "file": "level-01.json",
+    "sector": 7,
+    "index": 6,
+    "kind": "boss",
+    "implicit": true,
+    "changes": false
+  }
+]

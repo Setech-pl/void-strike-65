@@ -182,7 +182,8 @@ const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "p
 const gameVersion = packageDefinition.version;
 const quiet = process.argv.includes("--quiet");
 const nacellePattern = Number(process.argv.find(a => a.startsWith("--spike-nacelles="))?.split("=")[1] ?? 0);
-if (![0,1,2,3].includes(nacellePattern)) throw new Error("spike-nacelles must be 1, 2 or 3");
+if (![0,1,2,3,5].includes(nacellePattern)) throw new Error("spike-nacelles must be 1, 2, 3 or 5");
+const spikeDebrisOff = nacellePattern === 5 || process.argv.includes("--spike-debris-off");
 
 const evidencePhase = runtimeEvidencePhase(process.argv);
 const candidateBuild = evidencePhase === "candidate";
@@ -451,10 +452,10 @@ const isReviewVariant = escortVariantId !== null || enemyReviewHarness || enemyC
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
   pickupColourValue !== null || playerColourValue !== null || laserFixtureTier !== null ||
   laserTierValue !== null || bossVariantSlug !== undefined;
-if (nacellePattern && (isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement)) {
+if ((nacellePattern || spikeDebrisOff) && (isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement)) {
   throw new Error("The nacelle spike requires a normal build without other variants or skipped gates");
 }
-if (releaseBuild && (nacellePattern || isReviewVariant || twoPmgRaiderPrototype)) {
+if (releaseBuild && (spikeDebrisOff || nacellePattern || isReviewVariant || twoPmgRaiderPrototype)) {
   throw new Error("--release requires the campaign build with all computed gates");
 }
 
@@ -503,7 +504,7 @@ const variantDirectoryNameInner = (escortVariantId !== null
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
-const variantDirectoryName = nacellePattern ? `spike-nacelles-p${nacellePattern}${levelDebugSuffix}` : variantDirectoryNameInner;
+const variantDirectoryName = nacellePattern ? `spike-nacelles-p${nacellePattern}${levelDebugSuffix}` : spikeDebrisOff ? "spike-debris-off" : variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1455,6 +1456,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     },
     ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
       ...(levelDebugStartSector ? ["-D", "LEVEL_DEBUG_START=1"] : []),
+      ...(spikeDebrisOff ? ["-D", "SPIKE_NO_CAPITAL_DEBRIS=1"] : []),
       "-o", `${base}-generated.s`, "/project/src/c/director.c"],
     [`${base}-generated.s`],
   );
@@ -1902,6 +1904,15 @@ function splitStarfieldStreams(raw, stagingStreams) {
 }
 
 function nacelleData(pattern) {
+  if (pattern === 5) {
+    const tables = [3,4,5].flatMap(full => Array.from({length:64},(_,module) => {
+      const row = module*8;
+      for (const start of [96,208,320]) if (row>=start && row<start+48)
+        return [1,2,full,full,2,1][(row-start)/8];
+      return 0;
+    }));
+    return "p5_half_width_tables:\n.byte " + tables.join(",") + "\n";
+  }
   const entries = Array.from({length:60}, (_, module) => {
     const row = module * 8;
     if (row < 64 || row >= 352) return 0;
@@ -2194,6 +2205,7 @@ async function build() {
     {
       "/project/src/main.s": source,
       "/project/build/spike-nacelles.s": fs.readFileSync(path.join(rootDirectory, "src", "spike-nacelles.s")),
+      "/project/build/spike-islands.s": fs.readFileSync(path.join(rootDirectory, "src", "spike-islands.s")),
       "/project/build/spike-nacelles-data.inc": Buffer.from(nacelleData(nacellePattern)),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/loader-screen.inc": loaderInclude,
@@ -2623,6 +2635,12 @@ async function build() {
     [run.id, bossVariantLevel(run.id) !== null
       ? compileLevelFile(bossVariantLevel(run.id), { hullAsset: capitalHullsAsset })
       : compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
+  if (spikeDebrisOff) for (const compiled of compiledLevels.values()) {
+    for (const sector of compiled.sectors) if (sector.kind === "capital" || sector.kind === 1) {
+      sector.debris = 0;
+      compiled.pages.core[SECTOR_ARRAY_OFFSET.hazards + sector.index] &= ~3;
+    }
+  }
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
   if (levelDebugId !== null) {
@@ -4759,7 +4777,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: nacellePattern ? variantDirectoryName : playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
+    buildVariant: nacellePattern || spikeDebrisOff ? variantDirectoryName : playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness

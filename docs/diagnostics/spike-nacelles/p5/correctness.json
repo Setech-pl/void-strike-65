@@ -1,0 +1,40 @@
+{
+  "difficulties": [
+    {
+      "difficulty": 0,
+      "maxWidthCells": 6,
+      "islandHPOS": 24,
+      "minSideChannelCells": 8,
+      "minSideChannelHPOS": 32,
+      "maxOrdinaryCpuDelta": 500,
+      "maxContactCpu": 790,
+      "maxDrawCpu": 1920
+    },
+    {
+      "difficulty": 1,
+      "maxWidthCells": 8,
+      "islandHPOS": 32,
+      "minSideChannelCells": 7,
+      "minSideChannelHPOS": 28,
+      "maxOrdinaryCpuDelta": 500,
+      "maxContactCpu": 790,
+      "maxDrawCpu": 1921
+    },
+    {
+      "difficulty": 2,
+      "maxWidthCells": 10,
+      "islandHPOS": 40,
+      "minSideChannelCells": 6,
+      "minSideChannelHPOS": 24,
+      "maxOrdinaryCpuDelta": 503,
+      "maxContactCpu": 793,
+      "maxDrawCpu": 1921
+    }
+  ],
+  "contacts": 93618,
+  "gaps": 62142,
+  "edges": 23082,
+  "cooldowns": 93618,
+  "cacheCases": 2928,
+  "centredContacts": 3582
+}

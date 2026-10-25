@@ -1,0 +1,2071 @@
+{
+  "baseline": "19b1464",
+  "flagOffAtrSha": "410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7",
+  "difficulties": [
+    {
+      "difficulty": 0,
+      "name": "easy",
+      "variants": {
+        "main": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "main-easy-flight",
+                "frames": 2300,
+                "fence_bound_frames": 943,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 20179,
+                "worst_pre_wait_frame": 359,
+                "worst_fence_margin_cycles": 5133,
+                "worst_fence_margin_frame": 359,
+                "maximum_wall_cycles": 30689,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1585,
+                "maximum": {
+                  "frame": 724,
+                  "wall": 30248,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 6,
+                  "healthAfter": 6
+                },
+                "average": 11863.983596214512
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 2042,
+                  "wall": 14892,
+                  "contactStageWall": 58,
+                  "state": 4,
+                  "phase": 455,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 9078.32738557021
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1623,
+                "wall": 11422,
+                "contactStageWall": 58,
+                "state": 2,
+                "phase": 287,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 906,
+                "framesAfterHullEntry": 48,
+                "directorEntryFrame": 679,
+                "framesAfterDirectorEntry": 95,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 329549,
+                "corruptBackgroundCells": 0
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "main-easy-contact",
+                "frames": 2300,
+                "fence_bound_frames": 943,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 20179,
+                "worst_pre_wait_frame": 359,
+                "worst_fence_margin_cycles": 5133,
+                "worst_fence_margin_frame": 359,
+                "maximum_wall_cycles": 30689,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1585,
+                "maximum": {
+                  "frame": 724,
+                  "wall": 30248,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 6,
+                  "healthAfter": 6
+                },
+                "average": 11866.817665615143
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 2042,
+                  "wall": 16268,
+                  "contactStageWall": 67,
+                  "state": 4,
+                  "phase": 455,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 9061.489526764934
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1623,
+                "wall": 11422,
+                "contactStageWall": 58,
+                "state": 2,
+                "phase": 287,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 906,
+                "framesAfterHullEntry": 48,
+                "directorEntryFrame": 679,
+                "framesAfterDirectorEntry": 95,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 329141,
+                "corruptBackgroundCells": 0
+              }
+            }
+          }
+        },
+        "off": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "off-easy-flight",
+                "frames": 2300,
+                "fence_bound_frames": 943,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 20179,
+                "worst_pre_wait_frame": 359,
+                "worst_fence_margin_cycles": 5133,
+                "worst_fence_margin_frame": 359,
+                "maximum_wall_cycles": 30689,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1585,
+                "maximum": {
+                  "frame": 724,
+                  "wall": 30248,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 6,
+                  "healthAfter": 6
+                },
+                "average": 11494.22712933754
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 2042,
+                  "wall": 14892,
+                  "contactStageWall": 58,
+                  "state": 4,
+                  "phase": 455,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 8647.153607447633
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1623,
+                "wall": 10393,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 287,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 906,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 679,
+                "framesAfterDirectorEntry": 95,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 330708,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": 0,
+                "capitalMeanVsMain": -369.7564668769719
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "off-easy-contact",
+                "frames": 2300,
+                "fence_bound_frames": 943,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 20179,
+                "worst_pre_wait_frame": 359,
+                "worst_fence_margin_cycles": 5133,
+                "worst_fence_margin_frame": 359,
+                "maximum_wall_cycles": 30689,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1585,
+                "maximum": {
+                  "frame": 724,
+                  "wall": 30248,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 6,
+                  "healthAfter": 6
+                },
+                "average": 11494.375394321767
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 2042,
+                  "wall": 14892,
+                  "contactStageWall": 58,
+                  "state": 4,
+                  "phase": 455,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 8647.3359193173
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1623,
+                "wall": 10393,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 287,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 906,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 679,
+                "framesAfterDirectorEntry": 95,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 330148,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": 0,
+                "capitalMeanVsMain": -372.4422712933756
+              }
+            }
+          }
+        },
+        "islands": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "islands-easy-flight",
+                "frames": 2300,
+                "fence_bound_frames": 943,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 20191,
+                "worst_pre_wait_frame": 359,
+                "worst_fence_margin_cycles": 5109,
+                "worst_fence_margin_frame": 359,
+                "maximum_wall_cycles": 30692,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1585,
+                "maximum": {
+                  "frame": 697,
+                  "wall": 30256,
+                  "contactStageWall": 124,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 6,
+                  "healthAfter": 6
+                },
+                "average": 11863.364668769716
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 2042,
+                  "wall": 15633,
+                  "contactStageWall": 94,
+                  "state": 4,
+                  "phase": 455,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 10,
+                  "healthAfter": 10,
+                  "mainSameFrame": 14892,
+                  "deltaVsMainSameFrame": 741,
+                  "offSameFrame": 14892,
+                  "deltaVsOffSameFrame": 741
+                },
+                "average": 9100.428238944918
+              },
+              "ordinary": {
+                "frame": 1522,
+                "wall": 13631,
+                "contactStageWall": 86,
+                "state": 2,
+                "phase": 247,
+                "x": 152,
+                "xAfter": 152,
+                "health": 2,
+                "healthAfter": 2,
+                "mainSameFrame": 12406,
+                "deltaVsMainSameFrame": 1225,
+                "offSameFrame": 12478,
+                "deltaVsOffSameFrame": 1153
+              },
+              "edge": {
+                "frame": 1612,
+                "wall": 11790,
+                "contactStageWall": 561,
+                "state": 2,
+                "phase": 283,
+                "x": 116,
+                "xAfter": 116,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 10873,
+                "deltaVsMainSameFrame": 917,
+                "offSameFrame": 10146,
+                "deltaVsOffSameFrame": 1644
+              },
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1623,
+                "wall": 11647,
+                "contactStageWall": 447,
+                "state": 2,
+                "phase": 287,
+                "x": 134,
+                "xAfter": 136,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 11422,
+                "deltaVsMainSameFrame": 225,
+                "offSameFrame": 10393,
+                "deltaVsOffSameFrame": 1254
+              },
+              "playerShotCrossing": {
+                "frame": 1602,
+                "wall": 10396,
+                "contactStageWall": 556,
+                "state": 2,
+                "phase": 279,
+                "x": 116,
+                "xAfter": 116,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 9955,
+                "deltaVsMainSameFrame": 441,
+                "offSameFrame": 9271,
+                "deltaVsOffSameFrame": 1125
+              },
+              "carry": {
+                "hullEntryFrame": 906,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 679,
+                "framesAfterDirectorEntry": 95,
+                "firstIslandFrame": 1147
+              },
+              "coverage": {
+                "islandFrames": 561,
+                "playerShotFrames": 4,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 96,
+                "checkedBackgroundCells": 330603,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": 8,
+                "capitalMeanVsMain": -0.6189274447951902,
+                "capitalPeakVsOff": 8,
+                "capitalMeanVsOff": 369.1375394321767
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "islands-easy-contact",
+                "frames": 2300,
+                "fence_bound_frames": 943,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 20191,
+                "worst_pre_wait_frame": 359,
+                "worst_fence_margin_cycles": 5109,
+                "worst_fence_margin_frame": 359,
+                "maximum_wall_cycles": 30692,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1585,
+                "maximum": {
+                  "frame": 697,
+                  "wall": 30256,
+                  "contactStageWall": 124,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 6,
+                  "healthAfter": 6
+                },
+                "average": 11926.067507886435
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 2042,
+                  "wall": 15886,
+                  "contactStageWall": 85,
+                  "state": 4,
+                  "phase": 455,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 10,
+                  "healthAfter": 10,
+                  "mainSameFrame": 16268,
+                  "deltaVsMainSameFrame": -382,
+                  "offSameFrame": 14892,
+                  "deltaVsOffSameFrame": 994
+                },
+                "average": 9178.016291698992
+              },
+              "ordinary": {
+                "frame": 1154,
+                "wall": 13480,
+                "contactStageWall": 447,
+                "state": 1,
+                "phase": 100,
+                "x": 124,
+                "xAfter": 124,
+                "health": 4,
+                "healthAfter": 4,
+                "mainSameFrame": 11877,
+                "deltaVsMainSameFrame": 1603,
+                "offSameFrame": 11877,
+                "deltaVsOffSameFrame": 1603
+              },
+              "edge": {
+                "frame": 1262,
+                "wall": 14354,
+                "contactStageWall": 556,
+                "state": 2,
+                "phase": 143,
+                "x": 112,
+                "xAfter": 108,
+                "health": 0,
+                "healthAfter": 10,
+                "mainSameFrame": 10491,
+                "deltaVsMainSameFrame": 3863,
+                "offSameFrame": 9899,
+                "deltaVsOffSameFrame": 4455
+              },
+              "damaging": {
+                "frame": 1212,
+                "wall": 13784,
+                "contactStageWall": 773,
+                "state": 2,
+                "phase": 123,
+                "x": 124,
+                "xAfter": 116,
+                "health": 4,
+                "healthAfter": 2,
+                "mainSameFrame": 12654,
+                "deltaVsMainSameFrame": 1130,
+                "offSameFrame": 11264,
+                "deltaVsOffSameFrame": 2520
+              },
+              "rowSwitch": {
+                "frame": 1223,
+                "wall": 11743,
+                "contactStageWall": 570,
+                "state": 2,
+                "phase": 127,
+                "x": 116,
+                "xAfter": 116,
+                "health": 2,
+                "healthAfter": 2,
+                "mainSameFrame": 10859,
+                "deltaVsMainSameFrame": 884,
+                "offSameFrame": 10143,
+                "deltaVsOffSameFrame": 1600
+              },
+              "playerShotCrossing": {
+                "frame": 1262,
+                "wall": 14354,
+                "contactStageWall": 556,
+                "state": 2,
+                "phase": 143,
+                "x": 112,
+                "xAfter": 108,
+                "health": 0,
+                "healthAfter": 10,
+                "mainSameFrame": 10491,
+                "deltaVsMainSameFrame": 3863,
+                "offSameFrame": 9899,
+                "deltaVsOffSameFrame": 4455
+              },
+              "carry": {
+                "hullEntryFrame": 906,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 679,
+                "framesAfterDirectorEntry": 95,
+                "firstIslandFrame": 1147
+              },
+              "coverage": {
+                "islandFrames": 561,
+                "playerShotFrames": 86,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 80,
+                "checkedBackgroundCells": 330310,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": 8,
+                "capitalMeanVsMain": 59.24984227129244,
+                "capitalPeakVsOff": 8,
+                "capitalMeanVsOff": 431.69211356466803
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "difficulty": 1,
+      "name": "medium",
+      "variants": {
+        "main": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "main-medium-flight",
+                "frames": 2300,
+                "fence_bound_frames": 1095,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21202,
+                "worst_pre_wait_frame": 95,
+                "worst_fence_margin_cycles": 4098,
+                "worst_fence_margin_frame": 95,
+                "maximum_wall_cycles": 31164,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1447,
+                "maximum": {
+                  "frame": 637,
+                  "wall": 30015,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 12786.055286800276
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1111,
+                  "wall": 16843,
+                  "contactStageWall": 67,
+                  "state": 1,
+                  "phase": 110,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 9700.986899563319
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1565,
+                "wall": 13014,
+                "contactStageWall": 58,
+                "state": 2,
+                "phase": 314,
+                "x": 98,
+                "xAfter": 96,
+                "health": 8,
+                "healthAfter": 8
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 869,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 628,
+                "framesAfterDirectorEntry": 54,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 293149,
+                "corruptBackgroundCells": 0
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "main-medium-contact",
+                "frames": 2300,
+                "fence_bound_frames": 1095,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21202,
+                "worst_pre_wait_frame": 95,
+                "worst_fence_margin_cycles": 4098,
+                "worst_fence_margin_frame": 95,
+                "maximum_wall_cycles": 31164,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1447,
+                "maximum": {
+                  "frame": 637,
+                  "wall": 30015,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 12823.026952315135
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1111,
+                  "wall": 16843,
+                  "contactStageWall": 67,
+                  "state": 1,
+                  "phase": 110,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 9747.710043668123
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1565,
+                "wall": 13014,
+                "contactStageWall": 58,
+                "state": 2,
+                "phase": 314,
+                "x": 98,
+                "xAfter": 96,
+                "health": 8,
+                "healthAfter": 8
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 869,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 628,
+                "framesAfterDirectorEntry": 54,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 292646,
+                "corruptBackgroundCells": 0
+              }
+            }
+          }
+        },
+        "off": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "off-medium-flight",
+                "frames": 2300,
+                "fence_bound_frames": 1095,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21202,
+                "worst_pre_wait_frame": 95,
+                "worst_fence_margin_cycles": 4098,
+                "worst_fence_margin_frame": 95,
+                "maximum_wall_cycles": 31164,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1447,
+                "maximum": {
+                  "frame": 637,
+                  "wall": 30015,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 12664.106427090532
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1891,
+                  "wall": 15822,
+                  "contactStageWall": 58,
+                  "state": 4,
+                  "phase": 461,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8
+                },
+                "average": 9588.481222707424
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1183,
+                "wall": 12307,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 142,
+                "x": 92,
+                "xAfter": 92,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 869,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 628,
+                "framesAfterDirectorEntry": 54,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 293748,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": 0,
+                "capitalMeanVsMain": -121.94885970974428
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "off-medium-contact",
+                "frames": 2300,
+                "fence_bound_frames": 1095,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21202,
+                "worst_pre_wait_frame": 95,
+                "worst_fence_margin_cycles": 4098,
+                "worst_fence_margin_frame": 95,
+                "maximum_wall_cycles": 31164,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1447,
+                "maximum": {
+                  "frame": 637,
+                  "wall": 30015,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 12745.177608845888
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1891,
+                  "wall": 15822,
+                  "contactStageWall": 58,
+                  "state": 4,
+                  "phase": 461,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8
+                },
+                "average": 9690.935371179039
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1127,
+                "wall": 12222,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 117,
+                "x": 124,
+                "xAfter": 124,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 869,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 628,
+                "framesAfterDirectorEntry": 54,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 293251,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": 0,
+                "capitalMeanVsMain": -77.84934346924638
+              }
+            }
+          }
+        },
+        "islands": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "islands-medium-flight",
+                "frames": 2300,
+                "fence_bound_frames": 1095,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21214,
+                "worst_pre_wait_frame": 95,
+                "worst_fence_margin_cycles": 4086,
+                "worst_fence_margin_frame": 95,
+                "maximum_wall_cycles": 31167,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1447,
+                "maximum": {
+                  "frame": 635,
+                  "wall": 30011,
+                  "contactStageWall": 205,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 13093.532826537665
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1891,
+                  "wall": 16600,
+                  "contactStageWall": 101,
+                  "state": 4,
+                  "phase": 461,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8,
+                  "mainSameFrame": 15876,
+                  "deltaVsMainSameFrame": 724,
+                  "offSameFrame": 15822,
+                  "deltaVsOffSameFrame": 778
+                },
+                "average": 10130.552838427948
+              },
+              "ordinary": {
+                "frame": 1111,
+                "wall": 15694,
+                "contactStageWall": 94,
+                "state": 1,
+                "phase": 110,
+                "x": 92,
+                "xAfter": 92,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 16843,
+                "deltaVsMainSameFrame": -1149,
+                "offSameFrame": 14726,
+                "deltaVsOffSameFrame": 968
+              },
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1127,
+                "wall": 13303,
+                "contactStageWall": 94,
+                "state": 2,
+                "phase": 117,
+                "x": 92,
+                "xAfter": 92,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 12317,
+                "deltaVsMainSameFrame": 986,
+                "offSameFrame": 12222,
+                "deltaVsOffSameFrame": 1081
+              },
+              "playerShotCrossing": {
+                "frame": 1584,
+                "wall": 11800,
+                "contactStageWall": 85,
+                "state": 2,
+                "phase": 323,
+                "x": 92,
+                "xAfter": 92,
+                "health": 8,
+                "healthAfter": 8,
+                "mainSameFrame": 10993,
+                "deltaVsMainSameFrame": 807,
+                "offSameFrame": 10626,
+                "deltaVsOffSameFrame": 1174
+              },
+              "carry": {
+                "hullEntryFrame": 869,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 628,
+                "framesAfterDirectorEntry": 54,
+                "firstIslandFrame": 1082
+              },
+              "coverage": {
+                "islandFrames": 499,
+                "playerShotFrames": 3,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 152,
+                "checkedBackgroundCells": 293748,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": -4,
+                "capitalMeanVsMain": 307.4775397373887,
+                "capitalPeakVsOff": -4,
+                "capitalMeanVsOff": 429.426399447133
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "islands-medium-contact",
+                "frames": 2300,
+                "fence_bound_frames": 1095,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21214,
+                "worst_pre_wait_frame": 95,
+                "worst_fence_margin_cycles": 4086,
+                "worst_fence_margin_frame": 95,
+                "maximum_wall_cycles": 31167,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1447,
+                "maximum": {
+                  "frame": 635,
+                  "wall": 30011,
+                  "contactStageWall": 205,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 13148.410504492052
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1891,
+                  "wall": 16600,
+                  "contactStageWall": 101,
+                  "state": 4,
+                  "phase": 461,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 4,
+                  "healthAfter": 4,
+                  "mainSameFrame": 15876,
+                  "deltaVsMainSameFrame": 724,
+                  "offSameFrame": 15822,
+                  "deltaVsOffSameFrame": 778
+                },
+                "average": 10199.90480349345
+              },
+              "ordinary": {
+                "frame": 1111,
+                "wall": 16354,
+                "contactStageWall": 450,
+                "state": 1,
+                "phase": 110,
+                "x": 124,
+                "xAfter": 124,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 16843,
+                "deltaVsMainSameFrame": -489,
+                "offSameFrame": 14668,
+                "deltaVsOffSameFrame": 1686
+              },
+              "edge": {
+                "frame": 1175,
+                "wall": 14529,
+                "contactStageWall": 567,
+                "state": 2,
+                "phase": 139,
+                "x": 112,
+                "xAfter": 104,
+                "health": 6,
+                "healthAfter": 6,
+                "mainSameFrame": 11594,
+                "deltaVsMainSameFrame": 2935,
+                "offSameFrame": 13125,
+                "deltaVsOffSameFrame": 1404
+              },
+              "damaging": {
+                "frame": 1139,
+                "wall": 14390,
+                "contactStageWall": 779,
+                "state": 2,
+                "phase": 123,
+                "x": 124,
+                "xAfter": 116,
+                "health": 10,
+                "healthAfter": 8,
+                "mainSameFrame": 11503,
+                "deltaVsMainSameFrame": 2887,
+                "offSameFrame": 11832,
+                "deltaVsOffSameFrame": 2558
+              },
+              "rowSwitch": {
+                "frame": 1127,
+                "wall": 14015,
+                "contactStageWall": 447,
+                "state": 2,
+                "phase": 117,
+                "x": 124,
+                "xAfter": 124,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 12317,
+                "deltaVsMainSameFrame": 1698,
+                "offSameFrame": 12222,
+                "deltaVsOffSameFrame": 1793
+              },
+              "playerShotCrossing": {
+                "frame": 1111,
+                "wall": 16354,
+                "contactStageWall": 450,
+                "state": 1,
+                "phase": 110,
+                "x": 124,
+                "xAfter": 124,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 16843,
+                "deltaVsMainSameFrame": -489,
+                "offSameFrame": 14668,
+                "deltaVsOffSameFrame": 1686
+              },
+              "carry": {
+                "hullEntryFrame": 869,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 628,
+                "framesAfterDirectorEntry": 54,
+                "firstIslandFrame": 1082
+              },
+              "coverage": {
+                "islandFrames": 499,
+                "playerShotFrames": 88,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 152,
+                "checkedBackgroundCells": 293296,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": -4,
+                "capitalMeanVsMain": 325.3835521769179,
+                "capitalPeakVsOff": -4,
+                "capitalMeanVsOff": 403.23289564616425
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "difficulty": 2,
+      "name": "hard",
+      "variants": {
+        "main": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "main-hard-flight",
+                "frames": 2300,
+                "fence_bound_frames": 1216,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21422,
+                "worst_pre_wait_frame": 81,
+                "worst_fence_margin_cycles": 3878,
+                "worst_fence_margin_frame": 81,
+                "maximum_wall_cycles": 31425,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1358,
+                "maximum": {
+                  "frame": 645,
+                  "wall": 29202,
+                  "contactStageWall": 107,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 13951.054491899853
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1759,
+                  "wall": 16370,
+                  "contactStageWall": 67,
+                  "state": 4,
+                  "phase": 461,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8
+                },
+                "average": 10375.080582524271
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1448,
+                "wall": 12654,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 305,
+                "x": 140,
+                "xAfter": 138,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 840,
+                "framesAfterHullEntry": 1,
+                "directorEntryFrame": 567,
+                "framesAfterDirectorEntry": 0,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 263406,
+                "corruptBackgroundCells": 0
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "main-hard-contact",
+                "frames": 2300,
+                "fence_bound_frames": 1216,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21422,
+                "worst_pre_wait_frame": 81,
+                "worst_fence_margin_cycles": 3878,
+                "worst_fence_margin_frame": 81,
+                "maximum_wall_cycles": 31425,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1358,
+                "maximum": {
+                  "frame": 645,
+                  "wall": 29202,
+                  "contactStageWall": 107,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 13995.39764359352
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1703,
+                  "wall": 17443,
+                  "contactStageWall": 67,
+                  "state": 3,
+                  "phase": 433,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8
+                },
+                "average": 10422.133009708738
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1332,
+                "wall": 12744,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 247,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 840,
+                "framesAfterHullEntry": 1,
+                "directorEntryFrame": 567,
+                "framesAfterDirectorEntry": 0,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 263040,
+                "corruptBackgroundCells": 0
+              }
+            }
+          }
+        },
+        "off": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "off-hard-flight",
+                "frames": 2300,
+                "fence_bound_frames": 1216,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21422,
+                "worst_pre_wait_frame": 81,
+                "worst_fence_margin_cycles": 3878,
+                "worst_fence_margin_frame": 81,
+                "maximum_wall_cycles": 31425,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1358,
+                "maximum": {
+                  "frame": 589,
+                  "wall": 29108,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 13558.922680412372
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1703,
+                  "wall": 16034,
+                  "contactStageWall": 58,
+                  "state": 3,
+                  "phase": 433,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8
+                },
+                "average": 9938.964077669903
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1332,
+                "wall": 11523,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 247,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 840,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 567,
+                "framesAfterDirectorEntry": 0,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 264237,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": -94,
+                "capitalMeanVsMain": -392.1318114874812
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "off-hard-contact",
+                "frames": 2300,
+                "fence_bound_frames": 1216,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21422,
+                "worst_pre_wait_frame": 81,
+                "worst_fence_margin_cycles": 3878,
+                "worst_fence_margin_frame": 81,
+                "maximum_wall_cycles": 31425,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1358,
+                "maximum": {
+                  "frame": 589,
+                  "wall": 29108,
+                  "contactStageWall": 110,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 13559.325478645067
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1703,
+                  "wall": 16034,
+                  "contactStageWall": 58,
+                  "state": 3,
+                  "phase": 433,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8
+                },
+                "average": 9939.495145631068
+              },
+              "ordinary": null,
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1332,
+                "wall": 11523,
+                "contactStageWall": 67,
+                "state": 2,
+                "phase": 247,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10
+              },
+              "playerShotCrossing": null,
+              "carry": {
+                "hullEntryFrame": 840,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 567,
+                "framesAfterDirectorEntry": 0,
+                "firstIslandFrame": null
+              },
+              "coverage": {
+                "islandFrames": 0,
+                "playerShotFrames": 0,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 0,
+                "checkedBackgroundCells": 263784,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": -94,
+                "capitalMeanVsMain": -436.07216494845306
+              }
+            }
+          }
+        },
+        "islands": {
+          "routes": {
+            "flight": {
+              "audit": {
+                "session": "islands-hard-flight",
+                "frames": 2300,
+                "fence_bound_frames": 1216,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21439,
+                "worst_pre_wait_frame": 81,
+                "worst_fence_margin_cycles": 3861,
+                "worst_fence_margin_frame": 81,
+                "maximum_wall_cycles": 31422,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1358,
+                "maximum": {
+                  "frame": 589,
+                  "wall": 29105,
+                  "contactStageWall": 126,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 14012.699558173785
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1703,
+                  "wall": 16844,
+                  "contactStageWall": 94,
+                  "state": 3,
+                  "phase": 433,
+                  "x": 92,
+                  "xAfter": 92,
+                  "health": 8,
+                  "healthAfter": 8,
+                  "mainSameFrame": 16034,
+                  "deltaVsMainSameFrame": 810,
+                  "offSameFrame": 16034,
+                  "deltaVsOffSameFrame": 810
+                },
+                "average": 10536.676699029127
+              },
+              "ordinary": {
+                "frame": 1087,
+                "wall": 15980,
+                "contactStageWall": 95,
+                "state": 2,
+                "phase": 125,
+                "x": 92,
+                "xAfter": 92,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 16200,
+                "deltaVsMainSameFrame": -220,
+                "offSameFrame": 14817,
+                "deltaVsOffSameFrame": 1163
+              },
+              "edge": null,
+              "damaging": null,
+              "rowSwitch": {
+                "frame": 1454,
+                "wall": 12868,
+                "contactStageWall": 449,
+                "state": 2,
+                "phase": 308,
+                "x": 128,
+                "xAfter": 126,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 12532,
+                "deltaVsMainSameFrame": 336,
+                "offSameFrame": 11436,
+                "deltaVsOffSameFrame": 1432
+              },
+              "playerShotCrossing": {
+                "frame": 1263,
+                "wall": 13111,
+                "contactStageWall": 77,
+                "state": 2,
+                "phase": 213,
+                "x": 152,
+                "xAfter": 152,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 12556,
+                "deltaVsMainSameFrame": 555,
+                "offSameFrame": 11848,
+                "deltaVsOffSameFrame": 1263
+              },
+              "carry": {
+                "hullEntryFrame": 840,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 567,
+                "framesAfterDirectorEntry": 0,
+                "firstIslandFrame": 1031
+              },
+              "coverage": {
+                "islandFrames": 450,
+                "playerShotFrames": 5,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 196,
+                "checkedBackgroundCells": 264237,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": -97,
+                "capitalMeanVsMain": 61.64506627393166,
+                "capitalPeakVsOff": -3,
+                "capitalMeanVsOff": 453.77687776141283
+              }
+            },
+            "contact": {
+              "audit": {
+                "session": "islands-hard-contact",
+                "frames": 2300,
+                "fence_bound_frames": 1216,
+                "normal_start_scanline": {
+                  "fighter": 17,
+                  "capital": 230
+                },
+                "distinct_miss_events": 0,
+                "miss_events": [],
+                "overrun_rows": 0,
+                "fence_model_disagreements": 0,
+                "shifted_phase_rows": 0,
+                "worst_pre_wait_cycles": 21439,
+                "worst_pre_wait_frame": 81,
+                "worst_fence_margin_cycles": 3861,
+                "worst_fence_margin_frame": 81,
+                "maximum_wall_cycles": 31422,
+                "rows_over_target": 0,
+                "rows_over_hard_gate": 0,
+                "unreliable_counters": {
+                  "missed_frames": 0,
+                  "extra_vbi_boundaries": 0,
+                  "dli_sequence_violations": 0
+                },
+                "fence_caught": true,
+                "gate_failures": [],
+                "passed": true
+              },
+              "capital": {
+                "frames": 1358,
+                "maximum": {
+                  "frame": 589,
+                  "wall": 29105,
+                  "contactStageWall": 126,
+                  "state": 7,
+                  "phase": 0,
+                  "x": 124,
+                  "xAfter": 124,
+                  "health": 10,
+                  "healthAfter": 10
+                },
+                "average": 14065.69440353461
+              },
+              "hullActive": {
+                "maximum": {
+                  "frame": 1087,
+                  "wall": 17001,
+                  "contactStageWall": 598,
+                  "state": 2,
+                  "phase": 125,
+                  "x": 116,
+                  "xAfter": 116,
+                  "health": 8,
+                  "healthAfter": 8,
+                  "mainSameFrame": 16164,
+                  "deltaVsMainSameFrame": 837,
+                  "offSameFrame": 14817,
+                  "deltaVsOffSameFrame": 2184
+                },
+                "average": 10606.547572815534
+              },
+              "ordinary": {
+                "frame": 1055,
+                "wall": 16216,
+                "contactStageWall": 440,
+                "state": 1,
+                "phase": 109,
+                "x": 124,
+                "xAfter": 124,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 14544,
+                "deltaVsMainSameFrame": 1672,
+                "offSameFrame": 14560,
+                "deltaVsOffSameFrame": 1656
+              },
+              "edge": {
+                "frame": 1087,
+                "wall": 17001,
+                "contactStageWall": 598,
+                "state": 2,
+                "phase": 125,
+                "x": 116,
+                "xAfter": 116,
+                "health": 8,
+                "healthAfter": 8,
+                "mainSameFrame": 16164,
+                "deltaVsMainSameFrame": 837,
+                "offSameFrame": 14817,
+                "deltaVsOffSameFrame": 2184
+              },
+              "damaging": {
+                "frame": 1083,
+                "wall": 14550,
+                "contactStageWall": 781,
+                "state": 2,
+                "phase": 123,
+                "x": 124,
+                "xAfter": 116,
+                "health": 10,
+                "healthAfter": 8,
+                "mainSameFrame": 13872,
+                "deltaVsMainSameFrame": 678,
+                "offSameFrame": 12002,
+                "deltaVsOffSameFrame": 2548
+              },
+              "rowSwitch": {
+                "frame": 1066,
+                "wall": 13192,
+                "contactStageWall": 449,
+                "state": 2,
+                "phase": 114,
+                "x": 124,
+                "xAfter": 124,
+                "health": 10,
+                "healthAfter": 10,
+                "mainSameFrame": 11527,
+                "deltaVsMainSameFrame": 1665,
+                "offSameFrame": 11360,
+                "deltaVsOffSameFrame": 1832
+              },
+              "playerShotCrossing": {
+                "frame": 1087,
+                "wall": 17001,
+                "contactStageWall": 598,
+                "state": 2,
+                "phase": 125,
+                "x": 116,
+                "xAfter": 116,
+                "health": 8,
+                "healthAfter": 8,
+                "mainSameFrame": 16164,
+                "deltaVsMainSameFrame": 837,
+                "offSameFrame": 14817,
+                "deltaVsOffSameFrame": 2184
+              },
+              "carry": {
+                "hullEntryFrame": 840,
+                "framesAfterHullEntry": 0,
+                "directorEntryFrame": 567,
+                "framesAfterDirectorEntry": 0,
+                "firstIslandFrame": 1031
+              },
+              "coverage": {
+                "islandFrames": 450,
+                "playerShotFrames": 85,
+                "enemyShotCellFrames": 0,
+                "shellCellFrames": 196,
+                "checkedBackgroundCells": 263818,
+                "corruptBackgroundCells": 0
+              },
+              "delta": {
+                "capitalPeakVsMain": -97,
+                "capitalMeanVsMain": 70.29675994108948,
+                "capitalPeakVsOff": -3,
+                "capitalMeanVsOff": 506.36892488954254
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "bytes": {
+    "residentCodeDelta": -9,
+    "capitalCode": 291,
+    "data": 195,
+    "state": 8,
+    "windowTotal": 494,
+    "netResidency": 485,
+    "windowFree": 661,
+    "transportDelta": 256,
+    "transportDeltaVsP1": -128,
+    "rendererCopyEliminated": 191,
+    "trampoline": 8
+  },
+  "atr": {
+    "path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/spike-nacelles-p5/void-strike-65.atr",
+    "sha256": "b51e8b2ffbd791eb0126d29c3a306a8088c06642d2633facc2374278c83e2908"
+  }
+}

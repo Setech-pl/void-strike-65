@@ -1,4 +1,7 @@
 .setcpu "6502"
+.ifndef SPIKE_NACELLES
+SPIKE_NACELLES = 0
+.endif
 
 ; Void Strike 65 0.1 vertical slice
 ; Target: stock Atari 65XE PAL, 64 KB
@@ -6702,6 +6705,18 @@ scroll_hull_copy_row:
     sta src_ptr+1
 scroll_hull_copy_source_ready:
     ldx row_counter
+.if SPIKE_NACELLES = 5
+p5_copy_start:
+    ldy #39
+@copy_full:
+    lda (src_ptr),y
+    sta (dst_ptr),y
+    dey
+    bpl @copy_full
+    jmp p5_copy_end
+    .res 20-(*-p5_copy_start), 0
+p5_copy_end:
+.else
     ldy #(CORRIDOR_ALLIED_COLUMNS-1)
 @copy_allied:
     lda (src_ptr),y
@@ -6715,6 +6730,8 @@ scroll_hull_copy_source_ready:
     dey
     cpy #(CORRIDOR_ENEMY_FIRST-1)
     bne @copy_enemy
+
+.endif
 
     dex
     bpl scroll_hull_copy_row
@@ -7144,14 +7161,20 @@ set_enemy_hull_source:
 
 ; Draws the next finite sector row without advancing its shared longitudinal
 ; coordinate. The right ship uses a fixed eight-row content offset only.
-.if .defined(SPIKE_NACELLES)
+.if SPIKE_NACELLES > 0 .and SPIKE_NACELLES <> 5
 draw_hull_row:
     jmp spike_draw_hull_row
     .res $BF-3, $00
 .else
 draw_hull_row:
+.if SPIKE_NACELLES = 5
+    jmp p5_draw_hull_row
+    nop
+    nop
+.else
     lda corridor_phase
     sta HULL_DRAW_ROW_LO
+.endif
     ldx CORRIDOR_PHASE_HI
     stx HULL_DRAW_ROW_HI
     jsr resolve_allied_sector_row
@@ -7506,7 +7529,7 @@ commit_prepared_hull_row:
     ; The sole caller has resolved the fixed divider. The two static sides can
     ; share one index, with their last cells outside the loop. An unrotated
     ; hull-only path fails the physical-row key above, without a second flag.
-.if .defined(SPIKE_NACELLES)
+.if SPIKE_NACELLES > 0
     jsr spike_commit_strips
     nop
     nop
@@ -7665,7 +7688,7 @@ integration_pickup_pending_tick:
 ; therefore a complete proof that the player cannot contact either capital
 ; hull; carry clear asks the exact source-row resolver to handle an edge case.
 player_inside_universal_hull_corridor:
-.if .defined(SPIKE_NACELLES)
+.if SPIKE_NACELLES > 0
     jmp spike_safe_corridor
     .res 13, 0
 .else
@@ -9836,7 +9859,7 @@ handle_player_hull_contact:
     jsr resolve_allied_sector_row
     bcs @enemy_row
     tay
-.if .defined(SPIKE_NACELLES)
+.if SPIKE_NACELLES > 0 .and SPIKE_NACELLES <> 5
     jsr spike_allied_boundary
 .else
     lda allied_collision_boundaries,y
@@ -9878,7 +9901,7 @@ handle_player_hull_contact:
     jsr resolve_enemy_sector_row
     bcs @next_row
     tay
-.if .defined(SPIKE_NACELLES)
+.if SPIKE_NACELLES > 0 .and SPIKE_NACELLES <> 5
     jsr spike_enemy_boundary
 .else
     lda enemy_collision_boundaries,y
@@ -13485,6 +13508,8 @@ SPLASH_SPACE_KEY = $21          ; POKEY key code for SPACE, KBCODE bits 0-5
 .export integration_pickup_reveal_body, EFFECT_GROWTH_GLYPH_BASE, PICKUP_BOOST_COLOUR
 .export FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
 
-.if .defined(SPIKE_NACELLES)
+.if SPIKE_NACELLES = 5
+.include "spike-islands.s"
+.elseif SPIKE_NACELLES > 0
 .include "spike-nacelles.s"
 .endif

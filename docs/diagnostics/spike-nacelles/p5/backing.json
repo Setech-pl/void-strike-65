@@ -1,0 +1,44 @@
+{
+  "cases": 82,
+  "hullOnlyFallback": true,
+  "worstPossibleCarry": [
+    {
+      "difficulty": 0,
+      "frames": 118,
+      "worldRows": 47,
+      "firstIslandRow": 96,
+      "overlap": false
+    },
+    {
+      "difficulty": 1,
+      "frames": 105,
+      "worldRows": 47,
+      "firstIslandRow": 96,
+      "overlap": false
+    },
+    {
+      "difficulty": 2,
+      "frames": 94,
+      "worldRows": 47,
+      "firstIslandRow": 96,
+      "overlap": false
+    }
+  ],
+  "categories": [
+    "normal player",
+    "spread/composited player",
+    "enemy P1/P2",
+    "broadside allied/hostile",
+    "ring reuse"
+  ],
+  "pass": true,
+  "incrementVersusBlank": {
+    "normalPlayer": 8,
+    "spreadPlayer": 445,
+    "enemy": 0
+  },
+  "broadsideIncrementVersusBlank": 0,
+  "maxPlayerRenderCpu": 822,
+  "maxEnemyRenderCpu": 392,
+  "maxShellRenderCpu": 158
+}

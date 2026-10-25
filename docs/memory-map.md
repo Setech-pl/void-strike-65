@@ -61,6 +61,26 @@ nine-column maps retain their original extents through `$4E3F`; broadside
 state still starts at `$4E40`. No glyph slots are added. Production placement
 is deferred to L2 at `$1900-$1FFF`; this spike adds no L2 loading mechanism.
 
+### P5 detached-island override — throwaway only
+
+For `--spike-nacelles=5`, the P1–P3 allocation above is replaced by:
+
+| Range | Bytes | Owner |
+| --- | ---: | --- |
+| `$B478-$B59A` | 291 | island publication, bounded contact test, 8-B original-renderer trampoline |
+| `$B59B-$B65D` | 195 | three difficulty offsets and three padded 64-entry half-width tables |
+| `$B65E-$B665` | 8 | island contact/publication scratch |
+| `$B666-$B8FA` | 661 | remaining permitted window |
+
+P5 consumes **494 B** of the window, with no original renderer body copy.
+The approved spike-only debris-mask change reduces `DIRECTOR_C_CODE` from
+623 to 614 B; its 20-B RODATA is unchanged, so the `$9D75-$9FF9` area's free
+tail is **11 B**, versus 2 B in the flag-off campaign. Net physical residency
+against main is **+485 B**. No state reservation outside the spike window
+changes. The no-island `--spike-debris-off` control uses no new window bytes
+and has the same 9-B resident-code reduction. Flag-off layout and ATR are
+unchanged. Neither build adds a carry-in drain/cleanup guard.
+
 <!-- BEGIN GENERATED MEMORY MAP: npm run memory-map -->
 
 ## Generated map — from the build

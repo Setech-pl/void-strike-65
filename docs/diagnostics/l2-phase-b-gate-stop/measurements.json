@@ -1,0 +1,164 @@
+{
+  "classification": "MEASURED failed skeleton build, NOT a smoke candidate",
+  "sourceBase": "bac5e79",
+  "failure": "the Light composite leaves fewer than 16 MAIN bytes",
+  "light": {
+    "address": 13891,
+    "bytes": 1198,
+    "packedBytes": 1034,
+    "capacityBytes": 1213,
+    "freeBytes": 15,
+    "endExclusive": 15089,
+    "windowLimit": 15104,
+    "cHalfEndExclusive": 46200,
+    "vectors": {
+      "LIGHT_KERNEL_PUBLISH": 13891,
+      "LIGHT_KERNEL_UPDATE": 13894,
+      "LIGHT_KERNEL_SHOT": 13897,
+      "LIGHT_KERNEL_BACKING": 13900,
+      "LIGHT_KERNEL_CELL_RESOLVE": 13903
+    },
+    "transport": "own checked DFMC record, LZ, held until loader bitmap unpack"
+  },
+  "l2": {
+    "address": 6400,
+    "endExclusive": 8192,
+    "capacityBytes": 1792,
+    "usedBytes": 22,
+    "freeBytes": 1770,
+    "postOneReserveBytes": 256,
+    "runIndex": 11,
+    "phase": "fighter/capital; overwritten by boss"
+  },
+  "reader": {
+    "address": 40960,
+    "bytes": 1508,
+    "capacityBytes": 1536,
+    "freeBytes": 28,
+    "transport": "own DFMC record, RAW, direct landing at $A000",
+    "levelBuffer": {
+      "address": 42496,
+      "capacityBytes": 2048,
+      "sectors": 16
+    },
+    "levels": [
+      {
+        "id": 1,
+        "startSector": 320,
+        "sectors": 13,
+        "bytes": 1664,
+        "file": "level-1.bin",
+        "origin": "read over SIO at START GAME"
+      }
+    ],
+    "overlayDirectory": {
+      "address": 42408,
+      "entries": 12,
+      "bytes": 60,
+      "names": [
+        "capital slot A restore (M5a-S1)",
+        "boss code (M5b)",
+        "boss region 1 (M5b)",
+        "boss region 2 (M5b)",
+        "boss region 3 (M5b)",
+        "boss region 4 (M5b)",
+        "hangar / summary art (M5a-S2)",
+        "scores / save record (M5a-S2)",
+        "level summary code (M5a-S2)",
+        "disk identity (audit-hardening)",
+        "menu data (L1)",
+        "fighter/capital L2 (\u00a7BW)"
+      ]
+    },
+    "slotAOverlaidFlag": 42358,
+    "summaryResidentFlag": 42359
+  },
+  "summary": {
+    "code": {
+      "address": 1280,
+      "bytes": 1792,
+      "endExclusive": 3072,
+      "capacityBytes": 1792,
+      "freeBytes": 0,
+      "maxSectors": 14,
+      "startSector": 584,
+      "sectors": 14,
+      "file": "level-summary.bin",
+      "displayList": "000B58"
+    },
+    "art": {
+      "source": "assets/graphics/level-summary.json",
+      "sectorsPerRegion": 7,
+      "staging": 30736,
+      "layout": {
+        "palette": 0,
+        "glyphs": 4,
+        "glyphCount": 24,
+        "firstGlyphCode": 72,
+        "map": 196,
+        "mapRows": 10,
+        "labels": 596
+      },
+      "runs": [
+        {
+          "region": 1,
+          "hullStyle": "R1",
+          "startSector": 600,
+          "sectors": 7,
+          "bytes": 896,
+          "usedBytes": 667,
+          "file": "level-summary-art-1.bin",
+          "sha256": "0367e8a39d120c8d3fff028b650568c01813c92a886445339aadc69523ce9c51"
+        },
+        {
+          "region": 2,
+          "hullStyle": "R2",
+          "startSector": 607,
+          "sectors": 7,
+          "bytes": 896,
+          "usedBytes": 667,
+          "file": "level-summary-art-2.bin",
+          "sha256": "c3af5e0cd699f1d19704e404980796e49268c34dd32a9b5309cc61b601d93d45"
+        },
+        {
+          "region": 3,
+          "hullStyle": "R3",
+          "startSector": 614,
+          "sectors": 7,
+          "bytes": 896,
+          "usedBytes": 667,
+          "file": "level-summary-art-3.bin",
+          "sha256": "e48aabbc32707be687e1575eb2791fdfc927f06fefcb761eb27251d16191e545"
+        },
+        {
+          "region": 4,
+          "hullStyle": "R4",
+          "startSector": 621,
+          "sectors": 7,
+          "bytes": 896,
+          "usedBytes": 667,
+          "file": "level-summary-art-4.bin",
+          "sha256": "b7b8d64e1dd7f9f30e9706c7f5ecf87958dfb379f9ffa69436b78abceae515af"
+        }
+      ]
+    },
+    "saveRecord": {
+      "sector": 599,
+      "buffer": 30736,
+      "bytes": 128,
+      "shipped": "empty (all zero): BEST reads -- until the player earns one"
+    },
+    "statBlock": {
+      "address": 172,
+      "bytes": 10
+    },
+    "mboss": {
+      "reservedSectors": [
+        528,
+        583
+      ]
+    }
+  },
+  "failingValidator": "scripts/formats.mjs:342",
+  "scaffoldDiffSha256": "92a26aac5d4ebdf5a647a743a89634fa9e954fd35deb10b224a08e931e80daf7"
+}

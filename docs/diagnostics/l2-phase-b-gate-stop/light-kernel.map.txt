@@ -1,0 +1,42 @@
+Modules list:
+-------------
+light-kernel.o:
+    LIGHT_KERNEL      Offs=000000  Size=000336  Align=00001  Fill=0000
+    DISK_GUARD        Offs=000000  Size=000063  Align=00001  Fill=0000
+    CAPITAL_VECTOR_IMAGE Offs=000000  Size=000024  Align=00001  Fill=0000
+    HUD_BOOSTER_BACKUP Offs=000000  Size=000016  Align=00001  Fill=0000
+    LIFE_CAPSULE      Offs=000000  Size=0000D1  Align=00001  Fill=0000
+    PAUSE_FRONTEND    Offs=000000  Size=00000A  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+LIGHT_KERNEL          003643  003978  000336  00001
+DISK_GUARD            003979  0039DB  000063  00001
+CAPITAL_VECTOR_IMAGE  0039DC  0039FF  000024  00001
+HUD_BOOSTER_BACKUP    003A00  003A15  000016  00001
+LIFE_CAPSULE          003A16  003AE6  0000D1  00001
+PAUSE_FRONTEND        003AE7  003AF0  00000A  00001
+
+
+Exports list by name:
+---------------------
+__LIGHT_KERNEL_RAM_LAST__ 003AF1 RLA    __LIGHT_KERNEL_RUN__      003643 RLA    
+
+
+
+Exports list by value:
+----------------------
+__LIGHT_KERNEL_RUN__      003643 RLA    __LIGHT_KERNEL_RAM_LAST__ 003AF1 RLA    
+
+
+
+Imports list:
+-------------
+__LIGHT_KERNEL_RAM_LAST__ ([linker generated]):
+    light-kernel.o            light-kernel.s:36
+__LIGHT_KERNEL_RUN__ ([linker generated]):
+    light-kernel.o            light-kernel.s:36
+

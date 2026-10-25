@@ -1,0 +1,11 @@
+al 001900 .__L2_LOAD__
+al 000000 .__L2_RAM_FILEOFFS__
+al 001916 .__L2_RAM_LAST__
+al 000700 .__L2_RAM_SIZE__
+al 001900 .__L2_RAM_START__
+al 001900 .__L2_RUN__
+al 000016 .__L2_SIZE__
+al 001916 .l2_end
+al 001915 .l2_stub
+al 001915 .l2_init
+al 001900 .l2_start

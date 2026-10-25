@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-25 (L2 Phase A plan for review; §BW capital decisions recorded)
+Last update: 2026-10-25 (L2 Phase A accepted; Phase B computed MAIN-tail gate STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,35 +20,31 @@ the values below.
 
 ## Checkpoint
 
-### L2 Phase A — committed plan for review, no game changes
+### L2 — Phase A accepted; Phase B stopped at computed MAIN-tail gate
 
-Owner §BW records rejected P1–P4 nacelle obstacles, P5 islands for production,
-capital-only debris removal, the accepted brake, bottom-zone warning and
-length up to 960 rows. The [unchanged spike report](audits/2026-10-25-spike-nacelles.md)
-was transferred from `origin/codex/spike-nacelles` `cdd08e7`; no spike code was
-merged. Its pending-smoke wording is historical; §BW records subsequent smoke.
+Owner accepts Phase A at `bac5e79` and records §BW.7: art 01/03/05 in both
+factions, zero new glyphs, 256-B reserve, accepted placement defaults with
+per-level overrides. The [plan](plans/l2-phase-module.md) remains the scope.
 
-The [Phase A plan](plans/l2-phase-module.md) on `codex/l2-phase-module`, from
-main `19b1464`, proposes the checked level-start L2 run at `$1900-$1FFF`,
-overwritten during boss phases and reloaded after them. **ESTIMATE:** first
-contents 1,024/1,792 B; 768 B left for later dock 352, bonus 128, proposed
-post-1.0 reserve 256 and fit margin 32. A 512-B reserve leaves a 224-B deficit
-with those same later budgets. No linked L2 fit or production timing is claimed.
-Added level-start work is **ESTIMATE 68–80 PAL frames** in either SIO mode,
-below the task's 100-frame standard-SIO STOP. **MEASURED:** today's unchanged
-level image reads in 50 frames in both modes; the transition reader uses direct
-POKEY. Source artifacts and five real-charset, allied/enemy EASY/HARD
-[island mockups](diagnostics/l2-island-mockups/) are committed for owner choice.
+**BLOCKED_MAIN_TAIL_GATE:** the checked-load skeleton added a 2-B run fold to
+the MAIN Light composite: **MEASURED 1,196 → 1,198/1,213 B**, leaving **15 B**
+where `scripts/formats.mjs:342` requires **≥16 B**. Exact deficit **1 B**.
+Phase A's forecast of 15 free bytes missed this existing computed gate.
+The summary's layout-preserving reload helper needs **MEASURED 17 B**, filling
+its tail, rather than the forecast 10 B; display list remains `$0B58`.
+[Evidence, restored scaffold patch and recovery options](diagnostics/l2-phase-b-gate-stop/).
+Recommended recovery is a cold checksum extension in the reader's 28-B tail
+(ESTIMATE 21 B), keeping the original MAIN/LIFE addresses. Not implemented.
 
-Normal build and computed gates PASS with expected pending release evidence;
-short existing SIO/start-game observation passes patched/standard, BASIC on/off.
-No full tests, wall trace, stage-2 or release build. Code/assets/config/tests/levels
-unchanged, production CPU/RAM/disk delta zero; accepted campaign ATR remains
+The owner's explicit STOP rule applies. Incomplete production edits were
+restored. Normal build passes with expected pending release evidence; actual
+production CPU/RAM/residency/disk delta is zero. No new candidate ATR exists.
+Campaign ATR remains the accepted L1 artifact:
 `410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7`.
-No new L2 candidate ATR exists because this session implements no game bytes.
+No gameplay tests, PAL/stress/page-cross certification or boot smoke is claimed.
 
-NEXT TASK: owner/reviewer evaluates the Phase A plan, chooses island art and
-post-1.0 reserve before authorizing Phase B. No implementation starts automatically.
+NEXT TASK: resolve this computed-gate STOP, then resume the accepted Phase B
+sequence and its focused measurements. No implementation continues automatically.
 
 ### L1 window levers — OWNER-ACCEPTED
 

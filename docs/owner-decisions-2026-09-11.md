@@ -4233,6 +4233,22 @@ are **10/15/20** for level 1 and **7/10/14** for level 2. This needs coordinate,
 compiler/format and runtime work; it is not data-only. The Phase A plan prices
 that work and specifies bounded longer-axis island/station lookup.
 
+### BW.7 Phase A choices
+
+Session: Codex, 2026-10-25. Owner accepts the L2 Phase A plan at `bac5e79`
+and authorizes Phase B on `codex/l2-phase-module`.
+
+- First production island art: **01 module wreck, 03 turret deck, 05 panel
+  plate**, each in allied AND enemy colours, **zero new glyph slots**.
+  **02 and 04 are not used.** More varied asymmetric wrecks, broad low plates,
+  jagged edges, L-shapes and side-mounted engines come later as data recipes
+  (a later mockup round or M7). Keep the recipe format able to express
+  asymmetric and non-spindle shapes.
+- L2 post-1.0 reserve: **256 B**, re-check at systems freeze; not 512 B.
+- Placement defaults accepted: first island local row **96**, spacing
+  **112 rows**, maximum fragment height **48**, minimum clear gap **64**;
+  **sparse** selects every other valid span. Per-level data may override.
+
 **Next free decision section: §BX.**
 
 ---

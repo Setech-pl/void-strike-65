@@ -1,6 +1,6 @@
 # L2 fighter/capital phase module — Phase A
 
-**Committed plan for owner review; no production implementation.** Code baseline
+**Phase A accepted by owner at `bac5e79`; Phase B stopped at a computed gate.** No production implementation remains. Code baseline
 `main = origin/main = 19b1464`. Decisions: [§BW](../owner-decisions-2026-09-11.md#bw-capital-sector-islands-brake-sector-length-2026-10-25).
 The unchanged spike report is [here](../audits/2026-10-25-spike-nacelles.md).
 Its pending-smoke statements are historical; §BW records subsequent owner smoke.
@@ -577,3 +577,22 @@ no routine code choice or art selection is inferred from this review session.
 **Phase A complete; STOP.** No Phase B implementation, merge or release is
 included. The branch is pushed for owner/reviewer access; the campaign ATR is
 unchanged and remains the accepted L1 build.
+
+
+## Phase B attempted skeleton — computed gate STOP (2026-10-25)
+
+Owner choices are recorded in §BW.7. The checked-load skeleton reached the
+normal validator, which rejected MAIN Light free space: **MEASURED 15 B**,
+required **MEASURED (declared) ≥16 B**. Adding the new expected run fold costs
+**MEASURED 2 B**, while the baseline has only **MEASURED 1 B** spendable before
+that gate. Phase A's forecast of 15 free bytes overlooked this existing gate.
+The address-preserving summary load helper also measured **17 B**, not the
+Phase A **ESTIMATE 10 B**; it fills the summary's tail while retaining `$0B58`.
+
+The owner's “any computed gate failing” STOP applies. All incomplete production
+changes are restored; normal build passes again and the campaign ATR is
+unchanged. No L2 smoke candidate or Phase B timing/test certification exists.
+See [exact evidence, scaffold patch and recovery alternatives](../diagnostics/l2-phase-b-gate-stop/).
+Recommended recovery: keep MAIN/LIFE addresses fixed and put the new cold-only
+checksum comparison/constant in the reader's **MEASURED 28-B** tail after its
+new directory entry; **ESTIMATE 21 B**, leaving **ESTIMATE 7 B**. Not implemented.

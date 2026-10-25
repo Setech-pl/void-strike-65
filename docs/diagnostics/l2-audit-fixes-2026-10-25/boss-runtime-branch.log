@@ -1,0 +1,42 @@
+# boss per-frame work, worst: 5211 native cycles (Q-B6 limit 7,000)
+✔ the Director raises BOSS_DUE entering the boss sector, and the gate enters only once drained (12.730417ms)
+✔ decision 32 (re-pointed): black, then the banner's title, the theme started, then every run in the planned order (38.745792ms)
+✔ the install: slot A, the charset, the vector table, the band list with three DLIs, the handshake (0.488292ms)
+✔ the gameplay list outside the boss sector keeps its two DLIs (8.135125ms)
+✔ the world scroll stops in the boss sector and runs again after the START GAME restore (27.127625ms)
+✔ the band drifts by HSCROL every step, the LMS moves every 16 colour clocks, three DLIs a frame (5.000375ms)
+✔ the column map: the guns and plates in front, the core in its own column, armour, open sky (0.456958ms)
+✔ shots against the band: a gun takes damage, armour and the guarded core absorb, open sky lets it fly (1.113083ms)
+✔ the cover group: every gun down exposes the core; its death, the last weapon's, starts the chain with the bonus (3.762875ms)
+✖ the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time (104.540833ms)
+✔ Q-S4: START GAME after a game ended inside the boss sector restores slot A and every setting, CHBASE too (28.501791ms)
+✔ Q-B6: the worst boss frame's own work stays under 7,000 native cycles (1.893167ms)
+✔ the cavity code is the blank code or a glyph of the region's charset (0.034458ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 318.958292
+
+✖ failing tests:
+
+test at tests/boss-runtime.test.mjs:601:1
+✖ the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time (104.540833ms)
+  AssertionError [ERR_ASSERTION]: the boss never handed off to the level summary
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-runtime.test.mjs:639:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

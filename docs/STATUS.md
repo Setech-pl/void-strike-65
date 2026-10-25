@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-25 (L2 Phase B — OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-25 (L2 audit fixes — BLOCKED_BYTE_PLACEMENT)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,9 +20,39 @@ the values below.
 
 ## Checkpoint
 
-### L2 — OWNER-SMOKE CANDIDATE
+### L2 audit fixes — BLOCKED_BYTE_PLACEMENT
 
-Phase B is implemented on `codex/l2-phase-module`; owner acceptance is pending.
+Owner smoke of `b2b38ff`: **PASS**, "generally OK", 2026-10-25. Independent
+Claude audit `668f692` merged unchanged in `66f53b9`: MERGE AFTER FIXES, no
+S1/S2. L2-01 fixed in `52ee66b`: real START GAME reader/summary/checked L2
+load + INIT + brake tick, unchanged scroll assertion. All 13 boss-runtime
+tests ran: **12 PASS / 1 FAIL**. Fresh main `19b1464` also **12/13**; "the win"
+fails at the identical first assertion, "the boss never handed off to the
+level summary" (pre-existing).
+
+The literal L2-04 death-valid=0 route was priced before integration: **52 B
+(51 code +1 state)** assembled sketch, **20 B over** the complete-fix 32-B
+cap. This is not a minimum-size proof. DYING continues capital simulation
+and respawns without a checked reload; simply clearing validity would leave
+L2 consumers active. The [priced alternatives and limits](diagnostics/l2-audit-fixes-2026-10-25/)
+are preserved; neither was selected. The owner's explicit STOP rule applies.
+L2-02…08 remain open in the [audit ledger](audits/README.md).
+
+Normal computed gates PASS with the expected stale-evidence warning.
+**No production bytes changed**: CPU/RAM/residency delta vs `b2b38ff` **0**;
+L2 **1,063/1,792 B**, free **729**, including the intact **256-B** reserve.
+The requested fresh native measurements and six final-HEAD candidates were
+not run/generated at this STOP. Earlier measurements below are the pre-audit
+snapshot, not verification of the audit fixes. No new candidate or main merge.
+
+NEXT TASK: resolve the L2-04 byte/scope STOP, then resume remaining findings,
+the specified measurements and candidate generation. Branch remains
+`codex/l2-phase-module`; owner smoke PASS applies to `b2b38ff` only.
+
+### L2 Phase B — pre-audit candidate snapshot
+
+Phase B is implemented on `codex/l2-phase-module`; owner smoke of `b2b38ff`
+passed, but the audit-fix candidate is blocked as recorded above.
 §BW.7 keeps art 01/03/05 in both colours, zero new glyph slots, the 256-B
 reserve and placement defaults. [Plan/results](plans/l2-phase-module.md),
 [recovery evidence and reproduction](diagnostics/l2-phase-b/recovery/).
@@ -76,10 +106,9 @@ bonus128 are **ESTIMATES** and exceed the remaining473 by **7 B**; reprice that
 later work at systems freeze. The 256-B reserve is unspent. Normal build is
 not release certification; real65XE/SIO2SD smoke remains required.
 
-NEXT TASK: owner plays the six-ATR candidate set recorded in
-`build/l2-owner-smoke/candidate.json`. After owner OK and any requested audit
-fixes: record smoke, normal branch build, authorised --no-ff merge, normal main
-build and push. No merge to main has occurred.
+The old six-ATR set in `build/l2-owner-smoke/candidate.json` identifies the
+pre-audit candidate. Current NEXT TASK is the audit-fix STOP above; no merge
+to main has occurred.
 
 ### L1 window levers — OWNER-ACCEPTED
 
@@ -141,7 +170,7 @@ overwritten by boss install and reloaded by M4. The 5 B at $B8FB remain reserved
 Capital Lights are optional M7 work after a one-Light proof, outside the base
 plan. Citadel's region-2 versus final-R4 placement stays open before M4.
 
-NEXT TASK: see the current L2 Phase A checkpoint above.
+NEXT TASK: see the current L2 audit-fix checkpoint above.
 
 | Current L1 resource | Linked use / limit | Free |
 | --- | ---: | ---: |

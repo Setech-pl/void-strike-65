@@ -853,3 +853,27 @@ source HEAD and launch commands. Owner smoke list: cold menu; SPACE debris;
 capital on ROOKIE/ACE with both colours; bottom brake and warning;960 test;
 one boss; boss→summary→menu→START GAME; pause after boss. Only owner promotes
 the result to OWNER-ACCEPTED. The earlier NOT required list remains unrun.
+
+### Audit-fix results — BLOCKED_BYTE_PLACEMENT (2026-10-25)
+
+Owner smoke of `b2b38ff` **PASS**, "generally OK". Claude report `668f692`
+merged unchanged in `66f53b9`; findings are tracked in the [audit ledger](../audits/README.md).
+L2-01 fixed in `52ee66b`: real START GAME reader/summary checked reload,
+INIT and brake tick, with the original scroll assertion. All boss-runtime
+tests ran: **12/13**, and fresh main `19b1464` is also **12/13**; the same
+first failing "the win" assertion is pre-existing.
+
+Literal L2-04 lethal-hit invalidation needs recovery before continued capital
+simulation/respawn. The [assembled sketch](../diagnostics/l2-audit-fixes-2026-10-25/)
+prices **52 B (51 code +1 state)**, **20 over the complete-fix 32-B cap**;
+not integrated and not a minimum-size proof. A **26-B** cold-only alternative
+keeps validity during DYING and changes the explicit requirement. The owner
+authorized neither recovery; the requested STOP applies before integration.
+
+Normal build/computed gates PASS with the expected stale-runtime-evidence
+warning; production CPU/RAM/residency delta against `b2b38ff` is **0**.
+L2 remains **1,063/1,792 B**, free **729**, with the **256-B** reserve intact.
+L2-02…08, fresh native measurements and the final-HEAD six-ATR candidate set
+remain incomplete. Historical results above do not certify these fixes.
+NEXT TASK: resolve the L2-04 price/scope STOP, resume requested audit work;
+no main merge or new owner-smoke candidate.

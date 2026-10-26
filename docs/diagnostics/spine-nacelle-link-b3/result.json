@@ -1,0 +1,79 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "base": "73f7512",
+  "planCommit": "b3116d9",
+  "artifacts": [
+    {
+      "name": "campaign",
+      "path": "build/play/spine-nacelle-link-b3/campaign-f4da8f080464.atr",
+      "sha256": "f4da8f080464d4e7320242ce24b8653a468b3eb8a4e3010525d4f9e8cf1da179"
+    },
+    {
+      "name": "spine-direct",
+      "path": "build/play/spine-nacelle-link-b3/spine-direct-69b17c84069a.atr",
+      "sha256": "69b17c84069a0fc04f4736c68d800f283ea7cf3dc6c1beef59abbf663acabcfa"
+    }
+  ],
+  "counts": {
+    "before": {
+      "glyphs": [
+        {
+          "side": "gen-r",
+          "count": 6,
+          "bytes": 48,
+          "layoutBytes": 9
+        },
+        {
+          "side": "gen-l",
+          "count": 5,
+          "bytes": 40,
+          "layoutBytes": 9
+        }
+      ],
+      "charset": 952,
+      "codes": 119,
+      "tail": 98,
+      "sectors": 8
+    },
+    "after": {
+      "glyphs": [
+        {
+          "side": "gen-r",
+          "count": 7,
+          "bytes": 56,
+          "layoutBytes": 9
+        },
+        {
+          "side": "gen-l",
+          "count": 7,
+          "bytes": 56,
+          "layoutBytes": 9
+        }
+      ],
+      "charset": 976,
+      "codes": 122,
+      "tail": 98,
+      "sectors": 8
+    }
+  },
+  "overlayF": {
+    "beforeBytes": 353,
+    "afterBytes": 353,
+    "capacity": 512,
+    "beforeFree": 159,
+    "afterFree": 159
+  },
+  "perFrameCodeChanged": false,
+  "helperVerification": "Region-3 block bytes from offset 110 to end byte-identical to B; compiler and runtime source unchanged.",
+  "targetedTest": {
+    "red": "gen-r: destroyed slot must show variant B3 plate beam, rail, collar and wreck",
+    "baselineAtrSha256": "17f66fc463a6a1e0d8e70d415653db968b5372e7f878ead0c32a17d6c99b5f9d",
+    "green": {
+      "pass": 1,
+      "fail": 0
+    }
+  },
+  "patternDeviations": [],
+  "captures": "6502 harness band memory after real shot kills, decoded at 2:1 pixel aspect. Not native framebuffer screenshots.",
+  "validation": "Normal campaign and direct builds passed computed gates; expected stale runtime-evidence warnings. No stress, native trace or full suite rerun: art data only."
+}

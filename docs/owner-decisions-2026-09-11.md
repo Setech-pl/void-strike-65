@@ -4342,6 +4342,17 @@ Implemented as R3 data and a small region-only queued publication helper,
 Owner explicitly waived §BU.9 PID and one-session-per-folder checks for this
 task; branch stays isolated and other sessions' files remain protected.
 
+**Revision B3 — owner decision, 2026-10-26.** B3 replaces B's thin beam and
+invented wreck with the exact supplied 12×24 pattern: five-row outlined plate
+beam with period-four bolts and rust underside, two-pixel grey/violet rail,
+hull collar, and torn lower-third pod wreck based on the living generator.
+Left is an exact mirror; no new colours or gameplay changes. The earlier B
+resource figures above describe `73f7512`; current B3 uses 7 right + 7 mirror-only
+glyphs (112 B), charset **976/1024 B** (+24 B), and unchanged overlay F
+**353/512 B, 159 free**. Art-data replacement only; existing helper unchanged.
+Implemented, **OWNER-SMOKE CANDIDATE**, pending the owner's smoke.
+[B3 evidence](diagnostics/spine-nacelle-link-b3/result.json).
+
 §BX is already assigned on `codex/spine-nacelle-link` to the Siege Spine
 engine-nacelle link decision; that independent entry is not duplicated here.
 

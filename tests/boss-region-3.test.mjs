@@ -104,14 +104,14 @@ test("the art rule: every damage stage of every region 3 module has colour-3 pix
       assert.ok(count >= 4, `${module.name} stage ${stage}: ${count} colour-3 pixels`);
     });
   });
-  // Variant B: exact art on the built disk, after real generator kills.
+  // Variant B3: exact art on the built disk, after real generator kills.
   const right = [
-    "............", "...........P", "GGGGGGGGGGGG", "PPPPPPPPPPPP",
-    "BBBBBBBBBBBB", "...........P", "...........P", "...........P",
-    "...........P", "...........P", "...........P", "...........P",
-    "...........P", "...........P", "...........P", "...........P",
-    ".........PPP", "......P.PGGP", "..P..PGPGGGP", ".PGPPGGGGPGP",
-    "PGGGGGG.GGGP", "PGGPGGGGGPGP", "PPGGGGGGGGPP", ".PPPPPPPPPP.",
+    "PP..........", "PGPPPPPPPPPP", "PGGGGGGGGGGG", "PGGPGGGPGGGP",
+    "PGBBBBBBBBBB", "PGPPPPPPPPPP", "PG........GP", "PP........GP",
+    "..........GP", "..........GP", "..........GP", "..........GP",
+    "..........GP", "..........GP", "..........GP", "..........GP",
+    "......P.B.PP", "....PGGP.GGP", "PG.GGGPGGGGP", "PPPPPPP.PPPP",
+    ".PGGPGGGGGP.", ".PGGG.PGGGP.", "..PPGGGGPP..", "....PPPP....",
   ];
   const slot = (memory, name) => {
     const module = region3.modules[index(name)];
@@ -133,7 +133,7 @@ test("the art rule: every damage stage of every region 3 module has colour-3 pix
       for (let f = 0; f < 60; f++) frame(memory);
       for (const dead of [first, ...(name === other ? [other] : [])]) {
         assert.deepEqual(slot(memory, dead), dead === "gen-r" ? right : right.map((row) => [...row].reverse().join("")),
-          `${dead}: destroyed slot must show variant B beam, rail and wreck`);
+          `${dead}: destroyed slot must show variant B3 plate beam, rail, collar and wreck`);
       }
       if (name === first) assert.deepEqual(slot(memory, other), living, "the surviving generator keeps its art");
       // Slot columns retain their existing empty-sky collision classification.
@@ -142,7 +142,7 @@ test("the art rule: every damage stage of every region 3 module has colour-3 pix
     }
   }
   assert.deepEqual([...region3.tables.slice(BOSS_TABLE.palette, BOSS_TABLE.palette + 4)], [12, 102, 40, 4]);
-  assert.ok(manifest.boss.slotF.blocks[2].bytes - 323 <= 189, "R3 link exceeds its 189-byte F budget");
+  assert.ok(manifest.boss.slotF.blocks[2].bytes - 353 <= 159, "B3 exceeds its 159-byte remaining F budget");
 });
 
 test("the palette reads as the enemy on levels 7-9: no hull, trim or field colour near the ally steel's hue", () => {

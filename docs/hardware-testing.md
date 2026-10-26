@@ -1,14 +1,15 @@
 # Hardware acceptance checklist
 
-## Focused owner smoke — Siege Spine link (§BX)
+## Focused owner smoke — Siege Spine link B3 (§BX)
 
 Use the campaign/direct-Spine ATRs and hashes in
-[the candidate evidence](diagnostics/spine-nacelle-link/result.json).
+[the candidate evidence](diagnostics/spine-nacelle-link-b3/result.json).
 Candidate is implemented, pending owner smoke; this does not require the full
 milestone checklist below.
 
-- Destroy the right generator: beam, rail and low wreck appear after the kill
-  feedback; all three nozzles stay attached, with nothing floating.
+- Destroy the right generator: outlined plate beam, two-pixel mounting rail,
+  hull collar and torn lower-third pod wreck appear after the kill feedback;
+  all three nozzles stay attached, with nothing floating.
 - Destroy the left generator: exact horizontal mirror; the living side is intact.
 - Destroy both, in either order: both links remain.
 - Follow horizontal boss motion: links scroll with the hull without seams.

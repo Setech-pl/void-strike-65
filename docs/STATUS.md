@@ -132,32 +132,35 @@ mounted for menu returns. Real hardware must confirm both Heavy planes.
 **NEXT TASK:** owner smoke of M3-H session 1. No automatic session 2,
 capital-content implementation, release, push or merge.
 
-### Siege Spine nacelle link — OWNER-SMOKE CANDIDATE
+### Siege Spine nacelle link B3 — OWNER-SMOKE CANDIDATE
 
-Variant B (§BX) implemented for both destroyed generators: three-row beam,
-outer mounting rail and eight-pixel-high wreck, with an exact left mirror.
-The original right/left floating-nozzle defect is fixed in the 6502 harness;
-owner smoke is pending. No hitbox, HP, score, lance or field-policy changes:
-each generator still powers its own field half. No pixel-pattern deviations.
+Revision B3 supersedes B (§BX): five-row outlined plate beam with bolts and
+rust underside, two-pixel mounting rail, hull collar, and torn lower-third
+pod wreck. Both destroyed generators use the exact supplied pattern, mirrored
+on the left. No pixel deviations or new colours; owner smoke is pending.
 
-R3-only field-collapse helper queues existing COPY draws; no shared runtime
-path changed. MEASURED F **353/512 B, 159 free** (was 323/189); look tail
-98/110 (18 B reclaimed padding), charset **952/1024 B, 72 free** (+88 B,
-119 codes). Right glyph/layout 48+9 B; left additional 40+9 B; shared code and
-tables 30 B. Resident allocation delta 0; protected ranges unchanged.
+Data-only replacement from `73f7512`. The compiler and runtime helper are
+unchanged; the block's helper/tables/state bytes are identical to B. No new
+per-frame work, hitbox, HP, score, lance, feedback or field-policy change.
+Each generator still powers its own field half; links scroll in the same band.
 
-Fresh baseline/candidate stress delta **0**: L7 lance off/lost 7,771/8,186;
-L9 8,025/8,440, all <=8,500. Native entry **344/350** host frames (was 340),
-119 sampled combat frames with no timing or DLI errors. One extended R3 art
-case RED on baseline -> GREEN (1/1) on candidate; normal campaign and direct
-builds pass. Stale wall-trace warning remains; this is not release certification.
-Known debt below is unchanged.
+MEASURED: right 7 glyphs/56 B, left 7 mirror-only glyphs/56 B. Charset
+**952 -> 976/1024 B, 48 free**, 122 codes (+3), still eight sectors. Layouts
+remain 9 B per side, look tail 98/110; overlay F **353/512 B, 159 free**,
+unchanged. No reservation or resident allocation changes; protected ranges
+and R1/R2/R4 remain untouched.
 
-Campaign ATR `build/play/spine-nacelle-link/campaign-56f15f260cf2.atr`;
-direct Spine `build/play/spine-nacelle-link/spine-direct-17f66fc463a6.atr`.
-[Plan, audit and measurements](plans/spine-nacelle-link.md),
-[full hashes and evidence](diagnostics/spine-nacelle-link/result.json).
-**NEXT TASK: owner smoke using the focused checklist, then owner merge decision.**
+The existing R3 art case is RED on hash-verified B -> GREEN on B3 (1/1).
+Normal campaign/direct builds pass computed gates with the expected stale
+runtime-evidence warning. No stress/entry/native trace rerun: no runtime code
+or sector-count change. B's earlier timing figures remain historical evidence,
+not newly measured B3 results. Known debt below is unchanged.
+
+Campaign ATR `build/play/spine-nacelle-link-b3/campaign-f4da8f080464.atr`;
+direct Spine `build/play/spine-nacelle-link-b3/spine-direct-69b17c84069a.atr`.
+[Plan and B3 addendum](plans/spine-nacelle-link.md#revision-b3--plan-2026-10-26),
+[full hashes, test logs and three harness captures](diagnostics/spine-nacelle-link-b3/result.json).
+**NEXT TASK: owner smoke, then owner merge decision.** Not release-certified.
 
 
 ### L2 audit fixes — OWNER-ACCEPTED

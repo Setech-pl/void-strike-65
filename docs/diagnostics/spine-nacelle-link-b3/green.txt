@@ -1,0 +1,9 @@
+✔ the art rule: every damage stage of every region 3 module has colour-3 pixels (51.077917ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 140.325208

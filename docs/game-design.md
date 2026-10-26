@@ -704,9 +704,11 @@ section "Decyzje literowe 2026-09-20".
   sphere at each end, a domed siege cannon at the centre (a laser on every
   laser tier), two more emitters and two guns behind armour plates, and two
   open guns near the ends (the edges stay under fire). Destroyed generators
-  reveal variant B (§BX): a grey/violet/rust beam aligned with the top nozzle,
-  an outer violet mounting rail connecting all three nozzles, and ragged wreckage
-  in the bottom third of the slot. The left end mirrors the right. This decoration
+  reveal revision B3 (§BX): a five-row outlined plate beam with a repeating
+  bolt pattern and rust underside, a two-pixel grey/violet mounting rail
+  connecting all three nozzles, and a collar bracket at the hull joint.
+  The bottom third is the pod's rounded, ribbed wreck, torn open with holes
+  and exposed core. The left end mirrors the right exactly. This decoration
   scrolls with the hull, has no collision, and does not change the field, lance,
   damage feedback, scoring or fight-length rules (owner smoke pending).
   Under the spine runs a

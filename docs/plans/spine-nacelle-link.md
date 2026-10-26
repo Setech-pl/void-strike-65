@@ -3,6 +3,9 @@
 2026-10-26. Task `spine-nacelle-link`, base `ab5e5ed`, branch
 `codex/spine-nacelle-link`. Implemented; **OWNER-SMOKE CANDIDATE**, owner smoke pending.
 
+**Current art: B3**, described in the revision addendum below. Earlier sections
+record the B baseline and its validation.
+
 Owner waived §BU.9 and the one-session-per-folder check for this task.
 Recheck branch/HEAD/status before each commit; preserve other sessions' files.
 
@@ -219,3 +222,39 @@ hash-verified B direct ATR (`17f66fc463a6...`), then GREEN after the build.
 Build normal campaign and direct Spine artifacts; copy ATRs to
 `build/play/spine-nacelle-link-b3/`. Generate three cheap harness band captures.
 Update current resource/design/smoke documentation and amend §BX, not §BY.
+
+### B3 implementation result — OWNER-SMOKE CANDIDATE
+
+Plan commit `b3116d9`. Implemented exactly as planned, with **no pixel
+pattern deviations**. Only R3 art data and the existing test changed in the
+implementation; compiler, ASM helper and all other runtime sources unchanged.
+Linked F helper/tables/state (block offset 110 onward) are byte-identical to B.
+MEASURED linked F: 353/512 B, 159 free before/after; layouts still 9 B each.
+MEASURED compiler counts match the table above: 7 right + 7 mirror-only glyphs,
+112 B total, charset 976/1024 B, +24 B over B, 48 free. No extra disk sector,
+new colours, reservation, resident RAM, placement conflict or per-frame work.
+
+The one existing R3 art test was RED against B's direct ATR (SHA-256
+`17f66fc463a6a1e0d8e70d415653db968b5372e7f878ead0c32a17d6c99b5f9d`),
+at `gen-r: destroyed slot must show variant B3 plate beam, rail, collar and wreck`.
+GREEN on B3: 1 PASS / 0 FAIL, both kill orders and both-dead slots, exact mirror,
+PF2 colours, unchanged living pod and collision checks. Command:
+
+```sh
+VS65_HARNESS_BUILD=boss-region-3-level-1-s6 node --test --test-name-pattern='the art rule:' tests/boss-region-3.test.mjs
+```
+
+Normal campaign and direct builds pass computed gates; stale runtime-evidence
+bindings are warnings, not refreshed release evidence. No full suite, stress
+or native trace rerun, as requested for an art-only change. Three harness band
+captures show right, left and both destroyed after real shot kills; these are
+decoded band memory, not native framebuffer screenshots.
+
+ATRs:
+
+- `build/play/spine-nacelle-link-b3/campaign-f4da8f080464.atr`
+- `build/play/spine-nacelle-link-b3/spine-direct-69b17c84069a.atr`
+
+[Full hashes, counts, build/test logs and captures](../diagnostics/spine-nacelle-link-b3/result.json).
+B ATRs and evidence remain historical. §BX amended; §BY remains free.
+NEXT TASK: owner smoke and owner's merge decision; stop here.

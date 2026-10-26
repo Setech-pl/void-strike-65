@@ -1,19 +1,18 @@
 # Current memory map
 
-## Siege Spine link candidate — 2026-10-26
+## Siege Spine B3 link candidate — 2026-10-26
 
-Current candidate delta from `ab5e5ed`, measured by the normal build:
-R3 overlay F `$5200–$53FF`: used **323 -> 353 B**, free **189 -> 159 B**,
-last occupied byte `$5360`. The 18-B pair of generator COPY layouts occupies
-existing prefix padding (look tail 80 -> 98 of 110 B); field code/tables grow
-30 B. F transport stays three sectors. R3 charset `$0C00–$0FFF`: 864 ->
-952 B, 108 -> 119 codes, free 160 -> 72 B, transport 7 -> 8 sectors.
-No reserved address, range, resident allocation or protected L2/window/summary
-change. Right art glyphs 48 B, left additional 40 B. Linked occupied spans
-+118 B; meaningful art/layout/code +136 B, of which 18 B reuse padding.
-This candidate-specific accounting supplements the historical snapshots below.
-[Plan and evidence](plans/spine-nacelle-link.md).
-
+Current candidate delta from B (`73f7512`), MEASURED by the compiler/build:
+R3 overlay F `$5200–$53FF` remains **353/512 B, 159 free**, last occupied
+byte `$5360`. Layouts remain 9 B per side, look tail 98/110 B, transport three
+sectors; helper/call/tables unchanged. R3 charset `$0C00–$0FFF` grows
+**952 -> 976 B**, 119 -> 122 codes, free **72 -> 48 B**, last glyph byte
+`$0FCF`; transport remains eight sectors. B3 adds 7 right glyphs (56 B) and
+7 mirror-only glyphs (56 B), replacing B's 48+40 B: net **+24 B**.
+No reserved address/range or resident allocation change. L2, window, summary
+and start-block sources untouched. This candidate-specific accounting
+supplements the historical snapshots below.
+[Plan and B3 evidence](plans/spine-nacelle-link.md).
 
 Accepted runtime checkpoint: `b4b942e` on `experiment/hybrid-c-director`
 (XEX `96546807…`, owner smoke PASS 2026-09-16). The linked-segment and BSS

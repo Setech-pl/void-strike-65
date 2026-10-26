@@ -1,0 +1,12 @@
+fixed l2-480-0-flight PASS
+fixed l2-480-1-flight PASS
+fixed l2-480-1-brake PASS
+fixed l2-480-0-brake PASS
+fixed l2-480-2-flight PASS
+fixed l2-480-2-brake PASS
+fixed l2-960-0-flight PASS
+fixed l2-960-1-flight PASS
+fixed l2-960-0-brake PASS
+fixed l2-960-1-brake PASS
+fixed l2-960-2-flight PASS
+fixed l2-960-2-brake PASS

@@ -4326,7 +4326,23 @@ brake/contact route — state-dependent, not L2 overhead (SPACE is −2 vs main)
 attribute the worst frame before M3-H adds per-frame work". This handoff
 records that item; it does not start the attribution work.
 
-**Next free decision section: §BX.**
+§BX is already assigned on `codex/spine-nacelle-link` to the Siege Spine
+engine-nacelle link decision; that independent entry is not duplicated here.
+
+## BY. L2 island contact correctness budget (2026-10-26)
+
+Owner-approved production change on `codex/island-edge-contact`: raise the
+L2 first-contents build gate from **1,228 B to 1,536 B**, to allow exact
+visible-sprite/solid-island contact. The earlier 1,338-B probe exceeded the
+old gate by 110 B. This is not a spike waiver. The **256-B post-1.0 reserve
+at $1F00-$1FFF remains untouchable**, as do its linker assertion, the C ABI
+gate, all protected areas, loader directory contract, summary/window
+allocations and every other gate. No resident/shared runtime change is
+approved. Damage remains two units with Shield, 250-frame respawn protection,
+25-frame cooldown and the existing one-event latch. Owner smoke is required
+before acceptance; no merge, push or release is authorized by this task.
+
+**Next free decision section: §BZ.**
 
 ---
 

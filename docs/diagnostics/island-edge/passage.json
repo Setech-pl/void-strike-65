@@ -1,0 +1,73 @@
+{
+  "measurement": "MEASURED raster oracle and linked NMOS6502",
+  "pass": true,
+  "easyClearableWithoutFiring": true,
+  "records": [
+    {
+      "length": 480,
+      "difficulty": 0,
+      "checks": 7840,
+      "minLeftHpos": 32,
+      "minRightHpos": 32,
+      "shipWidthHpos": 16,
+      "leftLaneHpos": 92,
+      "rightLaneHpos": 148,
+      "fire": false
+    },
+    {
+      "length": 480,
+      "difficulty": 1,
+      "checks": 7840,
+      "minLeftHpos": 28,
+      "minRightHpos": 28,
+      "shipWidthHpos": 16,
+      "leftLaneHpos": 92,
+      "rightLaneHpos": 148,
+      "fire": false
+    },
+    {
+      "length": 480,
+      "difficulty": 2,
+      "checks": 7840,
+      "minLeftHpos": 24,
+      "minRightHpos": 24,
+      "shipWidthHpos": 16,
+      "leftLaneHpos": 92,
+      "rightLaneHpos": 148,
+      "fire": false
+    },
+    {
+      "length": 960,
+      "difficulty": 0,
+      "checks": 15520,
+      "minLeftHpos": 32,
+      "minRightHpos": 32,
+      "shipWidthHpos": 16,
+      "leftLaneHpos": 92,
+      "rightLaneHpos": 148,
+      "fire": false
+    },
+    {
+      "length": 960,
+      "difficulty": 1,
+      "checks": 15520,
+      "minLeftHpos": 28,
+      "minRightHpos": 28,
+      "shipWidthHpos": 16,
+      "leftLaneHpos": 92,
+      "rightLaneHpos": 148,
+      "fire": false
+    },
+    {
+      "length": 960,
+      "difficulty": 2,
+      "checks": 15520,
+      "minLeftHpos": 24,
+      "minRightHpos": 24,
+      "shipWidthHpos": 16,
+      "leftLaneHpos": 92,
+      "rightLaneHpos": 148,
+      "fire": false
+    }
+  ]
+}

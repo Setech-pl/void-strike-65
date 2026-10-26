@@ -1,0 +1,12 @@
+main l2-480-0-flight PASS
+main l2-480-1-flight PASS
+main l2-480-1-brake PASS
+main l2-480-0-brake PASS
+main l2-480-2-flight PASS
+main l2-480-2-brake PASS
+main l2-960-0-flight PASS
+main l2-960-0-brake PASS
+main l2-960-1-flight PASS
+main l2-960-1-brake PASS
+main l2-960-2-flight PASS
+main l2-960-2-brake PASS

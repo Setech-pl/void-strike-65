@@ -1,0 +1,20 @@
+{
+  "sources": [
+    "build/level-1-s1/runtime-wall-trace/l2-480-0-flight-focused-run.json",
+    "build/level-1-s1/runtime-wall-trace/l2-480-1-flight-focused-run.json",
+    "build/level-1-s1/runtime-wall-trace/l2-480-1-brake-focused-run.json",
+    "build/level-1-s1/runtime-wall-trace/l2-480-0-brake-focused-run.json",
+    "build/level-1-s1/runtime-wall-trace/l2-480-2-flight-focused-run.json",
+    "build/level-1-s1/runtime-wall-trace/l2-480-2-brake-focused-run.json",
+    "build/l2-capital-960/runtime-wall-trace/l2-960-0-flight-focused-run.json",
+    "build/l2-capital-960/runtime-wall-trace/l2-960-1-flight-focused-run.json",
+    "build/l2-capital-960/runtime-wall-trace/l2-960-0-brake-focused-run.json",
+    "build/l2-capital-960/runtime-wall-trace/l2-960-1-brake-focused-run.json",
+    "build/l2-capital-960/runtime-wall-trace/l2-960-2-flight-focused-run.json",
+    "build/l2-capital-960/runtime-wall-trace/l2-960-2-brake-focused-run.json"
+  ],
+  "gate": {
+    "timing_and_dli_passed": true,
+    "behavioural_clause_failures": []
+  }
+}

@@ -102,7 +102,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$18FB-$18FF` | 5 B | segment | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes | `overlay` | build/boss.map |
 | `$1900-$1FFF` | 1,792 B | slot | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) | `overlay` | manifest `boss.slotD` |
 | `$1900-$1F93` | 1,684 B | segment | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers; the publish's tail jump to the gravity column's M0, S5-4, a build with the well), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install | `overlay` | build/boss.map |
-| `$1900-$1D39` | 1,082 B | segment | `L2` — checked fighter/capital phase module; overwritten by boss D/death | `level` | build/l2.map |
+| `$1900-$1DA7` | 1,192 B | segment | `L2` — checked fighter/capital phase module; overwritten by boss D/death | `level` | build/l2.map |
 | `$1950-$19FE` | 175 B | segment | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes | `boss` `death` | build/boss-death.map |
 | `$1E00-$1FFF` | 512 B | slot | boss breakup: second wing buffer, published after the fence; reuses dead boss claim | `boss` `death` | cfg/boss-death.cfg |
 | `$1E00-$1FFF` | 512 B | segment | `DEATH_BUFFER` — boss breakup: offscreen wing buffer over dead slot D | `boss` `death` | build/boss-death.map |
@@ -374,7 +374,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$18FB-$18FF` | `overlay` | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes |
 | `$1900-$1FFF` | `overlay` | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) |
 | `$1900-$1F93` | `overlay` | `BOSS_D_CODE` — boss slot D: the lasers (B2: M1 / M2, the column, the warning, the beam, the hit test; the twin cannons' turn, feat/boss-r1-twin-lasers; the publish's tail jump to the gravity column's M0, S5-4, a build with the well), the boss's shots in the band (QA1) and the band's shown rows, measured once at the install |
-| `$1900-$1D39` | `level` | `L2` — checked fighter/capital phase module; overwritten by boss D/death |
+| `$1900-$1DA7` | `level` | `L2` — checked fighter/capital phase module; overwritten by boss D/death |
 | `$1950-$19FE` | `boss` `death` | `DEATH_DATA` — boss breakup: all four regions' source-row palettes and glyph codes |
 | `$1E00-$1FFF` | `boss` `death` | `DEATH_BUFFER` — boss breakup: offscreen wing buffer over dead slot D |
 | `$1E00-$1FFF` | `boss` `death` | boss breakup: second wing buffer, published after the fence; reuses dead boss claim |
@@ -738,11 +738,11 @@ By topic: Director, sectors and waves 83%, Heavy, Raider and Interceptor 12%, pl
 
 By topic: Light enemies 66%, Director, sectors and waves 23%, Heavy, Raider and Interceptor 7%, unclassified 4%.
 
-#### `L2` `$1900-$1D39`, 1,082 B (build/l2.map)
+#### `L2` `$1900-$1DA7`, 1,192 B (build/l2.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| (unlabelled head of l2.o) | `$1900` | 1,082 B | 100.0% | unclassified |
+| (unlabelled head of l2.o) | `$1900` | 1,192 B | 100.0% | unclassified |
 
 By topic: unclassified 100%.
 
@@ -1131,7 +1131,7 @@ By topic: player, input and weapons 25%, debris and effects 20%, capital ship 16
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `DIRECTOR_C_CODE` | 614 B | placement name | — | Director, sectors and waves (83%) | not judged |
 | `HYBRID_C_WINDOW` | 1,533 B | placement name | — | Light enemies (66%) | not judged |
-| `L2` | 1,082 B | placement name | — | unclassified (100%) | not judged |
+| `L2` | 1,192 B | placement name | — | unclassified (100%) | not judged |
 | `LEVEL_SUMMARY` | 1,792 B | level summary | 96% | level summary (96%) | fits |
 | `LIGHT_KERNEL` | 822 B | Light enemies | 96% | Light enemies (96%) | fits |
 | `SECTOR_READER` | 1,529 B | boot, loader and transport, Director, sectors and waves | 85% | boot, loader and transport (85%) | fits |

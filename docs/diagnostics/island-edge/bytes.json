@@ -1,0 +1,118 @@
+{
+  "measurement": "MEASURED linked listing byte ranges",
+  "rows": [
+    {
+      "item": "Prefix, entries, interval, contact gate",
+      "main": 219,
+      "probe": 219,
+      "final": 219
+    },
+    {
+      "item": "Retained retired slot",
+      "main": 7,
+      "probe": 7,
+      "final": 7
+    },
+    {
+      "item": "Island scan and displacement",
+      "main": 160,
+      "probe": 152,
+      "final": 152
+    },
+    {
+      "item": "Solid-pixel decoder",
+      "main": 0,
+      "probe": 105,
+      "final": 102
+    },
+    {
+      "item": "Row drawing",
+      "main": 104,
+      "probe": 104,
+      "final": 104
+    },
+    {
+      "item": "Row commit",
+      "main": 12,
+      "probe": 12,
+      "final": 12
+    },
+    {
+      "item": "Geometry/recipe tables",
+      "main": 123,
+      "probe": 123,
+      "final": 123
+    },
+    {
+      "item": "Pixel masks",
+      "main": 0,
+      "probe": 4,
+      "final": 4
+    },
+    {
+      "item": "ASM mutable state",
+      "main": 14,
+      "probe": 13,
+      "final": 13
+    },
+    {
+      "item": "C rate tables",
+      "main": 6,
+      "probe": 6,
+      "final": 6
+    },
+    {
+      "item": "C state",
+      "main": 6,
+      "probe": 6,
+      "final": 6
+    },
+    {
+      "item": "C phase",
+      "main": 93,
+      "probe": 93,
+      "final": 93
+    },
+    {
+      "item": "C enter",
+      "main": 152,
+      "probe": 152,
+      "final": 152
+    },
+    {
+      "item": "C brake",
+      "main": 101,
+      "probe": 101,
+      "final": 101
+    },
+    {
+      "item": "C warning",
+      "main": 23,
+      "probe": 23,
+      "final": 23
+    },
+    {
+      "item": "Cold rearm/space/enter",
+      "main": 35,
+      "probe": 35,
+      "final": 35
+    },
+    {
+      "item": "Geometry alignment padding",
+      "main": 10,
+      "probe": 161,
+      "final": 18
+    },
+    {
+      "item": "C warning alignment padding",
+      "main": 17,
+      "probe": 22,
+      "final": 22
+    }
+  ],
+  "totals": {
+    "main": 1082,
+    "probe": 1338,
+    "final": 1192
+  }
+}

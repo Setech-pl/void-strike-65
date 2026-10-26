@@ -1,0 +1,31 @@
+{
+  "measurement": "MEASURED linked NMOS6502 + raster oracle",
+  "build": "build",
+  "total": 692064,
+  "mismatches": 0,
+  "falseNegative": 0,
+  "falsePositive": 0,
+  "maxCpu": 12655,
+  "minPositive": 2,
+  "shape": [
+    24,
+    24,
+    24,
+    60,
+    126,
+    219,
+    255,
+    219,
+    255,
+    126,
+    60,
+    36,
+    102,
+    66,
+    66
+  ],
+  "examples": [],
+  "groupCount": 864,
+  "allGroupsHaveZeroMismatches": true,
+  "detail": "Intermediate zero-mismatch run; final complete group table is after.json."
+}

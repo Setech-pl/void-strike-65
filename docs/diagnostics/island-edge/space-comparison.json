@@ -1,0 +1,7 @@
+{
+  "measurement": "MEASURED NMOS6502 full SPACE loops, raster waits excluded",
+  "cases": 720,
+  "activeCpuDeltaMin": 0,
+  "activeCpuDeltaMax": 0,
+  "allRecordsEqual": true
+}

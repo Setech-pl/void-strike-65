@@ -1,0 +1,75 @@
+diff --git a/src/c/l2.c b/src/c/l2.c
+index fd408cd..d72302b 100644
+--- a/src/c/l2.c
++++ b/src/c/l2.c
+@@ -41,6 +41,7 @@ void l2_c_enter(void)
+         while(l2_at<l2_until) { ++l2_tag; LOOKUP[l2_at]=l2_tag; ++l2_at; }
+         l2_i+=L2_RECORD_BYTES; --l2_count;
+     }
++
+ }
+ 
+ #pragma rodata-name ("L2")
+@@ -67,3 +68,18 @@ void l2_warning_set_timer(void)
+     else
+         ((volatile unsigned char*)L2_TIMERS)[BYTE(L2_WORK_SLOT)]=25u;
+ }
++
++/* SPIKE contact mine: collision executor reports a lethal shot/contact.
++ * C owns the irreversible consumed state; death/respawn never resets LOOKUP. */
++void l2_mine_consume(void) { LOOKUP[l2_module]=0u; }
++
++void l2_mine_enter(void)
++{
++    /* SPIKE: host-generated event modules; one bounded list, no Director RNG. */
++    if(BYTE(L2_SECTOR_INDEX)==EXT[3u]) {
++        l2_count=EXT[70u];
++        for(l2_i=0u;l2_i<l2_count;++l2_i) {
++            l2_at=((volatile unsigned char*)(L2_EXTENSION+71u))[l2_i]; LOOKUP[l2_at]=128u;
++        }
++    }
++}
+diff --git a/src/hybrid/l2.s b/src/hybrid/l2.s
+index 7ea8423..f1dd049 100644
+--- a/src/hybrid/l2.s
++++ b/src/hybrid/l2.s
+@@ -53,6 +53,7 @@ l2_interval:
+     cpx #CAPITAL_HULL_SECTOR_MODULE_COUNT
+     bcs @none
+     lda L2_LOOKUP,x
++    bmi @none
+     beq @none
+     sec
+     sbc #1
+@@ -113,6 +114,7 @@ l2_interval:
+ 
+     .res 7,0                       ; state gate moved resident; retain hot addresses
+ l2_contact:
++    jsr l2_mine_tick
+     lda player_x
+     cmp #148
+     bcs @base
+@@ -273,7 +275,7 @@ l2_draw_row:
+     adc l2_palette
+     sta (dst_ptr),y
+ @done:
+-    rts
++    jmp l2_mine_draw_row
+ 
+ l2_commit_row:
+     ldy #39
+@@ -319,12 +321,14 @@ l2_space:
+ .assert >integration_update_enemy <> 0, error, "L2 SPACE tail requires a nonzero resident page"
+ l2_enter:
+     jsr _l2_c_enter                 ; C decides/initializes the capital geometry
++    jsr _l2_mine_enter
+     lda #<L2_BRAKE
+     sta profile_after_player+1
+     lda #>L2_BRAKE
+ l2_store_hook_hi:
+     sta profile_after_player+2
+     rts
++.include "l2-mines.inc"
+ l2_end:
+ .export l2_start,l2_end,l2_interval,l2_draw_row,l2_contact,l2_island_contact,l2_commit_row,l2_recipes
+ .export l2_space,l2_enter,l2_rearm

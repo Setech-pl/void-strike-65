@@ -703,7 +703,13 @@ section "Decyzje literowe 2026-09-20".
   Levels 7-9 end on a long segmented spine with dorsal spikes, a generator
   sphere at each end, a domed siege cannon at the centre (a laser on every
   laser tier), two more emitters and two guns behind armour plates, and two
-  open guns near the ends (the edges stay under fire). Under the spine runs a
+  open guns near the ends (the edges stay under fire). Destroyed generators
+  reveal variant B (§BX): a grey/violet/rust beam aligned with the top nozzle,
+  an outer violet mounting rail connecting all three nozzles, and ragged wreckage
+  in the bottom third of the slot. The left end mirrors the right. This decoration
+  scrolls with the hull, has no collision, and does not change the field, lance,
+  damage feedback, scoring or fight-length rules (owner smoke pending).
+  Under the spine runs a
   **force field** in two halves, each fed by the generator at its end: while a
   half is powered every player shot in its columns stops on the field (the
   deflection, no damage); the boss's guns and lasers fire through it. Breaking

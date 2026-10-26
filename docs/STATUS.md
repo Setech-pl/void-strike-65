@@ -132,6 +132,34 @@ mounted for menu returns. Real hardware must confirm both Heavy planes.
 **NEXT TASK:** owner smoke of M3-H session 1. No automatic session 2,
 capital-content implementation, release, push or merge.
 
+### Siege Spine nacelle link — OWNER-SMOKE CANDIDATE
+
+Variant B (§BX) implemented for both destroyed generators: three-row beam,
+outer mounting rail and eight-pixel-high wreck, with an exact left mirror.
+The original right/left floating-nozzle defect is fixed in the 6502 harness;
+owner smoke is pending. No hitbox, HP, score, lance or field-policy changes:
+each generator still powers its own field half. No pixel-pattern deviations.
+
+R3-only field-collapse helper queues existing COPY draws; no shared runtime
+path changed. MEASURED F **353/512 B, 159 free** (was 323/189); look tail
+98/110 (18 B reclaimed padding), charset **952/1024 B, 72 free** (+88 B,
+119 codes). Right glyph/layout 48+9 B; left additional 40+9 B; shared code and
+tables 30 B. Resident allocation delta 0; protected ranges unchanged.
+
+Fresh baseline/candidate stress delta **0**: L7 lance off/lost 7,771/8,186;
+L9 8,025/8,440, all <=8,500. Native entry **344/350** host frames (was 340),
+119 sampled combat frames with no timing or DLI errors. One extended R3 art
+case RED on baseline -> GREEN (1/1) on candidate; normal campaign and direct
+builds pass. Stale wall-trace warning remains; this is not release certification.
+Known debt below is unchanged.
+
+Campaign ATR `build/play/spine-nacelle-link/campaign-56f15f260cf2.atr`;
+direct Spine `build/play/spine-nacelle-link/spine-direct-17f66fc463a6.atr`.
+[Plan, audit and measurements](plans/spine-nacelle-link.md),
+[full hashes and evidence](diagnostics/spine-nacelle-link/result.json).
+**NEXT TASK: owner smoke using the focused checklist, then owner merge decision.**
+
+
 ### L2 audit fixes — OWNER-ACCEPTED
 
 Owner smoke **PASS**, 2026-10-26, on the fixed L2 candidate built from

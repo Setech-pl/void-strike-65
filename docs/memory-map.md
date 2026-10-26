@@ -1,5 +1,20 @@
 # Current memory map
 
+## Siege Spine link candidate — 2026-10-26
+
+Current candidate delta from `ab5e5ed`, measured by the normal build:
+R3 overlay F `$5200–$53FF`: used **323 -> 353 B**, free **189 -> 159 B**,
+last occupied byte `$5360`. The 18-B pair of generator COPY layouts occupies
+existing prefix padding (look tail 80 -> 98 of 110 B); field code/tables grow
+30 B. F transport stays three sectors. R3 charset `$0C00–$0FFF`: 864 ->
+952 B, 108 -> 119 codes, free 160 -> 72 B, transport 7 -> 8 sectors.
+No reserved address, range, resident allocation or protected L2/window/summary
+change. Right art glyphs 48 B, left additional 40 B. Linked occupied spans
++118 B; meaningful art/layout/code +136 B, of which 18 B reuse padding.
+This candidate-specific accounting supplements the historical snapshots below.
+[Plan and evidence](plans/spine-nacelle-link.md).
+
+
 Accepted runtime checkpoint: `b4b942e` on `experiment/hybrid-c-director`
 (XEX `96546807…`, owner smoke PASS 2026-09-16). The linked-segment and BSS
 tables below are still the earlier `41ace65` snapshot (Light Wingman M1 + solid

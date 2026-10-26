@@ -1,0 +1,41 @@
+{
+  "base": "ab5e5ed",
+  "changed": [
+    "boss-code",
+    "boss-region-3-theme",
+    "boss-region-3-banner",
+    "boss-region-3-charset",
+    "boss-region-3-block"
+  ],
+  "byteIdentical": [
+    "boss-death-bootstrap",
+    "boss-death-engine",
+    "boss-install",
+    "boss-slot-c",
+    "boss-slot-d",
+    "boss-slot-e",
+    "boss-lance",
+    "boss-lance-page",
+    "boss-region-1-theme",
+    "boss-region-1-banner",
+    "boss-region-1-band-a",
+    "boss-region-1-band-b",
+    "boss-region-1-charset",
+    "boss-region-1-block",
+    "boss-region-2-theme",
+    "boss-region-2-banner",
+    "boss-region-2-band-a",
+    "boss-region-2-band-b",
+    "boss-region-2-charset",
+    "boss-region-2-block",
+    "boss-region-3-band-a",
+    "boss-region-3-band-b",
+    "boss-region-4-theme",
+    "boss-region-4-banner",
+    "boss-region-4-band-a",
+    "boss-region-4-band-b",
+    "boss-region-4-charset",
+    "boss-region-4-block"
+  ],
+  "generatedMetadata": "boss-code offsets 235 (R3 charset sectors 7->8), 2032/2036 (R3 expected fold); R3 theme last two bytes and banner offset 192 are generated integrity folds. Shared executable instructions unchanged."
+}

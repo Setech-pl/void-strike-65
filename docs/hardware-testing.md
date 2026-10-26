@@ -1,5 +1,22 @@
 # Hardware acceptance checklist
 
+## Focused owner smoke — Siege Spine link (§BX)
+
+Use the campaign/direct-Spine ATRs and hashes in
+[the candidate evidence](diagnostics/spine-nacelle-link/result.json).
+Candidate is implemented, pending owner smoke; this does not require the full
+milestone checklist below.
+
+- Destroy the right generator: beam, rail and low wreck appear after the kill
+  feedback; all three nozzles stay attached, with nothing floating.
+- Destroy the left generator: exact horizontal mirror; the living side is intact.
+- Destroy both, in either order: both links remain.
+- Follow horizontal boss motion: links scroll with the hull without seams.
+- Verify the existing per-half shot-blocking field, lance, hit feedback and
+  fight length behave as before; no decorative hitbox is added.
+- Confirm no flicker or slowdown on Atari800 PAL and real 65XE PAL via SIO2SD.
+
+
 **Scope: milestones and releases.** This is the broad Atari800 and real-hardware
 pass run before a milestone or release, not a per-feature gate.
 

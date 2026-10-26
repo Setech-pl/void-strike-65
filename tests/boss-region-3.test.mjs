@@ -22,7 +22,7 @@ import path from "node:path";
 import test from "node:test";
 
 import {
-  BOSS_TABLE, bossBandRowAddress, bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
+  BOSS_CHARSET_ADDRESS, BOSS_TABLE, bossBandRowAddress, bossRegionDirectory, compileBossRegion, loadBossRegionDraft,
 } from "../scripts/boss-assets.mjs";
 import { atariPalRegisterToRgb } from "../scripts/preview.mjs";
 import { call, label, manifest, placeBand, root, runBossEntry, shootAt } from "./boss-harness.mjs";
@@ -104,6 +104,45 @@ test("the art rule: every damage stage of every region 3 module has colour-3 pix
       assert.ok(count >= 4, `${module.name} stage ${stage}: ${count} colour-3 pixels`);
     });
   });
+  // Variant B: exact art on the built disk, after real generator kills.
+  const right = [
+    "............", "...........P", "GGGGGGGGGGGG", "PPPPPPPPPPPP",
+    "BBBBBBBBBBBB", "...........P", "...........P", "...........P",
+    "...........P", "...........P", "...........P", "...........P",
+    "...........P", "...........P", "...........P", "...........P",
+    ".........PPP", "......P.PGGP", "..P..PGPGGGP", ".PGPPGGGGPGP",
+    "PGGGGGG.GGGP", "PGGPGGGGGPGP", "PPGGGGGGGGPP", ".PPPPPPPPPP.",
+  ];
+  const slot = (memory, name) => {
+    const module = region3.modules[index(name)];
+    return Array.from({ length: 24 }, (_, y) => Array.from({ length: 12 }, (_, x) => {
+      const code = memory[bossBandRowAddress(module.row + (y >> 3)) + module.x + (x >> 2)];
+      assert.ok(code < 128, `${name}: destroyed art must use the PF2 bank`);
+      const byte = memory[BOSS_CHARSET_ADDRESS + code * 8 + (y & 7)];
+      return ".GPB"[(byte >> (6 - 2 * (x & 3))) & 3];
+    }).join(""));
+  };
+  for (const first of ["gen-r", "gen-l"]) {
+    const memory = siegeSpine(32);
+    frame(memory);
+    const other = first === "gen-r" ? "gen-l" : "gen-r";
+    const living = slot(memory, other);
+    for (const name of [first, other]) {
+      kill(memory, name, name === "gen-r" ? 50 : 12);
+      assert.equal(hp(memory, name), 0, `${name}: kill reached the generator`);
+      for (let f = 0; f < 60; f++) frame(memory);
+      for (const dead of [first, ...(name === other ? [other] : [])]) {
+        assert.deepEqual(slot(memory, dead), dead === "gen-r" ? right : right.map((row) => [...row].reverse().join("")),
+          `${dead}: destroyed slot must show variant B beam, rail and wreck`);
+      }
+      if (name === first) assert.deepEqual(slot(memory, other), living, "the surviving generator keeps its art");
+      // Slot columns retain their existing empty-sky collision classification.
+      const module = region3.modules[index(name)];
+      for (let c = module.x; c < module.x + 3; c++) assert.equal(mapOf(memory, c), 0xff, "link adds no hitbox");
+    }
+  }
+  assert.deepEqual([...region3.tables.slice(BOSS_TABLE.palette, BOSS_TABLE.palette + 4)], [12, 102, 40, 4]);
+  assert.ok(manifest.boss.slotF.blocks[2].bytes - 323 <= 189, "R3 link exceeds its 189-byte F budget");
 });
 
 test("the palette reads as the enemy on levels 7-9: no hull, trim or field colour near the ally steel's hue", () => {

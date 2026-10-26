@@ -1,0 +1,316 @@
+{
+  "before": "build/island-edge-approved-probe",
+  "after": "build/island-edge-compact-final",
+  "rows": [
+    {
+      "key": "l2.lst:L2:l2_draw_row",
+      "addressBefore": 6891,
+      "addressAfter": 6778,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 5,
+      "indexedSites": [
+        {
+          "address": 6785,
+          "source": "sta (dst_ptr),y"
+        },
+        {
+          "address": 6828,
+          "source": "lda l2_recipes+2,x"
+        },
+        {
+          "address": 6835,
+          "source": "sta (dst_ptr),y"
+        },
+        {
+          "address": 6838,
+          "source": "lda l2_recipes+3,x"
+        },
+        {
+          "address": 6860,
+          "source": "lda l2_recipes+4,x"
+        },
+        {
+          "address": 6867,
+          "source": "sta (dst_ptr),y"
+        },
+        {
+          "address": 6872,
+          "source": "lda l2_recipes+5,x"
+        },
+        {
+          "address": 6879,
+          "source": "sta (dst_ptr),y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_commit_row",
+      "addressBefore": 6995,
+      "addressAfter": 6882,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 6884,
+          "source": "lda PREPARED_HULL_ROW,y"
+        },
+        {
+          "address": 6887,
+          "source": "sta GAMEPLAY_DIVIDER_SCREEN,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:_l2_c_phase",
+      "addressBefore": 7312,
+      "addressAfter": 7056,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 6,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:_l2_c_enter",
+      "addressBefore": 7405,
+      "addressAfter": 7149,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 4,
+      "indexedSites": [
+        {
+          "address": 7193,
+          "source": "sta     $AD80,y"
+        },
+        {
+          "address": 7212,
+          "source": "lda     $AD09,y"
+        },
+        {
+          "address": 7221,
+          "source": "lda     $AD08,y"
+        },
+        {
+          "address": 7233,
+          "source": "lda     $AD1C,y"
+        },
+        {
+          "address": 7242,
+          "source": "lda     $AD1D,y"
+        },
+        {
+          "address": 7251,
+          "source": "lda     $AD1E,y"
+        },
+        {
+          "address": 7269,
+          "source": "sta     $AD80,y"
+        }
+      ],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "l2.lst:L2:_l2_brake_tick",
+      "addressBefore": 7557,
+      "addressAfter": 7301,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 10,
+      "indexedSites": [
+        {
+          "address": 7318,
+          "source": "lda     _l2_normal_rates,y"
+        },
+        {
+          "address": 7331,
+          "source": "cmp     _l2_half_rates,y"
+        },
+        {
+          "address": 7342,
+          "source": "cmp     _l2_normal_rates,y"
+        },
+        {
+          "address": 7352,
+          "source": "lda     _l2_normal_rates,y"
+        },
+        {
+          "address": 7376,
+          "source": "cmp     _l2_half_rates,y"
+        },
+        {
+          "address": 7393,
+          "source": "cmp     _l2_normal_rates,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:_l2_warning_set_timer",
+      "addressBefore": 7680,
+      "addressAfter": 7424,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 7443,
+          "source": "L0006:\tsta     $4E4F,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_rearm",
+      "addressBefore": 7703,
+      "addressAfter": 7447,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "l2.lst:L2:l2_space",
+      "addressBefore": 7706,
+      "addressAfter": 7450,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 7453,
+          "source": "lda _l2_normal_rates,x"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_enter",
+      "addressBefore": 7724,
+      "addressAfter": 7468,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_store_hook_hi",
+      "addressBefore": 7734,
+      "addressAfter": 7478,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_solid_pixel",
+      "addressBefore": 6778,
+      "addressAfter": 7482,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 5,
+      "indexedSites": [
+        {
+          "address": 7519,
+          "source": "lda l2_recipes+3,x"
+        },
+        {
+          "address": 7525,
+          "source": "lda l2_recipes+4,x"
+        },
+        {
+          "address": 7531,
+          "source": "lda l2_recipes+2,x"
+        },
+        {
+          "address": 7537,
+          "source": "lda l2_recipes+5,x"
+        },
+        {
+          "address": 7577,
+          "source": "and l2_pixel_masks,x"
+        }
+      ],
+      "classification": "per-frame"
+    }
+  ],
+  "indexedTables": [
+    {
+      "name": "l2_part_offsets",
+      "address": 6912,
+      "maxIndex": 5,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipe_offsets",
+      "address": 6918,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_left_caps",
+      "address": 6921,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_right_caps",
+      "address": 6924,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipes",
+      "address": 6927,
+      "maxIndex": 107,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_normal_rates",
+      "address": 7044,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_half_rates",
+      "address": 7047,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "level allied sequence",
+      "address": 44040,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "level enemy sequence",
+      "address": 44160,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "current-sector lookup",
+      "address": 44416,
+      "maxIndex": 119,
+      "pageCross": false
+    }
+  ]
+}

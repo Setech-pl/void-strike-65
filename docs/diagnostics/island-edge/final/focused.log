@@ -1,0 +1,92 @@
+{"measurement":"MEASURED linked NMOS6502 + raster oracle","build":"build","total":692064,"mismatches":0,"falseNegative":0,"falsePositive":0,"maxCpu":12655,"minPositive":2,"shape":[24,24,24,60,126,219,255,219,255,126,60,36,102,66,66]}
+{
+  measurement: 'MEASURED raster oracle and linked NMOS6502',
+  pass: true,
+  easyClearableWithoutFiring: true,
+  records: [
+    {
+      length: 480,
+      difficulty: 0,
+      checks: 7840,
+      minLeftHpos: 32,
+      minRightHpos: 32,
+      shipWidthHpos: 16,
+      leftLaneHpos: 92,
+      rightLaneHpos: 148,
+      fire: false
+    },
+    {
+      length: 480,
+      difficulty: 1,
+      checks: 7840,
+      minLeftHpos: 28,
+      minRightHpos: 28,
+      shipWidthHpos: 16,
+      leftLaneHpos: 92,
+      rightLaneHpos: 148,
+      fire: false
+    },
+    {
+      length: 480,
+      difficulty: 2,
+      checks: 7840,
+      minLeftHpos: 24,
+      minRightHpos: 24,
+      shipWidthHpos: 16,
+      leftLaneHpos: 92,
+      rightLaneHpos: 148,
+      fire: false
+    },
+    {
+      length: 960,
+      difficulty: 0,
+      checks: 15520,
+      minLeftHpos: 32,
+      minRightHpos: 32,
+      shipWidthHpos: 16,
+      leftLaneHpos: 92,
+      rightLaneHpos: 148,
+      fire: false
+    },
+    {
+      length: 960,
+      difficulty: 1,
+      checks: 15520,
+      minLeftHpos: 28,
+      minRightHpos: 28,
+      shipWidthHpos: 16,
+      leftLaneHpos: 92,
+      rightLaneHpos: 148,
+      fire: false
+    },
+    {
+      length: 960,
+      difficulty: 2,
+      checks: 15520,
+      minLeftHpos: 24,
+      minRightHpos: 24,
+      shipWidthHpos: 16,
+      leftLaneHpos: 92,
+      rightLaneHpos: 148,
+      fire: false
+    }
+  ]
+}
+✔ exact island contact matches every rendered-mask sweep case (11782.186708ms)
+✔ exact contact leaves both unfired side lanes clear at every row and phase (3169.440083ms)
+✔ owner BY changes only the L2 first-contents budget and preserves reserve/C ABI gates (0.417417ms)
+{"measurement":"row CPU including shared renderer","maximum":1939}
+{"measurement":"contact CPU including canonical damage","maximum":1211}
+✔ L2 islands: real level lookup, all row publications, cache hit/miss and both factions (68.885042ms)
+✔ L2 islands: visible-width clamp, two HULL units, cooldown and every fine alignment (14.043875ms)
+✔ L2 island authoring rejects unsafe/unknown placements and keeps SPACE debris (2889.1685ms)
+✔ L2 contact retains Shield and dying/respawning lifecycle policy (9.263417ms)
+✔ L2 recipes reject fractional or nonnumeric interval endpoints instead of dropping coordinate bits (0.195084ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15015.430792

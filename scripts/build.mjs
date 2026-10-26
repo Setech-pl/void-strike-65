@@ -2793,7 +2793,7 @@ async function build() {
   if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
     throw new Error("L2 C requires software-stack/helper state");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
-  const l2MainNames=["profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy",
+  const l2MainNames=["player_shape","CHARSET","PLAYER_VISIBLE_WIDTH_HPOS","profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy",
     "BROADSIDE_SCREEN_TOP","PLAYER_COLLISION_LAST_ROW","PLAYER_COLLISION_WIDTH","CAPITAL_HULL_GLYPH_BASE",
     "CAPITAL_HULL_ENEMY_SURFACE_BASE","CAPITAL_HULL_SECTOR_MODULE_COUNT","CORRIDOR_LEFT_HPOS","CORRIDOR_RIGHT_HPOS"];
   const l2MainInclude=l2MainNames.map(name=>{
@@ -2825,7 +2825,9 @@ async function build() {
     throw new Error("L2 resident lifetime pins moved");
   if(lifetimeLabels.get("l2_load_guard")!==0x866c || lifetimeLabels.get("l2_valid")!==0x86b3)
     throw new Error("L2 validity/load guard pins moved");
-  if (!Number.isInteger(l2Used) || l2Used > 1228) throw new Error(`L2 first contents ${l2Used} B exceed approved 1024 +20% STOP`);
+  // Owner decision §BY, 2026-10-26: island contact correctness may use the
+  // full L2 contents budget below the untouched 256-byte post-1.0 reserve.
+  if (!Number.isInteger(l2Used) || l2Used > 1536) throw new Error(`L2 first contents ${l2Used} B exceed approved 1536 B (reserve boundary) STOP`);
   const overlayRuns = [{
     index: 0,
     name: "capital-slot-a",

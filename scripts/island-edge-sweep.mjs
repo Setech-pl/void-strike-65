@@ -6,12 +6,13 @@ import {fileURLToPath} from 'node:url';
 import {Nmos6502} from './nmos6502.mjs';
 import {installRuntimeSegments} from './runtime-image.mjs';
 import {parseViceLabels} from './runtime-cycles.mjs';
-export function sweep({build='build',output='docs/diagnostics/island-edge/before.json'}={}){
+export function sweep({build='build',output='docs/diagnostics/island-edge/before.json',module=null}={}){
  const labels=parseViceLabels(fs.readFileSync(`${build}/void-strike-65.lbl`,'utf8'));
- const overlay=parseViceLabels(fs.readFileSync(`${build}/l2.lbl`,'utf8'));
+ const overlay=parseViceLabels(fs.readFileSync(`${module??build}/l2.lbl`,'utf8'));
  const fixed={BROAD_VISIBLE_SCROLLS:0x4e6f,BROAD_PLAYER_HEALTH:0x4e5d,BROAD_DAMAGE_COOLDOWN:0x4e5e};
  const at=n=>{const a=labels.get(n)??overlay.get(n)??fixed[n];if(a===undefined)throw Error(`Missing label ${n}`);return a;};
  const m=new Uint8Array(65536);installRuntimeSegments(m,process.cwd(),path.resolve(build));
+ if(module)m.set(fs.readFileSync(`${module}/l2.bin`),0x1900);
  const run=(name,a=0)=>{const c=new Nmos6502(m);c.a=a;c.push(127);c.push(254);c.pc=at(name);let hit=false;
   for(let i=0;c.pc!==32767;i++){if(i>20000)throw Error(name);if(c.pc===at('apply_broadside_player_damage'))hit=true;c.step();}return {hit,cycles:c.cycles};};
  const set=(n,v)=>m[at(n)]=v;
@@ -64,7 +65,7 @@ export function sweep({build='build',output='docs/diagnostics/island-edge/before
  }
  const report={measurement:'MEASURED linked NMOS6502 + raster oracle',build,total,mismatches,falseNegative,falsePositive,maxCpu,minPositive,shape,examples,groups:[...groups.values()]};
  fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
- const table=['# Island contact raster sweep','', 'MEASURED. Overlap is maximum common opaque width on any matching scanline, in hires pixels. Zero means no common solid pixel. HPOS advances two hires pixels; ANTIC 4 pixels also span two hires pixels. World scrolling publishes whole character rows; alignment is the eight relative sprite/glyph scanline phases.','', '| Design | Colour | Difficulty | Region | Alignment | Mismatch overlap / engine hit / count | Minimum overlap on hit | Maximum overlap on miss |','| --- | --- | --- | --- | ---: | --- | ---: | ---: |',...report.groups.filter(g=>g.mismatches).map(g=>`| ${g.design} | ${g.faction} | ${g.difficulty} | ${g.region} | ${g.alignment} | ${Object.entries(g.overlapDecisions).map(([k,v])=>`${k}/${v}`).join(', ')} | ${g.minHitOverlap} | ${g.maxMissOverlap} |`)];
+ const table=['# Island contact raster sweep','', `${report.total} cases; ${report.mismatches} mismatches (${report.falseNegative} missed overlaps, ${report.falsePositive} false contacts).`, '', 'MEASURED. Overlap is maximum common opaque width on any matching scanline, in hires pixels. Zero means no common solid pixel. HPOS advances two hires pixels; ANTIC 4 pixels also span two hires pixels. World scrolling publishes whole character rows; alignment is the eight relative sprite/glyph scanline phases.','', '| Design | Colour | Difficulty | Region | Alignment | Mismatch overlap / engine hit / count | Minimum overlap on hit | Maximum overlap on miss |','| --- | --- | --- | --- | ---: | --- | ---: | ---: |',...report.groups.filter(g=>g.mismatches).map(g=>`| ${g.design} | ${g.faction} | ${g.difficulty} | ${g.region} | ${g.alignment} | ${Object.entries(g.overlapDecisions).map(([k,v])=>`${k}/${v}`).join(', ')} | ${g.minHitOverlap} | ${g.maxMissOverlap} |`)];
  fs.writeFileSync(output.replace(/\.json$/,'.md'),table.join('\n')+'\n');console.log(JSON.stringify({...report,groups:undefined,examples:undefined}));return report;
 }
-if(process.argv[1]===fileURLToPath(import.meta.url))sweep({build:process.argv[2]??'build',output:process.argv[3]??'docs/diagnostics/island-edge/before.json'});
+if(process.argv[1]===fileURLToPath(import.meta.url))sweep({build:process.argv[2]??'build',output:process.argv[3]??'docs/diagnostics/island-edge/before.json',module:process.argv[4]??null});

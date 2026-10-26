@@ -42,28 +42,27 @@ test('L2 islands: real level lookup, all row publications, cache hit/miss and bo
  assert.equal(count,3*3*48);assert.deepEqual([...colours].sort((a,b)=>a-b),[59,198]);
 });
 
-test('L2 islands: nearest-side clamp, two HULL units, cooldown and every fine alignment',()=>{
+test('L2 islands: visible-width clamp, two HULL units, cooldown and every fine alignment',()=>{
  const m=memory(),protectedBefore=protectedSnapshot(m);let maxContactCpu=0;
- for(let d=0;d<3;d++)for(let row=576;row<624;row++)for(let fine=0;fine<8;fine++){
-  const rows=Math.floor((fine+14)/8)+1;let left=255,right=0;
-  for(let n=0;n<rows;n++){
-   const tag=m[0xad80+((row-n)>>3)];if(!tag)continue;
-   const v=tag-1,[a,b]=ISLAND_RECIPES[v>>4].parts[v&7];
-   left=Math.min(left,128+4*Math.max(a,-(d+3)));right=Math.max(right,128+4*Math.min(b,d+3));
-  }
-  for(const x of [92,left-8,left-7,124,right-1,right,152]){
-   if(x<84||x>164)continue;
-   set(m,'DIFFICULTY_SETTING',d);set(m,'CAPITAL_SECTOR_STATE',2);set(m,'PLAYER_LIFECYCLE',0);
-   coord(m,row+11);set(m,'player_y',96+fine);set(m,'player_x',x);
-   m[0x4e6f]=28;m[0x4e5d]=10;m[0x4e5e]=0;set(m,'BROAD_DAMAGE_APPLIED',0);set(m,'ENTITY_ACTIVE_MASK',0);
-   const hit=right&&x<right&&x+7>=left;
-   const expected=hit?(right-x<x+8-left?right:left-8):x;
-   maxContactCpu=Math.max(maxContactCpu,run(m,'handle_player_hull_contact').cycles);assert.equal(m[l.get('player_x')],expected);
-   assert.equal(m[0x4e5d],hit?8:10);if(hit){assert.equal(m[0x4e5e],25);set(m,'player_x',x);set(m,'BROAD_DAMAGE_APPLIED',0);run(m,'handle_player_hull_contact');assert.equal(m[0x4e5d],8);assert.equal(m[l.get('player_x')],expected);}
+ // Flat plate interiors isolate damage policy from the separately exhaustive
+ // pixel oracle. Both no-contact lanes fit the full drawn 16-HPOS sprite.
+ for(let d=0;d<3;d++)for(let fine=0;fine<8;fine++)for(const x of [92,124,148]){
+  const hit=x===124,right=140+4*d;
+  set(m,'DIFFICULTY_SETTING',d);set(m,'CAPITAL_SECTOR_STATE',2);set(m,'PLAYER_LIFECYCLE',0);
+  coord(m,611);set(m,'player_y',96+fine);set(m,'player_x',x);
+  m[0x4e6f]=28;m[0x4e5d]=10;m[0x4e5e]=0;set(m,'BROAD_DAMAGE_APPLIED',0);set(m,'ENTITY_ACTIVE_MASK',0);
+  maxContactCpu=Math.max(maxContactCpu,run(m,'handle_player_hull_contact').cycles);
+  assert.equal(m[l.get('player_x')],hit?right:x);
+  assert.equal(m[0x4e5d],hit?8:10);
+  if(hit){
+   assert.equal(m[0x4e5e],25);
+   set(m,'player_x',x);set(m,'BROAD_DAMAGE_APPLIED',0);run(m,'handle_player_hull_contact');assert.equal(m[0x4e5d],8);
+   m[0x4e5e]=0;set(m,'player_x',x);set(m,'BROAD_DAMAGE_APPLIED',1);run(m,'handle_player_hull_contact');assert.equal(m[0x4e5d],8,'one-event latch');
+   set(m,'player_x',x);set(m,'BROAD_DAMAGE_APPLIED',0);run(m,'handle_player_hull_contact');assert.equal(m[0x4e5d],6,'expired cooldown permits canonical damage');
   }
  }
- assert.deepEqual(protectedSnapshot(m),protectedBefore,"contact changed protected bytes");
- console.log(JSON.stringify({measurement:"contact CPU including canonical damage",maximum:maxContactCpu}));
+ assert.deepEqual(protectedSnapshot(m),protectedBefore,'contact changed protected bytes');
+ console.log(JSON.stringify({measurement:'contact CPU including canonical damage',maximum:maxContactCpu}));
 });
 
 test('L2 island authoring rejects unsafe/unknown placements and keeps SPACE debris',()=>{

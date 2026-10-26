@@ -117,7 +117,7 @@ l2_contact:
     cmp #148
     bcs @base
     clc
-    adc #7
+    adc #(PLAYER_VISIBLE_WIDTH_HPOS-1)
     cmp #108
     bcc @base
     jsr l2_island_contact
@@ -135,87 +135,83 @@ l2_contact:
     rts
 
 l2_island_contact:
-    lda #255
-    sta l2_union_left
     lda #0
-    sta l2_union_right
+    sta l2_sprite_row
+@scanline:
     lda player_y
+    clc
+    adc l2_sprite_row
     sec
     sbc #BROADSIDE_SCREEN_TOP
     pha
     and #7
-    clc
-    adc #PLAYER_COLLISION_LAST_ROW
-    lsr
-    lsr
-    lsr
-    clc
-    adc #1
-    sta l2_rows_left
+    sta l2_glyph_row
     pla
     lsr
     lsr
     lsr
     jsr visible_hull_sector_row
-    bcs @done
-    sty l2_source_lo
-    stx l2_source_hi
-@row:
-    lda l2_source_lo
-    ldx l2_source_hi
+    bcs @next_row
+    tya
     jsr l2_interval
-    beq @next
-    lda l2_left
-    cmp l2_union_left
-    bcs :+
-    sta l2_union_left
-:
-    lda l2_right
-    cmp l2_union_right
-    bcc @next
-    sta l2_union_right
-@next:
-    lda l2_source_lo
-    bne :+
-    dec l2_source_hi
-:
-    dec l2_source_lo
-    dec l2_rows_left
-    bne @row
-    lda l2_union_right
-    beq @done
+    beq @next_row
     lda player_x
-    cmp l2_union_right
-    bcs @done
+    cmp l2_right
+    bcs @next_row
     clc
-    adc #7
-    cmp l2_union_left
-    bcc @done
-    ; Choose minimum displacement; ties left. Supports asymmetric intervals.
+    adc #(PLAYER_VISIBLE_WIDTH_HPOS-1)
+    cmp l2_left
+    bcc @next_row
+    ldx l2_sprite_row
+    lda player_shape,x
+    sta l2_sprite_bits
+    lda player_x
+    sta l2_pixel_x
+@pixel:
+    lda l2_sprite_bits
+    bpl @next_bit
+    jsr l2_solid_pixel
+    bne @hit
+    inc l2_pixel_x
+    jsr l2_solid_pixel
+    bne @hit
+    dec l2_pixel_x
+@next_bit:
+    inc l2_pixel_x
+    inc l2_pixel_x
+    asl l2_sprite_bits
+    bne @pixel
+@next_row:
+    inc l2_sprite_row
+    lda l2_sprite_row
+    cmp #(PLAYER_COLLISION_LAST_ROW+1)
+    bcc @scanline
+    rts
+@hit:
+    ; Same nearest-side/tie-left displacement, using the drawn width.
     lda player_x
     clc
-    adc #8
+    adc #PLAYER_VISIBLE_WIDTH_HPOS
     sec
-    sbc l2_union_left
+    sbc l2_left
     sta l2_work
-    lda l2_union_right
+    lda l2_right
     sec
     sbc player_x
     cmp l2_work
     bcc @right
-    lda l2_union_left
+    lda l2_left
     sec
-    sbc #8
+    sbc #PLAYER_VISIBLE_WIDTH_HPOS
     jmp @push
 @right:
-    lda l2_union_right
+    lda l2_right
 @push:
     sta player_x
     sta $D000
     ldx #0
     jmp apply_broadside_player_damage
-@done:
-    rts
+
 
 l2_draw_row:
     jsr l2_original_row
@@ -297,11 +293,6 @@ l2_recipe: .byte 0
 l2_palette: .byte 0
 l2_left: .byte 0
 l2_right: .byte 0
-l2_union_left: .byte 0
-l2_union_right: .byte 0
-l2_rows_left: .byte 0
-l2_source_lo: .byte 0
-l2_source_hi: .byte 0
 l2_end_column: .byte 0
 l2_fill: .byte 0
 .include "l2-c.inc"
@@ -325,6 +316,72 @@ l2_enter:
 l2_store_hook_hi:
     sta profile_after_player+2
     rts
+; Placed after the C/cold tail to reuse the earlier page-alignment slack.
+; No extra call or indexed-table page penalty.
+; Exact ANTIC 4 pair at one HPOS, from the same immutable recipe and
+; charset used by the row publisher. No screen/backing or shared state writes.
+l2_solid_pixel:
+    lda l2_pixel_x
+    cmp l2_left
+    bcc @empty
+    cmp l2_right
+    bcs @empty
+    and #$FC
+    ldx l2_recipe
+    cmp l2_left
+    beq @left
+    clc
+    adc #4
+    cmp l2_right
+    beq @right
+    sbc #4                      ; carry clear when below the right edge
+    cmp #127                    ; previous SBC produced column origin - 1
+    beq @motif
+    lda l2_recipes+3,x
+    jmp @glyph
+@motif:
+    lda l2_recipes+4,x
+    jmp @glyph
+@left:
+    lda l2_recipes+2,x
+    jmp @glyph
+@right:
+    lda l2_recipes+5,x
+@glyph:
+    clc
+    adc l2_palette
+    and #127
+    pha
+    lsr
+    lsr
+    lsr
+    lsr
+    lsr
+    clc
+    adc #>CHARSET
+    sta @read+2
+    pla
+    asl
+    asl
+    asl
+    ora l2_glyph_row
+    sta @read+1
+    lda l2_pixel_x
+    and #3
+    tax
+@read:
+    lda CHARSET
+    and l2_pixel_masks,x
+    rts
+@empty:
+    lda #0
+    rts
+l2_pixel_masks: .byte $C0,$30,$0C,$03
+l2_sprite_row: .byte 0
+l2_glyph_row: .byte 0
+l2_sprite_bits: .byte 0
+l2_pixel_x: .byte 0
+
 l2_end:
 .export l2_start,l2_end,l2_interval,l2_draw_row,l2_contact,l2_island_contact,l2_commit_row,l2_recipes
 .export l2_space,l2_enter,l2_rearm

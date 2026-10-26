@@ -1,0 +1,17 @@
+{
+  "measurement": "MEASURED linked labels",
+  "baseline": "bf4d410",
+  "mainBytes": 1192,
+  "candidateBytes": 1250,
+  "deltaBytes": 58,
+  "gateBytes": 1536,
+  "remainingBytes": 286,
+  "reserveBytes": 256,
+  "residentSourceDeltaBytes": 0,
+  "lookupBytes": 120,
+  "levelImageBytes": 2048,
+  "helperBytes": 54,
+  "newScratchBytes": 3,
+  "prefixGrowthAbsorbedByPaddingBytes": 11,
+  "pixelDecoderGrowthBytes": 1
+}

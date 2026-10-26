@@ -1,0 +1,7 @@
+{
+  "measurement": "MEASURED NMOS6502 whole-loop fixtures, DMA excluded",
+  "fixtures": 720,
+  "identical": true,
+  "activeCpuDeltaMin": 0,
+  "activeCpuDeltaMax": 0
+}

@@ -11,5 +11,7 @@ async function run(job,prepare=false){
  records.push({...job,code});fs.writeFileSync(`${out}/runs.json`,JSON.stringify(records,null,2)+'\n');console.log(name,job.id,code===0?'PASS':'STOP');
  if(code){stopped=true;throw Error(`${job.id}: see ${out}/${job.id}.log`);}
 }
-await run(jobs.shift(),true);
+// The fixed matrix reuses the private observer binary prepared by main.
+// Per-session symbols and ownership images come from each artifact directory.
+if(name==='main')await run(jobs.shift(),true);
 await Promise.all(Array.from({length:3},async()=>{while(jobs.length&&!stopped)await run(jobs.shift());}));

@@ -1,0 +1,30 @@
+{
+  "measurement": "MEASURED linked NMOS6502 + raster oracle",
+  "build": "build",
+  "total": 1163520,
+  "mismatches": 0,
+  "falseNegative": 0,
+  "falsePositive": 0,
+  "maxCpu": 14095,
+  "minPositive": 2,
+  "shape": [
+    24,
+    24,
+    24,
+    60,
+    126,
+    219,
+    255,
+    219,
+    255,
+    126,
+    60,
+    36,
+    102,
+    66,
+    66
+  ],
+  "examples": [],
+  "groups": [],
+  "groupCount": 4320
+}

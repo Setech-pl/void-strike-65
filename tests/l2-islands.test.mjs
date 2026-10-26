@@ -22,10 +22,11 @@ test('L2 islands: real level lookup, all row publications, cache hit/miss and bo
    const tag=m[0xad80+(row>>3)];
    const expected=Array(22).fill(0);
    if(tag){
-    const v=tag-1,part=v&7,recipe=v>>4,base=v&8?198:59;
+    const v=tag-1,part=v&7,recipe=(v>>4)&3,base=v&8?198:59;
     const [left,right,edge,fill,motif,last]=ISLAND_RECIPES[recipe].parts[part];
-    const start=20+Math.max(left,-(d+3)),end=20+Math.min(right,d+3);
-    for(let col=start;col<end;col++)expected[col-9]=base+(col===start?edge:col===end-1?last:col===20?motif:fill);
+    const raw=m[0xad04+(v>>6)],shift=(raw>127?raw-256:raw)/4;
+    const start=20+shift+Math.max(left,-(d+3)),end=20+shift+Math.min(right,d+3);
+    for(let col=start;col<end;col++)expected[col-9]=base+(col===start?edge:col===end-1?last:col===20+shift?motif:fill);
     count++;colours.add(base);
    }
    assert.deepEqual([...chars.slice(9,31)],expected,`row ${row}, difficulty ${d}`);
@@ -74,7 +75,7 @@ test('L2 island authoring rejects unsafe/unknown placements and keeps SPACE debr
  const s=src();const before=s.sectors.filter(x=>x.kind==='space').map(x=>x.hazards?.debris??0);
  const c=compile(s);assert.deepEqual(c.sectors.filter(x=>x.kind===0).map(x=>x.debris),before);
  s.sectors[1].hazards.debris=1;assert.throws(()=>compile(s),/capital hazards.debris/);
- const sparse=src();sparse.sectors[1].islands.density='sparse';assert.equal(compile(sparse).pages.islands[2],2);
+ const sparse=src();sparse.sectors[1].islands={pattern:'salvage',density:'sparse'};assert.equal(compile(sparse).pages.islands[2],2);
 });
 
 // Shield blocks damage through the canonical policy; contact still displaces.

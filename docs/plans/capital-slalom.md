@@ -1,3 +1,27 @@
+# Continuation — owner scope resolved, 2026-10-26
+
+The owner permits left/right starts below 328 rows, excludes simultaneous side
+pairs, and defines the straight-flight gate as a 16-HPOS ship plus 4 HPOS
+clearance. This supersedes the earlier centre-first blocker below.
+
+Implemented candidates: **Offset Weave** (side centres 108/148 HPOS) and
+**Tight Weave** (112/144 HPOS), centre 128 in both. Every length 288..960 in
+eight-row steps passes the host proof; no length is excluded. Tight Weave is
+the most inward four-HPOS-grid translation that removes all straight 20-HPOS
+bands. At offsets 12 or less, at least one straight edge band remains; narrow
+neck rows necessarily offer wider passages than plate rows. The existing
+24/32/40-HPOS plate widths are preserved.
+
+L2-only translation uses tag bits 6..7 and existing extension bytes 4..7;
+lookup/record/page sizes and C code remain unchanged. Linked contents are
+1,250 B versus freshly built main 1,192 B (+58); 286 B remain below 1,536.
+The initial inline placement enlarged page padding; placing the same bounded
+helper after the existing C/cold tail recovered 202 B with no reservation
+change. Final detailed measurements, sequences and acceptance status are in
+[the audit](../audits/2026-10-26-capital-slalom.md).
+
+---
+
 # Capital slalom — Phase 1
 
 Baseline: `bf4d410 [codex] Merge codex/island-edge-contact (§BY)`.

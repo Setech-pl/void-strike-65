@@ -65,7 +65,9 @@ jest błąd, to pole bitwy. Ten po prawej strzela do Ciebie celowo. Jeden i drug
 rani tak samo.
 
 Duże oderwane fragmenty okrętów blokują korytarz. Mają barwy obu stron. Omijaj
-je; zderzenie zabiera 20% HULL i odpycha na bliższą stronę. Twoje pociski
+je slalomem — kolejne fragmenty leżą po lewej i prawej stronie. Krótkie
+przeloty zaczynają się od fragmentu z boku, dłuższe od fragmentu na środku.
+Zderzenie zabiera 20% HULL i odpycha na bliższą stronę. Twoje pociski
 przelatują nad fragmentami. Wieżyczki strzelają z obu kadłubów.
 
 Przy dolnej krawędzi przytrzymaj DÓŁ, aby zwolnić przelot korytarzem do połowy

@@ -306,8 +306,7 @@
         "stars": "steel"
       },
       "islands": {
-        "pattern": "salvage",
-        "density": "standard"
+        "pattern": "slalom"
       }
     },
     {

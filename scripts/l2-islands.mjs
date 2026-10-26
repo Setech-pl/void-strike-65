@@ -1,3 +1,4 @@
+import {slalomLayout} from './capital-slalom-layout.mjs';
 import fs from 'node:fs';
 import {fileURLToPath} from 'node:url';
 const definitions=JSON.parse(fs.readFileSync(new URL('../assets/graphics/l2-islands.json',import.meta.url)));
@@ -26,14 +27,21 @@ export function compileIslandExtension(source,hull,geometry){
   if(typeof spec!=='object'||Array.isArray(spec)||spec===null)fail('islands must be an object');
   for(const key of Object.keys(spec))if(!['pattern','density','firstRow','spacingRows','heightRows','minGapRows'].includes(key))fail(`unknown field ${key}`);
   const pattern=spec.pattern??'none',density=spec.density??'standard';
-  if(!['none','salvage'].includes(pattern)||!['standard','sparse'].includes(density))fail('unknown pattern/density');
+  if(!['none','salvage','slalom','slalom-tight'].includes(pattern)||!['standard','sparse'].includes(density))fail('unknown pattern/density');
   if(sector.kind!=='capital'){
    if(sector.islands!==undefined)fail('islands are capital-only');
    continue;
   }
   if((sector.hazards?.debris??0)!==0)fail('capital hazards.debris must be zero');
   if(pattern==='none')continue;
-  const first=spec.firstRow??96,spacing=spec.spacingRows??112,height=spec.heightRows??48,gap=spec.minGapRows??64;
+  const slalom=pattern.startsWith('slalom');
+  if(slalom && Object.keys(spec).some(k=>k!=='pattern'))fail('slalom placement is deterministic; only pattern is allowed');
+  const layout=slalom?slalomLayout(hull.rows,pattern):null;
+  if(layout){
+   if(bytes[3] && bytes[3]!==layout.offset)fail('mixed slalom offsets within a level');
+   bytes[3]=layout.offset;bytes[5]=(-layout.offset)&255;bytes[6]=layout.offset;
+  }
+  const first=layout?.first??spec.firstRow??96,spacing=layout?.spacing??spec.spacingRows??112,height=layout?.height??spec.heightRows??48,gap=spec.minGapRows??64;
   for(const v of [first,spacing,height,gap])if(!Number.isInteger(v)||v%8!==0)fail('placement must use whole eight-row modules');
   if(first<64||first>960||height<24||height>48||gap<64||spacing<height+gap)fail('unsafe placement/clear gap');
   const records=[];
@@ -42,7 +50,7 @@ export function compileIslandExtension(source,hull,geometry){
    const start=(geometry.firstRow+row)/8;
    if(start<0||start+height/8>120)fail('span exceeds the finite coordinate');
    const recipe=n%3,faction=n&1;
-   records.push([start,start+height/8,(recipe<<4)|(faction<<3),0,0,0]);
+   records.push([start,start+height/8,(recipe<<4)|(faction<<3)|((layout?.spans[n].position??0)<<6),0,0,0]);
   }
   const key=JSON.stringify(records);let firstRecord=sets.get(key);
   if(firstRecord===undefined){

@@ -1,0 +1,2 @@
+Error: L2 first contents 1338 B exceed approved 1024 +20% STOP
+    at build (file:///Users/marcinkrzetowski/Projects/dark-fighter-island-edge/scripts/build.mjs:2828:57)

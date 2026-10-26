@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-26 (L2 audit fixes — OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-26 (L2 audit fixes — OWNER-ACCEPTED)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,10 +20,13 @@ the values below.
 
 ## Checkpoint
 
-### L2 audit fixes — OWNER-SMOKE CANDIDATE
+### L2 audit fixes — OWNER-ACCEPTED
 
-Owner smoke of `b2b38ff`: PASS ("generally OK", 2026-10-25). The audit-fixed
-candidate awaits a new owner smoke; no main merge. Report `668f692` merged
+Owner smoke **PASS**, 2026-10-26, on the fixed L2 candidate built from
+`1551cf0` (`1551cf0263ff11f73877b449009a2e49e07e0f51`), campaign ATR SHA-256
+`ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6`.
+L2 is **OWNER-ACCEPTED**. Earlier smoke of `b2b38ff` passed on 2026-10-25
+("generally OK"). Report `668f692` merged
 unchanged in `66f53b9`. L2-01 fixed `52ee66b`, L2-04 `c77ebba`, remaining
 code `cba50fd`. [Audit ledger](audits/README.md), [results](plans/l2-phase-module.md#audit-fix-results--owner-smoke-candidate-2026-10-26),
 [evidence and all test results](diagnostics/l2-audit-fixes-2026-10-25/).
@@ -73,15 +76,21 @@ new meaningful bytes reclaim padding/slack. Summary is full: future M4 grade/
 next-level work needs room or relocation. Dock 352+bonus 128 are ESTIMATES,
 26 B beyond current nonreserve space; reserve stays unspent. Art01/03/05 in
 both colours, zero new glyph slots and §BW.7 placement defaults remain.
-Normal build is not release certification; hardware/SIO2SD owner smoke pending.
+Normal build is not release certification. Owner smoke PASS is recorded in §BW.8.
 
-Six final-HEAD normal ATRs and SHA-256/build provenance:
-`build/l2-owner-smoke/candidate.json` (campaign,960-row capital,R1/Citadel/
-Spine/Bastion direct starts). Smoke: cold boot; level1 SPACE debris; capital
-islands/brake including death while braking; boss→summary→menu→START GAME;
-capital pause-quit→START GAME. **NEXT TASK: owner smoke. STOP.** After owner OK
-only: record smoke, normal branch build, authorized --no-ff merge, normal
-main build, push main and report merge SHA. No next roadmap item.
+The six accepted candidate ATRs were built from `1551cf0`; their SHA-256 and
+build provenance remain in `build/l2-owner-smoke/candidate.json` (campaign,
+960-row capital and R1/Citadel/Spine/Bastion direct starts). The owner authorizes
+normal branch build, `--no-ff` merge into main, normal main build and push.
+No release or next roadmap item is authorized by this handoff.
+
+**Open before M3-H:** "10 frames above the 31 500 DMA-on target (max 31 598,
+hard margin 970) on the 480/HARD brake/contact route — state-dependent, not
+L2 overhead (SPACE is −2 vs main); attribute the worst frame before M3-H adds
+per-frame work".
+
+**NEXT TASK:** retain the open attribution item before M3-H; complete this
+accepted merge/build/push handoff, report the merge SHA and STOP.
 
 ### L1 window levers — OWNER-ACCEPTED
 

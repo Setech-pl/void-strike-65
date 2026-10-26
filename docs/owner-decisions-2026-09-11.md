@@ -4307,14 +4307,24 @@ tools 4/4, reuse rejection 1/1, regional Q-S4 checks 3/3. Full 13 boss-runtime
 results are reported above and in the linked evidence.
 
 [Audit ledger and evidence](diagnostics/l2-audit-fixes-2026-10-25/) retain
-measured tables, all failures and reproduction. Six normal-build final-HEAD
-ATRs are hash-bound to the measured guest bytes, with absolute paths/SHA-256/
-build HEAD in `build/l2-owner-smoke/candidate.json`. **OWNER-SMOKE CANDIDATE**;
-the original PASS applies only to `b2b38ff`. Next: owner smoke (cold boot,
-SPACE debris, capital islands/brake including death, boss→summary→menu→START
-GAME, capital pause-quit→START GAME), then STOP. After owner OK: record smoke,
-normal branch build, authorized `--no-ff` merge, normal main build, push main
-and report merge SHA. No release build or release-evidence regeneration.
+measured tables, all failures and reproduction. Six normal-build ATRs were
+built from `1551cf0`, hash-bound to the measured guest bytes, with absolute
+paths/SHA-256/build HEAD in `build/l2-owner-smoke/candidate.json`.
+
+Owner response, **2026-10-26: smoke PASS** on the fixed L2 candidate built
+from **`1551cf0`** (`1551cf0263ff11f73877b449009a2e49e07e0f51`), campaign ATR
+SHA-256 **`ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6`**.
+**L2 is OWNER-ACCEPTED.** The owner authorizes recording the result, normal
+branch build, `--no-ff` merge with message
+`[codex] Merge codex/l2-phase-module (L2, §BW)`, normal main build with the
+same campaign ATR, push origin main, then report the merge SHA and STOP.
+No release build or release-evidence regeneration.
+
+The owner also requires the open STATUS item before M3-H: "10 frames above
+the 31 500 DMA-on target (max 31 598, hard margin 970) on the 480/HARD
+brake/contact route — state-dependent, not L2 overhead (SPACE is −2 vs main);
+attribute the worst frame before M3-H adds per-frame work". This handoff
+records that item; it does not start the attribution work.
 
 **Next free decision section: §BX.**
 

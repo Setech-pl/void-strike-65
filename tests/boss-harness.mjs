@@ -301,7 +301,7 @@ export function bossGateMemory() {
   installRuntimeSegments(memory, root, ...(harnessBuild === null ? [] : [buildPath("")]));
   memory.set(readBuild("sector-reader.bin"), 0xa000);
   memory.set(readBuild("level-summary.bin"), 0x0500);
-  memory.set(readBuild("level-1.bin"), 0xa600);
+  memory.set(readBuild(`level-${manifest.sectorReader.levels[0].id}.bin`), 0xa600);
   memory[label("reader", "sr_summary_resident")] = 1;
   memory[label("main", "game_state")] = 6;
   memory[label("main", "sound_enabled")] = 1;

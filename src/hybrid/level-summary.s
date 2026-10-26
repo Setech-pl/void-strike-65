@@ -173,7 +173,7 @@ summary_start_game:
         jsr guard_compare
         bcs summary_failed
 summary_level_loaded:                   ; the level read's end, for the harness
-        lda MUSIC_ACTIVE                ; the head has landed: its music starts
+        jsr summary_load_l2              ; same-size replacement preserves $0B58
         bne summary_wait
         jsr GAMEPLAY_MUSIC_START
         jmp summary_wait
@@ -1140,3 +1140,14 @@ summary_level_read:     .byte 0     ; audit-hardening: START GAME reads the leve
 .export summary_read_record, summary_update_record, summary_wait, summary_art
 .export summary_fire_release, summary_fire_press, summary_level_loaded
 .export summary_boss_restore
+
+; §BW: checked reload even on a level-buffer hit; the former 17-B tail.
+summary_load_l2:
+        ldx #OVERLAY_L2
+        jsr sector_reader_read_run
+        bcc :+
+        jmp summary_failed
+:
+        jsr L2_INIT
+        lda MUSIC_ACTIVE                ; displaced instruction
+        rts

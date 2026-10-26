@@ -1,0 +1,10 @@
+# region 1, the lance: filling 7271, install 7459, quarter 7374, draw 7496, idle 7507, charge 7558, swap 7596, fire 7585, dry 7540, waitEven 7535, waitOdd 7548, waitLock 7580, flyFirst 7479, fly 7339, kill 7316, lost 7568, blast 7389, blastEnd 7326
+✔ M6: region 1 with the VOID LANCE - every state of the lance stays under the boss limit (56541.925583ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56646.893292

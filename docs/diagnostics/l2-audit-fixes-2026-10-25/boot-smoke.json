@@ -1,0 +1,2369 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+  "frames_observed": 3400,
+  "duration_seconds_pal": 68,
+  "guest_instrumentation_bytes": 0,
+  "cold_ram_range": "$8000-$9FFF",
+  "sector_reader": {
+    "address": 40960,
+    "bytes": 1529,
+    "free_bytes": 7,
+    "level_buffer_address": 42496,
+    "level_image_file": "level-1.bin",
+    "level_image_bytes": 2048,
+    "level_image_checksum": 1063151290,
+    "level_image_header_hex": "5653010110f80709",
+    "verified_at_frames": [
+      3400
+    ],
+    "per_session": [
+      {
+        "id": "atr-a5",
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      {
+        "id": "atr-5a",
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      {
+        "id": "atr-a5-basic",
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      {
+        "id": "atr-5a-basic",
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      }
+    ],
+    "note": "Every session puts exactly one command frame per sector on the wire with 0 retries. The image at LEVEL_BUFFER is compared byte for byte against the build's own level image."
+  },
+  "basic_window": {
+    "address": 44544,
+    "guard_address": 48154,
+    "end_exclusive": 48128,
+    "capacity_bytes": 3584,
+    "used_bytes": 1656,
+    "free_bytes": 1928,
+    "probe_bytes": 1656,
+    "probe_hex": "acfc86b97f9d8dfd86adf880cdfd86b0",
+    "window_read_back_at_frames": [
+      3050,
+      3400
+    ],
+    "portb_bit1_asserted_at_frames": [
+      3050,
+      3400
+    ]
+  },
+  "basic_states_covered": [
+    "-nobasic",
+    "-basic"
+  ],
+  "input": "production joystick path; FIRE pressed on host frames 3051-3056",
+  "expected_addresses": {
+    "start": 8222,
+    "loader_dlist": 15360,
+    "main_menu_dlist": 3635,
+    "playfield_dlist_a": 32529,
+    "playfield_dlist_header": 32528,
+    "playfield_dlist_b": 32619,
+    "playfield_dlist_bytes": 90,
+    "loader_dli": 1746,
+    "frontend_dli": 9255,
+    "gameplay_dli": 25105
+  },
+  "menu_snapshot_frame": 3050,
+  "gameplay_snapshot_frame": 3400,
+  "loader_observation": {
+    "offset_frames": 3,
+    "span_frames": 50,
+    "loader_hold_frames": 250,
+    "relative_to": "milestones.loader"
+  },
+  "deadline": {
+    "absolute_ceiling_frames": 3000,
+    "delta_fail_frames": 50,
+    "delta_warn_frames": 10,
+    "baseline": {
+      "atr_loader_frames": 1094,
+      "atr_menu_frames": 1351
+    },
+    "baseline_path": "docs/boot-deadline-baseline.json"
+  },
+  "sessions": [
+    {
+      "id": "atr-a5",
+      "medium": "ATR",
+      "cold_ram_fill": 165,
+      "basic_enabled": false,
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "launch": {
+        "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
+        "arguments": [
+          "-xl",
+          "-pal",
+          "-config",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+          "-nopatch",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr"
+        ],
+        "mode": "disk-image-d1"
+      },
+      "snapshots": [
+        {
+          "frame": 1,
+          "pc": 49838,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 0,
+          "dlist": 0,
+          "charset_address": 0,
+          "pm_base": 0,
+          "dma_ctl": 0,
+          "nmi_en": 0,
+          "vdslst": 0,
+          "sdlst": 0,
+          "memtop": 0,
+          "ramtop": 0,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 0,
+          "screen_checksum": 0,
+          "frontend_dlist_checksum": 4272068371,
+          "loader_dli_count": 0,
+          "portb": 255,
+          "window": "00000000000000000000000000000000",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 0,
+          "table_checksum": 0,
+          "splash_checksum": 0,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1094,
+          "pc": 10089,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 249,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 4,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1144,
+          "pc": 10092,
+          "scanline": 0,
+          "cycle": 12,
+          "loader_timer": 199,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 104,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3050,
+          "pc": 10023,
+          "scanline": 0,
+          "cycle": 9,
+          "loader_timer": 0,
+          "game_state": 1,
+          "dlist": 3635,
+          "charset_address": 18432,
+          "pm_base": 14336,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 9255,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3454074781,
+          "frontend_dlist_checksum": 910293775,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3400,
+          "pc": 30349,
+          "scanline": 0,
+          "cycle": 11,
+          "loader_timer": 0,
+          "game_state": 6,
+          "dlist": 32706,
+          "charset_address": 20480,
+          "pm_base": 14336,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "vdslst": 25105,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3804814535,
+          "frontend_dlist_checksum": 3304475535,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "5653010110f80709",
+          "level_checksum": 1063151290,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 1216128266,
+          "l2_checksum": 930077034
+        }
+      ],
+      "milestones": {
+        "start": 1033,
+        "loader": 1091,
+        "menu": 1347,
+        "frontend_poll": 1390,
+        "gameplay_init": 3260,
+        "main_loop": 3263
+      },
+      "boot_deadline": {
+        "medium": "ATR",
+        "menu_frame": 1347,
+        "frontend_poll_frame": 1390,
+        "baseline_frames": 1351,
+        "delta_frames": -4,
+        "absolute_ceiling_frames": 3000,
+        "warn_at_frames": 1361,
+        "fail_at_frames": 1401,
+        "warned": false,
+        "loader_frame": 1091,
+        "loader_baseline_frames": 1094,
+        "loader_delta_frames": -3,
+        "loader_warn_at_frames": 1104,
+        "loader_fail_at_frames": 1144,
+        "loader_warned": false,
+        "loader_observation_frames": [
+          1094,
+          1144
+        ]
+      },
+      "sector_reader": {
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      "screenshots": [
+        {
+          "frame": 1,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame001.png",
+          "bytes": 908,
+          "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
+        },
+        {
+          "frame": 1094,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame1094.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 1144,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame1144.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 3050,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame3050.png",
+          "bytes": 1671,
+          "sha256": "7509b057085a038fc59a34639fcb513f4e729cf3bd18715ebe2b035ab0221a70"
+        },
+        {
+          "frame": 3400,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame3400.png",
+          "bytes": 1079,
+          "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+        }
+      ],
+      "reset": false,
+      "force_restore": false,
+      "slot_f_writers": [
+        {
+          "pc": "$c4b6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c4be",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c2e6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c2f0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c5ed",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 128
+        },
+        {
+          "pc": "$21f5",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 232
+        },
+        {
+          "pc": "$21a0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$61a6",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        },
+        {
+          "pc": "$61a9",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        }
+      ],
+      "stage2": {
+        "runs": 1,
+        "siov_reads": 110,
+        "siov_reads_armed": 110,
+        "error_frame": -1
+      },
+      "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+      "machine": "64 KB Atari 800XL / 65XE class",
+      "compatibility": false,
+      "reset_frame": -1,
+      "blank_windows": [
+        {
+          "from": 1,
+          "frames": 1092,
+          "dirty_frames": 0,
+          "first_dirty": -1,
+          "worst_stray_pixels": 0,
+          "start": 1033
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "atr-5a",
+      "medium": "ATR",
+      "cold_ram_fill": 90,
+      "basic_enabled": false,
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "launch": {
+        "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
+        "arguments": [
+          "-xl",
+          "-pal",
+          "-config",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+          "-nopatch",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr"
+        ],
+        "mode": "disk-image-d1"
+      },
+      "snapshots": [
+        {
+          "frame": 1,
+          "pc": 49838,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 0,
+          "dlist": 0,
+          "charset_address": 0,
+          "pm_base": 0,
+          "dma_ctl": 0,
+          "nmi_en": 0,
+          "vdslst": 0,
+          "sdlst": 0,
+          "memtop": 0,
+          "ramtop": 0,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 0,
+          "screen_checksum": 0,
+          "frontend_dlist_checksum": 768412822,
+          "loader_dli_count": 0,
+          "portb": 255,
+          "window": "00000000000000000000000000000000",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 0,
+          "table_checksum": 0,
+          "splash_checksum": 0,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1094,
+          "pc": 10089,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 249,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 4,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1144,
+          "pc": 10092,
+          "scanline": 0,
+          "cycle": 12,
+          "loader_timer": 199,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 104,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3050,
+          "pc": 10023,
+          "scanline": 0,
+          "cycle": 9,
+          "loader_timer": 0,
+          "game_state": 1,
+          "dlist": 3635,
+          "charset_address": 18432,
+          "pm_base": 14336,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 9255,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3454074781,
+          "frontend_dlist_checksum": 910293775,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3400,
+          "pc": 30349,
+          "scanline": 0,
+          "cycle": 11,
+          "loader_timer": 0,
+          "game_state": 6,
+          "dlist": 32706,
+          "charset_address": 20480,
+          "pm_base": 14336,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "vdslst": 25105,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3804814535,
+          "frontend_dlist_checksum": 3304475535,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "5653010110f80709",
+          "level_checksum": 1063151290,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 1216128266,
+          "l2_checksum": 930077034
+        }
+      ],
+      "milestones": {
+        "start": 1033,
+        "loader": 1091,
+        "menu": 1347,
+        "frontend_poll": 1390,
+        "gameplay_init": 3260,
+        "main_loop": 3263
+      },
+      "boot_deadline": {
+        "medium": "ATR",
+        "menu_frame": 1347,
+        "frontend_poll_frame": 1390,
+        "baseline_frames": 1351,
+        "delta_frames": -4,
+        "absolute_ceiling_frames": 3000,
+        "warn_at_frames": 1361,
+        "fail_at_frames": 1401,
+        "warned": false,
+        "loader_frame": 1091,
+        "loader_baseline_frames": 1094,
+        "loader_delta_frames": -3,
+        "loader_warn_at_frames": 1104,
+        "loader_fail_at_frames": 1144,
+        "loader_warned": false,
+        "loader_observation_frames": [
+          1094,
+          1144
+        ]
+      },
+      "sector_reader": {
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      "screenshots": [
+        {
+          "frame": 1,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame001.png",
+          "bytes": 908,
+          "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
+        },
+        {
+          "frame": 1094,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame1094.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 1144,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame1144.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 3050,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame3050.png",
+          "bytes": 1671,
+          "sha256": "7509b057085a038fc59a34639fcb513f4e729cf3bd18715ebe2b035ab0221a70"
+        },
+        {
+          "frame": 3400,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame3400.png",
+          "bytes": 1079,
+          "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+        }
+      ],
+      "reset": false,
+      "force_restore": false,
+      "slot_f_writers": [
+        {
+          "pc": "$c4b6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c4be",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c2e6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c2f0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c5ed",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 128
+        },
+        {
+          "pc": "$21f5",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 232
+        },
+        {
+          "pc": "$21a0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$61a6",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        },
+        {
+          "pc": "$61a9",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        }
+      ],
+      "stage2": {
+        "runs": 1,
+        "siov_reads": 110,
+        "siov_reads_armed": 110,
+        "error_frame": -1
+      },
+      "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+      "machine": "64 KB Atari 800XL / 65XE class",
+      "compatibility": false,
+      "reset_frame": -1,
+      "blank_windows": [
+        {
+          "from": 1,
+          "frames": 1092,
+          "dirty_frames": 0,
+          "first_dirty": -1,
+          "worst_stray_pixels": 0,
+          "start": 1033
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "atr-a5-basic",
+      "medium": "ATR",
+      "cold_ram_fill": 165,
+      "basic_enabled": true,
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "launch": {
+        "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
+        "arguments": [
+          "-xl",
+          "-pal",
+          "-config",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+          "-nopatch",
+          "-basic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr"
+        ],
+        "mode": "disk-image-d1"
+      },
+      "snapshots": [
+        {
+          "frame": 1,
+          "pc": 49838,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 0,
+          "dlist": 0,
+          "charset_address": 0,
+          "pm_base": 0,
+          "dma_ctl": 0,
+          "nmi_en": 0,
+          "vdslst": 0,
+          "sdlst": 0,
+          "memtop": 0,
+          "ramtop": 0,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 0,
+          "screen_checksum": 0,
+          "frontend_dlist_checksum": 4272068371,
+          "loader_dli_count": 0,
+          "portb": 255,
+          "window": "00000000000000000000000000000000",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 0,
+          "table_checksum": 0,
+          "splash_checksum": 0,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1085,
+          "pc": 10089,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 249,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 4,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1135,
+          "pc": 10092,
+          "scanline": 0,
+          "cycle": 12,
+          "loader_timer": 199,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 104,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3050,
+          "pc": 10026,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 1,
+          "dlist": 3635,
+          "charset_address": 18432,
+          "pm_base": 14336,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 9255,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3063531634,
+          "frontend_dlist_checksum": 4201727086,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3400,
+          "pc": 30349,
+          "scanline": 0,
+          "cycle": 11,
+          "loader_timer": 0,
+          "game_state": 6,
+          "dlist": 32706,
+          "charset_address": 20480,
+          "pm_base": 14336,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "vdslst": 25105,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3804814535,
+          "frontend_dlist_checksum": 3232802420,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "5653010110f80709",
+          "level_checksum": 1063151290,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 1216128266,
+          "l2_checksum": 930077034
+        }
+      ],
+      "milestones": {
+        "start": 1024,
+        "loader": 1082,
+        "menu": 1338,
+        "frontend_poll": 1381,
+        "gameplay_init": 3260,
+        "main_loop": 3263
+      },
+      "boot_deadline": {
+        "medium": "ATR",
+        "menu_frame": 1338,
+        "frontend_poll_frame": 1381,
+        "baseline_frames": 1351,
+        "delta_frames": -13,
+        "absolute_ceiling_frames": 3000,
+        "warn_at_frames": 1361,
+        "fail_at_frames": 1401,
+        "warned": false,
+        "loader_frame": 1082,
+        "loader_baseline_frames": 1094,
+        "loader_delta_frames": -12,
+        "loader_warn_at_frames": 1104,
+        "loader_fail_at_frames": 1144,
+        "loader_warned": false,
+        "loader_observation_frames": [
+          1085,
+          1135
+        ]
+      },
+      "sector_reader": {
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      "screenshots": [
+        {
+          "frame": 1,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame001.png",
+          "bytes": 908,
+          "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
+        },
+        {
+          "frame": 1085,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame1085.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 1135,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame1135.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 3050,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame3050.png",
+          "bytes": 1672,
+          "sha256": "4c5e2a4e46dbfea0bd9155929ec766734df68a2f27ca71b630af706c64367bdb"
+        },
+        {
+          "frame": 3400,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame3400.png",
+          "bytes": 1079,
+          "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+        }
+      ],
+      "reset": false,
+      "force_restore": false,
+      "slot_f_writers": [
+        {
+          "pc": "$c4b6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c4be",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c2e6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c2f0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c5ed",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 128
+        },
+        {
+          "pc": "$21f5",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 232
+        },
+        {
+          "pc": "$21a0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$61a6",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        },
+        {
+          "pc": "$61a9",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        }
+      ],
+      "stage2": {
+        "runs": 1,
+        "siov_reads": 110,
+        "siov_reads_armed": 110,
+        "error_frame": -1
+      },
+      "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+      "machine": "64 KB Atari 800XL / 65XE class",
+      "compatibility": false,
+      "reset_frame": -1,
+      "blank_windows": [
+        {
+          "from": 1,
+          "frames": 1083,
+          "dirty_frames": 0,
+          "first_dirty": -1,
+          "worst_stray_pixels": 0,
+          "start": 1024
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "atr-5a-basic",
+      "medium": "ATR",
+      "cold_ram_fill": 90,
+      "basic_enabled": true,
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "launch": {
+        "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
+        "arguments": [
+          "-xl",
+          "-pal",
+          "-config",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+          "-nopatch",
+          "-basic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr"
+        ],
+        "mode": "disk-image-d1"
+      },
+      "snapshots": [
+        {
+          "frame": 1,
+          "pc": 49838,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 0,
+          "dlist": 0,
+          "charset_address": 0,
+          "pm_base": 0,
+          "dma_ctl": 0,
+          "nmi_en": 0,
+          "vdslst": 0,
+          "sdlst": 0,
+          "memtop": 0,
+          "ramtop": 0,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 0,
+          "screen_checksum": 0,
+          "frontend_dlist_checksum": 768412822,
+          "loader_dli_count": 0,
+          "portb": 255,
+          "window": "00000000000000000000000000000000",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 0,
+          "table_checksum": 0,
+          "splash_checksum": 0,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1085,
+          "pc": 10089,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 249,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 4,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1135,
+          "pc": 10092,
+          "scanline": 0,
+          "cycle": 12,
+          "loader_timer": 199,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 104,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3050,
+          "pc": 10026,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 1,
+          "dlist": 3635,
+          "charset_address": 18432,
+          "pm_base": 14336,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 9255,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3063531634,
+          "frontend_dlist_checksum": 4201727086,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3400,
+          "pc": 30349,
+          "scanline": 0,
+          "cycle": 11,
+          "loader_timer": 0,
+          "game_state": 6,
+          "dlist": 32706,
+          "charset_address": 20480,
+          "pm_base": 14336,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "vdslst": 25105,
+          "sdlst": 39968,
+          "memtop": 39967,
+          "ramtop": 160,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3804814535,
+          "frontend_dlist_checksum": 3232802420,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "5653010110f80709",
+          "level_checksum": 1063151290,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 1216128266,
+          "l2_checksum": 930077034
+        }
+      ],
+      "milestones": {
+        "start": 1024,
+        "loader": 1082,
+        "menu": 1338,
+        "frontend_poll": 1381,
+        "gameplay_init": 3260,
+        "main_loop": 3263
+      },
+      "boot_deadline": {
+        "medium": "ATR",
+        "menu_frame": 1338,
+        "frontend_poll_frame": 1381,
+        "baseline_frames": 1351,
+        "delta_frames": -13,
+        "absolute_ceiling_frames": 3000,
+        "warn_at_frames": 1361,
+        "fail_at_frames": 1401,
+        "warned": false,
+        "loader_frame": 1082,
+        "loader_baseline_frames": 1094,
+        "loader_delta_frames": -12,
+        "loader_warn_at_frames": 1104,
+        "loader_fail_at_frames": 1144,
+        "loader_warned": false,
+        "loader_observation_frames": [
+          1085,
+          1135
+        ]
+      },
+      "sector_reader": {
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      "screenshots": [
+        {
+          "frame": 1,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame001.png",
+          "bytes": 908,
+          "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
+        },
+        {
+          "frame": 1085,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame1085.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 1135,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame1135.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 3050,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame3050.png",
+          "bytes": 1672,
+          "sha256": "4c5e2a4e46dbfea0bd9155929ec766734df68a2f27ca71b630af706c64367bdb"
+        },
+        {
+          "frame": 3400,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame3400.png",
+          "bytes": 1079,
+          "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+        }
+      ],
+      "reset": false,
+      "force_restore": false,
+      "slot_f_writers": [
+        {
+          "pc": "$c4b6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c4be",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c2e6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c2f0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c5ed",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 128
+        },
+        {
+          "pc": "$21f5",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 232
+        },
+        {
+          "pc": "$21a0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$61a6",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        },
+        {
+          "pc": "$61a9",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        }
+      ],
+      "stage2": {
+        "runs": 1,
+        "siov_reads": 110,
+        "siov_reads_armed": 110,
+        "error_frame": -1
+      },
+      "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+      "machine": "64 KB Atari 800XL / 65XE class",
+      "compatibility": false,
+      "reset_frame": -1,
+      "blank_windows": [
+        {
+          "from": 1,
+          "frames": 1083,
+          "dirty_frames": 0,
+          "first_dirty": -1,
+          "worst_stray_pixels": 0,
+          "start": 1024
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "reset_sessions": [
+    {
+      "id": "atr-a5-reset",
+      "medium": "ATR",
+      "cold_ram_fill": 165,
+      "basic_enabled": false,
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "launch": {
+        "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
+        "arguments": [
+          "-xl",
+          "-pal",
+          "-config",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+          "-nopatch",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr"
+        ],
+        "mode": "disk-image-d1"
+      },
+      "snapshots": [
+        {
+          "frame": 1,
+          "pc": 49838,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 0,
+          "dlist": 0,
+          "charset_address": 0,
+          "pm_base": 0,
+          "dma_ctl": 0,
+          "nmi_en": 0,
+          "vdslst": 0,
+          "sdlst": 0,
+          "memtop": 0,
+          "ramtop": 0,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 0,
+          "screen_checksum": 0,
+          "frontend_dlist_checksum": 4272068371,
+          "loader_dli_count": 0,
+          "portb": 255,
+          "window": "00000000000000000000000000000000",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 0,
+          "table_checksum": 0,
+          "splash_checksum": 0,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1094,
+          "pc": 10089,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 249,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 4,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1144,
+          "pc": 10092,
+          "scanline": 0,
+          "cycle": 12,
+          "loader_timer": 199,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 104,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3050,
+          "pc": 10023,
+          "scanline": 0,
+          "cycle": 9,
+          "loader_timer": 0,
+          "game_state": 1,
+          "dlist": 3635,
+          "charset_address": 18432,
+          "pm_base": 14336,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 9255,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3454074781,
+          "frontend_dlist_checksum": 910293775,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3400,
+          "pc": 30349,
+          "scanline": 0,
+          "cycle": 11,
+          "loader_timer": 0,
+          "game_state": 6,
+          "dlist": 32706,
+          "charset_address": 20480,
+          "pm_base": 14336,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "vdslst": 25105,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3804814535,
+          "frontend_dlist_checksum": 3304475535,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "5653010110f80709",
+          "level_checksum": 1063151290,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 1216128266,
+          "l2_checksum": 930077034
+        }
+      ],
+      "milestones": {
+        "start": 1033,
+        "loader": 1091,
+        "menu": 1347,
+        "frontend_poll": 1390,
+        "gameplay_init": 3260,
+        "main_loop": 3263
+      },
+      "boot_deadline": {
+        "medium": "ATR",
+        "menu_frame": 1347,
+        "frontend_poll_frame": 1390,
+        "baseline_frames": 1351,
+        "delta_frames": -4,
+        "absolute_ceiling_frames": 3000,
+        "warn_at_frames": 1361,
+        "fail_at_frames": 1401,
+        "warned": false,
+        "loader_frame": 1091,
+        "loader_baseline_frames": 1094,
+        "loader_delta_frames": -3,
+        "loader_warn_at_frames": 1104,
+        "loader_fail_at_frames": 1144,
+        "loader_warned": false,
+        "loader_observation_frames": [
+          1094,
+          1144
+        ]
+      },
+      "sector_reader": {
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      "screenshots": [
+        {
+          "frame": 1,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame001.png",
+          "bytes": 908,
+          "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
+        },
+        {
+          "frame": 1094,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame1094.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 1144,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame1144.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 3050,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame3050.png",
+          "bytes": 1671,
+          "sha256": "7509b057085a038fc59a34639fcb513f4e729cf3bd18715ebe2b035ab0221a70"
+        },
+        {
+          "frame": 3400,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-reset-frame3400.png",
+          "bytes": 1079,
+          "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+        }
+      ],
+      "reset": true,
+      "force_restore": false,
+      "slot_f_writers": [
+        {
+          "pc": "$c4b6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 4
+        },
+        {
+          "pc": "$c4be",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 4
+        },
+        {
+          "pc": "$c2e6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 1024
+        },
+        {
+          "pc": "$c2f0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 1024
+        },
+        {
+          "pc": "$c5ed",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 256
+        },
+        {
+          "pc": "$21f5",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 464
+        },
+        {
+          "pc": "$21a0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 1024
+        },
+        {
+          "pc": "$61a6",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        },
+        {
+          "pc": "$61a9",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        }
+      ],
+      "stage2": {
+        "runs": 2,
+        "siov_reads": 220,
+        "siov_reads_armed": 220,
+        "error_frame": -1
+      },
+      "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+      "machine": "64 KB Atari 800XL / 65XE class",
+      "compatibility": false,
+      "reset_frame": 3401,
+      "blank_windows": [
+        {
+          "from": 1,
+          "frames": 1092,
+          "dirty_frames": 0,
+          "first_dirty": -1,
+          "worst_stray_pixels": 0,
+          "start": 1033
+        },
+        {
+          "from": 3403,
+          "frames": 1084,
+          "dirty_frames": 0,
+          "first_dirty": -1,
+          "worst_stray_pixels": 0,
+          "start": 4427
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "target_machine": "64 KB Atari 800XL / 65XE class",
+  "compatibility_sessions": [
+    {
+      "id": "atr-a5-130xe",
+      "medium": "ATR",
+      "cold_ram_fill": 165,
+      "basic_enabled": false,
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "launch": {
+        "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
+        "arguments": [
+          "-xe",
+          "-pal",
+          "-config",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+          "-nopatch",
+          "-nobasic",
+          "-nosound",
+          "-turbo",
+          "-no-video-accel",
+          "-no-vsync",
+          "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr"
+        ],
+        "mode": "disk-image-d1"
+      },
+      "snapshots": [
+        {
+          "frame": 1,
+          "pc": 49838,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 0,
+          "game_state": 0,
+          "dlist": 0,
+          "charset_address": 0,
+          "pm_base": 0,
+          "dma_ctl": 0,
+          "nmi_en": 0,
+          "vdslst": 0,
+          "sdlst": 0,
+          "memtop": 0,
+          "ramtop": 0,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 0,
+          "screen_checksum": 0,
+          "frontend_dlist_checksum": 4272068371,
+          "loader_dli_count": 0,
+          "portb": 255,
+          "window": "00000000000000000000000000000000",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 0,
+          "table_checksum": 0,
+          "splash_checksum": 0,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1094,
+          "pc": 10089,
+          "scanline": 0,
+          "cycle": 10,
+          "loader_timer": 249,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 4,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 1144,
+          "pc": 10092,
+          "scanline": 0,
+          "cycle": 12,
+          "loader_timer": 199,
+          "game_state": 0,
+          "dlist": 15360,
+          "charset_address": 57344,
+          "pm_base": 0,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 1746,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3692469171,
+          "frontend_dlist_checksum": 1340672080,
+          "loader_dli_count": 104,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3050,
+          "pc": 10023,
+          "scanline": 0,
+          "cycle": 9,
+          "loader_timer": 0,
+          "game_state": 1,
+          "dlist": 3635,
+          "charset_address": 18432,
+          "pm_base": 14336,
+          "dma_ctl": 34,
+          "nmi_en": 128,
+          "vdslst": 9255,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3454074781,
+          "frontend_dlist_checksum": 910293775,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "0000000000000000",
+          "level_checksum": 0,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 147715306,
+          "l2_checksum": 0
+        },
+        {
+          "frame": 3400,
+          "pc": 30349,
+          "scanline": 0,
+          "cycle": 11,
+          "loader_timer": 0,
+          "game_state": 6,
+          "dlist": 32706,
+          "charset_address": 20480,
+          "pm_base": 14336,
+          "dma_ctl": 62,
+          "nmi_en": 128,
+          "vdslst": 25105,
+          "sdlst": 48160,
+          "memtop": 48159,
+          "ramtop": 192,
+          "runad": 0,
+          "initad": 0,
+          "dosvec": 8222,
+          "screen_checksum": 3804814535,
+          "frontend_dlist_checksum": 3304475535,
+          "loader_dli_count": 502,
+          "portb": 255,
+          "window": "acfc86b97f9d8dfd86adf880cdfd86b0",
+          "level_header": "5653010110f80709",
+          "level_checksum": 1063151290,
+          "slot_checksum": 3640879861,
+          "table_checksum": 3080542364,
+          "splash_checksum": 1216128266,
+          "l2_checksum": 930077034
+        }
+      ],
+      "milestones": {
+        "start": 1033,
+        "loader": 1091,
+        "menu": 1347,
+        "frontend_poll": 1390,
+        "gameplay_init": 3260,
+        "main_loop": 3263
+      },
+      "boot_deadline": {
+        "medium": "ATR",
+        "menu_frame": 1347,
+        "frontend_poll_frame": 1390,
+        "baseline_frames": 1351,
+        "delta_frames": -4,
+        "absolute_ceiling_frames": 3000,
+        "warn_at_frames": 1361,
+        "fail_at_frames": 1401,
+        "warned": false,
+        "loader_frame": 1091,
+        "loader_baseline_frames": 1094,
+        "loader_delta_frames": -3,
+        "loader_warn_at_frames": 1104,
+        "loader_fail_at_frames": 1144,
+        "loader_warned": false,
+        "loader_observation_frames": [
+          1094,
+          1144
+        ]
+      },
+      "sector_reader": {
+        "medium": "ATR",
+        "command_frames": 63,
+        "expected_command_frames": 63,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3197,
+          "ready_frame": 3258,
+          "fire_accepted_frame": 3260,
+          "last_read_frame": 3247,
+          "reads": 38,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 60,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 0,
+        "capital_restore_frames": 0,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      },
+      "screenshots": [
+        {
+          "frame": 1,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame001.png",
+          "bytes": 908,
+          "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
+        },
+        {
+          "frame": 1094,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame1094.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 1144,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame1144.png",
+          "bytes": 2599,
+          "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
+        },
+        {
+          "frame": 3050,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame3050.png",
+          "bytes": 1671,
+          "sha256": "7509b057085a038fc59a34639fcb513f4e729cf3bd18715ebe2b035ab0221a70"
+        },
+        {
+          "frame": 3400,
+          "path": "build/runtime-wall-trace/boot-smoke/atr-a5-130xe-frame3400.png",
+          "bytes": 1079,
+          "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+        }
+      ],
+      "reset": false,
+      "force_restore": false,
+      "slot_f_writers": [
+        {
+          "pc": "$c4b6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c4be",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 2
+        },
+        {
+          "pc": "$c2e6",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c2f0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$c5ed",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 128
+        },
+        {
+          "pc": "$21f5",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 232
+        },
+        {
+          "pc": "$21a0",
+          "kind": "start-up",
+          "sessions": 1,
+          "count": 512
+        },
+        {
+          "pc": "$61a6",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        },
+        {
+          "pc": "$61a9",
+          "kind": "copy_hud_charset",
+          "sessions": 1,
+          "count": 256
+        }
+      ],
+      "stage2": {
+        "runs": 1,
+        "siov_reads": 110,
+        "siov_reads_armed": 110,
+        "error_frame": -1
+      },
+      "sio_mode": "real SIO: Atari800 -nopatch, the OS SIOV at register level",
+      "machine": "130XE (128 KB) compatibility check",
+      "compatibility": true,
+      "reset_frame": -1,
+      "blank_windows": [
+        {
+          "from": 1,
+          "frames": 1092,
+          "dirty_frames": 0,
+          "first_dirty": -1,
+          "worst_stray_pixels": 0,
+          "start": 1033
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "overlay": {
+    "slot_a": {
+      "address": 28136,
+      "bytes": 2048,
+      "checksum": 3640879861,
+      "sha256": "40a01835f212044983174ef27a36f5c46aa6a05ed7f10a40bee27ec80b1b285b"
+    },
+    "capital_vectors": {
+      "address": 13906,
+      "bytes": 36,
+      "checksum": 3080542364
+    },
+    "restore_run": {
+      "start_sector": 512,
+      "sectors": 16
+    },
+    "verified_at_frames": [
+      3400
+    ],
+    "forced_restore_sessions": [
+      {
+        "id": "atr-a5-force-restore",
+        "medium": "ATR",
+        "command_frames": 79,
+        "expected_command_frames": 79,
+        "summary": {
+          "entry_frame": 3105,
+          "first_display_frame": 3107,
+          "level_loaded_frame": 3258,
+          "ready_frame": 3312,
+          "fire_accepted_frame": 3316,
+          "last_read_frame": 3307,
+          "reads": 54,
+          "title": "ENGAGING ENEMY SECTOR",
+          "best": "BEST                  --"
+        },
+        "wire_retries": 0,
+        "level_load_frames": 61,
+        "level_image_verified": true,
+        "slot_a_verified": true,
+        "capital_restore_sectors": 16,
+        "capital_restore_frames": 61,
+        "path": "direct SIO: one command frame per sector at START GAME (summary module, region art, capital restore if forced, save record, level tail then head)"
+      }
+    ],
+    "note": "Every session reads slot A and the window's capital vector table back after START GAME and compares them with the restore run and the reader's table image. The forced session zeroes both at the reader's entry, as a boss overlay would, and must reach gameplay with the shipped bytes back. Frames are EMULATOR."
+  },
+  "blank_window_rule": "every frame from power-on, and from the frame after RESET, until the splash display after start: at most 64 visible pixels (one 8x8 cell, the OS cursor) outside the frame's two most frequent colours",
+  "gameplay_frame_sha256": [
+    {
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+    },
+    {
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+    },
+    {
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+    },
+    {
+      "artifact": {
+        "path": "dist/void-strike-65.atr",
+        "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6"
+      },
+      "sha256": "d69f97920c5a7fa21fbce63cf576109447d27a7e0beecad7587a3144863a0a31"
+    }
+  ],
+  "passed": true
+}

@@ -811,13 +811,10 @@ uint8_t director_c_request(void)
     }
     director_scratch0 = STATE_SECTOR;
     sector_field = sector_hazards[director_scratch0];
-    /* The hazard mask is the sector's, not a phase's. Debris keeps the one
-     * exception it always had: it stays admissible through the capital
-     * traversal whatever the sector says, because the capital's own debris is
-     * what fills its corridor. */
+    /* §BW.3: every sector's debris flag is authoritative, including capital.
+     * SPACE remains authored; the future asteroid sector keeps this path. */
     if (director_scratch3 == HAZARD_DEBRIS) {
-        if ((sector_field & HAZARD_DEBRIS_MASK) == 0u &&
-            CAPITAL_SECTOR_STATE >= CAPITAL_HULL_STATE_DRAIN) {
+        if ((sector_field & HAZARD_DEBRIS_MASK) == 0u) {
             return 0u;
         }
     } else if (director_scratch3 == HAZARD_PICKUP) {

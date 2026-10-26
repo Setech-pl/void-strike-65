@@ -1,0 +1,30 @@
+{"measurement":"L2 policy CPU","maxBrakeCpu":101,"maxWarningCpu":30}
+✔ L2 brake: exact E/M/H ramps, release, SPACE/death reset and warning slot preservation (19.953292ms)
+{"measurement":"L2 coordinate CPU","maxEntryCpu":3464,"maxPhaseCpu":105}
+✔ L2 coordinates: 16-bit entry and every phase boundary through maximum drain (2221.540708ms)
+✔ L2 compiler: scalable nested stations and finite sequence tables (2005.518625ms)
+{"measurement":"row CPU including shared renderer","maximum":1939}
+{"measurement":"contact CPU including canonical damage","maximum":1267}
+✔ L2 islands: real level lookup, all row publications, cache hit/miss and both factions (72.099834ms)
+✔ L2 islands: nearest-side clamp, two HULL units, cooldown and every fine alignment (91.973167ms)
+✔ L2 island authoring rejects unsafe/unknown placements and keeps SPACE debris (2178.380541ms)
+✔ L2 contact retains Shield and dying/respawning lifecycle policy (9.098542ms)
+✔ L2 recipes reject fractional or nonnumeric interval endpoints instead of dropping coordinate bits (0.195459ms)
+{"measurement":"lifetime cold CPU","disarmDelta":30,"initCpu":30}
+✔ L2 lifetime: checked image is disarmed before first boss read; no stale resident entry/read until checked reload (72.199917ms)
+✔ T1: the validator rejects every §5 case and warns on a cap above the subtype table (1.772ms)
+✔ the authored level 1 compiles clean and reads back as the level it says (0.733042ms)
+✔ T2: build/level-1.bin is 16 sectors with the LevelDef and island pages where the plan puts them (0.33525ms)
+✔ T2: the geometry page says 480 rows and carries today's two module sequences (0.247084ms)
+✔ the pages the plan marks unchanged are byte-identical to the image that shipped before (0.473083ms)
+✔ levels:check runs the validator alone and the build compiles the authored file (0.3035ms)
+✔ step 2: the Director's schedule is the level image, and the geometry page still waits (0.623417ms)
+✔ T12: level-02.json compiles and differs from level 1 in sector count, waves and masks (18.308792ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4291.406958

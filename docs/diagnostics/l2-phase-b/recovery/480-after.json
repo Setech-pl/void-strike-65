@@ -1,0 +1,68 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/level-1-s1/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "12ae54a62eb24f4767e1348b23de880064dd98091d63307875bdc70a42912a66"
+    },
+    "void-strike-65.atr": {
+      "path": "build/level-1-s1/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "445689be1e0e2a019add8af81062b566ce8c73ab2e0eb7aaaf4c8e5cabfbe780"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/level-1-s1/void-strike-65-manifest.json",
+      "bytes": 80514,
+      "sha256": "38f6e035a60145dd7fd37721583f47d99e24290d8ca6edfb82e6f461201539ca"
+    }
+  },
+  "variant": "level-1-s1",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "observer-smoke",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 2,
+      "policy": "l2-brake",
+      "fire_delay": 0,
+      "measured_frames": 3812,
+      "maximum_wall_cycles": 31567,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 778,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 711,
+            "display": 713,
+            "loaded": 803,
+            "ready": 864,
+            "accept": 868,
+            "reads": 38,
+            "shown_frames": 155,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 3812,
+    "maximum_wall_cycles": 31567,
+    "wall_ceiling": 32568,
+    "physical_headroom": 4001,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

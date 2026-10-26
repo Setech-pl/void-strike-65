@@ -1,0 +1,162 @@
+[
+  {
+    "level": 4,
+    "mode": "off",
+    "main": 7697,
+    "fixed": 7697,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 4,
+    "mode": "fire",
+    "main": 8060,
+    "fixed": 8060,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 4,
+    "mode": "lost",
+    "main": 8112,
+    "fixed": 8112,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 4,
+    "mode": "swap",
+    "main": 8071,
+    "fixed": 8071,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 5,
+    "mode": "off",
+    "main": 8032,
+    "fixed": 8032,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 5,
+    "mode": "fire",
+    "main": 8423,
+    "fixed": 8423,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 5,
+    "mode": "lost",
+    "main": 8447,
+    "fixed": 8447,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 5,
+    "mode": "swap",
+    "main": 8434,
+    "fixed": 8434,
+    "delta": 0,
+    "cases": 9856
+  },
+  {
+    "level": 7,
+    "mode": "off",
+    "main": 7771,
+    "fixed": 7771,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 7,
+    "mode": "fire",
+    "main": 8180,
+    "fixed": 8180,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 7,
+    "mode": "lost",
+    "main": 8186,
+    "fixed": 8186,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 7,
+    "mode": "swap",
+    "main": 8191,
+    "fixed": 8191,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 9,
+    "mode": "off",
+    "main": 8025,
+    "fixed": 8025,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 9,
+    "mode": "fire",
+    "main": 8435,
+    "fixed": 8435,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 9,
+    "mode": "lost",
+    "main": 8440,
+    "fixed": 8440,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 9,
+    "mode": "swap",
+    "main": 8446,
+    "fixed": 8446,
+    "delta": 0,
+    "cases": 18528
+  },
+  {
+    "level": 10,
+    "mode": "off",
+    "main": 8058,
+    "fixed": 8058,
+    "delta": 0,
+    "cases": 856
+  },
+  {
+    "level": 10,
+    "mode": "fire",
+    "main": 8467,
+    "fixed": 8467,
+    "delta": 0,
+    "cases": 856
+  },
+  {
+    "level": 10,
+    "mode": "lost",
+    "main": 8473,
+    "fixed": 8473,
+    "delta": 0,
+    "cases": 856
+  },
+  {
+    "level": 10,
+    "mode": "swap",
+    "main": 8478,
+    "fixed": 8478,
+    "delta": 0,
+    "cases": 856
+  }
+]

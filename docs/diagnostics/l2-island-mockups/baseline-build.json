@@ -1,0 +1,219 @@
+{
+  "classification": "MEASURED normal build at code baseline 19b1464 (docs-only branch)",
+  "atrSha256": "410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7",
+  "initialContent": 12829,
+  "initialSectors": 101,
+  "reader": {
+    "address": 40960,
+    "bytes": 1503,
+    "capacityBytes": 1536,
+    "freeBytes": 33,
+    "transport": "own DFMC record, RAW, direct landing at $A000",
+    "levelBuffer": {
+      "address": 42496,
+      "capacityBytes": 2048,
+      "sectors": 16
+    },
+    "levels": [
+      {
+        "id": 1,
+        "startSector": 320,
+        "sectors": 13,
+        "bytes": 1664,
+        "file": "level-1.bin",
+        "origin": "read over SIO at START GAME"
+      }
+    ],
+    "overlayDirectory": {
+      "address": 42408,
+      "entries": 11,
+      "bytes": 55,
+      "names": [
+        "capital slot A restore (M5a-S1)",
+        "boss code (M5b)",
+        "boss region 1 (M5b)",
+        "boss region 2 (M5b)",
+        "boss region 3 (M5b)",
+        "boss region 4 (M5b)",
+        "hangar / summary art (M5a-S2)",
+        "scores / save record (M5a-S2)",
+        "level summary code (M5a-S2)",
+        "disk identity (audit-hardening)",
+        "menu data (L1)"
+      ]
+    },
+    "slotAOverlaidFlag": 42358,
+    "summaryResidentFlag": 42359
+  },
+  "light": {
+    "address": 13891,
+    "bytes": 1196,
+    "packedBytes": 1032,
+    "capacityBytes": 1213,
+    "freeBytes": 17,
+    "endExclusive": 15087,
+    "windowLimit": 15104,
+    "cHalfEndExclusive": 46200,
+    "vectors": {
+      "LIGHT_KERNEL_PUBLISH": 13891,
+      "LIGHT_KERNEL_UPDATE": 13894,
+      "LIGHT_KERNEL_SHOT": 13897,
+      "LIGHT_KERNEL_BACKING": 13900,
+      "LIGHT_KERNEL_CELL_RESOLVE": 13903
+    },
+    "transport": "own checked DFMC record, LZ, held until loader bitmap unpack"
+  },
+  "overlays": {
+    "baseSector": 512,
+    "slotA": {
+      "address": 28136,
+      "endExclusive": 30184,
+      "bytes": 2048,
+      "firstRoutine": "update_broadside",
+      "sha256": "92df3e460b2abbf81e664329d7ecb86c638739393390197b29d7720acc61e5c2"
+    },
+    "capitalVectors": {
+      "address": 13906,
+      "entries": 12,
+      "bytes": 36,
+      "table": [
+        {
+          "name": "CAPITAL_VECTOR_INIT",
+          "target": "init_broadside",
+          "targetAddress": 27578,
+          "address": 13906
+        },
+        {
+          "name": "CAPITAL_VECTOR_UPDATE",
+          "target": "update_broadside",
+          "targetAddress": 28136,
+          "address": 13909
+        },
+        {
+          "name": "CAPITAL_VECTOR_TICK_EXPLOSIONS",
+          "target": "tick_capital_explosions",
+          "targetAddress": 29366,
+          "address": 13912
+        },
+        {
+          "name": "CAPITAL_VECTOR_TICK_FLASHES",
+          "target": "tick_launch_flashes",
+          "targetAddress": 28993,
+          "address": 13915
+        },
+        {
+          "name": "CAPITAL_VECTOR_ENGINE",
+          "target": "update_engine_animation",
+          "targetAddress": 29110,
+          "address": 13918
+        },
+        {
+          "name": "CAPITAL_VECTOR_HULL_CONTACT",
+          "target": "handle_player_hull_contact",
+          "targetAddress": 30074,
+          "address": 13921
+        },
+        {
+          "name": "CAPITAL_VECTOR_RENDER_FLASHES",
+          "target": "render_launch_flashes",
+          "targetAddress": 29041,
+          "address": 13924
+        },
+        {
+          "name": "CAPITAL_VECTOR_RENDER_EXPLOSIONS",
+          "target": "render_capital_explosions",
+          "targetAddress": 29535,
+          "address": 13927
+        },
+        {
+          "name": "CAPITAL_VECTOR_SECTOR_COMPLETION",
+          "target": "update_sector_completion",
+          "targetAddress": 29177,
+          "address": 13930
+        },
+        {
+          "name": "CAPITAL_VECTOR_RESTORE_MUZZLES",
+          "target": "restore_active_muzzles",
+          "targetAddress": 25930,
+          "address": 13933
+        },
+        {
+          "name": "CAPITAL_VECTOR_PREPARE_ROW",
+          "target": "prepare_next_hull_row",
+          "targetAddress": 38060,
+          "address": 13936
+        },
+        {
+          "name": "CAPITAL_VECTOR_SCROLL_HULL",
+          "target": "scroll_hull_columns",
+          "targetAddress": 37603,
+          "address": 13939
+        }
+      ],
+      "imageInLightKernel": 14810
+    },
+    "runs": [
+      {
+        "index": 0,
+        "name": "capital-slot-a",
+        "startSector": 512,
+        "sectors": 16,
+        "destination": 28136,
+        "bytes": 2048,
+        "sha256": "92df3e460b2abbf81e664329d7ecb86c638739393390197b29d7720acc61e5c2",
+        "file": "overlay-capital-slot-a.bin"
+      },
+      {
+        "index": 10,
+        "name": "menu-data",
+        "startSector": 240,
+        "sectors": 11,
+        "destination": 3072,
+        "bytes": 1408,
+        "sha256": "8406387f52690664b733b693ea29d01cb7264c5423c11a87ae78853607683dbb",
+        "file": "menu-overlay.bin"
+      }
+    ],
+    "sectorsUsed": 27
+  },
+  "geometry": {
+    "home": "per-level image, behind the payload page",
+    "file": "level-geometry.bin",
+    "imageOffset": 1536,
+    "blockAddress": 44032,
+    "blockBytes": 128
+  },
+  "window": {
+    "step": "owner decision X",
+    "owner": "HYBRID_C_WINDOW",
+    "address": 44544,
+    "guardAddress": 48154,
+    "endExclusive": 48128,
+    "capacityBytes": 3584,
+    "guardBytes": 6,
+    "directorHalfBytes": 1656,
+    "lightKernelBytes": 0,
+    "usedBytes": 1656,
+    "freeBytes": 1928,
+    "beforeLanceFreeBytes": 1160,
+    "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
+    "boundedBy": {
+      "below": "16-sector level buffer $A600-$ADFF",
+      "above": "sector reader BSS $BC00-$BC19, then the guard and the OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
+    },
+    "guard": "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
+    "contents": "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 44544,
+      "startSector": 174,
+      "sectors": 11,
+      "rawBytes": 1656,
+      "packedBytes": 1315,
+      "paddingBytes": 72,
+      "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
+    }
+  },
+  "warning": "Stale runtime evidence binding; normal build passed, release build will fail. No release evidence regenerated.",
+  "newPhaseAProductionCpuBytesDelta": 0
+}

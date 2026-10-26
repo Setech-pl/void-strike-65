@@ -213,7 +213,7 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   // addresses, open the fighter sector and start the Director with an
   // admitting state, as tests/booster-admission-diagnostic.test.mjs does.
   installRuntimeSegments(memory, root);
-  for (const file of ["encounter-director.lbl", "integration-glue.lbl"]) {
+  for (const file of ["encounter-director.lbl", "integration-glue.lbl", ...(manifest.l2 ? ["l2.lbl"] : [])]) {
     for (const [name, address] of labelsFromFile(path.join(root, "build", file))) {
       if (!labels.has(name)) labels.set(name, address);
     }
@@ -550,6 +550,7 @@ export function executeWeaponPickupTraversalTrace({
   const traces = types.map(([name, pickupType, renderId]) => {
     const { memory, labels, manifest } = initialiseRuntime(root, artifact);
     memory[requiredLabel(labels, "DIFFICULTY_SETTING")] = difficulty;
+    if (manifest.l2) runRoutine(memory, labels, "l2_space"); // immutable difficulty's real rate publication
     const slot = 1;
     const state = requiredLabel(labels, "ENTITY_STATE") + slot;
     const activeMask = requiredLabel(labels, "ENTITY_ACTIVE_MASK");
@@ -637,6 +638,7 @@ export function executeWeaponPickupRingWrapTrace({
   memory[requiredLabel(labels, "ENTITY_Y") + slot] = 24;
   memory[requiredLabel(labels, "ENTITY_RENDER_ID") + slot] = 120;
   memory[requiredLabel(labels, "DIFFICULTY_SETTING")] = difficulty;
+  if (manifest.l2) runRoutine(memory, labels, "l2_space");
   memory[requiredLabel(labels, "player_x")] = 196;
   memory[requiredLabel(labels, "player_y")] = playerMaximumY;
 

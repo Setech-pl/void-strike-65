@@ -1,0 +1,98 @@
+[
+  {
+    "id": "l2-480-0-flight",
+    "length": 480,
+    "difficulty": 0,
+    "brake": false,
+    "dir": "build/level-1-s1",
+    "code": 0
+  },
+  {
+    "id": "l2-480-1-flight",
+    "length": 480,
+    "difficulty": 1,
+    "brake": false,
+    "dir": "build/level-1-s1",
+    "code": 0
+  },
+  {
+    "id": "l2-480-1-brake",
+    "length": 480,
+    "difficulty": 1,
+    "brake": true,
+    "dir": "build/level-1-s1",
+    "code": 0
+  },
+  {
+    "id": "l2-480-0-brake",
+    "length": 480,
+    "difficulty": 0,
+    "brake": true,
+    "dir": "build/level-1-s1",
+    "code": 0
+  },
+  {
+    "id": "l2-480-2-flight",
+    "length": 480,
+    "difficulty": 2,
+    "brake": false,
+    "dir": "build/level-1-s1",
+    "code": 0
+  },
+  {
+    "id": "l2-480-2-brake",
+    "length": 480,
+    "difficulty": 2,
+    "brake": true,
+    "dir": "build/level-1-s1",
+    "code": 0
+  },
+  {
+    "id": "l2-960-0-flight",
+    "length": 960,
+    "difficulty": 0,
+    "brake": false,
+    "dir": "build/l2-capital-960",
+    "code": 0
+  },
+  {
+    "id": "l2-960-0-brake",
+    "length": 960,
+    "difficulty": 0,
+    "brake": true,
+    "dir": "build/l2-capital-960",
+    "code": 0
+  },
+  {
+    "id": "l2-960-1-flight",
+    "length": 960,
+    "difficulty": 1,
+    "brake": false,
+    "dir": "build/l2-capital-960",
+    "code": 0
+  },
+  {
+    "id": "l2-960-1-brake",
+    "length": 960,
+    "difficulty": 1,
+    "brake": true,
+    "dir": "build/l2-capital-960",
+    "code": 0
+  },
+  {
+    "id": "l2-960-2-flight",
+    "length": 960,
+    "difficulty": 2,
+    "brake": false,
+    "dir": "build/l2-capital-960",
+    "code": 0
+  },
+  {
+    "id": "l2-960-2-brake",
+    "length": 960,
+    "difficulty": 2,
+    "brake": true,
+    "dir": "build/l2-capital-960",
+    "code": 0
+  }
+]

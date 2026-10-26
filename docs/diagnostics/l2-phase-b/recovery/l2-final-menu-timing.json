@@ -1,0 +1,304 @@
+{
+  "atr": "dist/void-strike-65.atr",
+  "atr_sha256": "bcf3fe86fe874c6aed6c97f7924f06c4a701e8a61797786d7bee5614d8b5ac10",
+  "probe": null,
+  "frames": 6000,
+  "start_game": false,
+  "machine": "-xl",
+  "results": [
+    {
+      "id": "patch-nobasic",
+      "patch": true,
+      "basic": false,
+      "args": [
+        "-xl",
+        "-pal",
+        "-config",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+        "-nobasic",
+        "-nosound",
+        "-turbo",
+        "-no-video-accel",
+        "-no-vsync",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/l2-final-menu-timing/patch-nobasic.atr"
+      ],
+      "host_seconds": 0.34,
+      "stop": {
+        "reason": "pc",
+        "pc": "$2210",
+        "label": "frontend_input_poll",
+        "frame": 599,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 11,
+      "read_commands": 11,
+      "sectors_read": 11,
+      "highest_sector": 250,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 212,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 243,
+        "show_loader": 301,
+        "enter_main_menu": 557,
+        "sector_reader_quiesce_done": 598,
+        "frontend_input_poll": 599
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 243,
+          "skctl": "$03"
+        },
+        {
+          "label": "show_loader",
+          "frame": 301,
+          "skctl": "$03"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 557,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 598,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 599,
+          "skctl": "$03"
+        }
+      ]
+    },
+    {
+      "id": "patch-basic",
+      "patch": true,
+      "basic": true,
+      "args": [
+        "-xl",
+        "-pal",
+        "-config",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+        "-basic",
+        "-nosound",
+        "-turbo",
+        "-no-video-accel",
+        "-no-vsync",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/l2-final-menu-timing/patch-basic.atr"
+      ],
+      "host_seconds": 0.35,
+      "stop": {
+        "reason": "pc",
+        "pc": "$2210",
+        "label": "frontend_input_poll",
+        "frame": 590,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 11,
+      "read_commands": 11,
+      "sectors_read": 11,
+      "highest_sector": 250,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 212,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 234,
+        "show_loader": 292,
+        "enter_main_menu": 548,
+        "sector_reader_quiesce_done": 589,
+        "frontend_input_poll": 590
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 234,
+          "skctl": "$03"
+        },
+        {
+          "label": "show_loader",
+          "frame": 292,
+          "skctl": "$03"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 548,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 589,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 590,
+          "skctl": "$03"
+        }
+      ]
+    },
+    {
+      "id": "nopatch-nobasic",
+      "patch": false,
+      "basic": false,
+      "args": [
+        "-xl",
+        "-pal",
+        "-config",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+        "-nopatch",
+        "-nobasic",
+        "-nosound",
+        "-turbo",
+        "-no-video-accel",
+        "-no-vsync",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/l2-final-menu-timing/nopatch-nobasic.atr"
+      ],
+      "host_seconds": 0.49,
+      "stop": {
+        "reason": "pc",
+        "pc": "$2210",
+        "label": "frontend_input_poll",
+        "frame": 1389,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 223,
+      "read_commands": 222,
+      "sectors_read": 222,
+      "highest_sector": 250,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 212,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 1033,
+        "show_loader": 1091,
+        "enter_main_menu": 1347,
+        "sector_reader_quiesce_done": 1388,
+        "frontend_input_poll": 1389
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 1033,
+          "skctl": "$13"
+        },
+        {
+          "label": "show_loader",
+          "frame": 1091,
+          "skctl": "$13"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 1347,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1388,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1389,
+          "skctl": "$03"
+        }
+      ]
+    },
+    {
+      "id": "nopatch-basic",
+      "patch": false,
+      "basic": true,
+      "args": [
+        "-xl",
+        "-pal",
+        "-config",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-pinned.cfg",
+        "-nopatch",
+        "-basic",
+        "-nosound",
+        "-turbo",
+        "-no-video-accel",
+        "-no-vsync",
+        "/Users/marcinkrzetowski/Projects/dark-fighter/build/l2-final-menu-timing/nopatch-basic.atr"
+      ],
+      "host_seconds": 0.5,
+      "stop": {
+        "reason": "pc",
+        "pc": "$2210",
+        "label": "frontend_input_poll",
+        "frame": 1380,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 223,
+      "read_commands": 222,
+      "sectors_read": 222,
+      "highest_sector": 250,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 212,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 1024,
+        "show_loader": 1082,
+        "enter_main_menu": 1338,
+        "sector_reader_quiesce_done": 1379,
+        "frontend_input_poll": 1380
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 1024,
+          "skctl": "$13"
+        },
+        {
+          "label": "show_loader",
+          "frame": 1082,
+          "skctl": "$13"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 1338,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1379,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1380,
+          "skctl": "$03"
+        }
+      ]
+    }
+  ]
+}

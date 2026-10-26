@@ -1,0 +1,5 @@
+patch-nobasic    stop=pc@frontend_input_poll f599 reads=11 sectors=11 (max 250) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=301 menu=557 level-read=- gameplay=- skctl=$03 audctl=$00 host=0.34s
+patch-basic      stop=pc@frontend_input_poll f590 reads=11 sectors=11 (max 250) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=292 menu=548 level-read=- gameplay=- skctl=$03 audctl=$00 host=0.35s
+nopatch-nobasic  stop=pc@frontend_input_poll f1389 reads=222 sectors=222 (max 250) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=1091 menu=1347 level-read=- gameplay=- skctl=$03 audctl=$00 host=0.49s
+nopatch-basic    stop=pc@frontend_input_poll f1380 reads=222 sectors=222 (max 250) retried=0 NAK=0 ERR=0 noreply=0 C-without-data=0 SIOV-dstats!=40=0 loader=1082 menu=1338 level-read=- gameplay=- skctl=$03 audctl=$00 host=0.5s
+PASS: every -nopatch boot reached frontend_input_poll

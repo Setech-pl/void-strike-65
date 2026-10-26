@@ -1,0 +1,299 @@
+{
+  "before": "build/l2-audit-before",
+  "after": "build",
+  "rows": [
+    {
+      "key": "main.lst:CODE:start_gameplay",
+      "addressBefore": 9828,
+      "addressAfter": 9828,
+      "before": 1,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 2,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:CODE:wait_frame",
+      "addressBefore": 10014,
+      "addressAfter": 10021,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:CODE:wait_frame_at_line",
+      "addressBefore": 10016,
+      "addressAfter": 10023,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 2,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:CODE:publish_fighter_projectile_overlays",
+      "addressBefore": 10027,
+      "addressAfter": 10034,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:CODE:fighter_projectile_publication_capital_render",
+      "addressBefore": 10068,
+      "addressAfter": 10075,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:CODE:fighter_projectile_option_debounce_wait",
+      "addressBefore": 10074,
+      "addressAfter": 10081,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:CODE:wait_frame_start",
+      "addressBefore": 10082,
+      "addressAfter": 10089,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 2,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:CODE:show_loader",
+      "addressBefore": 10093,
+      "addressAfter": 10100,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "main.lst:CODE:set_loader_title_palette",
+      "addressBefore": 10145,
+      "addressAfter": 10152,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "main.lst:ENTITY_CODE:player_inside_universal_hull_corridor",
+      "addressBefore": 38044,
+      "addressAfter": 38032,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 3,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director-lifecycle.lst:HYBRID_C_SECTOR:_sector_c_update_capital_phase",
+      "addressBefore": 34387,
+      "addressAfter": 34387,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 2,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director-lifecycle.lst:HYBRID_C_SECTOR:_sector_c_complete_scroll_tick",
+      "addressBefore": 34496,
+      "addressAfter": 34496,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 2,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director-lifecycle.lst:HYBRID_C_SECTOR:_sector_c_force_final_drain",
+      "addressBefore": 34519,
+      "addressAfter": 34522,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 2,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "sector-reader.lst:SECTOR_READER:sector_reader_read_run",
+      "addressBefore": 41248,
+      "addressAfter": 41248,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "sector-reader.lst:SECTOR_READER:sector_reader_read_run_inline",
+      "addressBefore": null,
+      "addressAfter": 41252,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 41272,
+          "source": "lda overlay_directory,y"
+        },
+        {
+          "address": 41278,
+          "source": "lda overlay_directory+1,y"
+        },
+        {
+          "address": 41284,
+          "source": "lda overlay_directory+3,y"
+        },
+        {
+          "address": 41289,
+          "source": "lda overlay_directory+4,y"
+        }
+      ],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "l2.lst:L2:l2_contact",
+      "addressBefore": 6587,
+      "addressAfter": 6594,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 4,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_space",
+      "addressBefore": null,
+      "addressAfter": 7450,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 7453,
+          "source": "lda _l2_normal_rates,x"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_enter",
+      "addressBefore": null,
+      "addressAfter": 7468,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_store_hook_hi",
+      "addressBefore": null,
+      "addressAfter": 7478,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    }
+  ],
+  "indexedTables": [
+    {
+      "name": "l2_part_offsets",
+      "address": 6912,
+      "maxIndex": 5,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipe_offsets",
+      "address": 6918,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_left_caps",
+      "address": 6921,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_right_caps",
+      "address": 6924,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipes",
+      "address": 6927,
+      "maxIndex": 107,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_normal_rates",
+      "address": 7049,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_half_rates",
+      "address": 7052,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "level allied sequence",
+      "address": 44040,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "level enemy sequence",
+      "address": 44160,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "current-sector lookup",
+      "address": 44416,
+      "maxIndex": 119,
+      "pageCross": false
+    }
+  ]
+}

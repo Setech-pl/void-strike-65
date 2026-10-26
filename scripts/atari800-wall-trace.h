@@ -1249,6 +1249,7 @@ typedef struct {
 	 * happened from a frame delta. */
 	UBYTE level_header[8];
 	unsigned level_checksum;
+    unsigned l2_checksum;
 	unsigned slot_checksum;
 	unsigned table_checksum;
 	unsigned portb;
@@ -1812,6 +1813,7 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 		snapshot->level_header[index_window] =
 			MEMORY_mem[(dfboot_level_address + index_window) & 0xffffu];
 	snapshot->level_checksum = dfboot_checksum(dfboot_level_address, dfboot_level_bytes);
+    snapshot->l2_checksum = dfboot_checksum(0x1900u,0x700u);
 	snapshot->slot_checksum = dfboot_checksum(dfboot_slot_address, dfboot_slot_bytes);
 	snapshot->table_checksum = dfboot_checksum(dfboot_table_address, dfboot_table_bytes);
 	snapshot->splash_checksum =
@@ -1847,7 +1849,7 @@ static void dfboot_write(void)
 			"%02x%02x%02x%02x%02x%02x%02x%02x\","
 			"\"level_header\":\"%02x%02x%02x%02x%02x%02x%02x%02x\","
 			"\"level_checksum\":%u,\"slot_checksum\":%u,\"table_checksum\":%u,"
-			"\"splash_checksum\":%u}%s\n",
+			"\"splash_checksum\":%u,\"l2_checksum\":%u}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
@@ -1867,7 +1869,7 @@ static void dfboot_write(void)
 			snapshot->level_header[4], snapshot->level_header[5],
 			snapshot->level_header[6], snapshot->level_header[7],
 			snapshot->level_checksum, snapshot->slot_checksum, snapshot->table_checksum,
-			snapshot->splash_checksum,
+			snapshot->splash_checksum, snapshot->l2_checksum,
 			index + 1u == dfboot_snapshots_count ? "" : ",");
 	}
 	fprintf(dfboot_file,
@@ -3586,7 +3588,11 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	int pairshot_speed = strncmp(dftrace_policy, "pairshot-speed-", 15u) == 0;
 	int pairshot_reentry = strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0;
 	int booster_reentry = strcmp(dftrace_policy, "booster-reentry") == 0;
-	if (dftrace_hold_player_lives != 0u)
+	/* DIAGNOSTIC ONLY: host RAM lives top-up; zero guest code instrumentation
+     * does not mean zero guest state writes. Never release evidence. */
+	if (dftrace_hold_player_lives != 0u &&
+        (strncmp(dftrace_policy, "l2-", 3) != 0 ||
+         MEMORY_mem[dftrace_player_lifecycle + 1u] < dftrace_hold_player_lives))
 		MEMORY_mem[dftrace_player_lifecycle + 1u] =
 			(UBYTE) dftrace_hold_player_lives;
 	if (dftrace_pokes != NULL) {
@@ -4302,6 +4308,20 @@ static void dftrace_set_gameplay_input(unsigned frame)
 				(x > 58u ? 0x0bu : 0x0fu);
 		}
 	}
+	else if (strncmp(dftrace_policy, "l2-", 3) == 0) {
+        unsigned phase = MEMORY_mem[dftrace_corridor_phase] |
+            ((unsigned)MEMORY_mem[dftrace_corridor_phase_hi] << 8);
+        unsigned capital = MEMORY_mem[dftrace_sector_state] < 7u;
+        unsigned axis = getenv("DFTRACE_L2_AXIS") != NULL ? (unsigned)atoi(getenv("DFTRACE_L2_AXIS")) : 960u;
+        unsigned local = phase - (axis - (MEMORY_mem[0xAC00u] | ((unsigned)MEMORY_mem[0xAC01u]<<8)));
+        unsigned target = capital ? (((local / 112u) & 1u) ? 152u : 92u) : 124u;
+        if (strcmp(dftrace_policy, "l2-contact") == 0 && capital) target = 124u;
+        if (strncmp(dftrace_policy,"l2-matrix",9)==0 && capital && local>=112u && local<208u) target=124u;
+        stick = x < target ? 0x07u : x > target ? 0x0bu : 0x0fu;
+        /* Ordinary DOWN/release windows; no guest speed or coordinate writes. */
+        if ((strcmp(dftrace_policy, "l2-brake") == 0 || strcmp(dftrace_policy,"l2-matrix-brake")==0) && capital &&
+            (local < 256u || (local >= 384u && local < 640u))) stick &= ~2u;
+    }
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
 		strcmp(dftrace_policy, "broadside-proof") == 0 ||
 		strcmp(dftrace_policy, "sweep-boss-wide") == 0 ||
@@ -5611,7 +5631,7 @@ static int dftrace_first_writer_effective_address(unsigned pc,
  * address (the hook runs before the next opcode), as the first-writer journal
  * above; zero-page stores cannot reach either range. Written at exit to
  * DFWATCH_OUTPUT (JSON); off when it is unset. Observes, never writes. */
-#define DFWATCH_RANGES 5u
+#define DFWATCH_RANGES 10u
 #define DFWATCH_WRITERS 128u
 typedef struct {
 	unsigned pc, count, first_frame, last_frame, first_address, last_address;
@@ -5622,9 +5642,9 @@ typedef struct {
  * at its top (decision BD 6); empty when unset. */
 /* M6 stage 1b (journal §BL, the owner's answer): page 4, $0400-$04FF - the
  * lance's second run (slot H) since the torpedo; the OS's cassette buffer. */
-static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u, 0x0400u, 0x00b6u };
-static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u, 0x0500u, 0x0100u };
-static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail", "page_4", "zero_page_b6" };
+static unsigned dfwatch_start[DFWATCH_RANGES] = { 0x5200u, 0x4000u, 0xbc00u, 0x0400u, 0x00b6u, 0x0c00u, 0x0500u, 0x3615u, 0x549eu, 0xb8fbu };
+static const unsigned dfwatch_end[DFWATCH_RANGES] = { 0x5400u, 0x4028u, 0xbc00u, 0x0500u, 0x0100u, 0x1180u, 0x0c00u, 0x3aefu, 0x54beu, 0xb900u };
+static const char *const dfwatch_name[DFWATCH_RANGES] = { "slot_f", "hud_row", "window_tail", "page_4", "zero_page_b6", "menu", "summary", "main_l1", "m3h", "b8fb" };
 static DFWatchWriter dfwatch_writers[DFWATCH_RANGES][DFWATCH_WRITERS];
 static unsigned dfwatch_counts[DFWATCH_RANGES];
 static unsigned dfwatch_overflow[DFWATCH_RANGES];
@@ -8445,6 +8465,30 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 }
 
 
+/* Phase-B-only observer: reads guest clocks at the frame publication fence. */
+static void dftrace_l2_observe(void)
+{
+    static FILE *file;
+    const char *output=getenv("DFTRACE_L2_OUTPUT");
+    unsigned phase, world, hull, i;
+    if(output==NULL) return;
+    if(file==NULL) { file=fopen(output,"w"); if(file==NULL) {perror("L2 trace");exit(2);}
+        fputs("frame,phase,state,rate,world,hull,x,y,cooldown,health,timer0,timer1,timer2,lookup\n",file); }
+    phase=MEMORY_mem[dftrace_corridor_phase]|((unsigned)MEMORY_mem[dftrace_corridor_phase_hi]<<8);
+    world=MEMORY_mem[strtoul(getenv("DFTRACE_L2_WORLD_ACC"),NULL,0)];
+    hull=MEMORY_mem[strtoul(getenv("DFTRACE_L2_HULL_ACC"),NULL,0)];
+    fprintf(file,"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",dftrace_count,phase,
+        MEMORY_mem[dftrace_sector_state],MEMORY_mem[0x86B4u],world,hull,
+        MEMORY_mem[dftrace_player_x],MEMORY_mem[dftrace_player_y],
+        MEMORY_mem[dftrace_broad_state+30u],MEMORY_mem[dftrace_broad_state+29u]);
+    for(i=0;i<3u;++i) fprintf(file,",%u",MEMORY_mem[dftrace_broad_state+15u+i]);
+    fprintf(file,",%u\n",phase<960u?MEMORY_mem[0xAD80u+phase/8u]:0u);fflush(file);
+}
+
+/* Actual CPU access hooks; image/phase-aware ownership across all resident windows. */
+#include "voidstrike65_l2.h"
+#include "voidstrike65_l2_exits.h"
+
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
 {
@@ -8517,6 +8561,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dftrace_l2_lifetime(pc, x_register, s_register);
 	dfoverlay_force_observe("DFTRACE_FORCE_OVERLAY_RESTORE", pc);
 	dfprobe_observe();
 	dfspread_observe();
@@ -8547,6 +8592,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	dftrace_drive_pause_test();
 	dftrace_drive_boss_path();
+    dfl2_drive_exit(pc);
 
 	if (MEMORY_mem[dftrace_game_state] != 6u) {
 		dftrace_active = 0;
@@ -9098,6 +9144,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_current.profile_pickup_render_start = 0u;
 			dftrace_current.profile_effect_render_start = 0u;
 		}
+		if(dftrace_current.profile_next == 20u) dftrace_l2_observe();
 		++dftrace_current.profile_next;
 	}
 	if (pc == dftrace_pc_compose_start) {

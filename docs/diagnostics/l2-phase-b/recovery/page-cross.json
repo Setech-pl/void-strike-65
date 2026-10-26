@@ -1,0 +1,560 @@
+{
+  "before": "build/l2-baseline",
+  "after": "build",
+  "rows": [
+    {
+      "key": "main.lst:STARFIELD:update_starfield",
+      "addressBefore": 22070,
+      "addressAfter": 22070,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:STARFIELD:l2_rate_selection_start",
+      "addressBefore": null,
+      "addressAfter": 22094,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 2,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:ENTITY_CODE:scroll_hull_copy_source_ready",
+      "addressBefore": 37660,
+      "addressAfter": 37660,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:ENTITY_CODE:l2_copy_start",
+      "addressBefore": null,
+      "addressAfter": 37662,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 37664,
+          "source": "lda (src_ptr),y"
+        },
+        {
+          "address": 37666,
+          "source": "sta (dst_ptr),y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:ENTITY_CODE:l2_copy_end",
+      "addressBefore": null,
+      "addressAfter": 37682,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "main.lst:ENTITY_CODE:player_inside_universal_hull_corridor",
+      "addressBefore": 38044,
+      "addressAfter": 38044,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director.lst:DIRECTOR_C_CODE:_director_c_request",
+      "addressBefore": 40604,
+      "addressAfter": 40604,
+      "before": 1,
+      "after": 1,
+      "newCrossings": [],
+      "branchCount": 13,
+      "indexedSites": [
+        {
+          "address": 40685,
+          "source": "lda     _sector_hazards,y"
+        },
+        {
+          "address": 40735,
+          "source": "lda     _hazard_costs,y"
+        },
+        {
+          "address": 40748,
+          "source": "lda     _hazard_budget,y"
+        },
+        {
+          "address": 40786,
+          "source": "lda     _hazard_reaction_rows,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director.lst:DIRECTOR_C_CODE:_advance_sector",
+      "addressBefore": 40809,
+      "addressAfter": 40800,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director.lst:DIRECTOR_C_CODE:_director_c_boss_weapon_down",
+      "addressBefore": 40850,
+      "addressAfter": 40841,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director.lst:DIRECTOR_C_CODE:_heavy_request",
+      "addressBefore": 40880,
+      "addressAfter": 40871,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 6,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "encounter-director-lifecycle.lst:HYBRID_C_SECTOR:_sector_c_update_capital_phase",
+      "addressBefore": 34387,
+      "addressAfter": 34387,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "light-kernel.lst:DISK_GUARD:guard_check",
+      "addressBefore": 14739,
+      "addressAfter": 14739,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "light-kernel.lst:DISK_GUARD:guard_check_inline",
+      "addressBefore": null,
+      "addressAfter": 14742,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 14748,
+          "source": "lda guard_sums+1,x"
+        },
+        {
+          "address": 14752,
+          "source": "lda guard_sums,x"
+        }
+      ],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "sector-reader.lst:SECTOR_READER:sector_reader_l2_guard",
+      "addressBefore": null,
+      "addressAfter": 42468,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "level-summary.lst:LEVEL_SUMMARY:summary_load_l2",
+      "addressBefore": null,
+      "addressAfter": 3055,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "l2.lst:L2:l2_start",
+      "addressBefore": null,
+      "addressAfter": 6400,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_init",
+      "addressBefore": null,
+      "addressAfter": 6425,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "l2.lst:L2:l2_brake_before_enemy",
+      "addressBefore": null,
+      "addressAfter": 6431,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_original_row",
+      "addressBefore": null,
+      "addressAfter": 6437,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_interval",
+      "addressBefore": null,
+      "addressAfter": 6445,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 9,
+      "indexedSites": [
+        {
+          "address": 6478,
+          "source": "lda $AD80,x"
+        },
+        {
+          "address": 6492,
+          "source": "lda l2_part_offsets,y"
+        },
+        {
+          "address": 6506,
+          "source": "lda l2_recipe_offsets,y"
+        },
+        {
+          "address": 6536,
+          "source": "lda l2_recipes,x"
+        },
+        {
+          "address": 6544,
+          "source": "cmp l2_left_caps,y"
+        },
+        {
+          "address": 6549,
+          "source": "lda l2_left_caps,y"
+        },
+        {
+          "address": 6555,
+          "source": "lda l2_recipes+1,x"
+        },
+        {
+          "address": 6563,
+          "source": "cmp l2_right_caps,y"
+        },
+        {
+          "address": 6568,
+          "source": "lda l2_right_caps,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_contact",
+      "addressBefore": null,
+      "addressAfter": 6587,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 5,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_island_contact",
+      "addressBefore": null,
+      "addressAfter": 6626,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 10,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_draw_row",
+      "addressBefore": null,
+      "addressAfter": 6786,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 5,
+      "indexedSites": [
+        {
+          "address": 6793,
+          "source": "sta (dst_ptr),y"
+        },
+        {
+          "address": 6836,
+          "source": "lda l2_recipes+2,x"
+        },
+        {
+          "address": 6843,
+          "source": "sta (dst_ptr),y"
+        },
+        {
+          "address": 6846,
+          "source": "lda l2_recipes+3,x"
+        },
+        {
+          "address": 6868,
+          "source": "lda l2_recipes+4,x"
+        },
+        {
+          "address": 6875,
+          "source": "sta (dst_ptr),y"
+        },
+        {
+          "address": 6880,
+          "source": "lda l2_recipes+5,x"
+        },
+        {
+          "address": 6887,
+          "source": "sta (dst_ptr),y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_commit_row",
+      "addressBefore": null,
+      "addressAfter": 6890,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 6892,
+          "source": "lda PREPARED_HULL_ROW,y"
+        },
+        {
+          "address": 6895,
+          "source": "sta GAMEPLAY_DIVIDER_SCREEN,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:_l2_c_phase",
+      "addressBefore": null,
+      "addressAfter": 7061,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 6,
+      "indexedSites": [],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:_l2_c_enter",
+      "addressBefore": null,
+      "addressAfter": 7154,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 4,
+      "indexedSites": [
+        {
+          "address": 7198,
+          "source": "sta     $AD80,y"
+        },
+        {
+          "address": 7217,
+          "source": "lda     $AD09,y"
+        },
+        {
+          "address": 7226,
+          "source": "lda     $AD08,y"
+        },
+        {
+          "address": 7238,
+          "source": "lda     $AD1C,y"
+        },
+        {
+          "address": 7247,
+          "source": "lda     $AD1D,y"
+        },
+        {
+          "address": 7256,
+          "source": "lda     $AD1E,y"
+        },
+        {
+          "address": 7274,
+          "source": "sta     $AD80,y"
+        }
+      ],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "l2.lst:L2:_l2_brake_tick",
+      "addressBefore": null,
+      "addressAfter": 7306,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 10,
+      "indexedSites": [
+        {
+          "address": 7323,
+          "source": "lda     _l2_normal_rates,y"
+        },
+        {
+          "address": 7336,
+          "source": "cmp     _l2_half_rates,y"
+        },
+        {
+          "address": 7347,
+          "source": "cmp     _l2_normal_rates,y"
+        },
+        {
+          "address": 7357,
+          "source": "lda     _l2_normal_rates,y"
+        },
+        {
+          "address": 7381,
+          "source": "cmp     _l2_half_rates,y"
+        },
+        {
+          "address": 7398,
+          "source": "cmp     _l2_normal_rates,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:_l2_warning_set_timer",
+      "addressBefore": null,
+      "addressAfter": 7424,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 1,
+      "indexedSites": [
+        {
+          "address": 7443,
+          "source": "L0006:\tsta     $4E4F,y"
+        }
+      ],
+      "classification": "per-frame"
+    },
+    {
+      "key": "l2.lst:L2:l2_rearm",
+      "addressBefore": null,
+      "addressAfter": 7447,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 0,
+      "indexedSites": [],
+      "classification": "cold/transition"
+    }
+  ],
+  "indexedTables": [
+    {
+      "name": "l2_part_offsets",
+      "address": 6912,
+      "maxIndex": 5,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipe_offsets",
+      "address": 6918,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_left_caps",
+      "address": 6921,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_right_caps",
+      "address": 6924,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipes",
+      "address": 6927,
+      "maxIndex": 107,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_normal_rates",
+      "address": 7049,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_half_rates",
+      "address": 7052,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "level allied sequence",
+      "address": 44040,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "level enemy sequence",
+      "address": 44160,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "current-sector lookup",
+      "address": 44416,
+      "maxIndex": 119,
+      "pageCross": false
+    }
+  ]
+}

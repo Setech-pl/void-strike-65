@@ -1,0 +1,26 @@
+Modules list:
+-------------
+level-summary.o:
+    LEVEL_SUMMARY     Offs=000000  Size=000700  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+LEVEL_SUMMARY         000500  000BFF  000700  00001
+
+
+Exports list by name:
+---------------------
+
+
+
+Exports list by value:
+----------------------
+
+
+
+Imports list:
+-------------
+

@@ -1,4 +1,7 @@
 import crypto from "node:crypto";
+import {islandRecipeBytes, ISLAND_RECORD_BYTES, ISLAND_DESCRIPTORS_OFFSET,
+  ISLAND_SPANS_OFFSET, ISLAND_LOOKUP_OFFSET} from "./l2-islands.mjs";
+import {loadCheckedL2Image} from "./sio-fixture.mjs";
 import { buildBossDeath } from "./boss-death-build.mjs";
 import fs from "node:fs";
 import path from "node:path";
@@ -47,6 +50,7 @@ import {
   LEVEL_CORE_ADDRESS,
   LEVEL_PAYLOAD_ADDRESS,
   LEVEL_GEOMETRY_ADDRESS,
+  GEOMETRY_OFFSET,
   LEVEL_CORE_MAGIC,
   CORE_HEADER_BYTES,
   SECTOR_ARRAY_OFFSET,
@@ -497,7 +501,9 @@ const variantDirectoryNameInner = (escortVariantId !== null
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
-const variantDirectoryName = variantDirectoryNameInner;
+const longCapital=process.argv.includes("--l2-long-capital");
+if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
+const variantDirectoryName = longCapital?"l2-capital-960":variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -598,6 +604,7 @@ const OVERLAY_DIRECTORY = Object.freeze([
   "level summary code (M5a-S2)",
   "disk identity (audit-hardening)",
   "menu data (L1)",
+  "fighter/capital L2 (§BW)",
 ]);
 // M5a-S2 (§4.8, §6.3): the summary's runs. The code reads once per session at
 // $0500; the art, one run per region at a fixed stride, is read first at every
@@ -613,6 +620,7 @@ const OVERLAY_SUMMARY_CODE = 8;
 // it, through the directory, before every PUT.
 const OVERLAY_IDENTITY = 9;
 const OVERLAY_MENU = 10;
+const OVERLAY_L2 = 11;
 const identitySectorNumber = 598;
 const summaryCodeSector = 584;
 // Owner decision 2026-10-03: the module's home is $0500-$0BFF (1,792 B), so its
@@ -1298,6 +1306,7 @@ function buildLevelImage({ id, sectors, musicBytes, hullBlock, alliedColpf1, lev
       [levelPages.core, LEVEL_CORE_OFFSET, LEVEL_CORE_BYTES],
       [levelPages.payload, LEVEL_PAYLOAD_OFFSET, LEVEL_PAYLOAD_BYTES],
       [levelPages.geometry, LEVEL_GEOMETRY_OFFSET, LEVEL_GEOMETRY_BYTES],
+      [levelPages.islands, 0x700, 256],
     ]) {
       if (page.length !== size) {
         throw new Error(`4.6 level ${id}: a LevelDef page is ${page.length} B, not ${size}`);
@@ -1328,6 +1337,7 @@ function renderOverlayDirectoryInclude({ runs, slotAddress, slotBytes, vectorIma
     `OVERLAY_SUMMARY_CODE = ${OVERLAY_SUMMARY_CODE}`,
     `OVERLAY_IDENTITY = ${OVERLAY_IDENTITY}`,
     `OVERLAY_MENU = ${OVERLAY_MENU}`,
+    `OVERLAY_L2 = ${OVERLAY_L2}`,
     `CAPITAL_SLOT_A = $${slotAddress.toString(16).toUpperCase()}`,
     `CAPITAL_SLOT_A_BYTES = ${slotBytes}`,
     "overlay_directory:",
@@ -1370,14 +1380,14 @@ function renderLevelDirectoryInclude(levels) {
 }
 
 async function buildResidentModule({ sourcePath, configPath, stem, extraInputs = {},
-  configText = null, defines = [] }) {
+  configText = null, defines = [], includeDirectories = [] }) {
   const source = fs.readFileSync(sourcePath);
   const config = configText === null ? fs.readFileSync(configPath) : Buffer.from(configText);
   const base = `/project/build/${stem}`;
   const assembled = await runWasmTool(
     "ca65",
     { [`${base}.s`]: source, ...extraInputs },
-    ["--cpu", "6502", "-g", ...defines.flatMap((define) => ["-D", define]),
+    ["--cpu", "6502", "-g", ...includeDirectories.flatMap(dir=>["-I",dir]), ...defines.flatMap((define) => ["-D", define]),
       "-l", `${base}.lst`, "-o", `${base}.o`, `${base}.s`],
     [`${base}.o`, `${base}.lst`],
   );
@@ -1470,8 +1480,18 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
       "-o", `${base}-lifecycle-generated.s`, "/project/src/c/lifecycle.c"],
     [`${base}-lifecycle-generated.s`],
   );
-  const lifecycleGeneratedAssembly =
-    lifecycleCompiled.outputs[`${base}-lifecycle-generated.s`];
+  // Preserve all following C-sector labels when moving its phase body to L2.
+  let lifecycleGeneratedAssembly = lifecycleCompiled.outputs[`${base}-lifecycle-generated.s`];
+  let lifecycleText = lifecycleGeneratedAssembly.toString();
+  for(const [name,bytes] of [["sector_c_update_first_capital",81],["sector_c_update_capital_phase",98]]) {
+    const start=lifecycleText.indexOf(`.proc\t_${name}:`);
+    if(start<0) throw new Error(`L2 C sector pin missing ${name}`);
+    const lineEnd=lifecycleText.indexOf("\n",start)+1;
+    lifecycleText=lifecycleText.slice(0,lineEnd)+"l2_pin_start:\n"+lifecycleText.slice(lineEnd);
+    const end=lifecycleText.indexOf(".endproc",start);
+    lifecycleText=lifecycleText.slice(0,end)+(name==="sector_c_update_capital_phase" ? fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-lifetime.s"),"utf8")+"\n" : "")+`.res ${bytes}-(*-l2_pin_start), $00\n`+lifecycleText.slice(end);
+  }
+  lifecycleGeneratedAssembly=Buffer.from(lifecycleText);
   if (process.env.VS65_DUMP_GENERATED === "1") {
     writeFile(path.join(buildDirectory, "director-generated.s"), generatedAssembly);
     writeFile(path.join(buildDirectory, "lifecycle-generated.s"), lifecycleGeneratedAssembly);
@@ -2169,6 +2189,7 @@ async function build() {
     "ca65",
     {
       "/project/src/main.s": source,
+      "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/loader-screen.inc": loaderInclude,
       "/project/build/loader-display-list.inc": loaderDisplayListInclude,
@@ -2582,6 +2603,7 @@ async function build() {
   const compiledLevels = new Map(levelRuns.map((run) =>
     [run.id, bossVariantLevel(run.id) !== null
       ? compileLevelFile(bossVariantLevel(run.id), { hullAsset: capitalHullsAsset })
+      : longCapital ? compileLevelFile(path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json"), {hullAsset:capitalHullsAsset})
       : compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
@@ -2667,7 +2689,8 @@ async function build() {
   // its expected values are known only once every run has linked, so the
   // kernel links here with zeros and again, with the values, before transport.
   const renderDiskGuardInclude = (sums = null) => renderGuardInclude({
-    names: OVERLAY_DIRECTORY, recordEntry: OVERLAY_SAVE_RECORD, sums, identity: diskIdentity,
+    names: OVERLAY_DIRECTORY.slice(0, OVERLAY_L2), recordEntry: OVERLAY_SAVE_RECORD,
+    sums: sums?.slice(0, OVERLAY_L2), identity: diskIdentity,
   });
   const lifeShapes = JSON.parse(fs.readFileSync(path.join(rootDirectory, "assets/graphics/life-capsule.json")));
   if (lifeShapes.masks.length !== 4 || lifeShapes.masks.some(mask => mask.length !== 16 ||
@@ -2731,6 +2754,78 @@ async function build() {
   }
   const capitalSlotImage = Buffer.from(broadsideRuntime.subarray(
     slotAddress - broadsideRunAddress, slotEnd - broadsideRunAddress));
+  const l2CLabels = {PHASE_LO:"corridor_phase",PHASE_HI:"CORRIDOR_PHASE_HI",STATE:"CAPITAL_SECTOR_STATE",
+    DIFFICULTY:"DIFFICULTY_SETTING",LIFECYCLE:"PLAYER_LIFECYCLE",PLAYER_Y:"player_y",STICK:"stick_value",
+    TIMERS:"BROAD_TIMER",WORK_SLOT:"BROAD_WORK_SLOT",
+    MODULES:"CAPITAL_HULL_SECTOR_MODULE_COUNT",ROWS:"CAPITAL_HULL_SECTOR_ROWS",BOTTOM:"PLAYER_Y_MAX",
+    DRAIN:"CAPITAL_HULL_STATE_DRAIN",OPEN:"CAPITAL_HULL_STATE_OPEN",DYING:"PLAYER_DYING"};
+  const l2Constants = {L2_GEOMETRY:LEVEL_GEOMETRY_ADDRESS,L2_EXTENSION:LEVEL_GEOMETRY_ADDRESS+256,
+    L2_SPANS:LEVEL_GEOMETRY_ADDRESS+256+ISLAND_SPANS_OFFSET,
+    L2_LOOKUP:LEVEL_GEOMETRY_ADDRESS+256+ISLAND_LOOKUP_OFFSET,
+    L2_DESCRIPTORS:LEVEL_GEOMETRY_ADDRESS+256+ISLAND_DESCRIPTORS_OFFSET,L2_RECORD_BYTES:ISLAND_RECORD_BYTES,
+    L2_PHASE_START:GEOMETRY_OFFSET.phaseStarts,L2_HULL_ROWS:GEOMETRY_OFFSET.hullRowsLo};
+  const sectorAddress=/^#define STATE_SECTOR\s+U8_AT\(0x([0-9a-f]+)u\)/mi.exec(
+    fs.readFileSync(path.join(rootDirectory,"src/c/director.c"),"utf8"));
+  if(!sectorAddress) throw new Error("L2 C ABI cannot derive Director sector index");
+  l2Constants.L2_SECTOR_INDEX=parseInt(sectorAddress[1],16);
+  for(const [name,symbol] of Object.entries(l2CLabels)) {
+    if(!Number.isInteger(labels.get(symbol))) throw new Error(`L2 C ABI missing ${symbol}`);
+    l2Constants[`L2_${name}`]=labels.get(symbol);
+  }
+  const l2CHeader=Object.entries(l2Constants).map(([name,value])=>`#define ${name} 0x${value.toString(16)}u`).join("\n")+"\n"+
+    `#define L2_NORMAL_RATES {${[...capitalHullsAsset.worldScrollRateBytes].map(v=>v*2).join(',')}}\n`+
+    `#define L2_HALF_RATES {${[...capitalHullsAsset.worldScrollRateBytes].join(',')}}\n`;
+  if(!Buffer.from([...capitalHullsAsset.worldScrollRateBytes].map(v=>v*2)).equals(capitalHullsAsset.hullScrollRateBytes))
+    throw new Error("L2 requires the same numerator for world and capital hull clocks");
+  writeFile(path.join(buildDirectory,"l2-abi.h"),Buffer.from(l2CHeader));
+  const l2Compiled = await runWasmTool("cc65", {
+    "/project/l2.c": fs.readFileSync(path.join(rootDirectory,"src/c/l2.c")),
+    "/project/l2-abi.h": Buffer.from(l2CHeader),
+  }, ["--cpu","6502","-Oirs","-o","/project/l2-generated.s","/project/l2.c"], ["/project/l2-generated.s"]);
+  let l2Generated=l2Compiled.outputs["/project/l2-generated.s"].toString().replace(/^\s*\.importzp.*$/gmi, "").replace(/^\s*\.import\s+_l2_rate\s*$/gmi, "");
+  l2Generated=l2Generated.replace(/(\.proc\s+_l2_warning_set_timer:)/,(_,proc)=>`.align $100\n${proc}`);
+  const warningBody=/\.proc\s+_l2_warning_set_timer:[\s\S]*?\.endproc/.exec(l2Generated)?.[0];
+  const warningJumps=[...(warningBody??'').matchAll(/^\s*jmp[ \t]+([A-Za-z_]\w*)/gmi)].map(m=>m[1]);
+  if(!warningBody || /^\s*(?:ldx|tax|tsx|inx|dex|jsr)\b/mi.test(warningBody) ||
+    warningJumps.some(target=>!new RegExp(`^${target}:`,'m').test(warningBody)))
+    throw new Error("L2 warning codegen must preserve X without callee assumptions");
+  writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
+  if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
+    throw new Error("L2 C requires software-stack/helper state");
+  writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
+  const l2MainNames=["profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy",
+    "BROADSIDE_SCREEN_TOP","PLAYER_COLLISION_LAST_ROW","PLAYER_COLLISION_WIDTH","CAPITAL_HULL_GLYPH_BASE",
+    "CAPITAL_HULL_ENEMY_SURFACE_BASE","CAPITAL_HULL_SECTOR_MODULE_COUNT","CORRIDOR_LEFT_HPOS","CORRIDOR_RIGHT_HPOS"];
+  const l2MainInclude=l2MainNames.map(name=>{
+    const address=labels.get(name);if(!Number.isInteger(address))throw new Error(`L2 main ABI missing ${name}`);
+    return `${name} = $${address.toString(16)}`;
+  }).join("\n")+"\n"+`L2_LOOKUP = $${l2Constants.L2_LOOKUP.toString(16)}\n`;
+  const l2RecipesInclude="    .byte "+[...islandRecipeBytes()].join(",")+"\n";
+  writeFile(path.join(buildDirectory,"l2-main.inc"),Buffer.from(l2MainInclude));
+  writeFile(path.join(buildDirectory,"l2-recipes.inc"),Buffer.from(l2RecipesInclude));
+  const l2Module = await buildResidentModule({
+    sourcePath: path.join(rootDirectory, "src/hybrid/l2.s"),
+    configPath: path.join(rootDirectory, "cfg/l2.cfg"), stem: "l2", includeDirectories:["/cc65/asminc"],
+    extraInputs: { "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")),
+      "/project/build/l2-c.inc": Buffer.from(l2Generated),
+      "/project/build/l2-main.inc": Buffer.from(l2MainInclude),
+      "/project/build/l2-recipes.inc": Buffer.from(l2RecipesInclude),
+      "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir,"asminc/longbranch.mac")) },
+  });
+  for (const [extension, data] of [["bin",l2Module.raw],["map",l2Module.map],
+    ["lbl",l2Module.labels],["lst",l2Module.listing]]) writeFile(path.join(buildDirectory,`l2.${extension}`),data);
+  const l2Labels = parseViceLabels(l2Module.labels.toString());
+  const l2Used = l2Labels.get("l2_end") - 0x1900;
+  for(const [name,pin] of [["profile_after_player",0x5eef],["integration_update_enemy",0x3114],["pin_sector_reader_blank",0xa03d]]) {
+    const actual=labels.get(name) ?? (name==="pin_sector_reader_blank"?0xa03d:undefined);
+    if(actual!==pin) throw new Error(`L2 lifetime cross-link ${name} moved`);
+  }
+  const lifetimeLabels=parseViceLabels(directorModule.labels.toString());
+  if(lifetimeLabels.get("l2_disarm")!==0x8656 || lifetimeLabels.get("l2_cached_rate")!==0x86b4)
+    throw new Error("L2 resident lifetime pins moved");
+  if(lifetimeLabels.get("l2_load_guard")!==0x866c || lifetimeLabels.get("l2_valid")!==0x86b3)
+    throw new Error("L2 validity/load guard pins moved");
+  if (!Number.isInteger(l2Used) || l2Used > 1228) throw new Error(`L2 first contents ${l2Used} B exceed approved 1024 +20% STOP`);
   const overlayRuns = [{
     index: 0,
     name: "capital-slot-a",
@@ -2747,6 +2842,9 @@ async function build() {
     destination: menuOverlayAddress,
     data: Buffer.concat([menuOverlayRuntime, Buffer.alloc(11 * 128 - menuOverlayRuntime.length)]),
     file: "menu-overlay.bin",
+  }, {
+    index: OVERLAY_L2, name: "fighter-capital-l2", startSector: 251,
+    sectors: 14, destination: 0x1900, data: l2Module.raw, file: "l2.bin",
   }];
   for (const run of overlayRuns) {
     writeFile(path.join(buildDirectory, run.file), run.data);
@@ -2839,11 +2937,12 @@ async function build() {
     "; Generated by scripts/build.mjs for M5a-S2 - do not edit.",
     "; The Light kernel's entries the sector reader's stat hooks continue into,",
     "; and (audit-hardening) the disk guard's that its reads call.",
-    ...["light_publish", "guard_begin", "guard_fold", "guard_check", "capital_vector_image"].map((name) => {
+    ...["light_publish", "guard_begin", "guard_fold", "guard_check", "guard_check_inline", "guard_entry", "guard_compare", "capital_vector_image"].map((name) => {
       const address = lightKernelLabels.get(name);
       if (!Number.isInteger(address)) throw new Error(`M5a-S2: the Light kernel has no ${name}`);
       return `${name} = $${address.toString(16).toUpperCase()}`;
     }),
+    `L2_EXPECTED_FOLD = ${(guardFold(l2Module.raw).hi << 8) | guardFold(l2Module.raw).lo}`,
     `GUARD_ENTRIES = ${OVERLAY_DIRECTORY.length}`,
     `GUARD_RECORD_ENTRY = ${OVERLAY_SAVE_RECORD}`,
     "",
@@ -2870,6 +2969,15 @@ async function build() {
   });
   let sectorReaderModule = await linkSectorReader();
   let sectorReaderLabels = parseViceLabels(sectorReaderModule.labels.toString("utf8"));
+  for(const [name,pin] of [["sector_reader_blank",0xa03d], ["sector_reader_read_run_inline",0xa124],
+    ["sector_reader_report_bad_image",0xa21e]]) {
+    if(sectorReaderLabels.get(name)!==pin) throw new Error(`L2 cold cross-link ${name} moved`);
+  }
+  if (sectorReaderLabels.get("sector_reader_l2_guard") !== 0xa5e4 ||
+      lightKernelModule.raw[lightKernelLabels.get("guard_check")-lightKernelAddress] !== 0x4c ||
+      lightKernelModule.raw.readUInt16LE(lightKernelLabels.get("guard_check")-lightKernelAddress+1) !== 0xa5e4) {
+    throw new Error("L2 cold checksum cross-link does not reach the reader extension");
+  }
   if (sectorReaderLabels.get("SAVE_RECORD_SECTOR") !== saveRecordSector) {
     throw new Error("M5a-S2: the reader's SAVE_RECORD_SECTOR is not the directory's record sector");
   }
@@ -2888,6 +2996,8 @@ async function build() {
   }).join("\n") + "\n";
   writeFile(path.join(buildDirectory, "summary-main-abi.inc"), summaryMainAbiInclude);
   const summaryReaderAbiInclude = [
+    `OVERLAY_L2 = ${OVERLAY_L2}`,
+    "L2_INIT = $1900",
     ...SUMMARY_READER_SYMBOLS.map((name) => {
       const address = sectorReaderLabels.get(name);
       if (!Number.isInteger(address)) throw new Error(`M5a-S2: the reader has no ${name}`);
@@ -3957,7 +4067,7 @@ async function build() {
     if (index === OVERLAY_SAVE_RECORD) return null;
     if (index === OVERLAY_SUMMARY_CODE) return summaryCodeRun.data;
     if (index === OVERLAY_IDENTITY) return identitySectorData;
-    if (index === OVERLAY_MENU) return overlayRuns.find((run) => run.index === OVERLAY_MENU).data;
+    if (index === OVERLAY_MENU || index === OVERLAY_L2) return overlayRuns.find((run) => run.index === index).data;
     throw new Error(`audit-hardening: no run for directory entry ${index}`);
   });
   const diskGuardSums = diskGuardRuns.map((data) => (data === null ? null : guardFold(data)));
@@ -3978,7 +4088,7 @@ async function build() {
     }
     for (let offset = 0; offset < firstPass.raw.length; offset += 1) {
       if (firstPass.raw[offset] !== lightKernelModule.raw[offset] &&
-        !(offset >= table && offset < table + OVERLAY_DIRECTORY.length * 2)) {
+        !(offset >= table && offset < table + OVERLAY_L2 * 2)) {
         throw new Error(`audit-hardening: the guard's sums changed byte $${(lightKernelAddress + offset).toString(16)}`);
       }
     }
@@ -4499,6 +4609,7 @@ async function build() {
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, atr });
   const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
     ? null : measureRuntimeCycles({
+    loadPhaseModules: memory => loadCheckedL2Image(memory,atr,sectorReaderLabels),
     residentMain,
     loadAddress,
     broadsideRuntime,
@@ -4533,7 +4644,7 @@ async function build() {
       // Music v2 §1.4: the gameplay music player executes from the level
       // buffer, so the CPU harness has to place the level image's music block
       // exactly as the loader does.
-      { runAddress: gameplayMusicAddress, data: gameplayMusicModule.raw },
+      { runAddress: 0xa600, data: startLevelImage },
       // Roadmap 4.6 step 2: the Director's schedule is the level image's core
       // page, so the CPU harness has to place it exactly as the sector reader
       // does - otherwise director_c_init reads a zeroed page, refuses its
@@ -4719,7 +4830,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
+    buildVariant: longCapital ? variantDirectoryName : playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
@@ -5037,6 +5148,7 @@ async function build() {
     // M5a-S1 (docs/plans/m5-loading-boss.md §4.1): overlay slot A and the
     // capital vector table. Restore variant (b): the capital group stays in its
     // boot record; the run below is read only after another overlay used the slot.
+    l2: { address: 0x1900, endExclusive: 0x2000, capacityBytes: 1792, usedBytes: l2Used, freeBytes: 1792-l2Used, postOneReserveBytes: 256, runIndex: OVERLAY_L2, phase: "fighter/capital; overwritten by boss" },
     overlays: {
       baseSector: overlayBaseSector,
       slotA: {

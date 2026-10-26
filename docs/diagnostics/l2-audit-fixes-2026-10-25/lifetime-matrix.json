@@ -1,0 +1,242 @@
+[
+  {
+    "id": "l2-480-0-flight",
+    "rows": 480,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 1,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 4180,
+      "number": 100,
+      "fetches": 268930,
+      "data_reads": 1376991,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-480-1-flight",
+    "rows": 480,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 2,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 4002,
+      "number": 100,
+      "fetches": 249871,
+      "data_reads": 1281348,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-480-1-brake",
+    "rows": 480,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 2,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 4877,
+      "number": 100,
+      "fetches": 368416,
+      "data_reads": 1878080,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-480-0-brake",
+    "rows": 480,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 1,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 5186,
+      "number": 100,
+      "fetches": 403373,
+      "data_reads": 2054084,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-480-2-flight",
+    "rows": 480,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 2,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 3982,
+      "number": 100,
+      "fetches": 231206,
+      "data_reads": 1186596,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-480-2-brake",
+    "rows": 480,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 3,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 4741,
+      "number": 100,
+      "fetches": 338431,
+      "data_reads": 1726868,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-960-0-flight",
+    "rows": 960,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 2,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 5439,
+      "number": 100,
+      "fetches": 537325,
+      "data_reads": 2741629,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-960-0-brake",
+    "rows": 960,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 2,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 6690,
+      "number": 100,
+      "fetches": 784498,
+      "data_reads": 3973436,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-960-1-flight",
+    "rows": 960,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 2,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 5088,
+      "number": 100,
+      "fetches": 491247,
+      "data_reads": 2511985,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-960-1-brake",
+    "rows": 960,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 2,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 6171,
+      "number": 100,
+      "fetches": 709462,
+      "data_reads": 3599190,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-960-2-flight",
+    "rows": 960,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 2,
+      "respawn": 3,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 4942,
+      "number": 100,
+      "fetches": 450991,
+      "data_reads": 2310012,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  },
+  {
+    "id": "l2-960-2-brake",
+    "rows": 960,
+    "events": {
+      "checked_l2_init": 1,
+      "boss_enter": 1,
+      "capital_death_valid": 1,
+      "respawn": 3,
+      "stale_access": 0
+    },
+    "lastFightCounters": {
+      "event": "fight_frame",
+      "host": 5904,
+      "number": 100,
+      "fetches": 651088,
+      "data_reads": 3307889,
+      "stale_entries": 0,
+      "rate_reads": 0
+    }
+  }
+]

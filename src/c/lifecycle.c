@@ -718,6 +718,9 @@ void lifecycle_c_init(void)
 /* Sector-state transitions run from the reusable resident window $8602-$86F9
  * (step 4.3), which frees the contiguous HYBRID_C_EXT tail for Light-class
  * growth. The code itself is unchanged; only its placement moved. */
+extern void l2_c_enter(void);
+extern void l2_c_phase(void);
+extern void l2_space(void);
 #pragma code-name (push, "HYBRID_C_SECTOR")
 uint8_t sector_c_update_first_capital(void)
 {
@@ -749,7 +752,8 @@ uint8_t sector_c_update_first_capital(void)
          * now would stay frozen on screen for the whole fight. Wait for it:
          * the world still scrolls until the entry, it falls off the bottom as
          * it always does, and the boss sector admits no new debris. The
-         * capital does not wait - its own debris fills its corridor. */
+         * capital does not wait: carried SPACE debris clears before its first
+         * island; the capital sector itself admits no small debris (§BW). */
         if ((ENTITY_ACTIVE_MASK & ENTITY_DEBRIS_ACTIVE) != 0u) {
             return 0u;
         }
@@ -757,45 +761,19 @@ uint8_t sector_c_update_first_capital(void)
         asm_boss_enter();
     }
     CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
-    /* Roadmap 4.6 step 4: a short hull is right-aligned on the 480-row
-     * coordinate, so its traversal starts at row 480 - hull_rows. Every length
-     * is $120-$1E0, so the start is 0/64/128/192 and the high byte stays the
-     * 0 init_broadside left it. Level 1's 480 rows start at 0, as always. */
-    CORRIDOR_PHASE_LO = (uint8_t)(0xE0u - level_hull[GEOMETRY_HULL_ROWS_LO]);
+    l2_c_enter();
     DIRECTOR_STATE_FLAGS >>= 1;
     return 1u;
 }
 
 /* Roadmap 4.6 step 4: the phase starts come from the level's HullGeometry
  * page instead of constants. Module = row / 8. Because every hull is
- * right-aligned, the prow ends on module 59 and DRAIN starts on module 61 for
- * every length - the rows the prow profile, the prow collision and the drain
- * mapping in ASM were always built for. heavy_scratch holds the module: the
- * Heavy tick is frozen for the whole capital lifecycle, and the value does not
- * outlive this call. */
+ * right-aligned, the prow ends on module 119 and DRAIN starts on module 121
+ * for every length. L2 reads both bytes of the row clock and owns its module
+ * scratch; the runtime never assumes the high byte is zero. */
 void sector_c_update_capital_phase(void)
 {
-    if (CORRIDOR_PHASE_HI > 1u) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
-        return;
-    }
-    heavy_scratch = (uint8_t)(CORRIDOR_PHASE_LO >> 3);
-    if (CORRIDOR_PHASE_HI != 0u) {
-        heavy_scratch |= 0x20u;
-    }
-    if (heavy_scratch < level_hull[GEOMETRY_PHASE_AFT]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
-    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_COMBAT]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_AFT;
-    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_FORWARD]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_COMBAT;
-    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_PROW]) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_FORWARD;
-    } else if (heavy_scratch < GEOMETRY_DRAIN_MODULE) {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_PROW;
-    } else {
-        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
-    }
+    l2_c_phase();
 }
 
 void sector_c_begin_complete(void)
@@ -813,6 +791,7 @@ void sector_c_complete_scroll_tick(void)
     if (ENTITY_SPAWN_TIMER_HI == 0u) {
         CAPITAL_SECTOR_STATE = SECTOR_FIGHTER;
         ENTITY_SPAWN_TIMER_LO = ENTITY_INITIAL_DELAY;
+        l2_space();                /* capital ends: restore SPACE rate/unhook */
     }
 }
 

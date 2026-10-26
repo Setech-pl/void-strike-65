@@ -1,0 +1,12 @@
+{
+  "build": "build",
+  "records": [
+    {
+      "level": 9,
+      "lance": "swap",
+      "cases": 18528,
+      "maximum": 8446,
+      "clashes": 0
+    }
+  ]
+}

@@ -29,7 +29,7 @@ headroom in a swarm sector.
 
 ## Where the bytes go
 
-The level image is 13 sectors at `LEVEL_BUFFER = $A600` (`docs/memory-map.md`).
+The level image is 16 sectors at `LEVEL_BUFFER = $A600` (`docs/memory-map.md`).
 
 | Sector | Range | Bytes | Content |
 | ---: | --- | ---: | --- |
@@ -37,10 +37,11 @@ The level image is 13 sectors at `LEVEL_BUFFER = $A600` (`docs/memory-map.md`).
 | 6-8 | `$A880-$A9FF` | 384 | the region's hull block, 280 B + pad |
 | 9-10 | `$AA00-$AAFF` | 256 | **LevelDef core** — the page the Director reads |
 | 11-12 | `$AB00-$ABFF` | 256 | **LevelDef payload** — appearances, paths, glyphs, boss |
-| 13 | `$AC00-$AC7F` | 128 | **HullGeometry** — hull length, phase starts, module sequences |
+| 13-14 | `$AC00-$ACFF` | 256 | **HullGeometry** — 16-bit length, phase starts, two 120-module sequences |
+| 15-16 | `$AD00-$ADFF` | 256 | Island descriptors and current-sector lookup workspace |
 
 Sectors 1-8 are not authored: the music and hull blocks are generated assets at
-frozen addresses. Only sectors 9-13 come from the JSON.
+frozen addresses. Only sectors 9-16 come from the JSON.
 
 ## The file
 
@@ -86,9 +87,10 @@ numbers; world rows, not eighths.
 | `debrisDensity` | 0-255 | 0 | base debris cadence |
 | `spacingScale` | 0-255 | 0 | difficulty spacing rule selector |
 | `debugStartSector` | 0-9 | 0 | a review build (`--level=N:sector=M`) starts here; 0 in shipped data |
-| `hull.length` | 0-3 | 3 | 288 / 352 / 416 / 480 rows, one length for all three difficulties (step 4). A shorter hull is the first 8 / 16 / 24 of the 32 combat modules; engines, aft, forward and prow keep their 224 rows. It is right-aligned: it ends on row 479 like the 480-row hull, so the capital traversal is `hull_rows` rows shorter at its start |
-| `hull.rows` | one of 288, 352, 416, 480 | — | the same thing said in rows; give `length` or `rows`, not both |
-| `hull.turrets` | 3 | 3 | turret density step. Only 3 is defined: today's stations per row, over the length's eligible span - EASY / MEDIUM / HARD 5/8/11 at 288 rows, 7/10/14 at 352, 8/13/17 at 416, 10/15/20 at 480. Steps 0-2 are refused until the owner defines them |
+| `hull.length` | 0-3 | 3 | legacy aliases for 288 / 352 / 416 / 480 rows; give `length` or `rows`, never both |
+| `hull.rows` | multiple of 8, 288-960 | — | right-aligned on the universal 960-row axis; prow at 928-959, drain at 968; combat modules repeat deterministically while the 224 end-section rows remain fixed |
+| `hull.turrets` | 3 | 3 | fixed density policy: E/M/H stations per side are 7/10/14 at 352 rows, 10/15/20 at 480, 22/33/44 at 960; nested subsets with bounded gaps, unchanged difficulty fire rates. Other selector values are rejected |
+
 
 ### Sector fields
 
@@ -102,7 +104,7 @@ A level has 1-10 sectors, played in order.
 | `archetypes` | `raider`, `wingman`, `interceptor`, `bomber` | `[]` | **which enemies may appear here at all.** Every wave must name one of them, and admission refuses anything outside the mask |
 | `lights` | 0-4 | 0 | requested Light ceiling |
 | `heavies` | 0-2 | 0 | requested Heavy formation ceiling |
-| `hazards.debris` | 0-2 | 0 | debris alive at once |
+| `hazards.debris` | 0-2 | 0 | debris alive at once; admission always obeys this flag. Capital sectors require 0; SPACE retains its authored value |
 | `hazards.debrisStep` | 0-15 | 0 | debris cadence step |
 | `hazards.pickups` | boolean | false | weapon pickups may drop |
 | `hazards.broadside` | boolean | false | broadside missiles may launch |
@@ -113,7 +115,37 @@ A level has 1-10 sectors, played in order.
 
 **Capital sectors carry no enemies in 1.0** (owner decision, plan §11 item 1):
 their Light and Heavy ceilings are zero, so `archetypes` must be empty. They
-keep their hull turrets, debris and pickups.
+keep their hull turrets. Small falling debris is disabled; large islands are optional sector data. Pickups remain governed by their existing admission rules.
+
+### Capital islands (§BW)
+
+A capital sector may carry:
+
+```json
+"islands": { "pattern": "salvage", "density": "standard",
+             "firstRow": 96, "spacingRows": 112,
+             "heightRows": 48, "minGapRows": 64 }
+```
+
+All fields are optional: pattern defaults to `none`, density to `standard`, and
+placement to the numbers shown. `sparse` selects every other valid span.
+Coordinates are local to the hull start, then compiled onto the universal axis.
+Placement uses eight-row units; first row is at least 64, height is 24-48,
+minimum clear gap at least 64, spacing at least height plus gap. Every fragment
+ends at least 64 rows before hull end. The compiler rejects unknown fields,
+non-capital island declarations, nonzero capital debris, invalid placement and
+more than seven distinct span descriptors across the level (identical sets share
+records). The first production pattern cycles module wreck, turret deck and
+panel plate, alternating allied/enemy colours with existing glyphs.
+
+`assets/graphics/l2-islands.json` stores editable six-part recipes. Each part
+has independent signed left/right offsets and four surface-glyph roles; an
+empty interval is legal. This permits future asymmetric, stepped and L-shaped
+silhouettes without assuming spindle symmetry. Each recipe uses 36 bytes;
+three use 108. Runtime clamps maximum width to 6/8/10 cells on E/M/H.
+The transported `$AD80-$ADF7` workspace is zeroed and populated at capital entry;
+a single bounded module lookup selects a row part, without scanning spans per
+frame. A level uses geometry format 2; old generated images must be rebuilt.
 
 **A swarm sector has no Heavy slot**, so a Heavy archetype (`raider`,
 `bomber`) in its mask is rejected. Heavy formations belong to an elite sector.
@@ -162,8 +194,8 @@ field:
 * a wave naming an archetype outside its sector's mask;
 * a wave naming three or more distinct archetypes;
 * a boss sector that is not last, or a `boss` id with no boss sector;
-* a hull length outside 288 / 352 / 416 / 480 rows, or non-monotonic hull
-  phase thresholds;
+* a hull length outside 288-960 rows or not divisible by 8, conflicting legacy
+  aliases, unknown hull/island fields, or non-monotonic hull phase thresholds;
 * a Heavy wave escorted by a Heavy archetype, or a Light wave naming a second
   archetype at all: for a Heavy wave the second member is read at runtime as
   the LIGHT escort and admitted into a Light slot, and a Heavy record there

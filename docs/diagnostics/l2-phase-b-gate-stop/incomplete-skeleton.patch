@@ -1,0 +1,208 @@
+diff --git a/scripts/build.mjs b/scripts/build.mjs
+index f254856..a43fd96 100644
+--- a/scripts/build.mjs
++++ b/scripts/build.mjs
+@@ -598,6 +598,7 @@ const OVERLAY_DIRECTORY = Object.freeze([
+   "level summary code (M5a-S2)",
+   "disk identity (audit-hardening)",
+   "menu data (L1)",
++  "fighter/capital L2 (§BW)",
+ ]);
+ // M5a-S2 (§4.8, §6.3): the summary's runs. The code reads once per session at
+ // $0500; the art, one run per region at a fixed stride, is read first at every
+@@ -613,6 +614,7 @@ const OVERLAY_SUMMARY_CODE = 8;
+ // it, through the directory, before every PUT.
+ const OVERLAY_IDENTITY = 9;
+ const OVERLAY_MENU = 10;
++const OVERLAY_L2 = 11;
+ const identitySectorNumber = 598;
+ const summaryCodeSector = 584;
+ // Owner decision 2026-10-03: the module's home is $0500-$0BFF (1,792 B), so its
+@@ -1328,6 +1330,7 @@ function renderOverlayDirectoryInclude({ runs, slotAddress, slotBytes, vectorIma
+     `OVERLAY_SUMMARY_CODE = ${OVERLAY_SUMMARY_CODE}`,
+     `OVERLAY_IDENTITY = ${OVERLAY_IDENTITY}`,
+     `OVERLAY_MENU = ${OVERLAY_MENU}`,
++    `OVERLAY_L2 = ${OVERLAY_L2}`,
+     `CAPITAL_SLOT_A = $${slotAddress.toString(16).toUpperCase()}`,
+     `CAPITAL_SLOT_A_BYTES = ${slotBytes}`,
+     "overlay_directory:",
+@@ -2151,7 +2154,7 @@ async function build() {
+       `$${(hybridWindowEndExclusive - 1).toString(16)}`);
+   }
+   const lightKernelAddress = 0x3643;
+-  const pauseFrontendMarkersAddress = 0x3ae5;
++  const pauseFrontendMarkersAddress = 0x3ae7;
+   const directorAbiInclude =
+     renderDirectorAbiInclude(directorModule.labels, lightKernelAddress, pauseFrontendMarkersAddress);
+   writeFile(path.join(buildDirectory, "director-abi.inc"), directorAbiInclude);
+@@ -2731,6 +2734,16 @@ async function build() {
+   }
+   const capitalSlotImage = Buffer.from(broadsideRuntime.subarray(
+     slotAddress - broadsideRunAddress, slotEnd - broadsideRunAddress));
++  const l2Module = await buildResidentModule({
++    sourcePath: path.join(rootDirectory, "src/hybrid/l2.s"),
++    configPath: path.join(rootDirectory, "cfg/l2.cfg"), stem: "l2",
++    extraInputs: { "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")) },
++  });
++  for (const [extension, data] of [["bin",l2Module.raw],["map",l2Module.map],
++    ["lbl",l2Module.labels],["lst",l2Module.listing]]) writeFile(path.join(buildDirectory,`l2.${extension}`),data);
++  const l2Labels = parseViceLabels(l2Module.labels.toString());
++  const l2Used = l2Labels.get("l2_end") - 0x1900;
++  if (l2Used > 1228) throw new Error(`L2 first contents ${l2Used} B exceed approved 1024 +20% STOP`);
+   const overlayRuns = [{
+     index: 0,
+     name: "capital-slot-a",
+@@ -2747,6 +2760,9 @@ async function build() {
+     destination: menuOverlayAddress,
+     data: Buffer.concat([menuOverlayRuntime, Buffer.alloc(11 * 128 - menuOverlayRuntime.length)]),
+     file: "menu-overlay.bin",
++  }, {
++    index: OVERLAY_L2, name: "fighter-capital-l2", startSector: 251,
++    sectors: 14, destination: 0x1900, data: l2Module.raw, file: "l2.bin",
+   }];
+   for (const run of overlayRuns) {
+     writeFile(path.join(buildDirectory, run.file), run.data);
+@@ -2888,6 +2904,8 @@ async function build() {
+   }).join("\n") + "\n";
+   writeFile(path.join(buildDirectory, "summary-main-abi.inc"), summaryMainAbiInclude);
+   const summaryReaderAbiInclude = [
++    `OVERLAY_L2 = ${OVERLAY_L2}`,
++    "L2_INIT = $1900",
+     ...SUMMARY_READER_SYMBOLS.map((name) => {
+       const address = sectorReaderLabels.get(name);
+       if (!Number.isInteger(address)) throw new Error(`M5a-S2: the reader has no ${name}`);
+@@ -3957,7 +3975,7 @@ async function build() {
+     if (index === OVERLAY_SAVE_RECORD) return null;
+     if (index === OVERLAY_SUMMARY_CODE) return summaryCodeRun.data;
+     if (index === OVERLAY_IDENTITY) return identitySectorData;
+-    if (index === OVERLAY_MENU) return overlayRuns.find((run) => run.index === OVERLAY_MENU).data;
++    if (index === OVERLAY_MENU || index === OVERLAY_L2) return overlayRuns.find((run) => run.index === index).data;
+     throw new Error(`audit-hardening: no run for directory entry ${index}`);
+   });
+   const diskGuardSums = diskGuardRuns.map((data) => (data === null ? null : guardFold(data)));
+@@ -5037,6 +5055,7 @@ async function build() {
+     // M5a-S1 (docs/plans/m5-loading-boss.md §4.1): overlay slot A and the
+     // capital vector table. Restore variant (b): the capital group stays in its
+     // boot record; the run below is read only after another overlay used the slot.
++    l2: { address: 0x1900, endExclusive: 0x2000, capacityBytes: 1792, usedBytes: l2Used, freeBytes: 1792-l2Used, postOneReserveBytes: 256, runIndex: OVERLAY_L2, phase: "fighter/capital; overwritten by boss" },
+     overlays: {
+       baseSector: overlayBaseSector,
+       slotA: {
+diff --git a/src/c/director.c b/src/c/director.c
+index fb192b5..12d5c6c 100644
+--- a/src/c/director.c
++++ b/src/c/director.c
+@@ -50,8 +50,8 @@
+ #pragma rodata-name ("DIRECTOR_C_RODATA")
+ 
+ #define U8_AT(address) (*(volatile uint8_t*)(address))
+-/* Fixed tail ABI; the last MAIN link asserts LIFE_CAPSULE_BASE = $3A14. */
+-#define LIFE_CAPSULE_SPAWNED U8_AT(0x3A14u)
++/* Fixed tail ABI; the last MAIN link asserts LIFE_CAPSULE_BASE = $3A16. */
++#define LIFE_CAPSULE_SPAWNED U8_AT(0x3A16u)
+ 
+ #define DIFFICULTY_SETTING       U8_AT(0x4E70u)
+ #define FRAME_COUNTER            U8_AT(0x0086u)
+diff --git a/src/hybrid/boss-entry-pins.inc b/src/hybrid/boss-entry-pins.inc
+index f878ba1..9672e03 100644
+--- a/src/hybrid/boss-entry-pins.inc
++++ b/src/hybrid/boss-entry-pins.inc
+@@ -25,4 +25,4 @@ pin_sector_reader_failure_screen = $A0D6   ; reader
+ pin_sr_slot_a_overlaid           = $A576   ; reader
+ ; feat/interceptor-standoff: the boss entry's region read (its WARNING records
+ ; behind it went with the text screen, feat/boss-banners).
+-pin_boss_enter_read              = $39FE   ; kernel
++pin_boss_enter_read              = $3A00   ; kernel
+diff --git a/src/hybrid/level-summary.s b/src/hybrid/level-summary.s
+index 6fe5b23..cb516df 100644
+--- a/src/hybrid/level-summary.s
++++ b/src/hybrid/level-summary.s
+@@ -173,7 +173,7 @@ summary_start_game:
+         jsr guard_compare
+         bcs summary_failed
+ summary_level_loaded:                   ; the level read's end, for the harness
+-        lda MUSIC_ACTIVE                ; the head has landed: its music starts
++        jsr summary_load_l2              ; same-size replacement preserves $0B58                ; the head has landed: its music starts
+         bne summary_wait
+         jsr GAMEPLAY_MUSIC_START
+         jmp summary_wait
+@@ -1140,3 +1140,14 @@ summary_level_read:     .byte 0     ; audit-hardening: START GAME reads the leve
+ .export summary_read_record, summary_update_record, summary_wait, summary_art
+ .export summary_fire_release, summary_fire_press, summary_level_loaded
+ .export summary_boss_restore
++
++; §BW: checked reload even on a level-buffer hit; the former 17-B tail.
++summary_load_l2:
++        ldx #OVERLAY_L2
++        jsr sector_reader_read_run
++        bcc :+
++        jmp summary_failed
++:
++        jsr L2_INIT
++        lda MUSIC_ACTIVE                ; displaced instruction
++        rts
+diff --git a/src/hybrid/life-capsule-layout.inc b/src/hybrid/life-capsule-layout.inc
+index b6b7ca5..e68d60d 100644
+--- a/src/hybrid/life-capsule-layout.inc
++++ b/src/hybrid/life-capsule-layout.inc
+@@ -1,5 +1,5 @@
+ ; Frozen tail entries, shared by the Director, main and the last window link.
+-LIFE_CAPSULE_BASE = $3A14
++LIFE_CAPSULE_BASE = $3A16
+ LIFE_CAPSULE_SPAWNED = LIFE_CAPSULE_BASE
+ LIFE_CAPSULE_PICK = LIFE_CAPSULE_BASE+1
+ LIFE_CAPSULE_COLLECT = LIFE_CAPSULE_BASE+4
+@@ -9,8 +9,8 @@ LIFE_CAPSULE_SHAPES = LIFE_CAPSULE_BASE+13
+ LIFE_CAPSULE_FORCED = LIFE_CAPSULE_SHAPES+64
+ ; Existing PICKUP_CODE tail, a byte-neutral sector-entry call replacement.
+ LIFE_CAPSULE_STAR_CONTINUATION = $8B5A
+-LIFE_CAPSULE_COLOUR_OPERAND = $3AD2
++LIFE_CAPSULE_COLOUR_OPERAND = $3AD4
+ ; Checked at both independently linked ends of the boss-only spawn shortcut.
+-LIFE_CAPSULE_ORDINARY = $3A6E
++LIFE_CAPSULE_ORDINARY = $3A70
+ ; L1-02 restores the original ENTITY_CODE address profile, including this JMP.
+ LIFE_CAPSULE_SELECT_OPERAND = $984F
+diff --git a/cfg/l2.cfg b/cfg/l2.cfg
+new file mode 100644
+--- /dev/null
++++ b/cfg/l2.cfg
+@@ -0,0 +1,3 @@
++# §BW: phase-exclusive with boss slot D / boss-death; never boot transported.
++MEMORY { L2_RAM: start = $1900, size = $0700, type = rw, file = %O, fill = yes, define = yes; }
++SEGMENTS { L2: load = L2_RAM, type = rw, define = yes; }
+diff --git a/src/hybrid/l2-abi.inc b/src/hybrid/l2-abi.inc
+new file mode 100644
+--- /dev/null
++++ b/src/hybrid/l2-abi.inc
+@@ -0,0 +1,8 @@
++; §BW: valid only after a checked level-start load, before boss takeover.
++L2_INIT = $1900
++L2_DRAW_ROW = $1903
++L2_CONTACT = $1906
++L2_BRAKE = $1909
++L2_WARNING = $190C
++L2_PHASE = $190F
++L2_ENTER = $1912
+diff --git a/src/hybrid/l2.s b/src/hybrid/l2.s
+new file mode 100644
+--- /dev/null
++++ b/src/hybrid/l2.s
+@@ -0,0 +1,17 @@
++.setcpu "6502"
++.include "l2-abi.inc"
++.segment "L2"
++l2_start:
++    jmp l2_init
++    jmp l2_stub
++    jmp l2_stub
++    jmp l2_stub
++    jmp l2_stub
++    jmp l2_stub
++    jmp l2_stub
++l2_init:
++l2_stub:
++    rts
++l2_end:
++.assert l2_start = L2_INIT, lderror, "L2 ABI moved"
++.assert l2_end <= $2000, lderror, "L2 exceeds slot D phase allocation"

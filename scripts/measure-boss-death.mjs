@@ -26,6 +26,8 @@ if(process.argv.includes("--prepare")) {
   fs.writeFileSync(path.join(source,"src/voidstrike65_trace.h"),
     "#define DFTrace_Observe DFTrace_ObserveUnused\n"+normal+
     "\n#undef DFTrace_Observe\n"+fs.readFileSync("scripts/atari800-boss-death-trace.h","utf8"));
+  fs.copyFileSync("scripts/atari800-l2-lifetime.h",path.join(source,"src/voidstrike65_l2.h"));
+  fs.copyFileSync("scripts/atari800-l2-exits.h",path.join(source,"src/voidstrike65_l2_exits.h"));
   rebuildObserver();
 }
 if(process.argv.includes("--restore")) {
@@ -67,6 +69,16 @@ const last=r.modules.reduce((best,x,i)=>x.kind!=="armour" && Math.abs(x.x+x.widt
 const env={...process.env,SDL_VIDEODRIVER:"dummy",DFTRACE_FRAMES:"10000",DFTRACE_ACTIVE_FRAMES:"0",
   DFTRACE_FIRE_DELAY:"60000",DFTRACE_DIFFICULTY:"1",DFTRACE_POLICY:"neutral",DFTRACE_SESSION:"boss-death",
   DFTRACE_OUTPUT:path.join(out,"unused.csv"),DFTRACE_FRONTEND_DELAY:"300",DFDB_OUTPUT:log,DFDB_FIXTURE:fixture,DFDB_POSITION_VALUE:arg("position","65535"),DFDB_PHOTOS:scene?"0":"1",DFDB_FRAMES:String(frames),DFDB_RATES:arg("rates",""),DFDB_CROWN_DIR:arg("crown-dir","0"),DFDB_SHAKE_FORCE:arg("shake","-1")};
+env.DFDB_LEVEL_LOAD=String(reader.get("sector_reader_load"));
+env.DFDB_LEVEL_LOADED=String(summary.get("summary_level_loaded"));
+env.DFDB_L2_DONE=String(m.l2 ? summary.get("summary_load_l2")+13 : 0);
+if(m.l2){
+ env.DFTRACE_L2_LIFETIME=log+".lifetime.jsonl";
+ env.DFTRACE_L2_OWNERSHIP=path.join(dir,"l2-ownership.bin");
+ env.DFTRACE_L2_READ_RUN=String(reader.get("sector_reader_read_run"));
+ env.DFTRACE_L2_IMAGE_SUM=String(fs.readFileSync(path.join(dir,"l2.bin")).reduce((v,b)=>(Math.imul(v,33)+b)>>>0,0));
+ env.DFWATCH_OUTPUT=log+".writers.json";
+}
 if(!baseline) {
   for(const [key,name]of Object.entries({RATE_L:"_death_left_rate",RATE_R:"_death_right_rate",RATE_C:"_death_crown_rate",CROWN_DIR_ADDR:"_death_crown_dir",SHAKE_ADDR:"_death_shake"})) {
     if(death.has(name))env[`DFDB_${key}`]=`0x${death.get(name).toString(16)}`;
@@ -89,7 +101,7 @@ const pcs={MAIN:main.get("main_loop"),RESUME:main.get("resume_gameplay_dli_lo_op
 for(const [k,v]of Object.entries(pcs)) {if(!Number.isInteger(v))throw new Error(`Missing ${k}`);env[`DFDB_${k}`]=`0x${v.toString(16)}`;}
 // No writes to the candidate medium: summary persistence uses an isolated copy.
 const media=path.join(out,`r${region}${scene ? `-${scene}` : ""}.atr`);fs.copyFileSync(path.join(dir,"void-strike-65.atr"),media);
-run(path.join(source,"src/atari800"),[TARGET_MACHINE,"-pal",...atari800SioArguments(root,{realSio:false}),"-nobasic",
+run(path.join(source,"src/atari800"),[TARGET_MACHINE,"-pal",...atari800SioArguments(root,{realSio:process.argv.includes("--real-sio")}),"-nobasic",
   "-nosound","-turbo","-no-video-accel","-no-vsync",media],{env,timeout:120000});
 const result=fs.readFileSync(log,"utf8");console.log(result);
 const rows=result.trim().split("\n").map(JSON.parse);

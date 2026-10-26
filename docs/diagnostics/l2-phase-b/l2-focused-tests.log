@@ -1,0 +1,22 @@
+✔ L2 brake: exact E/M/H ramps, release, SPACE/death reset and warning slot preservation (19.231208ms)
+✔ L2 coordinates: 16-bit entry and every phase boundary through maximum drain (2193.007ms)
+✔ L2 compiler: scalable nested stations and finite sequence tables (2044.166041ms)
+✔ L2 islands: real level lookup, all row publications, cache hit/miss and both factions (65.253458ms)
+✔ L2 islands: nearest-side clamp, two HULL units, cooldown and every fine alignment (90.925792ms)
+✔ L2 island authoring rejects unsafe/unknown placements and keeps SPACE debris (2171.51025ms)
+✔ T1: the validator rejects every §5 case and warns on a cap above the subtype table (1.739667ms)
+✔ the authored level 1 compiles clean and reads back as the level it says (0.765958ms)
+✔ T2: build/level-1.bin is 13 sectors with the three LevelDef pages where the plan puts them (0.343417ms)
+✔ T2: the geometry page says 480 rows and carries today's two module sequences (0.249875ms)
+✔ the pages the plan marks unchanged are byte-identical to the image that shipped before (0.478ms)
+✔ levels:check runs the validator alone and the build compiles the authored file (0.308167ms)
+✔ step 2: the Director's schedule is the level image, and the geometry page still waits (0.642334ms)
+✔ T12: level-02.json compiles and differs from level 1 in sector count, waves and masks (14.8485ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4299.606292

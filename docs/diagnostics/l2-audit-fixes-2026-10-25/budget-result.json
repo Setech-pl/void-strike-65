@@ -1,0 +1,48 @@
+{
+  "status": "DIAGNOSTIC SIZE SKETCH; NOT INTEGRATED; NOT A MINIMUM PROOF",
+  "fragments": [
+    {
+      "name": "valid_clear",
+      "bytes": 3
+    },
+    {
+      "name": "valid_byte",
+      "bytes": 1
+    },
+    {
+      "name": "checked_init",
+      "bytes": 3
+    },
+    {
+      "name": "start_guard",
+      "bytes": 10
+    },
+    {
+      "name": "frontend_exit",
+      "bytes": 3
+    },
+    {
+      "name": "quit_exit",
+      "bytes": 3
+    },
+    {
+      "name": "load_head",
+      "bytes": 3
+    },
+    {
+      "name": "death_reload",
+      "bytes": 26
+    }
+  ],
+  "totalBytes": 52,
+  "codeBytes": 51,
+  "stateBytes": 1,
+  "capBytes": 32,
+  "excessBytes": 20,
+  "limitations": [
+    "Main/summary placement and page crossings are not validated.",
+    "L2-02 and other findings are excluded; their costs must not be hidden in this price.",
+    "Death reload changes visible latency and restores a paused screen; not smoke tested.",
+    "Additional integration bytes may be needed. No assertion or computed gate was changed."
+  ]
+}

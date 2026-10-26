@@ -5,7 +5,7 @@
 // T1 - the validator rejects every §5 case and warns on a cap above the
 //      subtype table.
 // T2 - build/level-1.bin is 13 sectors; the magic sits at $AA00; header byte 7
-//      is still 9; the geometry page says 480 rows and its sequences equal
+//      is still 9; the geometry page uses a 960-row coordinate and its sequences equal
 //      EMIT_ALLIED_SECTOR_SEQUENCE / EMIT_ENEMY_SECTOR_SEQUENCE.
 // T12 - (step 3) level-02.json compiles and differs from level 1 in sector
 //      count, waves and masks; it is the level the owner approved on
@@ -165,8 +165,8 @@ test("T1: the validator rejects every §5 case and warns on a cap above the subt
   assert.match(rejection(baseSource({ boss: 2 })), /names boss 2 but no sector has kind "boss"/);
 
   // Limit class: a hull length outside the four authored steps.
-  assert.match(rejection(baseSource({ hull: { rows: 400, turrets: 3 } })),
-    /rows is 400; the four authored hull lengths are 288, 352, 416, 480/);
+  assert.match(rejection(baseSource({ hull: { rows: 964, turrets: 3 } })),
+    /rows is 964; allowed hull lengths are multiples of eight, 288..960 rows/);
 
   // Limit class: non-monotonic phase thresholds. The thresholds are derived
   // from the hull asset's sections, so this one is pinned on the validator
@@ -322,9 +322,9 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
 // T2 - the image
 // ---------------------------------------------------------------------------
 
-test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where the plan puts them",
+test("T2: build/level-1.bin is 16 sectors with the LevelDef and island pages where the plan puts them",
   () => {
-    assert.equal(LEVEL_IMAGE_SECTORS, 13);
+    assert.equal(LEVEL_IMAGE_SECTORS, 16);
     assert.equal(levelOneImage.length, LEVEL_IMAGE_SECTORS * 128, "13 sectors of 128 B");
     const [levelOne] = manifest.sectorReader.levels;
     assert.deepEqual([levelOne.id, levelOne.sectors, levelOne.bytes],
@@ -346,13 +346,13 @@ test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where th
       [0xaa00, 0xab00, 0xac00]);
     assert.deepEqual([LEVEL_CORE_OFFSET, LEVEL_PAYLOAD_OFFSET, LEVEL_GEOMETRY_OFFSET],
       [0x400, 0x500, 0x600]);
-    assert.equal(LEVEL_GEOMETRY_OFFSET + LEVEL_GEOMETRY_BYTES, levelOneImage.length,
-      "the geometry page ends the image at $AC7F");
+    assert.equal(LEVEL_GEOMETRY_OFFSET + LEVEL_GEOMETRY_BYTES + 256, levelOneImage.length,
+      "geometry plus island extension ends at $ADFF");
 
     // The magic at $AA00 - director_c_init's fail-closed check at step 2.
     assert.equal(levelOneImage[LEVEL_CORE_OFFSET], LEVEL_CORE_MAGIC);
     assert.equal(levelOneImage[LEVEL_CORE_OFFSET] & 0xf0, 0x50, "'V' in the high nibble");
-    assert.equal(levelOneImage[LEVEL_CORE_OFFSET] & 0x0f, 1, "format 1 in the low nibble");
+    assert.equal(levelOneImage[LEVEL_CORE_OFFSET] & 0x0f, 2, "format 2 in the low nibble");
 
     // The core page agrees with the authored file.
     const compiled = compileLevelFile(levelSourcePath(1), { hullAsset });
@@ -407,23 +407,21 @@ test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where th
     assert.ok(payload.subarray(184, 194).some((byte) => byte !== 0), "level 1 grades");
   });
 
-test("T2: the geometry page says 480 rows and carries today's two module sequences", () => {
+test("T2: the geometry page uses a 960-row coordinate and carries today's two module sequences", () => {
   const geometry = levelOneImage.subarray(LEVEL_GEOMETRY_OFFSET,
     LEVEL_GEOMETRY_OFFSET + LEVEL_GEOMETRY_BYTES);
   assert.equal(geometry.readUInt16LE(GEOMETRY_OFFSET.hullRowsLo), 480,
     "level 1 keeps today's 480-row hull");
   assert.ok(HULL_ROW_STEPS.includes(480));
-  // Phase starts in modules: aft 4, combat 14, forward 46, prow 56; drain 61.
-  // The constants sector_c_update_capital_phase holds today (rows 32 / 112 /
-  // 368 / 448, drain 488) divided by the 8-row module.
+  // Right-aligned phase starts: modules64/74/106/116, drain121.
+  // Universal rows512/592/848/928 and drain968 use the full 16-bit clock.
   assert.deepEqual([...geometry.subarray(GEOMETRY_OFFSET.phaseStarts,
-    GEOMETRY_OFFSET.phaseStarts + 4)], [4, 14, 46, 56]);
+    GEOMETRY_OFFSET.phaseStarts + 4)], [64, 74, 106, 116]);
   assert.equal(geometry[GEOMETRY_OFFSET.turretDensityStep], 3);
   assert.equal(geometry[GEOMETRY_OFFSET.reserved], 0);
 
-  // The reproduction that matters for step 4: the two 60-byte sequences the
-  // page carries are the bytes BROADSIDE assembles today, read straight out of
-  // the generated include's macros.
+  // Each 120-byte page sequence contains sixty leading engine modules and
+  // the original sixty module IDs, read from the generated macros.
   const include = readText("build/capital-hulls.inc");
   const sequenceFromMacro = (name) => {
     const body = include.match(
@@ -435,13 +433,15 @@ test("T2: the geometry page says 480 rows and carries today's two module sequenc
   for (const [name, offset] of [["EMIT_ALLIED_SECTOR_SEQUENCE", GEOMETRY_OFFSET.alliedSequence],
     ["EMIT_ENEMY_SECTOR_SEQUENCE", GEOMETRY_OFFSET.enemySequence]]) {
     const expected = sequenceFromMacro(name);
-    assert.equal(expected.length, HULL_SEQUENCE_BYTES, `${name} is 60 bytes`);
+    assert.equal(expected.length,60, `${name} keeps the original 60 module IDs`);
+    const engine=name.includes("ALLIED")?defaultHullAsset().sector.engineModuleIds.get("allied"):defaultHullAsset().sector.engineModuleIds.get("enemy");
+    assert.deepEqual([...geometry.subarray(offset,offset+60)],Array(60).fill(engine));
     assert.equal(Buffer.compare(
-      geometry.subarray(offset, offset + HULL_SEQUENCE_BYTES), expected), 0,
+      geometry.subarray(offset+60, offset + HULL_SEQUENCE_BYTES), expected), 0,
     `the geometry page does not carry ${name} byte for byte`);
   }
-  assert.equal(GEOMETRY_OFFSET.enemySequence + HULL_SEQUENCE_BYTES, LEVEL_GEOMETRY_BYTES,
-    "the two sequences end the 128-byte page");
+  assert.equal(GEOMETRY_OFFSET.enemySequence + HULL_SEQUENCE_BYTES + 8, LEVEL_GEOMETRY_BYTES,
+    "the two 120-byte sequences leave eight reserved bytes at the end of the 256-byte page");
 });
 
 // ---------------------------------------------------------------------------
@@ -609,7 +609,7 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // runtime reads the field as a nonzero test (HAZARD_DEBRIS_MASK) and no
     // plan step makes the count live, so 2 would have said something the game
     // does not do.
-    assert.deepEqual(two.sectors.map((sector) => sector.debris), [1, 1, 1, 1, 1, 1]);
+    assert.deepEqual(two.sectors.map((sector) => sector.debris), [1, 1, 0, 1, 1, 1]);
 
     // Owner decision, 2026-09-30: everything else as drafted - the capital on
     // authored row 1,120 (level 1: 272) and sector 6 at 1,152 rows.

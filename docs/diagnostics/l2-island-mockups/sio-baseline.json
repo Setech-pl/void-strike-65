@@ -1,0 +1,863 @@
+{
+  "atr": "dist/void-strike-65.atr",
+  "atr_sha256": "410652973ed76f0033f0fbff84c17a484104f95ff97cbcc1d9eff9e6cb996ae7",
+  "probe": null,
+  "frames": 4500,
+  "start_game": true,
+  "machine": "-xl",
+  "results": [
+    {
+      "id": "patch-nobasic",
+      "patch": true,
+      "basic": false,
+      "host_seconds": 0.4,
+      "stop": {
+        "reason": "pc",
+        "pc": "$5EA9",
+        "label": "main_loop",
+        "frame": 909,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 46,
+      "read_commands": 46,
+      "sectors_read": 46,
+      "highest_sector": 606,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 211,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 242,
+        "show_loader": 300,
+        "enter_main_menu": 556,
+        "sector_reader_quiesce_done": 597,
+        "frontend_input_poll": 598,
+        "sector_reader_load": 692,
+        "start_gameplay": 906,
+        "main_loop": 909
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 242,
+          "skctl": "$03"
+        },
+        {
+          "label": "show_loader",
+          "frame": 300,
+          "skctl": "$03"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 556,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 597,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 598,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 599,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 600,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 601,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 602,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 603,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 604,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 605,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 606,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 660,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 688,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 692,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_load",
+          "frame": 692,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 722,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 741,
+          "skctl": "$03"
+        },
+        {
+          "label": "start_gameplay",
+          "frame": 906,
+          "skctl": "$03"
+        },
+        {
+          "label": "main_loop",
+          "frame": 909,
+          "skctl": "$03"
+        }
+      ],
+      "levelTransactions": [
+        {
+          "sector": 325,
+          "firstFrame": 692,
+          "lastFrame": 696
+        },
+        {
+          "sector": 326,
+          "firstFrame": 696,
+          "lastFrame": 700
+        },
+        {
+          "sector": 327,
+          "firstFrame": 700,
+          "lastFrame": 703
+        },
+        {
+          "sector": 328,
+          "firstFrame": 703,
+          "lastFrame": 707
+        },
+        {
+          "sector": 329,
+          "firstFrame": 707,
+          "lastFrame": 711
+        },
+        {
+          "sector": 330,
+          "firstFrame": 711,
+          "lastFrame": 715
+        },
+        {
+          "sector": 331,
+          "firstFrame": 715,
+          "lastFrame": 719
+        },
+        {
+          "sector": 332,
+          "firstFrame": 719,
+          "lastFrame": 722
+        },
+        {
+          "sector": 320,
+          "firstFrame": 722,
+          "lastFrame": 726
+        },
+        {
+          "sector": 321,
+          "firstFrame": 726,
+          "lastFrame": 730
+        },
+        {
+          "sector": 322,
+          "firstFrame": 730,
+          "lastFrame": 734
+        },
+        {
+          "sector": 323,
+          "firstFrame": 734,
+          "lastFrame": 737
+        },
+        {
+          "sector": 324,
+          "firstFrame": 737,
+          "lastFrame": 741
+        }
+      ],
+      "levelWireFrames": 50,
+      "rawLogSha256": "c01072637622938c8ddf43d6c45f2d2fe19264cce59468709e3638e4df442e54"
+    },
+    {
+      "id": "patch-basic",
+      "patch": true,
+      "basic": true,
+      "host_seconds": 0.4,
+      "stop": {
+        "reason": "pc",
+        "pc": "$5EA9",
+        "label": "main_loop",
+        "frame": 900,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 46,
+      "read_commands": 46,
+      "sectors_read": 46,
+      "highest_sector": 606,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 211,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 233,
+        "show_loader": 291,
+        "enter_main_menu": 547,
+        "sector_reader_quiesce_done": 588,
+        "frontend_input_poll": 589,
+        "sector_reader_load": 683,
+        "start_gameplay": 897,
+        "main_loop": 900
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 233,
+          "skctl": "$03"
+        },
+        {
+          "label": "show_loader",
+          "frame": 291,
+          "skctl": "$03"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 547,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 588,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 589,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 590,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 591,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 592,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 593,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 594,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 595,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 596,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 597,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 651,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 679,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 683,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_load",
+          "frame": 683,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 713,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 732,
+          "skctl": "$03"
+        },
+        {
+          "label": "start_gameplay",
+          "frame": 897,
+          "skctl": "$03"
+        },
+        {
+          "label": "main_loop",
+          "frame": 900,
+          "skctl": "$03"
+        }
+      ],
+      "levelTransactions": [
+        {
+          "sector": 325,
+          "firstFrame": 683,
+          "lastFrame": 687
+        },
+        {
+          "sector": 326,
+          "firstFrame": 687,
+          "lastFrame": 691
+        },
+        {
+          "sector": 327,
+          "firstFrame": 691,
+          "lastFrame": 694
+        },
+        {
+          "sector": 328,
+          "firstFrame": 694,
+          "lastFrame": 698
+        },
+        {
+          "sector": 329,
+          "firstFrame": 698,
+          "lastFrame": 702
+        },
+        {
+          "sector": 330,
+          "firstFrame": 702,
+          "lastFrame": 706
+        },
+        {
+          "sector": 331,
+          "firstFrame": 706,
+          "lastFrame": 710
+        },
+        {
+          "sector": 332,
+          "firstFrame": 710,
+          "lastFrame": 713
+        },
+        {
+          "sector": 320,
+          "firstFrame": 713,
+          "lastFrame": 717
+        },
+        {
+          "sector": 321,
+          "firstFrame": 717,
+          "lastFrame": 721
+        },
+        {
+          "sector": 322,
+          "firstFrame": 721,
+          "lastFrame": 725
+        },
+        {
+          "sector": 323,
+          "firstFrame": 725,
+          "lastFrame": 728
+        },
+        {
+          "sector": 324,
+          "firstFrame": 728,
+          "lastFrame": 732
+        }
+      ],
+      "levelWireFrames": 50,
+      "rawLogSha256": "882bbdfe61d172f1ead59a2ddbfbb29b7487cbe1e311b49e510da9548175a09f"
+    },
+    {
+      "id": "nopatch-nobasic",
+      "patch": false,
+      "basic": false,
+      "host_seconds": 0.53,
+      "stop": {
+        "reason": "pc",
+        "pc": "$5EA9",
+        "label": "main_loop",
+        "frame": 1695,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 257,
+      "read_commands": 256,
+      "sectors_read": 256,
+      "highest_sector": 606,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 211,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 1028,
+        "show_loader": 1086,
+        "enter_main_menu": 1342,
+        "sector_reader_quiesce_done": 1383,
+        "frontend_input_poll": 1384,
+        "sector_reader_load": 1478,
+        "start_gameplay": 1692,
+        "main_loop": 1695
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 1028,
+          "skctl": "$13"
+        },
+        {
+          "label": "show_loader",
+          "frame": 1086,
+          "skctl": "$13"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 1342,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1383,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1384,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1385,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1386,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1387,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1388,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1389,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1390,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1391,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1392,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1446,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1474,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1478,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_load",
+          "frame": 1478,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1508,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1527,
+          "skctl": "$03"
+        },
+        {
+          "label": "start_gameplay",
+          "frame": 1692,
+          "skctl": "$03"
+        },
+        {
+          "label": "main_loop",
+          "frame": 1695,
+          "skctl": "$03"
+        }
+      ],
+      "levelTransactions": [
+        {
+          "sector": 325,
+          "firstFrame": 1478,
+          "lastFrame": 1482
+        },
+        {
+          "sector": 326,
+          "firstFrame": 1482,
+          "lastFrame": 1486
+        },
+        {
+          "sector": 327,
+          "firstFrame": 1486,
+          "lastFrame": 1489
+        },
+        {
+          "sector": 328,
+          "firstFrame": 1489,
+          "lastFrame": 1493
+        },
+        {
+          "sector": 329,
+          "firstFrame": 1493,
+          "lastFrame": 1497
+        },
+        {
+          "sector": 330,
+          "firstFrame": 1497,
+          "lastFrame": 1501
+        },
+        {
+          "sector": 331,
+          "firstFrame": 1501,
+          "lastFrame": 1505
+        },
+        {
+          "sector": 332,
+          "firstFrame": 1505,
+          "lastFrame": 1508
+        },
+        {
+          "sector": 320,
+          "firstFrame": 1508,
+          "lastFrame": 1512
+        },
+        {
+          "sector": 321,
+          "firstFrame": 1512,
+          "lastFrame": 1516
+        },
+        {
+          "sector": 322,
+          "firstFrame": 1516,
+          "lastFrame": 1520
+        },
+        {
+          "sector": 323,
+          "firstFrame": 1520,
+          "lastFrame": 1523
+        },
+        {
+          "sector": 324,
+          "firstFrame": 1523,
+          "lastFrame": 1527
+        }
+      ],
+      "levelWireFrames": 50,
+      "rawLogSha256": "a31eda07b69a30fd77bf8943245b04c34acc9a2eabc0dfe960590d527cfbd5c7"
+    },
+    {
+      "id": "nopatch-basic",
+      "patch": false,
+      "basic": true,
+      "host_seconds": 0.55,
+      "stop": {
+        "reason": "pc",
+        "pc": "$5EA9",
+        "label": "main_loop",
+        "frame": 1686,
+        "skctl": "$03",
+        "audctl": "$00"
+      },
+      "command_frames": 257,
+      "read_commands": 256,
+      "sectors_read": 256,
+      "highest_sector": 606,
+      "sectors_retried": 0,
+      "naks": 0,
+      "errors": 0,
+      "no_reply": 0,
+      "complete_without_data_frame": 0,
+      "first_sector_without_data_frame": null,
+      "siov_calls": 211,
+      "siov_read_calls_dstats_not_40": 0,
+      "first_siov_dstats_not_40": null,
+      "milestones": {
+        "start": 1019,
+        "show_loader": 1077,
+        "enter_main_menu": 1333,
+        "sector_reader_quiesce_done": 1374,
+        "frontend_input_poll": 1375,
+        "sector_reader_load": 1469,
+        "start_gameplay": 1683,
+        "main_loop": 1686
+      },
+      "skctl_at": [
+        {
+          "label": "start",
+          "frame": 1019,
+          "skctl": "$13"
+        },
+        {
+          "label": "show_loader",
+          "frame": 1077,
+          "skctl": "$13"
+        },
+        {
+          "label": "enter_main_menu",
+          "frame": 1333,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1374,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1375,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1376,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1377,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1378,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1379,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1380,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1381,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1382,
+          "skctl": "$03"
+        },
+        {
+          "label": "frontend_input_poll",
+          "frame": 1383,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1437,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1465,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1469,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_load",
+          "frame": 1469,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1499,
+          "skctl": "$03"
+        },
+        {
+          "label": "sector_reader_quiesce_done",
+          "frame": 1518,
+          "skctl": "$03"
+        },
+        {
+          "label": "start_gameplay",
+          "frame": 1683,
+          "skctl": "$03"
+        },
+        {
+          "label": "main_loop",
+          "frame": 1686,
+          "skctl": "$03"
+        }
+      ],
+      "levelTransactions": [
+        {
+          "sector": 325,
+          "firstFrame": 1469,
+          "lastFrame": 1473
+        },
+        {
+          "sector": 326,
+          "firstFrame": 1473,
+          "lastFrame": 1477
+        },
+        {
+          "sector": 327,
+          "firstFrame": 1477,
+          "lastFrame": 1480
+        },
+        {
+          "sector": 328,
+          "firstFrame": 1480,
+          "lastFrame": 1484
+        },
+        {
+          "sector": 329,
+          "firstFrame": 1484,
+          "lastFrame": 1488
+        },
+        {
+          "sector": 330,
+          "firstFrame": 1488,
+          "lastFrame": 1492
+        },
+        {
+          "sector": 331,
+          "firstFrame": 1492,
+          "lastFrame": 1496
+        },
+        {
+          "sector": 332,
+          "firstFrame": 1496,
+          "lastFrame": 1499
+        },
+        {
+          "sector": 320,
+          "firstFrame": 1499,
+          "lastFrame": 1503
+        },
+        {
+          "sector": 321,
+          "firstFrame": 1503,
+          "lastFrame": 1507
+        },
+        {
+          "sector": 322,
+          "firstFrame": 1507,
+          "lastFrame": 1511
+        },
+        {
+          "sector": 323,
+          "firstFrame": 1511,
+          "lastFrame": 1514
+        },
+        {
+          "sector": 324,
+          "firstFrame": 1514,
+          "lastFrame": 1518
+        }
+      ],
+      "levelWireFrames": 50,
+      "rawLogSha256": "08c2d43b7c130afdd34cb92b59703f7482d7a0104a17f256f6a15ca65738b5cb"
+    }
+  ],
+  "note": "MEASURED unchanged main campaign; patch changes OS SIOV at boot, transition reader always direct POKEY. menu mark is entry, input poll is readiness. Frames include endpoint frames."
+}

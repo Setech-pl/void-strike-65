@@ -68,6 +68,7 @@ let atFirstCodeSector = null;
 function bossEntered() {
   if (entry === null) {
     entry = runBossEntry({
+      prepare: memory => { const region=Number(process.env.VS65_POST_BOSS_REGION ?? 1); memory[0xa603]=1+3*(region-1); },
       onCommand: (sector, cpu) => {
         if (sector === 528 && atFirstCodeSector === null) {
           atFirstCodeSector = Uint8Array.from(cpu.memory);
@@ -328,8 +329,17 @@ test("the world scroll stops in the boss sector and runs again after the START G
     assert.equal(rotations, 0, `difficulty ${difficulty}: the ring rotated in the boss sector`);
     assert.equal(prepares, 200, "the band's motion runs every frame");
   }
-  // Q-S4: the summary's START GAME step puts every patched setting back.
-  call(memory, label("summary", "summary_boss_restore"));
+  // Follow the real reader -> summary -> checked L2 load -> INIT path, as
+  // Q-S4 does. Keep checking the legacy rate-table restore; L2 INIT now
+  // publishes the resident numerator used by the world and pickups.
+  const reload = cpuOver(new Drive({ trig: (frame) => Math.floor(frame / 4) % 8 < 4 }), memory);
+  reload.sp = 0xff;
+  reload.pc = 0xa000;
+  memory[label("main", "game_state")] = 1;
+  assert.equal(runUntil(reload, {
+    start: label("main", "start_gameplay"),
+    failure: label("reader", "sector_reader_failure_screen"),
+  }, { maxSteps: 200_000_000 }), "start", "START GAME did not reach the game");
   const shipped = bossGateMemory();
   for (let offset = 0; offset < 6; offset += 1) {
     const address = label("main", "world_scroll_rates") + offset;
@@ -339,9 +349,15 @@ test("the world scroll stops in the boss sector and runs again after the START G
     assert.equal(memory[label("main", name)], shipped[label("main", name)], name);
   }
   memory[label("main", "DIFFICULTY_SETTING")] = 1;
-  // ... and the reader's restore puts back the capital code and its table.
-  memory.set(readBuild("overlay-capital-slot-a.bin"), SLOT.address);
-  memory.set(readBuild("light-kernel.bin").subarray(15, 51), vector("INIT"));
+  assert.deepEqual(memory.slice(0x1900, 0x2000), Uint8Array.from(readBuild("l2.bin")),
+    "START GAME did not restore the checked L2 image");
+  assert.deepEqual(memory.slice(SLOT.address, SLOT.endExclusive),
+    Uint8Array.from(readBuild("overlay-capital-slot-a.bin")), "capital code not restored");
+  assert.deepEqual(memory.slice(vector("INIT"), vector("INIT") + 36),
+    Uint8Array.from(readBuild("light-kernel.bin").subarray(15, 51)), "capital vectors not restored");
+  call(memory, label("main", "profile_after_player"), {
+    stopAt: [label("main", "profile_after_enemy")],
+  });
   const { rotations } = runStarfield(memory, 200);
   assert.ok(rotations >= 9, `the world did not scroll again (${rotations} rotations in 200 frames)`);
 });
@@ -677,8 +693,12 @@ test("Q-S4: START GAME after a game ended inside the boss sector restores slot A
       `$${register.toString(16)} not zeroed`);
   }
   assert.equal(memory[label("reader", "sr_slot_a_overlaid")], 0);
+  assert.deepEqual(memory.slice(0x1900,0x2000),Uint8Array.from(readBuild("l2.bin")),"checked L2 image not restored");
+  assert.equal(memory[label("main","profile_after_player")+1]|memory[label("main","profile_after_player")+2]<<8,label("main","integration_update_enemy"),"L2 INIT must leave the SPACE hook resident");
+  assert.equal(memory[0x86b3],1,"only checked load + INIT marks L2 valid");
   // The level is read again in full: the band had overwritten its hull block.
-  assert.deepEqual([...memory.subarray(0xa600, 0xa600 + 13 * 128)], [...readBuild("level-1.bin")]);
+  const levelImage=readBuild(`level-${manifest.sectorReader.levels[0].id}.bin`);
+  assert.deepEqual([...memory.subarray(0xa600, 0xa600 + levelImage.length)], [...levelImage]);
   // CHBASE: the summary's own page while START GAME runs, never the boss's.
   const chbase = writes.filter(([address]) => address === 0xd409).map(([, value]) => value);
   assert.ok(chbase.length > 0 && !chbase.includes(0x0c), "the START GAME path wrote the boss's charset page");

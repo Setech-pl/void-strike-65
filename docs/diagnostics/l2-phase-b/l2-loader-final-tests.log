@@ -1,0 +1,18 @@
+✔ no segment of any link reaches $0C00-$1FFF except the boss's own homes; only slot D's reach $1900-$1FFF (1.635875ms)
+✔ no cfg memory area reaches the claim except boss.cfg's slot C, scratch and slot D (0.61575ms)
+✔ main.s enters the reader by constant, and START GAME costs MAIN nothing (1.892125ms)
+✔ the run read at $A006 lands the capital restore run in slot A byte for byte (6.692375ms)
+✔ L1 menu run reads eleven whole checked sectors and rejects changed data (8.495125ms)
+✔ a directory entry the build left empty is rejected without touching SIO (0.121ms)
+✔ START GAME after an overlay restores slot A and the vector table before the level (28.151ms)
+✔ START GAME without an overlay sends no restore frame (18.986541ms)
+✔ L2 option A cross-link preserves MAIN/LIFE and checks fourteen sectors (5.769833ms)
+✔ L2 START GAME reloads on a resident level hit and rejects corrupt run before gameplay (30.0885ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 157.824375

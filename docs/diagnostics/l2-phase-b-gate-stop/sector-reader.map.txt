@@ -1,0 +1,30 @@
+Modules list:
+-------------
+sector-reader.o:
+    READER_ZP         Offs=000000  Size=000002  Align=00001  Fill=0000
+    READER_BSS        Offs=000000  Size=000015  Align=00001  Fill=0000
+    SECTOR_READER     Offs=000000  Size=0005E4  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+READER_ZP             0000A0  0000A1  000002  00001
+SECTOR_READER         00A000  00A5E3  0005E4  00001
+READER_BSS            00BC00  00BC14  000015  00001
+
+
+Exports list by name:
+---------------------
+
+
+
+Exports list by value:
+----------------------
+
+
+
+Imports list:
+-------------
+

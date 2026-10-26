@@ -1,0 +1,372 @@
+{
+  "l2": {
+    "address": 6400,
+    "endExclusive": 8192,
+    "capacityBytes": 1792,
+    "usedBytes": 1047,
+    "freeBytes": 745,
+    "postOneReserveBytes": 256,
+    "runIndex": 11,
+    "phase": "fighter/capital; overwritten by boss"
+  },
+  "reader": {
+    "address": 40960,
+    "bytes": 1529,
+    "capacityBytes": 1536,
+    "freeBytes": 7,
+    "transport": "own DFMC record, RAW, direct landing at $A000",
+    "levelBuffer": {
+      "address": 42496,
+      "capacityBytes": 2048,
+      "sectors": 16
+    },
+    "levels": [
+      {
+        "id": 1,
+        "startSector": 320,
+        "sectors": 16,
+        "bytes": 2048,
+        "file": "level-1.bin",
+        "origin": "read over SIO at START GAME"
+      }
+    ],
+    "overlayDirectory": {
+      "address": 42408,
+      "entries": 12,
+      "bytes": 60,
+      "names": [
+        "capital slot A restore (M5a-S1)",
+        "boss code (M5b)",
+        "boss region 1 (M5b)",
+        "boss region 2 (M5b)",
+        "boss region 3 (M5b)",
+        "boss region 4 (M5b)",
+        "hangar / summary art (M5a-S2)",
+        "scores / save record (M5a-S2)",
+        "level summary code (M5a-S2)",
+        "disk identity (audit-hardening)",
+        "menu data (L1)",
+        "fighter/capital L2 (\u00a7BW)"
+      ]
+    },
+    "slotAOverlaidFlag": 42358,
+    "summaryResidentFlag": 42359
+  },
+  "summary_code": {
+    "address": 1280,
+    "bytes": 1792,
+    "endExclusive": 3072,
+    "capacityBytes": 1792,
+    "freeBytes": 0,
+    "maxSectors": 14,
+    "startSector": 584,
+    "sectors": 14,
+    "file": "level-summary.bin",
+    "displayList": "000B58"
+  },
+  "disk_guard": {
+    "address": 14713,
+    "bytes": 97,
+    "record": "the Light kernel's DFMC record (owner Q2: +1 extension sector)",
+    "identity": {
+      "sector": 598,
+      "directoryEntry": 9,
+      "block": "56533635bbea",
+      "magic": "VS65",
+      "layoutId": 60091,
+      "layout": {
+        "levelBaseSector": 320,
+        "levelBufferSectors": 16,
+        "overlayBaseSector": 512,
+        "identitySector": 598,
+        "saveRecordSector": 599,
+        "summaryCodeSector": 584,
+        "summaryCodeMaxSectors": 14,
+        "summaryArtBaseSector": 600,
+        "summaryArtSectors": 7,
+        "bossReservationSector": 528,
+        "bossReservationSectors": 56,
+        "bossRegionBaseSector": 632,
+        "bossRegionSectors": 16,
+        "bossRegionCount": 4,
+        "bossBlockBaseSector": 696,
+        "bossBlockSectors": 4,
+        "bossBannerBaseSector": 280,
+        "bossBannerSectors": 10,
+        "bossLanceBaseSector": 712,
+        "bossLanceSectors": 8,
+        "bossDeathBaseSector": 720,
+        "bossDeathSectors": 32,
+        "atrSectors": 1040
+      }
+    },
+    "fold": "per accepted sector: a += its SIO carry-wrap sum; b += a + carry (16-bit)",
+    "directorySums": [
+      {
+        "index": 0,
+        "name": "capital slot A restore (M5a-S1)",
+        "expected": "$4ECB"
+      },
+      {
+        "index": 1,
+        "name": "boss code (M5b)",
+        "expected": "$2174"
+      },
+      {
+        "index": 2,
+        "name": "boss region 1 (M5b)",
+        "expected": "$FD7F"
+      },
+      {
+        "index": 3,
+        "name": "boss region 2 (M5b)",
+        "expected": "$F778"
+      },
+      {
+        "index": 4,
+        "name": "boss region 3 (M5b)",
+        "expected": "$EF70"
+      },
+      {
+        "index": 5,
+        "name": "boss region 4 (M5b)",
+        "expected": "$9112"
+      },
+      {
+        "index": 6,
+        "name": "hangar / summary art (M5a-S2)",
+        "expected": "$2223"
+      },
+      {
+        "index": 7,
+        "name": "scores / save record (M5a-S2)",
+        "expected": "never checked"
+      },
+      {
+        "index": 8,
+        "name": "level summary code (M5a-S2)",
+        "expected": "$BDB8"
+      },
+      {
+        "index": 9,
+        "name": "disk identity (audit-hardening)",
+        "expected": "$BBBB"
+      },
+      {
+        "index": 10,
+        "name": "menu data (L1)",
+        "expected": "$6A82"
+      },
+      {
+        "index": 11,
+        "name": "fighter/capital L2 (\u00a7BW)",
+        "expected": "$B8AA"
+      }
+    ],
+    "bossHeadSums": [
+      "$2D5F",
+      "$E710",
+      "$CD0B",
+      "$F634"
+    ],
+    "summaryArtSums": [
+      "$2223",
+      "$B6DE",
+      "$540C",
+      "$D269"
+    ],
+    "summaryLevelSums": [
+      "$3084",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "computed_timing": {
+    "cpuDmaOff": {
+      "optionPollCycles": 13,
+      "heaviestActiveFrameCycles": 16458,
+      "heaviestMainLoopCycles": 16471,
+      "gameplayMusicTickMinimumCycles": 118,
+      "gameplayMusicTickMaximumCycles": 336,
+      "procedures": {
+        "build_playfield_display_list": 1494,
+        "entity_collide_player": 1732,
+        "entity_damage_applied": 264,
+        "entity_despawn_debris": 56,
+        "entity_effects_erase": 246,
+        "entity_effects_render": 1129,
+        "entity_effects_update": 2193,
+        "entity_player_fighter_projectile_hits_debris": 47,
+        "entity_player_fighter_projectile_target": 1092,
+        "entity_spawn_debris": 190,
+        "erase_fighter_projectile_overlays": 446,
+        "erase_interactive_entity_overlays": 97,
+        "erase_transient_effect_overlays": 228,
+        "handle_collisions": 3867,
+        "handle_player_hull_contact": 538,
+        "interceptor_projectile_hits_player": 49,
+        "music_tick_gameplay": 336,
+        "player_fighter_projectile_hits_enemy": 239,
+        "publish_dynamic_near_star_phase": 40,
+        "read_input": 667,
+        "render_capital_explosions": 41,
+        "render_fighter_projectile_overlays": 2177,
+        "render_interactive_entity_overlays": 499,
+        "render_shared_fighter_explosions": 946,
+        "render_transient_effect_overlays": 1120,
+        "resolve_allied_sector_row": 144,
+        "resolve_enemy_sector_row": 144,
+        "rotate_playfield_rows": 1610,
+        "scroll_hull_columns": 2750,
+        "scroll_world_columns": 2229,
+        "set_gameplay_row_ptr": 32,
+        "spawn_breakup_effects_at": 371,
+        "spawn_debris_destruction_effects": 481,
+        "spawn_interceptor_breakup_effects": 751,
+        "tick_capital_explosions": 41,
+        "tick_launch_flashes": 55,
+        "tick_shared_fighter_explosions": 551,
+        "update_broadside": 2446,
+        "update_enemy": 2329,
+        "update_enemy_weapon": 437,
+        "update_fighter_projectiles": 2085,
+        "update_player_death": 1335,
+        "update_player_fighter_weapon": 274,
+        "update_sound": 137,
+        "update_starfield": 5522,
+        "update_transient_effects": 420,
+        "update_white_starfield_phase": 107,
+        "visible_hull_sector_row": 72,
+        "weapon_pickup_record_qualified_kill": 204
+      }
+    },
+    "estimatedAdditive": {
+      "mainLoopCycles": 16471,
+      "dma": {
+        "refresh": 2808,
+        "playerMissile": 1200,
+        "screenAndFont": 8448,
+        "displayList": 75,
+        "total": 12531
+      },
+      "dli": {
+        "bodyCycles": [
+          77,
+          50
+        ],
+        "nmiEntryCycles": 14,
+        "cpuCycles": 141,
+        "maximumWsyncStallCycles": 228,
+        "conservativeCycles": 369
+      },
+      "cycles": 29371,
+      "classification": "diagnostic estimate only; not a measured PAL frame or physical headroom"
+    },
+    "protectedSegments": [
+      {
+        "name": "CODE",
+        "bytes": 4464,
+        "featureStartBytes": 3885,
+        "featureDeltaBytes": 579,
+        "acceptedMaximumBytes": 4653,
+        "reservedMaximumBytes": null,
+        "freeReservedBytes": null
+      },
+      {
+        "name": "RODATA",
+        "bytes": 3232,
+        "featureStartBytes": 4255,
+        "featureDeltaBytes": -1023,
+        "acceptedMaximumBytes": 5023,
+        "reservedMaximumBytes": null,
+        "freeReservedBytes": null
+      },
+      {
+        "name": "MAIN",
+        "bytes": 7696,
+        "featureStartBytes": 8140,
+        "featureDeltaBytes": -444,
+        "acceptedMaximumBytes": 8192,
+        "reservedMaximumBytes": 8192,
+        "freeReservedBytes": 496
+      },
+      {
+        "name": "PROJECTILES",
+        "bytes": 190,
+        "featureStartBytes": 202,
+        "featureDeltaBytes": -12,
+        "acceptedMaximumBytes": 298,
+        "reservedMaximumBytes": 298,
+        "freeReservedBytes": 108
+      },
+      {
+        "name": "STARFIELD",
+        "bytes": 1428,
+        "featureStartBytes": 2263,
+        "featureDeltaBytes": -835,
+        "acceptedMaximumBytes": 2348,
+        "reservedMaximumBytes": 2348,
+        "freeReservedBytes": 920
+      },
+      {
+        "name": "BROADSIDE",
+        "bytes": 6653,
+        "featureStartBytes": 6483,
+        "featureDeltaBytes": 170,
+        "acceptedMaximumBytes": 6656,
+        "reservedMaximumBytes": 6656,
+        "freeReservedBytes": 3
+      },
+      {
+        "name": "A2_KERNEL",
+        "bytes": 237,
+        "featureStartBytes": 0,
+        "featureDeltaBytes": 237,
+        "acceptedMaximumBytes": 256,
+        "reservedMaximumBytes": 256,
+        "freeReservedBytes": 19
+      },
+      {
+        "name": "ENTITY_STATE",
+        "bytes": 256,
+        "featureStartBytes": 256,
+        "featureDeltaBytes": 0,
+        "acceptedMaximumBytes": 256,
+        "reservedMaximumBytes": 256,
+        "freeReservedBytes": 0
+      },
+      {
+        "name": "ENTITY_CODE",
+        "bytes": 3161,
+        "featureStartBytes": 714,
+        "featureDeltaBytes": 2447,
+        "acceptedMaximumBytes": 1482,
+        "reservedMaximumBytes": 3840,
+        "freeReservedBytes": 679
+      },
+      {
+        "name": "PICKUP_CODE",
+        "bytes": 1002,
+        "featureStartBytes": 0,
+        "featureDeltaBytes": 1002,
+        "acceptedMaximumBytes": 2048,
+        "reservedMaximumBytes": 2048,
+        "freeReservedBytes": 1046
+      }
+    ]
+  },
+  "warning": "Computed CPU and additive diagnostic only; not native wall timing. Release evidence pending."
+}

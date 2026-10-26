@@ -148,6 +148,7 @@ function makeMachine({
   directorRuntime,
   directorRunAddress,
   directorAdditionalSegments = [],
+  loadPhaseModules = null,
   capitalPlayerCollisionRuntime,
   capitalPlayerCollisionRunAddress,
   labels,
@@ -169,6 +170,7 @@ function makeMachine({
     memory.set(capitalPlayerCollisionRuntime, capitalPlayerCollisionRunAddress);
   }
 
+  loadPhaseModules?.(memory);
   const io = {
     stick: 0x0f,
     trigger: 1,

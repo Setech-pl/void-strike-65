@@ -4155,7 +4155,178 @@ Merge/push is authorized after passing normal builds on the branch and main.
 Before v0.4.0, triage the remaining pre-existing test failures as stale
 validators versus real defects; STATUS records the owner's pre-release debt.
 
-**Next free decision section: §BW.**
+## BW. Capital sector: islands, brake, sector length (2026-10-25)
+
+Session: Codex. Owner decisions after the throwaway
+[P1–P5 / brake spike](audits/2026-10-25-spike-nacelles.md), branch
+`codex/spike-nacelles`, report HEAD `cdd08e7`. The report is preserved unchanged;
+its older pending-smoke wording describes the spike checkpoint. These decisions
+record the owner's subsequent smoke, not production acceptance or a merge of
+spike code. Production integration is planned in [L2 Phase A](plans/l2-phase-module.md).
+
+### BW.1 Nacelles as obstacles rejected
+
+P1–P3 (at most two extra columns) leave an 18–21-cell channel; a centred ship
+never has to leave it. P4's deep alternating geometry is also rejected:
+
+| P4 extreme (spike geometry) | HPOS |
+| --- | ---: |
+| Left boundary, nine base cells + six extra | 108 |
+| Right boundary, nine base cells + six extra | 148 |
+| Common safe origins for the 8-HPOS collision footprint | 108–140 |
+| Centred player origin / footprint | 124 / 124–131 |
+
+Reaching the centre requires at least eleven extra columns; retaining both
+base hulls at least five cells deep leaves at most fifteen free cells, below
+the then-required EASY sixteen. The owner rejected those relaxations. The
+software edge-collision machinery remains needed for the open recessed
+repair dock (§BU.4); rejecting nacelle obstacles does not remove that need.
+
+### BW.2 Islands (P5) go to production
+
+Large detached ship fragments in the corridor scroll with the hulls:
+
+| Difficulty | Full island width | Minimum side channel, each side |
+| --- | ---: | ---: |
+| EASY | 6 cells | 8 cells |
+| MEDIUM | 8 cells | 7 cells |
+| HARD | 10 cells | 6 cells |
+
+Use bounded interval collision, at most one island per row. Contact causes
+**2 HULL units + push to the nearer side + 25-frame cooldown**. Projectiles
+pass over with backing restore. Owner smoke: **“plays excellently — real
+obstacles”**. Production art must have more varied fragments built from ship
+elements or other objects, in **allied AND enemy colours**, chosen from
+mockups **before implementation**. Production remains subject to linked
+budgets, gates and owner smoke.
+
+### BW.3 Small falling debris
+
+Remove small falling debris from **capital sectors only**. Debris stays in
+all other sectors; the future asteroid sector depends on it. The Director's
+debris admission obeys the sector's debris flag **unconditionally**.
+
+### BW.4 Brake (River Raid)
+
+Capital sectors only: at the bottom limit with joystick DOWN, scroll ramps
+to half speed; release ramps back. Ramp duration EASY/MEDIUM/HARD is
+**8/9/10 frames**. Hull, islands, turret tracking and Director row clocks
+remain synchronized. Owner smoke: **“excellent”**. SPACE and boss speed are
+unchanged.
+
+### BW.5 Fair warning near the bottom
+
+Turret warning increases **25 → 35 frames** when the player is in the bottom
+zone. Spike root cause: at Y=225 there is no downward escape; an adjacent
+flying shell cannot be escaped. The warning is the only escape window.
+Use the spike's bottom-zone admission threshold (Y≥201); this does not promise
+rescue after late commitment to an already flying shell. Keep existing
+per-difficulty fire rates, damage and launched-shell motion.
+
+### BW.6 Data-driven capital-sector length
+
+Replace the four fixed length steps with data-driven length **up to 960 rows**,
+so later levels can have longer capital sectors. Turret count scales with
+length, retaining more stations on harder difficulties and existing
+per-difficulty fire rates. Today's per-side EASY/MEDIUM/HARD station counts
+are **10/15/20** for level 1 and **7/10/14** for level 2. This needs coordinate,
+compiler/format and runtime work; it is not data-only. The Phase A plan prices
+that work and specifies bounded longer-axis island/station lookup.
+
+### BW.7 Phase A choices
+
+Session: Codex, 2026-10-25. Owner accepts the L2 Phase A plan at `bac5e79`
+and authorizes Phase B on `codex/l2-phase-module`.
+
+- First production island art: **01 module wreck, 03 turret deck, 05 panel
+  plate**, each in allied AND enemy colours, **zero new glyph slots**.
+  **02 and 04 are not used.** More varied asymmetric wrecks, broad low plates,
+  jagged edges, L-shapes and side-mounted engines come later as data recipes
+  (a later mockup round or M7). Keep the recipe format able to express
+  asymmetric and non-spindle shapes.
+- L2 post-1.0 reserve: **256 B**, re-check at systems freeze; not 512 B.
+- Placement defaults accepted: first island local row **96**, spacing
+  **112 rows**, maximum fragment height **48**, minimum clear gap **64**;
+  **sparse** selects every other valid span. Per-level data may override.
+
+### BW.8 Audit fixes and owner smoke
+
+Owner response, 2026-10-25: L2 candidate **`b2b38ff` owner smoke PASS**,
+"generally OK". Independent Claude audit `668f692` recommends MERGE AFTER
+FIXES, no S1/S2. Report merged unchanged in `66f53b9` on
+`codex/l2-phase-module`.
+
+L2-01 fixed in `52ee66b`: the world-scroll fixture follows the real START
+GAME reader/summary checked L2 load and INIT, then the brake tick. The scroll
+assertion is unchanged. **All 13 boss-runtime tests ran: 12 PASS / 1 FAIL**;
+freshly built main `19b1464` is also 12/13, with "the win" failing first at
+"the boss never handed off to the level summary". That failure is pre-existing.
+
+Owner correction, 2026-10-25: **losing a life is not a capital-sector
+exit**. Keep the same checked L2 image valid during DYING and respawn.
+Invalidate/disarm on real exits only: boss install, GAME OVER, pause-quit to
+menu, level end/teardown, RESET/warm start, and at the head of every L2 load.
+Only checked load + INIT sets validity; capital entry may arm the brake only
+while that checked image is valid. START GAME must not arm or execute gameplay
+without valid L2. The owner chooses the cold validity alternative; the
+standing **≤32-B complete-fix placement rule** still applies. There is no
+mid-death disk read and no change to the existing death/respawn policy.
+The earlier 52-B death-reload sketch is superseded diagnostic evidence.
+
+Fixes: L2-04 `c77ebba` uses **32 B**; L2-02 `cba50fd` uses **31 B**,
+arming the brake only inside a capital and gating contact resident in states
+0–4. SPACE CPU is **−2 vs main `19b1464`** in all 720 identical-route full-loop
+fixtures, predictor delta 0 per Light. L2-05 capsule motion follows half the
+braked world speed at every ramp step, **0 new B**. Death and capital completion
+intentionally snap to full speed (the requested documentation option); release
+while alive ramps. EN/PL instructions agree. L2-06 generates ABI constants and
+makes warning X preservation a fatal build check; L2-07 corrects stale text;
+L2-08 labels diagnostic-only variant/reuse/lives allowances. No gate or
+assertion is relaxed.
+
+**12 routes /47,326 frames**, 480/960 ×E/M/H ×flight/contact and
+brake/contact: **10 frames exceed 31,500** (previously 10), peak **31,598**
+(previously 31,598), maximum target excess 98. Hard gate 32,568: **970 cycles
+margin**; physical 35,568: 3,970. Minimum publication fence **4,977**, capital
+peak 17,660; zero missed frames, extra VBI boundaries, DLI errors, shifted
+phase rows, world/hull clock mismatches or stale L2 accesses. Every route
+reaches universal phase 968. Broadened lifetime checks PASS at both lengths,
+through boss install and all real exits (8/8), including capital death and
+respawn with validity retained.
+
+Normal computed gates PASS. L2 **1,082/1,792 B**, **710 free**, **256-B reserve
+intact**, 454 otherwise free; resident physical delta+3 B, L2+19 B vs `b2b38ff`.
+C sector 244/248 (tail 4, pinned pad 54); reader tail 7, summary 0, MAIN Light 17,
+Director high 11, arena 14, ENTITY_CODE 5, HYBRID_C_EXT 24, A2 19. Zero new
+per-frame page crossings. Boss stress 20 comparisons delta 0, max 8478≤8,500;
+entry 325/340/340/344≤350. All four boss→summary→menu→checked START GAME
+reloads and post-boss pause PASS; cold/RESET/130XE/forced-restore smoke 7/7.
+Focused edited gameplay tests 86 PASS/12 pre-existing FAIL out of 98; fresh
+main reproduces all 12 names and first errors. Generated-map 3/3, observer
+tools 4/4, reuse rejection 1/1, regional Q-S4 checks 3/3. Full 13 boss-runtime
+results are reported above and in the linked evidence.
+
+[Audit ledger and evidence](diagnostics/l2-audit-fixes-2026-10-25/) retain
+measured tables, all failures and reproduction. Six normal-build ATRs were
+built from `1551cf0`, hash-bound to the measured guest bytes, with absolute
+paths/SHA-256/build HEAD in `build/l2-owner-smoke/candidate.json`.
+
+Owner response, **2026-10-26: smoke PASS** on the fixed L2 candidate built
+from **`1551cf0`** (`1551cf0263ff11f73877b449009a2e49e07e0f51`), campaign ATR
+SHA-256 **`ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6`**.
+**L2 is OWNER-ACCEPTED.** The owner authorizes recording the result, normal
+branch build, `--no-ff` merge with message
+`[codex] Merge codex/l2-phase-module (L2, §BW)`, normal main build with the
+same campaign ATR, push origin main, then report the merge SHA and STOP.
+No release build or release-evidence regeneration.
+
+The owner also requires the open STATUS item before M3-H: "10 frames above
+the 31 500 DMA-on target (max 31 598, hard margin 970) on the 480/HARD
+brake/contact route — state-dependent, not L2 overhead (SPACE is −2 vs main);
+attribute the worst frame before M3-H adds per-frame work". This handoff
+records that item; it does not start the attribution work.
+
+**Next free decision section: §BX.**
 
 ---
 

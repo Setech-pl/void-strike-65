@@ -1,0 +1,6 @@
+
+> void-strike-65@0.1.1 boot:smoke
+> node scripts/runtime-wall-trace.mjs --boot-smoke-only --atari800-source=build/atari800-trace
+
+Boot smoke: 4 ATR cold-start sessions and 1 RESET session, 1 130XE compatibility session and 1 forced capital restore passed
+Report: build/runtime-wall-trace/boot-smoke/report.json

@@ -8,6 +8,7 @@
 // cannot quietly put them back (see the "corrections" tests at the end, and
 // docs/diagnostics/sio-register-probe-2026-09-20.json).
 import assert from "node:assert/strict";
+import { PokeyStub } from "../scripts/sio-fixture.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -101,142 +102,7 @@ function levelImage({ id = 1, sectors = LEVEL_ONE_SECTORS, version = 1, magic = 
  * returns the wire response: a list of {byte, skstat} entries, or fewer bytes
  * than the reader expects to model silence at that point.
  */
-class PokeyStub {
-  constructor({ respond, vcountPeriod = 3 } = {}) {
-    this.respond = respond;
-    this.vcountPeriod = vcountPeriod;   // VCOUNT reads per simulated PAL frame
-    this.vcountReads = 0;
-    this.vcount = 0;
-
-    this.skctl = 0;
-    this.irqen = 0;
-    this.latched = 0;                   // bits currently asserted (active-low in IRQST)
-    this.commandLine = false;
-    this.frameBytes = [];
-    this.commandFrames = [];            // every frame the reader put on the wire
-    this.skctlDuringTransmit = new Set();
-    this.skctlDuringReceive = new Set();
-    this.txPending = false;
-    this.txOutstanding = 0;
-    this.rxQueue = [];
-    this.serin = 0;
-    this.skstat = SKSTAT_CLEAN;
-    this.skresWrites = 0;
-    this.wsyncBeforeFirstByte = 0;
-    this.wsyncAfterLastByte = 0;
-    this.countingPreHold = false;
-    this.countingPostHold = false;
-  }
-
-  read(address) {
-    switch (address) {
-      case reg.VCOUNT: {
-        this.vcountReads += 1;
-        if (this.vcountReads % this.vcountPeriod === 0) {
-          this.vcount = 0;              // the wrap past line 312: a frame edge
-        } else {
-          this.vcount = (this.vcount + 1) & 0x7f;
-          if (this.vcount === 0) this.vcount = 1;
-        }
-        return this.vcount;
-      }
-      case reg.IRQST: {
-        this.advance();
-        return 0xff & ~this.latched;    // an asserted bit reads 0
-      }
-      case reg.SKSTAT:
-        return this.skstat;
-      default:
-        return undefined;
-    }
-  }
-
-  write(address, value) {
-    switch (address) {
-      case reg.IRQEN: {
-        // Writing a bit low resets that latch; bit 3 is not latched at all.
-        const cleared = (~value) & 0xff;
-        this.latched &= ~(cleared & (IRQ_SERIN | IRQ_SEROUT_RDY));
-        this.irqen = value;
-        return false;
-      }
-      case reg.SKCTL:
-        this.skctl = value;
-        if (value === 0x00) {           // full serial reset
-          this.latched = 0;
-          this.txPending = false;
-          this.txOutstanding = 0;
-          this.rxQueue = [];
-        }
-        return false;
-      case reg.SKRES:
-        this.skresWrites += 1;
-        this.skstat = SKSTAT_CLEAN;
-        return false;
-      case reg.SEROUT:
-        if (this.commandLine) {
-          if (this.frameBytes.length === 0) this.countingPreHold = false;
-          this.frameBytes.push(value);
-          this.skctlDuringTransmit.add(this.skctl);
-        }
-        this.txPending = true;
-        this.txOutstanding += 1;
-        this.latched &= ~IRQ_XMTDONE;
-        return false;
-      case reg.PBCTL:
-        if (value === 0x34) {
-          this.commandLine = true;
-          this.frameBytes = [];
-          this.countingPreHold = true;
-          this.wsyncBeforeFirstByte = 0;
-        } else if (value === 0x3c && this.commandLine) {
-          this.commandLine = false;
-          this.countingPostHold = false;
-          if (this.frameBytes.length === 5) {
-            this.commandFrames.push([...this.frameBytes]);
-            this.rxQueue = this.respond([...this.frameBytes], this.commandFrames.length);
-          }
-        }
-        return false;
-      case reg.WSYNC:
-        if (this.countingPreHold) this.wsyncBeforeFirstByte += 1;
-        if (this.countingPostHold) this.wsyncAfterLastByte += 1;
-        return false;
-      default:
-        return undefined;        // not a register: let the store reach RAM
-    }
-  }
-
-  advance() {
-    if (!this.commandLine && this.skctl !== 0x00) this.skctlDuringReceive.add(this.skctl);
-    // Transmission: the queued byte moves into the shift register, freeing
-    // SEROUT (bit 4). When nothing is outstanding the register is idle (bit 3).
-    if (this.txPending) {
-      this.latched |= IRQ_SEROUT_RDY;
-      this.txPending = false;
-      this.txOutstanding -= 1;
-      if (this.txOutstanding <= 0) {
-        this.txOutstanding = 0;
-        this.latched |= IRQ_XMTDONE;
-        if (this.frameBytes.length === 5) {
-          this.countingPostHold = true;
-          this.wsyncAfterLastByte = 0;
-        }
-      }
-      return;
-    }
-    if (this.txOutstanding === 0) this.latched |= IRQ_XMTDONE;
-    // Reception: only while the input latch is armed and not already asserted.
-    if (this.rxQueue.length > 0 && (this.irqen & IRQ_SERIN) !== 0 &&
-      (this.latched & IRQ_SERIN) === 0) {
-      const next = this.rxQueue.shift();
-      this.serin = next.byte & 0xff;
-      this.skstat = next.skstat ?? SKSTAT_CLEAN;
-      this.latched |= IRQ_SERIN;
-    }
-  }
-}
-
+// POKEY wire model shared with real checked L2 runtime fixtures.
 function runLoad(stub,
   { levelId = 1, buffer = null, maxSteps = 8_000_000, directorySectors = null } = {}) {
   const memory = new Uint8Array(0x10000);
@@ -831,6 +697,9 @@ function cpuOver(stub, memory) {
 
 function runReadRun(stub, index, { emptyEntry = null } = {}) {
   const memory = new Uint8Array(0x10000);
+  // Run reads now pass the resident L2 invalidation guard as on hardware.
+  // Install the real resident image rather than injecting that helper alone.
+  installRuntimeSegments(memory, root);
   memory.set(readerImage, READER_BASE);
   memory.set(lightKernelImage, manifest.lightKernel.address);
   // S5-1: every entry is on the disk now; a test empties one in memory.
@@ -853,10 +722,13 @@ function runReadRun(stub, index, { emptyEntry = null } = {}) {
 // resident runtime is installed instead of `rts` stubs, and FIRE is pressed
 // every few frames for the summary to accept once its minimum and the reads
 // are done. It ends at start_gameplay (success) or at the failure screen.
-function runStartGame(stub, { overlaid }) {
+function runStartGame(stub, { overlaid, residentLevel = false }) {
   const memory = new Uint8Array(0x10000);
   installRuntimeSegments(memory, root);
   memory.set(readerImage, READER_BASE);
+  memory.fill(0xd5, 0x1900, 0x2000); // stale slot D/death, never injected L2
+  memory.fill(0, LEVEL_BUFFER, LEVEL_BUFFER+8); // menu before its first level read
+  if (residentLevel) memory.set(fs.readFileSync(path.join(root,"build/level-1.bin")), LEVEL_BUFFER);
   // What a boss overlay would leave behind: other bytes in the slot and the table.
   memory.fill(0x00, slotA.address, slotA.endExclusive);
   memory.fill(0x00, capitalVectors.address, capitalVectors.address + capitalVectors.bytes);
@@ -874,10 +746,10 @@ function runStartGame(stub, { overlaid }) {
   cpu.pc = READER_BASE;
   const ends = new Map([[mainAbi.get("start_gameplay"), "start_gameplay"],
     [labels.get("sector_reader_failure_screen"), "failure_screen"]]);
-  let steps = 0;
-  while (steps < 120_000_000 && !ends.has(cpu.pc)) { cpu.step(); steps += 1; }
+  let steps = 0, l2Fetches = 0;
+  while (steps < 120_000_000 && !ends.has(cpu.pc)) { if(cpu.pc>=0x1900&&cpu.pc<0x2000)l2Fetches++; cpu.step(); steps += 1; }
   assert.notEqual(steps, 120_000_000, "START GAME neither started gameplay nor failed");
-  return { memory, end: ends.get(cpu.pc), status: cpu.a };
+  return { memory, end: ends.get(cpu.pc), status: cpu.a, l2Fetches };
 }
 
 // RE-POINTED 2026-10-03 (M5a-S2): sectors from 512 also hold the summary's
@@ -933,7 +805,7 @@ test("a directory entry the build left empty is rejected without touching SIO", 
   // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk, so no
   // entry the build makes is empty; entries 3 and 5 are emptied in memory (a
   // count of 0, the build's "not on this disk") to keep the path exercised.
-  for (const index of [3, 5, 11, 0xff]) {
+  for (const index of [3, 5, 12, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
     const result = runReadRun(stub, index, { emptyEntry: index <= 9 ? index : null });
     assert.equal(result.failed, true, `entry ${index}`);
@@ -951,7 +823,7 @@ test("START GAME after an overlay restores slot A and the vector table before th
   // order, and before any sector of the level.
   const sectors = stub.commandFrames.map((frame) => frame[2] | (frame[3] << 8));
   assert.equal(sectors.length,
-    slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS + summarySectorCount);
+    slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS + summarySectorCount + 14);
   const restoreAt = sectors.indexOf(512);
   assert.deepEqual(sectors.slice(restoreAt, restoreAt + 16),
     Array.from({ length: 16 }, (_, i) => 512 + i), "the restore run must be read in order");
@@ -970,7 +842,7 @@ test("START GAME without an overlay sends no restore frame", () => {
   const result = runStartGame(stub, { overlaid: false });
   assert.equal(result.end, "start_gameplay");
   assert.deepEqual(overlaySectors(stub), []);
-  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + summarySectorCount);
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + summarySectorCount + 14);
 });
 
 test("a failed restore read reports through the status path and never starts gameplay", () => {
@@ -993,4 +865,42 @@ test("a failed restore read reports through the status path and never starts gam
   assert.ok(result.memory.subarray(capitalVectors.address,
     capitalVectors.address + capitalVectors.bytes).every((byte) => byte === 0),
   "the table must not point into a partial slot");
+});
+
+
+test("L2 option A cross-link preserves MAIN/LIFE and checks fourteen sectors", () => {
+  const run = manifest.overlays.runs.find(r => r.index === 11);
+  assert.deepEqual([run.destination,run.sectors,run.startSector], [0x1900,14,251]);
+  const kl = new Map([...fs.readFileSync(path.join(root,"build/light-kernel.lbl"),"utf8").matchAll(/^al ([0-9A-F]+) \.([^\s]+)/gmi)].map(m=>[m[2],parseInt(m[1],16)]));
+  assert.equal(kl.get("life_capsule_start"), 0x3a14);
+  assert.equal(kl.get("pause_frontend_marker_positions"), 0x3ae5);
+  assert.equal(manifest.lightKernel.bytes,1196);
+  const good = new PokeyStub({respond:atrDevice()});
+  const result = runReadRun(good,11);
+  assert.equal(result.failed,false);
+  assert.equal(good.commandFrames.length,14);
+  assert.equal(result.memory[0x86b3],0,"a raw checked run must remain invalid until INIT");
+  assert.deepEqual(Buffer.from(result.memory.subarray(0x1900,0x2000)),fs.readFileSync(path.join(root,"build/l2.bin")));
+  const changed = Buffer.from(atrSector(run.startSector+3)); changed[9]^=1;
+  const response=[{byte:0x41},{byte:0x43},...Array.from(changed,byte=>({byte})),{byte:carryWrapChecksum(changed)}];
+  const bad=new PokeyStub({respond:atrDevice({fail:{sector:run.startSector+3,response}})});
+  const rejected=runReadRun(bad,11);
+  assert.equal(rejected.failed,true);
+  assert.equal(rejected.status,status.BAD_IMAGE);
+  assert.equal(rejected.memory[0x86b3],0,"a rejected L2 run must not preserve old validity");
+});
+
+test("L2 START GAME reloads on a resident level hit and rejects corrupt run before gameplay", () => {
+  const good = new PokeyStub({respond:atrDevice()});
+  const loaded=runStartGame(good,{overlaid:false,residentLevel:true});
+  assert.equal(loaded.end,"start_gameplay");
+  const sectors=good.commandFrames.map(f=>f[2]|f[3]<<8);
+  assert.equal(sectors.filter(s=>s>=320&&s<336).length,0);
+  assert.deepEqual(sectors.filter(s=>s>=251&&s<=264),Array.from({length:14},(_,i)=>251+i));
+  const corrupt=Buffer.from(atrSector(251));corrupt[0]^=1;
+  const response=[{byte:0x41},{byte:0x43},...Array.from(corrupt,byte=>({byte})),{byte:carryWrapChecksum(corrupt)}];
+  const bad=new PokeyStub({respond:atrDevice({fail:{sector:251,response}})});
+  const rejected=runStartGame(bad,{overlaid:false,residentLevel:true});
+  assert.equal(rejected.end,"failure_screen");
+  assert.equal(rejected.l2Fetches,0,"corrupt checked load executed partial L2");
 });

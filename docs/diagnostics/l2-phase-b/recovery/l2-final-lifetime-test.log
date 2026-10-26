@@ -1,0 +1,10 @@
+{"measurement":"lifetime cold CPU","disarmDelta":30,"initCpu":30}
+✔ L2 lifetime: checked image is disarmed before first boss read; no stale resident entry/read until checked reload (65.202667ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120.495917

@@ -1,0 +1,417 @@
+{
+  "l2": {
+    "address": 6400,
+    "endExclusive": 8192,
+    "capacityBytes": 1792,
+    "usedBytes": 1063,
+    "freeBytes": 729,
+    "postOneReserveBytes": 256,
+    "runIndex": 11,
+    "phase": "fighter/capital; overwritten by boss"
+  },
+  "transport": {
+    "format": "DFMC-v1 multi-chunk",
+    "initialBootBytes": 12928,
+    "initialBootContentBytes": 12807,
+    "initialBootEnvelopeBytes": 121,
+    "initialBootSectors": 101,
+    "extensionBytes": 14080,
+    "extensionSectors": 110,
+    "totalTransportBytes": 27008,
+    "totalTransportSectors": 211,
+    "remainingAtrSectors": 509,
+    "remainingAtrTransportBytes": 65152,
+    "architecturalAdditionalCapacityBytes": 0,
+    "maximumExtensionChunkBytes": 6400,
+    "maximumChunkCount": 11,
+    "maximumNewSimultaneousResidencyBytes": 7993,
+    "remainingSafeResidencyBytes": 2424,
+    "bootOnlyStaging": {
+      "address": 33024,
+      "bytes": 6484
+    },
+    "loaderResidentBytes": 0,
+    "stage2": {
+      "runAddress": 8641,
+      "loadAddress": 31232,
+      "bytes": 1446,
+      "overwrittenByResidentSuffix": true
+    },
+    "bootSplash": {
+      "runAddress": 1280,
+      "loadAddress": 32678,
+      "transportAddress": 20483,
+      "bytes": 512,
+      "codeBytes": 510,
+      "immutableAddress": 1301,
+      "immutableBytes": 491,
+      "sha256": "f0cfe1190b44d7f8c871edea6a7655e94eeafdcdab1c82aed7a71379a883a940",
+      "source": "assets/audio/boot-splash.json",
+      "sourceSha256": "a6895ae5251009719ae6cdee6403abb9d83c128e50bc095108e1ebb4dfba11a3",
+      "holdFrames": 250,
+      "fadeStartFrame": 176,
+      "segments": [
+        {
+          "type": "SILENCE",
+          "frames": 5
+        },
+        {
+          "type": "LEADER",
+          "frames": 60
+        },
+        {
+          "type": "DATA",
+          "frames": 55
+        },
+        {
+          "type": "SILENCE",
+          "frames": 10
+        },
+        {
+          "type": "DATA_LOW",
+          "frames": 50
+        },
+        {
+          "type": "SILENCE",
+          "frames": 10
+        },
+        {
+          "type": "DATA",
+          "frames": 60
+        }
+      ]
+    },
+    "manifest": {
+      "address": 9897,
+      "bytes": 190,
+      "crc16": 30763,
+      "parsed": {
+        "version": 1,
+        "totalOccupiedSectors": 211,
+        "manifestBytes": 190,
+        "crc16": 30763,
+        "records": [
+          {
+            "startSector": 102,
+            "sectorCount": 44,
+            "packedLength": 5531,
+            "rawLength": 6653,
+            "finalDestination": 24080,
+            "crc16": 14542,
+            "type": 1,
+            "stagingId": 1,
+            "destination": 33024
+          },
+          {
+            "startSector": 146,
+            "sectorCount": 10,
+            "packedLength": 1144,
+            "rawLength": 1144,
+            "finalDestination": 35968,
+            "crc16": 59652,
+            "type": 0,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 156,
+            "sectorCount": 1,
+            "packedLength": 105,
+            "rawLength": 106,
+            "finalDestination": 32792,
+            "crc16": 60109,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 157,
+            "sectorCount": 4,
+            "packedLength": 441,
+            "rawLength": 498,
+            "finalDestination": 39744,
+            "crc16": 48292,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 161,
+            "sectorCount": 6,
+            "packedLength": 746,
+            "rawLength": 746,
+            "finalDestination": 30736,
+            "crc16": 27495,
+            "type": 0,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 167,
+            "sectorCount": 1,
+            "packedLength": 23,
+            "rawLength": 21,
+            "finalDestination": 40286,
+            "crc16": 65153,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 168,
+            "sectorCount": 6,
+            "packedLength": 740,
+            "rawLength": 818,
+            "finalDestination": 31696,
+            "crc16": 32887,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 174,
+            "sectorCount": 11,
+            "packedLength": 1315,
+            "rawLength": 1656,
+            "finalDestination": 44544,
+            "crc16": 20719,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 185,
+            "sectorCount": 9,
+            "packedLength": 1032,
+            "rawLength": 1196,
+            "finalDestination": 13891,
+            "crc16": 17308,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 194,
+            "sectorCount": 13,
+            "packedLength": 1529,
+            "rawLength": 1529,
+            "finalDestination": 40960,
+            "crc16": 39010,
+            "type": 0,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 207,
+            "sectorCount": 5,
+            "packedLength": 527,
+            "rawLength": 634,
+            "finalDestination": 40309,
+            "crc16": 16311,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          }
+        ]
+      }
+    }
+  },
+  "reader": {
+    "address": 40960,
+    "bytes": 1529,
+    "capacityBytes": 1536,
+    "freeBytes": 7,
+    "transport": "own DFMC record, RAW, direct landing at $A000",
+    "levelBuffer": {
+      "address": 42496,
+      "capacityBytes": 2048,
+      "sectors": 16
+    },
+    "levels": [
+      {
+        "id": 1,
+        "startSector": 320,
+        "sectors": 16,
+        "bytes": 2048,
+        "file": "level-1.bin",
+        "origin": "read over SIO at START GAME"
+      }
+    ],
+    "overlayDirectory": {
+      "address": 42408,
+      "entries": 12,
+      "bytes": 60,
+      "names": [
+        "capital slot A restore (M5a-S1)",
+        "boss code (M5b)",
+        "boss region 1 (M5b)",
+        "boss region 2 (M5b)",
+        "boss region 3 (M5b)",
+        "boss region 4 (M5b)",
+        "hangar / summary art (M5a-S2)",
+        "scores / save record (M5a-S2)",
+        "level summary code (M5a-S2)",
+        "disk identity (audit-hardening)",
+        "menu data (L1)",
+        "fighter/capital L2 (\u00a7BW)"
+      ]
+    },
+    "slotAOverlaidFlag": 42358,
+    "summaryResidentFlag": 42359
+  },
+  "summaryCode": {
+    "address": 1280,
+    "bytes": 1792,
+    "endExclusive": 3072,
+    "capacityBytes": 1792,
+    "freeBytes": 0,
+    "maxSectors": 14,
+    "startSector": 584,
+    "sectors": 14,
+    "file": "level-summary.bin",
+    "displayList": "000B58"
+  },
+  "guardSums": [
+    {
+      "index": 0,
+      "name": "capital slot A restore (M5a-S1)",
+      "expected": "$4ECB"
+    },
+    {
+      "index": 1,
+      "name": "boss code (M5b)",
+      "expected": "$2174"
+    },
+    {
+      "index": 2,
+      "name": "boss region 1 (M5b)",
+      "expected": "$FD7F"
+    },
+    {
+      "index": 3,
+      "name": "boss region 2 (M5b)",
+      "expected": "$F778"
+    },
+    {
+      "index": 4,
+      "name": "boss region 3 (M5b)",
+      "expected": "$EF70"
+    },
+    {
+      "index": 5,
+      "name": "boss region 4 (M5b)",
+      "expected": "$9112"
+    },
+    {
+      "index": 6,
+      "name": "hangar / summary art (M5a-S2)",
+      "expected": "$2223"
+    },
+    {
+      "index": 7,
+      "name": "scores / save record (M5a-S2)",
+      "expected": "never checked"
+    },
+    {
+      "index": 8,
+      "name": "level summary code (M5a-S2)",
+      "expected": "$BDB8"
+    },
+    {
+      "index": 9,
+      "name": "disk identity (audit-hardening)",
+      "expected": "$BBBB"
+    },
+    {
+      "index": 10,
+      "name": "menu data (L1)",
+      "expected": "$6A82"
+    },
+    {
+      "index": 11,
+      "name": "fighter/capital L2 (\u00a7BW)",
+      "expected": "$9876"
+    }
+  ],
+  "computedCpu": {
+    "optionPollCycles": 13,
+    "heaviestActiveFrameCycles": 16458,
+    "heaviestMainLoopCycles": 16471,
+    "gameplayMusicTickMinimumCycles": 118,
+    "gameplayMusicTickMaximumCycles": 336,
+    "procedures": {
+      "build_playfield_display_list": 1494,
+      "entity_collide_player": 1732,
+      "entity_damage_applied": 264,
+      "entity_despawn_debris": 56,
+      "entity_effects_erase": 246,
+      "entity_effects_render": 1129,
+      "entity_effects_update": 2193,
+      "entity_player_fighter_projectile_hits_debris": 47,
+      "entity_player_fighter_projectile_target": 1092,
+      "entity_spawn_debris": 190,
+      "erase_fighter_projectile_overlays": 446,
+      "erase_interactive_entity_overlays": 97,
+      "erase_transient_effect_overlays": 228,
+      "handle_collisions": 3867,
+      "handle_player_hull_contact": 538,
+      "interceptor_projectile_hits_player": 49,
+      "music_tick_gameplay": 336,
+      "player_fighter_projectile_hits_enemy": 239,
+      "publish_dynamic_near_star_phase": 40,
+      "read_input": 667,
+      "render_capital_explosions": 41,
+      "render_fighter_projectile_overlays": 2177,
+      "render_interactive_entity_overlays": 499,
+      "render_shared_fighter_explosions": 946,
+      "render_transient_effect_overlays": 1120,
+      "resolve_allied_sector_row": 144,
+      "resolve_enemy_sector_row": 144,
+      "rotate_playfield_rows": 1610,
+      "scroll_hull_columns": 2750,
+      "scroll_world_columns": 2229,
+      "set_gameplay_row_ptr": 32,
+      "spawn_breakup_effects_at": 371,
+      "spawn_debris_destruction_effects": 481,
+      "spawn_interceptor_breakup_effects": 751,
+      "tick_capital_explosions": 41,
+      "tick_launch_flashes": 55,
+      "tick_shared_fighter_explosions": 551,
+      "update_broadside": 2446,
+      "update_enemy": 2329,
+      "update_enemy_weapon": 437,
+      "update_fighter_projectiles": 2085,
+      "update_player_death": 1335,
+      "update_player_fighter_weapon": 274,
+      "update_sound": 137,
+      "update_starfield": 5522,
+      "update_transient_effects": 420,
+      "update_white_starfield_phase": 107,
+      "visible_hull_sector_row": 72,
+      "weapon_pickup_record_qualified_kill": 204
+    }
+  },
+  "additiveDiagnostic": {
+    "mainLoopCycles": 16471,
+    "dma": {
+      "refresh": 2808,
+      "playerMissile": 1200,
+      "screenAndFont": 8448,
+      "displayList": 75,
+      "total": 12531
+    },
+    "dli": {
+      "bodyCycles": [
+        77,
+        50
+      ],
+      "nmiEntryCycles": 14,
+      "cpuCycles": 141,
+      "maximumWsyncStallCycles": 228,
+      "conservativeCycles": 369
+    },
+    "cycles": 29371,
+    "classification": "diagnostic estimate only; not a measured PAL frame or physical headroom"
+  },
+  "warning": "Native wall timing is in matrix-results.json; additive is an estimate."
+}

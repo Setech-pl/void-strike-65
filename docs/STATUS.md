@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-25 (fixed L1 owner smoke PASS, OWNER-ACCEPTED, §BV.6)
+Last update: 2026-10-26 (L2 audit fixes — OWNER-ACCEPTED)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,78 @@ the values below.
 ---
 
 ## Checkpoint
+
+### L2 audit fixes — OWNER-ACCEPTED
+
+Owner smoke **PASS**, 2026-10-26, on the fixed L2 candidate built from
+`1551cf0` (`1551cf0263ff11f73877b449009a2e49e07e0f51`), campaign ATR SHA-256
+`ad4e51694af3a74bbf7c01c2790836933982f48c64190e9e9bcaa08f51edaca6`.
+L2 is **OWNER-ACCEPTED**. Earlier smoke of `b2b38ff` passed on 2026-10-25
+("generally OK"). Report `668f692` merged
+unchanged in `66f53b9`. L2-01 fixed `52ee66b`, L2-04 `c77ebba`, remaining
+code `cba50fd`. [Audit ledger](audits/README.md), [results](plans/l2-phase-module.md#audit-fix-results--owner-smoke-candidate-2026-10-26),
+[evidence and all test results](diagnostics/l2-audit-fixes-2026-10-25/).
+
+Owner requirement: losing a life is not a capital exit. DYING/respawn keep
+the checked image valid. Boss install, GAME OVER, pause-quit, level teardown,
+RESET/warm start and every L2 load head invalidate/disarm. Checked load + INIT
+alone validates; invalid START GAME returns to the checked reader. Brake
+arms only in a capital; resident contact gate enters L2 only in states 0–4.
+L2-04 uses 32 new B, L2-02 uses 31; capsule scaling and generated ABI use 0.
+No protected reservation or new per-frame page crossing. Death/capital exit
+snap to normal intentionally; release ramps; capsules track half world speed.
+
+**12 routes /47,326 frames**, 480/960 ×E/M/H ×flight/contact and
+brake/contact: **10 frames exceed 31,500** (previously 10), peak **31,598**
+(previously 31,598), maximum target excess 98. Hard gate 32,568: **970 cycles
+margin**; physical 35,568: 3,970. Minimum publication fence **4,977**, capital
+peak 17,660; zero missed frames, extra VBI boundaries, DLI errors, shifted
+phase rows, world/hull clock mismatches or stale L2 accesses. Every route
+reaches universal phase 968. Broadened lifetime checks PASS at both lengths,
+through boss install and all real exits (8/8), including capital death and
+respawn with validity retained.
+
+SPACE CPU vs main `19b1464` is **−2 cycles in all 720 identical full-loop
+fixtures**, per-Light predictor delta 0. Boss stress all 20 deltas 0, max 8478
+≤8,500; entry 325/340/340/344≤350. Four native boss→summary→menu→START GAME
+reloads and post-boss pause PASS. Cold/RESET/130XE/forced-restore boot 7/7.
+Focused edited gameplay files 98: 86 PASS/12 pre-existing FAIL, all matched
+fresh main by name and first assertion; generated map 3/3, observer tools 4/4,
+reuse rejection 1/1, regional Q-S4 checks 3/3. All 13 boss-runtime results:
+12 PASS, "the win" pre-existing FAIL. No gate/assertion relaxed. Normal
+build passes computed gates with expected stale release-evidence warning.
+
+| Resource | MEASURED used / capacity B | Free B |
+| --- | ---: | ---: |
+| L2 `$1900–$1D39` | 1082 /1792 | 710;256 reserve intact, 454 otherwise free |
+| C sector | 244 /248 | 4 tail +54 reclaimable pinned padding |
+| Reader / summary | 1529 /1536;1792 /1792 | 7 /0 |
+| MAIN Light | 1196 /1213 | 17 |
+| Director high / C arena | 634 /645;818 /832 | 11 /14 |
+| ENTITY_CODE / HYBRID_C_EXT / A2 | — | 5 /24 /19 |
+| Initial content | 12,825 /13,652 planning gate | 827 |
+| Boot/chunk transport | 211 sectors | +1 vs main |
+
+Physical linked delta vs pre-audit `b2b38ff`: resident+3 B, L2+19 B; remaining
+new meaningful bytes reclaim padding/slack. Summary is full: future M4 grade/
+next-level work needs room or relocation. Dock 352+bonus 128 are ESTIMATES,
+26 B beyond current nonreserve space; reserve stays unspent. Art01/03/05 in
+both colours, zero new glyph slots and §BW.7 placement defaults remain.
+Normal build is not release certification. Owner smoke PASS is recorded in §BW.8.
+
+The six accepted candidate ATRs were built from `1551cf0`; their SHA-256 and
+build provenance remain in `build/l2-owner-smoke/candidate.json` (campaign,
+960-row capital and R1/Citadel/Spine/Bastion direct starts). The owner authorizes
+normal branch build, `--no-ff` merge into main, normal main build and push.
+No release or next roadmap item is authorized by this handoff.
+
+**Open before M3-H:** "10 frames above the 31 500 DMA-on target (max 31 598,
+hard margin 970) on the 480/HARD brake/contact route — state-dependent, not
+L2 overhead (SPACE is −2 vs main); attribute the worst frame before M3-H adds
+per-frame work".
+
+**NEXT TASK:** retain the open attribution item before M3-H; complete this
+accepted merge/build/push handoff, report the merge SHA and STOP.
 
 ### L1 window levers — OWNER-ACCEPTED
 
@@ -80,7 +152,7 @@ overwritten by boss install and reloaded by M4. The 5 B at $B8FB remain reserved
 Capital Lights are optional M7 work after a one-Light proof, outside the base
 plan. Citadel's region-2 versus final-R4 placement stays open before M4.
 
-NEXT TASK: await owner direction. No next roadmap item starts automatically.
+NEXT TASK: see the current L2 audit-fix checkpoint above.
 
 | Current L1 resource | Linked use / limit | Free |
 | --- | ---: | ---: |

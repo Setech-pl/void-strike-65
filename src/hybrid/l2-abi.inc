@@ -1,0 +1,15 @@
+; §BW: valid only after a checked level-start load, before boss takeover.
+L2_INIT = $1900
+L2_DRAW_ROW = $1903
+L2_CONTACT = $1906
+L2_BRAKE = $1909
+L2_WARNING = $190C
+L2_PHASE = $190F
+L2_ENTER = $1912
+L2_COMMIT_ROW = $1915
+L2_SPACE = $191C
+L2_SCROLL_RATE = $86B4
+L2_DISARM = $8656
+L2_INVALIDATE = $8659
+L2_LOAD_GUARD = $866C
+L2_VALID = $86B3

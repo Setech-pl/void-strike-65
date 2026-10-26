@@ -1,4 +1,5 @@
 .setcpu "6502"
+.include "l2-abi.inc"
 
 ; Void Strike 65 0.1 vertical slice
 ; Target: stock Atari 65XE PAL, 64 KB
@@ -358,6 +359,11 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 .export BROAD_STATE, BROAD_TURRET, BROAD_ROW_LO, BROAD_ROW_HI, BROAD_FLASH_TIMER
 .export BROAD_RASTER_TOP, BROAD_FLASH_BACKING
 .export BROAD_DAMAGE_COOLDOWN, BROAD_DAMAGE_APPLIED
+.export BROAD_TIMER, BROAD_WORK_SLOT, BROADSIDE_SCREEN_TOP, PLAYER_COLLISION_WIDTH
+.export CAPITAL_HULL_GLYPH_BASE, CAPITAL_HULL_ENEMY_SURFACE_BASE
+.export CAPITAL_HULL_SECTOR_MODULE_COUNT, CAPITAL_HULL_SECTOR_ROWS
+.export CORRIDOR_LEFT_HPOS, CORRIDOR_RIGHT_HPOS, PLAYER_Y_MAX
+.export CAPITAL_HULL_STATE_DRAIN, CAPITAL_HULL_STATE_OPEN
 .export DIFFICULTY_SETTING, CAPITAL_SECTOR_STATE, PLAYER_LIFECYCLE
 .export CAPITAL_EXPLOSION_TIMER, CAPITAL_EXPLOSION_SOUND_TIMER, ENEMY_ACTIVE
 .export ENEMY_ARCHETYPE, ENEMY_HP, ENEMY_PENDING_DAMAGE, ENEMY_PENDING_SOURCE
@@ -1980,7 +1986,7 @@ enter_frontend_state:
     lda #$00
     sta DMACTL
     sta GRACTL
-    jsr clear_pmg_graphics_latches
+    jsr L2_DISARM               ; GAME OVER/menu/quit: blank and invalidate L2
     ldx game_state
     cpx #STATE_MAIN_MENU
     beq @reload
@@ -2694,6 +2700,10 @@ draw_top_score_rows:
 
 ; One reset path owns all gameplay state, hardware latches, PMG and audio.
 start_gameplay:
+    lda L2_VALID
+    bne :+
+    jmp SECTOR_READER_ENTRY     ; no unchecked start: checked load + INIT first
+:
     lda #STATE_GAMEPLAY
     sta game_state
     lda #$00
@@ -2777,7 +2787,6 @@ hull_maps_built := *
     jmp main_loop              ; BROADSIDE is non-contiguous: never fall through
 
 start_gameplay_end:
-    .byte $EA                   ; M6 stage 1b's size pad (the entry is an immediate): never executed
 
 .segment "BROADSIDE"
 
@@ -2819,7 +2828,7 @@ main_loop_lifecycle_ready = *
     jsr read_input
 main_loop_simulation = *
 profile_after_player = *
-    jsr integration_update_enemy
+    jsr integration_update_enemy ; cold/RESET default: no L2 until checked INIT
 profile_after_enemy = *
     lda #$00
     sta BROAD_DAMAGE_APPLIED
@@ -3375,7 +3384,7 @@ set_loader_title_palette:
 ; Checked record 9 waits at $0C00 until unpack_loader_bitmap consumes its
 ; source in MAIN. Publication lives in the former extended-glyph slot below.
 .segment "CODE"
-LOADER_SPLASH_CODE_SLACK = 7
+LOADER_SPLASH_CODE_SLACK = 0     ; 8-B cold validity guard uses 7 pad + 1 end pad
     .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the
@@ -5748,15 +5757,10 @@ update_starfield:
     ; numerator, so geometry remains phase-aligned without touching the PAL
     ; gameplay token or adding ad-hoc frame skips. The common working
     ; denominator is 40; the pre-tuning 8/9/10 over 20 is doubled exactly.
-    ldx DIFFICULTY_SETTING
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_OPEN
-    bne @capital_rate
-    lda world_scroll_rates,x
-    asl
-    bne @rate_ready
-@capital_rate:
-    lda hull_scroll_rates,x
+l2_rate_selection_start:
+    lda L2_SCROLL_RATE
+    jmp @rate_ready
+    .res 19-(*-l2_rate_selection_start),$EA
 @rate_ready:
     pha
     clc
@@ -6702,19 +6706,16 @@ scroll_hull_copy_row:
     sta src_ptr+1
 scroll_hull_copy_source_ready:
     ldx row_counter
-    ldy #(CORRIDOR_ALLIED_COLUMNS-1)
-@copy_allied:
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    bpl @copy_allied
+l2_copy_start:
     ldy #39
-@copy_enemy:
+@copy_full:
     lda (src_ptr),y
     sta (dst_ptr),y
     dey
-    cpy #(CORRIDOR_ENEMY_FIRST-1)
-    bne @copy_enemy
+    bpl @copy_full
+    jmp l2_copy_end
+    .res 20-(*-l2_copy_start),0
+l2_copy_end:
 
     dex
     bpl scroll_hull_copy_row
@@ -7145,8 +7146,9 @@ set_enemy_hull_source:
 ; Draws the next finite sector row without advancing its shared longitudinal
 ; coordinate. The right ship uses a fixed eight-row content offset only.
 draw_hull_row:
-    lda corridor_phase
-    sta HULL_DRAW_ROW_LO
+    jmp L2_DRAW_ROW
+    nop
+    nop
     ldx CORRIDOR_PHASE_HI
     stx HULL_DRAW_ROW_HI
     jsr resolve_allied_sector_row
@@ -7499,8 +7501,10 @@ commit_prepared_hull_row:
     ; The sole caller has resolved the fixed divider. The two static sides can
     ; share one index, with their last cells outside the loop. An unrotated
     ; hull-only path fails the physical-row key above, without a second flag.
-    lda PREPARED_HULL_ROW+8
-    sta GAMEPLAY_DIVIDER_SCREEN+8
+    jsr L2_COMMIT_ROW
+    nop
+    nop
+    nop
     lda PREPARED_HULL_ROW+39
     sta GAMEPLAY_DIVIDER_SCREEN+39
     ldy #7
@@ -7645,16 +7649,22 @@ integration_pickup_pending_tick:
 ; 4.5M-M1 (stage_starfield_stream, two exact-window copies). These 15 bytes
 ; held the former three 960-byte screen copies and their pad; they stay
 ; reserved so every following reviewed ENTITY entry point keeps its address.
-    .res $0F
+    .res 3                     ; 12 B reclaimed for the resident contact gate
 
 ; All module and prow boundaries leave this inner corridor open. Carry set is
 ; therefore a complete proof that the player cannot contact either capital
 ; hull; carry clear asks the exact source-row resolver to handle an edge case.
 player_inside_universal_hull_corridor:
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_DRAIN
+    bcs @base
+    jmp L2_CONTACT             ; only valid capital states 0..4 reach L2
+@base:
+    bit scroll_accumulator    ; safe timing pad: SPACE cost vs main is -2
     lda player_x
     cmp #$54
     bcc @edge
-    adc #(PLAYER_COLLISION_WIDTH-2) ; CMP left C=1: add the remaining width
+    adc #6
     cmp #$AC
     bcs @edge
     sec
@@ -8013,7 +8023,7 @@ allied_sector_module_sources:
 enemy_sector_module_sources:
     EMIT_ENEMY_SECTOR_MODULE_SOURCES
 ; Roadmap 4.6 step 4 (docs/plans/director-4.6.md §2.4): the two 60-B module
-; sequences moved into each level's HullGeometry page at $AC08/$AC44, where the
+; sequences moved into each level's HullGeometry page at $AC08/$AC80, where the
 ; resolvers above read them. Their 120 resident bytes are held as a zero pin,
 ; as enemy_hull_codebook_reserve is, so that no later BROADSIDE label moves.
 ;
@@ -8034,9 +8044,9 @@ hull_sequence_reserve:
 ; Gameplay runs with the decimal flag clear (add_archetype_score's sed is
 ; always closed by its cld).
 world_rotate_due:
-    ldx DIFFICULTY_SETTING
-    lda world_scroll_rates,x
-    asl
+    lda L2_SCROLL_RATE
+    bit scroll_accumulator    ; two 2-B/3-cycle reads retain the exact 7-B pin
+    bit scroll_accumulator    ; flags overwritten below; no per-Light overhead
     clc
     adc scroll_accumulator
     cmp #HULL_SCROLL_RATE_DENOMINATOR
@@ -8045,8 +8055,8 @@ world_rotate_due:
     rts
 world_rotate_due_end:
 .assert world_rotate_due = WORLD_ROTATE_DUE, lderror, "world_rotate_due moved: set WORLD_ROTATE_DUE in src/hybrid/c-asm-abi.s to its new address"
-    .res 2*LEVEL_GEOMETRY_SEQUENCE_BYTES-(world_rotate_due_end-hull_sequence_reserve), $00
-.assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 480-row coordinate"
+    .res 120-(world_rotate_due_end-hull_sequence_reserve), $00
+.assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 960-row coordinate"
 
 .segment "BROADSIDE"
 allied_prow_occupancy_masks:
@@ -8752,8 +8762,9 @@ schedule_broadside:
     adc #$04                    ; allied tip launches beyond column 8
 :
     sta BROAD_X,x
-    lda #BROADSIDE_WARNING_FRAMES
-    sta BROAD_TIMER,x
+    jsr L2_WARNING
+    nop
+    nop
     lda #BROAD_WARNING
     sta BROAD_STATE,x
     ldy BROAD_TURRET,x
@@ -10367,18 +10378,19 @@ update_weapon_pickup_active:
     jmp integration_pickup_pending_tick
 @motion:
     ; Keep exactly one-half of the selected world speed, expressed directly in
-    ; scanlines. EASY/MEDIUM/HARD add 8/9/10 fifths per PAL frame; the bounded
+    ; scanlines. The L2 numerator over ten gives 8/9/10 fifths at full speed and
+    ; scales every intermediate brake step exactly; the bounded
     ; accumulator therefore advances by one or two scanlines without an
     ; eight-scanline character jump.
     ldx DIFFICULTY_SETTING
     lda ENTITY_TIMER+WEAPON_PICKUP_SLOT
     clc
-    adc world_scroll_rates,x
+    adc L2_SCROLL_RATE          ; numerator doubled; same half-world speed at all brake rates
     ldx #$00
 @consume_scanline:
-    cmp #WEAPON_PICKUP_FINE_RATE_DENOMINATOR
+    cmp #(WEAPON_PICKUP_FINE_RATE_DENOMINATOR*2)
     bcc @store_fraction
-    sbc #WEAPON_PICKUP_FINE_RATE_DENOMINATOR
+    sbc #(WEAPON_PICKUP_FINE_RATE_DENOMINATOR*2)
     inx
     bne @consume_scanline
 @store_fraction:
@@ -13397,7 +13409,7 @@ boss_enter_head:
     bpl @hud_cell
     jsr music_stop_gameplay
     jsr pause_silence_audio
-    jsr pin_sector_reader_blank
+    jsr L2_DISARM              ; blanks first, disarms before any boss read
     lda #$00
     sta BOSS_ENTRY_LEVEL_BUFFER_MAGIC
     ; feat/boss-banners (the owner's smoke of 2026-10-18): no text screen any

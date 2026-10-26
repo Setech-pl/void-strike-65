@@ -1,0 +1,14 @@
+{"measurement":"row CPU including shared renderer","maximum":1939}
+{"measurement":"contact CPU including canonical damage","maximum":1267}
+✔ L2 islands: real level lookup, all row publications, cache hit/miss and both factions (63.316792ms)
+✔ L2 islands: nearest-side clamp, two HULL units, cooldown and every fine alignment (91.396125ms)
+✔ L2 island authoring rejects unsafe/unknown placements and keeps SPACE debris (2118.675459ms)
+✔ L2 contact retains Shield and dying/respawning lifecycle policy (8.452375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2342.173958

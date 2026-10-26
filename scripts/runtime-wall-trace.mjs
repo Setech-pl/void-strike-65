@@ -2149,6 +2149,8 @@ function prepareAtari800(sourceDirectory) {
     `Expected Atari800 ${EXPECTED_ATARI800_VERSION} source`);
 
   fs.copyFileSync(headerPath, destinationHeader);
+  fs.copyFileSync(path.join(scriptDirectory,"atari800-l2-lifetime.h"),path.join(sourceDirectory,"src/voidstrike65_l2.h"));
+  fs.copyFileSync(path.join(scriptDirectory,"atari800-l2-exits.h"),path.join(sourceDirectory,"src/voidstrike65_l2_exits.h"));
   let cpuText = fs.readFileSync(cpuPath, "utf8");
   cpuText = cpuText.replace(/^#include "darkfighter_trace\.h"\r?\n/gm, "");
   if (!cpuText.includes('#include "voidstrike65_trace.h"')) {
@@ -2156,6 +2158,19 @@ function prepareAtari800(sourceDirectory) {
     invariant(cpuText.includes(includeAnchor), "Atari800 cpu.c include anchor changed");
     cpuText = cpuText.replace(includeAnchor,
       `${includeAnchor}\n#include "voidstrike65_trace.h"\n`);
+  }
+  if (!cpuText.includes("/* L2 actual CPU reads */")) {
+    cpuText=cpuText.replace('#include "voidstrike65_trace.h"', `#include "voidstrike65_trace.h"
+/* L2 actual CPU reads */
+#undef MEMORY_dGetByte
+#undef MEMORY_GetByte
+#undef MEMORY_dGetWord
+#undef MEMORY_dGetWordAligned
+#define MEMORY_dGetByte(a) dfl2_get_direct(a)
+#define MEMORY_GetByte(a) dfl2_get_byte(a)
+#define MEMORY_dGetWord(a) dfl2_get_word(a)
+#define MEMORY_dGetWordAligned(a) dfl2_get_aligned(a)
+`);
   }
   if (cpuText.includes("DFTrace_Observe(GET_PC());"))
     cpuText = cpuText.replace("DFTrace_Observe(GET_PC());",
@@ -2172,6 +2187,15 @@ function prepareAtari800(sourceDirectory) {
     cpuText = cpuText.replace(executeAnchor,
       `${executeAnchor}\t\tDFTrace_Observe(GET_PC(), A, X, Y, S);\n`);
   }
+  // PC_PTR bypasses MEMORY_dGetByte: cover opcode AND operand fetches too.
+  cpuText=cpuText.replace('#define GET_CODE_BYTE()     (*PC++)',
+    '#define GET_CODE_BYTE()     dfl2_get_direct((unsigned)(PC++ - MEMORY_mem))');
+  cpuText=cpuText.replace('#define PEEK_CODE_BYTE()    (*PC)',
+    '#define PEEK_CODE_BYTE()    dfl2_get_direct((unsigned)(PC - MEMORY_mem))');
+  cpuText=cpuText.replace('#define PEEK_CODE_WORD()    (*(const UWORD *) PC)',
+    '#define PEEK_CODE_WORD()    dfl2_get_word((unsigned)(PC - MEMORY_mem))');
+  cpuText=cpuText.replace('#define PEEK_CODE_WORD()    (*PC + (PC[1] << 8))',
+    '#define PEEK_CODE_WORD()    dfl2_get_word((unsigned)(PC - MEMORY_mem))');
   fs.writeFileSync(cpuPath, cpuText);
   // The boot smoke's RESET session: the observer raises a flag, and the frame
   // loop turns it into the emulator's own warm-start key before its key switch.
@@ -2379,6 +2403,15 @@ function hudRowWriterInventory(watches, nameOf) {
 
 function parseCsv(csvText, sessionDefinition) {
   const lines = csvText.trim().split(/\r?\n/);
+  // A focused handoff capture may end after an exact number of boss frames.
+  // Keep exact record-count validation; its endpoint is the recorded entry.
+  if(sessionDefinition.endAtBossFrames) {
+    const column=lines[0].split(",").indexOf("boss_entry");
+    const entry=lines.slice(1).findIndex(line=>line.split(",")[column]==="1");
+    invariant(entry>=0,"focused boss endpoint has no entry subject");
+    invariant(entry+sessionDefinition.endAtBossFrames<=sessionDefinition.frames,"boss endpoint exceeds capture capacity");
+    sessionDefinition.frames=entry+sessionDefinition.endAtBossFrames;
+  }
   invariant(sessionDefinition.activeFrames > 0
     ? lines.length > 1 && lines.length <= sessionDefinition.activeFrames + 257 &&
       Number(lines.at(-1).split(",")[lines[0].split(",").indexOf("active_gameplay_frame")]) ===
@@ -3005,6 +3038,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     "Boot smoke needs the manifest's overlay accounting");
   const capitalRun = overlays.runs.find((run) => run.index === 0);
   const menuRun = overlays.runs.find((run) => run.index === 10);
+  const l2Run = overlays.runs.find((run) => run.index === 11);
+  const l2Sectors=l2Run?.sectors ?? 0;
+  const l2Checksum=l2Run ? fs.readFileSync(path.join(rootDirectory,"build",l2Run.file)).reduce((v,b)=>(Math.imul(v,33)+b)>>>0,0) : 0;
   invariant(menuRun?.sectors === 11 && menuRun.destination === 0x0c00,
     "L1 boot smoke needs the checked 11-sector menu run");
   const capitalRunImage = fs.readFileSync(path.join(rootDirectory, "build", capitalRun.file));
@@ -3380,7 +3416,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors,
+      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
       summary: {
         entry_frame: startSummary.entry,
         first_display_frame: startSummary.display,
@@ -3457,14 +3493,15 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     `${definition.id} has the wrong level image at ` +
     `$${sectorReader.levelBuffer.address.toString(16)}: header ${gameplay.level_header} ` +
     `checksum ${gameplay.level_checksum}, expected ${levelImageHex} / ${levelImageChecksum}`);
+    invariant(!l2Run || gameplay.l2_checksum===l2Checksum, `${definition.id} checked L2 image differs at gameplay entry`);
     const sio = result.sio;
     invariant(sio !== undefined, `${definition.id} recorded no SIO counters`);
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors,
+    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
       `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors} - one per ` +
+      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors} - one per ` +
       "sector, no retries");
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);
@@ -4335,6 +4372,8 @@ function main() {
         return `0x${value.toString(16)}`;
       };
       addressEnvironment.DFTRACE_BOSS_FLAG = hex(readerLabels, "sr_slot_a_overlaid");
+      addressEnvironment.DFTRACE_L2_READ_RUN = hex(readerLabels,"sector_reader_read_run");
+      addressEnvironment.DFTRACE_L2_OWNERSHIP=path.join(layout.inputDirectory,"l2-ownership.bin");
       addressEnvironment.DFTRACE_BOSS_PHASE = hex(bossLabels, "_boss_phase");
       addressEnvironment.DFTRACE_PC_BOSS_DLI = hex(bossLabels, "boss_dli");
       // feat/boss-art: the row palette's switch handler and its landing.
@@ -4604,7 +4643,10 @@ function main() {
         layout.variant !== null ? regionRouteSessions.filter(({ bossRegion }) =>
           layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
-      id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
+      id: process.env.VS65_L2_SESSION ?? "observer-smoke", kind: "observer-smoke", frames: smokeFrames,
+      policy: process.env.VS65_L2_POLICY ?? baselineSessions[0].policy,
+      endAtBossFrames: Number(process.env.DFTRACE_L2_BOSS_FRAMES ?? 0),
+      bossPath: process.env.VS65_L2_BOSS_PATH }];
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
   // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,
@@ -7531,7 +7573,12 @@ function main() {
     const acceptance = focusedPalAcceptance(allRows);
     fs.writeFileSync(focusedReportPath, `${JSON.stringify({
       emulator: "Atari800 7.1.2 PAL/XL",
-      guest_instrumentation_bytes: 0,
+      guest_instrumentation_bytes: 0, // guest CODE bytes only, not host fixture writes
+      diagnostic_allowances: {release_evidence:false, reuse_existing_traces:reuseExistingTraces,
+        host_lives_top_up:process.env.DFTRACE_HOLD_PLAYER_LIVES ?? null,
+        l2_exit_fixture:process.env.DFTRACE_L2_EXIT ?? null,
+        terminal_state_seed:["game-over","level-end"].includes(process.env.DFTRACE_L2_EXIT),
+        l2_variant_alias:["l2-capital-960","l2-main-control"].includes(layout.variant)},
       artifact_sha256: runtimeArtifacts,
       ...(layout.variant === null ? {} : { variant: layout.variant, diagnostic_only: true }),
       sessions: summaries,

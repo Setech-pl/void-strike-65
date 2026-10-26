@@ -985,3 +985,15 @@ flight paths, sector subtypes and boosters.
 Longer level structures, bosses, and further audio/visual polish remain future
 work. They are not implied by the current enemy-roster descriptors or
 review-only asset records, which describe the Raider-era roster.
+
+
+## L2 audit candidate — §BW.8
+
+The brake acts only in capital sectors, including DRAIN/COMPLETE. Releasing
+DOWN while alive ramps back over 8/9/10 frames. Capital completion and the
+start of DYING intentionally restore full speed immediately; respawn keeps
+the same sector and L2 image, and held DOWN may brake again. Pickups retain
+one-half world motion at every brake numerator, including odd ramp steps.
+The normal SPACE and boss rates are unchanged. This candidate awaits the
+fixed candidate's owner smoke; the original b2b38ff smoke PASS is recorded
+in §BW.8.

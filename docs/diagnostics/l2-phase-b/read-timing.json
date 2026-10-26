@@ -1,0 +1,50 @@
+[
+  {
+    "mode": "patch-nobasic",
+    "kind": "baseline",
+    "levelStart": 692,
+    "levelEnd": 741,
+    "levelReads": 13,
+    "l2Start": null,
+    "l2End": null,
+    "l2Reads": 0,
+    "readAndCheckSpan": 49,
+    "gameplay": 909
+  },
+  {
+    "mode": "patch-nobasic",
+    "kind": "current",
+    "levelStart": 692,
+    "levelEnd": 752,
+    "levelReads": 16,
+    "l2Start": 752,
+    "l2End": 805,
+    "l2Reads": 14,
+    "readAndCheckSpan": 113,
+    "gameplay": 909
+  },
+  {
+    "mode": "nopatch-nobasic",
+    "kind": "baseline",
+    "levelStart": 1478,
+    "levelEnd": 1527,
+    "levelReads": 13,
+    "l2Start": null,
+    "l2End": null,
+    "l2Reads": 0,
+    "readAndCheckSpan": 49,
+    "gameplay": 1695
+  },
+  {
+    "mode": "nopatch-nobasic",
+    "kind": "current",
+    "levelStart": 1478,
+    "levelEnd": 1538,
+    "levelReads": 16,
+    "l2Start": 1538,
+    "l2End": 1591,
+    "l2Reads": 14,
+    "readAndCheckSpan": 113,
+    "gameplay": 1695
+  }
+]

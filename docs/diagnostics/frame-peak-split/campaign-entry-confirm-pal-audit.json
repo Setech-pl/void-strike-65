@@ -1,0 +1,51 @@
+{
+  "distinct_miss_events": 1,
+  "passed": false,
+  "audits": [
+    {
+      "session": "campaign-entry-confirm",
+      "frames": 900,
+      "fence_bound_frames": 840,
+      "normal_start_scanline": {
+        "fighter": 17,
+        "capital": 230
+      },
+      "distinct_miss_events": 1,
+      "miss_events": [
+        {
+          "frame": 839,
+          "row_index": 839,
+          "host_frame": 1710,
+          "generation": 57392,
+          "path": "fighter",
+          "wall_cycles": 63846,
+          "pre_wait_cycles": 26422,
+          "fence_margin_cycles": -1122,
+          "shifted_phase_rows_until_resync": 0
+        }
+      ],
+      "overrun_rows": 1,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 26422,
+      "worst_pre_wait_frame": 839,
+      "worst_fence_margin_cycles": -1122,
+      "worst_fence_margin_frame": 839,
+      "maximum_wall_cycles": 63846,
+      "rows_over_target": 1,
+      "rows_over_hard_gate": 1,
+      "unreliable_counters": {
+        "missed_frames": 1,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "fence_caught": false,
+      "gate_failures": [
+        "1 distinct miss event(s)",
+        "fence margin -1122 < 500 at frame 839",
+        "DMA-on maximum 63846 > 32568"
+      ],
+      "passed": false
+    }
+  ]
+}

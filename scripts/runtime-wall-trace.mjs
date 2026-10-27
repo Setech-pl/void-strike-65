@@ -23,6 +23,7 @@ import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-lau
 import { assertTraceEmulatorFresh } from "./atari800-trace-freshness.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 import { assertDiagnosticRun, traceArtifactLayout } from "./trace-artifacts.mjs";
+import {capitalEntrySessions,validateCapitalEntry,validateCapitalObservers} from './frame-peak-routes.mjs';
 import {
   acceptedShotsStartFireSound,
   capitalContactHitboxes,
@@ -2870,6 +2871,7 @@ function sessionSummary(session, rows) {
     maximum_wall_cycles: maximum.wall_cycles,
     deadline_overrun_frames: rows.filter((row) => row.missed_frames > 0).length,
     missed_frames: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+    ...(session.capitalEntry===undefined?{}:{natural_capital_entry:session.capitalEntry}),
     // M5b-S4b.5: slot E's contract, per replay - the frames set aside included.
     ...Object.fromEntries(["hull_map_draws", "hull_map_stale_draws", "hull_map_dirty_reads",
       "hull_map_rebuilds_after_boss"].map((field) => [field,
@@ -4171,6 +4173,7 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
 }
 
 function main() {
+  const capitalEntryOnly=process.argv.includes('--capital-entry-only');
   const sourceDirectory = path.resolve(argumentValue("atari800-source") ??
     process.env.ATARI800_TRACE_SOURCE ?? "/tmp/atari800-7.1.2");
   const shouldPrepare = process.argv.includes("--prepare");
@@ -4256,6 +4259,9 @@ function main() {
   invariant(layout.variant !== null || ["candidate", "release"].includes(manifest.buildVariant),
     "Runtime trace requires candidate or final release artifacts");
   assertDiagnosticRun(layout, manifest, process.argv.slice(2));
+  const permanentEntryRun=capitalEntryOnly||capitalEntrySessions.some(s=>s.id===onlySession)||
+    (onlySession===undefined&&smokeFrames===null&&!process.argv.some(a=>a.endsWith('-only')));
+  if(permanentEntryRun)run(process.execPath,[path.join(scriptDirectory,'l2-observer-images.mjs'),layout.inputDirectory]);
   const runtimeArtifacts = runtimeArtifactSet({
     boot: fs.readFileSync(bootPath),
     atr: fs.readFileSync(atrPath),
@@ -4523,7 +4529,7 @@ function main() {
     return;
   }
   // A debug-route run never boot-smokes: that audit reads the default build/.
-  const bootSmoke = skipBootSmoke || layout.variant !== null ? null :
+  const bootSmoke = skipBootSmoke || layout.variant !== null || capitalEntryOnly ? null :
     runBootSmoke({ emulatorPath, labels, atrPath, manifest });
   assertPublishedAtrUntouched("boot smoke");
   if (bootSmoke !== null)
@@ -4630,7 +4636,8 @@ function main() {
       ...directorCompletionSessions, ...summaryRecordSessions,
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
-      ...memoryIntegritySessions, ...lowerPlayfieldSessions, ...slotEPathSessions, ...bossEdgeGuardSessions]
+      ...memoryIntegritySessions, ...lowerPlayfieldSessions, ...slotEPathSessions, ...bossEdgeGuardSessions,
+      ...capitalEntrySessions]
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
         layout.variant !== null ? laserFixtureSessions : [],
@@ -4647,6 +4654,8 @@ function main() {
       policy: process.env.VS65_L2_POLICY ?? baselineSessions[0].policy,
       endAtBossFrames: Number(process.env.DFTRACE_L2_BOSS_FRAMES ?? 0),
       bossPath: process.env.VS65_L2_BOSS_PATH }];
+  if(capitalEntryOnly)sessionsToRun=[...capitalEntrySessions];
+  if(capitalEntrySessions.some(s=>s.id===onlySession))sessionsToRun=capitalEntrySessions.filter(s=>s.id===onlySession);
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
   // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,
@@ -4663,6 +4672,7 @@ function main() {
     sessionsToRun = sessionsToRun.filter(({ id }) => id === onlySession);
     invariant(sessionsToRun.length === 1, `Unknown trace session: ${onlySession}`);
   }
+  sessionsToRun=sessionsToRun.map(s=>Object.isFrozen(s)?{...s}:s);
   for (const session of sessionsToRun) {
     session.activeFrames = activeFrames;
     const outputPath = path.join(buildDirectory, `${session.id}.csv`);
@@ -4755,6 +4765,13 @@ function main() {
     if (!reuseExistingTraces) fs.rmSync(watchOutput, { force: true });
     const environment = {
       ...process.env,
+      ...(session.kind==='natural-capital-entry'?{
+        DFTRACE_L2_LIFETIME:path.join(buildDirectory,`${session.id}-lifetime.jsonl`),
+        DFTRACE_L2_BOSS_FRAMES:String(session.endAtBossFrames),
+        DFTRACE_L2_OUTPUT:path.join(buildDirectory,`${session.id}-clock.csv`),
+        DFTRACE_L2_WORLD_ACC:String(labels.get('scroll_accumulator')),
+        DFTRACE_L2_HULL_ACC:String(labels.get('HULL_SCROLL_ACCUMULATOR')??0x4e71),
+      }:{}),
       DFWATCH_OUTPUT: watchOutput,
       SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
       ...addressEnvironment,
@@ -4919,6 +4936,14 @@ function main() {
     // The body is deliberately left at its original indentation — reindenting
     // ~670 lines would bury the change in whitespace.
     try {
+    if(session.kind==='natural-capital-entry') {
+      session.capitalEntry=validateCapitalEntry(session.id,rows,session.bossEntry);
+      const clockLines=fs.readFileSync(environment.DFTRACE_L2_OUTPUT,'utf8').trim().split('\n');
+      const clockKeys=clockLines.shift().split(',');
+      const clocks=clockLines.map(line=>Object.fromEntries(line.split(',').map((v,i)=>[clockKeys[i],v])));
+      const events=fs.readFileSync(environment.DFTRACE_L2_LIFETIME,'utf8').trim().split('\n').map(JSON.parse);
+      validateCapitalObservers(session.id,clocks,events);
+    }
     // M5b-S4b.5 (owner decision of 2026-10-07): slot E holds the boss's code in
     // the expanded hull maps for the boss sector. Every capital row must be
     // drawn from maps the last gameplay start rebuilt - in every replay, so any
@@ -7568,9 +7593,10 @@ function main() {
     console.log(`Early enemy report: ${path.relative(rootDirectory, focusedReportPath)}`);
     return;
   }
-  if (onlySession !== undefined) {
-    const focusedReportPath = path.join(buildDirectory, `${onlySession}-focused-run.json`);
+  if (onlySession !== undefined || capitalEntryOnly) {
+    const focusedReportPath = path.join(buildDirectory, `${onlySession??'capital-entry'}-focused-run.json`);
     const acceptance = focusedPalAcceptance(allRows);
+    const entryFailures=sessionFailures.filter(f=>capitalEntrySessions.some(s=>s.id===f.session));
     fs.writeFileSync(focusedReportPath, `${JSON.stringify({
       emulator: "Atari800 7.1.2 PAL/XL",
       guest_instrumentation_bytes: 0, // guest CODE bytes only, not host fixture writes
@@ -7583,10 +7609,12 @@ function main() {
       ...(layout.variant === null ? {} : { variant: layout.variant, diagnostic_only: true }),
       sessions: summaries,
       acceptance,
-      passed: acceptance.passed,
+      ...(entryFailures.length?{natural_capital_entry_failures:entryFailures}:{}),
+      passed: acceptance.passed&&entryFailures.length===0,
     }, null, 2)}\n`);
     console.log(`Focused report: ${path.relative(rootDirectory, focusedReportPath)}`);
     invariant(acceptance.passed, `Focused PAL acceptance failed: ${JSON.stringify(acceptance)}`);
+    invariant(entryFailures.length===0,`Natural capital entry failed: ${JSON.stringify(entryFailures)}`);
     return;
   }
   if (broadsideTransientOnly) {

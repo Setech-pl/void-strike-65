@@ -1,0 +1,412 @@
+{
+  "reviewedSources": {
+    "src/main.s": "f7415295ace617beae01eaf127845eaffc07ac323c26e2e442be090fa9fd3c28",
+    "src/hybrid/light-kernel.s": "526624a7761f03ce2f3f5e317cc94d2e3901a09dfcfb7442781a26c3a22d8d15",
+    "src/hybrid/sector-reader.s": "e3ca7883cbff8dc8b1dc111618e7d024d655fe0124c3d4fcc6706985620d8633",
+    "src/c/l2.c": "f4ee8a914cbc179497486a073bd838e4fac1fe6efb923b10ac53f7c8dd38d4e5",
+    "scripts/build.mjs": "9d95cbbda37b377bb15f105afd07b419cfddf16cd5a9a67c3e1c282eeab061a1",
+    "scripts/runtime-wall-trace.mjs": "3318d64e143ba31f808ae3d55936af73ca947c91a52629c8e8d14105a0dffe34",
+    "scripts/trace-artifacts.mjs": "133040ff1405f4e819db3268c05620fbd5105215ed0a277d0b42eca2d37181b7",
+    "scripts/frame-peak-routes.mjs": "46c204419546261c1cd957326aab54707a6c79b0588296bcec9cef8b16656775",
+    "scripts/frame-peak-native.mjs": "d9c4270bf94a01b21326d6a4d1e6ff7cdd3d8100e6e9028d889f24161ddcdb1b",
+    "scripts/frame-peak-state.mjs": "12b6c1d6d3e9f0200344dfdd9a3649b829f71eea3751eedb587c59fd1c5e4373",
+    "scripts/frame-peak-observer.h": "8b6639a7ee65348cce0798f73fd45b3aa4003e18b1a44f0081d42c09b40a4c5d",
+    "scripts/frame-peak-results.mjs": "3a2dedc4f5a77ac3d9f0b0a6f9620d22775963ea9c75390d15fe966d8a12a736",
+    "scripts/frame-peak-compare.mjs": "94e07e7b3066f619299448de4783b094c7a6f146f8263be7430951481eb416a1"
+  },
+  "observerHeaderCompiledSha256": "8b6639a7ee65348cce0798f73fd45b3aa4003e18b1a44f0081d42c09b40a4c5d",
+  "states": [
+    {
+      "mode": "baseline",
+      "id": "l2-480-0-flight",
+      "gzipSha256": "b69bb65827e0f25f72211b5c66078dfb375b8e894b890cd926989f56ef198316",
+      "uncompressedSha256": "6f7791f1de38c593ff2a38dcac46782fdda1fe8da41a80ba61a76cb0743048c4"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-1-flight",
+      "gzipSha256": "0dd552c792ffa5ec1f926f153988a7f5db29f2b93c72c309f05914928854ddd9",
+      "uncompressedSha256": "fc958f46603b8ac4ad448b4a2dfec8b9455d0b840a532a6301f62d6f6b9c7198"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-1-brake",
+      "gzipSha256": "654cccd86329f6bf380d953d1e88e1078eb56e59a9dfeddd113b5d49a2fa9bc6",
+      "uncompressedSha256": "4b0f52254a95fad88d7bedefd40b0238ea5c4265bad9a6073a3780e61a0fc799"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-0-brake",
+      "gzipSha256": "96af24039c175244bc9beadbbc5f86cd13f240488ccedb0ab884bdd438c18fd7",
+      "uncompressedSha256": "bac217a1cdebe8d43a0b2367923347bb5bf7de3c7e8452f7af1afb1e22f4f33f"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-2-flight",
+      "gzipSha256": "b30e3bd3b54e840094e13b7ae6a715eeb5a0959b1e11c9157c0e646c6c77ba63",
+      "uncompressedSha256": "c377e06a8d887f8b2a8f8dbe63401eaa1b122c414158b6260d59429cde1eff61"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-2-brake",
+      "gzipSha256": "64b1460c946c3243883cd14ab4624682017092f1af20dc0783da34b5fac74dbe",
+      "uncompressedSha256": "1741f68a1bf644226bd4e2f65a33b8089113bc563a0a16379ac6e04bea9b992f"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-0-flight",
+      "gzipSha256": "827f6a32ed0c0c29b7eadd1faddead9817916e22032b45deb7c4760159780d6f",
+      "uncompressedSha256": "d0c955493e1a70e3d60173ae38ba5ddd347b06949234528d0f96ca9fd330da4e"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-0-brake",
+      "gzipSha256": "c2a0e34c14a4f8ea3920d4498baec14f8514634d39a4ece1622e26b7f860f797",
+      "uncompressedSha256": "dc3cdbb3c73b51c1dcbfae7483ab824dbd74f35e5df896352d0fbe16b7364719"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-1-flight",
+      "gzipSha256": "c5ed602c0008194fcd00340c92c6d11f059f22093e377d41586fd2b037468884",
+      "uncompressedSha256": "4ca1fee826296c8a2cb727b6d8c270691f10039ee5dfbba037438ed8aefeb0a2"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-1-brake",
+      "gzipSha256": "3403515c37f5044f16bbeb65875d01f5edfa5069186a6f0faaad6e7a562915e8",
+      "uncompressedSha256": "eb6143c385e8d1a0b305cab05ad1bdc25870125b882197e2392ceeb48a6808db"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-2-flight",
+      "gzipSha256": "5346574f25b360193a29f3aa89fa7ae7e6d8b05d03554a404a04dad5158ab5d5",
+      "uncompressedSha256": "cf44cf92fed2fa7c811eb7630b2ade8d43299f9da2041a8b9ae0c2e04054bbd8"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-2-brake",
+      "gzipSha256": "e8dc995effc3e7514567a39d420c362a10fc77fdbbb26f02e013787a29243c22",
+      "uncompressedSha256": "3385bb2f6bfe54b88a34bf93e1894d8769375f1c637a3efa0cbf8bab338ac21b"
+    },
+    {
+      "mode": "baseline",
+      "id": "campaign-0-flight",
+      "gzipSha256": "a8916c596ce3903e123d99c841ebcc08db4bd98b432fc110351ec9d40278bef7",
+      "uncompressedSha256": "4e3a45139d38a5b865b31c7b51eef432b0fb8a973a858356c7636f72fbba96f1"
+    },
+    {
+      "mode": "baseline",
+      "id": "campaign-1-flight",
+      "gzipSha256": "44e900282d733e31a6e6d18a95b85aba9215856e76e4a85ea0778ae662fd935a",
+      "uncompressedSha256": "2211b0771edd0ab252eacd825379b18df7f80f1e7bbdff6d9d9e71c9988ed9ea"
+    },
+    {
+      "mode": "baseline",
+      "id": "campaign-2-brake",
+      "gzipSha256": "a0c5422401a6201d50a0b994a89bf53beb8bb87b525b968509a98bc34cf4bb18",
+      "uncompressedSha256": "5cbf6dd27e3eef3a6111e77425412d335f5b35de11ff4782f672e5f86343514f"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-0-flight",
+      "gzipSha256": "b69bb65827e0f25f72211b5c66078dfb375b8e894b890cd926989f56ef198316",
+      "uncompressedSha256": "6f7791f1de38c593ff2a38dcac46782fdda1fe8da41a80ba61a76cb0743048c4"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-1-flight",
+      "gzipSha256": "0dd552c792ffa5ec1f926f153988a7f5db29f2b93c72c309f05914928854ddd9",
+      "uncompressedSha256": "fc958f46603b8ac4ad448b4a2dfec8b9455d0b840a532a6301f62d6f6b9c7198"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-1-brake",
+      "gzipSha256": "654cccd86329f6bf380d953d1e88e1078eb56e59a9dfeddd113b5d49a2fa9bc6",
+      "uncompressedSha256": "4b0f52254a95fad88d7bedefd40b0238ea5c4265bad9a6073a3780e61a0fc799"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-0-brake",
+      "gzipSha256": "96af24039c175244bc9beadbbc5f86cd13f240488ccedb0ab884bdd438c18fd7",
+      "uncompressedSha256": "bac217a1cdebe8d43a0b2367923347bb5bf7de3c7e8452f7af1afb1e22f4f33f"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-2-flight",
+      "gzipSha256": "b30e3bd3b54e840094e13b7ae6a715eeb5a0959b1e11c9157c0e646c6c77ba63",
+      "uncompressedSha256": "c377e06a8d887f8b2a8f8dbe63401eaa1b122c414158b6260d59429cde1eff61"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-2-brake",
+      "gzipSha256": "64b1460c946c3243883cd14ab4624682017092f1af20dc0783da34b5fac74dbe",
+      "uncompressedSha256": "1741f68a1bf644226bd4e2f65a33b8089113bc563a0a16379ac6e04bea9b992f"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-0-flight",
+      "gzipSha256": "827f6a32ed0c0c29b7eadd1faddead9817916e22032b45deb7c4760159780d6f",
+      "uncompressedSha256": "d0c955493e1a70e3d60173ae38ba5ddd347b06949234528d0f96ca9fd330da4e"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-0-brake",
+      "gzipSha256": "c2a0e34c14a4f8ea3920d4498baec14f8514634d39a4ece1622e26b7f860f797",
+      "uncompressedSha256": "dc3cdbb3c73b51c1dcbfae7483ab824dbd74f35e5df896352d0fbe16b7364719"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-1-flight",
+      "gzipSha256": "c5ed602c0008194fcd00340c92c6d11f059f22093e377d41586fd2b037468884",
+      "uncompressedSha256": "4ca1fee826296c8a2cb727b6d8c270691f10039ee5dfbba037438ed8aefeb0a2"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-1-brake",
+      "gzipSha256": "3403515c37f5044f16bbeb65875d01f5edfa5069186a6f0faaad6e7a562915e8",
+      "uncompressedSha256": "eb6143c385e8d1a0b305cab05ad1bdc25870125b882197e2392ceeb48a6808db"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-2-flight",
+      "gzipSha256": "5346574f25b360193a29f3aa89fa7ae7e6d8b05d03554a404a04dad5158ab5d5",
+      "uncompressedSha256": "cf44cf92fed2fa7c811eb7630b2ade8d43299f9da2041a8b9ae0c2e04054bbd8"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-2-brake",
+      "gzipSha256": "e8dc995effc3e7514567a39d420c362a10fc77fdbbb26f02e013787a29243c22",
+      "uncompressedSha256": "3385bb2f6bfe54b88a34bf93e1894d8769375f1c637a3efa0cbf8bab338ac21b"
+    },
+    {
+      "mode": "fixed",
+      "id": "campaign-0-flight",
+      "gzipSha256": "a8916c596ce3903e123d99c841ebcc08db4bd98b432fc110351ec9d40278bef7",
+      "uncompressedSha256": "4e3a45139d38a5b865b31c7b51eef432b0fb8a973a858356c7636f72fbba96f1"
+    },
+    {
+      "mode": "fixed",
+      "id": "campaign-1-flight",
+      "gzipSha256": "985d42a376d3805b6317ac2144f5cf212dc3b95b5e80d85cc365c27f79a9383d",
+      "uncompressedSha256": "96de477450a377e181ae029d812a05c443277ffff274e760dbfc9328bb25cbca"
+    },
+    {
+      "mode": "fixed",
+      "id": "campaign-2-brake",
+      "gzipSha256": "e2b49b741a1201853c99f4f1d8ad3ffae858a9087d8cbace8c65add3eb3186f3",
+      "uncompressedSha256": "7974a63f8cfd5544bc83b9401e0bcd63ee1a4bd6a5713efab51527c06afb513a"
+    }
+  ],
+  "snapshots": [
+    {
+      "mode": "baseline",
+      "id": "l2-480-0-flight",
+      "path": "build/frame-peak-baseline/l2-480-0-flight-snapshots.bin.gz",
+      "sha256": "1a515ba975de440d2cb473c44a9c88d2f093e5e22a2050bfceaffc033870f239",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-1-flight",
+      "path": "build/frame-peak-baseline/l2-480-1-flight-snapshots.bin.gz",
+      "sha256": "5c0158ecd62e9fa461523a9b2b2ab2fcd1a522da9eab95e84c04634a05eb5f40",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-1-brake",
+      "path": "build/frame-peak-baseline/l2-480-1-brake-snapshots.bin.gz",
+      "sha256": "e2c9dfb89c1ab71ade4f098abd0360eb88ea9af2cebfd18a19ac2d6a88ceee00",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-0-brake",
+      "path": "build/frame-peak-baseline/l2-480-0-brake-snapshots.bin.gz",
+      "sha256": "db3db247b93ed164cf302223e20aba699c50b454c52c67717a66cde3799bdfc8",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-2-flight",
+      "path": "build/frame-peak-baseline/l2-480-2-flight-snapshots.bin.gz",
+      "sha256": "9995992d1acde37623b355c07d6cb8218dc73acaa856f3f72765fcdb54cbe8ad",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-480-2-brake",
+      "path": "build/frame-peak-baseline/l2-480-2-brake-snapshots.bin.gz",
+      "sha256": "8b5f9731af88a16f2c2cf430b60558d67b26497410d4da731c56ff95644cc014",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-0-flight",
+      "path": "build/frame-peak-baseline/l2-960-0-flight-snapshots.bin.gz",
+      "sha256": "f77e667bccec74325e4f7255ccfa4207f7b91317347101769e1d494c2b644cc7",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-0-brake",
+      "path": "build/frame-peak-baseline/l2-960-0-brake-snapshots.bin.gz",
+      "sha256": "6b0d946e13f1d06055db30e2c8ac3bbaa3d9ae9a73fa23f32743347f5e07e42c",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-1-flight",
+      "path": "build/frame-peak-baseline/l2-960-1-flight-snapshots.bin.gz",
+      "sha256": "93719820987df0b44629e93dcdf372155e8bb9e8b1a7e3c128b880ecc8e3cf77",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-1-brake",
+      "path": "build/frame-peak-baseline/l2-960-1-brake-snapshots.bin.gz",
+      "sha256": "16f1ff64660856b22b2db48dc32a10c0415c1f5434250186b78d898030deb82c",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-2-flight",
+      "path": "build/frame-peak-baseline/l2-960-2-flight-snapshots.bin.gz",
+      "sha256": "5ff465020c37eb93f34e20f53bffe207d93a2f7839c9e7740892b21da3b894b8",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "l2-960-2-brake",
+      "path": "build/frame-peak-baseline/l2-960-2-brake-snapshots.bin.gz",
+      "sha256": "f876a77a2411f5df8673d85077272f5c44d75633fba7554300005365772dc339",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "campaign-0-flight",
+      "path": "build/frame-peak-baseline/campaign-0-flight-snapshots.bin.gz",
+      "sha256": "2c00200db18e38b0f15e5f3fdb3f176429d4f6139ba0b86ee4b52b0202006952",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "campaign-1-flight",
+      "path": "build/frame-peak-baseline/campaign-1-flight-snapshots.bin.gz",
+      "sha256": "4a2ef04de6f9b5ad91fceee70a1864f8ebc189bfe485826af83c22371b20df23",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "baseline",
+      "id": "campaign-2-brake",
+      "path": "build/frame-peak-baseline/campaign-2-brake-snapshots.bin.gz",
+      "sha256": "a872df7f0cb82b2a84f17a7c42974db7813497147ff9bb9e1111ebe7befc958f",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-0-flight",
+      "path": "build/frame-peak-fixed/l2-480-0-flight-snapshots.bin.gz",
+      "sha256": "1a515ba975de440d2cb473c44a9c88d2f093e5e22a2050bfceaffc033870f239",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-1-flight",
+      "path": "build/frame-peak-fixed/l2-480-1-flight-snapshots.bin.gz",
+      "sha256": "5c0158ecd62e9fa461523a9b2b2ab2fcd1a522da9eab95e84c04634a05eb5f40",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-1-brake",
+      "path": "build/frame-peak-fixed/l2-480-1-brake-snapshots.bin.gz",
+      "sha256": "e2c9dfb89c1ab71ade4f098abd0360eb88ea9af2cebfd18a19ac2d6a88ceee00",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-0-brake",
+      "path": "build/frame-peak-fixed/l2-480-0-brake-snapshots.bin.gz",
+      "sha256": "db3db247b93ed164cf302223e20aba699c50b454c52c67717a66cde3799bdfc8",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-2-flight",
+      "path": "build/frame-peak-fixed/l2-480-2-flight-snapshots.bin.gz",
+      "sha256": "9995992d1acde37623b355c07d6cb8218dc73acaa856f3f72765fcdb54cbe8ad",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-480-2-brake",
+      "path": "build/frame-peak-fixed/l2-480-2-brake-snapshots.bin.gz",
+      "sha256": "8b5f9731af88a16f2c2cf430b60558d67b26497410d4da731c56ff95644cc014",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-0-flight",
+      "path": "build/frame-peak-fixed/l2-960-0-flight-snapshots.bin.gz",
+      "sha256": "f77e667bccec74325e4f7255ccfa4207f7b91317347101769e1d494c2b644cc7",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-0-brake",
+      "path": "build/frame-peak-fixed/l2-960-0-brake-snapshots.bin.gz",
+      "sha256": "6b0d946e13f1d06055db30e2c8ac3bbaa3d9ae9a73fa23f32743347f5e07e42c",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-1-flight",
+      "path": "build/frame-peak-fixed/l2-960-1-flight-snapshots.bin.gz",
+      "sha256": "93719820987df0b44629e93dcdf372155e8bb9e8b1a7e3c128b880ecc8e3cf77",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-1-brake",
+      "path": "build/frame-peak-fixed/l2-960-1-brake-snapshots.bin.gz",
+      "sha256": "16f1ff64660856b22b2db48dc32a10c0415c1f5434250186b78d898030deb82c",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-2-flight",
+      "path": "build/frame-peak-fixed/l2-960-2-flight-snapshots.bin.gz",
+      "sha256": "5ff465020c37eb93f34e20f53bffe207d93a2f7839c9e7740892b21da3b894b8",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "l2-960-2-brake",
+      "path": "build/frame-peak-fixed/l2-960-2-brake-snapshots.bin.gz",
+      "sha256": "f876a77a2411f5df8673d85077272f5c44d75633fba7554300005365772dc339",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "campaign-0-flight",
+      "path": "build/frame-peak-fixed/campaign-0-flight-snapshots.bin.gz",
+      "sha256": "2c00200db18e38b0f15e5f3fdb3f176429d4f6139ba0b86ee4b52b0202006952",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "campaign-1-flight",
+      "path": "build/frame-peak-fixed/campaign-1-flight-snapshots.bin.gz",
+      "sha256": "84f34b2a861c676deffa1187aff63875fb9a464ed8f6d1b09eb799f28382ec3e",
+      "retained": "build only; exact RAM compared independently of FNV"
+    },
+    {
+      "mode": "fixed",
+      "id": "campaign-2-brake",
+      "path": "build/frame-peak-fixed/campaign-2-brake-snapshots.bin.gz",
+      "sha256": "2422451b7753327238608fc16a020aebb8945e5a248e7f8045169d84d569fb57",
+      "retained": "build only; exact RAM compared independently of FNV"
+    }
+  ]
+}

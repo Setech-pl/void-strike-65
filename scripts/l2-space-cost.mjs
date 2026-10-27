@@ -1,7 +1,9 @@
 // CPU-only 6502 comparison, no DMA estimate: execute complete SPACE main-loop
 // bodies on the same input route; count actual instructions outside raster waits.
 import fs from 'node:fs';import path from 'node:path';
+import {stateMask,stateHash} from './frame-peak-state.mjs';
 const build=process.argv[2]??'build';
+const mask=process.argv.includes('--state-hashes')?stateMask(build).mask:null;
 if(path.resolve(build)!==path.resolve('build'))process.env.VS65_HARNESS_BUILD=path.basename(build);
 const h=await import('../tests/boss-harness.mjs');
 const main=n=>h.label('main',n);
@@ -26,7 +28,8 @@ for(let difficulty=0;difficulty<3;difficulty++)for(const x of [52,83,84,124,171,
    if(++steps>2000000)throw Error(`SPACE fixture stuck $${cpu.pc.toString(16)}`);
  }while(cpu.pc!==main('main_loop'));
  if(m[main('CAPITAL_SECTOR_STATE')]!==7)throw Error('SPACE fixture entered capital');
- records.push({difficulty,x,accumulator,activeCpu:active,predictorCpu:predictor.cycles,predictorResult:predictor.a});
+ records.push({difficulty,x,accumulator,activeCpu:active,predictorCpu:predictor.cycles,predictorResult:predictor.a,
+  ...(mask?{stateHash:stateHash(m,mask)}:{})});
 }
 const output=process.argv[3]??'build/l2-space-cost.json';
 fs.writeFileSync(output,JSON.stringify({build,route:'neutral joystick, released FIRE; empty SPACE field; complete main-loop body',

@@ -1,0 +1,6487 @@
+{
+  "fixtures": 720,
+  "identical": true,
+  "activeCpuDelta": 0,
+  "rows": [
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 0,
+      "stateHash": "e1ed05792eef5d25",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 1,
+      "stateHash": "f25482c5d83cf70a",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 2,
+      "stateHash": "6fd288ebe76f21f7",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 3,
+      "stateHash": "35515fb1922aa68c",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 4,
+      "stateHash": "ae0034fd9d41dec9",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 5,
+      "stateHash": "9b57c4a1b9e5f2ee",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 6,
+      "stateHash": "dff9c3f91b3e690b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 7,
+      "stateHash": "2145235c8f50f890",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 8,
+      "stateHash": "6a6a7e20938d6d5d",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 9,
+      "stateHash": "93390a3335b40822",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 10,
+      "stateHash": "7a9ce06783fe3d8f",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 11,
+      "stateHash": "03c503b6dc5bd9c4",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 12,
+      "stateHash": "63af7cf39e772d61",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 13,
+      "stateHash": "da1b856c11916ac6",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 14,
+      "stateHash": "b6d6e3b243edb823",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 15,
+      "stateHash": "aa96a0c463161aa8",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 16,
+      "stateHash": "f28414dbbbb046d5",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 17,
+      "stateHash": "31ee84e61cbd39fa",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 18,
+      "stateHash": "d64f77c8ad8f6827",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 19,
+      "stateHash": "d80dd365652827bc",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 20,
+      "stateHash": "264ea4ee25a580f9",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 21,
+      "stateHash": "4f980d03d69d8f1e",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 22,
+      "stateHash": "5a64ca41c1ca577b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 23,
+      "stateHash": "ef0b0505f9170640",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 24,
+      "stateHash": "24a156770e7703ec",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 25,
+      "stateHash": "ba7a119d4a565613",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 26,
+      "stateHash": "c28b04b3c7060a2e",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 27,
+      "stateHash": "e147841e29eefcdd",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 28,
+      "stateHash": "6866f6e6b402ed60",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 29,
+      "stateHash": "d9a0ae73ad9d2fa7",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 30,
+      "stateHash": "42a0a23fa20116a2",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 31,
+      "stateHash": "01104c485273a471",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 32,
+      "stateHash": "9e9b1f4f9bbe4d24",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 33,
+      "stateHash": "6cbc203e26960e4b",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 34,
+      "stateHash": "272b3eb0a8f535a6",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 35,
+      "stateHash": "3fd3b6ced0bbdd95",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 36,
+      "stateHash": "201ae693b95d44d8",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 37,
+      "stateHash": "7edd21cc5a0b0ebf",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 38,
+      "stateHash": "93621e057ebeb05a",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 39,
+      "stateHash": "7ff200d35d8f2c29",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 0,
+      "stateHash": "3a66487834e1ac4e",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 1,
+      "stateHash": "8ee1acfe40a9bb29",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 2,
+      "stateHash": "8b72441f5012baf0",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 3,
+      "stateHash": "39363d4df700df6b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 4,
+      "stateHash": "b094e0adca1ba16a",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 5,
+      "stateHash": "06454d8199cc0f05",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 6,
+      "stateHash": "3d107413fc087cec",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 7,
+      "stateHash": "d154a7ea4a770ed7",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 8,
+      "stateHash": "03b9e9ef6e2d11a6",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 9,
+      "stateHash": "237462ad795678c1",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 10,
+      "stateHash": "3f8434b3b8501308",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 11,
+      "stateHash": "d96c59a7fe72e283",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 12,
+      "stateHash": "ccf8acc9d0c5ed02",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 13,
+      "stateHash": "b3337269f379033d",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 14,
+      "stateHash": "d481b4671fe7c024",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 15,
+      "stateHash": "c721d5bb856e9e6f",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 16,
+      "stateHash": "b5b1893bbdd99f3e",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 17,
+      "stateHash": "040b26f1d6d1b699",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 18,
+      "stateHash": "c8745488095e5860",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 19,
+      "stateHash": "c886154ad7e5e09b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 20,
+      "stateHash": "a392b4feffb1271a",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 21,
+      "stateHash": "a484b93e8b46a075",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 22,
+      "stateHash": "88067dbafe130a5c",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 23,
+      "stateHash": "aca7a74e353314c7",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 24,
+      "stateHash": "63fe0daa4988fdc7",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 25,
+      "stateHash": "2a6b8e6d8e878780",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 26,
+      "stateHash": "795b27f439d82211",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 27,
+      "stateHash": "8bea02efe93b9b42",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 28,
+      "stateHash": "a25c518bb300d2b3",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 29,
+      "stateHash": "ff33bd9cc71a8b8c",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 30,
+      "stateHash": "6faa6053ea094bfd",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 31,
+      "stateHash": "cd6914679d8fbf4e",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 32,
+      "stateHash": "357159e2dea256df",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 33,
+      "stateHash": "7cce36475fa83278",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 34,
+      "stateHash": "5acc218189c3b649",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 35,
+      "stateHash": "8bcd9af0956bc97a",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 36,
+      "stateHash": "79ecdff974b10e6b",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 37,
+      "stateHash": "65f6f386cb0be7c4",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 38,
+      "stateHash": "987978088bfbd9b5",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 39,
+      "stateHash": "6ce61ccb20ba5d46",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 0,
+      "stateHash": "38b2f54cb1f8af96",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 1,
+      "stateHash": "484e323f6cdbffd1",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 2,
+      "stateHash": "abb846e9c5885cd8",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 3,
+      "stateHash": "b39482396dc80d73",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 4,
+      "stateHash": "6cf4a33979385f52",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 5,
+      "stateHash": "1cc9458798259fcd",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 6,
+      "stateHash": "40deb2a97620c394",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 7,
+      "stateHash": "1aae56a391fd959f",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 8,
+      "stateHash": "84964272e277101e",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 9,
+      "stateHash": "44f1dd31a3b70499",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 10,
+      "stateHash": "25dccda6164287c0",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 11,
+      "stateHash": "26c71e582f4227db",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 12,
+      "stateHash": "0d0c4ff157a72fba",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 13,
+      "stateHash": "7f8d5b5b26e1d9f5",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 14,
+      "stateHash": "6f0bac2b7343f3bc",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 15,
+      "stateHash": "564e6fea68aba4a7",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 16,
+      "stateHash": "578e52cfdf939766",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 17,
+      "stateHash": "0951b975e7cb9d61",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 18,
+      "stateHash": "603bfc67fe6ad7e8",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 19,
+      "stateHash": "5d7f1bc701fa35c3",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 20,
+      "stateHash": "371907a6048213a2",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 21,
+      "stateHash": "09cabfe43f6b95dd",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 22,
+      "stateHash": "25c834176a3bfae4",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 23,
+      "stateHash": "1eb371e68d457caf",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 24,
+      "stateHash": "076e7d19cffb8a4f",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 25,
+      "stateHash": "2df91ffa01afaf08",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 26,
+      "stateHash": "3ad0383069cea6d9",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 27,
+      "stateHash": "5891fb24142c352a",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 28,
+      "stateHash": "d908dfd255bf1c3b",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 29,
+      "stateHash": "1edb16d1c6cbe1d4",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 30,
+      "stateHash": "12dc2404f55aeea5",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 31,
+      "stateHash": "a11badefdb457ff6",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 32,
+      "stateHash": "b1b7cbe76459e017",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 33,
+      "stateHash": "59c987b0365ed630",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 34,
+      "stateHash": "fabb7765b699d8a1",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 35,
+      "stateHash": "bdfbd0e92041a4f2",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 36,
+      "stateHash": "eef613abc4c47ec3",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 37,
+      "stateHash": "ee8bccef598523bc",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 38,
+      "stateHash": "e19d02daf948138d",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 39,
+      "stateHash": "f9230d823af4841e",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 0,
+      "stateHash": "ed16ff6797d3a34e",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 1,
+      "stateHash": "201cfedd01914289",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 2,
+      "stateHash": "0c7aa534bddf7e30",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 3,
+      "stateHash": "701d4e7412b6f9cb",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 4,
+      "stateHash": "4aff7756fba135aa",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 5,
+      "stateHash": "fafdcd25a9d2bfe5",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 6,
+      "stateHash": "d7f27e954583102c",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 7,
+      "stateHash": "e6c4ef5519a16897",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 8,
+      "stateHash": "f7a89e0b7f2cad06",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 9,
+      "stateHash": "f6433fa092293981",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 10,
+      "stateHash": "fc60c1a389d42088",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 11,
+      "stateHash": "7b3d2763152ee563",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 12,
+      "stateHash": "6afddfdb773127c2",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 13,
+      "stateHash": "ef0a5a8f5a44667d",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 14,
+      "stateHash": "773d0e5d7e397c84",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 15,
+      "stateHash": "5085eed0bcda43cf",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 16,
+      "stateHash": "6f6ca5e1f227b97e",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 17,
+      "stateHash": "f2d957826ac04979",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 18,
+      "stateHash": "199c49c8326677a0",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 19,
+      "stateHash": "10f1cbb38cf76cbb",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 20,
+      "stateHash": "5e85dbea302cf49a",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 21,
+      "stateHash": "e32a1bf127744d55",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 22,
+      "stateHash": "a9c2d82694ca2a9c",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 23,
+      "stateHash": "294caea853360687",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 24,
+      "stateHash": "a35899bf4418b6c7",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 25,
+      "stateHash": "8998bf90bc4e51e0",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 26,
+      "stateHash": "72bc46f36ca42a91",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 27,
+      "stateHash": "3857f0159cab0962",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 28,
+      "stateHash": "d795e4a40d43e073",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 29,
+      "stateHash": "f5a209fed6473eec",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 30,
+      "stateHash": "ee2fe7c6b6bd1bfd",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 31,
+      "stateHash": "daff694ef55c47ce",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 32,
+      "stateHash": "fdd55cb6d38278bf",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 33,
+      "stateHash": "efeb8d117707a438",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 34,
+      "stateHash": "787e45cd9d060089",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 35,
+      "stateHash": "9bd80159ba0d9ada",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 36,
+      "stateHash": "776680daa4110feb",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 37,
+      "stateHash": "53bb10b93f3049c4",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 38,
+      "stateHash": "b10917951c5fbe15",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 39,
+      "stateHash": "f9ef5e6e5a8917a6",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 0,
+      "stateHash": "709878655d8f71a6",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 1,
+      "stateHash": "9052f12368b8d8c1",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 2,
+      "stateHash": "ac62c329a7b27308",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 3,
+      "stateHash": "464ae81dedd54283",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 4,
+      "stateHash": "39d73b3fc0284d02",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 5,
+      "stateHash": "201200dfe2db633d",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 6,
+      "stateHash": "416042dd0f4a2024",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 7,
+      "stateHash": "3400643174d0fe6f",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 8,
+      "stateHash": "a744d6ee24440c4e",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 9,
+      "stateHash": "fbc03b74300c1b29",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 10,
+      "stateHash": "f850d2953f751af0",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 11,
+      "stateHash": "a614cbc3e6633f6b",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 12,
+      "stateHash": "1d736f23b97e016a",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 13,
+      "stateHash": "7323dbf7892e6f05",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 14,
+      "stateHash": "a9ef0289eb6adcec",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 15,
+      "stateHash": "3e33366039d96ed7",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 16,
+      "stateHash": "e25a89e60726a516",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 17,
+      "stateHash": "549145127b62ceb1",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 18,
+      "stateHash": "a80fd31ed038d0b8",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 19,
+      "stateHash": "fe5e502be64e4a73",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 20,
+      "stateHash": "fdfa93d639818772",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 21,
+      "stateHash": "18cf8a1acc64af6d",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 22,
+      "stateHash": "a416902428280794",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 23,
+      "stateHash": "367f3a09954caa1f",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 24,
+      "stateHash": "a24fe858ce04b6df",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 25,
+      "stateHash": "e9acc4bd4f0a9278",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 26,
+      "stateHash": "c7aaaff779261649",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 27,
+      "stateHash": "f8ac296684ce297a",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 28,
+      "stateHash": "e6cb6e6f64136e6b",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 29,
+      "stateHash": "d2d581fcba6e47c4",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 30,
+      "stateHash": "0558067e7b5e39b5",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 31,
+      "stateHash": "d9c4ab41101cbd46",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 32,
+      "stateHash": "d0dc9c2038eb5dc7",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 33,
+      "stateHash": "974a1ce37de9e780",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 34,
+      "stateHash": "e639b66a293a8211",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 35,
+      "stateHash": "f8c89165d89dfb42",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 36,
+      "stateHash": "0f3ae001a26332b3",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 37,
+      "stateHash": "6c124c12b67ceb8c",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 38,
+      "stateHash": "dc88eec9d96babfd",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 39,
+      "stateHash": "3a47a2dd8cf21f4e",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 0,
+      "stateHash": "3df09de6a97199f5",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 1,
+      "stateHash": "3d53c74aec71fc9a",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 2,
+      "stateHash": "f2762f725f532c47",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 3,
+      "stateHash": "a34de75474d17fdc",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 4,
+      "stateHash": "c615b916ee5f9219",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 5,
+      "stateHash": "7177c93dc76f90be",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 6,
+      "stateHash": "629300e20931341b",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 7,
+      "stateHash": "255c4c4587d4abe0",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 8,
+      "stateHash": "bb2b245b265b0eed",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 9,
+      "stateHash": "4ed6332c68b74cf2",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 10,
+      "stateHash": "9bfd2ac089ad639f",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 11,
+      "stateHash": "fd098a7d75a3a514",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 12,
+      "stateHash": "09e97d4485849a31",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 13,
+      "stateHash": "4159a0a6c69d7296",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 14,
+      "stateHash": "67fecdb5746ba3f3",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 15,
+      "stateHash": "bae34aac859c6438",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 16,
+      "stateHash": "8a2dba9eb978b885",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 17,
+      "stateHash": "6d9303b70da4a0ea",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 18,
+      "stateHash": "1a84ef4fe68b9457",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 19,
+      "stateHash": "48759e304213fe6c",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 20,
+      "stateHash": "f9cfbc89143d58a9",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 21,
+      "stateHash": "e50e380e3a6d7bce",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 22,
+      "stateHash": "4e6957be21f686eb",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 23,
+      "stateHash": "c474012f715eb470",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 24,
+      "stateHash": "e32de27d66ed5ffc",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 25,
+      "stateHash": "197b604e4849e863",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 26,
+      "stateHash": "fae32ce01a951f3e",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 27,
+      "stateHash": "9157b4b81e1088ad",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 28,
+      "stateHash": "dbade54de435b770",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 29,
+      "stateHash": "9a88bf362ab51f77",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 30,
+      "stateHash": "20fcb65a62346232",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 31,
+      "stateHash": "eb5ab138a632a1c1",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 32,
+      "stateHash": "44d169503b0c48f4",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 33,
+      "stateHash": "c111f82c1fb3a1db",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 34,
+      "stateHash": "5f0f5b83dc6734b6",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 35,
+      "stateHash": "eae4886bef1ba5e5",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 36,
+      "stateHash": "8f047828e66d4aa8",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 37,
+      "stateHash": "f609caf62ecaa30f",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 38,
+      "stateHash": "d15c2bc2d98810ea",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 39,
+      "stateHash": "026f7b95c8856cb9",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 0,
+      "stateHash": "ba004564f3ff8840",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 1,
+      "stateHash": "952e6994d750e367",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 2,
+      "stateHash": "008c8c2c2478cc46",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 3,
+      "stateHash": "a46ae00af778c73d",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 4,
+      "stateHash": "a85534804b522524",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 5,
+      "stateHash": "519ae7b5cea29a3b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 6,
+      "stateHash": "2ee8ed79fec8fbea",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 7,
+      "stateHash": "f859131d0b579dc1",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 8,
+      "stateHash": "517170a4dfc563b8",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 9,
+      "stateHash": "26c5bb912a2f343f",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 10,
+      "stateHash": "7bc548515cf42cfe",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 11,
+      "stateHash": "a6f6ace7106b3135",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 12,
+      "stateHash": "24a607af6d39907c",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 13,
+      "stateHash": "733d0fbdc02b4993",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 14,
+      "stateHash": "4fe3c5926e8675c2",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 15,
+      "stateHash": "cbc3ee02184813f9",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 16,
+      "stateHash": "ae2e35eda9ad4e70",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 17,
+      "stateHash": "8bb6aa58b9d2c097",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 18,
+      "stateHash": "32a7f06092b2d4b6",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 19,
+      "stateHash": "27d8bf18bbe7322d",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 20,
+      "stateHash": "707e70441b839b94",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 21,
+      "stateHash": "ee6637f5abb34c2b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 22,
+      "stateHash": "39c3d991cc06189b",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 23,
+      "stateHash": "488e4c39b51ad660",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 24,
+      "stateHash": "7e0852d237614741",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 25,
+      "stateHash": "757bb1b6e277f97e",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 26,
+      "stateHash": "202f7b061a49b67f",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 27,
+      "stateHash": "dadeaa297ece43c4",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 28,
+      "stateHash": "d4e1df7a5001b8f5",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 29,
+      "stateHash": "16e2815b8be45f72",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 30,
+      "stateHash": "3c28fddb22d626b3",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 31,
+      "stateHash": "a999429e6560ee38",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 32,
+      "stateHash": "0d4d48350161cf19",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 33,
+      "stateHash": "bf383600631dab36",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 34,
+      "stateHash": "fd85fc6b1934a057",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 35,
+      "stateHash": "8a4c22aa987a6a5c",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 36,
+      "stateHash": "330a8b9447ec102d",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 37,
+      "stateHash": "6a129262a2846aea",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 38,
+      "stateHash": "0537bb004605006b",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 39,
+      "stateHash": "e38b25fb92746630",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 0,
+      "stateHash": "3c0d4d3b6680721b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 1,
+      "stateHash": "5123db2825314204",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 2,
+      "stateHash": "01ddbbd4920e73a9",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 3,
+      "stateHash": "8fa704da91b75672",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 4,
+      "stateHash": "a5ffff8d2af1d0c7",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 5,
+      "stateHash": "f668e9708d18c8a0",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 6,
+      "stateHash": "ac5cb54955ee5215",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 7,
+      "stateHash": "fdd36fc89e83395e",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 8,
+      "stateHash": "a366440eb0bebb73",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 9,
+      "stateHash": "3cf53f5f0eb62f5c",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 10,
+      "stateHash": "edb42a0fede94c21",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 11,
+      "stateHash": "9562c5527c8c94ca",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 12,
+      "stateHash": "d22a85db4012c69f",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 13,
+      "stateHash": "8bee06585e5a6b18",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 14,
+      "stateHash": "a90b4e189c4d344d",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 15,
+      "stateHash": "b3ed7500ab81d6d6",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 16,
+      "stateHash": "e1332248faf9334b",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 17,
+      "stateHash": "ce5d04dad8789834",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 18,
+      "stateHash": "040696023578e999",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 19,
+      "stateHash": "461e49a6f2a72ce2",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 20,
+      "stateHash": "953b2a9f35513737",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 21,
+      "stateHash": "1448837bc88c9f10",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 22,
+      "stateHash": "68ca9b1be49f2664",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 23,
+      "stateHash": "78315fb3fba0771f",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 24,
+      "stateHash": "5284ddf801f69092",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 25,
+      "stateHash": "9c031d978bf0ae15",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 26,
+      "stateHash": "01f7791e0095f780",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 27,
+      "stateHash": "33b9a00b84cf74bb",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 28,
+      "stateHash": "d90f86a3572e2d9e",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 29,
+      "stateHash": "7f67579db785dd61",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 30,
+      "stateHash": "f9b31524333adcfc",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 31,
+      "stateHash": "031c84946fbfa3f7",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 32,
+      "stateHash": "b31935034f60db0a",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 33,
+      "stateHash": "faa097f17e10c64d",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 34,
+      "stateHash": "9589cf87db78fad8",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 35,
+      "stateHash": "c97445e342f1aad3",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 36,
+      "stateHash": "91068b05a4aff756",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 37,
+      "stateHash": "daae9618b9e8b5b9",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 38,
+      "stateHash": "5974e6a70dc21bf4",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 39,
+      "stateHash": "a78886869a93e26f",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 0,
+      "stateHash": "3fd8a6e2b35910a3",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 1,
+      "stateHash": "9832e2b35e771eec",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 2,
+      "stateHash": "c3e224ec9068e371",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 3,
+      "stateHash": "f599b6f7836fc69a",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 4,
+      "stateHash": "7d0dd064d2717c8f",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 5,
+      "stateHash": "4699909b777fdba8",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 6,
+      "stateHash": "3eb1254858560c2d",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 7,
+      "stateHash": "e45ed4ab3c38d696",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 8,
+      "stateHash": "78dc2c390a3813cb",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 9,
+      "stateHash": "a4d2ec9c91e825b4",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 10,
+      "stateHash": "239803efa5e79fd9",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 11,
+      "stateHash": "1859f1dfe76aff42",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 12,
+      "stateHash": "40da525e37593397",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 13,
+      "stateHash": "ae2cd56532785ff0",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 14,
+      "stateHash": "76c9f5a82fafebd5",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 15,
+      "stateHash": "a4391e4f70d919fe",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 16,
+      "stateHash": "2baf6d3cc993e7f3",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 17,
+      "stateHash": "c40ac7fc6949c6bc",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 18,
+      "stateHash": "a3a76c55b30b2041",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 19,
+      "stateHash": "a6d2f5099a62b96a",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 20,
+      "stateHash": "d6ca3ce808cd839f",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 21,
+      "stateHash": "61f619d962548778",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 22,
+      "stateHash": "97a05a08bc99106c",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 23,
+      "stateHash": "ce4fab123b611447",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 24,
+      "stateHash": "d25a7ae1e1be5f3a",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 25,
+      "stateHash": "6bf2a557e78221dd",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 26,
+      "stateHash": "ec32b8e08fa4b728",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 27,
+      "stateHash": "d5ca18dceaf26ee3",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 28,
+      "stateHash": "aaa3b419c1aec106",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 29,
+      "stateHash": "3f204facd55f50c9",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 30,
+      "stateHash": "9b218380a09261f4",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 31,
+      "stateHash": "7a6b734295ae2b0f",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 32,
+      "stateHash": "dd4085be55297942",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 33,
+      "stateHash": "d3453b8b8f465045",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 34,
+      "stateHash": "a1fb7c2b61dedbf0",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 35,
+      "stateHash": "c46e020cbbe9cbcb",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 36,
+      "stateHash": "b8fa12798f687bae",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 37,
+      "stateHash": "0813d4e459d23931",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 38,
+      "stateHash": "531a5db03fb33b5c",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 39,
+      "stateHash": "7ef3ef254c43a637",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 0,
+      "stateHash": "18d1640301d2bdfb",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 1,
+      "stateHash": "fa021fd8c51663e4",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 2,
+      "stateHash": "a2a42fbe2f884849",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 3,
+      "stateHash": "fc29a11a1c8404f2",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 4,
+      "stateHash": "f32522a0d629d747",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 5,
+      "stateHash": "5f9f9ed1f7fb4a20",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 6,
+      "stateHash": "29dbdfeb248a06f5",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 7,
+      "stateHash": "ca435d601344d21e",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 8,
+      "stateHash": "a011282bd8338d13",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 9,
+      "stateHash": "dc6473d19b5bf35c",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 10,
+      "stateHash": "5002eef4c35c95e1",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 11,
+      "stateHash": "3b37f061969ad38a",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 12,
+      "stateHash": "80e7db8213a5733f",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 13,
+      "stateHash": "2241c5540d501998",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 14,
+      "stateHash": "827b234a87bbc08d",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 15,
+      "stateHash": "e7c05b7434f86576",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 16,
+      "stateHash": "8467ccf770dfadab",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 17,
+      "stateHash": "e62dc54ba03c8294",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 18,
+      "stateHash": "67658a4e664c8539",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 19,
+      "stateHash": "d15ff0203b80a122",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 20,
+      "stateHash": "66c83249aa6ad4f7",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 21,
+      "stateHash": "1b62f17372fc49d0",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 22,
+      "stateHash": "25538db5149e6264",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 23,
+      "stateHash": "93d82d900809fbbf",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 24,
+      "stateHash": "cded908773968b72",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 25,
+      "stateHash": "7f245797771ef4f5",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 26,
+      "stateHash": "174f3548657c7120",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 27,
+      "stateHash": "ca309e06724cd63b",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 28,
+      "stateHash": "da66a791ee727a9e",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 29,
+      "stateHash": "ef676494e3cae8e1",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 30,
+      "stateHash": "4140f3cc7093151c",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 31,
+      "stateHash": "d79f64f0b543c1f7",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 32,
+      "stateHash": "21865f419f226eea",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 33,
+      "stateHash": "ebb4cf8a4dc493cd",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 34,
+      "stateHash": "4955d9c950fe4b18",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 35,
+      "stateHash": "7ebf458ac38b7913",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 36,
+      "stateHash": "f1d743ce502bb236",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 37,
+      "stateHash": "4bad245756147a39",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 38,
+      "stateHash": "db9e8cc0be9588b4",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 39,
+      "stateHash": "a06b27b409b1a2cf",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 0,
+      "stateHash": "1044d284a0211b73",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 1,
+      "stateHash": "a9d3cdd4fe188f5c",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 2,
+      "stateHash": "5a92b885dd4bac21",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 3,
+      "stateHash": "024153c86beef4ca",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 4,
+      "stateHash": "3f0914512f75269f",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 5,
+      "stateHash": "f8cc94ce4dbccb18",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 6,
+      "stateHash": "ee11487a9c3a779d",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 7,
+      "stateHash": "dd2022a1c0e65da6",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 8,
+      "stateHash": "a8ebdbb155e2d21b",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 9,
+      "stateHash": "be02699e1493a204",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 10,
+      "stateHash": "6ebc4a4a8170d3a9",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 11,
+      "stateHash": "fc8593508119b672",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 12,
+      "stateHash": "12de8e031a5430c7",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 13,
+      "stateHash": "634777e67c7b28a0",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 14,
+      "stateHash": "7bfed9fae6602645",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 15,
+      "stateHash": "6af94c04fb38fd8e",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 16,
+      "stateHash": "b5dcf701390b2623",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 17,
+      "stateHash": "5ca183a06a7fa90c",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 18,
+      "stateHash": "fecf1900844da751",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 19,
+      "stateHash": "40becc57ec40e57a",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 20,
+      "stateHash": "6d3eac3f5643010f",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 21,
+      "stateHash": "36d7aec798b702c8",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 22,
+      "stateHash": "6691a39a229d3cfc",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 23,
+      "stateHash": "6ffb130a5f2203f7",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 24,
+      "stateHash": "1ff7c3793ec33b0a",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 25,
+      "stateHash": "677f26676d73264d",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 26,
+      "stateHash": "02685dfdcadb5ad8",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 27,
+      "stateHash": "3652d45932540ad3",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 28,
+      "stateHash": "fde5197b94125756",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 29,
+      "stateHash": "478d248ea94b15b9",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 30,
+      "stateHash": "d5a92991d4018664",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 31,
+      "stateHash": "e50fee29eb02d71f",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 32,
+      "stateHash": "bf636c6df158f092",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 33,
+      "stateHash": "08e1ac0d7b530e15",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 34,
+      "stateHash": "6ed60793eff85780",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 35,
+      "stateHash": "a0982e817431d4bb",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 36,
+      "stateHash": "45ee151946908d9e",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 37,
+      "stateHash": "ec45e613a6e83d61",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 38,
+      "stateHash": "c34ecc025ea5e30c",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 39,
+      "stateHash": "01796596b8be6c47",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 0,
+      "stateHash": "8e8b5196dd4b7490",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 1,
+      "stateHash": "045aaec803fc3cb7",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 2,
+      "stateHash": "2d325cb566964a56",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 3,
+      "stateHash": "865bfac6b115e9cd",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 4,
+      "stateHash": "a46ee31c5999adb4",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 5,
+      "stateHash": "a6c060b7039ce0cb",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 6,
+      "stateHash": "134a1ab43aac38fa",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 7,
+      "stateHash": "3ec1dd4300be1cd1",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 8,
+      "stateHash": "ce2fad3116b8a448",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 9,
+      "stateHash": "3d3207951ce3c68f",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 10,
+      "stateHash": "1daea1c6c241df0e",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 11,
+      "stateHash": "554cc78a52517dc5",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 12,
+      "stateHash": "4d42b514ec96c68c",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 13,
+      "stateHash": "02bd07455688c9a3",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 14,
+      "stateHash": "af6f8306e848f1f2",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 15,
+      "stateHash": "a6657cf705f73529",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 16,
+      "stateHash": "006848e45e4e2e20",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 17,
+      "stateHash": "3f697e8022dda247",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 18,
+      "stateHash": "6b435f6809d3a326",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 19,
+      "stateHash": "c70f09fe558a111d",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 20,
+      "stateHash": "d8755a0283b7ef84",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 21,
+      "stateHash": "4283acd83c612d9b",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 22,
+      "stateHash": "6a8f64aad839f7ab",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 23,
+      "stateHash": "b877026ea6c8ae70",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 24,
+      "stateHash": "9e9fe646c85b4591",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 25,
+      "stateHash": "241f9feecec35b0e",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 26,
+      "stateHash": "78a217708aa1e98f",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 27,
+      "stateHash": "c118e4257af33094",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 28,
+      "stateHash": "6dfa512553798e85",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 29,
+      "stateHash": "d6e5b5ce5ab14e82",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 30,
+      "stateHash": "402fad9d039cf603",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 31,
+      "stateHash": "61e977be809f3b48",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 32,
+      "stateHash": "fcf8f99469a5c029",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 33,
+      "stateHash": "e5f29a30f6bb6506",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 34,
+      "stateHash": "e1df6096ccb34667",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 35,
+      "stateHash": "16714d5d37594dac",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 36,
+      "stateHash": "2f3cc2e83a910a3d",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 37,
+      "stateHash": "f21b52f89f2d1bba",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 38,
+      "stateHash": "a352b3ac25b989db",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 39,
+      "stateHash": "8c3d6c7f20b7e0a0",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 0,
+      "stateHash": "512ee4bc113da0c7",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 1,
+      "stateHash": "edef00960f7364e0",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 2,
+      "stateHash": "535cfe4cdc1ffc15",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 3,
+      "stateHash": "db78184b73c12086",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 4,
+      "stateHash": "47f839d032ce9db3",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 5,
+      "stateHash": "26d1c02bcc1e7a2c",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 6,
+      "stateHash": "c0292fa5e15c4a91",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 7,
+      "stateHash": "22f7e358b75c5a92",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 8,
+      "stateHash": "153c87d03e2626df",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 9,
+      "stateHash": "f2ea32cc65a93c38",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 10,
+      "stateHash": "e04740b576b9e5cd",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 11,
+      "stateHash": "d66bb66159bcc05e",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 12,
+      "stateHash": "d52921dcbab03acb",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 13,
+      "stateHash": "d8fe397f80e10584",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 14,
+      "stateHash": "beb44297bd9bcf29",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 15,
+      "stateHash": "40cf11251413824a",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 16,
+      "stateHash": "ab2cf49a080b1a77",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 17,
+      "stateHash": "42b3e067ea0f5910",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 18,
+      "stateHash": "8fa76cfdc3cfa0c5",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 19,
+      "stateHash": "1c588cbfd5fd1ff6",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 20,
+      "stateHash": "81e0146d38da30d2",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 21,
+      "stateHash": "8aedd7cf7f55f585",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 22,
+      "stateHash": "713da0a73c7c8770",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 23,
+      "stateHash": "1573077dc8db0403",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 24,
+      "stateHash": "9329e5ba67213e9e",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 25,
+      "stateHash": "d97d42e800325ca1",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 26,
+      "stateHash": "bc155cee19016c3c",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 27,
+      "stateHash": "8dcd4870e19134bf",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 28,
+      "stateHash": "b8a7667e292c0a4a",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 29,
+      "stateHash": "1ae5ee4bf1cd7b3d",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 30,
+      "stateHash": "b2cc11ca55bc09e8",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 31,
+      "stateHash": "977b132a20574a5b",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 32,
+      "stateHash": "98c55ffc737a9b16",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 33,
+      "stateHash": "aa03283101988dd9",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 34,
+      "stateHash": "d81931c3194561b4",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 35,
+      "stateHash": "524ccf0f4e1389b7",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 36,
+      "stateHash": "c1339f798a290922",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 37,
+      "stateHash": "b44075367d2903d5",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 38,
+      "stateHash": "ac0c9d53c955b440",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 39,
+      "stateHash": "669ca9c12650e213",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 0,
+      "stateHash": "ccbeae4740d977f4",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 1,
+      "stateHash": "886224856b115dbb",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 2,
+      "stateHash": "2fcc2edb1d44073a",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 3,
+      "stateHash": "1bf6e432b4488e59",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 4,
+      "stateHash": "d3b35b3f393a1598",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 5,
+      "stateHash": "c0a980f5c148893f",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 6,
+      "stateHash": "661389851724443e",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 7,
+      "stateHash": "acd33c2e028ce3ad",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 8,
+      "stateHash": "31156c5d7467218c",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 9,
+      "stateHash": "c3d2371edf301613",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 10,
+      "stateHash": "4d682a0038d1f372",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 11,
+      "stateHash": "403cb140d01086f1",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 12,
+      "stateHash": "9f88c7f180441930",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 13,
+      "stateHash": "f201631e29320817",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 14,
+      "stateHash": "801c78b1d8dd3e16",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 15,
+      "stateHash": "199b4a9fb74ac965",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 16,
+      "stateHash": "107d60c4553f3c24",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 17,
+      "stateHash": "b8726f2e738cf5eb",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 18,
+      "stateHash": "8525424e83dd4fea",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 19,
+      "stateHash": "0978f78fc13752c9",
+      "beforeCpu": 3483,
+      "afterCpu": 3483,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 20,
+      "stateHash": "e32586e51a4b69c1",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 21,
+      "stateHash": "e60f88da3057113e",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 22,
+      "stateHash": "6ce498e52e2f475f",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 23,
+      "stateHash": "eb44b92c0994255c",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 24,
+      "stateHash": "12e527e8c8096325",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 25,
+      "stateHash": "ffad0be1bdb07872",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 26,
+      "stateHash": "0796c58ec3f81f23",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 27,
+      "stateHash": "b8ba6f5d2e2b6410",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 28,
+      "stateHash": "ff8aa5c75cee0979",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 29,
+      "stateHash": "7dcd60c9cf0fb4b6",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 30,
+      "stateHash": "0c679c9aa7db0157",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 31,
+      "stateHash": "291104e2a65a20d4",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 32,
+      "stateHash": "7ed6abf75953e15d",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 33,
+      "stateHash": "54a6e87f9cdfad6a",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 34,
+      "stateHash": "f796417a1415e7fb",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 35,
+      "stateHash": "2d6cb1f481550288",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 36,
+      "stateHash": "40b10c1d0e4949d1",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 37,
+      "stateHash": "896f764e3c627b8e",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 38,
+      "stateHash": "5409fbc6223e06af",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 39,
+      "stateHash": "707b33770fd79c2c",
+      "beforeCpu": 6174,
+      "afterCpu": 6174,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 0,
+      "stateHash": "8e0302bf8c14eb9c",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 1,
+      "stateHash": "221db8a3b30c86c3",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 2,
+      "stateHash": "831f2fbe41ab0fc2",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 3,
+      "stateHash": "20156135caa237c1",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 4,
+      "stateHash": "77b215d6f5e8da10",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 5,
+      "stateHash": "25675af8630005f7",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 6,
+      "stateHash": "491061b1b3b97f96",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 7,
+      "stateHash": "9b9ae1971a980325",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 8,
+      "stateHash": "375ea96d2ca67224",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 9,
+      "stateHash": "acc346915096a56b",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 10,
+      "stateHash": "8e73ba1bae57e3ca",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 11,
+      "stateHash": "ceb91a465fbf0c09",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 12,
+      "stateHash": "ee17496b57ed7738",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 13,
+      "stateHash": "9975995e4255b63f",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 14,
+      "stateHash": "38eb314f77d956de",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 15,
+      "stateHash": "582aa8aae7134ecd",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 16,
+      "stateHash": "57d51d6a02e0306c",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 17,
+      "stateHash": "2e9821468cd11493",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 18,
+      "stateHash": "1e00df5e3ee70112",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 19,
+      "stateHash": "77670b6fcbf86dd1",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 20,
+      "stateHash": "2b7ce949e12a9309",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 21,
+      "stateHash": "372f186913f58ee6",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 22,
+      "stateHash": "90a888914f462667",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 23,
+      "stateHash": "380ccca0895c8224",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 24,
+      "stateHash": "08d2b4d02053832d",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 25,
+      "stateHash": "7fdb9b415923b99a",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 26,
+      "stateHash": "296ba3e2bfdea20b",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 27,
+      "stateHash": "e40798d120e0bf18",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 28,
+      "stateHash": "30d8fa51d556d311",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 29,
+      "stateHash": "c070e17ae206a8ce",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 30,
+      "stateHash": "ef53e0051563c20f",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 31,
+      "stateHash": "5f2119e25243018c",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 32,
+      "stateHash": "f95d92eb53e0c295",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 33,
+      "stateHash": "35e0aa8d026df0a2",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 34,
+      "stateHash": "e66c636af4c7e6b3",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 35,
+      "stateHash": "96586940566d6940",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 36,
+      "stateHash": "0820ae686fcac379",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 37,
+      "stateHash": "ebbd70e3ce53e256",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 38,
+      "stateHash": "d46935ee19196c17",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 39,
+      "stateHash": "17c02e7733ea0254",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 0,
+      "stateHash": "9d7407c4f5451a94",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 1,
+      "stateHash": "917921a8ba35189b",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 2,
+      "stateHash": "d18b6fe10199b67a",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 3,
+      "stateHash": "8ac649a4f4bf6839",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 4,
+      "stateHash": "ea08e26c4fb82cd8",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 5,
+      "stateHash": "046c2c34482fc65f",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 6,
+      "stateHash": "b552109fd19e9afe",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 7,
+      "stateHash": "b8e9523a8d807d6d",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 8,
+      "stateHash": "bae45b276ee2ad0c",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 9,
+      "stateHash": "aacff5f3f65fabb3",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 10,
+      "stateHash": "8eec4470e83f1132",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 11,
+      "stateHash": "ced19fd8709648f1",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 12,
+      "stateHash": "3a82d3677a4ab7f0",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 13,
+      "stateHash": "71de7fced51bebd7",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 14,
+      "stateHash": "1c4363ded0ac6bf6",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 15,
+      "stateHash": "8ed4f4afbbb21e05",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 16,
+      "stateHash": "57fe1bc95b7b8f04",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 17,
+      "stateHash": "73607ac6bcfe24cb",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 18,
+      "stateHash": "e3ee34d1692fc02a",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 19,
+      "stateHash": "2f8927eb415f2169",
+      "beforeCpu": 3302,
+      "afterCpu": 3302,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 20,
+      "stateHash": "228012fa14db22c1",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 21,
+      "stateHash": "6ea7e12c9bfadcbe",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 22,
+      "stateHash": "1282727e9bb075bf",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 23,
+      "stateHash": "c6731d9b50d1fc7c",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 24,
+      "stateHash": "b15ab424e4251805",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 25,
+      "stateHash": "52e0c7f500aa6bd2",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 26,
+      "stateHash": "19e6b3a611b90da3",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 27,
+      "stateHash": "74580f8449b47530",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 28,
+      "stateHash": "4bbb5e93f05d7839",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 29,
+      "stateHash": "677c462e23805616",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 30,
+      "stateHash": "c018c29c9c1797d7",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 31,
+      "stateHash": "95e1ad8175ef5014",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 32,
+      "stateHash": "7b8311bca1937d9d",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 33,
+      "stateHash": "ce5f3da5c4a3a24a",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 34,
+      "stateHash": "a7800906e8eac2bb",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 35,
+      "stateHash": "aba0bd82f84687c8",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 36,
+      "stateHash": "f361c30c713b40d1",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 37,
+      "stateHash": "a8586928c3a6208e",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 38,
+      "stateHash": "5cfe79a4d2bf49cf",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 39,
+      "stateHash": "7c4086db38c40a4c",
+      "beforeCpu": 5993,
+      "afterCpu": 5993,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 0,
+      "stateHash": "9df3fad363c9818c",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 1,
+      "stateHash": "30b0c594ce927613",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 2,
+      "stateHash": "ba46b87628345372",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 3,
+      "stateHash": "ad1b3fb6bf72e6f1",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 4,
+      "stateHash": "cda55fe8fd11c7c0",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 5,
+      "stateHash": "135b70a51fffb427",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 6,
+      "stateHash": "e870e1b7249e45e6",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 7,
+      "stateHash": "78dee08dbcae73f5",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 8,
+      "stateHash": "399d3cbd303bd7f4",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 9,
+      "stateHash": "f540b2fb5a73bdbb",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 10,
+      "stateHash": "9caabd510ca6673a",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 11,
+      "stateHash": "88d572a8a3aaee59",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 12,
+      "stateHash": "398c4a6ea9d5ef88",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 13,
+      "stateHash": "a1ca4d176c28f72f",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 14,
+      "stateHash": "ebb0a33f6856fa2e",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 15,
+      "stateHash": "43915ab1bfc9541d",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 16,
+      "stateHash": "bece68d2ed73877c",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 17,
+      "stateHash": "c22d03fce7710443",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 18,
+      "stateHash": "04f528803f0887a2",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 19,
+      "stateHash": "531c96deffbc7ba1",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 20,
+      "stateHash": "6c69343d4c506979",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 21,
+      "stateHash": "eaabef3fbe7214b6",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 22,
+      "stateHash": "79462b10973d6157",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 23,
+      "stateHash": "95ef935895bc80d4",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 24,
+      "stateHash": "ebb53a6d48b6415d",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 25,
+      "stateHash": "c18576f58c420d6a",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 26,
+      "stateHash": "6474cff0037847fb",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 27,
+      "stateHash": "9a4b406a70b76288",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 28,
+      "stateHash": "5004155b09adc9c1",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 29,
+      "stateHash": "52ee17501fb9713e",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 30,
+      "stateHash": "d9c3275b1d91a75f",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 31,
+      "stateHash": "582347a1f8f6855c",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 32,
+      "stateHash": "7fc3b65eb76bc325",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 33,
+      "stateHash": "6c8b9a57ad12d872",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 34,
+      "stateHash": "74755404b35a7f23",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 35,
+      "stateHash": "2598fdd31d8dc410",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 36,
+      "stateHash": "ca2c63b8dc6d9789",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 37,
+      "stateHash": "7acf37999d94c4c6",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 38,
+      "stateHash": "005c596821cdfe67",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 39,
+      "stateHash": "0a9f539b3fb93324",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 0,
+      "stateHash": "904b8c01542e3597",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 1,
+      "stateHash": "7ef88a3c51b710b0",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 2,
+      "stateHash": "140c95a55b9f06e5",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 3,
+      "stateHash": "449eb1117f8b6196",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 4,
+      "stateHash": "7844018393aa93c3",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 5,
+      "stateHash": "b69c5e6960407afc",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 6,
+      "stateHash": "16e13147855b1921",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 7,
+      "stateHash": "7160b9f85ea63322",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 8,
+      "stateHash": "c06aed13dcbd5eaf",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 9,
+      "stateHash": "05cb952688838d08",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 10,
+      "stateHash": "4a2661a21833519d",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 11,
+      "stateHash": "c3a8d97df395ddae",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 12,
+      "stateHash": "c47eff5bd201fb3b",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 13,
+      "stateHash": "f0bd5b9da85df374",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 14,
+      "stateHash": "5a20ef4551cd77d9",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 15,
+      "stateHash": "5061bffc25498aba",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 16,
+      "stateHash": "a8e4a3c700a405a7",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 17,
+      "stateHash": "219199db06c00340",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 18,
+      "stateHash": "3a7ba1ce39b03175",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 19,
+      "stateHash": "8dc7de9ca58b5966",
+      "beforeCpu": 3489,
+      "afterCpu": 3489,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 20,
+      "stateHash": "6536e445ef943062",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 21,
+      "stateHash": "5435fd22717e3815",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 22,
+      "stateHash": "3f3f327378c59580",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 23,
+      "stateHash": "1ff41d87c74ac653",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 24,
+      "stateHash": "2cfb495a6ebf3a2e",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 25,
+      "stateHash": "7bd4099f70370bf1",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 26,
+      "stateHash": "57b3d2b6fbea4f4c",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 27,
+      "stateHash": "acb7410c601f9ccf",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 28,
+      "stateHash": "223aa3356facba9a",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 29,
+      "stateHash": "54b9a9fa8877318d",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 30,
+      "stateHash": "5e1031016cffb278",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 31,
+      "stateHash": "14866bdd3a92a3ab",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 32,
+      "stateHash": "af7f995566eb9166",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 33,
+      "stateHash": "63289546c5ac83a9",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 34,
+      "stateHash": "c5abde90414c6144",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 35,
+      "stateHash": "ff9ea19e86875f87",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 36,
+      "stateHash": "eb00472dbad05612",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 37,
+      "stateHash": "8c62109f935bafc5",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 38,
+      "stateHash": "36afb376aba079b0",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 39,
+      "stateHash": "6d7d9fee45dac743",
+      "beforeCpu": 6180,
+      "afterCpu": 6180,
+      "predictorDelta": 0
+    }
+  ]
+}

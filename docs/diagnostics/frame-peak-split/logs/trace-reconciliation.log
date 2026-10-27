@@ -1,0 +1,12 @@
+
+> void-strike-65@0.1.1 failures:reconcile
+> node scripts/reconcile-failures.mjs --trace docs/diagnostics/frame-peak-split/reconciliation-input.json
+
+trace report docs/diagnostics/frame-peak-split/reconciliation-input.json
+  gate: timing_and_dli_passed false, clause failures 1
+  matched (session and message): 0
+  NEW: 1
+    - campaign-2-brake: Focused PAL acceptance failed: {"measured_frames":4399,"maximum_wall_cycles":63846,"wall_ceiling":32568,"physical_headroom":-28278,"missed_frames":1,"extra_vbi_boundaries":0,"physical_overruns":1,"deadline_overruns":1,"dli_ordering_errors":0,"passed":false}
+  MOVED: 0
+  disappeared: 0
+Reconciliation: FAIL

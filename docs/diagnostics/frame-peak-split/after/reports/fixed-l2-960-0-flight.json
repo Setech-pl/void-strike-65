@@ -1,0 +1,76 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/frame-peak-fixed-960/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "d84c2906676af2b963c7471bae48c48a8d2df663b3eb8774ab6e97398f846469"
+    },
+    "void-strike-65.atr": {
+      "path": "build/frame-peak-fixed-960/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "6b811d8014f8cb1974b8b95492c406267e9feeb9e2f7b816f97fca7e208f50d3"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/frame-peak-fixed-960/void-strike-65-manifest.json",
+      "bytes": 80518,
+      "sha256": "377f4b9a73a04d8075840c153444d9dcb986517f9b36bb2ad332410aeb92db95"
+    }
+  },
+  "variant": "frame-peak-fixed-960",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "l2-960-0-flight",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 0,
+      "policy": "l2-matrix",
+      "fire_delay": 0,
+      "measured_frames": 4264,
+      "maximum_wall_cycles": 31053,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 1336,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 712,
+            "display": 714,
+            "loaded": 804,
+            "ready": 865,
+            "accept": 868,
+            "reads": 38,
+            "shown_frames": 154,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 4264,
+    "maximum_wall_cycles": 31053,
+    "wall_ceiling": 32568,
+    "physical_headroom": 4515,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

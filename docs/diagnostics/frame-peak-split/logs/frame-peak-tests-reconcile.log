@@ -1,0 +1,20 @@
+
+> void-strike-65@0.1.1 failures:reconcile
+> node scripts/reconcile-failures.mjs --tests build/frame-peak-main-focused-tests.log
+
+npm test log build/frame-peak-main-focused-tests.log
+  totals: tests 71, pass 63, fail 8, skipped 0, todo 0, cancelled 0
+  matched (name and first assertion): 0
+  NEW: 8
+    - tests/level-summary-build.test.mjs > the overlay directory has eleven entries; the summary code is entry 8 at $0500 @ tests/level-summary-build.test.mjs:55: Expected values to be strictly equal:
+    - tests/level-summary-build.test.mjs > disk runs never overlap: levels, the capital restore, M5b's reservation, the summary @ tests/level-summary-build.test.mjs:261: seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)
+    - tests/level-summary-build.test.mjs > ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either @ tests/level-summary-build.test.mjs:450: the window moved
+    - tests/level-summary.test.mjs > the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15) @ tests/level-summary.test.mjs:766: the level was not the last read
+    - tests/level-summary.test.mjs > the art and the restore precede the level, the level is read tail first, the record last of the reads @ tests/level-summary.test.mjs:787: Expected values to be strictly deep-equal:
+    - tests/level-summary.test.mjs > the second START GAME of a session reads no code and no level @ tests/level-summary.test.mjs:800: the summary code and the resident level must not be read again
+    - tests/level-summary.test.mjs > AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3) @ tests/level-summary.test.mjs:1260: the damaged level image was accepted
+    - tests/light-wingman.test.mjs > Light kernel placement is legal, resident and inside every reviewed gate @ tests/light-wingman.test.mjs:241: ENTITY_CODE staging margin tracks the Light art tables
+  MOVED: 0
+  disappeared: 1
+    - tests/preview.test.mjs > preview consumes the canonical charset, screen, PMG, and palette source (recorded @ tests/preview.test.mjs:164)
+Reconciliation: FAIL

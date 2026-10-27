@@ -1148,6 +1148,18 @@ Nothing is renamed by this report; a rename is a source change with its own sess
 
 <!-- END GENERATED MEMORY MAP -->
 
+### Frame-peak split — unchanged reservations (2026-10-27)
+
+The pre-wait statistics split changes operands only: MAIN Light remains
+1,196/1,213 B (17 free), Reader 1,529/1,536 B (7 free). Four descending
+30-byte C lookup-clear stripes grow `_l2_c_enter` by 10 B and consume 10 B
+of existing alignment padding before the warning routine (22 → 12 B).
+`_l2_brake_tick` moves `$1C85` → `$1C8F` with no added branch page crossing;
+warning, following hot routines, tables, L2 state and segment bounds stay put.
+L2 remains `$1900–$1DE1`, 1,250/1,536 usable B (286 free), with the full
+256-B `$1F00–$1FFF` reserve intact. No new RAM or resident reservation.
+[Audit](audits/2026-10-27-frame-peak-split.md).
+
 ### L2 audit fixes — OWNER-SMOKE CANDIDATE (2026-10-26)
 
 L2-04 adds **32 B total code/state**: resident clear3 + load guard17 +

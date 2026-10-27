@@ -1,0 +1,25 @@
+{
+  "measurement": "MEASURED NMOS6502 same starting image, current level sector 1",
+  "result": [
+    {
+      "name": "main",
+      "entryCpu": 4331,
+      "clearCpu": 3373,
+      "clearRange": [
+        7178,
+        7202
+      ],
+      "used": 1250
+    },
+    {
+      "name": "A+B",
+      "entryCpu": 2371,
+      "clearCpu": 1415,
+      "clearRange": [
+        7176,
+        7212
+      ],
+      "used": 1250
+    }
+  ]
+}

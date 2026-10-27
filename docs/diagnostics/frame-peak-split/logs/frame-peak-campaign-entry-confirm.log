@@ -1,0 +1,25 @@
+campaign-entry-confirm: 900 frames, max 63846 wall cycles
+  PAL timing audit  campaign-entry-confirm                        frames  900  misses   1  preWait  26422  margin  -1122  maxWall  63846  >target    1  >hard    1  shifted    0  [unreliable: missed 1 extraVBI 0 DLIerr 0]  FAIL (1 distinct miss event(s); fence margin -1122 < 500 at frame 839; DMA-on maximum 63846 > 32568)
+    MISS row 839 (frame 839, host frame 1710, fighter): wall 63846 cycles, pre-wait 26422, margin -1122, 0 shifted-phase rows until resync
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 1 distinct miss events across 1 replays (FAIL)
+PAL timing audit: 1 replay(s) outside the gates (GO >= 500, DMA-on <= 32568): campaign-entry-confirm
+Boss-entry debris clause: subject 0 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 0 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 0 lance run reads, 0 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 0 block reads, 0 field-state writes, 0 foreign writers
+Behavioural clauses: 1 session(s) ran to completion
+Focused report: build/runtime-wall-trace/campaign-entry-confirm-focused-run.json
+file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/scripts/runtime-wall-trace.mjs:1641
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: Focused PAL acceptance failed: {"measured_frames":900,"maximum_wall_cycles":63846,"wall_ceiling":32568,"physical_headroom":-28278,"missed_frames":1,"extra_vbi_boundaries":0,"physical_overruns":1,"deadline_overruns":1,"dli_ordering_errors":0,"passed":false}
+    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/scripts/runtime-wall-trace.mjs:1641:25)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/scripts/runtime-wall-trace.mjs:7589:5)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/scripts/runtime-wall-trace.mjs:9834:1
+    at #evaluateSync (node:internal/modules/esm/module_job:702:24)
+    at ModuleJobSync.run (node:internal/modules/esm/module_job:687:25)
+    at node:internal/modules/esm/loader:694:42
+
+Node.js v26.12.0

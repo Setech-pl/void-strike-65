@@ -1,0 +1,27 @@
+{
+  "sources": [
+    "build/frame-peak-main-campaign/runtime-wall-trace/campaign-2-brake-focused-run.json",
+    "build/frame-peak-main-480/runtime-wall-trace/l2-480-0-brake-focused-run.json",
+    "build/frame-peak-main-480/runtime-wall-trace/l2-480-0-flight-focused-run.json",
+    "build/frame-peak-main-480/runtime-wall-trace/l2-480-1-brake-focused-run.json",
+    "build/frame-peak-main-480/runtime-wall-trace/l2-480-1-flight-focused-run.json",
+    "build/frame-peak-main-480/runtime-wall-trace/l2-480-2-brake-focused-run.json",
+    "build/frame-peak-main-480/runtime-wall-trace/l2-480-2-flight-focused-run.json",
+    "build/frame-peak-main-960/runtime-wall-trace/l2-960-0-brake-focused-run.json",
+    "build/frame-peak-main-960/runtime-wall-trace/l2-960-0-flight-focused-run.json",
+    "build/frame-peak-main-960/runtime-wall-trace/l2-960-1-brake-focused-run.json",
+    "build/frame-peak-main-960/runtime-wall-trace/l2-960-1-flight-focused-run.json",
+    "build/frame-peak-main-960/runtime-wall-trace/l2-960-2-brake-focused-run.json",
+    "build/frame-peak-main-960/runtime-wall-trace/l2-960-2-flight-focused-run.json"
+  ],
+  "failureClass": "baseline timing acceptance; no production edits",
+  "gate": {
+    "timing_and_dli_passed": false,
+    "behavioural_clause_failures": [
+      {
+        "session": "campaign-2-brake",
+        "message": "Focused PAL acceptance failed: {\"measured_frames\":4399,\"maximum_wall_cycles\":63846,\"wall_ceiling\":32568,\"physical_headroom\":-28278,\"missed_frames\":1,\"extra_vbi_boundaries\":0,\"physical_overruns\":1,\"deadline_overruns\":1,\"dli_ordering_errors\":0,\"passed\":false}"
+      }
+    ]
+  }
+}

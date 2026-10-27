@@ -12,6 +12,10 @@ unsigned char l2_i,l2_count,l2_at,l2_until,l2_tag;
 #define EXT ((volatile unsigned char*)L2_EXTENSION)
 #define SPANS ((volatile unsigned char*)L2_SPANS)
 #define LOOKUP ((volatile unsigned char*)L2_LOOKUP)
+#define CLEAR_STRIPE (L2_MODULES / 4u)
+#if L2_MODULES != 120u
+#error The four lookup-clear stripes must each contain 30 bytes
+#endif
 #pragma code-name ("L2")
 void l2_c_phase(void)
 {
@@ -30,7 +34,17 @@ void l2_c_enter(void)
     PHASE_LO=(unsigned char)((L2_ROWS&255u)-HULL[L2_HULL_ROWS]);
     PHASE_HI=(unsigned char)((L2_ROWS>>8)-HULL[L2_HULL_ROWS+1u]);
     if(HULL[L2_HULL_ROWS]>(L2_ROWS&255u)) --PHASE_HI;
-    for(l2_i=0u;l2_i<L2_MODULES;++l2_i) LOOKUP[l2_i]=0u;
+    /* Four disjoint constant-base stripes. Descending do/while also fits the
+       existing pre-warning alignment gap, preserving all later hot addresses.
+       Initialization and span decisions remain wholly in C. */
+    l2_i=CLEAR_STRIPE;
+    do {
+        --l2_i;
+        LOOKUP[l2_i]=0u;
+        (LOOKUP+CLEAR_STRIPE)[l2_i]=0u;
+        (LOOKUP+2u*CLEAR_STRIPE)[l2_i]=0u;
+        (LOOKUP+3u*CLEAR_STRIPE)[l2_i]=0u;
+    } while(l2_i!=0u);
     l2_i=(unsigned char)(BYTE(L2_SECTOR_INDEX)<<1);
     l2_count=((volatile unsigned char*)(L2_DESCRIPTORS+1u))[l2_i];
     l2_i=((volatile unsigned char*)L2_DESCRIPTORS)[l2_i];

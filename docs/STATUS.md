@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-26 (L2 audit fixes — OWNER-ACCEPTED)
+Last update: 2026-10-27 (worst-frame split — OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,57 @@ the values below.
 ---
 
 ## Checkpoint
+
+### Worst-frame split — OWNER-SMOKE CANDIDATE
+
+**OWNER-SMOKE CANDIDATE.** All implementation and measurement gates pass.
+Owner smoke of the three ATRs remains pending.
+
+Branch `codex/frame-peak-split`, main baseline `6ea1ca5`, attribution checkpoint
+`299d800`. [Approved decision](decisions/2026-10-27-frame-peak-split.md),
+[measured After section](audits/2026-10-27-frame-peak-split.md#after--ab-owner-smoke-candidate),
+[bound summary](diagnostics/frame-peak-split/after/summary.json).
+
+**A+B implemented; C not used.** The existing fighter shot/hit scan runs before
+the fixed publication wait through an operand-only change. Four descending
+30-byte C stripes clear the L2 lookup; C retains initialization/phase policy.
+C entry grows 10 B inside 10 B of existing alignment padding. No state, linked
+footprint, residency or transport growth. MAIN Light remains 1,196/1,213 B
+(17 free), Reader 1,529/1,536 (7 free), L2 1,250/1,536 usable (286 free), with
+the entire `$1F00–$1FFF` reserve intact. No new branch page crossings.
+
+**15 permanent native routes /59,482 gameplay iterations**, through capital
+exit and boss entry: worst **31,432** (68 below target, 1,136 below hard gate),
+capital peak **29,756 unchanged**, all boss entries **325/350 host frames**,
+minimum fighter fence **2,856**. Zero target excesses, missed fences/frames,
+extra VBI/DLI/phase errors, world/hull mismatches or stale L2 events. Coverage
+now includes natural campaign EASY/MEDIUM flight and HARD brake in the normal
+wall-trace suite and registered `npm run test:frame-peaks` gate, alongside the
+twelve direct L2 routes. Missing routes fail the gate.
+
+The five old HARD SPACE overruns become **31,432/31,415/31,393/31,397/31,400**
+at the same indices. HARD natural entry 839 **63,846 → 28,146**; expanded main
+coverage also found MEDIUM entry 868 **63,991 → 28,275**. Both are the approved
+one-frame correction of the same admission bug. All **59,497 native state
+rows** have identical logical FNV hashes and byte-for-byte RAM, excluding only
+the two separately verified PAL tokens. Every one of their **12,926**
+differences is listed and derived from those removed boundaries and the
+unchanged master-token wait. All other presentation frame indices match main.
+All **720 SPACE fixtures** have identical full hashes and **zero CPU delta**;
+no native SPACE iteration increases in cost.
+
+Normal builds and native gates PASS, with expected pending release evidence.
+Focused checks: **91/99 PASS**, the remaining eight exactly matching main's
+level-summary/Light failures by name and first assertion; no ledger edits.
+Required L2/slalom checks all pass. No full suite or release build was run.
+
+Current ATRs: `build/play/frame-peak-split/{campaign,capital-480,capital-960}.atr`;
+full SHA-256 and absolute launch commands are in the audit. Campaign SHA-256
+`5f5056a62e24cc1912304f5fbf6543c468af20381a1d83b102aa737629cc13fa`.
+Owner smoke remains pending; M3-H is unstarted.
+
+**NEXT TASK:** owner smoke of the three ATRs. No push, merge, release or next
+roadmap item is authorized by this handoff.
 
 ### L2 audit fixes — OWNER-ACCEPTED
 
@@ -84,13 +135,11 @@ build provenance remain in `build/l2-owner-smoke/candidate.json` (campaign,
 normal branch build, `--no-ff` merge into main, normal main build and push.
 No release or next roadmap item is authorized by this handoff.
 
-**Open before M3-H:** "10 frames above the 31 500 DMA-on target (max 31 598,
-hard margin 970) on the 480/HARD brake/contact route — state-dependent, not
-L2 overhead (SPACE is −2 vs main); attribute the worst frame before M3-H adds
-per-frame work".
+**Open before M3-H:** the frame-split candidate resolves the five steady-state
+target excesses and natural-entry hard-gate failures; owner smoke is pending.
+See the current worst-frame checkpoint above.
 
-**NEXT TASK:** retain the open attribution item before M3-H; complete this
-accepted merge/build/push handoff, report the merge SHA and STOP.
+**NEXT TASK:** see the current OWNER-SMOKE CANDIDATE section above.
 
 ### L1 window levers — OWNER-ACCEPTED
 

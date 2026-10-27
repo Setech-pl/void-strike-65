@@ -96,9 +96,9 @@ LIGHT_BACKING1 = LIGHT_BACKING0+1
 ; and to nothing else in this file. Order is a contract - build.mjs derives
 ; LIGHT_KERNEL_* from it by index - so entries are only ever APPENDED.
 light_kernel_vectors:
-    ; M5a-S2: the publish vector enters the reader's per-frame shot scan first
-    ; (after the line-238 fence), which continues into light_publish.
-    jmp SECTOR_READER_STATS_FIGHTER
+    ; The reader scans finalized shot/hit state before the line-238 wait.
+    ; This vector now owns only late publication; never scan a second time.
+    jmp light_publish
     jmp light_update
     jmp light_shot
     jmp light_backing

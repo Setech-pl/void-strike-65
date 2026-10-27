@@ -32,9 +32,9 @@
 .include "director-abi.inc"
 ; M5a-S2: the stat block, the summary module's entries and its layout.
 .include "level-summary-abi.inc"
-; M5a-S2: the Light kernel's publish entry, which the fighter-frame hook
-; continues into (the kernel links before the reader).
+; The Light kernel's linked entries and cold guard (it links before the reader).
 .include "light-kernel-labels.inc"
+.include "life-capsule-layout.inc"
 ; PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT; CAPITAL_HULL_STATE_COMPLETE.
 .include "fighter-weapons.inc"
 .include "capital-hulls.inc"
@@ -217,11 +217,11 @@ sector_reader_vectors:
         jmp sector_reader_read_run              ; $A006 — X = overlay run (M5a, Q11)
         jmp sector_reader_drain_ready           ; $A009 — reserved for 4.9
         ; M5a-S2: the stat hooks (§4.8.2). Every caller is an operand-only
-        ; re-point in a full segment (the Light kernel's publish vector, its
+        ; re-point in a full segment (main's pre-wait fighter call, the Light
         ; PairShot hit and kill refresh; LIGHT_CODE, BROADSIDE and PICKUP_CODE in
         ; main), so the hooks live here, behind fixed addresses, and nothing in
         ; those segments or in the hot kernel moved.
-        jmp stats_fighter_frame                 ; $A00C — post-fence, fighter frames
+        jmp stats_fighter_frame                 ; $A00C — pre-wait, fighter frames
         jmp stats_capital_frame                 ; $A00F — capital frames; the level's end
         jmp stats_kill                          ; $A012 — a kill's HUD refresh
         jmp stats_debris_shot                   ; $A015 — a debris destroyed by a shot
@@ -937,8 +937,10 @@ sector_reader_frame_tick:
 ; and the pending damage is how many (one unit each).
 ; ===========================================================================
 stats_fighter_frame:
-        jsr stats_scan
-        jmp light_publish
+        ; Same six bytes, now called before the fixed publication wait. No
+        ; simulation writer changes shot lifetimes or damage after this point.
+        jsr LIFE_CAPSULE_COLOUR
+        jmp stats_scan
 
 stats_capital_frame:
         jsr stats_scan

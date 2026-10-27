@@ -1,0 +1,6487 @@
+{
+  "build": "build/frame-peak-main-campaign",
+  "route": "neutral joystick, released FIRE; empty SPACE field; complete main-loop body",
+  "measurement": "MEASURED CPU-only NMOS6502; raster busy waits excluded; DMA not estimated",
+  "records": [
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 0,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e1ed05792eef5d25"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 1,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f25482c5d83cf70a"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 2,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6fd288ebe76f21f7"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 3,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "35515fb1922aa68c"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 4,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ae0034fd9d41dec9"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 5,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9b57c4a1b9e5f2ee"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 6,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "dff9c3f91b3e690b"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 7,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2145235c8f50f890"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 8,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6a6a7e20938d6d5d"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 9,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "93390a3335b40822"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 10,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7a9ce06783fe3d8f"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 11,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "03c503b6dc5bd9c4"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 12,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "63af7cf39e772d61"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 13,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "da1b856c11916ac6"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 14,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b6d6e3b243edb823"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 15,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "aa96a0c463161aa8"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 16,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f28414dbbbb046d5"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 17,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "31ee84e61cbd39fa"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 18,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d64f77c8ad8f6827"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 19,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d80dd365652827bc"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 20,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "264ea4ee25a580f9"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 21,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4f980d03d69d8f1e"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 22,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5a64ca41c1ca577b"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 23,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ef0b0505f9170640"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 24,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "24a156770e7703ec"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 25,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ba7a119d4a565613"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 26,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c28b04b3c7060a2e"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 27,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e147841e29eefcdd"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 28,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6866f6e6b402ed60"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 29,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d9a0ae73ad9d2fa7"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 30,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "42a0a23fa20116a2"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 31,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "01104c485273a471"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 32,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9e9b1f4f9bbe4d24"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 33,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6cbc203e26960e4b"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 34,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "272b3eb0a8f535a6"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 35,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3fd3b6ced0bbdd95"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 36,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "201ae693b95d44d8"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 37,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7edd21cc5a0b0ebf"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 38,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "93621e057ebeb05a"
+    },
+    {
+      "difficulty": 0,
+      "x": 52,
+      "accumulator": 39,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7ff200d35d8f2c29"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 0,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3a66487834e1ac4e"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 1,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8ee1acfe40a9bb29"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 2,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8b72441f5012baf0"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 3,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "39363d4df700df6b"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 4,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b094e0adca1ba16a"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 5,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "06454d8199cc0f05"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 6,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3d107413fc087cec"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 7,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d154a7ea4a770ed7"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 8,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "03b9e9ef6e2d11a6"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 9,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "237462ad795678c1"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 10,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3f8434b3b8501308"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 11,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d96c59a7fe72e283"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 12,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ccf8acc9d0c5ed02"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 13,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b3337269f379033d"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 14,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d481b4671fe7c024"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 15,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c721d5bb856e9e6f"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 16,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b5b1893bbdd99f3e"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 17,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "040b26f1d6d1b699"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 18,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c8745488095e5860"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 19,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c886154ad7e5e09b"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 20,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a392b4feffb1271a"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 21,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a484b93e8b46a075"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 22,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "88067dbafe130a5c"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 23,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "aca7a74e353314c7"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 24,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "63fe0daa4988fdc7"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 25,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "2a6b8e6d8e878780"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 26,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "795b27f439d82211"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 27,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8bea02efe93b9b42"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 28,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a25c518bb300d2b3"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 29,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ff33bd9cc71a8b8c"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 30,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6faa6053ea094bfd"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 31,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "cd6914679d8fbf4e"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 32,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "357159e2dea256df"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 33,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7cce36475fa83278"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 34,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5acc218189c3b649"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 35,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8bcd9af0956bc97a"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 36,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "79ecdff974b10e6b"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 37,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "65f6f386cb0be7c4"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 38,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "987978088bfbd9b5"
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "accumulator": 39,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6ce61ccb20ba5d46"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 0,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "38b2f54cb1f8af96"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 1,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "484e323f6cdbffd1"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 2,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "abb846e9c5885cd8"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 3,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b39482396dc80d73"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 4,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6cf4a33979385f52"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 5,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1cc9458798259fcd"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 6,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "40deb2a97620c394"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 7,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1aae56a391fd959f"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 8,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "84964272e277101e"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 9,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "44f1dd31a3b70499"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 10,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "25dccda6164287c0"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 11,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "26c71e582f4227db"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 12,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "0d0c4ff157a72fba"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 13,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7f8d5b5b26e1d9f5"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 14,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6f0bac2b7343f3bc"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 15,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "564e6fea68aba4a7"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 16,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "578e52cfdf939766"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 17,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "0951b975e7cb9d61"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 18,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "603bfc67fe6ad7e8"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 19,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5d7f1bc701fa35c3"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 20,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "371907a6048213a2"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 21,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "09cabfe43f6b95dd"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 22,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "25c834176a3bfae4"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 23,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1eb371e68d457caf"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 24,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "076e7d19cffb8a4f"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 25,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "2df91ffa01afaf08"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 26,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3ad0383069cea6d9"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 27,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5891fb24142c352a"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 28,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d908dfd255bf1c3b"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 29,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "1edb16d1c6cbe1d4"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 30,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "12dc2404f55aeea5"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 31,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a11badefdb457ff6"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 32,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b1b7cbe76459e017"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 33,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "59c987b0365ed630"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 34,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "fabb7765b699d8a1"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 35,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "bdfbd0e92041a4f2"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 36,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "eef613abc4c47ec3"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 37,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ee8bccef598523bc"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 38,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e19d02daf948138d"
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "accumulator": 39,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f9230d823af4841e"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 0,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ed16ff6797d3a34e"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 1,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "201cfedd01914289"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 2,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "0c7aa534bddf7e30"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 3,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "701d4e7412b6f9cb"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 4,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4aff7756fba135aa"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 5,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fafdcd25a9d2bfe5"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 6,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d7f27e954583102c"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 7,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e6c4ef5519a16897"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 8,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f7a89e0b7f2cad06"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 9,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f6433fa092293981"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 10,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fc60c1a389d42088"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 11,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7b3d2763152ee563"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 12,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6afddfdb773127c2"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 13,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ef0a5a8f5a44667d"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 14,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "773d0e5d7e397c84"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 15,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5085eed0bcda43cf"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 16,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6f6ca5e1f227b97e"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 17,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f2d957826ac04979"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 18,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "199c49c8326677a0"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 19,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "10f1cbb38cf76cbb"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 20,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5e85dbea302cf49a"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 21,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e32a1bf127744d55"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 22,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a9c2d82694ca2a9c"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 23,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "294caea853360687"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 24,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a35899bf4418b6c7"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 25,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8998bf90bc4e51e0"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 26,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "72bc46f36ca42a91"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 27,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3857f0159cab0962"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 28,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d795e4a40d43e073"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 29,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f5a209fed6473eec"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 30,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ee2fe7c6b6bd1bfd"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 31,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "daff694ef55c47ce"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 32,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "fdd55cb6d38278bf"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 33,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "efeb8d117707a438"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 34,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "787e45cd9d060089"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 35,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9bd80159ba0d9ada"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 36,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "776680daa4110feb"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 37,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "53bb10b93f3049c4"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 38,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b10917951c5fbe15"
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "accumulator": 39,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f9ef5e6e5a8917a6"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 0,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "709878655d8f71a6"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 1,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9052f12368b8d8c1"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 2,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ac62c329a7b27308"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 3,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "464ae81dedd54283"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 4,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "39d73b3fc0284d02"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 5,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "201200dfe2db633d"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 6,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "416042dd0f4a2024"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 7,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3400643174d0fe6f"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 8,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a744d6ee24440c4e"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 9,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fbc03b74300c1b29"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 10,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f850d2953f751af0"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 11,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a614cbc3e6633f6b"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 12,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1d736f23b97e016a"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 13,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7323dbf7892e6f05"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 14,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a9ef0289eb6adcec"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 15,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3e33366039d96ed7"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 16,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e25a89e60726a516"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 17,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "549145127b62ceb1"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 18,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a80fd31ed038d0b8"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 19,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fe5e502be64e4a73"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 20,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fdfa93d639818772"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 21,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "18cf8a1acc64af6d"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 22,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a416902428280794"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 23,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "367f3a09954caa1f"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 24,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a24fe858ce04b6df"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 25,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e9acc4bd4f0a9278"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 26,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c7aaaff779261649"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 27,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f8ac296684ce297a"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 28,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e6cb6e6f64136e6b"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 29,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d2d581fcba6e47c4"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 30,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0558067e7b5e39b5"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 31,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d9c4ab41101cbd46"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 32,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d0dc9c2038eb5dc7"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 33,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "974a1ce37de9e780"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 34,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e639b66a293a8211"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 35,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f8c89165d89dfb42"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 36,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0f3ae001a26332b3"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 37,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6c124c12b67ceb8c"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 38,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "dc88eec9d96babfd"
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "accumulator": 39,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3a47a2dd8cf21f4e"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 0,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3df09de6a97199f5"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 1,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3d53c74aec71fc9a"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 2,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f2762f725f532c47"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 3,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a34de75474d17fdc"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 4,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c615b916ee5f9219"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 5,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7177c93dc76f90be"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 6,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "629300e20931341b"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 7,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "255c4c4587d4abe0"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 8,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "bb2b245b265b0eed"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 9,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4ed6332c68b74cf2"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 10,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9bfd2ac089ad639f"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 11,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fd098a7d75a3a514"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 12,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "09e97d4485849a31"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 13,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4159a0a6c69d7296"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 14,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "67fecdb5746ba3f3"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 15,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "bae34aac859c6438"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 16,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8a2dba9eb978b885"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 17,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6d9303b70da4a0ea"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 18,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1a84ef4fe68b9457"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 19,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "48759e304213fe6c"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 20,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f9cfbc89143d58a9"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 21,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e50e380e3a6d7bce"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 22,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4e6957be21f686eb"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 23,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c474012f715eb470"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 24,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e32de27d66ed5ffc"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 25,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "197b604e4849e863"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 26,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "fae32ce01a951f3e"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 27,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9157b4b81e1088ad"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 28,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "dbade54de435b770"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 29,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9a88bf362ab51f77"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 30,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "20fcb65a62346232"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 31,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "eb5ab138a632a1c1"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 32,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "44d169503b0c48f4"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 33,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c111f82c1fb3a1db"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 34,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5f0f5b83dc6734b6"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 35,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "eae4886bef1ba5e5"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 36,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8f047828e66d4aa8"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 37,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f609caf62ecaa30f"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 38,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d15c2bc2d98810ea"
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "accumulator": 39,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "026f7b95c8856cb9"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 0,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ba004564f3ff8840"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 1,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "952e6994d750e367"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 2,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "008c8c2c2478cc46"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 3,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a46ae00af778c73d"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 4,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a85534804b522524"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 5,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "519ae7b5cea29a3b"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 6,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2ee8ed79fec8fbea"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 7,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f859131d0b579dc1"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 8,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "517170a4dfc563b8"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 9,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "26c5bb912a2f343f"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 10,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7bc548515cf42cfe"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 11,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a6f6ace7106b3135"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 12,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "24a607af6d39907c"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 13,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "733d0fbdc02b4993"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 14,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4fe3c5926e8675c2"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 15,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "cbc3ee02184813f9"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 16,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ae2e35eda9ad4e70"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 17,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8bb6aa58b9d2c097"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 18,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "32a7f06092b2d4b6"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 19,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "27d8bf18bbe7322d"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 20,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "707e70441b839b94"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 21,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ee6637f5abb34c2b"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 22,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "39c3d991cc06189b"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 23,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "488e4c39b51ad660"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 24,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7e0852d237614741"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 25,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "757bb1b6e277f97e"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 26,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "202f7b061a49b67f"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 27,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "dadeaa297ece43c4"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 28,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d4e1df7a5001b8f5"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 29,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "16e2815b8be45f72"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 30,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3c28fddb22d626b3"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 31,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a999429e6560ee38"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 32,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0d4d48350161cf19"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 33,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "bf383600631dab36"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 34,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "fd85fc6b1934a057"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 35,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8a4c22aa987a6a5c"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 36,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "330a8b9447ec102d"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 37,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6a129262a2846aea"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 38,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0537bb004605006b"
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "accumulator": 39,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e38b25fb92746630"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 0,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3c0d4d3b6680721b"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 1,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5123db2825314204"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 2,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "01ddbbd4920e73a9"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 3,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8fa704da91b75672"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 4,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a5ffff8d2af1d0c7"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 5,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f668e9708d18c8a0"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 6,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ac5cb54955ee5215"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 7,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fdd36fc89e83395e"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 8,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a366440eb0bebb73"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 9,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3cf53f5f0eb62f5c"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 10,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "edb42a0fede94c21"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 11,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9562c5527c8c94ca"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 12,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d22a85db4012c69f"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 13,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8bee06585e5a6b18"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 14,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a90b4e189c4d344d"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 15,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b3ed7500ab81d6d6"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 16,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e1332248faf9334b"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 17,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ce5d04dad8789834"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 18,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "040696023578e999"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 19,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "461e49a6f2a72ce2"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 20,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "953b2a9f35513737"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 21,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1448837bc88c9f10"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 22,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "68ca9b1be49f2664"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 23,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "78315fb3fba0771f"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 24,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5284ddf801f69092"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 25,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9c031d978bf0ae15"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 26,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "01f7791e0095f780"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 27,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "33b9a00b84cf74bb"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 28,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d90f86a3572e2d9e"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 29,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7f67579db785dd61"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 30,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f9b31524333adcfc"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 31,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "031c84946fbfa3f7"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 32,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b31935034f60db0a"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 33,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "faa097f17e10c64d"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 34,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9589cf87db78fad8"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 35,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c97445e342f1aad3"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 36,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "91068b05a4aff756"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 37,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "daae9618b9e8b5b9"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 38,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5974e6a70dc21bf4"
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "accumulator": 39,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a78886869a93e26f"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 0,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3fd8a6e2b35910a3"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 1,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9832e2b35e771eec"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 2,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c3e224ec9068e371"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 3,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f599b6f7836fc69a"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 4,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7d0dd064d2717c8f"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 5,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4699909b777fdba8"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 6,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3eb1254858560c2d"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 7,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e45ed4ab3c38d696"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 8,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "78dc2c390a3813cb"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 9,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a4d2ec9c91e825b4"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 10,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "239803efa5e79fd9"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 11,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1859f1dfe76aff42"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 12,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "40da525e37593397"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 13,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ae2cd56532785ff0"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 14,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "76c9f5a82fafebd5"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 15,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a4391e4f70d919fe"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 16,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2baf6d3cc993e7f3"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 17,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c40ac7fc6949c6bc"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 18,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a3a76c55b30b2041"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 19,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a6d2f5099a62b96a"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 20,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d6ca3ce808cd839f"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 21,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "61f619d962548778"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 22,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "97a05a08bc99106c"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 23,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ce4fab123b611447"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 24,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d25a7ae1e1be5f3a"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 25,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6bf2a557e78221dd"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 26,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ec32b8e08fa4b728"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 27,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d5ca18dceaf26ee3"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 28,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "aaa3b419c1aec106"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 29,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3f204facd55f50c9"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 30,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9b218380a09261f4"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 31,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7a6b734295ae2b0f"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 32,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "dd4085be55297942"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 33,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d3453b8b8f465045"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 34,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a1fb7c2b61dedbf0"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 35,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c46e020cbbe9cbcb"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 36,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b8fa12798f687bae"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 37,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0813d4e459d23931"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 38,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "531a5db03fb33b5c"
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "accumulator": 39,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7ef3ef254c43a637"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 0,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "18d1640301d2bdfb"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 1,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fa021fd8c51663e4"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 2,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a2a42fbe2f884849"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 3,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fc29a11a1c8404f2"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 4,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f32522a0d629d747"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 5,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5f9f9ed1f7fb4a20"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 6,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "29dbdfeb248a06f5"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 7,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ca435d601344d21e"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 8,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a011282bd8338d13"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 9,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "dc6473d19b5bf35c"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 10,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5002eef4c35c95e1"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 11,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3b37f061969ad38a"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 12,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "80e7db8213a5733f"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 13,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2241c5540d501998"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 14,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "827b234a87bbc08d"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 15,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e7c05b7434f86576"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 16,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8467ccf770dfadab"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 17,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e62dc54ba03c8294"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 18,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "67658a4e664c8539"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 19,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d15ff0203b80a122"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 20,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "66c83249aa6ad4f7"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 21,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1b62f17372fc49d0"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 22,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "25538db5149e6264"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 23,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "93d82d900809fbbf"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 24,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "cded908773968b72"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 25,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7f245797771ef4f5"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 26,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "174f3548657c7120"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 27,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ca309e06724cd63b"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 28,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "da66a791ee727a9e"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 29,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ef676494e3cae8e1"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 30,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "4140f3cc7093151c"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 31,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d79f64f0b543c1f7"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 32,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "21865f419f226eea"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 33,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ebb4cf8a4dc493cd"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 34,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "4955d9c950fe4b18"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 35,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7ebf458ac38b7913"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 36,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f1d743ce502bb236"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 37,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "4bad245756147a39"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 38,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "db9e8cc0be9588b4"
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "accumulator": 39,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a06b27b409b1a2cf"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 0,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1044d284a0211b73"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 1,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a9d3cdd4fe188f5c"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 2,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5a92b885dd4bac21"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 3,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "024153c86beef4ca"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 4,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3f0914512f75269f"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 5,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f8cc94ce4dbccb18"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 6,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ee11487a9c3a779d"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 7,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "dd2022a1c0e65da6"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 8,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a8ebdbb155e2d21b"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 9,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "be02699e1493a204"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 10,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6ebc4a4a8170d3a9"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 11,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fc8593508119b672"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 12,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "12de8e031a5430c7"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 13,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "634777e67c7b28a0"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 14,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7bfed9fae6602645"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 15,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6af94c04fb38fd8e"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 16,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b5dcf701390b2623"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 17,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5ca183a06a7fa90c"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 18,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "fecf1900844da751"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 19,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "40becc57ec40e57a"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 20,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6d3eac3f5643010f"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 21,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "36d7aec798b702c8"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 22,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6691a39a229d3cfc"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 23,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6ffb130a5f2203f7"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 24,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "1ff7c3793ec33b0a"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 25,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "677f26676d73264d"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 26,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "02685dfdcadb5ad8"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 27,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3652d45932540ad3"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 28,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "fde5197b94125756"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 29,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "478d248ea94b15b9"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 30,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d5a92991d4018664"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 31,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e50fee29eb02d71f"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 32,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "bf636c6df158f092"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 33,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "08e1ac0d7b530e15"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 34,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6ed60793eff85780"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 35,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a0982e817431d4bb"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 36,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "45ee151946908d9e"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 37,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ec45e613a6e83d61"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 38,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c34ecc025ea5e30c"
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "accumulator": 39,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "01796596b8be6c47"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 0,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8e8b5196dd4b7490"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 1,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "045aaec803fc3cb7"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 2,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2d325cb566964a56"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 3,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "865bfac6b115e9cd"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 4,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a46ee31c5999adb4"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 5,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a6c060b7039ce0cb"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 6,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "134a1ab43aac38fa"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 7,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3ec1dd4300be1cd1"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 8,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ce2fad3116b8a448"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 9,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3d3207951ce3c68f"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 10,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1daea1c6c241df0e"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 11,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "554cc78a52517dc5"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 12,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4d42b514ec96c68c"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 13,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "02bd07455688c9a3"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 14,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "af6f8306e848f1f2"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 15,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a6657cf705f73529"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 16,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "006848e45e4e2e20"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 17,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3f697e8022dda247"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 18,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "6b435f6809d3a326"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 19,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c70f09fe558a111d"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 20,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d8755a0283b7ef84"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 21,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4283acd83c612d9b"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 22,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6a8f64aad839f7ab"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 23,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b877026ea6c8ae70"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 24,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9e9fe646c85b4591"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 25,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "241f9feecec35b0e"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 26,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "78a217708aa1e98f"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 27,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c118e4257af33094"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 28,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6dfa512553798e85"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 29,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d6e5b5ce5ab14e82"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 30,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "402fad9d039cf603"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 31,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "61e977be809f3b48"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 32,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "fcf8f99469a5c029"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 33,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e5f29a30f6bb6506"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 34,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e1df6096ccb34667"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 35,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "16714d5d37594dac"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 36,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "2f3cc2e83a910a3d"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 37,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f21b52f89f2d1bba"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 38,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a352b3ac25b989db"
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "accumulator": 39,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8c3d6c7f20b7e0a0"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 0,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "512ee4bc113da0c7"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 1,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "edef00960f7364e0"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 2,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "535cfe4cdc1ffc15"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 3,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "db78184b73c12086"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 4,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "47f839d032ce9db3"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 5,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "26d1c02bcc1e7a2c"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 6,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c0292fa5e15c4a91"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 7,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "22f7e358b75c5a92"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 8,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "153c87d03e2626df"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 9,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f2ea32cc65a93c38"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 10,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e04740b576b9e5cd"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 11,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d66bb66159bcc05e"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 12,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d52921dcbab03acb"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 13,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d8fe397f80e10584"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 14,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "beb44297bd9bcf29"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 15,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "40cf11251413824a"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 16,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ab2cf49a080b1a77"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 17,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "42b3e067ea0f5910"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 18,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8fa76cfdc3cfa0c5"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 19,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1c588cbfd5fd1ff6"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 20,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "81e0146d38da30d2"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 21,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8aedd7cf7f55f585"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 22,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "713da0a73c7c8770"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 23,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "1573077dc8db0403"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 24,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9329e5ba67213e9e"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 25,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d97d42e800325ca1"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 26,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "bc155cee19016c3c"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 27,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8dcd4870e19134bf"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 28,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b8a7667e292c0a4a"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 29,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "1ae5ee4bf1cd7b3d"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 30,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b2cc11ca55bc09e8"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 31,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "977b132a20574a5b"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 32,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "98c55ffc737a9b16"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 33,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "aa03283101988dd9"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 34,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d81931c3194561b4"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 35,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "524ccf0f4e1389b7"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 36,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c1339f798a290922"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 37,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b44075367d2903d5"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 38,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ac0c9d53c955b440"
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "accumulator": 39,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "669ca9c12650e213"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 0,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ccbeae4740d977f4"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 1,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "886224856b115dbb"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 2,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2fcc2edb1d44073a"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 3,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1bf6e432b4488e59"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 4,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d3b35b3f393a1598"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 5,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c0a980f5c148893f"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 6,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "661389851724443e"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 7,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "acd33c2e028ce3ad"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 8,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "31156c5d7467218c"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 9,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c3d2371edf301613"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 10,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4d682a0038d1f372"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 11,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "403cb140d01086f1"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 12,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9f88c7f180441930"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 13,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f201631e29320817"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 14,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "801c78b1d8dd3e16"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 15,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "199b4a9fb74ac965"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 16,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "107d60c4553f3c24"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 17,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b8726f2e738cf5eb"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 18,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8525424e83dd4fea"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 19,
+      "activeCpu": 3483,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "0978f78fc13752c9"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 20,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e32586e51a4b69c1"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 21,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e60f88da3057113e"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 22,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6ce498e52e2f475f"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 23,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "eb44b92c0994255c"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 24,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "12e527e8c8096325"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 25,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ffad0be1bdb07872"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 26,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0796c58ec3f81f23"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 27,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b8ba6f5d2e2b6410"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 28,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ff8aa5c75cee0979"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 29,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7dcd60c9cf0fb4b6"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 30,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0c679c9aa7db0157"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 31,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "291104e2a65a20d4"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 32,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7ed6abf75953e15d"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 33,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "54a6e87f9cdfad6a"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 34,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f796417a1415e7fb"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 35,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "2d6cb1f481550288"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 36,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "40b10c1d0e4949d1"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 37,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "896f764e3c627b8e"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 38,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5409fbc6223e06af"
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "accumulator": 39,
+      "activeCpu": 6174,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "707b33770fd79c2c"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 0,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8e0302bf8c14eb9c"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 1,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "221db8a3b30c86c3"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 2,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "831f2fbe41ab0fc2"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 3,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "20156135caa237c1"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 4,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "77b215d6f5e8da10"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 5,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "25675af8630005f7"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 6,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "491061b1b3b97f96"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 7,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9b9ae1971a980325"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 8,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "375ea96d2ca67224"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 9,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "acc346915096a56b"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 10,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8e73ba1bae57e3ca"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 11,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ceb91a465fbf0c09"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 12,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ee17496b57ed7738"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 13,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9975995e4255b63f"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 14,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "38eb314f77d956de"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 15,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "582aa8aae7134ecd"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 16,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "57d51d6a02e0306c"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 17,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2e9821468cd11493"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 18,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1e00df5e3ee70112"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 19,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "77670b6fcbf86dd1"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 20,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "2b7ce949e12a9309"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 21,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "372f186913f58ee6"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 22,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "90a888914f462667"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 23,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "380ccca0895c8224"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 24,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "08d2b4d02053832d"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 25,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7fdb9b415923b99a"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 26,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "296ba3e2bfdea20b"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 27,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e40798d120e0bf18"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 28,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "30d8fa51d556d311"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 29,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c070e17ae206a8ce"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 30,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ef53e0051563c20f"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 31,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5f2119e25243018c"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 32,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f95d92eb53e0c295"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 33,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "35e0aa8d026df0a2"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 34,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "e66c636af4c7e6b3"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 35,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "96586940566d6940"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 36,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0820ae686fcac379"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 37,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ebbd70e3ce53e256"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 38,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d46935ee19196c17"
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "accumulator": 39,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "17c02e7733ea0254"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 0,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9d7407c4f5451a94"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 1,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "917921a8ba35189b"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 2,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "d18b6fe10199b67a"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 3,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8ac649a4f4bf6839"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 4,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ea08e26c4fb82cd8"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 5,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "046c2c34482fc65f"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 6,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b552109fd19e9afe"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 7,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b8e9523a8d807d6d"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 8,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "bae45b276ee2ad0c"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 9,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "aacff5f3f65fabb3"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 10,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8eec4470e83f1132"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 11,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ced19fd8709648f1"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 12,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3a82d3677a4ab7f0"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 13,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "71de7fced51bebd7"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 14,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "1c4363ded0ac6bf6"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 15,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8ed4f4afbbb21e05"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 16,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "57fe1bc95b7b8f04"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 17,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "73607ac6bcfe24cb"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 18,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e3ee34d1692fc02a"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 19,
+      "activeCpu": 3302,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "2f8927eb415f2169"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 20,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "228012fa14db22c1"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 21,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6ea7e12c9bfadcbe"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 22,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "1282727e9bb075bf"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 23,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c6731d9b50d1fc7c"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 24,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "b15ab424e4251805"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 25,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "52e0c7f500aa6bd2"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 26,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "19e6b3a611b90da3"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 27,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "74580f8449b47530"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 28,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "4bbb5e93f05d7839"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 29,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "677c462e23805616"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 30,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c018c29c9c1797d7"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 31,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "95e1ad8175ef5014"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 32,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7b8311bca1937d9d"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 33,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ce5f3da5c4a3a24a"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 34,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a7800906e8eac2bb"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 35,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "aba0bd82f84687c8"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 36,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "f361c30c713b40d1"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 37,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "a8586928c3a6208e"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 38,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5cfe79a4d2bf49cf"
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "accumulator": 39,
+      "activeCpu": 5993,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7c4086db38c40a4c"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 0,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9df3fad363c9818c"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 1,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "30b0c594ce927613"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 2,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ba46b87628345372"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 3,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ad1b3fb6bf72e6f1"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 4,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "cda55fe8fd11c7c0"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 5,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "135b70a51fffb427"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 6,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "e870e1b7249e45e6"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 7,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "78dee08dbcae73f5"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 8,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "399d3cbd303bd7f4"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 9,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f540b2fb5a73bdbb"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 10,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "9caabd510ca6673a"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 11,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "88d572a8a3aaee59"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 12,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "398c4a6ea9d5ef88"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 13,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a1ca4d176c28f72f"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 14,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "ebb0a33f6856fa2e"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 15,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "43915ab1bfc9541d"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 16,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "bece68d2ed73877c"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 17,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c22d03fce7710443"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 18,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "04f528803f0887a2"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 19,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "531c96deffbc7ba1"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 20,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6c69343d4c506979"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 21,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "eaabef3fbe7214b6"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 22,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "79462b10973d6157"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 23,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "95ef935895bc80d4"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 24,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ebb53a6d48b6415d"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 25,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c18576f58c420d6a"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 26,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6474cff0037847fb"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 27,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "9a4b406a70b76288"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 28,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5004155b09adc9c1"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 29,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "52ee17501fb9713e"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 30,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "d9c3275b1d91a75f"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 31,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "582347a1f8f6855c"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 32,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7fc3b65eb76bc325"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 33,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6c8b9a57ad12d872"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 34,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "74755404b35a7f23"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 35,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "2598fdd31d8dc410"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 36,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ca2c63b8dc6d9789"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 37,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7acf37999d94c4c6"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 38,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "005c596821cdfe67"
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "accumulator": 39,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "0a9f539b3fb93324"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 0,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "904b8c01542e3597"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 1,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7ef88a3c51b710b0"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 2,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "140c95a55b9f06e5"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 3,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "449eb1117f8b6196"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 4,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7844018393aa93c3"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 5,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "b69c5e6960407afc"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 6,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "16e13147855b1921"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 7,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "7160b9f85ea63322"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 8,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c06aed13dcbd5eaf"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 9,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "05cb952688838d08"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 10,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "4a2661a21833519d"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 11,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c3a8d97df395ddae"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 12,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "c47eff5bd201fb3b"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 13,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "f0bd5b9da85df374"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 14,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5a20ef4551cd77d9"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 15,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "5061bffc25498aba"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 16,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "a8e4a3c700a405a7"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 17,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "219199db06c00340"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 18,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "3a7ba1ce39b03175"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 19,
+      "activeCpu": 3489,
+      "predictorCpu": 27,
+      "predictorResult": 0,
+      "stateHash": "8dc7de9ca58b5966"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 20,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6536e445ef943062"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 21,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5435fd22717e3815"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 22,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "3f3f327378c59580"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 23,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "1ff41d87c74ac653"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 24,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "2cfb495a6ebf3a2e"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 25,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "7bd4099f70370bf1"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 26,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "57b3d2b6fbea4f4c"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 27,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "acb7410c601f9ccf"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 28,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "223aa3356facba9a"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 29,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "54b9a9fa8877318d"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 30,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "5e1031016cffb278"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 31,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "14866bdd3a92a3ab"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 32,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "af7f995566eb9166"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 33,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "63289546c5ac83a9"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 34,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "c5abde90414c6144"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 35,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "ff9ea19e86875f87"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 36,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "eb00472dbad05612"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 37,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "8c62109f935bafc5"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 38,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "36afb376aba079b0"
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "accumulator": 39,
+      "activeCpu": 6180,
+      "predictorCpu": 27,
+      "predictorResult": 1,
+      "stateHash": "6d7d9fee45dac743"
+    }
+  ]
+}

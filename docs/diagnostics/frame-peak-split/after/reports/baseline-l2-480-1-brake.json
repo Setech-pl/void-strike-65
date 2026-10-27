@@ -1,0 +1,76 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/frame-peak-baseline-480/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "b82d2157c03d5238a8bcc3a87ec4d0d272abdfd97b776987a95d89bb097becd7"
+    },
+    "void-strike-65.atr": {
+      "path": "build/frame-peak-baseline-480/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "bfb7b4498e20c915c36d0157a270dfa3f684cdb5ae3bb9586a1b4f985d29911f"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/frame-peak-baseline-480/void-strike-65-manifest.json",
+      "bytes": 80514,
+      "sha256": "52aaab8ff461bcc5077a1d6e8daf1a5dd0a2b5826c8466bc775b9c96cad2efb7"
+    }
+  },
+  "variant": "frame-peak-baseline-480",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "l2-480-1-brake",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "l2-matrix-brake",
+      "fire_delay": 0,
+      "measured_frames": 3767,
+      "maximum_wall_cycles": 31204,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 839,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 655,
+            "display": 657,
+            "loaded": 747,
+            "ready": 808,
+            "accept": 812,
+            "reads": 38,
+            "shown_frames": 155,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 3767,
+    "maximum_wall_cycles": 31204,
+    "wall_ceiling": 32568,
+    "physical_headroom": 4364,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

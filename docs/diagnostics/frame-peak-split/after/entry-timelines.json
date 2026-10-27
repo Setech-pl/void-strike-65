@@ -1,0 +1,110 @@
+[
+  {
+    "id": "campaign-1-flight",
+    "frame": 868,
+    "baseline": {
+      "startClock": 59862992,
+      "prePublicationClock": 59889098,
+      "publicationClock": 59924007,
+      "endClock": 59926983,
+      "wall": 63991,
+      "preWait": 26106,
+      "startToPublication": 61015,
+      "fenceMargin": -794,
+      "start": [
+        1683,
+        17,
+        110
+      ],
+      "end": [
+        1684,
+        267,
+        33
+      ],
+      "nextStart": [
+        1685,
+        230,
+        106
+      ]
+    },
+    "fixed": {
+      "startClock": 59863004,
+      "prePublicationClock": 59884983,
+      "publicationClock": 59888439,
+      "endClock": 59891279,
+      "wall": 28275,
+      "preWait": 21979,
+      "startToPublication": 25435,
+      "fenceMargin": 3321,
+      "start": [
+        1683,
+        18,
+        8
+      ],
+      "end": [
+        1683,
+        266,
+        11
+      ],
+      "nextStart": [
+        1684,
+        230,
+        107
+      ]
+    }
+  },
+  {
+    "id": "campaign-2-brake",
+    "frame": 839,
+    "baseline": {
+      "startClock": 60823340,
+      "prePublicationClock": 60849762,
+      "publicationClock": 60884340,
+      "endClock": 60887186,
+      "wall": 63846,
+      "preWait": 26422,
+      "startToPublication": 61000,
+      "fenceMargin": -1122,
+      "start": [
+        1710,
+        18,
+        8
+      ],
+      "end": [
+        1711,
+        266,
+        14
+      ],
+      "nextStart": [
+        1712,
+        230,
+        110
+      ]
+    },
+    "fixed": {
+      "startClock": 60823340,
+      "prePublicationClock": 60845784,
+      "publicationClock": 60848772,
+      "endClock": 60851486,
+      "wall": 28146,
+      "preWait": 22444,
+      "startToPublication": 25432,
+      "fenceMargin": 2856,
+      "start": [
+        1710,
+        18,
+        8
+      ],
+      "end": [
+        1710,
+        264,
+        110
+      ],
+      "nextStart": [
+        1711,
+        230,
+        107
+      ]
+    }
+  }
+]

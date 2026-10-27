@@ -1244,24 +1244,33 @@ against pre-audit L1, restoring clean main's **3,161 B** and **5-B** free tail
 (pre-audit: 410 B).
 
 
-## M3-H approved allocation — not installed (2026-10-27)
+## M3-H Option A — WIP STOP, not a smoke candidate (2026-10-27)
 
-Owner-approved Option A assigns WaveDef `wave_flags` **bit 5** to the armoured
-Raider profile. The compiler and Director search found no current consumer of
-that bit: only bit 4 is `afterCleared`; bits 6–7 remain Interceptor escort
-loops. The old compiler comment calling bits 4–5 a trigger-mode field is
-stale. This assignment reuses a bit, not a byte or another archetype record.
-Only non-boss Raider Heavy waves may use it when implemented.
+This branch retains the restored A1 implementation at the owner's third
+continuation STOP instruction. The generated map above describes the prior
+baseline and has **not been regenerated for this stopped WIP**. These linked
+WIP allocations supersede its old free-range claims on this branch only:
 
-H2's approved home is an appended named ASM segment in **Director window
-record 8**. H15 may use **13 B** of `$813B–$813F` and `$85E6–$85EE`, initialized
-after boot. A1 recovered the implementation to **827/832 arena B**, without
-moving the profile table; the next gate stopped at **2,328/2,320 Bomber
-admission cycles**. All gameplay changes were restored. Thus these homes
-are **not claimed by new linked segments at this checkpoint**, and the
-generated map above remains unchanged. The existing damaged-body reservation
-`$549E–$54BD` remains intact, unused by session 1. Details and recovery options:
-[M3-H audit addendum](audits/2026-10-27-m3h-step1.md#second-continuation--a1-recovered-arena-reset-cost-stop).
+| Owner / segment | WIP allocation | Remaining |
+| --- | --- | --- |
+| `HYBRID_HEAVY_PACKAGE` | `$813B–$813F`, 5 B: motion, descent mask, armoured flag, hold row, damage request | 0 B |
+| `HYBRID_HEAVY_MEMBERS` | `$85E6–$85ED`, 8 B: hold-left[2], last-HP[2], dodge-left[2], pending hold row/duration | `$85EE`, 1 B |
+| `HYBRID_C_ARENA` composite, record 7 | 827/832 B, including the unchanged 9-B profile-fields table | 5 B |
+| Director window, record 8 | 2,051/2,811 usable B; appended `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` | 760 B after existing reservations |
+| H2 in appended ASM | 106 B at `$B599` | inside record 8; no twelfth record |
+| BROADSIDE sequence pin | 79/120 B (17-B rotate helper + 62-B H1) | 41 B |
+
+H15 initializes after boot and at admission; no session-2 body-index state is
+allocated. The existing `$549E–$54BD` 32-B damaged-body reservation stays
+intact and unused in session 1. WaveDef `wave_flags` bit 5 selects armoured
+Raider Heavy only; bit 4 retains `afterCleared`, bits 6–7 retain Interceptor
+escort loops, including shipped sector-4 flags `$88`. There is no combined
+bits-4–5 trigger-mode field in the implementation.
+
+A1 remains in use; A2 was not applied. Reset now passes (+63 assault, +65
+armoured, +75 Bomber on every difficulty), but the assault standing gate
+fails at **1,202 >1,200 cycles**, fixture frame 188. No native after-gate or
+smoke PASS is claimed. See the [third-continuation audit](audits/2026-10-27-m3h-step1.md#third-continuation--reset-recovered-assault-update-stop).
 
 ## Capsule boss-stress recovery — OWNER-ACCEPTED (2026-10-22)
 

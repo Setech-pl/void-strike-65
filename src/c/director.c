@@ -191,6 +191,8 @@ static uint8_t sector_field;
 #pragma bss-name ("HYBRID_ENCOUNTER_STATE")
 volatile uint8_t heavy_escort_offset;
 volatile uint8_t heavy_wave_flags;
+#pragma bss-name ("HYBRID_HEAVY_PACKAGE")
+volatile uint8_t heavy_motion;
 #pragma bss-name ("BSS")
 
 /* The runtime's own ceilings by sector kind and subtype (plan §3.4, decision
@@ -302,10 +304,22 @@ uint8_t director_c_rng_advance(void)
  *
  * This is what director_try_event names now, so the native trace's Director
  * event counter keeps counting the Director's own scheduling decisions. */
+/* Publish the armed Heavy data without moving any existing hot C entry.
+ * The original wave-arm function is pinned to its measured 180-byte span. */
+#pragma code-name (push, "HYBRID_C_WINDOW_HEAVY")
+static void director_publish_heavy_wave(void)
+{
+    heavy_wave_flags = wave_flags[director_scratch0];
+    heavy_motion = wave_path[director_scratch0];
+    heavy_wave_hold_row = (uint8_t)((heavy_motion & 0x70u) + 24u);
+    heavy_wave_hold_frames = (uint8_t)(heavy_motion << 4u);
+}
+#pragma code-name (pop)
+
 uint8_t director_c_try_event(void)
 {
     director_scratch0 = STATE_WAVE_CURSOR;
-    heavy_wave_flags = wave_flags[director_scratch0];
+    director_publish_heavy_wave();
     STATE_WAVE_REMAINING = wave_count[director_scratch0];
     /* The wave's composition is published HERE, not at admission: the cursor
      * moves on as soon as the wave is armed, so that when the last member has

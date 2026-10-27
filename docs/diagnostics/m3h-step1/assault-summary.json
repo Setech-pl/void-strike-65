@@ -1,0 +1,37 @@
+{
+  "result": "BLOCKED_ASSAULT_UPDATE_COST",
+  "maximum": 1202,
+  "limit": 1200,
+  "mean": 1064.3309982486865,
+  "saving": 481.66900175131354,
+  "frames": 668,
+  "samples": 571,
+  "failures": [
+    {
+      "frame": 188,
+      "cycles": 1202,
+      "liveBefore": [
+        1,
+        1
+      ],
+      "liveAfter": [
+        1,
+        1
+      ],
+      "yBefore": [
+        48,
+        96
+      ],
+      "yAfter": [
+        49,
+        96
+      ],
+      "x": [
+        100,
+        120
+      ],
+      "playerX": 190
+    }
+  ],
+  "integrity": "pursuit, implied planes and zero writes on held frames assertions passed for all 668 fixture frames"
+}

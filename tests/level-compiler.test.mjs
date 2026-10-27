@@ -94,6 +94,33 @@ function rejection(source) {
   assert.fail("the compiler accepted a level it must reject");
 }
 
+test('M3-H encodes Raider kind in bit 5 and holds in existing motion bytes, without changing level-1 flags',()=>{
+  const s=baseSource();const sector=s.sectors[0];
+  sector.subtype='elite';sector.archetypes=['raider','bomber','interceptor'];sector.lights=1;
+  sector.waves=[{row:0,archetype:'raider',escort:'interceptor',loops:2,kind:'armoured',hold:{row:40,frames:64}}];
+  let c=compile(s);assert.equal(c.core[WAVE_ARRAY_OFFSET.flags],0xa8);assert.equal(c.core[WAVE_ARRAY_OFFSET.path],0x14);
+  sector.waves=[{row:0,archetype:'bomber',hold:{row:72,frames:96}}];
+  c=compile(s);assert.equal(c.core[WAVE_ARRAY_OFFSET.path],0x36);
+  const one=compileLevelFile(levelSourcePath(1));
+  assert.deepEqual(one.waves.map(w=>w.flags),[8,8,1,128,0,136,24,8,0]);
+  for(const w of one.waves.filter(w=>w.class==='heavy'))assert.equal(one.core[WAVE_ARRAY_OFFSET.path+one.waves.indexOf(w)],0);
+});
+test('M3-H validator rejects incompatible kinds and invalid or unrepresentable holds',()=>{
+  const bad=[
+    {archetype:'bomber',kind:'armoured'},
+    {archetype:'interceptor',kind:'armoured'},
+    {archetype:'raider',kind:'unknown'},
+    {archetype:'raider',hold:{row:40,frames:64}},
+    {archetype:'raider',kind:'armoured',hold:{row:56,frames:64}},
+    {archetype:'raider',kind:'armoured',hold:{row:40,frames:256}},
+    {archetype:'raider',kind:'armoured',hold:{row:40,frames:17}},
+    {archetype:'bomber',hold:{row:25,frames:64}},
+    {archetype:'interceptor',hold:{row:40,frames:64}},
+  ];
+  for(const wave of bad){const s=baseSource();s.sectors[0].subtype='elite';s.sectors[0].archetypes=['raider','bomber','interceptor'];s.sectors[0].lights=1;s.sectors[0].waves=[{row:0,...wave}];assert.throws(()=>compile(s),LevelValidationError,JSON.stringify(wave));}
+  const s=baseSource();s.sectors[0]={kind:'boss',waves:[{row:0,archetype:'raider',kind:'armoured'}]};assert.throws(()=>compile(s),LevelValidationError);
+});
+
 // ---------------------------------------------------------------------------
 // T1 - the validator
 // ---------------------------------------------------------------------------

@@ -123,6 +123,8 @@ extern volatile uint8_t heavy_hull_colour;
  * the same two bytes of HYBRID_ENCOUNTER_STATE. */
 extern volatile uint8_t heavy_escort_offset;
 extern volatile uint8_t heavy_wave_flags;
+extern volatile uint8_t heavy_motion;
+extern uint8_t heavy_wave_hold_row, heavy_wave_hold_frames;
 extern volatile uint8_t heavy_member_x;
 extern volatile uint8_t heavy_member_y;
 extern volatile uint8_t heavy_member_direction;

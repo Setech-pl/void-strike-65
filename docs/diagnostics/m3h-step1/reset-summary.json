@@ -1,0 +1,305 @@
+{
+  "family": "reset_enemy by difficulty and profile",
+  "initialHead": "4799121",
+  "measurement": "MEASURED NMOS6502 full production reset paths; H9-only exact archived functions relinked at their H9 addresses into immutable baseline RAM",
+  "limits": {
+    "session1Delta": 100,
+    "session1And2Delta": 150
+  },
+  "beforePlacement": [
+    {
+      "difficulty": 0,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1683,
+      "delta": 71,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1685,
+      "delta": 73,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2328,
+      "delta": 83,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1683,
+      "delta": 71,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1685,
+      "delta": 73,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2328,
+      "delta": 83,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1683,
+      "delta": 71,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1685,
+      "delta": 73,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2328,
+      "delta": 83,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 8,
+        "rosterPlacement": -1
+      }
+    }
+  ],
+  "afterPlacement": [
+    {
+      "difficulty": 0,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    }
+  ],
+  "profileAddressBefore": 32239,
+  "profileAddressAfter": 32258,
+  "difficultyConclusion": "All three difficulties tie; EASY was the first failing row, not a uniquely expensive row.",
+  "zeroByteFix": "Declare bomber_turn before heavy_publish_profile to reorder existing 19-B and 66-B functions. Removes eight taken backward-branch page penalties; no generated instruction or arena/record-1/record-7 byte growth."
+}

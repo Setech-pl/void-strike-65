@@ -1462,7 +1462,18 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
       "-o", `${base}-generated.s`, "/project/src/c/director.c"],
     [`${base}-generated.s`],
   );
-  const generatedAssembly = compiled.outputs[`${base}-generated.s`];
+  let generatedAssembly = compiled.outputs[`${base}-generated.s`];
+  // H4 preserves all following Light C entry addresses, not merely total size.
+  {
+    let text = generatedAssembly.toString();
+    const start = text.indexOf(".proc\t_director_c_try_event:");
+    if (start < 0) throw new Error("M3-H wave-arm entry pin missing");
+    const line = text.indexOf("\n", start) + 1;
+    text = text.slice(0, line) + "m3h_wave_arm_pin:\n" + text.slice(line);
+    const end = text.indexOf(".endproc", line);
+    text = text.slice(0, end) + ".res 180-(*-m3h_wave_arm_pin), $00\n" + text.slice(end);
+    generatedAssembly = Buffer.from(text);
+  }
   const lifecycleCompiled = await runWasmTool(
     "cc65",
     {
@@ -1587,9 +1598,12 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const windowRodataBytes = parsedLabels.get("__HYBRID_C_WINDOW_RODATA_SIZE__");
   // feat/sector-flow: the Director's sector-flow verdicts, placed last.
   const windowFlowBytes = parsedLabels.get("__HYBRID_C_WINDOW_FLOW_SIZE__");
+  const heavyWindowBytes = (parsedLabels.get("__HYBRID_C_WINDOW_HEAVY_SIZE__") ?? 0) +
+    (parsedLabels.get("__HYBRID_C_WINDOW_HEAVY_RODATA_SIZE__") ?? 0) +
+    (parsedLabels.get("__HYBRID_ASM_HEAVY_WINDOW_SIZE__") ?? 0);
   const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes]
     .every(Number.isInteger)
-    ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes : undefined;
+    ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes + heavyWindowBytes : undefined;
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
     cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
     arenaCodeBytes, arenaRodataBytes, basicWindowBytes].every(Number.isInteger)) {
@@ -1801,6 +1815,13 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendM
     ["ENEMY_PROFILE_SCORE_BCD", "enemy_profile_score_bcd"],
     ["ENEMY_PROFILE_DIRECTOR_VALUE", "enemy_profile_director_value"],
     ["ENEMY_HEAVY_TICK", "enemy_heavy_tick"],
+    ["HEAVY_ARMOURED_TICK", "heavy_armoured_tick"],
+    ["HEAVY_ARMOURED", "_heavy_armoured"],
+    ["HEAVY_DESCENT_MASK", "_heavy_descent_mask"],
+    ["HEAVY_ABI_HP", "heavy_abi_hp"],
+    ["HEAVY_ABI_X", "heavy_abi_x"],
+    ["HEAVY_ABI_Y", "heavy_abi_y"],
+    ["HEAVY_ABI_PLAYER_X", "heavy_abi_player_x"],
     // Heavy break-up (plan-4.6-placement.md §7.4 variant 2): the kill frame's
     // DEFERRABLE token claim, and the deferred-once bit its forcing rule needs.
     ["HYBRID_ENEMY_HEAVY_BREAKUP_CLAIM", "enemy_heavy_breakup_claim"],

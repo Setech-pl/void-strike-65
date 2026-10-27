@@ -651,3 +651,72 @@ _l2_c_phase = $190F
 _l2_c_enter = $1912
 _l2_space = $191C
 .export _l2_c_phase, _l2_c_enter, _l2_space
+
+; M3-H Option A: appended record-8 executor. C owns the formation profile.
+; These kernel bindings are exported and asserted by the main link.
+heavy_abi_hp = $5472
+heavy_abi_x = $5478
+heavy_abi_y = $547A
+heavy_abi_player_x = $80
+.export heavy_abi_hp, heavy_abi_x, heavy_abi_y, heavy_abi_player_x
+.import _heavy_armoured, _heavy_descent_mask, _heavy_hold_row
+.import _heavy_damage_pending, _heavy_hold_left, _heavy_last_hp, _heavy_dodge_left
+.export heavy_armoured_tick
+.segment "HYBRID_ASM_HEAVY_WINDOW"
+; X = live member. A=0 normal, 1 Y held/pursue, $80 dodge already executed.
+; The authored hold clock advances during a dodge and is never restarted.
+heavy_armoured_tick:
+    lda #0
+    ldy heavy_abi_y,x
+    cpy _heavy_hold_row
+    bne @hold_ready
+    ldy _heavy_hold_left,x
+    beq @hold_ready
+    dec _heavy_hold_left,x
+    lda #1
+@hold_ready:
+    pha
+    lda heavy_abi_hp,x
+    cmp _heavy_last_hp,x
+    beq @dodge
+    sta _heavy_last_hp,x
+    cmp #3
+    bcs @direction
+    txa
+    clc
+    adc #1
+    ora _heavy_damage_pending
+    sta _heavy_damage_pending
+@direction:
+    lda #6
+    ldy heavy_abi_x,x
+    cpy heavy_abi_player_x
+    bcs @remember
+    ora #$80
+@remember:
+    sta _heavy_dodge_left,x
+@dodge:
+    lda _heavy_dodge_left,x
+    and #7
+    beq @normal
+    dec _heavy_dodge_left,x
+    ldy heavy_abi_x,x
+    lda _heavy_dodge_left,x
+    bmi @left
+    cpy #191
+    bcs @dodged
+    inc heavy_abi_x,x
+    inc heavy_abi_x,x
+    bne @dodged
+@left:
+    cpy #50
+    bcc @dodged
+    dec heavy_abi_x,x
+    dec heavy_abi_x,x
+@dodged:
+    pla
+    lda #$80
+    rts
+@normal:
+    pla
+    rts

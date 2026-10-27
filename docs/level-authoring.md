@@ -194,19 +194,24 @@ elite companion and boss escort alike - and flashes its red pods for 3 frames
 on each hit it survives; plan a sector's length with three hits per
 Interceptor in mind (level 1's road with the sweep bot: 68.8 / 65.5 / 56.1 s
 on EASY / MEDIUM / HARD before, 75.7 / 75.7 / 65.5 s after). Wave flags bit 5
-has no runtime consumer today: the Phase A review variants' `armour` field is
-not part of the format. **Owner-approved M3-H Option A (2026-10-27)** reserves
-bit 5 for `kind: "armoured"` on Raider Heavy waves only; Bomber, Light and
-boss waves must refuse it. Bits 6–7 retain the current Interceptor escort-loop
-encoding, including level 1's sector-4 Heavy flags `$88`. This allocation is
-approved but **not installed**: A1 recovered the arena to 827/832 B; the next
-continuation stopped at a 2,328-cycle Bomber admission against its 2,320-cycle
-limit and restored gameplay. Do not author `kind` or `hold` until the feature
-is resumed and validated. See the
-[latest session-1 addendum](audits/2026-10-27-m3h-step1.md#second-continuation--a1-recovered-arena-reset-cost-stop).
+was unused before M3-H. **Owner-approved M3-H Option A (2026-10-27)** assigns
+it to `kind: "armoured"` on non-boss Raider Heavy waves only; Bomber, Light
+and boss waves refuse it. Bits 6–7 retain Interceptor escort-loop encoding,
+including level 1's sector-4 Heavy flags `$88`.
+
+**Stopped WIP on `codex/m3h-step1`, not a validated authoring baseline:** the
+restored compiler accepts `kind: "assault"` (default) or `"armoured"`, and
+`hold: {row, frames}` for Bomber or armoured Raider. The existing motion byte
+stores the hold; it adds no WaveDef bytes. Rows are 24 + 16n (through 136),
+with Raider holds restricted to 24 or 40; duration is 16–240 frames in
+multiples of 16. Heavy without a hold compiles motion `$00`; Light retains
+`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The implementation
+stopped on the 1,202/1,200 assault-update gate; remaining validation and the
+player-facing EN/PL documentation are pending. See the
+[third-continuation audit](audits/2026-10-27-m3h-step1.md#third-continuation--reset-recovered-assault-update-stop).
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
-and a file naming one is rejected. Every wave compiles with `wave_path = $FF`,
+and a file naming one is rejected. Every Light wave compiles with `wave_path = $FF`,
 "the archetype's own movement".
 
 ## What the compiler refuses

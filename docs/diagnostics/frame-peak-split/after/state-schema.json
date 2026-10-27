@@ -1,0 +1,130 @@
+{
+  "ranges": [
+    {
+      "start": 128,
+      "end": 145,
+      "name": "positions, counters, RNG, score, input"
+    },
+    {
+      "start": 153,
+      "end": 160,
+      "name": "game/frontend/input/audio state"
+    },
+    {
+      "start": 172,
+      "end": 196,
+      "name": "session statistics and boss lance state"
+    },
+    {
+      "start": 15104,
+      "end": 21504,
+      "name": "PMG, screen, character banks, hull maps, resident state and HUD"
+    },
+    {
+      "start": 32528,
+      "end": 33083,
+      "name": "display lists, Light slots, entity/effect pool, Director and C state"
+    },
+    {
+      "start": 33088,
+      "end": 34306,
+      "name": "27-row playfield ring, row tables and resident caches"
+    },
+    {
+      "start": 43520,
+      "end": 44544,
+      "name": "level data and geometry"
+    },
+    {
+      "start": 19744,
+      "end": 19767,
+      "name": "boss-death.map:DEATH_STATE"
+    },
+    {
+      "start": 5917,
+      "end": 6140,
+      "name": "boss.map:BOSS_C_BSS"
+    },
+    {
+      "start": 6296,
+      "end": 6389,
+      "name": "boss.map:BOSS_BSS"
+    },
+    {
+      "start": 8084,
+      "end": 8188,
+      "name": "boss.map:BOSS_D_BSS"
+    },
+    {
+      "start": 19967,
+      "end": 19983,
+      "name": "boss.map:BOSS_E_BSS"
+    },
+    {
+      "start": 31626,
+      "end": 31642,
+      "name": "boss.map:BOSS_BANNER_KEEP_BSS"
+    },
+    {
+      "start": 48112,
+      "end": 48117,
+      "name": "boss.map:LANCE_BSS"
+    },
+    {
+      "start": 33024,
+      "end": 33040,
+      "name": "encounter-director.map:HYBRID_LIGHT_STATE"
+    },
+    {
+      "start": 33040,
+      "end": 33049,
+      "name": "encounter-director.map:HYBRID_C_STATE"
+    },
+    {
+      "start": 33049,
+      "end": 33051,
+      "name": "encounter-director.map:HYBRID_ENCOUNTER_STATE"
+    },
+    {
+      "start": 33051,
+      "end": 33062,
+      "name": "encounter-director.map:HYBRID_HEAVY_STATE"
+    },
+    {
+      "start": 33065,
+      "end": 33070,
+      "name": "encounter-director.map:DIRECTOR_SECTOR_STATE"
+    },
+    {
+      "start": 34554,
+      "end": 34561,
+      "name": "encounter-director.map:DIRECTOR_C_BSS"
+    },
+    {
+      "start": 48128,
+      "end": 48149,
+      "name": "sector-reader.map:READER_BSS"
+    },
+    {
+      "start": 21504,
+      "end": 21694,
+      "name": "void-strike-65.map:PROJECTILES"
+    },
+    {
+      "start": 32768,
+      "end": 33024,
+      "name": "void-strike-65.map:ENTITY_STATE"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "PHYSICAL_PAL_FRAME_ID",
+      "address": 20180
+    },
+    {
+      "name": "GAMEPLAY_PAL_FRAME_CONSUMED",
+      "address": 20181
+    }
+  ],
+  "bytes": 9904
+}

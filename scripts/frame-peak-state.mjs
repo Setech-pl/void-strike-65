@@ -18,7 +18,15 @@ export function stateMask(build) {
       if(/BSS|STATE|PROJECTILES/.test(m[1])) add(parseInt(m[2],16),parseInt(m[3],16)+1,`${file}:${m[1]}`);
     }
   }
-  return {mask,ranges,bytes:mask.reduce((a,b)=>a+b,0)};
+  const labels=new Map([...fs.readFileSync(path.join(build,'void-strike-65.lbl'),'utf8')
+    .matchAll(/^al ([0-9A-Fa-f]+) \.(\S+)/gm)].map(m=>[m[2],parseInt(m[1],16)]));
+  const tokens=['PHYSICAL_PAL_FRAME_ID','GAMEPLAY_PAL_FRAME_CONSUMED'].map(name=>({name,address:labels.get(name)}));
+  const logicalMask=Buffer.from(mask);
+  for(const token of tokens) {
+    if(!Number.isInteger(token.address)||!mask[token.address])throw Error(`Unhashed PAL token ${token.name}`);
+    logicalMask[token.address]=0;
+  }
+  return {mask,logicalMask,ranges,tokens,bytes:mask.reduce((a,b)=>a+b,0)};
 }
 export function stateHash(memory,mask) {
   let hash=14695981039346656037n;

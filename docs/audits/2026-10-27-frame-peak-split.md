@@ -1,6 +1,15 @@
 # Worst-frame split — 2026-10-27
 
-**OWNER_DECISION_REQUIRED. Production source is unchanged.** Branch
+**Current result: OWNER-SMOKE CANDIDATE.** A+B is implemented and every
+measured acceptance gate passes. Owner smoke remains pending.
+Worst iteration **31,432**, capital peak **29,756**, all boss entries **325
+frames**. See [After](#after--ab-owner-smoke-candidate) for measured comparisons,
+exact equivalence evidence and the three current ATRs. The owner approved the
+entry correction after checkpoint `299d800`; [decision](../decisions/2026-10-27-frame-peak-split.md).
+
+## Before — attribution checkpoint `299d800`
+
+**Historical result: OWNER_DECISION_REQUIRED. Production source was unchanged.** Branch
 `codex/frame-peak-split`, measured main `6ea1ca5`. The twelve direct L2 routes
 reproduce the five post-slalom target overruns. The additional natural campaign
 finds a **63,846-cycle SPACE → first-capital entry**, with a missed publication
@@ -321,7 +330,7 @@ atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-p
 atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-480.atr
 ```
 
-**NEXT TASK:** owner decision on allowing the single physical-frame correction
+**Original next task (now approved):** owner decision on allowing the single physical-frame correction
 at the confirmed natural capital-entry miss. No push, merge, release or next
 roadmap work is authorized by this report.
 
@@ -331,3 +340,264 @@ was denied (`Operation not permitted`). The owner subsequently requested a
 commit retry of the report, diagnostics and host tooling, excluding build
 outputs. Only this session's generated `dist` changes were restored from their
 exact HEAD blobs; reproduction ATRs remain in `build/play/frame-peak-split/`.
+
+## After — A+B, OWNER-SMOKE CANDIDATE
+
+**OWNER-SMOKE CANDIDATE.** Implementation, evidence and the three ATRs are
+complete. Owner smoke remains pending.
+
+The owner approved removing the single missed physical frame at natural
+SPACE → capital admission. **A+B is implemented; fallback C is not used.**
+No gameplay decision, spawn cadence, effect lifetime, collision policy or
+publication fence changed. No release, merge or push was performed.
+
+A replaces four existing address operands (eight operand bytes, no new
+instructions/state): main calls `$A00C` before the fixed wait; its six-byte
+reader body calls LIFE colour then tail-calls `stats_scan`; the Light vector
+publishes directly after the wait. The scan sees finalized lifetimes and
+Heavy damage, still once per iteration. Capital bookkeeping is unchanged.
+
+B keeps all initialization and phase decisions in C. Four disjoint 30-byte
+stripes clear the complete 120-byte lookup. A descending do/while avoids a
+loop-header jump and keeps code growth inside existing alignment padding.
+The C entry body grows 10 B, the alignment gap shrinks 22 → 12 B, and the L2
+image remains 1,250 B. `_l2_brake_tick` moves `$1C85` → `$1C8F` without a new
+branch page crossing; warning entry `$1D00`, later hot routines, tables and
+state addresses remain fixed.
+
+### Permanent native gate and measured route peaks
+
+There are now **15 permanent routes / 59,482 gameplay iterations**, plus 15
+separately checked boss-loading rows: **59,497 state rows** in total. The
+three campaign routes start naturally in SPACE, traverse the capital and its
+exit, then enter the region-1 boss and capture 119 fight iterations:
+
+* `campaign-0-flight`: EASY flight/contact.
+* `campaign-1-flight`: MEDIUM flight/contact.
+* `campaign-2-brake`: HARD brake/contact, including the originally failing path.
+
+These sessions are defined in `scripts/frame-peak-routes.mjs` and included in
+the **ordinary** `runtime-wall-trace.mjs` set. `--capital-entry-only` selects
+all three and produces a focused build-local report. They require natural
+entry, capital exit, boss entry ≤350, complete clock samples through phase
+968, matching world/hull clocks, no stale L2 events, zero timing anomalies and
+the **31,500 target**, not merely the hard ceiling. Focused route failures
+remain fatal in their reports. The registered **`npm run test:frame-peaks`**
+runs all twelve existing L2 routes plus these three, against preserved input
+snapshots, and rejects missing routes. This is a reusable native test gate;
+normal builds retain their computed gates and pending-release-evidence policy.
+
+All results below are **MEASURED Atari800 7.1.2, PAL/XL, DMA on**, against
+unchanged main `6ea1ca5`. The original thirteen baseline full-state streams
+match the expanded baseline byte for byte. Adding MEDIUM reveals the same
+natural-entry bug at iteration **868**, one missed frame, **63,991 cycles**.
+EASY has no missed entry. This is the same approved correction on the same
+code path, one removed physical frame per affected replay.
+
+| Route | Gameplay iterations | Before peak | After peak | Capital peak before = after | After minimum fighter fence |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 480 EASY flight/contact | 3,007 | 31,105 | 30,975 | 29,756 | 5,969 |
+| 480 EASY brake/contact | 4,017 | 30,992 | 30,869 | 28,264 | 7,171 |
+| 480 MEDIUM flight/contact | 2,883 | 31,196 | 31,082 | 26,402 | 5,454 |
+| 480 MEDIUM brake/contact | 3,767 | 31,204 | 31,084 | 28,082 | 5,695 |
+| 480 HARD flight/contact | 2,779 | 31,445 | 31,325 | 27,681 | 5,124 |
+| 480 HARD brake/contact | 3,600 | 31,552 | **31,432** | 28,936 | 5,829 |
+| 960 EASY flight/contact | 4,264 | 31,164 | 31,053 | 27,690 | 5,841 |
+| 960 EASY brake/contact | 5,515 | 31,162 | 31,036 | 27,435 | 5,851 |
+| 960 MEDIUM flight/contact | 3,969 | 31,257 | 31,122 | 29,038 | 6,885 |
+| 960 MEDIUM brake/contact | 5,052 | 31,256 | 31,136 | 28,390 | 6,927 |
+| 960 HARD flight/contact | 3,767 | 31,432 | 31,294 | 28,770 | 5,703 |
+| 960 HARD brake/contact | 4,729 | 31,432 | 31,297 | 28,694 | 4,977 |
+| Natural campaign EASY flight/contact | 3,961 | 31,050 | 30,924 | 29,731 | 5,132 |
+| Natural campaign MEDIUM flight/contact | 3,773 | **63,991** | 30,999 | 27,082 | 3,321 |
+| Natural campaign HARD brake/contact | 4,399 | **63,846** | 31,293 | 29,679 | **2,856** |
+
+Every after route has **zero** iterations above 31,500, missed fences, missed
+frames, extra VBI boundaries, DLI errors, shifted rows, world/hull clock
+mismatches and stale L2 events. Capital peak remains **29,756**. All fifteen
+boss entries take **325/350 host frames**. Worst target margin is **68 cycles**,
+hard-gate margin **1,136**, physical-frame margin **4,136**. No gate or assertion
+was weakened. Current native reconciliation passes with zero NEW or MOVED
+failures. Normal builds pass computed gates with the expected stale-release-
+evidence warning; this is not release certification.
+
+### The five former steady-state overruns
+
+All five are on `l2-480-2-brake`, in SPACE. These are comparisons at the same
+logical iteration, not maxima from different inputs.
+
+| Iteration | Before | After | Delta |
+| --- | ---: | ---: | ---: |
+| 2436 | 31,552 | **31,432** | −120 |
+| 2076 | 31,547 | **31,415** | −132 |
+| 2016 | 31,525 | **31,393** | −132 |
+| 2046 | 31,514 | **31,397** | −117 |
+| 2466 | 31,514 | **31,400** | −114 |
+
+The five worst iterations in the **expanded main baseline**, and their same-
+index after counts, are MEDIUM campaign/868 **63,991 → 28,275**, HARD
+campaign/839 **63,846 → 28,146**, then 480/HARD/brake 2436 **31,552 → 31,432**,
+2076 **31,547 → 31,415**, and 2016 **31,525 → 31,393**. The worst five **after**,
+in rank order, are 2436/2076/2466/2046/2016 from the table above.
+
+### Natural-entry checkpoints and B's measured cost
+
+Elapsed values use the existing active-loop start and ordinary trace hooks.
+They include DMA and raster waits, without moving hooks or removing time.
+
+| Checkpoint | HARD before 839 | HARD after 839 | MEDIUM before 868 | MEDIUM after 868 |
+| --- | ---: | ---: | ---: | ---: |
+| Active start: host / scanline / cycle | 1710 / 18 / 8 | 1710 / 18 / 8 | 1683 / 17 / 110 | 1683 / 18 / 8 |
+| Pre-wait work, cycles | 26,422 | **22,444** | 26,106 | **21,979** |
+| Fighter-fence margin, cycles | −1,122 | **2,856** | −794 | **3,321** |
+| Start → publication begins, cycles | 61,000 | **25,432** | 61,015 | **25,435** |
+| Start → end, wall cycles | 63,846 | **28,146** | 63,991 | **28,275** |
+| End: host / scanline / cycle | 1711 / 266 / 14 | 1710 / 264 / 110 | 1684 / 267 / 33 | 1683 / 266 / 11 |
+| Next active start, host frame | 1712 | **1711** | 1685 | **1684** |
+
+The approved fix catches the fence in the entry's own physical frame. In the
+HARD replay, publication moves exactly **35,568 cycles** earlier; MEDIUM's
+elapsed difference includes a 12-cycle change in active-hook beam phase,
+with the same one-physical-frame correction. Detailed absolute clocks are in
+[entry-timelines.json](../diagnostics/frame-peak-split/after/entry-timelines.json).
+
+B's same-input NMOS6502 fixture measures **3,373 → 1,415 CPU cycles** for the
+lookup clear (**−1,958**), and **4,331 → 2,371** for the complete C entry
+(**−1,960**). These paired CPU figures are a separate measurement from the
+initial native exclusive-PC attribution (4,334 CPU). They are not a conversion
+of wall time. A+B's native entry walls, **28,275 / 28,146**, are measured above.
+All gates pass with B; **C was neither implemented nor integrated**.
+
+### Exact logical equivalence and every physical-token difference
+
+All **59,497 native rows** have identical per-iteration **FNV-1a logical
+state hashes**, and an independent **byte-for-byte comparison** of all
+**9,902 non-token RAM bytes** per row agrees. The full 9,904-byte mask is
+unchanged; only `$4ED4 PHYSICAL_PAL_FRAME_ID` and `$4ED5
+GAMEPLAY_PAL_FRAME_CONSUMED` are compared separately. No other state byte is
+excluded or normalized. This covers all positions, HP, score, RNG, spawn/
+Director/Light state, entity/effect/projectile pools, PMG, screen/charset/HUD,
+playfield ring, lookup/geometry, counters and the linked BSS in the original
+schema. Raw packed RAM snapshots remain under `build/` for independent replay;
+their SHA-256 bindings, per-row hash streams and comparison results are retained.
+
+The full raw hashes also match on **53,030 rows**. Every remaining difference
+is one of the two PAL tokens, caused by a measured natural-entry miss on main:
+
+| Replay | Removed frame at iteration | Physical-token differences | Consumed-token differences | All differences |
+| --- | ---: | ---: | ---: | ---: |
+| Twelve direct routes | none | 0 | 0 | 0 |
+| Campaign EASY | none | 0 | 0 | 0 |
+| Campaign MEDIUM | 868 | 2,906 | 2,902 | **5,808** |
+| Campaign HARD | 839 | 3,561 | 3,557 | **7,118** |
+| **Total** | one per affected replay | **6,467** | **6,459** | **12,926** |
+
+[Every individual token difference](../diagnostics/frame-peak-split/after/equivalence.json)
+is listed by route, iteration, token, before/after value, removed-entry index,
+modulo-safe delta and cause. The physical token is exactly main minus one,
+modulo 256, from the corrected entry onward. The consumed token is **not**
+blanket-adjusted: immediately after main's miss the master wait can consume a
+pending token without waiting for another DLI. Both runs' consumed values are
+checked on **every row** against the unchanged kernel rule:
+
+```text
+next consumed = previous physical + (previous physical == previous consumed)
+                modulo 256
+boss install: consumed = physical
+```
+
+The model agrees with both actual streams. This explains the consumed token
+remaining equal for the entry and its next three iterations before the first
+capital iteration spanning a new DLI resynchronizes it. Every later difference
+is derived from that same removed boundary. No unrelated clock exception is
+allowed. Relative physical start/end/publication frame indices also match at
+every iteration, except for the single removed frame and its resulting offset
+in MEDIUM/HARD. Outside those corrected paths, presentation frame indices and
+the full state streams are identical to main.
+
+All **720 SPACE fixtures** have identical full state hashes, **0 CPU delta**,
+and unchanged world-rotate predictor results/cost. On the native routes,
+**no SPACE iteration is more expensive** at the same index. Ordinary SPACE
+savings range **108–183 wall cycles**; the two entry corrections additionally
+remove the missed-frame wait. Detailed per-route minima/maxima and all 720
+fixture records are retained.
+
+### Bytes, residency and focused checks
+
+| Touched region / resource | Before → after used | Delta | Free left |
+| --- | --- | ---: | --- |
+| MAIN `CODE` | 4,464 → 4,464 B | 0 B | Shared MAIN placement; Light-tail slack below |
+| MAIN Light composite `$3643–$3AEE` | 1,196 → 1,196 / 1,213 B | 0 B | **17 B** |
+| Reader `$A000–$A5FF` | 1,529 → 1,529 / 1,536 B | 0 B | **7 B** |
+| L2 usable `$1900–$1EFF` | 1,250 → 1,250 / 1,536 B | 0 B | **286 B** |
+| C entry / pre-warning alignment inside L2 | code +10 B / padding −10 B | **0 B net** | 12 B alignment remains |
+| Protected `$1F00–$1FFF` | 0 → 0 B spent | 0 B | **256 B intact** |
+| New state / residency | 0 → 0 B | 0 B | No allocation |
+| Initial boot content / planning gate | 12,825 → 12,825 / 13,652 B | 0 B | **827 B** |
+| Light compressed record | 1,032 → 1,032 B | 0 B | Transport unchanged |
+
+Normal builds pass computed gates for campaign, 480 and 960. The generated
+memory map still matches the build. All changed linked branch/indexed-table
+checks show **zero new per-frame page crossings**. No loader/startup path or
+SIO protocol source changed; the native set boots all fifteen actual ATR
+routes. No dependency was added; snapshot compression uses Atari800's existing
+host zlib link. The real-hardware ATR path is unchanged; owner smoke remains
+required.
+
+Focused checks: **20/20 PASS** for the required L2/slalom files, new split/
+route/equivalence tests and generated map; **4/4 PASS** artifact-isolation
+unit checks; the existing statistics/Light files plus L2 coordinate/brake
+checks give **67 PASS / 8 baseline FAIL**. These are 99 distinct focused tests,
+91 passing, with no new or moved failure. The eight failures match main by
+name, first assertion and message; no ledger edit was made:
+
+1. `the overlay directory has eleven entries; the summary code is entry 8 at $0500` — `level-summary-build.test.mjs:55`.
+2. `disk runs never overlap: levels, the capital restore, M5b's reservation, the summary` — `level-summary-build.test.mjs:261`.
+3. `ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either` — `level-summary-build.test.mjs:450`.
+4. `the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15)` — `level-summary.test.mjs:766`.
+5. `the art and the restore precede the level, the level is read tail first, the record last of the reads` — `level-summary.test.mjs:787`.
+6. `the second START GAME of a session reads no code and no level` — `level-summary.test.mjs:800`.
+7. `AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3)` — `level-summary.test.mjs:1260`.
+8. `Light kernel placement is legal, resident and inside every reviewed gate` — `light-wingman.test.mjs:241`.
+
+No full `npm test`, release evidence regeneration or strict release build was
+run. There is no claim of release readiness or owner acceptance.
+
+### Current candidate ATRs and reproducible gates
+
+| ATR | SHA-256 |
+| --- | --- |
+| `build/play/frame-peak-split/campaign.atr` | `5f5056a62e24cc1912304f5fbf6543c468af20381a1d83b102aa737629cc13fa` |
+| `build/play/frame-peak-split/capital-480.atr` | `9ef208ee329e9d9dcde35dcc6a0f3c25c3f8afa70298201c3b386b3a3e546551` |
+| `build/play/frame-peak-split/capital-960.atr` | `6b811d8014f8cb1974b8b95492c406267e9feeb9e2f7b816f97fca7e208f50d3` |
+
+```sh
+atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/campaign.atr
+atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-480.atr
+atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-960.atr
+
+# Existing private Atari800 copy: build/frame-peak-atari800.
+# Build all current input sets, then run the registered native test gate.
+ISLAND_EDGE_ARTIFACTS=build/frame-peak-campaign node --import ./scripts/island-edge-build-redirect.mjs scripts/build.mjs
+npm run build -- --level=1:sector=1
+npm run build -- --level=1:sector=1 --l2-long-capital
+npm run test:frame-peaks
+
+# Reproduce the exact baseline/candidate state comparison using retained inputs.
+node scripts/frame-peak-compare.mjs build/frame-peak-baseline build/frame-peak-fixed build/frame-peak-equivalence.json
+```
+
+[Summary and ATR bindings](../diagnostics/frame-peak-split/after/summary.json),
+[all before routes](../diagnostics/frame-peak-split/after/baseline.json),
+[all after routes](../diagnostics/frame-peak-split/after/candidate.json),
+[exact RAM/FNV/token comparison](../diagnostics/frame-peak-split/after/equivalence.json),
+[720 SPACE fixtures](../diagnostics/frame-peak-split/after/space-equivalence.json),
+[B CPU measurements](../diagnostics/frame-peak-split/after/b-cpu.json),
+[tests and unchanged assertions](../diagnostics/frame-peak-split/after/tests.json),
+[source/snapshot/hash bindings](../diagnostics/frame-peak-split/after/bindings.json),
+[focused native reports](../diagnostics/frame-peak-split/after/reports/),
+[per-iteration state streams](../diagnostics/frame-peak-split/after/states/),
+[logs](../diagnostics/frame-peak-split/after/logs/).
+
+**NEXT TASK:** owner smoke of the three ATRs. No M3-H, release, merge or push
+follows automatically.

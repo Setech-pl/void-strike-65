@@ -319,7 +319,7 @@ test("the stat hooks are operand-only in every full segment", () => {
   assert.match(after("debris_contact_destroyed", 3), /jsr SECTOR_READER_STATS_DEBRIS_CONTACT/);
   // The kernel: the publish vector, the PairShot Light hit and the kill refresh.
   const kernel = fs.readFileSync(path.join(root, "src/hybrid/light-kernel.s"), "utf8");
-  assert.match(kernel, /light_kernel_vectors:\s*\n(?:\s*;[^\n]*\n)*\s*jmp SECTOR_READER_STATS_FIGHTER/);
+  assert.match(kernel, /light_kernel_vectors:\s*\n(?:\s*;[^\n]*\n)*\s*jmp light_publish/);
   assert.equal((kernel.match(/jsr SECTOR_READER_STATS_LIGHT_HIT/g) ?? []).length, 1,
     "only the PairShot hit is a hit; the contact path stays on ENEMY_LIGHT_HIT");
   assert.match(kernel, /light_destroyed:[\s\S]*?jsr SECTOR_READER_STATS_KILL[\s\S]*?jmp play_hit_sound/);

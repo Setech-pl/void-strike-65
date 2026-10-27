@@ -285,9 +285,15 @@ level's end to the menu. The disk transport costs the PAL main loop nothing.
 **The reader's resident code is not free in gameplay, though:** since M5a-S2
 the level-summary statistics run from the reader's fixed vectors
 (`$A00C-$A01B`) inside gameplay frames — a per-frame scan of the shot and
-Heavy-damage slots (`stats_scan`, `src/hybrid/sector-reader.s:949`; ~110
-cycles on a fighter frame, all after the line-238 fence) and small kill and
-hit counters — and the capital-frame hook checks for the level's end. They
+Heavy-damage slots (`stats_scan`, `src/hybrid/sector-reader.s`; 154–227 CPU
+cycles in the measured empty/new-shot fixtures) and small kill and hit
+counters — and the capital-frame hook checks for the level's end. Since the
+2026-10-27 frame split, the fighter scan runs before the fixed line-238 wait:
+`$A00C` calls LIFE colour and tail-calls the scan, then the late Light vector
+enters publication directly. Shot lifetimes and damage mailboxes are already
+finalized; no scan input changes across that wait. Same six-byte reader body,
+same fixed vectors, one scan per logical iteration, no new state. The capital
+hook is unchanged. They
 are measured in every trace row like any other main-loop work.
 
 Failure is a defined state, not a hang. Every error class — absent drive, wire

@@ -1159,8 +1159,11 @@ summary after several games and a GAME OVER on the 65XE).
    the next shot refills in one frame. A shot the player's death wipes on its
    own allocation frame is not counted (it never left the gun; the harness
    counts those apart and the cross-check is exact). It runs once per frame,
-   **after the line-238 fence** on fighter frames (the kernel's publish vector)
-   and in the capital path otherwise.
+   **before the line-238 wait** on fighter frames, through the same `$A00C`
+   vector, and in the capital path otherwise. The 2026-10-27 frame split moved
+   this bookkeeping from its original post-fence kernel entry without changing
+   counters, input state or the late publication window; the Light vector now
+   publishes directly. See [the measured audit](../audits/2026-10-27-frame-peak-split.md).
 4. **Heavy hits are read from the damage mailboxes** in the same scan (this
    frame's `DAMAGE_PLAYER_PROJECTILE` units), not from the C damage routine in
    `HYBRID_C_EXT` (record 5 full). Light hits: the PairShot path of

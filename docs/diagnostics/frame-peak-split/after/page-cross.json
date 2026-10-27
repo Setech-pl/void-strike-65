@@ -1,0 +1,156 @@
+{
+  "before": "build/frame-peak-main-campaign",
+  "after": "build",
+  "rows": [
+    {
+      "key": "l2.lst:L2:_l2_c_enter",
+      "addressBefore": 7149,
+      "addressAfter": 7149,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 4,
+      "indexedSites": [
+        {
+          "address": 7189,
+          "source": "sta     $AD80,y"
+        },
+        {
+          "address": 7195,
+          "source": "sta     $AD9E,y"
+        },
+        {
+          "address": 7198,
+          "source": "sta     $ADBC,y"
+        },
+        {
+          "address": 7204,
+          "source": "sta     $ADDA,y"
+        },
+        {
+          "address": 7222,
+          "source": "lda     $AD09,y"
+        },
+        {
+          "address": 7231,
+          "source": "lda     $AD08,y"
+        },
+        {
+          "address": 7243,
+          "source": "lda     $AD1C,y"
+        },
+        {
+          "address": 7252,
+          "source": "lda     $AD1D,y"
+        },
+        {
+          "address": 7261,
+          "source": "lda     $AD1E,y"
+        },
+        {
+          "address": 7279,
+          "source": "sta     $AD80,y"
+        }
+      ],
+      "classification": "cold/transition"
+    },
+    {
+      "key": "l2.lst:L2:_l2_brake_tick",
+      "addressBefore": 7301,
+      "addressAfter": 7311,
+      "before": 0,
+      "after": 0,
+      "newCrossings": [],
+      "branchCount": 10,
+      "indexedSites": [
+        {
+          "address": 7328,
+          "source": "lda     _l2_normal_rates,y"
+        },
+        {
+          "address": 7341,
+          "source": "cmp     _l2_half_rates,y"
+        },
+        {
+          "address": 7352,
+          "source": "cmp     _l2_normal_rates,y"
+        },
+        {
+          "address": 7362,
+          "source": "lda     _l2_normal_rates,y"
+        },
+        {
+          "address": 7386,
+          "source": "cmp     _l2_half_rates,y"
+        },
+        {
+          "address": 7403,
+          "source": "cmp     _l2_normal_rates,y"
+        }
+      ],
+      "classification": "per-frame"
+    }
+  ],
+  "indexedTables": [
+    {
+      "name": "l2_part_offsets",
+      "address": 6912,
+      "maxIndex": 5,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipe_offsets",
+      "address": 6918,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_left_caps",
+      "address": 6921,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_right_caps",
+      "address": 6924,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "l2_recipes",
+      "address": 6927,
+      "maxIndex": 107,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_normal_rates",
+      "address": 7044,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "_l2_half_rates",
+      "address": 7047,
+      "maxIndex": 2,
+      "pageCross": false
+    },
+    {
+      "name": "level allied sequence",
+      "address": 44040,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "level enemy sequence",
+      "address": 44160,
+      "maxIndex": 119,
+      "pageCross": false
+    },
+    {
+      "name": "current-sector lookup",
+      "address": 44416,
+      "maxIndex": 119,
+      "pageCross": false
+    }
+  ]
+}

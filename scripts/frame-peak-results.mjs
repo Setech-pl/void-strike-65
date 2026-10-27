@@ -3,7 +3,9 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import {pathToFileURL} from 'node:url';
 import {auditSession} from './pal-timing-audit.mjs';
+import {validatePeakCoverage} from './frame-peak-routes.mjs';
 export const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 export const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 export function csv(p) {
@@ -55,7 +57,7 @@ export function profiles(build,file) {
  return frames;
 }
 const out=process.argv[2];
-if(out) {
+if(out&&process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href) {
  const baseline=process.argv.includes('--baseline');
  const results=[],overruns=[],all=[];
  for(const run of read(`${out}/runs.json`)) {
@@ -72,6 +74,14 @@ if(out) {
   const bossEntryFrames=entry.next_start_host_frame-entry.start_host_frame;assert.ok(bossEntryFrames<=350);
   const cap=rows.filter(r=>sector(r)==='capital'),space=rows.filter(r=>sector(r)==='SPACE'),boss=rows.filter(r=>sector(r)==='boss');
   const peak=a=>Math.max(...a.map(r=>r.wall_cycles));
+  if(!baseline) {
+   assert.ok(peak(rows)<=31500,`${run.id}: peak ${peak(rows)} > 31500`);
+   assert.ok(peak(cap)<=29756,`${run.id}: capital peak ${peak(cap)} > 29756`);
+   assert.equal(report.acceptance.missed_frames,0,`${run.id}: missed frames`);
+   assert.equal(report.acceptance.extra_vbi_boundaries,0,`${run.id}: extra VBI`);
+   assert.equal(report.acceptance.dli_ordering_errors,0,`${run.id}: DLI errors`);
+   assert.equal(audit.shifted_phase_rows,0,`${run.id}: shifted rows`);
+  }
   const prof=profiles(run.dir,`${out}/${run.id}-profile.csv`);
   for(const r of rows)all.push({route:run.id,frame:r.frame,sector:sector(r),cycles:r.wall_cycles});
   for(const r of rows.filter(r=>r.wall_cycles>31500)) {
@@ -83,6 +93,7 @@ if(out) {
   results.push({...run,passed:report.passed&&audit.passed,gateFailures:audit.gate_failures,frames:rows.length,capitalFrames:cap.length,spaceFrames:space.length,bossFrames:boss.length,peak:peak(rows),capitalPeak:peak(cap),spacePeak:peak(space),bossPeak:peak(boss),targetOverruns:audit.rows_over_target,fence:audit.worst_fence_margin_cycles,misses:audit.distinct_miss_events,extraVbi:report.acceptance.extra_vbi_boundaries,dliErrors:report.acceptance.dli_ordering_errors,shifted:audit.shifted_phase_rows,staleL2:stale.length,bossEntryFrames,coincidenceFrames:coincidence.length,artifact:report.artifact_sha256['void-strike-65.atr'].sha256,stateFileSha256:sha(`${out}/${run.id}-states.csv`),traceSha256:sha(`${run.dir}/runtime-wall-trace/${run.id}.csv`)});
  }
  results.sort((a,b)=>a.id.localeCompare(b.id));overruns.sort((a,b)=>b.cycles-a.cycles);
+ if(process.argv.includes('--require-routes'))validatePeakCoverage(results.map(r=>r.id));
  fs.writeFileSync(`${out}/results.json`,JSON.stringify({measurement:'MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer',results,overruns,worst5:all.sort((a,b)=>b.cycles-a.cycles).slice(0,5)},null,2)+'\n');
  console.log(results.map(r=>`${r.id}: ${r.frames} frames; peak ${r.peak}; capital ${r.capitalPeak}; >target ${r.targetOverruns}; boss entry ${r.bossEntryFrames}`).join('\n'));
 }

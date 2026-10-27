@@ -3,26 +3,54 @@
  * wall stalls/interrupt-entry time are charged to the preceding instruction.
  * Reused from the capital-content attribution observer. Keep every >31000
  * frame and successive capital peaks. The standard trace remains the timer. */
+#include <zlib.h> /* already linked by Atari800; host-only snapshot evidence */
 static FILE *fp_states;
+static gzFile fp_snapshots;
 static unsigned char fp_mask[65536];
+static unsigned char fp_logical[65536],fp_bytes[65536];
+static unsigned fp_physical,fp_consumed;
+static int fp_extended;
 static int fp_initialized;
+static void fp_close(void) {if(fp_snapshots)gzclose(fp_snapshots);}
 static void fp_state(unsigned row) {
  unsigned i;
  uint64_t hash = UINT64_C(14695981039346656037);
+ uint64_t logical = UINT64_C(14695981039346656037);
+ unsigned bytes=0;
  if(!fp_initialized) {
   FILE *mask;
   fp_initialized=1;
   if(!getenv("VS65_FRAME_STATES")) return;
   mask=fopen(getenv("VS65_FRAME_STATE_MASK"),"rb");
   if(!mask || fread(fp_mask,1,65536,mask)!=65536) {fprintf(stderr,"frame state mask missing\n");exit(2);}
+  fp_extended=getenv("VS65_FRAME_PHYSICAL")!=NULL;
+  if(fp_extended) {
+   if(fread(fp_logical,1,65536,mask)!=65536){fprintf(stderr,"logical mask missing\n");exit(2);}
+   fp_physical=(unsigned)strtoul(getenv("VS65_FRAME_PHYSICAL"),NULL,0);
+   fp_consumed=(unsigned)strtoul(getenv("VS65_FRAME_CONSUMED"),NULL,0);
+  }
   fclose(mask);
   fp_states=fopen(getenv("VS65_FRAME_STATES"),"w");
   if(!fp_states) {perror("frame states");exit(2);}
-  fprintf(fp_states,"frame,fnv1a64\n");
+  fprintf(fp_states,fp_extended?"frame,fnv1a64,logical_fnv1a64,physical,consumed\n":"frame,fnv1a64\n");
+  if(getenv("VS65_FRAME_SNAPSHOTS")) {
+   fp_snapshots=gzopen(getenv("VS65_FRAME_SNAPSHOTS"),"wb1");
+   if(!fp_snapshots){fprintf(stderr,"snapshot output missing\n");exit(2);}
+   atexit(fp_close);
+  }
  }
  if(!fp_states) return;
- for(i=0;i<65536;++i) if(fp_mask[i]) {hash^=MEMORY_mem[i];hash*=UINT64_C(1099511628211);}
- fprintf(fp_states,"%u,%016llx\n",row,(unsigned long long)hash);
+ for(i=0;i<65536;++i) if(fp_mask[i]) {
+  unsigned value=MEMORY_mem[i];
+  hash^=value;hash*=UINT64_C(1099511628211);
+  if(fp_logical[i]){logical^=value;logical*=UINT64_C(1099511628211);}
+  fp_bytes[bytes++]=(unsigned char)value;
+ }
+ fprintf(fp_states,"%u,%016llx",row,(unsigned long long)hash);
+ if(fp_extended)fprintf(fp_states,",%016llx,%u,%u",(unsigned long long)logical,
+   MEMORY_mem[fp_physical],MEMORY_mem[fp_consumed]);
+ fputc('\n',fp_states);
+ if(fp_snapshots&&gzwrite(fp_snapshots,fp_bytes,bytes)!=(int)bytes){fprintf(stderr,"snapshot write failed\n");exit(2);}
 }
 static unsigned long cc_cpu[65536], cc_wall[65536];
 static unsigned cc_pc, cc_row, cc_best, cc_state;

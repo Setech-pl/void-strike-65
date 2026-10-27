@@ -1,0 +1,61 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "baseline": "main 6ea1ca5",
+  "parentCheckpoint": "299d800",
+  "implementation": "A + B; C not used",
+  "routes": 15,
+  "measuredIterations": 59482,
+  "stateRows": 59497,
+  "peak": 31432,
+  "targetHeadroom": 68,
+  "capitalPeak": 29756,
+  "bossEntryFrames": [
+    325
+  ],
+  "minimumFence": 2856,
+  "targetOverruns": 0,
+  "logicalBytes": 9902,
+  "fullStateBytes": 9904,
+  "logicalHashesIdentical": true,
+  "exactMaskedRamIdentical": true,
+  "fullHashesIdenticalRows": 53030,
+  "physicalTokenDifferences": 12926,
+  "physicalExceptions": [
+    {
+      "id": "campaign-1-flight",
+      "removedFrames": 1,
+      "differences": 5808
+    },
+    {
+      "id": "campaign-2-brake",
+      "removedFrames": 1,
+      "differences": 7118
+    }
+  ],
+  "spaceFixtures": 720,
+  "spaceFixtureCpuDelta": 0,
+  "atrs": [
+    {
+      "name": "campaign",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/campaign.atr",
+      "bytes": 133136,
+      "sha256": "5f5056a62e24cc1912304f5fbf6543c468af20381a1d83b102aa737629cc13fa",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/campaign.atr"
+    },
+    {
+      "name": "capital-480",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-480.atr",
+      "bytes": 133136,
+      "sha256": "9ef208ee329e9d9dcde35dcc6a0f3c25c3f8afa70298201c3b386b3a3e546551",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-480.atr"
+    },
+    {
+      "name": "capital-960",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-960.atr",
+      "bytes": 133136,
+      "sha256": "6b811d8014f8cb1974b8b95492c406267e9feeb9e2f7b816f97fca7e208f50d3",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-960.atr"
+    }
+  ],
+  "normalBuild": "computed gates PASS; release evidence pending"
+}

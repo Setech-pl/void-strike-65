@@ -195,7 +195,7 @@ SECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9
 ; behind the reader's fixed vectors. Every site below is an operand-only
 ; re-point, so no byte moves in a full segment and none lands in the initial
 ; block (owner decision 27, answer Q13).
-SECTOR_READER_STATS_FIGHTER        = $A00C  ; the Light kernel's publish vector
+SECTOR_READER_STATS_FIGHTER        = $A00C  ; pre-wait LIFE colour and shot/hit scan
 SECTOR_READER_STATS_CAPITAL        = $A00F  ; capital frames; the level's end
 SECTOR_READER_STATS_KILL           = $A012  ; a kill's HUD refresh
 SECTOR_READER_STATS_DEBRIS_SHOT    = $A015  ; a debris destroyed by a shot (Q14)
@@ -3275,7 +3275,7 @@ publish_fighter_projectile_overlays:
     jsr publish_dynamic_near_star_phase
     jmp fighter_projectile_publication_capital_render
 @fighter_window:
-    jsr LIFE_CAPSULE_COLOUR
+    jsr SECTOR_READER_STATS_FIGHTER ; LIFE colour, then the finalized shot/hit scan
     nop
     nop
     ldx #$77

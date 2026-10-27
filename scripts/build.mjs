@@ -2964,6 +2964,7 @@ async function build() {
       "/project/build/overlay-directory.inc": Buffer.from(overlayDirectoryInclude),
       "/project/build/level-summary-abi.inc": levelSummaryAbiInclude,
       "/project/build/light-kernel-labels.inc": Buffer.from(lightKernelLabelsInclude),
+      "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/life-capsule-layout.inc")),
       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
       "/project/build/capital-hulls.inc": capitalHullsInclude,
       "/project/build/gameplay-music-abi.inc": Buffer.from(gameplayMusicAbiInclude),

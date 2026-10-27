@@ -1,0 +1,65 @@
+{
+  "baseline": "8e1dface4238a968ea2703eca34ebde5941d0e87",
+  "after": null,
+  "reason": "Phase 0 OWNER_DECISION_REQUIRED; no gameplay candidate",
+  "measurement": "MEASURED NMOS6502 native instruction cycles; existing boss stress compositions; modes off and lost",
+  "results": [
+    {
+      "boss": "Citadel",
+      "level": 4,
+      "withoutLance": 7697,
+      "lostTarget": 8112,
+      "lanceTick": 415,
+      "gate": 8500,
+      "margin": 388,
+      "after": null,
+      "delta": null
+    },
+    {
+      "boss": "Citadel",
+      "level": 5,
+      "withoutLance": 8032,
+      "lostTarget": 8447,
+      "lanceTick": 415,
+      "gate": 8500,
+      "margin": 53,
+      "after": null,
+      "delta": null
+    },
+    {
+      "boss": "Spine",
+      "level": 7,
+      "withoutLance": 7771,
+      "lostTarget": 8186,
+      "lanceTick": 415,
+      "gate": 8500,
+      "margin": 314,
+      "after": null,
+      "delta": null
+    },
+    {
+      "boss": "Spine",
+      "level": 9,
+      "withoutLance": 8025,
+      "lostTarget": 8440,
+      "lanceTick": 415,
+      "gate": 8500,
+      "margin": 60,
+      "after": null,
+      "delta": null
+    },
+    {
+      "boss": "Bastion",
+      "level": 10,
+      "withoutLance": 8058,
+      "lostTarget": 8473,
+      "lanceTick": 415,
+      "gate": 8500,
+      "margin": 27,
+      "after": null,
+      "delta": null
+    }
+  ],
+  "passed": true,
+  "rawSha256": "547ce40568b50310fa66328d8acc98e3859377f362a368840359927d71cd37c1"
+}

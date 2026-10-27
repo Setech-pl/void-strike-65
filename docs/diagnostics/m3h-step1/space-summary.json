@@ -1,0 +1,172 @@
+{
+  "baseline": "8e1dface4238a968ea2703eca34ebde5941d0e87",
+  "after": null,
+  "reason": "Phase 0 OWNER_DECISION_REQUIRED; no gameplay candidate",
+  "measurement": "MEASURED CPU-only NMOS6502; raster busy waits excluded; DMA not estimated",
+  "fixtures": 720,
+  "groups": [
+    {
+      "difficulty": 0,
+      "x": 52,
+      "fixtures": 40,
+      "minCpu": 3483,
+      "maxCpu": 6174,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 0,
+      "x": 83,
+      "fixtures": 40,
+      "minCpu": 3483,
+      "maxCpu": 6174,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 0,
+      "x": 84,
+      "fixtures": 40,
+      "minCpu": 3302,
+      "maxCpu": 5993,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 0,
+      "x": 124,
+      "fixtures": 40,
+      "minCpu": 3302,
+      "maxCpu": 5993,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 0,
+      "x": 171,
+      "fixtures": 40,
+      "minCpu": 3489,
+      "maxCpu": 6180,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 0,
+      "x": 196,
+      "fixtures": 40,
+      "minCpu": 3489,
+      "maxCpu": 6180,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 1,
+      "x": 52,
+      "fixtures": 40,
+      "minCpu": 3483,
+      "maxCpu": 6174,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 1,
+      "x": 83,
+      "fixtures": 40,
+      "minCpu": 3483,
+      "maxCpu": 6174,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 1,
+      "x": 84,
+      "fixtures": 40,
+      "minCpu": 3302,
+      "maxCpu": 5993,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 1,
+      "x": 124,
+      "fixtures": 40,
+      "minCpu": 3302,
+      "maxCpu": 5993,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 1,
+      "x": 171,
+      "fixtures": 40,
+      "minCpu": 3489,
+      "maxCpu": 6180,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 1,
+      "x": 196,
+      "fixtures": 40,
+      "minCpu": 3489,
+      "maxCpu": 6180,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 2,
+      "x": 52,
+      "fixtures": 40,
+      "minCpu": 3483,
+      "maxCpu": 6174,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 2,
+      "x": 83,
+      "fixtures": 40,
+      "minCpu": 3483,
+      "maxCpu": 6174,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 2,
+      "x": 84,
+      "fixtures": 40,
+      "minCpu": 3302,
+      "maxCpu": 5993,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 2,
+      "x": 124,
+      "fixtures": 40,
+      "minCpu": 3302,
+      "maxCpu": 5993,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 2,
+      "x": 171,
+      "fixtures": 40,
+      "minCpu": 3489,
+      "maxCpu": 6180,
+      "afterCpu": null,
+      "delta": null
+    },
+    {
+      "difficulty": 2,
+      "x": 196,
+      "fixtures": 40,
+      "minCpu": 3489,
+      "maxCpu": 6180,
+      "afterCpu": null,
+      "delta": null
+    }
+  ],
+  "rawSha256": "d5be37abdf32b6b34b220025976bc038bc15ff5deb042f34162be8e309a3afbd"
+}

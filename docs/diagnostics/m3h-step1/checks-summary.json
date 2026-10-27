@@ -1,0 +1,67 @@
+{
+  "baseline": "8e1dface4238a968ea2703eca34ebde5941d0e87",
+  "result": "OWNER_DECISION_REQUIRED",
+  "normalBuild": "PASS computed gates; expected stale release-evidence WARNING",
+  "tests": {
+    "files": [
+      "tests/frame-peak-equivalence.test.mjs",
+      "tests/frame-peak-routes.test.mjs",
+      "tests/frame-peak-split.test.mjs",
+      "tests/l2-islands.test.mjs",
+      "tests/capital-slalom.test.mjs",
+      "tests/runtime-evidence-binding.test.mjs"
+    ],
+    "pass": 19,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/baseline-focused-tests-bound.log",
+    "artifactReadRedirect": "existing scripts/island-edge-build-redirect.mjs with ISLAND_EDGE_ARTIFACTS=build/frame-peak-campaign; tracked dist ATR is the prior L2 checkpoint and was not overwritten"
+  },
+  "native": {
+    "routes": 15,
+    "iterations": 59482,
+    "pass": true
+  },
+  "additionalHeavyNative": {
+    "route": "2-evasive-fire3",
+    "frames": 920,
+    "peak": 30838,
+    "fence": 4675
+  },
+  "after": null,
+  "productionByteDelta": 0,
+  "ramDelta": 0,
+  "residencyDelta": 0,
+  "notRun": [
+    "M3-H RED-first feature tests (production implementation stopped at Phase 0)",
+    "summary test cleanups (pending decision/implementation)",
+    "full npm test",
+    "release evidence regeneration",
+    "boot smoke (no loading or startup source changes)"
+  ],
+  "invocationCorrections": [
+    {
+      "log": "baseline-heavy-member.log",
+      "detail": "Initial concurrent invocation encountered mismatched artifact binding during variant build; repeated on immutable campaign snapshot; this log is the successful repeat"
+    },
+    {
+      "log": "baseline-focused-tests.log",
+      "detail": "Initial test run read the older tracked dist ATR against a fresh build manifest. Repeated with the existing artifact-read redirect; 19/19 passed."
+    },
+    {
+      "log": "baseline-heavy-director.log",
+      "detail": "Rejected before replay: abbreviated historical session id does not exist; no measurement claimed."
+    },
+    {
+      "log": "baseline-heavy-remnant.log",
+      "detail": "Rejected before replay: debug-route API does not allow --raider-remnant-only; no measurement claimed."
+    }
+  ],
+  "reconciliation": {
+    "scope": "focused native acceptance/natural-entry clauses; no full release clauses claimed",
+    "input": "build/evidence/m3h-step1/reconciliation-input.json",
+    "passed": true,
+    "new": 0,
+    "moved": 0,
+    "log": "build/evidence/m3h-step1/reconciliation.log"
+  }
+}

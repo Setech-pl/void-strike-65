@@ -146,6 +146,41 @@ geometria capital 4.8a) wymienia
 
 ---
 
+### Capital-content spike — measurement prerequisites, 2026-10-27
+
+Owner amendments from M3-H session 1, eighth continuation; follow-up work only.
+The capital-content spike (`codex/spike-capital-content`, referenced by the
+[frame-peak audit](audits/2026-10-27-frame-peak-split.md#measurement-and-attribution))
+must calculate its CPU budget as **worst capital iteration without audio + most
+expensive audio frame**, rather than subtracting a sampled capital maximum
+from 31,500. Measured on the fifteen preserved PAL routes: main's worst
+capital iteration without its audio interval is **29,128** (`campaign-0-flight`
+f1604); the most expensive audio interval is **1,187** (`l2-960-0-flight`
+f2388). Their conservative composed figure is **30,315**, leaving **1,185**
+cycles to the 31,500 target before new content. These are separately sampled
+wall-time maxima, not a measured simultaneous frame or a proof of a global
+worst case; content work must account for its DMA alignment and expand coverage.
+The current WIP's corresponding non-audio maximum is 29,096; retain the higher
+main figure for planning. The registered sampled capital replay ceiling is
+30,025 after [amendment 5](decisions/2026-10-27-frame-peak-split.md#sampled-capital-ceiling--owner-amendment-5-2026-10-27).
+
+The follow-up must also implement the owner rule: **a Heavy still alive near
+the capital leaves early and is gone at least 2 frames before the first
+capital frame; no Heavy admission inside that departure window**. Here first
+capital means the Director's sector becoming capital. Departure/cutoff must be
+computed from level data and the current scroll rate, use existing egress or
+fastest supported descent, and retire without score, kill, capsule or breakup
+credit; a player kill during departure counts normally. Light and boss paths
+remain unaffected. This rule is **not implemented in M3-H session 1**.
+Main already has a Bomber live during Director-capital drain on EASY natural
+flight frames **679–903**, fully clear at **904**, before the visible hull at
+906. M3-H has the corresponding overlap **704–943**, clear at **944**, hull at
+946. These overlap frames are separate from the later audio peak. Evidence:
+[M3-H audit](audits/2026-10-27-m3h-step1.md#seventh-continuation--capital-row-attributed-to-audio-conditional-stop)
+and [audio/budget proof](diagnostics/m3h-step1/continuation8-audio-summary.json).
+
+---
+
 ## 1. Cel i ramy
 
 Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB w rozsądnym czasie.

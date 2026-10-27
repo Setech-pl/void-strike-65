@@ -1,0 +1,102 @@
+{
+  "family": "checks",
+  "date": "2026-10-27",
+  "initialHead": "e4893a7",
+  "result": "OWNER-SMOKE CANDIDATE",
+  "normalBuild": "PASS, stale release evidence warning retained",
+  "featureFocused": {
+    "pass": 60,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/continuation8/feature-focused.log"
+  },
+  "gateFocused": {
+    "pass": 19,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/continuation8/gate-focused.log"
+  },
+  "summaryCleanups": {
+    "pass": 2,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/continuation8/summary-cleanups-confirm.log"
+  },
+  "native15": "PASS one new registered invocation, all fifteen drivers and aggregate gate",
+  "bossStress": {
+    "rerun": false,
+    "reason": "All 65536 reconstructed runtime bytes and106 common binaries match81b1e26; no shared byte change",
+    "retainedSummary": "docs/diagnostics/m3h-step1/continuation6-boss-summary.json",
+    "perCompositionDelta": 0,
+    "maximum": 8473
+  },
+  "space720": {
+    "rerun": false,
+    "reason": "Identical guest images since measured sixth continuation",
+    "retainedSummary": "docs/diagnostics/m3h-step1/continuation6-space-summary.json",
+    "cpuDelta": 0,
+    "intentionalReadonlyMotionByteHashDifferencesExplained": 720
+  },
+  "components": {
+    "retainedSummary": "docs/diagnostics/m3h-step1/continuation6-components-summary.json",
+    "assaultMax": 1198,
+    "assaultMean": 1060.3309982486865,
+    "savingVs1546": 485.66900175131354,
+    "resetDeltasByProfile": {
+      "assault": [
+        63,
+        63,
+        63
+      ],
+      "armoured": [
+        65,
+        65,
+        65
+      ],
+      "bomber": [
+        75,
+        75,
+        75
+      ]
+    },
+    "H2CallReturnCyclesPerArmouredMemberPerFrame": 12,
+    "toleranceOvershoots": []
+  },
+  "menu": {
+    "frames": 604,
+    "limit": 650,
+    "mode": "patched-SIO cold no BASIC, matching handoff598/650"
+  },
+  "level2Native": "Requested native coverage and PAL checks PASS; three boss-only no-subject clauses on wrappers are explicitly retained in level2 summary, not reported as wrapper PASS",
+  "fullNpmTest": false,
+  "releaseBuild": false,
+  "releaseEvidence": "stale b3b8e466; release build will fail; no evidence SHAs hand-repaired",
+  "expectedMovingReplays": [
+    "Heavy-bearing campaign and SPACE routes",
+    "Raider formation/sector/remnant",
+    "Bomber hit/attack/charge",
+    "level2 holds/armoured",
+    "capsule/Spread hunts affected by kill timing"
+  ],
+  "earlyDepartureImplemented": false,
+  "smokeImages": [
+    {
+      "file": "build/play/m3h-step1/campaign.atr",
+      "route": "Level 1 campaign, normal build",
+      "bytes": 133136,
+      "sha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-m3h/build/play/m3h-step1/campaign.atr"
+    },
+    {
+      "file": "build/play/m3h-step1/level-2.atr",
+      "route": "Level 2, sector 1 start, full authored level",
+      "bytes": 133136,
+      "sha256": "7f36e65393e9ffa11d14b9b893447d7a22c37793c8c25c760166f5eee8355829",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-m3h/build/play/m3h-step1/level-2.atr"
+    },
+    {
+      "file": "build/play/m3h-step1/heavy-sector.atr",
+      "route": "Level 2, sector 5 start, armoured hold then sector 6 Heavy stress",
+      "bytes": 133136,
+      "sha256": "a239831f9a2a11c788a6393cd571e9bd2095f5b216d93b3ed9ce6d6236fbf288",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-m3h/build/play/m3h-step1/heavy-sector.atr"
+    }
+  ]
+}

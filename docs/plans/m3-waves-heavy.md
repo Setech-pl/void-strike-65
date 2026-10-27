@@ -1171,6 +1171,19 @@ path that costs more than `main` beyond the figures this plan names.
   with no component tolerance. Keep shared function addresses/page alignment
   or remove unconditional Heavy work; do not accept the delta. H4 publication
   may execute at the already-approved successful Heavy-admission boundary.
+  **Dated amendment (owner, 2026-10-27, eighth continuation, amendment 5):**
+  the registered sampled capital replay ceiling becomes **30,025**, from 29,756.
+  The preserved EASY campaign peak reproduces **exactly on main**, with the
+  WIP world/audio state applied to mutable RAM and no code, level-data, clock,
+  CPU-register or PAL-token change; all 23 segment costs match. Audio bytes and
+  call paths are identical. Changed Heavy kill/hit timing moves the capital
+  shell impact onto the existing music row's two-note update. The 31,500
+  ordinary-iteration target, fence, boss, memory and other hard gates remain
+  unchanged. This is not a general capital workload allowance: the
+  [capital-content follow-up](../plan-realizacji.md#capital-content-spike--measurement-prerequisites-2026-10-27)
+  must budget the worst capital cost without audio plus the most expensive
+  audio frame. Early Heavy departure/admission cutoff is recorded there for
+  that follow-up and is **not implemented in M3-H session 1**.
 * **Tests RED on `main`:** `tests/heavy-package.test.mjs` (§3.5), the compiler
   cases in `tests/level-compiler.test.mjs`.
 * **Evidence:** regenerated; replays re-scripted where the capsule cadence

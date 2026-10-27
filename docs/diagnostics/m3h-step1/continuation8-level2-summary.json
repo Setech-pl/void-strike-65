@@ -1,0 +1,144 @@
+{
+  "family": "level2",
+  "date": "2026-10-27",
+  "initialHead": "e4893a7",
+  "result": "PASS requested feature coverage, PAL target/fence and plane gates; wrapper no-subject limitations explicit",
+  "routes": [
+    {
+      "route": "level2-hunt",
+      "frames": 8950,
+      "armouredRows": 477,
+      "bomberRows": 3959,
+      "holdCoverage": [
+        {
+          "kind": "bomber",
+          "memberHoldFrames": 192,
+          "stationaryHoldFrames": 190,
+          "first": {
+            "frame": 2213,
+            "slot": 0,
+            "kind": "bomber",
+            "holdLeft": 95,
+            "y": 72,
+            "stationary": false,
+            "planeEqualPrevious": false
+          },
+          "last": {
+            "frame": 2309,
+            "slot": 1,
+            "kind": "bomber",
+            "holdLeft": 0,
+            "y": 72,
+            "stationary": true,
+            "planeEqualPrevious": true
+          },
+          "stationaryPlaneChanges": 0
+        },
+        {
+          "kind": "armoured",
+          "memberHoldFrames": 0,
+          "stationaryHoldFrames": 0,
+          "first": null,
+          "last": null,
+          "stationaryPlaneChanges": 0
+        }
+      ],
+      "peak": {
+        "frame": 3984,
+        "cycles": 31291,
+        "sector": 3,
+        "capitalState": 7
+      },
+      "capitalPeak": 27843,
+      "minimumFence": 3752,
+      "minimumSpawn": {
+        "frame": 959,
+        "cycles": 28542,
+        "margin": 3752
+      },
+      "planeMismatchRows": 0,
+      "sectors": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "palAuditPassed": true,
+      "raw": "build/evidence/m3h-step1/continuation8/level2-hunt",
+      "wrapperExit": 1,
+      "wrapperReason": "Three boss-only no-subject clauses: boss-entry-debris, boss-entry-hud, slot-f-writes. Level 2 has no authored boss. They are not changed or cleared; fifteen registered routes cover boss entry separately."
+    },
+    {
+      "route": "level2-s4-hunt",
+      "frames": 4565,
+      "armouredRows": 592,
+      "bomberRows": 1970,
+      "holdCoverage": [
+        {
+          "kind": "bomber",
+          "memberHoldFrames": 0,
+          "stationaryHoldFrames": 0,
+          "first": null,
+          "last": null,
+          "stationaryPlaneChanges": 0
+        },
+        {
+          "kind": "armoured",
+          "memberHoldFrames": 105,
+          "stationaryHoldFrames": 103,
+          "first": {
+            "frame": 1756,
+            "slot": 1,
+            "kind": "armoured",
+            "holdLeft": 64,
+            "y": 40,
+            "stationary": false,
+            "planeEqualPrevious": false
+          },
+          "last": {
+            "frame": 1814,
+            "slot": 1,
+            "kind": "armoured",
+            "holdLeft": 6,
+            "y": 40,
+            "stationary": true,
+            "planeEqualPrevious": true
+          },
+          "stationaryPlaneChanges": 0
+        }
+      ],
+      "peak": {
+        "frame": 4194,
+        "cycles": 30767,
+        "sector": 5,
+        "capitalState": 7
+      },
+      "capitalPeak": 13984,
+      "minimumFence": 3671,
+      "minimumSpawn": {
+        "frame": 3419,
+        "cycles": 28835,
+        "margin": 3671
+      },
+      "planeMismatchRows": 0,
+      "sectors": [
+        4,
+        5
+      ],
+      "palAuditPassed": true,
+      "raw": "build/evidence/m3h-step1/continuation8/level2-s4-hunt",
+      "wrapperExit": 1,
+      "wrapperReason": "Three boss-only no-subject clauses: boss-entry-debris, boss-entry-hud, slot-f-writes. Level 2 has no authored boss. They are not changed or cleared; fifteen registered routes cover boss entry separately."
+    }
+  ],
+  "controller": "Ordinary joystick/FIRE only, prioritizes live Heavy members; releases FIRE until 24 frames of authored hold have elapsed. Existing driver holds player lives at 3; no other actor state, code, HP, damage, wave count or placement seeded. Full-level controller target Y142 alternates slots24 frames; sector5-start controller Y104 prioritizes slot0. Source headers bound in raw manifest.",
+  "mask": "Read-only diagnostic mask adds H15 profile bytes813B-813F; permanent fifteen-route gate mask remains unchanged.",
+  "nativeBodyEvidence": "Zero plane mismatch rows; unchanged plane contents on stationary hold frames. Focused instruction tests separately assert zero body writes. Arrival publication is distinct from stationary hold.",
+  "discardedFixture": {
+    "raw": "build/evidence/m3h-step1/continuation8/level2-native",
+    "reason": "Centred l2-matrix did not reach later holds/kind waves: preceding Bomber waves consumed the sector. Wrong boss endpoint for authored level2 caused wrapper failure; run also spans summary/frontend/restart, not a valid single-game PAL acceptance window. Not used as passing gameplay gate. Retained raw unmodified."
+  },
+  "authoredDataSizesUnchanged": true
+}

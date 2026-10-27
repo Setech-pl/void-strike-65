@@ -15701,6 +15701,51 @@
       "sha256": "f63e01250457a433ff9229977e370f09a037c9e2c10f75aad51148dbba54848d"
     },
     {
+      "path": "build/evidence/m3h-step1/continuation7/attribute.mjs",
+      "bytes": 5280,
+      "sha256": "dfa44463915d33873ed79088bd0d3231eb0fd0287697ced92b1b3642e2fecf16"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/attribution.json",
+      "bytes": 17914,
+      "sha256": "66305b8a648e8601f97b5e70b2863f37ebf0df17de51c97ddacd8880c31e25d5"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/attribution.log",
+      "bytes": 4436,
+      "sha256": "f6fc58cdd3afa281fdd3ac9a208d513e9d706d117f7f6dfe0708a47ca3ab5eec"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/boundary-clear-rows.json",
+      "bytes": 1872,
+      "sha256": "51d2f2d5a7aa24db15571942e82ae2d473979d24481c108d2edd48906ead3f6c"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/capital-boundary-history.json",
+      "bytes": 11836,
+      "sha256": "73087b9138be67112510581e4d5e663eab0662f84f6272658164567fe1c7623d"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/main-key-rows.json",
+      "bytes": 50764,
+      "sha256": "8866a635299e39b6960c687c8ecf7dc70edad4c8bcd3bec41a1c8430e39116e9"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/peak-memory.json",
+      "bytes": 1664,
+      "sha256": "eb83b670577b29270f98117bbf7aa771c9613999c5672cbf7bf02ce6a08ec59e"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/previous-row.json",
+      "bytes": 14839,
+      "sha256": "4404737b6eefa4ad292957f768a124edd0b34f6a6ec8f139fd9b9cfb655fd171"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation7/wip-key-rows.json",
+      "bytes": 50747,
+      "sha256": "d4f44e7c4a37cc42e2b95bf52446aeafc2e7b27c5be364ab816e70c676c4c315"
+    },
+    {
       "path": "build/evidence/m3h-step1/disk-ledger.json",
       "bytes": 11398,
       "sha256": "9de189cb8508c42f610d9f4bfb0714d27c5b7d21bf9879c1a04dff8ba4071ad6"
@@ -24991,10 +25036,11 @@
       "sha256": "3916be9171fc9472a69debb5444179c080720c23a7ce36eed4dcc22e73fc604f"
     }
   ],
-  "totalFiles": 1873,
-  "totalBytes": 200800283,
+  "totalFiles": 5006,
+  "totalBytes": 569383520,
   "thirdContinuationInitialHead": "4799121",
   "fourthContinuationInitialHead": "d7b764c",
   "fifthContinuationInitialHead": "fec43c1",
-  "sixthContinuationInitialHead": "09a5276"
+  "sixthContinuationInitialHead": "09a5276",
+  "seventhContinuationInitialHead": "81b1e26"
 }

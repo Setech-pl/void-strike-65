@@ -1,0 +1,250 @@
+{
+  "family": "fifth-continuation component costs",
+  "initialHead": "fec43c1",
+  "reset": [
+    {
+      "difficulty": 0,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    }
+  ],
+  "assault": {
+    "difficulty": 1,
+    "maximum": 1198,
+    "nominalMaximum": 1200,
+    "stopAbove": 1260,
+    "mean": 1060.3309982486865,
+    "saving": 485.66900175131354,
+    "purposeMeanLimit": 1146,
+    "source": "focused-initial.log"
+  },
+  "moves": [
+    {
+      "name": "A2 heavy_profile_fields",
+      "bytes": 9,
+      "from": "HYBRID_C_ARENA_RODATA, hypothetical failed-source table $7EF3-$7EFB",
+      "to": "HYBRID_C_WINDOW_HEAVY_RODATA, $B599-$B5A1",
+      "lookupCycleDelta": 0,
+      "nineLookupCyclesBefore": 36,
+      "nineLookupCyclesAfter": 36,
+      "measuredLookups": [
+        {
+          "index": 0,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 1,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 2,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 3,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 4,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 5,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 6,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 7,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        },
+        {
+          "index": 8,
+          "before": 4,
+          "after": 4,
+          "delta": 0
+        }
+      ],
+      "admissionCostsUnchanged": true,
+      "incidentalH2Placement": {
+        "from": 46489,
+        "to": 46498,
+        "bytes": 106,
+        "cycleDelta": "0 normally/left dodge, +1 on a taken right-dodge exit",
+        "branchCosts": [
+          {
+            "offset": 80,
+            "before": 3,
+            "after": 4,
+            "delta": 1
+          },
+          {
+            "offset": 88,
+            "before": 3,
+            "after": 4,
+            "delta": 1
+          }
+        ],
+        "callReturnCycles": 12
+      }
+    }
+  ],
+  "toleranceOvershoots": "No assault/reset nominal overshoot measured; retained shared-path delta gate fails (boss summary). Full H2 body maximum after A2 not measured before STOP."
+}

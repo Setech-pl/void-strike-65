@@ -93,9 +93,33 @@ the playfield or a player death, respawn, new game or quit clears the pool.
 
 Every Raider activation and recycle starts the complete 14-scanline body above
 the gameplay boundary at PMG Y=2. The two machines descend by their existing
-one-scanline movement into the old Y=48/Y=96 formation anchors before the
+one-scanline movement on alternate, opposite-parity frames into the old
+Y=48/Y=96 formation anchors before the
 crossing continues. Top clipping publishes only the portion that has entered;
 a completely hidden Raider cannot fire or collide.
+
+### Heavy package, session 1
+
+Assault Raiders retain their per-frame lateral pursuit and shared fire policy;
+each member's vertical movement runs on alternate frames, on opposite parity.
+An unhit formation lives 668 frames instead of 334. A wave may select the
+armoured Raider profile without another archetype: HP 2/2/3 on EASY/MEDIUM/HARD,
+an authored stop at row 24 or 40, and a surviving-hit dodge 12 HPOS away from
+the player over six frames with Y held. Its stop clock continues through a
+hit. Assault HP remains 1/1/1 and assault Raiders do not dodge.
+
+Bomber HP is 4/4/5 and its flash adds four luminance units, keeping the full
+ramp inside hue C. A surviving hit triggers a six-frame sideways dodge with
+Y held; an authored stop continues to its original expiry. Without authored
+hold data the existing reload-timed attack run remains. Charge brightness is
+published on the braking/resume transition frame, as on main. Level 2 uses
+Bomber holds at row 72 for 96 frames in sector 2 waves 2–3, an armoured Raider
+hold at row 40 for 64 frames in sector 5 wave 3, and armoured waves 4 and 6 in
+sector 6. Armoured uses the current Raider art in session 1; the second
+silhouette and damage holes belong to session 2.
+
+Capsule qualification and cadence, all-or-nothing SPREAD admission and deferred
+Heavy breakup on rotate frames are unchanged. Boss sectors admit no Heavy.
 
 ### Light Wingman
 

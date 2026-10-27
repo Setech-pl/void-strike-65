@@ -5456,7 +5456,7 @@ async function build() {
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
           "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW",
+          : "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,

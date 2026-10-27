@@ -121,8 +121,9 @@ Trudność zmienia to, jak często strzelają przeciwnicy, jak szybko przewija s
 świat, ile kosztuje zderzenie ze szczątkami (dwie, pięć albo siedem dziesiątych
 kadłuba) oraz bossów: ile trafień wytrzymują ich moduły (0,75×, 1×, 1,25×) i jak
 mocno bije ich laser. Nie zmienia obrażeń zadawanych przez Ciebie: każde Twoje
-trafienie liczy się tak samo, a wrogi myśliwiec wytrzymuje tyle samo trafień na
-każdym poziomie trudności.
+trafienie liczy się tak samo. Opancerzony Raider i Bomber wytrzymują na ACE
+o jedno trafienie więcej; szturmowy Raider nadal ginie od jednego, a
+Interceptor od trzech.
 
 Zmiana poziomu trudności kasuje zapamiętany postęp.
 
@@ -137,14 +138,23 @@ z tabelą wyników.
 
 | Przeciwnik | Klasa | Zachowanie | Punkty |
 | --- | --- | --- | ---: |
-| Raider | Ciężki | Szybki myśliwiec, strzela seriami | 10 |
-| Bomber | Ciężki | Sylwetka katamaranu; przeczesuje swój pas, zatrzymuje się, celuje, wypuszcza torpedy | 50 |
+| Raider | Ciężki | Porusza się w pionie co drugą klatkę, śledzi Cię w poziomie i strzela seriami; jedno trafienie | 10 |
+| Opancerzony Raider | Ciężki | Zatrzymuje się, by strzelać, i robi unik po przeżytym trafieniu; 2/2/3 trafienia na ROOKIE/PILOT/ACE | 10 |
+| Bomber | Ciężki | Sylwetka katamaranu; przeczesuje swój pas, zatrzymuje się, celuje, wypuszcza torpedy; 4/4/5 trafień na ROOKIE/PILOT/ACE | 50 |
 | Wingman | Lekki | Lata w formacji | 5 |
 | Interceptor | Lekki | Nurkuje na pozycję strzelecką nad tobą, trzyma się twojej kolumny, strzela laserem prosto w dół, gdy jest nad tobą, cofa się, gdy podlecisz. W niektórych falach wznosi się potem pod górną krawędź ekranu, zawisa tam i nurkuje z powrotem na kolejne przejście (na poziomie 1 dwa razy), zanim odleci w górę. Wytrzymuje dwa trafienia, ginie od trzeciego | 15 |
 | Boss | — | Koniec każdego poziomu | każdy moduł 20-99; 2000 za pokonanie |
 
+Raider śledzi Twoją kolumnę w każdej klatce, choć w pionie porusza się co
+drugą. Niektóre formacje korzystają z opancerzonej odmiany: zatrzymują się na
+stałej wysokości, by strzelać, i robią unik w bok po trafieniu, które przeżyją.
+Obecnie mają taką samą sylwetkę jak pozostałe Raidery.
+
 Kadłub Bombera ciemnieje w miarę obrywania, więc po kolorze poznasz, ile mu
-zostało. Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a
+zostało. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
+do lotu. Po przeżytym trafieniu Bomber przez sześć klatek robi unik w bok,
+bez zmiany wysokości. Trafienie podczas zaplanowanego postoju nie skraca
+tego postoju. Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a
 on przeżyje, jego czerwone gondole na chwilę błyskają.
 
 Niektóre fale wysyłają Wingmany albo Interceptory z innymi oznaczeniami lub w

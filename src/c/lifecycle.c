@@ -1493,7 +1493,6 @@ static const uint8_t heavy_spawn_hp[39] = {
     4u,4u,5u
 };
 static const uint8_t heavy_armoured_hp[3] = {2u,2u,3u};
-#pragma rodata-name (pop)
 
 /* Record field of each enemy_profile_* byte, in their declared order. */
 static const uint8_t heavy_profile_fields[HEAVY_PROFILE_BYTES] = {
@@ -1503,6 +1502,7 @@ static const uint8_t heavy_profile_fields[HEAVY_PROFILE_BYTES] = {
     ENEMY_ARCHETYPE_FIELD_WEAPON, ENEMY_ARCHETYPE_FIELD_SCORE,
     ENEMY_ARCHETYPE_FIELD_DIRECTOR_VALUE
 };
+#pragma rodata-name (pop) /* A2: the 9-B profile-field table follows H9 data. */
 
 /* Lane-sweep formation start, $5478-$5483 by slot: X, Y, direction, first
  * fire delay, first turn delay, hit-flash byte (last HP 4, no flash). Slot 0

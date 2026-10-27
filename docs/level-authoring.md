@@ -205,11 +205,12 @@ restored compiler accepts `kind: "assault"` (default) or `"armoured"`, and
 stores the hold; it adds no WaveDef bytes. Rows are 24 + 16n (through 136),
 with Raider holds restricted to 24 or 40; duration is 16–240 frames in
 multiples of 16. Heavy without a hold compiles motion `$00`; Light retains
-`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The fourth continuation stops on the hard arena size gate (836/832 B) after
-recovering the MEDIUM assault maximum to 1,198 cycles. The current WIP does
-not link; remaining validation and player-facing EN/PL documentation are
-pending. See the
-[fourth-continuation audit](audits/2026-10-27-m3h-step1.md#fourth-continuation--component-tolerance-and-arena-stop).
+`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The fifth continuation applies A2: this compiler/runtime links at 827/832
+arena B, with 751 usable window B free. It is still **stopped WIP** because
+shared boss stress exceeds the retained +2-cycle delta bound (+32 Citadel L5,
++50 Spine L7/L9). Focused feature/compiler checks pass; native level-2 play
+and the remaining gates are pending. See the
+[fifth-continuation audit](audits/2026-10-27-m3h-step1.md#fifth-continuation--a2-links-shared-boss-stress-delta-stop).
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every Light wave compiles with `wave_path = $FF`,

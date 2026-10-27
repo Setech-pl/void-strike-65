@@ -182,9 +182,9 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$7A90-$7B89` | 250 B | segment | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list | `boss-entry` | build/boss.map |
 | `$7B8A-$7B99` | 16 B | segment | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk | `boss-entry` | build/boss.map |
 | `$7BD0-$7C71` | 162 B | segment | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers | `resident` | build/encounter-director.map |
-| `$7C72-$7EDA` | 617 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
-| `$7EDB-$7F01` | 39 B | segment | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data | `resident` | build/encounter-director.map |
-| `$7F02-$7F0F` | 14 B | reserved | free tail of `HYBRID_C_ARENA_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$7C72-$7EF2` | 641 B | segment | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) | `resident` | build/encounter-director.map |
+| `$7EF3-$7F0A` | 24 B | segment | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data | `resident` | build/encounter-director.map |
+| `$7F0B-$7F0F` | 5 B | reserved | free tail of `HYBRID_C_ARENA_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$7F10` | 1 B | state | the gameplay display lists' shared header ($E0: 7 blank lines after a list's JMP, the first DLI on line 15) | `resident` | src/main.s `PLAYFIELD_DLIST_HEADER` |
 | `$7F11-$7F6A` | 90 B | state | gameplay display list A (the divider, 27 ring rows, the HUD's line, the JMP to the header) | `resident` | src/main.s `PLAYFIELD_DLIST_A` |
 | `$7F2B-$8017` | 237 B | transient | A2 kernel staging (`BOOT_A2_STAGING`) | `boot` | manifest `a2Kernel` |
@@ -204,6 +204,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$8128` | 1 B | segment | `HYBRID_HEAVY_BREAKUP` — Heavy break-up deferred bit | `resident` | build/encounter-director.map |
 | `$8129-$812D` | 5 B | segment | `DIRECTOR_SECTOR_STATE` — Director sector row clock and call holds | `resident` | build/encounter-director.map |
 | `$812E-$813A` | 13 B | segment | `HYBRID_LIGHT_LOOK` — Light appearance keys | `resident` | build/encounter-director.map |
+| `$813B-$813F` | 5 B | segment | `HYBRID_HEAVY_PACKAGE` — M3-H formation motion, rate, kind, hold row and damage request | `resident` | build/encounter-director.map |
 | `$8140-$8577` | 1,080 B | state | physical gameplay ring, 40 B per row | `resident` | src/main.s `GAMEPLAY_RING_SCREEN` |
 | `$81FA-$8391` | 408 B | transient | STARFIELD stream B staging | `boot` | manifest `starfieldRuntime.streams` |
 | `$8578-$85B6` | 63 B | state | ring row tables and A2 publication state | `resident` | src/main.s `PLAYFIELD_ROW_LO` |
@@ -211,6 +212,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$85B8-$85B9` | 2 B | state | allied/enemy tracked-muzzle backing | `resident` | src/main.s `MUZZLE_BACKING` |
 | `$85BA-$85E1` | 40 B | state | prepared COMBAT hull row (centre byte `CORRIDOR_BOUNDARY_RIGHT` aliases the fresh enemy boundary cell) | `resident` | src/main.s `PREPARED_HULL_ROW` |
 | `$85E2-$85E5` | 4 B | state | prepared-row key | `resident` | src/main.s `PREPARED_HULL_LO` |
+| `$85E6-$85ED` | 8 B | segment | `HYBRID_HEAVY_MEMBERS` — M3-H pending hold metadata and per-member hold, last HP and dodge state | `resident` | build/encounter-director.map |
 | `$85EF-$85F1` | 3 B | state | corridor phase, hull draw row | `resident` | src/main.s `CORRIDOR_PHASE_HI` |
 | `$85F2-$8601` | 16 B | state | near-star tables | `resident` | src/main.s `STAR_NEAR_ROW` |
 | `$8602-$86F5` | 244 B | segment | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) | `resident` | build/encounter-director.map |
@@ -256,7 +258,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AE00-$B3FC` | 1,533 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
 | `$B3FD` | 1 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
 | `$B3FE-$B477` | 122 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
-| `$B478-$B8FF` | 1,160 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$B478-$B566` | 239 B | segment | `HYBRID_C_WINDOW_HEAVY` — M3-H appended C: H9 admission and wave metadata | `resident` | build/encounter-director.map |
+| `$B567-$B5A1` | 59 B | segment | `HYBRID_C_WINDOW_HEAVY_RODATA` — M3-H H9 presentation/health tables and A2 profile-field table | `resident` | build/encounter-director.map |
+| `$B5A2-$B60B` | 106 B | segment | `HYBRID_ASM_HEAVY_WINDOW` — M3-H appended armoured Raider executor, explicit kernel ABI | `resident` | build/encounter-director.map |
+| `$B60C-$B8FF` | 756 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$B900-$BBFF` | 768 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (6 sectors, 712-717); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
 | `$B900-$BBEF` | 752 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the charge's axis rule (journal §BL 4), the torpedo's flight - the hull on P1, the exhaust on P2, both homing - and its discharge on channel 3, the kill through boss_hit or the miss that keeps the lance, journal §BL 5) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
 | `$BBF0-$BBF4` | 5 B | segment | `LANCE_BSS` — the VOID LANCE's C state (the meter, the charge, the gesture, the target bit), inside the run: read as zeros at every boss entry - the meter resets (the rest of its state: LANCE_ZP) | `overlay` | build/boss.map |
@@ -290,10 +295,9 @@ Bytes only boot-phase rows (`boot`, `splash`, `loader`) use: no runtime row and 
 | Range | Size | Used during boot by | Inside cfg area | Evidence |
 | --- | ---: | --- | --- | --- |
 | `$4FFA-$4FFF` | 6 B | initial boot block image, 101 sectors (code, data and packed sources); loader bitmap lines 0-101; packed ENTITY_CODE source | `GLUE_RAM` | not measured |
-| `$813B-$813F` | 5 B | DFMC record sector staging (largest record); GLUE hold until `layout_d_publish_glue`; packed resident-suffix staging (`PACKED_RESIDENT_STAGING`) | none | not measured |
-| `$85E6-$85EE` | 9 B | DFMC record sector staging (largest record); packed resident-suffix staging (`PACKED_RESIDENT_STAGING`) | none | not measured |
+| `$85EE` | 1 B | DFMC record sector staging (largest record); packed resident-suffix staging (`PACKED_RESIDENT_STAGING`) | none | not measured |
 
-Total: 20 B free after boot.
+Total: 7 B free after boot.
 
 ### Reservation free tails
 
@@ -304,7 +308,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$54BE-$54E3` | 38 B | `PROJECTILE_RAM` (atari-boot.cfg) | `PROJECTILES` |
 | `$5A78-$5E0A` | 915 B | `STARFIELD_RAM` (atari-boot.cfg) | `STARFIELD` |
 | `$780D-$780F` | 3 B | `BROADSIDE_RAM` (atari-boot.cfg) | `BROADSIDE` |
-| `$7F02-$7F0F` | 14 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA` |
+| `$7F0B-$7F0F` | 5 B | `HYBRID_C_ARENA_RAM` (encounter-director.cfg) | `HYBRID_ASM_ARENA`, `HYBRID_C_ARENA`, `HYBRID_C_ARENA_RODATA` |
 | `$86F6-$86F9` | 4 B | `HYBRID_C_SECTOR_RAM` (encounter-director.cfg) | `HYBRID_C_SECTOR` |
 | `$876B-$8775` | 11 B | `DIRECTOR_ABI_RAM` (encounter-director.cfg) | `DIRECTOR_ABI` |
 | `$8B60-$8B66` | 7 B | `PICKUP_CODE_RAM` (atari-boot.cfg) | `PICKUP_CODE` |
@@ -316,7 +320,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$9FEF-$9FF9` | 11 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5F9-$A5FF` | 7 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
-| `$B478-$B8FF` | 1,160 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW` |
+| `$B60C-$B8FF` | 756 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
 
 ### Overlapping cfg areas
@@ -474,9 +478,9 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$7A90-$7B89` | `boss-entry` | `BOSS_BANNER_KEEP` — boss banner reads (feat/boss-banners): the boss code and the head's eight runs one sector a call, the bar's step, the hand-over; copied from the banner run behind the banner's display list |
 | `$7B8A-$7B99` | `boss-entry` | `BOSS_BANNER_KEEP_BSS` — boss banner state (feat/boss-banners): the run spec, the bar's position and step, the region; behind the reads, never read from disk |
 | `$7BD0-$7C71` | `resident` | `HYBRID_ASM_ARENA` — arena: assigned ca65 helpers |
-| `$7C72-$7EDA` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
-| `$7EDB-$7F01` | `resident` | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data |
-| `$7F02-$7F0F` | `resident` | free tail of `HYBRID_C_ARENA_RAM` |
+| `$7C72-$7EF2` | `resident` | `HYBRID_C_ARENA` — arena: cc65 code (Heavy, recycle, drain) |
+| `$7EF3-$7F0A` | `resident` | `HYBRID_C_ARENA_RODATA` — arena: cc65 read-only data |
+| `$7F0B-$7F0F` | `resident` | free tail of `HYBRID_C_ARENA_RAM` |
 | `$7F10` | `resident` | the gameplay display lists' shared header ($E0: 7 blank lines after a list's JMP, the first DLI on line 15) |
 | `$7F11-$7F6A` | `resident` | gameplay display list A (the divider, 27 ring rows, the HUD's line, the JMP to the header) |
 | `$7F2B-$8017` | `boot` | A2 kernel staging (`BOOT_A2_STAGING`) |
@@ -501,6 +505,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$8128` | `resident` | `HYBRID_HEAVY_BREAKUP` — Heavy break-up deferred bit |
 | `$8129-$812D` | `resident` | `DIRECTOR_SECTOR_STATE` — Director sector row clock and call holds |
 | `$812E-$813A` | `resident` | `HYBRID_LIGHT_LOOK` — Light appearance keys |
+| `$813B-$813F` | `resident` | `HYBRID_HEAVY_PACKAGE` — M3-H formation motion, rate, kind, hold row and damage request |
 | `$8140-$8577` | `resident` | physical gameplay ring, 40 B per row |
 | `$81FA-$8391` | `boot` | STARFIELD stream B staging |
 | `$8578-$85B6` | `resident` | ring row tables and A2 publication state |
@@ -508,6 +513,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$85B8-$85B9` | `resident` | allied/enemy tracked-muzzle backing |
 | `$85BA-$85E1` | `resident` | prepared COMBAT hull row (centre byte `CORRIDOR_BOUNDARY_RIGHT` aliases the fresh enemy boundary cell) |
 | `$85E2-$85E5` | `resident` | prepared-row key |
+| `$85E6-$85ED` | `resident` | `HYBRID_HEAVY_MEMBERS` — M3-H pending hold metadata and per-member hold, last HP and dodge state |
 | `$85EF-$85F1` | `resident` | corridor phase, hull draw row |
 | `$85F2-$8601` | `resident` | near-star tables |
 | `$8602-$86F5` | `resident` | `HYBRID_C_SECTOR` — cc65 sector functions (the resident window) |
@@ -670,19 +676,18 @@ By topic: unclassified 74%, display, PMG and raster 16%, player, input and weapo
 
 By topic: unclassified 86%, Light enemies 13%, music and audio 1%.
 
-#### `HYBRID_C_ARENA` `$7C72-$7EDA`, 617 B (build/encounter-director.map)
+#### `HYBRID_C_ARENA` `$7C72-$7EF2`, 641 B (build/encounter-director.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `_enemy_c_heavy_tick` | `$7D3E` | 190 B | 30.8% | Heavy, Raider and Interceptor |
-| `_enemy_c_spawn_raiders` | `$7CB7` | 135 B | 21.9% | Heavy, Raider and Interceptor |
-| `_bomber_colour` | `$7E72` | 69 B | 11.2% | Heavy, Raider and Interceptor |
-| `_heavy_publish_profile` | `$7E1D` | 66 B | 10.7% | Heavy, Raider and Interceptor |
-| `_sector_c_drain_clear` | `$7C87` | 48 B | 7.8% | Director, sectors and waves |
-| `_bomber_may_fire` | `$7EB7` | 36 B | 5.8% | Heavy, Raider and Interceptor |
-| `_enemy_c_heavy_breakup_claim` | `$7DFC` | 33 B | 5.3% | Heavy, Raider and Interceptor |
-| `_director_c_arm_wave` | `$7C72` | 21 B | 3.4% | Director, sectors and waves |
-| `_bomber_turn` | `$7E5F` | 19 B | 3.1% | Heavy, Raider and Interceptor |
+| `_enemy_c_heavy_tick` | `$7CB7` | 296 B | 46.2% | Heavy, Raider and Interceptor |
+| `_bomber_colour` | `$7E55` | 122 B | 19.0% | Heavy, Raider and Interceptor |
+| `_heavy_publish_profile` | `$7E13` | 66 B | 10.3% | Heavy, Raider and Interceptor |
+| `_sector_c_drain_clear` | `$7C87` | 48 B | 7.5% | Director, sectors and waves |
+| `_bomber_may_fire` | `$7ECF` | 36 B | 5.6% | Heavy, Raider and Interceptor |
+| `_enemy_c_heavy_breakup_claim` | `$7DDF` | 33 B | 5.1% | Heavy, Raider and Interceptor |
+| `_director_c_arm_wave` | `$7C72` | 21 B | 3.3% | Director, sectors and waves |
+| `_bomber_turn` | `$7E00` | 19 B | 3.0% | Heavy, Raider and Interceptor |
 
 By topic: Heavy, Raider and Interceptor 89%, Director, sectors and waves 11%.
 
@@ -906,7 +911,7 @@ By topic: frontend and HUD 56%, music and audio 41%, starfield 4%.
 | `draw_top_score_rows` | `$25F3` | 113 B | 2.5% | frontend and HUD |
 | `update_transient_effects` | `$2FD9` | 102 B | 2.3% | debris and effects |
 | `update_fighter_projectiles` | `$2B5B` | 99 B | 2.2% | player, input and weapons |
-| `update_enemy_slot_motion` | `$2DA8` | 98 B | 2.2% | Heavy, Raider and Interceptor |
+| `update_enemy_slot_motion_loaded` | `$2DAB` | 95 B | 2.1% | Heavy, Raider and Interceptor |
 | `enter_frontend_state` | `$230D` | 90 B | 2.0% | frontend and HUD |
 | `spawn_breakup_effects_at` | `$2F7F` | 86 B | 1.9% | debris and effects |
 | `player_fighter_projectile_hits_enemy` | `$2C00` | 85 B | 1.9% | Heavy, Raider and Interceptor |
@@ -928,7 +933,7 @@ By topic: frontend and HUD 56%, music and audio 41%, starfield 4%.
 | `unpack_loader_bitmap` | `$27B8` | 49 B | 1.1% | boot, loader and transport |
 | `allocate_player_fighter_projectile_at_slot` | `$2D01` | 48 B | 1.1% | player, input and weapons |
 | `init_playfield_row_table` | `$2948` | 45 B | 1.0% | display, PMG and raster |
-| 138 smaller items | — | 1,849 B | 41.4% | — |
+| 139 smaller items | — | 1,852 B | 41.5% | — |
 
 By topic: frontend and HUD 25%, player, input and weapons 18%, unclassified 11%, debris and effects 11%, Heavy, Raider and Interceptor 10%, music and audio 8%, boot, loader and transport 6%, capital ship 6%, display, PMG and raster 2%, starfield 2%, Director, sectors and waves 2%, padding and slack 0%, pickups and boosters 0%.
 
@@ -1029,7 +1034,6 @@ By topic: starfield 32%, music and audio 25%, Heavy, Raider and Interceptor 12%,
 | `apply_player_damage` | `$6CF2` | 110 B | 1.7% | player, input and weapons |
 | `handle_player_hull_contact` | `$757A` | 110 B | 1.7% | capital ship |
 | `render_shared_fighter_explosions` | `$629E` | 105 B | 1.6% | debris and effects |
-| (after world_rotate_due_end) | `$69E8` | 103 B | 1.5% | unclassified |
 | `allied_sector_module_sources` | `$6917` | 96 B | 1.4% | Director, sectors and waves |
 | `enemy_sector_module_sources` | `$6977` | 96 B | 1.4% | Heavy, Raider and Interceptor |
 | `handle_options_input_resident` | `$5E10` | 93 B | 1.4% | frontend and HUD |
@@ -1047,9 +1051,9 @@ By topic: starfield 32%, music and audio 25%, Heavy, Raider and Interceptor 12%,
 | `restore_capital_explosion` | `$7317` | 72 B | 1.1% | capital ship |
 | `draw_enemy_member` | `$6385` | 71 B | 1.1% | Heavy, Raider and Interceptor |
 | `pause_screen_data` | `$6B4C` | 68 B | 1.0% | frontend and HUD |
-| 160 smaller items | — | 3,075 B | 46.2% | — |
+| 162 smaller items | — | 3,178 B | 47.8% | — |
 
-By topic: capital ship 52%, frontend and HUD 15%, Heavy, Raider and Interceptor 12%, unclassified 4%, player, input and weapons 4%, Director, sectors and waves 4%, music and audio 3%, debris and effects 3%, display, PMG and raster 2%, starfield 1%, padding and slack 0%, pickups and boosters 0%.
+By topic: capital ship 52%, frontend and HUD 15%, Heavy, Raider and Interceptor 13%, player, input and weapons 4%, Director, sectors and waves 4%, music and audio 3%, unclassified 3%, debris and effects 3%, display, PMG and raster 2%, starfield 1%, padding and slack 0%, pickups and boosters 0%.
 
 #### `PICKUP_CODE` `$8776-$8B5F`, 1,002 B (build/void-strike-65.map)
 
@@ -1127,7 +1131,7 @@ By topic: player, input and weapons 25%, debris and effects 20%, capital ship 16
 | `BOSS_D_CODE` | 1,684 B | placement name | — | unclassified (83%) | not judged |
 | `BOSS_CODE` | 1,963 B | placement name | — | unclassified (74%) | not judged |
 | `LANCE_CODE` | 752 B | placement name | — | unclassified (86%) | not judged |
-| `HYBRID_C_ARENA` | 617 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
+| `HYBRID_C_ARENA` | 641 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `DIRECTOR_C_CODE` | 614 B | placement name | — | Director, sectors and waves (83%) | not judged |
 | `HYBRID_C_WINDOW` | 1,533 B | placement name | — | Light enemies (66%) | not judged |
@@ -1244,37 +1248,33 @@ against pre-audit L1, restoring clean main's **3,161 B** and **5-B** free tail
 (pre-audit: 410 B).
 
 
-## M3-H Option A — WIP STOP, not a smoke candidate (2026-10-27)
+## M3-H Option A + A2 — linked WIP STOP (2026-10-27)
 
-This branch retains the restored A1 implementation and fourth-continuation
-WIP under the owner's no-rollback instruction. The last successful loaded-X
-build still uses 827/832 arena B; the current attempted charge-publication
-correction requires **836/832 B (4 over)** and does not link. The tables below
-are the last successful linked allocation, not a size PASS for current source. The generated map above describes the prior
-baseline and has **not been regenerated for this stopped WIP**. These linked
-WIP allocations supersede its old free-range claims on this branch only:
+The fifth continuation applies A2 and links the retained charge-publication
+fix. The generated map above describes this WIP. It is **not** an accepted or
+owner-smoke baseline: shared boss stress grows +32 on Citadel L5 and +50 on
+Spine L7/L9 against the retained +2 bound, so work stopped before native gates.
 
-| Owner / segment | WIP allocation | Remaining |
+| Owner /segment | Current linked allocation | Remaining |
 | --- | --- | --- |
-| `HYBRID_HEAVY_PACKAGE` | `$813B–$813F`, 5 B: motion, descent mask, armoured flag, hold row, damage request | 0 B |
-| `HYBRID_HEAVY_MEMBERS` | `$85E6–$85ED`, 8 B: hold-left[2], last-HP[2], dodge-left[2], pending hold row/duration | `$85EE`, 1 B |
-| `HYBRID_C_ARENA` composite, record 7 | 827/832 B, including the unchanged 9-B profile-fields table | 5 B |
-| Director window, record 8 | 2,051/2,811 usable B; appended `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` | 760 B after existing reservations |
-| H2 in appended ASM | 106 B at `$B599` | inside record 8; no twelfth record |
-| BROADSIDE sequence pin | 79/120 B (17-B rotate helper + 62-B H1) | 41 B |
+| `HYBRID_HEAVY_PACKAGE` | `$813B–$813F`, 5 B: motion, descent mask, kind, hold row, damage request | 0 |
+| `HYBRID_HEAVY_MEMBERS` | `$85E6–$85ED`, 8 B: pending row/duration, hold-left[2], last-HP[2], dodge-left[2] | `$85EE`, 1 B |
+| Arena, record 7 | **827/832 B**, 162 ASM +641 C +24 RODATA | **5 B**, 6 sectors |
+| Appended A2 table | `heavy_profile_fields[9]`, **`$B599–$B5A1`**, `HYBRID_C_WINDOW_HEAVY_RODATA` | moved out of arena |
+| H2 appended ASM | **106 B at `$B5A2`**, explicit kernel ABI bindings | in record 8 |
+| Director window, record 8 | **2,060/2,811 usable B** | **751 B**; ≥650 required; 14 sectors (+3) |
+| BROADSIDE sequence pin | **79/120 B**, 17-B rotate helper +62-B H1 | **41 B** |
 
-H15 initializes after boot and at admission; no session-2 body-index state is
-allocated. The existing `$549E–$54BD` 32-B damaged-body reservation stays
-intact and unused in session 1. WaveDef `wave_flags` bit 5 selects armoured
-Raider Heavy only; bit 4 retains `afterCleared`, bits 6–7 retain Interceptor
-escort loops, including shipped sector-4 flags `$88`. There is no combined
-bits-4–5 trigger-mode field in the implementation.
-
-A1 remains in use; A2 was not applied. Reset previously passes (+63 assault, +65 armoured, +75 Bomber on every
-difficulty). The loaded-X entry reduces MEDIUM assault maximum to 1,198 at
-zero byte growth; the subsequent charge-publication correction fails at
-836/832 arena B. No native after-gate or smoke PASS is claimed. See the
-[fourth-continuation audit](audits/2026-10-27-m3h-step1.md#fourth-continuation--component-tolerance-and-arena-stop).
+A2 adds zero cycles to the nine profile-field reads or admission; shifting H2
+by nine bytes adds one cycle on either mutually exclusive taken right-dodge
+exit. Its JSR/RTS remains 12 cycles. No further cold code/data was moved.
+H15 initializes after boot/admission; no session-2 body-index state is allocated.
+The `$549E–$54BD` damaged-body reservation remains intact and unused here.
+Wave flags bit 5 selects armoured Raider Heavy only; bit 4 retains
+`afterCleared`, bits 6–7 retain escort loops (shipped sector-4 Heavy `$88`).
+The zero-byte loaded-X label preserves every CODE byte. Records 9/11 retain
+their linked payloads; L2 remains 1,250 B with its reserve untouched. See the
+[fifth-continuation audit](audits/2026-10-27-m3h-step1.md#fifth-continuation--a2-links-shared-boss-stress-delta-stop).
 
 ## Capsule boss-stress recovery — OWNER-ACCEPTED (2026-10-22)
 

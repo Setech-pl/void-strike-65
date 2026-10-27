@@ -1155,6 +1155,16 @@ path that costs more than `main` beyond the figures this plan names.
   pursuit equality, implied-body plane equality and zero body writes on hold.
   Apply the same 5% rule to other stated component-cycle limits, including
   H2 call cost; this does not turn an estimate into a new numerical limit.
+  **Dated amendment (owner, 2026-10-27, fifth continuation, amendment 4):**
+  apply A2 now: move the 9-B `heavy_profile_fields` table to appended record-8
+  RODATA beside H9. Further arena-to-window moves are delegated if needed,
+  choosing the smallest, least frequent cold code/data first (spawn/hit/tables
+  before per-frame Bomber tick code). Preserve behavior and report bytes and
+  cycles per move. Hard placement conditions: arena ≤832 B, record 7 remains
+  6 sectors, usable window free after session 1 ≥650 B, record 8 grows by at
+  most 3 sectors over Phase 0's 11. A per-frame code move also remains subject
+  to amendment 3's component tolerance. STOP only if these conditions cannot
+  be met; the earlier A1-only placement restriction is superseded.
 * **Tests RED on `main`:** `tests/heavy-package.test.mjs` (§3.5), the compiler
   cases in `tests/level-compiler.test.mjs`.
 * **Evidence:** regenerated; replays re-scripted where the capsule cadence

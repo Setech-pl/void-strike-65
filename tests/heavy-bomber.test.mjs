@@ -244,7 +244,7 @@ test("marshalling: the member veneer ticks exactly its own slot bytes", () => {
   assert.deepEqual([image[COLPM1], image[COLPM2]], [HULL, HULL]);
   // Raider formations keep the ASM cross-pursuit motion.
   assert.match(memberSource,
-    /heavy_member_update:\s+lda ENEMY_PROFILE_MOVEMENT_ID\s+bne @policy\s+jmp update_enemy_slot_motion/);
+    /heavy_member_update:\s+lda ENEMY_PROFILE_MOVEMENT_ID\s+bne @policy\s+jmp raider_gate/);
 });
 
 test("entry depth: one line per frame to 40/16, then one line every other frame, de-phased", () => {
@@ -414,7 +414,7 @@ test("salvo abort: a dying player or a due capital skips the shell and resumes t
     const [, , direction, fire] = member(image, 0);
     assert.equal(shellCount(image), 0);
     assert.ok([1, 0xff].includes(direction));
-    assert.equal(fire, 40);
+    assert.equal(fire, 52); // M3-H legacy fixture uses MEDIUM, whose reload is 52.
   }
 });
 

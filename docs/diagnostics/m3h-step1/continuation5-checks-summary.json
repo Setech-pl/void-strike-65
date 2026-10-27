@@ -1,0 +1,23 @@
+{
+  "family": "fifth-continuation focused checks",
+  "initialHead": "fec43c1",
+  "normalBuild": "PASS, stale release evidence warning retained",
+  "feature": {
+    "pass": 59,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/continuation5/focused-initial.log"
+  },
+  "requiredGateSet": {
+    "pass": 19,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/continuation5/gate-focused.log"
+  },
+  "variants": "all four build PASS; see ledger summary",
+  "memoryMap": "generated with all five new segment descriptions",
+  "native15": "NOT RUN: shared-path delta STOP; one run remains unused",
+  "heavyNative": "NOT RUN",
+  "menu": "NOT RUN",
+  "fullNpmTest": false,
+  "releaseEvidenceRegenerated": false,
+  "smokeATRs": "NONE"
+}

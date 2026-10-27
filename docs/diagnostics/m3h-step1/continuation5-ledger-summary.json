@@ -1,0 +1,265 @@
+{
+  "family": "fifth-continuation size and placement",
+  "initialHead": "fec43c1",
+  "result": "BLOCKED_BOSS_STRESS_DELTA",
+  "normalBuild": "PASS, stale release evidence visible",
+  "arena": {
+    "step": "4.5M-M3",
+    "owner": "HYBRID_C_ARENA",
+    "address": 31696,
+    "endExclusive": 32528,
+    "capacityBytes": 832,
+    "usedBytes": 827,
+    "freeBytes": 5,
+    "asmBytes": 162,
+    "codeBytes": 641,
+    "rodataBytes": 24,
+    "segments": [
+      "HYBRID_ASM_ARENA",
+      "HYBRID_C_ARENA",
+      "HYBRID_C_ARENA_RODATA"
+    ],
+    "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+    "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+    "boundedBy": {
+      "below": "starfield stream A staging / pause-screen backup end $7BD0",
+      "above": "A2 display lists $7F10"
+    },
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 31696,
+      "startSector": 168,
+      "sectors": 6,
+      "rawBytes": 827,
+      "packedBytes": 726,
+      "paddingBytes": 21,
+      "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
+    },
+    "ownersInArena": [
+      {
+        "owner": "record 7bd0",
+        "start": 31696,
+        "endExclusive": 32523
+      }
+    ],
+    "worstCaseFullArenaPackedBytes": 840,
+    "worstCaseFullArenaSectors": 7
+  },
+  "window": {
+    "used": 2060,
+    "usable": 2811,
+    "free": 751,
+    "requiredFree": 650
+  },
+  "initialContent": {
+    "bytes": 12825,
+    "delta": 0,
+    "bootSectors": 101
+  },
+  "records": [
+    {
+      "record": 1,
+      "sectorsBefore": 44,
+      "sectors": 44,
+      "sectorDelta": 0,
+      "packedBefore": 5531,
+      "packed": 5590,
+      "packedDelta": 59,
+      "packedFree": 21
+    },
+    {
+      "record": 2,
+      "sectorsBefore": 10,
+      "sectors": 10,
+      "sectorDelta": 0,
+      "packedBefore": 1165,
+      "packed": 1165,
+      "packedDelta": 0,
+      "packedFree": 94
+    },
+    {
+      "record": 3,
+      "sectorsBefore": 1,
+      "sectors": 1,
+      "sectorDelta": 0,
+      "packedBefore": 105,
+      "packed": 105,
+      "packedDelta": 0,
+      "packedFree": 2
+    },
+    {
+      "record": 4,
+      "sectorsBefore": 4,
+      "sectors": 4,
+      "sectorDelta": 0,
+      "packedBefore": 441,
+      "packed": 441,
+      "packedDelta": 0,
+      "packedFree": 50
+    },
+    {
+      "record": 5,
+      "sectorsBefore": 6,
+      "sectors": 6,
+      "sectorDelta": 0,
+      "packedBefore": 746,
+      "packed": 746,
+      "packedDelta": 0,
+      "packedFree": 1
+    },
+    {
+      "record": 6,
+      "sectorsBefore": 1,
+      "sectors": 1,
+      "sectorDelta": 0,
+      "packedBefore": 23,
+      "packed": 23,
+      "packedDelta": 0,
+      "packedFree": 84
+    },
+    {
+      "record": 7,
+      "sectorsBefore": 6,
+      "sectors": 6,
+      "sectorDelta": 0,
+      "packedBefore": 740,
+      "packed": 726,
+      "packedDelta": -14,
+      "packedFree": 21
+    },
+    {
+      "record": 8,
+      "sectorsBefore": 11,
+      "sectors": 14,
+      "sectorDelta": 3,
+      "packedBefore": 1315,
+      "packed": 1680,
+      "packedDelta": 365,
+      "packedFree": 91
+    },
+    {
+      "record": 9,
+      "sectorsBefore": 9,
+      "sectors": 9,
+      "sectorDelta": 0,
+      "packedBefore": 1032,
+      "packed": 1032,
+      "packedDelta": 0,
+      "packedFree": 99
+    },
+    {
+      "record": 10,
+      "sectorsBefore": 13,
+      "sectors": 13,
+      "sectorDelta": 0,
+      "packedBefore": 1529,
+      "packed": 1529,
+      "packedDelta": 0,
+      "packedFree": 114
+    },
+    {
+      "record": 11,
+      "sectorsBefore": 5,
+      "sectors": 5,
+      "sectorDelta": 0,
+      "packedBefore": 527,
+      "packed": 527,
+      "packedDelta": 0,
+      "packedFree": 92
+    }
+  ],
+  "protectedRows": [
+    {
+      "segment": "CODE",
+      "start": 8192,
+      "end": 12656,
+      "bytes": 4464,
+      "changedBytes": 0
+    },
+    {
+      "segment": "RODATA",
+      "start": 12656,
+      "end": 15888,
+      "bytes": 3232,
+      "changedBytes": 0
+    },
+    {
+      "segment": "STARFIELD",
+      "start": 21732,
+      "end": 23160,
+      "bytes": 1428,
+      "changedBytes": 0
+    },
+    {
+      "segment": "ENTITY_CODE",
+      "start": 37120,
+      "end": 40281,
+      "bytes": 3161,
+      "changedBytes": 0
+    }
+  ],
+  "unchangedRecords": [
+    {
+      "record": 9,
+      "start": 13891,
+      "end": 15087,
+      "changedRuntimeBytes": 0
+    },
+    {
+      "record": 11,
+      "start": 40309,
+      "end": 40943,
+      "changedRuntimeBytes": 0
+    }
+  ],
+  "variants": [
+    {
+      "variant": "level-1-s1",
+      "arena": 827,
+      "record7": 6,
+      "record8": 14,
+      "windowFree": 751,
+      "l2Bytes": 1250,
+      "levelImageBytes": 2048
+    },
+    {
+      "variant": "l2-capital-960",
+      "arena": 827,
+      "record7": 6,
+      "record8": 14,
+      "windowFree": 751,
+      "l2Bytes": 1250,
+      "levelImageBytes": 2048
+    },
+    {
+      "variant": "level-2-s0",
+      "arena": 827,
+      "record7": 6,
+      "record8": 14,
+      "windowFree": 751,
+      "l2Bytes": 1250,
+      "levelImageBytes": 2048
+    },
+    {
+      "variant": "level-2-s5",
+      "arena": 827,
+      "record7": 6,
+      "record8": 14,
+      "windowFree": 751,
+      "l2Bytes": 1250,
+      "levelImageBytes": 2048
+    }
+  ],
+  "H15": {
+    "used": 13,
+    "available": 14
+  },
+  "l2": {
+    "used": 1250,
+    "usable": 1536,
+    "reserve": 256
+  },
+  "level1Flags": "08 08 01 80 00 88 18 08 00",
+  "menuFrames": "NOT RUN: shared boss delta STOP",
+  "smokeATRs": "NONE"
+}

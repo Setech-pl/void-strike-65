@@ -1,0 +1,151 @@
+{
+  "family": "fourth-continuation arena and build",
+  "initialHead": "d7b764c",
+  "result": "BLOCKED_ARENA_SIZE",
+  "lastSuccessfulBuild": {
+    "log": "build/evidence/m3h-step1/continuation4/loaded-x-build.log",
+    "arenaBytes": 827,
+    "arenaCapacity": 832,
+    "arenaFree": 5,
+    "windowUsableFree": 760,
+    "initialContentBytes": 12825,
+    "bootSectors": 101,
+    "records": [
+      {
+        "record": 1,
+        "sectors": 44,
+        "packedBytes": 5590
+      },
+      {
+        "record": 2,
+        "sectors": 10,
+        "packedBytes": 1165
+      },
+      {
+        "record": 3,
+        "sectors": 1,
+        "packedBytes": 105
+      },
+      {
+        "record": 4,
+        "sectors": 4,
+        "packedBytes": 441
+      },
+      {
+        "record": 5,
+        "sectors": 6,
+        "packedBytes": 746
+      },
+      {
+        "record": 6,
+        "sectors": 1,
+        "packedBytes": 23
+      },
+      {
+        "record": 7,
+        "sectors": 6,
+        "packedBytes": 731
+      },
+      {
+        "record": 8,
+        "sectors": 14,
+        "packedBytes": 1671
+      },
+      {
+        "record": 9,
+        "sectors": 9,
+        "packedBytes": 1032
+      },
+      {
+        "record": 10,
+        "sectors": 13,
+        "packedBytes": 1529
+      },
+      {
+        "record": 11,
+        "sectors": 5,
+        "packedBytes": 527
+      }
+    ]
+  },
+  "failingBuild": {
+    "log": "build/evidence/m3h-step1/continuation4/charge-build.log",
+    "segment": "HYBRID_C_ARENA_RODATA",
+    "assertion": "HYBRID_C_ARENA contents exceed 832 B",
+    "arenaBytes": 836,
+    "capacity": 832,
+    "excess": 4,
+    "components": {
+      "ASM": 162,
+      "C": 641,
+      "RODATA": 33
+    },
+    "changeBytes": 9,
+    "A2Used": false,
+    "functionSizes": [
+      {
+        "function": "_enemy_c_heavy_tick",
+        "before": {
+          "bytes": 279,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 296,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 17
+      },
+      {
+        "function": "_bomber_colour",
+        "before": {
+          "bytes": 130,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 122,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": -8
+      },
+      {
+        "function": "_bomber_turn",
+        "before": {
+          "bytes": 19,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 19,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      },
+      {
+        "function": "_bomber_may_fire",
+        "before": {
+          "bytes": 36,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 36,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      },
+      {
+        "function": "_heavy_publish_profile",
+        "before": {
+          "bytes": 66,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 66,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      }
+    ],
+    "packedSizesAndOtherGates": "not produced for the failed source; prior manifest is not current WIP size evidence"
+  },
+  "nativeGateRun": "unused",
+  "smokeATRs": "none"
+}

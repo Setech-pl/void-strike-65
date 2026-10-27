@@ -1599,7 +1599,7 @@ static void bomber_turn(void)
 /* Hull colour of the ticked member: BOMBER_HULL_HUE with the remaining HP as its
  * luminance, brightened while it charges an attack, brighter still for a few
  * frames after a hit. BOMBER_FLASH_LUMA and BOMBER_CHARGE_LUMA are added
- * unclamped, so the worst case must stay inside the hue: HP 4 ($C8) + flash 6
+ * unclamped, so the worst case must stay inside the hue: HP 5 ($CA) + flash 4
  * is $CE. Uses heavy_index only: heavy_scratch carries the tick's return
  * value. */
 static void bomber_colour(void)
@@ -1624,8 +1624,6 @@ static void bomber_colour(void)
             heavy_member_x = heavy_index;
         }
         heavy_member_colour += BOMBER_FLASH_LUMA;
-    } else if (heavy_member_direction == BOMBER_ATTACK) {
-        heavy_member_colour += BOMBER_CHARGE_LUMA;
     }
 }
 
@@ -1695,6 +1693,9 @@ fire:
 colour:
     if (heavy_member_aux >= BOMBER_FLASH_STEP) {
         heavy_member_aux -= BOMBER_FLASH_STEP;
+    } else if (heavy_member_direction == BOMBER_ATTACK) {
+        /* Publish the new attack state on its transition frame, as before. */
+        heavy_member_colour += BOMBER_CHARGE_LUMA;
     }
     if (heavy_member_y == heavy_hold_row && heavy_hold_left[HEAVY_SLOT] != 0u) {
         heavy_index = (uint8_t)(heavy_hold_left[HEAVY_SLOT] - 1u);

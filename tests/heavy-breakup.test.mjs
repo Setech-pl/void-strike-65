@@ -475,12 +475,13 @@ test("world_rotate_due agrees with update_starfield on every frame", () => {
   }
 });
 
-test("the rotate gate adds no byte to the initial block and no sector to any record", () => {
+test("the rotate gate keeps its pin and M3-H preserves the initial block and arena sector count", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. The rotate gate still adds no byte.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623. The rotate gate still adds no byte.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13622 /* RE-PINNED M6 stage 1b: the packed resident runtime, 1 B shorter */);
-  assert.equal(manifest.bootSectors, 107);
+  // M3-H Phase 0 after L1: the Heavy package adds zero initial-content bytes.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12825);
+  assert.equal(manifest.bootSectors, 101);
   // BROADSIDE (extension record 1): the routine replaces zero-pin bytes, so
   // the segment's size, the pin's address and every label after it hold.
   assert.equal(manifest.broadsideRuntime.bytes, 6653);
@@ -496,8 +497,9 @@ test("the rotate gate adds no byte to the initial block and no sector to any rec
   // a gate change, not a pin: the Interceptor's standoff holds each Light slot
   // two rows higher so a swarm stays visually separate, and the window record
   // keeps its 11 sectors only with the afterCleared gate (21 B) moved here.
-  // 14 B is the new floor.
-  assert.ok(manifest.residentCapacity.arena.freeBytes >= 14,
+  // M3-H A1 consumes that tail; the hard limit is the unchanged 832-B arena.
+  assert.equal(manifest.residentCapacity.arena.capacityBytes, 832);
+  assert.ok(manifest.residentCapacity.arena.freeBytes >= 0,
     `arena free ${manifest.residentCapacity.arena.freeBytes} B`);
   assert.equal(manifest.residentCapacity.arena.transport.sectors, 6);
 });

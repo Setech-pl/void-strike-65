@@ -1246,8 +1246,11 @@ against pre-audit L1, restoring clean main's **3,161 B** and **5-B** free tail
 
 ## M3-H Option A — WIP STOP, not a smoke candidate (2026-10-27)
 
-This branch retains the restored A1 implementation at the owner's third
-continuation STOP instruction. The generated map above describes the prior
+This branch retains the restored A1 implementation and fourth-continuation
+WIP under the owner's no-rollback instruction. The last successful loaded-X
+build still uses 827/832 arena B; the current attempted charge-publication
+correction requires **836/832 B (4 over)** and does not link. The tables below
+are the last successful linked allocation, not a size PASS for current source. The generated map above describes the prior
 baseline and has **not been regenerated for this stopped WIP**. These linked
 WIP allocations supersede its old free-range claims on this branch only:
 
@@ -1267,10 +1270,11 @@ Raider Heavy only; bit 4 retains `afterCleared`, bits 6–7 retain Interceptor
 escort loops, including shipped sector-4 flags `$88`. There is no combined
 bits-4–5 trigger-mode field in the implementation.
 
-A1 remains in use; A2 was not applied. Reset now passes (+63 assault, +65
-armoured, +75 Bomber on every difficulty), but the assault standing gate
-fails at **1,202 >1,200 cycles**, fixture frame 188. No native after-gate or
-smoke PASS is claimed. See the [third-continuation audit](audits/2026-10-27-m3h-step1.md#third-continuation--reset-recovered-assault-update-stop).
+A1 remains in use; A2 was not applied. Reset previously passes (+63 assault, +65 armoured, +75 Bomber on every
+difficulty). The loaded-X entry reduces MEDIUM assault maximum to 1,198 at
+zero byte growth; the subsequent charge-publication correction fails at
+836/832 arena B. No native after-gate or smoke PASS is claimed. See the
+[fourth-continuation audit](audits/2026-10-27-m3h-step1.md#fourth-continuation--component-tolerance-and-arena-stop).
 
 ## Capsule boss-stress recovery — OWNER-ACCEPTED (2026-10-22)
 

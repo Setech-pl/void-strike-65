@@ -205,10 +205,11 @@ restored compiler accepts `kind: "assault"` (default) or `"armoured"`, and
 stores the hold; it adds no WaveDef bytes. Rows are 24 + 16n (through 136),
 with Raider holds restricted to 24 or 40; duration is 16–240 frames in
 multiples of 16. Heavy without a hold compiles motion `$00`; Light retains
-`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The implementation
-stopped on the 1,202/1,200 assault-update gate; remaining validation and the
-player-facing EN/PL documentation are pending. See the
-[third-continuation audit](audits/2026-10-27-m3h-step1.md#third-continuation--reset-recovered-assault-update-stop).
+`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The fourth continuation stops on the hard arena size gate (836/832 B) after
+recovering the MEDIUM assault maximum to 1,198 cycles. The current WIP does
+not link; remaining validation and player-facing EN/PL documentation are
+pending. See the
+[fourth-continuation audit](audits/2026-10-27-m3h-step1.md#fourth-continuation--component-tolerance-and-arena-stop).
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every Light wave compiles with `wave_path = $FF`,

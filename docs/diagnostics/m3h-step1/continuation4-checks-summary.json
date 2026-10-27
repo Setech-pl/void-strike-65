@@ -1,0 +1,22 @@
+{
+  "family": "fourth-continuation focused checks",
+  "initialHead": "d7b764c",
+  "lastSuccessfulLoadedX": {
+    "log": "build/evidence/m3h-step1/continuation4/focused-initial.log",
+    "pass": 51,
+    "fail": 8,
+    "featureAndCompilerM3H": {
+      "pass": 7,
+      "fail": 0
+    },
+    "failures": "seven legacy Bomber assumptions/charge publication, one stale initial-block/arena pin"
+  },
+  "excludedRun": {
+    "log": "build/evidence/m3h-step1/continuation4/focused-updated.log",
+    "reason": "Launched after failed link; reads prior linked code with changed sources/tests. Excluded from all current-WIP PASS claims. Its review-variant child reproduces the same 4-B arena overflow."
+  },
+  "requiredCombinedFocusedSet": "NOT RUN: source does not link",
+  "nativeAndSpaceAndBossAndMenu": "NOT RUN: build/focused prerequisite not met",
+  "fullNpmTest": false,
+  "releaseEvidenceRegenerated": false
+}

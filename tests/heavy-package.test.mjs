@@ -57,7 +57,9 @@ test('M3-H assault: opposite descent parity, unchanged pursuit, exact planes and
     frames++;
   }
   assert.equal(frames,668,'full unhit formation lifetime');
-  assert.ok(maximum<=1200,`two-member maximum ${maximum} > 1200`);
+  // Owner amendment 3 (2026-10-27): report >1200; hard STOP above +5%.
+  if(maximum>1200)console.log(JSON.stringify({tolerance:"assault maximum",nominal:1200,measured:maximum,stopAbove:1260}));
+  assert.ok(maximum<=1260,`two-member maximum ${maximum} > 1260 (1200 +5%)`);
   assert.ok(1546-total/samples>=400,`mean ${total/samples}: saving <400`);
   console.log(JSON.stringify({family:'assault',maximum,mean:total/samples,frames}));
 });
@@ -67,7 +69,7 @@ test('M3-H HP, flash hue, and spawn delta on every difficulty',()=>{
     const hp=profile==='assault'?1:(profile==='bomber'?4:2)+(difficulty===2?1:0);
     assert.deepEqual([...m.memory.slice(L('ENEMY_HP'),L('ENEMY_HP')+2)],[hp,hp]);
     const baseline=profile==='bomber'?2245:1612;
-    assert.ok(m.spawn.cycles<=baseline+100,`${profile} reset ${m.spawn.cycles} > ${baseline+100}`);
+    assert.ok(m.spawn.cycles<=baseline+105,`${profile} reset ${m.spawn.cycles} > ${baseline+105}`);
   }
 });
 test('M3-H armoured authored hold and surviving-hit dodge retain Y and the stop',()=>{

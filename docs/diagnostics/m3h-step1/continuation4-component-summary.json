@@ -1,0 +1,240 @@
+{
+  "family": "fourth-continuation component costs",
+  "initialHead": "d7b764c",
+  "basis": "MEASURED NMOS6502 linked d7b764c image; same 16-frame player-X sweep on each difficulty; samples include every post-spawn frame entered with two live members",
+  "distributions": [
+    {
+      "difficulty": 0,
+      "profile": "assault",
+      "frames": 668,
+      "bothLiveFrames": 571,
+      "mean": 1064.3309982486865,
+      "maximum": 1202,
+      "h2": null,
+      "over1200Frames": 1,
+      "maxFrame": 188
+    },
+    {
+      "difficulty": 0,
+      "profile": "armoured",
+      "frames": 668,
+      "bothLiveFrames": 571,
+      "mean": 1176.3730297723293,
+      "maximum": 1314,
+      "h2": {
+        "samples": 1239,
+        "mean": 53.01937046004843,
+        "min": 53,
+        "max": 59,
+        "callAndReturn": 12
+      },
+      "over1200Frames": 369,
+      "maxFrame": 188
+    },
+    {
+      "difficulty": 0,
+      "profile": "armoured-hold",
+      "frames": 732,
+      "bothLiveFrames": 635,
+      "mean": 1129.5070866141732,
+      "maximum": 1314,
+      "h2": {
+        "samples": 1367,
+        "mean": 54.32845647403072,
+        "min": 53,
+        "max": 67,
+        "callAndReturn": 12
+      },
+      "over1200Frames": 369,
+      "maxFrame": 252
+    },
+    {
+      "difficulty": 1,
+      "profile": "assault",
+      "frames": 668,
+      "bothLiveFrames": 571,
+      "mean": 1064.3309982486865,
+      "maximum": 1202,
+      "h2": null,
+      "over1200Frames": 1,
+      "maxFrame": 188
+    },
+    {
+      "difficulty": 1,
+      "profile": "armoured",
+      "frames": 668,
+      "bothLiveFrames": 571,
+      "mean": 1176.3730297723293,
+      "maximum": 1314,
+      "h2": {
+        "samples": 1239,
+        "mean": 53.01937046004843,
+        "min": 53,
+        "max": 59,
+        "callAndReturn": 12
+      },
+      "over1200Frames": 369,
+      "maxFrame": 188
+    },
+    {
+      "difficulty": 1,
+      "profile": "armoured-hold",
+      "frames": 732,
+      "bothLiveFrames": 635,
+      "mean": 1129.5070866141732,
+      "maximum": 1314,
+      "h2": {
+        "samples": 1367,
+        "mean": 54.32845647403072,
+        "min": 53,
+        "max": 67,
+        "callAndReturn": 12
+      },
+      "over1200Frames": 369,
+      "maxFrame": 252
+    },
+    {
+      "difficulty": 2,
+      "profile": "assault",
+      "frames": 668,
+      "bothLiveFrames": 571,
+      "mean": 1064.3309982486865,
+      "maximum": 1202,
+      "h2": null,
+      "over1200Frames": 1,
+      "maxFrame": 188
+    },
+    {
+      "difficulty": 2,
+      "profile": "armoured",
+      "frames": 668,
+      "bothLiveFrames": 571,
+      "mean": 1176.3730297723293,
+      "maximum": 1314,
+      "h2": {
+        "samples": 1239,
+        "mean": 53.01937046004843,
+        "min": 53,
+        "max": 59,
+        "callAndReturn": 12
+      },
+      "over1200Frames": 369,
+      "maxFrame": 188
+    },
+    {
+      "difficulty": 2,
+      "profile": "armoured-hold",
+      "frames": 732,
+      "bothLiveFrames": 635,
+      "mean": 1129.5070866141732,
+      "maximum": 1314,
+      "h2": {
+        "samples": 1367,
+        "mean": 54.32845647403072,
+        "min": 53,
+        "max": 67,
+        "callAndReturn": 12
+      },
+      "over1200Frames": 369,
+      "maxFrame": 252
+    }
+  ],
+  "frame188": {
+    "frame": 188,
+    "cycles": 1202,
+    "liveBefore": [
+      1,
+      1
+    ],
+    "yBefore": [
+      48,
+      96
+    ],
+    "yAfter": [
+      49,
+      96
+    ],
+    "x": [
+      100,
+      120
+    ],
+    "manoeuvre": [
+      0,
+      0
+    ],
+    "timer": [
+      47,
+      48
+    ],
+    "writes": [
+      15,
+      0
+    ],
+    "parts": {
+      "update_interceptor_soft_pursuit": [
+        95,
+        101
+      ],
+      "update_enemy_slot_motion": [
+        219
+      ],
+      "raider_gate": [
+        242,
+        182
+      ],
+      "heavy_member_update": [
+        251,
+        191
+      ],
+      "draw_enemy_member": [
+        512,
+        49
+      ],
+      "erase_enemy_departing_row": [
+        44,
+        23
+      ]
+    }
+  },
+  "toleranceOvershoots": [
+    {
+      "component": "assault update_enemy maximum before loaded-X fix",
+      "nominal": 1200,
+      "measured": 1202,
+      "percentOver": 0.16666666666666666,
+      "stopAbove": 1260,
+      "difficulty": "all three (same path)",
+      "frame": 188,
+      "cause": "P1 accepted crossing entry and body publication; P2 pursuit-only parity hold; both pursue; redundant X reload on moving path",
+      "disposition": "within tolerance; then removed 4 cycles at zero raw/packed-byte growth"
+    }
+  ],
+  "lastLinkedLoadedX": {
+    "difficulty": 1,
+    "maximum": 1198,
+    "mean": 1060.3309982486865,
+    "saving": 485.66900175131354,
+    "frames": 668,
+    "integrity": "focused assault test passed pursuit, implied plane and held-write assertions",
+    "otherDifficultiesAfterFix": "not remeasured before subsequent arena STOP"
+  },
+  "h2": {
+    "inclusiveCallRange": {
+      "unhitFlight": [
+        53,
+        59
+      ],
+      "unhitAuthoredHold": [
+        53,
+        67
+      ]
+    },
+    "crossSegmentJsrRts": 12,
+    "bodyExcludingCallReturnRange": [
+      41,
+      55
+    ],
+    "dodgeCost": "not measured before arena STOP"
+  },
+  "scope": "Original 1200 component maximum and purpose mean apply to assault Raiders; armoured distributions are reported separately, without inventing a numeric limit from a prototype estimate."
+}

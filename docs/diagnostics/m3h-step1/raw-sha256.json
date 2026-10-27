@@ -3,7 +3,7 @@
   "firstContinuationInitialHead": "113c6df",
   "secondContinuationInitialHead": "791a76c",
   "root": "build/evidence/m3h-step1",
-  "result": "BLOCKED_ASSAULT_UPDATE_COST",
+  "result": "BLOCKED_ARENA_SIZE",
   "files": [
     {
       "path": "build/evidence/m3h-step1/baseline-480-build.log",
@@ -3734,6 +3734,146 @@
       "path": "build/evidence/m3h-step1/continuation3/trace-assault-stop.mjs",
       "bytes": 3970,
       "sha256": "8f737d03723a786d0e68dfbf361624b842dc200c78e99a5451e943182d62037d"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/armoured-0-rows.json",
+      "bytes": 251253,
+      "sha256": "bdeced9678aab8644aacbe16e07e0707f59aeea30abbef812856db494ed6f2f8"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/armoured-1-rows.json",
+      "bytes": 251253,
+      "sha256": "bdeced9678aab8644aacbe16e07e0707f59aeea30abbef812856db494ed6f2f8"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/armoured-2-rows.json",
+      "bytes": 251253,
+      "sha256": "bdeced9678aab8644aacbe16e07e0707f59aeea30abbef812856db494ed6f2f8"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/armoured-hold-0-rows.json",
+      "bytes": 273371,
+      "sha256": "4c057fb176be33dc9dd5102fab7a823641ec06f9a38b83b6b5ba10767ff77282"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/armoured-hold-1-rows.json",
+      "bytes": 273371,
+      "sha256": "4c057fb176be33dc9dd5102fab7a823641ec06f9a38b83b6b5ba10767ff77282"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/armoured-hold-2-rows.json",
+      "bytes": 273371,
+      "sha256": "4c057fb176be33dc9dd5102fab7a823641ec06f9a38b83b6b5ba10767ff77282"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/assault-0-rows.json",
+      "bytes": 231492,
+      "sha256": "50508e36d7ee094215e56b399948f41d37a6198976bde98177a6df3995ab45d6"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/assault-1-rows.json",
+      "bytes": 231492,
+      "sha256": "50508e36d7ee094215e56b399948f41d37a6198976bde98177a6df3995ab45d6"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/assault-2-rows.json",
+      "bytes": 231492,
+      "sha256": "50508e36d7ee094215e56b399948f41d37a6198976bde98177a6df3995ab45d6"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/charge-836-generated.s",
+      "bytes": 37773,
+      "sha256": "c3cf661e261e9d118341a400715a5a9fcca7cfc62422b2939d916b655a20274a"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/charge-836.lst",
+      "bytes": 89583,
+      "sha256": "980652d4cc1196936db527903f7b05aa9fe6afb5e49b2a072ef40f3c0a7f57d1"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/charge-build.log",
+      "bytes": 658,
+      "sha256": "634560d9ba1dd14328c88eb15b146ea1a9fd3ffc4f1b3915317eade6c029844d"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/charge-listing.log",
+      "bytes": 79,
+      "sha256": "4f51c7dab292a3430f20145f25f74e9f24ecd878edd065e5f5e6c94508859a19"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/charge-listing.mjs",
+      "bytes": 1530,
+      "sha256": "df67120550c7e74499ed2ebe59f054283f32b81cf6c2ac4fc95abf8887317fe2"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/charge-sizes.json",
+      "bytes": 1067,
+      "sha256": "60fa0f0d3804defa7b2ac6781254825dde01bb1b01a49d4f38f7872b152d7c87"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/distributions.json",
+      "bytes": 149070,
+      "sha256": "72da2e1545b8fb902865b2984a4490f6195611eec42fc8bbf9d4a528f31ad90a"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/distributions.log",
+      "bytes": 2451,
+      "sha256": "33a166f65ea783284dfd0c3156a959a9909b8f5e2c765e012f6da015e7b0f3b8"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/distributions.mjs",
+      "bytes": 4366,
+      "sha256": "f2c06e05719c91df603de9b0fdb92628856a6efd35a955159a9cc98411cbe5bb"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/focused-initial.log",
+      "bytes": 13861,
+      "sha256": "780693890a27d7b5b19b3799e2bfcc7a90f890f8956218b95ead393a1d5a915c"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/focused-updated.log",
+      "bytes": 16569,
+      "sha256": "d0768830dc2e9e448a241d31ba32374182a32c3cd17fb765decec5fdf7a91ce8"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/frame188-instructions.json",
+      "bytes": 66241,
+      "sha256": "7beca7b442467297f882174b029abb9ccff1b7f788296edea3596f4a8b0e0df0"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/loaded-x-build.log",
+      "bytes": 455,
+      "sha256": "2f12fd350e1c1a3116456ac365eb16316ca237c0da92eeb09df37f21845926b2"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/stopped-source/src/c/lifecycle.c",
+      "bytes": 86296,
+      "sha256": "add0706e0eb8b1b2f5c21b1859dc79d7a11d87b02abbfa1da181e45ca3b76a28"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/stopped-source/src/main.s",
+      "bytes": 432701,
+      "sha256": "40557dfa99bc2f29a61e6ae5bf3dd0c38793cc932772d702df2c550b954e7df6"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/stopped-source/tests/heavy-bomber.test.mjs",
+      "bytes": 32011,
+      "sha256": "e348285995673ae6e36fd2864732e87fec3973427c1491523c13fab39fa8c9a5"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/stopped-source/tests/heavy-breakup.test.mjs",
+      "bytes": 25920,
+      "sha256": "ed1de431c885d5470384c5f92e5047f57120475320ab1a108228ba2f0f23c09f"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/stopped-source/tests/heavy-package.test.mjs",
+      "bytes": 6401,
+      "sha256": "3695054fce448bdd07e02a8098d02b7dc86c916237f5c39b6ece7f928b37957b"
+    },
+    {
+      "path": "build/evidence/m3h-step1/continuation4/stopped-source-status.json",
+      "bytes": 319,
+      "sha256": "57f3432da986f858f0d4ae68f875b8c1608aed7d5dd9d849b2d454d2a58b383c"
     },
     {
       "path": "build/evidence/m3h-step1/disk-ledger.json",
@@ -13028,5 +13168,6 @@
   ],
   "totalFiles": 1873,
   "totalBytes": 200800283,
-  "thirdContinuationInitialHead": "4799121"
+  "thirdContinuationInitialHead": "4799121",
+  "fourthContinuationInitialHead": "d7b764c"
 }

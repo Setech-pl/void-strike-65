@@ -56,7 +56,7 @@ const AIM_FRAMES = 20;
 const SALVO_INTERVAL = 8;
 const SALVO_SHELLS = 2;
 // Identity: hue C (green) with the remaining HP as the luminance; the charge
-// (+4) and hit flash (+6) are added on top, unclamped.
+// (+4) and hit flash (+4) are added on top, unclamped.
 // Re-pinned 2026-09-23 from hue 8 (blue). 4.5d's $88 was byte-identical to
 // GAMEPLAY_COLPF1, the allied steel, so the Bomber wore the allied capital
 // hull's own colour and read as friendly at the owner's hardware smoke.
@@ -67,7 +67,7 @@ const BOMBER_HUE = 0xc0;
 const ALLIED_STEEL = [0x88, 0x8a, 0x86, 0x84];
 const HULL_AT = (hp) => BOMBER_HUE | (hp << 1);
 const CHARGE_AT = (hp) => HULL_AT(hp) + 4;
-const FLASH_AT = (hp) => HULL_AT(hp) + 6;
+const FLASH_AT = (hp) => HULL_AT(hp) + 4;
 const HULL = HULL_AT(4);
 const CHARGE = CHARGE_AT(4);
 const FLASH = FLASH_AT(4);
@@ -100,7 +100,8 @@ function run(image, target, { a = 0, x = 0, y = 0 } = {}) {
   return { a: cpu.a, cycles: cpu.cycles };
 }
 
-function game(difficulty = 2) {
+// M3-H: legacy four-HP fixtures use MEDIUM; admission checks cover all three difficulties.
+function game(difficulty = 1) {
   const image = memory();
   image[L("DIFFICULTY_SETTING")] = difficulty;
   run(image, "director_init", { a: 0x6d });
@@ -115,7 +116,7 @@ function game(difficulty = 2) {
 // ("the record index inside the frozen roster, from the byte offset the
 // Director published"). Poking the published offset is now the one legitimate
 // knob, as the schedule index was before it.
-function bomberFormation(difficulty = 2) {
+function bomberFormation(difficulty = 1) {
   const image = game(difficulty);
   image[L("_heavy_archetype_offset")] = OFFSET_BOMBER;
   run(image, "enemy_spawn_raiders");
@@ -124,7 +125,7 @@ function bomberFormation(difficulty = 2) {
 
 const member = (image, slot) => FIELDS.map((field) => image[L(field) + slot]);
 
-function setMember(image, slot, [x, y, direction, fire, turn, aux = 4]) {
+function setMember(image, slot, [x, y, direction, fire, turn, aux = image[L("ENEMY_HP") + slot]]) {
   for (const [index, value] of [x, y, direction, fire, turn, aux].entries())
     image[L(FIELDS[index]) + slot] = value;
 }
@@ -185,9 +186,10 @@ test("Bomber admission publishes its profile and the lane-sweep formation start"
     assert.equal(image[L("enemy_profile_score_bcd")], 0x50);
     assert.equal(image[L("enemy_profile_post_burst_frames")], pause);
     // Slot 0 enters left moving right; slot 1 mirrored and fires 24 frames later.
-    // The sixth byte is the hit-flash byte: last HP 4, no flash.
-    assert.deepEqual(member(image, 0), [48, 0, 1, 48, 60, 4]);
-    assert.deepEqual(member(image, 1), [176, 0, 0xff, 72, 52, 4]);
+    // M3-H: HARD has 5 HP; the auxiliary byte must match to avoid a false hit.
+    const hp = difficulty === 2 ? 5 : 4;
+    assert.deepEqual(member(image, 0), [48, 0, 1, 48, 60, hp]);
+    assert.deepEqual(member(image, 1), [176, 0, 0xff, 72, 52, hp]);
     assert.equal(image[L("enemy_profile_fire_policy_id")], 4, "never the ASM Raider pair burst");
   }
 });
@@ -417,14 +419,14 @@ test("salvo abort: a dying player or a due capital skips the shell and resumes t
 });
 
 test("charge telegraph and hit flash: per-member COLPM, Raider formations untouched", () => {
-  const { frames } = attackRun(2);
+  const { frames } = attackRun(1);
   assert.ok(frames.slice(0, AIM_FRAMES + SALVO_INTERVAL).every(({ colour }) => colour === CHARGE),
     "the hull brightens from the brake to the last shell");
   assert.equal(frames[AIM_FRAMES + SALVO_INTERVAL].colour, HULL, "and dims when it resumes");
   // The ramp itself: every HP step, and every charge/flash combination on it,
   // stays inside hue C ($C0-$CF). HP is existing state, so no new per-slot byte.
   const ramp = [];
-  for (const hp of [4, 3, 2, 1]) {
+  for (const hp of [5, 4, 3, 2, 1]) {
     const cruise = bomberFormation();
     cruise[L("ENEMY_HP")] = hp;
     setMember(cruise, 0, [70, 100, 1, 40, 30, hp]);
@@ -441,10 +443,11 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     ramp.push([hp, base, charged[COLPM1], flashed[COLPM1]]);
   }
   assert.deepEqual(ramp, [
-    [4, 0xc8, 0xcc, 0xce],
-    [3, 0xc6, 0xca, 0xcc],
-    [2, 0xc4, 0xc8, 0xca],
-    [1, 0xc2, 0xc6, 0xc8],
+    [5, 0xca, 0xce, 0xce],
+    [4, 0xc8, 0xcc, 0xcc],
+    [3, 0xc6, 0xca, 0xca],
+    [2, 0xc4, 0xc8, 0xc8],
+    [1, 0xc2, 0xc6, 0xc6],
   ]);
   assert.ok(ramp.every(([, ...colours]) => colours.every((c) => c >= 0xc0 && c <= 0xcf)),
     "no combination overflows hue C");
@@ -461,7 +464,7 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     "the Bomber hull leaves both the allied steel hue and the hostile red hue");
   // A hit (HP 4 -> 3) flashes the member for 6 ticks, over the charge colour,
   // and the hull stays one luma step darker afterwards.
-  const hit = attackRun(2, (image, frame) => { if (frame === 5) image[L("ENEMY_HP")] = 3; }).frames;
+  const hit = attackRun(1, (image, frame) => { if (frame === 5) image[L("ENEMY_HP")] = 3; }).frames;
   assert.deepEqual(hit.slice(4, 13).map(({ colour }) => colour),
     [CHARGE_AT(4), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3),
       FLASH_AT(3), CHARGE_AT(3), CHARGE_AT(3)]);
@@ -475,7 +478,7 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
   assert.equal(member(image, 1)[5], 0x52, "last HP 2, five flash ticks left");
   // Raider formations run the ASM motion and never reach the colour write.
   assert.match(memberSource,
-    /heavy_member_update:\s+lda ENEMY_PROFILE_MOVEMENT_ID\s+bne @policy\s+jmp update_enemy_slot_motion[\s\S]+@store:[\s\S]+ldx ENEMY_TARGET_SLOT\s+lda HEAVY_MEMBER_COLOUR[^\n]*\s+sta COLPM1,x/);
+    /heavy_member_update:\s+lda ENEMY_PROFILE_MOVEMENT_ID\s+bne @policy\s+jmp raider_gate[^\n]*[\s\S]+@store:[\s\S]+ldx ENEMY_TARGET_SLOT\s+lda HEAVY_MEMBER_COLOUR[^\n]*\s+sta COLPM1,x/);
   run(image, "enemy_recycle");
   assert.deepEqual([image[COLPM1], image[COLPM2]], [0x44, 0x44], "recycle still restores $44");
 });
@@ -548,9 +551,10 @@ test("emission: the veneer passes the returned class to the generic allocator (A
 // to be temporary data. The PLACEMENT contract they shared a test with is
 // untouched and still load-bearing, so it keeps its own test, and the wave
 // fields that replaced the schedule are asserted where the schedule was.
-test("placement contract: the Heavy spawn and tick stay in HYBRID_C_ARENA, and the wave names the formation", () => {
-  assert.match(lifecycleSource,
-    /#pragma code-name \("HYBRID_C_ARENA"\)\s+#pragma rodata-name \("HYBRID_C_ARENA_RODATA"\)[\s\S]+void enemy_c_spawn_raiders[\s\S]+uint8_t enemy_c_heavy_tick/);
+test("placement contract: H9 spawn is in the Director window and the Bomber tick stays in the arena", () => {
+  // M3-H Option A relocates H9 before allocating the Bomber arena work.
+  assert.ok(L("_enemy_c_spawn_raiders") >= 0xae00 && L("_enemy_c_spawn_raiders") < 0xb8fb);
+  assert.ok(L("_enemy_c_heavy_tick") >= 0x7bd0 && L("_enemy_c_heavy_tick") < 0x7f10);
   // What replaced the schedule: the armed wave publishes both bytes, and the
   // spawn reads them. No counter, no table.
   assert.match(directorSource,

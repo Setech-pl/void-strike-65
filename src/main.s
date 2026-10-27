@@ -5126,6 +5126,10 @@ enemy_member_screen_y:
 ; Both then descend and release before the unchanged first-capital deadline.
 update_enemy_slot_motion:
     ldx ENEMY_TARGET_SLOT
+; The M3-H gate already holds X = ENEMY_TARGET_SLOT. A named entry skips only
+; this redundant load; the original entry and every CODE byte stay unchanged.
+update_enemy_slot_motion_loaded:
+.assert update_enemy_slot_motion_loaded = update_enemy_slot_motion+3, error, "Raider loaded-X entry moved"
     lda ENEMY_X,x
     sta enemy_x
     lda ENEMY_VELOCITY_X,x
@@ -8086,7 +8090,7 @@ raider_gate:
 @done:
     rts
 @move:
-    jmp update_enemy_slot_motion
+    jmp update_enemy_slot_motion_loaded
 raider_gate_end:
 .assert ENEMY_HP = HEAVY_ABI_HP, lderror, "M3-H HP ABI moved"
 .assert ENEMY_X = HEAVY_ABI_X, lderror, "M3-H X ABI moved"

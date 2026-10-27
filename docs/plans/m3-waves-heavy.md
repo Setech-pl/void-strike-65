@@ -1143,6 +1143,18 @@ path that costs more than `main` beyond the figures this plan names.
   session 1 allows +100 on every difficulty; sessions 1 and 2 together allow
   +150. Phase 0 measured minimum fence 2,856 overall and 3,884 on Heavy rows.
   The minimum fence gate of 500 and SPACE target of 31,500 stay unchanged.
+  **Dated amendment (owner, 2026-10-27, fourth continuation, amendment 3):**
+  component cycle limits have a 5% reported tolerance: the assault pair's
+  per-frame maximum is nominally 1,200, STOP above 1,260; session-1 reset
+  delta is nominally +100, STOP above +105 (not 5% of the whole reset).
+  Report each overshoot with its frame and cause and continue within tolerance.
+  The H1 purpose gate stays hard: the two-live-assault mean over all frames
+  after spawn must be ≤1,146 (saving ≥400 against Phase 0's 1,546).
+  All system gates remain hard: 15-route SPACE peak ≤31,500, fence ≥500,
+  lost-target stress ≤8,500, all byte/sector/boot/initial-content/L2 limits,
+  pursuit equality, implied-body plane equality and zero body writes on hold.
+  Apply the same 5% rule to other stated component-cycle limits, including
+  H2 call cost; this does not turn an estimate into a new numerical limit.
 * **Tests RED on `main`:** `tests/heavy-package.test.mjs` (§3.5), the compiler
   cases in `tests/level-compiler.test.mjs`.
 * **Evidence:** regenerated; replays re-scripted where the capsule cadence

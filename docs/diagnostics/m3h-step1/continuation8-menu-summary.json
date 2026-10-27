@@ -1,0 +1,82 @@
+{
+  "family": "ATR-menu",
+  "date": "2026-10-27",
+  "initialHead": "e4893a7",
+  "measurement": "MEASURED once: Atari800 7.1.2 PAL XL no BASIC, patched OS SIO, checked game menu read uses direct SIO; same mode as handoff598/650",
+  "limit": 650,
+  "atrSha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d",
+  "result": "PASS",
+  "native": {
+    "id": "patch-nobasic",
+    "patch": true,
+    "basic": false,
+    "args": [
+      "-xl",
+      "-pal",
+      "-config",
+      "/Users/marcinkrzetowski/Projects/dark-fighter-m3h/build/atari800-pinned.cfg",
+      "-nobasic",
+      "-nosound",
+      "-turbo",
+      "-no-video-accel",
+      "-no-vsync",
+      "/Users/marcinkrzetowski/Projects/dark-fighter-m3h/build/evidence/m3h-step1/continuation8/menu/patch-nobasic.atr"
+    ],
+    "host_seconds": 0.87,
+    "stop": {
+      "reason": "pc",
+      "pc": "$2210",
+      "label": "frontend_input_poll",
+      "frame": 604,
+      "skctl": "$03",
+      "audctl": "$00"
+    },
+    "command_frames": 11,
+    "read_commands": 11,
+    "sectors_read": 11,
+    "highest_sector": 250,
+    "sectors_retried": 0,
+    "naks": 0,
+    "errors": 0,
+    "no_reply": 0,
+    "complete_without_data_frame": 0,
+    "first_sector_without_data_frame": null,
+    "siov_calls": 215,
+    "siov_read_calls_dstats_not_40": 0,
+    "first_siov_dstats_not_40": null,
+    "milestones": {
+      "start": 247,
+      "show_loader": 305,
+      "enter_main_menu": 561,
+      "sector_reader_quiesce_done": 602,
+      "frontend_input_poll": 604
+    },
+    "skctl_at": [
+      {
+        "label": "start",
+        "frame": 247,
+        "skctl": "$03"
+      },
+      {
+        "label": "show_loader",
+        "frame": 305,
+        "skctl": "$03"
+      },
+      {
+        "label": "enter_main_menu",
+        "frame": 561,
+        "skctl": "$03"
+      },
+      {
+        "label": "sector_reader_quiesce_done",
+        "frame": 602,
+        "skctl": "$03"
+      },
+      {
+        "label": "frontend_input_poll",
+        "frame": 604,
+        "skctl": "$03"
+      }
+    ]
+  }
+}

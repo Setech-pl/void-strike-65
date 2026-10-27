@@ -1,0 +1,35 @@
+{
+  "family": "fifth-continuation 720 SPACE fixtures",
+  "initialHead": "fec43c1",
+  "cases": 720,
+  "measurement": "CPU-only NMOS6502, same 720 inputs and state mask as Phase 0; no DMA/frame-wall inference",
+  "deltaCounts": {
+    "0": 396,
+    "50": 324
+  },
+  "maximumBefore": 6180,
+  "maximumAfter": 6230,
+  "stateHashDifferences": 720,
+  "byDifficulty": [
+    {
+      "difficulty": 0,
+      "cases": 240,
+      "maxBefore": 6180,
+      "maxAfter": 6230
+    },
+    {
+      "difficulty": 1,
+      "cases": 240,
+      "maxBefore": 6180,
+      "maxAfter": 6230
+    },
+    {
+      "difficulty": 2,
+      "cases": 240,
+      "maxBefore": 6180,
+      "maxAfter": 6230
+    }
+  ],
+  "perFixtureRaw": "build/evidence/m3h-step1/continuation5/space-comparison.json",
+  "note": "Full state equality is not claimed; Heavy metadata publication and new state exist. State hash differences not isolated before STOP."
+}

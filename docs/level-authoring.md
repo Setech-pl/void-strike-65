@@ -194,11 +194,28 @@ elite companion and boss escort alike - and flashes its red pods for 3 frames
 on each hit it survives; plan a sector's length with three hits per
 Interceptor in mind (level 1's road with the sweep bot: 68.8 / 65.5 / 56.1 s
 on EASY / MEDIUM / HARD before, 75.7 / 75.7 / 65.5 s after). Wave flags bit 5
-stays unused: the Phase A review variants' `armour` field is not part of the
-format.
+was unused before M3-H. **Owner-approved M3-H Option A (2026-10-27)** assigns
+it to `kind: "armoured"` on non-boss Raider Heavy waves only; Bomber, Light
+and boss waves refuse it. Bits 6–7 retain Interceptor escort-loop encoding,
+including level 1's sector-4 Heavy flags `$88`.
+
+**Stopped WIP on `codex/m3h-step1`, not a validated authoring baseline:** the
+restored compiler accepts `kind: "assault"` (default) or `"armoured"`, and
+`hold: {row, frames}` for Bomber or armoured Raider. The existing motion byte
+stores the hold; it adds no WaveDef bytes. Rows are 24 + 16n (through 136),
+with Raider holds restricted to 24 or 40; duration is 16–240 frames in
+multiples of 16. Heavy without a hold compiles motion `$00`; Light retains
+`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The sixth continuation keeps A2, links at 827/832 arena B and leaves 746
+usable window B free. Kind/hold metadata is published on a **successful Heavy
+request**, from the armed wave at cursor−1, before its spawn; shared wave arm
+and boss callbacks do no new Heavy work. Focused checks and all boss-stress
+compositions pass. This remains **stopped WIP** because the registered native
+capital ceiling fails at 30,025/29,756; no smoke candidate or native authored
+level-2 PASS is claimed. See the
+[sixth-continuation audit](audits/2026-10-27-m3h-step1.md#sixth-continuation--boss-deltas-fixed-native-capital-ceiling-stop).
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
-and a file naming one is rejected. Every wave compiles with `wave_path = $FF`,
+and a file naming one is rejected. Every Light wave compiles with `wave_path = $FF`,
 "the archetype's own movement".
 
 ## What the compiler refuses

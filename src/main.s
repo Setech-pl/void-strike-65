@@ -5126,6 +5126,10 @@ enemy_member_screen_y:
 ; Both then descend and release before the unchanged first-capital deadline.
 update_enemy_slot_motion:
     ldx ENEMY_TARGET_SLOT
+; The M3-H gate already holds X = ENEMY_TARGET_SLOT. A named entry skips only
+; this redundant load; the original entry and every CODE byte stay unchanged.
+update_enemy_slot_motion_loaded:
+.assert update_enemy_slot_motion_loaded = update_enemy_slot_motion+3, error, "Raider loaded-X entry moved"
     lda ENEMY_X,x
     sta enemy_x
     lda ENEMY_VELOCITY_X,x
@@ -8055,7 +8059,44 @@ world_rotate_due:
     rts
 world_rotate_due_end:
 .assert world_rotate_due = WORLD_ROTATE_DUE, lderror, "world_rotate_due moved: set WORLD_ROTATE_DUE in src/hybrid/c-asm-abi.s to its new address"
-    .res 120-(world_rotate_due_end-hull_sequence_reserve), $00
+; H1: preserve pursuit on every normal/held frame, skip descent by C's mask.
+; Opposite parity for P1/P2. No original CODE or STARFIELD entry grows.
+raider_gate:
+    lda HEAVY_ARMOURED
+    beq @rate
+    jsr HEAVY_ARMOURED_TICK
+    bmi @done
+    bne @pursue
+@rate:
+    txa
+    eor frame_counter
+    and HEAVY_DESCENT_MASK
+    beq @move
+@pursue:
+    lda ENEMY_X,x
+    sta enemy_x
+    lda ENEMY_VELOCITY_X,x
+    sta enemy_velocity_x
+    lda ENEMY_MOVE_ACCUMULATOR,x
+    sta INTERCEPTOR_MOVE_ACCUMULATOR
+    jsr update_interceptor_soft_pursuit
+    ldx ENEMY_TARGET_SLOT
+    lda enemy_x
+    sta ENEMY_X,x
+    lda enemy_velocity_x
+    sta ENEMY_VELOCITY_X,x
+    lda INTERCEPTOR_MOVE_ACCUMULATOR
+    sta ENEMY_MOVE_ACCUMULATOR,x
+@done:
+    rts
+@move:
+    jmp update_enemy_slot_motion_loaded
+raider_gate_end:
+.assert ENEMY_HP = HEAVY_ABI_HP, lderror, "M3-H HP ABI moved"
+.assert ENEMY_X = HEAVY_ABI_X, lderror, "M3-H X ABI moved"
+.assert ENEMY_Y = HEAVY_ABI_Y, lderror, "M3-H Y ABI moved"
+.assert player_x = HEAVY_ABI_PLAYER_X, lderror, "M3-H player ABI moved"
+    .res 120-(*-hull_sequence_reserve), $00
 .assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 960-row coordinate"
 
 .segment "BROADSIDE"

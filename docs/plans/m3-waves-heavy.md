@@ -1136,9 +1136,54 @@ path that costs more than `main` beyond the figures this plan names.
   record 1 or record 7 gaining a sector; the Raider's pursuit differing from
   `main`'s frame by frame. **The spawn row (owner, 2026-10-02):** `reset_enemy`
   measured natively (`scripts/measure-population-harness.mjs`) more than
-  **+75** cycles over `main`'s 1,613 for a Raider formation or 2,245 for a
+  **+100** cycles over Phase 0's 1,612 for a Raider formation or 2,245 for a
   Bomber formation is a STOP; a worst fence margin under **1,100** is reported
   with its row before the session continues.
+  **Dated amendment (owner, 2026-10-27, third continuation, amendment 1):**
+  session 1 allows +100 on every difficulty; sessions 1 and 2 together allow
+  +150. Phase 0 measured minimum fence 2,856 overall and 3,884 on Heavy rows.
+  The minimum fence gate of 500 and SPACE target of 31,500 stay unchanged.
+  **Dated amendment (owner, 2026-10-27, fourth continuation, amendment 3):**
+  component cycle limits have a 5% reported tolerance: the assault pair's
+  per-frame maximum is nominally 1,200, STOP above 1,260; session-1 reset
+  delta is nominally +100, STOP above +105 (not 5% of the whole reset).
+  Report each overshoot with its frame and cause and continue within tolerance.
+  The H1 purpose gate stays hard: the two-live-assault mean over all frames
+  after spawn must be ≤1,146 (saving ≥400 against Phase 0's 1,546).
+  All system gates remain hard: 15-route SPACE peak ≤31,500, fence ≥500,
+  lost-target stress ≤8,500, all byte/sector/boot/initial-content/L2 limits,
+  pursuit equality, implied-body plane equality and zero body writes on hold.
+  Apply the same 5% rule to other stated component-cycle limits, including
+  H2 call cost; this does not turn an estimate into a new numerical limit.
+  **Dated amendment (owner, 2026-10-27, fifth continuation, amendment 4):**
+  apply A2 now: move the 9-B `heavy_profile_fields` table to appended record-8
+  RODATA beside H9. Further arena-to-window moves are delegated if needed,
+  choosing the smallest, least frequent cold code/data first (spawn/hit/tables
+  before per-frame Bomber tick code). Preserve behavior and report bytes and
+  cycles per move. Hard placement conditions: arena ≤832 B, record 7 remains
+  6 sectors, usable window free after session 1 ≥650 B, record 8 grows by at
+  most 3 sectors over Phase 0's 11. A per-frame code move also remains subject
+  to amendment 3's component tolerance. STOP only if these conditions cannot
+  be met; the earlier A1-only placement restriction is superseded.
+  **Dated owner clarification (2026-10-27, sixth continuation):** every
+  reachable lost-target boss-stress composition, with and without the lance,
+  must stay ≤8,500 and ≤+2 cycles over main. This is a hard shared-path bound,
+  with no component tolerance. Keep shared function addresses/page alignment
+  or remove unconditional Heavy work; do not accept the delta. H4 publication
+  may execute at the already-approved successful Heavy-admission boundary.
+  **Dated amendment (owner, 2026-10-27, eighth continuation, amendment 5):**
+  the registered sampled capital replay ceiling becomes **30,025**, from 29,756.
+  The preserved EASY campaign peak reproduces **exactly on main**, with the
+  WIP world/audio state applied to mutable RAM and no code, level-data, clock,
+  CPU-register or PAL-token change; all 23 segment costs match. Audio bytes and
+  call paths are identical. Changed Heavy kill/hit timing moves the capital
+  shell impact onto the existing music row's two-note update. The 31,500
+  ordinary-iteration target, fence, boss, memory and other hard gates remain
+  unchanged. This is not a general capital workload allowance: the
+  [capital-content follow-up](../plan-realizacji.md#capital-content-spike--measurement-prerequisites-2026-10-27)
+  must budget the worst capital cost without audio plus the most expensive
+  audio frame. Early Heavy departure/admission cutoff is recorded there for
+  that follow-up and is **not implemented in M3-H session 1**.
 * **Tests RED on `main`:** `tests/heavy-package.test.mjs` (§3.5), the compiler
   cases in `tests/level-compiler.test.mjs`.
 * **Evidence:** regenerated; replays re-scripted where the capsule cadence
@@ -1162,9 +1207,12 @@ path that costs more than `main` beyond the figures this plan names.
   over 1,100 cycles; a plane byte differing from the body its member's Y and
   damage stage imply on any frame; any cost on a frame with nothing pending.
   **The spawn row (owner, 2026-10-02):** `reset_enemy` measured natively more
-  than **+125** cycles over the same `main` figures (1,613 Raider, 2,245
+  than **+150** cycles over the same Phase 0 figures (1,612 Raider, 2,245
   Bomber; sessions 1 and 2 together) is a STOP; a worst fence margin under
   **1,100** is reported with its row before the session continues.
+  **Dated amendment (owner, 2026-10-27, third continuation, amendment 1):**
+  +150 is the combined session-1/session-2 limit on every difficulty; this
+  supersedes the 2026-10-02 +125 limit. The fence gates remain unchanged.
 * **Tests RED on `main`:** `tests/heavy-looks.test.mjs` (§3.5).
 * **Evidence:** regenerated (the body copy changes on every frame).
 * **Smoke:** level 2 — the armoured Raider is told from the assault Raider at a
@@ -1224,7 +1272,7 @@ session's scope or a §8.1 row.
 | B | **Which levers pay the window, and when** (budget item 6) | **Unchanged — still open:** decided after the boss plan (M5), before this plan's session 1 | §6.3: 738 → 1,058 B short when the sessions start; `LEVEL_BUFFER` + the `STARFIELD` tail + the arena and pins give 675, the splash RAM 512 more |
 | C | **Assault Raider at today's full speed** | **No. Keep the decided descent** | §6.1: the worst margin is the same either way (1,235 → 1,175, the spawn row); full speed would give up ~930 of margin on Raider kill and standing rows and cost ~97 there; DMA-on maximum 31,133 either way. §8.1 item 1 is left as worded |
 | D | **A dated note in `budget-1.0.md`** saying that its M3 / M3-H cycle lines are superseded by §1.4 and §6.1 here | **Yes — done** with this revision; the only change outside this file | three lines under the budget's "Amended" paragraph; nothing else in the budget is rewritten |
-| E | **STOP lines for the spawn row in sessions 1 and 2** | **Yes — done** (§7) | `reset_enemy` natively no more than +75 over `main`'s 1,613 (Raider) and 2,245 (Bomber) after session 1 and no more than +125 after session 2; a worst fence margin under 1,100 is reported with its row before the session continues. The common STOP at 500 stays |
+| E | **STOP lines for the spawn row in sessions 1 and 2** | **Yes — done** (§7) | `reset_enemy` natively no more than +100 over Phase 0's 1,612 (Raider) and 2,245 (Bomber) after session 1 and no more than +150 after session 2 (owner amendment, 2026-10-27; supersedes the +75/+125 decision of 2026-10-02); a worst fence margin under 1,100 is reported with its row before the session continues. The common STOP at 500 stays |
 | F | **Two readings in the re-base brief that differ from §8.1** | **§8.1 wins on both:** M4 and M5 come before this plan's sessions; the armoured Raider's hit points are 2 / 2 / 3 | no figure changes: §6.3 is already in that order and §3.1 already has 2 / 2 / 3 |
 
 ### 8.2a Note — the Bomber at 1 HP (owner, 2026-10-06)

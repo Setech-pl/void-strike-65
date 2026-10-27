@@ -1,0 +1,441 @@
+{
+  "family": "capital-peak-attribution",
+  "date": "2026-10-27",
+  "initialHead": "81b1e26",
+  "mainHead": "8e1dface4238a968ea2703eca34ebde5941d0e87",
+  "result": "BLOCKED_NATIVE_CAPITAL_PEAK",
+  "measurement": "MEASURED: read-only analysis of preserved sixth-continuation and Phase 0 PAL captures; no new replay",
+  "failing": {
+    "route": "campaign-0-flight",
+    "frame": 1644,
+    "hostFrame": 2523,
+    "cycles": 30025,
+    "capitalLimit": 29756,
+    "capitalState": 2,
+    "excess": 269
+  },
+  "mainCapitalMaximum": {
+    "frame": 1604,
+    "hostFrame": 2475,
+    "cycles": 29731
+  },
+  "segments": [
+    {
+      "name": "projectile erase /loop entry",
+      "main": 27,
+      "wip": 27,
+      "delta": 0
+    },
+    {
+      "name": "entity erase",
+      "main": 114,
+      "wip": 114,
+      "delta": 0
+    },
+    {
+      "name": "active gameplay/capsule",
+      "main": 115,
+      "wip": 115,
+      "delta": 0
+    },
+    {
+      "name": "shared and capital frame visuals",
+      "main": 320,
+      "wip": 320,
+      "delta": 0
+    },
+    {
+      "name": "player lifecycle/input/entry",
+      "main": 350,
+      "wip": 350,
+      "delta": 0
+    },
+    {
+      "name": "enemy/L2 integration",
+      "main": 477,
+      "wip": 477,
+      "delta": 0
+    },
+    {
+      "name": "fighter projectile update",
+      "main": 990,
+      "wip": 990,
+      "delta": 0
+    },
+    {
+      "name": "player/enemy contact",
+      "main": 36,
+      "wip": 36,
+      "delta": 0
+    },
+    {
+      "name": "broadside update",
+      "main": 1956,
+      "wip": 1956,
+      "delta": 0
+    },
+    {
+      "name": "enemy damage resolution",
+      "main": 41,
+      "wip": 41,
+      "delta": 0
+    },
+    {
+      "name": "remaining collisions",
+      "main": 12,
+      "wip": 12,
+      "delta": 0
+    },
+    {
+      "name": "player fighter weapon",
+      "main": 65,
+      "wip": 68,
+      "delta": 3
+    },
+    {
+      "name": "enemy weapon",
+      "main": 85,
+      "wip": 85,
+      "delta": 0
+    },
+    {
+      "name": "world/ring",
+      "main": 4122,
+      "wip": 4122,
+      "delta": 0
+    },
+    {
+      "name": "hull contact",
+      "main": 14553,
+      "wip": 14559,
+      "delta": 6
+    },
+    {
+      "name": "entity/light update",
+      "main": 292,
+      "wip": 291,
+      "delta": -1
+    },
+    {
+      "name": "effect/explosion visuals",
+      "main": 1958,
+      "wip": 1898,
+      "delta": -60
+    },
+    {
+      "name": "capital shell overlays",
+      "main": 116,
+      "wip": 118,
+      "delta": 2
+    },
+    {
+      "name": "entity render",
+      "main": 28,
+      "wip": 52,
+      "delta": 24
+    },
+    {
+      "name": "sector completion",
+      "main": 196,
+      "wip": 168,
+      "delta": -28
+    },
+    {
+      "name": "projectile publication",
+      "main": 3212,
+      "wip": 3246,
+      "delta": 34
+    },
+    {
+      "name": "audio: update_sound + gameplay music",
+      "main": 603,
+      "wip": 943,
+      "delta": 340
+    },
+    {
+      "name": "loop tail/invulnerability",
+      "main": 63,
+      "wip": 37,
+      "delta": -26
+    }
+  ],
+  "totalDelta": 294,
+  "audioDelta": 340,
+  "otherDelta": -46,
+  "peakSnapshot": {
+    "rowIndex": 1644,
+    "frame": 1644,
+    "PMG1Nonzero": 0,
+    "PMG2Nonzero": 0,
+    "enemy": {
+      "address": 20173,
+      "captured": true,
+      "values": [
+        0
+      ]
+    },
+    "shape": {
+      "address": 20171,
+      "captured": true,
+      "values": [
+        2
+      ]
+    },
+    "memberState": {
+      "address": 21616,
+      "captured": true,
+      "values": [
+        0,
+        0
+      ]
+    },
+    "HP": {
+      "address": 21618,
+      "captured": true,
+      "values": [
+        4,
+        3
+      ]
+    },
+    "Y": {
+      "address": 21626,
+      "captured": true,
+      "values": [
+        240,
+        240
+      ]
+    },
+    "projectileSlots": {
+      "address": 21504,
+      "captured": true,
+      "values": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "breakupPending": {
+      "address": 33064,
+      "captured": true,
+      "values": [
+        0
+      ]
+    },
+    "effectMask": {
+      "address": 32896,
+      "captured": true,
+      "values": [
+        0
+      ]
+    },
+    "fighterExplosionTimers": {
+      "address": 21610,
+      "captured": true,
+      "values": [
+        0,
+        0
+      ]
+    },
+    "fireTimer": {
+      "address": 136,
+      "captured": true,
+      "values": [
+        52
+      ]
+    },
+    "hitTimer": {
+      "address": 137,
+      "captured": true,
+      "values": [
+        0
+      ]
+    },
+    "damageTimer": {
+      "address": 138,
+      "captured": true,
+      "values": [
+        0
+      ]
+    },
+    "capitalExplosionTimers": {
+      "address": 20142,
+      "captured": true,
+      "values": [
+        24,
+        0
+      ]
+    },
+    "capitalSoundTimer": {
+      "address": 20168,
+      "captured": true,
+      "values": [
+        23
+      ]
+    },
+    "musicFrame": {
+      "address": 42712,
+      "captured": false,
+      "values": null
+    }
+  },
+  "audioState": {
+    "mainMaximum": {
+      "music_active": 1,
+      "sound_enabled": 1,
+      "player_health": 2,
+      "player_damage_cooldown": 9,
+      "player_damage_cooldown_after": 8,
+      "player_burst_state": 2,
+      "player_burst_remaining": 0,
+      "player_burst_timer": 9,
+      "audf1": 71,
+      "audc1": 0,
+      "update_sound_calls": 1
+    },
+    "wipMaximum": {
+      "music_active": 1,
+      "sound_enabled": 1,
+      "player_health": 6,
+      "player_damage_cooldown": 9,
+      "player_damage_cooldown_after": 8,
+      "player_burst_state": 1,
+      "player_burst_remaining": 1,
+      "player_burst_timer": 8,
+      "audf1": 90,
+      "audc1": 167,
+      "update_sound_calls": 1
+    }
+  },
+  "boundaryTimeline": {
+    "main": {
+      "lastFormationSpawnFrame": 356,
+      "archetype": "Bomber",
+      "firstDirectorCapitalFrame": 679,
+      "directorCapitalHeavyRows": 225,
+      "lastHeavyLiveFrame": 903,
+      "firstFullyClearFrame": 904,
+      "firstVisualCapitalFrame": 906,
+      "clearedBeforeDirectorCapital": false,
+      "clearLeadBeforeVisualCapital": 2
+    },
+    "wip": {
+      "lastFormationSpawnFrame": 391,
+      "archetype": "Bomber",
+      "firstDirectorCapitalFrame": 704,
+      "directorCapitalHeavyRows": 240,
+      "lastHeavyLiveFrame": 943,
+      "firstFullyClearFrame": 944,
+      "firstVisualCapitalFrame": 946,
+      "clearedBeforeDirectorCapital": false,
+      "clearLeadBeforeVisualCapital": 2
+    }
+  },
+  "clearRows": {
+    "main": [
+      {
+        "frame": 904,
+        "start_host_frame": 1775,
+        "director_sector": 1,
+        "sector_state": 7,
+        "enemy_live_count": 0,
+        "enemy_member0_state": 0,
+        "enemy_member1_state": 0,
+        "enemy_pmg_rows1": 0,
+        "enemy_pmg_rows2": 0,
+        "enemy_projectiles": 0,
+        "effect_active_count": 0,
+        "entity_active_mask": 0,
+        "light_state0": 0,
+        "light_state1": 0,
+        "light_state2": 0,
+        "light_state3": 0
+      }
+    ],
+    "wip": [
+      {
+        "frame": 944,
+        "start_host_frame": 1823,
+        "director_sector": 1,
+        "sector_state": 7,
+        "enemy_live_count": 0,
+        "enemy_member0_state": 0,
+        "enemy_member1_state": 0,
+        "enemy_pmg_rows1": 0,
+        "enemy_pmg_rows2": 0,
+        "enemy_projectiles": 0,
+        "effect_active_count": 0,
+        "entity_active_mask": 0,
+        "light_state0": 0,
+        "light_state1": 0,
+        "light_state2": 0,
+        "light_state3": 0
+      },
+      {
+        "frame": 1643,
+        "start_host_frame": 2522,
+        "director_sector": 1,
+        "sector_state": 2,
+        "enemy_live_count": 0,
+        "enemy_member0_state": 0,
+        "enemy_member1_state": 0,
+        "enemy_pmg_rows1": 0,
+        "enemy_pmg_rows2": 0,
+        "enemy_projectiles": 0,
+        "effect_active_count": 0,
+        "entity_active_mask": 0,
+        "light_state0": 0,
+        "light_state1": 0,
+        "light_state2": 0,
+        "light_state3": 0
+      },
+      {
+        "frame": 1644,
+        "start_host_frame": 2523,
+        "director_sector": 1,
+        "sector_state": 2,
+        "enemy_live_count": 0,
+        "enemy_member0_state": 0,
+        "enemy_member1_state": 0,
+        "enemy_pmg_rows1": 0,
+        "enemy_pmg_rows2": 0,
+        "enemy_projectiles": 0,
+        "effect_active_count": 0,
+        "entity_active_mask": 0,
+        "light_state0": 0,
+        "light_state1": 0,
+        "light_state2": 0,
+        "light_state3": 0
+      }
+    ]
+  },
+  "conditionalDecision": {
+    "heavyOrDirectResidualAtFailingRow": false,
+    "earlierHeavyInDirectorCapitalOnBothBuilds": true,
+    "causeAttribution": "The +294 versus the main route capital maximum consists of audio +340 and all other stages -46. No Heavy, body, hostile shot, breakup, or fighter-explosion tail is present at the failing row. Earlier drain coexistence does not establish that the peak is direct Heavy work.",
+    "step2Applied": false,
+    "productionChanged": false,
+    "sixthContinuationH4FixPreserved": true,
+    "newNativeRuns": 0,
+    "menuMeasured": false,
+    "smokeATRsProduced": false
+  },
+  "limits": "Per-segment wall-time comparison of two route maxima, not identical gameplay/audio states. The masked snapshot does not contain gm_frame; the +340 audio-stage delta is not split into sound versus music or claimed as an audio-code regression.",
+  "sources": {
+    "mainCsv": "build/evidence/m3h-step1/native/campaign-0-flight/campaign-0-flight.csv",
+    "wipCsv": "build/evidence/m3h-step1/continuation6/native/campaign-0-flight/campaign-0-flight.csv",
+    "wipSnapshots": "build/evidence/m3h-step1/continuation6/native/campaign-0-flight/campaign-0-flight-snapshots.bin.gz",
+    "wipStates": "build/evidence/m3h-step1/continuation6/native/campaign-0-flight/campaign-0-flight-states.csv",
+    "snapshotSchema": "build/evidence/m3h-step1/continuation6/inputs/campaign/frame-state-schema.json",
+    "snapshotMask": "build/evidence/m3h-step1/continuation6/inputs/campaign/frame-state-mask.bin",
+    "analysis": "build/evidence/m3h-step1/continuation7/attribute.mjs",
+    "rawAttribution": "build/evidence/m3h-step1/continuation7/attribution.json",
+    "rawBoundaryHistory": "build/evidence/m3h-step1/continuation7/capital-boundary-history.json"
+  }
+}

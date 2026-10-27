@@ -312,6 +312,9 @@ test("the stat hooks are operand-only in every full segment", () => {
   }
   const after = (label, lines) => source.slice(source.indexOf(`\n${label}:`) + 1)
     .split(/\r?\n/).slice(0, lines).join("\n");
+  assert.match(after("publish_fighter_projectile_overlays", 32),
+    /@fighter_window:\s*\n\s*jsr SECTOR_READER_STATS_FIGHTER[\s\S]*?ldx #\$77\s*\n\s*jsr wait_frame_at_line/,
+    "Option A performs fighter statistics before the fixed publication wait");
   assert.match(after("render_launch_flashes_with_capital_debris", 5),
     /jsr SECTOR_READER_STATS_CAPITAL/);
   assert.match(after("add_archetype_score_tail", 12), /jmp SECTOR_READER_STATS_KILL/);

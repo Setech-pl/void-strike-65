@@ -1,0 +1,245 @@
+{
+  "baseline": "8e1dface4238a968ea2703eca34ebde5941d0e87",
+  "result": "OWNER_DECISION_REQUIRED",
+  "measurement": "MEASURED current linked baseline; projections are ESTIMATE",
+  "initial": {
+    "used": 12825,
+    "stop": 13652,
+    "free": 827,
+    "physicalCapacity": 13684,
+    "bootSectors": 101
+  },
+  "window": {
+    "used": 1656,
+    "capacity": 3584,
+    "totalFree": 1928,
+    "lance": 768,
+    "protected": 5,
+    "usableFree": 1155,
+    "projection": {
+      "basis": "ESTIMATE primary plan budget, relocating H2 into Director window record 8",
+      "session1": 352,
+      "session2": 114,
+      "session3": 524,
+      "freeAfterSession1": 803,
+      "freeAfterAll": 165
+    }
+  },
+  "arena": {
+    "used": 818,
+    "capacity": 832,
+    "free": 14,
+    "projection": {
+      "basis": "ESTIMATE primary plan H9 -143, H5/H7/H8 +83",
+      "used": 758,
+      "free": 74
+    }
+  },
+  "director": {
+    "used": 634,
+    "capacity": 645,
+    "free": 11
+  },
+  "lightMain": {
+    "used": 1196,
+    "capacity": 1213,
+    "free": 17
+  },
+  "l2": {
+    "used": 1250,
+    "usable": 1536,
+    "free": 286,
+    "protected": 256
+  },
+  "projectiles": {
+    "damageBuffer": {
+      "start": 21662,
+      "end": 21693,
+      "bytes": 32,
+      "session1Consumer": false
+    },
+    "tail": 38
+  },
+  "H15": {
+    "ranges": [
+      {
+        "start": 33083,
+        "end": 33087,
+        "bytes": 5
+      },
+      {
+        "start": 34278,
+        "end": 34286,
+        "bytes": 9
+      }
+    ],
+    "available": 14,
+    "planRequired": 13,
+    "freeAfter": 1,
+    "initialization": "after boot; never assume zero"
+  },
+  "pin": {
+    "start": 27095,
+    "bytes": 120,
+    "worldRotateBytes": 17,
+    "free": 103,
+    "codebook": 16
+  },
+  "H2": {
+    "budget": 96,
+    "plannedDestinationCurrentFree": 17,
+    "shortfall": 79,
+    "pickupFallbackFree": 7,
+    "pickupFallbackShortfall": 89
+  },
+  "payload": {
+    "bytes": 256,
+    "hullParams": 22,
+    "heavyLookSession2": 17,
+    "remainingAfterHeavyLook": 5,
+    "pathReserve": 96
+  },
+  "records": [
+    {
+      "record": 1,
+      "sectors": 44,
+      "raw": 6653,
+      "packed": 5531,
+      "capacity": 5611,
+      "free": 80,
+      "destination": 24080
+    },
+    {
+      "record": 2,
+      "sectors": 10,
+      "raw": 1165,
+      "packed": 1165,
+      "capacity": 1259,
+      "free": 94,
+      "destination": 35968
+    },
+    {
+      "record": 3,
+      "sectors": 1,
+      "raw": 106,
+      "packed": 105,
+      "capacity": 107,
+      "free": 2,
+      "destination": 32792
+    },
+    {
+      "record": 4,
+      "sectors": 4,
+      "raw": 498,
+      "packed": 441,
+      "capacity": 491,
+      "free": 50,
+      "destination": 39744
+    },
+    {
+      "record": 5,
+      "sectors": 6,
+      "raw": 746,
+      "packed": 746,
+      "capacity": 747,
+      "free": 1,
+      "destination": 30736
+    },
+    {
+      "record": 6,
+      "sectors": 1,
+      "raw": 21,
+      "packed": 23,
+      "capacity": 107,
+      "free": 84,
+      "destination": 40286
+    },
+    {
+      "record": 7,
+      "sectors": 6,
+      "raw": 818,
+      "packed": 740,
+      "capacity": 747,
+      "free": 7,
+      "destination": 31696
+    },
+    {
+      "record": 8,
+      "sectors": 11,
+      "raw": 1656,
+      "packed": 1315,
+      "capacity": 1387,
+      "free": 72,
+      "destination": 44544
+    },
+    {
+      "record": 9,
+      "sectors": 9,
+      "raw": 1196,
+      "packed": 1032,
+      "capacity": 1131,
+      "free": 99,
+      "destination": 13891
+    },
+    {
+      "record": 10,
+      "sectors": 13,
+      "raw": 1529,
+      "packed": 1529,
+      "capacity": 1643,
+      "free": 114,
+      "destination": 40960
+    },
+    {
+      "record": 11,
+      "sectors": 5,
+      "raw": 634,
+      "packed": 527,
+      "capacity": 619,
+      "free": 92,
+      "destination": 40309
+    }
+  ],
+  "formatConflict": {
+    "plan": "wave_flags bit 6 = armoured",
+    "current": "wave_flags bits 6-7 = Interceptor loops, including Heavy escorts",
+    "example": {
+      "assaultHeavyWithOneEscortLoop": 72,
+      "armouredHeavyWithNoEscortLoops": 72,
+      "ambiguous": true
+    },
+    "proposedUnusedBit": 5
+  },
+  "levelImage": {
+    "used": 2048,
+    "capacity": 2048,
+    "sectors": 16,
+    "physicalFree": 0,
+    "payloadSlackSource": "hull_params 22 bytes; heavyLook 17 leaves 5; not 15"
+  },
+  "changes": {
+    "productionBytes": 0,
+    "ram": 0,
+    "residency": 0,
+    "implementationStarted": false
+  },
+  "disk": {
+    "claimedSectors": 505,
+    "unclaimedSectors": 535,
+    "atrSectors": 1040,
+    "transportGrowthBeforeMenu": 28,
+    "meaning": "Current shipped runs plus blank save claim; unclaimed sectors include reservations, not all freely allocatable",
+    "transportGrowthRange": [
+      212,
+      239
+    ],
+    "menuSectors": [
+      240,
+      250
+    ],
+    "L2Sectors": [
+      251,
+      264
+    ]
+  }
+}

@@ -1,0 +1,611 @@
+{
+  "family": "level-timeline",
+  "date": "2026-10-27",
+  "initialHead": "e4893a7",
+  "measurement": "CPU-only reduced real-runtime probe; identical existing fixed kill policy, not native PAL flight or boss-load time",
+  "earlyDepartureImplemented": false,
+  "results": [
+    {
+      "level": 1,
+      "difficulty": 0,
+      "heavyFormations": 11,
+      "bossEntryFrame": {
+        "frame": 2489,
+        "row": 995
+      },
+      "sectorTransitions": [
+        {
+          "frame": 561,
+          "row": 224,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 640,
+          "row": 256,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 840,
+          "row": 336,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1480,
+          "row": 592,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1680,
+          "row": 672,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1780,
+          "row": 712,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1850,
+          "row": 740,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1918,
+          "row": 767,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "directorSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 560,
+          "row": 224,
+          "sector": 1
+        },
+        {
+          "frame": 1920,
+          "row": 768,
+          "sector": 2
+        },
+        {
+          "frame": 2303,
+          "row": 921,
+          "sector": 3
+        },
+        {
+          "frame": 2375,
+          "row": 950,
+          "sector": 4
+        },
+        {
+          "frame": 2413,
+          "row": 965,
+          "sector": 5
+        },
+        {
+          "frame": 2488,
+          "row": 995,
+          "sector": 6
+        }
+      ],
+      "cutoffRemoved": 0,
+      "cutoffShortened": 0
+    },
+    {
+      "level": 1,
+      "difficulty": 1,
+      "heavyFormations": 11,
+      "bossEntryFrame": {
+        "frame": 2432,
+        "row": 1002
+      },
+      "sectorTransitions": [
+        {
+          "frame": 479,
+          "row": 191,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 558,
+          "row": 223,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 758,
+          "row": 303,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1398,
+          "row": 559,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1598,
+          "row": 639,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1698,
+          "row": 679,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1768,
+          "row": 707,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1835,
+          "row": 734,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "directorSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 478,
+          "row": 191,
+          "sector": 1
+        },
+        {
+          "frame": 1838,
+          "row": 735,
+          "sector": 2
+        },
+        {
+          "frame": 2220,
+          "row": 907,
+          "sector": 3
+        },
+        {
+          "frame": 2307,
+          "row": 946,
+          "sector": 4
+        },
+        {
+          "frame": 2369,
+          "row": 974,
+          "sector": 5
+        },
+        {
+          "frame": 2431,
+          "row": 1002,
+          "sector": 6
+        }
+      ],
+      "cutoffRemoved": 0,
+      "cutoffShortened": 0
+    },
+    {
+      "level": 1,
+      "difficulty": 2,
+      "heavyFormations": 11,
+      "bossEntryFrame": {
+        "frame": 2455,
+        "row": 1037
+      },
+      "sectorTransitions": [
+        {
+          "frame": 544,
+          "row": 217,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 623,
+          "row": 249,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 823,
+          "row": 329,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1463,
+          "row": 585,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1663,
+          "row": 665,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1763,
+          "row": 705,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1833,
+          "row": 733,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1900,
+          "row": 760,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "directorSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 543,
+          "row": 217,
+          "sector": 1
+        },
+        {
+          "frame": 1902,
+          "row": 761,
+          "sector": 2
+        },
+        {
+          "frame": 2282,
+          "row": 951,
+          "sector": 3
+        },
+        {
+          "frame": 2364,
+          "row": 992,
+          "sector": 4
+        },
+        {
+          "frame": 2404,
+          "row": 1012,
+          "sector": 5
+        },
+        {
+          "frame": 2454,
+          "row": 1037,
+          "sector": 6
+        }
+      ],
+      "cutoffRemoved": 0,
+      "cutoffShortened": 0
+    },
+    {
+      "level": 2,
+      "difficulty": 0,
+      "heavyFormations": 72,
+      "bossEntryFrame": null,
+      "sectorTransitions": [
+        {
+          "frame": 2111,
+          "row": 844,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 2190,
+          "row": 876,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 2390,
+          "row": 956,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 2710,
+          "row": 1084,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 2910,
+          "row": 1164,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 3010,
+          "row": 1204,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 3080,
+          "row": 1232,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 3148,
+          "row": 1259,
+          "from": 6,
+          "to": 7
+        },
+        {
+          "frame": 8473,
+          "row": 3389,
+          "from": 7,
+          "to": 5
+        },
+        {
+          "frame": 8474,
+          "row": 3389,
+          "from": 5,
+          "to": 6
+        }
+      ],
+      "directorSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 673,
+          "row": 269,
+          "sector": 1
+        },
+        {
+          "frame": 2110,
+          "row": 844,
+          "sector": 2
+        },
+        {
+          "frame": 3150,
+          "row": 1260,
+          "sector": 3
+        },
+        {
+          "frame": 4008,
+          "row": 1603,
+          "sector": 4
+        },
+        {
+          "frame": 5868,
+          "row": 2347,
+          "sector": 5
+        }
+      ],
+      "cutoffRemoved": 0,
+      "cutoffShortened": 0
+    },
+    {
+      "level": 2,
+      "difficulty": 1,
+      "heavyFormations": 72,
+      "bossEntryFrame": null,
+      "sectorTransitions": [
+        {
+          "frame": 2061,
+          "row": 824,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 2140,
+          "row": 856,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 2340,
+          "row": 936,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 2660,
+          "row": 1064,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 2860,
+          "row": 1144,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 2960,
+          "row": 1184,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 3030,
+          "row": 1212,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 3098,
+          "row": 1239,
+          "from": 6,
+          "to": 7
+        },
+        {
+          "frame": 7805,
+          "row": 3357,
+          "from": 7,
+          "to": 5
+        },
+        {
+          "frame": 7806,
+          "row": 3357,
+          "from": 5,
+          "to": 6
+        }
+      ],
+      "directorSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 673,
+          "row": 269,
+          "sector": 1
+        },
+        {
+          "frame": 2060,
+          "row": 824,
+          "sector": 2
+        },
+        {
+          "frame": 3100,
+          "row": 1240,
+          "sector": 3
+        },
+        {
+          "frame": 3887,
+          "row": 1594,
+          "sector": 4
+        },
+        {
+          "frame": 5522,
+          "row": 2330,
+          "sector": 5
+        }
+      ],
+      "cutoffRemoved": 0,
+      "cutoffShortened": 0
+    },
+    {
+      "level": 2,
+      "difficulty": 2,
+      "heavyFormations": 72,
+      "bossEntryFrame": null,
+      "sectorTransitions": [
+        {
+          "frame": 2094,
+          "row": 837,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 2173,
+          "row": 869,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 2373,
+          "row": 949,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 2693,
+          "row": 1077,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 2893,
+          "row": 1157,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 2993,
+          "row": 1197,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 3063,
+          "row": 1225,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 3130,
+          "row": 1252,
+          "from": 6,
+          "to": 7
+        },
+        {
+          "frame": 7344,
+          "row": 3359,
+          "from": 7,
+          "to": 5
+        },
+        {
+          "frame": 7345,
+          "row": 3359,
+          "from": 5,
+          "to": 6
+        }
+      ],
+      "directorSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 673,
+          "row": 269,
+          "sector": 1
+        },
+        {
+          "frame": 2093,
+          "row": 837,
+          "sector": 2
+        },
+        {
+          "frame": 3132,
+          "row": 1253,
+          "sector": 3
+        },
+        {
+          "frame": 3862,
+          "row": 1618,
+          "sector": 4
+        },
+        {
+          "frame": 5316,
+          "row": 2345,
+          "sector": 5
+        }
+      ],
+      "cutoffRemoved": 0,
+      "cutoffShortened": 0
+    }
+  ],
+  "rawPattern": "build/evidence/m3h-step1/continuation8/timeline-LEVEL-DIFFICULTY.json",
+  "note": "Reduced runtime fixed-kill probe; level 2 has no authored boss. No cutoff rule exists, so removed/shortened by that rule is zero."
+}

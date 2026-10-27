@@ -1,0 +1,210 @@
+{
+  "family": "third continuation build and placement",
+  "initialHead": "4799121",
+  "result": "BLOCKED_ASSAULT_UPDATE_COST",
+  "normalBuild": "PASS; runtime evidence pending, release build will fail",
+  "A1": true,
+  "A2": false,
+  "arena": {
+    "step": "4.5M-M3",
+    "owner": "HYBRID_C_ARENA",
+    "address": 31696,
+    "endExclusive": 32528,
+    "capacityBytes": 832,
+    "usedBytes": 827,
+    "freeBytes": 5,
+    "asmBytes": 162,
+    "codeBytes": 632,
+    "rodataBytes": 33,
+    "segments": [
+      "HYBRID_ASM_ARENA",
+      "HYBRID_C_ARENA",
+      "HYBRID_C_ARENA_RODATA"
+    ],
+    "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+    "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+    "boundedBy": {
+      "below": "starfield stream A staging / pause-screen backup end $7BD0",
+      "above": "A2 display lists $7F10"
+    },
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 31696,
+      "startSector": 168,
+      "sectors": 6,
+      "rawBytes": 827,
+      "packedBytes": 731,
+      "paddingBytes": 16,
+      "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
+    },
+    "ownersInArena": [
+      {
+        "owner": "record 7bd0",
+        "start": 31696,
+        "endExclusive": 32523
+      }
+    ],
+    "worstCaseFullArenaPackedBytes": 840,
+    "worstCaseFullArenaSectors": 7
+  },
+  "window": {
+    "usedBytes": 2051,
+    "usableBytes": 2811,
+    "usableFreeBytes": 760
+  },
+  "initialContentBytes": 12825,
+  "initialContentDelta": 0,
+  "records": [
+    {
+      "record": 1,
+      "sectorsBefore": 44,
+      "sectors": 44,
+      "packedBytes": 5590,
+      "packedFreeBytes": 21
+    },
+    {
+      "record": 2,
+      "sectorsBefore": 10,
+      "sectors": 10,
+      "packedBytes": 1165,
+      "packedFreeBytes": 94
+    },
+    {
+      "record": 3,
+      "sectorsBefore": 1,
+      "sectors": 1,
+      "packedBytes": 105,
+      "packedFreeBytes": 2
+    },
+    {
+      "record": 4,
+      "sectorsBefore": 4,
+      "sectors": 4,
+      "packedBytes": 441,
+      "packedFreeBytes": 50
+    },
+    {
+      "record": 5,
+      "sectorsBefore": 6,
+      "sectors": 6,
+      "packedBytes": 746,
+      "packedFreeBytes": 1
+    },
+    {
+      "record": 6,
+      "sectorsBefore": 1,
+      "sectors": 1,
+      "packedBytes": 23,
+      "packedFreeBytes": 84
+    },
+    {
+      "record": 7,
+      "sectorsBefore": 6,
+      "sectors": 6,
+      "packedBytes": 731,
+      "packedFreeBytes": 16
+    },
+    {
+      "record": 8,
+      "sectorsBefore": 11,
+      "sectors": 14,
+      "packedBytes": 1671,
+      "packedFreeBytes": 100
+    },
+    {
+      "record": 9,
+      "sectorsBefore": 9,
+      "sectors": 9,
+      "packedBytes": 1032,
+      "packedFreeBytes": 99
+    },
+    {
+      "record": 10,
+      "sectorsBefore": 13,
+      "sectors": 13,
+      "packedBytes": 1529,
+      "packedFreeBytes": 114
+    },
+    {
+      "record": 11,
+      "sectorsBefore": 5,
+      "sectors": 5,
+      "packedBytes": 527,
+      "packedFreeBytes": 92
+    }
+  ],
+  "protectedRows": [
+    {
+      "segment": "CODE",
+      "start": 8192,
+      "end": 12656,
+      "bytes": 4464,
+      "changedBytes": 0
+    },
+    {
+      "segment": "RODATA",
+      "start": 12656,
+      "end": 15888,
+      "bytes": 3232,
+      "changedBytes": 0
+    },
+    {
+      "segment": "STARFIELD",
+      "start": 21732,
+      "end": 23160,
+      "bytes": 1428,
+      "changedBytes": 0
+    },
+    {
+      "segment": "ENTITY_CODE",
+      "start": 37120,
+      "end": 40281,
+      "bytes": 3161,
+      "changedBytes": 0
+    }
+  ],
+  "unchangedRecords": [
+    {
+      "record": 9,
+      "start": 13891,
+      "end": 15087,
+      "changedRuntimeBytes": 0
+    },
+    {
+      "record": 11,
+      "start": 40309,
+      "end": 40943,
+      "changedRuntimeBytes": 0
+    }
+  ],
+  "l2": {
+    "address": 6400,
+    "endExclusive": 8192,
+    "capacityBytes": 1792,
+    "usedBytes": 1250,
+    "freeBytes": 542,
+    "postOneReserveBytes": 256,
+    "runIndex": 11,
+    "phase": "fighter/capital; overwritten by boss"
+  },
+  "H15": {
+    "bytes": 13,
+    "available": 14,
+    "segments": [
+      {
+        "start": 33083,
+        "bytes": 5
+      },
+      {
+        "start": 34278,
+        "bytes": 8
+      }
+    ]
+  },
+  "menu": {
+    "measurement": "NOT RUN: focused prerequisite failed",
+    "limitHostFrames": 650
+  },
+  "nativeGateSet": "NOT RUN: focused prerequisite failed",
+  "smokeATRs": "NONE"
+}

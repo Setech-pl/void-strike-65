@@ -1,0 +1,696 @@
+{
+  "family": "ledger",
+  "date": "2026-10-27",
+  "initialHead": "e4893a7",
+  "result": "PASS",
+  "initialContent": 12825,
+  "initialDelta": 0,
+  "arena": {
+    "step": "4.5M-M3",
+    "owner": "HYBRID_C_ARENA",
+    "address": 31696,
+    "endExclusive": 32528,
+    "capacityBytes": 832,
+    "usedBytes": 827,
+    "freeBytes": 5,
+    "asmBytes": 162,
+    "codeBytes": 641,
+    "rodataBytes": 24,
+    "segments": [
+      "HYBRID_ASM_ARENA",
+      "HYBRID_C_ARENA",
+      "HYBRID_C_ARENA_RODATA"
+    ],
+    "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+    "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+    "boundedBy": {
+      "below": "starfield stream A staging / pause-screen backup end $7BD0",
+      "above": "A2 display lists $7F10"
+    },
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 31696,
+      "startSector": 168,
+      "sectors": 6,
+      "rawBytes": 827,
+      "packedBytes": 726,
+      "paddingBytes": 21,
+      "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
+    },
+    "ownersInArena": [
+      {
+        "owner": "record 7bd0",
+        "start": 31696,
+        "endExclusive": 32523
+      }
+    ],
+    "worstCaseFullArenaPackedBytes": 840,
+    "worstCaseFullArenaSectors": 7
+  },
+  "windowUsed": 2065,
+  "windowFree": 746,
+  "records": [
+    {
+      "record": 1,
+      "beforeSectors": 44,
+      "sectors": 44,
+      "packed": 5590,
+      "free": 21
+    },
+    {
+      "record": 2,
+      "beforeSectors": 10,
+      "sectors": 10,
+      "packed": 1165,
+      "free": 94
+    },
+    {
+      "record": 3,
+      "beforeSectors": 1,
+      "sectors": 1,
+      "packed": 105,
+      "free": 2
+    },
+    {
+      "record": 4,
+      "beforeSectors": 4,
+      "sectors": 4,
+      "packed": 441,
+      "free": 50
+    },
+    {
+      "record": 5,
+      "beforeSectors": 6,
+      "sectors": 6,
+      "packed": 746,
+      "free": 1
+    },
+    {
+      "record": 6,
+      "beforeSectors": 1,
+      "sectors": 1,
+      "packed": 23,
+      "free": 84
+    },
+    {
+      "record": 7,
+      "beforeSectors": 6,
+      "sectors": 6,
+      "packed": 726,
+      "free": 21
+    },
+    {
+      "record": 8,
+      "beforeSectors": 11,
+      "sectors": 14,
+      "packed": 1680,
+      "free": 91
+    },
+    {
+      "record": 9,
+      "beforeSectors": 9,
+      "sectors": 9,
+      "packed": 1032,
+      "free": 99
+    },
+    {
+      "record": 10,
+      "beforeSectors": 13,
+      "sectors": 13,
+      "packed": 1529,
+      "free": 114
+    },
+    {
+      "record": 11,
+      "beforeSectors": 5,
+      "sectors": 5,
+      "packed": 527,
+      "free": 92
+    }
+  ],
+  "guestMatches81b1e26": true,
+  "all65536ReconstructedRuntimeBytesIdentical": true,
+  "identity": [
+    {
+      "file": "a2-kernel-runtime.bin",
+      "bytes": 237,
+      "sha256": "49b3dc1aa6adf475ea12218fe27422a155531c269f6f38564cfce4074497ae63"
+    },
+    {
+      "file": "boot-splash.bin",
+      "bytes": 512,
+      "sha256": "720e1bce3596e8628aba589490381e41907c00b8b50c04f39a3965df57436073"
+    },
+    {
+      "file": "boot-stage2.bin",
+      "bytes": 1446,
+      "sha256": "0cc16ccf9ef7d5fee6ccb265a76d5f52d7e186c1fa9adabbf2103c74fa765f91"
+    },
+    {
+      "file": "boss-death-boot.bin",
+      "bytes": 512,
+      "sha256": "c69c5b001bc125620332160a615ad6b93415911607874d5c9ef88ee07c0a12fd"
+    },
+    {
+      "file": "boss-death-engine.bin",
+      "bytes": 2560,
+      "sha256": "e30fcce1bf9bd6f50ff79a537f1f03c2f2a2deef537a8bf33a57affd60e0c68d"
+    },
+    {
+      "file": "boss-death.bin",
+      "bytes": 2559,
+      "sha256": "9f6fc071475ce824ab26d0d04b6da9b636c0c2ff3829972e4b308f479b85b864"
+    },
+    {
+      "file": "boss-region-1-band-a.bin",
+      "bytes": 384,
+      "sha256": "d3d5c1756ba71ee6ec7a5a4c89b94a90ba20bb70cde2b4b4be82376a070f4c9c"
+    },
+    {
+      "file": "boss-region-1-band-b.bin",
+      "bytes": 384,
+      "sha256": "6e3cc55f49045e68e63da11184b169dd85d921743ccaa333b38e0b6f6f66fc06"
+    },
+    {
+      "file": "boss-region-1-banner.bin",
+      "bytes": 1152,
+      "sha256": "17b0abb58ec1bffa8f1a607eeb9cd05f865a3fac9d05de2820be96b38e190272"
+    },
+    {
+      "file": "boss-region-1-block.bin",
+      "bytes": 128,
+      "sha256": "0015ece28d9c9fc444fcd56537f819e5eb05c92cc221d431f91d92edd8bb7852"
+    },
+    {
+      "file": "boss-region-1-charset.bin",
+      "bytes": 768,
+      "sha256": "b156b27c0d08439d72db3f9de0bda21b51201f702cf379f265f45088379284dd"
+    },
+    {
+      "file": "boss-region-1-theme.bin",
+      "bytes": 256,
+      "sha256": "e4cc6f510870426932128df1157464cd5b17641dcdac02a48b7015ccf4cd728a"
+    },
+    {
+      "file": "boss-region-2-band-a.bin",
+      "bytes": 384,
+      "sha256": "7f962808fd6b996d7615d867d9aebf78e286b300fdafa97d7432bc2ca0998821"
+    },
+    {
+      "file": "boss-region-2-band-b.bin",
+      "bytes": 384,
+      "sha256": "f403e050e0721411452b4125bd89b3eee5b331d6a8852676e129151865a35515"
+    },
+    {
+      "file": "boss-region-2-banner.bin",
+      "bytes": 1152,
+      "sha256": "e8ca1178899e8304717ebd81112820d810a5c62355eb53813f3add98c54b4ee5"
+    },
+    {
+      "file": "boss-region-2-block.bin",
+      "bytes": 512,
+      "sha256": "ede9776fe9dbc5e759d2b9839a1488098d7bfcb2f81c002b44ec15ebddd18133"
+    },
+    {
+      "file": "boss-region-2-charset.bin",
+      "bytes": 896,
+      "sha256": "482dc4d2039f4f3bab60e0cb15eba37a7bfcf4c1e076dd1ea08772541d66f8ed"
+    },
+    {
+      "file": "boss-region-2-theme.bin",
+      "bytes": 256,
+      "sha256": "85d77c969da145cf0682465683cdef01174419b03138e738929fdf3cb32e67e5"
+    },
+    {
+      "file": "boss-region-3-band-a.bin",
+      "bytes": 384,
+      "sha256": "ce9da830fde7b6701df2e17f633624d4734f41fbc79d5cfb2d1900a5ccce0f8d"
+    },
+    {
+      "file": "boss-region-3-band-b.bin",
+      "bytes": 384,
+      "sha256": "7a84f52900652292c652351005349d6bea11fe0d00dea76420b0f6b5f3e07d86"
+    },
+    {
+      "file": "boss-region-3-banner.bin",
+      "bytes": 1280,
+      "sha256": "a3ab6a36366b260dab13b4317d63097e78cb0c7e4c9bf35b6d9235ffa53d6716"
+    },
+    {
+      "file": "boss-region-3-block.bin",
+      "bytes": 384,
+      "sha256": "9a969c1f22ad430106f480f3efacaafbbd2769dc831bbe72e029e76925158e42"
+    },
+    {
+      "file": "boss-region-3-charset.bin",
+      "bytes": 896,
+      "sha256": "8fbd7f0df413b288fd3c93afd9a41677ea223b0f6d4f9563c2dfb58cf06d1c66"
+    },
+    {
+      "file": "boss-region-3-theme.bin",
+      "bytes": 256,
+      "sha256": "a0d1e873cfafaa4edb69017712ac40edc05aa4b8680c9dd8dc61881e0795fea4"
+    },
+    {
+      "file": "boss-region-4-band-a.bin",
+      "bytes": 384,
+      "sha256": "92951ccf8bf531e23010ed489900ee69648e9c7ad67bcd2af3d508acffee26a4"
+    },
+    {
+      "file": "boss-region-4-band-b.bin",
+      "bytes": 384,
+      "sha256": "7bb332c205786299b92262fd906c7be4d25bca77703192df60c0c79919c8a5cf"
+    },
+    {
+      "file": "boss-region-4-banner.bin",
+      "bytes": 1280,
+      "sha256": "d258359529a2399a4c85beb1b4a2d731c2538d0b28089cf4b430588ec3f993e7"
+    },
+    {
+      "file": "boss-region-4-block.bin",
+      "bytes": 512,
+      "sha256": "38e945bcd5570eefcd8143d5282759102ee9c90009420b820faef9da5275c181"
+    },
+    {
+      "file": "boss-region-4-charset.bin",
+      "bytes": 896,
+      "sha256": "8f0b3042d8d569b59cd1e35439f55c1e5f0caf624c1a0d0dd90279935c981021"
+    },
+    {
+      "file": "boss-region-4-theme.bin",
+      "bytes": 256,
+      "sha256": "66f99a64014ac07bbc818ef79c4900030416b7975ebc4dab3142795fdce6069c"
+    },
+    {
+      "file": "boss.bin",
+      "bytes": 10207,
+      "sha256": "26f69c05ad51a8f0014d503762859cc70a27af7760d5ecd08d1642318dfe2b40"
+    },
+    {
+      "file": "broadside-extension.bin",
+      "bytes": 5632,
+      "sha256": "76b575b36af98ef2ac9e293cf739d7594fa8f75e8c096edfb9c20c2afb2af9b9"
+    },
+    {
+      "file": "broadside-runtime-packed.bin",
+      "bytes": 5590,
+      "sha256": "ffda66f7a29d0ddab8319d2e12312adbeba99d71d93a7f24c479ea4087fae89a"
+    },
+    {
+      "file": "broadside-runtime.bin",
+      "bytes": 6653,
+      "sha256": "7fed60e96701f3fe953d2e75bd985d71c6ecb8db477e4162f4d7f4765bc227d8"
+    },
+    {
+      "file": "capital-player-collision-packed.bin",
+      "bytes": 35,
+      "sha256": "7e5a0ae3b6e9c21a7690cc9d217e96465402525c96aee6ba88d806dbd0cfd830"
+    },
+    {
+      "file": "capital-player-collision.bin",
+      "bytes": 33,
+      "sha256": "0b5547299fcd44db2dfe8d7f21046fd19b1b6aeaa2aa514d4aad8d83baebdfc2"
+    },
+    {
+      "file": "chunk-manifest.bin",
+      "bytes": 190,
+      "sha256": "9189ae15b01f3bcf35f6de752640dc64dfe1040d3e4ce6eaf0f9df441e83d9f1"
+    },
+    {
+      "file": "encounter-director-code-abi-packed.bin",
+      "bytes": 105,
+      "sha256": "43d3b91333011755b49f0373714fde1c95a2f82e4baf9f006f271e7dc776a76d"
+    },
+    {
+      "file": "encounter-director-code-abi.bin",
+      "bytes": 106,
+      "sha256": "cb8b04ceea37df7e3e17855d1286cf24513a99e658bffe811ae7e0abc6710ae1"
+    },
+    {
+      "file": "encounter-director-code-arena-packed.bin",
+      "bytes": 726,
+      "sha256": "07bb8e060cfa5a2fd495b99b067503197fb8b70b6eea2372178f8287e0009440"
+    },
+    {
+      "file": "encounter-director-code-arena.bin",
+      "bytes": 827,
+      "sha256": "251a428b9f2fdcd08b6fc903e7337bb02523f396e467491f63ce74e02d76b888"
+    },
+    {
+      "file": "encounter-director-code-extension-packed.bin",
+      "bytes": 746,
+      "sha256": "93ceae6dfbdd90928398e7b3dbaee5e4e2516f1ff25279e7f882875bc8f33995"
+    },
+    {
+      "file": "encounter-director-code-extension.bin",
+      "bytes": 875,
+      "sha256": "e467862d31691c5b9083ab90535dcafa78f064f432ec9b99bd7473bc678d5273"
+    },
+    {
+      "file": "encounter-director-code-hybrid-window-packed.bin",
+      "bytes": 1680,
+      "sha256": "b230b0263007c0e1e9f588e4551c206a374679db121cf65fe139dfbf1cf307a6"
+    },
+    {
+      "file": "encounter-director-code-hybrid-window.bin",
+      "bytes": 2065,
+      "sha256": "b0b27015aef0a0533b0bfdb87f1ca47bcfc5f887e61e2e9dfe5e195ef13d76b4"
+    },
+    {
+      "file": "encounter-director-code-low-packed.bin",
+      "bytes": 194,
+      "sha256": "e45320c853400b12de43678e5fecde6f82945f74483278f76b8b23e7226ab873"
+    },
+    {
+      "file": "encounter-director-code-low-transport.bin",
+      "bytes": 498,
+      "sha256": "d0b2a1ea8db1f1a407c07da169237a3623b7fbf496d70af434839b161d6b9fbd"
+    },
+    {
+      "file": "encounter-director-code-low.bin",
+      "bytes": 214,
+      "sha256": "5f7e97b6c229907b6ec2474a50255fd6dd3aa6bb50a0c404c1a052df7d1d67b6"
+    },
+    {
+      "file": "encounter-director-code-packed.bin",
+      "bytes": 3474,
+      "sha256": "8877fcfd7ba5a027b96d6ec9998bd6f6e20aa24da6c52439af605607a834638f"
+    },
+    {
+      "file": "encounter-director-code-pre-packed.bin",
+      "bytes": 23,
+      "sha256": "ce16fcf11e834e94e905c49c15302ca186b22b6c13a2fbaddb6bf3e8c4268c2e"
+    },
+    {
+      "file": "encounter-director-code-pre.bin",
+      "bytes": 21,
+      "sha256": "bfcf0e9895d278d4d866cedb04d310c5baa5fa1c99fe83413607f03c9547e932"
+    },
+    {
+      "file": "encounter-director-code.bin",
+      "bytes": 4108,
+      "sha256": "576bb1ef4b369a90ffaa2319a9b97046c6e103328d70acbd3b4373286fd54ccc"
+    },
+    {
+      "file": "encounter-director-packed.bin",
+      "bytes": 527,
+      "sha256": "5ae39ff115116ab4cd83fe606fb80855becb0c77ec5847d5b9c2c03c8b1fd088"
+    },
+    {
+      "file": "encounter-director.bin",
+      "bytes": 634,
+      "sha256": "d198b31ca9958b868aea1a2432993f5f4e0e73db6dda73f9e5221fa7e49c4e0c"
+    },
+    {
+      "file": "entity-code-runtime-packed.bin",
+      "bytes": 2535,
+      "sha256": "79c6d1d93d4bcc9d55b6227fb231be494560029bfe62a1bd63eedadc2e43dacc"
+    },
+    {
+      "file": "entity-code-runtime.bin",
+      "bytes": 3161,
+      "sha256": "df5e3b3117fbf29ac676bf3ab2331a909412947396df1e4213accd3e06fb64b6"
+    },
+    {
+      "file": "frame-state-mask.bin",
+      "bytes": 131072,
+      "sha256": "b5c96a68f160d45ae6e03111246796ef2659b0272ba0428b74607ea3051f0902"
+    },
+    {
+      "file": "gameplay-music.bin",
+      "bytes": 512,
+      "sha256": "9ad57bd1989f056ee365cc080293014c4653ae7e7bf46e8b4d43a1712d84c44f"
+    },
+    {
+      "file": "hull-style-R1.bin",
+      "bytes": 280,
+      "sha256": "41aea2b5da3b8bb300aa4c8e2b2bfdcae3bd3b80175ceef17f8e4bf04a6eeaa3"
+    },
+    {
+      "file": "hull-style-R2.bin",
+      "bytes": 280,
+      "sha256": "5d27060aa1fe04b4a844bad858957336dc48e152b52cc5d00693a8967b791f0e"
+    },
+    {
+      "file": "hull-style-R3.bin",
+      "bytes": 280,
+      "sha256": "6ecd32d2e5812b8efd0235d3133dc261687a2c0b02535941f9359a808531408a"
+    },
+    {
+      "file": "hull-style-R4.bin",
+      "bytes": 280,
+      "sha256": "19d564fffe4e85f94b6f1453a1f72060b275440db425174d366d5a4579d103b1"
+    },
+    {
+      "file": "initial-boot.bin",
+      "bytes": 12928,
+      "sha256": "af9cce2de82130f974ce067171a8e3c056559b5b9fd59a3910c64cb6696cc72f"
+    },
+    {
+      "file": "integration-glue-packed.bin",
+      "bytes": 245,
+      "sha256": "450ee2aa03a62353a8bc798632ec64a79d5d67e8ccf7142b291ca8b362405068"
+    },
+    {
+      "file": "integration-glue.bin",
+      "bytes": 250,
+      "sha256": "998d2ff2924cc1736360bc1fa5c880a681d612e7f5f60658f0b95817a99e621f"
+    },
+    {
+      "file": "l2-ownership.bin",
+      "bytes": 264000,
+      "sha256": "7556ebd5976a9d2cb8e31d72918a4984be39c5578fbb8f68fdd9b7df557e5459"
+    },
+    {
+      "file": "l2.bin",
+      "bytes": 1792,
+      "sha256": "f7b15d045aa57cd982eb19d833bdafcf29f9d454c59db535df4fb50f67680511"
+    },
+    {
+      "file": "level-1.bin",
+      "bytes": 2048,
+      "sha256": "f344445a1b9b0897068389ffa101bbfe95eacbbaa4298328c04768f2f1988d78"
+    },
+    {
+      "file": "level-core.bin",
+      "bytes": 256,
+      "sha256": "0f6f3b19e2d14ffc337f6445335dd987cf97d87111cac4f51e29e76ed95d64f0"
+    },
+    {
+      "file": "level-geometry.bin",
+      "bytes": 256,
+      "sha256": "8b638c90ae45ff5234516c8f0f1364b83861cc46dcf46b4fc1a7fef2fddd8819"
+    },
+    {
+      "file": "level-hull-block.bin",
+      "bytes": 280,
+      "sha256": "e9e39ec1e358a8b8841d7a700821a4dd4dad9d2ce1f550e8e697500dfd8e2674"
+    },
+    {
+      "file": "level-payload.bin",
+      "bytes": 256,
+      "sha256": "c97e1626223dc32d6bfca262584b2823ded5292473246b38389dfa63dd77edcf"
+    },
+    {
+      "file": "level-summary-art-1.bin",
+      "bytes": 896,
+      "sha256": "0367e8a39d120c8d3fff028b650568c01813c92a886445339aadc69523ce9c51"
+    },
+    {
+      "file": "level-summary-art-2.bin",
+      "bytes": 896,
+      "sha256": "c3af5e0cd699f1d19704e404980796e49268c34dd32a9b5309cc61b601d93d45"
+    },
+    {
+      "file": "level-summary-art-3.bin",
+      "bytes": 896,
+      "sha256": "e48aabbc32707be687e1575eb2791fdfc927f06fefcb761eb27251d16191e545"
+    },
+    {
+      "file": "level-summary-art-4.bin",
+      "bytes": 896,
+      "sha256": "b7b8d64e1dd7f9f30e9706c7f5ecf87958dfb379f9ffa69436b78abceae515af"
+    },
+    {
+      "file": "level-summary.bin",
+      "bytes": 1792,
+      "sha256": "100d321aecedf881336d87d8ef53d5b4f737bf73b0ccd3f9a217a2a619b52b1a"
+    },
+    {
+      "file": "light-kernel.bin",
+      "bytes": 1196,
+      "sha256": "74d17b2cf89e4331d238dcc2cc1717d222a6594f093327dcbfa14818d499d5f9"
+    },
+    {
+      "file": "light-resident-runtime.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "menu-overlay.bin",
+      "bytes": 1408,
+      "sha256": "8406387f52690664b733b693ea29d01cb7264c5423c11a87ae78853607683dbb"
+    },
+    {
+      "file": "overlay-boss-code.bin",
+      "bytes": 2048,
+      "sha256": "95eab8a29d59ba4a3f3160615601c21959024c2b74180a83ee600bc8569a6216"
+    },
+    {
+      "file": "overlay-boss-install.bin",
+      "bytes": 384,
+      "sha256": "1322f8c1110a57166fbaf1ffe51a4a3ade0f163b1ce710222968a29f3a59f9ed"
+    },
+    {
+      "file": "overlay-boss-lance-page.bin",
+      "bytes": 256,
+      "sha256": "fb5a16776fda23b71f652551a8297a371f417cd2d615214e55500b1053de6172"
+    },
+    {
+      "file": "overlay-boss-lance.bin",
+      "bytes": 768,
+      "sha256": "ceee87f059d5a2c7afe22d8d8826221cc9a3728a7e3459ac7b9736c5fb62fca5"
+    },
+    {
+      "file": "overlay-boss-slot-c.bin",
+      "bytes": 1920,
+      "sha256": "c93af74feee2400d11c00c01dac15a7d8a0dd1da43285bee7f2c056290e171ac"
+    },
+    {
+      "file": "overlay-boss-slot-d.bin",
+      "bytes": 1792,
+      "sha256": "8f0bd84b0ff9ded40578950c226a89fedb2758f7c6b5696da95006ccc35ddbf3"
+    },
+    {
+      "file": "overlay-boss-slot-e.bin",
+      "bytes": 512,
+      "sha256": "6fc6f92cf1ad0c4cac18790778b89c5faf46c8b486bd5da4be55baea6a86aa58"
+    },
+    {
+      "file": "overlay-capital-slot-a.bin",
+      "bytes": 2048,
+      "sha256": "40a01835f212044983174ef27a36f5c46aa6a05ed7f10a40bee27ec80b1b285b"
+    },
+    {
+      "file": "pickup-code-runtime.bin",
+      "bytes": 1002,
+      "sha256": "fb4de07912142bffafb17c87967633ce0ddd0c5fa32a6a87df1c319e6a733fdf"
+    },
+    {
+      "file": "resident-runtime-suffix-packed.bin",
+      "bytes": 6320,
+      "sha256": "e40d8c47bb11e341bda26c77add10a4d52b373d4a466976a04ee0f51c96f9fd7"
+    },
+    {
+      "file": "resident-runtime-suffix.bin",
+      "bytes": 7743,
+      "sha256": "c82dff8d6c571964cbcdd8d950a3f2d7573458cd93f4593b536aac7e3846a6aa"
+    },
+    {
+      "file": "resident-runtime.bin",
+      "bytes": 8192,
+      "sha256": "119104d4f8f311a99c63ddde41ed8fdbcede72fbefe09beb35d7f77beb53d377"
+    },
+    {
+      "file": "resident-window-runtime-packed.bin",
+      "bytes": 171,
+      "sha256": "d03f0dfbead1ec5b418c46dfe886ae57a47ec2570e0707f6fd3aeed30741a7de"
+    },
+    {
+      "file": "resident-window-runtime.bin",
+      "bytes": 244,
+      "sha256": "c59b892a1aee1e71fda2223c7199b47876e1a9bf23ba8ee8b9668ac63e79871a"
+    },
+    {
+      "file": "sector-reader.bin",
+      "bytes": 1529,
+      "sha256": "d92d6659fe05a91892ce13fe8d078c42c7fa5349bf1356012096936b68aa31d7"
+    },
+    {
+      "file": "starfield-runtime-packed-a.bin",
+      "bytes": 914,
+      "sha256": "b2e62fac9f0496ed8bfbe24b893bc7ed21b33b7eac972e1ed0f42214503bc6e6"
+    },
+    {
+      "file": "starfield-runtime-packed-b.bin",
+      "bytes": 408,
+      "sha256": "650c373382d83c50ecf4a213e49818f87aa6f7fac5f74e2695efe0e571e6537c"
+    },
+    {
+      "file": "starfield-runtime-packed.bin",
+      "bytes": 1322,
+      "sha256": "326eb045ae37c484e15c4309bfa7a199c82788e57b3645b06b0babf46e473c01"
+    },
+    {
+      "file": "starfield-runtime.bin",
+      "bytes": 1428,
+      "sha256": "70d1d1eb7c1ce2b5cc8a29cf293f369f0679ad573e73451451bcf05e830eec49"
+    },
+    {
+      "file": "void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "a82d2d4654d97726f46bb40e26b69e04f763a36b694b66b913384e1c623a262a"
+    },
+    {
+      "file": "void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d"
+    },
+    {
+      "file": "void-strike-65.bin",
+      "bytes": 27392,
+      "sha256": "a82d2d4654d97726f46bb40e26b69e04f763a36b694b66b913384e1c623a262a"
+    },
+    {
+      "file": "weapon-pickup-extension.bin",
+      "bytes": 1280,
+      "sha256": "96329a363175d93910c55665fffaa9f7a19f55d572109cd70466c0ebc3c41304"
+    },
+    {
+      "file": "weapon-pickup-phase-runtime-packed.bin",
+      "bytes": 1165,
+      "sha256": "8e12464feb89ad35451160b74b6191b715e25c639fea488713d6b3a942e3812d"
+    },
+    {
+      "file": "weapon-pickup-phase-runtime.bin",
+      "bytes": 1042,
+      "sha256": "57e2da6bf0089f08d1a7687b5a484d4a77387dd6bec4a1c03d8466f294f358b3"
+    },
+    {
+      "file": "weapon-pickup-phases.bin",
+      "bytes": 1152,
+      "sha256": "efdaf4ec8092970a87573f231dbe03fb345c9da2507b7b1ab16da6c2e9602afc"
+    }
+  ],
+  "bossRerunRequired": false,
+  "boss": "No shared guest byte changed since 81b1e26. Retain measured all-zero composition table in continuation6-boss-summary.json; maximum8473.",
+  "H15": {
+    "used": 13,
+    "capacity": 14,
+    "free": 1
+  },
+  "L2": {
+    "used": 1250,
+    "usableCapacity": 1536,
+    "free": 286,
+    "reserveUntouched": 256
+  },
+  "levelImages": {
+    "level1": 2048,
+    "level2": 2048,
+    "delta": 0
+  },
+  "initialPlanningLimit": 13652,
+  "initialPlanningFree": 827,
+  "moves": [
+    {
+      "name": "A2 heavy_profile_fields",
+      "bytes": 9,
+      "arenaDelta": -9,
+      "windowDelta": 9,
+      "lookupCycleDelta": 0,
+      "appliedInPriorContinuation": true
+    }
+  ],
+  "newGuestBytesThisContinuation": 0
+}

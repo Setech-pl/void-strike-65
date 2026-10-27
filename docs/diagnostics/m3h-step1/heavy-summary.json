@@ -1,0 +1,405 @@
+{
+  "baseline": "8e1dface4238a968ea2703eca34ebde5941d0e87",
+  "after": null,
+  "component": {
+    "basis": "MEASURED CPU-only NMOS6502 existing measure-heavy-member-costs.mjs",
+    "Raider": {
+      "lifetime": 334,
+      "twoLiveBothMoved": {
+        "count": 238,
+        "min": 1116,
+        "max": 1650,
+        "mean": 1546
+      },
+      "twoLiveOneHeld": {
+        "count": 48,
+        "min": 1045,
+        "max": 1118,
+        "mean": 1078
+      },
+      "bodyMovedMax": 512
+    },
+    "Bomber": {
+      "lifetime": 688,
+      "twoLiveBothMoved": {
+        "count": 28,
+        "min": 1929,
+        "max": 2299,
+        "mean": 2190.4
+      },
+      "twoLiveOneHeld": {
+        "count": 411,
+        "min": 1287,
+        "max": 1986,
+        "mean": 1732.3
+      },
+      "twoLiveBothHeld": {
+        "count": 224,
+        "min": 1058,
+        "max": 1358,
+        "mean": 1144.6
+      },
+      "bodyMovedMax": 570
+    }
+  },
+  "native": {
+    "measurement": "MEASURED Atari800 PAL DMA on",
+    "selection": "SPACE with boss_state=0 and Heavy live count positive in this row or the preceding row; includes the transition after a kill",
+    "rows": 13288,
+    "peak": 30912,
+    "minimumFence": 3884,
+    "routes": [
+      {
+        "route": "campaign-0-flight",
+        "heavyRows": 1373,
+        "peak": 30569,
+        "fence": 5132,
+        "after": null
+      },
+      {
+        "route": "campaign-1-flight",
+        "heavyRows": 1387,
+        "peak": 30769,
+        "fence": 4109,
+        "after": null
+      },
+      {
+        "route": "campaign-2-brake",
+        "heavyRows": 1421,
+        "peak": 30394,
+        "fence": 3884,
+        "after": null
+      },
+      {
+        "route": "l2-480-0-brake",
+        "heavyRows": 669,
+        "peak": 30263,
+        "fence": 7171,
+        "after": null
+      },
+      {
+        "route": "l2-480-0-flight",
+        "heavyRows": 686,
+        "peak": 30418,
+        "fence": 5969,
+        "after": null
+      },
+      {
+        "route": "l2-480-1-brake",
+        "heavyRows": 700,
+        "peak": 30771,
+        "fence": 5695,
+        "after": null
+      },
+      {
+        "route": "l2-480-1-flight",
+        "heavyRows": 714,
+        "peak": 30723,
+        "fence": 5454,
+        "after": null
+      },
+      {
+        "route": "l2-480-2-brake",
+        "heavyRows": 760,
+        "peak": 30883,
+        "fence": 5829,
+        "after": null
+      },
+      {
+        "route": "l2-480-2-flight",
+        "heavyRows": 765,
+        "peak": 30738,
+        "fence": 5124,
+        "after": null
+      },
+      {
+        "route": "l2-960-0-brake",
+        "heavyRows": 708,
+        "peak": 30481,
+        "fence": 5851,
+        "after": null
+      },
+      {
+        "route": "l2-960-0-flight",
+        "heavyRows": 700,
+        "peak": 30466,
+        "fence": 5841,
+        "after": null
+      },
+      {
+        "route": "l2-960-1-brake",
+        "heavyRows": 707,
+        "peak": 30912,
+        "fence": 6927,
+        "after": null
+      },
+      {
+        "route": "l2-960-1-flight",
+        "heavyRows": 721,
+        "peak": 30749,
+        "fence": 6885,
+        "after": null
+      },
+      {
+        "route": "l2-960-2-brake",
+        "heavyRows": 758,
+        "peak": 30772,
+        "fence": 4977,
+        "after": null
+      },
+      {
+        "route": "l2-960-2-flight",
+        "heavyRows": 769,
+        "peak": 30745,
+        "fence": 5703,
+        "after": null
+      },
+      {
+        "route": "2-evasive-fire3",
+        "heavyRows": 450,
+        "peak": 30622,
+        "fence": 4675,
+        "after": null
+      }
+    ],
+    "worstWall": [
+      {
+        "route": "l2-960-1-brake",
+        "frame": 4440,
+        "wall": 30912,
+        "live": 2,
+        "archetype": null,
+        "fence": 9352,
+        "events": 1084543,
+        "enemyUpdate": 3677
+      },
+      {
+        "route": "l2-480-2-brake",
+        "frame": 3120,
+        "wall": 30883,
+        "live": 2,
+        "archetype": null,
+        "fence": 10267,
+        "events": 1084543,
+        "enemyUpdate": 2820
+      },
+      {
+        "route": "l2-480-2-brake",
+        "frame": 3138,
+        "wall": 30876,
+        "live": 2,
+        "archetype": null,
+        "fence": 9583,
+        "events": 1084543,
+        "enemyUpdate": 3544
+      },
+      {
+        "route": "l2-480-2-brake",
+        "frame": 3130,
+        "wall": 30777,
+        "live": 2,
+        "archetype": null,
+        "fence": 9577,
+        "events": 1084543,
+        "enemyUpdate": 3539
+      },
+      {
+        "route": "l2-960-2-brake",
+        "frame": 4307,
+        "wall": 30772,
+        "live": 2,
+        "archetype": null,
+        "fence": 10281,
+        "events": 1084543,
+        "enemyUpdate": 2200
+      },
+      {
+        "route": "l2-480-1-brake",
+        "frame": 3158,
+        "wall": 30771,
+        "live": 2,
+        "archetype": null,
+        "fence": 9385,
+        "events": 1084543,
+        "enemyUpdate": 3676
+      },
+      {
+        "route": "l2-480-1-brake",
+        "frame": 3156,
+        "wall": 30770,
+        "live": 2,
+        "archetype": null,
+        "fence": 11677,
+        "events": 34938,
+        "enemyUpdate": 3676
+      },
+      {
+        "route": "campaign-1-flight",
+        "frame": 413,
+        "wall": 30769,
+        "live": 2,
+        "archetype": null,
+        "fence": 8341,
+        "events": 1084543,
+        "enemyUpdate": 3538
+      },
+      {
+        "route": "l2-960-2-brake",
+        "frame": 4315,
+        "wall": 30769,
+        "live": 2,
+        "archetype": null,
+        "fence": 8941,
+        "events": 1084543,
+        "enemyUpdate": 3538
+      },
+      {
+        "route": "l2-960-2-brake",
+        "frame": 4308,
+        "wall": 30755,
+        "live": 2,
+        "archetype": null,
+        "fence": 12945,
+        "events": 34938,
+        "enemyUpdate": 2200
+      }
+    ],
+    "worstFence": [
+      {
+        "route": "campaign-2-brake",
+        "frame": 81,
+        "wall": 29601,
+        "live": 2,
+        "archetype": null,
+        "fence": 3884,
+        "events": 3263615,
+        "enemyUpdate": 5956
+      },
+      {
+        "route": "campaign-1-flight",
+        "frame": 95,
+        "wall": 28986,
+        "live": 2,
+        "archetype": null,
+        "fence": 4109,
+        "events": 3263615,
+        "enemyUpdate": 5908
+      },
+      {
+        "route": "campaign-2-brake",
+        "frame": 315,
+        "wall": 27968,
+        "live": 2,
+        "archetype": null,
+        "fence": 4114,
+        "events": 1084543,
+        "enemyUpdate": 3673
+      },
+      {
+        "route": "campaign-2-brake",
+        "frame": 287,
+        "wall": 30022,
+        "live": 2,
+        "archetype": null,
+        "fence": 4203,
+        "events": 1166463,
+        "enemyUpdate": 4750
+      },
+      {
+        "route": "campaign-2-brake",
+        "frame": 271,
+        "wall": 29273,
+        "live": 2,
+        "archetype": null,
+        "fence": 4211,
+        "events": 3263615,
+        "enemyUpdate": 5816
+      },
+      {
+        "route": "2-evasive-fire3",
+        "frame": 81,
+        "wall": 29087,
+        "live": 2,
+        "archetype": null,
+        "fence": 4675,
+        "events": 3263615,
+        "enemyUpdate": 5908
+      },
+      {
+        "route": "campaign-2-brake",
+        "frame": 279,
+        "wall": 30054,
+        "live": 2,
+        "archetype": null,
+        "fence": 4819,
+        "events": 1166463,
+        "enemyUpdate": 4328
+      },
+      {
+        "route": "campaign-2-brake",
+        "frame": 3499,
+        "wall": 29572,
+        "live": 2,
+        "archetype": null,
+        "fence": 4875,
+        "events": 3263615,
+        "enemyUpdate": 5818
+      },
+      {
+        "route": "l2-960-2-brake",
+        "frame": 3819,
+        "wall": 29810,
+        "live": 2,
+        "archetype": null,
+        "fence": 4977,
+        "events": 3263615,
+        "enemyUpdate": 5818
+      },
+      {
+        "route": "2-evasive-fire3",
+        "frame": 95,
+        "wall": 29484,
+        "live": 2,
+        "archetype": null,
+        "fence": 5105,
+        "events": 1166463,
+        "enemyUpdate": 3407
+      }
+    ]
+  },
+  "reset": {
+    "measurement": "MEASURED CPU-only NMOS6502 native reset_enemy, no escort, initialized row pointers; same setup as measure-heavy-member-costs",
+    "rows": [
+      {
+        "archetype": "Raider",
+        "difficulty": 0,
+        "cycles": 1612
+      },
+      {
+        "archetype": "Bomber",
+        "difficulty": 0,
+        "cycles": 2245
+      },
+      {
+        "archetype": "Raider",
+        "difficulty": 1,
+        "cycles": 1612
+      },
+      {
+        "archetype": "Bomber",
+        "difficulty": 1,
+        "cycles": 2245
+      },
+      {
+        "archetype": "Raider",
+        "difficulty": 2,
+        "cycles": 1612
+      },
+      {
+        "archetype": "Bomber",
+        "difficulty": 2,
+        "cycles": 2245
+      }
+    ]
+  }
+}

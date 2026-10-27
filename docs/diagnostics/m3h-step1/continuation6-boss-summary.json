@@ -1,0 +1,416 @@
+{
+  "family": "boss",
+  "initialHead": "09a5276",
+  "result": "PASS",
+  "scope": "Every composition compared, off and lost; absolute gate applies to existing reachable <=2-meeting stress cases (AUD-04). Unproven larger cases retain the same zero delta.",
+  "beforeAttribution": [
+    {
+      "boss": "Citadel",
+      "level": 4,
+      "mode": "off",
+      "cases": 9856,
+      "reachable": 9856,
+      "frames": 80424,
+      "perFrameDeltaCounts": {
+        "0": 72104,
+        "50": 8320
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 1244,
+      "maximum": 7697,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 8320
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 8320
+        }
+      }
+    },
+    {
+      "boss": "Citadel",
+      "level": 4,
+      "mode": "lost",
+      "cases": 9856,
+      "reachable": 9856,
+      "frames": 81864,
+      "perFrameDeltaCounts": {
+        "0": 73752,
+        "50": 8112
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 1196,
+      "maximum": 8112,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 8112
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 8112
+        }
+      }
+    },
+    {
+      "boss": "Citadel",
+      "level": 5,
+      "mode": "off",
+      "cases": 9856,
+      "reachable": 9856,
+      "frames": 80440,
+      "perFrameDeltaCounts": {
+        "0": 71832,
+        "50": 8608
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 1289,
+      "maximum": 8064,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 8608
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 8608
+        }
+      }
+    },
+    {
+      "boss": "Citadel",
+      "level": 5,
+      "mode": "lost",
+      "cases": 9856,
+      "reachable": 9856,
+      "frames": 81880,
+      "perFrameDeltaCounts": {
+        "0": 73480,
+        "50": 8400
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 1244,
+      "maximum": 8479,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 8400
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 8400
+        }
+      }
+    },
+    {
+      "boss": "Spine",
+      "level": 7,
+      "mode": "off",
+      "cases": 48664,
+      "reachable": 18528,
+      "frames": 322530,
+      "perFrameDeltaCounts": {
+        "0": 256976,
+        "50": 65554
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 6814,
+      "maximum": 7821,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 65554
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 65554
+        }
+      }
+    },
+    {
+      "boss": "Spine",
+      "level": 7,
+      "mode": "lost",
+      "cases": 48664,
+      "reachable": 18528,
+      "frames": 323474,
+      "perFrameDeltaCounts": {
+        "0": 257920,
+        "50": 65554
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 6818,
+      "maximum": 8236,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 65554
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 65554
+        }
+      }
+    },
+    {
+      "boss": "Spine",
+      "level": 9,
+      "mode": "off",
+      "cases": 48664,
+      "reachable": 18528,
+      "frames": 322530,
+      "perFrameDeltaCounts": {
+        "0": 255331,
+        "50": 67199
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 7314,
+      "maximum": 8075,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 67199
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 67199
+        }
+      }
+    },
+    {
+      "boss": "Spine",
+      "level": 9,
+      "mode": "lost",
+      "cases": 48664,
+      "reachable": 18528,
+      "frames": 323474,
+      "perFrameDeltaCounts": {
+        "0": 256275,
+        "50": 67199
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 7318,
+      "maximum": 8490,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 67199
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 67199
+        }
+      }
+    },
+    {
+      "boss": "Bastion",
+      "level": 10,
+      "mode": "off",
+      "cases": 856,
+      "reachable": 856,
+      "frames": 1296,
+      "perFrameDeltaCounts": {
+        "0": 1284,
+        "50": 12
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 50,
+      "over2": 2,
+      "maximum": 8058,
+      "changedFunctions": {
+        "_director_c_try_event": {
+          "min": -6,
+          "max": -6,
+          "frames": 12
+        },
+        "_director_publish_heavy_wave": {
+          "min": 56,
+          "max": 56,
+          "frames": 12
+        }
+      }
+    },
+    {
+      "boss": "Bastion",
+      "level": 10,
+      "mode": "lost",
+      "cases": 856,
+      "reachable": 856,
+      "frames": 1348,
+      "perFrameDeltaCounts": {
+        "0": 1348
+      },
+      "minCompositionDelta": 0,
+      "maxCompositionDelta": 0,
+      "over2": 0,
+      "maximum": 8473,
+      "changedFunctions": {}
+    }
+  ],
+  "after": [
+    {
+      "boss": "Citadel",
+      "level": 4,
+      "lance": "off",
+      "cases": 9856,
+      "reachable": 9856,
+      "maxBefore": 7697,
+      "maximum": 7697,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Citadel",
+      "level": 4,
+      "lance": "lost",
+      "cases": 9856,
+      "reachable": 9856,
+      "maxBefore": 8112,
+      "maximum": 8112,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Citadel",
+      "level": 5,
+      "lance": "off",
+      "cases": 9856,
+      "reachable": 9856,
+      "maxBefore": 8032,
+      "maximum": 8032,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Citadel",
+      "level": 5,
+      "lance": "lost",
+      "cases": 9856,
+      "reachable": 9856,
+      "maxBefore": 8447,
+      "maximum": 8447,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Spine",
+      "level": 7,
+      "lance": "off",
+      "cases": 48664,
+      "reachable": 18528,
+      "maxBefore": 7771,
+      "maximum": 7771,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Spine",
+      "level": 7,
+      "lance": "lost",
+      "cases": 48664,
+      "reachable": 18528,
+      "maxBefore": 8186,
+      "maximum": 8186,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Spine",
+      "level": 9,
+      "lance": "off",
+      "cases": 48664,
+      "reachable": 18528,
+      "maxBefore": 8025,
+      "maximum": 8025,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Spine",
+      "level": 9,
+      "lance": "lost",
+      "cases": 48664,
+      "reachable": 18528,
+      "maxBefore": 8440,
+      "maximum": 8440,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Bastion",
+      "level": 10,
+      "lance": "off",
+      "cases": 856,
+      "reachable": 856,
+      "maxBefore": 8058,
+      "maximum": 8058,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    },
+    {
+      "boss": "Bastion",
+      "level": 10,
+      "lance": "lost",
+      "cases": 856,
+      "reachable": 856,
+      "maxBefore": 8473,
+      "maximum": 8473,
+      "minDelta": 0,
+      "maxDelta": 0,
+      "allCasesMaxDelta": 0,
+      "failures": []
+    }
+  ],
+  "compositionCount": 235792,
+  "reachableCompositionCount": 115248,
+  "maxDelta": 0,
+  "maxCost": 8473,
+  "layoutCause": false,
+  "executionCause": "H4 was unconditional in director_c_try_event: caller -6 + helper 56 = net +50 on each affected matching frame. All other function costs identical after resolving exported aliases.",
+  "fix": "Restore shared wave arm byte-for-byte; publish metadata on successful Heavy request, replacing existing spacing load with a same-size helper call.",
+  "rawAttribution": "build/evidence/m3h-step1/continuation6/before-attribution.json.gz"
+}

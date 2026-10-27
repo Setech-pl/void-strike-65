@@ -233,7 +233,7 @@
  * the flash frames left (high nibble); a lower HP restarts the flash. */
 #define BOMBER_FLASH_FRAMES      6u
 #define BOMBER_FLASH_STEP        0x10u
-#define BOMBER_FLASH_LUMA        6u
+#define BOMBER_FLASH_LUMA        4u
 #define BOMBER_HP_MASK           0x0Fu
 
 #define ENEMY_INACTIVE           0u
@@ -347,6 +347,19 @@ static uint8_t heavy_scratch;
 static uint8_t heavy_index;
 /* GTIA colour of the ticked member; ASM writes it to COLPM1+slot. */
 volatile uint8_t heavy_member_colour;
+/* H15, Option A. Formation admission initializes every field after boot. */
+#pragma bss-name ("HYBRID_HEAVY_PACKAGE")
+uint8_t heavy_descent_mask;
+uint8_t heavy_armoured;
+uint8_t heavy_hold_row;
+uint8_t heavy_damage_pending;
+#pragma bss-name ("HYBRID_HEAVY_MEMBERS")
+uint8_t heavy_hold_left[2];
+uint8_t heavy_last_hp[2];
+uint8_t heavy_dodge_left[2];
+uint8_t heavy_wave_hold_row; /* pending WaveDef metadata, latched at admission */
+uint8_t heavy_wave_hold_frames;
+#pragma bss-name ("HYBRID_HEAVY_STATE")
 /* Roadmap 4.6 step 4 (plan §2.4, §8.2): the HullGeometry page's header - hull
  * rows lo/hi, the four phase starts in absolute modules, the density echo and
  * a reserved byte - at $AC00, inside the level buffer, the way LEVEL_CORE is.
@@ -578,6 +591,8 @@ uint8_t light_pair_key[LIGHT_APPEARANCE_PAIRS];
 uint8_t light_flash[LIGHT_SLOT_COUNT];
 #pragma bss-name ("BSS")
 
+/* Keep the profile copy loop within one page without changing its bytes. */
+static void bomber_turn(void);
 static void heavy_publish_profile(void);
 
 /* Reload the selected Light archetype's post-burst pause for this difficulty.
@@ -1459,6 +1474,7 @@ uint8_t sector_c_drain_clear(void)
  * veneer publishes to COLPM1/COLPM2. The Light rows exist so the lookup needs
  * no range test - a Light never reaches this path, because a Light wave never
  * asks the Heavy admission - and carry the Raider's values. */
+#pragma rodata-name (push, "HYBRID_C_WINDOW_HEAVY_RODATA")
 static const uint8_t heavy_roster_shape[4] = {
     ROSTER_SHAPE_RAIDER, ROSTER_SHAPE_RAIDER,
     ROSTER_SHAPE_RAIDER, ROSTER_SHAPE_BOMBER
@@ -1468,6 +1484,16 @@ static const uint8_t heavy_record_hull_colour[4] = {
     HULL_COLOUR_RAIDER, HULL_COLOUR_BOMBER
 };
 
+/* Admission health is a data profile, not another archetype. heavy_scratch
+ * already holds archetype byte offset + difficulty after profile publication. */
+static const uint8_t heavy_spawn_hp[39] = {
+    1u,1u,1u, 0u,0u,0u,0u,0u,0u,0u,0u,0u,
+    0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,
+    0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,
+    4u,4u,5u
+};
+static const uint8_t heavy_armoured_hp[3] = {2u,2u,3u};
+
 /* Record field of each enemy_profile_* byte, in their declared order. */
 static const uint8_t heavy_profile_fields[HEAVY_PROFILE_BYTES] = {
     ENEMY_ARCHETYPE_FIELD_MOVEMENT, ENEMY_ARCHETYPE_FIELD_FIRE_POLICY,
@@ -1476,6 +1502,7 @@ static const uint8_t heavy_profile_fields[HEAVY_PROFILE_BYTES] = {
     ENEMY_ARCHETYPE_FIELD_WEAPON, ENEMY_ARCHETYPE_FIELD_SCORE,
     ENEMY_ARCHETYPE_FIELD_DIRECTOR_VALUE
 };
+#pragma rodata-name (pop) /* A2: the 9-B profile-field table follows H9 data. */
 
 /* Lane-sweep formation start, $5478-$5483 by slot: X, Y, direction, first
  * fire delay, first turn delay, hit-flash byte (last HP 4, no flash). Slot 0
@@ -1513,6 +1540,8 @@ static void heavy_publish_profile(void)
 
 /* Heavy formation admission: one archetype for both P1/P2 members. ASM has
  * already placed the Raider start state; a lane sweep replaces it. */
+#pragma code-name (push, "HYBRID_C_WINDOW_HEAVY")
+#pragma rodata-name (push, "HYBRID_C_WINDOW_HEAVY_RODATA")
 void enemy_c_spawn_raiders(void)
 {
     /* The record index inside the frozen roster, from the byte offset the
@@ -1527,8 +1556,18 @@ void enemy_c_spawn_raiders(void)
     ENEMY_ARCHETYPE = heavy_roster_shape[heavy_index];
     heavy_hull_colour = heavy_record_hull_colour[heavy_index];
     heavy_publish_profile();
-    ENEMY_HP_0 = HEAVY_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
-    ENEMY_HP_1 = ENEMY_HP_0;
+    /* C latches the pending wave profile at admission. No later wave arm can
+     * alter a live formation's hold clock, row, kind or health. */
+    heavy_descent_mask = 1u;
+    if ((heavy_armoured = heavy_wave_flags & 0x20u) != 0u) {
+        ENEMY_HP_0 = heavy_armoured_hp[DIFFICULTY_SETTING];
+    } else {
+        ENEMY_HP_0 = heavy_spawn_hp[heavy_scratch];
+    }
+    heavy_last_hp[1] = heavy_last_hp[0] = ENEMY_HP_1 = ENEMY_HP_0;
+    heavy_hold_row = heavy_wave_hold_row;
+    heavy_hold_left[0] = heavy_hold_left[1] = heavy_wave_hold_frames;
+    heavy_damage_pending = heavy_dodge_left[0] = heavy_dodge_left[1] = 0u;
     ENEMY_MEMBER_STATE_0 = ENEMY_ACTIVE_STATE;
     ENEMY_MEMBER_STATE_1 = ENEMY_ACTIVE_STATE;
     ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT;
@@ -1539,12 +1578,17 @@ void enemy_c_spawn_raiders(void)
             heavy_scratch = bomber_formation_start[heavy_index];
             HEAVY_SLOT_STATE[heavy_index] = heavy_scratch;
         } while (heavy_index-- != 0u);
+        HEAVY_SLOT_STATE[10] = ENEMY_HP_0;
+        HEAVY_SLOT_STATE[11] = ENEMY_HP_0;
     }
     /* The wave's escort, or none: $FF is "no escort" (plan §2.2). */
     if (heavy_escort_offset != NO_ESCORT) {
         encounter_light_admit();
     }
 }
+
+#pragma rodata-name (pop)
+#pragma code-name (pop)
 
 static void bomber_turn(void)
 {
@@ -1555,21 +1599,31 @@ static void bomber_turn(void)
 /* Hull colour of the ticked member: BOMBER_HULL_HUE with the remaining HP as its
  * luminance, brightened while it charges an attack, brighter still for a few
  * frames after a hit. BOMBER_FLASH_LUMA and BOMBER_CHARGE_LUMA are added
- * unclamped, so the worst case must stay inside the hue: HP 4 ($C8) + flash 6
+ * unclamped, so the worst case must stay inside the hue: HP 5 ($CA) + flash 4
  * is $CE. Uses heavy_index only: heavy_scratch carries the tick's return
  * value. */
 static void bomber_colour(void)
 {
     heavy_index = ENEMY_HP_0_ADDRESS[HEAVY_SLOT];
+    heavy_member_colour = (uint8_t)(BOMBER_HULL_HUE | (heavy_index << BOMBER_HULL_HP_LUMA));
     if (heavy_index != (heavy_member_aux & BOMBER_HP_MASK)) {
         heavy_member_aux = (uint8_t)(heavy_index | (BOMBER_FLASH_FRAMES << 4));
+        if (heavy_index <= 2u) {
+            heavy_damage_pending |= (uint8_t)(HEAVY_SLOT + 1u);
+        }
+        heavy_index = 2u;
+        if (heavy_member_x < PLAYER_X) {
+            heavy_index = 254u;
+        }
+        heavy_dodge_left[HEAVY_SLOT] = heavy_index;
     }
-    heavy_member_colour = (uint8_t)(BOMBER_HULL_HUE | (heavy_index << BOMBER_HULL_HP_LUMA));
     if (heavy_member_aux >= BOMBER_FLASH_STEP) {
-        heavy_member_aux -= BOMBER_FLASH_STEP;
+        heavy_index = (uint8_t)(heavy_member_x + heavy_dodge_left[HEAVY_SLOT]);
+        /* The PMG body stays inside the playable horizontal range. */
+        if (heavy_index >= 48u && heavy_index <= 176u) {
+            heavy_member_x = heavy_index;
+        }
         heavy_member_colour += BOMBER_FLASH_LUMA;
-    } else if (heavy_member_direction == BOMBER_ATTACK) {
-        heavy_member_colour += BOMBER_CHARGE_LUMA;
     }
 }
 
@@ -1589,6 +1643,7 @@ static uint8_t bomber_may_fire(void)
 uint8_t enemy_c_heavy_tick(void)
 {
     heavy_scratch = 0u;
+    bomber_colour(); /* observe the hit before deciding whether Y may move */
     if (heavy_member_direction == BOMBER_ATTACK) {
         if (--heavy_member_turn_timer == 0u) {
             if (bomber_may_fire() != 0u) {
@@ -1608,6 +1663,10 @@ uint8_t enemy_c_heavy_tick(void)
         }
         goto colour;
     }
+    if ((heavy_member_y == heavy_hold_row && heavy_hold_left[HEAVY_SLOT] != 0u) ||
+        heavy_member_aux >= BOMBER_FLASH_STEP) {
+        goto fire;
+    }
     if (heavy_member_y < bomber_entry_depth[HEAVY_SLOT] ||
         ((FRAME_COUNTER ^ HEAVY_SLOT) & 1u) == 0u) {
         ++heavy_member_y;
@@ -1622,6 +1681,7 @@ uint8_t enemy_c_heavy_tick(void)
     } else {
         heavy_member_x = heavy_index;
     }
+fire:
     if (heavy_member_fire_timer != 0u) {
         --heavy_member_fire_timer;
     } else if (bomber_may_fire() != 0u) {
@@ -1631,7 +1691,20 @@ uint8_t enemy_c_heavy_tick(void)
         heavy_member_fire_timer = enemy_profile_burst_count;
     }
 colour:
-    bomber_colour();
+    if (heavy_member_aux >= BOMBER_FLASH_STEP) {
+        heavy_member_aux -= BOMBER_FLASH_STEP;
+    } else if (heavy_member_direction == BOMBER_ATTACK) {
+        /* Publish the new attack state on its transition frame, as before. */
+        heavy_member_colour += BOMBER_CHARGE_LUMA;
+    }
+    if (heavy_member_y == heavy_hold_row && heavy_hold_left[HEAVY_SLOT] != 0u) {
+        heavy_index = (uint8_t)(heavy_hold_left[HEAVY_SLOT] - 1u);
+        heavy_hold_left[HEAVY_SLOT] = heavy_index;
+        if (heavy_index == 0u) {
+            heavy_member_direction = 1u;
+            heavy_member_fire_timer = enemy_profile_post_burst_frames;
+        }
+    }
     return heavy_scratch;
 }
 

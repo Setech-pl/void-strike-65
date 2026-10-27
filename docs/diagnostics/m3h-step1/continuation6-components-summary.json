@@ -1,0 +1,220 @@
+{
+  "family": "components",
+  "initialHead": "09a5276",
+  "reset": [
+    {
+      "difficulty": 0,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "requestBefore": 445,
+      "requestAfter": 509,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "requestBefore": 445,
+      "requestAfter": 509,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 0,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "requestBefore": 538,
+      "requestAfter": 602,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "requestBefore": 445,
+      "requestAfter": 509,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "requestBefore": 445,
+      "requestAfter": 509,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 1,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "requestBefore": 538,
+      "requestAfter": 602,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "assault",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1675,
+      "delta": 63,
+      "requestBefore": 445,
+      "requestAfter": 509,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 5,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "armoured",
+      "baseline": 1612,
+      "h9": 1612,
+      "current": 1677,
+      "delta": 65,
+      "requestBefore": 445,
+      "requestAfter": 509,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 0,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 7,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": 0
+      }
+    },
+    {
+      "difficulty": 2,
+      "profile": "bomber",
+      "baseline": 2245,
+      "h9": 2246,
+      "current": 2320,
+      "delta": 75,
+      "requestBefore": 538,
+      "requestAfter": 602,
+      "requestDelta": 64,
+      "breakdown": {
+        "h9": 1,
+        "crossSegmentCall": 0,
+        "H3": 58,
+        "H6": 17,
+        "profileLoopPlacement": 0,
+        "rosterPlacement": -1
+      }
+    }
+  ],
+  "assault": {
+    "difficulty": 1,
+    "maximum": 1198,
+    "nominal": 1200,
+    "hardWithTolerance": 1260,
+    "mean": 1060.3309982486865,
+    "saving": 485.66900175131354,
+    "purposeMeanLimit": 1146
+  },
+  "H4": {
+    "successfulHeavyRequestDelta": 64,
+    "publicationTiming": "after all Heavy admission gates, before spawn; wave_path[cursor-1]",
+    "sharedBossAndLightWaveArmDelta": 0
+  },
+  "H2": {
+    "crossSegmentCallReturn": 12,
+    "fullCurrentBodyMaximum": "not newly measured before native capital STOP"
+  },
+  "moves": [
+    {
+      "name": "A2 profile fields",
+      "bytes": 9,
+      "arenaDelta": -9,
+      "windowDelta": 9,
+      "lookupCyclesDelta": 0
+    },
+    {
+      "name": "H4 execution boundary",
+      "newArenaOrRAMBytes": 0,
+      "windowByteDeltaVsSession5": 5,
+      "record11SizeDelta": 0,
+      "record11BytesChanged": 3,
+      "cycles": "0 on boss/Light paths, +64 on successful Heavy admission"
+    }
+  ],
+  "toleranceOvershoots": [],
+  "separateNativeFailure": {
+    "classification": "retained registered whole-capital-iteration assertion, not relaxed as a prototype component limit",
+    "limit": 29756,
+    "measured": 30025,
+    "frame": 1644,
+    "route": "campaign-0-flight"
+  }
+}

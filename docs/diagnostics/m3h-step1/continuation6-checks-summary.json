@@ -1,0 +1,35 @@
+{
+  "family": "checks",
+  "initialHead": "09a5276",
+  "result": "BLOCKED_NATIVE_CAPITAL_PEAK",
+  "normalBuild": "PASS",
+  "feature": {
+    "pass": 60,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/continuation6/feature-final.log"
+  },
+  "requiredFocused": {
+    "pass": 19,
+    "fail": 0,
+    "log": "build/evidence/m3h-step1/continuation6/gate-focused.log"
+  },
+  "bossPerComposition": "PASS after final fix",
+  "space720": "zero CPU delta",
+  "native15": {
+    "driversPass": 15,
+    "registeredGate": "FAIL capital 30025 >29756",
+    "runCount": 1
+  },
+  "nativeLevel2": "NOT RUN after STOP",
+  "ATRMenu": "NOT MEASURED: diagnostic emulator prepared only, no boot run",
+  "smokeATRs": "NONE",
+  "releaseEvidence": "stale and pending, unchanged",
+  "fullNpmTest": false,
+  "releaseBuild": false,
+  "invocationCorrections": [
+    "Initial profiler aggregate exceeded JSON string size; complete per-route chunks used instead.",
+    "First class-only guard retained +52 on stale Heavy-tagged boss callbacks; rejected in favour of successful-admission publication.",
+    "New regression fixture originally retained a Light lock; restoring WaveDef before init fixed its precondition.",
+    "SIO source absent at build/atari800-trace; private copy of frame-peak-atari800 adapted for SIO diagnostics. No menu measurement ran."
+  ]
+}

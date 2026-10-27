@@ -29,7 +29,7 @@ HEAVY_MEMBER_FIELDS = 6
 heavy_member_update:
     lda ENEMY_PROFILE_MOVEMENT_ID
     bne @policy
-    jmp update_enemy_slot_motion ; RAIDER_CROSS_PURSUIT keeps its ASM motion
+    jmp raider_gate ; M3-H executes C-selected rate/kind/hold policy
 @policy:
     txa
     ora #((HEAVY_MEMBER_FIELDS-1)*RAIDER_PMG_SLOT_COUNT)

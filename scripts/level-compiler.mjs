@@ -807,14 +807,43 @@ function compileSectors(source, context, warnings) {
         fail(context, waveWhere, `asks for ${loops} loop(s); only an Interceptor loops, ` +
           "and this wave's Light is not one");
       }
+      // M3-H Option A: bit 5 is a Raider data profile, never an escort bit.
+      const heavyKind = wave.kind ?? "assault";
+      if (!["assault", "armoured"].includes(heavyKind)) {
+        fail(context, waveWhere, `unknown Heavy kind ${JSON.stringify(heavyKind)}`);
+      }
+      if (wave.kind !== undefined && (waveClass !== "heavy" || archetype !== "raider" || kind === SECTOR_KIND.boss)) {
+        fail(context, waveWhere, "kind belongs only to Raider Heavy waves outside boss sectors");
+      }
+      let motion = waveClass === "heavy" ? 0 : 0xff;
+      if (wave.hold !== undefined) {
+        const hold = wave.hold;
+        if (!hold || typeof hold !== "object" || Array.isArray(hold) ||
+            Object.keys(hold).some(k => !["row", "frames"].includes(k))) {
+          fail(context, waveWhere, "hold must contain only row and frames");
+        }
+        if (waveClass !== "heavy" || (archetype === "raider" && heavyKind !== "armoured") || kind === SECTOR_KIND.boss) {
+          fail(context, waveWhere, "hold requires a Bomber or armoured Raider Heavy wave outside a boss sector");
+        }
+        const holdRow = hold.row, frames = hold.frames;
+        if (!Number.isInteger(holdRow) || holdRow < 24 || holdRow > 136 || (holdRow - 24) % 16 !== 0 ||
+            (archetype === "raider" && ![24, 40].includes(holdRow))) {
+          fail(context, waveWhere, "hold row must be 24+16*n (24..136), or 24/40 for a Raider");
+        }
+        if (!Number.isInteger(frames) || frames < 16 || frames > 240 || frames % 16 !== 0) {
+          fail(context, waveWhere, "hold frames must be a multiple of 16 in 16..240");
+        }
+        motion = ((holdRow - 24) / 16 << 4) | frames / 16;
+      }
       // wave_flags: bits 0-1 appearance slot, bit 2 mirror, bit 3 Heavy class,
-      // bits 4-5 trigger mode (0 = on row, 1 = when the previous wave cleared),
+      // bit 4 after-cleared, bit 5 armoured Raider,
       // bits 6-7 the Interceptor's loops.
       const flags = appearance | (mirror ? 0x04 : 0) |
-        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) | loops << 6;
+        (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) |
+        (heavyKind === "armoured" ? 0x20 : 0) | loops << 6;
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
-        onCleared, loops, archetype, escort, class: waveClass,
+        onCleared, loops, archetype, escort, class: waveClass, kind: heavyKind, motion, hold: wave.hold ?? null,
         rowModules: row / HULL_MODULE_ROWS,
         archetypeOffset: ARCHETYPE_INDEX[archetype] * ARCHETYPE_RECORD_BYTES,
         escortOffset: escort === null
@@ -911,7 +940,7 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
     core[WAVE_ARRAY_OFFSET.row + index] = wave.rowModules;
     core[WAVE_ARRAY_OFFSET.flags + index] = wave.flags;
     core[WAVE_ARRAY_OFFSET.archetype + index] = wave.archetypeOffset;
-    core[WAVE_ARRAY_OFFSET.path + index] = PATH_ARCHETYPE_DEFAULT;
+    core[WAVE_ARRAY_OFFSET.path + index] = wave.motion;
     core[WAVE_ARRAY_OFFSET.count + index] = wave.count;
     core[WAVE_ARRAY_OFFSET.spacing + index] = wave.spacing;
     core[WAVE_ARRAY_OFFSET.entry + index] = wave.entry;

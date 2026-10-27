@@ -279,7 +279,11 @@
           "count": 6,
           "spacing": 24,
           "entry": 124,
-          "appearance": "escort"
+          "appearance": "escort",
+          "hold": {
+            "row": 72,
+            "frames": 96
+          }
         },
         {
           "row": 384,
@@ -290,7 +294,11 @@
           "count": 6,
           "spacing": 24,
           "entry": 124,
-          "appearance": "escort"
+          "appearance": "escort",
+          "hold": {
+            "row": 72,
+            "frames": 96
+          }
         }
       ]
     },
@@ -396,7 +404,12 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "kind": "armoured",
+          "hold": {
+            "row": 40,
+            "frames": 64
+          }
         },
         {
           "row": 576,
@@ -461,7 +474,8 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "kind": "armoured"
         },
         {
           "row": 672,
@@ -478,7 +492,8 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "kind": "armoured"
         }
       ]
     }

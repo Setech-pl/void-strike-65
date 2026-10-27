@@ -9,6 +9,7 @@ _life_spawned: .byte 0
     jmp life_pick
     jmp life_collect
     jmp life_enter
+life_colour_vector:
     jmp life_colour
 fighter_pickup_pmg_shape:
 .include "life-capsule-shapes.inc"
@@ -105,7 +106,7 @@ life_colour_operand = *-1
 ; the final tail has linked, before producing the ATR.
 .assert _life_forced = LIFE_CAPSULE_FORCED, lderror, "LIFE forced-state ABI moved"
 .assert * <= $3B00, lderror, "LIFE tail overlaps PMG RAM"
-.export life_capsule_start, fighter_pickup_pmg_shape
+.export life_capsule_start, life_colour_vector, fighter_pickup_pmg_shape
 .export life_pick_ordinary
 .assert life_pick_ordinary = LIFE_CAPSULE_ORDINARY, lderror, "LIFE ordinary rotation entry moved"
 

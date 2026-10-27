@@ -1,0 +1,680 @@
+{
+  "family": "heavy",
+  "initialHead": "09a5276",
+  "result": "PASS measured target/fence and plane counters on these 15 routes; native level-2 authored profiles not run after STOP",
+  "before": {
+    "rows": 13288,
+    "peak": 30912,
+    "minimumFence": 3884,
+    "spawns": 60,
+    "minimumSpawn": {
+      "route": "campaign-2-brake",
+      "frame": 81,
+      "margin": 3884
+    }
+  },
+  "after": {
+    "rows": 13473,
+    "peak": 30923,
+    "minimumFence": {
+      "route": "campaign-2-brake",
+      "frame": 275,
+      "hostFrame": 1154,
+      "cycles": 27563,
+      "margin": 3441,
+      "live": 2,
+      "previousLive": 0,
+      "shape": 1,
+      "planeMismatch1": 0,
+      "planeMismatch2": 0
+    },
+    "spawns": 60,
+    "minimumSpawn": {
+      "route": "campaign-2-brake",
+      "frame": 275,
+      "hostFrame": 1154,
+      "cycles": 27563,
+      "margin": 3441,
+      "live": 2,
+      "previousLive": 0,
+      "shape": 1,
+      "planeMismatch1": 0,
+      "planeMismatch2": 0
+    },
+    "spawnUnder1100": [],
+    "planeMismatchRows": 0
+  },
+  "selection": "SPACE, boss inactive, current or preceding Heavy live count positive; spawn observed as 0->positive live count",
+  "routes": [
+    {
+      "id": "campaign-0-flight",
+      "heavy": {
+        "rows": 1417,
+        "peak": 30605,
+        "fence": {
+          "route": "campaign-0-flight",
+          "frame": 250,
+          "hostFrame": 1129,
+          "cycles": 27338,
+          "margin": 3770,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "campaign-0-flight",
+          "heavyRows": 1373,
+          "peak": 30569,
+          "fence": 5132,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 8,
+        "minimum": {
+          "route": "campaign-0-flight",
+          "frame": 250,
+          "hostFrame": 1129,
+          "cycles": 27338,
+          "margin": 3770,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "campaign-1-flight",
+      "heavy": {
+        "rows": 1454,
+        "peak": 30778,
+        "fence": {
+          "route": "campaign-1-flight",
+          "frame": 246,
+          "hostFrame": 1069,
+          "cycles": 29281,
+          "margin": 3752,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "campaign-1-flight",
+          "heavyRows": 1387,
+          "peak": 30769,
+          "fence": 4109,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 8,
+        "minimum": {
+          "route": "campaign-1-flight",
+          "frame": 246,
+          "hostFrame": 1069,
+          "cycles": 29281,
+          "margin": 3752,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "campaign-2-brake",
+      "heavy": {
+        "rows": 1538,
+        "peak": 30628,
+        "fence": {
+          "route": "campaign-2-brake",
+          "frame": 275,
+          "hostFrame": 1154,
+          "cycles": 27563,
+          "margin": 3441,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "campaign-2-brake",
+          "heavyRows": 1421,
+          "peak": 30394,
+          "fence": 3884,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 8,
+        "minimum": {
+          "route": "campaign-2-brake",
+          "frame": 275,
+          "hostFrame": 1154,
+          "cycles": 27563,
+          "margin": 3441,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-480-0-brake",
+      "heavy": {
+        "rows": 723,
+        "peak": 30299,
+        "fence": {
+          "route": "l2-480-0-brake",
+          "frame": 3651,
+          "hostFrame": 4530,
+          "cycles": 29734,
+          "margin": 6727,
+          "live": 2,
+          "previousLive": 2,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-480-0-brake",
+          "heavyRows": 669,
+          "peak": 30263,
+          "fence": 7171,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-480-0-brake",
+          "frame": 3019,
+          "hostFrame": 3898,
+          "cycles": 28251,
+          "margin": 7435,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-480-0-flight",
+      "heavy": {
+        "rows": 700,
+        "peak": 30414,
+        "fence": {
+          "route": "l2-480-0-flight",
+          "frame": 2295,
+          "hostFrame": 3174,
+          "cycles": 29258,
+          "margin": 5910,
+          "live": 2,
+          "previousLive": 2,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-480-0-flight",
+          "heavyRows": 686,
+          "peak": 30418,
+          "fence": 5969,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-480-0-flight",
+          "frame": 2174,
+          "hostFrame": 3053,
+          "cycles": 28822,
+          "margin": 7603,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-480-1-brake",
+      "heavy": {
+        "rows": 680,
+        "peak": 30923,
+        "fence": {
+          "route": "l2-480-1-brake",
+          "frame": 3347,
+          "hostFrame": 4170,
+          "cycles": 29536,
+          "margin": 6508,
+          "live": 1,
+          "previousLive": 2,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-480-1-brake",
+          "heavyRows": 700,
+          "peak": 30771,
+          "fence": 5695,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-480-1-brake",
+          "frame": 2891,
+          "hostFrame": 3714,
+          "cycles": 29264,
+          "margin": 7089,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-480-1-flight",
+      "heavy": {
+        "rows": 777,
+        "peak": 30717,
+        "fence": {
+          "route": "l2-480-1-flight",
+          "frame": 2517,
+          "hostFrame": 3340,
+          "cycles": 27452,
+          "margin": 5238,
+          "live": 2,
+          "previousLive": 2,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-480-1-flight",
+          "heavyRows": 714,
+          "peak": 30723,
+          "fence": 5454,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-480-1-flight",
+          "frame": 1900,
+          "hostFrame": 2723,
+          "cycles": 28246,
+          "margin": 7509,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-480-2-brake",
+      "heavy": {
+        "rows": 775,
+        "peak": 30886,
+        "fence": {
+          "route": "l2-480-2-brake",
+          "frame": 2662,
+          "hostFrame": 3541,
+          "cycles": 29323,
+          "margin": 5017,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-480-2-brake",
+          "heavyRows": 760,
+          "peak": 30883,
+          "fence": 5829,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-480-2-brake",
+          "frame": 2662,
+          "hostFrame": 3541,
+          "cycles": 29323,
+          "margin": 5017,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-480-2-flight",
+      "heavy": {
+        "rows": 816,
+        "peak": 30510,
+        "fence": {
+          "route": "l2-480-2-flight",
+          "frame": 1869,
+          "hostFrame": 2748,
+          "cycles": 29268,
+          "margin": 5686,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-480-2-flight",
+          "heavyRows": 765,
+          "peak": 30738,
+          "fence": 5124,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-480-2-flight",
+          "frame": 1869,
+          "hostFrame": 2748,
+          "cycles": 29268,
+          "margin": 5686,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-960-0-brake",
+      "heavy": {
+        "rows": 719,
+        "peak": 30479,
+        "fence": {
+          "route": "l2-960-0-brake",
+          "frame": 5240,
+          "hostFrame": 6119,
+          "cycles": 27550,
+          "margin": 6243,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-960-0-brake",
+          "heavyRows": 708,
+          "peak": 30481,
+          "fence": 5851,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-960-0-brake",
+          "frame": 5240,
+          "hostFrame": 6119,
+          "cycles": 27550,
+          "margin": 6243,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-960-0-flight",
+      "heavy": {
+        "rows": 761,
+        "peak": 30463,
+        "fence": {
+          "route": "l2-960-0-flight",
+          "frame": 3374,
+          "hostFrame": 4253,
+          "cycles": 29303,
+          "margin": 5653,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-960-0-flight",
+          "heavyRows": 700,
+          "peak": 30466,
+          "fence": 5841,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-960-0-flight",
+          "frame": 3374,
+          "hostFrame": 4253,
+          "cycles": 29303,
+          "margin": 5653,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-960-1-brake",
+      "heavy": {
+        "rows": 744,
+        "peak": 30762,
+        "fence": {
+          "route": "l2-960-1-brake",
+          "frame": 4197,
+          "hostFrame": 5020,
+          "cycles": 29587,
+          "margin": 6140,
+          "live": 2,
+          "previousLive": 2,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-960-1-brake",
+          "heavyRows": 707,
+          "peak": 30912,
+          "fence": 6927,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-960-1-brake",
+          "frame": 4072,
+          "hostFrame": 4895,
+          "cycles": 28237,
+          "margin": 7506,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-960-1-flight",
+      "heavy": {
+        "rows": 719,
+        "peak": 30728,
+        "fence": {
+          "route": "l2-960-1-flight",
+          "frame": 3073,
+          "hostFrame": 3896,
+          "cycles": 29318,
+          "margin": 6853,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-960-1-flight",
+          "heavyRows": 721,
+          "peak": 30749,
+          "fence": 6885,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-960-1-flight",
+          "frame": 3073,
+          "hostFrame": 3896,
+          "cycles": 29318,
+          "margin": 6853,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-960-2-brake",
+      "heavy": {
+        "rows": 797,
+        "peak": 30803,
+        "fence": {
+          "route": "l2-960-2-brake",
+          "frame": 3949,
+          "hostFrame": 4828,
+          "cycles": 29042,
+          "margin": 5717,
+          "live": 2,
+          "previousLive": 2,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-960-2-brake",
+          "heavyRows": 758,
+          "peak": 30772,
+          "fence": 4977,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-960-2-brake",
+          "frame": 3732,
+          "hostFrame": 4611,
+          "cycles": 28334,
+          "margin": 7506,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    },
+    {
+      "id": "l2-960-2-flight",
+      "heavy": {
+        "rows": 853,
+        "peak": 30171,
+        "fence": {
+          "route": "l2-960-2-flight",
+          "frame": 3101,
+          "hostFrame": 3980,
+          "cycles": 27453,
+          "margin": 5820,
+          "live": 2,
+          "previousLive": 2,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "before": {
+          "route": "l2-960-2-flight",
+          "heavyRows": 769,
+          "peak": 30745,
+          "fence": 5703,
+          "after": null
+        }
+      },
+      "spawn": {
+        "rows": 3,
+        "minimum": {
+          "route": "l2-960-2-flight",
+          "frame": 2848,
+          "hostFrame": 3727,
+          "cycles": 29230,
+          "margin": 7401,
+          "live": 2,
+          "previousLive": 0,
+          "shape": 1,
+          "planeMismatch1": 0,
+          "planeMismatch2": 0
+        },
+        "under1100": []
+      }
+    }
+  ]
+}

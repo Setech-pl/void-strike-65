@@ -115,8 +115,8 @@ Difficulty changes how often enemies fire, how fast the world scrolls, what a
 collision with debris costs (two, five or seven tenths of your hull), and the
 bosses: how many hits their modules take (0.75×, 1×, 1.25×) and how hard
 their lasers hit. It does not change the damage you do: every hit of yours
-counts the same, and an enemy fighter takes the same number of hits on every
-difficulty.
+counts the same. Armoured Raiders and Bombers take one extra hit on ACE;
+assault Raiders still take one hit and Interceptors three.
 
 Changing difficulty clears remembered progress.
 
@@ -131,14 +131,23 @@ disk. The same is true of the score table.
 
 | Enemy | Class | Behaviour | Score |
 | --- | --- | --- | ---: |
-| Raider | Heavy | Fast fighter, fires in bursts | 10 |
-| Bomber | Heavy | Catamaran silhouette; sweeps its lane, stops, aims, looses torpedoes | 50 |
+| Raider | Heavy | Descends on alternate frames, hunts sideways and fires in bursts; one hit | 10 |
+| Armoured Raider | Heavy | Stops to shoot, dodges surviving hits; 2/2/3 hits on ROOKIE/PILOT/ACE | 10 |
+| Bomber | Heavy | Catamaran silhouette; sweeps its lane, stops, aims, looses torpedoes; 4/4/5 hits on ROOKIE/PILOT/ACE | 50 |
 | Wingman | Light | Flies in formation | 5 |
 | Interceptor | Light | Dives to a firing position above you, follows your column, fires its laser straight down when it is over you, backs off if you close in. In some waves it then climbs to the top of the screen, holds there and dives back for another pass (in level 1, twice) before it climbs away. Takes three hits | 15 |
 | Boss | — | End of every level | each module 20-99; 2,000 for defeating it |
 
+Raiders keep tracking your column every frame while their vertical movement
+runs on alternate frames. Some formations use the armoured profile: they
+pause at a fixed height to fire and dodge sideways when they survive a hit.
+They currently share the Raider silhouette.
+
 The Bomber's hull darkens as it takes damage, so the colour tells you how much
-of it is left. An Interceptor takes three hits: when one of your shots hits it
+of it is left. It brightens when braking to aim and dims when its sweep
+resumes. A surviving hit makes it dodge sideways for six frames; its height
+stays fixed during the dodge. A hit during an authored stop does not shorten
+that stop. An Interceptor takes three hits: when one of your shots hits it
 and it survives, its red pods flash for a moment.
 
 Some waves send Wingmen or Interceptors with different markings or a different
@@ -146,9 +155,9 @@ shape. They are still the same enemy: they fly, fire and score exactly like the
 type they belong to. The colour of the stars changes between sectors too; it
 only marks where you are.
 
-**Heavies cannot be bypassed.** They stay until destroyed. They fly the full
-vertical range — down to the bottom edge and back up — and the sector does not
-advance while they live.
+**Heavy waves block the sector handoff.** A sector waits for its active Heavy
+formation to clear before moving on. Raiders and Bombers cross the playfield
+vertically while their formations keep you under fire.
 
 **Lights pass through.** A wave flies its path and leaves. Killing it is a
 choice between points and safety.

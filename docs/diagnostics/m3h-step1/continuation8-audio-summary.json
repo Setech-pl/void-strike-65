@@ -1,0 +1,773 @@
+{
+  "family": "audio-attribution-and-main-reachability",
+  "date": "2026-10-27",
+  "initialHead": "e4893a7",
+  "baseline": "8e1dface4238a968ea2703eca34ebde5941d0e87",
+  "result": "PASS",
+  "measurement": "Native Atari800 PAL DMA-on, unchanged main/WIP guest images, original deterministic campaign route, host-only observations plus explicit mutable-state reachability fixture",
+  "byteIdentity": {
+    "files": [
+      {
+        "file": "gameplay-music.bin",
+        "bytes": 512,
+        "sha256": "9ad57bd1989f056ee365cc080293014c4653ae7e7bf46e8b4d43a1712d84c44f"
+      },
+      {
+        "file": "menu-overlay.bin",
+        "bytes": 1408,
+        "sha256": "8406387f52690664b733b693ea29d01cb7264c5423c11a87ae78853607683dbb"
+      },
+      {
+        "file": "boss-region-1-theme.bin",
+        "bytes": 256,
+        "sha256": "e4cc6f510870426932128df1157464cd5b17641dcdac02a48b7015ccf4cd728a"
+      },
+      {
+        "file": "boss-region-2-theme.bin",
+        "bytes": 256,
+        "sha256": "85d77c969da145cf0682465683cdef01174419b03138e738929fdf3cb32e67e5"
+      },
+      {
+        "file": "boss-region-3-theme.bin",
+        "bytes": 256,
+        "sha256": "a0d1e873cfafaa4edb69017712ac40edc05aa4b8680c9dd8dc61881e0795fea4"
+      },
+      {
+        "file": "boss-region-4-theme.bin",
+        "bytes": 256,
+        "sha256": "66f99a64014ac07bbc818ef79c4900030416b7975ebc4dab3142795fdce6069c"
+      }
+    ],
+    "mainSymbolRanges": [
+      {
+        "symbol": "toggle_game_music",
+        "start": 8926,
+        "end": 8927,
+        "bytes": 1,
+        "sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068"
+      },
+      {
+        "symbol": "toggle_game_music_setting",
+        "start": 8932,
+        "end": 8941,
+        "bytes": 9,
+        "sha256": "d8b68d8a36dff454f01fb054056477809d0448cedfb8cd568d96aac6e33e6a7d"
+      },
+      {
+        "symbol": "draw_sound_value",
+        "start": 9603,
+        "end": 9643,
+        "bytes": 40,
+        "sha256": "35cc8acea522ee27984650220b34413d028407204d323f24292b36fa4e786212"
+      },
+      {
+        "symbol": "draw_game_music_value",
+        "start": 9643,
+        "end": 9672,
+        "bytes": 29,
+        "sha256": "238dcb611e459747892a5e9ec35c86728c2bda16ce1965cad616e3e138f7d682"
+      },
+      {
+        "symbol": "play_player_fighter_projectile_sound",
+        "start": 11621,
+        "end": 11641,
+        "bytes": 20,
+        "sha256": "b219a3c9fd2f7cc10bde84c0244006bd5c842bd554be261da0c9a03f7ae17dda"
+      },
+      {
+        "symbol": "play_hit_sound",
+        "start": 11892,
+        "end": 11911,
+        "bytes": 19,
+        "sha256": "88a83b59cec7cbcf1679633125e5005f12f4bd684d5cb4d7acc7d4d97478583d"
+      },
+      {
+        "symbol": "update_sound",
+        "start": 11911,
+        "end": 12063,
+        "bytes": 152,
+        "sha256": "f02529cadc1185b6d06369d030fe68ecc5e0bbad2fb53460d620494630be9de5"
+      },
+      {
+        "symbol": "silence_audio",
+        "start": 12063,
+        "end": 12096,
+        "bytes": 33,
+        "sha256": "e9088927d3ff91985c7e00cb7ac7deea5124036a665278c5606b6486093edbb5"
+      },
+      {
+        "symbol": "toggle_sound",
+        "start": 12656,
+        "end": 12670,
+        "bytes": 14,
+        "sha256": "adad3746271d5c8d1036f9c50302b8d969eebf2a9c018ffa64ebe2c71896eacb"
+      },
+      {
+        "symbol": "music_init",
+        "start": 22737,
+        "end": 22740,
+        "bytes": 3,
+        "sha256": "603b870957b341980c36f095ea72c2b5c5ca06cddaa6082e240443ae5b2313cd"
+      },
+      {
+        "symbol": "music_player_start",
+        "start": 22737,
+        "end": 22740,
+        "bytes": 3,
+        "sha256": "603b870957b341980c36f095ea72c2b5c5ca06cddaa6082e240443ae5b2313cd"
+      },
+      {
+        "symbol": "music_start_menu",
+        "start": 22740,
+        "end": 22769,
+        "bytes": 29,
+        "sha256": "3b986980156fd4aa59f8af2775f1955142019597365d4f2b72acd36e942915bd"
+      },
+      {
+        "symbol": "music_stop",
+        "start": 22769,
+        "end": 22782,
+        "bytes": 13,
+        "sha256": "fdcc4160f59898e776fe4f741deb1bfb674cd6dbd24af67e3ce871e3d9495764"
+      },
+      {
+        "symbol": "music_tick",
+        "start": 22782,
+        "end": 22834,
+        "bytes": 52,
+        "sha256": "83e85b72b876970e4cfde3647b7463edbab568c038cf2ad24ca4ea0b0b87ea8a"
+      },
+      {
+        "symbol": "music_publish_voices",
+        "start": 22834,
+        "end": 22843,
+        "bytes": 9,
+        "sha256": "d23d01c1b1fe95e1018a951c9ed1cbf46cc1309c2f373995f4e442c3d890d998"
+      },
+      {
+        "symbol": "music_load_bar",
+        "start": 22843,
+        "end": 22877,
+        "bytes": 34,
+        "sha256": "6b974b1177f3e48f0d582dd4b06d6c98ce2226c8d1a8260d37efbf841ad40b20"
+      },
+      {
+        "symbol": "music_render_row",
+        "start": 22877,
+        "end": 22914,
+        "bytes": 37,
+        "sha256": "6c0ba92eea2b36b27135064a5f7739c45c6d4238d784ead6781461d492cd4b83"
+      },
+      {
+        "symbol": "music_apply_token",
+        "start": 22914,
+        "end": 22971,
+        "bytes": 57,
+        "sha256": "6727f8140ad58f07193205dc1b5220068e111b068d21b98feafa95d772b26dd0"
+      },
+      {
+        "symbol": "music_voice_silent",
+        "start": 22971,
+        "end": 22980,
+        "bytes": 9,
+        "sha256": "a22fdf0efd21eb6cc8da7e1f5a0ffa6f14219c8bf4db57fea63a2dd4dc920faa"
+      },
+      {
+        "symbol": "music_voice_publish",
+        "start": 22980,
+        "end": 22994,
+        "bytes": 14,
+        "sha256": "f61b57bc1d2182824f445c29696be55c52b12bb563b6cce517738613513a28f8"
+      },
+      {
+        "symbol": "music_voice_drum",
+        "start": 22994,
+        "end": 23018,
+        "bytes": 24,
+        "sha256": "4338feb2c9594919b305b0b08982be36d7aa991449b13bd7572e49f6725c12be"
+      },
+      {
+        "symbol": "music_voice_frame",
+        "start": 23018,
+        "end": 23090,
+        "bytes": 72,
+        "sha256": "d37ee38edcefe86d7bdba21215e4009c2612533af2496104e510c1cebecea10e"
+      },
+      {
+        "symbol": "music_player_end",
+        "start": 23090,
+        "end": 23102,
+        "bytes": 12,
+        "sha256": "6fcf9c36035a34f438c8ae53c0064c03ea0ed227330df0672b329247ff03f990"
+      },
+      {
+        "symbol": "profile_after_audio",
+        "start": 24361,
+        "end": 24379,
+        "bytes": 18,
+        "sha256": "cfa91c3f66cfd5c7e31444ccab344a9c5443b4fdc8200e4e8b22e144d0f67699"
+      },
+      {
+        "symbol": "toggle_pause_game_music",
+        "start": 24601,
+        "end": 24618,
+        "bytes": 17,
+        "sha256": "0f4c8b305de74e96c50b33f77590a0c0dfc8ab6c712ea8982b70fb1f1f111489"
+      },
+      {
+        "symbol": "pause_silence_audio",
+        "start": 24713,
+        "end": 24743,
+        "bytes": 30,
+        "sha256": "867a13edc171929568f6beeaea95995c85259b96472c32f8eb9dec3f778387a9"
+      },
+      {
+        "symbol": "resume_gameplay_audio",
+        "start": 24743,
+        "end": 24832,
+        "bytes": 89,
+        "sha256": "7d3c8543b661b38fab916ebdc1527fadd2eae81d93b79f96f99d2574a448063c"
+      },
+      {
+        "symbol": "resume_gameplay_audio_done",
+        "start": 24832,
+        "end": 24833,
+        "bytes": 1,
+        "sha256": "8d33f520a3c4cef80d2453aef81b612bfe1cb44c8b2025630ad38662763f13d3"
+      },
+      {
+        "symbol": "music_stop_gameplay",
+        "start": 24833,
+        "end": 24862,
+        "bytes": 29,
+        "sha256": "b6c0dc632eec9e0f630284a047e1b83d6a48e3c83e2057e4f9f5ff5f432fcee3"
+      },
+      {
+        "symbol": "capital_explosion_sound_frequency",
+        "start": 27397,
+        "end": 27421,
+        "bytes": 24,
+        "sha256": "1569b3dce473686eb053c0a2f5eab7878d86b05e2d79962f6058eb6669d4363b"
+      },
+      {
+        "symbol": "capital_explosion_sound_control",
+        "start": 27421,
+        "end": 27445,
+        "bytes": 24,
+        "sha256": "4e7209c08bc18e61f8e8cae17af23327cb73a3bbc4e91f36601bf9a5c0af9eb2"
+      },
+      {
+        "symbol": "play_capital_explosion_sound",
+        "start": 29351,
+        "end": 29366,
+        "bytes": 15,
+        "sha256": "edbfe54ea2c659ee164fcd08ccf82815370d6ca19c8b3d52e53069add78498e3"
+      }
+    ],
+    "gameplayMusicSymbolRanges": [
+      {
+        "symbols": [
+          "gameplay_music_vectors"
+        ],
+        "start": 42504,
+        "end": 42513
+      },
+      {
+        "symbols": [
+          "game_music_player_start",
+          "music_start_gameplay"
+        ],
+        "start": 42513,
+        "end": 42542
+      },
+      {
+        "symbols": [
+          "music_tick_gameplay"
+        ],
+        "start": 42542,
+        "end": 42595
+      },
+      {
+        "symbols": [
+          "gm_publish"
+        ],
+        "start": 42595,
+        "end": 42646
+      },
+      {
+        "symbols": [
+          "gm_row_channel"
+        ],
+        "start": 42646,
+        "end": 42675
+      },
+      {
+        "symbols": [
+          "gm_apply"
+        ],
+        "start": 42675,
+        "end": 42712
+      },
+      {
+        "symbols": [
+          "gm_frame"
+        ],
+        "start": 42712,
+        "end": 42750
+      },
+      {
+        "symbols": [
+          "gm_load_bar"
+        ],
+        "start": 42750,
+        "end": 42766
+      },
+      {
+        "symbols": [
+          "music_restore_gameplay_channels"
+        ],
+        "start": 42766,
+        "end": 42775
+      },
+      {
+        "symbols": [
+          "game_music_data_start",
+          "game_music_player_end",
+          "gm_audc_base"
+        ],
+        "start": 42775,
+        "end": 42777
+      },
+      {
+        "symbols": [
+          "gm_env_ch1"
+        ],
+        "start": 42777,
+        "end": 42784
+      },
+      {
+        "symbols": [
+          "gm_env_ch2"
+        ],
+        "start": 42784,
+        "end": 42789
+      },
+      {
+        "symbols": [
+          "gm_map_ch1"
+        ],
+        "start": 42789,
+        "end": 42799
+      },
+      {
+        "symbols": [
+          "gm_map_ch2"
+        ],
+        "start": 42799,
+        "end": 42808
+      },
+      {
+        "symbols": [
+          "gm_seq_ch1"
+        ],
+        "start": 42808,
+        "end": 42824
+      },
+      {
+        "symbols": [
+          "gm_seq_ch2"
+        ],
+        "start": 42824,
+        "end": 42840
+      },
+      {
+        "symbols": [
+          "gm_columns"
+        ],
+        "start": 42840,
+        "end": 43016
+      }
+    ],
+    "callPath": {
+      "start": 24350,
+      "end": 24361,
+      "bytes": 11
+    },
+    "allComparedAddressesAndBytesIdentical": true,
+    "allGuestBinariesEqual81b1e26": true
+  },
+  "routineCost": {
+    "main": {
+      "update_sound": {
+        "cpu": 116,
+        "wall": 224
+      },
+      "music": {
+        "cpu": 158,
+        "wall": 352
+      },
+      "callPath": {
+        "cpu": 18,
+        "wall": 27
+      }
+    },
+    "wip": {
+      "update_sound": {
+        "cpu": 116,
+        "wall": 220
+      },
+      "music": {
+        "cpu": 331,
+        "wall": 690
+      },
+      "callPath": {
+        "cpu": 18,
+        "wall": 33
+      }
+    },
+    "delta": {
+      "update_sound": {
+        "cpu": 0,
+        "wall": -4
+      },
+      "music": {
+        "cpu": 173,
+        "wall": 338
+      },
+      "callPath": {
+        "cpu": 0,
+        "wall": 6
+      }
+    },
+    "rawPCs": "build/evidence/m3h-step1/continuation8/audio-cost-split.json"
+  },
+  "events": {
+    "mainImpactFrame": 1604,
+    "wipImpactFrame": 1644,
+    "event": "BROAD slot 0 enemy-owned capital shell hits the opposite hull; play_capital_explosion_sound starts timer24 and begin_capital_hull_explosion starts visual timer24. It is a hull hit, not a Heavy kill/pickup.",
+    "impactOffsetFromLoop": 3357,
+    "impactOffsetFromVisibleCapital": 698,
+    "music": "WIP: sequence1 row2, timer1 -> row3 timer6; columns16/24, two new notes (dividers90/71; ages1/1). Main: sequence0 row12, timer5->4, publication only.",
+    "channels": "CH1 bass AUDF90/AUDC167 and CH2 lead AUDF71/AUDC167 music; CH3 engine AUDF104/AUDC34; CH4 capital explosion table index23 AUDF6/AUDC143 overrides the existing player-shot sound. Hit SFX inactive. CH2/4 outputs derived from the exact compared tables and captured state, CH1/3 also directly recorded.",
+    "killTiming": "First Raider pair kills main31/39 versus WIP33/71; subsequent pair main129/137 versus WIP130/139. Last pre-capital Bomber admission main356 versus WIP391; later hit/dodge and retirement timing differ. Both retire without a kill, main904 versus WIP944. Hull entry906 versus946; the corresponding hull-hit event and peak move40 gameplay frames onto a six-frame music-row boundary.",
+    "commonFrameMusicTransportIdentical": 1751,
+    "lastShotEvents": {
+      "main2": [
+        {
+          "frame": 1583,
+          "pc": 11621,
+          "clock": 87314069,
+          "scanline": 264,
+          "cycle": 101,
+          "a": 255,
+          "x": 1,
+          "y": 1,
+          "s": 245,
+          "active": 1,
+          "rowtimer": 2,
+          "sequence": 0,
+          "row": 8,
+          "col0": 0,
+          "col1": 8,
+          "div0": 71,
+          "div1": 60,
+          "age0": 6,
+          "age1": 4,
+          "enabled": 1,
+          "fire": 0,
+          "hit": 0,
+          "damage": 0,
+          "capital_sound": 0,
+          "broad0state": 2,
+          "broad0x": 148,
+          "broad0y": 0,
+          "health": 4,
+          "score0": 112,
+          "score1": 1,
+          "enemy0": 0,
+          "enemy1": 0
+        },
+        {
+          "frame": 1592,
+          "pc": 11621,
+          "clock": 87634121,
+          "scanline": 264,
+          "cycle": 41,
+          "a": 255,
+          "x": 2,
+          "y": 1,
+          "s": 245,
+          "active": 1,
+          "rowtimer": 5,
+          "sequence": 0,
+          "row": 10,
+          "col0": 0,
+          "col1": 8,
+          "div0": 143,
+          "div1": 53,
+          "age0": 6,
+          "age1": 4,
+          "enabled": 1,
+          "fire": 0,
+          "hit": 9,
+          "damage": 13,
+          "capital_sound": 0,
+          "broad0state": 2,
+          "broad0x": 148,
+          "broad0y": 0,
+          "health": 2,
+          "score0": 112,
+          "score1": 1,
+          "enemy0": 0,
+          "enemy1": 0
+        },
+        {
+          "frame": 1601,
+          "pc": 11621,
+          "clock": 87954268,
+          "scanline": 264,
+          "cycle": 76,
+          "a": 255,
+          "x": 3,
+          "y": 1,
+          "s": 245,
+          "active": 1,
+          "rowtimer": 2,
+          "sequence": 0,
+          "row": 11,
+          "col0": 0,
+          "col1": 8,
+          "div0": 71,
+          "div1": 47,
+          "age0": 5,
+          "age1": 4,
+          "enabled": 1,
+          "fire": 0,
+          "hit": 0,
+          "damage": 4,
+          "capital_sound": 0,
+          "broad0state": 2,
+          "broad0x": 148,
+          "broad0y": 0,
+          "health": 2,
+          "score0": 112,
+          "score1": 1,
+          "enemy0": 0,
+          "enemy1": 0
+        }
+      ],
+      "wip2": [
+        {
+          "frame": 1625,
+          "pc": 11621,
+          "clock": 89092138,
+          "scanline": 261,
+          "cycle": 112,
+          "a": 255,
+          "x": 0,
+          "y": 1,
+          "s": 245,
+          "active": 1,
+          "rowtimer": 2,
+          "sequence": 0,
+          "row": 15,
+          "col0": 0,
+          "col1": 8,
+          "div0": 71,
+          "div1": 71,
+          "age0": 5,
+          "age1": 4,
+          "enabled": 1,
+          "fire": 0,
+          "hit": 0,
+          "damage": 0,
+          "capital_sound": 0,
+          "broad0state": 2,
+          "broad0x": 148,
+          "broad0y": 0,
+          "health": 8,
+          "score0": 96,
+          "score1": 1,
+          "enemy0": 0,
+          "enemy1": 0
+        },
+        {
+          "frame": 1634,
+          "pc": 11621,
+          "clock": 89412536,
+          "scanline": 264,
+          "cycle": 56,
+          "a": 255,
+          "x": 1,
+          "y": 1,
+          "s": 245,
+          "active": 1,
+          "rowtimer": 5,
+          "sequence": 1,
+          "row": 1,
+          "col0": 16,
+          "col1": 24,
+          "div0": 180,
+          "div1": 60,
+          "age0": 2,
+          "age1": 2,
+          "enabled": 1,
+          "fire": 0,
+          "hit": 7,
+          "damage": 11,
+          "capital_sound": 0,
+          "broad0state": 2,
+          "broad0x": 148,
+          "broad0y": 0,
+          "health": 6,
+          "score0": 96,
+          "score1": 1,
+          "enemy0": 0,
+          "enemy1": 0
+        },
+        {
+          "frame": 1643,
+          "pc": 11621,
+          "clock": 89732659,
+          "scanline": 264,
+          "cycle": 67,
+          "a": 255,
+          "x": 2,
+          "y": 1,
+          "s": 245,
+          "active": 1,
+          "rowtimer": 2,
+          "sequence": 1,
+          "row": 2,
+          "col0": 16,
+          "col1": 24,
+          "div0": 180,
+          "div1": 60,
+          "age0": 6,
+          "age1": 4,
+          "enabled": 1,
+          "fire": 0,
+          "hit": 0,
+          "damage": 2,
+          "capital_sound": 0,
+          "broad0state": 2,
+          "broad0x": 148,
+          "broad0y": 0,
+          "health": 6,
+          "score0": 96,
+          "score1": 1,
+          "enemy0": 0,
+          "enemy1": 0
+        }
+      ]
+    },
+    "sourceAudioImplementationChanged": false
+  },
+  "nativeReachability": {
+    "mainFrame": 1604,
+    "wipFrame": 1644,
+    "mainCycles": 30025,
+    "wipCycles": 30025,
+    "all23SegmentDeltas": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "mutableRamBytes": 513,
+    "kept": "main guest code, level data, CPU registers, PAL tokens, clock and hardware state",
+    "codeAndLevelBytesChanged": 0,
+    "rawProof": "build/evidence/m3h-step1/continuation8/reachability-proof.json",
+    "diagnosticEndpoint": "1700-active-frame probes intentionally stop before boss entry. Runtime full-route wrapper returns 1: focused boss endpoint has no entry subject. Captured iterations and 23 checkpoint intervals above are complete; these probes are not the fifteen-route gate."
+  },
+  "capitalBudget": {
+    "main": {
+      "worstCapitalWithoutAudio": {
+        "route": "campaign-0-flight",
+        "frame": 1604,
+        "hostFrame": 2475,
+        "wall": 29731,
+        "audio": 603,
+        "withoutAudio": 29128
+      },
+      "mostExpensiveCapitalAudio": {
+        "route": "l2-960-0-flight",
+        "frame": 2388,
+        "hostFrame": 3259,
+        "wall": 12264,
+        "audio": 1187,
+        "withoutAudio": 11077
+      },
+      "mostExpensiveAudioAnySector": {
+        "route": "l2-960-0-flight",
+        "frame": 2388,
+        "hostFrame": 3259,
+        "wall": 12264,
+        "audio": 1187,
+        "withoutAudio": 11077
+      },
+      "capitalComposed": 30315
+    },
+    "wip": {
+      "worstCapitalWithoutAudio": {
+        "route": "l2-480-0-flight",
+        "frame": 699,
+        "hostFrame": 1578,
+        "wall": 29756,
+        "audio": 660,
+        "withoutAudio": 29096
+      },
+      "mostExpensiveCapitalAudio": {
+        "route": "l2-960-0-flight",
+        "frame": 2388,
+        "hostFrame": 3267,
+        "wall": 12264,
+        "audio": 1187,
+        "withoutAudio": 11077
+      },
+      "mostExpensiveAudioAnySector": {
+        "route": "l2-960-0-flight",
+        "frame": 2388,
+        "hostFrame": 3267,
+        "wall": 12264,
+        "audio": 1187,
+        "withoutAudio": 11077
+      },
+      "capitalComposed": 30283
+    }
+  },
+  "amendment5": {
+    "oldSampledCeiling": 29756,
+    "newSampledCeiling": 30025,
+    "ordinaryLimit": 31500,
+    "rawProof": "build/evidence/m3h-step1/continuation8/reachability-proof.json"
+  },
+  "earlyDepartureImplemented": false,
+  "rawRoot": "build/evidence/m3h-step1/continuation8",
+  "invocationCorrections": [
+    "Initial analysis referenced generated .inc files absent from archived input; comparison uses actual installed binary bytes instead.",
+    "Initial private-emulator make reused copied timestamps; forced cpu.c rebuild found and corrected an observer-only undeclared symbol before the probed run.",
+    "First native helper used a non-registered artifacts alias; corrected to existing allowed frame-peak aliases.",
+    "Short1700-active-frame evidence probes intentionally have no boss-entry subject; wrapper rejection retained and not counted as full-route gate PASS."
+  ],
+  "note": "gm_frame is a routine at A6D8, not a missing phase counter. The actual MUSIC_ROW_TIMER/SEQUENCE_INDEX/PATTERN_ROW and voice state at4ED9-4EE3 are captured; this continuation resolves the prior attribution limit."
+}

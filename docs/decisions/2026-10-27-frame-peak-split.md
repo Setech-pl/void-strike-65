@@ -26,3 +26,20 @@ L2's usable limit remains 1,536 B; `$1F00–$1FFF` is protected. Keep the eight
 pre-existing level-summary/Light failures unchanged, with no ledger edits.
 Use focused tests, not the full suite. Deliver a committed OWNER-SMOKE
 CANDIDATE; feature acceptance still requires owner play. No push or merge.
+
+
+## Sampled capital ceiling — owner amendment 5, 2026-10-27
+
+M3-H changes replay kill/hit timing and exposes an existing audio coincidence.
+The EASY campaign capital maximum becomes **30,025**, reproduced exactly with
+main code and the recorded WIP mutable world/audio state. Every audio byte and
+the call path match main; all 23 native profile intervals match the reproduced
+row. The registered replay ceiling in `scripts/frame-peak-results.mjs` is
+therefore **30,025**, superseding the sampled 29,756 in the original audit.
+Ordinary iterations stay bounded at 31,500, minimum fence at 500, and all other
+system gates remain unchanged. The bound is a sampled replay regression check,
+not a forecast of worst possible capital content.
+
+Proof: [M3-H eighth-continuation audio summary](../diagnostics/m3h-step1/continuation8-audio-summary.json).
+Future content must use the
+[capital budget and departure prerequisites](../plan-realizacji.md#capital-content-spike--measurement-prerequisites-2026-10-27).

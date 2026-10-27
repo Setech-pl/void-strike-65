@@ -1,0 +1,171 @@
+{
+  "family": "M3-H Option A implementation-stage builds and size gate",
+  "initialHead": "113c6df",
+  "branch": "codex/m3h-step1",
+  "result": "BLOCKED_ARENA_SIZE",
+  "ownerDecision": "Option A approved; explicit STOP on first size gate failure, no placement improvisation",
+  "bit5": {
+    "availableBeforeProductionEdits": true,
+    "rawSearch": "build/evidence/m3h-step1/implementation/bit5-audit.log",
+    "armouredApprovedBit": 5,
+    "escortLoopsBits": [
+      6,
+      7
+    ],
+    "triggerRuntimeMask": "0x10",
+    "unusedTriggerBit5CommentIsStale": true,
+    "level1FlagsUnchanged": [
+      8,
+      8,
+      1,
+      128,
+      0,
+      136,
+      24,
+      8,
+      0
+    ]
+  },
+  "red": {
+    "tests": 7,
+    "pass": 0,
+    "expectedFailures": 7,
+    "fiveRuntimeCases": "missing new ABI/state labels",
+    "compilerFirstAssertion": "flags actual 136, expected 168",
+    "validatorFirstAssertion": "Missing expected exception: armoured Bomber",
+    "log": "build/evidence/m3h-step1/implementation/red-tests.log"
+  },
+  "h9": {
+    "build": "PASS normal computed gates",
+    "arena": {
+      "used": 675,
+      "capacity": 832,
+      "free": 157,
+      "asm": 162,
+      "c": 482,
+      "rodata": 31
+    },
+    "window": {
+      "used": 1799,
+      "usableFree": 1012,
+      "packed": 1451,
+      "sectors": 12
+    },
+    "record7": {
+      "sectors": 6,
+      "packed": 623
+    },
+    "record1Sectors": 44,
+    "record9Sectors": 9,
+    "record11Sectors": 5,
+    "initialContent": 12825,
+    "initialDelta": 0,
+    "bootSectors": 101,
+    "extensionSectors": 111,
+    "transportSectors": 212,
+    "atrMenuFrames": null,
+    "log": "build/evidence/m3h-step1/implementation/h9-build.log"
+  },
+  "h5h7h8": {
+    "build": "FAIL at link",
+    "gate": "HYBRID_C_ARENA contents exceed 832 B",
+    "arenaRequired": 839,
+    "capacity": 832,
+    "shortfall": 7,
+    "newCBytesAfterH9": 164,
+    "planBudgetNewCBytes": 83,
+    "arenaCompositionInferredFromOverflow": {
+      "asm": 162,
+      "c": 646,
+      "rodata": 31
+    },
+    "packedBytes": null,
+    "cpuCycles": null,
+    "log": "build/evidence/m3h-step1/implementation/bomber-build.log",
+    "rejectedSource": "build/evidence/m3h-step1/implementation/rejected-arena-839"
+  },
+  "rollback": {
+    "build": "PASS normal computed gates",
+    "arenaUsed": 818,
+    "windowUsed": 1656,
+    "initialContent": 12825,
+    "atrSha256": "5f5056a62e24cc1912304f5fbf6543c468af20381a1d83b102aa737629cc13fa",
+    "productionAndTestHashes": [
+      {
+        "path": "src/c/lifecycle.c",
+        "sha256": "b24cc4d6812842a7e1c6205a1b43a90a43f8f880dbd9c9757dbab68eec17144e",
+        "matchesInitialHead": true
+      },
+      {
+        "path": "src/c/director.c",
+        "sha256": "9fc024e189baed87ae03cbcc32611a6463295ba0ac82e82557bafcd5114d7d7c",
+        "matchesInitialHead": true
+      },
+      {
+        "path": "src/c/enemy-archetype.h",
+        "sha256": "987b5d6d43bead9cdffce08a1ed9942891a96f41b10b0516409bd0a5062956ee",
+        "matchesInitialHead": true
+      },
+      {
+        "path": "cfg/encounter-director.cfg",
+        "sha256": "c7ac0f8bad5a294b35d0386607ae27f318f78ab1b7880a3e1fe4a7adbe80453b",
+        "matchesInitialHead": true
+      },
+      {
+        "path": "scripts/build.mjs",
+        "sha256": "9d95cbbda37b377bb15f105afd07b419cfddf16cd5a9a67c3e1c282eeab061a1",
+        "matchesInitialHead": true
+      },
+      {
+        "path": "tests/level-compiler.test.mjs",
+        "sha256": "cb476e0e08014adf46a664e59018a765887eefb225da40503620a10ab171165c",
+        "matchesInitialHead": true
+      }
+    ],
+    "featureTestRemovedFromActiveTests": true,
+    "productionByteDelta": 0,
+    "ramDelta": 0,
+    "residencyDelta": 0,
+    "log": "build/evidence/m3h-step1/implementation/rollback-build.log"
+  },
+  "afterMeasurements": {
+    "native15Routes": null,
+    "heavyRows": null,
+    "space720": null,
+    "bossLostTargetStress": null,
+    "focusedGateSet": null,
+    "h2CrossSegmentCycles": null,
+    "reason": "Not run: first size gate failed before successful feature link and passing focused tests"
+  },
+  "pending": [
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H6",
+    "final H15 initialization",
+    "compiler/validator",
+    "level-1 and level-2 data",
+    "player docs EN/PL",
+    "two summary-test cleanups",
+    "feature smoke ATRs"
+  ],
+  "recoveryOptions": [
+    {
+      "id": "A1",
+      "change": "Bounded C implementation compaction, same homes",
+      "minimumArenaBytesToRecover": 7,
+      "effect": "preserve complete behavior; actual saving and CPU cost unmeasured"
+    },
+    {
+      "id": "A2",
+      "change": "Move additional 9-byte heavy_profile_fields table to Director window",
+      "projectedArenaUsed": 830,
+      "projectedArenaFree": 2,
+      "windowBytesAdded": 9,
+      "projectedH9WindowFree": 1003,
+      "requiresOwnerPlacementAmendment": true,
+      "record7PackedAndCpu": "unmeasured"
+    }
+  ]
+}

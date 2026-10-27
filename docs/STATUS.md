@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-27 (worst-frame split — OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-27 (M3-H session 1 — OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,56 +20,67 @@ the values below.
 
 ## Checkpoint
 
-### Worst-frame split — OWNER-SMOKE CANDIDATE
+### M3-H session 1 — OWNER-SMOKE CANDIDATE
 
-**OWNER-SMOKE CANDIDATE.** All implementation and measurement gates pass.
-Owner smoke of the three ATRs remains pending.
+**OWNER-SMOKE CANDIDATE.** H1–H9/H15 implemented on `codex/m3h-step1`;
+owner play and acceptance remain pending. [Audit and smoke checklist](audits/2026-10-27-m3h-step1.md#eighth-continuation--native-main-audio-proof-and-amendment-5),
+[checks/artifact hashes](diagnostics/m3h-step1/continuation8-checks-summary.json).
+Main baseline `8e1dface`; eighth continuation starts at `e4893a7`.
 
-Branch `codex/frame-peak-split`, main baseline `6ea1ca5`, attribution checkpoint
-`299d800`. [Approved decision](decisions/2026-10-27-frame-peak-split.md),
-[measured After section](audits/2026-10-27-frame-peak-split.md#after--ab-owner-smoke-candidate),
-[bound summary](diagnostics/frame-peak-split/after/summary.json).
+Raiders descend on alternate frames with unchanged pursuit. Raider armour is
+WaveDef bit 5, with authored holds, surviving-hit dodge and 2/2/3 HP; assault
+stays 1/1/1. Bomber 4/4/5 HP, flash luminance 4, authored hold and flight-hit dodge;
+charge brightness publishes immediately. Armour uses existing Raider art;
+second sprite and stamped damage holes remain session 2. Compiler/data and
+EN/PL movement docs are updated. Level 1 flags remain
+`08 08 01 80 00 88 18 08 00`, motion $00; escort loops keep bits 6–7.
 
-**A+B implemented; C not used.** The existing fighter shot/hit scan runs before
-the fixed publication wait through an operand-only change. Four descending
-30-byte C stripes clear the L2 lookup; C retains initialization/phase policy.
-C entry grows 10 B inside 10 B of existing alignment padding. No state, linked
-footprint, residency or transport growth. MAIN Light remains 1,196/1,213 B
-(17 free), Reader 1,529/1,536 (7 free), L2 1,250/1,536 usable (286 free), with
-the entire `$1F00–$1FFF` reserve intact. No new branch page crossings.
+Option A plus A2: H2 is appended ASM in record 8, H9 spawn is in the window;
+the 9-byte profile table moves from arena to window. Arena **827/832** (5 free),
+window **2,065/2,811 usable** (746 free), H15 **13/14** bytes. Records 1/7 remain
+**44/6 sectors**, record 8 **14** (+3), records 9/11 unchanged sizes. Initial
+content **12,825/13,652** (101 initial sectors), total transport 214 sectors;
+L2 **1,250/1,536 usable**, 286 free and 256-B reserve untouched. Level images
+stay 2,048 B. No CODE/RODATA/STARFIELD/ENTITY_CODE byte change versus baseline.
 
-**15 permanent native routes /59,482 gameplay iterations**, through capital
-exit and boss entry: worst **31,432** (68 below target, 1,136 below hard gate),
-capital peak **29,756 unchanged**, all boss entries **325/350 host frames**,
-minimum fighter fence **2,856**. Zero target excesses, missed fences/frames,
-extra VBI/DLI/phase errors, world/hull mismatches or stale L2 events. Coverage
-now includes natural campaign EASY/MEDIUM flight and HARD brake in the normal
-wall-trace suite and registered `npm run test:frame-peaks` gate, alongside the
-twelve direct L2 routes. Missing routes fail the gate.
+The sampled capital ceiling is **30,025**, owner Amendment 5 (2026-10-27).
+Audio code is byte-identical to main; native main with recorded mutable
+world/audio state reproduces 30,025 exactly, all 23 segments matching. Changed
+kill/hit timing places the capital-shell impact on a two-note music row.
+[Proof](diagnostics/m3h-step1/continuation8-audio-summary.json),
+[amended frame-peak contract](decisions/2026-10-27-frame-peak-split.md#sampled-capital-ceiling--owner-amendment-5-2026-10-27).
+The ordinary 31,500 target, fence 500 and all other hard gates remain unchanged.
+Future capital content must budget 29,128 non-audio +1,187 audio = 30,315,
+then measure its own DMA alignment. Early Heavy departure/admission cutoff is
+[future capital-content work](plan-realizacji.md#capital-content-spike--measurement-prerequisites-2026-10-27),
+not implemented here.
 
-The five old HARD SPACE overruns become **31,432/31,415/31,393/31,397/31,400**
-at the same indices. HARD natural entry 839 **63,846 → 28,146**; expanded main
-coverage also found MEDIUM entry 868 **63,991 → 28,275**. Both are the approved
-one-frame correction of the same admission bug. All **59,497 native state
-rows** have identical logical FNV hashes and byte-for-byte RAM, excluding only
-the two separately verified PAL tokens. Every one of their **12,926**
-differences is listed and derived from those removed boundaries and the
-unchanged master-token wait. All other presentation frame indices match main.
-All **720 SPACE fixtures** have identical full hashes and **zero CPU delta**;
-no native SPACE iteration increases in cost.
+Fifteen native routes /**59,538** iterations PASS: worst **31,432**, capital
+**30,025**, minimum fence **3,441**, all boss entries **325/350**. Heavy 13,473
+rows, peak 30,923; 60 spawn rows, minimum fence 3,441, none below 1,100; zero plane
+mismatches. H4 is only at successful Heavy admission. The guest is byte-identical
+to 81b1e26, preserving every boss-stress composition's **zero delta**, maximum
+**8,473**, and the 720 SPACE fixtures' zero CPU delta. Assault mean 1,060.331
+(saving 485.669), maximum 1,198; reset deltas +63/+65/+75 by profile on every
+difficulty, H2 call/return 12 cycles; no tolerance overshoot.
 
-Normal builds and native gates PASS, with expected pending release evidence.
-Focused checks: **91/99 PASS**, the remaining eight exactly matching main's
-level-summary/Light failures by name and first assertion; no ledger edits.
-Required L2/slalom checks all pass. No full suite or release build was run.
+Normal build PASS with stale release evidence pending. Focused **60+19+2 PASS**.
+Menu **604/650** (patched-SIO mode matching the handoff). Native authored level 2
+full route: 8,950 iterations, peak 31,291, fence 3,752, Bomber holds and armour;
+sector 5 start: 4,565 iterations, peak 30,767, fence 3,671, armoured stop. Zero plane
+mismatches on both. The level 2 wrappers retain three boss-only no-subject
+clauses because level 2 has no authored boss; their scoped feature/PAL checks
+pass, and the wrappers are not labelled overall PASS. No release evidence,
+full npm test or release build was run. Release build will fail until evidence
+is refreshed; no trace hashes were repaired by hand.
 
-Current ATRs: `build/play/frame-peak-split/{campaign,capital-480,capital-960}.atr`;
-full SHA-256 and absolute launch commands are in the audit. Campaign SHA-256
-`5f5056a62e24cc1912304f5fbf6543c468af20381a1d83b102aa737629cc13fa`.
-Owner smoke remains pending; M3-H is unstarted.
+Smoke ATRs under `build/play/m3h-step1/`: **campaign.atr**, **level-2.atr**,
+and **heavy-sector.atr** (level 2 sector 5 shortcut). Absolute launch commands,
+full SHA-256s and the charge-brightness check are in the audit. Keep the disk
+mounted for menu returns. Real hardware must confirm both Heavy planes.
 
-**NEXT TASK:** owner smoke of the three ATRs. No push, merge, release or next
-roadmap item is authorized by this handoff.
+**NEXT TASK:** owner smoke of M3-H session 1. No automatic session 2,
+capital-content implementation, release, push or merge.
 
 ### L2 audit fixes — OWNER-ACCEPTED
 

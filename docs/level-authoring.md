@@ -199,10 +199,11 @@ not part of the format. **Owner-approved M3-H Option A (2026-10-27)** reserves
 bit 5 for `kind: "armoured"` on Raider Heavy waves only; Bomber, Light and
 boss waves must refuse it. Bits 6–7 retain the current Interceptor escort-loop
 encoding, including level 1's sector-4 Heavy flags `$88`. This allocation is
-approved but **not implemented**: the continuation stopped at the 839/832-B
-arena gate and restored production sources. Do not author `kind` or `hold`
-until the implementation is resumed and validated. See the
-[session-1 addendum](audits/2026-10-27-m3h-step1.md#option-a-continuation--arena-size-stop).
+approved but **not installed**: A1 recovered the arena to 827/832 B; the next
+continuation stopped at a 2,328-cycle Bomber admission against its 2,320-cycle
+limit and restored gameplay. Do not author `kind` or `hold` until the feature
+is resumed and validated. See the
+[latest session-1 addendum](audits/2026-10-27-m3h-step1.md#second-continuation--a1-recovered-arena-reset-cost-stop).
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every wave compiles with `wave_path = $FF`,

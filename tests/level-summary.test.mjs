@@ -399,7 +399,7 @@ function statMemory() {
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
   // Continuations the hooks jump on to: plain `rts` here.
-  for (const address of [kernelLabels.get("life_capsule_start")+10, kernelLabels.get("light_publish"), main("entity_debris_publish"),
+  for (const address of [kernelLabels.get("life_colour_vector"), kernelLabels.get("light_publish"), main("entity_debris_publish"),
     main("update_score_display"), main("add_debris_score"), directorAbi.get("ENEMY_LIGHT_HIT")]) {
     assert.ok(Number.isInteger(address), "a hook continuation is not linked");
     memory[address] = 0x60;

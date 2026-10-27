@@ -1,0 +1,535 @@
+{
+  "family": "M3-H second continuation: A1 recovery and subsequent reset-cost gate",
+  "initialHead": "791a76c",
+  "branch": "codex/m3h-step1",
+  "result": "BLOCKED_RESET_COST",
+  "red": {
+    "expectedFailures": 7,
+    "pass": 0,
+    "log": "build/evidence/m3h-step1/recovery/restored-red.log"
+  },
+  "listingBeforeCompaction": {
+    "functions": [
+      {
+        "name": "_bomber_turn",
+        "before": {
+          "bytes": 19,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 19,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      },
+      {
+        "name": "_bomber_colour",
+        "before": {
+          "bytes": 69,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 142,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 73
+      },
+      {
+        "name": "_bomber_may_fire",
+        "before": {
+          "bytes": 36,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 36,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      },
+      {
+        "name": "_enemy_c_heavy_tick",
+        "before": {
+          "bytes": 190,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 279,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 89
+      },
+      {
+        "name": "_enemy_c_spawn_raiders",
+        "before": {
+          "bytes": 135,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 135,
+          "segment": "HYBRID_C_WINDOW_HEAVY"
+        },
+        "delta": 0
+      },
+      {
+        "name": "_heavy_publish_profile",
+        "before": {
+          "bytes": 66,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 66,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      }
+    ],
+    "compilerGeneratedArenaRodataBefore": 4,
+    "compilerGeneratedArenaRodataRestored": 6,
+    "bomberCIncrease": 162,
+    "bomberCompilerRodataIncrease": 2,
+    "totalIncrease": 164,
+    "restoredArena": {
+      "asm": 162,
+      "c": 644,
+      "rodata": 33,
+      "total": 839,
+      "capacity": 832
+    },
+    "correctsPriorInferred646C31Rodata": true
+  },
+  "recovery": {
+    "used": "A1",
+    "passesUsed": 1,
+    "A2Used": false,
+    "profileTableStayedInArena": true,
+    "bytesSaved": 12,
+    "functions": [
+      {
+        "name": "_bomber_turn",
+        "before": {
+          "bytes": 19,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 19,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      },
+      {
+        "name": "_bomber_colour",
+        "before": {
+          "bytes": 69,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 130,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 61
+      },
+      {
+        "name": "_bomber_may_fire",
+        "before": {
+          "bytes": 36,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 36,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      },
+      {
+        "name": "_enemy_c_heavy_tick",
+        "before": {
+          "bytes": 190,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 279,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 89
+      },
+      {
+        "name": "_enemy_c_spawn_raiders",
+        "before": {
+          "bytes": 135,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 135,
+          "segment": "HYBRID_C_WINDOW_HEAVY"
+        },
+        "delta": 0
+      },
+      {
+        "name": "_heavy_publish_profile",
+        "before": {
+          "bytes": 66,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "after": {
+          "bytes": 66,
+          "segment": "HYBRID_C_ARENA"
+        },
+        "delta": 0
+      }
+    ],
+    "arena": {
+      "asm": 162,
+      "c": 632,
+      "rodata": 33,
+      "total": 827,
+      "capacity": 832,
+      "free": 5
+    },
+    "record7": {
+      "sectors": 6,
+      "packed": 731,
+      "capacity": 747,
+      "freePacked": 16
+    },
+    "cycleComparison": {
+      "measurement": "MEASURED NMOS6502 exact original/restored Bomber C functions at original positions vs production A1 functions; isolated CPU fixture, not a production capacity override",
+      "cases": 9450,
+      "semanticDifferences": 0,
+      "minimumDelta": -16,
+      "maximumDelta": -3,
+      "worst": {
+        "slot": 1,
+        "hp": 1,
+        "aux": 1,
+        "x": 48,
+        "px": 48,
+        "direction": 1,
+        "y": 24,
+        "before": 344,
+        "after": 341
+      },
+      "passed": true
+    }
+  },
+  "rejectedFeatureBuild": {
+    "normalComputedGates": "PASS",
+    "initialContent": 12825,
+    "initialDelta": 0,
+    "bootSectors": 101,
+    "extensionSectors": 113,
+    "transportSectors": 214,
+    "window": {
+      "used": 2051,
+      "usableFree": 760,
+      "record8Sectors": 14,
+      "record8Packed": 1671,
+      "sectorDelta": 3,
+      "packedFree": 100
+    },
+    "H1": {
+      "bytes": 62,
+      "estimate": 58,
+      "pinFreeAfter": 41
+    },
+    "H2": {
+      "bytes": 106,
+      "address": 46489,
+      "measuredCrossSegmentCycles": null,
+      "instructionCountCallAndReturn": 12
+    },
+    "H15": {
+      "bytes": 13,
+      "ranges": [
+        {
+          "start": 33083,
+          "bytes": 5
+        },
+        {
+          "start": 34278,
+          "bytes": 8
+        }
+      ],
+      "remaining": 1,
+      "layoutNote": "Two unused body-index placeholders became pending wave hold row/frames. Session-2 body-index allocation is not claimed."
+    },
+    "l2": {
+      "used": 1250,
+      "usable": 1536,
+      "protected": 256
+    },
+    "level1": {
+      "bytes": 2048,
+      "sectors": 16,
+      "flags": [
+        8,
+        8,
+        1,
+        128,
+        0,
+        136,
+        24,
+        8,
+        0
+      ],
+      "heavyMotion": 0
+    },
+    "level2": "source authored, no level-2 artifact PASS claimed",
+    "protectedSegments": {
+      "measurement": "MEASURED installed runtime bytes from immutable baseline and archived rejected feature image",
+      "rows": [
+        {
+          "segment": "CODE",
+          "start": 8192,
+          "end": 12656,
+          "bytes": 4464,
+          "changedBytes": 0,
+          "addresses": []
+        },
+        {
+          "segment": "RODATA",
+          "start": 12656,
+          "end": 15888,
+          "bytes": 3232,
+          "changedBytes": 0,
+          "addresses": []
+        },
+        {
+          "segment": "STARFIELD",
+          "start": 21732,
+          "end": 23160,
+          "bytes": 1428,
+          "changedBytes": 0,
+          "addresses": []
+        },
+        {
+          "segment": "ENTITY_CODE",
+          "start": 37120,
+          "end": 40281,
+          "bytes": 3161,
+          "changedBytes": 0,
+          "addresses": []
+        }
+      ]
+    },
+    "unchangedRecords": {
+      "measurement": "MEASURED installed linked runtime contents, excluding transport start sector shift",
+      "records": [
+        {
+          "record": 9,
+          "start": 13891,
+          "end": 15087,
+          "changedRuntimeBytes": 0
+        },
+        {
+          "record": 11,
+          "start": 40309,
+          "end": 40943,
+          "changedRuntimeBytes": 0
+        }
+      ]
+    },
+    "artifactSha256": "a5342a24f3efee020591f3e687c33b8b108e51dfbc20e9aa2f5ccc4b559691a6",
+    "log": "build/evidence/m3h-step1/recovery/feature-profile-build.log"
+  },
+  "focusedFeature": {
+    "pass": 5,
+    "fail": 2,
+    "log": "build/evidence/m3h-step1/recovery/feature-focused.log",
+    "passing": [
+      "armoured hold and dodge",
+      "Bomber hit/hold/hue",
+      "placement and bytes",
+      "compiler encoding",
+      "validator refusals"
+    ],
+    "failures": [
+      {
+        "test": "M3-H HP, flash hue, and spawn delta on every difficulty",
+        "class": "confirmed CPU gate failure",
+        "row": "EASY Bomber, no escort, motion 0",
+        "actual": 2328,
+        "limit": 2320,
+        "baseline": 2245,
+        "delta": 83,
+        "excess": 8
+      },
+      {
+        "test": "M3-H assault: opposite descent parity, unchanged pursuit, exact planes and bounded standing cost",
+        "class": "fixture defect",
+        "firstAssertion": "plane 0, frame 0",
+        "reason": "missing production PMG clear; both baseline and candidate contain 222 cold staging PMG bytes",
+        "fix": "plane-fixture-correction.patch, not applied/rerun after STOP"
+      }
+    ]
+  },
+  "resetReproduction": {
+    "baseline": {
+      "build": "frame-peak-fixed-campaign",
+      "row": "EASY Bomber, no escort, motion 0",
+      "cycles": 2245,
+      "limit": 2320,
+      "baseline": 2245,
+      "delta": 0,
+      "excess": -75,
+      "initialPlaneNonzero": 222,
+      "pmgClearedBeforeReplay": true,
+      "components": {
+        "_enemy_c_spawn_raiders": [
+          1247
+        ],
+        "enemy_spawn_raiders": [
+          1271
+        ],
+        "draw_enemy_member": [
+          378,
+          378
+        ],
+        "draw_enemy": [
+          823
+        ]
+      },
+      "hp": [
+        4,
+        4
+      ]
+    },
+    "candidate": {
+      "build": "build",
+      "row": "EASY Bomber, no escort, motion 0",
+      "cycles": 2328,
+      "limit": 2320,
+      "baseline": 2245,
+      "delta": 83,
+      "excess": 8,
+      "initialPlaneNonzero": 222,
+      "pmgClearedBeforeReplay": true,
+      "components": {
+        "_enemy_c_spawn_raiders": [
+          1330
+        ],
+        "enemy_spawn_raiders": [
+          1354
+        ],
+        "draw_enemy_member": [
+          378,
+          378
+        ],
+        "draw_enemy": [
+          823
+        ]
+      },
+      "hp": [
+        4,
+        4
+      ]
+    }
+  },
+  "unrun": [
+    "15 native routes",
+    "Heavy-row wall summary",
+    "720 SPACE comparison",
+    "lost-target boss stress",
+    "mandatory combined focused gate set",
+    "ATR menu timing",
+    "full npm test",
+    "release evidence regeneration",
+    "feature smoke ATRs"
+  ],
+  "rollback": {
+    "normalBuild": "PASS",
+    "productionAtrSha256": "5f5056a62e24cc1912304f5fbf6543c468af20381a1d83b102aa737629cc13fa",
+    "productionByteDelta": 0,
+    "cpuDelta": "0 by restored identical gameplay bytes, not a new native measurement",
+    "ramDelta": 0,
+    "residencyDelta": 0,
+    "restoredPaths": [
+      {
+        "path": "assets/levels/level-02.json",
+        "matchesInitialHead": true,
+        "sha256": "5e345cc98b4982fe5fa3ec3db887ca28304e7cb647fd88cc81986526ce8252af"
+      },
+      {
+        "path": "cfg/encounter-director.cfg",
+        "matchesInitialHead": true,
+        "sha256": "c7ac0f8bad5a294b35d0386607ae27f318f78ab1b7880a3e1fe4a7adbe80453b"
+      },
+      {
+        "path": "scripts/build.mjs",
+        "matchesInitialHead": true,
+        "sha256": "9d95cbbda37b377bb15f105afd07b419cfddf16cd5a9a67c3e1c282eeab061a1"
+      },
+      {
+        "path": "scripts/level-compiler.mjs",
+        "matchesInitialHead": true,
+        "sha256": "6866972b08477a1ac2164b2a6cda1f093f1b3e19156d2ed72c3c1518ca5de64f"
+      },
+      {
+        "path": "src/c/director.c",
+        "matchesInitialHead": true,
+        "sha256": "9fc024e189baed87ae03cbcc32611a6463295ba0ac82e82557bafcd5114d7d7c"
+      },
+      {
+        "path": "src/c/enemy-archetype.h",
+        "matchesInitialHead": true,
+        "sha256": "987b5d6d43bead9cdffce08a1ed9942891a96f41b10b0516409bd0a5062956ee"
+      },
+      {
+        "path": "src/c/lifecycle.c",
+        "matchesInitialHead": true,
+        "sha256": "b24cc4d6812842a7e1c6205a1b43a90a43f8f880dbd9c9757dbab68eec17144e"
+      },
+      {
+        "path": "src/hybrid/c-asm-abi.s",
+        "matchesInitialHead": true,
+        "sha256": "4435f44eec0fb02c6e91fcae0ac0be4842f3dcc9ec77b9b20458a93a81fd23ff"
+      },
+      {
+        "path": "src/hybrid/heavy-member.s",
+        "matchesInitialHead": true,
+        "sha256": "f1692f3ecda36aed7f5f15e4721bbb0631c620f11e1e41473ee4b824c46c7ca3"
+      },
+      {
+        "path": "src/main.s",
+        "matchesInitialHead": true,
+        "sha256": "f7415295ace617beae01eaf127845eaffc07ac323c26e2e442be090fa9fd3c28"
+      },
+      {
+        "path": "tests/heavy-package.test.mjs",
+        "removedNewFeatureFile": true
+      },
+      {
+        "path": "tests/level-compiler.test.mjs",
+        "matchesInitialHead": true,
+        "sha256": "cb476e0e08014adf46a664e59018a765887eefb225da40503620a10ab171165c"
+      }
+    ],
+    "log": "build/evidence/m3h-step1/recovery/rollback-build.log",
+    "generatedMemoryMapCheck": "PASS",
+    "arenaUsed": 818,
+    "arenaCapacity": 832,
+    "arenaFree": 14
+  },
+  "cleanup": {
+    "retained": [
+      "src/hybrid/life-capsule.s",
+      "tests/level-summary-build.test.mjs",
+      "tests/level-summary.test.mjs"
+    ],
+    "runtimeByteDelta": 0,
+    "focusedPass": 2,
+    "focusedFail": 0,
+    "log": "build/evidence/m3h-step1/recovery/cleanup-tests.log"
+  },
+  "expectedReplayChangesIfResumed": [
+    "all 15 Heavy-bearing native routes",
+    "Raider formation/sector/remnant",
+    "Bomber hit/attack",
+    "level-2 holds and armoured waves",
+    "capsule/Spread hunts affected by kill timing"
+  ],
+  "releaseEvidence": "stale, unchanged policy; not refreshed",
+  "minimumRecovery": {
+    "admissionCyclesToRecover": 8,
+    "candidateIdeas": "Group equal admission stores (~4), share zero load (~2), avoid emitted kind-assignment compare (~2). Instruction-count estimates only; not applied."
+  }
+}

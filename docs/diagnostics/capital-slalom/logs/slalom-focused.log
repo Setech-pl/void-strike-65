@@ -1,0 +1,23 @@
+✔ slalom schema rejects unknown enum, fields, and conflicting manual overrides (2511.596375ms)
+✔ shifted row publication matches authored intervals and motifs; real pixels block every straight 20-HPOS band (38.143542ms)
+{"measurement":"L2 policy CPU","maxBrakeCpu":101,"maxWarningCpu":30}
+✔ L2 brake: exact E/M/H ramps, release, SPACE/death reset and warning slot preservation (26.107666ms)
+✔ L2 pickup: real motion consumes every even and odd brake numerator at exactly half world speed (116.286334ms)
+{"measurement":"L2 coordinate CPU","maxEntryCpu":3488,"maxPhaseCpu":105}
+✔ L2 coordinates: 16-bit entry and every phase boundary through maximum drain (2535.331ms)
+✔ L2 compiler: scalable nested stations and finite sequence tables (2277.03275ms)
+{"measurement":"row CPU including shared renderer","maximum":1937}
+{"measurement":"contact CPU including canonical damage","maximum":6634}
+✔ L2 islands: real level lookup, all row publications, cache hit/miss and both factions (85.790333ms)
+✔ L2 islands: visible-width clamp, two HULL units, cooldown and every fine alignment (21.232666ms)
+✔ L2 island authoring rejects unsafe/unknown placements and keeps SPACE debris (2991.666375ms)
+✔ L2 contact retains Shield and dying/respawning lifecycle policy (9.754458ms)
+✔ L2 recipes reject fractional or nonnumeric interval endpoints instead of dropping coordinate bits (0.190625ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4885.462292

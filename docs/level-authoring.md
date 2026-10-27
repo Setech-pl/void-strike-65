@@ -138,6 +138,25 @@ more than seven distinct span descriptors across the level (identical sets share
 records). The first production pattern cycles module wreck, turret deck and
 panel plate, alternating allied/enemy colours with existing glyphs.
 
+The slalom patterns use `"islands": { "pattern": "slalom" }` (**Offset Weave**)
+or `"islands": { "pattern": "slalom-tight" }` (**Tight Weave**). No other
+island fields are accepted with these deterministic patterns. Short hulls
+288–320 start left/right; longer hulls start centre, then alternate left/right.
+Lengths below 432 use 24-row fragments with 88-row spacing (first row 96 for
+short hulls, 64 otherwise); lengths 432–960 use the original 96/112/48 defaults.
+The final 64 rows stay clean. Every legal length passes the host clearance and
+no-straight-20-HPOS-band proof. See [slalom evidence](audits/2026-10-26-capital-slalom.md).
+
+Placement is level data: extension bytes 4..7 are signed HPOS offsets selected
+by the lookup tag's top two bits. Slot 0 is centre; slots 1/2 are left/right
+(-20/+20 for Offset Weave, -16/+16 for Tight Weave); slot 3 stays zero.
+Byte 3 identifies the nonzero offset magnitude for compiler consistency.
+Recipe uses bits 4..5, colour bit 3 and part bits 0..2; the stored tag adds one.
+The lookup still holds one island per row. Different offset magnitudes cannot
+share one level. L2 applies the offset after difficulty clipping and moves both
+the published motif and its contact decoder with it. Existing `salvage` data
+retains zero offsets. Width, damage, braking and warning policy are unchanged.
+
 `assets/graphics/l2-islands.json` stores editable six-part recipes. Each part
 has independent signed left/right offsets and four surface-glyph roles; an
 empty interval is legal. This permits future asymmetric, stepped and L-shaped

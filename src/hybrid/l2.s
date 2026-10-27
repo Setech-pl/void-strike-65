@@ -51,9 +51,14 @@ l2_interval:
     ora l2_index
     tax
     cpx #CAPITAL_HULL_SECTOR_MODULE_COUNT
-    bcs @none
+    bcc :+
+    lda #0
+    rts
+:
     lda L2_LOOKUP,x
-    beq @none
+    bne :+
+    rts
+:
     sec
     sbc #1
     sta l2_tag
@@ -66,6 +71,8 @@ l2_interval:
     lsr
     lsr
     lsr
+    tay
+    and #3
     tay
     lda l2_recipe_offsets,y
     clc
@@ -102,6 +109,7 @@ l2_interval:
     lda l2_right_caps,y
 :
     sta l2_right
+    jsr l2_place_interval
     cmp l2_left
     beq @none
     bcc @none
@@ -114,11 +122,11 @@ l2_interval:
     .res 7,0                       ; state gate moved resident; retain hot addresses
 l2_contact:
     lda player_x
-    cmp #148
+    cmp #168
     bcs @base
     clc
     adc #(PLAYER_VISIBLE_WIDTH_HPOS-1)
-    cmp #108
+    cmp #88
     bcc @base
     jsr l2_island_contact
 @base:
@@ -254,7 +262,7 @@ l2_draw_row:
     cpy l2_end_column
     bcs @edge
     lda l2_fill
-    cpy #20
+    cpy l2_motif_column
     bne :+
     lda l2_recipes+4,x
     clc
@@ -335,7 +343,7 @@ l2_solid_pixel:
     cmp l2_right
     beq @right
     sbc #4                      ; carry clear when below the right edge
-    cmp #127                    ; previous SBC produced column origin - 1
+    cmp l2_motif_pixel          ; previous SBC produced column origin - 1
     beq @motif
     lda l2_recipes+3,x
     jmp @glyph
@@ -381,6 +389,40 @@ l2_sprite_row: .byte 0
 l2_glyph_row: .byte 0
 l2_sprite_bits: .byte 0
 l2_pixel_x: .byte 0
+
+l2_place_interval:
+    lda l2_tag
+    lsr
+    lsr
+    lsr
+    lsr
+    lsr
+    lsr
+    tay
+    lda L2_LOOKUP-124,y          ; authored offsets at extension bytes 4..7
+    sta l2_shift
+    clc
+    adc #127
+    sta l2_motif_pixel
+    lda l2_shift
+    clc
+    adc #80
+    lsr
+    lsr
+    sta l2_motif_column
+    lda l2_left
+    clc
+    adc l2_shift
+    sta l2_left
+    lda l2_right
+    clc
+    adc l2_shift
+    sta l2_right
+    rts
+
+l2_shift: .byte 0
+l2_motif_pixel: .byte 0
+l2_motif_column: .byte 0
 
 l2_end:
 .export l2_start,l2_end,l2_interval,l2_draw_row,l2_contact,l2_island_contact,l2_commit_row,l2_recipes

@@ -1,0 +1,114 @@
+{
+  "measurement": "HOST-MEASURED exhaustive four-HPOS-grid inward offsets, unchanged EASY plate width 24",
+  "rows": [
+    {
+      "offsetHpos": 0,
+      "leftCentre": 128,
+      "rightCentre": 128,
+      "easyPlateLargestSideChannelHpos": 32,
+      "straightBand20Starts": [
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152
+      ],
+      "pass": false
+    },
+    {
+      "offsetHpos": 4,
+      "leftCentre": 124,
+      "rightCentre": 132,
+      "easyPlateLargestSideChannelHpos": 36,
+      "straightBand20Starts": [
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152
+      ],
+      "pass": false
+    },
+    {
+      "offsetHpos": 8,
+      "leftCentre": 120,
+      "rightCentre": 136,
+      "easyPlateLargestSideChannelHpos": 40,
+      "straightBand20Starts": [
+        84,
+        85,
+        86,
+        87,
+        88,
+        148,
+        149,
+        150,
+        151,
+        152
+      ],
+      "pass": false
+    },
+    {
+      "offsetHpos": 12,
+      "leftCentre": 116,
+      "rightCentre": 140,
+      "easyPlateLargestSideChannelHpos": 44,
+      "straightBand20Starts": [
+        84,
+        152
+      ],
+      "pass": false
+    },
+    {
+      "offsetHpos": 16,
+      "leftCentre": 112,
+      "rightCentre": 144,
+      "easyPlateLargestSideChannelHpos": 48,
+      "straightBand20Starts": [],
+      "pass": true
+    },
+    {
+      "offsetHpos": 20,
+      "leftCentre": 108,
+      "rightCentre": 148,
+      "easyPlateLargestSideChannelHpos": 52,
+      "straightBand20Starts": [],
+      "pass": true
+    }
+  ],
+  "chosen": 16
+}

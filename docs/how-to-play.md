@@ -63,7 +63,9 @@ That is not a bug — it is a battlefield. The one on the right shoots at you on
 purpose. Both hurt the same.
 
 Large detached ship fragments block the corridor in both faction colours. Fly
-around them; contact removes 20% HULL and pushes you to the nearer side. Your
+around them, weaving between alternating left and right fragments. Short
+capital runs begin with a side fragment; longer runs begin with one in the
+centre. Contact removes 20% HULL and pushes you to the nearer side. Your
 shots pass over the fragments. Turrets work from either hull.
 
 At the bottom edge, hold DOWN to brake the capital scroll to half speed; release

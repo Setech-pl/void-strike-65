@@ -1,0 +1,26 @@
+Modules list:
+-------------
+l2.o:
+    L2                Offs=000000  Size=0004A8  Align=00100  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+L2                    001900  001DA7  0004A8  00100
+
+
+Exports list by name:
+---------------------
+
+
+
+Exports list by value:
+----------------------
+
+
+
+Imports list:
+-------------
+

@@ -205,12 +205,14 @@ restored compiler accepts `kind: "assault"` (default) or `"armoured"`, and
 stores the hold; it adds no WaveDef bytes. Rows are 24 + 16n (through 136),
 with Raider holds restricted to 24 or 40; duration is 16–240 frames in
 multiples of 16. Heavy without a hold compiles motion `$00`; Light retains
-`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The fifth continuation applies A2: this compiler/runtime links at 827/832
-arena B, with 751 usable window B free. It is still **stopped WIP** because
-shared boss stress exceeds the retained +2-cycle delta bound (+32 Citadel L5,
-+50 Spine L7/L9). Focused feature/compiler checks pass; native level-2 play
-and the remaining gates are pending. See the
-[fifth-continuation audit](audits/2026-10-27-m3h-step1.md#fifth-continuation--a2-links-shared-boss-stress-delta-stop).
+`$FF`. Level-1 flags stay `08 08 01 80 00 88 18 08 00`. The sixth continuation keeps A2, links at 827/832 arena B and leaves 746
+usable window B free. Kind/hold metadata is published on a **successful Heavy
+request**, from the armed wave at cursor−1, before its spawn; shared wave arm
+and boss callbacks do no new Heavy work. Focused checks and all boss-stress
+compositions pass. This remains **stopped WIP** because the registered native
+capital ceiling fails at 30,025/29,756; no smoke candidate or native authored
+level-2 PASS is claimed. See the
+[sixth-continuation audit](audits/2026-10-27-m3h-step1.md#sixth-continuation--boss-deltas-fixed-native-capital-ceiling-stop).
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every Light wave compiles with `wave_path = $FF`,

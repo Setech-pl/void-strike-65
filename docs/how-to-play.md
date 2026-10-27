@@ -155,9 +155,9 @@ shape. They are still the same enemy: they fly, fire and score exactly like the
 type they belong to. The colour of the stars changes between sectors too; it
 only marks where you are.
 
-**Heavies cannot be bypassed.** They stay until destroyed. They fly the full
-vertical range — down to the bottom edge and back up — and the sector does not
-advance while they live.
+**Heavy waves block the sector handoff.** A sector waits for its active Heavy
+formation to clear before moving on. Raiders and Bombers cross the playfield
+vertically while their formations keep you under fire.
 
 **Lights pass through.** A wave flies its path and leaves. Killing it is a
 choice between points and safety.

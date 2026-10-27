@@ -304,22 +304,26 @@ uint8_t director_c_rng_advance(void)
  *
  * This is what director_try_event names now, so the native trace's Director
  * event counter keeps counting the Director's own scheduling decisions. */
-/* Publish the armed Heavy data without moving any existing hot C entry.
- * The original wave-arm function is pinned to its measured 180-byte span. */
+/* H4 runs only on a successful Heavy admission, not on the shared wave-arm
+ * path used by boss weapon-down callbacks. The armed Heavy wave is cursor-1:
+ * wave arm already advanced the cursor, and no next wave can replace it while
+ * its remaining formation count is nonzero. Return the existing spacing load
+ * so the caller's old three-byte instruction becomes a three-byte JSR. */
 #pragma code-name (push, "HYBRID_C_WINDOW_HEAVY")
-static void director_publish_heavy_wave(void)
+static uint8_t director_publish_heavy_wave(void)
 {
-    heavy_wave_flags = wave_flags[director_scratch0];
+    director_scratch0 = (uint8_t)(STATE_WAVE_CURSOR - 1u);
     heavy_motion = wave_path[director_scratch0];
     heavy_wave_hold_row = (uint8_t)((heavy_motion & 0x70u) + 24u);
     heavy_wave_hold_frames = (uint8_t)(heavy_motion << 4u);
+    return light_wave_spacing_frames;
 }
 #pragma code-name (pop)
 
 uint8_t director_c_try_event(void)
 {
     director_scratch0 = STATE_WAVE_CURSOR;
-    director_publish_heavy_wave();
+    heavy_wave_flags = wave_flags[director_scratch0];
     STATE_WAVE_REMAINING = wave_count[director_scratch0];
     /* The wave's composition is published HERE, not at admission: the cursor
      * moves on as soon as the wave is armed, so that when the last member has
@@ -785,7 +789,7 @@ static uint8_t heavy_request(void)
         return 0u;
     }
     --STATE_WAVE_REMAINING;
-    STATE_SPACING = light_wave_spacing_frames;
+    STATE_SPACING = director_publish_heavy_wave();
     return 1u;
 }
 

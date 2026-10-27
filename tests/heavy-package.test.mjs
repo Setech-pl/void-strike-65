@@ -16,13 +16,16 @@ function formation({bomber=false,armoured=false,motion=0,difficulty=1}={}) {
     const a=0x8140+row*40;m.memory[L('PLAYFIELD_ROW_LO')+row]=a&255;m.memory[L('PLAYFIELD_ROW_HI')+row]=a>>8;
   }
   call(m,'director_init');
-  // Arm a real WaveDef: H4 decodes pending metadata before admission.
+  // Arm a real WaveDef; the successful Heavy request publishes H4 metadata.
   m.memory[0x80f7]=0;
   m.memory[L('_wave_archetype')]=bomber?36:0;
   m.memory[L('_wave_member_offset')]=255;
   m.memory[L('_wave_flags')]=armoured?0x28:8;
   m.memory[L('_wave_path')]=motion;
   call(m,'director_try_event');
+  m.memory[L('PLAYER_LIFECYCLE')]=0;
+  call(m,'director_request',0);
+  assert.ok(m.cpu.p&1,'Heavy request admitted');
   const spawn=call(m,'reset_enemy');return {...m,spawn};
 }
 function expected(m,slot) {
@@ -107,4 +110,27 @@ test('M3-H placement: appended H2, thirteen BSS bytes and unchanged protected ca
   assert.equal(r[0].sectorCount,44);assert.equal(r[6].sectorCount,6);
   assert.ok(r[7].sectorCount<=14);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,5);
   assert.equal(m.transportCapacity.initialBootContentBytes,12825);assert.equal(m.l2.usedBytes,1250);
+});
+
+
+test('M3-H shared wave arm leaves Heavy metadata untouched on Light/boss escort paths',()=>{
+  const m=machine({difficulty:1});call(m,'director_init');
+  for(const flags of [0,0x80,0xc1]) {
+    m.memory[0x80f7]=0;
+    m.memory[L('_wave_flags')]=flags;m.memory[L('_wave_path')]=255;
+    m.memory[L('_wave_archetype')]=24;m.memory[L('_wave_member_offset')]=255;
+    m.memory[L('_heavy_motion')]=0x35;
+    m.memory[L('_heavy_wave_hold_row')]=0x55;m.memory[L('_heavy_wave_hold_frames')]=0xaa;
+    call(m,'director_try_event');
+    assert.deepEqual([m.memory[L('_heavy_motion')],m.memory[L('_heavy_wave_hold_row')],m.memory[L('_heavy_wave_hold_frames')]],[0x35,0x55,0xaa]);
+    assert.equal(m.memory[L('_heavy_wave_flags')],flags,'escort flags are still published byte for byte');
+  }
+  m.memory[L('_wave_flags')]=0x28;m.memory[L('_wave_path')]=0x14;
+  m.memory[L('_wave_archetype')]=0;
+  call(m,'director_init'); // teardown the Light wave after restoring a Heavy WaveDef
+  m.memory[0x80f7]=0;call(m,'director_try_event');
+  assert.equal(m.memory[L('_heavy_motion')],0x35,'wave arm itself has no Heavy work');
+  m.memory[L('PLAYER_LIFECYCLE')]=0;call(m,'director_request',0);
+  assert.ok(m.cpu.p&1,'Heavy request admitted');
+  assert.deepEqual([m.memory[L('_heavy_motion')],m.memory[L('_heavy_wave_hold_row')],m.memory[L('_heavy_wave_hold_frames')]],[0x14,40,64]);
 });

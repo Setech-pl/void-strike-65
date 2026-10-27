@@ -258,10 +258,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AE00-$B3FC` | 1,533 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
 | `$B3FD` | 1 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
 | `$B3FE-$B477` | 122 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
-| `$B478-$B566` | 239 B | segment | `HYBRID_C_WINDOW_HEAVY` — M3-H appended C: H9 admission and wave metadata | `resident` | build/encounter-director.map |
-| `$B567-$B5A1` | 59 B | segment | `HYBRID_C_WINDOW_HEAVY_RODATA` — M3-H H9 presentation/health tables and A2 profile-field table | `resident` | build/encounter-director.map |
-| `$B5A2-$B60B` | 106 B | segment | `HYBRID_ASM_HEAVY_WINDOW` — M3-H appended armoured Raider executor, explicit kernel ABI | `resident` | build/encounter-director.map |
-| `$B60C-$B8FF` | 756 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$B478-$B56B` | 244 B | segment | `HYBRID_C_WINDOW_HEAVY` — M3-H appended C: H9 admission and wave metadata | `resident` | build/encounter-director.map |
+| `$B56C-$B5A6` | 59 B | segment | `HYBRID_C_WINDOW_HEAVY_RODATA` — M3-H H9 presentation/health tables and A2 profile-field table | `resident` | build/encounter-director.map |
+| `$B5A7-$B610` | 106 B | segment | `HYBRID_ASM_HEAVY_WINDOW` — M3-H appended armoured Raider executor, explicit kernel ABI | `resident` | build/encounter-director.map |
+| `$B611-$B8FF` | 751 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$B900-$BBFF` | 768 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (6 sectors, 712-717); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
 | `$B900-$BBEF` | 752 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the charge's axis rule (journal §BL 4), the torpedo's flight - the hull on P1, the exhaust on P2, both homing - and its discharge on channel 3, the kill through boss_hit or the miss that keeps the lance, journal §BL 5) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
 | `$BBF0-$BBF4` | 5 B | segment | `LANCE_BSS` — the VOID LANCE's C state (the meter, the charge, the gesture, the target bit), inside the run: read as zeros at every boss entry - the meter resets (the rest of its state: LANCE_ZP) | `overlay` | build/boss.map |
@@ -320,7 +320,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$9FEF-$9FF9` | 11 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5F9-$A5FF` | 7 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
-| `$B60C-$B8FF` | 756 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |
+| `$B611-$B8FF` | 751 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
 
 ### Overlapping cfg areas
@@ -1250,31 +1250,35 @@ against pre-audit L1, restoring clean main's **3,161 B** and **5-B** free tail
 
 ## M3-H Option A + A2 — linked WIP STOP (2026-10-27)
 
-The fifth continuation applies A2 and links the retained charge-publication
-fix. The generated map above describes this WIP. It is **not** an accepted or
-owner-smoke baseline: shared boss stress grows +32 on Citadel L5 and +50 on
-Spine L7/L9 against the retained +2 bound, so work stopped before native gates.
+The sixth continuation repairs the shared boss cost and keeps all original
+Director-window bytes in their original locations. The generated map above
+is current. This is still **WIP**, stopped by the registered native capital
+ceiling (30,025 >29,756 on campaign EASY frame 1644), not a smoke candidate.
+The global 31,500 target and 500 fence gates pass on all captured iterations.
 
 | Owner /segment | Current linked allocation | Remaining |
 | --- | --- | --- |
-| `HYBRID_HEAVY_PACKAGE` | `$813B–$813F`, 5 B: motion, descent mask, kind, hold row, damage request | 0 |
+| `HYBRID_HEAVY_PACKAGE` | `$813B–$813F`, 5 B | 0 |
 | `HYBRID_HEAVY_MEMBERS` | `$85E6–$85ED`, 8 B: pending row/duration, hold-left[2], last-HP[2], dodge-left[2] | `$85EE`, 1 B |
 | Arena, record 7 | **827/832 B**, 162 ASM +641 C +24 RODATA | **5 B**, 6 sectors |
-| Appended A2 table | `heavy_profile_fields[9]`, **`$B599–$B5A1`**, `HYBRID_C_WINDOW_HEAVY_RODATA` | moved out of arena |
-| H2 appended ASM | **106 B at `$B5A2`**, explicit kernel ABI bindings | in record 8 |
-| Director window, record 8 | **2,060/2,811 usable B** | **751 B**; ≥650 required; 14 sectors (+3) |
+| A2 profile table | **9 B at `$B59E–$B5A6`**, appended window RODATA | moved out of arena |
+| H2 appended ASM | **106 B at `$B5A7`** | inside record 8 |
+| Director window, record 8 | **2,065/2,811 usable B** | **746 B**, ≥650 required; 14 sectors (+3) |
 | BROADSIDE sequence pin | **79/120 B**, 17-B rotate helper +62-B H1 | **41 B** |
 
-A2 adds zero cycles to the nine profile-field reads or admission; shifting H2
-by nine bytes adds one cycle on either mutually exclusive taken right-dodge
-exit. Its JSR/RTS remains 12 cycles. No further cold code/data was moved.
-H15 initializes after boot/admission; no session-2 body-index state is allocated.
-The `$549E–$54BD` damaged-body reservation remains intact and unused here.
-Wave flags bit 5 selects armoured Raider Heavy only; bit 4 retains
-`afterCleared`, bits 6–7 retain escort loops (shipped sector-4 Heavy `$88`).
-The zero-byte loaded-X label preserves every CODE byte. Records 9/11 retain
-their linked payloads; L2 remains 1,250 B with its reserve untouched. See the
-[fifth-continuation audit](audits/2026-10-27-m3h-step1.md#fifth-continuation--a2-links-shared-boss-stress-delta-stop).
+H4 now publishes at a successful Heavy request, after all admission gates,
+by replacing the existing three-byte spacing load with a three-byte call in
+record 11. Record 11 has **three changed runtime bytes, zero size/sector/packed
+length delta**; record 9 remains byte-identical. The old 1,656-B window prefix
+and all shared function entry addresses are unchanged. New work costs +64 per
+successful Heavy request and zero on boss/Light wave arm. Every boss stress
+composition has zero delta, with the original 27-cycle Bastion L10 margin.
+A2 is still the only arena-to-window move. The 32-B damaged-body buffer
+`$549E–$54BD` is untouched; H15 occupies 13 of 14 available state bytes and
+claims no session-2 body-index state. Wave flags bit 5 selects armoured Raider
+Heavy only, bit 4 retains `afterCleared`, bits 6–7 retain escort loops (`$88`
+on shipped sector-4 Heavy). L2 remains 1,250 B and keeps its full reserve.
+See the [sixth-continuation audit](audits/2026-10-27-m3h-step1.md#sixth-continuation--boss-deltas-fixed-native-capital-ceiling-stop).
 
 ## Capsule boss-stress recovery — OWNER-ACCEPTED (2026-10-22)
 

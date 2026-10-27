@@ -162,9 +162,9 @@ innym kształcie. To wciąż ten sam przeciwnik: lata, strzela i daje punkty
 dokładnie tak jak typ, do którego należy. Kolor gwiazd też zmienia się między
 sektorami; pokazuje tylko, gdzie jesteś.
 
-**Ciężkich nie da się ominąć.** Zostają, dopóki ich nie zniszczysz. Latają po
-całej wysokości ekranu — w dół do dolnej krawędzi i z powrotem w górę — a sektor
-nie ruszy dalej, póki żyją.
+**Ciężkie fale wstrzymują przejście do następnego sektora.** Sektor czeka,
+aż jego aktywna ciężka formacja zniknie z pola walki. Raidery i Bombery
+przecinają pole walki w pionie, a ich formacje utrzymują ostrzał.
 
 **Lekkie przelatują.** Fala leci swoją trasą i odchodzi. Zestrzeliwanie jej to
 wybór między punktami a bezpieczeństwem.

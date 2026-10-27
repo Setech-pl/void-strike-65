@@ -1,0 +1,38 @@
+{
+  "family": "space",
+  "initialHead": "09a5276",
+  "cases": 720,
+  "minCpuDelta": 0,
+  "maxCpuDelta": 0,
+  "rawHashDifferences": 720,
+  "explainedByRequiredReadOnlyMotionData": 720,
+  "changedBytes": [
+    {
+      "address": 43676,
+      "before": 255,
+      "after": 0
+    },
+    {
+      "address": 43677,
+      "before": 255,
+      "after": 0
+    },
+    {
+      "address": 43681,
+      "before": 255,
+      "after": 0
+    },
+    {
+      "address": 43682,
+      "before": 255,
+      "after": 0
+    },
+    {
+      "address": 43683,
+      "before": 255,
+      "after": 0
+    }
+  ],
+  "rawUnmodified": true,
+  "explanation": "Five Heavy wave_path bytes FF->00; inverse/forward FNV suffix reproduces every one of the 720 raw hash differences. One full RAM fixture pair has only these five hashed differences."
+}

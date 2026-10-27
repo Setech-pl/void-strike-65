@@ -105,6 +105,9 @@ function game(difficulty = 1) {
   const image = memory();
   image[L("DIFFICULTY_SETTING")] = difficulty;
   run(image, "director_init", { a: 0x6d });
+  // H4 now publishes only on an accepted Heavy request; this helper starts at spawn.
+  image[L("_heavy_wave_hold_row")] = 24;
+  image[L("_heavy_wave_hold_frames")] = 0;
   return image;
 }
 

@@ -1,0 +1,569 @@
+{
+  "family": "timeline",
+  "initialHead": "09a5276",
+  "basis": "Existing reduced runtime probe, identical fixed kill policy; not native flight timing",
+  "results": [
+    {
+      "difficulty": 0,
+      "beforeHeavyFormations": 11,
+      "afterHeavyFormations": 11,
+      "beforeCapital": [
+        {
+          "frame": 561,
+          "row": 224,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 640,
+          "row": 256,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 840,
+          "row": 336,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1480,
+          "row": 592,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1680,
+          "row": 672,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1780,
+          "row": 712,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1850,
+          "row": 740,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1918,
+          "row": 767,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "afterCapital": [
+        {
+          "frame": 561,
+          "row": 224,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 640,
+          "row": 256,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 840,
+          "row": 336,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1480,
+          "row": 592,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1680,
+          "row": 672,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1780,
+          "row": 712,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1850,
+          "row": 740,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1918,
+          "row": 767,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "beforeBoss": {
+        "frame": 2489,
+        "row": 995
+      },
+      "afterBoss": {
+        "frame": 2489,
+        "row": 995
+      },
+      "beforeSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 560,
+          "row": 224,
+          "sector": 1
+        },
+        {
+          "frame": 1920,
+          "row": 768,
+          "sector": 2
+        },
+        {
+          "frame": 2303,
+          "row": 921,
+          "sector": 3
+        },
+        {
+          "frame": 2375,
+          "row": 950,
+          "sector": 4
+        },
+        {
+          "frame": 2413,
+          "row": 965,
+          "sector": 5
+        },
+        {
+          "frame": 2488,
+          "row": 995,
+          "sector": 6
+        }
+      ],
+      "afterSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 560,
+          "row": 224,
+          "sector": 1
+        },
+        {
+          "frame": 1920,
+          "row": 768,
+          "sector": 2
+        },
+        {
+          "frame": 2303,
+          "row": 921,
+          "sector": 3
+        },
+        {
+          "frame": 2375,
+          "row": 950,
+          "sector": 4
+        },
+        {
+          "frame": 2413,
+          "row": 965,
+          "sector": 5
+        },
+        {
+          "frame": 2488,
+          "row": 995,
+          "sector": 6
+        }
+      ]
+    },
+    {
+      "difficulty": 1,
+      "beforeHeavyFormations": 11,
+      "afterHeavyFormations": 11,
+      "beforeCapital": [
+        {
+          "frame": 479,
+          "row": 191,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 558,
+          "row": 223,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 758,
+          "row": 303,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1398,
+          "row": 559,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1598,
+          "row": 639,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1698,
+          "row": 679,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1768,
+          "row": 707,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1835,
+          "row": 734,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "afterCapital": [
+        {
+          "frame": 479,
+          "row": 191,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 558,
+          "row": 223,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 758,
+          "row": 303,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1398,
+          "row": 559,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1598,
+          "row": 639,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1698,
+          "row": 679,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1768,
+          "row": 707,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1835,
+          "row": 734,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "beforeBoss": {
+        "frame": 2432,
+        "row": 1002
+      },
+      "afterBoss": {
+        "frame": 2432,
+        "row": 1002
+      },
+      "beforeSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 478,
+          "row": 191,
+          "sector": 1
+        },
+        {
+          "frame": 1838,
+          "row": 735,
+          "sector": 2
+        },
+        {
+          "frame": 2220,
+          "row": 907,
+          "sector": 3
+        },
+        {
+          "frame": 2307,
+          "row": 946,
+          "sector": 4
+        },
+        {
+          "frame": 2369,
+          "row": 974,
+          "sector": 5
+        },
+        {
+          "frame": 2431,
+          "row": 1002,
+          "sector": 6
+        }
+      ],
+      "afterSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 478,
+          "row": 191,
+          "sector": 1
+        },
+        {
+          "frame": 1838,
+          "row": 735,
+          "sector": 2
+        },
+        {
+          "frame": 2220,
+          "row": 907,
+          "sector": 3
+        },
+        {
+          "frame": 2307,
+          "row": 946,
+          "sector": 4
+        },
+        {
+          "frame": 2369,
+          "row": 974,
+          "sector": 5
+        },
+        {
+          "frame": 2431,
+          "row": 1002,
+          "sector": 6
+        }
+      ]
+    },
+    {
+      "difficulty": 2,
+      "beforeHeavyFormations": 11,
+      "afterHeavyFormations": 11,
+      "beforeCapital": [
+        {
+          "frame": 544,
+          "row": 217,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 623,
+          "row": 249,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 823,
+          "row": 329,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1463,
+          "row": 585,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1663,
+          "row": 665,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1763,
+          "row": 705,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1833,
+          "row": 733,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1900,
+          "row": 760,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "afterCapital": [
+        {
+          "frame": 544,
+          "row": 217,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 623,
+          "row": 249,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 823,
+          "row": 329,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1463,
+          "row": 585,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1663,
+          "row": 665,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1763,
+          "row": 705,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1833,
+          "row": 733,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1900,
+          "row": 760,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "beforeBoss": {
+        "frame": 2455,
+        "row": 1037
+      },
+      "afterBoss": {
+        "frame": 2455,
+        "row": 1037
+      },
+      "beforeSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 543,
+          "row": 217,
+          "sector": 1
+        },
+        {
+          "frame": 1902,
+          "row": 761,
+          "sector": 2
+        },
+        {
+          "frame": 2282,
+          "row": 951,
+          "sector": 3
+        },
+        {
+          "frame": 2364,
+          "row": 992,
+          "sector": 4
+        },
+        {
+          "frame": 2404,
+          "row": 1012,
+          "sector": 5
+        },
+        {
+          "frame": 2454,
+          "row": 1037,
+          "sector": 6
+        }
+      ],
+      "afterSectors": [
+        {
+          "frame": 0,
+          "row": 0,
+          "sector": 0
+        },
+        {
+          "frame": 543,
+          "row": 217,
+          "sector": 1
+        },
+        {
+          "frame": 1902,
+          "row": 761,
+          "sector": 2
+        },
+        {
+          "frame": 2282,
+          "row": 951,
+          "sector": 3
+        },
+        {
+          "frame": 2364,
+          "row": 992,
+          "sector": 4
+        },
+        {
+          "frame": 2404,
+          "row": 1012,
+          "sector": 5
+        },
+        {
+          "frame": 2454,
+          "row": 1037,
+          "sector": 6
+        }
+      ]
+    }
+  ],
+  "proposal": "No level-1 count/size edit. Current source sector 3 has three Light waves, so the old plan fifth-wave/six-to-five proposal does not map to this main."
+}

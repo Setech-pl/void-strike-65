@@ -1165,6 +1165,12 @@ path that costs more than `main` beyond the figures this plan names.
   most 3 sectors over Phase 0's 11. A per-frame code move also remains subject
   to amendment 3's component tolerance. STOP only if these conditions cannot
   be met; the earlier A1-only placement restriction is superseded.
+  **Dated owner clarification (2026-10-27, sixth continuation):** every
+  reachable lost-target boss-stress composition, with and without the lance,
+  must stay ≤8,500 and ≤+2 cycles over main. This is a hard shared-path bound,
+  with no component tolerance. Keep shared function addresses/page alignment
+  or remove unconditional Heavy work; do not accept the delta. H4 publication
+  may execute at the already-approved successful Heavy-admission boundary.
 * **Tests RED on `main`:** `tests/heavy-package.test.mjs` (§3.5), the compiler
   cases in `tests/level-compiler.test.mjs`.
 * **Evidence:** regenerated; replays re-scripted where the capsule cadence

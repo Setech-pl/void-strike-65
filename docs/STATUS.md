@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-26 (L2 audit fixes — OWNER-ACCEPTED)
+Last update: 2026-10-27 (worst-frame attribution — OWNER_DECISION_REQUIRED)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,36 @@ the values below.
 ---
 
 ## Checkpoint
+
+### Worst-frame attribution — OWNER_DECISION_REQUIRED
+
+Main `6ea1ca5`, branch `codex/frame-peak-split`. **No production changes**.
+[Audit and options](audits/2026-10-27-frame-peak-split.md),
+[bound evidence](diagnostics/frame-peak-split/provenance.json).
+Twelve native L2 routes / **47,349 frames** reproduce five SPACE iterations
+above 31,500, peak **31,552**; pure-capital peak **29,756**. A natural level-1
+campaign / **4,399 frames**, through the first boss, exposes a separate
+**63,846-cycle** SPACE-to-capital entry at trace frame **839**. It misses the
+publication fence by **1,122 cycles**; the 120-byte C lookup clear costs
+**3,373 CPU cycles**. A 900-frame confirmation without the extra observer
+reproduces the same miss exactly. The normal build's computed gates pass;
+this native campaign fails the unchanged hard gate. All 13 boss entries take
+325 host frames; no stale L2 accesses or world/hull clock mismatches.
+
+Moving the statistics scan before the fence is a proposed zero-byte fix for
+the five steady-state peaks. It does not fix the campaign entry. A faster C
+lookup clear is the recommended companion, but catching that existing miss
+publishes one physical PAL frame earlier than main. The task forbids even a
+one-frame visible timing change, so integration stopped. No after measurement
+or state-equivalence PASS is claimed. Before-state hashes for all 51,761 native
+rows and 720 SPACE fixtures are retained. Required L2/slalom tests: 7/7 PASS.
+No memory/residency delta; L2 uses 1,250/1,536 usable B, 286 B free, with the
+256-B reserve intact. ATRs under `build/play/frame-peak-split/` reproduce main
+and are **not smoke candidates**. M3-H remains unstarted.
+
+**NEXT TASK:** owner decision on permitting the single physical-frame
+correction at natural capital entry, while keeping logical-frame state
+equivalence and every budget gate. No push or merge authorized in this task.
 
 ### L2 audit fixes — OWNER-ACCEPTED
 
@@ -84,13 +114,11 @@ build provenance remain in `build/l2-owner-smoke/candidate.json` (campaign,
 normal branch build, `--no-ff` merge into main, normal main build and push.
 No release or next roadmap item is authorized by this handoff.
 
-**Open before M3-H:** "10 frames above the 31 500 DMA-on target (max 31 598,
-hard margin 970) on the 480/HARD brake/contact route — state-dependent, not
-L2 overhead (SPACE is −2 vs main); attribute the worst frame before M3-H adds
-per-frame work".
+**Open before M3-H:** attribution was rerun after slalom at `6ea1ca5`; see
+the current worst-frame checkpoint above for the five steady-state target
+excesses and the newly confirmed natural-entry hard-gate failure.
 
-**NEXT TASK:** retain the open attribution item before M3-H; complete this
-accepted merge/build/push handoff, report the merge SHA and STOP.
+**NEXT TASK:** see the current OWNER_DECISION_REQUIRED checkpoint above.
 
 ### L1 window levers — OWNER-ACCEPTED
 

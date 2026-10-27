@@ -1,0 +1,61 @@
+{
+  "status": "OWNER_DECISION_REQUIRED",
+  "baseline": "6ea1ca5",
+  "branch": "codex/frame-peak-split",
+  "productionChanges": 0,
+  "guestInstrumentationBytes": 0,
+  "normalBuild": "PASS computed gates; release evidence pending",
+  "matrixFrames": 47349,
+  "campaignFrames": 4399,
+  "spaceFixtures": 720,
+  "afterMeasurements": null,
+  "equivalence": "No candidate implemented; no before/after equivalence claim",
+  "hash": {
+    "algorithm": "FNV-1a 64-bit, ascending masked RAM bytes at the standard end hook",
+    "bytes": 9904,
+    "streams": "states/*.csv.gz",
+    "bindings": "baseline.json: stateFileSha256 (uncompressed) and traceSha256"
+  },
+  "confirmation": {
+    "profileDisabled": true,
+    "frames": 900,
+    "first899WallCountsEqual": true,
+    "frame": 839,
+    "wallCycles": 63846,
+    "preWaitCycles": 26422,
+    "fenceMargin": -1122,
+    "startToPublicationCycles": 61000
+  },
+  "lookupClear": {
+    "range": "$1C0A-$1C21",
+    "cpuCycles": 3373,
+    "assignedWallCycles": 6863,
+    "parentCpuCycles": 4334,
+    "parentAssignedWallCycles": 8851
+  },
+  "builds": [
+    {
+      "name": "campaign",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/campaign.atr",
+      "sha256": "7adfecb7a49f107d392b855a25d2a44a1c3125d7797dfdb379934347f0aa6564",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/campaign.atr",
+      "status": "OWNER_DECISION_REQUIRED; unchanged-main reproduction, not a smoke candidate"
+    },
+    {
+      "name": "capital-480",
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-480.atr",
+      "sha256": "bfb7b4498e20c915c36d0157a270dfa3f684cdb5ae3bb9586a1b4f985d29911f",
+      "launch": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/build/play/frame-peak-split/capital-480.atr",
+      "status": "OWNER_DECISION_REQUIRED; unchanged-main reproduction, not a smoke candidate"
+    }
+  ],
+  "toolSources": {
+    "scripts/runtime-wall-trace.mjs": "a84d7e1046909705a9fb4cee8519615c3d1301e8ba6960126adc40b02da4dfa0",
+    "scripts/atari800-wall-trace.h": "f076b4fbf19f38536b13f8739b3f5db126cf9aeb7da34dd72c2930b89c7aa303",
+    "scripts/frame-peak-observer.h": "b5f95f515670f79a3da71090a4c5382046edc38036ae1cb0f82dfff4f6c5ef91",
+    "scripts/frame-peak-state.mjs": "5b5db70acdbe7e92d9af5c93679b0492a271fc894b5339cbe373be12313fa3b4",
+    "scripts/frame-peak-native.mjs": "02be450919b0fa19db2ca19516b9bccf22321fb7304891314273c5a1160502e0",
+    "scripts/frame-peak-results.mjs": "804a1f25155d9d35f1b7d456579b197ae2272441dad296ddd37048e1b04df88e",
+    "scripts/l2-space-cost.mjs": "36acbe3f72442faf48ecb8eb3b36c7a24cc379da37a12d7a7502d14f3976d230"
+  }
+}

@@ -1,0 +1,17 @@
+✔ slalom schema rejects unknown enum, fields, and conflicting manual overrides (2163.374667ms)
+✔ shifted row publication matches authored intervals and motifs; real pixels block every straight 20-HPOS band (31.094375ms)
+{"measurement":"row CPU including shared renderer","maximum":1937}
+{"measurement":"contact CPU including canonical damage","maximum":6634}
+✔ L2 islands: real level lookup, all row publications, cache hit/miss and both factions (64.418417ms)
+✔ L2 islands: visible-width clamp, two HULL units, cooldown and every fine alignment (18.415042ms)
+✔ L2 island authoring rejects unsafe/unknown placements and keeps SPACE debris (2168.989375ms)
+✔ L2 contact retains Shield and dying/respawning lifecycle policy (8.443791ms)
+✔ L2 recipes reject fractional or nonnumeric interval endpoints instead of dropping coordinate bits (0.175125ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2319.24075

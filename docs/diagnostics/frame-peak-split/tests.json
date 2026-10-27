@@ -1,0 +1,89 @@
+{
+  "baseline": {
+    "totals": {
+      "tests": 71,
+      "suites": 0,
+      "pass": 63,
+      "fail": 8,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2235.856958
+    },
+    "failures": [
+      {
+        "file": "tests/level-summary-build.test.mjs",
+        "declared_at": "tests/level-summary-build.test.mjs:52",
+        "test": "the overlay directory has eleven entries; the summary code is entry 8 at $0500",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/level-summary-build.test.mjs:55"
+      },
+      {
+        "file": "tests/level-summary-build.test.mjs",
+        "declared_at": "tests/level-summary-build.test.mjs:203",
+        "test": "disk runs never overlap: levels, the capital restore, M5b's reservation, the summary",
+        "message": "seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)",
+        "first_failing_assertion": "tests/level-summary-build.test.mjs:261"
+      },
+      {
+        "file": "tests/level-summary-build.test.mjs",
+        "declared_at": "tests/level-summary-build.test.mjs:399",
+        "test": "ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either",
+        "message": "the window moved",
+        "first_failing_assertion": "tests/level-summary-build.test.mjs:450"
+      },
+      {
+        "file": "tests/level-summary.test.mjs",
+        "declared_at": "tests/level-summary.test.mjs:756",
+        "test": "the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15)",
+        "message": "the level was not the last read",
+        "first_failing_assertion": "tests/level-summary.test.mjs:766"
+      },
+      {
+        "file": "tests/level-summary.test.mjs",
+        "declared_at": "tests/level-summary.test.mjs:769",
+        "test": "the art and the restore precede the level, the level is read tail first, the record last of the reads",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/level-summary.test.mjs:787"
+      },
+      {
+        "file": "tests/level-summary.test.mjs",
+        "declared_at": "tests/level-summary.test.mjs:790",
+        "test": "the second START GAME of a session reads no code and no level",
+        "message": "the summary code and the resident level must not be read again",
+        "first_failing_assertion": "tests/level-summary.test.mjs:800"
+      },
+      {
+        "file": "tests/level-summary.test.mjs",
+        "declared_at": "tests/level-summary.test.mjs:1255",
+        "test": "AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3)",
+        "message": "the damaged level image was accepted",
+        "first_failing_assertion": "tests/level-summary.test.mjs:1260"
+      },
+      {
+        "file": "tests/light-wingman.test.mjs",
+        "declared_at": "tests/light-wingman.test.mjs:154",
+        "test": "Light kernel placement is legal, resident and inside every reviewed gate",
+        "message": "ENTITY_CODE staging margin tracks the Light art tables",
+        "first_failing_assertion": "tests/light-wingman.test.mjs:241"
+      }
+    ],
+    "hasFailingSection": true
+  },
+  "required": {
+    "totals": {
+      "tests": 7,
+      "suites": 0,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2319.24075
+    },
+    "failures": [],
+    "hasFailingSection": false
+  },
+  "productionChanges": 0,
+  "fullSuiteRun": false
+}

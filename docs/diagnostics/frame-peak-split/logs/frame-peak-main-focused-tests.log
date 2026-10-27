@@ -1,0 +1,333 @@
+✔ the save record has one fixed sector, named once and placed by the directory (0.60075ms)
+✖ the overlay directory has eleven entries; the summary code is entry 8 at $0500 (0.404166ms)
+✔ the summary module fits its claimed home $0500-$0BFF and is on the disk byte for byte (0.116042ms)
+✔ $0700-$0BFF is claimed: no link, cfg area or boot-path range but the summary's reaches it (1.4925ms)
+✔ four regions of art, seven sectors each from sector 600, generated from assets (0.267334ms)
+✔ an art run carries the palette, the glyphs, the picture and the labels, and no AI line (0.282792ms)
+✖ disk runs never overlap: levels, the capital restore, M5b's reservation, the summary (0.293208ms)
+✔ the stat hooks are operand-only in every full segment (1.17075ms)
+✔ the grade thresholds are level data in the payload page (2165.939542ms)
+✔ a level whose thresholds cannot grade is refused by the compiler (1.344209ms)
+✔ the stat block in zero page is the summary ABI's and no link claims it (0.754125ms)
+✖ ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either (0.23375ms)
+✔ the reader's stat vectors sit at $A00C-$A01B behind the frozen four (0.66675ms)
+✔ the shot scan counts every PlayerFighter slot allocated this frame, Spread as three (0.431916ms)
+✔ a slot freed and refilled in the same frame still counts as a new shot (0.108042ms)
+✔ a slot the player's death cleared keeps lifetime $FF but is never counted again (0.195875ms)
+✔ a Heavy hit by a PlayerFighter shot counts its damage units; contact and cleanup do not (0.082417ms)
+✔ kills: the shared score path counts one kill and returns through the HUD refresh (0.072958ms)
+✔ a destroyed debris counts one kill and three hits by a shot (Q14), one kill by contact (0.050916ms)
+✔ a Light hit by a PairShot counts one hit and hands back the C result untouched (0.04575ms)
+✔ the level ends 50 capital frames after the terminal COMPLETE, and only while the player lives (2.077125ms)
+✔ accuracy is hits per shot as a whole per cent, clamped to 100, 0 without a shot (1.820916ms)
+✔ the dotted row is a dash every eighth cell and moves one cell per sector step (1.112583ms)
+✔ time is active gameplay frames as minutes and seconds (1.258958ms)
+✔ the grade's three tiers flip exactly at each threshold edge (0.182083ms)
+✔ tier sums map to S / A / B / C at their edges (0.15325ms)
+✔ START GAME shows the level's best and an empty panel, and loads the level behind it (Q17) (26.463459ms)
+✔ START GAME with no record on the disk reads BEST as -- (17.671708ms)
+✔ a corrupt record reads as empty: no error screen, BEST -- (34.392333ms)
+✖ the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15) (17.51675ms)
+✖ the art and the restore precede the level, the level is read tail first, the record last of the reads (20.012584ms)
+✖ the second START GAME of a session reads no code and no level (20.91025ms)
+✔ the START GAME summary: ENGAGING ENEMY SECTOR on top, BEST alone where the panel was, no AI line (15.775916ms)
+✔ the level-end summary keeps its layout: LEVEL nn on top, a blank row under it, no AI line (19.882083ms)
+✔ before the summary module arrives the screen shows only the summary's top line, in its place and colours (19.922375ms)
+✔ the 3-second count starts at the summary's first frame: its first tick is the next frame edge (35.1475ms)
+✔ the summary changes display lists on a frame's edge, before ANTIC fetches the first line (19.03975ms)
+✔ at the level's end every stat is on the summary's first frame (15.552625ms)
+✔ the save record round-trips: written at the level's end, read back at the next START GAME (32.60325ms)
+✔ a better result replaces the best and a worse one leaves it (28.613625ms)
+✔ a write-protected disk is skipped silently, either way a drive refuses (29.226208ms)
+✔ a write never targets any sector but the save record's (73.402542ms)
+✔ the finished level's music keeps ticking through the standard-speed reads (17.11825ms)
+✔ sector_reader_load reads the level tail first: sectors 6..N, then 1..5 (4.162125ms)
+✔ AUD-01: sector 598 carries the disk's identity, the one the resident image expects (0.145792ms)
+✔ AUD-01: a disk swapped in before the record's read is never written, and the result stays (16.4355ms)
+✔ AUD-01: an identity sector that cannot be read stops the write, silently (14.835667ms)
+✔ AUD-01: the game's own disk, and a copy of it, still saves; the identity is the read just before the PUT (29.447083ms)
+✔ AUD-02: a changed byte in the summary code is refused before the module runs (11.301084ms)
+✔ AUD-02: a changed byte in the region's art is refused before the art is used (44.5735ms)
+✖ AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3) (16.944333ms)
+✔ AUD-02: a changed byte in the capital restore run is refused before gameplay starts (15.923875ms)
+✔ P3: neither summary screen shows an AI chatter line (30.286625ms)
+✔ P3: START GAME shows no statistic without its value - only BEST, which the record fills (15.866541ms)
+✔ Light Wingman and Interceptor are the second and third 12-byte C records; Raider is unchanged (5.906875ms)
+✖ Light kernel placement is legal, resident and inside every reviewed gate (0.457709ms)
+✔ formation admission yields 2 Heavy + 1 Light with independent lifecycles (32.65075ms)
+✔ C formation holds the Light centred behind Heavy slot 0 without side switching (8.957916ms)
+✔ leader loss continues straight down, then recycles below the playfield (8.215709ms)
+✔ single-shot fire policy is slower than the Heavy burst and gated by visibility (7.629916ms)
+✔ ASM emits one PULSE PairShot tagged with the leader's P1 emitter bit (6.972584ms)
+✔ light_update installs the selected archetype's art into glyphs 120/121 (15.374ms)
+✔ a player PairShot kills only the Light, scores its record and frees the shot (8.732167ms)
+✔ player contact follows the Raider contract and destroys the Light (9.23925ms)
+✔ late publication erases PairShots first, then unwinds and republishes the Light (6.964042ms)
+✔ fighter->capital waits for the Light and capital->fighter re-admits a fresh one (8.30875ms)
+✔ the resolver answers by screen address, so two slots sharing a code stay apart (7.00825ms)
+✔ the appearance install runs on the admission frame only, not every frame (7.019917ms)
+✔ a slot above the lowered limit is still erased (6.384291ms)
+✔ a published slot above the state limit is still resolved (6.547708ms)
+✔ hooks are operand-only redirections and the Light publishes only in the late window (1.323ms)
+ℹ tests 71
+ℹ suites 0
+ℹ pass 63
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2235.856958
+
+✖ failing tests:
+
+test at tests/level-summary-build.test.mjs:52:1
+✖ the overlay directory has eleven entries; the summary code is entry 8 at $0500 (0.404166ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  12 !== 11
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/level-summary-build.test.mjs:55:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 12,
+    expected: 11,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-summary-build.test.mjs:203:1
+✖ disk runs never overlap: levels, the capital restore, M5b's reservation, the summary (0.293208ms)
+  AssertionError [ERR_ASSERTION]: seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/level-summary-build.test.mjs:261:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/level-summary-build.test.mjs:399:1
+✖ ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either (0.23375ms)
+  AssertionError [ERR_ASSERTION]: the window moved
+  
+  1928 !== 982
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/level-summary-build.test.mjs:450:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1928,
+    expected: 982,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-summary.test.mjs:756:1
+✖ the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15) (17.51675ms)
+  AssertionError [ERR_ASSERTION]: the level was not the last read
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/level-summary.test.mjs:766:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/level-summary.test.mjs:769:1
+✖ the art and the restore precede the level, the level is read tail first, the record last of the reads (20.012584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      584,
+      585,
+      586,
+      587,
+  ...
+      599,
+  +   251,
+  +   252,
+  +   253,
+  +   254,
+  +   255,
+  +   256,
+  +   257,
+  +   258,
+  +   259,
+  +   260,
+  +   261,
+  +   262,
+  +   263,
+  +   264
+  -   325,
+  -   326,
+  -   327,
+  -   328,
+  -   329,
+  -   330,
+  -   331,
+  -   332,
+  -   333,
+  -   334,
+  -   335,
+  -   320,
+  -   321,
+  -   322,
+  -   323,
+  -   324
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/level-summary.test.mjs:787:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+      584, 585, 586, 587, 588, 589, 590, 591,
+      592, 593, 594, 595, 596, 597, 600, 601,
+      602, 603, 604, 605, 606, 512, 513, 514,
+      515, 516, 517, 518, 519, 520, 521, 522,
+      523, 524, 525, 526, 527, 599, 251, 252,
+      253, 254, 255, 256, 257, 258, 259, 260,
+      261, 262, 263, 264
+    ],
+    expected: [
+      584, 585, 586, 587, 588, 589, 590, 591,
+      592, 593, 594, 595, 596, 597, 600, 601,
+      602, 603, 604, 605, 606, 512, 513, 514,
+      515, 516, 517, 518, 519, 520, 521, 522,
+      523, 524, 525, 526, 527, 599, 325, 326,
+      327, 328, 329, 330, 331, 332, 333, 334,
+      335, 320, 321, 322, 323, 324
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-summary.test.mjs:790:1
+✖ the second START GAME of a session reads no code and no level (20.91025ms)
+  AssertionError [ERR_ASSERTION]: the summary code and the resident level must not be read again
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      600,
+      601,
+      602,
+      603,
+  ...
+      599,
+  +   251,
+  +   252,
+  +   253,
+  +   254,
+  +   255,
+  +   256,
+  +   257,
+  +   258,
+  +   259,
+  +   260,
+  +   261,
+  +   262,
+  +   263,
+  +   264
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/level-summary.test.mjs:800:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [
+      600, 601, 602, 603, 604,
+      605, 606, 599, 251, 252,
+      253, 254, 255, 256, 257,
+      258, 259, 260, 261, 262,
+      263, 264
+    ],
+    expected: [
+      600, 601, 602,
+      603, 604, 605,
+      606, 599
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/level-summary.test.mjs:1255:1
+✖ AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3) (16.944333ms)
+  AssertionError [ERR_ASSERTION]: the damaged level image was accepted
+  + actual - expected
+  
+  + 'start_gameplay'
+  - 'failure'
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/level-summary.test.mjs:1260:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'start_gameplay',
+    expected: 'failure',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/light-wingman.test.mjs:154:1
+✖ Light kernel placement is legal, resident and inside every reviewed gate (0.457709ms)
+  AssertionError [ERR_ASSERTION]: ENTITY_CODE staging margin tracks the Light art tables
+  
+  273 !== 278
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-frame-peak/tests/light-wingman.test.mjs:241:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 273,
+    expected: 278,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

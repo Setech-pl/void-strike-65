@@ -194,8 +194,15 @@ elite companion and boss escort alike - and flashes its red pods for 3 frames
 on each hit it survives; plan a sector's length with three hits per
 Interceptor in mind (level 1's road with the sweep bot: 68.8 / 65.5 / 56.1 s
 on EASY / MEDIUM / HARD before, 75.7 / 75.7 / 65.5 s after). Wave flags bit 5
-stays unused: the Phase A review variants' `armour` field is not part of the
-format.
+has no runtime consumer today: the Phase A review variants' `armour` field is
+not part of the format. **Owner-approved M3-H Option A (2026-10-27)** reserves
+bit 5 for `kind: "armoured"` on Raider Heavy waves only; Bomber, Light and
+boss waves must refuse it. Bits 6–7 retain the current Interceptor escort-loop
+encoding, including level 1's sector-4 Heavy flags `$88`. This allocation is
+approved but **not implemented**: the continuation stopped at the 839/832-B
+arena gate and restored production sources. Do not author `kind` or `hold`
+until the implementation is resumed and validated. See the
+[session-1 addendum](audits/2026-10-27-m3h-step1.md#option-a-continuation--arena-size-stop).
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every wave compiles with `wave_path = $FF`,

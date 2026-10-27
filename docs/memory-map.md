@@ -1244,6 +1244,24 @@ against pre-audit L1, restoring clean main's **3,161 B** and **5-B** free tail
 (pre-audit: 410 B).
 
 
+## M3-H approved allocation — not installed (2026-10-27)
+
+Owner-approved Option A assigns WaveDef `wave_flags` **bit 5** to the armoured
+Raider profile. The compiler and Director search found no current consumer of
+that bit: only bit 4 is `afterCleared`; bits 6–7 remain Interceptor escort
+loops. The old compiler comment calling bits 4–5 a trigger-mode field is
+stale. This assignment reuses a bit, not a byte or another archetype record.
+Only non-boss Raider Heavy waves may use it when implemented.
+
+H2's approved home is an appended named ASM segment in **Director window
+record 8**. H15 may use **13 B** of `$813B–$813F` and `$85E6–$85EE`, initialized
+after boot. The implementation attempt stopped at **839/832 arena B** after
+H9 relocation, and all production changes were restored. Thus these homes
+are **not claimed by new linked segments at this checkpoint**, and the
+generated map above remains unchanged. The existing damaged-body reservation
+`$549E–$54BD` remains intact, unused by session 1. Details and recovery options:
+[M3-H audit addendum](audits/2026-10-27-m3h-step1.md#option-a-continuation--arena-size-stop).
+
 ## Capsule boss-stress recovery — OWNER-ACCEPTED (2026-10-22)
 
 Relative to `36de308`: DIRECTOR_C_LOW **203 -> 214/245 B**, free tail

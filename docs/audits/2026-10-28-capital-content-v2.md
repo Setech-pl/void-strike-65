@@ -796,3 +796,60 @@ docs/diagnostics/capital-content-v2/merge-2026-10-28/b2-focused-runner.mjs
 ```
 
 Suggested message: `docs: diagnose B2 fixtures and stop on content-load error path`
+
+
+## Option 1 recovery — zero growth, focused test-authoring STOP (2026-10-28)
+
+**STOP / INCONCLUSIVE, partial WIP.** Starting `b644d5c`, normal build passes;
+all linked segments have zero byte delta. Production error JMP now reaches
+`$A0D6`; its target is build-pinned. Steady-state CPU and RAM delta 0.
+Focused 10 tests: 9 PASS /1 FAIL. All four fault/FIRE cases pass; the added
+cross-build byte-identity assertion fails because three absolute operands
+follow accepted reader relocation. This was an agent test-authoring mistake;
+it is not evidence of a production behavioural regression. The test remains
+failing; no assertion was re-pinned after STOP.
+
+[Exact first assertion, hashes, operand differences, partial edits and one
+justification per changed expectation](../diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.md).
+[Machine-readable evidence](../diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.json).
+[Focused log](../diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-focused.txt).
+
+No further implementation or gates followed the owner's STOP rule. Synthetic
+wait and Heavy cadence updates are not implemented; full-suite/A-B-C and all
+remaining merge gates are not run. No qualified play ATR. Diagnostic ATR
+`5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676`
+is preserved under build/evidence/capital-content-v2/error-path-recovery/test-build.
+Tracked generated dist files restored. Group A assertion values untouched.
+No Git staging/commit/publication. NEXT TASK: fix the invalid comparison,
+finish the authorized test work and resume gates. Partial code is not an
+accepted or smoke-qualified baseline.
+
+## Exact owner commit paths and message
+
+This is a **WIP checkpoint with a known failing new test**, not completed merge preparation. No staging or commit was performed.
+
+```text
+docs/STATUS.md
+docs/audits/2026-10-28-capital-content-v2.md
+docs/diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-focused.txt
+docs/diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.json
+docs/diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.md
+scripts/build.mjs
+scripts/level-timeline.mjs
+scripts/memory-map-report.mjs
+scripts/nmos6502.mjs
+src/hybrid/l2.s
+tests/boss-claim.test.mjs
+tests/capital-content-v2-failure.test.mjs
+tests/capital-content-v2-loader.test.mjs
+tests/encounter-director.test.mjs
+tests/heavy-bomber.test.mjs
+tests/heavy-package.test.mjs
+tests/hybrid-lifecycle.test.mjs
+tests/l2-lifetime.test.mjs
+tests/level-payload.test.mjs
+tests/nmos6502-rol.test.mjs
+tests/sector-flow.test.mjs
+```
+
+Suggested message: `wip: zero-growth content error recovery and focused validation stop`

@@ -641,6 +641,9 @@ function reservationTails(build, rows, reservations) {
 // lands on it. tests/cfg-overlaps.test.mjs fails on any overlap not named here
 // and on any entry here that no longer matches one.
 export const DECLARED_CFG_OVERLAPS = Object.freeze([
+  ...["BOSS_BANNER_RAM", "BOSS_SLOT_C_RAM", "BOSS_SCRATCH_RAM", "CODE"].map(area => ({
+    areas: ["CONTENT_RAM", area], name: "checked content over inactive boss/death storage",
+    reason: "Accepted content home $1180-$18FF is loaded for fighter/capital gameplay and disarmed before boss/banner/death images overwrite its phase-exclusive storage" })),
   ...["BOSS_BANNER_RAM", "BOSS_SLOT_C_RAM", "CODE"].map(area => ({
     areas: ["MENU_OVERLAY_RAM", area], name: "L1 checked menu over dead boss storage",
     reason: "MENU_OVERLAY_RAM is read only at MAIN MENU/GAME OVER entry after boss work stops; boss/banner/death overwrite it in their own phases and every later menu entry reloads the checked run" })),

@@ -3007,7 +3007,7 @@ async function build() {
   let sectorReaderModule = await linkSectorReader();
   let sectorReaderLabels = parseViceLabels(sectorReaderModule.labels.toString("utf8"));
   for(const [name,pin] of [["sector_reader_blank",0xa03d], ["sector_reader_read_run_inline",0xa124],
-    ["sector_reader_report_bad_image",0xa21e]]) {
+    ["sector_reader_report_bad_image",0xa21e], ["sector_reader_failure_screen",0xa0d6]]) {
     if(sectorReaderLabels.get(name)!==pin) throw new Error(`L2 cold cross-link ${name} moved`);
   }
   if (sectorReaderLabels.get("sector_reader_l2_guard") !== 0xa5e1 ||

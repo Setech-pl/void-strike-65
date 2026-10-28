@@ -167,6 +167,7 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
   run("init_playfield_row_table");
   run("init_playfield_display_lists");
   run("init_state");
+  memory[labels.get("game_state")] = 6; // reduced gameplay loop bypasses START GAME
   run("init_entity_effects");
   run("unpack_capital_hull_maps");
   if (debugStartSector !== null) {

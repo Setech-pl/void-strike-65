@@ -387,6 +387,7 @@ test("T13: the star pixel changes at sector entry and only there", () => {
   assert.equal(operand - 1 > publish && operand - publish < 24, true,
     "the operand is inside the near-star publish");
   const image = imageWithLevel(compile(swarmLevel()));
+  image[L("game_state")] = 6; // this test drives gameplay sector transitions
   assert.equal(image[operand - 1], 0xa9, "it is the immediate of an lda #");
   image[operand] = 0x00;
   run(image, "director_init", { a: 0x6d });

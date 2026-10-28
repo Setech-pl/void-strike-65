@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital content v2 — B2 diagnosis STOP: content-load error path)
+Last update: 2026-10-28 (capital content v2 — zero-growth recovery WIP; focused validation STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,7 +20,7 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — increments 1+0 merge candidates; content-load error-path STOP
+### Capital content v2 — zero-growth error recovery WIP; focused validation STOP
 
 Owner merge worktree `dark-fighter-capital-v2-merge`, branch
 `codex/capital-content-v2-merge`, HEAD `434871e`, baseline main `5053697`.
@@ -56,46 +56,40 @@ boot/chunk transport 211 sectors. Prior increment 0 CPU evidence: ordinary
 Prior native 15/15 and home 27/27 evidence remains historical, bound to the
 increment 0 delivery; it is not a fresh merge-gate run.
 
-**STOP after B2 diagnosis: confirmed content-load error-path defect.** Owner
-checkpoint `9ea08d2`; production code remains `434871e`. L2 read errors,
-timeouts and checksum failures reach the existing failure screen on both
-`5053697` and merge. A failed merge **content** read instead reaches normal
-summary wait with L2_VALID=0: INIT returns failure, but its summary caller does
-not check carry. FIRE then reaches START's validity guard and re-enters loading,
-rather than the error-screen FIRE-to-menu exit. No failed read was observed
-entering a stalled gameplay sector; that distinction is retained in the report.
-[Complete diagnosis, all 38 groups, fault matrix and recovery choices](diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.md),
-[machine-readable evidence](diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.json).
+**STOP / INCONCLUSIVE after focused validation.** Starting checkpoint
+`b644d5c`. Uncommitted production recovery replaces the content-read failure
+JMP `$A21E→$A0D6`, using the existing reader error screen and preserving its
+status. Build checks the target pin. Normal build PASS, **all linked segments
+exactly 0 B delta**; no memory/transport growth, steady-state CPU delta 0.
+This partial work is not an OWNER-SMOKE CANDIDATE.
 
-The missing-content-sector hypothesis is not the common cause: the shared
-fixture already reads all 15 sectors, installs all 1,920 bytes exactly and sets
-VALID=1, but leaves game_state=0. The new policy veneers require GAMEPLAY=6.
-Isolated, assertion-preserving diagnostics reproduce all 38 failures; phase-only
-correction passes 24/38; phase plus legal host ROL A support and a disk-aware
-bare INIT call passes 29/38. Groups: 24 phase-only, five host-opcode cases
-(most also need phase), four synthetic-frame/two-frame-admission cases, four
-accepted-departure/old-cadence cases, one bare INIT without SIO hooks. Serving
-that last INIT from the real ATR makes it return but leaves the unchanged
-313,589-versus-45-cycle assertion failure. These are diagnostic outcomes,
-not newly qualified test or merge results.
+Focused tests: **10 total, 9 PASS /1 FAIL**, exit 1. Four content fault/FIRE
+cases (device error, timeout, wire and image checksum) pass against the
+current L2-error path; loader/phase checks and reused 512-input ROL A test pass.
+The failure is a newly authored, unsound byte-identity assertion at
+`tests/capital-content-v2-failure.test.mjs:11`: current error-code SHA
+`67eea8bf…` versus main `ac351010…`. Three absolute operands moved with the
+accepted reader shrink; the earlier diagnostic byte-identity claim was wrong.
+No new production regression is inferred from this test-authoring failure.
+[Exact result, full hashes, operand differences and assertion audit](diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.md),
+[evidence](diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.json).
 
-No primary-checkout production, tests, assertions, failure ledgers or gates
-changed. All diagnostic edits are in source archives under
-`build/b2-root-cause/`; compact evidence and their patch are under diagnostics.
-CPU and RAM/residency delta: zero. The baseline checkout remains clean.
-Prior full-suite comparison remains **A134 / B43 (B1 5 / B2 38) / C0**;
-main 1467 PASS /134 FAIL /3 SKIP, merge 1429 PASS /177 FAIL /3 SKIP. A tests
-remain untouched pre-existing debt. No full-suite repeat after production STOP.
+Per owner STOP on any failing gate, no further implementation or runs followed.
+Phase fixture changes, ROL support, disk-aware INIT pin and B1 edits are partial
+WIP; four synthetic two-frame waits and four Heavy cadence expectation changes
+are not yet made. A134 assertions remain untouched; no new full suite or A/B/C
+result exists. Prior A134/B43/C0 is historical. Release refresh/build, native15,
+home27, boot <=1,402, boss stress and final play delivery are not run.
 
-Recovery choices are unimplemented: same-size L2 failure-tail transfer to the
-existing failure screen (ESTIMATE 0 B/0 steady-state cycles), or explicit INIT
-carry propagation at the summary caller (ESTIMATE +5 B; requires recovering
-five bytes inside the already-full 1,792-B summary). Both need focused loader
-and lifecycle verification. NEXT TASK: owner selection of error-path recovery
-before fixture changes and remaining merge gates. Release refresh/build, fresh
-native15/home27, boot <=1,402, boss stress and final play delivery remain pending.
-Island artifacts remain unattributed transient raster artifacts for
-`visual-bugs-diag`, not a merge blocker.
+Test-build ATR SHA-256
+`5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676`
+is preserved under `build/evidence/capital-content-v2/error-path-recovery/test-build/`
+only as diagnostic evidence. Generated dist files restored to starting HEAD.
+No stage, commit, merge, push or tag. NEXT TASK: repair the invalid byte-level
+comparison without lowering behavioural checks; finish the authorized fixture /
+expectation updates, then focused tests and full npm test/A-B-C before the
+remaining merge gates. Island artifacts remain unattributed transient raster
+artifacts for visual-bugs-diag, not a merge blocker.
 Owner final smoke remains pending. No merge, push, tag, stage or commit by the agent.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE

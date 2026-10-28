@@ -9,7 +9,7 @@ for(const corrupt of [false,true])test(`content checked load ${corrupt?'rejects 
  const drive=new Drive({sectorOf:n=>{const bytes=Buffer.from(atrSector(n));if(corrupt&&n===content.startSector)bytes[0]^=1;return bytes;},
   onCommand:()=>assert.equal(memory[0x86b3],0,'unverified module armed during load')});
  const cpu=cpuOver(drive,memory);cpu.pc=0x1900;cpu.sp=255;
- const end=runUntil(cpu,{armed:space,rejected:label('reader','sector_reader_report_bad_image')});
+ const end=runUntil(cpu,{armed:space,rejected:label('reader','sector_reader_failure_screen')});
  assert.equal(end,corrupt?'rejected':'armed');assert.equal(memory[0x86b3],corrupt?0:1);
  assert.deepEqual(drive.readSectors,Array.from({length:content.sectors},(_,i)=>content.startSector+i));
 });

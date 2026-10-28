@@ -52,7 +52,9 @@ test('L2 lifetime: complete boss main-loop bodies use installed images until rea
  const disarmCpu=call(Uint8Array.from(image),0x8656).cycles;
  assert.equal(disarmCpu-blankCpu,34,'cold disarm including validity clear');
  const checked=Uint8Array.from(image);checked[0x86b3]=0;
- assert.equal(call(checked,0x1900).cycles,45,'checked INIT/SPACE publication CPU');
+ const init=cpuOver(new Drive(),checked);init.push(0x7f);init.push(0xfe);init.pc=0x1900;
+ runUntil(init,{returned:0x7fff});
+ assert.equal(init.cycles,313589,'checked content read plus INIT/SPACE publication CPU');
  let commands=0;
  const entered=runBossEntry({onCommand:(_sector,cpu)=>{commands++;
   assert.equal(word(cpu.memory,main('profile_after_player')+1),main('integration_update_enemy'));

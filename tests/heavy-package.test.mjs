@@ -9,7 +9,7 @@ function call(m,name,x=0) {
   return run(m.cpu,L(name),[32767],{maxSteps:2000000});
 }
 function formation({bomber=false,armoured=false,motion=0,difficulty=1}={}) {
-  const m=machine({difficulty});
+  const m=machine({difficulty});m.memory[L("game_state")]=6;
   // Production start_gameplay clears both PMG planes before admission.
   m.memory.fill(0,0x3d00,0x3f00);
   for(let row=0;row<27;row++) {
@@ -108,13 +108,13 @@ test('M3-H placement: appended H2, thirteen BSS bytes and unchanged protected ca
   const m=JSON.parse(fs.readFileSync('build/manifest.json'));
   const r=m.transportCapacity.manifest.parsed.records;
   assert.equal(r[0].sectorCount,44);assert.equal(r[6].sectorCount,6);
-  assert.ok(r[7].sectorCount<=14);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,5);
-  assert.equal(m.transportCapacity.initialBootContentBytes,12825);assert.equal(m.l2.usedBytes,1250);
+  assert.ok(r[7].sectorCount<=14);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,3);
+  assert.equal(m.transportCapacity.initialBootContentBytes,12825);assert.equal(m.l2.usedBytes,1290);
 });
 
 
 test('M3-H shared wave arm leaves Heavy metadata untouched on Light/boss escort paths',()=>{
-  const m=machine({difficulty:1});call(m,'director_init');
+  const m=machine({difficulty:1});m.memory[L('game_state')]=6;call(m,'director_init');
   for(const flags of [0,0x80,0xc1]) {
     m.memory[0x80f7]=0;
     m.memory[L('_wave_flags')]=flags;m.memory[L('_wave_path')]=255;

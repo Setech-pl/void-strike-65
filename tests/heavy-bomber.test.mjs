@@ -557,7 +557,7 @@ test("emission: the veneer passes the returned class to the generic allocator (A
 test("placement contract: H9 spawn is in the Director window and the Bomber tick stays in the arena", () => {
   // M3-H Option A relocates H9 before allocating the Bomber arena work.
   assert.ok(L("_enemy_c_spawn_raiders") >= 0xae00 && L("_enemy_c_spawn_raiders") < 0xb8fb);
-  assert.ok(L("_enemy_c_heavy_tick") >= 0x7bd0 && L("_enemy_c_heavy_tick") < 0x7f10);
+  assert.ok(L("_enemy_c_heavy_tick_original") >= 0x7bd0 && L("_enemy_c_heavy_tick_original") < 0x7f10);
   // What replaced the schedule: the armed wave publishes both bytes, and the
   // spawn reads them. No counter, no table.
   assert.match(directorSource,

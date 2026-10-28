@@ -438,7 +438,7 @@ l2_content_load:
     ldx #12
     jsr $A006
     bcc :+
-    jmp $A21E
+    jmp $A0D6                    ; same mandatory-read error/FIRE-to-menu path
 :
     inc L2_VALID
     jmp l2_space

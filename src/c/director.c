@@ -901,7 +901,8 @@ static void heavy_departure_tick(void)
     director_scratch1 = sector_len[STATE_SECTOR];
     if (director_scratch1 > 15u) director_scratch1 -= 15u;
     else director_scratch1 = 0u;
-    director_scratch2 = (uint8_t)((sector_row_hi << 5) | (sector_row_lo >> 3));
+    director_scratch2 = (uint8_t)(sector_row_hi << 5);
+    director_scratch2 |= (uint8_t)(sector_row_lo >> 3);
     if (director_scratch2 < director_scratch1) return;
     heavy_departure = 1u;
     heavy_descent_mask = heavy_armoured = 0u;

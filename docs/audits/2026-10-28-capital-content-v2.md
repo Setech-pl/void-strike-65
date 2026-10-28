@@ -1,13 +1,13 @@
 # Capital content v2
 
-Status: **BLOCKED_C_ABI_GATE — WIP STOP at increment 0.** Phase 0 checkpoint is uncommitted; no smoke candidate. No completed gameplay implementation or owner-smoke candidate.
+Status: **BLOCKED_WINDOW_BUDGET — increment 0 WIP STOP after Amendment 2.** C ABI repaired; no smoke candidate. No completed gameplay implementation or owner-smoke candidate.
 
 | Increment | Play ATRs |
 | --- | --- |
 | 0 | Build rejected before link; no play ATR or SHA-256 |
 | 1–3 | Not started; no play ATRs |
 
-Branch `codex/capital-content-v2`, baseline `5053697`. Amendment 1 is accepted
+Branch `codex/capital-content-v2`, current HEAD `6a8d39a` (owner committed the prior WIP); gameplay baseline `5053697`. Amendment 1 is accepted
 as the active task specification: separate minefield hazard with islands and
 brake, no hulls/turrets/fighters; bonuses in both hazard and capital. Window
 allowance64 B, shipped level1/2 unchanged, diagnostic delivery only.
@@ -144,15 +144,73 @@ made, including for the STOP checkpoint. Everything is uncommitted. Suggested
 owner checkpoint message: `WIP STOP: [codex] capital-content-v2 Director ABI gate`.
 No rejected production edit was rolled back, as requested.
 
+## Amendment 2 continuation — 2026-10-28
+
+Owner Amendment2 extends F7 to every C module. Used option1: split the
+compound shift/OR into explicit byte operations. The unchanged mandatory
+ABI validator now passes; the normal build reaches ld65. Options2/3 were not
+needed to remove helper state. The exact routine, assembled with matching
+-Oirs/6502 flags and scalar declarations, shrinks99→96 B (−3). The repaired
+production routine's listing independently confirms96 B. This fixes the
+previous ABI blocker; it does not validate the Heavy gameplay policy.
+
+The linker then reports DIRECTOR_RAM overflow15 B. Before relocating it under
+the <=32-B allowance, the window inventory establishes an independent hard
+failure. Existing toolchain ca65 assembled the generated C objects without
+linking or relaxing the production gate:
+
+| New window contribution | Assembled bytes |
+| --- | ---: |
+| Three state bytes | 3 |
+| Heavy departure tick | 96 |
+| Two-frame entry guard | 62 |
+| Relocated bomber_may_fire | 36 |
+| **Task window additions** | **197** |
+| **Allowed / excess** | **64 / 133** |
+
+These are assembled segment sizes, not estimates. Given baseline2065 B,
+projected window usage is2262 B, leaving549 B rather than the required682 B.
+No successful new link exists. The fix itself saves3 B; it exposes the prior
+WIP's oversized allocation rather than causing that whole197-B growth.
+Recovery must remove or legally place at least133 B of current window additions
+and resolve the separate15-B Director overflow, preserving all reservations.
+No claim is made that every possible redesign is impossible. The measured
+attempt exceeds the owner's unchanged byte gate, so it is retained and stopped.
+No gates were weakened, no reserve consumed and no further runtime started.
+
+[Assembly evidence and hashes](../diagnostics/capital-content-v2/amendment2-stop.json).
+Raw listings/objects: build/evidence/capital-content-v2/amendment2/;
+build failure: build/evidence/capital-content-v2/amendment2-build.log.
+Reproduce the read-only assembly inventory with
+`node scripts/capital-content-v2-assembly-sizes.mjs` after dumping the generated
+C assembly with VS65_DUMP_GENERATED=1 on the normal build.
+
+Amendment3 is acknowledged: future deferrable steps need an in-frame beam-time
+check plus event checks, at most two deferrals, and a measured safe forced-run
+path. Non-deferrable capital bonus work must fit885 cycles; the hazard uses its
+own measured baseline. Content implementation was not reached, so no threshold,
+threshold derivation, deferral counts or timing guarantee is claimed.
+
+Current CPU/RAM/ATR status: no linked candidate, no new runtime measurements,
+no play ATRs. The prior fifteen-route/boss/exit evidence validates5053697 only.
+All native jobs are finished. No full tests or release work ran.
+
 ## Chat summary
 
-BLOCKED_C_ABI_GATE at increment0; build stopped before link.
-Phase0: fifteen routes, four boss lifecycles and eight exits passed.
-Capital p50/p95/p99/max:15479/24491/26711/30025 wall cycles.
-Overall baseline peak31432; conservative composed capital30315.
-Amendment1 recorded; no mines/bonuses implemented.
-WIP Heavy policy retained but unverified; no play ATRs.
-Branch codex/capital-content-v2; HEAD5053697.
-Git index.lock denied; all changes uncommitted, no retry.
-Next: owner-authorized scalar-C ABI repair and unchanged gates.
+BLOCKED_WINDOW_BUDGET at increment0, current HEAD6a8d39a.
+Amendment2 option1 fixes the C ABI gate and saves3 B (99→96).
+Assembled window additions197 B exceed64 B by133 B.
+Projected window free549 B, required682 B.
+Separate DIRECTOR_RAM link overflow15 B remains unresolved.
+Amendment3 recorded; content threshold/deferral measurements not reached.
+No candidate ATR, new native run, merge, push or release.
 
+## Owner checkpoint commands — Git write refused
+
+Staging failed once: external worktree index.lock / Operation not permitted.
+No retry or workaround was attempted. Run in this worktree:
+
+```sh
+git add src/c/director.c scripts/capital-content-v2-assembly-sizes.mjs docs/audits/2026-10-28-capital-content-v2.md docs/plans/capital-content-v2.md docs/STATUS.md docs/memory-map.md docs/diagnostics/capital-content-v2/amendment2-stop.json
+git commit -m "WIP STOP: [codex] increment 0 window budget after scalar C ABI repair"
+```

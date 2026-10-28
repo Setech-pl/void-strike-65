@@ -1,0 +1,68 @@
+{
+  "status": "BLOCKED_WINDOW_BUDGET",
+  "head": "6a8d39a",
+  "amendment2Option": 1,
+  "abiGate": "PASS; normal build progressed to ld65",
+  "tickBytesBefore": 99,
+  "tickBytesAfter": 96,
+  "fixByteDelta": -3,
+  "assembledWindowAdditions": {
+    "state": 3,
+    "departureTick": 96,
+    "entryReady": 62,
+    "relocatedBomberMayFire": 36,
+    "total": 197
+  },
+  "windowTaskLimit": 64,
+  "excess": 133,
+  "baselineWindowUsed": 2065,
+  "projectedWindowUsed": 2262,
+  "projectedFree": 549,
+  "requiredFree": 682,
+  "separateLinkFailure": {
+    "region": "DIRECTOR_RAM",
+    "overflowBytes": 15
+  },
+  "linkedCandidate": false,
+  "nativeRunsAfterEdit": 0,
+  "amendment3": "Acknowledged; content implementation not reached; no threshold or deferral counts measured",
+  "bindings": [
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/director.lst",
+      "sha256": "118fdec2ad7e5399680d6613844010f8f11c5d56db7a2ab11b2842fa67664b98"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/director.o",
+      "sha256": "2db1ae84ce77aa0cc00ff5f800e58eb26529bc01120c0e284732019a7c044831"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/lifecycle.lst",
+      "sha256": "ea3c91eda6dc39da23fd0010c8baaac9eb4b5933e79b51a9266b80bc7c823488"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/lifecycle.o",
+      "sha256": "1619c48b8fe74dd8e4cf36f19d2b2f1d34473f2fe5cfca0a67b4d97ba0520291"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/tick-after.lst",
+      "sha256": "14fba106b13140652cec63421d322238f593b3fa44463c487dcb29ec6dc42776"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/tick-after.s",
+      "sha256": "d160f9d75aff91a0f3acd118a859cdae7d5f3f6aa29645803bc99bd5f193c9a9"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/tick-before.lst",
+      "sha256": "eab142f7dc65b1c49643a6c9dea727f1df93af33b306b231922aa516cf5e5c5e"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2/tick-before.s",
+      "sha256": "ec87b8b96af647e53ac8765b6045fbb11e3ec140b49d163b7dba0c4d70c1664a"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment2-build.log",
+      "sha256": "cba80c28120d407546ba768e92f912e191cf2bade82dd97b048f941d62c4e8f0"
+    }
+  ],
+  "commit": "Uncommitted: index.lock Operation not permitted; no retry"
+}

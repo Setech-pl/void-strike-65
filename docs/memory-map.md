@@ -40,8 +40,10 @@ Sections marked *earlier `2df89da`* were not regenerated.
 ### Capital content v2 unlinked WIP (2026-10-27)
 
 The branch declares an optional `CC2_POLICY` segment in the existing
-`HYBRID_C_WINDOW_RAM` for increment0. The mandatory Director C ABI check fails
-before assembly/link, so no new range or measured byte delta exists. The
+`HYBRID_C_WINDOW_RAM` for increment0. After Amendment2 scalar-C repair the ABI check passes, but ld65 reports
+DIRECTOR_RAM overflow15 B. Assembled CC2_POLICY contributions total197 B,
+exceeding the task window-growth limit64 B by133 B. Projected window usage
+is2262 B/free549 B; this is not a successfully linked allocation. The
 $1180–$18FF content home remains a plan only. Generated baseline rows below
 are unchanged; no reservation is consumed or certified by this attempt.
 See [the STOP report](audits/2026-10-28-capital-content-v2.md).

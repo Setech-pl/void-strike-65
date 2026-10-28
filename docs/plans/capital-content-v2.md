@@ -1,6 +1,6 @@
 # Capital content v2 — Phase 0 working plan
 
-Status: Phase 0 checkpoint; increment0 WIP stopped at the mandatory Director C ABI gate. No candidate ATR. Baseline `5053697`; no gameplay implementation.
+Status: Phase 0 checkpoint; increment0 WIP stopped at the64-B window growth gate after scalar-C ABI repair. No candidate ATR. Baseline `5053697`; no gameplay implementation.
 Owner Amendment 1 (2026-10-27) supersedes the original capital-mine scope:
 mines occupy a new minefield sector; capital receives bonuses only. Both
 sectors receive bonuses. Shipped level 1/2 data remain unchanged. Diagnostic
@@ -144,3 +144,17 @@ A 1,920-byte module is15 disk sectors. Prior14-sector L2 load was53 host frames
 not a current load measurement. The <=1.5s gate stays mandatory. Directory
 uses5 B/entry; checksum and dispatch pins require a link check. F8 permits
 issuing the checked read from L2 INIT, within the64-B hook-growth allowance.
+
+## Amendments 2 and 3 (owner, 2026-10-28)
+
+F7 applies to all task C. Try scalar byte C first, then an ASM access veneer,
+then an ASM routine. Keep the ABI gate unchanged; ABI rejection alone is not
+a STOP. Option1 repaired increment0's shift/OR and saved3 B. The assembled
+197-B window growth then exceeded the64-B task gate by133 B; work stopped.
+
+Every deferrable content operation also requires an in-frame VCOUNT/existing
+clock check. Derive its threshold from measured execution/remainder costs;
+record route deferral counts and prove the forced run after two deferrals safe.
+Known event signals remain inputs. Non-deferrable work fits the worst frame
+independently (capital885; hazard from its measured baseline). No threshold has
+been implemented or measured at this stopped increment.

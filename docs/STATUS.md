@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital content v2 — increments 1+0 merge preparation STOP: full tests)
+Last update: 2026-10-28 (capital content v2 — baseline audit STOP: 38 B2 failures)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,7 +20,7 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — increments 1+0 merge candidates; STOP on full test gate
+### Capital content v2 — increments 1+0 merge candidates; baseline audit STOP
 
 Owner merge worktree `dark-fighter-capital-v2-merge`, branch
 `codex/capital-content-v2-merge`, HEAD `434871e`, baseline main `5053697`.
@@ -56,23 +56,36 @@ boot/chunk transport 211 sectors. Prior increment 0 CPU evidence: ordinary
 Prior native 15/15 and home 27/27 evidence remains historical, bound to the
 increment 0 delivery; it is not a fresh merge-gate run.
 
-**STOP: full test merge gate FAILED.** One full run: 1,609 tests,
-1,429 PASS /177 FAIL /3 SKIP, exit 1. Reconciliation by name and first assertion
-also exits 1: **176 NEW to the ledger, 0 MOVED, 1 matched**. First unrecorded
-assertion: `tests/basic-window-capacity.test.mjs:39`, 1516 actual vs1928 expected.
-The content-home claim validators also fail at `tests/boss-claim.test.mjs:99,123`.
-NEW is a ledger classification; no new-gameplay-regression attribution is
-claimed. [Exact failures and bindings](diagnostics/capital-content-v2/merge-2026-10-28/merge-gates.json),
-[reconciliation](diagnostics/capital-content-v2/merge-2026-10-28/failures-reconcile.txt).
+**STOP after baseline comparison: 38 B2 failures.** Current docs checkpoint
+`392a042`; production code remains `434871e`. The owner-created detached
+`5053697` baseline ran the same full `npm test`: 1,604 tests, 1,467 PASS,
+134 FAIL, 3 SKIP (923.799 s, exit 1). Original merge run: 1,609 tests,
+1,429 PASS, 177 FAIL, 3 SKIP. By file + full test name: **A 134 shared,
+B 43 merge-only, C 0 main-only**. B classifies as **B1 5 / B2 38**.
+[Full lists, every B classification and actual/expected values](diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.md),
+[machine-readable evidence](diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.json).
 
-The normal build inside `npm test` passed its computed gates and warned about
-stale release evidence. Release refresh/build, fresh native15/home27/boot/stress/
-menu gates and final play delivery were not run after STOP. The test-build ATR
-is preserved only as evidence, not qualified for final owner smoke. All three
-generated `dist/` changes from that normal build were restored to starting HEAD;
-no release-build change remains. [Merge audit](audits/2026-10-28-capital-content-v2.md#merge-preparation--increments-10-2026-10-28).
-NEXT TASK: investigate/reconcile the full-suite failures against main before
-resuming merge preparation; retain the island report for `visual-bugs-diag`.
+B1 follows the accepted content-home reservation, Heavy departure entry veneer
+and smaller Director transport. B2 includes stopped row/sector progression,
+refused Heavy admission and L2 INIT exhausting four million steps. These are
+not authorized expectation changes; fixture phase/image setup versus production
+causality remains unresolved. No tests, production code, ledgers or gates were
+changed. A is pre-existing main debt and its tests remain untouched; shared IDs
+are not identical symptoms: four first assertions moved, and 26 serialized
+actual/expected pairs differ. All differences are retained in the report.
+
+Baseline computed build gates passed with stale release evidence pending.
+Reconciliation: 1 matched, 133 NEW to ledger, 0 MOVED, exit 1. Baseline
+tracked worktree and `dist/` were restored clean; pre-run modified generated
+files were preserved under `build/evidence/capital-content-v2/baseline-comparison-2026-10-28/`.
+No baseline commit. Current task CPU and RAM/residency deltas are zero.
+
+Per owner Step 3, no B1 updates or remaining merge gates were attempted:
+release refresh/build, fresh native 15/home 27, boot frontend <=1,402,
+boss stress A/B and final play ATR delivery remain pending. Island symptoms
+remain unattributed transient raster artifacts for `visual-bugs-diag`, not a
+merge blocker. NEXT TASK: investigate the 38 B2 failures without lowering
+behavioural expectations, then resume the remaining merge gates.
 Owner final smoke remains pending. No merge, push, tag, stage or commit by the agent.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE

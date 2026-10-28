@@ -660,3 +660,72 @@ docs/diagnostics/capital-content-v2/merge-2026-10-28/failures-reconcile.txt
 
 Suggested message:
 `docs: record capital content 1+0 merge gate stop and parked minefield`
+
+
+## Owner merge-gate decision — baseline comparison (2026-10-28)
+
+**STOP: B2 is nonempty (38).** At docs checkpoint `392a042`, ran the same full
+`npm test` on the owner-created detached baseline `5053697`. Main: 1604 tests,
+1467 PASS /134 FAIL /3 SKIP, exit 1. Merge's original `434871e` run:
+1609 tests, 1429 PASS /177 FAIL /3 SKIP. Counts by file + full test name:
+**A 134, B 43, C 0; B1 5, B2 38**.
+
+[Complete A/B/C lists and every B justification and actual/expected value](../diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.md).
+[Machine-readable evidence](../diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.json).
+[Baseline reconciliation](../diagnostics/capital-content-v2/merge-2026-10-28/baseline-failures-reconcile.txt).
+
+B1 justification lines, one per test (no edits made because B2 requires STOP):
+
+- `boss-claim.test.mjs:99`: accepted content home `$1180–$18FF` makes the
+  CONTENT_HEADER/code/data overlap with the boss claim phase-exclusive.
+- `boss-claim.test.mjs:123`: the same accepted reservation adds CONTENT_RAM
+  to the cfg areas intentionally sharing the boss claim in a different phase.
+- `cfg-overlaps.test.mjs:22`: the same reservation intentionally shares the
+  banner, boss slot C, boss scratch and boss-death CODE ranges.
+- `heavy-bomber.test.mjs:560`: accepted Heavy departure adds a guarded public
+  tick entry at `$9DC6`; the original Bomber body stays in the arena at `$7DCB`
+  under `_enemy_c_heavy_tick_original`, so the old public-entry pin is stale.
+- `heavy-package.test.mjs:111`: accepted Director −310 B reduces record 11
+  from five sectors to three, part of boot 213→211; the later L2 1250-B pin in
+  this test also follows accepted L2 +40 B, giving 1290 B.
+
+All 38 B2 results remain unchanged. They include ordinary sector progression
+and Heavy admission stopping, plus L2 INIT reaching its four-million-step
+limit. The checked-content phase/image fixture boundary warrants investigation;
+these are not established production regressions, and no failed behavioural
+assertion is reclassified as an accepted zero/no-op result. A tests remain
+untouched as pre-existing main debt. Of shared IDs, 130 have the same first
+assertion/message, four moved; 108 serialized value pairs match, 26 differ.
+The complete per-side evidence is retained; shared membership is not a claim
+that every observed symptom stayed identical.
+
+Baseline normal computed gates passed with the stale-evidence warning.
+Reconciliation exits 1: 1 matched, 133 NEW to ledger, 0 MOVED. The original
+merge reconciliation is unchanged. Baseline's pre-existing three modified
+generated dist files were copied to
+`build/evidence/capital-content-v2/baseline-comparison-2026-10-28/preexisting-baseline-dist/`;
+after the test they were restored to `5053697`, leaving the tracked baseline
+worktree clean. No source edit or commit there. Raw run copied beside those
+preserved files; its hash is in the report.
+
+No test/production/ledger/gate edits; no fresh native or release runs and no
+final play delivery after STOP. CPU and RAM/residency delta: 0. Branch/HEAD:
+`codex/capital-content-v2-merge` / `392a042`. Prior candidate ATR SHA-256 remains
+`a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d` (historical
+test-build evidence, not fresh play qualification). Island artifacts remain
+unattributed transient raster artifacts for `visual-bugs-diag`, not a merge
+blocker. NEXT TASK: resolve B2, then resume the remaining merge gates.
+
+### Exact owner commit paths and message — baseline comparison
+
+No staging or commit performed. Only these paths belong to this task:
+
+```text
+docs/STATUS.md
+docs/audits/2026-10-28-capital-content-v2.md
+docs/diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.md
+docs/diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.json
+docs/diagnostics/capital-content-v2/merge-2026-10-28/baseline-failures-reconcile.txt
+```
+
+Suggested message: `docs: baseline merge test failures and stop on 38 B2 results`

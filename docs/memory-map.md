@@ -37,17 +37,15 @@ Sections marked *earlier `2df89da`* were not regenerated.
 > file disagrees with it, the generated block is right. The hand-written
 > sections stay as design notes and history.
 
-### Capital content v2 platform WIP (2026-10-28)
+### Capital content v2 platform (2026-10-28, owner smoke pending)
 
-Amendment 4 platform links the phase-exclusive content image at $1180–$18FF:
-1 B code in a 1,920-B checked run, loaded from L2 INIT and armed by shared
-L2_VALID only after checksum success. Capital entry additionally checks
-GAMEPLAY. L2 uses 1,290 B (+40), with 246 B free before its untouched 256-B
-reserve. Reader uses 1,535 B (+6), 1 B free. Window/Director/arena task growth
-is 0 B against 5053697. No M3-H reservation changes. Heavy policy has not yet
-been moved into the home. Generated rows describe this linked WIP, not a
-passing increment: the real-SIO boot frontend deadline failed and final native
-lifecycle verification remains incomplete. See [report](audits/2026-10-28-capital-content-v2.md).
+Checked content home $1180–$18FF:1 B code in1920-B image, shared L2_VALID
+armed only after checksum success; entry additionally requires GAMEPLAY.
+L2 uses1290 B (+40),246 B free before untouched256-B reserve. Reader1512 B
+(−17 versus5053697),24 B free. Its cold guard dispatch uses18 B of existing
+pinned LIFE padding at$867D, with no extent growth. Window/Director/arena task
+growth0 B. No M3-H reservation changes. Native/lifecycle gates pass; Heavy
+policy still awaits migration into the home. [Report](audits/2026-10-28-capital-content-v2.md).
 
 <!-- BEGIN GENERATED MEMORY MAP: npm run memory-map -->
 
@@ -145,7 +143,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$4541-$462D` | 237 B | transient | A2 kernel image in the initial block | `boot` | manifest `a2Kernel` |
 | `$462E-$5014` | 2,535 B | transient | packed ENTITY_CODE source | `boot` | manifest `entityEffects` |
 | `$4800-$4BFF` | 1,024 B | state | frontend charset | `resident` | src/main.s `FRONTEND_CHARSET` |
-| `$4801-$4C8D` | 1,165 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
+| `$4801-$4C9E` | 1,182 B | transient | packed pickup/collision + window streams held in the frontend charset | `boot` | src/main.s `WEAPON_PICKUP_COLD_STAGING`, manifest `residentCapacity.pickupRecordPackedBytes` |
 | `$4C00-$4E3F` | 576 B | slot | boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved | `boss` `death` | src/hybrid/boss-death.s |
 | `$4C00-$4E3F` | 576 B | slot | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) | `overlay` | manifest `boss.slotE`, cfg/boss.cfg |
 | `$4C00-$4DFE` | 511 B | segment | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only | `overlay` | build/boss.map |
@@ -240,7 +238,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$8B88-$8C5D` | 214 B | segment | `DIRECTOR_C_LOW` — low cc65 Director code | `resident` | build/encounter-director.map |
 | `$8C5E-$8C7C` | 31 B | reserved | free tail of `DIRECTOR_C_LOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$8C7D-$8CAC` | 48 B | segment | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table | `resident` | build/encounter-director.map |
-| `$8C80-$910C` | 1,165 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
+| `$8C80-$911D` | 1,182 B | transient | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) | `boot` | manifest DFMC records |
 | `$8CAD-$8F64` | 696 B | segment | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light | `resident` | build/encounter-director.map |
 | `$8F65-$8FA7` | 67 B | segment | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) | `resident` | build/void-strike-65.map |
 | `$8FA8-$8FE7` | 64 B | segment | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) | `resident` | build/void-strike-65.map |
@@ -258,8 +256,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$9FEF-$9FF9` | 11 B | reserved | free tail of `DIRECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$9FFA-$9FFF` | 6 B | guard | `DIRECTOR_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg |
 | `$A000-$BFFF` | 8,192 B | machine | RAM under the BASIC ROM: `disable_basic_rom` forces `PORTB` bit 1 and `BASICF` at every stage-2 entry (a description, not a claim) | `boot` `resident` | src/main.s, cfg/encounter-director.cfg |
-| `$A000-$A5FE` | 1,535 B | segment | `SECTOR_READER` — between-levels sector reader, overlay runs, stat hooks | `resident` | build/sector-reader.map |
-| `$A5FF` | 1 B | reserved | free tail of `SECTOR_READER_RAM` | `resident` | cfg/sector-reader.cfg |
+| `$A000-$A5E7` | 1,512 B | segment | `SECTOR_READER` — between-levels sector reader, overlay runs, stat hooks | `resident` | build/sector-reader.map |
+| `$A5E8-$A5FF` | 24 B | reserved | free tail of `SECTOR_READER_RAM` | `resident` | cfg/sector-reader.cfg |
 | `$A600-$ADFF` | 2,048 B | slot | `LEVEL_BUFFER`, 16 sectors: the level image | `level` | manifest `sectorReader.levelBuffer` |
 | `$A600-$A607` | 8 B | slot | level image header (byte 7: LevelDef's first sector) | `level` | manifest `capitalHulls.levelBlock` |
 | `$A608-$A807` | 512 B | segment | `GAMEPLAY_MUSIC` — gameplay music player (in the level image) | `level` | build/gameplay-music.map |
@@ -332,7 +330,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$9D59-$9D5D` | 5 B | `ENTITY_CODE_RAM` (atari-boot.cfg) | `ENTITY_RUN_PAD`, `ENTITY_CODE` |
 | `$9D73-$9D74` | 2 B | `DIRECTOR_C_PRE_RAM` (encounter-director.cfg) | `DIRECTOR_C_PRE` |
 | `$9FEF-$9FF9` | 11 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
-| `$A5FF` | 1 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
+| `$A5E8-$A5FF` | 24 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
 | `$B611-$B8FF` | 751 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
@@ -444,7 +442,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$4541-$462D` | `boot` | A2 kernel image in the initial block |
 | `$462E-$5014` | `boot` | packed ENTITY_CODE source |
 | `$4800-$4BFF` | `resident` | frontend charset |
-| `$4801-$4C8D` | `boot` | packed pickup/collision + window streams held in the frontend charset |
+| `$4801-$4C9E` | `boot` | packed pickup/collision + window streams held in the frontend charset |
 | `$4C00-$4E3F` | `boss` `death` | boss breakup: row list, palettes and state over dead pickup/laser slot E; player's P0 and bottom HUD preserved |
 | `$4C00-$4E3F` | `overlay` | boss slot E: read at the boss entry over the expanded hull maps (the capital's, rebuilt at every gameplay start), the boss sector only; run `boss-slot-e` (4 sectors) |
 | `$4C00-$4DFE` | `overlay` | `BOSS_E_CODE` — boss slot E (M5b-S4b.5): the capsule from a destroyed module (none on the defeat), the laser warning's flicker colour, the module hit flash's frame step, guards and bit-7 toggle (fix/boss-polish), the lasers' admission and the twin cannons' index and gate (feat/boss-r1-twin-lasers, a build with twins), the gravity column's HPOSM0 publish and its position byte (S5-4, a build with the well); read at the boss entry over the expanded hull maps, the boss sector only |
@@ -543,7 +541,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$8B88-$8C5D` | `resident` | `DIRECTOR_C_LOW` — low cc65 Director code |
 | `$8C5E-$8C7C` | `resident` | free tail of `DIRECTOR_C_LOW_RAM` |
 | `$8C7D-$8CAC` | `resident` | `ENEMY_ARCHETYPE_DATA` — C EnemyArchetype table |
-| `$8C80-$910C` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
+| `$8C80-$911D` | `boot` | pickup/collision + window record landing (`WEAPON_PICKUP_PACKED_STAGING`) |
 | `$8CAD-$8F64` | `resident` | `HYBRID_C_EXT` — cc65 extension: sector, lifecycle, Light |
 | `$8F65-$8FA7` | `resident` | `LIGHT_CODE` — Light late-publication kernel (tail of the C extension composite) |
 | `$8FA8-$8FE7` | `resident` | `HEAVY_CODE` — Heavy late-publication helper (tail of the C extension composite) |
@@ -820,49 +818,48 @@ By topic: level summary 96%, unclassified 4%.
 
 By topic: Light enemies 96%, capital ship 4%.
 
-#### `SECTOR_READER` `$A000-$A5FE`, 1,535 B (build/sector-reader.map)
+#### `SECTOR_READER` `$A000-$A5E7`, 1,512 B (build/sector-reader.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `sector_reader_load` | `$A154` | 98 B | 6.4% | boot, loader and transport |
+| `sector_reader_load` | `$A154` | 98 B | 6.5% | boot, loader and transport |
 | `sector_reader_read_sectors` | `$A1B7` | 96 B | 6.3% | boot, loader and transport |
-| `overlay_directory` | `$A5A8` | 65 B | 4.2% | boot, loader and transport |
-| `sector_reader_failure_screen` | `$A0D6` | 56 B | 3.6% | boot, loader and transport |
-| `sector_reader_receive_byte` | `$A2E7` | 54 B | 3.5% | boot, loader and transport |
-| `sector_reader_wait_serial` | `$A31D` | 51 B | 3.3% | boot, loader and transport |
+| `overlay_directory` | `$A5A0` | 65 B | 4.3% | boot, loader and transport |
+| `sector_reader_failure_screen` | `$A0D6` | 56 B | 3.7% | boot, loader and transport |
+| `sector_reader_receive_byte` | `$A2E7` | 54 B | 3.6% | boot, loader and transport |
+| `sector_reader_wait_serial` | `$A31D` | 51 B | 3.4% | boot, loader and transport |
 | `sector_reader_lookup` | `$A489` | 49 B | 3.2% | boot, loader and transport |
-| `sector_reader_read_run_inline` | `$A124` | 48 B | 3.1% | boot, loader and transport |
-| `sector_reader_directory` | `$A578` | 48 B | 3.1% | boot, loader and transport |
+| `sector_reader_read_run_inline` | `$A124` | 48 B | 3.2% | boot, loader and transport |
+| `sector_reader_directory` | `$A570` | 48 B | 3.2% | boot, loader and transport |
 | `sector_reader_publish_screen` | `$A0AB` | 43 B | 2.8% | boot, loader and transport |
 | `sector_reader_read_sector` | `$A225` | 41 B | 2.7% | boot, loader and transport |
-| `failure_reasons` | `$A54E` | 40 B | 2.6% | boot, loader and transport |
-| `stats_scan` | `$A38D` | 39 B | 2.5% | level summary |
-| `sector_reader_build_frame` | `$A462` | 39 B | 2.5% | boot, loader and transport |
+| `failure_reasons` | `$A546` | 40 B | 2.6% | boot, loader and transport |
+| `stats_scan` | `$A38D` | 39 B | 2.6% | level summary |
+| `sector_reader_build_frame` | `$A462` | 39 B | 2.6% | boot, loader and transport |
 | `sector_reader_settle` | `$A429` | 38 B | 2.5% | boot, loader and transport |
-| `stats_capital_frame` | `$A369` | 36 B | 2.3% | level summary |
+| `stats_capital_frame` | `$A369` | 36 B | 2.4% | level summary |
 | `sector_reader_pokey_setup` | `$A3F3` | 35 B | 2.3% | boot, loader and transport |
 | (after sector_reader_level_end) | `$A04D` | 34 B | 2.2% | boot, loader and transport |
-| `sector_reader_resident_hit` | `$A4BA` | 33 B | 2.1% | boot, loader and transport |
-| `sector_reader_start_gameplay` | `$A01E` | 31 B | 2.0% | boot, loader and transport |
+| `sector_reader_resident_hit` | `$A4BA` | 33 B | 2.2% | boot, loader and transport |
+| `sector_reader_start_gameplay` | `$A01E` | 31 B | 2.1% | boot, loader and transport |
 | `sector_reader_vectors` | `$A000` | 30 B | 2.0% | boot, loader and transport |
-| `sector_reader_validate` | `$A4DB` | 27 B | 1.8% | boot, loader and transport |
-| `sector_reader_restore_capital` | `$A08E` | 25 B | 1.6% | capital ship |
-| `sr_engaging_record` | `$A535` | 25 B | 1.6% | unclassified |
+| `sector_reader_restore_capital` | `$A08E` | 25 B | 1.7% | capital ship |
+| `sr_engaging_record` | `$A52D` | 25 B | 1.7% | unclassified |
 | `sector_reader_ensure_summary` | `$A06F` | 24 B | 1.6% | level summary |
-| `failure_reason_slot` | `$A50B` | 24 B | 1.6% | boot, loader and transport |
+| `failure_reason_slot` | `$A503` | 24 B | 1.6% | boot, loader and transport |
 | `sector_reader_rx_loop` | `$A25B` | 23 B | 1.5% | boot, loader and transport |
 | `sector_reader_send_command` | `$A28C` | 23 B | 1.5% | boot, loader and transport |
-| `sector_reader_l2_guard` | `$A5E9` | 22 B | 1.4% | boot, loader and transport |
 | `sector_reader_tx_byte` | `$A2CB` | 21 B | 1.4% | boot, loader and transport |
-| `failure_records` | `$A4F6` | 21 B | 1.4% | boot, loader and transport |
+| `failure_records` | `$A4EE` | 21 B | 1.4% | boot, loader and transport |
 | (after sector_reader_tx_loop_end) | `$A2B0` | 20 B | 1.3% | boot, loader and transport |
-| `sector_reader_frame_tick` | `$A350` | 19 B | 1.2% | boot, loader and transport |
-| `sector_reader_begin_receive` | `$A416` | 19 B | 1.2% | boot, loader and transport |
+| `sector_reader_frame_tick` | `$A350` | 19 B | 1.3% | boot, loader and transport |
+| `sector_reader_begin_receive` | `$A416` | 19 B | 1.3% | boot, loader and transport |
+| `sector_reader_validate` | `$A4DB` | 19 B | 1.3% | boot, loader and transport |
 | `sector_reader_quiesce` | `$A44F` | 18 B | 1.2% | boot, loader and transport |
-| `title_record` | `$A523` | 18 B | 1.2% | frontend and HUD |
+| `title_record` | `$A51B` | 18 B | 1.2% | frontend and HUD |
 | `sector_reader_wait_for_fire` | `$A10E` | 17 B | 1.1% | player, input and weapons |
-| `sector_reader_blank` | `$A03D` | 16 B | 1.0% | boot, loader and transport |
-| 27 smaller items | — | 169 B | 11.0% | — |
+| `sector_reader_blank` | `$A03D` | 16 B | 1.1% | boot, loader and transport |
+| 28 smaller items | — | 176 B | 11.6% | — |
 
 By topic: boot, loader and transport 85%, level summary 10%, unclassified 2%, capital ship 2%, frontend and HUD 1%, player, input and weapons 1%.
 
@@ -1154,7 +1151,7 @@ By topic: player, input and weapons 25%, debris and effects 20%, capital ship 16
 | `L2` | 1,290 B | placement name | — | unclassified (100%) | not judged |
 | `LEVEL_SUMMARY` | 1,792 B | level summary | 96% | level summary (96%) | fits |
 | `LIGHT_KERNEL` | 822 B | Light enemies | 96% | Light enemies (96%) | fits |
-| `SECTOR_READER` | 1,535 B | boot, loader and transport, Director, sectors and waves | 85% | boot, loader and transport (85%) | fits |
+| `SECTOR_READER` | 1,512 B | boot, loader and transport, Director, sectors and waves | 85% | boot, loader and transport (85%) | fits |
 | `MENU_OVERLAY` | 1,304 B | placement name | — | frontend and HUD (56%) | not judged |
 | `CODE` | 4,464 B | placement name | — | frontend and HUD (25%) | not judged |
 | `BOOT_STAGE2` | 1,446 B | boot, loader and transport | 93% | boot, loader and transport (93%) | fits |

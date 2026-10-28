@@ -3009,9 +3009,13 @@ async function build() {
     ["sector_reader_report_bad_image",0xa21e]]) {
     if(sectorReaderLabels.get(name)!==pin) throw new Error(`L2 cold cross-link ${name} moved`);
   }
-  if (sectorReaderLabels.get("sector_reader_l2_guard") !== 0xa5e9 ||
+  if (sectorReaderLabels.get("sector_reader_l2_guard") !== 0xa5e1 ||
       lightKernelModule.raw[lightKernelLabels.get("guard_check")-lightKernelAddress] !== 0x4c ||
-      lightKernelModule.raw.readUInt16LE(lightKernelLabels.get("guard_check")-lightKernelAddress+1) !== 0xa5e9) {
+      lightKernelModule.raw.readUInt16LE(lightKernelLabels.get("guard_check")-lightKernelAddress+1) !== 0x867d ||
+      lifetimeLabels.get("l2_checksum_dispatch") !== 0x867d ||
+      lightKernelLabels.get("guard_entry") !== 0x39d7 ||
+      lightKernelLabels.get("guard_check_inline") !== 0x3996 ||
+      parseViceLabels(l2Module.labels.toString()).get("l2_content_fold") !== 0x1e03) {
     throw new Error("L2 cold checksum cross-link does not reach the reader extension");
   }
   if (sectorReaderLabels.get("SAVE_RECORD_SECTOR") !== saveRecordSector) {

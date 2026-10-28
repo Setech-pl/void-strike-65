@@ -1,0 +1,1152 @@
+{
+  "composedCapital": {
+    "withoutAudio": 29141,
+    "audio": 1187,
+    "total": 30328,
+    "limit": 31200
+  },
+  "status": "platform verification passed; owner smoke pending; uncommitted",
+  "measurement": "Native PAL wall unless explicitly CPU-only",
+  "native": {
+    "routes": 15,
+    "frames": 59538,
+    "peak": 31432,
+    "capitalPeak": 30090,
+    "minimumFence": 3407,
+    "rows": [
+      {
+        "id": "campaign-0-flight",
+        "difficulty": 0,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-campaign",
+        "campaign": true,
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3942,
+        "capitalFrames": 1357,
+        "spaceFrames": 2466,
+        "bossFrames": 119,
+        "peak": 30952,
+        "capitalPeak": 30090,
+        "spacePeak": 30952,
+        "bossPeak": 28892,
+        "targetOverruns": 0,
+        "fence": 3770,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "0fcd68d39b829fcdc3743c736824395c0bba3c8a509abf38932e2b2db450c492",
+        "stateFileSha256": "9bebaaf5b79f4eb679586099664596e43658a5d5373df078aaa485d3e2373cbf",
+        "traceSha256": "95b938f4ce6c4017ef020cf90dd74274ba850d8a0ee8944154fa840c6f03cdb8"
+      },
+      {
+        "id": "campaign-1-flight",
+        "difficulty": 1,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-campaign",
+        "campaign": true,
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3731,
+        "capitalFrames": 1205,
+        "spaceFrames": 2407,
+        "bossFrames": 119,
+        "peak": 31050,
+        "capitalPeak": 27074,
+        "spacePeak": 31050,
+        "bossPeak": 28684,
+        "targetOverruns": 0,
+        "fence": 3407,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "0fcd68d39b829fcdc3743c736824395c0bba3c8a509abf38932e2b2db450c492",
+        "stateFileSha256": "6f022879f9b0940aa57ed13237b8c03c20cb009dcd64517979c957ed243a58db",
+        "traceSha256": "99c794d9f8fc869b49002274f35537328c080beef0ba95488ab21ab48e422e50"
+      },
+      {
+        "id": "campaign-2-brake",
+        "difficulty": 2,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-campaign",
+        "campaign": true,
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4487,
+        "capitalFrames": 1876,
+        "spaceFrames": 2492,
+        "bossFrames": 119,
+        "peak": 31330,
+        "capitalPeak": 29545,
+        "spacePeak": 31330,
+        "bossPeak": 28332,
+        "targetOverruns": 0,
+        "fence": 3407,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 30,
+        "artifact": "0fcd68d39b829fcdc3743c736824395c0bba3c8a509abf38932e2b2db450c492",
+        "stateFileSha256": "2eb13b1d012f645faea0eb9aafa7040c1781260a8d50ac93ec4ded6ec764a19f",
+        "traceSha256": "e9e2d483ecd82f1307fa0f4e125fd297a4031ad084c1dd8c9ffa6181164db18d"
+      },
+      {
+        "id": "l2-480-0-brake",
+        "length": 480,
+        "difficulty": 0,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4057,
+        "capitalFrames": 2328,
+        "spaceFrames": 1610,
+        "bossFrames": 119,
+        "peak": 30869,
+        "capitalPeak": 28300,
+        "spacePeak": 30869,
+        "bossPeak": 28676,
+        "targetOverruns": 0,
+        "fence": 6727,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e",
+        "stateFileSha256": "7f7ad0f23507541c9b610b7749e1550a6f27cad9da522d073071533eaa922faf",
+        "traceSha256": "37aa1aef809d56bb431e2d371fd0f36e6082f6631077c3664249243c8469316b"
+      },
+      {
+        "id": "l2-480-0-flight",
+        "length": 480,
+        "difficulty": 0,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3069,
+        "capitalFrames": 1357,
+        "spaceFrames": 1593,
+        "bossFrames": 119,
+        "peak": 30975,
+        "capitalPeak": 29805,
+        "spacePeak": 30975,
+        "bossPeak": 28903,
+        "targetOverruns": 0,
+        "fence": 5910,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e",
+        "stateFileSha256": "a8993008406d017ee6ac24f2ebd3d3dcf279557c4c12eff5282c7eb0c2bb8513",
+        "traceSha256": "94fe4b9a50350cccd7a34ff02e15ff68ddea55a5546bdcc7b5231d52c29e5845"
+      },
+      {
+        "id": "l2-480-1-brake",
+        "length": 480,
+        "difficulty": 1,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3702,
+        "capitalFrames": 2093,
+        "spaceFrames": 1490,
+        "bossFrames": 119,
+        "peak": 31084,
+        "capitalPeak": 28150,
+        "spacePeak": 31084,
+        "bossPeak": 29124,
+        "targetOverruns": 0,
+        "fence": 6508,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e",
+        "stateFileSha256": "42aeca192b68fec98eb4981371ff99d80ff5df074fc0ab295a46ea2cd0f76f3c",
+        "traceSha256": "a1ad36302cd23bde80fbf3492908233b8532a24c8212ee4b835463b24d062d58"
+      },
+      {
+        "id": "l2-480-1-flight",
+        "length": 480,
+        "difficulty": 1,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 2939,
+        "capitalFrames": 1206,
+        "spaceFrames": 1614,
+        "bossFrames": 119,
+        "peak": 31082,
+        "capitalPeak": 26461,
+        "spacePeak": 31082,
+        "bossPeak": 28074,
+        "targetOverruns": 0,
+        "fence": 5238,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e",
+        "stateFileSha256": "640af5b804d68d86f20157cf14429c14e43238bf4f3aa7e4856c7bb22b47b761",
+        "traceSha256": "616a5fc8b24d29f180e860fba97b9ee83a9ca46b4ae28467f1175e8d569fbdbe"
+      },
+      {
+        "id": "l2-480-2-brake",
+        "length": 480,
+        "difficulty": 2,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3600,
+        "capitalFrames": 1878,
+        "spaceFrames": 1603,
+        "bossFrames": 119,
+        "peak": 31432,
+        "capitalPeak": 28978,
+        "spacePeak": 31432,
+        "bossPeak": 29076,
+        "targetOverruns": 0,
+        "fence": 5017,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 30,
+        "artifact": "94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e",
+        "stateFileSha256": "9a2cf810d21dc8ab5381425a99e13aac74c21e24db0e5e4f7c5093f5f352e3a4",
+        "traceSha256": "22cd5fde6e5b4f2bfb5e402c82648c9f4586a4560990d1c2ab244f7bf1dd314d"
+      },
+      {
+        "id": "l2-480-2-flight",
+        "length": 480,
+        "difficulty": 2,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 2777,
+        "capitalFrames": 1085,
+        "spaceFrames": 1573,
+        "bossFrames": 119,
+        "peak": 31325,
+        "capitalPeak": 27718,
+        "spacePeak": 31325,
+        "bossPeak": 28279,
+        "targetOverruns": 0,
+        "fence": 5686,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 30,
+        "artifact": "94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e",
+        "stateFileSha256": "d73e47cc11d21b2d854521a54043ca5e37e3546f0a8fda772bf819acf2a1a133",
+        "traceSha256": "d4bfe87f520768ba21ffcec8bb35959c820590caf62a2fa91269a2941c4cf505"
+      },
+      {
+        "id": "l2-960-0-brake",
+        "length": 960,
+        "difficulty": 0,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 5515,
+        "capitalFrames": 3805,
+        "spaceFrames": 1591,
+        "bossFrames": 119,
+        "peak": 31036,
+        "capitalPeak": 27475,
+        "spacePeak": 31036,
+        "bossPeak": 29074,
+        "targetOverruns": 0,
+        "fence": 6243,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9",
+        "stateFileSha256": "3db84b26b8f9c8d275390968b45da5888b48dfc02e5c55189ef18780253ccb80",
+        "traceSha256": "fef88a861816d93b9e78423d1dfe00e02e4a2776f9c2b5af5ca8a4be96a5d6c8"
+      },
+      {
+        "id": "l2-960-0-flight",
+        "length": 960,
+        "difficulty": 0,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4264,
+        "capitalFrames": 2557,
+        "spaceFrames": 1588,
+        "bossFrames": 119,
+        "peak": 31053,
+        "capitalPeak": 27754,
+        "spacePeak": 31053,
+        "bossPeak": 29265,
+        "targetOverruns": 0,
+        "fence": 5653,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9",
+        "stateFileSha256": "62fb52b97777740ac6934bd62c254e42bfb97c971dfe495bbdcf77ee58e35428",
+        "traceSha256": "c5e2c5bb6367beb584ee1f735c98163e3a19a5847b0eec8a529e98385a05c8fb"
+      },
+      {
+        "id": "l2-960-1-brake",
+        "length": 960,
+        "difficulty": 1,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4988,
+        "capitalFrames": 3377,
+        "spaceFrames": 1492,
+        "bossFrames": 119,
+        "peak": 31136,
+        "capitalPeak": 28511,
+        "spacePeak": 31136,
+        "bossPeak": 29033,
+        "targetOverruns": 0,
+        "fence": 6140,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9",
+        "stateFileSha256": "f006662ec902bcd330964f1c22fa016fa5b4f28a0352894b8730653283caa722",
+        "traceSha256": "be39ad6875551eaf298064359a8866a053d5c16f2255bac142a6d7ba5ff744b0"
+      },
+      {
+        "id": "l2-960-1-flight",
+        "length": 960,
+        "difficulty": 1,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3967,
+        "capitalFrames": 2273,
+        "spaceFrames": 1575,
+        "bossFrames": 119,
+        "peak": 31122,
+        "capitalPeak": 29084,
+        "spacePeak": 31122,
+        "bossPeak": 28713,
+        "targetOverruns": 0,
+        "fence": 6853,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9",
+        "stateFileSha256": "f3479543352346ec8405b359faf30c08ef57754d09ac52d48c882be7b5f97b7c",
+        "traceSha256": "4b3ccc617e7cc6417ac1f4ef71f1a3587b6e04f2d893df5dfe1e453e319619d5"
+      },
+      {
+        "id": "l2-960-2-brake",
+        "length": 960,
+        "difficulty": 2,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4741,
+        "capitalFrames": 3035,
+        "spaceFrames": 1587,
+        "bossFrames": 119,
+        "peak": 31297,
+        "capitalPeak": 28754,
+        "spacePeak": 31297,
+        "bossPeak": 28312,
+        "targetOverruns": 0,
+        "fence": 5717,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 33,
+        "artifact": "bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9",
+        "stateFileSha256": "e04315b58fac16192b3abef6fac98d8c389cafb187bee6235faccb0de2cdc182",
+        "traceSha256": "d082bbf66dfcd70d73e511526d991a758486612eb4071be112a56b449d4ee0c7"
+      },
+      {
+        "id": "l2-960-2-flight",
+        "length": 960,
+        "difficulty": 2,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3759,
+        "capitalFrames": 2045,
+        "spaceFrames": 1595,
+        "bossFrames": 119,
+        "peak": 31294,
+        "capitalPeak": 28809,
+        "spacePeak": 31294,
+        "bossPeak": 28311,
+        "targetOverruns": 0,
+        "fence": 5820,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 34,
+        "artifact": "bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9",
+        "stateFileSha256": "113f850157f74f3a0490228b89e585d85ff0749fc9a7de4e5752b6b5a274d970",
+        "traceSha256": "90d0c5fdc6c8f119b412338db624f5db1dbfa07044223abf13eb9f3696823fb4"
+      }
+    ]
+  },
+  "boot": {
+    "passed": true,
+    "cold": [
+      {
+        "id": "atr-a5",
+        "milestones": {
+          "start": 1043,
+          "loader": 1102,
+          "menu": 1358,
+          "frontend_poll": 1401,
+          "gameplay_init": 3316,
+          "main_loop": 3319
+        }
+      },
+      {
+        "id": "atr-5a",
+        "milestones": {
+          "start": 1043,
+          "loader": 1102,
+          "menu": 1358,
+          "frontend_poll": 1401,
+          "gameplay_init": 3316,
+          "main_loop": 3319
+        }
+      },
+      {
+        "id": "atr-a5-basic",
+        "milestones": {
+          "start": 1034,
+          "loader": 1093,
+          "menu": 1349,
+          "frontend_poll": 1392,
+          "gameplay_init": 3316,
+          "main_loop": 3319
+        }
+      },
+      {
+        "id": "atr-5a-basic",
+        "milestones": {
+          "start": 1034,
+          "loader": 1093,
+          "menu": 1349,
+          "frontend_poll": 1392,
+          "gameplay_init": 3316,
+          "main_loop": 3319
+        }
+      }
+    ],
+    "reset": 1,
+    "compatibility": 1,
+    "forcedRestore": 1
+  },
+  "load": {
+    "runs": 15,
+    "maxHostFrames": 57,
+    "maxWallCycles": 2009608
+  },
+  "space": {
+    "fixtures": 720,
+    "cpuDelta": 0
+  },
+  "stress": {
+    "comparison": "NMOS6502 CPU-only; off and lost lance; all five compositions",
+    "delta": 0,
+    "rows": [
+      "# Citadel L4: off 7697 | lost 8112 (tick 415)",
+      "# Citadel L5: off 8032 | lost 8447 (tick 415)",
+      "# Spine L7: off 7771 | lost 8186 (tick 415)",
+      "# Spine L9: off 8025 | lost 8440 (tick 415)",
+      "# Bastion L10: off 8058 | lost 8473 (tick 415)"
+    ]
+  },
+  "home": {
+    "observer": "host-only CPU accesses; opcode fetch count identified by address==pc, boss-owned image distinguished from content",
+    "guestObserverBytes": 0,
+    "invalidContentExecutions": 0,
+    "rows": [
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/campaign-0-flight-home.csv",
+        "accesses": 204191,
+        "contentFetches": 2716,
+        "bossOwnedFetches": 67026,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/campaign-1-flight-home.csv",
+        "accesses": 201491,
+        "contentFetches": 2412,
+        "bossOwnedFetches": 66562,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/campaign-2-brake-home.csv",
+        "accesses": 207501,
+        "contentFetches": 3754,
+        "bossOwnedFetches": 67386,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-480-0-brake-home.csv",
+        "accesses": 208574,
+        "contentFetches": 4658,
+        "bossOwnedFetches": 67126,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-480-0-flight-home.csv",
+        "accesses": 204039,
+        "contentFetches": 2716,
+        "bossOwnedFetches": 66966,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-480-1-brake-home.csv",
+        "accesses": 207018,
+        "contentFetches": 4188,
+        "bossOwnedFetches": 67130,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-480-1-flight-home.csv",
+        "accesses": 204406,
+        "contentFetches": 2414,
+        "bossOwnedFetches": 67270,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-480-2-brake-home.csv",
+        "accesses": 207470,
+        "contentFetches": 3758,
+        "bossOwnedFetches": 67356,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-480-2-flight-home.csv",
+        "accesses": 204793,
+        "contentFetches": 2172,
+        "bossOwnedFetches": 67496,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-960-0-brake-home.csv",
+        "accesses": 213453,
+        "contentFetches": 7612,
+        "bossOwnedFetches": 66966,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-960-0-flight-home.csv",
+        "accesses": 208461,
+        "contentFetches": 5116,
+        "bossOwnedFetches": 66966,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-960-1-brake-home.csv",
+        "accesses": 212580,
+        "contentFetches": 6756,
+        "bossOwnedFetches": 67130,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-960-1-flight-home.csv",
+        "accesses": 208678,
+        "contentFetches": 4548,
+        "bossOwnedFetches": 67270,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-960-2-brake-home.csv",
+        "accesses": 212034,
+        "contentFetches": 6072,
+        "bossOwnedFetches": 67356,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/native/l2-960-2-flight-home.csv",
+        "accesses": 208084,
+        "contentFetches": 4092,
+        "bossOwnedFetches": 67356,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-480-quit.csv",
+        "accesses": 21120,
+        "contentFetches": 4800,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-480-game-over.csv",
+        "accesses": 21120,
+        "contentFetches": 4800,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-480-level-end.csv",
+        "accesses": 21124,
+        "contentFetches": 4802,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-960-quit.csv",
+        "accesses": 21120,
+        "contentFetches": 4800,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-480-reset.csv",
+        "accesses": 28804,
+        "contentFetches": 4802,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 15360
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-960-game-over.csv",
+        "accesses": 21120,
+        "contentFetches": 4800,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-960-level-end.csv",
+        "accesses": 21124,
+        "contentFetches": 4802,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/exits/l2-exit-960-reset.csv",
+        "accesses": 28804,
+        "contentFetches": 4802,
+        "bossOwnedFetches": 0,
+        "invalidContentFetches": 0,
+        "bootAccesses": 15360
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/home-r1.csv",
+        "accesses": 2034415,
+        "contentFetches": 0,
+        "bossOwnedFetches": 772390,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/home-r2.csv",
+        "accesses": 2033406,
+        "contentFetches": 0,
+        "bossOwnedFetches": 771744,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/home-r3.csv",
+        "accesses": 2411004,
+        "contentFetches": 0,
+        "bossOwnedFetches": 915246,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      },
+      {
+        "file": "build/evidence/capital-content-v2/amendment5/home-r4.csv",
+        "accesses": 2032524,
+        "contentFetches": 0,
+        "bossOwnedFetches": 772020,
+        "invalidContentFetches": 0,
+        "bootAccesses": 7680
+      }
+    ]
+  },
+  "exits": [
+    {
+      "rows": 480,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    }
+  ],
+  "bosses": [
+    {
+      "region": 1,
+      "records": [
+        {
+          "coldLevelReadBegin": 690,
+          "coldLevelReadEnd": 750,
+          "coldL2Init": 803,
+          "coldL2Done": 860,
+          "coldGameStart": 862
+        },
+        {
+          "entryFrames": 324.916
+        },
+        {
+          "readPauseFrames": 91.587
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 13808,
+          "peakDmaOn": 29535,
+          "minimumFence": 11031,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1753,
+          "postLevelReadEnd": 1814,
+          "postL2Init": 1866,
+          "postL2Done": 1923,
+          "restartHost": 1925
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 1,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    },
+    {
+      "region": 2,
+      "records": [
+        {
+          "coldLevelReadBegin": 690,
+          "coldLevelReadEnd": 750,
+          "coldL2Init": 803,
+          "coldL2Done": 860,
+          "coldGameStart": 862
+        },
+        {
+          "entryFrames": 339.916
+        },
+        {
+          "readPauseFrames": 91.586
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29360,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1768,
+          "postLevelReadEnd": 1829,
+          "postL2Init": 1881,
+          "postL2Done": 1938,
+          "restartHost": 1940
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 4,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    },
+    {
+      "region": 3,
+      "records": [
+        {
+          "coldLevelReadBegin": 690,
+          "coldLevelReadEnd": 750,
+          "coldL2Init": 803,
+          "coldL2Done": 860,
+          "coldGameStart": 862
+        },
+        {
+          "entryFrames": 339.916
+        },
+        {
+          "readPauseFrames": 91.584
+        },
+        {
+          "pauseHostFrames": 95,
+          "pauseClockFrames": 94.246
+        },
+        {
+          "peakPreFence": 21655,
+          "peakDmaOn": 29532,
+          "minimumFence": 3184,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1769,
+          "postLevelReadEnd": 1830,
+          "postL2Init": 1882,
+          "postL2Done": 1939,
+          "restartHost": 1941
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 7,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    },
+    {
+      "region": 4,
+      "records": [
+        {
+          "coldLevelReadBegin": 690,
+          "coldLevelReadEnd": 750,
+          "coldL2Init": 803,
+          "coldL2Done": 860,
+          "coldGameStart": 862
+        },
+        {
+          "entryFrames": 343.916
+        },
+        {
+          "readPauseFrames": 91.586
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29537,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1772,
+          "postLevelReadEnd": 1833,
+          "postL2Init": 1885,
+          "postL2Done": 1942,
+          "restartHost": 1944
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 10,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    }
+  ],
+  "delivery": [
+    {
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/campaign.atr",
+      "sha256": "0fcd68d39b829fcdc3743c736824395c0bba3c8a509abf38932e2b2db450c492",
+      "description": "Campaign level1, capital480; checked content platform only",
+      "command": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/campaign.atr"
+    },
+    {
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-480.atr",
+      "sha256": "94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e",
+      "description": "Direct capital480; difficulty selectable in OPTIONS",
+      "command": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-480.atr"
+    },
+    {
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-960.atr",
+      "sha256": "bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9",
+      "description": "Direct capital960; difficulty selectable in OPTIONS",
+      "command": "atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-960.atr"
+    }
+  ]
+}

@@ -26,6 +26,20 @@ l2_load_guard:
 @bad:
     jmp $A21E                      ; sector_reader_report_bad_image, checked
 .assert l2_load_guard = $866C, lderror, "L2 load guard pin moved"
+; A5: cold dispatch uses existing pinned padding, leaving the transported
+; LIFE extent unchanged. No frame caller. Builder checks all cross-link pins.
+l2_checksum_dispatch:
+    lda $39D7                       ; guard_entry
+    cmp #11
+    bcc @inline
+    bne @content
+    jmp $A5E1                       ; reader owns the expected L2 fold
+@inline:
+    jmp $3996                       ; guard_check_inline
+@content:
+    jmp $1E03                       ; l2_content_fold, checked L2 installed
+.assert l2_checksum_dispatch = $867D, lderror, "Cold checksum dispatch moved"
+.export l2_checksum_dispatch
     .res 96-(*-l2_pin_start),0
 l2_valid: .byte 0
 .assert l2_valid = $86B3, lderror, "L2 validity pin moved"

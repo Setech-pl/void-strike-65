@@ -1,16 +1,20 @@
 # Capital content v2
 
-Status: **BLOCKED_BOOT_FRONTEND_DEADLINE — Amendment 4 platform increment 1 WIP STOP.** Normal build passes; no passing increment or owner-smoke candidate.
+Status: **PLATFORM INCREMENT 1 PASS — uncommitted owner-smoke build, not owner-accepted.** Amendment5 fixes the boot deadline; Heavy increment0 and content increments2–3 remain unimplemented.
 
-| Increment | Play ATRs |
-| --- | --- |
-| 1 (now first) | Not delivered: real-SIO frontend deadline failed; lifecycle validation incomplete |
-| 0 | Deferred until platform passes; retained resident Heavy attempt removed for platform checkpoint |
-| 2–3 | Not started |
+| Play ATR (absolute path) | SHA-256 | Description |
+| --- | --- | --- |
+| `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/campaign.atr` | `0fcd68d39b829fcdc3743c736824395c0bba3c8a509abf38932e2b2db450c492` | Campaign level1, capital480; checked content platform only |
+| `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-480.atr` | `94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e` | Direct capital480; difficulty selectable in OPTIONS |
+| `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-960.atr` | `bb96059f69bdfaafdd09c5ffae8deecc56ab40142064b9d0dde6ba90995f4ee9` | Direct capital960; difficulty selectable in OPTIONS |
 
-Branch `codex/capital-content-v2`, owner HEAD `e88e8b9`; gameplay baseline
-`5053697`. Changes remain uncommitted by owner instruction. Amendments 1–4
-apply; shipped levels 1/2 are unchanged. Engineering builds are not smoke ATRs.
+```sh
+atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/campaign.atr
+atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-480.atr
+atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-960.atr
+```
+
+Branch `codex/capital-content-v2`, owner HEAD `db843f7`; changes uncommitted by instruction. Baseline `5053697`. Difficulty remains selectable in OPTIONS. No merge, push, release or Git write.
 
 ## Phase 0 timing reconciliation
 
@@ -191,7 +195,7 @@ path. Non-deferrable capital bonus work must fit885 cycles; the hazard uses its
 own measured baseline. Content implementation was not reached, so no threshold,
 threshold derivation, deferral counts or timing guarantee is claimed.
 
-Current CPU/RAM/ATR status: no linked candidate, no new runtime measurements,
+At the Amendment2 STOP: no linked candidate, no new runtime measurements,
 no play ATRs. The prior fifteen-route/boss/exit evidence validates5053697 only.
 All native jobs are finished. No full tests or release work ran.
 
@@ -260,75 +264,135 @@ The smoke aborts at this first failed assertion; remaining boot cases are not
 claimed. This real-SIO deadline differs from the task's patched-SIO650-frame
 menu gate. Raw JSON and log retain that distinction.
 
-STOP preserves the implementation. No further runtime changes or increments
-are attempted. Two compliant recovery directions remain unmeasured: reduce
-frontend preparation by at least3 host frames (no new RAM required; code-size
-and timing effect need measurement), or reduce initial transport work by at
-least3 host frames (packing/layout change; must preserve all byte/reservation
-gates and repeat boot validation). Neither is an approved gate waiver.
+At this historical STOP, final-image lifecycle verification was incomplete;
+Amendment5 below supersedes that status. No gate was waived.
 
-Amendment3 threshold derivation and deferral counts are not reached: the module
-only contains RTS. Four-region and exit/pause/brake/game-over/RESET validation
-of the final guarded platform remains pending. The earlier Phase0 observer
-proves baseline availability, not this implementation's safety. No mines,
-bonuses or new diagnostic sector are implemented. Owner smoke checklist above
-remains pending in full.
+## Amendment 5 — attribution before code changes
+
+Owner HEAD db843f7. Baseline5053697 and current both have101 initial sectors,
+113 extension sectors,11 DFMC records and a190-B record table. Both additionally
+read the11-sector menu run before frontend polling:225 sectors total before
+frontend input in baseline and A4,224 after the fix. Reader raw
+1,529→1,535 B occupies13 sectors in both because each record includes a21-B
+footer. Menu overlay240–250 precedes content265–279; content is not a boot
+record and is read only at level start. Thus option(a) is already satisfied.
+Fresh baseline real-SIO boot reproduces current milestones exactly: start1048,
+loader1106, menu1362, frontend_poll1405. The +3 against1402 is inherited,
+not a task regression or one-extra-sector effect. Step1 rejects all three
+proposed extra-sector causes. Details: amendment5-attribution.json.
+
+Attempt(b): share status-return tails and relocate cold guard dispatch into
+existing pinned LIFE padding, with no behavior change. Need at least20 B off
+the current reader, not6, to reduce13 sectors to12. This goes one sector below
+5053697 because its count already matches current; the deadline stays1402.
 
 
-Preliminary native capture exited0:15/15 routes PASS, 59,538 frames,
-peak 31,432, capital peak 30,077, minimum fighter fence
-3,414; boss entry325 frames on every route. All recorded missed
-frames, extra VBI, DLI errors, shifted rows and stale L2 counts are0. This is
-**not** the final explicit gameplay-guard image. CPU-only stress was interrupted
-with exit130 after the STOP; no completed comparison is claimed. All native
-jobs have exited. No emulator job remains running.
+## Amendment 5 — recovery and verification
 
-Compact evidence: `../diagnostics/capital-content-v2/amendment4-platform-stop.json`
-and `amendment4-sha256.txt`. Raw traces remain under build/evidence; no raw trace
-is staged. No full npm test, release build or release-evidence refresh ran.
+Used(b), not(c). Shared status returns save8 B; moving the cold checksum
+dispatcher into18 B of existing pinned LIFE padding saves15 reader bytes.
+Reader1,535→1,512 B (−23); its21-B footer now fits12 sectors. LIFE's transported
+extent is unchanged. Window/Director/arena growth0 B, L2 growth40 B unchanged.
+The shifted reader flag pin and three cold dispatch destinations are build
+checked. Initial content12,825 B; level image16 sectors; reservations untouched.
+The boot path now reads101+112=213 sectors, one below5053697 rather than equal:
+Step1 showed the baseline itself had the same1405 deadline failure.
+
+Full real-SIO boot smoke passes:4 cold starts (BASIC on/off, two RAM fills),
+RESET,130XE compatibility, and forced capital restore. Worst cold frontend
+poll1401 <=1402; menu1358. The boot smoke's expected command count now includes
+the manifest's15 content sectors; no reads/retries are exempted. The previous
+63-vs78 command assertion was a stale content-unaware expectation, now78.
+
+Focused tests: good content only arms after the final checked sector; altered
+content with a valid wire checksum refuses to arm. All256 phase values ×2
+validity states call content only for valid+GAMEPLAY. Five disk-integrity tests
+pass.720 SPACE fixtures retain0 active-body and row-predictor CPU delta.
+Boss lost-target stress (NMOS6502 CPU, off/lost): CitadelL4 7697/8112,
+CitadelL5 8032/8447, SpineL7 7771/8186, SpineL9 8025/8440, BastionL10 8058/8473.
+Every value equals5053697 (delta0, gate<=8500 and<=+2).
+
+All four native boss lifecycle fixtures pass with the home observer enabled:
+entry325 host frames, fight/death, summary, menu and checked next load; no
+misses, HUD/ship/DLI errors, read-image errors or retries. They are seeded
+terminal-boss diagnostics, not whole-campaign playthroughs. The observer
+separates installed boss/death ownership in the reused RAM from content code.
+
+
+### Final guarded-image evidence
+
+Native15/15 PASS,59,538 frames, overall peak31,432 <=31,500; capital peak30,090.
+Minimum fighter fence3,407 >=500. Every missed-frame, extra-VBI, DLI-order,
+shifted-row and stale-L2 counter is0; existing world/hull checks pass.
+Boss entry325 on all routes. Composed capital29,141 without audio +1,187 worst
+audio =30,328 <=31,200, leaving872 cycles after the300 safety allowance.
+Guard plus no-op tick measures28 NMOS6502 CPU cycles. No deferrable content
+step exists yet, so A3 threshold/deferral counts are N/A for this platform;
+mines/bonuses still require that scheduler. Component mine/bonus gates are N/A.
+
+Host-only home observer passes27 captures:15 native routes,8 real-exit
+fixtures (480/960 × pause/quit, game-over, level-end, RESET), and R1–R4
+boss-death/summary/menu/reload fixtures. Zero content executions outside loaded
+GAMEPLAY, including boot and boss phases. Legitimate installed boss/death code
+executes in the same RAM and is counted separately, not mislabeled content.
+The quit fixtures exercise pause; native brake routes exercise brake and
+capital death/respawn. No guest instrumentation bytes. All native jobs exited0.
+
+Checked content read:57 PAL frames,2,009,608 wall cycles (~1.14 s), below1.5 s
+and the1.2 s target. Patched-SIO initial menu entry is observed at host560,
+below650; this differs from real-SIO frontend1401. All39 reader tests,5 disk
+integrity tests,3 focused module tests and720 SPACE CPU comparisons pass.
+No full npm test, release build or release-evidence refresh. No new owner
+question. Deviation: boot count is one sector BELOW5053697, because both the
+baseline and A4 had the same inherited1405 failure. No gate was relaxed.
+
+Final evidence: `amendment5-attribution.json`, `amendment5-platform.json`,
+`amendment5-sha256.txt` under `docs/diagnostics/capital-content-v2/`.
+Raw logs/traces stay under `build/evidence/capital-content-v2/amendment5/`.
+Owner smoke for this checkpoint: campaign START GAME, direct480/960, OPTIONS
+difficulty, brake, pause/resume/quit, death/respawn, boss entry and return;
+65XE/SIO2SD: no flicker and acceptable added load time. Earlier mine/bonus
+checklist remains pending for increments2–3. Next implementation is Heavy
+policy in the checked home, with window<=64 B and Director net growth<=0 B.
+
 
 ## Chat summary
 
-BLOCKED_BOOT_FRONTEND_DEADLINE; platform increment1 remains WIP.
-Owner HEAD e88e8b9; changes uncommitted; owner commits.
-Rejected Heavy window growth corrected197→205 B; Director growth26/overflow15 B.
-New platform window/Director/arena growth0 B, L2+40 B, reader+6 B.
-720 SPACE fixtures:0 CPU delta; preliminary native15/15 PASS.
-Added checked load57 PAL frames (~1.14 s).
-Final boot frontend1,405 exceeds unchanged1,402 deadline by3 frames.
-Final guarded image lifecycle/native proof incomplete; no play ATR delivered.
-Heavy migration, mines and bonuses not implemented. All native jobs finished.
+Platform increment1 PASS; owner smoke pending, uncommitted on db843f7.
+Baseline and A4 both used225 pre-frontend sectors and polled at1405.
+A5(b): reader−23 B; dispatch uses18 B existing LIFE padding; total224 sectors.
+Real-SIO frontend1401 <=1402; all boot cases PASS.
+Window/Director/arena growth0; L2+40; reader−17 versus5053697.
+Native15/15 PASS: peak31432, capital30090, composed30328, fence3407.
+Home observer27 captures:0 invalid content executions; R1–R4 and8 exits PASS.
+Boss entry325; lost-target CPU max8473, delta0;720 SPACE CPU deltas0.
+Added load57 PAL frames (~1.14 s); guard/no-op28 CPU cycles.
+Three ATRs delivered under build/play/capital-content-v2/1/.
+No Heavy rule, mines or bonuses yet; next is increment0 in the home.
+All native jobs finished; no Git write, release build or evidence refresh.
 
 ## Owner checkpoint commands
 
-No Git write attempted: Amendment4 assigns commits to the owner. Run in this
-worktree (only task paths):
+Owner performs Git writes; none attempted. In this worktree:
 
 ```sh
 git add \
-  cfg/encounter-director.cfg \
   docs/STATUS.md \
   docs/audits/2026-10-28-capital-content-v2.md \
   docs/memory-map.md \
   docs/plans/capital-content-v2.md \
-  scripts/artifact-launch.mjs \
-  scripts/atari800-l2-lifetime.h \
   scripts/build.mjs \
-  scripts/capital-content-v2-home.h \
-  scripts/frame-peak-native.mjs \
-  scripts/frame-peak-results.mjs \
-  scripts/memory-map-report.mjs \
+  scripts/capital-content-v2-home-prepare.mjs \
   scripts/runtime-wall-trace.mjs \
-  src/c/director.c \
-  src/c/lifecycle.c \
+  src/hybrid/boss-entry-pins.inc \
   src/hybrid/disk-guard.s \
   src/hybrid/l2-lifetime.s \
-  src/hybrid/l2.s \
   src/hybrid/sector-reader.s \
-  cfg/content-module.cfg \
-  docs/diagnostics/capital-content-v2/amendment4-platform-stop.json \
-  docs/diagnostics/capital-content-v2/amendment4-sha256.txt \
-  src/hybrid/content-module.s \
-  tests/capital-content-v2-budget.test.mjs
-git commit -m "WIP STOP: [codex] content platform boot frontend deadline"
+  tests/sector-reader.test.mjs \
+  docs/diagnostics/capital-content-v2/amendment5-attribution.json \
+  docs/diagnostics/capital-content-v2/amendment5-platform.json \
+  docs/diagnostics/capital-content-v2/amendment5-sha256.txt \
+  scripts/capital-content-v2-platform-summary.mjs \
+  tests/capital-content-v2-loader.test.mjs
+git commit -m "[codex] capital-content-v2 platform: recover boot sector and verify guarded home"
 ```

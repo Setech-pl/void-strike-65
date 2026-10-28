@@ -1,5 +1,6 @@
 import fs from 'node:fs';
-const root='build/frame-peak-atari800';
+const root=process.argv[2]??'build/frame-peak-atari800';
+if(!root.startsWith('build/') || root.includes('..'))throw Error('Use a worktree-local build emulator');
 if(fs.lstatSync(root).isSymbolicLink())throw Error('Shared emulator refused');
 fs.copyFileSync('scripts/capital-content-v2-home.h',`${root}/src/cc2-home.h`);
 const file=`${root}/src/cpu.c`;let cpu=fs.readFileSync(file,'utf8');

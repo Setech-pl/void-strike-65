@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-27 (M3-H session 1 — OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-28 (capital content v2 platform — owner smoke pending)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,19 +20,21 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — platform WIP STOP (2026-10-28)
+### Capital content v2 — platform PASS, owner smoke pending (2026-10-28)
 
-Amendment 4 moves platform increment 1 before Heavy increment 0. On branch
-codex/capital-content-v2, owner HEAD e88e8b9, the uncommitted platform normal
-build passes: checked $1180–$18FF home, 1-B no-op, shared loaded validity and
-explicit gameplay guard. Against 5053697: window/Director/arena growth 0 B,
-L2 +40 B, reader +6 B. Heavy policy is not yet moved into the new home.
-**BLOCKED_BOOT_FRONTEND_DEADLINE:** real-SIO boot frontend polling starts at
-1,405 host frames versus the unchanged 1,402 deadline; menu itself is 1,362.
-No passing increment or play ATR is delivered. Remaining lifecycle proof is
-incomplete. Owner commits; see [report](audits/2026-10-28-capital-content-v2.md)
-and [plan](plans/capital-content-v2.md). NEXT TASK: resolve the boot deadline
-without waiving it, complete platform verification, then move Heavy policy.
+Amendment5 platform increment1 passes on codex/capital-content-v2, owner HEAD
+db843f7 plus uncommitted changes. No owner acceptance or commit is implied.
+Baseline and A4 both reached frontend1405; recovered23 reader bytes remove
+one boot sector and bring frontend to1401 <=1402. Window/Director/arena growth
+0 B, L2+40 B, reader−17 B versus5053697; content code1 B in1920-B checked home.
+Guarded native15/15 passes: peak31,432, capital30,090, composed30,328;
+fence>=3407, boss entry325. Home observer27 captures:0 invalid executions.
+Boot smoke, R1–R4 lifecycle,8 exits,720 SPACE zero-CPU-delta fixtures and boss
+lost-target stress(delta0, max8473) pass. Added content read57 PAL frames.
+Play ATRs: `build/play/capital-content-v2/1/` campaign, capital480 and960.
+See [report](audits/2026-10-28-capital-content-v2.md) for hashes and owner commit
+commands. NEXT: Heavy increment0 in the home, then hazard mines and bonuses.
+Shipped levels1/2 remain unchanged; no mines/bonuses/Heavy rule implemented yet.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

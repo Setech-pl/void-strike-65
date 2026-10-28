@@ -3042,6 +3042,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   const menuRun = overlays.runs.find((run) => run.index === 10);
   const l2Run = overlays.runs.find((run) => run.index === 11);
   const l2Sectors=l2Run?.sectors ?? 0;
+  const contentSectors=overlays.runs.find(run=>run.index===manifest.contentModule?.runIndex)?.sectors ?? 0;
   const l2Checksum=l2Run ? fs.readFileSync(path.join(rootDirectory,"build",l2Run.file)).reduce((v,b)=>(Math.imul(v,33)+b)>>>0,0) : 0;
   invariant(menuRun?.sectors === 11 && menuRun.destination === 0x0c00,
     "L1 boot smoke needs the checked 11-sector menu run");
@@ -3418,7 +3419,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
+      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors + contentSectors,
       summary: {
         entry_frame: startSummary.entry,
         first_display_frame: startSummary.display,
@@ -3501,9 +3502,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
+    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors + contentSectors,
       `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors} - one per ` +
+      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors + contentSectors} - one per ` +
       "sector, no retries");
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);

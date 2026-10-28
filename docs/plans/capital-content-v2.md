@@ -1,6 +1,6 @@
 # Capital content v2 — Phase 0 working plan
 
-Status: Amendment 4 platform increment 1 is retained as WIP. Normal build passes; real-SIO boot frontend deadline fails (1,405 versus 1,402 host frames). No owner-smoke candidate.
+Status: Amendment 5 removes the boot frontend blocker (1,401 <=1,402). Guarded platform verification passes; play ATRs delivered for owner smoke. No gameplay increment is accepted.
 Owner Amendment 1 (2026-10-27) supersedes the original capital-mine scope:
 mines occupy a new minefield sector; capital receives bonuses only. Both
 sectors receive bonuses. Shipped level 1/2 data remain unchanged. Diagnostic
@@ -182,3 +182,25 @@ STOP: real-SIO boot frontend polling is 3 frames beyond the existing deadline.
 Do not infer passing lifecycle coverage from the earlier baseline observer.
 The new four-region and exit matrix remain pending. Amendment 3 scheduling is
 still required when deferrable content is implemented; a no-op has no such work.
+
+
+## Amendment 5 — boot attribution and byte recovery
+
+Baseline5053697 and platform db843f7 both read101 initial +113 extension
+sectors and reach frontend polling at1405. The task caused no pre-frontend
+sector/time increase. Content265–279 already follows menu240–250 and loads
+only at level start, satisfying option(a) without an edit.
+
+Option(b) used: shared existing status returns save8 reader bytes; moving the
+cold checksum dispatcher into18 bytes of existing LIFE padding saves15 more.
+Reader1512 B (−23 versus A4, −17 versus5053697) plus21-B footer fits12 sectors;
+transport is101+112=213 sectors, one fewer than5053697. LIFE extent is unchanged;
+window/Director/arena growth stays0 B. Affected cross-link pins are checked by
+the build. No behavior, deadline, reservation or C ABI gate is changed.
+
+Full real-SIO boot smoke passes, maximum cold frontend1401. Content's15
+level-start reads are now included in the manifest-derived boot-smoke command
+count. Good/corrupt checked loads and512 phase/validity combinations pass.
+The four boss-region lifecycle fixtures, native15 and eight exits pass;
+platform play ATRs are delivered. Heavy policy still follows this
+platform checkpoint, per Amendment4.

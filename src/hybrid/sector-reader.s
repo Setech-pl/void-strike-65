@@ -1204,15 +1204,9 @@ sector_reader_validate:
         lda LEVEL_BUFFER+4
         cmp sr_sector_total
         bne @bad
-        lda #SR_OK
-        sta sr_status
-        clc
-        rts
+        jmp sector_reader_report_ok
 @bad:
-        lda #SR_BAD_IMAGE
-        sta sr_status
-        sec
-        rts
+        jmp sector_reader_report_bad_image
 
 
 ; ---------------------------------------------------------------------------
@@ -1313,17 +1307,9 @@ sr_summary_resident:
 ; §BW option A: cold-only dispatch, preserving the MAIN/LIFE byte layout.
 ; Called only by guard_check after a complete transition run. No frame caller.
 sector_reader_l2_guard:
-        lda guard_entry
-        cmp #OVERLAY_L2
-        bcc @inline
-        bne @content
         lda #<L2_EXPECTED_FOLD
         ldy #>L2_EXPECTED_FOLD
         jmp guard_compare
-@content:
-        jmp L2_CONTENT_FOLD
-@inline:
-        jmp guard_check_inline
-.assert sector_reader_l2_guard = $A5E9, lderror, "Checked-run guard pin moved"
+.assert sector_reader_l2_guard = $A5E1, lderror, "Checked-run fold pin moved"
 .assert OVERLAY_L2 = 11 && OVERLAY_DIRECTORY_ENTRIES = 13, error, "Checked directory coverage changed"
 .export sector_reader_l2_guard

@@ -1,6 +1,6 @@
 # Capital content v2 — Phase 0 working plan
 
-Status: platform increment1 OWNER-ACCEPTED at f0b0dd1 (including SIO2SD). Increment0 home implementation stops at Heavy row CPU68 >63 tolerated maximum.
+Status: platform increment1 OWNER-ACCEPTED at f0b0dd1 (including SIO2SD). Amendment6 inline row guard recovers increment0 CPU; full gate results are recorded in the current audit.
 Owner Amendment 1 (2026-10-27) supersedes the original capital-mine scope:
 mines occupy a new minefield sector; capital receives bonuses only. Both
 sectors receive bonuses. Shipped level 1/2 data remain unchanged. Diagnostic
@@ -224,3 +224,29 @@ MEASURED complete-row CPU delta44 ordinary /68 trigger; gate60, tolerated63.
 STOP before native verification or play delivery. Specialized inline guard
 on the row veneer is a possible recovery: ESTIMATE+6 Director bytes,−12 CPU,
 predicted56. This was not implemented after the hard tolerance failure.
+
+
+## Amendment 6 — inline row guard recovery (2026-10-28)
+
+Owner keeps the60-cycle row gate and5% maximum63. Option1 is authorized:
+inline the existing loaded/GAMEPLAY check in the row veneer, accepting6 B
+Director growth while net Director growth remains<=0. No additional window
+or arena growth and no A3 deferral. If trigger remains>63, option2 would move
+only the equality comparison to an ASM home helper; decisions/stores stay C.
+STOP if both fail. Owner commits; play delivery requires every increment0 gate.
+
+Option1 measures198 ordinary /222 trigger CPU against170 /170 at5053697:
+**+28 ordinary /+52 trigger**, both below60. Saving versus stopped attempt
+is16 CPU:12 JSR/RTS plus4 for the carry-result path. Director318→324 B,
+net−310 B versus634; window2068 B (+3 total,0 recovery growth), arena unchanged,
+home612/1920 B unchanged. No option2 or A3 deferral is used. Standalone
+cfg/content-module.cfg had no active references and is removed. See the
+[audit](../audits/2026-10-28-capital-content-v2.md) for all gate outcomes
+and owner commit paths.
+
+
+Amendment6 final: all increment0 gates PASS. Native15/15 (58,688 frames),
+home27/27, boot worst frontend1390/1402, unchanged boss stress max8473,
+Heavy-free windows76/58/36>=2, EASY total tail244→7. Play files exist only in
+`build/play/capital-content-v2/0/` for this increment. Uncommitted; owner
+commit/smoke pending. No feature acceptance or increment2 work is implied.

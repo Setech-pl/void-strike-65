@@ -31,7 +31,17 @@ name:
 .endmacro
 cc2_void _asm_cc2_enter, _cc2_enter
 cc2_void _asm_cc2_advance, _cc2_advance
-cc2_void _director_c_world_row_tick, _cc2_world_row_tick
+; Amendment 6: inline the same guard on the row hot path. Saves the
+; shared guard's JSR/RTS and carry result (16 CPU cycles on valid rows),
+; at a cost of six resident bytes.
+_director_c_world_row_tick:
+    lda $86B3
+    beq :+
+    lda $9A
+    cmp #6
+    bne :+
+    jmp _cc2_world_row_tick
+:   rts
 _asm_cc2_request:
     jsr cc2_valid
     bcc :+

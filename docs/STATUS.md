@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital content v2 — increment0 CPU STOP)
+Last update: 2026-10-28 (capital content v2 — Amendment6 increment0 gates PASS)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,20 +20,34 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — increment0 CPU STOP (2026-10-28)
+### Capital content v2 — increment0 gates PASS; owner commit/smoke pending
 
-Increment1 is **OWNER-ACCEPTED** at f0b0dd1: campaign, capital480/960 and
-hardware SIO2SD smoke passed. Accepted play images remain under
-`build/play/capital-content-v2/1/`.
-Increment0 Heavy policy is retained uncommitted in the content home. Normal
-build and unchanged C ABI gate pass. Window+3 B, Director634→318 B (−316),
-arena0 B growth; content612/1920 B. **BLOCKED_HEAVY_ROW_CPU:** paired NMOS6502
-row fixtures add44 CPU normally and68 at the departure trigger, exceeding the
-60-cycle gate by13.33% (>5% tolerance, maximum63). No increment0 play ATR is
-published. Native timing/lifecycle, boot deadline, boss stress, Heavy-free
-window and EASY drain remain unmeasured for this attempt. No native job ran.
-See [report](audits/2026-10-28-capital-content-v2.md) for evidence and exact
-owner commit commands. NEXT: owner-directed CPU recovery; preserve the gate.
+Increment1 remains **OWNER-ACCEPTED** at f0b0dd1, including SIO2SD.
+Amendment6 increment0 recovery is **uncommitted on codex/capital-content-v2
+at a4e1197**; owner commits. Inline loaded/GAMEPLAY row guard saves16 CPU
+versus the stopped attempt: ordinary198 vs170 (+28), trigger222 vs170 (+52)
+against5053697. Gate60 and tolerated maximum63 stay unchanged. No option2
+or A3 deferral. Director318→324 B, net−310 B; window2068 B (+3 total,
+0 recovery growth), arena unchanged, content612/1920 B. Unused standalone
+cfg/content-module.cfg removed.
+
+Normal build/computed gates and5 focused tests PASS. Native15/15,
+58,688 iterations: peak31,444 (+12 versus baseline), capital30,152 (+127),
+fence3,298; zero misses, extra VBI, DLI/shifted-row or stale-L2 errors;
+every boss entry325<=350. Composed capital29,590+1,187=30,777<=31,200.
+Home observer27/27 (15 routes+8 exits+R1–R4), zero invalid content fetches.
+Full boot smoke7/7; worst frontend1390<=1402. Boss lost-target stress unchanged,
+maximum8473. Heavy-free window before Director admission E/M/H=76/58/36
+active frames (>=2), then2 to hull admission. EASY post-admission drain242→2;
+last-authored-row-to-hull tail244→7, including the pre-admission guard wait.
+
+All gates passed before delivery to `build/play/capital-content-v2/0/`:
+`campaign.atr`, `capital-480.atr`, `capital-960.atr`. Owner smoke and acceptance
+remain pending; this uncommitted result is not OWNER-ACCEPTED. Normal build
+still warns about stale release evidence; no full tests/release pass was run.
+[Audit, hashes and exact owner commit paths](audits/2026-10-28-capital-content-v2.md#amendment-6--recovery-and-all-increment0-gates),
+[bound evidence](diagnostics/capital-content-v2/amendment6-increment0.json).
+NEXT TASK: owner commit and smoke of these three images; STOP before increment2.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

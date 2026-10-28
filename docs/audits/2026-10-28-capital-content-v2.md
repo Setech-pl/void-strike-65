@@ -1,6 +1,6 @@
 # Capital content v2
 
-Status: **INCREMENT0 STOP — Heavy row CPU68 >63 tolerated maximum.** Increment1 is **OWNER-ACCEPTED at f0b0dd1**, including campaign, capital480/960 and hardware SIO2SD. The table below retains those accepted increment1 images; no increment0 play ATR is published.
+Status: **Amendment6 increment0 gates PASS; uncommitted, owner commit/smoke pending.** Increment1 remains OWNER-ACCEPTED at f0b0dd1. Current increment0 delivery and hashes appear in the Amendment6 section; the table below preserves accepted increment1 images.
 
 | Play ATR (absolute path) | SHA-256 at increment1 delivery | Description |
 | --- | --- | --- |
@@ -379,36 +379,124 @@ compact diagnostics directory; raw build log and paired CPU JSON under
 `scripts/capital-content-v2-heavy-cpu.mjs <build-folder-name> <output.json>`.
 No full tests, release work, merge, push or Git writes. Owner commits.
 
-## Chat summary
+## Amendment 6 — recovery and all increment0 gates
 
-Increment1 OWNER-ACCEPTED at f0b0dd1, including hardware SIO2SD.
-Increment0 home implementation retained uncommitted; normal build/ABI pass.
-Window+3 B; Director−316 B; arena0; home612/1920 B.
-Heavy ordinary-row delta44 CPU; trigger68 versus60 gate /63 tolerated.
-STOP on component CPU; no increment0 play images or new native claim.
-Inline row guard is ESTIMATE−12 cycles/+6 Director B; not implemented.
-Accepted increment1 play files were not rewritten by this attempt.
-No native job is running. Owner checkpoint commands follow.
+Branch `codex/capital-content-v2`, HEAD `a4e1197`. Owner commits; no Git
+write, merge, push, release or tag. Increment0 is uncommitted and awaits
+owner smoke; it is not OWNER-ACCEPTED. The earlier STOP evidence above is
+historical and is superseded by this measured recovery.
+
+Owner Amendment6 (2026-10-28) keeps the60-cycle gate and5% maximum63,
+authorizes option1's6 Director bytes while keeping net growth<=0, and forbids
+extra window/arena growth or A3 deferral. Option2 is only necessary if option1
+still exceeds63. Option1 passes the stricter60 target, so option2 is unused.
+The duplicated check is the existing loaded/GAMEPLAY guard; gameplay
+decisions and stores stay in C. All512 validity/phase combinations exercise
+the actual inline veneer. No home instruction executes for an invalid call.
+
+| MEASURED NMOS6502 full row |5053697 CPU |Stopped CPU |Current CPU |Current delta |
+| --- | ---: | ---: | ---: | ---: |
+| Ordinary (8 fixture rows) |170 |214 |198 |+28 |
+| Departure trigger (row136) |170 |238 |222 |+52 |
+
+Saving16 CPU on both paths:12 JSR/RTS plus4 for the shared carry-result
+path. This is instruction CPU, not DMA/wall estimation. Existing paired
+fixtures were rerun on both snapshots with matching initialized live Heavy
+and unspent wave state. No gate or tolerance was relaxed.
+
+| Resource |Current |Delta |
+| --- | ---: | --- |
+| Director high |324 B |+6 recovery;−310 versus634 at5053697 |
+| Window |2068 B |0 recovery; +3 versus5053697 |
+| Arena |827 B |0 |
+| Content home |612/1920 B |0 recovery;5 state B; no reservation growth |
+| L2 / reader |1290 /1512 B |unchanged by recovery |
+| Initial content / boot transport |12825 B /211 sectors |unchanged by recovery |
+
+The unused standalone `cfg/content-module.cfg` had no active references
+and is removed. The content remains separately emitted by the Director link.
+The generated memory map records the6-B high-code increase/free-tail decrease;
+no window, arena or reservation expands.
+
+All pending increment0 gates PASS:
+
+- Normal build and computed CPU/frame, DMA, fence, block, window, boss-entry
+  and disk gates;5 focused module/budget tests (including the new inline guard).
+- Native15/15,58,688 iterations. Overall peak31,444<=31,500 (+12 vs5053697),
+  capital30,152 (+127), minimum fence3298>=500. Zero missed frames, extra VBI,
+  DLI-order errors, shifted rows or stale L2 accesses. World/hull checks pass;
+  every boss entry325<=350. Composed capital29,590 non-audio+1187=30,777,
+  below31,200 (300-cycle safety retained).
+- Host-only home observer27/27:15 routes+8 real exits+R1–R4 death/summary/
+  menu/reload. 2,963,608 content opcode fetches; zero outside loaded GAMEPLAY.
+  4,239,102 legitimate installed boss/death fetches counted separately.
+  Eight exits cover480/960 × quit/pause, game-over, level-end and RESET;
+  death/respawn validity remains checked. No guest instrumentation bytes.
+- Full real-SIO boot smoke7/7:4 cold, RESET,130XE, forced restore.
+  Worst frontend1390<=1402. Campaign ATR/boot binding is recorded in the report.
+- All five lost-target boss-stress compositions unchanged against5053697:
+  CitadelL4 7697/8112, L5 8032/8447, SpineL7 7771/8186, L9 8025/8440,
+  BastionL10 8058/8473 (off/lost). Maximum8473<=8500, delta0.
+- Natural campaign E/M/H Heavy-free active-frame windows before Director
+  admission76/58/36 (minimum36>=2); full formation state and live count both0.
+  Each then waits2 active frames before hull admission. EASY post-Director
+  drain242→2 frames. The total tail from the first capture of authored row271
+  to hull admission falls244→7, including the new pre-admission wait; it is
+  not merely a relocation of the old drain.
+
+Fixture setup corrections: the initial exit attempt used a protected emulator
+copy, then stale ownership images; both were corrected before the successful
+8-route run. Initial campaign snapshot assembly paired the new ATR with stale
+boot/manifest files, so all3 were rejected before guest execution. Corrected
+campaign captures are saved separately. The collector preserves the initial
+runs and builds `native-verified` from12 successful direct routes and3 fresh
+campaign routes; it reruns the unchanged registered fifteen-route assertions.
+No production bug was inferred from those host setup failures, and no gate
+was weakened. No native job remains running.
+
+Reproduction after producing the raw captures:
+
+```sh
+node scripts/capital-content-v2-increment0-summary.mjs --collect --deliver
+```
+
+Compact bound evidence: `docs/diagnostics/capital-content-v2/amendment6-increment0.json`.
+Raw captures: `build/evidence/capital-content-v2/amendment6/`;
+CPU, build, focused-test and control logs:
+`build/evidence/capital-content-v2/increment0/amendment6-*.{json,log}`.
+All gates passed before the three play files were copied. Accepted increment1
+files were untouched. Normal build has the expected stale release-evidence
+warning; no full npm test, release build or release-evidence refresh was run.
+Remaining: owner commit and campaign/direct480/direct960 play smoke, including
+65XE/SIO2SD. NEXT TASK: owner commit/smoke; no automatic increment2.
+
+| Play ATR (absolute path) |SHA-256 |
+| --- | --- |
+| `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/0/campaign.atr` | `a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d` |
+| `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/0/capital-480.atr` | `743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee` |
+| `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/0/capital-960.atr` | `6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388` |
 
 ## Owner checkpoint commands
 
-No Git write attempted. Run in this worktree:
+Run in `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2`.
+The paths below are exactly this task's tracked changes, including the removed
+standalone config and generated normal-build dist artifacts. Play ATRs remain
+in the ignored build directory and are not staged. No command below was run
+by the agent.
 
 ```sh
-git add \
-  cfg/encounter-director.cfg \
+git add -- \
+  cfg/content-module.cfg \
+  src/hybrid/content-module.s \
+  tests/capital-content-v2-loader.test.mjs \
+  scripts/capital-content-v2-increment0-summary.mjs \
   docs/STATUS.md \
   docs/audits/2026-10-28-capital-content-v2.md \
   docs/memory-map.md \
   docs/plans/capital-content-v2.md \
-  scripts/build.mjs \
-  scripts/memory-map-report.mjs \
-  src/c/director.c \
-  src/c/lifecycle.c \
-  src/hybrid/c-asm-abi.s \
-  src/hybrid/content-module.s \
-  docs/diagnostics/capital-content-v2/increment0-home-sha256.txt \
-  docs/diagnostics/capital-content-v2/increment0-home-stop.json \
-  scripts/capital-content-v2-heavy-cpu.mjs
-git commit -m "WIP STOP: [codex] Heavy home rule exceeds row CPU tolerance"
+  docs/diagnostics/capital-content-v2/amendment6-increment0.json \
+  dist/void-strike-65-boot.bin \
+  dist/void-strike-65-manifest.json \
+  dist/void-strike-65.atr
+git commit -m "fix: [codex] recover increment 0 Heavy row CPU and verify native gates"
 ```

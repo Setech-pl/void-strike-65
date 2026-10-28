@@ -1,0 +1,1474 @@
+{
+  "status": "all increment 0 gates PASS; uncommitted, awaiting owner smoke",
+  "baseline": "5053697",
+  "measurement": "NMOS6502 CPU for row/stress; native PAL wall timing and active gameplay frames otherwise",
+  "rowCpu": {
+    "gate": 60,
+    "toleratedMaximum": 63,
+    "option": 1,
+    "savingAgainstStoppedAttempt": 16,
+    "rows": [
+      {
+        "row": 1,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      },
+      {
+        "row": 7,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      },
+      {
+        "row": 8,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      },
+      {
+        "row": 127,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      },
+      {
+        "row": 128,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      },
+      {
+        "row": 135,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      },
+      {
+        "row": 136,
+        "cycles": 222,
+        "departure": 1,
+        "baselineCpu": 170,
+        "delta": 52
+      },
+      {
+        "row": 137,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      },
+      {
+        "row": 255,
+        "cycles": 198,
+        "departure": 0,
+        "baselineCpu": 170,
+        "delta": 28
+      }
+    ]
+  },
+  "resources": {
+    "directorHigh": 324,
+    "directorBaseline": 634,
+    "directorDelta": -310,
+    "window": 2068,
+    "windowDelta": 3,
+    "arenaDelta": 0,
+    "home": {
+      "address": 4480,
+      "endExclusive": 6400,
+      "capacityBytes": 1920,
+      "usedBytes": 612,
+      "runIndex": 12,
+      "validAddress": 34483,
+      "phase": "checked fighter/capital content; disarmed before boss"
+    }
+  },
+  "native": {
+    "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+    "results": [
+      {
+        "id": "campaign-0-flight",
+        "difficulty": 0,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-campaign",
+        "campaign": true,
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3652,
+        "capitalFrames": 1356,
+        "spaceFrames": 2177,
+        "bossFrames": 119,
+        "peak": 30847,
+        "capitalPeak": 30152,
+        "spacePeak": 30847,
+        "bossPeak": 28816,
+        "targetOverruns": 0,
+        "fence": 3671,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d",
+        "stateFileSha256": "ef4b9714b738b1484490a4a0c27191187c71fb8440fdedfc70f7d3ff0cfb4c69",
+        "traceSha256": "4d84231498b65f9009a2bc80128c141096f49373bd3b25a5c19073bf6b2aa695"
+      },
+      {
+        "id": "campaign-1-flight",
+        "difficulty": 1,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-campaign",
+        "campaign": true,
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3435,
+        "capitalFrames": 1206,
+        "spaceFrames": 2110,
+        "bossFrames": 119,
+        "peak": 31134,
+        "capitalPeak": 26933,
+        "spacePeak": 31134,
+        "bossPeak": 28699,
+        "targetOverruns": 0,
+        "fence": 3535,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d",
+        "stateFileSha256": "f85598d6e9040b7ae0950c5af0404987af90e0a61cccb9065329d85bf7339f2d",
+        "traceSha256": "07fbc4be66ae1e480d09c47b22b8faed246591c0a4a798b2a5c2fce83d9f0245"
+      },
+      {
+        "id": "campaign-2-brake",
+        "difficulty": 2,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-campaign",
+        "campaign": true,
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4223,
+        "capitalFrames": 1878,
+        "spaceFrames": 2226,
+        "bossFrames": 119,
+        "peak": 31444,
+        "capitalPeak": 29219,
+        "spacePeak": 31444,
+        "bossPeak": 28253,
+        "targetOverruns": 0,
+        "fence": 3298,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 30,
+        "artifact": "a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d",
+        "stateFileSha256": "a50eaaa79067e7fd93de6f9ba97e2da868f220db899f9bdd24f85048e1a3fcc6",
+        "traceSha256": "6362e65b798cbefd583af020b7a991c3298e0229a54b7e4c8de06b3e65bcbae7"
+      },
+      {
+        "id": "l2-480-0-brake",
+        "length": 480,
+        "difficulty": 0,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4057,
+        "capitalFrames": 2328,
+        "spaceFrames": 1610,
+        "bossFrames": 119,
+        "peak": 30869,
+        "capitalPeak": 28372,
+        "spacePeak": 30869,
+        "bossPeak": 28673,
+        "targetOverruns": 0,
+        "fence": 6131,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee",
+        "stateFileSha256": "6eb9ccb87ee1d92b4de60e01add992be666c1e386829c18c09faa24731f9bcc1",
+        "traceSha256": "6d121f111a798e28166285131b2667ce6f39304b3f845b082795123e54165db8"
+      },
+      {
+        "id": "l2-480-0-flight",
+        "length": 480,
+        "difficulty": 0,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3069,
+        "capitalFrames": 1357,
+        "spaceFrames": 1593,
+        "bossFrames": 119,
+        "peak": 30975,
+        "capitalPeak": 29868,
+        "spacePeak": 30975,
+        "bossPeak": 28903,
+        "targetOverruns": 0,
+        "fence": 5635,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee",
+        "stateFileSha256": "05d785640636f283ca2090ad2c9be2affce8dbfec9ac325992e0bc22ebd78c70",
+        "traceSha256": "b24716411da96b8864e1e2a0324e7dfb5b6d87dde9ddf6d09cab3149a455d606"
+      },
+      {
+        "id": "l2-480-1-brake",
+        "length": 480,
+        "difficulty": 1,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3702,
+        "capitalFrames": 2093,
+        "spaceFrames": 1490,
+        "bossFrames": 119,
+        "peak": 31084,
+        "capitalPeak": 28186,
+        "spacePeak": 31084,
+        "bossPeak": 29124,
+        "targetOverruns": 0,
+        "fence": 6281,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee",
+        "stateFileSha256": "59cf4ec644acec35c0dfe6a605c06120a25ac5805200606c619423999dc72cb7",
+        "traceSha256": "65c58edc20fa2ba18ad5c29c40ae6b5501af6d550f879b9ece327b4ea8ba5972"
+      },
+      {
+        "id": "l2-480-1-flight",
+        "length": 480,
+        "difficulty": 1,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 2939,
+        "capitalFrames": 1206,
+        "spaceFrames": 1614,
+        "bossFrames": 119,
+        "peak": 31082,
+        "capitalPeak": 26515,
+        "spacePeak": 31082,
+        "bossPeak": 28075,
+        "targetOverruns": 0,
+        "fence": 5023,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee",
+        "stateFileSha256": "8c4886951353c945f15de76dbf0a41e705ecc8d7d723ecb75e8cd880955eed3e",
+        "traceSha256": "7485ecc2743b34fde84737a18f65ef71c6949311d186e0432b8b3247352100fe"
+      },
+      {
+        "id": "l2-480-2-brake",
+        "length": 480,
+        "difficulty": 2,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3600,
+        "capitalFrames": 1878,
+        "spaceFrames": 1603,
+        "bossFrames": 119,
+        "peak": 31432,
+        "capitalPeak": 29052,
+        "spacePeak": 31432,
+        "bossPeak": 29077,
+        "targetOverruns": 0,
+        "fence": 4879,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 30,
+        "artifact": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee",
+        "stateFileSha256": "7bcf9a89ee3c81b2fcdbefb8067b34caaa38dca35ea855f56bbee5fa096f9775",
+        "traceSha256": "fb9abf4c206d8a8c84ad627169708b0da6a6e927b5dc68c607ce82d655546418"
+      },
+      {
+        "id": "l2-480-2-flight",
+        "length": 480,
+        "difficulty": 2,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-480",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 2777,
+        "capitalFrames": 1085,
+        "spaceFrames": 1573,
+        "bossFrames": 119,
+        "peak": 31325,
+        "capitalPeak": 27785,
+        "spacePeak": 31325,
+        "bossPeak": 28279,
+        "targetOverruns": 0,
+        "fence": 5527,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 30,
+        "artifact": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee",
+        "stateFileSha256": "fff2c02b23d987b6076f7bc2c1992ac114704dc0e4b55b9b60a7c52f6bb6071b",
+        "traceSha256": "4963ff2943403446b73c2a5f6b87cd9c1b86b0609bb6dd14d3bcae31a7bf6d93"
+      },
+      {
+        "id": "l2-960-0-brake",
+        "length": 960,
+        "difficulty": 0,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 5515,
+        "capitalFrames": 3805,
+        "spaceFrames": 1591,
+        "bossFrames": 119,
+        "peak": 31036,
+        "capitalPeak": 27596,
+        "spacePeak": 31036,
+        "bossPeak": 29080,
+        "targetOverruns": 0,
+        "fence": 6073,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388",
+        "stateFileSha256": "320e424b7659c75e6acf63dbd19861cb71f0e4628d49644ea673106bb3192f1d",
+        "traceSha256": "8c88651b3223fdd8220d65c2ce9a923458f2243b7c583d97eeef5713500ed4f8"
+      },
+      {
+        "id": "l2-960-0-flight",
+        "length": 960,
+        "difficulty": 0,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4264,
+        "capitalFrames": 2557,
+        "spaceFrames": 1588,
+        "bossFrames": 119,
+        "peak": 31053,
+        "capitalPeak": 27794,
+        "spacePeak": 31053,
+        "bossPeak": 29268,
+        "targetOverruns": 0,
+        "fence": 5493,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388",
+        "stateFileSha256": "b78fbe3277dd985b4e7992ea7524dd5047fafd8c0ae5aa59a7ff8b452f6c7bbf",
+        "traceSha256": "aa27319fc568fd417b7d12e4c7a7b1432e771d8750dab68ce9c8b98686b9d69c"
+      },
+      {
+        "id": "l2-960-1-brake",
+        "length": 960,
+        "difficulty": 1,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4988,
+        "capitalFrames": 3377,
+        "spaceFrames": 1492,
+        "bossFrames": 119,
+        "peak": 31136,
+        "capitalPeak": 28573,
+        "spacePeak": 31136,
+        "bossPeak": 29023,
+        "targetOverruns": 0,
+        "fence": 5920,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388",
+        "stateFileSha256": "ec0d348e3f8c059f6bca7857d779c9cbbc430d9c6b5af0f2d10764296c6f9f5a",
+        "traceSha256": "3bf01520783e6fadb3572558ae501ee8607d1d2e1c453e71eb4d49d7cbe23dd0"
+      },
+      {
+        "id": "l2-960-1-flight",
+        "length": 960,
+        "difficulty": 1,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3967,
+        "capitalFrames": 2273,
+        "spaceFrames": 1575,
+        "bossFrames": 119,
+        "peak": 31122,
+        "capitalPeak": 29143,
+        "spacePeak": 31122,
+        "bossPeak": 28716,
+        "targetOverruns": 0,
+        "fence": 6714,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 0,
+        "artifact": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388",
+        "stateFileSha256": "8064bd5173a5e7bcb7e6afcbbf5187dfc4ec90a8738dc2a7653d79cd17e8a982",
+        "traceSha256": "d90fea30db6abd658bda536494e9ab90415419dc5028fd2fd7444a9782c29f0a"
+      },
+      {
+        "id": "l2-960-2-brake",
+        "length": 960,
+        "difficulty": 2,
+        "brake": true,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 4741,
+        "capitalFrames": 3035,
+        "spaceFrames": 1587,
+        "bossFrames": 119,
+        "peak": 31297,
+        "capitalPeak": 28801,
+        "spacePeak": 31297,
+        "bossPeak": 28312,
+        "targetOverruns": 0,
+        "fence": 5505,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 33,
+        "artifact": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388",
+        "stateFileSha256": "19a6920e4df51bdd4b659bdf6a2b0b9845088f5a000161f92acc484b180ebcf8",
+        "traceSha256": "57a7dcb5f1f550a6870e6385140266f2bd21701f146a4072e1bb111d32e70c13"
+      },
+      {
+        "id": "l2-960-2-flight",
+        "length": 960,
+        "difficulty": 2,
+        "brake": false,
+        "dir": "build/frame-peak-fixed-960",
+        "code": 0,
+        "passed": true,
+        "gateFailures": [],
+        "frames": 3759,
+        "capitalFrames": 2045,
+        "spaceFrames": 1595,
+        "bossFrames": 119,
+        "peak": 31294,
+        "capitalPeak": 28868,
+        "spacePeak": 31294,
+        "bossPeak": 28311,
+        "targetOverruns": 0,
+        "fence": 5603,
+        "misses": 0,
+        "extraVbi": 0,
+        "dliErrors": 0,
+        "shifted": 0,
+        "staleL2": 0,
+        "bossEntryFrames": 325,
+        "coincidenceFrames": 34,
+        "artifact": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388",
+        "stateFileSha256": "5120a5099f628bdd27405673ac2db10925f5aaa3221736644458ffbf12e3acb5",
+        "traceSha256": "0ace58b34934e1c2cb750a47489bdf5230dac7f7631bcd917f5eef386106efb8"
+      }
+    ],
+    "overruns": [],
+    "worst5": [
+      {
+        "route": "campaign-2-brake",
+        "frame": 2616,
+        "sector": "SPACE",
+        "cycles": 31444
+      },
+      {
+        "route": "l2-480-2-brake",
+        "frame": 2436,
+        "sector": "SPACE",
+        "cycles": 31432
+      },
+      {
+        "route": "l2-480-2-brake",
+        "frame": 2076,
+        "sector": "SPACE",
+        "cycles": 31415
+      },
+      {
+        "route": "campaign-2-brake",
+        "frame": 3036,
+        "sector": "SPACE",
+        "cycles": 31413
+      },
+      {
+        "route": "campaign-2-brake",
+        "frame": 3006,
+        "sector": "SPACE",
+        "cycles": 31412
+      }
+    ]
+  },
+  "composedCapital": {
+    "withoutAudio": 29590,
+    "audio": 1187,
+    "total": 30777,
+    "limit": 31200
+  },
+  "home": [
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/campaign-0-flight-home.csv",
+      "accesses": 649387,
+      "contentFetches": 169388,
+      "bossOwnedFetches": 66966,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/campaign-1-flight-home.csv",
+      "accesses": 676230,
+      "contentFetches": 179228,
+      "bossOwnedFetches": 67130,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/campaign-2-brake-home.csv",
+      "accesses": 729376,
+      "contentFetches": 199182,
+      "bossOwnedFetches": 67218,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-0-brake-home.csv",
+      "accesses": 570243,
+      "contentFetches": 139600,
+      "bossOwnedFetches": 67126,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-0-flight-home.csv",
+      "accesses": 560977,
+      "contentFetches": 135812,
+      "bossOwnedFetches": 66966,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-1-brake-home.csv",
+      "accesses": 571235,
+      "contentFetches": 140196,
+      "bossOwnedFetches": 67130,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-1-flight-home.csv",
+      "accesses": 591193,
+      "contentFetches": 146722,
+      "bossOwnedFetches": 67270,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-2-brake-home.csv",
+      "accesses": 620467,
+      "contentFetches": 157944,
+      "bossOwnedFetches": 67356,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-2-flight-home.csv",
+      "accesses": 614845,
+      "contentFetches": 155206,
+      "bossOwnedFetches": 67496,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-0-brake-home.csv",
+      "accesses": 667564,
+      "contentFetches": 176874,
+      "bossOwnedFetches": 66966,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-0-flight-home.csv",
+      "accesses": 663456,
+      "contentFetches": 174662,
+      "bossOwnedFetches": 66966,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-1-brake-home.csv",
+      "accesses": 684260,
+      "contentFetches": 182640,
+      "bossOwnedFetches": 67130,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-1-flight-home.csv",
+      "accesses": 689331,
+      "contentFetches": 183846,
+      "bossOwnedFetches": 67270,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-2-brake-home.csv",
+      "accesses": 722533,
+      "contentFetches": 196558,
+      "bossOwnedFetches": 67356,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-2-flight-home.csv",
+      "accesses": 721826,
+      "contentFetches": 195756,
+      "bossOwnedFetches": 67356,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-quit.csv",
+      "accesses": 151875,
+      "contentFetches": 53482,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-game-over.csv",
+      "accesses": 151875,
+      "contentFetches": 53482,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-level-end.csv",
+      "accesses": 149669,
+      "contentFetches": 52672,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-quit.csv",
+      "accesses": 154323,
+      "contentFetches": 54394,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-reset.csv",
+      "accesses": 159559,
+      "contentFetches": 53484,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-game-over.csv",
+      "accesses": 154323,
+      "contentFetches": 54394,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-level-end.csv",
+      "accesses": 152122,
+      "contentFetches": 53586,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-reset.csv",
+      "accesses": 162007,
+      "contentFetches": 54396,
+      "bossOwnedFetches": 0,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r1.csv",
+      "accesses": 2034489,
+      "contentFetches": 26,
+      "bossOwnedFetches": 772390,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r2.csv",
+      "accesses": 2033480,
+      "contentFetches": 26,
+      "bossOwnedFetches": 771744,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r3.csv",
+      "accesses": 2411078,
+      "contentFetches": 26,
+      "bossOwnedFetches": 915246,
+      "invalidContentFetches": 0
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r4.csv",
+      "accesses": 2032598,
+      "contentFetches": 26,
+      "bossOwnedFetches": 772020,
+      "invalidContentFetches": 0
+    }
+  ],
+  "bosses": [
+    {
+      "region": 1,
+      "records": [
+        {
+          "coldLevelReadBegin": 687,
+          "coldLevelReadEnd": 747,
+          "coldL2Init": 800,
+          "coldL2Done": 857,
+          "coldGameStart": 859
+        },
+        {
+          "entryFrames": 324.916
+        },
+        {
+          "readPauseFrames": 91.587
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 13808,
+          "peakDmaOn": 29535,
+          "minimumFence": 11031,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1750,
+          "postLevelReadEnd": 1811,
+          "postL2Init": 1863,
+          "postL2Done": 1920,
+          "restartHost": 1922
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 1,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    },
+    {
+      "region": 2,
+      "records": [
+        {
+          "coldLevelReadBegin": 687,
+          "coldLevelReadEnd": 747,
+          "coldL2Init": 800,
+          "coldL2Done": 857,
+          "coldGameStart": 859
+        },
+        {
+          "entryFrames": 339.916
+        },
+        {
+          "readPauseFrames": 91.586
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29360,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1765,
+          "postLevelReadEnd": 1826,
+          "postL2Init": 1878,
+          "postL2Done": 1935,
+          "restartHost": 1937
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 4,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    },
+    {
+      "region": 3,
+      "records": [
+        {
+          "coldLevelReadBegin": 687,
+          "coldLevelReadEnd": 747,
+          "coldL2Init": 800,
+          "coldL2Done": 857,
+          "coldGameStart": 859
+        },
+        {
+          "entryFrames": 339.916
+        },
+        {
+          "readPauseFrames": 91.584
+        },
+        {
+          "pauseHostFrames": 95,
+          "pauseClockFrames": 94.246
+        },
+        {
+          "peakPreFence": 21655,
+          "peakDmaOn": 29532,
+          "minimumFence": 3184,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1766,
+          "postLevelReadEnd": 1827,
+          "postL2Init": 1879,
+          "postL2Done": 1936,
+          "restartHost": 1938
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 7,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    },
+    {
+      "region": 4,
+      "records": [
+        {
+          "coldLevelReadBegin": 687,
+          "coldLevelReadEnd": 747,
+          "coldL2Init": 800,
+          "coldL2Done": 857,
+          "coldGameStart": 859
+        },
+        {
+          "entryFrames": 343.916
+        },
+        {
+          "readPauseFrames": 91.586
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29537,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1769,
+          "postLevelReadEnd": 1830,
+          "postL2Init": 1882,
+          "postL2Done": 1939,
+          "restartHost": 1941
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 10,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "rows": 480,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    }
+  ],
+  "boot": {
+    "passed": true,
+    "frontend": 1390,
+    "report": "build/runtime-wall-trace/boot-smoke/report.json"
+  },
+  "stress": [
+    "# Citadel L4: off 7697 | lost 8112 (tick 415)",
+    "# Citadel L5: off 8032 | lost 8447 (tick 415)",
+    "# Spine L7: off 7771 | lost 8186 (tick 415)",
+    "# Spine L9: off 8025 | lost 8440 (tick 415)",
+    "# Bastion L10: off 8058 | lost 8473 (tick 415)"
+  ],
+  "heavy": [
+    {
+      "id": "campaign-0-flight",
+      "admissionFrame": 683,
+      "capitalFrame": 685,
+      "lastHeavyFrame": 606,
+      "emptyFramesBeforeAdmission": 76,
+      "postAdmissionDrainFrames": 2,
+      "finalAuthoredRowToCapitalFrames": 7
+    },
+    {
+      "id": "campaign-1-flight",
+      "admissionFrame": 604,
+      "capitalFrame": 606,
+      "lastHeavyFrame": 545,
+      "emptyFramesBeforeAdmission": 58,
+      "postAdmissionDrainFrames": 2,
+      "finalAuthoredRowToCapitalFrames": 6
+    },
+    {
+      "id": "campaign-2-brake",
+      "admissionFrame": 545,
+      "capitalFrame": 547,
+      "lastHeavyFrame": 508,
+      "emptyFramesBeforeAdmission": 36,
+      "postAdmissionDrainFrames": 2,
+      "finalAuthoredRowToCapitalFrames": 6
+    }
+  ],
+  "easyDrain": {
+    "baseline": {
+      "admissionFrame": 680,
+      "capitalFrame": 922,
+      "lastHeavyFrame": 679,
+      "emptyFramesBeforeAdmission": 0,
+      "postAdmissionDrainFrames": 242,
+      "finalAuthoredRowToCapitalFrames": 244
+    },
+    "current": {
+      "id": "campaign-0-flight",
+      "admissionFrame": 683,
+      "capitalFrame": 685,
+      "lastHeavyFrame": 606,
+      "emptyFramesBeforeAdmission": 76,
+      "postAdmissionDrainFrames": 2,
+      "finalAuthoredRowToCapitalFrames": 7
+    }
+  },
+  "delivery": [
+    {
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/0/campaign.atr",
+      "sha256": "a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d"
+    },
+    {
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/0/capital-480.atr",
+      "sha256": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee"
+    },
+    {
+      "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/0/capital-960.atr",
+      "sha256": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388"
+    }
+  ],
+  "bindings": [
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/campaign-0-flight-home.csv",
+      "sha256": "fc1fa0308b4d28c004377f4e0ed3150263eb35288b067a86b1ff7e803cd45115"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/campaign-1-flight-home.csv",
+      "sha256": "6ca32a4e502de9ecf04db0eb3a8a6045af5296bc350cd4f92062c347507c4385"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/campaign-2-brake-home.csv",
+      "sha256": "2798545b3c11c07f3b20902abedf72a2aa3c27380ea02e74b031c09e22d48fd9"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-0-brake-home.csv",
+      "sha256": "93eebc216904b4aa0bf92a4a0f5d449b18525f46c7e6a4760386cd0f1c6a547c"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-0-flight-home.csv",
+      "sha256": "a9e190305443cde4bf4bd3c3f57adb16fa6609f28c7afcbb50dca92b4bc99002"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-1-brake-home.csv",
+      "sha256": "90b24659ac026dc067ebb28c8867be94839fd7206361aca6214308d55a3a5fa7"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-1-flight-home.csv",
+      "sha256": "e707935a9c65d0045f25e35b67091ac2c5538abe60711cf380e9d3b8d1f46196"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-2-brake-home.csv",
+      "sha256": "2637e7fbb3e3cb2dc4de75988050ac186ec4a23f6b06e41ca83671723ada35c4"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-480-2-flight-home.csv",
+      "sha256": "a1b4fe921a809c3baa3314b16e60a078c4ad0dedc156330dfef80554681f5db9"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-0-brake-home.csv",
+      "sha256": "77b3c20a44128372159ac82bafe7d9ee867452eb4b8693436f21815fcf2109bd"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-0-flight-home.csv",
+      "sha256": "4212cf3b8cf6ed6ccd73af010308440ae340937854347e0b781f9687d1fd2e81"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-1-brake-home.csv",
+      "sha256": "a64f961a53c12d8a41964b7e7c27ad9f6d8c5e5d16d89f1c87917c97110dc0ea"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-1-flight-home.csv",
+      "sha256": "c08a3724a87e1145b2910619fb512609449a7cdecff9ff78f0b9ed66f3ebaa4f"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-2-brake-home.csv",
+      "sha256": "8258b8d139691eaab523aa2ee7e2465f1b602226063d93f8468b1597dc420b6e"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/l2-960-2-flight-home.csv",
+      "sha256": "1b59f1c396f393144af6bad51b494607b5e74d724a921ecec442620d15a53ea2"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-quit.csv",
+      "sha256": "f0ea6e9b976cd0a7adfe5a9fc9d4ebe5494d7195782107a7ae78096dfe8492ac"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-game-over.csv",
+      "sha256": "9a30cc5504ceef1dfa534beb6fa703822d30ce4143300bd8505948eaac85a33e"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-level-end.csv",
+      "sha256": "0c720be6a8b84367aef2d8ad113f991d1f7e449eba5edb912c894b47e3d18e02"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-quit.csv",
+      "sha256": "ad9ccfada0cdfbe5a353d60c2012eca6616cf59d692de8475d6b170955dfa199"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-480-reset.csv",
+      "sha256": "210ba4a8590dc86ccb624a6f923d701e74d5a1657526f9a0078053ed8fb2e45d"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-game-over.csv",
+      "sha256": "41ff7a24654d16184ef617219dda62a3f0eee79a5e716ef6e3967cdf2aef5607"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-level-end.csv",
+      "sha256": "8cf96f2585848982ca5aa9723796a29936320156f60abe554a9fbd30447259a9"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/l2-exit-960-reset.csv",
+      "sha256": "bcbd2f4968dca12cefc4cacbbb41096b6fd6eef28e07eca866b71c15ee4e733a"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r1.csv",
+      "sha256": "57341e959258668a9c9d1f93093b818575604cb046ddd5dada1b09c45f5c2d55"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r2.csv",
+      "sha256": "6a23e1c973e32b3c1ada6b118f101c7e2d423b6fc4ebe2973139187786cadd02"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r3.csv",
+      "sha256": "8d390060fc725828dd27ca06ca09a240ea3f07e07bd3450f56966b61352ffae9"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/home-r4.csv",
+      "sha256": "0da75dcba0116f1d86995fb19e93145bca699c83e3686e51f59aa234b72c4027"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native-verified/results.json",
+      "sha256": "845b3e016adc3464c48fcdd435a46a12ded039e03ef6d0eb8ed7637692d05eca"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/native/runs.json",
+      "sha256": "fc8510bb57da8207a103db9041fd1b0c070ac1781608835a77a06923bf8b48dd"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/campaign/runs.json",
+      "sha256": "f7c8eb03e0d071e31547993c77ae3755ccecd7f4ef8635b002809a786f948d52"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/exits/results.json",
+      "sha256": "9551b836ab2caff6f0bbd8f89073663249826670a036676b55a432803979c95f"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/increment0/amendment6-cpu.json",
+      "sha256": "3c4e35d5d77bafb3c091d47d6c031bc28f4f33903e17e85d68789fd4b8dc10b9"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/increment0/amendment6-baseline-cpu.json",
+      "sha256": "703b84d9a51e036bbed4fb16e4561895619e63a60a91ab7fc431ca6b87b22b56"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/increment0/amendment6-tests.log",
+      "sha256": "ca569f75e8b38feea50798afe46a3e5ce563fb6bfb051c43529d2738bf424a88"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/increment0/amendment6-stress.log",
+      "sha256": "547ce40568b50310fa66328d8acc98e3859377f362a368840359927d71cd37c1"
+    },
+    {
+      "file": "build/runtime-wall-trace/boot-smoke/report.json",
+      "sha256": "6c030ab38fb55fa680acb7dac3241629cfd4ffe75d3129f7857833cff3c333e3"
+    },
+    {
+      "file": "build/frame-peak-fixed-campaign/runtime-wall-trace/campaign-0-flight.csv",
+      "sha256": "4d84231498b65f9009a2bc80128c141096f49373bd3b25a5c19073bf6b2aa695"
+    },
+    {
+      "file": "build/frame-peak-fixed-campaign/runtime-wall-trace/campaign-1-flight.csv",
+      "sha256": "07fbc4be66ae1e480d09c47b22b8faed246591c0a4a798b2a5c2fce83d9f0245"
+    },
+    {
+      "file": "build/frame-peak-fixed-campaign/runtime-wall-trace/campaign-2-brake.csv",
+      "sha256": "6362e65b798cbefd583af020b7a991c3298e0229a54b7e4c8de06b3e65bcbae7"
+    },
+    {
+      "file": "build/frame-peak-fixed-480/runtime-wall-trace/l2-480-0-brake.csv",
+      "sha256": "6d121f111a798e28166285131b2667ce6f39304b3f845b082795123e54165db8"
+    },
+    {
+      "file": "build/frame-peak-fixed-480/runtime-wall-trace/l2-480-0-flight.csv",
+      "sha256": "b24716411da96b8864e1e2a0324e7dfb5b6d87dde9ddf6d09cab3149a455d606"
+    },
+    {
+      "file": "build/frame-peak-fixed-480/runtime-wall-trace/l2-480-1-brake.csv",
+      "sha256": "65c58edc20fa2ba18ad5c29c40ae6b5501af6d550f879b9ece327b4ea8ba5972"
+    },
+    {
+      "file": "build/frame-peak-fixed-480/runtime-wall-trace/l2-480-1-flight.csv",
+      "sha256": "7485ecc2743b34fde84737a18f65ef71c6949311d186e0432b8b3247352100fe"
+    },
+    {
+      "file": "build/frame-peak-fixed-480/runtime-wall-trace/l2-480-2-brake.csv",
+      "sha256": "fb9abf4c206d8a8c84ad627169708b0da6a6e927b5dc68c607ce82d655546418"
+    },
+    {
+      "file": "build/frame-peak-fixed-480/runtime-wall-trace/l2-480-2-flight.csv",
+      "sha256": "4963ff2943403446b73c2a5f6b87cd9c1b86b0609bb6dd14d3bcae31a7bf6d93"
+    },
+    {
+      "file": "build/frame-peak-fixed-960/runtime-wall-trace/l2-960-0-brake.csv",
+      "sha256": "8c88651b3223fdd8220d65c2ce9a923458f2243b7c583d97eeef5713500ed4f8"
+    },
+    {
+      "file": "build/frame-peak-fixed-960/runtime-wall-trace/l2-960-0-flight.csv",
+      "sha256": "aa27319fc568fd417b7d12e4c7a7b1432e771d8750dab68ce9c8b98686b9d69c"
+    },
+    {
+      "file": "build/frame-peak-fixed-960/runtime-wall-trace/l2-960-1-brake.csv",
+      "sha256": "3bf01520783e6fadb3572558ae501ee8607d1d2e1c453e71eb4d49d7cbe23dd0"
+    },
+    {
+      "file": "build/frame-peak-fixed-960/runtime-wall-trace/l2-960-1-flight.csv",
+      "sha256": "d90fea30db6abd658bda536494e9ab90415419dc5028fd2fd7444a9782c29f0a"
+    },
+    {
+      "file": "build/frame-peak-fixed-960/runtime-wall-trace/l2-960-2-brake.csv",
+      "sha256": "57a7dcb5f1f550a6870e6385140266f2bd21701f146a4072e1bb111d32e70c13"
+    },
+    {
+      "file": "build/frame-peak-fixed-960/runtime-wall-trace/l2-960-2-flight.csv",
+      "sha256": "0ace58b34934e1c2cb750a47489bdf5230dac7f7631bcd917f5eef386106efb8"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/boss1/r1.jsonl",
+      "sha256": "53a8ce75f2ff514cbcee16ace4f03aff8b873b54bb76a88f3e2f979085ada1a9"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/boss2/r2.jsonl",
+      "sha256": "c5463fa1a6e4b982ecc7f89d05c2af5889cd30d581403cac1b02bc285f57a213"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/boss3/r3.jsonl",
+      "sha256": "82c3aef6f897a23e0d3a499c54d564662680542ad33b11a8ce3d1b7e1264ca5a"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/amendment6/boss4/r4.jsonl",
+      "sha256": "9bc4124cb44affdfc924af5767423dd489318afce120befbd0d666022f3e1ac2"
+    },
+    {
+      "file": "build/cc2-baseline-campaign/manifest.json",
+      "sha256": "847eea0284685480f951be6df463fe0e7638937bcaa28c29ea64c337c15df01f"
+    },
+    {
+      "file": "build/cc2-baseline-campaign/void-strike-65.atr",
+      "sha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d"
+    },
+    {
+      "file": "build/cc2-i0-a6-campaign/manifest.json",
+      "sha256": "f5a0810e5d73cab6ae2722ef32fb7cc74e5d93b24920dfc325aa321d43252427"
+    },
+    {
+      "file": "build/cc2-i0-a6-campaign/void-strike-65.atr",
+      "sha256": "a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d"
+    },
+    {
+      "file": "build/level-1-s1/manifest.json",
+      "sha256": "dc7e45245efbcf98601a8511c7f58a3ac04957ad9492285bdc393a301c616670"
+    },
+    {
+      "file": "build/level-1-s1/void-strike-65.atr",
+      "sha256": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee"
+    },
+    {
+      "file": "build/l2-capital-960/manifest.json",
+      "sha256": "fa0279cdd5854b6adf38e385f0812e3ed9903ca8b46985878fdb05ce20d0a43d"
+    },
+    {
+      "file": "build/l2-capital-960/void-strike-65.atr",
+      "sha256": "6ad475ce1059cf0d1dbd9db993726ddd1f5409feebb077c5b081241f62002388"
+    }
+  ]
+}

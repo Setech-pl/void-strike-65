@@ -28,3 +28,16 @@ test('content call requires loaded validity and GAMEPLAY for every byte-valued p
  }
  console.log(JSON.stringify({measurement:"NMOS6502 guard plus no-op tick, excluding brake",maximumCpu:maximum,cases:512}));
 });
+test('inline row veneer requires loaded GAMEPLAY before entering home',()=>{
+ const initial=bossGateMemory();
+ const entry=label('director','_director_c_world_row_tick');
+ const target=label('director','_cc2_world_row_tick');
+ for(const valid of [0,1])for(let phase=0;phase<256;phase++){
+  const m=Uint8Array.from(initial);m[0x86b3]=valid;m[label('main','game_state')]=phase;
+  // RTS sentinel: stop before any home instruction can execute.
+  m[0x1fe]=0xff;m[0x1ff]=0x02;
+  const cpu=cpuOver(new Drive(),m);cpu.pc=entry;cpu.sp=0xfd;
+  const end=runUntil(cpu,{home:target,returned:0x0300},{maxSteps:20});
+  assert.equal(end,valid&&phase===6?'home':'returned',`phase ${phase}, valid ${valid}`);
+ }
+});

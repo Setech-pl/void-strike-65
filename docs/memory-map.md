@@ -42,12 +42,13 @@ Sections marked *earlier `2df89da`* were not regenerated.
 Platform1 OWNER-ACCEPTED at f0b0dd1. Current uncommitted Heavy attempt links
 CONTENT_HEADER/CODE/DATA at $1180–$13E3:612 B in the checked1920-B image,
 including5 B state. The Director link emits this as a separate file; its
-resident high segment shrinks634→318 B. Window grows3 B to2068 B, arena
+resident high segment shrinks634→324 B (Amendment6 inline row guard adds6 B). Window grows3 B to2068 B, arena
 unchanged. L2 remains1290 B (+40 versus5053697); reserve256 B untouched.
 Reader1512 B unchanged. Generated map includes the shared link's content
 labels; content-module.map is currently an alias of the Director map.
-The attempt is STOPPED on measured Heavy row overhead68 CPU (>63 tolerated),
-not a passing gameplay baseline. No M3-H reservation change or increment0 ATR.
+Amendment6 recovers measured Heavy row overhead to28 ordinary /52 trigger CPU
+(60 gate,63 tolerated). No M3-H reservation change. Native outcomes and play
+delivery are recorded in the current audit; owner acceptance remains pending.
 See [report](audits/2026-10-28-capital-content-v2.md).
 
 <!-- BEGIN GENERATED MEMORY MAP: npm run memory-map -->
@@ -257,8 +258,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$9D5E-$9D72` | 21 B | segment | `DIRECTOR_C_PRE` — cc65 Director RNG | `resident` | build/encounter-director.map |
 | `$9D73-$9D74` | 2 B | reserved | free tail of `DIRECTOR_C_PRE_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$9D75-$9D88` | 20 B | segment | `DIRECTOR_C_RODATA` — cc65 Director constants | `resident` | build/encounter-director.map |
-| `$9D89-$9EB2` | 298 B | segment | `DIRECTOR_C_CODE` — high cc65 Director code | `resident` | build/encounter-director.map |
-| `$9EB3-$9FF9` | 327 B | reserved | free tail of `DIRECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$9D89-$9EB8` | 304 B | segment | `DIRECTOR_C_CODE` — high cc65 Director code | `resident` | build/encounter-director.map |
+| `$9EB9-$9FF9` | 321 B | reserved | free tail of `DIRECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$9FFA-$9FFF` | 6 B | guard | `DIRECTOR_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg |
 | `$A000-$BFFF` | 8,192 B | machine | RAM under the BASIC ROM: `disable_basic_rom` forces `PORTB` bit 1 and `BASICF` at every stage-2 entry (a description, not a claim) | `boot` `resident` | src/main.s, cfg/encounter-director.cfg |
 | `$A000-$A5E7` | 1,512 B | segment | `SECTOR_READER` — between-levels sector reader, overlay runs, stat hooks | `resident` | build/sector-reader.map |
@@ -334,7 +335,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$90ED-$90FF` | 19 B | `A2KERNEL_RAM` (atari-boot.cfg) | `A2_KERNEL` |
 | `$9D59-$9D5D` | 5 B | `ENTITY_CODE_RAM` (atari-boot.cfg) | `ENTITY_RUN_PAD`, `ENTITY_CODE` |
 | `$9D73-$9D74` | 2 B | `DIRECTOR_C_PRE_RAM` (encounter-director.cfg) | `DIRECTOR_C_PRE` |
-| `$9EB3-$9FF9` | 327 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
+| `$9EB9-$9FF9` | 321 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5E8-$A5FF` | 24 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
 | `$B614-$B8FF` | 748 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |

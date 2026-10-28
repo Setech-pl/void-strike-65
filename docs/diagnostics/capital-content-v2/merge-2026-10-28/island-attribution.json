@@ -1,0 +1,306 @@
+{
+  "status": "NOT REPRODUCED on sampled route; owner symptom attribution INCONCLUSIVE",
+  "baseline": "5053697",
+  "candidate": "434871e",
+  "parked": "bfda36b",
+  "route": {
+    "artifact": "level 1 sector 1 (zero-based), capital 480",
+    "difficulty": "EASY",
+    "policy": "l2-matrix",
+    "input": "same deterministic joystick route; held normal FIRE",
+    "guestCodeChanges": 0,
+    "holdPlayerLives": 3
+  },
+  "perBuild": [
+    {
+      "commit": "5053697",
+      "leftoverCellsObserved": false,
+      "sampledFrames": 1800
+    },
+    {
+      "commit": "434871e",
+      "leftoverCellsObserved": false,
+      "sampledFrames": 1800
+    },
+    {
+      "commit": "bfda36b",
+      "leftoverCellsObserved": false,
+      "sampledFrames": 1800
+    }
+  ],
+  "comparisons": [
+    {
+      "baseline": "5053697",
+      "candidate": "434871e",
+      "range": [
+        "0x4000",
+        "0x47ff"
+      ],
+      "region": "display memory and charset",
+      "frames": 1800,
+      "mismatchedFrames": []
+    },
+    {
+      "baseline": "5053697",
+      "candidate": "434871e",
+      "range": [
+        "0x8140",
+        "0x85ad"
+      ],
+      "region": "physical ring and row pointers",
+      "frames": 1800,
+      "mismatchedFrames": []
+    },
+    {
+      "baseline": "5053697",
+      "candidate": "bfda36b",
+      "range": [
+        "0x4000",
+        "0x47ff"
+      ],
+      "region": "display memory and charset",
+      "frames": 1800,
+      "mismatchedFrames": []
+    },
+    {
+      "baseline": "5053697",
+      "candidate": "bfda36b",
+      "range": [
+        "0x8140",
+        "0x85ad"
+      ],
+      "region": "physical ring and row pointers",
+      "frames": 1800,
+      "mismatchedFrames": []
+    }
+  ],
+  "noFireReference": {
+    "commit": "5053697",
+    "frames": 1200,
+    "matchingPhaseAndRowPointers": true,
+    "screenRange": [
+      "0x8140",
+      "0x8577"
+    ],
+    "unexpectedDifferences": [],
+    "islandProjectileOverlapSamples": 188,
+    "examples": [
+      {
+        "frame": 297,
+        "slot": 2,
+        "address": "0x82e3",
+        "underlay": 62
+      },
+      {
+        "frame": 298,
+        "slot": 2,
+        "address": "0x82bb",
+        "underlay": 62
+      },
+      {
+        "frame": 299,
+        "slot": 2,
+        "address": "0x826b",
+        "underlay": 62
+      },
+      {
+        "frame": 300,
+        "slot": 2,
+        "address": "0x8243",
+        "underlay": 62
+      },
+      {
+        "frame": 301,
+        "slot": 2,
+        "address": "0x8243",
+        "underlay": 62
+      },
+      {
+        "frame": 302,
+        "slot": 2,
+        "address": "0x81f3",
+        "underlay": 62
+      },
+      {
+        "frame": 303,
+        "slot": 2,
+        "address": "0x81cb",
+        "underlay": 62
+      },
+      {
+        "frame": 304,
+        "slot": 2,
+        "address": "0x817b",
+        "underlay": 59
+      },
+      {
+        "frame": 305,
+        "slot": 2,
+        "address": "0x817b",
+        "underlay": 59
+      },
+      {
+        "frame": 306,
+        "slot": 2,
+        "address": "0x8153",
+        "underlay": 59
+      },
+      {
+        "frame": 307,
+        "slot": 2,
+        "address": "0x853b",
+        "underlay": 59
+      },
+      {
+        "frame": 308,
+        "slot": 2,
+        "address": "0x8513",
+        "underlay": 59
+      }
+    ]
+  },
+  "limitations": [
+    "No claim for other routes, difficulty levels or weapon modes; the reported owner-smoke symptom remains unattributed.",
+    "Firing trace wrapper rejected all three captures at endpoint validation: emitted 10000/3070 frames. DFTRACE_L2_BOSS_FRAMES=120 requested an endpoint without enabling the lifetime observer. Raw captures exist; no native route PASS is claimed.",
+    "No-fire reference wrapper completed 1200 frames with PAL audit PASS. This is an attribution control, not the native 15-route merge gate.",
+    "End-of-loop PNGs can contain a partially scanned framebuffer at different end scanlines. Attribution uses frame-matched RAM and ownership, not those PNG differences.",
+    "No conclusion about transient visible raster artifacts follows from identical end-of-loop RAM. A complete-frame raster capture is still needed if the owner symptom is transient."
+  ],
+  "bindings": [
+    {
+      "path": "build/merge-attribution/5053697/build/island-frames.bin",
+      "bytes": 117964800,
+      "sha256": "f877691fb09bab060707288fdfaa555315279c9e7af9b97185be25361ead4f75"
+    },
+    {
+      "path": "build/merge-attribution/5053697/build/level-1-s1/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "2f428c801505ac51292f29a0153f9bd2d9b697c9ee9c623cebd7c593e024711b"
+    },
+    {
+      "path": "build/merge-attribution/5053697/build/level-1-s1/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "b0afabbe4dfdc124623746f21d07a2c9464e13cfc94588edc28af02f284db668"
+    },
+    {
+      "path": "build/merge-attribution/5053697/build/level-1-s1/manifest.json",
+      "bytes": 80594,
+      "sha256": "6ad43fe01296b0c295d5edac508cbd4e1232596b36b7cccb096045449431a95e"
+    },
+    {
+      "path": "build/merge-attribution/5053697/attribution-build.log",
+      "bytes": 378,
+      "sha256": "33863d38d4ae56459f932eeb66652e133cbd88235589af0c6e06adc9e75ea8de"
+    },
+    {
+      "path": "build/merge-attribution/5053697/attribution-native.log",
+      "bytes": 1100,
+      "sha256": "be8686abdd863db1427803bcebbe2ed780bdd983954676f5edcf05b4a7eec69d"
+    },
+    {
+      "path": "build/merge-attribution/5053697/build/level-1-s1/runtime-wall-trace/l2-480-0-flight.csv",
+      "bytes": 15655083,
+      "sha256": "5cd4021f4b620474fe654baf7d16c8b1c01fc04c105c579c8a1c50068e437239"
+    },
+    {
+      "path": "build/merge-attribution/434871e/build/island-frames.bin",
+      "bytes": 117964800,
+      "sha256": "ee4975ea67407298dd43cbc34c07c399cbf35d8ae47a332ba175b5691d99cc1c"
+    },
+    {
+      "path": "build/merge-attribution/434871e/build/level-1-s1/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "743db8948dbe0364991f8e90d051587a426cfa43d8aa7cd1b240ab65ed585fee"
+    },
+    {
+      "path": "build/merge-attribution/434871e/build/level-1-s1/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "a7e287c5ecc9ab293bd89b1e455137c045bf734795b6fe6568bb6a737d8163b7"
+    },
+    {
+      "path": "build/merge-attribution/434871e/build/level-1-s1/manifest.json",
+      "bytes": 81270,
+      "sha256": "dc7e45245efbcf98601a8511c7f58a3ac04957ad9492285bdc393a301c616670"
+    },
+    {
+      "path": "build/merge-attribution/434871e/attribution-build.log",
+      "bytes": 378,
+      "sha256": "b3383e031b0617ded22eeb0eac46bbb6a0ddb33815c89fa70bd48f4ec2ea446d"
+    },
+    {
+      "path": "build/merge-attribution/434871e/attribution-native.log",
+      "bytes": 1100,
+      "sha256": "33e349273ba9161c35a3f71449cabad50878058733572412fb7b894e924e6f55"
+    },
+    {
+      "path": "build/merge-attribution/434871e/build/level-1-s1/runtime-wall-trace/l2-480-0-flight.csv",
+      "bytes": 15657040,
+      "sha256": "72b925fcc6347195bb18a8134e0dba50e4b0f59ffa9cafa693d0165514eed526"
+    },
+    {
+      "path": "build/merge-attribution/bfda36b/build/island-frames.bin",
+      "bytes": 117964800,
+      "sha256": "1ee62f4a49ea07f365ebafb3e28a91282085cbf3b4b73aee5f133996837c2ffd"
+    },
+    {
+      "path": "build/merge-attribution/bfda36b/build/level-1-s1/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "1840863688c3e9791e4b6f90eb5284f1db51d5942cef0c4a00fccd48fbd626f0"
+    },
+    {
+      "path": "build/merge-attribution/bfda36b/build/level-1-s1/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "b5f3303a5adafb78888fc0cf4f906e272e0d3ebcc246dca581ce129a2331d332"
+    },
+    {
+      "path": "build/merge-attribution/bfda36b/build/level-1-s1/manifest.json",
+      "bytes": 81266,
+      "sha256": "6a94c7902550ec9675d240b6124924df335b097817a1bba9d25521dacaca9903"
+    },
+    {
+      "path": "build/merge-attribution/bfda36b/attribution-build.log",
+      "bytes": 378,
+      "sha256": "b3383e031b0617ded22eeb0eac46bbb6a0ddb33815c89fa70bd48f4ec2ea446d"
+    },
+    {
+      "path": "build/merge-attribution/bfda36b/attribution-native.log",
+      "bytes": 1100,
+      "sha256": "f5a68813f5e67287f6fb3dd2ac0d7c5861924e7fe061de9e889c53d40ea76744"
+    },
+    {
+      "path": "build/merge-attribution/bfda36b/build/level-1-s1/runtime-wall-trace/l2-480-0-flight.csv",
+      "bytes": 15657322,
+      "sha256": "5c8b3342c4f85458b6e5b67dc722035996ea36eae94c28c335a34dc7a295f221"
+    },
+    {
+      "path": "build/merge-attribution/5053697/build/island-nofire.bin",
+      "bytes": 78643200,
+      "sha256": "5c3d1247fd65d8073bd58e4b5372c403697e757d8092e316121e7c52df5b0276"
+    }
+  ],
+  "measurement": "End-of-loop guest RAM snapshots and projectile ownership; not a complete-frame raster comparison",
+  "frameAlignment": [
+    {
+      "commit": "434871e",
+      "frames": 1800,
+      "fields": [
+        "player_x",
+        "player_y",
+        "corridor_phase",
+        "CORRIDOR_PHASE_HI"
+      ],
+      "mismatchedFrames": []
+    },
+    {
+      "commit": "bfda36b",
+      "frames": 1800,
+      "fields": [
+        "player_x",
+        "player_y",
+        "corridor_phase",
+        "CORRIDOR_PHASE_HI"
+      ],
+      "mismatchedFrames": []
+    }
+  ]
+}

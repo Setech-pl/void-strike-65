@@ -37,14 +37,15 @@ Sections marked *earlier `2df89da`* were not regenerated.
 > file disagrees with it, the generated block is right. The hand-written
 > sections stay as design notes and history.
 
-### Capital content v2 increment0 WIP (2026-10-28)
+### Capital content v2 increments 1+0 merge candidate at 434871e (2026-10-28)
 
-Platform1 OWNER-ACCEPTED at f0b0dd1. Current uncommitted Heavy attempt links
-CONTENT_HEADER/CODE/DATA at $1180–$13E3:612 B in the checked1920-B image,
-including5 B state. The Director link emits this as a separate file; its
-resident high segment shrinks634→324 B (Amendment6 inline row guard adds6 B). Window grows3 B to2068 B, arena
-unchanged. L2 remains1290 B (+40 versus5053697); reserve256 B untouched.
-Reader1512 B unchanged. Generated map includes the shared link's content
+Platform 1 OWNER-ACCEPTED at f0b0dd1. Committed increment 0 at `434871e` links
+CONTENT_HEADER/CODE/DATA at $1180–$13E3:612 B in the checked 1,920-B image,
+including 5 B state: **1,308 B free as of `434871e`**. Increment 2 at `bfda36b` is
+PARKED and excluded from this map. The Director link emits this as a separate file; its
+resident high segment shrinks 634→324 B (Amendment6 inline row guard adds 6 B). Window grows 3 B to 2,068 B, arena
+unchanged. L2 remains1290 B (+40 versus5053697); reserve 256 B untouched.
+Reader 1,512 B unchanged. Generated map includes the shared link's content
 labels; content-module.map is currently an alias of the Director map.
 Amendment6 recovers measured Heavy row overhead to28 ordinary /52 trigger CPU
 (60 gate,63 tolerated). No M3-H reservation change. Native outcomes and play

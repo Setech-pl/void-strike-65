@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital content v2 — Amendment6 increment0 gates PASS)
+Last update: 2026-10-28 (capital content v2 — increments 1+0 merge preparation STOP: full tests)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,34 +20,60 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — increment0 gates PASS; owner commit/smoke pending
+### Capital content v2 — increments 1+0 merge candidates; STOP on full test gate
 
-Increment1 remains **OWNER-ACCEPTED** at f0b0dd1, including SIO2SD.
-Amendment6 increment0 recovery is **uncommitted on codex/capital-content-v2
-at a4e1197**; owner commits. Inline loaded/GAMEPLAY row guard saves16 CPU
-versus the stopped attempt: ordinary198 vs170 (+28), trigger222 vs170 (+52)
-against5053697. Gate60 and tolerated maximum63 stay unchanged. No option2
-or A3 deferral. Director318→324 B, net−310 B; window2068 B (+3 total,
-0 recovery growth), arena unchanged, content612/1920 B. Unused standalone
-cfg/content-module.cfg removed.
+Owner merge worktree `dark-fighter-capital-v2-merge`, branch
+`codex/capital-content-v2-merge`, HEAD `434871e`, baseline main `5053697`.
+Only increments **1+0** are merge candidates. Increment 1 was OWNER-ACCEPTED
+at `f0b0dd1`, including SIO2SD; increment 0 is committed at `434871e` and awaits
+the final owner check. Neither this preparation nor a local build grants
+merge or release readiness. Owner commits and merges; no Git publication.
 
-Normal build/computed gates and5 focused tests PASS. Native15/15,
-58,688 iterations: peak31,444 (+12 versus baseline), capital30,152 (+127),
-fence3,298; zero misses, extra VBI, DLI/shifted-row or stale-L2 errors;
-every boss entry325<=350. Composed capital29,590+1,187=30,777<=31,200.
-Home observer27/27 (15 routes+8 exits+R1–R4), zero invalid content fetches.
-Full boot smoke7/7; worst frontend1390<=1402. Boss lost-target stress unchanged,
-maximum8473. Heavy-free window before Director admission E/M/H=76/58/36
-active frames (>=2), then2 to hull admission. EASY post-admission drain242→2;
-last-authored-row-to-hull tail244→7, including the pre-admission guard wait.
+**Increment 2 is PARKED at `bfda36b` on `codex/capital-content-v2`.** Owner
+smoke FAILED (2026-10-28): six evenly spaced mines in a single horizontal band
+instead of a scattered field of about twenty; shot artifacts on islands were
+reported, with attribution pending. The parked branch is untouched and none
+of its increment 2 changes is included here. Future direction, not implemented:
+about twenty mines scattered by a build-time generator, minimum spacing so
+mines are not all in one another's blast radius, terrain-synchronous scrolling,
+guaranteed passage, and mine data outside the content home.
 
-All gates passed before delivery to `build/play/capital-content-v2/0/`:
-`campaign.atr`, `capital-480.atr`, `capital-960.atr`. Owner smoke and acceptance
-remain pending; this uncommitted result is not OWNER-ACCEPTED. Normal build
-still warns about stale release evidence; no full tests/release pass was run.
-[Audit, hashes and exact owner commit paths](audits/2026-10-28-capital-content-v2.md#amendment-6--recovery-and-all-increment0-gates),
-[bound evidence](diagnostics/capital-content-v2/amendment6-increment0.json).
-NEXT TASK: owner commit and smoke of these three images; STOP before increment2.
+Island attribution: the same EASY direct-capital 480 normal-shot route showed
+**no leftover RAM cells on any of `5053697`, `434871e`, `bfda36b`** in the
+sampled end-of-loop capture. All 1,800 screen/charset/row-pointer frames match across builds. A
+1,200-frame no-fire control has zero screen differences outside currently owned
+projectile cells, including 188 sampled island overlaps. This does **not**
+reproduce or attribute the owner's symptom; transient raster artifacts are
+not excluded. Retain the report for `visual-bugs-diag`.
+The firing wrapper rejected its endpoint configuration; no native gate PASS
+is claimed from these raw captures. [Attribution and limitations](diagnostics/capital-content-v2/merge-2026-10-28/island-attribution.json).
+
+Current `434871e` placement: content home 612/1,920 B, **1,308 B free** (5 state B);
+Director high 324 B (−310 versus main); window 2,068 B (+3); arena 827/832 B;
+L2 1,290 B, 256-B reserve untouched; reader 1,512 B; initial content 12,825 B;
+boot/chunk transport 211 sectors. Prior increment 0 CPU evidence: ordinary
++28 / trigger+52 instruction cycles versus main, 60-cycle gate unchanged.
+Prior native 15/15 and home 27/27 evidence remains historical, bound to the
+increment 0 delivery; it is not a fresh merge-gate run.
+
+**STOP: full test merge gate FAILED.** One full run: 1,609 tests,
+1,429 PASS /177 FAIL /3 SKIP, exit 1. Reconciliation by name and first assertion
+also exits 1: **176 NEW to the ledger, 0 MOVED, 1 matched**. First unrecorded
+assertion: `tests/basic-window-capacity.test.mjs:39`, 1516 actual vs1928 expected.
+The content-home claim validators also fail at `tests/boss-claim.test.mjs:99,123`.
+NEW is a ledger classification; no new-gameplay-regression attribution is
+claimed. [Exact failures and bindings](diagnostics/capital-content-v2/merge-2026-10-28/merge-gates.json),
+[reconciliation](diagnostics/capital-content-v2/merge-2026-10-28/failures-reconcile.txt).
+
+The normal build inside `npm test` passed its computed gates and warned about
+stale release evidence. Release refresh/build, fresh native15/home27/boot/stress/
+menu gates and final play delivery were not run after STOP. The test-build ATR
+is preserved only as evidence, not qualified for final owner smoke. All three
+generated `dist/` changes from that normal build were restored to starting HEAD;
+no release-build change remains. [Merge audit](audits/2026-10-28-capital-content-v2.md#merge-preparation--increments-10-2026-10-28).
+NEXT TASK: investigate/reconcile the full-suite failures against main before
+resuming merge preparation; retain the island report for `visual-bugs-diag`.
+Owner final smoke remains pending. No merge, push, tag, stage or commit by the agent.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

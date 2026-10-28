@@ -1,6 +1,6 @@
 # Capital content v2
 
-Status: **Amendment6 increment0 gates PASS; uncommitted, owner commit/smoke pending.** Increment1 remains OWNER-ACCEPTED at f0b0dd1. Current increment0 delivery and hashes appear in the Amendment6 section; the table below preserves accepted increment1 images.
+Status: **Increments 1+0 are merge candidates at 434871e; STOP: full tests and reconciliation FAILED.** Increment1 remains OWNER-ACCEPTED at f0b0dd1. Increment2 is **PARKED at bfda36b** after owner smoke FAILED. See the merge-preparation section below; earlier delivery notes are historical.
 
 | Play ATR (absolute path) | SHA-256 at increment1 delivery | Description |
 | --- | --- | --- |
@@ -500,3 +500,163 @@ git add -- \
   dist/void-strike-65.atr
 git commit -m "fix: [codex] recover increment 0 Heavy row CPU and verify native gates"
 ```
+
+
+## Merge preparation — increments 1+0 (2026-10-28)
+
+Owner-created worktree `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge`,
+branch `codex/capital-content-v2-merge`, clean starting HEAD `434871e`;
+main/base `5053697`. The owner commits and merges. No commit, stage, merge,
+push or tag is authorized to the agent. Only increments 1+0 are candidates;
+no increment 2 code, data or tests are imported from `bfda36b`.
+
+### Parked increment 2: owner decision and failed smoke
+
+**PARKED at `bfda36b` on `codex/capital-content-v2`.** Owner smoke FAILED:
+a single horizontal band of six evenly spaced mines instead of a scattered
+field of approximately twenty mines. Shot artifacts on islands were reported;
+the comparison below did not reproduce the symptom, so attribution remains
+pending. The parked checkout/branch was not modified.
+
+Owner-provided future direction, not implemented on this branch: approximately
+twenty mines scattered by a build-time generator; minimum spacing so every
+mine is not in another's blast radius; mines scroll with terrain; guaranteed
+passage; mine data outside the content home.
+
+### Island artifact attribution
+
+Source archives of all three exact commits were built under
+`build/merge-attribution/{5053697,434871e,bfda36b}/`; no checkout or branch
+switch was needed. Same route: level 1, zero-based sector 1, capital 480, EASY,
+`l2-matrix` joystick input and normal FIRE, diagnostic lives held at 3.
+No guest code was changed. The host-only capture patch and bound summary are
+in [merge diagnostics](../diagnostics/capital-content-v2/merge-2026-10-28/).
+
+| Build | Leftover island RAM cells at sampled frame ends |
+| --- | --- |
+| `5053697` main | None observed |
+| `434871e` increments 1+0 | None observed |
+| `bfda36b` parked increment 2 | None observed |
+
+All 1,800 captured frames have identical physical ring/row pointers
+(`$8140–$85AD`) and display memory/charset (`$4000–$47FF`) across the three
+builds. Against the main no-fire control, all 1,200 matched frames have zero
+ring-screen differences outside currently rendered projectile-owned cells.
+The sample includes 188 projectile/island overlaps. This is an end-of-loop
+RAM/ownership comparison, not a complete-frame raster comparison; transient
+visible artifacts are not excluded. Thus no `434871e`-only
+regression is reproduced, but neither an existing main bug nor an increment 2
+artifact defect has been established. Keep the owner's report open for
+`visual-bugs-diag`; do not label it an attributed defect.
+
+Capture limitation: the three firing wrappers emitted 10000 frames but rejected
+endpoint validation (`emitted 10000/3070 frames`): the invocation requested
+120 boss frames without enabling the lifetime endpoint observer. The raw
+1,800-frame captures and full CSVs are preserved and hash-bound; they are not
+reported as native merge-gate PASS. The1,200-frame no-fire control completed
+with its PAL audit PASS. End-of-loop PNGs can differ through partial raster
+capture; the comparison uses RAM/ownership rather than those images.
+
+Reproduction of the captured route used:
+
+```sh
+VS65_L2_SESSION=l2-480-0-flight VS65_L2_POLICY=l2-matrix \
+DFTRACE_L2_BOSS_FRAMES=120 DFTRACE_HOLD_PLAYER_LIVES=3 \
+VS65_ATTR_DUMP=build/island-frames.bin \
+node scripts/runtime-wall-trace.mjs --prepare \
+  --atari800-source=build/atari800-trace --artifacts=build/level-1-s1 \
+  --only-session=l2-480-0-flight --smoke-frames=10000 --smoke-difficulty=0
+```
+
+For a bounded attribution-only rerun, omit `DFTRACE_L2_BOSS_FRAMES` and use
+`--smoke-frames=1800`. Apply the saved host patch to each source archive;
+`VS65_ATTR_NOFIRE=1` selects the no-fire control (1200 frames). The latter
+alters only host trigger input while gameplay is active.
+
+### Resources as of `434871e`
+
+Content 612/1,920 B, **1,308 B free**, includes 5 state B; range `$1180–$13E3`.
+Director high 324 B (−310 against `5053697`), window 2,068 B (+3), arena 827/832 B
+(unchanged). L2 1,290 B, reserve 256 B untouched; reader 1,512 B; initial content
+12,825 B; boot/chunk 211 sectors. No runtime production source changes in this
+preparation. Existing increment 0 evidence reports +28 ordinary /+52 trigger
+instruction cycles, against the unchanged 60 gate. These are prior measurements,
+not freshly rerun merge evidence.
+
+### Merge gates and STOP
+
+**STOP: full tests and reconciliation FAILED.** No production fixes or
+subsequent gate runs were attempted after this result.
+
+| Gate | Result |
+| --- | --- |
+| Normal computed-gate build inside `npm test` | PASS; stale release-evidence warning remains |
+| Full `npm test` (one run, 951.453 seconds) | FAIL, exit1; 1609 tests:1429 PASS,177 FAIL,3 SKIP,0 cancelled |
+| Failure reconciliation, by name and first assertion | FAIL, exit1;176 NEW to ledger,0 MOVED,1 matched,0 disappeared |
+| Existing committed trace reconciliation | No new/moved clauses; historical evidence only, not a refresh |
+| Standalone normal/release builds and release-evidence refresh | NOT RUN after STOP |
+| Fresh native15/15 and home27/27 | NOT RUN after STOP |
+| Boot frontend<=1402 and ATR menu | NOT RUN after STOP |
+| Boss stress A/B against5053697 | NOT RUN after STOP |
+| Final L2/reserve, arena and initial-content gate review | NOT COMPLETED after STOP; current build figures above |
+| Final campaign/capital480/capital960 owner play delivery | NOT DELIVERED after STOP |
+
+First unrecorded failure: `tests/basic-window-capacity.test.mjs:39`,
+“the window's free tail agrees with the linker map's Light kernel tail”:
+**1516 actual vs1928 expected**. Its second capacity assertion fails at131.
+The content-home claim tests fail at `tests/boss-claim.test.mjs:99` and123:
+`CONTENT_HEADER $001180–$001180` and `CONTENT_RAM` reach the boss phase's
+`$0C00–$1FFF` claim. All177 observed failures, including their first assertions,
+are in [merge-gates.json](../diagnostics/capital-content-v2/merge-2026-10-28/merge-gates.json);
+the complete [reconciliation output](../diagnostics/capital-content-v2/merge-2026-10-28/failures-reconcile.txt)
+is retained. “NEW” means unrecorded in the current ledger; these failures were
+not compared with a new full main run after STOP and are not automatically
+classified as gameplay regressions. No failure record or gate was relaxed.
+
+Raw logs: `build/npm-test.log`, `build/failures-reconcile.log`. Commands:
+
+```sh
+set -o pipefail
+npm test 2>&1 | tee build/npm-test.log
+npm run failures:reconcile -- --tests build/npm-test.log --trace docs/runtime-wall-trace.json
+```
+
+Normal test-build campaign ATR SHA-256:
+`a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d`.
+The ATR, boot BIN and manifest are preserved under
+`build/evidence/capital-content-v2/merge-2026-10-28/test-build/`, hash-bound in
+the JSON. They are evidence of the failed gate run, not final play delivery.
+No release build was run. Temporary generated changes were exactly:
+
+- `dist/void-strike-65-boot.bin`
+- `dist/void-strike-65-manifest.json`
+- `dist/void-strike-65.atr`
+
+All three were restored to starting HEAD after preserving the test artifacts;
+**no `dist/` change remains**. No production source changed: session CPU and
+RAM/residency deltas are0; the branch-versus-main figures remain those above.
+No native process remains active. Branch/HEAD remain
+`codex/capital-content-v2-merge` /`434871e158a46d1c4dffbd6b03b16d727f382887`.
+
+**NEXT TASK:** investigate/reconcile the failed validators against main, then
+resume merge preparation only when its gates pass. Owner final smoke is still
+pending. The island symptom remains open for `visual-bugs-diag`. STOP; no
+merge, push, tag or commit.
+
+### Exact owner commit paths and message
+
+These are the only intended changes from this preparation. No staging or
+commit was performed. `build/` evidence remains untracked/ignored.
+
+```text
+docs/STATUS.md
+docs/audits/2026-10-28-capital-content-v2.md
+docs/memory-map.md
+docs/diagnostics/capital-content-v2/merge-2026-10-28/attribution-observer.patch
+docs/diagnostics/capital-content-v2/merge-2026-10-28/island-attribution.json
+docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-gates.json
+docs/diagnostics/capital-content-v2/merge-2026-10-28/failures-reconcile.txt
+```
+
+Suggested message:
+`docs: record capital content 1+0 merge gate stop and parked minefield`

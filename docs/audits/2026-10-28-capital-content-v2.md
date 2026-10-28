@@ -729,3 +729,70 @@ docs/diagnostics/capital-content-v2/merge-2026-10-28/baseline-failures-reconcile
 ```
 
 Suggested message: `docs: baseline merge test failures and stop on 38 B2 results`
+
+
+## Owner B2 diagnosis — production error-path STOP (2026-10-28)
+
+Starting checkpoint `9ea08d2`, clean branch `codex/capital-content-v2-merge`.
+Compared production `434871e` with byte-bound `5053697` artifacts in isolated
+source archives. **STOP: content-load failure bypasses the failure screen.**
+No primary-checkout production, fixture, test assertion or ledger changes.
+
+[Full grouping of all 38 tests, first divergences and mechanisms, fault matrix,
+limitations and recovery alternatives](../diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.md).
+[Machine-readable per-test and fault evidence](../diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.json).
+
+The proposed missing-15-sectors root cause is disproved as a shared explanation:
+existing installRuntimeSegments/loadCheckedL2 already serves sectors 265–279,
+sets L2_VALID=1 and installs all 1,920 bytes exactly. Its phase remains 0; the
+new guarded policy entries require 6. All 38 original failures reproduce.
+Phase-only fixes 24; phase + legal host ROL A support + disk-aware bare INIT
+fixes 29, without assertion changes. Groups are 24 phase-only, five opcode cases,
+four missing synthetic frame advances, four old Heavy cadence expectations,
+and one unhooked repeat INIT. The latter returns with a real Drive but fails
+313,589 versus 45 CPU; serving sectors alone does not make that test pass.
+
+Production fault injection executes real checked reads and summary continuation:
+L2 device error, timeout, wire checksum and image checksum reach the failure
+screen on both builds. Merge content faults reach normal summary wait with
+VALID=0 because summary_load_l2 does not check INIT carry. The guarded START
+boundary re-enters loading; normal gameplay does not begin. Thus no real-read
+failure was shown stranding a running sector. The confirmed defect is loss of
+the required error screen and its FIRE-to-menu exit, plus collapsed status 4.
+Content did not exist on main, so no same-content-record fault comparison is
+claimed. A separately forced invalid GAMEPLAY state advances rows/admission
+on main and suppresses them on merge; it is not a demonstrated reachable
+checked-read failure state. Disarm is unchanged in that probe.
+
+No fixes followed the production STOP. Options remain estimates: replace the
+three-byte L2 failure JMP with the existing failure-screen JMP, 0 code/state B
+and no steady-state CPU delta; or propagate carry in the summary caller,
++5 code B and +3/+5 cold success/failure cycles, requiring five bytes recovered
+inside its full 1,792-B reservation. Exact limitations are in the full report.
+No production budget or timing delta was incurred by this diagnostic task.
+
+A134 tests and all five B1 expectations are untouched; original A/B/C is still
+134/43/0. No full npm test repeat, release evidence/build, native15/home27,
+boot, boss stress or final play delivery. Prior ATR SHA-256
+`a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d` remains
+historical test-build evidence. Baseline tracked checkout stays clean. No
+stage, commit, merge, push or tag. Island artifacts remain unattributed transient
+raster artifacts for visual-bugs-diag, not a merge blocker.
+
+NEXT TASK: owner selection of the content-load failure recovery; only afterward
+resume fixture work and the remaining merge gates.
+
+### Exact owner commit paths and message — B2 diagnosis
+
+```text
+docs/STATUS.md
+docs/audits/2026-10-28-capital-content-v2.md
+docs/diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.md
+docs/diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.json
+docs/diagnostics/capital-content-v2/merge-2026-10-28/b2-diagnostic.patch
+docs/diagnostics/capital-content-v2/merge-2026-10-28/b2-failure-probe.mjs
+docs/diagnostics/capital-content-v2/merge-2026-10-28/b2-invalid-probe.mjs
+docs/diagnostics/capital-content-v2/merge-2026-10-28/b2-focused-runner.mjs
+```
+
+Suggested message: `docs: diagnose B2 fixtures and stop on content-load error path`

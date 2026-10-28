@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital content v2 — baseline audit STOP: 38 B2 failures)
+Last update: 2026-10-28 (capital content v2 — B2 diagnosis STOP: content-load error path)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,7 +20,7 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — increments 1+0 merge candidates; baseline audit STOP
+### Capital content v2 — increments 1+0 merge candidates; content-load error-path STOP
 
 Owner merge worktree `dark-fighter-capital-v2-merge`, branch
 `codex/capital-content-v2-merge`, HEAD `434871e`, baseline main `5053697`.
@@ -56,36 +56,46 @@ boot/chunk transport 211 sectors. Prior increment 0 CPU evidence: ordinary
 Prior native 15/15 and home 27/27 evidence remains historical, bound to the
 increment 0 delivery; it is not a fresh merge-gate run.
 
-**STOP after baseline comparison: 38 B2 failures.** Current docs checkpoint
-`392a042`; production code remains `434871e`. The owner-created detached
-`5053697` baseline ran the same full `npm test`: 1,604 tests, 1,467 PASS,
-134 FAIL, 3 SKIP (923.799 s, exit 1). Original merge run: 1,609 tests,
-1,429 PASS, 177 FAIL, 3 SKIP. By file + full test name: **A 134 shared,
-B 43 merge-only, C 0 main-only**. B classifies as **B1 5 / B2 38**.
-[Full lists, every B classification and actual/expected values](diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.md),
-[machine-readable evidence](diagnostics/capital-content-v2/merge-2026-10-28/baseline-comparison.json).
+**STOP after B2 diagnosis: confirmed content-load error-path defect.** Owner
+checkpoint `9ea08d2`; production code remains `434871e`. L2 read errors,
+timeouts and checksum failures reach the existing failure screen on both
+`5053697` and merge. A failed merge **content** read instead reaches normal
+summary wait with L2_VALID=0: INIT returns failure, but its summary caller does
+not check carry. FIRE then reaches START's validity guard and re-enters loading,
+rather than the error-screen FIRE-to-menu exit. No failed read was observed
+entering a stalled gameplay sector; that distinction is retained in the report.
+[Complete diagnosis, all 38 groups, fault matrix and recovery choices](diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.md),
+[machine-readable evidence](diagnostics/capital-content-v2/merge-2026-10-28/b2-root-cause.json).
 
-B1 follows the accepted content-home reservation, Heavy departure entry veneer
-and smaller Director transport. B2 includes stopped row/sector progression,
-refused Heavy admission and L2 INIT exhausting four million steps. These are
-not authorized expectation changes; fixture phase/image setup versus production
-causality remains unresolved. No tests, production code, ledgers or gates were
-changed. A is pre-existing main debt and its tests remain untouched; shared IDs
-are not identical symptoms: four first assertions moved, and 26 serialized
-actual/expected pairs differ. All differences are retained in the report.
+The missing-content-sector hypothesis is not the common cause: the shared
+fixture already reads all 15 sectors, installs all 1,920 bytes exactly and sets
+VALID=1, but leaves game_state=0. The new policy veneers require GAMEPLAY=6.
+Isolated, assertion-preserving diagnostics reproduce all 38 failures; phase-only
+correction passes 24/38; phase plus legal host ROL A support and a disk-aware
+bare INIT call passes 29/38. Groups: 24 phase-only, five host-opcode cases
+(most also need phase), four synthetic-frame/two-frame-admission cases, four
+accepted-departure/old-cadence cases, one bare INIT without SIO hooks. Serving
+that last INIT from the real ATR makes it return but leaves the unchanged
+313,589-versus-45-cycle assertion failure. These are diagnostic outcomes,
+not newly qualified test or merge results.
 
-Baseline computed build gates passed with stale release evidence pending.
-Reconciliation: 1 matched, 133 NEW to ledger, 0 MOVED, exit 1. Baseline
-tracked worktree and `dist/` were restored clean; pre-run modified generated
-files were preserved under `build/evidence/capital-content-v2/baseline-comparison-2026-10-28/`.
-No baseline commit. Current task CPU and RAM/residency deltas are zero.
+No primary-checkout production, tests, assertions, failure ledgers or gates
+changed. All diagnostic edits are in source archives under
+`build/b2-root-cause/`; compact evidence and their patch are under diagnostics.
+CPU and RAM/residency delta: zero. The baseline checkout remains clean.
+Prior full-suite comparison remains **A134 / B43 (B1 5 / B2 38) / C0**;
+main 1467 PASS /134 FAIL /3 SKIP, merge 1429 PASS /177 FAIL /3 SKIP. A tests
+remain untouched pre-existing debt. No full-suite repeat after production STOP.
 
-Per owner Step 3, no B1 updates or remaining merge gates were attempted:
-release refresh/build, fresh native 15/home 27, boot frontend <=1,402,
-boss stress A/B and final play ATR delivery remain pending. Island symptoms
-remain unattributed transient raster artifacts for `visual-bugs-diag`, not a
-merge blocker. NEXT TASK: investigate the 38 B2 failures without lowering
-behavioural expectations, then resume the remaining merge gates.
+Recovery choices are unimplemented: same-size L2 failure-tail transfer to the
+existing failure screen (ESTIMATE 0 B/0 steady-state cycles), or explicit INIT
+carry propagation at the summary caller (ESTIMATE +5 B; requires recovering
+five bytes inside the already-full 1,792-B summary). Both need focused loader
+and lifecycle verification. NEXT TASK: owner selection of error-path recovery
+before fixture changes and remaining merge gates. Release refresh/build, fresh
+native15/home27, boot <=1,402, boss stress and final play delivery remain pending.
+Island artifacts remain unattributed transient raster artifacts for
+`visual-bugs-diag`, not a merge blocker.
 Owner final smoke remains pending. No merge, push, tag, stage or commit by the agent.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE

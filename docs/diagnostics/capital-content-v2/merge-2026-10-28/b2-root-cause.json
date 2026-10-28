@@ -1,0 +1,2074 @@
+{
+  "status": "STOP: production content-load failure bypasses failure screen; no fixes authorized by this diagnosis",
+  "head": "9ea08d2",
+  "productionMerge": "434871e",
+  "baseline": "5053697",
+  "groupCounts": {
+    "G1": 24,
+    "G2": 5,
+    "G3": 4,
+    "G4": 4,
+    "G5": 1
+  },
+  "groups": {
+    "G1": {
+      "name": "Fixture has checked content but leaves phase outside GAMEPLAY",
+      "mechanism": "L2_VALID=1 and all 1920 content bytes match, but fixture game_state=0. Main policy ignores phase; merge resident veneers return before row/admission policy unless phase=6. Phase-only diagnostic fixes the complete test.",
+      "tests": [
+        {
+          "id": "tests/encounter-director.test.mjs > T3: the row tick advances the sector index from a poked core page and arms its first wave",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:233",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "16 rows end a 16-row sector"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > T11: a level completes at the end of its LAST authored sector, whatever their number",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:258",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > world-row glue is inactive in DYING/GAME OVER and advances exactly once when active",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:346",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > admission accounts intensity, enforces budget and fails soft",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:359",
+          "firstObservedDivergence": {
+            "mergeActual": "false,",
+            "mainPassingExpectation": "true,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > the level completes exactly once at the end of its last sector and closes admissions",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:448",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > focused production replay exposes three early qualified kills and one natural pickup",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:576",
+          "firstObservedDivergence": {
+            "mergeActual": "false,",
+            "mainPassingExpectation": "true,",
+            "message": "difficulty 0 first visible undefined"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > ordinary admission is slot-safe, RNG-stable and pre-sector compatible",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:607",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/heavy-package.test.mjs > M3-H assault: opposite descent parity, unchanged pursuit, exact planes and bounded standing cost",
+          "file": "tests/heavy-package.test.mjs",
+          "originalFirstAssertion": "tests/heavy-package.test.mjs:28",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "true,",
+            "message": "Heavy request admitted"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/heavy-package.test.mjs > M3-H HP, flash hue, and spawn delta on every difficulty",
+          "file": "tests/heavy-package.test.mjs",
+          "originalFirstAssertion": "tests/heavy-package.test.mjs:28",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "true,",
+            "message": "Heavy request admitted"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/heavy-package.test.mjs > M3-H armoured authored hold and surviving-hit dodge retain Y and the stop",
+          "file": "tests/heavy-package.test.mjs",
+          "originalFirstAssertion": "tests/heavy-package.test.mjs:28",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "true,",
+            "message": "Heavy request admitted"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/heavy-package.test.mjs > M3-H Bomber flying hit dodges, authored stop survives hit, and flash stays in hue C",
+          "file": "tests/heavy-package.test.mjs",
+          "originalFirstAssertion": "tests/heavy-package.test.mjs:28",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "true,",
+            "message": "Heavy request admitted"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/heavy-package.test.mjs > M3-H shared wave arm leaves Heavy metadata untouched on Light/boss escort paths",
+          "file": "tests/heavy-package.test.mjs",
+          "originalFirstAssertion": "tests/heavy-package.test.mjs:134",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "true,",
+            "message": "Heavy request admitted"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/hybrid-lifecycle.test.mjs > T6: a sector whose mask excludes an archetype never spawns it, and the validator agrees",
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "originalFirstAssertion": "tests/hybrid-lifecycle.test.mjs:397",
+          "firstObservedDivergence": {
+            "mergeActual": "4,",
+            "mainPassingExpectation": "3,",
+            "message": "the Raider wave spent one of its four formations"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/level-payload.test.mjs > T13: the star pixel changes at sector entry and only there",
+          "file": "tests/level-payload.test.mjs",
+          "originalFirstAssertion": "tests/level-payload.test.mjs:399",
+          "firstObservedDivergence": {
+            "mergeActual": "16,",
+            "mainPassingExpectation": "32,",
+            "message": "row 1"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > early end: a sector whose waves are spent ends on the first row tick with the field clear",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:122",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "the sector ends on the first row tick after its last formation"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > early end: never with a formation pending, the Light lock up, or an escort Light live",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:141",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > early end: a Light wave's sector ends once the wave is spent and its last Light is gone",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:152",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > early end: a sector with no waves still lasts its rows, and the row count is still the cut",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:160",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > afterCleared: the wave arms on its row only once the field is clear; the row is a minimum",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:183",
+          "firstObservedDivergence": {
+            "mergeActual": "1,",
+            "mainPassingExpectation": "2,",
+            "message": "armed on the first row tick after the field clears"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > afterCleared: a wave without the flag arms on its row under a live formation, as before",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:201",
+          "firstObservedDivergence": {
+            "mergeActual": "1,",
+            "mainPassingExpectation": "2,",
+            "message": "armed on row 8 with the Raider pair still live"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > C1: a live Heavy formation holds an elite sector's end before a swarm, and lets go when it has gone",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:217",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "released on the first row tick after it has gone"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > C1: two swarm Lights hold the end before an elite sector; one is within its ceiling",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:227",
+          "firstObservedDivergence": {
+            "mergeActual": "1,",
+            "mainPassingExpectation": "0,",
+            "message": "the cut cancels the members not yet admitted"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > C1: no hold where the next sector admits the population (elite after elite)",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:241",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "a pair and one Light are legal in an elite sector"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > C1: the last sector's cut still completes the level",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:256",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": true,
+          "phaseRolDrivePass": true,
+          "afterPhase": null,
+          "afterPhaseRolDrive": null
+        }
+      ]
+    },
+    "G2": {
+      "name": "Host CPU lacks legal ROL A ($2A)",
+      "mechanism": "New content code executes ROL A at $11BB. The Atari instruction is legal; scripts/nmos6502.mjs lacks its definition. Most of these tests first need the phase correction; plasma boot already enters real start_gameplay, catches the host exception and reports sector 0. Adding host ROL A resolves these tests without assertion edits.",
+      "tests": [
+        {
+          "id": "tests/encounter-director.test.mjs > natural capital exit performs one scene recycle on every world row",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:1066",
+          "firstObservedDivergence": {
+            "mergeActual": "false,",
+            "mainPassingExpectation": "true,",
+            "message": "natural capital DRAIN did not reach COMPLETE"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": true,
+          "afterPhase": {
+            "file": "tests/encounter-director.test.mjs",
+            "declared_at": "tests/encounter-director.test.mjs:1026",
+            "test": "natural capital exit performs one scene recycle on every world row",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/encounter-director.test.mjs:92"
+          },
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/level-one-waves.test.mjs > W2: on every difficulty each post-capital wave arms; the swarm holds several Lights, (a) its Interceptor",
+          "file": "tests/level-one-waves.test.mjs",
+          "originalFirstAssertion": "tests/level-one-waves.test.mjs:161",
+          "firstObservedDivergence": {
+            "mergeActual": "null,",
+            "mainPassingExpectation": "true,",
+            "message": "difficulty 0: the level never reached the boss"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": true,
+          "afterPhase": {
+            "file": "tests/level-one-waves.test.mjs",
+            "declared_at": "tests/level-one-waves.test.mjs:156",
+            "test": "W2: on every difficulty each post-capital wave arms; the swarm holds several Lights, (a) its Interceptor",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/level-one-waves.test.mjs:160"
+          },
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/level-two.test.mjs > step 3: the Director reads level 2 - six sectors, the capital on row 1,120, three Lights in a swarm sector, complete after sector 6",
+          "file": "tests/level-two.test.mjs",
+          "originalFirstAssertion": "tests/level-two.test.mjs:132",
+          "firstObservedDivergence": {
+            "mergeActual": "[ 0 ],",
+            "mainPassingExpectation": "[ 0, 1, 2, 3, 4, 5 ],",
+            "message": "EASY: every sector entered once, in order"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": true,
+          "afterPhase": {
+            "file": "tests/level-two.test.mjs",
+            "declared_at": "tests/level-two.test.mjs:122",
+            "test": "step 3: the Director reads level 2 - six sectors, the capital on row 1,120, three Lights in a swarm sector, complete after sector 6",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/level-two.test.mjs:129"
+          },
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/plasma-fx.test.mjs > the growth glyph codes were displayed by nothing on the gameplay screen",
+          "file": "tests/plasma-fx.test.mjs",
+          "originalFirstAssertion": "tests/plasma-fx.test.mjs:251",
+          "firstObservedDivergence": {
+            "mergeActual": "false,",
+            "mainPassingExpectation": "true,",
+            "message": "the drive reached sector 0, not the boss entry"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": true,
+          "afterPhase": {
+            "file": "tests/plasma-fx.test.mjs",
+            "declared_at": "tests/plasma-fx.test.mjs:205",
+            "test": "the growth glyph codes were displayed by nothing on the gameplay screen",
+            "message": "the drive reached sector 0, not the boss entry",
+            "first_failing_assertion": "tests/plasma-fx.test.mjs:251"
+          },
+          "afterPhaseRolDrive": null
+        },
+        {
+          "id": "tests/sector-flow.test.mjs > level 1: the time to the boss falls on every difficulty",
+          "file": "tests/sector-flow.test.mjs",
+          "originalFirstAssertion": "tests/sector-flow.test.mjs:266",
+          "firstObservedDivergence": {
+            "mergeActual": "null,",
+            "mainPassingExpectation": "true,",
+            "message": "difficulty 0: the level never reached the boss"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": true,
+          "afterPhase": {
+            "file": "tests/sector-flow.test.mjs",
+            "declared_at": "tests/sector-flow.test.mjs:263",
+            "test": "level 1: the time to the boss falls on every difficulty",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/sector-flow.test.mjs:265"
+          },
+          "afterPhaseRolDrive": null
+        }
+      ]
+    },
+    "G3": {
+      "name": "Synthetic row-only callers assume immediate capital admission",
+      "mechanism": "After correcting phase (and ROL where reached), heavy_entry_ready records FRAME_COUNTER and requires a difference >=2. These tests issue rows without advancing active frame time. Main advances immediately; merge remains sector 0 / OPEN=7 / DUE=0. This follows the accepted two-frame Heavy-clear admission guard, but requires fixture time modelling or a separately reviewed expectation, not missing disk sectors.",
+      "tests": [
+        {
+          "id": "tests/encounter-director.test.mjs > director init and world rows are deterministic and do not touch game RNG",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:319",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "3712,",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/encounter-director.test.mjs",
+            "declared_at": "tests/encounter-director.test.mjs:308",
+            "test": "director init and world rows are deterministic and do not touch game RNG",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/encounter-director.test.mjs:92"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/encounter-director.test.mjs",
+            "declared_at": "tests/encounter-director.test.mjs:308",
+            "test": "director init and world rows are deterministic and do not touch game RNG",
+            "message": "the row clock stops at the capital sector",
+            "first_failing_assertion": "tests/encounter-director.test.mjs:326"
+          }
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > first capital admission is due on the authored ROW and retries until the playfield drains",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:833",
+          "firstObservedDivergence": {
+            "mergeActual": "7,",
+            "mainPassingExpectation": "0,",
+            "message": "the first legal attempt admits on the authored row"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/encounter-director.test.mjs",
+            "declared_at": "tests/encounter-director.test.mjs:817",
+            "test": "first capital admission is due on the authored ROW and retries until the playfield drains",
+            "message": "the first legal attempt admits on the authored row",
+            "first_failing_assertion": "tests/encounter-director.test.mjs:833"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/encounter-director.test.mjs",
+            "declared_at": "tests/encounter-director.test.mjs:817",
+            "test": "first capital admission is due on the authored ROW and retries until the playfield drains",
+            "message": "the first legal attempt admits on the authored row",
+            "first_failing_assertion": "tests/encounter-director.test.mjs:833"
+          }
+        },
+        {
+          "id": "tests/encounter-director.test.mjs > the capital encounter is entered once and no later row interrupts it",
+          "file": "tests/encounter-director.test.mjs",
+          "originalFirstAssertion": "tests/encounter-director.test.mjs:881",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "1,",
+            "message": "and the Director waits in the capital sector for it"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/encounter-director.test.mjs",
+            "declared_at": "tests/encounter-director.test.mjs:865",
+            "test": "the capital encounter is entered once and no later row interrupts it",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/encounter-director.test.mjs:92"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/encounter-director.test.mjs",
+            "declared_at": "tests/encounter-director.test.mjs:865",
+            "test": "the capital encounter is entered once and no later row interrupts it",
+            "message": "and the Director waits in the capital sector for it",
+            "first_failing_assertion": "tests/encounter-director.test.mjs:881"
+          }
+        },
+        {
+          "id": "tests/hybrid-lifecycle.test.mjs > first-capital scheduling and future boss handoff stay high-level C decisions",
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "originalFirstAssertion": "tests/hybrid-lifecycle.test.mjs:199",
+          "firstObservedDivergence": {
+            "mergeActual": "0,",
+            "mainPassingExpectation": "128,",
+            "message": "row 272 enters the CAPITAL sector and raises DUE"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/hybrid-lifecycle.test.mjs",
+            "declared_at": "tests/hybrid-lifecycle.test.mjs:187",
+            "test": "first-capital scheduling and future boss handoff stay high-level C decisions",
+            "message": "row 272 enters the CAPITAL sector and raises DUE",
+            "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:199"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/hybrid-lifecycle.test.mjs",
+            "declared_at": "tests/hybrid-lifecycle.test.mjs:187",
+            "test": "first-capital scheduling and future boss handoff stay high-level C decisions",
+            "message": "row 272 enters the CAPITAL sector and raises DUE",
+            "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:199"
+          }
+        }
+      ]
+    },
+    "G4": {
+      "name": "Timeline expectations pin the Heavy stream before the accepted departure cutoff",
+      "mechanism": "After phase and host ROL correction, the accepted 120-row pre-capital departure runway blocks new Heavy admission before the old stream completes. Synthetic no-real-fire timeline observes six formations in 700 frames against its old ten reference; authored-order string becomes R4 B2 R1 B1 R1 instead of R4 B4 R1 B1 R1. These are gameplay expectation effects, not disk/SIO fixture omissions.",
+      "tests": [
+        {
+          "id": "tests/level-one-equivalence.test.mjs > T4: the Heavy stream keeps the cadence and the density it had before the level was data",
+          "file": "tests/level-one-equivalence.test.mjs",
+          "originalFirstAssertion": "tests/level-one-equivalence.test.mjs:81",
+          "firstObservedDivergence": {
+            "mergeActual": "false,",
+            "mainPassingExpectation": "true,",
+            "message": "0 Heavy formations in 700 frames against the pre-change 10"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:74",
+            "test": "T4: the Heavy stream keeps the cadence and the density it had before the level was data",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:76"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:74",
+            "test": "T4: the Heavy stream keeps the cadence and the density it had before the level was data",
+            "message": "6 Heavy formations in 700 frames against the pre-change 10",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:81"
+          }
+        },
+        {
+          "id": "tests/level-one-equivalence.test.mjs > owner decision 8: EASY plays the alternating order, at the density it had",
+          "file": "tests/level-one-equivalence.test.mjs",
+          "originalFirstAssertion": "tests/level-one-equivalence.test.mjs:198",
+          "firstObservedDivergence": {
+            "mergeActual": "'',",
+            "mainPassingExpectation": "'R4 B4 R1 B1 R1',",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:187",
+            "test": "owner decision 8: EASY plays the alternating order, at the density it had",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:188"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:187",
+            "test": "owner decision 8: EASY plays the alternating order, at the density it had",
+            "message": "Expected values to be strictly equal:",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+          }
+        },
+        {
+          "id": "tests/level-one-equivalence.test.mjs > owner decision 8: MEDIUM plays the alternating order, at the density it had",
+          "file": "tests/level-one-equivalence.test.mjs",
+          "originalFirstAssertion": "tests/level-one-equivalence.test.mjs:198",
+          "firstObservedDivergence": {
+            "mergeActual": "'',",
+            "mainPassingExpectation": "'R4 B4 R1 B1 R1',",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:187",
+            "test": "owner decision 8: MEDIUM plays the alternating order, at the density it had",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:188"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:187",
+            "test": "owner decision 8: MEDIUM plays the alternating order, at the density it had",
+            "message": "Expected values to be strictly equal:",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+          }
+        },
+        {
+          "id": "tests/level-one-equivalence.test.mjs > owner decision 8: HARD plays the alternating order, at the density it had",
+          "file": "tests/level-one-equivalence.test.mjs",
+          "originalFirstAssertion": "tests/level-one-equivalence.test.mjs:198",
+          "firstObservedDivergence": {
+            "mergeActual": "'',",
+            "mainPassingExpectation": "'R4 B4 R1 B1 R1',",
+            "message": "Expected values to be strictly equal:"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:187",
+            "test": "owner decision 8: HARD plays the alternating order, at the density it had",
+            "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:188"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/level-one-equivalence.test.mjs",
+            "declared_at": "tests/level-one-equivalence.test.mjs:187",
+            "test": "owner decision 8: HARD plays the alternating order, at the density it had",
+            "message": "Expected values to be strictly equal:",
+            "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+          }
+        }
+      ]
+    },
+    "G5": {
+      "name": "L2 INIT isolated as a disk-free 45-cycle call",
+      "mechanism": "bossGateMemory already loaded the content and set GAMEPLAY. The test clears L2_VALID and calls $1900 on a CPU with no POKEY/PIA hooks. New INIT tries another checked content read. Default memory cannot complete the protocol; call reaches four-million-step limit. Supplying the real ATR-backed Drive alone makes INIT return, but test still fails: 313589 instruction cycles versus 45. The added checked read changes what that measurement contains.",
+      "tests": [
+        {
+          "id": "tests/l2-lifetime.test.mjs > L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+          "file": "tests/l2-lifetime.test.mjs",
+          "originalFirstAssertion": "tests/l2-lifetime.test.mjs:55",
+          "firstObservedDivergence": {
+            "mergeActual": "4000000,",
+            "mainPassingExpectation": "4000000,",
+            "message": "routine $1900 did not return"
+          },
+          "contentSectorsServed": "Yes: shared installRuntimeSegments -> loadCheckedL2 -> ATR-backed PokeyStub serves manifest content run 12, sectors 265–279. The separate bare INIT call in G5 has no hooks.",
+          "servingContentAlonePasses": false,
+          "phaseOnlyPass": false,
+          "phaseRolDrivePass": false,
+          "afterPhase": {
+            "file": "tests/l2-lifetime.test.mjs",
+            "declared_at": "tests/l2-lifetime.test.mjs:49",
+            "test": "L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+            "message": "routine $1900 did not return",
+            "first_failing_assertion": "tests/l2-lifetime.test.mjs:55"
+          },
+          "afterPhaseRolDrive": {
+            "file": "tests/l2-lifetime.test.mjs",
+            "declared_at": "tests/l2-lifetime.test.mjs:49",
+            "test": "L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+            "message": "checked INIT/SPACE publication CPU",
+            "first_failing_assertion": "tests/l2-lifetime.test.mjs:55"
+          }
+        }
+      ]
+    }
+  },
+  "runs": {
+    "original": {
+      "totals": {
+        "tests": 38,
+        "suites": 0,
+        "pass": 0,
+        "fail": 38,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3001.745834
+      },
+      "failures": [
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:214",
+          "test": "T3: the row tick advances the sector index from a poked core page and arms its first wave",
+          "message": "16 rows end a 16-row sector",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:233"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:247",
+          "test": "T11: a level completes at the end of its LAST authored sector, whatever their number",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:258"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:308",
+          "test": "director init and world rows are deterministic and do not touch game RNG",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:319"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:340",
+          "test": "world-row glue is inactive in DYING/GAME OVER and advances exactly once when active",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:346"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:350",
+          "test": "admission accounts intensity, enforces budget and fails soft",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:359"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:441",
+          "test": "the level completes exactly once at the end of its last sector and closes admissions",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:448"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:572",
+          "test": "focused production replay exposes three early qualified kills and one natural pickup",
+          "message": "difficulty 0 first visible undefined",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:576"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:594",
+          "test": "ordinary admission is slot-safe, RNG-stable and pre-sector compatible",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:607"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:817",
+          "test": "first capital admission is due on the authored ROW and retries until the playfield drains",
+          "message": "the first legal attempt admits on the authored row",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:833"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:865",
+          "test": "the capital encounter is entered once and no later row interrupts it",
+          "message": "and the Director waits in the capital sector for it",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:881"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:1026",
+          "test": "natural capital exit performs one scene recycle on every world row",
+          "message": "natural capital DRAIN did not reach COMPLETE",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:1066"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:38",
+          "test": "M3-H assault: opposite descent parity, unchanged pursuit, exact planes and bounded standing cost",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:69",
+          "test": "M3-H HP, flash hue, and spawn delta on every difficulty",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:78",
+          "test": "M3-H armoured authored hold and surviving-hit dodge retain Y and the stop",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:94",
+          "test": "M3-H Bomber flying hit dodges, authored stop survives hit, and flash stays in hue C",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:116",
+          "test": "M3-H shared wave arm leaves Heavy metadata untouched on Light/boss escort paths",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:134"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "declared_at": "tests/hybrid-lifecycle.test.mjs:187",
+          "test": "first-capital scheduling and future boss handoff stay high-level C decisions",
+          "message": "row 272 enters the CAPITAL sector and raises DUE",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:199"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "declared_at": "tests/hybrid-lifecycle.test.mjs:381",
+          "test": "T6: a sector whose mask excludes an archetype never spawns it, and the validator agrees",
+          "message": "the Raider wave spent one of its four formations",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:397"
+        },
+        {
+          "file": "tests/l2-lifetime.test.mjs",
+          "declared_at": "tests/l2-lifetime.test.mjs:49",
+          "test": "L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+          "message": "routine $1900 did not return",
+          "first_failing_assertion": "tests/l2-lifetime.test.mjs:55"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:74",
+          "test": "T4: the Heavy stream keeps the cadence and the density it had before the level was data",
+          "message": "0 Heavy formations in 700 frames against the pre-change 10",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:81"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: EASY plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: MEDIUM plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: HARD plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-waves.test.mjs",
+          "declared_at": "tests/level-one-waves.test.mjs:156",
+          "test": "W2: on every difficulty each post-capital wave arms; the swarm holds several Lights, (a) its Interceptor",
+          "message": "difficulty 0: the level never reached the boss",
+          "first_failing_assertion": "tests/level-one-waves.test.mjs:161"
+        },
+        {
+          "file": "tests/level-payload.test.mjs",
+          "declared_at": "tests/level-payload.test.mjs:384",
+          "test": "T13: the star pixel changes at sector entry and only there",
+          "message": "row 1",
+          "first_failing_assertion": "tests/level-payload.test.mjs:399"
+        },
+        {
+          "file": "tests/level-two.test.mjs",
+          "declared_at": "tests/level-two.test.mjs:122",
+          "test": "step 3: the Director reads level 2 - six sectors, the capital on row 1,120, three Lights in a swarm sector, complete after sector 6",
+          "message": "EASY: every sector entered once, in order",
+          "first_failing_assertion": "tests/level-two.test.mjs:132"
+        },
+        {
+          "file": "tests/plasma-fx.test.mjs",
+          "declared_at": "tests/plasma-fx.test.mjs:205",
+          "test": "the growth glyph codes were displayed by nothing on the gameplay screen",
+          "message": "the drive reached sector 0, not the boss entry",
+          "first_failing_assertion": "tests/plasma-fx.test.mjs:251"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:112",
+          "test": "early end: a sector whose waves are spent ends on the first row tick with the field clear",
+          "message": "the sector ends on the first row tick after its last formation",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:122"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:126",
+          "test": "early end: never with a formation pending, the Light lock up, or an escort Light live",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:141"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:144",
+          "test": "early end: a Light wave's sector ends once the wave is spent and its last Light is gone",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:152"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:155",
+          "test": "early end: a sector with no waves still lasts its rows, and the row count is still the cut",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:160"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:169",
+          "test": "afterCleared: the wave arms on its row only once the field is clear; the row is a minimum",
+          "message": "armed on the first row tick after the field clears",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:183"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:197",
+          "test": "afterCleared: a wave without the flag arms on its row under a live formation, as before",
+          "message": "armed on row 8 with the Raider pair still live",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:201"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:204",
+          "test": "C1: a live Heavy formation holds an elite sector's end before a swarm, and lets go when it has gone",
+          "message": "released on the first row tick after it has gone",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:217"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:221",
+          "test": "C1: two swarm Lights hold the end before an elite sector; one is within its ceiling",
+          "message": "the cut cancels the members not yet admitted",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:227"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:236",
+          "test": "C1: no hold where the next sector admits the population (elite after elite)",
+          "message": "a pair and one Light are legal in an elite sector",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:241"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:252",
+          "test": "C1: the last sector's cut still completes the level",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:256"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:263",
+          "test": "level 1: the time to the boss falls on every difficulty",
+          "message": "difficulty 0: the level never reached the boss",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:266"
+        }
+      ],
+      "hasFailingSection": true,
+      "log": "build/b2-root-cause/focused-original.log",
+      "sha256": "cd92c48ad5aee03d7d688ca7e25d16fa736a4e3556815e094d30f5607c450643"
+    },
+    "phaseOnly": {
+      "totals": {
+        "tests": 38,
+        "suites": 0,
+        "pass": 24,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2990.23675
+      },
+      "failures": [
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:308",
+          "test": "director init and world rows are deterministic and do not touch game RNG",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:92"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:817",
+          "test": "first capital admission is due on the authored ROW and retries until the playfield drains",
+          "message": "the first legal attempt admits on the authored row",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:833"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:865",
+          "test": "the capital encounter is entered once and no later row interrupts it",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:92"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:1026",
+          "test": "natural capital exit performs one scene recycle on every world row",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:92"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "declared_at": "tests/hybrid-lifecycle.test.mjs:187",
+          "test": "first-capital scheduling and future boss handoff stay high-level C decisions",
+          "message": "row 272 enters the CAPITAL sector and raises DUE",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:199"
+        },
+        {
+          "file": "tests/l2-lifetime.test.mjs",
+          "declared_at": "tests/l2-lifetime.test.mjs:49",
+          "test": "L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+          "message": "routine $1900 did not return",
+          "first_failing_assertion": "tests/l2-lifetime.test.mjs:55"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:74",
+          "test": "T4: the Heavy stream keeps the cadence and the density it had before the level was data",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:76"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: EASY plays the alternating order, at the density it had",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:188"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: MEDIUM plays the alternating order, at the density it had",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:188"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: HARD plays the alternating order, at the density it had",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:188"
+        },
+        {
+          "file": "tests/level-one-waves.test.mjs",
+          "declared_at": "tests/level-one-waves.test.mjs:156",
+          "test": "W2: on every difficulty each post-capital wave arms; the swarm holds several Lights, (a) its Interceptor",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/level-one-waves.test.mjs:160"
+        },
+        {
+          "file": "tests/level-two.test.mjs",
+          "declared_at": "tests/level-two.test.mjs:122",
+          "test": "step 3: the Director reads level 2 - six sectors, the capital on row 1,120, three Lights in a swarm sector, complete after sector 6",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/level-two.test.mjs:129"
+        },
+        {
+          "file": "tests/plasma-fx.test.mjs",
+          "declared_at": "tests/plasma-fx.test.mjs:205",
+          "test": "the growth glyph codes were displayed by nothing on the gameplay screen",
+          "message": "the drive reached sector 0, not the boss entry",
+          "first_failing_assertion": "tests/plasma-fx.test.mjs:251"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:263",
+          "test": "level 1: the time to the boss falls on every difficulty",
+          "message": "Error: Unsupported NMOS 6502 opcode $2a at $11bb",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:265"
+        }
+      ],
+      "hasFailingSection": true,
+      "log": "build/b2-root-cause/focused-phase-only.log",
+      "sha256": "9c64e9af8132220e13c2cbe64a37d999c96689b4550df7a38535271bc054903b"
+    },
+    "phaseRolDrive": {
+      "totals": {
+        "tests": 38,
+        "suites": 0,
+        "pass": 29,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3544.774333
+      },
+      "failures": [
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:308",
+          "test": "director init and world rows are deterministic and do not touch game RNG",
+          "message": "the row clock stops at the capital sector",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:326"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:817",
+          "test": "first capital admission is due on the authored ROW and retries until the playfield drains",
+          "message": "the first legal attempt admits on the authored row",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:833"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:865",
+          "test": "the capital encounter is entered once and no later row interrupts it",
+          "message": "and the Director waits in the capital sector for it",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:881"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "declared_at": "tests/hybrid-lifecycle.test.mjs:187",
+          "test": "first-capital scheduling and future boss handoff stay high-level C decisions",
+          "message": "row 272 enters the CAPITAL sector and raises DUE",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:199"
+        },
+        {
+          "file": "tests/l2-lifetime.test.mjs",
+          "declared_at": "tests/l2-lifetime.test.mjs:49",
+          "test": "L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+          "message": "checked INIT/SPACE publication CPU",
+          "first_failing_assertion": "tests/l2-lifetime.test.mjs:55"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:74",
+          "test": "T4: the Heavy stream keeps the cadence and the density it had before the level was data",
+          "message": "6 Heavy formations in 700 frames against the pre-change 10",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:81"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: EASY plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: MEDIUM plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: HARD plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        }
+      ],
+      "hasFailingSection": true,
+      "log": "build/b2-root-cause/focused-phase-rol-drive.log",
+      "sha256": "97be39c483f0eb941f0bdcb97f6b288b5bda6738ad0100db5a2c7eb3173ca0bf"
+    },
+    "noPhaseRolDrive": {
+      "totals": {
+        "tests": 38,
+        "suites": 0,
+        "pass": 1,
+        "fail": 37,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2731.448333
+      },
+      "failures": [
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:214",
+          "test": "T3: the row tick advances the sector index from a poked core page and arms its first wave",
+          "message": "16 rows end a 16-row sector",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:233"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:247",
+          "test": "T11: a level completes at the end of its LAST authored sector, whatever their number",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:258"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:308",
+          "test": "director init and world rows are deterministic and do not touch game RNG",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:319"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:340",
+          "test": "world-row glue is inactive in DYING/GAME OVER and advances exactly once when active",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:346"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:350",
+          "test": "admission accounts intensity, enforces budget and fails soft",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:359"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:441",
+          "test": "the level completes exactly once at the end of its last sector and closes admissions",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:448"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:572",
+          "test": "focused production replay exposes three early qualified kills and one natural pickup",
+          "message": "difficulty 0 first visible undefined",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:576"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:594",
+          "test": "ordinary admission is slot-safe, RNG-stable and pre-sector compatible",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:607"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:817",
+          "test": "first capital admission is due on the authored ROW and retries until the playfield drains",
+          "message": "the first legal attempt admits on the authored row",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:833"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:865",
+          "test": "the capital encounter is entered once and no later row interrupts it",
+          "message": "and the Director waits in the capital sector for it",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:881"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "declared_at": "tests/encounter-director.test.mjs:1026",
+          "test": "natural capital exit performs one scene recycle on every world row",
+          "message": "natural capital DRAIN did not reach COMPLETE",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:1066"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:38",
+          "test": "M3-H assault: opposite descent parity, unchanged pursuit, exact planes and bounded standing cost",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:69",
+          "test": "M3-H HP, flash hue, and spawn delta on every difficulty",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:78",
+          "test": "M3-H armoured authored hold and surviving-hit dodge retain Y and the stop",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:94",
+          "test": "M3-H Bomber flying hit dodges, authored stop survives hit, and flash stays in hue C",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:28"
+        },
+        {
+          "file": "tests/heavy-package.test.mjs",
+          "declared_at": "tests/heavy-package.test.mjs:116",
+          "test": "M3-H shared wave arm leaves Heavy metadata untouched on Light/boss escort paths",
+          "message": "Heavy request admitted",
+          "first_failing_assertion": "tests/heavy-package.test.mjs:134"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "declared_at": "tests/hybrid-lifecycle.test.mjs:187",
+          "test": "first-capital scheduling and future boss handoff stay high-level C decisions",
+          "message": "row 272 enters the CAPITAL sector and raises DUE",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:199"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "declared_at": "tests/hybrid-lifecycle.test.mjs:381",
+          "test": "T6: a sector whose mask excludes an archetype never spawns it, and the validator agrees",
+          "message": "the Raider wave spent one of its four formations",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:397"
+        },
+        {
+          "file": "tests/l2-lifetime.test.mjs",
+          "declared_at": "tests/l2-lifetime.test.mjs:49",
+          "test": "L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+          "message": "checked INIT/SPACE publication CPU",
+          "first_failing_assertion": "tests/l2-lifetime.test.mjs:55"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:74",
+          "test": "T4: the Heavy stream keeps the cadence and the density it had before the level was data",
+          "message": "0 Heavy formations in 700 frames against the pre-change 10",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:81"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: EASY plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: MEDIUM plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "declared_at": "tests/level-one-equivalence.test.mjs:187",
+          "test": "owner decision 8: HARD plays the alternating order, at the density it had",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:198"
+        },
+        {
+          "file": "tests/level-one-waves.test.mjs",
+          "declared_at": "tests/level-one-waves.test.mjs:156",
+          "test": "W2: on every difficulty each post-capital wave arms; the swarm holds several Lights, (a) its Interceptor",
+          "message": "difficulty 0: the level never reached the boss",
+          "first_failing_assertion": "tests/level-one-waves.test.mjs:161"
+        },
+        {
+          "file": "tests/level-payload.test.mjs",
+          "declared_at": "tests/level-payload.test.mjs:384",
+          "test": "T13: the star pixel changes at sector entry and only there",
+          "message": "row 1",
+          "first_failing_assertion": "tests/level-payload.test.mjs:399"
+        },
+        {
+          "file": "tests/level-two.test.mjs",
+          "declared_at": "tests/level-two.test.mjs:122",
+          "test": "step 3: the Director reads level 2 - six sectors, the capital on row 1,120, three Lights in a swarm sector, complete after sector 6",
+          "message": "EASY: every sector entered once, in order",
+          "first_failing_assertion": "tests/level-two.test.mjs:132"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:112",
+          "test": "early end: a sector whose waves are spent ends on the first row tick with the field clear",
+          "message": "the sector ends on the first row tick after its last formation",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:122"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:126",
+          "test": "early end: never with a formation pending, the Light lock up, or an escort Light live",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:141"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:144",
+          "test": "early end: a Light wave's sector ends once the wave is spent and its last Light is gone",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:152"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:155",
+          "test": "early end: a sector with no waves still lasts its rows, and the row count is still the cut",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:160"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:169",
+          "test": "afterCleared: the wave arms on its row only once the field is clear; the row is a minimum",
+          "message": "armed on the first row tick after the field clears",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:183"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:197",
+          "test": "afterCleared: a wave without the flag arms on its row under a live formation, as before",
+          "message": "armed on row 8 with the Raider pair still live",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:201"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:204",
+          "test": "C1: a live Heavy formation holds an elite sector's end before a swarm, and lets go when it has gone",
+          "message": "released on the first row tick after it has gone",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:217"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:221",
+          "test": "C1: two swarm Lights hold the end before an elite sector; one is within its ceiling",
+          "message": "the cut cancels the members not yet admitted",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:227"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:236",
+          "test": "C1: no hold where the next sector admits the population (elite after elite)",
+          "message": "a pair and one Light are legal in an elite sector",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:241"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:252",
+          "test": "C1: the last sector's cut still completes the level",
+          "message": "Expected values to be strictly equal:",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:256"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "declared_at": "tests/sector-flow.test.mjs:263",
+          "test": "level 1: the time to the boss falls on every difficulty",
+          "message": "difficulty 0: the level never reached the boss",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:266"
+        }
+      ],
+      "hasFailingSection": true,
+      "log": "build/b2-root-cause/focused-no-phase-with-rol-drive.log",
+      "sha256": "3c37446969c788d5e144425369cf292af09be2c12e8001decb2b5d7ed4b1db56"
+    },
+    "driveOnlyLifetime": {
+      "totals": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 118.435416
+      },
+      "failures": [
+        {
+          "file": "tests/l2-lifetime.test.mjs",
+          "declared_at": "tests/l2-lifetime.test.mjs:49",
+          "test": "L2 lifetime: complete boss main-loop bodies use installed images until real START GAME checked reload",
+          "message": "checked INIT/SPACE publication CPU",
+          "first_failing_assertion": "tests/l2-lifetime.test.mjs:55"
+        }
+      ],
+      "hasFailingSection": true,
+      "log": "build/b2-root-cause/lifetime-drive-only.log",
+      "sha256": "afbc1274ccf215ba25e2d95211907c0d81d11c25168de99d7942a6fb8711e685"
+    }
+  },
+  "sharedFixtureReceipt": {
+    "valid": 1,
+    "phase": 0,
+    "contentBytes": 1920,
+    "contentByteExact": true
+  },
+  "failureMatrix": {
+    "main": {
+      "id": "main",
+      "atr": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d",
+      "cases": [
+        {
+          "target": "l2",
+          "fault": "good",
+          "endpoint": "summary-wait",
+          "steps": 128191,
+          "targeted": 1,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264
+          ],
+          "beforeStart": {
+            "L2_VALID": 1,
+            "game_state": 1,
+            "status": 0,
+            "carry": false
+          },
+          "startEnd": "gameplay-body"
+        },
+        {
+          "target": "l2",
+          "fault": "device-error",
+          "endpoint": "failure-screen",
+          "steps": 574,
+          "targeted": 1,
+          "commands": [
+            251
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 3,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "l2",
+          "fault": "timeout",
+          "endpoint": "failure-screen",
+          "steps": 1627,
+          "targeted": 2,
+          "commands": [
+            251,
+            251
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 1,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "l2",
+          "fault": "wire-checksum",
+          "endpoint": "failure-screen",
+          "steps": 25559,
+          "targeted": 3,
+          "commands": [
+            251,
+            251,
+            251
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 2,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "l2",
+          "fault": "image-checksum",
+          "endpoint": "failure-screen",
+          "steps": 128173,
+          "targeted": 1,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 0,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        }
+      ]
+    },
+    "merge": {
+      "id": "merge",
+      "atr": "a6957d406a4e339863503fd36ab05eb284a8e0ba30e9e1247a724279839bb60d",
+      "cases": [
+        {
+          "target": "l2",
+          "fault": "good",
+          "endpoint": "summary-wait",
+          "steps": 267738,
+          "targeted": 1,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            266,
+            267,
+            268,
+            269,
+            270,
+            271,
+            272,
+            273,
+            274,
+            275,
+            276,
+            277,
+            278,
+            279
+          ],
+          "beforeStart": {
+            "L2_VALID": 1,
+            "game_state": 1,
+            "status": 0,
+            "carry": false
+          },
+          "startEnd": "gameplay-body"
+        },
+        {
+          "target": "l2",
+          "fault": "device-error",
+          "endpoint": "failure-screen",
+          "steps": 574,
+          "targeted": 1,
+          "commands": [
+            251
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 3,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "l2",
+          "fault": "timeout",
+          "endpoint": "failure-screen",
+          "steps": 1627,
+          "targeted": 2,
+          "commands": [
+            251,
+            251
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 1,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "l2",
+          "fault": "wire-checksum",
+          "endpoint": "failure-screen",
+          "steps": 25559,
+          "targeted": 3,
+          "commands": [
+            251,
+            251,
+            251
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 2,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "l2",
+          "fault": "image-checksum",
+          "endpoint": "failure-screen",
+          "steps": 128175,
+          "targeted": 1,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 0,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "content",
+          "fault": "good",
+          "endpoint": "summary-wait",
+          "steps": 267738,
+          "targeted": 1,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            266,
+            267,
+            268,
+            269,
+            270,
+            271,
+            272,
+            273,
+            274,
+            275,
+            276,
+            277,
+            278,
+            279
+          ],
+          "beforeStart": {
+            "L2_VALID": 1,
+            "game_state": 1,
+            "status": 0,
+            "carry": false
+          },
+          "startEnd": "gameplay-body"
+        },
+        {
+          "target": "content",
+          "fault": "device-error",
+          "endpoint": "summary-wait",
+          "steps": 128865,
+          "targeted": 1,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 4,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "content",
+          "fault": "timeout",
+          "endpoint": "summary-wait",
+          "steps": 129886,
+          "targeted": 2,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            265
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 4,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "content",
+          "fault": "wire-checksum",
+          "endpoint": "summary-wait",
+          "steps": 154881,
+          "targeted": 3,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            265,
+            265
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 4,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        },
+        {
+          "target": "content",
+          "fault": "image-checksum",
+          "endpoint": "summary-wait",
+          "steps": 267728,
+          "targeted": 1,
+          "commands": [
+            251,
+            252,
+            253,
+            254,
+            255,
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            266,
+            267,
+            268,
+            269,
+            270,
+            271,
+            272,
+            273,
+            274,
+            275,
+            276,
+            277,
+            278,
+            279
+          ],
+          "beforeStart": {
+            "L2_VALID": 0,
+            "game_state": 1,
+            "status": 4,
+            "carry": true
+          },
+          "startEnd": "checked-reader-reentry"
+        }
+      ]
+    }
+  },
+  "forcedInvalid": {
+    "main": {
+      "id": "main",
+      "kind": "forced invalid during GAMEPLAY; not a reachable read-failure path",
+      "before": {
+        "row": 0,
+        "remaining": 4,
+        "phase": 6
+      },
+      "afterTick": {
+        "row": 1,
+        "remaining": 4,
+        "phase": 6
+      },
+      "afterRequest": {
+        "carry": true,
+        "remaining": 3
+      },
+      "afterDisarm": {
+        "valid": 0,
+        "cachedRate": 0,
+        "enemyHook": 12564
+      }
+    },
+    "merge": {
+      "id": "merge",
+      "kind": "forced invalid during GAMEPLAY; not a reachable read-failure path",
+      "before": {
+        "row": 0,
+        "remaining": 4,
+        "phase": 6
+      },
+      "afterTick": {
+        "row": 0,
+        "remaining": 4,
+        "phase": 6
+      },
+      "afterRequest": {
+        "carry": false,
+        "remaining": 4
+      },
+      "afterDisarm": {
+        "valid": 0,
+        "cachedRate": 0,
+        "enemyHook": 12564
+      }
+    }
+  },
+  "limits": [
+    "Host NMOS-6502 execution, not native PAL/raster evidence.",
+    "Fault cases stop at failure-screen entry or summary_wait; FIRE continuation and menu-exit consequences follow unchanged production control flow.",
+    "Forced invalid GAMEPLAY calls are not a demonstrated reachable consequence of a real checked-read failure.",
+    "No full suite, release, PAL or owner-play qualification performed after STOP."
+  ]
+}

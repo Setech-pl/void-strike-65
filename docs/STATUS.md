@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital merge: B0/native15 PASS; release/home verification STOP)
+Last update: 2026-10-28 (capital merge: home27 PASS; pickup-raster release STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,10 +20,10 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — B0/native15 PASS; release/home verification STOP
+### Capital content v2 — home27 PASS; pickup-raster release STOP
 
 Owner merge worktree `dark-fighter-capital-v2-merge`, branch
-`codex/capital-content-v2-merge`, HEAD `c182af2`, baseline main `5053697`.
+`codex/capital-content-v2-merge`, HEAD `100db9a`, baseline main `5053697`.
 Only increments **1+0** are merge candidates. Increment 1 was OWNER-ACCEPTED
 at `f0b0dd1`, including SIO2SD; increment 0 is committed at `434871e` and awaits
 the final owner check. Neither this preparation nor a local build grants
@@ -69,41 +69,15 @@ full-suite claim. [Full A/B/C lists and assertion audit](diagnostics/capital-con
 [comparison](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-comparison.json),
 [gate evidence](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-gates.json).
 
-**Fresh native15/15 PASS**, 58,688 iterations. Overall peak31,444<=31,500;
-capital30,152; fence minimum3298>=500; every boss entry325/350. Zero overruns,
-missed frames, extra VBI, DLI errors, shifted rows or stale L2 accesses. The
-15 completed home captures contain2,533,614 content and1,007,702 boss-owned
-opcode fetches, zero invalid content fetches; this is **15/27, not home27 PASS**.
-Real-SIO boot7/7 PASS, frontend worst1390<=1402. Fresh full-suite boss stress
-compared with saved5053697: every reported mode unchanged; lost-target max8473.
+**Native15/15 PASS**, retained for identical guest bytes:58,688 iterations; overall peak31,444, capital30,152, minimum fence3298, boss entry325/350; zero misses/VBI/DLI/shifted/stale accesses. Boot7/7 PASS, frontend1390<=1402. Every boss-stress mode equals saved5053697, lost-target maximum8473.
 
-**STOP at remaining verification gates.** First exit case `l2-exit-480-quit`
-exits2 in emulator /1 in wrapper: **“L2 lifetime requires ownership images”**.
-The original direct variant images were not prepared (native15 snapshots had
-their images). This is a verification-setup mistake; not a gameplay failure.
-No repair/retry after STOP. Four terminal boss roundtrips were not run.
+**Home27/27 PASS:**15 routes+8 exits+R1–R4 terminal roundtrips. Generated missing original-variant ownership images with the existing helper; all8 rerun exits pass. Content2,963,608/boss-owned4,239,102 opcode fetches, zero invalid executions. Boss roundtrips are seeded diagnostic fixtures.
 
-Release refresh also reports unrecorded clause
-`director-complete-0-natural-sweep-fire0`, `scripts/runtime-wall-trace.mjs:2018`:
-**“reached the summary from a boss whose core never fell”**. An engaged row
-exists (frame3613/active3539), but no boss_state>=3 row. Its PAL audit passes:
-5236 frames, peak30937, zero misses/VBI/DLI/shifted rows. Production versus
-scenario/observer/validator attribution is unresolved. The active trace was
-terminated under STOP after20 completed PAL audits; no fresh complete canonical
-runtime report or strict release build. No final play delivery. All task native
-processes are stopped. [Exact runtime/setup logs](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-runtime-stop.txt).
+All four default “boss core never fell” clauses reproduce on5053697 with identical inputs, including write-protected media. Recorded as pre-existing-unclassified debt; no replay, validator or production change. Baseline dist/source clean. Baseline boot smoke omitted only for this targeted attribution (baseline frontend1405>1402); no baseline release certification. No boss regression or replay-desync attribution claimed.
 
-Continuation CPU and RAM/residency delta0; no production change after c182af2.
-Evidence ATR SHA-256
-`5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676`
-is under `build/merge-validation-c182af2/dist/`, not qualified play delivery.
-Primary dist is restored clean; all later validation outputs are isolated under
-that build snapshot. No stage, commit, merge, push or tag. NEXT TASK: repair exit
-ownership-image preparation and investigate the unrecorded core-down clause;
-then resume affected gates. Retain native15 evidence while bytes are identical.
-Island artifacts remain unattributed transient raster artifacts for
-visual-bugs-diag, not a merge blocker.
-Owner final smoke remains pending. No merge, push, tag, stage or commit by the agent.
+**STOP: new unrecorded release clause** `weapon-pickup-overlap-2-hunt-fire5`, runtime-wall-trace.mjs:6107: “final raster contains a cut capsule or stale post-collection footprint.” Pre-tail captures15–18 have28/0/0/0 pixels, expected>=40; final3 are0 and pass tail limit. One collection clears PMG rows. Cause unresolved; no baseline run or fix after STOP. Fresh trace terminated immediately after26 completed passing PAL audits; no fresh complete canonical report, strict release build or play delivery. New clause not added to ledger. [Full report and exact paths](diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.md), [hash-bound evidence](diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json).
+
+CPU/RAM/residency delta0 this continuation. Evidence campaign ATR SHA256 `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676` remains under `build/merge-validation-c182af2/dist/`; no qualified play delivery. Primary and baseline dist clean, no active task emulator. Owner commits; no stage/commit/merge/push/tag. NEXT TASK: owner decision on pickup-raster attribution, then resume release evidence, strict build and three play ATRs. Island symptoms remain unattributed transient raster artifacts for visual-bugs-diag, not a merge blocker. Owner final smoke remains pending.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

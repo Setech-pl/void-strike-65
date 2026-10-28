@@ -1,0 +1,59 @@
+5053697 targeted release-clause attribution. Each process exited 1.
+Boot smoke omitted only for this attribution (baseline frontend 1405 > 1402).
+No replay or validator changes. Original logs follow verbatim.
+
+baseline-clause.log
+director-complete-0-natural-sweep-fire0: 5509 frames, max 30872 wall cycles
+  PAL timing audit  director-complete-0-natural-sweep-fire0       frames 5509  misses   0  preWait  21875  margin   3437  maxWall  30872  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 1 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 1 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 1 lance run reads, 3533 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 1 block reads, 0 field-state writes, 0 foreign writers
+Focused report: build/runtime-wall-trace/director-complete-0-natural-sweep-fire0-focused-run.json
+CLAUSE FAILURE director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+Behavioural clauses: 1 of 1 session(s) accumulated a failure
+  director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+
+baseline-1.log
+director-complete-1-natural-sweep-fire0: 5549 frames, max 31036 wall cycles
+  PAL timing audit  director-complete-1-natural-sweep-fire0       frames 5549  misses   0  preWait  23169  margin   2131  maxWall  31036  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 1 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 1 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 1 lance run reads, 4293 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 1 block reads, 0 field-state writes, 0 foreign writers
+Focused report: build/runtime-wall-trace/director-complete-1-natural-sweep-fire0-focused-run.json
+CLAUSE FAILURE director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+Behavioural clauses: 1 of 1 session(s) accumulated a failure
+  director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+
+baseline-2.log
+director-complete-2-natural-sweep-fire0: 5629 frames, max 31301 wall cycles
+  PAL timing audit  director-complete-2-natural-sweep-fire0       frames 5629  misses   0  preWait  24158  margin   1142  maxWall  31301  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 1 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 1 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 1 lance run reads, 4836 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 1 block reads, 0 field-state writes, 0 foreign writers
+Focused report: build/runtime-wall-trace/director-complete-2-natural-sweep-fire0-focused-run.json
+CLAUSE FAILURE director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+Behavioural clauses: 1 of 1 session(s) accumulated a failure
+  director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+
+baseline-write-protected.log
+director-complete-2-write-protected: 5629 frames, max 31301 wall cycles
+  PAL timing audit  director-complete-2-write-protected           frames 5629  misses   0  preWait  24158  margin   1142  maxWall  31301  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 1 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 1 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 1 lance run reads, 4836 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 1 block reads, 0 field-state writes, 0 foreign writers
+Focused report: build/runtime-wall-trace/director-complete-2-write-protected-focused-run.json
+CLAUSE FAILURE director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+Behavioural clauses: 1 of 1 session(s) accumulated a failure
+  director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell

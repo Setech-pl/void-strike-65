@@ -8,7 +8,36 @@
     "c-real-failure": "(c) A real failure of the build. Neither fixed nor weakened here; recorded so the evidence stays a truthful description of the build.",
     "pre-existing-unclassified": "Pre-existing failure carried unchanged; no session has classified it into (a), (b) or (c) yet."
   },
-  "failures": [],
+  "failures": [
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved."
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved."
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved."
+    },
+    {
+      "session": "director-complete-2-write-protected",
+      "message": "director-complete-2-write-protected reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Exact write-protected case also reproduces the same first assertion on 5053697. Recorded under owner decision 2026-10-28; validator and inputs unchanged."
+    }
+  ],
   "removed_2026_10_01": {
     "note": "Left the recorded set in trace-clause-repairs (docs/plans/trace-clause-repairs.md). Each was an observer error, class (b); the clause's assertion is unchanged and passes on the regenerated evidence.",
     "count": 13,

@@ -1,6 +1,6 @@
 # Capital content v2
 
-Status: **Increments 1+0 are merge candidates at 434871e; STOP: full tests and reconciliation FAILED.** Increment1 remains OWNER-ACCEPTED at f0b0dd1. Increment2 is **PARKED at bfda36b** after owner smoke FAILED. See the merge-preparation section below; earlier delivery notes are historical.
+Status: **Increments 1+0: home27 PASS; STOP on unrecorded pickup-overlap release raster clause at owner checkpoint100db9a.** Four core-down clauses reproduce on5053697. Increment1 remains OWNER-ACCEPTED; increment2 stays PARKED. Earlier STOP sections below are historical.
 
 | Play ATR (absolute path) | SHA-256 at increment1 delivery | Description |
 | --- | --- | --- |
@@ -917,3 +917,13 @@ tests/level-one-equivalence.test.mjs
 ```
 
 Suggested message: `test: reconcile capital merge expectations and record verification stop`
+
+## 100db9a verification — home27 PASS; pickup-raster release STOP (2026-10-28)
+
+No production/test assertion/replay/validator changes. Generated original480/960 ownership images with existing helper, reran8 exits:8/8 PASS. Completed R1–R4 terminal fixtures:4/4 PASS. Home27/27 (15 routes+8 exits+4 bosses),2,963,608 content/4,239,102 boss opcode fetches, zero invalid executions; terminal cases are diagnostic seeds. Native15 retained for identical bytes.
+
+All3 natural completion sessions and the write-protected counterpart reproduce the exact core-down first assertion on5053697 with identical inputs. Added4 pre-existing-unclassified records under the owner decision; no clause/input change. Baseline dist restored clean. Baseline boot smoke omitted only for attribution because frontend1405>1402; current boot1390 passes. No replay desync or boss damage attribution claimed.
+
+Fresh complete trace attempt stopped at a different unrecorded clause: `weapon-pickup-overlap-2-hunt-fire5`, final raster. Pre-tail captures15–18 contain28/0/0/0 pixels against>=40; final3 are0 and pass. Collection clears PMG rows. Cause unresolved, no baseline run/fix after STOP.26 completed PAL audits passed; failing session raw1300 rows peak30793, no miss/extraVBI, but its PAL audit not finalized. No canonical refresh, strict build, release-binding rerun or qualified play delivery. New failure is not ledgered.
+
+Previous full-suite A134/B0/C0 remains, A assertions untouched; native15/15, boot7/7 and unchanged boss stress retained. CPU/RAM/residency delta0. Primary/baseline dist clean, no active task emulator; no stage/commit/merge/push/tag. Island artifacts remain unattributed transient raster artifacts for visual-bugs-diag, not a merge blocker. [Full evidence, raw baseline/release logs, exact paths and suggested message](../diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.md).

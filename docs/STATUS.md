@@ -20,6 +20,20 @@ the values below.
 
 ## Checkpoint
 
+### Capital content v2 — branch WIP STOP (2026-10-27)
+
+On `codex/capital-content-v2` from `5053697`, Phase0 baseline15 routes,
+four boss lifecycles and eight real exits pass. Amendment1 moves mines to a
+separate hazard sector; bonuses target both hazard and capital. Increment0
+attempt is **BLOCKED_C_ABI_GATE**: the normal build reports forbidden tmp1/ptr1
+instructions before linking. Retained source is unverified and not a smoke
+candidate; no task ATR exists. Accepted gameplay baseline remains unchanged.
+Git index.lock was denied; changes remain uncommitted, with no retry.
+See [report](audits/2026-10-28-capital-content-v2.md) and
+[plan](plans/capital-content-v2.md). NEXT TASK: owner-authorized scalar-C repair
+and unchanged build/placement gates; no automatic later increment or merge.
+
+
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 
 **OWNER-SMOKE CANDIDATE.** H1–H9/H15 implemented on `codex/m3h-step1`;

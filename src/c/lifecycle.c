@@ -1628,12 +1628,17 @@ static void bomber_colour(void)
 }
 
 /* Fire gates shared by the attack start and every shell of the salvo. */
+/* Relocate this bounded helper to fund the exit branch without arena growth. */
+#pragma code-name (push, "CC2_POLICY")
+extern uint8_t heavy_departure;
 static uint8_t bomber_may_fire(void)
 {
     return heavy_member_y >= BOMBER_FIRE_TOP && heavy_member_y <= BOMBER_FIRE_BOTTOM &&
         (PLAYER_LIFECYCLE & PLAYER_DYING_OR_OVER) == 0u &&
         (DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_DUE) == 0u;
 }
+
+#pragma code-name (pop)
 
 /* Heavy tick of one live Bomber member (HEAVY_SLOT), called by the ASM member
  * loop after it captured the member's old Y. Y grows by at most one line, as
@@ -1642,6 +1647,10 @@ static uint8_t bomber_may_fire(void)
  * heavy_member_colour for this member. */
 uint8_t enemy_c_heavy_tick(void)
 {
+    if (heavy_departure != 0u) {
+        ++heavy_member_y;
+        return 0u;
+    }
     heavy_scratch = 0u;
     bomber_colour(); /* observe the hit before deciding whether Y may move */
     if (heavy_member_direction == BOMBER_ATTACK) {

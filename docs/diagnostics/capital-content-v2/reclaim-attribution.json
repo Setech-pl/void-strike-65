@@ -1,0 +1,1826 @@
+{
+  "classification": "MEASURED exclusive PC instruction and wall attribution at each retained capital peak; removal savings are ESTIMATE, shared functions and DMA cannot simply be subtracted",
+  "rows": [
+    {
+      "route": "campaign-0-flight",
+      "frame": 1644,
+      "wall": 30025,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 35,
+          "wall": 44
+        },
+        "apply_broadside_player_damage": {
+          "cpu": 2,
+          "wall": 7
+        },
+        "update_broadside": {
+          "cpu": 207,
+          "wall": 207
+        },
+        "schedule_broadside": {
+          "cpu": 391,
+          "wall": 427
+        },
+        "scroll_broadside_scene": {
+          "cpu": 201,
+          "wall": 228
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 118
+        },
+        "set_capital_explosion_row_ptr": {
+          "cpu": 40,
+          "wall": 49
+        },
+        "begin_broadside_impact": {
+          "cpu": 25,
+          "wall": 25
+        },
+        "count_broadside_hull_hit": {
+          "cpu": 33,
+          "wall": 33
+        },
+        "begin_capital_hull_explosion": {
+          "cpu": 90,
+          "wall": 99
+        },
+        "play_capital_explosion_sound": {
+          "cpu": 23,
+          "wall": 23
+        },
+        "tick_capital_explosions": {
+          "cpu": 35,
+          "wall": 71
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 93
+        },
+        "render_capital_explosion": {
+          "cpu": 563,
+          "wall": 1125
+        },
+        "broadside_hits_opposite_hull": {
+          "cpu": 184,
+          "wall": 202
+        },
+        "visible_hull_sector_row": {
+          "cpu": 528,
+          "wall": 905
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 33
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 67
+        },
+        "broadside_erase_begin": {
+          "cpu": 100,
+          "wall": 100
+        },
+        "broadside_erase_cells_restored": {
+          "cpu": 3,
+          "wall": 3
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 47,
+          "wall": 56
+        },
+        "draw_broadside_span": {
+          "cpu": 16,
+          "wall": 16
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 237,
+          "wall": 255
+        },
+        "provisional_capital_broadside_request": {
+          "cpu": 52,
+          "wall": 61
+        },
+        "integration_broadside_due": {
+          "cpu": 32,
+          "wall": 32
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 84
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 277
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_double": {
+          "cpu": 22,
+          "wall": 31
+        }
+      }
+    },
+    {
+      "route": "campaign-1-flight",
+      "frame": 1759,
+      "wall": 27032,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 77
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 50
+        },
+        "set_allied_hull_source": {
+          "cpu": 30,
+          "wall": 30
+        },
+        "set_enemy_hull_source": {
+          "cpu": 48,
+          "wall": 48
+        },
+        "draw_hull_row": {
+          "cpu": 468,
+          "wall": 513
+        },
+        "update_broadside": {
+          "cpu": 146,
+          "wall": 155
+        },
+        "schedule_broadside": {
+          "cpu": 194,
+          "wall": 212
+        },
+        "render_broadside_warning": {
+          "cpu": 70,
+          "wall": 70
+        },
+        "scroll_broadside_scene": {
+          "cpu": 215,
+          "wall": 251
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 59,
+          "wall": 59
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 86
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 460
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 99
+        },
+        "render_capital_explosion": {
+          "cpu": 598,
+          "wall": 1247
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 1930
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 36
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 67
+        },
+        "broadside_erase_begin": {
+          "cpu": 62,
+          "wall": 62
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 24,
+          "wall": 33
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 112,
+          "wall": 121
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 74,
+          "wall": 74
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 186,
+          "wall": 204
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 93
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 14,
+          "wall": 14
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 45
+        }
+      }
+    },
+    {
+      "route": "campaign-2-brake",
+      "frame": 1776,
+      "wall": 29503,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 50
+        },
+        "apply_broadside_player_damage": {
+          "cpu": 2,
+          "wall": 4
+        },
+        "update_broadside": {
+          "cpu": 224,
+          "wall": 251
+        },
+        "schedule_broadside": {
+          "cpu": 51,
+          "wall": 51
+        },
+        "render_broadside_warning": {
+          "cpu": 102,
+          "wall": 111
+        },
+        "scroll_broadside_scene": {
+          "cpu": 211,
+          "wall": 220
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 136
+        },
+        "tick_capital_explosions": {
+          "cpu": 35,
+          "wall": 71
+        },
+        "render_capital_explosions": {
+          "cpu": 35,
+          "wall": 63
+        },
+        "broadside_hits_opposite_hull": {
+          "cpu": 183,
+          "wall": 192
+        },
+        "visible_hull_sector_row": {
+          "cpu": 528,
+          "wall": 975
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 35
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "broadside_erase_begin": {
+          "cpu": 126,
+          "wall": 144
+        },
+        "broadside_erase_cells_restored": {
+          "cpu": 3,
+          "wall": 3
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 24,
+          "wall": 24
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 344,
+          "wall": 380
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 91,
+          "wall": 91
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 378,
+          "wall": 414
+        },
+        "set_broadside_slot_quad": {
+          "cpu": 44,
+          "wall": 53
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 102
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 277
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        }
+      }
+    },
+    {
+      "route": "l2-480-0-brake",
+      "frame": 1167,
+      "wall": 28264,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 77
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 41
+        },
+        "apply_broadside_player_damage": {
+          "cpu": 2,
+          "wall": 2
+        },
+        "update_broadside": {
+          "cpu": 198,
+          "wall": 225
+        },
+        "schedule_broadside": {
+          "cpu": 194,
+          "wall": 212
+        },
+        "scroll_broadside_scene": {
+          "cpu": 180,
+          "wall": 189
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 59,
+          "wall": 68
+        },
+        "tick_capital_explosions": {
+          "cpu": 35,
+          "wall": 79
+        },
+        "render_capital_explosions": {
+          "cpu": 35,
+          "wall": 54
+        },
+        "broadside_hits_opposite_hull": {
+          "cpu": 148,
+          "wall": 157
+        },
+        "visible_hull_sector_row": {
+          "cpu": 528,
+          "wall": 802
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 33
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "broadside_erase_begin": {
+          "cpu": 100,
+          "wall": 118
+        },
+        "broadside_erase_cells_restored": {
+          "cpu": 3,
+          "wall": 3
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 47,
+          "wall": 47
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 84
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 268
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 20
+        }
+      }
+    },
+    {
+      "route": "l2-480-0-flight",
+      "frame": 699,
+      "wall": 29756,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 35,
+          "wall": 44
+        },
+        "apply_broadside_player_damage": {
+          "cpu": 2,
+          "wall": 2
+        },
+        "update_broadside": {
+          "cpu": 207,
+          "wall": 207
+        },
+        "schedule_broadside": {
+          "cpu": 391,
+          "wall": 427
+        },
+        "scroll_broadside_scene": {
+          "cpu": 201,
+          "wall": 228
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 118
+        },
+        "set_capital_explosion_row_ptr": {
+          "cpu": 40,
+          "wall": 49
+        },
+        "begin_broadside_impact": {
+          "cpu": 25,
+          "wall": 34
+        },
+        "count_broadside_hull_hit": {
+          "cpu": 33,
+          "wall": 33
+        },
+        "begin_capital_hull_explosion": {
+          "cpu": 90,
+          "wall": 99
+        },
+        "play_capital_explosion_sound": {
+          "cpu": 23,
+          "wall": 23
+        },
+        "tick_capital_explosions": {
+          "cpu": 35,
+          "wall": 70
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 96
+        },
+        "render_capital_explosion": {
+          "cpu": 563,
+          "wall": 1136
+        },
+        "broadside_hits_opposite_hull": {
+          "cpu": 184,
+          "wall": 202
+        },
+        "visible_hull_sector_row": {
+          "cpu": 528,
+          "wall": 837
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 28
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 67
+        },
+        "broadside_erase_begin": {
+          "cpu": 100,
+          "wall": 109
+        },
+        "broadside_erase_cells_restored": {
+          "cpu": 3,
+          "wall": 3
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 47,
+          "wall": 56
+        },
+        "draw_broadside_span": {
+          "cpu": 16,
+          "wall": 16
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 237,
+          "wall": 255
+        },
+        "provisional_capital_broadside_request": {
+          "cpu": 52,
+          "wall": 61
+        },
+        "integration_broadside_due": {
+          "cpu": 32,
+          "wall": 32
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 93
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 277
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_double": {
+          "cpu": 22,
+          "wall": 22
+        }
+      }
+    },
+    {
+      "route": "l2-480-1-brake",
+      "frame": 695,
+      "wall": 28082,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 95
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 47,
+          "wall": 56
+        },
+        "update_broadside": {
+          "cpu": 221,
+          "wall": 239
+        },
+        "schedule_broadside": {
+          "cpu": 51,
+          "wall": 60
+        },
+        "render_broadside_warning": {
+          "cpu": 76,
+          "wall": 76
+        },
+        "scroll_broadside_scene": {
+          "cpu": 232,
+          "wall": 268
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 127
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 85
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 488
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 71
+        },
+        "render_capital_explosion": {
+          "cpu": 578,
+          "wall": 1116
+        },
+        "broadside_hits_opposite_hull": {
+          "cpu": 148,
+          "wall": 157
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 1753
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 35
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 67
+        },
+        "broadside_erase_begin": {
+          "cpu": 126,
+          "wall": 135
+        },
+        "broadside_erase_cells_restored": {
+          "cpu": 3,
+          "wall": 3
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 24,
+          "wall": 24
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 112,
+          "wall": 121
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 91,
+          "wall": 109
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 186,
+          "wall": 204
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 84
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 268
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 36
+        }
+      }
+    },
+    {
+      "route": "l2-480-1-flight",
+      "frame": 862,
+      "wall": 26402,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 77
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 41
+        },
+        "set_allied_hull_source": {
+          "cpu": 30,
+          "wall": 30
+        },
+        "set_enemy_hull_source": {
+          "cpu": 48,
+          "wall": 48
+        },
+        "draw_hull_row": {
+          "cpu": 468,
+          "wall": 504
+        },
+        "update_broadside": {
+          "cpu": 146,
+          "wall": 146
+        },
+        "schedule_broadside": {
+          "cpu": 194,
+          "wall": 212
+        },
+        "render_broadside_warning": {
+          "cpu": 70,
+          "wall": 79
+        },
+        "scroll_broadside_scene": {
+          "cpu": 215,
+          "wall": 233
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 59,
+          "wall": 59
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 90
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 483
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 132
+        },
+        "render_capital_explosion": {
+          "cpu": 598,
+          "wall": 1223
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 1796
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 28
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 67
+        },
+        "broadside_erase_begin": {
+          "cpu": 62,
+          "wall": 71
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 24,
+          "wall": 24
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 112,
+          "wall": 130
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 74,
+          "wall": 74
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 186,
+          "wall": 204
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 18
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 111
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 14,
+          "wall": 14
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 45
+        }
+      }
+    },
+    {
+      "route": "l2-480-2-brake",
+      "frame": 925,
+      "wall": 28936,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 50
+        },
+        "apply_broadside_player_damage": {
+          "cpu": 2,
+          "wall": 2
+        },
+        "update_broadside": {
+          "cpu": 224,
+          "wall": 233
+        },
+        "schedule_broadside": {
+          "cpu": 51,
+          "wall": 60
+        },
+        "render_broadside_warning": {
+          "cpu": 102,
+          "wall": 120
+        },
+        "scroll_broadside_scene": {
+          "cpu": 211,
+          "wall": 220
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 16
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 127
+        },
+        "tick_capital_explosions": {
+          "cpu": 35,
+          "wall": 70
+        },
+        "render_capital_explosions": {
+          "cpu": 35,
+          "wall": 84
+        },
+        "broadside_hits_opposite_hull": {
+          "cpu": 164,
+          "wall": 182
+        },
+        "visible_hull_sector_row": {
+          "cpu": 528,
+          "wall": 899
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 28
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "broadside_erase_begin": {
+          "cpu": 126,
+          "wall": 135
+        },
+        "broadside_erase_cells_restored": {
+          "cpu": 3,
+          "wall": 3
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 24,
+          "wall": 24
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 286,
+          "wall": 313
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 91,
+          "wall": 100
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 378,
+          "wall": 414
+        },
+        "set_broadside_slot_quad": {
+          "cpu": 44,
+          "wall": 44
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 84
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 277
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        }
+      }
+    },
+    {
+      "route": "l2-480-2-flight",
+      "frame": 535,
+      "wall": 27681,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 41
+        },
+        "update_broadside": {
+          "cpu": 141,
+          "wall": 141
+        },
+        "schedule_broadside": {
+          "cpu": 357,
+          "wall": 384
+        },
+        "render_broadside_warning": {
+          "cpu": 66,
+          "wall": 66
+        },
+        "scroll_broadside_scene": {
+          "cpu": 215,
+          "wall": 224
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 127
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 116
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 439
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 114
+        },
+        "render_capital_explosion": {
+          "cpu": 569,
+          "wall": 1139
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 1693
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 32
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "broadside_erase_begin": {
+          "cpu": 62,
+          "wall": 71
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 24,
+          "wall": 24
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 228,
+          "wall": 246
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 74,
+          "wall": 92
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 282,
+          "wall": 309
+        },
+        "integration_broadside_due": {
+          "cpu": 17,
+          "wall": 26
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 84
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 277
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 20
+        },
+        "set_broadside_slot_double": {
+          "cpu": 44,
+          "wall": 53
+        }
+      }
+    },
+    {
+      "route": "l2-960-0-brake",
+      "frame": 3040,
+      "wall": 27435,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 77
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 41
+        },
+        "update_broadside": {
+          "cpu": 113,
+          "wall": 122
+        },
+        "schedule_broadside": {
+          "cpu": 627,
+          "wall": 690
+        },
+        "render_broadside_warning": {
+          "cpu": 70,
+          "wall": 70
+        },
+        "scroll_broadside_scene": {
+          "cpu": 215,
+          "wall": 224
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 127
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 97
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 446
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 83
+        },
+        "render_capital_explosion": {
+          "cpu": 583,
+          "wall": 1254
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 2259
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 42
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "broadside_erase_begin": {
+          "cpu": 55,
+          "wall": 55
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 12,
+          "wall": 12
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 56,
+          "wall": 65
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 57,
+          "wall": 57
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 186,
+          "wall": 204
+        },
+        "provisional_capital_broadside_request": {
+          "cpu": 74,
+          "wall": 83
+        },
+        "integration_broadside_due": {
+          "cpu": 25,
+          "wall": 25
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 93
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 268
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 45
+        }
+      }
+    },
+    {
+      "route": "l2-960-0-flight",
+      "frame": 1152,
+      "wall": 27690,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 50
+        },
+        "update_broadside": {
+          "cpu": 113,
+          "wall": 131
+        },
+        "schedule_broadside": {
+          "cpu": 539,
+          "wall": 584
+        },
+        "render_broadside_warning": {
+          "cpu": 70,
+          "wall": 79
+        },
+        "scroll_broadside_scene": {
+          "cpu": 215,
+          "wall": 233
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 127
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 103
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 482
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 81
+        },
+        "render_capital_explosion": {
+          "cpu": 550,
+          "wall": 1129
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 1635
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 36
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 67
+        },
+        "broadside_erase_begin": {
+          "cpu": 55,
+          "wall": 64
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 12,
+          "wall": 12
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 56,
+          "wall": 56
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 57,
+          "wall": 66
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 186,
+          "wall": 204
+        },
+        "provisional_capital_broadside_request": {
+          "cpu": 74,
+          "wall": 74
+        },
+        "integration_broadside_due": {
+          "cpu": 25,
+          "wall": 34
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 93
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 277
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 36
+        }
+      }
+    },
+    {
+      "route": "l2-960-1-brake",
+      "frame": 1839,
+      "wall": 28390,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 50
+        },
+        "update_broadside": {
+          "cpu": 230,
+          "wall": 230
+        },
+        "schedule_broadside": {
+          "cpu": 51,
+          "wall": 60
+        },
+        "render_broadside_warning": {
+          "cpu": 70,
+          "wall": 79
+        },
+        "scroll_broadside_scene": {
+          "cpu": 232,
+          "wall": 259
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 7
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 136
+        },
+        "set_capital_explosion_row_ptr": {
+          "cpu": 40,
+          "wall": 49
+        },
+        "begin_broadside_impact": {
+          "cpu": 25,
+          "wall": 34
+        },
+        "count_broadside_hull_hit": {
+          "cpu": 33,
+          "wall": 33
+        },
+        "begin_capital_hull_explosion": {
+          "cpu": 90,
+          "wall": 99
+        },
+        "play_capital_explosion_sound": {
+          "cpu": 23,
+          "wall": 23
+        },
+        "tick_capital_explosions": {
+          "cpu": 35,
+          "wall": 80
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 93
+        },
+        "render_capital_explosion": {
+          "cpu": 563,
+          "wall": 1125
+        },
+        "broadside_hits_opposite_hull": {
+          "cpu": 184,
+          "wall": 202
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 2163
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 28
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 67
+        },
+        "broadside_erase_begin": {
+          "cpu": 126,
+          "wall": 144
+        },
+        "broadside_erase_cells_restored": {
+          "cpu": 3,
+          "wall": 3
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 24,
+          "wall": 24
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 112,
+          "wall": 121
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 91,
+          "wall": 100
+        },
+        "draw_broadside_span": {
+          "cpu": 16,
+          "wall": 16
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 423,
+          "wall": 459
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 84
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 268
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 36
+        },
+        "set_broadside_slot_double": {
+          "cpu": 22,
+          "wall": 22
+        }
+      }
+    },
+    {
+      "route": "l2-960-1-flight",
+      "frame": 1602,
+      "wall": 29038,
+      "routines": {
+        "integration_broadside_release": {
+          "cpu": 19,
+          "wall": 19
+        },
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 41
+        },
+        "update_broadside": {
+          "cpu": 169,
+          "wall": 196
+        },
+        "schedule_broadside": {
+          "cpu": 357,
+          "wall": 393
+        },
+        "render_broadside_warning": {
+          "cpu": 90,
+          "wall": 108
+        },
+        "scroll_broadside_scene": {
+          "cpu": 215,
+          "wall": 224
+        },
+        "advance_broadside_row": {
+          "cpu": 7,
+          "wall": 16
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 118,
+          "wall": 118
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 113
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 453
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 68
+        },
+        "render_capital_explosion": {
+          "cpu": 583,
+          "wall": 1176
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 1713
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 45
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "free_broadside_slot": {
+          "cpu": 34,
+          "wall": 34
+        },
+        "broadside_erase_begin": {
+          "cpu": 81,
+          "wall": 81
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 36,
+          "wall": 36
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 574,
+          "wall": 619
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 101,
+          "wall": 119
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 378,
+          "wall": 405
+        },
+        "integration_broadside_due": {
+          "cpu": 17,
+          "wall": 17
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 93
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 268
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_double": {
+          "cpu": 44,
+          "wall": 44
+        }
+      }
+    },
+    {
+      "route": "l2-960-2-brake",
+      "frame": 1232,
+      "wall": 28694,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 41,
+          "wall": 41
+        },
+        "update_broadside": {
+          "cpu": 141,
+          "wall": 150
+        },
+        "schedule_broadside": {
+          "cpu": 694,
+          "wall": 748
+        },
+        "render_broadside_warning": {
+          "cpu": 178,
+          "wall": 196
+        },
+        "scroll_broadside_scene": {
+          "cpu": 246,
+          "wall": 255
+        },
+        "advance_broadside_row": {
+          "cpu": 14,
+          "wall": 14
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 236,
+          "wall": 272
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 86
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 466
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 138
+        },
+        "render_capital_explosion": {
+          "cpu": 541,
+          "wall": 1141
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 1997
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 37
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "broadside_erase_begin": {
+          "cpu": 81,
+          "wall": 90
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 36,
+          "wall": 36
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 342,
+          "wall": 378
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 101,
+          "wall": 101
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 564,
+          "wall": 618
+        },
+        "provisional_capital_broadside_request": {
+          "cpu": 74,
+          "wall": 83
+        },
+        "set_broadside_slot_quad": {
+          "cpu": 44,
+          "wall": 44
+        },
+        "integration_broadside_due": {
+          "cpu": 25,
+          "wall": 34
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 102
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 259
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 45
+        }
+      }
+    },
+    {
+      "route": "l2-960-2-flight",
+      "frame": 1007,
+      "wall": 28770,
+      "routines": {
+        "scroll_world_columns": {
+          "cpu": 77,
+          "wall": 86
+        },
+        "reset_exited_turret_lifecycles": {
+          "cpu": 47,
+          "wall": 56
+        },
+        "update_broadside": {
+          "cpu": 141,
+          "wall": 159
+        },
+        "schedule_broadside": {
+          "cpu": 505,
+          "wall": 568
+        },
+        "render_broadside_warning": {
+          "cpu": 142,
+          "wall": 151
+        },
+        "scroll_broadside_scene": {
+          "cpu": 246,
+          "wall": 264
+        },
+        "advance_broadside_row": {
+          "cpu": 14,
+          "wall": 14
+        },
+        "set_broadside_row_ptr": {
+          "cpu": 177,
+          "wall": 186
+        },
+        "tick_capital_explosions": {
+          "cpu": 51,
+          "wall": 104
+        },
+        "restore_capital_explosion": {
+          "cpu": 245,
+          "wall": 483
+        },
+        "render_capital_explosions": {
+          "cpu": 44,
+          "wall": 65
+        },
+        "render_capital_explosion": {
+          "cpu": 579,
+          "wall": 1233
+        },
+        "visible_hull_sector_row": {
+          "cpu": 990,
+          "wall": 2121
+        },
+        "handle_player_hull_contact": {
+          "cpu": 28,
+          "wall": 30
+        },
+        "projectile_recycle_broadside_layout_pad": {
+          "cpu": 67,
+          "wall": 76
+        },
+        "broadside_erase_begin": {
+          "cpu": 81,
+          "wall": 81
+        },
+        "broadside_erase_missile_span": {
+          "cpu": 36,
+          "wall": 36
+        },
+        "broadside_erase_missile_line": {
+          "cpu": 284,
+          "wall": 320
+        },
+        "broadside_erase_clear_previous": {
+          "cpu": 101,
+          "wall": 110
+        },
+        "draw_broadside_span_at_hpos": {
+          "cpu": 468,
+          "wall": 504
+        },
+        "provisional_capital_broadside_request": {
+          "cpu": 74,
+          "wall": 83
+        },
+        "integration_broadside_due": {
+          "cpu": 25,
+          "wall": 25
+        },
+        "scroll_hull_columns": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_active": {
+          "cpu": 9,
+          "wall": 9
+        },
+        "scroll_hull_columns_advance_scene": {
+          "cpu": 84,
+          "wall": 93
+        },
+        "commit_prepared_hull_row": {
+          "cpu": 250,
+          "wall": 277
+        },
+        "player_inside_universal_hull_corridor": {
+          "cpu": 11,
+          "wall": 11
+        },
+        "set_broadside_slot_normal": {
+          "cpu": 36,
+          "wall": 36
+        },
+        "set_broadside_slot_double": {
+          "cpu": 44,
+          "wall": 53
+        }
+      }
+    }
+  ]
+}

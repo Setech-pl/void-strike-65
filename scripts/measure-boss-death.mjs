@@ -10,7 +10,8 @@ const root=process.cwd();
 const arg=(n,d)=>process.argv.find(a=>a.startsWith(`--${n}=`))?.slice(n.length+3)??d;
 const dir=path.resolve(arg("build","build")), region=Number(arg("region","1"));
 const baseline=process.argv.includes("--baseline"), frames=Number(arg("frames",baseline?"74":"175"));
-const source=path.join(root,"build/atari800-trace");
+const source=path.resolve(arg("atari800-source","build/atari800-trace"));
+if(fs.lstatSync(source).isSymbolicLink())throw new Error("Refuse shared emulator writes");
 const run=(command,args,options={})=>{
   const p=spawnSync(command,args,{cwd:root,encoding:"utf8",maxBuffer:16*1024*1024,...options});
   if(p.status!==0) throw new Error(`${command} status ${p.status}\n${p.stdout}\n${p.stderr}`);

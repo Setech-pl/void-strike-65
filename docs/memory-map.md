@@ -37,6 +37,15 @@ Sections marked *earlier `2df89da`* were not regenerated.
 > file disagrees with it, the generated block is right. The hand-written
 > sections stay as design notes and history.
 
+### Capital content v2 unlinked WIP (2026-10-27)
+
+The branch declares an optional `CC2_POLICY` segment in the existing
+`HYBRID_C_WINDOW_RAM` for increment0. The mandatory Director C ABI check fails
+before assembly/link, so no new range or measured byte delta exists. The
+$1180–$18FF content home remains a plan only. Generated baseline rows below
+are unchanged; no reservation is consumed or certified by this attempt.
+See [the STOP report](audits/2026-10-28-capital-content-v2.md).
+
 <!-- BEGIN GENERATED MEMORY MAP: npm run memory-map -->
 
 ## Generated map — from the build

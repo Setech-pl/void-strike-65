@@ -75,6 +75,7 @@ const PHASES = [
 // Every linked segment of the default build: owner and phases. A segment
 // without a row here stops the generator - add the row, do not skip it.
 const SEGMENTS = {
+  CONTENT: ["checked content home; overwritten by boss/banner/death", "level"],
   L2: ["checked fighter/capital phase module; overwritten by boss D/death", "level"],
   ZEROPAGE: ["main: zero-page runtime variables", "resident"],
   BOOT_SPLASH: ["boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli)", "splash"],
@@ -493,6 +494,7 @@ function collectRows(build) {
   add(m.overlays.slotA.address, m.overlays.slotA.endExclusive - 1, "slot", `overlay slot A (\`${m.overlays.slotA.firstRoutine}\` onward; run \`${m.overlays.runs[0].name}\`)`, "overlay", "manifest `overlays.slotA`");
   add(m.overlays.capitalVectors.address, m.overlays.capitalVectors.address + m.overlays.capitalVectors.bytes - 1, "slot", `capital vector table, ${m.overlays.capitalVectors.entries} entries (inside \`LIGHT_KERNEL\`)`, "resident", "manifest `overlays.capitalVectors`");
   add(m.levelSummary.code.address, m.levelSummary.code.endExclusive - 1, "slot", "level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it", "session", "manifest `levelSummary.code`, tests/level-summary-build.test.mjs");
+  if(m.contentModule) add(m.contentModule.address,m.contentModule.endExclusive-1,"slot","checked content module; retained through pause/death, executable only in valid gameplay", "level", "manifest `contentModule`");
   // M5b-S4a-i (owner answer Q-B5): the boss's claim and its three homes.
   add(m.boss.claim.start, m.boss.claim.endExclusive - 1, "slot", "phase-exclusive low RAM: checked menu at $0C00-$117F in menus; checked L2 at $1900-$1FFF during fighter/capital play; boss charset, C/scratch/D and death image in their installed phases; no unrelated link or boot allocation", "overlay", "manifest `boss.claim`, tests/boss-claim.test.mjs");
   add(m.boss.charset.address, m.boss.charset.address + m.boss.charset.capacityBytes - 1, "slot", "boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install" +

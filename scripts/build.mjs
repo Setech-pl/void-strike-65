@@ -605,6 +605,7 @@ const OVERLAY_DIRECTORY = Object.freeze([
   "disk identity (audit-hardening)",
   "menu data (L1)",
   "fighter/capital L2 (§BW)",
+  "checked content module",
 ]);
 // M5a-S2 (§4.8, §6.3): the summary's runs. The code reads once per session at
 // $0500; the art, one run per region at a fixed stride, is read first at every
@@ -621,6 +622,7 @@ const OVERLAY_SUMMARY_CODE = 8;
 const OVERLAY_IDENTITY = 9;
 const OVERLAY_MENU = 10;
 const OVERLAY_L2 = 11;
+const OVERLAY_CONTENT = 12;
 const identitySectorNumber = 598;
 const summaryCodeSector = 584;
 // Owner decision 2026-10-03: the module's home is $0500-$0BFF (1,792 B), so its
@@ -2814,13 +2816,21 @@ async function build() {
   if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
     throw new Error("L2 C requires software-stack/helper state");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
-  const l2MainNames=["player_shape","CHARSET","PLAYER_VISIBLE_WIDTH_HPOS","profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy",
+  const contentModule = await buildResidentModule({
+    sourcePath: path.join(rootDirectory,"src/hybrid/content-module.s"),
+    configPath: path.join(rootDirectory,"cfg/content-module.cfg"), stem:"content-module",
+  });
+  for (const [ext,data] of [["bin",contentModule.raw],["map",contentModule.map],["lbl",contentModule.labels],["lst",contentModule.listing]])
+    writeFile(path.join(buildDirectory,`content-module.${ext}`),data);
+  const l2MainNames=["game_state","player_shape","CHARSET","PLAYER_VISIBLE_WIDTH_HPOS","profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy",
     "BROADSIDE_SCREEN_TOP","PLAYER_COLLISION_LAST_ROW","PLAYER_COLLISION_WIDTH","CAPITAL_HULL_GLYPH_BASE",
     "CAPITAL_HULL_ENEMY_SURFACE_BASE","CAPITAL_HULL_SECTOR_MODULE_COUNT","CORRIDOR_LEFT_HPOS","CORRIDOR_RIGHT_HPOS"];
   const l2MainInclude=l2MainNames.map(name=>{
     const address=labels.get(name);if(!Number.isInteger(address))throw new Error(`L2 main ABI missing ${name}`);
     return `${name} = $${address.toString(16)}`;
-  }).join("\n")+"\n"+`L2_LOOKUP = $${l2Constants.L2_LOOKUP.toString(16)}\n`;
+  }).join("\n")+"\n"+`L2_LOOKUP = $${l2Constants.L2_LOOKUP.toString(16)}\n`+
+    `CONTENT_EXPECTED_FOLD = ${(guardFold(contentModule.raw).hi<<8)|guardFold(contentModule.raw).lo}\n`+
+    `CONTENT_GUARD_COMPARE = ${parseViceLabels(lightKernelModule.labels.toString()).get("guard_compare")}\n`;
   const l2RecipesInclude="    .byte "+[...islandRecipeBytes()].join(",")+"\n";
   writeFile(path.join(buildDirectory,"l2-main.inc"),Buffer.from(l2MainInclude));
   writeFile(path.join(buildDirectory,"l2-recipes.inc"),Buffer.from(l2RecipesInclude));
@@ -2868,7 +2878,8 @@ async function build() {
   }, {
     index: OVERLAY_L2, name: "fighter-capital-l2", startSector: 251,
     sectors: 14, destination: 0x1900, data: l2Module.raw, file: "l2.bin",
-  }];
+  }, {index:OVERLAY_CONTENT,name:"content-module",startSector:265,
+    sectors:15,destination:0x1180,data:contentModule.raw,file:"content-module.bin"}];
   for (const run of overlayRuns) {
     writeFile(path.join(buildDirectory, run.file), run.data);
     if (run.startSector + run.sectors - 1 > chunkLoaderConstants.atrSectors) {
@@ -2966,6 +2977,7 @@ async function build() {
       return `${name} = $${address.toString(16).toUpperCase()}`;
     }),
     `L2_EXPECTED_FOLD = ${(guardFold(l2Module.raw).hi << 8) | guardFold(l2Module.raw).lo}`,
+    `L2_CONTENT_FOLD = ${l2Labels.get("l2_content_fold")}`,
     `GUARD_ENTRIES = ${OVERLAY_DIRECTORY.length}`,
     `GUARD_RECORD_ENTRY = ${OVERLAY_SAVE_RECORD}`,
     "",
@@ -2997,9 +3009,9 @@ async function build() {
     ["sector_reader_report_bad_image",0xa21e]]) {
     if(sectorReaderLabels.get(name)!==pin) throw new Error(`L2 cold cross-link ${name} moved`);
   }
-  if (sectorReaderLabels.get("sector_reader_l2_guard") !== 0xa5e4 ||
+  if (sectorReaderLabels.get("sector_reader_l2_guard") !== 0xa5e9 ||
       lightKernelModule.raw[lightKernelLabels.get("guard_check")-lightKernelAddress] !== 0x4c ||
-      lightKernelModule.raw.readUInt16LE(lightKernelLabels.get("guard_check")-lightKernelAddress+1) !== 0xa5e4) {
+      lightKernelModule.raw.readUInt16LE(lightKernelLabels.get("guard_check")-lightKernelAddress+1) !== 0xa5e9) {
     throw new Error("L2 cold checksum cross-link does not reach the reader extension");
   }
   if (sectorReaderLabels.get("SAVE_RECORD_SECTOR") !== saveRecordSector) {
@@ -4091,7 +4103,7 @@ async function build() {
     if (index === OVERLAY_SAVE_RECORD) return null;
     if (index === OVERLAY_SUMMARY_CODE) return summaryCodeRun.data;
     if (index === OVERLAY_IDENTITY) return identitySectorData;
-    if (index === OVERLAY_MENU || index === OVERLAY_L2) return overlayRuns.find((run) => run.index === index).data;
+    if (index === OVERLAY_MENU || index === OVERLAY_L2 || index === OVERLAY_CONTENT) return overlayRuns.find((run) => run.index === index).data;
     throw new Error(`audit-hardening: no run for directory entry ${index}`);
   });
   const diskGuardSums = diskGuardRuns.map((data) => (data === null ? null : guardFold(data)));
@@ -5172,6 +5184,7 @@ async function build() {
     // M5a-S1 (docs/plans/m5-loading-boss.md §4.1): overlay slot A and the
     // capital vector table. Restore variant (b): the capital group stays in its
     // boot record; the run below is read only after another overlay used the slot.
+    contentModule: {address:0x1180,endExclusive:0x1900,capacityBytes:1920,usedBytes:parseViceLabels(contentModule.labels.toString()).get("content_end")-0x1180,runIndex:OVERLAY_CONTENT,validAddress:0x86b3,phase:"checked fighter/capital content; disarmed before boss"},
     l2: { address: 0x1900, endExclusive: 0x2000, capacityBytes: 1792, usedBytes: l2Used, freeBytes: 1792-l2Used, postOneReserveBytes: 256, runIndex: OVERLAY_L2, phase: "fighter/capital; overwritten by boss" },
     overlays: {
       baseSector: overlayBaseSector,

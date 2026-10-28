@@ -56,6 +56,12 @@ export function profiles(build,file) {
  for(const r of frames.values())assert.equal(r.pcCosts.reduce((s,p)=>s+p[2],0),r.wall,`PC wall sum frame ${r.frame}`);
  return frames;
 }
+export function capitalBudget(args) {
+ const value=args.find(a=>a.startsWith('--capital-budget='));
+ const limit=value?Number(value.slice(17)):30025;
+ assert.ok(Number.isInteger(limit)&&limit>0&&limit<=31200,'Capital content budget must be <=31500-300');
+ return limit;
+}
 const out=process.argv[2];
 if(out&&process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href) {
  const baseline=process.argv.includes('--baseline');
@@ -79,7 +85,8 @@ if(out&&process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href) 
    // capital max is a sampled replay maximum; 2026-10-27 M3-H moved kill timing and exposed an audio coincidence reachable on main
    // Main-image native state transplant reproduces 30025 exactly; proof:
    // docs/diagnostics/m3h-step1/continuation8-audio-summary.json (owner amendment 5).
-   assert.ok(peak(cap)<=30025,`${run.id}: capital peak ${peak(cap)} > 30025`);
+   const limit=capitalBudget(process.argv);
+   assert.ok(peak(cap)<=limit,`${run.id}: capital peak ${peak(cap)} > ${limit}`);
    assert.equal(report.acceptance.missed_frames,0,`${run.id}: missed frames`);
    assert.equal(report.acceptance.extra_vbi_boundaries,0,`${run.id}: extra VBI`);
    assert.equal(report.acceptance.dli_ordering_errors,0,`${run.id}: DLI errors`);

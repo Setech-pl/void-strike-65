@@ -19,9 +19,9 @@ function sha256(bytes) {
   return crypto.createHash("sha256").update(bytes).digest("hex");
 }
 
-function artifactDescriptor(rootDirectory, manifest, kind) {
+function artifactDescriptor(rootDirectory, manifest, kind, artifactDirectory = "dist") {
   const name = publicArtifactNames[kind];
-  const artifactPath = path.resolve(rootDirectory, "dist", name);
+  const artifactPath = path.resolve(rootDirectory, artifactDirectory, name);
   invariant(fs.existsSync(artifactPath), `Public ${kind.toUpperCase()} artifact is missing: ${artifactPath}`);
   const bytes = fs.readFileSync(artifactPath);
   const expected = manifest.artifacts?.[name];
@@ -39,8 +39,8 @@ function artifactDescriptor(rootDirectory, manifest, kind) {
   };
 }
 
-export function publicArtifactBinding(rootDirectory) {
-  const manifestPath = path.resolve(rootDirectory, "dist", publicArtifactNames.manifest);
+export function publicArtifactBinding(rootDirectory, artifactDirectory = "dist") {
+  const manifestPath = path.resolve(rootDirectory, artifactDirectory, publicArtifactNames.manifest);
   invariant(fs.existsSync(manifestPath), `Public manifest is missing: ${manifestPath}`);
   const manifestBytes = fs.readFileSync(manifestPath);
   const manifest = JSON.parse(manifestBytes);
@@ -52,13 +52,13 @@ export function publicArtifactBinding(rootDirectory) {
       bytes: manifestBytes.length,
       sha256: sha256(manifestBytes),
     },
-    boot: artifactDescriptor(rootDirectory, manifest, "boot"),
-    atr: artifactDescriptor(rootDirectory, manifest, "atr"),
+    boot: artifactDescriptor(rootDirectory, manifest, "boot", artifactDirectory),
+    atr: artifactDescriptor(rootDirectory, manifest, "atr", artifactDirectory),
   };
 }
 
-export function atari800ArtifactLaunches(rootDirectory) {
-  const binding = publicArtifactBinding(rootDirectory);
+export function atari800ArtifactLaunches(rootDirectory, artifactDirectory = "dist") {
+  const binding = publicArtifactBinding(rootDirectory, artifactDirectory);
   return {
     atr: {
       id: "atr",

@@ -228,17 +228,6 @@ static const uint8_t hazard_budget[3] = { 3u, 4u, 5u };
 
 /* feat/sector-flow (docs/plans/sector-flow.md): the three rules' window
  * functions, defined after advance_sector, which they call. */
-/* Capital-content v2: a 120-row runway covers a complete 232-line
- * one-line/frame exit at the fastest two-frame/world-row clock, plus margin.
- * The clear guard below also covers early wave-completion sector changes. */
-#pragma data-name (push, "CC2_POLICY")
-uint8_t heavy_departure = 0u;
-static uint8_t heavy_clear_pending = 0u;
-static uint8_t heavy_clear_frame = 0u;
-#pragma data-name (pop)
-extern uint8_t heavy_descent_mask, heavy_armoured;
-static void heavy_departure_tick(void);
-static uint8_t heavy_entry_ready(void);
 static void advance_sector(void);
 static void director_c_arm_wave(void);
 
@@ -397,7 +386,6 @@ static void compute_wave_end(void)
  * retired frame gate raised; the entry itself still waits for the drain. */
 static void enter_sector(void)
 {
-    heavy_departure = heavy_clear_pending = 0u;
     director_scratch3 = STATE_SECTOR;
     sector_row_lo = 0u;
     sector_row_hi = 0u;
@@ -480,8 +468,6 @@ static void advance_sector(void)
         STATE_FLAGS |= FLAG_COMPLETE;
         return;
     }
-    if (heavy_entry_ready() == 0u) return;
-    director_scratch0 = (uint8_t)(STATE_SECTOR + 1u);
     STATE_SECTOR = director_scratch0;
     enter_sector();
 }
@@ -686,7 +672,6 @@ void director_c_world_row_tick(void)
         --STATE_RECOVERY;
     }
 
-    heavy_departure_tick();
     director_scratch3 = STATE_SECTOR;
     director_scratch0 = sector_kind[director_scratch3] & SECTOR_KIND_MASK;
     if (director_scratch0 == SECTOR_KIND_CAPITAL) {
@@ -784,7 +769,6 @@ static uint8_t archetype_allowed(void)
  * publishes the formation's archetype and escort for enemy_c_spawn_raiders. */
 static uint8_t heavy_request(void)
 {
-    if (heavy_departure != 0u) return 0u;
     if (STATE_WAVE_REMAINING == 0u) {
         return 0u;
     }
@@ -889,38 +873,3 @@ void director_c_release(void)
         STATE_INTENSITY = (uint8_t)(STATE_INTENSITY - director_scratch0);
     }
 }
-
-/* Kept out of the arena and M3-H reservations. Scalar C owns the policy. */
-#pragma code-name (push, "CC2_POLICY")
-static void heavy_departure_tick(void)
-{
-    director_scratch0 = (uint8_t)(STATE_SECTOR + 1u);
-    if (director_scratch0 >= level_header[CORE_SECTOR_COUNT] ||
-        (sector_kind[director_scratch0] & SECTOR_KIND_MASK) != SECTOR_KIND_CAPITAL)
-        return;
-    director_scratch1 = sector_len[STATE_SECTOR];
-    if (director_scratch1 > 15u) director_scratch1 -= 15u;
-    else director_scratch1 = 0u;
-    director_scratch2 = (uint8_t)(sector_row_hi << 5);
-    director_scratch2 |= (uint8_t)(sector_row_lo >> 3);
-    if (director_scratch2 < director_scratch1) return;
-    heavy_departure = 1u;
-    heavy_descent_mask = heavy_armoured = 0u;
-    STATE_WAVE_REMAINING = 0u;
-}
-static uint8_t heavy_entry_ready(void)
-{
-    if ((sector_kind[director_scratch0] & SECTOR_KIND_MASK) != SECTOR_KIND_CAPITAL)
-        return 1u;
-    if (ENEMY_ACTIVE != 0u) {
-        heavy_clear_pending = 0u;
-        return 0u;
-    }
-    if (heavy_clear_pending == 0u) {
-        heavy_clear_pending = 1u;
-        heavy_clear_frame = FRAME_COUNTER;
-        return 0u;
-    }
-    return (uint8_t)(FRAME_COUNTER - heavy_clear_frame) >= 2u;
-}
-#pragma code-name (pop)

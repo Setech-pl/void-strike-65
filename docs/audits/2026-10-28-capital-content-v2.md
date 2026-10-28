@@ -1,16 +1,16 @@
 # Capital content v2
 
-Status: **BLOCKED_WINDOW_BUDGET — increment 0 WIP STOP after Amendment 2.** C ABI repaired; no smoke candidate. No completed gameplay implementation or owner-smoke candidate.
+Status: **BLOCKED_BOOT_FRONTEND_DEADLINE — Amendment 4 platform increment 1 WIP STOP.** Normal build passes; no passing increment or owner-smoke candidate.
 
 | Increment | Play ATRs |
 | --- | --- |
-| 0 | Build rejected before link; no play ATR or SHA-256 |
-| 1–3 | Not started; no play ATRs |
+| 1 (now first) | Not delivered: real-SIO frontend deadline failed; lifecycle validation incomplete |
+| 0 | Deferred until platform passes; retained resident Heavy attempt removed for platform checkpoint |
+| 2–3 | Not started |
 
-Branch `codex/capital-content-v2`, current HEAD `6a8d39a` (owner committed the prior WIP); gameplay baseline `5053697`. Amendment 1 is accepted
-as the active task specification: separate minefield hazard with islands and
-brake, no hulls/turrets/fighters; bonuses in both hazard and capital. Window
-allowance64 B, shipped level1/2 unchanged, diagnostic delivery only.
+Branch `codex/capital-content-v2`, owner HEAD `e88e8b9`; gameplay baseline
+`5053697`. Changes remain uncommitted by owner instruction. Amendments 1–4
+apply; shipped levels 1/2 are unchanged. Engineering builds are not smoke ATRs.
 
 ## Phase 0 timing reconciliation
 
@@ -195,22 +195,140 @@ Current CPU/RAM/ATR status: no linked candidate, no new runtime measurements,
 no play ATRs. The prior fifteen-route/boss/exit evidence validates5053697 only.
 All native jobs are finished. No full tests or release work ran.
 
+## Amendment 4 — Step 1, before source changes (2026-10-28)
+
+Current HEAD e88e8b9. Recompared the retained baseline and rejected assembled
+listings before changing source. The197-B subtotal is runway96 + clear guard62
++ state3 + bomber_may_fire relocation36. It omitted enter_sector's8-byte reset
+in HYBRID_C_WINDOW: corrected total task window growth205 B. Bomber no-fire
+exit grows HYBRID_C_ARENA code10 B (12-byte prefix replaces a2-byte load),
+not window code. Moving bomber_may_fire frees36 arena bytes: net arena−26 B.
+
+DIRECTOR_C_CODE grows26 B: world_row_tick275→278 (+3), advance_sector41→55
+(+14), heavy_request72→81 (+9). DIRECTOR_C_RODATA stays20 B. Baseline combined
+use634/645 B leaves11 B; new combined660 B overflows by15 B. No function
+contributes15 alone. This corrects the earlier incomplete window ledger.
+
+Amendment4 changes order: platform increment1 first, then Heavy increment0
+in the checked home. Window veneers remain <=64 B; net Director growth<=0 B.
+All home entries require a loaded/phase guard. Owner performs Git commits.
+
+
+## Amendment 4 platform result and STOP
+
+Built the home before Heavy policy, as instructed. Checked directory run 12
+loads 15 sectors at $1180. L2 INIT issues the checked $A006 read; only success
+sets shared L2_VALID. Existing real-exit, boss-install, load-head and RESET
+paths disarm it. No-op capital entry checks both validity and game_state=6.
+Final full lifecycle coverage is pending; this is implementation, not proof.
+Heavy source additions were removed from resident Director/lifecycle segments;
+owner commit e88e8b9 preserves them for later migration into the home.
+
+| Linked item | Baseline | Platform | Task delta / gate |
+| --- | ---: | ---: | --- |
+| L2 code/data | 1,250 B | 1,290 B | +40 / <=64 B |
+| L2 free before reserve | 286 B | 246 B | >=222 B; reserve256 untouched |
+| Window | 2,065 B | 2,065 B | 0 / <=64 B;746 B free |
+| Director | 634 B | 634 B | 0 / <=0 B |
+| Arena | unchanged | unchanged | 0 B |
+| Content home | absent | 1 B code /1,920 B image | $1180–$18FF |
+| Reader | 1,529 B | 1,535 B | +6 B;1 B free |
+| Level image | 2,048 B | 2,048 B |16 sectors |
+| Initial content | — |12,825 B |<=13,652 B |
+| Boot transport | — |214 sectors |101 boot +113 extension |
+
+Normal build passes computed gates and the unchanged C ABI validator; stale
+release-evidence warnings remain expected. 720 CPU-only SPACE fixtures across
+E/M/H, six lateral positions and40 scroll accumulators have exactly0 CPU delta
+in complete active bodies and row prediction. Whole-mask hashes differ and are
+not claimed as a state-equivalence proof. The focused budget-option test passes;
+the default capital ceiling stays30,025, while explicit content runs enforce
+31,200 (31,500 minus300 safety), as Amendment4 requires.
+
+Native added checked load:57 PAL host frames,2,009,611 wall cycles, about1.14 s
+(target1.2 s, gate1.5 s). This is the validity-only preliminary image; the final
+explicit game-state guard was built afterward. Its native results must not be
+presented as final-image certification.
+
+The first boot invocation had a harness path mismatch and is excluded. Added
+explicit diagnostic boot-artifact selection so the emulator and JavaScript
+both use the same manifest-bound ATR under build/. Correctly bound real-SIO
+atr-a5 reaches menu at1,362 and frontend polling at1,405. The existing gate is
+baseline1,351 +50 +1 =1,402 for frontend polling: **3 frames over**. Menu delta
+is11 and individually passes. No gate was waived or baseline refreshed.
+The smoke aborts at this first failed assertion; remaining boot cases are not
+claimed. This real-SIO deadline differs from the task's patched-SIO650-frame
+menu gate. Raw JSON and log retain that distinction.
+
+STOP preserves the implementation. No further runtime changes or increments
+are attempted. Two compliant recovery directions remain unmeasured: reduce
+frontend preparation by at least3 host frames (no new RAM required; code-size
+and timing effect need measurement), or reduce initial transport work by at
+least3 host frames (packing/layout change; must preserve all byte/reservation
+gates and repeat boot validation). Neither is an approved gate waiver.
+
+Amendment3 threshold derivation and deferral counts are not reached: the module
+only contains RTS. Four-region and exit/pause/brake/game-over/RESET validation
+of the final guarded platform remains pending. The earlier Phase0 observer
+proves baseline availability, not this implementation's safety. No mines,
+bonuses or new diagnostic sector are implemented. Owner smoke checklist above
+remains pending in full.
+
+
+Preliminary native capture exited0:15/15 routes PASS, 59,538 frames,
+peak 31,432, capital peak 30,077, minimum fighter fence
+3,414; boss entry325 frames on every route. All recorded missed
+frames, extra VBI, DLI errors, shifted rows and stale L2 counts are0. This is
+**not** the final explicit gameplay-guard image. CPU-only stress was interrupted
+with exit130 after the STOP; no completed comparison is claimed. All native
+jobs have exited. No emulator job remains running.
+
+Compact evidence: `../diagnostics/capital-content-v2/amendment4-platform-stop.json`
+and `amendment4-sha256.txt`. Raw traces remain under build/evidence; no raw trace
+is staged. No full npm test, release build or release-evidence refresh ran.
+
 ## Chat summary
 
-BLOCKED_WINDOW_BUDGET at increment0, current HEAD6a8d39a.
-Amendment2 option1 fixes the C ABI gate and saves3 B (99→96).
-Assembled window additions197 B exceed64 B by133 B.
-Projected window free549 B, required682 B.
-Separate DIRECTOR_RAM link overflow15 B remains unresolved.
-Amendment3 recorded; content threshold/deferral measurements not reached.
-No candidate ATR, new native run, merge, push or release.
+BLOCKED_BOOT_FRONTEND_DEADLINE; platform increment1 remains WIP.
+Owner HEAD e88e8b9; changes uncommitted; owner commits.
+Rejected Heavy window growth corrected197→205 B; Director growth26/overflow15 B.
+New platform window/Director/arena growth0 B, L2+40 B, reader+6 B.
+720 SPACE fixtures:0 CPU delta; preliminary native15/15 PASS.
+Added checked load57 PAL frames (~1.14 s).
+Final boot frontend1,405 exceeds unchanged1,402 deadline by3 frames.
+Final guarded image lifecycle/native proof incomplete; no play ATR delivered.
+Heavy migration, mines and bonuses not implemented. All native jobs finished.
 
-## Owner checkpoint commands — Git write refused
+## Owner checkpoint commands
 
-Staging failed once: external worktree index.lock / Operation not permitted.
-No retry or workaround was attempted. Run in this worktree:
+No Git write attempted: Amendment4 assigns commits to the owner. Run in this
+worktree (only task paths):
 
 ```sh
-git add src/c/director.c scripts/capital-content-v2-assembly-sizes.mjs docs/audits/2026-10-28-capital-content-v2.md docs/plans/capital-content-v2.md docs/STATUS.md docs/memory-map.md docs/diagnostics/capital-content-v2/amendment2-stop.json
-git commit -m "WIP STOP: [codex] increment 0 window budget after scalar C ABI repair"
+git add \
+  cfg/encounter-director.cfg \
+  docs/STATUS.md \
+  docs/audits/2026-10-28-capital-content-v2.md \
+  docs/memory-map.md \
+  docs/plans/capital-content-v2.md \
+  scripts/artifact-launch.mjs \
+  scripts/atari800-l2-lifetime.h \
+  scripts/build.mjs \
+  scripts/capital-content-v2-home.h \
+  scripts/frame-peak-native.mjs \
+  scripts/frame-peak-results.mjs \
+  scripts/memory-map-report.mjs \
+  scripts/runtime-wall-trace.mjs \
+  src/c/director.c \
+  src/c/lifecycle.c \
+  src/hybrid/disk-guard.s \
+  src/hybrid/l2-lifetime.s \
+  src/hybrid/l2.s \
+  src/hybrid/sector-reader.s \
+  cfg/content-module.cfg \
+  docs/diagnostics/capital-content-v2/amendment4-platform-stop.json \
+  docs/diagnostics/capital-content-v2/amendment4-sha256.txt \
+  src/hybrid/content-module.s \
+  tests/capital-content-v2-budget.test.mjs
+git commit -m "WIP STOP: [codex] content platform boot frontend deadline"
 ```

@@ -20,18 +20,19 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — branch WIP STOP (2026-10-28)
+### Capital content v2 — platform WIP STOP (2026-10-28)
 
-Owner committed the previous WIP at6a8d39a on codex/capital-content-v2.
-Amendment2 option1 scalar C repair passes the existing ABI validator and saves
-3 B. **BLOCKED_WINDOW_BUDGET:** assembled window additions197 B exceed the
-64-B task limit by133 B (projected free549 B; required682 B). The normal build
-also reports DIRECTOR_RAM overflow15 B. No linked candidate or task ATR exists.
-Retained gameplay source is unverified; baseline5053697 native evidence does
-not validate it. Amendment3 beam-time scheduling is recorded, not implemented.
-See [report](audits/2026-10-28-capital-content-v2.md) and
-[plan](plans/capital-content-v2.md). NEXT TASK: owner-directed placement/policy
-revision removing at least133 B of this window growth; no automatic later work.
+Amendment 4 moves platform increment 1 before Heavy increment 0. On branch
+codex/capital-content-v2, owner HEAD e88e8b9, the uncommitted platform normal
+build passes: checked $1180–$18FF home, 1-B no-op, shared loaded validity and
+explicit gameplay guard. Against 5053697: window/Director/arena growth 0 B,
+L2 +40 B, reader +6 B. Heavy policy is not yet moved into the new home.
+**BLOCKED_BOOT_FRONTEND_DEADLINE:** real-SIO boot frontend polling starts at
+1,405 host frames versus the unchanged 1,402 deadline; menu itself is 1,362.
+No passing increment or play ATR is delivered. Remaining lifecycle proof is
+incomplete. Owner commits; see [report](audits/2026-10-28-capital-content-v2.md)
+and [plan](plans/capital-content-v2.md). NEXT TASK: resolve the boot deadline
+without waiving it, complete platform verification, then move Heavy policy.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

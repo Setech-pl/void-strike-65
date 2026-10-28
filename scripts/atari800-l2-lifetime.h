@@ -1,5 +1,7 @@
 /* Diagnostic-only CPU access observer. No guest code/register/RAM writes. */
 static FILE *dfl2_file;
+static unsigned cc2_loading,cc2_load_host;
+static uint64_t cc2_load_clock;
 static unsigned dfl2_enabled, dfl2_active, dfl2_pc, dfl2_prev, dfl2_loaded;
 static unsigned dfl2_initializing, dfl2_verified, dfl2_fetches, dfl2_reads, dfl2_fights;
 static unsigned dfl2_labels[32], dfl2_overlay, dfl2_exit, dfl2_death, dfl2_prev_sp, dfl2_death_installed;
@@ -96,12 +98,18 @@ static void dftrace_l2_lifetime(unsigned pc,unsigned x,unsigned sp)
         if(dfl2_exit&&dfl2_labels[8]&&valid)dfl2_fail("exit_still_valid",0x86b3,pc);
         if(x==11u){dfl2_overlay=0;dfl2_loaded=1;dfl2_verified=0;dfl2_initializing=0;
             fprintf(dfl2_file,"{\"event\":\"l2_reload_begin\",\"host\":%u}\n",(unsigned)Atari800_nframes);}
+        if(x==12u) {cc2_loading=1;cc2_load_host=(unsigned)Atari800_nframes;cc2_load_clock=ANTIC_CPU_CLOCK;}
         dfl2_exit=0;
     }
     if(dfl2_labels[8] && pc==0x1900u && dfl2_loaded && !valid){
         if(memcmp(&MEMORY_mem[0x1900],dfl2_image,1792)!=0)dfl2_fail("partial_l2_execution",pc,pc);
         dfl2_initializing=1;dfl2_verified=1;dfl2_loaded=0;
         fprintf(dfl2_file,"{\"event\":\"checked_l2_init\",\"host\":%u}\n",(unsigned)Atari800_nframes);
+    }
+    if(valid && cc2_loading) {
+        fprintf(dfl2_file,"{\"event\":\"content_loaded\",\"host_frames\":%u,\"wall_cycles\":%llu}\n",
+            (unsigned)Atari800_nframes-cc2_load_host,(unsigned long long)(ANTIC_CPU_CLOCK-cc2_load_clock));
+        cc2_loading=0;
     }
     if(valid)dfl2_initializing=0;
     if(dfl2_overlay&&pc==0x1000u&&memcmp(&MEMORY_mem[0x1000u],&dfl2_death_image[0x1000u],16u)==0)dfl2_death_installed=1;

@@ -49,7 +49,7 @@ async function run(job,prepare=false) {
  const args=['scripts/runtime-wall-trace.mjs',...(prepare?['--prepare']:[]),`--atari800-source=${emulator}`,`--artifacts=${job.dir}`,`--only-session=${job.id}`,
   ...(job.campaign?['--capital-entry-only']:['--smoke-frames=10000',`--smoke-difficulty=${job.difficulty}`])];
  const schema=JSON.parse(fs.readFileSync(`${job.dir}/frame-state-schema.json`));
- const env={...process.env,VS65_L2_SESSION:job.id,VS65_L2_POLICY:job.brake?'l2-matrix-brake':'l2-matrix',DFTRACE_L2_BOSS_FRAMES:'120',DFTRACE_HOLD_PLAYER_LIVES:'3',DFTRACE_L2_OUTPUT:`${out}/${job.id}-clock.csv`,DFTRACE_L2_WORLD_ACC:'0x87',DFTRACE_L2_HULL_ACC:'0x4e71',DFTRACE_L2_LIFETIME:`${out}/${job.id}-lifetime.jsonl`,DFTRACE_SECTOR_CLOCK_OUTPUT:`${out}/${job.id}-director.csv`,VS65_FRAME_PROFILE:path.resolve(`${out}/${job.id}-profile.csv`),VS65_FRAME_STATES:path.resolve(`${out}/${job.id}-states.csv`),VS65_FRAME_STATE_MASK:path.resolve(`${job.dir}/frame-state-mask.bin`),VS65_FRAME_PHYSICAL:String(schema.tokens[0].address),VS65_FRAME_CONSUMED:String(schema.tokens[1].address),VS65_FRAME_SNAPSHOTS:path.resolve(`${out}/${job.id}-snapshots.bin.gz`)};
+ const env={...process.env,...(process.env.CC2_HOME_DIR?{CC2_HOME_OUTPUT:`${process.env.CC2_HOME_DIR}/${job.id}-home.csv`}:{}),VS65_L2_SESSION:job.id,VS65_L2_POLICY:job.brake?'l2-matrix-brake':'l2-matrix',DFTRACE_L2_BOSS_FRAMES:'120',DFTRACE_HOLD_PLAYER_LIVES:'3',DFTRACE_L2_OUTPUT:`${out}/${job.id}-clock.csv`,DFTRACE_L2_WORLD_ACC:'0x87',DFTRACE_L2_HULL_ACC:'0x4e71',DFTRACE_L2_LIFETIME:`${out}/${job.id}-lifetime.jsonl`,DFTRACE_SECTOR_CLOCK_OUTPUT:`${out}/${job.id}-director.csv`,VS65_FRAME_PROFILE:path.resolve(`${out}/${job.id}-profile.csv`),VS65_FRAME_STATES:path.resolve(`${out}/${job.id}-states.csv`),VS65_FRAME_STATE_MASK:path.resolve(`${job.dir}/frame-state-mask.bin`),VS65_FRAME_PHYSICAL:String(schema.tokens[0].address),VS65_FRAME_CONSUMED:String(schema.tokens[1].address),VS65_FRAME_SNAPSHOTS:path.resolve(`${out}/${job.id}-snapshots.bin.gz`)};
  const code=await new Promise((resolve,reject)=>{const c=spawn(process.execPath,args,{stdio:['ignore',fd,fd],env});c.on('error',reject);c.on('exit',resolve);});fs.closeSync(fd);
  if(job.campaign)for(const suffix of ['clock.csv','lifetime.jsonl']) {
   const source=`${job.dir}/runtime-wall-trace/${job.id}-${suffix}`;
@@ -63,6 +63,6 @@ await run(jobs.shift(),!process.argv.includes('--no-prepare'));
 await Promise.all(Array.from({length:3},async()=>{while(jobs.length)await run(jobs.shift());}));
 // The registered test gate validates the actual captures, not stale report pins.
 if(process.argv.includes('--gate')) {
- const c=spawn(process.execPath,['scripts/frame-peak-results.mjs',out,'--require-routes'],{stdio:'inherit'});
+ const c=spawn(process.execPath,['scripts/frame-peak-results.mjs',out,'--require-routes',...process.argv.filter(a=>a.startsWith('--capital-budget='))],{stdio:'inherit'});
  const code=await new Promise(resolve=>c.on('exit',resolve));if(code)process.exitCode=1;
 }

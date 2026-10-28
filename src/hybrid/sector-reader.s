@@ -1313,16 +1313,17 @@ sr_summary_resident:
 ; §BW option A: cold-only dispatch, preserving the MAIN/LIFE byte layout.
 ; Called only by guard_check after a complete transition run. No frame caller.
 sector_reader_l2_guard:
-        lda guard_entry                 ; displaced guard_check instruction
+        lda guard_entry
         cmp #OVERLAY_L2
-        bne @inline
-        lda sr_l2_fold
-        ldy sr_l2_fold+1
+        bcc @inline
+        bne @content
+        lda #<L2_EXPECTED_FOLD
+        ldy #>L2_EXPECTED_FOLD
         jmp guard_compare
+@content:
+        jmp L2_CONTENT_FOLD
 @inline:
         jmp guard_check_inline
-sr_l2_fold:
-        .word L2_EXPECTED_FOLD
-.assert sector_reader_l2_guard = $A5E4, lderror, "L2 cold guard pin moved"
-.assert OVERLAY_L2 = 11 && OVERLAY_DIRECTORY_ENTRIES = 12, error, "L2 checksum coverage is not 11 inline plus extension"
-.export sector_reader_l2_guard, sr_l2_fold
+.assert sector_reader_l2_guard = $A5E9, lderror, "Checked-run guard pin moved"
+.assert OVERLAY_L2 = 11 && OVERLAY_DIRECTORY_ENTRIES = 13, error, "Checked directory coverage changed"
+.export sector_reader_l2_guard

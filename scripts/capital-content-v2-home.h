@@ -7,11 +7,16 @@ static void cc2_home_access(unsigned address, unsigned write) {
  if(!cc2_home_ready){
   cc2_home_ready=1;file=getenv("CC2_HOME_OUTPUT");
   if(file){cc2_home=fopen(file,"w");if(!cc2_home){perror("CC2 home");exit(2);}
-   fprintf(cc2_home,"host,pc,address,write,game,sector,boss\n");}
+   fprintf(cc2_home,"host,pc,address,write,game,sector,boss,valid\n");}
+ }
+ if(cc2_home && dfl2_pc>=0x1180u && dfl2_pc<=0x18ffu && !dfl2_overlay &&
+    (!MEMORY_mem[0x86b3] || MEMORY_mem[dfl2_labels[10]]!=6u)) {
+  fprintf(stderr,"CC2 home execution outside valid gameplay: pc=%u host=%u\n",dfl2_pc,(unsigned)Atari800_nframes);
+  fflush(cc2_home);exit(2);
  }
  if(cc2_home && address>=0x1180u && address<=0x18ffu){
-  fprintf(cc2_home,"%u,%u,%u,%u,%u,%u,%u\n",(unsigned)Atari800_nframes,dfl2_pc,address,write,
-   MEMORY_mem[dfl2_labels[10]],MEMORY_mem[dfl2_labels[21]],dfl2_overlay);
+  fprintf(cc2_home,"%u,%u,%u,%u,%u,%u,%u,%u\n",(unsigned)Atari800_nframes,dfl2_pc,address,write,
+   MEMORY_mem[dfl2_labels[10]],MEMORY_mem[dfl2_labels[21]],dfl2_overlay,MEMORY_mem[0x86b3]);
  }
 }
 static UBYTE cc2_get_direct(unsigned a){cc2_home_access(a,0);return dfl2_get_direct(a);}

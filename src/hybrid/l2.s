@@ -19,7 +19,7 @@ l2_init:
     jmp l2_rearm
     jmp l2_space
 l2_brake_before_enemy:
-    jsr _l2_brake_tick
+    jsr l2_content_brake
     jmp integration_update_enemy
 
 ; One renderer body stays in MAIN/BROADSIDE. Execute displaced instructions.
@@ -306,7 +306,7 @@ l2_fill: .byte 0
 .include "l2-c.inc"
 ; Checked load + INIT is the only re-arm point after a phase overwrite.
 l2_rearm:
-    inc L2_VALID                   ; load guard cleared it before the checked run
+    jmp l2_content_load                   ; load guard cleared it before the checked run
 l2_space:
     ldx DIFFICULTY_SETTING
     lda _l2_normal_rates,x
@@ -424,7 +424,31 @@ l2_shift: .byte 0
 l2_motif_pixel: .byte 0
 l2_motif_column: .byte 0
 
+; Appended hooks preserve the established pre-warning page alignment.
+l2_content_brake:
+    lda L2_VALID
+    beq :+
+    lda game_state
+    cmp #6
+    bne :+
+    jsr $1180
+:
+    jmp _l2_brake_tick
+l2_content_load:
+    ldx #12
+    jsr $A006
+    bcc :+
+    jmp $A21E
+:
+    inc L2_VALID
+    jmp l2_space
+; Only called by the checked reader for content after L2 passed its checksum.
+l2_content_fold:
+    lda #<CONTENT_EXPECTED_FOLD
+    ldy #>CONTENT_EXPECTED_FOLD
+    jmp CONTENT_GUARD_COMPARE
 l2_end:
+.export l2_content_fold
 .export l2_start,l2_end,l2_interval,l2_draw_row,l2_contact,l2_island_contact,l2_commit_row,l2_recipes
 .export l2_space,l2_enter,l2_rearm
 .assert l2_start = L2_INIT, lderror, "L2 ABI moved"

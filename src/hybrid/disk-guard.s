@@ -57,7 +57,7 @@ guard_fold:
 ;   C=0, A=GUARD_SR_OK          it checks (or it is the record)
 ;   C=1, A=GUARD_SR_BAD_IMAGE   it does not
 guard_check:
-        jmp $A5E4                       ; §BW option A; build checks cross-link
+        jmp $A5E9                       ; §BW option A; build checks cross-link
  guard_check_inline:
         cmp #GUARD_RECORD_ENTRY
         beq guard_ok

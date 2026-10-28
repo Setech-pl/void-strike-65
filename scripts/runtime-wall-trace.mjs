@@ -3108,7 +3108,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     return value;
   };
 
-  const publicLaunches = atari800ArtifactLaunches(rootDirectory);
+  const publicLaunches = atari800ArtifactLaunches(rootDirectory, path.dirname(atrPath));
   invariant(publicLaunches.atr.artifact.path === atrPath,
   "Boot smoke must use the manifest-bound public artifact paths");
   // Owner decision A (2026-09-20): the ATR must boot without the player
@@ -4226,6 +4226,16 @@ function main() {
   // --artifacts=build/level-N-sM: a focused, diagnostic run of a debug-route
   // build, which reads and writes only inside that directory.
   const layout = traceArtifactLayout(rootDirectory, argumentValue("artifacts"));
+  const bootArtifacts = argumentValue("boot-artifacts");
+  if (bootArtifacts !== undefined) {
+    invariant(bootSmokeOnly && argumentValue("artifacts") === undefined,
+      "--boot-artifacts requires --boot-smoke-only and no --artifacts");
+    const directory = path.resolve(rootDirectory, bootArtifacts);
+    invariant(directory.startsWith(path.join(rootDirectory, "build") + path.sep),
+      "Boot diagnostic artifacts must be inside build/");
+    layout.inputDirectory = layout.distDirectory = directory;
+    layout.outputDirectory = path.join(directory, "runtime-wall-trace");
+  }
   buildDirectory = layout.outputDirectory;
   const labelPath = path.join(layout.inputDirectory, "void-strike-65.lbl");
   const manifestPath = path.join(layout.distDirectory, "void-strike-65-manifest.json");

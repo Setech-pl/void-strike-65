@@ -1,6 +1,6 @@
 # Capital content v2 — Phase 0 working plan
 
-Status: Phase 0 checkpoint; increment0 WIP stopped at the64-B window growth gate after scalar-C ABI repair. No candidate ATR. Baseline `5053697`; no gameplay implementation.
+Status: Amendment 4 platform increment 1 is retained as WIP. Normal build passes; real-SIO boot frontend deadline fails (1,405 versus 1,402 host frames). No owner-smoke candidate.
 Owner Amendment 1 (2026-10-27) supersedes the original capital-mine scope:
 mines occupy a new minefield sector; capital receives bonuses only. Both
 sectors receive bonuses. Shipped level 1/2 data remain unchanged. Diagnostic
@@ -158,3 +158,27 @@ record route deferral counts and prove the forced run after two deferrals safe.
 Known event signals remain inputs. Non-deferrable work fits the worst frame
 independently (capital885; hazard from its measured baseline). No threshold has
 been implemented or measured at this stopped increment.
+
+
+## Amendment 4 platform attempt (2026-10-28)
+
+Order is now platform increment 1, then Heavy increment 0, then mines and
+bonuses. Owner commits. Heavy policy will move into the content home; resident
+window veneers must remain within 64 B and net Director growth must be <=0 B.
+The earlier 197-B window subtotal omitted an 8-B reset: full rejected growth
+was 205 B. The audit records the function-by-function accounting.
+
+The retained platform loads checked run 12 (15 sectors, $1180–$18FF) from L2
+INIT. L2_VALID is shared validity: only a successful content checksum arms it;
+existing load/exit/boss/reset disarm paths clear it. The no-op content entry is
+called through the capital brake hook only with validity set and game_state=6.
+The final linked L2 uses 1,290 B (+40), leaving 246 B before the untouched
+256-B reserve. Reader uses 1,535/1,536 B (+6). Content code is 1 B in a padded
+1,920-B image; window, Director and arena growth are zero against 5053697.
+Heavy changes were removed from resident segments for this platform checkpoint;
+they remain recoverable from owner commit e88e8b9 and are not implemented here.
+
+STOP: real-SIO boot frontend polling is 3 frames beyond the existing deadline.
+Do not infer passing lifecycle coverage from the earlier baseline observer.
+The new four-region and exit matrix remain pending. Amendment 3 scheduling is
+still required when deferrable content is implemented; a no-op has no such work.

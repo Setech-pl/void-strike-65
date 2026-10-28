@@ -20,7 +20,7 @@ l2_load_guard:
     bne @read
     jsr l2_invalidate               ; preserves X and the summary display
 @read:
-    cpx #12                        ; displaced directory bound, cross-link checked
+    cpx #13                        ; displaced directory bound, cross-link checked
     bcs @bad
     jmp $A124                      ; sector_reader_read_run_inline, checked
 @bad:

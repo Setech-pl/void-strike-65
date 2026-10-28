@@ -75,6 +75,9 @@ const PHASES = [
 // Every linked segment of the default build: owner and phases. A segment
 // without a row here stops the generator - add the row, do not skip it.
 const SEGMENTS = {
+  CONTENT_HEADER: ["checked content entry header", "level"],
+  CONTENT_CODE: ["phase-exclusive content C policy", "level"],
+  CONTENT_DATA: ["checked content state, reset on level load", "level"],
   CONTENT: ["checked content home; overwritten by boss/banner/death", "level"],
   L2: ["checked fighter/capital phase module; overwritten by boss D/death", "level"],
   ZEROPAGE: ["main: zero-page runtime variables", "resident"],
@@ -381,6 +384,9 @@ function loadBuild() {
   const manifest = JSON.parse(readBuild("manifest.json"));
   const maps = new Map();
   for (const name of fs.readdirSync(buildDirectory).filter((file) => file.endsWith(".map")).sort()) {
+    // The shared Director/content link emits one map under both artifact names.
+    if(name==="content-module.map" && fs.existsSync(path.join(buildDirectory,"encounter-director.map")) &&
+       readBuild(name)===readBuild("encounter-director.map"))continue;
     maps.set(name, parseMap(name));
   }
   const labels = new Map();

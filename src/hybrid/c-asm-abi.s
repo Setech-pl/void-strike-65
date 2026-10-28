@@ -47,7 +47,7 @@ DIRECTOR_LOW_RUNTIME = $8B88
 DIRECTOR_LOW_BYTES = 242
 
 .import _director_c_init
-.import _director_c_world_row_tick
+
 .import _director_c_request
 .import _director_c_release
 .import _director_c_rng_advance
@@ -66,7 +66,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_c_apply_pending_damage
 .import _enemy_c_recycle
 .import _enemy_c_light_tick, _enemy_c_light_hit, _enemy_c_light_wave
-.import _enemy_c_heavy_tick
+.import _enemy_c_heavy_tick_original
 .import _enemy_c_heavy_breakup_claim, _heavy_breakup_pending
 .import _heavy_member_x, _heavy_hull_colour, _heavy_archetype_offset
 .import _heavy_member_colour
@@ -720,3 +720,5 @@ heavy_armoured_tick:
 @normal:
     pla
     rts
+
+.include "content-module.s"

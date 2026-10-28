@@ -1,8 +1,8 @@
 # Capital content v2
 
-Status: **PLATFORM INCREMENT 1 PASS — uncommitted owner-smoke build, not owner-accepted.** Amendment5 fixes the boot deadline; Heavy increment0 and content increments2–3 remain unimplemented.
+Status: **INCREMENT0 STOP — Heavy row CPU68 >63 tolerated maximum.** Increment1 is **OWNER-ACCEPTED at f0b0dd1**, including campaign, capital480/960 and hardware SIO2SD. The table below retains those accepted increment1 images; no increment0 play ATR is published.
 
-| Play ATR (absolute path) | SHA-256 | Description |
+| Play ATR (absolute path) | SHA-256 at increment1 delivery | Description |
 | --- | --- | --- |
 | `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/campaign.atr` | `0fcd68d39b829fcdc3743c736824395c0bba3c8a509abf38932e2b2db450c492` | Campaign level1, capital480; checked content platform only |
 | `/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-480.atr` | `94e155fc20a5db9bdbab3315e81c21a3f858b64b66c8428c9761577b6785557e` | Direct capital480; difficulty selectable in OPTIONS |
@@ -14,7 +14,9 @@ atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital
 atari800 -xl -pal -nobasic /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2/build/play/capital-content-v2/1/capital-960.atr
 ```
 
-Branch `codex/capital-content-v2`, owner HEAD `db843f7`; changes uncommitted by instruction. Baseline `5053697`. Difficulty remains selectable in OPTIONS. No merge, push, release or Git write.
+The capital480 play copy currently hashes `02cd17ec12bd24d6d665f81585c7ba9d97f2e57c548c7c7eab3083d26c2a93ee` after owner smoke (only save-record sector599 differs); the table retains delivery hashes. This attempt did not rewrite the play copies.
+
+Branch `codex/capital-content-v2`, owner HEAD `f0b0dd1`; increment0 changes uncommitted by instruction. Baseline `5053697`. Difficulty remains selectable in OPTIONS. No merge, push, release or Git write.
 
 ## Phase 0 timing reconciliation
 
@@ -148,56 +150,15 @@ made, including for the STOP checkpoint. Everything is uncommitted. Suggested
 owner checkpoint message: `WIP STOP: [codex] capital-content-v2 Director ABI gate`.
 No rejected production edit was rolled back, as requested.
 
-## Amendment 2 continuation — 2026-10-28
+## Amendments 2–3 historical continuation
 
-Owner Amendment2 extends F7 to every C module. Used option1: split the
-compound shift/OR into explicit byte operations. The unchanged mandatory
-ABI validator now passes; the normal build reaches ld65. Options2/3 were not
-needed to remove helper state. The exact routine, assembled with matching
--Oirs/6502 flags and scalar declarations, shrinks99→96 B (−3). The repaired
-production routine's listing independently confirms96 B. This fixes the
-previous ABI blocker; it does not validate the Heavy gameplay policy.
-
-The linker then reports DIRECTOR_RAM overflow15 B. Before relocating it under
-the <=32-B allowance, the window inventory establishes an independent hard
-failure. Existing toolchain ca65 assembled the generated C objects without
-linking or relaxing the production gate:
-
-| New window contribution | Assembled bytes |
-| --- | ---: |
-| Three state bytes | 3 |
-| Heavy departure tick | 96 |
-| Two-frame entry guard | 62 |
-| Relocated bomber_may_fire | 36 |
-| **Task window additions** | **197** |
-| **Allowed / excess** | **64 / 133** |
-
-These are assembled segment sizes, not estimates. Given baseline2065 B,
-projected window usage is2262 B, leaving549 B rather than the required682 B.
-No successful new link exists. The fix itself saves3 B; it exposes the prior
-WIP's oversized allocation rather than causing that whole197-B growth.
-Recovery must remove or legally place at least133 B of current window additions
-and resolve the separate15-B Director overflow, preserving all reservations.
-No claim is made that every possible redesign is impossible. The measured
-attempt exceeds the owner's unchanged byte gate, so it is retained and stopped.
-No gates were weakened, no reserve consumed and no further runtime started.
-
-[Assembly evidence and hashes](../diagnostics/capital-content-v2/amendment2-stop.json).
-Raw listings/objects: build/evidence/capital-content-v2/amendment2/;
-build failure: build/evidence/capital-content-v2/amendment2-build.log.
-Reproduce the read-only assembly inventory with
-`node scripts/capital-content-v2-assembly-sizes.mjs` after dumping the generated
-C assembly with VS65_DUMP_GENERATED=1 on the normal build.
-
-Amendment3 is acknowledged: future deferrable steps need an in-frame beam-time
-check plus event checks, at most two deferrals, and a measured safe forced-run
-path. Non-deferrable capital bonus work must fit885 cycles; the hazard uses its
-own measured baseline. Content implementation was not reached, so no threshold,
-threshold derivation, deferral counts or timing guarantee is claimed.
-
-At the Amendment2 STOP: no linked candidate, no new runtime measurements,
-no play ATRs. The prior fifteen-route/boss/exit evidence validates5053697 only.
-All native jobs are finished. No full tests or release work ran.
+A2 option1 replaced the indexed compound expression with scalar C. The
+unchanged ABI validator passed and code shrank99→96 B. The resident attempt
+then stopped at the byte gate; A4 below corrects its197-B subtotal to205 B.
+A3 requires measured in-frame time checks for deferrable future content,
+with at most2 deferrals; non-deferrable capital bonuses must fit885 cycles.
+No such mine/bonus scheduler exists yet. Prior evidence is retained in
+`amendment2-stop.json`; its rejected placement is not the current baseline.
 
 ## Amendment 4 — Step 1, before source changes (2026-10-28)
 
@@ -356,43 +317,98 @@ checklist remains pending for increments2–3. Next implementation is Heavy
 policy in the checked home, with window<=64 B and Director net growth<=0 B.
 
 
+## Increment0 home implementation — CPU STOP
+
+Started from clean owner commit f0b0dd1. C owns the new decisions in the
+checked content home: cached120-row departure runway, Heavy admission block,
+sector advance and two-frame Heavy-clear guard. Bomber exit returns no shot
+and uses the existing one-line departure movement. Existing resident behavior
+remains the fallback when the home is invalid. Every new external home entry
+passes a loaded/gameplay guard. No minefield sector implementation is included;
+its planned capital-kind variant will share this entry rule.
+
+The Director link now emits content as a separate padded disk image, so C
+references remain scalar and link checked. The unchanged C ABI validator
+passes without further A2 repair. Five guarded resident veneers occupy freed
+Director code; the window adds only a3-B call to sector-entry setup. An initial
+host replay exposed a wrong phase-address constant; it was corrected to the
+linked game_state $009A and pinned in the build before the successful build.
+
+| Resource | Current | Delta versus5053697 / gate |
+| --- | ---: | --- |
+| Window |2068 B |+3 B / <=64;743 B free |
+| Director high |318 B |−316 B / <=0 growth |
+| Arena |unchanged |0 B growth |
+| Home |612 B |1 header +606 C +5 state;1920-B image |
+| L2 |1290 B |+40 B / <=64;246 B before reserve |
+| Reader |1512 B |unchanged from accepted platform |
+| Initial content |12825 B |<=13652 |
+| Boot transport |211 sectors |101 initial +110 extension; platform213 |
+| Level image |16 sectors |unchanged |
+
+Normal build and computed gates pass; release evidence remains pending as
+expected. Paired NMOS6502 fixtures compare the full Director row tick against
+5053697 with matching initialized state, a live Heavy and an unspent wave.
+A32-module pre-capital sector arms departure at row136 (120 rows before256).
+Ordinary fixture rows cost214 versus170 CPU (+44); the trigger costs238
+versus170 (+68). **68 is13.33% above60, exceeding the5% tolerance (63).**
+This is instruction CPU, not wall cycles; no timing allowance is waived.
+The STOP is the component gate, not a window, Director or C ABI failure.
+
+No native job was started for this attempt. Required native15, home observer,
+boot frontend<=1402, boss stress, EASY drain and Heavy-free>=2-frame window
+remain pending. The accepted platform's evidence does not validate these
+changes. No build/play/capital-content-v2/0/ images were created. The generated
+map describes linked WIP; the former standalone cfg/content-module.cfg is now
+unused, and content-module.map currently aliases the shared Director map.
+The map reporter recognizes the new segments and suppresses the duplicate
+shared map. Removing the unused standalone config remains pending.
+
+Recovery options (ESTIMATE only; not implemented after STOP):
+1. Inline the existing loaded/phase check in the row veneer: +6 Director B,
+   no window/arena growth,−12 CPU, predicted56-cycle trigger. Same gameplay;
+   duplicates a small guard and requires all lifecycle/native checks.
+2. Keep the shared guard and implement the row equality comparison in a small
+   ASM helper, leaving the departure decision/stores in C: roughly30–50 home B,
+   target>=8 CPU saved. Same gameplay, but a new ABI seam and no measured
+   saving yet; higher codegen/proof risk than option1.
+
+Evidence: `increment0-home-stop.json`, `increment0-home-sha256.txt` in the
+compact diagnostics directory; raw build log and paired CPU JSON under
+`build/evidence/capital-content-v2/increment0/`. Reproduce each side with
+`scripts/capital-content-v2-heavy-cpu.mjs <build-folder-name> <output.json>`.
+No full tests, release work, merge, push or Git writes. Owner commits.
+
 ## Chat summary
 
-Platform increment1 PASS; owner smoke pending, uncommitted on db843f7.
-Baseline and A4 both used225 pre-frontend sectors and polled at1405.
-A5(b): reader−23 B; dispatch uses18 B existing LIFE padding; total224 sectors.
-Real-SIO frontend1401 <=1402; all boot cases PASS.
-Window/Director/arena growth0; L2+40; reader−17 versus5053697.
-Native15/15 PASS: peak31432, capital30090, composed30328, fence3407.
-Home observer27 captures:0 invalid content executions; R1–R4 and8 exits PASS.
-Boss entry325; lost-target CPU max8473, delta0;720 SPACE CPU deltas0.
-Added load57 PAL frames (~1.14 s); guard/no-op28 CPU cycles.
-Three ATRs delivered under build/play/capital-content-v2/1/.
-No Heavy rule, mines or bonuses yet; next is increment0 in the home.
-All native jobs finished; no Git write, release build or evidence refresh.
+Increment1 OWNER-ACCEPTED at f0b0dd1, including hardware SIO2SD.
+Increment0 home implementation retained uncommitted; normal build/ABI pass.
+Window+3 B; Director−316 B; arena0; home612/1920 B.
+Heavy ordinary-row delta44 CPU; trigger68 versus60 gate /63 tolerated.
+STOP on component CPU; no increment0 play images or new native claim.
+Inline row guard is ESTIMATE−12 cycles/+6 Director B; not implemented.
+Accepted increment1 play files were not rewritten by this attempt.
+No native job is running. Owner checkpoint commands follow.
 
 ## Owner checkpoint commands
 
-Owner performs Git writes; none attempted. In this worktree:
+No Git write attempted. Run in this worktree:
 
 ```sh
 git add \
+  cfg/encounter-director.cfg \
   docs/STATUS.md \
   docs/audits/2026-10-28-capital-content-v2.md \
   docs/memory-map.md \
   docs/plans/capital-content-v2.md \
   scripts/build.mjs \
-  scripts/capital-content-v2-home-prepare.mjs \
-  scripts/runtime-wall-trace.mjs \
-  src/hybrid/boss-entry-pins.inc \
-  src/hybrid/disk-guard.s \
-  src/hybrid/l2-lifetime.s \
-  src/hybrid/sector-reader.s \
-  tests/sector-reader.test.mjs \
-  docs/diagnostics/capital-content-v2/amendment5-attribution.json \
-  docs/diagnostics/capital-content-v2/amendment5-platform.json \
-  docs/diagnostics/capital-content-v2/amendment5-sha256.txt \
-  scripts/capital-content-v2-platform-summary.mjs \
-  tests/capital-content-v2-loader.test.mjs
-git commit -m "[codex] capital-content-v2 platform: recover boot sector and verify guarded home"
+  scripts/memory-map-report.mjs \
+  src/c/director.c \
+  src/c/lifecycle.c \
+  src/hybrid/c-asm-abi.s \
+  src/hybrid/content-module.s \
+  docs/diagnostics/capital-content-v2/increment0-home-sha256.txt \
+  docs/diagnostics/capital-content-v2/increment0-home-stop.json \
+  scripts/capital-content-v2-heavy-cpu.mjs
+git commit -m "WIP STOP: [codex] Heavy home rule exceeds row CPU tolerance"
 ```

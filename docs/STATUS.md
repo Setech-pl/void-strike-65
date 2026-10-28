@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital content v2 platform — owner smoke pending)
+Last update: 2026-10-28 (capital content v2 — increment0 CPU STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,21 +20,20 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — platform PASS, owner smoke pending (2026-10-28)
+### Capital content v2 — increment0 CPU STOP (2026-10-28)
 
-Amendment5 platform increment1 passes on codex/capital-content-v2, owner HEAD
-db843f7 plus uncommitted changes. No owner acceptance or commit is implied.
-Baseline and A4 both reached frontend1405; recovered23 reader bytes remove
-one boot sector and bring frontend to1401 <=1402. Window/Director/arena growth
-0 B, L2+40 B, reader−17 B versus5053697; content code1 B in1920-B checked home.
-Guarded native15/15 passes: peak31,432, capital30,090, composed30,328;
-fence>=3407, boss entry325. Home observer27 captures:0 invalid executions.
-Boot smoke, R1–R4 lifecycle,8 exits,720 SPACE zero-CPU-delta fixtures and boss
-lost-target stress(delta0, max8473) pass. Added content read57 PAL frames.
-Play ATRs: `build/play/capital-content-v2/1/` campaign, capital480 and960.
-See [report](audits/2026-10-28-capital-content-v2.md) for hashes and owner commit
-commands. NEXT: Heavy increment0 in the home, then hazard mines and bonuses.
-Shipped levels1/2 remain unchanged; no mines/bonuses/Heavy rule implemented yet.
+Increment1 is **OWNER-ACCEPTED** at f0b0dd1: campaign, capital480/960 and
+hardware SIO2SD smoke passed. Accepted play images remain under
+`build/play/capital-content-v2/1/`.
+Increment0 Heavy policy is retained uncommitted in the content home. Normal
+build and unchanged C ABI gate pass. Window+3 B, Director634→318 B (−316),
+arena0 B growth; content612/1920 B. **BLOCKED_HEAVY_ROW_CPU:** paired NMOS6502
+row fixtures add44 CPU normally and68 at the departure trigger, exceeding the
+60-cycle gate by13.33% (>5% tolerance, maximum63). No increment0 play ATR is
+published. Native timing/lifecycle, boot deadline, boss stress, Heavy-free
+window and EASY drain remain unmeasured for this attempt. No native job ran.
+See [report](audits/2026-10-28-capital-content-v2.md) for evidence and exact
+owner commit commands. NEXT: owner-directed CPU recovery; preserve the gate.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

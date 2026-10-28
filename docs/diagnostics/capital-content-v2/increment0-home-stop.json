@@ -1,0 +1,116 @@
+{
+  "status": "BLOCKED_HEAVY_ROW_CPU",
+  "ownerAcceptedPlatform": "f0b0dd1",
+  "baseline": "5053697",
+  "gate": 60,
+  "tolerancePercent": 5,
+  "maximumTolerated": 63,
+  "measuredWorstDelta": 68,
+  "ordinaryDelta": 44,
+  "measurement": "MEASURED NMOS6502 complete Director world-row routine, matching initialized pre-capital fixtures; no DMA estimate",
+  "rows": [
+    {
+      "row": 1,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    },
+    {
+      "row": 7,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    },
+    {
+      "row": 8,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    },
+    {
+      "row": 127,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    },
+    {
+      "row": 128,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    },
+    {
+      "row": 135,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    },
+    {
+      "row": 136,
+      "cycles": 238,
+      "departure": 1,
+      "baselineCpu": 170,
+      "delta": 68
+    },
+    {
+      "row": 137,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    },
+    {
+      "row": 255,
+      "cycles": 214,
+      "departure": 0,
+      "baselineCpu": 170,
+      "delta": 44
+    }
+  ],
+  "bytes": {
+    "windowDelta": 3,
+    "directorBaseline": 634,
+    "directorCurrent": 318,
+    "directorDelta": -316,
+    "arenaDelta": 0,
+    "homeCodeAndState": 612,
+    "homeImage": 1920,
+    "homeState": 5,
+    "l2Bytes": 1290,
+    "l2TaskDelta": 40,
+    "readerBytes": 1512,
+    "initialContent": 12825,
+    "bootSectors": 211,
+    "levelSectors": 16
+  },
+  "completed": [
+    "normal build computed gates",
+    "unchanged C ABI validator",
+    "paired CPU row fixtures"
+  ],
+  "pending": [
+    "Heavy-free two-frame native proof",
+    "EASY drain measurement",
+    "boot1402 verification",
+    "native15",
+    "home observer matrix",
+    "boss lost-target stress",
+    "increment0 play ATRs"
+  ],
+  "nativeJobsStarted": 0,
+  "estimatedRecovery": {
+    "inlineRowGuard": {
+      "savedCpu": 12,
+      "predictedWorst": 56,
+      "addedDirectorBytes": 6,
+      "windowDeltaChange": 0,
+      "status": "ESTIMATE, not implemented or measured"
+    }
+  }
+}

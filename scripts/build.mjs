@@ -1540,6 +1540,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const abiAssembled = await runWasmTool(
     "ca65",
     { [`${base}-abi.s`]: abiSource,
+      "/project/build/content-module.s": fs.readFileSync(path.join(rootDirectory,"src/hybrid/content-module.s")),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
       "/project/build/level-def.inc": levelDefInclude,
@@ -1572,7 +1573,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     },
     ["-C", `${base}.cfg`, "-o", `${base}-combined.bin`, "-m", `${base}.map`,
       "-Ln", `${base}.lbl`, `${base}-abi.o`, `${base}-c.o`, `${base}-lifecycle.o`, "/project/life-capsule-c.o"],
-    [`${base}-combined.bin`, `${base}.map`, `${base}.lbl`],
+    [`${base}-combined.bin`, `${base}-combined.bin.content`, `${base}.map`, `${base}.lbl`],
   );
   const combinedRaw = Buffer.from(linked.outputs[`${base}-combined.bin`]);
   const map = linked.outputs[`${base}.map`];
@@ -1722,6 +1723,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const codeRaw = Buffer.concat(codeSegments.map(({ data }) => data));
   const codePacked = Buffer.concat(codeSegments.map(({ packed: segmentPacked }) => segmentPacked));
   return {
+    contentRaw: Buffer.from(linked.outputs[`${base}-combined.bin.content`]),
     implementation: "cc65-c",
     raw,
     packed,
@@ -2816,10 +2818,9 @@ async function build() {
   if (/\(sp\)|\b(?:sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b|\b(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(l2Generated))
     throw new Error("L2 C requires software-stack/helper state");
   writeFile(path.join(buildDirectory,"l2-generated.s"),Buffer.from(l2Generated));
-  const contentModule = await buildResidentModule({
-    sourcePath: path.join(rootDirectory,"src/hybrid/content-module.s"),
-    configPath: path.join(rootDirectory,"cfg/content-module.cfg"), stem:"content-module",
-  });
+  if(labels.get("game_state")!==0x9a)throw new Error("Content phase guard pin moved");
+  const contentModule = {raw:directorModule.contentRaw, labels:directorModule.labels,
+    map:directorModule.map, listing:Buffer.concat([directorModule.abiListing,directorModule.listing,directorModule.lifecycleListing])};
   for (const [ext,data] of [["bin",contentModule.raw],["map",contentModule.map],["lbl",contentModule.labels],["lst",contentModule.listing]])
     writeFile(path.join(buildDirectory,`content-module.${ext}`),data);
   const l2MainNames=["game_state","player_shape","CHARSET","PLAYER_VISIBLE_WIDTH_HPOS","profile_after_player","corridor_phase","HULL_DRAW_ROW_LO","CORRIDOR_PHASE_HI","draw_hull_row","DIFFICULTY_SETTING","CAPITAL_SECTOR_STATE","player_x","player_y","visible_hull_sector_row","apply_broadside_player_damage","dst_ptr","PREPARED_HULL_ROW","GAMEPLAY_DIVIDER_SCREEN","integration_update_enemy",

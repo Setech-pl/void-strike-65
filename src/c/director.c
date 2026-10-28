@@ -228,6 +228,16 @@ static const uint8_t hazard_budget[3] = { 3u, 4u, 5u };
 
 /* feat/sector-flow (docs/plans/sector-flow.md): the three rules' window
  * functions, defined after advance_sector, which they call. */
+#pragma data-name (push, "CONTENT_DATA")
+uint8_t heavy_departure = 0u;
+static uint8_t heavy_clear_pending = 0u, heavy_clear_frame = 0u;
+static uint8_t heavy_runway_hi = 255u, heavy_runway_lo = 255u;
+#pragma data-name (pop)
+extern uint8_t heavy_descent_mask, heavy_armoured;
+extern void asm_cc2_enter(void);
+extern void asm_cc2_advance(void);
+extern uint8_t asm_cc2_request(void);
+static uint8_t heavy_entry_ready(void);
 static void advance_sector(void);
 static void director_c_arm_wave(void);
 
@@ -386,6 +396,7 @@ static void compute_wave_end(void)
  * retired frame gate raised; the entry itself still waits for the drain. */
 static void enter_sector(void)
 {
+    asm_cc2_enter();
     director_scratch3 = STATE_SECTOR;
     sector_row_lo = 0u;
     sector_row_hi = 0u;
@@ -460,17 +471,7 @@ void director_c_init(void)
 #pragma rodata-name ("DIRECTOR_C_RODATA")
 
 /* The next sector, or the end of the level. */
-static void advance_sector(void)
-{
-    director_scratch0 = (uint8_t)(STATE_SECTOR + 1u);
-    director_scratch1 = level_header[CORE_SECTOR_COUNT];
-    if (director_scratch0 >= director_scratch1) {
-        STATE_FLAGS |= FLAG_COMPLETE;
-        return;
-    }
-    STATE_SECTOR = director_scratch0;
-    enter_sector();
-}
+static void advance_sector(void) { asm_cc2_advance(); }
 
 /* HYBRID_C_WINDOW_FLOW is the window's last segment (cfg/encounter-director.cfg):
  * placed there, these bytes move no byte of the Light C or the boss entry, so
@@ -652,95 +653,7 @@ void director_c_boss_escort_frame(void)
 
 #pragma code-name ("DIRECTOR_C_CODE")
 
-void director_c_world_row_tick(void)
-{
-    if ((STATE_FLAGS & FLAG_COMPLETE) != 0u) {
-        return;
-    }
-    STATE_ROW_LO = (uint8_t)(STATE_ROW_LO + 1u);
-    if (STATE_ROW_LO == 0u) {
-        STATE_ROW_HI = (uint8_t)(STATE_ROW_HI + 1u);
-    }
-    sector_row_lo = (uint8_t)(sector_row_lo + 1u);
-    if (sector_row_lo == 0u) {
-        sector_row_hi = (uint8_t)(sector_row_hi + 1u);
-    }
-    if (STATE_REACTION != 0u) {
-        --STATE_REACTION;
-    }
-    if (STATE_RECOVERY != 0u) {
-        --STATE_RECOVERY;
-    }
 
-    director_scratch3 = STATE_SECTOR;
-    director_scratch0 = sector_kind[director_scratch3] & SECTOR_KIND_MASK;
-    if (director_scratch0 == SECTOR_KIND_CAPITAL) {
-        /* The hull traversal is this sector's clock, not an authored length.
-         * It ends where the reconstruction pass leaves the sector OPEN again,
-         * which is the one transition both media publish. */
-        if ((STATE_FLAGS & FLAG_CAPITAL_ADMITTED) != 0u &&
-            CAPITAL_SECTOR_STATE == CAPITAL_HULL_STATE_OPEN) {
-            STATE_FLAGS &= FLAG_NOT_ADMITTED;
-            advance_sector();
-        }
-        return;
-    }
-    /* M5b-S3: the boss sector ends at the boss's death, not on a row, and its
-     * escort is the boss controller's to start (feat/boss-escort-flow): a
-     * row tick while the entry waits for the drain must not arm it early. */
-    if (director_scratch0 == SECTOR_KIND_BOSS) {
-        return;
-    }
-    if (director_scratch0 == SECTOR_KIND_SPACE) {
-        /* sector_len is in 8-row modules: split it into a row hi/lo pair
-         * rather than widening the row to 16 bits, which cc65 would do on the
-         * C software stack. */
-        sector_field = sector_len[director_scratch3];
-        director_scratch1 = (uint8_t)(sector_field >> 5);
-        if (sector_row_hi > director_scratch1) {
-            director_c_sector_cut();
-            return;
-        }
-        if (sector_row_hi == director_scratch1) {
-            director_scratch1 = (uint8_t)(sector_field << 3);
-            if (sector_row_lo >= director_scratch1) {
-                director_c_sector_cut();
-                return;
-            }
-        }
-    }
-
-    /* The armed wave holds the cursor until it is spent: STATE_WAVE_REMAINING
-     * for a Heavy wave, the window's lock for a Light one. */
-    if (STATE_WAVE_REMAINING != 0u) {
-        if (STATE_SPACING != 0u) {
-            --STATE_SPACING;
-        }
-        return;
-    }
-    if (light_wave_lock != 0u) {
-        return;
-    }
-    compute_wave_end();
-    director_scratch0 = STATE_WAVE_CURSOR;
-    if (director_scratch0 == wave_end) {
-        director_c_sector_spent();
-        return;
-    }
-    /* wave_row is in modules, like sector_len. */
-    director_scratch1 = wave_row[director_scratch0];
-    director_scratch2 = (uint8_t)(director_scratch1 >> 5);
-    if (sector_row_hi < director_scratch2) {
-        return;
-    }
-    if (sector_row_hi == director_scratch2) {
-        director_scratch2 = (uint8_t)(director_scratch1 << 3);
-        if (sector_row_lo < director_scratch2) {
-            return;
-        }
-    }
-    director_c_arm_wave();
-}
 
 #pragma code-name ("DIRECTOR_C_CODE")
 
@@ -767,31 +680,7 @@ static uint8_t archetype_allowed(void)
  * left, has its spacing elapsed, is its archetype inside the sector's mask, is
  * there room under the effective ceiling, and will ASM allocate? On yes it
  * publishes the formation's archetype and escort for enemy_c_spawn_raiders. */
-static uint8_t heavy_request(void)
-{
-    if (STATE_WAVE_REMAINING == 0u) {
-        return 0u;
-    }
-    if ((heavy_wave_flags & WAVE_FLAG_HEAVY) == 0u) {
-        return 0u;
-    }
-    if (STATE_SPACING != 0u) {
-        return 0u;
-    }
-    if (heavy_ceiling() == 0u) {
-        return 0u;
-    }
-    director_scratch0 = heavy_archetype_offset;
-    if (archetype_allowed() == 0u) {
-        return 0u;
-    }
-    if (asm_director_can_allocate() == 0u) {
-        return 0u;
-    }
-    --STATE_WAVE_REMAINING;
-    STATE_SPACING = director_publish_heavy_wave();
-    return 1u;
-}
+static uint8_t heavy_request(void) { return asm_cc2_request(); }
 
 uint8_t director_c_request(void)
 {
@@ -873,3 +762,163 @@ void director_c_release(void)
         STATE_INTENSITY = (uint8_t)(STATE_INTENSITY - director_scratch0);
     }
 }
+
+#pragma code-name (push, "CONTENT_CODE")
+void cc2_enter(void)
+{
+    heavy_departure = heavy_clear_pending = 0u;
+    heavy_runway_hi = heavy_runway_lo = 255u;
+    director_scratch0 = (uint8_t)(STATE_SECTOR + 1u);
+    if (director_scratch0 >= level_header[CORE_SECTOR_COUNT] ||
+        (sector_kind[director_scratch0] & SECTOR_KIND_MASK) != SECTOR_KIND_CAPITAL) return;
+    director_scratch0 = sector_len[STATE_SECTOR];
+    if (director_scratch0 <= 15u) { heavy_departure = 1u; return; }
+    director_scratch0 -= 15u;
+    heavy_runway_hi = (uint8_t)(director_scratch0 >> 5);
+    heavy_runway_lo = (uint8_t)(director_scratch0 << 3);
+}
+static uint8_t heavy_entry_ready(void)
+{
+    if ((sector_kind[director_scratch0] & SECTOR_KIND_MASK) != SECTOR_KIND_CAPITAL) return 1u;
+    if (ENEMY_ACTIVE != 0u) { heavy_clear_pending = 0u; return 0u; }
+    if (heavy_clear_pending == 0u) {
+        heavy_clear_pending = 1u; heavy_clear_frame = FRAME_COUNTER; return 0u;
+    }
+    return (uint8_t)(FRAME_COUNTER - heavy_clear_frame) >= 2u;
+}
+void cc2_advance(void)
+{
+    director_scratch0 = (uint8_t)(STATE_SECTOR + 1u);
+    director_scratch1 = level_header[CORE_SECTOR_COUNT];
+    if (director_scratch0 >= director_scratch1) {
+        STATE_FLAGS |= FLAG_COMPLETE;
+        return;
+    }
+    if (heavy_entry_ready() == 0u) return;
+    director_scratch0 = (uint8_t)(STATE_SECTOR + 1u);
+    STATE_SECTOR = director_scratch0;
+    enter_sector();
+}
+
+uint8_t cc2_request(void)
+{
+    if (heavy_departure != 0u) return 0u;
+    if (STATE_WAVE_REMAINING == 0u) {
+        return 0u;
+    }
+    if ((heavy_wave_flags & WAVE_FLAG_HEAVY) == 0u) {
+        return 0u;
+    }
+    if (STATE_SPACING != 0u) {
+        return 0u;
+    }
+    if (heavy_ceiling() == 0u) {
+        return 0u;
+    }
+    director_scratch0 = heavy_archetype_offset;
+    if (archetype_allowed() == 0u) {
+        return 0u;
+    }
+    if (asm_director_can_allocate() == 0u) {
+        return 0u;
+    }
+    --STATE_WAVE_REMAINING;
+    STATE_SPACING = director_publish_heavy_wave();
+    return 1u;
+}
+
+void cc2_world_row_tick(void)
+{
+    if ((STATE_FLAGS & FLAG_COMPLETE) != 0u) {
+        return;
+    }
+    STATE_ROW_LO = (uint8_t)(STATE_ROW_LO + 1u);
+    if (STATE_ROW_LO == 0u) {
+        STATE_ROW_HI = (uint8_t)(STATE_ROW_HI + 1u);
+    }
+    sector_row_lo = (uint8_t)(sector_row_lo + 1u);
+    if (sector_row_lo == 0u) {
+        sector_row_hi = (uint8_t)(sector_row_hi + 1u);
+    }
+    if (STATE_REACTION != 0u) {
+        --STATE_REACTION;
+    }
+    if (STATE_RECOVERY != 0u) {
+        --STATE_RECOVERY;
+    }
+
+    /* Cached exact row: no per-row indexed geometry or 16-bit arithmetic. */
+    if (sector_row_lo == heavy_runway_lo && sector_row_hi == heavy_runway_hi) {
+        heavy_departure = 1u;
+        heavy_descent_mask = heavy_armoured = 0u;
+    }
+    director_scratch3 = STATE_SECTOR;
+    director_scratch0 = sector_kind[director_scratch3] & SECTOR_KIND_MASK;
+    if (director_scratch0 == SECTOR_KIND_CAPITAL) {
+        /* The hull traversal is this sector's clock, not an authored length.
+         * It ends where the reconstruction pass leaves the sector OPEN again,
+         * which is the one transition both media publish. */
+        if ((STATE_FLAGS & FLAG_CAPITAL_ADMITTED) != 0u &&
+            CAPITAL_SECTOR_STATE == CAPITAL_HULL_STATE_OPEN) {
+            STATE_FLAGS &= FLAG_NOT_ADMITTED;
+            advance_sector();
+        }
+        return;
+    }
+    /* M5b-S3: the boss sector ends at the boss's death, not on a row, and its
+     * escort is the boss controller's to start (feat/boss-escort-flow): a
+     * row tick while the entry waits for the drain must not arm it early. */
+    if (director_scratch0 == SECTOR_KIND_BOSS) {
+        return;
+    }
+    if (director_scratch0 == SECTOR_KIND_SPACE) {
+        /* sector_len is in 8-row modules: split it into a row hi/lo pair
+         * rather than widening the row to 16 bits, which cc65 would do on the
+         * C software stack. */
+        sector_field = sector_len[director_scratch3];
+        director_scratch1 = (uint8_t)(sector_field >> 5);
+        if (sector_row_hi > director_scratch1) {
+            director_c_sector_cut();
+            return;
+        }
+        if (sector_row_hi == director_scratch1) {
+            director_scratch1 = (uint8_t)(sector_field << 3);
+            if (sector_row_lo >= director_scratch1) {
+                director_c_sector_cut();
+                return;
+            }
+        }
+    }
+
+    /* The armed wave holds the cursor until it is spent: STATE_WAVE_REMAINING
+     * for a Heavy wave, the window's lock for a Light one. */
+    if (STATE_WAVE_REMAINING != 0u) {
+        if (STATE_SPACING != 0u) {
+            --STATE_SPACING;
+        }
+        return;
+    }
+    if (light_wave_lock != 0u) {
+        return;
+    }
+    compute_wave_end();
+    director_scratch0 = STATE_WAVE_CURSOR;
+    if (director_scratch0 == wave_end) {
+        director_c_sector_spent();
+        return;
+    }
+    /* wave_row is in modules, like sector_len. */
+    director_scratch1 = wave_row[director_scratch0];
+    director_scratch2 = (uint8_t)(director_scratch1 >> 5);
+    if (sector_row_hi < director_scratch2) {
+        return;
+    }
+    if (sector_row_hi == director_scratch2) {
+        director_scratch2 = (uint8_t)(director_scratch1 << 3);
+        if (sector_row_lo < director_scratch2) {
+            return;
+        }
+    }
+    director_c_arm_wave();
+}
+#pragma code-name (pop)

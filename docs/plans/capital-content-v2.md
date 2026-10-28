@@ -1,6 +1,6 @@
 # Capital content v2 — Phase 0 working plan
 
-Status: Amendment 5 removes the boot frontend blocker (1,401 <=1,402). Guarded platform verification passes; play ATRs delivered for owner smoke. No gameplay increment is accepted.
+Status: platform increment1 OWNER-ACCEPTED at f0b0dd1 (including SIO2SD). Increment0 home implementation stops at Heavy row CPU68 >63 tolerated maximum.
 Owner Amendment 1 (2026-10-27) supersedes the original capital-mine scope:
 mines occupy a new minefield sector; capital receives bonuses only. Both
 sectors receive bonuses. Shipped level 1/2 data remain unchanged. Diagnostic
@@ -204,3 +204,23 @@ count. Good/corrupt checked loads and512 phase/validity combinations pass.
 The four boss-region lifecycle fixtures, native15 and eight exits pass;
 platform play ATRs are delivered. Heavy policy still follows this
 platform checkpoint, per Amendment4.
+
+
+## Increment0 home attempt after platform acceptance
+
+Five guarded resident entry veneers occupy freed Director bytes. Sector-entry
+setup adds a3-B call in the window. C policy for row ticking, admission and
+sector advance now links into the content home; Bomber departure delegates to
+the original movement policy when not departing. The content image is emitted
+as a separate file by the same link, preserving scalar C symbol references.
+Cached runway is authored sector length minus120 rows; admission is blocked
+once departure is set. The existing exit motion is used, with a two-frame
+clear guard before the Director enters the capital-kind sector (also the
+planned minefield variant). Module state resets on checked reload and sector
+entry. No new minefield schema or shipped level change is implemented.
+
+Build passes; window+3 B, Director−316 B, arena0 B, home612 B (5 B state).
+MEASURED complete-row CPU delta44 ordinary /68 trigger; gate60, tolerated63.
+STOP before native verification or play delivery. Specialized inline guard
+on the row veneer is a possible recovery: ESTIMATE+6 Director bytes,−12 CPU,
+predicted56. This was not implemented after the hard tolerance failure.

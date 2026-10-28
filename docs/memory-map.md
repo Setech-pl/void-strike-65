@@ -37,15 +37,18 @@ Sections marked *earlier `2df89da`* were not regenerated.
 > file disagrees with it, the generated block is right. The hand-written
 > sections stay as design notes and history.
 
-### Capital content v2 platform (2026-10-28, owner smoke pending)
+### Capital content v2 increment0 WIP (2026-10-28)
 
-Checked content home $1180–$18FF:1 B code in1920-B image, shared L2_VALID
-armed only after checksum success; entry additionally requires GAMEPLAY.
-L2 uses1290 B (+40),246 B free before untouched256-B reserve. Reader1512 B
-(−17 versus5053697),24 B free. Its cold guard dispatch uses18 B of existing
-pinned LIFE padding at$867D, with no extent growth. Window/Director/arena task
-growth0 B. No M3-H reservation changes. Native/lifecycle gates pass; Heavy
-policy still awaits migration into the home. [Report](audits/2026-10-28-capital-content-v2.md).
+Platform1 OWNER-ACCEPTED at f0b0dd1. Current uncommitted Heavy attempt links
+CONTENT_HEADER/CODE/DATA at $1180–$13E3:612 B in the checked1920-B image,
+including5 B state. The Director link emits this as a separate file; its
+resident high segment shrinks634→318 B. Window grows3 B to2068 B, arena
+unchanged. L2 remains1290 B (+40 versus5053697); reserve256 B untouched.
+Reader1512 B unchanged. Generated map includes the shared link's content
+labels; content-module.map is currently an alias of the Director map.
+The attempt is STOPPED on measured Heavy row overhead68 CPU (>63 tolerated),
+not a passing gameplay baseline. No M3-H reservation change or increment0 ATR.
+See [report](audits/2026-10-28-capital-content-v2.md).
 
 <!-- BEGIN GENERATED MEMORY MAP: npm run memory-map -->
 
@@ -101,8 +104,10 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$10BF-$10EE` | 48 B | segment | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors | `boss-entry` | build/boss.map |
 | `$10EF-$11DA` | 236 B | segment | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen | `boss-entry` | build/boss.map |
 | `$1180-$18FF` | 1,920 B | slot | checked content module; retained through pause/death, executable only in valid gameplay | `level` | manifest `contentModule` |
-| `$1180` | 1 B | segment | `CONTENT` — checked content home; overwritten by boss/banner/death | `level` | build/content-module.map |
+| `$1180` | 1 B | segment | `CONTENT_HEADER` — checked content entry header | `level` | build/encounter-director.map |
+| `$1181-$13DE` | 606 B | segment | `CONTENT_CODE` — phase-exclusive content C policy | `level` | build/encounter-director.map |
 | `$11EC-$194F` | 1,892 B | segment | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication | `boss` `death` | build/boss-death.map |
+| `$13DF-$13E3` | 5 B | segment | `CONTENT_DATA` — checked content state, reset on level load | `level` | build/encounter-director.map |
 | `$14FC-$154C` | 81 B | segment | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes | `overlay` | build/boss.map |
 | `$1500-$17FF` | 768 B | transient | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen | `boss-entry` | manifest `boss.banner` |
 | `$154E-$1557` | 10 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
@@ -252,8 +257,8 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$9D5E-$9D72` | 21 B | segment | `DIRECTOR_C_PRE` — cc65 Director RNG | `resident` | build/encounter-director.map |
 | `$9D73-$9D74` | 2 B | reserved | free tail of `DIRECTOR_C_PRE_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$9D75-$9D88` | 20 B | segment | `DIRECTOR_C_RODATA` — cc65 Director constants | `resident` | build/encounter-director.map |
-| `$9D89-$9FEE` | 614 B | segment | `DIRECTOR_C_CODE` — high cc65 Director code | `resident` | build/encounter-director.map |
-| `$9FEF-$9FF9` | 11 B | reserved | free tail of `DIRECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$9D89-$9EB2` | 298 B | segment | `DIRECTOR_C_CODE` — high cc65 Director code | `resident` | build/encounter-director.map |
+| `$9EB3-$9FF9` | 327 B | reserved | free tail of `DIRECTOR_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$9FFA-$9FFF` | 6 B | guard | `DIRECTOR_GUARD`: reserved, no segment | `resident` | cfg/encounter-director.cfg |
 | `$A000-$BFFF` | 8,192 B | machine | RAM under the BASIC ROM: `disable_basic_rom` forces `PORTB` bit 1 and `BASICF` at every stage-2 entry (a description, not a claim) | `boot` `resident` | src/main.s, cfg/encounter-director.cfg |
 | `$A000-$A5E7` | 1,512 B | segment | `SECTOR_READER` — between-levels sector reader, overlay runs, stat hooks | `resident` | build/sector-reader.map |
@@ -267,13 +272,13 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$AB00-$ABFF` | 256 B | slot | LevelDef payload page | `level` | manifest `levelDef.payload` |
 | `$AC00-$ADFF` | 512 B | slot | HullGeometry page (after its linked 8-B header) | `level` | manifest `levelDef.geometry`, `sectorReader.levels` |
 | `$AC00-$AC07` | 8 B | segment | `LEVEL_GEOMETRY` — HullGeometry header (bss inside the level buffer) | `level` | build/encounter-director.map |
-| `$AE00-$B3FC` | 1,533 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
-| `$B3FD` | 1 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
-| `$B3FE-$B477` | 122 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
-| `$B478-$B56B` | 244 B | segment | `HYBRID_C_WINDOW_HEAVY` — M3-H appended C: H9 admission and wave metadata | `resident` | build/encounter-director.map |
-| `$B56C-$B5A6` | 59 B | segment | `HYBRID_C_WINDOW_HEAVY_RODATA` — M3-H H9 presentation/health tables and A2 profile-field table | `resident` | build/encounter-director.map |
-| `$B5A7-$B610` | 106 B | segment | `HYBRID_ASM_HEAVY_WINDOW` — M3-H appended armoured Raider executor, explicit kernel ABI | `resident` | build/encounter-director.map |
-| `$B611-$B8FF` | 751 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$AE00-$B3FF` | 1,536 B | segment | `HYBRID_C_WINDOW` — Director link's half of the BASIC window | `resident` | build/encounter-director.map |
+| `$B400` | 1 B | segment | `HYBRID_ASM_WINDOW` — the boss entry's resident half (M5b-S3), last in the Director link's window half | `resident` | build/encounter-director.map |
+| `$B401-$B47A` | 122 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
+| `$B47B-$B56E` | 244 B | segment | `HYBRID_C_WINDOW_HEAVY` — M3-H appended C: H9 admission and wave metadata | `resident` | build/encounter-director.map |
+| `$B56F-$B5A9` | 59 B | segment | `HYBRID_C_WINDOW_HEAVY_RODATA` — M3-H H9 presentation/health tables and A2 profile-field table | `resident` | build/encounter-director.map |
+| `$B5AA-$B613` | 106 B | segment | `HYBRID_ASM_HEAVY_WINDOW` — M3-H appended armoured Raider executor, explicit kernel ABI | `resident` | build/encounter-director.map |
+| `$B614-$B8FF` | 748 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$B900-$BBFF` | 768 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (6 sectors, 712-717); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
 | `$B900-$BBEF` | 752 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the charge's axis rule (journal §BL 4), the torpedo's flight - the hull on P1, the exhaust on P2, both homing - and its discharge on channel 3, the kill through boss_hit or the miss that keeps the lance, journal §BL 5) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
 | `$BBF0-$BBF4` | 5 B | segment | `LANCE_BSS` — the VOID LANCE's C state (the meter, the charge, the gesture, the target bit), inside the run: read as zeros at every boss entry - the meter resets (the rest of its state: LANCE_ZP) | `overlay` | build/boss.map |
@@ -329,10 +334,10 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$90ED-$90FF` | 19 B | `A2KERNEL_RAM` (atari-boot.cfg) | `A2_KERNEL` |
 | `$9D59-$9D5D` | 5 B | `ENTITY_CODE_RAM` (atari-boot.cfg) | `ENTITY_RUN_PAD`, `ENTITY_CODE` |
 | `$9D73-$9D74` | 2 B | `DIRECTOR_C_PRE_RAM` (encounter-director.cfg) | `DIRECTOR_C_PRE` |
-| `$9FEF-$9FF9` | 11 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
+| `$9EB3-$9FF9` | 327 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5E8-$A5FF` | 24 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
-| `$B611-$B8FF` | 751 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |
+| `$B614-$B8FF` | 748 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
 
 ### Overlapping cfg areas
@@ -379,8 +384,10 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$10BF-$10EE` | `boss-entry` | `BOSS_BANNER_HEAD` — boss banner region head (feat/boss-banners): the region, the bar's step, the name's line, the run's other sectors and their fold, the title's records; written by the build into each region's banner run, in the screen's 2 sectors |
 | `$10EF-$11DA` | `boss-entry` | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen |
 | `$1180-$18FF` | `level` | checked content module; retained through pause/death, executable only in valid gameplay |
-| `$1180` | `level` | `CONTENT` — checked content home; overwritten by boss/banner/death |
+| `$1180` | `level` | `CONTENT_HEADER` — checked content entry header |
+| `$1181-$13DE` | `level` | `CONTENT_CODE` — phase-exclusive content C policy |
 | `$11EC-$194F` | `boss` `death` | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication |
+| `$13DF-$13E3` | `level` | `CONTENT_DATA` — checked content state, reset on level load |
 | `$14FC-$154C` | `overlay` | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes |
 | `$1500-$17FF` | `boss-entry` | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen |
 | `$154E-$1557` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |
@@ -690,18 +697,31 @@ By topic: unclassified 74%, display, PMG and raster 16%, player, input and weapo
 
 By topic: unclassified 86%, Light enemies 13%, music and audio 1%.
 
+#### `CONTENT_CODE` `$1181-$13DE`, 606 B (build/encounter-director.map)
+
+| Item | Address | Size | Share | Topic |
+| --- | --- | ---: | ---: | --- |
+| `_cc2_world_row_tick` | `$12A0` | 304 B | 50.2% | unclassified |
+| `_cc2_enter` | `$11BF` | 89 B | 14.7% | unclassified |
+| `_cc2_request` | `$124F` | 81 B | 13.4% | unclassified |
+| `_heavy_entry_ready` | `$1181` | 62 B | 10.2% | Heavy, Raider and Interceptor |
+| `_cc2_advance` | `$1218` | 55 B | 9.1% | unclassified |
+| `_cc2_heavy_tick` | `$13D0` | 15 B | 2.5% | Heavy, Raider and Interceptor |
+
+By topic: unclassified 87%, Heavy, Raider and Interceptor 13%.
+
 #### `HYBRID_C_ARENA` `$7C72-$7EF2`, 641 B (build/encounter-director.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `_enemy_c_heavy_tick` | `$7CB7` | 296 B | 46.2% | Heavy, Raider and Interceptor |
-| `_bomber_colour` | `$7E55` | 122 B | 19.0% | Heavy, Raider and Interceptor |
-| `_heavy_publish_profile` | `$7E13` | 66 B | 10.3% | Heavy, Raider and Interceptor |
+| `_enemy_c_heavy_tick_original` | `$7DCB` | 296 B | 46.2% | Heavy, Raider and Interceptor |
+| `_bomber_colour` | `$7D2D` | 122 B | 19.0% | Heavy, Raider and Interceptor |
+| `_heavy_publish_profile` | `$7CEB` | 66 B | 10.3% | Heavy, Raider and Interceptor |
 | `_sector_c_drain_clear` | `$7C87` | 48 B | 7.5% | Director, sectors and waves |
-| `_bomber_may_fire` | `$7ECF` | 36 B | 5.6% | Heavy, Raider and Interceptor |
-| `_enemy_c_heavy_breakup_claim` | `$7DDF` | 33 B | 5.1% | Heavy, Raider and Interceptor |
+| `_bomber_may_fire` | `$7DA7` | 36 B | 5.6% | Heavy, Raider and Interceptor |
+| `_enemy_c_heavy_breakup_claim` | `$7CB7` | 33 B | 5.1% | Heavy, Raider and Interceptor |
 | `_director_c_arm_wave` | `$7C72` | 21 B | 3.3% | Director, sectors and waves |
-| `_bomber_turn` | `$7E00` | 19 B | 3.0% | Heavy, Raider and Interceptor |
+| `_bomber_turn` | `$7CD8` | 19 B | 3.0% | Heavy, Raider and Interceptor |
 
 By topic: Heavy, Raider and Interceptor 89%, Director, sectors and waves 11%.
 
@@ -720,42 +740,30 @@ By topic: Heavy, Raider and Interceptor 89%, Director, sectors and waves 11%.
 
 By topic: Light enemies 57%, Director, sectors and waves 23%, Heavy, Raider and Interceptor 20%.
 
-#### `DIRECTOR_C_CODE` `$9D89-$9FEE`, 614 B (build/encounter-director.map)
+#### `HYBRID_C_WINDOW` `$AE00-$B3FF`, 1,536 B (build/encounter-director.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `_director_c_world_row_tick` | `$9D89` | 275 B | 44.8% | Director, sectors and waves |
-| `_director_c_request` | `$9E9C` | 196 B | 31.9% | Director, sectors and waves |
-| `_heavy_request` | `$9FA7` | 72 B | 11.7% | Heavy, Raider and Interceptor |
-| `_advance_sector` | `$9F60` | 41 B | 6.7% | Director, sectors and waves |
-| `_director_c_boss_weapon_down` | `$9F89` | 30 B | 4.9% | player, input and weapons |
-
-By topic: Director, sectors and waves 83%, Heavy, Raider and Interceptor 12%, player, input and weapons 5%.
-
-#### `HYBRID_C_WINDOW` `$AE00-$B3FC`, 1,533 B (build/encounter-director.map)
-
-| Item | Address | Size | Share | Topic |
-| --- | --- | ---: | ---: | --- |
-| `_light_tick_body` | `$B198` | 573 B | 37.4% | Light enemies |
+| `_light_tick_body` | `$B19B` | 573 B | 37.3% | Light enemies |
 | `_director_c_try_event` | `$AE21` | 180 B | 11.7% | Director, sectors and waves |
-| `_enter_sector` | `$AF88` | 111 B | 7.2% | Director, sectors and waves |
-| `_enemy_c_light_tick` | `$B02E` | 85 B | 5.5% | Light enemies |
-| `_light_wave_step` | `$B158` | 64 B | 4.2% | Light enemies |
-| `_enemy_c_light_hit` | `$B083` | 59 B | 3.8% | Light enemies |
-| `_archetype_allowed` | `$AFF7` | 55 B | 3.6% | Heavy, Raider and Interceptor |
+| `_enter_sector` | `$AF88` | 114 B | 7.4% | Director, sectors and waves |
+| `_enemy_c_light_tick` | `$B031` | 85 B | 5.5% | Light enemies |
+| `_light_wave_step` | `$B15B` | 64 B | 4.2% | Light enemies |
+| `_enemy_c_light_hit` | `$B086` | 59 B | 3.8% | Light enemies |
+| `_archetype_allowed` | `$AFFA` | 55 B | 3.6% | Heavy, Raider and Interceptor |
 | `_compute_ceiling_row` | `$AF01` | 54 B | 3.5% | unclassified |
 | `_heavy_ceiling` | `$AF37` | 46 B | 3.0% | Heavy, Raider and Interceptor |
 | `_director_c_light_ceiling` | `$AED5` | 44 B | 2.9% | Light enemies |
-| `_enemy_c_light_wave` | `$B0EE` | 44 B | 2.9% | Light enemies |
-| `_encounter_light_admit` | `$B3D5` | 40 B | 2.6% | Light enemies |
+| `_enemy_c_light_wave` | `$B0F1` | 44 B | 2.9% | Light enemies |
+| `_encounter_light_admit` | `$B3D8` | 40 B | 2.6% | Light enemies |
 | (after _compute_wave_end) | `$AF65` | 35 B | 2.3% | Director, sectors and waves |
-| `_light_live_count` | `$B0CC` | 34 B | 2.2% | Light enemies |
-| `_director_c_release` | `$AE00` | 33 B | 2.2% | Director, sectors and waves |
-| `_light_take_token` | `$B11A` | 33 B | 2.2% | Light enemies |
-| `_light_reload` | `$B13B` | 29 B | 1.9% | Light enemies |
+| `_light_live_count` | `$B0CF` | 34 B | 2.2% | Light enemies |
+| `_director_c_release` | `$AE00` | 33 B | 2.1% | Director, sectors and waves |
+| `_light_take_token` | `$B11D` | 33 B | 2.1% | Light enemies |
+| `_light_reload` | `$B13E` | 29 B | 1.9% | Light enemies |
 | 1 smaller item | — | 14 B | 0.9% | — |
 
-By topic: Light enemies 66%, Director, sectors and waves 23%, Heavy, Raider and Interceptor 7%, unclassified 4%.
+By topic: Light enemies 66%, Director, sectors and waves 24%, Heavy, Raider and Interceptor 7%, unclassified 4%.
 
 #### `L2` `$1900-$1E09`, 1,290 B (build/l2.map)
 
@@ -1144,10 +1152,10 @@ By topic: player, input and weapons 25%, debris and effects 20%, capital ship 16
 | `BOSS_D_CODE` | 1,684 B | placement name | — | unclassified (83%) | not judged |
 | `BOSS_CODE` | 1,963 B | placement name | — | unclassified (74%) | not judged |
 | `LANCE_CODE` | 752 B | placement name | — | unclassified (86%) | not judged |
+| `CONTENT_CODE` | 606 B | placement name | — | unclassified (87%) | not judged |
 | `HYBRID_C_ARENA` | 641 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
-| `DIRECTOR_C_CODE` | 614 B | placement name | — | Director, sectors and waves (83%) | not judged |
-| `HYBRID_C_WINDOW` | 1,533 B | placement name | — | Light enemies (66%) | not judged |
+| `HYBRID_C_WINDOW` | 1,536 B | placement name | — | Light enemies (66%) | not judged |
 | `L2` | 1,290 B | placement name | — | unclassified (100%) | not judged |
 | `LEVEL_SUMMARY` | 1,792 B | level summary | 96% | level summary (96%) | fits |
 | `LIGHT_KERNEL` | 822 B | Light enemies | 96% | Light enemies (96%) | fits |

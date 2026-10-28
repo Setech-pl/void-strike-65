@@ -1,15 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import crypto from 'node:crypto';
+import fs from 'node:fs';
 import {Nmos6502} from '../scripts/nmos6502.mjs';
 import {PokeyStub} from '../scripts/sio-fixture.mjs';
 import {bossGateMemory,atrSector,label,manifest,readBuild,runUntil} from './boss-harness.mjs';
 
-// The complete error-screen/FIRE routine is byte-identical to main 5053697.
+// Compare instructions exactly, resolving only the three named data references.
+// Baseline bytes, symbols and map range were captured from the 5053697 build.
 test('mandatory content failures retain the 5053697 error-screen and FIRE implementation',()=>{
- const bytes=readBuild('sector-reader.bin').subarray(0xd6,0x11f);
- assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),
-  'ac351010fca8f7ab5c5566731b873bd49619ca84e5112e34485ab882760a1bcf');
+ const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/sector-reader-error-5053697.json',import.meta.url)));
+ const start=label('reader','sector_reader_failure_screen'),end=label('reader','sector_reader_drain_ready');
+ const actual=Buffer.from(readBuild('sector-reader.bin').subarray(start-0xa000,end-0xa000));
+ const expected=Buffer.from(baseline.hex,'hex');
+ const map=/^SECTOR_READER\s+([0-9A-F]+)\s+([0-9A-F]+)/.exec(baseline.segmentMapLine);
+ assert.ok(map,'baseline map must identify the reader segment');
+ assert.equal(actual.length,expected.length,'instruction sequence length');
+ for(const {symbol,low,high} of baseline.relocations){
+  const current=label('reader',symbol),previous=baseline.labels[symbol];
+  assert.ok(previous>=parseInt(map[1],16)&&previous<=parseInt(map[2],16),symbol);
+  assert.equal(expected[low]|expected[high]<<8,previous,`5053697 reference to ${symbol}`);
+  assert.equal(actual[low]|actual[high]<<8,current,`current reference to ${symbol}`);
+  actual[low]=previous&255;actual[high]=previous>>8;
+ }
+ assert.deepEqual(actual,expected,'same instructions and targets by symbol, including FIRE control flow');
 });
 const sum=bytes=>{let v=0;for(const b of bytes){v+=b;if(v>255)v=(v&255)+1;}return v;};
 function failedLoad(target,fault){

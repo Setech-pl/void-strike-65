@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital content v2 — zero-growth recovery WIP; focused validation STOP)
+Last update: 2026-10-28 (capital merge: B0/native15 PASS; release/home verification STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,10 +20,10 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — zero-growth error recovery WIP; focused validation STOP
+### Capital content v2 — B0/native15 PASS; release/home verification STOP
 
 Owner merge worktree `dark-fighter-capital-v2-merge`, branch
-`codex/capital-content-v2-merge`, HEAD `434871e`, baseline main `5053697`.
+`codex/capital-content-v2-merge`, HEAD `c182af2`, baseline main `5053697`.
 Only increments **1+0** are merge candidates. Increment 1 was OWNER-ACCEPTED
 at `f0b0dd1`, including SIO2SD; increment 0 is committed at `434871e` and awaits
 the final owner check. Neither this preparation nor a local build grants
@@ -56,40 +56,53 @@ boot/chunk transport 211 sectors. Prior increment 0 CPU evidence: ordinary
 Prior native 15/15 and home 27/27 evidence remains historical, bound to the
 increment 0 delivery; it is not a fresh merge-gate run.
 
-**STOP / INCONCLUSIVE after focused validation.** Starting checkpoint
-`b644d5c`. Uncommitted production recovery replaces the content-read failure
-JMP `$A21E→$A0D6`, using the existing reader error screen and preserving its
-status. Build checks the target pin. Normal build PASS, **all linked segments
-exactly 0 B delta**; no memory/transport growth, steady-state CPU delta 0.
-This partial work is not an OWNER-SMOKE CANDIDATE.
+**Full-suite merge-only gate cleared: A134 /B0 /C0.** Continuation starts
+at committed WIP `c182af2`; no new production changes. Replaced the invalid
+cross-build SHA assertion with exact instruction comparison after resolving
+three relocated references by symbol through the 5053697 label/map fixture and
+current labels. All four synthetic waits and four accepted Heavy cadence
+expectations are fixed. Focused **53/53 PASS**. One full npm test: **1615 tests,
+1478 PASS /134 FAIL /3 SKIP**, exit1, 1541.028s. Every remaining failure ID also
+fails on saved5053697; Group A assertion values untouched. Reconciliation:
+1 matched,133 NEW to ledger,0 MOVED, same main-debt IDs as baseline. No green
+full-suite claim. [Full A/B/C lists and assertion audit](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation.md),
+[comparison](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-comparison.json),
+[gate evidence](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-gates.json).
 
-Focused tests: **10 total, 9 PASS /1 FAIL**, exit 1. Four content fault/FIRE
-cases (device error, timeout, wire and image checksum) pass against the
-current L2-error path; loader/phase checks and reused 512-input ROL A test pass.
-The failure is a newly authored, unsound byte-identity assertion at
-`tests/capital-content-v2-failure.test.mjs:11`: current error-code SHA
-`67eea8bf…` versus main `ac351010…`. Three absolute operands moved with the
-accepted reader shrink; the earlier diagnostic byte-identity claim was wrong.
-No new production regression is inferred from this test-authoring failure.
-[Exact result, full hashes, operand differences and assertion audit](diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.md),
-[evidence](diagnostics/capital-content-v2/merge-2026-10-28/error-path-recovery-stop.json).
+**Fresh native15/15 PASS**, 58,688 iterations. Overall peak31,444<=31,500;
+capital30,152; fence minimum3298>=500; every boss entry325/350. Zero overruns,
+missed frames, extra VBI, DLI errors, shifted rows or stale L2 accesses. The
+15 completed home captures contain2,533,614 content and1,007,702 boss-owned
+opcode fetches, zero invalid content fetches; this is **15/27, not home27 PASS**.
+Real-SIO boot7/7 PASS, frontend worst1390<=1402. Fresh full-suite boss stress
+compared with saved5053697: every reported mode unchanged; lost-target max8473.
 
-Per owner STOP on any failing gate, no further implementation or runs followed.
-Phase fixture changes, ROL support, disk-aware INIT pin and B1 edits are partial
-WIP; four synthetic two-frame waits and four Heavy cadence expectation changes
-are not yet made. A134 assertions remain untouched; no new full suite or A/B/C
-result exists. Prior A134/B43/C0 is historical. Release refresh/build, native15,
-home27, boot <=1,402, boss stress and final play delivery are not run.
+**STOP at remaining verification gates.** First exit case `l2-exit-480-quit`
+exits2 in emulator /1 in wrapper: **“L2 lifetime requires ownership images”**.
+The original direct variant images were not prepared (native15 snapshots had
+their images). This is a verification-setup mistake; not a gameplay failure.
+No repair/retry after STOP. Four terminal boss roundtrips were not run.
 
-Test-build ATR SHA-256
+Release refresh also reports unrecorded clause
+`director-complete-0-natural-sweep-fire0`, `scripts/runtime-wall-trace.mjs:2018`:
+**“reached the summary from a boss whose core never fell”**. An engaged row
+exists (frame3613/active3539), but no boss_state>=3 row. Its PAL audit passes:
+5236 frames, peak30937, zero misses/VBI/DLI/shifted rows. Production versus
+scenario/observer/validator attribution is unresolved. The active trace was
+terminated under STOP after20 completed PAL audits; no fresh complete canonical
+runtime report or strict release build. No final play delivery. All task native
+processes are stopped. [Exact runtime/setup logs](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-runtime-stop.txt).
+
+Continuation CPU and RAM/residency delta0; no production change after c182af2.
+Evidence ATR SHA-256
 `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676`
-is preserved under `build/evidence/capital-content-v2/error-path-recovery/test-build/`
-only as diagnostic evidence. Generated dist files restored to starting HEAD.
-No stage, commit, merge, push or tag. NEXT TASK: repair the invalid byte-level
-comparison without lowering behavioural checks; finish the authorized fixture /
-expectation updates, then focused tests and full npm test/A-B-C before the
-remaining merge gates. Island artifacts remain unattributed transient raster
-artifacts for visual-bugs-diag, not a merge blocker.
+is under `build/merge-validation-c182af2/dist/`, not qualified play delivery.
+Primary dist is restored clean; all later validation outputs are isolated under
+that build snapshot. No stage, commit, merge, push or tag. NEXT TASK: repair exit
+ownership-image preparation and investigate the unrecorded core-down clause;
+then resume affected gates. Retain native15 evidence while bytes are identical.
+Island artifacts remain unattributed transient raster artifacts for
+visual-bugs-diag, not a merge blocker.
 Owner final smoke remains pending. No merge, push, tag, stage or commit by the agent.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE

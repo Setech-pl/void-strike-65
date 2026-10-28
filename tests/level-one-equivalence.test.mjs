@@ -78,8 +78,8 @@ test("T4: the Heavy stream keeps the cadence and the density it had before the l
     const cutoff = (list) => list.filter((spawn) => spawn.frame <= 700);
     const now = run.heavySpawns;
     const then = cutoff(before.heavySpawns);
-    assert.ok(Math.abs(now.length - then.length) <= 2,
-      `${now.length} Heavy formations in 700 frames against the pre-change ${then.length}`);
+    assert.equal(now.length,6,"accepted increment 0 cuts Heavy admission 120 rows before the capital");
+    assert.ok(now.every(spawn=>spawn.row<272-120),"no admission in the departure runway");
     // Frame for frame, not merely in total: the kernel's retry cadence is what
     // paces the stream, and the authored spacing is at the class floor so that
     // it still is.
@@ -132,12 +132,12 @@ test("T4: the Heavy stream keeps the cadence and the density it had before the l
 // the swarm before them is Light only; the four blocks before the capital are
 // unchanged. MEASURED as above.
 const PLAYED_ORDER = {
-  0: "R4 B4 R1 B1 R1",
-  1: "R4 B4 R1 B1 R1",
-  2: "R4 B4 R1 B1 R1",
+  0: "R4 B2 R1 B1 R1",
+  1: "R4 B2 R1 B1 R1",
+  2: "R4 B2 R1 B1 R1",
 };
 // Heavy formations in 9,000 frames (W2, measured as above).
-const HEAVY_FORMATIONS = { 0: 11, 1: 11, 2: 11 };
+const HEAVY_FORMATIONS = { 0: 9, 1: 9, 2: 9 };
 // One WaveDef names one archetype and the core page holds twenty of them, so
 // six is the floor a level of this density can reach: 116 formations over 20
 // waves. Per-FORMATION alternation needs the "mixed wave" bit, which owner

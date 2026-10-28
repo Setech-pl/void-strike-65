@@ -853,3 +853,67 @@ tests/sector-flow.test.mjs
 ```
 
 Suggested message: `wip: zero-growth content error recovery and focused validation stop`
+
+
+## c182af2 continuation — B0/native15 PASS; release/home STOP (2026-10-28)
+
+No production change. Replaced the raw SHA with a symbol-resolved comparison
+of the full 73-byte error/FIRE instruction sequence; all three relocated targets
+have matching named symbols in baseline/current links. The checked-in baseline
+fixture preserves the extracted 5053697 bytes, symbols, map range and reader
+SHA. Other instruction bytes stay exact; four behavioural fault/FIRE cases are
+unchanged. Four synthetic callers now supply active frames for the accepted
+Heavy-clear wait; four cadence tests follow the accepted120-row departure cut.
+
+[One justification per changed assertion and complete A/B/C lists](../diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation.md).
+[Per-side failure evidence](../diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-comparison.json).
+[Bound gate results](../diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-gates.json).
+
+Focused53/53 PASS; one full npm test1615:1478 PASS/134 FAIL/3 SKIP, exit1,
+1541.028s. Main comparison **A134/B0/C0**; no A assertion edited. Ledger
+reconciliation remains1 matched/133 NEW/0 MOVED, the same main-debt IDs; full
+suite is not called green. Native15/15 PASS,58688 iterations, peak31444,
+capital30152, fence3298, boss entries325/350, zero misses/VBI/DLI/shifted/stale
+L2. Home15 captures:2533614 content/1007702 boss fetches, zero invalid; not27/27.
+Boot7/7 PASS, frontend1390<=1402. Every full-suite boss stress mode equals saved
+5053697, lost-target maximum8473. These are fresh, artifact-bound measurements.
+
+**STOP:** first exit case rejected before gameplay, “L2 lifetime requires
+ownership images”; native snapshots had images, original exit variants did not.
+This is an agent setup mistake; no retry after STOP. The separate release trace
+reports unrecorded core-down clause at runtime-wall-trace.mjs:2018 on
+`director-complete-0-natural-sweep-fire0`: engaged row exists, no state>=3 row;
+PAL5236-frame audit passes at30937. Cause remains unattributed. Trace terminated
+under STOP after20 completed PAL audits. No canonical report refresh, strict
+release build, four boss-home roundtrips or qualified play delivery. No active
+task emulator remains. Exact logs are in merge-continuation-runtime-stop.txt.
+
+CPU/RAM/residency delta0 this continuation; no production edits. Primary dist
+clean. Initial normal-build transient outputs (boot BIN, manifest, ATR) restored;
+subsequent work stayed under build/merge-validation-c182af2/. Evidence campaign
+ATR SHA256 `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676`.
+No stage/commit/merge/push/tag. NEXT TASK: correct exit image preparation and
+investigate the first unrecorded clause before resuming affected gates; retain
+passing evidence for identical guest bytes. Island artifacts stay unattributed
+transient raster artifacts for visual-bugs-diag, not a merge blocker.
+
+## Exact owner commit paths and message
+
+No staging or commit performed. These are this continuation’s exact paths; no dist or production file belongs to the checkpoint.
+
+```text
+docs/STATUS.md
+docs/audits/2026-10-28-capital-content-v2.md
+docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-comparison.json
+docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-gates.json
+docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-reconcile.txt
+docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-runtime-stop.txt
+docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation.md
+tests/capital-content-v2-failure.test.mjs
+tests/encounter-director.test.mjs
+tests/fixtures/sector-reader-error-5053697.json
+tests/hybrid-lifecycle.test.mjs
+tests/level-one-equivalence.test.mjs
+```
+
+Suggested message: `test: reconcile capital merge expectations and record verification stop`

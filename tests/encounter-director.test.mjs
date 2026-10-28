@@ -319,7 +319,10 @@ test("director init and world rows are deterministic and do not touch game RNG",
     image[labels.get("frame_counter")] = 9;
     image[gameRng[0]] = 0x31; image[gameRng[1]] = 0x32;
     run(image, "director_init", { a: 0x6d });
-    for (let row = 0; row < 3712; row += 1) run(image, "director_world_row_tick");
+    for (let row = 0; row < 3712; row += 1) {
+      image[labels.get("frame_counter")] += 1;
+      run(image, "director_world_row_tick");
+    }
   }
   assert.deepEqual([...first.subarray(0x80f4, 0x8100)], [...second.subarray(0x80f4, 0x8100)]);
   assert.equal(first[state.rowLo] | first[state.rowHi] << 8, 3712);
@@ -824,8 +827,15 @@ test("first capital admission is due on the authored ROW and retries until the p
   () => {
     const sectorState = labels.get("CAPITAL_SECTOR_STATE");
     const frameCounter = labels.get("frame_counter");
+    const clearWait = (image) => {
+      for (let frame=0;frame<2;frame++) {
+        image[frameCounter] += 1;
+        run(image, "director_world_row_tick");
+      }
+    };
     const toCapitalRow = (image) => {
       for (let row = 0; row < 272; row += 1) run(image, "director_world_row_tick");
+      clearWait(image);
     };
     const legal = gameplayMemory();
     run(legal, "director_init", { a: 0x6d });
@@ -835,8 +845,9 @@ test("first capital admission is due on the authored ROW and retries until the p
     assert.equal(legal[sectorState], 7);
     assert.equal(legal[state.flags], 0, "one row early is not due");
     run(legal, "director_world_row_tick");
+    clearWait(legal);
     run(legal, "integration_update_first_capital");
-    assert.equal(legal[sectorState], 0, "the first legal attempt admits on the authored row");
+    assert.equal(legal[sectorState], 0, "the first legal attempt admits after the two-frame Heavy-clear guard");
     assert.equal(legal[state.flags], provisionalCapital.admitted);
 
     run(legal, "director_init", { a: 0x6d });
@@ -881,7 +892,10 @@ test("the capital encounter is entered once and no later row interrupts it", () 
 
   run(image, "director_init", { a: 0x6d });
   image[labels.get("CAPITAL_SECTOR_STATE")] = 2;
-  for (let row = 0; row < 3_000; row += 1) run(image, "director_world_row_tick");
+  for (let row = 0; row < 3_000; row += 1) {
+    image[labels.get("frame_counter")] += 1;
+    run(image, "director_world_row_tick");
+  }
   assert.equal(image[labels.get("CAPITAL_SECTOR_STATE")], 2,
     "a traversal in progress is neither duplicated nor interrupted by later rows");
   assert.equal(image[state.sector], 1, "and the Director waits in the capital sector for it");

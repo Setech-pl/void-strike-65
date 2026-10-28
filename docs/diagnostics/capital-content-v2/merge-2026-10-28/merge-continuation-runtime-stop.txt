@@ -1,0 +1,85 @@
+RELEASE REFRESH (interrupted under STOP)
+
+npm notice run void-strike-65@0.1.1 runtime:wall-trace
+npm notice run node scripts/runtime-wall-trace.mjs --prepare --atari800-source=build/atari800-trace
+Boot smoke: 4 ATR cold-start sessions and 1 RESET session, 1 130XE compatibility session and 1 forced capital restore passed
+2-neutral-fire0: 760 frames, max 30628 wall cycles
+  PAL timing audit  2-neutral-fire0                               frames  760  misses   0  preWait  22002  margin   3298  maxWall  30628  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire0: 920 frames, max 30712 wall cycles
+  PAL timing audit  2-sweep-fire0                                 frames  920  misses   0  preWait  20520  margin   4789  maxWall  30712  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire1: 920 frames, max 31046 wall cycles
+  PAL timing audit  2-evasive-fire1                               frames  920  misses   0  preWait  21117  margin   4183  maxWall  31046  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire2: 920 frames, max 31327 wall cycles
+  PAL timing audit  2-sweep-fire2                                 frames  920  misses   0  preWait  20189  margin   5111  maxWall  31327  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire3: 920 frames, max 30603 wall cycles
+  PAL timing audit  2-evasive-fire3                               frames  920  misses   0  preWait  20265  margin   5035  maxWall  30603  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire4: 920 frames, max 31037 wall cycles
+  PAL timing audit  2-sweep-fire4                                 frames  920  misses   0  preWait  23947  margin   1362  maxWall  31037  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire5: 920 frames, max 30767 wall cycles
+  PAL timing audit  2-sweep-fire5                                 frames  920  misses   0  preWait  20156  margin   5153  maxWall  30767  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire6: 920 frames, max 31033 wall cycles
+  PAL timing audit  2-sweep-fire6                                 frames  920  misses   0  preWait  19782  margin   5527  maxWall  31033  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire7: 920 frames, max 30846 wall cycles
+  PAL timing audit  2-evasive-fire7                               frames  920  misses   0  preWait  20309  margin   5000  maxWall  30846  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+1-evasive-fire3: 920 frames, max 31016 wall cycles
+  PAL timing audit  1-evasive-fire3                               frames  920  misses   0  preWait  21906  margin   3403  maxWall  31016  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+targeted-2-sweep-fire4: 920 frames, max 31037 wall cycles
+  PAL timing audit  targeted-2-sweep-fire4                        frames  920  misses   0  preWait  23947  margin   1362  maxWall  31037  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-0-sweep-nofire: 400 frames, max 29950 wall cycles
+  PAL timing audit  cadence-0-sweep-nofire                        frames  400  misses   0  preWait  14766  margin  10543  maxWall  29950  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-1-sweep-nofire: 400 frames, max 29968 wall cycles
+  PAL timing audit  cadence-1-sweep-nofire                        frames  400  misses   0  preWait  14728  margin  10581  maxWall  29968  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-2-sweep-nofire: 400 frames, max 29809 wall cycles
+  PAL timing audit  cadence-2-sweep-nofire                        frames  400  misses   0  preWait  15165  margin  10147  maxWall  29809  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+flash-2-neutral-nofire: 1600 frames, max 29905 wall cycles
+  PAL timing audit  flash-2-neutral-nofire                        frames 1600  misses   0  preWait  15826  margin   9483  maxWall  29905  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+debris-effects-2-sweep-fire4: 4999 frames, max 31302 wall cycles
+  PAL timing audit  debris-effects-2-sweep-fire4                  frames 4999  misses   0  preWait  23947  margin   1362  maxWall  31302  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-2-hunt-fire4: 3999 frames, max 31293 wall cycles
+  PAL timing audit  weapon-pickup-2-hunt-fire4                    frames 3999  misses   0  preWait  21239  margin   4073  maxWall  31293  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-spread-0-hunt-fire4: 5999 frames, max 30771 wall cycles
+  PAL timing audit  weapon-pickup-spread-0-hunt-fire4             frames 5999  misses   0  preWait  22352  margin   2957  maxWall  30771  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-sequence-2-hunt-fire3: 600 frames, max 30754 wall cycles
+  PAL timing audit  weapon-pickup-sequence-2-hunt-fire3           frames  600  misses   0  preWait  21887  margin   3425  maxWall  30754  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-0-natural-sweep-fire0: 5236 frames, max 30937 wall cycles
+  PAL timing audit  director-complete-0-natural-sweep-fire0       frames 5236  misses   0  preWait  18409  margin   6891  maxWall  30937  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+
+HOME EXIT WRAPPER
+
+file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/scripts/l2-native-exits.mjs:15
+ if(code!==0){stopped=true;throw Error(`${id}: native STOP, ${code}; see ${out}/${id}.log`);}
+                                 ^
+
+Error: l2-exit-480-quit: native STOP, 1; see build/merge-exits/l2-exit-480-quit.log
+    at run (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/scripts/l2-native-exits.mjs:15:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/scripts/l2-native-exits.mjs:26:29
+
+Node.js v26.12.1
+
+FIRST EXIT CASE
+
+file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/scripts/runtime-wall-trace.mjs:2134
+    throw new Error([
+          ^
+
+Error: /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/build/frame-peak-atari800/src/atari800 -xl -pal -config /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/build/atari800-pinned.cfg -nobasic -nosound -turbo -no-video-accel -no-vsync build/level-1-s1/runtime-wall-trace/media/l2-exit-480-quit.atr failed with status 2
+Reading Atari800 config file: /Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/build/atari800-pinned.cfg
+Created by Atari 800 Emulator, Version 7.1.2
+
+Cannot use OpenGL - unable to dynamically open OpenGL library: No dynamic OpenGL support in current SDL video driver (dummy)
+
+Requested resolution 1728x1117 is too big, using 1024x768 instead.
+Video Mode: 1024x768x32 fullscreen 
+
+L2 lifetime requires ownership images
+
+    at run (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/scripts/runtime-wall-trace.mjs:2134:11)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/scripts/runtime-wall-trace.mjs:4923:7)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/merge-validation-c182af2/scripts/runtime-wall-trace.mjs:9873:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)
+
+Node.js v26.12.1

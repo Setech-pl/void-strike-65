@@ -202,7 +202,11 @@ test("first-capital scheduling and future boss handoff stay high-level C decisio
   assert.equal(image[flags] & 0x80, 0, "not one row early");
   assert.equal(run(image, "sector_update_first_capital").a, 0);
   run(image, "director_world_row_tick");
-  assert.equal(image[flags] & 0x80, 0x80, "row 272 enters the CAPITAL sector and raises DUE");
+  for (let frame=0;frame<2;frame++) {
+    image[labels.get("frame_counter")] += 1;
+    run(image, "director_world_row_tick");
+  }
+  assert.equal(image[flags] & 0x80, 0x80, "authored cut plus two Heavy-clear frames raises DUE");
   // Unchanged: the entry still waits for a drained playfield.
   image[labels.get("ENEMY_ACTIVE")] = 1;
   assert.equal(run(image, "sector_update_first_capital").a, 0);

@@ -36,6 +36,13 @@
       "class": "pre-existing-unclassified",
       "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
       "note": "Exact write-protected case also reproduces the same first assertion on 5053697. Recorded under owner decision 2026-10-28; validator and inputs unchanged."
+    },
+    {
+      "session": "weapon-pickup-overlap-2-hunt-fire5",
+      "message": "weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.json",
+      "note": "Owner decision 2026-10-29: same named replay on 5053697 fails with the exact same 22 raster counts. Recorded as pre-existing debt; no input, validator or production change. Root cause remains unclassified."
     }
   ],
   "removed_2026_10_01": {

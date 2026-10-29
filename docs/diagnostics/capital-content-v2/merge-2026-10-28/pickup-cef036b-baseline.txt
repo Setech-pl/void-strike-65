@@ -1,0 +1,12 @@
+weapon-pickup-overlap-2-hunt-fire5: 1300 frames, max 30793 wall cycles
+  PAL timing audit  weapon-pickup-overlap-2-hunt-fire5            frames 1300  misses   0  preWait  22329  margin   2971  maxWall  30793  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 0 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 0 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 0 lance run reads, 0 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 0 block reads, 0 field-state writes, 0 foreign writers
+Focused report: build/runtime-wall-trace/weapon-pickup-overlap-2-hunt-fire5-focused-run.json
+CLAUSE FAILURE weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+Behavioural clauses: 1 of 1 session(s) accumulated a failure
+  weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)

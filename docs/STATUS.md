@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-29 (capital merge: pickup baseline debt; capital-contact release STOP)
+Last update: 2026-10-29 (capital merge: full trace comparison; shared aggregate release-evidence STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,10 +20,10 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — pickup baseline debt; capital-contact release STOP
+### Capital content v2 — full trace comparison; shared aggregate release-evidence STOP
 
 Owner merge worktree `dark-fighter-capital-v2-merge`, branch
-`codex/capital-content-v2-merge`, HEAD `78d873f` (task started at `cef036b`), baseline main `5053697`.
+`codex/capital-content-v2-merge`, task HEAD `fde1748`, baseline main `5053697`.
 Only increments **1+0** are merge candidates. Increment 1 was OWNER-ACCEPTED
 at `f0b0dd1`, including SIO2SD; increment 0 is committed at `434871e` and awaits
 the final owner check. Neither this preparation nor a local build grants
@@ -73,11 +73,13 @@ full-suite claim. [Full A/B/C lists and assertion audit](diagnostics/capital-con
 
 **Home27/27 PASS:**15 routes+8 exits+R1–R4 terminal roundtrips. Generated missing original-variant ownership images with the existing helper; all8 rerun exits pass. Content2,963,608/boss-owned4,239,102 opcode fetches, zero invalid executions. Boss roundtrips are seeded diagnostic fixtures.
 
-**Five release clauses are pre-existing baseline debt.** The unchanged HARD pickup-overlap trace also fails on 5053697, with the exact same 22 pixel counts, including 28/0/0/0 at captures 15–18. Recorded alongside four boss-core clauses. Baseline PAL passes at30,793; source/dist restored clean. Baseline boot smoke omitted only for targeted attribution (frontend1405>1402). No input, assertion, validator or production change; root classification remains unresolved. Owner checkpoint78d873f contains this attribution and debt record.
+**Complete release diagnostic: A32/B3/C11 by session+assertion.** Both5053697 and current completed61/61 gameplay sessions plus7/7 boot cases after normal build, identical current harness/inputs/emulator; no first-unrecorded stop. Build-only collection of independent aggregate predicates completed the inventory without changing predicates/thresholds;18 dependent metadata groups per side are explicitly unavailable, not passed. All32 A identities recorded as pre-existing debt (5 retained,27 added). Full lists, exact messages, collector patch, source/artifact hashes and raw logs: [comparison report](diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.md), [data](diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json).
 
-**STOP: new unrecorded release gate** `capital-contact-allied-medium`, runtime-wall-trace.mjs:5882: expected16 consecutive rasters, actual13 (`frame-00`–`frame-12`). No baseline comparison or change after STOP; not ledgered. Fresh run terminated immediately after31 completed passing PAL audits; failing fixture raw840 rows, peak29982, zero miss/extraVBI, but its PAL audit not finalized. No fresh complete canonical report, strict build, binding rerun or play delivery. [Full evidence and exact pending paths](diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.md), [hash-bound data](diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.json).
+**B1=3/B2=0:** Heavy departure first diverges at row152, hostile frame338, world-pickup304, flash330. Retimed only hostile budget1080→800, world-pickup4000→3200 (pre-boss), flash FIRE preamble4000→40 (1600 frames unchanged). Positive focused original-predicate proofs match the fresh full-run CSVs byte-for-byte. No production, assertion expression, threshold or validator change. One audit justification per input. Allied capture stays A: real allied contact baseline770/current737, captures0/13; current false laser-PC/L2 alias primes raster827–839, images13–15 need840–842 beyond840. No A repair.
 
-CPU/RAM/residency delta0. No production or test changes; retained native15/home27, boot1390<=1402, boss stress unchanged, full-suite A134/B0/C0 with Group A assertions untouched. Evidence campaign ATR SHA256 `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676` remains under `build/merge-validation-c182af2/dist/`, not qualified play delivery. Primary and baseline dist clean; no active task emulator. No stage/commit/merge/push/tag by agent; owner advanced docs checkpoint during the run. NEXT TASK: owner decision on capital-contact capture attribution, then resume complete release evidence, strict build and three play ATRs. Island artifacts remain unattributed transient raster artifacts for visual-bugs-diag, not a merge blocker. Owner final smoke remains pending.
+**STOP_RELEASE_EVIDENCE:** complete retimed rerun61/61 gameplay +boot7/7, all61 PAL audits PASS, peak31444, minimum fence1362;8 exact recorded per-session A failures,0 unrecorded. Unconditional shared smooth-capsule aggregate aborts (0/11, largest144 px), so no complete canonical report and no strict build/binding refresh/play delivery. Registry entries do not change unconditional throws or waive timing/DLI. Diagnostic comparison also finds shared cumulative DLI maximum92 on both commits, an independent fatal release condition. All58 unchanged-input CSVs match the first current run;3 retimed CSVs match focused proofs. No claim that unreachable later aggregate predicates ran in the unchanged rerun.
+
+CPU/RAM/residency delta0. Full-unit A134/B0/C0 retained, A assertions untouched; native15/home27, boot1390<=1402 and boss stress equality retained for identical guest bytes. Campaign ATR SHA256 `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676` under build/evidence/capital-content-v2/full-comparison-fde1748/current/inputs/ is diagnostic, not qualified play delivery. Both normal-build comparison runs and the retimed run restored boot BIN/manifest/ATR; primary dist and baseline worktree clean. No active task emulator, no agent stage/commit/merge/push/tag. NEXT TASK: owner scope decision on batch A fixture/observer repairs or failed-report collection preserving predicates; resolve shared DLI gate before strict release/evidence refresh and three play ATRs. Island artifacts remain unattributed transient raster artifacts for visual-bugs-diag, non-blocking.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

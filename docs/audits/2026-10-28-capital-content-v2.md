@@ -951,3 +951,31 @@ One justification per input change; no assertion expression or threshold changed
 Allied capture is A: real allied contacts baseline770/current737; baseline0 images/current13, but no intended capture-begin event on either. A boss-laser-PC alias in resident L2 falsely primes current capture at828, raster827–839; images13–15 would need840–842 beyond840 budget. No A fixture/observer repair made.
 
 Complete retimed trace finished61/61 gameplay +boot7/7. All61 PAL audits pass, peak31444, minimum fence1362;8 exact recorded per-session A clauses,0 unrecorded. All58 unchanged-input CSVs match the original current run;3 changed-input CSVs match focused proofs. STOP_RELEASE_EVIDENCE at the unchanged shared smooth-capsule aggregate (0/11, largest144 px): no complete canonical report. No strict release/binding refresh/play delivery after the failed gate. Later aggregate predicates are unassessed by this rerun; diagnostic shared DLI maximum92 independently remains fatal. No ledger exception overrides it. All3 primary dist files restored; primary dist and baseline checkout clean, no active task emulator. CPU/RAM/residency delta0; no agent Git mutations. Native15/home27, boot1390 and unchanged boss stress retained for identical guest bytes. Island artifacts stay unattributed transient raster artifacts, non-blocking, for visual-bugs-diag.
+
+## 8763397 — owner release-debt decision; increments1+0 ready for merge (2026-10-29)
+
+Reused saved complete5053697 comparison output; no rerun or baseline build. Capsule aggregate fails with the same predicate and exact0/11 sequences/largest144 px on both commits. DLI max-counter predicate also fails on both,92 versus expected0. Selected predicate source blocks exactly match current; proof hashes pin the original output and diagnostic collector, whose predicates/thresholds were unchanged. Both already had registry records; updated only their owner-decision notes, preserving all32 exact records without duplicates.
+
+**strict release / release-evidence refresh blocked by pre-existing debt (capsule aggregate0/11, DLI92, plus the recorded A list); required before v0.4.0.** Owner confirms strict release is not a merge gate for this branch. Validators, assertions, production and stale canonical report remain unchanged.
+
+**Increments1+0 ready for merge.** Gate summary retained: full tests A134/B0/C0, A untouched; native15/15; home27/27 with0 invalid executions; boot7/7 at1390<=1402; boss stress=5053697, maximum8473; release trace B2=0,3 B1 retimed,61-session rerun,8 failures exactly recorded A. No new full-test/native/home/boot/stress/trace run claimed.
+
+Fresh normal builds PASS for campaign, --level=1:sector=1 (480), and that route with --l2-long-capital (960). All3 ATRs match their prior native15 SHA bindings exactly. Delivered under build/play/capital-content-v2-merge/, with SHA256SUMS:
+
+- `build/play/capital-content-v2-merge/campaign.atr` — `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676`
+- `build/play/capital-content-v2-merge/capital-480.atr` — `875aa84347ad13300a12a70acb06fadfba55d6615e341dd2ca18ff4449837a58`
+- `build/play/capital-content-v2-merge/capital-960.atr` — `8dc9a23b8e1e1602254c48c51b473e52da51f845a6974a866726ca0305e7e7ef`
+
+CPU delta0, RAM/residency delta0 B. No production or predicate changes. Primary dist/void-strike-65-boot.bin, dist/void-strike-65-manifest.json and dist/void-strike-65.atr restored byte-for-byte; baseline entire worktree clean, no writes/build/rerun there. Variants stay in build/. Increment2 remains PARKED atbfda36b and excluded. Island artifacts stay unattributed transient raster artifacts for visual-bugs-diag, non-blocking. No stage/commit/merge/push/tag.
+
+Recorded release-debt list,32 A assertions:
+
+- Capsule aggregate:0/11 complete sequences, largest144 px; expected exactly1.
+- DLI phase/order cumulative maximum92; expected0.
+- Director:4 core-down clauses,3 chain/hold clauses,1 completion-summary clause.
+- Pickup:1 overlap and2 traversal clauses.
+- Contact/lower playfield:3 contact/row-switch clauses and1 selected-raster clause.
+- Engine:12 startup screenshot clauses and2 restart clauses.
+- Booster:1 rotation clause.
+
+Full exact messages, proof, logs, paths and suggested owner commit message: [merge-ready report](../diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.md). NEXT TASK: owner commit/merge increments1+0; complete the deferred strict release / release-evidence refresh beforev0.4.0, addressing its pre-existing blockers.

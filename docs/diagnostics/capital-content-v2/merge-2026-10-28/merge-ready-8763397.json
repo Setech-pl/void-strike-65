@@ -1,0 +1,463 @@
+{
+  "taskHead": "8763397",
+  "baseline": "5053697",
+  "confirmation": "Both fail on 5053697 and current with the same predicates and exact values; reused existing completed comparison output, no rerun.",
+  "checks": [
+    {
+      "session": "weapon-pickup-sequence-2-hunt-fire3",
+      "assertion": "scripts/runtime-wall-trace.mjs:7792",
+      "baselineMessage": "Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)",
+      "currentMessage": "Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)",
+      "samePredicate": true,
+      "sameValues": true,
+      "baselineFails": true,
+      "currentFails": true
+    },
+    {
+      "session": "aggregate/dli-order",
+      "assertion": "scripts/runtime-wall-trace.mjs:8640",
+      "baselineMessage": "DLI phase/order violations observed: 92",
+      "currentMessage": "DLI phase/order violations observed: 92",
+      "samePredicate": true,
+      "sameValues": true,
+      "baselineFails": true,
+      "currentFails": true
+    }
+  ],
+  "sourceComparison": {
+    "commonHarnessSha256": "3899ab91c5803211305e7adf9f7129cd2ae0fd7387ec37b9b47603b13dd4b36a",
+    "currentHarnessSha256": "044ea43130b90e6873aac099619a8ec99994f26b55ee956c97ba6555f6c8d912",
+    "selectedPredicateBlocksIdentical": true,
+    "collectorMethod": {
+      "originalSourceSha256": "3899ab91c5803211305e7adf9f7129cd2ae0fd7387ec37b9b47603b13dd4b36a",
+      "diagnosticSourceSha256": "a98f0cff35d5f325311a3c755b6ec021cd1e0de5b2ebf7485ea0da33c2a5fdae",
+      "originalDirectorChainBodySha256": "1b61d52d34055c87413d0e2f9cabb8603afb1a28f8947cad7fe601af06d74901",
+      "predicatesChanged": false,
+      "thresholdsChanged": false,
+      "guestCodeChanged": false,
+      "cachedExactRawData": true,
+      "method": "record false post-loop invariants; isolate failing director metadata chains without inventing values; mark report diagnostic-only; session catch behaviour unchanged",
+      "finalDiagnosticSourceSha256": "44e1c5f9e06b3edfc4bb2eb20c06d7e8a3ebd4a8d3d58026c58d79e84025c7e1",
+      "failedDependencyGroups": "director chains, absent lower-playfield PNGs, absent engine PNGs; no substituted measurements"
+    }
+  },
+  "savedOutput": {
+    "baseline": {
+      "completeGameplaySessions": 61,
+      "trace": {
+        "path": "build/evidence/capital-content-v2/full-comparison-fde1748/baseline/trace.log",
+        "sha256": "6f354a254d8136e373a54bcb5d9feca114f1c8fda171211c43274098dd99c4d0"
+      },
+      "aggregate": {
+        "path": "build/evidence/capital-content-v2/full-comparison-fde1748/baseline/aggregate-result.json",
+        "sha256": "922a16ab0d4d2d237d97d5b6e93dda97c4fcaedea5cfbd98dad2b1462db8d9bc"
+      }
+    },
+    "current": {
+      "completeGameplaySessions": 61,
+      "trace": {
+        "path": "build/evidence/capital-content-v2/full-comparison-fde1748/current/trace.log",
+        "sha256": "5f90711097d394f59ce976982a5e774f7fb360f04145210588eeeed9e0fa1e98"
+      },
+      "aggregate": {
+        "path": "build/evidence/capital-content-v2/full-comparison-fde1748/current/aggregate-result.json",
+        "sha256": "5d218248f4f7d2b0655dcdf672377fba30ed713ff8114029689d99d6d853fa8c"
+      }
+    }
+  },
+  "ownerDecision": {
+    "strictReleaseAndEvidenceRefresh": "blocked by pre-existing debt; required before v0.4.0",
+    "mergeGate": false,
+    "normalBuildAndPlayDelivery": true
+  },
+  "productionChanges": 0,
+  "predicateChanges": 0,
+  "cpuDelta": 0,
+  "ramResidencyDeltaBytes": 0,
+  "result": "Owner decision: increments1+0 ready for merge; three normal-build play ATRs delivered. Strict release / release-evidence refresh blocked by pre-existing debt; required before v0.4.0.",
+  "buildAndDelivery": {
+    "head": "8763397576d5e5510a8560f8f99ae0dfe877eae6",
+    "started": "2026-10-29T12:08:48.050Z",
+    "builds": [
+      {
+        "id": "campaign",
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "log": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/merge-ready-8763397/campaign-build.log",
+        "source": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/dist",
+        "artifactSha256": "5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676",
+        "native15ArtifactSha256": "5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676",
+        "archived": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/merge-ready-8763397/campaign"
+      },
+      {
+        "id": "capital-480",
+        "command": [
+          "npm",
+          "run",
+          "build",
+          "--",
+          "--level=1:sector=1"
+        ],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "log": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/merge-ready-8763397/capital-480-build.log",
+        "source": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/level-1-s1",
+        "artifactSha256": "875aa84347ad13300a12a70acb06fadfba55d6615e341dd2ca18ff4449837a58",
+        "native15ArtifactSha256": "875aa84347ad13300a12a70acb06fadfba55d6615e341dd2ca18ff4449837a58",
+        "archived": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/merge-ready-8763397/capital-480"
+      },
+      {
+        "id": "capital-960",
+        "command": [
+          "npm",
+          "run",
+          "build",
+          "--",
+          "--level=1:sector=1",
+          "--l2-long-capital"
+        ],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "log": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/merge-ready-8763397/capital-960-build.log",
+        "source": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/l2-capital-960",
+        "artifactSha256": "8dc9a23b8e1e1602254c48c51b473e52da51f845a6974a866726ca0305e7e7ef",
+        "native15ArtifactSha256": "8dc9a23b8e1e1602254c48c51b473e52da51f845a6974a866726ca0305e7e7ef",
+        "archived": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/merge-ready-8763397/capital-960"
+      }
+    ],
+    "delivery": [
+      {
+        "id": "campaign",
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/play/capital-content-v2-merge/campaign.atr",
+        "bytes": 133136,
+        "sha256": "5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676",
+        "normalBuild": true,
+        "releaseEvidence": "pending pre-existing debt"
+      },
+      {
+        "id": "capital-480",
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/play/capital-content-v2-merge/capital-480.atr",
+        "bytes": 133136,
+        "sha256": "875aa84347ad13300a12a70acb06fadfba55d6615e341dd2ca18ff4449837a58",
+        "normalBuild": true,
+        "releaseEvidence": "pending pre-existing debt"
+      },
+      {
+        "id": "capital-960",
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/play/capital-content-v2-merge/capital-960.atr",
+        "bytes": 133136,
+        "sha256": "8dc9a23b8e1e1602254c48c51b473e52da51f845a6974a866726ca0305e7e7ef",
+        "normalBuild": true,
+        "releaseEvidence": "pending pre-existing debt"
+      }
+    ],
+    "distRestored": [
+      "dist/void-strike-65-boot.bin",
+      "dist/void-strike-65-manifest.json",
+      "dist/void-strike-65.atr"
+    ],
+    "passed": true,
+    "ended": "2026-10-29T12:09:00.159Z",
+    "distStatus": "",
+    "baselineStatus": ""
+  },
+  "gates": {
+    "fullTests": {
+      "comparison": "A134/B0/C0",
+      "tests": 1615,
+      "pass": 1478,
+      "fail": 134,
+      "skip": 3,
+      "retained": true,
+      "evidence": "docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-comparison.json"
+    },
+    "native": {
+      "passed": 15,
+      "required": 15,
+      "iterations": 58688,
+      "peak": 31444,
+      "capitalPeak": 30152,
+      "minimumFence": 3298,
+      "zeroMissesVbiDliShiftedStale": true,
+      "bossEntryFrames": 325,
+      "bossEntryLimit": 350,
+      "retainedForIdenticalAllThreeArtifacts": true,
+      "evidence": "docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-gates.json"
+    },
+    "homeObserver": {
+      "passed": 27,
+      "required": 27,
+      "routes": 15,
+      "exits": 8,
+      "terminalRoundtrips": 4,
+      "invalidExecutions": 0,
+      "contentOpcodeFetches": 2963608,
+      "bossOpcodeFetches": 4239102,
+      "terminalFixturesSeeded": true,
+      "retained": true,
+      "evidence": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json"
+    },
+    "boot": {
+      "passed": 7,
+      "required": 7,
+      "frontend": 1390,
+      "limit": 1402,
+      "retained": true,
+      "evidence": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json"
+    },
+    "bossStress": {
+      "baseline": "5053697",
+      "allModesUnchanged": true,
+      "maximumLostTarget": 8473,
+      "retained": true,
+      "evidence": "docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-gates.json"
+    },
+    "releaseTrace": {
+      "comparison": "A32/B3/C11",
+      "B1Retimed": 3,
+      "B2": 0,
+      "rerunSessions": 61,
+      "recordedSessionFailures": 8,
+      "unrecordedSessionFailures": 0,
+      "palAuditsPassed": 61,
+      "completeCanonicalReport": false,
+      "acceptedAsMergeGateByOwner": true,
+      "evidence": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json"
+    }
+  },
+  "increment2": {
+    "status": "PARKED",
+    "head": "bfda36b",
+    "branch": "codex/capital-content-v2",
+    "included": false
+  },
+  "recordedReleaseDebt": [
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "assertion": "first assertion in referenced measurement",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "assertion": "first assertion in referenced measurement",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "assertion": "first assertion in referenced measurement",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "director-complete-2-write-protected",
+      "message": "director-complete-2-write-protected reached the summary from a boss whose core never fell",
+      "assertion": "first assertion in referenced measurement",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "weapon-pickup-overlap-2-hunt-fire5",
+      "message": "weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)",
+      "assertion": "first assertion in referenced measurement",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "capital-contact-allied-medium",
+      "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters",
+      "assertion": "scripts/runtime-wall-trace.mjs:5882",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "lower-playfield-laser-contact-atr-hard",
+      "message": "lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)",
+      "assertion": "scripts/runtime-wall-trace.mjs:2282",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "lower-playfield-allied-contact-atr-hard",
+      "message": "lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once",
+      "assertion": "scripts/runtime-wall-trace.mjs:5885",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "weapon-pickup-sequence-2-hunt-fire3",
+      "message": "Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)",
+      "assertion": "scripts/runtime-wall-trace.mjs:7792",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "weapon-pickup-traversal-2-observe-fire8",
+      "message": "Native pickup did not remain one logical slot and one whole 16-row capsule",
+      "assertion": "scripts/runtime-wall-trace.mjs:7858",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "weapon-pickup-traversal-2-observe-fire8",
+      "message": "Native pickup slot was not released cleanly at the lower boundary",
+      "assertion": "scripts/runtime-wall-trace.mjs:7874",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "lower-playfield-atr-hard",
+      "message": "Lower-playfield replay is missing a selected native raster",
+      "assertion": "scripts/runtime-wall-trace.mjs:7939",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "aggregate/director-completion-evidence",
+      "message": "Director completion trace measured 15927 frames and 0/3 level-end summaries",
+      "assertion": "scripts/runtime-wall-trace.mjs:8259",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1)",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1)",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1)",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-a5-0-immediate",
+      "message": "engine-atr-a5-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-a5-0-delayed",
+      "message": "engine-atr-a5-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-a5-1-immediate",
+      "message": "engine-atr-a5-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-a5-1-delayed",
+      "message": "engine-atr-a5-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-a5-2-immediate",
+      "message": "engine-atr-a5-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-a5-2-delayed",
+      "message": "engine-atr-a5-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-5a-0-immediate",
+      "message": "engine-atr-5a-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-5a-0-delayed",
+      "message": "engine-atr-5a-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-5a-1-immediate",
+      "message": "engine-atr-5a-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-5a-1-delayed",
+      "message": "engine-atr-5a-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-5a-2-immediate",
+      "message": "engine-atr-5a-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-atr-5a-2-delayed",
+      "message": "engine-atr-5a-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-restart-atr-a5",
+      "message": "engine-restart-atr-a5 did not reach a second game after GAME OVER",
+      "assertion": "scripts/runtime-wall-trace.mjs:8488",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "engine-restart-atr-a5",
+      "message": "engine-restart-atr-a5 did not execute 150 frames of the restarted game",
+      "assertion": "scripts/runtime-wall-trace.mjs:8490",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "aggregate/dli-order",
+      "message": "DLI phase/order violations observed: 92",
+      "assertion": "scripts/runtime-wall-trace.mjs:8640",
+      "classification": "pre-existing-unclassified"
+    },
+    {
+      "session": "aggregate/booster-rotation",
+      "message": "Atari800 granted booster cycle was 3→3→4→5→3→4→4→5→3→4→3→4→3→4→3→4→0→5→3→4→3→4→5→0→3→4, expected a rotation of Rapid/Spread/Shield with no capsule repeating the previous one",
+      "assertion": "scripts/runtime-wall-trace.mjs:8920",
+      "classification": "pre-existing-unclassified"
+    }
+  ],
+  "unitDebt": {
+    "count": 134,
+    "status": "pre-existing main debt, unchanged; full lists in merge-continuation-comparison.json"
+  },
+  "dist": {
+    "primaryClean": true,
+    "baselineClean": true,
+    "temporarilyRebuiltAndRestored": [
+      "dist/void-strike-65-boot.bin",
+      "dist/void-strike-65-manifest.json",
+      "dist/void-strike-65.atr"
+    ],
+    "baselineBuildOrTraceRerun": false
+  },
+  "git": {
+    "branch": "codex/capital-content-v2-merge",
+    "head": "8763397",
+    "staged": false,
+    "committed": false,
+    "merged": false,
+    "pushed": false,
+    "tagged": false
+  },
+  "islandArtifacts": "Unattributed transient raster artifacts for visual-bugs-diag; not a merge blocker."
+}

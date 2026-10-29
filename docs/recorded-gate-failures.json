@@ -74,7 +74,7 @@
       "class": "pre-existing-unclassified",
       "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
       "assertion": "scripts/runtime-wall-trace.mjs:7792",
-      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+      "note": "Owner decision2026-10-29, checkpoint8763397: confirmed in the existing complete5053697 comparison output with the same predicate and exact values as current. Pre-existing release debt on main as well; strict release / release-evidence refresh required before v0.4.0, not a merge gate for increments1+0. No production or predicate change. Confirmation: docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.json"
     },
     {
       "session": "weapon-pickup-traversal-2-observe-fire8",
@@ -250,7 +250,7 @@
       "class": "pre-existing-unclassified",
       "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
       "assertion": "scripts/runtime-wall-trace.mjs:8640",
-      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+      "note": "Owner decision2026-10-29, checkpoint8763397: confirmed in the existing complete5053697 comparison output with the same predicate and exact values as current. Pre-existing release debt on main as well; strict release / release-evidence refresh required before v0.4.0, not a merge gate for increments1+0. No production or predicate change. Confirmation: docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.json"
     },
     {
       "session": "aggregate/booster-rotation",

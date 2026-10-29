@@ -171,7 +171,10 @@ const fighterFlashSessions = [{
   id: "flash-2-neutral-nofire",
   difficulty: 2,
   policy: "neutral",
-  fireDelay: 4_000,
+  // Historical session ID retained. Increment 0 moves the no-fire enemy
+  // explosion into player respawn; start FIRE at frame 41 to observe both
+  // complete flash profiles while their original eligibility filters apply.
+  fireDelay: 40,
   frames: 1_600,
   kind: "fighter-flash-coverage",
 }];
@@ -224,13 +227,14 @@ const debrisVisibilityGateSessions = [
 // class a-stale-scenario). The added session is the same replay on EASY, where
 // the player survives long enough to collect all three capsule types
 // (MEASURED: booster states 3, 4 and 5 all appear); the original difficulty-2
-// session keeps its 4,000 frames, its own captures and its own rows unchanged.
+// session ends before the earlier increment-0 boss arrival: its +2-scanline
+// clauses cover world capsules, while boss capsules already move at +1.
 const weaponPickupSessions = [{
   id: "weapon-pickup-2-hunt-fire4",
   difficulty: 2,
   policy: "hunt",
   fireDelay: 4,
-  frames: 4_000,
+  frames: 3_200,
   kind: "weapon-pickup-coverage",
 }];
 
@@ -510,17 +514,18 @@ const raiderSectorSessions = [{
  * Level 1 opens with its fighter phase, so each session first runs the contact
  * preamble (sweep + FIRE on `contactPreambleRow` under a trace-only respawn-
  * invulnerability hold, released when the capital sector first opens). The row
- * decides when the sector opens. MEASURED on ATR f127d7a4: allied, row 225 —
- * sector opens 667, contact 795 (slot 0, mode 1), next damage call 859;
- * hostile, row 180 — opens 889, contact 1042 (slot 1, mode 1), next damage call
- * 1114. Each budget ends after the 16-frame raster window and before the next
- * damage call; if either frame moves, re-measure both before re-budgeting. */
+ * decides when the sector opens. Allied retains its historical row/budget:
+ * its pre-existing capture failure is recorded, not repaired here.
+ * Hostile, row 180 — increment 0 opens 608, contact 762 (slot 1, mode 1),
+ * next damage call 834. Its 800-frame budget includes all 16 captures and
+ * the 25-frame cooldown, ending before that next call. If either contact
+ * moves, re-measure both calls before re-budgeting. */
 const capitalContactSessions = [0, 1].map((owner) => ({
   id: `capital-contact-${owner === 0 ? "allied" : "hostile"}-medium`,
   difficulty: 1,
   policy: owner === 0 ? "capital-contact-allied" : "capital-contact-hostile",
   fireDelay: 4_000,
-  frames: owner === 0 ? 840 : 1_080,
+  frames: owner === 0 ? 840 : 800,
   contactPreambleRow: owner === 0 ? 225 : 180,
   kind: "capital-projectile-contact",
   contactOwner: owner,
@@ -3042,6 +3047,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   const menuRun = overlays.runs.find((run) => run.index === 10);
   const l2Run = overlays.runs.find((run) => run.index === 11);
   const l2Sectors=l2Run?.sectors ?? 0;
+  const contentSectors=overlays.runs.find(run=>run.index===manifest.contentModule?.runIndex)?.sectors ?? 0;
   const l2Checksum=l2Run ? fs.readFileSync(path.join(rootDirectory,"build",l2Run.file)).reduce((v,b)=>(Math.imul(v,33)+b)>>>0,0) : 0;
   invariant(menuRun?.sectors === 11 && menuRun.destination === 0x0c00,
     "L1 boot smoke needs the checked 11-sector menu run");
@@ -3108,7 +3114,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     return value;
   };
 
-  const publicLaunches = atari800ArtifactLaunches(rootDirectory);
+  const publicLaunches = atari800ArtifactLaunches(rootDirectory, path.dirname(atrPath));
   invariant(publicLaunches.atr.artifact.path === atrPath,
   "Boot smoke must use the manifest-bound public artifact paths");
   // Owner decision A (2026-09-20): the ATR must boot without the player
@@ -3418,7 +3424,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
+      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors + contentSectors,
       summary: {
         entry_frame: startSummary.entry,
         first_display_frame: startSummary.display,
@@ -3501,9 +3507,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors,
+    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors + contentSectors,
       `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors} - one per ` +
+      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors + menuRun.sectors + l2Sectors + contentSectors} - one per ` +
       "sector, no retries");
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);
@@ -4226,6 +4232,16 @@ function main() {
   // --artifacts=build/level-N-sM: a focused, diagnostic run of a debug-route
   // build, which reads and writes only inside that directory.
   const layout = traceArtifactLayout(rootDirectory, argumentValue("artifacts"));
+  const bootArtifacts = argumentValue("boot-artifacts");
+  if (bootArtifacts !== undefined) {
+    invariant(bootSmokeOnly && argumentValue("artifacts") === undefined,
+      "--boot-artifacts requires --boot-smoke-only and no --artifacts");
+    const directory = path.resolve(rootDirectory, bootArtifacts);
+    invariant(directory.startsWith(path.join(rootDirectory, "build") + path.sep),
+      "Boot diagnostic artifacts must be inside build/");
+    layout.inputDirectory = layout.distDirectory = directory;
+    layout.outputDirectory = path.join(directory, "runtime-wall-trace");
+  }
   buildDirectory = layout.outputDirectory;
   const labelPath = path.join(layout.inputDirectory, "void-strike-65.lbl");
   const manifestPath = path.join(layout.distDirectory, "void-strike-65-manifest.json");

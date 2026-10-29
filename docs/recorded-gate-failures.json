@@ -8,7 +8,259 @@
     "c-real-failure": "(c) A real failure of the build. Neither fixed nor weakened here; recorded so the evidence stays a truthful description of the build.",
     "pre-existing-unclassified": "Pre-existing failure carried unchanged; no session has classified it into (a), (b) or (c) yet."
   },
-  "failures": [],
+  "failures": [
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved."
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved."
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved."
+    },
+    {
+      "session": "director-complete-2-write-protected",
+      "message": "director-complete-2-write-protected reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Exact write-protected case also reproduces the same first assertion on 5053697. Recorded under owner decision 2026-10-28; validator and inputs unchanged."
+    },
+    {
+      "session": "weapon-pickup-overlap-2-hunt-fire5",
+      "message": "weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.json",
+      "note": "Owner decision 2026-10-29: same named replay on 5053697 fails with the exact same 22 raster counts. Recorded as pre-existing debt; no input, validator or production change. Root cause remains unclassified."
+    },
+    {
+      "session": "capital-contact-allied-medium",
+      "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:5882",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "lower-playfield-laser-contact-atr-hard",
+      "message": "lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:2282",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "lower-playfield-allied-contact-atr-hard",
+      "message": "lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:5885",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "weapon-pickup-sequence-2-hunt-fire3",
+      "message": "Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7792",
+      "note": "Owner decision2026-10-29, checkpoint8763397: confirmed in the existing complete5053697 comparison output with the same predicate and exact values as current. Pre-existing release debt on main as well; strict release / release-evidence refresh required before v0.4.0, not a merge gate for increments1+0. No production or predicate change. Confirmation: docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.json"
+    },
+    {
+      "session": "weapon-pickup-traversal-2-observe-fire8",
+      "message": "Native pickup did not remain one logical slot and one whole 16-row capsule",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7858",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "weapon-pickup-traversal-2-observe-fire8",
+      "message": "Native pickup slot was not released cleanly at the lower boundary",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7874",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "lower-playfield-atr-hard",
+      "message": "Lower-playfield replay is missing a selected native raster",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7939",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "aggregate/director-completion-evidence",
+      "message": "Director completion trace measured 15927 frames and 0/3 level-end summaries",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8259",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-a5-0-immediate",
+      "message": "engine-atr-a5-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-a5-0-delayed",
+      "message": "engine-atr-a5-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-a5-1-immediate",
+      "message": "engine-atr-a5-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-a5-1-delayed",
+      "message": "engine-atr-a5-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-a5-2-immediate",
+      "message": "engine-atr-a5-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-a5-2-delayed",
+      "message": "engine-atr-a5-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-5a-0-immediate",
+      "message": "engine-atr-5a-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-5a-0-delayed",
+      "message": "engine-atr-5a-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-5a-1-immediate",
+      "message": "engine-atr-5a-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-5a-1-delayed",
+      "message": "engine-atr-5a-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-5a-2-immediate",
+      "message": "engine-atr-5a-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-atr-5a-2-delayed",
+      "message": "engine-atr-5a-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-restart-atr-a5",
+      "message": "engine-restart-atr-a5 did not reach a second game after GAME OVER",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8488",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "engine-restart-atr-a5",
+      "message": "engine-restart-atr-a5 did not execute 150 frames of the restarted game",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8490",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    },
+    {
+      "session": "aggregate/dli-order",
+      "message": "DLI phase/order violations observed: 92",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8640",
+      "note": "Owner decision2026-10-29, checkpoint8763397: confirmed in the existing complete5053697 comparison output with the same predicate and exact values as current. Pre-existing release debt on main as well; strict release / release-evidence refresh required before v0.4.0, not a merge gate for increments1+0. No production or predicate change. Confirmation: docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.json"
+    },
+    {
+      "session": "aggregate/booster-rotation",
+      "message": "Atari800 granted booster cycle was 3→3→4→5→3→4→4→5→3→4→3→4→3→4→3→4→0→5→3→4→3→4→5→0→3→4, expected a rotation of Rapid/Spread/Shield with no capsule repeating the previous one",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8920",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change."
+    }
+  ],
   "removed_2026_10_01": {
     "note": "Left the recorded set in trace-clause-repairs (docs/plans/trace-clause-repairs.md). Each was an observer error, class (b); the clause's assertion is unchanged and passes on the regenerated evidence.",
     "count": 13,

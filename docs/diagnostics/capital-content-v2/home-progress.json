@@ -1,0 +1,613 @@
+{
+  "measurement": "MEASURED native CPU byte/word reads, opcode/operand fetches and CPU byte writes; not DMA or patched-host-SIO writes",
+  "regions": [
+    {
+      "region": 1,
+      "records": [
+        {
+          "coldLevelReadBegin": 691,
+          "coldLevelReadEnd": 751,
+          "coldL2Init": 804,
+          "coldL2Done": 804,
+          "coldGameStart": 813
+        },
+        {
+          "entryFrames": 324.916
+        },
+        {
+          "readPauseFrames": 91.587
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 13808,
+          "peakDmaOn": 29535,
+          "minimumFence": 11031,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1704,
+          "postLevelReadEnd": 1765,
+          "postL2Init": 1817,
+          "postL2Done": 1817,
+          "restartHost": 1820
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 1,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ],
+      "totals": {
+        "boot:writes": 3840,
+        "boot:reads": 3840,
+        "boss-owned:writes": 11648,
+        "boss-owned:reads": 2011247
+      }
+    },
+    {
+      "region": 2,
+      "records": [
+        {
+          "coldLevelReadBegin": 691,
+          "coldLevelReadEnd": 751,
+          "coldL2Init": 804,
+          "coldL2Done": 804,
+          "coldGameStart": 813
+        },
+        {
+          "entryFrames": 339.916
+        },
+        {
+          "readPauseFrames": 91.586
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29360,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1719,
+          "postLevelReadEnd": 1780,
+          "postL2Init": 1832,
+          "postL2Done": 1832,
+          "restartHost": 1835
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 4,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ],
+      "totals": {
+        "boot:writes": 3840,
+        "boot:reads": 3840,
+        "boss-owned:writes": 11671,
+        "boss-owned:reads": 2010215
+      }
+    },
+    {
+      "region": 3,
+      "records": [
+        {
+          "coldLevelReadBegin": 691,
+          "coldLevelReadEnd": 751,
+          "coldL2Init": 804,
+          "coldL2Done": 804,
+          "coldGameStart": 813
+        },
+        {
+          "entryFrames": 339.916
+        },
+        {
+          "readPauseFrames": 91.584
+        },
+        {
+          "pauseHostFrames": 95,
+          "pauseClockFrames": 94.246
+        },
+        {
+          "peakPreFence": 21655,
+          "peakDmaOn": 29532,
+          "minimumFence": 3184,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1720,
+          "postLevelReadEnd": 1781,
+          "postL2Init": 1833,
+          "postL2Done": 1833,
+          "restartHost": 1836
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 7,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ],
+      "totals": {
+        "boot:writes": 3840,
+        "boot:reads": 3840,
+        "boss-owned:writes": 13913,
+        "boss-owned:reads": 2385571
+      }
+    },
+    {
+      "region": 4,
+      "records": [
+        {
+          "coldLevelReadBegin": 691,
+          "coldLevelReadEnd": 751,
+          "coldL2Init": 804,
+          "coldL2Done": 804,
+          "coldGameStart": 813
+        },
+        {
+          "entryFrames": 343.916
+        },
+        {
+          "readPauseFrames": 91.586
+        },
+        {
+          "pauseHostFrames": 94,
+          "pauseClockFrames": 93.248
+        },
+        {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29537,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        {
+          "postLevelReadBegin": 1723,
+          "postLevelReadEnd": 1784,
+          "postL2Init": 1836,
+          "postL2Done": 1836,
+          "restartHost": 1839
+        },
+        {
+          "stripFrames": 0,
+          "rngErrors": 0,
+          "restoredVscrol": 0,
+          "restoreErrors": 0
+        },
+        {
+          "restartedLevel": 10,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      ],
+      "totals": {
+        "boot:writes": 3840,
+        "boot:reads": 3840,
+        "boss-owned:writes": 11532,
+        "boss-owned:reads": 2009472
+      }
+    }
+  ],
+  "scope": "Four terminal boss fixtures plus 480/960 quit, GAME OVER, level-end and RESET fixtures; no observed CPU accesses outside boot/boss ownership. Phase freedom additionally depends on static DMA and checked loader destinations.",
+  "bindings": [
+    {
+      "file": "build/evidence/capital-content-v2/boss1/r1.jsonl",
+      "sha256": "b8458271ce3534e10a8dc04f6fb263f97c368ec7b625b198e07c13bf9a138069"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/home-boss1.csv",
+      "sha256": "4c49df624d314cc4cc62a811038f3688d1f08b0d312c324373439031c69863af"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/boss1/r1.jsonl.lifetime.jsonl",
+      "sha256": "a44994e72e6dfe26b0557448025a212d787296168abeab768e0fcca487f41330"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/boss2/r2.jsonl",
+      "sha256": "ec1ee5c66beb4cad10fad5f53db108bbb96020c56e2755db116808951abb6518"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/home-boss2.csv",
+      "sha256": "9af280ab1e43d20a190fedd5a4f7ce49218169842d7f5fd20eb64c23da27bf53"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/boss2/r2.jsonl.lifetime.jsonl",
+      "sha256": "7ab746152eeade9be5a7cf4e078348d1ea8cb093074535147dcf2c92c5e718ca"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/boss3/r3.jsonl",
+      "sha256": "bc8ca0852876c7f8b627d5f9f9a17b8eb517a5f025eaa3ebe4bda9129f813389"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/home-boss3.csv",
+      "sha256": "270d5e6c31237c7090e9357501f580db414c04ea007d228aa96bedc1835dad6d"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/boss3/r3.jsonl.lifetime.jsonl",
+      "sha256": "9da743835a9ce77522469ebb676ea58f3c7d6b0605bd45251dc2f78c0882b8bb"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/boss4/r4.jsonl",
+      "sha256": "5a8b8beb7b018e5a91ff4d504e00b4c459bd7a386dd2aa32167995af40e2271a"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/home-boss4.csv",
+      "sha256": "abb71a40003d7e51f9decd5c1cd1d389585ff59a56cf547999aee26157094216"
+    },
+    {
+      "file": "build/evidence/capital-content-v2/boss4/r4.jsonl.lifetime.jsonl",
+      "sha256": "6cceaa93de3893f731cfdce3c31c2df053db126a7b3e2440b34e0e4c079a90aa"
+    }
+  ],
+  "nativeGate": {
+    "routes": 15,
+    "peak": 31432,
+    "capitalPeak": 30025,
+    "minimumFence": 3441,
+    "allPassed": true
+  },
+  "exitResults": [
+    {
+      "rows": 480,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    }
+  ],
+  "exitHomeAccesses": [
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-480-game-over.csv",
+      "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 3840
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 3840
+        }
+      ]
+    },
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-480-level-end.csv",
+      "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 3840
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 3840
+        }
+      ]
+    },
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-480-quit.csv",
+      "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 3840
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 3840
+        }
+      ]
+    },
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-480-reset.csv",
+      "sha256": "6dfc51a809fa8529cd94f68508ca9bd7864383725de3c4faca668ee28941ac62",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 7680
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 7680
+        }
+      ]
+    },
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-960-game-over.csv",
+      "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 3840
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 3840
+        }
+      ]
+    },
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-960-level-end.csv",
+      "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 3840
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 3840
+        }
+      ]
+    },
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-960-quit.csv",
+      "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 3840
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 3840
+        }
+      ]
+    },
+    {
+      "file": "build/evidence/capital-content-v2/l2-exit-960-reset.csv",
+      "sha256": "21c1cfb78487cba6d137c937ac8f7995408fe0910285923b2b5864d3700aeddc",
+      "counts": [
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 1,
+          "count": 7680
+        },
+        {
+          "game": 0,
+          "boss": 0,
+          "write": 0,
+          "count": 7680
+        }
+      ]
+    }
+  ],
+  "freePhases": [
+    "menu after boot",
+    "level-start outside an intentional content read",
+    "SPACE",
+    "capital including brake/death/respawn",
+    "pause",
+    "summary after boss code is disarmed"
+  ],
+  "notFreePhases": [
+    "boot/reset RAM initialization",
+    "boss entry/install",
+    "boss fight",
+    "boss death"
+  ]
+}

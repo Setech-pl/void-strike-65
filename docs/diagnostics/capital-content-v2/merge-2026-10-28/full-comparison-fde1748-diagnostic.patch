@@ -1,0 +1,129 @@
+--- scripts/runtime-wall-trace.mjs@fde1748
++++ build-only diagnostic collector
+@@ -1638,9 +1638,9 @@
+ }
+ let cpuReferenceByFrame = new Map();
+ 
+-function invariant(condition, message) {
+-  if (!condition) throw new Error(message);
+-}
++let diagnosticAggregatePhase=false, diagnosticChainDepth=0, diagnosticCompleted=false;
++const diagnosticAggregateFailures=[],diagnosticUnavailable=[];
++function invariant(condition,message){if(!condition){const error=new Error(message);if(!diagnosticAggregatePhase)throw error;diagnosticAggregateFailures.push({message,stack:error.stack});process.exitCode=1;if(diagnosticChainDepth){error.diagnosticRecorded=true;throw error;}return false;}return true;}
+ 
+ function sha256(bytes) {
+   return crypto.createHash("sha256").update(bytes).digest("hex");
+@@ -6168,6 +6168,7 @@
+     reportPalTimingAudit(palTimingAudit);
+     if (!palTimingAudit.passed) process.exitCode = 1;
+   }
++  diagnosticAggregatePhase=true;
+   {
+     const missEvents = reportPalTimingAudits(palTimingAudits, { perAudit: false });
+     fs.writeFileSync(path.join(buildDirectory, "pal-timing-audit.json"),
+@@ -6400,7 +6401,10 @@
+       passed: sessions.every(({ summary }) => summary.passed),
+     };
+     const reportPath = path.join(buildDirectory, "debris-visibility-gate-report.json");
+-    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
++    diagnosticCompleted=true;
++  report.diagnostic_collection={cachedRawData:true,failures:diagnosticAggregateFailures,unavailableDependentMetadata:diagnosticUnavailable};
++  report.evidence.status='diagnostic-only';report.gate.passed=false;
++  fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+     for (const entry of sessions) {
+       const phases = entry.summary.by_phase;
+       console.log(`${entry.session}: ${entry.host_frames} host frames, max ${entry.maximum_wall_cycles} wall cycles, ` +
+@@ -7915,6 +7919,7 @@
+       passed: true,
+     }, null, 2)}\n`);
+   }
++  diagnosticChainDepth++;try {
+   if (smokeFrames === null && sessionsToRun.some(({ kind }) =>
+     kind === "lower-playfield-boundary")) {
+     const rows = allRows.filter(({ trace_kind: kind }) => kind === "lower-playfield-boundary");
+@@ -7979,6 +7984,7 @@
+       passed: true,
+     }, null, 2)}\n`);
+   }
++  }catch(error){diagnosticUnavailable.push({context:'lower-playfield-boundary',reason:error.message,recordedAssertion:!!error.diagnosticRecorded});}finally{diagnosticChainDepth--;}
+   if (smokeFrames !== null) {
+     console.log(`Observer smoke completed: ${smokeFrames} gameplay frames`);
+     return;
+@@ -8263,6 +8269,7 @@
+     `${directorCompletionSessions.filter((session) =>
+       session.levelSummaryEvidence?.level_end_summary !== undefined).length}/3 level-end summaries`);
+   const directorCompletionEvidence = directorCompletionSessions.map((session) => {
++    diagnosticChainDepth++;try {
+     const rows = directorCompletionRows.filter((row) => row.session === session.id);
+     /* Owner decision 9, 2026-09-28 (plans/director-4.6.md §11 item 9;
+      * alternative 1 of docs/diagnostics/boss-handoff-clause-2026-09-28.md).
+@@ -8393,6 +8400,7 @@
+       natural_broadside_frames: broadsideRows.length,
+       maximum_broadside_projectiles: Math.max(...broadsideRows.map((row) => row.broadside)),
+     };
++    }catch(error){diagnosticUnavailable.push({session:session.id,reason:error.message,recordedAssertion:!!error.diagnosticRecorded});return {session:session.id,difficulty:session.difficulty,diagnostic_invalid:true};}finally{diagnosticChainDepth--;}
+   });
+   const hardDirectorCompletion = directorCompletionEvidence.find(({ difficulty }) =>
+     difficulty === 2);
+@@ -8412,6 +8420,7 @@
+       `${session.medium}/${session.policy} integrity segment did not execute 80 seconds`);
+   }
+   const engineSessionEvidence = engineDiagnosticSessions.map((session) => {
++    try{
+     const rows = engineRows.filter((row) => row.session === session.id);
+     const screenshotPaths = Array.from({ length: 150 }, (_, frame) =>
+       path.join(buildDirectory, `${session.id}-${String(frame).padStart(3, "0")}.png`));
+@@ -8479,8 +8488,10 @@
+       screenshot_sequence_sha256: sha256(Buffer.concat(screenshotPaths.map((screenshotPath) =>
+         fs.readFileSync(screenshotPath)))),
+     };
++    }catch(error){diagnosticUnavailable.push({context:'engine-startup',session:session.id,reason:error.message});return {id:session.id,difficulty:session.difficulty,diagnostic_invalid:true};}
+   });
+   const engineRestartEvidence = engineRestartSessions.map((session) => {
++    try{
+     const rows = engineRestartRows.filter((row) => row.session === session.id);
+     const restartedRows = rows.filter((row) => row.gameplay_generation === 2).slice(0, 150);
+     const screenshotPaths = Array.from({ length: 150 }, (_, frame) =>
+@@ -8521,7 +8532,9 @@
+       screenshot_sequence_sha256: sha256(Buffer.concat(screenshotPaths.map((screenshotPath) =>
+         fs.readFileSync(screenshotPath)))),
+     };
++    }catch(error){diagnosticUnavailable.push({context:'engine-restart',session:session.id,reason:error.message});return {id:session.id,difficulty:session.difficulty,diagnostic_invalid:true};}
+   });
++  let engineRuntimeEvidence=null;try{
+   const engineContactSession = "engine-atr-a5-0-immediate";
+   const engineScreenshotPath = (frame) => path.join(buildDirectory,
+     `${engineContactSession}-${String(frame).padStart(3, "0")}.png`);
+@@ -8544,7 +8557,7 @@
+       row.engine_first_write_address, row.engine_first_write_old, row.engine_first_write_new,
+     ].join(",")),
+   ].join("\n") + "\n");
+-  const engineRuntimeEvidence = {
++  engineRuntimeEvidence = {
+     source_session: engineContactSession,
+     first_32_contact: engineFirstContact,
+     two_cycles_contact: engineCycleContact,
+@@ -8555,6 +8568,7 @@
+       sha256: sha256(fs.readFileSync(engineCompactTracePath)),
+     },
+   };
++  }catch(error){diagnosticUnavailable.push({context:'engine-media-publication',reason:error.message});}
+   invariant(allRows.every((row) => row.dma_ctl === 0x3e),
+     "Trace observed gameplay DMACTL other than $3E");
+   invariant(allRows.every((row) => row.nmi_en === 0x80),
+@@ -9861,6 +9875,9 @@
+     ],
+   };
+ 
++  diagnosticCompleted=true;
++  report.diagnostic_collection={cachedRawData:true,failures:diagnosticAggregateFailures,unavailableDependentMetadata:diagnosticUnavailable};
++  report.evidence.status='diagnostic-only';report.gate.passed=false;
+   fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+   console.log(`Measured DMA-on maximum: ${report.semantics.measured_wall_cycles_dma_on} cycles`);
+   console.log(`Measured physical headroom: ${report.semantics.measured_physical_headroom} cycles`);
+@@ -9870,4 +9887,4 @@
+   if (!report.gate.passed) process.exitCode = 1;
+ }
+ 
+-main();
++try{main();}catch(error){diagnosticUnavailable.push({fatal:true,reason:error.message,stack:error.stack});console.error(error.stack);process.exitCode=1;}finally{fs.writeFileSync(path.join(buildDirectory,'aggregate-diagnostic.json'),JSON.stringify({diagnosticOnly:true,complete:diagnosticCompleted,failures:diagnosticAggregateFailures,unavailable:diagnosticUnavailable},null,2)+'\n');}

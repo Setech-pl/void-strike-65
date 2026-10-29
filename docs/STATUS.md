@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-27 (M3-H session 1 — OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-29 (capital increments1+0 ready for merge; normal play ATRs delivered)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,87 @@ the values below.
 ---
 
 ## Checkpoint
+
+### Capital content v2 — increments1+0 ready for merge; play ATRs delivered
+
+Owner merge worktree `dark-fighter-capital-v2-merge`, branch
+`codex/capital-content-v2-merge`, task HEAD `8763397`, baseline main `5053697`.
+**Owner decision2026-10-29: increments1+0 ready for merge.** Increment1 was
+OWNER-ACCEPTED at `f0b0dd1`, including SIO2SD; increment0 is committed at
+`434871e`. Normal play delivery is complete. Owner commits and merges;
+no merge, push or tag by the agent.
+
+**Increment 2 is PARKED at `bfda36b` on `codex/capital-content-v2`.** Owner
+smoke FAILED (2026-10-28): six evenly spaced mines in a single horizontal band
+instead of a scattered field of about twenty; shot artifacts on islands were
+reported, with attribution pending. The parked branch is untouched and none
+of its increment 2 changes is included here. Future direction, not implemented:
+about twenty mines scattered by a build-time generator, minimum spacing so
+mines are not all in one another's blast radius, terrain-synchronous scrolling,
+guaranteed passage, and mine data outside the content home.
+
+Island attribution: the same EASY direct-capital 480 normal-shot route showed
+**no leftover RAM cells on any of `5053697`, `434871e`, `bfda36b`** in the
+sampled end-of-loop capture. All 1,800 screen/charset/row-pointer frames match across builds. A
+1,200-frame no-fire control has zero screen differences outside currently owned
+projectile cells, including 188 sampled island overlaps. This does **not**
+reproduce or attribute the owner's symptom; transient raster artifacts are
+not excluded. Retain the report for `visual-bugs-diag`.
+The firing wrapper rejected its endpoint configuration; no native gate PASS
+is claimed from these raw captures. [Attribution and limitations](diagnostics/capital-content-v2/merge-2026-10-28/island-attribution.json).
+
+Current `434871e` placement: content home 612/1,920 B, **1,308 B free** (5 state B);
+Director high 324 B (−310 versus main); window 2,068 B (+3); arena 827/832 B;
+L2 1,290 B, 256-B reserve untouched; reader 1,512 B; initial content 12,825 B;
+boot/chunk transport 211 sectors. Prior increment 0 CPU evidence: ordinary
++28 / trigger+52 instruction cycles versus main, 60-cycle gate unchanged.
+Native15/15 and home27/27 below remain valid for the identical guest bytes;
+all three fresh play ATRs match the native-bound artifacts exactly.
+
+**Full-suite merge-only gate cleared: A134 /B0 /C0.** Continuation starts
+at committed WIP `c182af2`; no new production changes. Replaced the invalid
+cross-build SHA assertion with exact instruction comparison after resolving
+three relocated references by symbol through the 5053697 label/map fixture and
+current labels. All four synthetic waits and four accepted Heavy cadence
+expectations are fixed. Focused **53/53 PASS**. One full npm test: **1615 tests,
+1478 PASS /134 FAIL /3 SKIP**, exit1, 1541.028s. Every remaining failure ID also
+fails on saved5053697; Group A assertion values untouched. Reconciliation:
+1 matched,133 NEW to ledger,0 MOVED, same main-debt IDs as baseline. No green
+full-suite claim. [Full A/B/C lists and assertion audit](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation.md),
+[comparison](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-comparison.json),
+[gate evidence](diagnostics/capital-content-v2/merge-2026-10-28/merge-continuation-gates.json).
+
+**Native15/15 PASS**, retained for identical guest bytes:58,688 iterations; overall peak31,444, capital30,152, minimum fence3298, boss entry325/350; zero misses/VBI/DLI/shifted/stale accesses. Boot7/7 PASS, frontend1390<=1402. Every boss-stress mode equals saved5053697, lost-target maximum8473.
+
+**Home27/27 PASS:**15 routes+8 exits+R1–R4 terminal roundtrips. Generated missing original-variant ownership images with the existing helper; all8 rerun exits pass. Content2,963,608/boss-owned4,239,102 opcode fetches, zero invalid executions. Boss roundtrips are seeded diagnostic fixtures.
+
+**Complete release diagnostic: A32/B3/C11 by session+assertion.** Both5053697 and current completed61/61 gameplay sessions plus7/7 boot cases after normal build, identical current harness/inputs/emulator; no first-unrecorded stop. Build-only collection of independent aggregate predicates completed the inventory without changing predicates/thresholds;18 dependent metadata groups per side are explicitly unavailable, not passed. All32 A identities recorded as pre-existing debt (5 retained,27 added). Full lists, exact messages, collector patch, source/artifact hashes and raw logs: [comparison report](diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.md), [data](diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json).
+
+**B1=3/B2=0:** Heavy departure first diverges at row152, hostile frame338, world-pickup304, flash330. Retimed only hostile budget1080→800, world-pickup4000→3200 (pre-boss), flash FIRE preamble4000→40 (1600 frames unchanged). Positive focused original-predicate proofs match the fresh full-run CSVs byte-for-byte. No production, assertion expression, threshold or validator change. One audit justification per input. Allied capture stays A: real allied contact baseline770/current737, captures0/13; current false laser-PC/L2 alias primes raster827–839, images13–15 need840–842 beyond840. No A repair.
+
+**Owner release-debt decision confirmed from saved5053697 output:** capsule0/11 (largest144 px) and DLI92 both fail there with the same predicates and exact values. No rerun needed. Both exact records already existed; their notes now state the owner decision. **strict release / release-evidence refresh blocked by pre-existing debt (list below); required before v0.4.0.** Strict release is not a merge gate for this branch. Validators/predicates and stale canonical evidence remain unchanged.
+
+Recorded release debt:32 A assertions, full exact list in [the delivery report](diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.md) and [registry](recorded-gate-failures.json):
+
+- Capsule aggregate:0/11 complete sequences, largest144 px; expected exactly1.
+- DLI phase/order cumulative maximum92; expected0.
+- Director:4 core-down clauses,3 chain/hold clauses,1 completion-summary clause.
+- Pickup:1 overlap and2 traversal clauses.
+- Contact/lower playfield:3 contact/row-switch clauses and1 selected-raster clause.
+- Engine:12 startup screenshot clauses and2 restart clauses.
+- Booster:1 rotation clause.
+
+**Merge gate summary:** normal builds PASS; full tests A134/B0/C0 (A unchanged); native15/15; home27/27, zero invalid executions; boot7/7,1390<=1402; boss stress=5053697; release trace B2=0,3 B1 retimed,61-session rerun with8 failures equal recorded A debt. Retained gates are bound to identical guest artifacts, not newly rerun in this continuation. Native peak31444, capital30152, minimum fence3298, boss entry325/350; lost-target stress maximum8473. No green full-suite/release claim:134 unit failures are pre-existing main debt and the strict release debt remains open.
+
+**Normal play ATRs delivered; increments1+0 ready for merge:**
+
+- `build/play/capital-content-v2-merge/campaign.atr` — `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676`
+- `build/play/capital-content-v2-merge/capital-480.atr` — `875aa84347ad13300a12a70acb06fadfba55d6615e341dd2ca18ff4449837a58`
+- `build/play/capital-content-v2-merge/capital-960.atr` — `8dc9a23b8e1e1602254c48c51b473e52da51f845a6974a866726ca0305e7e7ef`
+
+All3 fresh builds pass and exactly match the prior native15 artifact SHA bindings. Campaign normal build reports expected stale evidence pending (b3b8e466); no strict build or release refresh attempted under this owner decision. [Confirmation, full gate summary, debt list, build logs and exact commit paths](diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.md), [machine-readable proof](diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.json).
+
+CPU/RAM/residency delta0; no production or predicate changes. Both dist/ directories clean: primary boot BIN/manifest/ATR restored byte-for-byte after normal build; variants stayed under build/. Baseline remained read only and clean. No active task emulator, stage/commit/merge/push/tag by agent. Increment2 remains parked atbfda36b. Island artifacts remain unattributed transient raster artifacts for visual-bugs-diag, non-blocking. NEXT TASK: owner commit and merge of increments1+0; complete the deferred strict release / release-evidence refresh beforev0.4.0, addressing its pre-existing blockers.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

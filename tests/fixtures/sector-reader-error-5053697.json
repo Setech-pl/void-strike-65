@@ -1,0 +1,31 @@
+{
+  "commit": "5053697",
+  "origin": "Compiled sector-reader.bin, .lbl and .map from the owner baseline; rebuild source: git archive 5053697, npm run build.",
+  "readerSha256": "d92d6659fe05a91892ce13fe8d078c42c7fa5349bf1356012096936b68aa31d7",
+  "segmentMapLine": "SECTOR_READER         00A000  00A5F8  0005F9  00001",
+  "labels": {
+    "sector_reader_failure_screen": 41174,
+    "sector_reader_drain_ready": 41247,
+    "failure_reasons": 42318,
+    "failure_reason_slot": 42251,
+    "failure_records": 42230
+  },
+  "hex": "8d0abc204fa4ad0abcc9059002a90238e9010a8d0fbc0a0a186d0fbca8a200b94ea59d0ba5c8e8e00ad0f4a9f6a2a420a7a0200ea14c1e61206927ad10d0f0f8206927ad10d0d0f860",
+  "relocations": [
+    {
+      "symbol": "failure_reasons",
+      "low": 32,
+      "high": 33
+    },
+    {
+      "symbol": "failure_reason_slot",
+      "low": 35,
+      "high": 36
+    },
+    {
+      "symbol": "failure_records",
+      "low": 44,
+      "high": 46
+    }
+  ]
+}

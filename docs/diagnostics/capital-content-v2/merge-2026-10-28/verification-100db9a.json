@@ -1,0 +1,1029 @@
+{
+  "head": "100db9a",
+  "baseline": "5053697",
+  "method": "same named release trace session on baseline worktree; boot smoke omitted for attribution only; no replay or validator changes",
+  "inputs": {
+    "policy": "boss-aim",
+    "fireDelay": 0,
+    "frames": 15000,
+    "holdPlayerLives": 3,
+    "endAtSummary": true
+  },
+  "inputPolicyHeaderSha256": "f076b4fbf19f38536b13f8739b3f5db126cf9aeb7da34dd72c2930b89c7aa303",
+  "baselineInputPolicyHeaderSha256": "f076b4fbf19f38536b13f8739b3f5db126cf9aeb7da34dd72c2930b89c7aa303",
+  "classification": "pre-existing-unclassified; the core-down clause is not an increment0-only failure",
+  "cases": [
+    {
+      "difficulty": 0,
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "failedSameClause": true,
+      "passed": true,
+      "report": {
+        "emulator": "Atari800 7.1.2 PAL/XL",
+        "guest_instrumentation_bytes": 0,
+        "diagnostic_allowances": {
+          "release_evidence": false,
+          "reuse_existing_traces": false,
+          "host_lives_top_up": null,
+          "l2_exit_fixture": null,
+          "terminal_state_seed": false,
+          "l2_variant_alias": false
+        },
+        "artifact_sha256": {
+          "void-strike-65-boot.bin": {
+            "path": "dist/void-strike-65-boot.bin",
+            "bytes": 27392,
+            "sha256": "a82d2d4654d97726f46bb40e26b69e04f763a36b694b66b913384e1c623a262a"
+          },
+          "void-strike-65.atr": {
+            "path": "dist/void-strike-65.atr",
+            "bytes": 133136,
+            "sha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d"
+          },
+          "void-strike-65-manifest.json": {
+            "path": "dist/void-strike-65-manifest.json",
+            "bytes": 883558,
+            "sha256": "847eea0284685480f951be6df463fe0e7638937bcaa28c29ea64c337c15df01f"
+          }
+        },
+        "sessions": [
+          {
+            "id": "director-complete-0-natural-sweep-fire0",
+            "kind": "director-level-complete",
+            "medium": "ATR",
+            "difficulty": 0,
+            "policy": "boss-aim",
+            "fire_delay": 0,
+            "measured_frames": 5509,
+            "maximum_wall_cycles": 30872,
+            "deadline_overrun_frames": 0,
+            "missed_frames": 0,
+            "hull_map_draws": 616,
+            "hull_map_stale_draws": 0,
+            "hull_map_dirty_reads": 0,
+            "hull_map_rebuilds_after_boss": 0
+          }
+        ],
+        "acceptance": {
+          "measured_frames": 5509,
+          "maximum_wall_cycles": 30872,
+          "wall_ceiling": 32568,
+          "physical_headroom": 4696,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "physical_overruns": 0,
+          "deadline_overruns": 0,
+          "dli_ordering_errors": 0,
+          "passed": true
+        },
+        "passed": true
+      },
+      "reportSha256": "7a66de6cd857d62125663c206717cca417812b72c364bb8cbfec332f0bfb6f57",
+      "rawLog": "build/evidence/capital-content-v2/verification-100db9a/baseline-clause.log",
+      "csvSha256": "b42b9b4dee54439bbb3bcc5c22fcb692378c8ae232e3d5ff2518ac497af94ab3"
+    },
+    {
+      "difficulty": 1,
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "failedSameClause": true,
+      "passed": true,
+      "report": {
+        "emulator": "Atari800 7.1.2 PAL/XL",
+        "guest_instrumentation_bytes": 0,
+        "diagnostic_allowances": {
+          "release_evidence": false,
+          "reuse_existing_traces": false,
+          "host_lives_top_up": null,
+          "l2_exit_fixture": null,
+          "terminal_state_seed": false,
+          "l2_variant_alias": false
+        },
+        "artifact_sha256": {
+          "void-strike-65-boot.bin": {
+            "path": "dist/void-strike-65-boot.bin",
+            "bytes": 27392,
+            "sha256": "a82d2d4654d97726f46bb40e26b69e04f763a36b694b66b913384e1c623a262a"
+          },
+          "void-strike-65.atr": {
+            "path": "dist/void-strike-65.atr",
+            "bytes": 133136,
+            "sha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d"
+          },
+          "void-strike-65-manifest.json": {
+            "path": "dist/void-strike-65-manifest.json",
+            "bytes": 883558,
+            "sha256": "847eea0284685480f951be6df463fe0e7638937bcaa28c29ea64c337c15df01f"
+          }
+        },
+        "sessions": [
+          {
+            "id": "director-complete-1-natural-sweep-fire0",
+            "kind": "director-level-complete",
+            "medium": "ATR",
+            "difficulty": 1,
+            "policy": "boss-aim",
+            "fire_delay": 0,
+            "measured_frames": 5549,
+            "maximum_wall_cycles": 31036,
+            "deadline_overrun_frames": 0,
+            "missed_frames": 0,
+            "hull_map_draws": 545,
+            "hull_map_stale_draws": 0,
+            "hull_map_dirty_reads": 0,
+            "hull_map_rebuilds_after_boss": 0
+          }
+        ],
+        "acceptance": {
+          "measured_frames": 5549,
+          "maximum_wall_cycles": 31036,
+          "wall_ceiling": 32568,
+          "physical_headroom": 4532,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "physical_overruns": 0,
+          "deadline_overruns": 0,
+          "dli_ordering_errors": 0,
+          "passed": true
+        },
+        "passed": true
+      },
+      "reportSha256": "9ae3d123629db869d3e6fa468b02be2e02dd34df6bbd6751a6ec7a7c844200a3",
+      "rawLog": "build/evidence/capital-content-v2/verification-100db9a/baseline-1.log",
+      "csvSha256": "0faace5afceb742ad42cc51cc76faba0e10cec92824732d1b3456586268d6939"
+    },
+    {
+      "difficulty": 2,
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "failedSameClause": true,
+      "passed": true,
+      "report": {
+        "emulator": "Atari800 7.1.2 PAL/XL",
+        "guest_instrumentation_bytes": 0,
+        "diagnostic_allowances": {
+          "release_evidence": false,
+          "reuse_existing_traces": false,
+          "host_lives_top_up": null,
+          "l2_exit_fixture": null,
+          "terminal_state_seed": false,
+          "l2_variant_alias": false
+        },
+        "artifact_sha256": {
+          "void-strike-65-boot.bin": {
+            "path": "dist/void-strike-65-boot.bin",
+            "bytes": 27392,
+            "sha256": "a82d2d4654d97726f46bb40e26b69e04f763a36b694b66b913384e1c623a262a"
+          },
+          "void-strike-65.atr": {
+            "path": "dist/void-strike-65.atr",
+            "bytes": 133136,
+            "sha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d"
+          },
+          "void-strike-65-manifest.json": {
+            "path": "dist/void-strike-65-manifest.json",
+            "bytes": 883558,
+            "sha256": "847eea0284685480f951be6df463fe0e7638937bcaa28c29ea64c337c15df01f"
+          }
+        },
+        "sessions": [
+          {
+            "id": "director-complete-2-natural-sweep-fire0",
+            "kind": "director-level-complete",
+            "medium": "ATR",
+            "difficulty": 2,
+            "policy": "boss-aim",
+            "fire_delay": 0,
+            "measured_frames": 5629,
+            "maximum_wall_cycles": 31301,
+            "deadline_overrun_frames": 0,
+            "missed_frames": 0,
+            "hull_map_draws": 488,
+            "hull_map_stale_draws": 0,
+            "hull_map_dirty_reads": 0,
+            "hull_map_rebuilds_after_boss": 0
+          }
+        ],
+        "acceptance": {
+          "measured_frames": 5629,
+          "maximum_wall_cycles": 31301,
+          "wall_ceiling": 32568,
+          "physical_headroom": 4267,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "physical_overruns": 0,
+          "deadline_overruns": 0,
+          "dli_ordering_errors": 0,
+          "passed": true
+        },
+        "passed": true
+      },
+      "reportSha256": "3d920ee82dfc19e29d271a273a20a02627630b89adfcc07f11a0eca810916ba9",
+      "rawLog": "build/evidence/capital-content-v2/verification-100db9a/baseline-2.log",
+      "csvSha256": "f5a653da36e48443db3281b01dc61707ff30e38b459528776505d9b87e3b8cd5"
+    }
+  ],
+  "home27": {
+    "status": "PASS 27/27",
+    "head": "100db9a",
+    "guestArtifact": "5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676",
+    "method": "host-only CPU fetch/read/write observer; no guest instrumentation bytes; installed boss/death ownership counted separately",
+    "nativeRoutesRetained": 15,
+    "exits": [
+      {
+        "rows": 480,
+        "path": "quit",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 1,
+          "capital_death_valid": 3,
+          "respawn": 3,
+          "game_over": 0,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      },
+      {
+        "rows": 480,
+        "path": "game-over",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 1,
+          "capital_death_valid": 3,
+          "respawn": 3,
+          "game_over": 1,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      },
+      {
+        "rows": 480,
+        "path": "level-end",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 1,
+          "capital_death_valid": 3,
+          "respawn": 3,
+          "game_over": 0,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      },
+      {
+        "rows": 960,
+        "path": "quit",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 1,
+          "capital_death_valid": 2,
+          "respawn": 2,
+          "game_over": 0,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      },
+      {
+        "rows": 480,
+        "path": "reset",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 2,
+          "capital_death_valid": 3,
+          "respawn": 3,
+          "game_over": 0,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      },
+      {
+        "rows": 960,
+        "path": "game-over",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 1,
+          "capital_death_valid": 2,
+          "respawn": 2,
+          "game_over": 1,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      },
+      {
+        "rows": 960,
+        "path": "level-end",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 1,
+          "capital_death_valid": 2,
+          "respawn": 2,
+          "game_over": 0,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      },
+      {
+        "rows": 960,
+        "path": "reset",
+        "counts": {
+          "checked_l2_init": 2,
+          "boot_ready_disarmed": 2,
+          "capital_death_valid": 2,
+          "respawn": 2,
+          "game_over": 0,
+          "stale_access": 0,
+          "exit_fixture": 1
+        },
+        "diagnostic_only": true
+      }
+    ],
+    "bosses": [
+      {
+        "region": 1,
+        "file": "build/merge-validation-c182af2/build/merge-boss-home/r1/r1.jsonl",
+        "sha256": "53a8ce75f2ff514cbcee16ace4f03aff8b873b54bb76a88f3e2f979085ada1a9",
+        "entry": {
+          "entryFrames": 324.916
+        },
+        "timing": {
+          "peakPreFence": 13808,
+          "peakDmaOn": 29535,
+          "minimumFence": 11031,
+          "dliCount": 1925
+        },
+        "ending": {
+          "restartedLevel": 1,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      },
+      {
+        "region": 2,
+        "file": "build/merge-validation-c182af2/build/merge-boss-home/r2/r2.jsonl",
+        "sha256": "c5463fa1a6e4b982ecc7f89d05c2af5889cd30d581403cac1b02bc285f57a213",
+        "entry": {
+          "entryFrames": 339.916
+        },
+        "timing": {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29360,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        "ending": {
+          "restartedLevel": 4,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      },
+      {
+        "region": 3,
+        "file": "build/merge-validation-c182af2/build/merge-boss-home/r3/r3.jsonl",
+        "sha256": "82c3aef6f897a23e0d3a499c54d564662680542ad33b11a8ce3d1b7e1264ca5a",
+        "entry": {
+          "entryFrames": 339.916
+        },
+        "timing": {
+          "peakPreFence": 21655,
+          "peakDmaOn": 29532,
+          "minimumFence": 3184,
+          "dliCount": 1925
+        },
+        "ending": {
+          "restartedLevel": 7,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      },
+      {
+        "region": 4,
+        "file": "build/merge-validation-c182af2/build/merge-boss-home/r4/r4.jsonl",
+        "sha256": "9bc4124cb44affdfc924af5767423dd489318afce120befbd0d666022f3e1ac2",
+        "entry": {
+          "entryFrames": 343.916
+        },
+        "timing": {
+          "peakPreFence": 14222,
+          "peakDmaOn": 29537,
+          "minimumFence": 10617,
+          "dliCount": 1925
+        },
+        "ending": {
+          "restartedLevel": 10,
+          "summary": true,
+          "frames": 175,
+          "misses": 0,
+          "hudErrors": 0,
+          "shipErrors": 0,
+          "dliErrors": 0,
+          "returnedToMenu": 1,
+          "readImageChecks": 90,
+          "readImageErrors": 0,
+          "readAttempts": 24,
+          "sioFailures": 0,
+          "readDlis": 275,
+          "readDliErrors": 0,
+          "strobeFrames": 92,
+          "strobeDliWallPeak": 356,
+          "strobeCpuTop": 109,
+          "strobeCpuRing": 94,
+          "strobeCpuHud": 57,
+          "strobeBlockPeak": 382
+        }
+      }
+    ],
+    "captures": [
+      {
+        "id": "campaign-0-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/campaign-0-flight-home.csv",
+        "accesses": 649387,
+        "contentFetches": 169388,
+        "bossOwnedFetches": 66966,
+        "invalidExecutions": 0,
+        "sha256": "fc1fa0308b4d28c004377f4e0ed3150263eb35288b067a86b1ff7e803cd45115"
+      },
+      {
+        "id": "campaign-1-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/campaign-1-flight-home.csv",
+        "accesses": 676230,
+        "contentFetches": 179228,
+        "bossOwnedFetches": 67130,
+        "invalidExecutions": 0,
+        "sha256": "6ca32a4e502de9ecf04db0eb3a8a6045af5296bc350cd4f92062c347507c4385"
+      },
+      {
+        "id": "campaign-2-brake",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/campaign-2-brake-home.csv",
+        "accesses": 729376,
+        "contentFetches": 199182,
+        "bossOwnedFetches": 67218,
+        "invalidExecutions": 0,
+        "sha256": "2798545b3c11c07f3b20902abedf72a2aa3c27380ea02e74b031c09e22d48fd9"
+      },
+      {
+        "id": "l2-480-0-brake",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-480-0-brake-home.csv",
+        "accesses": 570243,
+        "contentFetches": 139600,
+        "bossOwnedFetches": 67126,
+        "invalidExecutions": 0,
+        "sha256": "93eebc216904b4aa0bf92a4a0f5d449b18525f46c7e6a4760386cd0f1c6a547c"
+      },
+      {
+        "id": "l2-480-0-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-480-0-flight-home.csv",
+        "accesses": 560977,
+        "contentFetches": 135812,
+        "bossOwnedFetches": 66966,
+        "invalidExecutions": 0,
+        "sha256": "a9e190305443cde4bf4bd3c3f57adb16fa6609f28c7afcbb50dca92b4bc99002"
+      },
+      {
+        "id": "l2-480-1-brake",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-480-1-brake-home.csv",
+        "accesses": 571235,
+        "contentFetches": 140196,
+        "bossOwnedFetches": 67130,
+        "invalidExecutions": 0,
+        "sha256": "90b24659ac026dc067ebb28c8867be94839fd7206361aca6214308d55a3a5fa7"
+      },
+      {
+        "id": "l2-480-1-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-480-1-flight-home.csv",
+        "accesses": 591193,
+        "contentFetches": 146722,
+        "bossOwnedFetches": 67270,
+        "invalidExecutions": 0,
+        "sha256": "e707935a9c65d0045f25e35b67091ac2c5538abe60711cf380e9d3b8d1f46196"
+      },
+      {
+        "id": "l2-480-2-brake",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-480-2-brake-home.csv",
+        "accesses": 620467,
+        "contentFetches": 157944,
+        "bossOwnedFetches": 67356,
+        "invalidExecutions": 0,
+        "sha256": "2637e7fbb3e3cb2dc4de75988050ac186ec4a23f6b06e41ca83671723ada35c4"
+      },
+      {
+        "id": "l2-480-2-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-480-2-flight-home.csv",
+        "accesses": 614845,
+        "contentFetches": 155206,
+        "bossOwnedFetches": 67496,
+        "invalidExecutions": 0,
+        "sha256": "a1b4fe921a809c3baa3314b16e60a078c4ad0dedc156330dfef80554681f5db9"
+      },
+      {
+        "id": "l2-960-0-brake",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-960-0-brake-home.csv",
+        "accesses": 667564,
+        "contentFetches": 176874,
+        "bossOwnedFetches": 66966,
+        "invalidExecutions": 0,
+        "sha256": "77b3c20a44128372159ac82bafe7d9ee867452eb4b8693436f21815fcf2109bd"
+      },
+      {
+        "id": "l2-960-0-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-960-0-flight-home.csv",
+        "accesses": 663456,
+        "contentFetches": 174662,
+        "bossOwnedFetches": 66966,
+        "invalidExecutions": 0,
+        "sha256": "4212cf3b8cf6ed6ccd73af010308440ae340937854347e0b781f9687d1fd2e81"
+      },
+      {
+        "id": "l2-960-1-brake",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-960-1-brake-home.csv",
+        "accesses": 684260,
+        "contentFetches": 182640,
+        "bossOwnedFetches": 67130,
+        "invalidExecutions": 0,
+        "sha256": "a64f961a53c12d8a41964b7e7c27ad9f6d8c5e5d16d89f1c87917c97110dc0ea"
+      },
+      {
+        "id": "l2-960-1-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-960-1-flight-home.csv",
+        "accesses": 689331,
+        "contentFetches": 183846,
+        "bossOwnedFetches": 67270,
+        "invalidExecutions": 0,
+        "sha256": "c08a3724a87e1145b2910619fb512609449a7cdecff9ff78f0b9ed66f3ebaa4f"
+      },
+      {
+        "id": "l2-960-2-brake",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-960-2-brake-home.csv",
+        "accesses": 722533,
+        "contentFetches": 196558,
+        "bossOwnedFetches": 67356,
+        "invalidExecutions": 0,
+        "sha256": "8258b8d139691eaab523aa2ee7e2465f1b602226063d93f8468b1597dc420b6e"
+      },
+      {
+        "id": "l2-960-2-flight",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-960-2-flight-home.csv",
+        "accesses": 721826,
+        "contentFetches": 195756,
+        "bossOwnedFetches": 67356,
+        "invalidExecutions": 0,
+        "sha256": "1b59f1c396f393144af6bad51b494607b5e74d724a921ecec442620d15a53ea2"
+      },
+      {
+        "id": "l2-exit-480-quit",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-480-quit.csv",
+        "accesses": 151875,
+        "contentFetches": 53482,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "f0ea6e9b976cd0a7adfe5a9fc9d4ebe5494d7195782107a7ae78096dfe8492ac"
+      },
+      {
+        "id": "l2-exit-480-game-over",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-480-game-over.csv",
+        "accesses": 151875,
+        "contentFetches": 53482,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "9a30cc5504ceef1dfa534beb6fa703822d30ce4143300bd8505948eaac85a33e"
+      },
+      {
+        "id": "l2-exit-480-level-end",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-480-level-end.csv",
+        "accesses": 149669,
+        "contentFetches": 52672,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "0c720be6a8b84367aef2d8ad113f991d1f7e449eba5edb912c894b47e3d18e02"
+      },
+      {
+        "id": "l2-exit-960-quit",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-960-quit.csv",
+        "accesses": 154323,
+        "contentFetches": 54394,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "ad9ccfada0cdfbe5a353d60c2012eca6616cf59d692de8475d6b170955dfa199"
+      },
+      {
+        "id": "l2-exit-480-reset",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-480-reset.csv",
+        "accesses": 159559,
+        "contentFetches": 53484,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "210ba4a8590dc86ccb624a6f923d701e74d5a1657526f9a0078053ed8fb2e45d"
+      },
+      {
+        "id": "l2-exit-960-game-over",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-960-game-over.csv",
+        "accesses": 154323,
+        "contentFetches": 54394,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "41ff7a24654d16184ef617219dda62a3f0eee79a5e716ef6e3967cdf2aef5607"
+      },
+      {
+        "id": "l2-exit-960-level-end",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-960-level-end.csv",
+        "accesses": 152122,
+        "contentFetches": 53586,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "8cf96f2585848982ca5aa9723796a29936320156f60abe554a9fbd30447259a9"
+      },
+      {
+        "id": "l2-exit-960-reset",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/l2-exit-960-reset.csv",
+        "accesses": 162007,
+        "contentFetches": 54396,
+        "bossOwnedFetches": 0,
+        "invalidExecutions": 0,
+        "sha256": "bcbd2f4968dca12cefc4cacbbb41096b6fd6eef28e07eca866b71c15ee4e733a"
+      },
+      {
+        "id": "boss-r1",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/boss-r1.csv",
+        "accesses": 2034489,
+        "contentFetches": 26,
+        "bossOwnedFetches": 772390,
+        "invalidExecutions": 0,
+        "sha256": "57341e959258668a9c9d1f93093b818575604cb046ddd5dada1b09c45f5c2d55"
+      },
+      {
+        "id": "boss-r2",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/boss-r2.csv",
+        "accesses": 2033480,
+        "contentFetches": 26,
+        "bossOwnedFetches": 771744,
+        "invalidExecutions": 0,
+        "sha256": "6a23e1c973e32b3c1ada6b118f101c7e2d423b6fc4ebe2973139187786cadd02"
+      },
+      {
+        "id": "boss-r3",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/boss-r3.csv",
+        "accesses": 2411078,
+        "contentFetches": 26,
+        "bossOwnedFetches": 915246,
+        "invalidExecutions": 0,
+        "sha256": "8d390060fc725828dd27ca06ca09a240ea3f07e07bd3450f56966b61352ffae9"
+      },
+      {
+        "id": "boss-r4",
+        "file": "build/merge-validation-c182af2/build/merge-native-home/boss-r4.csv",
+        "accesses": 2032598,
+        "contentFetches": 26,
+        "bossOwnedFetches": 772020,
+        "invalidExecutions": 0,
+        "sha256": "0da75dcba0116f1d86995fb19e93145bca699c83e3686e51f59aa234b72c4027"
+      }
+    ],
+    "contentFetches": 2963608,
+    "bossOwnedFetches": 4239102,
+    "invalidExecutions": 0
+  },
+  "baselineDistRestored": true,
+  "writeProtected": {
+    "session": "director-complete-2-write-protected",
+    "inputs": {
+      "difficulty": 2,
+      "policy": "boss-aim",
+      "fireDelay": 0,
+      "frames": 15000,
+      "holdPlayerLives": 3,
+      "endAtSummary": true,
+      "mediaReadOnly": true
+    },
+    "failedSameClause": true,
+    "report": {
+      "emulator": "Atari800 7.1.2 PAL/XL",
+      "guest_instrumentation_bytes": 0,
+      "diagnostic_allowances": {
+        "release_evidence": false,
+        "reuse_existing_traces": false,
+        "host_lives_top_up": null,
+        "l2_exit_fixture": null,
+        "terminal_state_seed": false,
+        "l2_variant_alias": false
+      },
+      "artifact_sha256": {
+        "void-strike-65-boot.bin": {
+          "path": "dist/void-strike-65-boot.bin",
+          "bytes": 27392,
+          "sha256": "a82d2d4654d97726f46bb40e26b69e04f763a36b694b66b913384e1c623a262a"
+        },
+        "void-strike-65.atr": {
+          "path": "dist/void-strike-65.atr",
+          "bytes": 133136,
+          "sha256": "79d1fa59e53ce627008ee6ba3b4d4c0dbeff8776aa572380e7ae0397e5372f9d"
+        },
+        "void-strike-65-manifest.json": {
+          "path": "dist/void-strike-65-manifest.json",
+          "bytes": 883558,
+          "sha256": "847eea0284685480f951be6df463fe0e7638937bcaa28c29ea64c337c15df01f"
+        }
+      },
+      "sessions": [
+        {
+          "id": "director-complete-2-write-protected",
+          "kind": "summary-write-protected",
+          "medium": "ATR",
+          "difficulty": 2,
+          "policy": "boss-aim",
+          "fire_delay": 0,
+          "measured_frames": 5629,
+          "maximum_wall_cycles": 31301,
+          "deadline_overrun_frames": 0,
+          "missed_frames": 0,
+          "hull_map_draws": 488,
+          "hull_map_stale_draws": 0,
+          "hull_map_dirty_reads": 0,
+          "hull_map_rebuilds_after_boss": 0
+        }
+      ],
+      "acceptance": {
+        "measured_frames": 5629,
+        "maximum_wall_cycles": 31301,
+        "wall_ceiling": 32568,
+        "physical_headroom": 4267,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "passed": true
+    },
+    "reportSha256": "2dcafdb4cab51ec9c35475debac0705547897ccce20442bb5a604f9880b6de91",
+    "logSha256": "df0fbb1d5c867c31a8ac9327ac47b81e0f119b2c3218b2bb3962c56ff5bae8b5"
+  },
+  "baselineVerbatimLog": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a-baseline.txt",
+  "baselineVerbatimLogSha256": "f350ced837c49c5141de6487e4d300f7b525b34829f7931845e21941ebb83a52",
+  "releaseStop": {
+    "session": "weapon-pickup-overlap-2-hunt-fire5",
+    "inputs": {
+      "difficulty": 2,
+      "policy": "pickup-overlap",
+      "fireDelay": 5,
+      "frames": 1300
+    },
+    "location": "scripts/runtime-wall-trace.mjs:6107",
+    "expected": "captures 0..18 >=40 COLPM3 pixels; captures 19..21 <40",
+    "actual": {
+      "colour": "$1c",
+      "x": [
+        56,
+        72
+      ],
+      "counts": [
+        216,
+        216,
+        216,
+        216,
+        216,
+        216,
+        216,
+        216,
+        216,
+        188,
+        156,
+        132,
+        108,
+        84,
+        60,
+        28,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "failingCaptureIndices": [
+        15,
+        16,
+        17,
+        18
+      ]
+    },
+    "measuredRows": 1300,
+    "maximumWallCycles": 30793,
+    "missedFrames": 0,
+    "extraVbiBoundaries": 0,
+    "collectionRows": [
+      {
+        "frame": "344",
+        "gameplay_frame": "88",
+        "pickup_state": "3",
+        "pickup_booster_state": "3",
+        "entity_active_mask": "0",
+        "pickup_pmg_rows": "0",
+        "pickup_plane_rows": "0",
+        "pickup_plane_union": "0",
+        "pickup_x": "92",
+        "pickup_y": "224",
+        "player_x": "84",
+        "player_y": "225"
+      }
+    ],
+    "classification": "unattributed; no baseline run or fix after STOP",
+    "rawArtifacts": [
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-overlap-2-hunt-fire5.csv",
+        "bytes": 2055422,
+        "sha256": "654551117ab7885c97d0a1e9a52d604e1e6d74fe5e83adf41a64399ec2bb2707"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-overlap-2-hunt-fire5-watch.json",
+        "bytes": 15402,
+        "sha256": "a2e387eea2045fa26494b19878c31c93031b037ec6610de6dd0f737797eec722"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-00.png",
+        "bytes": 1079,
+        "sha256": "167f010f1b49834c596398a906c7f4b82f9a8762cd6d2be45cc2a2a541606d07"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-01.png",
+        "bytes": 1054,
+        "sha256": "a1d757309336d98d1c8aea9d8838d55507f2ccfb9fa059b2a15cb167c3dc748c"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-02.png",
+        "bytes": 1074,
+        "sha256": "8c691206c468d5a61caba61f595343b6739db40c4a6bf7ca41cd044b8dda4abb"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-03.png",
+        "bytes": 1059,
+        "sha256": "57faf84b8942efa25b764c7ce3a972b1f8ac1fbdaf9e5c93bd4804e7c29deb80"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-04.png",
+        "bytes": 1122,
+        "sha256": "0637e7d7b411cc9d3c3d226feb6ae5a75c8c06a5b42e0ca4e4ddacfb2ddf7151"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-05.png",
+        "bytes": 1077,
+        "sha256": "5bde53482de3b9099a5c89c0602cc911e18e37d2bac2a437459ee321546944b1"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-06.png",
+        "bytes": 1113,
+        "sha256": "1fb425b46d0b96870a6d4e7d83b8b16454c79d9c9864fbd6742104ea49675d86"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-07.png",
+        "bytes": 1085,
+        "sha256": "27e53a71a15d444868fbf6695f6601eb3f0deb8bff34a953ed233ac4f39d062a"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-08.png",
+        "bytes": 1123,
+        "sha256": "2a9178edd1fa2f7eae961313fa10a2fea34eb9bae1f3bc50215ebb728db23675"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-09.png",
+        "bytes": 1078,
+        "sha256": "1cdd5d526d5797c70de39c43d27f0d902aa6ec95fa627da0c5cff1b941ba2cae"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-10.png",
+        "bytes": 1095,
+        "sha256": "cb2b558ef121d64bd6e7431db44caf5d3feeadf51a1b83e8ebf9cd2edaeaf23d"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-11.png",
+        "bytes": 1327,
+        "sha256": "69e10812481a11a8e6892b2f346bc02bc05dd9377a8ceb412c9fff242870f0c3"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-12.png",
+        "bytes": 1369,
+        "sha256": "11830fd00393f64418438fdf77c3e4315de466c872266647999b0f3f4d032a5f"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-13.png",
+        "bytes": 1370,
+        "sha256": "2d6a2b9b7950c11ff4ce1cb27d1915179ef2d873322f33ac005994a391346ef3"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-14.png",
+        "bytes": 1481,
+        "sha256": "1fa613cc17c6462b7cacb6e9b504503d7fcdd4422c30774bf94416ee1148b421"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-15.png",
+        "bytes": 1033,
+        "sha256": "f35b9e194eb02b3988f47bba2a49f4e9b50790ea254731ccf92282b4fe771dc2"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-16.png",
+        "bytes": 1019,
+        "sha256": "9c349a4af1a2006f29a9b2e909fd79916d5795f8f1ba03e62691b9832a391150"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-17.png",
+        "bytes": 1036,
+        "sha256": "6bda6d9e7c9d3825c95e03d1ea5f6b499f83a0433270b14c741a3edd177b6ac8"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-18.png",
+        "bytes": 1036,
+        "sha256": "21c23abe451edc36bc4c2f6f18af068a1891894498d579b7e82ec886ffbccc48"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-19.png",
+        "bytes": 1040,
+        "sha256": "8dadf723d587ed0ddf904804a03764160294d8289b2b2465aee036e409c6cc6d"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-20.png",
+        "bytes": 1048,
+        "sha256": "e0a9c7fc62754ae49a8c4f7f8d2dfa149692e6a4dba5b826f683257488e3f431"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/verification-100db9a/overlap-stop/weapon-pickup-contact-edge-21.png",
+        "bytes": 1060,
+        "sha256": "f69b602b8862c4702761eb34d773b0ab9d3a5b10346e063143e08863f5b924e2"
+      }
+    ],
+    "transcript": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a-release-stop.txt",
+    "transcriptSha256": "d41b2dae39a47f61d8874c52203122de04c357c735d4bddf66a7477c019e41d0",
+    "completedPalAudits": 26,
+    "noActiveTaskEmulator": true
+  },
+  "releaseRun": {
+    "code": null,
+    "signal": "SIGTERM",
+    "unexpected": "weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)",
+    "knownBaselineClauses": [
+      "director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell"
+    ],
+    "logfile": "build/evidence/capital-content-v2/verification-100db9a/release-refresh.log"
+  },
+  "strictRelease": "NOT RUN after unrecorded overlap raster failure",
+  "playDelivery": "NOT DELIVERED"
+}

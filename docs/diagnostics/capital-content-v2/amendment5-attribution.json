@@ -1,0 +1,301 @@
+{
+  "baseline5053697": {
+    "initialSectors": 101,
+    "extensionSectors": 113,
+    "records": [
+      {
+        "startSector": 102,
+        "sectorCount": 44,
+        "packedLength": 5590,
+        "rawLength": 6653,
+        "finalDestination": 24080,
+        "crc16": 40361,
+        "type": 1,
+        "stagingId": 1,
+        "destination": 33024
+      },
+      {
+        "startSector": 146,
+        "sectorCount": 10,
+        "packedLength": 1165,
+        "rawLength": 1165,
+        "finalDestination": 35968,
+        "crc16": 15047,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 156,
+        "sectorCount": 1,
+        "packedLength": 105,
+        "rawLength": 106,
+        "finalDestination": 32792,
+        "crc16": 37738,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 157,
+        "sectorCount": 4,
+        "packedLength": 441,
+        "rawLength": 498,
+        "finalDestination": 39744,
+        "crc16": 50435,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 161,
+        "sectorCount": 6,
+        "packedLength": 746,
+        "rawLength": 746,
+        "finalDestination": 30736,
+        "crc16": 18777,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 167,
+        "sectorCount": 1,
+        "packedLength": 23,
+        "rawLength": 21,
+        "finalDestination": 40286,
+        "crc16": 34598,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 168,
+        "sectorCount": 6,
+        "packedLength": 726,
+        "rawLength": 827,
+        "finalDestination": 31696,
+        "crc16": 10628,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 174,
+        "sectorCount": 14,
+        "packedLength": 1680,
+        "rawLength": 2065,
+        "finalDestination": 44544,
+        "crc16": 39217,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 188,
+        "sectorCount": 9,
+        "packedLength": 1032,
+        "rawLength": 1196,
+        "finalDestination": 13891,
+        "crc16": 1118,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 197,
+        "sectorCount": 13,
+        "packedLength": 1529,
+        "rawLength": 1529,
+        "finalDestination": 40960,
+        "crc16": 14441,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 210,
+        "sectorCount": 5,
+        "packedLength": 527,
+        "rawLength": 634,
+        "finalDestination": 40309,
+        "crc16": 11739,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      }
+    ],
+    "manifestBytes": 190,
+    "milestones": {
+      "start": 1048,
+      "loader": 1106,
+      "menu": 1362,
+      "frontend_poll": 1405,
+      "gameplay_init": 3260,
+      "main_loop": 3263
+    },
+    "stage2": {
+      "runs": 1,
+      "siov_reads": 113,
+      "siov_reads_armed": 113,
+      "error_frame": -1
+    },
+    "frontendMenuRunSectors": 11,
+    "totalBeforeFrontendPoll": 225
+  },
+  "currentDb843f7": {
+    "initialSectors": 101,
+    "extensionSectors": 113,
+    "records": [
+      {
+        "startSector": 102,
+        "sectorCount": 44,
+        "packedLength": 5590,
+        "rawLength": 6653,
+        "finalDestination": 24080,
+        "crc16": 40361,
+        "type": 1,
+        "stagingId": 1,
+        "destination": 33024
+      },
+      {
+        "startSector": 146,
+        "sectorCount": 10,
+        "packedLength": 1165,
+        "rawLength": 1165,
+        "finalDestination": 35968,
+        "crc16": 62614,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 156,
+        "sectorCount": 1,
+        "packedLength": 105,
+        "rawLength": 106,
+        "finalDestination": 32792,
+        "crc16": 37738,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 157,
+        "sectorCount": 4,
+        "packedLength": 441,
+        "rawLength": 498,
+        "finalDestination": 39744,
+        "crc16": 50435,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 161,
+        "sectorCount": 6,
+        "packedLength": 746,
+        "rawLength": 746,
+        "finalDestination": 30736,
+        "crc16": 18777,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 167,
+        "sectorCount": 1,
+        "packedLength": 23,
+        "rawLength": 21,
+        "finalDestination": 40286,
+        "crc16": 34598,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 168,
+        "sectorCount": 6,
+        "packedLength": 726,
+        "rawLength": 827,
+        "finalDestination": 31696,
+        "crc16": 10628,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 174,
+        "sectorCount": 14,
+        "packedLength": 1680,
+        "rawLength": 2065,
+        "finalDestination": 44544,
+        "crc16": 39217,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 188,
+        "sectorCount": 9,
+        "packedLength": 1032,
+        "rawLength": 1196,
+        "finalDestination": 13891,
+        "crc16": 51017,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 197,
+        "sectorCount": 13,
+        "packedLength": 1535,
+        "rawLength": 1535,
+        "finalDestination": 40960,
+        "crc16": 4116,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 210,
+        "sectorCount": 5,
+        "packedLength": 527,
+        "rawLength": 634,
+        "finalDestination": 40309,
+        "crc16": 11739,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      }
+    ],
+    "manifestBytes": 190,
+    "milestones": {
+      "start": 1048,
+      "loader": 1106,
+      "menu": 1362,
+      "frontend_poll": 1405,
+      "gameplay_init": 3316,
+      "main_loop": 3319
+    },
+    "stage2": {
+      "runs": 1,
+      "siov_reads": 113,
+      "siov_reads_armed": 113,
+      "error_frame": -1
+    },
+    "frontendMenuRunSectors": 11,
+    "totalBeforeFrontendPoll": 225
+  },
+  "conclusion": "No extra boot sector and no pre-frontend timing delta: both frontend polls1405. Content265..279 only loads at level start; menu240..250. Reader1529->1535 both13 sectors including21-byte footer. Need save20 current bytes to remove a sector, below baseline count.",
+  "fixed": {
+    "initialSectors": 101,
+    "extensionSectors": 112,
+    "frontendMenuRunSectors": 11,
+    "totalBeforeFrontendPoll": 224,
+    "readerRawBytes": 1512,
+    "readerFooterBytes": 21,
+    "readerSectors": 12,
+    "maxColdFrontendPoll": 1401
+  }
+}

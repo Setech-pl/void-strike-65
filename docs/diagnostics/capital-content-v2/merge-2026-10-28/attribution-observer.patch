@@ -1,0 +1,29 @@
+--- a/scripts/atari800-wall-trace.h
++++ b/scripts/atari800-wall-trace.h
+@@ -3298,7 +3298,7 @@
+ 	dftrace_input_stick = stick & 0x0fu;
+ 	dftrace_input_trigger = trigger != 0u;
+ 	PIA_PORT_input[0] = (PIA_PORT_input[0] & 0xf0u) | (stick & 0x0fu);
+-	GTIA_TRIG[0] = (UBYTE) (trigger != 0);
++	GTIA_TRIG[0] = (UBYTE) (getenv("VS65_ATTR_NOFIRE") != NULL && MEMORY_mem[dftrace_game_state] == 6u ? 1 : (trigger != 0));
+ }
+ 
+ static DFTracePhysicalBounds dftrace_player_physical_bounds(void)
+@@ -9372,6 +9372,17 @@
+ 		dftrace_current.end_host_frame = (unsigned) Atari800_nframes;
+ 		dftrace_current.end_y = ANTIC_ypos;
+ 		dftrace_current.end_x = ANTIC_XPOS;
++        if (getenv("VS65_ATTR_DUMP") != NULL && dftrace_count < 1800u) {
++            static FILE *dump;
++            if (dump == NULL) dump = fopen(getenv("VS65_ATTR_DUMP"), "wb");
++            if (dump == NULL) { perror("attribution dump"); exit(2); }
++            fwrite(MEMORY_mem, 1, 65536, dump); fflush(dump);
++            if (dftrace_count % 100u == 0u) {
++                char png[1024];
++                snprintf(png, sizeof(png), "%s-%04u.png", getenv("VS65_ATTR_DUMP"), dftrace_count);
++                Screen_SaveScreenshot(png, 0);
++            }
++        }
+ 		dftrace_frames[dftrace_count++] = dftrace_current;
+ 		dftrace_active = 0;
+ 	}

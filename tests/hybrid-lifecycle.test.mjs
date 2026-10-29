@@ -26,6 +26,12 @@ for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
   }
 }
 
+function gameplayMemory() {
+  const image = memory();
+  image[labels.get("game_state")] = 6; // checked home runs only in GAMEPLAY
+  return image;
+}
+
 function memory() {
   const image = new Uint8Array(0x10000);
   installRuntimeSegments(image, root);
@@ -185,7 +191,7 @@ test("C maps the existing capital corridor phases and complete lifecycle exactly
 // and the entry half of the test - a drained playfield - is unchanged, which
 // is the half that decides what the player sees.
 test("first-capital scheduling and future boss handoff stay high-level C decisions", () => {
-  const image = memory();
+  const image = gameplayMemory();
   const state = labels.get("CAPITAL_SECTOR_STATE");
   const flags = 0x80fe;
   run(image, "director_init", { a: 0x6d });
@@ -196,7 +202,11 @@ test("first-capital scheduling and future boss handoff stay high-level C decisio
   assert.equal(image[flags] & 0x80, 0, "not one row early");
   assert.equal(run(image, "sector_update_first_capital").a, 0);
   run(image, "director_world_row_tick");
-  assert.equal(image[flags] & 0x80, 0x80, "row 272 enters the CAPITAL sector and raises DUE");
+  for (let frame=0;frame<2;frame++) {
+    image[labels.get("frame_counter")] += 1;
+    run(image, "director_world_row_tick");
+  }
+  assert.equal(image[flags] & 0x80, 0x80, "authored cut plus two Heavy-clear frames raises DUE");
   // Unchanged: the entry still waits for a drained playfield.
   image[labels.get("ENEMY_ACTIVE")] = 1;
   assert.equal(run(image, "sector_update_first_capital").a, 0);
@@ -384,7 +394,7 @@ test("T6: a sector whose mask excludes an archetype never spawns it, and the val
     // Raider in its mask and the second does not. The wave's archetype byte is
     // identical, so the only thing deciding is the mask.
     const heavyWave = [{ row: 0, archetype: "raider", count: 4, spacing: 24, entry: 124 }];
-    const image = memory();
+    const image = gameplayMemory();
     pokeSyntheticLevel(image, [
       { kind: "space", subtype: "elite", rows: 800, archetypes: ["raider"], heavies: 2,
         hazards: { debris: 1 }, waves: heavyWave },
@@ -399,7 +409,7 @@ test("T6: a sector whose mask excludes an archetype never spawns it, and the val
     // Now the same wave in a sector whose mask holds only the Bomber. The
     // request is refused and the wave keeps all four: admission never spends a
     // formation it could not place.
-    const masked = memory();
+    const masked = gameplayMemory();
     pokeSyntheticLevel(masked, [
       { kind: "space", subtype: "elite", rows: 800, archetypes: ["bomber"], heavies: 2,
         hazards: { debris: 1 },

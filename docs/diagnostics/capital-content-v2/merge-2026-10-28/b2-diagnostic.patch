@@ -1,0 +1,44 @@
+--- a/scripts/runtime-image.mjs
++++ b/scripts/runtime-image.mjs
+@@ -140,6 +140,7 @@
+   const runtime = loadRuntimeSegments(rootDirectory, buildDirectory);
+   for (const segment of runtime.segments) memory.set(segment.data, segment.start);
+   loadCheckedL2(memory, rootDirectory, buildDirectory ?? path.join(rootDirectory,"build"), runtime.manifest);
++  if (process.env.B2_DIAG_PHASE) memory[0x9a] = Number(process.env.B2_DIAG_PHASE);
+   return runtime;
+ }
+ 
+--- a/scripts/nmos6502.mjs
++++ b/scripts/nmos6502.mjs
+@@ -59,6 +59,7 @@
+ defineReadFamily("ASL", [[0x0a, "acc", 2], [0x06, "zp", 5], [0x16, "zpx", 6], [0x0e, "abs", 6], [0x1e, "absx", 7]]);
+ defineReadFamily("LSR", [[0x4a, "acc", 2], [0x46, "zp", 5], [0x56, "zpx", 6], [0x4e, "abs", 6], [0x5e, "absx", 7]]);
+ define(0x6a, "ROR", "acc", 2);
++define(0x2a, "ROL", "acc", 2);
+ 
+ for (const [opcode, operation] of [
+   [0x90, "BCC"], [0xb0, "BCS"], [0xf0, "BEQ"], [0x30, "BMI"],
+@@ -321,6 +322,12 @@
+         const result = this.setNz(byte >> 1);
+         if (instruction.mode === "acc") this.a = result;
+         else store(result);
++        break;
++      }
++      case "ROL": {
++        const incoming = this.getFlag(FLAG_C) ? 1 : 0;
++        this.setFlag(FLAG_C, (this.a & 0x80) !== 0);
++        this.a = this.setNz(((this.a << 1) | incoming) & 0xff);
+         break;
+       }
+       case "ROR": {
+--- a/tests/l2-lifetime.test.mjs
++++ b/tests/l2-lifetime.test.mjs
+@@ -52,7 +52,7 @@
+  const disarmCpu=call(Uint8Array.from(image),0x8656).cycles;
+  assert.equal(disarmCpu-blankCpu,34,'cold disarm including validity clear');
+  const checked=Uint8Array.from(image);checked[0x86b3]=0;
+- assert.equal(call(checked,0x1900).cycles,45,'checked INIT/SPACE publication CPU');
++ assert.equal((()=>{const cpu=cpuOver(new Drive(),checked);cpu.push(0x7f);cpu.push(0xfe);cpu.pc=0x1900;runUntil(cpu,{returned:0x7fff});return cpu;})().cycles,45,'checked INIT/SPACE publication CPU');
+  let commands=0;
+  const entered=runBossEntry({onCommand:(_sector,cpu)=>{commands++;
+   assert.equal(word(cpu.memory,main('profile_after_player')+1),main('integration_update_enemy'));

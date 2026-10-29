@@ -1640,7 +1640,7 @@ static uint8_t bomber_may_fire(void)
  * erase_enemy_departing_row requires. Returns 0, or the record's weapon_class
  * when this member fires a shell; ASM emits exactly that class and publishes
  * heavy_member_colour for this member. */
-uint8_t enemy_c_heavy_tick(void)
+uint8_t enemy_c_heavy_tick_original(void)
 {
     heavy_scratch = 0u;
     bomber_colour(); /* observe the hit before deciding whether Y may move */
@@ -1760,3 +1760,12 @@ uint8_t enemy_c_heavy_breakup_claim(void)
     heavy_breakup_pending = 1u;
     return 0u;
 }
+
+#pragma code-name (push, "CONTENT_CODE")
+extern uint8_t heavy_departure;
+uint8_t cc2_heavy_tick(void)
+{
+    if (heavy_departure != 0u) { ++heavy_member_y; return 0u; }
+    return enemy_c_heavy_tick_original();
+}
+#pragma code-name (pop)

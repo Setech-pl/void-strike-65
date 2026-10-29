@@ -1,0 +1,80 @@
+{
+  "status": "STOP: focused validation 9 PASS /1 FAIL; newly authored byte-identity assertion is invalid across accepted reader relocation; no further gates run",
+  "startingHead": "b644d5c",
+  "branch": "codex/capital-content-v2-merge",
+  "productionChange": "l2_content_load failure JMP $A21E -> $A0D6; mandatory-read failure screen; target pin checked by build",
+  "segmentDeltas": [],
+  "normalBuild": {
+    "exitCode": 0,
+    "log": "build/evidence/capital-content-v2/error-path-recovery/build.log",
+    "runtimeEvidence": "pending; not release-ready"
+  },
+  "focused": {
+    "tests": 10,
+    "pass": 9,
+    "fail": 1,
+    "exitCode": 1,
+    "firstAssertion": "tests/capital-content-v2-failure.test.mjs:11",
+    "actual": "67eea8bfbb7dfc0b298457f6fb90a8659c718cd14c036a549cd18de0e259524a",
+    "expected": "ac351010fca8f7ab5c5566731b873bd49619ca84e5112e34485ab882760a1bcf",
+    "cause": "New test incorrectly required complete byte identity with 5053697; three absolute operands follow the accepted reader shrink/relocation. No behavioural fault reproduced by the four fault/FIRE cases.",
+    "operandDifferences": [
+      {
+        "instructionOperand": "$A0F6",
+        "label": "failure_reasons",
+        "mainAddress": "$A54E",
+        "currentAddress": "$A546"
+      },
+      {
+        "instructionOperand": "$A0F9",
+        "label": "failure_reason_slot",
+        "mainAddress": "$A50B",
+        "currentAddress": "$A503"
+      },
+      {
+        "instructionOperand": "$A102",
+        "label": "failure_records",
+        "mainAddress": "$A4F6",
+        "currentAddress": "$A4EE"
+      }
+    ],
+    "rawLog": "error-path-recovery-focused.txt"
+  },
+  "artifacts": {
+    "void-strike-65-manifest.json": {
+      "bytes": 884235,
+      "sha256": "e76fa080e3c3b23ef6b15783c7897e21f6ed8239125f5c7629446b3f79cb1400"
+    },
+    "void-strike-65-boot.bin": {
+      "bytes": 27008,
+      "sha256": "1a7297863668716d760be6ef0a70cff1a518694e14cca6e5e499d5bf6e95d80a"
+    },
+    "void-strike-65.atr": {
+      "bytes": 133136,
+      "sha256": "5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676"
+    }
+  },
+  "cpuDelta": {
+    "successMainLoop": 0,
+    "steadyState": 0,
+    "errorBranch": "same 3-cycle JMP; subsequent path now reaches error screen rather than normal summary"
+  },
+  "ramResidencyDeltaBytes": 0,
+  "pending": [
+    "Complete four synthetic admission waits",
+    "Update four authorized Heavy cadence expectations",
+    "Verify all 5 B1 items",
+    "Repair invalid cross-build byte identity test without changing behavioural checks",
+    "Run focused B1/B2 checks",
+    "Full npm test and A/B/C comparison",
+    "Release evidence refresh/build",
+    "Native 15/15",
+    "Home observer 27/27",
+    "Boot frontend <=1402",
+    "Boss stress vs5053697",
+    "Qualified play ATR delivery"
+  ],
+  "groupA": "No Group A assertion values edited. Shared host gameplay-timeline setup changed; no new full run, so A outcomes are unknown.",
+  "dist": "New normal-build artifacts preserved under build/evidence/capital-content-v2/error-path-recovery/test-build; tracked dist restored to starting HEAD.",
+  "noGitWrites": true
+}

@@ -1,0 +1,20 @@
+{
+  "status": "BLOCKED_C_ABI_GATE",
+  "stage": "increment 0 normal build, before assembly/link",
+  "baseline": "5053697",
+  "limit": "zero executable references to forbidden cc65 helper state",
+  "observed": [
+    "stx tmp1",
+    "rol tmp1",
+    "sta ptr1",
+    "ora ptr1"
+  ],
+  "log": "build/evidence/capital-content-v2/increment0-build.log",
+  "sha256": "38d6628e193a1ec64418712d4437d39d2d6dfc1595cbc9472a1dbe1309a4a9b7",
+  "nativeJobsRunning": false,
+  "linkedBytes": null,
+  "cpuDelta": null,
+  "candidateAtr": null,
+  "git": "index.lock Operation not permitted; no retry; uncommitted",
+  "smallestRecovery": "Rewrite the compound row-coordinate expression as explicit scalar byte operations, then repeat the unchanged ABI and placement gates in an authorized continuation. Cause is inferred from source, not a retained generated-assembly dump."
+}

@@ -55,6 +55,7 @@ const hullAsset = defaultHullAsset();
 function level(sectors) {
   const image = new Uint8Array(0x10000);
   installRuntimeSegments(image, root);
+  image[at("game_state")] = 6; // gameplay fixture, including guarded home calls
   const compiled = compileLevel({ level: 1, seed: 109, hull: { length: 3, turrets: 3 }, sectors },
     { hullAsset, file: "sector-flow.json" });
   image.set(compiled.pages.core, LEVEL_CORE_ADDRESS);

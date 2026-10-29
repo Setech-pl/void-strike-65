@@ -1,0 +1,1042 @@
+[
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-0-flight-clock.csv",
+    "bytes": 158622,
+    "sha256": "80167d6db11a6784e3ea61df3fa9475909679418a8521bc4b5df538c40b1c7e9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-0-flight-director.csv",
+    "bytes": 454786,
+    "sha256": "6e9e0f48efdabc35372272bbb4a3f5185ff442d827cf3e0342d2254dfb3f65ef"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-0-flight-lifetime.jsonl",
+    "bytes": 1404,
+    "sha256": "64a56d727e54d2f6a1c1e30e242d69bf7d7f480bb6ffefb518cf5ef5102194e0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-0-flight-profile.csv",
+    "bytes": 557243,
+    "sha256": "671797a56d5b7a2a278dd5f766719e188436b06ac30021f0dd5a32439a721e8f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-0-flight-snapshots.bin.gz",
+    "bytes": 1935788,
+    "sha256": "99519d44e59c35481b8b59a72634ac3f4712db3d4182e0d5c6afc02a1f77f8e0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-0-flight-states.csv",
+    "bytes": 180743,
+    "sha256": "28671b144cbce7817e4e01ab04b9439d193a543cb8b943741857acf75bf199fe"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-0-flight.log",
+    "bytes": 1091,
+    "sha256": "91e8fd613e19804a0642f8ddfcd3361ef1f57d664bf3e02489dcd63040b84972"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-1-flight-clock.csv",
+    "bytes": 149339,
+    "sha256": "3044f1820f2cff5ab7d8908f6c5213913d8495ae6e09bdaabc1691866f6b1c66"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-1-flight-director.csv",
+    "bytes": 444859,
+    "sha256": "bd090fc4d763f1fcdff11a5679f5b44732771ac7aba5fda5773087f68da99449"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-1-flight-lifetime.jsonl",
+    "bytes": 1372,
+    "sha256": "f702af6007ad2e3f69688deee6d8c1c24c8896a49f860b6050d9a74cf0715d54"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-1-flight-profile.csv",
+    "bytes": 495262,
+    "sha256": "9bc5849b5a5d711d2fd587a80f292bd5650fc4bcdc8ff5d53220af506a207087"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-1-flight-snapshots.bin.gz",
+    "bytes": 1856364,
+    "sha256": "90328a5d1194e6dbeee06ed67b3230c778397cbe8a274d65b3c1964db1020ac0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-1-flight-states.csv",
+    "bytes": 171047,
+    "sha256": "78e212553d25afc168b68253d6953a1c5cb240911ea913c70ab125bdca353161"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-1-flight.log",
+    "bytes": 1091,
+    "sha256": "4f56900b39f7aa3175a3015e32e389e51f09dded644cbf532f98363d3f9c3414"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-2-brake-clock.csv",
+    "bytes": 177618,
+    "sha256": "d3413480e48218430534ba18d04adc82bd7ceeb9340167113e11464c79d926d0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-2-brake-director.csv",
+    "bytes": 543962,
+    "sha256": "9a96cdee78d3cdfa103c5df961457dbaec655015fb9a4cb93f030a784eb8a037"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-2-brake-lifetime.jsonl",
+    "bytes": 1446,
+    "sha256": "1e264ac6bf7a056e81c0ffe4fb31d830218a665590c8f7fb5d2e2bd0cdf3f8b2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-2-brake-profile.csv",
+    "bytes": 1774616,
+    "sha256": "0bab7092699fa33fcd0b29a1e0084514aaae08c5370cfee6b7005526177ed506"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-2-brake-snapshots.bin.gz",
+    "bytes": 2325810,
+    "sha256": "955d304d7306f5943f35577772034f169167a9484cfcb8c95bc96c52bc026b6c"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-2-brake-states.csv",
+    "bytes": 205916,
+    "sha256": "a97300692c1e006a48684ed440b4711d218a7e4d466f46d77495c34302ff43c6"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/campaign-2-brake.log",
+    "bytes": 1089,
+    "sha256": "f62beeda4d8a7b80b651e51604a66c7febda08bf933a0fdbe079cf33b29c8414"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-brake-clock.csv",
+    "bytes": 165572,
+    "sha256": "3d945396e3a9d03705509e60b900477bad3e6e459ce4d916b70cb9d10c690dcf"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-brake-director.csv",
+    "bytes": 468362,
+    "sha256": "eef8b371085f1f05a334a325300d689ce89febc865724c4810e81f5d6654e114"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-brake-lifetime.jsonl",
+    "bytes": 1448,
+    "sha256": "9a782141b6368834f058354fea9e55c8cf07b52c4f75995af4dc245d9912d4d4"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-brake-profile.csv",
+    "bytes": 480263,
+    "sha256": "09ca9e4ac7d3b65a0ee15aec05b0f29863b923ca74985b56db196503e94c376e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-brake-snapshots.bin.gz",
+    "bytes": 2069437,
+    "sha256": "303c8caa4928edea7cada143ca3a6b5e2537fa4c7e17aaf574ec7a56a30b75c4"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-brake-states.csv",
+    "bytes": 186147,
+    "sha256": "14565a50380666967380856b37aad12a9b49e1d77ee5ac6dc37491e61c6c59c6"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-brake.log",
+    "bytes": 1080,
+    "sha256": "5c9f7a47392e52f2ded1f7134e887bba08bbd5b7d7b83f022b8ca500f3906235"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-flight-clock.csv",
+    "bytes": 126138,
+    "sha256": "6f1bc95e4dc399f73a531b04d215e9c64d11e1c4067faae585526e23794f6c91"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-flight-director.csv",
+    "bytes": 353669,
+    "sha256": "05ad3828c41d1bd9671177017227b60519e25480bdbf9fc1f383da2185aa02d3"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-flight-lifetime.jsonl",
+    "bytes": 1362,
+    "sha256": "b11d91aa6e21e0f0d88a41ef1d314fc7ec28ace74e681fd4f101b2056a9dbaf9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-flight-profile.csv",
+    "bytes": 581214,
+    "sha256": "a659d7ae668715dc5c20b8dcc32a60fc293fdd5a91f3c4dda61c4df59ac841cc"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-flight-snapshots.bin.gz",
+    "bytes": 1502061,
+    "sha256": "dcab0f501ae6a479c2025e599e0f655010654b8382e9500ddd35c206b95ad93e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-flight-states.csv",
+    "bytes": 140592,
+    "sha256": "697e1f0ddccc9041c14a2cd5a2bf382400bfc2aaed32134e0836f5bb3733661c"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-0-flight.log",
+    "bytes": 1082,
+    "sha256": "31cb904279f7ff82079398a5c5e0040157037b6662a180e24c8cdc9c17c516d9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-brake-clock.csv",
+    "bytes": 148012,
+    "sha256": "566d5d9d76480a7bde32be88a56a68931d5491ea44839fca84f8c850b6a680c7"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-brake-director.csv",
+    "bytes": 427113,
+    "sha256": "730131a7a2f3729c08c9c7dafaea00fde7491c1d3181d51526e658feaf186df4"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-brake-lifetime.jsonl",
+    "bytes": 1372,
+    "sha256": "e3a866e7fac27297b8cfc2268baf38b1e3aa67dca9103b599ce0fdc2fb081e4d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-brake-profile.csv",
+    "bytes": 607286,
+    "sha256": "3b9b5424b9ba8ea13f19a723ffc8154c93f71f563f41e30fae9e1453ad4d1b29"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-brake-snapshots.bin.gz",
+    "bytes": 1934103,
+    "sha256": "2585be18c68684032acb3329515af7c2ddb2ea05bc2624a5c0c557cfc3eaa59b"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-brake-states.csv",
+    "bytes": 169679,
+    "sha256": "5e28f558f424e45fe26c4129cbf39988683a9deae176497d91d301a3688914ba"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-brake.log",
+    "bytes": 1080,
+    "sha256": "f5619dca6f73721b044ef978464d261149c3794a3a2955bf81849443fce8b9c2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-flight-clock.csv",
+    "bytes": 119308,
+    "sha256": "0bce0837644ecf139719a96596b515308b44a4bd5417476d40f82feb8773cb32"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-flight-director.csv",
+    "bytes": 338388,
+    "sha256": "5e6840e5c187077b165f3a53b7675901ec17767e0daa1b69efabc58777647435"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-flight-lifetime.jsonl",
+    "bytes": 1330,
+    "sha256": "3d2261bef7c8581dbce19d81ebf5317d859ce23b0a66a620622ef97268970b7e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-flight-profile.csv",
+    "bytes": 651345,
+    "sha256": "f8c4972e5361bc0ce7e6f73ec754ca5768c67db27513a328ea67996ac00b547e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-flight-snapshots.bin.gz",
+    "bytes": 1451256,
+    "sha256": "98d2b262f9899f16aa5267d9f837032e38e7ef7839f85748c05c8b0992514e51"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-flight-states.csv",
+    "bytes": 134482,
+    "sha256": "cf082399f499a0565fdf3048059ff965809ec7dec3386dd0dd6493395fc5aa3d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-1-flight.log",
+    "bytes": 1082,
+    "sha256": "8e25a1ab5a6d0e5afdc40c86746b3f1ee5f92def33cbd66bf85bbecb59fe65d9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-brake-clock.csv",
+    "bytes": 144830,
+    "sha256": "1ce5f176f580f1cd7d07e50f39953a597a239247977e6c67dd7633c9c259a5bd"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-brake-director.csv",
+    "bytes": 415356,
+    "sha256": "0aaa947a88358b2547f0e281ccbb4b470e1672be35dd5ca6ac39fac76c1fd5b4"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-brake-lifetime.jsonl",
+    "bytes": 1404,
+    "sha256": "ada9f7151a49c6e7f990769394421226c107d53ba02e3c9c15260ff462faa46f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-brake-profile.csv",
+    "bytes": 2053053,
+    "sha256": "c2ee04a503367b6189e986b0714344d004a2d752ec4901a5074d738c455f2ae0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-brake-snapshots.bin.gz",
+    "bytes": 1885276,
+    "sha256": "8e8aef70e229cad92e82a83f973c9ad60fcab14ca4b8013e07a7cf867b87807d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-brake-states.csv",
+    "bytes": 165052,
+    "sha256": "b2e3f0a2e81eff45a718ab0bf2424a465ae0277aba097429c7491895cee070e0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-brake.log",
+    "bytes": 1080,
+    "sha256": "8aefeaec933a245d4ed1bc5503e7a9ff2f4100700bd07adc64c5dc69ffffa330"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-flight-clock.csv",
+    "bytes": 111076,
+    "sha256": "bb2dd8e51ab2dcb72402d00f50c1666dde018b002b9bdb35be9be1292ea68d48"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-flight-director.csv",
+    "bytes": 319780,
+    "sha256": "c5a8013e255ce0fc2bea7bfcdb7857096024a4ac5411da375412ab63889cce45"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-flight-lifetime.jsonl",
+    "bytes": 1354,
+    "sha256": "d9bce56448cb7a555cb9e9a035f9262eedf902f6bd87325b70305b1741bb3501"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-flight-profile.csv",
+    "bytes": 1915975,
+    "sha256": "e52ae18eb2bb535d77d2baaa924db1341f698abb7f688dd4d2007cb23de25527"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-flight-snapshots.bin.gz",
+    "bytes": 1368064,
+    "sha256": "202f53709924fd77ffac06107380b754643726747e5817bbf9c0aab9028d7705"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-flight-states.csv",
+    "bytes": 127089,
+    "sha256": "8f8e2006ca0064645c7b1a67098432a3761fefd737f0e1a6bf9ebd836ebfa535"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-480-2-flight.log",
+    "bytes": 1082,
+    "sha256": "ab51efa1e057b834c974a425ee724f3108be55200518a2ed9e9fb5eb99e7857f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-brake-clock.csv",
+    "bytes": 223395,
+    "sha256": "33e001410fae9b9a6401d40333a27c5a9ffa646355cd3723d9cb469ee48445b2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-brake-director.csv",
+    "bytes": 637279,
+    "sha256": "c6352e235a43a900614de2794535eea665317dfa261766ca051cc9293971130f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-brake-lifetime.jsonl",
+    "bytes": 1324,
+    "sha256": "e149aa1801b705cf955b847f1786bf1d792f15476d3400e70dfa46b040dd24f2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-brake-profile.csv",
+    "bytes": 707518,
+    "sha256": "afecae80983132204f8995699240c624e47957f12a4fcc18e253c5ed56fff123"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-brake-snapshots.bin.gz",
+    "bytes": 2940538,
+    "sha256": "80d5fb0de62e3133a22c0224de92e822a21d3e11449a3595a5bc9c0085be82c1"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-brake-states.csv",
+    "bytes": 253353,
+    "sha256": "03928327538cec6709e3a43f36fc70a8e6652f397c0d7e74c39c875f86472f27"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-brake.log",
+    "bytes": 1080,
+    "sha256": "08576b2ba04d383227a00cab4fd3c4fc13864547ea7d7f219e1472bd4df6aa77"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-flight-clock.csv",
+    "bytes": 173124,
+    "sha256": "fd0b71963ce26a3a0de783cda371fbbe5e37904a56830e7d82012ff9b203e3ac"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-flight-director.csv",
+    "bytes": 492259,
+    "sha256": "759463e3af4804d2bbae3615e45fee41fb094b7caa571de1c774ad9d4561f6c8"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-flight-lifetime.jsonl",
+    "bytes": 1324,
+    "sha256": "58487b3acd79bac3ac62cea53589a3327547ade408fd3357ce78c7496b04b153"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-flight-profile.csv",
+    "bytes": 650901,
+    "sha256": "eac0ba075b95e37bdd8b352342a1d47b56df8158184e56296b097689ec2672b0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-flight-snapshots.bin.gz",
+    "bytes": 2188745,
+    "sha256": "dbcff083c6738449cfd287be1bee5e9139e2ce69d84b55ed11d63edcf30315ab"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-flight-states.csv",
+    "bytes": 195656,
+    "sha256": "e2afc1bdd3ab6b3c24b8653b440e3014419e8d78644887f3cb8500350d844c7b"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-0-flight.log",
+    "bytes": 1082,
+    "sha256": "024b26b2552c89f09f52ba104b78df21cf359e5246134dff6dedbf75494f40b5"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-brake-clock.csv",
+    "bytes": 198639,
+    "sha256": "5b514962dd39ba8fa4730bf393094420fd9dbf32311a25144b8e695836f81206"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-brake-director.csv",
+    "bytes": 576099,
+    "sha256": "b50e005cfd6b02ffb7a3e58422c7e62df185214eac1720b1d263db5cdcbc02d5"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-brake-lifetime.jsonl",
+    "bytes": 1250,
+    "sha256": "0ccbcf53d0ca3a8218772ae60912feabe85682ff9667b7bb3ebb9d50499c8430"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-brake-profile.csv",
+    "bytes": 672698,
+    "sha256": "3d3696ec9cc3a39492148b6e92fcbfb7f3e37429f1054918c7b699b40c49d6cb"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-brake-snapshots.bin.gz",
+    "bytes": 2733641,
+    "sha256": "f7193fbc7ffcf8b48e3aef23815eaab6fadadabc16cf1ebda6a14c3f6229bee8"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-brake-states.csv",
+    "bytes": 229027,
+    "sha256": "6e971133a353d5cb8751dc2e66fe309b08966a457a5563e4e0549e95188b8da9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-brake.log",
+    "bytes": 1080,
+    "sha256": "5629df9b126c8c08a638d50dbe0d649d545ddf7521e138ede207a5accb8c835d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-flight-clock.csv",
+    "bytes": 159501,
+    "sha256": "5811b570523621022fb8fb7aae2445a38014a5b9aab2b3371f5c94a8de02c719"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-flight-director.csv",
+    "bytes": 457610,
+    "sha256": "9a3e6c1e8d47473cc2186e4d5b5df164af3fdf4fa78f9c39b5e95dbc783ee2f6"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-flight-lifetime.jsonl",
+    "bytes": 1250,
+    "sha256": "5b133513a9a3ca794af92a3ac13e07adbd8bda9b2bf6275d62a728d55044fe97"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-flight-profile.csv",
+    "bytes": 680099,
+    "sha256": "7ddd3b79707f3edbf6f9c3d8fb7210b5b8ee449305107c362c023a6110addfe0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-flight-snapshots.bin.gz",
+    "bytes": 2074433,
+    "sha256": "fac976e742f42610a0729bf9a677022afa166ad5eefbf555bf026ec53ba57a32"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-flight-states.csv",
+    "bytes": 181918,
+    "sha256": "cb67d9f7d0c008032535f4455f91881d6a3ef86e20e79028737d6ca6b0877693"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-1-flight.log",
+    "bytes": 1082,
+    "sha256": "b5fb774947f2b3054fb1ad8c38ea1ee75176ee91912dddd926373c61cda1a69f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-brake-clock.csv",
+    "bytes": 192582,
+    "sha256": "aac9b3b9b5c96b7e29776369cb948f72f3b6365ceab7ecd0ec9c911836df90f5"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-brake-director.csv",
+    "bytes": 547419,
+    "sha256": "0e571f94612e3c6f7de691ff1643f9ca92d93fa8afc7f68e26a927da5223f138"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-brake-lifetime.jsonl",
+    "bytes": 1366,
+    "sha256": "80e864b4894039c4b91965175d3e78cc8808c42f23d5fd1aaf67c654be78998d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-brake-profile.csv",
+    "bytes": 2126770,
+    "sha256": "cfb0097b7bd03b48e76e6fac7d398f1c5756890206af5bca4056f6d9f0e52b47"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-brake-snapshots.bin.gz",
+    "bytes": 2603048,
+    "sha256": "651a0edacb4ca62fb3e8ecf5ee9efd129aad33287d064c68c7658ebd3ae833ec"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-brake-states.csv",
+    "bytes": 217635,
+    "sha256": "0657c468263784b60ace728c39d6a8fcd851943bae3300ecaafa2025364eed28"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-brake.log",
+    "bytes": 1080,
+    "sha256": "a339e8d4193c4eeb7bc2b3188b0bd0a67959750aae7ca1f9429317265d6a4a7e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-flight-clock.csv",
+    "bytes": 152366,
+    "sha256": "0a0f90be58ebf1b093ab48458e81372aa2f5ddeb8cd5adf05b74c1389bd4ed1d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-flight-director.csv",
+    "bytes": 433739,
+    "sha256": "5df372f8b957bf9c0dc923d15ff78e5e27644a33b5a8f3900d6d9c1707774d86"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-flight-lifetime.jsonl",
+    "bytes": 1410,
+    "sha256": "5f1bdd186db64af3510e878556386944e6dbbaa5599aa3ced761750a9d25f3cb"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-flight-profile.csv",
+    "bytes": 2095488,
+    "sha256": "5003ab17ed3e4b008efde490b35d4baf20f056dda7410d2942aa4700e31fec22"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-flight-snapshots.bin.gz",
+    "bytes": 1938804,
+    "sha256": "4ce44d0a8d91a2aabf5db9c46c26d9bf6ac52b3684f7a97365cee5040edbee3c"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-flight-states.csv",
+    "bytes": 172365,
+    "sha256": "3cf3f0326440f07f21aeb2c27bd3280532d3fc558b15dd669ca959ff509a9fc3"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/l2-960-2-flight.log",
+    "bytes": 1082,
+    "sha256": "23882491e48d23b14dd13562ead20fdfaf4306648af51d9d255f29f4f9420111"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/results.json",
+    "bytes": 14203,
+    "sha256": "8c75a6775bdfdc2a4050a87ef6c5112519536a6291f09a00cbe826c3cf4f77ad"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline/runs.json",
+    "bytes": 2314,
+    "sha256": "a767756789e023856b3ff18d3831045bc38d959fb3a84d9c1826067e324f5a88"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/baseline-build.log",
+    "bytes": 455,
+    "sha256": "2f12fd350e1c1a3116456ac365eb16316ca237c0da92eeb09df37f21845926b2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1-spent.bin",
+    "bytes": 512,
+    "sha256": "c4118f426a15310c8515b9e75eb1eae8ffccc5b60a65312f44e02e11e3e4d951"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.atr",
+    "bytes": 133136,
+    "sha256": "c5aa73f493e926b487961cf7d694cffd0cd6b2c7c9179ef88b90e41091724cc7"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl",
+    "bytes": 808,
+    "sha256": "b8458271ce3534e10a8dc04f6fb263f97c368ec7b625b198e07c13bf9a138069"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f0.png",
+    "bytes": 1751,
+    "sha256": "a23809bf49437e8879fdb112a90236886c3f87e66e2edbf1ec4c209a21d5a1e2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f1.png",
+    "bytes": 1736,
+    "sha256": "b083420e26f8e18c4ab5eca7d5b23cdc308907892b386c1a8f2dbfa3c3450878"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f100.png",
+    "bytes": 1716,
+    "sha256": "e95481653cb2b08008ae0cb377f563b5de68d80193ee2e7180e1221788a2af80"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f12.png",
+    "bytes": 1774,
+    "sha256": "3453e72d2657c08430e39f4b1f03e53d099c6563150307119b78174df26acb6c"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f120.png",
+    "bytes": 1260,
+    "sha256": "983cfb71fd016d7e0f0bafde6e43dae6033ed3fbf33b72b2ca41854644eea5fe"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f160.png",
+    "bytes": 1362,
+    "sha256": "e50fd4c460ec55e9a66b2db227e72f838d8fb54bd09afc9c6e4708508386e3f2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f40.png",
+    "bytes": 1843,
+    "sha256": "a46581e78d41d42520f6928ec7838730ba1fdf308358cfce711504696086dd09"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl-f80.png",
+    "bytes": 1921,
+    "sha256": "54616083a955363531c4bd06aaf54b5a6e6cebe882dca819fe95d7593d7f9691"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl.lifetime.jsonl",
+    "bytes": 1163,
+    "sha256": "a44994e72e6dfe26b0557448025a212d787296168abeab768e0fcca487f41330"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss1/r1.jsonl.writers.json",
+    "bytes": 21193,
+    "sha256": "4a3a7bd9bd84dce57813edadd812b6cc1b280ef469e1ef74fd6810a6e60f614b"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2-spent.bin",
+    "bytes": 512,
+    "sha256": "ed84f2f61f6c509d09e8d50ced91a59d70da59b124d63cd6a2920c2ba5197f2a"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.atr",
+    "bytes": 133136,
+    "sha256": "c56671681eb0d30fca864ad953ca953226e5c22694f7ce947bbd8a4c3dae50e9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl",
+    "bytes": 808,
+    "sha256": "ec1ee5c66beb4cad10fad5f53db108bbb96020c56e2755db116808951abb6518"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f0.png",
+    "bytes": 1552,
+    "sha256": "1ddda0bea8427cc5b7b59e865bb1c10ac36e63cea1a90156bcb3cd41c78e45f1"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f1.png",
+    "bytes": 1609,
+    "sha256": "d28afede839d8efa10a6f8f8b9ab51a93a86f86f26870cdb90052031dfdf73d9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f100.png",
+    "bytes": 1519,
+    "sha256": "454b6d3eb0360e86ee31d27b432a1df82c532113137cd9610eb698ff38e1d5e4"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f12.png",
+    "bytes": 1647,
+    "sha256": "e3c5bc3705819594b03849937af3a9d2585c803c6bec1f4c6223329e85e3cee8"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f120.png",
+    "bytes": 1262,
+    "sha256": "d3e3726614bb34acbace5c5cff1316538573b0bbf9ef40f051dc47ba17424f30"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f160.png",
+    "bytes": 1366,
+    "sha256": "b20776d37b1038c7d6dc75d59e6c2f0b189db2a882758091f527d1d0ed011788"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f40.png",
+    "bytes": 1783,
+    "sha256": "e25dd3274e38d6338af090b1809d9645b4970b8065646390ee492433d7574793"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl-f80.png",
+    "bytes": 1839,
+    "sha256": "559ac7160daf50a52c2820ec1720d553e563829769b0220baa8c059b1a84504d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl.lifetime.jsonl",
+    "bytes": 1163,
+    "sha256": "7ab746152eeade9be5a7cf4e078348d1ea8cb093074535147dcf2c92c5e718ca"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss2/r2.jsonl.writers.json",
+    "bytes": 22481,
+    "sha256": "f64860a5d913b06b7d845ca45e886bb08c9cec0d10cd04c3fa8835fd02e1e7e9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3-spent.bin",
+    "bytes": 512,
+    "sha256": "fe14a3cc361ef82b2564f7d3c9d0ed801a1d602d244ebfdd701ef56667738451"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.atr",
+    "bytes": 133136,
+    "sha256": "8ca9a7997a5058217cc7d322ef0ccb75d9640b9646ba08a95f5f7b30dfcd31bb"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl",
+    "bytes": 807,
+    "sha256": "bc8ca0852876c7f8b627d5f9f9a17b8eb517a5f025eaa3ebe4bda9129f813389"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f0.png",
+    "bytes": 1717,
+    "sha256": "b9c0b8bed6610511a1cef8d40b4fd0f2836151915f1f2aee580033c91cc8c6cd"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f1.png",
+    "bytes": 1772,
+    "sha256": "acdcaca48a873c48fb41231179db9fb015452703e14bcdce4a001c18260fc010"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f100.png",
+    "bytes": 1683,
+    "sha256": "6ad504ee1eec27c1001546c6eef22540fcb5b0ea0acca898a15f11306bdbb13e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f12.png",
+    "bytes": 1782,
+    "sha256": "ef8eb65503d5f41f7971508d57d86ad7deca4ff57dfcd6343971eaeb1b21cef6"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f120.png",
+    "bytes": 1260,
+    "sha256": "73917f5a4c32b177c23f632860327a90a595a89d6336dc636d07bc605ff95523"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f160.png",
+    "bytes": 1362,
+    "sha256": "e50fd4c460ec55e9a66b2db227e72f838d8fb54bd09afc9c6e4708508386e3f2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f40.png",
+    "bytes": 1805,
+    "sha256": "90763a4160c324dfb12a92c8ba2e3f05771c69ce8186173a27ca8021185ca5f2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl-f80.png",
+    "bytes": 1885,
+    "sha256": "80582340cc232f2c6ad0a3c4cd543bf4fd9e26f945e247d85a98c67a154d1dce"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl.lifetime.jsonl",
+    "bytes": 1163,
+    "sha256": "9da743835a9ce77522469ebb676ea58f3c7d6b0605bd45251dc2f78c0882b8bb"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss3/r3.jsonl.writers.json",
+    "bytes": 21766,
+    "sha256": "c8ef3890614e199a0e19d08de29171aeea9574b363aef16087cc4f70b6030a71"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4-spent.bin",
+    "bytes": 512,
+    "sha256": "f20266047ca78dd7e75f6858f58607a4078136a6a449160d046fe405543154e0"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.atr",
+    "bytes": 133136,
+    "sha256": "c6bf0a484141c5ef9b492ac0e4462a4fec58a7d3334de32aa75e2d3966e37f9e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl",
+    "bytes": 809,
+    "sha256": "5a8b8beb7b018e5a91ff4d504e00b4c459bd7a386dd2aa32167995af40e2271a"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f0.png",
+    "bytes": 1835,
+    "sha256": "c2529e38437b9c5d5b41d55bf6feb537486e7be442a6c39f411a233e54c1c19e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f1.png",
+    "bytes": 1851,
+    "sha256": "d85419cdf2349302e910286c918dfae14ed32dd0c1cf7108b62f562bb93105a9"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f100.png",
+    "bytes": 1803,
+    "sha256": "9cefac74638d5df2cd702927c4858e5095a21b4c6781220cbcff1a746406c22d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f12.png",
+    "bytes": 1879,
+    "sha256": "885a8b832e93d384375187fe2005956cb558a5151795ea9d7c577c95b3eff1a8"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f120.png",
+    "bytes": 1320,
+    "sha256": "01331532191e36d7d79a4e54bc2d9ede3b1ef9d54565ae9acfc956ed9c12807d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f160.png",
+    "bytes": 1366,
+    "sha256": "32f2668745f5dd4001140ced631d59a0fb22299c6c81007d58cde6a88a8dd30d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f40.png",
+    "bytes": 1978,
+    "sha256": "ce2dcfb459f3b90583de94670759b6d6d0e9ab00ce3f4954acc5095e91bb33fb"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl-f80.png",
+    "bytes": 2024,
+    "sha256": "db5569a7f442c4abf5a78776dcb94d09f8ee06373b1ef152ff9ed4465cb1d476"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl.lifetime.jsonl",
+    "bytes": 1163,
+    "sha256": "6cceaa93de3893f731cfdce3c31c2df053db126a7b3e2440b34e0e4c079a90aa"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/boss4/r4.jsonl.writers.json",
+    "bytes": 21194,
+    "sha256": "b55f7f3e78fd135bd6bf3100101e8a0023d4e270bc5fc508ede9274e742d9f13"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/build-480.log",
+    "bytes": 453,
+    "sha256": "693e6a576a54107538f885bda2c064adb80f26eab4d44f8a6a3c62491158ebcf"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/build-960.log",
+    "bytes": 475,
+    "sha256": "2f4a2285c065e0c737ffde110210d405221bdb4b69e6f12f393152b846515991"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/build-boss1.log",
+    "bytes": 453,
+    "sha256": "b91f7150bfaa53aedc5c3405a5d66c4be14e08f49b98c569d516898d9ac9278f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/build-boss2.log",
+    "bytes": 510,
+    "sha256": "441bbef457c97b0c941b15a3c9477ea61d2d463c326093c3db79b40fd6ca0525"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/build-boss3.log",
+    "bytes": 510,
+    "sha256": "49e9ff1f3fb7c98ac9dfa099af4e590a00cd9ee4bc537161466571477aad7c53"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/build-boss4.log",
+    "bytes": 511,
+    "sha256": "aaebc8eb5b49107365969865f16a7058ddde9afa680ced76b7743ea663dab589"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-game-over.jsonl",
+    "bytes": 982,
+    "sha256": "e0ec2fe436e5d36651e0af4feb731dfab69ed1a77ae01be7b8c82f9e97ab98f2"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-game-over.log",
+    "bytes": 1082,
+    "sha256": "982f44642d192662ce53dde0c4fd31950bb780456ca7cb66b6b3c607f521bd63"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-level-end.jsonl",
+    "bytes": 986,
+    "sha256": "b2fd5a80c0f0bb0a84c6bfdfd5e1cd036516a3fd888fc3fe61e5ae0a0a6bca92"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-level-end.log",
+    "bytes": 1082,
+    "sha256": "78e92240f100d7a20f30805d9762b729494a340fd776e3e292b24ce5c232b04b"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-quit.jsonl",
+    "bytes": 943,
+    "sha256": "92e718e6b90dffa8f3ca21b1ed2c5293b623c8782207fd120cea514e93747c15"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-quit.log",
+    "bytes": 1072,
+    "sha256": "1ae5531119b9615f1e3d8baf2b7446379a6e92d019655f1c1c7ccbb4e8f903f7"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-reset.jsonl",
+    "bytes": 1336,
+    "sha256": "e6ba59cb13736edccb840bdebe9863592a109726f557f5c5980bf964c82f15c5"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-480-reset.log",
+    "bytes": 1074,
+    "sha256": "9a497bd9552010fa5c53c739e00c0df0109d78dcf1ea7951460c439432b74236"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-game-over.jsonl",
+    "bytes": 896,
+    "sha256": "cc7c19988dded19e82a8bd9a78cf9d6e810ab488e677a90625135ed188d54f07"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-game-over.log",
+    "bytes": 1086,
+    "sha256": "4103b5f14ec92ed9a815e473f007d5d0fec0fe5bd31df9e6ce687ac9ef65a0cb"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-level-end.jsonl",
+    "bytes": 900,
+    "sha256": "40144e0fc808e81b2e80a646288d3dc2fb7c075ff73b0af9c8ea143021ac3db4"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-level-end.log",
+    "bytes": 1086,
+    "sha256": "25a8b650fbbf3ecd6fd94bdfc330de9a508e2a7bfb25ec04640938a7d59abc61"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-quit.jsonl",
+    "bytes": 857,
+    "sha256": "fc46646386b98e3186e80e666d7f97f3df163af4d7e7c47cace02089f605f3e5"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-quit.log",
+    "bytes": 1076,
+    "sha256": "35c174c3e853b6d84389ce2f4dfe4dd9797cefa58a32be033124d52702dbb59b"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-reset.jsonl",
+    "bytes": 1250,
+    "sha256": "377962683c78ca5676aa6eec447e71e137387389c0c45e93dd885b9774f2890e"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/l2-exit-960-reset.log",
+    "bytes": 1078,
+    "sha256": "4d3cf21626a3bf508040a8af18f021e3e4fcc8d6505d9f76a00d1e0b08d35967"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits/results.json",
+    "bytes": 2265,
+    "sha256": "9551b836ab2caff6f0bbd8f89073663249826670a036676b55a432803979c95f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/exits.log",
+    "bytes": 1534,
+    "sha256": "f20dbcf25e744378d9b77087079bfeb0fb97088908a67673e26032060a0155fc"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/frame-peaks.log",
+    "bytes": 1759,
+    "sha256": "23173c1b531d94e82da46c428b129fe03680a2b50dec94d98635307dd2e84622"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-480-easy.csv",
+    "bytes": 4527643,
+    "sha256": "c7fa03fffc6905479977aa05f9f7e8ccd2e692cfcbc61419566d201c1913192f"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-480-easy.log",
+    "bytes": 27,
+    "sha256": "a2902b3cc3433e9ebe2c9b772a864a04c878818490b97dac9b8e7d3217aeab12"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss1.csv",
+    "bytes": 46585243,
+    "sha256": "4c49df624d314cc4cc62a811038f3688d1f08b0d312c324373439031c69863af"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss1.log",
+    "bytes": 809,
+    "sha256": "2b26b07caa7b39d7ee3395ef5d23fcf53294472cf390964aa3fe0042b3c478a1"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss2.csv",
+    "bytes": 46562449,
+    "sha256": "9af280ab1e43d20a190fedd5a4f7ce49218169842d7f5fd20eb64c23da27bf53"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss2.log",
+    "bytes": 809,
+    "sha256": "8ae0294e56d1144a795e4f42dc45cf5cba87b224b912aa0232bbf50acb017398"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss3.csv",
+    "bytes": 55246903,
+    "sha256": "270d5e6c31237c7090e9357501f580db414c04ea007d228aa96bedc1835dad6d"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss3.log",
+    "bytes": 808,
+    "sha256": "2da2cf6ee8775935355f9e7956f57d4ff59eebc616417a5864a101217953489c"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss4.csv",
+    "bytes": 46541539,
+    "sha256": "abb71a40003d7e51f9decd5c1cd1d389585ff59a56cf547999aee26157094216"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/home-boss4.log",
+    "bytes": 810,
+    "sha256": "ce9c2f1400091c848429f591aee25420b489faa637591b4aa2c7403518dda009"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/increment0-build.log",
+    "bytes": 374,
+    "sha256": "38d6628e193a1ec64418712d4437d39d2d6dfc1595cbc9472a1dbe1309a4a9b7"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-480-game-over.csv",
+    "bytes": 168999,
+    "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-480-level-end.csv",
+    "bytes": 168999,
+    "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-480-quit.csv",
+    "bytes": 168999,
+    "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-480-reset.csv",
+    "bytes": 353319,
+    "sha256": "6dfc51a809fa8529cd94f68508ca9bd7864383725de3c4faca668ee28941ac62"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-960-game-over.csv",
+    "bytes": 168999,
+    "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-960-level-end.csv",
+    "bytes": 168999,
+    "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-960-quit.csv",
+    "bytes": 168999,
+    "sha256": "33fcaf016869b99870d702a8f5374180ba3dd427f5a268bf52c7860e81e1d729"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/l2-exit-960-reset.csv",
+    "bytes": 353319,
+    "sha256": "21c1cfb78487cba6d137c937ac8f7995408fe0910285923b2b5864d3700aeddc"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/prior/2026-10-26-spike-capital-content.md",
+    "bytes": 67358,
+    "sha256": "a7be2d4927ece37aec34d4f0b49be4bcfc844c611c09fb74c2369d9510d17c47"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/prior/part0-damage.json",
+    "bytes": 4994,
+    "sha256": "4c25094f402ad99365d724ac9bbd9b56beeab7e8e358165e04541f9198512475"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/prior/retry2-m1-host-proof.mjs",
+    "bytes": 1588,
+    "sha256": "5993d82b944397708afe47a943cc3c1775eadb0a8c62b716de89b3b0a14b9832"
+  },
+  {
+    "file": "build/evidence/capital-content-v2/prior-placement.json",
+    "bytes": 10508,
+    "sha256": "5c1610bf4969d7ac7be754be3c6c9a5570cde8cbfd8bd139a6463374fbce3d40"
+  }
+]

@@ -1,0 +1,493 @@
+Original identical-input complete gameplay traces; aggregate and boot collector details are in the companion JSON.
+
+===== baseline original complete trace =====
+2-neutral-fire0: 760 frames, max 30628 wall cycles
+  PAL timing audit  2-neutral-fire0                               frames  760  misses   0  preWait  21859  margin   3441  maxWall  30628  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire0: 920 frames, max 30712 wall cycles
+  PAL timing audit  2-sweep-fire0                                 frames  920  misses   0  preWait  24158  margin   1142  maxWall  30712  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire1: 920 frames, max 31046 wall cycles
+  PAL timing audit  2-evasive-fire1                               frames  920  misses   0  preWait  20976  margin   4324  maxWall  31046  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire2: 920 frames, max 31327 wall cycles
+  PAL timing audit  2-sweep-fire2                                 frames  920  misses   0  preWait  23389  margin   1920  maxWall  31327  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire3: 920 frames, max 30603 wall cycles
+  PAL timing audit  2-evasive-fire3                               frames  920  misses   0  preWait  24711  margin    589  maxWall  30603  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire4: 920 frames, max 31061 wall cycles
+  PAL timing audit  2-sweep-fire4                                 frames  920  misses   0  preWait  23736  margin   1573  maxWall  31061  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire5: 920 frames, max 30767 wall cycles
+  PAL timing audit  2-sweep-fire5                                 frames  920  misses   0  preWait  23711  margin   1589  maxWall  30767  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire6: 920 frames, max 31033 wall cycles
+  PAL timing audit  2-sweep-fire6                                 frames  920  misses   0  preWait  23409  margin   1903  maxWall  31033  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire7: 920 frames, max 30846 wall cycles
+  PAL timing audit  2-evasive-fire7                               frames  920  misses   0  preWait  20605  margin   4695  maxWall  30846  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+1-evasive-fire3: 920 frames, max 31016 wall cycles
+  PAL timing audit  1-evasive-fire3                               frames  920  misses   0  preWait  24033  margin   1267  maxWall  31016  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+targeted-2-sweep-fire4: 920 frames, max 31061 wall cycles
+  PAL timing audit  targeted-2-sweep-fire4                        frames  920  misses   0  preWait  23736  margin   1573  maxWall  31061  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-0-sweep-nofire: 400 frames, max 29950 wall cycles
+  PAL timing audit  cadence-0-sweep-nofire                        frames  400  misses   0  preWait  14205  margin  11095  maxWall  29950  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-1-sweep-nofire: 400 frames, max 29968 wall cycles
+  PAL timing audit  cadence-1-sweep-nofire                        frames  400  misses   0  preWait  14472  margin  10837  maxWall  29968  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-2-sweep-nofire: 400 frames, max 29809 wall cycles
+  PAL timing audit  cadence-2-sweep-nofire                        frames  400  misses   0  preWait  14141  margin  11159  maxWall  29809  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+flash-2-neutral-nofire: 1600 frames, max 29958 wall cycles
+  PAL timing audit  flash-2-neutral-nofire                        frames 1600  misses   0  preWait  22569  margin   2743  maxWall  29958  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+debris-effects-2-sweep-fire4: 4999 frames, max 31289 wall cycles
+  PAL timing audit  debris-effects-2-sweep-fire4                  frames 4999  misses   0  preWait  23736  margin   1573  maxWall  31289  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-2-hunt-fire4: 3999 frames, max 31482 wall cycles
+  PAL timing audit  weapon-pickup-2-hunt-fire4                    frames 3999  misses   0  preWait  21287  margin   4025  maxWall  31482  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-spread-0-hunt-fire4: 5999 frames, max 30937 wall cycles
+  PAL timing audit  weapon-pickup-spread-0-hunt-fire4             frames 5999  misses   0  preWait  22208  margin   3101  maxWall  30937  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-sequence-2-hunt-fire3: 600 frames, max 30754 wall cycles
+  PAL timing audit  weapon-pickup-sequence-2-hunt-fire3           frames  600  misses   0  preWait  21673  margin   3639  maxWall  30754  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-0-natural-sweep-fire0: 5509 frames, max 30872 wall cycles
+  PAL timing audit  director-complete-0-natural-sweep-fire0       frames 5509  misses   0  preWait  21875  margin   3437  maxWall  30872  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-1-natural-sweep-fire0: 5549 frames, max 31036 wall cycles
+  PAL timing audit  director-complete-1-natural-sweep-fire0       frames 5549  misses   0  preWait  23169  margin   2131  maxWall  31036  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-2-natural-sweep-fire0: 5629 frames, max 31301 wall cycles
+  PAL timing audit  director-complete-2-natural-sweep-fire0       frames 5629  misses   0  preWait  24158  margin   1142  maxWall  31301  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+summary-record-readback-1: 8 frames, max 27514 wall cycles
+  PAL timing audit  summary-record-readback-1                     frames    8  misses   0  preWait  11858  margin  13454  maxWall  27514  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+director-complete-2-write-protected: 5629 frames, max 31301 wall cycles
+  PAL timing audit  director-complete-2-write-protected           frames 5629  misses   0  preWait  24158  margin   1142  maxWall  31301  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-traversal-2-observe-fire8: 1800 frames, max 30512 wall cycles
+  PAL timing audit  weapon-pickup-traversal-2-observe-fire8       frames 1800  misses   0  preWait  21957  margin   3343  maxWall  30512  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE weapon-pickup-contact-2-hunt-fire4: weapon-pickup-contact-2-hunt-fire4 did not collect and activate exactly once, or left the capsule on its plane after collection
+weapon-pickup-contact-2-hunt-fire4: 1300 frames, max 30777 wall cycles
+  PAL timing audit  weapon-pickup-contact-2-hunt-fire4            frames 1300  misses   0  preWait  22450  margin   2859  maxWall  30777  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+weapon-pickup-overlap-2-hunt-fire5: 1300 frames, max 30793 wall cycles
+  PAL timing audit  weapon-pickup-overlap-2-hunt-fire5            frames 1300  misses   0  preWait  22329  margin   2971  maxWall  30793  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+capital-muzzle-ring-2-sweep-fire4: 5999 frames, max 31289 wall cycles
+  PAL timing audit  capital-muzzle-ring-2-sweep-fire4             frames 5999  misses   0  preWait  23736  margin   1573  maxWall  31289  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-0-cold-hunt-fire4: 1500 frames, max 63126 wall cycles
+  PAL timing audit  early-enemy-atr-0-cold-hunt-fire4             frames 1500  misses   1  preWait  27165  margin  -1865  maxWall  63126  >target    1  >hard    1  shifted    0  [unreliable: missed 1 extraVBI 0 DLIerr 0]  FAIL (1 distinct miss event(s); fence margin -1865 < 500 at frame 769; DMA-on maximum 63126 > 32568)
+    MISS row 769 (frame 769, host frame 1648, fighter): wall 63126 cycles, pre-wait 27165, margin -1865, 0 shifted-phase rows until resync
+early-enemy-atr-1-cold-hunt-fire4: 1500 frames, max 30923 wall cycles
+  PAL timing audit  early-enemy-atr-1-cold-hunt-fire4             frames 1500  misses   0  preWait  20536  margin   4773  maxWall  30923  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-2-cold-hunt-fire4: 1500 frames, max 30777 wall cycles
+  PAL timing audit  early-enemy-atr-2-cold-hunt-fire4             frames 1500  misses   0  preWait  24573  margin    739  maxWall  30777  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters
+capital-contact-allied-medium: 840 frames, max 29982 wall cycles
+  PAL timing audit  capital-contact-allied-medium                 frames  840  misses   0  preWait  17831  margin   7481  maxWall  29982  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE capital-contact-hostile-medium: capital-contact-hostile-medium did not capture 16 consecutive contact rasters
+capital-contact-hostile-medium: 1080 frames, max 30082 wall cycles
+  PAL timing audit  capital-contact-hostile-medium                frames 1080  misses   0  preWait  14717  margin  10592  maxWall  30082  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-evasive-fire4: 4000 frames, max 30820 wall cycles
+  PAL timing audit  memory-integrity-atr-2-evasive-fire4          frames 4000  misses   0  preWait  21959  margin   3353  maxWall  30820  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire5: 4899 frames, max 31298 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire5             frames 4899  misses   0  preWait  22329  margin   2971  maxWall  31298  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire6: 4999 frames, max 31295 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire6             frames 4999  misses   0  preWait  23027  margin   2285  maxWall  31295  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire7: 3999 frames, max 31298 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire7             frames 3999  misses   0  preWait  21869  margin   3431  maxWall  31298  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-0-hunt-fire5: 5099 frames, max 30797 wall cycles
+  PAL timing audit  memory-integrity-atr-0-hunt-fire5             frames 5099  misses   0  preWait  21331  margin   3978  maxWall  30797  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+lower-playfield-atr-hard: 1400 frames, max 29830 wall cycles
+  PAL timing audit  lower-playfield-atr-hard                      frames 1400  misses   0  preWait  22585  margin   2724  maxWall  29830  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)
+lower-playfield-laser-contact-atr-hard: 9499 frames, max 31330 wall cycles
+  PAL timing audit  lower-playfield-laser-contact-atr-hard        frames 9499  misses   0  preWait  22569  margin   2743  maxWall  31330  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 92]  PASS
+CLAUSE FAILURE lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once
+lower-playfield-allied-contact-atr-hard: 1000 frames, max 29830 wall cycles
+  PAL timing audit  lower-playfield-allied-contact-atr-hard       frames 1000  misses   0  preWait  17721  margin   7591  maxWall  29830  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-pause-2-sweep-fire0: 4299 frames, max 31301 wall cycles
+  PAL timing audit  slot-e-pause-2-sweep-fire0                    frames 4299  misses   0  preWait  24158  margin   1142  maxWall  31301  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-game-over-2-sweep-fire0: 5099 frames, max 31301 wall cycles
+  PAL timing audit  slot-e-game-over-2-sweep-fire0                frames 5099  misses   0  preWait  24158  margin   1142  maxWall  31301  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-reset-2-sweep-fire0: 5098 frames, max 31301 wall cycles
+  PAL timing audit  slot-e-reset-2-sweep-fire0                    frames 5098  misses   0  preWait  24158  margin   1142  maxWall  31301  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+boss-edge-left-1: engaged at 3331; 3942/4050 frames at the edge; 20 escorts (first 3971); 18 hits
+boss-edge-left-1: 7799 frames, max 31139 wall cycles
+  PAL timing audit  boss-edge-left-1                              frames 7799  misses   0  preWait  21444  margin   3868  maxWall  31139  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-0-flight: 3942 frames, max 30952 wall cycles
+  PAL timing audit  campaign-0-flight                             frames 3942  misses   0  preWait  21539  margin   3770  maxWall  30952  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-1-flight: 3731 frames, max 31050 wall cycles
+  PAL timing audit  campaign-1-flight                             frames 3731  misses   0  preWait  21860  margin   3449  maxWall  31050  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-2-brake: 4487 frames, max 31330 wall cycles
+  PAL timing audit  campaign-2-brake                              frames 4487  misses   0  preWait  21860  margin   3441  maxWall  31330  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-0-immediate: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-a5-0-immediate                     frames  150  misses   0  preWait  14102  margin  11207  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-0-delayed: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-a5-0-delayed                       frames  150  misses   0  preWait  14102  margin  11207  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-1-immediate: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-a5-1-immediate                     frames  150  misses   0  preWait  13793  margin  11507  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-1-delayed: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-a5-1-delayed                       frames  150  misses   0  preWait  13793  margin  11507  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-2-immediate: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-a5-2-immediate                     frames  150  misses   0  preWait  14032  margin  11268  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-2-delayed: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-a5-2-delayed                       frames  150  misses   0  preWait  14032  margin  11268  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-0-immediate: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-5a-0-immediate                     frames  150  misses   0  preWait  14102  margin  11207  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-0-delayed: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-5a-0-delayed                       frames  150  misses   0  preWait  14102  margin  11207  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-1-immediate: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-5a-1-immediate                     frames  150  misses   0  preWait  13793  margin  11507  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-1-delayed: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-5a-1-delayed                       frames  150  misses   0  preWait  13793  margin  11507  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-2-immediate: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-5a-2-immediate                     frames  150  misses   0  preWait  14032  margin  11268  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-2-delayed: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-5a-2-delayed                       frames  150  misses   0  preWait  14032  margin  11268  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-restart-atr-a5: 3200 frames, max 30348 wall cycles
+  PAL timing audit  engine-restart-atr-a5                         frames 3200  misses   0  preWait  22569  margin   2743  maxWall  30348  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 1 distinct miss events across 61 replays (FAIL)
+PAL timing audit: 1 replay(s) outside the gates (GO >= 500, DMA-on <= 32568): early-enemy-atr-0-cold-hunt-fire4
+Boss-entry debris clause: subject 20 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 20 boss entries, 0 with a HUD cell changed
+Window tail write clause: 61 replays watched, subject 20 lance run reads, 44699 lance-state writes, 0 foreign writers
+Slot F write clause: 61 replays watched, subject 20 block reads, 0 field-state writes, 0 foreign writers
+Behavioural clauses: 10 of 61 session(s) accumulated a failure
+  director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+  weapon-pickup-contact-2-hunt-fire4: weapon-pickup-contact-2-hunt-fire4 did not collect and activate exactly once, or left the capsule on its plane after collection
+  weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+  capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters
+  capital-contact-hostile-medium: capital-contact-hostile-medium did not capture 16 consecutive contact rasters
+  lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)
+  lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once
+file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/baseline/runner/scripts/runtime-wall-trace.mjs:1642
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)
+    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/baseline/runner/scripts/runtime-wall-trace.mjs:1642:25)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/baseline/runner/scripts/runtime-wall-trace.mjs:7792:5)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/baseline/runner/scripts/runtime-wall-trace.mjs:9873:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)
+
+Node.js v26.12.1
+
+===== current original complete trace =====
+2-neutral-fire0: 760 frames, max 30628 wall cycles
+  PAL timing audit  2-neutral-fire0                               frames  760  misses   0  preWait  22002  margin   3298  maxWall  30628  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire0: 920 frames, max 30712 wall cycles
+  PAL timing audit  2-sweep-fire0                                 frames  920  misses   0  preWait  20520  margin   4789  maxWall  30712  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire1: 920 frames, max 31046 wall cycles
+  PAL timing audit  2-evasive-fire1                               frames  920  misses   0  preWait  21117  margin   4183  maxWall  31046  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire2: 920 frames, max 31327 wall cycles
+  PAL timing audit  2-sweep-fire2                                 frames  920  misses   0  preWait  20189  margin   5111  maxWall  31327  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire3: 920 frames, max 30603 wall cycles
+  PAL timing audit  2-evasive-fire3                               frames  920  misses   0  preWait  20265  margin   5035  maxWall  30603  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire4: 920 frames, max 31037 wall cycles
+  PAL timing audit  2-sweep-fire4                                 frames  920  misses   0  preWait  23947  margin   1362  maxWall  31037  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire5: 920 frames, max 30767 wall cycles
+  PAL timing audit  2-sweep-fire5                                 frames  920  misses   0  preWait  20156  margin   5153  maxWall  30767  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire6: 920 frames, max 31033 wall cycles
+  PAL timing audit  2-sweep-fire6                                 frames  920  misses   0  preWait  19782  margin   5527  maxWall  31033  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire7: 920 frames, max 30846 wall cycles
+  PAL timing audit  2-evasive-fire7                               frames  920  misses   0  preWait  20309  margin   5000  maxWall  30846  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+1-evasive-fire3: 920 frames, max 31016 wall cycles
+  PAL timing audit  1-evasive-fire3                               frames  920  misses   0  preWait  21906  margin   3403  maxWall  31016  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+targeted-2-sweep-fire4: 920 frames, max 31037 wall cycles
+  PAL timing audit  targeted-2-sweep-fire4                        frames  920  misses   0  preWait  23947  margin   1362  maxWall  31037  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-0-sweep-nofire: 400 frames, max 29950 wall cycles
+  PAL timing audit  cadence-0-sweep-nofire                        frames  400  misses   0  preWait  14766  margin  10543  maxWall  29950  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-1-sweep-nofire: 400 frames, max 29968 wall cycles
+  PAL timing audit  cadence-1-sweep-nofire                        frames  400  misses   0  preWait  14728  margin  10581  maxWall  29968  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-2-sweep-nofire: 400 frames, max 29809 wall cycles
+  PAL timing audit  cadence-2-sweep-nofire                        frames  400  misses   0  preWait  15165  margin  10147  maxWall  29809  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+flash-2-neutral-nofire: 1600 frames, max 29905 wall cycles
+  PAL timing audit  flash-2-neutral-nofire                        frames 1600  misses   0  preWait  15826  margin   9483  maxWall  29905  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+debris-effects-2-sweep-fire4: 4999 frames, max 31302 wall cycles
+  PAL timing audit  debris-effects-2-sweep-fire4                  frames 4999  misses   0  preWait  23947  margin   1362  maxWall  31302  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-2-hunt-fire4: 3999 frames, max 31293 wall cycles
+  PAL timing audit  weapon-pickup-2-hunt-fire4                    frames 3999  misses   0  preWait  21239  margin   4073  maxWall  31293  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-spread-0-hunt-fire4: 5999 frames, max 30771 wall cycles
+  PAL timing audit  weapon-pickup-spread-0-hunt-fire4             frames 5999  misses   0  preWait  22352  margin   2957  maxWall  30771  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-sequence-2-hunt-fire3: 600 frames, max 30754 wall cycles
+  PAL timing audit  weapon-pickup-sequence-2-hunt-fire3           frames  600  misses   0  preWait  21887  margin   3425  maxWall  30754  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-0-natural-sweep-fire0: 5236 frames, max 30937 wall cycles
+  PAL timing audit  director-complete-0-natural-sweep-fire0       frames 5236  misses   0  preWait  18409  margin   6891  maxWall  30937  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-1-natural-sweep-fire0: 5232 frames, max 31055 wall cycles
+  PAL timing audit  director-complete-1-natural-sweep-fire0       frames 5232  misses   0  preWait  21507  margin   3793  maxWall  31055  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-2-natural-sweep-fire0: 5459 frames, max 31305 wall cycles
+  PAL timing audit  director-complete-2-natural-sweep-fire0       frames 5459  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+summary-record-readback-1: 8 frames, max 27514 wall cycles
+  PAL timing audit  summary-record-readback-1                     frames    8  misses   0  preWait  11911  margin  13401  maxWall  27514  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+director-complete-2-write-protected: 5459 frames, max 31305 wall cycles
+  PAL timing audit  director-complete-2-write-protected           frames 5459  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-traversal-2-observe-fire8: 1800 frames, max 31020 wall cycles
+  PAL timing audit  weapon-pickup-traversal-2-observe-fire8       frames 1800  misses   0  preWait  21776  margin   3536  maxWall  31020  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-contact-2-hunt-fire4: 1300 frames, max 30777 wall cycles
+  PAL timing audit  weapon-pickup-contact-2-hunt-fire4            frames 1300  misses   0  preWait  20652  margin   4657  maxWall  30777  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+weapon-pickup-overlap-2-hunt-fire5: 1300 frames, max 30793 wall cycles
+  PAL timing audit  weapon-pickup-overlap-2-hunt-fire5            frames 1300  misses   0  preWait  22467  margin   2833  maxWall  30793  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+capital-muzzle-ring-2-sweep-fire4: 5999 frames, max 31302 wall cycles
+  PAL timing audit  capital-muzzle-ring-2-sweep-fire4             frames 5999  misses   0  preWait  23947  margin   1362  maxWall  31302  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-0-cold-hunt-fire4: 1500 frames, max 30771 wall cycles
+  PAL timing audit  early-enemy-atr-0-cold-hunt-fire4             frames 1500  misses   0  preWait  22352  margin   2957  maxWall  30771  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-1-cold-hunt-fire4: 1500 frames, max 30923 wall cycles
+  PAL timing audit  early-enemy-atr-1-cold-hunt-fire4             frames 1500  misses   0  preWait  20698  margin   4611  maxWall  30923  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-2-cold-hunt-fire4: 1500 frames, max 30777 wall cycles
+  PAL timing audit  early-enemy-atr-2-cold-hunt-fire4             frames 1500  misses   0  preWait  20652  margin   4657  maxWall  30777  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters
+capital-contact-allied-medium: 840 frames, max 29982 wall cycles
+  PAL timing audit  capital-contact-allied-medium                 frames  840  misses   0  preWait  16179  margin   9121  maxWall  29982  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE capital-contact-hostile-medium: capital-contact-hostile-medium did not enter the capital damage pipeline exactly once
+capital-contact-hostile-medium: 1080 frames, max 30082 wall cycles
+  PAL timing audit  capital-contact-hostile-medium                frames 1080  misses   0  preWait  16172  margin   9128  maxWall  30082  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-evasive-fire4: 4000 frames, max 31416 wall cycles
+  PAL timing audit  memory-integrity-atr-2-evasive-fire4          frames 4000  misses   0  preWait  19781  margin   5519  maxWall  31416  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire5: 4899 frames, max 31302 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire5             frames 4899  misses   0  preWait  22467  margin   2833  maxWall  31302  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire6: 5000 frames, max 31300 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire6             frames 5000  misses   0  preWait  22071  margin   3241  maxWall  31300  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire7: 3999 frames, max 31309 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire7             frames 3999  misses   0  preWait  22063  margin   3237  maxWall  31309  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-0-hunt-fire5: 5099 frames, max 30797 wall cycles
+  PAL timing audit  memory-integrity-atr-0-hunt-fire5             frames 5099  misses   0  preWait  20973  margin   4327  maxWall  30797  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+lower-playfield-atr-hard: 1400 frames, max 29830 wall cycles
+  PAL timing audit  lower-playfield-atr-hard                      frames 1400  misses   0  preWait  17595  margin   7705  maxWall  29830  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)
+lower-playfield-laser-contact-atr-hard: 9499 frames, max 31306 wall cycles
+  PAL timing audit  lower-playfield-laser-contact-atr-hard        frames 9499  misses   0  preWait  21087  margin   4213  maxWall  31306  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 92]  PASS
+CLAUSE FAILURE lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once
+lower-playfield-allied-contact-atr-hard: 1000 frames, max 29830 wall cycles
+  PAL timing audit  lower-playfield-allied-contact-atr-hard       frames 1000  misses   0  preWait  15585  margin   9715  maxWall  29830  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-pause-2-sweep-fire0: 4299 frames, max 31305 wall cycles
+  PAL timing audit  slot-e-pause-2-sweep-fire0                    frames 4299  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-game-over-2-sweep-fire0: 5099 frames, max 31305 wall cycles
+  PAL timing audit  slot-e-game-over-2-sweep-fire0                frames 5099  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-reset-2-sweep-fire0: 5098 frames, max 31305 wall cycles
+  PAL timing audit  slot-e-reset-2-sweep-fire0                    frames 5098  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+boss-edge-left-1: engaged at 2982; 3959/4050 frames at the edge; 19 escorts (first 3738); 19 hits
+boss-edge-left-1: 7799 frames, max 31055 wall cycles
+  PAL timing audit  boss-edge-left-1                              frames 7799  misses   0  preWait  21585  margin   3727  maxWall  31055  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-0-flight: 3652 frames, max 30847 wall cycles
+  PAL timing audit  campaign-0-flight                             frames 3652  misses   0  preWait  21638  margin   3671  maxWall  30847  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-1-flight: 3435 frames, max 31134 wall cycles
+  PAL timing audit  campaign-1-flight                             frames 3435  misses   0  preWait  21765  margin   3535  maxWall  31134  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-2-brake: 4223 frames, max 31444 wall cycles
+  PAL timing audit  campaign-2-brake                              frames 4223  misses   0  preWait  22002  margin   3298  maxWall  31444  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-0-immediate: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-a5-0-immediate                     frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-0-delayed: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-a5-0-delayed                       frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-1-immediate: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-a5-1-immediate                     frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-1-delayed: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-a5-1-delayed                       frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-2-immediate: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-a5-2-immediate                     frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-2-delayed: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-a5-2-delayed                       frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-0-immediate: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-5a-0-immediate                     frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-0-delayed: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-5a-0-delayed                       frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-1-immediate: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-5a-1-immediate                     frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-1-delayed: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-5a-1-delayed                       frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-2-immediate: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-5a-2-immediate                     frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-2-delayed: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-5a-2-delayed                       frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-restart-atr-a5: 3200 frames, max 30841 wall cycles
+  PAL timing audit  engine-restart-atr-a5                         frames 3200  misses   0  preWait  15826  margin   9483  maxWall  30841  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 61 replays (PASS)
+Boss-entry debris clause: subject 19 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 19 boss entries, 0 with a HUD cell changed
+Window tail write clause: 61 replays watched, subject 19 lance run reads, 47753 lance-state writes, 0 foreign writers
+Slot F write clause: 61 replays watched, subject 19 block reads, 0 field-state writes, 0 foreign writers
+Behavioural clauses: 9 of 61 session(s) accumulated a failure
+  director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+  weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+  capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters
+  capital-contact-hostile-medium: capital-contact-hostile-medium did not enter the capital damage pipeline exactly once
+  lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)
+  lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once
+file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/current/runner/scripts/runtime-wall-trace.mjs:1642
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)
+    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/current/runner/scripts/runtime-wall-trace.mjs:1642:25)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/current/runner/scripts/runtime-wall-trace.mjs:7792:5)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/current/runner/scripts/runtime-wall-trace.mjs:9873:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)
+
+Node.js v26.12.1
+
+===== current retimed complete trace =====
+Boot smoke: 4 ATR cold-start sessions and 1 RESET session, 1 130XE compatibility session and 1 forced capital restore passed
+2-neutral-fire0: 760 frames, max 30628 wall cycles
+  PAL timing audit  2-neutral-fire0                               frames  760  misses   0  preWait  22002  margin   3298  maxWall  30628  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire0: 920 frames, max 30712 wall cycles
+  PAL timing audit  2-sweep-fire0                                 frames  920  misses   0  preWait  20520  margin   4789  maxWall  30712  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire1: 920 frames, max 31046 wall cycles
+  PAL timing audit  2-evasive-fire1                               frames  920  misses   0  preWait  21117  margin   4183  maxWall  31046  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire2: 920 frames, max 31327 wall cycles
+  PAL timing audit  2-sweep-fire2                                 frames  920  misses   0  preWait  20189  margin   5111  maxWall  31327  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire3: 920 frames, max 30603 wall cycles
+  PAL timing audit  2-evasive-fire3                               frames  920  misses   0  preWait  20265  margin   5035  maxWall  30603  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire4: 920 frames, max 31037 wall cycles
+  PAL timing audit  2-sweep-fire4                                 frames  920  misses   0  preWait  23947  margin   1362  maxWall  31037  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire5: 920 frames, max 30767 wall cycles
+  PAL timing audit  2-sweep-fire5                                 frames  920  misses   0  preWait  20156  margin   5153  maxWall  30767  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-sweep-fire6: 920 frames, max 31033 wall cycles
+  PAL timing audit  2-sweep-fire6                                 frames  920  misses   0  preWait  19782  margin   5527  maxWall  31033  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+2-evasive-fire7: 920 frames, max 30846 wall cycles
+  PAL timing audit  2-evasive-fire7                               frames  920  misses   0  preWait  20309  margin   5000  maxWall  30846  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+1-evasive-fire3: 920 frames, max 31016 wall cycles
+  PAL timing audit  1-evasive-fire3                               frames  920  misses   0  preWait  21906  margin   3403  maxWall  31016  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+targeted-2-sweep-fire4: 920 frames, max 31037 wall cycles
+  PAL timing audit  targeted-2-sweep-fire4                        frames  920  misses   0  preWait  23947  margin   1362  maxWall  31037  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-0-sweep-nofire: 400 frames, max 29950 wall cycles
+  PAL timing audit  cadence-0-sweep-nofire                        frames  400  misses   0  preWait  14766  margin  10543  maxWall  29950  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-1-sweep-nofire: 400 frames, max 29968 wall cycles
+  PAL timing audit  cadence-1-sweep-nofire                        frames  400  misses   0  preWait  14728  margin  10581  maxWall  29968  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+cadence-2-sweep-nofire: 400 frames, max 29809 wall cycles
+  PAL timing audit  cadence-2-sweep-nofire                        frames  400  misses   0  preWait  15165  margin  10147  maxWall  29809  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+flash-2-neutral-nofire: 1600 frames, max 30765 wall cycles
+  PAL timing audit  flash-2-neutral-nofire                        frames 1600  misses   0  preWait  20029  margin   5271  maxWall  30765  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+debris-effects-2-sweep-fire4: 4999 frames, max 31302 wall cycles
+  PAL timing audit  debris-effects-2-sweep-fire4                  frames 4999  misses   0  preWait  23947  margin   1362  maxWall  31302  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-2-hunt-fire4: 3200 frames, max 31293 wall cycles
+  PAL timing audit  weapon-pickup-2-hunt-fire4                    frames 3200  misses   0  preWait  21239  margin   4073  maxWall  31293  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-spread-0-hunt-fire4: 5999 frames, max 30771 wall cycles
+  PAL timing audit  weapon-pickup-spread-0-hunt-fire4             frames 5999  misses   0  preWait  22352  margin   2957  maxWall  30771  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-sequence-2-hunt-fire3: 600 frames, max 30754 wall cycles
+  PAL timing audit  weapon-pickup-sequence-2-hunt-fire3           frames  600  misses   0  preWait  21887  margin   3425  maxWall  30754  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-0-natural-sweep-fire0: 5236 frames, max 30937 wall cycles
+  PAL timing audit  director-complete-0-natural-sweep-fire0       frames 5236  misses   0  preWait  18409  margin   6891  maxWall  30937  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-1-natural-sweep-fire0: 5232 frames, max 31055 wall cycles
+  PAL timing audit  director-complete-1-natural-sweep-fire0       frames 5232  misses   0  preWait  21507  margin   3793  maxWall  31055  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+director-complete-2-natural-sweep-fire0: 5459 frames, max 31305 wall cycles
+  PAL timing audit  director-complete-2-natural-sweep-fire0       frames 5459  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+summary-record-readback-1: 8 frames, max 27514 wall cycles
+  PAL timing audit  summary-record-readback-1                     frames    8  misses   0  preWait  11911  margin  13401  maxWall  27514  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+director-complete-2-write-protected: 5459 frames, max 31305 wall cycles
+  PAL timing audit  director-complete-2-write-protected           frames 5459  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-traversal-2-observe-fire8: 1800 frames, max 31020 wall cycles
+  PAL timing audit  weapon-pickup-traversal-2-observe-fire8       frames 1800  misses   0  preWait  21776  margin   3536  maxWall  31020  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+weapon-pickup-contact-2-hunt-fire4: 1300 frames, max 30777 wall cycles
+  PAL timing audit  weapon-pickup-contact-2-hunt-fire4            frames 1300  misses   0  preWait  20652  margin   4657  maxWall  30777  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+weapon-pickup-overlap-2-hunt-fire5: 1300 frames, max 30793 wall cycles
+  PAL timing audit  weapon-pickup-overlap-2-hunt-fire5            frames 1300  misses   0  preWait  22467  margin   2833  maxWall  30793  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+capital-muzzle-ring-2-sweep-fire4: 5999 frames, max 31302 wall cycles
+  PAL timing audit  capital-muzzle-ring-2-sweep-fire4             frames 5999  misses   0  preWait  23947  margin   1362  maxWall  31302  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-0-cold-hunt-fire4: 1500 frames, max 30771 wall cycles
+  PAL timing audit  early-enemy-atr-0-cold-hunt-fire4             frames 1500  misses   0  preWait  22352  margin   2957  maxWall  30771  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-1-cold-hunt-fire4: 1500 frames, max 30923 wall cycles
+  PAL timing audit  early-enemy-atr-1-cold-hunt-fire4             frames 1500  misses   0  preWait  20698  margin   4611  maxWall  30923  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+early-enemy-atr-2-cold-hunt-fire4: 1500 frames, max 30777 wall cycles
+  PAL timing audit  early-enemy-atr-2-cold-hunt-fire4             frames 1500  misses   0  preWait  20652  margin   4657  maxWall  30777  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters
+capital-contact-allied-medium: 840 frames, max 29982 wall cycles
+  PAL timing audit  capital-contact-allied-medium                 frames  840  misses   0  preWait  16179  margin   9121  maxWall  29982  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+capital-contact-hostile-medium: 800 frames, max 30082 wall cycles
+  PAL timing audit  capital-contact-hostile-medium                frames  800  misses   0  preWait  16172  margin   9128  maxWall  30082  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-evasive-fire4: 4000 frames, max 31416 wall cycles
+  PAL timing audit  memory-integrity-atr-2-evasive-fire4          frames 4000  misses   0  preWait  19781  margin   5519  maxWall  31416  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire5: 4899 frames, max 31302 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire5             frames 4899  misses   0  preWait  22467  margin   2833  maxWall  31302  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire6: 5000 frames, max 31300 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire6             frames 5000  misses   0  preWait  22071  margin   3241  maxWall  31300  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-2-hunt-fire7: 3999 frames, max 31309 wall cycles
+  PAL timing audit  memory-integrity-atr-2-hunt-fire7             frames 3999  misses   0  preWait  22063  margin   3237  maxWall  31309  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+memory-integrity-atr-0-hunt-fire5: 5099 frames, max 30797 wall cycles
+  PAL timing audit  memory-integrity-atr-0-hunt-fire5             frames 5099  misses   0  preWait  20973  margin   4327  maxWall  30797  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+lower-playfield-atr-hard: 1400 frames, max 29830 wall cycles
+  PAL timing audit  lower-playfield-atr-hard                      frames 1400  misses   0  preWait  17595  margin   7705  maxWall  29830  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+CLAUSE FAILURE lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)
+lower-playfield-laser-contact-atr-hard: 9499 frames, max 31306 wall cycles
+  PAL timing audit  lower-playfield-laser-contact-atr-hard        frames 9499  misses   0  preWait  21087  margin   4213  maxWall  31306  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 92]  PASS
+CLAUSE FAILURE lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once
+lower-playfield-allied-contact-atr-hard: 1000 frames, max 29830 wall cycles
+  PAL timing audit  lower-playfield-allied-contact-atr-hard       frames 1000  misses   0  preWait  15585  margin   9715  maxWall  29830  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-pause-2-sweep-fire0: 4299 frames, max 31305 wall cycles
+  PAL timing audit  slot-e-pause-2-sweep-fire0                    frames 4299  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-game-over-2-sweep-fire0: 5099 frames, max 31305 wall cycles
+  PAL timing audit  slot-e-game-over-2-sweep-fire0                frames 5099  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+slot-e-reset-2-sweep-fire0: 5098 frames, max 31305 wall cycles
+  PAL timing audit  slot-e-reset-2-sweep-fire0                    frames 5098  misses   0  preWait  21954  margin   3355  maxWall  31305  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+boss-edge-left-1: engaged at 2982; 3959/4050 frames at the edge; 19 escorts (first 3738); 19 hits
+boss-edge-left-1: 7799 frames, max 31055 wall cycles
+  PAL timing audit  boss-edge-left-1                              frames 7799  misses   0  preWait  21585  margin   3727  maxWall  31055  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-0-flight: 3652 frames, max 30847 wall cycles
+  PAL timing audit  campaign-0-flight                             frames 3652  misses   0  preWait  21638  margin   3671  maxWall  30847  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-1-flight: 3435 frames, max 31134 wall cycles
+  PAL timing audit  campaign-1-flight                             frames 3435  misses   0  preWait  21765  margin   3535  maxWall  31134  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+campaign-2-brake: 4223 frames, max 31444 wall cycles
+  PAL timing audit  campaign-2-brake                              frames 4223  misses   0  preWait  22002  margin   3298  maxWall  31444  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-0-immediate: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-a5-0-immediate                     frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-0-delayed: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-a5-0-delayed                       frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-1-immediate: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-a5-1-immediate                     frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-1-delayed: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-a5-1-delayed                       frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-2-immediate: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-a5-2-immediate                     frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-a5-2-delayed: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-a5-2-delayed                       frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-0-immediate: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-5a-0-immediate                     frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-0-delayed: 150 frames, max 29876 wall cycles
+  PAL timing audit  engine-atr-5a-0-delayed                       frames  150  misses   0  preWait  14147  margin  11162  maxWall  29876  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-1-immediate: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-5a-1-immediate                     frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-1-delayed: 150 frames, max 29949 wall cycles
+  PAL timing audit  engine-atr-5a-1-delayed                       frames  150  misses   0  preWait  13853  margin  11447  maxWall  29949  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-2-immediate: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-5a-2-immediate                     frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-atr-5a-2-delayed: 150 frames, max 29818 wall cycles
+  PAL timing audit  engine-atr-5a-2-delayed                       frames  150  misses   0  preWait  14101  margin  11199  maxWall  29818  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+engine-restart-atr-a5: 3200 frames, max 30841 wall cycles
+  PAL timing audit  engine-restart-atr-a5                         frames 3200  misses   0  preWait  15826  margin   9483  maxWall  30841  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 61 replays (PASS)
+Boss-entry debris clause: subject 18 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 18 boss entries, 0 with a HUD cell changed
+Window tail write clause: 61 replays watched, subject 18 lance run reads, 47002 lance-state writes, 0 foreign writers
+Slot F write clause: 61 replays watched, subject 18 block reads, 0 field-state writes, 0 foreign writers
+Behavioural clauses: 8 of 61 session(s) accumulated a failure
+  director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+  director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+  weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+  capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters
+  lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)
+  lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once
+file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/retimed-full/runner/scripts/runtime-wall-trace.mjs:1647
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)
+    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/retimed-full/runner/scripts/runtime-wall-trace.mjs:1647:25)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/retimed-full/runner/scripts/runtime-wall-trace.mjs:7797:5)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/build/evidence/capital-content-v2/full-comparison-fde1748/retimed-full/runner/scripts/runtime-wall-trace.mjs:9878:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)
+
+Node.js v26.12.1

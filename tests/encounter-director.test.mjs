@@ -68,6 +68,12 @@ function setActiveGameplayFrame(image, frame) {
   image[provisionalCapital.frameHi] = frame >> 8 & 0xff;
 }
 
+function gameplayMemory() {
+  const image = memory();
+  image[labels.get("game_state")] = 6; // checked home runs only in GAMEPLAY
+  return image;
+}
+
 function memory() {
   const result = new Uint8Array(0x10000);
   installRuntimeSegments(result, root);
@@ -135,7 +141,7 @@ function armMuzzle(image, turret, row) {
 }
 
 function runEarlyEnemyReplay(difficulty, frames = 600) {
-  const image = memory();
+  const image = gameplayMemory();
   const frameCounter = labels.get("frame_counter");
   const enemyActive = labels.get("ENEMY_ACTIVE");
   const enemyY = labels.get("ENEMY_Y");
@@ -213,7 +219,7 @@ function runEarlyEnemyReplay(difficulty, frames = 600) {
 // page the sector reader leaves in the level buffer.
 test("T3: the row tick advances the sector index from a poked core page and arms its first wave",
   () => {
-    const image = memory();
+    const image = gameplayMemory();
     image[labels.get("frame_counter")] = 9;
     // Three space sectors, 16 / 24 / 32 rows, each with one Heavy wave on its
     // own first row. Short on purpose: the row tick is the only clock.
@@ -247,7 +253,7 @@ test("T3: the row tick advances the sector index from a poked core page and arms
 test("T11: a level completes at the end of its LAST authored sector, whatever their number",
   () => {
     for (const count of [2, 6]) {
-      const image = memory();
+      const image = gameplayMemory();
       pokeLevel(image, {
         sectors: Array.from({ length: count }, () => spaceSector(16)),
       });
@@ -306,14 +312,17 @@ test("private RNG has period 256 for every one-byte seed", () => {
 });
 
 test("director init and world rows are deterministic and do not touch game RNG", () => {
-  const first = memory();
-  const second = memory();
+  const first = gameplayMemory();
+  const second = gameplayMemory();
   const gameRng = [labels.get("rng_state"), labels.get("STAR_RNG_STATE")];
   for (const image of [first, second]) {
     image[labels.get("frame_counter")] = 9;
     image[gameRng[0]] = 0x31; image[gameRng[1]] = 0x32;
     run(image, "director_init", { a: 0x6d });
-    for (let row = 0; row < 3712; row += 1) run(image, "director_world_row_tick");
+    for (let row = 0; row < 3712; row += 1) {
+      image[labels.get("frame_counter")] += 1;
+      run(image, "director_world_row_tick");
+    }
   }
   assert.deepEqual([...first.subarray(0x80f4, 0x8100)], [...second.subarray(0x80f4, 0x8100)]);
   assert.equal(first[state.rowLo] | first[state.rowHi] << 8, 3712);
@@ -338,7 +347,7 @@ test("New Game initialization leaves the 12-byte director state live", () => {
 });
 
 test("world-row glue is inactive in DYING/GAME OVER and advances exactly once when active", () => {
-  const image = memory();
+  const image = gameplayMemory();
   run(image, "director_init", { a: 0x6d });
   const lifecycle = labels.get("PLAYER_LIFECYCLE");
   image[lifecycle] = 1; run(image, 0x4efe); assert.equal(image[state.rowLo], 0);
@@ -348,7 +357,7 @@ test("world-row glue is inactive in DYING/GAME OVER and advances exactly once wh
 });
 
 test("admission accounts intensity, enforces budget and fails soft", () => {
-  const image = memory();
+  const image = gameplayMemory();
   image[labels.get("DIFFICULTY_SETTING")] = 0;
   image[labels.get("frame_counter")] = 10;
   run(image, "director_init", { a: 0x6d });
@@ -439,7 +448,7 @@ test("BROADSIDE admission is transactional across success, retry, budget and rel
 // sector ends. What the test is really about survives unchanged: COMPLETE is
 // raised exactly once, it is terminal, and it closes every admission.
 test("the level completes exactly once at the end of its last sector and closes admissions", () => {
-  const image = memory();
+  const image = gameplayMemory();
   pokeLevel(image, { sectors: [spaceSector(16), spaceSector(16)] });
   run(image, "director_init", { a: 0x6d });
   for (let row = 0; row < 31; row += 1) run(image, "director_world_row_tick");
@@ -592,7 +601,7 @@ test("focused production replay exposes three early qualified kills and one natu
 });
 
 test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", () => {
-  const image = memory();
+  const image = gameplayMemory();
   image[labels.get("DIFFICULTY_SETTING")] = 2;
   image[labels.get("PLAYER_LIFECYCLE")] = 0;
   run(image, "init_state");
@@ -818,10 +827,17 @@ test("first capital admission is due on the authored ROW and retries until the p
   () => {
     const sectorState = labels.get("CAPITAL_SECTOR_STATE");
     const frameCounter = labels.get("frame_counter");
+    const clearWait = (image) => {
+      for (let frame=0;frame<2;frame++) {
+        image[frameCounter] += 1;
+        run(image, "director_world_row_tick");
+      }
+    };
     const toCapitalRow = (image) => {
       for (let row = 0; row < 272; row += 1) run(image, "director_world_row_tick");
+      clearWait(image);
     };
-    const legal = memory();
+    const legal = gameplayMemory();
     run(legal, "director_init", { a: 0x6d });
     run(legal, "init_broadside");
     for (let row = 0; row < 271; row += 1) run(legal, "director_world_row_tick");
@@ -829,8 +845,9 @@ test("first capital admission is due on the authored ROW and retries until the p
     assert.equal(legal[sectorState], 7);
     assert.equal(legal[state.flags], 0, "one row early is not due");
     run(legal, "director_world_row_tick");
+    clearWait(legal);
     run(legal, "integration_update_first_capital");
-    assert.equal(legal[sectorState], 0, "the first legal attempt admits on the authored row");
+    assert.equal(legal[sectorState], 0, "the first legal attempt admits after the two-frame Heavy-clear guard");
     assert.equal(legal[state.flags], provisionalCapital.admitted);
 
     run(legal, "director_init", { a: 0x6d });
@@ -838,7 +855,7 @@ test("first capital admission is due on the authored ROW and retries until the p
     assert.equal(legal[state.flags], 0, "level restart must reset the admission state");
     assert.equal(legal[sectorState], 7);
 
-    const blocked = memory();
+    const blocked = gameplayMemory();
     run(blocked, "director_init", { a: 0x6d });
     run(blocked, "init_broadside");
     toCapitalRow(blocked);
@@ -863,7 +880,7 @@ test("first capital admission is due on the authored ROW and retries until the p
 // title names: nothing the row clock does later reopens or interrupts a
 // traversal that is already running.
 test("the capital encounter is entered once and no later row interrupts it", () => {
-  const image = memory();
+  const image = gameplayMemory();
   assert.equal((mainSource.match(/jsr integration_update_first_capital\n/g) ?? []).length, 1);
   assert.match(mainSource,
     /integration_update_first_capital:[\s\S]+jsr HYBRID_SECTOR_UPDATE_FIRST_CAPITAL/);
@@ -875,7 +892,10 @@ test("the capital encounter is entered once and no later row interrupts it", () 
 
   run(image, "director_init", { a: 0x6d });
   image[labels.get("CAPITAL_SECTOR_STATE")] = 2;
-  for (let row = 0; row < 3_000; row += 1) run(image, "director_world_row_tick");
+  for (let row = 0; row < 3_000; row += 1) {
+    image[labels.get("frame_counter")] += 1;
+    run(image, "director_world_row_tick");
+  }
   assert.equal(image[labels.get("CAPITAL_SECTOR_STATE")], 2,
     "a traversal in progress is neither duplicated nor interrupted by later rows");
   assert.equal(image[state.sector], 1, "and the Director waits in the capital sector for it");
@@ -1024,7 +1044,7 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
 });
 
 test("natural capital exit performs one scene recycle on every world row", () => {
-  const image = memory();
+  const image = gameplayMemory();
   const lifecycle = labels.get("PLAYER_LIFECYCLE");
   const sectorState = labels.get("CAPITAL_SECTOR_STATE");
   const frameCounter = labels.get("frame_counter");

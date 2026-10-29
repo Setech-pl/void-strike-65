@@ -75,6 +75,10 @@ const PHASES = [
 // Every linked segment of the default build: owner and phases. A segment
 // without a row here stops the generator - add the row, do not skip it.
 const SEGMENTS = {
+  CONTENT_HEADER: ["checked content entry header", "level"],
+  CONTENT_CODE: ["phase-exclusive content C policy", "level"],
+  CONTENT_DATA: ["checked content state, reset on level load", "level"],
+  CONTENT: ["checked content home; overwritten by boss/banner/death", "level"],
   L2: ["checked fighter/capital phase module; overwritten by boss D/death", "level"],
   ZEROPAGE: ["main: zero-page runtime variables", "resident"],
   BOOT_SPLASH: ["boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli)", "splash"],
@@ -380,6 +384,9 @@ function loadBuild() {
   const manifest = JSON.parse(readBuild("manifest.json"));
   const maps = new Map();
   for (const name of fs.readdirSync(buildDirectory).filter((file) => file.endsWith(".map")).sort()) {
+    // The shared Director/content link emits one map under both artifact names.
+    if(name==="content-module.map" && fs.existsSync(path.join(buildDirectory,"encounter-director.map")) &&
+       readBuild(name)===readBuild("encounter-director.map"))continue;
     maps.set(name, parseMap(name));
   }
   const labels = new Map();
@@ -493,6 +500,7 @@ function collectRows(build) {
   add(m.overlays.slotA.address, m.overlays.slotA.endExclusive - 1, "slot", `overlay slot A (\`${m.overlays.slotA.firstRoutine}\` onward; run \`${m.overlays.runs[0].name}\`)`, "overlay", "manifest `overlays.slotA`");
   add(m.overlays.capitalVectors.address, m.overlays.capitalVectors.address + m.overlays.capitalVectors.bytes - 1, "slot", `capital vector table, ${m.overlays.capitalVectors.entries} entries (inside \`LIGHT_KERNEL\`)`, "resident", "manifest `overlays.capitalVectors`");
   add(m.levelSummary.code.address, m.levelSummary.code.endExclusive - 1, "slot", "level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it", "session", "manifest `levelSummary.code`, tests/level-summary-build.test.mjs");
+  if(m.contentModule) add(m.contentModule.address,m.contentModule.endExclusive-1,"slot","checked content module; retained through pause/death, executable only in valid gameplay", "level", "manifest `contentModule`");
   // M5b-S4a-i (owner answer Q-B5): the boss's claim and its three homes.
   add(m.boss.claim.start, m.boss.claim.endExclusive - 1, "slot", "phase-exclusive low RAM: checked menu at $0C00-$117F in menus; checked L2 at $1900-$1FFF during fighter/capital play; boss charset, C/scratch/D and death image in their installed phases; no unrelated link or boot allocation", "overlay", "manifest `boss.claim`, tests/boss-claim.test.mjs");
   add(m.boss.charset.address, m.boss.charset.address + m.boss.charset.capacityBytes - 1, "slot", "boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install" +
@@ -633,6 +641,9 @@ function reservationTails(build, rows, reservations) {
 // lands on it. tests/cfg-overlaps.test.mjs fails on any overlap not named here
 // and on any entry here that no longer matches one.
 export const DECLARED_CFG_OVERLAPS = Object.freeze([
+  ...["BOSS_BANNER_RAM", "BOSS_SLOT_C_RAM", "BOSS_SCRATCH_RAM", "CODE"].map(area => ({
+    areas: ["CONTENT_RAM", area], name: "checked content over inactive boss/death storage",
+    reason: "Accepted content home $1180-$18FF is loaded for fighter/capital gameplay and disarmed before boss/banner/death images overwrite its phase-exclusive storage" })),
   ...["BOSS_BANNER_RAM", "BOSS_SLOT_C_RAM", "CODE"].map(area => ({
     areas: ["MENU_OVERLAY_RAM", area], name: "L1 checked menu over dead boss storage",
     reason: "MENU_OVERLAY_RAM is read only at MAIN MENU/GAME OVER entry after boss work stops; boss/banner/death overwrite it in their own phases and every later menu entry reloads the checked run" })),

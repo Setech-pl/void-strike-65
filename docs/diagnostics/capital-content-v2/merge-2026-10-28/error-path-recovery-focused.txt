@@ -1,0 +1,42 @@
+✖ mandatory content failures retain the 5053697 error-screen and FIRE implementation (0.955417ms)
+✔ content SIO error uses the L2 error and 5053697 FIRE-to-menu path (37.413333ms)
+✔ content timeout uses the L2 error and 5053697 FIRE-to-menu path (27.718333ms)
+✔ content wire checksum uses the L2 error and 5053697 FIRE-to-menu path (26.22175ms)
+✔ content image checksum uses the L2 error and 5053697 FIRE-to-menu path (31.311584ms)
+{"measurement":"NMOS6502 guard plus no-op tick, excluding brake","maximumCpu":28,"cases":512}
+✔ content checked load arms only after all sectors pass (24.756708ms)
+✔ content checked load rejects damaged data without arming (15.128666ms)
+✔ content call requires loaded validity and GAMEPLAY for every byte-valued phase (14.265417ms)
+✔ inline row veneer requires loaded GAMEPLAY before entering home (14.479959ms)
+✔ documented ROL A: all512 accumulator/carry inputs, flags and two cycles (1.754042ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 182.907417
+
+✖ failing tests:
+
+test at tests/capital-content-v2-failure.test.mjs:9:1
+✖ mandatory content failures retain the 5053697 error-screen and FIRE implementation (0.955417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '67eea8bfbb7dfc0b298457f6fb90a8659c718cd14c036a549cd18de0e259524a'
+  - 'ac351010fca8f7ab5c5566731b873bd49619ca84e5112e34485ab882760a1bcf'
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter-capital-v2-merge/tests/capital-content-v2-failure.test.mjs:11:9)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '67eea8bfbb7dfc0b298457f6fb90a8659c718cd14c036a549cd18de0e259524a',
+    expected: 'ac351010fca8f7ab5c5566731b873bd49619ca84e5112e34485ab882760a1bcf',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

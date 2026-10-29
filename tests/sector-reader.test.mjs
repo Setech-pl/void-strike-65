@@ -38,6 +38,7 @@ const lightKernelImage = fs.readFileSync(path.join(root, "build/light-kernel.bin
 // build's own directory rather than a literal, which is what the reader
 // validates the header against.
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
+const CONTENT_SECTORS = manifest.overlays.runs.find(run => run.index === manifest.contentModule?.runIndex)?.sectors ?? 0;
 const LEVEL_ONE_SECTORS = manifest.sectorReader.levels
   .find((level) => level.id === 1).sectors;
 const READER_BASE = 0xa000;
@@ -805,7 +806,7 @@ test("a directory entry the build left empty is rejected without touching SIO", 
   // RE-POINTED S5-1 (owner decision Q10): regions 2-4 are on the disk, so no
   // entry the build makes is empty; entries 3 and 5 are emptied in memory (a
   // count of 0, the build's "not on this disk") to keep the path exercised.
-  for (const index of [3, 5, 12, 0xff]) {
+  for (const index of [3, 5, manifest.sectorReader.overlayDirectory.entries, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
     const result = runReadRun(stub, index, { emptyEntry: index <= 9 ? index : null });
     assert.equal(result.failed, true, `entry ${index}`);
@@ -823,7 +824,7 @@ test("START GAME after an overlay restores slot A and the vector table before th
   // order, and before any sector of the level.
   const sectors = stub.commandFrames.map((frame) => frame[2] | (frame[3] << 8));
   assert.equal(sectors.length,
-    slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS + summarySectorCount + 14);
+    slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS + summarySectorCount + 14 + CONTENT_SECTORS);
   const restoreAt = sectors.indexOf(512);
   assert.deepEqual(sectors.slice(restoreAt, restoreAt + 16),
     Array.from({ length: 16 }, (_, i) => 512 + i), "the restore run must be read in order");
@@ -842,7 +843,7 @@ test("START GAME without an overlay sends no restore frame", () => {
   const result = runStartGame(stub, { overlaid: false });
   assert.equal(result.end, "start_gameplay");
   assert.deepEqual(overlaySectors(stub), []);
-  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + summarySectorCount + 14);
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + summarySectorCount + 14 + CONTENT_SECTORS);
 });
 
 test("a failed restore read reports through the status path and never starts gameplay", () => {

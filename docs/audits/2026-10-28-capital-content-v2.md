@@ -1,6 +1,6 @@
 # Capital content v2
 
-Status: **Increments 1+0: home27 PASS; STOP on unrecorded pickup-overlap release raster clause at owner checkpoint100db9a.** Four core-down clauses reproduce on5053697. Increment1 remains OWNER-ACCEPTED; increment2 stays PARKED. Earlier STOP sections below are historical.
+Status: **Increments 1+0: pickup clause also fails on5053697; STOP on new capital-contact capture gate.** Current owner checkpoint78d873f. Five runtime clauses remain recorded baseline debt. Increment1 remains OWNER-ACCEPTED; increment2 stays PARKED. Earlier STOP sections are historical.
 
 | Play ATR (absolute path) | SHA-256 at increment1 delivery | Description |
 | --- | --- | --- |
@@ -927,3 +927,11 @@ All3 natural completion sessions and the write-protected counterpart reproduce t
 Fresh complete trace attempt stopped at a different unrecorded clause: `weapon-pickup-overlap-2-hunt-fire5`, final raster. Pre-tail captures15–18 contain28/0/0/0 pixels against>=40; final3 are0 and pass. Collection clears PMG rows. Cause unresolved, no baseline run/fix after STOP.26 completed PAL audits passed; failing session raw1300 rows peak30793, no miss/extraVBI, but its PAL audit not finalized. No canonical refresh, strict build, release-binding rerun or qualified play delivery. New failure is not ledgered.
 
 Previous full-suite A134/B0/C0 remains, A assertions untouched; native15/15, boot7/7 and unchanged boss stress retained. CPU/RAM/residency delta0. Primary/baseline dist clean, no active task emulator; no stage/commit/merge/push/tag. Island artifacts remain unattributed transient raster artifacts for visual-bugs-diag, not a merge blocker. [Full evidence, raw baseline/release logs, exact paths and suggested message](../diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.md).
+
+## cef036b pickup attribution — capital-contact release STOP (2026-10-29)
+
+The unchanged HARD pickup-overlap replay fails identically on5053697: same first assertion and all22 raster counts, including28/0/0/0 at captures15–18. Added one pre-existing-unclassified debt record under the owner baseline-fails decision, alongside four boss-core records. No retiming, assertion, validator or production change. Baseline PAL1300 frames/30793 cycles passes, dist/source restored clean; boot smoke omitted only for targeted attribution. Owner committed these three attribution files as78d873f during the run; agent made no commit. Fresh current overlap also reproduces identical counts and passes PAL.
+
+Fresh full trace stopped on new `capital-contact-allied-medium` capture assertion:13 PNGs (`00`–`12`) versus16 required.31 completed PAL audits pass; failing fixture raw840 frames, peak29982, zero misses/extraVBI, but its audit not finalized. Pipeline-call rows730/737/802/808 are observations; later exactly-once assertion was not reached. No baseline comparison, fix or ledger record for this new failure. No complete canonical refresh, strict release, binding tests or play delivery after STOP.
+
+Retained native15/home27, boot7/7/frontend1390, unchanged boss stress and full-suite A134/B0/C0, A assertions untouched. CPU/RAM/residency delta0. Primary/baseline dist clean, no active task emulator. No stage/commit/merge/push/tag by agent. Island artifacts remain unattributed transient raster artifacts for visual-bugs-diag, not a merge blocker. [Full report, exact paths, raw logs and suggested message](../diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.md).

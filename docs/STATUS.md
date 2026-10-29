@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-28 (capital merge: home27 PASS; pickup-raster release STOP)
+Last update: 2026-10-29 (capital merge: pickup baseline debt; capital-contact release STOP)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,10 +20,10 @@ the values below.
 
 ## Checkpoint
 
-### Capital content v2 — home27 PASS; pickup-raster release STOP
+### Capital content v2 — pickup baseline debt; capital-contact release STOP
 
 Owner merge worktree `dark-fighter-capital-v2-merge`, branch
-`codex/capital-content-v2-merge`, HEAD `100db9a`, baseline main `5053697`.
+`codex/capital-content-v2-merge`, HEAD `78d873f` (task started at `cef036b`), baseline main `5053697`.
 Only increments **1+0** are merge candidates. Increment 1 was OWNER-ACCEPTED
 at `f0b0dd1`, including SIO2SD; increment 0 is committed at `434871e` and awaits
 the final owner check. Neither this preparation nor a local build grants
@@ -73,11 +73,11 @@ full-suite claim. [Full A/B/C lists and assertion audit](diagnostics/capital-con
 
 **Home27/27 PASS:**15 routes+8 exits+R1–R4 terminal roundtrips. Generated missing original-variant ownership images with the existing helper; all8 rerun exits pass. Content2,963,608/boss-owned4,239,102 opcode fetches, zero invalid executions. Boss roundtrips are seeded diagnostic fixtures.
 
-All four default “boss core never fell” clauses reproduce on5053697 with identical inputs, including write-protected media. Recorded as pre-existing-unclassified debt; no replay, validator or production change. Baseline dist/source clean. Baseline boot smoke omitted only for this targeted attribution (baseline frontend1405>1402); no baseline release certification. No boss regression or replay-desync attribution claimed.
+**Five release clauses are pre-existing baseline debt.** The unchanged HARD pickup-overlap trace also fails on 5053697, with the exact same 22 pixel counts, including 28/0/0/0 at captures 15–18. Recorded alongside four boss-core clauses. Baseline PAL passes at30,793; source/dist restored clean. Baseline boot smoke omitted only for targeted attribution (frontend1405>1402). No input, assertion, validator or production change; root classification remains unresolved. Owner checkpoint78d873f contains this attribution and debt record.
 
-**STOP: new unrecorded release clause** `weapon-pickup-overlap-2-hunt-fire5`, runtime-wall-trace.mjs:6107: “final raster contains a cut capsule or stale post-collection footprint.” Pre-tail captures15–18 have28/0/0/0 pixels, expected>=40; final3 are0 and pass tail limit. One collection clears PMG rows. Cause unresolved; no baseline run or fix after STOP. Fresh trace terminated immediately after26 completed passing PAL audits; no fresh complete canonical report, strict release build or play delivery. New clause not added to ledger. [Full report and exact paths](diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.md), [hash-bound evidence](diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json).
+**STOP: new unrecorded release gate** `capital-contact-allied-medium`, runtime-wall-trace.mjs:5882: expected16 consecutive rasters, actual13 (`frame-00`–`frame-12`). No baseline comparison or change after STOP; not ledgered. Fresh run terminated immediately after31 completed passing PAL audits; failing fixture raw840 rows, peak29982, zero miss/extraVBI, but its PAL audit not finalized. No fresh complete canonical report, strict build, binding rerun or play delivery. [Full evidence and exact pending paths](diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.md), [hash-bound data](diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.json).
 
-CPU/RAM/residency delta0 this continuation. Evidence campaign ATR SHA256 `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676` remains under `build/merge-validation-c182af2/dist/`; no qualified play delivery. Primary and baseline dist clean, no active task emulator. Owner commits; no stage/commit/merge/push/tag. NEXT TASK: owner decision on pickup-raster attribution, then resume release evidence, strict build and three play ATRs. Island symptoms remain unattributed transient raster artifacts for visual-bugs-diag, not a merge blocker. Owner final smoke remains pending.
+CPU/RAM/residency delta0. No production or test changes; retained native15/home27, boot1390<=1402, boss stress unchanged, full-suite A134/B0/C0 with Group A assertions untouched. Evidence campaign ATR SHA256 `5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676` remains under `build/merge-validation-c182af2/dist/`, not qualified play delivery. Primary and baseline dist clean; no active task emulator. No stage/commit/merge/push/tag by agent; owner advanced docs checkpoint during the run. NEXT TASK: owner decision on capital-contact capture attribution, then resume complete release evidence, strict build and three play ATRs. Island artifacts remain unattributed transient raster artifacts for visual-bugs-diag, not a merge blocker. Owner final smoke remains pending.
 
 ### M3-H session 1 — OWNER-SMOKE CANDIDATE
 

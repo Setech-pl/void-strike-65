@@ -284,5 +284,305 @@
   "inputChanges": 0,
   "validatorChanges": 0,
   "baselineVerbatimLog": "docs/diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b-baseline.txt",
-  "baselineVerbatimLogSha256": "01efa30d2088d2ae5f59b1cb157ccf13fc4fa5eb897e2c31caae8b829a0085a5"
+  "baselineVerbatimLogSha256": "01efa30d2088d2ae5f59b1cb157ccf13fc4fa5eb897e2c31caae8b829a0085a5",
+  "freshCurrentOverlap": {
+    "classification": "same recorded baseline clause and counts",
+    "raw": [
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-00.png",
+        "bytes": 1079,
+        "sha256": "167f010f1b49834c596398a906c7f4b82f9a8762cd6d2be45cc2a2a541606d07"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-01.png",
+        "bytes": 1054,
+        "sha256": "a1d757309336d98d1c8aea9d8838d55507f2ccfb9fa059b2a15cb167c3dc748c"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-02.png",
+        "bytes": 1074,
+        "sha256": "8c691206c468d5a61caba61f595343b6739db40c4a6bf7ca41cd044b8dda4abb"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-03.png",
+        "bytes": 1059,
+        "sha256": "57faf84b8942efa25b764c7ce3a972b1f8ac1fbdaf9e5c93bd4804e7c29deb80"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-04.png",
+        "bytes": 1122,
+        "sha256": "0637e7d7b411cc9d3c3d226feb6ae5a75c8c06a5b42e0ca4e4ddacfb2ddf7151"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-05.png",
+        "bytes": 1077,
+        "sha256": "5bde53482de3b9099a5c89c0602cc911e18e37d2bac2a437459ee321546944b1"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-06.png",
+        "bytes": 1113,
+        "sha256": "1fb425b46d0b96870a6d4e7d83b8b16454c79d9c9864fbd6742104ea49675d86"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-07.png",
+        "bytes": 1085,
+        "sha256": "27e53a71a15d444868fbf6695f6601eb3f0deb8bff34a953ed233ac4f39d062a"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-08.png",
+        "bytes": 1123,
+        "sha256": "2a9178edd1fa2f7eae961313fa10a2fea34eb9bae1f3bc50215ebb728db23675"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-09.png",
+        "bytes": 1078,
+        "sha256": "1cdd5d526d5797c70de39c43d27f0d902aa6ec95fa627da0c5cff1b941ba2cae"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-10.png",
+        "bytes": 1095,
+        "sha256": "cb2b558ef121d64bd6e7431db44caf5d3feeadf51a1b83e8ebf9cd2edaeaf23d"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-11.png",
+        "bytes": 1327,
+        "sha256": "69e10812481a11a8e6892b2f346bc02bc05dd9377a8ceb412c9fff242870f0c3"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-12.png",
+        "bytes": 1369,
+        "sha256": "11830fd00393f64418438fdf77c3e4315de466c872266647999b0f3f4d032a5f"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-13.png",
+        "bytes": 1370,
+        "sha256": "2d6a2b9b7950c11ff4ce1cb27d1915179ef2d873322f33ac005994a391346ef3"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-14.png",
+        "bytes": 1481,
+        "sha256": "1fa613cc17c6462b7cacb6e9b504503d7fcdd4422c30774bf94416ee1148b421"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-15.png",
+        "bytes": 1033,
+        "sha256": "f35b9e194eb02b3988f47bba2a49f4e9b50790ea254731ccf92282b4fe771dc2"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-16.png",
+        "bytes": 1019,
+        "sha256": "9c349a4af1a2006f29a9b2e909fd79916d5795f8f1ba03e62691b9832a391150"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-17.png",
+        "bytes": 1036,
+        "sha256": "6bda6d9e7c9d3825c95e03d1ea5f6b499f83a0433270b14c741a3edd177b6ac8"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-18.png",
+        "bytes": 1036,
+        "sha256": "21c23abe451edc36bc4c2f6f18af068a1891894498d579b7e82ec886ffbccc48"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-19.png",
+        "bytes": 1040,
+        "sha256": "8dadf723d587ed0ddf904804a03764160294d8289b2b2465aee036e409c6cc6d"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-20.png",
+        "bytes": 1048,
+        "sha256": "e0a9c7fc62754ae49a8c4f7f8d2dfa149692e6a4dba5b826f683257488e3f431"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-contact-edge-21.png",
+        "bytes": 1060,
+        "sha256": "f69b602b8862c4702761eb34d773b0ab9d3a5b10346e063143e08863f5b924e2"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-overlap-2-hunt-fire5-watch.json",
+        "bytes": 15402,
+        "sha256": "a2e387eea2045fa26494b19878c31c93031b037ec6610de6dd0f737797eec722"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/current-overlap-raw/weapon-pickup-overlap-2-hunt-fire5.csv",
+        "bytes": 2055422,
+        "sha256": "654551117ab7885c97d0a1e9a52d604e1e6d74fe5e83adf41a64399ec2bb2707"
+      }
+    ],
+    "maximumWallCycles": 30793,
+    "measuredFrames": 1300
+  },
+  "endingHead": "78d873f",
+  "ownerCheckpointDuringRun": {
+    "commit": "78d873f",
+    "files": [
+      "docs/diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b-baseline.txt",
+      "docs/diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.json",
+      "docs/recorded-gate-failures.json"
+    ],
+    "productionChange": false
+  },
+  "releaseStop": {
+    "session": "capital-contact-allied-medium",
+    "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters",
+    "location": "scripts/runtime-wall-trace.mjs:5882",
+    "expectedCaptureCount": 16,
+    "actualCaptureCount": 13,
+    "captureNames": [
+      "capital-contact-allied-medium-frame-00.png",
+      "capital-contact-allied-medium-frame-01.png",
+      "capital-contact-allied-medium-frame-02.png",
+      "capital-contact-allied-medium-frame-03.png",
+      "capital-contact-allied-medium-frame-04.png",
+      "capital-contact-allied-medium-frame-05.png",
+      "capital-contact-allied-medium-frame-06.png",
+      "capital-contact-allied-medium-frame-07.png",
+      "capital-contact-allied-medium-frame-08.png",
+      "capital-contact-allied-medium-frame-09.png",
+      "capital-contact-allied-medium-frame-10.png",
+      "capital-contact-allied-medium-frame-11.png",
+      "capital-contact-allied-medium-frame-12.png"
+    ],
+    "inputs": {
+      "difficulty": 1,
+      "policy": "capital-contact-allied",
+      "fireDelay": 4000,
+      "frames": 840,
+      "contactPreambleRow": 225,
+      "contactOwner": 0,
+      "contactModeId": 1
+    },
+    "rawRows": 840,
+    "firstFrame": 0,
+    "lastFrame": 839,
+    "maximumWallCycles": 29982,
+    "missedFrames": 0,
+    "extraVbiBoundaries": 0,
+    "damagePipelineRows": [
+      {
+        "frame": 730,
+        "gameplayFrame": 218,
+        "calls": 1
+      },
+      {
+        "frame": 737,
+        "gameplayFrame": 225,
+        "calls": 1
+      },
+      {
+        "frame": 802,
+        "gameplayFrame": 34,
+        "calls": 1
+      },
+      {
+        "frame": 808,
+        "gameplayFrame": 40,
+        "calls": 1
+      }
+    ],
+    "classification": "unattributed; no baseline comparison or change after STOP",
+    "palAuditFinalized": false,
+    "completedPassingPalAudits": 31,
+    "totalClausesInLog": 6,
+    "raw": [
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-00.png",
+        "bytes": 1688,
+        "sha256": "c674ef54e3c12258be8d63c471560b76750dc5406eeb6d5a699d49b5bef4551e"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-01.png",
+        "bytes": 1694,
+        "sha256": "ec838142a4dddf686225c9a162a3ff7095cdaaae6b1a375e9eb14b916f794576"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-02.png",
+        "bytes": 1695,
+        "sha256": "185fc815ffae317fbadb0766c04320b6e8e07fbbd2c04e2eb7ce89a02ad70841"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-03.png",
+        "bytes": 1699,
+        "sha256": "327ffe52c8b13c496dd9bffcc129179145bc99f04f79e0077f3819418df04def"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-04.png",
+        "bytes": 1694,
+        "sha256": "f4532a4a3ed6d582860f1917608a3cf906c650a4b06b8ff087f2c8dcb2cb9d38"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-05.png",
+        "bytes": 1710,
+        "sha256": "3f13c119400797dd1846eef1d1a6738a59cab0fa6134bc4305346dbfde882d64"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-06.png",
+        "bytes": 1726,
+        "sha256": "41a94061ededc9283827046df9137abe2806d5bbfb89045bcc313c7d40e70427"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-07.png",
+        "bytes": 1716,
+        "sha256": "1af0c08a69f2f0469efd3c15bea0fd1c33296447dc9be7531235fb5586e8f974"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-08.png",
+        "bytes": 1726,
+        "sha256": "fa69d9b2c260d6f0f35dfd7e68184db99f285a1a6a5ee295f2fb351350e00013"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-09.png",
+        "bytes": 1724,
+        "sha256": "e8671f1d1b835c0d5bc440f0fb7affb540eed55f064907b973a693a567c55e16"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-10.png",
+        "bytes": 1749,
+        "sha256": "e7f219e1728602e10bf1df4a32522594f7e159259dcf31f36fb8e12d84e66a8b"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-11.png",
+        "bytes": 1744,
+        "sha256": "d9800b65e881396bf40eb58df2c6d8d92cfb67b28a6880d272608f8fd75e36d9"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-frame-12.png",
+        "bytes": 1747,
+        "sha256": "7649c85f1c7cd8578775d733865cb7c0cce83e0f6871e0e3cc278bf81b200a7f"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-summary.jsonl",
+        "bytes": 5192,
+        "sha256": "d0733e8811e1a129d1e64c01f842d627cd10ab460020bb2839020b4c57e6a57e"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium-watch.json",
+        "bytes": 13825,
+        "sha256": "d7636a8292d078d7020defd7337e5f53f35ecdde8d87119242ea2ae65295bf0b"
+      },
+      {
+        "path": "build/evidence/capital-content-v2/pickup-cef036b/capital-contact-stop/capital-contact-allied-medium.csv",
+        "bytes": 1299499,
+        "sha256": "83c4f4833d5ceb494e726930405174e04cc44399f337bb0700fad37db18ea893"
+      }
+    ],
+    "transcript": "docs/diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b-release-stop.txt",
+    "transcriptSha256": "4d9b3ec1eb5ac7899cc67a27e5f82713b4eb2d668e957d9c92c0ed6032769179",
+    "noActiveTaskEmulator": true
+  },
+  "releaseRun": {
+    "code": null,
+    "signal": "SIGTERM",
+    "unexpected": "capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters",
+    "knownBaselineClauses": [
+      "director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell",
+      "weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)"
+    ],
+    "logfile": "build/evidence/capital-content-v2/pickup-cef036b/release-refresh.log"
+  },
+  "strictRelease": "NOT RUN after new unrecorded capital-contact gate",
+  "playDelivery": "NOT DELIVERED"
 }
